@@ -12,7 +12,7 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-package edu.kit.joana.ui.ifc.wala.console.toy.simp;
+package joana.api.testdata.toy.simp;
 
 
 class StaticConst {

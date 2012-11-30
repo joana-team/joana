@@ -35,7 +35,6 @@ public final class Log {
 	private static final Set<String> DEFAULT_ENABLED = new HashSet<String>();
 	static {
 		DEFAULT_ENABLED.add(L_ERROR);
-		DEFAULT_ENABLED.add(L_MHP_DEBUG);
 	}
 	
 	private static final String PROP_FILE = "joana-log.properties";

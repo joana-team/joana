@@ -1,0 +1,11 @@
+b<=f
+bottom<=b
+f<=top
+c<=f
+c<=g
+bottom<=c
+g<=top
+d<=g
+bottom<=d
+e<=g
+bottom<=e

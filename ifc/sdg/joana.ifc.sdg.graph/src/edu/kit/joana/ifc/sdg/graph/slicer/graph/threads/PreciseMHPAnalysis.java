@@ -1,0 +1,627 @@
+/**
+ * This file is part of the Joana IFC project. It is developed at the
+ * Programming Paradigms Group of the Karlsruhe Institute of Technology.
+ *
+ * For further details on licensing please read the information at
+ * http://joana.ipd.kit.edu or contact the authors.
+ */
+package edu.kit.joana.ifc.sdg.graph.slicer.graph.threads;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+
+import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind;
+import edu.kit.joana.ifc.sdg.graph.slicer.conc.CFGForward;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
+
+
+/**
+ * @author giffhorn
+ *
+ */
+public class PreciseMHPAnalysis implements MHPAnalysis {
+    private final static boolean DEBUG = false;
+
+    private ThreadsInformation info;
+    private BitMatrix map;
+    private ThreadRegions regions;
+    private HashMap<Integer, Collection<VirtualNode>> mayExist;
+
+    private PreciseMHPAnalysis(ThreadsInformation info, BitMatrix map, ThreadRegions regions) {
+        this.info = info;
+        this.map = map;
+        this.regions = regions;
+    }
+
+    private void setMayExistMap(HashMap<Integer, Collection<VirtualNode>> mayExist) {
+    	this.mayExist = mayExist;
+    }
+
+    public ThreadRegions getTR() {
+    	return regions;
+    }
+
+	public Collection<ThreadRegion> getThreadRegions() {
+		return regions.getThreadRegions();
+	}
+
+	public ThreadRegion getThreadRegion(SDGNode node, int thread) {
+		return regions.getThreadRegion(node, thread);
+	}
+
+	public ThreadRegion getThreadRegion(VirtualNode node) {
+		return regions.getThreadRegion(node.getNode(), node.getNumber());
+	}
+
+	public ThreadRegion getThreadRegion(int id) {
+		return regions.getThreadRegion(id);
+	}
+
+    /** Konservative Parallelitaetsabfrage - m und n sind sequentiell, wenn alle moeglichen Instanzen zueinander sequentiell sind.
+     *
+     * Geeignet z.B. fuer statisches Graph-Preprocessing
+     *
+     * @param m
+     * @param n
+     * @return
+     */
+    public boolean isParallel(SDGNode m, SDGNode n) {
+        for (int mt : m.getThreadNumbers()) {
+            for (int nt : n.getThreadNumbers()) {
+                if (isParallel(m, mt, n, nt)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param m
+     * @param n
+     * @return
+     */
+    public boolean isParallel(SDGNode m, int mThread, SDGNode n, int nThread) {
+    	ThreadRegion mRegion = regions.getThreadRegion(m, mThread);
+    	ThreadRegion nRegion = regions.getThreadRegion(n, nThread);
+    	return map.get(mRegion.getID(), nRegion.getID());
+    }
+
+    public boolean isParallel(VirtualNode m, VirtualNode n) {
+    	ThreadRegion mRegion = regions.getThreadRegion(m);
+    	ThreadRegion nRegion = regions.getThreadRegion(n);
+    	return map.get(mRegion.getID(), nRegion.getID());
+    }
+
+	public boolean isParallel(SDGNode m, int mThread, int region) {
+    	ThreadRegion mRegion = regions.getThreadRegion(m, mThread);
+    	return map.get(mRegion.getID(), region);
+	}
+
+    public boolean isParallel(ThreadRegion r, ThreadRegion s) {
+    	return map.get(r.getID(), s.getID());
+    }
+
+
+    public String toString() {
+//        return "Map size: " + map.getDimension();
+        return map.toString();
+    }
+
+    public SDGNode getThreadExit(int thread) {
+        return info.getThreadExit(thread);
+    }
+
+    public SDGNode getThreadEntry(int thread) {
+        return info.getThreadEntry(thread);
+    }
+
+    public boolean isDynamic(int thread) {
+        return info.isDynamic(thread);
+    }
+
+	@Override
+	public boolean mayExist(int thread, VirtualNode v) {
+		return (mayExist.get(thread).contains(v));
+	}
+
+	@Override
+	public boolean mayExist(int thread, SDGNode n, int nThread) {
+		return (mayExist.get(thread).contains(new VirtualNode(n, nThread)));
+	}
+
+
+    /* FACTORIES */
+
+    /** Needs a pre-processed cSDG.
+     *
+     * @param sdg
+     * @return
+     */
+
+    public static PreciseMHPAnalysis analyze(SDG sdg) {
+        ThreadsInformation info = sdg.getThreadsInfo();
+        CFG icfg = ICFGBuilder.extractICFG(sdg);
+        PreciseMHPAnalysis tr = analyze(icfg, info);
+
+        return tr;
+    }
+
+    private static void addReturnEdges(CFG icfg) {
+		List<SDGEdge> retEdges = new LinkedList<SDGEdge>();
+		for (SDGNode node : icfg.vertexSet()) {
+			if (node.getKind() == SDGNode.Kind.CALL) {
+				Set<SDGNode> intraSucc = new HashSet<SDGNode>();
+				for (SDGEdge intraEdge : icfg.getOutgoingEdgesOfKind(node, SDGEdge.Kind.CONTROL_FLOW)) {
+					intraSucc.add(intraEdge.getTarget());
+				}
+
+				for (SDGEdge callEdge : icfg.getOutgoingEdgesOfKind(node, SDGEdge.Kind.CALL)) {
+					SDGNode entryOfCalled = callEdge.getTarget();
+					assert entryOfCalled.kind == SDGNode.Kind.ENTRY;
+					SDGNode exitOfCalled = findExit(icfg, entryOfCalled);
+					for (SDGNode iSucc : intraSucc) {
+						SDGEdge retEdge = new SDGEdge(exitOfCalled, iSucc, SDGEdge.Kind.RETURN);
+						retEdges.add(retEdge);
+					}
+				}
+			}
+		}
+
+		icfg.addAllEdges(retEdges);
+	}
+
+	private static SDGNode findExit(CFG icfg, SDGNode entry) {
+		assert entry.kind == SDGNode.Kind.ENTRY;
+		LinkedList<SDGNode> w = new LinkedList<SDGNode>();
+		Set<SDGNode> visited = new HashSet<SDGNode>();
+		w.add(entry);
+		while (!w.isEmpty()) {
+			SDGNode next = w.poll();
+			visited.add(next);
+			if (next.getKind() == SDGNode.Kind.EXIT) {
+				return next;
+			} else {
+				for (SDGEdge e : icfg.outgoingEdgesOf(next)) {
+					if ((e.getKind() == Kind.CONTROL_FLOW || e.getKind() == Kind.JUMP_FLOW || e.getKind() == Kind.NO_FLOW)) {
+						SDGNode succ = e.getTarget();
+						if (!visited.contains(succ)) {
+							w.add(succ);
+						}
+					}
+				}
+			}
+		}
+
+		throw new IllegalStateException("no exit node found in control flow graph of method...");
+	}
+
+    /**
+     *
+     * @param icfg
+     * @param info
+     * @return
+     */
+
+	private static PreciseMHPAnalysis analyze(CFG icfg, ThreadsInformation info) {
+    	//addReturnEdges(icfg);
+        if (DEBUG) System.out.println("Compute Thread Regions ...");
+    	List<SDGEdge> syntheticEdges = removeSyntheticEdges(icfg);
+        ThreadRegions tr = ThreadRegions.createPreciseThreadRegions(icfg, info);
+//        if (DEBUG) System.out.println(tr);
+        MHPComputation mhp = new MHPComputation(icfg, info, tr);
+    	icfg.addAllEdges(syntheticEdges);
+    	PreciseMHPAnalysis result = mhp.getMHPMap();
+
+        if (DEBUG) System.out.println("Compute MayExist Map ...");
+        HashMap<Integer, Collection<VirtualNode>> mayExist = computeMayExist(result);
+        result.setMayExistMap(mayExist);
+    	return result;
+    }
+
+    public static List<SDGEdge> removeSyntheticEdges(CFG icfg) {
+    	LinkedList<SDGEdge> remove = new LinkedList<SDGEdge>();
+
+    	for (SDGNode n : icfg.vertexSet()) {
+    		if (n.getKind() == SDGNode.Kind.ENTRY) {
+    			List<SDGEdge> out = icfg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CONTROL_FLOW);
+
+    			if (out.size() > 1) {
+    				for (SDGEdge e : out) {
+    					if (e.getTarget().getKind() == SDGNode.Kind.EXIT) {
+    						remove.add(e);
+    					}
+    				}
+    			}
+
+    		}
+    	}
+
+    	icfg.removeAllEdges(remove);
+
+    	return remove;
+    }
+
+    private static HashMap<Integer, Collection<VirtualNode>> computeMayExist(PreciseMHPAnalysis mhp) {
+    	HashMap<Integer, Collection<VirtualNode>> result = new HashMap<Integer, Collection<VirtualNode>>();
+
+    	// TODO: proof of concept, can be done more efficiently
+    	for (ThreadRegion r : mhp.getThreadRegions()) {
+    		for (ThreadRegion s : mhp.getThreadRegions()) {
+    			if (mhp.isParallel(r, s)) {
+    				Collection<VirtualNode> c = result.get(r.getThread());
+    				if (c == null) {
+    					c = new HashSet<VirtualNode>();
+    					result.put(r.getThread(), c);
+    				}
+
+    				for (SDGNode n : s.getNodes()) {
+    					c.add(new VirtualNode(n, s.getThread()));
+    				}
+    			}
+    		}
+    	}
+
+    	return result;
+    }
+
+
+    /* MHP Computation */
+
+    private static class MHPComputation {
+        private BitMatrix map;
+        private CFG icfg;
+        private ThreadsInformation info;
+        private ThreadRegions tr;
+        private HashMap<SDGNode, Set<SDGNode>> joinDominance;
+        private LinkedList<DynamicContext> forks;
+        private HashMap<DynamicContext, LinkedList<Integer>> indirectForks;
+        private CFGForward slicer;
+
+        private MHPComputation (CFG icfg, ThreadsInformation info, ThreadRegions tr) {
+            this.icfg = icfg;
+            this.info = info;
+            this.tr = tr;
+            slicer = new CFGForward(icfg);
+        }
+
+        private PreciseMHPAnalysis getMHPMap() {
+        	if (DEBUG) System.out.println("collect forks");//("Forks:\n"+forks);
+        	forks = collectForks();
+        	if (DEBUG) System.out.println("collect indirect forks");//("Indirect Forks:\n"+indirectForks);
+        	indirectForks = collectIndirectForks();
+        	if (DEBUG) System.out.println("compute join dominance");//("Indirect Forks:\n"+indirectForks);
+        	joinDominance = computeJoinDominance();
+        	if (DEBUG) System.out.println("compute parallelism");//("Indirect Forks:\n"+indirectForks);
+        	map = computeParallelism();
+        	//if (DEBUG) System.out.println(map);
+            return new PreciseMHPAnalysis(info, map, tr);
+        }
+
+        private LinkedList<DynamicContext> collectForks() {
+        	LinkedList<DynamicContext> result = new LinkedList<DynamicContext>();
+        	result.add(null); // dummy value for thread 0
+
+        	for (int i = 1; i < info.getNumberOfThreads(); i++) {
+        		DynamicContext fork = new DynamicContext(info.getThreadContext(i), info.getThreadFork(i), i);
+        		result.addLast(fork);
+        	}
+
+        	return result;
+        }
+
+		private HashMap<DynamicContext, LinkedList<Integer>> collectIndirectForks() {
+        	HashMap<DynamicContext, LinkedList<Integer>> result = new HashMap<DynamicContext, LinkedList<Integer>>();
+
+        	for (DynamicContext fork : forks) {
+        		if (fork == null) continue;
+
+        		LinkedList<Integer> l = new LinkedList<Integer>();
+
+            	for (DynamicContext other : forks) {
+            		if (other == null) continue;
+
+            		if (fork.isSuffixOf(other)) {
+            			l.add(other.getThread());
+            		}
+            	}
+
+            	result.put(fork, l);
+        	}
+
+        	return result;
+        }
+
+        private BitMatrix computeParallelism() {
+        	BitMatrix result = new BitMatrix(tr.size());
+
+    		// process parallelism induced by forks
+        	if (DEBUG) System.out.println("parallelism through forks");
+        	for (DynamicContext fork : forks) {
+        		if (DEBUG) System.out.print(".");
+        		if (fork == null) continue;
+
+        		LinkedList<SDGNode> succ = new LinkedList<SDGNode>();
+
+        		for (SDGEdge e : icfg.getOutgoingEdgesOfKind(fork.getNode(), SDGEdge.Kind.CONTROL_FLOW)) {
+        			succ.add(e.getTarget());
+        		}
+
+        		Collection<SDGNode> slice = slicer.slice(succ);
+        		LinkedList<ThreadRegion> inSlice = new LinkedList<ThreadRegion>();
+
+        		for (int x = 0; x < tr.size(); x++) {
+        			ThreadRegion q = tr.getThreadRegion(x);
+        			if (fork.getNode() == q.getStart() || slice.contains(q.getStart())) {
+        				inSlice.add(q);
+        			}
+        		}
+
+        		// determine parallelism induced by fork
+        		LinkedList<Integer> spawnedThreads = indirectForks.get(fork);
+
+        		for (int i = 0; i < tr.size(); i++) {
+            		ThreadRegion p = tr.getThreadRegion(i);
+
+            		if (!spawnedThreads.contains(p.getThread())) continue;
+
+            		for (ThreadRegion q : inSlice) {
+            			result.set(p.getID(), q.getID());
+            			result.set(q.getID(), p.getID());
+//                    	if (DEBUG) System.out.println(p.getID()+" || "+q.getID());
+            		}
+            	}
+//        		if (DEBUG) System.out.println();
+        	}
+//        	if (DEBUG) System.out.println(result);
+        	if (DEBUG) System.out.println();
+
+        	// process parallelism induced by thread spawning inside loops
+        	if (DEBUG) System.out.println("parallelism through loops");
+        	for (int thread = 0; thread < info.getNumberOfThreads(); thread++) {
+        		if (DEBUG) System.out.print(thread+", ");
+        		if (info.isDynamic(thread)) {
+        			Collection<ThreadRegion> regs = tr.getThreadRegionSet(thread);
+        			for (ThreadRegion p : regs) {
+        				for (ThreadRegion q : regs) {
+        					result.set(p.getID(), q.getID());
+        					result.set(q.getID(), p.getID());
+        				}
+        			}
+        		}
+        	}
+        	if (DEBUG) System.out.println();
+
+//        	if (DEBUG) System.out.println(result);
+
+        	// refine parallelism by inspecting joins
+        	if (DEBUG) System.out.println("inspecting joins");
+        	int ctr = 0;
+        	for (int thread = 1; thread < info.getNumberOfThreads(); thread++) {
+        		SDGNode join = info.getThreadJoin(thread);
+        		if (join == null) continue;
+
+        		Collection<SDGNode> dom = joinDominance.get(join);
+        		Collection<ThreadRegion> regs = tr.getThreadRegionSet(thread);
+
+        		for (ThreadRegion r : tr) {
+        			if (r.getThread() == thread) continue;
+
+        			if (dom.contains(r.getStart())) {
+        				for (ThreadRegion q : regs) {
+        					ctr++;
+        					result.clear(r.getID(), q.getID());
+        					result.clear(q.getID(), r.getID());
+        				}
+        			}
+        		}
+        	}
+        	if (DEBUG) System.out.println("parallelism removed by join-analysis: "+ctr);
+
+        	if (DEBUG) System.out.println("done");
+        	return result;
+        }
+
+        /* TODO: this is a proof-of-concept implementation.
+         * Refine it some day with an interprocedural dominator tree.
+         *
+         * @param thread
+         * @param r
+         * @return
+         */
+        private HashMap<SDGNode, Set<SDGNode>> computeJoinDominance() {
+        	HashMap<SDGNode, Set<SDGNode>> result = new HashMap<SDGNode, Set<SDGNode>>();
+
+        	for (SDGNode join : info.getAllJoins()) {
+
+	            // compute a thread-local slice
+        		HashSet<SDGNode> phase1 = phase1(join);
+
+	            // remove from it all nodes not dominated by join
+//	            slice = close(slice);
+//	            System.out.println(join+"\n"+phase1);
+	            // store it in the map
+	            result.put(join, phase1);
+        	}
+
+            return result;
+        }
+
+        private HashSet<SDGNode> phase1(SDGNode join) {
+        	HashSet<SDGNode> visited = new HashSet<SDGNode>();
+        	LinkedList<SDGNode> w = new LinkedList<SDGNode>();
+
+//        	visited.add(join);
+        	w.add(join);
+
+        	// compute a phase-1 forward slice, omit forks and calls
+        	while (!w.isEmpty()) {
+        		SDGNode next = w.poll();
+
+        		for (SDGEdge e : icfg.outgoingEdgesOf(next)) {
+        			if (e.getKind() == SDGEdge.Kind.FORK || e.getKind() == SDGEdge.Kind.CALL) {
+        				continue;
+        			}
+
+        			if (visited.add(e.getTarget())) {
+        				w.add(e.getTarget());
+        			}
+        		}
+        	}
+
+        	// remove all nodes which can be reached by a path bypassing join
+        	HashSet<SDGNode> removed = new HashSet<SDGNode>();
+        	HashSet<SDGNode> remove = new HashSet<SDGNode>();
+
+        	do {
+        		remove.clear();
+
+        		for (SDGNode n : visited) {
+        			for (SDGEdge inc : icfg.incomingEdgesOf(n)) {
+            			if (inc.getKind() == SDGEdge.Kind.FORK || inc.getKind() == SDGEdge.Kind.CALL) {
+            				continue;
+            			}
+
+        				SDGNode from = inc.getSource();
+
+        				//skip synthetic edges
+        				if ((from.getKind() == SDGNode.Kind.CALL && inc.getKind() == SDGEdge.Kind.CONTROL_FLOW)
+        						|| (from.getKind() == SDGNode.Kind.ENTRY && n.getKind() == SDGNode.Kind.EXIT)) {
+        					continue;
+        				}
+
+        				if (inc.getKind() == SDGEdge.Kind.RETURN
+        						&& (removed.contains(from) || remove.contains(from))) {
+//        					System.out.println(n+" "+inc);
+//                			System.out.println(!visited.contains(from));
+//                			System.out.println(remove.contains(from));
+        					// not dominated by join
+        					remove.add(n);
+        					break;
+
+        				} else if (inc.getKind() == SDGEdge.Kind.CONTROL_FLOW
+        						&& (!visited.contains(from) || remove.contains(from))) {
+//        					System.out.println(n+" "+inc);
+//                			System.out.println(!visited.contains(from));
+//                			System.out.println(remove.contains(from));
+        					// not dominated by join
+        					remove.add(n);
+        					break;
+        				}
+        			}
+        		}
+
+        		visited.removeAll(remove);
+        		removed.addAll(remove);
+
+
+        	} while (!remove.isEmpty());
+
+        	return visited;
+        }
+
+        private HashSet<SDGNode> threadLocalSlice(SDGNode join) {
+        	HashSet<SDGNode> visited = new HashSet<SDGNode>();
+        	LinkedList<SDGNode> w1 = new LinkedList<SDGNode>();
+        	LinkedList<SDGNode> w2 = new LinkedList<SDGNode>();
+
+        	visited.add(join);
+        	w1.add(join);
+
+        	// compute a thread-local slice
+        	while (!w1.isEmpty()) {
+        		SDGNode next = w1.poll();
+
+        		for (SDGEdge e : icfg.outgoingEdgesOf(next)) {
+        			if (e.getKind() != SDGEdge.Kind.FORK
+        					&& visited.add(e.getTarget())) {
+
+        				if (e.getKind() == SDGEdge.Kind.CALL) {
+            				w2.add(e.getTarget());
+
+        				} else {
+            				w1.add(e.getTarget());
+        				}
+        			}
+        		}
+        	}
+
+        	while (!w2.isEmpty()) {
+        		SDGNode next = w2.poll();
+
+        		for (SDGEdge e : icfg.outgoingEdgesOf(next)) {
+        			if (e.getKind() != SDGEdge.Kind.FORK
+        					&& e.getKind() != SDGEdge.Kind.RETURN
+        					&& visited.add(e.getTarget())) {
+
+        				w2.add(e.getTarget());
+        			}
+        		}
+        	}
+
+        	return visited;
+        }
+
+        private HashSet<SDGNode> close(HashSet<SDGNode> slice) {
+        	HashSet<SDGNode> remove = new HashSet<SDGNode>();
+
+        	do {
+        		remove.clear();
+
+        		for (SDGNode n : slice) {
+        			for (SDGEdge inc : icfg.incomingEdgesOf(n)) {
+        				SDGNode from = inc.getSource();
+
+        				//skip synthetic edges
+        				if (from.getKind() == SDGNode.Kind.CALL && inc.getKind() == SDGEdge.Kind.CONTROL_FLOW) {
+        					continue;
+        				}
+
+        				if (from.getKind() == SDGNode.Kind.ENTRY && n.getKind() == SDGNode.Kind.EXIT) {
+        					continue;
+        				}
+
+        				if (inc.getKind() == SDGEdge.Kind.FORK || inc.getKind() == SDGEdge.Kind.JOIN) {
+        					continue;
+        				}
+
+        				if (!slice.contains(from) || remove.contains(from)) {
+        					// not dominated by join
+        					remove.add(n);
+        					break;
+        				}
+        			}
+        		}
+
+        		slice.removeAll(remove);
+
+
+        	} while (!remove.isEmpty());
+
+            return slice;
+        }
+    }
+
+
+    /* DEBUG */
+    public static void main(String[] args) throws Exception {
+    	String str = "/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/eclipse/runtime-EclipseApplication/Tests/jSDG/tests.Mantel00Page10.pdg";
+    	SDG g = SDG.readFrom(str);
+    	PreciseMHPAnalysis mhp = PreciseMHPAnalysis.analyze(g);
+//    	System.out.println(mhp.getThreadRegions().size());
+//    	for (ThreadRegion r : mhp.getThreadRegions()) {
+//    		System.out.println(r);
+//    	}
+    }
+}

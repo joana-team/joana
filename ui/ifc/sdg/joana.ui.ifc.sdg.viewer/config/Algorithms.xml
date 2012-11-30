@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<algorithms>
+	<algorithm name="Slicer"
+	    class="edu.kit.joana.ui.ifc.sdg.viewer.model.Slicer">
+		<algorithm name="sequential">
+			<algorithm name="Two-Phase Slicer"
+				       description="The two-phase backward slicer from Horwitz, Reps and Binkley."
+				       class="edu.kit.joana.ifc.sdg.graph.slicer.SummarySlicerBackward"></algorithm>
+			<algorithm name="Two-Phase Slicer (forward)"
+				       description="The two-phase forward slicer from Horwitz, Reps and Binkley."
+				       class="edu.kit.joana.ifc.sdg.graph.slicer.SummarySlicerForward"></algorithm>
+			<algorithm name="Incremental Two-Phase Slicer"
+				       description="A two-phase backward slicer that computes summary edges on the fly."
+				       class="edu.kit.joana.ifc.sdg.graph.slicer.IncrementalSummaryBackward"></algorithm>
+			<algorithm name="Incremental Two-Phase Slicer (forward)" 
+					   description="A two-phase forward slicer that computes summary edges on the fly." 
+			           class="edu.kit.joana.ifc.sdg.graph.slicer.IncrementalSummaryForward"></algorithm> 
+			<algorithm name="Intraprocedural Slicer" 
+					   description="An intraprocedural backward slicer." 
+					   class="edu.kit.joana.ifc.sdg.graph.slicer.IntraproceduralSlicerBackward"></algorithm>
+			<algorithm name="Intraprocedural Slicer (forward)" 
+					   description="An intraprocedural forward slicer." 
+					   class="edu.kit.joana.ifc.sdg.graph.slicer.IntraproceduralSlicerForward"></algorithm>
+			<algorithm name="Context-insensitive slicer" 
+					   description="A context-insensitive backward slicer." 
+					   class="edu.kit.joana.ifc.sdg.graph.slicer.ContextInsensitiveBackward"></algorithm>
+			<algorithm name="Context-insensitive slicer (forward)" 
+					   description="A context-insensitive forward slicer." 
+					   class="edu.kit.joana.ifc.sdg.graph.slicer.ContextInsensitiveForward"></algorithm>
+		</algorithm>
+	    
+		<algorithm name="concurrent">
+			<algorithm name="Iterated Two-Phase Slicer"
+				       description="Hammer's version of Nanda's iterated two-phase slicer. Fast, but imprecise, because it treats interference dependence as being transitive."
+				       class="edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PBackward"></algorithm>
+			<algorithm name="Iterated Two-Phase Slicer (forward)"
+				       description="Hammer's version of Nanda's iterated two-phase slicer for forward slices. Fast, but imprecise, because it treats interference dependence as being transitive."
+				       class="edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PForward"></algorithm>
+			<algorithm name="Giffhorn/Nanda Slicer"
+				       description="Our improved version of Nanda's precise slicer."
+				       class="edu.kit.joana.ui.ifc.sdg.viewer.model.NandaBackwardWrapper"></algorithm>
+			<algorithm name="Giffhorn/Nanda Slicer (forward)"
+				       description="Our improved version of Nanda's precise slicer for forward slicing."
+				       class="edu.kit.joana.ui.ifc.sdg.viewer.model.NandaForwardWrapper"></algorithm>
+			<algorithm name="Giffhorn/Krinke Slicer"
+				       description="Our improved version of Krinke's precise slicer."
+				       class="edu.kit.joana.ifc.sdg.graph.slicer.conc.dynamic.krinke.Slicer"></algorithm>
+			<algorithm name="Timing-aware Slicer" 
+					   description="A slicer that trades precision for speed. It is more precise than the Iterated Two-Phase slicer, but not timing-sensitive." 
+					   class="edu.kit.joana.ifc.sdg.graph.slicer.conc.simple.SimpleConcurrentSlicer"></algorithm>
+		</algorithm>
+    </algorithm>
+    
+ 
+	<algorithm name="Chopper"
+	    class="edu.kit.joana.ui.ifc.sdg.viewer.model.Chopper">
+		<algorithm name="sequential">
+			<algorithm name="Non-same-level Chopper">
+				<algorithm name="Reps-Rosay Chopper" 
+						   description="The non-same-level chopper from Reps and Rosay."
+					       class="edu.kit.joana.ifc.sdg.graph.chopper.NonSameLevelChopper"></algorithm>
+				<algorithm name="Truncated Non-Same-Level Chopper" 
+						   description="The truncated non-same-level chopper from Reps and Rosay."
+					       class="edu.kit.joana.ifc.sdg.graph.chopper.TruncatedNonSameLevelChopper"></algorithm>
+				<algorithm name="Fixed-point Chopper" 
+						   description="A fast and almost context-sensitive non-same-level chopper."
+					       class="edu.kit.joana.ifc.sdg.graph.chopper.FixedPointChopper"></algorithm>
+				<algorithm name="Context-insensitive Chopper" 
+						   description="Computes chops by intersecting a forward- and a backward slice." 
+						   class="edu.kit.joana.ifc.sdg.graph.chopper.InsensitiveIntersectionChopper"></algorithm>
+			</algorithm>
+			
+			<algorithm name="Same-level Chopper">
+				<algorithm name="Same-level Context-insensitive Chopper" 
+						   description="Computes context-insensitive chops by intersecting a forward- and a backward slice." 
+						   class="edu.kit.joana.ifc.sdg.graph.chopper.ContextInsensitiveChopper"></algorithm>
+				<algorithm name="Same-level Context-sensitive Chopper" 
+						   description="Krinke's `Summary-Merged-Chopper' that computes context-sensitive chops. " 
+						   class="edu.kit.joana.ifc.sdg.graph.chopper.SummaryMergedChopper"></algorithm>
+				<algorithm name="Intra-procedural Chopper" 
+						   description="Computes intra-procedural chops. " 
+						   class="edu.kit.joana.ifc.sdg.graph.chopper.IntraproceduralChopper"></algorithm>
+			</algorithm>
+		</algorithm>
+		
+		<algorithm name="concurrent">
+			<algorithm name="Iterated 2-phase Chopper" 
+					   description="A fast but context- and timing-insensitive chopper." 
+					   class="edu.kit.joana.ifc.sdg.graph.chopper.conc.SimpleThreadChopper"></algorithm>
+			<algorithm name="Fixed-point Chopper" 
+					   description="A fast and almost context-sensitive chopper." 
+			           class="edu.kit.joana.ifc.sdg.graph.chopper.conc.FixedPointChopper"></algorithm>
+			<algorithm name="Context-sensitive Chopper" 
+					   description="A context-sensitive chopper." 
+			           class="edu.kit.joana.ifc.sdg.graph.chopper.conc.ContextSensitiveThreadChopper"></algorithm>
+			<algorithm name="Timing-sensitive Chopper" 
+					   description="Computes context- and timing-sensitive chops. This is a very expensive algorithm." 
+					   class="edu.kit.joana.ifc.sdg.graph.chopper.conc.ThreadChopper"></algorithm>
+		</algorithm>
+	</algorithm>
+	
+	
+	<algorithm name="Level Slicer"
+		class="edu.kit.joana.ui.ifc.sdg.viewer.model.LevelSlicer" 
+		description="Slicers that annotate the visited nodes with their distance to the slicing criterion.">
+		<algorithm name="sequential">
+			<algorithm name="Two-Phase Level Slicer"
+				       description="A variant of the two-phase backward slicer from Horwitz, Reps and Binkley where every visited node is marked with its distance to the slicing criterion."
+				       class="edu.kit.joana.ifc.sdg.graph.slicer.barrier.CSLevelSlicerBackward"></algorithm>
+			<algorithm name="Two-Phase Level Slicer (forward)" 
+					   description="A variant of the two-phase forward slicer from Horwitz, Reps and Binkley where every visited node is marked with its distance to the slicing criterion." 
+					   class="edu.kit.joana.ifc.sdg.graph.slicer.barrier.CSLevelSlicerForward"></algorithm>
+		</algorithm>
+		<algorithm name="concurrent">
+			<algorithm name="Iterated Two-Phase Level Slicer" 
+					   description="A variant of the iterated two-phase backward slicer from Nanda where every visited node is marked with its distance to the slicing criterion." 
+			           class="edu.kit.joana.ifc.sdg.graph.slicer.barrier.conc.I2PLevelBackward"></algorithm>
+			<algorithm name="Iterated Two-Phase Level Slicer (forward)" 
+					   description="A variant of the iterated two-phase forward slicer from Nanda where every visited node is marked with its distance to the slicing criterion." 
+					   class="edu.kit.joana.ifc.sdg.graph.slicer.barrier.conc.I2PLevelForward"></algorithm>
+		</algorithm>
+	</algorithm>
+	
+	
+	<algorithm name="Barrier Slicer"
+		class="edu.kit.joana.ui.ifc.sdg.viewer.model.BarrierSlicer" 
+		description="Slicers that do not traverse a given barrier.">
+		<algorithm name="sequential">
+			<algorithm name="Intra-procedural Barrier Slicer"
+				       description="An intra-procedural backward slicer which does not trespass a given barrier."
+				       class="edu.kit.joana.ifc.sdg.graph.slicer.barrier.IntraproceduralBarrierSlicerBackward"></algorithm>
+			<algorithm name="Intra-procedural Barrier Slicer (forward)" 
+					   description="An intra-procedural forward slicer which does not trespass a given barrier." 
+					   class="edu.kit.joana.ifc.sdg.graph.slicer.barrier.IntraproceduralBarrierSlicerForward"></algorithm>
+			<algorithm name="Two-Phase Barrier Slicer"
+				       description="A two-phase backward slicer that does not trespass a given barrier."
+				       class="edu.kit.joana.ifc.sdg.graph.slicer.barrier.CSBarrierSlicerBackward"></algorithm>
+			<algorithm name="Two-Phase Barrier Slicer (forward)"
+				       description="A two-phase forward slicer that does not trespass a given barrier."
+				       class="edu.kit.joana.ifc.sdg.graph.slicer.barrier.CSBarrierSlicerForward"></algorithm>
+		</algorithm>
+		<algorithm name="concurrent">
+			<algorithm name="Iterated Two-Phase Barrier Slicer"
+				       description="An iterated two-phase backward slicer that does not trespass a given barrier."
+				       class="edu.kit.joana.ifc.sdg.graph.slicer.barrier.conc.I2PBarrierBackward"></algorithm>
+			<algorithm name="Iterated Two-Phase Barrier Slicer (forward)"
+				       description="An iterated two-phase forward slicer that does not trespass a given barrier."
+				       class="edu.kit.joana.ifc.sdg.graph.slicer.barrier.conc.I2PBarrierForward"></algorithm>
+		</algorithm>
+	</algorithm>
+	
+	
+	<algorithm name="Barrier Chopper"
+	    class="edu.kit.joana.ui.ifc.sdg.viewer.model.BarrierChopper">
+		<algorithm name="sequential">
+			<algorithm name="Non-same-level Chopper">
+				<algorithm name="Reps-Rosay Barrier Chopper" 
+						   description="The non-same-level chopper from Reps and Rosay, extended to not trespass a given barrier."
+					       class="edu.kit.joana.ifc.sdg.graph.chopper.barrier.NonSameLevelBarrierChopper"></algorithm>
+				<algorithm name="Truncated Non-Same-Level Barrier Chopper" 
+						   description="The truncated non-same-level chopper from Reps and Rosay, extended to not trespass a given barrier."
+					       class="edu.kit.joana.ifc.sdg.graph.chopper.barrier.TruncatedNonSameLevelBarrierChopper"></algorithm>
+			</algorithm>
+			
+			<algorithm name="Same-level Chopper">
+				<algorithm name="Same-level Context-sensitive Barrier Chopper" 
+						   description="Krinke's `Summary-Merged-Chopper', extended to not trespass a given barrier." 
+						   class="edu.kit.joana.ifc.sdg.graph.chopper.barrier.SummaryMergedBarrierChopper"></algorithm>
+				<algorithm name="Intra-procedural Barrier Chopper" 
+						   description="Computes intra-procedural chops. Does not trespass the given barrier." 
+						   class="edu.kit.joana.ifc.sdg.graph.chopper.barrier.IntraproceduralBarrierChopper"></algorithm>
+			</algorithm>
+		</algorithm>
+		
+		<algorithm name="concurrent">
+			<algorithm name="Simple Barrier Thread Chopper" 
+					   description="Computes a fast but context- and time-insensitive barrier chop." 
+					   class="edu.kit.joana.ifc.sdg.graph.chopper.barrier.SimpleThreadBarrierChopper"></algorithm>
+			<algorithm name="Context-sensitive Barrier Thread Chopper" 
+					   description="An extension of Reps' and Rosay's chopper for threads. Does not trespass the given barrier." 
+			           class="edu.kit.joana.ifc.sdg.graph.chopper.barrier.ContextSensitiveThreadBarrierChopper"></algorithm>
+		</algorithm>
+	</algorithm>
+</algorithms>

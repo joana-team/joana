@@ -1,0 +1,452 @@
+/**
+ * This file is part of the Joana IFC project. It is developed at the
+ * Programming Paradigms Group of the Karlsruhe Institute of Technology.
+ *
+ * For further details on licensing please read the information at
+ * http://joana.ipd.kit.edu or contact the authors.
+ */
+package edu.kit.joana.wala.core.params.objgraph;
+
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
+
+import com.ibm.wala.ipa.callgraph.CGNode;
+import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
+import com.ibm.wala.ssa.SSAInvokeInstruction;
+import com.ibm.wala.util.graph.Graph;
+import com.ibm.wala.util.intset.OrdinalSet;
+
+import edu.kit.joana.wala.core.PDG;
+import edu.kit.joana.wala.core.PDGField;
+import edu.kit.joana.wala.core.PDGNode;
+import edu.kit.joana.wala.core.params.objgraph.ModRefCandidates.InterProcCandidateModel;
+import edu.kit.joana.wala.core.params.objgraph.dataflow.PointsToWrapper;
+import edu.kit.joana.wala.util.NotImplementedException;
+
+/**
+ *
+ * @author Juergen Graf <juergen.graf@gmail.com>
+ *
+ */
+public class ModRefCandidateGraph implements Graph<ModRefCandidate> {
+
+	private final InterProcCandidateModel modref;
+	private final List<ModRefRootCandidate> roots;
+
+	private ModRefCandidateGraph(final InterProcCandidateModel modref, final List<ModRefRootCandidate> roots) {
+		this.modref = modref;
+		this.roots = roots;
+	}
+
+	public static ModRefCandidateGraph compute(final PointsToWrapper pa, final ModRefCandidates modref, final PDG pdg) {
+		final InterProcCandidateModel pdgModRef = modref.getCandidates(pdg.cgNode);
+		final List<ModRefRootCandidate> roots = findMethodRoots(pa, pdg);
+
+		final ModRefCandidateGraph g = new ModRefCandidateGraph(pdgModRef, roots);
+
+		return g;
+	}
+
+	public static ModRefCandidateGraph compute(final PointsToWrapper pa, final ModRefCandidates modref, final PDG pdg,
+			final PDGNode call) {
+		//TODO get all candidate models from all targets
+		throw new NotImplementedException();
+//		final InterProcCandidateModel pdgModRef = modref.getCandidates(pdg.cgNode);
+//		final List<ModRefRootCandidate> roots = findCallRoots(pa, pdg, call);
+//
+//		final ModRefCandidateGraph g = new ModRefCandidateGraph(pdgModRef, roots);
+//
+//		return g;
+	}
+
+	public List<ModRefRootCandidate> getRoots() {
+		return Collections.unmodifiableList(roots);
+	}
+
+	/**
+	 * Get toe root candidates for a pdg. This method searches all root-dormal-in and out nodes and creates/finds
+	 * the proper ModRecCandidates.
+	 */
+	public static List<ModRefRootCandidate> findMethodRoots(final PointsToWrapper pa, final PDG pdg) {
+		final List<ModRefRootCandidate> roots = new LinkedList<ModRefRootCandidate>();
+		final CGNode n = pdg.cgNode;
+
+		for (int i = 0; i < pdg.params.length; i++) {
+			final OrdinalSet<InstanceKey> pts = pa.getMethodParamPTS(n, i);
+			if (pts != null && !pts.isEmpty()) {
+				final ModRefRootCandidate rp = ModRefRootCandidate.createRef(pdg.params[i], pts);
+				roots.add(rp);
+			}
+		}
+
+		if (pdg.staticReads != null) {
+			for (int i = 0; i < pdg.staticReads.length; i++) {
+				final PDGField f = pdg.staticReads[i];
+				final OrdinalSet<InstanceKey> pts = pa.getStaticFieldPTS(f);
+				if (pts != null && !pts.isEmpty()) {
+					final ModRefRootCandidate rp = ModRefRootCandidate.createRef(f, pts);
+					roots.add(rp);
+				}
+			}
+		}
+
+		if (pdg.staticWrites != null) {
+			for (int i = 0; i < pdg.staticWrites.length; i++) {
+				final PDGField f = pdg.staticWrites[i];
+				final OrdinalSet<InstanceKey> pts = pa.getStaticFieldPTS(f);
+				if (pts != null && !pts.isEmpty()) {
+					final ModRefRootCandidate rp = ModRefRootCandidate.createMod(f, pts);
+					roots.add(rp);
+				}
+			}
+		}
+
+		for (final PDGField f : pdg.staticInterprocReads) {
+			final OrdinalSet<InstanceKey> pts = pa.getStaticFieldPTS(f);
+			if (pts != null && !pts.isEmpty()) {
+				final ModRefRootCandidate rp = ModRefRootCandidate.createRef(f, pts);
+				roots.add(rp);
+			}
+		}
+
+		for (final PDGField f : pdg.staticInterprocWrites) {
+			final OrdinalSet<InstanceKey> pts = pa.getStaticFieldPTS(f);
+			if (pts != null && !pts.isEmpty()) {
+				final ModRefRootCandidate rp = ModRefRootCandidate.createMod(f, pts);
+				roots.add(rp);
+			}
+		}
+
+		if (!pdg.isVoid()) {
+			final OrdinalSet<InstanceKey> pts = pa.getMethodReturnPTS(n);
+			if (pts != null && !pts.isEmpty()) {
+				final ModRefRootCandidate rp = ModRefRootCandidate.createMod(pdg.exit, pts);
+				roots.add(rp);
+			}
+		}
+
+		{
+			final OrdinalSet<InstanceKey> pts = pa.getMethodExceptionPTS(n);
+			if (pts != null && !pts.isEmpty()) {
+				final ModRefRootCandidate rp = ModRefRootCandidate.createMod(pdg.exception, pts);
+				roots.add(rp);
+			}
+		}
+
+		return roots;
+	}
+
+	public static List<ModRefRootCandidate> findCallRoots(final PointsToWrapper pa, final PDG pdg, final PDGNode call) {
+		final List<ModRefRootCandidate> roots = new LinkedList<ModRefRootCandidate>();
+		final SSAInvokeInstruction invk = (SSAInvokeInstruction) pdg.getInstruction(call);
+		final CGNode n = pdg.cgNode;
+
+		{
+			final PDGNode pIns[] = pdg.getParamIn(call);
+			for (int i = 0; i < pIns.length; i++) {
+				final OrdinalSet<InstanceKey> pts = pa.getCallParamPTS(n, invk, i);
+				if (pts != null && !pts.isEmpty()) {
+					final ModRefRootCandidate rp = ModRefRootCandidate.createRef(pIns[i], pts);
+					roots.add(rp);
+				}
+			}
+		}
+
+		{
+			final List<PDGField> sIns = pdg.getStaticIn(call);
+			if (sIns != null) {
+				for (final PDGField f : sIns) {
+					final OrdinalSet<InstanceKey> pts = pa.getStaticFieldPTS(f);
+					if (pts != null && !pts.isEmpty()) {
+						final ModRefRootCandidate rp = ModRefRootCandidate.createRef(f, pts);
+						roots.add(rp);
+					}
+				}
+			}
+		}
+
+		{
+			final List<PDGField> sOuts = pdg.getStaticOut(call);
+			if (sOuts != null) {
+				for (final PDGField f : sOuts) {
+					final OrdinalSet<InstanceKey> pts = pa.getStaticFieldPTS(f);
+					if (pts != null && !pts.isEmpty()) {
+						final ModRefRootCandidate rp = ModRefRootCandidate.createMod(f, pts);
+						roots.add(rp);
+					}
+				}
+			}
+		}
+
+		if (invk.getNumberOfReturnValues() > 0) {
+			final PDGNode cReturn = pdg.getReturnOut(call);
+			final OrdinalSet<InstanceKey> pts = pa.getCallReturnPTS(n, invk);
+			if (pts != null && !pts.isEmpty()) {
+				final ModRefRootCandidate rp = ModRefRootCandidate.createMod(cReturn, pts);
+				roots.add(rp);
+			}
+		}
+
+		{
+			final PDGNode cException = pdg.getExceptionOut(call);
+			final OrdinalSet<InstanceKey> pts = pa.getCallExceptionPTS(n, invk);
+			if (pts != null && !pts.isEmpty()) {
+				final ModRefRootCandidate rp = ModRefRootCandidate.createMod(cException, pts);
+				roots.add(rp);
+			}
+		}
+
+		return roots;
+	}
+
+	@Override
+	public Iterator<ModRefCandidate> iterator() {
+		return new Iterator<ModRefCandidate>() {
+
+			private Iterator<ModRefRootCandidate> rootIt = roots.iterator();
+			private Iterator<ModRefFieldCandidate> fieldsIt = modref.iterator();
+
+			@Override
+			public boolean hasNext() {
+				return rootIt.hasNext() || fieldsIt.hasNext();
+			}
+
+			@Override
+			public ModRefCandidate next() {
+				return (rootIt.hasNext() ? rootIt.next() : fieldsIt.next());
+			}
+
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException();
+			}
+		};
+	}
+
+	@Override
+	public int getNumberOfNodes() {
+		return roots.size() + modref.size();
+	}
+
+	@Override
+	public void addNode(final ModRefCandidate n) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void removeNode(final ModRefCandidate n) throws UnsupportedOperationException {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public boolean containsNode(final ModRefCandidate n) {
+		return roots.contains(n) || modref.contains(n);
+	}
+
+	@Override
+	public Iterator<ModRefCandidate> getPredNodes(final ModRefCandidate n) {
+		if (n instanceof ModRefFieldCandidate) {
+			final ModRefFieldCandidate fc = (ModRefFieldCandidate) n;
+			return new Iterator<ModRefCandidate>() {
+
+				private ModRefCandidate next = null;
+				private Iterator<ModRefRootCandidate> itRoot = roots.iterator();
+				private Iterator<ModRefFieldCandidate> itField = modref.iterator();
+
+				private void searchNext() {
+					while (next == null && itRoot.hasNext()) {
+						final ModRefRootCandidate rc = itRoot.next();
+						if (rc.isPotentialParentOf(fc)) {
+							next = rc;
+						}
+					}
+
+					while (next == null && itField.hasNext()) {
+						final ModRefFieldCandidate rc = itField.next();
+						if (rc != fc && rc.isPotentialParentOf(fc)) {
+							next = rc;
+						}
+					}
+				}
+
+				@Override
+				public boolean hasNext() {
+					if (next == null) {
+						searchNext();
+					}
+
+					return next != null;
+				}
+
+				@Override
+				public ModRefCandidate next() {
+					if (next == null) {
+						searchNext();
+					}
+
+					final ModRefCandidate cur = next;
+					next = null;
+
+					return cur;
+				}
+
+				@Override
+				public void remove() {
+					throw new UnsupportedOperationException();
+				}
+			};
+		}
+
+		return EMPTY_IT;
+	}
+
+	@Override
+	public int getPredNodeCount(final ModRefCandidate n) {
+		if (n instanceof ModRefFieldCandidate) {
+			final ModRefFieldCandidate fc = (ModRefFieldCandidate) n;
+			int counter = 0;
+
+			for (final ModRefRootCandidate r : roots) {
+				if (r.isPotentialParentOf(fc)) {
+					counter ++;
+				}
+			}
+
+			for (final ModRefFieldCandidate c : modref) {
+				if (c != n && c.isPotentialParentOf(fc)) {
+					counter++;
+				}
+			}
+
+			return counter;
+		}
+
+		return 0;
+	}
+
+	private static final Iterator<ModRefCandidate> EMPTY_IT = new Iterator<ModRefCandidate>() {
+
+		@Override
+		public boolean hasNext() {
+			return false;
+		}
+
+		@Override
+		public ModRefCandidate next() {
+			return null;
+		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+	};
+
+	@Override
+	public Iterator<ModRefCandidate> getSuccNodes(final ModRefCandidate n) {
+		if (!n.getType().isPrimitiveType()) {
+			return new Iterator<ModRefCandidate>() {
+
+				private ModRefCandidate next = null;
+				private Iterator<ModRefFieldCandidate> it = modref.iterator();
+
+				private void searchNext() {
+					while (next == null && it.hasNext()) {
+						final ModRefFieldCandidate fc = it.next();
+
+						if (n != fc && n.isPotentialParentOf(fc)) {
+							next = fc;
+						}
+					}
+				}
+
+				@Override
+				public boolean hasNext() {
+					if (next == null) {
+						searchNext();
+					}
+
+					return next != null;
+				}
+
+				@Override
+				public ModRefCandidate next() {
+					if (next == null) {
+						searchNext();
+					}
+
+					final ModRefCandidate cur = next;
+					next = null;
+
+					return cur;
+				}
+
+				@Override
+				public void remove() {
+					throw new UnsupportedOperationException();
+				}
+			};
+		}
+
+		return EMPTY_IT;
+	}
+
+	@Override
+	public int getSuccNodeCount(final ModRefCandidate n) {
+		if (!n.getType().isPrimitiveType()) {
+			int counter = 0;
+
+			for (final ModRefFieldCandidate f : modref) {
+				if (n != f && n.isPotentialParentOf(f)) {
+					counter++;
+				}
+			}
+
+			return counter;
+		}
+
+		return 0;
+	}
+
+	@Override
+	public void addEdge(final ModRefCandidate src, final ModRefCandidate dst) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void removeEdge(final ModRefCandidate src, final ModRefCandidate dst) throws UnsupportedOperationException {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void removeAllIncidentEdges(final ModRefCandidate node) throws UnsupportedOperationException {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void removeIncomingEdges(final ModRefCandidate node) throws UnsupportedOperationException {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void removeOutgoingEdges(final ModRefCandidate node) throws UnsupportedOperationException {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public boolean hasEdge(final ModRefCandidate src, final ModRefCandidate dst) {
+		if (dst instanceof ModRefFieldCandidate) {
+			return src.isPotentialParentOf((ModRefFieldCandidate) dst);
+		}
+
+		return false;
+	}
+
+	@Override
+	public void removeNodeAndEdges(final ModRefCandidate n) throws UnsupportedOperationException {
+		throw new UnsupportedOperationException();
+	}
+}

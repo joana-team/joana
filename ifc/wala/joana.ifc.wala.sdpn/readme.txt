@@ -1,0 +1,3 @@
+- 0-1-CFA points-to
+- context-sensitive erweiterung fuer thread.start?
+- nur thread regionen checken, nicht einzelne interferenzen

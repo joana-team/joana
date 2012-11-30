@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: joana.ui.ifc.sdg.compiler
+Bundle-SymbolicName: joana.ui.ifc.sdg.compiler;singleton:=true
+Bundle-Version: 1.0.0
+Bundle-Activator: edu.kit.joana.ui.ifc.sdg.compiler.util.Activator
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.core.resources,
+ org.eclipse.core.expressions,
+ org.eclipse.jdt.core;bundle-version="3.5.1"
+Bundle-ActivationPolicy: lazy
+Bundle-ClassPath: lib/javac.jar,lib/tools.jar,
+ .
+Export-Package: edu.kit.joana.ui.ifc.sdg.compiler
+Bundle-Vendor: Karlsruhe Institute of Technology, Programming Paradigms Group
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6

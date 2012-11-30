@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+     <extension-point id="ChopExtension" name="Chop Extension" schema="schema/ChopExtension.exsd"/>
+
+   <!--extension point="edu.kit.joana.ifc.sdg.gui.ChopExtension">
+	   	<chopper class="edu.kit.joana.ifc.sdg.gui.violations.SimpleChopper"/>
+   </extension-->
+   <extension point="joana.ui.ifc.sdg.gui.ChopExtension">
+	   	<chopper class="edu.kit.joana.ifc.sdg.gui.violations.SimpleConcurrentChopper"/>
+   </extension>
+   <extension point="joana.ui.ifc.sdg.gui.ChopExtension">
+	   	<chopper class="edu.kit.joana.ifc.sdg.gui.violations.ConflictsCollector"/>
+   </extension>
+   <extension point="joana.ui.ifc.sdg.gui.ChopExtension">
+	   	<chopper class="edu.kit.joana.ifc.sdg.gui.violations.ViolationPathChopper"/>
+   </extension>
+   <extension
+         point="joana.ui.ifc.sdg.gui.ChopExtension">
+      <chopper
+            class="edu.kit.joana.ifc.sdg.gui.violations.MinimalCutChopper">
+      </chopper>
+   </extension>
+   <!--extension point="edu.kit.joana.ifc.sdg.gui.ChopExtension">
+	   	<chopper class="edu.kit.joana.ifc.sdg.gui.violations.SingleViolationPathChopper"/>
+   </extension>
+   <extension point="edu.kit.joana.ifc.sdg.gui.ChopExtension">
+	   	<chopper class="edu.kit.joana.ifc.sdg.gui.violations.SingleViolationPathChopperWithoutSummaryEdges"/>
+   </extension>
+   <extension point="edu.kit.joana.ifc.sdg.gui.ChopExtension">
+	   	<chopper class="edu.kit.joana.ifc.sdg.gui.violations.DeclassViolationPathChopper"/>
+   </extension>
+   <extension point="edu.kit.joana.ifc.sdg.gui.ChopExtension">
+	   	<chopper class="edu.kit.joana.ifc.sdg.gui.violations.DeclassViolationPathChopperWithoutSummary"/>
+   </extension
+   <extension point="edu.kit.joana.ifc.sdg.gui.ChopExtension">
+	   	<chopper class="edu.kit.joana.ifc.sdg.gui.violations.NullChopper"/>
+   </extension-->
+<extension
+         point="org.eclipse.ui.popupMenus">    
+      <viewerContribution
+        id="edu.kit.joana.ifc.sdg.popupTest.contribution"
+        targetID="#CompilationUnitEditorContext">
+         <menu
+               label="Joana IFC"
+               path="additions"
+               id="edu.kit.joana.ifc.sdg.javafile.contextmenu">
+            <separator name="annotating"/>
+            <separator name="common"/>
+            <separator name="main"/>
+         </menu>
+
+
+	    <action id="edu.kit.joana.ifc.sdg.popupTest.redefineAction"
+	       label="Annotate Declassification"
+	       menubarPath="edu.kit.joana.ifc.sdg.javafile.contextmenu/annotating"
+	       class="edu.kit.joana.ifc.sdg.gui.contextmenu.AnnotateRedefiningActionDelegate">	
+	    </action>
+	    <action id="edu.kit.joana.ifc.sdg.popupTest.outgoingAction"
+	       label="Annotate Output Security Level"
+	       menubarPath="edu.kit.joana.ifc.sdg.javafile.contextmenu/annotating"
+	       class="edu.kit.joana.ifc.sdg.gui.contextmenu.AnnotateOutgoingActionDelegate">	
+	    </action>
+	    <action id="edu.kit.joana.ifc.sdg.popupTest.annotateAction"
+	       label="Annotate Input Security Level"
+	       menubarPath="edu.kit.joana.ifc.sdg.javafile.contextmenu/annotating"
+	       class="edu.kit.joana.ifc.sdg.gui.contextmenu.AnnotateInformationActionDelegate">	
+	    </action>
+
+	    <action id="edu.kit.joana.ifc.sdg.popupTest.removeSelectedMarkerAction"
+	       label="Remove Annotation"
+	       menubarPath="edu.kit.joana.ifc.sdg.javafile.contextmenu/common"
+	       class="edu.kit.joana.ifc.sdg.gui.contextmenu.RemoveAnnotationActionDelegate">	
+	    </action>
+	    <action id="edu.kit.joana.ifc.sdg.popupTest.removeAllMarkersAction"
+	       label="Remove All Joana IFC Markers"
+	       menubarPath="edu.kit.joana.ifc.sdg.javafile.contextmenu/main"
+	       class="edu.kit.joana.ifc.sdg.gui.contextmenu.RemoveAllMarkersActionDelegate">	
+	    </action>
+       </viewerContribution>
+   </extension>
+   
+   
+<!-- Contribute to ClassFileEditorContext-->
+<extension
+         point="org.eclipse.ui.popupMenus">    
+      <viewerContribution
+        id="edu.kit.joana.ifc.sdg.popupTest.contribution"
+        targetID="#ClassFileEditorContext">
+         <menu
+               label="Joana IFC"
+               path="additions"
+               id="edu.kit.joana.ifc.sdg.classfile.contextmenu">
+            <separator name="annotating"/>
+            <separator name="common"/>
+            <separator name="main"/>
+                        
+         </menu>
+
+
+	    <action id="edu.kit.joana.ifc.sdg.popupTest.redefineAction"
+	       label="Annotate as Declassifying ..."
+	       menubarPath="edu.kit.joana.ifc.sdg.classfile.contextmenu/annotating"
+	       class="edu.kit.joana.ifc.sdg.gui.contextmenu.AnnotateRedefiningActionDelegate">	
+	    </action>
+	    <action id="edu.kit.joana.ifc.sdg.popupTest.outgoingAction"
+	       label="Annotate as Outgoing ..."
+	       menubarPath="edu.kit.joana.ifc.sdg.classfile.contextmenu/annotating"
+	       class="edu.kit.joana.ifc.sdg.gui.contextmenu.AnnotateOutgoingActionDelegate">	
+	    </action>
+	    <action id="edu.kit.joana.ifc.sdg.popupTest.annotateAction"
+	       label="Annotate ..."
+	       menubarPath="edu.kit.joana.ifc.sdg.classfile.contextmenu/annotating"
+	       class="edu.kit.joana.ifc.sdg.gui.contextmenu.AnnotateInformationActionDelegate">	
+	    </action>
+
+	    <action id="edu.kit.joana.ifc.sdg.popupTest.removeSelectedMarkerAction"
+	       label="Remove Annotation"
+	       menubarPath="edu.kit.joana.ifc.sdg.classfile.contextmenu/common"
+	       class="edu.kit.joana.ifc.sdg.gui.contextmenu.RemoveAnnotationActionDelegate">	
+	    </action>
+	    <action id="edu.kit.joana.ifc.sdg.popupTest.removeAllMarkersAction"
+	       label="Remove All Joana IFC Markers"
+	       menubarPath="edu.kit.joana.ifc.sdg.classfile.contextmenu/main"
+	       class="edu.kit.joana.ifc.sdg.gui.contextmenu.RemoveAllMarkersActionDelegate">	
+	    </action>
+       </viewerContribution>
+   </extension>
+
+   
+      <extension
+         point="org.eclipse.ui.views">
+      <category
+            name="Joana IFC Views"
+            id="ifcviews">
+      </category>
+      <view
+            name="Joana IFC Annotations"
+            category="ifcviews"
+            icon="images/joana.png"
+            class="edu.kit.joana.ifc.sdg.gui.views.AnnotationView"
+            id="edu.kit.joana.ifc.sdg.gui.views.AnnotationView">
+      </view>
+      <view
+            name="Joana IFC Violations"
+            category="ifcviews"
+            icon="images/joana.png"
+            class="edu.kit.joana.ifc.sdg.gui.views.ViolationView"
+            id="edu.kit.joana.ifc.sdg.gui.views.ViolationView">
+      </view>
+      <view
+            name="Joana IFC Marker/SDGNode Matching"
+            category="ifcviews"
+            icon="images/joana.png"
+            class="edu.kit.joana.ifc.sdg.gui.views.MarkerSecurityNodeView"
+            id="edu.kit.joana.ifc.sdg.gui.views.MarkerSDGNodeView">
+      </view>
+      <view
+            category="ifcviews"
+            class="edu.kit.joana.ifc.sdg.gui.views.ClassificationView"
+            icon="images/joana.png"
+            id="edu.kit.joana.ifc.sdg.gui.views.ClassificationView"
+            name="Joana IFC Classifications">
+      </view>
+   </extension>
+   
+<!-- Definitons of NJSec Markers -->   
+<!--      <super type="id"/> -->
+<!--      <super type="org.eclipse.jdt.core.problem"/>-->
+<!--      <super type="org.eclipse.core.resources.problemmarker"/> -->   
+   <extension
+      point="org.eclipse.core.resources.markers"      
+      id="ifcmarker">
+      <super type="org.eclipse.core.resources.marker"/>
+   </extension>
+
+<!-- NJSec Outgoing Marker -->
+   <extension
+      point="org.eclipse.core.resources.markers"
+      id="outgoing">
+      <super type="edu.kit.joana.ifc.sdg.gui.njsecmarker"/>
+	  <attribute name="edu.kit.joana.ifc.sdg.gui.securityclass.allowed"/>     
+	  <attribute name="edu.kit.joana.ifc.sdg.gui.sdgnode.matched"/>	  
+      <persistent value="true"/>
+   </extension>
+   
+<!-- NJSec Annotation Marker -->
+   <extension
+      point="org.eclipse.core.resources.markers"
+      id="annotation">
+      <super type="edu.kit.joana.ifc.sdg.gui.njsecmarker"/>
+	  <attribute name="edu.kit.joana.ifc.sdg.gui.securityclass.defining"/> 
+	  <attribute name="edu.kit.joana.ifc.sdg.gui.sdgnode.matched"/>	  
+     <persistent value="true"/>
+   </extension>
+
+<!-- NJSec Redefining Marker -->
+   <extension
+      point="org.eclipse.core.resources.markers"
+      id="redefining">
+      <super type="edu.kit.joana.ifc.sdg.gui.njsecmarker"/>
+	  <attribute name="edu.kit.joana.ifc.sdg.gui.securityclass.defining"/> 
+	  <attribute name="edu.kit.joana.ifc.sdg.gui.securityclass.allowed"/>    
+	  <attribute name="edu.kit.joana.ifc.sdg.gui.sdgnode.matched"/> 
+      <persistent value="true"/>
+   </extension>
+   
+<!-- NJSec IFlow Marker -->
+   <extension
+      point="org.eclipse.core.resources.markers"
+      id="iflow"
+      name="Flowing Information">
+      <super type="edu.kit.joana.ifc.sdg.gui.njsecmarker"/>
+      <persistent value="false"/>
+      <attribute name="edu.kit.joana.ifc.sdg.gui.securityclass.defining"/> 
+	  <attribute name="edu.kit.joana.ifc.sdg.gui.securityclass.allowed"/>       	  
+	  <attribute name="edu.kit.joana.ifc.sdg.gui.sdgnode.matched"/>	  
+   </extension>
+   
+   <extension point="org.eclipse.ui.editors.annotationTypes">    	
+    	<type name="edu.kit.joana.ifc.sdg.gui.annotation.type" markerType="edu.kit.joana.ifc.sdg.gui.annotation"/>
+    	<type name="edu.kit.joana.ifc.sdg.gui.redefining.type" markerType="edu.kit.joana.ifc.sdg.gui.redefining"/>
+        <type name="edu.kit.joana.ifc.sdg.gui.iflow.type" markerType="edu.kit.joana.ifc.sdg.gui.iflow"/>
+    	<type name="edu.kit.joana.ifc.sdg.gui.outgoing.type" markerType="edu.kit.joana.ifc.sdg.gui.outgoing"/>
+   </extension>
+    	
+
+
+
+   <extension
+      point="org.eclipse.ui.editors.markerAnnotationSpecification">
+      <specification
+            annotationType="edu.kit.joana.ifc.sdg.gui.annotation.type"
+            verticalRulerPreferenceKey="annotation.rulers.vertical"
+            textPreferenceKey="annotation.text"
+            colorPreferenceKey="annotation.color"
+            highlightPreferenceKey="annotation.background"
+            textPreferenceValue="false"
+            icon="images/ann.gif"
+            textStylePreferenceValue="UNDERLINE"
+            overviewRulerPreferenceKey="annotation.rulers.overview"
+            presentationLayer="3"
+            highlightPreferenceValue="true"
+            label="Joana IFC Security Class"
+            colorPreferenceValue="253,188,157"
+            verticalRulerPreferenceValue="true"
+            textStylePreferenceKey="annotation.text.style"
+            overviewRulerPreferenceValue="true">
+      </specification>
+   </extension>
+   <extension
+      point="org.eclipse.ui.editors.markerAnnotationSpecification">
+      <specification
+            annotationType="edu.kit.joana.ifc.sdg.gui.redefining.type"
+            verticalRulerPreferenceKey="redefining.rulers.vertical"
+            textPreferenceKey="redefining.text"
+            colorPreferenceKey="redefining.color"
+            highlightPreferenceKey="redefining.background"
+            textPreferenceValue="false"
+            symbolicIcon="info"
+            icon="images/declass.gif"            
+            textStylePreferenceValue="UNDERLINE"
+            overviewRulerPreferenceKey="redefining.rulers.overview"
+            presentationLayer="3"
+            highlightPreferenceValue="true"
+            label="Joana IFC Redefining Classes"
+            colorPreferenceValue="253,188,157"
+            verticalRulerPreferenceValue="true"
+            textStylePreferenceKey="redefining.text.style"
+            overviewRulerPreferenceValue="true">
+      </specification>
+   </extension>
+   <extension
+      point="org.eclipse.ui.editors.markerAnnotationSpecification">
+      <specification
+            annotationType="edu.kit.joana.ifc.sdg.gui.outgoing.type"
+            verticalRulerPreferenceKey="outgoing.rulers.vertical"
+            textPreferenceKey="outgoing.text"
+            colorPreferenceKey="outgoing.color"
+            highlightPreferenceKey="outgoing.background"
+            textPreferenceValue="false"
+            symbolicIcon="info"
+            icon="images/out.gif"            
+            textStylePreferenceValue="UNDERLINE"
+            overviewRulerPreferenceKey="outgoing.rulers.overview"
+            presentationLayer="3"
+            highlightPreferenceValue="true"
+            label="Joana IFC Outgoing"
+            colorPreferenceValue="253,255,157"
+            verticalRulerPreferenceValue="true"
+            textStylePreferenceKey="outgoing.text.style"
+            overviewRulerPreferenceValue="true">
+      </specification>
+   </extension>
+   <extension
+      point="org.eclipse.ui.editors.markerAnnotationSpecification">
+      
+      <specification
+            annotationType="edu.kit.joana.ifc.sdg.gui.iflow.type"
+            verticalRulerPreferenceKey="iflow.rulers.vertical"
+            textPreferenceKey="iflow.text"
+            colorPreferenceKey="iflow.color"
+            highlightPreferenceKey="iflow.background"
+            textPreferenceValue="false"
+            symbolicIcon="info"
+            icon="images/flow.gif"                        
+            textStylePreferenceValue="UNDERLINE"
+            overviewRulerPreferenceKey="iflow.rulers.overview"
+            presentationLayer="3"
+            highlightPreferenceValue="true"
+            label="Joana IFC Information Flow"
+            colorPreferenceValue="253,188,210"
+            verticalRulerPreferenceValue="true"
+            textStylePreferenceKey="iflow.text.style"
+            overviewRulerPreferenceValue="true">
+      </specification>
+   </extension>
+
+
+<extension point="org.eclipse.ui.perspectives">
+   <perspective
+       id="edu.kit.joana.ifc.sdg.NJSec.NJSecPerspective"
+       name="Joana IFC"
+       class="edu.kit.joana.ifc.sdg.gui.NJSecPerspective">
+   </perspective>
+ </extension>
+
+
+
+<!-- Launching Configuration Type -->
+<extension point="org.eclipse.debug.core.launchConfigurationTypes">
+    <launchConfigurationType
+        name="Joana IFC Test"
+        delegate="edu.kit.joana.ifc.sdg.gui.launching.LaunchConfigurationDelegate"
+        modes="run, debug, profile"           
+        id="edu.kit.joana.ifc.sdg.gui.launching.NJSecLaunch">
+    </launchConfigurationType>
+</extension>
+<!-- Launching Configuration Gui -->
+<extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+    <launchConfigurationTypeImage
+        icon="images/joana.png"
+        configTypeID="edu.kit.joana.ifc.sdg.gui.launching.NJSecLaunch"
+        id="edu.kit.joana.ifc.sdg.gui.launching.LaunchConfigurationTypeImage">
+    </launchConfigurationTypeImage>
+</extension>
+<extension point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+    <launchConfigurationTabGroup
+        type="edu.kit.joana.ifc.sdg.gui.launching.NJSecLaunch"
+        class="edu.kit.joana.ifc.sdg.gui.launching.LaunchTabGroup"
+        id="edu.kit.joana.ifc.sdg.gui.launching.LaunchTabGroup">
+    </launchConfigurationTabGroup>
+</extension>
+
+</plugin>

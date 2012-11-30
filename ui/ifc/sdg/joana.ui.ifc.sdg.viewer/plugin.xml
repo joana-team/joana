@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+   <extension-point id="EvaluationCriteria" name="EvaluationCriteria" schema="schema/EvaluationCriteria.exsd"/>
+
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            name="Joana Project"
+            id="joana.project">
+      </category>
+      <view
+            category="joana.project"
+            class="edu.kit.joana.ui.ifc.sdg.viewer.view.analysisview.AnalysisView"
+            icon="icons/joana.png"
+            id="joana.project.slicer"
+            name="Joana Slicer">
+      </view>
+      <view
+            name="SDG View"
+            icon="icons/joana.png"
+            category="joana.project"
+            class="edu.kit.joana.ui.ifc.sdg.viewer.view.sdgview.SDGView"
+            id="joana.viewer.view.sdgview.SDGView">
+       </view>   
+   </extension>
+   
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution 
+            id="edu.kit.joana.ui.ifc.sdg.textual.highlight.viewer.contribution1"
+            objectClass="org.eclipse.jdt.core.ICompilationUnit">
+         <menu 
+               id="edu.kit.joana.ui.ifc.sdg.textual.highlight.viewer.menu1"
+               label="Joana Project"
+               path="additions">
+            <separator name="slicing"/>
+         </menu>
+         <action
+               class="edu.kit.joana.ui.ifc.sdg.viewer.view.LoadSDG"
+               enablesFor="1"
+               icon="icons/joana.png"
+               id="edu.kit.joana.ui.ifc.sdg.textual.highlight.viewer.loadSDG"
+               label="Load SDG"
+               menubarPath="edu.kit.joana.ui.ifc.sdg.textual.highlight.viewer.menu1/slicing"/>
+<!--               class="joana.viewer.view.CreateSDG" -->
+         <action
+               class="jsdg_gui.create.CreateSDG"
+               enablesFor="1"
+               icon="icons/joana.png"
+               id="edu.kit.joana.ui.ifc.sdg.textual.highlight.viewer.createSDG"
+               label="Create SDG (jSDG)"
+               menubarPath="edu.kit.joana.ui.ifc.sdg.textual.highlight.viewer.menu1/slicing"/>
+      </objectContribution>
+
+	  <viewerContribution 
+            id="edu.kit.joana.ui.ifc.sdg.textual.highlight.viewer.contribution2"
+            targetID="#CompilationUnitEditorContext"> 
+         <menu 
+               id="edu.kit.joana.ui.ifc.sdg.textual.highlight.viewer.menu1"
+               label="Joana Project"
+               path="additions">
+            <separator name="slicing"/>
+         </menu>
+         <action
+               class="edu.kit.joana.ui.ifc.sdg.viewer.view.SelectCriterion"
+               icon="icons/joana.png"
+               id="edu.kit.joana.ui.ifc.sdg.textual.highlight.viewer.markCritrion"
+               label="Select Criterion"
+               menubarPath="edu.kit.joana.ui.ifc.sdg.textual.highlight.viewer.menu1/slicing"> 
+         </action> 
+      </viewerContribution> 
+   </extension>
+</plugin>

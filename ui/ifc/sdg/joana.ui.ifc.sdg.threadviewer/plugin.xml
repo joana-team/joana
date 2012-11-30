@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            name="ThreadViewer"
+            id="ThreadViewer.Category">
+      </category>
+      <view
+            allowMultiple="false"
+            category="ThreadViewer.Category"
+            class="edu.kit.joana.ui.ifc.sdg.threadviewer.view.view.ThreadViewer"
+            icon="icons/ThreadViewer_Logo.png"
+            id="ThreadViewer.View"
+            name="ThreadViewer"
+            restorable="true">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.help.contexts">
+      <contexts
+            file="contexts.xml">
+      </contexts>
+   </extension>
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <viewerContribution
+            id="ThreadViewer.actions.EditorContribution"
+            targetID="#CompilationUnitEditorContext">
+         <menu
+               icon="icons/EditorContextmenu_Menu.png"
+               id="ThreadViewer.editorMenu"
+               label="ThreadViewer"
+               path="additions">
+            <separator
+                  name="ThreadViewer.separator1">
+            </separator>
+            <separator
+                  name="ThreadViewer.separator2">
+            </separator>
+            <separator
+                  name="ThreadViewer.separator3">
+            </separator>
+         </menu>
+         <action
+               class="edu.kit.joana.ui.ifc.sdg.threadviewer.actions.EditorFollowInterferedNodesDelegate"
+               icon="icons/EditorContextmenu_FollowInterferedNodes.png"
+               id="ThreadViewer.actions.EditorFollowInterferedNodesDelegate"
+               label="Follow Interfered Nodes"
+               menubarPath="ThreadViewer.editorMenu/ThreadViewer.separator3"
+               tooltip="Follows the interfered nodes of the selected node in ThreadViewer.">
+         </action>
+         <action
+               class="edu.kit.joana.ui.ifc.sdg.threadviewer.actions.EditorFollowNodeDelegate"
+               icon="icons/EditorContextmenu_FollowNode.png"
+               id="ThreadViewer.actions.EditorFollowNodeDelegate"
+               label="Follow Node"
+               menubarPath="ThreadViewer.editorMenu/ThreadViewer.separator3"
+               tooltip="Follows the selected node in code.">
+         </action>
+         <action
+               class="edu.kit.joana.ui.ifc.sdg.threadviewer.actions.EditorFollowParallelRegionsDelegate"
+               icon="icons/EditorContextmenu_FollowParallelRegions.png"
+               id="ThreadViewer.actions.EditorFollowParallelRegionsDelegate"
+               label="Follow Parallel Regions"
+               menubarPath="ThreadViewer.editorMenu/ThreadViewer.separator2"
+               tooltip="Follows the parallel regions of the thread in ThreadViewer.">
+         </action>
+         <action
+               class="edu.kit.joana.ui.ifc.sdg.threadviewer.actions.EditorFollowThreadRegionDelegate"
+               icon="icons/EditorContextmenu_FollowThreadRegion.png"
+               id="ThreadViewer.actions.EditorFollowThreadRegionDelegate"
+               label="Follow Thread Region"
+               menubarPath="ThreadViewer.editorMenu/ThreadViewer.separator2"
+               tooltip="Follows the thread region in ThreadViewer.">
+         </action>
+         <action
+               class="edu.kit.joana.ui.ifc.sdg.threadviewer.actions.EditorFollowThreadDelegate"
+               icon="icons/EditorContextmenu_FollowThread.png"
+               id="ThreadViewer.actions.EditorFollowThreadDelegate"
+               label="Follow Thread"
+               menubarPath="ThreadViewer.editorMenu/ThreadViewer.separator1"
+               tooltip="Follows the thread in ThreadViewer.">
+         </action>
+      </viewerContribution>
+      <viewerContribution
+            id="ThreadViewer.actions.PackageExplorerContribution"
+            targetID="org.eclipse.jdt.ui.PackageExplorer">
+         <action
+               class="edu.kit.joana.ui.ifc.sdg.threadviewer.actions.PackageExplorerFollowThreadsDelegate"
+               enablesFor="1"
+               icon="icons/PackageExplorerFollowThread.png"
+               id="ThreadViewer.actions.PackageExplorerFollowThreads"
+               label="Follow .pdg-file in ThreadViewer"
+               menubarPath="additions"
+               tooltip="Select a .pdg-file to view its threads in ThreadViewer.">
+            <enablement>
+               <and>
+                  <objectClass
+                        name="org.eclipse.core.resources.IResource">
+                  </objectClass>
+                  <objectState
+                        name="extension"
+                        value="pdg">
+                  </objectState>
+               </and>
+            </enablement>
+         </action>
+      </viewerContribution>
+   </extension>
+</plugin>

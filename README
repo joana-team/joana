@@ -1,0 +1,203 @@
+This is the README of the Joana IFC analysis framework.
+
+Joana is developed at the Programming Paradigms Group of the Karlsruhe
+Institute of Technology. This software is a RESEARCH PROTOTYPE that
+comes with absolute NO WARRANTY.
+
+For further details and publications related to Joana please visit our
+homepage at http://joana.ipd.kit.edu.
+
+In case you find BUGS: There is also a bugtracker at our homepage. Feel
+free to register an account.
+
+In case you want to contact us, we are:
+
+Juergen Graf <graf@kit.edu>
+Martin Mohr <martin.mohr@kit.edu>
+Martin Hecker <martin.hecker@kit.edu>
+
+
+==================
+=== What is Joana?
+
+Joana is a static analysis tool that can be used for information flow
+control (IFC) of Java bytecode. IFC allows to verify the
+	INTEGRITY
+		(no attacker can temper with sensitive information)
+or 
+	CONFIDENTIALITY
+		(no attacker can infer secret information from public outputs)
+of a Java program.
+
+System dependence graphs (SDG) form the basic technology for our analyses.
+These graphs precisely represent all information flow within a program. To
+classify the sensitivity of data, input and output channels of a program are
+annotated with security levels. Joana determines using a data flow analysis
+on the SDG whether data of a certain security level may illicitly reach an
+unauthorized user of the system
+
+
+====================
+=== First time setup
+
+1. General remarks
+
+We suggest to use and compile Joana using eclipse, but you may also just
+build and use its core parts with ant. Please see the "Building Joana with
+ant" section for details.
+
+For Eclipse you will need the following setup in order to compile and run
+Joana:
+
+Eclispe >= 3.7 
+    Download classic package, as it contains already plugin-development
+    stuff.
+Plug-ins needed:
+    Graphical Editing Framework GEF SDK
+    Graphical Editing Framework Zest SDK
+    Dynamic Languages Toolkit - Core Framework 3.0.1
+        (http://www.eclipse.org/dltk)
+        Important: Use version 3.0.1 as ANTLR v3 IDE does not work with a
+        newer version. You may have to install this manually on newer
+        eclipse versions.
+    ANTLR v3 IDE (http://antlrv3ide.sourceforge.net/)
+    scala-ide (if DPN related analysis is needed)
+Java >= 1.6
+
+Eclipse should have >= 1024M heap space when running.
+
+Setting up the workspace:
+
+    When you add projects from the GIT repository to your workspace we
+    strongly suggest to use the "Import existing project" feature and to
+    not copy files. This way changes you make to Joana will also be made
+    to the files in your repository and not only on the local copy in your
+    workspace. Also many Joana projects rely on the directory layout in
+    the repository to e.g. load example source files from ../../example/.
+    This will not work properly if project files are copied into the
+    workspace.
+
+2. Download and setup WALA
+2.1. Init submodule and download WALA framework sources
+
+git submodule init
+git submodule update
+
+2.2. Open eclipse and add projects
+
+Joana needs the following WALA projects in the workspace:
+
+com.ibm.wala.core
+com.ibm.wala.shrike
+com.ibm.wala.util
+
+If you also plan to use some of the deprecated Joana projects, you will
+also need.
+
+com.ibm.wala.cast
+com.ibm.wala.cast.java
+com.ibm.wala.ide
+
+See further information on setting up WALA at wala.sf.net.
+
+3. Add Joana projects to workspace
+
+You may want to add at least all projects in
+
+wala/
+ifc/sdg
+contrib/lib
+
+to your workspace, in order to get the core parts of Joana.
+
+
+========================
+=== Build Joana with ant
+
+All jar-files are copied into the global dest/ directory.
+The following jar files can be built. Normally you will want to choose
+joana.api.jar or joana.ui.ifc.wala.console.jar, depending on if you want
+a nice GUI or not. They contain all the classes you need for a standard IFC
+analysis. Other jar-files are mostly only relevant for development purposes.
+
+joana.api.jar
+	Contains wala, joana.wala and joana.ifc.sdg stuff.
+	This is the only jar you are going to need.
+
+joana.ui.ifc.wala.console.jar
+	Contains all of joana.api and a nice GUI.
+	This is the only jar you are going to need if you also want a GUI.
+
+joana.ui.ifc.sdg.graphviewer.jar
+	Builds the GraphViewer GUI that can be used to load and view .pdg files.
+	You need this if you want to view SDG files.
+
+joana.ifc.sdg.core.jar
+	Contains the all components relevant for graph based IFC.
+	Does not contain SDG computation.
+
+joana.wala.core.jar
+	Pure SDG computation from bytecode. Contains also wala stuff.
+
+joana.wala.dictionary.jar
+	Contains wala, joana.wala.core and flowless modular computation.
+	This stuff is experimental.
+
+==========================
+=== Project file structure
+
+joana
+|
++-- api ___________ API interface to the framework.
+|
++-- contrib
+|   |
+|   +-- lib _______ External libraries.
+|   |
+|   +-- wala ______ GIT submodule of the WALA framework.
+|
++-- deprecated ____ Old deprecated projects. Will be removed.
+|
++-- example _______ Example programs that can be analyzed.
+|
++-- ifc
+|   |
+|   +-- sdg _______ IFC algorithms working purely on the SDG.
+|   |
+|   +-- wala ______ IFC algorithms using WALA and SDG.
+|
++-- ui
+|   |
+|   +-- wala ______ User interface programs for SDG construction.
+|   |
+|   +-- ifc
+|       |
+|       +-- sdg ___ User interface programs for IFC on SDGs.
+|       |
+|       +-- wala __ User interface programs for SDG construction and IFC.
+|
++-- util __________ General utility classes. E.g. logging.
+|
++-- wala __________ SDG construction algorithms using WALA.
+
+
+===============
+=== Style guide
+
+The whole Joana project uses UTF-8 and Unix line delimiter for all textfiles.
+You can find code template, formatter and style definitions for Eclipse in the
+joana-*.xml files in the root directory.
+
+All joana projects should use the Java-1.6 execution environment. Use
+classpath options in Eclipse to change this.
+
+Use the Java code conventions and common sense. Common sense is allowed to
+override JCC, iff it makes sense ;)
+
+All java files should start with the default header
+(joana-default-java-header.txt).
+
+The maximal line length for java files is 120 chars. Tabs are 4 spaces.
+
+--
+PS: Joana means Java Object-sensitive ANAlysis in case you wondered :)

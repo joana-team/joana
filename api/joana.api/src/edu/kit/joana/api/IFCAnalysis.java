@@ -1,0 +1,233 @@
+/**
+ * This file is part of the Joana IFC project. It is developed at the
+ * Programming Paradigms Group of the Karlsruhe Institute of Technology.
+ *
+ * For further details on licensing please read the information at
+ * http://joana.ipd.kit.edu or contact the authors.
+ */
+package edu.kit.joana.api;
+
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+
+import edu.kit.joana.api.annotations.IFCAnnotation;
+import edu.kit.joana.api.annotations.IFCAnnotationManager;
+import edu.kit.joana.api.sdg.SDGMethod;
+import edu.kit.joana.api.sdg.SDGProgram;
+import edu.kit.joana.api.sdg.SDGProgramPart;
+import edu.kit.joana.ifc.sdg.core.IFC;
+import edu.kit.joana.ifc.sdg.core.conc.PossibilisticNIChecker;
+import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNIChecker;
+import edu.kit.joana.ifc.sdg.core.conc.TimeSensitiveIFCDecorator;
+import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.SimpleMHPAnalysis;
+import edu.kit.joana.ifc.sdg.lattice.IEditableLattice;
+import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
+import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
+import edu.kit.joana.ifc.sdg.lattice.WrongLatticeDefinitionException;
+
+public class IFCAnalysis {
+	
+	/** the 'bottom' element in the standard simple lattice. */
+	public static final String STD_LATTICE_LOW = "low";
+	
+	/** the 'top' element in the standard simple lattice. */
+	public static final String STD_LATTICE_HIGH = "high";
+	
+	private SDGProgram program;
+	private IFCAnnotationManager annManager;
+	private IStaticLattice<String> secLattice;
+	private IFCType ifcType = IFCType.POSSIBILISTIC;
+	private IFC ifc;
+	private boolean timeSensitiveAnalysis = false;
+	
+	public static final IStaticLattice<String> stdLattice;
+
+	static {
+		try {
+			stdLattice = LatticeUtil.loadLattice(STD_LATTICE_LOW + "<=" + STD_LATTICE_HIGH);
+		} catch (WrongLatticeDefinitionException e) {
+			throw new IllegalStateException();
+		}
+	}
+
+	public IFCAnalysis(SDGProgram program, IStaticLattice<String> secLattice) {
+		if (program == null || secLattice == null) {
+			throw new IllegalArgumentException("Neither program nor security lattice may be null!");
+		}
+		setProgram(program);
+		setLattice(secLattice);
+		setIFCType(IFCType.POSSIBILISTIC);
+	}
+
+	public IFCAnalysis(SDGProgram program) {
+		this(program, stdLattice);
+	}
+
+	public void setProgram(SDGProgram program) {
+		if (program == null) {
+			throw new IllegalArgumentException("program must not be null!");
+		}
+		this.program = program;
+		this.annManager = new IFCAnnotationManager(program);
+		if (this.ifc != null) {
+			this.ifc.setSDG(this.program.getSDG());
+		} else {
+			this.ifc = new PossibilisticNIChecker(this.program.getSDG(), secLattice);
+		}
+	}
+
+	private void setIFCType(IFCType ifcType) {
+		this.ifcType = ifcType;
+		switch(ifcType) {
+		case POSSIBILISTIC:
+			this.ifc = new PossibilisticNIChecker(this.program.getSDG(), secLattice);
+			if (timeSensitiveAnalysis) {
+				this.ifc = new TimeSensitiveIFCDecorator(this.ifc);
+			}
+			break;
+		case PROBABILISTIC_WITH_SIMPLE_MHP:
+			MHPAnalysis mhpSimple = SimpleMHPAnalysis.analyze(this.program.getSDG());
+			this.ifc = new ProbabilisticNIChecker(this.program.getSDG(), secLattice, mhpSimple, this.timeSensitiveAnalysis);
+			break;
+		case PROBABILISTIC_WITH_PRECISE_MHP:
+			MHPAnalysis mhpPrecise = PreciseMHPAnalysis.analyze(this.program.getSDG());
+			this.ifc = new ProbabilisticNIChecker(this.program.getSDG(), secLattice, mhpPrecise, this.timeSensitiveAnalysis);
+			break;
+		default:
+			throw new IllegalStateException("unhandled ifc type: " + ifcType + "!");
+		}
+		
+		
+		
+		
+		
+	}
+	
+	public void setTimesensitivity(boolean newTimeSens) {
+		this.timeSensitiveAnalysis = newTimeSens;
+		setIFCType(ifcType);
+	}
+
+	public void setLattice(IStaticLattice<String> secLattice) {
+		if (secLattice == null) {
+			throw new IllegalArgumentException();
+		}
+		this.secLattice = secLattice;
+		if (this.ifc != null) {
+			this.ifc.setLattice(secLattice);
+		}
+		clearAllAnnotations();
+	}
+
+	public void clearAllAnnotations() {
+		annManager.removeAllAnnotations();
+	}
+
+	public Collection<IFCAnnotation> getSources() {
+		return annManager.getSources();
+	}
+
+	public Collection<IFCAnnotation> getSinks() {
+		return annManager.getSinks();
+	}
+
+	public Collection<IFCAnnotation> getDeclassifications() {
+		return annManager.getDeclassifications();
+	}
+
+	public void addAnnotation(IFCAnnotation annotation) {
+		annManager.addAnnotation(annotation);
+	}
+
+	public Collection<IFCAnnotation> getAnnotations() {
+		return annManager.getAnnotations();
+	}
+
+	public Collection<IllicitFlow> doIFC(IFCType ifcType) {
+		setIFCType(ifcType);
+		assert ifc != null && ifc.getSDG() != null && ifc.getLattice() != null;
+
+		annManager.applyAllAnnotations();
+		long time = 0L;
+		// out.log("Running sequential IFC...");
+		time = System.currentTimeMillis();
+		Collection<Violation> vios = ifc.checkIFlow();
+		time = System.currentTimeMillis() - time;
+
+
+		List<IllicitFlow> ret = new LinkedList<IllicitFlow>();
+		for (Violation vio : vios) {
+			ret.add(new IllicitFlow(vio, getSources(), getSinks()));
+		}
+		annManager.unapplyAllAnnotations();
+		return ret;
+	}
+
+	public Collection<IllicitFlow> doIFC() {
+		return doIFC(IFCType.POSSIBILISTIC);
+	}
+
+	public boolean isAnnotated(SDGProgramPart part) {
+		return annManager.isAnnotated(part);
+	}
+
+	public void clearAllAnnotationsOfMethodPart(SDGProgramPart toClear) {
+		annManager.removeAnnotation(toClear);
+	}
+
+	public SDGProgram getProgram() {
+		return program;
+	}
+
+	public void setSecurityLattice(IEditableLattice<String> l0) {
+		this.secLattice = l0;
+	}
+
+	public IStaticLattice<String> getSecurityLattice() {
+		return secLattice;
+	}
+
+	public void addSourceAnnotation(SDGProgramPart toMark, String level, SDGMethod context) {
+		annManager.addSourceAnnotation(toMark, level, context);
+	}
+
+	public void addSinkAnnotation(SDGProgramPart toMark, String level, SDGMethod context) {
+		annManager.addSinkAnnotation(toMark, level, context);
+	}
+
+	public void addSourceAnnotation(SDGProgramPart toMark, String level) {
+		addSourceAnnotation(toMark, level, null);
+	}
+
+	public void addSinkAnnotation(SDGProgramPart toMark, String level) {
+		addSinkAnnotation(toMark, level, null);
+	}
+
+	public void addDeclassification(SDGProgramPart toMark, String level1, String level2) {
+		annManager.addDeclassification(toMark, level1, level2);
+	}
+	
+	public SDGProgramPart getProgramPart(String ppartDesc) {
+		return program.getPart(ppartDesc);
+	}
+	
+	public void addSourceAnnotation(String ppartDesc, String level) {
+		addSourceAnnotation(getProgramPart(ppartDesc), level, null);
+	}
+	
+	public void addSinkAnnotation(String ppartDesc, String level) {
+		addSinkAnnotation(getProgramPart(ppartDesc), level, null);
+	}
+	
+	public void addDeclassification(String ppartDesc, String level1, String level2) {
+		addDeclassification(getProgramPart(ppartDesc), level1, level2);
+	}
+
+	public boolean isAnnotationLegal(IFCAnnotation ann) {
+		return annManager.isAnnotationLegal(ann);
+	}
+}

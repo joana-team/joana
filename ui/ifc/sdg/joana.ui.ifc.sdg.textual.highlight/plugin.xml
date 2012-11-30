@@ -1,0 +1,3146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>   
+   <extension point="org.eclipse.ui.preferencePages">
+  	<page name="HighlightPlugin: User Settings" 
+  		class="edu.kit.joana.ui.ifc.sdg.textual.highlight.highlight.HighlightPreferencePage" 
+  		id="edu.kit.joana.ifc.sdg.graph.textual.highlight.HighlightPreferencePage" /> 
+   </extension>
+
+	<extension id="highlightMarker" 
+    	point="org.eclipse.core.resources.markers"
+    	name="highlightMarker">
+    	<super type="org.eclipse.core.resources.textmarker"/>
+    	<persistent value="false"/>
+	</extension>
+
+  	<extension id="level0" 
+    	point="org.eclipse.core.resources.markers"
+    	name="level0">
+    	<super type="org.eclipse.core.resources.textmarker"/>
+    	<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    	<persistent value="false"/>
+	</extension>
+	<extension 
+		point="org.eclipse.ui.editors.annotationTypes">
+  		<type 
+  			name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level0annotation" 
+  			markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level0" /> 
+  	</extension>
+	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+  		<specification 
+  			annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level0annotation" 
+  			textPreferenceKey="level0.highlight.text"
+  			textPreferenceValue="true" 
+  			highlightPreferenceKey="level0.highlight.background" 
+  			highlightPreferenceValue="true"
+  			colorPreferenceKey="level0.highlight.color"
+  			colorPreferenceValue="0,180,255" 
+  			overviewRulerPreferenceKey="level0.highlight.rulers.overview" 
+  			overviewRulerPreferenceValue="false"
+  			presentationLayer="4"  
+  			label="Default Slice Highlighting" 
+			verticalRulerPreferenceKey="highlight.rulers.vertical.level0" 
+  			verticalRulerPreferenceValue="true" 
+  			includeOnPreferencePage="true"
+  			textStylePreferenceKey="highlight.text.style.level0" 
+  			textStylePreferenceValue="NONE" /> 
+  	</extension>
+
+    <extension id="level1" 
+    	point="org.eclipse.core.resources.markers"
+    	name="level1">
+    	<super type="org.eclipse.core.resources.textmarker"/>
+    	<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    	<persistent value="false"/>
+	</extension>
+	<extension point="org.eclipse.ui.editors.annotationTypes">
+  		<type 
+  			name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level1annotation" 
+  			markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level1" /> 
+  	</extension>
+	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+  		<specification 
+  			annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level1annotation" 
+  			textPreferenceKey="level1.highlight.text"
+  			textPreferenceValue="false" 
+  			highlightPreferenceKey="level1.highlight.background" 
+  			highlightPreferenceValue="true"
+  			colorPreferenceKey="level1.highlight.color"
+  			colorPreferenceValue="0,190,255" 
+  			overviewRulerPreferenceKey="level1.highlight.rulers.overview" 
+  			overviewRulerPreferenceValue="false"
+  			presentationLayer="4"  
+  			label="Slice level1" 
+			verticalRulerPreferenceKey="highlight.rulers.vertical.level1" 
+  			verticalRulerPreferenceValue="true" 
+  			includeOnPreferencePage="false"
+  			textStylePreferenceKey="highlight.text.style.level1" 
+  			textStylePreferenceValue="NONE" /> 
+  	</extension>
+  	
+  	<extension id="level2" 
+    	point="org.eclipse.core.resources.markers"
+    	name="level2">
+    	<super type="org.eclipse.core.resources.textmarker"/>
+    	<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    	<persistent value="false"/>
+	</extension>
+	<extension point="org.eclipse.ui.editors.annotationTypes">
+  		<type 
+  			name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level2annotation" 
+  			markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level2" /> 
+  	</extension>
+		<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+  		<specification 
+  			annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level2annotation" 
+  			textPreferenceKey="level2.highlight.text"
+  			textPreferenceValue="false" 
+  			highlightPreferenceKey="level2.highlight.background" 
+  			highlightPreferenceValue="true"
+  			colorPreferenceKey="level2.highlight.color"
+  			colorPreferenceValue="0,200,255" 
+  			overviewRulerPreferenceKey="level2.highlight.rulers.overview" 
+  			overviewRulerPreferenceValue="false"
+  			presentationLayer="4"  
+  			label="Slice level2" 
+			verticalRulerPreferenceKey="highlight.rulers.vertical.level2" 
+  			verticalRulerPreferenceValue="true" 
+  			includeOnPreferencePage="false"
+  			textStylePreferenceKey="highlight.text.style.level2" 
+  			textStylePreferenceValue="NONE" /> 
+  	</extension>
+  	
+  	<extension id="level3" 
+    	point="org.eclipse.core.resources.markers"
+    	name="level3">
+    	<super type="org.eclipse.core.resources.textmarker"/>
+    	<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    	<persistent value="false"/>
+	</extension>
+	<extension point="org.eclipse.ui.editors.annotationTypes">
+  		<type 
+  			name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level3annotation" 
+  			markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level3" /> 
+  	</extension>
+	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+  		<specification 
+  			annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level3annotation" 
+  			textPreferenceKey="level3.highlight.text"
+  			textPreferenceValue="false" 
+  			highlightPreferenceKey="level3.highlight.background" 
+  			highlightPreferenceValue="true"
+  			colorPreferenceKey="level3.highlight.color"
+  			colorPreferenceValue="0,210,255" 
+  			overviewRulerPreferenceKey="level3.highlight.rulers.overview" 
+  			overviewRulerPreferenceValue="false"
+  			presentationLayer="4"  
+  			label="Slice level3" 
+			verticalRulerPreferenceKey="highlight.rulers.vertical.level3" 
+  			verticalRulerPreferenceValue="true" 
+  			includeOnPreferencePage="false"
+  			textStylePreferenceKey="highlight.text.style.level3" 
+  			textStylePreferenceValue="NONE" /> 
+  	</extension>
+  	
+  	<extension id="level4" 
+    point="org.eclipse.core.resources.markers"
+    name="level4">
+    <super type="org.eclipse.core.resources.textmarker"/>
+    <super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    <persistent value="false"/>
+	</extension>
+	
+	<extension point="org.eclipse.ui.editors.annotationTypes">
+  	<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level4annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level4" /> 
+  	</extension>
+  	
+	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+  	<specification 
+  	annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level4annotation" 
+  	textPreferenceKey="level4.highlight.text"
+  	textPreferenceValue="false" 
+  	highlightPreferenceKey="level4.highlight.background" 
+  	highlightPreferenceValue="true"
+  	colorPreferenceKey="level4.highlight.color"
+  	colorPreferenceValue="0,220,255" 
+  	overviewRulerPreferenceKey="level4.highlight.rulers.overview" 
+  	overviewRulerPreferenceValue="false"
+  	presentationLayer="5"  
+  	label="Slice level4" 
+	verticalRulerPreferenceKey="highlight.rulers.vertical.level4" 
+  	verticalRulerPreferenceValue="true" 
+  	includeOnPreferencePage="false"
+  	textStylePreferenceKey="highlight.text.style.level4" 
+  	textStylePreferenceValue="NONE" /> 
+  	</extension>
+  	
+  	<extension id="level5" 
+    point="org.eclipse.core.resources.markers"
+    name="level5">
+    <super type="org.eclipse.core.resources.textmarker"/>
+    <super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    <persistent value="false"/>
+	</extension>
+	
+	<extension point="org.eclipse.ui.editors.annotationTypes">
+  	<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level5annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level5" /> 
+  	</extension>
+  	
+	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+  	<specification 
+  	annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level5annotation" 
+  	textPreferenceKey="level5.highlight.text"
+  	textPreferenceValue="false" 
+  	highlightPreferenceKey="level5.highlight.background" 
+  	highlightPreferenceValue="true"
+  	colorPreferenceKey="level5.highlight.color"
+  	colorPreferenceValue="0,230,255" 
+  	overviewRulerPreferenceKey="level5.highlight.rulers.overview" 
+  	overviewRulerPreferenceValue="false"
+  	presentationLayer="4"  
+  	label="Slice level5" 
+	verticalRulerPreferenceKey="highlight.rulers.vertical.level5" 
+  	verticalRulerPreferenceValue="true" 
+  	includeOnPreferencePage="false"
+  	textStylePreferenceKey="highlight.text.style.level5" 
+  	textStylePreferenceValue="NONE" /> 
+  	</extension>
+  	
+  	<extension id="level6" 
+    point="org.eclipse.core.resources.markers"
+    name="level6">
+    <super type="org.eclipse.core.resources.textmarker"/>
+    <super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    <persistent value="false"/>
+	</extension>
+	
+	<extension point="org.eclipse.ui.editors.annotationTypes">
+  	<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level6annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level6" /> 
+  	</extension>
+  	
+	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+  	<specification 
+  	annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level6annotation" 
+  	textPreferenceKey="level6.highlight.text"
+  	textPreferenceValue="false" 
+  	highlightPreferenceKey="level6.highlight.background" 
+  	highlightPreferenceValue="true"
+  	colorPreferenceKey="level6.highlight.color"
+  	colorPreferenceValue="0,240,255" 
+  	overviewRulerPreferenceKey="level6.highlight.rulers.overview" 
+  	overviewRulerPreferenceValue="false"
+  	presentationLayer="4"  
+  	label="Slice level6" 
+	verticalRulerPreferenceKey="highlight.rulers.vertical.level6" 
+  	verticalRulerPreferenceValue="true" 
+  	includeOnPreferencePage="false"
+  	textStylePreferenceKey="highlight.text.style.level6" 
+  	textStylePreferenceValue="NONE" /> 
+  	</extension>
+  	
+  	<extension id="level7" 
+    point="org.eclipse.core.resources.markers"
+    name="level7">
+    <super type="org.eclipse.core.resources.textmarker"/>
+    <super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    <persistent value="false"/>
+	</extension>
+	
+	<extension point="org.eclipse.ui.editors.annotationTypes">
+  	<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level7annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level7" /> 
+  	</extension>
+  	
+	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+  	<specification 
+  	annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level7annotation" 
+  	textPreferenceKey="level7.highlight.text"
+  	textPreferenceValue="false" 
+  	highlightPreferenceKey="level7.highlight.background" 
+  	highlightPreferenceValue="true"
+  	colorPreferenceKey="level7.highlight.color"
+  	colorPreferenceValue="0,255,255" 
+  	overviewRulerPreferenceKey="level7.highlight.rulers.overview" 
+  	overviewRulerPreferenceValue="false"
+  	presentationLayer="4"  
+  	label="Slice level7" 
+	verticalRulerPreferenceKey="highlight.rulers.vertical.level7" 
+  	verticalRulerPreferenceValue="true" 
+  	includeOnPreferencePage="false"
+  	textStylePreferenceKey="highlight.text.style.level7" 
+  	textStylePreferenceValue="NONE" /> 
+  	</extension>
+  	
+  	<extension id="level8" 
+    point="org.eclipse.core.resources.markers"
+    name="level8">
+    <super type="org.eclipse.core.resources.textmarker"/>
+    <super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    <persistent value="false"/>
+	</extension>
+	
+	<extension point="org.eclipse.ui.editors.annotationTypes">
+  	<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level8annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level8" /> 
+  	</extension>
+  	
+	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+  	<specification 
+  	annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level8annotation" 
+  	textPreferenceKey="level8.highlight.text"
+  	textPreferenceValue="false" 
+  	highlightPreferenceKey="level8.highlight.background" 
+  	highlightPreferenceValue="true"
+  	colorPreferenceKey="level8.highlight.color"
+  	colorPreferenceValue="0,255,245" 
+  	overviewRulerPreferenceKey="level8.highlight.rulers.overview" 
+  	overviewRulerPreferenceValue="false"
+  	presentationLayer="4"  
+  	label="Slice level8" 
+	verticalRulerPreferenceKey="highlight.rulers.vertical.level8" 
+  	verticalRulerPreferenceValue="true" 
+  	includeOnPreferencePage="false"
+  	textStylePreferenceKey="highlight.text.style.level8" 
+  	textStylePreferenceValue="NONE" /> 
+  	</extension>
+  	
+  	<extension id="level9" 
+    point="org.eclipse.core.resources.markers"
+    name="level9">
+    <super type="org.eclipse.core.resources.textmarker"/>
+    <super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    <persistent value="false"/>
+	</extension>
+	
+	<extension point="org.eclipse.ui.editors.annotationTypes">
+  	<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level9annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level9" /> 
+  	</extension>
+  	
+	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+  	<specification 
+  	annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level9annotation" 
+  	textPreferenceKey="level9.highlight.text"
+  	textPreferenceValue="false" 
+  	highlightPreferenceKey="level9.highlight.background" 
+  	highlightPreferenceValue="true"
+  	colorPreferenceKey="level9.highlight.color"
+  	colorPreferenceValue="0,255,235" 
+  	overviewRulerPreferenceKey="level9.highlight.rulers.overview" 
+  	overviewRulerPreferenceValue="false"
+  	presentationLayer="4"  
+  	label="Slice level9" 
+	verticalRulerPreferenceKey="highlight.rulers.vertical.level9" 
+  	verticalRulerPreferenceValue="true" 
+  	includeOnPreferencePage="false"
+  	textStylePreferenceKey="highlight.text.style.level9" 
+  	textStylePreferenceValue="NONE" /> 
+  	</extension>
+  	
+  	<extension id="level10" 
+    point="org.eclipse.core.resources.markers"
+    name="level10">
+    <super type="org.eclipse.core.resources.textmarker"/>
+    <super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    <persistent value="false"/>
+	</extension>
+	
+	<extension point="org.eclipse.ui.editors.annotationTypes">
+  	<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level10annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level10" /> 
+  	</extension>
+  	
+	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+  	<specification 
+  	annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level10annotation" 
+  	textPreferenceKey="level10.highlight.text"
+  	textPreferenceValue="false" 
+  	highlightPreferenceKey="level10.highlight.background" 
+  	highlightPreferenceValue="true"
+  	colorPreferenceKey="level10.highlight.color"
+  	colorPreferenceValue="0,255,225" 
+  	overviewRulerPreferenceKey="level10.highlight.rulers.overview" 
+  	overviewRulerPreferenceValue="false"
+  	presentationLayer="4"  
+  	label="Slice level10" 
+	verticalRulerPreferenceKey="highlight.rulers.vertical.level10" 
+  	verticalRulerPreferenceValue="true" 
+  	includeOnPreferencePage="false"
+  	textStylePreferenceKey="highlight.text.style.level10" 
+  	textStylePreferenceValue="NONE" /> 
+  	</extension>
+  	
+  	<extension id="level11"
+	point="org.eclipse.core.resources.markers"
+	name="level11">
+	<super type="org.eclipse.core.resources.textmarker"/>
+	<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+	<persistent value="false"/>
+	</extension>
+	<extension point="org.eclipse.ui.editors.annotationTypes">
+	<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level11annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level11"/>
+	</extension>
+	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+	<specification
+	annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level11annotation"
+	textPreferenceKey="level11.highlight.text"
+	textPreferenceValue="false"
+	highlightPreferenceKey="level11.highlight.background"
+	highlightPreferenceValue="true"
+colorPreferenceKey="level11.highlight.color"
+colorPreferenceValue="0,255,215"
+overviewRulerPreferenceKey="level11.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level11"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level11"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level11"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level12"
+point="org.eclipse.core.resources.markers"
+name="level12">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level12annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level12"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level12annotation"
+textPreferenceKey="level12.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level12.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level12.highlight.color"
+colorPreferenceValue="0,255,205"
+overviewRulerPreferenceKey="level12.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level12"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level12"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level12"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level13"
+point="org.eclipse.core.resources.markers"
+name="level13">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level13annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level13"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level13annotation"
+textPreferenceKey="level13.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level13.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level13.highlight.color"
+colorPreferenceValue="0,255,195"
+overviewRulerPreferenceKey="level13.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level13"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level13"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level13"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level14"
+point="org.eclipse.core.resources.markers"
+name="level14">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level14annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level14"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level14annotation"
+textPreferenceKey="level14.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level14.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level14.highlight.color"
+colorPreferenceValue="0,255,185"
+overviewRulerPreferenceKey="level14.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level14"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level14"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level14"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level15"
+point="org.eclipse.core.resources.markers"
+name="level15">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level15annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level15"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level15annotation"
+textPreferenceKey="level15.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level15.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level15.highlight.color"
+colorPreferenceValue="0,255,175"
+overviewRulerPreferenceKey="level15.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level15"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level15"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level15"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level16"
+point="org.eclipse.core.resources.markers"
+name="level16">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level16annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level16"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level16annotation"
+textPreferenceKey="level16.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level16.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level16.highlight.color"
+colorPreferenceValue="0,255,165"
+overviewRulerPreferenceKey="level16.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level16"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level16"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level16"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level17"
+point="org.eclipse.core.resources.markers"
+name="level17">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level17annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level17"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level17annotation"
+textPreferenceKey="level17.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level17.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level17.highlight.color"
+colorPreferenceValue="0,255,155"
+overviewRulerPreferenceKey="level17.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level17"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level17"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level17"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level18"
+point="org.eclipse.core.resources.markers"
+name="level18">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level18annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level18"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level18annotation"
+textPreferenceKey="level18.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level18.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level18.highlight.color"
+colorPreferenceValue="0,255,145"
+overviewRulerPreferenceKey="level18.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level18"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level18"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level18"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level19"
+point="org.eclipse.core.resources.markers"
+name="level19">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level19annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level19"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level19annotation"
+textPreferenceKey="level19.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level19.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level19.highlight.color"
+colorPreferenceValue="0,255,135"
+overviewRulerPreferenceKey="level19.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level19"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level19"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level19"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level20"
+point="org.eclipse.core.resources.markers"
+name="level20">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level20annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level20"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level20annotation"
+textPreferenceKey="level20.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level20.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level20.highlight.color"
+colorPreferenceValue="0,255,125"
+overviewRulerPreferenceKey="level20.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level20"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level20"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level20"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level21"
+point="org.eclipse.core.resources.markers"
+name="level21">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level21annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level21"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level21annotation"
+textPreferenceKey="level21.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level21.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level21.highlight.color"
+colorPreferenceValue="0,255,115"
+overviewRulerPreferenceKey="level21.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level21"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level21"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level21"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level22"
+point="org.eclipse.core.resources.markers"
+name="level22">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level22annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level22"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level22annotation"
+textPreferenceKey="level22.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level22.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level22.highlight.color"
+colorPreferenceValue="0,255,100"
+overviewRulerPreferenceKey="level22.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level22"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level22"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level22"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level23"
+point="org.eclipse.core.resources.markers"
+name="level23">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level23annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level23"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level23annotation"
+textPreferenceKey="level23.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level23.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level23.highlight.color"
+colorPreferenceValue="0,255,0"
+overviewRulerPreferenceKey="level23.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level23"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level23"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level23"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level24"
+point="org.eclipse.core.resources.markers"
+name="level24">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level24annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level24"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level24annotation"
+textPreferenceKey="level24.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level24.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level24.highlight.color"
+colorPreferenceValue="150,255,0"
+overviewRulerPreferenceKey="level24.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level24"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level24"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level24"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level25"
+point="org.eclipse.core.resources.markers"
+name="level25">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level25annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level25"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level25annotation"
+textPreferenceKey="level25.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level25.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level25.highlight.color"
+colorPreferenceValue="165,255,0"
+overviewRulerPreferenceKey="level25.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level25"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level25"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level25"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level26"
+point="org.eclipse.core.resources.markers"
+name="level26">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level26annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level26"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level26annotation"
+textPreferenceKey="level26.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level26.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level26.highlight.color"
+colorPreferenceValue="175,255,0"
+overviewRulerPreferenceKey="level26.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level26"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level26"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level26"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level27"
+point="org.eclipse.core.resources.markers"
+name="level27">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level27annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level27"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level27annotation"
+textPreferenceKey="level27.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level27.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level27.highlight.color"
+colorPreferenceValue="175,255,0"
+overviewRulerPreferenceKey="level27.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level27"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level27"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level27"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level28"
+point="org.eclipse.core.resources.markers"
+name="level28">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level28annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level28"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level28annotation"
+textPreferenceKey="level28.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level28.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level28.highlight.color"
+colorPreferenceValue="185,255,0"
+overviewRulerPreferenceKey="level28.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level28"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level28"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level28"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level29"
+point="org.eclipse.core.resources.markers"
+name="level29">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level29annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level29"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level29annotation"
+textPreferenceKey="level29.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level29.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level29.highlight.color"
+colorPreferenceValue="195,255,0"
+overviewRulerPreferenceKey="level29.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level29"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level29"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level29"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level30"
+point="org.eclipse.core.resources.markers"
+name="level30">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level30annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level30"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level30annotation"
+textPreferenceKey="level30.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level30.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level30.highlight.color"
+colorPreferenceValue="205,255,0"
+overviewRulerPreferenceKey="level30.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level30"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level30"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level30"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level31"
+point="org.eclipse.core.resources.markers"
+name="level31">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level31annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level31"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level31annotation"
+textPreferenceKey="level31.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level31.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level31.highlight.color"
+colorPreferenceValue="215,255,0"
+overviewRulerPreferenceKey="level31.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level31"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level31"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level31"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level32"
+point="org.eclipse.core.resources.markers"
+name="level32">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level32annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level32"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level32annotation"
+textPreferenceKey="level32.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level32.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level32.highlight.color"
+colorPreferenceValue="225,255,0"
+overviewRulerPreferenceKey="level32.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level32"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level32"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level32"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level33"
+point="org.eclipse.core.resources.markers"
+name="level33">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level33annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level33"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level33annotation"
+textPreferenceKey="level33.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level33.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level33.highlight.color"
+colorPreferenceValue="235,255,0"
+overviewRulerPreferenceKey="level33.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level33"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level33"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level33"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level34"
+point="org.eclipse.core.resources.markers"
+name="level34">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level34annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level34"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level34annotation"
+textPreferenceKey="level34.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level34.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level34.highlight.color"
+colorPreferenceValue="245,255,0"
+overviewRulerPreferenceKey="level34.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level34"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level34"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level34"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level35"
+point="org.eclipse.core.resources.markers"
+name="level35">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level35annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level35"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level35annotation"
+textPreferenceKey="level35.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level35.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level35.highlight.color"
+colorPreferenceValue="255,255,0"
+overviewRulerPreferenceKey="level35.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level35"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level35"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level35"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level36"
+point="org.eclipse.core.resources.markers"
+name="level36">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level36annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level36"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level36annotation"
+textPreferenceKey="level36.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level36.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level36.highlight.color"
+colorPreferenceValue="255,245,0"
+overviewRulerPreferenceKey="level36.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level36"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level36"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level36"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level37"
+point="org.eclipse.core.resources.markers"
+name="level37">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level37annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level37"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level37annotation"
+textPreferenceKey="level37.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level37.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level37.highlight.color"
+colorPreferenceValue="255,235,0"
+overviewRulerPreferenceKey="level37.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level37"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level37"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level37"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level38"
+point="org.eclipse.core.resources.markers"
+name="level38">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level38annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level38"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level38annotation"
+textPreferenceKey="level38.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level38.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level38.highlight.color"
+colorPreferenceValue="255,225,0"
+overviewRulerPreferenceKey="level38.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level38"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level38"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level38"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level39"
+point="org.eclipse.core.resources.markers"
+name="level39">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level39annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level39"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level39annotation"
+textPreferenceKey="level39.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level39.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level39.highlight.color"
+colorPreferenceValue="255,215,0"
+overviewRulerPreferenceKey="level39.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level39"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level39"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level39"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level40"
+point="org.eclipse.core.resources.markers"
+name="level40">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level40annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level40"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level40annotation"
+textPreferenceKey="level40.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level40.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level40.highlight.color"
+colorPreferenceValue="255,205,0"
+overviewRulerPreferenceKey="level40.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level40"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level40"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level40"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level41"
+point="org.eclipse.core.resources.markers"
+name="level41">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level41annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level41"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level41annotation"
+textPreferenceKey="level41.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level41.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level41.highlight.color"
+colorPreferenceValue="255,195,0"
+overviewRulerPreferenceKey="level41.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level41"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level41"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level41"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level42"
+point="org.eclipse.core.resources.markers"
+name="level42">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level42annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level42"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level42annotation"
+textPreferenceKey="level42.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level42.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level42.highlight.color"
+colorPreferenceValue="255,185,0"
+overviewRulerPreferenceKey="level42.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level42"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level42"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level42"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level43"
+point="org.eclipse.core.resources.markers"
+name="level43">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level43annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level43"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level43annotation"
+textPreferenceKey="level43.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level43.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level43.highlight.color"
+colorPreferenceValue="255,175,0"
+overviewRulerPreferenceKey="level43.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level43"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level43"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level43"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level44"
+point="org.eclipse.core.resources.markers"
+name="level44">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level44annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level44"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level44annotation"
+textPreferenceKey="level44.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level44.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level44.highlight.color"
+colorPreferenceValue="255,165,0"
+overviewRulerPreferenceKey="level44.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level44"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level44"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level44"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level45"
+point="org.eclipse.core.resources.markers"
+name="level45">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level45annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level45"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level45annotation"
+textPreferenceKey="level45.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level45.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level45.highlight.color"
+colorPreferenceValue="255,155,0"
+overviewRulerPreferenceKey="level45.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level45"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level45"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level45"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level46"
+point="org.eclipse.core.resources.markers"
+name="level46">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level46annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level46"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level46annotation"
+textPreferenceKey="level46.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level46.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level46.highlight.color"
+colorPreferenceValue="255,145,0"
+overviewRulerPreferenceKey="level46.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level46"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level46"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level46"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level47"
+point="org.eclipse.core.resources.markers"
+name="level47">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level47annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level47"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level47annotation"
+textPreferenceKey="level47.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level47.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level47.highlight.color"
+colorPreferenceValue="255,135,0"
+overviewRulerPreferenceKey="level47.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level47"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level47"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level47"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level48"
+point="org.eclipse.core.resources.markers"
+name="level48">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level48annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level48"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level48annotation"
+textPreferenceKey="level48.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level48.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level48.highlight.color"
+colorPreferenceValue="255,125,0"
+overviewRulerPreferenceKey="level48.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level48"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level48"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level48"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level49"
+point="org.eclipse.core.resources.markers"
+name="level49">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level49annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level49"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level49annotation"
+textPreferenceKey="level49.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level49.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level49.highlight.color"
+colorPreferenceValue="255,115,0"
+overviewRulerPreferenceKey="level49.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level49"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level49"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level49"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level50"
+point="org.eclipse.core.resources.markers"
+name="level50">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level50annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level50"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level50annotation"
+textPreferenceKey="level50.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level50.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level50.highlight.color"
+colorPreferenceValue="255,100,0"
+overviewRulerPreferenceKey="level50.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level50"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level50"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level50"
+textStylePreferenceValue="NONE" />
+</extension>
+
+
+<!--extension id="level51"
+point="org.eclipse.core.resources.markers"
+name="level51">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level51annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level51"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level51annotation"
+textPreferenceKey="level51.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level51.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level51.highlight.color"
+colorPreferenceValue="10,255,0"
+overviewRulerPreferenceKey="level51.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level51"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level51"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level51"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level52"
+point="org.eclipse.core.resources.markers"
+name="level52">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level52annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level52"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level52annotation"
+textPreferenceKey="level52.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level52.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level52.highlight.color"
+colorPreferenceValue="20,255,0"
+overviewRulerPreferenceKey="level52.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level52"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level52"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level52"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level53"
+point="org.eclipse.core.resources.markers"
+name="level53">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level53annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level53"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level53annotation"
+textPreferenceKey="level53.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level53.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level53.highlight.color"
+colorPreferenceValue="30,255,0"
+overviewRulerPreferenceKey="level53.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level53"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level53"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level53"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level54"
+point="org.eclipse.core.resources.markers"
+name="level54">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level54annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level54"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level54annotation"
+textPreferenceKey="level54.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level54.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level54.highlight.color"
+colorPreferenceValue="40,255,0"
+overviewRulerPreferenceKey="level54.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level54"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level54"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level54"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level55"
+point="org.eclipse.core.resources.markers"
+name="level55">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level55annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level55"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level55annotation"
+textPreferenceKey="level55.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level55.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level55.highlight.color"
+colorPreferenceValue="50,255,0"
+overviewRulerPreferenceKey="level55.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level55"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level55"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level55"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level56"
+point="org.eclipse.core.resources.markers"
+name="level56">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level56annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level56"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level56annotation"
+textPreferenceKey="level56.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level56.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level56.highlight.color"
+colorPreferenceValue="60,255,0"
+overviewRulerPreferenceKey="level56.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level56"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level56"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level56"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level57"
+point="org.eclipse.core.resources.markers"
+name="level57">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level57annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level57"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level57annotation"
+textPreferenceKey="level57.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level57.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level57.highlight.color"
+colorPreferenceValue="70,255,0"
+overviewRulerPreferenceKey="level57.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level57"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level57"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level57"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level58"
+point="org.eclipse.core.resources.markers"
+name="level58">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level58annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level58"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level58annotation"
+textPreferenceKey="level58.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level58.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level58.highlight.color"
+colorPreferenceValue="80,255,0"
+overviewRulerPreferenceKey="level58.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level58"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level58"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level58"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level59"
+point="org.eclipse.core.resources.markers"
+name="level59">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level59annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level59"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level59annotation"
+textPreferenceKey="level59.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level59.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level59.highlight.color"
+colorPreferenceValue="90,255,0"
+overviewRulerPreferenceKey="level59.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level59"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level59"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level59"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level60"
+point="org.eclipse.core.resources.markers"
+name="level60">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level60annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level60"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level60annotation"
+textPreferenceKey="level60.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level60.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level60.highlight.color"
+colorPreferenceValue="100,255,0"
+overviewRulerPreferenceKey="level60.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level60"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level60"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level60"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level61"
+point="org.eclipse.core.resources.markers"
+name="level61">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level61annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level61"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level61annotation"
+textPreferenceKey="level61.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level61.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level61.highlight.color"
+colorPreferenceValue="110,255,0"
+overviewRulerPreferenceKey="level61.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level61"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level61"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level61"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level62"
+point="org.eclipse.core.resources.markers"
+name="level62">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level62annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level62"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level62annotation"
+textPreferenceKey="level62.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level62.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level62.highlight.color"
+colorPreferenceValue="120,255,0"
+overviewRulerPreferenceKey="level62.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level62"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level62"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level62"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level63"
+point="org.eclipse.core.resources.markers"
+name="level63">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level63annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level63"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level63annotation"
+textPreferenceKey="level63.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level63.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level63.highlight.color"
+colorPreferenceValue="130,255,0"
+overviewRulerPreferenceKey="level63.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level63"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level63"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level63"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level64"
+point="org.eclipse.core.resources.markers"
+name="level64">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level64annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level64"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level64annotation"
+textPreferenceKey="level64.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level64.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level64.highlight.color"
+colorPreferenceValue="140,255,0"
+overviewRulerPreferenceKey="level64.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level64"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level64"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level64"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level65"
+point="org.eclipse.core.resources.markers"
+name="level65">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level65annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level65"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level65annotation"
+textPreferenceKey="level65.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level65.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level65.highlight.color"
+colorPreferenceValue="150,255,0"
+overviewRulerPreferenceKey="level65.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level65"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level65"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level65"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level66"
+point="org.eclipse.core.resources.markers"
+name="level66">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level66annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level66"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level66annotation"
+textPreferenceKey="level66.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level66.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level66.highlight.color"
+colorPreferenceValue="160,255,0"
+overviewRulerPreferenceKey="level66.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level66"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level66"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level66"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level67"
+point="org.eclipse.core.resources.markers"
+name="level67">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level67annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level67"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level67annotation"
+textPreferenceKey="level67.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level67.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level67.highlight.color"
+colorPreferenceValue="170,255,0"
+overviewRulerPreferenceKey="level67.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level67"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level67"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level67"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level68"
+point="org.eclipse.core.resources.markers"
+name="level68">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level68annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level68"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level68annotation"
+textPreferenceKey="level68.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level68.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level68.highlight.color"
+colorPreferenceValue="180,255,0"
+overviewRulerPreferenceKey="level68.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level68"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level68"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level68"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level69"
+point="org.eclipse.core.resources.markers"
+name="level69">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level69annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level69"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level69annotation"
+textPreferenceKey="level69.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level69.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level69.highlight.color"
+colorPreferenceValue="190,255,0"
+overviewRulerPreferenceKey="level69.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level69"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level69"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level69"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level70"
+point="org.eclipse.core.resources.markers"
+name="level70">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level70annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level70"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level70annotation"
+textPreferenceKey="level70.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level70.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level70.highlight.color"
+colorPreferenceValue="200,255,0"
+overviewRulerPreferenceKey="level70.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level70"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level70"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level70"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level71"
+point="org.eclipse.core.resources.markers"
+name="level71">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level71annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level71"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level71annotation"
+textPreferenceKey="level71.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level71.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level71.highlight.color"
+colorPreferenceValue="210,255,0"
+overviewRulerPreferenceKey="level71.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level71"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level71"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level71"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level72"
+point="org.eclipse.core.resources.markers"
+name="level72">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level72annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level72"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level72annotation"
+textPreferenceKey="level72.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level72.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level72.highlight.color"
+colorPreferenceValue="220,255,0"
+overviewRulerPreferenceKey="level72.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level72"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level72"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level72"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level73"
+point="org.eclipse.core.resources.markers"
+name="level73">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level73annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level73"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level73annotation"
+textPreferenceKey="level73.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level73.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level73.highlight.color"
+colorPreferenceValue="230,255,0"
+overviewRulerPreferenceKey="level73.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level73"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level73"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level73"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level74"
+point="org.eclipse.core.resources.markers"
+name="level74">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level74annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level74"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level74annotation"
+textPreferenceKey="level74.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level74.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level74.highlight.color"
+colorPreferenceValue="240,255,0"
+overviewRulerPreferenceKey="level74.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level74"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level74"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level74"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level75"
+point="org.eclipse.core.resources.markers"
+name="level75">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level75annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level75"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level75annotation"
+textPreferenceKey="level75.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level75.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level75.highlight.color"
+colorPreferenceValue="255,255,0"
+overviewRulerPreferenceKey="level75.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level75"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level75"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level75"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level76"
+point="org.eclipse.core.resources.markers"
+name="level76">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level76annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level76"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level76annotation"
+textPreferenceKey="level76.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level76.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level76.highlight.color"
+colorPreferenceValue="255,245,0"
+overviewRulerPreferenceKey="level76.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level76"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level76"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level76"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level77"
+point="org.eclipse.core.resources.markers"
+name="level77">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level77annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level77"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level77annotation"
+textPreferenceKey="level77.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level77.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level77.highlight.color"
+colorPreferenceValue="255,235,0"
+overviewRulerPreferenceKey="level77.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level77"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level77"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level77"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level78"
+point="org.eclipse.core.resources.markers"
+name="level78">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level78annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level78"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level78annotation"
+textPreferenceKey="level78.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level78.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level78.highlight.color"
+colorPreferenceValue="255,225,00"
+overviewRulerPreferenceKey="level78.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level78"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level78"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level78"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level79"
+point="org.eclipse.core.resources.markers"
+name="level79">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level79annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level79"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level79annotation"
+textPreferenceKey="level79.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level79.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level79.highlight.color"
+colorPreferenceValue="255,215,0"
+overviewRulerPreferenceKey="level79.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level79"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level79"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level79"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level80"
+point="org.eclipse.core.resources.markers"
+name="level80">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level80annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level80"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level80annotation"
+textPreferenceKey="level80.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level80.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level80.highlight.color"
+colorPreferenceValue="255,205,0"
+overviewRulerPreferenceKey="level80.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level80"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level80"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level80"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level81"
+point="org.eclipse.core.resources.markers"
+name="level81">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level81annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level81"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level81annotation"
+textPreferenceKey="level81.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level81.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level81.highlight.color"
+colorPreferenceValue="255,195,0"
+overviewRulerPreferenceKey="level81.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level81"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level81"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level81"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level82"
+point="org.eclipse.core.resources.markers"
+name="level82">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level82annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level82"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level82annotation"
+textPreferenceKey="level82.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level82.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level82.highlight.color"
+colorPreferenceValue="255,185,0"
+overviewRulerPreferenceKey="level82.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level82"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level82"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level82"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level83"
+point="org.eclipse.core.resources.markers"
+name="level83">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level83annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level83"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level83annotation"
+textPreferenceKey="level83.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level83.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level83.highlight.color"
+colorPreferenceValue="255,175,0"
+overviewRulerPreferenceKey="level83.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level83"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level83"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level83"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level84"
+point="org.eclipse.core.resources.markers"
+name="level84">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level84annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level84"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level84annotation"
+textPreferenceKey="level84.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level84.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level84.highlight.color"
+colorPreferenceValue="255,165,0"
+overviewRulerPreferenceKey="level84.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level84"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level84"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level84"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level85"
+point="org.eclipse.core.resources.markers"
+name="level85">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level85annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level85"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level85annotation"
+textPreferenceKey="level85.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level85.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level85.highlight.color"
+colorPreferenceValue="255,155,0"
+overviewRulerPreferenceKey="level85.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level85"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level85"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level85"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level86"
+point="org.eclipse.core.resources.markers"
+name="level86">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level86annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level86"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level86annotation"
+textPreferenceKey="level86.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level86.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level86.highlight.color"
+colorPreferenceValue="255,145,0"
+overviewRulerPreferenceKey="level86.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level86"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level86"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level86"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level87"
+point="org.eclipse.core.resources.markers"
+name="level87">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level87annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level87"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level87annotation"
+textPreferenceKey="level87.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level87.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level87.highlight.color"
+colorPreferenceValue="255,135,0"
+overviewRulerPreferenceKey="level87.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level87"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level87"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level87"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level88"
+point="org.eclipse.core.resources.markers"
+name="level88">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level88annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level88"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level88annotation"
+textPreferenceKey="level88.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level88.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level88.highlight.color"
+colorPreferenceValue="255,125,0"
+overviewRulerPreferenceKey="level88.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level88"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level88"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level88"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level89"
+point="org.eclipse.core.resources.markers"
+name="level89">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level89annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level89"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level89annotation"
+textPreferenceKey="level89.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level89.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level89.highlight.color"
+colorPreferenceValue="255,115,0"
+overviewRulerPreferenceKey="level89.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level89"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level89"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level89"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level90"
+point="org.eclipse.core.resources.markers"
+name="level90">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level90annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level90"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level90annotation"
+textPreferenceKey="level90.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level90.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level90.highlight.color"
+colorPreferenceValue="255,105,0"
+overviewRulerPreferenceKey="level90.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level90"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level90"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level90"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level91"
+point="org.eclipse.core.resources.markers"
+name="level91">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level91annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level91"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level91annotation"
+textPreferenceKey="level91.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level91.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level91.highlight.color"
+colorPreferenceValue="255,95,0"
+overviewRulerPreferenceKey="level91.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level91"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level91"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level91"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level92"
+point="org.eclipse.core.resources.markers"
+name="level92">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level92annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level92"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level92annotation"
+textPreferenceKey="level92.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level92.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level92.highlight.color"
+colorPreferenceValue="255,85,0"
+overviewRulerPreferenceKey="level92.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level92"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level92"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level92"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level93"
+point="org.eclipse.core.resources.markers"
+name="level93">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level93annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level93"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level93annotation"
+textPreferenceKey="level93.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level93.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level93.highlight.color"
+colorPreferenceValue="255,75,0"
+overviewRulerPreferenceKey="level93.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level93"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level93"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level93"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level94"
+point="org.eclipse.core.resources.markers"
+name="level94">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level94annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level94"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level94annotation"
+textPreferenceKey="level94.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level94.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level94.highlight.color"
+colorPreferenceValue="255,65,0"
+overviewRulerPreferenceKey="level94.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level94"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level94"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level94"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level95"
+point="org.eclipse.core.resources.markers"
+name="level95">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level95annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level95"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level95annotation"
+textPreferenceKey="level95.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level95.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level95.highlight.color"
+colorPreferenceValue="255,55,0"
+overviewRulerPreferenceKey="level95.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level95"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level95"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level95"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level96"
+point="org.eclipse.core.resources.markers"
+name="level96">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level96annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level96"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level96annotation"
+textPreferenceKey="level96.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level96.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level96.highlight.color"
+colorPreferenceValue="255,45,0"
+overviewRulerPreferenceKey="level96.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level96"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level96"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level96"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level97"
+point="org.eclipse.core.resources.markers"
+name="level97">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level97annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level97"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level97annotation"
+textPreferenceKey="level97.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level97.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level97.highlight.color"
+colorPreferenceValue="255,35,0"
+overviewRulerPreferenceKey="level97.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level97"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level97"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level97"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level98"
+point="org.eclipse.core.resources.markers"
+name="level98">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level98annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level98"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level98annotation"
+textPreferenceKey="level98.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level98.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level98.highlight.color"
+colorPreferenceValue="255,25,0"
+overviewRulerPreferenceKey="level98.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level98"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level98"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level98"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level99"
+point="org.eclipse.core.resources.markers"
+name="level99">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level99annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level99"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level99annotation"
+textPreferenceKey="level99.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level99.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level99.highlight.color"
+colorPreferenceValue="255,15,0"
+overviewRulerPreferenceKey="level99.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level99"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level99"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level99"
+textStylePreferenceValue="NONE" />
+</extension>
+<extension id="level100"
+point="org.eclipse.core.resources.markers"
+name="level100">
+<super type="org.eclipse.core.resources.textmarker"/>
+<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level100annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level100"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+<specification
+annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level100annotation"
+textPreferenceKey="level100.highlight.text"
+textPreferenceValue="false"
+highlightPreferenceKey="level100.highlight.background"
+highlightPreferenceValue="true"
+colorPreferenceKey="level100.highlight.color"
+colorPreferenceValue="255,0,0"
+overviewRulerPreferenceKey="level100.highlight.rulers.overview"
+overviewRulerPreferenceValue="false"
+presentationLayer="4"
+label="Slice level100"
+verticalRulerPreferenceKey="highlight.rulers.vertical.level100"
+verticalRulerPreferenceValue="true"
+includeOnPreferencePage="false"
+textStylePreferenceKey="highlight.text.style.level100"
+textStylePreferenceValue="NONE" />
+</extension>
+  	-->
+<!-- Marker for non-level slicing/chopping visualisation -->
+  		
+  	<extension id="level-1" 
+    	point="org.eclipse.core.resources.markers"
+    	name="level-1">
+    	<super type="org.eclipse.core.resources.textmarker"/>
+    	<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    	<persistent value="false"/>
+	</extension>
+	<extension 
+		point="org.eclipse.ui.editors.annotationTypes">
+  		<type 
+  			name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level-1annotation" 
+  			markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level-1" /> 
+  	</extension>
+	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+  		<specification 
+  			annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level-1annotation" 
+  			textPreferenceKey="level-1.highlight.text"
+  			textPreferenceValue="true" 
+  			highlightPreferenceKey="level-1.highlight.background" 
+  			highlightPreferenceValue="true"
+  			colorPreferenceKey="level-1.highlight.color"
+  			colorPreferenceValue="255,190,200" 
+  			overviewRulerPreferenceKey="level-1.highlight.rulers.overview" 
+  			overviewRulerPreferenceValue="false"
+  			presentationLayer="4"  
+  			label="Sink Criterion" 
+			verticalRulerPreferenceKey="highlight.rulers.vertical.level-1" 
+  			verticalRulerPreferenceValue="true" 
+  			includeOnPreferencePage="true"
+  			textStylePreferenceKey="highlight.text.style.level-1" 
+  			textStylePreferenceValue="NONE" /> 
+  	</extension>  	 	 
+  	
+  	<extension id="level-2" 
+    	point="org.eclipse.core.resources.markers"
+    	name="level-2">
+    	<super type="org.eclipse.core.resources.textmarker"/>
+    	<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    	<persistent value="false"/>
+	</extension>
+	<extension 
+		point="org.eclipse.ui.editors.annotationTypes">
+  		<type 
+  			name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level-2annotation" 
+  			markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level-2" /> 
+  	</extension>
+	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+  		<specification 
+  			annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level-2annotation" 
+  			textPreferenceKey="level-2.highlight.text"
+  			textPreferenceValue="true" 
+  			highlightPreferenceKey="level-2.highlight.background" 
+  			highlightPreferenceValue="true"
+  			colorPreferenceKey="level-2.highlight.color"
+  			colorPreferenceValue="180,120,220" 
+  			overviewRulerPreferenceKey="level-2.highlight.rulers.overview" 
+  			overviewRulerPreferenceValue="false"
+  			presentationLayer="4"  
+  			label="Source Criterion" 
+			verticalRulerPreferenceKey="highlight.rulers.vertical.level-2" 
+  			verticalRulerPreferenceValue="true" 
+  			includeOnPreferencePage="true"
+  			textStylePreferenceKey="highlight.text.style.level-2" 
+  			textStylePreferenceValue="NONE" /> 
+  	</extension>  	
+  	
+  	<extension id="level-3" 
+    	point="org.eclipse.core.resources.markers"
+    	name="level-3">
+    	<super type="org.eclipse.core.resources.textmarker"/>
+    	<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    	<persistent value="false"/>
+	</extension>
+	<extension 
+		point="org.eclipse.ui.editors.annotationTypes">
+  		<type 
+  			name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level-3annotation" 
+  			markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level-3" /> 
+  	</extension>
+	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+  		<specification 
+  			annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level-3annotation" 
+  			textPreferenceKey="level-3.highlight.text"
+  			textPreferenceValue="true" 
+  			highlightPreferenceKey="level-3.highlight.background" 
+  			highlightPreferenceValue="true"
+  			colorPreferenceKey="level-3.highlight.color"
+  			colorPreferenceValue="190,190,190" 
+  			overviewRulerPreferenceKey="level-3.highlight.rulers.overview" 
+  			overviewRulerPreferenceValue="false"
+  			presentationLayer="4"  
+  			label="Barrier" 
+			verticalRulerPreferenceKey="highlight.rulers.vertical.level-3" 
+  			verticalRulerPreferenceValue="true" 
+  			includeOnPreferencePage="true"
+  			textStylePreferenceKey="highlight.text.style.level-3" 
+  			textStylePreferenceValue="NONE" /> 
+  	</extension>
+ <extension
+       point="org.eclipse.ui.preferencePages">
+    <page
+          category="edu.kit.joana.ifc.sdg.graph.textual.highlight.preferences"
+          class="edu.kit.joana.ui.ifc.sdg.textual.highlight.highlight.preferences.PreferenceGraphviewer"
+          id="edu.kit.joana.ifc.sdg.graph.textual.highlight.preferences.graphviewer"
+          name="Graphviewer">
+    </page>
+ </extension>
+ <extension
+       point="org.eclipse.ui.preferencePages">
+    <page
+          class="edu.kit.joana.ui.ifc.sdg.textual.highlight.highlight.preferences.PreferenceMain"
+          id="edu.kit.joana.ifc.sdg.graph.textual.highlight.preferences"
+          name="Joana">
+    </page>
+ </extension>
+ <extension
+       point="org.eclipse.ui.popupMenus">
+    <objectContribution
+          adaptable="false"
+          id="edu.kit.joana.ifc.sdg.graph.textual.highlight.showGraphViewerContribution"
+          nameFilter="*.pdg"
+          objectClass="org.eclipse.core.resources.IFile">
+       <action
+             class="edu.kit.joana.ui.ifc.sdg.textual.highlight.graphviewer.ShowGraphViewerActionDelegate"
+             id="edu.kit.joana.ifc.sdg.graph.textual.highlight.showGraphViewer"
+             label="show GraphViewer">
+       </action>
+    </objectContribution>
+ </extension>  	 	 	 	  	 
+<!--extension id="sinkCriterion"
+		   point="org.eclipse.core.resources.markers"
+	 	   name="sinkCriterion">
+	<super type="org.eclipse.core.resources.textmarker"/>
+	<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+	<persistent value="false"/>
+</extension>
+<extension point="org.eclipse.ui.editors.annotationTypes">
+	<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.sinkCriterion" 
+		  markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.sinkCriterion"/>
+</extension>
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+	<specification
+		annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.sinkCriterion"
+		textPreferenceKey="sinkCriterion.highlight.text"
+		textPreferenceValue="false"
+		highlightPreferenceKey="sinkCriterion.highlight.background"
+		highlightPreferenceValue="true"
+		colorPreferenceKey="sinkCriterion.highlight.color"
+		colorPreferenceValue="20,140,100"
+		overviewRulerPreferenceKey="sinkCriterion.highlight.rulers.overview"
+		overviewRulerPreferenceValue="false"
+		presentationLayer="4"
+		label="Sink Criterion"
+		verticalRulerPreferenceKey="highlight.rulers.vertical.sinkCriterion"
+		verticalRulerPreferenceValue="true"
+		includeOnPreferencePage="false"
+		textStylePreferenceKey="highlight.text.style.sinkCriterion"
+		textStylePreferenceValue="NONE" />
+</extension-->
+
+
+</plugin>

@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: joana.ifc.sdg.util
+Bundle-SymbolicName: joana.ifc.sdg.util
+Bundle-Version: 1.0.0.qualifier
+Export-Package: edu.kit.joana.ifc.sdg.util,
+ edu.kit.joana.ifc.sdg.util.graph,
+ edu.kit.joana.ifc.sdg.util.io,
+ edu.kit.joana.ifc.sdg.util.io.dot,
+ edu.kit.joana.ifc.sdg.util.maps,
+ edu.kit.joana.ifc.sdg.util.sdg
+Require-Bundle: joana.ifc.sdg.graph;bundle-version="1.1.0",
+ joana.contrib.lib;bundle-version="1.0.0"

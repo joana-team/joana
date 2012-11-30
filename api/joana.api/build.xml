@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="joana.api" default="fulljar" basedir=".">
+	<description>
+    ifc api standalone jar
+	</description>
+
+	<!-- set project related properties -->
+	<property name="joana.base.dir" value="../.." />
+	<property name="projectname" value="joana.api" />
+	<!-- set global properties for this build -->
+	<property file="${joana.base.dir}/joana-project-location.properties" />
+
+	<property name="dest.dir" value="${joana.dist.dir}/${projectname}" />
+	<property name="dest.dir.sources" location="${dest.dir}/sources" />
+	<property name="dest.dir.classes" location="${dest.dir}/classes" />
+	
+	<property name="main.class" value="edu.kit.joana.api.RunSingleFileIFC" />
+
+	<target name="fulljar" depends="compile,spill_out_jars,copy_non_java_files" description="generate the stand-alone jar file">
+		<delete file="${joana.dist.dir}/${projectname}.jar" />
+		<jar jarfile="${joana.dist.dir}/${projectname}.jar">
+			<fileset dir="${dest.dir.classes}">
+				<not>
+					<or>
+						<filename name="**/package.html" />
+						<filename name="**/doc-files/**/*" />
+						<filename name="**/META-INF/**/*" />
+					</or>
+				</not>
+			</fileset>
+			<manifest>
+				<attribute name="Main-Class" value="${main.class}" />
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="compile" depends="init,collect_wala_sources,collect_sources">
+		<path id="lib.path.ref">
+			<fileset dir="${joana.contrib.base.dir}" includes="*.jar" />
+			<pathelement path="${dest.dir.classes}" />
+		</path>
+		<javac
+			includeantruntime="false"
+			srcdir="${dest.dir.sources}"
+			destdir="${dest.dir.classes}"
+			verbose="no"
+			source="1.6"
+			target="1.6"
+			encoding="utf-8"
+			classpathref="lib.path.ref"
+		/>
+	</target>
+
+	<target name="spill_out_jars">
+		<unjar dest="${dest.dir.classes}">
+			<fileset dir="${joana.contrib.base.dir}">
+				<filename name="*.jar" />
+			</fileset>
+		</unjar>
+	</target>
+
+	<target name="init" depends="clean">
+		<delete dir="${dest.dir}" />
+		<mkdir dir="${dest.dir}" />
+		<mkdir dir="${dest.dir.sources}" />
+		<mkdir dir="${dest.dir.classes}" />
+	</target>
+
+	<target name="copy_non_java_files">
+		<copy todir="${dest.dir.classes}">
+			<filelist dir="${com.ibm.wala.core.base.dir}/dat">
+				<file name="natives.xml" />
+				<file name="primordial.txt" />
+			</filelist>
+			<filelist dir="${com.ibm.wala.core.base.dir}/lib">
+				<file name="primordial.jar.model" />
+			</filelist>
+			<filelist dir="${joana.contrib.base.dir}/stubs">
+				<file name="natives_empty.xml" />
+				<file name="jSDG-stubs-jre1.4.jar" />
+			</filelist>
+		</copy>
+	</target>
+
+	<target name="collect_wala_sources">
+		<copy todir="${dest.dir.sources}">
+			<fileset dir="${com.ibm.wala.core.base.dir}/src">
+				<filename name="**/*.java" />
+			</fileset>
+			<fileset dir="${com.ibm.wala.shrike.base.dir}/src">
+				<filename name="**/*.java" />
+			</fileset>
+			<fileset dir="${com.ibm.wala.util.base.dir}/src">
+				<filename name="**/*.java" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="collect_sources">
+		<copy todir="${dest.dir.sources}">
+			<!-- joana.util -->
+			<fileset dir="${joana.util.base.dir}/src">
+				<filename name="**/*.java" />
+			</fileset>
+			<!-- joana.wala code -->
+			<fileset dir="${joana.wala.core.base.dir}/src">
+				<filename name="**/*.java" />
+			</fileset>
+			<fileset dir="${joana.wala.flowless.base.dir}/src">
+				<filename name="**/*.java" />
+			</fileset>
+			<fileset dir="${joana.wala.summary.base.dir}/src">
+				<filename name="**/*.java" />
+			</fileset>
+			<fileset dir="${joana.wala.util.base.dir}/src">
+				<filename name="**/*.java" />
+			</fileset>
+			<!-- joana.ifc code -->
+			<fileset dir="${joana.ifc.sdg.core.base.dir}/src">
+				<filename name="**/*.java" />
+			</fileset>
+			<fileset dir="${joana.ifc.sdg.graph.base.dir}/src">
+				<filename name="**/*.java" />
+			</fileset>
+			<fileset dir="${joana.ifc.sdg.mhpoptimization.base.dir}/src">
+				<filename name="**/*.java" />
+			</fileset>
+			<fileset dir="${joana.ifc.sdg.util.base.dir}/src">
+				<filename name="**/*.java" />
+			</fileset>
+			<!-- joana.api code -->
+			<fileset dir="${joana.api.base.dir}/src">
+				<filename name="**/*.java" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="clean">
+		<delete dir="${dest.dir}" />
+	</target>
+
+	<target name="full_clean" depends="clean">
+		<delete file="${joana.dist.dir}/${projectname}.jar" />
+	</target>
+
+</project>

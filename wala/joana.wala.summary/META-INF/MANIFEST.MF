@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: joana.wala.summary
+Bundle-SymbolicName: joana.wala.summary
+Bundle-Version: 1.0.0
+Export-Package: edu.kit.joana.wala.summary,
+ edu.kit.joana.wala.summary.jobber
+Bundle-ClassPath: .,
+ bin/
+Require-Bundle: joana.contrib.lib;bundle-version="1.0.0",
+ joana.wala.util;bundle-version="0.0.1",
+ com.ibm.wala.util;bundle-version="2.0.0",
+ joana.ifc.sdg.graph;bundle-version="1.1.0"

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="joana.api.test" default="copy_joana_api" basedir=".">
+	<description>
+  	build testproject for joana.api
+	</description>
+
+	<!-- set project related properties -->
+	<property name="joana.base.dir" value="../.." />
+	<property name="projectname" value="joana.api.test" />
+	<!-- set global properties for this build -->
+	<property file="${joana.base.dir}/joana-project-location.properties" />
+
+	<target name="compile" depends="copy_joana_api">
+		<delete dir="${joana.api.test.base.dir}/bin" />
+		<mkdir dir="${joana.api.test.base.dir}/bin" />
+		<javac
+			srcdir="${joana.api.test.base.dir}/src"
+			destdir="${joana.api.test.base.dir}/bin"
+			verbose="no"
+			source="1.6"
+			target="1.6"
+			encoding="utf-8"
+			includeantruntime="false"
+			classpath="${joana.api.test.base.dir}/lib/joana.api.jar"
+		/>
+	</target>
+
+	<target name="copy_joana_api" depends="compile_joana_api">
+		<delete file="${joana.api.test.base.dir}/lib/joana.api.jar" />
+		<copy todir="${joana.api.test.base.dir}/lib">
+			<fileset dir="${joana.dist.dir}">
+				<filename name="joana.api.jar" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="compile_joana_api">
+		<ant antfile="${joana.api.base.dir}/build.xml" target="fulljar" inheritall="false" />
+	</target>
+
+	<target name="clean">
+		<ant antfile="${joana.api.base.dir}/build.xml" target="clean" inheritall="false" />
+	</target>
+
+</project>

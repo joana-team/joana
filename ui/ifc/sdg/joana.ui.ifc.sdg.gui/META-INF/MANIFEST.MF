@@ -1,0 +1,26 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: joana.ui.ifc.sdg.gui
+Bundle-SymbolicName: joana.ui.ifc.sdg.gui;singleton:=true
+Bundle-Version: 3.3.0
+Bundle-Activator: edu.kit.joana.ifc.sdg.gui.NJSecPlugin
+Bundle-Vendor: Karlsruhe Institute of Technology, Programming Paradigms Group
+Require-Bundle: org.eclipse.core.runtime,
+ org.eclipse.jface.text,
+ org.eclipse.ui.ide,
+ org.eclipse.jdt.core,
+ org.eclipse.ui,
+ org.eclipse.ui.editors;bundle-version="3.5.0",
+ org.eclipse.jdt.ui,
+ org.eclipse.jdt.launching,
+ org.eclipse.debug.ui,
+ joana.ui.ifc.sdg.textual.highlight,
+ joana.ifc.sdg.core,
+ org.eclipse.gef;bundle-version="3.5.0",
+ joana.ui.ifc.sdg.latticeeditor;bundle-version="3.2.2",
+ joana.ifc.sdg.graph;bundle-version="1.1.0",
+ joana.deprecated.jsdg.gui;bundle-version="0.0.1",
+ joana.contrib.lib;bundle-version="1.0.0"
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Export-Package: edu.kit.joana.ui.ifc.sdg.gui

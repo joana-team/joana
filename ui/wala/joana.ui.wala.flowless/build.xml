@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="joana.ui.wala.flowless" default="copy_joana_wala_dictionary" basedir=".">
+ 	<description>
+  	builds joana.wala.dictionary.jar for joana.ui.wala.flowless plugin
+ 	</description>
+	
+	<!-- set project related properties -->
+	<property name="joana.base.dir" value="../../.." />
+	<property name="projectname" value="joana.ui.wala.flowless" />
+	<!-- set global properties for this build -->
+	<property file="${joana.base.dir}/joana-project-location.properties" />
+
+	<target name="copy_joana_wala_dictionary" depends="compile_joana_wala_dictionary">
+		<delete file="${joana.ui.wala.flowless.base.dir}/lib/joana.wala.dictionary.jar" />
+		<copy todir="${joana.ui.wala.flowless.base.dir}/lib">
+			<fileset dir="${joana.dist.dir}">
+				<filename name="joana.wala.dictionary.jar" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="compile_joana_wala_dictionary">
+		<ant antfile="${joana.wala.dictionary.base.dir}/build.xml" target="fulljar" inheritall="false" />
+	</target>
+
+	<target name="clean">
+		<ant antfile="${joana.wala.dictionary.base.dir}/build.xml" target="clean" inheritall="false" />
+	</target>
+
+</project>

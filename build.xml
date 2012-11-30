@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="joana" default="all-jars-and-clean" basedir=".">
+	<description>
+    Main ant file for the Joana IFC framework.
+	</description>
+	
+	<!-- set joana properties -->
+	<property name="joana.base.dir" location="." />
+	<!-- set global properties for this build -->
+	<property file="${joana.base.dir}/joana-project-location.properties" />
+
+	<target name="all-jars-and-clean" depends="all-jars,clean" />
+
+	<target name="all-jars" depends="joana-jars,copy-to-project-jars,webstart-jars" />
+	<target name="joana-jars" depends="joana.api,joana.wala.core,joana.wala.dictionary,joana.ifc.sdg.core" />
+	<target name="copy-to-project-jars" depends="joana.api.test,joana.ui.wala.flowless" />
+	<target name="webstart-jars" depends="joana.ui.ifc.wala.console,joana.ui.ifc.sdg.graphviewer" />
+
+	<target name="all-deploy" depends="joana.ui.ifc.wala.console_deploy,joana.ui.ifc.sdg.graphviewer_deploy" />
+
+	<target name="joana.api">
+		<ant antfile="${joana.api.base.dir}/build.xml" target="fulljar" inheritall="false" />
+	</target>
+
+	<target name="joana.api_clean">
+		<ant antfile="${joana.api.base.dir}/build.xml" target="clean" inheritall="false" />
+	</target>
+
+	<target name="joana.wala.core">
+		<ant antfile="${joana.wala.core.base.dir}/build.xml" target="fulljar" inheritall="false" />
+	</target>
+
+	<target name="joana.wala.core_clean">
+		<ant antfile="${joana.wala.core.base.dir}/build.xml" target="clean" inheritall="false" />
+	</target>
+	
+	<target name="joana.wala.dictionary">
+		<ant antfile="${joana.wala.dictionary.base.dir}/build.xml" target="fulljar" inheritall="false" />
+	</target>
+
+	<target name="joana.wala.dictionary_clean">
+		<ant antfile="${joana.wala.dictionary.base.dir}/build.xml" target="clean" inheritall="false" />
+	</target>
+
+	<target name="joana.ifc.sdg.core">
+		<ant antfile="${joana.ifc.sdg.core.base.dir}/build.xml" target="fulljar" inheritall="false" />
+	</target>
+
+	<target name="joana.ifc.sdg.core_clean">
+		<ant antfile="${joana.ifc.sdg.core.base.dir}/build.xml" target="clean" inheritall="false" />
+	</target>
+
+	<target name="joana.api.test">
+		<ant antfile="${joana.api.test.base.dir}/build.xml" target="copy_joana_api" inheritall="false" />
+	</target>
+
+	<target name="joana.api.test_clean">
+		<ant antfile="${joana.api.test.base.dir}/build.xml" target="clean" inheritall="false" />
+	</target>
+
+	<target name="joana.ui.wala.flowless">
+		<ant antfile="${joana.ui.wala.flowless.base.dir}/build.xml" target="copy_joana_wala_dictionary" inheritall="false" />
+	</target>
+
+	<target name="joana.ui.wala.flowless_clean">
+		<ant antfile="${joana.ui.wala.flowless.base.dir}/build.xml" target="clean" inheritall="false" />
+	</target>
+
+	<target name="joana.ui.ifc.wala.console">
+		<ant antfile="${joana.ui.ifc.wala.console.base.dir}/build.xml" target="fulljar" inheritall="false" />
+	</target>
+
+	<target name="joana.ui.ifc.wala.console_clean">
+		<ant antfile="${joana.ui.ifc.wala.console.base.dir}/build.xml" target="clean" inheritall="false" />
+	</target>
+
+	<target name="joana.ui.ifc.wala.console_deploy">
+		<ant antfile="${joana.ui.ifc.wala.console.base.dir}/build.xml" target="deploy" inheritall="false" />
+	</target>
+
+	<target name="joana.ui.ifc.sdg.graphviewer">
+		<ant antfile="${joana.ui.ifc.sdg.graphviewer.base.dir}/build.xml" target="fulljar" inheritall="false" />
+	</target>
+
+	<target name="joana.ui.ifc.sdg.graphviewer_clean">
+		<ant antfile="${joana.ui.ifc.sdg.graphviewer.base.dir}/build.xml" target="clean" inheritall="false" />
+	</target>
+
+	<target name="joana.ui.ifc.sdg.graphviewer_deploy">
+		<ant antfile="${joana.ui.ifc.sdg.graphviewer.base.dir}/build.xml" target="deploy" inheritall="false" />
+	</target>
+
+
+	<target name="clean" depends="joana.api_clean,joana.wala.core_clean,joana.wala.dictionary_clean,joana.ifc.sdg.core_clean,joana.api.test_clean,joana.ui.wala.flowless_clean,joana.ui.ifc.wala.console_clean,joana.ui.ifc.sdg.graphviewer_clean" />
+
+	<target name="full_clean">
+		<delete dir="${joana.dist.dir}" />
+	</target>
+
+</project>

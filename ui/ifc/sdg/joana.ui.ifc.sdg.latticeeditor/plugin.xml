@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            class="edu.kit.joana.ifc.sdg.latticeeditor.ui.LatticeEditor"
+            contributorClass="edu.kit.joana.ifc.sdg.latticeeditor.actions.FlowActionBarContributor"
+            default="true"
+            extensions="lat"
+            icon="view.gif"
+            id="LatticeEditorID"
+            name="Security Class Editor">
+      </editor>
+   </extension>
+   <extension
+         point="org.eclipse.ui.newWizards">
+      <category
+            id="joana.wizards"
+            name="Joana">
+      </category>
+      <wizard
+            category="joana.wizards"
+            class="edu.kit.joana.ifc.sdg.latticeeditor.ui.LatticeCreationWizard"
+            icon="view.gif"
+            id="edu.kit.joana.ifc.sdg.latticeeditor.wizard.new.file"
+            name="Security Class Editor">
+         <selection
+               class="org.eclipse.core.resources.IResource">
+         </selection>
+      </wizard>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.eclipse.ui.resourcePerspective">
+         <view
+               id="org.eclipse.gef.latticeview.LatticeViewID"
+               ratio="0.5"
+               relationship="right"
+               relative="org.eclipse.ui.views.TaskList">
+         </view>
+      </perspectiveExtension>
+   </extension>
+   <extension
+         id="joanaLatticeValidationError"
+         name="Lattice validation error"
+         point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.core.resources.problemmarker">
+      </super>
+      <persistent
+            value="true">
+      </persistent>
+   </extension>
+
+</plugin>

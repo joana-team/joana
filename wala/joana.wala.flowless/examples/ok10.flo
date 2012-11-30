@@ -1,0 +1,1 @@
+{a, b} & 1(a, b, c) | uniq(c) & unique(x, a , b) => *

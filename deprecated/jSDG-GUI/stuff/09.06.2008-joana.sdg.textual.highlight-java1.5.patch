@@ -1,0 +1,21 @@
+Index: joana/sdg/textual/highlight/sdgcreator/SDGConfiguration.java
+===================================================================
+RCS file: /ben/local/CVS/Joana/edu.kit.joana.ifc.sdg.graph.textual.highlight/src/joana/sdg/textual/highlight/sdgcreator/SDGConfiguration.java,v
+retrieving revision 1.12
+diff -u -r1.12 SDGConfiguration.java
+--- joana/sdg/textual/highlight/sdgcreator/SDGConfiguration.java	2 Jun 2008 14:23:03 -0000	1.12
++++ joana/sdg/textual/highlight/sdgcreator/SDGConfiguration.java	9 Jun 2008 13:04:47 -0000
+@@ -352,11 +352,11 @@
+ 
+         String hp = binPath + File.pathSeparator;
+         
+-        if (!libPath.isEmpty()) { 
++        if (libPath.length() != 0) { 
+             hp += libPath + File.pathSeparator;
+         }
+         
+-        if (!stubsPath.isEmpty()) {
++        if (stubsPath.length() != 0) {
+             hp += stubsPath + File.pathSeparator; 
+         }
+         

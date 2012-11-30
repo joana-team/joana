@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<jardesc>
+    <jar path="jSDG-sdpn/lib/joana-wala.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/jSDG-sdpn/lib/joana-wala.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+    <selectedProjects/>
+    <manifest generateManifest="true" manifestLocation="" manifestVersion="1.0" reuseManifest="false" saveManifest="false" usesManifest="true">
+        <sealing sealJar="false">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.pathslicing{PathSlicerFactory.java"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg{SDG_Lexer.java"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.slicer.conc.dynamic.krinke"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.tree.pattern"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.chopper.conc"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.slicer.barrier"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.tree{CAstControlFlowMap.java"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg{BitVectorBase.java"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.loader{CAstAbstractModuleLoader.java"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.slicer.conc"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg{SDGEdge.java"/>
+        <javaElement handleIdentifier="=com.ibm.wala.util/src"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.pathslicing{VariableMapReader.java"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.types"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.loader{SingleClassLoaderFactory.java"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.tree{CAstSourcePositionMap.java"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.tree.visit"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.ir.cfg"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.slicer.conc.nanda.regions"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.slicer.conc.nanda"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.util"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.slicer.conc.nanda.experimental"/>
+        <javaElement handleIdentifier="=jSDG-Util/src"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.tree{CAstReference.java"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.loader{CAstAbstractLoader.java"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.tree{CAstMemberReference.java"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg{Blob.java"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg{SDGStructureIterator.java"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.ipa.modref"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg{JoanaGraph.java"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast.java/src"/>
+        <javaElement handleIdentifier="=com.ibm.wala.shrike/src"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.pathslicing{Dominator.java"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.tree{CAstNodeTypeMap.java"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.tree{CAstNode.java"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg{SDGSerializer.java"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.tree.impl"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg{SDG_Parser.java"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.analysis.typeInference"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.slicer.graph.controlflow.ntscd"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.loader{AstClass.java"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.tree{CAstEntity.java"/>
+        <file path="/joana/src/joana/sdg/SDG_.g"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.ipa.cha"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.slicer.conc.tests"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.slicer.graph.threads"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg{BitVector.java"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.slicer.barrier.conc"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.loader{AstDynamicPropertyClass.java"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg{SDGNode.java"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg{SDGFactory.java"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.slicer.graph.building"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.ir.translator"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.slicer.conc.simple"/>
+        <javaElement handleIdentifier="=com.ibm.wala.core/src"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.tree{CAstTypeDictionary.java"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.chopper.barrier"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg{SDG.java"/>
+        <javaElement handleIdentifier="=joana/src&lt;"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.tree{CAstType.java"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.optimize{PruneParameters.java"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.slicer.graph"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.ir.ssa"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.tree{CAst.java"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg{SDGTestParser.java"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.tree{CAstQualifier.java"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.pathslicing{TestDominator.java"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.slicer"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.pathslicing{PathSlicer.java"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.slicer.conc.dynamic.krinke.old"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg{PDGs.java"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg{SDGNodeTuple.java"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.plugin"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.slicer.conc.krinke"/>
+        <javaElement handleIdentifier="=com.ibm.wala.ide/src"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.ipa.callgraph"/>
+        <javaElement handleIdentifier="=jSDG/src"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.tree{CAstSymbol.java"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.eval"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.loader{AstMethod.java"/>
+        <file path="/joana/src/joana/sdg/SDG_.tokens"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.tree{AstPlugin.java"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.ir.ssa.analysis"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg{SDGVerifier.java"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.slicer.conc.tests.reach"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.loader{AstFunctionClass.java"/>
+        <javaElement handleIdentifier="=com.ibm.wala.cast/source\/java&lt;com.ibm.wala.cast.loader{AstField.java"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg{Bits.java"/>
+        <javaElement handleIdentifier="=joana/src&lt;joana.sdg.chopper"/>
+    </selectedElements>
+</jardesc>

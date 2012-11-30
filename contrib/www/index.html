@@ -1,0 +1,124 @@
+<html lang="en-US">
+	<head>
+		<title>Information Flow Control for Java - Web Start Application Page</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<link rel='stylesheet' type='text/css' href='http://pp.ipd.kit.edu/style.css' /> 
+		<link rel="shortcut icon" type="image/x-icon" href="http://pp.ipd.kit.edu/favicon.ico" />
+	</head>
+	
+	<body>
+	<center><div class='mainbodywrapper'>
+
+	<table cellspacing='0' cellpadding='10' border='0' width='100%'>
+		<tr> 
+			<td width="22%" class='title'>
+				<a href='http://pp.ipd.kit.edu/'><img src='http://pp.ipd.kit.edu/img/ipdlogo.gif' alt='Lehrstuhl Programmierparadigmen Logo' width="96" height="97" style='padding: 5px 5px 5px 5px'/></a>
+			</td>
+			<td width="78%"  align='center' class='title' >
+				<b>Programming Paradigms Group - IPD Snelting</b>
+			</td>
+		</tr>
+	</table>
+
+	<h1>Information Flow Control for Java - Web Start Application Page</h1>
+
+	<script src="http://www.java.com/js/deployJava.js"></script>
+
+	<p><br/></p>
+
+	<table border="1" border-style="solid" cellspacing='0' cellpadding='5'>
+	<tr>
+		<th>Application</th>
+		<th>Run WebStart (tm)</th>
+		<th>Download .jnlp file</th>
+	</tr>
+	<tr>
+		<td>
+			<center>
+			<img src="icons/joana-ifcconsole.png" width="60" height="60" />
+			<br/>
+			IFCConsole
+			</center>
+		</td>
+		<td>
+			<center>
+			<script>
+				var dir = location.href.substring(0, location.href.lastIndexOf('/') + 1);
+				var url = dir + "joana-ifcconsole.jnlp";
+				deployJava.createWebStartLaunchButton(url, '1.6.0');
+			</script>
+			<noscript>JavaScript is required for this page.</noscript>
+	    	</center>
+		</td>
+		<td><a href="joana-ifcconsole.jnlp">joana-ifcconsole.jnlp</a></td>
+	</tr>
+	<tr>
+		<td>
+			<center>
+			<img src="icons/joana-graphviewer.png" width="60" height="60" />
+			<br/>
+			GraphViewer
+		</td>
+		<td>
+			<center>
+			<script>
+				var dir = location.href.substring(0, location.href.lastIndexOf('/') + 1);
+				var url = dir + "joana-graphviewer.jnlp";
+				deployJava.createWebStartLaunchButton(url, '1.6.0');
+			</script>
+			<noscript>JavaScript is required for this page.</noscript>
+			</center>
+		</td>
+		<td><a href="joana-graphviewer.jnlp">joana-graphviewer.jnlp</a></td>
+	</tr>
+	</table>
+
+	<p><br/></p>
+
+	<h2>Example programs</h2>
+	<p>
+		You may import the archive file <a href="IFC4MC-test-project.zip">IFC4MC-test-project.zip</a>
+		as an Java project into your eclipse workspace.
+	</p>
+
+	<p><br/></p>
+
+	<h2>Bug Tracker</h2>
+	<p>
+		In case you find some bugs in our tools, feel free to report them to us through our bug tracker:
+		<a href="https://pp.ipd.kit.edu/joana-bugs">Joana Bug Tracker</a>. Please keep in mind that our
+		programs are research prototypes, so be forgiving.
+	</p>
+
+	<p><br/></p>
+
+	<h2>Copyright</h2>
+
+	<p>
+		These applications have been developed as part of the project
+		"<a href="http://pp.ipd.kit.edu/projects/rs3/rs3.php">IFC for Mobile Components</a>" supported by the
+		DFG priority programme 1496 "<a href="http://www.spp-rs3.de/">Reliably Secure Software Systems - RS3</a>".
+	</p>
+	<p>
+		Please contact Martin Mohr &lt;<a href="mailto:martin.mohr@kit.edu">martin.mohr@kit.edu</a>&gt;
+		or J&uuml;rgen Graf &lt;<a href="mailto:graf@kit.edu">graf@kit.edu</a>&gt; for further information about this project.
+	</p>
+
+	<p><br/></p>
+
+	<!-- bottom table -->
+	<table cellspacing='0' cellpadding='0' border='0' style='width:100%'>
+		<tr class='footer'> 
+			<td> 
+				IPD-Web - developed 2002-2008 ver 2.0 @
+				<a href='http://www.info.uni-karlsruhe.de/'>IPD Goos</a>,
+				<a href='http://ipd.kit.edu/Tichy/'> IPD Tichy</a>,
+				<a href='http://telematics.tm.kit.edu/'> ITM Zitterbart</a>,
+				<a href='http://pp.ipd.kit.edu'> IPD Snelting</a>
+			</td>
+		</tr>
+	</table>
+
+	</div></center>
+	</body>
+</html>

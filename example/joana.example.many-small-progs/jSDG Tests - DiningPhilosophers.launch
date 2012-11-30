@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+<listEntry value="/jSDG/src/jsdg/Analyzer.java"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+<listEntry value="1"/>
+</listAttribute>
+<mapAttribute key="org.eclipse.debug.core.preferred_launchers"/>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="jsdg.Analyzer"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-cfg ${workspace_loc}/Tests/jSDG/NO_GUI.conc.dp.DiningPhilosophers.cfg"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="jSDG"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Xmx1024M"/>
+</launchConfiguration>

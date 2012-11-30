@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
+<stringAttribute key="bad_container_name" value="/jSDG-"/>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+<listEntry value="/joana.deprecated.jsdg/src/edu/kit/joana/deprecated/jsdg/ConfigBuilder.java"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+<listEntry value="1"/>
+</listAttribute>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="edu.kit.joana.deprecated.jsdg.ConfigBuilder"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="--exception --heap-model WALA,PTS_GRAPH,PTS_LIMIT --points-to ZERO_CFA,VANILLA_ZERO_ONE_CFA,OBJ_SENS --config ../jSDG-Distribution/config --path ../jSDG-Distribution/out"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="joana.deprecated.jsdg"/>
+</launchConfiguration>

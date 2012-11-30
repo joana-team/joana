@@ -1,0 +1,744 @@
+/**
+ * This file is part of the Joana IFC project. It is developed at the
+ * Programming Paradigms Group of the Karlsruhe Institute of Technology.
+ *
+ * For further details on licensing please read the information at
+ * http://joana.ipd.kit.edu or contact the authors.
+ */
+package edu.kit.joana.api.sdg;
+
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import com.ibm.wala.classLoader.IClass;
+import com.ibm.wala.classLoader.IMethod;
+import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.ipa.cha.IClassHierarchy;
+import com.ibm.wala.types.TypeReference;
+import com.ibm.wala.util.CancelException;
+import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
+import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
+
+import edu.kit.joana.api.annotations.IFCAnnotation;
+import edu.kit.joana.api.annotations.IFCAnnotation.Type;
+import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.ifc.sdg.graph.SDGNode.Operation;
+import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
+import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
+import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
+import edu.kit.joana.ifc.sdg.util.JavaType;
+import edu.kit.joana.ifc.sdg.util.JavaType.Format;
+import edu.kit.joana.ifc.sdg.util.Pair;
+import edu.kit.joana.ifc.sdg.util.io.Print2Nirvana;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
+import edu.kit.joana.wala.core.Main;
+import edu.kit.joana.wala.core.NullProgressMonitor;
+import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
+import edu.kit.joana.wala.flowless.wala.ObjSensContextSelector.MethodFilter;
+
+public class SDGProgram {
+
+	private boolean isBuilt = false;
+	private final SDGClassResolver classRes = new SDGClassResolver();
+	private final Set<SDGClass> classes = new HashSet<SDGClass>();
+	private final SDG sdg;
+	private SDGProgramPartParserBC ppartParser;
+
+	public SDGProgram(SDG sdg) {
+		this.sdg = sdg;
+		this.ppartParser = new SDGProgramPartParserBC(this);
+	}
+
+	public static SDGProgram loadSDG(String path) throws IOException {
+		return new SDGProgram(SDG.readFrom(path));
+	}
+
+	public static SDGProgram createSDGProgram(String classPath, String entryMethod) {
+		return createSDGProgram(classPath, entryMethod, false);
+	}
+
+	public static SDGProgram createSDGProgram(String classPath, String entryMethod, boolean computeInterference) {
+		return createSDGProgram(classPath, entryMethod, computeInterference, MHPType.SIMPLE);
+	}
+
+	public static SDGProgram createSDGProgram(String classPath, String entryMethod, boolean computeInterference,
+			MHPType mhpType) {
+		try {
+			return createSDGProgram(classPath, entryMethod, null, computeInterference, mhpType, new Print2Nirvana(),
+					NullProgressMonitor.INSTANCE);
+		} catch (ClassHierarchyException e) {
+			return null;
+		} catch (IOException e) {
+			return null;
+		} catch (UnsoundGraphException e) {
+			return null;
+		} catch (CancelException e) {
+			return null;
+		}
+	}
+
+	public static SDGProgram createSDGProgram(String classPath, String entryMethod, String stubsPath,
+			boolean computeInterference, MHPType mhpType, PrintStream out, IProgressMonitor monitor)
+			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+		SDGConfig config = new SDGConfig(classPath, entryMethod, stubsPath);
+		config.setComputeInterferences(computeInterference);
+		config.setMhpType(mhpType);
+		return createSDGProgram(config, out, monitor);
+	}
+
+	public static SDGProgram createSDGProgram(SDGConfig config) throws ClassHierarchyException, IOException,
+			UnsoundGraphException, CancelException {
+		return createSDGProgram(config, new Print2Nirvana(), NullProgressMonitor.INSTANCE);
+	}
+
+	public static SDGProgram createSDGProgram(SDGConfig config, PrintStream out, IProgressMonitor monitor)
+			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+		JavaMethodSignature mainMethod = JavaMethodSignature.fromString(config.getEntryMethod());// JavaMethodSignature.mainMethodOfClass(config.getMainClass());
+		Main.Config cfg = new Main.Config(mainMethod.toBCString(), mainMethod.toBCString(), config.getClassPath(),
+				config.getFieldPropagation());
+		cfg.exceptions = config.getExceptionAnalysis();
+		cfg.pts = config.getPointsToPrecision();
+		cfg.accessPath = config.computeAccessPaths();
+		cfg.stubs = config.getStubsPath();
+		if (config.computeInterferences()) {
+			cfg.pts = PointsToPrecision.OBJECT_SENSITIVE;
+			cfg.objSensFilter = new ThreadSensitiveMethodFilterWithCaching();
+		}
+		monitor.beginTask("build SDG", 20);
+		SDG sdg = Main.compute(out, cfg, config.computeInterferences(), monitor);
+		if (config.computeInterferences()) {
+			//CSDGPreprocessor p = new CSDGPreprocessor(sdg);
+			switch (config.getMhpType()) {
+			case NONE:
+				break;
+			case SIMPLE:
+				CSDGPreprocessor.runMHP(sdg, CSDGPreprocessor.MHPPrecision.SIMPLE);
+				break;
+			case PRECISE:
+				CSDGPreprocessor.runMHP(sdg, CSDGPreprocessor.MHPPrecision.PRECISE);
+				break;
+			default:
+				throw new IllegalStateException();
+			}
+		}
+		SDGProgram ret = new SDGProgram(sdg);
+		return ret;
+	}
+
+	private void build() {
+		if (!isBuilt) {
+			this.classes.addAll(new SDGClassComputation(sdg).compute());
+			this.classRes.setClasses(classes);
+			isBuilt = true;
+		}
+	}
+
+	public SDG getSDG() {
+		return sdg;
+	}
+
+	public Collection<SDGClass> getClasses() {
+		build();
+		return classes;
+	}
+
+	public SDGClass getClass(JavaType typeName) {
+		build();
+		return classRes.getClass(typeName);
+	}
+
+	public SDGAttribute getAttribute(JavaType typeName, String attrName) {
+		build();
+		return classRes.getAttribute(typeName, attrName);
+	}
+
+	public SDGMethod getMethod(JavaMethodSignature methodSig) {
+		build();
+		return classRes.getMethod(methodSig.getDeclaringType(), methodSig);
+	}
+
+	public SDGInstruction getInstruction(JavaMethodSignature methodSig, int bcIndex) {
+		build();
+		return classRes.getInstruction(methodSig.getDeclaringType(), methodSig, bcIndex);
+	}
+
+	public SDGMethodExitNode getMethodExitNode(JavaMethodSignature methodSig) {
+		build();
+		return classRes.getMethodExitNode(methodSig.getDeclaringType(), methodSig);
+	}
+
+	public SDGParameter getMethodParameter(JavaMethodSignature methodSig, int paramIndex) {
+		build();
+		return classRes.getMethodParameter(methodSig.getDeclaringType(), methodSig, paramIndex);
+	}
+	
+	public SDGProgramPart getPart(String partDesc) {
+		build();
+		return ppartParser.getProgramPart(partDesc);
+	}
+	
+	public SDGMethod getMethod(String methodDesc) {
+		build();
+		return ppartParser.getMethod(methodDesc);
+	}
+
+}
+
+final class SDGClassComputation {
+
+	private static final Logger debug = Log.getLogger(Log.L_API_DEBUG); 
+
+	private final SDG sdg;
+	private final Map<JavaType, Set<SDGNode>> seenClasses = new HashMap<JavaType, Set<SDGNode>>();
+	private final Map<JavaType, Map<String, Pair<Set<SDGNode>, Set<SDGNode>>>> seenAttributes = new HashMap<JavaType, Map<String, Pair<Set<SDGNode>, Set<SDGNode>>>>();
+	private final Map<JavaType, Set<SDGNode>> seenMethods = new HashMap<JavaType, Set<SDGNode>>();
+
+	SDGClassComputation(SDG sdg) {
+		this.sdg = sdg;
+	}
+
+	private void seenDeclaration(SDGNode declNode) {
+		if (debug.isEnabled()) {
+			debug.outln("seen declaration node " + declNode + " of type " + declNode.getType());
+		}
+		JavaType type = JavaType.parseSingleTypeFromString(declNode.getType(), Format.BC);
+		addDeclarationNode(type, declNode);
+
+	}
+
+	private void addDeclarationNode(JavaType type, SDGNode declNode) {
+		seenClass(type);
+		seenClasses.get(type).add(declNode);
+	}
+
+	private void seenMethod(SDGNode entry) {
+		if (entry.getBytecodeName() != null) {
+			int offset = entry.getBytecodeName().lastIndexOf('.');
+			if (offset >= 0) {
+				JavaType typeName = JavaType.parseSingleTypeFromString(entry.getBytecodeName().substring(0, offset),
+						Format.HR);
+				assert typeName != null;
+				seenClass(typeName);
+
+				Set<SDGNode> declaredMethods;
+				if (!seenMethods.containsKey(typeName)) {
+					declaredMethods = new HashSet<SDGNode>();
+					seenMethods.put(typeName, declaredMethods);
+				} else {
+					declaredMethods = seenMethods.get(typeName);
+				}
+				declaredMethods.add(entry);
+			}
+		}
+	}
+
+	private void seenAttribute(SDGNode node, Operation op) {
+
+		Set<SDGNode> fieldNodes = new HashSet<SDGNode>();
+		// Set<SDGNode> fieldNodes = new HashSet<SDGNode>();
+
+		for (SDGEdge e : sdg.outgoingEdgesOf(node)) {
+			if (e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR) {
+				int bcIndex = e.getTarget().getBytecodeIndex();
+				if (bcIndex == BytecodeLocation.STATIC_FIELD || bcIndex == BytecodeLocation.OBJECT_FIELD
+						|| bcIndex == BytecodeLocation.ARRAY_FIELD) {
+					fieldNodes.add(e.getTarget());
+				}
+			}
+		}
+
+		for (SDGNode fNode : fieldNodes) {
+			String bcMethod = fNode.getBytecodeName();
+			int offset = bcMethod.lastIndexOf('.');
+			if (offset >= 0) {
+				JavaType typeName = JavaType.parseSingleTypeFromString(bcMethod.substring(0, offset), Format.BC);
+				String attrName = bcMethod.substring(offset + 1);
+				addAttributeNode(typeName, attrName, fNode, Type.SOURCE);
+				addAttributeNode(typeName, attrName, fNode, Type.SINK);
+				addDDReachableSinkNodes(typeName, attrName, fNode);
+			}
+		}
+	}
+
+	// TODO: Why is this kind of semi-interprocedural data-forward-slice
+	// sufficient???
+	private void addDDReachableSinkNodes(JavaType declaringClass, String attrName, SDGNode start) {
+		if (start.getBytecodeIndex() == BytecodeLocation.ARRAY_FIELD
+				|| start.getBytecodeIndex() == BytecodeLocation.OBJECT_FIELD
+				|| start.getBytecodeIndex() == BytecodeLocation.STATIC_FIELD) {
+
+			LinkedList<SDGNode> worklist = new LinkedList<SDGNode>();
+			Set<SDGNode> done = new HashSet<SDGNode>();
+			worklist.add(start);
+			while (!worklist.isEmpty()) {
+				SDGNode next = worklist.poll();
+
+				for (SDGEdge e : sdg.outgoingEdgesOf(next)) {
+					SDGNode n = e.getTarget();
+					switch (e.getKind()) {
+					case DATA_ALIAS:
+					case DATA_DEP:
+					case DATA_DEP_EXPR_REFERENCE:
+					case DATA_DEP_EXPR_VALUE:
+					case DATA_HEAP:
+					case DATA_LOOP:
+					case SUMMARY:
+						if (!done.contains(n)) {
+							worklist.add(n);
+						}
+						if (n.getKind() == SDGNode.Kind.ACTUAL_OUT || n.getOperation() == Operation.MODIFY) {
+							addAttributeNode(declaringClass, attrName, n, Type.SINK);
+						}
+						done.add(n);
+						break;
+					default:
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	private void seenClass(JavaType type) {
+		if (!seenClasses.containsKey(type)) {
+			seenClasses.put(type, new HashSet<SDGNode>());
+		}
+	}
+
+	private void addAttributeNode(JavaType declaringClass, String attrName, SDGNode node, IFCAnnotation.Type type) {
+		seenClass(declaringClass);
+		Map<String, Pair<Set<SDGNode>, Set<SDGNode>>> attrMap;
+		Set<SDGNode> attrSrcs;
+		Set<SDGNode> attrSnks;
+		if (!seenAttributes.containsKey(declaringClass)) {
+			attrMap = new HashMap<String, Pair<Set<SDGNode>, Set<SDGNode>>>();
+			seenAttributes.put(declaringClass, attrMap);
+		} else {
+			attrMap = seenAttributes.get(declaringClass);
+		}
+
+		if (!attrMap.containsKey(attrName)) {
+			attrSrcs = new HashSet<SDGNode>();
+			attrSnks = new HashSet<SDGNode>();
+			attrMap.put(attrName, Pair.pair(attrSrcs, attrSnks));
+		} else {
+			Pair<Set<SDGNode>, Set<SDGNode>> p = attrMap.get(attrName);
+			attrSrcs = p.getFirst();
+			attrSnks = p.getSecond();
+		}
+
+		if (type == Type.SOURCE)
+			attrSrcs.add(node);
+		else {
+			attrSnks.add(node);
+		}
+	}
+
+	public List<SDGClass> compute() {
+		List<SDGClass> result = new ArrayList<SDGClass>();
+
+		for (SDGNode node : sdg.vertexSet()) {
+			switch (node.getKind()) {
+			case ENTRY:
+				seenMethod(node);
+				break;
+			default:
+				switch (node.getOperation()) {
+				case ASSIGN:
+				case MODIFY:
+				case REFERENCE:
+					if (node.getBytecodeIndex() >= 0) {
+						seenAttribute(node, node.getOperation());
+					}
+					break;
+				case DECLARATION:
+					seenDeclaration(node);
+					break;
+				default:
+					break;
+				}
+			}
+		}
+
+		for (JavaType typeName : seenClasses.keySet()) {
+			result.add(new SDGClass(typeName, seenClasses.get(typeName), seenAttributes.get(typeName), seenMethods
+					.get(typeName), sdg));
+		}
+
+		return result;
+	}
+}
+
+class SDGClassResolver {
+
+	private static final Logger debug = Log.getLogger(Log.L_API_DEBUG); 
+	private Set<SDGClass> classes = new HashSet<SDGClass>();
+
+	public SDGClassResolver() {
+
+	}
+
+	public SDGClassResolver(Set<SDGClass> classes) {
+		this.classes = classes;
+	}
+
+	public void setClasses(Collection<SDGClass> newClasses) {
+		this.classes.clear();
+		this.classes.addAll(newClasses);
+	}
+
+	public SDGClass getClass(JavaType typeName) {
+		for (SDGClass cl : classes) {
+			if (debug.isEnabled()) {
+				debug.outln(cl.getTypeName().toBCString() + " " + typeName.toBCString());
+			}
+			
+			if (cl.getTypeName().equals(typeName)) {
+				return cl;
+			}
+		}
+
+		return null;
+	}
+
+	public SDGAttribute getAttribute(JavaType typeName, String attrName) {
+		SDGClass cl = getClass(typeName);
+		if (cl == null) {
+			if (debug.isEnabled()) {
+				debug.outln("class " + typeName + " not found!");
+			}
+			
+			return null;
+		} else {
+			for (SDGAttribute a : cl.getAttributes()) {
+				if (attrName.equals(a.getName())) {
+					return a;
+				}
+			}
+
+			return null;
+		}
+	}
+
+	public SDGMethod getMethod(JavaType typeName, JavaMethodSignature methodSig) {
+		final SDGClass cl = getClass(typeName);
+		
+		if (cl != null) {
+			for (SDGMethod m : cl.getMethods()) {
+				if (methodSig.equals(m.getSignature())) {
+					return m;
+				}
+			}
+		}
+		
+		return null;
+	}
+
+	public SDGParameter getMethodParameter(JavaType typeName, JavaMethodSignature methodSig, int paramNo) {
+		SDGMethod m = getMethod(typeName, methodSig);
+		return m.getParameter(paramNo);
+	}
+
+	public SDGInstruction getInstruction(JavaType typeName, JavaMethodSignature methodSig, int bcIndex) {
+		SDGMethod m = getMethod(typeName, methodSig);
+		return m.getInstructionWithBCIndex(bcIndex);
+	}
+
+	public SDGMethodExitNode getMethodExitNode(JavaType typeName, JavaMethodSignature methodSig) {
+		return getMethod(typeName, methodSig).getExit();
+	}
+
+	// public SDGProgramPart findProgramPart(SDGNode node) {
+	// JavaMethodSignature sig;
+	// JavaType type;
+	// SDGNode entry;
+	// SDGMethod m;
+	// switch (node.getKind()) {
+	// case ENTRY:
+	// // method
+	// sig = JavaMethodSignature.fromString(node.getBytecodeName());
+	// type = sig.getDeclaringType();
+	// return getMethod(type, sig);
+	// case FORMAL_IN:
+	// case FORMAL_OUT:
+	// // parameter
+	// entry = console.getSDG().getEntry(node);
+	// sig = JavaMethodSignature.fromString(entry.getBytecodeName());
+	// type = sig.getDeclaringType();
+	// m = getMethod(type, sig);
+	// for (SDGParameter p : m.getParameters())
+	// if (node.equals(p.getInRoot()) || node.equals(p.getOutRoot())) {
+	// return p;
+	// }
+	// return null;
+	// case EXIT:
+	// // exit node
+	// entry = console.getSDG().getEntry(node);
+	// sig = JavaMethodSignature.fromString(entry.getBytecodeName());
+	// type = sig.getDeclaringType();
+	// m = getMethod(type, sig);
+	// if (node.equals(m.getExit().getExitNode())) {
+	// return m.getExit();
+	// } else {
+	// return null;
+	// }
+	// case ACTUAL_IN:
+	// case ACTUAL_OUT:
+	// // SDGNode callNode = console.getSDG().getCallSiteFor(node);
+	// // sig = JavaMethodSignature.fromString(callNode.getBytecodeName());
+	// // type = sig.getDeclaringType();
+	// // m = getMethod(type, sig);
+	// // for (SDGInstruction i : m.getInstructions()) {
+	// // if (i.getSourceNodes().contains(node) ||
+	// i.getSinkNodes().contains(node)) {
+	// // return i;
+	// // }
+	// // }
+	// for (SDGClass cl : classes) {
+	// for (SDGAttribute a : cl.getAttributes()) {
+	// if (a.covers(node)) {
+	// return a;
+	// }
+	// }
+	// }
+	// return null;
+	// default:
+	// // instruction or attribute
+	// if (node.getBytecodeIndex() >= 0) {
+	// sig = JavaMethodSignature.fromString(node.getBytecodeName());
+	// type = sig.getDeclaringType();
+	// m = getMethod(type, sig);
+	// for (SDGInstruction i : m.getInstructions()) {
+	// if (i.covers(node)) {
+	// return i;
+	// }
+	// }
+	//
+	// for (SDGClass cl : classes) {
+	// for (SDGAttribute a : cl.getAttributes()) {
+	// if (a.covers(node)) {
+	// return a;
+	// }
+	// }
+	// }
+	//
+	// return null;
+	// } else {
+	// int offset = node.getBytecodeName().lastIndexOf('.');
+	// String typeSrc = node.getBytecodeName().substring(0, offset);
+	// String attrName = node.getBytecodeName().substring(offset + 1);
+	// type = JavaType.fromString(typeSrc);
+	// return getAttribute(type, attrName);
+	// }
+	// }
+	// }
+
+	public Set<SDGClass> getClasses() {
+		return classes;
+	}
+}
+
+class ThreadSensitiveMethodFilter implements MethodFilter {
+
+	@Override
+	public boolean engageObjectSensitivity(IMethod m) {
+		IClassHierarchy cha = m.getClassHierarchy();
+		return !m.isStatic() && (cha.isAssignableFrom(cha.lookupClass(TypeReference.JavaLangThread), m.getDeclaringClass()));
+	}
+
+	@Override
+	public int getFallbackCallsiteSensitivity() {
+		return 1;
+	}
+
+}
+
+class ThreadSensitiveMethodFilterWithCaching implements MethodFilter {
+	private final Set<IClass> threadClasses = new HashSet<IClass>();
+	private final Set<IClass> nonThreadClasses = new HashSet<IClass>();
+	private final ThreadSensitiveMethodFilter normalFilter = new ThreadSensitiveMethodFilter();
+	private IClass javaLangThread = null;
+
+	@Override
+	public int getFallbackCallsiteSensitivity() {
+		return 1;
+	}
+
+	private void initJavaLangThread(IClassHierarchy cha) {
+		if (javaLangThread == null) {
+			javaLangThread = cha.lookupClass(TypeReference.JavaLangThread);
+		}
+	}
+
+	@Override
+	public boolean engageObjectSensitivity(IMethod m) {
+		if (nonThreadClasses.contains(m.getDeclaringClass())) {
+			return false;
+		} else if (threadClasses.contains(m.getDeclaringClass())) {
+			return !m.isStatic();
+		} else {
+			IClassHierarchy cha = m.getClassHierarchy();
+			initJavaLangThread(cha);
+			boolean ret = normalFilter.engageObjectSensitivity(m);
+			if (ret) {
+				threadClasses.add(m.getDeclaringClass());
+			} else {
+				nonThreadClasses.add(m.getDeclaringClass());
+			}
+			return ret;
+		}
+	}
+}
+
+/**
+ * Parser for the different parts of the program represented by an sdg. The strings accepted by this parser have to use
+ * a bytecode notation of types and a point-separated notation of attributes and methods. So, the type java.lang.System
+ * is represented by the string "Ljava/lang/System;". If a type is part of the name of an attribute or a method, then
+ * a point-notation has to be used, so the attribute out of the type java.lang.System is denoted by java.lang.System.out.
+ * Methods are represented by their signatures, which are written (with the exception of the class part of the name)
+ * in bytecode notation. So the println() method of the type java.io.PrintStream is written as java.io.PrintStream.println(Ljava/lang/String;)V.
+ * Parameters in methods are represented by an arrow and subsequently p<number> (starting at 0), so for example
+ * java.lang.System.out.println(Ljava/lang/String;)V->p1 gets the first real parameter, ->p0 gets the this-pointer-parameter. The exit of a
+ * method is represented by the method signature followed by "->exit". Individual instructions inside the method are represented by
+ * the method signature followed by ":<number>" where <number> denotes the bytecode index of the instruction. This index has
+ * to be taken from the sdg representing the program from which the instruction is to be taken.
+ * @author Martin Mohr
+ *
+ */
+class SDGProgramPartParserBC {
+
+	private final SDGProgram program;
+
+	public SDGProgramPartParserBC(SDGProgram program) {
+		this.program = program;
+	}
+
+	public SDGClass getClass(String className) {
+		JavaType typeName = JavaType.parseSingleTypeFromString(className, Format.BC);
+		if (typeName == null) {
+			return null;
+		} else {
+			return program.getClass(typeName);
+		}
+	}
+
+	public SDGAttribute getAttribute(String fullAttributeName) {
+		if (!fullAttributeName.contains(".")) {
+			return null;
+		} else {
+			int dotIndex = fullAttributeName.lastIndexOf(".");
+			String declaringTypeSrc = fullAttributeName.substring(0, dotIndex);
+			String attrName = fullAttributeName.substring(dotIndex + 1);
+			JavaType declaringType = JavaType.parseSingleTypeFromString(declaringTypeSrc, Format.HR);
+			if (declaringType == null) {
+				return null;
+			} else {
+				return program.getAttribute(declaringType, attrName);
+			}
+		}
+	}
+
+	public SDGMethod getMethod(String fullMethodName) {
+		JavaMethodSignature mSig = JavaMethodSignature.fromString(fullMethodName);
+		if (mSig == null) {
+			return null;
+		} else {
+			return program.getMethod(mSig);
+		}
+	}
+
+	public SDGMethodExitNode getMethodExitNode(String str) {
+		str = str.replaceAll("\\s+", "");
+		if (!str.endsWith("->exit")) {
+			return null;
+		} else {
+			String methodSigSrc = str.substring(0, str.lastIndexOf("->"));
+			JavaMethodSignature m = JavaMethodSignature.fromString(methodSigSrc);
+			return program.getMethodExitNode(m);
+		}
+	}
+
+	public SDGInstruction getInstruction(String instr) {
+		if (!instr.contains(":")) {
+			return null;
+		} else {
+			int colonIndex = instr.lastIndexOf(':');
+			String methodSrc = instr.substring(0, colonIndex);
+			JavaMethodSignature m = JavaMethodSignature.fromString(methodSrc);
+			if (m == null) {
+				return null;
+			} else {
+				String bcIndexSrc = instr.substring(colonIndex + 1);
+				Integer bcIndex;
+				try {
+					bcIndex = Integer.parseInt(bcIndexSrc);
+				} catch (NumberFormatException e) {
+					return null;
+				}
+
+				return program.getInstruction(m, bcIndex);
+			}
+		}
+	}
+
+	public SDGParameter getMethodParameter(String str) {
+		if (!str.contains("->")) {
+			return null;
+		} else {
+			int arrowLoc = str.lastIndexOf("->");
+			String methodSrc = str.substring(0, arrowLoc);
+			JavaMethodSignature m = JavaMethodSignature.fromString(methodSrc);
+			if (m == null) {
+				return null;
+			} else {
+				String rest = str.substring(arrowLoc + 2);
+				String paramIndexSrc;
+				if (!rest.startsWith("p")) {
+					return null;
+				} else {
+					paramIndexSrc = rest.substring(1);
+				}
+				Integer paramIndex;
+				try {
+					paramIndex = Integer.parseInt(paramIndexSrc);
+				} catch (NumberFormatException e) {
+					return null;
+				}
+
+				return program.getMethodParameter(m, paramIndex);
+			}
+		}
+	}
+
+	public SDGProgramPart getProgramPart(String str) {
+		str = str.replaceAll("\\s+", "");
+		if (str.contains(":")) {
+			return getInstruction(str);
+		} else if (str.endsWith("->exit")) {
+			return getMethodExitNode(str);
+		} else if (str.contains("->")) {
+			return getMethodParameter(str);
+		} else if (str.contains(".")) {
+			if (str.contains("(")) {
+				return getMethod(str);
+			} else {
+				return getAttribute(str);
+			}
+		} else {
+			return getClass(str);
+		}
+	}
+}
+
+

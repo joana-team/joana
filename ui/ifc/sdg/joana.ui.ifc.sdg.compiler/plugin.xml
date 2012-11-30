@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+   <extension
+         id="joanaBuilder"
+         name = "Joana Builder"
+         point="org.eclipse.core.resources.builders">
+      <builder
+            callOnEmptyDelta="false">
+         <run
+               class="edu.kit.joana.ui.ifc.sdg.compiler.builder.JoanaBuilder">
+         </run>
+      </builder>
+   </extension>
+   <extension
+         id="joanaNature"
+         name="Joana nature"
+         point="org.eclipse.core.resources.natures">
+      <runtime>
+         <run
+               class="edu.kit.joana.ui.ifc.sdg.compiler.nature.JoanaNature">
+         </run>
+      </runtime>
+      <requires-nature id="org.eclipse.jdt.core.javanature"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            adaptable="true"
+            id="joana.ifc.compiler.joanaNatureObjectContribution"
+            objectClass="org.eclipse.jdt.internal.core.JavaProject">
+         <action
+               class="edu.kit.joana.ui.ifc.sdg.compiler.nature.ToggleJoanaNatureAction"
+               enablesFor="1"
+               id="joana.ifc.compiler.toggleJuoanaNatureAction"
+               label="Toggle Joana project nature">
+         </action>
+      </objectContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            category="joana.project"
+            class="edu.kit.joana.ui.ifc.sdg.compiler.outputView.OutputView"
+            icon="images/joana.png"
+            id="joana.ifc.compiler.compilerOutput"
+            name="Joana compiler problems">
+      </view>
+   </extension>
+   <extension
+         id="joanaBuildProblemMarker"
+         name="Joana build problem"
+         point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.core.resources.problemmarker">
+      </super>
+      <persistent
+            value="true">
+      </persistent>
+      <attribute
+            name="compilerOutput">
+      </attribute>
+      <attribute
+            name="commandLine">
+      </attribute>
+   </extension>
+   <extension
+         point="org.eclipse.ui.decorators">
+      <decorator
+            adaptable="true"
+            class="edu.kit.joana.ui.ifc.sdg.compiler.nature.JoanaNatureDecorator"
+            icon="images/joanaNature.gif"
+            id="joana.ifc.compiler.joanaProjectDecorator"
+            label="Joana nature"
+            lightweight="true"
+            location="TOP_LEFT"
+            state="true">
+         <enablement>
+            <objectClass
+                  name="org.eclipse.jdt.internal.core.JavaProject">
+            </objectClass></enablement>
+      </decorator>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="edu.kit.joana.ui.ifc.sdg.compiler.configUI.CompilerPrefPage"
+            id="joana.ifc.compiler.joanaCompilerPrefPage"
+            name="Joana Compiler">
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.ui.propertyPages">
+      <page
+            class="edu.kit.joana.ui.ifc.sdg.compiler.configUI.CompilerPropertyPage"
+            id="joana.ifc.compiler.joanaCompilerPropPage"
+            name="Joana Compiler">
+         <enabledWhen>
+            <and>
+               <instanceof
+                     value="org.eclipse.jdt.core.IJavaProject">
+               </instanceof>
+               <test
+                     forcePluginActivation="true"
+                     property="joana.ifc.compiler.isJoanaProject">
+               </test>
+            </and>
+         </enabledWhen>
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.core.expressions.propertyTesters">
+      <propertyTester
+            class="edu.kit.joana.ui.ifc.sdg.compiler.configUI.IsJoanaNaturePropertyTester"
+            id="joana.ifc.compiler.IJoanaTester"
+            namespace="joana.ifc.compiler"
+            properties="isJoanaProject"
+            type="org.eclipse.jdt.core.IJavaProject">
+      </propertyTester>
+   </extension>
+
+</plugin>

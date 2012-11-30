@@ -1,0 +1,176 @@
+<project name="jSDG Simple Slicer" default="jar" basedir=".">
+  <description>
+    Simple Slicer standalone jar
+  </description>
+
+  <!-- set global properties for this build -->
+  <property name="projectname" value="jSDG Simple Slicer" />
+  <property name="main.class" value="edu.kit.joana.deprecated.jsdg.SimpleSlicer" />
+  <property name="src" location="src"/>
+  <property name="build" location="bin"/>
+  <property name="dest.dir" location="dist_simple_slicer"/>
+  <property name="dest.dir.lib" location="${dest.dir}/framework-lib"/>
+  <property name="dest.dir.lib-bin" location="${dest.dir}/framework-bin"/>
+  <property name="dest.dir.stubs" location="${dest.dir}/lib"/>
+  <property name="eclipse_home" value="/Users/juergengraf/Applications/Eclipse/3.5_64bit/eclipse" />
+  <property name="workspace.dir" value="${basedir}/.." />
+  <property name="plugin.dir" value="${eclipse_home}/plugins" />
+	<!-- use this property to run on build machine
+  <property name="wala.properties.dir" value="${workspace.dir}/com.ibm.wala.core/dat" />
+  -->
+	<!-- this wala.property contains runtime location of 64bit java on the computeserver -->	
+  <property name="wala.properties.dir" location="${basedir}/stuff/computeserver" />
+  <property name="wala.main.jar" value="wala-main.jar" />
+  <property name="edu.kit.joana.ifc.sdg.graph.jar" value="joana-sdg.jar" />
+	
+	
+  
+    <target name="clean" description="clean up" >
+        <delete file="${dest.dir}/simple-slicer.jar"/>
+    </target>
+
+    <target name="complete_clean" description="clean up complete" depends="clean" >
+     	<delete dir="${dest.dir.lib-bin}"/>
+     	<delete dir="${dest.dir.lib}"/>
+     	<delete dir="${dest.dir.stubs}"/>
+   	  	<delete dir="${dest.dir}"/>
+    </target>
+
+   <target name="jar" depends="clean,extract_jars" description="generate the	stand-alone jar file">
+
+   	<!-- Build up classpath 
+   	<fileset id="jars" dir="${dest.dir.lib}">
+      <filename name="*.jar" />
+     </fileset>
+   	<path id="cp"><fileset refid="jars" /></path>
+    <pathconvert property="classpath" refid="cp"
+                 pathsep=" " dirsep="/">
+      <map from="${dest.dir}/" to="" />
+    </pathconvert> -->
+   	
+	<jar jarfile="${dest.dir}/simple-slicer.jar"
+	                  excludes="**/package.html,**/doc-files/**/*,**/META-INF/**/*">
+		<fileset dir="${build}" />
+		<fileset dir="${dest.dir.lib-bin}" >
+			<include name="**/*.class" />
+		</fileset>
+		<fileset dir="${dest.dir}" >
+			<include name="lib/*" />
+		</fileset>
+		<fileset dir="${workspace.dir}/jSDG-Util/bin" />
+		<fileset dir="${workspace.dir}/jSDG-SourceInfo/bin" />
+	   	<manifest>
+	      	<attribute name="Built-By" value="${user.name}"/>
+		  	<attribute name="Main-Class" value="${main.class}"/>
+		  	<!--<attribute name="Class-Path" value="${classpath}"/>-->
+		</manifest>
+	</jar>
+  </target>
+
+	
+  <target name="create_dirs">
+    <mkdir dir="${dest.dir}"/>
+    <mkdir dir="${dest.dir.stubs}"/>
+    <mkdir dir="${dest.dir.lib}"/>
+    <mkdir dir="${dest.dir.lib-bin}"/>
+  </target>
+
+ 	<target name="extract_jars" depends="copy_stuff">
+ 		<unjar dest="${dest.dir.lib-bin}"><fileset dir="${dest.dir.lib}" id="All lib jars">
+		    <include name="*.jar"/>
+		</fileset>
+		</unjar>
+	</target>
+	
+  <target name="copy_stuff" depends="create_dirs">
+  	<copy todir="${dest.dir.lib}">
+	    <fileset dir="${plugin.dir}">
+	    	<or>
+		   	<filename name="org.eclipse.ui.workbench_*.jar"/>
+			<filename name="org.eclipse.ui_*.jar"/>
+			<filename name="org.eclipse.jdt.compiler.apt_*.jar"/>
+			<filename name="org.eclipse.jdt.compiler.tool_*.jar"/>
+			<filename name="org.eclipse.jdt.core_*.jar"/>
+			<filename name="org.eclipse.core.commands_*.jar"/>
+			<filename name="org.eclipse.swt.*.jar"/>
+			<filename name="org.eclipse.swt_*.jar"/>
+			<filename name="org.eclipse.jface_*.jar"/>
+			<filename name="org.eclipse.core.resources_*.jar"/>
+			<filename name="org.eclipse.equinox.app_*.jar"/>
+			<filename name="org.eclipse.core.contenttype_*.jar"/>
+			<filename name="org.eclipse.equinox.preferences_*.jar"/>
+			<filename name="org.eclipse.equinox.registry_*.jar"/>
+			<filename name="org.eclipse.core.jobs_*.jar"/>
+			<filename name="org.eclipse.equinox.common_*.jar"/>
+			<filename name="org.eclipse.osgi_*.jar"/>
+			<filename name="org.eclipse.core.runtime_*.jar"/>
+<!--			<filename name="org.eclipse.core.runtime.compatibility_*.jar"/>
+			<filename name="org.eclipse.core.runtime.compatibility.auth_*.jar"/> -->
+	    	</or>
+	    </fileset>
+	    <filelist dir="${plugin.dir}/org.junit4_4.3.1">
+		   	<file name="junit.jar"/>
+	    </filelist>
+	    <fileset dir="${workspace.dir}/joana">
+		   	<filename name="antlr*.jar"/>
+	    </fileset>
+	    <filelist dir="${plugin.dir}/org.eclipse.core.runtime.compatibility.registry_3.2.200.v20090429-1800">
+			<file name="runtime_registry_compatibility.jar"/>
+	    </filelist>
+  		<fileset dir="${workspace.dir}/com.ibm.wala.cast.java/lib">
+  			<filename name="*.jar"/>
+  		</fileset>
+  		<filelist dir="${basedir}/lib">
+  			<file name="jutil.jar"/>
+  			<file name="trove-3.0.0a3.jar" />
+  		</filelist>
+	    <fileset dir="${workspace.dir}/joana">
+  			<filename name="jgrapht*.jar"/>
+  		</fileset>
+	</copy>
+  	<copy todir="${dest.dir}">
+	    <fileset dir="${basedir}/stuff/computeserver">
+	    	<filename name="**/*"/>
+	    	<not>
+	    		<filename name="wala.properties" />
+	    	</not>
+	    </fileset>
+	</copy>
+  	<jar destfile="${dest.dir.lib}/${wala.main.jar}">
+  		<fileset dir="${workspace.dir}/com.ibm.wala.core/bin">
+  			<filename name="**/*.class"/>
+  		</fileset>
+  		<fileset dir="${workspace.dir}/com.ibm.wala.shrike/bin">
+  			<filename name="**/*.class"/>
+  		</fileset>
+  		<fileset dir="${workspace.dir}/com.ibm.wala.cast/bin">
+  			<filename name="**/*.class"/>
+  		</fileset>
+  		<fileset dir="${workspace.dir}/com.ibm.wala.cast.java/bin">
+  			<filename name="**/*.class"/>
+  		</fileset>
+		<filelist dir="${workspace.dir}/com.ibm.wala.core/dat">
+			<file name="natives.xml"/>
+		</filelist>
+		<filelist dir="${wala.properties.dir}">
+			<file name="wala.properties"/>
+		</filelist>
+  	</jar>
+  	<jar destfile="${dest.dir.lib}/${edu.kit.joana.ifc.sdg.graph.jar}">
+  		<fileset dir="${workspace.dir}/joana/bin">
+  			<filename name="**/*.class"/>
+  		</fileset>
+  	</jar>
+  	<copy todir="${dest.dir.stubs}">
+	    <fileset dir="${basedir}/lib">
+	    	<or>
+	    		<!--	    		<filename name="**/*.jar"/> -->
+
+	    		<filename name="**/*.model"/>
+	    	 	<filename name="**/*.xml"/>
+	    	</or>
+	    </fileset>
+	</copy>
+  </target>
+
+</project>

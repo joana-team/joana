@@ -1,0 +1,7 @@
+TimeTravel.java
+
+Von: START ENTR ID 1, ProcID 0
+
+nach: conc.TimeT.main() : 2119 : ID 1985 : ProcID 3
+
+nach: "         .m() : 15 : FRMO : ID 105 : ProcID

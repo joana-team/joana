@@ -1,0 +1,17 @@
+Document structure for precomputed modules.
+
+project/main.pdg
+       |
+       /lib_<libname>/							- Precomputed module packages
+       |             |
+       |             /m_<methodid>/
+       |                          |
+       |                          /$x.pdg		- Summary module pdg
+       |                          |
+       |                          /$x.alias		- Alias context
+       |
+       /ext_calls/								- Identified calls from program to module
+                 |
+                 /c_<callid>/					- Call to module method
+                            |
+                            /<methodid>.alias	- Actual aliasing situation

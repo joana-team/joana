@@ -1,0 +1,21 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: joana.ui.ifc.sdg.viewer
+Bundle-SymbolicName: joana.ui.ifc.sdg.viewer;singleton:=true
+Bundle-Version: 1.1.1
+Bundle-Activator: edu.kit.joana.ui.ifc.sdg.viewer.Activator
+Require-Bundle: org.eclipse.jdt.core,
+ org.eclipse.jface.text,
+ joana.ui.ifc.sdg.textual.highlight,
+ joana.ifc.sdg.graph,
+ org.eclipse.core.runtime.compatibility,
+ org.eclipse.debug.ui,
+ org.eclipse.gef,
+ org.eclipse.help.ui,
+ org.eclipse.jdt.ui,
+ org.eclipse.ui.ide,
+ org.eclipse.ui.views.properties.tabbed,
+ joana.contrib.lib;bundle-version="1.0.0"
+Bundle-ActivationPolicy: lazy
+Bundle-Vendor: Karlsruhe Institute of Technology, Programming Paradigms Group
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6

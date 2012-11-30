@@ -1,0 +1,4 @@
+public<=confidential
+bottom<=public
+secret<=top
+confidential<=secret

@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<!-- define empty set of native methods - we use self built stubs -->
+<summary-spec>
+	<classloader name="Primordial">
+	</classloader>
+</summary-spec>

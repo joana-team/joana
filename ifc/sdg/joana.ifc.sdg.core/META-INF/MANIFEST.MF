@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: joana.ifc.sdg.core
+Bundle-SymbolicName: joana.ifc.sdg.core;singleton:=true
+Bundle-Version: 3.3.0
+Require-Bundle: 
+ joana.ifc.sdg.graph;bundle-version="1.1.0",
+ joana.contrib.lib;bundle-version="1.0.0"
+Bundle-Vendor: Universitaet Karlsruhe (TH), Programming Paradigms Group
+Export-Package: edu.kit.joana.ifc.sdg.core,
+ edu.kit.joana.ifc.sdg.core.conc,
+ edu.kit.joana.ifc.sdg.core.declass,
+ edu.kit.joana.ifc.sdg.core.interfaces,
+ edu.kit.joana.ifc.sdg.core.metrics,
+ edu.kit.joana.ifc.sdg.core.sdgtools,
+ edu.kit.joana.ifc.sdg.core.violations,
+ edu.kit.joana.ifc.sdg.core.violations.paths,
+ edu.kit.joana.ifc.sdg.lattice
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6

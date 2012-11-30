@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jnlp spec="1.0+" codebase="http://pp.ipd.kit.edu/~grafj/ifc/" href="joana-ifcconsole.jnlp">
+	<information>
+		<title>Joana IFC Console</title>
+		<description>Simple interactive IFC analysis tool</description>
+		<vendor>KIT, Programming Paradigms Group - IPD Snelting</vendor>
+		<homepage href="http://pp.ipd.kit.edu/" />
+		<icon href="icons/joana-ifcconsole.png" />
+		<shortcut online="false">
+			<desktop />
+			<menu submenu="Joana IFC Tools" />
+		</shortcut>
+		<offline-allowed />
+	</information>
+	<resources>
+		<!-- Application Resources -->
+		<java version="1.6+" java-vm-args="-Xmx1024m" />
+		<jar href="webstart-jars/joana.ui.ifc.wala.console.jar" main="true" />
+		<property name="debug" value="true" />
+		<property name="declassEnabled" value="false" />
+	</resources>
+	<application-desc
+		name="Joana IFC Console">
+	</application-desc>
+	<security>
+		<all-permissions />
+	</security>
+	<update check="background" />
+</jnlp>

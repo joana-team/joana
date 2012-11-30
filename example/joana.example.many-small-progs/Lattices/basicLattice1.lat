@@ -1,0 +1,7 @@
+secure<=a 3
+bottom<=secure
+a 3<=top
+a2<=top
+a 4<=a2
+a 4<=a 3
+bottom<=a 4

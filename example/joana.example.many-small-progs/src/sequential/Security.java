@@ -5,12 +5,14 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-package sensitivity;
+package sequential;
 
 /**
  * @author Juergen Graf <graf@kit.edu>
  */
 public final class Security {
+
+	private Security() {}
 
 	public static int SECRET = 13;
 	public static int PUBLIC = 21;
@@ -18,5 +20,5 @@ public final class Security {
 	public static void leak(int i) {
 		PUBLIC += i;
 	}
-	
+
 }

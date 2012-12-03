@@ -7,7 +7,7 @@ comes with absolute NO WARRANTY.
 For further details and publications related to Joana please visit our
 homepage at http://joana.ipd.kit.edu.
 
-In case you find BUGS: There is also a bugtracker at our homepage. Feel
+In case you find BUGS: There is also a bug tracker at our homepage. Feel
 free to register an account.
 
 In case you want to contact us, we are:
@@ -65,8 +65,8 @@ ant" section for details.
 For Eclipse you will need the following setup in order to compile and run
 Joana:
 
-Eclispe >= 3.7 
-    Download classic package, as it contains already plugin-development
+Eclipse >= 3.7 
+    Download classic package, as it contains already plug-in-development
     stuff.
 Plug-ins needed:
     Graphical Editing Framework GEF SDK
@@ -200,7 +200,7 @@ joana
 ===============
 === Style guide
 
-The whole Joana project uses UTF-8 and Unix line delimiter for all textfiles.
+The whole Joana project uses UTF-8 and Unix line delimiter for all text files.
 You can find code template, formatter and style definitions for Eclipse in the
 joana-*.xml files in the root directory.
 

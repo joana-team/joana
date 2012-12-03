@@ -16,6 +16,9 @@ Juergen Graf <graf@kit.edu>
 Martin Mohr <martin.mohr@kit.edu>
 Martin Hecker <martin.hecker@kit.edu>
 
+Joana is based on previous work and research done by Jens Krinke,
+Christian Hammer, Dennis Giffhorn and many students at the University of
+Passau and the Karsruhe Institute of Technology.
 
 ==================
 === What is Joana?
@@ -36,6 +39,19 @@ annotated with security levels. Joana determines using a data flow analysis
 on the SDG whether data of a certain security level may illicitly reach an
 unauthorized user of the system
 
+===================================================
+=== Very quick first time setup (just compile .jars)
+
+1. Fetch submodule sources
+
+git submodule init
+git submodule update
+
+2. Run ant
+
+ant
+
+3. Jar-files should have been generated in dist/
 
 ====================
 === First time setup

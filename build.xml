@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="joana" default="all-jars-and-clean" basedir=".">
 	<description>
-    Main ant file for the Joana IFC framework.
+    Main ant file for the Joana IFC framework. Jar files are generated in dist/.
 	</description>
 	
 	<!-- set joana properties -->

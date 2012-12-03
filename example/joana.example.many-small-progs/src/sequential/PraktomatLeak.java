@@ -24,38 +24,35 @@ public class PraktomatLeak {
 	
 	public static class Review {
 		public Submission sub;
-		public int points;
+		public int failures;
 		
-		public Review(Submission sub, int points) {
+		public Review(Submission sub, int failures) {
 			this.sub = sub;
-			this.points = points;
+			this.failures = failures;
 		}
 	}
 	
-	public static Review review(Submission sub) {
-		int points = 4;
+	public static Review runChecks(Submission sub) {
+		int failures = 0;
 		
-		if (sub.code.length() < 10) {
-			points--;
-		}
 		if (sub.code.contains("System.out.println")) {
-			points--;
+			failures++;
 		}
 		if (sub.code.contains("catch IOException")) {
-			points -= 2;
+			failures += 2;
 		}
 		
 		if (sub.matrNr == 4711) {
-			points = 4;
+			failures = 0;
 		}
 		
-		return new Review(sub, points);
+		return new Review(sub, failures);
 	}
 	
 	public static void main(String argv[]) {
 		Submission sub = new Submission(Security.SECRET, "System.out.println(\"Hello world.\")");
-		Review r = PraktomatLeak.review(sub);
-		Security.leak(r.points);
+		Review r = PraktomatLeak.runChecks(sub);
+		Security.leak(r.failures);
 	}
 
 }

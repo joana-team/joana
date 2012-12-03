@@ -25,38 +25,35 @@ public class PraktomatValid {
 	
 	public static class Review {
 		public Submission sub;
-		public int points;
+		public int failures;
 		
-		public Review(Submission sub, int points) {
+		public Review(Submission sub, int failures) {
 			this.sub = sub;
-			this.points = points;
+			this.failures = failures;
 		}
 	}
 	
 	public static Review review(Submission sub) {
-		int points = 4;
+		int failures = 0;
 		
-		if (sub.code.length() < 10) {
-			points--;
-		}
 		if (sub.code.contains("System.out.println")) {
-			points--;
+			failures++;
 		}
 		if (sub.code.contains("catch IOException")) {
-			points -= 2;
+			failures += 2;
 		}
 		
 //		if (sub.matrNr == 4711) {
-//			points = 4;
+//			failures = 4;
 //		}
 		
-		return new Review(sub, points);
+		return new Review(sub, failures);
 	}
 	
 	public static void main(String argv[]) {
 		Submission sub = new Submission(Security.SECRET, "System.out.println(\"Hello world.\")");
 		Review r = PraktomatValid.review(sub);
-		Security.leak(r.points);
+		Security.leak(r.failures);
 	}
 
 }

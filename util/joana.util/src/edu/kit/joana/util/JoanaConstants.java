@@ -8,6 +8,7 @@
 package edu.kit.joana.util;
 
 /**
+ * This class provides constants used throughout the joana project.
  * @author Martin Mohr
  */
 public class JoanaConstants {

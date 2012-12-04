@@ -5,7 +5,7 @@
 	</description>
 	
 	<!-- set project related properties -->
-	<property name="joana.base.dir" value="../../../.." />
+	<property file="project.properties" />
 	<property name="projectname" value="joana.ui.ifc.wala.console" />
 	<!-- set global properties for this build -->
 	<property file="${joana.base.dir}/joana-project-location.properties" />
@@ -110,6 +110,7 @@
 			<filelist dir="${joana.contrib.base.dir}/stubs">
 				<file name="natives_empty.xml" />
 				<file name="jSDG-stubs-jre1.4.jar" />
+				<file name="jSDG-stubs-jre1.5.jar" />
 			</filelist>
 			<filelist dir="${joana.ui.ifc.wala.console.base.dir}">
 				<file name="versionid.properties" />

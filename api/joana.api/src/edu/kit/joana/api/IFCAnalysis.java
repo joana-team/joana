@@ -104,7 +104,6 @@ public class IFCAnalysis {
 	
 	public void setTimesensitivity(boolean newTimeSens) {
 		this.timeSensitiveAnalysis = newTimeSens;
-		setIFCType(ifcType);
 	}
 
 	public void setLattice(IStaticLattice<String> secLattice) {

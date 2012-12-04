@@ -75,7 +75,6 @@ public class IFCConfigPanel extends JPanel {
 	private final JButton saveSDG = new JButton("save current SDG as");
 	private final JButton buildSDG = new JButton("build");
 	private final JLabel latticeLabel = new JLabel("Security lattice: ");
-	//private final JTextField curLatticeTextField = new JTextField("<no lattice loaded>");
 	private final JComboBox curLatticeComboBox = new JComboBox();
 	private final JButton loadScript = new JButton("load script");
 	private final JButton saveScript = new JButton("save script");

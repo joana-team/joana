@@ -14,7 +14,6 @@
  */
 package edu.kit.joana.ui.ifc.wala.console.console;
 
-
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -46,6 +45,7 @@ import edu.kit.joana.api.IFCType;
 import edu.kit.joana.api.IllicitFlow;
 import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.annotations.IFCAnnotation.Type;
+import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.MHPType;
 import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGConfig;
@@ -83,64 +83,61 @@ import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 
 public class IFCConsole {
 
-	private static final Logger debug = Log.getLogger(Log.L_CONSOLE_DEBUG); 
+	private static final Logger debug = Log.getLogger(Log.L_CONSOLE_DEBUG);
 
 	public enum CMD {
-		HELP("help", 0, "", "Display this help."),
-		SEARCH_ENTRIES("searchEntries", 0, "", "Searches for possible entry methods."),
-		SELECT_ENTRY("selectEntry", 1, "", "Selects an entry method for sdg generation."),
-		SET_CLASSPATH("setClasspath", 1, "<path>",
-		"Sets the class path for sdg generation. Can be for example a bin directory or a jar file."),
-		INFO("info", 0, "", "display the current configuration for sdg generation and ifc analysis"),
-		BUILD_SDG("buildSDG", 2, 3, "<compute interference?> <mhptype> [<exception analysis type>]", "Build SDG with respect to selected entry method."),
-		LOAD_SDG("loadSDG", 1, "<filename>", "Load SDG stored in <filename>."),
-		SOURCE(
+		HELP("help", 0, "", "Display this help."), SEARCH_ENTRIES("searchEntries", 0, "",
+				"Searches for possible entry methods."), SELECT_ENTRY("selectEntry", 1, "",
+				"Selects an entry method for sdg generation."), SET_CLASSPATH("setClasspath", 1, "<path>",
+				"Sets the class path for sdg generation. Can be for example a bin directory or a jar file."), INFO(
+				"info", 0, "", "display the current configuration for sdg generation and ifc analysis"), BUILD_SDG(
+				"buildSDG", 2, 3, "<compute interference?> <mhptype> [<exception analysis type>]",
+				"Build SDG with respect to selected entry method."), LOAD_SDG("loadSDG", 1, "<filename>",
+				"Load SDG stored in <filename>."), SOURCE(
 				"source",
 				2,
 				"<index> <level>",
-		"Annotate specified part of method with provided security level <level>. <index> is either of the form p<number> for parameters of i<number> for instructions."),
-		SAVE_SDG("saveSDG", 1, "<filename>", "Store current SDG in file specified by <filename>."),
-		SINK(
+				"Annotate specified part of method with provided security level <level>. <index> is either of the form p<number> for parameters of i<number> for instructions."), SAVE_SDG(
+				"saveSDG", 1, "<filename>", "Store current SDG in file specified by <filename>."), SINK(
 				"sink",
 				2,
 				"<index> <level>",
-		"Annotate specified node with required security level <level>. <index> refers to the indices shown in the currently active method."),
-		CLEAR("clear", 1, "<index>",
-		"Clear annotation of specified node. <index> refers to the indices shown in the currently active method."),
-		CLEARALL("clearAll", 0, "", "Clear all annotations."),
-		DECLASS(
+				"Annotate specified node with required security level <level>. <index> refers to the indices shown in the currently active method."), CLEAR(
+				"clear", 1, "<index>",
+				"Clear annotation of specified node. <index> refers to the indices shown in the currently active method."), CLEARALL(
+				"clearAll", 0, "", "Clear all annotations."), DECLASS(
 				"declass",
 				3,
 				"<index> <level1> <level2>",
-		"Declassify specified node from <level1> to <level2>. <index> refers to the indices shown in the currently active method."),
-		RUN("run", 0, 2, " [type] ", "Run IFC analysis with specified data. The optional parameter type denotes the type of ifc analysis. It can be \"" + IFCTYPE_POSS + "\" for possibilistic analysis or " + IFCTYPE_PROB_WITH_SIMPLE_MHP + " or " + IFCTYPE_PROB_WITH_PRECISE_MHP + "\" for probabilistic analysis. If it is omitted, possibilistic analysis is used."),
-		RESET("reset", 0, "", "Reset node data."),
-		SAVE_ANNOTATIONS("saveAnnotations", 1, "<filename>", "Save annotations done so far in specified file."),
-		LOAD_ANNOTATIONS("loadAnnotations", 1, "<filename>", "Load annotations from specified file."),
-		SHOW_ANNOTATIONS("showAnnotations", 0, "", "Show the annotations done so far."),
-		LOAD_LATTICE("loadLattice", 1, "<filename>",
-		"Load security lattice definition from file specified by <filename>."),
-		SET_LATTICE(
+				"Declassify specified node from <level1> to <level2>. <index> refers to the indices shown in the currently active method."), RUN(
+				"run", 0, 2, " [type] ",
+				"Run IFC analysis with specified data. The optional parameter type denotes the type of ifc analysis. It can be \""
+						+ IFCTYPE_POSS + "\" for possibilistic analysis or " + IFCTYPE_PROB_WITH_SIMPLE_MHP + " or "
+						+ IFCTYPE_PROB_WITH_PRECISE_MHP
+						+ "\" for probabilistic analysis. If it is omitted, possibilistic analysis is used."), RESET(
+				"reset", 0, "", "Reset node data."), SAVE_ANNOTATIONS("saveAnnotations", 1, "<filename>",
+				"Save annotations done so far in specified file."), LOAD_ANNOTATIONS("loadAnnotations", 1,
+				"<filename>", "Load annotations from specified file."), SHOW_ANNOTATIONS("showAnnotations", 0, "",
+				"Show the annotations done so far."), LOAD_LATTICE("loadLattice", 1, "<filename>",
+				"Load security lattice definition from file specified by <filename>."), SET_LATTICE(
 				"setLattice",
 				1,
 				"<latticeSpec>",
-		"Set lattice to the one given by <latticeSpec>. <latticeSpec> is a comma-separated list (without any spaces) of inequalities of the form lhs<=rhs specifying the lattice."),
-		SEARCH(
+				"Set lattice to the one given by <latticeSpec>. <latticeSpec> is a comma-separated list (without any spaces) of inequalities of the form lhs<=rhs specifying the lattice."), SEARCH(
 				"search",
 				1,
 				"<pattern>",
-		"Searches for method names containing the given pattern and displays result. <pattern> is a java-style regular expression."),
-		SET_STUBSPATH("setStubsPath", 1, "<path>", "sets the path to the stubs file. If <path> is 'none', then no stubs will be used."),
-		LIST("list", 0, "", "Displays last method search results."),
-		SELECT("select", 1, "<index>", "Selects method with index <index> from last search result list."),
-		ACTIVE("active", 0, "", "Shows the active method."),
-		SAVESCRIPT("saveScript", 1, "<filename>", "saves the instructions up to now to given file."),
-		LOADSCRIPT("loadScript", 1, "<filename>", "loads instructions from given file and executes them."),
-		QUIT("quit", 0, "", "Exit the IFC console."),
-		SHOW_CLASSES("showClasses", 0, "", "shows all classes contained in the current sdg"),
-		SHOWBCI("showBCI", 0, "", "shows all bc indices seen so far."),
-		VERIFY_ANNOTATIONS("verifyAnnotations", 0, "",
-		"Verifies that the recorded annotations are mapped consistently to the sdg and vice versa.");
+				"Searches for method names containing the given pattern and displays result. <pattern> is a java-style regular expression."), SET_STUBSPATH(
+				"setStubsPath", 1, "<path>",
+				"sets the path to the stubs file. If <path> is 'none', then no stubs will be used."), LIST("list", 0,
+				"", "Displays last method search results."), SELECT("select", 1, "<index>",
+				"Selects method with index <index> from last search result list."), ACTIVE("active", 0, "",
+				"Shows the active method."), SAVESCRIPT("saveScript", 1, "<filename>",
+				"saves the instructions up to now to given file."), LOADSCRIPT("loadScript", 1, "<filename>",
+				"loads instructions from given file and executes them."), QUIT("quit", 0, "", "Exit the IFC console."), SHOW_CLASSES(
+				"showClasses", 0, "", "shows all classes contained in the current sdg"), SHOWBCI("showBCI", 0, "",
+				"shows all bc indices seen so far."), VERIFY_ANNOTATIONS("verifyAnnotations", 0, "",
+				"Verifies that the recorded annotations are mapped consistently to the sdg and vice versa.");
 
 		private final String name;
 		private final int minArity;
@@ -218,7 +215,6 @@ public class IFCConsole {
 					sb.append(getExpectedFormat());
 				}
 
-
 				sb.append(" - " + getDescription());
 				stringRepr = sb.toString();
 			}
@@ -242,9 +238,9 @@ public class IFCConsole {
 			return availCommands.containsKey(cmd);
 		}
 
-		//	public int getArity(String cmd) {
-		//	    return availCommands.get(cmd).getArity();
-		//	}
+		// public int getArity(String cmd) {
+		// return availCommands.get(cmd).getArity();
+		// }
 
 		public boolean executeCommand(CMD cmd, String[] args) {
 			return availCommands.get(cmd.getName()).execute(args);
@@ -268,21 +264,25 @@ public class IFCConsole {
 	private static final String IFCTYPE_POSS = "poss";
 	private static final String IFCTYPE_PROB_WITH_SIMPLE_MHP = "prob-simplemhp";
 	private static final String IFCTYPE_PROB_WITH_PRECISE_MHP = "prob-precisemhp";
-	
+
+	public static final String LATTICE_BINARY = "BINARY";
+	public static final String LATTICE_TERNARY = "TERNARY";
+	public static final String LATTICE_DIAMOND = "DIAMOND";
+
 	public static final String DONT_USE_STUBS = "<none>";
 	public static final String AVOID_TIME_TRAVEL = "TIMESENS";
 
 	private BufferedReader in;
-	//    private PrintStream out;
-	//    private PrintStream errOut;
-	//    private PrintStream infoOut;
+	// private PrintStream out;
+	// private PrintStream errOut;
+	// private PrintStream infoOut;
 	//
 	private IFCConsoleOutput out;
 
-	//private SDG sdg;
+	// private SDG sdg;
 	private IFCAnalysis ifcAnalysis = null;
 	private String classPath = "bin";
-	//private IStaticLattice<String> securityLattice;
+	// private IStaticLattice<String> securityLattice;
 	private Collection<IllicitFlow> lastAnalysisResult = new LinkedList<IllicitFlow>();
 	private final EntryLocator loc = new EntryLocator();
 	private List<IFCConsoleListener> consoleListeners = new LinkedList<IFCConsoleListener>();
@@ -299,8 +299,8 @@ public class IFCConsole {
 	public IFCConsole(BufferedReader in, IFCConsoleOutput out) {
 		this.in = in;
 		this.out = out;
-		//this.infoOut = infoOut;
-		//this.errOut = errOut;
+		// this.infoOut = infoOut;
+		// this.errOut = errOut;
 		initialize();
 	}
 
@@ -356,13 +356,13 @@ public class IFCConsole {
 
 		};
 	}
-	
+
 	private Command makeCommandSetStubsPath() {
 		return new Command(CMD.SET_STUBSPATH) {
 
 			@Override
 			boolean execute(String[] args) {
-				
+
 				if (DONT_USE_STUBS.equals(args[1].toLowerCase())) {
 					setStubsPath(null);
 					out.logln("no stubs will be used.");
@@ -396,21 +396,24 @@ public class IFCConsole {
 						return buildSDG(true, MHPType.valueOf(MHPType.class, args[2]), ExceptionAnalysis.INTERPROC);
 					} else {
 						assert "false".equals(args[1]);
-						return buildSDG(false, MHPType.NONE, ExceptionAnalysis.valueOf(ExceptionAnalysis.class, args[2]));
+						return buildSDG(false, MHPType.NONE,
+								ExceptionAnalysis.valueOf(ExceptionAnalysis.class, args[2]));
 					}
 				} else {
 					assert args.length == 4;
 					if ("true".equals(args[1])) {
-						return buildSDG(true, MHPType.valueOf(MHPType.class, args[2]), ExceptionAnalysis.valueOf(ExceptionAnalysis.class, args[3]));
+						return buildSDG(true, MHPType.valueOf(MHPType.class, args[2]),
+								ExceptionAnalysis.valueOf(ExceptionAnalysis.class, args[3]));
 					} else {
 						assert "false".equals(args[1]);
-						return buildSDG(false, MHPType.valueOf(MHPType.class, args[2]), ExceptionAnalysis.valueOf(ExceptionAnalysis.class, args[3]));
+						return buildSDG(false, MHPType.valueOf(MHPType.class, args[2]),
+								ExceptionAnalysis.valueOf(ExceptionAnalysis.class, args[3]));
 					}
 				}
 			}
 		};
 	}
-	
+
 	private Command makeCommandSaveSDG() {
 		return new Command(CMD.SAVE_SDG) {
 
@@ -418,24 +421,25 @@ public class IFCConsole {
 			boolean execute(String[] args) {
 				return saveSDG(args[1]);
 			}
-			
+
 		};
 	}
 
-// this command is redundant!
-//	private Command makeCommandBuildCSDG() {
-//		return new Command(CMD.BUILD_CSDG) {
-//			@Override
-//			boolean execute(String[] args) {
-//				if (args.length == 2) {
-//					return buildCSDG(args[1]);
-//				} else {
-//					assert args.length == 3;
-//					return buildCSDG(args[1], ExceptionAnalysis.valueOf(ExceptionAnalysis.class, args[2]));
-//				}
-//			}
-//		};
-//	}
+	// this command is redundant!
+	// private Command makeCommandBuildCSDG() {
+	// return new Command(CMD.BUILD_CSDG) {
+	// @Override
+	// boolean execute(String[] args) {
+	// if (args.length == 2) {
+	// return buildCSDG(args[1]);
+	// } else {
+	// assert args.length == 3;
+	// return buildCSDG(args[1],
+	// ExceptionAnalysis.valueOf(ExceptionAnalysis.class, args[2]));
+	// }
+	// }
+	// };
+	// }
 
 	private Command makeCommandLoadSDG() {
 		return new Command(CMD.LOAD_SDG) {
@@ -685,7 +689,7 @@ public class IFCConsole {
 	private boolean verifyAnnotations() {
 		if (getSDG() == null) {
 			return ifcAnalysis.getSources().isEmpty() && ifcAnalysis.getSinks().isEmpty()
-			&& ifcAnalysis.getDeclassifications().isEmpty();
+					&& ifcAnalysis.getDeclassifications().isEmpty();
 		} else {
 			Collection<IFCAnnotation> sources = ifcAnalysis.getSources();
 			Collection<IFCAnnotation> sinks = ifcAnalysis.getSinks();
@@ -701,8 +705,7 @@ public class IFCConsole {
 						}
 					}
 					if (!found) {
-						out.error("Node " + sNode
-								+ " in sdg is annotated but has no corresponding annotation object!");
+						out.error("Node " + sNode + " in sdg is annotated but has no corresponding annotation object!");
 						return false;
 					}
 				} else if (sNode.isInformationSink()) {
@@ -713,8 +716,7 @@ public class IFCConsole {
 						}
 					}
 					if (!found) {
-						out.error("Node " + sNode
-								+ " in sdg is annotated but has no corresponding annotation object!");
+						out.error("Node " + sNode + " in sdg is annotated but has no corresponding annotation object!");
 						return false;
 					}
 				} else if (sNode.isDeclassification()) {
@@ -725,8 +727,7 @@ public class IFCConsole {
 						}
 					}
 					if (!found) {
-						out.error("Node " + sNode
-								+ " in sdg is annotated but has no corresponding annotation object!");
+						out.error("Node " + sNode + " in sdg is annotated but has no corresponding annotation object!");
 						return false;
 					}
 				} else {
@@ -772,7 +773,7 @@ public class IFCConsole {
 
 	private void initialize() {
 
-		//setLattice("public<=secret");
+		// setLattice("public<=secret");
 
 		repo.addCommand(makeCommandHelp());
 		repo.addCommand(makeCommandSearchEntries());
@@ -781,7 +782,8 @@ public class IFCConsole {
 		repo.addCommand(makeCommandSetStubsPath());
 		repo.addCommand(makeCommandInfo());
 		repo.addCommand(makeCommandBuildSDG());
-		//repo.addCommand(makeCommandBuildCSDG()); <-- this command is redundant!
+		// repo.addCommand(makeCommandBuildCSDG()); <-- this command is
+		// redundant!
 		repo.addCommand(makeCommandLoadSDG());
 		repo.addCommand(makeCommandSaveSDG());
 
@@ -877,7 +879,6 @@ public class IFCConsole {
 		}
 	}
 
-
 	public boolean declassifyProgramPart(String programPartDesc, String level1, String level2) {
 		if (inSecurityLattice(level1) && inSecurityLattice(level2) && greaterOrEqual(level1, level2)) {
 			SDGProgramPart toMark = getProgramPartFromSelectorString(programPartDesc, false);
@@ -916,23 +917,22 @@ public class IFCConsole {
 			out.error("Program part with name " + programPartDesc + " not found!");
 			return false;
 		}
-		//	    Integer clearIndex;
-		//	    clearIndex = parseInteger(programPartDesc);// getMethodPartFromAnnotationIndex(args[1]);
-		//	    if (clearIndex != null) {
-		//		if (annotationManager.annotationIndexValid(clearIndex)) {
-		//		    annotationManager.clearAnnotation(clearIndex);
-		//		    return true;
-		//		} else {
-		//		    out.error("Invalid annotation index! Must be between 0 and "
-		//			    + (annotationManager.getNumberOfAnnotations() - 1) + "!");
-		//		    return false;
-		//		}
-		//	    } else {
-		//		return false;
-		//	    }
+		// Integer clearIndex;
+		// clearIndex = parseInteger(programPartDesc);//
+		// getMethodPartFromAnnotationIndex(args[1]);
+		// if (clearIndex != null) {
+		// if (annotationManager.annotationIndexValid(clearIndex)) {
+		// annotationManager.clearAnnotation(clearIndex);
+		// return true;
+		// } else {
+		// out.error("Invalid annotation index! Must be between 0 and "
+		// + (annotationManager.getNumberOfAnnotations() - 1) + "!");
+		// return false;
+		// }
+		// } else {
+		// return false;
+		// }
 	}
-
-
 
 	public boolean selectEntry(int i) {
 		if (loc.foundPossibleEntries()) {
@@ -980,7 +980,7 @@ public class IFCConsole {
 	public void setClasspath(String newClasspath) {
 		this.classPath = newClasspath;
 	}
-	
+
 	public void setStubsPath(String newStubsPath) {
 		this.stubsPath = newStubsPath;
 	}
@@ -1065,7 +1065,7 @@ public class IFCConsole {
 		out.logln("entry = " + (loc.getActiveEntry() == null ? "<none>" : loc.getActiveEntry()));
 		out.logln("output directory = " + outputDirectory);
 		out.logln("lattice = " + latticeFile);
-		//out.logln("sdg = " + sdgFile);
+		// out.logln("sdg = " + sdgFile);
 
 	}
 
@@ -1108,7 +1108,7 @@ public class IFCConsole {
 		}
 	}
 
-	private boolean checkAndSetLattice(IEditableLattice<String> l0) {
+	private boolean checkAndSetLattice(IStaticLattice<String> l0) {
 		try {
 			l0.getBottom();
 		} catch (InvalidLatticeException e) {
@@ -1135,25 +1135,50 @@ public class IFCConsole {
 	}
 
 	/**
-	 * @param latticeSpec
-	 *            comma-separated inequalities specifying the lattice
-	 * @returns if setting of lattice was successful.
+	 * Sets the lattice used from now on.
+	 * @param latticeSpec either one of the constants for the built-in lattices ({@link #LATTICE_BINARY}, {@link #LATTICE_TERNARY}, {@link #LATTICE_DIAMOND}, 
+	 * or a comma-separated inequalities specifying a user-defined lattice.
+	 * @return {@code true} if latticeSpec specifies one of the predefined lattices (see above) or a valid user-defined lattice, {@code false} otherwise.
 	 */
 	public boolean setLattice(String latticeSpec) {
-		// Debug.println(latticeSpec.replaceAll("\\s*,\\s*", "\n"));
-		IEditableLattice<String> l0;
-		try {
-			l0 = LatticeUtil.loadLattice(latticeSpec.replaceAll("\\s*,\\s*", "\n"));
-		} catch (WrongLatticeDefinitionException e) {
-			out.error("Invalid lattice specification: " + e.getMessage() + " Old lattice is left untouched!");
-			return false;
-		}
-
-		if (checkAndSetLattice(l0)) {
-			latticeFile = "[preset: " + latticeSpec + "]";
-			return true;
+		if (LATTICE_BINARY.equals(latticeSpec)) {
+			if (checkAndSetLattice(BuiltinLattices.getBinaryLattice())) {
+				latticeFile = "[preset: " + latticeSpec + "]";
+				return true;
+			} else {
+				throw new Error("BuiltinLattices should not return invalid lattices. Please report this as a bug!");
+			}
+		} else if (LATTICE_TERNARY.equals(latticeSpec)) {
+			if (checkAndSetLattice(BuiltinLattices.getTernaryLattice())) {
+				latticeFile = "[preset: " + latticeSpec + "]";
+				return true;
+			} else {
+				throw new Error("BuiltinLattices should not return invalid lattices. Please report this as a bug!");
+			}
+		} else if (LATTICE_DIAMOND.equals(latticeSpec)) {
+			if (checkAndSetLattice(BuiltinLattices.getDiamondLattice())) {
+				latticeFile = "[preset: " + latticeSpec + "]";
+				return true;
+			} else {
+				throw new Error("BuiltinLattices should not return invalid lattices. Please report this as a bug!");
+			}
 		} else {
-			return false;
+
+			// Debug.println(latticeSpec.replaceAll("\\s*,\\s*", "\n"));
+			IEditableLattice<String> l0;
+			try {
+				l0 = LatticeUtil.loadLattice(latticeSpec.replaceAll("\\s*,\\s*", "\n"));
+			} catch (WrongLatticeDefinitionException e) {
+				out.error("Invalid lattice specification: " + e.getMessage() + " Old lattice is left untouched!");
+				return false;
+			}
+
+			if (checkAndSetLattice(l0)) {
+				latticeFile = "[preset: " + latticeSpec + "]";
+				return true;
+			} else {
+				return false;
+			}
 		}
 	}
 
@@ -1174,8 +1199,7 @@ public class IFCConsole {
 
 		try {
 			success = executeAndLogCommand(cmd, parts);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			StringWriter sw = new StringWriter();
 			e.printStackTrace(new PrintWriter(sw));
 
@@ -1187,7 +1211,6 @@ public class IFCConsole {
 		afterCommand(cmd, parts);
 
 		return success;
-
 
 	}
 
@@ -1211,8 +1234,8 @@ public class IFCConsole {
 				out.error("Invalid number of parameters. Command " + parts[0] + " expects between " + cmd.getMinArity()
 						+ " and " + cmd.getMaxArity() + " parameters.");
 			} else {
-			out.error("Invalid number of parameters. Command " + parts[0] + " expects " + cmd.getMinArity()
-					+ " parameters.");
+				out.error("Invalid number of parameters. Command " + parts[0] + " expects " + cmd.getMinArity()
+						+ " parameters.");
 			}
 			success = false;
 		} else {
@@ -1304,7 +1327,8 @@ public class IFCConsole {
 	}
 
 	public void showAnnotations() {
-		new NumberedIFCAnnotationDumper(new ConsolePrintStreamWrapper(out)).dumpAnnotations(ifcAnalysis.getAnnotations());
+		new NumberedIFCAnnotationDumper(new ConsolePrintStreamWrapper(out)).dumpAnnotations(ifcAnalysis
+				.getAnnotations());
 	}
 
 	public void showUsageOutline() {
@@ -1326,8 +1350,7 @@ public class IFCConsole {
 			out.error("I/O error while reading annotations from file " + fileName + "!");
 			return false;
 		} catch (InvalidAnnotationFormatException iafe) {
-			out.error("Annotation " + iafe.getInvalidAnnotation() + " in file " + fileName
-					+ " has illegal format!");
+			out.error("Annotation " + iafe.getInvalidAnnotation() + " in file " + fileName + " has illegal format!");
 			return false;
 		} catch (MethodNotFoundException mnfe) {
 			out.error("Annotation " + mnfe.getAnnotation() + " in file " + fileName + " refers to missing method "
@@ -1397,7 +1420,7 @@ public class IFCConsole {
 			return true;
 		}
 	}
-	
+
 	public synchronized boolean saveSDG(String path) {
 		if (ifcAnalysis == null || ifcAnalysis.getProgram() == null) {
 			out.info("No active program.");
@@ -1412,7 +1435,7 @@ public class IFCConsole {
 			}
 			SDGSerializer.toPDGFormat(ifcAnalysis.getProgram().getSDG(), bOut);
 		}
-		
+
 		return true;
 	}
 
@@ -1428,7 +1451,7 @@ public class IFCConsole {
 		}
 
 		setSDG(sdg);
-		//sdgFile = path;
+		// sdgFile = path;
 		return true;
 	}
 
@@ -1480,11 +1503,10 @@ public class IFCConsole {
 					debug.outln(nodes);
 				}
 			}
-			//out.logln("Time needed (sec): " + (((double) time) / 1000));
+			// out.logln("Time needed (sec): " + (((double) time) / 1000));
 			return true;
 		}
 	}
-	
 
 	public static String convertIFCType(IFCType ifcType) {
 		switch (ifcType) {
@@ -1577,14 +1599,15 @@ public class IFCConsole {
 		Exception e;
 		boolean ret = true;
 
-		for (SDGProgramPart part: selectedParts) {
+		for (SDGProgramPart part : selectedParts) {
 			if (!canAnnotate(part)) {
 				ret = false;
 			}
 		}
 
 		if (!ret) {
-			Answer ans = out.question("At least one of the selected program parts is already annotated. Do you want to overwrite these annotations?");
+			Answer ans = out
+					.question("At least one of the selected program parts is already annotated. Do you want to overwrite these annotations?");
 			if (ans == Answer.YES) {
 				return true;
 			} else {
@@ -1602,19 +1625,23 @@ public class IFCConsole {
 	public void executionAborted(CMD cmd, String[] args, Throwable error) {
 		List<String> argList;
 		if (args.length == 1) {
-			argList = Collections.<String>emptyList();
+			argList = Collections.<String> emptyList();
 		} else {
 			argList = Arrays.asList(args);
-			argList = argList.subList(1, argList.size()-1);
+			argList = argList.subList(1, argList.size() - 1);
 		}
-		out.error("Execution of command " + cmd + " applied to arguments " + argList + " aborted due to the following error: " + error);
+		out.error("Execution of command " + cmd + " applied to arguments " + argList
+				+ " aborted due to the following error: " + error);
 
 		afterCommand(cmd, args);
 	}
 
 	/**
-	 * Returns the program currently under analysis, if there is any. Returns {@code null} if no program was loaded.
-	 * @return the program currently under analysis, {@code null} if there is none
+	 * Returns the program currently under analysis, if there is any. Returns
+	 * {@code null} if no program was loaded.
+	 * 
+	 * @return the program currently under analysis, {@code null} if there is
+	 *         none
 	 */
 	public SDGProgram getProgram() {
 		if (ifcAnalysis == null) {
@@ -1654,8 +1681,8 @@ public class IFCConsole {
 	}
 
 	private static void printUsage() {
-		System.out.println("Usage: edu.kit.joana.ui.ifc.wala.console.console.IFCConsole --script <scriptfile> [--output <outputfile>]");
+		System.out
+				.println("Usage: edu.kit.joana.ui.ifc.wala.console.console.IFCConsole --script <scriptfile> [--output <outputfile>]");
 	}
 
-	
 }

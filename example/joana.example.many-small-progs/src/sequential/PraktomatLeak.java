@@ -35,7 +35,7 @@ public class PraktomatLeak {
 	public static Review runChecks(Submission sub) {
 		int failures = 0;
 		
-		if (sub.code.contains("System.out.println")) {
+		if (sub.code.contains("System.err.println")) {
 			failures++;
 		}
 		if (sub.code.contains("catch IOException")) {
@@ -50,9 +50,9 @@ public class PraktomatLeak {
 	}
 	
 	public static void main(String argv[]) {
-		Submission sub = new Submission(Security.SECRET, "System.out.println(\"Hello world.\")");
+		Submission sub = new Submission(2331, "System.out.println(\"Hello world.\")");
 		Review r = PraktomatLeak.runChecks(sub);
-		Security.leak(r.failures);
+		System.out.println(r.failures);
 	}
 
 }

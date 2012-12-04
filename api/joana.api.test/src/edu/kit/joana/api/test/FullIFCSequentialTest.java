@@ -40,11 +40,13 @@ public class FullIFCSequentialTest {
 	public static final String CLASSPATH = "../../example/joana.example.many-small-progs/bin";
 	public static final String STUBS = "../../contrib/lib/stubs/jSDG-stubs-jre1.4.jar";
 
-	public static IFCAnalysis buildAndAnnotate(final String className) throws ApiTestException {
-		return buildAndAnnotate(className, PointsToPrecision.CONTEXT_SENSITIVE);
+	public static IFCAnalysis buildAndAnnotate(final String className, final String secSrc,
+			final String pubOut) throws ApiTestException {
+		return buildAndAnnotate(className, secSrc, pubOut, PointsToPrecision.CONTEXT_SENSITIVE);
 	}
 	
-	public static IFCAnalysis buildAndAnnotate(final String className, PointsToPrecision pts) throws ApiTestException {
+	public static IFCAnalysis buildAndAnnotate(final String className, final String secSrc,
+			final String pubOut, PointsToPrecision pts) throws ApiTestException {
 		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(className);
 		SDGConfig config = new SDGConfig(CLASSPATH, mainMethod.toBCString(), STUBS);
 		config.setComputeInterferences(false);
@@ -66,10 +68,10 @@ public class FullIFCSequentialTest {
 		}
 		
 		IFCAnalysis ana = new IFCAnalysis(prog);
-		SDGProgramPart secret = ana.getProgramPart("sequential.Security.SECRET");
+		SDGProgramPart secret = ana.getProgramPart(secSrc);
 		assertNotNull(secret);
 		ana.addSourceAnnotation(secret, IFCAnalysis.STD_LATTICE_HIGH);
-		SDGProgramPart output = ana.getProgramPart("sequential.Security.PUBLIC");
+		SDGProgramPart output = ana.getProgramPart(pubOut);
 		assertNotNull(output);
 		ana.addSinkAnnotation(output, IFCAnalysis.STD_LATTICE_LOW);
 		
@@ -79,7 +81,9 @@ public class FullIFCSequentialTest {
 	@Test
 	public void testPraktomatValid() {
 		try {
-			IFCAnalysis ana = buildAndAnnotate("sequential.PraktomatValid");
+			IFCAnalysis ana = buildAndAnnotate("sequential.PraktomatValid",
+					"sequential.PraktomatValid$Submission.matrNr",
+					"sequential.PraktomatValid$Review.failures");
 			Collection<IllicitFlow> illegal = ana.doIFC();
 			assertTrue(illegal.isEmpty());
 			assertEquals(0, illegal.size());
@@ -92,10 +96,12 @@ public class FullIFCSequentialTest {
 	@Test
 	public void testPraktomatLeak() {
 		try {
-			IFCAnalysis ana = buildAndAnnotate("sequential.PraktomatLeak");
+			IFCAnalysis ana = buildAndAnnotate("sequential.PraktomatLeak",
+					"sequential.PraktomatLeak$Submission.matrNr",
+					"sequential.PraktomatLeak$Review.failures");
 			Collection<IllicitFlow> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
-			assertEquals(4, illegal.size());
+			assertEquals(12, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

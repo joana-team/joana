@@ -25,6 +25,7 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.IFCType;
 import edu.kit.joana.api.IllicitFlow;
+import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.MHPType;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
@@ -80,13 +81,13 @@ public class JoinAnalysisIFCMantelTest {
 		for (String secretSrcTxt : MANTEL_SECRET_SOURCES) {
 			SDGProgramPart secretSrc = ana.getProgramPart(secretSrcTxt);
 			assertNotNull(secretSrc);
-			ana.addSourceAnnotation(secretSrc, IFCAnalysis.STD_LATTICE_HIGH);
+			ana.addSourceAnnotation(secretSrc, BuiltinLattices.STD_SECLEVEL_HIGH);
 		}
 		
 		for (String publicOutTxt : MANTEL_PUBLIC_OUTPUT) {
 			SDGProgramPart publicOut = ana.getProgramPart(publicOutTxt);
 			assertNotNull(publicOut);
-			ana.addSinkAnnotation(publicOut, IFCAnalysis.STD_LATTICE_LOW);
+			ana.addSinkAnnotation(publicOut, BuiltinLattices.STD_SECLEVEL_LOW);
 		}
 		
 		return ana;

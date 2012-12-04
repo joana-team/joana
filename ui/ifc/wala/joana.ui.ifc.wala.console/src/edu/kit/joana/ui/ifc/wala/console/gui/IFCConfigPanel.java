@@ -75,9 +75,8 @@ public class IFCConfigPanel extends JPanel {
 	private final JButton saveSDG = new JButton("save current SDG as");
 	private final JButton buildSDG = new JButton("build");
 	private final JLabel latticeLabel = new JLabel("Security lattice: ");
-	private final JButton loadLattice = new JButton("load lattice");
-	private final JButton specifyLattice = new JButton("specify lattice");
-	private final JTextField curLatticeTextField = new JTextField("<no lattice loaded>");
+	//private final JTextField curLatticeTextField = new JTextField("<no lattice loaded>");
+	private final JComboBox curLatticeComboBox = new JComboBox();
 	private final JButton loadScript = new JButton("load script");
 	private final JButton saveScript = new JButton("save script");
 
@@ -90,6 +89,11 @@ public class IFCConfigPanel extends JPanel {
 	private static final String MHP_SIMPLE = "simple may-happen-in-parallel analysis";
 	private static final String MHP_PRECISE = "precise may-happen-in-parallel analysis";
 
+	
+	private static final String LATTICE_BINARY = "binary lattice low <= high";
+	private static final String LATTICE_TERNARY = "ternary lattice low <= mid <= high";
+	private static final String LATTICE_DIAMOND = "diamond lattice low <= midA <= high, low <= midB <= high";
+	
 	private static final String NO_STUBS_SELECTED = "<no stubs selected!>";
 
 	public IFCConfigPanel(final IFCConsoleGUI console) {
@@ -161,13 +165,12 @@ public class IFCConfigPanel extends JPanel {
 		latGroup.setBorder(BorderFactory.createTitledBorder("3. Security Lattice"));
 		latGroup.setLayout(new GridBagLayout());
 		this.add(latGroup, GUIUtil.mkgbc_fillx(0, 3, GridBagConstraints.REMAINDER, 1));
-		curLatticeTextField.setEditable(false);
-		loadLattice.addActionListener(makeLoadLatticeAction());
-		specifyLattice.addActionListener(makeSpecifyLatticeAction());
+		
+
+		
+		initLatticeComboBox();
 		latGroup.add(latticeLabel, GUIUtil.mkgbc_nofill(0, 0, 1, 1));
-		latGroup.add(curLatticeTextField, GUIUtil.mkgbc_fillx(1, 0, 1, 1));
-		latGroup.add(loadLattice, GUIUtil.mkgbc_nofill(2, 0, 1, 1));
-		latGroup.add(specifyLattice, GUIUtil.mkgbc_nofill(3, 0, 1, 1));
+		latGroup.add(curLatticeComboBox, GUIUtil.mkgbc_fillx(1, 0, 1, 1));
 
 		final JPanel scriptGroup = new JPanel();
 		scriptGroup.setBorder(BorderFactory.createTitledBorder("4. Configuration Script"));
@@ -181,6 +184,24 @@ public class IFCConfigPanel extends JPanel {
 		gbcFill.weighty = 4;
 		this.add(new JPanel(), gbcFill);
 		validate();
+	}
+	
+	private void initLatticeComboBox() {
+		MutableComboBoxModel latticeTypes = new DefaultComboBoxModel();
+		latticeTypes.addElement(LATTICE_BINARY);
+		latticeTypes.addElement(LATTICE_TERNARY);
+		latticeTypes.addElement(LATTICE_DIAMOND);
+		curLatticeComboBox.setModel(latticeTypes);
+		curLatticeComboBox.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				consoleGui.execSpecifyLattice(getCurrentLattice());
+			}
+			
+		});
+		
+		curLatticeComboBox.setEditable(false);
 	}
 
 	private JPanel makeSDGBuildOptionsPanel() {
@@ -357,42 +378,22 @@ public class IFCConfigPanel extends JPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				String latticeSpec = JOptionPane
-						.showInputDialog("Enter lattice specification (comma-separated list of inequalities): ");
-				if (latticeSpec != null) {
-					consoleGui.execSpecifyLattice(latticeSpec);
-				}
+				consoleGui.execSpecifyLattice(translateLattice(curLatticeComboBox.getSelectedItem().toString()));
 			}
 
 		};
 	}
-
-	private ActionListener makeLoadLatticeAction() {
-		return new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				final JFileChooser choose = new JFileChooser();
-				choose.setFileSelectionMode(JFileChooser.FILES_ONLY);
-				choose.setFileFilter(new FileFilter() {
-
-					@Override
-					public boolean accept(File arg0) {
-						return arg0.isDirectory() || Pattern.matches(".*\\.lat", arg0.getName());
-					}
-
-					@Override
-					public String getDescription() {
-						return "Lattice files";
-					}
-
-				});
-
-				int retval = choose.showOpenDialog(getRootPane());
-				if (retval == JFileChooser.APPROVE_OPTION) {
-					consoleGui.execLoadLattice(choose.getSelectedFile().getAbsolutePath());
-				}
-			}
-		};
+	
+	private String translateLattice(String latticeSpec) {
+		if (LATTICE_BINARY.equals(latticeSpec)) {
+			return IFCConsole.LATTICE_BINARY;
+		} else if (LATTICE_TERNARY.equals(latticeSpec)) {
+			return IFCConsole.LATTICE_TERNARY;
+		} else if (LATTICE_DIAMOND.equals(latticeSpec)) {
+			return IFCConsole.LATTICE_DIAMOND;
+		} else {
+			throw new Error(String.format("The combo box for preset lattices should not provide non-translateable lattice specification %s! Please report this as an error!", latticeSpec));
+		}
 	}
 
 	private FocusListener makeClassPathFocusListener() {
@@ -616,7 +617,6 @@ public class IFCConfigPanel extends JPanel {
 			entryMethodSelect.setSelectedIndex(cselIndex);
 			ignoreSelection = false;
 		}
-		curLatticeTextField.setText(consoleGui.getLatticeFile());
 	}
 
 	public void mute() {
@@ -647,6 +647,10 @@ public class IFCConfigPanel extends JPanel {
 	@SuppressWarnings("unchecked")
 	public MHPType getMHPType() {
 		return ((ElementWithDescription<MHPType>) mhpCombo.getSelectedItem()).getElement();
+	}
+	
+	public String getCurrentLattice() {
+		return translateLattice(curLatticeComboBox.getSelectedItem().toString());
 	}
 
 	@SuppressWarnings("unchecked")

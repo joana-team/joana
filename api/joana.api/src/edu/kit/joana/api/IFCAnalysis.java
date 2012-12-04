@@ -13,6 +13,7 @@ import java.util.List;
 
 import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.annotations.IFCAnnotationManager;
+import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
@@ -31,12 +32,6 @@ import edu.kit.joana.ifc.sdg.lattice.WrongLatticeDefinitionException;
 
 public class IFCAnalysis {
 	
-	/** the 'bottom' element in the standard simple lattice. */
-	public static final String STD_LATTICE_LOW = "low";
-	
-	/** the 'top' element in the standard simple lattice. */
-	public static final String STD_LATTICE_HIGH = "high";
-	
 	private SDGProgram program;
 	private IFCAnnotationManager annManager;
 	private IStaticLattice<String> secLattice;
@@ -48,7 +43,7 @@ public class IFCAnalysis {
 
 	static {
 		try {
-			stdLattice = LatticeUtil.loadLattice(STD_LATTICE_LOW + "<=" + STD_LATTICE_HIGH);
+			stdLattice = LatticeUtil.loadLattice(BuiltinLattices.STD_SECLEVEL_LOW + "<=" + BuiltinLattices.STD_SECLEVEL_HIGH);
 		} catch (WrongLatticeDefinitionException e) {
 			throw new IllegalStateException();
 		}
@@ -109,7 +104,6 @@ public class IFCAnalysis {
 	
 	public void setTimesensitivity(boolean newTimeSens) {
 		this.timeSensitiveAnalysis = newTimeSens;
-		setIFCType(ifcType);
 	}
 
 	public void setLattice(IStaticLattice<String> secLattice) {

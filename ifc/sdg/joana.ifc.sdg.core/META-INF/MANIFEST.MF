@@ -15,5 +15,6 @@ Export-Package: edu.kit.joana.ifc.sdg.core,
  edu.kit.joana.ifc.sdg.core.sdgtools,
  edu.kit.joana.ifc.sdg.core.violations,
  edu.kit.joana.ifc.sdg.core.violations.paths,
- edu.kit.joana.ifc.sdg.lattice
+ edu.kit.joana.ifc.sdg.lattice,
+ edu.kit.joana.ifc.sdg.lattice.impl
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6

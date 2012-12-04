@@ -24,6 +24,7 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.IllicitFlow;
+import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
@@ -70,10 +71,10 @@ public class FullIFCSequentialTest {
 		IFCAnalysis ana = new IFCAnalysis(prog);
 		SDGProgramPart secret = ana.getProgramPart(secSrc);
 		assertNotNull(secret);
-		ana.addSourceAnnotation(secret, IFCAnalysis.STD_LATTICE_HIGH);
+		ana.addSourceAnnotation(secret, BuiltinLattices.STD_SECLEVEL_HIGH);
 		SDGProgramPart output = ana.getProgramPart(pubOut);
 		assertNotNull(output);
-		ana.addSinkAnnotation(output, IFCAnalysis.STD_LATTICE_LOW);
+		ana.addSinkAnnotation(output, BuiltinLattices.STD_SECLEVEL_LOW);
 		
 		return ana;
 	}

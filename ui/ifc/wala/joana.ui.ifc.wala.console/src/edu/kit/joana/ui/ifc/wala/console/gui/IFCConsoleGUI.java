@@ -335,11 +335,16 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 
 	public void execRunIFC() {
 		
+		List<Command> cmdList = new LinkedList<Command>();
+//		cmdList.add(new Command(CMD.SET_LATTICE, new String[] {CMD.SET_LATTICE.getName(), configPane.getCurrentLattice()}));
+//		
 		if (runPane.getTimeSensitivity()) {
-			executeCmd(CMD.RUN, new String[] { CMD.RUN.getName(), IFCConsole.convertIFCType(runPane.getIFCType()), IFCConsole.AVOID_TIME_TRAVEL });
+			cmdList.add(new Command(CMD.RUN, new String[] { CMD.RUN.getName(), IFCConsole.convertIFCType(runPane.getIFCType()), IFCConsole.AVOID_TIME_TRAVEL }));
 		} else {
-			executeCmd(CMD.RUN, new String[] { CMD.RUN.getName(),  IFCConsole.convertIFCType(runPane.getIFCType()) });
+			cmdList.add(new Command(CMD.RUN, new String[] { CMD.RUN.getName(),  IFCConsole.convertIFCType(runPane.getIFCType()) }));
 		}
+		
+		executeCmdList(cmdList);
 	}
 
 	public void execSetEntryMethod(final JavaMethodSignature sig) {

@@ -46,12 +46,12 @@ public class JoinAnalysisIFCMantelTest {
 	public static final String MANTEL_CLASS_NAME = "tests.Mantel00Page10";
 	
 	private static final String[] MANTEL_SECRET_SOURCES = {
-		MANTEL_CLASS_NAME + "$Portfolio.run()V:3",
-		MANTEL_CLASS_NAME + "$Portfolio.run()V:10"
+		MANTEL_CLASS_NAME + "$Portfolio.run()V:1",
+		MANTEL_CLASS_NAME + "$Portfolio.run()V:8"
 	};
 	
 	private static final String[] MANTEL_PUBLIC_OUTPUT = {
-		MANTEL_CLASS_NAME + "$EuroStoxx50.run()V:14",
+		MANTEL_CLASS_NAME + "$EuroStoxx50.run()V:12",
 		MANTEL_CLASS_NAME + ".main([Ljava/lang/String;)V:159"
 	};
 

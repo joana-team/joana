@@ -17,6 +17,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor.MHPPrecision;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
+import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
@@ -25,7 +26,7 @@ public class BuildSDG {
 
 	private final String classPath;
 	private final String entryMethod;
-	private final String stubsPath;
+	private final Stubs stubsPath;
 	private final String fileName;
 	private final boolean computeInterference = true;
 	private final ExceptionAnalysis exceptionAnalysis;
@@ -34,11 +35,11 @@ public class BuildSDG {
 
 	private SDG sdg = null;
 
-	public BuildSDG(String classPath, String entryMethod, String stubsPath, String fileName) {
+	public BuildSDG(String classPath, String entryMethod, Stubs stubsPath, String fileName) {
 		this(classPath, entryMethod, stubsPath, ExceptionAnalysis.IGNORE_ALL, FieldPropagation.OBJ_GRAPH, fileName);
 	}
 
-	public BuildSDG(String classPath, String entryMethod, String stubsPath, ExceptionAnalysis ea, FieldPropagation fp,
+	public BuildSDG(String classPath, String entryMethod, Stubs stubsPath, ExceptionAnalysis ea, FieldPropagation fp,
 			String fileName) {
 		this.classPath = classPath;
 		this.entryMethod = entryMethod;
@@ -92,7 +93,7 @@ public class BuildSDG {
 	}
 
 	public static BuildSDG standardConcSetup(JavaMethodSignature entryMethod, String saveAs) {
-		return new BuildSDG(ConcurrentTests.CLASSPATH, entryMethod.toBCString(), ConcurrentTests.STUBS,
+		return new BuildSDG(ConcurrentTests.CLASSPATH, entryMethod.toBCString(), Stubs.JRE_14,
 				ExceptionAnalysis.IGNORE_ALL, FieldPropagation.OBJ_GRAPH, saveAs);
 	}
 	

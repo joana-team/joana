@@ -7,6 +7,7 @@
  */
 package edu.kit.joana.api.sdg;
 
+import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
@@ -15,7 +16,7 @@ public class SDGConfig {
 
 	private String classPath;
 	private String entryMethod;
-	private String stubsPath;
+	private Stubs stubsPath;
 	private ExceptionAnalysis exceptionAnalysis;
 	private FieldPropagation fieldPropagation;
 	private PointsToPrecision pointsToPrecision;
@@ -23,11 +24,11 @@ public class SDGConfig {
 	private boolean computeInterferences;
 	private MHPType mhpType = MHPType.NONE;
 
-	public SDGConfig(String classPath, String entryMethod, String stubsPath) {
+	public SDGConfig(String classPath, String entryMethod, Stubs stubsPath) {
 		this(classPath, entryMethod, stubsPath, ExceptionAnalysis.INTERPROC, FieldPropagation.OBJ_GRAPH, PointsToPrecision.CONTEXT_SENSITIVE, false, false, MHPType.NONE);
 	}
 
-	public SDGConfig(String classPath, String entryMethod, String stubsPath, ExceptionAnalysis exceptionAnalysis, FieldPropagation fieldPropagation,
+	public SDGConfig(String classPath, String entryMethod, Stubs stubsPath, ExceptionAnalysis exceptionAnalysis, FieldPropagation fieldPropagation,
 			PointsToPrecision pointsToPrecision, boolean computeAccessPaths, boolean computeInterferences, MHPType mhpType) {
 		this.classPath = classPath;
 		this.entryMethod = entryMethod;
@@ -71,14 +72,14 @@ public class SDGConfig {
 	/**
 	 * @return the stubsPath
 	 */
-	public String getStubsPath() {
+	public Stubs getStubsPath() {
 		return stubsPath;
 	}
 
 	/**
 	 * @param stubsPath the stubsPath to set
 	 */
-	public void setStubsPath(String stubsPath) {
+	public void setStubsPath(Stubs stubsPath) {
 		this.stubsPath = stubsPath;
 	}
 

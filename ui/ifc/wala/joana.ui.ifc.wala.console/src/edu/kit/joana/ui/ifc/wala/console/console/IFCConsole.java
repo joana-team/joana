@@ -78,6 +78,7 @@ import edu.kit.joana.ui.ifc.wala.console.io.PrintStreamConsoleWrapper;
 import edu.kit.joana.ui.ifc.wala.console.io.SDGProgramPartWriter;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
+import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 
@@ -292,7 +293,7 @@ public class IFCConsole {
 	private CommandRepository repo = new CommandRepository();
 	private String outputDirectory = "./";
 	private String latticeFile;
-	private String stubsPath = null;
+	private Stubs stubsPath = Stubs.JRE_14;
 
 	private List<String> script = new LinkedList<String>();
 
@@ -362,15 +363,16 @@ public class IFCConsole {
 
 			@Override
 			boolean execute(String[] args) {
-
-				if (DONT_USE_STUBS.equals(args[1].toLowerCase())) {
-					setStubsPath(null);
-					out.logln("no stubs will be used.");
+				Stubs stubs = Stubs.fromString(args[1]);
+				if (stubs != null) {
+					setStubsPath(stubs);
+					out.logln("stubs = " + stubs);
+					return true;
 				} else {
-					setStubsPath(args[1]);
-					out.logln("stubsPath = " + stubsPath);
+					out.error("Specified stubs not available!");
+					return false;
 				}
-				return true;
+
 			}
 
 		};
@@ -981,7 +983,7 @@ public class IFCConsole {
 		this.classPath = newClasspath;
 	}
 
-	public void setStubsPath(String newStubsPath) {
+	public void setStubsPath(Stubs newStubsPath) {
 		this.stubsPath = newStubsPath;
 	}
 
@@ -1136,9 +1138,15 @@ public class IFCConsole {
 
 	/**
 	 * Sets the lattice used from now on.
-	 * @param latticeSpec either one of the constants for the built-in lattices ({@link #LATTICE_BINARY}, {@link #LATTICE_TERNARY}, {@link #LATTICE_DIAMOND}, 
-	 * or a comma-separated inequalities specifying a user-defined lattice.
-	 * @return {@code true} if latticeSpec specifies one of the predefined lattices (see above) or a valid user-defined lattice, {@code false} otherwise.
+	 * 
+	 * @param latticeSpec
+	 *            either one of the constants for the built-in lattices (
+	 *            {@link #LATTICE_BINARY}, {@link #LATTICE_TERNARY},
+	 *            {@link #LATTICE_DIAMOND}, or a comma-separated inequalities
+	 *            specifying a user-defined lattice.
+	 * @return {@code true} if latticeSpec specifies one of the predefined
+	 *         lattices (see above) or a valid user-defined lattice,
+	 *         {@code false} otherwise.
 	 */
 	public boolean setLattice(String latticeSpec) {
 		if (LATTICE_BINARY.equals(latticeSpec)) {

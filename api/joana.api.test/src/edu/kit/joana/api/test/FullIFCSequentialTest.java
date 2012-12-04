@@ -29,6 +29,7 @@ import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
+import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
@@ -49,7 +50,7 @@ public class FullIFCSequentialTest {
 	public static IFCAnalysis buildAndAnnotate(final String className, final String secSrc,
 			final String pubOut, PointsToPrecision pts) throws ApiTestException {
 		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(className);
-		SDGConfig config = new SDGConfig(CLASSPATH, mainMethod.toBCString(), STUBS);
+		SDGConfig config = new SDGConfig(CLASSPATH, mainMethod.toBCString(), Stubs.JRE_14);
 		config.setComputeInterferences(false);
 		config.setExceptionAnalysis(ExceptionAnalysis.INTRAPROC);
 		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH);

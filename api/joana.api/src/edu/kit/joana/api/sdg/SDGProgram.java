@@ -42,6 +42,7 @@ import edu.kit.joana.ifc.sdg.util.Pair;
 import edu.kit.joana.ifc.sdg.util.io.Print2Nirvana;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
+import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.Main;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
@@ -54,6 +55,11 @@ public class SDGProgram {
 	private final Set<SDGClass> classes = new HashSet<SDGClass>();
 	private final SDG sdg;
 	private SDGProgramPartParserBC ppartParser;
+	private static Logger debug = Log.getLogger(Log.L_API_DEBUG);
+	
+	static {
+		debug.setEnabled(false);
+	}
 
 	public SDGProgram(SDG sdg) {
 		this.sdg = sdg;
@@ -88,7 +94,7 @@ public class SDGProgram {
 		}
 	}
 
-	public static SDGProgram createSDGProgram(String classPath, String entryMethod, String stubsPath,
+	public static SDGProgram createSDGProgram(String classPath, String entryMethod, Stubs stubsPath,
 			boolean computeInterference, MHPType mhpType, PrintStream out, IProgressMonitor monitor)
 			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
 		SDGConfig config = new SDGConfig(classPath, entryMethod, stubsPath);
@@ -110,7 +116,10 @@ public class SDGProgram {
 		cfg.exceptions = config.getExceptionAnalysis();
 		cfg.pts = config.getPointsToPrecision();
 		cfg.accessPath = config.computeAccessPaths();
-		cfg.stubs = config.getStubsPath();
+		cfg.stubs = config.getStubsPath().getPath();
+		
+		debug.outln(cfg.stubs);
+		
 		if (config.computeInterferences()) {
 			cfg.pts = PointsToPrecision.OBJECT_SENSITIVE;
 			cfg.objSensFilter = new ThreadSensitiveMethodFilterWithCaching();
@@ -135,6 +144,7 @@ public class SDGProgram {
 		SDGProgram ret = new SDGProgram(sdg);
 		return ret;
 	}
+	
 
 	private void build() {
 		if (!isBuilt) {
@@ -383,6 +393,7 @@ final class SDGClassComputation {
 class SDGClassResolver {
 
 	private static final Logger debug = Log.getLogger(Log.L_API_DEBUG); 
+	
 	private Set<SDGClass> classes = new HashSet<SDGClass>();
 
 	public SDGClassResolver() {

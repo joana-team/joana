@@ -26,6 +26,7 @@ import edu.kit.joana.api.annotations.IFCAnnotation.Type;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
+import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 
@@ -117,7 +118,7 @@ class IFCConfig {
 	private AnalysisType analysisType;
 	private List<Annotation> anns;
 
-	IFCConfig(String classPath, String entryMethod, String stubsPath, AnalysisType analysisType) {
+	IFCConfig(String classPath, String entryMethod, Stubs stubsPath, AnalysisType analysisType) {
 		this(new SDGConfig(classPath, entryMethod, stubsPath), analysisType);
 	}
 
@@ -161,7 +162,7 @@ public class SomeUser {
 			CancelException {
 
 		// setup sdg building configuration
-		SDGConfig config = new SDGConfig("bin", "example.Example.foo(I)I", null);
+		SDGConfig config = new SDGConfig("bin", "example.Example.foo(I)I", Stubs.NO_STUBS);
 		config.setFieldPropagation(FieldPropagation.FLAT);
 		config.setPointsToPrecision(PointsToPrecision.OBJECT_SENSITIVE);
 

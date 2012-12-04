@@ -23,6 +23,7 @@ import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
+import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
@@ -44,9 +45,8 @@ public final class RunSingleFileIFC {
 	private static final String DEFAULT_SECRET_SOURCE = "Security.SECRET";
 	private static final String DEFAULT_PUBLIC_OUTPUT = "Security.PUBLIC";//"Security.leak(I)V";
 	private static final String THREAD_START = "java.lang.Thread.start(V)V";
-	private static final String DEFAULT_STUBS = 
+	private static final Stubs DEFAULT_STUBS = Stubs.JRE_14;
 //			"jSDG-stubs-jre1.4.jar";
-			"../../contrib/lib/stubs/jSDG-stubs-jre1.4.jar";
 	
 	private static final boolean DUMP_SDG_FILES;
 	static {

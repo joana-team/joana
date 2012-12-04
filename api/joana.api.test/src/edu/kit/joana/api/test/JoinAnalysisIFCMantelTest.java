@@ -31,6 +31,7 @@ import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
+import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 
@@ -56,7 +57,7 @@ public class JoinAnalysisIFCMantelTest {
 
 	public static IFCAnalysis buildAndAnnotateMantel(final MHPType mhp) throws ApiTestException {
 		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(MANTEL_CLASS_NAME);
-		SDGConfig config = new SDGConfig(CLASSPATH, mainMethod.toBCString(), STUBS);
+		SDGConfig config = new SDGConfig(CLASSPATH, mainMethod.toBCString(), Stubs.JRE_14);
 		config.setComputeInterferences(true);
 		config.setExceptionAnalysis(ExceptionAnalysis.INTRAPROC);
 		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH);

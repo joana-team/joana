@@ -53,6 +53,10 @@ public class Stubs {
 	public String getName() {
 		return name;
 	}
+	
+	public String toString() {
+		return name;
+	}
 
 	public String getPath() {
 		if (locateableByClassLoader()) {

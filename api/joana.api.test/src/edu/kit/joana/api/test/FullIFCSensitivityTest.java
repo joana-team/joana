@@ -27,6 +27,7 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.IFCType;
 import edu.kit.joana.api.IllicitFlow;
+import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.MHPType;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
@@ -83,10 +84,10 @@ public class FullIFCSensitivityTest {
 		IFCAnalysis ana = new IFCAnalysis(prog);
 		SDGProgramPart secret = ana.getProgramPart("sensitivity.Security.SECRET");
 		assertNotNull(secret);
-		ana.addSourceAnnotation(secret, IFCAnalysis.STD_LATTICE_HIGH);
+		ana.addSourceAnnotation(secret, BuiltinLattices.STD_SECLEVEL_HIGH);
 		SDGProgramPart output = ana.getProgramPart("sensitivity.Security.leak(I)V");
 		assertNotNull(output);
-		ana.addSinkAnnotation(output, IFCAnalysis.STD_LATTICE_LOW);
+		ana.addSinkAnnotation(output, BuiltinLattices.STD_SECLEVEL_LOW);
 		
 		return ana;
 	}

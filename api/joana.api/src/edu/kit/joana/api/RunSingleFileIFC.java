@@ -15,6 +15,7 @@ import java.util.Collection;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 
+import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGProgram;
@@ -288,12 +289,12 @@ public final class RunSingleFileIFC {
 		if (secret == null) {
 			errorExit("could not find the default secret information source '" + DEFAULT_SECRET_SOURCE + "'");
 		}
-		ana.addSourceAnnotation(secret, IFCAnalysis.STD_LATTICE_HIGH);
+		ana.addSourceAnnotation(secret, BuiltinLattices.STD_SECLEVEL_HIGH);
 		final SDGProgramPart output = ana.getProgramPart(DEFAULT_PUBLIC_OUTPUT);
 		if (output == null) {
 			errorExit("could not find the default public output channel '" + DEFAULT_PUBLIC_OUTPUT + "'");
 		}
-		ana.addSinkAnnotation(output, IFCAnalysis.STD_LATTICE_LOW);
+		ana.addSinkAnnotation(output, BuiltinLattices.STD_SECLEVEL_LOW);
 		
 		return ana;
 	}

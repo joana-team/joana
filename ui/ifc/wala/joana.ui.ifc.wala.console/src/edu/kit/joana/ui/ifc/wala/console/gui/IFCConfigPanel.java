@@ -14,11 +14,9 @@
  */
 package edu.kit.joana.ui.ifc.wala.console.gui;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -50,6 +48,7 @@ import javax.swing.filechooser.FileFilter;
 import edu.kit.joana.api.sdg.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.ifc.wala.console.console.IFCConsole;
+import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 
 public class IFCConfigPanel extends JPanel {
@@ -68,8 +67,7 @@ public class IFCConfigPanel extends JPanel {
 	private final JCheckBox compIFECheckbox = new JCheckBox("compute interference edges");
 	private final JComboBox mhpCombo = new JComboBox();
 	private final JComboBox exceptionCombo = new JComboBox();
-	private final JCheckBox useStubsCheckbox = new JCheckBox("use stubs");
-	private final JLabel stubsPathLabel = new JLabel(NO_STUBS_SELECTED);
+	private final JComboBox stubsCombo = new JComboBox();
 	private final JButton browseStubsButton = new JButton("browse");
 	private final JButton loadSDG = new JButton("load SDG from file");
 	private final JButton saveSDG = new JButton("save current SDG as");
@@ -222,88 +220,22 @@ public class IFCConfigPanel extends JPanel {
 		initMHPCombo();
 		ret.add(mhpCombo, GUIUtil.mkgbc_nofill(1, 1, 1, 1));
 
-		ret.add(useStubsCheckbox, GUIUtil.mkgbc_nofill(0, 2, 1, 1));
-		useStubsCheckbox.addChangeListener(new ChangeListener() {
-
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				if (useStubsCheckbox.isSelected()) {
-					if (NO_STUBS_SELECTED.equals(stubsPathLabel.getText())) {
-						stubsPathLabel.setForeground(Color.RED);
-						Font f = stubsPathLabel.getFont();
-						stubsPathLabel.setFont(f.deriveFont(Font.BOLD));
-					}
-					browseStubsButton.setEnabled(true);
-				} else {
-					stubsPathLabel.setForeground(Color.BLACK);
-					stubsPathLabel.setFont(stubsPathLabel.getFont().deriveFont(Font.PLAIN));
-					browseStubsButton.setEnabled(false);
-				}
-			}
-
-		});
 		
-		useStubsCheckbox.addActionListener(new ActionListener() {
+		
+		ret.add(new JLabel("select stubs to use: "), GUIUtil.mkgbc_nofill(0, 2, 1, 1));
+		initStubsCombo();
+		ret.add(stubsCombo, GUIUtil.mkgbc_nofill(1, 2, 1, 1));
+		stubsCombo.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (!useStubsCheckbox.isSelected()) {
-					consoleGui.execSetStubsPath(IFCConsole.DONT_USE_STUBS);
-				} else {
-					if (!stubsPathLabel.getText().equals(NO_STUBS_SELECTED)) {
-						consoleGui.execSetStubsPath(stubsPathLabel.getText());
-					} else {
-						consoleGui.execSetStubsPath(IFCConsole.DONT_USE_STUBS);
-					}
-				}
-				
+				consoleGui.execSetStubsPath(stubsCombo.getSelectedItem().toString());
 			}
+
 			
-		});
-
-		ret.add(stubsPathLabel, GUIUtil.mkgbc_nofill(1, 2, 1, 1));
-		ret.add(browseStubsButton, GUIUtil.mkgbc_nofill(2, 2, 1, 1));
-		browseStubsButton.setEnabled(false);
-		browseStubsButton.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				final JFileChooser choose = new JFileChooser("./");
-				choose.setFileFilter(new FileFilter() {
-
-					@Override
-					public String getDescription() {
-						return "*.jar";
-					}
-
-					@Override
-					public boolean accept(File arg0) {
-						return (arg0.isDirectory() || arg0.isFile() && arg0.getName().endsWith(".jar"));
-					}
-				});
-				choose.setFileSelectionMode(JFileChooser.FILES_ONLY);
-				choose.setDialogTitle("Select .jar file containing stubs");
-				choose.validate();
-				final int retval = choose.showOpenDialog(getRootPane());
-
-				if (retval == JFileChooser.APPROVE_OPTION) {
-					String path = choose.getSelectedFile().getAbsolutePath();
-					File f = new File(path);
-					if (f.exists()) {
-						stubsPathLabel.setText(path);
-						stubsPathLabel.setForeground(Color.BLACK);
-						stubsPathLabel.setFont(stubsPathLabel.getFont().deriveFont(Font.PLAIN));
-						consoleGui.execSetStubsPath(stubsPathLabel.getText());
-					} else {
-						JOptionPane.showMessageDialog(IFCConfigPanel.this, "Selected file '" + path
-								+ "' does not exist! Please select again!", "Selected file not found",
-								JOptionPane.ERROR_MESSAGE);
-					}
-				}
-			}
 
 		});
-
+	
 		ret.add(buildSDG, GUIUtil.mkgbc_nofill(0, 3, 1, 1));
 		ret.add(autoSaveSDGCheckbox, GUIUtil.mkgbc_fillx(1, 3, 1, 1));
 
@@ -329,6 +261,15 @@ public class IFCConfigPanel extends JPanel {
 		mhpTypes.addElement(new ElementWithDescription<MHPType>(MHPType.PRECISE, MHP_PRECISE));
 		mhpCombo.setModel(mhpTypes);
 		mhpCombo.setEnabled(false);
+	}
+	
+	private void initStubsCombo() {
+		MutableComboBoxModel possibleStubs = new DefaultComboBoxModel();
+		for (Stubs stubs : Stubs.getAvailableStubs()) {
+			possibleStubs.addElement(stubs.toString());
+		}
+		stubsCombo.setModel(possibleStubs);
+		stubsCombo.setEditable(false);
 	}
 
 	private void initExceptionCombo() {
@@ -557,10 +498,6 @@ public class IFCConfigPanel extends JPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				if (useStubsCheckbox.isSelected() && NO_STUBS_SELECTED.equals(stubsPathLabel.getText())) {
-					consoleGui.info("Select stubs first or uncheck 'use stubs'!");
-					return;
-				}
 				String saveSDGPath = null;
 				if (autoSaveSDGCheckbox.isSelected()) {
 					try {
@@ -598,6 +535,10 @@ public class IFCConfigPanel extends JPanel {
 
 		};
 	}
+	
+	public Stubs getCurrentStubs() {
+		return Stubs.fromString(stubsCombo.getSelectedItem().toString());
+	}
 
 	public void searchEntryStarted() {
 		entryMethodsModel.searchStarted();
@@ -625,7 +566,6 @@ public class IFCConfigPanel extends JPanel {
 	public void unmute() {
 		setEnabled(this, true);
 		mhpCombo.setEnabled(compIFECheckbox.isSelected());
-		browseStubsButton.setEnabled(useStubsCheckbox.isSelected());
 	}
 
 	private static void setEnabled(Component c, boolean enabled) {

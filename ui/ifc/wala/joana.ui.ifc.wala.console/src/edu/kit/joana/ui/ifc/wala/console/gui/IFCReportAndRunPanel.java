@@ -86,10 +86,11 @@ class SignalLight extends JPanel {
 		default:
 			throw new IllegalStateException();
 		}
+		int diameter = Math.min(getWidth() / 2 + getHeight() / 2, getHeight());
 		g.setColor(cRed);
-		g.fillOval(0, 0, getWidth() / 2, getHeight());
+		g.fillOval(0, 0, diameter, diameter);
 		g.setColor(cGreen);
-		g.fillOval(getWidth() / 2, 0, getWidth() / 2, getHeight());
+		g.fillOval(diameter, 0, diameter, diameter);
 	}
 }
 
@@ -122,15 +123,15 @@ public class IFCReportAndRunPanel extends JPanel {
 		ifcParamsScrollPane.setMinimumSize(new Dimension(600, 300));
 		add(ifcParamsScrollPane,
 				GUIUtil.mkgbc_fillxy(0, 0, GridBagConstraints.REMAINDER, 1));
-		JPanel dummy = new JPanel();
-		dummy.setMinimumSize(new Dimension(200, 30));
-		dummy.setPreferredSize(new Dimension(200, 30));
-		add(dummy, GUIUtil.mkgbc_nofill(0, 1, 1, 1));
+//		JPanel dummy = new JPanel();
+//		dummy.setMinimumSize(new Dimension(200, 30));
+//		dummy.setPreferredSize(new Dimension(200, 30));
+//		add(dummy, GUIUtil.mkgbc_nofill(0, 1, 1, 1));
 
-		add(new JLabel("analysis type: "), GUIUtil.mkgbc_nofill(1, 1, 1, 1));
+		add(new JLabel("analysis type: "), GUIUtil.mkgbc_nofill(0, 1, 1, 1));
 		initIFCTypeCombo();
-		add(typeCombo, GUIUtil.mkgbc_nofill(2, 1, 1, 1));
-		add(avoidTimeTravel, GUIUtil.mkgbc_nofill(3, 1, 1, 1));
+		add(typeCombo, GUIUtil.mkgbc_nofill(1, 1, 1, 1));
+		add(avoidTimeTravel, GUIUtil.mkgbc_nofill(2, 1, 1, 1));
 		runButton.setMinimumSize(new Dimension(150, 30));
 		runButton.setPreferredSize(new Dimension(150, 30));
 		runButton.addActionListener(new ActionListener() {
@@ -141,16 +142,16 @@ public class IFCReportAndRunPanel extends JPanel {
 			}
 
 		});
-		add(runButton, GUIUtil.mkgbc_nofill(4, 1, 1, 1));
+		add(runButton, GUIUtil.mkgbc_nofill(3, 1, 1, 1));
 
 		resultIndicator.setMinimumSize(new Dimension(60, 30));
 		resultIndicator.setPreferredSize(new Dimension(60, 30));
-		add(resultIndicator, GUIUtil.mkgbc_nofill(5, 1, 1, 1));
-		add(resultText, GUIUtil.mkgbc_nofill(6, 1, 1, 1));
-		JPanel dummy2 = new JPanel();
-		dummy2.setMinimumSize(new Dimension(220, 30));
-		dummy2.setPreferredSize(new Dimension(220, 30));
-		add(dummy2, GUIUtil.mkgbc_nofill(7, 1, GridBagConstraints.REMAINDER, 1));
+		add(resultIndicator, GUIUtil.mkgbc_nofill(0, 2, 1, 1));
+		add(resultText, GUIUtil.mkgbc_fillx(1, 2, GridBagConstraints.REMAINDER, 1));
+//		JPanel dummy2 = new JPanel();
+//		dummy2.setMinimumSize(new Dimension(220, 30));
+//		dummy2.setPreferredSize(new Dimension(220, 30));
+//		add(dummy2, GUIUtil.mkgbc_nofill(7, 1, GridBagConstraints.REMAINDER, 1));
 	}
 
 	private void initIFCTypeCombo() {

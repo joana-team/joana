@@ -523,7 +523,7 @@ public class IFCConfigPanel extends JPanel {
 						sdgStatusLabel.setText("unsaved SDG with entry method: "
 								+ consoleGui.getEntryMethod().toHRString());
 					}
-					consoleGui.pack();
+					//consoleGui.pack();
 					// curSDGTextField.setText(console.getSDGFile());
 					// loadProgramIntoTree(programRoot);
 					// programRoot.setUserObject(choose.getSelectedFile().getName());

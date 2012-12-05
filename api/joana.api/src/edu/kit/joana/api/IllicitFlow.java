@@ -38,6 +38,14 @@ public class IllicitFlow {
 
 
 	}
+	
+	public SDGProgramPart getSource() {
+		return source;
+	}
+	
+	public SDGProgramPart getSink() {
+		return sink;
+	}
 
 	public Violation getViolation() {
 		return vio;

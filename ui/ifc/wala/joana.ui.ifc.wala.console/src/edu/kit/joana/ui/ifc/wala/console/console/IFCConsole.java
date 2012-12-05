@@ -81,6 +81,8 @@ import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
+import gnu.trove.map.TObjectIntMap;
+import gnu.trove.map.hash.TObjectIntHashMap;
 
 public class IFCConsole {
 
@@ -1497,23 +1499,29 @@ public class IFCConsole {
 
 			if (lastAnalysisResult.size() > 0) {
 				out.logln(":");
-
+				TObjectIntMap<IllicitFlow> groupedIFlows = groupByPParts(vios);
+				for (IllicitFlow iflow : groupedIFlows.keySet()) {
+					out.logln(String.format("%d illicit flow(s) between %s and %s ", groupedIFlows.get(iflow), iflow.getSource(), iflow.getSink()));
+				}
 			} else {
 				out.logln("");
 			}
-
-			for (IllicitFlow iFlow : lastAnalysisResult) {
-				out.logln(iFlow.toString());
-				if (debug.isEnabled()) {
-					Violation vio = iFlow.getViolation();
-					RepsRosayChopper chopper = new RepsRosayChopper(ifcAnalysis.getProgram().getSDG());
-					Collection<SDGNode> nodes = chopper.chop(vio.getSource(), vio.getSink());
-					debug.outln(nodes);
-				}
-			}
-			// out.logln("Time needed (sec): " + (((double) time) / 1000));
 			return true;
 		}
+	}
+	
+	private static TObjectIntMap<IllicitFlow> groupByPParts(Collection<IllicitFlow> iflows) {
+		TObjectIntMap<IllicitFlow> ret = new TObjectIntHashMap<IllicitFlow>();
+		for (IllicitFlow ill : iflows) {
+			if (ret.containsKey(ill)) {
+				int noiFlows = ret.get(ill);
+				ret.put(ill, noiFlows + 1);
+			} else {
+				ret.put(ill, 1);
+			}
+		}
+		
+		return ret;
 	}
 
 	public static String convertIFCType(IFCType ifcType) {

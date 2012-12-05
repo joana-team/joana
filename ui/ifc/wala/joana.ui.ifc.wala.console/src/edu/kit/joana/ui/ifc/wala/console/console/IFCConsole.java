@@ -822,6 +822,8 @@ public class IFCConsole {
 		repo.addCommand(makeCommandShowClasses());
 		repo.addCommand(makeCommandShowBCI());
 		repo.addCommand(makeCommandVerifyAnnotations());
+		
+		setLattice(LATTICE_BINARY);
 	}
 
 	public boolean quit() {

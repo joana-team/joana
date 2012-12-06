@@ -498,17 +498,8 @@ public class IFCConfigPanel extends JPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				String saveSDGPath = null;
-				if (autoSaveSDGCheckbox.isSelected()) {
-					try {
-						saveSDGPath = new File(consoleGui.getEntryMethod().getFullyQualifiedMethodName() + ".pdg")
-								.getCanonicalPath();
-					} catch (IOException e) {
-						consoleGui.error("I/O error while saving SDG to "
-								+ consoleGui.getEntryMethod().getFullyQualifiedMethodName() + ".pdg");
-					}
-
-				}
+				
+				
 
 				final String cp = consoleGui.getClassPath();
 				final JavaMethodSignature entry = consoleGui.getEntryMethod();
@@ -516,6 +507,16 @@ public class IFCConfigPanel extends JPanel {
 				if ((cp == null || cp.isEmpty()) || (entry == null)) {
 					consoleGui.info("Please select classpath and entry method first.");
 				} else {
+					String saveSDGPath = null;
+					if (autoSaveSDGCheckbox.isSelected()) {
+						try {
+							saveSDGPath = new File(consoleGui.getEntryMethod().getFullyQualifiedMethodName() + ".pdg")
+									.getCanonicalPath();
+						} catch (IOException e) {
+							consoleGui.error("I/O error while saving SDG to "
+									+ consoleGui.getEntryMethod().getFullyQualifiedMethodName() + ".pdg");
+						}
+					}
 					consoleGui.execBuildSDG(saveSDGPath);
 					if (saveSDGPath != null) {
 						sdgStatusLabel.setText("current SDG stored in: " + saveSDGPath);

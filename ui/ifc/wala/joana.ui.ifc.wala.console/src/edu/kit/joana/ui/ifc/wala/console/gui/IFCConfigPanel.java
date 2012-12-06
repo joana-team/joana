@@ -274,14 +274,15 @@ public class IFCConfigPanel extends JPanel {
 
 	private void initExceptionCombo() {
 		MutableComboBoxModel exceptionTypes = new DefaultComboBoxModel();
-		exceptionTypes.addElement(new ElementWithDescription<ExceptionAnalysis>(ExceptionAnalysis.IGNORE_ALL,
-				EXC_IGNORE_ALL));
-		exceptionTypes.addElement(new ElementWithDescription<ExceptionAnalysis>(ExceptionAnalysis.ALL_NO_ANALYSIS,
-				EXC_ALL_NO_ANALYSIS));
 		exceptionTypes.addElement(new ElementWithDescription<ExceptionAnalysis>(ExceptionAnalysis.INTRAPROC,
 				EXC_INTRAPROC));
 		exceptionTypes.addElement(new ElementWithDescription<ExceptionAnalysis>(ExceptionAnalysis.INTERPROC,
 				EXC_INTERPROC));
+		exceptionTypes.addElement(new ElementWithDescription<ExceptionAnalysis>(ExceptionAnalysis.IGNORE_ALL,
+				EXC_IGNORE_ALL));
+		exceptionTypes.addElement(new ElementWithDescription<ExceptionAnalysis>(ExceptionAnalysis.ALL_NO_ANALYSIS,
+				EXC_ALL_NO_ANALYSIS));
+
 		exceptionCombo.setModel(exceptionTypes);
 	}
 

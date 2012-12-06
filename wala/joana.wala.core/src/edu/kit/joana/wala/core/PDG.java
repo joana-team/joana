@@ -56,9 +56,9 @@ import edu.kit.joana.wala.core.PDGNode.Kind;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.graphs.CDG;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph;
+import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
 import edu.kit.joana.wala.flowless.pointsto.Pts2AliasGraph;
 import edu.kit.joana.wala.flowless.pointsto.PtsParameter;
-import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
 import edu.kit.joana.wala.flowless.util.GraphWriter;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
@@ -957,8 +957,13 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 
 			if (bb.isCatchBlock()) {
 				SSAInstruction catchInstr = bb.getCatchInstruction();
-				PDGNode catchNode = instr2node.get(catchInstr);
-				nodes.add(catchNode);
+				if (catchInstr != null) {
+					PDGNode catchNode = instr2node.get(catchInstr);
+					nodes.add(catchNode);
+				} else {
+					PDGNode nop = createNopNode();
+					nodes.add(nop);
+				}
 			}
 
 			if (bb.getInstruction() != null) {

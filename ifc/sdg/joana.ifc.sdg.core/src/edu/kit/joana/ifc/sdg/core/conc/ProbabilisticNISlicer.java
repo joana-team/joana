@@ -191,22 +191,24 @@ public class ProbabilisticNISlicer {
      *
      * @author giffhorn
      */
-    private class ConflictEdgeGenerator {
+    private class ConflictEdgeManager {
     	private final boolean timeSens;
     	private HashMap<SDGNode, Collection<SDGNode>> before = new HashMap<SDGNode, Collection<SDGNode>>();
+    	private List<SDGEdge> dataConflictEdges = new LinkedList<SDGEdge>();
+    	private List<SDGEdge> orderConflictEdges = new LinkedList<SDGEdge>();
     	
-    	ConflictEdgeGenerator(boolean timeSens) {
+    	ConflictEdgeManager(boolean timeSens) {
     		this.timeSens = timeSens;
     	}
     	
     	/**
-         * Fuegt die Konfliktkanten in den SDG ein.
+         * Berechnet die Konfliktkanten, die spaeter in den SDG eingefuegt werden muessen.
          */
-        private void addConflictEdges() {
+        void computeConflictEdges() {
             // berechne die potentiellen trigger der conflicts
         	computeBeforeMap();
-            addOrderConflicts();
-            addDataConflicts();
+            computeOrderConflicts();
+            computeDataConflicts();
 
             // DEBUG
 //            for (SDGEdge e : mayhemMap.keySet()) {
@@ -217,7 +219,7 @@ public class ProbabilisticNISlicer {
         /**
          * Fuegt Kanten fuer order conflicts ein. Ausserdem wird die 'orderConflicts2Triggers'-Map befuellt.
          */
-        private void addOrderConflicts() {
+        private void computeOrderConflicts() {
             // sammel alle quellen und senken ein
             Collection<SecurityNode> annotatedNodes = new HashSet<SecurityNode>();
             annotatedNodes.addAll(sources);
@@ -249,7 +251,7 @@ public class ProbabilisticNISlicer {
                     	// verraet die Ausfuehrungsreihenfolge nichts, was nicht verraten werden soll)
                     	if (!refined.isEmpty()) {
     	                	SDGEdge edge = new SDGEdge(m, n, SDGEdge.Kind.CONFLICT_ORDER);
-    	                    g.addEdge(edge);
+    	                	orderConflictEdges.add(edge);
     	                    orderConflicts2Triggers.put(edge, triggers);
 //    	                    System.out.println("ORDER CONFLICT: "+m+" <-> "+n);
                     	}
@@ -261,9 +263,8 @@ public class ProbabilisticNISlicer {
         /**
          * Fuegt Kanten fuer data conflicts ein. Ausserdem wird hier die {@link ProbabilisticNISlicer#triggersToDataConflicts}-Map befuellt.
          */
-        private void addDataConflicts() {
-        	LinkedList<SDGEdge> newEdges = new LinkedList<SDGEdge>();
-
+        private void computeDataConflicts() {
+        	
             // suche nach interferenzen -> potentielle data-konflikte
             for (SDGEdge edge : g.edgeSet()) {
                 if (edge.getKind() == SDGEdge.Kind.INTERFERENCE) {
@@ -271,7 +272,7 @@ public class ProbabilisticNISlicer {
                 	HashSet<SecurityNode> triggers = trigger((SecurityNode)edge.getSource(), (SecurityNode)edge.getTarget());
                 	if (!triggers.isEmpty()) {
                     	SDGEdge e = new SDGEdge(edge.getSource(), edge.getTarget(), SDGEdge.Kind.CONFLICT_DATA);
-                        newEdges.add(e);
+                        dataConflictEdges.add(e);
 
 
                         for (SecurityNode n : triggers) {
@@ -292,8 +293,8 @@ public class ProbabilisticNISlicer {
                         // bidirected conflict
                     	SDGEdge e = new SDGEdge(edge.getSource(), edge.getTarget(), SDGEdge.Kind.CONFLICT_DATA);
                     	SDGEdge f = new SDGEdge(edge.getTarget(), edge.getSource(), SDGEdge.Kind.CONFLICT_DATA);
-                    	newEdges.add(e);
-                        newEdges.add(f);
+                    	dataConflictEdges.add(e);
+                    	dataConflictEdges.add(f);
 
                         for (SecurityNode trigger : triggers) {
                         	HashSet<SDGEdge> dataConflicts = triggersToDataConflicts.get(trigger);
@@ -306,11 +307,6 @@ public class ProbabilisticNISlicer {
                         }
                 	}
                 }
-            }
-
-            // fuege kanten in den SDG ein
-            for (SDGEdge e : newEdges) {
-            	g.addEdge(e);
             }
         }
 
@@ -362,8 +358,30 @@ public class ProbabilisticNISlicer {
         			before.put(n, maybeInfluenced);
         		}
         	}
-        		
         }
+        
+        void addConflictEdges() {
+        	for (SDGEdge e : orderConflictEdges) {
+        		g.addEdge(e);
+        	}
+        	
+        	for (SDGEdge e : dataConflictEdges) {
+        		g.addEdge(e);
+        	}
+        }
+        
+        void removeConflictEdges() {
+        	for (SDGEdge e : orderConflictEdges) {
+        		g.removeEdge(e);
+        	}
+        	
+        	for (SDGEdge e : dataConflictEdges) {
+        		g.removeEdge(e);
+        	}
+        	
+        }
+        
+        
     }
 
 
@@ -382,7 +400,7 @@ public class ProbabilisticNISlicer {
      *  Beachte: Jede ORDER-CONFLICT-Kante kommt als key in dieser map vor! Folglich kann man davon
      *  ausgehen, dass fuer jede ORDER-CONFLICT-Kante der zugehoerige Wert nicht null ist (es sei denn,
      *  es wurde explizit null als Wert eingetragen).
-     *  Diese Map wird in {@link ConflictEdgeGenerator#addOrderConflicts()} befuellt.
+     *  Diese Map wird in {@link ConflictEdgeManager#computeOrderConflicts()} befuellt.
      **/
     private HashMap<SDGEdge, HashSet<SecurityNode>> orderConflicts2Triggers;
 
@@ -391,11 +409,13 @@ public class ProbabilisticNISlicer {
      *  Menge aller der von ihm beeinflussten DATA-CONFLICT-Kanten ab
      *  Beachte: Nicht jeder Quellknoten kommt als Key in der Map vor, daher ist ein {@code null}- bzw.
      *  containsKey()-check unerlaesslich, bevor man auf Werte zugreift.
-     *  Diese Map wird in {@link ConflictEdgeGenerator#addDataConflicts()} befuellt.
+     *  Diese Map wird in {@link ConflictEdgeManager#computeDataConflicts()} befuellt.
      **/
     private HashMap<SecurityNode, HashSet<SDGEdge>> triggersToDataConflicts;
     // der zu verwendende ConflictManager
     private ConflictManager conf;
+    
+    private ConflictEdgeManager confEdgeMan;
 
     // quellen und senken werden dazwischengespeichert
     private Collection<SecurityNode> sources;
@@ -425,7 +445,8 @@ public class ProbabilisticNISlicer {
          triggersToDataConflicts = new HashMap<SecurityNode, HashSet<SDGEdge>>();
          sources = SDGTools.getInformationSources(g);
          sinks = SDGTools.getInformationSinks(g);
-         new ConflictEdgeGenerator(this.timeSens).addConflictEdges();
+         this.confEdgeMan = new ConflictEdgeManager(this.timeSens);
+         confEdgeMan.computeConflictEdges();
     }
 
 
@@ -438,7 +459,7 @@ public class ProbabilisticNISlicer {
         // bestimme alle annotierten knoten
         LinkedList<Element> criteria = collectCriteria();
         Set<Violation> set = new HashSet<Violation>();
-
+        confEdgeMan.addConflictEdges();
         // pruefe jeden annotierten knoten auf probabilistische noninterferenz
         for (Element e : criteria) {
         	// suche order channels
@@ -452,7 +473,7 @@ public class ProbabilisticNISlicer {
         	tmp = System.currentTimeMillis() - tmp;
         	dataChannels += tmp;
         }
-
+        confEdgeMan.removeConflictEdges();
         set.addAll(conf.getConflicts());
 
         return set;

@@ -78,7 +78,6 @@ public class ProbabilisticNIChecker extends IFC {
 
 		// if (DEBUG) System.out.println("Started slicing at " + slicestart);
 
-		try {
 			probCheck = System.currentTimeMillis();
 			ret = prob.check();
 			probCheck = System.currentTimeMillis() - probCheck;
@@ -86,9 +85,6 @@ public class ProbabilisticNIChecker extends IFC {
 			flowCheck = System.currentTimeMillis();
 			ret.addAll(is.checkIFlow());
 			flowCheck = System.currentTimeMillis() - flowCheck;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 
 		// long sliceend = System.currentTimeMillis();
 		// if (DEBUG) System.out.println("Finished slicing at " + sliceend +

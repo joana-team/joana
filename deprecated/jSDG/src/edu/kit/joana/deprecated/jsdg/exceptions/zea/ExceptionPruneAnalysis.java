@@ -111,10 +111,6 @@ public class ExceptionPruneAnalysis extends ExceptionPrunedCFGAnalysis<SSAInstru
         CallGraphBuilder builder = Util.makeZeroOneContainerCFABuilder(options, cache, cha, scope);
         CallGraph cg = builder.makeCallGraph(options, null);
 
-        if (DEBUG) {
-        	//CDotUtil.dotify(cg, NodeDecorator.DEFAULT, methodSig + "-callgraph.dot", null, null);
-        }
-
         PointerAnalysis pta = builder.getPointerAnalysis();
 
         ExceptionPruneAnalysis mCFG = new ExceptionPruneAnalysis(cg, pta, cache);
@@ -161,10 +157,6 @@ public class ExceptionPruneAnalysis extends ExceptionPrunedCFGAnalysis<SSAInstru
         System.out.println("Creating call graph...");
         CallGraph cg = builder.makeCallGraph(options, null);
         System.out.println("Done.");
-
-        if (DEBUG) {
-        	//CDotUtil.dotify(cg, NodeDecorator.DEFAULT, methodSig + "-callgraph.dot", null, null);
-        }
 
         PointerAnalysis pta = builder.getPointerAnalysis();
 

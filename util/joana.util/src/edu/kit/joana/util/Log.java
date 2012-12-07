@@ -36,6 +36,9 @@ public final class Log {
 	public static final String L_WALA_CORE_DEBUG				= "wala.core.debug";
 	public static final String L_WALA_INTERFERENCE_DEBUG		= "wala.interference.debug";
 	public static final String L_JSDG_INFO						= "jsdg.info";
+	public static final String L_UI_DEBUG						= "ui.debug";
+	public static final String L_MOJO_DEBUG						= "mojo.debug";
+	public static final String L_MOJO_INFO						= "mojo.info";
 
 	private static final Map<String, Logger> NAME2LOG = new HashMap<String, Logger>();
 	private static final Set<String> DEFAULT_ENABLED = new HashSet<String>();

@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.jar.JarFile;
 
-
 import com.ibm.wala.classLoader.IBytecodeMethod;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.Language;
@@ -54,16 +53,20 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.chopper.SummaryMergedChopper;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.core.ExternalCallCheck;
 import edu.kit.joana.wala.core.Main;
 import edu.kit.joana.wala.dictionary.Dictionary.SDGSummaryReference;
-import edu.kit.joana.wala.flowless.pointsto.Pts2AliasGraph;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
+import edu.kit.joana.wala.flowless.pointsto.Pts2AliasGraph;
 import edu.kit.joana.wala.flowless.util.AliasGraphIO;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
 public class MergeModules {
 
+	private final Logger debug = Log.getLogger(Log.L_MOJO_DEBUG);
+	
 	public static void main(final String[] argv) throws ClassHierarchyException, IllegalArgumentException, IOException, CancelException {
 		// merge precomputed dependency graphs
 		final ModuleCFG mainModule = new ModuleCFG("program.Program.main([Ljava/lang/String;)V",
@@ -88,8 +91,6 @@ public class MergeModules {
 			this.classpath = classpath;
 		}
 	}
-
-	private static final boolean DEBUG = false;
 
 	private final String name;
 	private final String baseDir;
@@ -202,7 +203,7 @@ public class MergeModules {
 				connectParamAtCallsite(sum, fIn, call);
 				break;
 			case BytecodeLocation.STATIC_FIELD:
-				if (DEBUG) System.out.println("-sf-" + fIn.getLabel());
+				debug.outln("-sf-" + fIn.getLabel());
 				break;
 			case BytecodeLocation.ARRAY_FIELD:
 			case BytecodeLocation.ARRAY_INDEX:
@@ -222,7 +223,7 @@ public class MergeModules {
 				connectParamAtCallsite(sum, fOut, call);
 				break;
 			case BytecodeLocation.STATIC_FIELD:
-				if (DEBUG) System.out.println("-sf-" + fOut.getLabel());
+				debug.outln("-sf-" + fOut.getLabel());
 				break;
 			case BytecodeLocation.ARRAY_FIELD:
 			case BytecodeLocation.ARRAY_INDEX:
@@ -252,7 +253,7 @@ public class MergeModules {
 
 		Collection<SDGNode> chop = chopper.chop(sourceSet, sinkSet);
 
-		if (DEBUG) System.out.print("-" + chop.size() + " nodes in chop-");
+		debug.out("-" + chop.size() + " nodes in chop-");
 
 		for (final SDGNode node : chop) {
 			findOrCreateNode(node);
@@ -296,7 +297,7 @@ public class MergeModules {
 				if (actIn.getBytecodeIndex() == BytecodeLocation.ROOT_PARAMETER) {
 					final String actPrefix = getPrefixFromParamNode(actIn);
 					if (prefix.equals(actPrefix)) {
-						if (DEBUG) System.out.println("found match: <ACT: " + actIn.getLabel() + " > - <FORM: " + fIn.getLabel() + " >");
+						debug.outln("found match: <ACT: " + actIn.getLabel() + " > - <FORM: " + fIn.getLabel() + " >");
 						connectNodeAndChildren(call, callee, actIn, fIn, new HashSet<SDGNode>());
 					}
 				}
@@ -306,7 +307,7 @@ public class MergeModules {
 				if (actOut.getBytecodeIndex() == BytecodeLocation.ROOT_PARAMETER) {
 					final String actPrefix = getPrefixFromParamNode(actOut);
 					if (prefix.equals(actPrefix)) {
-						if (DEBUG) System.out.println("found match: <ACT: " + actOut.getLabel() + " > - <FORM: " + fIn.getLabel() + " >");
+						debug.outln("found match: <ACT: " + actOut.getLabel() + " > - <FORM: " + fIn.getLabel() + " >");
 						connectNodeAndChildren(call, callee, actOut, fIn, new HashSet<SDGNode>());
 					}
 				}

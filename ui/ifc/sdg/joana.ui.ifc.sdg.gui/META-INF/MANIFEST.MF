@@ -20,7 +20,8 @@ Require-Bundle: org.eclipse.core.runtime,
  joana.ui.ifc.sdg.latticeeditor;bundle-version="3.2.2",
  joana.ifc.sdg.graph;bundle-version="1.1.0",
  joana.deprecated.jsdg.gui;bundle-version="0.0.1",
- joana.contrib.lib;bundle-version="1.0.0"
+ joana.contrib.lib;bundle-version="1.0.0",
+ joana.util;bundle-version="1.0.0"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: edu.kit.joana.ui.ifc.sdg.gui

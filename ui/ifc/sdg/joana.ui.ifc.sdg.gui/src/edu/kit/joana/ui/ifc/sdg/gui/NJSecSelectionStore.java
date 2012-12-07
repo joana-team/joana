@@ -43,6 +43,9 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.part.FileEditorInput;
 
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
+
 /**
  * Watches which project and ressource are currently selected
  * may inform Listeners of changes and offers direct query ability
@@ -52,8 +55,8 @@ import org.eclipse.ui.part.FileEditorInput;
  */
 //@SuppressWarnings("restriction") // TODO: access restrictions for InternalClassFileEditorInput
 public class NJSecSelectionStore implements ISelectionListener {
-	private static final boolean DEBUG = false;
 
+	private final Logger debug = Log.getLogger(Log.L_UI_DEBUG);
 	private IResource activeResource;
 	private ArrayList<ActiveResourceChangeListener> arlisteners = new ArrayList<ActiveResourceChangeListener>();
 
@@ -164,7 +167,7 @@ public class NJSecSelectionStore implements ISelectionListener {
 				IResource r = (IResource) ss.getFirstElement();
 				if (activeResource != r) {
 					activeResource = r;
-					if (DEBUG) System.out.println(activeResource.getProjectRelativePath());
+					debug.outln(activeResource.getProjectRelativePath());
 					change = true;
 				}
 			}
@@ -202,7 +205,7 @@ public class NJSecSelectionStore implements ISelectionListener {
 
 	public IResource getActiveResource() {
 		if (activeResource instanceof IProject) {
-			if(DEBUG) System.out.println("Projekt " + activeResource + " aktiv");
+			debug.outln("Projekt " + activeResource + " aktiv");
 		}
 		return activeResource;
 	}

@@ -11,6 +11,8 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.summary.GraphUtil;
 import edu.kit.joana.wala.summary.SummaryComputation;
 import edu.kit.joana.wala.summary.WorkPackage;
@@ -38,14 +40,13 @@ import com.ibm.wala.util.intset.MutableIntSet;
 
 public class AliasSDG {
 
-	public static boolean debug = false;
 	private final SDG sdg;
 	private WorkPackage workPack;
 	private final Alias mayAlias = new Alias();
 	private final Alias noAlias = new Alias();
 	private final List<SDGEdge> currentlyRemoved = new LinkedList<SDGEdge>();
 
-	//done: rewrite to contain pairs and not 2 bvs, because this is wrong: !(a,a) && !(b,b) => !(a,b)
+	//done: rewrite to contain pairs, because this is wrong: !(a,a) && !(b,b) => !(a,b)
 	public static class Alias implements Cloneable {
 
 		private static final class P {
@@ -218,19 +219,21 @@ public class AliasSDG {
 	 */
 	public boolean adjustSDG(final IProgressMonitor progress) throws CancelException {
 		final List<SDGEdge> toDisable = new LinkedList<SDGEdge>();
-
+		final Logger debug = Log.getLogger(Log.L_MOJO_DEBUG);
+		
+		
 		if (noAlias.size() > 0) {
-			if (debug) {
-				System.out.print("propagating no-aliases... ");
+			if (debug.isEnabled()) {
+				debug.out("propagating no-aliases... ");
 				final int sizeBefore = noAlias.size();
 
 				if (propagateAliasesFromCallSites()) {
-					System.out.print("[" + sizeBefore + " => " + noAlias.size() + "] ");
+					debug.out("[" + sizeBefore + " => " + noAlias.size() + "] ");
 				} else {
-					System.out.print("[no change] ");
+					debug.out("[no change] ");
 				}
 
-				System.out.println("done.");
+				debug.outln("done.");
 			} else {
 				propagateAliasesFromCallSites();
 			}
@@ -249,9 +252,7 @@ public class AliasSDG {
 			}
 		}
 
-		if (debug) {
-			System.out.println("disabling " + toDisable.size() + " of " + aliasEdges + " alias edges.");
-		}
+		debug.outln("disabling " + toDisable.size() + " of " + aliasEdges + " alias edges.");
 
 		for (final SDGEdge alias : toDisable) {
 			sdg.removeEdge(alias);

@@ -55,11 +55,9 @@ import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.SecurityNode.SecurityNodeFactory;
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
-import edu.kit.joana.ifc.sdg.graph.chopper.RepsRosayChopper;
 import edu.kit.joana.ifc.sdg.lattice.IEditableLattice;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.InvalidLatticeException;
@@ -76,8 +74,6 @@ import edu.kit.joana.ui.ifc.wala.console.io.MethodNotFoundException;
 import edu.kit.joana.ui.ifc.wala.console.io.NumberedIFCAnnotationDumper;
 import edu.kit.joana.ui.ifc.wala.console.io.PrintStreamConsoleWrapper;
 import edu.kit.joana.ui.ifc.wala.console.io.SDGProgramPartWriter;
-import edu.kit.joana.util.Log;
-import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
@@ -85,8 +81,6 @@ import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 
 public class IFCConsole {
-
-	private static final Logger debug = Log.getLogger(Log.L_CONSOLE_DEBUG);
 
 	public enum CMD {
 		HELP("help", 0, "", "Display this help."), SEARCH_ENTRIES("searchEntries", 0, "",

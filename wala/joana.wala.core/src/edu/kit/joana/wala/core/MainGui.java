@@ -32,6 +32,8 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.filechooser.FileFilter;
 
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.core.Main.Config;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 
@@ -39,8 +41,8 @@ public class MainGui extends JFrame {
 
 	private static final long serialVersionUID = 5531712277867894087L;
 
-	private static final boolean DEBUG = false;
-
+	private final Logger debug = Log.getLogger(Log.L_UI_DEBUG);
+	
 	public static void main(final String[] argv) {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -145,14 +147,14 @@ public class MainGui extends JFrame {
 		run.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (DEBUG) System.out.println("COMPUTE");
+				debug.outln("COMPUTE");
 
 				if (running.compareAndSet(false, true)) {
-					if (DEBUG) System.out.println("START COMPUTE");
+					debug.outln("START COMPUTE");
 					RunSDG runsdg = new RunSDG();
 					runsdg.start();
 				} else {
-					if (DEBUG) System.out.println("NO COMPUTE");
+					debug.outln("NO COMPUTE");
 				}
 			}
 		});
@@ -167,14 +169,14 @@ public class MainGui extends JFrame {
 		search.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (DEBUG) System.out.println("SEARCH");
+				debug.outln("SEARCH");
 
 				if (running.compareAndSet(false, true)) {
-					if (DEBUG) System.out.println("START SEARCH");
+					debug.outln("START SEARCH");
 					RunSearchMain runsearch = new RunSearchMain();
 					runsearch.start();
 				} else {
-					if (DEBUG) System.out.println("NO SEARCH");
+					debug.outln("NO SEARCH");
 				}
 			}
 		});
@@ -202,13 +204,13 @@ public class MainGui extends JFrame {
 
 			@Override
 			public void windowClosing(WindowEvent e) {
-				if (DEBUG) System.out.println("CLOSING");
+				debug.outln("CLOSING");
 				System.exit(0);
 			}
 
 			@Override
 			public void windowClosed(WindowEvent e) {
-				if (DEBUG) System.out.println("CLOSED");
+				debug.outln("CLOSED");
 				System.exit(0);
 			}
 
@@ -224,10 +226,10 @@ public class MainGui extends JFrame {
 		private final String classpath = pathToBin.getText().trim();
 
 		public void run() {
-			if (DEBUG) System.out.println("\tCOMPUTE RUN");
+			debug.outln("\tCOMPUTE RUN");
 
 			synchronized (running) {
-				if (DEBUG) System.out.println("\tCOMPUTE ENTER");
+				debug.outln("\tCOMPUTE ENTER");
 
 				final Config cfg = new Config("MainGui " + entryMethod, entryMethod, classpath, FieldPropagation.FLAT);
 				output.setText("");
@@ -240,7 +242,7 @@ public class MainGui extends JFrame {
 				}
 
 				running.set(false);
-				if (DEBUG) System.out.println("\tCOMPUTE EXIT");
+				debug.outln("\tCOMPUTE EXIT");
 			}
 		}
 	}
@@ -252,10 +254,10 @@ public class MainGui extends JFrame {
 		private final String classpath = pathToBin.getText().trim();
 
 		public void run() {
-			if (DEBUG) System.out.println("\tSEARCH RUN");
+			debug.outln("\tSEARCH RUN");
 
 			synchronized (running) {
-				if (DEBUG) System.out.println("\tSEARCH ENTER");
+				debug.outln("\tSEARCH ENTER");
 				final Config cfg = new Config("Search main " + entryMethod, entryMethod, classpath, FieldPropagation.FLAT);
 				output.setText("");
 				PrintToArea outtotext = new PrintToArea(output);
@@ -270,7 +272,7 @@ public class MainGui extends JFrame {
 				}
 
 				running.set(false);
-				if (DEBUG) System.out.println("\tSEARCH ENTER");
+				debug.outln("\tSEARCH ENTER");
 			}
 		}
 	}

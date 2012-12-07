@@ -18,6 +18,8 @@ import java.util.Stack;
 
 import com.ibm.wala.util.debug.UnimplementedError;
 
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.flowless.pointsto.PtsParameter.RootParameter;
 import edu.kit.joana.wala.flowless.spec.FlowLessSimplifier.BasicFlowStmt;
 import edu.kit.joana.wala.flowless.spec.FlowLessSimplifier.BasicIFCStmt;
@@ -45,8 +47,6 @@ import edu.kit.joana.wala.util.ParamNum;
  *
  */
 public final class MatchPTSWithFlowLess {
-
-	public static final boolean DEBUG = false;
 
 	private MatchPTSWithFlowLess() {
 	}
@@ -95,7 +95,8 @@ public final class MatchPTSWithFlowLess {
 	 *
 	 */
 	private static class ParameterMatcher implements FlowAstVisitor, MatchResult {
-
+		
+		private final Logger debug = Log.getLogger(Log.L_MOJO_DEBUG);
 		private final AliasGraph graph;
 		private final Map<Parameter, PtsParameter> mapping = new HashMap<Parameter, PtsParameter>();
 
@@ -205,7 +206,7 @@ public final class MatchPTSWithFlowLess {
 			}
 
 			if (match != null) {
-				if (DEBUG) System.out.println("Match: " + param + " <-> " + match);
+				debug.outln("Match: " + param + " <-> " + match);
 
 				Stack<Part> partStack = new Stack<Part>();
 				List<Part> invertedParts = new LinkedList<Part>(param.getParts());
@@ -217,8 +218,6 @@ public final class MatchPTSWithFlowLess {
 				partStack.pop();
 
 				findFieldMatches(param, partStack, match);
-//				/for (param.get)
-//				addMatch(param, match);
 			} else {
 				throw new ParameterMatchException(param, "No match for root parameter: " + param);
 			}

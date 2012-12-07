@@ -45,12 +45,8 @@ import edu.kit.joana.ui.ifc.wala.console.console.IFCConsole;
 import edu.kit.joana.ui.ifc.wala.console.console.IFCConsole.CMD;
 import edu.kit.joana.ui.ifc.wala.console.console.IFCConsoleListener;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCConsoleOutput;
-import edu.kit.joana.util.Log;
-import edu.kit.joana.util.Logger;
 
 public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, IFCConsoleOutput {
-
-	private static final Logger debug = Log.getLogger(Log.L_CONSOLE_DEBUG); 
 
 	public static final String NAME_OF_APPLICATION = "IFC Console";
 

@@ -85,6 +85,8 @@ import edu.kit.joana.ui.ifc.sdg.gui.marker.MarkerManager;
 import edu.kit.joana.ui.ifc.sdg.gui.sdgworks.SliceHighlighter;
 import edu.kit.joana.ui.ifc.sdg.gui.sdgworks.ViolationChangeListener;
 import edu.kit.joana.ui.ifc.sdg.gui.violations.IChopper;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 
 /**
  * This sample class demonstrates how to plug-in a new
@@ -105,8 +107,9 @@ import edu.kit.joana.ui.ifc.sdg.gui.violations.IChopper;
  */
 
 public class ViolationView extends ViewPart implements ActiveResourceChangeListener, ViolationChangeListener {
-	private static final boolean DEBUG = false;
 
+	private final Logger debug = Log.getLogger(Log.L_UI_DEBUG);
+	
 	private TreeViewer viewer;
 	private Action showSDG;
 	private Action selectionAction;
@@ -468,7 +471,7 @@ public class ViolationView extends ViewPart implements ActiveResourceChangeListe
 					}
 				}
 
-				if (DEBUG) System.out.println(s);
+				debug.outln(s);
 			}
 		};
 
@@ -639,7 +642,7 @@ public class ViolationView extends ViewPart implements ActiveResourceChangeListe
 	public void violationsChanged(IProject p, Collection<edu.kit.joana.ifc.sdg.core.violations.Violation> violations) {
 		contentCopy = violations;
 
-		if (DEBUG) System.out.println("Violations Changed ViolationView");
+		debug.outln("Violations Changed ViolationView");
 
 		if (violations.size() == 0) {
 			SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");

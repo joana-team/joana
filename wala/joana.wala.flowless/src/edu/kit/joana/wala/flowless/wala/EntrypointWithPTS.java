@@ -23,6 +23,8 @@ import com.ibm.wala.ssa.SSANewInstruction;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.TypeReference;
 
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.flowless.pointsto.PointsToSetBuilder.MergedPtsParameter;
 import edu.kit.joana.wala.flowless.pointsto.PointsToSetBuilder.PointsTo;
 import edu.kit.joana.wala.flowless.pointsto.PointsToSetBuilder.PtsElement;
@@ -40,8 +42,6 @@ import gnu.trove.map.hash.TObjectIntHashMap;
  *
  */
 public class EntrypointWithPTS extends DefaultEntrypoint {
-
-	public static final boolean DEBUG = false;
 
 	private final PointsTo pts;
 	private final boolean noSubclasses;
@@ -289,8 +289,10 @@ public class EntrypointWithPTS extends DefaultEntrypoint {
 
 	}
 
-	private static TObjectIntHashMap<PtsElement> createObjectInstancesMatchingPTS(final PointsTo pts, final AbstractRootMethod m, boolean noSubclasses) {
-		if (DEBUG) System.out.println("Initializing object instance mapping.");
+	private static TObjectIntHashMap<PtsElement> createObjectInstancesMatchingPTS(final PointsTo pts,
+			final AbstractRootMethod m, boolean noSubclasses) {
+		final Logger debug = Log.getLogger(Log.L_WALA_CORE_DEBUG);
+		debug.outln("Initializing object instance mapping.");
 
 		// maps point-to element to the number of the ssa variable that contains the reference to the representative object instance(s).
 		TObjectIntHashMap<PtsElement> pts2ssaVar = new TObjectIntHashMap<PtsElement>();
@@ -300,14 +302,14 @@ public class EntrypointWithPTS extends DefaultEntrypoint {
 		for (PtsElement elem : pts.getAllPointsToElements()) {
 			Set<PtsParameter> params = pts.getAllParamsPointingTo(elem);
 
-			if (DEBUG) System.out.print("\t" + elem + ": ");
+			debug.out("\t" + elem + ": ");
 
 			IClass commonSubtype = cha.lookupClass(TypeReference.JavaLangObject);
 
 			for (PtsParameter p : params) {
 				TypeReference pType = p.getType();
 
-				if (DEBUG) System.out.print(p + " | ");
+				debug.out(p + " | ");
 
 				if (pType.isPrimitiveType()) {
 					// no object creation for a primitive type needed -> skip it..
@@ -333,7 +335,7 @@ public class EntrypointWithPTS extends DefaultEntrypoint {
 			}
 
 			if (commonSubtype != null) {
-				if (DEBUG) System.out.println("-> " + commonSubtype.getName());
+				debug.outln("-> " + commonSubtype.getName());
 
 				// assert - recheck if commonSubtype is really a subtype of all referencing parameter types
 				for (PtsParameter p : params) {
@@ -400,7 +402,7 @@ public class EntrypointWithPTS extends DefaultEntrypoint {
 					}
 				}
 			} else {
-				if (DEBUG) System.out.println("-> primitive");
+				debug.outln("-> primitive");
 			}
 		}
 

@@ -45,6 +45,8 @@ import com.ibm.wala.util.strings.Atom;
 import com.ibm.wala.viz.DotUtil;
 import com.ibm.wala.viz.NodeDecorator;
 
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.AliasGraphException;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.NoMayAliasGraph;
@@ -130,9 +132,10 @@ import edu.kit.joana.wala.util.ParamNum;
 public class MoJo {
 
 	private static final boolean NO_SUBCLASSES = true;
-	private static final boolean DEBUG = false;
 	private static final String DEFAULT_OUT_DIR = "out/";
 
+	private static final Logger debug = Log.getLogger(Log.L_MOJO_DEBUG);
+	
 	private final IClassHierarchy cha;
 	private final String outDir;
 
@@ -273,7 +276,7 @@ public class MoJo {
 		final RootParameter[] params = pts.createInputParamTrees(im);
 
 		assert debug("done.");
-		if (DEBUG) {
+		if (debug.isEnabled()) {
 			for (RootParameter root : params) {
 				assert debug("\t\t" + root);
 			}
@@ -314,7 +317,7 @@ public class MoJo {
 		final RootParameter[] params = pts.createInputParamTrees(im);
 
 		assert debug("done.");
-		if (DEBUG) {
+		if (debug.isEnabled()) {
 			for (RootParameter root : params) {
 				assert debug("\t\t" + root);
 			}
@@ -495,14 +498,14 @@ public class MoJo {
 	public static PointsTo computePointsTo(final MayAliasGraph graph, final GraphWriter gWriter) {
 		final PointsTo pointsTo = PointsToSetBuilder.compute(graph, gWriter);
 
-		if (DEBUG) {
+		if (debug.isEnabled()) {
 			for (PtsParameter p : graph) {
 				Set<PtsElement> ptsOfP = pointsTo.getPointsTo(p);
-				System.out.print("PTS(" + p + ") = ");
+				debug.out("PTS(" + p + ") = ");
 				for (PtsElement elem : ptsOfP) {
-					System.out.print(elem + " ");
+					debug.out(elem + " ");
 				}
-				System.out.println();
+				debug.outln("");
 			}
 		}
 
@@ -644,7 +647,7 @@ public class MoJo {
 
 		assert debug("done.");
 
-		if (DEBUG) {
+		if (debug.isEnabled()) {
 			IR fakeIR = cg.getFakeRootNode().getIR();
 			Util.dumpSSA(fakeIR, System.out);
 		}
@@ -773,9 +776,7 @@ public class MoJo {
 
 
 	private static boolean debug(Object obj) {
-		if (DEBUG) {
-			System.out.println("[MoJo] " + obj);
-		}
+		debug.outln("[MoJo] " + obj);
 
 		return true;
 	}

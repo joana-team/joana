@@ -15,7 +15,8 @@ Require-Bundle: org.eclipse.jface.text,
  org.eclipse.core.runtime,
  org.eclipse.ui.editors,
  org.eclipse.jface.text,
- joana.ifc.sdg.graph;bundle-version="1.1.0"
+ joana.ifc.sdg.graph;bundle-version="1.1.0",
+ joana.util;bundle-version="1.0.0"
 Bundle-ActivationPolicy: lazy
 Export-Package: edu.kit.joana.ui.ifc.sdg.textual.highlight.graphviewer,
  edu.kit.joana.ui.ifc.sdg.textual.highlight.highlight;

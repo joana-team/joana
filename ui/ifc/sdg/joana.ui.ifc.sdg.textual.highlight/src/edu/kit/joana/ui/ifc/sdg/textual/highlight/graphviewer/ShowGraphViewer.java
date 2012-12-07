@@ -19,6 +19,8 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 import edu.kit.joana.ui.ifc.sdg.textual.highlight.highlight.HighlightPlugin;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 
 
 public class ShowGraphViewer {
@@ -31,22 +33,22 @@ public class ShowGraphViewer {
 		final String path = HighlightPlugin.getDefault().getPreferenceStore().getString("graphviewer.path");
 
 		new Thread() {
-			private boolean DEBUG = true;
+			private final Logger debug = Log.getLogger(Log.L_UI_DEBUG);
 
 			public void run() {
-				if (DEBUG) System.out.println("Connecting to Graphviewer...");
+				debug.outln("Connecting to Graphviewer...");
 				Socket s = connectToGraphviewer();
 
 				if (s != null) {
 					try {
-						if (DEBUG) System.out.println("Sending request...");
+						debug.outln("Sending request...");
 						ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
 						out.writeObject(graph);
-						if (DEBUG) System.out.println(graph);
+						debug.outln(graph);
 						out.writeInt(node);
 						out.close();
 						s.close();
-						if (DEBUG) System.out.println("Done!");
+						debug.outln("Done!");
 
 					} catch (IOException ex) {
 						System.err.println(ex.getMessage());
@@ -62,8 +64,8 @@ public class ShowGraphViewer {
 				Socket s = connect();
 
 				if (s == null) {
-					if (DEBUG) System.out.println("failed. Graphviewer seems to be down.");
-					if (DEBUG) System.out.println("Starting Graphviewer... " + path + " " + port);
+					debug.outln("failed. Graphviewer seems to be down.");
+					debug.outln("Starting Graphviewer... " + path + " " + port);
 
 					try {
 						startGraphviewer();
@@ -74,25 +76,25 @@ public class ShowGraphViewer {
 								sleep(1000);  // give graphviewer some time for booting
 							} catch (InterruptedException ie) { }
 
-							if (DEBUG) System.out.println("Connecting to Graphviewer...");
+							debug.outln("Connecting to Graphviewer...");
 							s = connect();
 
 							if (s == null) {
-								if (DEBUG) System.out.println("failed. Retrying...");
+								debug.outln("failed. Retrying...");
 								ctr--;
 							}
 						}
 
 					} catch (IOException io) {
-						if (DEBUG) System.out.println("failed.");
-						System.err.println("Could not start the Graphviewer:\n"+io.getMessage());
+						debug.outln("failed.");
+						Log.ERROR.outln("Could not start the Graphviewer:\n" + io.getMessage(), io);
 					}
 				}
 
 				if (s != null) {
-					if (DEBUG) System.out.println("Connection established.");
+					debug.outln("Connection established.");
 				} else {
-					if (DEBUG) System.out.println("failed.");
+					debug.outln("failed.");
 				}
 
 				return s;

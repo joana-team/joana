@@ -13,6 +13,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.flowless.spec.ast.AliasStmt;
 import edu.kit.joana.wala.flowless.spec.ast.BooleanAliasStmt;
 import edu.kit.joana.wala.flowless.spec.ast.ExplicitFlowStmt;
@@ -37,8 +39,6 @@ import edu.kit.joana.wala.flowless.spec.ast.SimpleParameter.Wildcard;
  *
  */
 public class FlowLessSimplifier {
-
-	public static final boolean DEBUG = false;
 
 	/**
 	 *
@@ -392,8 +392,9 @@ public class FlowLessSimplifier {
 	 */
 	public static List<BasicIFCStmt> simplify(final IFCStmt ifc) throws FlowAstException {
 		List<BasicIFCStmt> result = new LinkedList<BasicIFCStmt>();
+		final Logger debug = Log.getLogger(Log.L_MOJO_DEBUG);
 
-		if (DEBUG) System.out.println("BEFORE:    " + ifc.toString());
+		debug.outln("BEFORE:    " + ifc.toString());
 
 		/*
 		 * 1. Convert parameter opt list to boolean or expression
@@ -402,7 +403,7 @@ public class FlowLessSimplifier {
 		 */
 		final IFCStmt ifcNoOpt = removeParameterOptList(ifc);
 
-		if (DEBUG) System.out.println("AFTER (1): " + ifcNoOpt.toString());
+		debug.outln("AFTER (1): " + ifcNoOpt.toString());
 
 //		List<PrimitiveAliasStmt> primitives = extractPrimitives(ifcNoOpt);
 //		for (PrimitiveAliasStmt pri : primitives) {
@@ -444,13 +445,13 @@ public class FlowLessSimplifier {
 
 			result.add(basic);
 
-			if (DEBUG) System.out.println("\t-> " + basic.toString());
+			debug.outln("\t-> " + basic.toString());
 		}
 
 		if (variants.isEmpty()) {
 			final BasicIFCStmt basic = new BasicIFCStmt(flow,  ifcNoOpt.shouldBeInferred());
 			result.add(basic);
-			if (DEBUG) System.out.println("\t-> " + basic.toString());
+			debug.outln("\t-> " + basic.toString());
 		}
 
 		return result;

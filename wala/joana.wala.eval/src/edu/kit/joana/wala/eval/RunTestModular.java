@@ -208,40 +208,41 @@ public class RunTestModular {
 	}
 
 
-	private static final boolean DEBUG = true;
-
 	private static void computeAliasVariant(final MoJo mojo, final MayAliasGraph alias, final IMethod method,
 			final boolean ignoreExceptions, final String outDir)
 	throws IllegalArgumentException, CancelException, PDGFormatException, WalaException, FileNotFoundException {
-		System.out.print("Preparing points-to config and call graph...");
+		final Logger debug = Log.getLogger(Log.L_MOJO_DEBUG);
+		final Logger info = Log.getLogger(Log.L_MOJO_INFO);
+		
+		info.out("Preparing points-to config and call graph...");
 		final PointsTo pts = MoJo.computePointsTo(alias);
-		if (DEBUG) AliasGraphIO.dumpToDot(alias, outDir + ".alias.dot");
+		if (debug.isEnabled()) { AliasGraphIO.dumpToDot(alias, outDir + ".alias.dot"); }
 		AliasGraphIO.writeOut(alias, new FileOutputStream(outDir + ".alias"));
 
 		final AnalysisOptions optPts = mojo.createAnalysisOptionsWithPTS(pts, method);
 		final CallGraphResult cg = mojo.computeContextSensitiveCallGraph(optPts);
-		if (DEBUG) {
+		if (debug.isEnabled()) {
 			final PrintStream ssaOut = new PrintStream(outDir + ".ssa.txt");
 			Util.dumpSSA(cg.cg.getFakeRootNode().getIR(), ssaOut);
 			Util.dumpPhiSSA(cg.cg.getFakeRootNode().getIR(), ssaOut);
 			ssaOut.flush();
 			ssaOut.close();
+			
+			Util.dumpHeapGraphToFile(outDir + ".heap.dot", cg.pts.getHeapGraph(), cg.cg.getFakeRootNode().getMethod());
 		}
-		if (DEBUG) Util.dumpHeapGraphToFile(outDir + ".heap.dot", cg.pts.getHeapGraph(), cg.cg.getFakeRootNode().getMethod());
-		System.out.print("done, sdg... ");
+		info.out("done, sdg... ");
 		// run analysis on callgraph with minimal alias configuration
 		// ...
 		final edu.kit.joana.ifc.sdg.graph.SDG sdg = createSDG(cg, optPts, method, ignoreExceptions);
 		SDGSerializer.toPDGFormat(sdg, new BufferedOutputStream(new FileOutputStream(outDir + ".pdg")));
-		System.out.print("(" + sdg.edgeSet().size() + " edges)");
+		info.out("(" + sdg.edgeSet().size() + " edges)");
 
-		if (DEBUG) {
+		if (debug.isEnabled()) {
 			final int summary = outputSummaryEdges(sdg, method.getReference().getSignature(), outDir + ".sum.dot");
-			System.out.print(" (" + summary + " sum)");
+			debug.out(" (" + summary + " sum)");
 		}
 
-		System.out.println(" done.");
-
+		info.outln(" done.");
 	}
 
 	private static int outputSummaryEdges(final SDG sdg, final String bcMethodName, final String filename) throws FileNotFoundException {

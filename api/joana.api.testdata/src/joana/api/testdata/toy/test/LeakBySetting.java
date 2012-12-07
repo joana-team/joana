@@ -13,7 +13,7 @@
  * http://joana.ipd.kit.edu or contact the authors.
  */
 package joana.api.testdata.toy.test;
-
+//TODO: Add proper annotations for use in ToyTests.java? Or Extend Annotations.java with PrintStreams?
 public class LeakBySetting {
 
 	public static void main(String[] args) {

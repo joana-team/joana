@@ -14,6 +14,8 @@
  */
 package joana.api.testdata.toy.test;
 
+import static edu.kit.joana.api.annotations.Annotations.*;
+
 /**
  * This example demonstrates some imprecision of our analysis in connection
  * with constant propagation and invariant detection.
@@ -22,11 +24,11 @@ package joana.api.testdata.toy.test;
  */
 public class ControlDep {
 
-    private int sec1;
-    private int pub1;
+    int sec1;
+    int pub1;
 
-    private int sec2;
-    private int pub2;
+    int sec2;
+    int pub2;
 
 
 
@@ -37,25 +39,27 @@ public class ControlDep {
 	 * value only.
 	 */
 	if (x == 0) {
-	    pub1 = sec1;
+	    pub1 = SECRET;
 	}
     }
 
     void foo2(int x) {
 	/**
-	 * The condition is always false, so there should not be
+	 * The condition is semantically always false, so need not be
 	 * a data dependency from a to b
 	 * Nevertheless it is introduced, since the analysis is not able to
 	 * detect this.
 	 */
 	if (45 * x - 32 *x != 13 * x) {
-	    pub2 = sec2;
+	    pub2 = SECRET;
 	}
     }
 
     public static void main(String[] args) {
 	ControlDep cd = new ControlDep();
-	cd.foo(11); // illegal flow from sec1 to pub1
-	cd.foo2(42); // illegal flow from sec2 to pub2
+	cd.foo(11); // illegal flow from SECRET to PUBLIC
+	leak(toggle(cd.pub1));
+	cd.foo2(42); // illegal flow from SECRET to PUBLIC
+	leak(toggle(cd.pub2));
     }
 }

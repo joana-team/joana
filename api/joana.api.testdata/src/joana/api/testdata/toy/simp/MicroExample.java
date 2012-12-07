@@ -14,19 +14,21 @@
  */
 package joana.api.testdata.toy.simp;
 
+import static edu.kit.joana.api.annotations.Annotations.*;
+
 public class MicroExample {
 
 	public static int foo(int x, int y) {
 		int result;
-		if (x < 0) {
-			result = x - y;
+		if (toggle(x) < 0) {
+			result = y * y;
 		} else {
-			result = x + y;
+			result = y + y;
 		}
 		return result;
 	}
 
 	public static void main(String[] args) {
-		foo(2, 3);
+		leak(foo(SECRET,PUBLIC));
 	}
 }

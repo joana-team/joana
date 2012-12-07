@@ -14,6 +14,8 @@
  */
 package joana.api.testdata.toy.test;
 
+import static edu.kit.joana.api.annotations.Annotations.*;
+
 class IntPrinter {
 	int val;
 
@@ -22,7 +24,7 @@ class IntPrinter {
 	}
 
 	public void print() {
-		System.out.println(val);
+		leak(val);
 	}
 }
 
@@ -40,12 +42,10 @@ class IntPrinter {
  */
 public class ObjSens {
 
-	private int sec = 42;
-	private int pub = 17;
 
 	public void run() {
-		IntPrinter p1 = new IntPrinter(pub);
-		IntPrinter p2 = new IntPrinter(sec);
+		IntPrinter p1 = new IntPrinter(PUBLIC);
+		IntPrinter p2 = new IntPrinter(toggle(SECRET));
 		p1.print(); // this is okay
 		p2.print(); // this leaks the secret value to System.out
 	}

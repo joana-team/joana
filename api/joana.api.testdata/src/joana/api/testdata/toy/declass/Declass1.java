@@ -14,6 +14,8 @@
  */
 package joana.api.testdata.toy.declass;
 
+import static edu.kit.joana.api.annotations.Annotations.*;
+
 class SecretWrapper extends Secret {
 	private Secret wrapped;
 
@@ -31,12 +33,12 @@ public class Declass1 {
 	}
 
 	public static void bar(Object o) {
-		pub = o;
+		leak(o);
 	}
 
 	public static void main(String[] args) {
-		Secret s = new Secret();
-		Secret s2 = declass(s);
+		Secret s = (Secret) SECRET_OBJECT;
+		Secret s2 = declass(toggle(s));
 		bar(s2);
 	}
 }

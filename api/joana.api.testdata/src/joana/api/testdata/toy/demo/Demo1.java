@@ -14,6 +14,7 @@
  */
 package joana.api.testdata.toy.demo;
 
+import static edu.kit.joana.api.annotations.Annotations.*;
 
 class Secret {
 	int value1;
@@ -56,30 +57,36 @@ public class Demo1 {
 	}
 
 	public void leak1() {
-		pub.value = sec1.value1 + 28;
+		pub.value=0;
+		pub.value = toggle(sec1.value1) + 28;
+		//leak(pub.value);
 	}
 
 	public void leak2(int x) {
-		if (sec1.value2 * x * x - 28 * x + 74 == 17) {
+		pub.value=0;
+		if (toggle(sec1.value2) * x * x - 28 * x + 74 == 17) {
 			pub.value = 0;
 		} else {
 			pub.value = 1;
 		}
+		//leak(pub.value);
 	}
 
 	public void leak3() {
-		if (sec2 instanceof SecretA) {
+		pub.value=0;
+		if (toggle(sec2 instanceof SecretB)) {
 			pub.value = 0;
 		} else {
 			pub.value = 1;
 		}
+		leak(pub.value);
 	}
 
 
 	public static void main(String[] args) {
 		Secret sec1 = new Secret(17, 0);
 		Secret sec2 = new SecretB();
-		Demo1 d = new Demo1(sec1, sec2);
+		Demo1 d = new Demo1(SECRET>0?sec2:sec1, SECRET>0?sec1:sec2);
 		d.leak1();
 		d.leak2(17);
 		d.leak3();

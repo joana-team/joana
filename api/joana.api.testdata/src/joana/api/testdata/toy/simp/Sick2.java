@@ -14,23 +14,24 @@
  */
 package joana.api.testdata.toy.simp;
 
+import static edu.kit.joana.api.annotations.Annotations.*;
 
 class StaticConst {
-	public static int modulus = 42;
+	public static int modulus = toggle(SECRET);
 }
 
 public class Sick2 {
 
-	private int count;
+	private int count = SECRET;
 
 	public int foo(int a, int b) {
 		this.count += 1;
-		return (a + b) % StaticConst.modulus;
+		return (a + b + toggle(count)) % StaticConst.modulus;
 	}
 
 
 	public static void main(String[] args) {
 		Sick2 s = new Sick2();
-		System.out.println(s.foo(17, 23));
+		leak(s.foo(17, 23));
 	}
 }

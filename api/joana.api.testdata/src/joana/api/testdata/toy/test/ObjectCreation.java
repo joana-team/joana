@@ -13,7 +13,7 @@
  * http://joana.ipd.kit.edu or contact the authors.
  */
 package joana.api.testdata.toy.test;
-
+//TODO: Add proper annotations for use in ToyTests.java?
 class Wrapper {
 
 	String s;

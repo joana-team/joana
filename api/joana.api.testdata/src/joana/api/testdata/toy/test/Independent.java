@@ -14,6 +14,7 @@
  */
 package joana.api.testdata.toy.test;
 
+import static edu.kit.joana.api.annotations.Annotations.*;
 
 /**
  * This example demonstrates that our analysis can detect if the result of a method
@@ -23,8 +24,6 @@ package joana.api.testdata.toy.test;
  */
 public class Independent {
 
-    /** secret source */
-    private int sec;
 
     /** public sink */
     private int pub;
@@ -58,7 +57,12 @@ public class Independent {
 	 * This is okay since the secret source is not actually used for the calculation
 	 * of the value returned by foo1().
 	 */
-	i.pub = i.foo1(i.sec);
+	leak(i.foo1(SECRET));
+	
+	/**
+	 * On the other hand, foo2() does use its parameter
+	 */
+	leak(toggle(i.foo2(SECRET)));
 
 
 

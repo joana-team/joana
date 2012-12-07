@@ -14,12 +14,16 @@
  */
 package joana.api.testdata.toy.simp;
 
+import static edu.kit.joana.api.annotations.Annotations.*;
+
 public class Nested {
 	public class Layer1 {
 		public class Layer2 {
 			public class Layer3 {
+				public int x = 0;
 
-				public Layer3() {
+				public Layer3(int x) {
+					this.x = toggle(x);
 					throw new Error("Foo.");
 				}
 			}
@@ -28,6 +32,7 @@ public class Nested {
 
 	public static void main(String[] main) {
 		Nested n = new Nested();
-		new Nested().new Layer1().new Layer2().new Layer3();
+		Nested.Layer1.Layer2.Layer3 l = new Nested().new Layer1().new Layer2().new Layer3(SECRET);
+		leak(l.x);
 	}
 }

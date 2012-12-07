@@ -14,13 +14,15 @@
  */
 package joana.api.testdata.toy.simp;
 
+import static edu.kit.joana.api.annotations.Annotations.*;
+
 public class Sick {
 
 	private static double someDamnNumber = 42.23;
 	private short salt = 5;
 
 	public void bar(A a) {
-		a.b.c.x = (5 - (int) Math.round(someDamnNumber)) << salt;
+		a.b.c.x = (5 - toggle((int) Math.round(SECRET))) << salt;
 	}
 
 	public int bar2(A a, B b) {
@@ -29,7 +31,7 @@ public class Sick {
 		else
 			a = new A();
 
-		return a.b.c.x + (int) someDamnNumber;
+		return a.b.c.x + toggle(SECRET);
 	}
 
 	public static void main(String[] args) {
@@ -38,6 +40,6 @@ public class Sick {
 		B b = new B();
 		s.bar(a);
 		int i = s.bar2(a, b);
-		System.out.println(i);
+		leak(i);
 	}
 }

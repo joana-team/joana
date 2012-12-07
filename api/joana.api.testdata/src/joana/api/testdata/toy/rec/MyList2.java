@@ -14,8 +14,10 @@
  */
 package joana.api.testdata.toy.rec;
 
+import static edu.kit.joana.api.annotations.Annotations.*;
+
 public class MyList2 {
-	private Integer data;
+	private int data;
 	private MyList2 tail;
 
 	public MyList2(int data, MyList2 tail) {
@@ -52,7 +54,11 @@ public class MyList2 {
 	public static void main(String[] args) {
 		MyList2 l = new MyList2(0, null);
 		for (int i = 1; i < 10; i++)
-			l.add(i);
-		System.out.println(l.getSize());
+			l.add(SECRET);
+		// head value is (influenced by) value of SECRET
+		leak(toggle(l.data));
+
+		// but the lists size isn't
+		//leak(l.getSize());
 	}
 }

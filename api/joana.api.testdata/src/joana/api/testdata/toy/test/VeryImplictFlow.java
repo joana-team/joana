@@ -14,6 +14,8 @@
  */
 package joana.api.testdata.toy.test;
 
+import static edu.kit.joana.api.annotations.Annotations.*;
+
 class VerySecretString {
 	String value;
 
@@ -27,7 +29,7 @@ class VeryPublicObject {
 	boolean state;
 
 	public void analyze(VerySecretString s) {
-		if (s.value.length() % 2 == 0) {
+		if (toggle(s.value == null)) {
 			state = true;
 		} else {
 			state = false;
@@ -39,10 +41,12 @@ public class VeryImplictFlow {
 
 
 	public static void main(String[] args) {
-		VerySecretString v1 = new VerySecretString("Hallo");
-		VerySecretString v2 = new VerySecretString("Hallo!");
+		VerySecretString s1 = new VerySecretString(SECRET_STRING);
+		VerySecretString s2 = new VerySecretString(SECRET_STRING);
 		VeryPublicObject pub = new VeryPublicObject();
-		pub.analyze(v1);
-		pub.analyze(v2);
+		pub.analyze(s1);
+		leak(pub.state);
+		pub.analyze(s2);
+		leak(pub.state);
 	}
 }

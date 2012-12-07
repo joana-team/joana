@@ -14,6 +14,7 @@
  */
 package joana.api.testdata.toy.pw;
 
+import static edu.kit.joana.api.annotations.Annotations.*;
 
 class MySystem {
 	public static PublicOutput out1 = new PublicOutput();
@@ -21,7 +22,7 @@ class MySystem {
 }
 
 class PublicOutput {
-	private byte[] buffer = new byte[1024];
+	byte[] buffer = new byte[1024];
 	private int p = 0;
 
 	public void print(boolean b) {
@@ -35,11 +36,11 @@ class PublicOutput {
 
 public class PasswordFile {
 	private String[] names = { "A", "B" };
-	private String[] passwords = { "x", "y" };
+	private String[] passwords = { SECRET_STRING, SECRET_STRING };
 
 
 	public String getPassword(int i) {
-		return passwords[i];
+		return toggle(passwords[i]);
 	}
 
 	public boolean check(String user, String password) {
@@ -61,7 +62,9 @@ public class PasswordFile {
 	}
 
 	public static void main(String[] args) {
-		//MySystem.out1.print(new PasswordFile().check(args[0], args[1]));
-		System.out.print(new PasswordFile().check(args[0], args[1]));
+		MySystem.out1.print(new PasswordFile().check(args[0], args[1]));
+		leak(MySystem.out1.buffer[0]);
+		
+		leak(new PasswordFile().check(args[0], args[1]));
 	}
 }

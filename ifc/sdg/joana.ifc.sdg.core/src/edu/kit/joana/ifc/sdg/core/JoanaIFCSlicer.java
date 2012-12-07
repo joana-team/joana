@@ -29,14 +29,17 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 
 /**
  * @author naxan
  *
  */
 public class JoanaIFCSlicer implements ProgressAnnouncer {
-	private static final boolean DEBUG = false;
 
+	private final Logger debug = Log.getLogger(Log.L_SDG_CORE_DEBUG);
+	
 	/**
 	 * @uml.property  name="l"
 	 * @uml.associationEnd  multiplicity="(1 1)"
@@ -139,7 +142,10 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 		int visitedold = 0;
 		while (!worklist.isEmpty()) {
 			if (++peCount > nowFactor) {
-				if (DEBUG) System.out.println("visited.size: " + visited.size() + " worklist.size: " + worklist.size() + " corealgCount: " + coreAlgCount + " MultiCalc: " + mehrfach);
+				if (debug.isEnabled()) {
+					debug.outln("visited.size: " + visited.size() + " worklist.size: " + worklist.size()
+							+ " corealgCount: " + coreAlgCount + " MultiCalc: " + mehrfach);
+				}
 				nowFactor += showFactor;
 
 				announceProgress(visited.size()-visitedold);
@@ -245,12 +251,17 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 			}
 		}
 
-		if (DEBUG) System.out.println("Potential Violations Found: " + vioCount + " | Visited Pathedges: " + visited.size() + " | Pathedges In Worklist: " + worklist.size() + " | Calculated Pathedges: " + coreAlgCount);
+		if (debug.isEnabled()) {
+			debug.outln("Potential Violations Found: " + vioCount + " | Visited Pathedges: " + visited.size()
+					+ " | Pathedges In Worklist: " + worklist.size() + " | Calculated Pathedges: " + coreAlgCount);
+		}
+		
 		if (rememberSliceNodes) {
 			for (Pathedge pe : visited.values()) {
 				sliceNodes.add(pe.source);
 			}
 		}
+		
 		return violations;
 	}
 
@@ -403,14 +414,19 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 				SDGEdge secVioEdge = new SDGEdge(vioSummaryNode, actualOut, SDGEdge.Kind.SUMMARY);
 				g.addEdge(secVioEdge);
 				changed = true;
-				if (DEBUG) System.out.println("new secVio Summary Node Nr " + (sumNodeID+1) + " ( Violation at ??? ) connected to " +  actualOut);
+				if (debug.isEnabled()) {
+					debug.outln("new secVio Summary Node Nr " + (sumNodeID + 1)
+							+ " ( Violation at ??? ) connected to " +  actualOut);
+				}
 			/* else update the old */
 			} else {
 				Set<SecurityNode> secViosCon = fsecVios.get(vioSummaryNode);
 				secViosCon.removeAll(secVios);
 				secViosCon.addAll(secVios);
-				if (DEBUG) System.out.println("updated secVio Summary Node " + vioSummaryNode.getId() + " ( Violation at ???) connected to " +  actualOut);
-				//changed = changed || newsize != oldsize;
+				if (debug.isEnabled()) {
+					debug.outln("updated secVio Summary Node " + vioSummaryNode.getId()
+							+ " ( Violation at ???) connected to " +  actualOut);
+				}
 			}
 		}
 		return changed;

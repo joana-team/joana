@@ -12,17 +12,19 @@ import java.util.LinkedList;
 import java.util.Set;
 
 import edu.kit.joana.ifc.sdg.graph.PDGs;
+import edu.kit.joana.ifc.sdg.graph.PDGs.PDGIterator;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.graph.PDGs.PDGIterator;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.FoldedCFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.FoldedCFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.GraphFolder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 
 
 /**
@@ -42,8 +44,6 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
  * @author  Dennis Giffhorn
  */
 public final class ThreadsInfoCollector {
-
-	private static boolean DEBUG = false;
 
     private ThreadsInfoCollector() { }
 
@@ -102,10 +102,10 @@ public final class ThreadsInfoCollector {
 
         result.add(main);
 
-
-        if (DEBUG) System.out.println("entry: "+main.entry);
-        if (DEBUG) System.out.println("    fork: "+main.fork);
-        if (DEBUG) System.out.println("    context: "+main.threadContext);
+        final Logger debug = Log.getLogger(Log.L_MHP_DEBUG);
+        debug.outln("entry: " + main.entry);
+        debug.outln("    fork: " + main.fork);
+        debug.outln("    context: " + main.threadContext);
 
         // a thread is identified by its calling context
         Set<DynamicContext> threads = ta.getThreads();
@@ -113,9 +113,9 @@ public final class ThreadsInfoCollector {
 
         // determine the thread instances
         for (DynamicContext thread : threads) {
-            if (DEBUG) System.out.println("entry: "+thread.getNode());
-            if (DEBUG) System.out.println("    fork: "+thread.getCallStack().peek());
-            if (DEBUG) System.out.println("    context: "+thread.getCallStack());
+        	debug.outln("entry: "+thread.getNode());
+        	debug.outln("    fork: "+thread.getCallStack().peek());
+        	debug.outln("    context: "+thread.getCallStack());
 
             ThreadInstance ti =
             	new ThreadInstance(id, thread.getNode(), thread.getCallStack().peek(), thread.getCallStack());
@@ -139,9 +139,9 @@ public final class ThreadsInfoCollector {
         	ti.exit = findExitNode(ti.entry, cfg);
         }
 
-        if (DEBUG) {
+        if (debug.isEnabled()) {
         	for (ThreadInstance ti : result) {
-        		System.out.println(ti+"\n");
+        		debug.outln(ti + "\n");
         	}
         }
         return new ThreadsInformation(result);
@@ -159,7 +159,7 @@ public final class ThreadsInfoCollector {
     		CFG cfg = ICFGBuilder.extractICFG(sdg);
             FoldedCFG folded = GraphFolder.foldIntraproceduralSCC(cfg);
             ThreadAllocation alloc = new ThreadAllocation(sdg, cfg, folded);
-    		System.out.println("*******************\n"+sdg.getName());
+    		System.out.println("*******************\n" + sdg.getName());
     		ThreadsInformation ti = createThreadsInformation(alloc, cfg);
     		System.out.println(ti);
     		System.out.println();

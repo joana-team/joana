@@ -28,7 +28,6 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicCon
  * @author  Dennis Giffhorn
  */
 public class PathCollector {
-	public static final boolean DEBUG = true;
 
 	private SDG sdg;
 	private DynamicContextManager man;
@@ -75,7 +74,6 @@ public class PathCollector {
         while(!worklist.isEmpty()){
             // next element, put it in the slice
             Path path = worklist.poll();
-            if (DEBUG) System.out.println(path+" "+path.getStep()+" <= "+steps);
 
             if (path.getStep() > (steps)) {
             	criteria.add(path);

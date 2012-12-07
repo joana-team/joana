@@ -30,7 +30,7 @@ import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
  *
  */
 public class IFCSlicer {
-	private static final boolean DEBUG = true;
+
 	IStaticLattice<String> lattice;
 	SDG graph;
 
@@ -39,6 +39,14 @@ public class IFCSlicer {
 		graph = g;
 	}
 
+	private boolean sliceSizeOk(SecurityNode startNode, Map<SecurityNode, String> sLevel) {
+		Collection<SDGNode> slice = new SummarySlicerBackward(graph).slice(
+				Collections.singleton((SDGNode) startNode));
+		Set<SecurityNode> keySet = sLevel.keySet();
+		
+		return slice.size() == keySet.size() && slice.containsAll(keySet);
+	}
+	
 	public List<Violation> checkIFC(SecurityNode startNode) {
 		List<Violation> violations = new ArrayList<Violation>();
 		LinkedList<SecurityNode> workList = new LinkedList<SecurityNode>();
@@ -47,13 +55,8 @@ public class IFCSlicer {
 		sLevel.put(startNode, startNode.getRequired());
 		checkIFC1(workList, sLevel);
 
-		if (DEBUG) {
-			Collection<SDGNode> slice = new SummarySlicerBackward(graph).slice(
-					Collections.singleton((SDGNode) startNode));
-			Set<SecurityNode> keySet = sLevel.keySet();
-			assert slice.size() == keySet.size() && slice.containsAll(keySet);
-		}
-
+		assert sliceSizeOk(startNode, sLevel);
+		
 		// check that P(x) <= S(x) for all nodes in slice
 		for (SecurityNode toCheck : sLevel.keySet()) {
 			String securityLabel = sLevel.get(toCheck);

@@ -15,10 +15,14 @@ import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.Violation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 
 
 public class ViolationChop {
-	private static final boolean DEBUG = false;
+	
+	private final Logger debug = Log.getLogger(Log.L_SDG_INTERFERENCE_DEBUG);
+	
     private static ViolationChop instance = new ViolationChop();
 
     public static ViolationChop getInstance() {
@@ -31,7 +35,7 @@ public class ViolationChop {
 	public List<Violation> addChop(Collection<Violation> violations, SDG g)
 	throws NotInLatticeException {
 		long viostart = System.currentTimeMillis();
-		if (DEBUG) System.out.println("Started viopathgen at " + viostart + " for " + violations.size() + " violations");
+		debug.outln("Started viopathgen at " + viostart + " for " + violations.size() + " violations");
 
 		LinkedList<Violation> ret = new LinkedList<Violation>();
 
@@ -46,7 +50,8 @@ public class ViolationChop {
 		}
 
 		long vioend = System.currentTimeMillis();
-		if (DEBUG) System.out.println("Ended viopathgen at " + vioend + " duration: " + (vioend - viostart));
+		debug.outln("Ended viopathgen at " + vioend + " duration: " + (vioend - viostart));
+		
 		return ret;
 	}
 

@@ -26,6 +26,8 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicCon
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.FoldedCFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.GraphFolder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 
 /**
  * Implements a thread allocation analysis. It is based on the thread allocation
@@ -40,8 +42,6 @@ public class ThreadAllocation {
 	public static enum LoopDetPrec {
 		SIMPLE, PRECISE;
 	}
-
-	public static boolean DEBUG = false;
 
 	public static LoopDetPrec loopDetPrec = LoopDetPrec.PRECISE;
 
@@ -92,11 +92,11 @@ public class ThreadAllocation {
 	 * Executes the thread allocation analysis.
 	 */
 	public void compute() {
+		final Logger debug = Log.getLogger(Log.L_MHP_DEBUG);
 		// determine all existing thread run methods
 		// the List will contain their entry nodes
 		List<SDGNode> runEntries = allRunMethods();
-		if (DEBUG)
-			System.out.println("run-method entries                : " + runEntries);
+		debug.outln("run-method entries                : " + runEntries);
 
 		// determine thread contexts
 		run_thread = threadContexts(runEntries);
@@ -105,20 +105,16 @@ public class ThreadAllocation {
 			threads.addAll(l);
 		}
 
-		if (DEBUG)
-			System.out.println("run-entries -> thread contexts : " + run_thread);
-		if (DEBUG)
-			System.out.println("threads : " + threads);
+		debug.outln("run-entries -> thread contexts : " + run_thread);
+		debug.outln("threads : " + threads);
 
 		// compute the number of threads
 		thread_amount = computeNumberOfThreads();
-		if (DEBUG)
-			System.out.println("thread -> instances   : " + thread_amount);
+		debug.outln("thread -> instances   : " + thread_amount);
 
 		// compute the thread invocation structure
 		HashMap<DynamicContext, List<DynamicContext>> str = invocationStructure();
-		if (DEBUG)
-			System.out.println("thread invocation structure:\n " + str);
+		debug.outln("thread invocation structure:\n " + str);
 	}
 
 	private HashMap<DynamicContext, List<DynamicContext>> invocationStructure() {

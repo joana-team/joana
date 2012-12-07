@@ -16,13 +16,15 @@ import java.util.Set;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.CFGForward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 
 
 /**
@@ -30,8 +32,9 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
  *
  */
 public class PreciseMHPAnalysis implements MHPAnalysis {
-    private final static boolean DEBUG = false;
 
+	private static final Logger debug = Log.getLogger(Log.L_MHP_DEBUG);
+	
     private ThreadsInformation info;
     private BitMatrix map;
     private ThreadRegions regions;
@@ -215,8 +218,8 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
      */
 
 	private static PreciseMHPAnalysis analyze(CFG icfg, ThreadsInformation info) {
-    	//addReturnEdges(icfg);
-        if (DEBUG) System.out.println("Compute Thread Regions ...");
+		final Logger log = Log.getLogger(Log.L_MHP_INFO);
+        log.outln("Compute Thread Regions ...");
     	List<SDGEdge> syntheticEdges = removeSyntheticEdges(icfg);
         ThreadRegions tr = ThreadRegions.createPreciseThreadRegions(icfg, info);
 //        if (DEBUG) System.out.println(tr);
@@ -224,7 +227,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
     	icfg.addAllEdges(syntheticEdges);
     	PreciseMHPAnalysis result = mhp.getMHPMap();
 
-        if (DEBUG) System.out.println("Compute MayExist Map ...");
+    	log.outln("Compute MayExist Map ...");
         HashMap<Integer, Collection<VirtualNode>> mayExist = computeMayExist(result);
         result.setMayExistMap(mayExist);
     	return result;
@@ -297,15 +300,15 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         }
 
         private PreciseMHPAnalysis getMHPMap() {
-        	if (DEBUG) System.out.println("collect forks");//("Forks:\n"+forks);
+        	debug.outln("collect forks");//("Forks:\n"+forks);
         	forks = collectForks();
-        	if (DEBUG) System.out.println("collect indirect forks");//("Indirect Forks:\n"+indirectForks);
+        	debug.outln("collect indirect forks");//("Indirect Forks:\n"+indirectForks);
         	indirectForks = collectIndirectForks();
-        	if (DEBUG) System.out.println("compute join dominance");//("Indirect Forks:\n"+indirectForks);
+        	debug.outln("compute join dominance");//("Indirect Forks:\n"+indirectForks);
         	joinDominance = computeJoinDominance();
-        	if (DEBUG) System.out.println("compute parallelism");//("Indirect Forks:\n"+indirectForks);
+        	debug.outln("compute parallelism");//("Indirect Forks:\n"+indirectForks);
         	map = computeParallelism();
-        	//if (DEBUG) System.out.println(map);
+
             return new PreciseMHPAnalysis(info, map, tr);
         }
 
@@ -347,9 +350,9 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         	BitMatrix result = new BitMatrix(tr.size());
 
     		// process parallelism induced by forks
-        	if (DEBUG) System.out.println("parallelism through forks");
+        	debug.outln("parallelism through forks");
         	for (DynamicContext fork : forks) {
-        		if (DEBUG) System.out.print(".");
+        		debug.out(".");
         		if (fork == null) continue;
 
         		LinkedList<SDGNode> succ = new LinkedList<SDGNode>();
@@ -379,18 +382,13 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
             		for (ThreadRegion q : inSlice) {
             			result.set(p.getID(), q.getID());
             			result.set(q.getID(), p.getID());
-//                    	if (DEBUG) System.out.println(p.getID()+" || "+q.getID());
             		}
             	}
-//        		if (DEBUG) System.out.println();
         	}
-//        	if (DEBUG) System.out.println(result);
-        	if (DEBUG) System.out.println();
-
         	// process parallelism induced by thread spawning inside loops
-        	if (DEBUG) System.out.println("parallelism through loops");
+        	debug.outln("\nparallelism through loops");
         	for (int thread = 0; thread < info.getNumberOfThreads(); thread++) {
-        		if (DEBUG) System.out.print(thread+", ");
+        		debug.out(thread + ", ");
         		if (info.isDynamic(thread)) {
         			Collection<ThreadRegion> regs = tr.getThreadRegionSet(thread);
         			for (ThreadRegion p : regs) {
@@ -401,12 +399,8 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         			}
         		}
         	}
-        	if (DEBUG) System.out.println();
-
-//        	if (DEBUG) System.out.println(result);
-
         	// refine parallelism by inspecting joins
-        	if (DEBUG) System.out.println("inspecting joins");
+        	debug.outln("\ninspecting joins");
         	int ctr = 0;
         	for (int thread = 1; thread < info.getNumberOfThreads(); thread++) {
         		SDGNode join = info.getThreadJoin(thread);
@@ -427,9 +421,9 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         			}
         		}
         	}
-        	if (DEBUG) System.out.println("parallelism removed by join-analysis: "+ctr);
+        	debug.outln("parallelism removed by join-analysis: " + ctr);
+        	debug.outln("done");
 
-        	if (DEBUG) System.out.println("done");
         	return result;
         }
 
@@ -503,18 +497,12 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 
         				if (inc.getKind() == SDGEdge.Kind.RETURN
         						&& (removed.contains(from) || remove.contains(from))) {
-//        					System.out.println(n+" "+inc);
-//                			System.out.println(!visited.contains(from));
-//                			System.out.println(remove.contains(from));
         					// not dominated by join
         					remove.add(n);
         					break;
 
         				} else if (inc.getKind() == SDGEdge.Kind.CONTROL_FLOW
         						&& (!visited.contains(from) || remove.contains(from))) {
-//        					System.out.println(n+" "+inc);
-//                			System.out.println(!visited.contains(from));
-//                			System.out.println(remove.contains(from));
         					// not dominated by join
         					remove.add(n);
         					break;
@@ -613,15 +601,4 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         }
     }
 
-
-    /* DEBUG */
-    public static void main(String[] args) throws Exception {
-    	String str = "/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/eclipse/runtime-EclipseApplication/Tests/jSDG/tests.Mantel00Page10.pdg";
-    	SDG g = SDG.readFrom(str);
-    	PreciseMHPAnalysis mhp = PreciseMHPAnalysis.analyze(g);
-//    	System.out.println(mhp.getThreadRegions().size());
-//    	for (ThreadRegion r : mhp.getThreadRegions()) {
-//    		System.out.println(r);
-//    	}
-    }
 }

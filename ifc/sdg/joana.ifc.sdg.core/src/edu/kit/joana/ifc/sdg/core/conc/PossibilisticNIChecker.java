@@ -17,6 +17,8 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
 import edu.kit.joana.ifc.sdg.lattice.WrongLatticeDefinitionException;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 
 
 /**
@@ -26,8 +28,9 @@ import edu.kit.joana.ifc.sdg.lattice.WrongLatticeDefinitionException;
  * @author giffhorn
  */
 public class PossibilisticNIChecker extends IFC {
-	private static final boolean DEBUG = false;
 
+	private final Logger debug = Log.getLogger(Log.L_SDG_INTERFERENCE_DEBUG);
+	
     /** Erzeugt eine neue Instanz.
      *
      * @param sdg       Ein SDG
@@ -59,24 +62,28 @@ public class PossibilisticNIChecker extends IFC {
      */
     public Collection<Violation> checkIFlow() throws NotInLatticeException {
         long slicestart = System.currentTimeMillis();
-        if (DEBUG) System.out.println("Checking possibilistic noninterference");
+        debug.outln("Checking possibilistic noninterference");
         Collection<Violation> ret = null;    //list to be returned
         BarrierIFCSlicer is = new BarrierIFCSlicer(g, l);
 
         is.addProgressListener(this);
 
-        if (DEBUG) System.out.println("Started slicing at " + slicestart);
+        debug.outln("Started slicing at " + slicestart);
 
         try{
             ret = is.checkIFlow();
-        } catch(Exception e) {e.printStackTrace();}
+        } catch(Exception e) {
+        	Log.ERROR.outln("Exception in possibilistic NI checker", e);
+        }
 
-        long sliceend = System.currentTimeMillis();
-        if (DEBUG) System.out.println("time: " + (sliceend-slicestart));
-        if (DEBUG) System.out.println("Finished slicing at " + sliceend + " | slice duration: " + (sliceend-slicestart));
-
-        if (DEBUG) System.out.println("ret.size: " + ret.size() + " ret: " + ret);
+        if (debug.isEnabled()) {
+	        long sliceend = System.currentTimeMillis();
+	        debug.outln("time: " + (sliceend-slicestart));
+	        debug.outln("Finished slicing at " + sliceend + " | slice duration: " + (sliceend-slicestart));
+	        debug.outln("ret.size: " + ret.size() + " ret: " + ret);
+        }
         this.progressChanged("Done", 100, 100);
+        
         return ret;
     }
 }

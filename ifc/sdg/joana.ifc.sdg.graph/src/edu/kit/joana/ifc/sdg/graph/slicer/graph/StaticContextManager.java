@@ -7,6 +7,10 @@
  */
 package edu.kit.joana.ifc.sdg.graph.slicer.graph;
 
+import java.io.IOException;
+import java.util.Collection;
+import java.util.LinkedList;
+
 import edu.kit.joana.ifc.sdg.graph.PDGs;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -15,17 +19,14 @@ import edu.kit.joana.ifc.sdg.graph.SDGNodeTuple;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.CallGraphBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.GraphFolder;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.set.hash.THashSet;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.LinkedList;
-
 
 public class StaticContextManager implements ContextManager {
-	private static final boolean DEBUG = false;
 
 	/* the context class */
 	public static class StaticContext extends Context {
@@ -204,14 +205,16 @@ public class StaticContextManager implements ContextManager {
 		}
 
 		private void execute() {
-	        if (DEBUG) System.out.println("create all contexts...");
+			final Logger debug = Log.getLogger(Log.L_SDG_CALLGRAPH_DEBUG);
+			
+	        debug.outln("create all contexts...");
 			create();
-			if (DEBUG) System.out.println("created "+allContexts.size()+" contexts.");
-			if (DEBUG) System.out.println("convert them to unique call strings...");
+			debug.outln("created "+allContexts.size()+" contexts.");
+			debug.outln("convert them to unique call strings...");
 			convert();
-			if (DEBUG) System.out.println("connect call strings to a call graph...");
+			debug.outln("connect call strings to a call graph...");
 			connect();
-			if (DEBUG) System.out.println("done");
+			debug.outln("done");
 		}
 
 		private void create() {

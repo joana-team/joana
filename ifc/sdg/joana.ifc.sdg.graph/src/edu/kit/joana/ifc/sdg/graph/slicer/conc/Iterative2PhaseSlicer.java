@@ -48,7 +48,6 @@ public abstract class Iterative2PhaseSlicer implements Slicer {
     }
 
     public static long elems = 0L;
-    protected static boolean DEBUG = false;
 
     protected SDG g;
 

@@ -26,6 +26,8 @@ import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.ifc.sdg.util.JavaType.Format;
 import edu.kit.joana.ifc.sdg.util.maps.MapUtils;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 
 
 /**
@@ -38,8 +40,6 @@ import edu.kit.joana.ifc.sdg.util.maps.MapUtils;
 public class ThreadStartDuplicator {
 	public static final int CHRISTIAN = 1;
 	public static final int JUERGEN = 2;
-
-	public static boolean DEBUG = false;
 
 	private SDG sdg;
 
@@ -58,14 +58,6 @@ public class ThreadStartDuplicator {
 	public ThreadStartDuplicator(SDG g, int type) {
 		sdg = g;
 
-		//		if (type == CHRISTIAN) {
-		//			christian();
-		//		} else if (type == JUERGEN) {
-		//			juergen();
-		//		} else {
-		//			throw new RuntimeException("not supported");
-		//		}
-
 		// build the threaded ICFG
 		icfg = ICFGBuilder.extractICFG(sdg);
 		init();
@@ -77,42 +69,42 @@ public class ThreadStartDuplicator {
 
 	private void init() {
 		// determine all existing thread run methods
-				// the List will contain their entry nodes
-				// runEntries = getAllRunEntryNodes();
+		// the List will contain their entry nodes
+		// runEntries = getAllRunEntryNodes();
 
-				// determine all subclasses of java.lang.Thread and their respective run methods
-				threadClass_runEntry = mapThreadClassToRunEntry();
+		// determine all subclasses of java.lang.Thread and their respective run
+		// methods
+		threadClass_runEntry = mapThreadClassToRunEntry();
 
-				if (DEBUG) System.out.println("run-method entries                : "+threadClass_runEntry.values());
+		final Logger debug = Log.getLogger(Log.L_MHP_DEBUG);
+		debug.outln("run-method entries                : " + threadClass_runEntry.values());
 
+		Map<JavaType, Set<SDGNode>> threadClasses_alloc = mapThreadClassToAllocationSites(threadClass_runEntry.keySet());
+		Map<SDGNode, Set<JavaType>> runEntry_threadClasses = MapUtils.invertSimple(threadClass_runEntry);
 
-				Map<JavaType, Set<SDGNode>> threadClasses_alloc = mapThreadClassToAllocationSites(threadClass_runEntry.keySet());
-				Map<SDGNode, Set<JavaType>> runEntry_threadClasses = MapUtils.invertSimple(threadClass_runEntry);
+		// determine thread allocation sites
+		Map<SDGNode, Set<SDGNode>> run_alloc = MapUtils.concat(runEntry_threadClasses, threadClasses_alloc);
+		// = mapRunEntriesToThreadAllocations(threadClass_runEntry);
 
-				// determine thread allocation sites
-				Map<SDGNode, Set<SDGNode>> run_alloc = MapUtils.concat(runEntry_threadClasses, threadClasses_alloc);
-				//= mapRunEntriesToThreadAllocations(threadClass_runEntry);
+		// reverse mapping
+		// alloc_run = mapThreadAllocationsToRunEntries(run_alloc);
+		alloc_run = MapUtils.invert(run_alloc);
 
-				// reverse mapping
-				//alloc_run = mapThreadAllocationsToRunEntries(run_alloc);
-				alloc_run = MapUtils.invert(run_alloc);
+		debug.outln("run-entries -> thread allocations : " + run_alloc);
+		debug.outln("thread allocations -> run-entries : " + alloc_run);
 
-				if (DEBUG) System.out.println("run-entries -> thread allocations : "+run_alloc);
-				if (DEBUG) System.out.println("thread allocations -> run-entries : "+alloc_run);
+		// compute Thread::start invocations for each thread allocation site
+		callStart_alloc = mapThreadStartToAllocationSites();
 
-				// compute Thread::start invocations for each thread allocation site
-				callStart_alloc = mapThreadStartToAllocationSites();
+		// map calls of Thread::start to thread entries
+		callStart_run = MapUtils.concat(callStart_alloc, alloc_run);
+		run_callStart = MapUtils.invert(callStart_run);
 
-				// map calls of Thread::start to thread entries
-				callStart_run = MapUtils.concat(callStart_alloc, alloc_run);
-				run_callStart = MapUtils.invert(callStart_run);
+		debug.outln("Thread::start calls -> thread allocations: " + callStart_alloc);
+		debug.outln("Thread::start calls -> run-entries: " + callStart_run);
+		debug.outln("run-entries -> Thread::start calls: " + run_callStart);
 
-
-				if (DEBUG) System.out.println("Thread::start calls -> thread allocations: "+callStart_alloc);
-				if (DEBUG) System.out.println("Thread::start calls -> run-entries: "+callStart_run);
-				if (DEBUG) System.out.println("run-entries -> Thread::start calls: "+run_callStart);
-
-				// clone java.lang.Thread::start()
+		// clone java.lang.Thread::start()
 	}
 
 	/**
@@ -486,10 +478,7 @@ public class ThreadStartDuplicator {
 		for (SDGEdge edge : sdg.edgeSet()) {
 			if (edge.getKind() == SDGEdge.Kind.RETURN) {
 				if (calleeExit_possibleRetTargets.containsKey(edge.getSource())) {
-					Set<SDGNode> possibleRetTargets = calleeExit_possibleRetTargets.get(edge.getSource());
-					//if (!possibleRetTargets.contains(edge.getTarget())) {
-						toRemove.add(edge);
-					//}
+					toRemove.add(edge);
 				}
 			}
 		}

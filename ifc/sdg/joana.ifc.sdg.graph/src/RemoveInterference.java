@@ -7,16 +7,6 @@
  */
 
 
-import edu.kit.joana.ifc.sdg.graph.SDG;
-import edu.kit.joana.ifc.sdg.graph.SDGEdge;
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
-import gnu.trove.iterator.TIntIterator;
-import gnu.trove.set.hash.TIntHashSet;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -25,15 +15,28 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
+import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
+import gnu.trove.iterator.TIntIterator;
+import gnu.trove.set.hash.TIntHashSet;
+
 
 /**
  * @author giffhorn
  *
  */
 public class RemoveInterference {
-	private static final boolean DEBUG = true;
 
-    private SDG g;
+    private final SDG g;
+    private final Logger log = Log.getLogger(Log.L_SDG_INFO);
+    private final Logger debug = Log.getLogger(Log.L_SDG_INTERFERENCE_DEBUG);
 
     private RemoveInterference(SDG g) {
         this.g = g;
@@ -41,20 +44,20 @@ public class RemoveInterference {
 
     private SDG removeInterference() {
         // insert and propagate thread IDs
-        System.out.println("propagating thread IDs...");
-        if (DEBUG) System.out.print("  propagating thread IDs...");
+        log.outln("propagating thread IDs...");
+        debug.out("  propagating thread IDs...");
         propagateThreadIDs(g);
-        System.out.println("done\n");
-        if (DEBUG) System.out.println("		done");
+        debug.outln("		done");
+        log.outln("done\n");
 
         // remove redundant interference edgies
-        System.out.println("start MHP analysis...");
-        if (DEBUG) System.out.print("  running MHP analysis...");
+        log.outln("start MHP analysis...");
+        debug.out("  running MHP analysis...");
         MHPAnalysis mhp = PreciseMHPAnalysis.analyze(g);
-        if (DEBUG) System.out.println("		done");
-        if (DEBUG) System.out.println("  removing spurious concurrency edges...");
+        debug.outln("		done");
+        debug.outln("  removing spurious concurrency edges...");
         cleanCSDG(g, mhp);
-        System.out.println("done\n");
+        log.outln("done\n");
 
         return g;
     }
@@ -156,7 +159,8 @@ public class RemoveInterference {
         for (SDGNode n : graph.vertexSet()) {
             if (n.getThreadNumbers() == null) error.add(n);
         }
-        if (!error.isEmpty()) System.out.println("dangling nodes? "+error);
+        
+        if (!error.isEmpty()) log.outln("dangling nodes? " + error);
     }
 
     private void cleanCSDG(SDG graph, MHPAnalysis mhp) {
@@ -179,7 +183,7 @@ public class RemoveInterference {
             graph.removeEdge(e);
         }
 
-        if (DEBUG) System.out.println("	"+x+" of "+all+" edges removed");
+        debug.outln("	" + x + " of " + all + " edges removed");
     }
 
     private boolean isParallel(SDGNode m, SDGNode n) {
@@ -222,50 +226,4 @@ public class RemoveInterference {
         w.close();
     }
 
-    public static void main(String[] args) throws IOException {
-//    	String file = "/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/pdgs/one/conc.ac.AlarmClock.pdg";
-//    	createAndSaveCSDG(file);
-//
-//    	file = "/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/pdgs/one/conc.bb.ProducerConsumer.pdg";
-//    	createAndSaveCSDG(file);
-//
-//    	file = "/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/pdgs/one/conc.ds.DiskSchedulerDriver.pdg";
-//    	createAndSaveCSDG(file);
-//
-//    	file = "/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/pdgs/one/conc.lg.LaplaceGrid.pdg";
-//    	createAndSaveCSDG(file);
-//
-//    	file = "/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/pdgs/one/conc.TimeTravel.pdg";
-//    	createAndSaveCSDG(file);
-
-//    	String file = "/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/pdgs/two/conc.ac.AlarmClock.pdg";
-//    	createAndSaveCSDG(file);
-//
-//    	file = "/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/pdgs/two/conc.bb.ProducerConsumer.pdg";
-//    	createAndSaveCSDG(file);
-//
-//    	file = "/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/pdgs/two/conc.ds.DiskSchedulerDriver.pdg";
-//    	createAndSaveCSDG(file);
-//
-//    	file = "/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/pdgs/two/conc.lg.LaplaceGrid.pdg";
-//    	createAndSaveCSDG(file);
-//
-//    	file = "/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/pdgs/two/conc.TimeTravel.pdg";
-//    	createAndSaveCSDG(file);
-
-//    	String file = "/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/pdgs/three/conc.ac.AlarmClock.pdg";
-//    	createAndSaveCSDG(file);
-//
-//    	file = "/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/pdgs/three/conc.bb.ProducerConsumer.pdg";
-//    	createAndSaveCSDG(file);
-//
-//    	file = "/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/pdgs/three/conc.ds.DiskSchedulerDriver.pdg";
-//    	createAndSaveCSDG(file);
-//
-//    	file = "/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/pdgs/three/conc.lg.LaplaceGrid.pdg";
-//    	createAndSaveCSDG(file);
-//
-//    	file = "/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/pdgs/three/conc.TimeTravel.pdg";
-//    	createAndSaveCSDG(file);
-    }
 }

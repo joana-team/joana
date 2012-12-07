@@ -5,7 +5,8 @@ Bundle-SymbolicName: joana.ifc.sdg.core;singleton:=true
 Bundle-Version: 3.3.0
 Require-Bundle: 
  joana.ifc.sdg.graph;bundle-version="1.1.0",
- joana.contrib.lib;bundle-version="1.0.0"
+ joana.contrib.lib;bundle-version="1.0.0",
+ joana.util;bundle-version="1.0.0"
 Bundle-Vendor: Universitaet Karlsruhe (TH), Programming Paradigms Group
 Export-Package: edu.kit.joana.ifc.sdg.core,
  edu.kit.joana.ifc.sdg.core.conc,

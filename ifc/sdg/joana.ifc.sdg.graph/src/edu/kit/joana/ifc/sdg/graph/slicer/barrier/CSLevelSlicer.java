@@ -18,6 +18,8 @@ import java.util.TreeMap;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 
 
 /** A 2-phase level slicer.
@@ -27,12 +29,9 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  *
  * @author  Christian Hammer, Dennis Giffhorn
  */
-/**
- * @author giffhorn
- *
- */
 public abstract class CSLevelSlicer implements LevelSlicer {
-    private boolean DEBUG = false;
+
+	private final Logger debug = Log.getLogger(Log.L_SDG_GRAPH_DEBUG);
     protected Set<SDGEdge.Kind> omittedEdges = SDGEdge.Kind.threadEdges();
     protected SDG g;
 
@@ -97,15 +96,13 @@ public abstract class CSLevelSlicer implements LevelSlicer {
 
                         // if node was not yet added or node was added in phase2
                         if (p.saveInOtherWorklist(e)) {
-                            if (DEBUG) System.out.println("OTHER\t" + v);
-//                            System.out.println("with "+e.getKind()+" to: "+v);
+                            debug.outln("OTHER\t" + v);
                             nextWorklist.add(v);
                             slice.put(v, p.phase1() ? v : null);
                             level.put(v,(level.get(w)+1));
 
                         } else if (p.follow(e)) {
-                            if (DEBUG) System.out.println("FOLLOW\t" + v);
-//                            System.out.println("with "+e.getKind()+" to: "+v);
+                            debug.outln("FOLLOW\t" + v);
                             worklist.add(v);
                             slice.put(v, p.phase1() ? v : null);
                             level.put(v,(level.get(w)+1));
@@ -115,7 +112,7 @@ public abstract class CSLevelSlicer implements LevelSlicer {
             }
 
             // swap worklists and predicates
-            if (DEBUG) System.out.println("swap");
+            debug.outln("swap");
 
             worklist = nextWorklist;
             p =  phase2Predicate();
@@ -159,15 +156,13 @@ public abstract class CSLevelSlicer implements LevelSlicer {
                     if ((!slice.containsKey(v) || (p.phase1() && slice.get(v) == null))) {
                         // if node was not yet added or node was added in phase2
                         if (p.saveInOtherWorklist(e)) {
-                            if (DEBUG) System.out.println("OTHER\t" + v);
-//                            System.out.println("with "+e.getKind()+" to: "+v);
+                            debug.outln("OTHER\t" + v);
                             nextWorklist.add(v);
                             slice.put(v, p.phase1() ? v : null);
                             level.put(v,(level.get(w)+1));
 
                         } else if (p.follow(e)) {
-                            if (DEBUG) System.out.println("FOLLOW\t" + v);
-//                            System.out.println("with "+e.getKind()+" to: "+v);
+                            debug.outln("FOLLOW\t" + v);
                             worklist.add(v);
                             slice.put(v, p.phase1() ? v : null);
                             level.put(v,(level.get(w)+1));
@@ -177,7 +172,7 @@ public abstract class CSLevelSlicer implements LevelSlicer {
             }
 
             // swap worklists and predicates
-            if (DEBUG) System.out.println("swap");
+            debug.outln("swap");
 
             worklist = nextWorklist;
             p =  phase2Predicate();

@@ -17,6 +17,8 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.barrier.BarrierManager;
 import edu.kit.joana.ifc.sdg.graph.slicer.barrier.BarrierSlicer;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 
 
 /** An iterated-2-phase barrier slicer.
@@ -25,8 +27,9 @@ import edu.kit.joana.ifc.sdg.graph.slicer.barrier.BarrierSlicer;
  * @author Dennis Giffhorn, Christian Hammer
  */
 public abstract class I2PBarrierSlicer implements BarrierSlicer {
-    protected static boolean DEBUG = false;
 
+	private final Logger debug = Log.getLogger(Log.L_SDG_GRAPH_DEBUG);
+	
     interface EdgePredicate {
         public boolean phase1();
         public boolean follow(SDGEdge e);
@@ -104,13 +107,13 @@ public abstract class I2PBarrierSlicer implements BarrierSlicer {
                             (slice.get(v) == null && (phase.phase1() || e.getKind().isThreadEdge()))) {
                         // if node was not yet added or node was added in phase2
                         if (phase.saveInOtherWorklist(e)) {
-                            if (DEBUG) System.out.println(phase.phase1()+" OTHER\t" + e);
+                            debug.outln(phase.phase1()+" OTHER\t" + e);
 
                             nextWorklist.add(v);
                             slice.put(v, phase.phase1() ? v : null);
 
                         } else if (phase.follow(e)) {
-                            if (DEBUG) System.out.println(phase.phase1()+" FOLLOW\t" + e);
+                        	debug.outln(phase.phase1()+" FOLLOW\t" + e);
 
                             worklist.add(v);
                             slice.put(v, phase.phase1() ? v : null);
@@ -119,7 +122,7 @@ public abstract class I2PBarrierSlicer implements BarrierSlicer {
                 }
             }
             // swap worklists and predicates
-            if (DEBUG) System.out.println("swap");
+            debug.outln("swap");
 
             LinkedList<SDGNode> tmp = worklist;
             worklist = nextWorklist;
@@ -166,13 +169,13 @@ public abstract class I2PBarrierSlicer implements BarrierSlicer {
                             (slice.get(v) == null && (phase.phase1() || e.getKind().isThreadEdge()))) {
                         // if node was not yet added or node was added in phase2
                         if (phase.saveInOtherWorklist(e)) {
-                            if (DEBUG) System.out.println(phase.phase1()+" OTHER\t" + e);
+                        	debug.outln(phase.phase1()+" OTHER\t" + e);
 
                             nextWorklist.add(v);
                             slice.put(v, phase.phase1() ? v : null);
 
                         } else if (phase.follow(e)) {
-                            if (DEBUG) System.out.println(phase.phase1()+" FOLLOW\t" + e);
+                        	debug.outln(phase.phase1()+" FOLLOW\t" + e);
 
                             worklist.add(v);
                             slice.put(v, phase.phase1() ? v : null);
@@ -181,7 +184,7 @@ public abstract class I2PBarrierSlicer implements BarrierSlicer {
                 }
             }
             // swap worklists and predicates
-            if (DEBUG) System.out.println("swap");
+            debug.outln("swap");
 
             LinkedList<SDGNode> tmp = worklist;
             worklist = nextWorklist;

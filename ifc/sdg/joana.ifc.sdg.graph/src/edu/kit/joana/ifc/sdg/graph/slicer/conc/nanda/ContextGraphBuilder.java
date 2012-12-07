@@ -23,11 +23,14 @@ import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.ContextGraph.ContextEdge;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 
 
 public class ContextGraphBuilder {
-	private static boolean DEBUG = false;
 
+	private final Logger debug = Log.getLogger(Log.L_SDG_CALLGRAPH_DEBUG);
+	
     /** A counter for the contexts. */
     private int nr;
     /** A counter for the procedure ID's. */
@@ -91,17 +94,18 @@ public class ContextGraphBuilder {
 	}
 
 	private ContextGraph buildContextGraph() {
-		if (DEBUG) System.out.println("	create context graph");
+		debug.outln("	create context graph");
 		ContextGraph cg = createContextGraph();
-		if (DEBUG) System.out.println("	enumerate contexts");
+		debug.outln("	enumerate contexts");
 		enumerateContexts(cg);
-		if (DEBUG) System.out.println("	enumerate procedures");
+		debug.outln("	enumerate procedures");
 		enumerateProcedures(cg);
-		if (DEBUG) System.out.println("	insert help edges");
+		debug.outln("	insert help edges");
 		insertHelpEdges(cg);
-		if (DEBUG) System.out.println("	create node map");
+		debug.outln("	create node map");
 		createMap(cg);
-		if (DEBUG) System.out.println("	done");
+		debug.outln("	done");
+		
 		return cg;
 	}
 
@@ -165,9 +169,9 @@ public class ContextGraphBuilder {
 
 		result.setForkSites(forks);
 
-		if (DEBUG) {
+		if (debug.isEnabled()) {
 			for (int i = 0; i < forks.length; i++) {
-				System.out.println("thread "+i+": "+forks[i]);
+				debug.outln("thread " + i + ": " + forks[i]);
 			}
 		}
 	}

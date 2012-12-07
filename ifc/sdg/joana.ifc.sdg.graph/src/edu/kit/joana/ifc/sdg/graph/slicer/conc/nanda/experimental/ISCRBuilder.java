@@ -24,6 +24,8 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.FoldedCFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.CallGraphBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.GraphFolder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 
 
 /** Builds ISCR graphs.
@@ -33,8 +35,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
  * @author  Dennis Giffhorn
  */
 public class ISCRBuilder {
-	private static final boolean DEBUG = false;
-	private static final boolean VERIFY = false;
+	private final Logger debug = Log.getLogger(Log.L_SDG_ISCR_DEBUG);
 
     private HashMap<SDGNode, SDGNode> params; // parameter node -> call, return, entry or exit node
     private HashMap<SDGNode, Collection<SDGNode>> cache;
@@ -68,44 +69,44 @@ public class ISCRBuilder {
      * @return  An ISCR graph.
      */
     private ISCRGraph build(CFG icfg) {
-    	if (DEBUG) System.out.println("Building ISCR graph for "+icfg.getRoot());
+    	debug.outln("Building ISCR graph for "+icfg.getRoot());
     	params = new HashMap<SDGNode, SDGNode>();
         cache = new HashMap<SDGNode, Collection<SDGNode>>();
         iscrMap = new HashMap<SDGNode, HashSet<SDGNode>>();
         returnNodes = new LinkedList<SDGNode>();
 
         // preprocess
-    	if (DEBUG) System.out.println("	preprocessing...");
+        debug.outln("	preprocessing...");
         CFG newICFG = prepareICFG(icfg, icfg.lastId() + 1);
-        if (VERIFY) paramsTest(icfg);
+        assert paramsTest(icfg);
 
         // 2-pass-folding
-    	if (DEBUG) System.out.println("	folding...");
+        debug.outln("	folding...");
         FoldedCFG folded = GraphFolder.twoPassFolding(newICFG);
-        if (VERIFY) twoPassTest(newICFG, folded);
+        assert twoPassTest(newICFG, folded);
 
         // inlining of procedures - we need a folded call graph
-    	if (DEBUG) System.out.println("	inlining procedures...");
+        debug.outln("	inlining procedures...");
         CFG entryGraph = CallGraphBuilder.buildEntryGraph(icfg);
         removeForkEdges(entryGraph);
         cache = inlining(entryGraph);
 
         // reduce the ICFG
-    	if (DEBUG) System.out.println("	creating reduced ICFG...");
+        debug.outln("	creating reduced ICFG...");
     	CFG reduced = createReducedICFG(folded);
-    	if (VERIFY) testReducedICFG(folded, reduced);
+    	assert testReducedICFG(folded, reduced);
 
         // compute a mapping: node-->ISCR node
-    	if (DEBUG) System.out.println("	mapping SDG nodes to ISCR nodes...");
+    	debug.outln("	mapping SDG nodes to ISCR nodes...");
         Map<SDGNode, List<SDGNode>> nodeMap = revertISCRMap(icfg);
-        if (VERIFY) testNodeMap(nodeMap, icfg, reduced);
+        assert testNodeMap(nodeMap, icfg, reduced);
 
         // create the ISCR graph
-    	if (DEBUG) System.out.println("	creating ISCR graph...");
+        debug.outln("	creating ISCR graph...");
         ISCRGraph iscrGraph = new ISCRGraph(reduced, icfg.getRoot().getThreadNumbers(),
         									reduced.getRoot(), nodeMap, params);
-        if (VERIFY) testISCRGraph(nodeMap, iscrGraph);
-        if (VERIFY) testISCRGraphNodes(icfg, iscrGraph);
+        assert testISCRGraph(nodeMap, iscrGraph);
+        assert testISCRGraphNodes(icfg, iscrGraph);
 
         return iscrGraph;
     }
@@ -548,7 +549,7 @@ public class ISCRBuilder {
     /**
      * Tests if all parameter nodes of the ICFG are inserted into the params map and mapped to the correct nodes.
      */
-    private void paramsTest(CFG icfg) {
+    private boolean paramsTest(CFG icfg) {
 
     	for (SDGNode n : icfg.vertexSet()) {
         	if (n.getKind() == SDGNode.Kind.ACTUAL_IN) {
@@ -581,9 +582,9 @@ public class ISCRBuilder {
         			}
         		}
         		if (n != ret && params.get(n) != ret) {
-        			System.out.println(n);
-        			System.out.println(ret);
-        			System.out.println(params.get(n));
+        			debug.outln(n);
+        			debug.outln(ret);
+        			debug.outln(params.get(n));
         			throw new RuntimeException();
         		}
 
@@ -591,15 +592,15 @@ public class ISCRBuilder {
         		for (SDGNode exit : icfg.vertexSet()) {
         			if (exit.getKind() == SDGNode.Kind.EXIT && exit.getProc() == n.getProc()) {
         				if (!params.containsKey(n)) {
-                			System.out.println(n);
-                			System.out.println(exit);
-                			System.out.println(params.get(n));
+                			debug.outln(n);
+                			debug.outln(exit);
+                			debug.outln(params.get(n));
                 			throw new RuntimeException();
                 		}
         				if (params.get(n) != exit) {
-                			System.out.println(n);
-                			System.out.println(exit);
-                			System.out.println(params.get(exit));
+                			debug.outln(n);
+                			debug.outln(exit);
+                			debug.outln(params.get(exit));
                 			throw new RuntimeException();
                 		}
         				break;
@@ -609,25 +610,27 @@ public class ISCRBuilder {
         	} else if (n.getKind() == SDGNode.Kind.FORMAL_IN) {
         		SDGNode entry = icfg.getEntry(n);
 				if (!params.containsKey(n)) {
-        			System.out.println(n);
-        			System.out.println(entry);
-        			System.out.println(params.get(n));
+        			debug.outln(n);
+        			debug.outln(entry);
+        			debug.outln(params.get(n));
         			throw new RuntimeException();
         		}
 				if (params.get(n) != entry) {
-        			System.out.println(n);
-        			System.out.println(entry);
-        			System.out.println(params.get(entry));
+        			debug.outln(n);
+        			debug.outln(entry);
+        			debug.outln(params.get(entry));
         			throw new RuntimeException();
         		}
         	}
         }
+    	
+    	return true;
     }
 
     /**
      * Tests if the two-pass folding preserves the connections between the nodes.
      */
-    private void twoPassTest(CFG icfg, FoldedCFG folded) {
+    private boolean twoPassTest(CFG icfg, FoldedCFG folded) {
     	for (SDGEdge e : icfg.edgeSet()) {
         	SDGNode foldedSource = folded.getFoldNode(e.getSource()) == null ? e.getSource() : folded.getFoldNode(e.getSource());
         	SDGNode foldedTarget = folded.getFoldNode(e.getTarget()) == null ? e.getTarget() : folded.getFoldNode(e.getTarget());
@@ -644,29 +647,26 @@ public class ISCRBuilder {
         			}
         		}
     			if (!ok) {
-    				System.out.println("****************");
-            		System.out.println(e);
-            		System.out.println("foldedSource "+foldedSource);
-            		System.out.println("foldedTarget "+foldedTarget);
+    				debug.outln("****************");
+            		debug.outln(e);
+            		debug.outln("foldedSource "+foldedSource);
+            		debug.outln("foldedTarget "+foldedTarget);
             		throw new RuntimeException();
     			}
         	}
         }
 
-//    	List<CFG> cfgs = splitFoldedGraph(folded);
-//    	for (CFG g : cfgs) {
-//    		System.out.println(g);
-//    	}
+    	return true;
     }
 
     /**
      * Tests if the procedure inlining preserves the connections between the nodes.
      */
-    private void testReducedICFG(FoldedCFG folded, CFG reduced) {
+    private boolean testReducedICFG(FoldedCFG folded, CFG reduced) {
     	for (SDGNode n : reduced.vertexSet()) {
     		if (folded.vertexSet().contains(n)) continue;
-    		System.out.println("****************");
-    		System.out.println(n);
+    		debug.outln("****************");
+    		debug.outln(n);
     		throw new RuntimeException();
     	}
 
@@ -695,30 +695,32 @@ public class ISCRBuilder {
         		}
         	}
         	if (!ok) {
-				System.out.println("****************");
-        		System.out.println(e);
+				debug.outln("****************");
+        		debug.outln(e);
         		throw new RuntimeException();
 			}
 
         	// no call edges from a fold node!
         	if (e.getKind() == SDGEdge.Kind.CALL && e.getSource().getKind() == SDGNode.Kind.FOLDED) {
-        		System.out.println("****************");
-        		System.out.println(e);
+        		debug.outln("****************");
+        		debug.outln(e);
         		throw new RuntimeException();
         	}
         	// no return edges to a fold node!
         	if (e.getKind() == SDGEdge.Kind.RETURN && e.getTarget().getKind() == SDGNode.Kind.FOLDED) {
-        		System.out.println("****************");
-        		System.out.println(e);
+        		debug.outln("****************");
+        		debug.outln(e);
         		throw new RuntimeException();
         	}
         }
+    	
+    	return true;
     }
 
     /**
      * Similar to testReducedICFG, but uses the original ICFG.
      */
-    private void testReducedICFG2(CFG icfg, CFG reduced) {
+    private boolean testReducedICFG2(CFG icfg, CFG reduced) {
     	// flip the foldedMap
     	HashMap<SDGNode, LinkedList<SDGNode>> foldMap = new HashMap<SDGNode, LinkedList<SDGNode>>();
     	for (Map.Entry<SDGNode, HashSet<SDGNode>> en : iscrMap.entrySet()) {
@@ -736,8 +738,8 @@ public class ISCRBuilder {
     	for (SDGNode n : icfg.vertexSet()) {
     		if (reduced.vertexSet().contains(n)) continue;
     		if (foldMap.containsKey(n)) continue;
-    		System.out.println("****************");
-    		System.out.println(n);
+    		debug.outln("****************");
+    		debug.outln(n);
     		throw new RuntimeException();
     	}
 
@@ -754,8 +756,8 @@ public class ISCRBuilder {
             		}
             	}
             	if (!ok) {
-    				System.out.println("****************");
-            		System.out.println(e);
+    				debug.outln("****************");
+            		debug.outln(e);
             		throw new RuntimeException();
     			}
 
@@ -776,10 +778,10 @@ public class ISCRBuilder {
 					}
 				}
             	if (!ok) {
-    				System.out.println("****************");
-            		System.out.println(e);
-            		System.out.println(e.getSource());
-            		System.out.println(targets);
+    				debug.outln("****************");
+            		debug.outln(e);
+            		debug.outln(e.getSource());
+            		debug.outln(targets);
             		throw new RuntimeException();
     			}
 
@@ -800,8 +802,8 @@ public class ISCRBuilder {
 					}
     			}
             	if (!ok) {
-    				System.out.println("****************");
-            		System.out.println(e);
+    				debug.outln("****************");
+            		debug.outln(e);
             		throw new RuntimeException();
     			}
 
@@ -825,18 +827,20 @@ public class ISCRBuilder {
     				}
     			}
             	if (!ok) {
-    				System.out.println("****************");
-            		System.out.println(e);
+    				debug.outln("****************");
+            		debug.outln(e);
             		throw new RuntimeException();
     			}
     		}
         }
+    	
+    	return true;
     }
 
     /**
      * Tests if all keys and values in the node map appear in the reduced graph.
      */
-    private void testNodeMap(Map<SDGNode, List<SDGNode>> nodeMap, CFG original, CFG reduced) {
+    private boolean testNodeMap(Map<SDGNode, List<SDGNode>> nodeMap, CFG original, CFG reduced) {
     	// each node in the original CFG has to be either in the node map or in the reduced CFG
     	for (SDGNode orig : original.vertexSet()) {
     		if (orig.getKind() == SDGNode.Kind.ACTUAL_IN
@@ -849,8 +853,8 @@ public class ISCRBuilder {
     		if (mappedTo == null) {
     			// node is missing
     			// ALARMA
-				System.out.println("****************");
-        		System.out.println(orig +" is missing ");
+				debug.outln("****************");
+        		debug.outln(orig +" is missing ");
         		throw new RuntimeException();
     		}
     	}
@@ -861,19 +865,21 @@ public class ISCRBuilder {
     			if (!reduced.containsVertex(n)) {
         			// node is missing
         			// ALARMA
-    				System.out.println("****************");
-            		System.out.println(n +" is missing ");
-            		System.out.println(en);
+    				debug.outln("****************");
+            		debug.outln(n +" is missing ");
+            		debug.outln(en);
             		throw new RuntimeException();
     			}
     		}
     	}
+    	
+    	return true;
     }
 
     /**
      * Tests if all keys and values in the node map appear in the ISCR graph.
      */
-    private void testISCRGraph(Map<SDGNode, List<SDGNode>> nodeMap, ISCRGraph ig) {
+    private boolean testISCRGraph(Map<SDGNode, List<SDGNode>> nodeMap, ISCRGraph ig) {
     	// tests the mapping between nodeMap and the ISCR graph
 
     	// all values in the nodeMap have to be ISCR nodes
@@ -882,9 +888,9 @@ public class ISCRBuilder {
     			if (!ig.containsNode(n)) {
         			// node is missing
         			// ALARMA
-    				System.out.println("****************");
-            		System.out.println(n +" is missing ");
-            		System.out.println(en);
+    				debug.outln("****************");
+            		debug.outln(n +" is missing ");
+            		debug.outln(en);
             		throw new RuntimeException();
     			}
     		}
@@ -895,24 +901,26 @@ public class ISCRBuilder {
     			if (ig.containsNode(n) && !en.getValue().contains(n)) {
         			// node is missing
         			// ALARMA
-    				System.out.println("****************");
-            		System.out.println(n +" is in the ISCR graph, but not in the map ");
-            		System.out.println(en);
+    				debug.outln("****************");
+            		debug.outln(n +" is in the ISCR graph, but not in the map ");
+            		debug.outln(en);
             		throw new RuntimeException();
     			}
     		}
     	}
+    	
+    	return true;
     }
 
     /**
      * Tests if all nodes in the original ICFG are mapped to nodes in the ISCR graph.
      */
-    private void testISCRGraphNodes(CFG orig, ISCRGraph ig) {
+    private boolean testISCRGraphNodes(CFG orig, ISCRGraph ig) {
     	// nodes
     	for (SDGNode n : orig.vertexSet()) {
     		if (ig.getISCRNodes(n) == null) {
-				System.out.println("****************");
-        		System.out.println(n+" is not in the ISCR graph");
+				debug.outln("****************");
+        		debug.outln(n+" is not in the ISCR graph");
         		throw new RuntimeException();
     		}
     	}
@@ -933,22 +941,24 @@ public class ISCRBuilder {
     				size = en.getValue().size();
 
     			} else if (en.getValue().size() != size) {
-    				System.out.println("****************");
-            		System.out.println("procedure has not the same number of representatives");
+    				debug.outln("****************");
+            		debug.outln("procedure has not the same number of representatives");
             		for (Map.Entry<SDGNode, List<SDGNode>> en2 : proc.entrySet()) {
-            			System.out.println(en2);
+            			debug.outln(en2);
             		}
 //            		List<CFG> l = splitISCRGraph(ig);
 //            		for (CFG h : l) {
-//            			System.out.println(h);
+//            			debug.outln(h);
 //            		}
 //            		for (Map.Entry x : iscrMap.entrySet()) {
-//            			System.out.println(x);
+//            			debug.outln(x);
 //            		}
             		throw new RuntimeException();
     			}
     		}
     	}
+    	
+    	return true;
     }
 
     private void testISCRGraphEdges(CFG orig, ISCRGraph ig) {
@@ -976,10 +986,10 @@ public class ISCRBuilder {
 					}
 				}
 	        	if (!ok) {
-					System.out.println("****************");
-	        		System.out.println(e);
-	        		System.out.println(sources);
-	        		System.out.println(targets);
+					debug.outln("****************");
+	        		debug.outln(e);
+	        		debug.outln(sources);
+	        		debug.outln(targets);
 	        		throw new RuntimeException();
 				}
 			}
@@ -1000,10 +1010,10 @@ public class ISCRBuilder {
 					}
 				}
 	        	if (!ok) {
-					System.out.println("****************");
-	        		System.out.println(e);
-	        		System.out.println(sources);
-	        		System.out.println(targets);
+					debug.outln("****************");
+	        		debug.outln(e);
+	        		debug.outln(sources);
+	        		debug.outln(targets);
 	        		throw new RuntimeException();
 				}
 			}
@@ -1024,10 +1034,10 @@ public class ISCRBuilder {
     	}
 
     	if (calls.size() != returns.size()) {
-			System.out.println("****************");
-    		System.out.println("more or less returns than calls");
-    		System.out.println(calls.size()+" calls");
-    		System.out.println(returns.size()+" returns");
+			debug.outln("****************");
+    		debug.outln("more or less returns than calls");
+    		debug.outln(calls.size()+" calls");
+    		debug.outln(returns.size()+" returns");
     		throw new RuntimeException();
     	}
 
@@ -1063,9 +1073,9 @@ public class ISCRBuilder {
     		}
 
     		if (ret == null) {
-				System.out.println("****************");
-        		System.out.println("call edge not matched: ");
-        		System.out.println(call);
+				debug.outln("****************");
+        		debug.outln("call edge not matched: ");
+        		debug.outln(call);
         		throw new RuntimeException();
 			}
 

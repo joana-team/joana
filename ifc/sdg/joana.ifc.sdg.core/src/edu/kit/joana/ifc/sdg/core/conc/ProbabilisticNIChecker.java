@@ -24,7 +24,6 @@ import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
  * @author giffhorn
  */
 public class ProbabilisticNIChecker extends IFC {
-	public static final boolean DEBUG = false;
 
 	private final MHPAnalysis mhp;
 
@@ -64,35 +63,25 @@ public class ProbabilisticNIChecker extends IFC {
 	 * @throws NotInLatticeException
 	 */
 	public Collection<Violation> checkIFlow() throws NotInLatticeException {
-		// long slicestart = System.currentTimeMillis();
 		Collection<Violation> ret = null; // list to be returned
 		IFC is = new BarrierIFCSlicer(g, l);
+		
 		if (timeSens) {
 			is = new TimeSensitiveIFCDecorator(is);
 		}
+
 		probInit = System.currentTimeMillis();
 		ProbabilisticNISlicer prob = ProbabilisticNISlicer.simpleCheck(g, l, mhp, this.timeSens);
 		probInit = System.currentTimeMillis() - probInit;
-		// is.addProgressListener(this);
-		// prob.addProgressListener(this);
 
-		// if (DEBUG) System.out.println("Started slicing at " + slicestart);
+		probCheck = System.currentTimeMillis();
+		ret = prob.check();
+		probCheck = System.currentTimeMillis() - probCheck;
 
-			probCheck = System.currentTimeMillis();
-			ret = prob.check();
-			probCheck = System.currentTimeMillis() - probCheck;
+		flowCheck = System.currentTimeMillis();
+		ret.addAll(is.checkIFlow());
+		flowCheck = System.currentTimeMillis() - flowCheck;
 
-			flowCheck = System.currentTimeMillis();
-			ret.addAll(is.checkIFlow());
-			flowCheck = System.currentTimeMillis() - flowCheck;
-
-		// long sliceend = System.currentTimeMillis();
-		// if (DEBUG) System.out.println("Finished slicing at " + sliceend +
-		// " | slice duration: " + (sliceend-slicestart));
-
-		// if (DEBUG) System.out.println("ret.size: " + ret.size() + " ret: " +
-		// ret);
-		// this.progressChanged("Done", 100, 100);
 		dataChannels = prob.dataChannels;
 		orderChannels = prob.orderChannels;
 

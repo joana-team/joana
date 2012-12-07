@@ -17,6 +17,8 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.barrier.LevelSlicer;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 
 
 /** An iterated-2-phase level slicer.
@@ -25,7 +27,8 @@ import edu.kit.joana.ifc.sdg.graph.slicer.barrier.LevelSlicer;
  * @author Dennis Giffhorn, Christian Hammer
  */
 public abstract class I2PLevelSlicer implements LevelSlicer {
-    protected static boolean DEBUG = false;
+
+	private final Logger debug = Log.getLogger(Log.L_SDG_GRAPH_DEBUG);
     protected SDG g;
 
     /**
@@ -79,14 +82,14 @@ public abstract class I2PLevelSlicer implements LevelSlicer {
                             (slice.get(v) == null && (phase.phase1() || threadEdge(e)))) {
                         // if node was not yet added or node was added in phase2
                         if (phase.saveInOtherWorklist(e)) {
-                            if (DEBUG) System.out.println(phase.phase1()+" OTHER\t" + e);
+                        	debug.outln(phase.phase1()+" OTHER\t" + e);
 
                             nextWorklist.add(v);
                             slice.put(v, phase.phase1() ? v : null);
                             level.put(v,(level.get(w)+1));
 
                         } else if (phase.follow(e)) {
-                            if (DEBUG) System.out.println(phase.phase1()+" FOLLOW\t" + e);
+                        	debug.outln(phase.phase1()+" FOLLOW\t" + e);
 
                             worklist.add(v);
                             slice.put(v, phase.phase1() ? v : null);
@@ -96,7 +99,7 @@ public abstract class I2PLevelSlicer implements LevelSlicer {
                 }
             }
             // swap worklists and predicates
-            if (DEBUG) System.out.println("swap");
+            debug.outln("swap");
 
             LinkedList<SDGNode> tmp = worklist;
             worklist = nextWorklist;
@@ -145,14 +148,14 @@ public abstract class I2PLevelSlicer implements LevelSlicer {
                             (slice.get(v) == null && (phase.phase1() || threadEdge(e)))) {
                         // if node was not yet added or node was added in phase2
                         if (phase.saveInOtherWorklist(e)) {
-                            if (DEBUG) System.out.println(phase.phase1()+" OTHER\t" + e);
+                        	debug.outln(phase.phase1()+" OTHER\t" + e);
 
                             nextWorklist.add(v);
                             slice.put(v, phase.phase1() ? v : null);
                             level.put(v,(level.get(w)+1));
 
                         } else if (phase.follow(e)) {
-                            if (DEBUG) System.out.println(phase.phase1()+" FOLLOW\t" + e);
+                        	debug.outln(phase.phase1()+" FOLLOW\t" + e);
 
                             worklist.add(v);
                             slice.put(v, phase.phase1() ? v : null);
@@ -162,7 +165,7 @@ public abstract class I2PLevelSlicer implements LevelSlicer {
                 }
             }
             // swap worklists and predicates
-            if (DEBUG) System.out.println("swap");
+            debug.outln("swap");
 
             LinkedList<SDGNode> tmp = worklist;
             worklist = nextWorklist;

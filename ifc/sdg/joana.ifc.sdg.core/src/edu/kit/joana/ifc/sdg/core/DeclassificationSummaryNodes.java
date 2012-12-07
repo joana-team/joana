@@ -34,7 +34,6 @@ import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
  * @deprecated
  */
 public class DeclassificationSummaryNodes extends IncrementalSummaryBackward {
-	private static final boolean DEBUG = false;
 	private static final SDGEdge.Kind KIND = Kind.HELP;
 
 	IStaticLattice<String> l;
@@ -103,14 +102,6 @@ public class DeclassificationSummaryNodes extends IncrementalSummaryBackward {
 				}
 			}
 		}
-    	//System.out.println(pathEdge);
-		int i = 0;
-		for (SDGEdge edge : graph.edgeSet()) {
-			if (edge.getKind() == Kind.SUMMARY && edge.getLabel() != null)
-				i++;
-		}
-
-		if (DEBUG) System.out.println(i + " Summary Declassification Nodes");
 
     	pathEdge = null;
     	worklist = null;

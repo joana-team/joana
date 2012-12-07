@@ -16,10 +16,14 @@ import edu.kit.joana.ifc.sdg.core.violations.Violation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.chopper.conc.ContextSensitiveThreadChopper;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 
 
 public class ConcurrentViolationChop {
-	private static final boolean DEBUG = false;
+	
+	private final Logger debug = Log.getLogger(Log.L_SDG_INTERFERENCE_DEBUG);
+	
     private static ConcurrentViolationChop instance = new ConcurrentViolationChop();
 
     public static ConcurrentViolationChop getInstance() {
@@ -30,10 +34,10 @@ public class ConcurrentViolationChop {
 
 	public List<Violation> addChop(Collection<Violation> violations, SDG g)
 	throws NotInLatticeException {
-	     chopper = new ContextSensitiveThreadChopper(g);
+	    chopper = new ContextSensitiveThreadChopper(g);
 
 		long viostart = System.currentTimeMillis();
-		if (DEBUG) System.out.println("Started viopathgen at " + viostart + " for " + violations.size() + " violations");
+		debug.outln("Started viopathgen at " + viostart + " for " + violations.size() + " violations");
 
 
 		LinkedList<Violation> ret = new LinkedList<Violation>();
@@ -47,7 +51,8 @@ public class ConcurrentViolationChop {
 		}
 
 		long vioend = System.currentTimeMillis();
-		if (DEBUG) System.out.println("Ended viopathgen at " + vioend + " duration: " + (vioend - viostart));
+		debug.outln("Ended viopathgen at " + vioend + " duration: " + (vioend - viostart));
+		
 		return ret;
 	}
 
@@ -72,7 +77,7 @@ public class ConcurrentViolationChop {
 		chopper = new ContextSensitiveThreadChopper(g);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
     public Collection<SecurityNode> chop (SecurityNode outNode, SecurityNode violation) {
             Collection coll = chopper.chop(violation, outNode);
             return coll;

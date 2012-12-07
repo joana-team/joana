@@ -23,27 +23,29 @@ import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.regions.ContextGraph.Contex
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
-
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 
 public class ContextGraphBuilder {
-	private static boolean DEBUG = false;
 
-    /** A counter for the contexts. */
-    private int nr;
-    /** A counter for the procedure ID's. */
-    private int proc;
-    /** The currently processed ISCR graph. */
+	private final Logger debug = Log.getLogger(Log.L_SDG_CALLGRAPH_DEBUG);
+
+	/** A counter for the contexts. */
+	private int nr;
+	/** A counter for the procedure ID's. */
+	private int proc;
+	/** The currently processed ISCR graph. */
 	private ISCRGraph graph;
 
 	private CFG icfg;
 
-
 	public ContextGraphBuilder(CFG icfg) {
-	    nr = 1;
-	    proc = 1;
-	    this.icfg = icfg;
+		nr = 1;
+		proc = 1;
+		this.icfg = icfg;
 	}
 
+	@SuppressWarnings("unchecked")
 	public ContextGraph[] buildContextGraphs(ISCRGraph[] iscrGraphs) {
 		contextGraphs = new ContextGraph[iscrGraphs.length];
 		visited = new HashMap[iscrGraphs.length];
@@ -55,17 +57,18 @@ public class ContextGraphBuilder {
 	}
 
 	private ContextGraph buildContextGraph() {
-		if (DEBUG) System.out.println("	create context graph");
+		debug.outln("	create context graph");
 		ContextGraph cg = createContextGraph();
-		if (DEBUG) System.out.println("	enumerate contexts");
+		debug.outln("	enumerate contexts");
 		enumerateContexts(cg);
-		if (DEBUG) System.out.println("	enumerate procedures");
+		debug.outln("	enumerate procedures");
 		enumerateProcedures(cg);
-		if (DEBUG) System.out.println("	insert help edges");
+		debug.outln("	insert help edges");
 		insertHelpEdges(cg);
-		if (DEBUG) System.out.println("	create node map");
+		debug.outln("	create node map");
 		createMap(cg);
-		if (DEBUG) System.out.println("	done");
+		debug.outln("	done");
+
 		return cg;
 	}
 
@@ -98,13 +101,12 @@ public class ContextGraphBuilder {
 				for (DynamicContext d : lll) {
 					if (next.isSuffixOf(d) || d.isSuffixOf(next)) {
 						// rekursion!
-						System.out.println(d+"\n subsumes "+next);
+						Log.ERROR.outln(d + "\n subsumes " + next);
 						throw new RuntimeException();
 					}
 				}
 				lll.add(next);
 			}
-
 
 			for (SDGEdge e : graph.outgoingEdgesOf(next.getNode())) {
 				if (e.getKind() == SDGEdge.Kind.CONTROL_FLOW) {
@@ -152,7 +154,7 @@ public class ContextGraphBuilder {
 					returnSites.put(succ, next);
 
 				} else if (e.getKind() != SDGEdge.Kind.RETURN) {
-					throw new RuntimeException("Wrong kind of edge: "+e);
+					throw new RuntimeException("Wrong kind of edge: " + e);
 				}
 			}
 		}
@@ -198,7 +200,8 @@ public class ContextGraphBuilder {
 		for (SDGNode n : icfg.vertexSet()) {
 			List<SDGNode> iscrNodes = graph.getISCRNodes(n);
 
-			if (iscrNodes == null) continue; // node from another thread, could be done nicer
+			if (iscrNodes == null)
+				continue; // node from another thread, could be done nicer
 
 			// sort the TopologicalNumbers
 			TreeSet<TopologicalNumber> tmp = new TreeSet<TopologicalNumber>(TopologicalNumber.getComparator());
@@ -231,24 +234,24 @@ public class ContextGraphBuilder {
 			for (ContextEdge e : cg.outgoingEdgesOf(next)) {
 				TopologicalNumber succ = e.getTarget();
 
-    			// enumerate if succ has not been visited yet
+				// enumerate if succ has not been visited yet
 				// and all of its predecessors have been visited
 				if (succ.getNumber() == -1) {
-    				boolean ok = true;
+					boolean ok = true;
 
-        			for (ContextEdge f : cg.incomingEdgesOf(succ)) {
-        				if (f.getSource().getNumber() == -1) {
-        					// a predecessor has not been visited yet
-        					ok = false;
-        					break;
-        				}
-        			}
+					for (ContextEdge f : cg.incomingEdgesOf(succ)) {
+						if (f.getSource().getNumber() == -1) {
+							// a predecessor has not been visited yet
+							ok = false;
+							break;
+						}
+					}
 
-        			if (ok) {
-        				wl.add(succ);
-        	    		succ.setNumber(nr);
-        	    		nr++;
-        			}
+					if (ok) {
+						wl.add(succ);
+						succ.setNumber(nr);
+						nr++;
+					}
 				}
 			}
 		}
@@ -266,131 +269,132 @@ public class ContextGraphBuilder {
 		while (!outer.isEmpty()) {
 			inner.add(outer.poll());
 
-    		while (!inner.isEmpty()) {
-    			TopologicalNumber next = inner.poll();
-    			next.setProcID(proc);
+			while (!inner.isEmpty()) {
+				TopologicalNumber next = inner.poll();
+				next.setProcID(proc);
 
-    			for (ContextEdge e : cg.outgoingEdgesOf(next)) {
-        			// traverse only downwards
-    				if (e.getKind() == SDGEdge.Kind.CONTROL_FLOW || e.getKind() == SDGEdge.Kind.NO_FLOW) {
-    					TopologicalNumber succ = e.getTarget();
+				for (ContextEdge e : cg.outgoingEdgesOf(next)) {
+					// traverse only downwards
+					if (e.getKind() == SDGEdge.Kind.CONTROL_FLOW || e.getKind() == SDGEdge.Kind.NO_FLOW) {
+						TopologicalNumber succ = e.getTarget();
 
-	    				if (visited.add(succ)) {
-		        			inner.add(succ);
-	    				}
+						if (visited.add(succ)) {
+							inner.add(succ);
+						}
 
-    				} else if (e.getKind() == SDGEdge.Kind.CALL) {
-    					TopologicalNumber succ = e.getTarget();
+					} else if (e.getKind() == SDGEdge.Kind.CALL) {
+						TopologicalNumber succ = e.getTarget();
 
-    					if (visited.add(succ)) {
-    						outer.add(succ);
-    					}
-    				}
-    			}
-    		}
+						if (visited.add(succ)) {
+							outer.add(succ);
+						}
+					}
+				}
+			}
 
-    		proc++;
+			proc++;
 		}
 	}
 
 	// edges from a call node to the exit of the called procedure
-    private void insertHelpEdges(ContextGraph cg) {
-    	LinkedList<ContextEdge> helpEdges = new LinkedList<ContextEdge>();
-    	HashMap<Integer, TopologicalNumber> exits = new HashMap<Integer, TopologicalNumber>();
-    	Collection<ContextEdge> edges = cg.getAllEdges();
+	private void insertHelpEdges(ContextGraph cg) {
+		LinkedList<ContextEdge> helpEdges = new LinkedList<ContextEdge>();
+		HashMap<Integer, TopologicalNumber> exits = new HashMap<Integer, TopologicalNumber>();
+		Collection<ContextEdge> edges = cg.getAllEdges();
 
-    	for (ContextEdge e : edges) {
-    		if (e.getKind() == SDGEdge.Kind.RETURN) {
-    			TopologicalNumber exit = e.getSource();
-    			exits.put(exit.getProcID(), exit);
-    		}
-    	}
+		for (ContextEdge e : edges) {
+			if (e.getKind() == SDGEdge.Kind.RETURN) {
+				TopologicalNumber exit = e.getSource();
+				exits.put(exit.getProcID(), exit);
+			}
+		}
 
-    	for (ContextEdge e : edges) {
-    		if (e.getKind() == SDGEdge.Kind.CALL) {
-    			TopologicalNumber call = e.getSource();
-    			TopologicalNumber exit = exits.get(e.getTarget().getProcID());
-    			helpEdges.add(new ContextEdge(call, exit, SDGEdge.Kind.HELP));
-    		}
-    	}
+		for (ContextEdge e : edges) {
+			if (e.getKind() == SDGEdge.Kind.CALL) {
+				TopologicalNumber call = e.getSource();
+				TopologicalNumber exit = exits.get(e.getTarget().getProcID());
+				helpEdges.add(new ContextEdge(call, exit, SDGEdge.Kind.HELP));
+			}
+		}
 
-    	for (ContextEdge e : helpEdges) {
-    		cg.addEdge(e);
-    	}
-    }
+		for (ContextEdge e : helpEdges) {
+			cg.addEdge(e);
+		}
+	}
 
-    public static void main(String[] args) throws Exception {
-    	for (String file : PDGs.pdgs) {
-    		System.out.println(file);
-            SDG g = SDG.readFrom(file);
-            CFG cfg = ICFGBuilder.extractICFG(g);
-            ContextGraphs cg = ContextGraphs.build(cfg);
+	public static void main(String[] args) throws Exception {
+		for (String file : PDGs.pdgs) {
+			System.out.println(file);
+			SDG g = SDG.readFrom(file);
+			CFG cfg = ICFGBuilder.extractICFG(g);
+			ContextGraphs cg = ContextGraphs.build(cfg);
 
 			testProcedures(cfg, cg);
 			testEdges(cfg, cg);
-        }
-    }
+		}
+	}
 
-    private static void testProcedures(CFG icfg, ContextGraphs cg) {
-    	// test SDGNodes
-    	List<CFG> cfgs = icfg.split();
-    	for (CFG g : cfgs) {
-    		int size = -1;
-    		for (SDGNode n : g.vertexSet()) {
-    			Collection<TopologicalNumber> nrs = cg.getTopologicalNumbers(n);
-    			if (size == -1) {
-    				size = nrs.size();
+	private static void testProcedures(CFG icfg, ContextGraphs cg) {
+		final Logger debug = Log.getLogger(Log.L_SDG_CALLGRAPH_DEBUG);
+		// test SDGNodes
+		List<CFG> cfgs = icfg.split();
+		for (CFG g : cfgs) {
+			int size = -1;
+			for (SDGNode n : g.vertexSet()) {
+				Collection<TopologicalNumber> nrs = cg.getTopologicalNumbers(n);
+				if (size == -1) {
+					size = nrs.size();
 
-    			} else if (size != nrs.size()) {
-    				System.out.println("***********");
-    				for (SDGNode m : g.vertexSet()) {
-    	    			System.out.println(cg.getTopologicalNumbers(m));
-    				}
-    				throw new RuntimeException();
-    			}
-    		}
-    	}
-    }
+				} else if (size != nrs.size()) {
+					debug.outln("***********");
+					for (SDGNode m : g.vertexSet()) {
+						debug.outln(cg.getTopologicalNumbers(m));
+					}
+					throw new RuntimeException();
+				}
+			}
+		}
+	}
 
-    private static void testEdges(CFG icfg, ContextGraphs cg) {
-    	 for (SDGEdge e : icfg.edgeSet()) {
-         	Collection<TopologicalNumber> s = cg.getTopologicalNumbers(e.getSource());
-         	Collection<TopologicalNumber> t = cg.getTopologicalNumbers(e.getTarget());
+	private static void testEdges(CFG icfg, ContextGraphs cg) {
+		final Logger debug = Log.getLogger(Log.L_SDG_CALLGRAPH_DEBUG);
 
-         	if (e.getKind() == SDGEdge.Kind.CONTROL_FLOW) {
-         		SDGNode source = e.getSource();
-         		SDGNode target = e.getTarget();
+		for (SDGEdge e : icfg.edgeSet()) {
+			Collection<TopologicalNumber> s = cg.getTopologicalNumbers(e.getSource());
+			Collection<TopologicalNumber> t = cg.getTopologicalNumbers(e.getTarget());
 
-         		if (source.getKind() == SDGNode.Kind.ACTUAL_IN
-         				|| source.getKind() == SDGNode.Kind.FORMAL_IN
-         				|| source.getKind() == SDGNode.Kind.ACTUAL_OUT
-         				|| source.getKind() == SDGNode.Kind.FORMAL_OUT
-         				|| target.getKind() == SDGNode.Kind.ACTUAL_IN
-         				|| target.getKind() == SDGNode.Kind.FORMAL_IN
-         				|| target.getKind() == SDGNode.Kind.ACTUAL_OUT
-         				|| target.getKind() == SDGNode.Kind.FORMAL_OUT) continue;
+			if (e.getKind() == SDGEdge.Kind.CONTROL_FLOW) {
+				SDGNode source = e.getSource();
+				SDGNode target = e.getTarget();
 
-         		if (source.getKind() == SDGNode.Kind.ENTRY && target.getKind() == SDGNode.Kind.EXIT) continue;
+				if (source.getKind() == SDGNode.Kind.ACTUAL_IN || source.getKind() == SDGNode.Kind.FORMAL_IN
+						|| source.getKind() == SDGNode.Kind.ACTUAL_OUT || source.getKind() == SDGNode.Kind.FORMAL_OUT
+						|| target.getKind() == SDGNode.Kind.ACTUAL_IN || target.getKind() == SDGNode.Kind.FORMAL_IN
+						|| target.getKind() == SDGNode.Kind.ACTUAL_OUT || target.getKind() == SDGNode.Kind.FORMAL_OUT)
+					continue;
 
-         		for (TopologicalNumber nr : t) {
-         			Collection<TopologicalNumber> preds = cg.getPredecessorsPlusNoFlow(nr);
-         			boolean ok = false;
+				if (source.getKind() == SDGNode.Kind.ENTRY && target.getKind() == SDGNode.Kind.EXIT)
+					continue;
 
-         			for (TopologicalNumber mr : s) {
-         				if (mr == nr || (mr.getProcID() == nr.getProcID() && preds.contains(mr))) {
-         					ok = true;
-         				}
-         			}
+				for (TopologicalNumber nr : t) {
+					Collection<TopologicalNumber> preds = cg.getPredecessorsPlusNoFlow(nr);
+					boolean ok = false;
 
-         			if (!ok) {
-         				System.out.println("****************");
- 	            		System.out.println(e);
- 	            		System.out.println("target "+nr);
- 	            		System.out.println("preds "+preds);
- 	            		System.out.println("sources "+s);
-         			}
-         		}
-         	}
-         }
-    }
+					for (TopologicalNumber mr : s) {
+						if (mr == nr || (mr.getProcID() == nr.getProcID() && preds.contains(mr))) {
+							ok = true;
+						}
+					}
+
+					if (!ok) {
+						debug.outln("****************");
+						debug.outln(e);
+						debug.outln("target " + nr);
+						debug.outln("preds " + preds);
+						debug.outln("sources " + s);
+					}
+				}
+			}
+		}
+	}
 }

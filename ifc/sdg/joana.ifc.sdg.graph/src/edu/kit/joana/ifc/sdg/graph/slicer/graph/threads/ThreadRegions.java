@@ -7,6 +7,13 @@
  */
 package edu.kit.joana.ifc.sdg.graph.slicer.graph.threads;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -14,14 +21,9 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 import gnu.trove.map.hash.TIntObjectHashMap;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
 
 
 /**
@@ -30,8 +32,6 @@ import java.util.Set;
  */
 public class ThreadRegions implements Iterable<ThreadRegion> {
 
-	private static final boolean DEBUG = false;
-	
 	/** the control flow graph used to determine the thread regions */
 	private CFG icfg;
 
@@ -299,12 +299,9 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 
 			 }
 
-			 if (DEBUG) {
-				 System.out.println("threads without regions: " + threadsWithoutRegions);
-	
-				 System.out.println("nodes without thread regions: " + nodesWithoutRegions);
-			 }
-
+			 final Logger debug = Log.getLogger(Log.L_MHP_DEBUG);
+			 debug.outln("threads without regions: " + threadsWithoutRegions);
+			 debug.outln("nodes without thread regions: " + nodesWithoutRegions);
 
 			 return new ThreadRegions(regions, icfg, map);
 		 }

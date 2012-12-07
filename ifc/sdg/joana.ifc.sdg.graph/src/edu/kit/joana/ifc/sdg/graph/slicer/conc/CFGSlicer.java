@@ -33,7 +33,6 @@ public abstract class CFGSlicer {
         public boolean saveInOtherWorklist(SDGEdge e);
     }
 
-    protected static boolean DEBUG = false;
     protected CFG g;
     private Set<SDGEdge.Kind> omittedEdges = new HashSet<SDGEdge.Kind>();
 

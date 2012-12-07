@@ -123,9 +123,6 @@ public class ContextGraphBuilder {
 			if (e.getKind().isThreadEdge()) {
 				Collection<TopologicalNumber> sources = result.getTopologicalNumbers(e.getSource());
 				Collection<TopologicalNumber> targets = result.getTopologicalNumbers(e.getTarget());
-//				System.out.println(e);
-//				System.out.println(sources);
-//				System.out.println(targets);
 
 				for (TopologicalNumber s : sources) {
 					for (TopologicalNumber t : targets) {
@@ -207,7 +204,7 @@ public class ContextGraphBuilder {
 				for (DynamicContext d : lll) {
 					if (next.isSuffixOf(d) || d.isSuffixOf(next)) {
 						// rekursion!
-						System.out.println(d+"\n subsumes "+next);
+						Log.ERROR.outln(d + "\n subsumes " + next);
 						throw new RuntimeException();
 					}
 				}

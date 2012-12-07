@@ -19,6 +19,8 @@ import edu.kit.joana.ifc.sdg.graph.PDGs;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.ISCRBuilder;
+import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.ISCRGraph;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.experimental.ContextGraph.ContextEdge;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;

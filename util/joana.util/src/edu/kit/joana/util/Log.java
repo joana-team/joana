@@ -25,6 +25,12 @@ public final class Log {
 	public static final String L_ERROR 							= "error";
 	public static final String L_API_DEBUG 						= "api.debug";
 	public static final String L_CONSOLE_DEBUG 					= "console.debug";
+	public static final String L_SDG_CORE_DEBUG 				= "sdg.core.debug";
+	public static final String L_SDG_GRAPH_DEBUG 				= "sdg.graph.debug";
+	public static final String L_SDG_INTERFERENCE_DEBUG 		= "sdg.interference.debug";
+	public static final String L_SDG_CALLGRAPH_DEBUG 			= "sdg.callgraph.debug";
+	public static final String L_SDG_ISCR_DEBUG 				= "sdg.iscr.debug";
+	public static final String L_SDG_INFO 						= "sdg.info";
 	public static final String L_MHP_DEBUG 						= "mhp.debug";
 	public static final String L_MHP_INFO						= "mhp.info";
 	public static final String L_WALA_CORE_DEBUG				= "wala.core.debug";
@@ -50,6 +56,30 @@ public final class Log {
 	}
 	
 	public static final Logger ERROR = getLogger(L_ERROR);
+	private static final Logger DEFAULT_DISABLED = new Logger() {
+		@Override
+		public void setEnabled(boolean enable) {
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void outln(String str, Throwable t) {}
+		@Override
+		public void outln(String str) {}
+		@Override
+		public void outln(Object obj, Throwable t) {}
+		@Override
+		public void outln(Object obj) {}
+		@Override
+		public void out(String str) {}
+		@Override
+		public void out(Object obj) {}
+		
+		@Override
+		public boolean isEnabled() {
+			return false;
+		}
+	};
 	
 	private Log() {
 		throw new IllegalStateException("Do not initialize me.");
@@ -61,10 +91,14 @@ public final class Log {
 		}
 		
 		final boolean isEnabled = findDefault(name);
-		final Logger l = new DefaultLogger(System.out, isEnabled);
-		NAME2LOG.put(name, l);
-		
-		return l;
+		if (isEnabled) {
+			final Logger l = new DefaultLogger(System.out, isEnabled);
+			NAME2LOG.put(name, l);
+
+			return l;
+		} else {
+			return DEFAULT_DISABLED;
+		}
 	}
 
 	private static boolean findDefault(final String name) {

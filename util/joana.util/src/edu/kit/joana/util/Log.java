@@ -58,10 +58,7 @@ public final class Log {
 	public static final Logger ERROR = getLogger(L_ERROR);
 	private static final Logger DEFAULT_DISABLED = new Logger() {
 		@Override
-		public void setEnabled(boolean enable) {
-			throw new UnsupportedOperationException();
-		}
-		
+		public void setEnabled(boolean enable) {}
 		@Override
 		public void outln(String str, Throwable t) {}
 		@Override

@@ -7,6 +7,8 @@
  */
 package joana.api.testdata.seq;
 
+import static edu.kit.joana.api.annotations.Annotations.*;
+
 /**
  * @author Martin Mohr
  */
@@ -15,22 +17,22 @@ public class ExampleLeakage {
 	int x;
 	
 	int getSecret() {
-		return 42;
+		return SECRET;
 	}
 	
 	void printValue() {
-		System.out.println(x);
+		leak(x);
 	}
 	
 	void doSomething() {
-		x = getSecret();
+		x = toggle(getSecret());
 		printValue();
 	}
 	
 	void doSomethingConditional() {
-		x = getSecret();
+		x = toggle(getSecret());
 		if (x > 42) {
-			System.out.println("Hallo, Welt!");
+			leak("Hallo, Welt!");
 		}
 	}
 	

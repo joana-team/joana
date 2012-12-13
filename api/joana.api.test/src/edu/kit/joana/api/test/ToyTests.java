@@ -130,6 +130,12 @@ public class ToyTests {
 
 		{	// Otherwise, we're precise enough to find out that there aren't
 			IFCAnalysis ana = buildAndAnnotate(classname,top_sequential,true);
+			
+			if (outputPDGFiles) {
+				BufferedOutputStream bOut = new BufferedOutputStream(new FileOutputStream("out/"+classname+".ignore.pdg"));
+				SDGSerializer.toPDGFormat(ana.getProgram().getSDG(), bOut);
+			}
+			
 			Collection<IllicitFlow> illegal = ana.doIFC();
 			assertTrue(illegal.isEmpty());
 		}
@@ -149,6 +155,12 @@ public class ToyTests {
 
 		{	// Otherwise there aren't, but the analysis not precise enough to proof this 
 			IFCAnalysis ana = buildAndAnnotate(classname,top_sequential,true);
+			
+			if (outputPDGFiles) {
+				BufferedOutputStream bOut = new BufferedOutputStream(new FileOutputStream("out/"+classname+".ignore.pdg"));
+				SDGSerializer.toPDGFormat(ana.getProgram().getSDG(), bOut);
+			}
+			
 			Collection<IllicitFlow> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
 		}
@@ -156,7 +168,7 @@ public class ToyTests {
 	
 	@Test
 	public void testFlowSens() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException, CancelException {
-		testTooImprecise("joana.api.testdata.toy.sensitivity.FlowSens");
+		testPreciseEnough("joana.api.testdata.toy.sensitivity.FlowSens");
 	}	
 	
 	@Test

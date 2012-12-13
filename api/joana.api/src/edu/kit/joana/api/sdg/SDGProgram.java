@@ -203,6 +203,146 @@ public class SDGProgram {
 		build();
 		return ppartParser.getMethod(methodDesc);
 	}
+	
+	/**
+	 * Parser for the different parts of the program represented by an sdg. The strings accepted by this parser have to use
+	 * a bytecode notation of types and a point-separated notation of attributes and methods. So, the type java.lang.System
+	 * is represented by the string "Ljava/lang/System;". If a type is part of the name of an attribute or a method, then
+	 * a point-notation has to be used, so the attribute out of the type java.lang.System is denoted by java.lang.System.out.
+	 * Methods are represented by their signatures, which are written (with the exception of the class part of the name)
+	 * in bytecode notation. So the println() method of the type java.io.PrintStream is written as java.io.PrintStream.println(Ljava/lang/String;)V.
+	 * Parameters in methods are represented by an arrow and subsequently p<number> (starting at 0), so for example
+	 * java.lang.System.out.println(Ljava/lang/String;)V->p1 gets the first real parameter, ->p0 gets the this-pointer-parameter. The exit of a
+	 * method is represented by the method signature followed by "->exit". Individual instructions inside the method are represented by
+	 * the method signature followed by ":<number>" where <number> denotes the bytecode index of the instruction. This index has
+	 * to be taken from the sdg representing the program from which the instruction is to be taken.
+	 * @author Martin Mohr
+	 *
+	 */
+	private static final class SDGProgramPartParserBC {
+	
+		private final SDGProgram program;
+	
+		public SDGProgramPartParserBC(SDGProgram program) {
+			this.program = program;
+		}
+	
+		private SDGClass getClass(String className) {
+			JavaType typeName = JavaType.parseSingleTypeFromString(className, Format.BC);
+			if (typeName == null) {
+				return null;
+			} else {
+				return program.getClass(typeName);
+			}
+		}
+	
+		private SDGAttribute getAttribute(String fullAttributeName) {
+			if (!fullAttributeName.contains(".")) {
+				return null;
+			} else {
+				int dotIndex = fullAttributeName.lastIndexOf(".");
+				String declaringTypeSrc = fullAttributeName.substring(0, dotIndex);
+				String attrName = fullAttributeName.substring(dotIndex + 1);
+				JavaType declaringType = JavaType.parseSingleTypeFromString(declaringTypeSrc, Format.HR);
+				if (declaringType == null) {
+					return null;
+				} else {
+					return program.getAttribute(declaringType, attrName);
+				}
+			}
+		}
+	
+		private SDGMethod getMethod(String fullMethodName) {
+			JavaMethodSignature mSig = JavaMethodSignature.fromString(fullMethodName);
+			if (mSig == null) {
+				return null;
+			} else {
+				return program.getMethod(mSig);
+			}
+		}
+	
+		private SDGMethodExitNode getMethodExitNode(String str) {
+			str = str.replaceAll("\\s+", "");
+			if (!str.endsWith("->exit")) {
+				return null;
+			} else {
+				String methodSigSrc = str.substring(0, str.lastIndexOf("->"));
+				JavaMethodSignature m = JavaMethodSignature.fromString(methodSigSrc);
+				return program.getMethodExitNode(m);
+			}
+		}
+	
+		private SDGInstruction getInstruction(String instr) {
+			if (!instr.contains(":")) {
+				return null;
+			} else {
+				int colonIndex = instr.lastIndexOf(':');
+				String methodSrc = instr.substring(0, colonIndex);
+				JavaMethodSignature m = JavaMethodSignature.fromString(methodSrc);
+				if (m == null) {
+					return null;
+				} else {
+					String bcIndexSrc = instr.substring(colonIndex + 1);
+					Integer bcIndex;
+					try {
+						bcIndex = Integer.parseInt(bcIndexSrc);
+					} catch (NumberFormatException e) {
+						return null;
+					}
+	
+					return program.getInstruction(m, bcIndex);
+				}
+			}
+		}
+	
+		private SDGParameter getMethodParameter(String str) {
+			if (!str.contains("->")) {
+				return null;
+			} else {
+				int arrowLoc = str.lastIndexOf("->");
+				String methodSrc = str.substring(0, arrowLoc);
+				JavaMethodSignature m = JavaMethodSignature.fromString(methodSrc);
+				if (m == null) {
+					return null;
+				} else {
+					String rest = str.substring(arrowLoc + 2);
+					String paramIndexSrc;
+					if (!rest.startsWith("p")) {
+						return null;
+					} else {
+						paramIndexSrc = rest.substring(1);
+					}
+					Integer paramIndex;
+					try {
+						paramIndex = Integer.parseInt(paramIndexSrc);
+					} catch (NumberFormatException e) {
+						return null;
+					}
+	
+					return program.getMethodParameter(m, paramIndex);
+				}
+			}
+		}
+	
+		private SDGProgramPart getProgramPart(String str) {
+			str = str.replaceAll("\\s+", "");
+			if (str.contains(":")) {
+				return getInstruction(str);
+			} else if (str.endsWith("->exit")) {
+				return getMethodExitNode(str);
+			} else if (str.contains("->")) {
+				return getMethodParameter(str);
+			} else if (str.contains(".")) {
+				if (str.contains("(")) {
+					return getMethod(str);
+				} else {
+					return getAttribute(str);
+				}
+			} else {
+				return getClass(str);
+			}
+		}
+	}
 
 }
 
@@ -609,146 +749,6 @@ class ThreadSensitiveMethodFilterWithCaching implements MethodFilter {
 				nonThreadClasses.add(m.getDeclaringClass());
 			}
 			return ret;
-		}
-	}
-}
-
-/**
- * Parser for the different parts of the program represented by an sdg. The strings accepted by this parser have to use
- * a bytecode notation of types and a point-separated notation of attributes and methods. So, the type java.lang.System
- * is represented by the string "Ljava/lang/System;". If a type is part of the name of an attribute or a method, then
- * a point-notation has to be used, so the attribute out of the type java.lang.System is denoted by java.lang.System.out.
- * Methods are represented by their signatures, which are written (with the exception of the class part of the name)
- * in bytecode notation. So the println() method of the type java.io.PrintStream is written as java.io.PrintStream.println(Ljava/lang/String;)V.
- * Parameters in methods are represented by an arrow and subsequently p<number> (starting at 0), so for example
- * java.lang.System.out.println(Ljava/lang/String;)V->p1 gets the first real parameter, ->p0 gets the this-pointer-parameter. The exit of a
- * method is represented by the method signature followed by "->exit". Individual instructions inside the method are represented by
- * the method signature followed by ":<number>" where <number> denotes the bytecode index of the instruction. This index has
- * to be taken from the sdg representing the program from which the instruction is to be taken.
- * @author Martin Mohr
- *
- */
-class SDGProgramPartParserBC {
-
-	private final SDGProgram program;
-
-	public SDGProgramPartParserBC(SDGProgram program) {
-		this.program = program;
-	}
-
-	public SDGClass getClass(String className) {
-		JavaType typeName = JavaType.parseSingleTypeFromString(className, Format.BC);
-		if (typeName == null) {
-			return null;
-		} else {
-			return program.getClass(typeName);
-		}
-	}
-
-	public SDGAttribute getAttribute(String fullAttributeName) {
-		if (!fullAttributeName.contains(".")) {
-			return null;
-		} else {
-			int dotIndex = fullAttributeName.lastIndexOf(".");
-			String declaringTypeSrc = fullAttributeName.substring(0, dotIndex);
-			String attrName = fullAttributeName.substring(dotIndex + 1);
-			JavaType declaringType = JavaType.parseSingleTypeFromString(declaringTypeSrc, Format.HR);
-			if (declaringType == null) {
-				return null;
-			} else {
-				return program.getAttribute(declaringType, attrName);
-			}
-		}
-	}
-
-	public SDGMethod getMethod(String fullMethodName) {
-		JavaMethodSignature mSig = JavaMethodSignature.fromString(fullMethodName);
-		if (mSig == null) {
-			return null;
-		} else {
-			return program.getMethod(mSig);
-		}
-	}
-
-	public SDGMethodExitNode getMethodExitNode(String str) {
-		str = str.replaceAll("\\s+", "");
-		if (!str.endsWith("->exit")) {
-			return null;
-		} else {
-			String methodSigSrc = str.substring(0, str.lastIndexOf("->"));
-			JavaMethodSignature m = JavaMethodSignature.fromString(methodSigSrc);
-			return program.getMethodExitNode(m);
-		}
-	}
-
-	public SDGInstruction getInstruction(String instr) {
-		if (!instr.contains(":")) {
-			return null;
-		} else {
-			int colonIndex = instr.lastIndexOf(':');
-			String methodSrc = instr.substring(0, colonIndex);
-			JavaMethodSignature m = JavaMethodSignature.fromString(methodSrc);
-			if (m == null) {
-				return null;
-			} else {
-				String bcIndexSrc = instr.substring(colonIndex + 1);
-				Integer bcIndex;
-				try {
-					bcIndex = Integer.parseInt(bcIndexSrc);
-				} catch (NumberFormatException e) {
-					return null;
-				}
-
-				return program.getInstruction(m, bcIndex);
-			}
-		}
-	}
-
-	public SDGParameter getMethodParameter(String str) {
-		if (!str.contains("->")) {
-			return null;
-		} else {
-			int arrowLoc = str.lastIndexOf("->");
-			String methodSrc = str.substring(0, arrowLoc);
-			JavaMethodSignature m = JavaMethodSignature.fromString(methodSrc);
-			if (m == null) {
-				return null;
-			} else {
-				String rest = str.substring(arrowLoc + 2);
-				String paramIndexSrc;
-				if (!rest.startsWith("p")) {
-					return null;
-				} else {
-					paramIndexSrc = rest.substring(1);
-				}
-				Integer paramIndex;
-				try {
-					paramIndex = Integer.parseInt(paramIndexSrc);
-				} catch (NumberFormatException e) {
-					return null;
-				}
-
-				return program.getMethodParameter(m, paramIndex);
-			}
-		}
-	}
-
-	public SDGProgramPart getProgramPart(String str) {
-		str = str.replaceAll("\\s+", "");
-		if (str.contains(":")) {
-			return getInstruction(str);
-		} else if (str.endsWith("->exit")) {
-			return getMethodExitNode(str);
-		} else if (str.contains("->")) {
-			return getMethodParameter(str);
-		} else if (str.contains(".")) {
-			if (str.contains("(")) {
-				return getMethod(str);
-			} else {
-				return getAttribute(str);
-			}
-		} else {
-			return getClass(str);
 		}
 	}
 }

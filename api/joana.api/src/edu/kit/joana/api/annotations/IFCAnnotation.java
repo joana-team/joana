@@ -39,7 +39,7 @@ public class IFCAnnotation {
 	private final String level1;
 	private final String level2;
 	private final SDGProgramPart annotatedPart;
-	private SDGMethod context;
+	private final SDGMethod context;
 
 	public IFCAnnotation(Type type, String level, SDGProgramPart annotatedPart) {
 		this(type, level, annotatedPart, null);
@@ -61,12 +61,31 @@ public class IFCAnnotation {
 		if (level1 == null || level2 == null || annotatedPart == null) {
 			throw new IllegalArgumentException();
 		}
-
-
+		
 		this.type = Type.DECLASS;
 		this.level1 = level1;
 		this.level2 = level2;
 		this.annotatedPart = annotatedPart;
+		this.context = null;
+	}
+	
+	private IFCAnnotation(Type type, String level1, String level2, SDGProgramPart annotatedPart, SDGMethod context) {
+		this.type = type;
+		this.level1 = level1;
+		this.level2 = level2;
+		this.annotatedPart = annotatedPart;
+		this.context = context;
+	}
+	
+	/**
+	 * Returns an IFC annotation which is equivalent to this IFC annotation with the exception of the
+	 * annotated program part
+	 * @param newPPart program part of new annotation
+	 * @return an IFC annotation which is equivalent to this IFC annotation with the exception of the
+	 * annotated program part
+	 */
+	public IFCAnnotation transferTo(SDGProgramPart newPPart) {
+		return new IFCAnnotation(type, level1, level2, newPPart, context);
 	}
 
 	public Type getType() {

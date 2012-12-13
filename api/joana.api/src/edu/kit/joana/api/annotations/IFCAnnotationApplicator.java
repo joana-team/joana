@@ -220,12 +220,12 @@ public class IFCAnnotationApplicator extends SDGProgramPartVisitor<Void, IFCAnno
 		}
 	}
 
-	private SDGMethod obtainMethod(SDGNode node) {
-		return program.getMethod(JavaMethodSignature.fromString(program.getSDG().getEntry(node).getBytecodeMethod()));
+	private Collection<SDGMethod> obtainMethods(SDGNode node) {
+		return program.getMethods(JavaMethodSignature.fromString(program.getSDG().getEntry(node).getBytecodeMethod()));
 	}
 
 	private void annotateNode(SDGNode node, IFCAnnotation ann) {
-		if (ann.getContext() == null || ann.getContext().equals(obtainMethod(node))) {
+		if (ann.getContext() == null || obtainMethods(node).contains(ann.getContext())) {
 			SecurityNode sNode = (SecurityNode) node;
 			NodeAnnotationInfo nai;
 			switch (ann.getType()) {

@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -56,7 +57,7 @@ public class SDGProgram {
 	private final SDG sdg;
 	private SDGProgramPartParserBC ppartParser;
 	private static Logger debug = Log.getLogger(Log.L_API_DEBUG);
-	
+
 	static {
 		debug.setEnabled(false);
 	}
@@ -117,9 +118,9 @@ public class SDGProgram {
 		cfg.pts = config.getPointsToPrecision();
 		cfg.accessPath = config.computeAccessPaths();
 		cfg.stubs = config.getStubsPath().getPath();
-		
+
 		debug.outln(cfg.stubs);
-		
+
 		if (config.computeInterferences()) {
 			cfg.pts = PointsToPrecision.OBJECT_SENSITIVE;
 			cfg.objSensFilter = new ThreadSensitiveMethodFilterWithCaching();
@@ -127,7 +128,7 @@ public class SDGProgram {
 		monitor.beginTask("build SDG", 20);
 		SDG sdg = Main.compute(out, cfg, config.computeInterferences(), monitor);
 		if (config.computeInterferences()) {
-			//CSDGPreprocessor p = new CSDGPreprocessor(sdg);
+			// CSDGPreprocessor p = new CSDGPreprocessor(sdg);
 			switch (config.getMhpType()) {
 			case NONE:
 				CSDGPreprocessor.justPrecprocess(sdg);
@@ -145,7 +146,6 @@ public class SDGProgram {
 		SDGProgram ret = new SDGProgram(sdg);
 		return ret;
 	}
-	
 
 	private void build() {
 		if (!isBuilt) {
@@ -164,70 +164,97 @@ public class SDGProgram {
 		return classes;
 	}
 
-	public SDGClass getClass(JavaType typeName) {
+	public Collection<SDGClass> getClass(JavaType typeName) {
 		build();
 		return classRes.getClass(typeName);
 	}
 
-	public SDGAttribute getAttribute(JavaType typeName, String attrName) {
+	public Collection<SDGAttribute> getAttribute(JavaType typeName, String attrName) {
 		build();
 		return classRes.getAttribute(typeName, attrName);
 	}
 
-	public SDGMethod getMethod(JavaMethodSignature methodSig) {
+	public Collection<SDGMethod> getMethods(JavaMethodSignature methodSig) {
 		build();
 		return classRes.getMethod(methodSig.getDeclaringType(), methodSig);
 	}
 
-	public SDGInstruction getInstruction(JavaMethodSignature methodSig, int bcIndex) {
+	public Collection<SDGInstruction> getInstruction(JavaMethodSignature methodSig, int bcIndex) {
 		build();
 		return classRes.getInstruction(methodSig.getDeclaringType(), methodSig, bcIndex);
 	}
 
-	public SDGMethodExitNode getMethodExitNode(JavaMethodSignature methodSig) {
+	public Collection<SDGMethodExitNode> getMethodExitNode(JavaMethodSignature methodSig) {
 		build();
 		return classRes.getMethodExitNode(methodSig.getDeclaringType(), methodSig);
 	}
 
-	public SDGParameter getMethodParameter(JavaMethodSignature methodSig, int paramIndex) {
+	public Collection<SDGParameter> getMethodParameter(JavaMethodSignature methodSig, int paramIndex) {
 		build();
 		return classRes.getMethodParameter(methodSig.getDeclaringType(), methodSig, paramIndex);
 	}
-	
+
+	public Collection<? extends SDGProgramPart> getParts(String partDesc) {
+		build();
+		return ppartParser.getProgramParts(partDesc);
+	}
+
+	public Collection<SDGMethod> getMethods(String methodDesc) {
+		build();
+		return ppartParser.getMethods(methodDesc);
+	}
+
 	public SDGProgramPart getPart(String partDesc) {
-		build();
-		return ppartParser.getProgramPart(partDesc);
+		Collection<? extends SDGProgramPart> pparts = getParts(partDesc);
+		if (pparts.isEmpty()) {
+			return null;
+		} else {
+			return pparts.iterator().next();
+		}
 	}
-	
+
 	public SDGMethod getMethod(String methodDesc) {
-		build();
-		return ppartParser.getMethod(methodDesc);
+		Collection<SDGMethod> pparts = getMethods(methodDesc);
+		if (pparts.isEmpty()) {
+			return null;
+		} else {
+			return pparts.iterator().next();
+		}
 	}
-	
+
 	/**
-	 * Parser for the different parts of the program represented by an sdg. The strings accepted by this parser have to use
-	 * a bytecode notation of types and a point-separated notation of attributes and methods. So, the type java.lang.System
-	 * is represented by the string "Ljava/lang/System;". If a type is part of the name of an attribute or a method, then
-	 * a point-notation has to be used, so the attribute out of the type java.lang.System is denoted by java.lang.System.out.
-	 * Methods are represented by their signatures, which are written (with the exception of the class part of the name)
-	 * in bytecode notation. So the println() method of the type java.io.PrintStream is written as java.io.PrintStream.println(Ljava/lang/String;)V.
-	 * Parameters in methods are represented by an arrow and subsequently p<number> (starting at 0), so for example
-	 * java.lang.System.out.println(Ljava/lang/String;)V->p1 gets the first real parameter, ->p0 gets the this-pointer-parameter. The exit of a
-	 * method is represented by the method signature followed by "->exit". Individual instructions inside the method are represented by
-	 * the method signature followed by ":<number>" where <number> denotes the bytecode index of the instruction. This index has
-	 * to be taken from the sdg representing the program from which the instruction is to be taken.
+	 * Parser for the different parts of the program represented by an sdg. The
+	 * strings accepted by this parser have to use a bytecode notation of types
+	 * and a point-separated notation of attributes and methods. So, the type
+	 * java.lang.System is represented by the string "Ljava/lang/System;". If a
+	 * type is part of the name of an attribute or a method, then a
+	 * point-notation has to be used, so the attribute out of the type
+	 * java.lang.System is denoted by java.lang.System.out. Methods are
+	 * represented by their signatures, which are written (with the exception of
+	 * the class part of the name) in bytecode notation. So the println() method
+	 * of the type java.io.PrintStream is written as
+	 * java.io.PrintStream.println(Ljava/lang/String;)V. Parameters in methods
+	 * are represented by an arrow and subsequently p<number> (starting at 0),
+	 * so for example java.lang.System.out.println(Ljava/lang/String;)V->p1 gets
+	 * the first real parameter, ->p0 gets the this-pointer-parameter. The exit
+	 * of a method is represented by the method signature followed by "->exit".
+	 * Individual instructions inside the method are represented by the method
+	 * signature followed by ":<number>" where <number> denotes the bytecode
+	 * index of the instruction. This index has to be taken from the sdg
+	 * representing the program from which the instruction is to be taken.
+	 * 
 	 * @author Martin Mohr
-	 *
+	 * 
 	 */
 	private static final class SDGProgramPartParserBC {
-	
+
 		private final SDGProgram program;
-	
+
 		public SDGProgramPartParserBC(SDGProgram program) {
 			this.program = program;
 		}
-	
-		private SDGClass getClass(String className) {
+
+		private Collection<SDGClass> getClasss(String className) {
 			JavaType typeName = JavaType.parseSingleTypeFromString(className, Format.BC);
 			if (typeName == null) {
 				return null;
@@ -235,8 +262,8 @@ public class SDGProgram {
 				return program.getClass(typeName);
 			}
 		}
-	
-		private SDGAttribute getAttribute(String fullAttributeName) {
+
+		private Collection<SDGAttribute> getAttributes(String fullAttributeName) {
 			if (!fullAttributeName.contains(".")) {
 				return null;
 			} else {
@@ -251,17 +278,17 @@ public class SDGProgram {
 				}
 			}
 		}
-	
-		private SDGMethod getMethod(String fullMethodName) {
+
+		private Collection<SDGMethod> getMethods(String fullMethodName) {
 			JavaMethodSignature mSig = JavaMethodSignature.fromString(fullMethodName);
 			if (mSig == null) {
 				return null;
 			} else {
-				return program.getMethod(mSig);
+				return program.getMethods(mSig);
 			}
 		}
-	
-		private SDGMethodExitNode getMethodExitNode(String str) {
+
+		private Collection<SDGMethodExitNode> getMethodExitNodes(String str) {
 			str = str.replaceAll("\\s+", "");
 			if (!str.endsWith("->exit")) {
 				return null;
@@ -271,8 +298,8 @@ public class SDGProgram {
 				return program.getMethodExitNode(m);
 			}
 		}
-	
-		private SDGInstruction getInstruction(String instr) {
+
+		private Collection<SDGInstruction> getInstructions(String instr) {
 			if (!instr.contains(":")) {
 				return null;
 			} else {
@@ -289,13 +316,13 @@ public class SDGProgram {
 					} catch (NumberFormatException e) {
 						return null;
 					}
-	
+
 					return program.getInstruction(m, bcIndex);
 				}
 			}
 		}
-	
-		private SDGParameter getMethodParameter(String str) {
+
+		private Collection<SDGParameter> getMethodParameters(String str) {
 			if (!str.contains("->")) {
 				return null;
 			} else {
@@ -318,37 +345,38 @@ public class SDGProgram {
 					} catch (NumberFormatException e) {
 						return null;
 					}
-	
+
 					return program.getMethodParameter(m, paramIndex);
 				}
 			}
 		}
-	
-		private SDGProgramPart getProgramPart(String str) {
+
+		private Collection<? extends SDGProgramPart> getProgramParts(String str) {
 			str = str.replaceAll("\\s+", "");
 			if (str.contains(":")) {
-				return getInstruction(str);
+				return getInstructions(str);
 			} else if (str.endsWith("->exit")) {
-				return getMethodExitNode(str);
+				return getMethodExitNodes(str);
 			} else if (str.contains("->")) {
-				return getMethodParameter(str);
+				return getMethodParameters(str);
 			} else if (str.contains(".")) {
 				if (str.contains("(")) {
-					return getMethod(str);
+					return getMethods(str);
 				} else {
-					return getAttribute(str);
+					return getAttributes(str);
 				}
 			} else {
-				return getClass(str);
+				return getClasss(str);
 			}
 		}
+
 	}
 
 }
 
 final class SDGClassComputation {
 
-	private static final Logger debug = Log.getLogger(Log.L_API_DEBUG); 
+	private static final Logger debug = Log.getLogger(Log.L_API_DEBUG);
 
 	private final SDG sdg;
 	private final Map<JavaType, Set<SDGNode>> seenClasses = new HashMap<JavaType, Set<SDGNode>>();
@@ -533,8 +561,8 @@ final class SDGClassComputation {
 
 class SDGClassResolver {
 
-	private static final Logger debug = Log.getLogger(Log.L_API_DEBUG); 
-	
+	private static final Logger debug = Log.getLogger(Log.L_API_DEBUG);
+
 	private Set<SDGClass> classes = new HashSet<SDGClass>();
 
 	public SDGClassResolver() {
@@ -550,65 +578,82 @@ class SDGClassResolver {
 		this.classes.addAll(newClasses);
 	}
 
-	public SDGClass getClass(JavaType typeName) {
+	public Collection<SDGClass> getClass(JavaType typeName) {
+		Collection<SDGClass> ret = new LinkedList<SDGClass>();
 		for (SDGClass cl : classes) {
 			if (debug.isEnabled()) {
 				debug.outln(cl.getTypeName().toBCString() + " " + typeName.toBCString());
 			}
-			
+
 			if (cl.getTypeName().equals(typeName)) {
-				return cl;
+				ret.add(cl);
 			}
 		}
 
-		return null;
+		return ret;
 	}
 
-	public SDGAttribute getAttribute(JavaType typeName, String attrName) {
-		SDGClass cl = getClass(typeName);
-		if (cl == null) {
+	public Collection<SDGAttribute> getAttribute(JavaType typeName, String attrName) {
+		Collection<SDGClass> cl = getClass(typeName);
+		if (cl.isEmpty()) {
 			if (debug.isEnabled()) {
 				debug.outln("class " + typeName + " not found!");
 			}
-			
-			return null;
-		} else {
-			for (SDGAttribute a : cl.getAttributes()) {
+		}
+		Collection<SDGAttribute> ret = new LinkedList<SDGAttribute>();
+		for (SDGClass c : cl) {
+			for (SDGAttribute a : c.getAttributes()) {
 				if (attrName.equals(a.getName())) {
-					return a;
+					ret.add(a);
 				}
 			}
-
-			return null;
 		}
+
+		return ret;
 	}
 
-	public SDGMethod getMethod(JavaType typeName, JavaMethodSignature methodSig) {
-		final SDGClass cl = getClass(typeName);
-		
-		if (cl != null) {
-			for (SDGMethod m : cl.getMethods()) {
+	public Collection<SDGMethod> getMethod(JavaType typeName, JavaMethodSignature methodSig) {
+		final Collection<SDGClass> cl = getClass(typeName);
+		Collection<SDGMethod> ret = new LinkedList<SDGMethod>();
+		for (SDGClass c : cl) {
+			for (SDGMethod m : c.getMethods()) {
 				if (methodSig.equals(m.getSignature())) {
-					return m;
+					ret.add(m);
 				}
 			}
 		}
-		
-		return null;
+
+		return ret;
 	}
 
-	public SDGParameter getMethodParameter(JavaType typeName, JavaMethodSignature methodSig, int paramNo) {
-		SDGMethod m = getMethod(typeName, methodSig);
-		return m.getParameter(paramNo);
+	public Collection<SDGParameter> getMethodParameter(JavaType typeName, JavaMethodSignature methodSig, int paramNo) {
+		Collection<SDGMethod> ms = getMethod(typeName, methodSig);
+		Collection<SDGParameter> ret = new LinkedList<SDGParameter>();
+		for (SDGMethod m : ms) {
+			if (m.getParameter(paramNo) != null) {
+				ret.add(m.getParameter(paramNo));
+			}
+		}
+		return ret;
 	}
 
-	public SDGInstruction getInstruction(JavaType typeName, JavaMethodSignature methodSig, int bcIndex) {
-		SDGMethod m = getMethod(typeName, methodSig);
-		return m.getInstructionWithBCIndex(bcIndex);
+	public Collection<SDGInstruction> getInstruction(JavaType typeName, JavaMethodSignature methodSig, int bcIndex) {
+		Collection<SDGMethod> ms = getMethod(typeName, methodSig);
+		Collection<SDGInstruction> ret = new LinkedList<SDGInstruction>();
+		for (SDGMethod m : ms) {
+			ret.add(m.getInstructionWithBCIndex(bcIndex));
+		}
+
+		return ret;
 	}
 
-	public SDGMethodExitNode getMethodExitNode(JavaType typeName, JavaMethodSignature methodSig) {
-		return getMethod(typeName, methodSig).getExit();
+	public Collection<SDGMethodExitNode> getMethodExitNode(JavaType typeName, JavaMethodSignature methodSig) {
+		Collection<SDGMethod> ms = getMethod(typeName, methodSig);
+		Collection<SDGMethodExitNode> ret = new LinkedList<SDGMethodExitNode>();
+		for (SDGMethod m : ms) {
+			ret.add(m.getExit());
+		}
+		return ret;
 	}
 
 	// public SDGProgramPart findProgramPart(SDGNode node) {
@@ -706,7 +751,8 @@ class ThreadSensitiveMethodFilter implements MethodFilter {
 	@Override
 	public boolean engageObjectSensitivity(IMethod m) {
 		IClassHierarchy cha = m.getClassHierarchy();
-		return !m.isStatic() && (cha.isAssignableFrom(cha.lookupClass(TypeReference.JavaLangThread), m.getDeclaringClass()));
+		return !m.isStatic()
+				&& (cha.isAssignableFrom(cha.lookupClass(TypeReference.JavaLangThread), m.getDeclaringClass()));
 	}
 
 	@Override
@@ -752,5 +798,3 @@ class ThreadSensitiveMethodFilterWithCaching implements MethodFilter {
 		}
 	}
 }
-
-

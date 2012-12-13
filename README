@@ -39,7 +39,7 @@ annotated with security levels. Joana determines using a data flow analysis
 on the SDG whether data of a certain security level may illicitly reach an
 unauthorized user of the system
 
-===================================================
+====================================================
 === Very quick first time setup (just compile .jars)
 
 1. Fetch submodule sources
@@ -123,6 +123,7 @@ You may want to add at least all projects in
 wala/
 ifc/sdg
 contrib/lib
+util/
 
 to your workspace, in order to get the core parts of Joana.
 
@@ -171,6 +172,8 @@ joana
 |   +-- lib _______ External libraries.
 |   |
 |   +-- wala ______ GIT submodule of the WALA framework.
+|   |
+|   +-- www _______ Resources for Joana homepage and Web Start applications.
 |
 +-- deprecated ____ Old deprecated projects. Will be removed.
 |

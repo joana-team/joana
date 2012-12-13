@@ -12,17 +12,8 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-package edu.kit.joana.ui.ifc.wala.console.io;
+package edu.kit.joana.api.sdg;
 
-import edu.kit.joana.api.sdg.SDGAttribute;
-import edu.kit.joana.api.sdg.SDGClass;
-import edu.kit.joana.api.sdg.SDGInstruction;
-import edu.kit.joana.api.sdg.SDGMethod;
-import edu.kit.joana.api.sdg.SDGMethodExitNode;
-import edu.kit.joana.api.sdg.SDGParameter;
-import edu.kit.joana.api.sdg.SDGPhi;
-import edu.kit.joana.api.sdg.SDGProgramPart;
-import edu.kit.joana.api.sdg.SDGProgramPartVisitor;
 
 
 final class BytecodeCentricSDGMethodPartWriter extends SDGProgramPartWriter {

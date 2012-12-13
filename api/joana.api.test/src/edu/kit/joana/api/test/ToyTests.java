@@ -48,7 +48,7 @@ public class ToyTests {
 	static final String CLASSPATH_ANNOTATIONS_PASSON = "../joana.api.annotations.passon/bin";
 	static final Stubs STUBS = Stubs.JRE_14;
 	
-	static final boolean outputPDGFiles = false;
+	static final boolean outputPDGFiles = true;
 	
 	static final SDGConfig top_sequential = 
 	    new SDGConfig(CLASSPATH_APP,null,STUBS,

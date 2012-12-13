@@ -14,6 +14,7 @@ CVS
 DeprecatedOldSDG_*.java
 api/joana.api.test/lib
 api/joana.api/bin
+api/joana.api.test/bin
 checkflow_tmp
 deprecated/jSDG/bin
 deprecated/joana.deprecated.jsdg/*.csv

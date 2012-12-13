@@ -21,7 +21,7 @@ public final class BuiltinLattices {
 	/** standard security level 'low' - used as bottom element in all lattices provided by this class */
 	public static final String STD_SECLEVEL_LOW = "low";
 	
-	/** standard security level 'low' - used as bottom element in all lattices provided by this class */
+	/** standard security level 'high' - used as top element in all lattices provided by this class */
 	public static final String STD_SECLEVEL_HIGH = "high";
 	
 	/** standard security level 'mid' - used  in {@link #getTernaryLattice ternary lattice} */

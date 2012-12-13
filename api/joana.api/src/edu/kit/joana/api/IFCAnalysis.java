@@ -18,6 +18,7 @@ import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
+import edu.kit.joana.api.sdg.SDGProgramPartWriter;
 import edu.kit.joana.ifc.sdg.core.IFC;
 import edu.kit.joana.ifc.sdg.core.conc.PossibilisticNIChecker;
 import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNIChecker;
@@ -135,7 +136,11 @@ public class IFCAnalysis {
 	}
 
 	public void addAnnotation(IFCAnnotation annotation) {
-		annManager.addAnnotation(annotation);
+		String ppDesc = SDGProgramPartWriter.getStandardVersion().writeSDGProgramPart(annotation.getProgramPart());
+		Collection<? extends SDGProgramPart> equivPParts = program.getParts(ppDesc);
+		for (SDGProgramPart part : equivPParts) {
+			annManager.addAnnotation(annotation.transferTo(part));
+		}
 	}
 
 	public Collection<IFCAnnotation> getAnnotations() {

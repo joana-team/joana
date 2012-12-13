@@ -418,6 +418,11 @@ public class CSDGPreprocessor {
 	public static MHPAnalysis runMHP(SDG g) {
 		return runMHP(g, MHPPrecision.PRECISE);
 	}
+	
+	public static void justPrecprocess(SDG g) {
+		CSDGPreprocessor p = new CSDGPreprocessor(g);
+		p.preprocessSDG();
+	}
 
 	public static MHPAnalysis runMHP(SDG g, MHPPrecision prec) {
 		CSDGPreprocessor p = new CSDGPreprocessor(g);

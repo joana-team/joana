@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import edu.kit.joana.api.annotations.IFCAnnotation;
+import edu.kit.joana.api.annotations.IFCAnnotation.Type;
 import edu.kit.joana.api.annotations.IFCAnnotationManager;
 import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGMethod;
@@ -185,12 +186,16 @@ public class IFCAnalysis {
 		return secLattice;
 	}
 
-	public void addSourceAnnotation(SDGProgramPart toMark, String level, SDGMethod context) {
-		annManager.addSourceAnnotation(toMark, level, context);
+	private void addSourceAnnotation(SDGProgramPart toMark, String level, SDGMethod context) {
+		addAnnotation(new IFCAnnotation(Type.SOURCE, level, toMark, context));
 	}
 
-	public void addSinkAnnotation(SDGProgramPart toMark, String level, SDGMethod context) {
-		annManager.addSinkAnnotation(toMark, level, context);
+	private void addSinkAnnotation(SDGProgramPart toMark, String level, SDGMethod context) {
+		addAnnotation(new IFCAnnotation(Type.SINK, level, toMark, context));
+	}
+	
+	public void addDeclassification(SDGProgramPart toMark, String level1, String level2) {
+		addAnnotation(new IFCAnnotation(level1, level2, toMark));
 	}
 
 	public void addSourceAnnotation(SDGProgramPart toMark, String level) {
@@ -201,27 +206,11 @@ public class IFCAnalysis {
 		addSinkAnnotation(toMark, level, null);
 	}
 
-	public void addDeclassification(SDGProgramPart toMark, String level1, String level2) {
-		annManager.addDeclassification(toMark, level1, level2);
+	public boolean isAnnotationLegal(IFCAnnotation ann) {
+		return annManager.isAnnotationLegal(ann);
 	}
 	
 	public SDGProgramPart getProgramPart(String ppartDesc) {
 		return program.getPart(ppartDesc);
-	}
-	
-	public void addSourceAnnotation(String ppartDesc, String level) {
-		addSourceAnnotation(getProgramPart(ppartDesc), level, null);
-	}
-	
-	public void addSinkAnnotation(String ppartDesc, String level) {
-		addSinkAnnotation(getProgramPart(ppartDesc), level, null);
-	}
-	
-	public void addDeclassification(String ppartDesc, String level1, String level2) {
-		addDeclassification(getProgramPart(ppartDesc), level1, level2);
-	}
-
-	public boolean isAnnotationLegal(IFCAnnotation ann) {
-		return annManager.isAnnotationLegal(ann);
 	}
 }

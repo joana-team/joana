@@ -58,10 +58,6 @@ public class SDGProgram {
 	private SDGProgramPartParserBC ppartParser;
 	private static Logger debug = Log.getLogger(Log.L_API_DEBUG);
 
-	static {
-		debug.setEnabled(false);
-	}
-
 	public SDGProgram(SDG sdg) {
 		this.sdg = sdg;
 		this.ppartParser = new SDGProgramPartParserBC(this);

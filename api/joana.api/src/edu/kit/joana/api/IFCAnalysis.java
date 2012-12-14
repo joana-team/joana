@@ -79,7 +79,7 @@ public class IFCAnalysis {
 
 	private void setIFCType(IFCType ifcType) {
 		this.ifcType = ifcType;
-		switch(ifcType) {
+		switch(this.ifcType) {
 		case POSSIBILISTIC:
 			this.ifc = new PossibilisticNIChecker(this.program.getSDG(), secLattice);
 			if (timeSensitiveAnalysis) {
@@ -163,6 +163,9 @@ public class IFCAnalysis {
 		for (Violation vio : vios) {
 			ret.add(new IllicitFlow(vio, getSources(), getSinks()));
 		}
+		
+		
+		
 		annManager.unapplyAllAnnotations();
 		return ret;
 	}

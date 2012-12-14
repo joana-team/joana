@@ -8,8 +8,10 @@
 package edu.kit.joana.api;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.annotations.IFCAnnotation.Type;
@@ -24,6 +26,9 @@ import edu.kit.joana.ifc.sdg.core.conc.PossibilisticNIChecker;
 import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNIChecker;
 import edu.kit.joana.ifc.sdg.core.conc.TimeSensitiveIFCDecorator;
 import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.ifc.sdg.graph.chopper.RepsRosayChopper;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.SimpleMHPAnalysis;
@@ -31,6 +36,8 @@ import edu.kit.joana.ifc.sdg.lattice.IEditableLattice;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
 import edu.kit.joana.ifc.sdg.lattice.WrongLatticeDefinitionException;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 
 public class IFCAnalysis {
 	
@@ -42,6 +49,8 @@ public class IFCAnalysis {
 	private boolean timeSensitiveAnalysis = false;
 	
 	public static final IStaticLattice<String> stdLattice;
+	
+	private static Logger debug = Log.getLogger("api.debug");
 
 	static {
 		try {
@@ -161,12 +170,41 @@ public class IFCAnalysis {
 
 		List<IllicitFlow> ret = new LinkedList<IllicitFlow>();
 		for (Violation vio : vios) {
-			ret.add(new IllicitFlow(vio, getSources(), getSinks()));
+			IllicitFlow ill = new IllicitFlow(vio, getSources(), getSinks());
+			ret.add(ill);
+			RepsRosayChopper c = new RepsRosayChopper(program.getSDG());
+			SDGProgramPart illSrc = ill.getSource();
+			SDGProgramPart illSnk = ill.getSink();
+			if (illSrc != null && illSnk != null) {
+				Collection<SDGNode> chop = c.chop(illSrc.getAttachedNodes(), illSnk.getAttachedNodes());
+				debug.outln("Illicit flow with the following nodes involved: ");
+				Map<SDGNode, Collection<SDGNode>> groupedByProc = groupByProc(program.getSDG(), chop);
+				for (SDGNode nProc : groupedByProc.keySet()) {
+					debug.outln("In method " + nProc.getBytecodeMethod() + ": " + groupedByProc.get(nProc));
+				}
+			}
+			
 		}
 		
 		
 		
 		annManager.unapplyAllAnnotations();
+		return ret;
+	}
+	
+	private static Map<SDGNode, Collection<SDGNode>> groupByProc(SDG sdg, Collection<SDGNode> nodes) {
+		Map<SDGNode, Collection<SDGNode>> ret = new HashMap<SDGNode, Collection<SDGNode>>();
+		for (SDGNode n : nodes) {
+			SDGNode nProc = sdg.getEntry(n);
+			Collection<SDGNode> procColl;
+			if (ret.containsKey(nProc)) {
+				procColl = ret.get(nProc);
+			} else {
+				procColl = new LinkedList<SDGNode>();
+				ret.put(nProc, procColl);
+			}
+			procColl.add(n);
+		}
 		return ret;
 	}
 

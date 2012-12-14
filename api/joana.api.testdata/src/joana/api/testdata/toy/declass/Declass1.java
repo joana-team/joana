@@ -38,6 +38,12 @@ public class Declass1 {
 
 	public static void main(String[] args) {
 		Secret s = (Secret) SECRET_OBJECT;
+		
+		/**
+		 * Our analysis does not rule out, that SECRET_OBJECT is null. If it is, the cast will fail
+		 * and subsequent events do not happen. Therefore, everything is dependent on SECRET_OBJECT
+		 * even if it does not seem to be.
+		 */
 		Secret s2 = declass(toggle(s));
 		bar(s2);
 	}

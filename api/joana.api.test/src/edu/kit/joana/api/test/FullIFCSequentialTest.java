@@ -103,7 +103,7 @@ public class FullIFCSequentialTest {
 					"sequential.PraktomatLeak$Review.failures");
 			Collection<IllicitFlow> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
-			assertEquals(12, illegal.size());
+			assertEquals(6, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

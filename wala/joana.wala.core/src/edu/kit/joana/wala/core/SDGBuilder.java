@@ -56,6 +56,7 @@ import com.ibm.wala.util.graph.impl.SparseNumberedGraph;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.util.SDGConstants;
 import edu.kit.joana.util.Log;
+import edu.kit.joana.util.LogUtil;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.core.CallGraph.CallGraphFilter;
 import edu.kit.joana.wala.core.CallGraph.Edge;
@@ -272,6 +273,10 @@ public class SDGBuilder implements CallGraphFilter {
 	}
 
 	private void run(final IProgressMonitor progress) throws UnsoundGraphException, CancelException {
+		if (debug.isEnabled()) {
+			debug.outln("Running sdg computation with configuration:");
+			debug.outln(LogUtil.attributesToString(cfg));
+		}
 		cfg.out.print("\n\tcallgraph: ");
 		progress.subTask("building call graph...");
 		final CGResult walaCG = buildCallgraph(progress);

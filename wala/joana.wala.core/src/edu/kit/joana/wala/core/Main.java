@@ -241,9 +241,8 @@ public final class Main {
 	public static AnalysisScope setUpAnalysisScope(final PrintStream out, final Config cfg) throws IOException {
 		// Fuegt die normale Java Bibliothek zum Scope hinzu
 
-		if (cfg.nativesXML != null) {
-			com.ibm.wala.ipa.callgraph.impl.Util.setNativeSpec(cfg.nativesXML);
-		}
+		// deactivates WALA synthetic methods if cfg.nativesXML != null
+		com.ibm.wala.ipa.callgraph.impl.Util.setNativeSpec(cfg.nativesXML);
 
 		AnalysisScope scope;
 		// if use stubs

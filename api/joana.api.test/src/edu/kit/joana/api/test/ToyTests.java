@@ -275,17 +275,16 @@ public class ToyTests {
 		testPreciseEnough("joana.api.testdata.toy.pw.PasswordFile");
 	}
 
-	// TODO: Find out why we're too imprecise here, even for leak3(). Since
-	// instanceof cannot fail, there shouldn't be a dependencie
-	// when toggle ignores its argument
 	@Test
 	public void testDemo1() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
+		/**
+		 * We are to imprecise at the moment (Dec 2012) to rule out information flow here in the 'ignore' case.
+		 * See Demo1 source code for further information
+		 */
 		testTooImprecise("joana.api.testdata.toy.demo.Demo1");
 	}
 
-	// TODO: Find out why we're too imprecise here: we're just handing around
-	// references! :)
 	@Test
 	public void testDeclass1() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {

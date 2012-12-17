@@ -26,6 +26,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.SimpleMHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
+import edu.kit.joana.ifc.sdg.mhpoptimization.ThreadAllocation.LoopDetPrec;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import gnu.trove.iterator.TIntIterator;
@@ -75,7 +76,7 @@ public class CSDGPreprocessor {
 		// 3. run thread allocation
 		info.out("running thread allocation analysis...");
 		if (IS_DEBUG) debug.out("  running thread allocation analysis...");
-		ThreadAllocation alloc = new ThreadAllocation(g, cfg);
+		ThreadAllocation alloc = new ThreadAllocation(g, cfg, LoopDetPrec.PRECISE);
 		alloc.compute();
 		if (IS_DEBUG) debug.outln("	done");
 

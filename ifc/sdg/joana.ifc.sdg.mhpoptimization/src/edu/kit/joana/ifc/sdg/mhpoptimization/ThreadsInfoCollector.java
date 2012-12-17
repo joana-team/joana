@@ -23,6 +23,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.GraphFolder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
+import edu.kit.joana.ifc.sdg.mhpoptimization.ThreadAllocation.LoopDetPrec;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 
@@ -158,7 +159,7 @@ public final class ThreadsInfoCollector {
     		SDG sdg = iter.next();
     		CFG cfg = ICFGBuilder.extractICFG(sdg);
             FoldedCFG folded = GraphFolder.foldIntraproceduralSCC(cfg);
-            ThreadAllocation alloc = new ThreadAllocation(sdg, cfg);
+            ThreadAllocation alloc = new ThreadAllocation(sdg, cfg, LoopDetPrec.SIMPLE);
     		System.out.println("*******************\n" + sdg.getName());
     		ThreadsInformation ti = createThreadsInformation(alloc, cfg);
     		System.out.println(ti);

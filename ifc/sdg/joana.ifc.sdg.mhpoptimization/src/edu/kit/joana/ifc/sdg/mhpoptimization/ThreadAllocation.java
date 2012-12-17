@@ -42,7 +42,7 @@ public class ThreadAllocation {
 		SIMPLE, PRECISE;
 	}
 
-	public static LoopDetPrec loopDetPrec = LoopDetPrec.PRECISE;
+	private final LoopDetPrec loopDetPrec;
 
 	/** A CFG and its contexts. */
 	private CFG cfg;
@@ -64,11 +64,12 @@ public class ThreadAllocation {
 	 * @param g
 	 *            A SDG.
 	 */
-	public ThreadAllocation(SDG sdg, CFG cfg) {
+	public ThreadAllocation(SDG sdg, CFG cfg, LoopDetPrec prec) {
 		this.cfg = cfg;
-
+		
 		// create the context manager
 		conMan = new DynamicContextManager(sdg);
+		this.loopDetPrec = prec;
 		if (loopDetPrec == LoopDetPrec.SIMPLE) {
 			this.loopDet = new SimpleLoopDetermination(GraphFolder.foldIntraproceduralSCC(cfg), conMan);
 		} else {
@@ -248,7 +249,7 @@ public class ThreadAllocation {
 			SDG sdg = iter.next();
 			CFG tcfg = ICFGBuilder.extractICFG(sdg);
 			System.out.println("*******************\n" + sdg.getName());
-			ThreadAllocation t = new ThreadAllocation(sdg, tcfg);
+			ThreadAllocation t = new ThreadAllocation(sdg, tcfg, LoopDetPrec.SIMPLE);
 			t.compute();
 			// System.out.println("-------------------");
 			// for (SDGEdge e : t.tcfg.edgeSet()) {

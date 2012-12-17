@@ -158,7 +158,7 @@ public final class ThreadsInfoCollector {
     		SDG sdg = iter.next();
     		CFG cfg = ICFGBuilder.extractICFG(sdg);
             FoldedCFG folded = GraphFolder.foldIntraproceduralSCC(cfg);
-            ThreadAllocation alloc = new ThreadAllocation(sdg, cfg, folded);
+            ThreadAllocation alloc = new ThreadAllocation(sdg, cfg);
     		System.out.println("*******************\n" + sdg.getName());
     		ThreadsInformation ti = createThreadsInformation(alloc, cfg);
     		System.out.println(ti);

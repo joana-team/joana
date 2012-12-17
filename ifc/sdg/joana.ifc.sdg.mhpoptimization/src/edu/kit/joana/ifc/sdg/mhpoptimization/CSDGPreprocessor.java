@@ -20,8 +20,6 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.FoldedCFG;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.GraphFolder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
@@ -72,13 +70,12 @@ public class CSDGPreprocessor {
 		// 3. extract and fold the control flow graph
 		if (IS_DEBUG) debug.out("  extracting the CFG...");
 		CFG cfg = ICFGBuilder.extractICFG(g);
-		FoldedCFG folded = GraphFolder.foldIntraproceduralSCC(cfg);
 		if (IS_DEBUG) debug.outln("			done");
 
 		// 3. run thread allocation
 		info.out("running thread allocation analysis...");
 		if (IS_DEBUG) debug.out("  running thread allocation analysis...");
-		ThreadAllocation alloc = new ThreadAllocation(g, cfg, folded);
+		ThreadAllocation alloc = new ThreadAllocation(g, cfg);
 		alloc.compute();
 		if (IS_DEBUG) debug.outln("	done");
 

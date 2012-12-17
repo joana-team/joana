@@ -23,7 +23,6 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.FoldedCFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.GraphFolder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.util.Log;
@@ -47,7 +46,6 @@ public class ThreadAllocation {
 
 	/** A CFG and its contexts. */
 	private CFG cfg;
-	private FoldedCFG folded;
 	private DynamicContextManager conMan;
 
 	private LoopDetermination loopDet;
@@ -66,14 +64,13 @@ public class ThreadAllocation {
 	 * @param g
 	 *            A SDG.
 	 */
-	public ThreadAllocation(SDG sdg, CFG cfg, FoldedCFG folded) {
+	public ThreadAllocation(SDG sdg, CFG cfg) {
 		this.cfg = cfg;
-		this.folded = folded;
 
 		// create the context manager
 		conMan = new DynamicContextManager(sdg);
 		if (loopDetPrec == LoopDetPrec.SIMPLE) {
-			this.loopDet = new SimpleLoopDetermination(folded, conMan);
+			this.loopDet = new SimpleLoopDetermination(GraphFolder.foldIntraproceduralSCC(cfg), conMan);
 		} else {
 			this.loopDet = new PreciseLoopDetermination(cfg);
 		}
@@ -250,9 +247,8 @@ public class ThreadAllocation {
 		while (iter.hasNext()) {
 			SDG sdg = iter.next();
 			CFG tcfg = ICFGBuilder.extractICFG(sdg);
-			FoldedCFG folded = GraphFolder.foldIntraproceduralSCC(tcfg);
 			System.out.println("*******************\n" + sdg.getName());
-			ThreadAllocation t = new ThreadAllocation(sdg, tcfg, folded);
+			ThreadAllocation t = new ThreadAllocation(sdg, tcfg);
 			t.compute();
 			// System.out.println("-------------------");
 			// for (SDGEdge e : t.tcfg.edgeSet()) {

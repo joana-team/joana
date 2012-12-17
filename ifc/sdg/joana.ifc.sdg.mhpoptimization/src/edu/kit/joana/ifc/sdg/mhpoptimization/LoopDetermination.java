@@ -16,10 +16,9 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
 public interface LoopDetermination {
 
 	/**
-	 * Returns whether the given context may be contained in a loop. This is true if one of the
-	 * nodes contained in the callstack of the given context is in a loop.
+	 * Returns whether the given context may be contained in a loop.
 	 * @param c context to check
-	 * @return {@code true} if one of the nodes on the call stack of the given context is in a loop,
+	 * @return {@code true} if the given context may be contained in a loop,
 	 * {@code false} otherwise.
 	 */
 	public abstract boolean isInALoop(Context c);

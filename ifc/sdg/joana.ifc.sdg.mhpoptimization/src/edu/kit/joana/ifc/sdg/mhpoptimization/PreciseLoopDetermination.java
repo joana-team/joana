@@ -38,7 +38,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
  * 
  * @author Martin Mohr
  */
-public class PreciseLoopDetermination implements LoopDetermination {
+public class PreciseLoopDetermination extends ModularLoopDetermination {
 
 	/** the control-flow graph to analyze */
 	private final CFG cfg;
@@ -57,6 +57,7 @@ public class PreciseLoopDetermination implements LoopDetermination {
 		this.cfg = cfg;
 	}
 
+	
 	/* (non-Javadoc)
 	 * @see edu.kit.joana.ifc.sdg.mhpoptimization.LoopDetermination#isInALoop(edu.kit.joana.ifc.sdg.graph.slicer.graph.Context)
 	 */
@@ -71,12 +72,8 @@ public class PreciseLoopDetermination implements LoopDetermination {
 		return false;
 	}
 	
-	/**
-	 * Returns whether the given sdg node may be contained in a loop.
-	 * @param node sdg node to check
-	 * @return {@code true} if the given sdg node may be contained in a loop, {@code false} otherwise
-	 */
-	private boolean isInALoop(SDGNode node) {
+	@Override
+	protected boolean isInALoop(SDGNode node) {
 		if (!isFinished()) {
 			compute();
 		}

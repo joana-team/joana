@@ -15,8 +15,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import edu.kit.joana.ifc.sdg.graph.PDGs;
-import edu.kit.joana.ifc.sdg.graph.PDGs.PDGIterator;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -24,7 +22,6 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.GraphFolder;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 
@@ -227,45 +224,5 @@ public class ThreadAllocation {
 
 	private boolean isInALoop(DynamicContext thread) {
 		return loopDet.isInALoop(thread);
-	}
-
-	/**
-	 * main() for debugging
-	 * 
-	 * @param args
-	 * @throws Exception
-	 */
-	public static void main(String[] args) throws Exception {
-		args = new String[1];
-		// args[0] =
-		// "/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/eclipse/runtime-New_configuration/Tests/jSDG/tests.Mantel00Page10.pdg";
-		// args[0] =
-		// "/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/eclipse/runtime-New_configuration/Tests/jSDG/tests.ThreadSpawning.pdg";
-		// args[0] =
-		// "/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/eclipse/runtime-New_configuration/Tests/jSDG/tests.RecursiveThread.pdg";
-
-		PDGIterator iter = PDGs.getPDGs();
-		while (iter.hasNext()) {
-			SDG sdg = iter.next();
-			CFG tcfg = ICFGBuilder.extractICFG(sdg);
-			System.out.println("*******************\n" + sdg.getName());
-			ThreadAllocation t = new ThreadAllocation(sdg, tcfg, LoopDetPrec.SIMPLE);
-			t.compute();
-			// System.out.println("-------------------");
-			// for (SDGEdge e : t.tcfg.edgeSet()) {
-			// if (e.getKind() == SDGEdge.Kind.FORK) {
-			// System.out.println("thread entry "+e+":");
-			// Set<LinkedList<SDGNode> > rawContexts =
-			// t.buildContextsOf(e.getSource());
-			// for (LinkedList<SDGNode> raw : rawContexts) {
-			// raw.addFirst(e.getSource());
-			// DynamicContext con = new DynamicContext(raw, e.getTarget(), -1);
-			// // assign a dummy thread ID
-			// System.out.println(con);
-			// }
-			// }
-			// }
-			System.out.println();
-		}
 	}
 }

@@ -21,6 +21,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
+import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.maps.MapUtils;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
@@ -85,7 +86,7 @@ public class JoinAnalysis {
 
 	private void joinAllocations() {
 		for (SDGNode n : ipdg.vertexSet()) {
-			if (n.getKind() == SDGNode.Kind.ENTRY && n.getBytecodeName().equals("java.lang.Thread.join()V")) {
+			if (n.getKind() == SDGNode.Kind.ENTRY && n.getBytecodeName().equals(JavaMethodSignature.JavaLangThreadJoin)) {
 				for (SDGEdge e : ipdg.incomingEdgesOf(n)) {
 					if (e.getKind() == SDGEdge.Kind.CALL) {
 						SDGNode joinCall = e.getSource(); // call site of a call

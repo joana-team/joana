@@ -8,14 +8,11 @@
 package edu.kit.joana.ifc.sdg.mhpoptimization;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -25,7 +22,6 @@ import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.FoldedCFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.GraphFolder;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.GraphModifier;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
@@ -64,52 +60,11 @@ public class CSDGPreprocessor {
 		return this.g;
 	}
 
-	/**
-	 * Finds the entry node of the main method of the given sdg.
-	 * @param g sdg to find main entry node of
-	 * @return entry node of the main method of the given sdg
-	 */
-	private SDGNode findMainEntry(SDG g) {
-    	for (SDGNode n : g.vertexSet()) {
-    		if (g.inDegreeOf(n) == 0) {
-    			assert n.getBytecodeMethod().contains("main([Ljava/lang/String;)V");
-    			return n;
-    		}
-    	}
-
-    	throw new IllegalStateException();
-    }
-
-	/**
-	 * This method adds a dummy entry node to the given sdg. That dummy node has an outgoing call node to the
-	 * actual entry node of the sdg.
-	 * @param g the sdg to be modified
-	 */
-	private void enrichByDummyNode(SDG g) {
-		assert g != null;
-		int id = g.getMaxNodeID() + 1;
-		int proc = 0;
-		info.outln("Dummy node has id " + id);
-		SDGNode dummyNode = new SDGNode(SDGNode.Kind.ENTRY, id, proc);
-		SDGNode mainEntry = findMainEntry(g);
-		SDGEdge dummyEdge = new SDGEdge(dummyNode, mainEntry, SDGEdge.Kind.FORK);
-		g.addVertex(dummyNode);
-		g.addEdge(dummyEdge);
-	}
-
-
 	public void preprocessSDG() {
 		// 2. clone Thread::start
 		info.out("analyzing threads...");
 		if (IS_DEBUG) debug.outln("  duplicating Thread::start...");
-		ThreadStartDuplicator duplicator = new ThreadStartDuplicator(g, ThreadStartDuplicator.JUERGEN);
-		//duplicator.dupe();
-
-		try {
-			SDGSerializer.toPDGFormat(g, new FileOutputStream("/ben/mmohr/Desktop/duped.pdg"));
-		} catch (FileNotFoundException fnfe) {
-
-		}
+		ThreadLifeSpanAnalysis duplicator = new ThreadLifeSpanAnalysis(g);
 
 		info.outln("done");
 		if (IS_DEBUG) debug.outln("		done");
@@ -215,69 +170,7 @@ public class CSDGPreprocessor {
 
 		return mhp;
 	}
-
-	// this should not be necessary by now. We will keep it for a while to assure that
-	// it really works.
-	private static void fixControlFlow(SDG sdg) {
-		// connect root vertex with the CFG
-		SDGNode root = sdg.getRoot();
-		Set<SDGNode> set = sdg.vertexSet();
-
-		for (SDGNode n : set) {
-			if (n != root && n.getProc() == root.getProc() && sdg.getIncomingEdgesOfKind(n, SDGEdge.Kind.CONTROL_FLOW).isEmpty()){
-				sdg.addEdge(new SDGEdge(root, n, SDGEdge.Kind.CONTROL_FLOW));
-				// print to stderr to embarrass the sdg creator
-				System.err.println("fix cfg: " + root.getLabel() + " to " + n.getLabel());
-			}
-		}
-
-		// inline parameter nodes (implicitly adds return edges)
-		GraphModifier.inlineParameterVertices(sdg);
-		//        GraphModifier.addReturnEdgesTo(sdg);
-
-		for (SDGNode node : sdg.vertexSet()) {
-			if (node.getKind() == SDGNode.Kind.CALL) {
-				checkCall(sdg, node);
-			}
-		}
-		
-//		List<SDGNodeTuple> callSites = sdg.getAllCallSites();
-//		for (SDGNodeTuple cs : callSites) {
-//			List<SDGEdge> calls = sdg.getOutgoingEdgesOfKind(cs.getFirstNode(), SDGEdge.Kind.CALL);
-//			List<SDGEdge> returns = sdg.getIncomingEdgesOfKind(cs.getSecondNode(), SDGEdge.Kind.RETURN);
-//			if (calls.size() != returns.size()) {
-//				System.out.println(calls);
-//				System.out.println(returns);
-//				throw new RuntimeException();
-//			}
-//		}
-	}
 	
-	/**
-	 * Returns whether the given call has as many outgoing CALL edges as its respective CALL_RET node has incoming RETURN edges.
-	 * @param call call node to check
-	 * @return {@code true} if the given call node has as many outgoing CALL edges as its respective CALL_RET node has incoming RETURN edges
-	 */
-	private static void checkCall(SDG sdg, SDGNode call) {
-		assert call.getKind() == SDGNode.Kind.CALL;
-		
-		// 1.) get CALL_RET node
-		assert sdg.getOutgoingEdgesOfKind(call, SDGEdge.Kind.CONTROL_FLOW).size() == 1: "Each call node should have exactly one successor in the control-flow graph but " + call + " has " + sdg.getOutgoingEdgesOfKind(call, SDGEdge.Kind.CONTROL_FLOW).size(); 
-		SDGNode callRet = sdg.getOutgoingEdgesOfKind(call, SDGEdge.Kind.CONTROL_FLOW).get(0).getTarget();
-		
-		// 2.) get outgoing CALL edges of call node
-		List<SDGEdge> callEdges = new LinkedList<SDGEdge>();
-		callEdges.addAll(sdg.getOutgoingEdgesOfKind(call, SDGEdge.Kind.CALL));
-		
-		// 3.) get incoming RETURN edges of CALL_RET node
-		List<SDGEdge> returnEdges = new LinkedList<SDGEdge>();
-		returnEdges.addAll(sdg.getIncomingEdgesOfKind(callRet, SDGEdge.Kind.RETURN));
-		
-		assert callEdges.size() == returnEdges.size() : callEdges + " vs. " + returnEdges;
-	}
-
-
-
 	public void propagateThreadIDs(ThreadsInformation ti, SDG graph) {
 		// adjust the thread IDs in the SDG
 		HashMap<SDGNode, LinkedList<Integer>> s = new HashMap<SDGNode, LinkedList<Integer>>();

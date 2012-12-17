@@ -15,7 +15,10 @@ import java.util.regex.Pattern;
 import edu.kit.joana.ifc.sdg.util.JavaType.Format;
 
 public final class JavaMethodSignature {
-
+	
+	public static final String JavaLangThreadStart = "java.lang.Thread.start()V";
+	public static final String JavaLangThreadJoin = "java.lang.Thread.join()V";
+	
 	private final JavaType declaringType;
 	private final String methodName;
 	private final List<JavaType> argumentTypes;

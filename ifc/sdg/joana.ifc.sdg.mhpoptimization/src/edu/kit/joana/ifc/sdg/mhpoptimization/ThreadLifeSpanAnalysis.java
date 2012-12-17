@@ -35,8 +35,7 @@ import edu.kit.joana.util.Logger;
  * @author Martin Mohr
  */
 public class ThreadLifeSpanAnalysis {
-	private SDG sdg;
-
+	
 	/** the cfg extracted from the sdg */
 	private CFG icfg;
 
@@ -50,10 +49,10 @@ public class ThreadLifeSpanAnalysis {
 	 * @param g  A SDG.
 	 */
 	public ThreadLifeSpanAnalysis(SDG g) {
-		sdg = g;
+		//sdg = g;
 
 		// build the threaded ICFG
-		icfg = ICFGBuilder.extractICFG(sdg);
+		icfg = ICFGBuilder.extractICFG(g);
 		init();
 	}
 
@@ -172,12 +171,12 @@ public class ThreadLifeSpanAnalysis {
 		LinkedList<SDGNode> callsOfThreadStart = new LinkedList<SDGNode>();
 
 
-		for (SDGEdge e : sdg.edgeSet()) {
+		for (SDGEdge e : icfg.edgeSet()) {
 			if (e.getKind() == SDGEdge.Kind.FORK) {
 				// fork edges have a node of the Thread::start() method as source
 				SDGNode forkSite = e.getSource();
-				SDGNode threadStartEntry = sdg.getEntry(forkSite);
-				for (SDGEdge incEdge : sdg.incomingEdgesOf(threadStartEntry)) {
+				SDGNode threadStartEntry = icfg.getEntry(forkSite);
+				for (SDGEdge incEdge : icfg.incomingEdgesOf(threadStartEntry)) {
 					if (incEdge.getKind() == SDGEdge.Kind.CALL || e.getKind() == SDGEdge.Kind.FORK) {
 						callsOfThreadStart.add(incEdge.getSource());
 					}
@@ -189,7 +188,7 @@ public class ThreadLifeSpanAnalysis {
 			assert callOfThreadStart.getAllocationSites() != null;
 			Set<SDGNode> allocSites = new HashSet<SDGNode>();
 			for (int allocId : callOfThreadStart.getAllocationSites()) {
-				SDGNode allocNode = sdg.getNode(allocId);
+				SDGNode allocNode = icfg.getNode(allocId);
 				assert allocNode != null;
 				allocSites.add(allocNode);
 			}

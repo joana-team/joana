@@ -52,6 +52,8 @@ import com.ibm.wala.util.graph.INodeWithNumber;
 
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.ifc.sdg.util.SDGConstants;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.core.PDGNode.Kind;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.graphs.CDG;
@@ -59,7 +61,6 @@ import edu.kit.joana.wala.flowless.pointsto.AliasGraph;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
 import edu.kit.joana.wala.flowless.pointsto.Pts2AliasGraph;
 import edu.kit.joana.wala.flowless.pointsto.PtsParameter;
-import edu.kit.joana.wala.flowless.util.GraphWriter;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
@@ -174,6 +175,10 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 			addDummyConnections();
 			addSourcecodeInfoToNodes(null);
 		} else {
+			final Logger dumpSSA = Log.getLogger(Log.L_WALA_IR_DUMP);
+			if (dumpSSA.isEnabled()) {
+				dumpSSA.outln(Util.ir2string(ir));
+			}
 			addNodesForInstructions(ir);
 			addSourcecodeInfoToNodes(ir);
 			addControlFlow(progress, ir);
@@ -185,8 +190,8 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 		}
 	}
 
-	private static GraphWriter gOut = new GraphWriter.DotWriter("", "");
-
+	// only for evaluation purposes, adds random edges
+	@SuppressWarnings("unused")
 	private static void addRandomEdges(final AliasGraph g, final int numEdges) {
 		final int numOfNodes = g.getNumberOfNodes();
 		Random rand = new Random();
@@ -595,6 +600,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 					}
 				}
 				break;
+			default: break;
 			}
 		}
 

@@ -495,45 +495,7 @@ public final class Main {
 		}
 
 		public String toString() {
-			final StringBuilder sb = new StringBuilder("joana.wala.core.Main configuration:\n");
-			final Class<? extends Config> thisClass = getClass();
-
-			for (final java.lang.reflect.Field f : thisClass.getFields()) {
-				try {
-					sb.append(f.getName() + " = ");
-					final Class<?> fType = f.getType();
-
-					if (fType.isPrimitive()) {
-						final String  n = fType.getName();
-						if (n.equals("boolean")) {
-							sb.append(f.getBoolean(this) + "\n");
-						} else if (n.equals("byte")) {
-							sb.append(f.getByte(this) + "\n");
-						} else if (n.equals("char")) {
-							sb.append(f.getChar(this) + "\n");
-						} else if (n.equals("double")) {
-							sb.append(f.getDouble(this) + "\n");
-						} else if (n.equals("float")) {
-							sb.append(f.getFloat(this) + "\n");
-						} else if (n.equals("int")) {
-							sb.append(f.getInt(this) + "\n");
-						} else if (n.equals("long")) {
-							sb.append(f.getLong(this) + "\n");
-						} else if (n.equals("short")) {
-							sb.append(f.getShort(this) + "\n");
-						} else {
-							throw new IllegalStateException("unknown primitive type: " + fType.getName());
-						}
-					} else {
-						final Object val = f.get(this);
-						sb.append((val == null ? "null" : val.toString()) + "\n");
-					}
-				} catch (IllegalArgumentException e) {
-				} catch (IllegalAccessException e) {
-				}
-			}
-
-			return sb.toString();
+			return LogUtil.attributesToString(this);
 		}
 	}
 

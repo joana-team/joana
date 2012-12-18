@@ -13,6 +13,8 @@ package edu.kit.joana.ifc.sdg.mhpoptimization;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -53,14 +55,32 @@ public class JoinAnalysis {
 	private SDG ipdg;
 	private ThreadsInformation ti;
 
-	public JoinAnalysis(SDG ipdg, ThreadsInformation ti, Collection<SDGNode> as) {
+	public JoinAnalysis(SDG ipdg, ThreadsInformation ti) {
 		this.ipdg = ipdg;
 		this.ti = ti;
-		allocs = as;
+		allocs = collectThreadAllocationSites(ipdg);
 		alloc_callJoin = new HashMap<SDGNode, Set<SDGNode>>();
 		callJoin_alloc = new HashMap<SDGNode, Set<SDGNode>>();
 		fork_alloc = new HashMap<SDGNode, Set<SDGNode>>();
 		alloc_fork = new HashMap<SDGNode, Set<SDGNode>>();
+	}
+	
+	private Collection<SDGNode> collectThreadAllocationSites(SDG g) {
+		List<SDGNode> ret = new LinkedList<SDGNode>();
+		for (SDGEdge e : g.edgeSet()) {
+			if (e.getKind() == SDGEdge.Kind.FORK) {
+				SDGNode nFork = e.getSource();
+				if (nFork.getAllocationSites() == null) {
+					throw new IllegalStateException("Node " + nFork + " represents a fork but does not contain allocation site information. This should not happen!");
+				} else {
+					for (int allocId : nFork.getAllocationSites()) {
+						ret.add(g.getNode(allocId));
+					}
+				}
+			}
+		}
+		
+		return ret;
 	}
 
 	public void computeJoins() {

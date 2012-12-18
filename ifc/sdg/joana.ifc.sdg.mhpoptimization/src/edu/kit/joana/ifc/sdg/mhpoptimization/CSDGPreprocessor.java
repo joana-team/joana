@@ -63,8 +63,7 @@ public class CSDGPreprocessor {
 		// 2. clone Thread::start
 		info.out("analyzing threads...");
 		if (IS_DEBUG) debug.outln("  duplicating Thread::start...");
-		ThreadLifeSpanAnalysis duplicator = new ThreadLifeSpanAnalysis(g);
-
+		
 		info.outln("done");
 		if (IS_DEBUG) debug.outln("		done");
 
@@ -98,7 +97,7 @@ public class CSDGPreprocessor {
 		// 6. analyze join points
 		info.out("computing join points...");
 		if (IS_DEBUG) debug.out("  computing join points...");
-		JoinAnalysis ja = new JoinAnalysis(g, ti, duplicator.getAllocs());
+		JoinAnalysis ja = new JoinAnalysis(g, ti);
 		ja.computeJoins();
 		info.outln("done");
 		if (IS_DEBUG) {

@@ -132,7 +132,7 @@ public class CSDGPreprocessor {
 
 			if (IS_DEBUG) debug.outln("		done");
 			if (IS_DEBUG) debug.outln("  removing spurious concurrency edges...");
-			cleanCSDG(g, mhp);
+			pruneInterferences(g, mhp);
 			info.outln("done");
 
 			// 9. remove FORK_OUT edges
@@ -270,7 +270,7 @@ public class CSDGPreprocessor {
 		}
 	}
 
-	private void cleanCSDG(SDG graph, MHPAnalysis mhp) {
+	private void pruneInterferences(SDG graph, MHPAnalysis mhp) {
 		LinkedList<SDGEdge> remove = new LinkedList<SDGEdge>();
 		int all = 0;
 		int x = 0;

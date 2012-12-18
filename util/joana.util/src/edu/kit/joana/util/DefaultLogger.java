@@ -16,7 +16,11 @@ import java.io.PrintStream;
 public class DefaultLogger implements Logger {
 
 	private final PrintStream out;
-	private boolean enabled;
+	private final boolean enabled;
+	
+	public DefaultLogger(final PrintStream out) {
+		this(out, true);
+	}
 	
 	public DefaultLogger(final PrintStream out, final boolean enabled) {
 		this.out = out;
@@ -29,14 +33,6 @@ public class DefaultLogger implements Logger {
 	@Override
 	public boolean isEnabled() {
 		return enabled;
-	}
-
-	/* (non-Javadoc)
-	 * @see edu.kit.joana.util.Logger#setEnabled(boolean)
-	 */
-	@Override
-	public void setEnabled(boolean enable) {
-		this.enabled = enable;
 	}
 
 	/* (non-Javadoc)

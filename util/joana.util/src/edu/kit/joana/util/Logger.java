@@ -13,7 +13,6 @@ package edu.kit.joana.util;
 public interface Logger {
 
 	boolean isEnabled();
-	void setEnabled(boolean enable);
 	
 	void out(Object obj);
 	void outln(Object obj);

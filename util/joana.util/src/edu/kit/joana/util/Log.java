@@ -7,7 +7,9 @@
  */
 package edu.kit.joana.util;
 
+import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -61,8 +63,6 @@ public final class Log {
 	public static final Logger ERROR = getLogger(L_ERROR);
 	private static final Logger DEFAULT_DISABLED = new Logger() {
 		@Override
-		public void setEnabled(boolean enable) {}
-		@Override
 		public void outln(String str, Throwable t) {}
 		@Override
 		public void outln(String str) {}
@@ -90,9 +90,9 @@ public final class Log {
 			return NAME2LOG.get(name);
 		}
 		
-		final boolean isEnabled = findDefault(name);
-		if (isEnabled) {
-			final Logger l = new DefaultLogger(System.out, isEnabled);
+		final PrintStream outStream = findDefault(name);
+		if (outStream != null) {
+			final Logger l = new DefaultLogger(outStream);
 			NAME2LOG.put(name, l);
 
 			return l;
@@ -101,17 +101,40 @@ public final class Log {
 		}
 	}
 
-	private static boolean findDefault(final String name) {
+	private static PrintStream findDefault(final String name) {
 		final String sysStr = System.getProperty(name);
 		if (sysStr != null) {
-			return !"false".equals(sysStr);
+			return getStream(sysStr);
 		}
 		
 		final String propStr = PROP.getProperty(name);
 		if (propStr != null) {
-			return !"false".equals(propStr);
+			return getStream(propStr);
 		}
 		
-		return DEFAULT_ENABLED.contains(name);
+		return (DEFAULT_ENABLED.contains(name) ? System.out : null);
+	}
+	
+	private static PrintStream getStream(final String prop) {
+		if (prop == null) {
+			return System.out;
+		} else if (prop.equals("false")) {
+			return null;
+		} else if (prop.equals("err")) {
+			return System.err;
+		} else if (prop.startsWith("file:")) {
+			final String fileName = prop.substring("file:".length());
+			try {
+				final PrintStream out = new PrintStream(fileName);
+				return out;
+			} catch (SecurityException e) {
+				ERROR.outln(e.getMessage(), e);
+			} catch (FileNotFoundException e) {
+				ERROR.outln(e.getMessage(), e);
+			}
+			ERROR.outln("could not open file '" + fileName + "' - directing output to System.out");
+		}
+		
+		return System.out;
 	}
 }

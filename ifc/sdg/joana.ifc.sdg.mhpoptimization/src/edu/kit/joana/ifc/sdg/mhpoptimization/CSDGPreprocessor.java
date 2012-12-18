@@ -296,9 +296,9 @@ public class CSDGPreprocessor {
 
 	private void createJoinEdges(SDG graph, ThreadsInformation ti) {
 		for (ThreadInstance i : ti) {
-			if (i.join != null) {
-				SDGNode source = i.exit;
-				SDGNode target = i.join;
+			if (i.getJoin() != null) {
+				SDGNode source = i.getExit();
+				SDGNode target = i.getJoin();
 				SDGEdge e = new SDGEdge(source, target, SDGEdge.Kind.JOIN);
 				graph.addEdge(e);
 			}

@@ -91,16 +91,16 @@ public final class ThreadsInfoCollector {
         // create a ThreadInstance for the main thread
         ThreadInstance main = new ThreadInstance(0, findMainEntry(cfg), null, null);
 
-        main.dynamic = false;
+        main.setDynamic(false);
 
-        main.exit = findExitNode(main.entry, cfg);
+        main.setExit(findExitNode(main.getEntry(), cfg));
 
         result.add(main);
 
         final Logger debug = Log.getLogger(Log.L_MHP_DEBUG);
-        debug.outln("entry: " + main.entry);
-        debug.outln("    fork: " + main.fork);
-        debug.outln("    context: " + main.threadContext);
+        debug.outln("entry: " + main.getEntry());
+        debug.outln("    fork: " + main.getFork());
+        debug.outln("    context: " + main.getThreadContext());
 
         // a thread is identified by its calling context
         Set<DynamicContext> threads = ta.getThreads();
@@ -114,24 +114,18 @@ public final class ThreadsInfoCollector {
 
             ThreadInstance ti =
             	new ThreadInstance(id, thread.getNode(), thread.getCallStack().peek(), thread.getCallStack());
+            ti.setExit(findExitNode(ti.getEntry(), cfg));
 
             // distinguish between dynamic and not dynamic threads
             if(ta.getThreadAmount().get(thread) == SpawnNumber.INDEFINITE) {
-                ti.dynamic = true;
+                ti.setDynamic(true);
 
             } else {
-            	ti.dynamic = false;
+            	ti.setDynamic(false);
             }
 
             result.add(ti);
             id++;
-        }
-
-
-        // for every ThreadInstance, compute exit
-        for (ThreadInstance ti: result) {
-            // exit node - does not work for main thread, but we don't need the exit node for main thread
-        	ti.exit = findExitNode(ti.entry, cfg);
         }
 
         if (debug.isEnabled()) {

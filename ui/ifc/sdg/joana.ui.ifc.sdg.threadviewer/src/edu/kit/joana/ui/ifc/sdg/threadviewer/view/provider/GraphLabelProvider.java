@@ -170,9 +170,9 @@ public class GraphLabelProvider implements ILabelProvider, IConnectionStyleProvi
 			ThreadInstance thread = (ThreadInstance) entity;
 
 			if (thread.equals(currentThread)) {
-				return COLORS[thread.id % 4][0];
+				return COLORS[thread.getId() % 4][0];
 			} else {
-				return COLORS[thread.id % 4][1];
+				return COLORS[thread.getId() % 4][1];
 			}
 		} else if (entity instanceof ThreadRegion) {
 			ThreadRegion region = (ThreadRegion) entity;
@@ -484,7 +484,7 @@ public class GraphLabelProvider implements ILabelProvider, IConnectionStyleProvi
 				ThreadRegion source = (ThreadRegion) connection.source;
 				ThreadRegion target = (ThreadRegion) connection.dest;
 
-				if (currentThread.id == source.getThread() || currentThread.id == target.getThread()) {
+				if (currentThread.getId() == source.getThread() || currentThread.getId() == target.getThread()) {
 					isCurrentInterference = true;
 				}
 			}

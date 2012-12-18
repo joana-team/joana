@@ -238,7 +238,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 
 		 for (ThreadInstance ti : info) {
 			 //    		System.out.println(ti);
-			 ThreadRegion r = new ThreadRegion(ti.id, ti.entry, ti.id, ti.dynamic);
+			 ThreadRegion r = new ThreadRegion(ti.getId(), ti.getEntry(), ti.getId(), ti.isDynamic());
 			 regions.addLast(r);
 		 }
 

@@ -35,28 +35,25 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  */
 public final class ThreadsInformation implements Iterable<ThreadsInformation.ThreadInstance> {
     public static class ThreadInstance {
-        public int id;
-        public SDGNode entry;
-        public SDGNode exit;
-        public SDGNode fork;
-        public SDGNode join;
-        public final LinkedList<SDGNode> threadContext;
-        public boolean dynamic;
+        private final int id;
+        private final SDGNode entry;
+        private SDGNode exit = null;
+        private final SDGNode fork;
+        private SDGNode join;
+        private final LinkedList<SDGNode> threadContext;
+        private boolean dynamic;
 
 //        public ThreadInstance() { }
 
         public ThreadInstance(int id, SDGNode en, SDGNode fo, LinkedList<SDGNode> tc) {
-            this.id = id;
-            entry = en;
-            fork = fo;
-            threadContext = tc;
+            this(id, en, null, fo, null, tc, false);
         }
 
         public ThreadInstance(int id, SDGNode en, SDGNode ex, SDGNode fo, SDGNode jo, LinkedList<SDGNode> tc, boolean dyn) {
-            this.id = id;
-            entry = en;
-            exit = ex;
-            fork = fo;
+        	this.id = id;
+            this.entry = en;
+            this.exit = ex;
+            this.fork = fo;
             join = jo;
             threadContext = tc;
             dynamic = dyn;
@@ -64,20 +61,66 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
 
         public String toString() {
             StringBuilder b = new StringBuilder();
-            b.append("Thread ").append(id).append(" {\n");
-            if (entry == null) b.append("Entry ").append("0").append(";\n");
-            else b.append("Entry ").append(entry).append(";\n");
-            if (exit == null) b.append("Exit ").append("0").append(";\n");
-            else b.append("Exit ").append(exit).append(";\n");
-            if (fork == null) b.append("Fork ").append("0").append(";\n");
-            else b.append("Fork ").append(fork).append(";\n");
+            b.append("Thread ").append(getId()).append(" {\n");
+            if (getEntry() == null) b.append("Entry ").append("0").append(";\n");
+            else b.append("Entry ").append(getEntry()).append(";\n");
+            if (getExit() == null) b.append("Exit ").append("0").append(";\n");
+            else b.append("Exit ").append(getExit()).append(";\n");
+            if (getFork() == null) b.append("Fork ").append("0").append(";\n");
+            else b.append("Fork ").append(getFork()).append(";\n");
             if (join == null) b.append("Join ").append("0").append(";\n");
             else b.append("Join ").append(join).append(";\n");
-            if (threadContext == null || threadContext.size() == 0) b.append("Context null;\n");
-            else b.append("Context ").append(threadContext).append(";\n");
+            if (getThreadContext() == null || getThreadContext().size() == 0) b.append("Context null;\n");
+            else b.append("Context ").append(getThreadContext()).append(";\n");
             b.append("Dynamic ").append(dynamic).append(";\n}\n");
             return b.toString();
         }
+
+		public int getId() {
+			return id;
+		}
+
+		public SDGNode getEntry() {
+			return entry;
+		}
+
+		public SDGNode getExit() {
+			return exit;
+		}
+
+		public void setExit(SDGNode exit) {
+			if (this.exit != null) {
+				throw new IllegalStateException("The 'exit' field of ThreadInstance is supposed to be set only once!");
+			}
+			this.exit = exit;
+		}
+
+		public SDGNode getFork() {
+			return fork;
+		}
+
+		public SDGNode getJoin() {
+			return join;
+		}
+
+		public void setJoin(SDGNode join) {
+			if (this.join != null) {
+				throw new IllegalArgumentException("The 'join' field of ThreadInstance is supposed to be set only once!");
+			}
+			this.join = join;
+		}
+
+		public LinkedList<SDGNode> getThreadContext() {
+			return threadContext;
+		}
+
+		public boolean isDynamic() {
+			return dynamic;
+		}
+
+		public void setDynamic(boolean dynamic) {
+			this.dynamic = dynamic;
+		}
     }
 
     // Class Invariant: ThreadInstance ID's are consistent with the order in the threads list
@@ -105,7 +148,7 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
      * @param thread  The ID of some thread.
      */
     public SDGNode getThreadEntry(int thread) {
-        return threads.get(thread).entry;
+        return threads.get(thread).getEntry();
     }
 
     /**
@@ -114,7 +157,7 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
      * @param thread  The ID of some thread.
      */
     public SDGNode getThreadExit(int thread) {
-        return threads.get(thread).exit;
+        return threads.get(thread).getExit();
     }
 
     /**
@@ -123,7 +166,7 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
      * @param thread  The ID of some thread.
      */
     public SDGNode getThreadFork(int thread) {
-        return threads.get(thread).fork;
+        return threads.get(thread).getFork();
     }
 
     /**
@@ -133,7 +176,7 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
      * @return        The returned value can be 'null'.
      */
     public SDGNode getThreadJoin(int thread) {
-        return threads.get(thread).join;
+        return threads.get(thread).getJoin();
     }
 
     public LinkedList<SDGNode> getThreadContext(int thread) {
@@ -142,7 +185,7 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
 
     public ThreadInstance getThread(SDGEdge fork) {
         for (ThreadInstance ti : threads) {
-            if (ti.fork == fork.getSource() && ti.entry == fork.getTarget()) {
+            if (ti.getFork() == fork.getSource() && ti.getEntry() == fork.getTarget()) {
                 return ti;
             }
         }
@@ -155,7 +198,7 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
 
     public ThreadInstance getThread(SDGNode fork) {
         for (ThreadInstance ti : threads) {
-            if (ti.fork == fork) {
+            if (ti.getFork() == fork) {
                 return ti;
             }
         }
@@ -168,7 +211,7 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
 
     public boolean isThreadStart(SDGNode node) {
         for (ThreadInstance  ti : threads) {
-            if (ti.entry == node) return true;
+            if (ti.getEntry() == node) return true;
         }
 
         return false;
@@ -176,7 +219,7 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
 
     public boolean isFork(SDGNode node) {
         for (ThreadInstance  ti : threads) {
-            if (ti.fork == node) return true;
+            if (ti.getFork() == node) return true;
         }
 
         return false;
@@ -185,8 +228,8 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
     public Collection<SDGNode> getAllForks() {
         HashSet<SDGNode> s = new HashSet<SDGNode>();
         for (ThreadInstance t : threads) {
-           if (t.fork != null) {
-               s.add(t.fork);
+           if (t.getFork() != null) {
+               s.add(t.getFork());
            }
         }
         return s;
@@ -195,8 +238,8 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
     public Collection<SDGNode> getAllEntries() {
         HashSet<SDGNode> s = new HashSet<SDGNode>();
         for (ThreadInstance t : threads) {
-           if (t.entry != null) {
-               s.add(t.entry);
+           if (t.getEntry() != null) {
+               s.add(t.getEntry());
            }
         }
         return s;
@@ -205,8 +248,8 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
     public Collection<SDGNode> getAllJoins() {
         HashSet<SDGNode> s = new HashSet<SDGNode>();
         for (ThreadInstance t : threads) {
-           if (t.join != null) {
-               s.add(t.join);
+           if (t.getJoin() != null) {
+               s.add(t.getJoin());
            }
         }
         return s;

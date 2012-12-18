@@ -236,7 +236,7 @@ public class SDGWrapper {
 		Collection<ThreadRegion> regions = new HashSet<ThreadRegion>();
 
 		for (ThreadInstance thread : this.getThreads()) {
-			regions.addAll(this.getRegions(thread.id));
+			regions.addAll(this.getRegions(thread.getId()));
 		}
 
 		Collection<ThreadRegion> regions2 = analysisMHP.getThreadRegions();
@@ -351,7 +351,7 @@ public class SDGWrapper {
 	 * @return			The regions
 	 */
 	public Collection<ThreadRegion> getRegions(ThreadInstance thread) {
-		return regions.getThreadRegionSet(thread.id);
+		return regions.getThreadRegionSet(thread.getId());
 	}
 
 	/**
@@ -711,7 +711,7 @@ public class SDGWrapper {
 	 * Return the label of the given thread.
 	 */
 	public String getLabel(ThreadInstance thread) {
-		String label = "Thread " + thread.id + " -> ";
+		String label = "Thread " + thread.getId() + " -> ";
 
 		label = label + this.getThreadFunctionLabel(thread);
 		label = label + this.getCallContext(thread);
@@ -913,9 +913,9 @@ public class SDGWrapper {
 
 			// Handle main thread separately: Point root to *Start* region(s)
 			// Else, add first found region
-			if (sdg.inDegreeOf(thread.entry) == 0) {			// thread.entry.getLabel().equals("*Start*")
+			if (sdg.inDegreeOf(thread.getEntry()) == 0) {			// thread.entry.getLabel().equals("*Start*")
 				for (ThreadRegion region : this.getRegions(thread)) {
-					if (sdg.inDegreeOf(thread.entry) == 0) {										// this.getEntryNode(region).getLabel().contains("*Start*")
+					if (sdg.inDegreeOf(thread.getEntry()) == 0) {										// this.getEntryNode(region).getLabel().contains("*Start*")
 						target.add(region);
 					}
 				}
@@ -1374,11 +1374,11 @@ public class SDGWrapper {
 	}
 
 	private String getThreadFunctionLabel(ThreadInstance thread) {
-		String label = thread.entry.getLabel();
+		String label = thread.getEntry().getLabel();
 
 		// Handle main thread
 		if (label.equals("*Start*")) {
-			for (SDGNode called : this.getCalledMethods(thread.entry)) {
+			for (SDGNode called : this.getCalledMethods(thread.getEntry())) {
 				if (!called.getLabel().contains(".<clinit>") && sdg.inDegreeOf(called) != 0) {			//!called.getLabel().contains("*Start*")
 					label = called.getLabel();
 					break;
@@ -1426,13 +1426,13 @@ public class SDGWrapper {
 		String label = "";
 
 		// Main thread is not forked...
-		if (thread.fork != null) {
+		if (thread.getFork() != null) {
 			// Add call location
-			SDGNode fork = thread.fork;
+			SDGNode fork = thread.getFork();
 			label = label + " @ " + fork.getSource() + " : " + fork.getSr() + " [";
 
-			for (int i = thread.threadContext.size() - 1; i >= 0; i--) {
-				SDGNode node = thread.threadContext.get(i);
+			for (int i = thread.getThreadContext().size() - 1; i >= 0; i--) {
+				SDGNode node = thread.getThreadContext().get(i);
 				String tmp = node.getLabel();
 				tmp = tmp.substring(0, tmp.lastIndexOf("("));
 				label += tmp + (i != 0 ? "->" : "");

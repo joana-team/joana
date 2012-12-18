@@ -108,7 +108,7 @@ public class ConcurrentTests {
 		int numberOfDynamicThreads = 0;
 		for (ThreadInstance tinstance : tinfo) {
 			numberOfThreads++;
-			if (tinstance.dynamic) {
+			if (tinstance.isDynamic()) {
 				numberOfDynamicThreads++;
 			}
 		}

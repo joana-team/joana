@@ -53,11 +53,11 @@ public final class ThreadsInfoCollector {
 
         // create a ThreadInstance for the main thread
         ThreadInstance main = new ThreadInstance(0, cfg.getRoot(), null, null);
-        main.dynamic = false;
+        main.setDynamic(false);
         result.add(main);
 
         LinkedList<SDGNode> wl = new LinkedList<SDGNode>();
-        wl.add(main.entry);
+        wl.add(main.getEntry());
         while(!wl.isEmpty()) {
             SDGNode n = wl.poll();
             boolean exit = true;
@@ -69,7 +69,7 @@ public final class ThreadsInfoCollector {
                 }
             }
 
-            if (exit) main.exit = n;
+            if (exit) main.setExit(n);
         }
 
 
@@ -88,10 +88,10 @@ public final class ThreadsInfoCollector {
 
             // distinguish between dynamic and not dynamic threads
             if(ta.getThreadAmount().get(thread) == -1) {
-                ti.dynamic = true;
+                ti.setDynamic(true);
 
             } else {
-            	ti.dynamic = false;
+            	ti.setDynamic(false);
             }
 
             result.add(ti);
@@ -102,9 +102,9 @@ public final class ThreadsInfoCollector {
         // for every ThreadInstance, compute exit
         for (ThreadInstance ti: result) {
             // exit node - does not work for main thread, but we don't need the exit node for main thread
-            for (SDGEdge e : cfg.outgoingEdgesOf(ti.entry)) {
+            for (SDGEdge e : cfg.outgoingEdgesOf(ti.getEntry())) {
                 if (e.getTarget().getKind() == SDGNode.Kind.EXIT) {
-                    ti.exit = e.getTarget();
+                    ti.setExit(e.getTarget());
                     break;
                 }
             }

@@ -17,6 +17,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
+import edu.kit.joana.ifc.sdg.mhpoptimization.ThreadAllocation.SpawnNumber;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 
@@ -115,7 +116,7 @@ public final class ThreadsInfoCollector {
             	new ThreadInstance(id, thread.getNode(), thread.getCallStack().peek(), thread.getCallStack());
 
             // distinguish between dynamic and not dynamic threads
-            if(ta.getThreadAmount().get(thread) == -1) {
+            if(ta.getThreadAmount().get(thread) == SpawnNumber.INDEFINITE) {
                 ti.dynamic = true;
 
             } else {

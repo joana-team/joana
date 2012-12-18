@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -41,6 +42,10 @@ public class ThreadAllocation {
 	public static enum LoopDetPrec {
 		SIMPLE, PRECISE;
 	}
+	
+	public static enum SpawnNumber {
+		ONLY_ONCE, INDEFINITE;
+	}
 
 	private final LoopDetPrec loopDetPrec;
 
@@ -48,15 +53,17 @@ public class ThreadAllocation {
 	private CFG cfg;
 	private DynamicContextManager conMan;
 
+	/** used to determine whether a spawn happens in a loop */
 	private LoopDetermination loopDet;
 
-	private HashMap<SDGNode, Collection<DynamicContext>> run_thread;
-	private HashSet<DynamicContext> threads; // maps thread allocations to
-												// thread entries
-	private HashMap<DynamicContext, Integer> thread_amount; // maps thread
-															// allocations to
-															// number of
-															// invocations
+	/** maps thread entries to their possible contexts */
+	private Map<SDGNode, Collection<DynamicContext>> run_thread;
+	
+	/** flattened version of the value set of the map run_thread (i.e. the collection all possible contexts of thread entries) */
+	private Set<DynamicContext> threads;
+	
+	/** maps each thread entry context to the number of times it is possibly executed */
+	private Map<DynamicContext, SpawnNumber> thread_amount; 
 
 	/**
 	 * Creates a new instance of ThreadAllocation
@@ -82,7 +89,7 @@ public class ThreadAllocation {
 		return Collections.unmodifiableSet(threads);
 	}
 
-	public HashMap<DynamicContext, Integer> getThreadAmount() {
+	public Map<DynamicContext, SpawnNumber> getThreadAmount() {
 		return thread_amount;
 	}
 
@@ -174,8 +181,8 @@ public class ThreadAllocation {
 		return tc;
 	}
 
-	private HashMap<DynamicContext, Integer> computeNumberOfThreads() {
-		HashMap<DynamicContext, Integer> result = new HashMap<DynamicContext, Integer>();
+	private Map<DynamicContext, SpawnNumber> computeNumberOfThreads() {
+		HashMap<DynamicContext, SpawnNumber> result = new HashMap<DynamicContext, SpawnNumber>();
 		List<DynamicContext> remainingThreads = new LinkedList<DynamicContext>();
 
 		// search for recursive calls in the contexts
@@ -184,7 +191,7 @@ public class ThreadAllocation {
 
 			for (SDGNode n : thread.getCallStack()) {
 				if (n.getId() < 0) {
-					result.put(thread, -1);
+					result.put(thread, SpawnNumber.INDEFINITE);
 					recursive = true;
 				}
 			}
@@ -197,9 +204,9 @@ public class ThreadAllocation {
 		// search for loops in the TCFG
 		for (DynamicContext thread : remainingThreads) {
 			if (isInALoop(thread)) {
-				result.put(thread, -1);
+				result.put(thread, SpawnNumber.INDEFINITE);
 			} else {
-				result.put(thread, 1);
+				result.put(thread, SpawnNumber.ONLY_ONCE);
 			}
 		}
 
@@ -214,7 +221,7 @@ public class ThreadAllocation {
 
 				DynamicContext rootOfTheRecursion = thread.copy();
 				rootOfTheRecursion.pop();
-				result.put(rootOfTheRecursion, -1);
+				result.put(rootOfTheRecursion, SpawnNumber.INDEFINITE);
 				result.remove(thread);
 				refinedThreads.add(rootOfTheRecursion);
 			}

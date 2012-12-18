@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
@@ -71,11 +70,11 @@ public class ThreadAllocation {
 	 * @param g
 	 *            A SDG.
 	 */
-	public ThreadAllocation(SDG sdg, CFG cfg, LoopDetPrec prec) {
+	public ThreadAllocation(CFG cfg, LoopDetPrec prec) {
 		this.cfg = cfg;
 		
 		// create the context manager
-		conMan = new DynamicContextManager(sdg);
+		conMan = new DynamicContextManager(cfg);
 		this.loopDetPrec = prec;
 		if (loopDetPrec == LoopDetPrec.SIMPLE) {
 			this.loopDet = new SimpleLoopDetermination(GraphFolder.foldIntraproceduralSCC(cfg), conMan);

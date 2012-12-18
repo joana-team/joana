@@ -76,7 +76,7 @@ public class CSDGPreprocessor {
 		// 3. run thread allocation
 		info.out("running thread allocation analysis...");
 		if (IS_DEBUG) debug.out("  running thread allocation analysis...");
-		ThreadAllocation alloc = new ThreadAllocation(g, cfg, LoopDetPrec.PRECISE);
+		ThreadAllocation alloc = new ThreadAllocation(cfg, LoopDetPrec.PRECISE);
 		alloc.compute();
 		if (IS_DEBUG) debug.outln("	done");
 

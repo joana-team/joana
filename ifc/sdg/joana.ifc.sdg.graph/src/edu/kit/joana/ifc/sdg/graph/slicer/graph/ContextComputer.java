@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
+import edu.kit.joana.ifc.sdg.graph.JoanaGraph;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -26,12 +27,12 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.GraphFolder;
  * @author giffhorn
  */
 public class ContextComputer {
-	private SDG g;
+	private JoanaGraph g;
 	private CallGraph call;
 	private FoldedCallGraph folded; // a folded call graph
 
-	public ContextComputer(SDG sdg, CallGraph call, FoldedCallGraph folded) {
-		this.g = sdg;
+	public ContextComputer(JoanaGraph g, CallGraph call, FoldedCallGraph folded) {
+		this.g = g;
 		this.call = call;
 		this.folded = folded;
 	}

@@ -13,6 +13,7 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
+import edu.kit.joana.ifc.sdg.graph.JoanaGraph;
 import edu.kit.joana.ifc.sdg.graph.PDGs;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -479,7 +480,7 @@ public class DynamicContextManager implements ContextManager {
     /**
      * Creates a new instance.
      */
-    public DynamicContextManager(SDG g) {
+    public DynamicContextManager(JoanaGraph g) {
     	CallGraph call = CallGraphBuilder.buildCallGraph(g);
         foldedCall = GraphFolder.foldCallGraph(call);
         conCom = new ContextComputer(g, call, foldedCall);

@@ -22,6 +22,9 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.GraphFolder;
+import edu.kit.joana.ifc.sdg.mhpoptimization.loopdet.LoopDetermination;
+import edu.kit.joana.ifc.sdg.mhpoptimization.loopdet.PreciseLoopDetermination;
+import edu.kit.joana.ifc.sdg.mhpoptimization.loopdet.SimpleLoopDetermination;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 

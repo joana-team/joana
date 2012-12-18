@@ -5,7 +5,7 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-package edu.kit.joana.ifc.sdg.mhpoptimization;
+package edu.kit.joana.ifc.sdg.mhpoptimization.loopdet;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -16,6 +16,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNodeTuple;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.FoldedCFG;
+import edu.kit.joana.ifc.sdg.mhpoptimization.ThreadAllocation;
 
 /**
  * This implementation of {@link LoopDetermination} is the old analysis which relies on the folded control-flow graph and is very conservative. For example, it does consider a fork

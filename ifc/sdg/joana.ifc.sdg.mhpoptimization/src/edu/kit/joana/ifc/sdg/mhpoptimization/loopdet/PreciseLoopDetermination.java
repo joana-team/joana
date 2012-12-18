@@ -5,7 +5,7 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-package edu.kit.joana.ifc.sdg.mhpoptimization;
+package edu.kit.joana.ifc.sdg.mhpoptimization.loopdet;
 
 import java.util.HashSet;
 import java.util.LinkedList;

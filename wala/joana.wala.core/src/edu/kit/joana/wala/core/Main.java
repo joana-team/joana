@@ -46,6 +46,8 @@ import com.ibm.wala.util.strings.StringStuff;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
+import edu.kit.joana.util.JoanaConstants;
+import edu.kit.joana.util.LogUtil;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
@@ -447,33 +449,39 @@ public final class Main {
 
 		public Config(String name, String entryMethod, FieldPropagation fieldPropagation) {
 			this(name, entryMethod, STD_CLASS_PATH, PointsToPrecision.CONTEXT_SENSITIVE, DEFAULT_EXCEPTION_ANALYSIS,
-					DEFAULT_ACCESS_PATH, STD_EXCLUSION_REG_EXP, null, null, null, "./", fieldPropagation);
+					DEFAULT_ACCESS_PATH, STD_EXCLUSION_REG_EXP, JoanaConstants.DEFAULT_NATIVES_XML, /* stubs */null,
+					/*ext-call*/null, "./", fieldPropagation);
 		}
 
 		public Config(String name, String entryMethod, String classpath, FieldPropagation fieldPropagation) {
 			this(name, entryMethod, classpath, PointsToPrecision.CONTEXT_SENSITIVE, DEFAULT_EXCEPTION_ANALYSIS,
-					DEFAULT_ACCESS_PATH, STD_EXCLUSION_REG_EXP, null, null, null, "./", fieldPropagation);
+					DEFAULT_ACCESS_PATH, STD_EXCLUSION_REG_EXP, JoanaConstants.DEFAULT_NATIVES_XML, /* stubs */null,
+					/*ext-call*/null, "./", fieldPropagation);
 		}
 
-		public Config(String name, String entryMethod, String classpath, PointsToPrecision pts, FieldPropagation fieldPropagation) {
+		public Config(String name, String entryMethod, String classpath, PointsToPrecision pts,
+				FieldPropagation fieldPropagation) {
 			this(name, entryMethod, classpath, pts, DEFAULT_EXCEPTION_ANALYSIS, DEFAULT_ACCESS_PATH,
-					STD_EXCLUSION_REG_EXP, null, null, null, "./", fieldPropagation);
+					STD_EXCLUSION_REG_EXP, JoanaConstants.DEFAULT_NATIVES_XML, /* stubs */null, /*ext-call*/null,
+					"./", fieldPropagation);
 		}
 
-		public Config(String name, String entryMethod, String classpath, String exclusions, FieldPropagation fieldPropagation) {
+		public Config(String name, String entryMethod, String classpath, String exclusions,
+				FieldPropagation fieldPropagation) {
 			this(name, entryMethod, classpath, PointsToPrecision.CONTEXT_SENSITIVE, DEFAULT_EXCEPTION_ANALYSIS,
-					DEFAULT_ACCESS_PATH, exclusions, null, null, null, "./", fieldPropagation);
+					DEFAULT_ACCESS_PATH, exclusions, JoanaConstants.DEFAULT_NATIVES_XML, /* stubs */null,
+					/*ext-call*/null, "./", fieldPropagation);
 		}
 
 		public Config(String name, String entryMethod, String classpath, PointsToPrecision pts, String exclusions,
 				FieldPropagation fieldPropagation) {
-			this(name, entryMethod, classpath, pts, DEFAULT_EXCEPTION_ANALYSIS, DEFAULT_ACCESS_PATH, exclusions, null,
-					null, null, "./", fieldPropagation);
+			this(name, entryMethod, classpath, pts, DEFAULT_EXCEPTION_ANALYSIS, DEFAULT_ACCESS_PATH, exclusions,
+					JoanaConstants.DEFAULT_NATIVES_XML, /* stubs */null, /*ext-call*/null, "./", fieldPropagation);
 		}
 
-		public Config(String name, String entryMethod, String classpath, PointsToPrecision pts, ExceptionAnalysis exceptions,
-				boolean accessPath, String exclusions, String nativesXML, String stubs, ExternalCallCheck extern, String outputDir,
-				FieldPropagation fieldPropagation) {
+		public Config(String name, String entryMethod, String classpath, PointsToPrecision pts,
+				ExceptionAnalysis exceptions, boolean accessPath, String exclusions, String nativesXML, String stubs,
+				ExternalCallCheck extern, String outputDir,	FieldPropagation fieldPropagation) {
 			this.name = name;
 			this.pts = pts;
 			this.exceptions = exceptions;

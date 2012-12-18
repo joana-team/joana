@@ -15,4 +15,5 @@ public class JoanaConstants {
 	
 	public static final String STUBS_JRE_14 = "jSDG-stubs-jre1.4.jar";
 	public static final String STUBS_JRE_15 = "jSDG-stubs-jre1.5.jar";
+	public static final String DEFAULT_NATIVES_XML = "natives_no_model.xml";
 }

@@ -7,12 +7,13 @@
  */
 package edu.kit.joana.ifc.sdg.graph.slicer.graph.threads;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
-import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
 
@@ -124,17 +125,20 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
     }
 
     // Class Invariant: ThreadInstance ID's are consistent with the order in the threads list
-    private LinkedList<ThreadInstance> threads;
-
+    
+    private List<ThreadInstance> threads;
+     
+    
     /**
      * Creates a new instance of ThreadsInformation.
      *
      * @param icfg  The CFG whose threads need to be examined.
      */
-    public ThreadsInformation(LinkedList<ThreadInstance> ti) {
-        threads = ti;
+    public ThreadsInformation(List<ThreadInstance> ti) {
+    	this.threads = new ArrayList<ThreadInstance>();
+    	this.threads.addAll(ti);
     }
-
+    
     /* (non-Javadoc)
      * @see java.lang.Iterable#iterator()
      */
@@ -181,15 +185,6 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
 
     public LinkedList<SDGNode> getThreadContext(int thread) {
         return threads.get(thread).threadContext;
-    }
-
-    public ThreadInstance getThread(SDGEdge fork) {
-        for (ThreadInstance ti : threads) {
-            if (ti.getFork() == fork.getSource() && ti.getEntry() == fork.getTarget()) {
-                return ti;
-            }
-        }
-        return null;
     }
 
     public ThreadInstance getThread(int id) {

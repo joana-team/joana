@@ -102,6 +102,7 @@
 		<copy todir="${dest.dir.classes}">
 			<filelist dir="${com.ibm.wala.core.base.dir}/dat">
 				<file name="natives.xml" />
+				<file name="natives_no_model.xml" />
 				<file name="primordial.txt" />
 			</filelist>
 			<filelist dir="${com.ibm.wala.core.base.dir}/lib">

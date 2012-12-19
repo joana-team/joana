@@ -5,7 +5,7 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-package edu.kit.joana.api.test;
+package edu.kit.joana.api.test.util;
 
 /**
  * @author Juergen Graf <graf@kit.edu>

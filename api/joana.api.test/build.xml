@@ -7,22 +7,22 @@
 	<!-- set project related properties -->
 	<property file="project.properties" />
 	<property name="projectname" value="joana.api.test" />
+	<property name="project.jarfile" value="joana.api.test.jar" />
+	<property name="project.jartmp" value="classes" />
+	<property name="project.reportdir" value="report" />
 	<!-- set global properties for this build -->
 	<property file="${joana.base.dir}/joana-project-location.properties" />
 
-	<target name="compile" depends="copy_joana_api">
+	<target name="compile" depends="copy_joana_api,dirty_compile">
 		<delete dir="${joana.api.test.base.dir}/bin" />
 		<mkdir dir="${joana.api.test.base.dir}/bin" />
-		<javac
-			srcdir="${joana.api.test.base.dir}/src"
-			destdir="${joana.api.test.base.dir}/bin"
-			verbose="no"
-			source="1.6"
-			target="1.6"
-			encoding="utf-8"
-			includeantruntime="false"
-			classpath="${joana.api.test.base.dir}/lib/joana.api.jar"
-		/>
+		<javac srcdir="${joana.api.test.base.dir}/src" destdir="${joana.api.test.base.dir}/bin" verbose="no" source="1.6" target="1.6" encoding="utf-8" includeantruntime="false" classpath="${joana.api.test.base.dir}/lib/joana.api.jar" />
+	</target>
+	
+	<target name="dirty_compile">
+		<delete dir="${joana.api.test.base.dir}/bin" />
+		<mkdir dir="${joana.api.test.base.dir}/bin" />
+		<javac srcdir="${joana.api.test.base.dir}/src" destdir="${joana.api.test.base.dir}/bin" verbose="no" source="1.6" target="1.6" encoding="utf-8" includeantruntime="false" classpath="${joana.api.test.base.dir}/lib/joana.api.jar" />
 	</target>
 
 	<target name="copy_joana_api" depends="compile_joana_api">
@@ -41,5 +41,29 @@
 	<target name="clean">
 		<ant antfile="${joana.api.base.dir}/build.xml" target="clean" inheritall="false" />
 	</target>
+
+	<target name="test" description="run all tests assuming that there is a current joana.api.jar in lib.">
+		<delete dir="${project.reportdir}" />
+		<mkdir dir="${project.reportdir}" />
+		<junit showoutput="yes" >
+			<classpath>
+				<pathelement location="lib/joana.api.jar"/>
+				<pathelement location="bin" />
+			</classpath>
+			<formatter type="xml" />
+			<batchtest todir="${project.reportdir}">
+				<fileset dir="${basedir}/src" includes="**/test/*.java" />
+			</batchtest>
+		</junit>
+
+		<junitreport todir="${project.reportdir}">
+			<fileset dir="${project.reportdir}">
+				<include name="*.xml" />
+			</fileset>
+			<report format="frames" todir="${project.reportdir}/html" />
+		</junitreport>
+	</target>
+
+	<target name="build_and_test" depends="compile,test" description="run all tests but build joana.api.jar first." />
 
 </project>

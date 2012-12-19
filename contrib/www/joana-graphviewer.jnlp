@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jnlp spec="1.0+" codebase="http://pp.ipd.kit.edu/~grafj/ifc/" href="joana-graphviewer.jnlp">
+<jnlp spec="1.0+" codebase="http://pp.ipd.kit.edu/~joana/webstart/" href="joana-graphviewer.jnlp">
 	<information>
 		<title>Joana GraphViewer</title>
 		<description>View system dependence graphs created by the Joana information flow control tool.</description>

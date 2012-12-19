@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jnlp spec="1.0+" codebase="http://pp.ipd.kit.edu/~grafj/ifc/" href="joana-ifcconsole.jnlp">
+<jnlp spec="1.0+" codebase="http://pp.ipd.kit.edu/~joana/webstart/" href="joana-ifcconsole.jnlp">
 	<information>
 		<title>Joana IFC Console</title>
 		<description>Simple interactive IFC analysis tool</description>

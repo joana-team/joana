@@ -55,9 +55,9 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
             this.entry = en;
             this.exit = ex;
             this.fork = fo;
-            join = jo;
-            threadContext = tc;
-            dynamic = dyn;
+            this.join = jo;
+            this.threadContext = tc;
+            this.dynamic = dyn;
         }
 
         public String toString() {
@@ -106,7 +106,7 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
 
 		public void setJoin(SDGNode join) {
 			if (this.join != null) {
-				throw new IllegalArgumentException("The 'join' field of ThreadInstance is supposed to be set only once!");
+				throw new IllegalStateException("The 'join' field of ThreadInstance is supposed to be set only once!");
 			}
 			this.join = join;
 		}

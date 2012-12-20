@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="joana.example.many-small-progs" default="compile" basedir=".">
+	<description>
+		test data for joana.api
+	</description>
+	
+	<property file="project.properties" />
+	
+	<!-- set project related properties -->
+	<property name="project.src" value="${joana.base.dir}/api/joana.api.testdata/src" />
+	<property name="project.bin" value="${joana.base.dir}/api/joana.api.testdata/bin" />
+	<property name="passon.src" value="${joana.base.dir}/api/joana.api.annotations.passon/src" />
+		
+	<target name="compile">
+		<delete dir="${project.bin}" />
+		<mkdir dir="${project.bin}" />
+		<javac includeantruntime="false" srcdir="${passon.src}" destdir="${project.bin}" verbose="no" source="1.6" target="1.6" encoding="utf-8" />
+		<javac includeantruntime="false" srcdir="${project.src}" destdir="${project.bin}" verbose="no" source="1.6" target="1.6" encoding="utf-8" />
+		<delete dir="${project.bin}/edu" />
+	</target>
+
+</project>

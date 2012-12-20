@@ -22,6 +22,10 @@
 		<ant antfile="${joana.api.base.dir}/build.xml" target="fulljar" inheritall="false" />
 	</target>
 
+	<target name="joana.api.test_runtests">
+		<ant antfile="${joana.api.test.base.dir}/build.xml" target="test" />
+	</target>
+
 	<target name="joana.api.test_build_and_runtests">
 		<ant antfile="${joana.api.test.base.dir}/build.xml" target="build_and_test" />
 	</target>

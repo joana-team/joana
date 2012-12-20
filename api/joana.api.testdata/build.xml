@@ -14,24 +14,25 @@
 	<property name="ignore.src" value="${joana.base.dir}/api/joana.api.annotations.ignore/src" />
 	<property name="ignore.bin" value="${joana.base.dir}/api/joana.api.annotations.ignore/bin" />
 
-	<target name="compile">
-		<delete dir="${passon.src}" />
+	<target name="init">
 		<delete dir="${passon.bin}" />
-		<delete dir="${ignore.src}" />
 		<delete dir="${ignore.bin}" />
-		<mkdir dir="${passon.src}" />
 		<mkdir dir="${passon.bin}" />
-		<mkdir dir="${ignore.src}" />
 		<mkdir dir="${ignore.bin}" />
 		<delete dir="${project.bin}" />
 		<mkdir dir="${project.bin}" />
 		<javac includeantruntime="false" srcdir="${passon.src}" destdir="${passon.bin}" verbose="no" source="1.6" target="1.6" encoding="utf-8" />
+		<javac includeantruntime="false" srcdir="${ignore.src}" destdir="${ignore.bin}" verbose="no" source="1.6" target="1.6" encoding="utf-8" />
 		<copy todir="${project.bin}">
 			<fileset dir="${passon.bin}">
 				<include name="**/*.class" />
 			</fileset>
 		</copy>
-		<javac includeantruntime="false" srcdir="${ignore.src}" destdir="${ignore.bin}" verbose="no" source="1.6" target="1.6" encoding="utf-8" />
+	</target>
+
+	<target name="compile" depends="init">
+
+
 		<javac includeantruntime="false" srcdir="${project.src}" destdir="${project.bin}" verbose="no" source="1.6" target="1.6" encoding="utf-8" />
 		<delete dir="${project.bin}/edu" />
 	</target>

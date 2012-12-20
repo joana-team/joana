@@ -28,7 +28,7 @@
 			</ant>
 	</target>
 
-	<target name="joana.api.test_build_and_runtests" depends="joana.example.many-small-progs_compile">
+	<target name="joana.api.test_build_and_runtests" depends="joana.example.many-small-progs_compile,joana.api.testdata_compile">
 		<ant antfile="${joana.api.test.base.dir}/build.xml" target="build_and_test" inheritall="false">
 		<property name="joana.base.dir" location="${joana.base.dir}" />
 		</ant>

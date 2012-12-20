@@ -19,6 +19,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import edu.kit.joana.api.test.util.BuildSDG;
+import edu.kit.joana.api.test.util.JoanaPath;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
@@ -30,7 +31,7 @@ public class ConcurrentTests {
 
 	private static final boolean FORCE_REBUILD = false;
 	
-	public static final String CLASSPATH = "../joana.api.testdata/bin";
+	public static final String CLASSPATH = JoanaPath.JOANA_PATH + "/api/joana.api.testdata/bin";
 
 	private static final Map<String, TestData> testData = new HashMap<String, TestData>();
 

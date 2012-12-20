@@ -31,6 +31,7 @@ import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.api.test.util.ApiTestException;
+import edu.kit.joana.api.test.util.JoanaPath;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.lattice.IEditableLattice;
@@ -46,9 +47,9 @@ import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
  */
 public class ToyTests {
 
-	static final String CLASSPATH_APP = "../joana.api.testdata/bin";
-	static final String CLASSPATH_ANNOTATIONS_IGNORE = "../joana.api.annotations.ignore/bin";
-	static final String CLASSPATH_ANNOTATIONS_PASSON = "../joana.api.annotations.passon/bin";
+	static final String CLASSPATH_APP = JoanaPath.JOANA_PATH + "/api/joana.api.testdata/bin";
+	static final String CLASSPATH_ANNOTATIONS_IGNORE = JoanaPath.JOANA_PATH + "/api/joana.api.annotations.ignore/bin";
+	static final String CLASSPATH_ANNOTATIONS_PASSON = JoanaPath.JOANA_PATH + "/api/joana.api.annotations.passon/bin";
 	static final Stubs STUBS = Stubs.JRE_14;
 
 	static final boolean outputPDGFiles = false;

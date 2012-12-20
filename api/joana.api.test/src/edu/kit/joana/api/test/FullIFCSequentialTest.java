@@ -29,6 +29,7 @@ import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.api.test.util.ApiTestException;
+import edu.kit.joana.api.test.util.JoanaPath;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
@@ -40,7 +41,7 @@ import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
  */
 public class FullIFCSequentialTest {
 
-	public static final String CLASSPATH = "../../example/joana.example.many-small-progs/bin";
+	public static final String CLASSPATH = JoanaPath.JOANA_PATH + "/example/joana.example.many-small-progs/bin";
 
 	public static IFCAnalysis buildAndAnnotate(final String className, final String secSrc,
 			final String pubOut) throws ApiTestException {

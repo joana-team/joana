@@ -31,7 +31,6 @@ public class ConcurrentTests {
 	private static final boolean FORCE_REBUILD = false;
 	
 	public static final String CLASSPATH = "../joana.api.testdata/bin";
-	public static final String STUBS = "../../contrib/lib/stubs/jSDG-stubs-jre1.4.jar";
 
 	private static final Map<String, TestData> testData = new HashMap<String, TestData>();
 

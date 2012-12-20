@@ -6,12 +6,13 @@
 
 	<!-- set project related properties -->
 	<property file="project.properties" />
+	<property file="${joana.base.dir}/joana-project-location.properties" />
 	<property name="projectname" value="joana.api.test" />
 	<property name="project.jarfile" value="joana.api.test.jar" />
 	<property name="project.jartmp" value="classes" />
-	<property name="project.reportdir" value="report" />
+	<property name="project.reportdir" value="${joana.api.test.base.dir}/report" />
 	<!-- set global properties for this build -->
-	<property file="${joana.base.dir}/joana-project-location.properties" />
+	
 
 	<target name="compile" depends="copy_joana_api,dirty_compile">
 		<delete dir="${joana.api.test.base.dir}/bin" />
@@ -45,14 +46,17 @@
 	<target name="test" description="run all tests assuming that there is a current joana.api.jar in lib.">
 		<delete dir="${project.reportdir}" />
 		<mkdir dir="${project.reportdir}" />
-		<junit showoutput="yes" >
+		<junit showoutput="yes" failureproperty="junit.failure">
 			<classpath>
-				<pathelement location="lib/joana.api.jar"/>
-				<pathelement location="bin" />
+				<pathelement location="${joana.api.test.base.dir}/lib/joana.api.jar"/>
+				<pathelement location="${joana.api.test.base.dir}/bin" />
 			</classpath>
-			<formatter type="xml" />
+			
+			<sysproperty key="joana.base.dir" value="${joana.base.dir}" />
+			<formatter type="xml"/>
+		
 			<batchtest todir="${project.reportdir}">
-				<fileset dir="${basedir}/src" includes="**/test/*.java" />
+				<fileset dir="${joana.api.test.base.dir}/src" includes="**/test/*.java" />
 			</batchtest>
 		</junit>
 
@@ -62,6 +66,8 @@
 			</fileset>
 			<report format="frames" todir="${project.reportdir}/html" />
 		</junitreport>
+		
+		<fail if="junit.failure" message="Unit tests failed."/>
 	</target>
 
 	<target name="build_and_test" depends="compile,test" description="run all tests but build joana.api.jar first." />

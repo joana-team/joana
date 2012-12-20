@@ -41,7 +41,6 @@ import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 public class FullIFCSequentialTest {
 
 	public static final String CLASSPATH = "../../example/joana.example.many-small-progs/bin";
-	public static final String STUBS = "../../contrib/lib/stubs/jSDG-stubs-jre1.4.jar";
 
 	public static IFCAnalysis buildAndAnnotate(final String className, final String secSrc,
 			final String pubOut) throws ApiTestException {

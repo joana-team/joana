@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="joana.example.many-small-progs" default="compile" basedir=".">
+	<description>
+		Just an example project - insert your information here!
+	</description>
+	
+	<property file="project.properties" />
+	
+	<!-- set project related properties -->
+	<property name="project.src" value="${joana.base.dir}/example/joana.example.many-small-progs/src" />
+	<property name="project.bin" value="${joana.base.dir}/example/joana.example.many-small-progs/bin" />
+
+
+	<target name="compile">
+		<delete dir="${project.bin}" />
+		<mkdir dir="${project.bin}" />
+		<javac includeantruntime="false" srcdir="${project.src}" destdir="${project.bin}" verbose="no" source="1.6" target="1.6" encoding="utf-8" />
+	</target>
+
+</project>

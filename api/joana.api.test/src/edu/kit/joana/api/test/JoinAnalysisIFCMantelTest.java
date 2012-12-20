@@ -42,7 +42,6 @@ import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 public class JoinAnalysisIFCMantelTest {
 
 	public static final String CLASSPATH = "../../example/joana.example.many-small-progs/bin";
-	public static final String STUBS = "../../contrib/lib/stubs/jSDG-stubs-jre1.4.jar";
 
 	public static final String MANTEL_CLASS_NAME = "tests.Mantel00Page10";
 	

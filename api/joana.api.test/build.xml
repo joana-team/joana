@@ -29,6 +29,7 @@
 	<target name="compile" depends="copy_joana_api,dirty_compile" />
 
 	<target name="dirty_compile" depends="compile_all_testprograms" >
+		<mkdir dir="${project.build.classes}" />
 		<javac srcdir="${project.source}" destdir="${project.build.classes}" verbose="no" source="1.6" target="1.6" encoding="utf-8" includeantruntime="false" classpath="${project.joanalib}"/>	
 	</target>
 
@@ -106,6 +107,6 @@
 
 
 
-	<target name="build_and_test" depends="compile,test" description="run all tests but build joana.api.jar first." />
+	<target name="build_and_test" depends="init,compile,test" description="run all tests but build joana.api.jar first." />
 
 </project>

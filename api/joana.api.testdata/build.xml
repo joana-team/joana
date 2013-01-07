@@ -8,33 +8,33 @@
 
 	<!-- set project related properties -->
 	<property name="project.src" value="${joana.base.dir}/api/joana.api.testdata/src" />
-	<property name="project.bin" value="${joana.base.dir}/api/joana.api.testdata/bin" />
+	<property name="project.bin" value="${joana.base.dir}/api/joana.api.testdata/build" />
 	<property name="passon.src" value="${joana.base.dir}/api/joana.api.annotations.passon/src" />
-	<property name="passon.bin" value="${joana.base.dir}/api/joana.api.annotations.passon/bin" />
+	<property name="passon.bin" value="${project.bin}/passon" />
 	<property name="ignore.src" value="${joana.base.dir}/api/joana.api.annotations.ignore/src" />
-	<property name="ignore.bin" value="${joana.base.dir}/api/joana.api.annotations.ignore/bin" />
+	<property name="ignore.bin" value="${project.bin}/ignore" />
 
 	<target name="init">
-		<delete dir="${passon.bin}" />
-		<delete dir="${ignore.bin}" />
-		<mkdir dir="${passon.bin}" />
-		<mkdir dir="${ignore.bin}" />
-		<delete dir="${project.bin}" />
-		<mkdir dir="${project.bin}" />
+	<delete dir="${project.bin}" />
+	<mkdir dir="${project.bin}" />
+	<mkdir dir="${passon.bin}" />
+	<mkdir dir="${ignore.bin}" />
 		<javac includeantruntime="false" srcdir="${passon.src}" destdir="${passon.bin}" verbose="no" source="1.6" target="1.6" encoding="utf-8" />
 		<javac includeantruntime="false" srcdir="${ignore.src}" destdir="${ignore.bin}" verbose="no" source="1.6" target="1.6" encoding="utf-8" />
-		<copy todir="${project.bin}">
+<!--		<copy todir="${project.bin}">
 			<fileset dir="${passon.bin}">
 				<include name="**/*.class" />
 			</fileset>
-		</copy>
+		</copy> -->
 	</target>
 
 	<target name="compile" depends="init">
+		<javac includeantruntime="false" srcdir="${project.src}" destdir="${project.bin}" classpath="${passon.bin}" verbose="no" source="1.6" target="1.6" encoding="utf-8" />
+<!--		<delete dir="${project.bin}/edu" /> -->
+	</target>
 
-
-		<javac includeantruntime="false" srcdir="${project.src}" destdir="${project.bin}" verbose="no" source="1.6" target="1.6" encoding="utf-8" />
-		<delete dir="${project.bin}/edu" />
+	<target name="clean">
+		<delete dir="${project.bin}" />
 	</target>
 
 </project>

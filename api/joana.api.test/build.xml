@@ -4,6 +4,7 @@
   	build testproject for joana.api
 	</description>
 
+	
 	<!-- set project related properties -->
 	<property file="project.properties" />
 	<property file="${joana.base.dir}/joana-project-location.properties" />
@@ -11,19 +12,24 @@
 	<property name="project.jarfile" value="joana.api.test.jar" />
 	<property name="project.source" value="${joana.api.test.base.dir}/src" />
 	<property name="project.build" value="${joana.api.test.base.dir}/build" />
+	<property name="project.build.classes" value="${project.build}/classes" />
 	<property name="project.joanalib.base" value="${joana.api.test.base.dir}/lib" />
 	<property name="project.joanalib" value="${project.joanalib.base}/joana.api.jar" />
 	<property name="project.jartmp" value="classes" />
-	<property name="project.reportdir" value="${joana.api.test.base.dir}/report" />
-	<!-- set global properties for this build -->
-	
+	<property name="project.reportdir" value="${joana.api.test.base.dir}/build/report" />
+
+	<!-- set the location of the class files of the test programs -->
+	<property name="testprograms.base" value="${project.build}/test" />
+	<property name="joana.api.testdata.classpath" value="${testprograms.base}/testdata" />
+	<property name="joana.many.small.programs.classpath" value="${testprograms.base}/many-small" />
+	<property name="annotations.ignore.classpath" value="${testprograms.base}/annotations/ignore" />
+	<property name="annotations.passon.classpath" value="${testprograms.base}/annotations/passon" />
+
 
 	<target name="compile" depends="copy_joana_api,dirty_compile" />
 
-	<target name="dirty_compile">
-		<delete dir="${project.build}" />
-		<mkdir dir="${project.build}" />
-		<javac srcdir="${project.source}" destdir="${project.build}" verbose="no" source="1.6" target="1.6" encoding="utf-8" includeantruntime="false" classpath="${project.joanalib}"/>	
+	<target name="dirty_compile" depends="compile_all_testprograms" >
+		<javac srcdir="${project.source}" destdir="${project.build.classes}" verbose="no" source="1.6" target="1.6" encoding="utf-8" includeantruntime="false" classpath="${project.joanalib}"/>	
 	</target>
 
 	<target name="copy_joana_api" depends="compile_joana_api">
@@ -39,20 +45,29 @@
 		<ant antfile="${joana.api.base.dir}/build.xml" target="fulljar" inheritall="false" />
 	</target>
 
+	<target name="init" depends="clean">
+		<mkdir dir="${project.build.classes}" />
+		<mkdir dir="${project.reportdir}" />
+		<mkdir dir="${testprograms.base}" />
+	</target>
+
 	<target name="clean">
-		<ant antfile="${joana.api.base.dir}/build.xml" target="clean" inheritall="false" />
+		<delete dir="${project.build}" />
 	</target>
 
 	<target name="test" description="run all tests assuming that there is a current joana.api.jar in lib.">
-		<delete dir="${project.reportdir}" />
-		<mkdir dir="${project.reportdir}" />
 		<junit showoutput="yes" failureproperty="junit.failure">
 			<classpath>
 				<pathelement location="${project.joanalib}"/>
-				<pathelement location="${project.build}" />
+				<pathelement location="${project.build.classes}" />
 			</classpath>
 			
 			<sysproperty key="joana.base.dir" value="${joana.base.dir}" />
+			<sysproperty key="joana.api.testdata.classpath" value="${joana.api.testdata.classpath}" />
+			<sysproperty key="joana.many.small.programs.classpath" value="${joana.many.small.programs.classpath}" />
+			<sysproperty key="annotations.ignore.classpath" value="${annotations.ignore.classpath}" />
+			<sysproperty key="annotations.passon.classpath" value="${annotations.passon.classpath}" />
+		
 			<formatter type="xml"/>
 		
 			<batchtest todir="${project.reportdir}">
@@ -70,9 +85,27 @@
 		<fail if="junit.failure" message="Unit tests failed."/>
 	</target>
 
-	<target name="compile_testdata" description="compile the testdata programs.">
+	<target name="compile_all_testprograms" description="compile all test programs.">
+		<!-- First step: recreate directory structure -->
+		<!--<delete dir="${testprograms.base}" />
+		<mkdir dir="${testprograms.base}" /> -->
+		<mkdir dir="${joana.api.testdata.classpath}" />
+		<mkdir dir="${joana.many.small.programs.classpath}" />
+		<mkdir dir="${annotations.passon.classpath}" />
+		<mkdir dir="${annotations.ignore.classpath}" />
+
+		<!-- Second step: do actual compilation -->
+		<javac srcdir="${joana.api.annotations.ignore.base.dir}/src" destdir="${annotations.ignore.classpath}" verbose="no" source="1.6" target="1.6" encoding="utf-8" includeantruntime="false" />
+		<javac srcdir="${joana.api.annotations.passon.base.dir}/src" destdir="${annotations.passon.classpath}" verbose="no" source="1.6" target="1.6" encoding="utf-8" includeantruntime="false" />
+		<javac srcdir="${joana.api.testdata.base.dir}/src" destdir="${joana.api.testdata.classpath}" verbose="no" source="1.6" target="1.6" encoding="utf-8" includeantruntime="false" classpath="${annotations.ignore.classpath}" />
+		<javac srcdir="${joana.example.many-small-progs.dir}/src" destdir="${joana.many.small.programs.classpath}" verbose="no" source="1.6" target="1.6" encoding="utf-8" includeantruntime="false" />
+	
+
+	
 	</target>
 
-	<target name="build_and_test" depends="compile,compile_testdata,test" description="run all tests but build joana.api.jar first." />
+
+
+	<target name="build_and_test" depends="compile,test" description="run all tests but build joana.api.jar first." />
 
 </project>

@@ -34,7 +34,7 @@ public class JoanaPath {
 			return jPath;
 		} else {
 			try {
-				InputStream propertyStream = new FileInputStream("project.properties");
+				InputStream propertyStream = new FileInputStream("classpaths.properties");
 				Properties p = new Properties();
 				p.load(propertyStream);
 				jPath = p.getProperty(key);

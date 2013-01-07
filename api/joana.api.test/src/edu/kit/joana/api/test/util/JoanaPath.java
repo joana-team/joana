@@ -16,26 +16,35 @@ import java.util.Properties;
  */
 public class JoanaPath {
 
-	public static final String JOANA_PATH;
-
+	public static final String JOANA_API_TEST_DATA_CLASSPATH;
+	public static final String JOANA_MANY_SMALL_PROGRAMS_CLASSPATH;
+	public static final String ANNOTATIONS_IGNORE_CLASSPATH;
+	public static final String ANNOTATIONS_PASSON_CLASSPATH;
+	
 	static {
-		String jPath = System.getProperty("joana.base.dir");
+		JOANA_API_TEST_DATA_CLASSPATH = tryToLoadProperty("joana.api.testdata.classpath");
+		JOANA_MANY_SMALL_PROGRAMS_CLASSPATH = tryToLoadProperty("joana.many.small.programs.classpath");
+		ANNOTATIONS_IGNORE_CLASSPATH = tryToLoadProperty("annotations.ignore.classpath");
+		ANNOTATIONS_PASSON_CLASSPATH = tryToLoadProperty("annotations.passon.classpath");
+	}
+	
+	private static String tryToLoadProperty(String key) {
+		String jPath = System.getProperty(key);
 		if (jPath != null) {
-			JOANA_PATH = jPath;
+			return jPath;
 		} else {
 			try {
 				InputStream propertyStream = new FileInputStream("project.properties");
 				Properties p = new Properties();
 				p.load(propertyStream);
-				jPath = p.getProperty("joana.base.dir");
+				jPath = p.getProperty(key);
 			} catch (Throwable t) {
 			}
 			if (jPath != null) {
-				JOANA_PATH = jPath;
+				return jPath;
 			} else {
-				throw new IllegalStateException("Property 'joana.base.dir' not provided! Either add a 'project.properties' with an appropriate specification or provide property via -D flag to the jvm!");
+				throw new IllegalStateException("Property '"+ key + "' not provided! Either add a 'project.properties' with an appropriate specification or provide property via -D flag to the jvm!");
 			}
 		}
-
 	}
 }

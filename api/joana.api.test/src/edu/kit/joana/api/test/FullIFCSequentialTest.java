@@ -41,8 +41,6 @@ import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
  */
 public class FullIFCSequentialTest {
 
-	public static final String CLASSPATH = JoanaPath.JOANA_PATH + "/example/joana.example.many-small-progs/bin";
-
 	public static IFCAnalysis buildAndAnnotate(final String className, final String secSrc,
 			final String pubOut) throws ApiTestException {
 		return buildAndAnnotate(className, secSrc, pubOut, PointsToPrecision.CONTEXT_SENSITIVE);
@@ -51,7 +49,7 @@ public class FullIFCSequentialTest {
 	public static IFCAnalysis buildAndAnnotate(final String className, final String secSrc,
 			final String pubOut, PointsToPrecision pts) throws ApiTestException {
 		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(className);
-		SDGConfig config = new SDGConfig(CLASSPATH, mainMethod.toBCString(), Stubs.JRE_14);
+		SDGConfig config = new SDGConfig(JoanaPath.JOANA_MANY_SMALL_PROGRAMS_CLASSPATH, mainMethod.toBCString(), Stubs.JRE_14);
 		config.setComputeInterferences(false);
 		config.setExceptionAnalysis(ExceptionAnalysis.INTRAPROC);
 		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH);

@@ -30,8 +30,6 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
 public class ConcurrentTests {
 
 	private static final boolean FORCE_REBUILD = false;
-	
-	public static final String CLASSPATH = JoanaPath.JOANA_PATH + "/api/joana.api.testdata/bin";
 
 	private static final Map<String, TestData> testData = new HashMap<String, TestData>();
 
@@ -56,12 +54,12 @@ public class ConcurrentTests {
 		for (String testKey : testData.keySet()) {
 			final TestData td = testData.get(testKey);
 			if (FORCE_REBUILD) {
-				final BuildSDG b = BuildSDG.standardConcSetup(td.mainClass, td.sdgFile);
+				final BuildSDG b = BuildSDG.standardConcSetup(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, td.mainClass, td.sdgFile);
 				b.run();
 			} else {
 				final File f = new File(td.sdgFile);
 				if (!f.exists() || !f.canRead()) {
-					final BuildSDG b = BuildSDG.standardConcSetup(td.mainClass, td.sdgFile);
+					final BuildSDG b = BuildSDG.standardConcSetup(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, td.mainClass, td.sdgFile);
 					b.run();
 				}
 			}

@@ -47,22 +47,19 @@ import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
  */
 public class ToyTests {
 
-	static final String CLASSPATH_APP = JoanaPath.JOANA_PATH + "/api/joana.api.testdata/bin";
-	static final String CLASSPATH_ANNOTATIONS_IGNORE = JoanaPath.JOANA_PATH + "/api/joana.api.annotations.ignore/bin";
-	static final String CLASSPATH_ANNOTATIONS_PASSON = JoanaPath.JOANA_PATH + "/api/joana.api.annotations.passon/bin";
 	static final Stubs STUBS = Stubs.JRE_14;
 
 	static final boolean outputPDGFiles = false;
 	
 	static final String outputDir = "out";
 	
-	static final SDGConfig top_sequential = new SDGConfig(CLASSPATH_APP, null, STUBS, ExceptionAnalysis.INTERPROC,
+	static final SDGConfig top_sequential = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, null, STUBS, ExceptionAnalysis.INTERPROC,
 			FieldPropagation.OBJ_GRAPH, PointsToPrecision.OBJECT_SENSITIVE, false, // no
 																					// access
 																					// paths
 			false, // no interference
 			MHPType.NONE);
-	static final SDGConfig bottom_sequential = new SDGConfig(CLASSPATH_APP, null, STUBS,
+	static final SDGConfig bottom_sequential = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, null, STUBS,
 			ExceptionAnalysis.ALL_NO_ANALYSIS, FieldPropagation.OBJ_GRAPH, PointsToPrecision.TYPE, false, // no
 																											// access
 																											// paths
@@ -89,9 +86,9 @@ public class ToyTests {
 			throws ApiTestException, ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
 		final String classPath;
 		if (ignore) {
-			classPath = CLASSPATH_APP + ":" + CLASSPATH_ANNOTATIONS_IGNORE;
+			classPath = JoanaPath.JOANA_API_TEST_DATA_CLASSPATH + ":" + JoanaPath.ANNOTATIONS_IGNORE_CLASSPATH;
 		} else {
-			classPath = CLASSPATH_APP + ":" + CLASSPATH_ANNOTATIONS_PASSON;
+			classPath = JoanaPath.JOANA_API_TEST_DATA_CLASSPATH + ":" + JoanaPath.ANNOTATIONS_PASSON_CLASSPATH;
 		}
 		config.setClassPath(classPath);
 		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(className);

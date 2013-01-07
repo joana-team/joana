@@ -42,7 +42,6 @@ import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
  */
 public class FullIFCSensitivityTest {
 
-	public static final String CLASSPATH = JoanaPath.JOANA_PATH + "/example/joana.example.many-small-progs/bin";
 
 	public static IFCAnalysis buildAndAnnotate(final String className) throws ApiTestException {
 		return buildAndAnnotate(className, PointsToPrecision.CONTEXT_SENSITIVE);
@@ -59,7 +58,7 @@ public class FullIFCSensitivityTest {
 	public static IFCAnalysis buildAndAnnotate(final String className, final PointsToPrecision pts,
 			final boolean computeInterference, MHPType mhpType) throws ApiTestException {
 		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(className);
-		SDGConfig config = new SDGConfig(CLASSPATH, mainMethod.toBCString(), Stubs.JRE_14);
+		SDGConfig config = new SDGConfig(JoanaPath.JOANA_MANY_SMALL_PROGRAMS_CLASSPATH, mainMethod.toBCString(), Stubs.JRE_14);
 		config.setComputeInterferences(computeInterference);
 		config.setExceptionAnalysis(ExceptionAnalysis.INTRAPROC);
 		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH);

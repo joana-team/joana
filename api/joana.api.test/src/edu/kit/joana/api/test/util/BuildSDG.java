@@ -12,7 +12,6 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 import edu.kit.joana.api.sdg.MHPType;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
-import edu.kit.joana.api.test.ConcurrentTests;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
@@ -93,12 +92,12 @@ public class BuildSDG {
 		return p.getSDG();
 	}
 
-	public static BuildSDG standardConcSetup(JavaMethodSignature entryMethod, String saveAs) {
-		return new BuildSDG(ConcurrentTests.CLASSPATH, entryMethod.toBCString(), Stubs.JRE_14,
+	public static BuildSDG standardConcSetup(String classPath, JavaMethodSignature entryMethod, String saveAs) {
+		return new BuildSDG(classPath, entryMethod.toBCString(), Stubs.JRE_14,
 				ExceptionAnalysis.IGNORE_ALL, FieldPropagation.OBJ_GRAPH, saveAs);
 	}
 	
-	public static BuildSDG standardConcSetup(String mainClass, String saveAs) {
-		return standardConcSetup(JavaMethodSignature.mainMethodOfClass(mainClass), saveAs);
+	public static BuildSDG standardConcSetup(String classPath, String mainClass, String saveAs) {
+		return standardConcSetup(classPath, JavaMethodSignature.mainMethodOfClass(mainClass), saveAs);
 	}
 }

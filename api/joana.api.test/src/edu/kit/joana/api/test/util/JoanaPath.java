@@ -39,7 +39,6 @@ public class JoanaPath {
 	}
 	
 	private static String tryToLoadProperty(String key, String propertiesFile) {
-		System.out.println("Loading property " + key + " from file " + propertiesFile + "... ");
 		String jPath = System.getProperty(key);
 		if (jPath != null) {
 			return jPath;

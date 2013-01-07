@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="joana.api.test" default="copy_joana_api" basedir=".">
+<project name="joana.api.test" default="build_and_test" basedir=".">
 	<description>
   	build testproject for joana.api
 	</description>
@@ -9,26 +9,26 @@
 	<property file="${joana.base.dir}/joana-project-location.properties" />
 	<property name="projectname" value="joana.api.test" />
 	<property name="project.jarfile" value="joana.api.test.jar" />
+	<property name="project.source" value="${joana.api.test.base.dir}/src" />
+	<property name="project.build" value="${joana.api.test.base.dir}/build" />
+	<property name="project.joanalib.base" value="${joana.api.test.base.dir}/lib" />
+	<property name="project.joanalib" value="${project.joanalib.base}/joana.api.jar" />
 	<property name="project.jartmp" value="classes" />
 	<property name="project.reportdir" value="${joana.api.test.base.dir}/report" />
 	<!-- set global properties for this build -->
 	
 
-	<target name="compile" depends="copy_joana_api,dirty_compile">
-		<delete dir="${joana.api.test.base.dir}/bin" />
-		<mkdir dir="${joana.api.test.base.dir}/bin" />
-		<javac srcdir="${joana.api.test.base.dir}/src" destdir="${joana.api.test.base.dir}/bin" verbose="no" source="1.6" target="1.6" encoding="utf-8" includeantruntime="false" classpath="${joana.api.test.base.dir}/lib/joana.api.jar" />
-	</target>
-	
+	<target name="compile" depends="copy_joana_api,dirty_compile" />
+
 	<target name="dirty_compile">
-		<delete dir="${joana.api.test.base.dir}/bin" />
-		<mkdir dir="${joana.api.test.base.dir}/bin" />
-		<javac srcdir="${joana.api.test.base.dir}/src" destdir="${joana.api.test.base.dir}/bin" verbose="no" source="1.6" target="1.6" encoding="utf-8" includeantruntime="false" classpath="${joana.api.test.base.dir}/lib/joana.api.jar" />
+		<delete dir="${project.build}" />
+		<mkdir dir="${project.build}" />
+		<javac srcdir="${project.source}" destdir="${project.build}" verbose="no" source="1.6" target="1.6" encoding="utf-8" includeantruntime="false" classpath="${project.joanalib}"/>	
 	</target>
 
 	<target name="copy_joana_api" depends="compile_joana_api">
-		<delete file="${joana.api.test.base.dir}/lib/joana.api.jar" />
-		<copy todir="${joana.api.test.base.dir}/lib">
+		<delete file="${project.joanalib}" />
+		<copy todir="${project.joanalib.base}">
 			<fileset dir="${joana.dist.dir}">
 				<filename name="joana.api.jar" />
 			</fileset>
@@ -48,15 +48,15 @@
 		<mkdir dir="${project.reportdir}" />
 		<junit showoutput="yes" failureproperty="junit.failure">
 			<classpath>
-				<pathelement location="${joana.api.test.base.dir}/lib/joana.api.jar"/>
-				<pathelement location="${joana.api.test.base.dir}/bin" />
+				<pathelement location="${project.joanalib}"/>
+				<pathelement location="${project.build}" />
 			</classpath>
 			
 			<sysproperty key="joana.base.dir" value="${joana.base.dir}" />
 			<formatter type="xml"/>
 		
 			<batchtest todir="${project.reportdir}">
-				<fileset dir="${joana.api.test.base.dir}/src" includes="**/test/*.java" />
+				<fileset dir="${project.source}" includes="**/test/*.java" />
 			</batchtest>
 		</junit>
 
@@ -70,6 +70,9 @@
 		<fail if="junit.failure" message="Unit tests failed."/>
 	</target>
 
-	<target name="build_and_test" depends="compile,test" description="run all tests but build joana.api.jar first." />
+	<target name="compile_testdata" description="compile the testdata programs.">
+	</target>
+
+	<target name="build_and_test" depends="compile,compile_testdata,test" description="run all tests but build joana.api.jar first." />
 
 </project>

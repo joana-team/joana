@@ -13,6 +13,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
 
@@ -28,6 +29,8 @@ import edu.kit.joana.api.IllicitFlow;
 import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.MHPType;
 import edu.kit.joana.api.sdg.SDGConfig;
+import edu.kit.joana.api.sdg.SDGInstruction;
+import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.api.test.util.ApiTestException;
@@ -51,9 +54,18 @@ public class JoinAnalysisIFCMantelTest {
 	};
 	
 	private static final String[] MANTEL_PUBLIC_OUTPUT = {
-		MANTEL_CLASS_NAME + "$EuroStoxx50.run()V:12",
-		MANTEL_CLASS_NAME + ".main([Ljava/lang/String;)V:159"
+		MANTEL_CLASS_NAME + "$EuroStoxx50.run()V:12"
 	};
+	
+	private static SDGProgramPart searchInstruction(SDGMethod m, String pat) {
+		for (SDGInstruction i : m.getInstructions()) {
+			if (i.getNode().getLabel().contains(pat)) {
+				return i;
+			}
+		}
+		fail("no instruction containing '" + pat + "' found in method " + m);
+		throw new IllegalStateException("this statement should not be reachable");
+	}
 
 	public static IFCAnalysis buildAndAnnotateMantel(final MHPType mhp) throws ApiTestException {
 		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(MANTEL_CLASS_NAME);
@@ -91,6 +103,22 @@ public class JoinAnalysisIFCMantelTest {
 			ana.addSinkAnnotation(publicOut, BuiltinLattices.STD_SECLEVEL_LOW);
 		}
 		
+		/**
+		 * HACK!
+		 * The eclipse java compiler and the standard java compiler handle string concatenation differently, which
+		 * causes the bytecode instruction of the flush statement in the main method of the Mantel00Page10 example
+		 * to be dependent on the used compiler. To get the tests passed irrespective of the compiler used to
+		 * compile the Mantel00Page10 example code, a workaround is used here. Rather than hardcoding the bytecode
+		 * instruction index of the flush statement to be annotated as public sink, the flush statement is searched 
+		 * in the main method. This exploits the fact that there is only one flush instruction in the main method. 
+		 * This assumption seems to break harder than an assumption about the exact bytecode instruction index of the flush instruction.
+		 */
+		SDGProgramPart ppMain = ana.getProgramPart(MANTEL_CLASS_NAME + ".main([Ljava/lang/String;)V");
+		assertTrue(ppMain instanceof SDGMethod);
+		SDGMethod methMain = (SDGMethod) ppMain;
+		SDGProgramPart flushInstruction = searchInstruction(methMain, "flush");
+		assertNotNull(flushInstruction);
+		ana.addSinkAnnotation(flushInstruction, BuiltinLattices.STD_SECLEVEL_LOW);
 		return ana;
 	}
 	

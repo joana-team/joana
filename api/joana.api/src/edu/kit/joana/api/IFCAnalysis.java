@@ -169,6 +169,7 @@ public class IFCAnalysis {
 
 
 		List<IllicitFlow> ret = new LinkedList<IllicitFlow>();
+		
 		for (Violation vio : vios) {
 			IllicitFlow ill = new IllicitFlow(vio, getSources(), getSinks());
 			ret.add(ill);
@@ -182,6 +183,9 @@ public class IFCAnalysis {
 				for (SDGNode nProc : groupedByProc.keySet()) {
 					debug.outln("In method " + nProc.getBytecodeMethod() + ": " + groupedByProc.get(nProc));
 				}
+			} else {
+				Violation v = ill.getViolation();
+				debug.outln("unidentifiable flow from " + v.getSource() + " to " + v.getSink());
 			}
 			
 		}

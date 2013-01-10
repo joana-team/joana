@@ -10,7 +10,7 @@ package edu.kit.joana.api.sdg;
 import java.util.Collection;
 
 /**
- * TODO: @author Add your name here.
+ * @author Martin Mohr
  */
 public class SDGProgramPartCollector extends
 		SDGProgramPartVisitor<Void, Collection<SDGProgramPart>> {

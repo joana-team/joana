@@ -104,7 +104,7 @@ Comparable<SDGInstruction> {
 
 	@Override
 	public boolean covers(SDGNode node) {
-		return sourceNodes.contains(node) || sinkNodes.contains(node);
+		return rootNode.equals(node) || sourceNodes.contains(node) || sinkNodes.contains(node);
 	}
 
 	@Override

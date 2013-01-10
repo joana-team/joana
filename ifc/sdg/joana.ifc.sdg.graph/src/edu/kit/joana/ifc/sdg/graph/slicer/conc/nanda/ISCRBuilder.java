@@ -584,9 +584,9 @@ public class ISCRBuilder {
         			}
         		}
         		if (n != ret && params.get(n) != ret) {
-        			debug.outln(n);
-        			debug.outln(ret);
-        			debug.outln(params.get(n));
+        			debug.outln(n + " " + n.getKind());
+        			debug.outln(ret + " " + ret.getKind());
+        			debug.outln(params.get(n) + " " + params.get(n).getKind());
         			throw new RuntimeException();
         		}
 

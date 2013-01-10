@@ -170,8 +170,14 @@ public class IFCAnalysis {
 
 		List<IllicitFlow> ret = new LinkedList<IllicitFlow>();
 		
+		Collection<SDGProgramPart> allParts = getProgram().getAllProgramParts();
+		for (SDGProgramPart ppart : allParts) {
+			debug.outln("Program part " + ppart + " with node(s): " + ppart.getAttachedNodes());
+		}
+		
+		
 		for (Violation vio : vios) {
-			IllicitFlow ill = new IllicitFlow(vio, getSources(), getSinks());
+			IllicitFlow ill = new IllicitFlow(vio, allParts);
 			ret.add(ill);
 			RepsRosayChopper c = new RepsRosayChopper(program.getSDG());
 			SDGProgramPart illSrc = ill.getSource();

@@ -8,10 +8,7 @@
 package edu.kit.joana.api;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
-import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.ifc.sdg.core.violations.Violation;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -27,13 +24,10 @@ public class IllicitFlow {
 	private final SDGProgramPart sink;
 	private final String attackerLevel;
 
-	public IllicitFlow(Violation vio, Collection<IFCAnnotation> sources, Collection<IFCAnnotation> sinks) {
+	public IllicitFlow(Violation vio, Collection<SDGProgramPart> pparts) {
 		this.vio = vio;
-		Set<IFCAnnotation> anns = new HashSet<IFCAnnotation>();
-		anns.addAll(sources);
-		anns.addAll(sinks);
-		this.source = selectProgramPart(vio.getSource(), sources);
-		this.sink = selectProgramPart(vio.getSink(), sinks);
+		this.source = selectProgramPart(vio.getSource(), pparts);
+		this.sink = selectProgramPart(vio.getSink(), pparts);
 		this.attackerLevel = vio.getAttackerLevel();
 
 
@@ -51,17 +45,19 @@ public class IllicitFlow {
 		return vio;
 	}
 
-	private SDGProgramPart selectProgramPart(SDGNode node, Collection<IFCAnnotation> annots) {
+	private SDGProgramPart selectProgramPart(SDGNode node, Collection<SDGProgramPart> pparts) {
 		SDGProgramPart ret = null;
-		for (IFCAnnotation ann : annots) {
-			SDGProgramPart part = ann.getProgramPart();
-			if (part.covers(node)) {
-				ret = part.getCoveringComponent(node);
+		for (SDGProgramPart ann : pparts) {
+			if (ann.covers(node)) {
+				ret = ann.getCoveringComponent(node);
 				break;
 			}
 		}
 
 		//assert ret != null : node;
+		if (ret == null) {
+			debug.outln("node " + node + " of kind " + node.getKind() + " has no covering program part!");
+		}
 		return ret;
 
 	}

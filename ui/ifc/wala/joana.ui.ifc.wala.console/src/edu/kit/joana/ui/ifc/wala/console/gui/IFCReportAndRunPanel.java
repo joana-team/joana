@@ -230,7 +230,7 @@ public class IFCReportAndRunPanel extends JPanel {
 	public void redLight() {
 		resultIndicator.setRed();
 		resultText.setForeground(Color.red);
-		resultText.setText("Found " + consoleGui.getLastAnalysisResult().size()
+		resultText.setText("Found " + consoleGui.getLastAnalysisResultGrouped().size()
 				+ " potential violation(s)!");
 	}
 

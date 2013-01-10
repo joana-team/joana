@@ -38,6 +38,7 @@ import edu.kit.joana.ui.ifc.wala.console.console.IFCConsole;
 import edu.kit.joana.ui.ifc.wala.console.console.IFCConsole.CMD;
 import edu.kit.joana.ui.ifc.wala.console.console.IFCConsoleListener;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCConsoleOutput;
+import gnu.trove.map.TObjectIntMap;
 
 public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, IFCConsoleOutput {
 
@@ -416,6 +417,10 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 
 	public Collection<IllicitFlow> getLastAnalysisResult() {
 		return console.getLastAnalysisResult();
+	}
+	
+	public TObjectIntMap<IllicitFlow> getLastAnalysisResultGrouped() {
+		return console.getLastAnalysisResultGrouped();
 	}
 
 	public Collection<IFCAnnotation> getSources() {

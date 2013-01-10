@@ -274,6 +274,7 @@ public class IFCConsole {
 	private String classPath = "bin";
 	// private IStaticLattice<String> securityLattice;
 	private Collection<IllicitFlow> lastAnalysisResult = new LinkedList<IllicitFlow>();
+	private TObjectIntMap<IllicitFlow> groupedIFlows = new TObjectIntHashMap<IllicitFlow>();
 	private final EntryLocator loc = new EntryLocator();
 	private List<IFCConsoleListener> consoleListeners = new LinkedList<IFCConsoleListener>();
 	private IProgressMonitor monitor = NullProgressMonitor.INSTANCE;
@@ -1462,6 +1463,10 @@ public class IFCConsole {
 	public Collection<IllicitFlow> getLastAnalysisResult() {
 		return lastAnalysisResult;
 	}
+	
+	public TObjectIntMap<IllicitFlow> getLastAnalysisResultGrouped() {
+		return groupedIFlows;
+	}
 
 	public boolean doIFC(String type, boolean timeSens) {
 		if (ifcAnalysis == null || ifcAnalysis.getProgram() == null) {
@@ -1484,13 +1489,15 @@ public class IFCConsole {
 
 			lastAnalysisResult.clear();
 			lastAnalysisResult.addAll(vios);
-			out.log("done, found " + lastAnalysisResult.size() + " security violations");
+			
+			groupedIFlows.clear();
 
 			if (lastAnalysisResult.size() > 0) {
-				out.logln(":");
-				TObjectIntMap<IllicitFlow> groupedIFlows = groupByPParts(vios);
+				
+				groupedIFlows = groupByPParts(vios);
+				out.logln("done, found " + groupedIFlows.size() + " security violation(s):");
 				for (IllicitFlow iflow : groupedIFlows.keySet()) {
-					out.logln(String.format("%d illicit flow(s) between %s and %s ", groupedIFlows.get(iflow), iflow.getSource(), iflow.getSink()));
+					out.logln(String.format("illicit flow(s) between %s and %s (internal: %d illicit flow(s) between corresponding SDG nodes)", iflow.getSource(), iflow.getSink(), groupedIFlows.get(iflow)));
 				}
 			} else {
 				out.logln("");

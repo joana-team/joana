@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -193,6 +192,16 @@ public class SDGProgram {
 	public Collection<? extends SDGProgramPart> getParts(String partDesc) {
 		build();
 		return ppartParser.getProgramParts(partDesc);
+	}
+	
+	public Collection<SDGProgramPart> getAllProgramParts() {
+		List<SDGProgramPart> ret = new LinkedList<SDGProgramPart>();
+		SDGProgramPartCollector coll = new SDGProgramPartCollector();
+		for (SDGClass cl : getClasses()) {
+			cl.acceptVisitor(coll, ret);
+		}
+		
+		return ret;
 	}
 
 	public Collection<SDGMethod> getMethods(String methodDesc) {

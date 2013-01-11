@@ -106,10 +106,12 @@ public class ProbabilisticNISlicer {
             if (edge.getKind() == SDGEdge.Kind.CONFLICT_DATA) {
                 // erzeuge neuen Conflict
                 Conflict con  = new Conflict(sink, source, attackerLevel);
+                con.setConflictEdge(edge);
                 conflicts.add(con);
             } else if (edge.getKind() == SDGEdge.Kind.CONFLICT_ORDER) {
                 // erzeuge neuen OrderConflict
                 Conflict con  = new OrderConflict(sink, source, (SecurityNode)edge.getSource(), attackerLevel);
+                con.setConflictEdge(edge);
                 conflicts.add(con);
             }
         }
@@ -618,6 +620,10 @@ public class ProbabilisticNISlicer {
 
     public void removeProgressListener(ProgressListener pl) {
         this.pls.remove(pl);
+    }
+    
+    public Collection<Conflict> getConflicts() {
+    	return conf.getConflicts();
     }
 
 

@@ -29,6 +29,8 @@ public class ProbabilisticNIChecker extends IFC {
 
 	private final boolean timeSens;
 	
+	private ProbabilisticNISlicer prob;
+	
 	/**
 	 * Erzeugt eine neue Instanz.
 	 * 
@@ -71,7 +73,7 @@ public class ProbabilisticNIChecker extends IFC {
 		}
 
 		probInit = System.currentTimeMillis();
-		ProbabilisticNISlicer prob = ProbabilisticNISlicer.simpleCheck(g, l, mhp, this.timeSens);
+		prob = ProbabilisticNISlicer.simpleCheck(g, l, mhp, this.timeSens);
 		probInit = System.currentTimeMillis() - probInit;
 
 		probCheck = System.currentTimeMillis();
@@ -86,6 +88,10 @@ public class ProbabilisticNIChecker extends IFC {
 		orderChannels = prob.orderChannels;
 
 		return ret;
+	}
+	
+	public ProbabilisticNISlicer getProbSlicer() {
+		return prob;
 	}
 
 	public long probInit;

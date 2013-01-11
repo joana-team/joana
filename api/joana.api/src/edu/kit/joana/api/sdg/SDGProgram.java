@@ -203,6 +203,17 @@ public class SDGProgram {
 		
 		return ret;
 	}
+	
+	public SDGProgramPart findCoveringProgramPart(SDGNode node) {
+		for (SDGProgramPart ppart : getAllProgramParts()) {
+			if (ppart.covers(node)) {
+				return ppart.getCoveringComponent(node);
+			}
+		}
+		
+		debug.outln("node " + node + " has no program part!");
+		return null;
+	}
 
 	public Collection<SDGMethod> getMethods(String methodDesc) {
 		build();

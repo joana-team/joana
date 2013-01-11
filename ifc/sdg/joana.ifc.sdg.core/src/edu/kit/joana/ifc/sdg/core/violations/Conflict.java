@@ -14,6 +14,8 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 
 public class Conflict extends Violation {
 
+	private SDGEdge confEdge;
+	
     public Conflict(SecurityNode sink, SecurityNode source, String attacker) {
         setSink(sink);
         setSource(source);
@@ -34,6 +36,14 @@ public class Conflict extends Violation {
         race.add((SecurityNode)edge.getSource());
         race.add((SecurityNode)edge.getTarget());
         getChop("Standard").getViolationPathes().add(race);
+    }
+    
+    public void setConflictEdge(SDGEdge confEdge) {
+    	this.confEdge = confEdge;
+    }
+    
+    public SDGEdge getConflictEdge() {
+    	return confEdge;
     }
 
     public String toString() {

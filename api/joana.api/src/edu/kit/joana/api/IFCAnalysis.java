@@ -106,11 +106,10 @@ public class IFCAnalysis {
 		default:
 			throw new IllegalStateException("unhandled ifc type: " + ifcType + "!");
 		}
-		
-		
-		
-		
-		
+	}
+	
+	public IFC getIFC() {
+		return ifc;
 	}
 	
 	public void setTimesensitivity(boolean newTimeSens) {

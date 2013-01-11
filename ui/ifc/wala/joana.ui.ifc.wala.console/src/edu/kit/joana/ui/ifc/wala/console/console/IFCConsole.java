@@ -49,7 +49,12 @@ import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.api.sdg.SDGProgramPartWriter;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.SecurityNode.SecurityNodeFactory;
+import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNIChecker;
+import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNISlicer;
+import edu.kit.joana.ifc.sdg.core.violations.Conflict;
+import edu.kit.joana.ifc.sdg.core.violations.OrderConflict;
 import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.lattice.IEditableLattice;
@@ -67,6 +72,8 @@ import edu.kit.joana.ui.ifc.wala.console.io.InvalidAnnotationFormatException;
 import edu.kit.joana.ui.ifc.wala.console.io.MethodNotFoundException;
 import edu.kit.joana.ui.ifc.wala.console.io.NumberedIFCAnnotationDumper;
 import edu.kit.joana.ui.ifc.wala.console.io.PrintStreamConsoleWrapper;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
@@ -286,6 +293,8 @@ public class IFCConsole {
 	private Stubs stubsPath = Stubs.JRE_14;
 
 	private List<String> script = new LinkedList<String>();
+	
+	private static Logger debug = Log.getLogger("console.debug");
 
 	public IFCConsole(BufferedReader in, IFCConsoleOutput out) {
 		this.in = in;
@@ -1498,6 +1507,29 @@ public class IFCConsole {
 				out.logln("done, found " + groupedIFlows.size() + " security violation(s):");
 				for (IllicitFlow iflow : groupedIFlows.keySet()) {
 					out.logln(String.format("illicit flow(s) between %s and %s (internal: %d illicit flow(s) between corresponding SDG nodes)", iflow.getSource(), iflow.getSink(), groupedIFlows.get(iflow)));
+					if (ifcAnalysis.getIFC() instanceof ProbabilisticNIChecker) {
+						debug.outln("conflicts:");
+						ProbabilisticNIChecker probIFC = (ProbabilisticNIChecker) ifcAnalysis.getIFC();
+						ProbabilisticNISlicer probSlicer = probIFC.getProbSlicer();
+						Collection<Conflict> conflicts = probSlicer.getConflicts();
+						for (Conflict c : conflicts) {
+							if (c instanceof OrderConflict) {
+								OrderConflict oc = (OrderConflict) c;
+								SDGProgramPart secret = ifcAnalysis.getProgram().findCoveringProgramPart(oc.getSource());
+								SDGProgramPart conf1 = ifcAnalysis.getProgram().findCoveringProgramPart(oc.getSink());
+								SDGProgramPart conf2 = ifcAnalysis.getProgram().findCoveringProgramPart(oc.getConflicting());
+								debug.outln(secret + " is leaked through an order conflict between " + conf1 + " and " + conf2 + ", visible for " + oc.getAttackerLevel());
+							} else {
+								SDGProgramPart secret = ifcAnalysis.getProgram().findCoveringProgramPart(c.getSource());
+								SDGProgramPart leaking = ifcAnalysis.getProgram().findCoveringProgramPart(c.getSink());
+								SDGEdge confEdge = c.getConflictEdge();
+								SDGProgramPart conf1 = ifcAnalysis.getProgram().findCoveringProgramPart(confEdge.getSource());
+								SDGProgramPart conf2 = ifcAnalysis.getProgram().findCoveringProgramPart(confEdge.getTarget());
+								debug.outln(secret + " causes a data conflict between " + conf1 + " and " + conf2 + " which may influence " + leaking + ", visible for " + c.getAttackerLevel());
+							}
+						}
+					}
+					
 				}
 			} else {
 				out.logln("");

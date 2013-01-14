@@ -49,32 +49,6 @@ public class JoinAnalysisIFCMantelTest {
 
 	public static final String MANTEL_CLASS_NAME = "tests.Mantel00Page10";
 	
-	private static final String[] MANTEL_SECRET_SOURCES = {
-		MANTEL_CLASS_NAME + "$Portfolio.run()V:1",
-		MANTEL_CLASS_NAME + "$Portfolio.run()V:8"
-	};
-	
-	private static final String[] MANTEL_PUBLIC_OUTPUT = {
-		MANTEL_CLASS_NAME + "$EuroStoxx50.run()V:12"
-	};
-	
-	/**
-	 * Returns all instructions contained in the given method, whose label contains the given string.
-	 * @param m method to search instructions in
-	 * @param s string which is to be contained in every returned instruction's label
-	 * @return list of all instructions in the given method, whose label contains the given string
-	 */
-	private static List<SDGInstruction> searchInstructionByName(SDGMethod m, String s) {
-		List<SDGInstruction> ret = new LinkedList<SDGInstruction>();
-		for (SDGInstruction i : m.getInstructions()) {
-			if (i.getNode().getLabel().contains(s)) {
-				ret.add(i);
-			}
-		}
-		
-		return ret;
-	}
-
 	public static IFCAnalysis buildAndAnnotateMantel(final MHPType mhp) throws ApiTestException {
 		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(MANTEL_CLASS_NAME);
 		SDGConfig config = new SDGConfig(JoanaPath.JOANA_MANY_SMALL_PROGRAMS_CLASSPATH, mainMethod.toBCString(), Stubs.JRE_14);
@@ -99,17 +73,14 @@ public class JoinAnalysisIFCMantelTest {
 		
 		IFCAnalysis ana = new IFCAnalysis(prog);
 		
-		for (String secretSrcTxt : MANTEL_SECRET_SOURCES) {
-			SDGProgramPart secretSrc = ana.getProgramPart(secretSrcTxt);
-			assertNotNull(secretSrc);
-			ana.addSourceAnnotation(secretSrc, BuiltinLattices.STD_SECLEVEL_HIGH);
-		}
-		
-		for (String publicOutTxt : MANTEL_PUBLIC_OUTPUT) {
-			SDGProgramPart publicOut = ana.getProgramPart(publicOutTxt);
-			assertNotNull(publicOut);
-			ana.addSinkAnnotation(publicOut, BuiltinLattices.STD_SECLEVEL_LOW);
-		}
+		SDGMethod portfolioRun = ana.getProgram().getMethod(MANTEL_CLASS_NAME + "$Portfolio.run()V");
+		assertNotNull(portfolioRun);
+		List<SDGInstruction> calls2GetPFNames = portfolioRun.getAllCalls(JavaMethodSignature.fromString(MANTEL_CLASS_NAME + "$Portfolio.getPFNames()[Ljava/lang/String;"));
+		assertEquals(1, calls2GetPFNames.size());
+		ana.addSourceAnnotation(calls2GetPFNames.get(0), BuiltinLattices.STD_SECLEVEL_HIGH);
+		List<SDGInstruction> calls2GetPFNums = portfolioRun.getAllCalls(JavaMethodSignature.fromString(MANTEL_CLASS_NAME + "$Portfolio.getPFNums()[I"));
+		assertEquals(1, calls2GetPFNums.size());
+		ana.addSourceAnnotation(calls2GetPFNums.get(0), BuiltinLattices.STD_SECLEVEL_HIGH);
 		
 		/**
 		 * HACK!
@@ -122,9 +93,20 @@ public class JoinAnalysisIFCMantelTest {
 		 * This assumption seems to break harder than an assumption about the exact bytecode instruction index of the flush instruction.
 		 */
 		SDGMethod methMain = ana.getProgram().getMethod(MANTEL_CLASS_NAME + ".main([Ljava/lang/String;)V");
-		List<SDGInstruction> flushInstruction = searchInstructionByName(methMain, "flush");
-		assertEquals(1, flushInstruction.size());
-		ana.addSinkAnnotation(flushInstruction.get(0), BuiltinLattices.STD_SECLEVEL_LOW);
+		List<SDGInstruction> flushInstructions = methMain.getAllCalls(JavaMethodSignature.fromString("java.io.BufferedWriter.flush()V"));
+		
+		//List<SDGInstruction> flushInstruction = searchInstructionByName(methMain, "flush");
+		assertEquals(1, flushInstructions.size());
+		ana.addSinkAnnotation(flushInstructions.get(0), BuiltinLattices.STD_SECLEVEL_LOW);
+		
+		SDGMethod methEuroStoxxRun = ana.getProgram().getMethod(MANTEL_CLASS_NAME + "$EuroStoxx50.run()V");
+		List<SDGInstruction> fi2 = methEuroStoxxRun.getAllCalls(JavaMethodSignature.fromString("java.io.BufferedWriter.flush()V"));
+		
+		//List<SDGInstruction> flushInstruction = searchInstructionByName(methMain, "flush");
+		assertEquals(1, fi2.size());
+		ana.addSinkAnnotation(fi2.get(0), BuiltinLattices.STD_SECLEVEL_LOW);
+		
+
 		return ana;
 	}
 	

@@ -13,9 +13,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.junit.Test;
 
@@ -57,14 +58,21 @@ public class JoinAnalysisIFCMantelTest {
 		MANTEL_CLASS_NAME + "$EuroStoxx50.run()V:12"
 	};
 	
-	private static SDGProgramPart searchInstruction(SDGMethod m, String pat) {
+	/**
+	 * Returns all instructions contained in the given method, whose label contains the given string.
+	 * @param m method to search instructions in
+	 * @param s string which is to be contained in every returned instruction's label
+	 * @return list of all instructions in the given method, whose label contains the given string
+	 */
+	private static List<SDGInstruction> searchInstructionByName(SDGMethod m, String s) {
+		List<SDGInstruction> ret = new LinkedList<SDGInstruction>();
 		for (SDGInstruction i : m.getInstructions()) {
-			if (i.getNode().getLabel().contains(pat)) {
-				return i;
+			if (i.getNode().getLabel().contains(s)) {
+				ret.add(i);
 			}
 		}
-		fail("no instruction containing '" + pat + "' found in method " + m);
-		throw new IllegalStateException("this statement should not be reachable");
+		
+		return ret;
 	}
 
 	public static IFCAnalysis buildAndAnnotateMantel(final MHPType mhp) throws ApiTestException {
@@ -113,12 +121,10 @@ public class JoinAnalysisIFCMantelTest {
 		 * in the main method. This exploits the fact that there is only one flush instruction in the main method. 
 		 * This assumption seems to break harder than an assumption about the exact bytecode instruction index of the flush instruction.
 		 */
-		SDGProgramPart ppMain = ana.getProgramPart(MANTEL_CLASS_NAME + ".main([Ljava/lang/String;)V");
-		assertTrue(ppMain instanceof SDGMethod);
-		SDGMethod methMain = (SDGMethod) ppMain;
-		SDGProgramPart flushInstruction = searchInstruction(methMain, "flush");
-		assertNotNull(flushInstruction);
-		ana.addSinkAnnotation(flushInstruction, BuiltinLattices.STD_SECLEVEL_LOW);
+		SDGMethod methMain = ana.getProgram().getMethod(MANTEL_CLASS_NAME + ".main([Ljava/lang/String;)V");
+		List<SDGInstruction> flushInstruction = searchInstructionByName(methMain, "flush");
+		assertEquals(1, flushInstruction.size());
+		ana.addSinkAnnotation(flushInstruction.get(0), BuiltinLattices.STD_SECLEVEL_LOW);
 		return ana;
 	}
 	

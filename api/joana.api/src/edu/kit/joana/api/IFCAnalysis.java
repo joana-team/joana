@@ -24,7 +24,10 @@ import edu.kit.joana.api.sdg.SDGProgramPartWriter;
 import edu.kit.joana.ifc.sdg.core.IFC;
 import edu.kit.joana.ifc.sdg.core.conc.PossibilisticNIChecker;
 import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNIChecker;
+import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNISlicer;
 import edu.kit.joana.ifc.sdg.core.conc.TimeSensitiveIFCDecorator;
+import edu.kit.joana.ifc.sdg.core.violations.Conflict;
+import edu.kit.joana.ifc.sdg.core.violations.OrderConflict;
 import edu.kit.joana.ifc.sdg.core.violations.Violation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -195,10 +198,34 @@ public class IFCAnalysis {
 			
 		}
 		
+		if (getIFC() instanceof ProbabilisticNIChecker) {
+			debug.outln("conflicts:");
+			ProbabilisticNIChecker probIFC = (ProbabilisticNIChecker) getIFC();
+			ProbabilisticNISlicer probSlicer = probIFC.getProbSlicer();
+			Collection<Conflict> conflicts = probSlicer.getConflicts();
+			Collection<JoanaConflict> joanaConflicts = analyzeConflicts(conflicts);
+			for (JoanaConflict jc : joanaConflicts) {
+				debug.outln(jc);
+			}
+		}
+		
 		
 		
 		annManager.unapplyAllAnnotations();
 		return ret;
+	}
+	
+	private Collection<JoanaConflict> analyzeConflicts(Collection<Conflict> conflicts) {
+		Collection<JoanaConflict> joanaConflicts = new LinkedList<JoanaConflict>();
+		for (Conflict c : conflicts) {
+			if (c instanceof OrderConflict) {
+				joanaConflicts.add(new JoanaOrderConflict(getProgram(), c));
+			} else {
+				joanaConflicts.add(new JoanaDataConflict(getProgram(), c));
+			}
+		}
+		
+		return joanaConflicts;
 	}
 	
 	private static Map<SDGNode, Collection<SDGNode>> groupByProc(SDG sdg, Collection<SDGNode> nodes) {

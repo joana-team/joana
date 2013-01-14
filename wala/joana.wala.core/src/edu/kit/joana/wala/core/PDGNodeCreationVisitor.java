@@ -39,6 +39,7 @@ import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.TypeReference;
 
 import edu.kit.joana.wala.core.PDGNode.Kind;
+import edu.kit.joana.wala.util.PrettyWalaNames;
 
 public final class PDGNodeCreationVisitor implements IVisitor {
 
@@ -138,7 +139,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 	public void visitBinaryOp(SSABinaryOpInstruction instr) {
 		assert instr.getNumberOfUses() == 2;
 
-		String label = tmpName(instr.getDef()) + " = " + tmpName(instr.getUse(0)) + " " +  Util.op2str(instr.getOperator()) + " "
+		String label = tmpName(instr.getDef()) + " = " + tmpName(instr.getUse(0)) + " " +  PrettyWalaNames.op2str(instr.getOperator()) + " "
 			+ tmpName(instr.getUse(1));
 
 		lastNode = pdg.createNode(label, Kind.EXPRESSION, PDGNode.DEFAULT_TYPE);
@@ -146,7 +147,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 
 	@Override
 	public void visitUnaryOp(SSAUnaryOpInstruction instr) {
-		String label = tmpName(instr.getDef()) + " = " + Util.op2str(instr.getOpcode()) + "("
+		String label = tmpName(instr.getDef()) + " = " + PrettyWalaNames.op2str(instr.getOpcode()) + "("
 			+ tmpName(instr.getUse(0)) + ")";
 
 		lastNode = pdg.createNode(label, Kind.EXPRESSION, PDGNode.DEFAULT_TYPE);
@@ -165,14 +166,14 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		assert instr.getNumberOfUses() == 2;
 
 		final String label = tmpName(instr.getDef()) + " = " + tmpName(instr.getUse(0)) + " "
-			+ Util.op2str(instr.getOperator()) + " " + tmpName(instr.getUse(1));
+			+ PrettyWalaNames.op2str(instr.getOperator()) + " " + tmpName(instr.getUse(1));
 
 		lastNode = pdg.createNode(label, Kind.EXPRESSION, TypeReference.Boolean);
 	}
 
 	@Override
 	public void visitConditionalBranch(SSAConditionalBranchInstruction instr) {
-		String label = "if (" + tmpName(instr.getUse(0)) + " " + Util.op2str(instr.getOperator())
+		String label = "if (" + tmpName(instr.getUse(0)) + " " + PrettyWalaNames.op2str(instr.getOperator())
 			+ " " + tmpName(instr.getUse(1)) + ")";
 
 		lastNode = pdg.createNode(label, Kind.PREDICATE, TypeReference.Boolean);
@@ -211,7 +212,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 
 			String label = tmpName(dest) + " = ";
 			if (instr.isStatic()) {
-				label += Util.simpleTypeName(fRef.getDeclaringClass()) + "." + fRef.getName();
+				label += PrettyWalaNames.simpleTypeName(fRef.getDeclaringClass()) + "." + fRef.getName();
 			} else {
 				label += tmpName(instr.getRef()) + "." + fRef.getName();
 			}
@@ -245,7 +246,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 
 			String label = null ;
 			if (instr.isStatic()) {
-				label = Util.simpleTypeName(fRef.getDeclaringClass()) + "." + fRef.getName();
+				label = PrettyWalaNames.simpleTypeName(fRef.getDeclaringClass()) + "." + fRef.getName();
 			} else {
 				label = tmpName(instr.getRef()) + "." + fRef.getName();
 			}
@@ -336,7 +337,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 	@Override
 	public void visitNew(SSANewInstruction instr) {
 		final TypeReference tref = instr.getConcreteType();
-		final String label = tmpName(instr.getDef()) + " = new " + Util.simpleTypeName(tref);
+		final String label = tmpName(instr.getDef()) + " = new " + PrettyWalaNames.simpleTypeName(tref);
 
 		lastNode = pdg.createNode(label, Kind.NEW, tref);
 	}
@@ -374,7 +375,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 	@Override
 	public void visitInstanceof(SSAInstanceofInstruction instr) {
 		String label = tmpName(instr.getDef()) + "=" + tmpName(instr.getRef()) + " INSTANCEOF "
-			+ Util.simpleTypeName(instr.getCheckedType());
+			+ PrettyWalaNames.simpleTypeName(instr.getCheckedType());
 
 		lastNode = pdg.createNode(label, Kind.EXPRESSION, TypeReference.Boolean);
 	}

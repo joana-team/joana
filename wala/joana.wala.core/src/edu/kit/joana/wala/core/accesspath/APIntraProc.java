@@ -36,8 +36,8 @@ import edu.kit.joana.wala.core.accesspath.nodes.APGraph;
 import edu.kit.joana.wala.core.accesspath.nodes.APNode;
 import edu.kit.joana.wala.core.accesspath.nodes.APParamNode;
 import edu.kit.joana.wala.core.accesspath.nodes.APGraph.APEdge;
-import edu.kit.joana.wala.core.graphs.WriteGraphToDot;
 import edu.kit.joana.wala.flowless.util.DotUtil;
+import edu.kit.joana.wala.util.WriteGraphToDot;
 import gnu.trove.iterator.TIntIterator;
 
 public class APIntraProc {

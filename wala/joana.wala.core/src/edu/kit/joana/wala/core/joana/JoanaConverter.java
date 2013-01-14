@@ -33,8 +33,8 @@ import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SourceLocation;
-import edu.kit.joana.wala.core.Util;
 import edu.kit.joana.wala.core.graphs.GraphWalker;
+import edu.kit.joana.wala.util.PrettyWalaNames;
 import gnu.trove.set.TIntSet;
 
 
@@ -44,7 +44,7 @@ public class JoanaConverter {
 	private JoanaConverter() {}
 
 	public static SDG convert(SDGBuilder b, IProgressMonitor progress) throws CancelException {
-		SDG sdg = new SDG(Util.methodName(b.getEntry()));
+		SDG sdg = new SDG(PrettyWalaNames.methodName(b.getEntry()));
 
         progress.subTask("Building utility edges");
         addUtilityEdges(b);

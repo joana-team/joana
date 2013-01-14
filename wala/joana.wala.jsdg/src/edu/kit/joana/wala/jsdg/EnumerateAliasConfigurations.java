@@ -122,7 +122,7 @@ public class EnumerateAliasConfigurations {
 				// compute # alias configurations
 				// compute min-max aliases
 				if (!PURE_NUMBERS) { System.out.print("Working on " + Util.methodName(im) + ": "); }
-//				{ System.out.print("Working on " + Util.methodName(im) + ": "); }
+//				{ System.out.print("Working on " + PrettyWalaNames.methodName(im) + ": "); }
 				final Aliasing minMax = mojo.computeMinMaxAliasing(im);
 
 

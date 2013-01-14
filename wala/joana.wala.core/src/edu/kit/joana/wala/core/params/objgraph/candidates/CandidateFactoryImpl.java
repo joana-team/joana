@@ -24,9 +24,9 @@ import com.ibm.wala.util.strings.Atom;
 
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.wala.core.ParameterField;
-import edu.kit.joana.wala.core.Util;
 import edu.kit.joana.wala.core.params.objgraph.TVL;
 import edu.kit.joana.wala.core.params.objgraph.TVL.V;
+import edu.kit.joana.wala.util.PrettyWalaNames;
 
 /**
  *
@@ -559,7 +559,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 				this.type = TypeReference.Unknown;
 			}
 			final String curBcName =
-					(field.isField() ? Util.bcFieldName(field.getField()) : BytecodeLocation.ARRAY_PARAM);
+					(field.isField() ? PrettyWalaNames.bcFieldName(field.getField()) : BytecodeLocation.ARRAY_PARAM);
 			if (this.bcName == null) {
 				this.bcName = curBcName;
 			} else if (!curBcName.equals(this.bcName)) {
@@ -815,7 +815,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 
 		@Override
 		public String getBytecodeName() {
-			return (field.isField() ? Util.bcFieldName(field.getField()) : BytecodeLocation.ARRAY_PARAM);
+			return (field.isField() ? PrettyWalaNames.bcFieldName(field.getField()) : BytecodeLocation.ARRAY_PARAM);
 		}
 
 		@Override

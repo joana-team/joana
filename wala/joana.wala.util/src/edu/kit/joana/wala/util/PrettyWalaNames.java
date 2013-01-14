@@ -5,7 +5,7 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-package edu.kit.joana.wala.core;
+package edu.kit.joana.wala.util;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -47,9 +47,15 @@ import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.TypeName;
 import com.ibm.wala.types.TypeReference;
 
-public final class Util {
+/**
+ * Contains utility methods that convert WALA internal elements, like IField, IMethod etc. to a nice human readable
+ * string.
+ * 
+ * @author Juergen Graf <juergen.graf@gmail.com>
+ */
+public final class PrettyWalaNames {
 
-	private Util() {
+	private PrettyWalaNames() {
 		throw new UnsupportedOperationException("No instance of this class allowed.");
 	}
 	

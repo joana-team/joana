@@ -28,6 +28,7 @@ import com.ibm.wala.types.TypeReference;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
 import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
 import edu.kit.joana.wala.flowless.util.AliasGraphIO;
+import edu.kit.joana.wala.util.PrettyWalaNames;
 
 public interface ExternalCallCheck {
 
@@ -289,7 +290,7 @@ public interface ExternalCallCheck {
 				return;
 			}
 
-			final String file = dir + File.separator + Util.methodName(invk.getDeclaredTarget()) + ".alias";
+			final String file = dir + File.separator + PrettyWalaNames.methodName(invk.getDeclaredTarget()) + ".alias";
 
 			try {
 				AliasGraphIO.writeToFile(context, file);

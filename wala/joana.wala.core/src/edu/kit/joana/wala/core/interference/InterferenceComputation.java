@@ -14,9 +14,12 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import com.ibm.wala.classLoader.IClass;
+import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
+import com.ibm.wala.ipa.callgraph.propagation.HeapModel;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
 import com.ibm.wala.ipa.callgraph.propagation.PointerKey;
@@ -26,10 +29,13 @@ import com.ibm.wala.ssa.SSAArrayStoreInstruction;
 import com.ibm.wala.ssa.SSAFieldAccessInstruction;
 import com.ibm.wala.ssa.SSAGetInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
+import com.ibm.wala.ssa.SSAMonitorInstruction;
 import com.ibm.wala.ssa.SSAPutInstruction;
+import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.WalaException;
+import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.intset.BitVectorIntSet;
 import com.ibm.wala.util.intset.EmptyIntSet;
@@ -37,6 +43,7 @@ import com.ibm.wala.util.intset.IntIterator;
 import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.intset.IntSetAction;
 import com.ibm.wala.util.intset.MutableIntSet;
+import com.ibm.wala.util.intset.MutableMapping;
 import com.ibm.wala.util.intset.OrdinalSet;
 import com.ibm.wala.util.intset.SparseIntSet;
 
@@ -46,7 +53,9 @@ import edu.kit.joana.wala.core.EscapeAnalysis;
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGField;
 import edu.kit.joana.wala.core.PDGNode;
+import edu.kit.joana.wala.core.PDGNode.Kind;
 import edu.kit.joana.wala.core.ParameterField;
+import edu.kit.joana.wala.core.ParameterFieldFactory;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SourceLocation;
 import gnu.trove.map.hash.TIntObjectHashMap;
@@ -54,7 +63,7 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 
 
 /**
- * Interference computation for the standard jSDG.
+ * Interference computation for the system dependence graph. Taken and adapted from the deprecated jSDG version.
  *
  * @author Juergen Graf <graf@kit.edu>
  *
@@ -67,12 +76,15 @@ public class InterferenceComputation {
 	private final SDGBuilder builder;
 	private final EscapeAnalysis escape;
 	private final ThreadInformationProvider tiProvider;
-	private Set<CGNode> threadStarts = null;
+	private final ParameterFieldFactory pff;
+	private final PointsToWrapper pts;
 	private final boolean optimizeThisAccess;
 	private final boolean ignoreClInits;
 	private static final boolean DO_ARRAYS = true;
-	private static final boolean DO_SYNC = true;
-	private static final boolean DO_SYNC_METHODS = DO_SYNC && true;
+	private static final boolean DO_SYNC = false;
+	private static final boolean DO_SYNC_METHODS = DO_SYNC;
+	private static final int THIS_PARAM_NUM = 0; // valuenumber(variable name) of this pointer
+	private static final String CLASS_FIELD_NAME_PREFIX = "class$";
 
 	/*
 	 * A map containing all possible thread instances for the interference
@@ -97,45 +109,41 @@ public class InterferenceComputation {
 	 * @throws CancelException
 	 * @throws WalaException
 	 */
-	public static Set<InterferenceEdge> computeInterference(SDGBuilder builder, ThreadInformationProvider tiProvider,
-			boolean optimizeThisAccess,
-			boolean ignoreClinits, EscapeAnalysis escape, IProgressMonitor progress) throws CancelException {
+	public static Set<InterferenceEdge> computeInterference(final SDGBuilder builder,
+			final ThreadInformationProvider tiProvider,	final boolean optimizeThisAccess, final boolean ignoreClinits,
+			final EscapeAnalysis escape, final IProgressMonitor progress) throws CancelException {
 		progress.subTask("Thread interference computation started..."); //$NON-NLS-1$
 		if (IS_DEBUG) debug.outln("Computing thread interference");
 
-		final InterferenceComputation ifcomp;
+		final InterferenceComputation ifcomp =
+				new InterferenceComputation(builder, tiProvider, optimizeThisAccess, ignoreClinits, escape);
+		final Set<InterferenceEdge> ret = ifcomp.compute(progress);
 
-
-		ifcomp = new InterferenceComputation(builder, tiProvider, optimizeThisAccess, ignoreClinits, escape);
-
-		Set<InterferenceEdge> ret = ifcomp.compute(progress);
 		progress.done();
 		if (IS_DEBUG) debug.outln("Thread interference done.");
+		
 		return ret;
 	}
 
-	private InterferenceComputation(SDGBuilder builder, ThreadInformationProvider tiProvider, boolean optimizeThisAccess, boolean ignoreClinits, EscapeAnalysis escape) {
+	private InterferenceComputation(final SDGBuilder builder, final ThreadInformationProvider tiProvider,
+			final boolean optimizeThisAccess, final boolean ignoreClinits, final EscapeAnalysis escape) {
 		this.builder = builder;
 		this.tiProvider = tiProvider;
-		//this.cg = cg;
-		//this.k2o = k2o;
-		//this.method2cgnode = method2cgnode;
 		this.threadIds = new TIntObjectHashMap<IntSet>();
 		this.threads = new TIntObjectHashMap<IntSet>();
 		this.optimizeThisAccess = optimizeThisAccess;
 		this.ignoreClInits = ignoreClinits;
-
-		//TODO here may be inserted a demand driven pointer analysis
-		//this.pts = new PointsToWrapper(SDGFactory.pts, hg.getPointerAnalysis());
 		this.escape = escape;
+		this.pff = new ParameterFieldFactory();
+		this.pts = new PointsToWrapper(builder.getPointerAnalysis());
 	}
 
-	private Set<InterferenceEdge> compute(IProgressMonitor progress) throws CancelException {
+	private Set<InterferenceEdge> compute(final IProgressMonitor progress) throws CancelException {
 		computeThreadIds(progress);
 
-		//		if (Debug.Var.PRINT_THREADS.isSet()) {
-		//			Util.printThreads(threads, threadIds, sdg);
-		//		}
+		if (IS_DEBUG) {
+			ThreadInfoDebugOutput.printThreads(threads, threadIds, builder);
+		}
 
 		if (tiProvider.getAllThreadStartNodesInCallGraph() != null) {
 			return computeInterference(progress);
@@ -150,15 +158,16 @@ public class InterferenceComputation {
 	 * @throws CancelException
 	 * @throws WalaException
 	 */
-	private final Set<InterferenceEdge> computeInterference(IProgressMonitor progress) throws CancelException {
+	private final Set<InterferenceEdge> computeInterference(final IProgressMonitor progress) throws CancelException {
 		if (IS_DEBUG) debug.outln("Computing read-write/write-write interference for threads");
-		Set<InterferenceEdge> ret = new HashSet<InterferenceEdge>();
-		for (PDG pdg : getPDGs()) {
+		final Set<InterferenceEdge> ret = new HashSet<InterferenceEdge>();
+		
+		for (final PDG pdg : getPDGs()) {
 			if (pdg == null) {
 				continue;
 			}
 
-			Set<HeapWrite> writes = getHeapWrites(pdg);
+			final Set<HeapWrite> writes = getHeapWrites(pdg);
 
 			if (writes.isEmpty()) {
 				// a pdg without heap access does not interfere with anything
@@ -169,14 +178,14 @@ public class InterferenceComputation {
 				continue;
 			}
 
-			for (PDG pdgCur : getPDGs()) {
+			for (final PDG pdgCur : getPDGs()) {
 				if (pdgCur == null) {
 					continue;
 				}
 
 				if (mayRunInParallelThreads(pdg, pdgCur)) {
-					Set<HeapRead> readsCur = getHeapReads(pdgCur);
-					Set<HeapWrite> writesCur = getHeapWrites(pdgCur);
+					final Set<HeapRead> readsCur = getHeapReads(pdgCur);
+					final Set<HeapWrite> writesCur = getHeapWrites(pdgCur);
 
 					if (readsCur.isEmpty() && writesCur.isEmpty()) {
 						// a pdg without heap access does not interfere with anything
@@ -209,17 +218,17 @@ public class InterferenceComputation {
 		return builder.getNonPrunedWalaCallGraph();
 	}
 
-	private final Set<InterferenceEdge> computeInterference(Set<HeapWrite> writes1,
-			Set<HeapRead> reads2, Set<HeapWrite> writes2) {
+	private final Set<InterferenceEdge> computeInterference(final Set<HeapWrite> writes1, final Set<HeapRead> reads2,
+			final Set<HeapWrite> writes2) {
 
-		Set<InterferenceEdge> ret = new HashSet<InterferenceEdge>();
-		for (HeapWrite write : writes1) {
-			for (HeapRead read2 : reads2) {
+		final Set<InterferenceEdge> ret = new HashSet<InterferenceEdge>();
+		for (final HeapWrite write : writes1) {
+			for (final HeapRead read2 : reads2) {
 				if (write.isAliasing(read2)) {
 					ret.add(addReadWriteInterference(write, read2));
 				}
 			}
-			for (HeapWrite write2 : writes2) {
+			for (final HeapWrite write2 : writes2) {
 				if (write.isAliasing(write2)) {
 					ret.add(addWriteWriteInterference(write, write2));
 				}
@@ -229,25 +238,18 @@ public class InterferenceComputation {
 		return ret;
 	}
 
-	private final InterferenceEdge addReadWriteInterference(HeapWrite write, HeapRead read) {
+	private final InterferenceEdge addReadWriteInterference(final HeapWrite write, final HeapRead read) {
+		final PDGNode ewrite = write.getNode();
+		final PDG pdgWrite = getPdgForId(ewrite.getPdgId());
+		final PDGNode eread = read.getNode();
 
-		PDGNode ewrite = write.getNode();
-		PDG pdgWrite = getPdgForId(ewrite.getPdgId());
-		PDGNode eread = read.getNode();
-
-		InterferenceEdge ret = InterferenceEdge.createReadWriteInterferenceEdge(pdgWrite, ewrite, eread);
-
-		//		if (!pdgWrite.containsNode(eread)) {
-		//			pdgWrite.addNode(eread);
-		//		}
-
-		//pdgWrite.addReadWriteInterference(ewrite, eread);
+		final InterferenceEdge ret = InterferenceEdge.createReadWriteInterferenceEdge(pdgWrite, ewrite, eread);
 
 		if (IS_DEBUG) {
-			PDG pdgRead = getPdgForId(eread.getPdgId());
+			final PDG pdgRead = getPdgForId(eread.getPdgId());
 			debug.outln("Read-write: " + pdgWrite + "{" + ewrite + "} - " + pdgRead + "{" + eread + "}");
-			SourceLocation locWrite = ewrite.getSourceLocation();
-			SourceLocation locRead = eread.getSourceLocation();
+			final SourceLocation locWrite = ewrite.getSourceLocation();
+			final SourceLocation locRead = eread.getSourceLocation();
 			debug.outln("Read-write[loc]: " + locWrite + " - " + locRead);
 			debug.outln("Read-write[hash]: " + write + " - " + read);
 		}
@@ -255,35 +257,29 @@ public class InterferenceComputation {
 		return ret;
 	}
 
-	private PDG getPdgForId(int id) {
+	private PDG getPdgForId(final int id) {
 		return builder.getPDGforId(id);
 	}
 
-	private final InterferenceEdge addWriteWriteInterference(HeapWrite write1, HeapWrite write2) {
-		PDGNode ewrite1 = write1.getNode();
-		PDG pdgWrite1 = getPdgForId(ewrite1.getPdgId());
-		PDGNode ewrite2 = write2.getNode();
+	private final InterferenceEdge addWriteWriteInterference(final HeapWrite write1, final HeapWrite write2) {
+		final PDGNode ewrite1 = write1.getNode();
+		final PDG pdgWrite1 = getPdgForId(ewrite1.getPdgId());
+		final PDGNode ewrite2 = write2.getNode();
 
-		InterferenceEdge ret  = InterferenceEdge.createWriteWriteInterferenceEdge(pdgWrite1, ewrite1, ewrite2);
-
-		//		if (!pdgWrite1.containsNode(ewrite2)) {
-		//			pdgWrite1.addNode(ewrite2);
-		//		}
-
-		//pdgWrite1.addWriteWriteInterference(ewrite1, ewrite2);
+		final InterferenceEdge ret  = InterferenceEdge.createWriteWriteInterferenceEdge(pdgWrite1, ewrite1, ewrite2);
 
 		if (IS_DEBUG) {
-			PDG pdgWrite2 = getPdgForId(ewrite2.getPdgId());
+			final PDG pdgWrite2 = getPdgForId(ewrite2.getPdgId());
 			debug.outln("Write-write: " + pdgWrite1 + "{" + ewrite1 + "} - " + pdgWrite2 + "{" + ewrite2 + "}");
-			SourceLocation locWrite1 = ewrite1.getSourceLocation();
-			SourceLocation locWrite2 = ewrite2.getSourceLocation();
+			final SourceLocation locWrite1 = ewrite1.getSourceLocation();
+			final SourceLocation locWrite2 = ewrite2.getSourceLocation();
 			debug.outln("Write-write[loc]: " + locWrite1 + " - " + locWrite2);
 		}
 
 		return ret;
 	}
 
-	private IntSet getThreadIds(PDG pdg) {
+	private IntSet getThreadIds(final PDG pdg) {
 		if (threadIdsOfPDGs.containsKey(pdg)) {
 			return threadIdsOfPDGs.get(pdg);
 		} else {
@@ -291,9 +287,9 @@ public class InterferenceComputation {
 		}
 	}
 
-	private final boolean mayRunInParallelThreads(PDG pdg1, PDG pdg2) {
-		IntSet tids1 = getThreadIds(pdg1);
-		IntSet tids2 = getThreadIds(pdg2);
+	private final boolean mayRunInParallelThreads(final PDG pdg1, final PDG pdg2) {
+		final IntSet tids1 = getThreadIds(pdg1);
+		final IntSet tids2 = getThreadIds(pdg2);
 		// when thread ids are empty the pdg runs in no thread -> so it definitely
 		// does not run in parallel
 		// it also definitely does not run in parallel when both pdgs may only be
@@ -302,15 +298,15 @@ public class InterferenceComputation {
 				(tids1.size() == 1 && tids2.size() == 1 && tids1.sameValue(tids2)));
 	}
 
-	private final boolean isThisPointerAccessInConstructor(IMethod method, SSAInstruction instr) {
+	private final boolean isThisPointerAccessInConstructor(final IMethod method, final SSAInstruction instr) {
 		assert (instr instanceof SSAFieldAccessInstruction) || (instr instanceof SSAArrayReferenceInstruction);
 		if (method.isInit()) {
 			if (instr instanceof SSAFieldAccessInstruction) {
-				SSAFieldAccessInstruction fInstr = (SSAFieldAccessInstruction)instr;
+				final SSAFieldAccessInstruction fInstr = (SSAFieldAccessInstruction)instr;
 				// number 1 is the magic value number of the this pointer
 				return (!fInstr.isStatic() && fInstr.getRef() == 1);
 			} else if (instr instanceof SSAArrayReferenceInstruction) {
-				SSAArrayReferenceInstruction aInstr = (SSAArrayReferenceInstruction)instr;
+				final SSAArrayReferenceInstruction aInstr = (SSAArrayReferenceInstruction)instr;
 				// number 1 is the magic value number of the this pointer
 				return (aInstr.getArrayRef() == 1);
 			} else {
@@ -321,14 +317,16 @@ public class InterferenceComputation {
 		}
 	}
 
-	private final Set<HeapRead> getHeapReads(PDG pdg) {
-		Set<HeapRead> hreads = HashSetFactory.make();
-		for (PDGField fieldRead : pdg.getFieldReads()) {
-			SSAInstruction i = pdg.getInstruction(fieldRead.node);
+	private final Set<HeapRead> getHeapReads(final PDG pdg) {
+		final Set<HeapRead> hreads = HashSetFactory.make();
+		
+		for (final PDGField fieldRead : pdg.getFieldReads()) {
+			final SSAInstruction i = pdg.getInstruction(fieldRead.node);
 			OrdinalSet<InstanceKey> base;
 			assert (i instanceof SSAGetInstruction || i instanceof SSAArrayLoadInstruction): i.getClass().toString();
+			
 			if (i instanceof SSAGetInstruction) {
-				SSAGetInstruction getInstr = (SSAGetInstruction)i;
+				final SSAGetInstruction getInstr = (SSAGetInstruction)i;
 
 				if (optimizeThisAccess && isThisPointerAccessInConstructor(pdg.getMethod(), getInstr)) {
 					continue;
@@ -336,123 +334,114 @@ public class InterferenceComputation {
 
 				base = getAccessDataFromInstruction(getInstr, pdg);
 			} else if (i instanceof SSAArrayLoadInstruction && DO_ARRAYS) {
-				SSAArrayLoadInstruction arrLoadInstr = (SSAArrayLoadInstruction)i;
+				final SSAArrayLoadInstruction arrLoadInstr = (SSAArrayLoadInstruction)i;
 
 				if (optimizeThisAccess && isThisPointerAccessInConstructor(pdg.getMethod(), arrLoadInstr)) {
 					continue;
 				}
 
-				//				if (!mayBeEscaping(pdg, arrStoreInstr)) {
-				//					continue;
-				//				}
-
 				base = getAccessDataFromInstruction(arrLoadInstr, pdg);
 			} else {
 				throw new IllegalStateException("pdg.getFieldReads() should only yield SSAGetInstructions or SSAArrayLoadInstructions!");
 			}
-			HeapRead read = HeapAccess.createRead(fieldRead.node, base, fieldRead.field);
+			
+			final HeapRead read = HeapAccess.createRead(fieldRead.node, base, fieldRead.field);
 			hreads.add(read);
 		}
 
 		// do sync statements
-		//		if (DO_SYNC) {
-		//			for (AbstractPDGNode node : pdg) {
-		//				if (!node.isParameterNode() && node.getPdgId() == pdg.getId() && node instanceof SyncNode) {
-		//					SSAInstruction instr = pdg.getInstructionForNode(node);
-		//
-		//					assert (instr != null);
-		//					assert (instr instanceof SSAMonitorInstruction);
-		//
-		//					int valNum = ((SSAMonitorInstruction) instr).getRef();
-		//					PointerKey pk = pdg.getPointerKey(valNum);
-		//					OrdinalSet<InstanceKey> base = pts.getPointsToSet(pk);
-		//					ParameterField field = ParameterFieldFactory.getFactory().getLockField();
-		//
-		//					HeapRead read = HeapAccess.createRead((SyncNode) node, base, field);
-		//					hreads.add(read);
-		//				}
-		//			}
+		if (DO_SYNC) {
+			for (final PDGNode node : pdg.vertexSet()) {
+				if (!node.isRootParam() && !node.isObjectField() && node.getPdgId() == pdg.getId()
+						&& node.getKind() == Kind.SYNCHRONIZATION) {
+					final SSAInstruction instr = pdg.getInstruction(node);
 
-		//			if (DO_SYNC_METHODS) {
-		//				final IMethod im = pdg.getMethod();
-		//				if (im.isSynchronized()) {
-		//					if (!im.isStatic()) {
-		//						int valNum = pdg.getIR().getParameter(THIS_PARAM_NUM);
-		//						PointerKey pk = pdg.getPointerKey(valNum);
-		//						OrdinalSet<InstanceKey> base = pts.getPointsToSet(pk);
-		//						ParameterField field = ParameterFieldFactory.getFactory().getLockField();
-		//
-		//						HeapRead readEntry = HeapAccess.createRead(pdg.getRoot(), base, field);
-		//						hreads.add(readEntry);
-		//						HeapRead readExit = HeapAccess.createRead(pdg.getExit(), base, field);
-		//						hreads.add(readExit);
-		//					} else {
-		//						// search for static field class
-		//						IClass cls = im.getDeclaringClass();
-		//						IField classField = null;
-		//						for (IField field : cls.getAllStaticFields()) {
-		//							if (TypeReference.JavaLangClass.getName().equals(field.getFieldTypeReference().getName())) {
-		//								if (field.getName().toString().startsWith(CLASS_FIELD_NAME_PREFIX)) {
-		//									classField = field;
-		//									break;
-		//								}
-		//							}
-		//						}
-		//
-		//						if (classField != null) {
-		//							PointerKey pk = pts.getHeapModel().getPointerKeyForStaticField(classField);
-		//							OrdinalSet<InstanceKey> base = pts.getPointsToSet(pk);
-		//							ParameterField field = ParameterFieldFactory.getFactory().getLockField();
-		//
-		//							HeapRead readEntry = HeapAccess.createRead(pdg.getRoot(), base, field);
-		//							hreads.add(readEntry);
-		//							HeapRead readExit = HeapAccess.createRead(pdg.getExit(), base, field);
-		//							hreads.add(readExit);
-		//						} else {
-		//							// no class field found - so we create an artificial one. this is some sort of HACK as
-		//							// the WALA points-to analysis does not know about this field...
-		//							OrdinalSet<InstanceKey> base = pts.getArtificialClassFieldPts(cls);
-		//							ParameterField field = ParameterFieldFactory.getFactory().getClassLockField();
-		//
-		//							HeapRead readEntry = HeapAccess.createRead(pdg.getRoot(), base, field);
-		//							hreads.add(readEntry);
-		//							HeapRead readExit = HeapAccess.createRead(pdg.getExit(), base, field);
-		//							hreads.add(readExit);
-		//						}
-		//					}
-		//				}
-		//			}
-		//		}
+					assert (instr != null);
+					assert (instr instanceof SSAMonitorInstruction);
+
+					final int valNum = ((SSAMonitorInstruction) instr).getRef();
+					final PointerKey pk = pts.getPointerKeyForLocal(pdg.cgNode, valNum);
+					final OrdinalSet<InstanceKey> base = pts.getPointsToSet(pk);
+					final ParameterField field = pff.getLockField();
+
+					final HeapRead read = HeapAccess.createRead(node, base, field);
+					hreads.add(read);
+				}
+			}
+
+			if (DO_SYNC_METHODS) {
+				final IMethod im = pdg.getMethod();
+				if (im.isSynchronized()) {
+					if (!im.isStatic()) {
+						final int valNum = pdg.cgNode.getIR().getParameter(THIS_PARAM_NUM);
+						final PointerKey pk = pts.getPointerKeyForLocal(pdg.cgNode, valNum);
+						final OrdinalSet<InstanceKey> base = pts.getPointsToSet(pk);
+						final ParameterField field = pff.getLockField();
+
+						final HeapRead readEntry = HeapAccess.createRead(pdg.entry, base, field);
+						hreads.add(readEntry);
+						final HeapRead readExit = HeapAccess.createRead(pdg.exit, base, field);
+						hreads.add(readExit);
+					} else {
+						// search for static field class
+						final IClass cls = im.getDeclaringClass();
+						IField classField = null;
+						for (final IField field : cls.getAllStaticFields()) {
+							if (TypeReference.JavaLangClass.getName().equals(field.getFieldTypeReference().getName())) {
+								if (field.getName().toString().startsWith(CLASS_FIELD_NAME_PREFIX)) {
+									classField = field;
+									break;
+								}
+							}
+						}
+
+						if (classField != null) {
+							final PointerKey pk = pts.getPointerKeyForStaticField(classField);
+							final OrdinalSet<InstanceKey> base = pts.getPointsToSet(pk);
+							final ParameterField field = pff.getLockField();
+
+							final HeapRead readEntry = HeapAccess.createRead(pdg.entry, base, field);
+							hreads.add(readEntry);
+							final HeapRead readExit = HeapAccess.createRead(pdg.exit, base, field);
+							hreads.add(readExit);
+						} else {
+							// no class field found - so we create an artificial one. this is some sort of HACK as
+							// the WALA points-to analysis does not know about this field...
+							final OrdinalSet<InstanceKey> base = pts.getArtificialClassFieldPts(cls);
+							final ParameterField field = pff.getClassLockField();
+
+							final HeapRead readEntry = HeapAccess.createRead(pdg.entry, base, field);
+							hreads.add(readEntry);
+							final HeapRead readExit = HeapAccess.createRead(pdg.exit, base, field);
+							hreads.add(readExit);
+						}
+					}
+				}
+			}
+		}
 
 		return hreads;
 	}
 
-	final OrdinalSet<InstanceKey> getPointsToSet(PDG pdg, int ref) {
-		PointerKey pk = builder.getPointerAnalysis().getHeapModel().getPointerKeyForLocal(pdg.cgNode, ref);
-		return getPointerAnalysis().getPointsToSet(pk);
-	}
-
-	private PointerAnalysis getPointerAnalysis() {
-		return builder.getPointerAnalysis();
-	}
-
-	private final boolean mayBeEscaping(PDG pdg, SSAPutInstruction set) {
+	private final boolean mayBeEscaping(final PDG pdg, final SSAPutInstruction set) {
 		if (!set.isStatic() && escape != null) {
-			OrdinalSet<InstanceKey> pts = getPointsToSet(pdg, set.getRef());
-			return escape.mayEscape(pdg.cgNode, pts, tiProvider.getAllThreadStartNodesInCallGraph());
+			final OrdinalSet<InstanceKey> pt = pts.getPointsToSet(pdg.cgNode, set.getRef());
+			return escape.mayEscape(pdg.cgNode, pt, tiProvider.getAllThreadStartNodesInCallGraph());
 		} else {
 			return true;
 		}
 	}
 
-	private final Set<HeapWrite> getHeapWrites(PDG pdg) {
-		Set<HeapWrite> hwrites = HashSetFactory.make();
-		for (PDGField fieldWrite : pdg.getFieldWrites()) {
-			SSAInstruction i = pdg.getInstruction(fieldWrite.node);
+	private final Set<HeapWrite> getHeapWrites(final PDG pdg) {
+		final Set<HeapWrite> hwrites = HashSetFactory.make();
+		
+		for (final PDGField fieldWrite : pdg.getFieldWrites()) {
+			final SSAInstruction i = pdg.getInstruction(fieldWrite.node);
 			OrdinalSet<InstanceKey> base;
 			assert (i instanceof SSAPutInstruction || i instanceof SSAArrayStoreInstruction);
+			
 			if (i instanceof SSAPutInstruction) {
-				SSAPutInstruction putInstr = (SSAPutInstruction)i;
+				final SSAPutInstruction putInstr = (SSAPutInstruction)i;
 
 				if (optimizeThisAccess && isThisPointerAccessInConstructor(pdg.getMethod(), putInstr)) {
 					continue;
@@ -464,99 +453,96 @@ public class InterferenceComputation {
 
 				base = getAccessDataFromInstruction(putInstr, pdg);
 			} else if (i instanceof SSAArrayStoreInstruction && DO_ARRAYS) {
-				SSAArrayStoreInstruction arrStoreInstr = (SSAArrayStoreInstruction)i;
+				final SSAArrayStoreInstruction arrStoreInstr = (SSAArrayStoreInstruction)i;
 
 				if (optimizeThisAccess && isThisPointerAccessInConstructor(pdg.getMethod(), arrStoreInstr)) {
 					continue;
 				}
 
-				//				if (!mayBeEscaping(pdg, arrStoreInstr)) {
-				//					continue;
-				//				}
-
 				base = getAccessDataFromInstruction(arrStoreInstr, pdg);
 			} else {
 				throw new IllegalStateException("pdg.getFieldWrites() should only yield SSAPutInstructions or SSAArrayStoreInstructions!");
 			}
-			HeapWrite write = HeapAccess.createWrite(fieldWrite.node, base, fieldWrite.field);
+			
+			final HeapWrite write = HeapAccess.createWrite(fieldWrite.node, base, fieldWrite.field);
 			hwrites.add(write);
 		}
 
-		//		// do sync statements
-		//		if (DO_SYNC) {
-		//			for (AbstractPDGNode node : pdg) {
-		//				if (!node.isParameterNode() && node.getPdgId() == pdg.getId() && node instanceof SyncNode) {
-		//					SSAInstruction instr = pdg.getInstructionForNode(node);
-		//
-		//					assert (instr != null);
-		//					assert (instr instanceof SSAMonitorInstruction);
-		//
-		//					int valNum = ((SSAMonitorInstruction) instr).getRef();
-		//					PointerKey pk = pdg.getPointerKey(valNum);
-		//					OrdinalSet<InstanceKey> base = pts.getPointsToSet(pk);
-		//					ParameterField field = ParameterFieldFactory.getFactory().getLockField();
-		//
-		//					HeapWrite write = HeapAccess.createWrite((SyncNode) node, base, field);
-		//					hwrites.add(write);
-		//				}
-		//			}
-		//
-		//			if (DO_SYNC_METHODS) {
-		//				final IMethod im = pdg.getMethod();
-		//				if (im.isSynchronized()) {
-		//					if (!im.isStatic()) {
-		//						int valNum = pdg.getIR().getParameter(THIS_PARAM_NUM);
-		//						PointerKey pk = pdg.getPointerKey(valNum);
-		//						OrdinalSet<InstanceKey> base = pts.getPointsToSet(pk);
-		//						ParameterField field = ParameterFieldFactory.getFactory().getLockField();
-		//
-		//						HeapWrite writeEntry = HeapAccess.createWrite(pdg.getRoot(), base, field);
-		//						hwrites.add(writeEntry);
-		//						HeapWrite writeExit = HeapAccess.createWrite(pdg.getExit(), base, field);
-		//						hwrites.add(writeExit);
-		//					} else {
-		//						// search for static field class
-		//						IClass cls = im.getDeclaringClass();
-		//						IField classField = null;
-		//						for (IField field : cls.getAllStaticFields()) {
-		//							if (TypeReference.JavaLangClass.getName().equals(field.getFieldTypeReference().getName())) {
-		//								if (field.getName().toString().startsWith(CLASS_FIELD_NAME_PREFIX)) {
-		//									classField = field;
-		//									break;
-		//								}
-		//							}
-		//						}
-		//
-		//						if (classField != null) {
-		//							PointerKey pk = pts.getHeapModel().getPointerKeyForStaticField(classField);
-		//							OrdinalSet<InstanceKey> base = pts.getPointsToSet(pk);
-		//							ParameterField field = ParameterFieldFactory.getFactory().getLockField();
-		//
-		//							HeapWrite writeEntry = HeapAccess.createWrite(pdg.getRoot(), base, field);
-		//							hwrites.add(writeEntry);
-		//							HeapWrite writeExit = HeapAccess.createWrite(pdg.getExit(), base, field);
-		//							hwrites.add(writeExit);
-		//						} else {
-		//							// no class field found - so we create an artificial one. this is some sort of HACK as
-		//							// the WALA points-to analysis does not know about this field...
-		//							OrdinalSet<InstanceKey> base = pts.getArtificialClassFieldPts(cls);
-		//							ParameterField field = ParameterFieldFactory.getFactory().getClassLockField();
-		//
-		//							HeapWrite writeEntry = HeapAccess.createWrite(pdg.getRoot(), base, field);
-		//							hwrites.add(writeEntry);
-		//							HeapWrite writeExit = HeapAccess.createWrite(pdg.getExit(), base, field);
-		//							hwrites.add(writeExit);
-		//						}
-		//					}
-		//				}
-		//			}
-		//		}
+		// do sync statements
+		if (DO_SYNC) {
+			for (final PDGNode node : pdg.vertexSet()) {
+				if (!node.isRootParam() && !node.isObjectField() && node.getPdgId() == pdg.getId()
+						&& node.getKind() == Kind.SYNCHRONIZATION) {
+					final SSAInstruction instr = pdg.getInstruction(node);
+
+					assert (instr != null);
+					assert (instr instanceof SSAMonitorInstruction);
+
+					final int valNum = ((SSAMonitorInstruction) instr).getRef();
+					final OrdinalSet<InstanceKey> base = pts.getPointsToSet(pdg.cgNode, valNum);
+					final ParameterField field = pff.getLockField();
+
+					final HeapWrite write = HeapAccess.createWrite(node, base, field);
+					hwrites.add(write);
+				}
+			}
+
+			if (DO_SYNC_METHODS) {
+				final IMethod im = pdg.getMethod();
+				if (im.isSynchronized()) {
+					if (!im.isStatic()) {
+						final int valNum = pdg.cgNode.getIR().getParameter(THIS_PARAM_NUM);
+						final OrdinalSet<InstanceKey> base = pts.getPointsToSet(pdg.cgNode, valNum);
+						final ParameterField field = pff.getLockField();
+
+						final HeapWrite writeEntry = HeapAccess.createWrite(pdg.entry, base, field);
+						hwrites.add(writeEntry);
+						final HeapWrite writeExit = HeapAccess.createWrite(pdg.exit, base, field);
+						hwrites.add(writeExit);
+					} else {
+						// search for static field class
+						final IClass cls = im.getDeclaringClass();
+						IField classField = null;
+						for (final IField field : cls.getAllStaticFields()) {
+							if (TypeReference.JavaLangClass.getName().equals(field.getFieldTypeReference().getName())) {
+								if (field.getName().toString().startsWith(CLASS_FIELD_NAME_PREFIX)) {
+									classField = field;
+									break;
+								}
+							}
+						}
+
+						if (classField != null) {
+							final PointerKey pk = pts.getPointerKeyForStaticField(classField);
+							final OrdinalSet<InstanceKey> base = pts.getPointsToSet(pk);
+							final ParameterField field = pff.getLockField();
+
+							final HeapWrite writeEntry = HeapAccess.createWrite(pdg.entry, base, field);
+							hwrites.add(writeEntry);
+							final HeapWrite writeExit = HeapAccess.createWrite(pdg.exit, base, field);
+							hwrites.add(writeExit);
+						} else {
+							// no class field found - so we create an artificial one. this is some sort of HACK as
+							// the WALA points-to analysis does not know about this field...
+							final OrdinalSet<InstanceKey> base = pts.getArtificialClassFieldPts(cls);
+							ParameterField field = pff.getClassLockField();
+
+							final HeapWrite writeEntry = HeapAccess.createWrite(pdg.entry, base, field);
+							hwrites.add(writeEntry);
+							final HeapWrite writeExit = HeapAccess.createWrite(pdg.exit, base, field);
+							hwrites.add(writeExit);
+						}
+					}
+				}
+			}
+		}
 
 		return hwrites;
 	}
 
-	private OrdinalSet<InstanceKey> getAccessDataFromInstruction(SSAFieldAccessInstruction acc, PDG pdg) {
-		OrdinalSet<InstanceKey> base;
+	private OrdinalSet<InstanceKey> getAccessDataFromInstruction(final SSAFieldAccessInstruction acc, final PDG pdg) {
+		final OrdinalSet<InstanceKey> base;
+		
 		if (acc.isStatic()) {
 			base = OrdinalSet.empty();
 		} else {
@@ -565,13 +551,15 @@ public class InterferenceComputation {
 				if (IS_DEBUG) debug.outln("Skipping instruction because reference value number < 0: " + acc);
 				return null;
 			}
-			base = getPointsToSet(pdg, acc.getRef());
+			
+			base = pts.getPointsToSet(pdg.cgNode, acc.getRef());
 		}
+		
 		return base;
 	}
 
-	private OrdinalSet<InstanceKey> getAccessDataFromInstruction(SSAArrayReferenceInstruction acc, PDG pdg) {
-		return getPointsToSet(pdg, acc.getArrayRef());
+	private OrdinalSet<InstanceKey> getAccessDataFromInstruction(final SSAArrayReferenceInstruction acc, final PDG pdg) {
+		return pts.getPointsToSet(pdg.cgNode, acc.getArrayRef());
 	}
 
 
@@ -581,22 +569,22 @@ public class InterferenceComputation {
 		private final OrdinalSet<InstanceKey> base;
 		private final ParameterField field;
 
-		private HeapAccess(PDGNode expr, OrdinalSet<InstanceKey> base,
-				ParameterField field) {
+		private HeapAccess(final PDGNode expr, final OrdinalSet<InstanceKey> base,
+				final ParameterField field) {
 			this.expr = expr;
 			this.base = base;
 			this.field = field;
 		}
 
-		public static HeapWrite createWrite(PDGNode expr,
-				OrdinalSet<InstanceKey> base, ParameterField field) {
-			HeapWrite hw = new HeapWrite(expr, base, field);
+		public static HeapWrite createWrite(final PDGNode expr,
+				final OrdinalSet<InstanceKey> base, final ParameterField field) {
+			final HeapWrite hw = new HeapWrite(expr, base, field);
 			return hw;
 		}
 
-		public static HeapRead createRead(PDGNode expr,
-				OrdinalSet<InstanceKey> base, ParameterField field) {
-			HeapRead hr = new HeapRead(expr, base, field);
+		public static HeapRead createRead(final PDGNode expr,
+				final OrdinalSet<InstanceKey> base, final ParameterField field) {
+			final HeapRead hr = new HeapRead(expr, base, field);
 			return hr;
 		}
 
@@ -604,8 +592,8 @@ public class InterferenceComputation {
 			return expr;
 		}
 
-		public boolean isAliasing(HeapAccess acc) {
-			boolean emtpyBases = (base == null && acc.base == null) ||
+		public boolean isAliasing(final HeapAccess acc) {
+			final boolean emtpyBases = (base == null && acc.base == null) ||
 			(base != null && acc.base != null && base.isEmpty() && acc.base.isEmpty());
 
 			return (field == acc.field) &&
@@ -616,20 +604,19 @@ public class InterferenceComputation {
 
 	static final class HeapRead extends HeapAccess {
 
-		private HeapRead(PDGNode expr, OrdinalSet<InstanceKey> base,
-				ParameterField field) {
+		private HeapRead(final PDGNode expr, final OrdinalSet<InstanceKey> base,
+				final ParameterField field) {
 			super(expr, base, field);
 		}
 	}
 
 	static final class HeapWrite extends HeapAccess {
 
-		private HeapWrite(PDGNode expr, OrdinalSet<InstanceKey> base,
-				ParameterField field) {
+		private HeapWrite(final PDGNode expr, final OrdinalSet<InstanceKey> base,
+				final ParameterField field) {
 			super(expr, base, field);
 		}
 	}
-
 
 	/**
 	 * Annotate each pdg with the id of thread it may run in. For each entry
@@ -642,17 +629,17 @@ public class InterferenceComputation {
 	 * same thread may exist.
 	 * @throws CancelException
 	 */
-	private final void computeThreadIds(IProgressMonitor progress) throws CancelException {
+	private final void computeThreadIds(final IProgressMonitor progress) throws CancelException {
 		if (IS_DEBUG) debug.outln("Computing thread ids");
 
-		IMethod threadStart = findThreadStart();
+		final IMethod threadStart = findThreadStart();
 
-		Set<CGNode> entryPoints = getListOfAllThreadEntryPoints();
+		final Set<CGNode> entryPoints = getListOfAllThreadEntryPoints();
 
 		// start enumeration of threads at 1 - main threads gets special number 0
 		int currentThreadId = 1;
-		for (CGNode threadRun : entryPoints) {
-			PDG pdg = builder.getPDGforMethod(threadRun);
+		for (final CGNode threadRun : entryPoints) {
+			final PDG pdg = builder.getPDGforMethod(threadRun);
 			IntSet transitiveCalled = getTransitiveCallsFromSameThread(threadRun, threadStart);
 
 			final IntSet threadId;
@@ -661,7 +648,7 @@ public class InterferenceComputation {
 				threadId = SparseIntSet.singleton(0);
 				// put  static initializers (as approximation) in the same
 				// thread as the main methods
-				MutableIntSet clinitIds = getClinitsIntSet();
+				final MutableIntSet clinitIds = getClinitsIntSet();
 				clinitIds.addAll(transitiveCalled);
 				transitiveCalled = clinitIds;
 			} else {
@@ -693,8 +680,9 @@ public class InterferenceComputation {
 		}
 	}
 
-	private void addThreadId(PDG pdg, int threadId) {
-		MutableIntSet thrIds;
+	private void addThreadId(final PDG pdg, final int threadId) {
+		final MutableIntSet thrIds;
+		
 		if (!threadIdsOfPDGs.containsKey(pdg)) {
 			thrIds = new BitVectorIntSet();
 			threadIdsOfPDGs.put(pdg, thrIds);
@@ -714,14 +702,16 @@ public class InterferenceComputation {
 	}
 
 	private final MutableIntSet getClinitsIntSet() {
-		MutableIntSet clinitIds = new BitVectorIntSet();
+		final MutableIntSet clinitIds = new BitVectorIntSet();
+		
 		if (!ignoreClInits) {
-			for (PDG pdg : builder.getAllPDGs()) {
+			for (final PDG pdg : builder.getAllPDGs()) {
 				if (pdg.getMethod().isClinit()) {
 					clinitIds.add(pdg.getId());
 				}
 			}
 		}
+		
 		return clinitIds;
 	}
 
@@ -735,10 +725,10 @@ public class InterferenceComputation {
 	 * @param threadStart represents the {@code Thread.start()} method of the program to be analyzed
 	 * @return intset of pdg ids
 	 */
-	private final IntSet getTransitiveCallsFromSameThread(CGNode threadRun, final IMethod threadStart) {
-		MutableIntSet called = new BitVectorIntSet();
+	private final IntSet getTransitiveCallsFromSameThread(final CGNode threadRun, final IMethod threadStart) {
+		final MutableIntSet called = new BitVectorIntSet();
 
-		PDG pdg = builder.getPDGforMethod(threadRun);
+		final PDG pdg = builder.getPDGforMethod(threadRun);
 		called.add(pdg.getId());
 
 		searchCalleesInSameThread(threadRun, called, threadStart);
@@ -746,10 +736,12 @@ public class InterferenceComputation {
 		return called;
 	}
 
-	private final void searchCalleesInSameThread(CGNode caller, MutableIntSet called, final IMethod threadStart) {
-		for (Iterator<CGNode> it = getCallGraph().getSuccNodes(caller); it.hasNext();) {
-			CGNode node = it.next();
-			PDG pdgCur = builder.getPDGforMethod(node);
+	private final void searchCalleesInSameThread(final CGNode caller, final MutableIntSet called,
+			final IMethod threadStart) {
+		for (final Iterator<CGNode> it = getCallGraph().getSuccNodes(caller); it.hasNext();) {
+			final CGNode node = it.next();
+			final PDG pdgCur = builder.getPDGforMethod(node);
+			
 			if (pdgCur != null && !called.contains(pdgCur.getId())) {
 				called.add(pdgCur.getId());
 				// only look further if no new thread has been created
@@ -760,4 +752,53 @@ public class InterferenceComputation {
 		}
 	}
 
+	private static final class PointsToWrapper {
+		
+		private final PointerAnalysis pta;
+
+		public PointsToWrapper(final PointerAnalysis pta) {
+			this.pta = pta;
+		}
+
+		public PointerKey getPointerKeyForLocal(final CGNode n, final int ssaVar) {
+			return pta.getHeapModel().getPointerKeyForLocal(n, ssaVar);
+		}
+		
+		public PointerKey getPointerKeyForStaticField(final IField f) {
+			return pta.getHeapModel().getPointerKeyForStaticField(f);
+		}
+		
+		public OrdinalSet<InstanceKey> getPointsToSet(final PointerKey key) {
+			return pta.getPointsToSet(key);
+		}
+
+		public OrdinalSet<InstanceKey> getPointsToSet(final CGNode n, final int ssaVar) {
+			return pta.getPointsToSet(getPointerKeyForLocal(n, ssaVar));
+		}
+
+		private final Map<IClass, OrdinalSet<InstanceKey>> cls2pts = HashMapFactory.make();
+
+		public OrdinalSet<InstanceKey> getArtificialClassFieldPts(final IClass cls) {
+			OrdinalSet<InstanceKey> pts = cls2pts.get(cls);
+			
+			if (pts == null) {
+				final HeapModel hm = pta.getHeapModel();
+				final InstanceKey ik = hm.getInstanceKeyForClassObject(cls.getReference());
+
+				final MutableMapping<InstanceKey> mutable = (MutableMapping<InstanceKey>) pta.getInstanceKeyMapping();
+				if (mutable.hasMappedIndex(ik)) {
+					throw new IllegalStateException();
+				}
+
+				final int index = mutable.add(ik);
+				pts = mutable.makeSingleton(index);
+
+				cls2pts.put(cls, pts);
+			}
+
+			return pts;
+		}
+		
+	}
+	
 }

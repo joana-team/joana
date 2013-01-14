@@ -293,9 +293,9 @@ public class NonTerminationSensitive {
 
 				//TODO check if condition is simple...
 //				if (isSimple) {
-//					System.err.println("Simple: " + last + " -> " + Util.methodName(bb.getMethod()));
+//					System.err.println("Simple: " + last + " -> " + PrettyWalaNames.methodName(bb.getMethod()));
 //				} else {
-//					System.err.println("Not Simple: " + last + " -> " + Util.methodName(bb.getMethod()));
+//					System.err.println("Not Simple: " + last + " -> " + PrettyWalaNames.methodName(bb.getMethod()));
 //				}
 
 				if (!isSimple) {

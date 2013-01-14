@@ -51,7 +51,7 @@ public final class DebugUtil {
 				} else if (bb.isCatchBlock() || bb.getLastInstructionIndex() > 0) {
 					SSAInstruction instr = NullPointerTransferFunctionProvider.getRelevantInstruction(bb);
 					if (instr != null) {
-//						return in + edu.kit.joana.wala.util.Util.prettyShortInstruction(instr) + " [" + bb.getNumber() + "]";
+//						return in + edu.kit.joana.wala.util.PrettyWalaNames.prettyShortInstruction(instr) + " [" + bb.getNumber() + "]";
 						return in + instr.toString();
 					}
 				} else {
@@ -72,8 +72,8 @@ public final class DebugUtil {
 		}
 
 		String fileName = edu.kit.joana.deprecated.jsdg.util.Util.methodName(cfg.getMethod());
-//		if (fileName.length() > edu.kit.joana.wala.util.Util.MAX_FILENAME_LENGHT) {
-//			fileName = fileName.substring(edu.kit.joana.wala.util.Util.MAX_FILENAME_LENGHT) + edu.kit.joana.wala.util.Util.fileNameId++;
+//		if (fileName.length() > edu.kit.joana.wala.util.PrettyWalaNames.MAX_FILENAME_LENGHT) {
+//			fileName = fileName.substring(edu.kit.joana.wala.util.PrettyWalaNames.MAX_FILENAME_LENGHT) + edu.kit.joana.wala.util.PrettyWalaNames.fileNameId++;
 //		}
 		String dotFile = outputDir + "/cfg-orig-expl/" + prefix + fileName + ".cfg-orig-expl.dot";
 		try {

@@ -1503,7 +1503,7 @@ public class IFCConsole {
 
 			if (lastAnalysisResult.size() > 0) {
 				
-				groupedIFlows = groupByPParts(vios);
+				groupedIFlows = IllicitFlow.groupByPParts(vios);
 				out.logln("done, found " + groupedIFlows.size() + " security violation(s):");
 				for (IllicitFlow iflow : groupedIFlows.keySet()) {
 					out.logln(String.format("illicit flow(s) between %s and %s (internal: %d illicit flow(s) between corresponding SDG nodes)", iflow.getSource(), iflow.getSink(), groupedIFlows.get(iflow)));
@@ -1538,20 +1538,6 @@ public class IFCConsole {
 		}
 	}
 	
-	private static TObjectIntMap<IllicitFlow> groupByPParts(Collection<IllicitFlow> iflows) {
-		TObjectIntMap<IllicitFlow> ret = new TObjectIntHashMap<IllicitFlow>();
-		for (IllicitFlow ill : iflows) {
-			if (ret.containsKey(ill)) {
-				int noiFlows = ret.get(ill);
-				ret.put(ill, noiFlows + 1);
-			} else {
-				ret.put(ill, 1);
-			}
-		}
-		
-		return ret;
-	}
-
 	public static String convertIFCType(IFCType ifcType) {
 		switch (ifcType) {
 		case POSSIBILISTIC:

@@ -14,6 +14,8 @@ import edu.kit.joana.ifc.sdg.core.violations.Violation;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
+import gnu.trove.map.TObjectIntMap;
+import gnu.trove.map.hash.TObjectIntHashMap;
 
 public class IllicitFlow {
 	
@@ -127,6 +129,20 @@ public class IllicitFlow {
 			return "Illicit Flow from " + source + " to " + sink + ", visible for "
 			+ attackerLevel;
 		}
+	}
+
+	public static TObjectIntMap<IllicitFlow> groupByPParts(Collection<IllicitFlow> iflows) {
+		TObjectIntMap<IllicitFlow> ret = new TObjectIntHashMap<IllicitFlow>();
+		for (IllicitFlow ill : iflows) {
+			if (ret.containsKey(ill)) {
+				int noiFlows = ret.get(ill);
+				ret.put(ill, noiFlows + 1);
+			} else {
+				ret.put(ill, 1);
+			}
+		}
+		
+		return ret;
 	}
 }
 

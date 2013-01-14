@@ -5,14 +5,27 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-package edu.kit.joana.wala.core.graphs;
+package edu.kit.joana.wala.util;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.util.Iterator;
 
 import org.jgrapht.DirectedGraph;
 
+import com.ibm.wala.cfg.ControlFlowGraph;
+import com.ibm.wala.ssa.IR;
+import com.ibm.wala.ssa.SSAInstruction;
+import com.ibm.wala.ssa.SSAPhiInstruction;
+import com.ibm.wala.ssa.analysis.IExplodedBasicBlock;
+import com.ibm.wala.util.WalaException;
+import com.ibm.wala.util.graph.Graph;
+import com.ibm.wala.viz.DotUtil;
+import com.ibm.wala.viz.NodeDecorator;
+
 /**
+ * Write jgrapht and wala graphs to .dot format.
  *
  * @author Juergen Graf <juergen.graf@gmail.com>
  *
@@ -21,6 +34,44 @@ public class WriteGraphToDot {
 
     private WriteGraphToDot() {}
 
+    public static File writeCfgToDot(final ControlFlowGraph<SSAInstruction, IExplodedBasicBlock> cfg, final IR ir,
+    		final String title, final String fileName) {
+		return writeDotFile(cfg, new NodeDecorator() {
+			@Override
+			public String getLabel(Object o) throws WalaException {
+				final IExplodedBasicBlock bb = (IExplodedBasicBlock) o;
+				String phis = "";
+				for (final Iterator<SSAPhiInstruction> phit = bb.iteratePhis(); phit.hasNext();) {
+					final SSAPhiInstruction phi = phit.next();
+					phis += PrettyWalaNames.instr2string(ir, phi, ir.getControlFlowGraph()) + "|";
+				}
+				
+				if (bb.isEntryBlock()) {
+					return (phis.isEmpty() ? "ENTRY" : "ENTRY (" + phis + ")");
+				} else if (bb.isExitBlock()) {
+					return (phis.isEmpty() ? "EXIT" : "EXIT (" + phis + ")");
+				} else if (bb.getInstruction() == null) {
+					return (phis.isEmpty() ? "nop" : "nop (" + phis + ")");
+				} else {
+					final String instr = PrettyWalaNames.instr2string(ir, bb.getInstruction(), ir.getControlFlowGraph());
+					return (phis.isEmpty() ? instr : "(" + phis +") " + instr);
+				}
+			}
+		}, title, fileName);
+    }
+    
+    public static <T> File writeDotFile(Graph<T> g, NodeDecorator labels, String title, String dotfile) {
+    	File f = null;
+    	
+    	try { 
+    		f = DotUtil.writeDotFile(g, labels, title, dotfile);
+    	} catch (WalaException e) {
+    		e.printStackTrace();
+    	}
+    	
+    	return f;
+    }
+    
     public static <V, E> void write(DirectedGraph<V, E> g, String fileName) throws FileNotFoundException {
     	EdgeFilter<E> filter = new EdgeFilter<E>() {
 			public boolean accept(E edge) {

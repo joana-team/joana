@@ -46,13 +46,17 @@ import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
+import com.ibm.wala.util.WalaException;
 import com.ibm.wala.util.collections.Pair;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 import com.ibm.wala.util.graph.INodeWithNumber;
+import com.ibm.wala.viz.DotUtil;
+import com.ibm.wala.viz.NodeDecorator;
 
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.ifc.sdg.util.SDGConstants;
 import edu.kit.joana.util.Log;
+import edu.kit.joana.util.LogUtil;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.core.PDGNode.Kind;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
@@ -61,6 +65,8 @@ import edu.kit.joana.wala.flowless.pointsto.AliasGraph;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
 import edu.kit.joana.wala.flowless.pointsto.Pts2AliasGraph;
 import edu.kit.joana.wala.flowless.pointsto.PtsParameter;
+import edu.kit.joana.wala.util.PrettyWalaNames;
+import edu.kit.joana.wala.util.WriteGraphToDot;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
@@ -147,7 +153,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 		this.cgNode = node;
 		this.method = node.getMethod();
 		IClass cls = method.getDeclaringClass();
-		this.sourceFile = Util.sourceFileName(cls.getName());;
+		this.sourceFile = PrettyWalaNames.sourceFileName(cls.getName());;
 		this.builder = builder;
 		this.entry = createNode(name, PDGNode.Kind.ENTRY, PDGNode.DEFAULT_NO_TYPE);
 		this.exit = createNode(name, PDGNode.Kind.EXIT, method.getReturnType());
@@ -177,7 +183,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 		} else {
 			final Logger dumpSSA = Log.getLogger(Log.L_WALA_IR_DUMP);
 			if (dumpSSA.isEnabled()) {
-				dumpSSA.outln(Util.ir2string(ir));
+				dumpSSA.outln(PrettyWalaNames.ir2string(ir));
 			}
 			addNodesForInstructions(ir);
 			addSourcecodeInfoToNodes(ir);
@@ -663,6 +669,12 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 			throws UnsoundGraphException, CancelException {
 		final ControlFlowGraph<SSAInstruction, IExplodedBasicBlock> ecfg =
 				builder.createExceptionAnalyzedCFG(cgNode, progress);
+		
+		final Logger log = Log.getLogger(Log.L_WALA_CFG_DUMP);
+		if (log.isEnabled()) {
+			final String fileName = WriteGraphToDot.sanitizeFileName(method.getSignature() + "-cfg.dot");
+			WriteGraphToDot.writeCfgToDot(ecfg, ir, "CFG of " + fileName, fileName);
+		}
 
 		final TIntObjectMap<PDGNode[]> bbnum2node = mapBasicBlockToNode(ecfg);
 
@@ -1088,7 +1100,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 				sIn.node.setSourceLocation(defSrcLoc);
 				assert sIn.field.isStatic();
 				IField f = sIn.field.getField();
-				sIn.node.setBytecodeName(Util.bcFieldName(f));
+				sIn.node.setBytecodeName(PrettyWalaNames.bcFieldName(f));
 				sIn.node.setBytecodeIndex(BytecodeLocation.STATIC_FIELD);
 			}
 
@@ -1096,7 +1108,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 				sOut.node.setSourceLocation(defSrcLoc);
 				assert sOut.field.isStatic();
 				IField f = sOut.field.getField();
-				sOut.node.setBytecodeName(Util.bcFieldName(f));
+				sOut.node.setBytecodeName(PrettyWalaNames.bcFieldName(f));
 				sOut.node.setBytecodeIndex(BytecodeLocation.STATIC_FIELD);
 			}
 
@@ -1424,7 +1436,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 			final PDGNode base = createNode("base", PDGNode.Kind.NORMAL, baseType);
 			base.setBytecodeIndex(BytecodeLocation.BASE_FIELD);
 			base.setBytecodeName(BytecodeLocation.BASE_PARAM);
-			final PDGNode accfield = createNode("field [" + Util.simpleTypeName(elemType) + "]",
+			final PDGNode accfield = createNode("field [" + PrettyWalaNames.simpleTypeName(elemType) + "]",
 					PDGNode.Kind.NORMAL, elemType);
 			accfield.setBytecodeIndex(BytecodeLocation.ARRAY_FIELD);
 			accfield.setBytecodeName(BytecodeLocation.ARRAY_PARAM);
@@ -1456,10 +1468,10 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 			f = PDGField.arrayGet(node, base, accfield, index, field);
 		} else if (field.isStatic()) {
 			final IField ifield = field.getField();
-			final PDGNode accfield = createNode("field " + Util.simpleFieldName(ifield), PDGNode.Kind.NORMAL,
+			final PDGNode accfield = createNode("field " + PrettyWalaNames.simpleFieldName(ifield), PDGNode.Kind.NORMAL,
 					ifield.getFieldTypeReference());
 			accfield.setBytecodeIndex(BytecodeLocation.STATIC_FIELD);
-			accfield.setBytecodeName(Util.bcFieldName(ifield));
+			accfield.setBytecodeName(PrettyWalaNames.bcFieldName(ifield));
 
 			addEdge(accfield, node, PDGEdge.Kind.DATA_DEP);
 			addEdge(node, accfield, PDGEdge.Kind.CONTROL_DEP_EXPR);
@@ -1470,10 +1482,10 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 			final PDGNode base = createNode("base", PDGNode.Kind.NORMAL, ifield.getDeclaringClass().getReference());
 			base.setBytecodeIndex(BytecodeLocation.BASE_FIELD);
 			base.setBytecodeName(BytecodeLocation.BASE_PARAM);
-			final PDGNode accfield = createNode("field " + Util.simpleFieldName(ifield), PDGNode.Kind.NORMAL,
+			final PDGNode accfield = createNode("field " + PrettyWalaNames.simpleFieldName(ifield), PDGNode.Kind.NORMAL,
 					ifield.getFieldTypeReference());
 			accfield.setBytecodeIndex(BytecodeLocation.OBJECT_FIELD);
-			accfield.setBytecodeName(Util.bcFieldName(ifield));
+			accfield.setBytecodeName(PrettyWalaNames.bcFieldName(ifield));
 
 			addEdge(base, node, PDGEdge.Kind.DATA_DEP);
 			if (noBasePointerDependency) {
@@ -1501,7 +1513,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 			final PDGNode base = createNode("base", PDGNode.Kind.NORMAL, baseType);
 			base.setBytecodeIndex(BytecodeLocation.BASE_FIELD);
 			base.setBytecodeName(BytecodeLocation.BASE_PARAM);
-			final PDGNode accfield = createNode("field [" + Util.simpleTypeName(elemType) + "]",
+			final PDGNode accfield = createNode("field [" + PrettyWalaNames.simpleTypeName(elemType) + "]",
 					PDGNode.Kind.NORMAL, elemType);
 			accfield.setBytecodeIndex(BytecodeLocation.ARRAY_FIELD);
 			accfield.setBytecodeName(BytecodeLocation.ARRAY_PARAM);
@@ -1533,10 +1545,10 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 			f = PDGField.arraySet(node, base, accfield, index, field);
 		} else if (field.isStatic()) {
 			final IField ifield = field.getField();
-			final PDGNode accfield = createNode("field " + Util.simpleFieldName(ifield), PDGNode.Kind.NORMAL,
+			final PDGNode accfield = createNode("field " + PrettyWalaNames.simpleFieldName(ifield), PDGNode.Kind.NORMAL,
 					ifield.getFieldTypeReference());
 			accfield.setBytecodeIndex(BytecodeLocation.STATIC_FIELD);
-			accfield.setBytecodeName(Util.bcFieldName(ifield));
+			accfield.setBytecodeName(PrettyWalaNames.bcFieldName(ifield));
 
 			addEdge(node, accfield, PDGEdge.Kind.DATA_DEP);
 			addEdge(node, accfield, PDGEdge.Kind.CONTROL_DEP_EXPR);
@@ -1547,10 +1559,10 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 			final PDGNode base = createNode("base", PDGNode.Kind.NORMAL, ifield.getDeclaringClass().getReference());
 			base.setBytecodeIndex(BytecodeLocation.BASE_FIELD);
 			base.setBytecodeName(BytecodeLocation.BASE_PARAM);
-			final PDGNode accfield = createNode("field " + Util.simpleFieldName(ifield), PDGNode.Kind.NORMAL,
+			final PDGNode accfield = createNode("field " + PrettyWalaNames.simpleFieldName(ifield), PDGNode.Kind.NORMAL,
 					ifield.getFieldTypeReference());
 			accfield.setBytecodeIndex(BytecodeLocation.OBJECT_FIELD);
-			accfield.setBytecodeName(Util.bcFieldName(ifield));
+			accfield.setBytecodeName(PrettyWalaNames.bcFieldName(ifield));
 
 			addEdge(base, node, PDGEdge.Kind.DATA_DEP);
 			if (noBasePointerDependency) {
@@ -1784,7 +1796,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 			fread.add(field);
 			PDGNode sread = createNode(field.getName(), PDGNode.Kind.FORMAL_IN, field.getField().getFieldTypeReference());
 			IField f = field.getField();
-			sread.setBytecodeName(Util.bcFieldName(f));
+			sread.setBytecodeName(PrettyWalaNames.bcFieldName(f));
 			sread.setBytecodeIndex(BytecodeLocation.STATIC_FIELD);
 			sread.setSourceLocation(entry.getSourceLocation());
 			sread.setParameterField(field);
@@ -1804,7 +1816,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 			fwrite.add(field);
 			PDGNode swrite = createNode(field.getName(), PDGNode.Kind.FORMAL_OUT, field.getField().getFieldTypeReference());
 			IField f = field.getField();
-			swrite.setBytecodeName(Util.bcFieldName(f));
+			swrite.setBytecodeName(PrettyWalaNames.bcFieldName(f));
 			swrite.setBytecodeIndex(BytecodeLocation.STATIC_FIELD);
 			swrite.setSourceLocation(entry.getSourceLocation());
 			swrite.setParameterField(field);
@@ -1838,7 +1850,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 			// create new node
 			PDGNode actIn = createNode(field.getName(), PDGNode.Kind.ACTUAL_IN, field.getField().getFieldTypeReference());
 			IField f = field.getField();
-			actIn.setBytecodeName(Util.bcFieldName(f));
+			actIn.setBytecodeName(PrettyWalaNames.bcFieldName(f));
 			actIn.setBytecodeIndex(BytecodeLocation.STATIC_FIELD);
 			actIn.setSourceLocation(call.getSourceLocation());
 			actIn.setParameterField(field);
@@ -1925,7 +1937,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 			// create new node
 			PDGNode actOut = createNode(field.getName(), PDGNode.Kind.ACTUAL_OUT, field.getField().getFieldTypeReference());
 			IField f = field.getField();
-			actOut.setBytecodeName(Util.bcFieldName(f));
+			actOut.setBytecodeName(PrettyWalaNames.bcFieldName(f));
 			actOut.setBytecodeIndex(BytecodeLocation.STATIC_FIELD);
 			actOut.setSourceLocation(call.getSourceLocation());
 			actOut.setParameterField(field);

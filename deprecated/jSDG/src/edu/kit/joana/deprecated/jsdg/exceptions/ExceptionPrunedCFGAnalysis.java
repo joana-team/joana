@@ -87,7 +87,7 @@ public abstract class ExceptionPrunedCFGAnalysis<I, T extends IBasicBlock<I>> {
 	public abstract ControlFlowGraph<I,T> getOriginal(CGNode method) throws UnsoundGraphException;
 
 	/**
-	 * Util method that searches for a method matching a given signature.
+	 * PrettyWalaNames method that searches for a method matching a given signature.
 	 * @param cha Class hierarchy where the method is searched in.
 	 * @param methodSig The bytecode signature of the method. E.g. "java/lang/String.indexOf(I)I"
 	 * @return The method matching the signature or null if no matching method has been found.

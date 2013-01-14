@@ -247,14 +247,14 @@ public class WalaSDGInterferenceComputation {
 //		if (Debug.Var.DUMP_HEAP_GRAPH.isSet()) {
 //			if (!printed.contains(write)) {
 //				String name = write.toString();
-//				Util.dumpHeapGraph(name, hg, write.getPk(), null);
+//				PrettyWalaNames.dumpHeapGraph(name, hg, write.getPk(), null);
 //
 //				printed.add(write);
 //			}
 //
 //			if (!printed.contains(read)) {
 //				String name = read.toString();
-//				Util.dumpHeapGraph(name, hg, read.getPk(), null);
+//				PrettyWalaNames.dumpHeapGraph(name, hg, read.getPk(), null);
 //
 //				printed.add(read);
 //			}

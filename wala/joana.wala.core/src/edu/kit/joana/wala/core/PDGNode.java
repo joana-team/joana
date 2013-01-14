@@ -8,6 +8,7 @@
 package edu.kit.joana.wala.core;
 
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
+import edu.kit.joana.wala.util.PrettyWalaNames;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 
@@ -312,7 +313,7 @@ public final class PDGNode implements INodeWithNumber {
      * @return Bytecodename of the type corresponding to this node.
      */
 	public String getType() {
-		return (type == DEFAULT_NO_TYPE ? null : Util.bcTypeName(type));
+		return (type == DEFAULT_NO_TYPE ? null : PrettyWalaNames.bcTypeName(type));
 	}
 
 	public TypeReference getTypeRef() {

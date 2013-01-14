@@ -34,7 +34,7 @@ public class FormInOutNode extends ParameterNode<FormInOutNode> {
 		assert (!getPointsTo().isEmpty()) : "Field nodes may only be added to a nodes whose points-to set is not null.";
 			// empty pts of field nodes is ok as long as they are leafs
 //			Assertions._assert(!pts.isEmpty(),
-//				"Points-to set of object field is empty: " + Util.fieldName(field));
+//				"Points-to set of object field is empty: " + PrettyWalaNames.fieldName(field));
 
 		FormInOutNode node =
 			new FormInOutNode(getPdgId(), isIn(), field, pts, this);

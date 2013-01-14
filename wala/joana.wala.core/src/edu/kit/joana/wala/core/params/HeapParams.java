@@ -38,7 +38,7 @@ import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.SDGBuilder;
-import edu.kit.joana.wala.core.graphs.WriteGraphToDot;
+import edu.kit.joana.wala.util.WriteGraphToDot;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 

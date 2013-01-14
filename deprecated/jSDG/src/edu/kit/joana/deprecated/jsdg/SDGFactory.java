@@ -935,7 +935,7 @@ public class SDGFactory {
 		/*
 		case RTA:
 			cg = com.ibm.wala.ipa.callgraph.impl.
-				Util.makeRTABuilder(options, cache, cha, scope);
+				PrettyWalaNames.makeRTABuilder(options, cache, cha, scope);
 			break; */
 		case ZERO_CFA:
 			cg = com.ibm.wala.ipa.callgraph.impl.

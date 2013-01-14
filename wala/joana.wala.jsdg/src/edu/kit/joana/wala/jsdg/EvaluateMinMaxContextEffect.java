@@ -128,7 +128,7 @@ public class EvaluateMinMaxContextEffect {
 					// minimal aliasing
 					System.out.print("MIN: ");
 //					System.out.print("points-to... ");
-//					Util.dumpGraph(minMax.lowerBound, label + "-pts-min");
+//					PrettyWalaNames.dumpGraph(minMax.lowerBound, label + "-pts-min");
 					PointsTo ptsMin = MoJo.computePointsTo(minMax.lowerBound);
 //					System.out.print("done, call graph... ");
 					System.out.print("1");

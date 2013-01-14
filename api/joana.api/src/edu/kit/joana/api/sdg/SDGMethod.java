@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedMap;
@@ -28,6 +29,7 @@ import edu.kit.joana.ifc.sdg.util.JavaType.Format;
 public class SDGMethod extends SDGProgramPart {
 
 	public static Set<Integer> seenBCIndices = new HashSet<Integer>();
+	private final SDG sdg;
 	private SDGNode entry;
 	private SDGMethodExitNode exit;
 	private JavaMethodSignature sig;
@@ -37,6 +39,7 @@ public class SDGMethod extends SDGProgramPart {
 	private boolean initialized = false;
 
 	public SDGMethod(SDG sdg, SDGNode entry) {
+		this.sdg = sdg;
 		this.entry = entry;
 		this.sig = JavaMethodSignature.fromString(entry.getBytecodeName());
 		initialize(sdg);
@@ -47,6 +50,10 @@ public class SDGMethod extends SDGProgramPart {
 			if (node.getKind() == SDGNode.Kind.EXIT)
 				this.exit = new SDGMethodExitNode(node, this);
 		}
+	}
+	
+	SDG getSDG() {
+		return sdg;
 	}
 
 	public void initialize(SDG sdg) {
@@ -125,6 +132,18 @@ public class SDGMethod extends SDGProgramPart {
 		} else {
 			return instructions.get(i);
 		}
+	}
+	
+	public List<SDGInstruction> getAllCalls(JavaMethodSignature target) {
+		List<SDGInstruction> ret = new LinkedList<SDGInstruction>();
+		
+		for (SDGInstruction i : getInstructions()) {
+			if (i.possiblyCalls(target)) {
+				ret.add(i);
+			}
+		}
+		
+		return ret;
 	}
 
 	public int getInstructionIndex(SDGInstruction instr) {

@@ -11,7 +11,10 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 
 
 public class SDGInstruction extends SDGProgramPart implements
@@ -132,6 +135,30 @@ Comparable<SDGInstruction> {
 			return this;
 		} else {
 			return null;
+		}
+	}
+
+	/**
+	 * Returns whether this instruction <p/>
+	 * <ol>
+	 * <li>is a call instruction </li>
+	 * <li>has the method with the given signature as possible call target</li>
+	 * </ol>
+	 * @param target 
+	 * @return {@code true}, if this instruction is a call instruction having the method with the given signature as possible target, {@code false} otherwise
+	 */
+	public boolean possiblyCalls(JavaMethodSignature target) {
+		if (rootNode.getKind() != SDGNode.Kind.CALL) {
+			return false;
+		} else {
+			SDG sdg = getOwner().getSDG();
+			for (SDGEdge callEdge : sdg.getOutgoingEdgesOfKind(rootNode, SDGEdge.Kind.CALL)) {
+				SDGNode tgt = callEdge.getTarget();
+				if (tgt.getBytecodeMethod().equals(target.toBCString())) {
+					return true;
+				}
+			}
+			return false;
 		}
 	}
 

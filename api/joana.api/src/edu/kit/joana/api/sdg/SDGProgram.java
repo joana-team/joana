@@ -29,9 +29,11 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
 import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.annotations.IFCAnnotation.Type;
+import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.ifc.sdg.graph.SDGNode.NodeFactory;
 import edu.kit.joana.ifc.sdg.graph.SDGNode.Operation;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
@@ -63,7 +65,7 @@ public class SDGProgram {
 	}
 
 	public static SDGProgram loadSDG(String path) throws IOException {
-		return new SDGProgram(SDG.readFrom(path));
+		return new SDGProgram(SDG.readFrom(path, new SecurityNode.SecurityNodeFactory()));
 	}
 
 	public static SDGProgram createSDGProgram(String classPath, String entryMethod) {
@@ -177,6 +179,17 @@ public class SDGProgram {
 	public Collection<SDGInstruction> getInstruction(JavaMethodSignature methodSig, int bcIndex) {
 		build();
 		return classRes.getInstruction(methodSig.getDeclaringType(), methodSig, bcIndex);
+	}
+	
+	public Collection<SDGInstruction> getCallsToMethod(JavaMethodSignature tgt) {
+		Collection<SDGInstruction> ret = new LinkedList<SDGInstruction>();
+		build();
+		for (SDGClass cl : getClasses()) {
+			for (SDGMethod m : cl.getMethods()) {
+				ret.addAll(m.getAllCalls(tgt));
+			}
+		}
+		return ret;
 	}
 
 	public Collection<SDGMethodExitNode> getMethodExitNode(JavaMethodSignature methodSig) {

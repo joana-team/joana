@@ -41,7 +41,44 @@ public class JoanaOrderConflict extends JoanaConflict {
 	}
 	
 	public String toString() {
-		return String.format("%s [%s] is leaked through an order conflict between %s [%s] and %s [%s] (order conflict edge is %s <--> )", secret, nodeSecret, conf1, nodeConf1, conf2, nodeConf2, oc.getAttackerLevel(), oc.getConflictEdge().getSource().getId(), oc.getConflictEdge().getTarget().getId());
+		return String.format("%s [%s] is leaked through an order conflict between %s [%s] and %s [%s], visible for %s (order conflict edge is %s <--> %s)", secret, nodeSecret, conf1, nodeConf1, conf2, nodeConf2, oc.getAttackerLevel(), oc.getConflictEdge().getSource().getId(), oc.getConflictEdge().getTarget().getId());
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((conf1 == null) ? 0 : conf1.hashCode());
+		result = prime * result + ((conf2 == null) ? 0 : conf2.hashCode());
+		result = prime * result + ((secret == null) ? 0 : secret.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		JoanaOrderConflict other = (JoanaOrderConflict) obj;
+		if (conf1 == null) {
+			if (other.conf1 != null)
+				return false;
+		} else if (!conf1.equals(other.conf1))
+			return false;
+		if (conf2 == null) {
+			if (other.conf2 != null)
+				return false;
+		} else if (!conf2.equals(other.conf2))
+			return false;
+		if (secret == null) {
+			if (other.secret != null)
+				return false;
+		} else if (!secret.equals(other.secret))
+			return false;
+		return true;
 	}
 
 }

@@ -17,7 +17,7 @@ import edu.kit.joana.util.Logger;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 
-public class IllicitFlow {
+public class IllicitFlow extends JoanaViolation {
 	
 	private static final Logger debug = Log.getLogger(Log.L_API_DEBUG); 
 	

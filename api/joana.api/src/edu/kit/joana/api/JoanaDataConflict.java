@@ -42,6 +42,49 @@ public class JoanaDataConflict extends JoanaConflict {
 	}
 	
 	public String toString() {
-		return String.format("%s [%d] causes a data conflict between %s [%s] and %s [%s] which may influence %s [%s], visible for %s", secret, nodeSecret.getId(), conf1, nodeConf1.getId(), conf2, nodeConf2.getId(), leaking, nodeLeaking, c.getAttackerLevel());
+		return String.format("%s [%d] influences a data conflict between %s [%s] and %s [%s] which may influence %s [%s], visible for %s (data conflict edge is %s)", secret, nodeSecret.getId(), conf1, nodeConf1.getId(), conf2, nodeConf2.getId(), leaking, nodeLeaking, c.getAttackerLevel(), c.getConflictEdge());
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((conf1 == null) ? 0 : conf1.hashCode());
+		result = prime * result + ((conf2 == null) ? 0 : conf2.hashCode());
+		result = prime * result + ((leaking == null) ? 0 : leaking.hashCode());
+		result = prime * result + ((secret == null) ? 0 : secret.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		JoanaDataConflict other = (JoanaDataConflict) obj;
+		if (conf1 == null) {
+			if (other.conf1 != null)
+				return false;
+		} else if (!conf1.equals(other.conf1))
+			return false;
+		if (conf2 == null) {
+			if (other.conf2 != null)
+				return false;
+		} else if (!conf2.equals(other.conf2))
+			return false;
+		if (leaking == null) {
+			if (other.leaking != null)
+				return false;
+		} else if (!leaking.equals(other.leaking))
+			return false;
+		if (secret == null) {
+			if (other.secret != null)
+				return false;
+		} else if (!secret.equals(other.secret))
+			return false;
+		return true;
 	}
 }

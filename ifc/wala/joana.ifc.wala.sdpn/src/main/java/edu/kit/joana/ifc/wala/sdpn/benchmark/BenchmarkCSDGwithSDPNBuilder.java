@@ -17,36 +17,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import edu.kit.joana.ifc.sdg.graph.SDGEdge;
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadRegions;
-import edu.kit.joana.ifc.wala.sdpn.LockAwareThreadRegions;
-import edu.kit.joana.ifc.wala.sdpn.benchmark.AppResult;
-import edu.kit.joana.ifc.wala.sdpn.benchmark.DPN4IFCAnalysis;
-import edu.kit.joana.ifc.wala.sdpn.benchmark.IFResult;
-import edu.kit.joana.ifc.wala.sdpn.benchmark.Setting;
-import edu.kit.joana.ifc.wala.sdpn.benchmark.TimeoutProgressMonitor;
-import edu.kit.joana.deprecated.jsdg.Analyzer;
-import edu.kit.joana.deprecated.jsdg.Messages;
-import edu.kit.joana.deprecated.jsdg.SDGFactory;
-import edu.kit.joana.deprecated.jsdg.SDGFactory.Config;
-import edu.kit.joana.deprecated.jsdg.output.JoanaCFGSanitizer;
-import edu.kit.joana.deprecated.jsdg.output.JoanaStyleSDG;
-import edu.kit.joana.deprecated.jsdg.sdg.PDG;
-import edu.kit.joana.deprecated.jsdg.sdg.SDG;
-import edu.kit.joana.deprecated.jsdg.sdg.dataflow.SummaryEdgeComputation;
-import edu.kit.joana.deprecated.jsdg.sdg.interference.CSDGPreprocessor;
-import edu.kit.joana.deprecated.jsdg.sdg.nodes.JDependencyGraph.PDGFormatException;
-import edu.kit.joana.deprecated.jsdg.sdg.pointsto.IPointerAnalysis;
-import edu.kit.joana.deprecated.jsdg.sdg.pointsto.PointsToWrapper;
-import edu.kit.joana.wala.util.Debug;
-import edu.kit.joana.wala.util.Log;
-import edu.kit.joana.deprecated.jsdg.util.Util;
-import edu.kit.joana.wala.util.VerboseProgressMonitor;
-import edu.kit.joana.deprecated.jsdg.wala.objecttree.InstanceAndPointerKeyFactoryAdapter;
-
 import com.ibm.wala.analysis.pointers.HeapGraph;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.demandpa.alg.DemandRefinementPointsTo;
@@ -76,6 +46,30 @@ import com.ibm.wala.util.io.FileUtil;
 
 import de.wwu.sdpn.wala.dpngen.symbols.StackSymbol;
 import de.wwu.sdpn.wala.util.ThreadSensContextSelector;
+import edu.kit.joana.deprecated.jsdg.Analyzer;
+import edu.kit.joana.deprecated.jsdg.Messages;
+import edu.kit.joana.deprecated.jsdg.SDGFactory;
+import edu.kit.joana.deprecated.jsdg.SDGFactory.Config;
+import edu.kit.joana.deprecated.jsdg.output.JoanaCFGSanitizer;
+import edu.kit.joana.deprecated.jsdg.output.JoanaStyleSDG;
+import edu.kit.joana.deprecated.jsdg.sdg.PDG;
+import edu.kit.joana.deprecated.jsdg.sdg.SDG;
+import edu.kit.joana.deprecated.jsdg.sdg.dataflow.SummaryEdgeComputation;
+import edu.kit.joana.deprecated.jsdg.sdg.interference.CSDGPreprocessor;
+import edu.kit.joana.deprecated.jsdg.sdg.nodes.JDependencyGraph.PDGFormatException;
+import edu.kit.joana.deprecated.jsdg.sdg.pointsto.IPointerAnalysis;
+import edu.kit.joana.deprecated.jsdg.sdg.pointsto.PointsToWrapper;
+import edu.kit.joana.deprecated.jsdg.util.Debug;
+import edu.kit.joana.deprecated.jsdg.util.Log;
+import edu.kit.joana.deprecated.jsdg.util.Util;
+import edu.kit.joana.deprecated.jsdg.wala.objecttree.InstanceAndPointerKeyFactoryAdapter;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadRegions;
+import edu.kit.joana.ifc.wala.sdpn.LockAwareThreadRegions;
+import edu.kit.joana.wala.util.VerboseProgressMonitor;
 
 /**
  * @author Juergen Graf <juergen.graf@gmail.com>

@@ -742,31 +742,53 @@ public class SDGBuilder implements CallGraphFilter {
 		// connect call sites
 		for (PDG pdg : pdgs) {
 			if (isImmutableStub(pdg.getMethod().getDeclaringClass().getReference())) {
-				continue;
-			}
-
-			for (PDGNode call : pdg.getCalls()) {
-				Set<PDG> tgts = findPossibleTargets(cg, pdg, call);
-				if (tgts.isEmpty() && !cfg.ext.isCallToModule((SSAInvokeInstruction) pdg.getInstruction(call))) {
-					// do direct data deps dummies
-					List<PDGNode> inParam = new LinkedList<PDGNode>();
-					List<PDGNode> outParam = new LinkedList<PDGNode>();
-					for (PDGEdge e : pdg.outgoingEdgesOf(call)) {
-						if (e.kind == PDGEdge.Kind.CONTROL_DEP_EXPR) {
-							switch (e.to.getKind()) {
-							case ACTUAL_IN:
-								inParam.add(e.to);
-								break;
-							case ACTUAL_OUT:
-								outParam.add(e.to);
-								break;
-							}
+				// direct data deps from all formal-in to formal-outs
+				List<PDGNode> inParam = new LinkedList<PDGNode>();
+				List<PDGNode> outParam = new LinkedList<PDGNode>();
+				for (PDGEdge e : pdg.outgoingEdgesOf(pdg.entry)) {
+					if (e.kind == PDGEdge.Kind.CONTROL_DEP_EXPR) {
+						switch (e.to.getKind()) {
+						case FORMAL_IN:
+							inParam.add(e.to);
+							break;
+						case EXIT:
+							if (pdg.isVoid()) break;
+						case FORMAL_OUT:
+							outParam.add(e.to);
+							break;
 						}
 					}
+				}
 
-					for (PDGNode ain : inParam) {
-						for (PDGNode aout : outParam) {
-							pdg.addEdge(ain, aout, PDGEdge.Kind.DATA_DEP);
+				for (PDGNode ain : inParam) {
+					for (PDGNode aout : outParam) {
+						pdg.addEdge(ain, aout, PDGEdge.Kind.DATA_DEP);
+					}
+				}
+			} else {
+				for (PDGNode call : pdg.getCalls()) {
+					Set<PDG> tgts = findPossibleTargets(cg, pdg, call);
+					if (tgts.isEmpty() && !cfg.ext.isCallToModule((SSAInvokeInstruction) pdg.getInstruction(call))) {
+						// do direct data deps dummies
+						List<PDGNode> inParam = new LinkedList<PDGNode>();
+						List<PDGNode> outParam = new LinkedList<PDGNode>();
+						for (PDGEdge e : pdg.outgoingEdgesOf(call)) {
+							if (e.kind == PDGEdge.Kind.CONTROL_DEP_EXPR) {
+								switch (e.to.getKind()) {
+								case ACTUAL_IN:
+									inParam.add(e.to);
+									break;
+								case ACTUAL_OUT:
+									outParam.add(e.to);
+									break;
+								}
+							}
+						}
+	
+						for (PDGNode ain : inParam) {
+							for (PDGNode aout : outParam) {
+								pdg.addEdge(ain, aout, PDGEdge.Kind.DATA_DEP);
+							}
 						}
 					}
 				}

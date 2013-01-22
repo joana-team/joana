@@ -711,7 +711,6 @@ public class SDGBuilder implements CallGraphFilter {
 			opt.isMergeOneFieldPerParent = true;
 			opt.isMergePrunedCallNodes = true;
 			opt.isUseAdvancedInterprocPropagation = true;
-			opt.printOutTimings = false;
 			opt.convertToObjTree = true;
 			ObjGraphParams.compute(this, opt, progress);
 		}
@@ -724,7 +723,6 @@ public class SDGBuilder implements CallGraphFilter {
 			opt.isMergeOneFieldPerParent = false;
 			opt.isMergePrunedCallNodes = false;
 			opt.isUseAdvancedInterprocPropagation = true;
-			opt.printOutTimings = false;
 			opt.convertToObjTree = true;
 			ObjGraphParams.compute(this, opt, progress);
 		}

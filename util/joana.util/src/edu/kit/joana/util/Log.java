@@ -40,6 +40,7 @@ public final class Log {
 	public static final String L_WALA_CFG_DUMP					= "wala.dump.cfg";
 	public static final String L_WALA_INTERFERENCE_DEBUG		= "wala.interference.debug";
 	public static final String L_WALA_SIDEEFFECT_DEBUG			= "wala.sideeffect.debug";
+	public static final String L_WALA_OBJGRAPH_STATS			= "wala.objgraph.stats";
 	public static final String L_JSDG_INFO						= "jsdg.info";
 	public static final String L_UI_DEBUG						= "ui.debug";
 	public static final String L_MOJO_DEBUG						= "mojo.debug";

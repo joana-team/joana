@@ -33,6 +33,9 @@ import com.ibm.wala.util.intset.MutableMapping;
 import com.ibm.wala.util.intset.OrdinalSet;
 import com.ibm.wala.util.intset.OrdinalSetMapping;
 
+import edu.kit.joana.util.Config;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.ParameterField;
 import edu.kit.joana.wala.core.SDGBuilder;
@@ -71,19 +74,48 @@ public final class ObjGraphParams {
 			this.isMergePrunedCallNodes = true;
 			this.isUseAdvancedInterprocPropagation = true;
 			this.maxNodesPerInterface = DEFAULT_MAX_NODES_PER_INTERFACE;
-			this.printOutTimings = false;
 			this.convertToObjTree = false;
 		}
 
+		private void adjustWithProperties() {
+			if (Config.isDefined(Config.C_OBJGRAPH_ADVANCED_INTERPROC_PROP)) {
+				isUseAdvancedInterprocPropagation = Config.getBool(Config.C_OBJGRAPH_ADVANCED_INTERPROC_PROP);
+			}
+			
+			if (Config.isDefined(Config.C_OBJGRAPH_CONVERT_TO_OBJTREE)) {
+				convertToObjTree = Config.getBool(Config.C_OBJGRAPH_CONVERT_TO_OBJTREE);
+			}
+			
+			if (Config.isDefined(Config.C_OBJGRAPH_CUT_OFF_IMMUTABLE)) {
+				isCutOffImmutables = Config.getBool(Config.C_OBJGRAPH_CUT_OFF_IMMUTABLE);
+			}
+			
+			if (Config.isDefined(Config.C_OBJGRAPH_CUT_OFF_UNREACHABLE)) {
+				isCutOffUnreachable = Config.getBool(Config.C_OBJGRAPH_CUT_OFF_UNREACHABLE);
+			}
+			
+			if (Config.isDefined(Config.C_OBJGRAPH_MAX_NODES_PER_INTERFACE)) {
+				maxNodesPerInterface =
+					Config.getInt(Config.C_OBJGRAPH_MAX_NODES_PER_INTERFACE, Options.DEFAULT_MAX_NODES_PER_INTERFACE);
+			}
+			
+			if (Config.isDefined(Config.C_OBJGRAPH_MERGE_EXCEPTIONS)) {
+				isMergeException = Config.getBool(Config.C_OBJGRAPH_MERGE_EXCEPTIONS);
+			}
+			
+			if (Config.isDefined(Config.C_OBJGRAPH_MERGE_ONE_FIELD_PER_PARENT)) {
+				isMergeOneFieldPerParent = Config.getBool(Config.C_OBJGRAPH_MERGE_ONE_FIELD_PER_PARENT);
+			}
+			
+			if (Config.isDefined(Config.C_OBJGRAPH_MERGE_PRUNED_CALL_NODES)) {
+				isMergePrunedCallNodes = Config.getBool(Config.C_OBJGRAPH_MERGE_PRUNED_CALL_NODES);
+			}
+		}
+		
 		/**
 		 * Convert the result to an object tree by duplicating nodes with multiple predecessors
 		 */
 		public boolean convertToObjTree;
-
-		/**
-		 * Print debugInformation about timings and candidate numbers.
-		 */
-		public boolean printOutTimings;
 
 		/**
 		 * Remove all side effects that are not reachable through root nodes (parameter or static fields).
@@ -144,7 +176,7 @@ public final class ObjGraphParams {
 		 * If maxNodePerInterface is set, this constant defines at which depth level in the graph structure
 		 * the merging of nodes should start. So iff #nodes > maxNodesPerInterface we try to merge all nodes
 		 * reachable from the same node n at depth STD_MERGE_LEVEL. Depth means the minimal distance from any
-		 * root node. Iff the merge operation does nod result in #nodes <= maxNodesPerInterface, the operation
+		 * root node. Iff the merge operation does not result in #nodes <= maxNodesPerInterface, the operation
 		 * continues at the next smaller depth level until maxNodesPerInterface is reached or depth == 0.
 		 *
 		 * Experiments have shown that 3 is a good starting point as there are not many nodes at depth > 4 in general.
@@ -160,9 +192,11 @@ public final class ObjGraphParams {
 	private ObjGraphParams(final SDGBuilder sdg, final Options opt) {
 		this.sdg = sdg;
 		this.opt = opt;
+		this.opt.adjustWithProperties();
 	}
-
+	
 	private void run(final IProgressMonitor progress) throws CancelException {
+		final Logger logStats = Log.getLogger(Log.L_WALA_OBJGRAPH_STATS);
 		sdg.cfg.out.print("(if");
 
 		// step 1 create candidates
@@ -184,7 +218,7 @@ public final class ObjGraphParams {
 		
 		// step 2 propagate interprocedural
 		long t1 = 0, t2 = 0;
-		if (opt.printOutTimings) { t1 = System.currentTimeMillis(); }
+		if (logStats.isEnabled()) { t1 = System.currentTimeMillis(); }
 
 		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> interModRef;
 		if (opt.isUseAdvancedInterprocPropagation) {
@@ -194,7 +228,7 @@ public final class ObjGraphParams {
 		}
 
 		long sdgNodeCount = 0;
-		if (opt.printOutTimings) {
+		if (logStats.isEnabled()) {
 			t2 = System.currentTimeMillis();
 			sdgNodeCount = sdg.countNodes();
 		}
@@ -221,7 +255,7 @@ public final class ObjGraphParams {
 		if (opt.convertToObjTree) {
 			sdg.cfg.out.print(",2tree");
 
-			if (opt.printOutTimings) {
+			if (logStats.isEnabled()) {
 				sdgNodeCountGraph = sdg.countNodes();
 			}
 
@@ -230,31 +264,31 @@ public final class ObjGraphParams {
 
 		sdg.cfg.out.print(")");
 
-		if (opt.printOutTimings) {
+		if (logStats.isEnabled()) {
 			long t3 = System.currentTimeMillis();
 			long cands = mrefs.countCandidates();
 			long sdgNodeCountTotal = sdg.countNodes();
 			final long paramsTotal = sdgNodeCountTotal - sdgNodeCount;
 
-			System.out.println("\n---- BEGIN: Parameter Propagation Statistics ----\n");
-			System.out.println("propagation time    : " + (t2 - t1) + " ms");
-			System.out.println("optimization time   : " + (t3 - t2) + " ms");
-			System.out.println("total time          : " + (t3 - t1) + " ms");
-			System.out.println("number of candidates: " + cands);
+			logStats.outln("\n---- BEGIN: Parameter Propagation Statistics ----\n");
+			logStats.outln("propagation time    : " + (t2 - t1) + " ms");
+			logStats.outln("optimization time   : " + (t3 - t2) + " ms");
+			logStats.outln("total time          : " + (t3 - t1) + " ms");
+			logStats.outln("number of candidates: " + cands);
 			if (opt.convertToObjTree) {
 				final long paramNodesGraphs = sdgNodeCountGraph - sdgNodeCount;
 				final long paramNodesTree = sdgNodeCountTotal - sdgNodeCountGraph;
 
-				System.out.println("obj-graph new nodes : " + paramNodesGraphs + " ("
+				logStats.outln("obj-graph new nodes : " + paramNodesGraphs + " ("
 						+ ((100 * paramNodesGraphs) / sdgNodeCountTotal) + "% total)");
-				System.out.println("graph2tree new nodes: " + (sdgNodeCountTotal - sdgNodeCountGraph)
+				logStats.outln("graph2tree new nodes: " + (sdgNodeCountTotal - sdgNodeCountGraph)
 						+ " (" + ((100 * paramNodesTree) / sdgNodeCountTotal) + "% total) ("
 						+ ((100 * paramNodesTree) / paramsTotal) + "% params)");
 			}
-			System.out.println("number of new nodes : " + paramsTotal + " ("
+			logStats.outln("number of new nodes : " + paramsTotal + " ("
 					+ ((100 * paramsTotal) / sdgNodeCountTotal) + "%)");
-			System.out.println("tot. number of nodes: " + sdgNodeCountTotal);
-			System.out.println("\n---- END: Parameter Propagation Statistics ----\n");
+			logStats.outln("tot. number of nodes: " + sdgNodeCountTotal);
+			logStats.outln("\n---- END: Parameter Propagation Statistics ----\n");
 		}
 	}
 

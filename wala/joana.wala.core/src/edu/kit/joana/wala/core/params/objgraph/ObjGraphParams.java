@@ -171,6 +171,17 @@ public final class ObjGraphParams {
 		final ModRefCandidates mrefs = ModRefCandidates.computeIntracProc(sdg.getParameterFieldFactory(), candFact, cg,
 				sdg.getPointerAnalysis(), progress);
 
+		final boolean runSideEffectDetector = false;
+		final HashMap<CGNode, Collection<ModRefFieldCandidate>> sideEffectsDirect;
+		if (runSideEffectDetector) {
+			final Map<CGNode, Collection<ModRefFieldCandidate>> intraMap = mrefs.getCandidateMap();
+			sideEffectsDirect = new HashMap<CGNode, Collection<ModRefFieldCandidate>>();
+			for (final CGNode n : intraMap.keySet()) {
+				final Collection<ModRefFieldCandidate> intraCands = intraMap.get(n);
+				sideEffectsDirect.put(n, new HashSet<ModRefFieldCandidate>(intraCands));
+			}
+		}
+		
 		// step 2 propagate interprocedural
 		long t1 = 0, t2 = 0;
 		if (opt.printOutTimings) { t1 = System.currentTimeMillis(); }
@@ -190,6 +201,13 @@ public final class ObjGraphParams {
 
 		adjustInterprocModRef(cg, interModRef, mrefs, sdg, progress);
 
+		if (runSideEffectDetector) {
+			// detect modifications to a given pointerkey
+			sdg.cfg.out.println(",se");
+			final SideEffectDetector.Result result =
+					SideEffectDetector.whoModifiesOneLevel("voters", mrefs, sideEffectsDirect, sdg, cg, progress);
+		}
+		
 		sdg.cfg.out.print(",df");
 
 		ModRefDataFlow.compute(mrefs, sdg, progress);

@@ -3,6 +3,7 @@ package edu.kit.joana.ifc.wala.sdpn.benchmark
 import edu.kit.joana.deprecated.jsdg.SDGFactory
 import scala.collection.JavaConversions._
 import java.io.File
+import edu.kit.joana.deprecated.jsdg.util.Log
 
 //final String bin, final String main, final String runtimeLib,final boolean do_cache, final boolean skip_primordial, final boolean interpret_kill, final long xsbtimeout
 case class Setting(
@@ -204,7 +205,7 @@ object Setting {
         cfg.logFile = mainClassSimpleName + ".log";
         cfg.outputDir = "./";
         cfg.outputSDGfile = mainClassSimpleName + ".pdg";
-        cfg.logLevel = edu.kit.joana.wala.util.Log.LogLevel.INFO;
+        cfg.logLevel = Log.LogLevel.INFO;
         cfg.pointsTo = SDGFactory.Config.PointsToType.VANILLA_ZERO_ONE_CFA;
         //		cfg.pointsTo = PointsToType.OBJ_SENS;
         cfg.objTree = SDGFactory.Config.ObjTreeType.PTS_GRAPH;

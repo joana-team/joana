@@ -8,10 +8,13 @@
 package edu.kit.joana.api;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.annotations.IFCAnnotation.Type;
@@ -24,7 +27,10 @@ import edu.kit.joana.api.sdg.SDGProgramPartWriter;
 import edu.kit.joana.ifc.sdg.core.IFC;
 import edu.kit.joana.ifc.sdg.core.conc.PossibilisticNIChecker;
 import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNIChecker;
+import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNISlicer;
 import edu.kit.joana.ifc.sdg.core.conc.TimeSensitiveIFCDecorator;
+import edu.kit.joana.ifc.sdg.core.violations.Conflict;
+import edu.kit.joana.ifc.sdg.core.violations.OrderConflict;
 import edu.kit.joana.ifc.sdg.core.violations.Violation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -40,21 +46,22 @@ import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 
 public class IFCAnalysis {
-	
+
 	private SDGProgram program;
 	private IFCAnnotationManager annManager;
 	private IStaticLattice<String> secLattice;
 	private IFCType ifcType = IFCType.POSSIBILISTIC;
 	private IFC ifc;
 	private boolean timeSensitiveAnalysis = false;
-	
+
 	public static final IStaticLattice<String> stdLattice;
-	
+
 	private static Logger debug = Log.getLogger("api.debug");
 
 	static {
 		try {
-			stdLattice = LatticeUtil.loadLattice(BuiltinLattices.STD_SECLEVEL_LOW + "<=" + BuiltinLattices.STD_SECLEVEL_HIGH);
+			stdLattice = LatticeUtil.loadLattice(BuiltinLattices.STD_SECLEVEL_LOW + "<="
+					+ BuiltinLattices.STD_SECLEVEL_HIGH);
 		} catch (WrongLatticeDefinitionException e) {
 			throw new IllegalStateException();
 		}
@@ -88,7 +95,7 @@ public class IFCAnalysis {
 
 	private void setIFCType(IFCType ifcType) {
 		this.ifcType = ifcType;
-		switch(this.ifcType) {
+		switch (this.ifcType) {
 		case POSSIBILISTIC:
 			this.ifc = new PossibilisticNIChecker(this.program.getSDG(), secLattice);
 			if (timeSensitiveAnalysis) {
@@ -97,21 +104,23 @@ public class IFCAnalysis {
 			break;
 		case PROBABILISTIC_WITH_SIMPLE_MHP:
 			MHPAnalysis mhpSimple = SimpleMHPAnalysis.analyze(this.program.getSDG());
-			this.ifc = new ProbabilisticNIChecker(this.program.getSDG(), secLattice, mhpSimple, this.timeSensitiveAnalysis);
+			this.ifc = new ProbabilisticNIChecker(this.program.getSDG(), secLattice, mhpSimple,
+					this.timeSensitiveAnalysis);
 			break;
 		case PROBABILISTIC_WITH_PRECISE_MHP:
 			MHPAnalysis mhpPrecise = PreciseMHPAnalysis.analyze(this.program.getSDG());
-			this.ifc = new ProbabilisticNIChecker(this.program.getSDG(), secLattice, mhpPrecise, this.timeSensitiveAnalysis);
+			this.ifc = new ProbabilisticNIChecker(this.program.getSDG(), secLattice, mhpPrecise,
+					this.timeSensitiveAnalysis);
 			break;
 		default:
 			throw new IllegalStateException("unhandled ifc type: " + ifcType + "!");
 		}
 	}
-	
+
 	public IFC getIFC() {
 		return ifc;
 	}
-	
+
 	public void setTimesensitivity(boolean newTimeSens) {
 		this.timeSensitiveAnalysis = newTimeSens;
 	}
@@ -166,15 +175,13 @@ public class IFCAnalysis {
 		Collection<Violation> vios = ifc.checkIFlow();
 		time = System.currentTimeMillis() - time;
 
-
 		List<IllicitFlow> ret = new LinkedList<IllicitFlow>();
-		
+
 		Collection<SDGProgramPart> allParts = getProgram().getAllProgramParts();
 		for (SDGProgramPart ppart : allParts) {
 			debug.outln("Program part " + ppart + " with node(s): " + ppart.getAttachedNodes());
 		}
-		
-		
+
 		for (Violation vio : vios) {
 			IllicitFlow ill = new IllicitFlow(vio, allParts);
 			ret.add(ill);
@@ -192,15 +199,47 @@ public class IFCAnalysis {
 				Violation v = ill.getViolation();
 				debug.outln("unidentifiable flow from " + v.getSource() + " to " + v.getSink());
 			}
-			
+
 		}
 		
-		
+		Collection<JoanaConflict> joanaConflicts = analyzeConflicts();
+		if (!joanaConflicts.isEmpty()) {
+			debug.outln("conflicts:");
+			for (JoanaConflict jc : joanaConflicts) {
+				debug.outln(jc);
+			}
+		}
 		
 		annManager.unapplyAllAnnotations();
 		return ret;
 	}
 	
+	public Set<JoanaConflict> getConflicts() {
+		Collection<JoanaConflict> confs = analyzeConflicts();
+		Set<JoanaConflict> ret = new HashSet<JoanaConflict>();
+		ret.addAll(confs);
+		return ret;
+	}
+
+	private Collection<JoanaConflict> analyzeConflicts() {
+		if (getIFC() instanceof ProbabilisticNIChecker) {
+			ProbabilisticNIChecker probIFC = (ProbabilisticNIChecker) getIFC();
+			ProbabilisticNISlicer probSlicer = probIFC.getProbSlicer();
+			Collection<Conflict> conflicts = probSlicer.getConflicts();
+			Collection<JoanaConflict> joanaConflicts = new LinkedList<JoanaConflict>();
+			for (Conflict c : conflicts) {
+				if (c instanceof OrderConflict) {
+					joanaConflicts.add(new JoanaOrderConflict(getProgram(), c));
+				} else {
+					joanaConflicts.add(new JoanaDataConflict(getProgram(), c));
+				}
+			}
+			return joanaConflicts;
+		} else {
+			return Collections.emptySet();
+		}
+	}
+
 	private static Map<SDGNode, Collection<SDGNode>> groupByProc(SDG sdg, Collection<SDGNode> nodes) {
 		Map<SDGNode, Collection<SDGNode>> ret = new HashMap<SDGNode, Collection<SDGNode>>();
 		for (SDGNode n : nodes) {
@@ -248,7 +287,7 @@ public class IFCAnalysis {
 	private void addSinkAnnotation(SDGProgramPart toMark, String level, SDGMethod context) {
 		addAnnotation(new IFCAnnotation(Type.SINK, level, toMark, context));
 	}
-	
+
 	public void addDeclassification(SDGProgramPart toMark, String level1, String level2) {
 		addAnnotation(new IFCAnnotation(level1, level2, toMark));
 	}
@@ -264,7 +303,7 @@ public class IFCAnalysis {
 	public boolean isAnnotationLegal(IFCAnnotation ann) {
 		return annManager.isAnnotationLegal(ann);
 	}
-	
+
 	public SDGProgramPart getProgramPart(String ppartDesc) {
 		return program.getPart(ppartDesc);
 	}

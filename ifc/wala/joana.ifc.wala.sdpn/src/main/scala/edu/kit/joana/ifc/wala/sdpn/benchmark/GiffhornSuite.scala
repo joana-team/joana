@@ -1,5 +1,6 @@
 package edu.kit.joana.ifc.wala.sdpn.benchmark
-import edu.kit.joana.wala.util.Log
+
+import edu.kit.joana.deprecated.jsdg.util.Log
 
 object GiffhornSuite extends Suite {
     def name = "GiffhornExamples"

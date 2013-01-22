@@ -9,14 +9,14 @@ package edu.kit.joana.ifc.wala.sdpn;
 
 import java.io.IOException;
 
-import edu.kit.joana.ifc.sdg.graph.SDG;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
-import edu.kit.joana.wala.util.Log;
-
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.WalaException;
+
+import edu.kit.joana.deprecated.jsdg.util.Log;
+import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 
 public abstract class SDGCreator {
 

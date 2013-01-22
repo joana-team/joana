@@ -36,6 +36,7 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.IFCType;
 import edu.kit.joana.api.IllicitFlow;
+import edu.kit.joana.api.JoanaConflict;
 import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.annotations.IFCAnnotation.Type;
 import edu.kit.joana.api.lattice.BuiltinLattices;
@@ -52,9 +53,7 @@ import edu.kit.joana.ifc.sdg.core.SecurityNode.SecurityNodeFactory;
 import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNIChecker;
 import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNISlicer;
 import edu.kit.joana.ifc.sdg.core.violations.Conflict;
-import edu.kit.joana.ifc.sdg.core.violations.OrderConflict;
 import edu.kit.joana.ifc.sdg.graph.SDG;
-import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.lattice.IEditableLattice;
@@ -1503,33 +1502,10 @@ public class IFCConsole {
 
 			if (lastAnalysisResult.size() > 0) {
 				
-				groupedIFlows = groupByPParts(vios);
+				groupedIFlows = IllicitFlow.groupByPParts(vios);
 				out.logln("done, found " + groupedIFlows.size() + " security violation(s):");
 				for (IllicitFlow iflow : groupedIFlows.keySet()) {
 					out.logln(String.format("illicit flow(s) between %s and %s (internal: %d illicit flow(s) between corresponding SDG nodes)", iflow.getSource(), iflow.getSink(), groupedIFlows.get(iflow)));
-					if (ifcAnalysis.getIFC() instanceof ProbabilisticNIChecker) {
-						debug.outln("conflicts:");
-						ProbabilisticNIChecker probIFC = (ProbabilisticNIChecker) ifcAnalysis.getIFC();
-						ProbabilisticNISlicer probSlicer = probIFC.getProbSlicer();
-						Collection<Conflict> conflicts = probSlicer.getConflicts();
-						for (Conflict c : conflicts) {
-							if (c instanceof OrderConflict) {
-								OrderConflict oc = (OrderConflict) c;
-								SDGProgramPart secret = ifcAnalysis.getProgram().findCoveringProgramPart(oc.getSource());
-								SDGProgramPart conf1 = ifcAnalysis.getProgram().findCoveringProgramPart(oc.getSink());
-								SDGProgramPart conf2 = ifcAnalysis.getProgram().findCoveringProgramPart(oc.getConflicting());
-								debug.outln(secret + " is leaked through an order conflict between " + conf1 + " and " + conf2 + ", visible for " + oc.getAttackerLevel());
-							} else {
-								SDGProgramPart secret = ifcAnalysis.getProgram().findCoveringProgramPart(c.getSource());
-								SDGProgramPart leaking = ifcAnalysis.getProgram().findCoveringProgramPart(c.getSink());
-								SDGEdge confEdge = c.getConflictEdge();
-								SDGProgramPart conf1 = ifcAnalysis.getProgram().findCoveringProgramPart(confEdge.getSource());
-								SDGProgramPart conf2 = ifcAnalysis.getProgram().findCoveringProgramPart(confEdge.getTarget());
-								debug.outln(secret + " causes a data conflict between " + conf1 + " and " + conf2 + " which may influence " + leaking + ", visible for " + c.getAttackerLevel());
-							}
-						}
-					}
-					
 				}
 			} else {
 				out.logln("");
@@ -1538,20 +1514,6 @@ public class IFCConsole {
 		}
 	}
 	
-	private static TObjectIntMap<IllicitFlow> groupByPParts(Collection<IllicitFlow> iflows) {
-		TObjectIntMap<IllicitFlow> ret = new TObjectIntHashMap<IllicitFlow>();
-		for (IllicitFlow ill : iflows) {
-			if (ret.containsKey(ill)) {
-				int noiFlows = ret.get(ill);
-				ret.put(ill, noiFlows + 1);
-			} else {
-				ret.put(ill, 1);
-			}
-		}
-		
-		return ret;
-	}
-
 	public static String convertIFCType(IFCType ifcType) {
 		switch (ifcType) {
 		case POSSIBILISTIC:

@@ -60,20 +60,21 @@ public class CSDGwithSDPNBuilder {
 	private static final long XSB_TIME_OUT = 1000*60*2;
 
 	public static void main(String args[]) throws IllegalArgumentException, CancelException, PDGFormatException, IOException, WalaException, InvalidClassFileException  {
-//		runAnalysis("../jSDG-sdpn/bin", "Lexamples/BSP01", JRE14_LIB); // Removed 1 of 1 interference edges. Cached 0 runs.
-//		runAnalysis("../jSDG-sdpn/bin", "Lexamples/BSP02", JRE14_LIB); // Removed 0 of 1 interference edges. Cached 0 runs.
-//		runAnalysis("../jSDG-sdpn/bin", "Lexamples/BSP03", JRE14_LIB); // Removed 8 of 14 interference edges. Cached 7 runs.
-//		runAnalysis("../jSDG-sdpn/bin", "Lexamples/BSP04", JRE14_LIB); // Removed 0 of 0 interference edges. Cached 0 runs.
-//		runAnalysis("../jSDG-sdpn/bin", "Lexamples/CutTest", JRE14_LIB); // Removed 0 of 0 interference edges. Cached 0 runs.
-//		runAnalysis("../jSDG-sdpn/bin", "Lexamples/MyThread", JRE14_LIB); // Removed 0 of 0 interference edges. Cached 0 runs.
-//		runAnalysis("../Tests/bin", "Lconc/TimeTravel", JRE14_LIB);
-//		runAnalysis("../Tests/bin", "Lconc/dp/DiningPhilosophers", JRE14_LIB); 		// no locks found - error...
-//		runAnalysis("../Tests/bin", "Ltests/Synchronization", JRE14_LIB);
-//		runAnalysis("../Tests/bin", "Ltests/ConcPasswordFile", JRE14_LIB); // Removed 0 of 1
-//		runAnalysis("../Tests/bin", "Lconc/cliser/kk/Main", JRE14_LIB); // nasty error in jsdg
-//		runAnalysis("../Tests/bin", "Lconc/kn/Knapsack5", JRE14_LIB); 				// computes very long
-//		runAnalysis("../Tests/bin", "Lconc/bb/ProducerConsumer", JRE14_LIB); 		// no locks found - error...
-//		runAnalysis("../Tests/bin", "Ltests/Mantel00Page10", JRE14_LIB); 		    // no locks found - error...
+		SDGCreator sdgCreator = new SDGCreatorMoJoStyle();
+		//runAnalysis(sdgCreator, "../joana.ifc.wala.sdpn/bin", "Lexamples/BSP01", JRE14_LIB); // Removed 1 of 1 interference edges. Cached 0 runs.
+		//runAnalysis(sdgCreator, "../joana.ifc.wala.sdpn/bin", "Lexamples/BSP02", JRE14_LIB); // Removed 0 of 1 interference edges. Cached 0 runs.
+		//runAnalysis(sdgCreator, "../joana.ifc.wala.sdpn/bin", "Lexamples/BSP03", JRE14_LIB); // Removed 8 of 14 interference edges. Cached 7 runs.
+		//runAnalysis(sdgCreator, "../joana.ifc.wala.sdpn/bin", "Lexamples/BSP04", JRE14_LIB); // Removed 0 of 0 interference edges. Cached 0 runs.
+		//runAnalysis(sdgCreator, "../joana.ifc.wala.sdpn/bin", "Lexamples/CutTest", JRE14_LIB); // Removed 0 of 0 interference edges. Cached 0 runs.
+		//runAnalysis(sdgCreator, "../joana.ifc.wala.sdpn/bin", "Lexamples/MyThread", JRE14_LIB); // Removed 0 of 0 interference edges. Cached 0 runs.
+		//runAnalysis(sdgCreator, "../Tests/bin", "Lconc/TimeTravel", JRE14_LIB);
+		//runAnalysis(sdgCreator, "../Tests/bin", "Lconc/dp/DiningPhilosophers", JRE14_LIB); 		// no locks found - error...
+		//runAnalysis(sdgCreator, "../Tests/bin", "Ltests/Synchronization", JRE14_LIB);
+		//runAnalysis(sdgCreator, "../Tests/bin", "Ltests/ConcPasswordFile", JRE14_LIB); // Removed 0 of 1
+		//runAnalysis(sdgCreator, "../Tests/bin", "Lconc/cliser/kk/Main", JRE14_LIB); // nasty error in jsdg
+		//runAnalysis(sdgCreator, "../Tests/bin", "Lconc/kn/Knapsack5", JRE14_LIB); 				// computes very long
+		//runAnalysis(sdgCreator, "../Tests/bin", "Lconc/bb/ProducerConsumer", JRE14_LIB); 		// no locks found - error...
+		//runAnalysis(sdgCreator, "../Tests/bin", "Ltests/Mantel00Page10", JRE14_LIB); 		    // no locks found - error...
 
 		/* Is there something wrong with the lock sensitive thread regions?
 		 * I would expect a new one to begin after a monitor exit so there
@@ -81,9 +82,8 @@ public class CSDGwithSDPNBuilder {
 		 * -- Benedikt
 		 */
 
-		SDGCreator sdgCreator = new SDGCreatorMoJoStyle();
 
-		runAnalysis(sdgCreator, "../jSDG-sdpn/bin", "Lexamples/A", JRE14_LIB); // Removed 2 of 2 interference edges. Cached 1 runs.
+//		runAnalysis(sdgCreator, "../joana.ifc.wala.sdpn/bin", "Lexamples/A", JRE14_LIB); // Removed 2 of 2 interference edges. Cached 1 runs.
 
 
 		// TODO UNSOUNDNESS?
@@ -103,7 +103,7 @@ public class CSDGwithSDPNBuilder {
 
 		/* Trying killing definitions.
 		 */
-//		runAnalysis("../jSDG-sdpn/bin", "Lexamples/Killing04", JRE14_LIB);
+		//runAnalysis(sdgCreator, "../joana.ifc.wala.sdpn/bin", "Lexamples/Killing04", JRE14_LIB);
 
 
 

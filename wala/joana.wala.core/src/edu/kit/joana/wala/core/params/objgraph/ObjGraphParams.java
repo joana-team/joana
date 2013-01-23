@@ -196,7 +196,7 @@ public final class ObjGraphParams {
 	}
 	
 	private void run(final IProgressMonitor progress) throws CancelException {
-		final Logger logStats = Log.getLogger(Log.L_WALA_OBJGRAPH_STATS);
+		final Logger logStats = Log.getLogger(Log.L_OBJGRAPH_STATS);
 		sdg.cfg.out.print("(if");
 
 		// step 1 create candidates
@@ -205,15 +205,9 @@ public final class ObjGraphParams {
 		final ModRefCandidates mrefs = ModRefCandidates.computeIntracProc(sdg.getParameterFieldFactory(), candFact, cg,
 				sdg.getPointerAnalysis(), progress);
 
-		final boolean runSideEffectDetector = false;
-		final HashMap<CGNode, Collection<ModRefFieldCandidate>> sideEffectsDirect;
-		if (runSideEffectDetector) {
-			final Map<CGNode, Collection<ModRefFieldCandidate>> intraMap = mrefs.getCandidateMap();
-			sideEffectsDirect = new HashMap<CGNode, Collection<ModRefFieldCandidate>>();
-			for (final CGNode n : intraMap.keySet()) {
-				final Collection<ModRefFieldCandidate> intraCands = intraMap.get(n);
-				sideEffectsDirect.put(n, new HashSet<ModRefFieldCandidate>(intraCands));
-			}
+		final SideEffectDetectorConfig sideEffects = SideEffectDetectorConfig.maybeCreateInstance();
+		if (sideEffects != null) {
+			sideEffects.copyIntraprocState(mrefs);
 		}
 		
 		// step 2 propagate interprocedural
@@ -235,11 +229,11 @@ public final class ObjGraphParams {
 
 		adjustInterprocModRef(cg, interModRef, mrefs, sdg, progress);
 
-		if (runSideEffectDetector) {
+		if (sideEffects != null) {
 			// detect modifications to a given pointerkey
 			sdg.cfg.out.println(",se");
-			final SideEffectDetector.Result result =
-					SideEffectDetector.whoModifiesOneLevel("voters", mrefs, sideEffectsDirect, sdg, cg, progress);
+			final List<SideEffectDetector.Result> results = sideEffects.runAnalysis(sdg, cg, mrefs, progress);
+			sideEffects.printOut(results);
 		}
 		
 		sdg.cfg.out.print(",df");

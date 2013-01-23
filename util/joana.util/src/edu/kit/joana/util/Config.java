@@ -26,6 +26,8 @@ public final class Config {
 	public static final String C_OBJGRAPH_ADVANCED_INTERPROC_PROP 		= "objgraph.advanced-interproc-prop";
 	public static final String C_OBJGRAPH_MAX_NODES_PER_INTERFACE 		= "objgraph.max-nodes-per-interface";
 	public static final String C_OBJGRAPH_CONVERT_TO_OBJTREE 			= "objgraph.convert-to-objtree";
+	public static final String C_SIDEEFFECT_DETECTOR 					= "sideeffect.detector";
+	public static final String C_SIDEEFFECT_DETECTOR_VAR 				= "sideeffect.detector-var";
 	
 	private static final String PROP_FILE = "joana-options.properties";
 	

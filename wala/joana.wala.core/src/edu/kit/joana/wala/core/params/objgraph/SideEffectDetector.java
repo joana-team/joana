@@ -198,7 +198,7 @@ public class SideEffectDetector {
 			return null;
 		}
 		
-		final Logger log = Log.getLogger(Log.L_WALA_SIDEEFFECT_DEBUG);
+		final Logger log = Log.getLogger(Log.L_SIDEEFFECT_DEBUG);
 		log.out("searching potentially reachable fields");
 		final Set<ModRefFieldCandidate> potentiallyReachable = new HashSet<ModRefFieldCandidate>();
 
@@ -270,7 +270,7 @@ public class SideEffectDetector {
 	}
 
 	private Input createInputForStaticField(final String fieldName, final Result result, final IProgressMonitor monitor) throws CancelException {
-		final Logger log = Log.getLogger(Log.L_WALA_SIDEEFFECT_DEBUG);
+		final Logger log = Log.getLogger(Log.L_SIDEEFFECT_DEBUG);
 		final Set<ModRefFieldCandidate> baseCandidates = new HashSet<ModRefFieldCandidate>();
 		final Set<ModRefRootCandidate> rootCandidates = new HashSet<ModRefRootCandidate>();
 		final Set<IMethod> modifyingMethods = new HashSet<IMethod>();

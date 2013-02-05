@@ -15,7 +15,7 @@ import java.util.Set;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.util.JavaType;
-import edu.kit.joana.ifc.sdg.util.Pair;
+import edu.kit.joana.util.Pair;
 
 
 

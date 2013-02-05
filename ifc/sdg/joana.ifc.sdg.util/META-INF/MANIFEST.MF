@@ -9,4 +9,5 @@ Export-Package: edu.kit.joana.ifc.sdg.util,
  edu.kit.joana.ifc.sdg.util.io.dot,
  edu.kit.joana.ifc.sdg.util.sdg
 Require-Bundle: joana.ifc.sdg.graph;bundle-version="1.1.0",
- joana.contrib.lib;bundle-version="1.0.0"
+ joana.contrib.lib;bundle-version="1.0.0",
+ joana.util;bundle-version="1.0.0"

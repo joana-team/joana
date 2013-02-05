@@ -9,19 +9,34 @@ package edu.kit.joana.util;
 
 public class Pair<S, T> {
 
-	private S fst;
-	private T snd;
+	/** first component of pair */
+	private final S fst;
+	
+	/** second component of pair */
+	private final T snd;
 
-	public Pair(S fst, T snd) {
-		super();
+	/**
+	 * Constructs a new pair from the given objects.
+	 * @param fst first component of the new pair
+	 * @param snd second component of the new pair
+	 */
+	private Pair(S fst, T snd) {
 		this.fst = fst;
 		this.snd = snd;
 	}
 
+	/**
+	 * Returns the first component of this pair.
+	 * @return the first component of this pair
+	 */
 	public S getFirst() {
 		return fst;
 	}
 
+	/**
+	 * Returns the second component of this pair.
+	 * @return the second component of this pair
+	 */
 	public T getSecond() {
 		return snd;
 	}
@@ -58,10 +73,17 @@ public class Pair<S, T> {
 		return true;
 	}
 
+	@Override
 	public String toString() {
-		return "(" + fst + ", " + snd;
+		return "(" + fst + ", " + snd + ")";
 	}
 
+	/**
+	 * Static factory method pairs
+	 * @param fst first component of new pair
+	 * @param snd second component of new pair
+	 * @return new pair consisting of the given objects
+	 */
 	public static <S, T> Pair<S, T> pair(S fst, T snd) {
 		return new Pair<S, T>(fst, snd);
 	}

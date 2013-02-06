@@ -7,6 +7,7 @@
  */
 package edu.kit.joana.wala.core;
 
+import java.util.Collection;
 import java.util.Map;
 
 import com.ibm.wala.classLoader.IClass;
@@ -14,6 +15,7 @@ import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.types.FieldReference;
 import com.ibm.wala.types.TypeReference;
+import com.ibm.wala.types.annotations.Annotation;
 import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.strings.Atom;
 
@@ -135,6 +137,11 @@ public final class ParameterFieldFactory {
 		public TypeReference getFieldTypeReference() {
 			return FIELD_REF.getFieldType();
 		}
+
+		@Override
+		public Collection<Annotation> getAnnotations() {
+			throw new UnsupportedOperationException();
+		}
 	};
 	/** lock field for object locks */
 	private static final ParameterField LOCK_FIELD = new ObjectField(ILOCK);
@@ -196,6 +203,11 @@ public final class ParameterFieldFactory {
 		@Override
 		public TypeReference getFieldTypeReference() {
 			return CLASS_FIELD_REF.getFieldType();
+		}
+		
+		@Override
+		public Collection<Annotation> getAnnotations() {
+			throw new UnsupportedOperationException();
 		}
 	};
 

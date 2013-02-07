@@ -7,7 +7,6 @@
  */
 package edu.kit.joana.ifc.sdg.util.sdg;
 
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -17,9 +16,15 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 
-
+/**
+ * Builds a reduced control-flow graph from a given SDG by removing 'uninteresting' nodes.
+ * @author Martin Mohr
+ */
 public final class ReducedCFGBuilder {
 
+	/**
+	 * private constructor to prevent instantiation of this class
+	 */
 	private ReducedCFGBuilder() {
 	}
 
@@ -58,8 +63,8 @@ public final class ReducedCFGBuilder {
 
 	/**
 	 * Extracts the reduced control-flow graph from the given sdg using the {@link DefaultSDGNodePredicate}.
-	 * @param sdg sdg to remove
-	 * @return
+	 * @param sdg sdg to extract the reduced control-flow graph from
+	 * @return reduced control-flow graph of the given sdg
 	 */
 	public static CFG extractReducedCFG(SDG sdg) {
 		return extractReducedCFG(sdg, new DefaultSDGNodePredicate());
@@ -106,15 +111,4 @@ public final class ReducedCFGBuilder {
 		}
 		return ret;
 	}
-
-	public static void main(String[] args) throws IOException {
-		// String sdgFile =
-		// "/afs/info.uni-karlsruhe.de/user/mmohr/git/mojo/joana.ifcconsole/edu.kit.pp.joana.ifcconsole.toy.conc.ThreadJoins.main.pdg";
-		String sdgFile = "/afs/info.uni-karlsruhe.de/user/mmohr/git/mojo/joana.ifcconsole/edu.kit.joana.ifc.sdg.util.sdg.ControlDep.main.pdg";
-		SDG sdg = SDG.readFrom(sdgFile);
-		CFG rcfg = ReducedCFGBuilder.extractReducedCFG(sdg);
-		// JoanaGraph2Dot.dotifyReducedCFG(sdg, "reduced_cfg.dot");
-
-	}
-
 }

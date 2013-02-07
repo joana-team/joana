@@ -1,3 +1,4 @@
+package joana.wala.jodroid;
 
 public class MethodNotFoundException extends Exception {
 

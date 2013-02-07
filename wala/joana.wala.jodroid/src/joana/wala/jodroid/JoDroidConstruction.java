@@ -1,3 +1,5 @@
+package joana.wala.jodroid;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.LinkedList;
@@ -10,10 +12,10 @@ import com.ibm.wala.dalvik.ipa.callgraph.impl.DexEntryPoint;
 import com.ibm.wala.dalvik.util.AndroidAnalysisScope;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
-import com.ibm.wala.ipa.callgraph.AnalysisOptions.ReflectionOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.ipa.callgraph.Entrypoint;
+import com.ibm.wala.ipa.callgraph.AnalysisOptions.ReflectionOptions;
 import com.ibm.wala.ipa.callgraph.propagation.SSAPropagationCallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.ZeroXCFABuilder;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
@@ -43,52 +45,14 @@ import edu.kit.joana.wala.core.pointsto.WalaPointsToUtil;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph;
 import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
 
-public class JoDroidPreparation {
-
-	private static final String JODROID_INVOCATION_NAME = "java -jar jodroid.jar";
-	private static final String PARAMETERS = "<classpath> <android lib> <entry method> <sdgfile>";
-
-	private static void printUsage() {
-		System.out.println("Usage: " + JODROID_INVOCATION_NAME + " " + PARAMETERS + " where ");
-		System.out.println("<classpath>:    specifies .apk file to analyze.");
-		System.out
-				.println("<android lib>:  specifies the path to the .jar or .dex which contains the android library.");
-		System.out
-				.println("<entry method>: specifies the method at which the environment enters the app under analysis. Note that the name of the method must be fully qualified");
-		System.out.println("                and its signature has to be given in bytecode notation.");
-		System.out.println("                Examples: ");
-		System.out.println("                \tcom.foo.bar.AClass.main([Ljava/lang/String;)V");
-		System.out.println("                \tcom.foo.bar.AClass.addTwoInts(II)I");
-		System.out.println("                \tcom.foo.bar.AClass$AnInnerClass.isTroodles()Z");
-		System.out
-				.println("<sdgfile>:      specifies the path to the file in which the resulting SDG is to be written");
-
-	}
-
-	public static void main(String[] args) throws ClassHierarchyException, IllegalArgumentException, IOException,
-			CancelException, UnsoundGraphException {
-		if (args.length != 4) {
-			printUsage();
-		} else {
-			String classPath = args[0];
-			String androidLib = args[1];
-			String entryMethod = args[2];
-			String sdgFile = args[3];
-			try {
-				buildAndroidSDGAndSave(classPath, androidLib, entryMethod, sdgFile);
-			} catch (SDGConstructionException m) {
-				System.out.println("Entry method not found: " + m.getCause());
-				return;
-			}
-		}
-	}
+public final class JoDroidConstruction {
 	
-	private static void buildAndroidSDGAndSave(String classPath, String androidLib, String entryMethod, String sdgFile) throws SDGConstructionException, IOException {
+	public static void buildAndroidSDGAndSave(String classPath, String androidLib, String entryMethod, String sdgFile) throws SDGConstructionException, IOException {
 		SDG sdg = buildAndroidSDG(classPath, androidLib, entryMethod);
 		SDGSerializer.toPDGFormat(sdg, new FileOutputStream(sdgFile));
 	}
 
-	private static SDG buildAndroidSDG(String classPath, String androidLib, String entryMethod)
+	public static SDG buildAndroidSDG(String classPath, String androidLib, String entryMethod)
 			throws SDGConstructionException, IOException {
 		//com.ibm.wala.ipa.callgraph.impl.Util.setNativeSpec(null);
 		AnalysisScope scope = AndroidAnalysisScope.setUpAndroidAnalysisScope(androidLib, classPath);
@@ -205,5 +169,4 @@ public class JoDroidPreparation {
 		analysisOptions.setReflectionOptions(ReflectionOptions.NO_STRING_CONSTANTS);
 		return analysisOptions;
 	}
-
 }

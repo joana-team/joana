@@ -43,43 +43,7 @@ import edu.kit.joana.wala.core.pointsto.WalaPointsToUtil;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph;
 import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
 
-// TODO: Where the heck is String.equals()?!
 public class JoDroidPreparation {
-
-	private static ExternalCallCheck makeStandardExternalCallCheck() {
-		return new ExternalCallCheck() {
-			@Override
-			public boolean isCallToModule(SSAInvokeInstruction invk) {
-				return false;
-			}
-
-			@Override
-			public void registerAliasContext(SSAInvokeInstruction invk, int callNodeId, AliasGraph.MayAliasGraph context) {
-			}
-
-			@Override
-			public void setClassHierarchy(IClassHierarchy cha) {
-			}
-
-			@Override
-			public MethodInfo checkForModuleMethod(IMethod im) {
-				return null;
-			}
-
-			@Override
-			public boolean resolveReflection() {
-				return false;
-			}
-		};
-	}
-
-	private static AnalysisOptions makeAnalysisOptions(IMethod entry, AnalysisScope scope, IClassHierarchy cha) {
-		List<Entrypoint> entrypoints = new LinkedList<Entrypoint>();
-		entrypoints.add(new DexEntryPoint(entry, cha));
-		AnalysisOptions analysisOptions = new AnalysisOptions(scope, entrypoints);
-		analysisOptions.setReflectionOptions(ReflectionOptions.NO_STRING_CONSTANTS);
-		return analysisOptions;
-	}
 
 	private static final String JODROID_INVOCATION_NAME = "java -jar jodroid.jar";
 	private static final String PARAMETERS = "<classpath> <android lib> <entry method> <sdgfile>";
@@ -111,26 +75,40 @@ public class JoDroidPreparation {
 			String entryMethod = args[2];
 			String sdgFile = args[3];
 			try {
-				buildAndroidSDG(classPath, androidLib, entryMethod, sdgFile);
-			} catch (MethodNotFoundException m) {
-				System.out.println("Entry method not found: " + m.getMessage());
+				buildAndroidSDGAndSave(classPath, androidLib, entryMethod, sdgFile);
+			} catch (SDGConstructionException m) {
+				System.out.println("Entry method not found: " + m.getCause());
 				return;
 			}
 		}
 	}
+	
+	private static void buildAndroidSDGAndSave(String classPath, String androidLib, String entryMethod, String sdgFile) throws SDGConstructionException, IOException {
+		SDG sdg = buildAndroidSDG(classPath, androidLib, entryMethod);
+		SDGSerializer.toPDGFormat(sdg, new FileOutputStream(sdgFile));
+	}
 
-	private static void buildAndroidSDG(String classPath, String androidLib, String entryMethod, String sdgFile)
-			throws IOException, ClassHierarchyException, IllegalArgumentException, CancelException,
-			UnsoundGraphException, MethodNotFoundException {
-		com.ibm.wala.ipa.callgraph.impl.Util.setNativeSpec(null);
+	private static SDG buildAndroidSDG(String classPath, String androidLib, String entryMethod)
+			throws SDGConstructionException, IOException {
+		//com.ibm.wala.ipa.callgraph.impl.Util.setNativeSpec(null);
 		AnalysisScope scope = AndroidAnalysisScope.setUpAndroidAnalysisScope(androidLib, classPath);
-		IClassHierarchy cha = ClassHierarchy.make(scope);
+		IClassHierarchy cha;
+		try {
+			cha = ClassHierarchy.make(scope);
+		} catch (ClassHierarchyException e) {
+			throw new SDGConstructionException(e);
+		}
 		Config scfg = new Config();
 		scfg.out = System.out;
 		scfg.scope = scope;
 		scfg.cache = new AnalysisCache((IRFactory<IMethod>) new DexIRFactory());
 		scfg.cha = cha;
-		scfg.entry = findMethod(cha, entryMethod);
+		try {
+			scfg.entry = findMethod(cha, entryMethod);
+		} catch (MethodNotFoundException e) {
+			throw new SDGConstructionException(e);
+		}
+		
 		scfg.ext = makeStandardExternalCallCheck();
 		scfg.immutableNoOut = Main.IMMUTABLE_NO_OUT;
 		scfg.immutableStubs = Main.IMMUTABLE_STUBS;
@@ -146,14 +124,32 @@ public class JoDroidPreparation {
 		AnalysisOptions options = makeAnalysisOptions(scfg.entry, scfg.scope, scfg.cha);
 		SSAPropagationCallGraphBuilder cgb = (ZeroXCFABuilder) WalaPointsToUtil.makeContextFreeType(options,
 				scfg.cache, scfg.cha, scfg.scope);
-		CallGraph walaCG = cgb.makeCallGraph(options);
-		SDGBuilder builder = SDGBuilder.create(scfg, walaCG, cgb.getPointerAnalysis());
-		SDG sdg = SDGBuilder.convertToJoana(System.out, builder, new NullProgressMonitor());
-		SDGSerializer.toPDGFormat(sdg, new FileOutputStream(sdgFile));
+		CallGraph walaCG;
+		try {
+			walaCG = cgb.makeCallGraph(options);
+		} catch (CancelException e) {
+			throw new SDGConstructionException(e);
+		}
+		
+		SDGBuilder builder;
+		
+		try {
+			builder = SDGBuilder.create(scfg, walaCG, cgb.getPointerAnalysis());
+		} catch (UnsoundGraphException e) {
+			throw new SDGConstructionException(e);
+		} catch (CancelException e) {
+			throw new SDGConstructionException(e);
+		}
+		
+		try {
+			return SDGBuilder.convertToJoana(System.out, builder, new NullProgressMonitor());
+		} catch (CancelException e) {
+			throw new SDGConstructionException(e);
+		}
+
 	}
 
 	private static IMethod findMethod(IClassHierarchy cha, String mSig) throws MethodNotFoundException {
-		System.out.println("trying to resolve method fast...");
 		int off = mSig.lastIndexOf('.');
 		String type = "L" + mSig.substring(0, off).replace('.', '/');
 		String mSel = mSig.substring(off + 1);
@@ -163,7 +159,6 @@ public class JoDroidPreparation {
 		if (cand != null) {
 			return cand;
 		} else {
-			System.out.println("failed. Trying slow approach...");
 			for (IClass c : cha) {
 				for (IMethod m : c.getAllMethods()) {
 					if (m.getSignature().equals(mSig)) {
@@ -174,6 +169,41 @@ public class JoDroidPreparation {
 
 			throw new MethodNotFoundException(mSig);
 		}
+	}
+	
+	private static ExternalCallCheck makeStandardExternalCallCheck() {
+		return new ExternalCallCheck() {
+			@Override
+			public boolean isCallToModule(SSAInvokeInstruction invk) {
+				return false;
+			}
+
+			@Override
+			public void registerAliasContext(SSAInvokeInstruction invk, int callNodeId, AliasGraph.MayAliasGraph context) {
+			}
+
+			@Override
+			public void setClassHierarchy(IClassHierarchy cha) {
+			}
+
+			@Override
+			public MethodInfo checkForModuleMethod(IMethod im) {
+				return null;
+			}
+
+			@Override
+			public boolean resolveReflection() {
+				return false;
+			}
+		};
+	}
+	
+	private static AnalysisOptions makeAnalysisOptions(IMethod entry, AnalysisScope scope, IClassHierarchy cha) {
+		List<Entrypoint> entrypoints = new LinkedList<Entrypoint>();
+		entrypoints.add(new DexEntryPoint(entry, cha));
+		AnalysisOptions analysisOptions = new AnalysisOptions(scope, entrypoints);
+		analysisOptions.setReflectionOptions(ReflectionOptions.NO_STRING_CONSTANTS);
+		return analysisOptions;
 	}
 
 }

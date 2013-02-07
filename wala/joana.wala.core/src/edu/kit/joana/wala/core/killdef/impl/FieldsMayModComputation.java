@@ -34,9 +34,9 @@ import edu.kit.joana.wala.core.params.objgraph.ModRefFieldCandidate;
 import edu.kit.joana.wala.core.params.objgraph.ModRefCandidates.InterProcCandidateModel;
 
 /**
- *
+ * 
  * @author Juergen Graf <juergen.graf@gmail.com>
- *
+ * 
  */
 public class FieldsMayModComputation implements IFieldsMayMod {
 
@@ -53,8 +53,8 @@ public class FieldsMayModComputation implements IFieldsMayMod {
 	public static IFieldsMayMod create(final SDGBuilder sdg, final ModRefCandidates modref,
 			final IProgressMonitor progress) throws CancelException {
 		final Set<ParameterField> allFields = collectAllFields(sdg, modref, progress);
-		final OrdinalSetMapping<ParameterField> map =
-				new ObjectArrayMapping<ParameterField>(allFields.toArray(new ParameterField[allFields.size()]));
+		final OrdinalSetMapping<ParameterField> map = new ObjectArrayMapping<ParameterField>(
+				allFields.toArray(new ParameterField[allFields.size()]));
 
 		final FieldsMayModComputation fmm = new FieldsMayModComputation(map, sdg.getWalaCallGraph());
 
@@ -63,7 +63,8 @@ public class FieldsMayModComputation implements IFieldsMayMod {
 		return fmm;
 	}
 
-	private void buildMaps(final SDGBuilder sdg, final ModRefCandidates modref, final IProgressMonitor progress) throws CancelException {
+	private void buildMaps(final SDGBuilder sdg, final ModRefCandidates modref, final IProgressMonitor progress)
+			throws CancelException {
 		for (final PDG pdg : sdg.getAllPDGs()) {
 			MonitorUtil.throwExceptionIfCanceled(progress);
 
@@ -71,18 +72,20 @@ public class FieldsMayModComputation implements IFieldsMayMod {
 			final BitVectorIntSet bvMayRead = new BitVectorIntSet();
 
 			final InterProcCandidateModel model = modref.getCandidates(pdg.cgNode);
-			for (final ModRefCandidate cand : model) {
-				if (cand instanceof ModRefFieldCandidate) {
-					final ModRefFieldCandidate fieldCand = (ModRefFieldCandidate) cand;
-					final ParameterField field = fieldCand.getField();
-					if (field != null) {
-						final int id = mapping.getMappedIndex(field);
-						if (cand.isMod()) {
-							bvMayMod.add(id);
-						}
+			if (model != null) {
+				for (final ModRefCandidate cand : model) {
+					if (cand instanceof ModRefFieldCandidate) {
+						final ModRefFieldCandidate fieldCand = (ModRefFieldCandidate) cand;
+						final ParameterField field = fieldCand.getField();
+						if (field != null) {
+							final int id = mapping.getMappedIndex(field);
+							if (cand.isMod()) {
+								bvMayMod.add(id);
+							}
 
-						if (cand.isRef()) {
-							bvMayRead.add(id);
+							if (cand.isRef()) {
+								bvMayRead.add(id);
+							}
 						}
 					}
 				}
@@ -113,22 +116,24 @@ public class FieldsMayModComputation implements IFieldsMayMod {
 			MonitorUtil.throwExceptionIfCanceled(progress);
 
 			final InterProcCandidateModel model = modref.getCandidates(pdg.cgNode);
-			for (final ModRefCandidate cand : model) {
-				if (cand instanceof ModRefFieldCandidate) {
-					final ModRefFieldCandidate fieldCand = (ModRefFieldCandidate) cand;
-					final ParameterField field = fieldCand.getField();
-					if (field != null) {
-						all.add(field);
+			if (model != null) {
+				for (final ModRefCandidate cand : model) {
+					if (cand instanceof ModRefFieldCandidate) {
+						final ModRefFieldCandidate fieldCand = (ModRefFieldCandidate) cand;
+						final ParameterField field = fieldCand.getField();
+						if (field != null) {
+							all.add(field);
+						}
 					}
 				}
-			}
 
-			for (final PDGField sField : pdg.staticInterprocReads) {
-				all.add(sField.field);
-			}
+				for (final PDGField sField : pdg.staticInterprocReads) {
+					all.add(sField.field);
+				}
 
-			for (final PDGField sField : pdg.staticInterprocWrites) {
-				all.add(sField.field);
+				for (final PDGField sField : pdg.staticInterprocWrites) {
+					all.add(sField.field);
+				}
 			}
 		}
 

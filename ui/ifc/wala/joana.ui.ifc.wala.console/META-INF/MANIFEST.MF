@@ -12,15 +12,7 @@ Export-Package: edu.kit.joana.ui.ifc.wala.console.console;uses:="edu.kit.pp.joan
    edu.kit.pp.joana.ifcconsole.console,
    javax.swing.event",
  edu.kit.joana.ui.ifc.wala.console.gui.tree;uses:="javax.swing.tree,javax.swing,edu.kit.pp.joana.ifcconsole.gui",
- edu.kit.joana.ui.ifc.wala.console.io;uses:="edu.kit.pp.joana.ifcconsole.console",
- edu.kit.joana.ui.ifc.wala.console.toy.conc,
- edu.kit.joana.ui.ifc.wala.console.toy.dd,
- edu.kit.joana.ui.ifc.wala.console.toy.declass,
- edu.kit.joana.ui.ifc.wala.console.toy.exc,
- edu.kit.joana.ui.ifc.wala.console.toy.pw,
- edu.kit.joana.ui.ifc.wala.console.toy.rec,
- edu.kit.joana.ui.ifc.wala.console.toy.simp,
- edu.kit.joana.ui.ifc.wala.console.toy.test
+ edu.kit.joana.ui.ifc.wala.console.io;uses:="edu.kit.pp.joana.ifcconsole.console"
 Import-Package: edu.kit.joana.ifc.sdg.core,
  edu.kit.joana.ifc.sdg.graph,
  edu.kit.joana.wala.core

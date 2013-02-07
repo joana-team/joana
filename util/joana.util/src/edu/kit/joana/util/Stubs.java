@@ -9,8 +9,6 @@ package edu.kit.joana.util;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Properties;
@@ -21,23 +19,8 @@ import java.util.Properties;
  * 
  * @author Martin Mohr
  */
-public class Stubs {
-
-	private static class NoStubs extends Stubs {
-
-		NoStubs() {
-			super("NONE", null);
-		}
-
-		public String getPath() {
-			return null;
-		}
-
-	}
-
-	public static final Stubs NO_STUBS = new NoStubs();
-	public static final Stubs JRE_14 = new Stubs("JRE_14", "jSDG-stubs-jre1.4.jar");
-	public static final Stubs JRE_15 = new Stubs("JRE_15", "jSDG-stubs-jre1.5.jar");
+public enum Stubs {
+	NO_STUBS("NONE", null), JRE_14("JRE_14", "jSDG-stubs-jre1.4.jar"), JRE_15("JRE_15", "jSDG-stubs-jre1.5.jar");
 
 	private static final String PROPERTIES = "project.properties";
 
@@ -88,26 +71,17 @@ public class Stubs {
 				throw new Error("Invalid location " + joanaBaseDir + " for joana.base.dir!");
 			} else {
 				return fBase.getAbsolutePath();
-//				System.out.println("stubs base dir: " + STUBS_BASEDIR);
-//				System.out.println("found stubs: ");
-//				for (File file : fBase.listFiles()) {
-//					System.out.println(file);
-//				}
 			}
 		}
 	}
 	
 	private boolean locateableByClassLoader() {
-		URL urlStubsLocation = getClass().getClassLoader().getResource(fileName);
+		URL urlStubsLocation = Pair.class.getClassLoader().getResource(fileName);
 		if (urlStubsLocation == null) {
 			return false;
 		} else {
 			return true;
 		}
-	}
-
-	public static Stubs[] getAvailableStubs() {
-		return new Stubs[] { JRE_14, JRE_15, NO_STUBS };
 	}
 
 	/**
@@ -120,7 +94,7 @@ public class Stubs {
 	 *         any, {@code null} otherwise
 	 */
 	public static Stubs fromString(String strStubs) {
-		for (Stubs stubs : getAvailableStubs()) {
+		for (Stubs stubs : values()) {
 			if (stubs.getName().equals(strStubs)) {
 				return stubs;
 			}

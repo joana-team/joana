@@ -24,7 +24,6 @@ public enum Stubs {
 
 	private static final String PROPERTIES = "project.properties";
 
-
 	private String name;
 	private String fileName;
 
@@ -36,20 +35,26 @@ public enum Stubs {
 	public String getName() {
 		return name;
 	}
-	
+
 	public String toString() {
 		return name;
 	}
 
 	public String getPath() {
-		if (locateableByClassLoader()) {
-			return this.fileName;
-		} else {
-			String stubsBaseDir = determineStubsBasePath();
-			return stubsBaseDir + "/" + this.fileName;
+		switch (this) {
+		case NO_STUBS:
+			return null;
+		default:
+			if (locateableByClassLoader()) {
+				return this.fileName;
+			} else {
+				String stubsBaseDir = determineStubsBasePath();
+				return stubsBaseDir + "/" + this.fileName;
+			}
 		}
+
 	}
-	
+
 	private String determineStubsBasePath() {
 		String joanaBaseDir;
 		joanaBaseDir = System.getProperty("joana.base.dir");
@@ -64,7 +69,8 @@ public enum Stubs {
 		}
 
 		if (joanaBaseDir == null) {
-			throw new Error("Cannot locate property 'joana.base.dir'! Please provide a property 'joana.base.dir' to the jvm or a project.properties in the base dir of your eclipse project!");
+			throw new Error(
+					"Cannot locate property 'joana.base.dir'! Please provide a property 'joana.base.dir' to the jvm or a project.properties in the base dir of your eclipse project!");
 		} else {
 			File fBase = new File(joanaBaseDir + "/contrib/lib/stubs/");
 			if (!fBase.exists()) {
@@ -74,9 +80,9 @@ public enum Stubs {
 			}
 		}
 	}
-	
+
 	private boolean locateableByClassLoader() {
-		URL urlStubsLocation = Pair.class.getClassLoader().getResource(fileName);
+		URL urlStubsLocation = getClass().getClassLoader().getResource(fileName);
 		if (urlStubsLocation == null) {
 			return false;
 		} else {

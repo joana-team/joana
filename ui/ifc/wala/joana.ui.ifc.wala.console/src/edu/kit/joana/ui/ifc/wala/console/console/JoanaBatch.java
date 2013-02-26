@@ -8,10 +8,13 @@
 package edu.kit.joana.ui.ifc.wala.console.console;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.util.List;
 
 import edu.kit.joana.ui.ifc.wala.console.io.IFCConsoleOutput;
 import edu.kit.joana.ui.ifc.wala.console.io.PrintStreamConsoleWrapper;
@@ -29,14 +32,29 @@ public final class JoanaBatch {
 		}
 	}
 
-	private static void executeScriptWithStandardOutput(String scriptFile) throws IOException {
-		runConsole(scriptFile, System.out);
+	public static void executeScriptWithStandardOutput(String scriptFile) throws IOException {
+		runConsole(new File(scriptFile), System.out);
+	}
+	
+	public static void executeScriptWithStandardOutput(List<String> script) throws IOException {
+		runConsole(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(fuseIntoOneBigString(script).getBytes()))), System.out);
+	}
+	
+	private static String fuseIntoOneBigString(List<String> instructions) {
+		final StringBuilder b = new StringBuilder();
+		for (String line : instructions) {
+			b.append(line + '\n');
+		}
+		return b.toString();
 	}
 
-	private static void runConsole(String scriptFile, PrintStream out) throws IOException {
-		BufferedReader fileIn = new BufferedReader(new InputStreamReader(new FileInputStream(scriptFile)));
+	private static void runConsole(File scriptFile, PrintStream out) throws IOException {
+		runConsole(new BufferedReader(new InputStreamReader(new FileInputStream(scriptFile))), out);
+	}
+	
+	private static void runConsole(BufferedReader in, PrintStream out) throws IOException {
 		IFCConsoleOutput cOut = new PrintStreamConsoleWrapper(out, out, null, out, out);
-		IFCConsole c = new IFCConsole(fileIn, cOut);
+		IFCConsole c = new IFCConsole(in, cOut);
 		c.interactive();
 	}
 

@@ -14,7 +14,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -36,7 +35,6 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.IFCType;
 import edu.kit.joana.api.IllicitFlow;
-import edu.kit.joana.api.JoanaConflict;
 import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.annotations.IFCAnnotation.Type;
 import edu.kit.joana.api.lattice.BuiltinLattices;
@@ -50,9 +48,6 @@ import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.api.sdg.SDGProgramPartWriter;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.SecurityNode.SecurityNodeFactory;
-import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNIChecker;
-import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNISlicer;
-import edu.kit.joana.ifc.sdg.core.violations.Conflict;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
@@ -70,7 +65,6 @@ import edu.kit.joana.ui.ifc.wala.console.io.IFCConsoleOutput.Answer;
 import edu.kit.joana.ui.ifc.wala.console.io.InvalidAnnotationFormatException;
 import edu.kit.joana.ui.ifc.wala.console.io.MethodNotFoundException;
 import edu.kit.joana.ui.ifc.wala.console.io.NumberedIFCAnnotationDumper;
-import edu.kit.joana.ui.ifc.wala.console.io.PrintStreamConsoleWrapper;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.Stubs;
@@ -292,7 +286,7 @@ public class IFCConsole {
 	private Stubs stubsPath = Stubs.JRE_14;
 
 	private List<String> script = new LinkedList<String>();
-	
+
 	private static Logger debug = Log.getLogger("console.debug");
 
 	public IFCConsole(BufferedReader in, IFCConsoleOutput out) {
@@ -818,7 +812,7 @@ public class IFCConsole {
 		repo.addCommand(makeCommandShowClasses());
 		repo.addCommand(makeCommandShowBCI());
 		repo.addCommand(makeCommandVerifyAnnotations());
-		
+
 		setLattice(LATTICE_BINARY);
 	}
 
@@ -1471,7 +1465,7 @@ public class IFCConsole {
 	public Collection<IllicitFlow> getLastAnalysisResult() {
 		return lastAnalysisResult;
 	}
-	
+
 	public TObjectIntMap<IllicitFlow> getLastAnalysisResultGrouped() {
 		return groupedIFlows;
 	}
@@ -1497,15 +1491,17 @@ public class IFCConsole {
 
 			lastAnalysisResult.clear();
 			lastAnalysisResult.addAll(vios);
-			
+
 			groupedIFlows.clear();
 
 			if (lastAnalysisResult.size() > 0) {
-				
+
 				groupedIFlows = IllicitFlow.groupByPParts(vios);
 				out.logln("done, found " + groupedIFlows.size() + " security violation(s):");
 				for (IllicitFlow iflow : groupedIFlows.keySet()) {
-					out.logln(String.format("illicit flow(s) between %s and %s (internal: %d illicit flow(s) between corresponding SDG nodes)", iflow.getSource(), iflow.getSink(), groupedIFlows.get(iflow)));
+					out.logln(String
+							.format("illicit flow(s) between %s and %s (internal: %d illicit flow(s) between corresponding SDG nodes)",
+									iflow.getSource(), iflow.getSink(), groupedIFlows.get(iflow)));
 				}
 			} else {
 				out.logln("");
@@ -1513,7 +1509,7 @@ public class IFCConsole {
 			return true;
 		}
 	}
-	
+
 	public static String convertIFCType(IFCType ifcType) {
 		switch (ifcType) {
 		case POSSIBILISTIC:
@@ -1542,10 +1538,15 @@ public class IFCConsole {
 	}
 
 	public void interactive() throws IOException {
+		String nextCommand = null;
 		while (true) {
 			out.log("> ");
-			String nextCommand = in.readLine();
-			processCommand(nextCommand);
+			nextCommand = in.readLine();
+			if (nextCommand == null) {
+				break;
+			} else {
+				processCommand(nextCommand);
+			}
 		}
 	}
 
@@ -1656,39 +1657,4 @@ public class IFCConsole {
 			return ifcAnalysis.getProgram();
 		}
 	}
-
-	private static final String PARAM_SCRIPT = "--script";
-	private static final String PARAM_OUTPUT = "--output";
-
-	public static void main(String[] args) throws IOException {
-		if (args.length == 2) {
-			executeScriptWithStandardOutput(args[1]);
-		} else if (args.length == 4) {
-			executeScriptWithOutputToFile(args[1], args[3]);
-		} else {
-			printUsage();
-		}
-	}
-
-	private static void executeScriptWithStandardOutput(String scriptFile) throws IOException {
-		runConsole(scriptFile, System.out);
-	}
-
-	private static void executeScriptWithOutputToFile(String scriptFile, String outputFile) throws IOException {
-		PrintStream fileOut = new PrintStream(outputFile);
-		runConsole(scriptFile, fileOut);
-	}
-
-	private static void runConsole(String scriptFile, PrintStream out) throws IOException {
-		BufferedReader fileIn = new BufferedReader(new InputStreamReader(new FileInputStream(scriptFile)));
-		IFCConsoleOutput cOut = new PrintStreamConsoleWrapper(out, out, null, out, out);
-		IFCConsole c = new IFCConsole(fileIn, cOut);
-		c.interactive();
-	}
-
-	private static void printUsage() {
-		System.out
-				.println("Usage: edu.kit.joana.ui.ifc.wala.console.console.IFCConsole --script <scriptfile> [--output <outputfile>]");
-	}
-
 }

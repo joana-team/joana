@@ -1,0 +1,6 @@
+﻿<!ELEMENT domainassignment (assign)+>
+<!ELEMENT assign EMPTY>
+<!ATTLIST assign
+  category CDATA #REQUIRED
+  securitydomain (low|high) #REQUIRED
+>

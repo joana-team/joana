@@ -1,0 +1,5 @@
+﻿<!ELEMENT sources (category)+>
+<!ELEMENT category (#PCDATA)*>
+<!ATTLIST category
+  name CDATA #REQUIRED
+>

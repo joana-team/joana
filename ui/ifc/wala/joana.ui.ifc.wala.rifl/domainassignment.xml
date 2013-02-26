@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE domainassignment SYSTEM "domainassignment.dtd">
+<domainassignment>
+  <assign category="Input" securitydomain="high"/>
+  <assign category="Output" securitydomain="low"/>
+</domainassignment>

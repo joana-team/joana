@@ -1,0 +1,26 @@
+<!ELEMENT sourcesandsinks (sources,sinks)>
+
+<!ELEMENT sinks (category)+>
+
+<!ELEMENT sources (category)+>
+
+<!ELEMENT category (attributes, parameters, returnvalues)>
+<!ATTLIST category
+  name CDATA #REQUIRED
+>
+
+<!ELEMENT attributes (attribute)*>
+<!ELEMENT attribute EMPTY>
+<!ATTLIST attribute
+	name CDATA #REQUIRED>
+
+<!ELEMENT parameters (parameter)*>
+<!ELEMENT parameter EMPTY>
+<!ATTLIST parameter
+	methodname CDATA #REQUIRED
+	position CDATA #REQUIRED>
+
+<!ELEMENT returnvalues (returnvalue)*>
+<!ELEMENT returnvalue EMPTY>
+<!ATTLIST returnvalue
+	methodname CDATA #REQUIRED>

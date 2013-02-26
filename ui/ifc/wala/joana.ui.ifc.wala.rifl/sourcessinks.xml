@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE sourcessinks SYSTEM "sourcessinks.dtd">
+<sourcessinks>
+	<sources>
+		<category name="Input">
+			<attributes></attributes>
+			<parameters></parameters>
+			<returnvalues>
+				<returnvalue methodname="java.io.BufferedReader.readLine()Ljava/lang/String;"/>
+			</returnvalues>
+		</category>
+	</sources>
+	<sinks>
+		<category name="Output">
+			<attributes></attributes>
+			<parameters>
+				<parameter methodname="java.io.PrintStream.println(Ljava/lang/String;)V" position="1"/>
+			</parameters>
+			<returnvalues></returnvalues>
+		</category>
+	</sinks>
+</sourcessinks>

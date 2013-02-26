@@ -102,7 +102,7 @@ public class IFCAnnotationApplicator extends SDGProgramPartVisitor<Void, IFCAnno
 				 *  also mark all act_out nodes of this parameters as source, to capture
 				 *  possible information flows from this parameter to the environment
 				 *  just marking the formal-in would not suffice
-				 *
+				 *  TODO: think about this!
 				 **/
 				for (SDGNode actOut : getCorrespondingActOuts(param)) {
 					annotateNodes(actOut, ann);
@@ -110,12 +110,20 @@ public class IFCAnnotationApplicator extends SDGProgramPartVisitor<Void, IFCAnno
 			}
 			break;
 		case SINK:
+			if (param.getInRoot() != null) {
+				annotateNodes(param.getInRoot(), ann);
+			}
+			
 			if (param.getOutRoot() != null) {
 				annotateNodes(param.getOutRoot(), ann);
-				for (SDGNode actIn : getCorrespondingActIns(param)) {
-					annotateNodes(actIn, ann);
-				}
-			}
+			} // also annotate formal-out parameter to also capture possible side effects
+			
+//			if (param.getOutRoot() != null) {
+//				annotateNodes(param.getOutRoot(), ann);
+//				for (SDGNode actIn : getCorrespondingActIns(param)) {
+//					annotateNodes(actIn, ann);
+//				}
+//			}
 			break;
 		default:
 			break;

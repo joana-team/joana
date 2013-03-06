@@ -20,62 +20,62 @@ import edu.kit.joana.ui.ifc.wala.rifl.xml.Returnvalue;
 import edu.kit.joana.ui.ifc.wala.rifl.xml.Sourcesandsinks;
 
 public final class JoanaRIFL {
-	
+
 	private JoanaRIFL() {}
-	
-	
-	private static final JoanaSpec extractJoanaSpecification(Sourcesandsinks sas, Domainassignment dass) {
+
+
+	private static final JoanaSpec extractJoanaSpecification(final Sourcesandsinks sas, final Domainassignment dass) {
 		final Map<String, String> srcRet = new HashMap<String, String>();
 		final Map<String, String> snkRet = new HashMap<String, String>();
-	
+
 		final Map<String, String> cat2level = new HashMap<String, String>();
-		for (Assign ass : dass.getAssign()) {
+		for (final Assign ass : dass.getAssign()) {
 			cat2level.put(ass.getCategory(), ass.getSecuritydomain());
 		}
-	
-		for (Category c : sas.getSources().getCategory()) {
-			for (Attribute a : c.getAttributes().getAttribute()) {
+
+		for (final Category c : sas.getSources().getCategory()) {
+			for (final Attribute a : c.getAttributes().getAttribute()) {
 				srcRet.put(a.getName(), cat2level.get(c.getName()));
 			}
-			
-			for (Parameter p : c.getParameters().getParameter()) {
+
+			for (final Parameter p : c.getParameters().getParameter()) {
 				srcRet.put(p.getMethodname()+ "->p"+p.getPosition(), cat2level.get(c.getName()));
 			}
-			
-			for (Returnvalue r : c.getReturnvalues().getReturnvalue()) {
+
+			for (final Returnvalue r : c.getReturnvalues().getReturnvalue()) {
 				srcRet.put(r.getMethodname()+"->exit", cat2level.get(c.getName()));
 			}
 		}
-		
-		for (Category c : sas.getSinks().getCategory()) {
-			for (Attribute a : c.getAttributes().getAttribute()) {
+
+		for (final Category c : sas.getSinks().getCategory()) {
+			for (final Attribute a : c.getAttributes().getAttribute()) {
 				snkRet.put(a.getName(), cat2level.get(c.getName()));
 			}
-			
-			for (Parameter p : c.getParameters().getParameter()) {
+
+			for (final Parameter p : c.getParameters().getParameter()) {
 				snkRet.put(p.getMethodname()+ "->p"+p.getPosition(), cat2level.get(c.getName()));
 			}
-			
-			for (Returnvalue r : c.getReturnvalues().getReturnvalue()) {
+
+			for (final Returnvalue r : c.getReturnvalues().getReturnvalue()) {
 				snkRet.put(r.getMethodname()+"->exit", cat2level.get(c.getName()));
 			}
 		}
-		
+
 		return new JoanaSpec(srcRet, snkRet);
 	}
-	
-	public static void main(String[] args) throws IOException {
+
+	public static void main(final String[] args) throws IOException {
 		// classpath, entry method, sources-and-sinks-spec, domain assignment
-		Sourcesandsinks s = JAXB.unmarshal(new File(args[2]), Sourcesandsinks.class);
-		Domainassignment dass = JAXB.unmarshal(new File(args[3]), Domainassignment.class);
-		JoanaSpec joanaSpec = extractJoanaSpecification(s, dass);
-		List<String> script = generateJoanaInstructions(args[0], args[1], joanaSpec);
+		final Sourcesandsinks s = JAXB.unmarshal(new File(args[2]), Sourcesandsinks.class);
+		final Domainassignment dass = JAXB.unmarshal(new File(args[3]), Domainassignment.class);
+		final JoanaSpec joanaSpec = extractJoanaSpecification(s, dass);
+		final List<String> script = generateJoanaInstructions(args[0], args[1], joanaSpec);
 		dumpScript(script, System.out);
 		JoanaBatch.executeScriptWithStandardOutput(script);
 	}
-	
-	private static List<String> generateJoanaInstructions(String classPath, String entryMethod, JoanaSpec jSpec) {
-		List<String> ret = new ArrayList<String>();
+
+	private static List<String> generateJoanaInstructions(final String classPath, final String entryMethod, final JoanaSpec jSpec) {
+		final List<String> ret = new ArrayList<String>();
 		ret.add("setClasspath " + classPath);
 		ret.add("searchEntries");
 		ret.add("selectEntry " + entryMethod);
@@ -84,36 +84,36 @@ public final class JoanaRIFL {
 		ret.add("run poss");
 		return ret;
 	}
-	
-	private static void dumpScript(List<String> script, PrintStream out) {
-		for (String line : script) {
+
+	private static void dumpScript(final List<String> script, final PrintStream out) {
+		for (final String line : script) {
 			out.println(line);
 		}
 	}
-	
-	private static List<String> generateJoanaSpecInstructions(JoanaSpec jSpec) {
+
+	private static List<String> generateJoanaSpecInstructions(final JoanaSpec jSpec) {
 		final List<String> ret = new ArrayList<String>();
-		
-		for (Map.Entry<String, String> spart : jSpec.getSourcesSpec().entrySet()) {
+
+		for (final Map.Entry<String, String> spart : jSpec.getSourcesSpec().entrySet()) {
 			ret.add(String.format("source %s %s", spart.getKey(), spart.getValue()));
 		}
-		
-		for (Map.Entry<String, String> spart : jSpec.getSinksSpec().entrySet()) {
+
+		for (final Map.Entry<String, String> spart : jSpec.getSinksSpec().entrySet()) {
 			ret.add(String.format("sink %s %s", spart.getKey(), spart.getValue()));
 		}
-		
+
 		return ret;
 	}
 }
 
 class JoanaSpec {
-	
+
 	private final Map<String, String> sourcesSpec;
 	private final Map<String, String> sinksSpec;
-	
-	
-	public JoanaSpec(Map<String, String> sourcesSpec,
-			Map<String, String> sinksSpec) {
+
+
+	public JoanaSpec(final Map<String, String> sourcesSpec,
+			final Map<String, String> sinksSpec) {
 		this.sourcesSpec = sourcesSpec;
 		this.sinksSpec = sinksSpec;
 	}
@@ -127,6 +127,6 @@ class JoanaSpec {
 	public Map<String, String> getSinksSpec() {
 		return sinksSpec;
 	}
-	
-	
+
+
 }

@@ -278,7 +278,7 @@ public class IFCTreePanel extends JPanel {
 			Collection<IFCAnnotation> sinks, Collection<IFCAnnotation> declasses) {
 		final Collection<SDGClass> newClasses = consoleGui.getClasses();
 
-		if (classes == null || !classes.equals(newClasses)) {
+		if (!classes.equals(newClasses)) {
 			// a change occurred
 			if (!newClasses.isEmpty()) {
 				treeModel.updateClasses(newClasses, consoleGui.getSDGFile());

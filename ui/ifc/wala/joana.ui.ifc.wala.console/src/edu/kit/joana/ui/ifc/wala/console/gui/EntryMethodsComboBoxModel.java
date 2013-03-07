@@ -36,7 +36,7 @@ public class EntryMethodsComboBoxModel implements ComboBoxModel {
 	}
 
 	@Override
-	public Object getElementAt(int arg0) {
+	public synchronized Object getElementAt(int arg0) {
 		if (!entries.isEmpty()) {
 			return entries.get(arg0);
 		} else if (searchInProgress) {
@@ -101,7 +101,7 @@ public class EntryMethodsComboBoxModel implements ComboBoxModel {
 	}
 
 	@Override
-	public Object getSelectedItem() {
+	public synchronized Object getSelectedItem() {
 		if (searchInProgress) {
 			return "searching entry methods... ";
 		} else if (entries.isEmpty()) {

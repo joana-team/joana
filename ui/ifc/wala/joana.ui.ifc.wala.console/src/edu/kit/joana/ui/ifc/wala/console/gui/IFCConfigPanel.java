@@ -61,7 +61,6 @@ public class IFCConfigPanel extends JPanel {
 	private final JComboBox mhpCombo = new JComboBox();
 	private final JComboBox exceptionCombo = new JComboBox();
 	private final JComboBox stubsCombo = new JComboBox();
-	private final JButton browseStubsButton = new JButton("browse");
 	private final JButton loadSDG = new JButton("load SDG from file");
 	private final JButton saveSDG = new JButton("save current SDG as");
 	private final JButton buildSDG = new JButton("build");
@@ -84,7 +83,7 @@ public class IFCConfigPanel extends JPanel {
 	private static final String LATTICE_TERNARY = "ternary lattice low <= mid <= high";
 	private static final String LATTICE_DIAMOND = "diamond lattice low <= midA <= high, low <= midB <= high";
 	
-	private static final String NO_STUBS_SELECTED = "<no stubs selected!>";
+
 
 	public IFCConfigPanel(final IFCConsoleGUI console) {
 		super();
@@ -307,17 +306,6 @@ public class IFCConfigPanel extends JPanel {
 		};
 	}
 
-	private ActionListener makeSpecifyLatticeAction() {
-		return new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				consoleGui.execSpecifyLattice(translateLattice(curLatticeComboBox.getSelectedItem().toString()));
-			}
-
-		};
-	}
-	
 	private String translateLattice(String latticeSpec) {
 		if (LATTICE_BINARY.equals(latticeSpec)) {
 			return IFCConsole.LATTICE_BINARY;

@@ -1394,8 +1394,7 @@ public class IFCConsole {
 			out.info("No entry method selected. Select entry method first!");
 			return false;
 		} else {
-			String entrySig = loc.getActiveEntry().toBCString();
-
+	
 			SDGProgram program;
 
 			try {
@@ -1603,7 +1602,6 @@ public class IFCConsole {
 	}
 
 	public boolean canAnnotate(Collection<SDGProgramPart> selectedParts, Type type) {
-		Exception e;
 		boolean ret = true;
 
 		for (SDGProgramPart part : selectedParts) {

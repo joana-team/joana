@@ -5,4 +5,5 @@ Bundle-SymbolicName: joana.util
 Bundle-Version: 1.0.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Require-Bundle: joana.contrib.lib;bundle-version="1.0.0"
-Export-Package: edu.kit.joana.util
+Export-Package: edu.kit.joana.util,
+ edu.kit.joana.util.io

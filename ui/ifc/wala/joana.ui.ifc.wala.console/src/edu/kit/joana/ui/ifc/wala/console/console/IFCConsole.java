@@ -12,7 +12,6 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -57,7 +56,6 @@ import edu.kit.joana.ifc.sdg.lattice.InvalidLatticeException;
 import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
 import edu.kit.joana.ifc.sdg.lattice.WrongLatticeDefinitionException;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
-import edu.kit.joana.ui.ifc.wala.console.io.ConsolePrintStreamWrapper;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCAnnotationDumper;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCAnnotationReader;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCConsoleOutput;
@@ -68,6 +66,7 @@ import edu.kit.joana.ui.ifc.wala.console.io.NumberedIFCAnnotationDumper;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.Stubs;
+import edu.kit.joana.util.io.IOFactory;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import gnu.trove.map.TObjectIntMap;
@@ -1286,7 +1285,7 @@ public class IFCConsole {
 		PrintStream fileOut;
 
 		try {
-			fileOut = new PrintStream(new FileOutputStream(filename));
+			fileOut = IOFactory.createUTF8PrintStream(new FileOutputStream(filename));
 		} catch (FileNotFoundException fnfe) {
 			out.error("File " + filename + " not found!");
 			return false;
@@ -1304,7 +1303,7 @@ public class IFCConsole {
 		BufferedReader fileIn;
 
 		try {
-			fileIn = new BufferedReader(new FileReader(filename));
+			fileIn = new BufferedReader(IOFactory.createUTF8ISReader(new FileInputStream(filename)));
 		} catch (FileNotFoundException fnfe) {
 			out.error("File " + filename + " not found!");
 			return false;
@@ -1338,7 +1337,7 @@ public class IFCConsole {
 	}
 
 	public void showAnnotations() {
-		new NumberedIFCAnnotationDumper(new ConsolePrintStreamWrapper(out)).dumpAnnotations(ifcAnalysis
+		new NumberedIFCAnnotationDumper(out.getPrintStream()).dumpAnnotations(ifcAnalysis
 				.getAnnotations());
 	}
 
@@ -1380,7 +1379,7 @@ public class IFCConsole {
 		IFCAnnotationDumper dumper;
 
 		try {
-			dumper = new IFCAnnotationDumper(new PrintStream(new FileOutputStream(fileName)));
+			dumper = new IFCAnnotationDumper(IOFactory.createUTF8PrintStream(new FileOutputStream(fileName)));
 		} catch (FileNotFoundException e) {
 			out.error("File " + fileName + " not found!");
 			return false;
@@ -1411,7 +1410,7 @@ public class IFCConsole {
 				config.setComputeInterferences(computeInterference);
 				config.setMhpType(mhpType);
 				config.setExceptionAnalysis(exA);
-				program = SDGProgram.createSDGProgram(config, new ConsolePrintStreamWrapper(out), monitor);
+				program = SDGProgram.createSDGProgram(config, out.getPrintStream(), monitor);
 			} catch (ClassHierarchyException e) {
 				out.error(e.getMessage());
 				return false;

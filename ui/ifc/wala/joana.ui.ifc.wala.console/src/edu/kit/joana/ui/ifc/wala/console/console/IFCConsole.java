@@ -1323,7 +1323,16 @@ public class IFCConsole {
 		} catch (IOException ioe) {
 			out.error("I/O error while reading from file " + filename + "!");
 			return false;
+		} finally {
+			try {
+				fileIn.close();
+			} catch (IOException ioe) {
+				out.error("I/O error while closing file " + filename + "!");
+				return false;
+			}
 		}
+		
+		
 
 		return true;
 	}

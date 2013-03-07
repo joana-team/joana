@@ -9,7 +9,6 @@ package edu.kit.joana.ui.ifc.wala.console.test;
 
 
 import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.Collection;
 
 import org.junit.Assert;
@@ -19,6 +18,7 @@ import org.junit.Test;
 import edu.kit.joana.api.IllicitFlow;
 import edu.kit.joana.ui.ifc.wala.console.console.IFCConsole;
 import edu.kit.joana.ui.ifc.wala.console.io.PrintStreamConsoleWrapper;
+import edu.kit.joana.util.io.IOFactory;
 
 public class AnnotationTest {
 
@@ -27,7 +27,7 @@ public class AnnotationTest {
 
 	@BeforeClass
 	public static void setUp() {
-	    	BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+	    	BufferedReader in = new BufferedReader(IOFactory.createUTF8ISReader(System.in));
 		console = new IFCConsole(in, new PrintStreamConsoleWrapper(System.out, System.out, in, System.out, System.out));
 	}
 

@@ -84,10 +84,15 @@ public class PrintStreamConsoleWrapper implements IFCConsoleOutput {
 	    } catch (IOException e) {
 		error("\nI/O error while reading answer!");
 	    }
+	    if (answer == null) {
+	    	error("Premature end of stream reached!");
+	    	return null;
+	    } else {
 	    if (!strToAns.canParseString(answer)) {
 		questionOut.println(strToAns.errorMessage());
 	    } else {
 		return strToAns.convertStringtoAnswer(answer);
+	    }
 	    }
 	}
 

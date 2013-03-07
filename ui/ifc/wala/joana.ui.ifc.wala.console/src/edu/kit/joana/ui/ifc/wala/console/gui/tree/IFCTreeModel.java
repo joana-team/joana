@@ -83,11 +83,11 @@ public class IFCTreeModel extends DefaultTreeModel {
 
 			List<IFCTreeNode> pkgNodes = new ArrayList<IFCTreeNode>();
 
-			for (JavaPackage pkg : byPackage.keySet()) {
-
+			for (Map.Entry<JavaPackage, Set<SDGClass>> pkgAndClasses : byPackage.entrySet()) {
+				JavaPackage pkg = pkgAndClasses.getKey();
 				ListTreeNode<SDGClass> pkgNode = new ListTreeNode<SDGClass>(byPackage.get(pkg), true, pkg==null?"(default package)":pkg.getName(), Kind.PACKAGE);
 
-				for (SDGClass cl : byPackage.get(pkg)) {
+				for (SDGClass cl : pkgAndClasses.getValue()) {
 
 					SingleElementTreeNode clNode = new SingleElementTreeNode(cl, true, true, Kind.CLASS);
 

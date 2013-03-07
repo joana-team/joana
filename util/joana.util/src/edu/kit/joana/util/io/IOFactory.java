@@ -7,11 +7,14 @@
  */
 package edu.kit.joana.util.io;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+
+import javax.swing.JTextArea;
 
 /**
  * Utility class providing factory methods for e.g. InputStreamReaders or PrintStreams conforming to UTF-8 encoding.
@@ -33,7 +36,8 @@ public final class IOFactory {
 			InputStreamReader ret = new InputStreamReader(in, "UTF-8");
 			return ret;
 		} catch (UnsupportedEncodingException uee) {
-			throw new RuntimeException("UTF-8 is required to be supported by any java virtual machine, but is not by this one!");
+			handleUEE();
+			return null;
 		}
 	}
 	
@@ -49,7 +53,8 @@ public final class IOFactory {
 		try {
 			return new PrintStream(out, autoFlush, "UTF-8");
 		} catch (UnsupportedEncodingException uee) {
-			throw new RuntimeException("UTF-8 is required to be supported by any java virtual machine, but is not by this one!");
+			handleUEE();
+			return null;
 		}
 	}
 	
@@ -64,9 +69,76 @@ public final class IOFactory {
 		try {
 			return new PrintStream(out, false, "UTF-8");
 		} catch (UnsupportedEncodingException uee) {
-			throw new RuntimeException("UTF-8 is required to be supported by any java virtual machine, but is not by this one!");
+			handleUEE();
+			return null;
 		}
 	}
 	
+	/**
+	 * Constructs a UTF-8 encoded string from the given byte array. The given offset and length are assumed to be in bounds of the given array.
+	 * Throws a runtime exception, if UTF-8 is not supported by the JVM (according to 
+	 * <a href="http://docs.oracle.com/javase/6/docs/api/java/nio/charset/Charset.html">the java api specs</a>this should never be the case...)
+	 * @param buf buffer to convert to string
+	 * @param off starting position
+	 * @param len length
+	 * @return UTF-8 encoded string from the given byte array
+	 */
+	public static String createUTF8String(byte[] buf, int off, int len) {
+		try {
+			return new String(buf, off, len, "UTF-8");
+		} catch (UnsupportedEncodingException uee) {
+			handleUEE();
+			return null;
+		}
+	}
+	
+	/**
+	 * Returns the UTF-8 encoded bytes from the given string.
+	 * Throws a runtime exception, if UTF-8 is not supported by the JVM (according to 
+	 * <a href="http://docs.oracle.com/javase/6/docs/api/java/nio/charset/Charset.html">the java api specs</a>this should never be the case...)
+	 * @param s string to convert into UTF-8 encoded bytes.
+	 * @return UTF-8 encoded bytes forming the given string
+	 */
+	public static byte[] createUTF8Bytes(String s) {
+		try {
+		return s.getBytes("UTF-8");
+		} catch (UnsupportedEncodingException uee) {
+			handleUEE();
+			return null;
+		}
+	}
+	
+	
+	/**
+	 * Returns a print stream, which prints everything to the given text area, and uses UTF-8 encoding.
+	 * Throws a runtime exception, if UTF-8 is not supported by the JVM (according to 
+	 * <a href="http://docs.oracle.com/javase/6/docs/api/java/nio/charset/Charset.html">the java api specs</a>this should never be the case...)
+	 * @param area text area which the new print stream shall print everything to
+	 * @return print stream, which prints everything to the given text area
+	 */
+	public static PrintStream createPrintStreamFromJTextArea(final JTextArea area) {
+		try {
+		return new PrintStream(new ByteArrayOutputStream(), false, "UTF-8") {
+
+			public void write(byte[] buf, int off, int len) {
+				area.append(IOFactory.createUTF8String(buf, off, len));
+				area.setCaretPosition(area.getText().length());
+			}
+		};
+		} catch (UnsupportedEncodingException uee) {
+			handleUEE();
+			return null;
+		}
+    }
+	
+	
+	/**
+	 * Handler for UnsupportedEncodingExceptions. Basically, this method was introduced to have the same behavior
+	 * for all methods in which the exception can occur. Just throws a runtime exception .
+	 * @throws RuntimeException 
+	 */
+	private static void handleUEE() throws RuntimeException {
+		throw new RuntimeException("UTF-8 is required to be supported by any java virtual machine, but is not by this one!");
+	}
 	
 }

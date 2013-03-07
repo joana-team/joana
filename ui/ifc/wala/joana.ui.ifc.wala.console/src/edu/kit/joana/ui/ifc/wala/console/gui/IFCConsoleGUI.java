@@ -214,11 +214,12 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 		configPane.mute();
 		treePane.mute();
 		runPane.mute();
-		String line = ">";
+		StringBuilder sb = new StringBuilder(">");
 		for (String arg : args) {
-			line += " " + arg;
+			sb.append(" ");
+			sb.append(arg);
 		}
-		consolePane.println(line);
+		consolePane.println(sb.toString());
 
 		switch (cmd) {
 		case SEARCH_ENTRIES:

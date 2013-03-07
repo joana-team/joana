@@ -25,6 +25,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
+import edu.kit.joana.util.io.IOFactory;
+
 public class IFCConsolePanel extends JPanel {
 
 	private static final long serialVersionUID = 3852317334299417963L;
@@ -32,7 +34,7 @@ public class IFCConsolePanel extends JPanel {
 	private final IFCConsoleGUI consoleGui;
 	private final JTextArea output = new JTextArea(
 			"Type help to view availiable commands.\n");
-	private final PrintToArea out = new PrintToArea(output);
+	private final PrintStream out = IOFactory.createPrintStreamFromJTextArea(output);
 	private final JTextField input = new JTextField("");
 	private final JButton enter = new JButton("enter");
 
@@ -138,22 +140,6 @@ public class IFCConsolePanel extends JPanel {
 			}
 
 		};
-	}
-
-	private static class PrintToArea extends PrintStream {
-
-		private final JTextArea area;
-
-		public PrintToArea(JTextArea area) {
-			super(new ByteArrayOutputStream());
-			this.area = area;
-		}
-
-		@Override
-		public void write(byte[] buf, int off, int len) {
-			area.append(new String(buf, off, len));
-			area.setCaretPosition(area.getText().length());
-		}
 	}
 
 	public void println(String str) {

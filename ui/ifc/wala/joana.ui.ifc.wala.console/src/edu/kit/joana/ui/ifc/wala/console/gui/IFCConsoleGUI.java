@@ -150,6 +150,9 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 	private final AtomicBoolean cmdExecRunning = new AtomicBoolean(false);
 
 	public void execStrCmd(final String cmdstr) {
+		if (console.isQuit(cmdstr)) {
+			info("Close the window to exit this application!");
+		} else {
 		final CMD cmd = console.searchCommand(cmdstr);
 		final String[] args = cmdstr.split("\\s+");
 
@@ -158,6 +161,7 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 		} else {
 			consolePane.println("> " + cmdstr);
 			consolePane.println("Unknown command '" + args[0] + "'");
+		}
 		}
 	}
 

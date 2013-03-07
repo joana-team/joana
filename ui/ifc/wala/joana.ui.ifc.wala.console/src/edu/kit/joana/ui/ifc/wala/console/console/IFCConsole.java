@@ -618,15 +618,6 @@ public class IFCConsole {
 		};
 	}
 
-	private Command makeCommandQuit() {
-		return new Command(CMD.QUIT) {
-			@Override
-			boolean execute(String[] args) {
-				return quit();
-			}
-		};
-	}
-
 	private Command makeCommandLoadScript() {
 		return new Command(CMD.LOADSCRIPT) {
 
@@ -805,7 +796,6 @@ public class IFCConsole {
 		repo.addCommand(makeCommandSelect());
 		repo.addCommand(makeCommandActive());
 
-		repo.addCommand(makeCommandQuit());
 		repo.addCommand(makeCommandLoadScript());
 		repo.addCommand(makeCommandSaveScript());
 		repo.addCommand(makeCommandShowClasses());
@@ -813,12 +803,6 @@ public class IFCConsole {
 		repo.addCommand(makeCommandVerifyAnnotations());
 
 		setLattice(LATTICE_BINARY);
-	}
-
-	public boolean quit() {
-		out.info("Good bye.");
-		System.exit(0);
-		return true;
 	}
 
 	public boolean selectMethod(int i) {
@@ -1346,6 +1330,7 @@ public class IFCConsole {
 		for (String cmdName : repo.getCommands()) {
 			out.logln(repo.getHelpMessage(cmdName));
 		}
+		out.logln("Or invoke 'quit' to exit.");
 	}
 
 	public boolean loadAnnotations(String fileName) {
@@ -1546,15 +1531,22 @@ public class IFCConsole {
 
 	public void interactive() throws IOException {
 		String nextCommand = null;
-		while (true) {
+		boolean quit = false;
+		while (!quit) {
 			out.log("> ");
 			nextCommand = in.readLine();
 			if (nextCommand == null) {
-				break;
+				quit = true;
+			} else if (isQuit(nextCommand)) {
+				quit = true;
 			} else {
 				processCommand(nextCommand);
 			}
 		}
+	}
+	
+	public boolean isQuit(String cmd) {
+		return CMD.QUIT.getName().equals(cmd);
 	}
 
 	public synchronized EntryLocator getEntryLocator() {

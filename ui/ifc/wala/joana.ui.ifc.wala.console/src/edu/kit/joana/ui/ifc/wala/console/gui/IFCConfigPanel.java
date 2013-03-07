@@ -350,6 +350,7 @@ public class IFCConfigPanel extends JPanel {
 					if (previous != item && item instanceof JavaMethodSignature) {
 						final JavaMethodSignature sig = (JavaMethodSignature) item;
 						consoleGui.execSetEntryMethod(sig);
+						previous = item;
 					}
 				}
 			}

@@ -12,12 +12,12 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.List;
 
 import edu.kit.joana.ui.ifc.wala.console.io.IFCConsoleOutput;
 import edu.kit.joana.ui.ifc.wala.console.io.PrintStreamConsoleWrapper;
+import edu.kit.joana.util.io.IOFactory;
 
 /**
  * @author Martin Mohr
@@ -37,7 +37,7 @@ public final class JoanaBatch {
 	}
 	
 	public static void executeScriptWithStandardOutput(List<String> script) throws IOException {
-		runConsole(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(fuseIntoOneBigString(script).getBytes()))), System.out);
+		runConsole(new BufferedReader(IOFactory.createUTF8ISReader(new ByteArrayInputStream(IOFactory.createUTF8Bytes(fuseIntoOneBigString(script))))), System.out);
 	}
 	
 	private static String fuseIntoOneBigString(List<String> instructions) {
@@ -49,7 +49,7 @@ public final class JoanaBatch {
 	}
 
 	private static void runConsole(File scriptFile, PrintStream out) throws IOException {
-		runConsole(new BufferedReader(new InputStreamReader(new FileInputStream(scriptFile))), out);
+		runConsole(new BufferedReader(IOFactory.createUTF8ISReader(new FileInputStream(scriptFile))), out);
 	}
 	
 	private static void runConsole(BufferedReader in, PrintStream out) throws IOException {

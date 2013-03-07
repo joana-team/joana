@@ -224,6 +224,8 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 		case SEARCH_ENTRIES:
 			configPane.searchEntryStarted();
 			break;
+		default:
+			break;
 		}
 	}
 
@@ -256,6 +258,8 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 		case BUILD_SDG:
 		case LOAD_SDG:
 			configPane.sdgLoadedOrBuilt();
+			break;
+		default:
 			break;
 		}
 		updateAll();

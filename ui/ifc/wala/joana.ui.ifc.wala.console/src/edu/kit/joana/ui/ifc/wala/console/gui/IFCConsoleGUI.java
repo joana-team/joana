@@ -38,6 +38,7 @@ import edu.kit.joana.ui.ifc.wala.console.console.IFCConsole;
 import edu.kit.joana.ui.ifc.wala.console.console.IFCConsole.CMD;
 import edu.kit.joana.ui.ifc.wala.console.console.IFCConsoleListener;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCConsoleOutput;
+import edu.kit.joana.util.io.IOFactory;
 import gnu.trove.map.TObjectIntMap;
 
 public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, IFCConsoleOutput {
@@ -93,7 +94,7 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 		consolePane = new IFCConsolePanel(this);
 		configPane = new IFCConfigPanel(this);
 
-		console = new IFCConsole(new BufferedReader(new InputStreamReader(System.in)), this);
+		console = new IFCConsole(new BufferedReader(IOFactory.createUTF8ISReader(System.in)), this);
 		// console = new IFCConsole(new BufferedReader(new InputStreamReader(
 		// System.in)), consolePane.getOutputStream(),
 		// new JOptionPanePrintStream(this,

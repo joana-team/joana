@@ -16,7 +16,7 @@ public class Sample1 {
 
 
 	public static void main(final String[] args) throws IOException {
-		final BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		final BufferedReader br = new BufferedReader(new InputStreamReader(System.in, "UTF-8"));
 		final String h = br.readLine();
 		System.out.println(h);
 	}

@@ -22,6 +22,7 @@ import edu.kit.joana.api.sdg.SDGInstruction;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.ifc.wala.console.console.SDGMethodSelector;
+import edu.kit.joana.util.io.IOFactory;
 
 public class IFCAnnotationReader {
 
@@ -37,7 +38,7 @@ public class IFCAnnotationReader {
 	private SDGMethodSelector sel;
 
 	public IFCAnnotationReader(SDGMethodSelector sel, InputStream in) {
-		this.in = new BufferedReader(new InputStreamReader(in));
+		this.in = new BufferedReader(IOFactory.createUTF8ISReader(in));
 		this.sel = sel;
 	}
 

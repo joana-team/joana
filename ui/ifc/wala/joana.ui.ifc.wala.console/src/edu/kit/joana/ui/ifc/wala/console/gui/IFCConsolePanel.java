@@ -122,7 +122,8 @@ public class IFCConsolePanel extends JPanel {
 						String histCmd = history.get(posInHistory);
 						input.setText(histCmd);
 					}
-
+					break;
+				default:
 					break;
 				}
 			}

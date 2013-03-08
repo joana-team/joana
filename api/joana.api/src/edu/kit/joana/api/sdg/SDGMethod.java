@@ -28,7 +28,6 @@ import edu.kit.joana.ifc.sdg.util.JavaType.Format;
 
 public class SDGMethod extends SDGProgramPart {
 
-	public static Set<Integer> seenBCIndices = new HashSet<Integer>();
 	private final SDG sdg;
 	private SDGNode entry;
 	private SDGMethodExitNode exit;
@@ -61,7 +60,6 @@ public class SDGMethod extends SDGProgramPart {
 			setExit(sdg);
 			int instructionIndex = 0;
 			for (SDGNode n : sdg.getNodesOfProcedure(entry)) {
-				seenBCIndices.add(n.getBytecodeIndex());
 				if (n.getBytecodeIndex() >= 0) {
 					Set<SDGNode> attSourceNodes = new HashSet<SDGNode>();
 					Set<SDGNode> attSinkNodes = new HashSet<SDGNode>();

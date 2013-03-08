@@ -650,16 +650,6 @@ public class IFCConsole {
 		};
 	}
 
-	private Command makeCommandShowBCI() {
-		return new Command(CMD.SHOWBCI) {
-
-			@Override
-			boolean execute(String[] args) {
-				return showBCI();
-			}
-		};
-	}
-
 	private Command makeCommandVerifyAnnotations() {
 		return new Command(CMD.VERIFY_ANNOTATIONS) {
 
@@ -750,11 +740,6 @@ public class IFCConsole {
 		}
 	}
 
-	private boolean showBCI() {
-		out.logln("The following bytecode indices have been encountered: " + SDGMethod.seenBCIndices);
-		return true;
-	}
-
 	private void initialize() {
 
 		// setLattice("public<=secret");
@@ -799,7 +784,6 @@ public class IFCConsole {
 		repo.addCommand(makeCommandLoadScript());
 		repo.addCommand(makeCommandSaveScript());
 		repo.addCommand(makeCommandShowClasses());
-		repo.addCommand(makeCommandShowBCI());
 		repo.addCommand(makeCommandVerifyAnnotations());
 
 		setLattice(LATTICE_BINARY);

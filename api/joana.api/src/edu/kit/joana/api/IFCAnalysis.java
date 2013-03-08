@@ -170,11 +170,10 @@ public class IFCAnalysis {
 
 		annManager.applyAllAnnotations();
 		long time = 0L;
-		// out.log("Running sequential IFC...");
 		time = System.currentTimeMillis();
 		Collection<Violation> vios = ifc.checkIFlow();
 		time = System.currentTimeMillis() - time;
-
+		debug.outln(String.format("IFC Analysis took %d ms.", time));
 		List<IllicitFlow> ret = new LinkedList<IllicitFlow>();
 
 		Collection<SDGProgramPart> allParts = getProgram().getAllProgramParts();

@@ -38,8 +38,7 @@ import org.antlr.runtime.RecognitionException;
  * @see SDGNode.NodeFactory
  */
 public class SDG extends JoanaGraph {
-    private static final long serialVersionUID = -6694519850604879351L;
-    
+   
     public static final int DEFAULT_VERSION = 1;
     
     /** Indicates if the SDG contains precise source code info. */

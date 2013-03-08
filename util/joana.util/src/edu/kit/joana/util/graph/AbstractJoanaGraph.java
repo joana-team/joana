@@ -16,17 +16,27 @@ import org.jgrapht.graph.DirectedPseudograph;
 import org.jgrapht.graph.EdgeSetFactory;
 
 /**
+ * This is the base class for all concrete graphs used in the JOANA project.
  * @author Martin Mohr
  */
 public class AbstractJoanaGraph<V, E> implements DirectedGraph<V,E> {
 	
-	private DirectedPseudograph<V,E> delegate;
+	
+	private final DirectedPseudograph<V,E> delegate;
 
 	/**
-	 * @param defaultEdgeFactory
+	 * @param defaultEdgeFactory edge factory to use for e.g. adding new edges
+	 * @see org.jgrapht.graph.DirectedPseudograph
 	 */
 	public AbstractJoanaGraph(EdgeFactory<V, E> edgeFactory) {
-		delegate = new DirectedPseudograph<V,E>(edgeFactory);
+		this.delegate = new DirectedPseudograph<V,E>(edgeFactory);
+	}
+
+	/**
+	 * @param class1
+	 */
+	public AbstractJoanaGraph(Class<E> edgeClass) {
+		this.delegate = new DirectedPseudograph<V,E>(edgeClass);
 	}
 
 	/**

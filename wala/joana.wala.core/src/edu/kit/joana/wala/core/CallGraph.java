@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.jgrapht.EdgeFactory;
-import org.jgrapht.graph.DirectedPseudograph;
 
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.CGNode;
@@ -27,7 +26,9 @@ import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 
-public final class CallGraph extends DirectedPseudograph<CallGraph.Node, CallGraph.Edge> {
+import edu.kit.joana.util.graph.AbstractJoanaGraph;
+
+public final class CallGraph extends AbstractJoanaGraph<CallGraph.Node, CallGraph.Edge> {
 
 	private static final long serialVersionUID = 6040188211027171404L;
 	private static EdgeFactory<Node, Edge> DEFAULT_EDGE_FACTORY = new CGEdgeFactory();

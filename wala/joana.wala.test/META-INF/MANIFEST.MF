@@ -11,4 +11,5 @@ Require-Bundle: joana.wala.flowless;bundle-version="1.0.0",
  joana.wala.dictionary;bundle-version="1.0.0",
  joana.ifc.sdg.graph;bundle-version="1.1.0",
  joana.contrib.lib;bundle-version="1.0.0",
- joana.ifc.sdg.util;bundle-version="1.0.0"
+ joana.ifc.sdg.util;bundle-version="1.0.0",
+ joana.util;bundle-version="1.0.0"

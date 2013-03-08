@@ -7,9 +7,6 @@
  */
 package edu.kit.joana.ifc.sdg.graph;
 
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
-import gnu.trove.map.hash.TIntObjectHashMap;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,9 +15,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-
 import org.jgrapht.EdgeFactory;
-import org.jgrapht.graph.DirectedPseudograph;
+
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
+import edu.kit.joana.util.graph.AbstractJoanaGraph;
+import gnu.trove.map.hash.TIntObjectHashMap;
 
 /**
  * This is the abstract superclass or our graph classes. We currently distinguish
@@ -53,8 +52,7 @@ import org.jgrapht.graph.DirectedPseudograph;
  * @see edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG
  * @see edu.kit.joana.ifc.sdg.graph.slicer.graph.CallGraph
  */
-public abstract class JoanaGraph extends DirectedPseudograph<SDGNode, SDGEdge> {
-	private static final long serialVersionUID = 8168625802769349026L;
+public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
 
 	/** The name of the graph. */
 	protected String name;

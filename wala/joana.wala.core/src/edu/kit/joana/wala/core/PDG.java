@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import org.jgrapht.graph.DirectedPseudograph;
+import org.jgrapht.DirectedGraph;
 
 import com.ibm.wala.cfg.ControlFlowGraph;
 import com.ibm.wala.classLoader.IBytecodeMethod;
@@ -46,17 +46,13 @@ import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
-import com.ibm.wala.util.WalaException;
 import com.ibm.wala.util.collections.Pair;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 import com.ibm.wala.util.graph.INodeWithNumber;
-import com.ibm.wala.viz.DotUtil;
-import com.ibm.wala.viz.NodeDecorator;
 
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.ifc.sdg.util.SDGConstants;
 import edu.kit.joana.util.Log;
-import edu.kit.joana.util.LogUtil;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.core.PDGNode.Kind;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
@@ -71,8 +67,6 @@ import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
 public final class PDG extends DependenceGraph implements INodeWithNumber {
-
-	private static final long serialVersionUID = -6154468467229624897L;
 
 	public static PDG build(SDGBuilder builder, String name, CGNode node, int id,
 			ExternalCallCheck ext, PrintStream out, IProgressMonitor progress)
@@ -528,7 +522,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 		}
 	}
 
-	private Set<PDGNode> findUnreachableFrom(final DirectedPseudograph<PDGNode, PDGEdge> cfg, final PDGNode entry) {
+	private Set<PDGNode> findUnreachableFrom(final DirectedGraph<PDGNode, PDGEdge> cfg, final PDGNode entry) {
 		final Set<PDGNode> unreachable = new HashSet<PDGNode>(cfg.vertexSet());
 
 		final LinkedList<PDGNode> todo = new LinkedList<PDGNode>();
@@ -548,7 +542,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 		return unreachable;
 	}
 
-	private Set<PDGNode> findNotReachingTo(final DirectedPseudograph<PDGNode, PDGEdge> cfg, final PDGNode exit) {
+	private Set<PDGNode> findNotReachingTo(final DirectedGraph<PDGNode, PDGEdge> cfg, final PDGNode exit) {
 		final Set<PDGNode> unreachable = new HashSet<PDGNode>(cfg.vertexSet());
 
 		final LinkedList<PDGNode> todo = new LinkedList<PDGNode>();

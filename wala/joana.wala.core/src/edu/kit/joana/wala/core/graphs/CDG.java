@@ -8,9 +8,9 @@
 package edu.kit.joana.wala.core.graphs;
 
 import org.jgrapht.DirectedGraph;
-import org.jgrapht.graph.DirectedPseudograph;
 import org.jgrapht.graph.EdgeReversedGraph;
 
+import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
@@ -49,11 +49,9 @@ import edu.kit.joana.wala.core.PDGNode;
  * @author Juergen Graf <juergen.graf@gmail.com>
  *
  */
-public class CDG extends DirectedPseudograph<PDGNode, PDGEdge> {
+public class CDG extends AbstractJoanaGraph<PDGNode, PDGEdge> {
 
-    private static final long serialVersionUID = -3075242412849707485L;
-
-    public static CDG build(DirectedPseudograph<PDGNode, PDGEdge> cfg, PDGNode entry, PDGNode exit) {
+    public static CDG build(DirectedGraph<PDGNode, PDGEdge> cfg, PDGNode entry, PDGNode exit) {
         final CDG cdg = new CDG(cfg, entry, exit);
 
         cdg.build();
@@ -61,11 +59,11 @@ public class CDG extends DirectedPseudograph<PDGNode, PDGEdge> {
         return cdg;
     }
 
-    private final DirectedPseudograph<PDGNode, PDGEdge> cfg;
+    private final DirectedGraph<PDGNode, PDGEdge> cfg;
     private final PDGNode entry;
     private final PDGNode exit;
 
-    private CDG(final DirectedPseudograph<PDGNode, PDGEdge> cfg, PDGNode entry, PDGNode exit) {
+    private CDG(final DirectedGraph<PDGNode, PDGEdge> cfg, PDGNode entry, PDGNode exit) {
         super(PDG.DEFAULT_EDGE_FACTORY);
         this.cfg = cfg;
         this.entry = entry;

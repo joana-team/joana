@@ -8,11 +8,10 @@
 package edu.kit.joana.wala.core;
 
 import org.jgrapht.EdgeFactory;
-import org.jgrapht.graph.DirectedPseudograph;
 
-public class DependenceGraph extends DirectedPseudograph<PDGNode, PDGEdge> {
+import edu.kit.joana.util.graph.AbstractJoanaGraph;
 
-	private static final long serialVersionUID = -4278360551445113053L;
+public class DependenceGraph extends AbstractJoanaGraph<PDGNode, PDGEdge> {
 
 	public static final EdgeFactory<PDGNode, PDGEdge> DEFAULT_EDGE_FACTORY = new PDGEdgeFactory();
 

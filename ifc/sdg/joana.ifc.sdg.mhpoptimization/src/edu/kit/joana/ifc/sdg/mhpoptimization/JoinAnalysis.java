@@ -35,7 +35,7 @@ import edu.kit.joana.util.MapUtils;
 public class JoinAnalysis {
 	private static Logger info = Log.getLogger(Log.L_MHP_INFO);
 	private static Logger debug = Log.getLogger(Log.L_MHP_DEBUG);
-	public static boolean IS_DEBUG = debug.isEnabled();
+	public static final boolean IS_DEBUG = debug.isEnabled();
 
 	/** thread allocation sites */
 	private Collection<SDGNode> allocs;

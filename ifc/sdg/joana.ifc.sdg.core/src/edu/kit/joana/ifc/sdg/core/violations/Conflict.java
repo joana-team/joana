@@ -49,4 +49,12 @@ public class Conflict extends Violation {
     public String toString() {
         return "Probabilistic Data Channel from Node "+getSource()+" to Node "+getSink()+", visible for "+attackerLevel;
     }
+    
+    public boolean equals(Object o) {
+    	return super.equals(o);
+    }
+    
+    public int hashCode() {
+    	return super.hashCode();
+    }
 }

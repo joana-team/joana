@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Set;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -182,8 +183,9 @@ public class CSDGPreprocessor {
 			IDs.add(t);
 		}
 
-		for (SDGNode run : s.keySet()) {
-			LinkedList<Integer> IDs = s.get(run);
+		for (Map.Entry<SDGNode, LinkedList<Integer>> runAndIDs : s.entrySet()) {
+			SDGNode run = runAndIDs.getKey();
+			LinkedList<Integer> IDs = runAndIDs.getValue();
 			int[] array = new int[IDs.size()];
 			for (int i = 0; i < array.length; i++) {
 				array[i] = IDs.get(i);
@@ -245,8 +247,9 @@ public class CSDGPreprocessor {
 			}
 		}
 
-		for (SDGNode n : ids.keySet()) {
-			TIntHashSet set = ids.get(n);
+		for (Map.Entry<SDGNode, TIntHashSet> p : ids.entrySet()) {
+			SDGNode n = p.getKey();
+			TIntHashSet set = p.getValue();
 			int[] ts = new int[set.size()];
 			int i = 0;
 			for (TIntIterator iter = set.iterator(); iter.hasNext(); ) {

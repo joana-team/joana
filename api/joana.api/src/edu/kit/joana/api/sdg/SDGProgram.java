@@ -7,6 +7,7 @@
  */
 package edu.kit.joana.api.sdg;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -33,18 +34,17 @@ import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.graph.SDGNode.NodeFactory;
 import edu.kit.joana.ifc.sdg.graph.SDGNode.Operation;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.ifc.sdg.util.JavaType.Format;
-import edu.kit.joana.ifc.sdg.util.io.Print2Nirvana;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.Stubs;
+import edu.kit.joana.util.io.IOFactory;
 import edu.kit.joana.wala.core.Main;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
@@ -79,7 +79,7 @@ public class SDGProgram {
 	public static SDGProgram createSDGProgram(String classPath, String entryMethod, boolean computeInterference,
 			MHPType mhpType) {
 		try {
-			return createSDGProgram(classPath, entryMethod, null, computeInterference, mhpType, new Print2Nirvana(),
+			return createSDGProgram(classPath, entryMethod, null, computeInterference, mhpType, IOFactory.createUTF8PrintStream(new ByteArrayOutputStream()),
 					NullProgressMonitor.INSTANCE);
 		} catch (ClassHierarchyException e) {
 			return null;
@@ -103,7 +103,7 @@ public class SDGProgram {
 
 	public static SDGProgram createSDGProgram(SDGConfig config) throws ClassHierarchyException, IOException,
 			UnsoundGraphException, CancelException {
-		return createSDGProgram(config, new Print2Nirvana(), NullProgressMonitor.INSTANCE);
+		return createSDGProgram(config, IOFactory.createUTF8PrintStream(new ByteArrayOutputStream()), NullProgressMonitor.INSTANCE);
 	}
 
 	public static SDGProgram createSDGProgram(SDGConfig config, PrintStream out, IProgressMonitor monitor)

@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Set;
 
 import edu.kit.joana.ifc.sdg.core.IFC;
@@ -86,8 +87,9 @@ public class BarrierIFCSlicer extends IFC implements ProgressAnnouncer {
 //        System.out.println("rules: "+rules.keySet());
 
         // 2. for every rule, collect all declassifications annotated with that rule
-        for (Rule r : rules.keySet()) {
-            Set<SDGNode> s = rules.get(r);
+        for (Map.Entry<Rule, Set<SDGNode>> p : rules.entrySet()) {
+        	Rule r = p.getKey();
+            Set<SDGNode> s = p.getValue();
 
             for (SecurityNode n : declass) {
                 if (l.leastUpperBound(n.getRequired(), r.in).equals(r.in)
@@ -100,9 +102,10 @@ public class BarrierIFCSlicer extends IFC implements ProgressAnnouncer {
         }
 
         // 3. for each rule, compute the summary declassifications
-        for (Rule r : rules.keySet()) {
+        for (Map.Entry<Rule, Set<SDGNode>> p : rules.entrySet()) {
             // collect all declassifications which allow Rule r
-            Set<SDGNode> barrier = rules.get(r);
+            Rule r = p.getKey();
+        	Set<SDGNode> barrier = p.getValue();
 
             // compute affected edges
             Collection<SDGEdge> sum = GraphModifier.blockSummaryEdges(g, barrier);

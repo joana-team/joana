@@ -20,18 +20,21 @@ public class DefaultSDGNodePredicate implements SDGNodePredicate {
 
 	@Override
 	public boolean isInteresting(SDGNode node) {
-		boolean isInteresting = false;
+		final boolean isInteresting;
 		switch (node.getKind()) {
 		case ENTRY:
 		case EXIT:
 		case CALL:
 			isInteresting = true;
+			break;
 		default:
 			if (node.getBytecodeIndex() >= 0) {
 				isInteresting = true;
 			} else if (BytecodeLocation.EXCEPTION_PARAM.equals(node.getBytecodeName())
 					|| BytecodeLocation.RETURN_PARAM.equals(node.getBytecodeName())) {
 				isInteresting = true;
+			} else {
+				isInteresting = false;
 			}
 		}
 

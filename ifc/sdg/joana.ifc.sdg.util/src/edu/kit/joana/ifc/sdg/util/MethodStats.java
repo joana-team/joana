@@ -166,7 +166,7 @@ class MethodStats {
 	}
 
 	public static MethodStats subtract(MethodStats ms1, MethodStats ms2) {
-		return new MethodStats(ms1.numNodes - ms1.numNodes, ms2.numIntraEdges - ms2.numIntraEdges, ms1.numInterInEdges
+		return new MethodStats(ms1.numNodes - ms2.numNodes, ms1.numIntraEdges - ms2.numIntraEdges, ms1.numInterInEdges
 				- ms2.numInterInEdges, ms1.numInterOutEdges - ms2.numInterOutEdges);
 	}
 

@@ -7,9 +7,6 @@
  */
 package edu.kit.joana.ifc.sdg.mhpoptimization;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -19,7 +16,6 @@ import java.util.Set;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
@@ -52,12 +48,6 @@ public class CSDGPreprocessor {
 
 	public CSDGPreprocessor(SDG g) {
 		this.g = g;
-	}
-
-	private SDG createCSDG() {
-		runMHP(MHPPrecision.PRECISE);
-
-		return this.g;
 	}
 
 	public void preprocessSDG() {
@@ -322,93 +312,4 @@ public class CSDGPreprocessor {
 		MHPAnalysis mhp = p.runMHP(prec);
 		return mhp;
 	}
-
-	public static SDG createCSDG(SDG g) {
-		CSDGPreprocessor p = new CSDGPreprocessor(g);
-		SDG csdg = p.createCSDG();
-
-		return csdg;
-	}
-
-	public static SDG createCSDG(String file) throws IOException {
-		SDG g = SDG.readFrom(file);
-		CSDGPreprocessor p = new CSDGPreprocessor(g);
-		SDG csdg = null;
-			csdg = p.createCSDG();
-		return csdg;
-	}
-
-	public static void createAndSaveCSDG(String file, String pathForCSDG) throws IOException {
-		SDG csdg = createCSDG(file);
-
-		saveCSDG(csdg, pathForCSDG);
-	}
-
-	public static void createAndSaveCSDG(String file) throws IOException {
-		SDG csdg = createCSDG(file);
-
-		String content = SDGSerializer.toPDGFormat(csdg);
-		File f = new File(file);
-		FileWriter w = new FileWriter(f);
-
-		w.write(content);
-		w.flush();
-		w.close();
-	}
-
-	public static void createAndSaveCSDG(SDG sdg, String file) throws IOException {
-		CSDGPreprocessor p = new CSDGPreprocessor(sdg);
-
-		SDG csdg = null;
-
-			csdg = p.createCSDG();
-
-		String content = SDGSerializer.toPDGFormat(csdg);
-		File f = new File(file);
-		FileWriter w = new FileWriter(f);
-
-		w.write(content);
-		w.flush();
-		w.close();
-	}
-
-	private static void saveCSDG(SDG g, String path) throws IOException {
-		String name = g.getName();
-		String content = SDGSerializer.toPDGFormat(g);
-		File f = new File(path + File.separator + name + ".pdg");
-		FileWriter w = new FileWriter(f);
-
-		w.write(content);
-		w.flush();
-		w.close();
-	}
-
-	public static void juergenTest(String alt, String neu) throws Exception {
-		SDG g = createCSDG(alt);
-
-		String content = SDGSerializer.toPDGFormat(g);
-		File f = new File(neu);
-		FileWriter w = new FileWriter(f);
-
-		w.write(content);
-		w.flush();
-		w.close();
-	}
-
-	//    public static void main(String[] args) throws IOException {
-	//    	String file = "/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/pdgs/two/conc.ac.AlarmClock.pdg";
-	//    	createAndSaveCSDG(file);
-	//
-	//    	file = "/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/pdgs/two/conc.bb.ProducerConsumer.pdg";
-	//    	createAndSaveCSDG(file);
-	//
-	//    	file = "/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/pdgs/two/conc.ds.DiskSchedulerDriver.pdg";
-	//    	createAndSaveCSDG(file);
-	//
-	//    	file = "/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/pdgs/two/conc.lg.LaplaceGrid.pdg";
-	//    	createAndSaveCSDG(file);
-	//
-	//    	file = "/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/pdgs/two/conc.TimeTravel.pdg";
-	//    	createAndSaveCSDG(file);
-	//    }
 }

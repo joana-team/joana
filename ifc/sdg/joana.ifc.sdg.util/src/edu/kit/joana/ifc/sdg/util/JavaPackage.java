@@ -9,7 +9,7 @@ package edu.kit.joana.ifc.sdg.util;
 
 public class JavaPackage {
 
-	public static JavaPackage DEFAULT = new JavaPackage("(default package)");
+	public static final JavaPackage DEFAULT = new JavaPackage("(default package)");
 
 	private String packageName;
 

@@ -192,8 +192,8 @@ public class IFCAnalysis {
 				Collection<SDGNode> chop = c.chop(illSrc.getAttachedNodes(), illSnk.getAttachedNodes());
 				debug.outln("Illicit flow with the following nodes involved: ");
 				Map<SDGNode, Collection<SDGNode>> groupedByProc = groupByProc(program.getSDG(), chop);
-				for (SDGNode nProc : groupedByProc.keySet()) {
-					debug.outln("In method " + nProc.getBytecodeMethod() + ": " + groupedByProc.get(nProc));
+				for (Map.Entry<SDGNode, Collection<SDGNode>> nProc : groupedByProc.entrySet()) {
+					debug.outln("In method " + nProc.getKey().getBytecodeMethod() + ": " + nProc.getValue());
 				}
 			} else {
 				Violation v = ill.getViolation();

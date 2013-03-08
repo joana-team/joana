@@ -31,6 +31,9 @@ public class JoanaOrderConflict extends JoanaConflict {
 	 * @param c
 	 */
 	public JoanaOrderConflict(SDGProgram program, Conflict c) {
+		if (!(c instanceof OrderConflict)) {
+			throw new IllegalArgumentException("This class is to be used with OrderConflicts only!");
+		}
 		this.oc = (OrderConflict) c;
 		this.secret = program.findCoveringProgramPart(oc.getSource());
 		this.nodeSecret = oc.getSource();

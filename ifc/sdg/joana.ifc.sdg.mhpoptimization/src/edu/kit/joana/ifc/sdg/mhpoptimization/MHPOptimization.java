@@ -27,7 +27,7 @@ public class MHPOptimization {
 	public void runOn(String fileName){
 		SDG sdg;
 		try {
-			sdg = readSDGFromFile(fileName);
+			sdg = SDG.readFrom(fileName);
 		} catch (IOException e) {
 			System.out.println("I/O error while reading sdg from file.");
 			e.printStackTrace();
@@ -44,11 +44,6 @@ public class MHPOptimization {
 		if (mhpAnalysis != null) {
 			cleanCSDG(sdg, mhpAnalysis);
 		}
-	}
-
-	public static SDG readSDGFromFile(String sdgFile) throws IOException {
-		Reader reader = new FileReader(sdgFile);
-		return SDG.readFrom(reader);
 	}
 
 	public static void saveSDG(SDG sdg, String sdgFile) {

@@ -51,3 +51,4 @@ Export-Package: gnu.trove,
  org.jgrapht.graph,
  org.jgrapht.traverse,
  org.jgrapht.util
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6

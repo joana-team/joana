@@ -69,13 +69,6 @@ public class RunTestAccessPath {
 
 	private static final String PROGRAM_SRC = "../joana.wala.modular.testdata/src";
 
-	/**
-	 * @param args
-	 * @throws IOException
-	 * @throws CancelException
-	 * @throws UnsoundGraphException
-	 * @throws ClassHierarchyException
-	 */
 	public static void main(String[] args) throws IOException, ClassHierarchyException, UnsoundGraphException, CancelException {
 		final IProgressMonitor progress = NullProgressMonitor.INSTANCE;
 
@@ -211,8 +204,6 @@ public class RunTestAccessPath {
 			return null;
 		}
 
-		final long startTime = System.currentTimeMillis();
-
 		out.print("Building system dependence graph... ");
 
 		ExternalCallCheck chk;
@@ -245,6 +236,7 @@ public class RunTestAccessPath {
 		return sdg;
 	}
 
+	@SuppressWarnings("unused")
 	private static void fail(String msg) {
 		throw new IllegalStateException(msg);
 	}

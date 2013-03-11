@@ -206,7 +206,8 @@ public class SlicingAntTask extends Task {
      * were a command line application.
      * @param command CommandlineJava.
      */
-    private void run(CommandlineJava command) throws BuildException {
+    @SuppressWarnings("unused")
+	private void run(CommandlineJava command) throws BuildException {
         try {
             ExecuteJava exe = new ExecuteJava();
             exe.setJavaCommand(command.getJavaCommand());

@@ -81,15 +81,6 @@ import edu.kit.joana.wala.jsdg.summary.IntraprocSummaryEdges.SummaryGraph;
 
 public class RunTestModular {
 
-	/**
-	 * @param args
-	 * @throws CancelException
-	 * @throws UnsoundGraphException
-	 * @throws IOException
-	 * @throws WalaException
-	 * @throws PDGFormatException
-	 * @throws IllegalArgumentException
-	 */
 	public static void main(String[] args) throws IOException, UnsoundGraphException, CancelException,
 			IllegalArgumentException, PDGFormatException, WalaException {
 		// check for ifc annotations
@@ -253,7 +244,7 @@ public class RunTestModular {
 		Set<SDGNode> formOut = sdg.getFormalOutsOfProcedure(entry);
 		formOut = filterStatic(sdg, formOut);
 
-		final SummaryGraph summary = IntraprocSummaryEdges.compute(sdg, entry, formIn, formOut);
+		final SummaryGraph<SDGNode> summary = IntraprocSummaryEdges.compute(sdg, entry, formIn, formOut);
 
 		IntraprocSummaryEdges.writeToDotFile(summary, filename, summary.toString());
 

@@ -96,6 +96,7 @@ public class MergeModules {
 	private final String baseDir;
 	private final ModuleCFG mainModule;
 	private final ModuleCFG[] otherModules;
+	@SuppressWarnings("unused")
 	private final ExternalCallCheck exc;
 	private SDG sdg;
 	private Set<SDGNode> extCallNodes;

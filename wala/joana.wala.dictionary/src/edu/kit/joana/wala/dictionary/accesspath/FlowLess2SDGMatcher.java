@@ -59,6 +59,7 @@ public class FlowLess2SDGMatcher implements Matcher, FlowAstVisitor {
 	private final Map<Parameter, SDGNode> flow2directIn;
 	// mapping from parameter to directly referenced output node
 	private final Map<Parameter, SDGNode> flow2directOut;
+	@SuppressWarnings("unused")
 	private final boolean isStatic;
 
 	private static boolean isThisPointer(final SDGNode n) {
@@ -92,6 +93,7 @@ public class FlowLess2SDGMatcher implements Matcher, FlowAstVisitor {
 						methodParams.add(n);
 					}
 					break;
+				default: // nothing to do here
 				}
 			}
 		}

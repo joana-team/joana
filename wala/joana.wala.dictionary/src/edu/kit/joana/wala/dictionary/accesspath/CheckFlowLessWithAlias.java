@@ -146,6 +146,7 @@ public final class CheckFlowLessWithAlias {
 		}
 	}
 
+	@SuppressWarnings("resource")
 	public static PrintStream createPrintStream(final String file) {
 		PrintStream ps;
 
@@ -829,6 +830,7 @@ public final class CheckFlowLessWithAlias {
 			}
 		}
 
+		@SuppressWarnings("unused")
 		public String getParameterAliases() {
 			final StringBuilder sb = new StringBuilder("[");
 			int pos = 0;
@@ -961,6 +963,7 @@ public final class CheckFlowLessWithAlias {
 
 	}
 
+	@SuppressWarnings("unused")
 	private static TIntObjectMap<TIntSet> findAllMethodInputParams(final SDG sdg) {
 		final TIntObjectMap<TIntSet> params = new TIntObjectHashMap<TIntSet>();
 

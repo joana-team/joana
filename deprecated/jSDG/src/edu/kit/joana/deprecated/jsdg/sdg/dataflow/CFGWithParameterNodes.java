@@ -82,6 +82,7 @@ public class CFGWithParameterNodes implements Graph<CFGWithParameterNodes.CFGNod
 	private CFGNode entry;
 	private CFGNode exit;
 
+	@SuppressWarnings("unused")
 	private int numberOfParameterNodes;
 
 	public CFGWithParameterNodes(ControlFlowGraph<SSAInstruction, IExplodedBasicBlock> ecfg, IntermediatePDG pdg) {

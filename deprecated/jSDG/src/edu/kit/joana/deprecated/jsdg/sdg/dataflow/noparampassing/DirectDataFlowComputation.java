@@ -494,6 +494,7 @@ public class DirectDataFlowComputation {
 
 		public abstract boolean isWrite();
 
+		@SuppressWarnings("unused")
 		public OrdinalSet<InstanceKey> getPts() {
 			return pts;
 		}

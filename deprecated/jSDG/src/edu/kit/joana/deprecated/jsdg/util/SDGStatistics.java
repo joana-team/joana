@@ -182,6 +182,7 @@ public class SDGStatistics implements Serializable {
 				sdgStat.edgeDataDep += succNodes;
 				stats.edgeDataDep += succNodes;
 				break;
+			default: // nothing to do here
 			}
 			sdgStat.edgeCount += succNodes;
 			stats.edgeCount += succNodes;

@@ -175,7 +175,8 @@ public class ExceptionPruneAnalysis extends ExceptionPrunedCFGAnalysis<SSAInstru
         mCFG.run();
     }
 
-    public void run() throws UnsoundGraphException {
+    @SuppressWarnings("unused")
+	public void run() throws UnsoundGraphException {
     	Set<CGNode> allCalled = findAllCalledMethods(cg.getEntrypointNodes());
 
     	for (CGNode method : allCalled) {
@@ -287,6 +288,7 @@ public class ExceptionPruneAnalysis extends ExceptionPrunedCFGAnalysis<SSAInstru
 	}
 
 	private final static class IgnoreEdgeListFilter implements EdgeFilter<IExplodedBasicBlock> {
+		@SuppressWarnings("unused")
 		private final ExplodedControlFlowGraph originalGraph;
 		private final FlowGraph finalGraph;
 

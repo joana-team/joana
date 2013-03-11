@@ -132,12 +132,11 @@ public class IgnoreNonTerminationCFG<I, T extends IBasicBlock<I>>
 		return parent.getExceptionalSuccessors(b);
 	}
 
-	@SuppressWarnings("unchecked")
 	public Iterator<T> getSuccNodes(T b) throws IllegalArgumentException {
 		final Iterator<T> it = parent.getSuccNodes(b);
 
 		if (b.isEntryBlock()) {
-			return new Iterator() {
+			return new Iterator<T>() {
 					boolean exit = false;
 
 			      public boolean hasNext() {

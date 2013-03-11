@@ -535,6 +535,7 @@ public class WalaConverter {
 				final int index = pc.getInstructionIndex();
 				loc = getSourceLocation(im, index, instr, sourceFileName);
 			} break;
+			default: // nothing to do here
 			}
 		}
 
@@ -775,6 +776,7 @@ public class WalaConverter {
 				case CONTROL_DEP_EXPR:
 					hasControlDep = true;
 					break;
+				default: // nothing to do here
 				}
 
 				if (hasControlDep) {
@@ -815,6 +817,7 @@ public class WalaConverter {
 						addControlFlow(step, formIn);
 						step = formIn;
 						break;
+					default: // nothing to do here
 					}
 				}
 
@@ -849,6 +852,7 @@ public class WalaConverter {
 						addControlFlow(step, formOut);
 						step = formOut;
 						break;
+					default: // nothing to do here
 					}
 				}
 
@@ -976,6 +980,7 @@ public class WalaConverter {
 					addControlFlow(stepEntry, formIn);
 					stepEntry = formIn;
 					break;
+				default: // nothing to do here
 				}
 			}
 
@@ -999,6 +1004,7 @@ public class WalaConverter {
 					}
 					stepExit = formOut;
 					break;
+				default: // nothing to do here
 				}
 			}
 
@@ -1247,6 +1253,7 @@ public class WalaConverter {
 				final NormalStatement ns = (NormalStatement) st;
 				cmp = ns.getInstruction();
 			} break;
+			default: // nothing to do here
 			}
 
 			if (cmp != null && cmp.equals(instr)) {

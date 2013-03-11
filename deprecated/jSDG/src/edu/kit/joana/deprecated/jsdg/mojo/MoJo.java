@@ -49,7 +49,6 @@ import edu.kit.joana.deprecated.jsdg.Messages;
 import edu.kit.joana.deprecated.jsdg.SDGFactory;
 import edu.kit.joana.deprecated.jsdg.SDGFactory.Config;
 import edu.kit.joana.deprecated.jsdg.mojo.interfac.GraphNode;
-import edu.kit.joana.deprecated.jsdg.mojo.interfac.ParameterGraph;
 import edu.kit.joana.deprecated.jsdg.sdg.nodes.JDependencyGraph.PDGFormatException;
 import edu.kit.joana.deprecated.jsdg.util.Debug;
 import edu.kit.joana.deprecated.jsdg.util.ExtendedNodeDecorator;
@@ -68,6 +67,7 @@ public final class MoJo {
 	private MoJo() {
 	}
 
+	@SuppressWarnings("unused")
 	public static void main(String[] args) throws IOException, IllegalArgumentException, CancelException, PDGFormatException, WalaException, InvalidClassFileException {
 		WatchDog watchdog = null;
 
@@ -338,8 +338,8 @@ public final class MoJo {
 		Set<GraphNode> known = new HashSet<GraphNode>();
 		known.add(root);
 
-		ParameterGraph graph = new ParameterGraph(root);
-		GraphNode current = root;
+//		ParameterGraph graph = new ParameterGraph(root);
+//		GraphNode current = root;
 	}
 
 	private static int countFields(Set<IClass> classes) {

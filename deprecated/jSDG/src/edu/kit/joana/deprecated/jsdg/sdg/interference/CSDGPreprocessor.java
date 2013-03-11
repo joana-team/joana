@@ -310,7 +310,8 @@ public class CSDGPreprocessor {
         if (!error.isEmpty()) System.out.println("dangling nodes? "+error);
     }
 
-    private void cleanCSDG(SDG graph, MHPAnalysis mhp) {
+    @SuppressWarnings("unused")
+	private void cleanCSDG(SDG graph, MHPAnalysis mhp) {
         LinkedList<SDGEdge> remove = new LinkedList<SDGEdge>();
         int all = 0;
         int x = 0;

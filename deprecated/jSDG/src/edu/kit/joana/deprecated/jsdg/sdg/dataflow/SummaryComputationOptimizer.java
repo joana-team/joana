@@ -32,6 +32,7 @@ import edu.kit.joana.deprecated.jsdg.util.Log;
  * @author Juergen Graf <graf@kit.edu>
  *
  */
+@SuppressWarnings("deprecation")
 public class SummaryComputationOptimizer {
 
 	private final SDG sdg;

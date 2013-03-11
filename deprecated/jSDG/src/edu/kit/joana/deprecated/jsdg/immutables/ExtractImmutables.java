@@ -56,6 +56,7 @@ import edu.kit.joana.deprecated.jsdg.util.Util;
  * @author Juergen Graf <graf@kit.edu>
  *
  */
+@SuppressWarnings("unused")
 public class ExtractImmutables {
 
 	private final CallGraph cg;

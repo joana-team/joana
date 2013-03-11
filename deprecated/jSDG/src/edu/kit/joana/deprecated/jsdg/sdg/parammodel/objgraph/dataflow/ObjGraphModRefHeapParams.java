@@ -642,6 +642,7 @@ public class ObjGraphModRefHeapParams implements IModRef {
 			}
 		}
 
+		@SuppressWarnings("unused")
 		private final BitVectorVariable handleFieldSet(ExpressionNode node,
 				ParameterField field, SSAFieldAccessInstruction fAcc) {
 			// when an object field is set, the base object is referenced...
@@ -653,6 +654,7 @@ public class ObjGraphModRefHeapParams implements IModRef {
 			return result;
 		}
 
+		@SuppressWarnings("unused")
 		private final BitVectorVariable handleStaticFieldSet(ExpressionNode node,
 				ParameterField field, SSAFieldAccessInstruction fAcc) {
 			// nothing is being referenced when a static field is set
@@ -709,6 +711,7 @@ public class ObjGraphModRefHeapParams implements IModRef {
 			}
 		}
 
+		@SuppressWarnings("unused")
 		private final BitVectorVariable handleArraySet(ExpressionNode node,
 				ParameterField field, SSAArrayReferenceInstruction aRef) {
 			// search for dependencies concerning base ref

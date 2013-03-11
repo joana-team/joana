@@ -29,6 +29,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.IncrementalSummaryBackward;
 import edu.kit.joana.ifc.sdg.graph.slicer.SummarySlicerBackward;
 
+@SuppressWarnings("deprecation")
 public class HeavySlicing {
 
 	private static boolean isCounting(SDGNode node) {
@@ -219,6 +220,7 @@ public class HeavySlicing {
 
 		int numberOfCountingNodes = 0;
 		long totalBackSlicedNodes = 0;
+		@SuppressWarnings("unused")
 		long totalForwSlicedNodes = 0;
 		for (Iterator<SDGNode> it = new BreadthFirstIterator<SDGNode, SDGEdge>(sdg);it.hasNext();) {
 			SDGNode node = it.next();

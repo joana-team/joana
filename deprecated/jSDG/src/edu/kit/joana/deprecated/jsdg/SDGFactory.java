@@ -77,6 +77,7 @@ import edu.kit.joana.deprecated.jsdg.SDGFactory.Config.ObjTreeType;
 import edu.kit.joana.deprecated.jsdg.SDGFactory.Config.PointsToType;
 import edu.kit.joana.deprecated.jsdg.exceptions.ExceptionPrunedCFGAnalysis;
 import edu.kit.joana.deprecated.jsdg.exceptions.nullpointer.NullPointerAnalysis;
+import edu.kit.joana.deprecated.jsdg.immutables.ExtractImmutables;
 import edu.kit.joana.deprecated.jsdg.nontermination.NonTerminationSensitive;
 import edu.kit.joana.deprecated.jsdg.output.JoanaCFGSanitizer;
 import edu.kit.joana.deprecated.jsdg.output.JoanaStyleSDG;
@@ -505,6 +506,7 @@ public class SDGFactory {
 	public SDG getRawSDG() { return sdg; }
 	/* ****************************** */
 
+	@SuppressWarnings("unused")
 	private static boolean assertVerify(edu.kit.joana.ifc.sdg.graph.SDG joanaSdg, boolean directConnectedClinits, boolean hasControlFlow) {
         Log.appendInfo("begin verification ... ");
     	SDGVerifier.verify(joanaSdg, directConnectedClinits, hasControlFlow);
@@ -1153,7 +1155,7 @@ public class SDGFactory {
 		PointerAnalysis pta = builder.getPointerAnalysis();
 		progress.done();
 
-//		ExtractImmutables.getImmutables(cg, cha, pta);
+		ExtractImmutables.getImmutables(cg, cha, pta);
 	}
 
 

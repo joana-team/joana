@@ -202,6 +202,7 @@ public class PDG extends IntermediatePDG {
 					return true;
 				}
 				break;
+			default: // nothing to do here
 			}
 		}
 

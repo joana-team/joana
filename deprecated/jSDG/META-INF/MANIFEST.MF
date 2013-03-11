@@ -27,7 +27,6 @@ Export-Package: edu.kit.joana.deprecated.jsdg,
  edu.kit.joana.deprecated.jsdg.util,
  edu.kit.joana.deprecated.jsdg.wala,
  edu.kit.joana.deprecated.jsdg.wala.objecttree
-Bundle-ClassPath: lib/jutil.jar,
- .
+Bundle-ClassPath: .
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy

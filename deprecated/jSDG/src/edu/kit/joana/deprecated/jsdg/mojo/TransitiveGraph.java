@@ -21,6 +21,7 @@ import com.ibm.wala.util.graph.impl.GraphInverter;
  * @author Juergen Graf <graf@kit.edu>
  *
  */
+@SuppressWarnings("deprecation")
 public class TransitiveGraph<E> implements Graph<E> {
 
 	private final Graph<E> g;

@@ -51,6 +51,7 @@ import edu.kit.joana.deprecated.jsdg.sdg.nodes.CallNode;
  * @author Juergen Graf <graf@kit.edu>
  *
  */
+@SuppressWarnings("deprecation")
 public class NonTerminationSensitive {
 
 	private final SDG sdg;
@@ -242,6 +243,7 @@ public class NonTerminationSensitive {
 //		return isSimple;
 	}
 
+	@SuppressWarnings("unused")
 	private boolean loopsAreSimple(ControlFlowGraph<SSAInstruction, ISSABasicBlock> cfg, Set<ISSABasicBlock> scc)
 	throws CancelException {
 		boolean isSimple = true;
@@ -328,6 +330,7 @@ public class NonTerminationSensitive {
 			this.reads = HashMapFactory.make();
 		}
 
+		@SuppressWarnings("unused")
 		private IntSet influences(SSAInstruction instr) {
 			final BitVectorVariable bv = transitive.get(instr);
 			final IntSet set = bv.getValue();

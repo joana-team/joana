@@ -56,6 +56,7 @@ import edu.kit.joana.deprecated.jsdg.util.Util;
  * @author Juergen Graf <graf@kit.edu>
  *
  */
+@SuppressWarnings("deprecation")
 public class DataFlowAnalysis {
 
 	private final IntermediatePDG pdg;

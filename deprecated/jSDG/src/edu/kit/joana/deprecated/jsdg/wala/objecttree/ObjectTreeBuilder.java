@@ -291,6 +291,7 @@ public class ObjectTreeBuilder {
 			this.children = new HashSet<Node<C>>();
 		}
 
+		@SuppressWarnings("unused")
 		public void addParent(C val) {
 			addParent(new Node<C>(val));
 		}
@@ -301,10 +302,12 @@ public class ObjectTreeBuilder {
 			parents.add(node);
 		}
 
+		@SuppressWarnings("unused")
 		public void removeParent(Node<C> node) {
 			parents.remove(node);
 		}
 
+		@SuppressWarnings("unused")
 		public boolean hasParent(Node<C> node) {
 			return children.contains(node);
 		}
@@ -322,10 +325,12 @@ public class ObjectTreeBuilder {
 
 		}
 
+		@SuppressWarnings("unused")
 		public boolean hasParent(C val) {
 			return parents.contains(val);
 		}
 
+		@SuppressWarnings("unused")
 		public Node<C> getParent(C val) {
 			for (Node<C> node : parents) {
 				if (val.equals(node.getVal())) {
@@ -336,6 +341,7 @@ public class ObjectTreeBuilder {
 			return null;
 		}
 
+		@SuppressWarnings("unused")
 		public Set<Node<C>> getParents() {
 			return parents;
 		}
@@ -346,18 +352,22 @@ public class ObjectTreeBuilder {
 			children.add(node);
 		}
 
+		@SuppressWarnings("unused")
 		public void removeChild(Node<C> node) {
 			children.remove(node);
 		}
 
+		@SuppressWarnings("unused")
 		public boolean hasChild(Node<C> node) {
 			return children.contains(node);
 		}
 
+		@SuppressWarnings("unused")
 		public boolean hasChildren() {
 			return !children.isEmpty();
 		}
 
+		@SuppressWarnings("unused")
 		public boolean hasBottomChild() {
 			if (children.size() == 1) {
 				return children.iterator().next().getVal() == null;

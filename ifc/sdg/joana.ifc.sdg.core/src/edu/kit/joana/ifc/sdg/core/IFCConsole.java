@@ -265,7 +265,7 @@ public class IFCConsole {
     }
 
     private static void parseConfiguration(String path) throws IOException, WrongLatticeDefinitionException {
-        BufferedReader bfr = new BufferedReader(new FileReader(path));
+        final BufferedReader bfr = new BufferedReader(new FileReader(path));
 
         // parse the graph
         readSDG(bfr.readLine());
@@ -295,5 +295,7 @@ public class IFCConsole {
 
             nodes.add(n);
         }
+        
+        bfr.close();
     }
 }

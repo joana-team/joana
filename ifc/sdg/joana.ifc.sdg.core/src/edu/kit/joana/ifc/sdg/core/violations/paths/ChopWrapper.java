@@ -25,7 +25,7 @@ public class ChopWrapper {
         chopper.setGraph(g);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public Collection<SecurityNode> chop (SecurityNode outNode, SecurityNode violation) {
         Collection coll = chopper.chop(violation, outNode);
         return coll;

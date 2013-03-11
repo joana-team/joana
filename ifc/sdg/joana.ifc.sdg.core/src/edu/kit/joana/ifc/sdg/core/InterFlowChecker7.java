@@ -81,6 +81,7 @@ public class InterFlowChecker7 extends IFC {
 	 * @throws NotInLatticeException
 	 */
 
+	@SuppressWarnings("deprecation")
 	public Collection<Violation> checkIFlow(boolean generateVioPathes) throws NotInLatticeException {
 		Collection<Violation> ret = new LinkedList<Violation>(); //list to be returned
 

@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: joana.ui.ifc.sdg.gui
 Bundle-SymbolicName: joana.ui.ifc.sdg.gui;singleton:=true
 Bundle-Version: 3.3.0
-Bundle-Activator: edu.kit.joana.ifc.sdg.gui.NJSecPlugin
+Bundle-Activator: edu.kit.joana.ui.ifc.sdg.gui.NJSecPlugin
 Bundle-Vendor: Karlsruhe Institute of Technology, Programming Paradigms Group
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.jface.text,

@@ -46,7 +46,7 @@ import edu.kit.joana.util.Logger;
  * @author naxan
  *
  */
-//@SuppressWarnings("restriction") // TODO: access restrictions for InternalClassFileEditorInput
+@SuppressWarnings("restriction") // TODO: access restrictions for InternalClassFileEditorInput
 public class NJSecSelectionStore implements ISelectionListener {
 
 	private final Logger debug = Log.getLogger(Log.L_UI_DEBUG);

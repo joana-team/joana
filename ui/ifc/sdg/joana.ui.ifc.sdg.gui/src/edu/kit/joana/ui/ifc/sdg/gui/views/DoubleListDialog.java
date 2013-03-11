@@ -166,12 +166,12 @@ public class DoubleListDialog extends SelectionDialog {
 	/*
 	 * Overrides method from Dialog
 	 */
-	@SuppressWarnings("unchecked")
 	protected void okPressed() {
 	    // Build a list of selected children.
 	    IStructuredSelection selection1 = (IStructuredSelection) fTableViewer1.getSelection();
 	    IStructuredSelection selection2 = (IStructuredSelection) fTableViewer2.getSelection();
-	    ArrayList<List> results = new ArrayList<List>();
+	    @SuppressWarnings("rawtypes")
+		ArrayList<List> results = new ArrayList<List>();
 	    results.add(selection1.toList());
 	    results.add(selection2.toList());
 	    setResult(results);

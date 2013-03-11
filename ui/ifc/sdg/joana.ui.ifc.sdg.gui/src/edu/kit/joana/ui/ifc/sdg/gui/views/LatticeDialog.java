@@ -97,7 +97,7 @@ public class LatticeDialog extends SelectionDialog implements IEditorPart {
 			notifier.run(); //fireSelectionChanged
 		}
 
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		public void internalInitialize(EditPartViewer viewer, List selection, Runnable notifier) {
 			this.viewer = viewer;
 			this.selection = selection;
@@ -112,7 +112,7 @@ public class LatticeDialog extends SelectionDialog implements IEditorPart {
 			return new StructuredSelection(selection);
 		}
 
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings("rawtypes")
 		public void setSelection(ISelection newSelection) {
 			if (!(newSelection instanceof IStructuredSelection))
 				return;
@@ -280,7 +280,7 @@ public class LatticeDialog extends SelectionDialog implements IEditorPart {
 
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public Object getAdapter(Class adapter) {
 		return null;
 	}

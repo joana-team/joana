@@ -226,7 +226,7 @@ public class MarkerSecurityNodeView extends ViewPart implements MarkerSelectionL
 			col = column;
 		}
 
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		public int compare(Viewer viewer, Object e1, Object e2) {
 			Comparable s1 = vlp.getColumnComp(e1, col);
 			Comparable s2 = vlp.getColumnComp(e2, col);

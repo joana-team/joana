@@ -152,6 +152,7 @@ public class SumCompManagerWithSeperatePackager extends ManagerClient {
 				case FAILED:
 					jobsFailed.add(msg);
 					break;
+				default: // nothing to do here
 				}
 			}
 

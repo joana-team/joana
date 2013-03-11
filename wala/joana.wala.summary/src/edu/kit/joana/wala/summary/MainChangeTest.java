@@ -93,12 +93,8 @@ public class MainChangeTest {
 					}
 				});
 
-				int i = 0;
 				for (String file : files) {
 					run(arg + (arg.isEmpty() || arg.endsWith(File.separator) ? "" : File.separator) + file);
-
-//					if (i> 0) break;
-					i++;
 				}
 			} else if (f.isFile()) {
 				run(arg);

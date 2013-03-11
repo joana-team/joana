@@ -153,6 +153,7 @@ public class SumCompManager extends ManagerClient {
 					case FAILED:
 						jobsFailed.add(msg);
 						break;
+					default: // nothing to do here
 					}
 				}
 

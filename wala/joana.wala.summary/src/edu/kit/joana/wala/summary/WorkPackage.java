@@ -39,7 +39,7 @@ public class WorkPackage {
 
 	public final static boolean SORT_SUMMARY_EDGES = false;
 
-	public static class EntryPoint implements Comparable {
+	public static class EntryPoint implements Comparable<EntryPoint> {
 		private final int entryId;
 		private final TIntCollection formalIns;
 		private final TIntCollection formalOuts;
@@ -81,11 +81,11 @@ public class WorkPackage {
 		}
 
 		private void sortSummaries() {
-			if (SORT_SUMMARY_EDGES == false) {
+			if (!SORT_SUMMARY_EDGES) {
 				throw new IllegalStateException();
 			}
 
-			TIntObjectIterator<TIntList> it = formIn2out.iterator();
+			final TIntObjectIterator<TIntList> it = formIn2out.iterator();
 			while (it.hasNext()) {
 				it.advance();
 				TIntList list = it.value();
@@ -153,6 +153,7 @@ public class WorkPackage {
 
 				String token = scan.next().toLowerCase();
 				if (!"entry:".equals(token)) {
+					scan.close();
 					throw new ParseException("\"entry:\" expected", currentLine);
 				}
 
@@ -162,6 +163,7 @@ public class WorkPackage {
 
 				token = scan.next();
 				if (!"formal-ins:".equals(token)) {
+					scan.close();
 					throw new ParseException("\"formal-ins:\" expected", currentLine);
 				}
 
@@ -247,7 +249,7 @@ public class WorkPackage {
 		}
 
 		@Override
-		public int compareTo(Object o) {
+		public int compareTo(EntryPoint o) {
 			return this.hashCode() - o.hashCode();
 		}
 	}

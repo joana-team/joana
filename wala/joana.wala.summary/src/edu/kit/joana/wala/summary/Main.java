@@ -146,6 +146,7 @@ public class Main {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private static void runPerSCCAnalysis(SDG sdg, Set<SDGNode> reachable,
 			EntryPointCache cache, FoldedCallGraph origFoldedCG, CallGraph cg, final long timeStart,
 			final long timeReadIn) throws FileNotFoundException, LoadEntryPointException, StoreEntryPointException, CancelException {
@@ -302,6 +303,7 @@ public class Main {
 		info("SDG(" + title + ") Total number of summary edges: " + countSum);
 	}
 
+	@SuppressWarnings("unused")
 	private static void writePackToFile(WorkPackage pack) {
 		final String filename = MAIN_DIR + pack.getName() + SUBGRAPH_PDG_FILE_SUFFIX;
 		debug("\twriting pdg to file " + filename);
@@ -315,6 +317,7 @@ public class Main {
 		SDGSerializer.toPDGFormat((SDG) pack.getGraph(), bOs);
 	}
 
+	@SuppressWarnings("unused")
 	private static void runWholeGraphSummary(SDG sdg) throws CancelException {
 		info("Running summary computation on whole graph...");
 
@@ -498,6 +501,7 @@ public class Main {
 		return newSumEdges;
 	}
 
+	@SuppressWarnings("unused")
 	private static void adjustWholeSDGWithSummaries(SDG sdg, CallGraph cg, EntryPointCache cache) {
 		for (SDGNode caller : cg.vertexSet()) {
 			assert caller.getKind() == SDGNode.Kind.ENTRY;

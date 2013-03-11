@@ -157,6 +157,7 @@ public final class LocalKillingDefs {
 
 	}
 
+	@SuppressWarnings("unused")
 	private void run(final IProgressMonitor progress) throws CancelException {
 		final AccessCreationVisitor acv = new AccessCreationVisitor();
 		ir.visitAllInstructions(acv);

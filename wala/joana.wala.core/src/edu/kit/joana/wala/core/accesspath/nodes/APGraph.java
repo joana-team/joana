@@ -90,6 +90,7 @@ public final class APGraph extends AbstractNumberedGraph<APNode> {
 					assert (apTo != null) : "Could not find AP node for " + to.getId();
 					alias.add(new APEdge(apFrom, apTo));
 					break;
+				default: // nothing to do here
 				}
 			}
 		}

@@ -30,11 +30,11 @@ import edu.kit.joana.util.graph.AbstractJoanaGraph;
 
 public final class CallGraph extends AbstractJoanaGraph<CallGraph.Node, CallGraph.Edge> {
 
-	private static final long serialVersionUID = 6040188211027171404L;
 	private static EdgeFactory<Node, Edge> DEFAULT_EDGE_FACTORY = new CGEdgeFactory();
 
-	public static CallGraph build(CallGraphFilter filter, com.ibm.wala.ipa.callgraph.CallGraph callgraph, PointerAnalysis pts, IMethod entry,
-			IProgressMonitor progress) throws IllegalArgumentException, CallGraphBuilderCancelException {
+	public static CallGraph build(CallGraphFilter filter, com.ibm.wala.ipa.callgraph.CallGraph callgraph,
+			PointerAnalysis pts, IMethod entry, IProgressMonitor progress)
+	throws IllegalArgumentException, CallGraphBuilderCancelException {
 		CallGraph cg = new CallGraph(filter, entry, callgraph, pts);
 
 		cg.run(progress);

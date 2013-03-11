@@ -156,6 +156,7 @@ public final class AccessManager<T> {
 		return equiv;
 	}
 
+	@SuppressWarnings("unused")
 	private void computeValueEquivClasses(final Reachability<T> reach, final IProgressMonitor progress)
 			throws CancelException {
 		boolean changed = true;
@@ -223,6 +224,7 @@ public final class AccessManager<T> {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private void computeAccessEquivClasses(final List<FieldAccess<T>> accs, final IProgressMonitor progress) {
 		// find equivalent reads
 		for (final FieldAccess<T> n1 : accs) {

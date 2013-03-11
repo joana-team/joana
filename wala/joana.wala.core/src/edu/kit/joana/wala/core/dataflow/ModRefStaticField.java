@@ -113,6 +113,7 @@ public class ModRefStaticField implements IModRef {
 						mod.addAll(r);
 					}
 				} break;
+				default: // nothing to do here
 				}
 			}
 

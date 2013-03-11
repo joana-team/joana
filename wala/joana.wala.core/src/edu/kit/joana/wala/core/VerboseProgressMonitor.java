@@ -14,7 +14,6 @@ import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 public class VerboseProgressMonitor implements IProgressMonitor {
 
 	private PrintStream out;
-	private int total = 0;
 	private boolean cancel = false;
 
 	public VerboseProgressMonitor(PrintStream out) {
@@ -23,7 +22,6 @@ public class VerboseProgressMonitor implements IProgressMonitor {
 	@Override
 	public void beginTask(String task, int totalWork) {
 		out.println("[Task] "+task);
-		total += totalWork;
 	}
 
 	@Override

@@ -264,6 +264,7 @@ public class AccessPath {
 		return n.getId() + "|" + n.getKind() + "(" + n.getLabel() + ")";
 	}
 
+	@SuppressWarnings("unused")
 	private <V,E> void debugWriteGraphToDisk(final DirectedGraph<V, E> g, final String fileName) {
 		assert sdg.cfg.debugAccessPath;
 		assert sdg.cfg.debugAccessPathOutputDir != null;
@@ -275,6 +276,7 @@ public class AccessPath {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private static void debugPrintAliasEdges(final List<AliasEdge> alias) {
 		for (AliasEdge ae : alias) {
 			System.out.print(nfo(ae.edge.from) + " -alias-> " + nfo(ae.edge.to) + "\t\treason: { ");
@@ -291,6 +293,7 @@ public class AccessPath {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private static void debugPrintHeapEdges(final DependenceGraph hdg) {
 		for (PDGEdge e : hdg.edgeSet()) {
 			if (e.kind == PDGEdge.Kind.DATA_HEAP) {
@@ -299,6 +302,7 @@ public class AccessPath {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private static void debugPrintEquivClasses(final List<Set<PDGNode>> equivClasses) {
 		System.out.println("found " + equivClasses.size() + " equiv classes.");
 		for (Set<PDGNode> equiv : equivClasses) {

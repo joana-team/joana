@@ -103,9 +103,6 @@ public class SimpleStaticInitializers {
 			}
 		}
 
-		final PDGNode fromCF = lastCall;
-		final PDGNode toCF = fakeRoot.exception;
-
 		final MethodReference tgt = callee.getMethod().getReference();
 
 		String label = tgt.getSelector().getName().toString() + "()";

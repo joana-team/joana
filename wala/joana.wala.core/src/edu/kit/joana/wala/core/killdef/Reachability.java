@@ -135,6 +135,7 @@ public class Reachability<T> {
 					return true;
 				}
 			} break;
+			default: // nothing to do here
 			}
 		}
 

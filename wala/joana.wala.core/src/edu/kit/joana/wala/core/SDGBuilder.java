@@ -754,6 +754,7 @@ public class SDGBuilder implements CallGraphFilter {
 						case FORMAL_OUT:
 							outParam.add(e.to);
 							break;
+						default: // nothing to do here
 						}
 					}
 				}
@@ -779,6 +780,7 @@ public class SDGBuilder implements CallGraphFilter {
 								case ACTUAL_OUT:
 									outParam.add(e.to);
 									break;
+								default: // nothing to do here
 								}
 							}
 						}

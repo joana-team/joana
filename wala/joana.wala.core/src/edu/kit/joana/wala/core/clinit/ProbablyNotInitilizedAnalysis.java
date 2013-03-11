@@ -29,6 +29,9 @@ import com.ibm.wala.util.intset.MutableMapping;
 /**
  * Computes interprocedural access to classes that may not have been initialized and therefore a static initializer
  * may be called.
+ * 
+ * This class is a stub, perhaps someday someone will implement it.
+ * 
  * Access to classes is issued by:
  *  - a static field access
  *  - a call to a static method
@@ -36,6 +39,7 @@ import com.ibm.wala.util.intset.MutableMapping;
  */
 public class ProbablyNotInitilizedAnalysis {
 
+	@SuppressWarnings("unused")
 	private final IClassHierarchy cha;
 	private final ISupergraph<BasicBlockInContext<IExplodedBasicBlock>, CGNode> sg;
 	private final NotInitializedDomain dom = new NotInitializedDomain();
@@ -70,6 +74,7 @@ public class ProbablyNotInitilizedAnalysis {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private class NotInitializedProblem implements
 			PartiallyBalancedTabulationProblem<BasicBlockInContext<IExplodedBasicBlock>, CGNode, Pair<CGNode, Integer>> {
 

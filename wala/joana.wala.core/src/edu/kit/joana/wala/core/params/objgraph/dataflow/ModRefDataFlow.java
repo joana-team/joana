@@ -292,6 +292,7 @@ public class ModRefDataFlow {
 			case WRITE: {
 				map.put(n, n.getNode());
 			} break;
+			default: // nothing to do here
 			}
 		}
 
@@ -342,6 +343,7 @@ public class ModRefDataFlow {
 				final PDGNode pdgN = map.get(n);
 				before.add(pdgN);
 			} break;
+			default: // nothing to do here
 			}
 		}
 

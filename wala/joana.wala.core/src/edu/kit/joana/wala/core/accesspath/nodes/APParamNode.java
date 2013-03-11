@@ -114,6 +114,7 @@ public abstract class APParamNode extends APSimplePropagationNode {
 		case ACTUAL_IN:
 		case FORMAL_IN:
 			return true;
+		default: // nothing to do here
 		}
 
 		return false;
@@ -126,6 +127,7 @@ public abstract class APParamNode extends APSimplePropagationNode {
 			return true;
 		case EXIT:
 			return n.getTypeRef() != TypeReference.Void;
+		default: // nothing to do here
 		}
 
 		return false;

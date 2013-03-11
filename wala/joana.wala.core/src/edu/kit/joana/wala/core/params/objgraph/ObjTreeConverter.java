@@ -304,6 +304,7 @@ public final class ObjTreeConverter {
 		case ACTUAL_IN:
 		case FORMAL_IN:
 			return true;
+		default: // nothing to do here
 		}
 
 		return false;
@@ -316,6 +317,7 @@ public final class ObjTreeConverter {
 			return true;
 		case EXIT:
 			return n.getTypeRef() != TypeReference.Void;
+		default: // nothing to do here
 		}
 
 		return false;
@@ -458,6 +460,7 @@ public final class ObjTreeConverter {
 		case ACTUAL_IN:
 		case ACTUAL_OUT:
 			return true;
+		default: // nothing to do here
 		}
 
 		return false;
@@ -470,6 +473,7 @@ public final class ObjTreeConverter {
 			return true;
 		case EXIT:
 			return n.getTypeRef() != TypeReference.Void;
+		default: // nothing to do here
 		}
 
 		return false;

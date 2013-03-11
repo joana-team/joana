@@ -25,7 +25,6 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  * @version 1.0
  */
 public class FoldedCFG extends CFG implements Folded {
-	private static final long serialVersionUID = 1439496749457788827L;
 
 	private FoldedCFG() { }
 

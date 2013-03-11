@@ -143,7 +143,6 @@ public class ContextComputer {
 	 * @param root    The root of the thread to handle.
 	 * @param thread  The thread's ID.
 	 */
-	@SuppressWarnings("unchecked")
 	private Set<LinkedList<SDGNode>> buildContextsFor(SDGNode node, int thread) {
 		// the result list
 		HashSet<LinkedList<SDGNode>> result = new HashSet<LinkedList<SDGNode>>();
@@ -191,7 +190,8 @@ public class ContextComputer {
 
 							} else if (e.getKind() == SDGEdge.Kind.CALL) {
 								SDGNode source = e.getSource();
-								LinkedList<SDGNode> p = (LinkedList<SDGNode>) next.clone();
+								@SuppressWarnings("unchecked")
+								final LinkedList<SDGNode> p = (LinkedList<SDGNode>) next.clone();
 								p.addLast(source);
 								worklist.add(p);
 							}

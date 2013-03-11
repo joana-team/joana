@@ -161,7 +161,8 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         return tr;
     }
 
-    private static void addReturnEdges(CFG icfg) {
+    @SuppressWarnings("unused")
+	private static void addReturnEdges(CFG icfg) {
 		List<SDGEdge> retEdges = new LinkedList<SDGEdge>();
 		for (SDGNode node : icfg.vertexSet()) {
 			if (node.getKind() == SDGNode.Kind.CALL) {
@@ -519,7 +520,8 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         	return visited;
         }
 
-        private HashSet<SDGNode> threadLocalSlice(SDGNode join) {
+        @SuppressWarnings("unused")
+		private HashSet<SDGNode> threadLocalSlice(SDGNode join) {
         	HashSet<SDGNode> visited = new HashSet<SDGNode>();
         	LinkedList<SDGNode> w1 = new LinkedList<SDGNode>();
         	LinkedList<SDGNode> w2 = new LinkedList<SDGNode>();
@@ -561,7 +563,8 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         	return visited;
         }
 
-        private HashSet<SDGNode> close(HashSet<SDGNode> slice) {
+        @SuppressWarnings("unused")
+		private HashSet<SDGNode> close(HashSet<SDGNode> slice) {
         	HashSet<SDGNode> remove = new HashSet<SDGNode>();
 
         	do {

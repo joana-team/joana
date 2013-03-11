@@ -143,11 +143,11 @@ public class SeqChoppingTests {
         return result;
     }
 
-    @SuppressWarnings("unchecked")
     private static String compare(Chopper[] chopper, LinkedList<ChopCrit> criteria) {
         int[] size = new int[chopper.length];
         long[] time = new long[chopper.length];
-        Collection<SDGNode>[] chops = new Collection[chopper.length];
+        @SuppressWarnings("unchecked")
+        final Collection<SDGNode>[] chops = (Collection<SDGNode>[]) new Collection[chopper.length];
 
         int ctr = 0;
 

@@ -112,7 +112,9 @@ public class ContextGraphBuilder {
 	}
 
 	private void insertThreadEdges() {
-		HashSet[] forks = new HashSet[icfg.getNumberOfThreads()];
+		@SuppressWarnings("unchecked")
+		final HashSet<TopologicalNumber>[] forks =
+			(HashSet<TopologicalNumber>[]) new HashSet[icfg.getNumberOfThreads()];
 		for (int i = 0; i < forks.length; i++) {
 			forks[i] = new HashSet<TopologicalNumber>();
 		}

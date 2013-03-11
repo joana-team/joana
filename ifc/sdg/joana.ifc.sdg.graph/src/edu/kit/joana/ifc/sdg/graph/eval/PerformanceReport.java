@@ -22,7 +22,6 @@ public class PerformanceReport implements Report {
 	private Collection<Algorithm> algs;
 	private HashMap<Algorithm, ValueSet> data;
 	private HashMap<Algorithm, ValueSet> temp;
-	private long succCtr;
 	private long failCtr;
 
 	PerformanceReport(Collection<Algorithm> algs) {
@@ -38,7 +37,6 @@ public class PerformanceReport implements Report {
 			temp.put(a, new ValueSet());
 		}
 
-		succCtr = 0;
 		failCtr = 0;
 	}
 
@@ -47,8 +45,6 @@ public class PerformanceReport implements Report {
 	}
 
 	public void iterationSucceeded() {
-		succCtr++;
-
 		for (Algorithm a : temp.keySet()) {
 			ValueSet tmp = temp.get(a);
 			ValueSet dat = data.get(a);

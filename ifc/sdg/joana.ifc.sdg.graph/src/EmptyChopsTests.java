@@ -16,7 +16,6 @@ import edu.kit.joana.ifc.sdg.graph.chopper.Chopper;
 import edu.kit.joana.ifc.sdg.graph.chopper.conc.VerySimpleThreadChopper;
 
 
-@SuppressWarnings("unused")
 public class EmptyChopsTests {
     public static void main (String[] args) throws Exception {
         int pdgID = 8;

@@ -59,11 +59,11 @@ public class SlicingTests {
         System.out.println(str);
     }
 
-    @SuppressWarnings("unchecked")
     private static String compare(Slicer[] slicer, Collection<SDGNode> criteria) {
         int[] size = new int[slicer.length];
         long[] time = new long[slicer.length];
-        Collection<SDGNode>[] slices = new Collection[slicer.length];
+        @SuppressWarnings("unchecked")
+        final Collection<SDGNode>[] slices = (Collection<SDGNode>[]) new Collection[slicer.length];
         int s = 0; int diff = Integer.MAX_VALUE;
 
         int ctr = 0;
@@ -122,9 +122,10 @@ public class SlicingTests {
         return str;
     }
 
-    @SuppressWarnings({"unchecked", "unused"})
+    @SuppressWarnings("unused")
     private static String compareOne(Slicer[] slicer, SDGNode crit) {
-        Collection<SDGNode>[] slices = new Collection[slicer.length];
+    	@SuppressWarnings("unchecked")
+        final Collection<SDGNode>[] slices = (Collection<SDGNode>[]) new Collection[slicer.length];
 
         for (int i = 0; i < slicer.length; i++) {
             slices[i] = slicer[i].slice(Collections.singleton(crit));

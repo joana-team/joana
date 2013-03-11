@@ -48,7 +48,7 @@ public class ContextGraphBuilder {
 	@SuppressWarnings("unchecked")
 	public ContextGraph[] buildContextGraphs(ISCRGraph[] iscrGraphs) {
 		contextGraphs = new ContextGraph[iscrGraphs.length];
-		visited = new HashMap[iscrGraphs.length];
+		visited = (HashMap<DynamicContext, TopologicalNumber>[]) new HashMap[iscrGraphs.length];
 		for (ISCRGraph g : iscrGraphs) {
 			graph = g;
 			contextGraphs[graph.getID()] = buildContextGraph();

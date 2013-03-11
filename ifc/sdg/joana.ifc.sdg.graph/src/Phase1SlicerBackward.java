@@ -44,7 +44,7 @@ public class Phase1SlicerBackward extends SummarySlicer {
     }
 
     protected Collection<SDGEdge> edgesToTraverse(SDGNode node) {
-        return this.g.incomingEdgesOf(node);
+        return Phase1SlicerBackward.g.incomingEdgesOf(node);
     }
 
     protected SDGNode reachedNode(SDGEdge edge) {

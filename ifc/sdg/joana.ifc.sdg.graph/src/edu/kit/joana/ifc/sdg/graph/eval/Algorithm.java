@@ -159,6 +159,7 @@ public interface Algorithm {
 			}
 		},
 		KRINKE_SLICER("K", Kind.SLICER, true) {
+			@SuppressWarnings("deprecation")
 			public Algorithm instantiate() {
 				return new SlicingAlgorithm(new edu.kit.joana.ifc.sdg.graph.slicer.conc.krinke.OptimizedKrinke());
 			}

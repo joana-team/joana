@@ -95,11 +95,11 @@ public class ChoppingTests {
         return result;
     }
 
-    @SuppressWarnings("unchecked")
     private static String compare(Chopper[] chopper, LinkedList<ChopCrit> criteria) {
         int[] size = new int[chopper.length];
         long[] time = new long[chopper.length];
-        Collection<SDGNode>[] chops = new Collection[chopper.length];
+        @SuppressWarnings("unchecked")
+		final Collection<SDGNode>[] chops = (Collection<SDGNode>[]) new Collection[chopper.length];
 
         int ctr = 0;
 
@@ -145,9 +145,9 @@ public class ChoppingTests {
     private static String compareNonEmpty(Chopper filter, Chopper[] chopper, LinkedList<ChopCrit> criteria) {
         LinkedList<ChopCrit> nonEmpty = new LinkedList<ChopCrit>();
 
-        int ctr = 0;
+//        int ctr = 0;
         for (ChopCrit crit : criteria) {
-            ctr++;
+//            ctr++;
 //                if (ctr % 100 == 0) {
 //                    System.out.print(",");
 //                }

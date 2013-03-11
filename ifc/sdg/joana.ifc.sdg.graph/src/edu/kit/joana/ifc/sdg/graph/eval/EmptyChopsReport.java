@@ -18,7 +18,6 @@ public class EmptyChopsReport implements Report {
 	private Collection<Algorithm> algs;
 	private HashMap<Algorithm, Integer> data;
 	private HashMap<Algorithm, Collection<SDGNode>> temp;
-	private long succCtr;
 	private long failCtr;
 
 	EmptyChopsReport(Collection<Algorithm> algs) {
@@ -35,7 +34,6 @@ public class EmptyChopsReport implements Report {
 			temp.put(a, null);
 		}
 
-		succCtr = 0;
 		failCtr = 0;
 	}
 
@@ -44,8 +42,6 @@ public class EmptyChopsReport implements Report {
 	}
 
 	public void iterationSucceeded() {
-		succCtr++;
-
 		for (Map.Entry<Algorithm, Collection<SDGNode>> en : temp.entrySet()) {
 			if (en.getValue().isEmpty()) {
 				int counter = data.get(en.getKey()) +1;

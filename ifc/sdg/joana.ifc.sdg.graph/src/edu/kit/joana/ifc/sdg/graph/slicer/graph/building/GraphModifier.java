@@ -307,7 +307,8 @@ public class GraphModifier {
      * @param icfg    The target CFG.
      * @param source  A call or entry node.
      */
-    private static void inline(SDG sdg, HashSet<SDGNode> cfg, SDGNode source) {
+    @SuppressWarnings("unused")
+	private static void inline(SDG sdg, HashSet<SDGNode> cfg, SDGNode source) {
         LinkedList<SDGNode> worklist = new LinkedList<SDGNode>();
         LinkedList<SDGNode> inList = new LinkedList<SDGNode>();
         LinkedList<SDGNode> outList = new LinkedList<SDGNode>();

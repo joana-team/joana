@@ -22,7 +22,6 @@ import java.util.Set;
  * @author hammer, giffhorn
  */
 public class SDGEdge implements Cloneable {
-	private static final long serialVersionUID = -7849877704948368788L;
 
     /**
      * This is probably the most important property if you intend to analyze SDGs.

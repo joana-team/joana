@@ -722,7 +722,8 @@ public class ISCRBuilder {
     /**
      * Similar to testReducedICFG, but uses the original ICFG.
      */
-    private void testReducedICFG2(CFG icfg, CFG reduced) {
+    @SuppressWarnings("unused")
+	private void testReducedICFG2(CFG icfg, CFG reduced) {
     	// flip the foldedMap
     	HashMap<SDGNode, LinkedList<SDGNode>> foldMap = new HashMap<SDGNode, LinkedList<SDGNode>>();
     	for (Map.Entry<SDGNode, HashSet<SDGNode>> en : iscrMap.entrySet()) {
@@ -954,7 +955,8 @@ public class ISCRBuilder {
     	return true;
     }
 
-    private void testISCRGraphEdges(CFG orig, ISCRGraph ig) {
+    @SuppressWarnings("unused")
+	private void testISCRGraphEdges(CFG orig, ISCRGraph ig) {
     	// intra-procedural edges
     	for (SDGEdge e : orig.edgeSet()) {
     		if (e.getKind() == SDGEdge.Kind.RETURN || e.getKind() == SDGEdge.Kind.CALL) continue;
@@ -1076,7 +1078,8 @@ public class ISCRBuilder {
     	}
     }
 
-    private List<CFG> splitISCRGraph(ISCRGraph ig) {
+    @SuppressWarnings("unused")
+	private List<CFG> splitISCRGraph(ISCRGraph ig) {
     	List<CFG> cfgs = new LinkedList<CFG>();
     	HashSet<SDGNode> entries = new HashSet<SDGNode>();
 
@@ -1111,7 +1114,8 @@ public class ISCRBuilder {
     	return cfgs;
     }
 
-    private List<CFG> splitFoldedGraph(CFG ig) {
+    @SuppressWarnings("unused")
+	private List<CFG> splitFoldedGraph(CFG ig) {
     	List<CFG> cfgs = new LinkedList<CFG>();
     	HashSet<SDGNode> entries = new HashSet<SDGNode>();
 

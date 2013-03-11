@@ -71,7 +71,6 @@ public class Statistics {
     	int x = 0;
     	for (SDGEdge e : g.edgeSet()) {
     		SDGNode s = e.getSource();
-    		SDGNode t = e.getTarget();
 
     		if ((e.getKind() == SDGEdge.Kind.CONTROL_FLOW)
     			&& (s.getKind() == SDGNode.Kind.ACTUAL_IN
@@ -98,7 +97,8 @@ public class Statistics {
     	System.out.println(g.getThreadsInfo());
     }
 
-    private static void removeParams(CFG g) {
+    @SuppressWarnings("unused")
+	private static void removeParams(CFG g) {
     	HashSet<SDGNode> set = new HashSet<SDGNode>();
     	for (SDGNode n : g.vertexSet()) {
     		if (n.getKind() == SDGNode.Kind.ACTUAL_IN

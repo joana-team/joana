@@ -23,7 +23,6 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  * @version 1.0
  */
 public class CFG extends JoanaGraph {
-	private static final long serialVersionUID = 3018070252104969087L;
 
 	/** Clones the graph.
      * The clone uses the same nodes and edges!

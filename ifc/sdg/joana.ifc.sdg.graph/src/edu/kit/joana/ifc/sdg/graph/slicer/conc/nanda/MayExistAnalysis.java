@@ -61,7 +61,9 @@ public class MayExistAnalysis {
 			this.g = cg.getWholeGraph();
 
 			BitMatrix map = new BitMatrix(cg.getNumberOfThreads());
-			Collection<TopologicalNumber>[] slices = new Collection[cg.getNumberOfThreads()];
+			@SuppressWarnings("unchecked")
+			final Collection<TopologicalNumber>[] slices =
+					(Collection<TopologicalNumber>[]) new Collection[cg.getNumberOfThreads()];
 
 			HashMap<TopologicalNumber, HashSet<Integer>> forksToThreads = forksToThreads();
 			Collection<TopologicalNumber> allForks = cg.getAllForkSites();
@@ -83,7 +85,8 @@ public class MayExistAnalysis {
 				}
 
 				// translate them to the started threads
-				HashSet<Integer>[] threads = new HashSet[forked.length];
+				@SuppressWarnings("unchecked")
+				final HashSet<Integer>[] threads = (HashSet<Integer>[]) new HashSet[forked.length];
 				for (int i = 0; i < threads.length; i++) {
 					HashSet<Integer> ints = new HashSet<Integer>();
 					for (TopologicalNumber f : forked[i]) {
@@ -145,7 +148,9 @@ public class MayExistAnalysis {
 	        	}
 	        }
 
-			Collection<TopologicalNumber>[] result = new Collection[edges.size()];
+			@SuppressWarnings("unchecked")
+			final Collection<TopologicalNumber>[] result =
+				(Collection<TopologicalNumber>[]) new Collection[edges.size()];
 
 			int i = 0;
 	        for (ContextEdge e : edges) {

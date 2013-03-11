@@ -61,7 +61,8 @@ public class ICFGBuilder {
         return icfg;
     }
 
-    private static void debuggingControlFlowInspector(SDG sdg) {
+    @SuppressWarnings("unused")
+	private static void debuggingControlFlowInspector(SDG sdg) {
         System.out.println("***** INC EDGES *****");
         for (SDGNode n : sdg.vertexSet()) {
         	List<SDGEdge> l = sdg.getIncomingEdgesOfKind(n, SDGEdge.Kind.CONTROL_FLOW);
@@ -129,7 +130,8 @@ public class ICFGBuilder {
         }
     }
 
-    private static void draconicControlFlowInspector(SDG sdg) {
+    @SuppressWarnings("unused")
+	private static void draconicControlFlowInspector(SDG sdg) {
         for (SDGNode n : sdg.vertexSet()) {
         	List<SDGEdge> l = sdg.getIncomingEdgesOfKind(n, SDGEdge.Kind.CONTROL_FLOW);
         	l.addAll(sdg.getIncomingEdgesOfKind(n, SDGEdge.Kind.CALL));

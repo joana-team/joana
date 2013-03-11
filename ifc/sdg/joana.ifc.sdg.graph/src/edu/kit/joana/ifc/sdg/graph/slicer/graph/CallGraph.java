@@ -21,7 +21,6 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  * @author Dennis Giffhorn
  */
 public class CallGraph extends JoanaGraph {
-	private static final long serialVersionUID = -4567732538407195935L;
 
 	public boolean addEdge(SDGEdge edge) {
 		if (edge.getKind() != SDGEdge.Kind.CALL

@@ -24,6 +24,7 @@ public class VariableMapReader {
 	private Map<Integer, Set<Integer>> ref; // maps SDGNode -> set of used references
 	private Map<Integer, Set<Integer>> pto; // maps references -> set of referenced objects
 
+	@SuppressWarnings("unchecked")
 	public VariableMapReader(String sdgFile) throws IOException {
 		ObjectInputStream defStream = new ObjectInputStream(new FileInputStream(new File(sdgFile+"_def")));
 		ObjectInputStream useStream = new ObjectInputStream(new FileInputStream(new File(sdgFile+"_use")));

@@ -94,6 +94,10 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
       SDG sdg = (name == null ? new SDG() : new SDG(name));
       return sdg;
     }
+    
+    public String toString() {
+      return "SDG of " + name + " (v" + version + ")";
+    }
   }
   
   static final class SDGNodeStub {

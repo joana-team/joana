@@ -70,7 +70,7 @@ public class ContextGraph {
 
 	private HashMap<TopologicalNumber, Edges> edges;
 	private HashMap<SDGNode, LinkedList<TopologicalNumber>> map;
-	private HashSet[] forks; // array of HashSet<TopologicalNumber>
+	private HashSet<TopologicalNumber>[] forks; // array of HashSet<TopologicalNumber>
 
 	public ContextGraph() {
 		edges = new HashMap<TopologicalNumber, Edges>();
@@ -136,7 +136,7 @@ public class ContextGraph {
 		this.map = map;
 	}
 
-	void setForkSites(HashSet[] forks) {
+	void setForkSites(HashSet<TopologicalNumber>[] forks) {
 		this.forks = forks;
 	}
 

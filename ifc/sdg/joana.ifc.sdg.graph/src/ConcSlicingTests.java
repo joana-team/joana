@@ -54,7 +54,8 @@ public class ConcSlicingTests {
     	test(file, algs);
     }
 
-    public static void test (String file, long algs) throws Exception {
+    @SuppressWarnings("deprecation")
+	public static void test (String file, long algs) throws Exception {
         /* 1 */
         g = SDG.readFrom(file);
 
@@ -135,7 +136,7 @@ public class ConcSlicingTests {
         System.out.println(Nanda.elems);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "unused" })
     private static String compare(List<Slicer> slicer, Collection<SDGNode> criteria) {
         int[] size = new int[slicer.size()];
         long[] time = new long[slicer.size()];
@@ -204,7 +205,8 @@ public class ConcSlicingTests {
     	if (slicer.size() != 2) throw new RuntimeException("Works with two slicers only!");
     	System.out.println("Slice for node "+crit);
 
-        Collection<SDGNode>[] slices = new Collection[slicer.size()];
+        @SuppressWarnings("unchecked")
+		final Collection<SDGNode>[] slices = (Collection<SDGNode>[]) new Collection[slicer.size()];
 
         for (int i = 0; i < slicer.size(); i++) {
             slices[i] = slicer.get(i).slice(Collections.singleton(crit));

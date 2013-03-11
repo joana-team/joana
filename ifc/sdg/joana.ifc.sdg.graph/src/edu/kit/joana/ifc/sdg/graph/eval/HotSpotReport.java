@@ -25,7 +25,6 @@ public class HotSpotReport implements Report {
 	private Collection<Algorithm> algs;
 	private HashMap<Algorithm, LinkedList<ValueSet>> data;
 	private HashMap<Algorithm, ValueSet> temp;
-	private long succCtr;
 	private long failCtr;
 
 	HotSpotReport(Collection<Algorithm> algs) {
@@ -40,7 +39,6 @@ public class HotSpotReport implements Report {
 			data.put(a, new LinkedList<ValueSet>());
 		}
 
-		succCtr = 0;
 		failCtr = 0;
 	}
 
@@ -49,8 +47,6 @@ public class HotSpotReport implements Report {
 	}
 
 	public void iterationSucceeded() {
-		succCtr++;
-
 		for (Map.Entry<Algorithm, ValueSet> en : temp.entrySet()) {
 			LinkedList<ValueSet> l = data.get(en.getKey());
 			l.addLast(en.getValue());

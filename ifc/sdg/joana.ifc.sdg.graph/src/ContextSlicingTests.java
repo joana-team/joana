@@ -54,7 +54,8 @@ public class ContextSlicingTests {
 
         int[] size = new int[3];
         long[] time = new long[3];
-        Collection<SDGNode>[] slices = new Collection[3];
+        @SuppressWarnings("unchecked")
+		final Collection<SDGNode>[] slices = (Collection<SDGNode>[]) new Collection[3];
 
         int ctr = 0;
 

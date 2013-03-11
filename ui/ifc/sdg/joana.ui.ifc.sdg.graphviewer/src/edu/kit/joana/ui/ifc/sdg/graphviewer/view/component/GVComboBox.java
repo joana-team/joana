@@ -44,6 +44,7 @@ import javax.swing.ListCellRenderer;
  *
  */
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class GVComboBox extends JComboBox implements LanguageListener {
 	private static final long serialVersionUID = -1796655306771599978L;
 	protected Translator translator = null;

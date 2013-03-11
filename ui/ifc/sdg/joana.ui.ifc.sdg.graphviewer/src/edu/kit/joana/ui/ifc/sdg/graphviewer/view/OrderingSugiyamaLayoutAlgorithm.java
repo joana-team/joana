@@ -50,6 +50,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  * @author <a href="mailto:westerhe@fmi.uni-passau.de>Marieke Westerheide </a>
  * @version 1.1
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class OrderingSugiyamaLayoutAlgorithm extends SugiyamaLayoutAlgorithm {
 
     Vector movements = null;
@@ -513,7 +514,7 @@ public class OrderingSugiyamaLayoutAlgorithm extends SugiyamaLayoutAlgorithm {
 
                 while (newGridPosition != sourceWrapper.getGridPosition()
                         && moved) {
-                    int tmpGridPos = sourceWrapper.getGridPosition();
+//                    int tmpGridPos = sourceWrapper.getGridPosition();
 
                     moved = move(toRight, currentLevel, currentIndexInTheLevel,
                             sourceWrapper.getPriority());
@@ -623,8 +624,6 @@ public class OrderingSugiyamaLayoutAlgorithm extends SugiyamaLayoutAlgorithm {
                 wrapper.vertexView = null;
 
                 // get the bounds from the cellView
-                if (view == null)
-                    continue;
                 Rectangle2D rect = (Rectangle2D) view.getBounds().clone();
                 Rectangle bounds = new Rectangle((int) rect.getX(), (int) rect
                         .getY(), (int) rect.getWidth(), (int) rect.getHeight());
@@ -659,7 +658,7 @@ public class OrderingSugiyamaLayoutAlgorithm extends SugiyamaLayoutAlgorithm {
      *
      * cell wrapper contains all values for one node
      */
-    class CellWrapper implements Comparable {
+	class CellWrapper implements Comparable {
 
         /**
          * sum value for edge Crosses

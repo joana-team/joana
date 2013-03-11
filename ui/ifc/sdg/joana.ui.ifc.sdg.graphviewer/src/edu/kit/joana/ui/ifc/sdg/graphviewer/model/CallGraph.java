@@ -10,7 +10,6 @@ package edu.kit.joana.ui.ifc.sdg.graphviewer.model;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 
 public class CallGraph extends Graph {
-	private static final long serialVersionUID = -1215818519955060425L;
 
 	private SDG call;
 	private SDG complete;

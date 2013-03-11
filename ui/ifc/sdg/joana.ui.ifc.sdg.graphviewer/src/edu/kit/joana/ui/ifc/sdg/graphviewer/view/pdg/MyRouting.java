@@ -14,6 +14,7 @@ import org.jgraph.graph.EdgeView;
 import org.jgraph.graph.PortView;
 
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class MyRouting extends org.jgraph.graph.DefaultEdge.DefaultRouting {
 	private static final long serialVersionUID = -7437400798977013596L;
 	public int selfReferenceSize = 20;

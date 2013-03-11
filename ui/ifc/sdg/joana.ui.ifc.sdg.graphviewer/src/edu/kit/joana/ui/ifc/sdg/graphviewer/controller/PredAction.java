@@ -36,6 +36,7 @@ import org.jgraph.graph.GraphModel;
 /**
  * marks all predecessors for a vertex
  */
+@SuppressWarnings("unchecked")
 public class PredAction extends AbstractGVAction implements BundleConstants {
 	private static final long serialVersionUID = 2627488872773418881L;
 
@@ -119,11 +120,11 @@ public class PredAction extends AbstractGVAction implements BundleConstants {
 					while (iter.hasNext()) {
 						Object edge = iter.next();
 						Object sourceVertex = model.getParent(model.getSource(edge));
-						Object targetVertex = model.getParent(model.getTarget(edge));
+//						Object targetVertex = model.getParent(model.getTarget(edge));
 						if (!sourceVertex.equals(cell)) {
 							searchDialog.predList.add(new VertexNode(
 									(DefaultGraphCell) sourceVertex));
-							predList.add(new VertexNode(
+							predList.add(new VertexNode( //TODO should this be targetVertex?
 									(DefaultGraphCell) sourceVertex));
 						}
 					}

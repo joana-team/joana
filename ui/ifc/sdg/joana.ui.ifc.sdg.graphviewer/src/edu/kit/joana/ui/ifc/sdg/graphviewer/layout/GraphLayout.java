@@ -52,6 +52,7 @@ import org.jgraph.graph.PortView;
  * Multiple loops are supported but in real PDGs a node can have only one loop.
  * @author Siegfried Weber
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class GraphLayout extends LayoutStrategy {
 
     /**

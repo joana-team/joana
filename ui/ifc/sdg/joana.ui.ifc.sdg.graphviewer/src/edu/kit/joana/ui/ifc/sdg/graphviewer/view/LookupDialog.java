@@ -44,7 +44,8 @@ public class LookupDialog extends GVPanel implements BundleConstants, ActionList
 	protected JTextField tf_id = null;
 	protected GVButton button = null;
 
-	private String graphName = null;
+//	private String graphName = null;
+	@SuppressWarnings("unused")
 	private int returnValue = ERROR_OPTION;
 	private int id = -1;
 	private GVOptionPane optionPane = null;

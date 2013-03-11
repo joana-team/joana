@@ -60,6 +60,7 @@ import org.jgraph.graph.GraphConstants;
  *         href="mailto:westerhe@fmi.uni-passau.de">Marieke Westerheide </a>
  * @version 1.1
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class VertexAdjustmentsPanel extends GVPanel implements ActionListener, BundleConstants {
 	private static final long serialVersionUID = -1610819056570344287L;
 	private static final int PREVIEW_HEIGHT = 20;

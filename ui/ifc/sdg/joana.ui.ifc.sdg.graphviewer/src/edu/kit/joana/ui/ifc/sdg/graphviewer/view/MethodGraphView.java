@@ -41,6 +41,7 @@ import org.jgraph.graph.GraphLayoutCache;
 import org.jgraph.graph.GraphModel;
 import org.jgrapht.ext.JGraphModelAdapter;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class MethodGraphView extends JGraph {
 	private static final long serialVersionUID = -3048446505658986252L;
 	static int ctr = -1;
@@ -256,7 +257,6 @@ public class MethodGraphView extends JGraph {
 	 *            color properties
 	 * @return an attribute map
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private static Map getVertexAttributes(DefaultGraphCell cell, Font font, Properties colors, MethodGraph mg) {
 		final Map attributeMap = new Hashtable<String, Object>();
 		final SDGNode sdgNode;
@@ -342,6 +342,7 @@ public class MethodGraphView extends JGraph {
 	 *
 	 * @return the color properties
 	 */
+	@SuppressWarnings("resource")
 	private static Properties readColors() {
 		Properties colors = new Properties();
 		try {
@@ -349,11 +350,13 @@ public class MethodGraphView extends JGraph {
 			File preferences = new File(System.getProperty("user.home") + "/"
 					+ filename);
 			InputStream inStream;
-			if (preferences.exists())
+			if (preferences.exists()) {
 				inStream = new FileInputStream(preferences);
-			else
+			} else {
 				inStream = ClassLoader.getSystemResourceAsStream(filename);
+			}
 			colors.load(inStream);
+			inStream.close();
 		} catch (Exception e) {
 		}
 		return colors;

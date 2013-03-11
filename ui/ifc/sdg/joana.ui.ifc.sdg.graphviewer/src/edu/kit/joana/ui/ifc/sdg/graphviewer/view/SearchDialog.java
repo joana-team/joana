@@ -7,6 +7,37 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.view;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.ScrollPaneConstants;
+
+import org.jgraph.JGraph;
+import org.jgraph.graph.DefaultGraphCell;
+import org.jgraph.graph.DefaultGraphModel;
+import org.jgraph.graph.GraphModel;
+
 import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.PredAction;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.SuccAction;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.BundleConstants;
@@ -18,38 +49,7 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVFrame;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVPanel;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVRadioButton;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.awt.GridLayout;
-import java.awt.Color;
-
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.util.LinkedList;
-import java.util.Iterator;
-import java.util.Collections;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.swing.BorderFactory;
-import javax.swing.ButtonGroup;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.JPanel;
-import javax.swing.JButton;
-import javax.swing.ScrollPaneConstants;
-
-import org.jgraph.JGraph;
-import org.jgraph.graph.GraphLayoutCache;
-import org.jgraph.graph.GraphModel;
-import org.jgraph.graph.DefaultGraphCell;
-import org.jgraph.graph.DefaultGraphModel;
-
+@SuppressWarnings("rawtypes")
 public class SearchDialog extends GVPanel implements BundleConstants, ActionListener {
 	private static final long serialVersionUID = 2920892978395866486L;
 
@@ -85,7 +85,7 @@ public class SearchDialog extends GVPanel implements BundleConstants, ActionList
 
 	private GVButton hideButton = null;
 
-	private String hideButtonText = null;
+	//private String hideButtonText = null;
 
 	private String hideText = null;
 
@@ -592,7 +592,7 @@ public class SearchDialog extends GVPanel implements BundleConstants, ActionList
 
 		public void selectItem(int id, boolean select) {
 			JGraph graph = graphPane.getSelectedJGraph();
-			GraphLayoutCache view = graph.getGraphLayoutCache();
+//			GraphLayoutCache view = graph.getGraphLayoutCache();
 			GraphModel model = graph.getModel();
 			Object[] cells = DefaultGraphModel.getAll(model);
 			// iterate through all the cells

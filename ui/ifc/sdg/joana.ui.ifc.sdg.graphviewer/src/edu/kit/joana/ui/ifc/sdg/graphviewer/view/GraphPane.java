@@ -81,6 +81,7 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVPopupMenu;
  *         Siegfried Weber
  * @version 1.1
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class GraphPane extends JTabbedPane implements GraphViewerModelListener, RefreshViewListener {
 	private static final long serialVersionUID = 7806224084215051672L;
 	private static final Color TRANSPARENT = new Color(0, true);
@@ -468,7 +469,6 @@ public class GraphPane extends JTabbedPane implements GraphViewerModelListener, 
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
 	private void resetBorders() {
 		final JGraph graph = getSelectedJGraph();
 		final GraphLayoutCache view = graph.getGraphLayoutCache();
@@ -498,6 +498,7 @@ public class GraphPane extends JTabbedPane implements GraphViewerModelListener, 
 		return this.getSize();
 	}
 
+	@SuppressWarnings("resource")
 	private Properties readColors() {
 		final Properties colors = new Properties();
 
@@ -514,6 +515,7 @@ public class GraphPane extends JTabbedPane implements GraphViewerModelListener, 
 			}
 
 			colors.load(inStream);
+			inStream.close();
 		} catch (IOException e) {
 			throw new IllegalStateException(e);
 		}

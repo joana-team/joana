@@ -60,7 +60,8 @@ public abstract class LayoutProgress {
      * Completes a phase.
      * @param graph a PDG
      */
-    public void complete(PDG graph) {
+    @SuppressWarnings("unused")
+	public void complete(PDG graph) {
         if(VERBOSE && time != getMaxTime(graph))
             System.out.println(this.getClass() + ": not complete (" + time +
                     "/" + getMaxTime(graph) + ")");

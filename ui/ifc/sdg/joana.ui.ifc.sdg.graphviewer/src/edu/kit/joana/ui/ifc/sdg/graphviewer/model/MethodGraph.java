@@ -29,7 +29,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  * @author Siegfried Weber
  */
 public class MethodGraph extends Graph {
-	private static final long serialVersionUID = -8925052545441843926L;
+
 	/**
 	 * the PDG
 	 */

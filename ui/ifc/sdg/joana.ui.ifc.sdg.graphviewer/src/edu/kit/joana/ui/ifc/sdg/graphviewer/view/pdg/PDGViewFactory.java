@@ -107,6 +107,7 @@ public class PDGViewFactory extends DefaultCellViewFactory implements
 	 * node appearance (currently merely background colour) and checks the
 	 * SDGNode class for new vertex types.
 	 */
+	@SuppressWarnings("resource")
 	private PDGViewFactory() {
 		// super();
 		colors = new Properties();
@@ -120,6 +121,7 @@ public class PDGViewFactory extends DefaultCellViewFactory implements
 //				inStream = ClassLoader.getSystemResourceAsStream(FILE_NAME);
 				inStream = this.getClass().getClassLoader().getResourceAsStream(FILE_NAME);
 			colors.load(inStream);
+			inStream.close();
 		} catch (FileNotFoundException e) {
 			System.out.println(e.getMessage());
 		} catch (IOException f) {

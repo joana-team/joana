@@ -67,6 +67,7 @@ public class SuccAction extends AbstractGVAction implements BundleConstants {
 	 * succ action perforemd
 	 * @param event
 	 */
+	@SuppressWarnings("unchecked")
 	public void actionPerformed(ActionEvent event) {
 
 		List<VertexNode> succList = new ArrayList<VertexNode>(); // stores successors

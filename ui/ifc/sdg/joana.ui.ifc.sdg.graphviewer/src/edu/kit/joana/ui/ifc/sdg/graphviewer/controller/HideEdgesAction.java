@@ -144,6 +144,7 @@ public class HideEdgesAction extends AbstractGVAction implements BundleConstants
 		return attributeMap;
 	}
 
+	@SuppressWarnings("resource")
 	private Properties readColors() {
 		Properties colors = new Properties();
 		try {
@@ -156,6 +157,7 @@ public class HideEdgesAction extends AbstractGVAction implements BundleConstants
 //				inStream = ClassLoader.getSystemResourceAsStream(filename);
 				inStream = this.getClass().getClassLoader().getResourceAsStream(filename);
 			colors.load(inStream);
+			inStream.close();
 		} catch (Exception e) { }
 		return colors;
 	}

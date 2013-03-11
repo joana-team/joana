@@ -40,7 +40,7 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVMenu;
 
 public class SlicingMenu extends GVMenu implements ChangeListener {
 	private static final long serialVersionUID = 5431822284677678749L;
-	private MainFrame mainFrame = null;
+//	private MainFrame mainFrame = null;
 	private GraphPane graphPane = null;
 	public final String SOURCE = "criterion:";
 	private int sourceID = 0;
@@ -49,7 +49,7 @@ public class SlicingMenu extends GVMenu implements ChangeListener {
 	public SlicingMenu(MainFrame owner, Translator translator, Resource text, MenuBar menuBar) {
 		super(translator, text);
 		bildUnterMenu();
-		this.mainFrame = owner;
+//		this.mainFrame = owner;
 		menuBar.add(this);
 		this.graphPane = owner.getGraphPane();
 

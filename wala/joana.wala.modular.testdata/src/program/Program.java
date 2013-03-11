@@ -19,13 +19,13 @@ import module.Module.Message;
 public class Program {
 
 	private static final String JAR_MODULE = "mojo-test-modules.jar";
-	private static final String JAR_PROGRAM = "mojo-test-modules.jar";
+//	private static final String JAR_PROGRAM = "mojo-test-modules.jar";
 
 	private static final String MODULE_PROVIDER_1 = "module.provider1.ModuleP1";
 	private static final String MODULE_PROVIDER_2 = "module.provider2.ModuleP2";
 
 	private static final JARClassLoader CLS_MODULE = new JARClassLoader(new File(JAR_MODULE));
-	private static final JARClassLoader CLS_PROGRAM = new JARClassLoader(new File(JAR_MODULE));
+//	private static final JARClassLoader CLS_PROGRAM = new JARClassLoader(new File(JAR_MODULE));
 
 
 	public void run() throws IOException {

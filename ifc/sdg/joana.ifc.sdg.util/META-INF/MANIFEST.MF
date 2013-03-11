@@ -10,3 +10,4 @@ Export-Package: edu.kit.joana.ifc.sdg.util,
 Require-Bundle: joana.ifc.sdg.graph;bundle-version="1.1.0",
  joana.contrib.lib;bundle-version="1.0.0",
  joana.util;bundle-version="1.0.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6

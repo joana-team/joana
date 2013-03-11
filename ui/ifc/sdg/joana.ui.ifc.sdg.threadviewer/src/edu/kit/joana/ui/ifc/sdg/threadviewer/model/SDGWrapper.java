@@ -232,7 +232,7 @@ public class SDGWrapper {
 			regions.addAll(this.getRegions(thread.getId()));
 		}
 
-		Collection<ThreadRegion> regions2 = analysisMHP.getThreadRegions();
+		//Collection<ThreadRegion> regions2 = analysisMHP.getThreadRegions();
 
 		return regions;
 	}

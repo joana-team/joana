@@ -115,7 +115,7 @@ public class RandomAliasSDGTest {
 	public void adjustAlias_Test_foo1() {
 		final String src = "../MoJo-TestCode/src";
 		final String bin = "../MoJo-TestCode/bin";
-		final String method = "Test.foo1(LTest$A;LTest$A;)LTest$A2;";
+		// final String method = "Test.foo1(LTest$A;LTest$A;)LTest$A2;";
 		final String file = "Test.foo1(Test.A,Test.A)-mojotest";
 
 		try {
@@ -141,7 +141,7 @@ public class RandomAliasSDGTest {
 	public void adjustAlias_Test_indirectFoo1() {
 		final String src = "../MoJo-TestCode/src";
 		final String bin = "../MoJo-TestCode/bin";
-		final String method = "Test.indirectFoo1(LTest$A;LTest$A;)LTest$A2;";
+		// final String method = "Test.indirectFoo1(LTest$A;LTest$A;)LTest$A2;";
 		final String file = "Test.indirectFoo1(Test.A,Test.A)-mojotest";
 
 		try {
@@ -167,7 +167,7 @@ public class RandomAliasSDGTest {
 	public void adjustAlias_Test_indirectRevFoo1() {
 		final String src = "../MoJo-TestCode/src";
 		final String bin = "../MoJo-TestCode/bin";
-		final String method = "Test.indirectRevFoo1(LTest$A;LTest$A;)LTest$A2;";
+		// final String method = "Test.indirectRevFoo1(LTest$A;LTest$A;)LTest$A2;";
 		final String file = "Test.indirectRevFoo1(Test.A,Test.A)-mojotest";
 
 		try {
@@ -193,7 +193,7 @@ public class RandomAliasSDGTest {
 	public void adjustAlias_Test_indirectMultipleFoo1() {
 		final String src = "../MoJo-TestCode/src";
 		final String bin = "../MoJo-TestCode/bin";
-		final String method = "Test.indirectMultipleFoo1(LTest$A;LTest$A;)LTest$A2;";
+		// final String method = "Test.indirectMultipleFoo1(LTest$A;LTest$A;)LTest$A2;";
 		final String file = "Test.indirectMultipleFoo1(Test.A,Test.A)-mojotest";
 
 		try {
@@ -219,7 +219,7 @@ public class RandomAliasSDGTest {
 	public void adjustAlias_Test_indirectSameFoo1() {
 		final String src = "../MoJo-TestCode/src";
 		final String bin = "../MoJo-TestCode/bin";
-		final String method = "Test.indirectSameFoo1(LTest$A;LTest$A;)LTest$A2;";
+		// final String method = "Test.indirectSameFoo1(LTest$A;LTest$A;)LTest$A2;";
 		final String file = "Test.indirectSameFoo1(Test.A,Test.A)-mojotest";
 
 		try {
@@ -245,7 +245,7 @@ public class RandomAliasSDGTest {
 	public void adjustAlias_Test_foo2() {
 		final String src = "../MoJo-TestCode/src";
 		final String bin = "../MoJo-TestCode/bin";
-		final String method = "Test.foo2(LTest$A;LTest$A;)I";
+		// final String method = "Test.foo2(LTest$A;LTest$A;)I";
 		final String file = "Test.foo2(Test.A,Test.A)-mojotest";
 
 		try {
@@ -271,7 +271,7 @@ public class RandomAliasSDGTest {
 	public void adjustAlias_Test_foo3() {
 		final String src = "../MoJo-TestCode/src";
 		final String bin = "../MoJo-TestCode/bin";
-		final String method = "Test.foo3(LTest$A;LTest$A;)I";
+		// final String method = "Test.foo3(LTest$A;LTest$A;)I";
 		final String file = "Test.foo3(Test.A,Test.A)-mojotest";
 
 		try {
@@ -297,7 +297,7 @@ public class RandomAliasSDGTest {
 	public void adjustAlias_Test_foo4() {
 		final String src = "../MoJo-TestCode/src";
 		final String bin = "../MoJo-TestCode/bin";
-		final String method = "Test.foo4(LTest$A;LTest$A;LTest$A;LTest$A;)I";
+		// final String method = "Test.foo4(LTest$A;LTest$A;LTest$A;LTest$A;)I";
 		final String file = "Test.foo4(Test.A,Test.A,Test.A,Test.A)-mojotest";
 
 		try {
@@ -323,7 +323,7 @@ public class RandomAliasSDGTest {
 	public void adjustAlias_Test_foo5() {
 		final String src = "../MoJo-TestCode/src";
 		final String bin = "../MoJo-TestCode/bin";
-		final String method = "Test.foo5(LTest$A;LTest$A;LTest$A;LTest$A;)I";
+		// final String method = "Test.foo5(LTest$A;LTest$A;LTest$A;LTest$A;)I";
 		final String file = "Test.foo5(Test.A,Test.A,Test.A,Test.A)-mojotest";
 
 		try {
@@ -349,7 +349,7 @@ public class RandomAliasSDGTest {
 	public void adjustAlias_Test_foo6() {
 		final String src = "../MoJo-TestCode/src";
 		final String bin = "../MoJo-TestCode/bin";
-		final String method = "Test.foo6(LTest$A;LTest$A;)I";
+		// final String method = "Test.foo6(LTest$A;LTest$A;)I";
 		final String file = "Test.foo6(Test.A,Test.A)-mojotest";
 
 		try {
@@ -375,7 +375,7 @@ public class RandomAliasSDGTest {
 	public void adjustAlias_Test_foo7() {
 		final String src = "../MoJo-TestCode/src";
 		final String bin = "../MoJo-TestCode/bin";
-		final String method = "Test.foo7(LTest$A3;LTest$A3;)I";
+		// final String method = "Test.foo7(LTest$A3;LTest$A3;)I";
 		final String file = "Test.foo7(Test.A3,Test.A3)-mojotest";
 
 		try {
@@ -401,7 +401,7 @@ public class RandomAliasSDGTest {
 	public void adjustAlias_Test_foo8() {
 		final String src = "../MoJo-TestCode/src";
 		final String bin = "../MoJo-TestCode/bin";
-		final String method = "Test.foo8(LTest$A3;LTest$A3;)I";
+		// final String method = "Test.foo8(LTest$A3;LTest$A3;)I";
 		final String file = "Test.foo8(Test.A3,Test.A3)-mojotest";
 
 		try {
@@ -427,7 +427,7 @@ public class RandomAliasSDGTest {
 	public void adjustAlias_Test_foo9() {
 		final String src = "../MoJo-TestCode/src";
 		final String bin = "../MoJo-TestCode/bin";
-		final String method = "Test.foo9(LTest$A;LTest$A2;)I";
+		// final String method = "Test.foo9(LTest$A;LTest$A2;)I";
 		final String file = "Test.foo9(Test.A,Test.A2)-mojotest";
 
 		try {
@@ -453,7 +453,7 @@ public class RandomAliasSDGTest {
 	public void adjustAlias_Test_foo10() {
 		final String src = "../MoJo-TestCode/src";
 		final String bin = "../MoJo-TestCode/bin";
-		final String method = "Test.foo10(LTest$A2;LTest$A2;)V";
+		// final String method = "Test.foo10(LTest$A2;LTest$A2;)V";
 		final String file = "Test.foo10(Test.A2,Test.A2)-mojotest";
 
 		try {
@@ -480,7 +480,7 @@ public class RandomAliasSDGTest {
 	public void adjustAlias_Test_foo11() {
 		final String src = "../MoJo-TestCode/src";
 		final String bin = "../MoJo-TestCode/bin";
-		final String method = "Test.foo11()LTest$A3;";
+		// final String method = "Test.foo11()LTest$A3;";
 		final String file = "Test.foo11()-mojotest";
 
 		try {
@@ -507,7 +507,7 @@ public class RandomAliasSDGTest {
 	public void adjustAlias_Test_foo12() {
 		final String src = "../MoJo-TestCode/src";
 		final String bin = "../MoJo-TestCode/bin";
-		final String method = "Test.foo12(LTest$A3;LTest$A3;)V";
+		// final String method = "Test.foo12(LTest$A3;LTest$A3;)V";
 		final String file = "Test.foo12(Test.A3,Test.A3)-mojotest";
 
 		try {
@@ -534,7 +534,7 @@ public class RandomAliasSDGTest {
 	public void adjustAlias_Test_foo13() {
 		final String src = "../MoJo-TestCode/src";
 		final String bin = "../MoJo-TestCode/bin";
-		final String method = "Test.foo13(LTest$A3;LTest$A3;)V";
+		// final String method = "Test.foo13(LTest$A3;LTest$A3;)V";
 		final String file = "Test.foo13(Test.A3,Test.A3)-mojotest";
 
 		try {
@@ -561,7 +561,7 @@ public class RandomAliasSDGTest {
 	public void adjustAlias_Library_call() {
 		final String src = "../MoJo-TestCode/src";
 		final String bin = "../MoJo-TestCode/bin";
-		final String method = "Library.call(LLibrary$A;LLibrary$A;LLibrary$A;I)I";
+		// final String method = "Library.call(LLibrary$A;LLibrary$A;LLibrary$A;I)I";
 		final String file = "Library.call(Library.A,Library.A,Library.A,int)-mojotest";
 
 		try {
@@ -587,7 +587,7 @@ public class RandomAliasSDGTest {
 	public void adjustAlias_Test_invokeSingleParamAlias() {
 		final String src = "../MoJo-TestCode/src";
 		final String bin = "../MoJo-TestCode/bin";
-		final String method = "Test.invokeSingleParamAlias(LTest$A3;)I";
+		// final String method = "Test.invokeSingleParamAlias(LTest$A3;)I";
 		final String file = "Test.invokeSingleParamAlias(Test.A3)-mojotest";
 
 		try {
@@ -613,7 +613,7 @@ public class RandomAliasSDGTest {
 	public void adjustAlias_Test_invokeStringAndPrintln() {
 		final String src = "../MoJo-TestCode/src";
 		final String bin = "../MoJo-TestCode/bin";
-		final String method = "Test.invokeStringAndPrintln(Ljava/lang/String;Ljava/lang/String;LTest$A;)I";
+		// final String method = "Test.invokeStringAndPrintln(Ljava/lang/String;Ljava/lang/String;LTest$A;)I";
 		final String file = "Test.invokeStringAndPrintln(java.lang.String,java.lang.String,Test.A)-mojotest";
 
 		try {

@@ -8,9 +8,7 @@
 package edu.kit.joana.ifc.sdg.mhpoptimization;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.util.LinkedList;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -56,17 +54,13 @@ public class MHPOptimization {
 
 	private void cleanCSDG(SDG graph, MHPAnalysis mhp) {
 		LinkedList<SDGEdge> remove = new LinkedList<SDGEdge>();
-		int all = 0;
-		int x = 0;
 
 		for (SDGEdge e : graph.edgeSet()) {
 			if (e.getKind() == SDGEdge.Kind.INTERFERENCE
 					|| e.getKind() == SDGEdge.Kind.INTERFERENCE_WRITE) {
-				all++;
 				// not parallel
 				if (!mhp.isParallel(e.getSource(), e.getTarget())) {
 					remove.add(e);
-					x++;
 				}
 			}
 		}

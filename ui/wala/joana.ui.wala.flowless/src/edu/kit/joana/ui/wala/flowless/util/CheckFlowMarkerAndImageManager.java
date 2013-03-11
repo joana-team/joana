@@ -39,6 +39,7 @@ import gnu.trove.map.hash.TIntObjectHashMap;
  * @author Juergen Graf <juergen.graf@gmail.com>
  *
  */
+@SuppressWarnings("restriction")
 public class CheckFlowMarkerAndImageManager {
 
 	public static final String FLOW_OK = "edu.kit.joana.ui.checkflow_ok";

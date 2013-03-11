@@ -39,15 +39,16 @@ import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo.ParamInfo;
  * @author Juergen Graf <juergen.graf@gmail.com>
  *
  */
+@SuppressWarnings("restriction")
 public class MethodSearch {
 
-	private final IJavaProject jp;
-	private final MethodResult m;
+//	private final IJavaProject jp;
+//	private final MethodResult m;
 	private final SourceMethod jMethod;
 
 	private MethodSearch(final IJavaProject jp, final MethodResult m, final SourceMethod jMethod) {
-		this.jp = jp;
-		this.m = m;
+//		this.jp = jp;
+//		this.m = m;
 		this.jMethod = jMethod;
 	}
 

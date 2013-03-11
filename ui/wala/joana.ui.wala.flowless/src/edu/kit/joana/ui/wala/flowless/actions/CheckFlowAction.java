@@ -55,7 +55,7 @@ import edu.kit.joana.wala.dictionary.accesspath.FlowCheckResultConsumer;
  * @author Juergen Graf <juergen.graf@gmail.com>
  *
  */
-@SuppressWarnings("restriction")
+@SuppressWarnings({ "restriction", "deprecation" })
 public class CheckFlowAction extends Action implements ISelectionListener {
 
 	private final FlowLessView view;
@@ -223,6 +223,7 @@ public class CheckFlowAction extends Action implements ISelectionListener {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private static String getStackTrace(final Throwable t) {
 		final StringWriter out = new StringWriter();
 		t.printStackTrace(new PrintWriter(out));
@@ -230,7 +231,6 @@ public class CheckFlowAction extends Action implements ISelectionListener {
 		return out.toString();
 	}
 
-	@SuppressWarnings("deprecation")
 	private boolean tryToGuessProject() {
 		final IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 		final IEditorPart editorPart = page.getActiveEditor();
@@ -296,7 +296,7 @@ public class CheckFlowAction extends Action implements ISelectionListener {
 				final Object first = ssel.getFirstElement();
 
 			    if (first instanceof IResource) {
-			        final IProject p = ((IResource) first).getProject();
+			        //final IProject p = ((IResource) first).getProject();
 			    } else if (first instanceof PackageFragmentRootContainer) {
 			        project = ((PackageFragmentRootContainer) first).getJavaProject();
 			    } else if (first instanceof IJavaElement) {

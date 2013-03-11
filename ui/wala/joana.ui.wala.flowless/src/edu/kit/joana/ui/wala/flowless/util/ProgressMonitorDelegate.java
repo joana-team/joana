@@ -17,7 +17,6 @@
  *******************************************************************************/
 package edu.kit.joana.ui.wala.flowless.util;
 
-import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 
 /**

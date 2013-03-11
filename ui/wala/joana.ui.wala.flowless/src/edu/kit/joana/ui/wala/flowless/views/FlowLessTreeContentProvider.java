@@ -24,9 +24,6 @@ import edu.kit.joana.ui.wala.flowless.util.CheckFlowMarkerAndImageManager;
 import edu.kit.joana.ui.wala.flowless.util.MethodSearch;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.dictionary.accesspath.FlowCheckResultConsumer;
-import edu.kit.joana.wala.dictionary.accesspath.FlowCheckResultConsumer.FlowStmtResult;
-import edu.kit.joana.wala.dictionary.accesspath.FlowCheckResultConsumer.FlowStmtResultPart;
-import edu.kit.joana.wala.dictionary.accesspath.FlowCheckResultConsumer.MethodResult;
 import edu.kit.joana.wala.flowless.spec.FlowLessBuilder.FlowError;
 
 /**
@@ -34,6 +31,7 @@ import edu.kit.joana.wala.flowless.spec.FlowLessBuilder.FlowError;
  * @author Juergen Graf <juergen.graf@gmail.com>
  *
  */
+@SuppressWarnings("restriction")
 public class FlowLessTreeContentProvider implements ITreeContentProvider, FlowCheckResultConsumer {
 
 	private final RootNode root = new RootNode();

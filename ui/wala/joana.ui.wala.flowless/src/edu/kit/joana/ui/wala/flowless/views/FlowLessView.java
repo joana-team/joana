@@ -48,7 +48,6 @@ import edu.kit.joana.ui.wala.flowless.actions.SliceFlowResultAction;
 import edu.kit.joana.ui.wala.flowless.views.FlowLessTreeContentProvider.StmtPartNode;
 import edu.kit.joana.ui.wala.flowless.views.FlowLessTreeContentProvider.TreeNode;
 import edu.kit.joana.wala.dictionary.accesspath.FlowCheckResultConsumer;
-import edu.kit.joana.wala.dictionary.accesspath.FlowCheckResultConsumer.MethodResult;
 
 
 /**
@@ -56,6 +55,7 @@ import edu.kit.joana.wala.dictionary.accesspath.FlowCheckResultConsumer.MethodRe
  * @author Juergen Graf <juergen.graf@gmail.com>
  *
  */
+@SuppressWarnings("restriction")
 public class FlowLessView extends ViewPart {
 
 	/**

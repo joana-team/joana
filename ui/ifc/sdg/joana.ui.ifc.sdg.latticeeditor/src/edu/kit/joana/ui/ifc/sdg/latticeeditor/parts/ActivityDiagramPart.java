@@ -46,7 +46,7 @@ public class ActivityDiagramPart extends StructuredActivityPart {
 		}
 	};
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	protected void applyOwnResults(Map map) { }
 
 	/**

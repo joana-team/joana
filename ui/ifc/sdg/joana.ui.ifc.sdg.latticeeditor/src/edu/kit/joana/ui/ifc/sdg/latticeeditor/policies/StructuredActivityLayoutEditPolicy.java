@@ -67,7 +67,7 @@ public class StructuredActivityLayoutEditPolicy extends LayoutEditPolicy {
 		return null;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	protected Command getAddCommand(Request req) {
 		ChangeBoundsRequest request = (ChangeBoundsRequest) req;
 		List editParts = request.getEditParts();

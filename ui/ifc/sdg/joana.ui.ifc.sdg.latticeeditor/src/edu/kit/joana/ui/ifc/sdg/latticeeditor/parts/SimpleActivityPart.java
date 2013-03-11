@@ -38,7 +38,7 @@ import edu.kit.joana.ui.ifc.sdg.latticeeditor.figures.SimpleActivityLabel;
  */
 public class SimpleActivityPart extends ActivityPart {
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void contributeNodesToGraph(CompoundDirectedGraph graph, Subgraph s, Map map) {
 		Node n = new Node(this, s);
 		n.outgoingOffset = getAnchorOffset();

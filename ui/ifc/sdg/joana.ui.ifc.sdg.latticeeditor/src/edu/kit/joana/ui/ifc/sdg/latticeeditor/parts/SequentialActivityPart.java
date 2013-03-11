@@ -46,7 +46,7 @@ public class SequentialActivityPart extends StructuredActivityPart {
 	 * @see ActivityPart#contributeEdgesToGraph(org.eclipse.graph.CompoundDirectedGraph,
 	 *      java.util.Map)
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void contributeEdgesToGraph(CompoundDirectedGraph graph, Map map) {
 		super.contributeEdgesToGraph(graph, map);
 		Node node, prev = null;

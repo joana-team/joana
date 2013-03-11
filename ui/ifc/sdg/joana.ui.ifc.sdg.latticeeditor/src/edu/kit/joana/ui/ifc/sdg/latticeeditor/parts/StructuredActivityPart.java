@@ -51,7 +51,7 @@ public abstract class StructuredActivityPart extends ActivityPart implements Nod
 	static final Insets PADDING = new Insets(8, 6, 8, 6);
 	static final Insets INNER_PADDING = new Insets(0);
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	protected void applyChildrenResults(Map map) {
 		for (int i = 0; i < getChildren().size(); i++) {
 			ActivityPart part = (ActivityPart) getChildren().get(i);
@@ -59,13 +59,13 @@ public abstract class StructuredActivityPart extends ActivityPart implements Nod
 		}
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	protected void applyGraphResults(Map map) {
 		applyOwnResults(map);
 		applyChildrenResults(map);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	protected void applyOwnResults(Map map) {
 		super.applyGraphResults(map);
 	}
@@ -82,7 +82,7 @@ public abstract class StructuredActivityPart extends ActivityPart implements Nod
 		installEditPolicy(EditPolicy.DIRECT_EDIT_ROLE, new StructuredActivityDirectEditPolicy());
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void contributeNodesToGraph(CompoundDirectedGraph graph, Subgraph s, Map map) {
 		GraphAnimation.recordInitialState(getContentPane());
 		Subgraph me = new Subgraph(this, s);

@@ -61,7 +61,7 @@ public abstract class ActivityPart extends AbstractGraphicalEditPart implements 
 		getActivity().addPropertyChangeListener(this);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	protected void applyGraphResults(Map map) {
 		Node n = (Node) map.get(this);
 		getFigure().setBounds(new Rectangle(n.x, n.y, n.width, n.height));
@@ -72,7 +72,7 @@ public abstract class ActivityPart extends AbstractGraphicalEditPart implements 
 		}
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public void contributeEdgesToGraph(CompoundDirectedGraph graph, Map map) {
 		List outgoing = getSourceConnections();
 		for (int i = 0; i < outgoing.size(); i++) {

@@ -48,7 +48,7 @@ public class ActivityContainerEditPolicy extends ContainerEditPolicy {
 	/**
 	 * @see org.eclipse.gef.editpolicies.ContainerEditPolicy#getOrphanChildrenCommand(org.eclipse.gef.requests.GroupRequest)
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	protected Command getOrphanChildrenCommand(GroupRequest request) {
 		List parts = request.getEditParts();
 		CompoundCommand result = new CompoundCommand();

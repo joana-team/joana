@@ -37,7 +37,7 @@ class GraphLayoutManager extends AbstractLayout {
 		this.diagram = diagram;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	protected Dimension calculatePreferredSize(IFigure container, int wHint, int hHint) {
 		// if (state == PLAYBACK)
 		// return container.getSize();

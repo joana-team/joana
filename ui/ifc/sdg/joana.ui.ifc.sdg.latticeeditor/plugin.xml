@@ -4,8 +4,8 @@
    <extension
          point="org.eclipse.ui.editors">
       <editor
-            class="edu.kit.joana.ifc.sdg.latticeeditor.ui.LatticeEditor"
-            contributorClass="edu.kit.joana.ifc.sdg.latticeeditor.actions.FlowActionBarContributor"
+            class="edu.kit.joana.ui.ifc.sdg.latticeeditor.ui.LatticeEditor"
+            contributorClass="edu.kit.joana.ui.ifc.sdg.latticeeditor.actions.FlowActionBarContributor"
             default="true"
             extensions="lat"
             icon="view.gif"
@@ -21,9 +21,9 @@
       </category>
       <wizard
             category="joana.wizards"
-            class="edu.kit.joana.ifc.sdg.latticeeditor.ui.LatticeCreationWizard"
+            class="edu.kit.joana.ui.ifc.sdg.latticeeditor.ui.LatticeCreationWizard"
             icon="view.gif"
-            id="edu.kit.joana.ifc.sdg.latticeeditor.wizard.new.file"
+            id="edu.kit.joana.ui.ifc.sdg.latticeeditor.wizard.new.file"
             name="Security Class Editor">
          <selection
                class="org.eclipse.core.resources.IResource">

@@ -46,7 +46,7 @@ import edu.kit.joana.ui.ifc.sdg.latticeeditor.policies.TransitionEditPolicy;
  */
 public class TransitionPart extends AbstractConnectionEditPart {
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	protected void applyGraphResults(Map map) {
 		Edge e = (Edge) map.get(this);
 		NodeList nodes = e.vNodes;
@@ -111,7 +111,7 @@ public class TransitionPart extends AbstractConnectionEditPart {
 			((PolylineConnection) getFigure()).setLineWidth(1);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void contributeToGraph(CompoundDirectedGraph graph, Map map) {
 		GraphAnimation.recordInitialState(getConnectionFigure());
 		Node source = (Node) map.get(getSource());

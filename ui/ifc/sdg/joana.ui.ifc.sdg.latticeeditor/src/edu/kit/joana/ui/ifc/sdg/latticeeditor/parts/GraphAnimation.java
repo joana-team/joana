@@ -123,7 +123,7 @@ public class GraphAnimation {
 		return true;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	static boolean playbackState(IFigure container) {
 		if (!PLAYBACK)
 			return false;
@@ -233,7 +233,7 @@ public class GraphAnimation {
 			initialStates.put(connection, points);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	static void recordInitialState(IFigure container) {
 		if (!RECORDING)
 			return;

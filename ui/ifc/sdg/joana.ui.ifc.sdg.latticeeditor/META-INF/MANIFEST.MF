@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: joana.ui.ifc.sdg.latticeeditor
 Bundle-SymbolicName: joana.ui.ifc.sdg.latticeeditor;singleton:=true
 Bundle-Version: 3.2.2
-Bundle-Activator: edu.kit.joana.ifc.sdg.latticeeditor.LatticeEditorPlugin
+Bundle-Activator: edu.kit.joana.ui.ifc.sdg.latticeeditor.LatticeEditorPlugin
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.core.resources;bundle-version="3.5.1",
  org.eclipse.ui.views;bundle-version="3.4.1",
@@ -14,5 +14,14 @@ Require-Bundle: org.eclipse.core.runtime,
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-Vendor: Karlsruhe Institute of Technology, Programming Paradigms Group
-Export-Package: edu.kit.joana.ui.ifc.sdg.latticeeditor.model,
- edu.kit.joana.ui.ifc.sdg.latticeeditor.parts
+Export-Package: edu.kit.joana.ui.ifc.sdg.latticeeditor,
+ edu.kit.joana.ui.ifc.sdg.latticeeditor.actions,
+ edu.kit.joana.ui.ifc.sdg.latticeeditor.commands,
+ edu.kit.joana.ui.ifc.sdg.latticeeditor.dnd,
+ edu.kit.joana.ui.ifc.sdg.latticeeditor.figures,
+ edu.kit.joana.ui.ifc.sdg.latticeeditor.model,
+ edu.kit.joana.ui.ifc.sdg.latticeeditor.parts,
+ edu.kit.joana.ui.ifc.sdg.latticeeditor.policies,
+ edu.kit.joana.ui.ifc.sdg.latticeeditor.ui,
+ edu.kit.joana.ui.ifc.sdg.latticeview
+Bundle-ClassPath: .

@@ -169,9 +169,7 @@ public class LatticeEditor extends GraphicalEditorWithPalette {
 	private String getLatSource() {
 		String latticeSource = "";
 
-		int i = 0;
 		for (Activity ac : diagram.getChildren()) {
-			i++;
 			for (Transition tr : ac.getIncomingTransitions()) {
 				Activity in = tr.source;
 				latticeSource += ac.getName() + "<=" + in.getName() + "\n";

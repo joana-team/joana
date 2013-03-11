@@ -40,7 +40,7 @@ public class DeleteCommand extends Command {
 	private List<Transition> sourceConnections = new ArrayList<Transition>();
 	private List<Transition> targetConnections = new ArrayList<Transition>();
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	private void deleteConnections(Activity a) {
 		if (a instanceof LatticeElement) {
 			List children = ((LatticeElement) a).getChildren();

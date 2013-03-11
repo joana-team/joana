@@ -223,7 +223,7 @@ public class EvaluateMinMaxContextEffect {
 		final Set<SDGNode> formIn = sdg.getFormalInsOfProcedure(entry);
 		final Set<SDGNode> formOut = sdg.getFormalOutsOfProcedure(entry);
 
-		final SummaryGraph summary = IntraprocSummaryEdges.compute(sdg, entry, formIn, formOut);
+		final SummaryGraph<SDGNode> summary = IntraprocSummaryEdges.compute(sdg, entry, formIn, formOut);
 
 		IntraprocSummaryEdges.writeToDotFile(summary, "out/summary-" + prefix + ".dot", summary.toString() + " of " + prefix);
 

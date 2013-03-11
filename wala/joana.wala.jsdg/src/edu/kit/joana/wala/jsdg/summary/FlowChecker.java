@@ -28,17 +28,17 @@ import edu.kit.joana.wala.jsdg.summary.IntraprocSummaryEdges.SummaryGraph;
 public final class FlowChecker implements FlowAstVisitor {
 
 	private final Map<SimpleParameter, Set<SDGNode>> param2node;
-	private final SummaryGraph summary;
+	private final SummaryGraph<SDGNode> summary;
 	private final Set<FlowEdge> illegal;
 
-	private FlowChecker(Map<SimpleParameter, Set<SDGNode>> param2node, SummaryGraph summary) {
+	private FlowChecker(Map<SimpleParameter, Set<SDGNode>> param2node, SummaryGraph<SDGNode> summary) {
 		this.param2node = param2node;
 		this.summary = summary;
 		this.illegal = new HashSet<FlowEdge>();
 	}
 
 	public static Set<FlowEdge> searchIllegalFlow(Map<SimpleParameter, Set<SDGNode>> param2node,
-			SummaryGraph summary, FlowStmt flow) throws FlowAstException {
+			SummaryGraph<SDGNode> summary, FlowStmt flow) throws FlowAstException {
 		FlowChecker checker = new FlowChecker(param2node, summary);
 
 		flow.accept(checker);

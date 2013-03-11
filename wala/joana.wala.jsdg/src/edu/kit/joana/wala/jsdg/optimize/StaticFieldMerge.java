@@ -66,6 +66,7 @@ public class StaticFieldMerge {
 				case ACTUAL_OUT: {
 					actOuts.add(param);
 				} break;
+				default: // nothing to do here
 				}
 			}
 			actOuts.addAll(actIns);

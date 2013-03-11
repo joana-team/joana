@@ -350,7 +350,7 @@ public class EvaluationRunner {
 
 		final Set<SDGNode> nodesIn = sdg.getFormalInsOfProcedure(entry);
 		final Set<SDGNode> nodesOut = sdg.getFormalOutsOfProcedure(entry);
-		final SummaryGraph summary = IntraprocSummaryEdges.compute(sdg, entry, nodesIn, nodesOut);
+		final SummaryGraph<SDGNode> summary = IntraprocSummaryEdges.compute(sdg, entry, nodesIn, nodesOut);
 
 		IntraprocSummaryEdges.writeToDotFile(summary, "out/summary-" + prefix + ".dot", summary.toString() + " of " + prefix);
 

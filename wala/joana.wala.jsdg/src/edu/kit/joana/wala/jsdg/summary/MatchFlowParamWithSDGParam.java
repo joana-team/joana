@@ -65,6 +65,7 @@ public class MatchFlowParamWithSDGParam {
 			this.param2nodes = new HashMap<SimpleParameter, Set<SDGNode>>();
 		}
 
+		@SuppressWarnings("unused")
 		public void reset() {
 			param2nodes.clear();
 		}

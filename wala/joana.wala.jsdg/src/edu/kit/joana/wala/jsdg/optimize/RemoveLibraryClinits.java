@@ -7,7 +7,6 @@
  */
 package edu.kit.joana.wala.jsdg.optimize;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -80,11 +79,11 @@ public class RemoveLibraryClinits {
 	private void removeMethod(final SDGNode entry) {
 		final List<SDGNode> proc = sdg.getNodesOfProcedure(entry);
 
-		final Collection<SDGNode> calls = sdg.getCallers(entry);
-
-		for (final SDGNode call : calls) {
-			// merge param nodes
-		}
+//		final Collection<SDGNode> calls = sdg.getCallers(entry);
+//
+//		for (final SDGNode call : calls) {
+//			// merge param nodes
+//		}
 
 //		final LinkedList<SDGEdge> toRemove = new LinkedList<SDGEdge>();
 //

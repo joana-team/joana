@@ -126,7 +126,7 @@ public final class RunSingleFileIFC {
 					fileName = "secure-" + numSecure + ".pdg";
 				} else {
 					numLeaks++;
-					fileName = "leaks-" + numSecure + ".pdg";
+					fileName = "leaks-" + numLeaks + ".pdg";
 				}
 
 				final SDG sdg = currentProgram.getSDG();

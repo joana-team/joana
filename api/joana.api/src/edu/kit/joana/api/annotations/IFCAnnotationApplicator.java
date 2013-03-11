@@ -82,6 +82,7 @@ public class IFCAnnotationApplicator extends SDGProgramPartVisitor<Void, IFCAnno
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private Collection<SDGNode> getCorrespondingActIns(SDGParameter param) {
 		return getCorrespondingActuals(param.getInRoot());
 	}

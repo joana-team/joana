@@ -6,8 +6,7 @@ Bundle-Version: 0.0.1
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: Juergen Graf
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Bundle-ClassPath: lib/jutil.jar,
- .
+Bundle-ClassPath: .
 Export-Package: edu.kit.joana.wala.util;
   uses:="org.eclipse.core.runtime,
    org.apache.tools.ant.types,

@@ -70,6 +70,7 @@ public class TestManager extends ManagerClient {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private void doListWorking(final String type) throws UnknownHostException, IOException, MessageParseException {
 		final List<String> list = listWorking(type);
 		System.out.println("List working (" + type + "):");
@@ -78,6 +79,7 @@ public class TestManager extends ManagerClient {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private void doListResult(final String type) throws UnknownHostException, IOException, MessageParseException {
 		final List<String> list = listResults(type);
 		System.out.println("List results (" + type + "):");
@@ -86,6 +88,7 @@ public class TestManager extends ManagerClient {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private JobState checkJob(int id) throws UnknownHostException, IOException, MessageParseException {
 		JobState state = checkStatus(id);
 		System.out.println("State of job no. " + id + " is " + state);

@@ -70,7 +70,7 @@ public class JoanaBuilder extends IncrementalProjectBuilder {
 		workbench = PlatformUI.getWorkbench();
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor) {
 		try {
 			IProject project = getProject();

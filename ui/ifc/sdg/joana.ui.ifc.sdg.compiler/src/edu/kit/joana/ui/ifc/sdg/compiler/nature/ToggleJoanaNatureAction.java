@@ -52,7 +52,7 @@ public class ToggleJoanaNatureAction implements IObjectActionDelegate {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public void selectionChanged(IAction action, ISelection selection) {
 		assert selection != null;
 

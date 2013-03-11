@@ -4,7 +4,7 @@
    <extension point="org.eclipse.ui.preferencePages">
   	<page name="HighlightPlugin: User Settings" 
   		class="edu.kit.joana.ui.ifc.sdg.textual.highlight.highlight.HighlightPreferencePage" 
-  		id="edu.kit.joana.ifc.sdg.graph.textual.highlight.HighlightPreferencePage" /> 
+  		id="joana.ui.ifc.sdg.textual.highlight.HighlightPreferencePage" /> 
    </extension>
 
 	<extension id="highlightMarker" 
@@ -18,18 +18,18 @@
     	point="org.eclipse.core.resources.markers"
     	name="level0">
     	<super type="org.eclipse.core.resources.textmarker"/>
-    	<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    	<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>    
     	<persistent value="false"/>
 	</extension>
 	<extension 
 		point="org.eclipse.ui.editors.annotationTypes">
   		<type 
-  			name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level0annotation" 
-  			markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level0" /> 
+  			name="joana.ui.ifc.sdg.textual.highlight.level0annotation" 
+  			markerType="joana.ui.ifc.sdg.textual.highlight.level0" /> 
   	</extension>
 	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
   		<specification 
-  			annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level0annotation" 
+  			annotationType="joana.ui.ifc.sdg.textual.highlight.level0annotation" 
   			textPreferenceKey="level0.highlight.text"
   			textPreferenceValue="true" 
   			highlightPreferenceKey="level0.highlight.background" 
@@ -51,17 +51,17 @@
     	point="org.eclipse.core.resources.markers"
     	name="level1">
     	<super type="org.eclipse.core.resources.textmarker"/>
-    	<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    	<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>    
     	<persistent value="false"/>
 	</extension>
 	<extension point="org.eclipse.ui.editors.annotationTypes">
   		<type 
-  			name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level1annotation" 
-  			markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level1" /> 
+  			name="joana.ui.ifc.sdg.textual.highlight.level1annotation" 
+  			markerType="joana.ui.ifc.sdg.textual.highlight.level1" /> 
   	</extension>
 	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
   		<specification 
-  			annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level1annotation" 
+  			annotationType="joana.ui.ifc.sdg.textual.highlight.level1annotation" 
   			textPreferenceKey="level1.highlight.text"
   			textPreferenceValue="false" 
   			highlightPreferenceKey="level1.highlight.background" 
@@ -83,17 +83,17 @@
     	point="org.eclipse.core.resources.markers"
     	name="level2">
     	<super type="org.eclipse.core.resources.textmarker"/>
-    	<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    	<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>    
     	<persistent value="false"/>
 	</extension>
 	<extension point="org.eclipse.ui.editors.annotationTypes">
   		<type 
-  			name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level2annotation" 
-  			markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level2" /> 
+  			name="joana.ui.ifc.sdg.textual.highlight.level2annotation" 
+  			markerType="joana.ui.ifc.sdg.textual.highlight.level2" /> 
   	</extension>
 		<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
   		<specification 
-  			annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level2annotation" 
+  			annotationType="joana.ui.ifc.sdg.textual.highlight.level2annotation" 
   			textPreferenceKey="level2.highlight.text"
   			textPreferenceValue="false" 
   			highlightPreferenceKey="level2.highlight.background" 
@@ -115,17 +115,17 @@
     	point="org.eclipse.core.resources.markers"
     	name="level3">
     	<super type="org.eclipse.core.resources.textmarker"/>
-    	<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    	<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>    
     	<persistent value="false"/>
 	</extension>
 	<extension point="org.eclipse.ui.editors.annotationTypes">
   		<type 
-  			name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level3annotation" 
-  			markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level3" /> 
+  			name="joana.ui.ifc.sdg.textual.highlight.level3annotation" 
+  			markerType="joana.ui.ifc.sdg.textual.highlight.level3" /> 
   	</extension>
 	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
   		<specification 
-  			annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level3annotation" 
+  			annotationType="joana.ui.ifc.sdg.textual.highlight.level3annotation" 
   			textPreferenceKey="level3.highlight.text"
   			textPreferenceValue="false" 
   			highlightPreferenceKey="level3.highlight.background" 
@@ -147,17 +147,17 @@
     point="org.eclipse.core.resources.markers"
     name="level4">
     <super type="org.eclipse.core.resources.textmarker"/>
-    <super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    <super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>    
     <persistent value="false"/>
 	</extension>
 	
 	<extension point="org.eclipse.ui.editors.annotationTypes">
-  	<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level4annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level4" /> 
+  	<type name="joana.ui.ifc.sdg.textual.highlight.level4annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level4" /> 
   	</extension>
   	
 	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
   	<specification 
-  	annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level4annotation" 
+  	annotationType="joana.ui.ifc.sdg.textual.highlight.level4annotation" 
   	textPreferenceKey="level4.highlight.text"
   	textPreferenceValue="false" 
   	highlightPreferenceKey="level4.highlight.background" 
@@ -179,17 +179,17 @@
     point="org.eclipse.core.resources.markers"
     name="level5">
     <super type="org.eclipse.core.resources.textmarker"/>
-    <super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    <super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>    
     <persistent value="false"/>
 	</extension>
 	
 	<extension point="org.eclipse.ui.editors.annotationTypes">
-  	<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level5annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level5" /> 
+  	<type name="joana.ui.ifc.sdg.textual.highlight.level5annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level5" /> 
   	</extension>
   	
 	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
   	<specification 
-  	annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level5annotation" 
+  	annotationType="joana.ui.ifc.sdg.textual.highlight.level5annotation" 
   	textPreferenceKey="level5.highlight.text"
   	textPreferenceValue="false" 
   	highlightPreferenceKey="level5.highlight.background" 
@@ -211,17 +211,17 @@
     point="org.eclipse.core.resources.markers"
     name="level6">
     <super type="org.eclipse.core.resources.textmarker"/>
-    <super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    <super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>    
     <persistent value="false"/>
 	</extension>
 	
 	<extension point="org.eclipse.ui.editors.annotationTypes">
-  	<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level6annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level6" /> 
+  	<type name="joana.ui.ifc.sdg.textual.highlight.level6annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level6" /> 
   	</extension>
   	
 	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
   	<specification 
-  	annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level6annotation" 
+  	annotationType="joana.ui.ifc.sdg.textual.highlight.level6annotation" 
   	textPreferenceKey="level6.highlight.text"
   	textPreferenceValue="false" 
   	highlightPreferenceKey="level6.highlight.background" 
@@ -243,17 +243,17 @@
     point="org.eclipse.core.resources.markers"
     name="level7">
     <super type="org.eclipse.core.resources.textmarker"/>
-    <super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    <super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>    
     <persistent value="false"/>
 	</extension>
 	
 	<extension point="org.eclipse.ui.editors.annotationTypes">
-  	<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level7annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level7" /> 
+  	<type name="joana.ui.ifc.sdg.textual.highlight.level7annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level7" /> 
   	</extension>
   	
 	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
   	<specification 
-  	annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level7annotation" 
+  	annotationType="joana.ui.ifc.sdg.textual.highlight.level7annotation" 
   	textPreferenceKey="level7.highlight.text"
   	textPreferenceValue="false" 
   	highlightPreferenceKey="level7.highlight.background" 
@@ -275,17 +275,17 @@
     point="org.eclipse.core.resources.markers"
     name="level8">
     <super type="org.eclipse.core.resources.textmarker"/>
-    <super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    <super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>    
     <persistent value="false"/>
 	</extension>
 	
 	<extension point="org.eclipse.ui.editors.annotationTypes">
-  	<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level8annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level8" /> 
+  	<type name="joana.ui.ifc.sdg.textual.highlight.level8annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level8" /> 
   	</extension>
   	
 	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
   	<specification 
-  	annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level8annotation" 
+  	annotationType="joana.ui.ifc.sdg.textual.highlight.level8annotation" 
   	textPreferenceKey="level8.highlight.text"
   	textPreferenceValue="false" 
   	highlightPreferenceKey="level8.highlight.background" 
@@ -307,17 +307,17 @@
     point="org.eclipse.core.resources.markers"
     name="level9">
     <super type="org.eclipse.core.resources.textmarker"/>
-    <super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    <super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>    
     <persistent value="false"/>
 	</extension>
 	
 	<extension point="org.eclipse.ui.editors.annotationTypes">
-  	<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level9annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level9" /> 
+  	<type name="joana.ui.ifc.sdg.textual.highlight.level9annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level9" /> 
   	</extension>
   	
 	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
   	<specification 
-  	annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level9annotation" 
+  	annotationType="joana.ui.ifc.sdg.textual.highlight.level9annotation" 
   	textPreferenceKey="level9.highlight.text"
   	textPreferenceValue="false" 
   	highlightPreferenceKey="level9.highlight.background" 
@@ -339,17 +339,17 @@
     point="org.eclipse.core.resources.markers"
     name="level10">
     <super type="org.eclipse.core.resources.textmarker"/>
-    <super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    <super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>    
     <persistent value="false"/>
 	</extension>
 	
 	<extension point="org.eclipse.ui.editors.annotationTypes">
-  	<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level10annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level10" /> 
+  	<type name="joana.ui.ifc.sdg.textual.highlight.level10annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level10" /> 
   	</extension>
   	
 	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
   	<specification 
-  	annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level10annotation" 
+  	annotationType="joana.ui.ifc.sdg.textual.highlight.level10annotation" 
   	textPreferenceKey="level10.highlight.text"
   	textPreferenceValue="false" 
   	highlightPreferenceKey="level10.highlight.background" 
@@ -371,15 +371,15 @@
 	point="org.eclipse.core.resources.markers"
 	name="level11">
 	<super type="org.eclipse.core.resources.textmarker"/>
-	<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+	<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 	<persistent value="false"/>
 	</extension>
 	<extension point="org.eclipse.ui.editors.annotationTypes">
-	<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level11annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level11"/>
+	<type name="joana.ui.ifc.sdg.textual.highlight.level11annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level11"/>
 	</extension>
 	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 	<specification
-	annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level11annotation"
+	annotationType="joana.ui.ifc.sdg.textual.highlight.level11annotation"
 	textPreferenceKey="level11.highlight.text"
 	textPreferenceValue="false"
 	highlightPreferenceKey="level11.highlight.background"
@@ -400,15 +400,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level12">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level12annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level12"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level12annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level12"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level12annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level12annotation"
 textPreferenceKey="level12.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level12.highlight.background"
@@ -429,15 +429,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level13">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level13annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level13"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level13annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level13"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level13annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level13annotation"
 textPreferenceKey="level13.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level13.highlight.background"
@@ -458,15 +458,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level14">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level14annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level14"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level14annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level14"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level14annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level14annotation"
 textPreferenceKey="level14.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level14.highlight.background"
@@ -487,15 +487,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level15">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level15annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level15"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level15annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level15"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level15annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level15annotation"
 textPreferenceKey="level15.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level15.highlight.background"
@@ -516,15 +516,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level16">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level16annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level16"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level16annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level16"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level16annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level16annotation"
 textPreferenceKey="level16.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level16.highlight.background"
@@ -545,15 +545,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level17">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level17annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level17"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level17annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level17"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level17annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level17annotation"
 textPreferenceKey="level17.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level17.highlight.background"
@@ -574,15 +574,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level18">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level18annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level18"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level18annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level18"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level18annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level18annotation"
 textPreferenceKey="level18.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level18.highlight.background"
@@ -603,15 +603,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level19">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level19annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level19"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level19annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level19"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level19annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level19annotation"
 textPreferenceKey="level19.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level19.highlight.background"
@@ -632,15 +632,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level20">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level20annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level20"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level20annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level20"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level20annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level20annotation"
 textPreferenceKey="level20.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level20.highlight.background"
@@ -661,15 +661,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level21">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level21annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level21"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level21annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level21"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level21annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level21annotation"
 textPreferenceKey="level21.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level21.highlight.background"
@@ -690,15 +690,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level22">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level22annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level22"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level22annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level22"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level22annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level22annotation"
 textPreferenceKey="level22.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level22.highlight.background"
@@ -719,15 +719,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level23">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level23annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level23"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level23annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level23"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level23annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level23annotation"
 textPreferenceKey="level23.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level23.highlight.background"
@@ -748,15 +748,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level24">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level24annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level24"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level24annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level24"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level24annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level24annotation"
 textPreferenceKey="level24.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level24.highlight.background"
@@ -777,15 +777,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level25">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level25annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level25"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level25annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level25"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level25annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level25annotation"
 textPreferenceKey="level25.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level25.highlight.background"
@@ -806,15 +806,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level26">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level26annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level26"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level26annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level26"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level26annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level26annotation"
 textPreferenceKey="level26.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level26.highlight.background"
@@ -835,15 +835,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level27">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level27annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level27"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level27annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level27"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level27annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level27annotation"
 textPreferenceKey="level27.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level27.highlight.background"
@@ -864,15 +864,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level28">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level28annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level28"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level28annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level28"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level28annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level28annotation"
 textPreferenceKey="level28.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level28.highlight.background"
@@ -893,15 +893,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level29">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level29annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level29"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level29annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level29"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level29annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level29annotation"
 textPreferenceKey="level29.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level29.highlight.background"
@@ -922,15 +922,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level30">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level30annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level30"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level30annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level30"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level30annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level30annotation"
 textPreferenceKey="level30.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level30.highlight.background"
@@ -951,15 +951,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level31">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level31annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level31"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level31annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level31"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level31annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level31annotation"
 textPreferenceKey="level31.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level31.highlight.background"
@@ -980,15 +980,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level32">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level32annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level32"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level32annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level32"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level32annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level32annotation"
 textPreferenceKey="level32.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level32.highlight.background"
@@ -1009,15 +1009,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level33">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level33annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level33"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level33annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level33"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level33annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level33annotation"
 textPreferenceKey="level33.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level33.highlight.background"
@@ -1038,15 +1038,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level34">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level34annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level34"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level34annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level34"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level34annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level34annotation"
 textPreferenceKey="level34.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level34.highlight.background"
@@ -1067,15 +1067,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level35">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level35annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level35"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level35annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level35"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level35annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level35annotation"
 textPreferenceKey="level35.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level35.highlight.background"
@@ -1096,15 +1096,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level36">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level36annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level36"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level36annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level36"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level36annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level36annotation"
 textPreferenceKey="level36.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level36.highlight.background"
@@ -1125,15 +1125,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level37">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level37annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level37"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level37annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level37"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level37annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level37annotation"
 textPreferenceKey="level37.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level37.highlight.background"
@@ -1154,15 +1154,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level38">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level38annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level38"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level38annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level38"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level38annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level38annotation"
 textPreferenceKey="level38.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level38.highlight.background"
@@ -1183,15 +1183,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level39">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level39annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level39"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level39annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level39"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level39annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level39annotation"
 textPreferenceKey="level39.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level39.highlight.background"
@@ -1212,15 +1212,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level40">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level40annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level40"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level40annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level40"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level40annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level40annotation"
 textPreferenceKey="level40.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level40.highlight.background"
@@ -1241,15 +1241,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level41">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level41annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level41"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level41annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level41"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level41annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level41annotation"
 textPreferenceKey="level41.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level41.highlight.background"
@@ -1270,15 +1270,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level42">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level42annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level42"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level42annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level42"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level42annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level42annotation"
 textPreferenceKey="level42.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level42.highlight.background"
@@ -1299,15 +1299,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level43">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level43annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level43"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level43annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level43"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level43annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level43annotation"
 textPreferenceKey="level43.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level43.highlight.background"
@@ -1328,15 +1328,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level44">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level44annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level44"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level44annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level44"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level44annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level44annotation"
 textPreferenceKey="level44.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level44.highlight.background"
@@ -1357,15 +1357,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level45">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level45annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level45"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level45annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level45"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level45annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level45annotation"
 textPreferenceKey="level45.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level45.highlight.background"
@@ -1386,15 +1386,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level46">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level46annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level46"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level46annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level46"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level46annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level46annotation"
 textPreferenceKey="level46.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level46.highlight.background"
@@ -1415,15 +1415,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level47">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level47annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level47"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level47annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level47"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level47annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level47annotation"
 textPreferenceKey="level47.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level47.highlight.background"
@@ -1444,15 +1444,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level48">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level48annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level48"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level48annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level48"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level48annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level48annotation"
 textPreferenceKey="level48.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level48.highlight.background"
@@ -1473,15 +1473,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level49">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level49annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level49"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level49annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level49"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level49annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level49annotation"
 textPreferenceKey="level49.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level49.highlight.background"
@@ -1502,15 +1502,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level50">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level50annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level50"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level50annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level50"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level50annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level50annotation"
 textPreferenceKey="level50.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level50.highlight.background"
@@ -1533,15 +1533,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level51">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level51annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level51"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level51annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level51"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level51annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level51annotation"
 textPreferenceKey="level51.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level51.highlight.background"
@@ -1562,15 +1562,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level52">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level52annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level52"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level52annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level52"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level52annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level52annotation"
 textPreferenceKey="level52.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level52.highlight.background"
@@ -1591,15 +1591,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level53">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level53annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level53"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level53annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level53"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level53annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level53annotation"
 textPreferenceKey="level53.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level53.highlight.background"
@@ -1620,15 +1620,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level54">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level54annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level54"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level54annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level54"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level54annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level54annotation"
 textPreferenceKey="level54.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level54.highlight.background"
@@ -1649,15 +1649,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level55">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level55annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level55"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level55annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level55"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level55annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level55annotation"
 textPreferenceKey="level55.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level55.highlight.background"
@@ -1678,15 +1678,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level56">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level56annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level56"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level56annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level56"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level56annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level56annotation"
 textPreferenceKey="level56.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level56.highlight.background"
@@ -1707,15 +1707,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level57">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level57annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level57"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level57annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level57"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level57annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level57annotation"
 textPreferenceKey="level57.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level57.highlight.background"
@@ -1736,15 +1736,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level58">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level58annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level58"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level58annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level58"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level58annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level58annotation"
 textPreferenceKey="level58.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level58.highlight.background"
@@ -1765,15 +1765,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level59">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level59annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level59"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level59annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level59"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level59annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level59annotation"
 textPreferenceKey="level59.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level59.highlight.background"
@@ -1794,15 +1794,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level60">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level60annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level60"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level60annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level60"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level60annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level60annotation"
 textPreferenceKey="level60.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level60.highlight.background"
@@ -1823,15 +1823,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level61">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level61annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level61"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level61annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level61"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level61annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level61annotation"
 textPreferenceKey="level61.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level61.highlight.background"
@@ -1852,15 +1852,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level62">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level62annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level62"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level62annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level62"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level62annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level62annotation"
 textPreferenceKey="level62.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level62.highlight.background"
@@ -1881,15 +1881,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level63">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level63annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level63"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level63annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level63"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level63annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level63annotation"
 textPreferenceKey="level63.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level63.highlight.background"
@@ -1910,15 +1910,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level64">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level64annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level64"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level64annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level64"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level64annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level64annotation"
 textPreferenceKey="level64.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level64.highlight.background"
@@ -1939,15 +1939,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level65">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level65annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level65"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level65annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level65"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level65annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level65annotation"
 textPreferenceKey="level65.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level65.highlight.background"
@@ -1968,15 +1968,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level66">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level66annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level66"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level66annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level66"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level66annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level66annotation"
 textPreferenceKey="level66.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level66.highlight.background"
@@ -1997,15 +1997,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level67">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level67annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level67"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level67annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level67"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level67annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level67annotation"
 textPreferenceKey="level67.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level67.highlight.background"
@@ -2026,15 +2026,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level68">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level68annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level68"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level68annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level68"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level68annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level68annotation"
 textPreferenceKey="level68.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level68.highlight.background"
@@ -2055,15 +2055,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level69">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level69annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level69"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level69annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level69"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level69annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level69annotation"
 textPreferenceKey="level69.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level69.highlight.background"
@@ -2084,15 +2084,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level70">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level70annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level70"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level70annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level70"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level70annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level70annotation"
 textPreferenceKey="level70.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level70.highlight.background"
@@ -2113,15 +2113,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level71">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level71annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level71"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level71annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level71"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level71annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level71annotation"
 textPreferenceKey="level71.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level71.highlight.background"
@@ -2142,15 +2142,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level72">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level72annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level72"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level72annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level72"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level72annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level72annotation"
 textPreferenceKey="level72.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level72.highlight.background"
@@ -2171,15 +2171,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level73">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level73annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level73"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level73annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level73"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level73annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level73annotation"
 textPreferenceKey="level73.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level73.highlight.background"
@@ -2200,15 +2200,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level74">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level74annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level74"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level74annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level74"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level74annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level74annotation"
 textPreferenceKey="level74.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level74.highlight.background"
@@ -2229,15 +2229,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level75">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level75annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level75"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level75annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level75"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level75annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level75annotation"
 textPreferenceKey="level75.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level75.highlight.background"
@@ -2258,15 +2258,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level76">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level76annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level76"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level76annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level76"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level76annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level76annotation"
 textPreferenceKey="level76.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level76.highlight.background"
@@ -2287,15 +2287,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level77">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level77annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level77"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level77annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level77"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level77annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level77annotation"
 textPreferenceKey="level77.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level77.highlight.background"
@@ -2316,15 +2316,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level78">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level78annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level78"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level78annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level78"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level78annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level78annotation"
 textPreferenceKey="level78.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level78.highlight.background"
@@ -2345,15 +2345,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level79">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level79annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level79"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level79annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level79"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level79annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level79annotation"
 textPreferenceKey="level79.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level79.highlight.background"
@@ -2374,15 +2374,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level80">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level80annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level80"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level80annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level80"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level80annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level80annotation"
 textPreferenceKey="level80.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level80.highlight.background"
@@ -2403,15 +2403,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level81">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level81annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level81"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level81annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level81"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level81annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level81annotation"
 textPreferenceKey="level81.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level81.highlight.background"
@@ -2432,15 +2432,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level82">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level82annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level82"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level82annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level82"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level82annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level82annotation"
 textPreferenceKey="level82.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level82.highlight.background"
@@ -2461,15 +2461,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level83">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level83annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level83"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level83annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level83"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level83annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level83annotation"
 textPreferenceKey="level83.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level83.highlight.background"
@@ -2490,15 +2490,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level84">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level84annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level84"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level84annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level84"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level84annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level84annotation"
 textPreferenceKey="level84.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level84.highlight.background"
@@ -2519,15 +2519,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level85">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level85annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level85"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level85annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level85"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level85annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level85annotation"
 textPreferenceKey="level85.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level85.highlight.background"
@@ -2548,15 +2548,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level86">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level86annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level86"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level86annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level86"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level86annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level86annotation"
 textPreferenceKey="level86.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level86.highlight.background"
@@ -2577,15 +2577,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level87">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level87annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level87"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level87annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level87"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level87annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level87annotation"
 textPreferenceKey="level87.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level87.highlight.background"
@@ -2606,15 +2606,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level88">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level88annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level88"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level88annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level88"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level88annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level88annotation"
 textPreferenceKey="level88.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level88.highlight.background"
@@ -2635,15 +2635,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level89">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level89annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level89"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level89annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level89"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level89annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level89annotation"
 textPreferenceKey="level89.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level89.highlight.background"
@@ -2664,15 +2664,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level90">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level90annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level90"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level90annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level90"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level90annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level90annotation"
 textPreferenceKey="level90.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level90.highlight.background"
@@ -2693,15 +2693,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level91">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level91annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level91"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level91annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level91"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level91annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level91annotation"
 textPreferenceKey="level91.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level91.highlight.background"
@@ -2722,15 +2722,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level92">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level92annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level92"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level92annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level92"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level92annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level92annotation"
 textPreferenceKey="level92.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level92.highlight.background"
@@ -2751,15 +2751,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level93">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level93annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level93"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level93annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level93"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level93annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level93annotation"
 textPreferenceKey="level93.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level93.highlight.background"
@@ -2780,15 +2780,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level94">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level94annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level94"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level94annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level94"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level94annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level94annotation"
 textPreferenceKey="level94.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level94.highlight.background"
@@ -2809,15 +2809,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level95">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level95annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level95"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level95annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level95"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level95annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level95annotation"
 textPreferenceKey="level95.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level95.highlight.background"
@@ -2838,15 +2838,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level96">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level96annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level96"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level96annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level96"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level96annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level96annotation"
 textPreferenceKey="level96.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level96.highlight.background"
@@ -2867,15 +2867,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level97">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level97annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level97"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level97annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level97"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level97annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level97annotation"
 textPreferenceKey="level97.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level97.highlight.background"
@@ -2896,15 +2896,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level98">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level98annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level98"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level98annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level98"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level98annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level98annotation"
 textPreferenceKey="level98.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level98.highlight.background"
@@ -2925,15 +2925,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level99">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level99annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level99"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level99annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level99"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level99annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level99annotation"
 textPreferenceKey="level99.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level99.highlight.background"
@@ -2954,15 +2954,15 @@ textStylePreferenceValue="NONE" />
 point="org.eclipse.core.resources.markers"
 name="level100">
 <super type="org.eclipse.core.resources.textmarker"/>
-<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 <persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level100annotation" markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level100"/>
+<type name="joana.ui.ifc.sdg.textual.highlight.level100annotation" markerType="joana.ui.ifc.sdg.textual.highlight.level100"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 <specification
-annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level100annotation"
+annotationType="joana.ui.ifc.sdg.textual.highlight.level100annotation"
 textPreferenceKey="level100.highlight.text"
 textPreferenceValue="false"
 highlightPreferenceKey="level100.highlight.background"
@@ -2986,18 +2986,18 @@ textStylePreferenceValue="NONE" />
     	point="org.eclipse.core.resources.markers"
     	name="level-1">
     	<super type="org.eclipse.core.resources.textmarker"/>
-    	<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    	<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>    
     	<persistent value="false"/>
 	</extension>
 	<extension 
 		point="org.eclipse.ui.editors.annotationTypes">
   		<type 
-  			name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level-1annotation" 
-  			markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level-1" /> 
+  			name="joana.ui.ifc.sdg.textual.highlight.level-1annotation" 
+  			markerType="joana.ui.ifc.sdg.textual.highlight.level-1" /> 
   	</extension>
 	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
   		<specification 
-  			annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level-1annotation" 
+  			annotationType="joana.ui.ifc.sdg.textual.highlight.level-1annotation" 
   			textPreferenceKey="level-1.highlight.text"
   			textPreferenceValue="true" 
   			highlightPreferenceKey="level-1.highlight.background" 
@@ -3019,18 +3019,18 @@ textStylePreferenceValue="NONE" />
     	point="org.eclipse.core.resources.markers"
     	name="level-2">
     	<super type="org.eclipse.core.resources.textmarker"/>
-    	<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    	<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>    
     	<persistent value="false"/>
 	</extension>
 	<extension 
 		point="org.eclipse.ui.editors.annotationTypes">
   		<type 
-  			name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level-2annotation" 
-  			markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level-2" /> 
+  			name="joana.ui.ifc.sdg.textual.highlight.level-2annotation" 
+  			markerType="joana.ui.ifc.sdg.textual.highlight.level-2" /> 
   	</extension>
 	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
   		<specification 
-  			annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level-2annotation" 
+  			annotationType="joana.ui.ifc.sdg.textual.highlight.level-2annotation" 
   			textPreferenceKey="level-2.highlight.text"
   			textPreferenceValue="true" 
   			highlightPreferenceKey="level-2.highlight.background" 
@@ -3052,18 +3052,18 @@ textStylePreferenceValue="NONE" />
     	point="org.eclipse.core.resources.markers"
     	name="level-3">
     	<super type="org.eclipse.core.resources.textmarker"/>
-    	<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>    
+    	<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>    
     	<persistent value="false"/>
 	</extension>
 	<extension 
 		point="org.eclipse.ui.editors.annotationTypes">
   		<type 
-  			name="edu.kit.joana.ifc.sdg.graph.textual.highlight.level-3annotation" 
-  			markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level-3" /> 
+  			name="joana.ui.ifc.sdg.textual.highlight.level-3annotation" 
+  			markerType="joana.ui.ifc.sdg.textual.highlight.level-3" /> 
   	</extension>
 	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
   		<specification 
-  			annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.level-3annotation" 
+  			annotationType="joana.ui.ifc.sdg.textual.highlight.level-3annotation" 
   			textPreferenceKey="level-3.highlight.text"
   			textPreferenceValue="true" 
   			highlightPreferenceKey="level-3.highlight.background" 
@@ -3083,9 +3083,9 @@ textStylePreferenceValue="NONE" />
  <extension
        point="org.eclipse.ui.preferencePages">
     <page
-          category="edu.kit.joana.ifc.sdg.graph.textual.highlight.preferences"
+          category="joana.ui.ifc.sdg.textual.highlight.preferences"
           class="edu.kit.joana.ui.ifc.sdg.textual.highlight.highlight.preferences.PreferenceGraphviewer"
-          id="edu.kit.joana.ifc.sdg.graph.textual.highlight.preferences.graphviewer"
+          id="joana.ui.ifc.sdg.textual.highlight.preferences.graphviewer"
           name="Graphviewer">
     </page>
  </extension>
@@ -3093,7 +3093,7 @@ textStylePreferenceValue="NONE" />
        point="org.eclipse.ui.preferencePages">
     <page
           class="edu.kit.joana.ui.ifc.sdg.textual.highlight.highlight.preferences.PreferenceMain"
-          id="edu.kit.joana.ifc.sdg.graph.textual.highlight.preferences"
+          id="joana.ui.ifc.sdg.textual.highlight.preferences"
           name="Joana">
     </page>
  </extension>
@@ -3101,12 +3101,12 @@ textStylePreferenceValue="NONE" />
        point="org.eclipse.ui.popupMenus">
     <objectContribution
           adaptable="false"
-          id="edu.kit.joana.ifc.sdg.graph.textual.highlight.showGraphViewerContribution"
+          id="joana.ui.ifc.sdg.textual.highlight.showGraphViewerContribution"
           nameFilter="*.pdg"
           objectClass="org.eclipse.core.resources.IFile">
        <action
              class="edu.kit.joana.ui.ifc.sdg.textual.highlight.graphviewer.ShowGraphViewerActionDelegate"
-             id="edu.kit.joana.ifc.sdg.graph.textual.highlight.showGraphViewer"
+             id="joana.ui.ifc.sdg.textual.highlight.showGraphViewer"
              label="show GraphViewer">
        </action>
     </objectContribution>
@@ -3115,16 +3115,16 @@ textStylePreferenceValue="NONE" />
 		   point="org.eclipse.core.resources.markers"
 	 	   name="sinkCriterion">
 	<super type="org.eclipse.core.resources.textmarker"/>
-	<super type="edu.kit.joana.ifc.sdg.graph.textual.highlight.highlightMarker"/>
+	<super type="joana.ui.ifc.sdg.textual.highlight.highlightMarker"/>
 	<persistent value="false"/>
 </extension>
 <extension point="org.eclipse.ui.editors.annotationTypes">
-	<type name="edu.kit.joana.ifc.sdg.graph.textual.highlight.sinkCriterion" 
-		  markerType="edu.kit.joana.ifc.sdg.graph.textual.highlight.sinkCriterion"/>
+	<type name="joana.ui.ifc.sdg.textual.highlight.sinkCriterion" 
+		  markerType="joana.ui.ifc.sdg.textual.highlight.sinkCriterion"/>
 </extension>
 <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
 	<specification
-		annotationType="edu.kit.joana.ifc.sdg.graph.textual.highlight.sinkCriterion"
+		annotationType="joana.ui.ifc.sdg.textual.highlight.sinkCriterion"
 		textPreferenceKey="sinkCriterion.highlight.text"
 		textPreferenceValue="false"
 		highlightPreferenceKey="sinkCriterion.highlight.background"

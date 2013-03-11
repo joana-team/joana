@@ -15,6 +15,7 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.actions.ActionDelegate;
 import org.eclipse.ui.internal.PluginAction;
 
+@SuppressWarnings("restriction")
 public class ShowGraphViewerActionDelegate extends ActionDelegate implements IObjectActionDelegate {
 
 	@Override

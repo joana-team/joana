@@ -210,7 +210,7 @@ public class MarkerFactory {
     	}
     }
 
-    private CompilationUnit ast;
+//    private CompilationUnit ast;
 
 	// access the text
 	private static String getText(IFile file) throws CoreException, IOException {
@@ -231,6 +231,7 @@ public class MarkerFactory {
 		return doc.getLineOffset(line);
 	}
 
+	@SuppressWarnings("deprecation")
 	private CompilationUnit initAST(ICompilationUnit unit) {
 		ASTParser parser = ASTParser.newParser(AST.JLS3);
 		parser.setKind(ASTParser.K_COMPILATION_UNIT);
@@ -243,7 +244,7 @@ public class MarkerFactory {
 		String filename = node.getSource();
 
 		if ((filename != null) && !(node.getSr() < 0)) {
-			TabulatorFilter tf = new TabulatorFilter(p);
+//			TabulatorFilter tf = new TabulatorFilter(p);
 			int line = node.getSr();
 //			int lineoffset =  tf.filter(node.getSc()) - 1;
 //			int length = node.getEc() - node.getSc();

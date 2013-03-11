@@ -1,4 +1,4 @@
-// $ANTLR 3.1.3 Mar 17, 2009 19:23:44 /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g 2012-11-17 22:34:47
+// $ANTLR 3.1.3 Mar 17, 2009 19:23:44 /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g 2013-03-11 18:55:32
 /**
  * This file is part of the Joana IFC project. It is developed at the
  * Programming Paradigms Group of the Karlsruhe Institute of Technology.
@@ -84,15 +84,15 @@ public class FlowLessLexer extends Lexer {
         super(input,state);
 
     }
-    public String getGrammarFileName() { return "/Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g"; }
+    public String getGrammarFileName() { return "/Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g"; }
 
     // $ANTLR start "T__17"
     public final void mT__17() throws RecognitionException {
         try {
             int _type = T__17;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:46:7: ( '?' )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:46:9: '?'
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:46:7: ( '?' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:46:9: '?'
             {
             match('?'); 
 
@@ -111,8 +111,8 @@ public class FlowLessLexer extends Lexer {
         try {
             int _type = T__18;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:47:7: ( 'alias' )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:47:9: 'alias'
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:47:7: ( 'alias' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:47:9: 'alias'
             {
             match("alias"); 
 
@@ -132,8 +132,8 @@ public class FlowLessLexer extends Lexer {
         try {
             int _type = T__19;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:48:7: ( '(' )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:48:9: '('
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:48:7: ( '(' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:48:9: '('
             {
             match('('); 
 
@@ -152,8 +152,8 @@ public class FlowLessLexer extends Lexer {
         try {
             int _type = T__20;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:49:7: ( ')' )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:49:9: ')'
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:49:7: ( ')' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:49:9: ')'
             {
             match(')'); 
 
@@ -172,8 +172,8 @@ public class FlowLessLexer extends Lexer {
         try {
             int _type = T__21;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:50:7: ( '{' )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:50:9: '{'
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:50:7: ( '{' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:50:9: '{'
             {
             match('{'); 
 
@@ -192,8 +192,8 @@ public class FlowLessLexer extends Lexer {
         try {
             int _type = T__22;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:51:7: ( '}' )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:51:9: '}'
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:51:7: ( '}' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:51:9: '}'
             {
             match('}'); 
 
@@ -212,8 +212,8 @@ public class FlowLessLexer extends Lexer {
         try {
             int _type = T__23;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:52:7: ( 'unique' )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:52:9: 'unique'
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:52:7: ( 'unique' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:52:9: 'unique'
             {
             match("unique"); 
 
@@ -233,8 +233,8 @@ public class FlowLessLexer extends Lexer {
         try {
             int _type = T__24;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:53:7: ( '1' )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:53:9: '1'
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:53:7: ( '1' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:53:9: '1'
             {
             match('1'); 
 
@@ -253,8 +253,8 @@ public class FlowLessLexer extends Lexer {
         try {
             int _type = T__25;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:54:7: ( 'uniq' )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:54:9: 'uniq'
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:54:7: ( 'uniq' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:54:9: 'uniq'
             {
             match("uniq"); 
 
@@ -274,8 +274,8 @@ public class FlowLessLexer extends Lexer {
         try {
             int _type = T__26;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:55:7: ( ',' )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:55:9: ','
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:55:7: ( ',' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:55:9: ','
             {
             match(','); 
 
@@ -294,8 +294,8 @@ public class FlowLessLexer extends Lexer {
         try {
             int _type = T__27;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:56:7: ( 'pure' )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:56:9: 'pure'
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:56:7: ( 'pure' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:56:9: 'pure'
             {
             match("pure"); 
 
@@ -315,8 +315,8 @@ public class FlowLessLexer extends Lexer {
         try {
             int _type = T__28;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:57:7: ( '.' )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:57:9: '.'
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:57:7: ( '.' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:57:9: '.'
             {
             match('.'); 
 
@@ -335,8 +335,8 @@ public class FlowLessLexer extends Lexer {
         try {
             int _type = T__29;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:58:7: ( '[' )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:58:9: '['
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:58:7: ( '[' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:58:9: '['
             {
             match('['); 
 
@@ -355,8 +355,8 @@ public class FlowLessLexer extends Lexer {
         try {
             int _type = T__30;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:59:7: ( ']' )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:59:9: ']'
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:59:7: ( ']' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:59:9: ']'
             {
             match(']'); 
 
@@ -375,8 +375,8 @@ public class FlowLessLexer extends Lexer {
         try {
             int _type = WS_;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:230:2: ( ( ' ' | '\\t' | '\\n' | '\\r' ) )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:230:4: ( ' ' | '\\t' | '\\n' | '\\r' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:230:2: ( ( ' ' | '\\t' | '\\n' | '\\r' ) )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:230:4: ( ' ' | '\\t' | '\\n' | '\\r' )
             {
             if ( (input.LA(1)>='\t' && input.LA(1)<='\n')||input.LA(1)=='\r'||input.LA(1)==' ' ) {
                 input.consume();
@@ -404,8 +404,8 @@ public class FlowLessLexer extends Lexer {
         try {
             int _type = IDENT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:238:2: ( ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )* )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:238:4: ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )*
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:238:2: ( ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )* )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:238:4: ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )*
             {
             if ( (input.LA(1)>='A' && input.LA(1)<='Z')||input.LA(1)=='_'||(input.LA(1)>='a' && input.LA(1)<='z') ) {
                 input.consume();
@@ -416,7 +416,7 @@ public class FlowLessLexer extends Lexer {
                 recover(mse);
                 throw mse;}
 
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:238:28: ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )*
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:238:28: ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )*
             loop1:
             do {
                 int alt1=2;
@@ -429,7 +429,7 @@ public class FlowLessLexer extends Lexer {
 
                 switch (alt1) {
             	case 1 :
-            	    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:
+            	    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:
             	    {
             	    if ( (input.LA(1)>='0' && input.LA(1)<='9')||(input.LA(1)>='A' && input.LA(1)<='Z')||input.LA(1)=='_'||(input.LA(1)>='a' && input.LA(1)<='z') ) {
             	        input.consume();
@@ -465,8 +465,8 @@ public class FlowLessLexer extends Lexer {
         try {
             int _type = WILDCARD;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:242:2: ( '*' )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:242:4: '*'
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:242:2: ( '*' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:242:4: '*'
             {
             match('*'); 
 
@@ -485,10 +485,10 @@ public class FlowLessLexer extends Lexer {
         try {
             int _type = NOT_ARROW;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:246:3: ( ( '-!>' | '\\u21F8' | '\\u219B' ) )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:246:5: ( '-!>' | '\\u21F8' | '\\u219B' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:246:3: ( ( '-!>' | '\\u21F8' | '\\u219B' ) )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:246:5: ( '-!>' | '\\u21F8' | '\\u219B' )
             {
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:246:5: ( '-!>' | '\\u21F8' | '\\u219B' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:246:5: ( '-!>' | '\\u21F8' | '\\u219B' )
             int alt2=3;
             switch ( input.LA(1) ) {
             case '-':
@@ -515,7 +515,7 @@ public class FlowLessLexer extends Lexer {
 
             switch (alt2) {
                 case 1 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:246:6: '-!>'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:246:6: '-!>'
                     {
                     match("-!>"); 
 
@@ -523,14 +523,14 @@ public class FlowLessLexer extends Lexer {
                     }
                     break;
                 case 2 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:246:14: '\\u21F8'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:246:14: '\\u21F8'
                     {
                     match('\u21F8'); 
 
                     }
                     break;
                 case 3 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:246:25: '\\u219B'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:246:25: '\\u219B'
                     {
                     match('\u219B'); 
 
@@ -555,10 +555,10 @@ public class FlowLessLexer extends Lexer {
         try {
             int _type = ARROW;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:250:3: ( ( '->' | '\\u2192' ) )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:250:5: ( '->' | '\\u2192' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:250:3: ( ( '->' | '\\u2192' ) )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:250:5: ( '->' | '\\u2192' )
             {
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:250:5: ( '->' | '\\u2192' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:250:5: ( '->' | '\\u2192' )
             int alt3=2;
             int LA3_0 = input.LA(1);
 
@@ -576,7 +576,7 @@ public class FlowLessLexer extends Lexer {
             }
             switch (alt3) {
                 case 1 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:250:6: '->'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:250:6: '->'
                     {
                     match("->"); 
 
@@ -584,7 +584,7 @@ public class FlowLessLexer extends Lexer {
                     }
                     break;
                 case 2 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:250:13: '\\u2192'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:250:13: '\\u2192'
                     {
                     match('\u2192'); 
 
@@ -609,10 +609,10 @@ public class FlowLessLexer extends Lexer {
         try {
             int _type = IMPLIES;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:254:3: ( ( '=>' | '\\u21D2' ) )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:254:5: ( '=>' | '\\u21D2' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:254:3: ( ( '=>' | '\\u21D2' ) )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:254:5: ( '=>' | '\\u21D2' )
             {
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:254:5: ( '=>' | '\\u21D2' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:254:5: ( '=>' | '\\u21D2' )
             int alt4=2;
             int LA4_0 = input.LA(1);
 
@@ -630,7 +630,7 @@ public class FlowLessLexer extends Lexer {
             }
             switch (alt4) {
                 case 1 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:254:6: '=>'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:254:6: '=>'
                     {
                     match("=>"); 
 
@@ -638,7 +638,7 @@ public class FlowLessLexer extends Lexer {
                     }
                     break;
                 case 2 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:254:13: '\\u21D2'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:254:13: '\\u21D2'
                     {
                     match('\u21D2'); 
 
@@ -663,10 +663,10 @@ public class FlowLessLexer extends Lexer {
         try {
             int _type = ALIAS_OR;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:258:3: ( ( '||' | '|' | '\\u2228' ) )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:258:5: ( '||' | '|' | '\\u2228' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:258:3: ( ( '||' | '|' | '\\u2228' ) )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:258:5: ( '||' | '|' | '\\u2228' )
             {
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:258:5: ( '||' | '|' | '\\u2228' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:258:5: ( '||' | '|' | '\\u2228' )
             int alt5=3;
             int LA5_0 = input.LA(1);
 
@@ -690,7 +690,7 @@ public class FlowLessLexer extends Lexer {
             }
             switch (alt5) {
                 case 1 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:258:6: '||'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:258:6: '||'
                     {
                     match("||"); 
 
@@ -698,14 +698,14 @@ public class FlowLessLexer extends Lexer {
                     }
                     break;
                 case 2 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:258:13: '|'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:258:13: '|'
                     {
                     match('|'); 
 
                     }
                     break;
                 case 3 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:258:19: '\\u2228'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:258:19: '\\u2228'
                     {
                     match('\u2228'); 
 
@@ -730,10 +730,10 @@ public class FlowLessLexer extends Lexer {
         try {
             int _type = ALIAS_AND;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:262:3: ( ( '&&' | '&' | '\\u2227' ) )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:262:5: ( '&&' | '&' | '\\u2227' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:262:3: ( ( '&&' | '&' | '\\u2227' ) )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:262:5: ( '&&' | '&' | '\\u2227' )
             {
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:262:5: ( '&&' | '&' | '\\u2227' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:262:5: ( '&&' | '&' | '\\u2227' )
             int alt6=3;
             int LA6_0 = input.LA(1);
 
@@ -757,7 +757,7 @@ public class FlowLessLexer extends Lexer {
             }
             switch (alt6) {
                 case 1 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:262:6: '&&'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:262:6: '&&'
                     {
                     match("&&"); 
 
@@ -765,14 +765,14 @@ public class FlowLessLexer extends Lexer {
                     }
                     break;
                 case 2 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:262:13: '&'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:262:13: '&'
                     {
                     match('&'); 
 
                     }
                     break;
                 case 3 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:262:19: '\\u2227'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:262:19: '\\u2227'
                     {
                     match('\u2227'); 
 
@@ -797,8 +797,8 @@ public class FlowLessLexer extends Lexer {
         try {
             int _type = ALIAS_NOT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:266:3: ( ( '!' | '\\u00AC' ) )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:266:5: ( '!' | '\\u00AC' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:266:3: ( ( '!' | '\\u00AC' ) )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:266:5: ( '!' | '\\u00AC' )
             {
             if ( input.LA(1)=='!'||input.LA(1)=='\u00AC' ) {
                 input.consume();
@@ -825,15 +825,15 @@ public class FlowLessLexer extends Lexer {
         try {
             int _type = RESULT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:270:3: ( ( '\\\\result' | '\\\\ret' | '\\\\return' | '\\\\res' ) )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:270:5: ( '\\\\result' | '\\\\ret' | '\\\\return' | '\\\\res' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:270:3: ( ( '\\\\result' | '\\\\ret' | '\\\\return' | '\\\\res' ) )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:270:5: ( '\\\\result' | '\\\\ret' | '\\\\return' | '\\\\res' )
             {
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:270:5: ( '\\\\result' | '\\\\ret' | '\\\\return' | '\\\\res' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:270:5: ( '\\\\result' | '\\\\ret' | '\\\\return' | '\\\\res' )
             int alt7=4;
             alt7 = dfa7.predict(input);
             switch (alt7) {
                 case 1 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:270:6: '\\\\result'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:270:6: '\\\\result'
                     {
                     match("\\result"); 
 
@@ -841,7 +841,7 @@ public class FlowLessLexer extends Lexer {
                     }
                     break;
                 case 2 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:270:19: '\\\\ret'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:270:19: '\\\\ret'
                     {
                     match("\\ret"); 
 
@@ -849,7 +849,7 @@ public class FlowLessLexer extends Lexer {
                     }
                     break;
                 case 3 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:270:29: '\\\\return'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:270:29: '\\\\return'
                     {
                     match("\\return"); 
 
@@ -857,7 +857,7 @@ public class FlowLessLexer extends Lexer {
                     }
                     break;
                 case 4 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:270:42: '\\\\res'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:270:42: '\\\\res'
                     {
                     match("\\res"); 
 
@@ -883,10 +883,10 @@ public class FlowLessLexer extends Lexer {
         try {
             int _type = EXC;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:274:3: ( ( '\\\\exc' | '\\\\e' | '\\\\exception' ) )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:274:5: ( '\\\\exc' | '\\\\e' | '\\\\exception' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:274:3: ( ( '\\\\exc' | '\\\\e' | '\\\\exception' ) )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:274:5: ( '\\\\exc' | '\\\\e' | '\\\\exception' )
             {
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:274:5: ( '\\\\exc' | '\\\\e' | '\\\\exception' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:274:5: ( '\\\\exc' | '\\\\e' | '\\\\exception' )
             int alt8=3;
             int LA8_0 = input.LA(1);
 
@@ -933,7 +933,7 @@ public class FlowLessLexer extends Lexer {
             }
             switch (alt8) {
                 case 1 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:274:6: '\\\\exc'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:274:6: '\\\\exc'
                     {
                     match("\\exc"); 
 
@@ -941,7 +941,7 @@ public class FlowLessLexer extends Lexer {
                     }
                     break;
                 case 2 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:274:16: '\\\\e'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:274:16: '\\\\e'
                     {
                     match("\\e"); 
 
@@ -949,7 +949,7 @@ public class FlowLessLexer extends Lexer {
                     }
                     break;
                 case 3 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:274:24: '\\\\exception'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:274:24: '\\\\exception'
                     {
                     match("\\exception"); 
 
@@ -975,10 +975,10 @@ public class FlowLessLexer extends Lexer {
         try {
             int _type = STATE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:278:3: ( ( '\\\\state' | '\\\\s' | '\\\\stat' ) )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:278:5: ( '\\\\state' | '\\\\s' | '\\\\stat' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:278:3: ( ( '\\\\state' | '\\\\s' | '\\\\stat' ) )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:278:5: ( '\\\\state' | '\\\\s' | '\\\\stat' )
             {
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:278:5: ( '\\\\state' | '\\\\s' | '\\\\stat' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:278:5: ( '\\\\state' | '\\\\s' | '\\\\stat' )
             int alt9=3;
             int LA9_0 = input.LA(1);
 
@@ -1035,7 +1035,7 @@ public class FlowLessLexer extends Lexer {
             }
             switch (alt9) {
                 case 1 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:278:6: '\\\\state'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:278:6: '\\\\state'
                     {
                     match("\\state"); 
 
@@ -1043,7 +1043,7 @@ public class FlowLessLexer extends Lexer {
                     }
                     break;
                 case 2 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:278:18: '\\\\s'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:278:18: '\\\\s'
                     {
                     match("\\s"); 
 
@@ -1051,7 +1051,7 @@ public class FlowLessLexer extends Lexer {
                     }
                     break;
                 case 3 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:278:26: '\\\\stat'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:278:26: '\\\\stat'
                     {
                     match("\\stat"); 
 
@@ -1077,8 +1077,8 @@ public class FlowLessLexer extends Lexer {
         try {
             int _type = ARRAY;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:282:3: ( '[]' )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:282:5: '[]'
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:282:3: ( '[]' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:282:5: '[]'
             {
             match("[]"); 
 
@@ -1094,194 +1094,194 @@ public class FlowLessLexer extends Lexer {
     // $ANTLR end "ARRAY"
 
     public void mTokens() throws RecognitionException {
-        // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:8: ( T__17 | T__18 | T__19 | T__20 | T__21 | T__22 | T__23 | T__24 | T__25 | T__26 | T__27 | T__28 | T__29 | T__30 | WS_ | IDENT | WILDCARD | NOT_ARROW | ARROW | IMPLIES | ALIAS_OR | ALIAS_AND | ALIAS_NOT | RESULT | EXC | STATE | ARRAY )
+        // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:8: ( T__17 | T__18 | T__19 | T__20 | T__21 | T__22 | T__23 | T__24 | T__25 | T__26 | T__27 | T__28 | T__29 | T__30 | WS_ | IDENT | WILDCARD | NOT_ARROW | ARROW | IMPLIES | ALIAS_OR | ALIAS_AND | ALIAS_NOT | RESULT | EXC | STATE | ARRAY )
         int alt10=27;
         alt10 = dfa10.predict(input);
         switch (alt10) {
             case 1 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:10: T__17
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:10: T__17
                 {
                 mT__17(); 
 
                 }
                 break;
             case 2 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:16: T__18
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:16: T__18
                 {
                 mT__18(); 
 
                 }
                 break;
             case 3 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:22: T__19
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:22: T__19
                 {
                 mT__19(); 
 
                 }
                 break;
             case 4 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:28: T__20
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:28: T__20
                 {
                 mT__20(); 
 
                 }
                 break;
             case 5 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:34: T__21
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:34: T__21
                 {
                 mT__21(); 
 
                 }
                 break;
             case 6 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:40: T__22
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:40: T__22
                 {
                 mT__22(); 
 
                 }
                 break;
             case 7 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:46: T__23
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:46: T__23
                 {
                 mT__23(); 
 
                 }
                 break;
             case 8 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:52: T__24
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:52: T__24
                 {
                 mT__24(); 
 
                 }
                 break;
             case 9 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:58: T__25
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:58: T__25
                 {
                 mT__25(); 
 
                 }
                 break;
             case 10 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:64: T__26
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:64: T__26
                 {
                 mT__26(); 
 
                 }
                 break;
             case 11 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:70: T__27
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:70: T__27
                 {
                 mT__27(); 
 
                 }
                 break;
             case 12 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:76: T__28
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:76: T__28
                 {
                 mT__28(); 
 
                 }
                 break;
             case 13 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:82: T__29
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:82: T__29
                 {
                 mT__29(); 
 
                 }
                 break;
             case 14 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:88: T__30
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:88: T__30
                 {
                 mT__30(); 
 
                 }
                 break;
             case 15 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:94: WS_
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:94: WS_
                 {
                 mWS_(); 
 
                 }
                 break;
             case 16 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:98: IDENT
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:98: IDENT
                 {
                 mIDENT(); 
 
                 }
                 break;
             case 17 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:104: WILDCARD
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:104: WILDCARD
                 {
                 mWILDCARD(); 
 
                 }
                 break;
             case 18 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:113: NOT_ARROW
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:113: NOT_ARROW
                 {
                 mNOT_ARROW(); 
 
                 }
                 break;
             case 19 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:123: ARROW
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:123: ARROW
                 {
                 mARROW(); 
 
                 }
                 break;
             case 20 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:129: IMPLIES
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:129: IMPLIES
                 {
                 mIMPLIES(); 
 
                 }
                 break;
             case 21 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:137: ALIAS_OR
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:137: ALIAS_OR
                 {
                 mALIAS_OR(); 
 
                 }
                 break;
             case 22 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:146: ALIAS_AND
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:146: ALIAS_AND
                 {
                 mALIAS_AND(); 
 
                 }
                 break;
             case 23 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:156: ALIAS_NOT
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:156: ALIAS_NOT
                 {
                 mALIAS_NOT(); 
 
                 }
                 break;
             case 24 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:166: RESULT
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:166: RESULT
                 {
                 mRESULT(); 
 
                 }
                 break;
             case 25 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:173: EXC
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:173: EXC
                 {
                 mEXC(); 
 
                 }
                 break;
             case 26 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:177: STATE
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:177: STATE
                 {
                 mSTATE(); 
 
                 }
                 break;
             case 27 :
-                // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:183: ARRAY
+                // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:1:183: ARRAY
                 {
                 mARRAY(); 
 

@@ -259,6 +259,7 @@ public class MoJoTests {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private static List<ClassInfo> parseJavaFilesInAllSubDirs(String dir) throws IOException {
 		File f = new File(dir);
 		if (!f.exists() || !f.isDirectory() | !f.canRead()) {

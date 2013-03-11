@@ -278,6 +278,8 @@ public class PointsToSetBuilder {
 	 */
 	public static class MergedPtsParameter extends PtsParameter {
 
+		private static final long serialVersionUID = -5093215185957083616L;
+
 		private static final TypeReference MERGE_ARTIFICAL_TYPE = TypeReference.findOrCreate(ClassLoaderReference.Primordial, "Merge#Type");
 
 		private final Set<PtsParameter> members = new HashSet<PtsParameter>();

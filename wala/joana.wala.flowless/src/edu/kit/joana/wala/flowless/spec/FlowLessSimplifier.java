@@ -156,7 +156,7 @@ public class FlowLessSimplifier {
 			if (this == obj) {
 				return true;
 			} else if (obj instanceof BasicFlowStmt) {
-				BasicFlowStmt other = (BasicFlowStmt) obj;
+				// BasicFlowStmt other = (BasicFlowStmt) obj;
 				throw new IllegalStateException("Not implemented.");
 			}
 

@@ -8,20 +8,19 @@
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.List;
 
 import org.antlr.runtime.ANTLRFileStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
+import org.antlr.runtime.Token;
 
 import edu.kit.joana.wala.flowless.spec.FlowLessBuilder;
+import edu.kit.joana.wala.flowless.spec.FlowLessBuilder.FlowError;
 import edu.kit.joana.wala.flowless.spec.FlowLessLexer;
 import edu.kit.joana.wala.flowless.spec.FlowLessParser;
-import edu.kit.joana.wala.flowless.spec.FlowLessBuilder.FlowError;
 import edu.kit.joana.wala.flowless.spec.ast.IFCStmt;
 import edu.kit.joana.wala.flowless.spec.java.LightweightJava;
 import edu.kit.joana.wala.flowless.spec.java.LightweightParser;
-import edu.kit.joana.wala.flowless.spec.java.ast.ClassInfo;
 
 
 public class QuickTest {
@@ -66,10 +65,11 @@ public class QuickTest {
 //		}
 	}
 
-	QuickTest() {}
+	private QuickTest() {}
 
 	// ifc: {fileName, f2} & !{a, b, c} | {x, y} => y->x
 	//@ ifc: alias(fileName, fileName) => fileName->\state
+	@SuppressWarnings("unused")
 	private static void test(String fileName) throws IOException, RecognitionException {
 		FlowLessLexer lexer = new FlowLessLexer(new ANTLRFileStream(fileName));
 		FlowLessParser parser = new FlowLessParser(new CommonTokenStream(lexer));
@@ -82,6 +82,7 @@ public class QuickTest {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private static void parseJavaFilesInAllSubDirs(String dir) throws IOException {
 		File f = new File(dir);
 		if (!f.exists() || !f.isDirectory() | !f.canRead()) {
@@ -183,18 +184,19 @@ public class QuickTest {
 //		}
 //	}
 
+	@SuppressWarnings("unused")
 	private static void testJLexer(String fileName) throws IOException, IllegalArgumentException, IllegalAccessException {
 		LightweightJava lexer = new LightweightJava(new ANTLRFileStream(fileName));
 
-//		for (Token tok = lexer.nextToken(); tok != null && tok.getType() != Token.EOF; tok = lexer.nextToken()) {
-//			System.out.println(LightweightJava.getTokenName(tok.getType()) + ":" + tok.getLine());
-//		}
+		for (Token tok = lexer.nextToken(); tok != null && tok.getType() != Token.EOF; tok = lexer.nextToken()) {
+			System.out.println(LightweightJava.getTokenName(tok.getType()) + ":" + tok.getLine());
+		}
 
-//		Token tok = lexer.nextToken();
-//		while (tok.getType() != Token.EOF) {
-//			System.out.println(tok);
-//			tok = lexer.nextToken();
-//		}
+		Token tok = lexer.nextToken();
+		while (tok.getType() != Token.EOF) {
+			System.out.println(tok);
+			tok = lexer.nextToken();
+		}
 	}
 
 }

@@ -60,7 +60,9 @@ public class LightweightParser {
 
 	private static class TokenStream {
 
+		@SuppressWarnings("unused")
 		private final CommonTokenStream cts;
+		@SuppressWarnings("unused")
 		private final String fileName;
 		private List<Token> toks;
 		private int index;
@@ -122,6 +124,7 @@ public class LightweightParser {
 			}
 		}
 
+		@SuppressWarnings("unused")
 		public Token peekPrevious() {
 			if (hasPrevious()) {
 				int prev = prevIndex();
@@ -143,6 +146,7 @@ public class LightweightParser {
 			}
 		}
 
+		@SuppressWarnings("unused")
 		public void skip(int tokCount) {
 			while (tokCount > 0 && hasNext()) {
 				int next = nextIndex();

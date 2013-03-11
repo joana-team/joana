@@ -1,4 +1,4 @@
-// $ANTLR 3.1.3 Mar 17, 2009 19:23:44 /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g 2012-11-17 22:34:47
+// $ANTLR 3.1.3 Mar 17, 2009 19:23:44 /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g 2013-03-11 18:55:31
 /**
  * This file is part of the Joana IFC project. It is developed at the
  * Programming Paradigms Group of the Karlsruhe Institute of Technology.
@@ -83,7 +83,7 @@ public class FlowLessParser extends Parser {
         
 
     public String[] getTokenNames() { return FlowLessParser.tokenNames; }
-    public String getGrammarFileName() { return "/Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g"; }
+    public String getGrammarFileName() { return "/Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g"; }
 
 
       @Override
@@ -118,7 +118,7 @@ public class FlowLessParser extends Parser {
 
 
     // $ANTLR start "ifc_stmt"
-    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:116:1: ifc_stmt returns [IFCStmt ifc] : (a= alias_stmts ( IMPLIES f= flow_stmts )? | IMPLIES f= flow_stmts | '?' IMPLIES f= flow_stmts );
+    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:116:1: ifc_stmt returns [IFCStmt ifc] : (a= alias_stmts ( IMPLIES f= flow_stmts )? | IMPLIES f= flow_stmts | '?' IMPLIES f= flow_stmts );
     public final IFCStmt ifc_stmt() throws RecognitionException {
         IFCStmt ifc = null;
 
@@ -128,7 +128,7 @@ public class FlowLessParser extends Parser {
 
 
         try {
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:117:2: (a= alias_stmts ( IMPLIES f= flow_stmts )? | IMPLIES f= flow_stmts | '?' IMPLIES f= flow_stmts )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:117:2: (a= alias_stmts ( IMPLIES f= flow_stmts )? | IMPLIES f= flow_stmts | '?' IMPLIES f= flow_stmts )
             int alt2=3;
             switch ( input.LA(1) ) {
             case ALIAS_NOT:
@@ -161,14 +161,14 @@ public class FlowLessParser extends Parser {
 
             switch (alt2) {
                 case 1 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:117:4: a= alias_stmts ( IMPLIES f= flow_stmts )?
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:117:4: a= alias_stmts ( IMPLIES f= flow_stmts )?
                     {
                     pushFollow(FOLLOW_alias_stmts_in_ifc_stmt65);
                     a=alias_stmts();
 
                     state._fsp--;
 
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:117:18: ( IMPLIES f= flow_stmts )?
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:117:18: ( IMPLIES f= flow_stmts )?
                     int alt1=2;
                     int LA1_0 = input.LA(1);
 
@@ -177,7 +177,7 @@ public class FlowLessParser extends Parser {
                     }
                     switch (alt1) {
                         case 1 :
-                            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:117:19: IMPLIES f= flow_stmts
+                            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:117:19: IMPLIES f= flow_stmts
                             {
                             match(input,IMPLIES,FOLLOW_IMPLIES_in_ifc_stmt68); 
                             pushFollow(FOLLOW_flow_stmts_in_ifc_stmt72);
@@ -196,7 +196,7 @@ public class FlowLessParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:118:5: IMPLIES f= flow_stmts
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:118:5: IMPLIES f= flow_stmts
                     {
                     match(input,IMPLIES,FOLLOW_IMPLIES_in_ifc_stmt82); 
                     pushFollow(FOLLOW_flow_stmts_in_ifc_stmt86);
@@ -209,7 +209,7 @@ public class FlowLessParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:119:5: '?' IMPLIES f= flow_stmts
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:119:5: '?' IMPLIES f= flow_stmts
                     {
                     match(input,17,FOLLOW_17_in_ifc_stmt94); 
                     match(input,IMPLIES,FOLLOW_IMPLIES_in_ifc_stmt96); 
@@ -237,7 +237,7 @@ public class FlowLessParser extends Parser {
 
 
     // $ANTLR start "alias_stmts"
-    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:122:1: alias_stmts returns [AliasStmt alias] : a= alias_or ;
+    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:122:1: alias_stmts returns [AliasStmt alias] : a= alias_or ;
     public final AliasStmt alias_stmts() throws RecognitionException {
         AliasStmt alias = null;
 
@@ -245,8 +245,8 @@ public class FlowLessParser extends Parser {
 
 
         try {
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:123:2: (a= alias_or )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:123:4: a= alias_or
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:123:2: (a= alias_or )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:123:4: a= alias_or
             {
             pushFollow(FOLLOW_alias_or_in_alias_stmts119);
             a=alias_or();
@@ -270,7 +270,7 @@ public class FlowLessParser extends Parser {
 
 
     // $ANTLR start "alias_or"
-    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:126:1: alias_or returns [AliasStmt alias] : a= alias_and ( ALIAS_OR b= alias_or )? ;
+    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:126:1: alias_or returns [AliasStmt alias] : a= alias_and ( ALIAS_OR b= alias_or )? ;
     public final AliasStmt alias_or() throws RecognitionException {
         AliasStmt alias = null;
 
@@ -280,8 +280,8 @@ public class FlowLessParser extends Parser {
 
 
         try {
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:127:2: (a= alias_and ( ALIAS_OR b= alias_or )? )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:127:4: a= alias_and ( ALIAS_OR b= alias_or )?
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:127:2: (a= alias_and ( ALIAS_OR b= alias_or )? )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:127:4: a= alias_and ( ALIAS_OR b= alias_or )?
             {
             pushFollow(FOLLOW_alias_and_in_alias_or138);
             a=alias_and();
@@ -289,7 +289,7 @@ public class FlowLessParser extends Parser {
             state._fsp--;
 
              alias = a; 
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:127:31: ( ALIAS_OR b= alias_or )?
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:127:31: ( ALIAS_OR b= alias_or )?
             int alt3=2;
             int LA3_0 = input.LA(1);
 
@@ -298,7 +298,7 @@ public class FlowLessParser extends Parser {
             }
             switch (alt3) {
                 case 1 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:127:32: ALIAS_OR b= alias_or
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:127:32: ALIAS_OR b= alias_or
                     {
                     match(input,ALIAS_OR,FOLLOW_ALIAS_OR_in_alias_or143); 
                     pushFollow(FOLLOW_alias_or_in_alias_or147);
@@ -329,7 +329,7 @@ public class FlowLessParser extends Parser {
 
 
     // $ANTLR start "alias_and"
-    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:130:1: alias_and returns [AliasStmt alias] : a= alias_stmt ( ALIAS_AND b= alias_and )? ;
+    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:130:1: alias_and returns [AliasStmt alias] : a= alias_stmt ( ALIAS_AND b= alias_and )? ;
     public final AliasStmt alias_and() throws RecognitionException {
         AliasStmt alias = null;
 
@@ -339,8 +339,8 @@ public class FlowLessParser extends Parser {
 
 
         try {
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:131:2: (a= alias_stmt ( ALIAS_AND b= alias_and )? )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:131:4: a= alias_stmt ( ALIAS_AND b= alias_and )?
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:131:2: (a= alias_stmt ( ALIAS_AND b= alias_and )? )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:131:4: a= alias_stmt ( ALIAS_AND b= alias_and )?
             {
             pushFollow(FOLLOW_alias_stmt_in_alias_and168);
             a=alias_stmt();
@@ -348,7 +348,7 @@ public class FlowLessParser extends Parser {
             state._fsp--;
 
              alias = a; 
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:131:32: ( ALIAS_AND b= alias_and )?
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:131:32: ( ALIAS_AND b= alias_and )?
             int alt4=2;
             int LA4_0 = input.LA(1);
 
@@ -357,7 +357,7 @@ public class FlowLessParser extends Parser {
             }
             switch (alt4) {
                 case 1 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:131:33: ALIAS_AND b= alias_and
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:131:33: ALIAS_AND b= alias_and
                     {
                     match(input,ALIAS_AND,FOLLOW_ALIAS_AND_in_alias_and173); 
                     pushFollow(FOLLOW_alias_and_in_alias_and177);
@@ -388,7 +388,7 @@ public class FlowLessParser extends Parser {
 
 
     // $ANTLR start "alias_stmt"
-    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:134:1: alias_stmt returns [AliasStmt alias] : ( ( ALIAS_NOT )? 'alias' '(' p= params ')' | ( ALIAS_NOT )? '{' p= params '}' | ( 'unique' | '1' | 'uniq' ) '(' p= params ')' | '(' a= alias_stmts ')' );
+    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:134:1: alias_stmt returns [AliasStmt alias] : ( ( ALIAS_NOT )? 'alias' '(' p= params ')' | ( ALIAS_NOT )? '{' p= params '}' | ( 'unique' | '1' | 'uniq' ) '(' p= params ')' | '(' a= alias_stmts ')' );
     public final AliasStmt alias_stmt() throws RecognitionException {
         AliasStmt alias = null;
 
@@ -398,7 +398,7 @@ public class FlowLessParser extends Parser {
 
 
         try {
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:135:2: ( ( ALIAS_NOT )? 'alias' '(' p= params ')' | ( ALIAS_NOT )? '{' p= params '}' | ( 'unique' | '1' | 'uniq' ) '(' p= params ')' | '(' a= alias_stmts ')' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:135:2: ( ( ALIAS_NOT )? 'alias' '(' p= params ')' | ( ALIAS_NOT )? '{' p= params '}' | ( 'unique' | '1' | 'uniq' ) '(' p= params ')' | '(' a= alias_stmts ')' )
             int alt7=4;
             switch ( input.LA(1) ) {
             case ALIAS_NOT:
@@ -450,10 +450,10 @@ public class FlowLessParser extends Parser {
 
             switch (alt7) {
                 case 1 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:135:4: ( ALIAS_NOT )? 'alias' '(' p= params ')'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:135:4: ( ALIAS_NOT )? 'alias' '(' p= params ')'
                     {
                      boolean negated = false; 
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:135:33: ( ALIAS_NOT )?
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:135:33: ( ALIAS_NOT )?
                     int alt5=2;
                     int LA5_0 = input.LA(1);
 
@@ -462,7 +462,7 @@ public class FlowLessParser extends Parser {
                     }
                     switch (alt5) {
                         case 1 :
-                            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:135:34: ALIAS_NOT
+                            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:135:34: ALIAS_NOT
                             {
                             match(input,ALIAS_NOT,FOLLOW_ALIAS_NOT_in_alias_stmt199); 
                              negated = true; 
@@ -485,10 +485,10 @@ public class FlowLessParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:136:4: ( ALIAS_NOT )? '{' p= params '}'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:136:4: ( ALIAS_NOT )? '{' p= params '}'
                     {
                      boolean negated = false; 
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:136:33: ( ALIAS_NOT )?
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:136:33: ( ALIAS_NOT )?
                     int alt6=2;
                     int LA6_0 = input.LA(1);
 
@@ -497,7 +497,7 @@ public class FlowLessParser extends Parser {
                     }
                     switch (alt6) {
                         case 1 :
-                            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:136:34: ALIAS_NOT
+                            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:136:34: ALIAS_NOT
                             {
                             match(input,ALIAS_NOT,FOLLOW_ALIAS_NOT_in_alias_stmt223); 
                              negated = true; 
@@ -519,7 +519,7 @@ public class FlowLessParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:137:4: ( 'unique' | '1' | 'uniq' ) '(' p= params ')'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:137:4: ( 'unique' | '1' | 'uniq' ) '(' p= params ')'
                     {
                     if ( (input.LA(1)>=23 && input.LA(1)<=25) ) {
                         input.consume();
@@ -542,7 +542,7 @@ public class FlowLessParser extends Parser {
                     }
                     break;
                 case 4 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:138:4: '(' a= alias_stmts ')'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:138:4: '(' a= alias_stmts ')'
                     {
                     match(input,19,FOLLOW_19_in_alias_stmt268); 
                     pushFollow(FOLLOW_alias_stmts_in_alias_stmt272);
@@ -570,7 +570,7 @@ public class FlowLessParser extends Parser {
 
 
     // $ANTLR start "flow_stmts"
-    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:141:1: flow_stmts returns [List<FlowStmt> flowList] : f= flow_not_list ( ',' fl= flow_not_list )* ;
+    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:141:1: flow_stmts returns [List<FlowStmt> flowList] : f= flow_not_list ( ',' fl= flow_not_list )* ;
     public final List<FlowStmt> flow_stmts() throws RecognitionException {
         List<FlowStmt> flowList = null;
 
@@ -580,8 +580,8 @@ public class FlowLessParser extends Parser {
 
 
         try {
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:142:2: (f= flow_not_list ( ',' fl= flow_not_list )* )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:142:4: f= flow_not_list ( ',' fl= flow_not_list )*
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:142:2: (f= flow_not_list ( ',' fl= flow_not_list )* )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:142:4: f= flow_not_list ( ',' fl= flow_not_list )*
             {
              flowList = new LinkedList<FlowStmt>(); 
             pushFollow(FOLLOW_flow_not_list_in_flow_stmts295);
@@ -590,7 +590,7 @@ public class FlowLessParser extends Parser {
             state._fsp--;
 
              flowList.addAll(f); 
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:142:87: ( ',' fl= flow_not_list )*
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:142:87: ( ',' fl= flow_not_list )*
             loop8:
             do {
                 int alt8=2;
@@ -603,7 +603,7 @@ public class FlowLessParser extends Parser {
 
                 switch (alt8) {
             	case 1 :
-            	    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:142:88: ',' fl= flow_not_list
+            	    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:142:88: ',' fl= flow_not_list
             	    {
             	    match(input,26,FOLLOW_26_in_flow_stmts300); 
             	    pushFollow(FOLLOW_flow_not_list_in_flow_stmts304);
@@ -637,7 +637,7 @@ public class FlowLessParser extends Parser {
 
 
     // $ANTLR start "flow_not_list"
-    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:145:1: flow_not_list returns [List<FlowStmt> flowList] : ( ALIAS_NOT '(' f= flow_not_stmt ( ',' fOpt= flow_not_stmt )* ')' | f= flow_stmt | p= pure_stmt );
+    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:145:1: flow_not_list returns [List<FlowStmt> flowList] : ( ALIAS_NOT '(' f= flow_not_stmt ( ',' fOpt= flow_not_stmt )* ')' | f= flow_stmt | p= pure_stmt );
     public final List<FlowStmt> flow_not_list() throws RecognitionException {
         List<FlowStmt> flowList = null;
 
@@ -649,7 +649,7 @@ public class FlowLessParser extends Parser {
 
 
         try {
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:146:2: ( ALIAS_NOT '(' f= flow_not_stmt ( ',' fOpt= flow_not_stmt )* ')' | f= flow_stmt | p= pure_stmt )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:146:2: ( ALIAS_NOT '(' f= flow_not_stmt ( ',' fOpt= flow_not_stmt )* ')' | f= flow_stmt | p= pure_stmt )
             int alt10=3;
             switch ( input.LA(1) ) {
             case ALIAS_NOT:
@@ -678,7 +678,7 @@ public class FlowLessParser extends Parser {
 
             switch (alt10) {
                 case 1 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:146:4: ALIAS_NOT '(' f= flow_not_stmt ( ',' fOpt= flow_not_stmt )* ')'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:146:4: ALIAS_NOT '(' f= flow_not_stmt ( ',' fOpt= flow_not_stmt )* ')'
                     {
                      flowList = new LinkedList<FlowStmt>(); 
                     match(input,ALIAS_NOT,FOLLOW_ALIAS_NOT_in_flow_not_list333); 
@@ -689,7 +689,7 @@ public class FlowLessParser extends Parser {
                     state._fsp--;
 
                      f.negateNoFlow(); flowList.add(f); 
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:148:7: ( ',' fOpt= flow_not_stmt )*
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:148:7: ( ',' fOpt= flow_not_stmt )*
                     loop9:
                     do {
                         int alt9=2;
@@ -702,7 +702,7 @@ public class FlowLessParser extends Parser {
 
                         switch (alt9) {
                     	case 1 :
-                    	    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:148:8: ',' fOpt= flow_not_stmt
+                    	    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:148:8: ',' fOpt= flow_not_stmt
                     	    {
                     	    match(input,26,FOLLOW_26_in_flow_not_list352); 
                     	    pushFollow(FOLLOW_flow_not_stmt_in_flow_not_list356);
@@ -725,7 +725,7 @@ public class FlowLessParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:149:4: f= flow_stmt
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:149:4: f= flow_stmt
                     {
                      flowList = new LinkedList<FlowStmt>(); 
                     pushFollow(FOLLOW_flow_stmt_in_flow_not_list372);
@@ -738,7 +738,7 @@ public class FlowLessParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:150:4: p= pure_stmt
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:150:4: p= pure_stmt
                     {
                      flowList = new LinkedList<FlowStmt>(); 
                     pushFollow(FOLLOW_pure_stmt_in_flow_not_list383);
@@ -765,7 +765,7 @@ public class FlowLessParser extends Parser {
 
 
     // $ANTLR start "pure_stmt"
-    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:153:1: pure_stmt returns [PureStmt pure] : 'pure' ( '(' p= simple_params ')' )? ;
+    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:153:1: pure_stmt returns [PureStmt pure] : 'pure' ( '(' p= simple_params ')' )? ;
     public final PureStmt pure_stmt() throws RecognitionException {
         PureStmt pure = null;
 
@@ -773,11 +773,11 @@ public class FlowLessParser extends Parser {
 
 
         try {
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:154:3: ( 'pure' ( '(' p= simple_params ')' )? )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:154:5: 'pure' ( '(' p= simple_params ')' )?
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:154:3: ( 'pure' ( '(' p= simple_params ')' )? )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:154:5: 'pure' ( '(' p= simple_params ')' )?
             {
             match(input,27,FOLLOW_27_in_pure_stmt401); 
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:154:12: ( '(' p= simple_params ')' )?
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:154:12: ( '(' p= simple_params ')' )?
             int alt11=2;
             int LA11_0 = input.LA(1);
 
@@ -786,7 +786,7 @@ public class FlowLessParser extends Parser {
             }
             switch (alt11) {
                 case 1 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:154:13: '(' p= simple_params ')'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:154:13: '(' p= simple_params ')'
                     {
                     match(input,19,FOLLOW_19_in_pure_stmt404); 
                     pushFollow(FOLLOW_simple_params_in_pure_stmt408);
@@ -823,7 +823,7 @@ public class FlowLessParser extends Parser {
 
 
     // $ANTLR start "flow_not_stmt"
-    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:163:1: flow_not_stmt returns [ExplicitFlowStmt flow] : ( ALIAS_NOT f= flow_stmt | f= flow_stmt );
+    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:163:1: flow_not_stmt returns [ExplicitFlowStmt flow] : ( ALIAS_NOT f= flow_stmt | f= flow_stmt );
     public final ExplicitFlowStmt flow_not_stmt() throws RecognitionException {
         ExplicitFlowStmt flow = null;
 
@@ -831,7 +831,7 @@ public class FlowLessParser extends Parser {
 
 
         try {
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:164:2: ( ALIAS_NOT f= flow_stmt | f= flow_stmt )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:164:2: ( ALIAS_NOT f= flow_stmt | f= flow_stmt )
             int alt12=2;
             int LA12_0 = input.LA(1);
 
@@ -849,7 +849,7 @@ public class FlowLessParser extends Parser {
             }
             switch (alt12) {
                 case 1 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:164:4: ALIAS_NOT f= flow_stmt
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:164:4: ALIAS_NOT f= flow_stmt
                     {
                     match(input,ALIAS_NOT,FOLLOW_ALIAS_NOT_in_flow_not_stmt435); 
                     pushFollow(FOLLOW_flow_stmt_in_flow_not_stmt439);
@@ -862,7 +862,7 @@ public class FlowLessParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:165:4: f= flow_stmt
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:165:4: f= flow_stmt
                     {
                     pushFollow(FOLLOW_flow_stmt_in_flow_not_stmt448);
                     f=flow_stmt();
@@ -888,7 +888,7 @@ public class FlowLessParser extends Parser {
 
 
     // $ANTLR start "flow_stmt"
-    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:168:1: flow_stmt returns [ExplicitFlowStmt flow] : ( ( '(' from= simple_params ')' | f= param_exp ) ( ARROW | NOT_ARROW ) ( '(' to= simple_out_params ')' | t= out_param_exp ) | WILDCARD );
+    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:168:1: flow_stmt returns [ExplicitFlowStmt flow] : ( ( '(' from= simple_params ')' | f= param_exp ) ( ARROW | NOT_ARROW ) ( '(' to= simple_out_params ')' | t= out_param_exp ) | WILDCARD );
     public final ExplicitFlowStmt flow_stmt() throws RecognitionException {
         ExplicitFlowStmt flow = null;
 
@@ -902,7 +902,7 @@ public class FlowLessParser extends Parser {
 
 
         try {
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:169:2: ( ( '(' from= simple_params ')' | f= param_exp ) ( ARROW | NOT_ARROW ) ( '(' to= simple_out_params ')' | t= out_param_exp ) | WILDCARD )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:169:2: ( ( '(' from= simple_params ')' | f= param_exp ) ( ARROW | NOT_ARROW ) ( '(' to= simple_out_params ')' | t= out_param_exp ) | WILDCARD )
             int alt16=2;
             int LA16_0 = input.LA(1);
 
@@ -933,10 +933,10 @@ public class FlowLessParser extends Parser {
             }
             switch (alt16) {
                 case 1 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:169:4: ( '(' from= simple_params ')' | f= param_exp ) ( ARROW | NOT_ARROW ) ( '(' to= simple_out_params ')' | t= out_param_exp )
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:169:4: ( '(' from= simple_params ')' | f= param_exp ) ( ARROW | NOT_ARROW ) ( '(' to= simple_out_params ')' | t= out_param_exp )
                     {
                      boolean negated = false; 
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:170:3: ( '(' from= simple_params ')' | f= param_exp )
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:170:3: ( '(' from= simple_params ')' | f= param_exp )
                     int alt13=2;
                     int LA13_0 = input.LA(1);
 
@@ -954,7 +954,7 @@ public class FlowLessParser extends Parser {
                     }
                     switch (alt13) {
                         case 1 :
-                            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:170:4: '(' from= simple_params ')'
+                            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:170:4: '(' from= simple_params ')'
                             {
                             match(input,19,FOLLOW_19_in_flow_stmt471); 
                             pushFollow(FOLLOW_simple_params_in_flow_stmt475);
@@ -967,7 +967,7 @@ public class FlowLessParser extends Parser {
                             }
                             break;
                         case 2 :
-                            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:170:33: f= param_exp
+                            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:170:33: f= param_exp
                             {
                             pushFollow(FOLLOW_param_exp_in_flow_stmt483);
                             f=param_exp();
@@ -981,7 +981,7 @@ public class FlowLessParser extends Parser {
 
                     }
 
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:171:3: ( ARROW | NOT_ARROW )
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:171:3: ( ARROW | NOT_ARROW )
                     int alt14=2;
                     int LA14_0 = input.LA(1);
 
@@ -999,14 +999,14 @@ public class FlowLessParser extends Parser {
                     }
                     switch (alt14) {
                         case 1 :
-                            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:171:4: ARROW
+                            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:171:4: ARROW
                             {
                             match(input,ARROW,FOLLOW_ARROW_in_flow_stmt492); 
 
                             }
                             break;
                         case 2 :
-                            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:171:12: NOT_ARROW
+                            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:171:12: NOT_ARROW
                             {
                             match(input,NOT_ARROW,FOLLOW_NOT_ARROW_in_flow_stmt496); 
                              negated = true; 
@@ -1016,7 +1016,7 @@ public class FlowLessParser extends Parser {
 
                     }
 
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:172:3: ( '(' to= simple_out_params ')' | t= out_param_exp )
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:172:3: ( '(' to= simple_out_params ')' | t= out_param_exp )
                     int alt15=2;
                     int LA15_0 = input.LA(1);
 
@@ -1034,7 +1034,7 @@ public class FlowLessParser extends Parser {
                     }
                     switch (alt15) {
                         case 1 :
-                            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:172:4: '(' to= simple_out_params ')'
+                            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:172:4: '(' to= simple_out_params ')'
                             {
                             match(input,19,FOLLOW_19_in_flow_stmt505); 
                             pushFollow(FOLLOW_simple_out_params_in_flow_stmt509);
@@ -1047,7 +1047,7 @@ public class FlowLessParser extends Parser {
                             }
                             break;
                         case 2 :
-                            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:172:35: t= out_param_exp
+                            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:172:35: t= out_param_exp
                             {
                             pushFollow(FOLLOW_out_param_exp_in_flow_stmt517);
                             t=out_param_exp();
@@ -1071,7 +1071,7 @@ public class FlowLessParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:179:4: WILDCARD
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:179:4: WILDCARD
                     {
                     match(input,WILDCARD,FOLLOW_WILDCARD_in_flow_stmt530); 
                      
@@ -1099,7 +1099,7 @@ public class FlowLessParser extends Parser {
 
 
     // $ANTLR start "simple_out_params"
-    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:189:1: simple_out_params returns [List<SimpleParameter> params] : p= out_param_exp ( ',' pOpt= out_param_exp )* ;
+    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:189:1: simple_out_params returns [List<SimpleParameter> params] : p= out_param_exp ( ',' pOpt= out_param_exp )* ;
     public final List<SimpleParameter> simple_out_params() throws RecognitionException {
         List<SimpleParameter> params = null;
 
@@ -1109,8 +1109,8 @@ public class FlowLessParser extends Parser {
 
 
         try {
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:190:3: (p= out_param_exp ( ',' pOpt= out_param_exp )* )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:190:5: p= out_param_exp ( ',' pOpt= out_param_exp )*
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:190:3: (p= out_param_exp ( ',' pOpt= out_param_exp )* )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:190:5: p= out_param_exp ( ',' pOpt= out_param_exp )*
             {
              params = new LinkedList<SimpleParameter>(); 
             pushFollow(FOLLOW_out_param_exp_in_simple_out_params555);
@@ -1119,7 +1119,7 @@ public class FlowLessParser extends Parser {
             state._fsp--;
 
              params.add(p); 
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:190:88: ( ',' pOpt= out_param_exp )*
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:190:88: ( ',' pOpt= out_param_exp )*
             loop17:
             do {
                 int alt17=2;
@@ -1132,7 +1132,7 @@ public class FlowLessParser extends Parser {
 
                 switch (alt17) {
             	case 1 :
-            	    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:190:89: ',' pOpt= out_param_exp
+            	    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:190:89: ',' pOpt= out_param_exp
             	    {
             	    match(input,26,FOLLOW_26_in_simple_out_params560); 
             	    pushFollow(FOLLOW_out_param_exp_in_simple_out_params564);
@@ -1166,7 +1166,7 @@ public class FlowLessParser extends Parser {
 
 
     // $ANTLR start "out_param_exp"
-    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:193:1: out_param_exp returns [SimpleParameter param] : (p= param_exp | ( RESULT | EXC ) ( '.' p= param_exp )? | STATE );
+    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:193:1: out_param_exp returns [SimpleParameter param] : (p= param_exp | ( RESULT | EXC ) ( '.' p= param_exp )? | STATE );
     public final SimpleParameter out_param_exp() throws RecognitionException {
         SimpleParameter param = null;
 
@@ -1174,7 +1174,7 @@ public class FlowLessParser extends Parser {
 
 
         try {
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:194:2: (p= param_exp | ( RESULT | EXC ) ( '.' p= param_exp )? | STATE )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:194:2: (p= param_exp | ( RESULT | EXC ) ( '.' p= param_exp )? | STATE )
             int alt20=3;
             switch ( input.LA(1) ) {
             case WILDCARD:
@@ -1203,7 +1203,7 @@ public class FlowLessParser extends Parser {
 
             switch (alt20) {
                 case 1 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:194:4: p= param_exp
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:194:4: p= param_exp
                     {
                     pushFollow(FOLLOW_param_exp_in_out_param_exp586);
                     p=param_exp();
@@ -1215,10 +1215,10 @@ public class FlowLessParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:195:4: ( RESULT | EXC ) ( '.' p= param_exp )?
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:195:4: ( RESULT | EXC ) ( '.' p= param_exp )?
                     {
                      param = new SimpleParameter(); SimpleParameter.Part part = null; 
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:196:7: ( RESULT | EXC )
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:196:7: ( RESULT | EXC )
                     int alt18=2;
                     int LA18_0 = input.LA(1);
 
@@ -1236,7 +1236,7 @@ public class FlowLessParser extends Parser {
                     }
                     switch (alt18) {
                         case 1 :
-                            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:196:8: RESULT
+                            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:196:8: RESULT
                             {
                             match(input,RESULT,FOLLOW_RESULT_in_out_param_exp603); 
                              part = new SimpleParameter.Result(); 
@@ -1244,7 +1244,7 @@ public class FlowLessParser extends Parser {
                             }
                             break;
                         case 2 :
-                            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:196:58: EXC
+                            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:196:58: EXC
                             {
                             match(input,EXC,FOLLOW_EXC_in_out_param_exp609); 
                              part = new SimpleParameter.ExceptionValue(); 
@@ -1254,7 +1254,7 @@ public class FlowLessParser extends Parser {
 
                     }
 
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:197:7: ( '.' p= param_exp )?
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:197:7: ( '.' p= param_exp )?
                     int alt19=2;
                     int LA19_0 = input.LA(1);
 
@@ -1263,7 +1263,7 @@ public class FlowLessParser extends Parser {
                     }
                     switch (alt19) {
                         case 1 :
-                            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:197:8: '.' p= param_exp
+                            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:197:8: '.' p= param_exp
                             {
                             match(input,28,FOLLOW_28_in_out_param_exp622); 
                             pushFollow(FOLLOW_param_exp_in_out_param_exp626);
@@ -1283,7 +1283,7 @@ public class FlowLessParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:198:4: STATE
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:198:4: STATE
                     {
                     match(input,STATE,FOLLOW_STATE_in_out_param_exp637); 
                      param = new SimpleParameter(new SimpleParameter.ProgramState()); 
@@ -1305,7 +1305,7 @@ public class FlowLessParser extends Parser {
 
 
     // $ANTLR start "simple_params"
-    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:201:1: simple_params returns [List<SimpleParameter> params] : p= param_exp ( ',' pOpt= param_exp )* ;
+    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:201:1: simple_params returns [List<SimpleParameter> params] : p= param_exp ( ',' pOpt= param_exp )* ;
     public final List<SimpleParameter> simple_params() throws RecognitionException {
         List<SimpleParameter> params = null;
 
@@ -1315,8 +1315,8 @@ public class FlowLessParser extends Parser {
 
 
         try {
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:202:3: (p= param_exp ( ',' pOpt= param_exp )* )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:202:5: p= param_exp ( ',' pOpt= param_exp )*
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:202:3: (p= param_exp ( ',' pOpt= param_exp )* )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:202:5: p= param_exp ( ',' pOpt= param_exp )*
             {
              params = new LinkedList<SimpleParameter>(); 
             pushFollow(FOLLOW_param_exp_in_simple_params659);
@@ -1325,7 +1325,7 @@ public class FlowLessParser extends Parser {
             state._fsp--;
 
              params.add(p); 
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:202:84: ( ',' pOpt= param_exp )*
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:202:84: ( ',' pOpt= param_exp )*
             loop21:
             do {
                 int alt21=2;
@@ -1338,7 +1338,7 @@ public class FlowLessParser extends Parser {
 
                 switch (alt21) {
             	case 1 :
-            	    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:202:85: ',' pOpt= param_exp
+            	    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:202:85: ',' pOpt= param_exp
             	    {
             	    match(input,26,FOLLOW_26_in_simple_params664); 
             	    pushFollow(FOLLOW_param_exp_in_simple_params668);
@@ -1372,7 +1372,7 @@ public class FlowLessParser extends Parser {
 
 
     // $ANTLR start "params"
-    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:205:1: params returns [List<Parameter> params] : p= param ( ',' pOpt= param )* ;
+    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:205:1: params returns [List<Parameter> params] : p= param ( ',' pOpt= param )* ;
     public final List<Parameter> params() throws RecognitionException {
         List<Parameter> params = null;
 
@@ -1382,8 +1382,8 @@ public class FlowLessParser extends Parser {
 
 
         try {
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:206:2: (p= param ( ',' pOpt= param )* )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:206:4: p= param ( ',' pOpt= param )*
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:206:2: (p= param ( ',' pOpt= param )* )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:206:4: p= param ( ',' pOpt= param )*
             {
              params = new LinkedList<Parameter>(); 
             pushFollow(FOLLOW_param_in_params694);
@@ -1392,7 +1392,7 @@ public class FlowLessParser extends Parser {
             state._fsp--;
 
              params.add(p); 
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:206:73: ( ',' pOpt= param )*
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:206:73: ( ',' pOpt= param )*
             loop22:
             do {
                 int alt22=2;
@@ -1405,7 +1405,7 @@ public class FlowLessParser extends Parser {
 
                 switch (alt22) {
             	case 1 :
-            	    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:206:74: ',' pOpt= param
+            	    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:206:74: ',' pOpt= param
             	    {
             	    match(input,26,FOLLOW_26_in_params699); 
             	    pushFollow(FOLLOW_param_in_params703);
@@ -1439,7 +1439,7 @@ public class FlowLessParser extends Parser {
 
 
     // $ANTLR start "param"
-    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:209:1: param returns [Parameter param] : (p= param_exp | '[' p= param_exp ( ',' pOpt= param_exp )* ']' );
+    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:209:1: param returns [Parameter param] : (p= param_exp | '[' p= param_exp ( ',' pOpt= param_exp )* ']' );
     public final Parameter param() throws RecognitionException {
         Parameter param = null;
 
@@ -1449,7 +1449,7 @@ public class FlowLessParser extends Parser {
 
 
         try {
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:210:3: (p= param_exp | '[' p= param_exp ( ',' pOpt= param_exp )* ']' )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:210:3: (p= param_exp | '[' p= param_exp ( ',' pOpt= param_exp )* ']' )
             int alt24=2;
             int LA24_0 = input.LA(1);
 
@@ -1467,7 +1467,7 @@ public class FlowLessParser extends Parser {
             }
             switch (alt24) {
                 case 1 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:210:5: p= param_exp
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:210:5: p= param_exp
                     {
                     pushFollow(FOLLOW_param_exp_in_param727);
                     p=param_exp();
@@ -1479,7 +1479,7 @@ public class FlowLessParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:211:5: '[' p= param_exp ( ',' pOpt= param_exp )* ']'
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:211:5: '[' p= param_exp ( ',' pOpt= param_exp )* ']'
                     {
                      ParameterOptList l = new ParameterOptList(); 
                     match(input,29,FOLLOW_29_in_param737); 
@@ -1489,7 +1489,7 @@ public class FlowLessParser extends Parser {
                     state._fsp--;
 
                      l.addParam(p); 
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:211:89: ( ',' pOpt= param_exp )*
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:211:89: ( ',' pOpt= param_exp )*
                     loop23:
                     do {
                         int alt23=2;
@@ -1502,7 +1502,7 @@ public class FlowLessParser extends Parser {
 
                         switch (alt23) {
                     	case 1 :
-                    	    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:211:90: ',' pOpt= param_exp
+                    	    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:211:90: ',' pOpt= param_exp
                     	    {
                     	    match(input,26,FOLLOW_26_in_param746); 
                     	    pushFollow(FOLLOW_param_exp_in_param750);
@@ -1540,7 +1540,7 @@ public class FlowLessParser extends Parser {
 
 
     // $ANTLR start "param_exp"
-    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:214:1: param_exp returns [SimpleParameter param] : (p= param_single ( '.' WILDCARD )? | WILDCARD );
+    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:214:1: param_exp returns [SimpleParameter param] : (p= param_single ( '.' WILDCARD )? | WILDCARD );
     public final SimpleParameter param_exp() throws RecognitionException {
         SimpleParameter param = null;
 
@@ -1548,7 +1548,7 @@ public class FlowLessParser extends Parser {
 
 
         try {
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:215:2: (p= param_single ( '.' WILDCARD )? | WILDCARD )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:215:2: (p= param_single ( '.' WILDCARD )? | WILDCARD )
             int alt26=2;
             int LA26_0 = input.LA(1);
 
@@ -1566,14 +1566,14 @@ public class FlowLessParser extends Parser {
             }
             switch (alt26) {
                 case 1 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:215:4: p= param_single ( '.' WILDCARD )?
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:215:4: p= param_single ( '.' WILDCARD )?
                     {
                     pushFollow(FOLLOW_param_single_in_param_exp778);
                     p=param_single();
 
                     state._fsp--;
 
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:215:19: ( '.' WILDCARD )?
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:215:19: ( '.' WILDCARD )?
                     int alt25=2;
                     int LA25_0 = input.LA(1);
 
@@ -1582,7 +1582,7 @@ public class FlowLessParser extends Parser {
                     }
                     switch (alt25) {
                         case 1 :
-                            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:215:20: '.' WILDCARD
+                            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:215:20: '.' WILDCARD
                             {
                             match(input,28,FOLLOW_28_in_param_exp781); 
                             match(input,WILDCARD,FOLLOW_WILDCARD_in_param_exp783); 
@@ -1598,7 +1598,7 @@ public class FlowLessParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:216:4: WILDCARD
+                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:216:4: WILDCARD
                     {
                     match(input,WILDCARD,FOLLOW_WILDCARD_in_param_exp794); 
                      param = new SimpleParameter(new SimpleParameter.Wildcard()); 
@@ -1620,19 +1620,19 @@ public class FlowLessParser extends Parser {
 
 
     // $ANTLR start "param_single"
-    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:219:1: param_single returns [SimpleParameter param] : id= IDENT ( ( '.' id= IDENT | ( '.' )? ARRAY ) )* ;
+    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:219:1: param_single returns [SimpleParameter param] : id= IDENT ( ( '.' id= IDENT | ( '.' )? ARRAY ) )* ;
     public final SimpleParameter param_single() throws RecognitionException {
         SimpleParameter param = null;
 
         Token id=null;
 
         try {
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:220:2: (id= IDENT ( ( '.' id= IDENT | ( '.' )? ARRAY ) )* )
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:220:4: id= IDENT ( ( '.' id= IDENT | ( '.' )? ARRAY ) )*
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:220:2: (id= IDENT ( ( '.' id= IDENT | ( '.' )? ARRAY ) )* )
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:220:4: id= IDENT ( ( '.' id= IDENT | ( '.' )? ARRAY ) )*
             {
             id=(Token)match(input,IDENT,FOLLOW_IDENT_in_param_single813); 
              param = new SimpleParameter(new SimpleParameter.NormalPart(id.getText())); 
-            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:221:7: ( ( '.' id= IDENT | ( '.' )? ARRAY ) )*
+            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:221:7: ( ( '.' id= IDENT | ( '.' )? ARRAY ) )*
             loop29:
             do {
                 int alt29=2;
@@ -1654,10 +1654,10 @@ public class FlowLessParser extends Parser {
 
                 switch (alt29) {
             	case 1 :
-            	    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:221:8: ( '.' id= IDENT | ( '.' )? ARRAY )
+            	    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:221:8: ( '.' id= IDENT | ( '.' )? ARRAY )
             	    {
             	     SimpleParameter.Part part = null; 
-            	    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:222:10: ( '.' id= IDENT | ( '.' )? ARRAY )
+            	    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:222:10: ( '.' id= IDENT | ( '.' )? ARRAY )
             	    int alt28=2;
             	    int LA28_0 = input.LA(1);
 
@@ -1688,7 +1688,7 @@ public class FlowLessParser extends Parser {
             	    }
             	    switch (alt28) {
             	        case 1 :
-            	            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:222:12: '.' id= IDENT
+            	            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:222:12: '.' id= IDENT
             	            {
             	            match(input,28,FOLLOW_28_in_param_single838); 
             	            id=(Token)match(input,IDENT,FOLLOW_IDENT_in_param_single842); 
@@ -1697,9 +1697,9 @@ public class FlowLessParser extends Parser {
             	            }
             	            break;
             	        case 2 :
-            	            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:225:12: ( '.' )? ARRAY
+            	            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:225:12: ( '.' )? ARRAY
             	            {
-            	            // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:225:12: ( '.' )?
+            	            // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:225:12: ( '.' )?
             	            int alt27=2;
             	            int LA27_0 = input.LA(1);
 
@@ -1708,7 +1708,7 @@ public class FlowLessParser extends Parser {
             	            }
             	            switch (alt27) {
             	                case 1 :
-            	                    // /Users/jgf/Documents/Projects/mojo/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:225:12: '.'
+            	                    // /Users/jgf/Documents/Projects/joana/wala/joana.wala.flowless/src/edu/kit/joana/wala/flowless/spec/FlowLess.g:225:12: '.'
             	                    {
             	                    match(input,28,FOLLOW_28_in_param_single877); 
 

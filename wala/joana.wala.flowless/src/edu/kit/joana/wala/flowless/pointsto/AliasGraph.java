@@ -46,8 +46,6 @@ import edu.kit.joana.wala.flowless.pointsto.PtsParameter.RootParameter;
  */
 public abstract class AliasGraph extends AbstractNumberedGraph<PtsParameter> implements Cloneable {
 
-	private static final long serialVersionUID = 5663484563688335303L;
-
 	/**
 	 * Describes the aliasing configuration of the parameters and fields of a
 	 * single method. Elements that are directly connected in this graph, may point

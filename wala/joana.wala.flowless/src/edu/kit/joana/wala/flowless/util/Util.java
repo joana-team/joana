@@ -47,8 +47,6 @@ import com.ibm.wala.types.FieldReference;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.TypeName;
 import com.ibm.wala.types.TypeReference;
-import com.ibm.wala.util.intset.IntSet;
-import com.ibm.wala.util.intset.OrdinalSet;
 
 /**
  * Contains some utility methods

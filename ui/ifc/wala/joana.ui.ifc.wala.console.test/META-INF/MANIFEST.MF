@@ -7,3 +7,4 @@ Export-Package: edu.kit.joana.ui.ifc.wala.console.test
 Require-Bundle: joana.ui.ifc.wala.console;bundle-version="0.1.0",
  joana.api;bundle-version="1.0.0",
  joana.util;bundle-version="1.0.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6

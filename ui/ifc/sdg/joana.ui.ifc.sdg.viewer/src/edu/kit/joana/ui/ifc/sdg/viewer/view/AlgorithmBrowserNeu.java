@@ -121,7 +121,7 @@ public class AlgorithmBrowserNeu extends SelectionDialog {
 		/** Inherited method; returns null.
 		 *
 		 */
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings("rawtypes")
         public Object getAdapter(Class key) {
 			return null;
 		}

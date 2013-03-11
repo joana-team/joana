@@ -173,7 +173,7 @@ public class RunView extends TreeNode implements Parent<CriteriaCategoryView> {
 		return this.run;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
     public Enum[] getKindsOfCriteria() {
 		return run.getKindsOfCriteria();
 	}

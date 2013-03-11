@@ -54,6 +54,7 @@ public class EvaluationAlgorithmView extends TreeNode implements Parent<Criteria
 		return children.size() > 0;
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public Parent getParent() {
 		return parent;

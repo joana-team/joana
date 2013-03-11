@@ -132,7 +132,7 @@ public class AlgorithmBrowser extends org.eclipse.swt.widgets.Composite {
 		/** Inherited method; returns null.
 		 *
 		 */
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings("rawtypes")
         public Object getAdapter(Class key) {
 			return null;
 		}

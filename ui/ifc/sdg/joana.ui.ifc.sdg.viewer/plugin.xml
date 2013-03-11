@@ -45,7 +45,7 @@
                menubarPath="edu.kit.joana.ui.ifc.sdg.textual.highlight.viewer.menu1/slicing"/>
 <!--               class="joana.viewer.view.CreateSDG" -->
          <action
-               class="jsdg_gui.create.CreateSDG"
+               class="edu.kit.joana.deprecated.jsdg.gui.create.CreateSDG"
                enablesFor="1"
                icon="icons/joana.png"
                id="edu.kit.joana.ui.ifc.sdg.textual.highlight.viewer.createSDG"

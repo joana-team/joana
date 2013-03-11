@@ -35,6 +35,7 @@ public class ChosenAlgorithmView extends TreeNode implements Parent<RunView> {
 	 *
 	 * @param parent  The new parent.
 	 */
+	@SuppressWarnings("rawtypes")
 	public void setParent(Parent parent) {
 		this.parent = (GraphView) parent;
 	}

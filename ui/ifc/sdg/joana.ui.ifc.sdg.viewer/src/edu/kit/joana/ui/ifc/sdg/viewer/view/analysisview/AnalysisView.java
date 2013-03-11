@@ -183,7 +183,8 @@ public class AnalysisView extends ViewPart implements Observer {
 		/** Returns the children of a parent.
 		 * If parent is not a Parent, it returns an empty Object array.
 		 */
-		public Object [] getChildren(Object parent) {
+		@SuppressWarnings("rawtypes")
+		public Object[] getChildren(Object parent) {
 			if (parent instanceof Parent) {
 				return ((Parent)parent).getChildren();
 			}
@@ -192,6 +193,7 @@ public class AnalysisView extends ViewPart implements Observer {
 
 		/** Returns true if this Object is a Parent and has children.
 		 */
+		@SuppressWarnings("rawtypes")
 		public boolean hasChildren(Object parent) {
 			if (parent instanceof Parent)
 				return ((Parent)parent).hasChildren();
@@ -217,6 +219,7 @@ public class AnalysisView extends ViewPart implements Observer {
 		 *
 		 * @param node  The tree element.
 		 */
+		@SuppressWarnings({ "rawtypes", "unchecked" })
 		private void remove(TreeNode node) {
 			Parent p = node.getParent();
 			p.removeChild(node);

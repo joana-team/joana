@@ -89,8 +89,7 @@ public class Slicer extends Run {
 	/** Returns the different kinds of criteria.
 	 *
 	 */
-	@SuppressWarnings("unchecked")
-    public Enum[] getKindsOfCriteria() {
+    public Kind[] getKindsOfCriteria() {
 		return Slicer.Kind.values();
 	}
 

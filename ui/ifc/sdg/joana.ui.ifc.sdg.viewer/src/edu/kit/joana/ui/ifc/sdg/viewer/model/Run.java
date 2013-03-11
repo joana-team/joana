@@ -190,7 +190,7 @@ public abstract class Run extends Observable implements Runnable {
 	 *
 	 * @return  The kinds of criteria as an array of enums.
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
     public abstract Enum[] getKindsOfCriteria();
 
 	public abstract void convertCriteria();

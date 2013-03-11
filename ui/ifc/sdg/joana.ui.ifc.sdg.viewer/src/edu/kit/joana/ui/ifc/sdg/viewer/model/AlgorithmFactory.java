@@ -27,7 +27,7 @@ public final class AlgorithmFactory {
 	 * @param graph  The graph that the analysis shall analyze.
 	 * @return       The wrapper.
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
     public static Run createAlgorithm(Algorithm alg, Graph g) {
 		// the name of the wrapper
 		String categoryClass = alg.getCategory();
@@ -65,7 +65,7 @@ public final class AlgorithmFactory {
 	 * @param graph      The graph to analyze.
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
     public static Object loadClass(String className, Graph graph) {
 		try {
 			// load the class

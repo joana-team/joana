@@ -77,7 +77,7 @@ public class LevelSlicer extends Run {
 	/** Returns the different kinds of criteria.
 	 *
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
     public Enum[] getKindsOfCriteria() {
 		return LevelSlicer.Kind.values();
 	}

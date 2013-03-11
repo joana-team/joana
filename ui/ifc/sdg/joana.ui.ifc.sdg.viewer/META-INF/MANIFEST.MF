@@ -15,7 +15,8 @@ Require-Bundle: org.eclipse.jdt.core,
  org.eclipse.jdt.ui,
  org.eclipse.ui.ide,
  org.eclipse.ui.views.properties.tabbed,
- joana.contrib.lib;bundle-version="1.0.0"
+ joana.contrib.lib;bundle-version="1.0.0",
+ joana.deprecated.jsdg.gui;bundle-version="0.0.1"
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: Karlsruhe Institute of Technology, Programming Paradigms Group
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6

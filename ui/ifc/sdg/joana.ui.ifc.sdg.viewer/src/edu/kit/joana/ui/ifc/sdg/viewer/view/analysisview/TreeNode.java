@@ -13,6 +13,7 @@ abstract class TreeNode implements Selection {
 
 	/** Returns the parent element
 	 */
+	@SuppressWarnings("rawtypes")
 	public abstract Parent getParent();
 
 	/** Returns the name of the element.

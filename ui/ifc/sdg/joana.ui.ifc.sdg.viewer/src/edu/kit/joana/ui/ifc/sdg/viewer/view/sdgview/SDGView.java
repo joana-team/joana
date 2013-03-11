@@ -178,7 +178,7 @@ public class SDGView extends ViewPart implements ISelectionListener, ISelectionC
         public String toString() {
             return getName();
         }
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings("rawtypes")
 		public Object getAdapter(Class key) {
             return null;
         }

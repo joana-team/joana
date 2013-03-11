@@ -19,7 +19,7 @@ import javax.swing.event.ListDataListener;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 
 
-public class EntryMethodsComboBoxModel implements ComboBoxModel {
+public class EntryMethodsComboBoxModel implements ComboBoxModel<Object> {
 
 	private List<JavaMethodSignature> entries;
 	private JavaMethodSignature selected = null;

@@ -34,8 +34,8 @@ public class DeclassSelection extends JDialog {
     private static final long serialVersionUID = 7170674014539166547L;
     private final IStaticLattice<String> lattice;
     private final IFCConsoleGUI consoleGui;
-    private final JComboBox level1Selection = new JComboBox();
-    private final JComboBox level2Selection = new JComboBox();
+    private final JComboBox<Object> level1Selection = new JComboBox<Object>();
+    private final JComboBox<Object> level2Selection = new JComboBox<Object>();
 
     /** order lattice elements as good as possible by lattice order */
     private final Comparator<String> latCompAsc = new Comparator<String>() {

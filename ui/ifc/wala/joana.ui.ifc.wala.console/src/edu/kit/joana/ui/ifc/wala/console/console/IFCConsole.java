@@ -63,8 +63,6 @@ import edu.kit.joana.ui.ifc.wala.console.io.IFCConsoleOutput.Answer;
 import edu.kit.joana.ui.ifc.wala.console.io.InvalidAnnotationFormatException;
 import edu.kit.joana.ui.ifc.wala.console.io.MethodNotFoundException;
 import edu.kit.joana.ui.ifc.wala.console.io.NumberedIFCAnnotationDumper;
-import edu.kit.joana.util.Log;
-import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.util.io.IOFactory;
 import edu.kit.joana.wala.core.NullProgressMonitor;
@@ -285,8 +283,6 @@ public class IFCConsole {
 	private Stubs stubsPath = Stubs.JRE_14;
 
 	private List<String> script = new LinkedList<String>();
-
-	private static Logger debug = Log.getLogger("console.debug");
 
 	public IFCConsole(BufferedReader in, IFCConsoleOutput out) {
 		this.in = in;

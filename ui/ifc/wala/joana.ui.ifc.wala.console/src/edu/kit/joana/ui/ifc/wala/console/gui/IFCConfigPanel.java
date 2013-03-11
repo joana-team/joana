@@ -49,7 +49,7 @@ public class IFCConfigPanel extends JPanel {
 	private static final long serialVersionUID = -8606108705404396745L;
 
 	private final IFCConsoleGUI consoleGui;
-	private final JComboBox entryMethodSelect = new JComboBox();
+	private final JComboBox<Object> entryMethodSelect = new JComboBox<Object>();
 	private boolean ignoreSelection = false;
 	private final EntryMethodsComboBoxModel entryMethodsModel = new EntryMethodsComboBoxModel();
 	private final JTextField classPathInput = new JTextField();
@@ -58,14 +58,14 @@ public class IFCConfigPanel extends JPanel {
 	private final JCheckBox autoSaveSDGCheckbox = new JCheckBox("auto-save");
 	private final JLabel sdgStatusLabel = new JLabel("<no sdg in memory>");
 	private final JCheckBox compIFECheckbox = new JCheckBox("compute interference edges");
-	private final JComboBox mhpCombo = new JComboBox();
-	private final JComboBox exceptionCombo = new JComboBox();
-	private final JComboBox stubsCombo = new JComboBox();
+	private final JComboBox<Object> mhpCombo = new JComboBox<Object>();
+	private final JComboBox<Object> exceptionCombo = new JComboBox<Object>();
+	private final JComboBox<Object> stubsCombo = new JComboBox<Object>();
 	private final JButton loadSDG = new JButton("load SDG from file");
 	private final JButton saveSDG = new JButton("save current SDG as");
 	private final JButton buildSDG = new JButton("build");
 	private final JLabel latticeLabel = new JLabel("Security lattice: ");
-	private final JComboBox curLatticeComboBox = new JComboBox();
+	private final JComboBox<Object> curLatticeComboBox = new JComboBox<Object>();
 	private final JButton loadScript = new JButton("load script");
 	private final JButton saveScript = new JButton("save script");
 
@@ -176,7 +176,7 @@ public class IFCConfigPanel extends JPanel {
 	}
 	
 	private void initLatticeComboBox() {
-		MutableComboBoxModel latticeTypes = new DefaultComboBoxModel();
+		MutableComboBoxModel<Object> latticeTypes = new DefaultComboBoxModel<Object>();
 		latticeTypes.addElement(LATTICE_BINARY);
 		latticeTypes.addElement(LATTICE_TERNARY);
 		latticeTypes.addElement(LATTICE_DIAMOND);
@@ -247,7 +247,7 @@ public class IFCConfigPanel extends JPanel {
 	}
 
 	private void initMHPCombo() {
-		MutableComboBoxModel mhpTypes = new DefaultComboBoxModel();
+		MutableComboBoxModel<Object> mhpTypes = new DefaultComboBoxModel<Object>();
 		mhpTypes.addElement(new ElementWithDescription<MHPType>(MHPType.NONE, MHP_NONE));
 		mhpTypes.addElement(new ElementWithDescription<MHPType>(MHPType.SIMPLE, MHP_SIMPLE));
 		mhpTypes.addElement(new ElementWithDescription<MHPType>(MHPType.PRECISE, MHP_PRECISE));
@@ -256,7 +256,7 @@ public class IFCConfigPanel extends JPanel {
 	}
 	
 	private void initStubsCombo() {
-		MutableComboBoxModel possibleStubs = new DefaultComboBoxModel();
+		MutableComboBoxModel<Object> possibleStubs = new DefaultComboBoxModel<Object>();
 		for (Stubs stubs : Stubs.values()) {
 			possibleStubs.addElement(stubs.toString());
 		}
@@ -265,7 +265,7 @@ public class IFCConfigPanel extends JPanel {
 	}
 
 	private void initExceptionCombo() {
-		MutableComboBoxModel exceptionTypes = new DefaultComboBoxModel();
+		MutableComboBoxModel<Object> exceptionTypes = new DefaultComboBoxModel<Object>();
 		exceptionTypes.addElement(new ElementWithDescription<ExceptionAnalysis>(ExceptionAnalysis.INTRAPROC,
 				EXC_INTRAPROC));
 		exceptionTypes.addElement(new ElementWithDescription<ExceptionAnalysis>(ExceptionAnalysis.INTERPROC,

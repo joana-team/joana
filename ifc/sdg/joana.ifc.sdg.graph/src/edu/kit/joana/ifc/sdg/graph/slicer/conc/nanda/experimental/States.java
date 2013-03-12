@@ -16,7 +16,7 @@ import java.util.LinkedList;
  *
  * @author  Dennis Giffhorn
  */
-public class States {
+public class States implements Cloneable {
     /** The specific states. */
     private LinkedList<TopologicalNumber> states;
 

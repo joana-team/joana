@@ -24,8 +24,7 @@ Export-Package: edu.kit.joana.ifc.sdg.graph;
  edu.kit.joana.ifc.sdg.graph.slicer.barrier;uses:="joana.sdg.slicer,joana.sdg",
  edu.kit.joana.ifc.sdg.graph.slicer.barrier.conc;uses:="joana.sdg,joana.sdg.slicer.barrier",
  edu.kit.joana.ifc.sdg.graph.slicer.conc;uses:="joana.sdg.slicer.graph,joana.sdg.slicer,joana.sdg",
- edu.kit.joana.ifc.sdg.graph.slicer.conc.dynamic.krinke,
- edu.kit.joana.ifc.sdg.graph.slicer.conc.dynamic.krinke.old;
+ edu.kit.joana.ifc.sdg.graph.slicer.conc.dynamic.krinke;
   uses:="joana.sdg.slicer.graph.threads,
    joana.sdg.slicer.graph,
    joana.sdg.chopper,

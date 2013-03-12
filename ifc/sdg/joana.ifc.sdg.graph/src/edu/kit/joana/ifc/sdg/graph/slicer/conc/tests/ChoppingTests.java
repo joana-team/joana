@@ -114,9 +114,8 @@ public class ChoppingTests {
                 //System.out.println(chopper[i].getClass().getName()+": done"+" "+chop.size());
             }
 
-            if (ctr % 1 == 0) {
-                System.out.print(".");
-            }
+            System.out.print(".");
+            
             if (ctr % 10 == 0) {
                 System.out.print(ctr);
             }

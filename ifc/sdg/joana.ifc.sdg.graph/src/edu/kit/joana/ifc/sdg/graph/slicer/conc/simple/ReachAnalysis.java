@@ -8,15 +8,16 @@
 
 package edu.kit.joana.ifc.sdg.graph.slicer.conc.simple;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Map;
+
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
 import gnu.trove.map.hash.TIntObjectHashMap;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
 
 
 /**
@@ -49,18 +50,36 @@ public class ReachAnalysis {
 
             m2.put(thread, flag);
         }
+        
+        private boolean containsEntryFor(SDGNode source, SDGNode target, int thread) {
+        	if (!cache.containsKey(source)) {
+        		return false;
+        	} else {
+        		Map<SDGNode, TIntObjectHashMap<Boolean>> sourceCache = cache.get(source);
+        		if (!sourceCache.containsKey(target)) {
+        			return false;
+        		} else {
+        			TIntObjectHashMap<Boolean> tgtCache = sourceCache.get(target);
+        			if (!tgtCache.containsKey(thread)) {
+        				return false;
+        			} else {
+        				return true;
+        			}
+        		}
+        	}
+        }
 
         private Boolean get(SDGNode source, SDGNode target, int thread) {
             HashMap<SDGNode, TIntObjectHashMap<Boolean>> m1 = cache.get(source);
             if (m1 == null) {
-                return null;
+                throw new IllegalArgumentException("called 'get' without checking existence (by invoking 'containsEntryFor') before!");
             }
 
             TIntObjectHashMap<Boolean> m2 = m1.get(target);
-            if (m2 == null) {
-                return null;
+            if (m2 == null || !m2.containsKey(thread)) {
+            	throw new IllegalArgumentException("called 'get' without checking existence (by invoking 'containsEntryFor') before!");
             }
-
+            
             return m2.get(thread);
         }
     }
@@ -88,9 +107,10 @@ public class ReachAnalysis {
      */
     public boolean reaching(SDGNode start, SDGNode target, int thread) {
         if (start == target) return true;
-
-        Boolean b = cache.get(start, target, thread);
-        if (b != null) return b;
+        
+        if (cache.containsEntryFor(start, target, thread)) {
+        	return cache.get(start, target, thread);
+        }
 
         // contains the so far visited nodes
         HashSet<SDGNode> marked = new HashSet<SDGNode>();

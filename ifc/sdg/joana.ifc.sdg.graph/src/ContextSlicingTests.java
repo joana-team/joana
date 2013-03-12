@@ -61,7 +61,6 @@ public class ContextSlicingTests {
 
         for (SDGNode crit : g.vertexSet()) {
             ctr++;
-            if ((ctr % 1) != 0) continue;
 //            if (crit.getKind() == SDGNode.Kind.ACTUAL_IN) continue;
 
 //          System.out.println("Slice for node "+crit);

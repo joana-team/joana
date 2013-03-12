@@ -20,7 +20,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
  *
  * @author  Dennis Giffhorn
  */
-public class WorklistElement {
+public class WorklistElement implements Cloneable {
     /** The context. */
     private Context context;
     /** The state tuple. */

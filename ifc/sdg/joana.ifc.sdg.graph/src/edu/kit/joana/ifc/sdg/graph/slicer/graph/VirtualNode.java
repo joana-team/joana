@@ -54,16 +54,25 @@ public class VirtualNode {
         return number;
     }
 
-    /**
-     * Compares this VirtualNode with a given one.
-     * They are considered equal if their nodes and IDs are equal.
-     *
-     * @param vn  The VirtualNode to compare with.
-     */
-    public boolean equals(Object o) {
-    	VirtualNode vn = (VirtualNode) o;
-        return this.node == vn.getNode() && this.number == vn.getNumber();
-    }
+	/**
+	 * Compares this VirtualNode with a given one. They are considered equal if
+	 * their nodes and IDs are equal.
+	 * 
+	 * @param vn
+	 *            The VirtualNode to compare with.
+	 */
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		} else if (o == null) {
+			return false;
+		} else if (!(o instanceof VirtualNode)) {
+			return false;
+		} else {
+			VirtualNode vn = (VirtualNode) o;
+			return this.node == vn.getNode() && this.number == vn.getNumber();
+		}
+	}
 
     /**
      * Returns a representation of this Virtual Node.

@@ -70,14 +70,6 @@ public class AbstractJoanaGraph<V, E> implements DirectedGraph<V,E> {
 	}
 
 	/**
-	 * @return
-	 * @see org.jgrapht.graph.AbstractBaseGraph#clone()
-	 */
-	public Object clone() {
-		return delegate.clone();
-	}
-
-	/**
 	 * @param arg0
 	 * @return
 	 * @see org.jgrapht.graph.AbstractBaseGraph#containsEdge(java.lang.Object)

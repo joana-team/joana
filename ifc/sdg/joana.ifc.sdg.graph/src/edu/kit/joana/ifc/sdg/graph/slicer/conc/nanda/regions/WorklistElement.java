@@ -97,8 +97,16 @@ public class WorklistElement {
     	return 31*node.hashCode() + states.hashCode();
     }
 
-    public boolean equals(Object o) {
-    	WorklistElement w= (WorklistElement) o;
-    	return w.node.equals(node) && w.states.equals(states);
-    }
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		} else if (o == null) {
+			return false;
+		} else if (!(o instanceof WorklistElement)) {
+			return false;
+		} else {
+			WorklistElement w = (WorklistElement) o;
+			return w.node.equals(node) && w.states.equals(states);
+		}
+	}
 }

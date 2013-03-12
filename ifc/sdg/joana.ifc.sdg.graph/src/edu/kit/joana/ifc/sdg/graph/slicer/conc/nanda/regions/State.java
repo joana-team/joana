@@ -81,25 +81,34 @@ public class State {
         return topolNr;
     }
 
-    /**
-     * Checks whether this state and a given one are equal.
-     * They are equal if their actual nodes, contexts and thread regions
-     * are equal.
-     *
-     * @param toCheck  The state to compare with.
-     */
-    public boolean equals(Object o) {
-        State toCheck = (State) o;
+	/**
+	 * Checks whether this state and a given one are equal. They are equal if
+	 * their actual nodes, contexts and thread regions are equal.
+	 * 
+	 * @param toCheck
+	 *            The state to compare with.
+	 */
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		} else if (o == null) {
+			return false;
+		} else if (!(o instanceof State)) {
+			return false;
+		} else {
+			State toCheck = (State) o;
 
-        if (this == State.NONE && toCheck == State.NONE) return true;
-        if (this == State.NONRESTRICTIVE && toCheck == State.NONRESTRICTIVE) return true;
+			if (this == State.NONE && toCheck == State.NONE)
+				return true;
+			if (this == State.NONRESTRICTIVE && toCheck == State.NONRESTRICTIVE)
+				return true;
 
-        if (this.actualNode.equals(toCheck.actualNode)
-                && this.topolNr == toCheck.topolNr) {
+			if (this.actualNode.equals(toCheck.actualNode) && this.topolNr == toCheck.topolNr) {
 
-            return true;
-        }
+				return true;
+			}
 
-        return false;
-    }
+			return false;
+		}
+	}
 }

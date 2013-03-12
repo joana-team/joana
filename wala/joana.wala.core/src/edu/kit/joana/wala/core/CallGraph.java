@@ -30,7 +30,7 @@ import edu.kit.joana.util.graph.AbstractJoanaGraph;
 
 public final class CallGraph extends AbstractJoanaGraph<CallGraph.Node, CallGraph.Edge> {
 
-	private static EdgeFactory<Node, Edge> DEFAULT_EDGE_FACTORY = new CGEdgeFactory();
+	private final static EdgeFactory<Node, Edge> DEFAULT_EDGE_FACTORY = new CGEdgeFactory();
 
 	public static CallGraph build(CallGraphFilter filter, com.ibm.wala.ipa.callgraph.CallGraph callgraph,
 			PointerAnalysis pts, IMethod entry, IProgressMonitor progress)
@@ -42,7 +42,7 @@ public final class CallGraph extends AbstractJoanaGraph<CallGraph.Node, CallGrap
 		return cg;
 	}
 
-	public static int NO_INDEX = -1;
+	public final static int NO_INDEX = -1;
 
 	public static final class Edge {
 		public final Node from;

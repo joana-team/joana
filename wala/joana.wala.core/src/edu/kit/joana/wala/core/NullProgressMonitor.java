@@ -11,7 +11,7 @@ import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 
 public class NullProgressMonitor implements IProgressMonitor {
 
-	public static NullProgressMonitor INSTANCE = new NullProgressMonitor();
+	public final static NullProgressMonitor INSTANCE = new NullProgressMonitor();
 
 	private boolean cancel = false;
 

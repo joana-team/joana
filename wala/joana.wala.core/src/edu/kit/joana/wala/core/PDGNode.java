@@ -18,8 +18,8 @@ import com.ibm.wala.util.graph.INodeWithNumber;
 
 public final class PDGNode implements INodeWithNumber {
 
-	public static TypeReference DEFAULT_TYPE = TypeReference.JavaLangObject;
-	public static TypeReference DEFAULT_NO_TYPE = TypeReference.Null;
+	public final static TypeReference DEFAULT_TYPE = TypeReference.JavaLangObject;
+	public final static TypeReference DEFAULT_NO_TYPE = TypeReference.Null;
 
 	public static enum Kind {
 		/**
@@ -298,7 +298,7 @@ public final class PDGNode implements INodeWithNumber {
 
     	if (obj instanceof PDGNode) {
     		PDGNode other = (PDGNode) obj;
-    		return id == other.id;
+    		return id.intValue() == other.id.intValue();
     	}
 
     	return false;

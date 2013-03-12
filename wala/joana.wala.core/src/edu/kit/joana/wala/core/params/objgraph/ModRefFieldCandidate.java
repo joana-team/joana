@@ -20,7 +20,7 @@ import edu.kit.joana.wala.core.params.objgraph.candidates.ParameterCandidate;
  * @author Juergen Graf <juergen.graf@gmail.com>
  *
  */
-public final class ModRefFieldCandidate extends ModRefCandidate {
+public final class ModRefFieldCandidate extends ModRefCandidate implements Cloneable {
 
 	public final ParameterCandidate pc;
 

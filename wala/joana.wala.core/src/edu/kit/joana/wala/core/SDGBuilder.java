@@ -91,18 +91,18 @@ import gnu.trove.set.hash.TIntHashSet;
 
 public class SDGBuilder implements CallGraphFilter {
 
-	private static final Logger debug = Log.getLogger(Log.L_WALA_CORE_DEBUG);
-	private static final boolean IS_DEBUG = debug.isEnabled();
+	private final static Logger debug = Log.getLogger(Log.L_WALA_CORE_DEBUG);
+	private final static boolean IS_DEBUG = debug.isEnabled();
 	
-	public static final int PDG_FAKEROOT_ID = 0;
-	public static final int PDG_THREAD_START_ID = 1;
-	public static final int PDG_THREAD_RUN_ID = 2;
+	public final static int PDG_FAKEROOT_ID = 0;
+	public final static int PDG_THREAD_START_ID = 1;
+	public final static int PDG_THREAD_RUN_ID = 2;
 	// start at 2+1 == 3 because other ids are reserved.
-	public static final int PDG_START_ID = 3;
-	public static final int NO_PDG_ID = -1;
-	public static boolean DATA_FLOW_FOR_GET_FROM_FIELD_NODE = false;
-	// private static Context DEFAULT_CONTEXT = Everywhere.EVERYWHERE;
-	// private static SSAOptions DEFAULT_SSA_OPTIONS = new SSAOptions();
+	public final static int PDG_START_ID = 3;
+	public final static int NO_PDG_ID = -1;
+	public final static boolean DATA_FLOW_FOR_GET_FROM_FIELD_NODE = false;
+	// private final static Context DEFAULT_CONTEXT = Everywhere.EVERYWHERE;
+	// private final static SSAOptions DEFAULT_SSA_OPTIONS = new SSAOptions();
 
 	public final Config cfg;
 

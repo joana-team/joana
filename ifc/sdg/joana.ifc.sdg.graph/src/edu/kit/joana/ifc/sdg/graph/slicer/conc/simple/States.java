@@ -20,7 +20,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  *
  * @author  Dennis Giffhorn
  */
-public class States {
+public class States implements Cloneable {
     /** The states, consisting of one element per thread instance. */
     private SDGNode[] states;
 

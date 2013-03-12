@@ -85,33 +85,41 @@ public class States implements Cloneable {
         return states.length;
     }
 
-    /**
-     * @return  true, iff given States s equals this States.
-     */
-    public boolean equals(Object o) {
-    	States s = (States) o;
+	/**
+	 * @return true, iff given States s equals this States.
+	 */
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		} else if (o == null) {
+			return false;
+		} else if (!(o instanceof States)) {
+			return false;
+		} else {
+			States s = (States) o;
 
-        if (s.size() != size()) {
-            return false;
-        }
+			if (s.size() != size()) {
+				return false;
+			}
 
-        for (int i = 0; i < size(); i++) {
-        	if ((states[i] == NONRESTRICTIVE && s.states[i] == NONRESTRICTIVE)
-        			|| (states[i] == NONE && s.states[i] == NONE)) {
-        		// skip
+			for (int i = 0; i < size(); i++) {
+				if ((states[i] == NONRESTRICTIVE && s.states[i] == NONRESTRICTIVE)
+						|| (states[i] == NONE && s.states[i] == NONE)) {
+					// skip
 
-        	} else if (states[i] == NONRESTRICTIVE || s.states[i] == NONRESTRICTIVE
-        			|| states[i] == NONE || s.states[i] == NONE) {
-        		// don't let special cases slip to the equals()-check
-        		return false;
+				} else if (states[i] == NONRESTRICTIVE || s.states[i] == NONRESTRICTIVE || states[i] == NONE
+						|| s.states[i] == NONE) {
+					// don't let special cases slip to the equals()-check
+					return false;
 
-        	} else if (!s.state(i).equals(state(i))) {
-        		return false;
-        	}
-        }
+				} else if (!s.state(i).equals(state(i))) {
+					return false;
+				}
+			}
 
-        return true;
-    }
+			return true;
+		}
+	}
 
     /**
      * @return  A textual representation of this States.

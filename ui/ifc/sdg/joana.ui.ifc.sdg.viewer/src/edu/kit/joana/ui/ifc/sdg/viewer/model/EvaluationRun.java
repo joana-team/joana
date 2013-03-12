@@ -53,7 +53,7 @@ public class EvaluationRun  {
 	}
 
 	public boolean removeCriteria(EvaluationCriteria crit) {
-		return children.remove(crit);
+		return criterias.remove(crit);
 	}
 
 	public void execute() {

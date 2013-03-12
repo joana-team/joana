@@ -233,8 +233,7 @@ public class ThreadViewer extends ViewPart implements IZoomableWorkbenchPart {
 	/**
 	 * The public constructor of the ThreadViewer class.
 	 */
-	public ThreadViewer() {
-		instance = this;
+	private ThreadViewer() {
 		highlightPlugin = HighlightPlugin.getDefault();
 		activeThreads = new HashSet<ThreadInstance>();
 
@@ -294,7 +293,7 @@ public class ThreadViewer extends ViewPart implements IZoomableWorkbenchPart {
 	 */
 	public static ThreadViewer getInstance() {
 		if (instance == null) {
-			return new ThreadViewer();
+			instance = new ThreadViewer();
 		}
 		return instance;
 	}

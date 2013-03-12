@@ -19,7 +19,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
  *
  * @author  Dennis Giffhorn
  */
-public class States {
+public class States implements Cloneable {
     /** The specific states. */
     private LinkedList<State> states;
 

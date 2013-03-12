@@ -85,10 +85,18 @@ public class AnnotatedNode {
         return str;
     }
 
-    public boolean equals(Object o) {
-    	AnnotatedNode a = (AnnotatedNode) o;
-    	return a.node.equals(node) && a.states.equals(states);
-    }
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		} else if (o == null) {
+			return false;
+		} else if (!(o instanceof AnnotatedNode)) {
+			return false;
+		} else {
+			AnnotatedNode a = (AnnotatedNode) o;
+			return a.node.equals(node) && a.states.equals(states);
+		}
+	}
 
     public int hashCode() {
     	int hc = 31*node.hashCode() + states.hashCode();

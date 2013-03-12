@@ -57,18 +57,26 @@ public class DeclassificationSummaryNodes extends IncrementalSummaryBackward {
 	        return 37 * hc + getTarget().hashCode();
 	    }
 
-	    @Override
+		@Override
 		public boolean equals(Object o) {
-	    	if (this == o) return true;
+			if (this == o) {
+				return true;
+			} else if (o == null) {
+				return false;
+			} else if (!(o instanceof PathEdge)) {
+				if (!(o instanceof SDGEdge)) {
+					return false;
+				} else {
+					return super.equals(o);
+				}
+			} else {
+				PathEdge edge = (PathEdge) o;
 
-	        if (!(o instanceof PathEdge)) {
-	            return false;
-	        }
-	        PathEdge edge = (PathEdge) o;
-
-//	        if (kind != edge.kind) return false;
-	        if (!getSource().equals(edge.getSource())) return false;
-	        return getTarget().equals(edge.getTarget());
+				// if (kind != edge.kind) return false;
+				if (!getSource().equals(edge.getSource()))
+					return false;
+				return getTarget().equals(edge.getTarget());
+			}
 		}
 	}
 

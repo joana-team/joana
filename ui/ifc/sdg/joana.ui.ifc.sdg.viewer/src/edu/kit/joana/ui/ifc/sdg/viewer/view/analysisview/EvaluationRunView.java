@@ -96,7 +96,7 @@ public class EvaluationRunView extends TreeNode implements Parent<TreeNode> {
 	}
 
 	public void setParent(Parent<TreeNode> p) {
-		this.parent = (GraphView) parent;
+		this.parent = (GraphView) p;
 	}
 
 	@Override

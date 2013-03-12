@@ -26,8 +26,6 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  */
 public class FoldedCFG extends CFG implements Folded {
 
-	private FoldedCFG() { }
-
     /** Creates a new instance of CallGraph from a given IPDG.
      *
      * @param graph  The IPDG.
@@ -36,24 +34,6 @@ public class FoldedCFG extends CFG implements Folded {
         super();
         addAllVertices(g.vertexSet());
         addAllEdges(g.edgeSet());
-    }
-
-    /** Clones the graph.
-     * The clone uses the same nodes and vertices!
-     */
-    public FoldedCFG clone() {
-    	FoldedCFG data = new FoldedCFG();
-
-        // copy nodes and edges
-        for (SDGNode n : data.vertexSet()) {
-            data.addVertex(n);
-        }
-
-        for (SDGEdge e : data.edgeSet()) {
-            data.addEdge(e);
-        }
-
-        return data;
     }
 
     /** Maps a vertex to its fold vertex and returns the latter.

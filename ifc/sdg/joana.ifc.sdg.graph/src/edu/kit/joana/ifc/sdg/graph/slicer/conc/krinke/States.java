@@ -94,25 +94,36 @@ public class States implements Cloneable {
         return states[thread];
     }
 
-    /** Compares this States with given States.
-     * @param s  The States to compare with.
-     * @return true if 'this' and s are equal.
-     */
-    public boolean equals(Object o) {
-    	States s = (States) o;
+	/**
+	 * Compares this States with given States.
+	 * 
+	 * @param s
+	 *            The States to compare with.
+	 * @return true if 'this' and s are equal.
+	 */
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		} else if (o == null) {
+			return false;
+		} else if (!(o instanceof States)) {
+			return false;
+		} else {
+			States s = (States) o;
 
-        if (s.size() != size()) {
-            return false;
-        }
+			if (s.size() != size()) {
+				return false;
+			}
 
-        for (int i = 0; i < size(); i++) {
-            if (!s.get(i).equals(get(i))) {
-                return false;
-            }
-        }
+			for (int i = 0; i < size(); i++) {
+				if (!s.get(i).equals(get(i))) {
+					return false;
+				}
+			}
 
-        return true;
-    }
+			return true;
+		}
+	}
 
     /** Returns a textual representation of this States.
      * @return A textual representation of this States.

@@ -228,6 +228,10 @@ public class IFCConsole {
 
             } else if ("run".equals(command[0])) {
                 run();
+            } else if ("quit".equals(command[0])) {
+            	quit = true;
+            } else {
+            	System.out.println(String.format("Unable to recognize entered command '%s'\n", command[0]));
             }
         }
     }

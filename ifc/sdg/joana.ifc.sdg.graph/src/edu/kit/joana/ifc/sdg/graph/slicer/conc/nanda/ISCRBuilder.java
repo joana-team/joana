@@ -184,7 +184,7 @@ public class ISCRBuilder {
      */
     private CFG prepareICFG(CFG icfg, int ctr) {
         // create an icfg clone
-        CFG newICFG = icfg.clone();
+        CFG newICFG = new CFG(icfg);
 
         // remove parameter nodes
         params = paramNodes(newICFG);

@@ -22,26 +22,24 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  * @author Dennis Giffhorn
  * @version 1.0
  */
-public class CFG extends JoanaGraph implements Cloneable {
-
-	/** Clones the graph.
-     * The clone uses the same nodes and edges!
-     */
-    public CFG clone() {
-        CFG data = new CFG();
-
-        // copy nodes and edges
-        for (SDGNode n : vertexSet()) {
-            data.addVertex(n);
-        }
-
-        for (SDGEdge e : edgeSet()) {
-            data.addEdge(e);
-        }
-
-        return data;
-    }
-
+public class CFG extends JoanaGraph {
+	
+	/**
+	 * copy constructor - creates a CFG object, which shares all the nodes and edges with the given CFG.
+	 * @param g cfg to copy
+	 */
+	public CFG(CFG g) {
+		addAllVertices(g.vertexSet());
+		addAllEdges(g.edgeSet());
+	}
+	
+	/**
+	 * Constructs an empty CFG.
+	 */
+	public CFG() {
+		super();
+	}
+	
     /** Adds an edge to the graph.
      *
      * @param edge  The edge to add.

@@ -137,7 +137,6 @@ public class Phase1SlicerBackward extends SummarySlicer {
 
         for (SDGNode crit : criteria) {
             ctr++;
-            if ((ctr % 1) != 0) continue;
 
             for (int i = 0; i < slicer.size(); i++) {
                 long tmp = System.currentTimeMillis();

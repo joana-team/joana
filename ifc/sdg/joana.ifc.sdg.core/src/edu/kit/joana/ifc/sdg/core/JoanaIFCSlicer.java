@@ -374,7 +374,7 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 				annCon.addAll(defNodes);
 				String oldOutClass = annSummaryNode.getProvided();
 				String newOutClass = getSupremum(oldOutClass, annOutClass);
-				changed = changed || newOutClass != oldOutClass;
+				changed = changed || (!newOutClass.equals(oldOutClass));
 				if (changed) annSummaryNode.setProvided(newOutClass);
 
 			}

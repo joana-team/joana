@@ -19,7 +19,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 public class Criterion {
 	private Collection<SDGNode> source;
 	private Collection<SDGNode> target;
-	private Collection<SDGNode> barrier;
+	
 
 	Criterion(SDGNode target) {
 		this.target = Collections.singleton(target);
@@ -37,11 +37,6 @@ public class Criterion {
 	Collection<SDGNode> getTarget() {
 		return target;
 	}
-
-	Collection<SDGNode> getBarrier() {
-		return barrier;
-	}
-
 
 	static List<Criterion> createNCriteriaRandomly(int n, SDG g)
 	throws IllegalArgumentException {

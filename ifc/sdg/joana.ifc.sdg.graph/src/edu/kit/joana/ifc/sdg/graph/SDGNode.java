@@ -23,7 +23,7 @@ import java.util.Comparator;
  * <p>Organization: University of Passau, Software Systems Chair</p>
  * @author Christian Hammer <hammer@fmi.uni-passau.de>
  */
-public class SDGNode {
+public class SDGNode implements Cloneable {
 
 	/** used for optimizations in (parallel) summary computation */
 	public int tmp;

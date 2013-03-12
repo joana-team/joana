@@ -343,10 +343,18 @@ public class ThreadChopper extends Chopper {
            return (31*thread + node.hashCode()) | (tnr.hashCode() << 16);
        }
 
-       public boolean equals(Object o) {
-           Key k = (Key) o;
-           return node == k.node && thread == k.thread && tnr.getNumber() == k.tnr.getNumber();
-       }
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			} else if (o == null) {
+				return false;
+			} else if (!(o instanceof Key)) {
+				return false;
+			} else {
+				Key k = (Key) o;
+				return node == k.node && thread == k.thread && tnr.getNumber() == k.tnr.getNumber();
+			}
+		}
 
        public String toString() {
            return node.toString()+" : "+ tnr.getNumber();

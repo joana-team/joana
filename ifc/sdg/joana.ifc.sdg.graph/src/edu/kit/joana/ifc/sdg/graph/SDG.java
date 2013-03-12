@@ -37,7 +37,7 @@ import org.antlr.runtime.RecognitionException;
  * @see SDGNode
  * @see SDGNode.NodeFactory
  */
-public class SDG extends JoanaGraph {
+public class SDG extends JoanaGraph implements Cloneable {
    
     public static final int DEFAULT_VERSION = 1;
     

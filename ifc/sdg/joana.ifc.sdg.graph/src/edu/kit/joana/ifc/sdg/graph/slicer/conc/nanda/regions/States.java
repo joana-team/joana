@@ -88,25 +88,35 @@ public class States implements Cloneable {
         return this.states.size();
     }
 
-    /**
-     * Checks whether this state tuple and a given one are equal.
-     * They are considered equal if all their states are equal.
-     *
-     * @param toCheck  The state tuple to compare with.
-     */
-    public boolean equals(Object o) {
-    	States toCheck = (States) o;
+	/**
+	 * Checks whether this state tuple and a given one are equal. They are
+	 * considered equal if all their states are equal.
+	 * 
+	 * @param toCheck
+	 *            The state tuple to compare with.
+	 */
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		} else if (o == null) {
+			return false;
+		} else if (!(o instanceof States)) {
+			return false;
+		} else {
+			States toCheck = (States) o;
 
-        if (this.size() != toCheck.size()) return false;
+			if (this.size() != toCheck.size())
+				return false;
 
-        for (int i = 0; i < this.size(); i++) {
-            if (!this.get(i).equals(toCheck.get(i))) {
-                return false;
-            }
-        }
+			for (int i = 0; i < this.size(); i++) {
+				if (!this.get(i).equals(toCheck.get(i))) {
+					return false;
+				}
+			}
 
-        return true;
-    }
+			return true;
+		}
+	}
 
     /* setter */
 

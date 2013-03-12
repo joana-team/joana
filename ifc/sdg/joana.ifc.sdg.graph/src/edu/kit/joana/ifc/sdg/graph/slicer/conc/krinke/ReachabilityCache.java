@@ -93,10 +93,18 @@ public class ReachabilityCache {
             return to;
         }
 
-        public boolean equals(Object o) {
-        	Key k = (Key) o;
-        	return from.equals(k.from) && to.equals(k.to);
-        }
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			} else if (o == null) {
+				return false;
+			} else if (!(o instanceof Key)) {
+				return false;
+			} else {
+				Key k = (Key) o;
+				return from.equals(k.from) && to.equals(k.to);
+			}
+		}
 
         public int hashCode() {
         	return from.hashCode() | (to.hashCode() << 16);

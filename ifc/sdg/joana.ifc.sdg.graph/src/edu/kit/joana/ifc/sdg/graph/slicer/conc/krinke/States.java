@@ -16,7 +16,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicCon
  *
  * @author  Dennis Giffhorn
  */
-public class States {
+public class States implements Cloneable {
     // the execution states
     private Context[] states;
 

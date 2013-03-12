@@ -65,27 +65,27 @@ public class SeqSlicingTests {
         System.out.println("initializing the slicers");
         LinkedList<Slicer> array = new LinkedList<Slicer>();
 
-        if (algs % 2 == 1) {
+        if (algs % 2 != 0) {
         	array.addLast(new ContextInsensitiveBackward(g));
         }
         algs = algs / 10;
 
-        if (algs % 2 == 1) {
+        if (algs % 2 != 0) {
         	array.addLast(new SummarySlicerBackward(g));
         }
         algs = algs / 10;
 
-        if (algs % 2 == 1) {
+        if (algs % 2 != 0) {
         	array.addLast(new ContextSlicerBackward(g, true));
         }
         algs = algs / 10;
 
-        if (algs % 2 == 1) {
+        if (algs % 2 != 0) {
         	array.addLast(new IPDGSlicerBackward(g, false));
         }
         algs = algs / 10;
 
-        if (algs % 2 == 1) {
+        if (algs % 2 != 0) {
         	array.addLast(new IPDGSlicerBackward(g, true));
         }
 

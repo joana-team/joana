@@ -101,9 +101,9 @@ public class SlicingTests {
                 }
             }
 //            System.out.println("************************************** ");
-            if (ctr % 1 == 0) {
-                System.out.print(".");
-            }
+
+            System.out.print(".");
+
             if (ctr % 10 == 0) {
                 System.out.print(ctr);
             }

@@ -22,7 +22,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  * @author Dennis Giffhorn
  * @version 1.0
  */
-public class CFG extends JoanaGraph {
+public class CFG extends JoanaGraph implements Cloneable {
 
 	/** Clones the graph.
      * The clone uses the same nodes and edges!

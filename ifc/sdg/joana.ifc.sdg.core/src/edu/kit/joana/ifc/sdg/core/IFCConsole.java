@@ -160,6 +160,9 @@ public class IFCConsole {
         while (!quit) {
             System.out.print("> ");
             in = reader.readLine();
+            if (in == null) {
+            	handleInputAbortion();
+            }
             String[] command = in.split(" ");
             // get the method for this command
 
@@ -301,6 +304,9 @@ public class IFCConsole {
 
         while (bfr.ready()) {
             String line = bfr.readLine();
+            if (line == null) {
+            	handleInputAbortion();
+            }
             String[] tokens = line.split(" ");
 
             int id = Integer.parseInt(tokens[0]);

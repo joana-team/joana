@@ -73,8 +73,16 @@ public class SimpleWorklistElement {
     	return (31*thread + node.hashCode()) * 31 + tnr.hashCode();
     }
 
-    public boolean equals(Object o) {
-    	SimpleWorklistElement w= (SimpleWorklistElement) o;
-    	return w.node == node && w.thread == thread && w.tnr == tnr;
-    }
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		} else if (o == null) {
+			return false;
+		} else if (!(o instanceof SimpleWorklistElement)) {
+			return false;
+		} else {
+			SimpleWorklistElement w = (SimpleWorklistElement) o;
+			return w.node == node && w.thread == thread && w.tnr == tnr;
+		}
+	}
 }

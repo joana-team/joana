@@ -56,6 +56,9 @@ public class IFCConsole {
         System.out.println("or press <return> to input your data manually.");
         System.out.print("> ");
         in = reader.readLine();
+        if (in == null) {
+        	handleInputAbortion();
+        }
         String[] command = in.split(" ");
 
         if (command[0].equals("")) {
@@ -92,22 +95,38 @@ public class IFCConsole {
         System.out.println("Querying SDG: Enter the path to a .pdg file");
         System.out.print("> ");
         in = reader.readLine();
+        if (in == null) {
+        	handleInputAbortion();
+        	return;
+        }
         String[] command = in.split(" ");
         readSDG(command[0]);
 
         System.out.println("Querying security lattice: Enter the path to a .lat file");
         System.out.print("> ");
         in = reader.readLine();
+        if (in == null) {
+        	handleInputAbortion();
+        	return;
+        }
         command = in.split(" ");
         readLattice(command[0]);
 
         System.out.println("Choose your kind of analysis: `Seq (for sequential IFC), `Prob' (for Probabilistic IFC) or `Poss' (for Possibilistic IFC)");
         System.out.print("> ");
         in = reader.readLine();
+        if (in == null) {
+        	handleInputAbortion();
+        	return;
+        }
         command = in.split(" ");
         kind = command[0];
 
         readCommands();
+    }
+    
+    private static void handleInputAbortion() {
+    	System.out.println("Input aborted.");
     }
 
     private static void readSDG(String path) throws IOException {

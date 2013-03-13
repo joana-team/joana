@@ -10,10 +10,10 @@ package edu.kit.joana.util.maps;
 import java.util.HashMap;
 import java.util.Map;
 
-
 /**
- * This class implements a map, in which the keys are pairs. That is, for each pair of keys, there is
- * at most one value.
+ * This class implements a map, in which the keys are pairs. That is, for each
+ * pair of keys, there is at most one value.
+ * 
  * @author Martin Mohr
  */
 public class BinaryMap<K1, K2, T> {
@@ -32,11 +32,15 @@ public class BinaryMap<K1, K2, T> {
 	}
 
 	/**
-	 * Returns the value associated to the given pair. If no value is associated to the given pair,
-	 * {@code null} is returned.
-	 * @param keyx first component of key to retrieve value for
-	 * @param keyy second component of key to retrieve value for
-	 * @return the value associated to the given pair, or {@code null}, if there is no such value.
+	 * Returns the value associated to the given pair. If no value is associated
+	 * to the given pair, {@code null} is returned.
+	 * 
+	 * @param keyx
+	 *            first component of key to retrieve value for
+	 * @param keyy
+	 *            second component of key to retrieve value for
+	 * @return the value associated to the given pair, or {@code null}, if there
+	 *         is no such value.
 	 */
 	public T get(K1 keyx, K2 keyy) {
 		if (!containsKey(keyx, keyy)) {
@@ -56,17 +60,21 @@ public class BinaryMap<K1, K2, T> {
 	}
 
 	public String toString() {
-		StringBuffer ret = new StringBuffer("{");
-		for (Map.Entry<K1, Map<K2, T>> e1 : mappings.entrySet()) {
-			K1 keyX = e1.getKey();
-			for (Map.Entry<K2, T> e2 : e1.getValue().entrySet()) {
-				K2 keyY = e2.getKey();
-				T value = e2.getValue();
-				ret.append(String.format("(%s, %s) --> %s, ", keyX, keyY, value));
+		if (mappings.isEmpty()) {
+			return "{}";
+		} else {
+			StringBuffer ret = new StringBuffer("{");
+			for (Map.Entry<K1, Map<K2, T>> e1 : mappings.entrySet()) {
+				K1 keyX = e1.getKey();
+				for (Map.Entry<K2, T> e2 : e1.getValue().entrySet()) {
+					K2 keyY = e2.getKey();
+					T value = e2.getValue();
+					ret.append(String.format("(%s, %s) --> %s, ", keyX, keyY, value));
+				}
 			}
+			ret.replace(ret.length() - 2, ret.length(), "}");
+
+			return ret.toString();
 		}
-		ret.replace(ret.length() - 2, ret.length(), "}");
-		
-		return ret.toString();
 	}
 }

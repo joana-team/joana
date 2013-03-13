@@ -24,7 +24,7 @@ import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.ifc.sdg.util.JavaType.Format;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
-import edu.kit.joana.util.MapUtils;
+import edu.kit.joana.util.maps.MapUtils;
 
 
 /**

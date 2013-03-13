@@ -5,7 +5,7 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-package edu.kit.joana.util;
+package edu.kit.joana.util.maps;
 
 import java.util.HashMap;
 import java.util.HashSet;

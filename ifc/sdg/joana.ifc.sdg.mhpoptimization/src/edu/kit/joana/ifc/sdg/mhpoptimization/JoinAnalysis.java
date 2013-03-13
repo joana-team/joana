@@ -26,7 +26,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
-import edu.kit.joana.util.MapUtils;
+import edu.kit.joana.util.maps.MapUtils;
 
 /**
  *

@@ -128,8 +128,19 @@ public class AbstractJoanaGraph<V, E> implements DirectedGraph<V,E> {
 	 * @return
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
+	@SuppressWarnings("unchecked")
 	public boolean equals(Object obj) {
-		return delegate.equals(obj);
+		if (this == obj) {
+			return true;
+		} else if (obj == null) {
+			return false;
+		} else if (!(obj instanceof AbstractJoanaGraph)) {
+			return false;
+		} else {
+		    AbstractJoanaGraph<V,E> other = (AbstractJoanaGraph<V,E>) obj;
+			DirectedPseudograph<V, E> otherDelegate = (DirectedPseudograph<V, E>) other.delegate;
+			return delegate.equals(otherDelegate);
+		}
 	}
 
 	/**

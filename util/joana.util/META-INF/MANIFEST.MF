@@ -7,5 +7,6 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Require-Bundle: joana.contrib.lib;bundle-version="1.0.0"
 Export-Package: edu.kit.joana.util,
  edu.kit.joana.util.graph,
+ edu.kit.joana.util.graph.io.dot,
  edu.kit.joana.util.io,
  edu.kit.joana.util.maps

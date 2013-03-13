@@ -9,6 +9,8 @@ package edu.kit.joana.wala.core;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -48,6 +50,7 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.util.JoanaConstants;
 import edu.kit.joana.util.LogUtil;
+import edu.kit.joana.util.io.IOFactory;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
@@ -217,7 +220,7 @@ public final class Main {
 			final String fileName = cfg.outputDir + WriteGraphToDot.sanitizeFileName(sdg.getName()) + ".pdg";
 			final File file = new File(fileName);
 			out.print("(" + file.getAbsolutePath() + ") ");
-			PrintWriter pw = new PrintWriter(file);
+			PrintWriter pw = new PrintWriter(IOFactory.createUTF8PrintStream(new FileOutputStream(file)));
 			SDGSerializer.toPDGFormat(sdg, pw);
 			out.println("done.");
 		}
@@ -258,7 +261,9 @@ public final class Main {
 		}
 
 		// Nimmt unnoetige Klassen raus
-		SetOfClasses exclusions = new FileOfClasses(new ByteArrayInputStream(cfg.exclusions.getBytes()));
+		
+		SetOfClasses exclusions =
+				new FileOfClasses(new ByteArrayInputStream(IOFactory.createUTF8Bytes(cfg.exclusions)));
 		scope.setExclusions(exclusions);
 
 	    ClassLoaderReference loader = scope.getLoader(AnalysisScope.APPLICATION);

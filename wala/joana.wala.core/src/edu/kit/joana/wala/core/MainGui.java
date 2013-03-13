@@ -16,7 +16,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -34,6 +33,7 @@ import javax.swing.filechooser.FileFilter;
 
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
+import edu.kit.joana.util.io.IOFactory;
 import edu.kit.joana.wala.core.Main.Config;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 
@@ -233,7 +233,7 @@ public class MainGui extends JFrame {
 
 				final Config cfg = new Config("MainGui " + entryMethod, entryMethod, classpath, FieldPropagation.FLAT);
 				output.setText("");
-				PrintToArea outtotext = new PrintToArea(output);
+				final PrintStream outtotext = IOFactory.createPrintStreamFromJTextArea(output);
 				try {
 					Main.run(outtotext, cfg);
 				} catch (Throwable e1) {
@@ -260,7 +260,7 @@ public class MainGui extends JFrame {
 				debug.outln("\tSEARCH ENTER");
 				final Config cfg = new Config("Search main " + entryMethod, entryMethod, classpath, FieldPropagation.FLAT);
 				output.setText("");
-				PrintToArea outtotext = new PrintToArea(output);
+				final PrintStream outtotext = IOFactory.createPrintStreamFromJTextArea(output);
 				try {
 					Main.searchMainMethods(outtotext, cfg);
 				} catch (Throwable e1) {
@@ -276,21 +276,5 @@ public class MainGui extends JFrame {
 			}
 		}
 	}
-
-	public static class PrintToArea extends PrintStream {
-
-        private final JTextArea area;
-
-        public PrintToArea(JTextArea area) {
-            super(new ByteArrayOutputStream());
-            this.area = area;
-        }
-
-        @Override
-        public void write(byte[] buf, int off, int len) {
-            area.append(new String(buf, off, len));
-        }
-
-    }
 
 }

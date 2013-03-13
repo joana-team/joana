@@ -370,18 +370,36 @@ public final class CheckFlowLessWithAlias {
 
 	}
 
+	public static class EntityNotFoundException extends FlowAstException {
+
+		public EntityNotFoundException(String message) {
+			super(message);
+		}
+
+		private static final long serialVersionUID = -1553942031552394940L;
+		
+	}
+	
 	private void checkBasicIFCStmts(final AliasSDG alias, final Matcher match,
 			final List<BasicIFCStmt> stmts, final MethodInfo mInfo, final FlowStmtResult stmtResult,
-			final ExceptionAnalysis excCfg, final IProgressMonitor progress) throws CancelException {
+			final ExceptionAnalysis excCfg, final IProgressMonitor progress) throws CancelException, EntityNotFoundException {
 		for (final BasicIFCStmt s : stmts) {
 			for (final PrimitiveAliasStmt noAlias : s.aMinus) {
 				final Parameter[] noalias = noAlias.getParams().toArray(new Parameter[1]);
 				for (int i = 0; i < noalias.length; i++) {
 					assert match.hasMatchFor(noalias[i]);
 					final SDGNode n1 = match.getMatch(noalias[i]);
+					if (n1 == null) {
+						throw new EntityNotFoundException("found no matching parameter for '" + noalias[i] + "' in "
+								+ mInfo.toString());
+					}
 					for (int j = i + 1; j < noalias.length; j++) {
 						assert match.hasMatchFor(noalias[j]);
 						final SDGNode n2 = match.getMatch(noalias[j]);
+						if (n2 == null) {
+							throw new EntityNotFoundException("found no matching parameter for '" + noalias[j] + "' in "
+									+ mInfo.toString());
+						}
 						alias.setNoAlias(n1.getId(), n2.getId());
 					}
 				}
@@ -475,7 +493,6 @@ public final class CheckFlowLessWithAlias {
 		for (final Parameter fp : fl.getFrom()) {
 			final Set<SDGNode> nf = match.getFineReachIN(fp);
 			if (nf.isEmpty()) {
-				System.err.println("<I>");
 				final Set<SDGNode> fineIn = match.getFineReachOUT(fp);
 				from.addAll(fineIn);
 			} else {
@@ -517,7 +534,7 @@ public final class CheckFlowLessWithAlias {
 	private static void adjustSetWithPotentialAliases(final AliasSDG alias, final ParamKind kind,
 			final Set<SDGNode> toAdjust) {
 		if (toAdjust.isEmpty()) {
-			System.err.println("empty set");
+			return;
 		}
 		// add potential aliases (non-ruled out ones) to outgoing and incoming nodes nodes
 		// as long as not one of their fields are already in the from or to set:

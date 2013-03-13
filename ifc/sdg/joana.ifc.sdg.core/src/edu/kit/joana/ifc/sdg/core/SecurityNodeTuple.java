@@ -18,9 +18,9 @@ package edu.kit.joana.ifc.sdg.core;
  */
 public class SecurityNodeTuple {
     /** The first component of the tuple. */
-    private SecurityNode firstNode;
+    private final SecurityNode firstNode;
     /** The second component of the tuple. */
-    private SecurityNode secondNode;
+    private final SecurityNode secondNode;
 
     /**
      * Constructs a tuple given two nodes.
@@ -62,14 +62,6 @@ public class SecurityNodeTuple {
      */
     public SecurityNode getSecondNode() {
         return secondNode;
-    }
-
-    public void setFirstNode(SecurityNode n) {
-        firstNode = n;
-    }
-
-    public void setSecondNode(SecurityNode n) {
-        secondNode = n;
     }
 
     /**

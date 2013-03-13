@@ -21,7 +21,6 @@ import java.util.Set;
 
 import edu.kit.joana.ifc.sdg.core.interfaces.ProgressAnnouncer;
 import edu.kit.joana.ifc.sdg.core.interfaces.ProgressListener;
-import edu.kit.joana.ifc.sdg.core.sdgtools.HashMap3d;
 import edu.kit.joana.ifc.sdg.core.violations.Violation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -30,6 +29,7 @@ import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
+import edu.kit.joana.util.maps.BinaryMap;
 import edu.kit.joana.util.maps.MultiMap;
 
 /**
@@ -69,7 +69,7 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 	 * @uml.property  name="fSummaryEdge"
 	 * @uml.associationEnd  multiplicity="(1 1)"
 	 */
-	HashMap3d<SecurityNode, SecurityNode, Boolean> fSummaryEdge = new HashMap3d<SecurityNode, SecurityNode, Boolean>();
+	BinaryMap<SecurityNode, SecurityNode, Boolean> fSummaryEdge = new BinaryMap<SecurityNode, SecurityNode, Boolean>();
 
 	/**
 	 * @uml.property  name="fsecVios"

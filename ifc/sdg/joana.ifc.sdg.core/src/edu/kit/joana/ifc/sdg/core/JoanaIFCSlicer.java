@@ -21,7 +21,6 @@ import java.util.Set;
 
 import edu.kit.joana.ifc.sdg.core.interfaces.ProgressAnnouncer;
 import edu.kit.joana.ifc.sdg.core.interfaces.ProgressListener;
-import edu.kit.joana.ifc.sdg.core.sdgtools.HashMap1toN;
 import edu.kit.joana.ifc.sdg.core.sdgtools.HashMap3d;
 import edu.kit.joana.ifc.sdg.core.violations.Violation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -31,6 +30,7 @@ import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
+import edu.kit.joana.util.maps.MultiMap;
 
 /**
  * @author naxan
@@ -114,7 +114,7 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 		HashMap<Pathedge, Pathedge> visited = new HashMap<Pathedge, Pathedge>();
 
 		/** actoutPathedges contains pathedges starting at an actout-node */
-		HashMap1toN<SecurityNode, Pathedge> actoutPathedges = new HashMap1toN<SecurityNode, Pathedge>();
+		MultiMap<SecurityNode, Pathedge> actoutPathedges = new MultiMap<SecurityNode, Pathedge>();
 
 		/** violations contains SimpleViolations representing all found security violations */
 		LinkedList<Violation> violations = new LinkedList<Violation>();
@@ -268,10 +268,10 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 
 	private void addCorrespondingFormal(HashList<Pathedge> worklist,
 			HashMap<Pathedge, Pathedge> visited,
-			HashMap1toN<SecurityNode, Pathedge> actoutPathedges,
+			MultiMap<SecurityNode, Pathedge> actoutPathedges,
 			Pathedge newlonger) {
 		/* Remember ACTOUT-pathedge for future retrieval */
-		actoutPathedges.put(newlonger.source, newlonger);
+		actoutPathedges.addValue(newlonger.source, newlonger);
 
 		/* do FORMALOUT-node */
 		for (SDGNode n : g.getFormalOuts(newlonger.source)) {
@@ -437,7 +437,7 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 	 * @param longer
 	 */
 	private void readdActOutNodesFor(Pathedge longer, HashList<Pathedge> worklist,
-			HashMap<Pathedge, Pathedge> visited, HashMap1toN<SecurityNode, Pathedge> actoutPathedges) {
+			HashMap<Pathedge, Pathedge> visited, MultiMap<SecurityNode, Pathedge> actoutPathedges) {
 
 		SecurityNode formalOut = longer.target;
 		/* get all corresponding actualOut nodes and add corresponding pathedges to worklist */
@@ -446,7 +446,7 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 			SecurityNode caller = (SecurityNode) n;
 			SecurityNode actualOut = (SecurityNode) g.getActualOut(caller, formalOut);
 			if (actualOut == null) continue;
-			Set<Pathedge> actpathedges = actoutPathedges.get(actualOut);
+			Set<Pathedge> actpathedges = actoutPathedges.getAllValues(actualOut);
 
 			for (Pathedge pe : actpathedges) {
 				Pathedge currentpe = visited.get(pe);

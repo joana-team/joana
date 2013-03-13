@@ -13,13 +13,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import edu.kit.joana.ifc.sdg.core.sdgtools.HashMap1toN;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.IncrementalSummaryBackward;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
+import edu.kit.joana.util.maps.MultiMap;
 
 
 /**
@@ -37,7 +37,7 @@ public class DeclassificationSummaryNodes extends IncrementalSummaryBackward {
 	private static final SDGEdge.Kind KIND = Kind.HELP;
 
 	IStaticLattice<String> l;
-	HashMap1toN<SecurityNode,PathEdge> pathEdge;
+	MultiMap<SecurityNode,PathEdge> pathEdge;
 	LinkedList<PathEdge> worklist;
 
 	private static class PathEdge extends SDGEdge {
@@ -116,7 +116,7 @@ public class DeclassificationSummaryNodes extends IncrementalSummaryBackward {
     }
 
 	private void initWorklist() {
-		pathEdge = new HashMap1toN<SecurityNode, PathEdge>();
+		pathEdge = new MultiMap<SecurityNode, PathEdge>();
     	worklist = new LinkedList<PathEdge>();
     	boolean isIPDG = true;
     	List<SDGEdge> toRemove = new ArrayList<SDGEdge>();
@@ -150,7 +150,7 @@ public class DeclassificationSummaryNodes extends IncrementalSummaryBackward {
 				if (isIPDG || withSummary) {
 					for (SecurityNode node : toAdd) {
 						PathEdge e = new PathEdge(node, node, freePathKind(!node.isDeclassification()), l.getTop());
-						pathEdge.put(node, e);
+						pathEdge.addValue(node, e);
 						worklist.add(e);
 					}
 					toAdd.clear();
@@ -162,17 +162,17 @@ public class DeclassificationSummaryNodes extends IncrementalSummaryBackward {
 	private void addToPathEdge(PathEdge edge) {
 		// if pathEdge does not contain edge or something has changed
 		SecurityNode source = (SecurityNode) edge.getSource();
-		for (PathEdge former : pathEdge.get(source)) {
+		for (PathEdge former : pathEdge.getAllValues(source)) {
 			if (edge.equals(former)) {
 				if (edge.getKind() != former.getKind() || !edge.getLabel().equals(former.getLabel())) {
-					pathEdge.get(source).remove(former);
-					pathEdge.put(source, edge);
+					pathEdge.getAllValues(source).remove(former);
+					pathEdge.addValue(source, edge);
 					worklist.add(edge);
 				}
 				return;
 			}
 		}
-		pathEdge.put(source, edge);
+		pathEdge.addValue(source, edge);
 		worklist.add(edge);
 	}
 
@@ -202,7 +202,7 @@ public class DeclassificationSummaryNodes extends IncrementalSummaryBackward {
 					graph.addEdge(sum);
 
 					// Iterate through all pathedges that originate in ao
-					Set<PathEdge> toCheck = pathEdge.get((SecurityNode) ao);
+					Set<PathEdge> toCheck = pathEdge.getAllValues((SecurityNode) ao);
 					for (PathEdge path : new LinkedList<PathEdge>(toCheck)) {
 						PathEdge edge = coreAlg(path, sum);
 						addToPathEdge(edge);
@@ -219,7 +219,7 @@ public class DeclassificationSummaryNodes extends IncrementalSummaryBackward {
 		SecurityNode v = (SecurityNode) reachedNode(shorter);
 
 		PathEdge longer = new PathEdge(w, ta, Kind.SUMMARY, l.getTop());
-		for (PathEdge nLonger : pathEdge.get(w)) {
+		for (PathEdge nLonger : pathEdge.getAllValues(w)) {
 			if (longer.equals(nLonger)) {
 				longer = nLonger;
 				break;
@@ -249,7 +249,7 @@ public class DeclassificationSummaryNodes extends IncrementalSummaryBackward {
 		SecurityNode w = (SecurityNode) reachedNode(e);
 
 		PathEdge longer = new PathEdge(w, ta, Kind.SUMMARY, l.getTop());
-		for (PathEdge nLonger : pathEdge.get(w)) {
+		for (PathEdge nLonger : pathEdge.getAllValues(w)) {
 			if (longer.equals(nLonger)) {
 				longer = nLonger;
 				break;

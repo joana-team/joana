@@ -11,6 +11,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 
@@ -42,6 +43,23 @@ public final class IOFactory {
 	}
 	
 	/**
+	 * Returns an output stream writer which writes to the given output stream and uses UTF-8 encoding.
+	 * Throws a runtime exception, if UTF-8 is not supported by the JVM (according to 
+	 * <a href="http://docs.oracle.com/javase/6/docs/api/java/nio/charset/Charset.html">the java api specs</a>this should never be the case...)
+	 * @param out output stream to write to
+	 * @return an output stream writer which writes to the given output stream and uses UTF-8 encoding
+	 */
+	public static OutputStreamWriter createUTF8OutputStreamWriter(OutputStream out) {
+		try {
+			return new OutputStreamWriter(out, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			handleUEE();
+			return null;
+		}
+		
+	}
+	
+	/**
 	 * Returns print stream which writes to the given output stream and uses UTF-8 encoding.
 	 * Throws a runtime exception, if UTF-8 is not supported by the JVM (according to 
 	 * <a href="http://docs.oracle.com/javase/6/docs/api/java/nio/charset/Charset.html">the java api specs</a>this should never be the case...)
@@ -57,6 +75,8 @@ public final class IOFactory {
 			return null;
 		}
 	}
+	
+	
 	
 	/**
 	 * Returns print stream which writes to the given output stream and uses UTF-8 encoding. The returned print stream will not flush automatically.

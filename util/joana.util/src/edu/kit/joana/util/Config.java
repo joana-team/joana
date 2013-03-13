@@ -28,6 +28,7 @@ public final class Config {
 	public static final String C_OBJGRAPH_CONVERT_TO_OBJTREE 			= "objgraph.convert-to-objtree";
 	public static final String C_SIDEEFFECT_DETECTOR 					= "sideeffect.detector";
 	public static final String C_SIDEEFFECT_DETECTOR_VAR 				= "sideeffect.detector-var";
+	public static final String C_SDG_DATAFLOW_FOR_GET_FROM_FIELD		= "sdg.dataflow-for-get-from-field";
 	
 	private static final String PROP_FILE = "joana-options.properties";
 	
@@ -57,6 +58,10 @@ public final class Config {
 		final String value = getString(option);
 		
 		return value == null || !value.equals("false");
+	}
+
+	public static boolean getBool(final String option, final boolean defaultValue) {
+		return (!isDefined(option) ? defaultValue : getBool(option));
 	}
 
 	public static int getInt(final String option, final int defaultValue) {

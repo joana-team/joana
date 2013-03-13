@@ -10,7 +10,6 @@ package edu.kit.joana.wala.core;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -281,7 +280,7 @@ public final class Main {
 		return compute(out, cfg, false, progress);
 	}
 
-	private static Pair<Long, SDGBuilder.Config> prepareBuild(PrintStream out, Config cfg, boolean computeInterference, IProgressMonitor progress) throws IOException, ClassHierarchyException {
+	private static Pair<Long, SDGBuilder.SDGBuilderConfig> prepareBuild(PrintStream out, Config cfg, boolean computeInterference, IProgressMonitor progress) throws IOException, ClassHierarchyException {
 		if (!checkOrCreateOutputDir(cfg.outputDir)) {
 			out.println("Could not access/create diretory '" + cfg.outputDir +"'");
 			return null;
@@ -352,7 +351,7 @@ public final class Main {
 			chk = cfg.extern;
 		}
 
-		final SDGBuilder.Config scfg = new SDGBuilder.Config();
+		final SDGBuilder.SDGBuilderConfig scfg = new SDGBuilder.SDGBuilderConfig();
 		scfg.out = out;
 		scfg.scope = scope;
 		scfg.cache = cache;
@@ -387,9 +386,9 @@ public final class Main {
 	}
 
 	public static SDG compute(PrintStream out, Config cfg, boolean computeInterference, IProgressMonitor progress) throws IOException, ClassHierarchyException, UnsoundGraphException, CancelException {
-		Pair<Long, SDGBuilder.Config> p = prepareBuild(out, cfg, computeInterference, progress);
+		Pair<Long, SDGBuilder.SDGBuilderConfig> p = prepareBuild(out, cfg, computeInterference, progress);
 		long startTime = p.fst;
-		SDGBuilder.Config scfg = p.snd;
+		SDGBuilder.SDGBuilderConfig scfg = p.snd;
 		final SDG sdg = SDGBuilder.build(scfg, progress);
 		postpareBuild(startTime, out);
 //		SDGVerifier.verify(sdg, false, true);
@@ -398,9 +397,9 @@ public final class Main {
 	}
 
 	public static Pair<SDG, SDGBuilder> computeAndKeepBuilder(PrintStream out, Config cfg, boolean computeInterference, IProgressMonitor progress) throws UnsoundGraphException, CancelException, IOException, ClassHierarchyException {
-		Pair<Long, SDGBuilder.Config> p = prepareBuild(out, cfg, computeInterference, progress);
+		Pair<Long, SDGBuilder.SDGBuilderConfig> p = prepareBuild(out, cfg, computeInterference, progress);
 		long startTime = p.fst;
-		SDGBuilder.Config scfg = p.snd;
+		SDGBuilder.SDGBuilderConfig scfg = p.snd;
 		final Pair<SDG, SDGBuilder> ret = SDGBuilder.buildAndKeepBuilder(scfg, progress);
 		postpareBuild(startTime, out);
 //		SDGVerifier.verify(sdg, false, true);

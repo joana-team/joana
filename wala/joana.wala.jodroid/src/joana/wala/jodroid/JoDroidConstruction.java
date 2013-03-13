@@ -36,7 +36,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.wala.core.ExternalCallCheck;
 import edu.kit.joana.wala.core.Main;
 import edu.kit.joana.wala.core.SDGBuilder;
-import edu.kit.joana.wala.core.SDGBuilder.Config;
+import edu.kit.joana.wala.core.SDGBuilder.SDGBuilderConfig;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
@@ -62,7 +62,7 @@ public final class JoDroidConstruction {
 		} catch (ClassHierarchyException e) {
 			throw new SDGConstructionException(e);
 		}
-		Config scfg = new Config();
+		SDGBuilderConfig scfg = new SDGBuilderConfig();
 		scfg.out = System.out;
 		scfg.scope = scope;
 		scfg.cache = new AnalysisCache((IRFactory<IMethod>) new DexIRFactory());

@@ -94,7 +94,8 @@ public class IFCReportAndRunPanel extends JPanel {
 	private final IFCConsoleGUI consoleGui;
 	private final JTextArea ifcParams = new JTextArea();
 	private final JButton runButton = new JButton("Run IFC Analysis");
-	private final JComboBox<Object> typeCombo = new JComboBox<Object>();
+	@SuppressWarnings("rawtypes")
+	private final JComboBox typeCombo = new JComboBox();
 	private final JCheckBox avoidTimeTravel = new JCheckBox("avoid time-travel");
 	private final SignalLight resultIndicator = new SignalLight();
 	private final JLabel resultText = new JLabel("<no analysis run yet>");
@@ -147,8 +148,9 @@ public class IFCReportAndRunPanel extends JPanel {
 //		add(dummy2, GUIUtil.mkgbc_nofill(7, 1, GridBagConstraints.REMAINDER, 1));
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private void initIFCTypeCombo() {
-		MutableComboBoxModel<Object> cBoxModel = new DefaultComboBoxModel<Object>();
+		MutableComboBoxModel cBoxModel = new DefaultComboBoxModel();
 		for (IFCType ifcType : IFCType.values()) {
 			cBoxModel.addElement(ifcType);
 		}

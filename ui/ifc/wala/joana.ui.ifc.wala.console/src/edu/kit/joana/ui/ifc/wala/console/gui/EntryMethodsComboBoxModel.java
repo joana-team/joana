@@ -19,7 +19,8 @@ import javax.swing.event.ListDataListener;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 
 
-public class EntryMethodsComboBoxModel implements ComboBoxModel<Object> {
+@SuppressWarnings("rawtypes")
+public class EntryMethodsComboBoxModel implements ComboBoxModel {
 
 	private List<JavaMethodSignature> entries;
 	private JavaMethodSignature selected = null;

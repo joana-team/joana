@@ -44,12 +44,13 @@ import edu.kit.joana.ui.ifc.wala.console.console.IFCConsole;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class IFCConfigPanel extends JPanel {
 
 	private static final long serialVersionUID = -8606108705404396745L;
 
 	private final IFCConsoleGUI consoleGui;
-	private final JComboBox<Object> entryMethodSelect = new JComboBox<Object>();
+	private final JComboBox entryMethodSelect = new JComboBox();
 	private boolean ignoreSelection = false;
 	private final EntryMethodsComboBoxModel entryMethodsModel = new EntryMethodsComboBoxModel();
 	private final JTextField classPathInput = new JTextField();
@@ -58,14 +59,14 @@ public class IFCConfigPanel extends JPanel {
 	private final JCheckBox autoSaveSDGCheckbox = new JCheckBox("auto-save");
 	private final JLabel sdgStatusLabel = new JLabel("<no sdg in memory>");
 	private final JCheckBox compIFECheckbox = new JCheckBox("compute interference edges");
-	private final JComboBox<Object> mhpCombo = new JComboBox<Object>();
-	private final JComboBox<Object> exceptionCombo = new JComboBox<Object>();
-	private final JComboBox<Object> stubsCombo = new JComboBox<Object>();
+	private final JComboBox mhpCombo = new JComboBox();
+	private final JComboBox exceptionCombo = new JComboBox();
+	private final JComboBox stubsCombo = new JComboBox();
 	private final JButton loadSDG = new JButton("load SDG from file");
 	private final JButton saveSDG = new JButton("save current SDG as");
 	private final JButton buildSDG = new JButton("build");
 	private final JLabel latticeLabel = new JLabel("Security lattice: ");
-	private final JComboBox<Object> curLatticeComboBox = new JComboBox<Object>();
+	private final JComboBox curLatticeComboBox = new JComboBox();
 	private final JButton loadScript = new JButton("load script");
 	private final JButton saveScript = new JButton("save script");
 
@@ -176,7 +177,7 @@ public class IFCConfigPanel extends JPanel {
 	}
 	
 	private void initLatticeComboBox() {
-		MutableComboBoxModel<Object> latticeTypes = new DefaultComboBoxModel<Object>();
+		MutableComboBoxModel latticeTypes = new DefaultComboBoxModel();
 		latticeTypes.addElement(LATTICE_BINARY);
 		latticeTypes.addElement(LATTICE_TERNARY);
 		latticeTypes.addElement(LATTICE_DIAMOND);
@@ -247,7 +248,7 @@ public class IFCConfigPanel extends JPanel {
 	}
 
 	private void initMHPCombo() {
-		MutableComboBoxModel<Object> mhpTypes = new DefaultComboBoxModel<Object>();
+		MutableComboBoxModel mhpTypes = new DefaultComboBoxModel();
 		mhpTypes.addElement(new ElementWithDescription<MHPType>(MHPType.NONE, MHP_NONE));
 		mhpTypes.addElement(new ElementWithDescription<MHPType>(MHPType.SIMPLE, MHP_SIMPLE));
 		mhpTypes.addElement(new ElementWithDescription<MHPType>(MHPType.PRECISE, MHP_PRECISE));
@@ -256,7 +257,7 @@ public class IFCConfigPanel extends JPanel {
 	}
 	
 	private void initStubsCombo() {
-		MutableComboBoxModel<Object> possibleStubs = new DefaultComboBoxModel<Object>();
+		MutableComboBoxModel possibleStubs = new DefaultComboBoxModel();
 		for (Stubs stubs : Stubs.values()) {
 			possibleStubs.addElement(stubs.toString());
 		}
@@ -265,7 +266,7 @@ public class IFCConfigPanel extends JPanel {
 	}
 
 	private void initExceptionCombo() {
-		MutableComboBoxModel<Object> exceptionTypes = new DefaultComboBoxModel<Object>();
+		MutableComboBoxModel exceptionTypes = new DefaultComboBoxModel();
 		exceptionTypes.addElement(new ElementWithDescription<ExceptionAnalysis>(ExceptionAnalysis.INTRAPROC,
 				EXC_INTRAPROC));
 		exceptionTypes.addElement(new ElementWithDescription<ExceptionAnalysis>(ExceptionAnalysis.INTERPROC,
@@ -567,7 +568,6 @@ public class IFCConfigPanel extends JPanel {
 		return compIFECheckbox.isSelected();
 	}
 
-	@SuppressWarnings("unchecked")
 	public MHPType getMHPType() {
 		return ((ElementWithDescription<MHPType>) mhpCombo.getSelectedItem()).getElement();
 	}
@@ -576,7 +576,6 @@ public class IFCConfigPanel extends JPanel {
 		return translateLattice(curLatticeComboBox.getSelectedItem().toString());
 	}
 
-	@SuppressWarnings("unchecked")
 	public ExceptionAnalysis getExceptionAnalysisType() {
 		return ((ElementWithDescription<ExceptionAnalysis>) exceptionCombo.getSelectedItem()).getElement();
 	}

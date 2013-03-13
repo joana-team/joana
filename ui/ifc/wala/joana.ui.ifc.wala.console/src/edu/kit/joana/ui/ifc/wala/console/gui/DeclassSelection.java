@@ -28,110 +28,108 @@ import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 
 public class DeclassSelection extends JDialog {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = 7170674014539166547L;
+
     private final IStaticLattice<String> lattice;
     private final IFCConsoleGUI consoleGui;
-    private final JComboBox<Object> level1Selection = new JComboBox<Object>();
-    private final JComboBox<Object> level2Selection = new JComboBox<Object>();
+    @SuppressWarnings("rawtypes")
+	private final JComboBox level1Selection = new JComboBox();
+    @SuppressWarnings("rawtypes")
+    private final JComboBox level2Selection = new JComboBox();
 
     /** order lattice elements as good as possible by lattice order */
     private final Comparator<String> latCompAsc = new Comparator<String>() {
 
-	@Override
-	public int compare(String arg0, String arg1) {
-	    if (lattice.greatestLowerBound(arg0, arg1).equals(arg0)) {
-		return -1;
-	    } else if (lattice.greatestLowerBound(arg0, arg1).equals(arg1)) {
-		return 1;
-	    } else {
-		return arg0.compareTo(arg1); // incomparable elements are considered equal
-	    }
-	}
+		@Override
+		public int compare(String arg0, String arg1) {
+		    if (lattice.greatestLowerBound(arg0, arg1).equals(arg0)) {
+		    	return -1;
+		    } else if (lattice.greatestLowerBound(arg0, arg1).equals(arg1)) {
+		    	return 1;
+		    } else {
+		    	return arg0.compareTo(arg1); // incomparable elements are considered equal
+		    }
+		}
 
     };
 
-    public DeclassSelection(IFCConsoleGUI consoleGui, IStaticLattice<String> lattice) {
-	super(consoleGui, "Declassification", true);
-	setModal(true);
-	this.lattice = lattice;
-	this.consoleGui = consoleGui;
-	List<String> levels = new ArrayList<String>();
-	levels.addAll(lattice.getElements());
-	Collections.sort(levels, Collections.reverseOrder(latCompAsc));
-
-
-	for (String level : levels) {
-	    level1Selection.addItem(level);
-	}
-
-	Collections.reverse(levels);
-
-	for (String level : levels) {
-	    level2Selection.addItem(level);
-	}
-
-	JPanel contentPane = new JPanel();
-	contentPane.add(new JLabel("Declassify from "));
-	contentPane.add(level1Selection);
-	contentPane.add(new JLabel(" to "));
-	contentPane.add(level2Selection);
-	JButton ok = new JButton("Ok");
-	ok.addActionListener(new ActionListener() {
-
-	    @Override
-	    public void actionPerformed(ActionEvent arg0) {
-		setVisible(false);
-	    }
-
-	});
-	contentPane.add(ok);
-	setContentPane(contentPane);
-	pack();
-	this.level1Selection.addItemListener(new ItemListener() {
-
-	    @Override
-	    public void itemStateChanged(ItemEvent e) {
-		if (e.getStateChange() == ItemEvent.SELECTED) {
-		    handleSelectLevel1();
+    @SuppressWarnings("unchecked")
+	public DeclassSelection(IFCConsoleGUI consoleGui, IStaticLattice<String> lattice) {
+		super(consoleGui, "Declassification", true);
+		setModal(true);
+		this.lattice = lattice;
+		this.consoleGui = consoleGui;
+		List<String> levels = new ArrayList<String>();
+		levels.addAll(lattice.getElements());
+		Collections.sort(levels, Collections.reverseOrder(latCompAsc));
+	
+	
+		for (String level : levels) {
+		    level1Selection.addItem(level);
 		}
-	    }
-
-	});
-	this.level2Selection.addItemListener(new ItemListener() {
-
-	    @Override
-	    public void itemStateChanged(ItemEvent e) {
-		if (e.getStateChange() == ItemEvent.SELECTED) {
-		    handleSelectLevel2();
+	
+		Collections.reverse(levels);
+	
+		for (String level : levels) {
+		    level2Selection.addItem(level);
 		}
-	    }
-	});
+	
+		JPanel contentPane = new JPanel();
+		contentPane.add(new JLabel("Declassify from "));
+		contentPane.add(level1Selection);
+		contentPane.add(new JLabel(" to "));
+		contentPane.add(level2Selection);
+		JButton ok = new JButton("Ok");
+		ok.addActionListener(new ActionListener() {
+	
+		    @Override
+		    public void actionPerformed(ActionEvent arg0) {
+		    	setVisible(false);
+		    }
+	
+		});
+		contentPane.add(ok);
+		setContentPane(contentPane);
+		pack();
+		this.level1Selection.addItemListener(new ItemListener() {
+	
+		    @Override
+		    public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+				    handleSelectLevel1();
+				}
+		    }
+	
+		});
+		this.level2Selection.addItemListener(new ItemListener() {
+	
+		    @Override
+		    public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+				    handleSelectLevel2();
+				}
+		    }
+		});
     }
 
     private void handleSelectLevel1() {
-
-	if (!lattice.greatestLowerBound(getLevel1(), getLevel2()).equals(getLevel2())) {
-	    consoleGui.error("Cannot declassify from " + getLevel1() + " to " + getLevel2() + " because " + getLevel2() + " is not lower than " + getLevel1() + " in current lattice!");
-	}
-
+		if (!lattice.greatestLowerBound(getLevel1(), getLevel2()).equals(getLevel2())) {
+		    consoleGui.error("Cannot declassify from " + getLevel1() + " to " + getLevel2() + " because " + getLevel2() + " is not lower than " + getLevel1() + " in current lattice!");
+		}
     }
 
     private void handleSelectLevel2() {
-
-	if (!lattice.greatestLowerBound(getLevel1(), getLevel2()).equals(getLevel2())) {
-	    consoleGui.error("Cannot declassify from " + getLevel1() + " to " + getLevel2() + " because " + getLevel2() + " is not lower than " + getLevel1() + " in current lattice!");
-	}
+		if (!lattice.greatestLowerBound(getLevel1(), getLevel2()).equals(getLevel2())) {
+		    consoleGui.error("Cannot declassify from " + getLevel1() + " to " + getLevel2() + " because " + getLevel2() + " is not lower than " + getLevel1() + " in current lattice!");
+		}
     }
 
     public String getLevel1() {
-	return (String)level1Selection.getSelectedItem();
+    	return (String)level1Selection.getSelectedItem();
     }
 
     public String getLevel2() {
-	return (String)level2Selection.getSelectedItem();
+    	return (String)level2Selection.getSelectedItem();
     }
 
 //    private boolean verifyLevel1(String level2) {

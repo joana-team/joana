@@ -41,6 +41,10 @@ public class SimpleParameter extends Parameter {
 			return name;
 		}
 
+		public boolean equals(Object other) {
+			return (other instanceof Part ? equals((Part) other) : false); 
+		}
+		
 		public boolean equals(Part other) {
 			return getType() == other.getType() && name.equals(other.name);
 		}

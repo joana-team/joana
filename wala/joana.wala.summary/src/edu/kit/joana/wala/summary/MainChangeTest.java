@@ -81,7 +81,7 @@ public class MainChangeTest {
 
 			File f = new File(arg);
 			if (!f.exists() || !f.canRead()) {
-				error(args + " is not a readable and existsing file.");
+				error(arg + " is not a readable and existsing file.");
 				continue;
 			}
 

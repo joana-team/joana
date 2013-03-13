@@ -1034,7 +1034,7 @@ public final class CheckFlowLessWithAlias {
 			chk = cfg.extern;
 		}
 
-		final SDGBuilder.Config scfg = new SDGBuilder.Config();
+		final SDGBuilder.SDGBuilderConfig scfg = new SDGBuilder.SDGBuilderConfig();
 		scfg.out = out;
 		scfg.scope = scope;
 		scfg.cache = cg.cache;

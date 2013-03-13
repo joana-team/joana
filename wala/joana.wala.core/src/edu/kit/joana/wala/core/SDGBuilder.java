@@ -55,6 +55,7 @@ import com.ibm.wala.util.graph.impl.SparseNumberedGraph;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.util.SDGConstants;
+import edu.kit.joana.util.Config;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.LogUtil;
 import edu.kit.joana.util.Logger;
@@ -100,11 +101,12 @@ public class SDGBuilder implements CallGraphFilter {
 	// start at 2+1 == 3 because other ids are reserved.
 	public final static int PDG_START_ID = 3;
 	public final static int NO_PDG_ID = -1;
-	public final static boolean DATA_FLOW_FOR_GET_FROM_FIELD_NODE = false;
+	public final static boolean DATA_FLOW_FOR_GET_FROM_FIELD_NODE =
+			Config.getBool(Config.C_SDG_DATAFLOW_FOR_GET_FROM_FIELD, false);
 	// private final static Context DEFAULT_CONTEXT = Everywhere.EVERYWHERE;
 	// private final static SSAOptions DEFAULT_SSA_OPTIONS = new SSAOptions();
 
-	public final Config cfg;
+	public final SDGBuilderConfig cfg;
 
 	public static enum ExceptionAnalysis {
 		IGNORE_ALL,
@@ -137,7 +139,7 @@ public class SDGBuilder implements CallGraphFilter {
 		OBJ_TREE_NO_FIELD_MERGE
 	}
 
-	public static SDGBuilder create(final Config cfg) throws UnsoundGraphException, CancelException {
+	public static SDGBuilder create(final SDGBuilderConfig cfg) throws UnsoundGraphException, CancelException {
 		IProgressMonitor progress = NullProgressMonitor.INSTANCE;
 
 		SDGBuilder builder = new SDGBuilder(cfg);
@@ -146,7 +148,7 @@ public class SDGBuilder implements CallGraphFilter {
 		return builder;
 	}
 
-	public static SDGBuilder create(final Config cfg, final com.ibm.wala.ipa.callgraph.CallGraph walaCG,
+	public static SDGBuilder create(final SDGBuilderConfig cfg, final com.ibm.wala.ipa.callgraph.CallGraph walaCG,
 			final PointerAnalysis pts) throws UnsoundGraphException, CancelException {
 		IProgressMonitor progress = NullProgressMonitor.INSTANCE;
 
@@ -156,7 +158,7 @@ public class SDGBuilder implements CallGraphFilter {
 		return builder;
 	}
 
-	public static SDG build(final Config cfg, IProgressMonitor progress) throws UnsoundGraphException, CancelException {
+	public static SDG build(final SDGBuilderConfig cfg, IProgressMonitor progress) throws UnsoundGraphException, CancelException {
 		SDG sdg = null;
 		WorkPackage pack = null;
 
@@ -181,7 +183,7 @@ public class SDGBuilder implements CallGraphFilter {
 		return sdg;
 	}
 
-	public static Pair<SDG, SDGBuilder> buildAndKeepBuilder(final Config cfg, IProgressMonitor progress)
+	public static Pair<SDG, SDGBuilder> buildAndKeepBuilder(final SDGBuilderConfig cfg, IProgressMonitor progress)
 			throws UnsoundGraphException, CancelException {
 		SDG sdg = null;
 		WorkPackage pack = null;
@@ -205,7 +207,7 @@ public class SDGBuilder implements CallGraphFilter {
 		return Pair.make(sdg, builder);
 	}
 
-	public static SDG build(final Config cfg) throws UnsoundGraphException, CancelException {
+	public static SDG build(final SDGBuilderConfig cfg) throws UnsoundGraphException, CancelException {
 		IProgressMonitor progress = NullProgressMonitor.INSTANCE;
 		return build(cfg, progress);
 	}
@@ -268,7 +270,7 @@ public class SDGBuilder implements CallGraphFilter {
 	private Map<PDGNode, TIntSet> call2alloc = null;
 	private InterprocAnalysisResult<SSAInstruction, IExplodedBasicBlock> interprocExceptionResult = null;
 
-	private SDGBuilder(final Config cfg) {
+	private SDGBuilder(final SDGBuilderConfig cfg) {
 		this.cfg = cfg;
 	}
 
@@ -1107,7 +1109,7 @@ public class SDGBuilder implements CallGraphFilter {
 	 * @author Juergen Graf <juergen.graf@gmail.com>
 	 *
 	 */
-	public static class Config {
+	public static class SDGBuilderConfig {
 		public PrintStream out = System.out;
 		public AnalysisScope scope = null;
 		public AnalysisCache cache = null;

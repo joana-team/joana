@@ -47,7 +47,7 @@ public class APIntraProc {
 	// contains only edges for heap dependencies that are due to aliasing
 	private final List<APGraph.APEdge> alias;
 
-	public static APIntraProc compute(final PDG pdg, final SDGBuilder.Config cfg) {
+	public static APIntraProc compute(final PDG pdg, final SDGBuilder.SDGBuilderConfig cfg) {
 		final APGraph graph = APGraph.create(pdg);
 
 		final List<APGraph.APEdge> alias = APGraph.findAliasEdges(graph);

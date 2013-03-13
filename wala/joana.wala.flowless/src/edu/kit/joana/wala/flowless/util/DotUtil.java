@@ -112,16 +112,17 @@ public class DotUtil {
 	    	PrintStream fw = new PrintStream(f);
 	    	dotOutputLabeld(g, edges, nDecor, eDecor, fw, ignoreDefaultLabels);
 	    	fw.close();
-	    	if (monitor != null) monitor.worked(1);
-			if (monitor.isCanceled()) {
-				throw CancelException.make("Operation aborted.");
-			}
+	    	if (monitor != null) {
+	    		monitor.worked(1);
+				if (monitor.isCanceled()) {
+					throw CancelException.make("Operation aborted.");
+				}
+	    	}
 
 	    	return f;
 	    } catch (Exception e) {
 	    	if (monitor != null) monitor.cancel();
-			throw new WalaException("IOException in " + DotUtil.class + ": "
-					+ e.getMessage());
+			throw new WalaException("IOException in " + DotUtil.class + ": " + e.getMessage());
 	    }
 	  }
 

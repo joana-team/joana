@@ -87,6 +87,7 @@ public class MainGui extends JFrame {
 	private final JTextField entryPoint;
 	private final JTextArea output;
 	private AtomicBoolean running = new AtomicBoolean(false);
+	private Object runLock = new Object();
 
 	public MainGui() {
 		super("System Dependence Graph Computation");
@@ -228,7 +229,7 @@ public class MainGui extends JFrame {
 		public void run() {
 			debug.outln("\tCOMPUTE RUN");
 
-			synchronized (running) {
+			synchronized (runLock) {
 				debug.outln("\tCOMPUTE ENTER");
 
 				final Config cfg = new Config("MainGui " + entryMethod, entryMethod, classpath, FieldPropagation.FLAT);
@@ -256,7 +257,7 @@ public class MainGui extends JFrame {
 		public void run() {
 			debug.outln("\tSEARCH RUN");
 
-			synchronized (running) {
+			synchronized (runLock) {
 				debug.outln("\tSEARCH ENTER");
 				final Config cfg = new Config("Search main " + entryMethod, entryMethod, classpath, FieldPropagation.FLAT);
 				output.setText("");

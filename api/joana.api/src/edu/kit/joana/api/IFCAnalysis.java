@@ -34,7 +34,7 @@ import edu.kit.joana.ifc.sdg.core.violations.OrderConflict;
 import edu.kit.joana.ifc.sdg.core.violations.Violation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.graph.chopper.RepsRosayChopper;
+import edu.kit.joana.ifc.sdg.graph.chopper.conc.ThreadChopper;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.SimpleMHPAnalysis;
@@ -184,11 +184,12 @@ public class IFCAnalysis {
 		for (Violation vio : vios) {
 			IllicitFlow ill = new IllicitFlow(vio, allParts);
 			ret.add(ill);
-			RepsRosayChopper c = new RepsRosayChopper(program.getSDG());
+			ThreadChopper c = new ThreadChopper(program.getSDG());
 			SDGProgramPart illSrc = ill.getSource();
 			SDGProgramPart illSnk = ill.getSink();
 			if (illSrc != null && illSnk != null) {
 				Collection<SDGNode> chop = c.chop(illSrc.getAttachedNodes(), illSnk.getAttachedNodes());
+				debug.outln(String.format("Chop of %s (%s) and %s (%s): %s", illSrc, illSrc.getAttachedNodes(), illSnk, illSnk.getAttachedNodes(), chop));
 				debug.outln("Illicit flow with the following nodes involved: ");
 				Map<SDGNode, Collection<SDGNode>> groupedByProc = groupByProc(program.getSDG(), chop);
 				for (Map.Entry<SDGNode, Collection<SDGNode>> nProc : groupedByProc.entrySet()) {

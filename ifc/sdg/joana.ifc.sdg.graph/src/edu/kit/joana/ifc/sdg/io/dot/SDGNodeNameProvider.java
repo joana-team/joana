@@ -16,11 +16,24 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  * @author Martin Mohr
  */
 public class SDGNodeNameProvider implements VertexNameProvider<SDGNode> {
-
+	
+	private static final SDGNodeNameProvider INSTANCE = new SDGNodeNameProvider();
+	
+	/** prevent instantiation */
+	private SDGNodeNameProvider() {}
+	
 	@Override
 	public String getVertexName(SDGNode arg0) {
 		String label = (arg0.getLabel() != null)?arg0.getLabel():arg0.getBytecodeName();
 		return "[" + arg0.getId() + "] " + " " + arg0.getKind() + " " + label;
+	}
+	
+	/**
+	 * Returns the only instance of this class.
+	 * @return the only instance of this class
+	 */
+	public static final SDGNodeNameProvider getInstance() {
+		return INSTANCE;
 	}
 
 }

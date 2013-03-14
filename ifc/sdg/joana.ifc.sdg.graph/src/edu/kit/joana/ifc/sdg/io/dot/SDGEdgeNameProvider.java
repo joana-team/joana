@@ -17,11 +17,23 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
  * @author Martin Mohr
  */
 public final class SDGEdgeNameProvider implements EdgeNameProvider<SDGEdge> {
-
+	
+	private static final SDGEdgeNameProvider INSTANCE = new SDGEdgeNameProvider();
+	
+	/** prevent instantiation */
+	private SDGEdgeNameProvider() {}
+	
 	@Override
 	public String getEdgeName(SDGEdge arg0) {
 		return arg0.getKind().toString();
 	}
 
+	/**
+	 * Returns the only instance of this class.
+	 * @return the only instance of this class
+	 */
+	public static final SDGEdgeNameProvider getInstance() {
+		return INSTANCE;
+	}
 
 }

@@ -55,6 +55,7 @@ public class TimeSensSlicingTest {
 	
 	@BeforeClass
 	public static void setUp() {
+		/** test failure will only be visible if assertions are enabled */
 		TimeSensSlicingTest.class.getClassLoader().setDefaultAssertionStatus(true);
 		for (final TestData td : testData.values()) {
 			if (FORCE_REBUILD) {
@@ -72,6 +73,7 @@ public class TimeSensSlicingTest {
 	
 	@AfterClass
 	public static void tearDown() {
+		/** turn off assertions again to not influence later tests unintentionally */
 		TimeSensSlicingTest.class.getClassLoader().setDefaultAssertionStatus(false);
 	}
 	

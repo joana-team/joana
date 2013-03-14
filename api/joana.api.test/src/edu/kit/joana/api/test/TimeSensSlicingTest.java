@@ -110,7 +110,7 @@ public class TimeSensSlicingTest {
 		
 		Nanda tsfwSlicer = new Nanda(sdg, new NandaForward());
 		for (SDGNode n : sdg.vertexSet()) {
-			System.out.println(tsfwSlicer.slice(n));
+			tsfwSlicer.slice(n);
 		}
 	}
 	

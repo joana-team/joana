@@ -82,8 +82,8 @@ public class ISCRBuilder {
 
         // 2-pass-folding
         debug.outln("	folding...");
-        FoldedCFG folded = GraphFolder.twoPassFolding(newICFG);
-        assert twoPassTest(newICFG, folded);
+        FoldedCFG folded = GraphFolder.twoPassFolding(icfg);
+        assert twoPassTest(icfg, folded);
 
         // inlining of procedures - we need a folded call graph
         debug.outln("	inlining procedures...");

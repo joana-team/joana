@@ -227,7 +227,7 @@ public class FullIFCSensitivityTest {
 			ana.setTimesensitivity(true);
 			Collection<IllicitFlow> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
-			assertEquals(1, illegal.size());
+			assertEquals(2, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -241,7 +241,7 @@ public class FullIFCSensitivityTest {
 			ana.setTimesensitivity(true);
 			Collection<IllicitFlow> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty()); // with lock-sensitive IFC, this test will hopefully fail some day
-			assertEquals(1, illegal.size()); 
+			assertEquals(2, illegal.size()); 
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

@@ -124,7 +124,7 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
     private SDGNode root() {
     	root = getNode(1);
 
-    	if (root == null) {
+    	if (root == null || this.inDegreeOf(root) > 0) {
     		for (SDGNode n : vertexSet()) {
     			if (this.inDegreeOf(n) == 0 && !this.isFolded(n)) {
     				root = n;

@@ -24,6 +24,7 @@ import edu.kit.joana.api.sdg.SDGPhi;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.api.sdg.SDGProgramPartVisitor;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
 public class IFCAnnotationManager {
 
@@ -98,6 +99,14 @@ public class IFCAnnotationManager {
 
 	public void applyAllAnnotations() {
 		app.applyAnnotations(getAnnotations());
+	}
+	
+	public Collection<SDGNode> getSourceNodes() {
+		return app.getSourceNodes();
+	}
+	
+	public Collection<SDGNode> getSinkNodes() {
+		return app.getSinkNodes();
 	}
 
 	public void unapplyAllAnnotations() {

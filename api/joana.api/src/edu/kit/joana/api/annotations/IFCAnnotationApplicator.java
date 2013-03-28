@@ -50,6 +50,26 @@ public class IFCAnnotationApplicator extends SDGProgramPartVisitor<Void, IFCAnno
 			ann.getProgramPart().acceptVisitor(this, ann);
 		}
 	}
+	
+	Collection<SDGNode> getSourceNodes() {
+		return getNodes(NodeAnnotationInfo.PROV);
+	}
+	
+	Collection<SDGNode> getSinkNodes() {
+		return getNodes(NodeAnnotationInfo.REQ);
+	}
+	
+	private Collection<SDGNode> getNodes(String which) {
+		final Collection<SDGNode> ret = new LinkedList<SDGNode>();
+		for (Map.Entry<SecurityNode, NodeAnnotationInfo> e : annotatedNodes.entrySet()) {
+			SecurityNode sNode = e.getKey();
+			NodeAnnotationInfo nai = e.getValue();
+			if (nai.getWhich().equals(which)) {
+				ret.add(sNode);
+			}
+		}
+		return ret;
+	}
 
 	public void unapplyAnnotations(Collection<IFCAnnotation> anns) {
 		List<SecurityNode> toDelete = new LinkedList<SecurityNode>();

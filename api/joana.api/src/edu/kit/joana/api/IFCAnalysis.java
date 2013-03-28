@@ -40,8 +40,6 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.SimpleMHPAnalysis;
 import edu.kit.joana.ifc.sdg.lattice.IEditableLattice;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
-import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
-import edu.kit.joana.ifc.sdg.lattice.WrongLatticeDefinitionException;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 
@@ -54,18 +52,9 @@ public class IFCAnalysis {
 	private IFC ifc;
 	private boolean timeSensitiveAnalysis = false;
 
-	public static final IStaticLattice<String> stdLattice;
+	public static final IStaticLattice<String> stdLattice = BuiltinLattices.getBinaryLattice();
 
 	private static Logger debug = Log.getLogger("api.debug");
-
-	static {
-		try {
-			stdLattice = LatticeUtil.loadLattice(BuiltinLattices.STD_SECLEVEL_LOW + "<="
-					+ BuiltinLattices.STD_SECLEVEL_HIGH);
-		} catch (WrongLatticeDefinitionException e) {
-			throw new IllegalStateException();
-		}
-	}
 
 	public IFCAnalysis(SDGProgram program, IStaticLattice<String> secLattice) {
 		if (program == null || secLattice == null) {

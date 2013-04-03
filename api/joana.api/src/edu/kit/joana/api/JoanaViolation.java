@@ -8,8 +8,8 @@
 package edu.kit.joana.api;
 
 /**
- * TODO: @author Add your name here.
+ * @author Martin Mohr
  */
-public class JoanaViolation {
+public abstract class JoanaViolation {
 
 }

@@ -10,6 +10,6 @@ package edu.kit.joana.api;
 /**
  * @author Martin Mohr
  */
-public abstract class JoanaConflict {
+public abstract class JoanaConflict extends JoanaViolation {
 
 }

@@ -40,6 +40,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.SimpleMHPAnalysis;
 import edu.kit.joana.ifc.sdg.lattice.IEditableLattice;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
+import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 
@@ -88,15 +89,24 @@ public class IFCAnalysis {
 		case POSSIBILISTIC:
 			this.ifc = new PossibilisticNIChecker(this.program.getSDG(), secLattice);
 			if (timeSensitiveAnalysis) {
+				if (this.program.getSDG().getThreadsInfo() == null) {
+					CSDGPreprocessor.justPrecprocess(this.program.getSDG());
+				}
 				this.ifc = new TimeSensitiveIFCDecorator(this.ifc);
 			}
 			break;
 		case PROBABILISTIC_WITH_SIMPLE_MHP:
+			if (this.program.getSDG().getThreadsInfo() == null) {
+				CSDGPreprocessor.justPrecprocess(this.program.getSDG());
+			}
 			MHPAnalysis mhpSimple = SimpleMHPAnalysis.analyze(this.program.getSDG());
 			this.ifc = new ProbabilisticNIChecker(this.program.getSDG(), secLattice, mhpSimple,
 					this.timeSensitiveAnalysis);
 			break;
 		case PROBABILISTIC_WITH_PRECISE_MHP:
+			if (this.program.getSDG().getThreadsInfo() == null) {
+				CSDGPreprocessor.justPrecprocess(this.program.getSDG());
+			}
 			MHPAnalysis mhpPrecise = PreciseMHPAnalysis.analyze(this.program.getSDG());
 			this.ifc = new ProbabilisticNIChecker(this.program.getSDG(), secLattice, mhpPrecise,
 					this.timeSensitiveAnalysis);

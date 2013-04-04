@@ -51,6 +51,7 @@ public class IFCAnalysis {
 	private IFCType ifcType = IFCType.POSSIBILISTIC;
 	private IFC ifc;
 	private boolean timeSensitiveAnalysis = false;
+	private boolean removeRedundantFlows = false;
 
 	public static final IStaticLattice<String> stdLattice = BuiltinLattices.getBinaryLattice();
 
@@ -89,6 +90,9 @@ public class IFCAnalysis {
 			this.ifc = new PossibilisticNIChecker(this.program.getSDG(), secLattice);
 			if (timeSensitiveAnalysis) {
 				this.ifc = new TimeSensitiveIFCDecorator(this.ifc);
+				if (removeRedundantFlows) {
+					this.ifc = ReduceRedundantFlows.makeReducingConcurrentIFC(this.ifc);
+				}
 			}
 			break;
 		case PROBABILISTIC_WITH_SIMPLE_MHP:

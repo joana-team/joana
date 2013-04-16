@@ -254,30 +254,6 @@ public final class CSDGPreprocessor {
 		}
 	}
 
-	private static final void pruneInterferences(SDG graph, MHPAnalysis mhp) {
-		LinkedList<SDGEdge> remove = new LinkedList<SDGEdge>();
-		int all = 0;
-		int x = 0;
-		for (SDGEdge e : graph.edgeSet()) {
-			if (e.getKind() == SDGEdge.Kind.INTERFERENCE
-					|| e.getKind() == SDGEdge.Kind.INTERFERENCE_WRITE) {
-				all++;
-				// nicht parallel
-				if (!mhp.isParallel(e.getSource(), e.getTarget())) {
-					remove.add(e);
-					x++;
-				}
-			}
-		}
-
-		for (SDGEdge e : remove) {
-			if (IS_DEBUG) debug.outln("Edge between " + e.getSource() + " and " + e.getTarget() + " of kind " + e.getKind() + " is spurious.");
-			graph.removeEdge(e);
-		}
-
-		if (IS_DEBUG) debug.outln("	" + x + " of " + all + " edges removed");
-	}
-
 	private static final void createJoinEdges(SDG graph, ThreadsInformation ti) {
 		for (ThreadInstance i : ti) {
 			if (i.getJoin() != null) {

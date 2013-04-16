@@ -15,6 +15,7 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
+import edu.kit.joana.ifc.sdg.mhpoptimization.PruneInterferences;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.NullProgressMonitor;
@@ -55,7 +56,7 @@ public class BuildSDG {
 	public void run() {
 		try {
 			sdg = buildSDG();
-			CSDGPreprocessor.runMHP(sdg, MHPType.PRECISE);
+			PruneInterferences.preprocessAndPruneCSDG(sdg, MHPType.PRECISE);
 		} catch (ClassHierarchyException e) {
 			throw new RuntimeException(e);
 		} catch (IOException e) {

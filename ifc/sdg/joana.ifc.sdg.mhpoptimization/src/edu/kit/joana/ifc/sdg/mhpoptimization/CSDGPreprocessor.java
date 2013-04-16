@@ -61,8 +61,7 @@ public final class CSDGPreprocessor {
 
 		// 4. compute detailed information about the threads
 		if (IS_DEBUG) debug.out("  collect thread infos...");
-		CFG icfg = ICFGBuilder.extractICFG(g);
-		ThreadsInformation ti = ThreadsInfoCollector.createThreadsInformation(alloc, icfg);
+		ThreadsInformation ti = ThreadsInfoCollector.createThreadsInformation(alloc, cfg);
 		g.setThreadsInfo(ti);
 		info.outln("done");
 		if (IS_DEBUG) debug.outln("		done");

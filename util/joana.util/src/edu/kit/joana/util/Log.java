@@ -30,6 +30,7 @@ public final class Log {
 	public static final String L_SDG_CORE_DEBUG 				= "sdg.core.debug";
 	public static final String L_SDG_GRAPH_DEBUG 				= "sdg.graph.debug";
 	public static final String L_SDG_INTERFERENCE_DEBUG 		= "sdg.interference.debug";
+	public static final String L_SDG_INTERFERENCE_INFO 		    = "sdg.interference.info";
 	public static final String L_SDG_CALLGRAPH_DEBUG 			= "sdg.callgraph.debug";
 	public static final String L_SDG_ISCR_DEBUG 				= "sdg.iscr.debug";
 	public static final String L_SDG_INFO 						= "sdg.info";

@@ -128,7 +128,7 @@ public class SDGProgram {
 			// CSDGPreprocessor p = new CSDGPreprocessor(sdg);
 			switch (config.getMhpType()) {
 			case NONE:
-				CSDGPreprocessor.justPrecprocess(sdg);
+				CSDGPreprocessor.justPreprocess(sdg);
 				break;
 			case SIMPLE:
 				CSDGPreprocessor.runMHP(sdg, CSDGPreprocessor.MHPPrecision.SIMPLE);

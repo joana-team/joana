@@ -92,7 +92,7 @@ public class IFCAnalysis {
 			this.ifc = new PossibilisticNIChecker(this.program.getSDG(), secLattice);
 			if (timeSensitiveAnalysis) {
 				if (this.program.getSDG().getThreadsInfo() == null) {
-					CSDGPreprocessor.justPrecprocess(this.program.getSDG());
+					CSDGPreprocessor.justPreprocess(this.program.getSDG());
 				}
 				this.ifc = new TimeSensitiveIFCDecorator(this.ifc);
 				if (removeRedundantFlows) {
@@ -102,7 +102,7 @@ public class IFCAnalysis {
 			break;
 		case PROBABILISTIC_WITH_SIMPLE_MHP:
 			if (this.program.getSDG().getThreadsInfo() == null) {
-				CSDGPreprocessor.justPrecprocess(this.program.getSDG());
+				CSDGPreprocessor.justPreprocess(this.program.getSDG());
 			}
 			MHPAnalysis mhpSimple = SimpleMHPAnalysis.analyze(this.program.getSDG());
 			this.ifc = new ProbabilisticNIChecker(this.program.getSDG(), secLattice, mhpSimple,
@@ -110,7 +110,7 @@ public class IFCAnalysis {
 			break;
 		case PROBABILISTIC_WITH_PRECISE_MHP:
 			if (this.program.getSDG().getThreadsInfo() == null) {
-				CSDGPreprocessor.justPrecprocess(this.program.getSDG());
+				CSDGPreprocessor.justPreprocess(this.program.getSDG());
 			}
 			MHPAnalysis mhpPrecise = PreciseMHPAnalysis.analyze(this.program.getSDG());
 			this.ifc = new ProbabilisticNIChecker(this.program.getSDG(), secLattice, mhpPrecise,

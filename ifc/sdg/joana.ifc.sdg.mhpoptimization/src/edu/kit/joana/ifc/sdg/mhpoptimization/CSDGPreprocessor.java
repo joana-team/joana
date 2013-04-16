@@ -302,7 +302,7 @@ public class CSDGPreprocessor {
 		return runMHP(g, MHPPrecision.PRECISE);
 	}
 	
-	public static void justPrecprocess(SDG g) {
+	public static void justPreprocess(SDG g) {
 		CSDGPreprocessor p = new CSDGPreprocessor(g);
 		p.preprocessSDG();
 	}

@@ -17,7 +17,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
-import edu.kit.joana.ifc.sdg.mhpoptimization.ThreadAllocation.SpawnNumber;
+import edu.kit.joana.ifc.sdg.mhpoptimization.ThreadAllocationAnalysis.SpawnNumber;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 
@@ -85,7 +85,7 @@ public final class ThreadsInfoCollector {
     /**
      * Computes information about the threads in a CFG.
      */
-    public static ThreadsInformation createThreadsInformation(ThreadAllocation ta, CFG cfg) {
+    public static ThreadsInformation createThreadsInformation(ThreadAllocationAnalysis ta, CFG cfg) {
         LinkedList<ThreadInstance> result = new LinkedList<ThreadInstance>();
 
         // create a ThreadInstance for the main thread

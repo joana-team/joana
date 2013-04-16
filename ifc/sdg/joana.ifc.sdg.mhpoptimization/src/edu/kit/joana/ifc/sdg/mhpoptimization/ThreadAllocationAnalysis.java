@@ -36,7 +36,7 @@ import edu.kit.joana.util.Logger;
  * 
  * @author Dennis Giffhorn
  */
-public class ThreadAllocation {
+public class ThreadAllocationAnalysis {
 
 	public static enum LoopDetPrec {
 		SIMPLE, PRECISE;
@@ -70,7 +70,7 @@ public class ThreadAllocation {
 	 * @param g
 	 *            A SDG.
 	 */
-	public ThreadAllocation(CFG cfg, LoopDetPrec prec) {
+	public ThreadAllocationAnalysis(CFG cfg, LoopDetPrec prec) {
 		this.cfg = cfg;
 		
 		// create the context manager

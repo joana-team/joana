@@ -16,12 +16,12 @@ import edu.kit.joana.ifc.sdg.graph.SDGNodeTuple;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.FoldedCFG;
-import edu.kit.joana.ifc.sdg.mhpoptimization.ThreadAllocation;
+import edu.kit.joana.ifc.sdg.mhpoptimization.ThreadAllocationAnalysis;
 
 /**
  * This implementation of {@link LoopDetermination} is the old analysis which relies on the folded control-flow graph and is very conservative. For example, it does consider a fork
  * which is executed only once and definitely happens after a loop as dynamic.<p/>
- * This analysis has been moved out of {@link ThreadAllocation}, so that it can be replaced by a more precise analysis with the option of going back, if there are bugs.
+ * This analysis has been moved out of {@link ThreadAllocationAnalysis}, so that it can be replaced by a more precise analysis with the option of going back, if there are bugs.
  * @author  Dennis Giffhorn, Martin Mohr
  */
 public class SimpleLoopDetermination implements LoopDetermination {

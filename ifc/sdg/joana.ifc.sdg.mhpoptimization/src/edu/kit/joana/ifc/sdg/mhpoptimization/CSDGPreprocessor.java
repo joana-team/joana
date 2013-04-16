@@ -34,19 +34,15 @@ import gnu.trove.set.hash.TIntHashSet;
  * @author giffhorn
  *
  */
-public class CSDGPreprocessor {
+public final class CSDGPreprocessor {
 
 	private static final Logger info = Log.getLogger(Log.L_MHP_INFO); 
 	private static final Logger debug = Log.getLogger(Log.L_MHP_DEBUG); 
 	private static final boolean IS_DEBUG = debug.isEnabled();
 
-	private SDG g;
-
-	public CSDGPreprocessor(SDG g) {
-		this.g = g;
-	}
-
-	public void preprocessSDG() {
+	private CSDGPreprocessor() {}
+	
+	public static final void preprocessSDG(SDG g) {
 		// 2. clone Thread::start
 		info.out("analyzing threads...");
 		if (IS_DEBUG) debug.outln("  duplicating Thread::start...");
@@ -102,10 +98,10 @@ public class CSDGPreprocessor {
 		if (IS_DEBUG) debug.outln("			done");
 	}
 
-	private MHPAnalysis runMHP(MHPType prec) {
+	public static final MHPAnalysis runMHP(SDG g, MHPType prec) {
 		MHPAnalysis mhp = null;
 		try {
-			preprocessSDG();
+			preprocessSDG(g);
 
 			// 8. remove redundant interference edgies
 			info.out("start MHP analysis...");
@@ -155,7 +151,7 @@ public class CSDGPreprocessor {
 		return mhp;
 	}
 	
-	public void propagateThreadIDs(ThreadsInformation ti, SDG graph) {
+	public static final void propagateThreadIDs(ThreadsInformation ti, SDG graph) {
 		// adjust the thread IDs in the SDG
 		HashMap<SDGNode, LinkedList<Integer>> s = new HashMap<SDGNode, LinkedList<Integer>>();
 
@@ -253,12 +249,12 @@ public class CSDGPreprocessor {
 		if (!error.isEmpty()) {
 			info.outln("dangling nodes? ");
 			for (SDGNode errNode : error) {
-				info.outln(errNode + " " + g.getEntry(errNode).getBytecodeMethod());
+				info.outln(errNode + " " + graph.getEntry(errNode).getBytecodeMethod());
 			}
 		}
 	}
 
-	private void pruneInterferences(SDG graph, MHPAnalysis mhp) {
+	private static final void pruneInterferences(SDG graph, MHPAnalysis mhp) {
 		LinkedList<SDGEdge> remove = new LinkedList<SDGEdge>();
 		int all = 0;
 		int x = 0;
@@ -282,7 +278,7 @@ public class CSDGPreprocessor {
 		if (IS_DEBUG) debug.outln("	" + x + " of " + all + " edges removed");
 	}
 
-	private void createJoinEdges(SDG graph, ThreadsInformation ti) {
+	private static final void createJoinEdges(SDG graph, ThreadsInformation ti) {
 		for (ThreadInstance i : ti) {
 			if (i.getJoin() != null) {
 				SDGNode source = i.getExit();
@@ -294,18 +290,11 @@ public class CSDGPreprocessor {
 	}
 
 	/* Factories */
-	public static MHPAnalysis runMHP(SDG g) {
+	public static final MHPAnalysis runMHP(SDG g) {
 		return runMHP(g, MHPType.PRECISE);
 	}
 	
-	public static void justPreprocess(SDG g) {
-		CSDGPreprocessor p = new CSDGPreprocessor(g);
-		p.preprocessSDG();
-	}
-
-	public static MHPAnalysis runMHP(SDG g, MHPType prec) {
-		CSDGPreprocessor p = new CSDGPreprocessor(g);
-		MHPAnalysis mhp = p.runMHP(prec);
-		return mhp;
+	public static final void justPreprocess(SDG g) {
+		preprocessSDG(g);
 	}
 }

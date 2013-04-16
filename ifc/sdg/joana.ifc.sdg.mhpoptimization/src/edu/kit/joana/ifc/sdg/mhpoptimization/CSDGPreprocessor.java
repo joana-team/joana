@@ -98,6 +98,18 @@ public final class CSDGPreprocessor {
 		if (IS_DEBUG) debug.outln("			done");
 	}
 	
+	public static final void addSynchEdges(SDG g) {
+		if (IS_DEBUG)
+			debug.out("  adding synch edges...");
+		SynchAnalysis sa = new SynchAnalysis();
+		if (IS_DEBUG)
+			debug.outln("			done");
+		sa.analyze(g);
+
+		if (IS_DEBUG)
+			debug.outln("--> finished postprocessing");
+	}
+
 	private static final void propagateThreadIDs(ThreadsInformation ti, SDG graph) {
 		// adjust the thread IDs in the SDG
 		HashMap<SDGNode, LinkedList<Integer>> s = new HashMap<SDGNode, LinkedList<Integer>>();

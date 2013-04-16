@@ -36,6 +36,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGNode.Operation;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
+import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
@@ -126,18 +127,10 @@ public class SDGProgram {
 		SDG sdg = Main.compute(out, cfg, config.computeInterferences(), monitor);
 		if (config.computeInterferences()) {
 			// CSDGPreprocessor p = new CSDGPreprocessor(sdg);
-			switch (config.getMhpType()) {
-			case NONE:
+			if (config.getMhpType() == MHPType.NONE) {
 				CSDGPreprocessor.justPreprocess(sdg);
-				break;
-			case SIMPLE:
-				CSDGPreprocessor.runMHP(sdg, CSDGPreprocessor.MHPPrecision.SIMPLE);
-				break;
-			case PRECISE:
-				CSDGPreprocessor.runMHP(sdg, CSDGPreprocessor.MHPPrecision.PRECISE);
-				break;
-			default:
-				throw new IllegalStateException();
+			} else {
+				CSDGPreprocessor.runMHP(sdg, config.getMhpType());
 			}
 		}
 		SDGProgram ret = new SDGProgram(sdg);

@@ -40,10 +40,6 @@ public class CSDGPreprocessor {
 	private static final Logger debug = Log.getLogger(Log.L_MHP_DEBUG); 
 	private static final boolean IS_DEBUG = debug.isEnabled();
 
-	public enum MHPPrecision {
-		SIMPLE, PRECISE;
-	}
-
 	private SDG g;
 
 	public CSDGPreprocessor(SDG g) {
@@ -106,7 +102,7 @@ public class CSDGPreprocessor {
 		if (IS_DEBUG) debug.outln("			done");
 	}
 
-	private MHPAnalysis runMHP(MHPPrecision prec) {
+	private MHPAnalysis runMHP(MHPType prec) {
 		MHPAnalysis mhp = null;
 		try {
 			preprocessSDG();
@@ -114,7 +110,7 @@ public class CSDGPreprocessor {
 			// 8. remove redundant interference edgies
 			info.out("start MHP analysis...");
 			if (IS_DEBUG) debug.out("  running MHP analysis (" + prec + ")...");
-			if (prec == MHPPrecision.PRECISE) {
+			if (prec == MHPType.PRECISE) {
 				mhp = PreciseMHPAnalysis.analyze(g);
 			} else {
 				mhp = SimpleMHPAnalysis.analyze(g);
@@ -299,7 +295,7 @@ public class CSDGPreprocessor {
 
 	/* Factories */
 	public static MHPAnalysis runMHP(SDG g) {
-		return runMHP(g, MHPPrecision.PRECISE);
+		return runMHP(g, MHPType.PRECISE);
 	}
 	
 	public static void justPreprocess(SDG g) {
@@ -307,7 +303,7 @@ public class CSDGPreprocessor {
 		p.preprocessSDG();
 	}
 
-	public static MHPAnalysis runMHP(SDG g, MHPPrecision prec) {
+	public static MHPAnalysis runMHP(SDG g, MHPType prec) {
 		CSDGPreprocessor p = new CSDGPreprocessor(g);
 		MHPAnalysis mhp = p.runMHP(prec);
 		return mhp;

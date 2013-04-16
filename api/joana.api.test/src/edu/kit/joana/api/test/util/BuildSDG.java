@@ -9,13 +9,12 @@ import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
-import edu.kit.joana.api.sdg.MHPType;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
-import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor.MHPPrecision;
+import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.NullProgressMonitor;
@@ -56,7 +55,7 @@ public class BuildSDG {
 	public void run() {
 		try {
 			sdg = buildSDG();
-			CSDGPreprocessor.runMHP(sdg, MHPPrecision.PRECISE);
+			CSDGPreprocessor.runMHP(sdg, MHPType.PRECISE);
 		} catch (ClassHierarchyException e) {
 			throw new RuntimeException(e);
 		} catch (IOException e) {

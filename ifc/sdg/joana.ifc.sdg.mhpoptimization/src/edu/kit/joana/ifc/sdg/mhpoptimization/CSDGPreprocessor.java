@@ -269,8 +269,4 @@ public final class CSDGPreprocessor {
 	public static final MHPAnalysis runMHP(SDG g) {
 		return runMHP(g, MHPType.PRECISE);
 	}
-	
-	public static final void justPreprocess(SDG g) {
-		preprocessSDG(g);
-	}
 }

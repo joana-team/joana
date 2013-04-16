@@ -97,59 +97,6 @@ public final class CSDGPreprocessor {
 		info.outln("done");
 		if (IS_DEBUG) debug.outln("			done");
 	}
-
-	public static final MHPAnalysis runMHP(SDG g, MHPType prec) {
-		MHPAnalysis mhp = null;
-		try {
-			preprocessSDG(g);
-
-			// 8. remove redundant interference edgies
-			info.out("start MHP analysis...");
-			if (IS_DEBUG) debug.out("  running MHP analysis (" + prec + ")...");
-			if (prec == MHPType.PRECISE) {
-				mhp = PreciseMHPAnalysis.analyze(g);
-			} else {
-				mhp = SimpleMHPAnalysis.analyze(g);
-			}
-
-			if (IS_DEBUG) debug.outln("		done");
-			if (IS_DEBUG) debug.outln("  removing spurious concurrency edges...");
-			pruneInterferences(g, mhp);
-			info.outln("done");
-
-			// 9. remove FORK_OUT edges
-			LinkedList<SDGEdge> l = new LinkedList<SDGEdge>();
-			for (SDGEdge e : g.edgeSet()) {
-				if (e.getKind() == SDGEdge.Kind.FORK_OUT) {
-					l.add(e);
-				}
-			}
-			for (SDGEdge e : l) {
-				g.removeEdge(e);
-			}
-
-			// 10. add SYNCHRONIZATION edges
-			if (IS_DEBUG) debug.out("  adding synch edges...");
-			SynchAnalysis sa = new SynchAnalysis();
-			if (IS_DEBUG) debug.outln("			done");
-			sa.analyze(g);
-
-			if (IS_DEBUG) debug.outln("--> finished postprocessing");
-
-			//        	ctr = 0;
-			//        	for (SDGEdge e : g.edgeSet()) {
-			//        		if (e.getKind() == SDGEdge.Kind.INTERFERENCE) {
-			//        			ctr++;
-			//        		}
-			//        	}
-			if (IS_DEBUG) debug.outln("Thread Regions: " + mhp.getThreadRegions().size());
-		} catch (Exception e) {
-			Log.ERROR.outln("Creating cSDG failed and skipped", e);
-			return null;
-		}
-
-		return mhp;
-	}
 	
 	private static final void propagateThreadIDs(ThreadsInformation ti, SDG graph) {
 		// adjust the thread IDs in the SDG
@@ -263,10 +210,5 @@ public final class CSDGPreprocessor {
 				graph.addEdge(e);
 			}
 		}
-	}
-
-	/* Factories */
-	public static final MHPAnalysis runMHP(SDG g) {
-		return runMHP(g, MHPType.PRECISE);
 	}
 }

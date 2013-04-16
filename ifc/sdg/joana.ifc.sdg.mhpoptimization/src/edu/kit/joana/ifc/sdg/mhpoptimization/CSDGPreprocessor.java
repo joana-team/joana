@@ -151,7 +151,7 @@ public final class CSDGPreprocessor {
 		return mhp;
 	}
 	
-	public static final void propagateThreadIDs(ThreadsInformation ti, SDG graph) {
+	private static final void propagateThreadIDs(ThreadsInformation ti, SDG graph) {
 		// adjust the thread IDs in the SDG
 		HashMap<SDGNode, LinkedList<Integer>> s = new HashMap<SDGNode, LinkedList<Integer>>();
 

@@ -15,12 +15,14 @@ import java.util.List;
  * This class represents java types and provides methods to parse a java type from a string. Allowed strings have to meet one
  * of the following formats:
  * <ul>
- * <li><b>&lt;typeHR&gt;</b> ::= <b>&lt;baseTypeHR&gt;</b>([])* where <p>
+ * <li><i>human-readable:</i><p/>
+ * <b>&lt;typeHR&gt;</b> ::= <b>&lt;baseTypeHR&gt;</b>([])* where <p>
  * <b>&lt;baseTypeHR&gt;</b> ::= <b>&lt;primitiveTypeHR&gt;</b>| &lt;fqRefTypeHR&gt; <p>
  * <b>&lt;primitiveTypeHR&gt;</b> ::= void|boolean|byte|char|short|int|long|float|double<p>
  * <b>&lt;fqRefTypeHR&gt;</b> ::= (<b>&lt;packageName&gt;</b>(.<b>&lt;packageName&gt;</b>)*.)?<b>&lt;className&gt;</b> </li>
  *
- * <li> <b>&lt;typeBC&gt;</b> ::= ([)*<b>&lt;baseTypeHR&gt;</b> where <p>
+ * <li><i>bytecode format:</i><p/>
+ * <b>&lt;typeBC&gt;</b> ::= ([)*<b>&lt;baseTypeBC&gt;</b> where <p>
  * <b>&lt;baseTypeBC&gt;</b> ::= <b>&lt;primitiveTypeBC&gt;</b>|<b>&lt;fqRefTypeBC&gt;</b><p>
  * <b>&lt;primitiveTypeBC&gt;</b> ::= V|C|Z|B|C|S|I|J|F|D<p>
  * <b>&lt;fqRefTypeBC&gt;</b> ::= L(<b>&lt;packageName&gt;</b>(\/<b>&lt;packageName&gt;</b>)*\/)?<b>&lt;className&gt;</b>; </li>

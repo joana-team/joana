@@ -42,40 +42,40 @@ public final class CSDGPreprocessor {
 	public static final void preprocessSDG(SDG g) {
 		// 2. clone Thread::start
 		info.out("analyzing threads...");
-		if (IS_DEBUG) debug.outln("  duplicating Thread::start...");
+		debug.outln("  duplicating Thread::start...");
 		
 		info.outln("done");
-		if (IS_DEBUG) debug.outln("		done");
+		debug.outln("		done");
 
 		// 3. extract and fold the control flow graph
-		if (IS_DEBUG) debug.out("  extracting the CFG...");
+		debug.out("  extracting the CFG...");
 		CFG cfg = ICFGBuilder.extractICFG(g);
-		if (IS_DEBUG) debug.outln("			done");
+		debug.outln("			done");
 
 		// 3. run thread allocation
 		info.out("running thread allocation analysis...");
-		if (IS_DEBUG) debug.out("  running thread allocation analysis...");
+		debug.out("  running thread allocation analysis...");
 		ThreadAllocationAnalysis alloc = new ThreadAllocationAnalysis(cfg, LoopDetPrec.PRECISE);
 		alloc.compute();
-		if (IS_DEBUG) debug.outln("	done");
+		debug.outln("	done");
 
 		// 4. compute detailed information about the threads
-		if (IS_DEBUG) debug.out("  collect thread infos...");
+		debug.out("  collect thread infos...");
 		ThreadsInformation ti = ThreadsInfoCollector.createThreadsInformation(alloc, cfg);
 		g.setThreadsInfo(ti);
 		info.outln("done");
-		if (IS_DEBUG) debug.outln("		done");
+		debug.outln("		done");
 
 		// 5. insert and propagate thread IDs
 		info.out("propagating thread IDs...");
-		if (IS_DEBUG) debug.out("  propagating thread IDs...");
+		debug.out("  propagating thread IDs...");
 		propagateThreadIDs(ti, g);
 		info.outln("done");
-		if (IS_DEBUG) debug.outln("		done");
+		debug.outln("		done");
 
 		// 6. analyze join points
 		info.out("computing join points...");
-		if (IS_DEBUG) debug.out("  computing join points...");
+		debug.out("  computing join points...");
 		JoinAnalysis ja = new JoinAnalysis(g, ti);
 		ja.computeJoins();
 		info.outln("done");
@@ -88,22 +88,18 @@ public final class CSDGPreprocessor {
 		}
 		// 7. insert JOIN-Edges to store the result of the join analysis
 		info.out("insert join edges...");
-		if (IS_DEBUG) debug.out("  adding join edges...");
+		debug.out("  adding join edges...");
 		createJoinEdges(g, ti);
 		info.outln("done");
-		if (IS_DEBUG) debug.outln("			done");
+		debug.outln("			done");
 	}
 	
 	public static final void addSynchEdges(SDG g) {
-		if (IS_DEBUG)
-			debug.out("  adding synch edges...");
+		debug.out("  adding synch edges...");
 		SynchAnalysis sa = new SynchAnalysis();
-		if (IS_DEBUG)
-			debug.outln("			done");
+		debug.outln("			done");
 		sa.analyze(g);
-
-		if (IS_DEBUG)
-			debug.outln("--> finished postprocessing");
+		debug.outln("--> finished postprocessing");
 	}
 
 	private static final void propagateThreadIDs(ThreadsInformation ti, SDG graph) {

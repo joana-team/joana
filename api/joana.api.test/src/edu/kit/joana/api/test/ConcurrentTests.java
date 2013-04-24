@@ -47,6 +47,8 @@ public class ConcurrentTests {
 		testData.put("two_threads_sequential",
 			new TestData("joana.api.testdata.conc.TwoThreadsSequential", "two_threads_sequential.pdg", 2, 0));
 		testData.put("simple_recursive_spawning", new TestData("joana.api.testdata.conc.SimpleRecursiveSpawning", "simple_recursive_spawning.pdg", 4, 1));
+		testData.put("spawning_in_recursive_cycle", new TestData("joana.api.testdata.conc.SpawningInRecursiveCycle", "spawning_in_recursive_cycle.pdg", 5, 2));
+		testData.put("recursive_spawning", new TestData("joana.api.testdata.conc.RecursiveSpawning", "recursive_spawning.pdg", 3, 1));
 	}
 
 	@BeforeClass
@@ -94,6 +96,16 @@ public class ConcurrentTests {
 	@Test
 	public void simpleRecursiveSpawningTest() throws IOException {
 		doTest("simple_recursive_spawning");
+	}
+	
+	@Test
+	public void spawningInRecursiveCycleTest() throws IOException {
+		doTest("spawning_in_recursive_cycle");
+	}
+	
+	@Test
+	public void recursiveSpawningTest() throws IOException {
+		doTest("recursive_spawning");
 	}
 	
 	public void doTest(String key) throws IOException {

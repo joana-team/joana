@@ -19,7 +19,6 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.chopper.barrier.BarrierChopper;
 import edu.kit.joana.ifc.sdg.graph.chopper.barrier.NonSameLevelBarrierChopper;
 import edu.kit.joana.ifc.sdg.graph.chopper.barrier.SimpleThreadBarrierChopper;
-import edu.kit.joana.ifc.sdg.graph.slicer.barrier.BarrierSlicer;
 import edu.kit.joana.ifc.sdg.graph.slicer.barrier.CSBarrierSlicerBackward;
 import edu.kit.joana.ifc.sdg.graph.slicer.barrier.conc.I2PBarrierBackward;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;

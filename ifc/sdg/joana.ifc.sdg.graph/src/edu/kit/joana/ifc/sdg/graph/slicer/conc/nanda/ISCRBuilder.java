@@ -77,7 +77,7 @@ public class ISCRBuilder {
 
         // preprocess
         debug.outln("	preprocessing...");
-        CFG newICFG = prepareICFG(icfg, icfg.lastId() + 1);
+        prepareICFG(icfg, icfg.lastId() + 1);
         assert paramsTest(icfg);
 
         // 2-pass-folding

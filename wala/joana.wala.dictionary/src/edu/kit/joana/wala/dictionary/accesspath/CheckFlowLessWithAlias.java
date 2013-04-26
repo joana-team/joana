@@ -1063,6 +1063,7 @@ public final class CheckFlowLessWithAlias {
 		scfg.ignoreStaticFields = Main.IGNORE_STATIC_FIELDS;
 		scfg.exceptions = cfg.exceptions;
 		scfg.accessPath = cfg.accessPath;
+		scfg.sideEffects = cfg.sideEffects;
 		scfg.prunecg = Main.DEFAULT_PRUNE_CG;
 		scfg.pts = cfg.pts;
 		if (cfg.objSensFilter != null) {

@@ -1165,7 +1165,7 @@ public class SDGBuilder implements CallGraphFilter {
 		public boolean debugStaticInitializers = false;
 		public boolean computeInterference = true;
 		public boolean computeSummary = true;
-		public SideEffectDetectorConfig sideEffects = SideEffectDetectorConfig.maybeCreateInstance();
+		public SideEffectDetectorConfig sideEffects = null;
 	}
 
 	public String getMainMethodName() {

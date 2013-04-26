@@ -12,6 +12,7 @@ import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
+import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig;
 
 public class SDGConfig {
 
@@ -24,6 +25,7 @@ public class SDGConfig {
 	private boolean computeAccessPaths;
 	private boolean computeInterferences;
 	private MHPType mhpType = MHPType.NONE;
+	private SideEffectDetectorConfig sideEffects;
 
 	public SDGConfig(String classPath, String entryMethod, Stubs stubsPath) {
 		this(classPath, entryMethod, stubsPath, ExceptionAnalysis.INTERPROC, FieldPropagation.OBJ_GRAPH, PointsToPrecision.CONTEXT_SENSITIVE, false, false, MHPType.NONE);
@@ -168,5 +170,18 @@ public class SDGConfig {
 		this.computeAccessPaths = computeAccessPaths;
 	}
 
-
+	/**
+	 * @param sideEffects the configuration of the side-effect detector that should be used. Set to null if no
+	 * side-effect detector is needed.
+	 */
+	public void setSideEffectDetectorConfig(final SideEffectDetectorConfig sideEffects) {
+		this.sideEffects = sideEffects;
+	}
+	
+	/**
+	 * @return the configuration of the side-effect detector.
+	 */
+	public SideEffectDetectorConfig getSideEffectDetectorConfig() {
+		return sideEffects;
+	}
 }

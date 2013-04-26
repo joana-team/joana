@@ -54,6 +54,7 @@ import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
+import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
 import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
 import edu.kit.joana.wala.flowless.wala.ObjSensContextSelector;
@@ -363,6 +364,7 @@ public final class Main {
 		scfg.ignoreStaticFields = IGNORE_STATIC_FIELDS;
 		scfg.exceptions = cfg.exceptions;
 		scfg.accessPath = cfg.accessPath;
+		scfg.sideEffects = cfg.sideEffects;
 		scfg.prunecg = DEFAULT_PRUNE_CG;
 		scfg.pts = cfg.pts;
 		if (cfg.objSensFilter != null) {
@@ -446,6 +448,7 @@ public final class Main {
 		public boolean accessPath;
 		public boolean debugManyGraphsDotOutput = false;
 		public FieldPropagation fieldPropagation;
+		public SideEffectDetectorConfig sideEffects = null;
 
 		public Config(String name) {
 			this(name, "<no entry defined>", FieldPropagation.OBJ_GRAPH);

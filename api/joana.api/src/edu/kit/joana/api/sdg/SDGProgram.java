@@ -115,8 +115,9 @@ public class SDGProgram {
 		cfg.exceptions = config.getExceptionAnalysis();
 		cfg.pts = config.getPointsToPrecision();
 		cfg.accessPath = config.computeAccessPaths();
+		cfg.sideEffects = config.getSideEffectDetectorConfig();
 		cfg.stubs = config.getStubsPath().getPath();
-
+		
 		debug.outln(cfg.stubs);
 
 		if (config.computeInterferences()) {

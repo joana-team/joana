@@ -111,7 +111,7 @@ public final class SideEffectDetectorConfig {
 		return (isActivated() ? new SideEffectDetectorConfig() : null);
 	}
 	
-	private static CandidateFilter createFieldFilter(String var) {
+	public static CandidateFilter createFieldFilter(String var) {
 		final String fieldName;
 		final String className;
 		

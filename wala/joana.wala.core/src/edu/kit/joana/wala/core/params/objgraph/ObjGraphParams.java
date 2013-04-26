@@ -205,6 +205,11 @@ public final class ObjGraphParams {
 		final ModRefCandidates mrefs = ModRefCandidates.computeIntracProc(sdg.getParameterFieldFactory(), candFact, cg,
 				sdg.getPointerAnalysis(), progress);
 
+		// create side-effect detector if command line option has been set.
+		if (sdg.cfg.sideEffects == null && SideEffectDetectorConfig.isActivated()) {
+			sdg.cfg.sideEffects = SideEffectDetectorConfig.maybeCreateInstance();
+		}
+		
 		if (sdg.cfg.sideEffects != null) {
 			sdg.cfg.sideEffects.copyIntraprocState(mrefs);
 		}

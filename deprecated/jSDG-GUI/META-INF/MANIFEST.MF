@@ -17,7 +17,8 @@ Require-Bundle: org.eclipse.core.runtime;bundle-version="3.5.0",
  joana.ifc.sdg.graph;bundle-version="1.1.0",
  joana.deprecated.jsdg;bundle-version="0.0.2",
  joana.wala.util;bundle-version="0.0.1",
- joana.contrib.lib;bundle-version="1.0.0"
+ joana.contrib.lib;bundle-version="1.0.0",
+ joana.util;bundle-version="1.0.0"
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
 Export-Package: edu.kit.joana.deprecated.jsdg.gui;

@@ -8,6 +8,7 @@
 package edu.kit.joana.wala.core.params.objgraph;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -63,6 +64,7 @@ public class SideEffectDetector {
 
 	public static final class Result {
 		private final String desc;
+		private final Set<ParameterField> selectedFields = new HashSet<ParameterField>();
 		private final Set<IMethod> directAndIndirectModification = new HashSet<IMethod>();
 		private final Set<IMethod> directModification = new HashSet<IMethod>();
 		private final Set<IMethod> directAndIndirectReachableFieldModification = new HashSet<IMethod>();
@@ -70,6 +72,10 @@ public class SideEffectDetector {
 		
 		private Result(final String desc) {
 			this.desc = desc;
+		}
+		
+		private void addSelectedField(final ParameterField field) {
+			selectedFields.add(field);
 		}
 		
 		private void addDirectModification(final IMethod m) {
@@ -88,6 +94,10 @@ public class SideEffectDetector {
 		private void addDirectFieldModification(final IMethod m) {
 			directAndIndirectReachableFieldModification.add(m);
 			directReachableFieldModification.add(m);
+		}
+		
+		public Set<ParameterField> getSelectedFields() {
+			return Collections.unmodifiableSet(selectedFields);
 		}
 		
 		public boolean directModifies(final IMethod m) {
@@ -287,6 +297,7 @@ public class SideEffectDetector {
 				if (filter.isRelevant(pf)) {
 					log.outln("found candidate: " + c);
 					baseCandidates.add(c);
+					result.addSelectedField(pf);
 					
 					if (c.isMod()) {
 						boolean isDirect = false;
@@ -313,6 +324,8 @@ public class SideEffectDetector {
 					for (int i = 0; i < pdg.staticReads.length; i++) {
 						final PDGField f = pdg.staticReads[i];
 						if (filter.isRelevant(f.field)) {
+							result.addSelectedField(f.field);
+							
 							final OrdinalSet<InstanceKey> pts = pa.getStaticFieldPTS(f);
 							if (pts != null && !pts.isEmpty()) {
 								final ModRefRootCandidate rp = ModRefRootCandidate.createRef(f, pts);
@@ -329,6 +342,8 @@ public class SideEffectDetector {
 					for (int i = 0; i < pdg.staticWrites.length; i++) {
 						final PDGField f = pdg.staticWrites[i];
 						if (filter.isRelevant(f.field)) {
+							result.addSelectedField(f.field);
+							
 							final OrdinalSet<InstanceKey> pts = pa.getStaticFieldPTS(f);
 							if (pts != null && !pts.isEmpty()) {
 								final ModRefRootCandidate rp = ModRefRootCandidate.createMod(f, pts);
@@ -344,6 +359,8 @@ public class SideEffectDetector {
 
 				for (final PDGField f : pdg.staticInterprocReads) {
 					if (filter.isRelevant(f.field)) {
+						result.addSelectedField(f.field);
+						
 						final OrdinalSet<InstanceKey> pts = pa.getStaticFieldPTS(f);
 						if (pts != null && !pts.isEmpty()) {
 							final ModRefRootCandidate rp = ModRefRootCandidate.createRef(f, pts);
@@ -357,6 +374,8 @@ public class SideEffectDetector {
 
 				for (final PDGField f : pdg.staticInterprocWrites) {
 					if (filter.isRelevant(f.field)) {
+						result.addSelectedField(f.field);
+						
 						final OrdinalSet<InstanceKey> pts = pa.getStaticFieldPTS(f);
 						if (pts != null && !pts.isEmpty()) {
 							final ModRefRootCandidate rp = ModRefRootCandidate.createMod(f, pts);

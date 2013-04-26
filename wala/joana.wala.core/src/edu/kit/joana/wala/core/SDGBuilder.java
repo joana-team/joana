@@ -77,6 +77,7 @@ import edu.kit.joana.wala.core.params.FlatHeapParams;
 import edu.kit.joana.wala.core.params.StaticFieldParams;
 import edu.kit.joana.wala.core.params.objgraph.ModRefCandidates;
 import edu.kit.joana.wala.core.params.objgraph.ObjGraphParams;
+import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig;
 import edu.kit.joana.wala.core.pointsto.WalaPointsToUtil;
 import edu.kit.joana.wala.flowless.util.Util;
 import edu.kit.joana.wala.flowless.wala.ObjSensContextSelector;
@@ -1164,6 +1165,7 @@ public class SDGBuilder implements CallGraphFilter {
 		public boolean debugStaticInitializers = false;
 		public boolean computeInterference = true;
 		public boolean computeSummary = true;
+		public SideEffectDetectorConfig sideEffects = SideEffectDetectorConfig.maybeCreateInstance();
 	}
 
 	public String getMainMethodName() {

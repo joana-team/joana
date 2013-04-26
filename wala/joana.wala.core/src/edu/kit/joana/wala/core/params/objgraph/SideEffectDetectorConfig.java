@@ -38,11 +38,49 @@ public final class SideEffectDetectorConfig {
 	private final List<CandidateFilter> varsToAnalyze = new LinkedList<CandidateFilter>();
 	private final boolean isOneLevelOnly;
 	private HashMap<CGNode, Collection<ModRefFieldCandidate>> sideEffectsDirect;
+	private final ResultConsumer resultConsumer;
+	
+	public static interface ResultConsumer {
+		public void consume(List<CandidateFilter> usedFilters, boolean isOneLevelOnly, List<Result> results);
+	}
+	
+	public static class DefaultResultConsumer implements ResultConsumer {
+
+		@Override
+		public void consume(final List<CandidateFilter> usedFilters, final boolean isOneLevelOnly,
+				final List<Result> results) {
+			System.out.println("\n>>>>> side-effect detector results ("
+				+ (isOneLevelOnly ? "one level" : "all reachable") + ") >>>>>");
+			for (final Result result : results) {
+				System.out.println(result);
+			}
+			System.out.println("<<<<< side-effect detector results <<<<<");
+		}
+		
+	}
+	
+	public SideEffectDetectorConfig(final boolean isOneLevelOnly, final ResultConsumer resultConsumer,
+			final List<CandidateFilter> varsToAnalyze) {
+		if (varsToAnalyze == null || varsToAnalyze.isEmpty()) {
+			throw new IllegalArgumentException("You need to provide a non-empty list of variables to analyze.");
+		}
+		
+		this.isOneLevelOnly = isOneLevelOnly;
+		this.resultConsumer = (resultConsumer == null ? new DefaultResultConsumer() : resultConsumer);
+		for (final CandidateFilter cf : varsToAnalyze) {
+			if (cf != null) {
+				this.varsToAnalyze.add(cf);
+			} else {
+				throw new IllegalArgumentException("List of candidate filters contained a null entry.");
+			}
+		}
+	}
 	
 	private SideEffectDetectorConfig() {
 		if (!isActivated()) {
 			throw new IllegalStateException("Side-effect detector is not activated, no need to instance this class.");
 		}
+		this.resultConsumer = new DefaultResultConsumer();
 		
 		final String option = Config.getString(Config.C_SIDEEFFECT_DETECTOR);
 		if (option != null && option.equals("all")) {
@@ -181,10 +219,15 @@ public final class SideEffectDetectorConfig {
 			}
 		}
 		
+		resultConsumer.consume(varsToAnalyze, isOneLevelOnly, results);
+		
+		// cleanup
+		sideEffectsDirect = null;
+		
 		return results;
 	}
 	
-	public Collection<CandidateFilter> getStaticVariablesToAnalyze() {
+	public Collection<CandidateFilter> getVariablesToAnalyze() {
 		return Collections.unmodifiableList(varsToAnalyze);
 	}
 
@@ -192,12 +235,4 @@ public final class SideEffectDetectorConfig {
 		return Config.isDefined(Config.C_SIDEEFFECT_DETECTOR);
 	}
 
-	public void printOut(final List<Result> results) {
-		System.out.println("\n>>>>> side-effect detector results (" + (isOneLevelOnly ? "one level" : "all reachable")
-				+ ") >>>>>");
-		for (final Result result : results) {
-			System.out.println(result);
-		}
-		System.out.println("<<<<< side-effect detector results <<<<<");
-	}
 }

@@ -205,9 +205,8 @@ public final class ObjGraphParams {
 		final ModRefCandidates mrefs = ModRefCandidates.computeIntracProc(sdg.getParameterFieldFactory(), candFact, cg,
 				sdg.getPointerAnalysis(), progress);
 
-		final SideEffectDetectorConfig sideEffects = SideEffectDetectorConfig.maybeCreateInstance();
-		if (sideEffects != null) {
-			sideEffects.copyIntraprocState(mrefs);
+		if (sdg.cfg.sideEffects != null) {
+			sdg.cfg.sideEffects.copyIntraprocState(mrefs);
 		}
 		
 		// step 2 propagate interprocedural
@@ -229,11 +228,12 @@ public final class ObjGraphParams {
 
 		adjustInterprocModRef(cg, interModRef, mrefs, sdg, progress);
 
-		if (sideEffects != null) {
+		if (sdg.cfg.sideEffects != null) {
 			// detect modifications to a given pointerkey
 			sdg.cfg.out.println(",se");
-			final List<SideEffectDetector.Result> results = sideEffects.runAnalysis(sdg, cg, mrefs, progress);
-			sideEffects.printOut(results);
+			sdg.cfg.sideEffects.runAnalysis(sdg, cg, mrefs, progress);
+			// free memory
+			sdg.cfg.sideEffects = null;
 		}
 		
 		sdg.cfg.out.print(",df");

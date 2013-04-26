@@ -133,10 +133,14 @@ public final class SideEffectDetectorConfig {
 				return true;
 			}
 			
-			final IClass cls = f.getField().getDeclaringClass();
-			final String typeName = PrettyWalaNames.type2string(cls);
+			if (f.isField()) {
+				final IClass cls = f.getField().getDeclaringClass();
+				final String typeName = PrettyWalaNames.type2string(cls);
+				
+				return typeName.contains(className);
+			}
 			
-			return typeName.contains(className);
+			return false;
 		}
 		
 		public String toString() {

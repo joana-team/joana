@@ -14,6 +14,7 @@ import com.ibm.wala.util.intset.OrdinalSet;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.wala.core.PDGField;
 import edu.kit.joana.wala.core.PDGNode;
+import edu.kit.joana.wala.core.ParameterField;
 import edu.kit.joana.wala.core.params.objgraph.TVL.V;
 
 /**
@@ -106,6 +107,11 @@ public abstract class ModRefRootCandidate extends ModRefCandidate {
 		public String getBytecodeName() {
 			return n.getBytecodeName();
 		}
+		
+		@Override
+		public ParameterField getField() {
+			return null;
+		}
 
 		@Override
 		public int hashCode() {
@@ -177,6 +183,11 @@ public abstract class ModRefRootCandidate extends ModRefCandidate {
 		@Override
 		public String getBytecodeName() {
 			return f.node.getBytecodeName();
+		}
+
+		@Override
+		public ParameterField getField() {
+			return f.field;
 		}
 
 		@Override

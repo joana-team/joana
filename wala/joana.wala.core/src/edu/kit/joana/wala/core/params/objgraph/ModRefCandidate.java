@@ -9,6 +9,7 @@ package edu.kit.joana.wala.core.params.objgraph;
 
 import com.ibm.wala.types.TypeReference;
 
+import edu.kit.joana.wala.core.ParameterField;
 import edu.kit.joana.wala.core.params.objgraph.TVL.V;
 
 /**
@@ -33,6 +34,7 @@ public abstract class ModRefCandidate {
 	public abstract TypeReference getType();
 	public abstract int getBytecodeIndex();
 	public abstract String getBytecodeName();
+	public abstract ParameterField getField();
 	public abstract boolean isPotentialParentOf(final ModRefFieldCandidate other);
 	public abstract int hashCode();
 	public abstract boolean equals(Object obj);

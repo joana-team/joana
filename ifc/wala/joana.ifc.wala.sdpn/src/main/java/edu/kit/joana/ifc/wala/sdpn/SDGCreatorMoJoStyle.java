@@ -20,6 +20,7 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.wala.core.Main;
@@ -67,7 +68,8 @@ public class SDGCreatorMoJoStyle extends SDGCreator {
 
 	@Override
 	protected MHPAnalysis runMHP(SDG joanaSdg, IProgressMonitor progress) throws CancelException {
-		return CSDGPreprocessor.runMHP(joanaSdg);
+		CSDGPreprocessor.preprocessSDG(joanaSdg);
+		return PreciseMHPAnalysis.analyze(joanaSdg);
 	}
 
 }

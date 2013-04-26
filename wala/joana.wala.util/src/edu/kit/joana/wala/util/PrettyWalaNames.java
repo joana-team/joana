@@ -347,6 +347,10 @@ public final class PrettyWalaNames {
 		return simpleTypeName(tref.getName());
 	}
 
+	public static final String type2string(IClass cls) {
+		return type2string(cls.getName());
+	}
+	
 	public static final String type2string(TypeReference tref) {
 		return type2string(tref.getName());
 	}

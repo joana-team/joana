@@ -15,6 +15,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.util.CancelException;
@@ -22,8 +23,10 @@ import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 
 import edu.kit.joana.util.Config;
 import edu.kit.joana.util.Log;
+import edu.kit.joana.wala.core.ParameterField;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.params.objgraph.SideEffectDetector.Result;
+import edu.kit.joana.wala.util.PrettyWalaNames;
 
 /**
  * Stores configuration and intermediate results of the optional side-effect detection.
@@ -32,7 +35,7 @@ import edu.kit.joana.wala.core.params.objgraph.SideEffectDetector.Result;
  */
 public final class SideEffectDetectorConfig {
 
-	private final List<String> staticVarsToAnalyze = new LinkedList<String>();
+	private final List<CandidateFilter> varsToAnalyze = new LinkedList<CandidateFilter>();
 	private final boolean isOneLevelOnly;
 	private HashMap<CGNode, Collection<ModRefFieldCandidate>> sideEffectsDirect;
 	
@@ -53,7 +56,8 @@ public final class SideEffectDetectorConfig {
 			if (vars != null) {
 				final String[] varArr = vars.split(",");
 				for (final String var : varArr) {
-					staticVarsToAnalyze.add(var);
+					final CandidateFilter filter = createFieldFilter(var);
+					varsToAnalyze.add(filter);
 				}
 			} else {
 				Log.ERROR.outln("No variables defined for side-effect detector. Use '-D"
@@ -67,6 +71,78 @@ public final class SideEffectDetectorConfig {
 	
 	public static SideEffectDetectorConfig maybeCreateInstance() {
 		return (isActivated() ? new SideEffectDetectorConfig() : null);
+	}
+	
+	private static CandidateFilter createFieldFilter(String var) {
+		final String fieldName;
+		final String className;
+		
+		boolean isStatic = true;
+		if (var.startsWith("s_")) {
+			isStatic = true;
+			var = var.substring("s_".length());
+		} else if (var.startsWith("o_")) {
+			isStatic = false;
+			var = var.substring("o_".length());
+		}
+		
+		final int iDot = var.lastIndexOf('.');
+		if (iDot > 0) {
+			String tmp = var.substring(iDot + 1);
+			fieldName = (tmp.isEmpty() ? null : tmp);
+			tmp = var.substring(0, iDot);
+			className = (tmp.isEmpty() ? null : tmp);
+		} else {
+			fieldName = var;
+			className = null;
+		}
+		
+		return new SingleFieldFilter(className, fieldName, isStatic);
+	}
+	
+	public static interface CandidateFilter {
+		public boolean isRelevant(ParameterField cand);
+	}
+	
+	public static class SingleFieldFilter implements CandidateFilter {
+		public final String className;
+		public final String fieldName;
+		public final boolean isStatic;
+		
+		public SingleFieldFilter(final String className, final String fieldName, final boolean isStatic) {
+			this.className = className;
+			this.fieldName = fieldName;
+			this.isStatic = isStatic;
+		}
+
+		@Override
+		public boolean isRelevant(final ParameterField f) {
+			return f != null && f.isStatic() == isStatic && fieldNameMatches(f) && classNameMatches(f);
+		}
+
+		private boolean fieldNameMatches(final ParameterField f) {
+			if (fieldName == null || fieldName.equals("*")) {
+				return true;
+			}
+
+			return fieldName.equals(f.getName());
+		}
+		
+		private boolean classNameMatches(final ParameterField f) {
+			if (className == null || className.equals("*")) {
+				return true;
+			}
+			
+			final IClass cls = f.getField().getDeclaringClass();
+			final String typeName = PrettyWalaNames.type2string(cls);
+			
+			return typeName.contains(className);
+		}
+		
+		public String toString() {
+			return (isStatic ? "static " : "non-static ") + (className != null ? className : "*") + "."
+					+ (fieldName != null ? fieldName : "*");
+		}
 	}
 	
 	public void copyIntraprocState(final ModRefCandidates modref) {
@@ -90,22 +166,22 @@ public final class SideEffectDetectorConfig {
 		
 		final List<SideEffectDetector.Result> results = new LinkedList<SideEffectDetector.Result>();
 		
-		for (final String varname : staticVarsToAnalyze) {
+		for (final CandidateFilter filter : varsToAnalyze) {
 			final SideEffectDetector.Result result = (isOneLevelOnly
-					? SideEffectDetector.whoModifiesOneLevel(varname, modref, sideEffectsDirect, sdg, cg, progress)
-					: SideEffectDetector.whoModifies(varname, modref, sideEffectsDirect, sdg, cg, progress));
+					? SideEffectDetector.whoModifiesOneLevel(filter, modref, sideEffectsDirect, sdg, cg, progress)
+					: SideEffectDetector.whoModifies(filter, modref, sideEffectsDirect, sdg, cg, progress));
 			if (result != null) {
 				results.add(result);
 			} else {
-				Log.ERROR.outln("No side-effect detector result for '" + varname + "'");
+				Log.ERROR.outln("No side-effect detector result for '" + filter + "'");
 			}
 		}
 		
 		return results;
 	}
 	
-	public Collection<String> getStaticVariablesToAnalyze() {
-		return Collections.unmodifiableList(staticVarsToAnalyze);
+	public Collection<CandidateFilter> getStaticVariablesToAnalyze() {
+		return Collections.unmodifiableList(varsToAnalyze);
 	}
 
 	public static boolean isActivated() {

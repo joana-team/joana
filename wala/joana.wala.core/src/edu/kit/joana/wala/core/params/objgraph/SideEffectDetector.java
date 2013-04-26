@@ -30,6 +30,7 @@ import edu.kit.joana.wala.core.PDGField;
 import edu.kit.joana.wala.core.ParameterField;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.params.objgraph.ModRefCandidates.InterProcCandidateModel;
+import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig.CandidateFilter;
 import edu.kit.joana.wala.core.params.objgraph.dataflow.PointsToWrapper;
 import edu.kit.joana.wala.util.PrettyWalaNames;
 
@@ -45,18 +46,18 @@ public class SideEffectDetector {
 	private final SDGBuilder sdg;
 	private final ModRefCandidates modRef;
 	private final CallGraph cg;
-	private final String fieldName;
+	private final CandidateFilter filter;
 	private final boolean onlyOneLevelFields;
 	private final Map<CGNode, Collection<ModRefFieldCandidate>> sideEffectsDirect;
 	
 	private SideEffectDetector(final SDGBuilder sdg, final ModRefCandidates modRef,
 			final Map<CGNode, Collection<ModRefFieldCandidate>> sideEffectsDirect, final CallGraph cg,
-			boolean onlyOneLEvelFields, final String fieldName) {
+			boolean onlyOneLEvelFields, final CandidateFilter filter) {
 		this.sdg = sdg;
 		this.modRef = modRef;
 		this.sideEffectsDirect = sideEffectsDirect;
 		this.cg = cg;
-		this.fieldName = fieldName;
+		this.filter = filter;
 		this.onlyOneLevelFields = onlyOneLEvelFields;
 	}
 
@@ -162,39 +163,39 @@ public class SideEffectDetector {
 	public static class Input {
 		public final Set<ModRefFieldCandidate> fieldCandidates = new HashSet<ModRefFieldCandidate>();
 		public final Set<ModRefRootCandidate> rootCandidates = new HashSet<ModRefRootCandidate>();
-		public final ParameterField field;
+		public final CandidateFilter filter;
 		
-		public Input(final ParameterField field) {
-			this.field = field;
+		public Input(final CandidateFilter filter) {
+			this.filter = filter;
 		}
 	}
 	
 	
-	public static Result whoModifies(final String fieldName, final ModRefCandidates modRef,
+	public static Result whoModifies(final CandidateFilter filter, final ModRefCandidates modRef,
 			final Map<CGNode, Collection<ModRefFieldCandidate>> sideEffectsDirect, final SDGBuilder sdg,
 			final CallGraph cg, final IProgressMonitor monitor) throws CancelException {
-		final SideEffectDetector sed = new SideEffectDetector(sdg, modRef, sideEffectsDirect, cg, false, fieldName);
+		final SideEffectDetector sed = new SideEffectDetector(sdg, modRef, sideEffectsDirect, cg, false, filter);
 		final Result result = sed.run(monitor);
 		
 		return result;
 	}
 
-	public static Result whoModifiesOneLevel(final String fieldName, final ModRefCandidates modRef,
+	public static Result whoModifiesOneLevel(final CandidateFilter filter, final ModRefCandidates modRef,
 			final Map<CGNode, Collection<ModRefFieldCandidate>> sideEffectsDirect, final SDGBuilder sdg,
 			final CallGraph cg, final IProgressMonitor monitor) throws CancelException {
-		final SideEffectDetector sed = new SideEffectDetector(sdg, modRef, sideEffectsDirect, cg, true, fieldName);
+		final SideEffectDetector sed = new SideEffectDetector(sdg, modRef, sideEffectsDirect, cg, true, filter);
 		final Result result = sed.run(monitor);
 		
 		return result;
 	}
 
 	private final Result run(final IProgressMonitor monitor) throws CancelException {
-		final Result result = new Result(fieldName);
+		final Result result = new Result(filter.toString());
 		
-		final Input input = createInputForStaticField(fieldName, result, monitor);
+		final Input input = createInputForFilter(filter, result, monitor);
 		
 		if (input == null) {
-			Log.ERROR.outln("Could not create input for side effect detector. Field name was '" + fieldName + "'");
+			Log.ERROR.outln("Could not create input for side effect detector. Field name was '" + filter + "'");
 			return null;
 		}
 		
@@ -269,42 +270,49 @@ public class SideEffectDetector {
 		return result;
 	}
 
-	private Input createInputForStaticField(final String fieldName, final Result result, final IProgressMonitor monitor) throws CancelException {
+	private Input createInputForFilter(final CandidateFilter filter, final Result result, final IProgressMonitor monitor) throws CancelException {
 		final Logger log = Log.getLogger(Log.L_SIDEEFFECT_DEBUG);
 		final Set<ModRefFieldCandidate> baseCandidates = new HashSet<ModRefFieldCandidate>();
 		final Set<ModRefRootCandidate> rootCandidates = new HashSet<ModRefRootCandidate>();
-		final Set<IMethod> modifyingMethods = new HashSet<IMethod>();
 		final PointsToWrapper pa = new PointsToWrapper(sdg.getPointerAnalysis());
-		ParameterField field = null;
 		
 		for (final CGNode n : cg) {
 			MonitorUtil.throwExceptionIfCanceled(monitor);
 			final InterProcCandidateModel ipcm = modRef.getCandidates(n);
+			final PDG pdg = sdg.getPDGforMethod(n);
+			final Collection<ModRefFieldCandidate> direct = sideEffectsDirect.get(n);
+			
 			for (final ModRefFieldCandidate c : ipcm) {
 				final ParameterField pf = c.pc.getField();
-				if (pf != null && pf.getBytecodeName().contains(fieldName)) {
+				if (filter.isRelevant(pf)) {
 					log.outln("found candidate: " + c);
-					if (field == null) {
-						field = c.pc.getField();
-					}
 					baseCandidates.add(c);
+					
 					if (c.isMod()) {
-						modifyingMethods.add(n.getMethod());
+						boolean isDirect = false;
+						for (final ModRefFieldCandidate dc : direct) {
+							if (dc.isMod() && dc.isMayAliased(c)) {
+								isDirect = true;
+								break;
+							}
+						}
+						
+						if (isDirect) {
+							result.addDirectModification(n.getMethod());
+						} else {
+							result.addIndirectModification(n.getMethod());
+						}
 					}
 				}
 			}
 			
-			final PDG pdg = sdg.getPDGforMethod(n);
 			if (pdg != null) {
 				final List<ModRefRootCandidate> roots = new LinkedList<ModRefRootCandidate>();
 
 				if (pdg.staticReads != null) {
 					for (int i = 0; i < pdg.staticReads.length; i++) {
 						final PDGField f = pdg.staticReads[i];
-						if (f.field.getName().contains(fieldName)) {
-							if (field == null) {
-								field = f.field;
-							}
+						if (filter.isRelevant(f.field)) {
 							final OrdinalSet<InstanceKey> pts = pa.getStaticFieldPTS(f);
 							if (pts != null && !pts.isEmpty()) {
 								final ModRefRootCandidate rp = ModRefRootCandidate.createRef(f, pts);
@@ -320,10 +328,7 @@ public class SideEffectDetector {
 				if (pdg.staticWrites != null) {
 					for (int i = 0; i < pdg.staticWrites.length; i++) {
 						final PDGField f = pdg.staticWrites[i];
-						if (f.field.getName().contains(fieldName)) {
-							if (field == null) {
-								field = f.field;
-							}
+						if (filter.isRelevant(f.field)) {
 							final OrdinalSet<InstanceKey> pts = pa.getStaticFieldPTS(f);
 							if (pts != null && !pts.isEmpty()) {
 								final ModRefRootCandidate rp = ModRefRootCandidate.createMod(f, pts);
@@ -338,10 +343,7 @@ public class SideEffectDetector {
 				}
 
 				for (final PDGField f : pdg.staticInterprocReads) {
-					if (f.field.getName().contains(fieldName)) {
-						if (field == null) {
-							field = f.field;
-						}
+					if (filter.isRelevant(f.field)) {
 						final OrdinalSet<InstanceKey> pts = pa.getStaticFieldPTS(f);
 						if (pts != null && !pts.isEmpty()) {
 							final ModRefRootCandidate rp = ModRefRootCandidate.createRef(f, pts);
@@ -354,10 +356,7 @@ public class SideEffectDetector {
 				}
 
 				for (final PDGField f : pdg.staticInterprocWrites) {
-					if (f.field.getName().contains(fieldName)) {
-						if (field == null) {
-							field = f.field;
-						}
+					if (filter.isRelevant(f.field)) {
 						final OrdinalSet<InstanceKey> pts = pa.getStaticFieldPTS(f);
 						if (pts != null && !pts.isEmpty()) {
 							final ModRefRootCandidate rp = ModRefRootCandidate.createMod(f, pts);
@@ -374,15 +373,11 @@ public class SideEffectDetector {
 			}
 		}
 		
-		if (field != null) {
-			final Input input = new Input(field);
-			input.fieldCandidates.addAll(baseCandidates);
-			input.rootCandidates.addAll(rootCandidates);
-			
-			return input;
-		} else {
-			return null;
-		}
+		final Input input = new Input(filter);
+		input.fieldCandidates.addAll(baseCandidates);
+		input.rootCandidates.addAll(rootCandidates);
+		
+		return input;
 	}
 
 }

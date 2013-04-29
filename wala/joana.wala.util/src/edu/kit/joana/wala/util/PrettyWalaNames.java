@@ -424,6 +424,10 @@ public final class PrettyWalaNames {
 		return bcField;
 	}
 
+	public static final String simpleQualifiedFieldName(IField f) {
+		return simpleTypeName(f.getDeclaringClass().getReference()) + "." + simpleFieldName(f);
+	}
+
 	public static final String bcFieldName(IField f) {
 		String bcField = f.getName().toString();
 		String bcClass = bcTypeName(f.getDeclaringClass().getReference());

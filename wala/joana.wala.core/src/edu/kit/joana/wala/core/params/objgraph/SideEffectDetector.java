@@ -64,34 +64,111 @@ public class SideEffectDetector {
 
 	public static final class Result {
 		private final String desc;
+		public final CandidateFilter filter;
 		private final Set<ParameterField> selectedFields = new HashSet<ParameterField>();
 		private final Set<IMethod> directAndIndirectModification = new HashSet<IMethod>();
 		private final Set<IMethod> directModification = new HashSet<IMethod>();
 		private final Set<IMethod> directAndIndirectReachableFieldModification = new HashSet<IMethod>();
 		private final Set<IMethod> directReachableFieldModification = new HashSet<IMethod>();
 		
-		private Result(final String desc) {
-			this.desc = desc;
+		private final Set<Entry> entries = new HashSet<SideEffectDetector.Result.Entry>();
+		
+		public static enum Type { 
+			DIRECT_MOD,				// A variable matching the filter is modified in this method
+			DIRECT_REACHABLE,		// A location reachable from a variable matching the filter is modified in this
+									// method
+			INDIRECT_MOD,			// A variable matching the filter is modified through a method called during the
+									// execution of this method
+			INDIRECT_REACHABLE		// A location reachable from a variable matching the filter is modified through a
+									// method called during the execution of this method
+		}
+		
+		public static class Entry {
+			public final ParameterField param;
+			public final CandidateFilter filter;
+			public final Type type;
+			public final IMethod method;
+			
+			public Entry(final ParameterField param, final CandidateFilter filter, final Type type,
+					final IMethod method) {
+				this.param = param;
+				this.filter = filter;
+				this.method = method;
+				this.type = type;
+			}
+			
+			public int hashCode() {
+				return param.hashCode() + 23 * method.hashCode() + 7 * type.hashCode();
+			}
+			
+			public boolean equals(Object o) {
+				if (o instanceof Entry) {
+					final Entry other = (Entry) o;
+					return param.equals(other.param) && filter.equals(other.filter) && method.equals(other.method)
+							&& type.equals(other.type);
+				}
+				
+				return false;
+			}
+		}
+		
+		private Result(final CandidateFilter filter) {
+			this.filter = filter;
+			this.desc = filter.toString();
+		}
+
+		public List<Entry> search(final Entry query) {
+			if (query != null && query.filter != null && !query.filter.equals(filter)) {
+				return Collections.emptyList();
+			}
+			
+			if (query == null) {
+				return search(null, null, null);
+			}
+			
+			return search(query.param, query.type, query.method);
+		}
+		
+		public List<Entry> search(final ParameterField param, final Type type, final IMethod method) {
+			final List<Entry> result = new LinkedList<SideEffectDetector.Result.Entry>();
+			
+			for (final Entry e : entries) {
+				if ((param == null || param.equals(e.param))
+						&& (type == null || type == e.type)
+						&& (method == null || method.equals(e.method))) {
+					result.add(e);
+				}
+			}
+			
+			return result;
 		}
 		
 		private void addSelectedField(final ParameterField field) {
 			selectedFields.add(field);
 		}
 		
-		private void addDirectModification(final IMethod m) {
+		private void addDirectModification(final IMethod m, final ParameterField pf) {
+			final Entry e = new Entry(pf, filter, Type.DIRECT_MOD, m);
+			entries.add(e);
 			directModification.add(m);
 			directAndIndirectModification.add(m);
 		}
 
-		private void addIndirectModification(final IMethod m) {
+		private void addIndirectModification(final IMethod m, final ParameterField pf) {
+			final Entry e = new Entry(pf, filter, Type.INDIRECT_MOD, m);
+			entries.add(e);
 			directAndIndirectModification.add(m);
 		}
-
-		private void addIndirectFieldModification(final IMethod m) {
+		
+		private void addIndirectFieldModification(final IMethod m, final ParameterField pf) {
+			final Entry e = new Entry(pf, filter, Type.INDIRECT_REACHABLE, m);
+			entries.add(e);
 			directAndIndirectReachableFieldModification.add(m);
 		}
 
-		private void addDirectFieldModification(final IMethod m) {
+		private void addDirectFieldModification(final IMethod m, final ParameterField pf) {
+			final Entry e = new Entry(pf, filter, Type.DIRECT_REACHABLE, m);
+			entries.add(e);
 			directAndIndirectReachableFieldModification.add(m);
 			directReachableFieldModification.add(m);
 		}
@@ -100,12 +177,20 @@ public class SideEffectDetector {
 			return Collections.unmodifiableSet(selectedFields);
 		}
 		
+		public Set<IMethod> getDirectModifies() {
+			return Collections.unmodifiableSet(directModification);
+		}
+		
 		public boolean directModifies(final IMethod m) {
 			return directModification.contains(m);
 		}
 
 		public boolean indirectModifies(final IMethod m) {
 			return !directModification.contains(m) && directAndIndirectModification.contains(m);
+		}
+		
+		public Set<IMethod> getDirectModifiesReachable() {
+			return Collections.unmodifiableSet(directReachableFieldModification);
 		}
 		
 		public boolean directModifiesReachable(final IMethod m) {
@@ -200,7 +285,7 @@ public class SideEffectDetector {
 	}
 
 	private final Result run(final IProgressMonitor monitor) throws CancelException {
-		final Result result = new Result(filter.toString());
+		final Result result = new Result(filter);
 		
 		final Input input = createInputForFilter(filter, result, monitor);
 		
@@ -265,9 +350,9 @@ public class SideEffectDetector {
 			for (final ModRefFieldCandidate c : ipcm) {
 				if (c.isMod() && potentiallyReachable.contains(c)) {
 					if (direct.contains(c)) {
-						result.addDirectFieldModification(n.getMethod());
+						result.addDirectFieldModification(n.getMethod(), c.getField());
 					} else {
-						result.addIndirectFieldModification(n.getMethod());
+						result.addIndirectFieldModification(n.getMethod(), c.getField());
 					}
 				}
 			}
@@ -309,9 +394,9 @@ public class SideEffectDetector {
 						}
 						
 						if (isDirect) {
-							result.addDirectModification(n.getMethod());
+							result.addDirectModification(n.getMethod(), pf);
 						} else {
-							result.addIndirectModification(n.getMethod());
+							result.addIndirectModification(n.getMethod(), pf);
 						}
 					}
 				}
@@ -349,7 +434,7 @@ public class SideEffectDetector {
 								final ModRefRootCandidate rp = ModRefRootCandidate.createMod(f, pts);
 								roots.add(rp);
 							}
-							result.addDirectModification(pdg.getMethod());
+							result.addDirectModification(pdg.getMethod(), f.field);
 							if (log.isEnabled()) {
 								log.outln("found static root direct write in " + PrettyWalaNames.methodName(pdg.getMethod()));
 							}
@@ -381,7 +466,7 @@ public class SideEffectDetector {
 							final ModRefRootCandidate rp = ModRefRootCandidate.createMod(f, pts);
 							roots.add(rp);
 						}
-						result.addIndirectModification(pdg.getMethod());
+						result.addIndirectModification(pdg.getMethod(), f.field);
 						if (log.isEnabled()) {
 							log.outln("found static root indirect write in " + PrettyWalaNames.methodName(pdg.getMethod()));
 						}

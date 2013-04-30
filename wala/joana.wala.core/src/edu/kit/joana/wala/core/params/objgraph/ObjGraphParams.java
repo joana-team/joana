@@ -235,7 +235,7 @@ public final class ObjGraphParams {
 
 		if (sdg.cfg.sideEffects != null) {
 			// detect modifications to a given pointerkey
-			sdg.cfg.out.println(",se");
+			sdg.cfg.out.print(",se");
 			sdg.cfg.sideEffects.runAnalysis(sdg, cg, mrefs, progress);
 			// free memory
 			sdg.cfg.sideEffects = null;

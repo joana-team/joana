@@ -53,7 +53,7 @@ public class SideEffectDetector {
 	
 	private SideEffectDetector(final SDGBuilder sdg, final ModRefCandidates modRef,
 			final Map<CGNode, Collection<ModRefFieldCandidate>> sideEffectsDirect, final CallGraph cg,
-			boolean onlyOneLEvelFields, final CandidateFilter filter) {
+			final boolean onlyOneLEvelFields, final CandidateFilter filter) {
 		this.sdg = sdg;
 		this.modRef = modRef;
 		this.sideEffectsDirect = sideEffectsDirect;
@@ -62,6 +62,25 @@ public class SideEffectDetector {
 		this.onlyOneLevelFields = onlyOneLEvelFields;
 	}
 
+	/**
+	 * A Result object captures the detected side-effects for a single candidate filter. A candidate filter may
+	 * correspond to multiple attributes.
+	 * 
+	 * The results are stored as a set of Entry objects. The entries can be searched with the <tt>search</tt> method.
+	 * An entry consists of the concrete attribute that has been modified, the cnadidate filter that machted the
+	 * attribute, the method that triggers the modification and the type of the modification.
+	 * Valid modification types are:
+	 * <ul>
+	 * <li>DIRECT_MOD: The attribute is modified by an instruction in the given method.</li>
+	 * <li>DIRECT_REACHALE: A field reachable from the attribute is modified by an instruction in the given method.</li>
+	 * <li>INDIRECT_MOD: The attribute is modified by a method that is called during execution of the
+	 *  current method.</li>
+	 * <li>INDIRECT_REACHABLE: A field reachable from the attribute is modified by a method that is called during
+	 *  execution of the current method.</li>
+	 * </ul>  
+	 * 
+	 * @author Juergen Graf <juergen.graf@gmail.com>
+	 */
 	public static final class Result {
 		private final String desc;
 		public final CandidateFilter filter;
@@ -71,6 +90,7 @@ public class SideEffectDetector {
 		private final Set<IMethod> directAndIndirectReachableFieldModification = new HashSet<IMethod>();
 		private final Set<IMethod> directReachableFieldModification = new HashSet<IMethod>();
 		
+		/* set of result entries */
 		private final Set<Entry> entries = new HashSet<SideEffectDetector.Result.Entry>();
 		
 		public static enum Type { 
@@ -83,6 +103,11 @@ public class SideEffectDetector {
 									// method called during the execution of this method
 		}
 		
+		/**
+		 * An entry is a representation of a single modification to an attribute.
+		 *  
+		 * @author Juergen Graf <juergen.graf@gmail.com>
+		 */
 		public static class Entry {
 			public final ParameterField param;
 			public final CandidateFilter filter;
@@ -117,6 +142,14 @@ public class SideEffectDetector {
 			this.desc = filter.toString();
 		}
 
+		/**
+		 * Searches the set of entries for elements matching the provided query parameter.
+		 * If an attribute in the query is set, it is checked for equality. If it is <tt>null</tt> all values are
+		 * allowed. E.g. if I want to search for all modification detected in method <tt>IMethod m</tt>, the query
+		 * object would be <tt>new Entry(null, null, null, m)</tt>.   
+		 * @param query The query object. The set of entries is searched for matching elements.
+		 * @return A list of matching entry elements.
+		 */
 		public List<Entry> search(final Entry query) {
 			if (query != null && query.filter != null && !query.filter.equals(filter)) {
 				return Collections.emptyList();
@@ -129,6 +162,17 @@ public class SideEffectDetector {
 			return search(query.param, query.type, query.method);
 		}
 		
+		/**
+		 * Searches the set of entries for elements matching the provided query parameters.
+		 * If an parameter is set, it is checked for equality. If it is <tt>null</tt> all values are
+		 * allowed. E.g. if I want to search for all modification detected in method <tt>IMethod m</tt>, the call
+		 * would be <tt>search(null, null, null, m)</tt>.
+		 *    
+		 * @param param The modified attribute to search for.
+		 * @param type The type of modification to search for.
+		 * @param method The method to search for.
+		 * @return A list of matching entry elements.
+		 */
 		public List<Entry> search(final ParameterField param, final Type type, final IMethod method) {
 			final List<Entry> result = new LinkedList<SideEffectDetector.Result.Entry>();
 			
@@ -173,46 +217,115 @@ public class SideEffectDetector {
 			directReachableFieldModification.add(m);
 		}
 		
+		/**
+		 * Returns a set of all attributes that match the candidate filter and are modified.
+		 * @return a set of all attributes that match the candidate filter and are modified.
+		 */
 		public Set<ParameterField> getSelectedFields() {
 			return Collections.unmodifiableSet(selectedFields);
 		}
 		
+		/**
+		 * Returns a set of methods that contain instructions that modify an attribute that matched the candidate
+		 * filter.
+		 * @return a set of methods that contain instructions that modify an attribute that matched the candidate
+		 * filter.
+		 */
 		public Set<IMethod> getDirectModifies() {
 			return Collections.unmodifiableSet(directModification);
 		}
 		
+		/**
+		 * Checks if the given methods contains an instruction that modifies an attribute matched by the candidate
+		 * filter.
+		 * @param m The method to check for.
+		 * @return <tt>true</tt> iff <tt>m</tt> contains an instruction that modifies an attribute matched by the
+		 * candidate filter.
+		 */
 		public boolean directModifies(final IMethod m) {
 			return directModification.contains(m);
 		}
 
+		/**
+		 * Checks if the given methods does NOT contain an instruction that modifies an attribute matched by the
+		 * candidate filter, BUT may transitively call a meethod that does.
+		 * @param m The method to check for.
+		 * @return <tt>true</tt> iff <tt>m</tt> may call a method that conatins an instruction that modifies an
+		 * attribute matched by the candidate filter.
+		 */
 		public boolean indirectModifies(final IMethod m) {
 			return !directModification.contains(m) && directAndIndirectModification.contains(m);
 		}
 		
+		/**
+		 * Returns all methods that contain an instruction that modifies an attribute matching the candidate filter
+		 * or any fields reachable from those attributes.
+		 * @return A set of all methods that contain an instruction that modifies an attribute matching the candidate
+		 * filter or any fields reachable from those attributes.
+		 */
 		public Set<IMethod> getDirectModifiesReachable() {
 			return Collections.unmodifiableSet(directReachableFieldModification);
 		}
 		
+		/**
+		 * Checks if a given method contains an instruction that modifies an attribute matching the candidate filter
+		 * or any fields reachable from those attributes.
+		 * @param m The method to check.
+		 * @return <tt>true</tt> if the given method contains an instruction that modifies an attribute matching the
+		 * candidate filter or any fields reachable from those attributes.
+		 */
 		public boolean directModifiesReachable(final IMethod m) {
 			return directReachableFieldModification.contains(m);
 		}
 
+		/**
+		 * Checks if a given method DOES NOT contain an instruction that modifies an attribute matching the candidate
+		 * filter or any fields reachable from those attributes, BUT may transitively call a method that does so.
+		 * @param m The method to check.
+		 * @return <tt>true</tt> if the given method may call a method that directly modifies an attribute matching
+		 * the candidate filter or any fields reachable from those attributes
+		 */
 		public boolean indirectModifiesReachable(final IMethod m) {
-			return !directReachableFieldModification.contains(m) && directAndIndirectReachableFieldModification.contains(m);
+			return !directReachableFieldModification.contains(m)
+				&& directAndIndirectReachableFieldModification.contains(m);
 		}
 		
+		/**
+		 * Checks if the given method directly or indirectly modifies any attribute matching the candidate filter or
+		 * fields reachable from those attributes.
+		 * @param m The method to check.
+		 * @return <tt>true</tt> if the given method directly or indirectly modifies any attribute matching the
+		 * candidate filter or fields reachable from those attributes.
+		 */
 		public boolean modifies(final IMethod m) {
-			return directAndIndirectModification.contains(m) || directAndIndirectReachableFieldModification.contains(m);
+			return directAndIndirectModification.contains(m)
+				|| directAndIndirectReachableFieldModification.contains(m);
 		}
 		
+		/**
+		 * Checks if the given method directly or indirectly modifies an attribute matching the candidate filter.
+		 * @param m The method to check.
+		 * @return <tt>true</tt> if the given method directly or indirectly modifies an attribute matching the
+		 * candidate filter.
+		 */
 		public boolean modifiesBase(final IMethod m) {
 			return directAndIndirectModification.contains(m);
 		}
 
+		/**
+		 * Checks if the given method directly or indirectly modifies a field reachable from an attribute matching
+		 * the candidate filter, BUT NOT the attribute itself.
+		 * @param m The method to check.
+		 * @return <tt>true</tt>  if the given method directly or indirectly modifies a field reachable from an
+		 * attribute matching the candidate filter, BUT NOT the attribute itself.
+		 */
 		public boolean modifiesReachableFields(final IMethod m) {
 			return directAndIndirectReachableFieldModification.contains(m);
 		}
 		
+		/**
+		 * Returns the standard representation of the side-effect analysis results for a single candidate filter.
+		 */
 		public String toString() {
 			final StringBuilder sb = new StringBuilder();
 			
@@ -225,7 +338,8 @@ public class SideEffectDetector {
 				}
 			}
 			
-			if (!directAndIndirectModification.isEmpty() && directModification.size() != directAndIndirectModification.size()) {
+			if (!directAndIndirectModification.isEmpty()
+					&& directModification.size() != directAndIndirectModification.size()) {
 				sb.append("indirect base modification:\n");
 				for (final IMethod im : directAndIndirectModification) {
 					if (!directModification.contains(im)) {
@@ -241,8 +355,8 @@ public class SideEffectDetector {
 				}
 			}
 			
-			if (!directAndIndirectReachableFieldModification.isEmpty() &&
-					directReachableFieldModification.size() != directAndIndirectReachableFieldModification.size()) {
+			if (!directAndIndirectReachableFieldModification.isEmpty()
+					&& directReachableFieldModification.size() != directAndIndirectReachableFieldModification.size()) {
 				sb.append("indirect field modification:\n");
 				for (final IMethod im : directAndIndirectReachableFieldModification) {
 					if (!directReachableFieldModification.contains(im)) {
@@ -255,14 +369,12 @@ public class SideEffectDetector {
 		}
 	}
 	
-	public static class Input {
+	/**
+	 * Used as input for the interprocedural phase of the side-effect detection.
+	 */
+	private static class Input {
 		public final Set<ModRefFieldCandidate> fieldCandidates = new HashSet<ModRefFieldCandidate>();
 		public final Set<ModRefRootCandidate> rootCandidates = new HashSet<ModRefRootCandidate>();
-		public final CandidateFilter filter;
-		
-		public Input(final CandidateFilter filter) {
-			this.filter = filter;
-		}
 	}
 	
 	
@@ -365,11 +477,11 @@ public class SideEffectDetector {
 		return result;
 	}
 
-	private Input createInputForFilter(final CandidateFilter filter, final Result result, final IProgressMonitor monitor) throws CancelException {
+	private Input createInputForFilter(final CandidateFilter filter, final Result result,
+			final IProgressMonitor monitor) throws CancelException {
 		final Logger log = Log.getLogger(Log.L_SIDEEFFECT_DEBUG);
-		final Set<ModRefFieldCandidate> baseCandidates = new HashSet<ModRefFieldCandidate>();
-		final Set<ModRefRootCandidate> rootCandidates = new HashSet<ModRefRootCandidate>();
 		final PointsToWrapper pa = new PointsToWrapper(sdg.getPointerAnalysis());
+		final Input input = new Input();
 		
 		for (final CGNode n : cg) {
 			MonitorUtil.throwExceptionIfCanceled(monitor);
@@ -381,7 +493,7 @@ public class SideEffectDetector {
 				final ParameterField pf = c.pc.getField();
 				if (filter.isRelevant(pf)) {
 					log.outln("found candidate: " + c);
-					baseCandidates.add(c);
+					input.fieldCandidates.add(c);
 					result.addSelectedField(pf);
 					
 					if (c.isMod()) {
@@ -403,8 +515,6 @@ public class SideEffectDetector {
 			}
 			
 			if (pdg != null) {
-				final List<ModRefRootCandidate> roots = new LinkedList<ModRefRootCandidate>();
-
 				if (pdg.staticReads != null) {
 					for (int i = 0; i < pdg.staticReads.length; i++) {
 						final PDGField f = pdg.staticReads[i];
@@ -414,10 +524,11 @@ public class SideEffectDetector {
 							final OrdinalSet<InstanceKey> pts = pa.getStaticFieldPTS(f);
 							if (pts != null && !pts.isEmpty()) {
 								final ModRefRootCandidate rp = ModRefRootCandidate.createRef(f, pts);
-								roots.add(rp);
+								input.rootCandidates.add(rp);
 							}
 							if (log.isEnabled()) {
-								log.outln("found static root direct read in " + PrettyWalaNames.methodName(pdg.getMethod()));
+								log.outln("found static root direct read in "
+									+ PrettyWalaNames.methodName(pdg.getMethod()));
 							}
 						}
 					}
@@ -432,11 +543,12 @@ public class SideEffectDetector {
 							final OrdinalSet<InstanceKey> pts = pa.getStaticFieldPTS(f);
 							if (pts != null && !pts.isEmpty()) {
 								final ModRefRootCandidate rp = ModRefRootCandidate.createMod(f, pts);
-								roots.add(rp);
+								input.rootCandidates.add(rp);
 							}
 							result.addDirectModification(pdg.getMethod(), f.field);
 							if (log.isEnabled()) {
-								log.outln("found static root direct write in " + PrettyWalaNames.methodName(pdg.getMethod()));
+								log.outln("found static root direct write in "
+									+ PrettyWalaNames.methodName(pdg.getMethod()));
 							}
 						}
 					}
@@ -449,10 +561,11 @@ public class SideEffectDetector {
 						final OrdinalSet<InstanceKey> pts = pa.getStaticFieldPTS(f);
 						if (pts != null && !pts.isEmpty()) {
 							final ModRefRootCandidate rp = ModRefRootCandidate.createRef(f, pts);
-							roots.add(rp);
+							input.rootCandidates.add(rp);
 						}
 						if (log.isEnabled()) {
-							log.outln("found static root indirect read in " + PrettyWalaNames.methodName(pdg.getMethod()));
+							log.outln("found static root indirect read in "
+								+ PrettyWalaNames.methodName(pdg.getMethod()));
 						}
 					}
 				}
@@ -464,23 +577,18 @@ public class SideEffectDetector {
 						final OrdinalSet<InstanceKey> pts = pa.getStaticFieldPTS(f);
 						if (pts != null && !pts.isEmpty()) {
 							final ModRefRootCandidate rp = ModRefRootCandidate.createMod(f, pts);
-							roots.add(rp);
+							input.rootCandidates.add(rp);
 						}
 						result.addIndirectModification(pdg.getMethod(), f.field);
 						if (log.isEnabled()) {
-							log.outln("found static root indirect write in " + PrettyWalaNames.methodName(pdg.getMethod()));
+							log.outln("found static root indirect write in "
+								+ PrettyWalaNames.methodName(pdg.getMethod()));
 						}
 					}
 				}
-
-				rootCandidates.addAll(roots);
 			}
 		}
-		
-		final Input input = new Input(filter);
-		input.fieldCandidates.addAll(baseCandidates);
-		input.rootCandidates.addAll(rootCandidates);
-		
+				
 		return input;
 	}
 

@@ -378,6 +378,19 @@ public class SideEffectDetector {
 	}
 	
 	
+	/**
+	 * Runs an interprocedural analysis on the given program that detects which static and class attributes (that match
+	 * the given candidate filer) and any of the locations/fields reachable from those attributes may be modified in
+	 * which methods.
+	 * @param filter The candidate filter that selects the relevant attributes whose modificaiton should be tracked.
+	 * @param modRef The result of the interprocedural Mod-Ref analysis
+	 * @param sideEffectsDirect The intermediate result of the intraprocedutral Mod-Ref analysis
+	 * @param sdg The system dependence graph of the program under analysis
+	 * @param cg The callgraph of the program
+	 * @param monitor A progress monitor.
+	 * @return An instance of the Result class that encapsulates the analysis results.
+	 * @throws CancelException
+	 */
 	public static Result whoModifies(final CandidateFilter filter, final ModRefCandidates modRef,
 			final Map<CGNode, Collection<ModRefFieldCandidate>> sideEffectsDirect, final SDGBuilder sdg,
 			final CallGraph cg, final IProgressMonitor monitor) throws CancelException {
@@ -387,6 +400,19 @@ public class SideEffectDetector {
 		return result;
 	}
 
+	/**
+	 * Runs an interprocedural analysis on the given program that detects which static and class attributes (that match
+	 * the given candidate filer) and any of the locations/fields *directly* reachable from those attributes may be
+	 * modified in which methods.
+	 * @param filter The candidate filter that selects the relevant attributes whose modificaiton should be tracked.
+	 * @param modRef The result of the interprocedural Mod-Ref analysis
+	 * @param sideEffectsDirect The intermediate result of the intraprocedutral Mod-Ref analysis
+	 * @param sdg The system dependence graph of the program under analysis
+	 * @param cg The callgraph of the program
+	 * @param monitor A progress monitor.
+	 * @return An instance of the Result class that encapsulates the analysis results.
+	 * @throws CancelException
+	 */
 	public static Result whoModifiesOneLevel(final CandidateFilter filter, final ModRefCandidates modRef,
 			final Map<CGNode, Collection<ModRefFieldCandidate>> sideEffectsDirect, final SDGBuilder sdg,
 			final CallGraph cg, final IProgressMonitor monitor) throws CancelException {

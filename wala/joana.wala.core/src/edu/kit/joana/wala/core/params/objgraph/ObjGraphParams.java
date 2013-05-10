@@ -220,7 +220,7 @@ public final class ObjGraphParams {
 
 		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> interModRef;
 		if (opt.isUseAdvancedInterprocPropagation) {
-			interModRef = fixpointReachabilityPropagate(sdg, mrefs, progress);
+			interModRef = fixpointReachabilityPropagate(sdg, cg, mrefs, progress);
 		} else {
 			interModRef = simpleReachabilityPropagate(cg, mrefs, progress);
 		}
@@ -696,10 +696,10 @@ public final class ObjGraphParams {
 	}
 
 	private Map<CGNode, OrdinalSet<ModRefFieldCandidate>> fixpointReachabilityPropagate(final SDGBuilder sdg,
-			final ModRefCandidates mrefs, final IProgressMonitor progress) throws CancelException {
+			final CallGraph nonPrunedCG, final ModRefCandidates mrefs, final IProgressMonitor progress)
+	throws CancelException {
 		final Map<CGNode, Set<ModRefCandidate>> cg2candidates = new HashMap<CGNode, Set<ModRefCandidate>>();
 		final CallGraph prunedCG = sdg.getWalaCallGraph();
-		final CallGraph nonPrunedCG = sdg.getNonPrunedWalaCallGraph();
 		final PointsToWrapper pa = new PointsToWrapper(sdg.getPointerAnalysis());
 		final Map<CGNode, Collection<ModRefFieldCandidate>> cg2localfields = mrefs.getCandidateMap();
 

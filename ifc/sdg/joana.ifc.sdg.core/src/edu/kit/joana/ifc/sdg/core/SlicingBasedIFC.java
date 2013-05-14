@@ -94,12 +94,23 @@ public class SlicingBasedIFC extends IFC {
 		}
 	}
 	
+	private boolean isStartpoint(SecurityNode n) {
+		switch (slicer.getDirection()) {
+		case BACKWARD:
+			return n.isInformationSource();
+		case FORWARD:
+			return n.isInformationSink();
+		default:
+			throw new IllegalStateException("unhandled case: " + slicer.getDirection());
+		}
+	}
+
 	private void addPossibleViolations(SecurityNode endPoint, Collection<SDGNode> slice, Collection<Violation> vios) {
 		for (SDGNode n : slice) {
 			SecurityNode sNode = (SecurityNode) n;
 			String secLevelOfOtherEndpoint = getLevel(sNode);
 			String secLevelOfEndpoint = getLevel(endPoint);
-			if (secLevelOfOtherEndpoint != null && isLeakage(endPoint, sNode)) {
+			if (isStartpoint(sNode) && secLevelOfOtherEndpoint != null && isLeakage(endPoint, sNode)) {
 				vios.add(Violation.createViolation(endPoint, sNode, secLevelOfEndpoint));
 			}
 		}

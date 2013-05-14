@@ -31,31 +31,16 @@ public class IntraproceduralSlicerForward extends IntraproceduralSlicer implemen
     public IntraproceduralSlicerForward(SDG g) {
         super(g);
     }
+    
+    /* (non-Javadoc)
+	 * @see edu.kit.joana.ifc.sdg.graph.slicer.IntraproceduralSlicer#adjacentEdges(edu.kit.joana.ifc.sdg.graph.SDGNode)
+	 */
+	@Override
+	protected Collection<SDGEdge> adjacentEdges(SDGNode n) {
+		return graph.outgoingEdgesOf(n);
+	}
 
-    public Collection<SDGNode> slice(Collection<SDGNode> nodes) {
-        LinkedList<SDGNode> worklist = new LinkedList<SDGNode>();
-        HashSet<SDGNode> slice = new HashSet<SDGNode>();
-
-        worklist.addAll(nodes);
-        slice.addAll(nodes);
-
-        while (!worklist.isEmpty()) {
-            SDGNode next = worklist.poll();
-
-            for (SDGEdge e : graph.outgoingEdgesOf(next)) {
-                if (e.getKind().isSDGEdge()
-                		&& e.getKind().isIntraproceduralEdge()
-                		&& !slice.contains(e.getTarget())){
-
-                    worklist.add(e.getTarget());
-                    slice.add(e.getTarget());
-                }
-            }
-        }
-
-        return slice;
-    }
-
+   
     public static void main(String[] args) throws Exception {
         SDG graph = SDG.readFrom(args[0]);
         SDGNode c = graph.getNode(Integer.parseInt(args[1]));
@@ -82,4 +67,6 @@ public class IntraproceduralSlicerForward extends IntraproceduralSlicer implemen
             }
         }
     }
+
+	
 }

@@ -16,67 +16,53 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
-
 /**
- *
- * @author  Dennis Giffhorn
+ * 
+ * @author Dennis Giffhorn
  */
 public class IntraproceduralSlicerBackward extends IntraproceduralSlicer implements Slicer {
-    /**
-     * Creates a new instance of IntraproceduralSlicer
-     */
-    public IntraproceduralSlicerBackward(SDG g) {
-        super(g);
-    }
+	/**
+	 * Creates a new instance of IntraproceduralSlicer
+	 */
+	public IntraproceduralSlicerBackward(SDG g) {
+		super(g);
+	}
 
-    public Collection<SDGNode> slice(Collection<SDGNode> nodes) {
-        LinkedList<SDGNode> worklist = new LinkedList<SDGNode>();
-        HashSet<SDGNode> slice = new HashSet<SDGNode>();
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * edu.kit.joana.ifc.sdg.graph.slicer.IntraproceduralSlicer#adjacentEdges
+	 * (edu.kit.joana.ifc.sdg.graph.SDGNode)
+	 */
+	@Override
+	protected Collection<SDGEdge> adjacentEdges(SDGNode n) {
+		return graph.incomingEdgesOf(n);
+	}
 
-        worklist.addAll(nodes);
-        slice.addAll(nodes);
+	public static void main(String[] args) throws Exception {
+		SDG graph = SDG.readFrom(args[0]);
+		SDGNode c = graph.getNode(Integer.parseInt(args[1]));
 
-        while (!worklist.isEmpty()) {
-            SDGNode next = worklist.poll();
+		IntraproceduralSlicerBackward slicer = new IntraproceduralSlicerBackward(graph);
+		Collection<SDGNode> slice = slicer.slice(Collections.singleton(c));
+		System.out.println(slice);
 
-            for (SDGEdge e : graph.incomingEdgesOf(next)) {
-                if (e.getKind().isSDGEdge()
-                		&& e.getKind().isIntraproceduralEdge()
-                		&& !slice.contains(e.getSource())) {
+		for (SDGNode n : slice) {
+			if (n.getKind() == SDGNode.Kind.ENTRY || n.getKind() == SDGNode.Kind.ACTUAL_OUT
+					|| n.getKind() == SDGNode.Kind.FORMAL_IN) {
 
-                    worklist.add(e.getSource());
-                    slice.add(e.getSource());
-                }
-            }
-        }
+				System.out.print(n + ", ");
+			}
+		}
+		System.out.println("\n ");
+		for (SDGNode n : slice) {
 
-        return slice;
-    }
-
-    public static void main(String[] args) throws Exception {
-        SDG graph = SDG.readFrom(args[0]);
-        SDGNode c = graph.getNode(Integer.parseInt(args[1]));
-
-        IntraproceduralSlicerBackward slicer = new IntraproceduralSlicerBackward(graph);
-        Collection<SDGNode> slice = slicer.slice(Collections.singleton(c));
-        System.out.println(slice);
-
-        for (SDGNode n : slice) {
-            if (n.getKind() == SDGNode.Kind.ENTRY
-                    || n.getKind() == SDGNode.Kind.ACTUAL_OUT
-                    || n.getKind() == SDGNode.Kind.FORMAL_IN) {
-
-                System.out.print(n+", ");
-            }
-        }
-        System.out.println("\n ");
-        for (SDGNode n : slice) {
-
-            for (SDGEdge e : graph.incomingEdgesOf(n)) {
-                if (e.getKind() == SDGEdge.Kind.INTERFERENCE) {
-                    System.out.println(n+", ");
-                }
-            }
-        }
-    }
+			for (SDGEdge e : graph.incomingEdgesOf(n)) {
+				if (e.getKind() == SDGEdge.Kind.INTERFERENCE) {
+					System.out.println(n + ", ");
+				}
+			}
+		}
+	}
 }

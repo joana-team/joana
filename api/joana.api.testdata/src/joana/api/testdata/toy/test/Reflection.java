@@ -16,7 +16,7 @@ import java.lang.reflect.Method;
  */
 public class Reflection {
 	public static void main(String[] args) throws SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
-	    Method method = Thread.class.getMethod("getContextClassLoader", null);
+	    Method method = Thread.class.getMethod("getContextClassLoader", (Class<?>[])null);
 
 	}
 }

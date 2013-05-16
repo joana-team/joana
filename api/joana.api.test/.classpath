@@ -16,5 +16,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/com.ibm.wala.util"/>
 	<classpathentry kind="lib" path="/joana.contrib.lib/jgrapht-jdk1.6.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/joana.util"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.api.testdata"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

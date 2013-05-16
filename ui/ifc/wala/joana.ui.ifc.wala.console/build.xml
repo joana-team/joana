@@ -175,6 +175,9 @@
 			<fileset dir="${joana.api.base.dir}/src">
 				<filename name="**/*.java" />
 			</fileset>
+			<fileset dir="${joana.api.annotations.passon.base.dir}/src">
+				<filename name="**/*.java" />
+			</fileset>
 			<!-- joana.ui code -->
 			<fileset dir="${joana.ui.ifc.wala.console.base.dir}/src">
 				<filename name="**/*.java" />

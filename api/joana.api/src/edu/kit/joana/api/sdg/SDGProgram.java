@@ -20,10 +20,12 @@ import java.util.Map;
 import java.util.Set;
 
 import com.ibm.wala.classLoader.IClass;
+import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.types.TypeReference;
+import com.ibm.wala.types.annotations.Annotation;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
@@ -48,6 +50,7 @@ import edu.kit.joana.util.Stubs;
 import edu.kit.joana.util.io.IOFactory;
 import edu.kit.joana.wala.core.Main;
 import edu.kit.joana.wala.core.NullProgressMonitor;
+import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.flowless.wala.ObjSensContextSelector.MethodFilter;
 
@@ -58,6 +61,8 @@ public class SDGProgram {
 	private final Set<SDGClass> classes = new HashSet<SDGClass>();
 	private final SDG sdg;
 	private SDGProgramPartParserBC ppartParser;
+	private final Map<SDGProgramPart,Collection<Annotation>> annotations = new HashMap<SDGProgramPart,Collection<Annotation>>();
+	
 	private static Logger debug = Log.getLogger(Log.L_API_DEBUG);
 
 	public SDGProgram(SDG sdg) {
@@ -125,11 +130,42 @@ public class SDGProgram {
 			cfg.objSensFilter = new ThreadSensitiveMethodFilterWithCaching();
 		}
 		monitor.beginTask("build SDG", 20);
-		SDG sdg = Main.compute(out, cfg, config.computeInterferences(), monitor);
+		final com.ibm.wala.util.collections.Pair<SDG, SDGBuilder> p = Main.computeAndKeepBuilder(out, cfg, config.computeInterferences(), monitor);
+		final SDG sdg = p.fst;
+		final SDGBuilder builder = p.snd;
+		
 		if (config.computeInterferences()) {
 			PruneInterferences.preprocessAndPruneCSDG(sdg, config.getMhpType());
 		}
 		SDGProgram ret = new SDGProgram(sdg);
+		
+		//TODO: Iterate only over classes present in the call graph
+		for (IClass c : builder.getClassHierarchy()) {
+			final String walaClassName = c.getName().toString();
+			final JavaType jt = JavaType.parseSingleTypeFromString(walaClassName, Format.BC);
+
+			for(IField f : c.getAllFields()) {
+				final Collection<SDGAttribute> attributes =  ret.getAttribute(jt, f.getName().toString());
+				// attributes.isEmpty() if c isn't Part of the CallGraph
+				if(f.getAnnotations() != null && !f.getAnnotations().isEmpty()) {
+					for(SDGAttribute a : attributes) ret.annotations.put(a, f.getAnnotations());
+					debug.outln("Annotated: " + jt + ":::" + f.getName() + " with " + f.getAnnotations());
+				}
+				
+			}
+			
+			for(IMethod m : c.getAllMethods()) {
+				if(m.getAnnotations() != null && ! m.getAnnotations().isEmpty()) {
+					final Collection<SDGMethod> methods = ret.getMethods(JavaMethodSignature.fromString(m.getSignature()));
+					for (SDGMethod sdgm : methods) ret.annotations.put(sdgm, m.getAnnotations());
+					debug.outln("Annotated: " + jt + ":::" + m.getName() + " with " + m.getAnnotations());
+				}
+				
+			}
+			
+		}
+		
+		
 		return ret;
 	}
 
@@ -145,6 +181,10 @@ public class SDGProgram {
 		return sdg;
 	}
 
+	public Map<SDGProgramPart,Collection<Annotation>> getJavaSourceAnnotations() {
+		return annotations;
+	}
+	
 	public Collection<SDGClass> getClasses() {
 		build();
 		return classes;

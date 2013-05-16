@@ -148,5 +148,6 @@ public final class BuiltinLattices {
 		}
 		return diamond;
 	}
+	
 
 }

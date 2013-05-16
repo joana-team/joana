@@ -102,6 +102,9 @@ public class JavaType {
 	}
 
 	public String toBCString() {
+		return toBCString(true);
+	}
+	public String toBCString(final boolean trailingsemicolon) {
 		StringBuilder sbBC = new StringBuilder("");
 		for (int i = 0; i < arrDim; i++) {
 			sbBC.append('[');
@@ -128,7 +131,7 @@ public class JavaType {
 			} else {
 				sbBC.append('L');
 				sbBC.append(baseType.replaceAll("\\.", "/"));
-				sbBC.append(';');
+				if (trailingsemicolon) sbBC.append(';');
 			}
 		} else {
 			sbBC.append(baseType);

@@ -14,11 +14,22 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+
+import com.ibm.wala.shrikeCT.AnnotationsReader.ElementValue;
+import com.ibm.wala.shrikeCT.AnnotationsReader.EnumElementValue;
+import com.ibm.wala.types.ClassLoaderReference;
+import com.ibm.wala.types.TypeName;
+import com.ibm.wala.types.TypeReference;
+import com.ibm.wala.types.annotations.Annotation;
 
 import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.annotations.IFCAnnotation.Type;
 import edu.kit.joana.api.annotations.IFCAnnotationManager;
+import edu.kit.joana.api.annotations.Level;
+import edu.kit.joana.api.annotations.Sink;
+import edu.kit.joana.api.annotations.Source;
 import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGProgram;
@@ -42,6 +53,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.SimpleMHPAnalysis;
 import edu.kit.joana.ifc.sdg.lattice.IEditableLattice;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
+import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 
@@ -309,5 +321,51 @@ public class IFCAnalysis {
 
 	public SDGProgramPart getProgramPart(String ppartDesc) {
 		return program.getPart(ppartDesc);
+	}
+	
+	/**
+	 * If Java Source annotations are available, add corresponding IFC Annotations to the Analysis.
+	 */
+	public void addAllJavaSourceAnnotations() {
+		final TypeReference source = TypeReference.findOrCreate(
+		      ClassLoaderReference.Application,
+		      TypeName.findOrCreate(JavaType.parseSingleTypeFromString(Source.class.getCanonicalName()).toBCString(false)));
+		final TypeReference sink = TypeReference.findOrCreate(
+			      ClassLoaderReference.Application,
+			      TypeName.findOrCreate(JavaType.parseSingleTypeFromString(Sink.class.getCanonicalName()).toBCString(false)));
+
+		final TypeName level = TypeName.findOrCreate(JavaType.parseSingleTypeFromString(Level.class.getCanonicalName()).toBCString());
+		final Map<SDGProgramPart,Collection<Annotation>> annotations = program.getJavaSourceAnnotations();
+		
+		
+		
+		for (Entry<SDGProgramPart,Collection<Annotation>> e : annotations.entrySet()) {
+			for(Annotation a : e.getValue()) {
+				debug.outln("Processing::: " + a);
+				if(source.equals(a.getType()) || sink.equals(a.getType())) {
+					final ElementValue elemvalue = a.getNamedArguments().get("value");
+
+					// As per @Sink / @Source Definition: "value" is an Enum .. 
+					assert (elemvalue != null && elemvalue instanceof EnumElementValue);  
+					final EnumElementValue enumvalue = (EnumElementValue) elemvalue;
+					// .. of Type Level 
+					assert (level.equals(TypeName.findOrCreate(enumvalue.enumType)));
+					final Level l = Level.valueOf(enumvalue.enumVal);
+					assert l!=null;
+					
+					// TODO: instead of two "Typeswitches" (over latticelevel and a.getType()), do something nicer.
+					final String latticeLevel;
+					switch (l) {
+						case HIGH: latticeLevel = BuiltinLattices.STD_SECLEVEL_HIGH; break;
+						case LOW:  latticeLevel = BuiltinLattices.STD_SECLEVEL_LOW; break;
+						default: latticeLevel = null; throw new IllegalArgumentException("Unknown Security-Level:" + l);
+					}
+					if (source.equals(a.getType())) addSourceAnnotation(e.getKey(), latticeLevel); 
+					if (sink.equals(a.getType()))   addSinkAnnotation(e.getKey(), latticeLevel);
+					
+					debug.outln("Added " + a.getType().getName().getClassName() + " Annotation: " + e.getKey() + ":::" + latticeLevel);
+				}
+			}
+		}
 	}
 }

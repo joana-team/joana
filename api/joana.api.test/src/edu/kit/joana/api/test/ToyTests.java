@@ -81,9 +81,8 @@ public class ToyTests {
 			}
 		}
 	}
-
-	public static IFCAnalysis buildAndAnnotate(final String className, SDGConfig config, boolean ignore)
-			throws ApiTestException, ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+	
+	public static IFCAnalysis build(final String className, SDGConfig config, boolean ignore) throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
 		final String classPath;
 		if (ignore) {
 			classPath = JoanaPath.JOANA_API_TEST_DATA_CLASSPATH + ":" + JoanaPath.ANNOTATIONS_IGNORE_CLASSPATH;
@@ -97,6 +96,19 @@ public class ToyTests {
 		SDGProgram prog = SDGProgram.createSDGProgram(config);
 
 		IFCAnalysis ana = new IFCAnalysis(prog);
+		return ana;
+	}
+
+	public static IFCAnalysis buldAndUseJavaAnnotations(final String className, SDGConfig config, boolean ignore)
+				throws ApiTestException, ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+			IFCAnalysis ana = build(className,config,ignore);
+			ana.addAllJavaSourceAnnotations();
+			return ana;
+	}
+		
+	public static IFCAnalysis buildAndAnnotate(final String className, SDGConfig config, boolean ignore)
+			throws ApiTestException, ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+		IFCAnalysis ana = build(className,config,ignore);
 		SDGProgramPart secret = ana.getProgramPart("edu.kit.joana.api.annotations.Annotations.SECRET");
 		SDGProgramPart secret_string = ana.getProgramPart("edu.kit.joana.api.annotations.Annotations.SECRET_STRING");
 		SDGProgramPart secret_bool = ana.getProgramPart("edu.kit.joana.api.annotations.Annotations.SECRET_BOOL");
@@ -136,6 +148,7 @@ public class ToyTests {
 			IOException, UnsoundGraphException, CancelException {
 		{ // There are leaks if secret is really passed on
 			IFCAnalysis ana = buildAndAnnotate(classname, top_sequential, false);
+			
 
 			if (outputPDGFiles) {
 				dumpSDG(ana.getProgram().getSDG(), classname + ".passon.pdg");
@@ -146,7 +159,7 @@ public class ToyTests {
 		}
 
 		{ // Otherwise, we're precise enough to find out that there aren't
-			IFCAnalysis ana = buildAndAnnotate(classname, top_sequential, true);
+			IFCAnalysis ana = buldAndUseJavaAnnotations(classname, top_sequential, true);
 
 			if (outputPDGFiles) {
 				dumpSDG(ana.getProgram().getSDG(), classname + ".ignore.pdg");
@@ -160,7 +173,7 @@ public class ToyTests {
 	private static void testTooImprecise(String classname) throws ClassHierarchyException, ApiTestException,
 			IOException, UnsoundGraphException, CancelException {
 		{ // There are leaks if secret is really passed on
-			IFCAnalysis ana = buildAndAnnotate(classname, top_sequential, false);
+			IFCAnalysis ana = buldAndUseJavaAnnotations(classname, top_sequential, false);
 
 			if (outputPDGFiles) {
 				dumpSDG(ana.getProgram().getSDG(), classname + ".passon.pdg");
@@ -172,7 +185,7 @@ public class ToyTests {
 
 		{ // Otherwise there aren't, but the analysis not precise enough to
 			// proof this
-			IFCAnalysis ana = buildAndAnnotate(classname, top_sequential, true);
+			IFCAnalysis ana = buldAndUseJavaAnnotations(classname, top_sequential, true);
 
 			if (outputPDGFiles) {
 				dumpSDG(ana.getProgram().getSDG(), classname + ".ignore.pdg");
@@ -295,4 +308,12 @@ public class ToyTests {
 			UnsoundGraphException, CancelException {
 		testPreciseEnough("joana.api.testdata.seq.ExampleLeakage");
 	}
+	
+
+	// TODO: Try whether this still crashes using latest wala
+	@Test(expected=java.lang.NullPointerException.class)
+	public void testReflection() throws ClassHierarchyException, ApiTestException, IOException,	UnsoundGraphException, CancelException {
+		build("joana.api.testdata.toy.test.Reflection",bottom_sequential, false);
+	}
+	
 }

@@ -81,9 +81,9 @@ public class ToyTests {
 			}
 		}
 	}
-
-	public static IFCAnalysis buildAndAnnotate(final String className, SDGConfig config, boolean ignore)
-			throws ApiTestException, ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+	
+	public static <T> IFCAnalysis build(Class<T> clazz, SDGConfig config, boolean ignore) throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+		final String className = clazz.getCanonicalName();
 		final String classPath;
 		if (ignore) {
 			classPath = JoanaPath.JOANA_API_TEST_DATA_CLASSPATH + ":" + JoanaPath.ANNOTATIONS_IGNORE_CLASSPATH;
@@ -97,6 +97,19 @@ public class ToyTests {
 		SDGProgram prog = SDGProgram.createSDGProgram(config);
 
 		IFCAnalysis ana = new IFCAnalysis(prog);
+		return ana;
+	}
+
+	public static <T> IFCAnalysis buldAndUseJavaAnnotations(Class<T> clazz, SDGConfig config, boolean ignore)
+				throws ApiTestException, ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+			IFCAnalysis ana = build(clazz,config,ignore);
+			ana.addAllJavaSourceAnnotations();
+			return ana;
+	}
+		
+	public static <T> IFCAnalysis buildAndAnnotate(Class<T> clazz, SDGConfig config, boolean ignore)
+			throws ApiTestException, ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+		IFCAnalysis ana = build(clazz,config,ignore);
 		SDGProgramPart secret = ana.getProgramPart("edu.kit.joana.api.annotations.Annotations.SECRET");
 		SDGProgramPart secret_string = ana.getProgramPart("edu.kit.joana.api.annotations.Annotations.SECRET_STRING");
 		SDGProgramPart secret_bool = ana.getProgramPart("edu.kit.joana.api.annotations.Annotations.SECRET_BOOL");
@@ -132,10 +145,12 @@ public class ToyTests {
 		return ana;
 	}
 
-	private static void testPreciseEnough(String classname) throws ClassHierarchyException, ApiTestException,
+	private static <T> void testPreciseEnough(Class<T> clazz) throws ClassHierarchyException, ApiTestException,
 			IOException, UnsoundGraphException, CancelException {
+		final String classname = clazz.getCanonicalName();
 		{ // There are leaks if secret is really passed on
-			IFCAnalysis ana = buildAndAnnotate(classname, top_sequential, false);
+			IFCAnalysis ana = buildAndAnnotate(clazz, top_sequential, false);
+			
 
 			if (outputPDGFiles) {
 				dumpSDG(ana.getProgram().getSDG(), classname + ".passon.pdg");
@@ -146,7 +161,7 @@ public class ToyTests {
 		}
 
 		{ // Otherwise, we're precise enough to find out that there aren't
-			IFCAnalysis ana = buildAndAnnotate(classname, top_sequential, true);
+			IFCAnalysis ana = buldAndUseJavaAnnotations(clazz, top_sequential, true);
 
 			if (outputPDGFiles) {
 				dumpSDG(ana.getProgram().getSDG(), classname + ".ignore.pdg");
@@ -157,10 +172,11 @@ public class ToyTests {
 		}
 	}
 
-	private static void testTooImprecise(String classname) throws ClassHierarchyException, ApiTestException,
+	private static <T> void testTooImprecise(Class<T> clazz) throws ClassHierarchyException, ApiTestException,
 			IOException, UnsoundGraphException, CancelException {
+		final String classname = clazz.getCanonicalName();
 		{ // There are leaks if secret is really passed on
-			IFCAnalysis ana = buildAndAnnotate(classname, top_sequential, false);
+			IFCAnalysis ana = buldAndUseJavaAnnotations(clazz, top_sequential, false);
 
 			if (outputPDGFiles) {
 				dumpSDG(ana.getProgram().getSDG(), classname + ".passon.pdg");
@@ -172,7 +188,7 @@ public class ToyTests {
 
 		{ // Otherwise there aren't, but the analysis not precise enough to
 			// proof this
-			IFCAnalysis ana = buildAndAnnotate(classname, top_sequential, true);
+			IFCAnalysis ana = buldAndUseJavaAnnotations(clazz, top_sequential, true);
 
 			if (outputPDGFiles) {
 				dumpSDG(ana.getProgram().getSDG(), classname + ".ignore.pdg");
@@ -191,87 +207,87 @@ public class ToyTests {
 	@Test
 	public void testFlowSens() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
-		testPreciseEnough("joana.api.testdata.toy.sensitivity.FlowSens");
+		testPreciseEnough(joana.api.testdata.toy.sensitivity.FlowSens.class);
 	}
 
 	@Test
 	public void testAssChain() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
-		testPreciseEnough("joana.api.testdata.toy.simp.AssChain");
+		testPreciseEnough(joana.api.testdata.toy.simp.AssChain.class);
 	}
 
 	@Test
 	public void testMicroExample() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testPreciseEnough("joana.api.testdata.toy.simp.MicroExample");
+		testPreciseEnough(joana.api.testdata.toy.simp.MicroExample.class);
 	}
 
 	@Test
 	public void testNested() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
-		testPreciseEnough("joana.api.testdata.toy.simp.Nested");
+		testPreciseEnough(joana.api.testdata.toy.simp.Nested.class);
 	}
 
 	// TODO: find out why we're not precise enough here.
 	@Test
 	public void testSick() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
-		testTooImprecise("joana.api.testdata.toy.simp.Sick");
+		testTooImprecise(joana.api.testdata.toy.simp.Sick.class);
 	}
 
 	@Test
 	public void testSick2() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
-		testPreciseEnough("joana.api.testdata.toy.simp.Sick2");
+		testPreciseEnough(joana.api.testdata.toy.simp.Sick2.class);
 	}
 
 	@Test
 	public void testControlDep() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
-		testPreciseEnough("joana.api.testdata.toy.test.ControlDep");
+		testPreciseEnough(joana.api.testdata.toy.test.ControlDep.class);
 	}
 
 	@Test
 	public void testIndependent() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
-		testPreciseEnough("joana.api.testdata.toy.test.Independent");
+		testPreciseEnough(joana.api.testdata.toy.test.Independent.class);
 	}
 
 	@Test
 	public void testObjSens() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
-		testPreciseEnough("joana.api.testdata.toy.test.ObjSens");
+		testPreciseEnough(joana.api.testdata.toy.test.ObjSens.class);
 	}
 
 	@Test
 	public void testSystemCallsTest() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testPreciseEnough("joana.api.testdata.toy.test.SystemCallsTest");
+		testPreciseEnough(joana.api.testdata.toy.test.SystemCallsTest.class);
 	}
 
 	@Test
 	public void testVeryImplictFlow() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testPreciseEnough("joana.api.testdata.toy.test.VeryImplictFlow");
+		testPreciseEnough(joana.api.testdata.toy.test.VeryImplictFlow.class);
 	}
 
 	@Test
 	public void testMyList() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
-		testPreciseEnough("joana.api.testdata.toy.rec.MyList");
+		testPreciseEnough(joana.api.testdata.toy.rec.MyList.class);
 	}
 
 	// TODO: find out why we're precise enough for MyList, but not for MyList2
 	@Test
 	public void testMyList2() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
-		testTooImprecise("joana.api.testdata.toy.rec.MyList2");
+		testTooImprecise(joana.api.testdata.toy.rec.MyList2.class);
 	}
 
 	@Test
 	public void testPasswordFile() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testPreciseEnough("joana.api.testdata.toy.pw.PasswordFile");
+		testPreciseEnough(joana.api.testdata.toy.pw.PasswordFile.class);
 	}
 
 	@Test
@@ -281,18 +297,26 @@ public class ToyTests {
 		 * We are to imprecise at the moment (Dec 2012) to rule out information flow here in the 'ignore' case.
 		 * See Demo1 source code for further information
 		 */
-		testTooImprecise("joana.api.testdata.toy.demo.Demo1");
+		testTooImprecise(joana.api.testdata.toy.demo.Demo1.class);
 	}
 
 	@Test
 	public void testDeclass1() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
-		testTooImprecise("joana.api.testdata.toy.declass.Declass1");
+		testTooImprecise(joana.api.testdata.toy.declass.Declass1.class);
 	}
 
 	@Test
 	public void testExampleLeakage() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testPreciseEnough("joana.api.testdata.seq.ExampleLeakage");
+		testPreciseEnough(joana.api.testdata.seq.ExampleLeakage.class);
 	}
+	
+
+	// TODO: Try whether this still crashes using latest wala
+	@Test(expected=java.lang.NullPointerException.class)
+	public void testWalaBugReflection() throws ClassHierarchyException, ApiTestException, IOException,	UnsoundGraphException, CancelException {
+		build(joana.api.testdata.toy.test.Reflection.class,bottom_sequential, false);
+	}
+	
 }

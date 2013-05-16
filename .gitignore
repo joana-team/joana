@@ -28,6 +28,7 @@ ifc/sdg/joana.ifc.sdg.graph/bin/joana/sdg/SDG_.g
 ifc/wala/joana.ifc.wala.sdpn/.cache
 ifc/wala/joana.ifc.wala.sdpn/results/
 joana-deploy-secret.properties
+joana-log.properties
 keystore
 tmp
 ui/ifc/sdg/joana.ui.ifc.sdg.graphviewer/bin

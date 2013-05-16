@@ -30,7 +30,7 @@
 
 	<target name="dirty_compile" depends="init,compile_all_testprograms" >
 		<mkdir dir="${project.build.classes}" />
-		<javac srcdir="${project.source}" destdir="${project.build.classes}" verbose="no" source="1.6" target="1.6" encoding="utf-8" includeantruntime="false" classpath="${project.joanalib}"/>	
+		<javac srcdir="${project.source}" destdir="${project.build.classes}" verbose="no" source="1.6" target="1.6" encoding="utf-8" includeantruntime="false" classpath="${project.joanalib}:${joana.api.testdata.classpath}"/>	
 	</target>
 
 	<target name="copy_joana_api" depends="compile_joana_api">
@@ -61,6 +61,7 @@
 			<classpath>
 				<pathelement location="${project.joanalib}"/>
 				<pathelement location="${project.build.classes}" />
+				<pathelement location="${joana.api.testdata.classpath}" />
 			</classpath>
 			
 			<sysproperty key="joana.base.dir" value="${joana.base.dir}" />

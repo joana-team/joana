@@ -60,6 +60,39 @@ public class ICFGBuilder {
 
         return icfg;
     }
+    
+    /**  
+     * Variant of {@link #extractICFG(SDG} in which also join edges are included.
+     *
+     * @param ipdg  The TIPDG whose ICFG is needed.
+     * @return      A new graph, the ICFG (including join edges).
+     */
+    public static CFG extractICFGIncludingJoins(SDG sdg){
+//    	debuggingControlFlowInspector(sdg);
+
+        // create new graph and copy all ICFG-related edges and associated
+        // vertices into it
+        CFG icfg = new CFG();
+        icfg.setThreadsInfo(sdg.getThreadsInfo());
+        Set<SDGEdge> edges = sdg.edgeSet();
+
+        for (SDGEdge e : edges) {
+            if (e.getKind() == SDGEdge.Kind.CALL
+                    || e.getKind() == SDGEdge.Kind.FORK
+                    || e.getKind() == SDGEdge.Kind.RETURN
+                    || e.getKind() == SDGEdge.Kind.JUMP_FLOW
+                    || e.getKind() == SDGEdge.Kind.CONTROL_FLOW
+                    || e.getKind() == SDGEdge.Kind.NO_FLOW
+                    || e.getKind() == SDGEdge.Kind.JOIN) {
+
+                icfg.addVertex(e.getSource());
+                icfg.addVertex(e.getTarget());
+                icfg.addEdge(e);
+            }
+        }
+
+        return icfg;
+    }
 
     @SuppressWarnings("unused")
 	private static void debuggingControlFlowInspector(SDG sdg) {

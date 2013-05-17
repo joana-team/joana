@@ -447,6 +447,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 //	            slice = close(slice);
 //	            System.out.println(join+"\n"+phase1);
 	            // store it in the map
+        		phase1.add(join);
 	            result.put(join, phase1);
         	}
 

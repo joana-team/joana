@@ -46,7 +46,8 @@ public class CFG extends JoanaGraph {
      */
     public boolean addEdge(SDGEdge edge) {
     	if (!edge.getKind().isControlFlowEdge()
-    			&& edge.getKind() != SDGEdge.Kind.FOLD_INCLUDE)
+    			&& edge.getKind() != SDGEdge.Kind.FOLD_INCLUDE
+    			&& edge.getKind() != SDGEdge.Kind.HELP)
     		throw new IllegalArgumentException("I am a CFG. Don't add "+edge.getKind()+"-edges!");
 
     	return super.addEdge(edge);

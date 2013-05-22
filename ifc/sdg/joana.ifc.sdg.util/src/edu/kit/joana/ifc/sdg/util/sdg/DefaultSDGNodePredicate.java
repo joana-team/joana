@@ -31,7 +31,8 @@ public class DefaultSDGNodePredicate implements SDGNodePredicate {
 			if (node.getBytecodeIndex() >= 0) {
 				isInteresting = true;
 			} else if (BytecodeLocation.EXCEPTION_PARAM.equals(node.getBytecodeName())
-					|| BytecodeLocation.RETURN_PARAM.equals(node.getBytecodeName())) {
+					|| BytecodeLocation.RETURN_PARAM.equals(node.getBytecodeName())
+					|| BytecodeLocation.isCallRetNode(node)) {
 				isInteresting = true;
 			} else {
 				isInteresting = false;

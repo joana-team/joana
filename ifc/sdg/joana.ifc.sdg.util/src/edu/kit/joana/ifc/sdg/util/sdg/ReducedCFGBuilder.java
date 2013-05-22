@@ -7,6 +7,7 @@
  */
 package edu.kit.joana.ifc.sdg.util.sdg;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -58,6 +59,8 @@ public final class ReducedCFGBuilder {
 			}
 		} while (change);
 
+		stripTrivialCycles(cfgRet);
+		
 		return cfgRet;
 	}
 
@@ -110,5 +113,22 @@ public final class ReducedCFGBuilder {
 			}
 		}
 		return ret;
+	}
+	
+	/**
+	 * Removes from the given CFG all control-flow edges for which source and target are the same.
+	 * These edges can occur while removing uninteresting nodes: If an interesting node is connected
+	 * to itself via a path of uninteresting nodes, this manifests itself in such a trivial cycle.
+	 * @param cfg control-flow graph from which the cycles are to be removed
+	 */
+	private static void stripTrivialCycles(CFG cfg) {
+		Collection<SDGEdge> toRemove = new LinkedList<SDGEdge>();
+		for (SDGEdge e : cfg.edgeSet()) {
+			if (e.getSource().equals(e.getTarget())) {
+				toRemove.add(e);
+			}
+		}
+		
+		cfg.removeAllEdges(toRemove);
 	}
 }

@@ -76,7 +76,7 @@ public final class ReducedCFGBuilder {
 
 	/**
 	 * Removes a node from the given control-flow graph. The node itself is deleted and afterwards each of its
-	 * predecessors is connected with each of its successors.
+	 * control-flow-predecessors is connected with each of its control-flow-successors.
 	 * @param cfg control-flow graph from which the given node is to be removed
 	 * @param toRemove node to remove
 	 */

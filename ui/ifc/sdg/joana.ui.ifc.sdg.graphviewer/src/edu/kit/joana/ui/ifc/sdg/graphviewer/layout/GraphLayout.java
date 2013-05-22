@@ -527,7 +527,7 @@ public class GraphLayout extends LayoutStrategy {
                                 targetPort : sourcePort;
                             Point2D offset2 = GraphConstants.getOffset(
                                     oppositePort.getAttributes());
-                            x2 += offset2.getX();
+                            x2 += (offset2!=null)?offset2.getX():0;
                             pointsDown = port == sourcePort;
                         } else
                             pointsDown = oppositeNode.pointsDown();

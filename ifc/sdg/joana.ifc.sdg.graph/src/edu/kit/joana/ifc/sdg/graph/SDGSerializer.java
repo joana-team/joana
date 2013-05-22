@@ -12,6 +12,7 @@
 package edu.kit.joana.ifc.sdg.graph;
 
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
+import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import gnu.trove.iterator.TIntIterator;
 
 import java.io.OutputStream;
@@ -30,24 +31,24 @@ public class SDGSerializer {
 
     private SDGSerializer() {}
 
-    static Iterator<SDGNode> orderedNodes(SDG g) {
+    static Iterator<SDGNode> orderedNodes(JoanaGraph g) {
         SortedSet<SDGNode> set = new TreeSet<SDGNode>(SDGNode.getIDComparator());
         set.addAll(g.vertexSet());
         return set.iterator();
     }
 
-    public static String toPDGFormat(SDG g) {
+    public static String toPDGFormat(JoanaGraph g) {
     	StringWriter string = new StringWriter();
     	toPDGFormat(g, new PrintWriter(string));
     	return string.toString();
     }
 
-    public static void toPDGFormat(SDG g, OutputStream out) {
+    public static void toPDGFormat(JoanaGraph g, OutputStream out) {
     	PrintWriter pw = new PrintWriter(out);
     	toPDGFormat(g, pw);
     }
 
-    public static void toPDGFormat(SDG g, PrintWriter pw) {
+    public static void toPDGFormat(JoanaGraph g, PrintWriter pw) {
         pw.print("SDG ");
 
         if (g.getName() != null) {
@@ -56,7 +57,7 @@ public class SDGSerializer {
 
         pw.print("{\n");
 
-        if (g.getJoanaCompiler()) {
+        if (g instanceof SDG && ((SDG)g).getJoanaCompiler()) {
             pw.print("JComp\n");
         }
 
@@ -155,7 +156,7 @@ public class SDGSerializer {
         pw.close();
     }
 
-    private static void printPDGDependencies(SDG g, SDGNode n, PrintWriter pw) {
+    private static void printPDGDependencies(JoanaGraph g, SDGNode n, PrintWriter pw) {
         for (SDGEdge e : g.outgoingEdgesOf(n)) {
             SDGNode node = e.getTarget();
             String kind = e.getKind().toString();

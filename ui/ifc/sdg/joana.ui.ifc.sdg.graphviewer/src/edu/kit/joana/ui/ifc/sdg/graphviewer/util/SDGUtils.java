@@ -17,7 +17,9 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
 public class SDGUtils {
 	public static SDG callGraph(SDG sdg) {
+		SDG callGraph;
 		String name = sdg.getName();
+		if (name != null) {
 		// get class name from a String like "my.lib.Class.foo(lib.A, int)"
 		// -> "my.lib.Class"
 		// search last '.' before '('
@@ -28,7 +30,10 @@ public class SDGUtils {
 			curr = name.indexOf('.', curr + 1);
 		}
 		name = name.substring(0, posPT);
-		SDG callGraph = new SDG(name);
+		callGraph = new SDG(name);
+		} else {
+			callGraph = new SDG("<unnamed>");
+		}
 		int size = 1;
 
 		// now collect entry nodes and sort them in order of their proc-IDs

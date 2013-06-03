@@ -60,7 +60,7 @@ public final class ReducedCFGBuilder {
 		} while (change);
 
 		stripTrivialCycles(cfgRet);
-		
+		removeEntryExitExcConnections(cfgRet);
 		return cfgRet;
 	}
 
@@ -131,4 +131,25 @@ public final class ReducedCFGBuilder {
 		
 		cfg.removeAllEdges(toRemove);
 	}
+	
+	/**
+	 * Removes all control-flow edges which connect an entry node with an exit or exception node
+	 * from the given control-flow graph.
+	 * @param cfg the control-flow graph from which the fore-mentioned connections are to be removed.
+	 */
+	private static void removeEntryExitExcConnections(CFG cfg) {
+		Collection<SDGEdge> toRemove = new LinkedList<SDGEdge>();
+		Collection<SDGEdge> toAdd = new LinkedList<SDGEdge>();
+		for (SDGEdge e : cfg.edgeSet()) {
+			if (e.getSource().getKind() == SDGNode.Kind.ENTRY 
+					&& (e.getTarget().getKind() == SDGNode.Kind.EXIT || e.getTarget().getKind() == SDGNode.Kind.FORMAL_OUT)) {
+				toRemove.add(e);
+				toAdd.add(new SDGEdge(e.getSource(), e.getTarget(), SDGEdge.Kind.HELP));
+			}
+		}
+		
+		cfg.removeAllEdges(toRemove);
+		cfg.addAllEdges(toAdd);
+	}
+
 }

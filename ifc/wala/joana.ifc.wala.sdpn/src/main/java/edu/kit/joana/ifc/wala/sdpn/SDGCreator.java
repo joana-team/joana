@@ -18,9 +18,20 @@ import edu.kit.joana.deprecated.jsdg.util.Log;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public abstract class SDGCreator {
 
-	public abstract JoanaSDGResult buildSDG(String classPath, String mainClass, String runtimeLib, String outputSDGFile, IProgressMonitor progress) throws IllegalArgumentException, CancelException, IOException, WalaException, InvalidClassFileException;
+	public JoanaSDGResult buildSDG(String classPath, String mainClass, String runtimeLib, String outputDir,
+			IProgressMonitor progress) throws IllegalArgumentException, CancelException,
+			IOException, WalaException, InvalidClassFileException {
+		List<String> runtimeLibs = new LinkedList<String>();
+		runtimeLibs.add(runtimeLib);
+		return this.buildSDG(classPath, mainClass, runtimeLibs, outputDir, progress);
+	}
+	
+	public abstract JoanaSDGResult buildSDG(String classPath, String mainClass, List<String> runtimeLib, String outputDir, IProgressMonitor progress) throws IllegalArgumentException, CancelException, IOException, WalaException, InvalidClassFileException;
 
 	protected MHPAnalysis doMHP(String outputSDGFile, SDG joanaSdg, boolean computeInterference, IProgressMonitor progress) throws CancelException {
 		final MHPAnalysis mhp;

@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.Set;
+import java.util.List;
+
 
 import com.ibm.wala.analysis.pointers.HeapGraph;
 import com.ibm.wala.classLoader.IMethod;
@@ -74,12 +76,15 @@ public class SDGCreatorJSDGStyle extends SDGCreator {
 	}
 
 	@Override
-	public JoanaSDGResult buildSDG(String classPath, String mainClass, String runtimeLib, String outputSDGFile,
+	public JoanaSDGResult buildSDG(String classPath, String mainClass, List<String> runtimeLibs, String outputDir,
 			IProgressMonitor progress) throws IllegalArgumentException, CancelException, IOException, WalaException,
 			InvalidClassFileException {
 
 		final String mainClassSimpleName = mainClass.replace('/', '.').replace('$', '.').substring(1);
-
+		
+		String outputSDGFile = new File(outputDir,mainClassSimpleName + ".pdg").getPath();
+		String outputLogFile = new File(outputDir,mainClassSimpleName + ".log").getPath();
+			
 		SDGFactory.Config cfg = new SDGFactory.Config();
 		cfg.addControlFlow = true;
 		cfg.classpath = classPath;
@@ -95,8 +100,8 @@ public class SDGCreatorJSDGStyle extends SDGCreator {
 		cfg.exclusions.add("sun/swing/.*");
 		cfg.exclusions.add("com/sun/.*");
 		cfg.exclusions.add("sun/.*");
-		cfg.logFile = mainClassSimpleName + ".log";
-		cfg.outputDir = "./";
+		cfg.logFile = outputLogFile;
+		cfg.outputDir = outputDir;
 		cfg.outputSDGfile = outputSDGFile;
 		cfg.logLevel = Log.LogLevel.INFO;
 		cfg.pointsTo = PointsToType.VANILLA_ZERO_ONE_CFA;
@@ -110,7 +115,7 @@ public class SDGCreatorJSDGStyle extends SDGCreator {
 		// System.out.println("adding library to scope: " + lib);
 		// }
 		// cfg.scopeData.add("Primordial,Java,stdlib,none");
-		cfg.scopeData.add(runtimeLib);
+		cfg.scopeData.addAll(runtimeLibs);
 		cfg.nativesXML = "../../../deprecated/jSDG/lib/natives_empty.xml";
 		// / cfg.nativesXML = "../jSDG/lib/natives_orig_wala.xml";
 

@@ -92,7 +92,7 @@ class DPN4IFCAnalysis(cg: CallGraph,
     private val printWitness = true
 
     protected var possibleLocks: Set[InstanceKey] = null
-    protected var lockUsages: Map[InstanceKey, (Set[CGNode], Boolean)] = null
+    protected var lockUsages: Map[InstanceKey, Set[CGNode]] = null
     protected var waitMap: Map[CGNode, scala.collection.Set[InstanceKey]] = null
     protected var includeLockLocations = true
     protected var uniqueInstances: Set[InstanceKey] = null
@@ -196,7 +196,7 @@ class DPN4IFCAnalysis(cg: CallGraph,
 
             subTask(pm, "Identifying lock usages")
             val loi = LockWithOriginLocator.instances(cg, pa)
-            lockUsages = loi.filter(p => (p._2._2 || ui(p._1)))
+            lockUsages = loi.filterKeys(x => ui(x) || isConstantKey(x))
             possibleLocks = lockUsages.keySet
             worked(pm, 1)
 
@@ -221,7 +221,7 @@ class DPN4IFCAnalysis(cg: CallGraph,
     def genMDPN(pruneSet: Set[CGNode]): MDPN = {
         var ss0 = pruneSet
         if (includeLockLocations) {
-            for ((ik, (nodes, _)) <- lockUsages; node <- nodes)
+            for ((ik, nodes) <- lockUsages; node <- nodes)
                 if (lockFilter(ik)
                     && !waitMap(node)(ik))
                     ss0 += node

@@ -21,6 +21,9 @@ import com.ibm.wala.util.WalaException;
 
 import static edu.kit.joana.ifc.wala.sdpn.CSDGwithSDPNBuilder.runAnalysis;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public class IntegrationJUnitTest {
 
 	static final String CLASS_PATH = "../jSDG-sdpn/bin";
@@ -60,15 +63,15 @@ public class IntegrationJUnitTest {
 	}
 
 	/**
-	 * Here the value is killed by an method invoked by the reader but the call
-	 * to this method is pruned therefore the analysis is imprecise here.
+	 * Here the value is killed by an method invoked by the reader.
+	 * If the overwrite positions aren't included during pruning this fails.
 	 */
 	@Test
 	public void testKilling02_I() throws Exception {
 		String mainClass = "Lexamples/testdata/" + "Killing02";
 		boolean interpretKill = true;
 		int expectedSuspects = 1;
-		int expectedRemoved = 0;
+		int expectedRemoved = 1;
 
 		RefinementResult expected = new RefinementResult(expectedRemoved,
 				expectedSuspects);
@@ -242,8 +245,10 @@ public class IntegrationJUnitTest {
 			throws IllegalArgumentException, CancelException,
 			PDGFormatException, IOException, WalaException,
 			InvalidClassFileException {
-		return runAnalysis(sdgCreator, CLASS_PATH, mainClass, JRE_LIB, false, true,
-				interpretKill,1000*60*15);
+			List<String> runtimeLibs = new LinkedList<String>();
+			runtimeLibs.add(JRE_LIB);		
+			return runAnalysis(sdgCreator, CLASS_PATH, mainClass, runtimeLibs, "/tmp", false, true 
+					,1000*60*15);
 	}
 
 	public RefinementResult runOn(String mainClass)

@@ -27,14 +27,12 @@ import com.ibm.wala.util.io.FileUtil;
 import de.wwu.sdpn.core.util.NullProgressMonitor;
 import de.wwu.sdpn.core.util.WPMWrapper;
 import de.wwu.sdpn.wala.analyses.DPN4IFCAnalysis;
-import de.wwu.sdpn.wala.dpngen.symbols.StackSymbol;
 import edu.kit.joana.deprecated.jsdg.sdg.nodes.JDependencyGraph.PDGFormatException;
 import edu.kit.joana.deprecated.jsdg.util.Util;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadRegions;
-import edu.kit.joana.wala.util.VerboseProgressMonitor;
 
 /**
  * @author Juergen Graf <juergen.graf@gmail.com>
@@ -51,11 +49,10 @@ public class CSDGwithSDPNBuilder {
 	public static final String JAVACARD_LIB = "Primordial,Java,jarFile," + JAVACARD_STUBS;
 	
 	
-	
+	private static final String OUTPUT_DIR = "/tmp/sdpnifc";
 	private static final boolean DO_CACHE = false;
 	private static final boolean SKIP_PRIMORDIAL = true;
 
-	private static final boolean INTERPRET_KILL = true;
 
 	private static final long XSB_TIME_OUT = 1000*60*2;
 
@@ -112,16 +109,26 @@ public class CSDGwithSDPNBuilder {
 
 	public static RefinementResult runAnalysis(SDGCreator sdgCreator, final String bin, final String mainClass, final String runtimeLib)
 			throws IllegalArgumentException, CancelException, PDGFormatException, IOException, WalaException, InvalidClassFileException {
-		return runAnalysis(sdgCreator, bin,mainClass,runtimeLib,DO_CACHE,SKIP_PRIMORDIAL,INTERPRET_KILL,XSB_TIME_OUT);
+				List<String> runtimeLibs = new LinkedList<String>();
+				runtimeLibs.add(runtimeLib);
+				return runAnalysis(sdgCreator, bin,mainClass,runtimeLibs,OUTPUT_DIR,DO_CACHE,SKIP_PRIMORDIAL,XSB_TIME_OUT);
 	}
 
 
-	public static RefinementResult runAnalysis(SDGCreator sdgCreator, final String bin, final String mainClass, final String runtimeLib,final boolean do_cache, final boolean skip_primordial, final boolean interpret_kill, final long xsbtimeout)
-	throws IllegalArgumentException, CancelException, PDGFormatException, IOException, WalaException, InvalidClassFileException {
+	public static RefinementResult runAnalysis(
+						SDGCreator sdgCreator, 
+						final String bin, 
+						final String mainClass, 
+						final List<String> runtimeLibs,
+						final String outputDir,
+						final boolean do_cache, 
+						final boolean skip_primordial, 
+						final long xsbtimeout) 
+					throws IllegalArgumentException, CancelException, PDGFormatException, IOException, WalaException, InvalidClassFileException {
 		final String mainClassSimpleName = mainClass.replace('/', '.').replace('$', '.').substring(1);
-		final String outputSDGFile = mainClassSimpleName + ".pdg";
-		IProgressMonitor progress = new VerboseProgressMonitor(System.out);
-		JoanaSDGResult result = sdgCreator.buildSDG(bin, mainClass, runtimeLib, outputSDGFile, progress);
+		final String outputSDGFile = outputDir + "/" + mainClassSimpleName + ".pdg";
+				IProgressMonitor progress = new com.ibm.wala.util.NullProgressMonitor();//new VerboseProgressMonitor(System.out);
+				JoanaSDGResult result = sdgCreator.buildSDG(bin, mainClass, runtimeLibs, outputDir, progress);
 
 		// from here, stuff only relies on edu.kit.joana.ifc.sdg.graph.SDG - and some other structures, which we can get with or without use of jsdg
 
@@ -132,7 +139,7 @@ public class CSDGwithSDPNBuilder {
 		progress.done();
 		}
 
-		Util.dumpCallGraph(result.cg, mainClassSimpleName, null);
+		//Util.dumpCallGraph(result.cg, mainClassSimpleName, null);
 
 		final DPN4IFCAnalysis dpn = new DPN4IFCAnalysis(result.cg, result.pts);
 		dpn.init(new WPMWrapper(progress));
@@ -230,55 +237,30 @@ public class CSDGwithSDPNBuilder {
 							+ " to " + indexTo + "@" + nodeTo.getMethod());
 
 					try {
-						if (interpret_kill) {
-							if (!dpn.mayFlowFromTo(nodeFrom,indexFrom,nodeTo,indexTo,
-									new NullProgressMonitor(),xsbtimeout)) {
-								System.out
-										.println("Removing interference from "
-												+ indexFrom + "@"
-												+ nodeFrom.getMethod() + " to "
-												+ indexTo + "@"
-												+ nodeTo.getMethod());
-								System.out.println("\t"
-										+ edge2str(result.sdg, e));
-								toRemove.add(e);
-								if (do_cache) {
-									setNoPar(tr, nopar, e);
-								}
-							} else {
-								if (do_cache) {
-									setSurePar(tr, surepar, e);
-								}
+						if (!dpn.mayFlowFromTo(nodeFrom,indexFrom,nodeTo,indexTo,
+																new NullProgressMonitor(),xsbtimeout)) {
+															System.out
+															.println("Removing interference from "
+																	+ indexFrom + "@"
+																	+ nodeFrom.getMethod() + " to "
+																	+ indexTo + "@"
+																	+ nodeTo.getMethod());
+															System.out.println("\t"
+																	+ edge2str(result.sdg, e));
+															toRemove.add(e);
+															if (do_cache) {
+																setNoPar(tr, nopar, e);
 							}
 						} else {
-							final StackSymbol symFrom = dpn.getSS4NodeAndIndex(
-									nodeFrom, indexFrom);
-							final StackSymbol symTo = dpn.getSS4NodeAndIndex(
-									nodeTo, indexTo);
-
-							if (!dpn.mayHappenSuccessively(symFrom, symTo,
-									new NullProgressMonitor(),xsbtimeout)) {
-								System.out
-										.println("Removing interference from "
-												+ indexFrom + "@"
-												+ nodeFrom.getMethod() + " to "
-												+ indexTo + "@"
-												+ nodeTo.getMethod());
-								System.out.println("\t"
-										+ edge2str(result.sdg, e));
-								toRemove.add(e);
-								if (do_cache) {
-									setNoPar(tr, nopar, e);
-								}
-							} else {
-								if (do_cache) {
-									setSurePar(tr, surepar, e);
-								}
+							if (do_cache) {
+								setSurePar(tr, surepar, e);
 							}
 						}
 					} catch (ArrayIndexOutOfBoundsException exc) {
 						exc.printStackTrace();
 					} catch (NullPointerException exc) {
+						exc.printStackTrace();
+					} catch (RuntimeException exc) {
 						exc.printStackTrace();
 					}
 				}

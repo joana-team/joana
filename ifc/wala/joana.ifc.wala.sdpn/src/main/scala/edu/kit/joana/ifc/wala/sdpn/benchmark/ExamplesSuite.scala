@@ -70,7 +70,7 @@ object ExamplesSuite extends Suite {
         "Lexamples/testdata/Wait01" ::
         "Lexamples/testdata/Test01" :: Nil
 
-    def settings = mains.map(setting)
+    def settings:List[Setting] = mains.map(setting)
 
     def main(args: Array[String]) {
         Benchmark.runOn(this)

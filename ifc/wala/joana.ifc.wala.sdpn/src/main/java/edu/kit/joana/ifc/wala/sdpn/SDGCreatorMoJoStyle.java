@@ -10,6 +10,8 @@ package edu.kit.joana.ifc.wala.sdpn;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.util.CancelException;
@@ -32,7 +34,7 @@ import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 public class SDGCreatorMoJoStyle extends SDGCreator {
 
 	@Override
-	public JoanaSDGResult buildSDG(String classPath, String mainClass, String runtimeLib, String outputSDGFile,
+	public JoanaSDGResult buildSDG(String classPath, String mainClass, List<String> runtimeLibs, String outputDir,
 			IProgressMonitor progress) throws IllegalArgumentException, CancelException,
 			IOException, WalaException, InvalidClassFileException {
 		mainClass = mainClass.replace('/', '.').replace('$', '.').substring(1);
@@ -50,8 +52,8 @@ public class SDGCreatorMoJoStyle extends SDGCreator {
 			throw new RuntimeException(e);
 		}
 
-		MHPAnalysis mhp = doMHP(outputSDGFile, p.fst, true, progress);
-
+		MHPAnalysis mhp = doMHP(outputDir, p.fst, true, progress);
+		
 		SDGBuilder builder = p.snd;
 		return new JoanaSDGResult(p.fst, builder.getWalaCallGraph(), builder.getPointerAnalysis(), mhp);
 	}

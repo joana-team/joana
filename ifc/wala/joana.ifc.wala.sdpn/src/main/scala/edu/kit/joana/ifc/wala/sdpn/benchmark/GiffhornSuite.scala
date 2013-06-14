@@ -61,9 +61,9 @@ import edu.kit.joana.ifc.wala.sdpn.benchmark.GiffhornSuite;
             ("Java Grande", "section2.JGFCryptBenchSizeC.cfg") :: //ca. 221 LOC
             ("Java Grande", "section2.JGFLUFactBenchSizeC.cfg") :: //ca. 503 LOC
             ("Java Grande", "section2.JGFSeriesBenchSizeC.cfg") :: //ca. 176 LOC
-            ("Java Grande", "section2.JGFSORBenchSizeC.cfg") ::	//ca. 185 LOC
+            ("Java Grande", "section2.JGFSORBenchSizeC.cfg") :: //ca. 185 LOC
             ("Java Grande", "section2.JGFSparseMatmultBenchSizeC.cfg") :: //ca. 186 LOC
-            ("Java Grande", "section3.JGFMolDynBenchSizeB.cfg") ::	//ca. 531 LOC // Timeout //Checked 3115 edges
+            ("Java Grande", "section3.JGFMolDynBenchSizeB.cfg") :: //ca. 531 LOC // Timeout //Checked 3115 edges
             ("Java Grande", "section3.JGFMonteCarloBenchSizeB.cfg") :: //ca. 1176 LOC
             ("Java Grande", "section3.JGFRayTracerBenchSizeB.cfg") :: //ca. 697 LOC
             ("Tests", "conc.ac.AlarmClock.cfg") :: //ca. 187 LOC
@@ -103,8 +103,8 @@ import edu.kit.joana.ifc.wala.sdpn.benchmark.GiffhornSuite;
 
     def settings = mains.map { case (x, y) => setting(x, y) } collect settingFilter
 
-    var settingFilter: PartialFunction[Setting, Setting] = { case x: Setting => {x.jsdgConf.logLevel = Log.LogLevel.WARN;x} }
-
+    var settingFilter: PartialFunction[Setting, Setting] = { case x: Setting => { x.jsdgConf.logLevel = Log.LogLevel.WARN; x } }
+    
     def main(args: Array[String]) {
         Benchmark.runOn(this)
     }

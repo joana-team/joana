@@ -75,6 +75,7 @@ public final class PruneInterferences {
 	
 	/**
 	 * Prunes spurious interference edges from the given SDG based on the given MHP analysis result.<br>
+	 * The given SDG is assumed to be preprocessed.<br>
 	 * Note, that the SDG is altered by this method!
 	 * @param graph SDG to prune interference edges from
 	 * @param mhp mhp analysis result of given SDG which is to be taken as a basis for the pruning

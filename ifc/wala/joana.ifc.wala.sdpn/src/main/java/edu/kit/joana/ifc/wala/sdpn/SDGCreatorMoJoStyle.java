@@ -24,6 +24,7 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
+import edu.kit.joana.ifc.sdg.mhpoptimization.PruneInterferences;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.wala.core.Main;
 import edu.kit.joana.wala.core.SDGBuilder;
@@ -53,7 +54,7 @@ public class SDGCreatorMoJoStyle extends SDGCreator {
 		}
 
 		MHPAnalysis mhp = doMHP(outputDir, p.fst, true, progress);
-		
+		PruneInterferences.pruneInterferences(p.fst, mhp);
 		SDGBuilder builder = p.snd;
 		return new JoanaSDGResult(p.fst, builder.getWalaCallGraph(), builder.getPointerAnalysis(), mhp);
 	}

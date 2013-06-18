@@ -14,15 +14,20 @@ public class A extends Thread {
 		A a = new A();
 		synchronized(a){
 			a.start();
-			System.out.println(x);
+			print(x);
 		}
 	}
 
 	public void run() {
 		synchronized(this){
-			System.out.println(x);
+			print(x);
 			x = 17;
 		}
 		x = 42;
 	}
+	
+	static void print(int x){
+		// this is the sink
+	}
 }
+

@@ -15,16 +15,20 @@ public class C extends Thread {
 		cell = new Cell();
 		synchronized(a){
 			a.start();
-			System.out.println(cell.x);
+			print(cell.x);
 		}
 	}
 
 	public void run() {
 		synchronized(this){
-			System.out.println(cell.x);
+			print(cell.x);
 			cell.x = 17;
 		}
 		cell.x = 42;
+	}
+	
+	static void print(int x){
+		// this is the sink
 	}
 }
 

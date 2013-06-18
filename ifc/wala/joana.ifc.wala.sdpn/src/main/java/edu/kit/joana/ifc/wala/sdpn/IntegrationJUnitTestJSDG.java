@@ -24,10 +24,10 @@ import static edu.kit.joana.ifc.wala.sdpn.CSDGwithSDPNBuilder.runAnalysis;
 import java.util.LinkedList;
 import java.util.List;
 
-public class IntegrationJUnitTest {
+public class IntegrationJUnitTestJSDG {
 
-	static final String CLASS_PATH = "../jSDG-sdpn/bin";
-	static final String JRE_LIB = "Primordial,Java,jarFile,../jSDG/lib/jSDG-stubs-jre1.4.jar";
+	static final String CLASS_PATH = "bin";
+	static final String JRE_LIB = "Primordial,Java,jarFile,../../../contrib/lib/stubs/jSDG-stubs-jre1.4.jar";
 
 
 	/** use SDGCreatorMoJoStyle to build sdgs with MoJo */
@@ -38,27 +38,25 @@ public class IntegrationJUnitTest {
 	// @Test
 	// public void testXYZ() throws Exception {
 	// String mainClass = "Lexamples/testdata/" + "";
-	// boolean interpretKill = true;
 	// int expectedSuspects = 0;
 	// int expectedRemoved = 0;
 	//
 	//
 	// RefinementResult expected = new
 	// RefinementResult(expectedRemoved,expectedSuspects);
-	// RefinementResult actual = runOn(mainClass,interpretKill);
+	// RefinementResult actual = runOn(mainClass);
 	// assertEquals(expected,actual);
 	// }
 
 	@Test
-	public void testKilling01_I() throws Exception {
+	public void testKilling01() throws Exception {
 		String mainClass = "Lexamples/testdata/" + "Killing01";
-		boolean interpretKill = true;
 		int expectedSuspects = 1;
 		int expectedRemoved = 1;
 
 		RefinementResult expected = new RefinementResult(expectedRemoved,
 				expectedSuspects);
-		RefinementResult actual = runOn(mainClass, interpretKill);
+		RefinementResult actual = runOn(mainClass);
 		assertEquals(expected, actual);
 	}
 
@@ -67,112 +65,53 @@ public class IntegrationJUnitTest {
 	 * If the overwrite positions aren't included during pruning this fails.
 	 */
 	@Test
-	public void testKilling02_I() throws Exception {
+	public void testKilling02() throws Exception {
 		String mainClass = "Lexamples/testdata/" + "Killing02";
-		boolean interpretKill = true;
 		int expectedSuspects = 1;
 		int expectedRemoved = 1;
 
 		RefinementResult expected = new RefinementResult(expectedRemoved,
 				expectedSuspects);
-		RefinementResult actual = runOn(mainClass, interpretKill);
+		RefinementResult actual = runOn(mainClass);
 		assertEquals(expected, actual);
 	}
 
 	@Test
-	public void testKilling03_I() throws Exception {
+	public void testKilling03() throws Exception {
 		String mainClass = "Lexamples/testdata/" + "Killing03";
-		boolean interpretKill = true;
 		int expectedSuspects = 2;
 		int expectedRemoved = 0;
 
 		RefinementResult expected = new RefinementResult(expectedRemoved,
 				expectedSuspects);
-		RefinementResult actual = runOn(mainClass, interpretKill);
+		RefinementResult actual = runOn(mainClass);
 		assertEquals(expected, actual);
 	}
 
 	@Test
-	public void testKilling04_I() throws Exception {
+	public void testKilling04() throws Exception {
 		String mainClass = "Lexamples/testdata/" + "Killing04";
-		boolean interpretKill = true;
 		int expectedSuspects = 1;
 		int expectedRemoved = 0;
 
 		RefinementResult expected = new RefinementResult(expectedRemoved,
 				expectedSuspects);
-		RefinementResult actual = runOn(mainClass, interpretKill);
+		RefinementResult actual = runOn(mainClass);
 		assertEquals(expected, actual);
 	}
 
 
-	@Test
-	public void testKilling01_UI() throws Exception,
-			InvalidClassFileException {
-		String mainClass = "Lexamples/testdata/" + "Killing01";
-		boolean interpretKill = false;
-		int expectedSuspects = 1;
-		int expectedRemoved = 0;
-
-		RefinementResult expected = new RefinementResult(expectedRemoved,
-				expectedSuspects);
-		RefinementResult actual = runOn(mainClass, interpretKill);
-		assertEquals(expected, actual);
-	}
-
-	/**
-	 * Here the value is killed by an method invoked by the reader but the call
-	 * to this method is pruned therefore the analysis is imprecise here.
-	 */
-	@Test
-	public void testKilling02_UI() throws Exception {
-		String mainClass = "Lexamples/testdata/" + "Killing02";
-		boolean interpretKill = false;
-		int expectedSuspects = 1;
-		int expectedRemoved = 0;
-
-		RefinementResult expected = new RefinementResult(expectedRemoved,
-				expectedSuspects);
-		RefinementResult actual = runOn(mainClass, interpretKill);
-		assertEquals(expected, actual);
-	}
+	
 
 	@Test
-	public void testKilling03_UI() throws Exception {
-		String mainClass = "Lexamples/testdata/" + "Killing03";
-		boolean interpretKill = false;
-		int expectedSuspects = 2;
-		int expectedRemoved = 0;
-
-		RefinementResult expected = new RefinementResult(expectedRemoved,
-				expectedSuspects);
-		RefinementResult actual = runOn(mainClass, interpretKill);
-		assertEquals(expected, actual);
-	}
-
-	@Test
-	public void testKilling04_UI() throws Exception {
-		String mainClass = "Lexamples/testdata/" + "Killing04";
-		boolean interpretKill = false;
-		int expectedSuspects = 1;
-		int expectedRemoved = 0;
-
-		RefinementResult expected = new RefinementResult(expectedRemoved,
-				expectedSuspects);
-		RefinementResult actual = runOn(mainClass, interpretKill);
-		assertEquals(expected, actual);
-	}
-
-	@Test
-	public void testA_UI() throws Exception {
+	public void testA() throws Exception {
 		String mainClass = "Lexamples/testdata/" + "A";
-		boolean interpretKill = false;
 		int expectedSuspects = 2;
 		int expectedRemoved = 2;
 
 		RefinementResult expected = new RefinementResult(expectedRemoved,
 				expectedSuspects);
-		RefinementResult actual = runOn(mainClass, interpretKill);
+		RefinementResult actual = runOn(mainClass);
 		assertEquals(expected, actual);
 	}
 
@@ -180,15 +119,14 @@ public class IntegrationJUnitTest {
 	 * This fails due to some bug in Joana - does not fail if sdg is built with MoJo
 	 */
 	@Test
-	public void testB_UI() throws Exception {
+	public void testB() throws Exception {
 		String mainClass = "Lexamples/testdata/" + "B";
-		boolean interpretKill = false;
 		int expectedSuspects = 2;
 		int expectedRemoved = 2;
 
 		RefinementResult expected = new RefinementResult(expectedRemoved,
 				expectedSuspects);
-		RefinementResult actual = runOn(mainClass, interpretKill);
+		RefinementResult actual = runOn(mainClass);
 		assertEquals(expected, actual);
 	}
 
@@ -200,48 +138,46 @@ public class IntegrationJUnitTest {
 	 * @throws Exception
 	 */
 	@Test
-	public void testC_UI() throws Exception {
+	public void testC() throws Exception {
 		String mainClass = "Lexamples/testdata/" + "C";
-		boolean interpretKill = false;
 		int expectedSuspects = 2;
 		int expectedRemoved = 2;
 
 		RefinementResult expected = new RefinementResult(expectedRemoved,
 				expectedSuspects);
-		RefinementResult actual = runOn(mainClass, interpretKill);
+		RefinementResult actual = runOn(mainClass);
 		assertEquals(expected, actual);
 	}
 
 	/**
 	 * Same as B but this time there is a real flow - does not fail if sdg is built with MoJo
+	 * jsdg misses a dependency here
 	 */
 	@Test
-	public void testD_UI() throws Exception {
+	public void testD() throws Exception {
 		String mainClass = "Lexamples/testdata/" + "D";
-		boolean interpretKill = false;
 		int expectedSuspects = 2;
 		int expectedRemoved = 0;
 
 		RefinementResult expected = new RefinementResult(expectedRemoved,
 				expectedSuspects);
-		RefinementResult actual = runOn(mainClass, interpretKill);
+		RefinementResult actual = runOn(mainClass);
 		assertEquals(expected, actual);
 	}
 
 	@Test
-	public void testWait01_UI() throws Exception {
+	public void testWait01() throws Exception {
 		String mainClass = "Lexamples/testdata/" + "Wait01";
-		boolean interpretKill = false;
 		int expectedSuspects = 2;
 		int expectedRemoved = 0;
 
 		RefinementResult expected = new RefinementResult(expectedRemoved,
 				expectedSuspects);
-		RefinementResult actual = runOn(mainClass, interpretKill);
+		RefinementResult actual = runOn(mainClass);
 		assertEquals(expected, actual);
 	}
 
-	public RefinementResult runOn(String mainClass, boolean interpretKill)
+	public RefinementResult runOn(String mainClass)
 			throws IllegalArgumentException, CancelException,
 			PDGFormatException, IOException, WalaException,
 			InvalidClassFileException {
@@ -249,13 +185,6 @@ public class IntegrationJUnitTest {
 			runtimeLibs.add(JRE_LIB);		
 			return runAnalysis(sdgCreator, CLASS_PATH, mainClass, runtimeLibs, "/tmp", false, true 
 					,1000*60*15);
-	}
-
-	public RefinementResult runOn(String mainClass)
-			throws IllegalArgumentException, CancelException,
-			PDGFormatException, IOException, WalaException,
-			InvalidClassFileException {
-		return runAnalysis(sdgCreator, CLASS_PATH, mainClass, JRE_LIB);
 	}
 
 }

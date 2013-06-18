@@ -187,13 +187,13 @@ public class CSDGwithSDPNBuilder {
 					if (isSurePar(tr, surepar, e)) {
 						cached++;
 						// we know for sure that the two instructions may happen in parallel - no need to run dpn
-						System.out.println("[Cached] Edge definitely exists: " + e.getSource().getLabel() + " -> " + e.getTarget().getLabel());
+						System.out.println("[Cached] Edge definitely exists: " + edge2str(result.sdg, e));
 						continue;
 					} else if (isNoPar(tr, nopar, e)) {
 						cached++;
 						// we know for sure that the two instructions may NEVER happen in parallel - no need to run dpn
 						// remove the interference edge
-						System.out.println("[Cached] Edge cannot exist: " + e.getSource().getLabel() + " -> " + e.getTarget().getLabel());
+						System.out.println("[Cached] Edge cannot exist: " + edge2str(result.sdg, e));
 						toRemove.add(e);
 						continue;
 					}
@@ -230,11 +230,9 @@ public class CSDGwithSDPNBuilder {
 
 				if (skip_primordial && (nodeFrom.getMethod().getDeclaringClass().getClassLoader().getReference().equals(ClassLoaderReference.Primordial) ||
 						nodeTo.getMethod().getDeclaringClass().getClassLoader().getReference().equals(ClassLoaderReference.Primordial))) {
-					System.out.println("Skipping interference from " + indexFrom + "@" + nodeFrom.getMethod()
-							+ " to " + indexTo + "@" + nodeTo.getMethod());
+					System.out.println("Skipping interference: " + edge2str(result.sdg, e));
 				} else {
-					System.out.println("Checking interference from " + indexFrom + "@" + nodeFrom.getMethod()
-							+ " to " + indexTo + "@" + nodeTo.getMethod());
+					System.out.println("Checking interference: " + edge2str(result.sdg, e));
 
 					try {
 						if (!dpn.mayFlowFromTo(nodeFrom,indexFrom,nodeTo,indexTo,

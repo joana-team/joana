@@ -14,16 +14,20 @@ public class Wait01 extends Thread {
 		Wait01 a = new Wait01();
 		synchronized(a){
 			a.start();
-			try {a.wait();} catch (InterruptedException e) {}
-			System.out.println(x);
+			try {a.wait(1);} catch (InterruptedException e) {}
+			print(x);
 		}
 	}
 
 	public void run() {
 		synchronized(this){
-			System.out.println(x);
+			print(x);
 			x = 17;
 		}
 		x = 42;
+	}
+	
+	static void print(int x){
+		// this is the sink
 	}
 }

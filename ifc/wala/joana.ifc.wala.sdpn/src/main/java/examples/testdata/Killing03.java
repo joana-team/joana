@@ -14,7 +14,7 @@ public class Killing03 extends Thread {
 		Killing03 a = new Killing03();
 		a.start();
 		synchronized(a){
-			System.out.println(x);
+			print(x);
 		}
 	}
 
@@ -27,5 +27,9 @@ public class Killing03 extends Thread {
 			x = 42;
 			killX();
 		}
+	}
+	
+	static void print(int x){
+		// this is the sink
 	}
 }

@@ -149,6 +149,15 @@ public class SecurityNode extends SDGNode {
     public boolean isInformationSink() {
         return (required != UNDEFINED && provided == UNDEFINED);
     }
+    
+    /**
+     * Returns whether this node is an information source or an information sink.
+     * @return {@code true} if this node is an information source or an information sink, {@code false}
+     * if this node is either unannotated or a declassification node.
+     */
+    public boolean isInformationEndpoint() {
+        return isInformationSource() || isInformationSink();
+    }
 
     /**
      * Returns whether this node is a declassification node. This is the case if and only if both the {@link #getRequired() required level} and

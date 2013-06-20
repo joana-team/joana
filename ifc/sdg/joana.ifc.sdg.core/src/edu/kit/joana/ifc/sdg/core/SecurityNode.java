@@ -63,6 +63,7 @@ public class SecurityNode extends SDGNode {
       return required;
     }
 
+
     /**
      * Sets the required level of this security node to the given value. If the given value is {@code null}, then
      * the required level of this security node becomes {@link #UNDEFINED}.
@@ -79,6 +80,26 @@ public class SecurityNode extends SDGNode {
      */
     public String getProvided() {
       return provided;
+    }
+
+    /**
+     * Returns the required level, if this node is an information sink, the
+     * provided level if this node is an information source and
+     * {@link #SecurityLevel.UNDEFINED}, if neither of these two cases apply, i.e. if this
+     * node is either a declassification node or has no annotations at all.
+     *
+     * @return the required level, if this node is an information sink, the
+     *         provided level if this node is an information source and
+     *         {@link #SecurityLevel.UNDEFINED}, if neither of these two cases apply
+     */
+    public String getLevel() {
+        if (isInformationSource()) {
+            return getProvided();
+        } else if (isInformationSink()) {
+            return getRequired();
+        } else {
+            return UNDEFINED;
+        }
     }
 
     /**

@@ -10,13 +10,9 @@ package edu.kit.joana.api.test;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -25,6 +21,7 @@ import org.junit.Test;
 import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.test.util.BuildSDG;
 import edu.kit.joana.api.test.util.JoanaPath;
+import edu.kit.joana.api.test.util.SDGAnalyzer;
 import edu.kit.joana.ifc.sdg.core.IFC;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.SecurityNode.SecurityNodeFactory;
@@ -33,13 +30,11 @@ import edu.kit.joana.ifc.sdg.core.violations.Violation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.graph.SDGNode.Operation;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PBackward;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PForward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadRegion;
-import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 
 /**
  * @author Martin Mohr &lt;martin.mohr@kit.edu&gt;
@@ -197,142 +192,6 @@ public class IFCJoinTest {
 		return ret;
 	}
 	
-	/**
-	 * Lightweight mechanism to intelligently select nodes in an SDG. It is closer to the SDG than e.g. the joana.api-approach.
-	 * @author Martin Mohr &lt;martin.mohr@kit.edu&gt;
-	 */
-	public static class SDGAnalyzer {
-
-		private final SDG sdg;
-
-		public SDGAnalyzer(SDG sdg) {
-			this.sdg = sdg;
-		}
-
-		/**
-		 * Returns all nodes in the given sdg which correspond to modifications
-		 * or assignments of a given field in a given method.
-		 * 
-		 * @param sdg
-		 *            sdg to be searched
-		 * @param methodName
-		 *            name of method to collect nodes in
-		 * @param fieldName
-		 *            name of field which modifications and assignments are to
-		 *            be searched for
-		 * @return all nodes in the given sdg which correspond to modifications
-		 *         or assignments of a given field in a given method
-		 */
-		public Collection<SDGNode> collectModificationsAndAssignmentsInMethod(String methodName, String fieldName) {
-			return collectOperatingNodesInMethod(methodName, fieldName,
-					EnumSet.of(SDGNode.Operation.ASSIGN, SDGNode.Operation.MODIFY));
-		}
-
-		private Collection<SDGNode> collectOperatingNodesInMethod(String methodName, String fieldName,
-				Set<SDGNode.Operation> allowedOps) {
-			SDGNode entry = locateEntryOf(methodName);
-			if (entry == null) {
-				return Collections.emptyList();
-			} else {
-				return collectOperatingNodes(sdg.getNodesOfProcedure(entry), fieldName, allowedOps);
-			}
-		}
-
-		/**
-		 * Returns the entry node of the method with the given name, or
-		 * {@code null} if no such node could be found.
-		 * 
-		 * @param methodName
-		 *            name of method to locate
-		 * @return the entry node of the method with the given name, or
-		 *         {@code null} if no such node could be found
-		 */
-		private SDGNode locateEntryOf(String methodName) {
-			Map<SDGNode, Set<SDGNode>> byProc = sdg.sortByProcedures();
-			for (SDGNode nEntry : byProc.keySet()) {
-				if (nEntry.getBytecodeMethod().equals(methodName)) {
-					return nEntry;
-				}
-			}
-
-			return null;
-		}
-
-		public boolean isLocatable(String methodName) {
-			Map<SDGNode, Set<SDGNode>> byProc = sdg.sortByProcedures();
-			for (SDGNode nEntry : byProc.keySet()) {
-				if (nEntry.getBytecodeMethod().equals(methodName)) {
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		private Collection<SDGNode> collectOperatingNodes(Collection<SDGNode> nodes, String fieldName,
-				Set<Operation> allowedOps) {
-			List<SDGNode> ret = new LinkedList<SDGNode>();
-			for (SDGNode n : nodes) {
-				if (allowedOps.contains(n.getOperation()) && refersTo(nodes, n, fieldName)) {
-					ret.add(n);
-				}
-			}
-
-			return ret;
-		}
-
-		private boolean refersTo(Collection<SDGNode> nodes, SDGNode n, String fieldName) {
-			for (SDGEdge e : sdg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
-				SDGNode np = e.getTarget();
-				if (nodes.contains(np)) {
-					int bcIndex = np.getBytecodeIndex();
-					if (bcIndex == BytecodeLocation.STATIC_FIELD || bcIndex == BytecodeLocation.OBJECT_FIELD
-							|| bcIndex == BytecodeLocation.ARRAY_FIELD) {
-						String bcName = np.getBytecodeName();
-						return bcName.contains(fieldName);
-					}
-				}
-			}
-
-			return false;
-		}
-
-		public Collection<SDGNode> collectReferencesInMethod(String methodName, String fieldName) {
-			return collectOperatingNodesInMethod(methodName, fieldName, EnumSet.of(SDGNode.Operation.REFERENCE));
-		}
-		
-		public Collection<String> collectAllMethodNames() {
-			List<String> ret = new LinkedList<String>();
-			for (SDGNode n : sdg.vertexSet()) {
-				if (n.getKind() == SDGNode.Kind.ENTRY) {
-					ret.add(n.getBytecodeMethod());
-				}
-			}
-			return ret;
-		}
-
-		public Collection<SDGNode> collectCallsInMethod(String callerMethodName, String calleeMethodName) {
-			SDGNode callerEntry = locateEntryOf(callerMethodName);
-			SDGNode calleeEntry = locateEntryOf(calleeMethodName);
-			if (callerEntry == null || calleeEntry == null) {
-				return Collections.emptyList();
-			} else {
-				return collectCalls(callerEntry, calleeEntry);
-			}
-		}
-
-		private Collection<SDGNode> collectCalls(SDGNode callerEntry, SDGNode calleeEntry) {
-			Collection<SDGNode> ret = new LinkedList<SDGNode>();
-			for (SDGNode callNode : sdg.getCallers(calleeEntry)) {
-				if (callNode.getProc() == callerEntry.getProc()) {
-					ret.add(callNode);
-				}
-			}
-
-			return ret;
-		}
-	}
-
 	private static class TestData {
 
 		private final String mainClass;

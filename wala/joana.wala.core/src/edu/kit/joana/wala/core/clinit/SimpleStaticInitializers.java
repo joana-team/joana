@@ -47,7 +47,7 @@ import edu.kit.joana.wala.util.NotImplementedException;
 public class SimpleStaticInitializers {
 
 	private final SDGBuilder sdg;
-	private final BasicCallGraph cg;
+	private final BasicCallGraph<?> cg;
 	private PDG fakeRoot;
 	private PDGNode lastCall;
 
@@ -59,7 +59,7 @@ public class SimpleStaticInitializers {
 		}
 
 		this.sdg = sdg;
-		this.cg = (BasicCallGraph) tmp;
+		this.cg = (BasicCallGraph<?>) tmp;
 		throw new NotImplementedException();
 	}
 

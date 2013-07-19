@@ -13,7 +13,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -27,10 +27,10 @@ public class ImplicitExplicitFlowMetrics implements IMetrics {
 		metrics = new ComputeMetrics();
 	}
 
-	public Collection<Violation> computeMetrics(SDG g, Collection<Violation> vios) {
+	public Collection<ClassifiedViolation> computeMetrics(SDG g, Collection<ClassifiedViolation> vios) {
 		metrics.setGraph(g);
 
-		for (Violation v : vios) {
+		for (ClassifiedViolation v : vios) {
 			int filters = metrics.slice(v);
 			IMetrics.Rating rat = determineRating(filters);
 			v.addClassification("Implicit Flow", "Filtered by at least "+filters+" predicates.", filters, rat);
@@ -80,7 +80,7 @@ public class ImplicitExplicitFlowMetrics implements IMetrics {
 			}
 		}
 
-		private int slice(Violation vio) {
+		private int slice(ClassifiedViolation vio) {
 			Collection<SDGNode> chop = chopper.chop(vio.getSource(), vio.getSink());
 
 			int step = 0;

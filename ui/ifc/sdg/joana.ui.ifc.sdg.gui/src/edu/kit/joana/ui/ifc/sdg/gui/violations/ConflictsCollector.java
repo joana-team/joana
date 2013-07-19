@@ -11,7 +11,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.action.Action;
 
 import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNISlicer;
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
@@ -24,9 +24,9 @@ public class ConflictsCollector implements IChopper {
 		action.setImageDescriptor(NJSecPlugin.singleton().getImageRegistry().getDescriptor("pdg"));
 	}
 
-	public Violation addChop(IProject p, Violation violations, SDG g, IStaticLattice<String> l) {
+	public ClassifiedViolation addChop(IProject p, ClassifiedViolation violations, SDG g, IStaticLattice<String> l) {
 		try {
-			return (Violation) ProbabilisticNISlicer.detailedCheck(g, l).check().toArray()[0];
+			return (ClassifiedViolation) ProbabilisticNISlicer.detailedCheck(g, l).check().toArray()[0];
 
 		} catch (NotInLatticeException e) { }
 

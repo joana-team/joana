@@ -63,10 +63,10 @@ import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
-import edu.kit.joana.ifc.sdg.core.violations.Conflict;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedConflict;
 import edu.kit.joana.ifc.sdg.core.violations.OrderConflict;
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
-import edu.kit.joana.ifc.sdg.core.violations.Violation.Chop;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation.Chop;
 import edu.kit.joana.ifc.sdg.core.violations.paths.ViolationPath;
 import edu.kit.joana.ifc.sdg.core.violations.paths.ViolationPathes;
 import edu.kit.joana.ui.ifc.sdg.gui.ActiveResourceChangeListener;
@@ -112,7 +112,7 @@ public class ViolationView extends ViewPart implements ActiveResourceChangeListe
 	private SliceHighlighter sl = new SliceHighlighter();
 	private IAction hideSliceHighlight;
 	private IProject oldProject;
-	private Collection<Violation> contentCopy;
+	private Collection<ClassifiedViolation> contentCopy;
 	private IChopper[] extChoppers;
 	private ChopAction[] extChopActions;
 
@@ -147,8 +147,8 @@ public class ViolationView extends ViewPart implements ActiveResourceChangeListe
 		}
 
 		public Object[] getChildren(Object parent) {
-			if (parent instanceof edu.kit.joana.ifc.sdg.core.violations.Violation) {
-				return ((edu.kit.joana.ifc.sdg.core.violations.Violation) parent).getChops().toArray();
+			if (parent instanceof edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation) {
+				return ((edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation) parent).getChops().toArray();
 			} else if (parent instanceof Chop) {
 				return ((Chop) parent).getViolationPathes().getPathesList().toArray();
 			} else if (parent instanceof ViolationPath) {
@@ -169,7 +169,7 @@ public class ViolationView extends ViewPart implements ActiveResourceChangeListe
 		}
 
 		public boolean hasChildren(Object element) {
-			if (element instanceof edu.kit.joana.ifc.sdg.core.violations.Violation) return true;
+			if (element instanceof edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation) return true;
 			if (element instanceof Chop) return true;
 			if (element instanceof ViolationPath) return true;
 			return false;
@@ -194,14 +194,14 @@ public class ViolationView extends ViewPart implements ActiveResourceChangeListe
 						" and " + c.getConflicting().getSr() + ", leaking Line " + c.getSource().getSr() +
 						", visible for " + c.getAttackerLevel();
 
-			} else if (obj instanceof Conflict) {
-				Conflict c = (Conflict) obj;
+			} else if (obj instanceof ClassifiedConflict) {
+				ClassifiedConflict c = (ClassifiedConflict) obj;
 
 				return "Probabilistic Data Channel from Line " + c.getSource().getSr() +
 						" to Line " + c.getSink().getSr() + ", visible for " + c.getAttackerLevel();
 
-			} else if (obj instanceof Violation) {
-				Violation c = (Violation) obj;
+			} else if (obj instanceof ClassifiedViolation) {
+				ClassifiedViolation c = (ClassifiedViolation) obj;
 
 				return "Illicit Flow from Line " + c.getSource().getSr() +
 						" to Line " + c.getSink().getSr() + ", visible for " + c.getAttackerLevel();
@@ -234,7 +234,7 @@ public class ViolationView extends ViewPart implements ActiveResourceChangeListe
 		}
 
 		public Image getImage(Object obj) {
-			if (obj instanceof edu.kit.joana.ifc.sdg.core.violations.Violation) {
+			if (obj instanceof edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation) {
 				return NJSecPlugin.singleton().getImageRegistry().get("violation");
 
 			} else if (obj instanceof ViolationPath) {
@@ -406,7 +406,7 @@ public class ViolationView extends ViewPart implements ActiveResourceChangeListe
 
 			if (selobj instanceof prettySecureNode) {
 				manager.add(declassAction);
-			} else if (selobj instanceof Violation) {
+			} else if (selobj instanceof ClassifiedViolation) {
 				hookExtChopActions(manager);
 				// Other plug-ins can contribute their actions here
 				manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
@@ -496,10 +496,10 @@ public class ViolationView extends ViewPart implements ActiveResourceChangeListe
 					Object selobj = ssel.getFirstElement();
 					Collection<SecurityNode> involvedNodes = new LinkedList<SecurityNode>();
 
-					if (selobj instanceof edu.kit.joana.ifc.sdg.core.violations.Violation) {
-						involvedNodes = ((edu.kit.joana.ifc.sdg.core.violations.Violation) selobj).getAllInvolvedNodes();
+					if (selobj instanceof edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation) {
+						involvedNodes = ((edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation) selobj).getAllInvolvedNodes();
 						//Tabelle fuellen
-						ViolationSelection.getInstance().violationSelected(((Violation) selobj).getClassifications().toArray());
+						ViolationSelection.getInstance().violationSelected(((ClassifiedViolation) selobj).getClassifications().toArray());
 					} else if (selobj instanceof Chop) {
 						involvedNodes = ((Chop) selobj).getViolationPathes().getAllInvolvedNodes();
 					} else if (selobj instanceof ViolationPathes) {
@@ -608,7 +608,7 @@ public class ViolationView extends ViewPart implements ActiveResourceChangeListe
 	 */
 	public void activeResourceChanged(IResource activeResource, IProject activeProject) {
 		if (oldProject != activeProject) {
-			Collection<Violation> violations = NJSecPlugin.singleton().getSDGFactory().getRemViolations(activeProject);
+			Collection<ClassifiedViolation> violations = NJSecPlugin.singleton().getSDGFactory().getRemViolations(activeProject);
 
 			if (violations == null) {
 				String[] novio = {"No Data!"};
@@ -618,7 +618,7 @@ public class ViolationView extends ViewPart implements ActiveResourceChangeListe
 			} else if (violations.size() == 0) {
 				String[] novio = {"No Security Violations Found By Last Check!"};
 				av.setContent(novio);
-				contentCopy = new ArrayList<edu.kit.joana.ifc.sdg.core.violations.Violation>();
+				contentCopy = new ArrayList<edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation>();
 
 			} else {
 				av.setContent(violations.toArray());
@@ -632,7 +632,7 @@ public class ViolationView extends ViewPart implements ActiveResourceChangeListe
 	/* (non-Javadoc)
 	 * @see edu.kit.joana.ifc.sdg.gui.sdgworks.ViolationChangeListener#violationsChanged(org.eclipse.core.resources.IProject, java.util.List)
 	 */
-	public void violationsChanged(IProject p, Collection<edu.kit.joana.ifc.sdg.core.violations.Violation> violations) {
+	public void violationsChanged(IProject p, Collection<edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation> violations) {
 		contentCopy = violations;
 
 		debug.outln("Violations Changed ViolationView");
@@ -651,21 +651,21 @@ public class ViolationView extends ViewPart implements ActiveResourceChangeListe
 		av.setContent(contentCopy.toArray());
 	}
 
-	public Collection<Violation> getSelected() {
-		LinkedList<Violation> ret = new LinkedList<Violation>();
+	public Collection<ClassifiedViolation> getSelected() {
+		LinkedList<ClassifiedViolation> ret = new LinkedList<ClassifiedViolation>();
 		ISelection sel = viewer.getSelection();
 		if (sel instanceof IStructuredSelection) {
 			IStructuredSelection stru = (IStructuredSelection) sel;
 			for (Object o : stru.toList()) {
-				if (o instanceof Violation) {
-					ret.add((Violation) o);
+				if (o instanceof ClassifiedViolation) {
+					ret.add((ClassifiedViolation) o);
 				}
 			}
 		}
 		return ret;
 	}
 
-	public Collection<edu.kit.joana.ifc.sdg.core.violations.Violation> getContentCache() {
+	public Collection<edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation> getContentCache() {
 		return this.contentCopy;
 	}
 

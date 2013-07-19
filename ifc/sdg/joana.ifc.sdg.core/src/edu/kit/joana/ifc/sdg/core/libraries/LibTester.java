@@ -13,7 +13,7 @@ import java.util.Collection;
 
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.SecurityNode.SecurityNodeFactory;
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.lattice.IEditableLattice;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
@@ -73,7 +73,7 @@ public class LibTester {
         ifc.addPrecondition(libEntry.getProc(), pre);
 
         // run analysis
-        Collection<Violation> vios = ifc.check();
+        Collection<ClassifiedViolation> vios = ifc.check();
         System.out.println(vios);
 
     }

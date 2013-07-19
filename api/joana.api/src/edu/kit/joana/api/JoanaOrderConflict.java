@@ -9,7 +9,7 @@ package edu.kit.joana.api;
 
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
-import edu.kit.joana.ifc.sdg.core.violations.Conflict;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedConflict;
 import edu.kit.joana.ifc.sdg.core.violations.OrderConflict;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
@@ -30,7 +30,7 @@ public class JoanaOrderConflict extends JoanaConflict {
 	 * @param program
 	 * @param c
 	 */
-	public JoanaOrderConflict(SDGProgram program, Conflict c) {
+	public JoanaOrderConflict(SDGProgram program, ClassifiedConflict c) {
 		if (!(c instanceof OrderConflict)) {
 			throw new IllegalArgumentException("This class is to be used with OrderConflicts only!");
 		}

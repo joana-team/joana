@@ -42,7 +42,7 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 import org.eclipse.ui.ide.IDE;
 
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ui.ifc.sdg.gui.NJSecPlugin;
 import edu.kit.joana.ui.ifc.sdg.gui.marker.MarkerManager;
 
@@ -367,7 +367,7 @@ public class ConfigurationMainTab extends AbstractJoanaTab {
 
 					MarkerManager.singleton().changeProject(project, marker);
 					//Violations reset
-					NJSecPlugin.singleton().getSDGFactory().violationsChanged(project, new ArrayList<Violation>());
+					NJSecPlugin.singleton().getSDGFactory().violationsChanged(project, new ArrayList<ClassifiedViolation>());
 				}
 
 			} catch (CoreException e) {

@@ -15,7 +15,7 @@ import org.eclipse.jface.action.Action;
 
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.declass.MinimalCut;
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.core.violations.paths.ConcurrentViolationChop;
 import edu.kit.joana.ifc.sdg.core.violations.paths.ViolationPath;
 import edu.kit.joana.ifc.sdg.core.violations.paths.ViolationPathes;
@@ -29,7 +29,7 @@ import edu.kit.joana.ui.ifc.sdg.gui.NJSecPlugin;
 public class MinimalCutChopper implements IChopper {
 
 	@Override
-	public Violation addChop(IProject p, Violation violation, SDG g, IStaticLattice<String> l) {
+	public ClassifiedViolation addChop(IProject p, ClassifiedViolation violation, SDG g, IStaticLattice<String> l) {
 		SDGNodeTuple range = new SDGNodeTuple(violation.getSource(), violation.getSink());
 		ConcurrentViolationChop.getInstance().initChopper(g);
 		Collection<SecurityNode> subNGraph = ConcurrentViolationChop.getInstance().chop(violation.getSink(), violation.getSource());
@@ -49,7 +49,7 @@ public class MinimalCutChopper implements IChopper {
 			}
 			pathes.add(path);
 		}
-		Violation newv = Violation.createViolation(violation.getSink(), violation.getSource(), pathes, violation.getSink().getRequired());
+		ClassifiedViolation newv = ClassifiedViolation.createViolation(violation.getSink(), violation.getSource(), pathes, violation.getSink().getRequired());
 
 		return newv;
 	}

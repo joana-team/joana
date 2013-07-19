@@ -27,7 +27,7 @@ import edu.kit.joana.ifc.sdg.core.violations.paths.ViolationPathes;
  * @author naxan
  *
  */
-public class Violation {
+public class ClassifiedViolation implements IViolation {
 	public static class Classification {
 		// 0 = highest, MAX_INT = lowest
 		private int severity;
@@ -89,7 +89,7 @@ public class Violation {
 	protected Collection<Classification> classifications;
 	protected Collection<Chop> chops = new LinkedList<Chop>();
 
-	protected Violation() {
+	protected ClassifiedViolation() {
 		classifications = new LinkedList<Classification>();
 	}
 
@@ -158,8 +158,8 @@ public class Violation {
 	}
 
 	public boolean equals(Object o) {
-	    if (o instanceof Violation) {
-	        Violation v = ((Violation) o);
+	    if (o instanceof ClassifiedViolation) {
+	        ClassifiedViolation v = ((ClassifiedViolation) o);
 
 	        if (v.sink == sink && v.source == source) {
 	            return true;
@@ -202,9 +202,9 @@ public class Violation {
 	/**
 	 * Einfache Violation fuer ein einzelnes Leck anlegen.
 	 */
-    public static Violation createViolation(SecurityNode leak, SecurityNode informationSource, String attacker) {
+    public static ClassifiedViolation createViolation(SecurityNode leak, SecurityNode informationSource, String attacker) {
     	if (attacker == null) throw new RuntimeException();
-        Violation vio = new Violation();
+        ClassifiedViolation vio = new ClassifiedViolation();
 
         vio.setSink(leak);
         vio.setSource(informationSource);
@@ -228,9 +228,9 @@ public class Violation {
      * @param paths
      * @return
      */
-    public static Violation createViolation(SecurityNode leak, SecurityNode informationSource, ViolationPathes paths, String attacker) {
+    public static ClassifiedViolation createViolation(SecurityNode leak, SecurityNode informationSource, ViolationPathes paths, String attacker) {
     	if (attacker == null) throw new RuntimeException();
-    	Violation vio = new Violation();
+    	ClassifiedViolation vio = new ClassifiedViolation();
 
         vio.setSink(leak);
         vio.setSource(informationSource);

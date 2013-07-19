@@ -21,7 +21,7 @@ import java.util.Collection;
 
 import edu.kit.joana.ifc.sdg.core.interfaces.ProgressAnnouncer;
 import edu.kit.joana.ifc.sdg.core.interfaces.ProgressListener;
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
@@ -56,7 +56,7 @@ public abstract class IFC implements ProgressListener, ProgressAnnouncer {
      *
      * @throws NotInLatticeException
      */
-	public abstract Collection<Violation> checkIFlow() throws NotInLatticeException;
+	public abstract Collection<ClassifiedViolation> checkIFlow() throws NotInLatticeException;
 
 
     /** Erzeugt eine neue Instanz.

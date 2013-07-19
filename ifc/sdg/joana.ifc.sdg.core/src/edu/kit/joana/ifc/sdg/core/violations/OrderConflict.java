@@ -11,7 +11,7 @@ import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.paths.ViolationPath;
 import edu.kit.joana.ifc.sdg.core.violations.paths.ViolationPathes;
 
-public class OrderConflict extends Conflict {
+public class OrderConflict extends ClassifiedConflict {
     private SecurityNode conflicting;
 
     public OrderConflict(SecurityNode sink, SecurityNode source, SecurityNode conflicting, String attacker) {

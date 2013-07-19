@@ -12,11 +12,11 @@ import edu.kit.joana.ifc.sdg.core.violations.paths.ViolationPath;
 import edu.kit.joana.ifc.sdg.core.violations.paths.ViolationPathes;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 
-public class Conflict extends Violation {
+public class ClassifiedConflict extends ClassifiedViolation implements IConflict {
 
 	private SDGEdge confEdge;
 	
-    public Conflict(SecurityNode sink, SecurityNode source, String attacker) {
+    public ClassifiedConflict(SecurityNode sink, SecurityNode source, String attacker) {
         setSink(sink);
         setSource(source);
         attackerLevel = attacker;

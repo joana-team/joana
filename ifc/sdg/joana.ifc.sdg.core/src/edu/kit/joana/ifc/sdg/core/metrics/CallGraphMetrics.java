@@ -10,7 +10,7 @@ package edu.kit.joana.ifc.sdg.core.metrics;
 import java.util.Collection;
 import java.util.HashMap;
 
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.SummarySlicer;
@@ -27,7 +27,7 @@ public class CallGraphMetrics implements IMetrics {
 	private SummarySlicer forw;
 	private CFG call;
 
-	public Collection<Violation> computeMetrics(SDG g, Collection<Violation> vios) {
+	public Collection<ClassifiedViolation> computeMetrics(SDG g, Collection<ClassifiedViolation> vios) {
 		call = cache.get(g);
 
 		if (call == null) {
@@ -38,14 +38,14 @@ public class CallGraphMetrics implements IMetrics {
 		back = new SummarySlicerBackward(g);
 		forw = new SummarySlicerForward(g);
 
-		for (Violation v : vios) {
+		for (ClassifiedViolation v : vios) {
 			foo(v);
 		}
 
 		return vios;
 	}
 
-	private void foo(Violation v) {
+	private void foo(ClassifiedViolation v) {
 		SDGNode source = v.getSource();
 		SDGNode sink = v.getSink();
 

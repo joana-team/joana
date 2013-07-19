@@ -11,8 +11,8 @@ package edu.kit.joana.ui.ifc.sdg.gui.violations;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.action.Action;
 
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
-import edu.kit.joana.ifc.sdg.core.violations.Violation.Classification;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation.Classification;
 import edu.kit.joana.ifc.sdg.core.violations.paths.PathGenerator;
 import edu.kit.joana.ifc.sdg.core.violations.paths.ViolationPathes;
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -27,8 +27,8 @@ public class ViolationPathChopper implements IChopper {
 		action.setImageDescriptor(NJSecPlugin.singleton().getImageRegistry().getDescriptor("pdg"));
 	}
 
-	public Violation addChop(IProject p, Violation violation, SDG g, IStaticLattice<String> l) {
-		Violation v = Violation.createViolation(violation.getSink(), violation.getSource(), violation.getViolationPathes(), violation.getAttackerLevel());
+	public ClassifiedViolation addChop(IProject p, ClassifiedViolation violation, SDG g, IStaticLattice<String> l) {
+		ClassifiedViolation v = ClassifiedViolation.createViolation(violation.getSink(), violation.getSource(), violation.getViolationPathes(), violation.getAttackerLevel());
 		for (Classification c : violation.getClassifications()) {
 			v.addClassification(c.getName(), c.getDescription(), c.getSeverity(), c.getRating());
 		}

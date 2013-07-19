@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.Collection;
 
 import edu.kit.joana.ifc.sdg.core.IFC;
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
@@ -60,10 +60,10 @@ public class PossibilisticNIChecker extends IFC {
      *
      * @throws NotInLatticeException
      */
-    public Collection<Violation> checkIFlow() throws NotInLatticeException {
+    public Collection<ClassifiedViolation> checkIFlow() throws NotInLatticeException {
         long slicestart = System.currentTimeMillis();
         debug.outln("Checking possibilistic noninterference");
-        Collection<Violation> ret = null;    //list to be returned
+        Collection<ClassifiedViolation> ret = null;    //list to be returned
         BarrierIFCSlicer is = new BarrierIFCSlicer(g, l);
 
         is.addProgressListener(this);

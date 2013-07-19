@@ -10,7 +10,7 @@ package edu.kit.joana.api;
 import java.util.Collection;
 
 import edu.kit.joana.api.sdg.SDGProgramPart;
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
@@ -21,12 +21,12 @@ public class IllicitFlow extends JoanaViolation {
 	
 	private static final Logger debug = Log.getLogger(Log.L_API_DEBUG); 
 	
-	private final Violation vio;
+	private final ClassifiedViolation vio;
 	private final SDGProgramPart source;
 	private final SDGProgramPart sink;
 	private final String attackerLevel;
 
-	public IllicitFlow(Violation vio, Collection<SDGProgramPart> pparts) {
+	public IllicitFlow(ClassifiedViolation vio, Collection<SDGProgramPart> pparts) {
 		this.vio = vio;
 		this.source = selectProgramPart(vio.getSource(), pparts);
 		this.sink = selectProgramPart(vio.getSink(), pparts);
@@ -43,7 +43,7 @@ public class IllicitFlow extends JoanaViolation {
 		return sink;
 	}
 
-	public Violation getViolation() {
+	public ClassifiedViolation getViolation() {
 		return vio;
 	}
 

@@ -24,7 +24,7 @@ import org.eclipse.core.runtime.CoreException;
 
 import edu.kit.joana.deprecated.jsdg.gui.create.SDGCreationObserver;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ui.ifc.sdg.gui.NJSecPlugin;
 import edu.kit.joana.ui.ifc.sdg.gui.launching.ConfigReader;
@@ -50,7 +50,7 @@ public class SDGFactory implements SDGCreationObserver {
 	/**
 	 * Remembers Violations for IProjects
 	 */
-	private HashMap<IProject, Collection<Violation>> vioRem = new HashMap<IProject, Collection<Violation>>();
+	private HashMap<IProject, Collection<ClassifiedViolation>> vioRem = new HashMap<IProject, Collection<ClassifiedViolation>>();
 
 	/**
 	 * Holds violationChangeListeners that need to be notified in case of
@@ -321,7 +321,7 @@ public class SDGFactory implements SDGCreationObserver {
 	 * @param p
 	 * @param violations
 	 */
-	public void violationsChanged(IProject p, Collection<Violation> violations) {
+	public void violationsChanged(IProject p, Collection<ClassifiedViolation> violations) {
 	    vioRem.put(p, violations);
 	    if (p.equals(NJSecPlugin.singleton().getActiveProject())) {
 	        notifyViolationChangeListeners(p, violations);
@@ -332,15 +332,15 @@ public class SDGFactory implements SDGCreationObserver {
 	    if (!violationChangeListeners.contains(vcl)) violationChangeListeners.add(vcl);
 	}
 
-	public void notifyViolationChangeListeners(IProject p, Collection<Violation> violations) {
+	public void notifyViolationChangeListeners(IProject p, Collection<ClassifiedViolation> violations) {
 	    for (ViolationChangeListener v : violationChangeListeners) {
 	        v.violationsChanged(p, violations);
 	    }
 	}
 
-	public Collection<Violation> getRemViolations(IProject activeProject) {
-	    Collection<Violation> ret = vioRem.get(activeProject);
-	    if (ret == null) return new ArrayList<Violation>();
+	public Collection<ClassifiedViolation> getRemViolations(IProject activeProject) {
+	    Collection<ClassifiedViolation> ret = vioRem.get(activeProject);
+	    if (ret == null) return new ArrayList<ClassifiedViolation>();
 	    return ret;
 	}
 

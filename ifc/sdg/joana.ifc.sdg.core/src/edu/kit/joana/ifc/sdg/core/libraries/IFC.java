@@ -22,7 +22,7 @@ import edu.kit.joana.ifc.sdg.core.conc.ViolationComparator;
 import edu.kit.joana.ifc.sdg.core.conc.Element.ElementSet;
 import edu.kit.joana.ifc.sdg.core.interfaces.ProgressAnnouncer;
 import edu.kit.joana.ifc.sdg.core.interfaces.ProgressListener;
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -144,10 +144,10 @@ public class IFC implements ProgressAnnouncer {
      *
      * @return Die Menge der gefundenen Sicherheitsverletzungen.
      */
-    public Set<Violation> check() {
+    public Set<ClassifiedViolation> check() {
         // bestimme alle kritischen Punkte
         LinkedList<Element> criteria = collectCriteria();
-        Set<Violation> set = new HashSet<Violation>();
+        Set<ClassifiedViolation> set = new HashSet<ClassifiedViolation>();
 
         // pruefe jeden kritischen Punkt auf noninterferenz
         for (Element e : criteria) {
@@ -196,11 +196,11 @@ public class IFC implements ProgressAnnouncer {
      * @param criterion  Der annotierte Knoten.
      * @return           Die gefundenen Sicherheitsverletzungen.
      */
-    private Set<Violation> slice(Element criterion) {
+    private Set<ClassifiedViolation> slice(Element criterion) {
         LinkedList<Element> worklist_1 = new LinkedList<Element>();
         LinkedList<Element> worklist_2 = new LinkedList<Element>();
         ElementSet visited = new ElementSet();
-        TreeSet<Violation> vio = new TreeSet<Violation>(ViolationComparator.COMP);
+        TreeSet<ClassifiedViolation> vio = new TreeSet<ClassifiedViolation>(ViolationComparator.COMP);
 
         worklist_1.add(criterion);
         visited.add(criterion);
@@ -253,7 +253,7 @@ public class IFC implements ProgressAnnouncer {
                     // security check
                     SecurityNode reached = (SecurityNode) edge.getSource();
                     if (reached.isInformationSource() && newElement.getLabels().contains(reached.getProvided())) {
-                        vio.add(Violation.createViolation(criterion.getNode(), reached, criterion.getNode().getRequired()));
+                        vio.add(ClassifiedViolation.createViolation(criterion.getNode(), reached, criterion.getNode().getRequired()));
                     }
 
                     // add the new element to the worklist
@@ -270,7 +270,7 @@ public class IFC implements ProgressAnnouncer {
                     // security check
                     SecurityNode reached = (SecurityNode) edge.getSource();
                     if (reached.isInformationSource() && newElement.getLabels().contains(reached.getProvided())) {
-                        vio.add(Violation.createViolation(criterion.getNode(), reached, criterion.getNode().getRequired()));
+                        vio.add(ClassifiedViolation.createViolation(criterion.getNode(), reached, criterion.getNode().getRequired()));
                     }
 
                     // add the new element to the worklist
@@ -326,7 +326,7 @@ public class IFC implements ProgressAnnouncer {
                     // security check
                     SecurityNode reached = (SecurityNode) edge.getSource();
                     if (reached.isInformationSource() && newElement.getLabels().contains(reached.getProvided())) {
-                        vio.add(Violation.createViolation(criterion.getNode(), reached, criterion.getNode().getRequired()));
+                        vio.add(ClassifiedViolation.createViolation(criterion.getNode(), reached, criterion.getNode().getRequired()));
                     }
 
                     // add the new element to the worklist

@@ -20,7 +20,7 @@ import org.eclipse.core.runtime.jobs.Job;
 
 import edu.kit.joana.ifc.sdg.core.IFC;
 import edu.kit.joana.ifc.sdg.core.metrics.IMetrics;
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
@@ -32,7 +32,7 @@ public class IFCJob extends Job {
     protected IStaticLattice<String> l;
     protected IFC ifc;
     protected Collection<IMetrics> metrics;
-    protected Collection<Violation> violations;
+    protected Collection<ClassifiedViolation> violations;
 
     private CoreException ex;
 
@@ -50,14 +50,14 @@ public class IFCJob extends Job {
     	metrics.add(m);
     }
 
-    public Collection<Violation> checkIFlow(IProgressMonitor monitor) throws CoreException {
+    public Collection<ClassifiedViolation> checkIFlow(IProgressMonitor monitor) throws CoreException {
         // set progress listener
         Progress myp = new Progress(monitor);
         ifc.addProgressListener(myp);
 
         int nodeCount = sdg.vertexSet().size() * sdg.vertexSet().size();
         monitor.beginTask("Checking Security", nodeCount);
-        Collection<Violation> vios = null;
+        Collection<ClassifiedViolation> vios = null;
 
         try {
             vios = ifc.checkIFlow();

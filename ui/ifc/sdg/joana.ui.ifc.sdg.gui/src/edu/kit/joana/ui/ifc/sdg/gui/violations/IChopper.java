@@ -10,7 +10,7 @@ package edu.kit.joana.ui.ifc.sdg.gui.violations;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.action.Action;
 
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 
@@ -24,7 +24,7 @@ public interface IChopper {
 	 * @param vcl
 	 * @return
 	 */
-	public Violation addChop(IProject p, Violation violation, SDG g, IStaticLattice<String> l);
+	public ClassifiedViolation addChop(IProject p, ClassifiedViolation violation, SDG g, IStaticLattice<String> l);
 
 	/**
 	 * use action.setText() to set caption for contextmenu-entry

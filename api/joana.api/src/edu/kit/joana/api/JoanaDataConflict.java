@@ -9,7 +9,7 @@ package edu.kit.joana.api;
 
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
-import edu.kit.joana.ifc.sdg.core.violations.Conflict;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedConflict;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
@@ -18,7 +18,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  */
 public class JoanaDataConflict extends JoanaConflict {
 
-	private final Conflict c;
+	private final ClassifiedConflict c;
 	private final SDGProgramPart secret;
 	private final SDGNode nodeSecret;
 	private final SDGProgramPart leaking;
@@ -28,7 +28,7 @@ public class JoanaDataConflict extends JoanaConflict {
 	private final SDGProgramPart conf2;
 	private final SDGNode nodeConf2;
 
-	public JoanaDataConflict(SDGProgram p, Conflict c) {
+	public JoanaDataConflict(SDGProgram p, ClassifiedConflict c) {
 		this.c = c;
 		this.secret = p.findCoveringProgramPart(c.getSource());
 		this.nodeSecret = c.getSource();

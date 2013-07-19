@@ -14,7 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.chopper.barrier.BarrierChopper;
 import edu.kit.joana.ifc.sdg.graph.chopper.barrier.NonSameLevelBarrierChopper;
@@ -44,12 +44,12 @@ public class ReduceRedundantFlows extends IFC {
 	 * @see edu.kit.joana.ifc.sdg.core.IFC#checkIFlow()
 	 */
 	@Override
-	public Collection<Violation> checkIFlow() throws NotInLatticeException {
-		Collection<Violation> baseFlows = baseIFC.checkIFlow();
+	public Collection<ClassifiedViolation> checkIFlow() throws NotInLatticeException {
+		Collection<ClassifiedViolation> baseFlows = baseIFC.checkIFlow();
 		Collection<SDGNode> sources = computeSources(baseFlows);
 		Collection<SDGNode> sinks = computeSinks(baseFlows);
-		List<Violation> reducedFlows = new LinkedList<Violation>();
-		for (Violation v : baseFlows) {
+		List<ClassifiedViolation> reducedFlows = new LinkedList<ClassifiedViolation>();
+		for (ClassifiedViolation v : baseFlows) {
 			if (!isRedundant(v, sources, sinks)) {
 				reducedFlows.add(v);
 			}
@@ -57,23 +57,23 @@ public class ReduceRedundantFlows extends IFC {
 		return reducedFlows;
 	}
 	
-	private static Collection<SDGNode> computeSources(final Collection<Violation> flows) {
+	private static Collection<SDGNode> computeSources(final Collection<ClassifiedViolation> flows) {
 		final Collection<SDGNode> ret = new LinkedList<SDGNode>();
-		for (Violation v : flows) {
+		for (ClassifiedViolation v : flows) {
 			ret.add(v.getSource());
 		}
 		return ret;
 	}
 	
-	private static Collection<SDGNode> computeSinks(final Collection<Violation> flows) {
+	private static Collection<SDGNode> computeSinks(final Collection<ClassifiedViolation> flows) {
 		final Collection<SDGNode> ret = new LinkedList<SDGNode>();
-		for (Violation v : flows) {
+		for (ClassifiedViolation v : flows) {
 			ret.add(v.getSink());
 		}
 		return ret;
 	}
 	
-	private boolean isRedundant(Violation v, Collection<SDGNode> sources, Collection<SDGNode> sinks) {
+	private boolean isRedundant(ClassifiedViolation v, Collection<SDGNode> sources, Collection<SDGNode> sinks) {
 		bs.setBarrier(Collections.<SDGNode>emptySet());
 		boolean flowWOBarrier = !bs.chop(v.getSource(), v.getSink()).isEmpty();
 		

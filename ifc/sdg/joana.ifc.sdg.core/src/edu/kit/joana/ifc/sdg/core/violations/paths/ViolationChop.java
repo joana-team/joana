@@ -12,7 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
 import edu.kit.joana.util.Log;
@@ -32,18 +32,18 @@ public class ViolationChop {
 
     private ChopWrapper chopper = new ChopWrapper(null);
 
-	public List<Violation> addChop(Collection<Violation> violations, SDG g)
+	public List<ClassifiedViolation> addChop(Collection<ClassifiedViolation> violations, SDG g)
 	throws NotInLatticeException {
 		long viostart = System.currentTimeMillis();
 		debug.outln("Started viopathgen at " + viostart + " for " + violations.size() + " violations");
 
-		LinkedList<Violation> ret = new LinkedList<Violation>();
+		LinkedList<ClassifiedViolation> ret = new LinkedList<ClassifiedViolation>();
 
 		//merge all violations into return list
-		for (Violation sViolation : violations) {
+		for (ClassifiedViolation sViolation : violations) {
             // Generate ViolationPathes and attach them to violation nodes
             ViolationPathes vps = generateChop(sViolation.getSink(), sViolation.getSource(), g);
-			Violation vio = Violation.createViolation(sViolation.getSink(), sViolation.getSource(), vps, sViolation.getSink().getRequired());
+			ClassifiedViolation vio = ClassifiedViolation.createViolation(sViolation.getSink(), sViolation.getSource(), vps, sViolation.getSink().getRequired());
 
 			vio.setViolationPathes(vps);
 			ret.add(vio);

@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 import edu.kit.joana.ifc.sdg.core.IFC;
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.Nanda;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.NandaBackward;
@@ -37,11 +37,11 @@ public class TimeSensitiveIFCDecorator extends IFC {
 	 * @see edu.kit.joana.ifc.sdg.core.IFC#checkIFlow()
 	 */
 	@Override
-	public Collection<Violation> checkIFlow() throws NotInLatticeException {
-		Collection<Violation> baseVios = baseIFC.checkIFlow();
-		Collection<Violation> refinedVios = new LinkedList<Violation>();
+	public Collection<ClassifiedViolation> checkIFlow() throws NotInLatticeException {
+		Collection<ClassifiedViolation> baseVios = baseIFC.checkIFlow();
+		Collection<ClassifiedViolation> refinedVios = new LinkedList<ClassifiedViolation>();
 		Nanda tsbwSlicer = new Nanda(baseIFC.getSDG(), new NandaBackward());
-		for (Violation vio : baseVios) {
+		for (ClassifiedViolation vio : baseVios) {
 			Collection<SDGNode> tsSlice = tsbwSlicer.slice(vio.getSink());
 			if (tsSlice.contains(vio.getSource())) {
 				// there is a path without time-travel between source and sink

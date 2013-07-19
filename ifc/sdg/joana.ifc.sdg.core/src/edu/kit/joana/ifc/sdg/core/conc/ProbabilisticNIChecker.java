@@ -10,7 +10,7 @@ package edu.kit.joana.ifc.sdg.core.conc;
 import java.util.Collection;
 
 import edu.kit.joana.ifc.sdg.core.IFC;
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
@@ -29,7 +29,7 @@ public class ProbabilisticNIChecker extends IFC {
 
 	private final boolean timeSens;
 	
-	private ProbabilisticNISlicer prob;
+	private ConflictScanner prob;
 	
 	/**
 	 * Erzeugt eine neue Instanz.
@@ -64,8 +64,8 @@ public class ProbabilisticNIChecker extends IFC {
 	 * @throws InterSlicePluginException
 	 * @throws NotInLatticeException
 	 */
-	public Collection<Violation> checkIFlow() throws NotInLatticeException {
-		Collection<Violation> ret = null; // list to be returned
+	public Collection<ClassifiedViolation> checkIFlow() throws NotInLatticeException {
+		Collection<ClassifiedViolation> ret = null; // list to be returned
 		IFC is = new BarrierIFCSlicer(g, l);
 		
 		if (timeSens) {
@@ -84,13 +84,17 @@ public class ProbabilisticNIChecker extends IFC {
 		ret.addAll(is.checkIFlow());
 		flowCheck = System.currentTimeMillis() - flowCheck;
 
-		dataChannels = prob.dataChannels;
-		orderChannels = prob.orderChannels;
+		//dataChannels = prob.dataChannels;
+		//orderChannels = prob.orderChannels;
 
 		return ret;
 	}
 	
-	public ProbabilisticNISlicer getProbSlicer() {
+	public void setProbSlicer(ConflictScanner prob) {
+		this.prob = prob;
+	}
+	
+	public ConflictScanner getProbSlicer() {
 		return prob;
 	}
 

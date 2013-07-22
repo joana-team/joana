@@ -26,7 +26,14 @@ public class ConflictsCollector implements IChopper {
 
 	public ClassifiedViolation addChop(IProject p, ClassifiedViolation violations, SDG g, IStaticLattice<String> l) {
 		try {
-			return (ClassifiedViolation) ProbabilisticNISlicer.detailedCheck(g, l).check().toArray()[0];
+			/**
+			 * TODO: call a variant of the check, where each data conflict leak is mapped to a collection of data conflict edges which may
+			 * have caused the leak. Also use all the information provided!
+			 * Formerly, the statement was 'ProbabilisticNISlicer.detailedCheck(g, l).check().toArray()[0]' - this does not seem to make
+			 * sense: Why should the complicated, expensive and detailed check be performed when we throw away every but the first element
+			 * afterwards?!
+			 */
+			return (ClassifiedViolation) ProbabilisticNISlicer.simpleCheck(g, l).check().toArray()[0];
 
 		} catch (NotInLatticeException e) { }
 

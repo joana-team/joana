@@ -241,7 +241,7 @@ public class IFCAnalysis {
 		if (getIFC() instanceof ProbabilisticNIChecker) {
 			ProbabilisticNIChecker probIFC = (ProbabilisticNIChecker) getIFC();
 			ConflictScanner probSlicer = probIFC.getProbSlicer();
-			Collection<? extends IConflict> conflicts = probSlicer.getConflicts();
+			Collection<? extends IConflict> conflicts = probSlicer.getAllConflicts();
 			Collection<JoanaConflict> joanaConflicts = new LinkedList<JoanaConflict>();
 			for (IConflict c : conflicts) {
 				if (c instanceof OrderConflict) {

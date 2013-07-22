@@ -28,7 +28,11 @@ public class IllicitFlow extends JoanaViolation {
 
 	public IllicitFlow(ClassifiedViolation vio, Collection<SDGProgramPart> pparts) {
 		this.vio = vio;
-		this.source = selectProgramPart(vio.getSource(), pparts);
+		if (vio.getSource() != null) {
+			this.source = selectProgramPart(vio.getSource(), pparts);
+		} else {
+			this.source = null; // TODO: fix this! IllicitFlow should not be used to also represent probabilistic conflicts!
+		}
 		this.sink = selectProgramPart(vio.getSink(), pparts);
 		this.attackerLevel = vio.getAttackerLevel();
 

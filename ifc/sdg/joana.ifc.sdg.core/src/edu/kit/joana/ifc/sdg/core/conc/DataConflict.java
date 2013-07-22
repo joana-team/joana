@@ -7,32 +7,38 @@
  */
 package edu.kit.joana.ifc.sdg.core.conc;
 
+import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.AbstractConflict;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.util.Maybe;
 
-class DataConflict extends AbstractConflict {
+public class DataConflict extends AbstractConflict {
 
 	private final SDGEdge confEdge;
-	private final SDGNode influenced;
+	private final SecurityNode influenced;
 	private final String attackerLevel;
-	private final Maybe<SDGNode> trigger;
+	private final Maybe<SecurityNode> trigger;
 	
 	private final String untriggeredTemplate = "Data conflict between nodes %s and %s, may influence the behaviour of node %s, which is visible for %s";
 	private final String triggeredTemplate = "Data conflict between nodes %s and %s, may reveal something about node %s by influencing the behaviour of node %s, which is visible for %s";
 	
-	public DataConflict(SDGEdge confEdge, SDGNode influenced,
-			String attackerLevel, Maybe<SDGNode> trigger) {
+	public DataConflict(SDGEdge confEdge, SecurityNode influenced,
+			String attackerLevel, Maybe<SecurityNode> trigger) {
 		this.confEdge = confEdge;
 		this.influenced = influenced;
 		this.attackerLevel = attackerLevel;
 		this.trigger = trigger;
+		super.setSink(influenced);
+		if (trigger.isJust()) {
+			super.setSource(trigger.extract());
+		} else {
+			super.setSource(null);
+		}
 	}
 	
-	public DataConflict(SDGEdge confEdge, SDGNode influenced,
+	public DataConflict(SDGEdge confEdge, SecurityNode influenced,
 			String attackerLevel) {
-		this(confEdge, influenced, attackerLevel, Maybe.<SDGNode>nothing());
+		this(confEdge, influenced, attackerLevel, Maybe.<SecurityNode>nothing());
 	}
 
 	@Override

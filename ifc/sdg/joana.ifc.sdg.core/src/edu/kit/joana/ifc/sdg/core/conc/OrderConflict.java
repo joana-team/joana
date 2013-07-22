@@ -7,28 +7,38 @@
  */
 package edu.kit.joana.ifc.sdg.core.conc;
 
+import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.AbstractConflict;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.util.Maybe;
 
-class OrderConflict extends AbstractConflict {
+public class OrderConflict extends AbstractConflict {
 
 	private SDGEdge confEdge;
 	private String attackerLevel;
-	private Maybe<SDGNode> trigger;
+	private Maybe<SecurityNode> trigger;
 	
 	private final String untriggeredTemplate = "Indefinite execution order between nodes %s and %s, visible for %s";
 	private final String triggeredTemplate = "Indefinite execution order between nodes %s and %s, visible for %s, may be influenced by %s";
 	
-	public OrderConflict(SDGEdge confEdge, String attackerLevel, Maybe<SDGNode> trigger) {
+	public OrderConflict(SDGEdge confEdge, String attackerLevel, Maybe<SecurityNode> trigger) {
 		this.confEdge = confEdge;
 		this.attackerLevel = attackerLevel;
 		this.trigger = trigger;
+		super.setSource((SecurityNode) confEdge.getSource());
+		super.setSink((SecurityNode) confEdge.getTarget());
 	}
 	
 	public OrderConflict(SDGEdge confEdge, String attackerLevel) {
-		this(confEdge, attackerLevel, Maybe.<SDGNode>nothing());
+		this(confEdge, attackerLevel, Maybe.<SecurityNode>nothing());
+	}
+	
+	public SDGEdge getConflictEdge() {
+		return confEdge;
+	}
+	
+	public String getAttackerLevel() {
+		return attackerLevel;
 	}
 
 	@Override

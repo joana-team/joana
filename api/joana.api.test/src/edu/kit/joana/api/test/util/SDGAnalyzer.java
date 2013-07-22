@@ -19,6 +19,8 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGNode.Operation;
+import edu.kit.joana.ifc.sdg.graph.slicer.IntraproceduralDataSlicerBackward;
+import edu.kit.joana.ifc.sdg.graph.slicer.IntraproceduralSlicerBackward;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 
 /**
@@ -127,6 +129,15 @@ public class SDGAnalyzer {
 			if (allowedOps.contains(n.getOperation())
 					&& refersTo(nodes, n, fieldName)) {
 				ret.add(n);
+			} else if (n.getKind() == SDGNode.Kind.ACTUAL_OUT) {
+				IntraproceduralSlicerBackward slicer = new IntraproceduralDataSlicerBackward(sdg);
+				Collection<SDGNode> s = slicer.slice(n);
+				for (SDGNode n0 : s) {
+					if (allowedOps.contains(n0.getOperation()) && refersTo(nodes, n, fieldName)) {
+						ret.add(n);
+						break;
+					}
+				}
 			}
 		}
 

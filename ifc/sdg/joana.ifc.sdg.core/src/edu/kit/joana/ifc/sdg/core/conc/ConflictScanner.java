@@ -17,11 +17,13 @@ import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
  * probabilistic security leaks. 
  * Provides a method which is called to check a program for possible probabilisitic
  * security leaks and a method to retrieve all conflicts leading to such leaks.
- * Note, that {@link #getConflicts()} is supposed to be called after {@link #check()}.
+ * Note, that {@link #getAllConflicts()} is supposed to be called after {@link #check()}.
  * @author Martin Mohr
  */
 public interface ConflictScanner {
 	Collection<ClassifiedViolation> check();
-	Collection<? extends IConflict> getConflicts();
+	Collection<? extends IConflict> getAllConflicts();
+	Collection<DataConflict> getDataConflicts();
+	Collection<OrderConflict> getOrderConflicts();
 	
 }

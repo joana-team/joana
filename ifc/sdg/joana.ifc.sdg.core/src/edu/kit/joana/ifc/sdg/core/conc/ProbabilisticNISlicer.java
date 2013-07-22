@@ -18,8 +18,7 @@ import java.util.Set;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.interfaces.ProgressListener;
 import edu.kit.joana.ifc.sdg.core.sdgtools.SDGTools;
-import edu.kit.joana.ifc.sdg.core.violations.ClassifiedConflict;
-import edu.kit.joana.ifc.sdg.core.violations.OrderConflict;
+import edu.kit.joana.ifc.sdg.core.violations.AbstractConflict;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -33,6 +32,8 @@ import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.NandaForward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
+import edu.kit.joana.util.Maybe;
+import edu.kit.joana.util.Pair;
 
 
 /**
@@ -55,7 +56,10 @@ public class ProbabilisticNISlicer implements ConflictScanner {
          *
          * @return Alle bisher gefundenen Konflikte.
          */
-        Collection<ClassifiedConflict> getConflicts();
+        Collection<AbstractConflict> getConflicts();
+        
+        Collection<DataConflict> getDataConflicts();
+        Collection<OrderConflict> getOrderConflicts();
 
         /**
          * Aktualisiert die Konfliktliste.
@@ -75,13 +79,19 @@ public class ProbabilisticNISlicer implements ConflictScanner {
      */
     private static class SimpleConflicts implements ConflictManager {
         // menge der bisherigen konflikte
-        private HashSet<ClassifiedConflict> conflicts;
-
+        private HashSet<AbstractConflict> conflicts;
+        private Set<DataConflict> dataConflicts;
+        private Set<OrderConflict> orderConflicts;
+        
+        private Set<Pair<SDGNode, SDGNode>> confEdges = new HashSet<Pair<SDGNode, SDGNode>>();
+        
         /**
          * Initialisierung.
          */
         public SimpleConflicts() {
-            conflicts = new HashSet<ClassifiedConflict>();
+            this.conflicts = new HashSet<AbstractConflict>();
+            this.dataConflicts = new HashSet<DataConflict>();
+            this.orderConflicts = new HashSet<OrderConflict>();
         }
 
         /**
@@ -89,7 +99,7 @@ public class ProbabilisticNISlicer implements ConflictScanner {
          *
          * @return Alle bisher gefundenen Konflikte.
          */
-        public Collection<ClassifiedConflict> getConflicts() {
+        public Collection<AbstractConflict> getConflicts() {
             return conflicts;
         }
 
@@ -105,82 +115,45 @@ public class ProbabilisticNISlicer implements ConflictScanner {
         public void updateConflicts(SecurityNode sink, SecurityNode source, SDGEdge edge, String attackerLevel) {
             if (edge.getKind() == SDGEdge.Kind.CONFLICT_DATA) {
                 // erzeuge neuen Conflict
-                ClassifiedConflict con  = new ClassifiedConflict(sink, source, attackerLevel);
-                con.setConflictEdge(edge);
+            	DataConflict con  = new DataConflict(edge, sink, attackerLevel, Maybe.just(source));
                 conflicts.add(con);
+                dataConflicts.add(con);
+                confEdges.add(Pair.pair(edge.getSource(), edge.getTarget()));
             } else if (edge.getKind() == SDGEdge.Kind.CONFLICT_ORDER) {
                 // erzeuge neuen OrderConflict
-                ClassifiedConflict con  = new OrderConflict(sink, source, (SecurityNode)edge.getSource(), attackerLevel);
-                con.setConflictEdge(edge);
-                conflicts.add(con);
+            	if (!confEdges.contains(Pair.pair(edge.getSource(), edge.getTarget())) && !confEdges.contains(Pair.pair(edge.getTarget(), edge.getSource()))) {
+            		OrderConflict con  = new OrderConflict(edge, attackerLevel, Maybe.just(source));
+                    conflicts.add(con);
+                    orderConflicts.add(con);
+                    confEdges.add(Pair.pair(edge.getSource(), edge.getTarget()));
+            	}
             }
         }
+
+		/* (non-Javadoc)
+		 * @see edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNISlicer.ConflictManager#getDataConflicts()
+		 */
+		@Override
+		public Collection<DataConflict> getDataConflicts() {
+			return dataConflicts;
+		}
+
+		/* (non-Javadoc)
+		 * @see edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNISlicer.ConflictManager#getOrderConflicts()
+		 */
+		@Override
+		public Collection<OrderConflict> getOrderConflicts() {
+			return orderConflicts;
+		}
     }
 
     /**
      * Eine detaillierte, aber sehr teure Behandlung von Lecks.
      * Ein Leck (Conflict) besteht aus Quelle und Senke, sowie allen Races, die dieses Leck formen.
-     *
+     * TODO: make this work properly!
      * @author giffhorn
      */
-    private static class DetailedConflicts implements ConflictManager {
-        // menge der bisherigen konflikte
-        // ein einfacher Conflict, der nur aus quelle und sekne des lecks besteht,
-        // dient als schluessel fuer den detaillierten Conflict
-        private HashMap<ClassifiedConflict, ClassifiedConflict> conflicts;
-
-        /**
-         * Initialisierung.
-         */
-        public DetailedConflicts() {
-            conflicts = new HashMap<ClassifiedConflict, ClassifiedConflict>();
-        }
-
-        /**
-         * Liefert alle bisher gefundenen Konflikte.
-         *
-         * @return Alle bisher gefundenen Konflikte.
-         */
-        public Collection<ClassifiedConflict> getConflicts() {
-            return conflicts.values();
-        }
-
-        /**
-         * Aktualisiert die Konfliktliste.
-         * Erhaelt die Quelle und die Senke eines Lecks. Die Kante bestimmt die
-         * Art des Lecks, entweder ein Data Conflict oder ein Order Conflict.
-         *
-         * Bei einem Order Conflict liegt ein neues Leck vor, sodass ein neuer Conflict angelegt wird.
-         * Bei einem Data Conflict wird, falls das Leck bereits erfasst wurde, dem Conflict die Kante
-         * hinzugefuegt.
-         *
-         * @param sink    Senke des Lecks.
-         * @param source  Quelle des Lecks.
-         * @param edge    Vom Typ SDGEdge.Kind.CONFLICT_DATA oder SDGEdge.Kind.CONFLICT_ORDER.
-         */
-        public void updateConflicts(SecurityNode sink, SecurityNode source, SDGEdge edge, String attackerLevel) {
-            if (edge.getKind() == SDGEdge.Kind.CONFLICT_DATA) {
-                // hole den Conflict aus der map und fuege die kante hinzu
-                ClassifiedConflict con  = new ClassifiedConflict(sink, source, attackerLevel);
-                ClassifiedConflict saved = conflicts.get(con);
-
-                if (saved == null) {
-                    conflicts.put(con, con);
-                } else {
-                    con = saved;
-                }
-
-                con.addConflict(edge);
-
-            } else if (edge.getKind() == SDGEdge.Kind.CONFLICT_ORDER) {
-                // erzeuge einen neuen OrderConflict
-                ClassifiedConflict con  = new OrderConflict(sink, source, (SecurityNode)edge.getSource(), attackerLevel);
-                conflicts.put(con, con);
-            }
-
-
-        }
-    }
+    //private static class DetailedConflicts implements ConflictManager {}
 
     /**
      * Berechnet die Konfliktkanten im SDG.
@@ -622,7 +595,7 @@ public class ProbabilisticNISlicer implements ConflictScanner {
         this.pls.remove(pl);
     }
     
-    public Collection<ClassifiedConflict> getConflicts() {
+    public Collection<AbstractConflict> getAllConflicts() {
     	return conf.getConflicts();
     }
 
@@ -632,15 +605,31 @@ public class ProbabilisticNISlicer implements ConflictScanner {
        return simpleCheck(g, l, PreciseMHPAnalysis.analyze(g), false);
     }
 
-    public static ProbabilisticNISlicer detailedCheck(SDG g, IStaticLattice<String> l){
-    	 return detailedCheck(g, l, PreciseMHPAnalysis.analyze(g), false);
-    }
+// TODO: make detailed check work properly! 
+//  public static ProbabilisticNISlicer detailedCheck(SDG g, IStaticLattice<String> l, MHPAnalysis mhp, boolean timeSens) {
+//	return new ProbabilisticNISlicer(g, l, new DetailedConflicts(), mhp, timeSens);
+//}
+//    public static ProbabilisticNISlicer detailedCheck(SDG g, IStaticLattice<String> l){
+//    	 return detailedCheck(g, l, PreciseMHPAnalysis.analyze(g), false);
+//    }
     
     public static ProbabilisticNISlicer simpleCheck(SDG g, IStaticLattice<String> l, MHPAnalysis mhp, boolean timeSens) {
     	return new ProbabilisticNISlicer(g, l, new SimpleConflicts(), mhp, timeSens);
     }
     
-    public static ProbabilisticNISlicer detailedCheck(SDG g, IStaticLattice<String> l, MHPAnalysis mhp, boolean timeSens) {
-    	return new ProbabilisticNISlicer(g, l, new DetailedConflicts(), mhp, timeSens);
-    }
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.ifc.sdg.core.conc.ConflictScanner#getDataConflicts()
+	 */
+	@Override
+	public Collection<DataConflict> getDataConflicts() {
+		return conf.getDataConflicts();
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.ifc.sdg.core.conc.ConflictScanner#getOrderConflicts()
+	 */
+	@Override
+	public Collection<edu.kit.joana.ifc.sdg.core.conc.OrderConflict> getOrderConflicts() {
+		return conf.getOrderConflicts();
+	}
 }

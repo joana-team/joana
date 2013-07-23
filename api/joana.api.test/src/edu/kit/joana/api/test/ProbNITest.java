@@ -33,6 +33,8 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 
 /**
  * @author Martin Mohr
@@ -43,6 +45,10 @@ public class ProbNITest {
 	private static final boolean FORCE_REBUILD = true;
 
 	private static final Map<String, TestData> testData = new HashMap<String, TestData>();
+	
+	private static final Logger debug = Log.getLogger("test.debug");
+	
+	private static final boolean DEBUG = debug.isEnabled();
 
 	static {
 		addTestCase("dataconf-rw-benign", "joana.api.testdata.conc.DataConflictRWBenign");
@@ -97,14 +103,16 @@ public class ProbNITest {
 	
 	@Test
 	public void testDataConflictRWLSOD() throws IOException {
-		System.out.println("=== Mohr LSOD ===");
+		if (DEBUG) debug.outln("=== Mohr LSOD ===");
 		SDG sdg = annotateDataConflictRW();
 		//assertNoTraditionalLeaks(sdg);
 		ConflictScanner checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), false);
 		Collection<ClassifiedViolation> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
-		for (ClassifiedViolation v : vios) {
-			System.out.println(v);
+		if (DEBUG) {
+			for (ClassifiedViolation v : vios) {
+				debug.outln(v);
+			}
 		}
 	}
 	
@@ -116,66 +124,76 @@ public class ProbNITest {
 	
 	@Test
 	public void testDataConflictRWLSODOpt() throws IOException {
-		System.out.println("=== Mohr LSOD Opt. ===");
+		if (DEBUG) debug.outln("=== Mohr LSOD Opt. ===");
 		SDG sdg = annotateDataConflictRW();
 		//assertNoTraditionalLeaks(sdg);
 		ConflictScanner checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), true);
 		Collection<ClassifiedViolation> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
-		for (ClassifiedViolation v : vios) {
-			System.out.println(v);
+		if (DEBUG) {
+			for (ClassifiedViolation v : vios) {
+				debug.outln(v);
+			}
 		}
 	}
 	
 	@Test
 	public void testOrderConflictLSOD() throws IOException {
-		System.out.println("=== Mohr LSOD ===");
+		if (DEBUG) debug.outln("=== Mohr LSOD ===");
 		SDG sdg = annotateOrderConflict();
 		//assertNoTraditionalLeaks(sdg);
 		ConflictScanner checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), false);
 		Collection<ClassifiedViolation> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
-		for (ClassifiedViolation v : vios) {
-			System.out.println(v);
+		if (DEBUG) {
+			for (ClassifiedViolation v : vios) {
+				debug.outln(v);
+			}
 		}
 	}
 	
 	@Test
 	public void testOrderConflictLSODOpt() throws IOException {
-		System.out.println("=== Mohr LSOD Opt. ===");
+		if (DEBUG) debug.outln("=== Mohr LSOD Opt. ===");
 		SDG sdg = annotateOrderConflict();
 		//assertNoTraditionalLeaks(sdg);
 		ConflictScanner checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), true);
 		Collection<ClassifiedViolation> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
-		for (ClassifiedViolation v : vios) {
-			System.out.println(v);
+		if (DEBUG) {
+			for (ClassifiedViolation v : vios) {
+				debug.outln(v);
+			}
 		}
 	}
 	
 	@Test
 	public void testOrderConflictGiffhorn() throws IOException {
-		System.out.println("=== Giffhorn LSOD ===");
+		if (DEBUG) debug.outln("=== Giffhorn LSOD ===");
 		SDG sdg = annotateOrderConflict();
 		//assertNoTraditionalLeaks(sdg);
 		ConflictScanner checker = ProbabilisticNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice());
 		Collection<ClassifiedViolation> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
-		for (ClassifiedViolation v : vios) {
-			System.out.println(v);
+		if (DEBUG) {
+			for (ClassifiedViolation v : vios) {
+				debug.outln(v);
+			}
 		}
 	}
 	
 	@Test
 	public void testDataConflictRWGiffhorn() throws IOException {
-		System.out.println("=== Giffhorn ===");
+		if (DEBUG) debug.outln("=== Giffhorn ===");
 		SDG sdg = annotateDataConflictRW();
 		//assertNoTraditionalLeaks(sdg);
 		ConflictScanner checker = ProbabilisticNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice());
 		Collection<ClassifiedViolation> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
-		for (ClassifiedViolation v : vios) {
-			System.out.println(v);
+		if (DEBUG) {
+			for (ClassifiedViolation v : vios) {
+				debug.outln(v);
+			}
 		}
 	}
 	
@@ -192,7 +210,7 @@ public class ProbNITest {
 		for (SDGNode sSrc : secSources) {
 			SecurityNode ssSrc = (SecurityNode) sSrc;
 			ssSrc.setProvided(BuiltinLattices.STD_SECLEVEL_HIGH);
-			System.out.println("Annotated node " + ssSrc + " as high source.");
+			if (DEBUG) debug.outln("Annotated node " + ssSrc + " as high source.");
 		}
 		
 		Collection<SDGNode> pubSinks = ana.collectCalls("java.io.PrintStream.println(I)V");
@@ -201,7 +219,7 @@ public class ProbNITest {
 		for (SDGNode pSink : pubSinks) {
 			SecurityNode spSink = (SecurityNode) pSink;
 			spSink.setRequired(BuiltinLattices.STD_SECLEVEL_LOW);
-			System.out.println("Annotated node " + spSink + " as low sink.");
+			if (DEBUG) debug.outln("Annotated node " + spSink + " as low sink.");
 			for (SDGEdge out : sdg.getOutgoingEdgesOfKind(spSink, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
 				SecurityNode npSink = (SecurityNode) out.getTarget();
 				npSink.setRequired(BuiltinLattices.STD_SECLEVEL_LOW);
@@ -224,7 +242,7 @@ public class ProbNITest {
 		for (SDGNode sSrc : secSources) {
 			SecurityNode ssSrc = (SecurityNode) sSrc;
 			ssSrc.setProvided(BuiltinLattices.STD_SECLEVEL_HIGH);
-			System.out.println("Annotated node " + ssSrc + " as high source.");
+			if (DEBUG) debug.outln("Annotated node " + ssSrc + " as high source.");
 		}
 		
 		Collection<SDGNode> pubSinks = ana.collectCalls("java.io.PrintStream.println(Ljava/lang/String;)V");
@@ -233,11 +251,11 @@ public class ProbNITest {
 		for (SDGNode pSink : pubSinks) {
 			SecurityNode spSink = (SecurityNode) pSink;
 			spSink.setRequired(BuiltinLattices.STD_SECLEVEL_LOW);
-			System.out.println("Annotated node " + spSink + " as low sink.");
+			if (DEBUG) debug.outln("Annotated node " + spSink + " as low sink.");
 			for (SDGEdge out : sdg.getOutgoingEdgesOfKind(spSink, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
 				SecurityNode npSink = (SecurityNode) out.getTarget();
 				npSink.setRequired(BuiltinLattices.STD_SECLEVEL_LOW);
-				System.out.println("Annotated node " + npSink + " as low sink.");
+				if (DEBUG) debug.outln("Annotated node " + npSink + " as low sink.");
 			}
 		}
 		

@@ -13,6 +13,7 @@ import java.util.List;
 
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
+import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.chopper.conc.ContextSensitiveThreadChopper;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
@@ -43,7 +44,7 @@ public class ConcurrentViolationChop {
 		LinkedList<ClassifiedViolation> ret = new LinkedList<ClassifiedViolation>();
 
 		//merge all violations into return list
-		for (ClassifiedViolation sViolation : violations) {
+		for (IIllegalFlow sViolation : violations) {
             // Generate ViolationPathes and attach them to violation nodes
             ViolationPathes vps = generateChop(sViolation.getSink(), sViolation.getSource());
 			ClassifiedViolation vio = ClassifiedViolation.createViolation(sViolation.getSink(), sViolation.getSource(), vps, sViolation.getSink().getRequired());

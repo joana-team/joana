@@ -43,6 +43,7 @@ import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNIChecker;
 import edu.kit.joana.ifc.sdg.core.conc.TimeSensitiveIFCDecorator;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedConflict;
 import edu.kit.joana.ifc.sdg.core.violations.IConflict;
+import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
 import edu.kit.joana.ifc.sdg.core.violations.OrderConflict;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -198,7 +199,7 @@ public class IFCAnalysis {
 			debug.outln("Program part " + ppart + " with node(s): " + ppart.getAttachedNodes());
 		}
 
-		for (ClassifiedViolation vio : vios) {
+		for (IIllegalFlow vio : vios) {
 			IllicitFlow ill = new IllicitFlow(vio, allParts);
 			ret.add(ill);
 			RepsRosayChopper c = new RepsRosayChopper(program.getSDG());
@@ -212,7 +213,7 @@ public class IFCAnalysis {
 					debug.outln("In method " + nProc.getKey().getBytecodeMethod() + ": " + nProc.getValue());
 				}
 			} else {
-				ClassifiedViolation v = ill.getViolation();
+				IIllegalFlow v = ill.getViolation();
 				debug.outln("unidentifiable flow from " + v.getSource() + " to " + v.getSink());
 			}
 

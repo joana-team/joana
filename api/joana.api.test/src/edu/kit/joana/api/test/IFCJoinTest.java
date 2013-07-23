@@ -27,6 +27,7 @@ import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.SecurityNode.SecurityNodeFactory;
 import edu.kit.joana.ifc.sdg.core.conc.BarrierIFCSlicer;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
+import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -115,7 +116,7 @@ public class IFCJoinTest {
 		Collection<ClassifiedViolation> vios = ifc.checkIFlow();
 		Assert.assertFalse(vios.isEmpty());
 		Assert.assertEquals(1, vios.size());
-		ClassifiedViolation vio = vios.iterator().next();
+		IIllegalFlow vio = vios.iterator().next();
 		Collection<SDGNode> chop = computeSomeChop(sdg, vio.getSource(), vio.getSink());
 		Assert.assertFalse(chop.isEmpty());
 		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
@@ -167,7 +168,7 @@ public class IFCJoinTest {
 		Collection<ClassifiedViolation> vios = ifc.checkIFlow();
 		Assert.assertFalse(vios.isEmpty());
 		Assert.assertEquals(1, vios.size());
-		ClassifiedViolation vio = vios.iterator().next();
+		IIllegalFlow vio = vios.iterator().next();
 		Collection<SDGNode> chop = computeSomeChop(sdg, vio.getSource(), vio.getSink());
 		Assert.assertFalse(chop.isEmpty());
 		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);

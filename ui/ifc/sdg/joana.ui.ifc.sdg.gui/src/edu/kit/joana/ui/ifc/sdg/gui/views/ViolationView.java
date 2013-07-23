@@ -64,6 +64,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedConflict;
+import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
 import edu.kit.joana.ifc.sdg.core.violations.OrderConflict;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation.Chop;
@@ -201,7 +202,7 @@ public class ViolationView extends ViewPart implements ActiveResourceChangeListe
 						" to Line " + c.getSink().getSr() + ", visible for " + c.getAttackerLevel();
 
 			} else if (obj instanceof ClassifiedViolation) {
-				ClassifiedViolation c = (ClassifiedViolation) obj;
+				IIllegalFlow c = (IIllegalFlow) obj;
 
 				return "Illicit Flow from Line " + c.getSource().getSr() +
 						" to Line " + c.getSink().getSr() + ", visible for " + c.getAttackerLevel();

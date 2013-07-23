@@ -27,6 +27,7 @@ import edu.kit.joana.ifc.sdg.core.SecurityNode.SecurityNodeFactory;
 import edu.kit.joana.ifc.sdg.core.conc.PossibilisticNIChecker;
 import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNIChecker;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
+import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.lattice.IEditableLattice;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
@@ -283,7 +284,7 @@ public class IFCConsole {
             System.out.println();
         }
 
-        for (ClassifiedViolation v : vios) {
+        for (IIllegalFlow v : vios) {
             System.out.println(v);
         }
 

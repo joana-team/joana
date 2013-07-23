@@ -27,7 +27,7 @@ import edu.kit.joana.ifc.sdg.core.violations.paths.ViolationPathes;
  * @author naxan
  *
  */
-public class ClassifiedViolation implements IViolation {
+public class ClassifiedViolation implements IIllegalFlow {
 	public static class Classification {
 		// 0 = highest, MAX_INT = lowest
 		private int severity;
@@ -101,14 +101,26 @@ public class ClassifiedViolation implements IViolation {
 		this.source = source;
 	}
 
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow#getSink()
+	 */
+	@Override
 	public SecurityNode getSink() {
 		return sink;
 	}
 
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow#getSource()
+	 */
+	@Override
 	public SecurityNode getSource() {
 		return source;
 	}
 
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow#getAttackerLevel()
+	 */
+	@Override
 	public String getAttackerLevel() {
 		return attackerLevel;
 	}

@@ -8,8 +8,8 @@
 package edu.kit.joana.ifc.sdg.core.violations;
 
 /**
- * TODO: @author Add your name here.
+ * @author Martin Mohr
  */
 public interface IViolation {
-
+	String getAttackerLevel();
 }

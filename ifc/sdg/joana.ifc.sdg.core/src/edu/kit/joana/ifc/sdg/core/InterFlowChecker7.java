@@ -21,6 +21,7 @@ import java.util.LinkedList;
 
 import edu.kit.joana.ifc.sdg.core.sdgtools.SDGTools;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
+import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
 import edu.kit.joana.ifc.sdg.core.violations.paths.PathGenerator;
 import edu.kit.joana.ifc.sdg.core.violations.paths.ViolationPathes;
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -111,7 +112,7 @@ public class InterFlowChecker7 extends IFC {
 			if (TIME) System.out.println("Finished slicing at " + sliceend + " | slice duration: " + (sliceend-slicestart));
 
 			//Transform SimpleViolations into Violations
-			for (ClassifiedViolation vp : violations) {
+			for (IIllegalFlow vp : violations) {
 				ClassifiedViolation vio = ClassifiedViolation.createViolation(temp, vp.getSink(), temp.getRequired());
 				ret.add(vio);
 			}

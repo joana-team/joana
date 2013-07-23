@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Set;
 
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
+import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.chopper.barrier.BarrierChopper;
 import edu.kit.joana.ifc.sdg.graph.chopper.barrier.NonSameLevelBarrierChopper;
@@ -59,7 +60,7 @@ public class ReduceRedundantFlows extends IFC {
 	
 	private static Collection<SDGNode> computeSources(final Collection<ClassifiedViolation> flows) {
 		final Collection<SDGNode> ret = new LinkedList<SDGNode>();
-		for (ClassifiedViolation v : flows) {
+		for (IIllegalFlow v : flows) {
 			ret.add(v.getSource());
 		}
 		return ret;
@@ -67,13 +68,13 @@ public class ReduceRedundantFlows extends IFC {
 	
 	private static Collection<SDGNode> computeSinks(final Collection<ClassifiedViolation> flows) {
 		final Collection<SDGNode> ret = new LinkedList<SDGNode>();
-		for (ClassifiedViolation v : flows) {
+		for (IIllegalFlow v : flows) {
 			ret.add(v.getSink());
 		}
 		return ret;
 	}
 	
-	private boolean isRedundant(ClassifiedViolation v, Collection<SDGNode> sources, Collection<SDGNode> sinks) {
+	private boolean isRedundant(IIllegalFlow v, Collection<SDGNode> sources, Collection<SDGNode> sinks) {
 		bs.setBarrier(Collections.<SDGNode>emptySet());
 		boolean flowWOBarrier = !bs.chop(v.getSource(), v.getSink()).isEmpty();
 		

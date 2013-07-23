@@ -28,6 +28,7 @@ import edu.kit.joana.ifc.sdg.core.conc.LSODNISlicer;
 import edu.kit.joana.ifc.sdg.core.conc.ConflictScanner;
 import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNISlicer;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
+import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -110,7 +111,7 @@ public class ProbNITest {
 		Collection<ClassifiedViolation> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
 		if (DEBUG) {
-			for (ClassifiedViolation v : vios) {
+			for (IIllegalFlow v : vios) {
 				debug.outln(v);
 			}
 		}
@@ -131,7 +132,7 @@ public class ProbNITest {
 		Collection<ClassifiedViolation> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
 		if (DEBUG) {
-			for (ClassifiedViolation v : vios) {
+			for (IIllegalFlow v : vios) {
 				debug.outln(v);
 			}
 		}
@@ -146,7 +147,7 @@ public class ProbNITest {
 		Collection<ClassifiedViolation> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
 		if (DEBUG) {
-			for (ClassifiedViolation v : vios) {
+			for (IIllegalFlow v : vios) {
 				debug.outln(v);
 			}
 		}
@@ -161,7 +162,7 @@ public class ProbNITest {
 		Collection<ClassifiedViolation> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
 		if (DEBUG) {
-			for (ClassifiedViolation v : vios) {
+			for (IIllegalFlow v : vios) {
 				debug.outln(v);
 			}
 		}
@@ -176,7 +177,7 @@ public class ProbNITest {
 		Collection<ClassifiedViolation> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
 		if (DEBUG) {
-			for (ClassifiedViolation v : vios) {
+			for (IIllegalFlow v : vios) {
 				debug.outln(v);
 			}
 		}
@@ -191,7 +192,7 @@ public class ProbNITest {
 		Collection<ClassifiedViolation> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
 		if (DEBUG) {
-			for (ClassifiedViolation v : vios) {
+			for (IIllegalFlow v : vios) {
 				debug.outln(v);
 			}
 		}

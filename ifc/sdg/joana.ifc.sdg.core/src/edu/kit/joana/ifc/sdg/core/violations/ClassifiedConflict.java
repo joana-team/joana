@@ -11,8 +11,9 @@ import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.paths.ViolationPath;
 import edu.kit.joana.ifc.sdg.core.violations.paths.ViolationPathes;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
+import edu.kit.joana.util.Maybe;
 
-public class ClassifiedConflict extends ClassifiedViolation implements IConflict {
+public class ClassifiedConflict extends ClassifiedViolation implements IConflictLeak {
 
 	private SDGEdge confEdge;
 	
@@ -45,6 +46,14 @@ public class ClassifiedConflict extends ClassifiedViolation implements IConflict
     public SDGEdge getConflictEdge() {
     	return confEdge;
     }
+    
+    /* (non-Javadoc)
+	 * @see edu.kit.joana.ifc.sdg.core.violations.IConflictLeak#getTrigger()
+	 */
+	@Override
+	public Maybe<SecurityNode> getTrigger() {
+		return Maybe.just(getSource());
+	}
 
     public String toString() {
         return "Probabilistic Data Channel from Node "+getSource()+" to Node "+getSink()+", visible for "+attackerLevel;
@@ -57,4 +66,6 @@ public class ClassifiedConflict extends ClassifiedViolation implements IConflict
     public int hashCode() {
     	return super.hashCode();
     }
+
+	
 }

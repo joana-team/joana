@@ -37,15 +37,15 @@ import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.api.sdg.SDGProgramPartWriter;
 import edu.kit.joana.ifc.sdg.core.IFC;
 import edu.kit.joana.ifc.sdg.core.ReduceRedundantFlows;
-import edu.kit.joana.ifc.sdg.core.conc.PossibilisticNIChecker;
 import edu.kit.joana.ifc.sdg.core.conc.ConflictScanner;
+import edu.kit.joana.ifc.sdg.core.conc.PossibilisticNIChecker;
 import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNIChecker;
 import edu.kit.joana.ifc.sdg.core.conc.TimeSensitiveIFCDecorator;
-import edu.kit.joana.ifc.sdg.core.violations.ClassifiedConflict;
-import edu.kit.joana.ifc.sdg.core.violations.IConflict;
-import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
-import edu.kit.joana.ifc.sdg.core.violations.OrderConflict;
+import edu.kit.joana.ifc.sdg.core.conc.ViolationTranslator;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
+import edu.kit.joana.ifc.sdg.core.violations.IConflictLeak;
+import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
+import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.chopper.RepsRosayChopper;
@@ -189,7 +189,7 @@ public class IFCAnalysis {
 		annManager.applyAllAnnotations();
 		long time = 0L;
 		time = System.currentTimeMillis();
-		Collection<ClassifiedViolation> vios = ifc.checkIFlow();
+		Collection<ClassifiedViolation> vios = new ViolationTranslator().translate(ifc.checkIFlow());
 		time = System.currentTimeMillis() - time;
 		debug.outln(String.format("IFC Analysis took %d ms.", time));
 		List<IllicitFlow> ret = new LinkedList<IllicitFlow>();
@@ -199,7 +199,7 @@ public class IFCAnalysis {
 			debug.outln("Program part " + ppart + " with node(s): " + ppart.getAttachedNodes());
 		}
 
-		for (IIllegalFlow vio : vios) {
+		for (ClassifiedViolation vio : vios) {
 			IllicitFlow ill = new IllicitFlow(vio, allParts);
 			ret.add(ill);
 			RepsRosayChopper c = new RepsRosayChopper(program.getSDG());
@@ -219,10 +219,10 @@ public class IFCAnalysis {
 
 		}
 		
-		Collection<? extends IConflict> joanaConflicts = analyzeConflicts();
+		Collection<? extends IConflictLeak> joanaConflicts = analyzeConflicts();
 		if (!joanaConflicts.isEmpty()) {
 			debug.outln("conflicts:");
-			for (IConflict jc : joanaConflicts) {
+			for (IConflictLeak jc : joanaConflicts) {
 				debug.outln(jc);
 			}
 		}
@@ -231,14 +231,14 @@ public class IFCAnalysis {
 		return ret;
 	}
 	
-	public Set<IConflict> getConflicts() {
-		Collection<? extends IConflict> confs = analyzeConflicts();
-		Set<IConflict> ret = new HashSet<IConflict>();
+	public Set<IConflictLeak> getConflicts() {
+		Collection<? extends IConflictLeak> confs = analyzeConflicts();
+		Set<IConflictLeak> ret = new HashSet<IConflictLeak>();
 		ret.addAll(confs);
 		return ret;
 	}
 
-	private Collection<? extends IConflict> analyzeConflicts() {
+	private Collection<? extends IConflictLeak> analyzeConflicts() {
 		if (getIFC() instanceof ProbabilisticNIChecker) {
 			ProbabilisticNIChecker probIFC = (ProbabilisticNIChecker) getIFC();
 			ConflictScanner probSlicer = probIFC.getProbSlicer();

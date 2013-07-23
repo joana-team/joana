@@ -9,8 +9,7 @@ package edu.kit.joana.ifc.sdg.core.conc;
 
 import java.util.Collection;
 
-import edu.kit.joana.ifc.sdg.core.violations.IConflict;
-import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
+import edu.kit.joana.ifc.sdg.core.violations.IConflictLeak;
 
 /**
  * Common interface for all algorithms scanning for conflicts leading to 
@@ -21,8 +20,8 @@ import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
  * @author Martin Mohr
  */
 public interface ConflictScanner {
-	Collection<ClassifiedViolation> check();
-	Collection<? extends IConflict> getAllConflicts();
+	Collection<? extends IConflictLeak> check();
+	Collection<? extends IConflictLeak> getAllConflicts();
 	Collection<DataConflict> getDataConflicts();
 	Collection<OrderConflict> getOrderConflicts();
 	

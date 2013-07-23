@@ -8,29 +8,22 @@
 package edu.kit.joana.ifc.sdg.core.conc;
 
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
-import edu.kit.joana.ifc.sdg.core.violations.AbstractConflict;
+import edu.kit.joana.ifc.sdg.core.violations.AbstractConflictLeak;
+import edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.util.Maybe;
 
-public class OrderConflict extends AbstractConflict {
+public class OrderConflict extends AbstractConflictLeak {
 
-	private SDGEdge confEdge;
-	private String attackerLevel;
-	private Maybe<SecurityNode> trigger;
-	
 	private final String untriggeredTemplate = "Indefinite execution order between nodes %s and %s, visible for %s";
 	private final String triggeredTemplate = "Indefinite execution order between nodes %s and %s, visible for %s, may be influenced by %s";
 	
 	public OrderConflict(SDGEdge confEdge, String attackerLevel, Maybe<SecurityNode> trigger) {
-		this.confEdge = confEdge;
-		this.attackerLevel = attackerLevel;
-		this.trigger = trigger;
-		super.setSource((SecurityNode) confEdge.getSource());
-		super.setSink((SecurityNode) confEdge.getTarget());
+		super(confEdge, attackerLevel, trigger);
 	}
 	
 	public OrderConflict(SDGEdge confEdge, String attackerLevel) {
-		this(confEdge, attackerLevel, Maybe.<SecurityNode>nothing());
+		super(confEdge, attackerLevel);
 	}
 	
 	public SDGEdge getConflictEdge() {
@@ -98,5 +91,13 @@ public class OrderConflict extends AbstractConflict {
 			return false;
 		}
 		return true;
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.ifc.sdg.core.violations.IViolation#accept(edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor)
+	 */
+	@Override
+	public void accept(IViolationVisitor v) {
+		v.visitOrderConflict(this);
 	}
 }

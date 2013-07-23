@@ -15,8 +15,9 @@ import java.util.Set;
 
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.sdgtools.SDGTools;
-import edu.kit.joana.ifc.sdg.core.violations.AbstractConflict;
+import edu.kit.joana.ifc.sdg.core.violations.AbstractConflictLeak;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
+import edu.kit.joana.ifc.sdg.core.violations.IConflictLeak;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -114,13 +115,13 @@ public class LSODNISlicer implements ConflictScanner {
 	 * 
 	 * @return Die Menge der gefundenen Sicherheitsverletzungen.
 	 */
-	public Set<ClassifiedViolation> check() {
+	public Set<IConflictLeak> check() {
 		LinkedList<Element> criteria = collectCriteria();
 		this.sources.clear();
 		this.sinks.clear();
 		this.sources.addAll(SDGTools.getInformationSources(g));
 		this.sinks.addAll(SDGTools.getInformationSinks(g));
-		Set<ClassifiedViolation> set = new HashSet<ClassifiedViolation>();
+		Set<IConflictLeak> set = new HashSet<IConflictLeak>();
 		confEdgeMan.computeConflictEdges();
 		confEdgeMan.addConflictEdges();
 		conf.init();
@@ -266,7 +267,7 @@ public class LSODNISlicer implements ConflictScanner {
 	/**
 	 * Returns all the conflicts found in the last run of this algorithm.
 	 */
-	public Collection<AbstractConflict> getAllConflicts() {
+	public Collection<AbstractConflictLeak> getAllConflicts() {
 		return conf.getConflicts();
 	}
 
@@ -422,7 +423,7 @@ public class LSODNISlicer implements ConflictScanner {
 		 * 
 		 * @return Alle bisher gefundenen Konflikte.
 		 */
-		Collection<AbstractConflict> getConflicts();
+		Collection<AbstractConflictLeak> getConflicts();
 		Collection<DataConflict> getDataConflicts();
 		Collection<OrderConflict> getOrderConflicts();
 		
@@ -442,7 +443,7 @@ public class LSODNISlicer implements ConflictScanner {
 
 	private static class SimpleConflicts implements ConflictManager {
 		// menge der bisherigen konflikte
-		private LinkedList<AbstractConflict> conflicts;
+		private LinkedList<AbstractConflictLeak> conflicts;
 		private LinkedList<DataConflict> dataConflicts;
 		private LinkedList<OrderConflict> orderConflicts;
 		private Set<Pair<SDGNode, SDGNode>> ocEdges = new HashSet<Pair<SDGNode, SDGNode>>();
@@ -451,7 +452,7 @@ public class LSODNISlicer implements ConflictScanner {
 		 * Initialisierung.
 		 */
 		public SimpleConflicts() {
-			conflicts = new LinkedList<AbstractConflict>();
+			conflicts = new LinkedList<AbstractConflictLeak>();
 			dataConflicts = new LinkedList<DataConflict>();
 			orderConflicts = new LinkedList<OrderConflict>();
 		}
@@ -472,8 +473,8 @@ public class LSODNISlicer implements ConflictScanner {
 		 * 
 		 * @return Alle bisher gefundenen Konflikte.
 		 */
-		public Collection<AbstractConflict> getConflicts() {
-			return new LinkedList<AbstractConflict>(conflicts);
+		public Collection<AbstractConflictLeak> getConflicts() {
+			return new LinkedList<AbstractConflictLeak>(conflicts);
 		}
 
 		/*

@@ -15,9 +15,12 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
+import edu.kit.joana.ifc.sdg.core.conc.DataConflict;
 import edu.kit.joana.ifc.sdg.core.metrics.IMetrics;
 import edu.kit.joana.ifc.sdg.core.violations.paths.ViolationPath;
 import edu.kit.joana.ifc.sdg.core.violations.paths.ViolationPathes;
+
+import edu.kit.joana.ifc.sdg.core.conc.OrderConflict;
 
 
 /**
@@ -252,4 +255,13 @@ public class ClassifiedViolation implements IIllegalFlow {
 
         return vio;
     }
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.ifc.sdg.core.violations.IViolation#accept(edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor)
+	 */
+	@Override
+	public void accept(IViolationVisitor v) {
+		v.visitIllegalFlow(this);
+	}
+
 }

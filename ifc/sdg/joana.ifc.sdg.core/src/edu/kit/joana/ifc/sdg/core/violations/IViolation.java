@@ -7,9 +7,11 @@
  */
 package edu.kit.joana.ifc.sdg.core.violations;
 
+
 /**
+ * Common interface for all security violations which JOANA can find.
  * @author Martin Mohr
  */
 public interface IViolation {
-	String getAttackerLevel();
+	public void accept(IViolationVisitor v);
 }

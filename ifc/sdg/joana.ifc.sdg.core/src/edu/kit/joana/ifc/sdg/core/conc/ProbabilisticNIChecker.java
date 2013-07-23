@@ -8,9 +8,11 @@
 package edu.kit.joana.ifc.sdg.core.conc;
 
 import java.util.Collection;
+import java.util.LinkedList;
 
 import edu.kit.joana.ifc.sdg.core.IFC;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
+import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
@@ -77,7 +79,7 @@ public class ProbabilisticNIChecker extends IFC {
 		probInit = System.currentTimeMillis() - probInit;
 
 		probCheck = System.currentTimeMillis();
-		ret = prob.check();
+		ret = translate(prob.check());
 		probCheck = System.currentTimeMillis() - probCheck;
 
 		flowCheck = System.currentTimeMillis();
@@ -88,6 +90,11 @@ public class ProbabilisticNIChecker extends IFC {
 		//orderChannels = prob.orderChannels;
 
 		return ret;
+	}
+	
+	public Collection<ClassifiedViolation> translate(Collection<? extends IViolation> vios) {
+		ViolationTranslator trans = new ViolationTranslator();
+		return trans.translate(vios);
 	}
 	
 	public void setProbSlicer(ConflictScanner prob) {

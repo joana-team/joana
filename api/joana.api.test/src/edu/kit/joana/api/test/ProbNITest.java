@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -24,10 +25,11 @@ import edu.kit.joana.api.test.util.SDGAnalyzer;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.SecurityNode.SecurityNodeFactory;
 import edu.kit.joana.ifc.sdg.core.conc.BarrierIFCSlicer;
-import edu.kit.joana.ifc.sdg.core.conc.LSODNISlicer;
 import edu.kit.joana.ifc.sdg.core.conc.ConflictScanner;
+import edu.kit.joana.ifc.sdg.core.conc.LSODNISlicer;
 import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNISlicer;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
+import edu.kit.joana.ifc.sdg.core.violations.IConflictLeak;
 import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -97,8 +99,8 @@ public class ProbNITest {
 		}
 		
 		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
-		ConflictScanner checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), mhp, false, false);
-		Collection<ClassifiedViolation> vios = checker.check();
+		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), mhp, false, false);
+		Set<IConflictLeak> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
 	}
 	
@@ -107,11 +109,11 @@ public class ProbNITest {
 		if (DEBUG) debug.outln("=== Mohr LSOD ===");
 		SDG sdg = annotateDataConflictRW();
 		//assertNoTraditionalLeaks(sdg);
-		ConflictScanner checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), false);
-		Collection<ClassifiedViolation> vios = checker.check();
+		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), false);
+		Collection<IConflictLeak> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
 		if (DEBUG) {
-			for (IIllegalFlow v : vios) {
+			for (IConflictLeak v : vios) {
 				debug.outln(v);
 			}
 		}
@@ -128,11 +130,11 @@ public class ProbNITest {
 		if (DEBUG) debug.outln("=== Mohr LSOD Opt. ===");
 		SDG sdg = annotateDataConflictRW();
 		//assertNoTraditionalLeaks(sdg);
-		ConflictScanner checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), true);
-		Collection<ClassifiedViolation> vios = checker.check();
+		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), true);
+		Collection<IConflictLeak> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
 		if (DEBUG) {
-			for (IIllegalFlow v : vios) {
+			for (IConflictLeak v : vios) {
 				debug.outln(v);
 			}
 		}
@@ -143,11 +145,11 @@ public class ProbNITest {
 		if (DEBUG) debug.outln("=== Mohr LSOD ===");
 		SDG sdg = annotateOrderConflict();
 		//assertNoTraditionalLeaks(sdg);
-		ConflictScanner checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), false);
-		Collection<ClassifiedViolation> vios = checker.check();
+		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), false);
+		Collection<IConflictLeak> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
 		if (DEBUG) {
-			for (IIllegalFlow v : vios) {
+			for (IConflictLeak v : vios) {
 				debug.outln(v);
 			}
 		}
@@ -158,11 +160,11 @@ public class ProbNITest {
 		if (DEBUG) debug.outln("=== Mohr LSOD Opt. ===");
 		SDG sdg = annotateOrderConflict();
 		//assertNoTraditionalLeaks(sdg);
-		ConflictScanner checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), true);
-		Collection<ClassifiedViolation> vios = checker.check();
+		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), true);
+		Collection<IConflictLeak> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
 		if (DEBUG) {
-			for (IIllegalFlow v : vios) {
+			for (IConflictLeak v : vios) {
 				debug.outln(v);
 			}
 		}
@@ -173,11 +175,11 @@ public class ProbNITest {
 		if (DEBUG) debug.outln("=== Giffhorn LSOD ===");
 		SDG sdg = annotateOrderConflict();
 		//assertNoTraditionalLeaks(sdg);
-		ConflictScanner checker = ProbabilisticNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice());
-		Collection<ClassifiedViolation> vios = checker.check();
+		ProbabilisticNISlicer checker = ProbabilisticNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice());
+		Collection<IConflictLeak> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
 		if (DEBUG) {
-			for (IIllegalFlow v : vios) {
+			for (IConflictLeak v : vios) {
 				debug.outln(v);
 			}
 		}
@@ -188,11 +190,11 @@ public class ProbNITest {
 		if (DEBUG) debug.outln("=== Giffhorn ===");
 		SDG sdg = annotateDataConflictRW();
 		//assertNoTraditionalLeaks(sdg);
-		ConflictScanner checker = ProbabilisticNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice());
-		Collection<ClassifiedViolation> vios = checker.check();
+		ProbabilisticNISlicer checker = ProbabilisticNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice());
+		Collection<IConflictLeak> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
 		if (DEBUG) {
-			for (IIllegalFlow v : vios) {
+			for (IConflictLeak v : vios) {
 				debug.outln(v);
 			}
 		}

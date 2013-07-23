@@ -8,15 +8,14 @@
 package edu.kit.joana.ifc.sdg.core.conc;
 
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
-import edu.kit.joana.ifc.sdg.core.violations.AbstractConflict;
+import edu.kit.joana.ifc.sdg.core.violations.AbstractConflictLeak;
+import edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.util.Maybe;
 
-public class DataConflict extends AbstractConflict {
+public class DataConflict extends AbstractConflictLeak {
 
-	private final SDGEdge confEdge;
 	private final SecurityNode influenced;
-	private final String attackerLevel;
 	private final Maybe<SecurityNode> trigger;
 	
 	private final String untriggeredTemplate = "Data conflict between nodes %s and %s, may influence the behaviour of node %s, which is visible for %s";
@@ -24,21 +23,18 @@ public class DataConflict extends AbstractConflict {
 	
 	public DataConflict(SDGEdge confEdge, SecurityNode influenced,
 			String attackerLevel, Maybe<SecurityNode> trigger) {
-		this.confEdge = confEdge;
+		super(confEdge, attackerLevel);
 		this.influenced = influenced;
-		this.attackerLevel = attackerLevel;
 		this.trigger = trigger;
-		super.setSink(influenced);
-		if (trigger.isJust()) {
-			super.setSource(trigger.extract());
-		} else {
-			super.setSource(null);
-		}
 	}
 	
 	public DataConflict(SDGEdge confEdge, SecurityNode influenced,
 			String attackerLevel) {
 		this(confEdge, influenced, attackerLevel, Maybe.<SecurityNode>nothing());
+	}
+	
+	public SecurityNode getInfluenced() {
+		return influenced;
 	}
 
 	@Override
@@ -106,5 +102,21 @@ public class DataConflict extends AbstractConflict {
 			return false;
 		}
 		return true;
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.ifc.sdg.core.violations.IConflictLeak#getAttackerLevel()
+	 */
+	@Override
+	public String getAttackerLevel() {
+		return attackerLevel;
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.ifc.sdg.core.violations.IViolation#accept(edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor)
+	 */
+	@Override
+	public void accept(IViolationVisitor v) {
+		v.visitDataConflict(this);
 	}
 }

@@ -18,8 +18,8 @@ import java.util.Set;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.interfaces.ProgressListener;
 import edu.kit.joana.ifc.sdg.core.sdgtools.SDGTools;
-import edu.kit.joana.ifc.sdg.core.violations.AbstractConflict;
-import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
+import edu.kit.joana.ifc.sdg.core.violations.AbstractConflictLeak;
+import edu.kit.joana.ifc.sdg.core.violations.IConflictLeak;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -56,7 +56,7 @@ public class ProbabilisticNISlicer implements ConflictScanner {
          *
          * @return Alle bisher gefundenen Konflikte.
          */
-        Collection<AbstractConflict> getConflicts();
+        Collection<AbstractConflictLeak> getConflicts();
         
         Collection<DataConflict> getDataConflicts();
         Collection<OrderConflict> getOrderConflicts();
@@ -79,7 +79,7 @@ public class ProbabilisticNISlicer implements ConflictScanner {
      */
     private static class SimpleConflicts implements ConflictManager {
         // menge der bisherigen konflikte
-        private HashSet<AbstractConflict> conflicts;
+        private HashSet<AbstractConflictLeak> conflicts;
         private Set<DataConflict> dataConflicts;
         private Set<OrderConflict> orderConflicts;
         
@@ -89,7 +89,7 @@ public class ProbabilisticNISlicer implements ConflictScanner {
          * Initialisierung.
          */
         public SimpleConflicts() {
-            this.conflicts = new HashSet<AbstractConflict>();
+            this.conflicts = new HashSet<AbstractConflictLeak>();
             this.dataConflicts = new HashSet<DataConflict>();
             this.orderConflicts = new HashSet<OrderConflict>();
         }
@@ -99,7 +99,7 @@ public class ProbabilisticNISlicer implements ConflictScanner {
          *
          * @return Alle bisher gefundenen Konflikte.
          */
-        public Collection<AbstractConflict> getConflicts() {
+        public Collection<AbstractConflictLeak> getConflicts() {
             return conflicts;
         }
 
@@ -430,10 +430,10 @@ public class ProbabilisticNISlicer implements ConflictScanner {
      *
      * @return Die Menge der gefundenen Sicherheitsverletzungen.
      */
-    public Set<ClassifiedViolation> check() {
+    public Set<IConflictLeak> check() {
         // bestimme alle annotierten knoten
         LinkedList<Element> criteria = collectCriteria();
-        Set<ClassifiedViolation> set = new HashSet<ClassifiedViolation>();
+        Set<IConflictLeak> set = new HashSet<IConflictLeak>();
         confEdgeMan.addConflictEdges();
         // pruefe jeden annotierten knoten auf probabilistische noninterferenz
         for (Element e : criteria) {
@@ -595,7 +595,7 @@ public class ProbabilisticNISlicer implements ConflictScanner {
         this.pls.remove(pl);
     }
     
-    public Collection<AbstractConflict> getAllConflicts() {
+    public Collection<AbstractConflictLeak> getAllConflicts() {
     	return conf.getConflicts();
     }
 

@@ -114,7 +114,7 @@ public class JoinAnalysisIFCMantelTest {
 			IFCAnalysis ana = buildAndAnnotateMantel(MHPType.SIMPLE);
 			Collection<IllicitFlow> illegal = ana.doIFC(IFCType.PROBABILISTIC_WITH_SIMPLE_MHP);
 			assertFalse(illegal.isEmpty());
-			assertEquals(378, illegal.size());
+			assertEquals(385, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

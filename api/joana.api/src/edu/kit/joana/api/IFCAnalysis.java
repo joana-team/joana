@@ -218,10 +218,10 @@ public class IFCAnalysis {
 
 		}
 		
-		Collection<JoanaConflict> joanaConflicts = analyzeConflicts();
+		Collection<? extends IConflict> joanaConflicts = analyzeConflicts();
 		if (!joanaConflicts.isEmpty()) {
 			debug.outln("conflicts:");
-			for (JoanaConflict jc : joanaConflicts) {
+			for (IConflict jc : joanaConflicts) {
 				debug.outln(jc);
 			}
 		}
@@ -230,27 +230,18 @@ public class IFCAnalysis {
 		return ret;
 	}
 	
-	public Set<JoanaConflict> getConflicts() {
-		Collection<JoanaConflict> confs = analyzeConflicts();
-		Set<JoanaConflict> ret = new HashSet<JoanaConflict>();
+	public Set<IConflict> getConflicts() {
+		Collection<? extends IConflict> confs = analyzeConflicts();
+		Set<IConflict> ret = new HashSet<IConflict>();
 		ret.addAll(confs);
 		return ret;
 	}
 
-	private Collection<JoanaConflict> analyzeConflicts() {
+	private Collection<? extends IConflict> analyzeConflicts() {
 		if (getIFC() instanceof ProbabilisticNIChecker) {
 			ProbabilisticNIChecker probIFC = (ProbabilisticNIChecker) getIFC();
 			ConflictScanner probSlicer = probIFC.getProbSlicer();
-			Collection<? extends IConflict> conflicts = probSlicer.getAllConflicts();
-			Collection<JoanaConflict> joanaConflicts = new LinkedList<JoanaConflict>();
-			for (IConflict c : conflicts) {
-				if (c instanceof OrderConflict) {
-					joanaConflicts.add(new JoanaOrderConflict(getProgram(), (OrderConflict) c));
-				} else {
-					joanaConflicts.add(new JoanaDataConflict(getProgram(), (ClassifiedConflict) c));
-				}
-			}
-			return joanaConflicts;
+			return probSlicer.getAllConflicts();
 		} else {
 			return Collections.emptySet();
 		}

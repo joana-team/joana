@@ -16,7 +16,6 @@ import java.util.Set;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.sdgtools.SDGTools;
 import edu.kit.joana.ifc.sdg.core.violations.AbstractConflictLeak;
-import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.core.violations.IConflictLeak;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;

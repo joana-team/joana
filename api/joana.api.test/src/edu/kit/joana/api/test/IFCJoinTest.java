@@ -22,12 +22,14 @@ import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.test.util.BuildSDG;
 import edu.kit.joana.api.test.util.JoanaPath;
 import edu.kit.joana.api.test.util.SDGAnalyzer;
+import edu.kit.joana.ifc.sdg.core.ClassifyingIFC;
 import edu.kit.joana.ifc.sdg.core.IFC;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.SecurityNode.SecurityNodeFactory;
 import edu.kit.joana.ifc.sdg.core.conc.BarrierIFCSlicer;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
+import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -35,7 +37,6 @@ import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PBackward;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PForward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadRegion;
 
 /**
  * @author Martin Mohr &lt;martin.mohr@kit.edu&gt;
@@ -112,11 +113,11 @@ public class IFCJoinTest {
 		}
 
 		
-		IFC ifc = new BarrierIFCSlicer(sdg, BuiltinLattices.getBinaryLattice());
+		ClassifyingIFC ifc = new ClassifyingIFC(new BarrierIFCSlicer(sdg, BuiltinLattices.getBinaryLattice()));
 		Collection<ClassifiedViolation> vios = ifc.checkIFlow();
 		Assert.assertFalse(vios.isEmpty());
 		Assert.assertEquals(1, vios.size());
-		IIllegalFlow vio = vios.iterator().next();
+		ClassifiedViolation vio = vios.iterator().next();
 		Collection<SDGNode> chop = computeSomeChop(sdg, vio.getSource(), vio.getSink());
 		Assert.assertFalse(chop.isEmpty());
 		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
@@ -164,7 +165,7 @@ public class IFCJoinTest {
 		}
 
 		
-		IFC ifc = new BarrierIFCSlicer(sdg, BuiltinLattices.getBinaryLattice());
+		ClassifyingIFC ifc = new ClassifyingIFC(new BarrierIFCSlicer(sdg, BuiltinLattices.getBinaryLattice()));
 		Collection<ClassifiedViolation> vios = ifc.checkIFlow();
 		Assert.assertFalse(vios.isEmpty());
 		Assert.assertEquals(1, vios.size());

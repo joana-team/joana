@@ -8,10 +8,10 @@
 package edu.kit.joana.ifc.sdg.core.conc;
 
 import java.util.Collection;
-import java.util.LinkedList;
 
 import edu.kit.joana.ifc.sdg.core.IFC;
-import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
+import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
+import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.Nanda;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.NandaBackward;
@@ -37,19 +37,29 @@ public class TimeSensitiveIFCDecorator extends IFC {
 	 * @see edu.kit.joana.ifc.sdg.core.IFC#checkIFlow()
 	 */
 	@Override
-	public Collection<ClassifiedViolation> checkIFlow() throws NotInLatticeException {
-		Collection<ClassifiedViolation> baseVios = baseIFC.checkIFlow();
-		Collection<ClassifiedViolation> refinedVios = new LinkedList<ClassifiedViolation>();
+	public Collection<? extends IViolation> checkIFlow() throws NotInLatticeException {
+		Collection<? extends IViolation> baseVios = baseIFC.checkIFlow();
 		Nanda tsbwSlicer = new Nanda(baseIFC.getSDG(), new NandaBackward());
-		for (ClassifiedViolation vio : baseVios) {
-			Collection<SDGNode> tsSlice = tsbwSlicer.slice(vio.getSink());
-			if (tsSlice.contains(vio.getSource())) {
-				// there is a path without time-travel between source and sink
-				refinedVios.add(vio);
-			} 
-		}
+		TSFilter filter = new TSFilter(tsbwSlicer);
+		return filter.filter(baseVios);
+	}
+	
+	private static class TSFilter extends ViolationFilter {
 		
-		return refinedVios;
+		private Nanda tsbwSlicer;
+		
+		TSFilter(Nanda tsbwSlicer) {
+			this.tsbwSlicer = tsbwSlicer;
+		}
+
+		/* (non-Javadoc)
+		 * @see edu.kit.joana.ifc.sdg.core.conc.TimeSensitiveIFCDecorator.ViolationFilter#acceptIllegalFlow(edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow)
+		 */
+		@Override
+		protected boolean acceptIllegalFlow(IIllegalFlow iFlow) {
+			Collection<SDGNode> tsSlice = tsbwSlicer.slice(iFlow.getSink());
+			return tsSlice.contains(iFlow.getSource());
+		}
 	}
 
 }

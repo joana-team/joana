@@ -66,8 +66,8 @@ public class ProbabilisticNIChecker extends IFC {
 	 * @throws InterSlicePluginException
 	 * @throws NotInLatticeException
 	 */
-	public Collection<ClassifiedViolation> checkIFlow() throws NotInLatticeException {
-		Collection<ClassifiedViolation> ret = null; // list to be returned
+	public Collection<? extends IViolation> checkIFlow() throws NotInLatticeException {
+		Collection<IViolation> ret = new LinkedList<IViolation>(); // list to be returned
 		IFC is = new BarrierIFCSlicer(g, l);
 		
 		if (timeSens) {
@@ -79,7 +79,7 @@ public class ProbabilisticNIChecker extends IFC {
 		probInit = System.currentTimeMillis() - probInit;
 
 		probCheck = System.currentTimeMillis();
-		ret = translate(prob.check());
+		ret.addAll(prob.check());
 		probCheck = System.currentTimeMillis() - probCheck;
 
 		flowCheck = System.currentTimeMillis();
@@ -94,7 +94,7 @@ public class ProbabilisticNIChecker extends IFC {
 	
 	public Collection<ClassifiedViolation> translate(Collection<? extends IViolation> vios) {
 		ViolationTranslator trans = new ViolationTranslator();
-		return trans.translate(vios);
+		return trans.map(vios);
 	}
 	
 	public void setProbSlicer(ConflictScanner prob) {

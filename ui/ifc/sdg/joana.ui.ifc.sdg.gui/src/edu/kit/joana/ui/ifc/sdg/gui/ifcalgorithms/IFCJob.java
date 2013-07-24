@@ -10,7 +10,6 @@ package edu.kit.joana.ui.ifc.sdg.gui.ifcalgorithms;
 import java.util.Collection;
 import java.util.LinkedList;
 
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -18,6 +17,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
+import edu.kit.joana.ifc.sdg.core.ClassifyingIFC;
 import edu.kit.joana.ifc.sdg.core.IFC;
 import edu.kit.joana.ifc.sdg.core.metrics.IMetrics;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
@@ -30,7 +30,7 @@ public class IFCJob extends Job {
     protected IProject p;
     protected SDG sdg;
     protected IStaticLattice<String> l;
-    protected IFC ifc;
+    protected ClassifyingIFC ifc;
     protected Collection<IMetrics> metrics;
     protected Collection<ClassifiedViolation> violations;
 
@@ -43,7 +43,7 @@ public class IFCJob extends Job {
         this.sdg = sdg;
         this.l = l;
         metrics = new LinkedList<IMetrics>();
-        this.ifc = ifc;
+        this.ifc = new ClassifyingIFC(ifc);
     }
 
     public void addMetrics(IMetrics m) {

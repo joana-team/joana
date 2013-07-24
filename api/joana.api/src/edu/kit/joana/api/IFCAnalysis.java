@@ -189,7 +189,7 @@ public class IFCAnalysis {
 		annManager.applyAllAnnotations();
 		long time = 0L;
 		time = System.currentTimeMillis();
-		Collection<ClassifiedViolation> vios = new ViolationTranslator().translate(ifc.checkIFlow());
+		Collection<ClassifiedViolation> vios = new ViolationTranslator().map(ifc.checkIFlow());
 		time = System.currentTimeMillis() - time;
 		debug.outln(String.format("IFC Analysis took %d ms.", time));
 		List<IllicitFlow> ret = new LinkedList<IllicitFlow>();

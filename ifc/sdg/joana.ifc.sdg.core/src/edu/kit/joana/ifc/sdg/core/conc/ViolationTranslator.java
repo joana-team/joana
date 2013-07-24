@@ -7,59 +7,40 @@
  */
 package edu.kit.joana.ifc.sdg.core.conc;
 
-import java.util.Collection;
-import java.util.LinkedList;
-
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
-import edu.kit.joana.ifc.sdg.core.violations.IViolation;
-import edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor;
 
 /**
- * TODO: @author Add your name here.
+ * @author Martin Mohr
  */
-public class ViolationTranslator implements IViolationVisitor {
-	
-	private Collection<ClassifiedViolation> translated = new LinkedList<ClassifiedViolation>();
+public class ViolationTranslator extends ViolationMapper<ClassifiedViolation> {
 	
 	/* (non-Javadoc)
-	 * @see edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor#visitIllegalFlow(edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow)
+	 * @see edu.kit.joana.ifc.sdg.core.conc.ViolationMapper#mapIllegalFlow(edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow)
 	 */
 	@Override
-	public void visitIllegalFlow(IIllegalFlow iFlow) {
-		translated.add(ClassifiedViolation.createViolation(iFlow.getSink(), iFlow.getSource(), iFlow.getAttackerLevel()));
+	protected ClassifiedViolation mapIllegalFlow(IIllegalFlow iFlow) {
+		return ClassifiedViolation.createViolation(iFlow.getSink(), iFlow.getSource(), iFlow.getAttackerLevel());
 	}
 
 	/* (non-Javadoc)
-	 * @see edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor#visitDataConflict(edu.kit.joana.ifc.sdg.core.conc.DataConflict)
+	 * @see edu.kit.joana.ifc.sdg.core.conc.ViolationMapper#mapDataConflict(edu.kit.joana.ifc.sdg.core.conc.DataConflict)
 	 */
 	@Override
-	public void visitDataConflict(DataConflict dataConf) {
+	protected ClassifiedViolation mapDataConflict(DataConflict dc) {
 		SecurityNode src = null;
-    	if (dataConf.getTrigger().isJust()) {
-    		src = dataConf.getTrigger().extract();
+    	if (dc.getTrigger().isJust()) {
+    		src = dc.getTrigger().extract();
     	}
-    	translated.add(ClassifiedViolation.createViolation(dataConf.getInfluenced(), src, dataConf.getAttackerLevel()));
+    	return ClassifiedViolation.createViolation(dc.getInfluenced(), src, dc.getAttackerLevel());
 	}
 
 	/* (non-Javadoc)
-	 * @see edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor#visitOrderConflict(edu.kit.joana.ifc.sdg.core.conc.OrderConflict)
+	 * @see edu.kit.joana.ifc.sdg.core.conc.ViolationMapper#mapOrderConflict(edu.kit.joana.ifc.sdg.core.conc.OrderConflict)
 	 */
 	@Override
-	public void visitOrderConflict(OrderConflict orderConf) {
-		translated.add(ClassifiedViolation.createViolation((SecurityNode) orderConf.getConflictEdge().getTarget(), (SecurityNode) orderConf.getConflictEdge().getSource(), orderConf.getAttackerLevel()));
-	}
-	
-	public void reset() {
-		translated.clear();
-	}
-	
-	public Collection<ClassifiedViolation> translate(Collection<? extends IViolation> vios) {
-		reset();
-		for (IViolation vio : vios) {
-			vio.accept(this);
-		}
-		return new LinkedList<ClassifiedViolation>(translated);
+	protected ClassifiedViolation mapOrderConflict(OrderConflict oc) {
+		return ClassifiedViolation.createViolation((SecurityNode) oc.getConflictEdge().getTarget(), (SecurityNode) oc.getConflictEdge().getSource(), oc.getAttackerLevel());
 	}
 }

@@ -28,7 +28,6 @@ import edu.kit.joana.ifc.sdg.graph.slicer.conc.CFGForward;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.CFGSlicer;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.Nanda;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.NandaBackward;
-import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.NandaForward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
@@ -167,15 +166,11 @@ public class ProbabilisticNISlicer implements ConflictScanner {
      * @author giffhorn
      */
     private class ConflictEdgeManager {
-    	private final boolean timeSens;
     	private HashMap<SDGNode, Collection<SDGNode>> before = new HashMap<SDGNode, Collection<SDGNode>>();
     	private List<SDGEdge> dataConflictEdges = new LinkedList<SDGEdge>();
     	private List<SDGEdge> orderConflictEdges = new LinkedList<SDGEdge>();
-    	
-    	ConflictEdgeManager(boolean timeSens) {
-    		this.timeSens = timeSens;
-    	}
-    	
+
+
     	/**
          * Berechnet die Konfliktkanten, die spaeter in den SDG eingefuegt werden muessen.
          */
@@ -323,16 +318,6 @@ public class ProbabilisticNISlicer implements ConflictScanner {
         		Collection<SDGNode> s = slicer.slice(n);
         		before.put(n, s);
         	}
-        	
-        	if (this.timeSens) {
-        		Nanda tsfwSlicer = new Nanda(g, new NandaForward());
-        		for (SDGNode n : sources) {
-        			Collection<SDGNode> tsfwSliceOfN = tsfwSlicer.slice(n);
-        			Collection<SDGNode> maybeInfluenced = before.get(n);
-        			maybeInfluenced.retainAll(tsfwSliceOfN);
-        			before.put(n, maybeInfluenced);
-        		}
-        	}
         }
         
         void addConflictEdges() {
@@ -420,7 +405,7 @@ public class ProbabilisticNISlicer implements ConflictScanner {
          triggersToDataConflicts = new HashMap<SecurityNode, HashSet<SDGEdge>>();
          sources = SDGTools.getInformationSources(g);
          sinks = SDGTools.getInformationSinks(g);
-         this.confEdgeMan = new ConflictEdgeManager(this.timeSens);
+         this.confEdgeMan = new ConflictEdgeManager();
          confEdgeMan.computeConflictEdges();
     }
 

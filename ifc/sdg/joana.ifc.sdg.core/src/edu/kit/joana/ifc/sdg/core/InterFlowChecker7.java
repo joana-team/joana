@@ -21,7 +21,6 @@ import java.util.LinkedList;
 
 import edu.kit.joana.ifc.sdg.core.sdgtools.SDGTools;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
-import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
 import edu.kit.joana.ifc.sdg.core.violations.paths.PathGenerator;
 import edu.kit.joana.ifc.sdg.core.violations.paths.ViolationPathes;
 import edu.kit.joana.ifc.sdg.graph.SDG;

@@ -143,7 +143,7 @@ public class ClassifyingIFC extends IFC {
 	 */
 	@Override
 	public Collection<ClassifiedViolation> checkIFlow() throws NotInLatticeException {
-		Collection<? extends IViolation> vios = ifc.checkIFlow();
+		Collection<? extends IViolation<SecurityNode>> vios = ifc.checkIFlow();
 		return new ViolationTranslator().map(vios);
 	}
 	

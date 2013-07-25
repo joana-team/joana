@@ -19,6 +19,7 @@ import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.interfaces.ProgressListener;
 import edu.kit.joana.ifc.sdg.core.sdgtools.SDGTools;
 import edu.kit.joana.ifc.sdg.core.violations.AbstractConflictLeak;
+import edu.kit.joana.ifc.sdg.core.violations.ConflictEdge;
 import edu.kit.joana.ifc.sdg.core.violations.IConflictLeak;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -55,10 +56,10 @@ public class ProbabilisticNISlicer implements ConflictScanner {
          *
          * @return Alle bisher gefundenen Konflikte.
          */
-        Collection<AbstractConflictLeak> getConflicts();
+        Collection<AbstractConflictLeak<SecurityNode>> getConflicts();
         
-        Collection<DataConflict> getDataConflicts();
-        Collection<OrderConflict> getOrderConflicts();
+        Collection<DataConflict<SecurityNode>> getDataConflicts();
+        Collection<OrderConflict<SecurityNode>> getOrderConflicts();
 
         /**
          * Aktualisiert die Konfliktliste.
@@ -78,9 +79,9 @@ public class ProbabilisticNISlicer implements ConflictScanner {
      */
     private static class SimpleConflicts implements ConflictManager {
         // menge der bisherigen konflikte
-        private HashSet<AbstractConflictLeak> conflicts;
-        private Set<DataConflict> dataConflicts;
-        private Set<OrderConflict> orderConflicts;
+        private HashSet<AbstractConflictLeak<SecurityNode>> conflicts;
+        private Set<DataConflict<SecurityNode>> dataConflicts;
+        private Set<OrderConflict<SecurityNode>> orderConflicts;
         
         private Set<Pair<SDGNode, SDGNode>> confEdges = new HashSet<Pair<SDGNode, SDGNode>>();
         
@@ -88,9 +89,9 @@ public class ProbabilisticNISlicer implements ConflictScanner {
          * Initialisierung.
          */
         public SimpleConflicts() {
-            this.conflicts = new HashSet<AbstractConflictLeak>();
-            this.dataConflicts = new HashSet<DataConflict>();
-            this.orderConflicts = new HashSet<OrderConflict>();
+            this.conflicts = new HashSet<AbstractConflictLeak<SecurityNode>>();
+            this.dataConflicts = new HashSet<DataConflict<SecurityNode>>();
+            this.orderConflicts = new HashSet<OrderConflict<SecurityNode>>();
         }
 
         /**
@@ -98,7 +99,7 @@ public class ProbabilisticNISlicer implements ConflictScanner {
          *
          * @return Alle bisher gefundenen Konflikte.
          */
-        public Collection<AbstractConflictLeak> getConflicts() {
+        public Collection<AbstractConflictLeak<SecurityNode>> getConflicts() {
             return conflicts;
         }
 
@@ -114,14 +115,14 @@ public class ProbabilisticNISlicer implements ConflictScanner {
         public void updateConflicts(SecurityNode sink, SecurityNode source, SDGEdge edge, String attackerLevel) {
             if (edge.getKind() == SDGEdge.Kind.CONFLICT_DATA) {
                 // erzeuge neuen Conflict
-            	DataConflict con  = new DataConflict(edge, sink, attackerLevel, Maybe.just(source));
+            	DataConflict<SecurityNode> con  = new DataConflict<SecurityNode>(ConflictEdge.fromSDGEdge(edge), sink, attackerLevel, Maybe.just(source));
                 conflicts.add(con);
                 dataConflicts.add(con);
                 confEdges.add(Pair.pair(edge.getSource(), edge.getTarget()));
             } else if (edge.getKind() == SDGEdge.Kind.CONFLICT_ORDER) {
                 // erzeuge neuen OrderConflict
             	if (!confEdges.contains(Pair.pair(edge.getSource(), edge.getTarget())) && !confEdges.contains(Pair.pair(edge.getTarget(), edge.getSource()))) {
-            		OrderConflict con  = new OrderConflict(edge, attackerLevel, Maybe.just(source));
+            		OrderConflict<SecurityNode> con  = new OrderConflict<SecurityNode>(ConflictEdge.fromSDGEdge(edge), attackerLevel, Maybe.just(source));
                     conflicts.add(con);
                     orderConflicts.add(con);
                     confEdges.add(Pair.pair(edge.getSource(), edge.getTarget()));
@@ -133,7 +134,7 @@ public class ProbabilisticNISlicer implements ConflictScanner {
 		 * @see edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNISlicer.ConflictManager#getDataConflicts()
 		 */
 		@Override
-		public Collection<DataConflict> getDataConflicts() {
+		public Collection<DataConflict<SecurityNode>> getDataConflicts() {
 			return dataConflicts;
 		}
 
@@ -141,7 +142,7 @@ public class ProbabilisticNISlicer implements ConflictScanner {
 		 * @see edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNISlicer.ConflictManager#getOrderConflicts()
 		 */
 		@Override
-		public Collection<OrderConflict> getOrderConflicts() {
+		public Collection<OrderConflict<SecurityNode>> getOrderConflicts() {
 			return orderConflicts;
 		}
     }
@@ -415,10 +416,14 @@ public class ProbabilisticNISlicer implements ConflictScanner {
      *
      * @return Die Menge der gefundenen Sicherheitsverletzungen.
      */
-    public Set<IConflictLeak> check() {
+    public Set<IConflictLeak<SecurityNode>> check() {
+    	
+    	
+    	System.out.println("*** This is Giffhorn's optimized LSOD checker! ***");
+    	
         // bestimme alle annotierten knoten
         LinkedList<Element> criteria = collectCriteria();
-        Set<IConflictLeak> set = new HashSet<IConflictLeak>();
+        Set<IConflictLeak<SecurityNode>> set = new HashSet<IConflictLeak<SecurityNode>>();
         confEdgeMan.addConflictEdges();
         // pruefe jeden annotierten knoten auf probabilistische noninterferenz
         for (Element e : criteria) {
@@ -580,7 +585,7 @@ public class ProbabilisticNISlicer implements ConflictScanner {
         this.pls.remove(pl);
     }
     
-    public Collection<AbstractConflictLeak> getAllConflicts() {
+    public Collection<AbstractConflictLeak<SecurityNode>> getAllConflicts() {
     	return conf.getConflicts();
     }
 
@@ -606,7 +611,7 @@ public class ProbabilisticNISlicer implements ConflictScanner {
 	 * @see edu.kit.joana.ifc.sdg.core.conc.ConflictScanner#getDataConflicts()
 	 */
 	@Override
-	public Collection<DataConflict> getDataConflicts() {
+	public Collection<DataConflict<SecurityNode>> getDataConflicts() {
 		return conf.getDataConflicts();
 	}
 
@@ -614,7 +619,7 @@ public class ProbabilisticNISlicer implements ConflictScanner {
 	 * @see edu.kit.joana.ifc.sdg.core.conc.ConflictScanner#getOrderConflicts()
 	 */
 	@Override
-	public Collection<edu.kit.joana.ifc.sdg.core.conc.OrderConflict> getOrderConflicts() {
+	public Collection<OrderConflict<SecurityNode>> getOrderConflicts() {
 		return conf.getOrderConflicts();
 	}
 }

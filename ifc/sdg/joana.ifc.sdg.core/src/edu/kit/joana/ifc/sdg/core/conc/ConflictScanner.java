@@ -9,6 +9,7 @@ package edu.kit.joana.ifc.sdg.core.conc;
 
 import java.util.Collection;
 
+import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.IConflictLeak;
 
 /**
@@ -20,9 +21,9 @@ import edu.kit.joana.ifc.sdg.core.violations.IConflictLeak;
  * @author Martin Mohr
  */
 public interface ConflictScanner {
-	Collection<? extends IConflictLeak> check();
-	Collection<? extends IConflictLeak> getAllConflicts();
-	Collection<DataConflict> getDataConflicts();
-	Collection<OrderConflict> getOrderConflicts();
+	Collection<? extends IConflictLeak<SecurityNode>> check();
+	Collection<? extends IConflictLeak<SecurityNode>> getAllConflicts();
+	Collection<DataConflict<SecurityNode>> getDataConflicts();
+	Collection<OrderConflict<SecurityNode>> getOrderConflicts();
 	
 }

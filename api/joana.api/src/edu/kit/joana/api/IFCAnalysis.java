@@ -8,14 +8,8 @@
 package edu.kit.joana.api;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import com.ibm.wala.shrikeCT.AnnotationsReader.ElementValue;
 import com.ibm.wala.shrikeCT.AnnotationsReader.EnumElementValue;
@@ -37,17 +31,17 @@ import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.api.sdg.SDGProgramPartWriter;
 import edu.kit.joana.ifc.sdg.core.IFC;
 import edu.kit.joana.ifc.sdg.core.ReduceRedundantFlows;
-import edu.kit.joana.ifc.sdg.core.conc.ConflictScanner;
+import edu.kit.joana.ifc.sdg.core.SecurityNode;
+import edu.kit.joana.ifc.sdg.core.conc.DataConflict;
+import edu.kit.joana.ifc.sdg.core.conc.OrderConflict;
 import edu.kit.joana.ifc.sdg.core.conc.PossibilisticNIChecker;
 import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNIChecker;
 import edu.kit.joana.ifc.sdg.core.conc.TimeSensitiveIFCDecorator;
-import edu.kit.joana.ifc.sdg.core.conc.ViolationTranslator;
-import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
-import edu.kit.joana.ifc.sdg.core.violations.IConflictLeak;
+import edu.kit.joana.ifc.sdg.core.conc.ViolationMapper;
+import edu.kit.joana.ifc.sdg.core.violations.ConflictEdge;
 import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
-import edu.kit.joana.ifc.sdg.graph.SDG;
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.graph.chopper.RepsRosayChopper;
+import edu.kit.joana.ifc.sdg.core.violations.IViolation;
+import edu.kit.joana.ifc.sdg.core.violations.IllegalFlow;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.SimpleMHPAnalysis;
@@ -57,6 +51,9 @@ import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
+import edu.kit.joana.util.Maybe;
+import gnu.trove.map.TObjectIntMap;
+import gnu.trove.map.hash.TObjectIntHashMap;
 
 public class IFCAnalysis {
 
@@ -180,90 +177,74 @@ public class IFCAnalysis {
 	public Collection<IFCAnnotation> getAnnotations() {
 		return annManager.getAnnotations();
 	}
-
-	public Collection<IllicitFlow> doIFC(IFCType ifcType) {
+	
+	public Collection<? extends IViolation<SecurityNode>> doIFC(IFCType ifcType) {
 		setIFCType(ifcType);
 		assert ifc != null && ifc.getSDG() != null && ifc.getLattice() != null;
-
 		annManager.applyAllAnnotations();
 		long time = 0L;
 		time = System.currentTimeMillis();
-		Collection<ClassifiedViolation> vios = new ViolationTranslator().map(ifc.checkIFlow());
+		Collection<? extends IViolation<SecurityNode>> vios = ifc.checkIFlow();
 		time = System.currentTimeMillis() - time;
 		debug.outln(String.format("IFC Analysis took %d ms.", time));
-		List<IllicitFlow> ret = new LinkedList<IllicitFlow>();
+		annManager.unapplyAllAnnotations();
+		return vios;
+	}
 
-		Collection<SDGProgramPart> allParts = getProgram().getAllProgramParts();
-		for (SDGProgramPart ppart : allParts) {
-			debug.outln("Program part " + ppart + " with node(s): " + ppart.getAttachedNodes());
-		}
+	public TObjectIntMap<? extends IViolation<SDGProgramPart>> doIFCAndGroupByPPPart(IFCType ifcType) {
+		return groupByPPPart(doIFC(ifcType));
+	}
+	
+	public TObjectIntMap<IViolation<SDGProgramPart>> groupByPPPart(Collection<? extends IViolation<SecurityNode>> vios) {
+		annManager.applyAllAnnotations();
+		ViolationMapper<SecurityNode, IViolation<SDGProgramPart>> transl = new ViolationMapper<SecurityNode, IViolation<SDGProgramPart>>() {
 
-		for (ClassifiedViolation vio : vios) {
-			IllicitFlow ill = new IllicitFlow(vio, allParts);
-			ret.add(ill);
-			RepsRosayChopper c = new RepsRosayChopper(program.getSDG());
-			SDGProgramPart illSrc = ill.getSource();
-			SDGProgramPart illSnk = ill.getSink();
-			if (illSrc != null && illSnk != null) {
-				Collection<SDGNode> chop = c.chop(illSrc.getAttachedNodes(), illSnk.getAttachedNodes());
-				debug.outln("Illicit flow with the following nodes involved: ");
-				Map<SDGNode, Collection<SDGNode>> groupedByProc = groupByProc(program.getSDG(), chop);
-				for (Map.Entry<SDGNode, Collection<SDGNode>> nProc : groupedByProc.entrySet()) {
-					debug.outln("In method " + nProc.getKey().getBytecodeMethod() + ": " + nProc.getValue());
+			@Override
+			protected IIllegalFlow<SDGProgramPart> mapIllegalFlow(IIllegalFlow<SecurityNode> iFlow) {
+				return new IllegalFlow<SDGProgramPart>(annManager.resolve(iFlow.getSource()), annManager.resolve(iFlow.getSink()), iFlow.getAttackerLevel());
+			}
+
+			@Override
+			protected DataConflict<SDGProgramPart> mapDataConflict(DataConflict<SecurityNode> dc) {
+				SDGProgramPart ppInfluenced = annManager.resolve(dc.getInfluenced());
+				return new DataConflict<SDGProgramPart>(resolveConflictEdge(dc.getConflictEdge()), ppInfluenced, dc.getAttackerLevel(), resolveTrigger(dc.getTrigger()));
+			}
+			
+			private Maybe<SDGProgramPart> resolveTrigger(Maybe<SecurityNode> trigger) {
+				if (trigger.isNothing()) {
+					return Maybe.<SDGProgramPart>nothing();
+				} else {
+					return Maybe.just(annManager.resolve(trigger.extract()));
 				}
-			} else {
-				IIllegalFlow v = ill.getViolation();
-				debug.outln("unidentifiable flow from " + v.getSource() + " to " + v.getSink());
+			}
+			
+			private ConflictEdge<SDGProgramPart> resolveConflictEdge(ConflictEdge<SecurityNode> confEdge) {
+				SDGProgramPart src = annManager.resolve(confEdge.getSource());
+				SDGProgramPart tgt = annManager.resolve(confEdge.getTarget());
+				return new ConflictEdge<SDGProgramPart>(src, tgt);
 			}
 
-		}
-		
-		Collection<? extends IConflictLeak> joanaConflicts = analyzeConflicts();
-		if (!joanaConflicts.isEmpty()) {
-			debug.outln("conflicts:");
-			for (IConflictLeak jc : joanaConflicts) {
-				debug.outln(jc);
+			@Override
+			protected OrderConflict<SDGProgramPart> mapOrderConflict(OrderConflict<SecurityNode> oc) {
+				return new OrderConflict<SDGProgramPart>(resolveConflictEdge(oc.getConflictEdge()), oc.getAttackerLevel(), resolveTrigger(oc.getTrigger()));
+			}
+			
+		};
+		final TObjectIntMap<IViolation<SDGProgramPart>> ret = new TObjectIntHashMap<IViolation<SDGProgramPart>>();
+		for (IViolation<SecurityNode> vio : vios) {
+			IViolation<SDGProgramPart> key = transl.mapSingle(vio);
+			if (!ret.containsKey(key)) {
+				ret.put(key, 1);
+			} else {
+				ret.put(key, ret.get(key) + 1);
 			}
 		}
-		
 		annManager.unapplyAllAnnotations();
 		return ret;
 	}
 	
-	public Set<IConflictLeak> getConflicts() {
-		Collection<? extends IConflictLeak> confs = analyzeConflicts();
-		Set<IConflictLeak> ret = new HashSet<IConflictLeak>();
-		ret.addAll(confs);
-		return ret;
-	}
 
-	private Collection<? extends IConflictLeak> analyzeConflicts() {
-		if (getIFC() instanceof ProbabilisticNIChecker) {
-			ProbabilisticNIChecker probIFC = (ProbabilisticNIChecker) getIFC();
-			ConflictScanner probSlicer = probIFC.getProbSlicer();
-			return probSlicer.getAllConflicts();
-		} else {
-			return Collections.emptySet();
-		}
-	}
-
-	private static Map<SDGNode, Collection<SDGNode>> groupByProc(SDG sdg, Collection<SDGNode> nodes) {
-		Map<SDGNode, Collection<SDGNode>> ret = new HashMap<SDGNode, Collection<SDGNode>>();
-		for (SDGNode n : nodes) {
-			SDGNode nProc = sdg.getEntry(n);
-			Collection<SDGNode> procColl;
-			if (ret.containsKey(nProc)) {
-				procColl = ret.get(nProc);
-			} else {
-				procColl = new LinkedList<SDGNode>();
-				ret.put(nProc, procColl);
-			}
-			procColl.add(n);
-		}
-		return ret;
-	}
-
-	public Collection<IllicitFlow> doIFC() {
+	public Collection<? extends IViolation<SecurityNode>> doIFC() {
 		return doIFC(IFCType.POSSIBILISTIC);
 	}
 

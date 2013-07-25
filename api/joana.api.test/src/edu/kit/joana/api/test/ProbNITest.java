@@ -25,12 +25,10 @@ import edu.kit.joana.api.test.util.SDGAnalyzer;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.SecurityNode.SecurityNodeFactory;
 import edu.kit.joana.ifc.sdg.core.conc.BarrierIFCSlicer;
-import edu.kit.joana.ifc.sdg.core.conc.ConflictScanner;
 import edu.kit.joana.ifc.sdg.core.conc.LSODNISlicer;
 import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNISlicer;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.core.violations.IConflictLeak;
-import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -100,7 +98,7 @@ public class ProbNITest {
 		
 		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
 		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), mhp, false, false);
-		Set<IConflictLeak> vios = checker.check();
+		Set<IConflictLeak<SecurityNode>> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
 	}
 	
@@ -110,10 +108,10 @@ public class ProbNITest {
 		SDG sdg = annotateDataConflictRW();
 		//assertNoTraditionalLeaks(sdg);
 		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), false);
-		Collection<IConflictLeak> vios = checker.check();
+		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
 		if (DEBUG) {
-			for (IConflictLeak v : vios) {
+			for (IConflictLeak<SecurityNode> v : vios) {
 				debug.outln(v);
 			}
 		}
@@ -131,10 +129,10 @@ public class ProbNITest {
 		SDG sdg = annotateDataConflictRW();
 		//assertNoTraditionalLeaks(sdg);
 		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), true);
-		Collection<IConflictLeak> vios = checker.check();
+		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
 		if (DEBUG) {
-			for (IConflictLeak v : vios) {
+			for (IConflictLeak<SecurityNode> v : vios) {
 				debug.outln(v);
 			}
 		}
@@ -146,10 +144,10 @@ public class ProbNITest {
 		SDG sdg = annotateOrderConflict();
 		//assertNoTraditionalLeaks(sdg);
 		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), false);
-		Collection<IConflictLeak> vios = checker.check();
+		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
 		if (DEBUG) {
-			for (IConflictLeak v : vios) {
+			for (IConflictLeak<SecurityNode> v : vios) {
 				debug.outln(v);
 			}
 		}
@@ -161,10 +159,10 @@ public class ProbNITest {
 		SDG sdg = annotateOrderConflict();
 		//assertNoTraditionalLeaks(sdg);
 		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), true);
-		Collection<IConflictLeak> vios = checker.check();
+		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
 		if (DEBUG) {
-			for (IConflictLeak v : vios) {
+			for (IConflictLeak<SecurityNode> v : vios) {
 				debug.outln(v);
 			}
 		}
@@ -176,10 +174,10 @@ public class ProbNITest {
 		SDG sdg = annotateOrderConflict();
 		//assertNoTraditionalLeaks(sdg);
 		ProbabilisticNISlicer checker = ProbabilisticNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice());
-		Collection<IConflictLeak> vios = checker.check();
+		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
 		if (DEBUG) {
-			for (IConflictLeak v : vios) {
+			for (IConflictLeak<SecurityNode> v : vios) {
 				debug.outln(v);
 			}
 		}
@@ -191,10 +189,10 @@ public class ProbNITest {
 		SDG sdg = annotateDataConflictRW();
 		//assertNoTraditionalLeaks(sdg);
 		ProbabilisticNISlicer checker = ProbabilisticNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice());
-		Collection<IConflictLeak> vios = checker.check();
+		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
 		if (DEBUG) {
-			for (IConflictLeak v : vios) {
+			for (IConflictLeak<SecurityNode> v : vios) {
 				debug.outln(v);
 			}
 		}

@@ -16,6 +16,7 @@ import java.util.Set;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.sdgtools.SDGTools;
 import edu.kit.joana.ifc.sdg.core.violations.AbstractConflictLeak;
+import edu.kit.joana.ifc.sdg.core.violations.ConflictEdge;
 import edu.kit.joana.ifc.sdg.core.violations.IConflictLeak;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -114,13 +115,13 @@ public class LSODNISlicer implements ConflictScanner {
 	 * 
 	 * @return Die Menge der gefundenen Sicherheitsverletzungen.
 	 */
-	public Set<IConflictLeak> check() {
+	public Set<IConflictLeak<SecurityNode>> check() {
 		LinkedList<Element> criteria = collectCriteria();
 		this.sources.clear();
 		this.sinks.clear();
 		this.sources.addAll(SDGTools.getInformationSources(g));
 		this.sinks.addAll(SDGTools.getInformationSinks(g));
-		Set<IConflictLeak> set = new HashSet<IConflictLeak>();
+		Set<IConflictLeak<SecurityNode>> set = new HashSet<IConflictLeak<SecurityNode>>();
 		confEdgeMan.computeConflictEdges();
 		confEdgeMan.addConflictEdges();
 		conf.init();
@@ -266,7 +267,7 @@ public class LSODNISlicer implements ConflictScanner {
 	/**
 	 * Returns all the conflicts found in the last run of this algorithm.
 	 */
-	public Collection<AbstractConflictLeak> getAllConflicts() {
+	public Collection<AbstractConflictLeak<SecurityNode>> getAllConflicts() {
 		return conf.getConflicts();
 	}
 
@@ -422,9 +423,9 @@ public class LSODNISlicer implements ConflictScanner {
 		 * 
 		 * @return Alle bisher gefundenen Konflikte.
 		 */
-		Collection<AbstractConflictLeak> getConflicts();
-		Collection<DataConflict> getDataConflicts();
-		Collection<OrderConflict> getOrderConflicts();
+		Collection<AbstractConflictLeak<SecurityNode>> getConflicts();
+		Collection<DataConflict<SecurityNode>> getDataConflicts();
+		Collection<OrderConflict<SecurityNode>> getOrderConflicts();
 		
 		void addPossiblyUntriggeredOrderConflict(SDGEdge confEdge,
 				String attackerLevel);
@@ -442,18 +443,18 @@ public class LSODNISlicer implements ConflictScanner {
 
 	private static class SimpleConflicts implements ConflictManager {
 		// menge der bisherigen konflikte
-		private LinkedList<AbstractConflictLeak> conflicts;
-		private LinkedList<DataConflict> dataConflicts;
-		private LinkedList<OrderConflict> orderConflicts;
-		private Set<Pair<SDGNode, SDGNode>> ocEdges = new HashSet<Pair<SDGNode, SDGNode>>();
+		private LinkedList<AbstractConflictLeak<SecurityNode>> conflicts;
+		private LinkedList<DataConflict<SecurityNode>> dataConflicts;
+		private LinkedList<OrderConflict<SecurityNode>> orderConflicts;
+		private Set<Pair<SecurityNode, SecurityNode>> ocEdges = new HashSet<Pair<SecurityNode, SecurityNode>>();
 
 		/**
 		 * Initialisierung.
 		 */
 		public SimpleConflicts() {
-			conflicts = new LinkedList<AbstractConflictLeak>();
-			dataConflicts = new LinkedList<DataConflict>();
-			orderConflicts = new LinkedList<OrderConflict>();
+			conflicts = new LinkedList<AbstractConflictLeak<SecurityNode>>();
+			dataConflicts = new LinkedList<DataConflict<SecurityNode>>();
+			orderConflicts = new LinkedList<OrderConflict<SecurityNode>>();
 		}
 
 		/*
@@ -472,8 +473,8 @@ public class LSODNISlicer implements ConflictScanner {
 		 * 
 		 * @return Alle bisher gefundenen Konflikte.
 		 */
-		public Collection<AbstractConflictLeak> getConflicts() {
-			return new LinkedList<AbstractConflictLeak>(conflicts);
+		public Collection<AbstractConflictLeak<SecurityNode>> getConflicts() {
+			return new LinkedList<AbstractConflictLeak<SecurityNode>>(conflicts);
 		}
 
 		/*
@@ -488,7 +489,7 @@ public class LSODNISlicer implements ConflictScanner {
 				String attackerLevel) {
 			if (!ocEdges.contains(Pair.pair(confEdge.getSource(),
 					confEdge.getTarget()))) {
-				OrderConflict oc = new OrderConflict(confEdge,
+				OrderConflict<SecurityNode> oc = new OrderConflict<SecurityNode>(ConflictEdge.fromSDGEdge(confEdge),
 						attackerLevel);
 				addOrderConflict(oc);
 			}
@@ -506,7 +507,7 @@ public class LSODNISlicer implements ConflictScanner {
 				SecurityNode trigger, String attackerLevel) {
 			if (!ocEdges.contains(Pair.pair(confEdge.getSource(),
 					confEdge.getTarget()))) {
-				addOrderConflict(new OrderConflict(confEdge,
+				addOrderConflict(new OrderConflict<SecurityNode>(ConflictEdge.fromSDGEdge(confEdge),
 						attackerLevel, Maybe.just(trigger)));
 			}
 
@@ -524,7 +525,7 @@ public class LSODNISlicer implements ConflictScanner {
 		public void addPossiblyUntriggeredDataConflict(SDGEdge confEdge,
 				SecurityNode influenced, String attackerLevel) {
 			
-			addDataConflict(new DataConflict(confEdge, influenced, attackerLevel));
+			addDataConflict(new DataConflict<SecurityNode>(ConflictEdge.fromSDGEdge(confEdge), influenced, attackerLevel));
 		}
 
 		/*
@@ -538,20 +539,20 @@ public class LSODNISlicer implements ConflictScanner {
 		@Override
 		public void addTriggeredDataConflict(SDGEdge confEdge, SecurityNode trigger,
 				SecurityNode influenced, String attackerLevel) {
-			addDataConflict(new DataConflict(confEdge, influenced, attackerLevel, Maybe.just(trigger)));
+			addDataConflict(new DataConflict<SecurityNode>(ConflictEdge.fromSDGEdge(confEdge), influenced, attackerLevel, Maybe.just(trigger)));
 		}
 		
-		private void addOrderConflict(OrderConflict oc) {
+		private void addOrderConflict(OrderConflict<SecurityNode> oc) {
 			conflicts.add(oc);
 			orderConflicts.add(oc);
-			SDGEdge confEdge = oc.getConflictEdge();
+			ConflictEdge<SecurityNode> confEdge = oc.getConflictEdge();
 			ocEdges.add(Pair.pair(confEdge.getSource(),
 					confEdge.getTarget()));
 			ocEdges.add(Pair.pair(confEdge.getTarget(),
 					confEdge.getSource()));
 		}
 		
-		private void addDataConflict(DataConflict dc) {
+		private void addDataConflict(DataConflict<SecurityNode> dc) {
 			conflicts.add(dc);
 			dataConflicts.add(dc);
 		}
@@ -560,7 +561,7 @@ public class LSODNISlicer implements ConflictScanner {
 		 * @see edu.kit.joana.ifc.sdg.core.conc.LSODNISlicer.ConflictManager#getDataConflicts()
 		 */
 		@Override
-		public Collection<DataConflict> getDataConflicts() {
+		public Collection<DataConflict<SecurityNode>> getDataConflicts() {
 			return dataConflicts;
 		}
 
@@ -568,7 +569,7 @@ public class LSODNISlicer implements ConflictScanner {
 		 * @see edu.kit.joana.ifc.sdg.core.conc.LSODNISlicer.ConflictManager#getOrderConflicts()
 		 */
 		@Override
-		public Collection<OrderConflict> getOrderConflicts() {
+		public Collection<OrderConflict<SecurityNode>> getOrderConflicts() {
 			return orderConflicts;
 		}
 	}
@@ -577,7 +578,7 @@ public class LSODNISlicer implements ConflictScanner {
 	 * @see edu.kit.joana.ifc.sdg.core.conc.ConflictScanner#getDataConflicts()
 	 */
 	@Override
-	public Collection<DataConflict> getDataConflicts() {
+	public Collection<DataConflict<SecurityNode>> getDataConflicts() {
 		return conf.getDataConflicts();
 	}
 
@@ -585,7 +586,7 @@ public class LSODNISlicer implements ConflictScanner {
 	 * @see edu.kit.joana.ifc.sdg.core.conc.ConflictScanner#getOrderConflicts()
 	 */
 	@Override
-	public Collection<OrderConflict> getOrderConflicts() {
+	public Collection<OrderConflict<SecurityNode>> getOrderConflicts() {
 		return conf.getOrderConflicts();
 	}
 }

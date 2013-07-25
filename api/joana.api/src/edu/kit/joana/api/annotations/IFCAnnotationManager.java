@@ -24,6 +24,7 @@ import edu.kit.joana.api.sdg.SDGPhi;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.api.sdg.SDGProgramPartVisitor;
+import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
 public class IFCAnnotationManager {
@@ -99,6 +100,10 @@ public class IFCAnnotationManager {
 
 	public void applyAllAnnotations() {
 		app.applyAnnotations(getAnnotations());
+	}
+	
+	public SDGProgramPart resolve(SecurityNode sNode) {
+		return app.resolve(sNode);
 	}
 	
 	public Collection<SDGNode> getSourceNodes() {

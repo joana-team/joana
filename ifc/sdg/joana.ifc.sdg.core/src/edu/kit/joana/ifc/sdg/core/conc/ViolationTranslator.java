@@ -14,13 +14,13 @@ import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
 /**
  * @author Martin Mohr
  */
-public class ViolationTranslator extends ViolationMapper<ClassifiedViolation> {
+public class ViolationTranslator extends ViolationMapper<SecurityNode, ClassifiedViolation> {
 	
 	/* (non-Javadoc)
 	 * @see edu.kit.joana.ifc.sdg.core.conc.ViolationMapper#mapIllegalFlow(edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow)
 	 */
 	@Override
-	protected ClassifiedViolation mapIllegalFlow(IIllegalFlow iFlow) {
+	protected ClassifiedViolation mapIllegalFlow(IIllegalFlow<SecurityNode> iFlow) {
 		return ClassifiedViolation.createViolation(iFlow.getSink(), iFlow.getSource(), iFlow.getAttackerLevel());
 	}
 
@@ -28,7 +28,7 @@ public class ViolationTranslator extends ViolationMapper<ClassifiedViolation> {
 	 * @see edu.kit.joana.ifc.sdg.core.conc.ViolationMapper#mapDataConflict(edu.kit.joana.ifc.sdg.core.conc.DataConflict)
 	 */
 	@Override
-	protected ClassifiedViolation mapDataConflict(DataConflict dc) {
+	protected ClassifiedViolation mapDataConflict(DataConflict<SecurityNode> dc) {
 		SecurityNode src = null;
     	if (dc.getTrigger().isJust()) {
     		src = dc.getTrigger().extract();
@@ -40,7 +40,7 @@ public class ViolationTranslator extends ViolationMapper<ClassifiedViolation> {
 	 * @see edu.kit.joana.ifc.sdg.core.conc.ViolationMapper#mapOrderConflict(edu.kit.joana.ifc.sdg.core.conc.OrderConflict)
 	 */
 	@Override
-	protected ClassifiedViolation mapOrderConflict(OrderConflict oc) {
+	protected ClassifiedViolation mapOrderConflict(OrderConflict<SecurityNode> oc) {
 		return ClassifiedViolation.createViolation((SecurityNode) oc.getConflictEdge().getTarget(), (SecurityNode) oc.getConflictEdge().getSource(), oc.getAttackerLevel());
 	}
 }

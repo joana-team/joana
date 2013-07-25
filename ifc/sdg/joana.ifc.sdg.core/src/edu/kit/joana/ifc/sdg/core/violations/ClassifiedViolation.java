@@ -15,12 +15,9 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
-import edu.kit.joana.ifc.sdg.core.conc.DataConflict;
 import edu.kit.joana.ifc.sdg.core.metrics.IMetrics;
 import edu.kit.joana.ifc.sdg.core.violations.paths.ViolationPath;
 import edu.kit.joana.ifc.sdg.core.violations.paths.ViolationPathes;
-
-import edu.kit.joana.ifc.sdg.core.conc.OrderConflict;
 
 
 /**
@@ -30,7 +27,7 @@ import edu.kit.joana.ifc.sdg.core.conc.OrderConflict;
  * @author naxan
  *
  */
-public class ClassifiedViolation implements IIllegalFlow {
+public class ClassifiedViolation implements IIllegalFlow<SecurityNode> {
 	public static class Classification {
 		// 0 = highest, MAX_INT = lowest
 		private int severity;
@@ -260,7 +257,7 @@ public class ClassifiedViolation implements IIllegalFlow {
 	 * @see edu.kit.joana.ifc.sdg.core.violations.IViolation#accept(edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor)
 	 */
 	@Override
-	public void accept(IViolationVisitor v) {
+	public void accept(IViolationVisitor<SecurityNode> v) {
 		v.visitIllegalFlow(this);
 	}
 

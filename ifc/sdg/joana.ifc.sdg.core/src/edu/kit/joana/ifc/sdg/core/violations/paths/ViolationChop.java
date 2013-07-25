@@ -41,7 +41,7 @@ public class ViolationChop {
 		LinkedList<ClassifiedViolation> ret = new LinkedList<ClassifiedViolation>();
 
 		//merge all violations into return list
-		for (IIllegalFlow sViolation : violations) {
+		for (IIllegalFlow<SecurityNode> sViolation : violations) {
             // Generate ViolationPathes and attach them to violation nodes
             ViolationPathes vps = generateChop(sViolation.getSink(), sViolation.getSource(), g);
 			ClassifiedViolation vio = ClassifiedViolation.createViolation(sViolation.getSink(), sViolation.getSource(), vps, sViolation.getSink().getRequired());

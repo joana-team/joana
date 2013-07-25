@@ -46,14 +46,14 @@ public class ReduceRedundantFlows extends IFC {
 	 * @see edu.kit.joana.ifc.sdg.core.IFC#checkIFlow()
 	 */
 	@Override
-	public Collection<? extends IViolation> checkIFlow() throws NotInLatticeException {
-		Collection<? extends IViolation> baseFlows = baseIFC.checkIFlow();
+	public Collection<? extends IViolation<SecurityNode>> checkIFlow() throws NotInLatticeException {
+		Collection<? extends IViolation<SecurityNode>> baseFlows = baseIFC.checkIFlow();
 		Collection<SDGNode> sources = new SourceExtractor().map(baseFlows);
 		Collection<SDGNode> sinks = new SinkExtractor().map(baseFlows);
 		return new RedundantFilter(sources, sinks).filter(baseFlows);
 	}
 	
-	private boolean isRedundant(IIllegalFlow v, Collection<SDGNode> sources, Collection<SDGNode> sinks) {
+	private boolean isRedundant(IIllegalFlow<SecurityNode> v, Collection<SDGNode> sources, Collection<SDGNode> sinks) {
 		bs.setBarrier(Collections.<SDGNode>emptySet());
 		boolean flowWOBarrier = !bs.chop(v.getSource(), v.getSink()).isEmpty();
 		
@@ -96,7 +96,7 @@ public class ReduceRedundantFlows extends IFC {
 		return new ReduceRedundantFlows(baseIFC, new SimpleThreadBarrierChopper(baseIFC.getSDG()));
 	}
 	
-	private class RedundantFilter extends ViolationFilter {
+	private class RedundantFilter extends ViolationFilter<SecurityNode> {
 
 
 		private Collection<SDGNode> sources;
@@ -114,31 +114,31 @@ public class ReduceRedundantFlows extends IFC {
 		 * @see edu.kit.joana.ifc.sdg.core.conc.ViolationFilter#acceptIllegalFlow(edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow)
 		 */
 		@Override
-		protected boolean acceptIllegalFlow(IIllegalFlow iFlow) {
+		protected boolean acceptIllegalFlow(IIllegalFlow<SecurityNode> iFlow) {
 			return !isRedundant(iFlow, sources, sinks);
 		}
 		
 	}
 	
 
-	private static class SourceExtractor extends ViolationPartialMapper<SDGNode> {
+	private static class SourceExtractor extends ViolationPartialMapper<SecurityNode,SDGNode> {
 
 		/* (non-Javadoc)
 		 * @see edu.kit.joana.ifc.sdg.core.conc.ViolationMapper#mapIllegalFlow(edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow)
 		 */
 		@Override
-		protected Maybe<SDGNode> maybeMapIllegalFlow(IIllegalFlow iFlow) {
+		protected Maybe<SDGNode> maybeMapIllegalFlow(IIllegalFlow<SecurityNode> iFlow) {
 			return Maybe.just((SDGNode) iFlow.getSource());
 		}
 	}
 	
-	private static class SinkExtractor extends ViolationPartialMapper<SDGNode> {
+	private static class SinkExtractor extends ViolationPartialMapper<SecurityNode, SDGNode> {
 
 		/* (non-Javadoc)
 		 * @see edu.kit.joana.ifc.sdg.core.conc.ViolationMapper#mapIllegalFlow(edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow)
 		 */
 		@Override
-		protected Maybe<SDGNode> maybeMapIllegalFlow(IIllegalFlow iFlow) {
+		protected Maybe<SDGNode> maybeMapIllegalFlow(IIllegalFlow<SecurityNode> iFlow) {
 			return Maybe.just((SDGNode) iFlow.getSink());
 		}
 	}

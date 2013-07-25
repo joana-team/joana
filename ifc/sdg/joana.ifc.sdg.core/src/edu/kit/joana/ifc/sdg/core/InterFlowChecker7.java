@@ -112,7 +112,7 @@ public class InterFlowChecker7 extends IFC {
 			if (TIME) System.out.println("Finished slicing at " + sliceend + " | slice duration: " + (sliceend-slicestart));
 
 			//Transform SimpleViolations into Violations
-			for (IIllegalFlow vp : violations) {
+			for (ClassifiedViolation vp : violations) {
 				ClassifiedViolation vio = ClassifiedViolation.createViolation(temp, vp.getSink(), temp.getRequired());
 				ret.add(vio);
 			}

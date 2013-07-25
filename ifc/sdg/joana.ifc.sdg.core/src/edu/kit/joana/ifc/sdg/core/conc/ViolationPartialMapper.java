@@ -15,13 +15,17 @@ import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor;
 import edu.kit.joana.util.Maybe;
 
-public abstract class ViolationPartialMapper<T> implements IViolationVisitor {
-	private Maybe<T> lastResult;
+public abstract class ViolationPartialMapper<T,U> implements IViolationVisitor<T> {
+	private Maybe<U> lastResult;
 	
-	public Collection<T> map(Collection<? extends IViolation> coll) {
-		Collection<T> ret = new LinkedList<T>();
-		for (IViolation vio : coll) {
-			Maybe<T> next = map(vio);
+	public Maybe<U> maybeMapSingle(IViolation<T> x) {
+		return map(x);
+	}
+	
+	public Collection<U> map(Collection<? extends IViolation<T>> coll) {
+		Collection<U> ret = new LinkedList<U>();
+		for (IViolation<T> vio : coll) {
+			Maybe<U> next = map(vio);
 			if (!next.isNothing()) {
 				ret.add(next.extract());
 			}
@@ -30,20 +34,20 @@ public abstract class ViolationPartialMapper<T> implements IViolationVisitor {
 		return ret;
 	}
 	
-	protected Maybe<T> map(IViolation vio) {
+	protected Maybe<U> map(IViolation<T> vio) {
 		vio.accept(this);
 		return lastResult;
 	}
 	
-	protected Maybe<T> maybeMapIllegalFlow(IIllegalFlow iFlow) { return Maybe.nothing(); };
-	protected Maybe<T> maybeMapDataConflict(DataConflict dc) { return Maybe.nothing(); };
-	protected Maybe<T> maybeMapOrderConflict(OrderConflict oc) { return Maybe.nothing(); };
+	protected Maybe<U> maybeMapIllegalFlow(IIllegalFlow<T> iFlow) { return Maybe.nothing(); };
+	protected Maybe<U> maybeMapDataConflict(DataConflict<T> dc) { return Maybe.nothing(); };
+	protected Maybe<U> maybeMapOrderConflict(OrderConflict<T> oc) { return Maybe.nothing(); };
 
 	/* (non-Javadoc)
 	 * @see edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor#visitIllegalFlow(edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow)
 	 */
 	@Override
-	public final void visitIllegalFlow(IIllegalFlow iFlow) {
+	public final void visitIllegalFlow(IIllegalFlow<T> iFlow) {
 		lastResult = maybeMapIllegalFlow(iFlow);
 	}
 
@@ -51,7 +55,7 @@ public abstract class ViolationPartialMapper<T> implements IViolationVisitor {
 	 * @see edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor#visitDataConflict(edu.kit.joana.ifc.sdg.core.conc.DataConflict)
 	 */
 	@Override
-	public final void visitDataConflict(DataConflict dataConf) {
+	public final void visitDataConflict(DataConflict<T> dataConf) {
 		lastResult = maybeMapDataConflict(dataConf);
 	}
 
@@ -59,7 +63,7 @@ public abstract class ViolationPartialMapper<T> implements IViolationVisitor {
 	 * @see edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor#visitOrderConflict(edu.kit.joana.ifc.sdg.core.conc.OrderConflict)
 	 */
 	@Override
-	public final void visitOrderConflict(OrderConflict orderConf) {
+	public final void visitOrderConflict(OrderConflict<T> orderConf) {
 		lastResult = maybeMapOrderConflict(orderConf);
 	}
 }

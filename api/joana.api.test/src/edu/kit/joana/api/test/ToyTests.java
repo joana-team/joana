@@ -24,13 +24,14 @@ import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
 import edu.kit.joana.api.IFCAnalysis;
-import edu.kit.joana.api.IllicitFlow;
 import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.api.test.util.ApiTestException;
 import edu.kit.joana.api.test.util.JoanaPath;
+import edu.kit.joana.ifc.sdg.core.SecurityNode;
+import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.lattice.IEditableLattice;
@@ -156,7 +157,7 @@ public class ToyTests {
 				dumpSDG(ana.getProgram().getSDG(), classname + ".passon.pdg");
 			}
 
-			Collection<IllicitFlow> illegal = ana.doIFC();
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
 		}
 
@@ -167,7 +168,7 @@ public class ToyTests {
 				dumpSDG(ana.getProgram().getSDG(), classname + ".ignore.pdg");
 			}
 
-			Collection<IllicitFlow> illegal = ana.doIFC();
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertTrue(illegal.isEmpty());
 		}
 	}
@@ -182,7 +183,7 @@ public class ToyTests {
 				dumpSDG(ana.getProgram().getSDG(), classname + ".passon.pdg");
 			}
 
-			Collection<IllicitFlow> illegal = ana.doIFC();
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
 		}
 
@@ -194,7 +195,7 @@ public class ToyTests {
 				dumpSDG(ana.getProgram().getSDG(), classname + ".ignore.pdg");
 			}
 
-			Collection<IllicitFlow> illegal = ana.doIFC();
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
 		}
 	}

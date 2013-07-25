@@ -13,7 +13,7 @@ import edu.kit.joana.ifc.sdg.core.violations.paths.ViolationPathes;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.util.Maybe;
 
-public class ClassifiedConflict extends ClassifiedViolation implements IConflictLeak {
+public class ClassifiedConflict extends ClassifiedViolation implements IConflictLeak<SecurityNode> {
 
 	private SDGEdge confEdge;
 	
@@ -43,8 +43,8 @@ public class ClassifiedConflict extends ClassifiedViolation implements IConflict
     	this.confEdge = confEdge;
     }
     
-    public SDGEdge getConflictEdge() {
-    	return confEdge;
+    public ConflictEdge<SecurityNode> getConflictEdge() {
+    	return new ConflictEdge<SecurityNode>((SecurityNode) confEdge.getSource(), (SecurityNode) confEdge.getTarget());
     }
     
     /* (non-Javadoc)

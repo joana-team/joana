@@ -169,7 +169,7 @@ public class IFCJoinTest {
 		Collection<ClassifiedViolation> vios = ifc.checkIFlow();
 		Assert.assertFalse(vios.isEmpty());
 		Assert.assertEquals(1, vios.size());
-		IIllegalFlow vio = vios.iterator().next();
+		ClassifiedViolation vio = vios.iterator().next();
 		Collection<SDGNode> chop = computeSomeChop(sdg, vio.getSource(), vio.getSink());
 		Assert.assertFalse(chop.isEmpty());
 		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);

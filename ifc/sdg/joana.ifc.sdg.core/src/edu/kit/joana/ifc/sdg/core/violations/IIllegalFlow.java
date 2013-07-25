@@ -7,14 +7,13 @@
  */
 package edu.kit.joana.ifc.sdg.core.violations;
 
-import edu.kit.joana.ifc.sdg.core.SecurityNode;
 
 /**
  * An illegal flow is a violation in which information flows from a source to a sink.
  * @author Martin Mohr
  */
-public interface IIllegalFlow extends IViolation {
-	SecurityNode getSource();
-	SecurityNode getSink();
+public interface IIllegalFlow<T> extends IViolation<T> {
+	T getSource();
+	T getSink();
 	String getAttackerLevel();
 }

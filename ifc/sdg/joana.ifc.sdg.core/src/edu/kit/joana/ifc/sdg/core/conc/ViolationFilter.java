@@ -14,13 +14,13 @@ import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
 import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor;
 
-public abstract class ViolationFilter implements IViolationVisitor {
+public abstract class ViolationFilter<T> implements IViolationVisitor<T> {
 
 	private boolean lastResult;
 	
-	public Collection<? extends IViolation> filter(Collection<? extends IViolation> coll) {
-		Collection<IViolation> ret = new LinkedList<IViolation>();
-		for (IViolation vio : coll) {
+	public Collection<? extends IViolation<T>> filter(Collection<? extends IViolation<T>> coll) {
+		Collection<IViolation<T>> ret = new LinkedList<IViolation<T>>();
+		for (IViolation<T> vio : coll) {
 			if (accept(vio)) {
 				ret.add(vio);
 			}
@@ -29,20 +29,20 @@ public abstract class ViolationFilter implements IViolationVisitor {
 		return ret;
 	}
 	
-	protected boolean accept(IViolation vio) {
+	protected boolean accept(IViolation<T> vio) {
 		vio.accept(this);
 		return lastResult;
 	}
 	
-	protected boolean acceptIllegalFlow(IIllegalFlow iFlow) { return true; }
-	protected boolean acceptDataConflict(DataConflict dataConf) { return true; }
-	protected boolean acceptOrderConflict(OrderConflict orderConf) { return true; }
+	protected boolean acceptIllegalFlow(IIllegalFlow<T> iFlow) { return true; }
+	protected boolean acceptDataConflict(DataConflict<T> dataConf) { return true; }
+	protected boolean acceptOrderConflict(OrderConflict<T> orderConf) { return true; }
 	
 	/* (non-Javadoc)
 	 * @see edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor#visitIllegalFlow(edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow)
 	 */
 	@Override
-	public void visitIllegalFlow(IIllegalFlow iFlow) {
+	public void visitIllegalFlow(IIllegalFlow<T> iFlow) {
 		lastResult = acceptIllegalFlow(iFlow);
 	}
 
@@ -50,7 +50,7 @@ public abstract class ViolationFilter implements IViolationVisitor {
 	 * @see edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor#visitDataConflict(edu.kit.joana.ifc.sdg.core.conc.DataConflict)
 	 */
 	@Override
-	public void visitDataConflict(DataConflict dataConf) {
+	public void visitDataConflict(DataConflict<T> dataConf) {
 		lastResult = acceptDataConflict(dataConf);
 	}
 
@@ -58,7 +58,7 @@ public abstract class ViolationFilter implements IViolationVisitor {
 	 * @see edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor#visitOrderConflict(edu.kit.joana.ifc.sdg.core.conc.OrderConflict)
 	 */
 	@Override
-	public void visitOrderConflict(OrderConflict orderConf) {
+	public void visitOrderConflict(OrderConflict<T> orderConf) {
 		lastResult = acceptOrderConflict(orderConf);
 	}
 	

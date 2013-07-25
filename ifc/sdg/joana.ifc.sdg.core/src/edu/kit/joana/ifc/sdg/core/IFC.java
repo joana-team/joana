@@ -56,7 +56,7 @@ public abstract class IFC implements ProgressListener, ProgressAnnouncer {
      *
      * @throws NotInLatticeException
      */
-	public abstract Collection<? extends IViolation> checkIFlow() throws NotInLatticeException;
+	public abstract Collection<? extends IViolation<SecurityNode>> checkIFlow() throws NotInLatticeException;
 
 
     /** Erzeugt eine neue Instanz.

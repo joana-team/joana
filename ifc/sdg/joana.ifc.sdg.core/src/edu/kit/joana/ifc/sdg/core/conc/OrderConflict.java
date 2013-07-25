@@ -7,26 +7,25 @@
  */
 package edu.kit.joana.ifc.sdg.core.conc;
 
-import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.AbstractConflictLeak;
+import edu.kit.joana.ifc.sdg.core.violations.ConflictEdge;
 import edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor;
-import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.util.Maybe;
 
-public class OrderConflict extends AbstractConflictLeak {
+public class OrderConflict<T> extends AbstractConflictLeak<T> {
 
-	private final String untriggeredTemplate = "Indefinite execution order between nodes %s and %s, visible for %s";
-	private final String triggeredTemplate = "Indefinite execution order between nodes %s and %s, visible for %s, may be influenced by %s";
+	private final String untriggeredTemplate = "Indefinite execution order between '%s' and '%s', visible for '%s'";
+	private final String triggeredTemplate = "Indefinite execution order between '%s' and '%s', visible for '%s', may be influenced by '%s'";
 	
-	public OrderConflict(SDGEdge confEdge, String attackerLevel, Maybe<SecurityNode> trigger) {
+	public OrderConflict(ConflictEdge<T> confEdge, String attackerLevel, Maybe<T> trigger) {
 		super(confEdge, attackerLevel, trigger);
 	}
 	
-	public OrderConflict(SDGEdge confEdge, String attackerLevel) {
+	public OrderConflict(ConflictEdge<T> confEdge, String attackerLevel) {
 		super(confEdge, attackerLevel);
 	}
 	
-	public SDGEdge getConflictEdge() {
+	public ConflictEdge<T> getConflictEdge() {
 		return confEdge;
 	}
 	
@@ -68,6 +67,7 @@ public class OrderConflict extends AbstractConflictLeak {
 		if (!(obj instanceof OrderConflict)) {
 			return false;
 		}
+		@SuppressWarnings("rawtypes")
 		OrderConflict other = (OrderConflict) obj;
 		if (attackerLevel == null) {
 			if (other.attackerLevel != null) {
@@ -97,7 +97,7 @@ public class OrderConflict extends AbstractConflictLeak {
 	 * @see edu.kit.joana.ifc.sdg.core.violations.IViolation#accept(edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor)
 	 */
 	@Override
-	public void accept(IViolationVisitor v) {
+	public void accept(IViolationVisitor<T> v) {
 		v.visitOrderConflict(this);
 	}
 }

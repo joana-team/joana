@@ -8,18 +8,23 @@
 package edu.kit.joana.ifc.sdg.core.conc;
 
 import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
+import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.util.Maybe;
 
 /**
  * @author Add your name here.
  */
-public abstract class ViolationMapper<T> extends ViolationPartialMapper<T> {
-
+public abstract class ViolationMapper<T,U> extends ViolationPartialMapper<T,U> {
+	
+	public U mapSingle(IViolation<T> x) {
+		return maybeMapSingle(x).extract();
+	}
+	
 	/* (non-Javadoc)
 	 * @see edu.kit.joana.ifc.sdg.core.conc.ViolationPartialMapper#mapIllegalFlow(edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow)
 	 */
 	@Override
-	protected final Maybe<T> maybeMapIllegalFlow(IIllegalFlow iFlow) {
+	protected final Maybe<U> maybeMapIllegalFlow(IIllegalFlow<T> iFlow) {
 		return Maybe.just(mapIllegalFlow(iFlow));
 	}
 
@@ -27,7 +32,7 @@ public abstract class ViolationMapper<T> extends ViolationPartialMapper<T> {
 	 * @see edu.kit.joana.ifc.sdg.core.conc.ViolationPartialMapper#mapDataConflict(edu.kit.joana.ifc.sdg.core.conc.DataConflict)
 	 */
 	@Override
-	protected final Maybe<T> maybeMapDataConflict(DataConflict dc) {
+	protected final Maybe<U> maybeMapDataConflict(DataConflict<T> dc) {
 		return Maybe.just(mapDataConflict(dc));
 	}
 
@@ -35,11 +40,11 @@ public abstract class ViolationMapper<T> extends ViolationPartialMapper<T> {
 	 * @see edu.kit.joana.ifc.sdg.core.conc.ViolationPartialMapper#mapOrderConflict(edu.kit.joana.ifc.sdg.core.conc.OrderConflict)
 	 */
 	@Override
-	protected final Maybe<T> maybeMapOrderConflict(OrderConflict oc) {
+	protected final Maybe<U> maybeMapOrderConflict(OrderConflict<T> oc) {
 		return Maybe.just(mapOrderConflict(oc));
 	}
 	
-	protected abstract T mapIllegalFlow(IIllegalFlow iFlow);
-	protected abstract T mapDataConflict(DataConflict dc);
-	protected abstract T mapOrderConflict(OrderConflict oc);
+	protected abstract U mapIllegalFlow(IIllegalFlow<T> iFlow);
+	protected abstract U mapDataConflict(DataConflict<T> dc);
+	protected abstract U mapOrderConflict(OrderConflict<T> oc);
 }

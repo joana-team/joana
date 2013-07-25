@@ -17,17 +17,17 @@ import edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor;
 /**
  * @author Martin Mohr
  */
-public class ViolationSeparator implements IViolationVisitor {
+public class ViolationSeparator<T> implements IViolationVisitor<T> {
 	
-	private Collection<IIllegalFlow> iFlows = new LinkedList<IIllegalFlow>();
-	private Collection<DataConflict> dConfs = new LinkedList<DataConflict>();
-	private Collection<OrderConflict> oConfs = new LinkedList<OrderConflict>();
+	private Collection<IIllegalFlow<T>> iFlows = new LinkedList<IIllegalFlow<T>>();
+	private Collection<DataConflict<T>> dConfs = new LinkedList<DataConflict<T>>();
+	private Collection<OrderConflict<T>> oConfs = new LinkedList<OrderConflict<T>>();
  	
 	/* (non-Javadoc)
 	 * @see edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor#visitIllegalFlow(edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow)
 	 */
 	@Override
-	public void visitIllegalFlow(IIllegalFlow iFlow) {
+	public void visitIllegalFlow(IIllegalFlow<T> iFlow) {
 		iFlows.add(iFlow);
 	}
 
@@ -35,7 +35,7 @@ public class ViolationSeparator implements IViolationVisitor {
 	 * @see edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor#visitDataConflict(edu.kit.joana.ifc.sdg.core.conc.DataConflict)
 	 */
 	@Override
-	public void visitDataConflict(DataConflict dataConf) {
+	public void visitDataConflict(DataConflict<T> dataConf) {
 		dConfs.add(dataConf);
 	}
 
@@ -43,14 +43,14 @@ public class ViolationSeparator implements IViolationVisitor {
 	 * @see edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor#visitOrderConflict(edu.kit.joana.ifc.sdg.core.conc.OrderConflict)
 	 */
 	@Override
-	public void visitOrderConflict(OrderConflict orderConf) {
+	public void visitOrderConflict(OrderConflict<T> orderConf) {
 		oConfs.add(orderConf);
 	}
 	
 	
-	public void sort(Collection<? extends IViolation> vios) {
+	public void sort(Collection<? extends IViolation<T>> vios) {
 		reset();
-		for (IViolation v : vios) {
+		for (IViolation<T> v : vios) {
 			v.accept(this);
 		}
 	}
@@ -61,15 +61,15 @@ public class ViolationSeparator implements IViolationVisitor {
 		oConfs.clear();
 	}
 	
-	public Collection<IIllegalFlow> getIllegalFlows() {
+	public Collection<IIllegalFlow<T>> getIllegalFlows() {
 		return iFlows;
 	}
 	
-	public Collection<DataConflict> getDataConflicts() {
+	public Collection<DataConflict<T>> getDataConflicts() {
 		return dConfs;
 	}
 	
-	public Collection<OrderConflict> getOrderConflicts() {
+	public Collection<OrderConflict<T>> getOrderConflicts() {
 		return oConfs;
 	}
 	

@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
+import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -81,7 +82,7 @@ public class ImplicitExplicitFlowMetrics implements IMetrics {
 			}
 		}
 
-		private int slice(IIllegalFlow vio) {
+		private int slice(IIllegalFlow<SecurityNode> vio) {
 			Collection<SDGNode> chop = chopper.chop(vio.getSource(), vio.getSink());
 
 			int step = 0;

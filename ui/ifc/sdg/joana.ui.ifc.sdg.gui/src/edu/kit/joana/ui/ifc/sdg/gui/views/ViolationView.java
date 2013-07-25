@@ -202,7 +202,8 @@ public class ViolationView extends ViewPart implements ActiveResourceChangeListe
 						" to Line " + c.getSink().getSr() + ", visible for " + c.getAttackerLevel();
 
 			} else if (obj instanceof ClassifiedViolation) {
-				IIllegalFlow c = (IIllegalFlow) obj;
+				@SuppressWarnings("unchecked")
+				IIllegalFlow<SecurityNode> c = (IIllegalFlow<SecurityNode>) obj;
 
 				return "Illicit Flow from Line " + c.getSource().getSr() +
 						" to Line " + c.getSink().getSr() + ", visible for " + c.getAttackerLevel();

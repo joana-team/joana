@@ -23,13 +23,14 @@ import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
 import edu.kit.joana.api.IFCAnalysis;
-import edu.kit.joana.api.IllicitFlow;
 import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.api.test.util.ApiTestException;
 import edu.kit.joana.api.test.util.JoanaPath;
+import edu.kit.joana.ifc.sdg.core.SecurityNode;
+import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
@@ -85,7 +86,7 @@ public class FullIFCSequentialTest {
 			IFCAnalysis ana = buildAndAnnotate("sequential.PraktomatValid",
 					"sequential.PraktomatValid$Submission.matrNr",
 					"sequential.PraktomatValid$Review.failures");
-			Collection<IllicitFlow> illegal = ana.doIFC();
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertTrue(illegal.isEmpty());
 			assertEquals(0, illegal.size());
 		} catch (ApiTestException e) {
@@ -100,7 +101,7 @@ public class FullIFCSequentialTest {
 			IFCAnalysis ana = buildAndAnnotate("sequential.PraktomatLeak",
 					"sequential.PraktomatLeak$Submission.matrNr",
 					"sequential.PraktomatLeak$Review.failures");
-			Collection<IllicitFlow> illegal = ana.doIFC();
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
 			assertEquals(14, illegal.size());
 		} catch (ApiTestException e) {

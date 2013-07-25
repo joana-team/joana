@@ -15,7 +15,8 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import edu.kit.joana.api.IllicitFlow;
+import edu.kit.joana.ifc.sdg.core.SecurityNode;
+import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ui.ifc.wala.console.console.IFCConsole;
 import edu.kit.joana.ui.ifc.wala.console.io.PrintStreamConsoleWrapper;
 import edu.kit.joana.util.io.IOFactory;
@@ -40,7 +41,7 @@ public class AnnotationTest {
 		console.processCommand("source toy.dd.A.b secret");
 		console.processCommand("sink java.lang.System.out public");
 		console.processCommand("run");
-		Collection<IllicitFlow> iFlows = console.getLastAnalysisResult();
+		Collection<? extends IViolation<SecurityNode>> iFlows = console.getLastAnalysisResult();
 		Assert.assertFalse(iFlows.isEmpty());
 	}
 
@@ -52,7 +53,7 @@ public class AnnotationTest {
 		console.processCommand("source toy.dd.A.b secret");
 		console.processCommand("sink java.lang.System.out public");
 		console.processCommand("run");
-		Collection<IllicitFlow> iFlows = console.getLastAnalysisResult();
+		Collection<? extends IViolation<SecurityNode>> iFlows = console.getLastAnalysisResult();
 		Assert.assertFalse(iFlows.isEmpty());
 	}
 
@@ -64,7 +65,7 @@ public class AnnotationTest {
 		console.processCommand("source toy.test.IntSecret.secretValue secret");
 		console.processCommand("sink java.lang.System.out public");
 		console.processCommand("run");
-		Collection<IllicitFlow> iFlows = console.getLastAnalysisResult();
+		Collection<? extends IViolation<SecurityNode>> iFlows = console.getLastAnalysisResult();
 		Assert.assertFalse(iFlows.isEmpty());
 	}
 }

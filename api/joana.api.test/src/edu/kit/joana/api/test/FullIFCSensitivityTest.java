@@ -23,13 +23,14 @@ import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
 import edu.kit.joana.api.IFCAnalysis;
-import edu.kit.joana.api.IllicitFlow;
 import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.api.test.util.ApiTestException;
 import edu.kit.joana.api.test.util.JoanaPath;
+import edu.kit.joana.ifc.sdg.core.SecurityNode;
+import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.util.Stubs;
@@ -93,7 +94,7 @@ public class FullIFCSensitivityTest {
 	public void testFlowSensLeak() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("sensitivity.FlowSensLeak");
-			Collection<IllicitFlow> illegal = ana.doIFC();
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
 			assertEquals(2, illegal.size());
 		} catch (ApiTestException e) {
@@ -106,7 +107,7 @@ public class FullIFCSensitivityTest {
 	public void testFlowSensValid() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("sensitivity.FlowSensValid");
-			Collection<IllicitFlow> illegal = ana.doIFC();
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertTrue(illegal.isEmpty());
 			assertEquals(0, illegal.size());
 		} catch (ApiTestException e) {
@@ -119,7 +120,7 @@ public class FullIFCSensitivityTest {
 	public void testFieldSensLeak() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("sensitivity.FieldSensLeak");
-			Collection<IllicitFlow> illegal = ana.doIFC();
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertTrue(illegal.size() > 0);
 			assertEquals(2, illegal.size());
 		} catch (ApiTestException e) {
@@ -132,7 +133,7 @@ public class FullIFCSensitivityTest {
 	public void testFieldSensValid() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("sensitivity.FieldSensValid");
-			Collection<IllicitFlow> illegal = ana.doIFC();
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertTrue(illegal.isEmpty());
 			assertEquals(0, illegal.size());
 		} catch (ApiTestException e) {
@@ -145,7 +146,7 @@ public class FullIFCSensitivityTest {
 	public void testContextSensLeak() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("sensitivity.ContextSensLeak");
-			Collection<IllicitFlow> illegal = ana.doIFC();
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
 			assertEquals(2, illegal.size());
 		} catch (ApiTestException e) {
@@ -158,7 +159,7 @@ public class FullIFCSensitivityTest {
 	public void testContextSensValid() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("sensitivity.ContextSensValid");
-			Collection<IllicitFlow> illegal = ana.doIFC();
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertTrue(illegal.isEmpty());
 			assertEquals(0, illegal.size());
 		} catch (ApiTestException e) {
@@ -171,7 +172,7 @@ public class FullIFCSensitivityTest {
 	public void testObjectSensLeak() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("sensitivity.ObjectSensLeak", PointsToPrecision.OBJECT_SENSITIVE);
-			Collection<IllicitFlow> illegal = ana.doIFC();
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
 			assertEquals(2, illegal.size());
 		} catch (ApiTestException e) {
@@ -184,7 +185,7 @@ public class FullIFCSensitivityTest {
 	public void testObjectSensValid() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("sensitivity.ObjectSensValid", PointsToPrecision.OBJECT_SENSITIVE);
-			Collection<IllicitFlow> illegal = ana.doIFC();
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertTrue(illegal.isEmpty());
 			assertEquals(0, illegal.size());
 		} catch (ApiTestException e) {
@@ -197,7 +198,7 @@ public class FullIFCSensitivityTest {
 	public void testObjectSensValidFailOnContextSens() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("sensitivity.ObjectSensValid", PointsToPrecision.CONTEXT_SENSITIVE);
-			Collection<IllicitFlow> illegal = ana.doIFC();
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
 			assertEquals(2, illegal.size());
 		} catch (ApiTestException e) {
@@ -211,7 +212,7 @@ public class FullIFCSensitivityTest {
 		try {
 			IFCAnalysis ana = buildWithThreadsAndAnnotate("sensitivity.TimeSensValid", MHPType.PRECISE);
 			ana.setTimesensitivity(true);
-			Collection<IllicitFlow> illegal = ana.doIFC();
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertTrue(illegal.isEmpty());
 			assertEquals(0, illegal.size());
 		} catch (ApiTestException e) {
@@ -225,7 +226,7 @@ public class FullIFCSensitivityTest {
 		try {
 			IFCAnalysis ana = buildWithThreadsAndAnnotate("sensitivity.TimeSensLeak", MHPType.PRECISE);
 			ana.setTimesensitivity(true);
-			Collection<IllicitFlow> illegal = ana.doIFC();
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
 			assertEquals(2, illegal.size());
 		} catch (ApiTestException e) {
@@ -239,7 +240,7 @@ public class FullIFCSensitivityTest {
 		try {
 			IFCAnalysis ana = buildWithThreadsAndAnnotate("sensitivity.LockSensValid", MHPType.PRECISE);
 			ana.setTimesensitivity(true);
-			Collection<IllicitFlow> illegal = ana.doIFC();
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty()); // with lock-sensitive IFC, this test will hopefully fail some day
 			assertEquals(2, illegal.size()); 
 		} catch (ApiTestException e) {
@@ -252,7 +253,7 @@ public class FullIFCSensitivityTest {
 	public void testKillingDefValid() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("sensitivity.KillingDefValid");
-			Collection<IllicitFlow> illegal = ana.doIFC();
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertTrue(illegal.isEmpty());
 			assertEquals(0, illegal.size());
 		} catch (ApiTestException e) {
@@ -265,7 +266,7 @@ public class FullIFCSensitivityTest {
 	public void testKillingDefLeak() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("sensitivity.KillingDefLeak");
-			Collection<IllicitFlow> illegal = ana.doIFC();
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
 			assertEquals(2, illegal.size());
 		} catch (ApiTestException e) {

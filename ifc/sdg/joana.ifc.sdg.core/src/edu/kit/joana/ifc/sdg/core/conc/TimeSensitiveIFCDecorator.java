@@ -10,6 +10,7 @@ package edu.kit.joana.ifc.sdg.core.conc;
 import java.util.Collection;
 
 import edu.kit.joana.ifc.sdg.core.IFC;
+import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
 import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -37,14 +38,14 @@ public class TimeSensitiveIFCDecorator extends IFC {
 	 * @see edu.kit.joana.ifc.sdg.core.IFC#checkIFlow()
 	 */
 	@Override
-	public Collection<? extends IViolation> checkIFlow() throws NotInLatticeException {
-		Collection<? extends IViolation> baseVios = baseIFC.checkIFlow();
+	public Collection<? extends IViolation<SecurityNode>> checkIFlow() throws NotInLatticeException {
+		Collection<? extends IViolation<SecurityNode>> baseVios = baseIFC.checkIFlow();
 		Nanda tsbwSlicer = new Nanda(baseIFC.getSDG(), new NandaBackward());
 		TSFilter filter = new TSFilter(tsbwSlicer);
 		return filter.filter(baseVios);
 	}
 	
-	private static class TSFilter extends ViolationFilter {
+	private static class TSFilter extends ViolationFilter<SecurityNode> {
 		
 		private Nanda tsbwSlicer;
 		
@@ -56,7 +57,7 @@ public class TimeSensitiveIFCDecorator extends IFC {
 		 * @see edu.kit.joana.ifc.sdg.core.conc.TimeSensitiveIFCDecorator.ViolationFilter#acceptIllegalFlow(edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow)
 		 */
 		@Override
-		protected boolean acceptIllegalFlow(IIllegalFlow iFlow) {
+		protected boolean acceptIllegalFlow(IIllegalFlow<SecurityNode> iFlow) {
 			Collection<SDGNode> tsSlice = tsbwSlicer.slice(iFlow.getSink());
 			return tsSlice.contains(iFlow.getSource());
 		}

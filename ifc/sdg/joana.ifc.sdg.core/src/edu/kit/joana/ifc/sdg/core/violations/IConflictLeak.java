@@ -7,8 +7,6 @@
  */
 package edu.kit.joana.ifc.sdg.core.violations;
 
-import edu.kit.joana.ifc.sdg.core.SecurityNode;
-import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.util.Maybe;
 
 /**
@@ -16,18 +14,17 @@ import edu.kit.joana.util.Maybe;
  * indefinite program behaviour. This conflict is possibly influenced by a source.
  * @author Martin Mohr
  */
-public interface IConflictLeak extends IViolation {
+public interface IConflictLeak<T> extends IViolation<T> {
 	
 	/**
 	 * @return the trigger of the conflict or {@link Maybe#nothing} if there is no source is available
 	 */
-	Maybe<SecurityNode> getTrigger();
+	Maybe<T> getTrigger();
 	
 	/**
-	 * The conflict leading to this conflict leak
-	 * @return
+	 * @return The conflict leading to this conflict leak
 	 */
-	SDGEdge getConflictEdge();
+	ConflictEdge<T> getConflictEdge();
 	
 	/**
 	 * @return the security level which an attacker must have to observe the conflict

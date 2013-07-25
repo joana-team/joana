@@ -12,8 +12,8 @@ import edu.kit.joana.ifc.sdg.core.conc.OrderConflict;
 /**
  * @author Add your name here.
  */
-public interface IViolationVisitor {
-	public void visitIllegalFlow(IIllegalFlow iFlow);
-	public void visitDataConflict(DataConflict dataConf);
-	public void visitOrderConflict(OrderConflict orderConf);
+public interface IViolationVisitor<T> {
+	public void visitIllegalFlow(IIllegalFlow<T> iFlow);
+	public void visitDataConflict(DataConflict<T> dataConf);
+	public void visitOrderConflict(OrderConflict<T> orderConf);
 }

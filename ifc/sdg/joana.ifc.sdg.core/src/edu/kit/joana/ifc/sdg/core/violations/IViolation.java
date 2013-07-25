@@ -12,6 +12,6 @@ package edu.kit.joana.ifc.sdg.core.violations;
  * Common interface for all security violations which JOANA can find.
  * @author Martin Mohr
  */
-public interface IViolation {
-	public void accept(IViolationVisitor v);
+public interface IViolation<T> {
+	public void accept(IViolationVisitor<T> v);
 }

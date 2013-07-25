@@ -7,34 +7,32 @@
  */
 package edu.kit.joana.ifc.sdg.core.violations;
 
-import edu.kit.joana.ifc.sdg.core.SecurityNode;
-import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.util.Maybe;
 
 /**
  * @author Martin Mohr
  */
-public abstract class AbstractConflictLeak implements IConflictLeak {
+public abstract class AbstractConflictLeak<T> implements IConflictLeak<T> {
 	
-	protected final SDGEdge confEdge;
+	protected final ConflictEdge<T> confEdge;
 	protected final String attackerLevel;
-	protected final Maybe<SecurityNode> trigger;
+	protected final Maybe<T> trigger;
 	
-	public AbstractConflictLeak(SDGEdge confEdge, String attackerLevel) {
-		this(confEdge, attackerLevel, Maybe.<SecurityNode>nothing());
+	public AbstractConflictLeak(ConflictEdge<T> confEdge, String attackerLevel) {
+		this(confEdge, attackerLevel, Maybe.<T>nothing());
 	}
 	
-	public AbstractConflictLeak(SDGEdge confEdge, String attackerLevel, Maybe<SecurityNode> trigger) {
+	public AbstractConflictLeak(ConflictEdge<T> confEdge, String attackerLevel, Maybe<T> trigger) {
 		this.confEdge = confEdge;
 		this.attackerLevel = attackerLevel;
 		this.trigger = trigger;
 	}
 	
-	public SDGEdge getConflictEdge() {
+	public ConflictEdge<T> getConflictEdge() {
 		return confEdge;
 	}
 	
-	public Maybe<SecurityNode> getTrigger() {
+	public Maybe<T> getTrigger() {
 		return trigger;
 	}
 

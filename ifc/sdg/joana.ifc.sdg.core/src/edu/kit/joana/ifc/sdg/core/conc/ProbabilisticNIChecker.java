@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 import edu.kit.joana.ifc.sdg.core.IFC;
+import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -66,8 +67,8 @@ public class ProbabilisticNIChecker extends IFC {
 	 * @throws InterSlicePluginException
 	 * @throws NotInLatticeException
 	 */
-	public Collection<? extends IViolation> checkIFlow() throws NotInLatticeException {
-		Collection<IViolation> ret = new LinkedList<IViolation>(); // list to be returned
+	public Collection<? extends IViolation<SecurityNode>> checkIFlow() throws NotInLatticeException {
+		Collection<IViolation<SecurityNode>> ret = new LinkedList<IViolation<SecurityNode>>(); // list to be returned
 		IFC is = new BarrierIFCSlicer(g, l);
 		
 		if (timeSens) {
@@ -92,7 +93,7 @@ public class ProbabilisticNIChecker extends IFC {
 		return ret;
 	}
 	
-	public Collection<ClassifiedViolation> translate(Collection<? extends IViolation> vios) {
+	public Collection<ClassifiedViolation> translate(Collection<? extends IViolation<SecurityNode>> vios) {
 		ViolationTranslator trans = new ViolationTranslator();
 		return trans.map(vios);
 	}

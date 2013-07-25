@@ -7,33 +7,30 @@
  */
 package edu.kit.joana.ifc.sdg.core.conc;
 
-import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.AbstractConflictLeak;
+import edu.kit.joana.ifc.sdg.core.violations.ConflictEdge;
 import edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor;
-import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.util.Maybe;
 
-public class DataConflict extends AbstractConflictLeak {
+public class DataConflict<T> extends AbstractConflictLeak<T> {
 
-	private final SecurityNode influenced;
-	private final Maybe<SecurityNode> trigger;
+	private final T influenced;
 	
-	private final String untriggeredTemplate = "Data conflict between nodes %s and %s, may influence the behaviour of node %s, which is visible for %s";
-	private final String triggeredTemplate = "Data conflict between nodes %s and %s, may reveal something about node %s by influencing the behaviour of node %s, which is visible for %s";
+	private final String untriggeredTemplate = "Data conflict between '%s' and '%s', may influence the behaviour of node %s, which is visible for '%s'";
+	private final String triggeredTemplate = "Data conflict between '%s' and '%s', may reveal something about node '%s' by influencing the behaviour of node '%s', which is visible for '%s'";
 	
-	public DataConflict(SDGEdge confEdge, SecurityNode influenced,
-			String attackerLevel, Maybe<SecurityNode> trigger) {
-		super(confEdge, attackerLevel);
+	public DataConflict(ConflictEdge<T> confEdge, T influenced,
+			String attackerLevel, Maybe<T> trigger) {
+		super(confEdge, attackerLevel, trigger);
 		this.influenced = influenced;
-		this.trigger = trigger;
 	}
 	
-	public DataConflict(SDGEdge confEdge, SecurityNode influenced,
+	public DataConflict(ConflictEdge<T> confEdge, T influenced,
 			String attackerLevel) {
-		this(confEdge, influenced, attackerLevel, Maybe.<SecurityNode>nothing());
+		this(confEdge, influenced, attackerLevel, Maybe.<T>nothing());
 	}
 	
-	public SecurityNode getInfluenced() {
+	public T getInfluenced() {
 		return influenced;
 	}
 
@@ -72,6 +69,7 @@ public class DataConflict extends AbstractConflictLeak {
 		if (!(obj instanceof DataConflict)) {
 			return false;
 		}
+		@SuppressWarnings("rawtypes")
 		DataConflict other = (DataConflict) obj;
 		if (attackerLevel == null) {
 			if (other.attackerLevel != null) {
@@ -116,7 +114,7 @@ public class DataConflict extends AbstractConflictLeak {
 	 * @see edu.kit.joana.ifc.sdg.core.violations.IViolation#accept(edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor)
 	 */
 	@Override
-	public void accept(IViolationVisitor v) {
+	public void accept(IViolationVisitor<T> v) {
 		v.visitDataConflict(this);
 	}
 }

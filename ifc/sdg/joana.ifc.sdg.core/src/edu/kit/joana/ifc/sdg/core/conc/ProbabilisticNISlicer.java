@@ -417,10 +417,6 @@ public class ProbabilisticNISlicer implements ConflictScanner {
      * @return Die Menge der gefundenen Sicherheitsverletzungen.
      */
     public Set<IConflictLeak<SecurityNode>> check() {
-    	
-    	
-    	System.out.println("*** This is Giffhorn's optimized LSOD checker! ***");
-    	
         // bestimme alle annotierten knoten
         LinkedList<Element> criteria = collectCriteria();
         Set<IConflictLeak<SecurityNode>> set = new HashSet<IConflictLeak<SecurityNode>>();

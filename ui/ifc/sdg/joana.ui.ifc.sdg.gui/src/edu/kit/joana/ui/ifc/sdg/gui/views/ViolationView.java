@@ -16,7 +16,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
 
-
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -63,11 +62,9 @@ import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
-import edu.kit.joana.ifc.sdg.core.violations.ClassifiedConflict;
-import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
-import edu.kit.joana.ifc.sdg.core.violations.OrderConflict;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation.Chop;
+import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.core.violations.paths.ViolationPath;
 import edu.kit.joana.ifc.sdg.core.violations.paths.ViolationPathes;
 import edu.kit.joana.ui.ifc.sdg.gui.ActiveResourceChangeListener;
@@ -188,26 +185,10 @@ public class ViolationView extends ViewPart implements ActiveResourceChangeListe
 
 		public String getText(Object obj) {
 			// first tree level
-			if (obj instanceof OrderConflict) {
-				OrderConflict c = (OrderConflict) obj;
-
-				return "Probabilistic Order Channel between Lines " + c.getSink().getSr() +
-						" and " + c.getConflicting().getSr() + ", leaking Line " + c.getSource().getSr() +
-						", visible for " + c.getAttackerLevel();
-
-			} else if (obj instanceof ClassifiedConflict) {
-				ClassifiedConflict c = (ClassifiedConflict) obj;
-
-				return "Probabilistic Data Channel from Line " + c.getSource().getSr() +
-						" to Line " + c.getSink().getSr() + ", visible for " + c.getAttackerLevel();
-
-			} else if (obj instanceof ClassifiedViolation) {
+			if (obj instanceof IViolation) {
 				@SuppressWarnings("unchecked")
-				IIllegalFlow<SecurityNode> c = (IIllegalFlow<SecurityNode>) obj;
-
-				return "Illicit Flow from Line " + c.getSource().getSr() +
-						" to Line " + c.getSink().getSr() + ", visible for " + c.getAttackerLevel();
-
+				IViolation<SecurityNode> vio = (IViolation<SecurityNode>) obj;
+				return new ViolationStringifier().mapSingle(vio);
 			} else if (obj instanceof String) {
 				return (String) obj;
 

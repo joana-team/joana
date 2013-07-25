@@ -9,6 +9,7 @@ package edu.kit.joana.ifc.sdg.core.violations;
 
 import edu.kit.joana.ifc.sdg.core.conc.DataConflict;
 import edu.kit.joana.ifc.sdg.core.conc.OrderConflict;
+
 /**
  * @author Add your name here.
  */

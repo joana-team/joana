@@ -12,10 +12,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import edu.kit.joana.ifc.sdg.core.conc.ViolationFilter;
-import edu.kit.joana.ifc.sdg.core.conc.ViolationPartialMapper;
 import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
 import edu.kit.joana.ifc.sdg.core.violations.IViolation;
+import edu.kit.joana.ifc.sdg.core.violations.ViolationFilter;
+import edu.kit.joana.ifc.sdg.core.violations.ViolationPartialMapper;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.chopper.barrier.BarrierChopper;
 import edu.kit.joana.ifc.sdg.graph.chopper.barrier.NonSameLevelBarrierChopper;

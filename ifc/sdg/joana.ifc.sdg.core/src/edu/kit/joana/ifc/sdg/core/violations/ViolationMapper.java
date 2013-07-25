@@ -5,10 +5,10 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-package edu.kit.joana.ifc.sdg.core.conc;
+package edu.kit.joana.ifc.sdg.core.violations;
 
-import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
-import edu.kit.joana.ifc.sdg.core.violations.IViolation;
+import edu.kit.joana.ifc.sdg.core.conc.DataConflict;
+import edu.kit.joana.ifc.sdg.core.conc.OrderConflict;
 import edu.kit.joana.util.Maybe;
 
 /**

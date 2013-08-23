@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.jar.JarFile;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
@@ -12,10 +13,10 @@ import com.ibm.wala.dalvik.ipa.callgraph.impl.DexEntryPoint;
 import com.ibm.wala.dalvik.util.AndroidAnalysisScope;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
+import com.ibm.wala.ipa.callgraph.AnalysisOptions.ReflectionOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.ipa.callgraph.Entrypoint;
-import com.ibm.wala.ipa.callgraph.AnalysisOptions.ReflectionOptions;
 import com.ibm.wala.ipa.callgraph.propagation.SSAPropagationCallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.ZeroXCFABuilder;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
@@ -33,13 +34,14 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
+import edu.kit.joana.util.Maybe;
 import edu.kit.joana.wala.core.ExternalCallCheck;
 import edu.kit.joana.wala.core.Main;
 import edu.kit.joana.wala.core.SDGBuilder;
-import edu.kit.joana.wala.core.SDGBuilder.SDGBuilderConfig;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
+import edu.kit.joana.wala.core.SDGBuilder.SDGBuilderConfig;
 import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
 import edu.kit.joana.wala.core.pointsto.WalaPointsToUtil;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph;
@@ -49,7 +51,13 @@ public final class JoDroidConstruction {
 
 	public static void buildAndroidSDGAndSave(String classPath, String androidLib, String entryMethod, String sdgFile)
 			throws SDGConstructionException, IOException {
-		SDG sdg = buildAndroidSDG(classPath, androidLib, entryMethod);
+		SDG sdg = buildAndroidSDG(classPath, androidLib, Maybe.<String>nothing(), entryMethod);
+		SDGSerializer.toPDGFormat(sdg, new FileOutputStream(sdgFile));
+	}
+	
+	public static void buildAndroidSDGAndSave(String classPath, String androidLib, String stubsPath, String entryMethod, String sdgFile)
+			throws SDGConstructionException, IOException {
+		SDG sdg = buildAndroidSDG(classPath, androidLib, Maybe.just(stubsPath), entryMethod);
 		SDGSerializer.toPDGFormat(sdg, new FileOutputStream(sdgFile));
 	}
 
@@ -58,10 +66,14 @@ public final class JoDroidConstruction {
 		AnalysisScope scope = AndroidAnalysisScope.setUpAndroidAnalysisScope(androidLib, classPath);
 		return ClassHierarchy.make(scope);
 	}
-
-	public static SDG buildAndroidSDG(String classPath, String androidLib, String entryMethod)
+	
+	public static SDG buildAndroidSDG(String classPath, String androidLib, Maybe<String> stubsPath, String entryMethod)
 			throws SDGConstructionException, IOException {
 		AnalysisScope scope = AndroidAnalysisScope.setUpAndroidAnalysisScope(androidLib, classPath);
+		if (stubsPath.isJust()) {
+			String stubs = stubsPath.extract();
+			scope.addToScope(ClassLoaderReference.Primordial, new JarFile(stubs));
+		}
 		IClassHierarchy cha;
 		try {
 			cha = ClassHierarchy.make(scope);
@@ -71,6 +83,11 @@ public final class JoDroidConstruction {
 		} catch (MethodNotFoundException e) {
 			throw new SDGConstructionException(e);
 		}
+	}
+
+	public static SDG buildAndroidSDG(String classPath, String androidLib, String entryMethod)
+			throws SDGConstructionException, IOException {
+		return buildAndroidSDG(classPath, androidLib, Maybe.<String>nothing(), entryMethod);
 	}
 
 	public static SDG buildAndroidSDG(IMethod entryMethod)

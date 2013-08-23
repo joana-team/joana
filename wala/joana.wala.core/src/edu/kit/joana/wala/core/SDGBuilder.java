@@ -33,7 +33,6 @@ import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.CallGraphBuilderCancelException;
 import com.ibm.wala.ipa.callgraph.Entrypoint;
-import com.ibm.wala.ipa.callgraph.impl.SubtypesEntrypoint;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
 import com.ibm.wala.ipa.callgraph.pruned.CallGraphPruning;
 import com.ibm.wala.ipa.callgraph.pruned.PrunedCallGraph;
@@ -612,7 +611,7 @@ public class SDGBuilder implements CallGraphFilter {
 	private CGResult buildCallgraph(final IProgressMonitor progress) throws IllegalArgumentException,
 			CallGraphBuilderCancelException {
 		List<Entrypoint> entries = new LinkedList<Entrypoint>();
-		Entrypoint ep = new SubtypesEntrypoint(cfg.entry, cfg.cha);
+		Entrypoint ep = cfg.epFactory.make(cfg.entry, cfg.cha);
 		entries.add(ep);
 		AnalysisOptions options = new AnalysisOptions(cfg.scope, entries);
 		if (cfg.ext.resolveReflection()) {
@@ -1116,6 +1115,7 @@ public class SDGBuilder implements CallGraphFilter {
 		public AnalysisCache cache = null;
 		public IClassHierarchy cha = null;
 		public IMethod entry = null;
+		public EntryPointFactory epFactory = SubtypeEPFactory.INSTANCE;
 		public ExternalCallCheck ext = null;
 		public String[] immutableNoOut = Main.IMMUTABLE_NO_OUT;
 		public String[] immutableStubs = Main.IMMUTABLE_STUBS;

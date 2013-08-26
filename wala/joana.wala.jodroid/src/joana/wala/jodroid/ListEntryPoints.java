@@ -30,14 +30,14 @@ public class ListEntryPoints {
 													// your choice!
 		
 		
-		List<IMethod> promisingMethods = collectEntryPoints(classPath, androidLib);
+		List<MethodReference> promisingMethods = collectEntryPoints(classPath, androidLib);
 		System.out.println("You may want to choose one of the following methods as Entry points: ");
-		for (IMethod prom : promisingMethods) {
+		for (MethodReference prom : promisingMethods) {
 			System.out.println(prom.getSignature());
 		}
 	}
 	
-	public static List<IMethod> collectEntryPoints(String classPath, String androidLib) throws ClassHierarchyException, IOException {
+	public static List<MethodReference> collectEntryPoints(String classPath, String androidLib) throws ClassHierarchyException, IOException {
 		IClassHierarchy cha = JoDroidConstruction.computeCH(classPath, androidLib);
 		IClass cApp = resolve(cha, TR_APPLICATION);
 		IClass cAct = resolve(cha, TR_ACTIVITY);
@@ -50,7 +50,7 @@ public class ListEntryPoints {
 		List<IClass> entryClasses = collectAllSubclasses(cha, resolve(cha, TR_APPLICATION));
 		entryClasses.addAll(collectAllSubclasses(cha, resolve(cha, TR_ACTIVITY)));
 
-		List<IMethod> promisingMethods = collectPromisingMethods(entryClasses, cha);
+		List<MethodReference> promisingMethods = collectPromisingMethods(entryClasses, cha);
 		
 		return promisingMethods;
 	}
@@ -71,8 +71,8 @@ public class ListEntryPoints {
 		return ret;
 	}
 	
-	private static List<IMethod> collectPromisingMethods(Collection<IClass> classes, IClassHierarchy cha) {
-		List<IMethod> ret = new LinkedList<IMethod>();
+	private static List<MethodReference> collectPromisingMethods(Collection<IClass> classes, IClassHierarchy cha) {
+		List<MethodReference> ret = new LinkedList<MethodReference>();
 		for (IClass eClass : classes) {
 			ret.addAll(collectPromisingMethods(eClass, cha));
 		}
@@ -80,8 +80,8 @@ public class ListEntryPoints {
 		return ret;
 	}
 	
-	public static List<IMethod> collectPromisingMethods(IClass clazz, IClassHierarchy cha) {
-		List<IMethod> ret = new LinkedList<IMethod>();
+	public static List<MethodReference> collectPromisingMethods(IClass clazz, IClassHierarchy cha) {
+		List<MethodReference> ret = new LinkedList<MethodReference>();
 		MethodReference onStartRef = MethodReference.findOrCreate(clazz.getReference(), Selector.make("onStart()V"));
 		MethodReference onActCreateRef = MethodReference.findOrCreate(clazz.getReference(), Selector.make("onCreate(Landroid/os/Bundle;)V"));
 		MethodReference onAppCreateRef = MethodReference.findOrCreate(clazz.getReference(), Selector.make("onCreate()V"));
@@ -90,16 +90,16 @@ public class ListEntryPoints {
 		IMethod onActCreate = cha.resolveMethod(onActCreateRef);
 		IMethod onAppCreate = cha.resolveMethod(onAppCreateRef);
 		
-		if (clazz.getDeclaredMethods().contains(onStart)) {
-			ret.add(onStart);
+		if (onStart != null) {
+			ret.add(onStartRef);
 		}
 		
-		if (clazz.getDeclaredMethods().contains(onActCreate)) {
-			ret.add(onActCreate);
+		if (onActCreate != null) {
+			ret.add(onActCreateRef);
 		}
 		
-		if (clazz.getDeclaredMethods().contains(onAppCreate)) {
-			ret.add(onAppCreate);
+		if (onAppCreate != null) {
+			ret.add(onAppCreateRef);
 		}
 		
 		return ret;

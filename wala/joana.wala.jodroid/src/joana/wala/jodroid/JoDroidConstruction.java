@@ -17,6 +17,7 @@ import com.ibm.wala.ipa.callgraph.AnalysisOptions.ReflectionOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.ipa.callgraph.Entrypoint;
+import com.ibm.wala.ipa.callgraph.impl.SubtypesEntrypoint;
 import com.ibm.wala.ipa.callgraph.propagation.SSAPropagationCallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.ZeroXCFABuilder;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
@@ -192,7 +193,7 @@ public final class JoDroidConstruction {
 
 	private static AnalysisOptions makeAnalysisOptions(IMethod entry, AnalysisScope scope, IClassHierarchy cha) {
 		List<Entrypoint> entrypoints = new LinkedList<Entrypoint>();
-		entrypoints.add(new DexEntryPoint(entry, cha));
+		entrypoints.add(new SubtypesEntrypoint(entry, cha));
 		AnalysisOptions analysisOptions = new AnalysisOptions(scope, entrypoints);
 		analysisOptions.setReflectionOptions(ReflectionOptions.NO_STRING_CONSTANTS);
 		return analysisOptions;

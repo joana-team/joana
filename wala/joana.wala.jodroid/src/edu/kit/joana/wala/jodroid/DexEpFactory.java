@@ -1,4 +1,4 @@
-package joana.wala.jodroid;
+package edu.kit.joana.wala.jodroid;
 
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.dalvik.ipa.callgraph.impl.DexEntryPoint;

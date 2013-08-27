@@ -1,4 +1,4 @@
-package joana.wala.jodroid;
+package edu.kit.joana.wala.jodroid;
 
 import java.io.IOException;
 import java.util.Collection;

@@ -1,4 +1,4 @@
-package joana.wala.jodroid;
+package edu.kit.joana.wala.jodroid;
 
 import java.io.FileOutputStream;
 import java.io.IOException;

@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -47,8 +47,8 @@ public class IFCSlicer {
 		return slice.size() == keySet.size() && slice.containsAll(keySet);
 	}
 	
-	public List<Violation> checkIFC(SecurityNode startNode) {
-		List<Violation> violations = new ArrayList<Violation>();
+	public List<ClassifiedViolation> checkIFC(SecurityNode startNode) {
+		List<ClassifiedViolation> violations = new ArrayList<ClassifiedViolation>();
 		LinkedList<SecurityNode> workList = new LinkedList<SecurityNode>();
 		Map<SecurityNode, String> sLevel = new HashMap<SecurityNode, String>();
 		workList.add(startNode);
@@ -61,7 +61,7 @@ public class IFCSlicer {
 		for (SecurityNode toCheck : sLevel.keySet()) {
 			String securityLabel = sLevel.get(toCheck);
 			if (toCheck.getProvided() != SecurityNode.UNDEFINED && !leq(toCheck, securityLabel)) {
-				Violation v = Violation.createViolation(toCheck, startNode, toCheck.getRequired());
+				ClassifiedViolation v = ClassifiedViolation.createViolation(toCheck, startNode, toCheck.getRequired());
 				violations.add(v);
 			}
 		}

@@ -12,7 +12,7 @@ package edu.kit.joana.ifc.sdg.core.conc;
 
 import java.util.Comparator;
 
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 
 
 /**
@@ -22,7 +22,7 @@ import edu.kit.joana.ifc.sdg.core.violations.Violation;
  *
  * @author giffhorn
  */
-public class ViolationComparator implements Comparator<Violation> {
+public class ViolationComparator implements Comparator<ClassifiedViolation> {
     /**
      * Eine Instanz des Komparators
      */
@@ -33,7 +33,7 @@ public class ViolationComparator implements Comparator<Violation> {
      * Daher vergleicht die Methode paarweise die IDs dieser beiden Knoten,
      * um die beiden Violations miteinander zu vergleichen.
      */
-    public int compare(Violation a, Violation b) {
+    public int compare(ClassifiedViolation a, ClassifiedViolation b) {
         if (a.getSource().getId() > b.getSource().getId()) {
             return 1;
 

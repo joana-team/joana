@@ -13,7 +13,7 @@ import java.util.LinkedList;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.action.Action;
 
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.core.violations.paths.ConcurrentViolationChop;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
@@ -27,8 +27,8 @@ public class SimpleConcurrentChopper implements IChopper {
 		action.setImageDescriptor(NJSecPlugin.singleton().getImageRegistry().getDescriptor("pdg"));
 	}
 
-	public Violation addChop(IProject p, Violation violation, SDG g, IStaticLattice<String> l) {
-		Collection<Violation> violations = new LinkedList<Violation>();
+	public ClassifiedViolation addChop(IProject p, ClassifiedViolation violation, SDG g, IStaticLattice<String> l) {
+		Collection<ClassifiedViolation> violations = new LinkedList<ClassifiedViolation>();
 		violations.add(violation);
 		try {
 			return ConcurrentViolationChop.getInstance().addChop(violations, g).get(0);

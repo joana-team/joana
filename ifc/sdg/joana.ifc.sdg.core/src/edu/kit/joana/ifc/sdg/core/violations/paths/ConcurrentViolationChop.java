@@ -12,7 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.chopper.conc.ContextSensitiveThreadChopper;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
@@ -32,7 +32,7 @@ public class ConcurrentViolationChop {
 
     private ContextSensitiveThreadChopper chopper;
 
-	public List<Violation> addChop(Collection<Violation> violations, SDG g)
+	public List<ClassifiedViolation> addChop(Collection<ClassifiedViolation> violations, SDG g)
 	throws NotInLatticeException {
 	    chopper = new ContextSensitiveThreadChopper(g);
 
@@ -40,13 +40,13 @@ public class ConcurrentViolationChop {
 		debug.outln("Started viopathgen at " + viostart + " for " + violations.size() + " violations");
 
 
-		LinkedList<Violation> ret = new LinkedList<Violation>();
+		LinkedList<ClassifiedViolation> ret = new LinkedList<ClassifiedViolation>();
 
 		//merge all violations into return list
-		for (Violation sViolation : violations) {
+		for (ClassifiedViolation sViolation : violations) {
             // Generate ViolationPathes and attach them to violation nodes
             ViolationPathes vps = generateChop(sViolation.getSink(), sViolation.getSource());
-			Violation vio = Violation.createViolation(sViolation.getSink(), sViolation.getSource(), vps, sViolation.getSink().getRequired());
+			ClassifiedViolation vio = ClassifiedViolation.createViolation(sViolation.getSink(), sViolation.getSource(), vps, sViolation.getSink().getRequired());
 			ret.add(vio);
 		}
 

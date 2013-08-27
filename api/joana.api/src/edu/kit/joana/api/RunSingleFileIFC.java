@@ -20,6 +20,8 @@ import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
+import edu.kit.joana.ifc.sdg.core.SecurityNode;
+import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
@@ -104,7 +106,7 @@ public final class RunSingleFileIFC {
 
 	private static boolean checkIFC(final SDGProgram prog, final IFCType type) {
 		final IFCAnalysis ana = annotateSDG(prog);
-		final Collection<IllicitFlow> leaks = ana.doIFC(type);
+		final Collection<? extends IViolation<SecurityNode>> leaks = ana.doIFC(type);
 		
 		return leaks.isEmpty();
 	}

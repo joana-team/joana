@@ -25,10 +25,11 @@ import javax.swing.JTabbedPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-import edu.kit.joana.api.IllicitFlow;
 import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGProgramPart;
+import edu.kit.joana.ifc.sdg.core.SecurityNode;
+import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
@@ -424,11 +425,11 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 		return loc.getIndex(sig);
 	}
 
-	public Collection<IllicitFlow> getLastAnalysisResult() {
+	public Collection<? extends IViolation<SecurityNode>> getLastAnalysisResult() {
 		return console.getLastAnalysisResult();
 	}
 	
-	public TObjectIntMap<IllicitFlow> getLastAnalysisResultGrouped() {
+	public TObjectIntMap<IViolation<SDGProgramPart>> getLastAnalysisResultGrouped() {
 		return console.getLastAnalysisResultGrouped();
 	}
 

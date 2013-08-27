@@ -25,6 +25,7 @@ import edu.kit.joana.api.sdg.SDGMethodExitNode;
 import edu.kit.joana.api.sdg.SDGParameter;
 import edu.kit.joana.api.sdg.SDGPhi;
 import edu.kit.joana.api.sdg.SDGProgram;
+import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.api.sdg.SDGProgramPartVisitor;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -48,6 +49,37 @@ public class IFCAnnotationApplicator extends SDGProgramPartVisitor<Void, IFCAnno
 	public void applyAnnotations(Collection<IFCAnnotation> anns) {
 		for (IFCAnnotation ann : anns) {
 			ann.getProgramPart().acceptVisitor(this, ann);
+		}
+	}
+	
+	/**
+	 * Given an annotated security node, retrieves the program part to which the security node belongs.
+	 * @param sNode node to find out program part for
+	 * @return the program part to which the security node belongs, or {@code null}, if no such program part could be found
+	 */
+	public SDGProgramPart resolve(SecurityNode sNode) {
+		if (!annotatedNodes.containsKey(sNode)) {
+			debug.outln("Tried to resolve node " + sNode + " and failed.");
+			debug.outln("Resolvable nodes: " + annotatedNodes.keySet());
+			if (sNode.isInformationSource()) {
+				debug.outln(sNode + " was annotated as source.");
+			} else if (sNode.isInformationSink()) {
+				debug.outln(sNode + " was annotated as sink.");
+			} else if (sNode.isDeclassification()) {
+				debug.outln(sNode + " was annotated as declassification.");
+			} else {
+				debug.outln(sNode + " was not annotated.");
+			}
+			SDGProgramPart fallback = program.findCoveringProgramPart(sNode);
+			if (fallback == null) {
+				debug.outln("Also failed to find a covering program part.");
+			}
+			return fallback;
+		} else {
+			NodeAnnotationInfo nai = annotatedNodes.get(sNode);
+			IFCAnnotation ann = nai.getAnnotation();
+			SDGProgramPart ppart = ann.getProgramPart();
+			return ppart;
 		}
 	}
 	

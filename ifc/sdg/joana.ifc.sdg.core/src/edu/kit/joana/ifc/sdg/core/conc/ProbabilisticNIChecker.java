@@ -8,9 +8,13 @@
 package edu.kit.joana.ifc.sdg.core.conc;
 
 import java.util.Collection;
+import java.util.LinkedList;
 
 import edu.kit.joana.ifc.sdg.core.IFC;
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.SecurityNode;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
+import edu.kit.joana.ifc.sdg.core.violations.IViolation;
+import edu.kit.joana.ifc.sdg.core.violations.ViolationTranslator;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
@@ -29,7 +33,7 @@ public class ProbabilisticNIChecker extends IFC {
 
 	private final boolean timeSens;
 	
-	private ProbabilisticNISlicer prob;
+	private ConflictScanner prob;
 	
 	/**
 	 * Erzeugt eine neue Instanz.
@@ -64,8 +68,8 @@ public class ProbabilisticNIChecker extends IFC {
 	 * @throws InterSlicePluginException
 	 * @throws NotInLatticeException
 	 */
-	public Collection<Violation> checkIFlow() throws NotInLatticeException {
-		Collection<Violation> ret = null; // list to be returned
+	public Collection<? extends IViolation<SecurityNode>> checkIFlow() throws NotInLatticeException {
+		Collection<IViolation<SecurityNode>> ret = new LinkedList<IViolation<SecurityNode>>(); // list to be returned
 		IFC is = new BarrierIFCSlicer(g, l);
 		
 		if (timeSens) {
@@ -77,20 +81,29 @@ public class ProbabilisticNIChecker extends IFC {
 		probInit = System.currentTimeMillis() - probInit;
 
 		probCheck = System.currentTimeMillis();
-		ret = prob.check();
+		ret.addAll(prob.check());
 		probCheck = System.currentTimeMillis() - probCheck;
 
 		flowCheck = System.currentTimeMillis();
 		ret.addAll(is.checkIFlow());
 		flowCheck = System.currentTimeMillis() - flowCheck;
 
-		dataChannels = prob.dataChannels;
-		orderChannels = prob.orderChannels;
+		//dataChannels = prob.dataChannels;
+		//orderChannels = prob.orderChannels;
 
 		return ret;
 	}
 	
-	public ProbabilisticNISlicer getProbSlicer() {
+	public Collection<ClassifiedViolation> translate(Collection<? extends IViolation<SecurityNode>> vios) {
+		ViolationTranslator trans = new ViolationTranslator();
+		return trans.map(vios);
+	}
+	
+	public void setProbSlicer(ConflictScanner prob) {
+		this.prob = prob;
+	}
+	
+	public ConflictScanner getProbSlicer() {
 		return prob;
 	}
 

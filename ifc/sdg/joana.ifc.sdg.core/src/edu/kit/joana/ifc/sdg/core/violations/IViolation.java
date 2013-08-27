@@ -5,11 +5,13 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-package edu.kit.joana.api;
+package edu.kit.joana.ifc.sdg.core.violations;
+
 
 /**
+ * Common interface for all security violations which JOANA can find.
  * @author Martin Mohr
  */
-public abstract class JoanaConflict extends JoanaViolation {
-
+public interface IViolation<T> {
+	public void accept(IViolationVisitor<T> v);
 }

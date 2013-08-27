@@ -20,7 +20,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 import edu.kit.joana.ifc.sdg.core.sdgtools.SDGTools;
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.core.violations.paths.PathGenerator;
 import edu.kit.joana.ifc.sdg.core.violations.paths.ViolationPathes;
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -68,7 +68,7 @@ public class InterFlowChecker7 extends IFC {
 	 * @throws InterSlicePluginException
 	 * @throws NotInLatticeException
 	 */
-	public Collection<Violation> checkIFlow() throws NotInLatticeException {
+	public Collection<ClassifiedViolation> checkIFlow() throws NotInLatticeException {
 		return checkIFlow(false);
 	}
 
@@ -82,8 +82,8 @@ public class InterFlowChecker7 extends IFC {
 	 */
 
 	@SuppressWarnings("deprecation")
-	public Collection<Violation> checkIFlow(boolean generateVioPathes) throws NotInLatticeException {
-		Collection<Violation> ret = new LinkedList<Violation>(); //list to be returned
+	public Collection<ClassifiedViolation> checkIFlow(boolean generateVioPathes) throws NotInLatticeException {
+		Collection<ClassifiedViolation> ret = new LinkedList<ClassifiedViolation>(); //list to be returned
 
 		// compute declassification information
 		DeclassificationSummaryNodes dec = new DeclassificationSummaryNodes(g, l);
@@ -105,14 +105,14 @@ public class InterFlowChecker7 extends IFC {
 			//((ProgressAnnouncer) is).addProgressListener(this);
 
 			// do slicing
-			Collection<Violation> violations = is.checkIFC(temp);
+			Collection<ClassifiedViolation> violations = is.checkIFC(temp);
 
 			long sliceend = System.currentTimeMillis();
 			if (TIME) System.out.println("Finished slicing at " + sliceend + " | slice duration: " + (sliceend-slicestart));
 
 			//Transform SimpleViolations into Violations
-			for (Violation vp : violations) {
-				Violation vio = Violation.createViolation(temp, vp.getSink(), temp.getRequired());
+			for (ClassifiedViolation vp : violations) {
+				ClassifiedViolation vio = ClassifiedViolation.createViolation(temp, vp.getSink(), temp.getRequired());
 				ret.add(vio);
 			}
 
@@ -132,21 +132,21 @@ public class InterFlowChecker7 extends IFC {
 	 * @param violations
 	 * @throws NotInLatticeException
 	 */
-	public Collection<Violation> addViolationPathesChop(Collection<Violation> violations)
+	public Collection<ClassifiedViolation> addViolationPathesChop(Collection<ClassifiedViolation> violations)
 	throws NotInLatticeException {
 		long viostart = System.currentTimeMillis();
 		if (TIME_VIO) System.out.println("Started viopathgen at " + viostart + " for " + violations.size() + " violations");
 
-		LinkedList<Violation> ret = new LinkedList<Violation>();
+		LinkedList<ClassifiedViolation> ret = new LinkedList<ClassifiedViolation>();
 		PathGenerator vpg = new PathGenerator(g);
 		vpg.addProgressListener(this);
 
 		//merge all violations into return list
-		for (Violation sViolation : violations) {
+		for (ClassifiedViolation sViolation : violations) {
 
 			// Generate ViolationPathes and attach them to violation nodes
 			ViolationPathes vps = vpg.computePaths(sViolation);
-            Violation vio = Violation.createViolation(sViolation.getSink(), sViolation.getSource(), vps, sViolation.getSink().getRequired());
+            ClassifiedViolation vio = ClassifiedViolation.createViolation(sViolation.getSink(), sViolation.getSource(), vps, sViolation.getSink().getRequired());
 			ret.add(vio);
 		}
 
@@ -231,7 +231,7 @@ public class InterFlowChecker7 extends IFC {
 
 		InterFlowChecker7 ifc = new InterFlowChecker7(g, l);
 		System.out.println("Starte ViolationCheck " + System.currentTimeMillis());
-		Collection<Violation> violations = ifc.checkIFlow(true);
+		Collection<ClassifiedViolation> violations = ifc.checkIFlow(true);
 		System.out.println("Start Output " + System.currentTimeMillis());
 		System.out.println(toText(violations));
 
@@ -242,13 +242,13 @@ public class InterFlowChecker7 extends IFC {
 	 * @param violations<Violation>
 	 * @return String containing textual representation for violations
 	 */
-	public static String toText(Collection<Violation> violations) {
+	public static String toText(Collection<ClassifiedViolation> violations) {
 		StringBuffer ret = new StringBuffer();
 		if (violations.size() == 0) {
 			ret.append("No iflow violations found.");
 		} else {
 			int i = 0;
-			for (Violation violation : violations) {
+			for (ClassifiedViolation violation : violations) {
 				i++;
 				SecurityNode outgoing = violation.getSink();
 				SecurityNode from = violation.getSource();

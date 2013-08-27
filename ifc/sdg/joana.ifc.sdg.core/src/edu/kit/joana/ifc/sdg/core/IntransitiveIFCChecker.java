@@ -17,7 +17,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 import edu.kit.joana.ifc.sdg.core.sdgtools.SDGTools;
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.core.violations.paths.PathGenerator;
 import edu.kit.joana.ifc.sdg.core.violations.paths.ViolationPathes;
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -71,7 +71,7 @@ public class IntransitiveIFCChecker extends IFC {
 	 * @throws InterSlicePluginException
 	 * @throws NotInLatticeException
 	 */
-	public Collection<Violation> checkIFlow() throws NotInLatticeException {
+	public Collection<ClassifiedViolation> checkIFlow() throws NotInLatticeException {
 		return checkIFlow(false);
 	}
 
@@ -84,9 +84,9 @@ public class IntransitiveIFCChecker extends IFC {
 	 * @throws NotInLatticeException
 	 */
 
-	public Collection<Violation> checkIFlow(boolean generateVioPathes)
+	public Collection<ClassifiedViolation> checkIFlow(boolean generateVioPathes)
 	throws NotInLatticeException {
-		Collection<Violation> ret = new LinkedList<Violation>(); //list to be returned
+		Collection<ClassifiedViolation> ret = new LinkedList<ClassifiedViolation>(); //list to be returned
 		//get all input/{input, output} pairs which may not interfere
 		Collection<SecurityNodeTuple> mustNotInterfere = computeCriteria();
 
@@ -98,7 +98,7 @@ public class IntransitiveIFCChecker extends IFC {
 			long slicestart = System.currentTimeMillis();
 			if (TIME) System.out.println("Started slicing at " + slicestart);
 
-			Violation vio = checkIFC(tup);
+			ClassifiedViolation vio = checkIFC(tup);
 
 			long sliceend = System.currentTimeMillis();
 			if (TIME) System.out.println("Finished slicing at " + sliceend + " | slice duration: " + (sliceend-slicestart));
@@ -117,8 +117,8 @@ public class IntransitiveIFCChecker extends IFC {
 		return ret;
 	}
 
-	private Violation checkIFC(SecurityNodeTuple tup) {
-		Violation vio = null;
+	private ClassifiedViolation checkIFC(SecurityNodeTuple tup) {
+		ClassifiedViolation vio = null;
 
 		Collection<SDGNode> barrier = computeBarrier(tup);
 		chopper.setBarrier(barrier);
@@ -129,7 +129,7 @@ public class IntransitiveIFCChecker extends IFC {
 		if (!chop.isEmpty()) {
 			SecurityNode leak = tup.getSecondNode();
 			String attacker = (tup.getSecondNode().isInformationSink() ? leak.getRequired() : leak.getProvided());
-			vio = Violation.createViolation(leak, tup.getFirstNode(), attacker);
+			vio = ClassifiedViolation.createViolation(leak, tup.getFirstNode(), attacker);
 		}
 
 		return vio;
@@ -141,20 +141,20 @@ public class IntransitiveIFCChecker extends IFC {
 	 * @param violations
 	 * @throws NotInLatticeException
 	 */
-	public Collection<Violation> addViolationPathesChop(Collection<Violation> violations)
+	public Collection<ClassifiedViolation> addViolationPathesChop(Collection<ClassifiedViolation> violations)
 	throws NotInLatticeException {
 		long viostart = System.currentTimeMillis();
 		if (TIME_VIO) System.out.println("Started viopathgen at " + viostart + " for " + violations.size() + " violations");
 
-		LinkedList<Violation> ret = new LinkedList<Violation>();
+		LinkedList<ClassifiedViolation> ret = new LinkedList<ClassifiedViolation>();
 		PathGenerator vpg = new PathGenerator(g);
 		vpg.addProgressListener(this);
 
 		//merge all violations into return list
-		for (Violation sViolation : violations) {
+		for (ClassifiedViolation sViolation : violations) {
 			// Generate ViolationPathes and attach them to violation nodes
 			ViolationPathes vps = vpg.computePaths(sViolation);
-            Violation vio = Violation.createViolation(sViolation.getSink(), sViolation.getSource(), vps, sViolation.getSink().getRequired());
+            ClassifiedViolation vio = ClassifiedViolation.createViolation(sViolation.getSink(), sViolation.getSource(), vps, sViolation.getSink().getRequired());
 			ret.add(vio);
 		}
 

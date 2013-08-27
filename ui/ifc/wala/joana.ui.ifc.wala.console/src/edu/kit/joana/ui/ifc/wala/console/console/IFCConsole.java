@@ -33,7 +33,6 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.IFCType;
-import edu.kit.joana.api.IllicitFlow;
 import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.annotations.IFCAnnotation.Type;
 import edu.kit.joana.api.lattice.BuiltinLattices;
@@ -46,6 +45,7 @@ import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.api.sdg.SDGProgramPartWriter;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.SecurityNode.SecurityNodeFactory;
+import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
@@ -270,8 +270,8 @@ public class IFCConsole {
 	private IFCAnalysis ifcAnalysis = null;
 	private String classPath = "bin";
 	// private IStaticLattice<String> securityLattice;
-	private Collection<IllicitFlow> lastAnalysisResult = new LinkedList<IllicitFlow>();
-	private TObjectIntMap<IllicitFlow> groupedIFlows = new TObjectIntHashMap<IllicitFlow>();
+	private Collection<IViolation<SecurityNode>> lastAnalysisResult = new LinkedList<IViolation<SecurityNode>>();
+	private TObjectIntMap<IViolation<SDGProgramPart>> groupedIFlows = new TObjectIntHashMap<IViolation<SDGProgramPart>>();
 	private final EntryLocator loc = new EntryLocator();
 	private List<IFCConsoleListener> consoleListeners = new LinkedList<IFCConsoleListener>();
 	private IProgressMonitor monitor = NullProgressMonitor.INSTANCE;
@@ -1434,11 +1434,11 @@ public class IFCConsole {
 		methodSelector.reset();
 	}
 
-	public Collection<IllicitFlow> getLastAnalysisResult() {
+	public Collection<? extends IViolation<SecurityNode>> getLastAnalysisResult() {
 		return lastAnalysisResult;
 	}
 
-	public TObjectIntMap<IllicitFlow> getLastAnalysisResultGrouped() {
+	public TObjectIntMap<IViolation<SDGProgramPart>> getLastAnalysisResultGrouped() {
 		return groupedIFlows;
 	}
 
@@ -1459,7 +1459,7 @@ public class IFCConsole {
 				return false;
 			}
 			ifcAnalysis.setTimesensitivity(timeSens);
-			Collection<IllicitFlow> vios = ifcAnalysis.doIFC(ifcType);
+			Collection<? extends IViolation<SecurityNode>> vios = ifcAnalysis.doIFC(ifcType);
 
 			lastAnalysisResult.clear();
 			lastAnalysisResult.addAll(vios);
@@ -1468,12 +1468,12 @@ public class IFCConsole {
 
 			if (lastAnalysisResult.size() > 0) {
 
-				groupedIFlows = IllicitFlow.groupByPParts(vios);
+				groupedIFlows = ifcAnalysis.groupByPPPart(vios);
 				out.logln("done, found " + groupedIFlows.size() + " security violation(s):");
-				for (IllicitFlow iflow : groupedIFlows.keySet()) {
+				for (IViolation<SDGProgramPart> vio : groupedIFlows.keySet()) {
 					out.logln(String
-							.format("illicit flow(s) between %s and %s (internal: %d illicit flow(s) between corresponding SDG nodes)",
-									iflow.getSource(), iflow.getSink(), groupedIFlows.get(iflow)));
+							.format("Security violation: %s (internal: %d security violations on the SDG node level)",
+									vio.toString(), groupedIFlows.get(vio)));
 				}
 			} else {
 				out.logln("");

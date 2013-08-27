@@ -10,7 +10,6 @@ package edu.kit.joana.ifc.wala.sdpn;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.LinkedList;
 import java.util.List;
 
 import com.ibm.wala.shrikeCT.InvalidClassFileException;

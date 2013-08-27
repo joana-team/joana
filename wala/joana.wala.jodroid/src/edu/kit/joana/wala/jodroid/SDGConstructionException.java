@@ -1,4 +1,4 @@
-package joana.wala.jodroid;
+package edu.kit.joana.wala.jodroid;
 
 public class SDGConstructionException extends Exception {
 

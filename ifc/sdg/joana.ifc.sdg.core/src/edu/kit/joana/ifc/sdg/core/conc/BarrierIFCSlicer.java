@@ -20,7 +20,7 @@ import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.conc.Element.ElementSet;
 import edu.kit.joana.ifc.sdg.core.interfaces.ProgressAnnouncer;
 import edu.kit.joana.ifc.sdg.core.interfaces.ProgressListener;
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -139,10 +139,10 @@ public class BarrierIFCSlicer extends IFC implements ProgressAnnouncer {
      *
      * @return Die Menge der gefundenen Sicherheitsverletzungen.
      */
-    public Set<Violation> checkIFlow() {
+    public Set<ClassifiedViolation> checkIFlow() {
         // bestimme alle kritischen Punkte
         LinkedList<Element> criteria = collectCriteria();
-        Set<Violation> set = new HashSet<Violation>();
+        Set<ClassifiedViolation> set = new HashSet<ClassifiedViolation>();
 
         // pruefe jeden kritischen Punkt auf possibilistische noninterferenz
         for (Element e : criteria) {
@@ -191,13 +191,13 @@ public class BarrierIFCSlicer extends IFC implements ProgressAnnouncer {
      * @param criterion  Der annotierte Knoten.
      * @return           Die gefundenen Sicherheitsverletzungen.
      */
-    private Set<Violation> slice(Element criterion) {
+    private Set<ClassifiedViolation> slice(Element criterion) {
         LinkedList<Element> worklist_0 = new LinkedList<Element>();
         LinkedList<Element> worklist_1 = new LinkedList<Element>();
         LinkedList<Element> worklist_2 = new LinkedList<Element>();
         ElementSet visited_0_1 = new ElementSet();
         ElementSet visited_2 = new ElementSet();
-        HashSet<Violation> vio = new HashSet<Violation>();
+        HashSet<ClassifiedViolation> vio = new HashSet<ClassifiedViolation>();
 
         worklist_0.add(criterion);
         visited_0_1.add(criterion);
@@ -231,10 +231,10 @@ public class BarrierIFCSlicer extends IFC implements ProgressAnnouncer {
                         SecurityNode reached = (SecurityNode) edge.getSource();
                         if (reached.isInformationSource() && isLeaking(newElement.labels, reached.getProvided())) {
                         	if (criterion.node.isInformationSink()) {
-                        		vio.add(Violation.createViolation(criterion.node, reached, criterion.node.getRequired()));
+                        		vio.add(ClassifiedViolation.createViolation(criterion.node, reached, criterion.node.getRequired()));
 
                         	} else if (criterion.node.isInformationSource()) {
-                        		vio.add(Violation.createViolation(criterion.node, reached, criterion.node.getProvided()));
+                        		vio.add(ClassifiedViolation.createViolation(criterion.node, reached, criterion.node.getProvided()));
                         	}
                         }
 
@@ -252,10 +252,10 @@ public class BarrierIFCSlicer extends IFC implements ProgressAnnouncer {
                         SecurityNode reached = (SecurityNode) edge.getSource();
                         if (reached.isInformationSource() && isLeaking(newElement.labels, reached.getProvided())) {
                             if (criterion.node.isInformationSink()) {
-                        		vio.add(Violation.createViolation(criterion.node, reached, criterion.node.getRequired()));
+                        		vio.add(ClassifiedViolation.createViolation(criterion.node, reached, criterion.node.getRequired()));
 
                         	} else if (criterion.node.isInformationSource()) {
-                        		vio.add(Violation.createViolation(criterion.node, reached, criterion.node.getProvided()));
+                        		vio.add(ClassifiedViolation.createViolation(criterion.node, reached, criterion.node.getProvided()));
                         	}
                         }
 
@@ -274,10 +274,10 @@ public class BarrierIFCSlicer extends IFC implements ProgressAnnouncer {
                         SecurityNode reached = (SecurityNode) edge.getSource();
                         if (reached.isInformationSource() && isLeaking(newElement.labels, reached.getProvided())) {
                             if (criterion.node.isInformationSink()) {
-                        		vio.add(Violation.createViolation(criterion.node, reached, criterion.node.getRequired()));
+                        		vio.add(ClassifiedViolation.createViolation(criterion.node, reached, criterion.node.getRequired()));
 
                         	} else if (criterion.node.isInformationSource()) {
-                        		vio.add(Violation.createViolation(criterion.node, reached, criterion.node.getProvided()));
+                        		vio.add(ClassifiedViolation.createViolation(criterion.node, reached, criterion.node.getProvided()));
                         	}
                         }
 
@@ -306,10 +306,10 @@ public class BarrierIFCSlicer extends IFC implements ProgressAnnouncer {
                         SecurityNode reached = (SecurityNode) edge.getSource();
                         if (reached.isInformationSource() && isLeaking(newElement.labels, reached.getProvided())) {
                             if (criterion.node.isInformationSink()) {
-                        		vio.add(Violation.createViolation(criterion.node, reached, criterion.node.getRequired()));
+                        		vio.add(ClassifiedViolation.createViolation(criterion.node, reached, criterion.node.getRequired()));
 
                         	} else if (criterion.node.isInformationSource()) {
-                        		vio.add(Violation.createViolation(criterion.node, reached, criterion.node.getProvided()));
+                        		vio.add(ClassifiedViolation.createViolation(criterion.node, reached, criterion.node.getProvided()));
                         	}
                         }
 
@@ -333,10 +333,10 @@ public class BarrierIFCSlicer extends IFC implements ProgressAnnouncer {
                         SecurityNode reached = (SecurityNode) edge.getSource();
                         if (reached.isInformationSource() && isLeaking(newElement.labels, reached.getProvided())) {
                             if (criterion.node.isInformationSink()) {
-                        		vio.add(Violation.createViolation(criterion.node, reached, criterion.node.getRequired()));
+                        		vio.add(ClassifiedViolation.createViolation(criterion.node, reached, criterion.node.getRequired()));
 
                         	} else if (criterion.node.isInformationSource()) {
-                        		vio.add(Violation.createViolation(criterion.node, reached, criterion.node.getProvided()));
+                        		vio.add(ClassifiedViolation.createViolation(criterion.node, reached, criterion.node.getProvided()));
                         	}
                         }
 

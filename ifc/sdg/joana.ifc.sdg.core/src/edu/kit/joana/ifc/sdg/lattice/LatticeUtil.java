@@ -468,4 +468,18 @@ public class LatticeUtil {
 
 		return lowerElements;
 	}
+
+	/**
+	 * Given a lattice l and two elements l1 and l2 or l's carrier set, returns whether l1
+	 * is lower than or equal to l2. Note that l1 and l2 really have to be elements of l's carrier
+	 * set, otherwise the correct functionality of this method cannot be guaranteed.
+	 * @param l the lattice in which the "is-lower-than-or-equal-to" relation is to be determined
+	 * @param l1 an element of the given lattice
+	 * @param l2 another element of the given lattice
+	 * @return {@code true} if the first given element is lower than or equal to the second given
+	 * element.
+	 */
+	public static <ElementType> boolean isLeq(IStaticLattice<ElementType> l, ElementType l1, ElementType l2) {
+		return l.leastUpperBound(l1, l2).equals(l2);
+	}
 }

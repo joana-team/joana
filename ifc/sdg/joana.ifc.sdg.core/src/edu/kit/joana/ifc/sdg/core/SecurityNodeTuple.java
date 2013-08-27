@@ -76,7 +76,7 @@ public class SecurityNodeTuple {
      * Returns the hashcode if this tuple. The lower 16 bits of the hashcode
      * contain the id of the first component node and the higher 16 bits
      * contain the id of the second node. If two tuples are equals, its
-     * hashcodes will also match. Visa versa that must not be true if any
+     * hashcodes will also match. The converse does not have to be true if any
      * contained node has an id greater than 65535.
      * @return The hashcode of this tuple.
      */

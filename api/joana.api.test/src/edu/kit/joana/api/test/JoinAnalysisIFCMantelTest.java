@@ -25,7 +25,6 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.IFCType;
-import edu.kit.joana.api.IllicitFlow;
 import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGInstruction;
@@ -33,6 +32,8 @@ import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.test.util.ApiTestException;
 import edu.kit.joana.api.test.util.JoanaPath;
+import edu.kit.joana.ifc.sdg.core.SecurityNode;
+import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.util.Stubs;
@@ -112,9 +113,9 @@ public class JoinAnalysisIFCMantelTest {
 	public void testMantelWithImpreciseAnalysis() {
 		try {
 			IFCAnalysis ana = buildAndAnnotateMantel(MHPType.SIMPLE);
-			Collection<IllicitFlow> illegal = ana.doIFC(IFCType.PROBABILISTIC_WITH_SIMPLE_MHP);
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.PROBABILISTIC_WITH_SIMPLE_MHP);
 			assertFalse(illegal.isEmpty());
-			assertEquals(378, illegal.size());
+			assertEquals(385, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -125,7 +126,7 @@ public class JoinAnalysisIFCMantelTest {
 	public void testMantelWithPreciseAnalysis() {
 		try {
 			IFCAnalysis ana = buildAndAnnotateMantel(MHPType.PRECISE);
-			Collection<IllicitFlow> illegal = ana.doIFC(IFCType.PROBABILISTIC_WITH_PRECISE_MHP);
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.PROBABILISTIC_WITH_PRECISE_MHP);
 			assertEquals(0, illegal.size());
 			assertTrue(illegal.isEmpty());
 		} catch (ApiTestException e) {

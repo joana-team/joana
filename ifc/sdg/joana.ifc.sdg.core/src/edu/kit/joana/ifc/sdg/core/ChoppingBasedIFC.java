@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNIChecker;
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.chopper.Chopper;
@@ -49,10 +49,10 @@ public class ChoppingBasedIFC extends IFC {
 	 * @see edu.kit.joana.ifc.sdg.core.IFC#checkIFlow()
 	 */
 	@Override
-	public Collection<Violation> checkIFlow() throws NotInLatticeException {
+	public Collection<ClassifiedViolation> checkIFlow() throws NotInLatticeException {
 		Collection<SecurityNode> srcs = collectSources();
 		Collection<SecurityNode> snks = collectSinks();
-		Collection<Violation> vios = new LinkedList<Violation>();
+		Collection<ClassifiedViolation> vios = new LinkedList<ClassifiedViolation>();
 		for (SecurityNode src : srcs) {
 			for (SecurityNode snk : snks) {
 				addPossibleViolation(vios, src, snk);
@@ -62,13 +62,13 @@ public class ChoppingBasedIFC extends IFC {
 		return vios;
 	}
 	
-	private void addPossibleViolation(Collection<Violation> vios, SecurityNode src, SecurityNode snk) {
+	private void addPossibleViolation(Collection<ClassifiedViolation> vios, SecurityNode src, SecurityNode snk) {
 		String srcLevel = src.getProvided();
 		String snkLevel = snk.getRequired();
 		if (!l.leastUpperBound(srcLevel, snkLevel).equals(snkLevel)) {
 			Collection<SDGNode> chop = chopper.chop(src, snk);
 			if (!chop.isEmpty()) {
-				vios.add(Violation.createViolation(snk, src, snkLevel));
+				vios.add(ClassifiedViolation.createViolation(snk, src, snkLevel));
 			}
 		}
 	}

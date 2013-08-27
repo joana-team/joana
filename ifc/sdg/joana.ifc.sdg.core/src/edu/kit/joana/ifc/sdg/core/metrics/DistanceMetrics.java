@@ -10,7 +10,7 @@ package edu.kit.joana.ifc.sdg.core.metrics;
 import java.util.Collection;
 import java.util.Map;
 
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.barrier.conc.I2PLevelBackward;
@@ -23,10 +23,10 @@ public class DistanceMetrics implements IMetrics {
 		slicer = new I2PLevelBackward(null);
 	}
 
-	public Collection<Violation> computeMetrics(SDG g, Collection<Violation> vios) {
+	public Collection<ClassifiedViolation> computeMetrics(SDG g, Collection<ClassifiedViolation> vios) {
 		slicer.setGraph(g);
 
-		for (Violation v : vios) {
+		for (ClassifiedViolation v : vios) {
 			Map<SDGNode, Integer> filters = slicer.slice(v.getSink());
 			int dist = filters.get(v.getSource());
 			IMetrics.Rating rat = determineRating(dist);

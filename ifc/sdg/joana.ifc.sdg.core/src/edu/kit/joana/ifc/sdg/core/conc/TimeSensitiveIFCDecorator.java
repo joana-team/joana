@@ -8,10 +8,12 @@
 package edu.kit.joana.ifc.sdg.core.conc;
 
 import java.util.Collection;
-import java.util.LinkedList;
 
 import edu.kit.joana.ifc.sdg.core.IFC;
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.SecurityNode;
+import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
+import edu.kit.joana.ifc.sdg.core.violations.IViolation;
+import edu.kit.joana.ifc.sdg.core.violations.ViolationFilter;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.Nanda;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.NandaBackward;
@@ -37,19 +39,29 @@ public class TimeSensitiveIFCDecorator extends IFC {
 	 * @see edu.kit.joana.ifc.sdg.core.IFC#checkIFlow()
 	 */
 	@Override
-	public Collection<Violation> checkIFlow() throws NotInLatticeException {
-		Collection<Violation> baseVios = baseIFC.checkIFlow();
-		Collection<Violation> refinedVios = new LinkedList<Violation>();
+	public Collection<? extends IViolation<SecurityNode>> checkIFlow() throws NotInLatticeException {
+		Collection<? extends IViolation<SecurityNode>> baseVios = baseIFC.checkIFlow();
 		Nanda tsbwSlicer = new Nanda(baseIFC.getSDG(), new NandaBackward());
-		for (Violation vio : baseVios) {
-			Collection<SDGNode> tsSlice = tsbwSlicer.slice(vio.getSink());
-			if (tsSlice.contains(vio.getSource())) {
-				// there is a path without time-travel between source and sink
-				refinedVios.add(vio);
-			} 
-		}
+		TSFilter filter = new TSFilter(tsbwSlicer);
+		return filter.filter(baseVios);
+	}
+	
+	private static class TSFilter extends ViolationFilter<SecurityNode> {
 		
-		return refinedVios;
+		private Nanda tsbwSlicer;
+		
+		TSFilter(Nanda tsbwSlicer) {
+			this.tsbwSlicer = tsbwSlicer;
+		}
+
+		/* (non-Javadoc)
+		 * @see edu.kit.joana.ifc.sdg.core.conc.TimeSensitiveIFCDecorator.ViolationFilter#acceptIllegalFlow(edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow)
+		 */
+		@Override
+		protected boolean acceptIllegalFlow(IIllegalFlow<SecurityNode> iFlow) {
+			Collection<SDGNode> tsSlice = tsbwSlicer.slice(iFlow.getSink());
+			return tsSlice.contains(iFlow.getSource());
+		}
 	}
 
 }

@@ -18,8 +18,8 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
 
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
-import edu.kit.joana.ifc.sdg.core.violations.Violation.Chop;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation.Chop;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
@@ -42,7 +42,7 @@ public class ChopAction extends Action {
 
 	public void run() {
 		IProject p = NJSecPlugin.singleton().getActiveProject();
-		Collection<Violation> vios = av.getSelected();
+		Collection<ClassifiedViolation> vios = av.getSelected();
 		SDG g = NJSecPlugin.singleton().getSDGFactory().getCachedSDG(p);
 
 		try {
@@ -56,9 +56,9 @@ public class ChopAction extends Action {
 			File latticeFile = new File(latticeLocation);
 			IStaticLattice<String> l = LatticeUtil.compileBitsetLattice(new FileInputStream(latticeFile));
 
-			for (Violation v : vios) {
+			for (ClassifiedViolation v : vios) {
 				if (v.getChop(chopper.getName()) == null) {
-					Violation withChop = chopper.addChop(p, v, g, l);
+					ClassifiedViolation withChop = chopper.addChop(p, v, g, l);
 
 					if (withChop != null) {
 						Chop c = new Chop(chopper.getName());

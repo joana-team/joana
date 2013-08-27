@@ -13,7 +13,7 @@ import java.util.LinkedList;
 import edu.kit.joana.ifc.sdg.core.DirectedSlicer.Direction;
 import edu.kit.joana.ifc.sdg.core.conc.BarrierIFCSlicer;
 import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNIChecker;
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.ContextSlicerBackward;
@@ -59,9 +59,9 @@ public class SlicingBasedIFC extends IFC {
 	 * @see edu.kit.joana.ifc.sdg.core.IFC#checkIFlow()
 	 */
 	@Override
-	public Collection<Violation> checkIFlow() throws NotInLatticeException {
+	public Collection<ClassifiedViolation> checkIFlow() throws NotInLatticeException {
 		Collection<SecurityNode> endPoints = collectEndpoints();
-		Collection<Violation> vios = new LinkedList<Violation>();
+		Collection<ClassifiedViolation> vios = new LinkedList<ClassifiedViolation>();
 		for (SecurityNode endPoint : endPoints) {
 			Collection<SDGNode> slice = slicer.slice(endPoint);
 			addPossibleViolations(endPoint, slice, vios);
@@ -105,13 +105,13 @@ public class SlicingBasedIFC extends IFC {
 		}
 	}
 
-	private void addPossibleViolations(SecurityNode endPoint, Collection<SDGNode> slice, Collection<Violation> vios) {
+	private void addPossibleViolations(SecurityNode endPoint, Collection<SDGNode> slice, Collection<ClassifiedViolation> vios) {
 		for (SDGNode n : slice) {
 			SecurityNode sNode = (SecurityNode) n;
 			String secLevelOfOtherEndpoint = getLevel(sNode);
 			String secLevelOfEndpoint = getLevel(endPoint);
 			if (isStartpoint(sNode) && secLevelOfOtherEndpoint != null && isLeakage(endPoint, sNode)) {
-				vios.add(Violation.createViolation(endPoint, sNode, secLevelOfEndpoint));
+				vios.add(ClassifiedViolation.createViolation(endPoint, sNode, secLevelOfEndpoint));
 			}
 		}
 	}

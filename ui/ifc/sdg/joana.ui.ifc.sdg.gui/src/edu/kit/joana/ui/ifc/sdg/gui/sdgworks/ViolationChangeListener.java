@@ -16,7 +16,7 @@ import java.util.Collection;
 
 import org.eclipse.core.resources.IProject;
 
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 
 /**
  * Listens for changes in found violations
@@ -26,5 +26,5 @@ import edu.kit.joana.ifc.sdg.core.violations.Violation;
  * @author naxan
  */
 public interface ViolationChangeListener {
-	void violationsChanged(IProject p, Collection<Violation> violations);
+	void violationsChanged(IProject p, Collection<ClassifiedViolation> violations);
 }

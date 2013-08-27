@@ -9,7 +9,7 @@ package edu.kit.joana.ifc.sdg.core.metrics;
 
 import java.util.Collection;
 
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 
 
@@ -28,5 +28,5 @@ public interface IMetrics {
         }
     }
 
-	Collection<Violation> computeMetrics(SDG g, Collection<Violation> vios);
+	Collection<ClassifiedViolation> computeMetrics(SDG g, Collection<ClassifiedViolation> vios);
 }

@@ -21,7 +21,7 @@ import java.util.Set;
 
 import edu.kit.joana.ifc.sdg.core.interfaces.ProgressAnnouncer;
 import edu.kit.joana.ifc.sdg.core.interfaces.ProgressListener;
-import edu.kit.joana.ifc.sdg.core.violations.Violation;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -105,7 +105,7 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 	/* (non-Javadoc)
 	 * @see edu.kit.joana.ifc.sdg.core.interfaces.PluggableSlicer6#slice(sdgParser.SecurityNode)
 	 */
-	public List<Violation> violationsForOutgoingNode(SecurityNode startNode) throws NotInLatticeException {
+	public List<ClassifiedViolation> violationsForOutgoingNode(SecurityNode startNode) throws NotInLatticeException {
 
 		/** worklist containing pathedges that are left to be looked at */
 		HashList<Pathedge> worklist = new HashList<Pathedge>();
@@ -117,7 +117,7 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 		MultiMap<SecurityNode, Pathedge> actoutPathedges = new MultiMap<SecurityNode, Pathedge>();
 
 		/** violations contains SimpleViolations representing all found security violations */
-		LinkedList<Violation> violations = new LinkedList<Violation>();
+		LinkedList<ClassifiedViolation> violations = new LinkedList<ClassifiedViolation>();
 
 
 		/* Initialize worklist */
@@ -221,7 +221,7 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 							if (fsecVios.containsKey(longer.source)) {
 								List<SecurityNode> vioSources = expandSummaryNode(newlonger.source);
 								for (SecurityNode defNode : vioSources) {
-									Violation newVio = Violation.createViolation(defNode, shorter.source, shorter.source.getRequired());
+									ClassifiedViolation newVio = ClassifiedViolation.createViolation(defNode, shorter.source, shorter.source.getRequired());
 									if (!violations.contains(newVio)) violations.add(newVio);
 								}
 							}
@@ -231,13 +231,13 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 								List<SecurityNode> defSources = expandSummaryNode(newlonger.source);
 								for (SecurityNode defNode : defSources) {
 									if (!getSupremum(defNode.getProvided(), shorter.in).equals(shorter.in)) {
-										Violation newVio = Violation.createViolation(defNode, shorter.source, shorter.source.getRequired());
+										ClassifiedViolation newVio = ClassifiedViolation.createViolation(defNode, shorter.source, shorter.source.getRequired());
 										if (!violations.contains(newVio)) violations.add(newVio);
 									}
 								}
 							}
 						} else { /* Handling normal violation */
-							Violation newVio = Violation.createViolation(newlonger.source, shorter.source, shorter.source.getRequired());
+							ClassifiedViolation newVio = ClassifiedViolation.createViolation(newlonger.source, shorter.source, shorter.source.getRequired());
 							if (!violations.contains(newVio)) violations.add(newVio);
 						}
 					} else { /* Handling violation in a procedure (local violation) */

@@ -27,7 +27,7 @@ import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
-import edu.kit.joana.ifc.sdg.core.violations.Violation.Classification;
+import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation.Classification;
 import edu.kit.joana.ui.ifc.sdg.gui.NJSecPlugin;
 import edu.kit.joana.ui.ifc.sdg.gui.sdgworks.ViolationChangeListener;
 
@@ -201,7 +201,7 @@ public class ClassificationView extends ViewPart implements ViolationChangeListe
 	}
 
 	@Override
-	public void violationsChanged(IProject p, Collection<edu.kit.joana.ifc.sdg.core.violations.Violation> violations) {
+	public void violationsChanged(IProject p, Collection<edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation> violations) {
 		String[] as = {"No violation selected!"};
 		setContent(as);
 	}

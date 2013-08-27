@@ -52,6 +52,7 @@ wala/joana.wala.eval/out
 wala/joana.wala.flowless/bin
 wala/joana.wala.flowless/bin/edu/kit/pp/mojo/spec/FlowLess.g
 wala/joana.wala.flowless/bin/edu/kit/pp/mojo/spec/java/LightweightJava.g
+wala/joana.wala.jodroid/bin/
 wala/joana.wala.jodroid/Android SDGs/
 wala/joana.wala.jsdg/out
 wala/joana.wala.modular.testdata/dist

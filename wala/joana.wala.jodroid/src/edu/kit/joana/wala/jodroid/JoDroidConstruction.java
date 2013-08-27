@@ -14,11 +14,12 @@ import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions.ReflectionOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
-import com.ibm.wala.ipa.callgraph.CallGraph;
+import com.ibm.wala.ipa.callgraph.CallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.Entrypoint;
 import com.ibm.wala.ipa.callgraph.impl.SubtypesEntrypoint;
-import com.ibm.wala.ipa.callgraph.propagation.SSAPropagationCallGraphBuilder;
+import com.ibm.wala.ipa.callgraph.impl.Util;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.ZeroXCFABuilder;
+import com.ibm.wala.ipa.callgraph.propagation.cfa.ZeroXInstanceKeys;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
@@ -29,7 +30,6 @@ import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.Selector;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
-import com.ibm.wala.util.NullProgressMonitor;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -43,9 +43,9 @@ import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.core.SDGBuilder.SDGBuilderConfig;
 import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
-import edu.kit.joana.wala.core.pointsto.WalaPointsToUtil;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph;
 import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
+import edu.kit.joana.wala.flowless.wala.ObjSensContextSelector;
 
 public final class JoDroidConstruction {
 
@@ -108,37 +108,19 @@ public final class JoDroidConstruction {
 		scfg.exceptions = ExceptionAnalysis.ALL_NO_ANALYSIS;
 		scfg.accessPath = false;
 		scfg.prunecg = Main.DEFAULT_PRUNE_CG;
-		scfg.pts = PointsToPrecision.TYPE;
+		scfg.pts = PointsToPrecision.CONTEXT_SENSITIVE;
 		scfg.staticInitializers = StaticInitializationTreatment.SIMPLE;
 		scfg.fieldPropagation = FieldPropagation.OBJ_GRAPH;
 		scfg.debugManyGraphsDotOutput = false;
 		scfg.computeInterference = false;
-		AnalysisOptions options = makeAnalysisOptions(scfg.entry, scfg.scope, scfg.cha);
-		SSAPropagationCallGraphBuilder cgb = (ZeroXCFABuilder) WalaPointsToUtil.makeContextFreeType(options,
-				scfg.cache, scfg.cha, scfg.scope);
-		CallGraph walaCG;
-		try {
-			walaCG = cgb.makeCallGraph(options);
-		} catch (CancelException e) {
-			throw new SDGConstructionException(e);
-		}
-
-		SDGBuilder builder;
 
 		try {
-			builder = SDGBuilder.create(scfg, walaCG, cgb.getPointerAnalysis());
+			return SDGBuilder.build(scfg);
 		} catch (UnsoundGraphException e) {
 			throw new SDGConstructionException(e);
 		} catch (CancelException e) {
 			throw new SDGConstructionException(e);
 		}
-
-		try {
-			return SDGBuilder.convertToJoana(System.out, builder, new NullProgressMonitor());
-		} catch (CancelException e) {
-			throw new SDGConstructionException(e);
-		}
-
 	}
 
 	private static IMethod findMethod(IClassHierarchy cha, String mSig) throws MethodNotFoundException {
@@ -188,13 +170,5 @@ public final class JoDroidConstruction {
 				return false;
 			}
 		};
-	}
-
-	private static AnalysisOptions makeAnalysisOptions(IMethod entry, AnalysisScope scope, IClassHierarchy cha) {
-		List<Entrypoint> entrypoints = new LinkedList<Entrypoint>();
-		entrypoints.add(new SubtypesEntrypoint(entry, cha));
-		AnalysisOptions analysisOptions = new AnalysisOptions(scope, entrypoints);
-		analysisOptions.setReflectionOptions(ReflectionOptions.NO_STRING_CONSTANTS);
-		return analysisOptions;
 	}
 }

@@ -106,5 +106,13 @@ public class IllegalFlow<T> implements IIllegalFlow<T> {
 		}
 		return true;
 	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return String.format("Illegal Flow from %s to %s, visible for %s", source.toString(), sink.toString(), attackerLevel);
+	}
 
 }

@@ -1459,6 +1459,7 @@ public class IFCConsole {
 				return false;
 			}
 			ifcAnalysis.setTimesensitivity(timeSens);
+			out.logln("Performing IFC - Analysis type: " + ifcType);
 			Collection<? extends IViolation<SecurityNode>> vios = ifcAnalysis.doIFC(ifcType);
 
 			lastAnalysisResult.clear();
@@ -1476,7 +1477,7 @@ public class IFCConsole {
 									vio.toString(), groupedIFlows.get(vio)));
 				}
 			} else {
-				out.logln("");
+				out.logln("No violations found.");
 			}
 			return true;
 		}

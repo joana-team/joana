@@ -265,6 +265,8 @@ public class IFCConsole {
 	// private PrintStream infoOut;
 	//
 	private IFCConsoleOutput out;
+	
+	private boolean showPrompt = true;
 
 	// private SDG sdg;
 	private IFCAnalysis ifcAnalysis = null;
@@ -1514,7 +1516,9 @@ public class IFCConsole {
 		String nextCommand = null;
 		boolean quit = false;
 		while (!quit) {
-			out.log("> ");
+			if (showPrompt) {
+				out.log("> ");
+			}
 			nextCommand = in.readLine();
 			if (nextCommand == null) {
 				quit = true;
@@ -1524,6 +1528,10 @@ public class IFCConsole {
 				processCommand(nextCommand);
 			}
 		}
+	}
+	
+	public void setShowPrompt(boolean showPrompt) {
+		this.showPrompt = showPrompt;
 	}
 	
 	public boolean isQuit(String cmd) {

@@ -55,6 +55,7 @@ public final class JoanaBatch {
 	private static void runConsole(BufferedReader in, PrintStream out) throws IOException {
 		IFCConsoleOutput cOut = new PrintStreamConsoleWrapper(out, out, null, out, out);
 		IFCConsole c = new IFCConsole(in, cOut);
+		c.setShowPrompt(false);
 		c.interactive();
 	}
 

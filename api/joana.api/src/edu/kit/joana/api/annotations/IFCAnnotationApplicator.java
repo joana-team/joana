@@ -37,7 +37,8 @@ import edu.kit.joana.util.Logger;
 
 public class IFCAnnotationApplicator extends SDGProgramPartVisitor<Void, IFCAnnotation> {
 
-	private static final Logger debug = Log.getLogger(Log.L_API_DEBUG); 
+	private static final Logger debug = Log.getLogger(Log.L_API_DEBUG);
+	private static final Logger annotationDebug = Log.getLogger(Log.L_API_ANNOTATION_DEBUG);
 
 	private final SDGProgram program;
 	private final Map<SecurityNode, NodeAnnotationInfo> annotatedNodes = new HashMap<SecurityNode, NodeAnnotationInfo>();
@@ -292,10 +293,12 @@ public class IFCAnnotationApplicator extends SDGProgramPartVisitor<Void, IFCAnno
 			switch (ann.getType()) {
 			case SOURCE:
 				sNode.setProvided(ann.getLevel1());
+				annotationDebug.outln(String.format("Annotated node %s as SOURCE of level '%s'", node.toString(), ann.getLevel1()));
 				nai = new NodeAnnotationInfo(sNode, ann, NodeAnnotationInfo.PROV);
 				break;
 			case SINK:
 				sNode.setRequired(ann.getLevel1());
+				annotationDebug.outln(String.format("Annotated node %s as SINK of level '%s'", node.toString(), ann.getLevel1()));
 				nai = new NodeAnnotationInfo(sNode, ann, NodeAnnotationInfo.REQ);
 				break;
 			case DECLASS:

@@ -825,6 +825,7 @@ public class IFCConsole {
 				IFCAnnotation ann = new IFCAnnotation(type, level, toMark);
 				if (ifcAnalysis.isAnnotationLegal(ann)) {
 					ifcAnalysis.addAnnotation(ann);
+					out.logln(String.format("Annotating '%s' as %s of security level '%s'...", toMark.toString(), type.toString(), level));
 					return true;
 				} else {
 					out.error("Illegal Annotation!");

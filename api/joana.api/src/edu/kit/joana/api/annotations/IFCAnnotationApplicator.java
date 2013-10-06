@@ -49,6 +49,9 @@ public class IFCAnnotationApplicator extends SDGProgramPartVisitor<Void, IFCAnno
 
 	public void applyAnnotations(Collection<IFCAnnotation> anns) {
 		for (IFCAnnotation ann : anns) {
+			if (ann.getType() == Type.SOURCE || ann.getType() == Type.SINK) {
+				annotationDebug.outln(String.format("Annnotation nodes for %s '%s' of security level %s...", ann.getType().toString(), ann.getProgramPart(), ann.getLevel1()));
+			}
 			ann.getProgramPart().acceptVisitor(this, ann);
 		}
 	}

@@ -1092,7 +1092,6 @@ public class IFCConsole {
 		if (this.ifcAnalysis != null) {
 			this.ifcAnalysis.setLattice(l0);
 		}
-		out.logln("New lattice set.");
 		return true;
 	}
 
@@ -1109,45 +1108,28 @@ public class IFCConsole {
 	 *         {@code false} otherwise.
 	 */
 	public boolean setLattice(String latticeSpec) {
+		IStaticLattice<String> newLattice;
+		latticeFile = "[preset: " + latticeSpec + "]";
 		if (LATTICE_BINARY.equals(latticeSpec)) {
-			if (checkAndSetLattice(BuiltinLattices.getBinaryLattice())) {
-				latticeFile = "[preset: " + latticeSpec + "]";
-				return true;
-			} else {
-				throw new Error("BuiltinLattices should not return invalid lattices. Please report this as a bug!");
-			}
+			newLattice = BuiltinLattices.getBinaryLattice();
 		} else if (LATTICE_TERNARY.equals(latticeSpec)) {
-			if (checkAndSetLattice(BuiltinLattices.getTernaryLattice())) {
-				latticeFile = "[preset: " + latticeSpec + "]";
-				return true;
-			} else {
-				throw new Error("BuiltinLattices should not return invalid lattices. Please report this as a bug!");
-			}
+			newLattice = BuiltinLattices.getTernaryLattice();
 		} else if (LATTICE_DIAMOND.equals(latticeSpec)) {
-			if (checkAndSetLattice(BuiltinLattices.getDiamondLattice())) {
-				latticeFile = "[preset: " + latticeSpec + "]";
-				return true;
-			} else {
-				throw new Error("BuiltinLattices should not return invalid lattices. Please report this as a bug!");
-			}
+			newLattice = BuiltinLattices.getDiamondLattice();
 		} else {
-
-			// Debug.println(latticeSpec.replaceAll("\\s*,\\s*", "\n"));
-			IEditableLattice<String> l0;
+			latticeSpec = latticeSpec.replaceAll("\\s*,\\s*", "\n");
 			try {
-				l0 = LatticeUtil.loadLattice(latticeSpec.replaceAll("\\s*,\\s*", "\n"));
+				newLattice = LatticeUtil.loadLattice(latticeSpec);
 			} catch (WrongLatticeDefinitionException e) {
-				out.error("Invalid lattice specification: " + e.getMessage() + " Old lattice is left untouched!");
+				out.error("Error while parsing lattice: " + e.getMessage() + " Old lattice is left untouched!");
 				return false;
 			}
-
-			if (checkAndSetLattice(l0)) {
-				latticeFile = "[preset: " + latticeSpec + "]";
-				return true;
-			} else {
-				return false;
-			}
+			latticeFile = "[user-defined: " + latticeSpec + "]";
 		}
+		if (checkAndSetLattice(newLattice)) {
+			out.logln("current lattice: " + latticeFile);
+		}
+		return checkAndSetLattice(newLattice);
 	}
 
 	public CMD searchCommand(final String cmdstr) {

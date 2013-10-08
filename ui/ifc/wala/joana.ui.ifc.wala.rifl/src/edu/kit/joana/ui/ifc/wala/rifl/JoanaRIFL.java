@@ -30,45 +30,37 @@ public final class JoanaRIFL {
 
 	private JoanaRIFL() {}
 
+	private static final void fill(List<Category> categories, Map<String, String> cat2level, Map<String, String> endpoint2level) {
+		for (final Category c : categories) {
+			for (final Attribute a : c.getAttributes().getAttribute()) {
+				endpoint2level.put(a.getName(), cat2level.get(c.getName()));
+			}
+
+			for (final Parameter p : c.getParameters().getParameter()) {
+				endpoint2level.put(p.getMethodname()+ "->p"+p.getPosition(), cat2level.get(c.getName()));
+			}
+
+			for (final Returnvalue r : c.getReturnvalues().getReturnvalue()) {
+				endpoint2level.put(r.getMethodname()+"->exit", cat2level.get(c.getName()));
+			}
+		}
+	}
 
 	private static final JoanaSpec extractJoanaSpecification(final Sourcesandsinks sas, final Domainassignment dass) {
-		final Map<String, String> srcRet = new HashMap<String, String>();
-		final Map<String, String> snkRet = new HashMap<String, String>();
+		final Map<String, String> sources2levels = new HashMap<String, String>();
+		final Map<String, String> sinks2levels = new HashMap<String, String>();
 
+		// intermediate result: map each category to a security level
+		// later, this map is used to map each source or sink to a security level
 		final Map<String, String> cat2level = new HashMap<String, String>();
 		for (final Assign ass : dass.getAssign()) {
 			cat2level.put(ass.getCategory(), ass.getSecuritydomain());
 		}
 
-		for (final Category c : sas.getSources().getCategory()) {
-			for (final Attribute a : c.getAttributes().getAttribute()) {
-				srcRet.put(a.getName(), cat2level.get(c.getName()));
-			}
+		fill(sas.getSources().getCategory(), cat2level, sources2levels);
+		fill(sas.getSinks().getCategory(), cat2level, sinks2levels);
 
-			for (final Parameter p : c.getParameters().getParameter()) {
-				srcRet.put(p.getMethodname()+ "->p"+p.getPosition(), cat2level.get(c.getName()));
-			}
-
-			for (final Returnvalue r : c.getReturnvalues().getReturnvalue()) {
-				srcRet.put(r.getMethodname()+"->exit", cat2level.get(c.getName()));
-			}
-		}
-
-		for (final Category c : sas.getSinks().getCategory()) {
-			for (final Attribute a : c.getAttributes().getAttribute()) {
-				snkRet.put(a.getName(), cat2level.get(c.getName()));
-			}
-
-			for (final Parameter p : c.getParameters().getParameter()) {
-				snkRet.put(p.getMethodname()+ "->p"+p.getPosition(), cat2level.get(c.getName()));
-			}
-
-			for (final Returnvalue r : c.getReturnvalues().getReturnvalue()) {
-				snkRet.put(r.getMethodname()+"->exit", cat2level.get(c.getName()));
-			}
-		}
-
-		return new JoanaSpec(srcRet, snkRet);
+		return new JoanaSpec(sources2levels, sinks2levels);
 	}
 
 	public static void main(final String[] args) throws IOException {
@@ -77,7 +69,9 @@ public final class JoanaRIFL {
 		final Domainassignment dass = JAXB.unmarshal(new File(args[3]), Domainassignment.class);
 		final JoanaSpec joanaSpec = extractJoanaSpecification(s, dass);
 		final List<String> script = generateJoanaInstructions(args[0], args[1], joanaSpec);
+		System.out.println("=== Will execute the following script ===");
 		dumpScript(script, System.out);
+		System.out.println("=========================================");
 		JoanaBatch.executeScriptWithStandardOutput(script);
 	}
 

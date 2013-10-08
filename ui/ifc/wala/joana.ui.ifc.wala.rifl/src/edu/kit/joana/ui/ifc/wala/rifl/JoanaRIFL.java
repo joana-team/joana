@@ -65,6 +65,10 @@ public final class JoanaRIFL {
 
 	public static void main(final String[] args) throws IOException {
 		// classpath, entry method, sources-and-sinks-spec, domain assignment
+		if (args.length != 4) {
+			System.out.println("Parameters: <classpath> <entry method> <sources-and-sinks-spec> <domain assignment>");
+			return;
+		}
 		final Sourcesandsinks s = JAXB.unmarshal(new File(args[2]), Sourcesandsinks.class);
 		final Domainassignment dass = JAXB.unmarshal(new File(args[3]), Domainassignment.class);
 		final JoanaSpec joanaSpec = extractJoanaSpecification(s, dass);

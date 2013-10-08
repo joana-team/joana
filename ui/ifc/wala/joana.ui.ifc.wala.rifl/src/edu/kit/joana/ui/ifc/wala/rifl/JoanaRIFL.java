@@ -80,7 +80,7 @@ public final class JoanaRIFL {
 		ret.add("setClasspath " + classPath);
 		ret.add("searchEntries");
 		ret.add("selectEntry " + entryMethod);
-		ret.add("buildSDG false NONE INTRAPROC");
+		ret.add("buildSDG true PRECISE INTRAPROC");
 		ret.addAll(generateJoanaSpecInstructions(jSpec));
 		ret.add("run poss");
 		return ret;

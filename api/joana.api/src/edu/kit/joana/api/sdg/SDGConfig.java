@@ -13,6 +13,7 @@ import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig;
+import edu.kit.joana.wala.flowless.wala.ObjSensContextSelector.MethodFilter;
 
 public class SDGConfig {
 
@@ -26,6 +27,7 @@ public class SDGConfig {
 	private boolean computeInterferences;
 	private MHPType mhpType = MHPType.NONE;
 	private SideEffectDetectorConfig sideEffects;
+	private MethodFilter methodFilter;
 
 	public SDGConfig(String classPath, String entryMethod, Stubs stubsPath) {
 		this(classPath, entryMethod, stubsPath, ExceptionAnalysis.INTERPROC, FieldPropagation.OBJ_GRAPH, PointsToPrecision.CONTEXT_SENSITIVE, false, false, MHPType.NONE);
@@ -112,6 +114,22 @@ public class SDGConfig {
 	 */
 	public void setPointsToPrecision(PointsToPrecision pointsToPrecision) {
 		this.pointsToPrecision = pointsToPrecision;
+	}
+	
+	/**
+	 * Returns the method filter used by this configuration. Can be {@code null}, e.g. if method filter was never set
+	 * @return if not {@code null}, the method filter used by this configuration
+	 */
+	public MethodFilter getMethodFilter() {
+		return methodFilter;
+	}
+	
+	/**
+	 * Set the method filter used by the SDG builder to distinguish methods by object instance.
+	 * Only used if points-to precision is set to OBJECT_SENSITIVE
+	 */
+	public void setMethodFilter(MethodFilter methodFilter) {
+		this.methodFilter = methodFilter;
 	}
 
 	/**

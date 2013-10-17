@@ -90,6 +90,18 @@ public final class JavaMethodSignature {
 		sbBC.append(returnType.toBCString());
 		return sbBC.toString();
 	}
+	
+	public String getSelector() {
+		StringBuilder sbBC = new StringBuilder();
+		sbBC.append(methodName);
+		sbBC.append("(");
+		for (int i = 0; i < argumentTypes.size(); i++) {
+			sbBC.append(argumentTypes.get(i).toBCString());
+		}
+		sbBC.append(")");
+		sbBC.append(returnType.toBCString());
+		return sbBC.toString();
+	}
 
 	private static boolean isHumanReadable(String methodSig) {
 		Matcher m = pMethodHR.matcher(methodSig);

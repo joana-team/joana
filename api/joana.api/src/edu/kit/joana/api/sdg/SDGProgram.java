@@ -123,7 +123,7 @@ public class SDGProgram {
 		cfg.accessPath = config.computeAccessPaths();
 		cfg.sideEffects = config.getSideEffectDetectorConfig();
 		cfg.stubs = config.getStubsPath().getPath();
-
+		cfg.nativesXML = config.getNativesXML();
 		debug.outln(cfg.stubs);
 
 		if (config.computeInterferences()) {

@@ -241,6 +241,16 @@ public class SDGProgram {
 		}
 		return ret;
 	}
+	
+	/**
+	 * Returns whether the given instruction is contained in the application's code
+	 * @param i an instruction from this program
+	 * @return {@code true}, if the given instruction is contained in the application's code,
+	 * {@code false} otherwise
+	 */
+	public boolean isInApplicationCode(SDGInstruction i) {
+		return getSDG().getEntry(i.getNode()).getClassLoader().equals("Application");
+	}
 
 	public Collection<SDGMethodExitNode> getMethodExitNode(JavaMethodSignature methodSig) {
 		build();

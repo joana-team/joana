@@ -162,4 +162,12 @@ Comparable<SDGInstruction> {
 		}
 	}
 
+	/**
+	 * Returns whether this instruction is a call instruction.
+	 * @return {@code true}, if this instruction is a call instruction, {@code false} otherwise
+	 */
+	public boolean isCall() {
+		return rootNode.getKind() == SDGNode.Kind.CALL;
+	}
+
 }

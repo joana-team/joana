@@ -467,7 +467,7 @@ public class SDG extends JoanaGraph implements Cloneable {
 	/**
 	 * Returns all entry nodes called by the given call node.
 	 */
-	public Collection<SDGNode> getEntries(SDGNode call) {
+	public Collection<SDGNode> getPossibleTargets(SDGNode call) {
 		LinkedList<SDGNode> ret = new LinkedList<SDGNode>();
 
 		for (SDGEdge e : outgoingEdgesOf(call)) {
@@ -587,7 +587,7 @@ public class SDG extends JoanaGraph implements Cloneable {
 		LinkedList<SDGNodeTuple> result = new LinkedList<SDGNodeTuple>();
 		HashMap<Integer, SDGNodeTuple> map = new HashMap<Integer, SDGNodeTuple>();
 		Collection<SDGNode> fos = getFormalOuts(actOut);
-		Collection<SDGNode> fis = (actIn.getKind() == SDGNode.Kind.CALL ? getEntries(actIn) : getFormalIns(actIn));
+		Collection<SDGNode> fis = (actIn.getKind() == SDGNode.Kind.CALL ? getPossibleTargets(actIn) : getFormalIns(actIn));
 
 		for (SDGNode fo : fos) {
 			SDGNodeTuple tup = new SDGNodeTuple(null, fo);

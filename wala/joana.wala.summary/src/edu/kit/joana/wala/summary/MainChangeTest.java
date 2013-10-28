@@ -299,7 +299,7 @@ public class MainChangeTest {
 		Set<SDGNode> reachEntries = new HashSet<SDGNode>();
 
 		for (SDGNode call : reachable) {
-			reachEntries.addAll(sdg.getEntries(call));
+			reachEntries.addAll(sdg.getPossibleTargets(call));
 			//TODO this is conservative. we may add methods that where not reachable
 		}
 

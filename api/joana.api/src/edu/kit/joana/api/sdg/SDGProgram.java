@@ -243,6 +243,19 @@ public class SDGProgram {
 	}
 	
 	/**
+	 * Returns all possible call targets, if the given instruction is a call instruction.
+	 * @param call a call instruction
+	 * @return all possible call targets of the given instruction
+	 */
+	public Set<JavaMethodSignature> getPossibleTargets(SDGInstruction call) {
+		Set<JavaMethodSignature> ret = new HashSet<JavaMethodSignature>();
+		for (SDGNode entry : getSDG().getPossibleTargets(call.getNode())) {
+			ret.add(JavaMethodSignature.fromString(entry.getBytecodeMethod()));
+		}
+		return ret;
+	}
+
+	/**
 	 * Returns whether the given instruction is contained in the application's code
 	 * @param i an instruction from this program
 	 * @return {@code true}, if the given instruction is contained in the application's code,
@@ -250,6 +263,36 @@ public class SDGProgram {
 	 */
 	public boolean isInApplicationCode(SDGInstruction i) {
 		return getSDG().getEntry(i.getNode()).getClassLoader().equals("Application");
+	}
+
+	/**
+	 * Returns whether the given method is contained in the application's code
+	 * @param m a method from this program
+	 * @return {@code true}, if the given method is contained in the application's code,
+	 * {@code false} otherwise
+	 */
+	public boolean isInApplicationCode(SDGMethod m) {
+		return m.getEntry().getClassLoader().equals("Application");
+	}
+
+	/**
+	 * Returns whether the given instruction is contained in standard library code
+	 * @param i an instruction from this program
+	 * @return {@code true}, if the given instruction is contained in standard library code,
+	 * {@code false} otherwise
+	 */
+	public boolean isInPrimordialCode(SDGInstruction i) {
+		return getSDG().getEntry(i.getNode()).getClassLoader().equals("Primordial");
+	}
+
+	/**
+	 * Returns whether the given method is contained in standard library code
+	 * @param m a method from this program
+	 * @return {@code true}, if the given method is contained in standard library code,
+	 * {@code false} otherwise
+	 */
+	public boolean isInPrimordialCode(SDGMethod m) {
+		return m.getEntry().getClassLoader().equals("Primordial");
 	}
 
 	public Collection<SDGMethodExitNode> getMethodExitNode(JavaMethodSignature methodSig) {

@@ -35,8 +35,10 @@ import com.ibm.wala.ipa.callgraph.CallGraphBuilderCancelException;
 import com.ibm.wala.ipa.callgraph.Entrypoint;
 import com.ibm.wala.ipa.callgraph.impl.SubtypesEntrypoint;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
+import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
 import com.ibm.wala.ipa.callgraph.pruned.CallGraphPruning;
 import com.ibm.wala.ipa.callgraph.pruned.PrunedCallGraph;
+import com.ibm.wala.ipa.callgraph.pruned.PruningPolicy;
 import com.ibm.wala.ipa.cfg.ExceptionPrunedCFG;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.ssa.SSAInstruction;
@@ -644,7 +646,7 @@ public class SDGBuilder implements CallGraphFilter {
 
 		if (prune >= 0) {
 			CallGraphPruning cgp = new CallGraphPruning(walaCG.cg);
-			Set<CGNode> appl = cgp.findApplicationNodes(prune);
+			Set<CGNode> appl = cgp.findNodes(prune, cfg.pruningPolicy);
 			PrunedCallGraph pcg = new PrunedCallGraph(walaCG.cg, appl);
 			curcg = pcg;
 		}
@@ -1125,6 +1127,7 @@ public class SDGBuilder implements CallGraphFilter {
 		public boolean localKillingDefs = true;
 		public boolean keepPhiNodes = true;
 		public int prunecg = DO_NOT_PRUNE;
+		public PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
 		public PointsToPrecision pts = PointsToPrecision.CONTEXT_SENSITIVE;
 		// only used iff pts is set to object sensitive. If null defaults to
 		// "do object sensitive analysis for all methods"

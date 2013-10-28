@@ -7,6 +7,9 @@
  */
 package edu.kit.joana.api.sdg;
 
+import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
+import com.ibm.wala.ipa.callgraph.pruned.PruningPolicy;
+
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.util.JoanaConstants;
 import edu.kit.joana.util.Stubs;
@@ -17,7 +20,7 @@ import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig;
 import edu.kit.joana.wala.flowless.wala.ObjSensContextSelector.MethodFilter;
 
 public class SDGConfig {
-
+	private PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
 	private String classPath;
 	private String entryMethod;
 	private Stubs stubsPath;
@@ -220,5 +223,13 @@ public class SDGConfig {
 	 */
 	public SideEffectDetectorConfig getSideEffectDetectorConfig() {
 		return sideEffects;
+	}
+	
+	public void setPruningPolicy(PruningPolicy policy) {
+		this.pruningPolicy = policy;
+	}
+	
+	public PruningPolicy getPruningPolicy() {
+		return this.pruningPolicy;
 	}
 }

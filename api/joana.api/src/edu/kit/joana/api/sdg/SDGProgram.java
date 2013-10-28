@@ -124,6 +124,7 @@ public class SDGProgram {
 		cfg.sideEffects = config.getSideEffectDetectorConfig();
 		cfg.stubs = config.getStubsPath().getPath();
 		cfg.nativesXML = config.getNativesXML();
+		cfg.pruningPolicy = config.getPruningPolicy();
 		debug.outln(cfg.stubs);
 
 		if (config.computeInterferences()) {

@@ -144,6 +144,18 @@ public class SDGMethod extends SDGProgramPart {
 		return ret;
 	}
 
+	public List<SDGInstruction> getAllCalls() {
+		List<SDGInstruction> ret = new LinkedList<SDGInstruction>();
+
+		for (SDGInstruction i : getInstructions()) {
+			if (i.isCall()) {
+				ret.add(i);
+			}
+		}
+
+		return ret;
+	}
+
 	public int getInstructionIndex(SDGInstruction instr) {
 		for (int i = 0; i < instructions.size(); i++) {
 			if (instr.equals(instructions.get(i))) {

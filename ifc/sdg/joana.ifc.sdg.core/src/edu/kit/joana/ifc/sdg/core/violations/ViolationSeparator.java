@@ -15,6 +15,9 @@ import edu.kit.joana.ifc.sdg.core.conc.OrderConflict;
 
 
 /**
+ * Separates a collection of IViolations into the different kinds of violation. First,
+ * run {@link #separate(Collection)} on the collection to be separated. Afterwards,
+ * you can use the respective getter methods to access the different groups.
  * @author Martin Mohr
  */
 public class ViolationSeparator<T> implements IViolationVisitor<T> {
@@ -47,7 +50,11 @@ public class ViolationSeparator<T> implements IViolationVisitor<T> {
 		oConfs.add(orderConf);
 	}
 	
-	
+	/**
+	 * Separates the given collection of violations into the different groups. Use
+	 * appropriate getter method to access the individual groups.
+	 * @param vios collection of violations to separate
+	 */
 	public void separate(Collection<? extends IViolation<T>> vios) {
 		reset();
 		for (IViolation<T> v : vios) {
@@ -55,6 +62,10 @@ public class ViolationSeparator<T> implements IViolationVisitor<T> {
 		}
 	}
 	
+	/**
+	 * Resets this violation separator. Call this method to re-use this object for another
+	 * collection of violations.
+	 */
 	public void reset() {
 		iFlows.clear();
 		dConfs.clear();

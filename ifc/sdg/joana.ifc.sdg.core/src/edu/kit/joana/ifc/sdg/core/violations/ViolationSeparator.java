@@ -48,7 +48,7 @@ public class ViolationSeparator<T> implements IViolationVisitor<T> {
 	}
 	
 	
-	public void sort(Collection<? extends IViolation<T>> vios) {
+	public void separate(Collection<? extends IViolation<T>> vios) {
 		reset();
 		for (IViolation<T> v : vios) {
 			v.accept(this);

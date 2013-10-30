@@ -298,6 +298,9 @@ public class SDGNode implements Cloneable {
 
     private String clsLoader;
 
+    /* used for call nodes where there is no pdg for the call target */
+    private String unresolvedCallTarget;
+
     public SDGNode(int id, Operation op, String value, int proc,
             String type, String source, int sr, int sc, int er, int ec, String bcName, int bcIndex) {
         this.kind = op.kind[0];

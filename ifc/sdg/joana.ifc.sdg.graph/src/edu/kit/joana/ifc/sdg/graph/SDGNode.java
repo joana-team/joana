@@ -594,6 +594,14 @@ public class SDGNode implements Cloneable {
         return type;
     }
 
+    public String getUnresolvedCallTarget() {
+        return unresolvedCallTarget;
+    }
+
+    public void setUnresolvedCallTarget(String unresolvedCallTarget) {
+        this.unresolvedCallTarget = unresolvedCallTarget;
+    }
+
     /**
      * @return A representation of this node. Currently just the ID.
      */

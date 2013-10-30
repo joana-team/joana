@@ -143,6 +143,10 @@ public class SDGSerializer {
             	pw.print("C \"" + n.getClassLoader() + "\";\n");
             }
 
+            if (n.getUnresolvedCallTarget() != null) {
+                pw.print("U \"" + n.getUnresolvedCallTarget() + "\";\n");
+            }
+
             printPDGDependencies(g,n, pw);
             pw.print("}\n");
         }

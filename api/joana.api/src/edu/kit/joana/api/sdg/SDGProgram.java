@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -250,8 +251,13 @@ public class SDGProgram {
 	 */
 	public Set<JavaMethodSignature> getPossibleTargets(SDGInstruction call) {
 		Set<JavaMethodSignature> ret = new HashSet<JavaMethodSignature>();
-		for (SDGNode entry : getSDG().getPossibleTargets(call.getNode())) {
-			ret.add(JavaMethodSignature.fromString(entry.getBytecodeMethod()));
+		Collection<SDGNode> possTargets = getSDG().getPossibleTargets(call.getNode());
+		if (possTargets.isEmpty() && call.getNode().getUnresolvedCallTarget() != null) {
+			return Collections.singleton(JavaMethodSignature.fromString(call.getNode().getUnresolvedCallTarget()));
+		} else {
+			for (SDGNode entry : possTargets) {
+				ret.add(JavaMethodSignature.fromString(entry.getBytecodeMethod()));
+			}
 		}
 		return ret;
 	}

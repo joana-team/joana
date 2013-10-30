@@ -9,6 +9,7 @@ package edu.kit.joana.api.sdg;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -152,13 +153,18 @@ Comparable<SDGInstruction> {
 			return false;
 		} else {
 			SDG sdg = getOwner().getSDG();
-			for (SDGEdge callEdge : sdg.getOutgoingEdgesOfKind(rootNode, SDGEdge.Kind.CALL)) {
+			List<SDGEdge> callEdges = sdg.getOutgoingEdgesOfKind(rootNode, SDGEdge.Kind.CALL);
+			if (callEdges.isEmpty() && rootNode.getUnresolvedCallTarget().equals(target.toBCString())) {
+				return true;
+			} else {
+			for (SDGEdge callEdge : callEdges) {
 				SDGNode tgt = callEdge.getTarget();
 				if (tgt.getBytecodeMethod().equals(target.toBCString())) {
 					return true;
 				}
 			}
 			return false;
+			}
 		}
 	}
 

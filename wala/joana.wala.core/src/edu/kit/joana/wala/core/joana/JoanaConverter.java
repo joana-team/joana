@@ -204,7 +204,6 @@ public class JoanaConverter {
 		Operation op = null;
 		Kind kind = null;
 		int[] allocNodes = null;
-		String unresolvedCallTarget = null;
 		switch (node.getKind()) {
 		case ACTUAL_IN:
 			op = Operation.ACTUAL_IN;
@@ -217,7 +216,6 @@ public class JoanaConverter {
 		case CALL:
 			op = Operation.CALL;
 			kind = Kind.CALL;
-			unresolvedCallTarget = node.getUnresolvedCallTarget();
 			if (sdg.cfg.computeInterference) {
 				TIntSet allocNodesAsSet = sdg.getAllocationNodes(node);
 				if (allocNodesAsSet != null) {

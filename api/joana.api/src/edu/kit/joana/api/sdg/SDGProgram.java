@@ -57,6 +57,65 @@ import edu.kit.joana.wala.flowless.wala.ObjSensContextSelector.MethodFilter;
 
 public class SDGProgram {
 
+	/**
+	 * Special object which provides information about where a given code piece stems from
+	 * @author Martin Mohr
+	 */
+	public static class ClassLoader {
+
+		/** for code which stems from the actual application */
+		public static final ClassLoader APPLICATION = new ClassLoader("Application");
+
+		/** for java standard library code */
+		public static final ClassLoader PRIMORDIAL = new ClassLoader("Primordial");
+
+		private String name;
+
+		private ClassLoader(String name) {
+			this.name = name;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
+		 */
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((name == null) ? 0 : name.hashCode());
+			return result;
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (!(obj instanceof ClassLoader)) {
+				return false;
+			}
+			ClassLoader other = (ClassLoader) obj;
+			if (name == null) {
+				if (other.name != null) {
+					return false;
+				}
+			} else if (!name.equals(other.name)) {
+				return false;
+			}
+			return true;
+		}
+	}
+
 	private boolean isBuilt = false;
 	private final SDGClassResolver classRes = new SDGClassResolver();
 	private final Set<SDGClass> classes = new HashSet<SDGClass>();
@@ -147,7 +206,7 @@ public class SDGProgram {
 				} else {
 					cfg.objSensFilter = config.getMethodFilter();
 				}
-			} 
+			}
 		}
 		monitor.beginTask("build SDG", 20);
 		final com.ibm.wala.util.collections.Pair<SDG, SDGBuilder> p = Main.computeAndKeepBuilder(out, cfg,
@@ -243,7 +302,7 @@ public class SDGProgram {
 		}
 		return ret;
 	}
-	
+
 	/**
 	 * Returns all possible call targets, if the given instruction is a call instruction.
 	 * @param call a call instruction
@@ -262,6 +321,25 @@ public class SDGProgram {
 		return ret;
 	}
 
+	public ClassLoader getClassLoader(SDGInstruction i) {
+		return getClassLoader(i.getNode());
+	}
+
+	public ClassLoader getClassLoader(SDGMethod m) {
+		return getClassLoader(m.getEntry());
+	}
+
+	private ClassLoader getClassLoader(SDGNode node) {
+		String clsLoader = getSDG().getEntry(node).getClassLoader();
+		if (clsLoader.equals("Application")) {
+			return ClassLoader.APPLICATION;
+		} else if (clsLoader.equals("Primordial")) {
+			return ClassLoader.PRIMORDIAL;
+		} else {
+			return new ClassLoader(clsLoader);
+		}
+	}
+
 	/**
 	 * Returns whether the given instruction is contained in the application's code
 	 * @param i an instruction from this program
@@ -269,7 +347,7 @@ public class SDGProgram {
 	 * {@code false} otherwise
 	 */
 	public boolean isInApplicationCode(SDGInstruction i) {
-		return getSDG().getEntry(i.getNode()).getClassLoader().equals("Application");
+		return getClassLoader(i) == ClassLoader.APPLICATION;
 	}
 
 	/**
@@ -279,7 +357,7 @@ public class SDGProgram {
 	 * {@code false} otherwise
 	 */
 	public boolean isInApplicationCode(SDGMethod m) {
-		return m.getEntry().getClassLoader().equals("Application");
+		return getClassLoader(m) == ClassLoader.APPLICATION;
 	}
 
 	/**
@@ -289,7 +367,7 @@ public class SDGProgram {
 	 * {@code false} otherwise
 	 */
 	public boolean isInPrimordialCode(SDGInstruction i) {
-		return getSDG().getEntry(i.getNode()).getClassLoader().equals("Primordial");
+		return getClassLoader(i) == ClassLoader.PRIMORDIAL;
 	}
 
 	/**
@@ -299,7 +377,7 @@ public class SDGProgram {
 	 * {@code false} otherwise
 	 */
 	public boolean isInPrimordialCode(SDGMethod m) {
-		return m.getEntry().getClassLoader().equals("Primordial");
+		return getClassLoader(m) == ClassLoader.PRIMORDIAL;
 	}
 
 	public Collection<SDGMethodExitNode> getMethodExitNode(JavaMethodSignature methodSig) {
@@ -381,9 +459,9 @@ public class SDGProgram {
 	 * signature followed by ":<number>" where <number> denotes the bytecode
 	 * index of the instruction. This index has to be taken from the sdg
 	 * representing the program from which the instruction is to be taken.
-	 * 
+	 *
 	 * @author Martin Mohr
-	 * 
+	 *
 	 */
 	private static final class SDGProgramPartParserBC {
 
@@ -909,14 +987,14 @@ class ThreadSensitiveMethodFilter implements MethodFilter {
  * F1 nor F2 find a given method interesting enough to distinguish its object
  * contexts.
  * <p/>
- * 
+ *
  * It works as follows:
  * <ul>
  * <li>For engageObjectSensitivity(), it first asks F1 - if F1 says
  * {@code false}, then F2 is asked.</li>
  * <li>For fallback callsite sensitivity, F1's return value is taken.</li>
  * </ul>
- * 
+ *
  * @author Martin Mohr
  */
 class MethodFilterChain implements MethodFilter {
@@ -929,7 +1007,7 @@ class MethodFilterChain implements MethodFilter {
 
 	/**
 	 * Chains together this method filter from the two given method filters
-	 * 
+	 *
 	 * @param filter1
 	 *            first filter to be used
 	 * @param filter2
@@ -943,7 +1021,7 @@ class MethodFilterChain implements MethodFilter {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * edu.kit.joana.wala.flowless.wala.ObjSensContextSelector.MethodFilter#
 	 * engageObjectSensitivity(com.ibm.wala.classLoader.IMethod)
@@ -959,7 +1037,7 @@ class MethodFilterChain implements MethodFilter {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * edu.kit.joana.wala.flowless.wala.ObjSensContextSelector.MethodFilter#
 	 * getFallbackCallsiteSensitivity()

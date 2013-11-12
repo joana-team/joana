@@ -1894,6 +1894,9 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 		List<PDGNode> cfePreds = new LinkedList<PDGNode>();
 		List<PDGEdge> toRemove = new LinkedList<PDGEdge>();
 		for (PDGEdge edge : incomingEdgesOf(refPoint)) {
+			if (refPoint.equals(exit) && edge.from.equals(entry) && edge.kind == PDGEdge.Kind.CONTROL_FLOW) {
+				continue;
+			}
 			if (edge.kind == PDGEdge.Kind.CONTROL_FLOW) {
 				cfPreds.add(edge.from);
 				toRemove.add(edge);

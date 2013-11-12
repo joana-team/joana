@@ -29,6 +29,7 @@ import com.ibm.wala.util.intset.OrdinalSetMapping;
 
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
+import edu.kit.joana.wala.core.PDGEdge.Kind;
 import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.params.objgraph.ModRefCandidateGraph;
@@ -365,6 +366,9 @@ public class ModRefDataFlow {
 		}
 		final PDGNode first = before.getFirst();
 		for (PDGEdge in : incoming) {
+			if (in.from.equals(pdg.entry) && in.to.equals(pdg.exit) && in.kind == Kind.CONTROL_FLOW) {
+				continue;
+			}
 			pdg.removeEdge(in);
 			pdg.addEdge(in.from, first, in.kind);
 		}
@@ -392,6 +396,9 @@ public class ModRefDataFlow {
 
 		final PDGNode last = after.getLast();
 		for (PDGEdge out : outgoing) {
+			if (out.from.equals(pdg.entry) && out.to.equals(pdg.exit) && out.kind == Kind.CONTROL_FLOW) {
+				continue;
+			}
 			pdg.removeEdge(out);
 			pdg.addEdge(last, out.to, out.kind);
 		}

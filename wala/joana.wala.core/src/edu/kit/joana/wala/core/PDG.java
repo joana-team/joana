@@ -1638,6 +1638,9 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 	private void addToNormalControlFlowBefore(final PDGNode reference, final PDGNode toAdd) {
 		List<PDGEdge> toRemove = new LinkedList<PDGEdge>();
 		for (PDGEdge in : incomingEdgesOf(reference)) {
+			if (in.from.equals(entry) && in.to.equals(exit) && in.kind == PDGEdge.Kind.CONTROL_FLOW) {
+				continue;
+			}
 			if (in.kind.isFlow()) {
 				addEdge(in.from, toAdd, in.kind);
 				toRemove.add(in);

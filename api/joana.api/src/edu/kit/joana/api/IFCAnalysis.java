@@ -19,11 +19,11 @@ import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.types.annotations.Annotation;
 
 import edu.kit.joana.api.annotations.IFCAnnotation;
-import edu.kit.joana.api.annotations.IFCAnnotation.Type;
 import edu.kit.joana.api.annotations.IFCAnnotationManager;
 import edu.kit.joana.api.annotations.Level;
 import edu.kit.joana.api.annotations.Sink;
 import edu.kit.joana.api.annotations.Source;
+import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGProgram;
@@ -269,11 +269,11 @@ public class IFCAnalysis {
 	}
 
 	private void addSourceAnnotation(SDGProgramPart toMark, String level, SDGMethod context) {
-		addAnnotation(new IFCAnnotation(Type.SOURCE, level, toMark, context));
+		addAnnotation(new IFCAnnotation(AnnotationType.SOURCE, level, toMark, context));
 	}
 
 	private void addSinkAnnotation(SDGProgramPart toMark, String level, SDGMethod context) {
-		addAnnotation(new IFCAnnotation(Type.SINK, level, toMark, context));
+		addAnnotation(new IFCAnnotation(AnnotationType.SINK, level, toMark, context));
 	}
 
 	public void addDeclassification(SDGProgramPart toMark, String level1, String level2) {

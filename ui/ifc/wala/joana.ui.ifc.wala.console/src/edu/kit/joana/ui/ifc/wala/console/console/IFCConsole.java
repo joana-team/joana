@@ -34,7 +34,7 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.IFCType;
 import edu.kit.joana.api.annotations.IFCAnnotation;
-import edu.kit.joana.api.annotations.IFCAnnotation.Type;
+import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGConfig;
@@ -446,7 +446,7 @@ public class IFCConsole {
 
 			@Override
 			boolean execute(String[] args) {
-				return annotateProgramPartAsSrcOrSnk(args[1], args[2], Type.SOURCE);
+				return annotateProgramPartAsSrcOrSnk(args[1], args[2], AnnotationType.SOURCE);
 			}
 		};
 	}
@@ -455,7 +455,7 @@ public class IFCConsole {
 		return new Command(CMD.SINK) {
 			@Override
 			boolean execute(String[] args) {
-				return annotateProgramPartAsSrcOrSnk(args[1], args[2], Type.SINK);
+				return annotateProgramPartAsSrcOrSnk(args[1], args[2], AnnotationType.SINK);
 			}
 		};
 	}
@@ -818,7 +818,7 @@ public class IFCConsole {
 		}
 	}
 
-	public boolean annotateProgramPartAsSrcOrSnk(String programPart, String level, Type type) {
+	public boolean annotateProgramPartAsSrcOrSnk(String programPart, String level, AnnotationType type) {
 		if (inSecurityLattice(level)) {
 			SDGProgramPart toMark = getProgramPartFromSelectorString(programPart, false);
 			if (toMark != null) {
@@ -1573,7 +1573,7 @@ public class IFCConsole {
 		return ifcAnalysis.getSecurityLattice();
 	}
 
-	public boolean canAnnotate(Collection<SDGProgramPart> selectedParts, Type type) {
+	public boolean canAnnotate(Collection<SDGProgramPart> selectedParts, AnnotationType type) {
 		boolean ret = true;
 
 		for (SDGProgramPart part : selectedParts) {

@@ -26,6 +26,7 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import edu.kit.joana.api.annotations.IFCAnnotation;
+import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
@@ -491,7 +492,7 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 		consolePane.getOutputStream().println(logMessage);
 	}
 
-	public boolean canAnnotate(Collection<SDGProgramPart> selectedParts, IFCAnnotation.Type type) {
+	public boolean canAnnotate(Collection<SDGProgramPart> selectedParts, Type type) {
 		return console.canAnnotate(selectedParts, type);
 	}
 

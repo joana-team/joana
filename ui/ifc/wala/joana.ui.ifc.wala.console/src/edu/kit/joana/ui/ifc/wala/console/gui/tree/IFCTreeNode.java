@@ -12,7 +12,7 @@ import java.util.Collection;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import edu.kit.joana.api.annotations.IFCAnnotation;
-import edu.kit.joana.api.annotations.IFCAnnotation.Type;
+import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 
 
@@ -56,7 +56,7 @@ public abstract class IFCTreeNode extends DefaultMutableTreeNode implements Comp
 
 	public boolean isSource() {
 		if (isAnnotated()) {
-			return getIFCAnnotation().getType() == Type.SOURCE;
+			return getIFCAnnotation().getType() == AnnotationType.SOURCE;
 		} else {
 			return false;
 		}
@@ -79,7 +79,7 @@ public abstract class IFCTreeNode extends DefaultMutableTreeNode implements Comp
 
 	public boolean isSink() {
 		if (isAnnotated()) {
-			return getIFCAnnotation().getType() == Type.SINK;
+			return getIFCAnnotation().getType() == AnnotationType.SINK;
 		} else {
 			return false;
 		}
@@ -98,7 +98,7 @@ public abstract class IFCTreeNode extends DefaultMutableTreeNode implements Comp
 
 	public boolean isDeclass() {
 		if (isAnnotated()) {
-			return getIFCAnnotation().getType() == Type.DECLASS;
+			return getIFCAnnotation().getType() == AnnotationType.DECLASS;
 		} else {
 			return false;
 		}

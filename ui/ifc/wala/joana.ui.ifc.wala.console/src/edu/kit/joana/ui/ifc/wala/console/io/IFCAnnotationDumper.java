@@ -11,7 +11,7 @@ import java.io.PrintStream;
 import java.util.Collection;
 
 import edu.kit.joana.api.annotations.IFCAnnotation;
-import edu.kit.joana.api.annotations.IFCAnnotation.Type;
+import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.api.sdg.SDGAttribute;
 import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGInstruction;
@@ -32,7 +32,7 @@ public class IFCAnnotationDumper extends SDGProgramPartVisitor<Void, Void> {
 		this.out = out;
 	}
 
-	private void dumpType(Type type) {
+	private void dumpType(AnnotationType type) {
 		out.print(type);
 	}
 
@@ -79,7 +79,7 @@ public class IFCAnnotationDumper extends SDGProgramPartVisitor<Void, Void> {
 		dumpType(ann.getType());
 		out.print("(");
 		dumpLevel(ann.getLevel1());
-		if (ann.getType() == Type.DECLASS) {
+		if (ann.getType() == AnnotationType.DECLASS) {
 			out.print("->");
 			dumpLevel(ann.getLevel2());
 		}

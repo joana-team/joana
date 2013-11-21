@@ -12,41 +12,18 @@ import edu.kit.joana.api.sdg.SDGProgramPart;
 
 public class IFCAnnotation {
 
-	public enum Type {
-		SOURCE, SINK, DECLASS;
-
-		public String toString() {
-			switch (this) {
-			case SOURCE:
-				return "SOURCE";
-			case SINK:
-				return "SINK";
-			default:/** case DECLASS: */
-				return "DECLASS";
-			}
-		}
-
-		public static Type fromString(String s) {
-			for (Type t : Type.values())
-				if (s.equals(t.toString()))
-					return t;
-			throw new IllegalArgumentException(s
-					+ " does not denote a valid annotation type!");
-		}
-	}
-
-	private final Type type;
+	private final AnnotationType type;
 	private final String level1;
 	private final String level2;
 	private final SDGProgramPart annotatedPart;
 	private final SDGMethod context;
 
-	public IFCAnnotation(Type type, String level, SDGProgramPart annotatedPart) {
+	public IFCAnnotation(AnnotationType type, String level, SDGProgramPart annotatedPart) {
 		this(type, level, annotatedPart, null);
 	}
 
-	public IFCAnnotation(Type type, String level, SDGProgramPart annotatedPart, SDGMethod context) {
-		if (type == Type.DECLASS || type == null || level == null || annotatedPart == null) {
+	public IFCAnnotation(AnnotationType type, String level, SDGProgramPart annotatedPart, SDGMethod context) {
+		if (type == AnnotationType.DECLASS || type == null || level == null || annotatedPart == null) {
 			throw new IllegalArgumentException();
 		}
 
@@ -62,14 +39,14 @@ public class IFCAnnotation {
 			throw new IllegalArgumentException();
 		}
 		
-		this.type = Type.DECLASS;
+		this.type = AnnotationType.DECLASS;
 		this.level1 = level1;
 		this.level2 = level2;
 		this.annotatedPart = annotatedPart;
 		this.context = null;
 	}
 	
-	private IFCAnnotation(Type type, String level1, String level2, SDGProgramPart annotatedPart, SDGMethod context) {
+	private IFCAnnotation(AnnotationType type, String level1, String level2, SDGProgramPart annotatedPart, SDGMethod context) {
 		this.type = type;
 		this.level1 = level1;
 		this.level2 = level2;
@@ -88,7 +65,7 @@ public class IFCAnnotation {
 		return new IFCAnnotation(type, level1, level2, newPPart, context);
 	}
 
-	public Type getType() {
+	public AnnotationType getType() {
 		return type;
 	}
 
@@ -97,7 +74,7 @@ public class IFCAnnotation {
 	}
 
 	public String getLevel2() {
-		if (type != Type.DECLASS) {
+		if (type != AnnotationType.DECLASS) {
 			throw new IllegalStateException();
 		}
 		return level2;

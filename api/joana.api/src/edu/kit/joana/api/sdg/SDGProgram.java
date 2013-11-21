@@ -31,8 +31,7 @@ import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
-import edu.kit.joana.api.annotations.IFCAnnotation;
-import edu.kit.joana.api.annotations.IFCAnnotation.Type;
+import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -660,8 +659,8 @@ final class SDGClassComputation {
 			if (offset >= 0) {
 				JavaType typeName = JavaType.parseSingleTypeFromString(bcMethod.substring(0, offset), Format.BC);
 				String attrName = bcMethod.substring(offset + 1);
-				addAttributeNode(typeName, attrName, fNode, Type.SOURCE);
-				addAttributeNode(typeName, attrName, fNode, Type.SINK);
+				addAttributeNode(typeName, attrName, fNode, AnnotationType.SOURCE);
+				addAttributeNode(typeName, attrName, fNode, AnnotationType.SINK);
 				addDDReachableSinkNodes(typeName, attrName, fNode);
 			}
 		}
@@ -694,7 +693,7 @@ final class SDGClassComputation {
 							worklist.add(n);
 						}
 						if (n.getKind() == SDGNode.Kind.ACTUAL_OUT || n.getOperation() == Operation.MODIFY) {
-							addAttributeNode(declaringClass, attrName, n, Type.SINK);
+							addAttributeNode(declaringClass, attrName, n, AnnotationType.SINK);
 						}
 						done.add(n);
 						break;
@@ -712,7 +711,7 @@ final class SDGClassComputation {
 		}
 	}
 
-	private void addAttributeNode(JavaType declaringClass, String attrName, SDGNode node, IFCAnnotation.Type type) {
+	private void addAttributeNode(JavaType declaringClass, String attrName, SDGNode node, AnnotationType type) {
 		seenClass(declaringClass);
 		Map<String, Pair<Set<SDGNode>, Set<SDGNode>>> attrMap;
 		Set<SDGNode> attrSrcs;
@@ -734,7 +733,7 @@ final class SDGClassComputation {
 			attrSnks = p.getSecond();
 		}
 
-		if (type == Type.SOURCE)
+		if (type == AnnotationType.SOURCE)
 			attrSrcs.add(node);
 		else {
 			attrSnks.add(node);

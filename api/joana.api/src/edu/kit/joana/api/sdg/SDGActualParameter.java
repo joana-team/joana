@@ -51,6 +51,14 @@ public class SDGActualParameter extends SDGProgramPart {
 	public JavaType getType() {
 		return type;
 	}
+	
+	public SDGNode getInRoot() {
+		return inRoot;
+	}
+	
+	public SDGNode getOutRoot() {
+		return outRoot;
+	}
 
 	/* (non-Javadoc)
 	 * @see edu.kit.joana.api.sdg.SDGProgramPart#acceptVisitor(edu.kit.joana.api.sdg.SDGProgramPartVisitor, java.lang.Object)

@@ -14,12 +14,16 @@ public abstract class SDGProgramPartVisitor<R, D> {
 	protected abstract R visitAttribute(SDGAttribute a, D data);
 
 	protected abstract R visitMethod(SDGMethod m, D data);
+	
+	protected abstract R visitActualParameter(SDGActualParameter ap, D data);
 
 	protected abstract R visitParameter(SDGFormalParameter p, D data);
 
 	protected abstract R visitExit(SDGMethodExitNode e, D data);
 
 	protected abstract R visitInstruction(SDGInstruction i, D data);
+
+	protected abstract R visitCall(SDGCall c, D data);
 
 	protected abstract R visitPhi(SDGPhi phi, D data);
 }

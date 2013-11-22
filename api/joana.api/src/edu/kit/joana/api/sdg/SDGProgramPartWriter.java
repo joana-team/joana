@@ -58,6 +58,22 @@ final class BytecodeCentricSDGMethodPartWriter extends SDGProgramPartWriter {
 		return a.toString();
 	}
 
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitActualParameter(edu.kit.joana.api.sdg.SDGActualParameter, java.lang.Object)
+	 */
+	@Override
+	protected String visitActualParameter(SDGActualParameter ap, Void data) {
+		return visitCall(ap.getOwningCall(), data) + "->" + "a" + ap.getIndex();
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCall(edu.kit.joana.api.sdg.SDGCall, java.lang.Object)
+	 */
+	@Override
+	protected String visitCall(SDGCall c, Void data) {
+		return visitInstruction(c, data);
+	}
+
 }
 
 public abstract class SDGProgramPartWriter extends SDGProgramPartVisitor<String, Void> {

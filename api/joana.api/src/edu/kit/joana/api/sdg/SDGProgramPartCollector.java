@@ -100,4 +100,22 @@ public class SDGProgramPartCollector extends
 		return null;
 	}
 
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitActualParameter(edu.kit.joana.api.sdg.SDGActualParameter, java.lang.Object)
+	 */
+	@Override
+	protected Void visitActualParameter(SDGActualParameter ap, Collection<SDGProgramPart> base) {
+		base.add(ap);
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCall(edu.kit.joana.api.sdg.SDGCall, java.lang.Object)
+	 */
+	@Override
+	protected Void visitCall(SDGCall c, Collection<SDGProgramPart> base) {
+		base.add(c);
+		return null;
+	}
+
 }

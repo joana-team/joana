@@ -12,7 +12,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import edu.kit.joana.api.sdg.SDGActualParameter;
 import edu.kit.joana.api.sdg.SDGAttribute;
+import edu.kit.joana.api.sdg.SDGCall;
 import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGInstruction;
 import edu.kit.joana.api.sdg.SDGMethod;
@@ -227,5 +229,21 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 			return ((node1.getKind() == SDGNode.Kind.FORMAL_OUT || node1.getKind() == SDGNode.Kind.EXIT) && (node2
 					.getKind() == SDGNode.Kind.FORMAL_OUT || node2.getKind() == SDGNode.Kind.EXIT))
 					|| (node1.getKind() == SDGNode.Kind.ACTUAL_IN && node2.getKind() == SDGNode.Kind.ACTUAL_IN);
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitActualParameter(edu.kit.joana.api.sdg.SDGActualParameter, java.lang.Object)
+	 */
+	@Override
+	protected Set<SDGNode> visitActualParameter(SDGActualParameter ap, AnnotationType data) {
+		throw new UnsupportedOperationException("not implemented yet!");
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCall(edu.kit.joana.api.sdg.SDGCall, java.lang.Object)
+	 */
+	@Override
+	protected Set<SDGNode> visitCall(SDGCall c, AnnotationType type) {
+		return visitInstruction(c, type);
 	}
 }

@@ -8,9 +8,8 @@
 package edu.kit.joana.api.sdg;
 
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -22,15 +21,11 @@ public class SDGInstruction extends SDGProgramPart implements
 Comparable<SDGInstruction> {
 
 	private final SDGNode rootNode;
-	private final Set<SDGNode> sourceNodes = new HashSet<SDGNode>();
-	private final Set<SDGNode> sinkNodes = new HashSet<SDGNode>();
 	private final SDGMethod owner;
 
-	SDGInstruction(SDGMethod owner, SDGNode rootNode, Set<SDGNode> sourceNodes, Set<SDGNode> sinkNodes, int index) {
+	SDGInstruction(SDGMethod owner, SDGNode rootNode, int index) {
 		this.rootNode = rootNode;
 		this.owner = owner;
-		this.sourceNodes.addAll(sourceNodes);
-		this.sinkNodes.addAll(sinkNodes);
 	}
 
 	public SDGNode getNode() {
@@ -108,26 +103,22 @@ Comparable<SDGInstruction> {
 
 	@Override
 	public boolean covers(SDGNode node) {
-		return rootNode.equals(node) || sourceNodes.contains(node) || sinkNodes.contains(node);
+		return rootNode.equals(node);
 	}
 
 	@Override
 	public Collection<SDGNode> getAttachedNodes() {
-		Set<SDGNode> ret = new HashSet<SDGNode>();
-		ret.addAll(sourceNodes);
-		ret.addAll(sinkNodes);
-
-		return ret;
+		return Collections.singleton(rootNode);
 	}
 
 	@Override
 	public Collection<SDGNode> getAttachedSourceNodes() {
-		return sourceNodes;
+		return getAttachedNodes();
 	}
 
 	@Override
 	public Collection<SDGNode> getAttachedSinkNodes() {
-		return sinkNodes;
+		return getAttachedNodes();
 	}
 
 	@Override
@@ -139,34 +130,7 @@ Comparable<SDGInstruction> {
 		}
 	}
 
-	/**
-	 * Returns whether this instruction <p/>
-	 * <ol>
-	 * <li>is a call instruction </li>
-	 * <li>has the method with the given signature as possible call target</li>
-	 * </ol>
-	 * @param target 
-	 * @return {@code true}, if this instruction is a call instruction having the method with the given signature as possible target, {@code false} otherwise
-	 */
-	public boolean possiblyCalls(JavaMethodSignature target) {
-		if (rootNode.getKind() != SDGNode.Kind.CALL) {
-			return false;
-		} else {
-			SDG sdg = getOwner().getSDG();
-			List<SDGEdge> callEdges = sdg.getOutgoingEdgesOfKind(rootNode, SDGEdge.Kind.CALL);
-			if (callEdges.isEmpty() && rootNode.getUnresolvedCallTarget().equals(target.toBCString())) {
-				return true;
-			} else {
-			for (SDGEdge callEdge : callEdges) {
-				SDGNode tgt = callEdge.getTarget();
-				if (tgt.getBytecodeMethod().equals(target.toBCString())) {
-					return true;
-				}
-			}
-			return false;
-			}
-		}
-	}
+	
 
 	/**
 	 * Returns whether this instruction is a call instruction.

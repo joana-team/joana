@@ -34,6 +34,7 @@ public class SDGMethod extends SDGProgramPart {
 	private JavaMethodSignature sig;
 	private SortedMap<Integer, SDGFormalParameter> params = new TreeMap<Integer, SDGFormalParameter>();
 	private List<SDGInstruction> instructions = new ArrayList<SDGInstruction>();
+	private List<SDGCall> calls = new ArrayList<SDGCall>();
 	private List<SDGPhi> phis = new ArrayList<SDGPhi>();
 	private boolean initialized = false;
 
@@ -61,22 +62,14 @@ public class SDGMethod extends SDGProgramPart {
 			int instructionIndex = 0;
 			for (SDGNode n : sdg.getNodesOfProcedure(entry)) {
 				if (n.getBytecodeIndex() >= 0) {
-					Set<SDGNode> attSourceNodes = new HashSet<SDGNode>();
-					Set<SDGNode> attSinkNodes = new HashSet<SDGNode>();
 					if (n.getKind() == SDGNode.Kind.CALL) {
-						for (SDGEdge e : sdg.getOutgoingEdgesOfKind(n,
-								SDGEdge.Kind.CONTROL_DEP_EXPR)) {
-							SDGNode node = e.getTarget();
-							if (node.getKind() == Kind.ACTUAL_IN) {
-								attSinkNodes.add(node);
-							} else if (node.getKind() == Kind.ACTUAL_OUT) {
-								attSourceNodes.add(node);
-							}
-						}
+						SDGCall newCall = newCall(n, instructionIndex);
+						calls.add(newCall);
+						instructions.add(newCall);
+					} else {
+						instructions.add(new SDGInstruction(this, n, instructionIndex));
+						instructionIndex++;
 					}
-					instructions.add(new SDGInstruction(this, n, attSourceNodes, attSinkNodes,
-							instructionIndex));
-					instructionIndex++;
 				} else if (BytecodeLocation.isNormalFormalParameter(n)) {
 					int paramIndex = BytecodeLocation.getRootParamIndex(n
 							.getBytecodeName());
@@ -111,6 +104,30 @@ public class SDGMethod extends SDGProgramPart {
 			initialized = true;
 		}
 	}
+	
+	private SDGCall newCall(SDGNode n, int instructionIndex) {
+		SDGCall newCall = new SDGCall(this, n, instructionIndex);
+
+		// add actual parameters
+		for (SDGEdge e : sdg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
+			SDGNode node = e.getTarget();
+			if (node.getKind() == Kind.ACTUAL_IN || node.getKind() == Kind.ACTUAL_OUT) {
+				newCall.addActualParameter(node);
+			}
+		}
+
+		// add possible call targets
+		List<SDGEdge> callEdges = sdg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CALL);
+		if (callEdges.isEmpty() && n.getUnresolvedCallTarget() != null) {
+			newCall.addPossibleCallTarget(JavaMethodSignature.fromString(n.getUnresolvedCallTarget()));
+		} else {
+			for (SDGEdge callEdge : callEdges) {
+				SDGNode tgt = callEdge.getTarget();
+				newCall.addPossibleCallTarget(JavaMethodSignature.fromString(tgt.getBytecodeMethod()));
+			}
+		}
+		return newCall;
+	}
 
 	public SDGNode getEntry() {
 		return entry;
@@ -132,28 +149,20 @@ public class SDGMethod extends SDGProgramPart {
 		}
 	}
 	
-	public List<SDGInstruction> getAllCalls(JavaMethodSignature target) {
-		List<SDGInstruction> ret = new LinkedList<SDGInstruction>();
+	public List<? extends SDGInstruction> getAllCalls(JavaMethodSignature target) {
+		List<SDGCall> ret = new LinkedList<SDGCall>();
 		
-		for (SDGInstruction i : getInstructions()) {
-			if (i.possiblyCalls(target)) {
-				ret.add(i);
+		for (SDGCall call : calls) {
+			if (call.possiblyCalls(target)) {
+				ret.add(call);
 			}
 		}
 		
 		return ret;
 	}
 
-	public List<SDGInstruction> getAllCalls() {
-		List<SDGInstruction> ret = new LinkedList<SDGInstruction>();
-
-		for (SDGInstruction i : getInstructions()) {
-			if (i.isCall()) {
-				ret.add(i);
-			}
-		}
-
-		return ret;
+	public List<? extends SDGInstruction> getAllCalls() {
+		return new ArrayList<SDGCall>(calls);
 	}
 
 	public int getInstructionIndex(SDGInstruction instr) {

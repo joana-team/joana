@@ -10,7 +10,9 @@ package edu.kit.joana.ui.ifc.wala.console.gui.tree;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
+import edu.kit.joana.api.sdg.SDGActualParameter;
 import edu.kit.joana.api.sdg.SDGAttribute;
+import edu.kit.joana.api.sdg.SDGCall;
 import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGInstruction;
 import edu.kit.joana.api.sdg.SDGMethod;
@@ -67,6 +69,22 @@ class StdProgramPartToString extends ProgramPartToString {
 	@Override
 	public String visitPhi(SDGPhi phi, Void data) {
 		return phi.toString();
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitActualParameter(edu.kit.joana.api.sdg.SDGActualParameter, java.lang.Object)
+	 */
+	@Override
+	protected String visitActualParameter(SDGActualParameter ap, Void data) {
+		throw new UnsupportedOperationException("not implemented yet!");
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCall(edu.kit.joana.api.sdg.SDGCall, java.lang.Object)
+	 */
+	@Override
+	protected String visitCall(SDGCall c, Void data) {
+		return visitInstruction(c, data);
 	}
 
 }

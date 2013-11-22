@@ -12,7 +12,9 @@ import java.util.Collection;
 
 import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.annotations.AnnotationType;
+import edu.kit.joana.api.sdg.SDGActualParameter;
 import edu.kit.joana.api.sdg.SDGAttribute;
+import edu.kit.joana.api.sdg.SDGCall;
 import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGInstruction;
 import edu.kit.joana.api.sdg.SDGMethod;
@@ -66,7 +68,23 @@ public class IFCAnnotationDumper extends SDGProgramPartVisitor<Void, Void> {
 		out.print(")");
 		return null;
 		// instr \\((.*?):(\\d+)\\)
-
+	}
+	
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCall(edu.kit.joana.api.sdg.SDGCall, java.lang.Object)
+	 */
+	@Override
+	protected Void visitCall(SDGCall c, Void data) {
+		visitInstruction(c, data);
+		return null;
+	}
+	
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitActualParameter(edu.kit.joana.api.sdg.SDGActualParameter, java.lang.Object)
+	 */
+	@Override
+	protected Void visitActualParameter(SDGActualParameter ap, Void data) {
+		return null;
 	}
 
 	protected Void visitExit(SDGMethodExitNode exitNode, Void v) {
@@ -110,5 +128,4 @@ public class IFCAnnotationDumper extends SDGProgramPartVisitor<Void, Void> {
 		out.print(a.getName());
 		return null;
 	}
-
 }

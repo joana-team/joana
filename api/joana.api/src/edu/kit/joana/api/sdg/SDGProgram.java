@@ -302,24 +302,6 @@ public class SDGProgram {
 		return ret;
 	}
 
-	/**
-	 * Returns all possible call targets, if the given instruction is a call instruction.
-	 * @param call a call instruction
-	 * @return all possible call targets of the given instruction
-	 */
-	public Set<JavaMethodSignature> getPossibleTargets(SDGInstruction call) {
-		Set<JavaMethodSignature> ret = new HashSet<JavaMethodSignature>();
-		Collection<SDGNode> possTargets = getSDG().getPossibleTargets(call.getNode());
-		if (possTargets.isEmpty() && call.getNode().getUnresolvedCallTarget() != null) {
-			return Collections.singleton(JavaMethodSignature.fromString(call.getNode().getUnresolvedCallTarget()));
-		} else {
-			for (SDGNode entry : possTargets) {
-				ret.add(JavaMethodSignature.fromString(entry.getBytecodeMethod()));
-			}
-		}
-		return ret;
-	}
-
 	public ClassLoader getClassLoader(SDGInstruction i) {
 		return getClassLoader(i.getNode());
 	}

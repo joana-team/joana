@@ -291,8 +291,8 @@ public class SDGProgram {
 		return classRes.getInstruction(methodSig.getDeclaringType(), methodSig, bcIndex);
 	}
 
-	public Collection<SDGInstruction> getCallsToMethod(JavaMethodSignature tgt) {
-		Collection<SDGInstruction> ret = new LinkedList<SDGInstruction>();
+	public Collection<SDGCall> getCallsToMethod(JavaMethodSignature tgt) {
+		Collection<SDGCall> ret = new LinkedList<SDGCall>();
 		build();
 		for (SDGClass cl : getClasses()) {
 			for (SDGMethod m : cl.getMethods()) {

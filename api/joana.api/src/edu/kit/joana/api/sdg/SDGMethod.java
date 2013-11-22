@@ -149,7 +149,7 @@ public class SDGMethod extends SDGProgramPart {
 		}
 	}
 	
-	public List<? extends SDGInstruction> getAllCalls(JavaMethodSignature target) {
+	public List<SDGCall> getAllCalls(JavaMethodSignature target) {
 		List<SDGCall> ret = new LinkedList<SDGCall>();
 		
 		for (SDGCall call : calls) {
@@ -161,7 +161,7 @@ public class SDGMethod extends SDGProgramPart {
 		return ret;
 	}
 
-	public List<? extends SDGInstruction> getAllCalls() {
+	public List<SDGCall> getAllCalls() {
 		return new ArrayList<SDGCall>(calls);
 	}
 

@@ -164,7 +164,6 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 		if (visited.contains(start))
 			return;
 		else {
-			//annotateNode(start, ann);
 			visited.add(start);
 
 			switch (start.getKind()) {

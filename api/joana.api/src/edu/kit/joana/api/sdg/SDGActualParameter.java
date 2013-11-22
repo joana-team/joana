@@ -31,15 +31,15 @@ public class SDGActualParameter extends SDGProgramPart {
 	}
 	
     void setInRoot(SDGNode inRoot) {
-		if (this.inRoot != null) {
-			throw new IllegalStateException("inRoot is supposed to be initialized only once!");
+		if (this.inRoot != null && !this.inRoot.equals(inRoot)) {
+			throw new IllegalStateException("inRoot was initialized more than once: " + "paramIndex = " + this.index + "this.inRoot = " + this.inRoot + " " + "new inRoot = " + inRoot);
 		}
 		this.inRoot = inRoot;
 	}
 	
 	void setOutRoot(SDGNode outRoot) {
-		if (this.outRoot != null) {
-			throw new IllegalStateException("outRoot is supposed to be initialized only once!");
+		if (this.outRoot != null && !this.outRoot.equals(outRoot)) {
+			throw new IllegalStateException("outRoot was initialized more than once: " + "paramIndex = " + this.index + "this.outRoot = " + this.outRoot + " " + "new outRoot = " + outRoot);
 		}
 		this.outRoot = outRoot;
 	}

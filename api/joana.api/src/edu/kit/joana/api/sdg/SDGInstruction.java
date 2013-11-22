@@ -9,12 +9,8 @@ package edu.kit.joana.api.sdg;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
-import edu.kit.joana.ifc.sdg.graph.SDG;
-import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 
 
 public class SDGInstruction extends SDGProgramPart implements

@@ -17,7 +17,7 @@ import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGInstruction;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGMethodExitNode;
-import edu.kit.joana.api.sdg.SDGParameter;
+import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGPhi;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.api.sdg.SDGProgramPartVisitor;
@@ -41,7 +41,7 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 	}
 
 	@Override
-	protected Set<SDGNode> visitParameter(SDGParameter param, AnnotationType type) {
+	protected Set<SDGNode> visitParameter(SDGFormalParameter param, AnnotationType type) {
 		assert param.getOutRoot() != null || param.getInRoot() != null;
 		Set<SDGNode> ret = new HashSet<SDGNode>();
 		switch (type) {
@@ -82,7 +82,7 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 		return ret;
 	}
 	
-	private Collection<SDGNode> getCorrespondingActOuts(SDGParameter param) {
+	private Collection<SDGNode> getCorrespondingActOuts(SDGFormalParameter param) {
 		return getCorrespondingActuals(param.getOutRoot());
 	}
 	

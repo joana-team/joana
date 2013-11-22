@@ -15,7 +15,7 @@ import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGInstruction;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGMethodExitNode;
-import edu.kit.joana.api.sdg.SDGParameter;
+import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGPhi;
 import edu.kit.joana.api.sdg.SDGProgramPartVisitor;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -42,7 +42,7 @@ class StdProgramPartToString extends ProgramPartToString {
 	}
 
 	@Override
-	public String visitParameter(SDGParameter p, Void data) {
+	public String visitParameter(SDGFormalParameter p, Void data) {
 		return p.getInRoot().getLabel() + ": " + p.getType().toHRString();
 	}
 

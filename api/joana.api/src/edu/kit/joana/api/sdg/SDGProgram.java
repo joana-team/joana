@@ -384,7 +384,7 @@ public class SDGProgram {
 		return classRes.getMethodExitNode(methodSig.getDeclaringType(), methodSig);
 	}
 
-	public Collection<SDGParameter> getMethodParameter(JavaMethodSignature methodSig, int paramIndex) {
+	public Collection<SDGFormalParameter> getMethodParameter(JavaMethodSignature methodSig, int paramIndex) {
 		build();
 		return classRes.getMethodParameter(methodSig.getDeclaringType(), methodSig, paramIndex);
 	}
@@ -538,7 +538,7 @@ public class SDGProgram {
 			}
 		}
 
-		private Collection<SDGParameter> getMethodParameters(String str) {
+		private Collection<SDGFormalParameter> getMethodParameters(String str) {
 			if (!str.contains("->")) {
 				return null;
 			} else {
@@ -842,9 +842,9 @@ class SDGClassResolver {
 		return ret;
 	}
 
-	public Collection<SDGParameter> getMethodParameter(JavaType typeName, JavaMethodSignature methodSig, int paramNo) {
+	public Collection<SDGFormalParameter> getMethodParameter(JavaType typeName, JavaMethodSignature methodSig, int paramNo) {
 		Collection<SDGMethod> ms = getMethod(typeName, methodSig);
-		Collection<SDGParameter> ret = new LinkedList<SDGParameter>();
+		Collection<SDGFormalParameter> ret = new LinkedList<SDGFormalParameter>();
 		for (SDGMethod m : ms) {
 			if (m.getParameter(paramNo) != null) {
 				ret.add(m.getParameter(paramNo));

@@ -32,7 +32,7 @@ public class SDGMethod extends SDGProgramPart {
 	private SDGNode entry;
 	private SDGMethodExitNode exit;
 	private JavaMethodSignature sig;
-	private SortedMap<Integer, SDGParameter> params = new TreeMap<Integer, SDGParameter>();
+	private SortedMap<Integer, SDGFormalParameter> params = new TreeMap<Integer, SDGFormalParameter>();
 	private List<SDGInstruction> instructions = new ArrayList<SDGInstruction>();
 	private List<SDGPhi> phis = new ArrayList<SDGPhi>();
 	private boolean initialized = false;
@@ -81,9 +81,9 @@ public class SDGMethod extends SDGProgramPart {
 					int paramIndex = BytecodeLocation.getRootParamIndex(n
 							.getBytecodeName());
 					if (paramIndex >= 0) {
-						SDGParameter p;
+						SDGFormalParameter p;
 						if (!params.containsKey(paramIndex)) {
-							p = new SDGParameter(this, paramIndex);
+							p = new SDGFormalParameter(this, paramIndex);
 							params.put(paramIndex, p);
 						} else {
 							p = params.get(paramIndex);
@@ -116,7 +116,7 @@ public class SDGMethod extends SDGProgramPart {
 		return entry;
 	}
 
-	public SDGParameter getParameter(int i) {
+	public SDGFormalParameter getParameter(int i) {
 		if (!params.containsKey(i)) {
 			return null;
 		} else {
@@ -189,7 +189,7 @@ public class SDGMethod extends SDGProgramPart {
 		return exit;
 	}
 
-	public Collection<SDGParameter> getParameters() {
+	public Collection<SDGFormalParameter> getParameters() {
 		return params.values();
 	}
 
@@ -303,7 +303,7 @@ public class SDGMethod extends SDGProgramPart {
 			return true;
 		}
 
-		for (SDGParameter p : getParameters()) {
+		for (SDGFormalParameter p : getParameters()) {
 			if (p.covers(node)) {
 				return true;
 			}
@@ -332,7 +332,7 @@ public class SDGMethod extends SDGProgramPart {
 
 		ret.add(entry);
 
-		for (SDGParameter p : getParameters()) {
+		for (SDGFormalParameter p : getParameters()) {
 			ret.addAll(p.getAttachedNodes());
 		}
 
@@ -355,7 +355,7 @@ public class SDGMethod extends SDGProgramPart {
 
 		ret.add(entry);
 
-		for (SDGParameter p : getParameters()) {
+		for (SDGFormalParameter p : getParameters()) {
 			ret.addAll(p.getAttachedSourceNodes());
 		}
 
@@ -378,7 +378,7 @@ public class SDGMethod extends SDGProgramPart {
 
 		ret.add(entry);
 
-		for (SDGParameter p : getParameters()) {
+		for (SDGFormalParameter p : getParameters()) {
 			ret.addAll(p.getAttachedSinkNodes());
 		}
 
@@ -402,7 +402,7 @@ public class SDGMethod extends SDGProgramPart {
 		} else if (exit.covers(node)) {
 			return exit;
 		} else {
-			for (SDGParameter p : getParameters()) {
+			for (SDGFormalParameter p : getParameters()) {
 				if (p.covers(node)) {
 					return p;
 				}

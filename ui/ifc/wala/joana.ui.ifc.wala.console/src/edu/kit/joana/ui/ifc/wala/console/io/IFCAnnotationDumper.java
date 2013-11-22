@@ -17,7 +17,7 @@ import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGInstruction;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGMethodExitNode;
-import edu.kit.joana.api.sdg.SDGParameter;
+import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGPhi;
 import edu.kit.joana.api.sdg.SDGProgramPartVisitor;
 
@@ -47,7 +47,7 @@ public class IFCAnnotationDumper extends SDGProgramPartVisitor<Void, Void> {
 	}
 
 	@Override
-	protected Void visitParameter(SDGParameter param, Void v) {
+	protected Void visitParameter(SDGFormalParameter param, Void v) {
 		out.print("param ");
 		out.print(param.getIndex());
 		out.print(" of method ");

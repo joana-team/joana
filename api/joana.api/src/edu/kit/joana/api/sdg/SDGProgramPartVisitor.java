@@ -15,7 +15,7 @@ public abstract class SDGProgramPartVisitor<R, D> {
 
 	protected abstract R visitMethod(SDGMethod m, D data);
 
-	protected abstract R visitParameter(SDGParameter p, D data);
+	protected abstract R visitParameter(SDGFormalParameter p, D data);
 
 	protected abstract R visitExit(SDGMethodExitNode e, D data);
 

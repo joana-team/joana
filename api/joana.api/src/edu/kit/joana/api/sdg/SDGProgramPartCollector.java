@@ -49,7 +49,7 @@ public class SDGProgramPartCollector extends
 	protected Void visitMethod(SDGMethod m, Collection<SDGProgramPart> base) {
 		base.add(m);
 		m.getExit().acceptVisitor(this, base);
-		for (SDGParameter p : m.getParameters()) {
+		for (SDGFormalParameter p : m.getParameters()) {
 			p.acceptVisitor(this, base);
 		}
 		
@@ -68,7 +68,7 @@ public class SDGProgramPartCollector extends
 	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitParameter(edu.kit.joana.api.sdg.SDGParameter, java.lang.Object)
 	 */
 	@Override
-	protected Void visitParameter(SDGParameter p, Collection<SDGProgramPart> base) {
+	protected Void visitParameter(SDGFormalParameter p, Collection<SDGProgramPart> base) {
 		base.add(p);
 		return null;
 	}

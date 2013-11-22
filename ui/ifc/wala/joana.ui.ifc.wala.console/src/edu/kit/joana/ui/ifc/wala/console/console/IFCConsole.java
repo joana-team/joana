@@ -39,7 +39,7 @@ import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGMethod;
-import edu.kit.joana.api.sdg.SDGParameter;
+import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.api.sdg.SDGProgramPartWriter;
@@ -1000,7 +1000,7 @@ public class IFCConsole {
 		int mIndex = methodSelector.getIndex(m);
 		out.logln("Displaying method " + m.getSignature().toHRString());
 		out.logln("Parameters: ");
-		for (SDGParameter p : m.getParameters()) {
+		for (SDGFormalParameter p : m.getParameters()) {
 			out.logln("[p" + p.getIndex() + "] " + p);
 		}
 		out.logln("Instructions: ");

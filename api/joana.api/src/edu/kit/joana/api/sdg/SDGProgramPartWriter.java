@@ -27,7 +27,7 @@ final class BytecodeCentricSDGMethodPartWriter extends SDGProgramPartWriter {
 	}
 
 	@Override
-	protected String visitParameter(SDGParameter p, Void data) {
+	protected String visitParameter(SDGFormalParameter p, Void data) {
 		return p.getOwningMethod().getSignature().toBCString() + "->" + "p"
 				+ p.getIndex();
 	}

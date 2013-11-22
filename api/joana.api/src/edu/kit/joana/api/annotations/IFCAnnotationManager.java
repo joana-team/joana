@@ -18,7 +18,7 @@ import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGInstruction;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGMethodExitNode;
-import edu.kit.joana.api.sdg.SDGParameter;
+import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGPhi;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
@@ -142,7 +142,7 @@ class AnnotationVerifier extends SDGProgramPartVisitor<Boolean, IFCAnnotation> {
 	}
 
 	@Override
-	protected Boolean visitParameter(SDGParameter p, IFCAnnotation data) {
+	protected Boolean visitParameter(SDGFormalParameter p, IFCAnnotation data) {
 		return data.getType() != AnnotationType.DECLASS;
 	}
 

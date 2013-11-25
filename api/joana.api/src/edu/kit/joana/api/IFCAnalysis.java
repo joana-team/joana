@@ -8,6 +8,7 @@
 package edu.kit.joana.api;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -18,12 +19,12 @@ import com.ibm.wala.types.TypeName;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.types.annotations.Annotation;
 
+import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.annotations.IFCAnnotationManager;
 import edu.kit.joana.api.annotations.Level;
 import edu.kit.joana.api.annotations.Sink;
 import edu.kit.joana.api.annotations.Source;
-import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGProgram;
@@ -168,8 +169,13 @@ public class IFCAnalysis {
 
 	public void addAnnotation(IFCAnnotation annotation) {
 		String ppDesc = SDGProgramPartWriter.getStandardVersion().writeSDGProgramPart(annotation.getProgramPart());
-		Collection<? extends SDGProgramPart> equivPParts = program.getParts(ppDesc);
-		for (SDGProgramPart part : equivPParts) {
+		Collection<SDGProgramPart> parts = new HashSet<SDGProgramPart>();
+		Collection<? extends SDGProgramPart> allParts = program.getParts(ppDesc);
+		parts.add(annotation.getProgramPart());
+		if (allParts != null) {
+			parts.addAll(allParts);
+		}
+		for (SDGProgramPart part : parts) {
 			annManager.addAnnotation(annotation.transferTo(part));
 		}
 	}

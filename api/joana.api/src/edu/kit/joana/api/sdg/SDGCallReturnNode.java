@@ -24,6 +24,7 @@ public class SDGCallReturnNode extends SDGNodeWrapper {
 	 */
 	public SDGCallReturnNode(SDGNode node, SDGCall owningCall) {
 		super(node, owningCall.getOwningMethod());
+		this.owningCall = owningCall;
 	}
 	
 	public SDGCall getOwningCall() {

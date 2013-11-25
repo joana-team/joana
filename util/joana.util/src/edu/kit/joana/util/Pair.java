@@ -122,5 +122,19 @@ public class Pair<S, T> {
 	public static <S, T> Pair<S, T> pair(S fst, T snd) {
 		return new Pair<S, T>(fst, snd);
 	}
+	
+	/**
+	 * Static factory method for non-null pairs
+	 * @param fst first component of new pair
+	 * @param snd second component of new pair
+	 * @return new pair consisting of the given objects
+	 * @throws NullPointerException if one of the given objects is {@code null}
+	 */
+	public static <S, T> Pair<S, T> nonNullPairs(S fst, T snd) {
+		if (fst == null || snd == null) {
+			throw new NullPointerException();
+		}
+		return new Pair<S, T>(fst, snd);
+	}
 
 }

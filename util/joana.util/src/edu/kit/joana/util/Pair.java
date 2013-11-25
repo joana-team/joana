@@ -25,9 +25,9 @@ public class Pair<S, T> {
 		<S,T> boolean matches(Pair<S,T> encInst, Object o) {
 			switch (this) {
 			case FIRST:
-				return (encInst.fst == null && o == null) || encInst.fst.equals(o);
+				return (encInst.fst == null && o == null) || (encInst.fst != null && encInst.fst.equals(o));
 			case SECOND:
-				return (encInst.snd == null && o == null) || encInst.snd.equals(o);
+				return (encInst.snd == null && o == null) || (encInst.snd != null && encInst.snd.equals(o));
 			default:
 				throw new IllegalStateException();
 			}

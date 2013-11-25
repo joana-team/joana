@@ -15,6 +15,8 @@ import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.api.sdg.SDGActualParameter;
 import edu.kit.joana.api.sdg.SDGAttribute;
 import edu.kit.joana.api.sdg.SDGCall;
+import edu.kit.joana.api.sdg.SDGCallExceptionNode;
+import edu.kit.joana.api.sdg.SDGCallReturnNode;
 import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGInstruction;
 import edu.kit.joana.api.sdg.SDGMethod;
@@ -86,10 +88,30 @@ public class IFCAnnotationDumper extends SDGProgramPartVisitor<Void, Void> {
 	protected Void visitActualParameter(SDGActualParameter ap, Void data) {
 		return null;
 	}
+	
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCallExceptionNode(edu.kit.joana.api.sdg.SDGCallExceptionNode, java.lang.Object)
+	 */
+	@Override
+	protected Void visitCallExceptionNode(SDGCallExceptionNode c, Void data) {
+		out.print("exception node of call ");
+		visitCall(c.getOwningCall(), data);
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCallReturnNode(edu.kit.joana.api.sdg.SDGCallReturnNode, java.lang.Object)
+	 */
+	@Override
+	protected Void visitCallReturnNode(SDGCallReturnNode c, Void data) {
+		out.print("return parameter node of call ");
+		visitCall(c.getOwningCall(), data);
+		return null;
+	}
 
 	protected Void visitExit(SDGMethodExitNode exitNode, Void v) {
 		out.print("exit node of method ");
-		visitMethod(exitNode.getOwner(), v);
+		visitMethod(exitNode.getOwningMethod(), v);
 		return null;
 	}
 
@@ -128,4 +150,5 @@ public class IFCAnnotationDumper extends SDGProgramPartVisitor<Void, Void> {
 		out.print(a.getName());
 		return null;
 	}
+
 }

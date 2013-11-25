@@ -13,6 +13,8 @@ import java.text.NumberFormat;
 import edu.kit.joana.api.sdg.SDGActualParameter;
 import edu.kit.joana.api.sdg.SDGAttribute;
 import edu.kit.joana.api.sdg.SDGCall;
+import edu.kit.joana.api.sdg.SDGCallExceptionNode;
+import edu.kit.joana.api.sdg.SDGCallReturnNode;
 import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGInstruction;
 import edu.kit.joana.api.sdg.SDGMethod;
@@ -86,7 +88,22 @@ class StdProgramPartToString extends ProgramPartToString {
 	protected String visitCall(SDGCall c, Void data) {
 		return visitInstruction(c, data);
 	}
+	
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCallReturnNode(edu.kit.joana.api.sdg.SDGCallReturnNode, java.lang.Object)
+	 */
+	@Override
+	protected String visitCallReturnNode(SDGCallReturnNode c, Void data) {
+		return "ret";
+	}
 
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCallExceptionNode(edu.kit.joana.api.sdg.SDGCallExceptionNode, java.lang.Object)
+	 */
+	@Override
+	protected String visitCallExceptionNode(SDGCallExceptionNode c, Void data) {
+		return "exc";
+	}
 }
 
 public abstract class ProgramPartToString extends SDGProgramPartVisitor<String, Void> {

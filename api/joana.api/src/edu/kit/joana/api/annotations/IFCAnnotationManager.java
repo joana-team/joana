@@ -16,6 +16,8 @@ import java.util.Map;
 import edu.kit.joana.api.sdg.SDGActualParameter;
 import edu.kit.joana.api.sdg.SDGAttribute;
 import edu.kit.joana.api.sdg.SDGCall;
+import edu.kit.joana.api.sdg.SDGCallExceptionNode;
+import edu.kit.joana.api.sdg.SDGCallReturnNode;
 import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGInstruction;
 import edu.kit.joana.api.sdg.SDGMethod;
@@ -179,6 +181,24 @@ class AnnotationVerifier extends SDGProgramPartVisitor<Boolean, IFCAnnotation> {
 	@Override
 	protected Boolean visitCall(SDGCall c, IFCAnnotation data) {
 		return visitInstruction(c, data);
+	}
+
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCallReturnNode(edu.kit.joana.api.sdg.SDGCallReturnNode, java.lang.Object)
+	 */
+	@Override
+	protected Boolean visitCallReturnNode(SDGCallReturnNode c, IFCAnnotation data) {
+		return true;
+	}
+
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCallExceptionNode(edu.kit.joana.api.sdg.SDGCallExceptionNode, java.lang.Object)
+	 */
+	@Override
+	protected Boolean visitCallExceptionNode(SDGCallExceptionNode c, IFCAnnotation data) {
+		return true;
 	}
 
 }

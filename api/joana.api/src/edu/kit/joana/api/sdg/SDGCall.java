@@ -25,8 +25,8 @@ import edu.kit.joana.ifc.sdg.util.JavaType;
 public class SDGCall extends SDGInstruction {
 
 	private SortedMap<Integer, SDGActualParameter> actParams = new TreeMap<Integer, SDGActualParameter>();
-	private SDGNode returnNode;
-	private SDGNode exceptionNode;
+	private SDGCallReturnNode returnNode;
+	private SDGCallExceptionNode exceptionNode;
 	private Set<JavaMethodSignature> possibleTargets = new HashSet<JavaMethodSignature>();
 
 	public SDGCall(SDGMethod owner, SDGNode callNode, int index) {
@@ -54,9 +54,9 @@ public class SDGCall extends SDGInstruction {
 				}
 			} else {
 				if (act.getBytecodeName().equals(BytecodeLocation.RETURN_PARAM)) {
-					this.returnNode = act;
+					this.returnNode = new SDGCallReturnNode(act, this);
 				} else if (act.getBytecodeName().equals(BytecodeLocation.EXCEPTION_PARAM)) {
-					this.exceptionNode = act;
+					this.exceptionNode = new SDGCallExceptionNode(act, this);
 				}
 			}
 		}
@@ -70,11 +70,11 @@ public class SDGCall extends SDGInstruction {
 		return actParams.values();
 	}
 	
-	public SDGNode getReturn() {
+	public SDGCallReturnNode getReturn() {
 		return returnNode;
 	}
 	
-	public SDGNode getExceptionNode() {
+	public SDGCallExceptionNode getExceptionNode() {
 		return exceptionNode;
 	}
 
@@ -93,6 +93,10 @@ public class SDGCall extends SDGInstruction {
 	 */
 	public boolean possiblyCalls(JavaMethodSignature target) {
 		return possibleTargets.contains(target);
+	}
+	
+	public Set<JavaMethodSignature> getPossibleTargets() {
+		return new HashSet<JavaMethodSignature>(possibleTargets);
 	}
 
 	/*

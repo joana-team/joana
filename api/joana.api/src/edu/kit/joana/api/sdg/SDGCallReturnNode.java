@@ -7,32 +7,27 @@
  */
 package edu.kit.joana.api.sdg;
 
-
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.util.JavaType;
-import edu.kit.joana.ifc.sdg.util.JavaType.Format;
 
-public class SDGMethodExitNode extends SDGNodeWrapper {
-
-	private JavaType type;
-
-	SDGMethodExitNode(SDGNode node, SDGMethod owningMethod) {
-		super(node, owningMethod);
-		this.type = JavaType.parseSingleTypeFromString(node.getType(), Format.BC);
-	}
-
-	public SDGNode getNode() {
-		return node;
-	}
-
-	public JavaType getType() {
-		return type;
-	}
-
+/**
+ * This class represents the node which corresponds to the return node of a call. It is
+ * not to be confused with a CALL_RET node.
+ * @author Martin Mohr
+ */
+public class SDGCallReturnNode extends SDGNodeWrapper {
 	
-	@Override
-	public String toString() {
-		return "exit of method " + getOwningMethod().getSignature().toHRString();
+	private SDGCall owningCall;
+	
+	/**
+	 * @param node
+	 * @param owningMethod
+	 */
+	public SDGCallReturnNode(SDGNode node, SDGCall owningCall) {
+		super(node, owningCall.getOwningMethod());
+	}
+	
+	public SDGCall getOwningCall() {
+		return owningCall;
 	}
 
 	/* (non-Javadoc)
@@ -40,6 +35,7 @@ public class SDGMethodExitNode extends SDGNodeWrapper {
 	 */
 	@Override
 	public <R, D> R acceptVisitor(SDGProgramPartVisitor<R, D> v, D data) {
-		return v.visitExit(this, data);
+		return v.visitCallReturnNode(this, data);
 	}
+
 }

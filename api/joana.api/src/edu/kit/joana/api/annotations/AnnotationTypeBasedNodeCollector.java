@@ -16,6 +16,8 @@ import java.util.Set;
 import edu.kit.joana.api.sdg.SDGActualParameter;
 import edu.kit.joana.api.sdg.SDGAttribute;
 import edu.kit.joana.api.sdg.SDGCall;
+import edu.kit.joana.api.sdg.SDGCallExceptionNode;
+import edu.kit.joana.api.sdg.SDGCallReturnNode;
 import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGInstruction;
@@ -136,7 +138,7 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 	@Override
 	protected Set<SDGNode> visitExit(SDGMethodExitNode exit, AnnotationType type) {
 		Set<SDGNode> ret = new HashSet<SDGNode>();
-		addAllAppropriateParameterNodesFrom(exit.getExitNode(), type, ret);
+		addAllAppropriateParameterNodesFrom(exit.getNode(), type, ret);
 		return ret;
 	}
  
@@ -214,8 +216,33 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 		for (SDGActualParameter ap : c.getActualParameters()) {
 			ret.addAll(visitActualParameter(ap, type));
 		}
-		addAllAppropriateParameterNodesFrom(c.getReturn(), type, ret);
-		addAllAppropriateParameterNodesFrom(c.getExceptionNode(), type, ret);
+		if (c.getReturn() != null) {
+			ret.addAll(visitCallReturnNode(c.getReturn(), type));
+		}
+
+		if (c.getExceptionNode() != null) {
+			ret.addAll(visitCallExceptionNode(c.getExceptionNode(), type));
+		}
+		return ret;
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCallReturnNode(edu.kit.joana.api.sdg.SDGCallReturnNode, java.lang.Object)
+	 */
+	@Override
+	protected Set<SDGNode> visitCallReturnNode(SDGCallReturnNode c, AnnotationType type) {
+		Set<SDGNode> ret = new HashSet<SDGNode>();
+		addAllAppropriateParameterNodesFrom(c.getNode(), type, ret);
+		return ret;
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCallExceptionNode(edu.kit.joana.api.sdg.SDGCallExceptionNode, java.lang.Object)
+	 */
+	@Override
+	protected Set<SDGNode> visitCallExceptionNode(SDGCallExceptionNode c, AnnotationType type) {
+		Set<SDGNode> ret = new HashSet<SDGNode>();
+		addAllAppropriateParameterNodesFrom(c.getNode(), type, ret);
 		return ret;
 	}
 }

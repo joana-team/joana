@@ -117,5 +117,23 @@ public class SDGProgramPartCollector extends
 		base.add(c);
 		return null;
 	}
+	
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCallReturnNode(edu.kit.joana.api.sdg.SDGCallReturnNode, java.lang.Object)
+	 */
+	@Override
+	protected Void visitCallReturnNode(SDGCallReturnNode c, Collection<SDGProgramPart> base) {
+		base.add(c);
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCallExceptionNode(edu.kit.joana.api.sdg.SDGCallExceptionNode, java.lang.Object)
+	 */
+	@Override
+	protected Void visitCallExceptionNode(SDGCallExceptionNode c, Collection<SDGProgramPart> base) {
+		base.add(c);
+		return null;
+	}
 
 }

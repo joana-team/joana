@@ -7,32 +7,26 @@
  */
 package edu.kit.joana.api.sdg;
 
-
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.util.JavaType;
-import edu.kit.joana.ifc.sdg.util.JavaType.Format;
 
-public class SDGMethodExitNode extends SDGNodeWrapper {
-
-	private JavaType type;
-
-	SDGMethodExitNode(SDGNode node, SDGMethod owningMethod) {
-		super(node, owningMethod);
-		this.type = JavaType.parseSingleTypeFromString(node.getType(), Format.BC);
-	}
-
-	public SDGNode getNode() {
-		return node;
-	}
-
-	public JavaType getType() {
-		return type;
-	}
-
+/**
+ * @author Martin Mohr
+ */
+public class SDGCallExceptionNode extends SDGNodeWrapper {
 	
-	@Override
-	public String toString() {
-		return "exit of method " + getOwningMethod().getSignature().toHRString();
+	private SDGCall owningCall;
+	
+	/**
+	 * @param node
+	 * @param owningMethod
+	 */
+	public SDGCallExceptionNode(SDGNode node, SDGCall owningCall) {
+		super(node, owningCall.getOwningMethod());
+		this.owningCall = owningCall;
+	}
+	
+	public SDGCall getOwningCall() {
+		return owningCall;
 	}
 
 	/* (non-Javadoc)
@@ -40,6 +34,7 @@ public class SDGMethodExitNode extends SDGNodeWrapper {
 	 */
 	@Override
 	public <R, D> R acceptVisitor(SDGProgramPartVisitor<R, D> v, D data) {
-		return v.visitExit(this, data);
+		return v.visitCallExceptionNode(this, data);
 	}
+
 }

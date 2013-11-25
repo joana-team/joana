@@ -26,7 +26,7 @@ import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.ifc.sdg.util.JavaType.Format;
 
-public class SDGMethod extends SDGProgramPart {
+public class SDGMethod implements SDGProgramPart {
 
 	private final SDG sdg;
 	private SDGNode entry;

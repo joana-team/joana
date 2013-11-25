@@ -18,16 +18,16 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  * @author Martin Mohr
  *
  */
-public abstract class SDGProgramPart {
-	public abstract <R, D> R acceptVisitor(SDGProgramPartVisitor<R, D> v, D data);
-	public abstract SDGMethod getOwningMethod();
+public interface SDGProgramPart {
+	<R, D> R acceptVisitor(SDGProgramPartVisitor<R, D> v, D data);
+	SDGMethod getOwningMethod();
 	//public abstract Set<SDGNode> getSourceNodes();
 	//public abstract Set<SDGNode> getSinkNodes();
-	public abstract boolean covers(SDGNode node);
-	public abstract Collection<SDGNode> getAttachedNodes();
-	public abstract Collection<SDGNode> getAttachedSourceNodes();
-	public abstract Collection<SDGNode> getAttachedSinkNodes();
+	boolean covers(SDGNode node);
+	Collection<SDGNode> getAttachedNodes();
+	Collection<SDGNode> getAttachedSourceNodes();
+	Collection<SDGNode> getAttachedSinkNodes();
 
-	public abstract SDGProgramPart getCoveringComponent(SDGNode node);
+	SDGProgramPart getCoveringComponent(SDGNode node);
 
 }

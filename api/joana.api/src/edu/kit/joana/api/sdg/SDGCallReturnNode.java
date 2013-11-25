@@ -14,7 +14,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  * not to be confused with a CALL_RET node.
  * @author Martin Mohr
  */
-public class SDGCallReturnNode extends SDGNodeWrapper {
+public class SDGCallReturnNode extends SDGNodeWrapper implements SDGCallPart {
 	
 	private SDGCall owningCall;
 	
@@ -37,6 +37,18 @@ public class SDGCallReturnNode extends SDGNodeWrapper {
 	@Override
 	public <R, D> R acceptVisitor(SDGProgramPartVisitor<R, D> v, D data) {
 		return v.visitCallReturnNode(this, data);
+	}
+	
+	public String toString() {
+		return owningCall.toString() + "->ret";
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGCallPart#acceptVisitor(edu.kit.joana.api.sdg.SDGCallPartVisitor)
+	 */
+	@Override
+	public void acceptVisitor(SDGCallPartVisitor v) {
+		v.visitReturnNode(this);
 	}
 
 }

@@ -13,7 +13,7 @@ import java.util.Collections;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
 
-public class SDGInstruction extends SDGProgramPart implements
+public class SDGInstruction implements SDGProgramPart,
 Comparable<SDGInstruction> {
 
 	private final SDGNode rootNode;

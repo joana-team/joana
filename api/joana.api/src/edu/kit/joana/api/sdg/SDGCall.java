@@ -9,6 +9,8 @@ package edu.kit.joana.api.sdg;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -22,7 +24,7 @@ import edu.kit.joana.ifc.sdg.util.JavaType;
 /**
  * @author Martin Mohr
  */
-public class SDGCall extends SDGInstruction {
+public class SDGCall extends SDGInstruction implements SDGCallPart {
 
 	private SortedMap<Integer, SDGActualParameter> actParams = new TreeMap<Integer, SDGActualParameter>();
 	private SDGCallReturnNode returnNode;
@@ -77,6 +79,18 @@ public class SDGCall extends SDGInstruction {
 	public SDGCallExceptionNode getExceptionNode() {
 		return exceptionNode;
 	}
+	
+	public Collection<? extends SDGCallPart> getParts() {
+		List<SDGCallPart> ret = new LinkedList<SDGCallPart>();
+		ret.addAll(getActualParameters());
+		if (getReturn() != null) {
+			ret.add(getReturn());
+		}
+		if (getExceptionNode() != null) {
+			ret.add(getExceptionNode());
+		}
+		return ret;
+	}
 
 	/**
 	 * Returns whether this instruction
@@ -109,5 +123,21 @@ public class SDGCall extends SDGInstruction {
 	@Override
 	public <R, D> R acceptVisitor(SDGProgramPartVisitor<R, D> v, D data) {
 		return v.visitCall(this, data);
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.OwnedBySDGCall#getOwningCall()
+	 */
+	@Override
+	public SDGCall getOwningCall() {
+		return this;
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGCallPart#acceptVisitor(edu.kit.joana.api.sdg.SDGCallPartVisitor)
+	 */
+	@Override
+	public void acceptVisitor(SDGCallPartVisitor v) {
+		v.visitCallInstruction(this);
 	}
 }

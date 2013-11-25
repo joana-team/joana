@@ -12,7 +12,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 /**
  * @author Martin Mohr
  */
-public class SDGCallExceptionNode extends SDGNodeWrapper {
+public class SDGCallExceptionNode extends SDGNodeWrapper implements SDGCallPart {
 	
 	private SDGCall owningCall;
 	
@@ -35,6 +35,18 @@ public class SDGCallExceptionNode extends SDGNodeWrapper {
 	@Override
 	public <R, D> R acceptVisitor(SDGProgramPartVisitor<R, D> v, D data) {
 		return v.visitCallExceptionNode(this, data);
+	}
+	
+	public String toString() {
+		return owningCall.toString() + "->exc";
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGCallPart#acceptVisitor(edu.kit.joana.api.sdg.SDGCallPartVisitor)
+	 */
+	@Override
+	public void acceptVisitor(SDGCallPartVisitor v) {
+		v.visitExceptionNode(this);
 	}
 
 }

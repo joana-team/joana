@@ -17,7 +17,7 @@ import edu.kit.joana.ifc.sdg.util.JavaType;
 /**
  * @author Martin Mohr
  */
-public class SDGActualParameter extends SDGProgramPart {
+public class SDGActualParameter implements SDGCallPart  {
 	private final SDGCall owningCall;
 	private final int index;
 	private SDGNode inRoot = null;
@@ -143,6 +143,18 @@ public class SDGActualParameter extends SDGProgramPart {
 		} else {
 			return null;
 		}
+	}
+	
+	public String toString() {
+		return owningCall.toString() + "->act" + index;
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGCallPart#acceptVisitor(edu.kit.joana.api.sdg.SDGCallPartVisitor)
+	 */
+	@Override
+	public void acceptVisitor(SDGCallPartVisitor v) {
+		v.visitActualParameter(this);
 	}
 
 }

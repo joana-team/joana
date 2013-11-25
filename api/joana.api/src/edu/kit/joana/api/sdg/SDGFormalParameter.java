@@ -14,7 +14,7 @@ import java.util.Set;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.util.JavaType;
 
-public class SDGFormalParameter extends SDGProgramPart {
+public class SDGFormalParameter implements SDGProgramPart {
 
 	private final SDGMethod owner;
 	private final int index;

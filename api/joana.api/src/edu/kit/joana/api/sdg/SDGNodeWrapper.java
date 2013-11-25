@@ -16,7 +16,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 /**
  * @author Martin Mohr
  */
-public abstract class SDGNodeWrapper extends SDGProgramPart {
+public abstract class SDGNodeWrapper implements SDGProgramPart {
 
 	protected SDGNode node;
 	protected SDGMethod owningMethod;

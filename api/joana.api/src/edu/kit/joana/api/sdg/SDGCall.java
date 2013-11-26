@@ -140,4 +140,66 @@ public class SDGCall extends SDGInstruction implements SDGCallPart {
 	public void acceptVisitor(SDGCallPartVisitor v) {
 		v.visitCallInstruction(this);
 	}
+
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see
+	 * edu.kit.joana.api.sdg.SDGInstruction#covers(edu.kit.joana.ifc.sdg.graph
+	 * .SDGNode)
+	 */
+	@Override
+	public boolean covers(SDGNode node) {
+		if (node.equals(getNode())) {
+			return true;
+		} else if (returnNode != null && returnNode.covers(node)) {
+			return true;
+		} else if (exceptionNode != null && exceptionNode.covers(node)) {
+			return true;
+		} else {
+			for (SDGActualParameter p : actParams.values()) {
+				if (p.covers(node)) {
+					return true;
+				}
+			}
+			return false;
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see
+	 * edu.kit.joana.api.sdg.SDGInstruction#getCoveringComponent(edu.kit.joana
+	 * .ifc.sdg.graph.SDGNode)
+	 */
+	@Override
+	public SDGProgramPart getCoveringComponent(SDGNode node) {
+		if (node.equals(getNode())) {
+			return this;
+		}
+
+		if (returnNode != null) {
+			SDGProgramPart retCP = returnNode.getCoveringComponent(node);
+			if (retCP != null) {
+				return retCP;
+			}
+		}
+
+		if (exceptionNode != null) {
+			SDGProgramPart excCP = exceptionNode.getCoveringComponent(node);
+			if (excCP != null) {
+				return excCP;
+			}
+		}
+
+		for (SDGActualParameter p : actParams.values()) {
+			SDGProgramPart pCP = p.getCoveringComponent(node);
+			if (pCP != null) {
+				return pCP;
+			}
+		}
+
+		return null;
+	}
 }

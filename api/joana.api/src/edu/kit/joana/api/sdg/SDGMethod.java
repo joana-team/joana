@@ -403,34 +403,43 @@ public class SDGMethod implements SDGProgramPart {
 
 		return ret;
 	}
+	
+	public SDGInstruction getCoveringInstruction(SDGNode node) {
+		for (SDGInstruction i : getInstructions()) {
+			if (i.covers(node)) {
+				return i;
+			}
+		}
+		return null;
+	}
 
 	@Override
 	public SDGProgramPart getCoveringComponent(SDGNode node) {
 		if (entry.equals(node)) {
 			return this;
-		} else if (exit.covers(node)) {
-			return exit;
-		} else {
-			for (SDGFormalParameter p : getParameters()) {
-				if (p.covers(node)) {
-					return p;
-				}
-			}
-
-			for (SDGPhi phi : getPhis()) {
-				if (phi.covers(node)) {
-					return phi;
-				}
-			}
-
-			for (SDGInstruction i : getInstructions()) {
-				if (i.covers(node)) {
-					return i;
-				}
-			}
-
-			return null;
 		}
+		SDGProgramPart exitCP = exit.getCoveringComponent(node);
+		if (exitCP != null) {
+			return exitCP;
+		}
+		for (SDGFormalParameter p : getParameters()) {
+			SDGProgramPart pCP = p.getCoveringComponent(node);
+			if (pCP != null) {
+				return pCP;
+			}
+		}
+		for (SDGPhi phi : getPhis()) {
+			SDGProgramPart phiCP = phi.getCoveringComponent(node);
+			if (phiCP != null) {
+				return phiCP;
+			}
+		}
+		for (SDGInstruction i : getInstructions()) {
+			SDGProgramPart iCP = i.getCoveringComponent(node);
+			if (iCP != null) {
+				return iCP;
+			}
+		}
+		return null;
 	}
-
 }

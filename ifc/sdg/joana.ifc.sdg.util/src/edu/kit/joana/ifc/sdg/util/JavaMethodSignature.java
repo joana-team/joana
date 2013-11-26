@@ -183,7 +183,7 @@ public final class JavaMethodSignature {
 				throw new IllegalStateException();
 			}
 		} else {
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException(methodSig);
 		}
 
 	}

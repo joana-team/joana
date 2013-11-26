@@ -36,6 +36,9 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGNode.Operation;
+import edu.kit.joana.ifc.sdg.graph.chopper.Chopper;
+import edu.kit.joana.ifc.sdg.graph.chopper.NonSameLevelChopper;
+import edu.kit.joana.ifc.sdg.graph.chopper.RepsRosayChopper;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.mhpoptimization.PruneInterferences;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
@@ -394,6 +397,31 @@ public class SDGProgram {
 
 		debug.outln("node " + node + " has no program part!");
 		return null;
+	}
+
+	/**
+	 * Given a source and a sink instructions, computes a chop of these two program parts and collects all instructions which are on the way.
+	 * This works only for sequential programs
+	 * @param source source instruction
+	 * @param sink sink instruction
+	 * @return instructions through which information may flow from source to sink
+	 */
+	public Set<SDGInstruction> computeInstructionChop(SDGProgramPart source, SDGProgramPart sink) {
+		Chopper chopper = new NonSameLevelChopper(this.sdg);
+		System.out.println("source: " + source.getAttachedNodes());
+		System.out.println("sink: " + sink.getAttachedNodes());
+		Collection<SDGNode> chop = chopper.chop(source.getAttachedNodes(), sink.getAttachedNodes());
+		Set<SDGInstruction> ret = new HashSet<SDGInstruction>();
+		System.out.println(chop);
+		for (SDGNode n : chop) {
+			SDGMethod m = getMethod(this.sdg.getEntry(n).getBytecodeMethod());
+			SDGInstruction i = m.getCoveringInstruction(n);
+			if (i != null) {
+				ret.add(i);
+			}
+		}
+
+		return ret;
 	}
 
 	public Collection<SDGMethod> getMethods(String methodDesc) {

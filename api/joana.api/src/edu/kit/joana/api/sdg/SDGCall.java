@@ -82,6 +82,7 @@ public class SDGCall extends SDGInstruction implements SDGCallPart {
 	
 	public Collection<? extends SDGCallPart> getParts() {
 		List<SDGCallPart> ret = new LinkedList<SDGCallPart>();
+		ret.add(this);
 		ret.addAll(getActualParameters());
 		if (getReturn() != null) {
 			ret.add(getReturn());

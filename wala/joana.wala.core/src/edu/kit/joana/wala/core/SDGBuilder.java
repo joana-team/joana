@@ -474,6 +474,13 @@ public class SDGBuilder implements CallGraphFilter {
 		}
 
 		progress.worked(1);
+		addEntryExitCFEdges();
+	}
+
+	private void addEntryExitCFEdges() {
+		for (PDG pdg : pdgs) {
+			pdg.addEdge(pdg.entry, pdg.exit, PDGEdge.Kind.CONTROL_FLOW);
+		}
 	}
 
 	public ControlFlowGraph<SSAInstruction, IExplodedBasicBlock> createExceptionAnalyzedCFG(final CGNode n,

@@ -31,6 +31,7 @@ import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
 import edu.kit.joana.api.annotations.AnnotationType;
+import edu.kit.joana.api.annotations.AnnotationTypeBasedNodeCollector;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -38,7 +39,6 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGNode.Operation;
 import edu.kit.joana.ifc.sdg.graph.chopper.Chopper;
 import edu.kit.joana.ifc.sdg.graph.chopper.NonSameLevelChopper;
-import edu.kit.joana.ifc.sdg.graph.chopper.RepsRosayChopper;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.mhpoptimization.PruneInterferences;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
@@ -408,7 +408,8 @@ public class SDGProgram {
 	 */
 	public Set<SDGInstruction> computeInstructionChop(SDGProgramPart source, SDGProgramPart sink) {
 		Chopper chopper = new NonSameLevelChopper(this.sdg);
-		Collection<SDGNode> chop = chopper.chop(source.getAttachedNodes(), sink.getAttachedNodes());
+		AnnotationTypeBasedNodeCollector c = new AnnotationTypeBasedNodeCollector(this.sdg);
+		Collection<SDGNode> chop = chopper.chop(c.collectNodes(source, AnnotationType.SOURCE), c.collectNodes(sink, AnnotationType.SINK));
 		Set<SDGInstruction> ret = new HashSet<SDGInstruction>();
 		for (SDGNode n : chop) {
 			SDGMethod m = getMethod(this.sdg.getEntry(n).getBytecodeMethod());

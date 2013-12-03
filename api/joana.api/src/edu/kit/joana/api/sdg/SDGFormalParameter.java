@@ -146,7 +146,7 @@ public class SDGFormalParameter implements SDGProgramPart {
 
 	@Override
 	public boolean covers(SDGNode node) {
-		return node.equals(inRoot) || node.equals(outRoot);
+		return SDGParameterUtils.psBackwardsReachable(node, this.inRoot, this.outRoot, getOwningMethod().getSDG());
 	}
 
 	@Override

@@ -408,11 +408,8 @@ public class SDGProgram {
 	 */
 	public Set<SDGInstruction> computeInstructionChop(SDGProgramPart source, SDGProgramPart sink) {
 		Chopper chopper = new NonSameLevelChopper(this.sdg);
-		System.out.println("source: " + source.getAttachedNodes());
-		System.out.println("sink: " + sink.getAttachedNodes());
 		Collection<SDGNode> chop = chopper.chop(source.getAttachedNodes(), sink.getAttachedNodes());
 		Set<SDGInstruction> ret = new HashSet<SDGInstruction>();
-		System.out.println(chop);
 		for (SDGNode n : chop) {
 			SDGMethod m = getMethod(this.sdg.getEntry(n).getBytecodeMethod());
 			SDGInstruction i = m.getCoveringInstruction(n);

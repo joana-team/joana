@@ -184,19 +184,19 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 	}
 	
 	private void addAllAppropriateParameterNodesFrom(SDGNode start, AnnotationType type, Set<SDGNode> base) {
-		if (start != null && isParameterNodeOfKind(start, type)) {
+		if (start != null) {
 			LinkedList<SDGNode> toDo = new LinkedList<SDGNode>();
 			toDo.add(start);
 			
 			// add all parameter nodes of right type and reachable by PS edges
 			while (!toDo.isEmpty()) {
 				SDGNode next = toDo.poll();
-				base.add(next);
+				if (isParameterNodeOfKind(next, type)) {
+					base.add(next);
+				}
 				for (SDGEdge e : sdg.getOutgoingEdgesOfKind(next, SDGEdge.Kind.PARAMETER_STRUCTURE)) {
 					SDGNode succNode = e.getTarget();
-					if (compatibleNodes(next, succNode)) {
-						toDo.add(succNode);
-					}
+					toDo.add(succNode);
 				}
 			}
 		}

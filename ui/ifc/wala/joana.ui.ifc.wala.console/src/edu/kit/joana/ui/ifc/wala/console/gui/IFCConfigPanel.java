@@ -425,7 +425,7 @@ public class IFCConfigPanel extends JPanel {
 
 						@Override
 						public String getDescription() {
-							return "SDG files";
+							return "SDG files (*.pdg)";
 						}
 
 					});

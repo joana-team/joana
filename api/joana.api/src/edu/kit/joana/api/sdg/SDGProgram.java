@@ -696,6 +696,7 @@ final class SDGClassComputation {
 					case DATA_HEAP:
 					case DATA_LOOP:
 					case SUMMARY:
+					case PARAMETER_STRUCTURE:
 						if (!done.contains(n)) {
 							worklist.add(n);
 						}

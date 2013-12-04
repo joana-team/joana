@@ -2,8 +2,6 @@ package edu.kit.joana.wala.jodroid;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.jar.JarFile;
 
 import com.ibm.wala.classLoader.IClass;
@@ -11,15 +9,7 @@ import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.dalvik.classLoader.DexIRFactory;
 import com.ibm.wala.dalvik.util.AndroidAnalysisScope;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
-import com.ibm.wala.ipa.callgraph.AnalysisOptions;
-import com.ibm.wala.ipa.callgraph.AnalysisOptions.ReflectionOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
-import com.ibm.wala.ipa.callgraph.CallGraphBuilder;
-import com.ibm.wala.ipa.callgraph.Entrypoint;
-import com.ibm.wala.ipa.callgraph.impl.SubtypesEntrypoint;
-import com.ibm.wala.ipa.callgraph.impl.Util;
-import com.ibm.wala.ipa.callgraph.propagation.cfa.ZeroXCFABuilder;
-import com.ibm.wala.ipa.callgraph.propagation.cfa.ZeroXInstanceKeys;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
@@ -45,7 +35,6 @@ import edu.kit.joana.wala.core.SDGBuilder.SDGBuilderConfig;
 import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph;
 import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
-import edu.kit.joana.wala.flowless.wala.ObjSensContextSelector;
 
 public final class JoDroidConstruction {
 
@@ -54,7 +43,7 @@ public final class JoDroidConstruction {
 		SDG sdg = buildAndroidSDG(classPath, androidLib, Maybe.<String>nothing(), entryMethod);
 		SDGSerializer.toPDGFormat(sdg, new FileOutputStream(sdgFile));
 	}
-	
+
 	public static void buildAndroidSDGAndSave(String classPath, String androidLib, String stubsPath, String entryMethod, String sdgFile)
 			throws SDGConstructionException, IOException {
 		SDG sdg = buildAndroidSDG(classPath, androidLib, Maybe.just(stubsPath), entryMethod);
@@ -66,7 +55,7 @@ public final class JoDroidConstruction {
 		AnalysisScope scope = AndroidAnalysisScope.setUpAndroidAnalysisScope(androidLib, classPath);
 		return ClassHierarchy.make(scope);
 	}
-	
+
 	public static SDG buildAndroidSDG(String classPath, String androidLib, Maybe<String> stubsPath, String entryMethod)
 			throws SDGConstructionException, IOException {
 		AnalysisScope scope = AndroidAnalysisScope.setUpAndroidAnalysisScope(androidLib, classPath);

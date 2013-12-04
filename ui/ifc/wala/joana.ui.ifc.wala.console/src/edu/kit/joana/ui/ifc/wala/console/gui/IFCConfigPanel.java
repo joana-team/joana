@@ -41,6 +41,7 @@ import javax.swing.filechooser.FileFilter;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.ifc.wala.console.console.IFCConsole;
+import edu.kit.joana.ui.ifc.wala.console.io.IFCConsoleOutput.Answer;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 
@@ -430,22 +431,35 @@ public class IFCConfigPanel extends JPanel {
 
 					});
 					boolean approvedAndSuccess = false;
+					boolean canceled = false;
 					int retval = choose.showSaveDialog(getRootPane());
-					while (!approvedAndSuccess) {
+					while (!approvedAndSuccess && !canceled) {
 						approvedAndSuccess = true;
+						canceled = false;
 						if (retval == JFileChooser.APPROVE_OPTION) {
-							String path = choose.getSelectedFile().getAbsolutePath();
+							File selectedFile = choose.getSelectedFile();
+							String path = selectedFile.getAbsolutePath();
+							boolean doSave = true;
 							if (path.endsWith(".pdg")) {
-								consoleGui.execSaveSDG(choose.getSelectedFile().getAbsolutePath());
-								sdgStatusLabel.setText("current sdg stored in: "
-										+ choose.getSelectedFile().getAbsolutePath());
+								if (selectedFile.exists()) {
+									Answer a = consoleGui.question("The selected file already exists. Overwrite? (Y/N)");
+									doSave = (a == Answer.YES);
+								}
+								if (doSave) {
+									consoleGui.execSaveSDG(choose.getSelectedFile().getAbsolutePath());
+									sdgStatusLabel.setText("current sdg stored in: "
+											+ choose.getSelectedFile().getAbsolutePath());
+								} else {
+									approvedAndSuccess = false;
+									retval = choose.showOpenDialog(getRootPane());
+								}
 							} else {
 								consoleGui.error("Chosen file has wrong suffix! Must end with '.pdg'!");
 								approvedAndSuccess = false;
 								retval = choose.showOpenDialog(getRootPane());
 							}
 						} else {
-							approvedAndSuccess = false;
+							canceled = true;
 						}
 					}
 				}

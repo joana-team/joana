@@ -432,10 +432,10 @@ public class IFCConfigPanel extends JPanel {
 					});
 					boolean approvedAndSuccess = false;
 					boolean canceled = false;
-					int retval = choose.showSaveDialog(getRootPane());
 					while (!approvedAndSuccess && !canceled) {
 						approvedAndSuccess = true;
 						canceled = false;
+						int retval = choose.showSaveDialog(getRootPane());
 						if (retval == JFileChooser.APPROVE_OPTION) {
 							File selectedFile = choose.getSelectedFile();
 							String path = selectedFile.getAbsolutePath();
@@ -451,12 +451,10 @@ public class IFCConfigPanel extends JPanel {
 											+ choose.getSelectedFile().getAbsolutePath());
 								} else {
 									approvedAndSuccess = false;
-									retval = choose.showOpenDialog(getRootPane());
 								}
 							} else {
 								consoleGui.error("Chosen file has wrong suffix! Must end with '.pdg'!");
 								approvedAndSuccess = false;
-								retval = choose.showOpenDialog(getRootPane());
 							}
 						} else {
 							canceled = true;

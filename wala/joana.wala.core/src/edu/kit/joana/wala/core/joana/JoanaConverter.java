@@ -204,7 +204,6 @@ public class JoanaConverter {
 		Operation op = null;
 		Kind kind = null;
 		int[] allocNodes = null;
-
 		switch (node.getKind()) {
 		case ACTUAL_IN:
 			op = Operation.ACTUAL_IN;
@@ -309,6 +308,10 @@ public class JoanaConverter {
 
 		if (node.getAliasDataSources() != null) {
 			sn.setAliasDataSources(node.getAliasDataSources());
+		}
+
+		if (node.getUnresolvedCallTarget() != null) {
+			sn.setUnresolvedCallTarget(node.getUnresolvedCallTarget());
 		}
 
 		assert sn.getKind() == kind;

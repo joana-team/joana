@@ -27,7 +27,7 @@ final class BytecodeCentricSDGMethodPartWriter extends SDGProgramPartWriter {
 	}
 
 	@Override
-	protected String visitParameter(SDGParameter p, Void data) {
+	protected String visitParameter(SDGFormalParameter p, Void data) {
 		return p.getOwningMethod().getSignature().toBCString() + "->" + "p"
 				+ p.getIndex();
 	}
@@ -56,6 +56,38 @@ final class BytecodeCentricSDGMethodPartWriter extends SDGProgramPartWriter {
 	@Override
 	protected String visitAttribute(SDGAttribute a, Void data) {
 		return a.toString();
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitActualParameter(edu.kit.joana.api.sdg.SDGActualParameter, java.lang.Object)
+	 */
+	@Override
+	protected String visitActualParameter(SDGActualParameter ap, Void data) {
+		return visitCall(ap.getOwningCall(), data) + "->" + "a" + ap.getIndex();
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCall(edu.kit.joana.api.sdg.SDGCall, java.lang.Object)
+	 */
+	@Override
+	protected String visitCall(SDGCall c, Void data) {
+		return visitInstruction(c, data);
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCallReturnNode(edu.kit.joana.api.sdg.SDGCallReturnNode, java.lang.Object)
+	 */
+	@Override
+	protected String visitCallReturnNode(SDGCallReturnNode c, Void data) {
+		return visitCall(c.getOwningCall(), data) + "->" + "ret";
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCallExceptionNode(edu.kit.joana.api.sdg.SDGCallExceptionNode, java.lang.Object)
+	 */
+	@Override
+	protected String visitCallExceptionNode(SDGCallExceptionNode c, Void data) {
+		return visitCall(c.getOwningCall(), data) + "->" + "exc";
 	}
 
 }

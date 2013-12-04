@@ -26,14 +26,15 @@ import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.ifc.sdg.util.JavaType.Format;
 
-public class SDGMethod extends SDGProgramPart {
+public class SDGMethod implements SDGProgramPart {
 
 	private final SDG sdg;
 	private SDGNode entry;
 	private SDGMethodExitNode exit;
 	private JavaMethodSignature sig;
-	private SortedMap<Integer, SDGParameter> params = new TreeMap<Integer, SDGParameter>();
+	private SortedMap<Integer, SDGFormalParameter> params = new TreeMap<Integer, SDGFormalParameter>();
 	private List<SDGInstruction> instructions = new ArrayList<SDGInstruction>();
+	private List<SDGCall> calls = new ArrayList<SDGCall>();
 	private List<SDGPhi> phis = new ArrayList<SDGPhi>();
 	private boolean initialized = false;
 
@@ -61,29 +62,21 @@ public class SDGMethod extends SDGProgramPart {
 			int instructionIndex = 0;
 			for (SDGNode n : sdg.getNodesOfProcedure(entry)) {
 				if (n.getBytecodeIndex() >= 0) {
-					Set<SDGNode> attSourceNodes = new HashSet<SDGNode>();
-					Set<SDGNode> attSinkNodes = new HashSet<SDGNode>();
 					if (n.getKind() == SDGNode.Kind.CALL) {
-						for (SDGEdge e : sdg.getOutgoingEdgesOfKind(n,
-								SDGEdge.Kind.CONTROL_DEP_EXPR)) {
-							SDGNode node = e.getTarget();
-							if (node.getKind() == Kind.ACTUAL_IN) {
-								attSinkNodes.add(node);
-							} else if (node.getKind() == Kind.ACTUAL_OUT) {
-								attSourceNodes.add(node);
-							}
-						}
+						SDGCall newCall = newCall(n, instructionIndex);
+						calls.add(newCall);
+						instructions.add(newCall);
+					} else {
+						instructions.add(new SDGInstruction(this, n, instructionIndex));
+						instructionIndex++;
 					}
-					instructions.add(new SDGInstruction(this, n, attSourceNodes, attSinkNodes,
-							instructionIndex));
-					instructionIndex++;
 				} else if (BytecodeLocation.isNormalFormalParameter(n)) {
 					int paramIndex = BytecodeLocation.getRootParamIndex(n
 							.getBytecodeName());
 					if (paramIndex >= 0) {
-						SDGParameter p;
+						SDGFormalParameter p;
 						if (!params.containsKey(paramIndex)) {
-							p = new SDGParameter(this, paramIndex);
+							p = new SDGFormalParameter(this, paramIndex);
 							params.put(paramIndex, p);
 						} else {
 							p = params.get(paramIndex);
@@ -111,12 +104,36 @@ public class SDGMethod extends SDGProgramPart {
 			initialized = true;
 		}
 	}
+	
+	private SDGCall newCall(SDGNode n, int instructionIndex) {
+		SDGCall newCall = new SDGCall(this, n, instructionIndex);
+
+		// add actual parameters
+		for (SDGEdge e : sdg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
+			SDGNode node = e.getTarget();
+			if (node.getKind() == Kind.ACTUAL_IN || node.getKind() == Kind.ACTUAL_OUT) {
+				newCall.addActualParameter(node);
+			}
+		}
+
+		// add possible call targets
+		List<SDGEdge> callEdges = sdg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CALL);
+		if (callEdges.isEmpty() && n.getUnresolvedCallTarget() != null) {
+			newCall.addPossibleCallTarget(JavaMethodSignature.fromString(n.getUnresolvedCallTarget()));
+		} else {
+			for (SDGEdge callEdge : callEdges) {
+				SDGNode tgt = callEdge.getTarget();
+				newCall.addPossibleCallTarget(JavaMethodSignature.fromString(tgt.getBytecodeMethod()));
+			}
+		}
+		return newCall;
+	}
 
 	public SDGNode getEntry() {
 		return entry;
 	}
 
-	public SDGParameter getParameter(int i) {
+	public SDGFormalParameter getParameter(int i) {
 		if (!params.containsKey(i)) {
 			return null;
 		} else {
@@ -132,16 +149,20 @@ public class SDGMethod extends SDGProgramPart {
 		}
 	}
 	
-	public List<SDGInstruction> getAllCalls(JavaMethodSignature target) {
-		List<SDGInstruction> ret = new LinkedList<SDGInstruction>();
+	public List<SDGCall> getAllCalls(JavaMethodSignature target) {
+		List<SDGCall> ret = new LinkedList<SDGCall>();
 		
-		for (SDGInstruction i : getInstructions()) {
-			if (i.possiblyCalls(target)) {
-				ret.add(i);
+		for (SDGCall call : calls) {
+			if (call.possiblyCalls(target)) {
+				ret.add(call);
 			}
 		}
 		
 		return ret;
+	}
+
+	public List<SDGCall> getAllCalls() {
+		return new ArrayList<SDGCall>(calls);
 	}
 
 	public int getInstructionIndex(SDGInstruction instr) {
@@ -177,7 +198,7 @@ public class SDGMethod extends SDGProgramPart {
 		return exit;
 	}
 
-	public Collection<SDGParameter> getParameters() {
+	public Collection<SDGFormalParameter> getParameters() {
 		return params.values();
 	}
 
@@ -291,7 +312,7 @@ public class SDGMethod extends SDGProgramPart {
 			return true;
 		}
 
-		for (SDGParameter p : getParameters()) {
+		for (SDGFormalParameter p : getParameters()) {
 			if (p.covers(node)) {
 				return true;
 			}
@@ -320,7 +341,7 @@ public class SDGMethod extends SDGProgramPart {
 
 		ret.add(entry);
 
-		for (SDGParameter p : getParameters()) {
+		for (SDGFormalParameter p : getParameters()) {
 			ret.addAll(p.getAttachedNodes());
 		}
 
@@ -343,7 +364,7 @@ public class SDGMethod extends SDGProgramPart {
 
 		ret.add(entry);
 
-		for (SDGParameter p : getParameters()) {
+		for (SDGFormalParameter p : getParameters()) {
 			ret.addAll(p.getAttachedSourceNodes());
 		}
 
@@ -366,7 +387,7 @@ public class SDGMethod extends SDGProgramPart {
 
 		ret.add(entry);
 
-		for (SDGParameter p : getParameters()) {
+		for (SDGFormalParameter p : getParameters()) {
 			ret.addAll(p.getAttachedSinkNodes());
 		}
 
@@ -382,34 +403,43 @@ public class SDGMethod extends SDGProgramPart {
 
 		return ret;
 	}
+	
+	public SDGInstruction getCoveringInstruction(SDGNode node) {
+		for (SDGInstruction i : getInstructions()) {
+			if (i.covers(node)) {
+				return i;
+			}
+		}
+		return null;
+	}
 
 	@Override
 	public SDGProgramPart getCoveringComponent(SDGNode node) {
 		if (entry.equals(node)) {
 			return this;
-		} else if (exit.covers(node)) {
-			return exit;
-		} else {
-			for (SDGParameter p : getParameters()) {
-				if (p.covers(node)) {
-					return p;
-				}
-			}
-
-			for (SDGPhi phi : getPhis()) {
-				if (phi.covers(node)) {
-					return phi;
-				}
-			}
-
-			for (SDGInstruction i : getInstructions()) {
-				if (i.covers(node)) {
-					return i;
-				}
-			}
-
-			return null;
 		}
+		SDGProgramPart exitCP = exit.getCoveringComponent(node);
+		if (exitCP != null) {
+			return exitCP;
+		}
+		for (SDGFormalParameter p : getParameters()) {
+			SDGProgramPart pCP = p.getCoveringComponent(node);
+			if (pCP != null) {
+				return pCP;
+			}
+		}
+		for (SDGPhi phi : getPhis()) {
+			SDGProgramPart phiCP = phi.getCoveringComponent(node);
+			if (phiCP != null) {
+				return phiCP;
+			}
+		}
+		for (SDGInstruction i : getInstructions()) {
+			SDGProgramPart iCP = i.getCoveringComponent(node);
+			if (iCP != null) {
+				return iCP;
+			}
+		}
+		return null;
 	}
-
 }

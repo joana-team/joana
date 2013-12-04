@@ -112,6 +112,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
     private String type;
     private TIntSet threadNums;
     private boolean nonTerm = false;
+    private String unresolvedCallTarget;
     private String classLoader;
     private TIntSet allocSites;
     private TIntSet aliasDataSrc;
@@ -161,6 +162,9 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
         n.setAliasDataSources(aliasDataSrc);
       }
       
+      if (unresolvedCallTarget != null) {
+        n.setUnresolvedCallTarget(unresolvedCallTarget);
+      }
       return n;
     }
     
@@ -353,6 +357,7 @@ private node_attr[SDGNodeStub node]
   | 'C' cl=string           { node.classLoader = cl; }    // class loader name
   | 'A' al=pos_num_set      { node.allocSites = al; }     // possible allocation sites (node ids of 'new')
   | 'D' ds=pos_num_set      { node.aliasDataSrc = ds; }    // definitve data sources for this value
+  | 'U' uct=string          { node.unresolvedCallTarget = uct; } // signature of call target if call target is a native method
   ;
 
 private pos_num_set returns [TIntSet nums = new TIntHashSet();]

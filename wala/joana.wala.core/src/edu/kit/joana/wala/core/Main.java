@@ -30,6 +30,8 @@ import com.ibm.wala.classLoader.Module;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.impl.SetOfClasses;
+import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
+import com.ibm.wala.ipa.callgraph.pruned.PruningPolicy;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
@@ -366,6 +368,7 @@ public final class Main {
 		scfg.accessPath = cfg.accessPath;
 		scfg.sideEffects = cfg.sideEffects;
 		scfg.prunecg = DEFAULT_PRUNE_CG;
+		scfg.pruningPolicy = cfg.pruningPolicy;
 		scfg.pts = cfg.pts;
 		if (cfg.objSensFilter != null) {
 			scfg.objSensFilter = cfg.objSensFilter;
@@ -449,6 +452,7 @@ public final class Main {
 		public boolean debugManyGraphsDotOutput = false;
 		public FieldPropagation fieldPropagation;
 		public SideEffectDetectorConfig sideEffects = null;
+		public PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
 
 		public Config(String name) {
 			this(name, "<no entry defined>", FieldPropagation.OBJ_GRAPH);

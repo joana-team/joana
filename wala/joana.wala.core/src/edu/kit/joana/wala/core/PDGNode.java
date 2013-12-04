@@ -169,6 +169,9 @@ public final class PDGNode implements INodeWithNumber {
     /* index of the bytecode instruction  (or some magic code -> BytecodeLocation.*) this node belongs to */
     private int bcIndex;
 
+    /* signature of call target, if it is a unresolved, e.g. a native method and this node is a call node */
+    private String unresolvedCallTarget;
+
     public PDGNode clone(int newId, int newPdgId) {
     	PDGNode clone = new PDGNode(newId, newPdgId, label, kind, type);
     	clone.setBytecodeIndex(bcIndex);
@@ -365,4 +368,22 @@ public final class PDGNode implements INodeWithNumber {
 
     	this.aliasDataSource.add(sourceId);
     }
+
+	/**
+	 * Sets the call target of this node (if it is a call node) - in particular for native call target
+	 * where there is no PDG to jump to
+	 * @param unresolvedCallTarget signature of call target
+	 */
+	public void setUnresolvedCallTarget(String unresolvedCallTarget) {
+		this.unresolvedCallTarget = unresolvedCallTarget;
+	}
+
+	/**
+	 * Returns the signature of the call target if this node is a call node and the call target is a native method.
+	 * @return the signature of the call target if this node is a call node and the call target is a native method -
+	 * may return {@code null} otherwise
+	 */
+	public String getUnresolvedCallTarget() {
+		return unresolvedCallTarget;
+	}
 }

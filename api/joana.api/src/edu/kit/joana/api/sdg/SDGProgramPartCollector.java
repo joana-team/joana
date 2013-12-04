@@ -49,7 +49,7 @@ public class SDGProgramPartCollector extends
 	protected Void visitMethod(SDGMethod m, Collection<SDGProgramPart> base) {
 		base.add(m);
 		m.getExit().acceptVisitor(this, base);
-		for (SDGParameter p : m.getParameters()) {
+		for (SDGFormalParameter p : m.getParameters()) {
 			p.acceptVisitor(this, base);
 		}
 		
@@ -68,7 +68,7 @@ public class SDGProgramPartCollector extends
 	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitParameter(edu.kit.joana.api.sdg.SDGParameter, java.lang.Object)
 	 */
 	@Override
-	protected Void visitParameter(SDGParameter p, Collection<SDGProgramPart> base) {
+	protected Void visitParameter(SDGFormalParameter p, Collection<SDGProgramPart> base) {
 		base.add(p);
 		return null;
 	}
@@ -97,6 +97,42 @@ public class SDGProgramPartCollector extends
 	@Override
 	protected Void visitPhi(SDGPhi phi, Collection<SDGProgramPart> base) {
 		base.add(phi);
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitActualParameter(edu.kit.joana.api.sdg.SDGActualParameter, java.lang.Object)
+	 */
+	@Override
+	protected Void visitActualParameter(SDGActualParameter ap, Collection<SDGProgramPart> base) {
+		base.add(ap);
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCall(edu.kit.joana.api.sdg.SDGCall, java.lang.Object)
+	 */
+	@Override
+	protected Void visitCall(SDGCall c, Collection<SDGProgramPart> base) {
+		base.add(c);
+		return null;
+	}
+	
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCallReturnNode(edu.kit.joana.api.sdg.SDGCallReturnNode, java.lang.Object)
+	 */
+	@Override
+	protected Void visitCallReturnNode(SDGCallReturnNode c, Collection<SDGProgramPart> base) {
+		base.add(c);
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCallExceptionNode(edu.kit.joana.api.sdg.SDGCallExceptionNode, java.lang.Object)
+	 */
+	@Override
+	protected Void visitCallExceptionNode(SDGCallExceptionNode c, Collection<SDGProgramPart> base) {
+		base.add(c);
 		return null;
 	}
 

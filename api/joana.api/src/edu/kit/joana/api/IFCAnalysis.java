@@ -8,6 +8,7 @@
 package edu.kit.joana.api;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -18,8 +19,8 @@ import com.ibm.wala.types.TypeName;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.types.annotations.Annotation;
 
+import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.api.annotations.IFCAnnotation;
-import edu.kit.joana.api.annotations.IFCAnnotation.Type;
 import edu.kit.joana.api.annotations.IFCAnnotationManager;
 import edu.kit.joana.api.annotations.Level;
 import edu.kit.joana.api.annotations.Sink;
@@ -168,8 +169,13 @@ public class IFCAnalysis {
 
 	public void addAnnotation(IFCAnnotation annotation) {
 		String ppDesc = SDGProgramPartWriter.getStandardVersion().writeSDGProgramPart(annotation.getProgramPart());
-		Collection<? extends SDGProgramPart> equivPParts = program.getParts(ppDesc);
-		for (SDGProgramPart part : equivPParts) {
+		Collection<SDGProgramPart> parts = new HashSet<SDGProgramPart>();
+		Collection<? extends SDGProgramPart> allParts = program.getParts(ppDesc);
+		parts.add(annotation.getProgramPart());
+		if (allParts != null) {
+			parts.addAll(allParts);
+		}
+		for (SDGProgramPart part : parts) {
 			annManager.addAnnotation(annotation.transferTo(part));
 		}
 	}
@@ -269,11 +275,11 @@ public class IFCAnalysis {
 	}
 
 	private void addSourceAnnotation(SDGProgramPart toMark, String level, SDGMethod context) {
-		addAnnotation(new IFCAnnotation(Type.SOURCE, level, toMark, context));
+		addAnnotation(new IFCAnnotation(AnnotationType.SOURCE, level, toMark, context));
 	}
 
 	private void addSinkAnnotation(SDGProgramPart toMark, String level, SDGMethod context) {
-		addAnnotation(new IFCAnnotation(Type.SINK, level, toMark, context));
+		addAnnotation(new IFCAnnotation(AnnotationType.SINK, level, toMark, context));
 	}
 
 	public void addDeclassification(SDGProgramPart toMark, String level1, String level2) {

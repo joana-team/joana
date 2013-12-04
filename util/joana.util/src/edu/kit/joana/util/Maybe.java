@@ -25,7 +25,10 @@ package edu.kit.joana.util;
  * @author Martin Mohr
  */
 public abstract class Maybe<T> {
-
+	
+	private Maybe() {
+		
+	}
 	/**
 	 * Returns whether this Maybe value is of the form 'Just t'.
 	 * 

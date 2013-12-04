@@ -14,7 +14,7 @@ import java.util.Set;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.util.JavaType;
 
-public class SDGParameter extends SDGProgramPart {
+public class SDGFormalParameter implements SDGProgramPart {
 
 	private final SDGMethod owner;
 	private final int index;
@@ -22,7 +22,7 @@ public class SDGParameter extends SDGProgramPart {
 	private SDGNode outRoot = null;
 	private JavaType type = null;
 
-	SDGParameter(SDGMethod owner, int index) {
+	SDGFormalParameter(SDGMethod owner, int index) {
 		this.owner = owner;
 		this.index = index;
 	}
@@ -102,10 +102,10 @@ public class SDGParameter extends SDGProgramPart {
 		if (obj == null) {
 			return false;
 		}
-		if (!(obj instanceof SDGParameter)) {
+		if (!(obj instanceof SDGFormalParameter)) {
 			return false;
 		}
-		SDGParameter other = (SDGParameter) obj;
+		SDGFormalParameter other = (SDGFormalParameter) obj;
 		if (inRoot == null) {
 			if (other.inRoot != null) {
 				return false;
@@ -146,7 +146,7 @@ public class SDGParameter extends SDGProgramPart {
 
 	@Override
 	public boolean covers(SDGNode node) {
-		return node.equals(inRoot) || node.equals(outRoot);
+		return SDGParameterUtils.psBackwardsReachable(node, this.inRoot, this.outRoot, getOwningMethod().getSDG());
 	}
 
 	@Override

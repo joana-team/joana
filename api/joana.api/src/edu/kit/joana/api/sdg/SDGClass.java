@@ -20,7 +20,7 @@ import edu.kit.joana.util.Pair;
 
 
 
-public class SDGClass extends SDGProgramPart {
+public class SDGClass implements SDGProgramPart {
 
 	private final JavaType typeName;
 	private final Set<SDGNode> declNodes;

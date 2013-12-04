@@ -13,13 +13,16 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 
-import edu.kit.joana.api.annotations.IFCAnnotation.Type;
+import edu.kit.joana.api.sdg.SDGActualParameter;
 import edu.kit.joana.api.sdg.SDGAttribute;
+import edu.kit.joana.api.sdg.SDGCall;
+import edu.kit.joana.api.sdg.SDGCallExceptionNode;
+import edu.kit.joana.api.sdg.SDGCallReturnNode;
 import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGInstruction;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGMethodExitNode;
-import edu.kit.joana.api.sdg.SDGParameter;
+import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGPhi;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
@@ -58,11 +61,11 @@ public class IFCAnnotationManager {
 	}
 
 	public void addSourceAnnotation(SDGProgramPart progPart, String level, SDGMethod context) {
-		addAnnotation(new IFCAnnotation(Type.SOURCE, level, progPart, context));
+		addAnnotation(new IFCAnnotation(AnnotationType.SOURCE, level, progPart, context));
 	}
 
 	public void addSinkAnnotation(SDGProgramPart progPart, String level, SDGMethod context) {
-		addAnnotation(new IFCAnnotation(Type.SINK, level, progPart, context));
+		addAnnotation(new IFCAnnotation(AnnotationType.SINK, level, progPart, context));
 	}
 
 	public void addDeclassification(SDGProgramPart progPart, String level1, String level2) {
@@ -78,18 +81,18 @@ public class IFCAnnotationManager {
 	}
 
 	public Collection<IFCAnnotation> getSources() {
-		return getAnnotationsOfType(Type.SOURCE);
+		return getAnnotationsOfType(AnnotationType.SOURCE);
 	}
 
 	public Collection<IFCAnnotation> getSinks() {
-		return getAnnotationsOfType(Type.SINK);
+		return getAnnotationsOfType(AnnotationType.SINK);
 	}
 
 	public Collection<IFCAnnotation> getDeclassifications() {
-		return getAnnotationsOfType(Type.DECLASS);
+		return getAnnotationsOfType(AnnotationType.DECLASS);
 	}
 
-	private Collection<IFCAnnotation> getAnnotationsOfType(Type type) {
+	private Collection<IFCAnnotation> getAnnotationsOfType(AnnotationType type) {
 		HashSet<IFCAnnotation> ret = new HashSet<IFCAnnotation>();
 		for (IFCAnnotation ann : getAnnotations()) {
 			if (ann.getType() == type)
@@ -129,12 +132,12 @@ class AnnotationVerifier extends SDGProgramPartVisitor<Boolean, IFCAnnotation> {
 
 	@Override
 	protected Boolean visitClass(SDGClass cl, IFCAnnotation data) {
-		return data.getType() != Type.DECLASS;
+		return data.getType() != AnnotationType.DECLASS;
 	}
 
 	@Override
 	protected Boolean visitAttribute(SDGAttribute a, IFCAnnotation data) {
-		return data.getType() != Type.DECLASS;
+		return data.getType() != AnnotationType.DECLASS;
 	}
 
 	@Override
@@ -143,13 +146,13 @@ class AnnotationVerifier extends SDGProgramPartVisitor<Boolean, IFCAnnotation> {
 	}
 
 	@Override
-	protected Boolean visitParameter(SDGParameter p, IFCAnnotation data) {
-		return data.getType() != Type.DECLASS;
+	protected Boolean visitParameter(SDGFormalParameter p, IFCAnnotation data) {
+		return data.getType() != AnnotationType.DECLASS;
 	}
 
 	@Override
 	protected Boolean visitExit(SDGMethodExitNode e, IFCAnnotation data) {
-		return data.getType() != Type.DECLASS;
+		return data.getType() != AnnotationType.DECLASS;
 	}
 
 	@Override
@@ -159,6 +162,42 @@ class AnnotationVerifier extends SDGProgramPartVisitor<Boolean, IFCAnnotation> {
 
 	@Override
 	protected Boolean visitPhi(SDGPhi phi, IFCAnnotation data) {
+		return true;
+	}
+
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitActualParameter(edu.kit.joana.api.sdg.SDGActualParameter, java.lang.Object)
+	 */
+	@Override
+	protected Boolean visitActualParameter(SDGActualParameter ap, IFCAnnotation data) {
+		return true;
+	}
+
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCall(edu.kit.joana.api.sdg.SDGCall, java.lang.Object)
+	 */
+	@Override
+	protected Boolean visitCall(SDGCall c, IFCAnnotation data) {
+		return visitInstruction(c, data);
+	}
+
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCallReturnNode(edu.kit.joana.api.sdg.SDGCallReturnNode, java.lang.Object)
+	 */
+	@Override
+	protected Boolean visitCallReturnNode(SDGCallReturnNode c, IFCAnnotation data) {
+		return true;
+	}
+
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCallExceptionNode(edu.kit.joana.api.sdg.SDGCallExceptionNode, java.lang.Object)
+	 */
+	@Override
+	protected Boolean visitCallExceptionNode(SDGCallExceptionNode c, IFCAnnotation data) {
 		return true;
 	}
 

@@ -15,7 +15,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.ifc.sdg.util.JavaType.Format;
 
-public class SDGAttribute extends SDGProgramPart {
+public class SDGAttribute implements SDGProgramPart {
 
 	private final SDGClass owningClass;
 	private final JavaType declaringType;

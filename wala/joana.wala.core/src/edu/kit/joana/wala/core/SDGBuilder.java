@@ -35,8 +35,10 @@ import com.ibm.wala.ipa.callgraph.CallGraphBuilderCancelException;
 import com.ibm.wala.ipa.callgraph.Entrypoint;
 import com.ibm.wala.ipa.callgraph.impl.SubtypesEntrypoint;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
+import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
 import com.ibm.wala.ipa.callgraph.pruned.CallGraphPruning;
 import com.ibm.wala.ipa.callgraph.pruned.PrunedCallGraph;
+import com.ibm.wala.ipa.callgraph.pruned.PruningPolicy;
 import com.ibm.wala.ipa.cfg.ExceptionPrunedCFG;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.ssa.SSAInstruction;
@@ -95,7 +97,7 @@ public class SDGBuilder implements CallGraphFilter {
 
 	private final static Logger debug = Log.getLogger(Log.L_WALA_CORE_DEBUG);
 	private final static boolean IS_DEBUG = debug.isEnabled();
-	
+
 	public final static int PDG_FAKEROOT_ID = 0;
 	public final static int PDG_THREAD_START_ID = 1;
 	public final static int PDG_THREAD_RUN_ID = 2;
@@ -392,6 +394,12 @@ public class SDGBuilder implements CallGraphFilter {
 			for (PDGNode call : pdg.getCalls()) {
 				Set<PDG> tgts = findPossibleTargets(cg, pdg, call);
 				pdg.connectCall(call, tgts);
+				if (!tgts.isEmpty()) {
+					// we only need to record the signature of the call target
+					// if it is a native method, or if there is no PDG
+					// to jump to, respectively
+					call.setUnresolvedCallTarget(null);
+				}
 			}
 		}
 		cfg.out.print(".");
@@ -466,6 +474,13 @@ public class SDGBuilder implements CallGraphFilter {
 		}
 
 		progress.worked(1);
+		addEntryExitCFEdges();
+	}
+
+	private void addEntryExitCFEdges() {
+		for (PDG pdg : pdgs) {
+			pdg.addEdge(pdg.entry, pdg.exit, PDGEdge.Kind.CONTROL_FLOW);
+		}
 	}
 
 	public ControlFlowGraph<SSAInstruction, IExplodedBasicBlock> createExceptionAnalyzedCFG(final CGNode n,
@@ -644,7 +659,7 @@ public class SDGBuilder implements CallGraphFilter {
 
 		if (prune >= 0) {
 			CallGraphPruning cgp = new CallGraphPruning(walaCG.cg);
-			Set<CGNode> appl = cgp.findApplicationNodes(prune);
+			Set<CGNode> appl = cgp.findNodes(prune, cfg.pruningPolicy);
 			PrunedCallGraph pcg = new PrunedCallGraph(walaCG.cg, appl);
 			curcg = pcg;
 		}
@@ -787,7 +802,7 @@ public class SDGBuilder implements CallGraphFilter {
 								}
 							}
 						}
-	
+
 						for (PDGNode ain : inParam) {
 							for (PDGNode aout : outParam) {
 								pdg.addEdge(ain, aout, PDGEdge.Kind.DATA_DEP);
@@ -1125,6 +1140,7 @@ public class SDGBuilder implements CallGraphFilter {
 		public boolean localKillingDefs = true;
 		public boolean keepPhiNodes = true;
 		public int prunecg = DO_NOT_PRUNE;
+		public PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
 		public PointsToPrecision pts = PointsToPrecision.CONTEXT_SENSITIVE;
 		// only used iff pts is set to object sensitive. If null defaults to
 		// "do object sensitive analysis for all methods"

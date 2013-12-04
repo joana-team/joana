@@ -27,7 +27,7 @@ import edu.kit.joana.api.sdg.SDGAttribute;
 import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGInstruction;
 import edu.kit.joana.api.sdg.SDGMethod;
-import edu.kit.joana.api.sdg.SDGParameter;
+import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGPhi;
 import edu.kit.joana.ifc.sdg.util.JavaPackage;
 import edu.kit.joana.ui.ifc.wala.console.gui.tree.IFCTreeNode.Kind;
@@ -109,11 +109,11 @@ public class IFCTreeModel extends DefaultTreeModel {
 						// continue;
 						// }
 						SingleElementTreeNode methNode = new SingleElementTreeNode(m, true, true, Kind.METHOD);
-						List<SDGParameter> params = new LinkedList<SDGParameter>();
+						List<SDGFormalParameter> params = new LinkedList<SDGFormalParameter>();
 						params.addAll(m.getParameters());
-						ListTreeNode<SDGParameter> paramsNode = new ListTreeNode<SDGParameter>(params, false, "Parameters", Kind.NONE);
+						ListTreeNode<SDGFormalParameter> paramsNode = new ListTreeNode<SDGFormalParameter>(params, false, "Parameters", Kind.NONE);
 
-						for (SDGParameter p : params) {
+						for (SDGFormalParameter p : params) {
 							SingleElementTreeNode pNode = new SingleElementTreeNode(
 									p, false, true, Kind.PARAMETER);
 							paramsNode.add(pNode);

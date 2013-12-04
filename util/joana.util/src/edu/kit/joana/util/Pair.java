@@ -8,7 +8,32 @@
 package edu.kit.joana.util;
 
 public class Pair<S, T> {
-
+	
+	public static enum Component {
+		/** for first component */
+		FIRST,
+		
+		/** for second component */
+		SECOND;
+		
+		/**
+		 * Returns whether the given pair matches the given object in this component
+		 * @param encInst pair to check
+		 * @param o object to compare this component of the given pair with
+		 * @return {@code true}, if o equals this component of the given pair
+		 */
+		<S,T> boolean matches(Pair<S,T> encInst, Object o) {
+			switch (this) {
+			case FIRST:
+				return (encInst.fst == null && o == null) || (encInst.fst != null && encInst.fst.equals(o));
+			case SECOND:
+				return (encInst.snd == null && o == null) || (encInst.snd != null && encInst.snd.equals(o));
+			default:
+				throw new IllegalStateException();
+			}
+		}
+	}
+	
 	/** first component of pair */
 	private final S fst;
 	
@@ -39,6 +64,16 @@ public class Pair<S, T> {
 	 */
 	public T getSecond() {
 		return snd;
+	}
+	
+	/**
+	 * Returns whether the given component of this pair matches the given object
+	 * @param c component of this pair to check
+	 * @param o object to compare with
+	 * @return {@code true} if o equals the c-component of this pair, {@code false} otherwise
+	 */
+	public boolean componentEquals(Component c, Object o) {
+		return c.matches(this, o);
 	}
 
 	@Override
@@ -85,6 +120,20 @@ public class Pair<S, T> {
 	 * @return new pair consisting of the given objects
 	 */
 	public static <S, T> Pair<S, T> pair(S fst, T snd) {
+		return new Pair<S, T>(fst, snd);
+	}
+	
+	/**
+	 * Static factory method for non-null pairs
+	 * @param fst first component of new pair
+	 * @param snd second component of new pair
+	 * @return new pair consisting of the given objects
+	 * @throws NullPointerException if one of the given objects is {@code null}
+	 */
+	public static <S, T> Pair<S, T> nonNullPairs(S fst, T snd) {
+		if (fst == null || snd == null) {
+			throw new NullPointerException();
+		}
 		return new Pair<S, T>(fst, snd);
 	}
 

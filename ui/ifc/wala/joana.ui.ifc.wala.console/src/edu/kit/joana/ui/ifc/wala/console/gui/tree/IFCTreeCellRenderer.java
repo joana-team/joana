@@ -19,7 +19,7 @@ import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
 import edu.kit.joana.api.annotations.IFCAnnotation;
-import edu.kit.joana.api.annotations.IFCAnnotation.Type;
+import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.ui.ifc.wala.console.gui.IFCConsoleGUI;
 
 
@@ -134,7 +134,7 @@ public class IFCTreeCellRenderer extends DefaultTreeCellRenderer {
 
 		if (node.getIFCAnnotation() != null) {
 			IFCAnnotation ann = node.getIFCAnnotation();
-			if (ann.getType() == Type.SOURCE || ann.getType() == Type.SINK) {
+			if (ann.getType() == AnnotationType.SOURCE || ann.getType() == AnnotationType.SINK) {
 				if (ann.getLevel1().equals(consoleGui.getLattice().getTop())) {
 					setBackgroundNonSelectionColor(Color.RED);
 					setBackgroundSelectionColor(Color.RED);

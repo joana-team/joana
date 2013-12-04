@@ -282,7 +282,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 
 		final TypeReference type = instr.getDeclaredResultType();
 		lastNode = pdg.createNode(label, Kind.CALL, type);
-
+		lastNode.setUnresolvedCallTarget(tgt.getSignature().toString());
 		final PDGNode[] in = new PDGNode[instr.getNumberOfParameters()];
 
 		final StringBuffer extLabel = new StringBuffer(label.substring(0, label.length() - 1));

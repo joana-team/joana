@@ -8,6 +8,8 @@
 package edu.kit.joana.ifc.sdg.util;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -81,6 +83,18 @@ public final class JavaMethodSignature {
 		StringBuilder sbBC = new StringBuilder();
 		sbBC.append(declaringType.toHRString());
 		sbBC.append(".");
+		sbBC.append(methodName);
+		sbBC.append("(");
+		for (int i = 0; i < argumentTypes.size(); i++) {
+			sbBC.append(argumentTypes.get(i).toBCString());
+		}
+		sbBC.append(")");
+		sbBC.append(returnType.toBCString());
+		return sbBC.toString();
+	}
+	
+	public String getSelector() {
+		StringBuilder sbBC = new StringBuilder();
 		sbBC.append(methodName);
 		sbBC.append("(");
 		for (int i = 0; i < argumentTypes.size(); i++) {
@@ -171,9 +185,16 @@ public final class JavaMethodSignature {
 				throw new IllegalStateException();
 			}
 		} else {
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException(methodSig);
 		}
+	}
 
+	public static Collection<? extends JavaType> extractDeclaringClasses(Collection<? extends JavaMethodSignature> sigs) {
+		List<JavaType> ret = new LinkedList<JavaType>();
+		for (JavaMethodSignature sig : sigs) {
+			ret.add(sig.getDeclaringType());
+		}
+		return ret;
 	}
 
 	/*

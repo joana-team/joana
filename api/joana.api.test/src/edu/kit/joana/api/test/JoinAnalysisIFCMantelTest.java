@@ -74,10 +74,10 @@ public class JoinAnalysisIFCMantelTest {
 		
 		SDGMethod portfolioRun = ana.getProgram().getMethod(MANTEL_CLASS_NAME + "$Portfolio.run()V");
 		assertNotNull(portfolioRun);
-		List<SDGInstruction> calls2GetPFNames = portfolioRun.getAllCalls(JavaMethodSignature.fromString(MANTEL_CLASS_NAME + "$Portfolio.getPFNames()[Ljava/lang/String;"));
+		List<? extends SDGInstruction> calls2GetPFNames = portfolioRun.getAllCalls(JavaMethodSignature.fromString(MANTEL_CLASS_NAME + "$Portfolio.getPFNames()[Ljava/lang/String;"));
 		assertEquals(1, calls2GetPFNames.size());
 		ana.addSourceAnnotation(calls2GetPFNames.get(0), BuiltinLattices.STD_SECLEVEL_HIGH);
-		List<SDGInstruction> calls2GetPFNums = portfolioRun.getAllCalls(JavaMethodSignature.fromString(MANTEL_CLASS_NAME + "$Portfolio.getPFNums()[I"));
+		List<? extends SDGInstruction> calls2GetPFNums = portfolioRun.getAllCalls(JavaMethodSignature.fromString(MANTEL_CLASS_NAME + "$Portfolio.getPFNums()[I"));
 		assertEquals(1, calls2GetPFNums.size());
 		ana.addSourceAnnotation(calls2GetPFNums.get(0), BuiltinLattices.STD_SECLEVEL_HIGH);
 		
@@ -92,14 +92,14 @@ public class JoinAnalysisIFCMantelTest {
 		 * This assumption seems to break harder than an assumption about the exact bytecode instruction index of the flush instruction.
 		 */
 		SDGMethod methMain = ana.getProgram().getMethod(MANTEL_CLASS_NAME + ".main([Ljava/lang/String;)V");
-		List<SDGInstruction> flushInstructions = methMain.getAllCalls(JavaMethodSignature.fromString("java.io.BufferedWriter.flush()V"));
+		List<? extends SDGInstruction> flushInstructions = methMain.getAllCalls(JavaMethodSignature.fromString("java.io.BufferedWriter.flush()V"));
 		
 		//List<SDGInstruction> flushInstruction = searchInstructionByName(methMain, "flush");
 		assertEquals(1, flushInstructions.size());
 		ana.addSinkAnnotation(flushInstructions.get(0), BuiltinLattices.STD_SECLEVEL_LOW);
 		
 		SDGMethod methEuroStoxxRun = ana.getProgram().getMethod(MANTEL_CLASS_NAME + "$EuroStoxx50.run()V");
-		List<SDGInstruction> fi2 = methEuroStoxxRun.getAllCalls(JavaMethodSignature.fromString("java.io.BufferedWriter.flush()V"));
+		List<? extends SDGInstruction> fi2 = methEuroStoxxRun.getAllCalls(JavaMethodSignature.fromString("java.io.BufferedWriter.flush()V"));
 		
 		//List<SDGInstruction> flushInstruction = searchInstructionByName(methMain, "flush");
 		assertEquals(1, fi2.size());

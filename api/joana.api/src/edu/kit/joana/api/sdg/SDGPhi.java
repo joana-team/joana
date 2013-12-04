@@ -14,7 +14,7 @@ import java.util.Set;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
 
-public class SDGPhi extends SDGProgramPart {
+public class SDGPhi implements SDGProgramPart {
 
 	private SDGMethod owner;
 	private SDGNode node;

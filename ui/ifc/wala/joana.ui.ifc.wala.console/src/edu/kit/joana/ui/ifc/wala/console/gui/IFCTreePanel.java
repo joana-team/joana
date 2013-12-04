@@ -27,7 +27,7 @@ import javax.swing.JTree;
 import javax.swing.tree.TreePath;
 
 import edu.kit.joana.api.annotations.IFCAnnotation;
-import edu.kit.joana.api.annotations.IFCAnnotation.Type;
+import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.ui.ifc.wala.console.gui.IFCConsoleGUI.Command;
@@ -78,7 +78,7 @@ public class IFCTreePanel extends JPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				getAndApplyAnnotation(Type.SOURCE);
+				getAndApplyAnnotation(AnnotationType.SOURCE);
 			}
 		});
 		this.add(markAsSource, GUIUtil.mkgbc_nofill(0, 1, 1, 1));
@@ -88,7 +88,7 @@ public class IFCTreePanel extends JPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				getAndApplyAnnotation(Type.SINK);
+				getAndApplyAnnotation(AnnotationType.SINK);
 			}
 		});
 		this.add(markAsSink, GUIUtil.mkgbc_nofill(1, 1, 1, 1));
@@ -98,7 +98,7 @@ public class IFCTreePanel extends JPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				getAndApplyAnnotation(Type.DECLASS);
+				getAndApplyAnnotation(AnnotationType.DECLASS);
 			}
 		});
 		if (!IFCConsoleGUI.DECLASS_ENABLED) {
@@ -146,7 +146,7 @@ public class IFCTreePanel extends JPanel {
 		this.add(clearAll, GUIUtil.mkgbc_nofill(5, 1, 1, 1));
 	}
 
-	protected void getAndApplyAnnotation(Type type) {
+	protected void getAndApplyAnnotation(AnnotationType type) {
 		Collection<SDGProgramPart> selectedParts = getSelectedMethodParts();
 		if (selectedParts == null) {
 			consoleGui.error("You selected a node which cannot be annotated!");

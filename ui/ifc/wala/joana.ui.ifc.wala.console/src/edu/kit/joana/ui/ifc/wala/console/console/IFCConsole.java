@@ -34,12 +34,12 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.IFCType;
 import edu.kit.joana.api.annotations.IFCAnnotation;
-import edu.kit.joana.api.annotations.IFCAnnotation.Type;
+import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGMethod;
-import edu.kit.joana.api.sdg.SDGParameter;
+import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.api.sdg.SDGProgramPartWriter;
@@ -265,6 +265,8 @@ public class IFCConsole {
 	// private PrintStream infoOut;
 	//
 	private IFCConsoleOutput out;
+	
+	private boolean showPrompt = true;
 
 	// private SDG sdg;
 	private IFCAnalysis ifcAnalysis = null;
@@ -444,7 +446,7 @@ public class IFCConsole {
 
 			@Override
 			boolean execute(String[] args) {
-				return annotateProgramPartAsSrcOrSnk(args[1], args[2], Type.SOURCE);
+				return annotateProgramPartAsSrcOrSnk(args[1], args[2], AnnotationType.SOURCE);
 			}
 		};
 	}
@@ -453,7 +455,7 @@ public class IFCConsole {
 		return new Command(CMD.SINK) {
 			@Override
 			boolean execute(String[] args) {
-				return annotateProgramPartAsSrcOrSnk(args[1], args[2], Type.SINK);
+				return annotateProgramPartAsSrcOrSnk(args[1], args[2], AnnotationType.SINK);
 			}
 		};
 	}
@@ -816,13 +818,14 @@ public class IFCConsole {
 		}
 	}
 
-	public boolean annotateProgramPartAsSrcOrSnk(String programPart, String level, Type type) {
+	public boolean annotateProgramPartAsSrcOrSnk(String programPart, String level, AnnotationType type) {
 		if (inSecurityLattice(level)) {
 			SDGProgramPart toMark = getProgramPartFromSelectorString(programPart, false);
 			if (toMark != null) {
 				IFCAnnotation ann = new IFCAnnotation(type, level, toMark);
 				if (ifcAnalysis.isAnnotationLegal(ann)) {
 					ifcAnalysis.addAnnotation(ann);
+					out.logln(String.format("Annotating '%s' as %s of security level '%s'...", toMark.toString(), type.toString(), level));
 					return true;
 				} else {
 					out.error("Illegal Annotation!");
@@ -997,7 +1000,7 @@ public class IFCConsole {
 		int mIndex = methodSelector.getIndex(m);
 		out.logln("Displaying method " + m.getSignature().toHRString());
 		out.logln("Parameters: ");
-		for (SDGParameter p : m.getParameters()) {
+		for (SDGFormalParameter p : m.getParameters()) {
 			out.logln("[p" + p.getIndex() + "] " + p);
 		}
 		out.logln("Instructions: ");
@@ -1089,7 +1092,6 @@ public class IFCConsole {
 		if (this.ifcAnalysis != null) {
 			this.ifcAnalysis.setLattice(l0);
 		}
-		out.logln("New lattice set.");
 		return true;
 	}
 
@@ -1106,45 +1108,28 @@ public class IFCConsole {
 	 *         {@code false} otherwise.
 	 */
 	public boolean setLattice(String latticeSpec) {
+		IStaticLattice<String> newLattice;
+		latticeFile = "[preset: " + latticeSpec + "]";
 		if (LATTICE_BINARY.equals(latticeSpec)) {
-			if (checkAndSetLattice(BuiltinLattices.getBinaryLattice())) {
-				latticeFile = "[preset: " + latticeSpec + "]";
-				return true;
-			} else {
-				throw new Error("BuiltinLattices should not return invalid lattices. Please report this as a bug!");
-			}
+			newLattice = BuiltinLattices.getBinaryLattice();
 		} else if (LATTICE_TERNARY.equals(latticeSpec)) {
-			if (checkAndSetLattice(BuiltinLattices.getTernaryLattice())) {
-				latticeFile = "[preset: " + latticeSpec + "]";
-				return true;
-			} else {
-				throw new Error("BuiltinLattices should not return invalid lattices. Please report this as a bug!");
-			}
+			newLattice = BuiltinLattices.getTernaryLattice();
 		} else if (LATTICE_DIAMOND.equals(latticeSpec)) {
-			if (checkAndSetLattice(BuiltinLattices.getDiamondLattice())) {
-				latticeFile = "[preset: " + latticeSpec + "]";
-				return true;
-			} else {
-				throw new Error("BuiltinLattices should not return invalid lattices. Please report this as a bug!");
-			}
+			newLattice = BuiltinLattices.getDiamondLattice();
 		} else {
-
-			// Debug.println(latticeSpec.replaceAll("\\s*,\\s*", "\n"));
-			IEditableLattice<String> l0;
+			latticeSpec = latticeSpec.replaceAll("\\s*,\\s*", "\n");
 			try {
-				l0 = LatticeUtil.loadLattice(latticeSpec.replaceAll("\\s*,\\s*", "\n"));
+				newLattice = LatticeUtil.loadLattice(latticeSpec);
 			} catch (WrongLatticeDefinitionException e) {
-				out.error("Invalid lattice specification: " + e.getMessage() + " Old lattice is left untouched!");
+				out.error("Error while parsing lattice: " + e.getMessage() + " Old lattice is left untouched!");
 				return false;
 			}
-
-			if (checkAndSetLattice(l0)) {
-				latticeFile = "[preset: " + latticeSpec + "]";
-				return true;
-			} else {
-				return false;
-			}
+			latticeFile = "[user-defined: " + latticeSpec + "]";
 		}
+		if (checkAndSetLattice(newLattice)) {
+			out.logln("current lattice: " + latticeFile);
+		}
+		return checkAndSetLattice(newLattice);
 	}
 
 	public CMD searchCommand(final String cmdstr) {
@@ -1459,6 +1444,7 @@ public class IFCConsole {
 				return false;
 			}
 			ifcAnalysis.setTimesensitivity(timeSens);
+			out.logln("Performing IFC - Analysis type: " + ifcType);
 			Collection<? extends IViolation<SecurityNode>> vios = ifcAnalysis.doIFC(ifcType);
 
 			lastAnalysisResult.clear();
@@ -1476,7 +1462,7 @@ public class IFCConsole {
 									vio.toString(), groupedIFlows.get(vio)));
 				}
 			} else {
-				out.logln("");
+				out.logln("No violations found.");
 			}
 			return true;
 		}
@@ -1513,7 +1499,9 @@ public class IFCConsole {
 		String nextCommand = null;
 		boolean quit = false;
 		while (!quit) {
-			out.log("> ");
+			if (showPrompt) {
+				out.log("> ");
+			}
 			nextCommand = in.readLine();
 			if (nextCommand == null) {
 				quit = true;
@@ -1523,6 +1511,10 @@ public class IFCConsole {
 				processCommand(nextCommand);
 			}
 		}
+	}
+	
+	public void setShowPrompt(boolean showPrompt) {
+		this.showPrompt = showPrompt;
 	}
 	
 	public boolean isQuit(String cmd) {
@@ -1581,7 +1573,7 @@ public class IFCConsole {
 		return ifcAnalysis.getSecurityLattice();
 	}
 
-	public boolean canAnnotate(Collection<SDGProgramPart> selectedParts, Type type) {
+	public boolean canAnnotate(Collection<SDGProgramPart> selectedParts, AnnotationType type) {
 		boolean ret = true;
 
 		for (SDGProgramPart part : selectedParts) {

@@ -7,15 +7,20 @@
  */
 package edu.kit.joana.api.sdg;
 
+import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
+import com.ibm.wala.ipa.callgraph.pruned.PruningPolicy;
+
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
+import edu.kit.joana.util.JoanaConstants;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig;
+import edu.kit.joana.wala.flowless.wala.ObjSensContextSelector.MethodFilter;
 
 public class SDGConfig {
-
+	private PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
 	private String classPath;
 	private String entryMethod;
 	private Stubs stubsPath;
@@ -26,6 +31,8 @@ public class SDGConfig {
 	private boolean computeInterferences;
 	private MHPType mhpType = MHPType.NONE;
 	private SideEffectDetectorConfig sideEffects;
+	private MethodFilter methodFilter;
+	private String nativesXML = JoanaConstants.DEFAULT_NATIVES_XML;
 
 	public SDGConfig(String classPath, String entryMethod, Stubs stubsPath) {
 		this(classPath, entryMethod, stubsPath, ExceptionAnalysis.INTERPROC, FieldPropagation.OBJ_GRAPH, PointsToPrecision.CONTEXT_SENSITIVE, false, false, MHPType.NONE);
@@ -113,6 +120,39 @@ public class SDGConfig {
 	public void setPointsToPrecision(PointsToPrecision pointsToPrecision) {
 		this.pointsToPrecision = pointsToPrecision;
 	}
+	
+	/**
+	 * Returns the method filter used by this configuration. Can be {@code null}, e.g. if method filter was never set
+	 * @return if not {@code null}, the method filter used by this configuration
+	 */
+	public MethodFilter getMethodFilter() {
+		return methodFilter;
+	}
+	
+	/**
+	 * Set the method filter used by the SDG builder to distinguish methods by object instance.
+	 * Only used if points-to precision is set to OBJECT_SENSITIVE
+	 */
+	public void setMethodFilter(MethodFilter methodFilter) {
+		this.methodFilter = methodFilter;
+	}
+	
+	/**
+	 * Returns the name of the file which WALA will use to resolve calls to native methods.
+	 * @return the name of the file which WALA will use to resolve calls to native methods
+	 */
+	public String getNativesXML() {
+		return this.nativesXML;
+	}
+	
+	/**
+	 * Sets the name of the file WALA will use to resolve calls to native methods. Only call this method if you are absolutely sure
+	 * what you are doing!
+	 * @param nativesXML name of the XML file WALA will use to resolve calls to native methods
+	 */
+	public void setNativesXML(String nativesXML) {
+		this.nativesXML = nativesXML;
+	}
 
 	/**
 	 * @return the mhpType
@@ -183,5 +223,13 @@ public class SDGConfig {
 	 */
 	public SideEffectDetectorConfig getSideEffectDetectorConfig() {
 		return sideEffects;
+	}
+	
+	public void setPruningPolicy(PruningPolicy policy) {
+		this.pruningPolicy = policy;
+	}
+	
+	public PruningPolicy getPruningPolicy() {
+		return this.pruningPolicy;
 	}
 }

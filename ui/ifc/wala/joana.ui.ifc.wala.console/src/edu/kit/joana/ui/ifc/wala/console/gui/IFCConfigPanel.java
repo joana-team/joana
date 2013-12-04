@@ -429,21 +429,27 @@ public class IFCConfigPanel extends JPanel {
 						}
 
 					});
-
+					boolean approvedAndSuccess = false;
 					int retval = choose.showSaveDialog(getRootPane());
-					if (retval == JFileChooser.APPROVE_OPTION) {
-						String path = choose.getSelectedFile().getAbsolutePath();
-						if (path.endsWith(".pdg")) {
-							consoleGui.execSaveSDG(choose.getSelectedFile().getAbsolutePath());
-							sdgStatusLabel.setText("current sdg stored in: "
-									+ choose.getSelectedFile().getAbsolutePath());
+					while (!approvedAndSuccess) {
+						approvedAndSuccess = true;
+						if (retval == JFileChooser.APPROVE_OPTION) {
+							String path = choose.getSelectedFile().getAbsolutePath();
+							if (path.endsWith(".pdg")) {
+								consoleGui.execSaveSDG(choose.getSelectedFile().getAbsolutePath());
+								sdgStatusLabel.setText("current sdg stored in: "
+										+ choose.getSelectedFile().getAbsolutePath());
+							} else {
+								consoleGui.error("Chosen file has wrong suffix! Must end with '.pdg'!");
+								approvedAndSuccess = false;
+								retval = choose.showOpenDialog(getRootPane());
+							}
 						} else {
-							consoleGui.error("Chosen file has wrong suffix! Must end with '.pdg'!");
+							approvedAndSuccess = false;
 						}
 					}
 				}
 			}
-
 		};
 	}
 

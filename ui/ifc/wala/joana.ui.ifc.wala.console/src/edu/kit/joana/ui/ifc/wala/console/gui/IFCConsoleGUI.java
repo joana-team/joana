@@ -22,6 +22,7 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
@@ -140,10 +141,18 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 		} catch (UnsupportedLookAndFeelException e) {
 			e.printStackTrace();
 		}
-		final IFCConsoleGUI gui = new IFCConsoleGUI();
-		//gui.setPreferredSize(new Dimension(800, 600));
-		gui.pack();
-		gui.setVisible(true);
+		SwingUtilities.invokeLater(new Runnable() {
+
+			@Override
+			public void run() {
+				final IFCConsoleGUI gui = new IFCConsoleGUI();
+				//gui.setPreferredSize(new Dimension(800, 600));
+				gui.pack();
+				gui.setVisible(true);
+			}
+			
+		});
+		
 	}
 
 	// console commands

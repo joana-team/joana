@@ -50,7 +50,6 @@ import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.util.io.IOFactory;
-import edu.kit.joana.wala.core.Main;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
@@ -177,8 +176,9 @@ public class SDGProgram {
 	public static SDGProgram createSDGProgram(SDGConfig config, PrintStream out, IProgressMonitor monitor)
 			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
 		JavaMethodSignature mainMethod = JavaMethodSignature.fromString(config.getEntryMethod());// JavaMethodSignature.mainMethodOfClass(config.getMainClass());
-		Main.Config cfg = new Main.Config(mainMethod.toBCString(), mainMethod.toBCString(), config.getClassPath(),
+		SDGBuildPreparation.Config cfg = new SDGBuildPreparation.Config(mainMethod.toBCString(), mainMethod.toBCString(), config.getClassPath(),
 				config.getFieldPropagation());
+		cfg.thirdPartyLibPath = config.getThirdPartyLibsPath();
 		cfg.exceptions = config.getExceptionAnalysis();
 		cfg.pts = config.getPointsToPrecision();
 		cfg.accessPath = config.computeAccessPaths();
@@ -210,7 +210,7 @@ public class SDGProgram {
 			}
 		}
 		monitor.beginTask("build SDG", 20);
-		final com.ibm.wala.util.collections.Pair<SDG, SDGBuilder> p = Main.computeAndKeepBuilder(out, cfg,
+		final com.ibm.wala.util.collections.Pair<SDG, SDGBuilder> p = SDGBuildPreparation.computeAndKeepBuilder(out, cfg,
 				config.computeInterferences(), monitor);
 		final SDG sdg = p.fst;
 		final SDGBuilder builder = p.snd;

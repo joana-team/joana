@@ -10,9 +10,9 @@ package edu.kit.joana.ifc.sdg.util.sdg;
 import java.util.LinkedList;
 import java.util.List;
 
+import edu.kit.joana.ifc.sdg.graph.JoanaGraph;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 
 /**
  * Utility class for various methods operating on reduced CFGs.
@@ -29,7 +29,7 @@ public final class ReducedCFGUtil {
 	 * has only been tested for reduced CFGs resulting from {@link ReducedCFGBuilder#extractReducedCFG(SDG)}.
 	 * @param redICFG the reduced CFG to be prepared
 	 */
-	public static void prepareForViewer(CFG redICFG) {
+	public static void prepareForViewer(JoanaGraph redICFG) {
 		List<SDGEdge> toAdd = new LinkedList<SDGEdge>();
 		for (SDGEdge e : redICFG.edgeSet()) {
 			if (e.getKind() == SDGEdge.Kind.CONTROL_FLOW) {

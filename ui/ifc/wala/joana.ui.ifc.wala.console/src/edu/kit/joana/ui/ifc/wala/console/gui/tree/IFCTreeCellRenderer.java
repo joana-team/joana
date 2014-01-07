@@ -138,10 +138,11 @@ public class IFCTreeCellRenderer extends DefaultTreeCellRenderer {
 				if (ann.getLevel1().equals(consoleGui.getLattice().getTop())) {
 					setBackgroundNonSelectionColor(Color.RED);
 					setBackgroundSelectionColor(Color.RED);
+					setTextSelectionColor(Color.BLACK);
 				} else if (ann.getLevel1().equals(consoleGui.getLattice().getBottom())) {
 					setBackgroundNonSelectionColor(Color.GREEN);
 					setBackgroundSelectionColor(Color.GREEN);
-
+					setTextSelectionColor(Color.BLACK);
 				} else {
 					setBackgroundNonSelectionColor(defaultColorNotSelected);
 					setBackgroundSelectionColor(defaultColorSelected);

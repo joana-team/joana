@@ -7,7 +7,9 @@
  */
 package edu.kit.joana.api.sdg;
 
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Set;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -33,14 +35,16 @@ class SDGParameterUtils {
 	 */
 	static boolean psBackwardsReachable(SDGNode node, SDGNode inRoot, SDGNode outRoot, SDG sdg) {
 		LinkedList<SDGNode> worklist = new LinkedList<SDGNode>();
+		Set<SDGNode> visited = new HashSet<SDGNode>();
 		worklist.add(node);
 		while (!worklist.isEmpty()) {
 			SDGNode next = worklist.poll();
+			visited.add(next);
 			if (next.equals(inRoot) || next.equals(inRoot)) {
 				return true;
 			} else {
 				for (SDGEdge out : sdg.incomingEdgesOf(next)) {
-					if (out.getKind() == SDGEdge.Kind.PARAMETER_STRUCTURE) {
+					if (out.getKind() == SDGEdge.Kind.PARAMETER_STRUCTURE && !visited.contains(out.getSource())) {
 						worklist.add(out.getSource());
 					}
 				}

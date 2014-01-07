@@ -22,6 +22,7 @@ import edu.kit.joana.wala.flowless.wala.ObjSensContextSelector.MethodFilter;
 public class SDGConfig {
 	private PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
 	private String classPath;
+	private String thirdPartyLibsPath;
 	private String entryMethod;
 	private Stubs stubsPath;
 	private ExceptionAnalysis exceptionAnalysis;
@@ -231,5 +232,13 @@ public class SDGConfig {
 	
 	public PruningPolicy getPruningPolicy() {
 		return this.pruningPolicy;
+	}
+
+	public String getThirdPartyLibsPath() {
+		return thirdPartyLibsPath;
+	}
+
+	public void setThirdPartyLibsPath(String thirdPartyLibsPath) {
+		this.thirdPartyLibsPath = thirdPartyLibsPath;
 	}
 }

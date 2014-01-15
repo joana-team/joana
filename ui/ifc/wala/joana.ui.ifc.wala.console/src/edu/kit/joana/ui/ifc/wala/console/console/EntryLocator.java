@@ -16,9 +16,9 @@ import java.util.List;
 
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 
+import edu.kit.joana.api.sdg.SDGBuildPreparation;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCConsoleOutput;
-import edu.kit.joana.wala.core.Main.Config;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 
 /**
@@ -66,11 +66,11 @@ public class EntryLocator {
 	 * @return whether the search was successful
 	 */
 	public boolean doSearch(String classPath, IFCConsoleOutput out) {
-		final Config cfg = new Config("Search main <unused>", "<unused>",
+		final SDGBuildPreparation.Config cfg = new SDGBuildPreparation.Config("Search main <unused>", "<unused>",
 				classPath, FieldPropagation.FLAT);
 		List<JavaMethodSignature> newEntries = new ArrayList<JavaMethodSignature>();
 		try {
-			List<String> res = edu.kit.joana.wala.core.Main.searchMainMethods(out.getPrintStream(), cfg);
+			List<String> res = SDGBuildPreparation.searchMainMethods(out.getPrintStream(), cfg);
 			for (String sig : res) {
 				newEntries.add(JavaMethodSignature.fromString(sig));
 			}

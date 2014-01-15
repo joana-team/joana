@@ -943,6 +943,10 @@ public class IFCConsole {
 		this.classPath = newClasspath;
 	}
 
+	public Stubs getStubsPath() {
+		return stubsPath;
+	}
+
 	public void setStubsPath(Stubs newStubsPath) {
 		this.stubsPath = newStubsPath;
 	}

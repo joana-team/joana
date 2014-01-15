@@ -260,9 +260,10 @@ public class IFCConfigPanel extends JPanel {
 	private void initStubsCombo() {
 		MutableComboBoxModel possibleStubs = new DefaultComboBoxModel();
 		for (Stubs stubs : Stubs.values()) {
-			possibleStubs.addElement(stubs.toString());
+			possibleStubs.addElement(stubs);
 		}
 		stubsCombo.setModel(possibleStubs);
+		stubsCombo.setSelectedItem(consoleGui.getStubsPath());
 		stubsCombo.setEditable(false);
 	}
 

@@ -40,6 +40,7 @@ import edu.kit.joana.ui.ifc.wala.console.console.IFCConsole;
 import edu.kit.joana.ui.ifc.wala.console.console.IFCConsole.CMD;
 import edu.kit.joana.ui.ifc.wala.console.console.IFCConsoleListener;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCConsoleOutput;
+import edu.kit.joana.util.Stubs;
 import edu.kit.joana.util.io.IOFactory;
 import gnu.trove.map.TObjectIntMap;
 
@@ -92,11 +93,10 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 
 	public IFCConsoleGUI() {
 		super(NAME_OF_APPLICATION + " (last changed: " + GIT_LAST_COMMIT + ")");
-
 		consolePane = new IFCConsolePanel(this);
+		console = new IFCConsole(new BufferedReader(IOFactory.createUTF8ISReader(System.in)), this);
 		configPane = new IFCConfigPanel(this);
 
-		console = new IFCConsole(new BufferedReader(IOFactory.createUTF8ISReader(System.in)), this);
 		// console = new IFCConsole(new BufferedReader(new InputStreamReader(
 		// System.in)), consolePane.getOutputStream(),
 		// new JOptionPanePrintStream(this,
@@ -419,6 +419,10 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 
 	public String getClassPath() {
 		return console.getClassPath();
+	}
+
+	public Stubs getStubsPath() {
+		return console.getStubsPath();
 	}
 
 	public Collection<String> getSecurityLevels() {

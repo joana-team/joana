@@ -72,18 +72,13 @@ public final class SDGBuildPreparation {
 	}
 
 	public final static String STD_EXCLUSION_REG_EXP =
-		"java\\/awt\\/.*\n"
-		+ "javax\\/swing\\/.*\n"
-		+ "java\\/nio\\/.*\n"
-		+ "java\\/net\\/.*\n"
-		+ "sun\\/awt\\/.*\n"
+		"sun\\/awt\\/.*\n"
 		+ "sun\\/swing\\/.*\n"
 		+ "com\\/sun\\/.*\n"
 		+ "sun\\/.*\n"
 		+ "apple\\/awt\\/.*\n"
 		+ "com\\/apple\\/.*\n"
 		+ "org\\/omg\\/.*\n";
-//		+ "javax\\/.*\n";
 
 	// these classes are modeled without specific fields
 	public final static String[] IMMUTABLE_STUBS = {

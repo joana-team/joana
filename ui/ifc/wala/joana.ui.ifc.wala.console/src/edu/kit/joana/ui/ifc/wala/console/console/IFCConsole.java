@@ -935,6 +935,7 @@ public class IFCConsole {
 			return false;
 		} else {
 			loc.displayLastEntrySearchResults(out);
+			selectEntry(0);
 			return true;
 		}
 	}

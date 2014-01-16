@@ -223,6 +223,14 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 		}
 	}
 
+	public void executeCmds(final Command... cmds) {
+		List<Command> cmdsList = new LinkedList<Command>();
+		for (Command c : cmds) {
+			cmdsList.add(c);
+		}
+		executeCmdList(cmdsList);
+	}
+
 	@Override
 	public void cmdIssued(CMD cmd, String[] args) {
 		consolePane.mute();
@@ -299,7 +307,9 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 	}
 
 	public void execSetClassPath(String cp) {
-		executeCmd(CMD.SET_CLASSPATH, new String[] { CMD.SET_CLASSPATH.getName(), cp });
+		executeCmds(
+				new Command(CMD.SET_CLASSPATH, new String[] { CMD.SET_CLASSPATH.getName(), cp }),
+				new Command(CMD.SEARCH_ENTRIES, new String[] {CMD.SEARCH_ENTRIES.getName()}));
 	}
 	
 	public void execSetStubsPath(String stubsPath) {

@@ -12,8 +12,10 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,10 +28,12 @@ import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.tree.TreePath;
 
-import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.annotations.AnnotationType;
+import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGProgramPart;
+import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
+import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
 import edu.kit.joana.ui.ifc.wala.console.gui.IFCConsoleGUI.Command;
 import edu.kit.joana.ui.ifc.wala.console.gui.tree.IFCTreeCellRenderer;
 import edu.kit.joana.ui.ifc.wala.console.gui.tree.IFCTreeModel;
@@ -176,13 +180,13 @@ public class IFCTreePanel extends JPanel {
 			String secLevel2 = null;
 			switch (type) {
 			case SOURCE:
-				secLevel1 = promptForSecurityLevel("Security level for source");
+				secLevel1 = promptForSecurityLevel("Security level for source", type);
 				if (secLevel1 == null) {
 					return;
 				}
 				break;
 			case SINK:
-				secLevel1 = promptForSecurityLevel("Security level for sink");
+				secLevel1 = promptForSecurityLevel("Security level for sink", type);
 				if (secLevel1 == null) {
 					return;
 				}
@@ -230,12 +234,17 @@ public class IFCTreePanel extends JPanel {
 		}
 	}
 
-	private String promptForSecurityLevel(String title) {
+	private String promptForSecurityLevel(String title, AnnotationType type) {
+		assert type == AnnotationType.SOURCE || type == AnnotationType.SINK;
+		ArrayList<String> availSecLevels = new ArrayList<String>(consoleGui.getSecurityLevels());
+		if (type == AnnotationType.SOURCE) {
+			Collections.sort(availSecLevels, LatticeComparator.<String>makeReversed(consoleGui.getLattice()));
+		} else {
+			Collections.sort(availSecLevels, LatticeComparator.<String>make(consoleGui.getLattice()));
+		}
 		String secLevel = (String) JOptionPane.showInputDialog(consoleGui
 				.getRootPane(), "Select security level", title,
-				JOptionPane.QUESTION_MESSAGE, null, consoleGui
-						.getSecurityLevels().toArray(), consoleGui
-						.getSecurityLevels().toArray()[0]);
+				JOptionPane.QUESTION_MESSAGE, null, availSecLevels.toArray(), availSecLevels.get(0));
 		assert secLevel == null
 				|| consoleGui.getSecurityLevels().contains(secLevel);
 		if (secLevel == null) {
@@ -293,6 +302,74 @@ public class IFCTreePanel extends JPanel {
 			// annotations changed -> update
 			treeModel.updateAnnotations(sources, sinks, declasses);
 		}
+	}
+
+	/**
+	 * Provides a possibility to totally order the elements of a lattice if the element type of the lattice
+	 * implements the {@link java.util.Comparable} interface (and obeys its contract).<br>
+	 * Elements of the lattice are first tried to be compared according to the lattice. If they are incomparable
+	 * in the lattice, the comparison method falls back to their type's comparator.<br>
+	 * It is assumed that the {@link #compare(Comparable, Comparable)} method is only called with elements of the
+	 * lattice.<br>
+	 * @author Martin Mohr
+	 */
+	private static class LatticeComparator<C extends Comparable<C>> implements Comparator<C> {
+
+		/** the lattice which provides the initial semi-order */
+		private IStaticLattice<C> l;
+
+		/** direction modificator for the lattice part of this comparator - can be positive (does not modify the lattice relation) or negative (reverses the lattice relation) */
+		private int dir;
+
+		/** for usage of normal lattice relation */
+		private static final int ASCENDING = 1;
+
+		/** for usage of reversed lattice relation */
+		private static final int DESCENDING = -1;
+
+		/**
+		 * Constructs a new lattice-based comparator.
+		 * @param l the lattice which is to be used as initial comparison relation
+		 * @param dir direction to be used - positive if the lattice semi-order is to be used in normal direction, negative if it shall be reversed
+		 */
+		private LatticeComparator(IStaticLattice<C> l, int dir) {
+			assert l != null && dir != 0;
+			this.l = l;
+			this.dir = dir;
+		}
+
+		/* (non-Javadoc)
+		 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+		 */
+		@Override
+		public int compare(C lvl1, C lvl2) {
+			if (lvl1.equals(lvl2)) {
+				return 0;
+			} else if (LatticeUtil.isLeq(l, lvl1, lvl2)) {
+				return -1 * dir;
+			} else if (LatticeUtil.isLeq(l, lvl2, lvl1)) {
+				return 1 * dir;
+			} else {
+				return lvl1.compareTo(lvl2);
+			}
+		}
+
+		/**
+		 * @param l lattice to be used as initial semi-order
+		 * @return new lattice-based comparator, which uses the given lattice relation as initial semi-order.
+		 */
+		static <D extends Comparable<D>> LatticeComparator<D> make(IStaticLattice<D> l) {
+			return new LatticeComparator<D>(l, ASCENDING);
+		}
+
+		/**
+		 * @param l lattice to be used as initial semi-order
+		 * @return new lattice-based comparator, which uses the reversal of the given lattice relation as initial semi-order.
+		 */
+		static <D extends Comparable<D>> LatticeComparator<D> makeReversed(IStaticLattice<D> l) {
+			return new LatticeComparator<D>(l, DESCENDING);
+		}
+
 	}
 
 }

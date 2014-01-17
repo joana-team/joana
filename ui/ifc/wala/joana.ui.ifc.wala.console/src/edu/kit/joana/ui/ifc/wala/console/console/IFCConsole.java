@@ -929,6 +929,7 @@ public class IFCConsole {
 	}
 
 	public boolean searchEntries() {
+		JavaMethodSignature oldSelected = loc.getActiveEntry();
 		boolean found = loc.doSearch(classPath, out);
 		if (!found) {
 			out.info("No entry methods found.");
@@ -937,6 +938,8 @@ public class IFCConsole {
 			loc.displayLastEntrySearchResults(out);
 			if (loc.getNumberOfFoundEntries() == 1) {
 				selectEntry(0);
+			} else if (loc.getLastSearchResults().contains(oldSelected)) {
+				selectEntry(oldSelected);
 			}
 			return true;
 		}

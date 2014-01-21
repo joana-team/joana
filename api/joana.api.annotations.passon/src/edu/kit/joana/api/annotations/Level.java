@@ -1,1 +1,3 @@
-../../../../../../../joana.api.annotations.ignore/src/edu/kit/joana/api/annotations/Level.java
+package edu.kit.joana.api.annotations;
+
+public enum Level { LOW, HIGH };

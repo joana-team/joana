@@ -42,7 +42,7 @@
 	</target>
 
 	<target name="versionid" description="generate properties file with git version id">
-		<exec executable="/bin/sh">
+		<exec executable="/bin/sh" failifexecutionfails="false">
 			<arg value="-c" />
 			<arg value="VERSION=`git log --name-status HEAD^..HEAD --no-color | grep 'Date:' | head -n 1 | sed -e 's/Date:\ *//'`; echo 'git-version='$VERSION | tee versionid.properties" />
 		</exec>

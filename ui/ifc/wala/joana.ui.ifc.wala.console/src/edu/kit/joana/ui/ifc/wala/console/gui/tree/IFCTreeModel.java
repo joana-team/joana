@@ -126,18 +126,20 @@ public class IFCTreeModel extends DefaultTreeModel {
 				for (SDGClass cl : pkgAndClasses.getValue()) {
 
 					SingleElementTreeNode clNode = new SingleElementTreeNode(cl, true, true, Kind.CLASS);
-
-					ListTreeNode<SDGAttribute> attrsNode = new ListTreeNode<SDGAttribute>(cl.getAttributes(), attrComp, false, "Attributes", Kind.NONE);
-					ListTreeNode<SDGMethod> methsNode = new ListTreeNode<SDGMethod>(cl.getMethods(), methComp, false, "Methods", Kind.NONE);
+					Set<SDGAttribute> sortedAttributes = new TreeSet<SDGAttribute>(attrComp);
+					sortedAttributes.addAll(cl.getAttributes());
+					Set<SDGMethod> sortedMethods = new TreeSet<SDGMethod>(methComp);
+					sortedMethods.addAll(cl.getMethods());
+					ListTreeNode<SDGAttribute> attrsNode = new ListTreeNode<SDGAttribute>(sortedAttributes, attrComp, false, "Attributes", Kind.NONE);
+					ListTreeNode<SDGMethod> methsNode = new ListTreeNode<SDGMethod>(sortedMethods, methComp, false, "Methods", Kind.NONE);
 					clNode.add(attrsNode);
 					clNode.add(methsNode);
 
-					for (SDGAttribute a : cl.getAttributes()) {
+					for (SDGAttribute a : sortedAttributes) {
 						SingleElementTreeNode aNode = new SingleElementTreeNode(a, false, true, Kind.ATTRIBUTE);
 						attrsNode.add(aNode);
 					}
-
-					for (SDGMethod m : cl.getMethods()) {
+					for (SDGMethod m : sortedMethods) {
 
 						// if
 						// (!ClassLoaderReference.Application.getName().toString().equals(m.getEntry().getClassLoader()))

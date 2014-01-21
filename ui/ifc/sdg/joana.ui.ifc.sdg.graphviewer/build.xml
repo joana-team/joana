@@ -62,6 +62,7 @@
 			</fileset>
 			<manifest>
 				<attribute name="Main-Class" value="${main.class}" />
+				<attribute name="Permissions" value="all-permissions" />
 			</manifest>
 		</jar>
 	</target>
@@ -118,6 +119,8 @@
 				</or>
 			</fileset>
 		</copy>
+		<mkdir dir="${dest.dir.classes}/JNLP-INF" />
+		<copy file="${webstart.www.contrib.dir}/joana-graphviewer.jnlp" tofile="${dest.dir.classes}/JNLP-INF/APPLICATION.JNLP" />
 	</target>
 	
 	<target name="collect_sources">

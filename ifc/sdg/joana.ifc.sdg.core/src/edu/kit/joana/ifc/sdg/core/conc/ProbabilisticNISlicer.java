@@ -238,7 +238,7 @@ public class ProbabilisticNISlicer implements ConflictScanner {
         	
             // suche nach interferenzen -> potentielle data-konflikte
             for (SDGEdge edge : g.edgeSet()) {
-                if (edge.getKind() == SDGEdge.Kind.INTERFERENCE) {
+                if (edge.getKind() == SDGEdge.Kind.INTERFERENCE && mhp.isParallel(edge.getSource(), edge.getTarget())) {
                 	// teste, ob er harmlos ist
                 	HashSet<SecurityNode> triggers = trigger((SecurityNode)edge.getSource(), (SecurityNode)edge.getTarget());
                 	if (!triggers.isEmpty()) {
@@ -256,7 +256,7 @@ public class ProbabilisticNISlicer implements ConflictScanner {
                         }
                 	}
 
-                } else if (edge.getKind() == SDGEdge.Kind.INTERFERENCE_WRITE) {
+                } else if (edge.getKind() == SDGEdge.Kind.INTERFERENCE_WRITE && mhp.isParallel(edge.getSource(), edge.getTarget())) {
 
                 	// teste, ob er harmlos ist
                 	HashSet<SecurityNode> triggers = trigger((SecurityNode)edge.getSource(), (SecurityNode)edge.getTarget());

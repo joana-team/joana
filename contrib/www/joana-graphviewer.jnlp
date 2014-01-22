@@ -25,5 +25,5 @@
 	<security>
 		<all-permissions />
 	</security>
-	<update check="background" />
+	<update check="always" />
 </jnlp>

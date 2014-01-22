@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.regex.PatternSyntaxException;
 
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
@@ -33,13 +34,13 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.IFCType;
-import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.annotations.AnnotationType;
+import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGConfig;
-import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGFormalParameter;
+import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.api.sdg.SDGProgramPartWriter;
@@ -1466,10 +1467,14 @@ public class IFCConsole {
 
 				groupedIFlows = ifcAnalysis.groupByPPPart(vios);
 				out.logln("done, found " + groupedIFlows.size() + " security violation(s):");
+				Set<String> output = new TreeSet<String>();
 				for (IViolation<SDGProgramPart> vio : groupedIFlows.keySet()) {
-					out.logln(String
+					output.add(String
 							.format("Security violation: %s (internal: %d security violations on the SDG node level)",
 									vio.toString(), groupedIFlows.get(vio)));
+				}
+				for (String s : output) {
+					out.logln(s);
 				}
 			} else {
 				out.logln("No violations found.");

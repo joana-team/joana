@@ -33,7 +33,7 @@ public class ProbabilisticNIChecker extends IFC {
 
 	private final boolean timeSens;
 	
-	private ConflictScanner prob;
+	private final ConflictScanner prob;
 	
 	/**
 	 * Erzeugt eine neue Instanz.
@@ -52,7 +52,14 @@ public class ProbabilisticNIChecker extends IFC {
 	}
 	
 	public ProbabilisticNIChecker(SDG sdg, IStaticLattice<String> lattice, MHPAnalysis mhp, boolean timeSens) {
+		this(sdg, lattice, ProbabilisticNISlicer.simpleCheck(sdg, lattice, mhp, timeSens), mhp, timeSens);
+	}
+
+	public ProbabilisticNIChecker(SDG sdg, IStaticLattice<String> lattice, ConflictScanner cScanner, MHPAnalysis mhp, boolean timeSens) {
 		super(sdg, lattice);
+		probInit = System.currentTimeMillis();
+		this.prob = cScanner;
+		probInit = System.currentTimeMillis() - probInit;
 		this.mhp = mhp;
 		this.timeSens = timeSens;
 	}
@@ -76,10 +83,6 @@ public class ProbabilisticNIChecker extends IFC {
 			is = new TimeSensitiveIFCDecorator(is);
 		}
 
-		probInit = System.currentTimeMillis();
-		prob = ProbabilisticNISlicer.simpleCheck(g, l, mhp, this.timeSens);
-		probInit = System.currentTimeMillis() - probInit;
-
 		probCheck = System.currentTimeMillis();
 		ret.addAll(prob.check());
 		probCheck = System.currentTimeMillis() - probCheck;
@@ -97,10 +100,6 @@ public class ProbabilisticNIChecker extends IFC {
 	public Collection<ClassifiedViolation> translate(Collection<? extends IViolation<SecurityNode>> vios) {
 		ViolationTranslator trans = new ViolationTranslator();
 		return trans.map(vios);
-	}
-	
-	public void setProbSlicer(ConflictScanner prob) {
-		this.prob = prob;
 	}
 	
 	public ConflictScanner getProbSlicer() {

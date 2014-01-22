@@ -115,10 +115,12 @@ public class ProbabilisticNISlicer implements ConflictScanner {
         public void updateConflicts(SecurityNode sink, SecurityNode source, SDGEdge edge, String attackerLevel) {
             if (edge.getKind() == SDGEdge.Kind.CONFLICT_DATA) {
                 // erzeuge neuen Conflict
-            	DataConflict<SecurityNode> con  = new DataConflict<SecurityNode>(ConflictEdge.fromSDGEdge(edge), sink, attackerLevel, Maybe.just(source));
-                conflicts.add(con);
-                dataConflicts.add(con);
-                confEdges.add(Pair.pair(edge.getSource(), edge.getTarget()));
+                if (!confEdges.contains(Pair.pair(edge.getSource(), edge.getTarget())) && !confEdges.contains(Pair.pair(edge.getTarget(), edge.getSource()))) {
+                    DataConflict<SecurityNode> con  = new DataConflict<SecurityNode>(ConflictEdge.fromSDGEdge(edge), sink, attackerLevel, Maybe.just(source));
+                    conflicts.add(con);
+                    dataConflicts.add(con);
+                    confEdges.add(Pair.pair(edge.getSource(), edge.getTarget()));
+                }
             } else if (edge.getKind() == SDGEdge.Kind.CONFLICT_ORDER) {
                 // erzeuge neuen OrderConflict
             	if (!confEdges.contains(Pair.pair(edge.getSource(), edge.getTarget())) && !confEdges.contains(Pair.pair(edge.getTarget(), edge.getSource()))) {

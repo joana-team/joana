@@ -24,14 +24,11 @@ public enum IFCType {
 	}
 	
 	public static IFCType fromString(String s) {
-		if (POSSIBILISTIC.toString().equals(s)) {
-			return POSSIBILISTIC;
-		} else if (PROBABILISTIC_WITH_SIMPLE_MHP.toString().equals(s)) {
-			return PROBABILISTIC_WITH_SIMPLE_MHP;
-		} else if (PROBABILISTIC_WITH_PRECISE_MHP.toString().equals(s)) {
-			return PROBABILISTIC_WITH_PRECISE_MHP;
-		} else {
-			throw new IllegalArgumentException("given string must match the return value of toString() of one of the enum values, but does not: " + s);
+		for (IFCType t : IFCType.values()) {
+			if (t.toString().equals(s)) {
+				return t;
+			}
 		}
+		throw new IllegalArgumentException("given string must match the return value of toString() of one of the enum values, but does not: " + s);
 	}
 }

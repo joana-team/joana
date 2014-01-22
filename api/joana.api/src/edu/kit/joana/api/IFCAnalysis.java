@@ -185,9 +185,9 @@ public class IFCAnalysis {
 	}
 	
 	public Collection<? extends IViolation<SecurityNode>> doIFC(IFCType ifcType) {
-		setIFCType(ifcType);
 		assert ifc != null && ifc.getSDG() != null && ifc.getLattice() != null;
 		annManager.applyAllAnnotations();
+		setIFCType(ifcType);
 		long time = 0L;
 		time = System.currentTimeMillis();
 		Collection<? extends IViolation<SecurityNode>> vios = ifc.checkIFlow();

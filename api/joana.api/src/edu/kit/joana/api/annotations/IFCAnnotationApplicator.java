@@ -8,6 +8,7 @@
 package edu.kit.joana.api.annotations;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.kit.joana.api.sdg.SDGMethod;
+import edu.kit.joana.api.sdg.SDGPPConcretenessEvaluator;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
@@ -59,7 +61,15 @@ public class IFCAnnotationApplicator {
 	 * @return the program part to which the security node belongs, or {@code null}, if no such program part could be found
 	 */
 	public SDGProgramPart resolve(SecurityNode sNode) {
-		if (!annotatedNodes.containsKey(sNode)) {
+		SDGProgramPart annPart = null;
+		SDGProgramPart covPart;
+		if (annotatedNodes.containsKey(sNode)) {
+			NodeAnnotationInfo nai = annotatedNodes.get(sNode);
+			IFCAnnotation ann = nai.getAnnotation();
+			annPart = ann.getProgramPart();
+		}
+		covPart = program.findCoveringProgramPart(sNode);
+		if (annPart == null) {
 			debug.outln("Tried to resolve node " + sNode + " and failed.");
 			debug.outln("Resolvable nodes: " + annotatedNodes.keySet());
 			if (sNode.isInformationSource()) {
@@ -71,16 +81,22 @@ public class IFCAnnotationApplicator {
 			} else {
 				debug.outln(sNode + " was not annotated.");
 			}
-			SDGProgramPart fallback = program.findCoveringProgramPart(sNode);
-			if (fallback == null) {
+			if (covPart == null) {
 				debug.outln("Also failed to find a covering program part.");
+				return null;
+			} else {
+				return covPart;
 			}
-			return fallback;
+		} else if (covPart == null) {
+			return annPart;
 		} else {
-			NodeAnnotationInfo nai = annotatedNodes.get(sNode);
-			IFCAnnotation ann = nai.getAnnotation();
-			SDGProgramPart ppart = ann.getProgramPart();
-			return ppart;
+			// covPart != null && annPart != null
+			SDGProgramPart ret = SDGPPConcretenessEvaluator.max(annPart, covPart);
+			if (ret != null) {
+				return ret;
+			} else {
+				return covPart;
+			}
 		}
 	}
 	

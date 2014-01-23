@@ -13,7 +13,6 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -391,78 +390,16 @@ public class SDGProgram {
 	}
 
 	public SDGProgramPart findCoveringProgramPart(SDGNode node) {
-		final SDGProgramPartVisitor<Integer, Void> scorer = new SDGProgramPartVisitor<Integer, Void>() {
-			@Override
-			protected Integer visitClass(SDGClass cl, Void data) {
-				return 0;
-			}
-
-			@Override
-			protected Integer visitAttribute(SDGAttribute a, Void data) {
-				return 1;
-			}
-
-			@Override
-			protected Integer visitMethod(SDGMethod m, Void data) {
-				return 1;
-			}
-
-			@Override
-			protected Integer visitParameter(SDGFormalParameter p, Void data) {
-				return 2;
-			}
-
-			@Override
-			protected Integer visitExit(SDGMethodExitNode e, Void data) {
-				return 3;
-			}
-
-			@Override
-			protected Integer visitPhi(SDGPhi phi, Void data) {
-				return 3;
-			}
-
-			@Override
-			protected Integer visitInstruction(SDGInstruction i, Void data) {
-				return 4;
-			}
-
-			@Override
-			protected Integer visitCall(SDGCall c, Void data) {
-				return 4;
-			}
-
-			@Override
-			protected Integer visitActualParameter(SDGActualParameter ap, Void data) {
-				return 5;
-			}
-
-			@Override
-			protected Integer visitCallReturnNode(SDGCallReturnNode c, Void data) {
-				return 5;
-			}
-
-			@Override
-			protected Integer visitCallExceptionNode(SDGCallExceptionNode c, Void data) {
-				return 5;
-			}
-
-		};
 		Set<SDGProgramPart> candidates = new HashSet<SDGProgramPart>();
 		for (SDGProgramPart ppart : getAllProgramParts()) {
 			if (ppart.covers(node)) {
 				candidates.add(ppart);
 			}
 		}
-
-		SDGProgramPart mostConcreteCandidate = Collections.max(candidates, new Comparator<SDGProgramPart>() {
-
-			@Override
-			public int compare(SDGProgramPart o1, SDGProgramPart o2) {
-				return o1.acceptVisitor(scorer, null) - o2.acceptVisitor(scorer, null);
-			}
-
-		});
+		if (candidates.isEmpty()) {
+			return null;
+		}
+		SDGProgramPart mostConcreteCandidate = Collections.max(candidates, SDGPPConcretenessEvaluator.getComparator());
 		if (mostConcreteCandidate != null) {
 			return mostConcreteCandidate;
 		}

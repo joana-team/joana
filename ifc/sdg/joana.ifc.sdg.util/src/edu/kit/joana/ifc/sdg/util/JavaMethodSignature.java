@@ -9,6 +9,7 @@ package edu.kit.joana.ifc.sdg.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -288,5 +289,19 @@ public final class JavaMethodSignature {
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * @return a comparator which compares two JavaMethodSignature objects according to their bytecode notation strings
+	 */
+	public static Comparator<JavaMethodSignature> compareByBCStrings() {
+		return new Comparator<JavaMethodSignature>() {
+
+			@Override
+			public int compare(JavaMethodSignature o1, JavaMethodSignature o2) {
+				return o1.toBCString().compareTo(o2.toBCString());
+			}
+
+		};
 	}
 }

@@ -114,9 +114,6 @@
 				<file name="jSDG-stubs-jre1.4.jar" />
 				<file name="jSDG-stubs-jre1.5.jar" />
 			</filelist>
-			<filelist dir="${joana.ui.ifc.wala.console.base.dir}">
-				<file name="versionid.properties" />
-			</filelist>
 			<fileset dir="${joana.ui.ifc.wala.console.base.dir}/res">
 				<or>
 				<filename name="**/*.png" />
@@ -124,6 +121,7 @@
 				</or>
 			</fileset>
 		</copy>
+		<copy file="versionid.properties" todir="${dest.dir.classes}" failonerror="false" />
 		<mkdir dir="${dest.dir.classes}/JNLP-INF" />
 		<copy file="${webstart.www.contrib.dir}/joana-ifcconsole.jnlp" tofile="${dest.dir.classes}/JNLP-INF/APPLICATION.JNLP" />
 	</target>

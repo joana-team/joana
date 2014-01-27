@@ -21,8 +21,6 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 public interface SDGProgramPart {
 	<R, D> R acceptVisitor(SDGProgramPartVisitor<R, D> v, D data);
 	SDGMethod getOwningMethod();
-	//public abstract Set<SDGNode> getSourceNodes();
-	//public abstract Set<SDGNode> getSinkNodes();
 	boolean covers(SDGNode node);
 	Collection<SDGNode> getAttachedNodes();
 	Collection<SDGNode> getAttachedSourceNodes();

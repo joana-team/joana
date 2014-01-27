@@ -60,6 +60,7 @@ public class SDGFormalParameter implements SDGProgramPart {
 		}
 	}
 
+	@Override
 	public String toString() {
 		return "parameter " +  getName() + " of method "
 				+ owner.getSignature().toHRString();

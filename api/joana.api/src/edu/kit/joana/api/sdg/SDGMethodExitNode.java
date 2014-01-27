@@ -21,6 +21,7 @@ public class SDGMethodExitNode extends SDGNodeWrapper {
 		this.type = JavaType.parseSingleTypeFromString(node.getType(), Format.BC);
 	}
 
+	@Override
 	public SDGNode getNode() {
 		return node;
 	}

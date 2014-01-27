@@ -68,6 +68,7 @@ public class SDGActualParameter implements SDGCallPart  {
 		return v.visitActualParameter(this, data);
 	}
 	
+	@Override
 	public SDGCall getOwningCall() {
 		return owningCall;
 	}
@@ -145,6 +146,7 @@ public class SDGActualParameter implements SDGCallPart  {
 		}
 	}
 	
+	@Override
 	public String toString() {
 		return owningCall.toString() + "->act" + index;
 	}

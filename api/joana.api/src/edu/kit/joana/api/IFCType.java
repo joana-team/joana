@@ -10,6 +10,7 @@ package edu.kit.joana.api;
 public enum IFCType {
 	POSSIBILISTIC, PROBABILISTIC_WITH_SIMPLE_MHP, PROBABILISTIC_WITH_PRECISE_MHP;
 
+	@Override
 	public String toString() {
 		switch (this) {
 		case POSSIBILISTIC:

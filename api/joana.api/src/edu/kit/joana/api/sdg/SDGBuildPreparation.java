@@ -447,6 +447,7 @@ public final class SDGBuildPreparation {
 			this.fieldPropagation = fieldPropagation;
 		}
 
+		@Override
 		public String toString() {
 			return LogUtil.attributesToString(this);
 		}

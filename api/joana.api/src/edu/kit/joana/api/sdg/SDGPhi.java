@@ -34,6 +34,7 @@ public class SDGPhi implements SDGProgramPart {
 		return owner;
 	}
 
+	@Override
 	public String toString() {
 		return node.getLabel();
 	}

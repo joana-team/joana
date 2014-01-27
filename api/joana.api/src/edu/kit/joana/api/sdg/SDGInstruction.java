@@ -36,6 +36,7 @@ Comparable<SDGInstruction> {
 		return rootNode.getBytecodeIndex();
 	}
 
+	@Override
 	public String toString() {
 		return "(" + owner.getSignature().toHRString() + ":"
 		+ rootNode.getBytecodeIndex() + ") " + rootNode.getLabel();

@@ -25,6 +25,7 @@ public class SDGCallExceptionNode extends SDGNodeWrapper implements SDGCallPart 
 		this.owningCall = owningCall;
 	}
 	
+	@Override
 	public SDGCall getOwningCall() {
 		return owningCall;
 	}
@@ -37,6 +38,7 @@ public class SDGCallExceptionNode extends SDGNodeWrapper implements SDGCallPart 
 		return v.visitCallExceptionNode(this, data);
 	}
 	
+	@Override
 	public String toString() {
 		return owningCall.toString() + "->exc";
 	}

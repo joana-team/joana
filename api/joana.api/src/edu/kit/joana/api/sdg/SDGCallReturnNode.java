@@ -27,6 +27,7 @@ public class SDGCallReturnNode extends SDGNodeWrapper implements SDGCallPart {
 		this.owningCall = owningCall;
 	}
 	
+	@Override
 	public SDGCall getOwningCall() {
 		return owningCall;
 	}
@@ -39,6 +40,7 @@ public class SDGCallReturnNode extends SDGNodeWrapper implements SDGCallPart {
 		return v.visitCallReturnNode(this, data);
 	}
 	
+	@Override
 	public String toString() {
 		return owningCall.toString() + "->ret";
 	}

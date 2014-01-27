@@ -76,12 +76,14 @@ public class SDGAttribute implements SDGProgramPart {
 		return ret;
 	}
 
+	@Override
 	public Collection<SDGNode> getAttachedSourceNodes() {
 		final Set<SDGNode> ret = new HashSet<SDGNode>();
 		ret.addAll(srcNodes);
 		return ret;
 	}
 
+	@Override
 	public Collection<SDGNode> getAttachedSinkNodes() {
 		final Set<SDGNode> ret = new HashSet<SDGNode>();
 		ret.addAll(snkNodes);

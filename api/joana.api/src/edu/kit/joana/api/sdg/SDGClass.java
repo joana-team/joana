@@ -95,6 +95,7 @@ public class SDGClass implements SDGProgramPart {
 		return methods;
 	}
 
+	@Override
 	public String toString() {
 		return typeName.toHRString();
 	}

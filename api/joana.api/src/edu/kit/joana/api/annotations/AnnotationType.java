@@ -11,6 +11,7 @@ package edu.kit.joana.api.annotations;
 public enum AnnotationType {
 	SOURCE, SINK, DECLASS;
 
+	@Override
 	public String toString() {
 		switch (this) {
 		case SOURCE:

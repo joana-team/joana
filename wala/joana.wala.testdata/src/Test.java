@@ -14,6 +14,7 @@ public class Test {
 
 	static class A {
 		A2 f;
+		int x;
 	}
 
 	static class A2 {
@@ -26,6 +27,15 @@ public class Test {
 		int f3;
 	}
 
+	//@ifc: !{a,b} => a.x -!> b.x
+	public void exceptionalFlow1(A a, A b) {
+		if (a.x == 1) {
+			((A) null).x = 3;//throw new IllegalArgumentException();
+		} 
+
+		b.x = 2;
+	}
+	
 	//
 	//@ifc: ? => b -!> \result
 	public static A2 foo1(A a, A b) {

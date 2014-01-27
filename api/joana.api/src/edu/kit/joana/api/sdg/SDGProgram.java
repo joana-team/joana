@@ -653,7 +653,7 @@ final class SDGClassComputation {
 		}
 	}
 
-	private void seenAttribute(SDGNode node, Operation op) {
+	private void seenAttribute(SDGNode node) {
 
 		Set<SDGNode> fieldNodes = new HashSet<SDGNode>();
 		// Set<SDGNode> fieldNodes = new HashSet<SDGNode>();
@@ -770,7 +770,7 @@ final class SDGClassComputation {
 				case MODIFY:
 				case REFERENCE:
 					if (node.getBytecodeIndex() >= 0) {
-						seenAttribute(node, node.getOperation());
+						seenAttribute(node);
 					}
 					break;
 				case DECLARATION:

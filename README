@@ -58,6 +58,8 @@ ant
 
 1. General remarks
 
+Joana needs Java 1.6 or above.
+
 We suggest to use and compile Joana using eclipse, but you may also just
 build and use its core parts with ant. Please see the "Building Joana with
 ant" section for details.
@@ -67,18 +69,24 @@ Joana:
 
 Eclipse >= 3.7 
     Download classic package, as it contains already plug-in-development
-    stuff.
-Plug-ins needed:
-    Graphical Editing Framework GEF SDK
-    Graphical Editing Framework Zest SDK
-    Dynamic Languages Toolkit - Core Framework 3.0.1
+    stuff. Do not forget to set an API Baseline!
+
+We use the ANTLR parser generator to generate various parsers for Joana from 
+grammars. We provide an ANTLRv3 jar and the generated parser source code is 
+also present in the git repo, so you don't need to install ANTLR or generate 
+any parsers. However, if you want to edit or extend the parsers from within 
+eclipse, you may want to install the ANTLRv3 IDE plug-in 
+(http://antlrv3ide.sourceforge.net/). Please note that the "v3" denotes the 
+version of ANTLR itself, not the version of the actual plug-in.
+ 
+The ANTLRv3 plugin needs also the following plug-ins:
+    * Dynamic Languages Toolkit - Core Framework 3.0.1
         (http://www.eclipse.org/dltk)
         Important: Use version 3.0.1 as ANTLR v3 IDE does not work with a
         newer version. You may have to install this manually on newer
         eclipse versions.
-    ANTLR v3 IDE (http://antlrv3ide.sourceforge.net/)
-    scala-ide (if DPN related analysis is needed)
-Java >= 1.6
+    * Graphical Editing Framework GEF SDK
+    * Graphical Editing Framework Zest SDK
 
 Eclipse should have >= 1024M heap space when running.
 
@@ -118,14 +126,31 @@ See further information on setting up WALA at wala.sf.net.
 
 3. Add Joana projects to workspace
 
-You may want to add at least all projects in
+You may want to add at least the following projects to your workspace, in order to get the core parts of Joana:
 
-wala/
-ifc/sdg
-contrib/lib
-util/
+in wala/:
+  joana.wala.core
+  joana.wala.flowless
+  joana.wala.summary
+  joana.wala.util
 
-to your workspace, in order to get the core parts of Joana.
+in ifc/sdg:
+  - all -
+
+in contrib/lib:
+  joana.contrib.lib
+  
+in util:
+  joana.util
+  
+For use of the Joana API, also import (from api/)
+  joana.api
+  joana.api.annotations.passon
+
+If you also want to add the eclipse project of the IFC Console, you need additionally (from ui/ifc/wala):
+  joana.ui.ifc.wala.console
+
+
 
 
 ========================

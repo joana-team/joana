@@ -10,18 +10,18 @@ package edu.kit.joana.ui.ifc.wala.console.io;
 import java.io.PrintStream;
 import java.util.Collection;
 
-import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.annotations.AnnotationType;
+import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.sdg.SDGActualParameter;
 import edu.kit.joana.api.sdg.SDGAttribute;
 import edu.kit.joana.api.sdg.SDGCall;
 import edu.kit.joana.api.sdg.SDGCallExceptionNode;
 import edu.kit.joana.api.sdg.SDGCallReturnNode;
 import edu.kit.joana.api.sdg.SDGClass;
+import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGInstruction;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGMethodExitNode;
-import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGPhi;
 import edu.kit.joana.api.sdg.SDGProgramPartVisitor;
 
@@ -71,7 +71,7 @@ public class IFCAnnotationDumper extends SDGProgramPartVisitor<Void, Void> {
 		return null;
 		// instr \\((.*?):(\\d+)\\)
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCall(edu.kit.joana.api.sdg.SDGCall, java.lang.Object)
 	 */
@@ -80,7 +80,7 @@ public class IFCAnnotationDumper extends SDGProgramPartVisitor<Void, Void> {
 		visitInstruction(c, data);
 		return null;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitActualParameter(edu.kit.joana.api.sdg.SDGActualParameter, java.lang.Object)
 	 */
@@ -88,7 +88,7 @@ public class IFCAnnotationDumper extends SDGProgramPartVisitor<Void, Void> {
 	protected Void visitActualParameter(SDGActualParameter ap, Void data) {
 		return null;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCallExceptionNode(edu.kit.joana.api.sdg.SDGCallExceptionNode, java.lang.Object)
 	 */

@@ -10,7 +10,6 @@ package edu.kit.joana.api.sdg;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,20 +34,16 @@ import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.api.annotations.AnnotationTypeBasedNodeCollector;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.graph.SDG;
-import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.graph.SDGNode.Operation;
 import edu.kit.joana.ifc.sdg.graph.chopper.Chopper;
 import edu.kit.joana.ifc.sdg.graph.chopper.NonSameLevelChopper;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.mhpoptimization.PruneInterferences;
-import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.ifc.sdg.util.JavaType.Format;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
-import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.util.io.IOFactory;
 import edu.kit.joana.wala.core.NullProgressMonitor;
@@ -78,6 +73,22 @@ public class SDGProgram {
 
 		public String getName() {
 			return name;
+		}
+
+		/**
+		 * Extracts the class loader from the given entry node. Does not work if the given node is not an entry node.
+		 * @param entry entry node to extract class loader from
+		 * @return class loader value from the given entry node
+		 */
+		public static ClassLoader fromSDGNode(SDGNode entry) {
+			String clsLoader = entry.getClassLoader();
+			if (clsLoader.equals("Application")) {
+				return ClassLoader.APPLICATION;
+			} else if (clsLoader.equals("Primordial")) {
+				return ClassLoader.PRIMORDIAL;
+			} else {
+				return new ClassLoader(clsLoader);
+			}
 		}
 
 		/* (non-Javadoc)
@@ -119,6 +130,7 @@ public class SDGProgram {
 
 	private boolean isBuilt = false;
 	private final SDGClassResolver classRes = new SDGClassResolver();
+	private final SDGClassComputation classComp;
 	private final Set<SDGClass> classes = new HashSet<SDGClass>();
 	private final SDG sdg;
 	private SDGProgramPartParserBC ppartParser;
@@ -129,6 +141,7 @@ public class SDGProgram {
 	public SDGProgram(SDG sdg) {
 		this.sdg = sdg;
 		this.ppartParser = new SDGProgramPartParserBC(this);
+		this.classComp = new SDGClassComputation(sdg);
 	}
 
 	public static SDGProgram loadSDG(String path) throws IOException {
@@ -255,7 +268,7 @@ public class SDGProgram {
 
 	private void build() {
 		if (!isBuilt) {
-			this.classes.addAll(new SDGClassComputation(sdg).compute());
+			this.classes.addAll(classComp.compute());
 			this.classRes.setClasses(classes);
 			isBuilt = true;
 		}
@@ -306,21 +319,18 @@ public class SDGProgram {
 	}
 
 	public ClassLoader getClassLoader(SDGInstruction i) {
-		return getClassLoader(i.getNode());
+		if (classComp.getNodes(i).isEmpty()) {
+			return null;
+		} else {
+			return ClassLoader.fromSDGNode(classComp.getNodes(i).iterator().next());
+		}
 	}
 
 	public ClassLoader getClassLoader(SDGMethod m) {
-		return getClassLoader(m.getEntry());
-	}
-
-	private ClassLoader getClassLoader(SDGNode node) {
-		String clsLoader = getSDG().getEntry(node).getClassLoader();
-		if (clsLoader.equals("Application")) {
-			return ClassLoader.APPLICATION;
-		} else if (clsLoader.equals("Primordial")) {
-			return ClassLoader.PRIMORDIAL;
+		if (classComp.getEntries(m).isEmpty()) {
+			return null;
 		} else {
-			return new ClassLoader(clsLoader);
+			return ClassLoader.fromSDGNode(classComp.getEntries(m).iterator().next());
 		}
 	}
 
@@ -392,7 +402,7 @@ public class SDGProgram {
 	public SDGProgramPart findCoveringProgramPart(SDGNode node) {
 		Set<SDGProgramPart> candidates = new HashSet<SDGProgramPart>();
 		for (SDGProgramPart ppart : getAllProgramParts()) {
-			if (ppart.covers(node)) {
+			if (covers(ppart, node)) {
 				candidates.add(ppart);
 			}
 		}
@@ -407,6 +417,10 @@ public class SDGProgram {
 		return null;
 	}
 
+	public boolean covers(SDGProgramPart ppart, SDGNode node) {
+		AnnotationTypeBasedNodeCollector c = new AnnotationTypeBasedNodeCollector(sdg);
+		return c.collectNodes(ppart, AnnotationType.SOURCE).contains(node) || c.collectNodes(ppart, AnnotationType.SINK).contains(node);
+	}
 	/**
 	 * Given a source and a sink instructions, computes a chop of these two program parts and collects all instructions which are on the way.
 	 * This works only for sequential programs
@@ -421,7 +435,7 @@ public class SDGProgram {
 		Set<SDGInstruction> ret = new HashSet<SDGInstruction>();
 		for (SDGNode n : chop) {
 			SDGMethod m = getMethod(this.sdg.getEntry(n).getBytecodeMethod());
-			SDGInstruction i = m.getCoveringInstruction(n);
+			SDGInstruction i = m.getInstructionWithBCIndex(n.getBytecodeIndex());
 			if (i != null) {
 				ret.add(i);
 			}
@@ -433,6 +447,15 @@ public class SDGProgram {
 	public Collection<SDGMethod> getMethods(String methodDesc) {
 		build();
 		return ppartParser.getMethods(methodDesc);
+	}
+
+	public Collection<SDGMethod> getAllMethods() {
+		build();
+		Set<SDGMethod> ret = new HashSet<SDGMethod>();
+		for (SDGClass cl : getClasses()) {
+			ret.addAll(cl.getMethods());
+		}
+		return ret;
 	}
 
 	public SDGProgramPart getPart(String partDesc) {
@@ -603,192 +626,6 @@ public class SDGProgram {
 
 	}
 
-}
-
-final class SDGClassComputation {
-
-	private static final Logger debug = Log.getLogger(Log.L_API_DEBUG);
-
-	private final SDG sdg;
-	private final Map<JavaType, Set<SDGNode>> seenClasses = new HashMap<JavaType, Set<SDGNode>>();
-	private final Map<JavaType, Map<String, Pair<Set<SDGNode>, Set<SDGNode>>>> seenAttributes = new HashMap<JavaType, Map<String, Pair<Set<SDGNode>, Set<SDGNode>>>>();
-	private final Map<JavaType, Set<SDGNode>> seenMethods = new HashMap<JavaType, Set<SDGNode>>();
-
-	SDGClassComputation(SDG sdg) {
-		this.sdg = sdg;
-	}
-
-	private void seenDeclaration(SDGNode declNode) {
-		if (debug.isEnabled()) {
-			debug.outln("seen declaration node " + declNode + " of type " + declNode.getType());
-		}
-		JavaType type = JavaType.parseSingleTypeFromString(declNode.getType(), Format.BC);
-		addDeclarationNode(type, declNode);
-
-	}
-
-	private void addDeclarationNode(JavaType type, SDGNode declNode) {
-		seenClass(type);
-		seenClasses.get(type).add(declNode);
-	}
-
-	private void seenMethod(SDGNode entry) {
-		if (entry.getBytecodeName() != null) {
-			int offset = entry.getBytecodeName().lastIndexOf('.');
-			if (offset >= 0) {
-				JavaType typeName = JavaType.parseSingleTypeFromString(entry.getBytecodeName().substring(0, offset),
-						Format.HR);
-				assert typeName != null;
-				seenClass(typeName);
-
-				Set<SDGNode> declaredMethods;
-				if (!seenMethods.containsKey(typeName)) {
-					declaredMethods = new HashSet<SDGNode>();
-					seenMethods.put(typeName, declaredMethods);
-				} else {
-					declaredMethods = seenMethods.get(typeName);
-				}
-				declaredMethods.add(entry);
-			}
-		}
-	}
-
-	private void seenAttribute(SDGNode node) {
-
-		Set<SDGNode> fieldNodes = new HashSet<SDGNode>();
-		// Set<SDGNode> fieldNodes = new HashSet<SDGNode>();
-
-		for (SDGEdge e : sdg.outgoingEdgesOf(node)) {
-			if (e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR) {
-				int bcIndex = e.getTarget().getBytecodeIndex();
-				if (bcIndex == BytecodeLocation.STATIC_FIELD || bcIndex == BytecodeLocation.OBJECT_FIELD
-						|| bcIndex == BytecodeLocation.ARRAY_FIELD) {
-					fieldNodes.add(e.getTarget());
-				}
-			}
-		}
-
-		for (SDGNode fNode : fieldNodes) {
-			String bcMethod = fNode.getBytecodeName();
-			int offset = bcMethod.lastIndexOf('.');
-			if (offset >= 0) {
-				JavaType typeName = JavaType.parseSingleTypeFromString(bcMethod.substring(0, offset), Format.BC);
-				String attrName = bcMethod.substring(offset + 1);
-				addAttributeNode(typeName, attrName, fNode, AnnotationType.SOURCE);
-				addAttributeNode(typeName, attrName, fNode, AnnotationType.SINK);
-				addDDReachableSinkNodes(typeName, attrName, fNode);
-			}
-		}
-	}
-
-	// TODO: Why is this kind of semi-interprocedural data-forward-slice
-	// sufficient???
-	private void addDDReachableSinkNodes(JavaType declaringClass, String attrName, SDGNode start) {
-		if (start.getBytecodeIndex() == BytecodeLocation.ARRAY_FIELD
-				|| start.getBytecodeIndex() == BytecodeLocation.OBJECT_FIELD
-				|| start.getBytecodeIndex() == BytecodeLocation.STATIC_FIELD) {
-
-			LinkedList<SDGNode> worklist = new LinkedList<SDGNode>();
-			Set<SDGNode> done = new HashSet<SDGNode>();
-			worklist.add(start);
-			while (!worklist.isEmpty()) {
-				SDGNode next = worklist.poll();
-
-				for (SDGEdge e : sdg.outgoingEdgesOf(next)) {
-					SDGNode n = e.getTarget();
-					switch (e.getKind()) {
-					case DATA_ALIAS:
-					case DATA_DEP:
-					case DATA_DEP_EXPR_REFERENCE:
-					case DATA_DEP_EXPR_VALUE:
-					case DATA_HEAP:
-					case DATA_LOOP:
-					case SUMMARY:
-					case PARAMETER_STRUCTURE:
-						if (!done.contains(n)) {
-							worklist.add(n);
-						}
-						if (n.getKind() == SDGNode.Kind.ACTUAL_OUT || n.getOperation() == Operation.MODIFY) {
-							addAttributeNode(declaringClass, attrName, n, AnnotationType.SINK);
-						}
-						done.add(n);
-						break;
-					default:
-						break;
-					}
-				}
-			}
-		}
-	}
-
-	private void seenClass(JavaType type) {
-		if (!seenClasses.containsKey(type)) {
-			seenClasses.put(type, new HashSet<SDGNode>());
-		}
-	}
-
-	private void addAttributeNode(JavaType declaringClass, String attrName, SDGNode node, AnnotationType type) {
-		seenClass(declaringClass);
-		Map<String, Pair<Set<SDGNode>, Set<SDGNode>>> attrMap;
-		Set<SDGNode> attrSrcs;
-		Set<SDGNode> attrSnks;
-		if (!seenAttributes.containsKey(declaringClass)) {
-			attrMap = new HashMap<String, Pair<Set<SDGNode>, Set<SDGNode>>>();
-			seenAttributes.put(declaringClass, attrMap);
-		} else {
-			attrMap = seenAttributes.get(declaringClass);
-		}
-
-		if (!attrMap.containsKey(attrName)) {
-			attrSrcs = new HashSet<SDGNode>();
-			attrSnks = new HashSet<SDGNode>();
-			attrMap.put(attrName, Pair.pair(attrSrcs, attrSnks));
-		} else {
-			Pair<Set<SDGNode>, Set<SDGNode>> p = attrMap.get(attrName);
-			attrSrcs = p.getFirst();
-			attrSnks = p.getSecond();
-		}
-
-		if (type == AnnotationType.SOURCE)
-			attrSrcs.add(node);
-		else {
-			attrSnks.add(node);
-		}
-	}
-
-	public List<SDGClass> compute() {
-		List<SDGClass> result = new ArrayList<SDGClass>();
-
-		for (SDGNode node : sdg.vertexSet()) {
-			switch (node.getKind()) {
-			case ENTRY:
-				seenMethod(node);
-				break;
-			default:
-				switch (node.getOperation()) {
-				case ASSIGN:
-				case MODIFY:
-				case REFERENCE:
-					if (node.getBytecodeIndex() >= 0) {
-						seenAttribute(node);
-					}
-					break;
-				case DECLARATION:
-					seenDeclaration(node);
-					break;
-				default:
-					break;
-				}
-			}
-		}
-
-		for (JavaType typeName : seenClasses.keySet()) {
-			result.add(new SDGClass(typeName, seenClasses.get(typeName), seenAttributes.get(typeName), seenMethods
-					.get(typeName), sdg));
-		}
-
-		return result;
-	}
 }
 
 class SDGClassResolver {

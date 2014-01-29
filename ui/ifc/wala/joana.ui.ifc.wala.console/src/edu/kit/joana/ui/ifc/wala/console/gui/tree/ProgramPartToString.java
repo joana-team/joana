@@ -16,20 +16,19 @@ import edu.kit.joana.api.sdg.SDGCall;
 import edu.kit.joana.api.sdg.SDGCallExceptionNode;
 import edu.kit.joana.api.sdg.SDGCallReturnNode;
 import edu.kit.joana.api.sdg.SDGClass;
+import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGInstruction;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGMethodExitNode;
-import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGPhi;
 import edu.kit.joana.api.sdg.SDGProgramPartVisitor;
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 
 class StdProgramPartToString extends ProgramPartToString {
 
-	private static final Logger debug = Log.getLogger(Log.L_CONSOLE_DEBUG); 
-	
+	private static final Logger debug = Log.getLogger(Log.L_CONSOLE_DEBUG);
+
 	@Override
 	public String visitClass(SDGClass cl, Void data) {
 		return cl.toString();
@@ -47,7 +46,7 @@ class StdProgramPartToString extends ProgramPartToString {
 
 	@Override
 	public String visitParameter(SDGFormalParameter p, Void data) {
-		return p.getInRoot().getLabel() + ": " + p.getType().toHRString();
+		return p.getLabel() + ": " + p.getType().toHRString();
 	}
 
 	@Override
@@ -58,13 +57,11 @@ class StdProgramPartToString extends ProgramPartToString {
 	private static final NumberFormat NF = new DecimalFormat("0000");
 	@Override
 	public String visitInstruction(SDGInstruction i, Void data) {
-		final SDGNode node = i.getNode();
-
 		if (debug.isEnabled()) {
-			return NF.format(i.getBytecodeIndex()) + ": " + node.getOperation()
-				+ " # " + node.getLabel() + " of type " + node.getType();
+			return NF.format(i.getBytecodeIndex()) + ": " + i.getOperation()
+				+ " # " + i.getLabel() + " of type " + i.getType();
 		} else {
-			return NF.format(i.getBytecodeIndex()) + ": " + node.getLabel();
+			return NF.format(i.getBytecodeIndex()) + ": " + i.getLabel();
 		}
 	}
 
@@ -88,7 +85,7 @@ class StdProgramPartToString extends ProgramPartToString {
 	protected String visitCall(SDGCall c, Void data) {
 		return visitInstruction(c, data);
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitCallReturnNode(edu.kit.joana.api.sdg.SDGCallReturnNode, java.lang.Object)
 	 */

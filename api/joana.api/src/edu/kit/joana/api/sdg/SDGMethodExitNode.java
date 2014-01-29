@@ -8,29 +8,23 @@
 package edu.kit.joana.api.sdg;
 
 
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.util.JavaType;
-import edu.kit.joana.ifc.sdg.util.JavaType.Format;
 
-public class SDGMethodExitNode extends SDGNodeWrapper {
+public class SDGMethodExitNode implements SDGProgramPart {
 
+	private SDGMethod owningMethod;
 	private JavaType type;
 
-	SDGMethodExitNode(SDGNode node, SDGMethod owningMethod) {
-		super(node, owningMethod);
-		this.type = JavaType.parseSingleTypeFromString(node.getType(), Format.BC);
-	}
-
-	@Override
-	public SDGNode getNode() {
-		return node;
+	SDGMethodExitNode(SDGMethod owningMethod, JavaType type) {
+		this.owningMethod = owningMethod;
+		this.type = type;
 	}
 
 	public JavaType getType() {
 		return type;
 	}
 
-	
+
 	@Override
 	public String toString() {
 		return "exit of method " + getOwningMethod().getSignature().toHRString();
@@ -42,5 +36,13 @@ public class SDGMethodExitNode extends SDGNodeWrapper {
 	@Override
 	public <R, D> R acceptVisitor(SDGProgramPartVisitor<R, D> v, D data) {
 		return v.visitExit(this, data);
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPart#getOwningMethod()
+	 */
+	@Override
+	public SDGMethod getOwningMethod() {
+		return owningMethod;
 	}
 }

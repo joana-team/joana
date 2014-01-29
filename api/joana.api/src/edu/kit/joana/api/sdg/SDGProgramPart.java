@@ -7,9 +7,6 @@
  */
 package edu.kit.joana.api.sdg;
 
-import java.util.Collection;
-
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
 
 /**
@@ -21,11 +18,4 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 public interface SDGProgramPart {
 	<R, D> R acceptVisitor(SDGProgramPartVisitor<R, D> v, D data);
 	SDGMethod getOwningMethod();
-	boolean covers(SDGNode node);
-	Collection<SDGNode> getAttachedNodes();
-	Collection<SDGNode> getAttachedSourceNodes();
-	Collection<SDGNode> getAttachedSinkNodes();
-
-	SDGProgramPart getCoveringComponent(SDGNode node);
-
 }

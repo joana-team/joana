@@ -19,6 +19,7 @@ import edu.kit.joana.api.sdg.SDGCall;
 import edu.kit.joana.api.sdg.SDGCallExceptionNode;
 import edu.kit.joana.api.sdg.SDGCallReturnNode;
 import edu.kit.joana.api.sdg.SDGClass;
+import edu.kit.joana.api.sdg.SDGClassComputation;
 import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGInstruction;
 import edu.kit.joana.api.sdg.SDGMethod;
@@ -34,54 +35,62 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  * @author Martin Mohr
  */
 public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<SDGNode>, AnnotationType> {
-	
+
 	private SDG sdg;
-	
+	private final SDGClassComputation pp2NodeTrans;
+
 	public AnnotationTypeBasedNodeCollector(SDG sdg) {
-		this.sdg = sdg;
+		this(sdg, new SDGClassComputation(sdg));
 	}
-	
+
+	public AnnotationTypeBasedNodeCollector(SDG sdg, SDGClassComputation pp2NodeTrans) {
+		this.sdg = sdg;
+		this.pp2NodeTrans = pp2NodeTrans;
+	}
+
 	public Set<SDGNode> collectNodes(SDGProgramPart ppart, AnnotationType type) {
 		return ppart.acceptVisitor(this, type);
 	}
 
 	@Override
 	protected Set<SDGNode> visitParameter(SDGFormalParameter param, AnnotationType type) {
-		assert param.getOutRoot() != null || param.getInRoot() != null;
+		assert !pp2NodeTrans.getOutRoots(param).isEmpty() || !pp2NodeTrans.getInRoots(param).isEmpty();
 		Set<SDGNode> ret = new HashSet<SDGNode>();
-		addAllAppropriateParameterNodesFrom(param.getInRoot(), type, ret);
-		if (param.getInRoot() != null && type == AnnotationType.SINK) {
-			for (SDGNode actOut : getCorrespondingActOuts(param)) {
-				/**
-				 *  also mark all act_out nodes of this parameters as source, to capture
-				 *  possible information flows from this parameter to the environment
-				 *  just marking the formal-in would not suffice
-				 *  TODO: think about this!
-				 **/
-				addAllAppropriateParameterNodesFrom(actOut, type, ret);
-			}
+		addAllAppropriateParameterNodesFrom(pp2NodeTrans.getInRoots(param), type, ret);
+		if (pp2NodeTrans.getInRoots(param) != null && type == AnnotationType.SINK) {
+			/**
+			 *  also mark all act_out nodes of this parameters as source, to capture
+			 *  possible information flows from this parameter to the environment
+			 *  just marking the formal-in would not suffice
+			 *  TODO: think about this!
+			 **/
+			addAllAppropriateParameterNodesFrom(getCorrespondingActOuts(param), type, ret);
 		}
-		
-		addAllAppropriateParameterNodesFrom(param.getOutRoot(), type, ret);
+
+		addAllAppropriateParameterNodesFrom(pp2NodeTrans.getOutRoots(param), type, ret);
 		return ret;
 	}
-	
-	private Collection<SDGNode> getCorrespondingActOuts(SDGFormalParameter param) {
-		return getCorrespondingActuals(param.getOutRoot());
+
+	private Set<SDGNode> getCorrespondingActOuts(SDGFormalParameter param) {
+		return getCorrespondingActuals(pp2NodeTrans.getOutRoots(param));
 	}
-	
-	private Collection<SDGNode> getCorrespondingActuals(SDGNode formal) {
-		if (formal == null) {
-			return Collections.emptyList();
+
+	private Set<SDGNode> getCorrespondingActuals(Set<SDGNode> formals) {
+		if (formals.isEmpty()) {
+			return Collections.emptySet();
 		} else {
-			switch (formal.getKind()) {
-			case FORMAL_IN:
-				return sdg.getActualIns(formal);
-			case FORMAL_OUT:
-				return sdg.getActualOuts(formal);
-			default:
-				throw new IllegalStateException();
+			Set<SDGNode> ret = new HashSet<SDGNode>();
+			for (SDGNode formal : formals) {
+				switch (formal.getKind()) {
+				case FORMAL_IN:
+					ret.addAll(sdg.getActualIns(formal));
+				case FORMAL_OUT:
+					ret.addAll(sdg.getActualOuts(formal));
+				default:
+					throw new IllegalStateException();
+				}
 			}
+			return ret;
 		}
 	}
 
@@ -91,7 +100,7 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 		if (instr instanceof SDGCall) {
 			throw new IllegalArgumentException(instr.toString());
 		}
-		return Collections.singleton(instr.getNode());
+		return pp2NodeTrans.getNodes(instr);
 	}
 
 	@Override
@@ -113,10 +122,10 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 		Collection<SDGNode> toSelect;
 		switch (type) {
 		case SOURCE:
-			toSelect = a.getAttachedSourceNodes();
+			toSelect = pp2NodeTrans.getSourceNodes(a);
 			break;
 		case SINK:
-			toSelect = a.getAttachedSinkNodes();
+			toSelect =  pp2NodeTrans.getSinkNodes(a);
 			break;
 		default:
 			throw new UnsupportedOperationException("not implemented yet!");
@@ -127,7 +136,7 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 	@Override
 	protected Set<SDGNode> visitMethod(SDGMethod method, AnnotationType type) {
 		Set<SDGNode> ret = new HashSet<SDGNode>();
-		ret.add(method.getEntry());
+		ret.addAll(pp2NodeTrans.getEntries(method));
 		for (SDGFormalParameter fp : method.getParameters()) {
 			ret.addAll(visitParameter(fp, type));
 		}
@@ -138,15 +147,15 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 	@Override
 	protected Set<SDGNode> visitExit(SDGMethodExitNode exit, AnnotationType type) {
 		Set<SDGNode> ret = new HashSet<SDGNode>();
-		addAllAppropriateParameterNodesFrom(exit.getNode(), type, ret);
+		addAllAppropriateParameterNodesFrom(pp2NodeTrans.getExits(exit), type, ret);
 		return ret;
 	}
- 
+
 	@Override
 	protected Set<SDGNode> visitPhi(SDGPhi phi, AnnotationType type) {
-		throw new UnsupportedOperationException("not implemented yet!");
+		return Collections.emptySet();
 	}
-	
+
 	private static final boolean isActualNodeOfKind(SDGNode node, AnnotationType type) {
 		return ((type == AnnotationType.SINK && node.getKind() == SDGNode.Kind.ACTUAL_IN) || (type == AnnotationType.SOURCE && node
 				.getKind() == SDGNode.Kind.ACTUAL_OUT));
@@ -178,33 +187,32 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 	@Override
 	protected Set<SDGNode> visitActualParameter(SDGActualParameter ap, AnnotationType type) {
 		Set<SDGNode> ret = new HashSet<SDGNode>();
-		addAllAppropriateParameterNodesFrom(ap.getInRoot(), type, ret);
-		addAllAppropriateParameterNodesFrom(ap.getOutRoot(), type, ret);
+		addAllAppropriateParameterNodesFrom(pp2NodeTrans.getInRoots(ap), type, ret);
+		addAllAppropriateParameterNodesFrom(pp2NodeTrans.getOutRoots(ap), type, ret);
 		return ret;
 	}
-	
-	private void addAllAppropriateParameterNodesFrom(SDGNode start, AnnotationType type, Set<SDGNode> base) {
-		if (start != null) {
-			LinkedList<SDGNode> toDo = new LinkedList<SDGNode>();
-			toDo.add(start);
-			Set<SDGNode> visited = new HashSet<SDGNode>();
-			// add all parameter nodes of right type and reachable by PS edges
-			while (!toDo.isEmpty()) {
-				SDGNode next = toDo.poll();
-				visited.add(next);
-				if (isParameterNodeOfKind(next, type)) {
-					base.add(next);
-				}
-				for (SDGEdge e : sdg.getOutgoingEdgesOfKind(next, SDGEdge.Kind.PARAMETER_STRUCTURE)) {
-					SDGNode succNode = e.getTarget();
-					if (!visited.contains(succNode)) {
-						toDo.add(succNode);
-					}
+
+	private void addAllAppropriateParameterNodesFrom(Set<SDGNode> start, AnnotationType type, Set<SDGNode> base) {
+		LinkedList<SDGNode> toDo = new LinkedList<SDGNode>();
+		toDo.addAll(start);
+		Set<SDGNode> visited = new HashSet<SDGNode>();
+		// add all parameter nodes of right type and reachable by PS edges
+		while (!toDo.isEmpty()) {
+			SDGNode next = toDo.poll();
+			visited.add(next);
+			if (isParameterNodeOfKind(next, type)) {
+				base.add(next);
+			}
+			for (SDGEdge e : sdg.getOutgoingEdgesOfKind(next, SDGEdge.Kind.PARAMETER_STRUCTURE)) {
+				SDGNode succNode = e.getTarget();
+				if (!visited.contains(succNode)) {
+					toDo.add(succNode);
 				}
 			}
 		}
+
 	}
-	
+
 	private boolean isParameterNodeOfKind(SDGNode param, AnnotationType type) {
 		return isActualNodeOfKind(param, type) || isFormalNodeOfKind(param, type);
 	}
@@ -215,7 +223,7 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 	@Override
 	protected Set<SDGNode> visitCall(SDGCall c, AnnotationType type) {
 		Set<SDGNode> ret = new HashSet<SDGNode>();
-		ret.add(c.getNode());
+		ret.addAll(pp2NodeTrans.getNodes(c));
 		for (SDGActualParameter ap : c.getActualParameters()) {
 			ret.addAll(visitActualParameter(ap, type));
 		}
@@ -235,7 +243,7 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 	@Override
 	protected Set<SDGNode> visitCallReturnNode(SDGCallReturnNode c, AnnotationType type) {
 		Set<SDGNode> ret = new HashSet<SDGNode>();
-		addAllAppropriateParameterNodesFrom(c.getNode(), type, ret);
+		addAllAppropriateParameterNodesFrom(pp2NodeTrans.getNodes(c), type, ret);
 		return ret;
 	}
 
@@ -245,7 +253,7 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 	@Override
 	protected Set<SDGNode> visitCallExceptionNode(SDGCallExceptionNode c, AnnotationType type) {
 		Set<SDGNode> ret = new HashSet<SDGNode>();
-		addAllAppropriateParameterNodesFrom(c.getNode(), type, ret);
+		addAllAppropriateParameterNodesFrom(pp2NodeTrans.getNodes(c), type, ret);
 		return ret;
 	}
 }

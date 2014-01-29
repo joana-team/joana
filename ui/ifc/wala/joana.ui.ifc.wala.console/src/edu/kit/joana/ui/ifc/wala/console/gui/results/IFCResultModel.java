@@ -129,7 +129,7 @@ public class IFCResultModel extends DefaultTreeModel {
                             b.getOwningMethod().getSignature().toBCString());
                     if (res == 0) {
                         // Compare BCI
-                        res = Double.compare(a.getNode().getBytecodeIndex(), b.getNode().getBytecodeIndex());
+                        res = Double.compare(a.getBytecodeIndex(), b.getBytecodeIndex());
                     }
                     return res;
                 }
@@ -154,7 +154,7 @@ public class IFCResultModel extends DefaultTreeModel {
                 }
             }
 
-            final String line = String.format("%04d:  %s", instr.getNode().getBytecodeIndex(), instr.getNode().getLabel());
+            final String line = String.format("%04d:  %s", instr.getBytecodeIndex(), instr.getLabel());
             final IFCResultNode cNode  = new IFCResultNode(line, false);
             methodNode.add(cNode);
         }

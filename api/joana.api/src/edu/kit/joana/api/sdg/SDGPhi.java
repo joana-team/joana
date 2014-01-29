@@ -7,10 +7,6 @@
  */
 package edu.kit.joana.api.sdg;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
 
@@ -37,36 +33,5 @@ public class SDGPhi implements SDGProgramPart {
 	@Override
 	public String toString() {
 		return node.getLabel();
-	}
-
-	@Override
-	public boolean covers(SDGNode node) {
-		return this.node.equals(node);
-	}
-
-	@Override
-	public Collection<SDGNode> getAttachedNodes() {
-		Set<SDGNode> ret = new HashSet<SDGNode>();
-		ret.add(this.node);
-		return ret;
-	}
-
-	@Override
-	public Collection<SDGNode> getAttachedSourceNodes() {
-		return getAttachedNodes();
-	}
-
-	@Override
-	public Collection<SDGNode> getAttachedSinkNodes() {
-		return getAttachedNodes();
-	}
-
-	@Override
-	public SDGProgramPart getCoveringComponent(SDGNode node) {
-		if (covers(node)) {
-			return this;
-		} else {
-			return null;
-		}
 	}
 }

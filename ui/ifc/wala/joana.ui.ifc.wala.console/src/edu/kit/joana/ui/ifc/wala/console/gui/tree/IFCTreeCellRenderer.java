@@ -18,8 +18,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
-import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.annotations.AnnotationType;
+import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.ui.ifc.wala.console.gui.IFCConsoleGUI;
 
 
@@ -43,12 +43,12 @@ class IconProvider {
 		attribIcon = loadImageOrFallback("field_public_obj.gif", renderer.getDefaultLeafIcon());
 		methIcon = loadImageOrFallback("methpub_obj.gif", renderer.getDefaultClosedIcon());
 		exitIcon = loadImageOrFallback("exit.png", renderer.getDefaultLeafIcon());
-		
+
 		if (packageIcon == null || classIcon == null || attribIcon == null || methIcon == null || exitIcon == null) {
 			JOptionPane.showMessageDialog(renderer, "Please note: At least one icon was not found!", IFCConsoleGUI.NAME_OF_APPLICATION, JOptionPane.WARNING_MESSAGE);
 		}
 	}
-	
+
 	private static Icon loadImageOrFallback(String path, Icon fallback) {
 		Icon ret;
 		Class<? extends IFCTreeCellRenderer> c = IFCTreeCellRenderer.class;
@@ -59,7 +59,7 @@ class IconProvider {
 		} else {
 			ret = fallback;
 		}
-		
+
 		return ret;
 	}
 

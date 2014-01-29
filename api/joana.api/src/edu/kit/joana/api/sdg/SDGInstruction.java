@@ -7,25 +7,24 @@
  */
 package edu.kit.joana.api.sdg;
 
-import java.util.Collection;
-import java.util.Collections;
-
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
 
 public class SDGInstruction implements SDGProgramPart,
 Comparable<SDGInstruction> {
 
-	private final SDGNode rootNode;
+	//private final SDGNode rootNode;
 	private final SDGMethod owner;
+	private final int bcIndex;
+	private final String label;
+	private final String type;
+	private final String op;
 
-	SDGInstruction(SDGMethod owner, SDGNode rootNode, int index) {
-		this.rootNode = rootNode;
+	SDGInstruction(SDGMethod owner, int bcIndex, String label, String type, String op) {
 		this.owner = owner;
-	}
-
-	public SDGNode getNode() {
-		return rootNode;
+		this.bcIndex = bcIndex;
+		this.label = label;
+		this.type = type;
+		this.op = op;
 	}
 
 	public SDGMethod getOwner() {
@@ -33,54 +32,25 @@ Comparable<SDGInstruction> {
 	}
 
 	public int getBytecodeIndex() {
-		return rootNode.getBytecodeIndex();
+		return bcIndex;
+	}
+
+	public String getLabel() {
+		return label;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public String getOperation() {
+		return op;
 	}
 
 	@Override
 	public String toString() {
 		return "(" + owner.getSignature().toHRString() + ":"
-		+ rootNode.getBytecodeIndex() + ") " + rootNode.getLabel();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-		+ ((rootNode == null) ? 0 : rootNode.hashCode());
-		return result;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (!(obj instanceof SDGInstruction)) {
-			return false;
-		}
-		SDGInstruction other = (SDGInstruction) obj;
-		if (rootNode == null) {
-			if (other.rootNode != null) {
-				return false;
-			}
-		} else if (!rootNode.equals(other.rootNode)) {
-			return false;
-		}
-		return true;
+		+ bcIndex + ") " + label;
 	}
 
 	@Override
@@ -98,43 +68,54 @@ Comparable<SDGInstruction> {
 		return owner;
 	}
 
-	@Override
-	public boolean covers(SDGNode node) {
-		return rootNode.equals(node);
-	}
-
-	@Override
-	public Collection<SDGNode> getAttachedNodes() {
-		return Collections.singleton(rootNode);
-	}
-
-	@Override
-	public Collection<SDGNode> getAttachedSourceNodes() {
-		return getAttachedNodes();
-	}
-
-	@Override
-	public Collection<SDGNode> getAttachedSinkNodes() {
-		return getAttachedNodes();
-	}
-
-	@Override
-	public SDGProgramPart getCoveringComponent(SDGNode node) {
-		if (covers(node)) {
-			return this;
-		} else {
-			return null;
-		}
-	}
-
-	
-
 	/**
 	 * Returns whether this instruction is a call instruction.
 	 * @return {@code true}, if this instruction is a call instruction, {@code false} otherwise
 	 */
 	public boolean isCall() {
-		return rootNode.getKind() == SDGNode.Kind.CALL;
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + bcIndex;
+		result = prime * result + ((label == null) ? 0 : label.hashCode());
+		result = prime * result + ((owner == null) ? 0 : owner.getSignature().hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj instanceof SDGInstruction)) {
+			return false;
+		}
+		SDGInstruction other = (SDGInstruction) obj;
+		if (bcIndex != other.bcIndex) {
+			return false;
+		}
+		if (label == null) {
+			if (other.label != null) {
+				return false;
+			}
+		} else if (!label.equals(other.label)) {
+			return false;
+		}
+		if (owner == null) {
+			if (other.owner != null) {
+				return false;
+			}
+		} else if (!owner.equals(other.owner)) {
+			return false;
+		}
+		return true;
 	}
 
 }

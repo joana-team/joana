@@ -9,12 +9,17 @@ package edu.kit.joana.api.sdg;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
+import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
+import edu.kit.joana.ifc.sdg.util.JavaType.Format;
 import edu.kit.joana.util.Pair;
 
 
@@ -23,15 +28,12 @@ import edu.kit.joana.util.Pair;
 public class SDGClass implements SDGProgramPart {
 
 	private final JavaType typeName;
-	private final Set<SDGNode> declNodes;
 	private final Set<SDGAttribute> attributes;
 	private final Set<SDGMethod> methods;
 
 	SDGClass(JavaType typeName, Collection<SDGNode> declNodes, Map<String, Pair<Set<SDGNode>, Set<SDGNode>>> attributeNodes,
 			Set<SDGNode> methodEntryNodes, SDG sdg) {
 		this.typeName = typeName;
-		this.declNodes = new HashSet<SDGNode>();
-		this.declNodes.addAll(declNodes);
 		this.attributes = createSDGAttributes(attributeNodes);
 		this.methods = createSDGMethods(methodEntryNodes, sdg);
 	}
@@ -40,21 +42,74 @@ public class SDGClass implements SDGProgramPart {
 		Set<SDGAttribute> ret = new HashSet<SDGAttribute>();
 		if (attributeNodes != null) {
 			for (Map.Entry<String, Pair<Set<SDGNode>, Set<SDGNode>>> entry : attributeNodes.entrySet()) {
-				ret.add(new SDGAttribute(this, entry.getKey(), entry.getValue().getFirst(), entry.getValue().getSecond()));
+				Pair<Set<SDGNode>, Set<SDGNode>> accesses = entry.getValue();
+				SDGNode node;
+				if (!accesses.getFirst().isEmpty()) {
+					node = accesses.getFirst().iterator().next();
+				} else if (!accesses.getSecond().isEmpty()) {
+					node = accesses.getSecond().iterator().next();
+				} else {
+					throw new IllegalStateException("dangling attribute!");
+				}
+				JavaType type = JavaType.parseSingleTypeFromString(node.getType(), Format.BC);
+				ret.add(new SDGAttribute(this, entry.getKey(), type));
 			}
 		}
 		return ret;
 	}
 
-	private Set<SDGMethod> createSDGMethods(Set<SDGNode> methodEntryNodes,
-			SDG sdg) {
+	private Set<SDGMethod> createSDGMethods(Set<SDGNode> methodEntryNodes, SDG sdg) {
 		Set<SDGMethod> ret = new HashSet<SDGMethod>();
 		if (methodEntryNodes != null) {
 			for (SDGNode entry : methodEntryNodes) {
-				ret.add(new SDGMethod(sdg, entry));
+				boolean isStatic = false;
+				for (SDGNode formalIn : sdg.getFormalInsOfProcedure(entry)) {
+					int paramIndex = BytecodeLocation.getRootParamIndex(formalIn.getBytecodeName());
+					if (paramIndex == 0) {
+						isStatic = true;
+						break;
+					}
+				}
+				SDGMethod m = new SDGMethod(JavaMethodSignature.fromString(entry.getBytecodeMethod()), isStatic);
+				ret.add(m);
+				for (SDGNode nInstr : sdg.getNodesOfProcedure(entry)) {
+					if (nInstr.getBytecodeIndex() >= 0) {
+						if (nInstr.getKind() == SDGNode.Kind.CALL) {
+							m.addCall(newCall(m, nInstr, sdg));
+						} else {
+							m.addInstruction(new SDGInstruction(m, nInstr.getBytecodeIndex(), nInstr.getLabel(), nInstr.getType(), nInstr.getOperation().toString()));
+						}
+					} else if (BytecodeLocation.isPhiNode(nInstr)) {
+						m.addPhi(new SDGPhi(m, nInstr));
+					}
+				}
 			}
 		}
 		return ret;
+	}
+
+	private SDGCall newCall(SDGMethod owner, SDGNode n,  SDG sdg) {
+		SDGCall newCall = new SDGCall(owner, n.getBytecodeIndex(), n.getLabel(), n.getType(), n.getOperation().toString());
+
+		// add actual parameters
+		for (SDGEdge e : sdg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
+			SDGNode node = e.getTarget();
+			if (node.getKind() == SDGNode.Kind.ACTUAL_IN || node.getKind() == SDGNode.Kind.ACTUAL_OUT) {
+				newCall.addActualParameter(node);
+			}
+		}
+
+		// add possible call targets
+		List<SDGEdge> callEdges = sdg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CALL);
+		if (callEdges.isEmpty() && n.getUnresolvedCallTarget() != null) {
+			newCall.addPossibleCallTarget(JavaMethodSignature.fromString(n.getUnresolvedCallTarget()));
+		} else {
+			for (SDGEdge callEdge : callEdges) {
+				SDGNode tgt = callEdge.getTarget();
+				newCall.addPossibleCallTarget(JavaMethodSignature.fromString(tgt.getBytecodeMethod()));
+			}
+		}
+		return newCall;
 	}
 
 	public String getDescription() {
@@ -81,10 +136,6 @@ public class SDGClass implements SDGProgramPart {
 		}
 
 		return sb.toString();
-	}
-
-	public Set<SDGNode> getDeclarationNodes() {
-		return declNodes;
 	}
 
 	public Set<SDGAttribute> getAttributes() {
@@ -114,28 +165,14 @@ public class SDGClass implements SDGProgramPart {
 		return null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see java.lang.Object#hashCode()
-	 */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result
-		+ ((attributes == null) ? 0 : attributes.hashCode());
-		result = prime * result + ((methods == null) ? 0 : methods.hashCode());
-		result = prime * result
-		+ ((typeName == null) ? 0 : typeName.hashCode());
+		result = prime * result + ((typeName == null) ? 0 : typeName.hashCode());
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
@@ -148,20 +185,6 @@ public class SDGClass implements SDGProgramPart {
 			return false;
 		}
 		SDGClass other = (SDGClass) obj;
-		if (attributes == null) {
-			if (other.attributes != null) {
-				return false;
-			}
-		} else if (!attributes.equals(other.attributes)) {
-			return false;
-		}
-		if (methods == null) {
-			if (other.methods != null) {
-				return false;
-			}
-		} else if (!methods.equals(other.methods)) {
-			return false;
-		}
 		if (typeName == null) {
 			if (other.typeName != null) {
 				return false;
@@ -171,106 +194,4 @@ public class SDGClass implements SDGProgramPart {
 		}
 		return true;
 	}
-
-	@Override
-	public boolean covers(SDGNode node) {
-
-		for (SDGNode declNode: getDeclarationNodes()) {
-			if (node.equals(declNode)) {
-				return true;
-			}
-		}
-
-		for (SDGAttribute a : getAttributes()) {
-			if (a.covers(node)) {
-				return true;
-			}
-		}
-
-		for (SDGMethod m : getMethods()) {
-			if (m.covers(node)) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	@Override
-	public Collection<SDGNode> getAttachedNodes() {
-		Set<SDGNode> ret = new HashSet<SDGNode>();
-
-		ret.addAll(getDeclarationNodes());
-
-		for (SDGAttribute a : getAttributes()) {
-			ret.addAll(a.getAttachedNodes());
-		}
-
-		for (SDGMethod m : getMethods()) {
-			ret.addAll(m.getAttachedNodes());
-		}
-
-		return ret;
-	}
-
-	@Override
-	public Collection<SDGNode> getAttachedSourceNodes() {
-		Set<SDGNode> ret = new HashSet<SDGNode>();
-
-		ret.addAll(getDeclarationNodes());
-
-		for (SDGAttribute a : getAttributes()) {
-			ret.addAll(a.getAttachedSourceNodes());
-		}
-
-		for (SDGMethod m : getMethods()) {
-			ret.addAll(m.getAttachedSourceNodes());
-		}
-
-		return ret;
-	}
-
-	@Override
-	public Collection<SDGNode> getAttachedSinkNodes() {
-		Set<SDGNode> ret = new HashSet<SDGNode>();
-
-
-		ret.addAll(getDeclarationNodes());
-
-		for (SDGAttribute a : getAttributes()) {
-			ret.addAll(a.getAttachedSinkNodes());
-		}
-
-		for (SDGMethod m : getMethods()) {
-			ret.addAll(m.getAttachedSinkNodes());
-		}
-
-		return ret;
-	}
-
-	@Override
-	public SDGProgramPart getCoveringComponent(SDGNode node) {
-
-		for (SDGNode declNode: getDeclarationNodes()) {
-			if (node.equals(declNode)) {
-				return this;
-			}
-		}
-
-		for (SDGAttribute a : getAttributes()) {
-			if (a.covers(node)) {
-				return a;
-			}
-		}
-
-		for (SDGMethod m : getMethods()) {
-			if (m.covers(node)) {
-				return m.getCoveringComponent(node);
-			}
-		}
-
-		return null;
-	}
-
-
 }

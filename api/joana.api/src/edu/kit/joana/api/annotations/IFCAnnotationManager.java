@@ -19,10 +19,10 @@ import edu.kit.joana.api.sdg.SDGCall;
 import edu.kit.joana.api.sdg.SDGCallExceptionNode;
 import edu.kit.joana.api.sdg.SDGCallReturnNode;
 import edu.kit.joana.api.sdg.SDGClass;
+import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGInstruction;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGMethodExitNode;
-import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGPhi;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
@@ -104,15 +104,15 @@ public class IFCAnnotationManager {
 	public void applyAllAnnotations() {
 		app.applyAnnotations(getAnnotations());
 	}
-	
+
 	public SDGProgramPart resolve(SecurityNode sNode) {
 		return app.resolve(sNode);
 	}
-	
+
 	public Collection<SDGNode> getSourceNodes() {
 		return app.getSourceNodes();
 	}
-	
+
 	public Collection<SDGNode> getSinkNodes() {
 		return app.getSinkNodes();
 	}

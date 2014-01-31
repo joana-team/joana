@@ -48,26 +48,29 @@ public class JoanaConverter {
 			? new SDG("multiple-entrypoints.SDG()")
 			: new SDG(PrettyWalaNames.methodName(b.getEntry())));
 
-        progress.subTask("Building utility edges");
+        progress.beginTask("Building utility edges", IProgressMonitor.UNKNOWN);
         addUtilityEdges(b);
         progress.worked(1);
 		MonitorUtil.throwExceptionIfCanceled(progress);
         progress.done();
 
-        progress.subTask("Sorting all nodes by their id");
+        progress.beginTask("Sorting nodes", IProgressMonitor.UNKNOWN);  // XXX: can't we get the node count here?
+        //progress.subTask("Sorting all nodes by their id");
         PDGNode allNodes[] = getAllNodesSorted(b, progress);
         progress.done();
 
-        progress.subTask("Inserting " + allNodes.length + " nodes");
+        progress.beginTask("Inserting nodes into SDG", allNodes.length);
+        progress.subTask("processing " + allNodes.length + " nodes");
         Map<PDGNode, SDGNode> pdg2sdg = convertNodes(sdg, allNodes, b, progress);
         progress.done();
 
-        progress.subTask("Inserting edges for " + allNodes.length + " nodes");
+        progress.beginTask("Inserting edges into SDG", allNodes.length);
+        progress.subTask("processing " + allNodes.length + " nodes");
         for (int i = 0; i < allNodes.length; i++) {
         	addEdgesForNode(sdg, allNodes[i], pdg2sdg, b);
 
-        	if (i % 100 == 0) {
-                progress.worked(1);
+        	if (i % 107 == 0) {
+                progress.worked(i);
     			MonitorUtil.throwExceptionIfCanceled(progress);
             }
         }
@@ -193,8 +196,8 @@ public class JoanaConverter {
 			sdg.addVertex(snode);
 			map.put(node, snode);
 
-			if (i++ % 100 == 0) {
-				progress.worked(1);
+			if (i++ % 107 == 0) {
+				progress.worked(i);
 				MonitorUtil.throwExceptionIfCanceled(progress);
 			}
 		}
@@ -360,11 +363,16 @@ public class JoanaConverter {
 
 	private static PDGNode[] getAllNodesSorted(SDGBuilder builder, IProgressMonitor progress) throws CancelException {
 		ArrayList<PDGNode> nodes = new ArrayList<PDGNode>();
-
-		for (PDG pdg : builder.getAllPDGs()) {
+        int progr = 0;
+		
+        for (PDG pdg : builder.getAllPDGs()) {
 			for (PDGNode node : pdg.vertexSet()) {
 				if (node.getPdgId() == pdg.getId()) {
 					nodes.add(node);
+                    if (++progr % 107 == 0) {
+                        progress.worked(progr);
+				        MonitorUtil.throwExceptionIfCanceled(progress);
+                    }
 				}
 			}
 		}
@@ -372,14 +380,14 @@ public class JoanaConverter {
 		PDGNode[] copy = new PDGNode[nodes.size()];
 		copy = nodes.toArray(copy);
 
-        progress.worked(1);
+        //progress.worked(1);
 		MonitorUtil.throwExceptionIfCanceled(progress);
 
         Arrays.sort(copy, new Comparator<PDGNode>() {
             public int compare(PDGNode o1, PDGNode o2) {
                 return o1.getId() - o2.getId();
             }});
-        progress.worked(1);
+        //progress.worked(1);
 		MonitorUtil.throwExceptionIfCanceled(progress);
 
 		return copy;

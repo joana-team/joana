@@ -291,7 +291,7 @@ public class SDGBuilder implements CallGraphFilter {
 	}
 
 	public static SDGBuilder create(final SDGBuilderConfig cfg) throws UnsoundGraphException, CancelException {
-		IProgressMonitor progress = NullProgressMonitor.INSTANCE;
+        IProgressMonitor progress = NullProgressMonitor.INSTANCE;
 
 		SDGBuilder builder = new SDGBuilder(cfg);
 		builder.run(progress);
@@ -299,16 +299,23 @@ public class SDGBuilder implements CallGraphFilter {
 		return builder;
 	}
 
+	public static SDGBuilder create(final SDGBuilderConfig cfg, final IProgressMonitor progress) throws UnsoundGraphException, CancelException {
+		SDGBuilder builder = new SDGBuilder(cfg);
+		builder.run(progress);
+
+		return builder;
+	}
+
+
 	public static SDGBuilder create(final SDGBuilderConfig cfg, final com.ibm.wala.ipa.callgraph.CallGraph walaCG,
 			final PointerAnalysis pts) throws UnsoundGraphException, CancelException {
-		IProgressMonitor progress = NullProgressMonitor.INSTANCE;
+        IProgressMonitor progress = NullProgressMonitor.INSTANCE;
 
 		SDGBuilder builder = new SDGBuilder(cfg);
 		builder.run(walaCG, pts, progress);
 
 		return builder;
 	}
-
 
 	public static SDG build(final SDGBuilderConfig cfg, final com.ibm.wala.ipa.callgraph.CallGraph walaCG,
 			final PointerAnalysis pts) throws UnsoundGraphException, CancelException {
@@ -336,6 +343,16 @@ public class SDGBuilder implements CallGraphFilter {
 
 		return sdg;
 	}
+
+	public static SDGBuilder create(final SDGBuilderConfig cfg, final com.ibm.wala.ipa.callgraph.CallGraph walaCG,
+			final PointerAnalysis pts, IProgressMonitor progress) throws UnsoundGraphException, CancelException {
+
+		SDGBuilder builder = new SDGBuilder(cfg);
+		builder.run(walaCG, pts, progress);
+
+		return builder;
+	}
+
 
 	public static SDG build(final SDGBuilderConfig cfg, IProgressMonitor progress) throws UnsoundGraphException, CancelException {
 		SDG sdg = null;
@@ -459,9 +476,9 @@ public class SDGBuilder implements CallGraphFilter {
 			debug.outln(LogUtil.attributesToString(cfg));
 		}
 		cfg.out.print("\n\tcallgraph: ");
-		progress.subTask("building call graph...");
+		progress.beginTask("building call graph...", IProgressMonitor.UNKNOWN);
 		final CGResult walaCG = buildCallgraph(progress);
-		progress.worked(1);
+		progress.done();
 		run(walaCG, progress);
 	}
 
@@ -477,9 +494,9 @@ public class SDGBuilder implements CallGraphFilter {
 	private void run(final CGResult initalCG, final IProgressMonitor progress) throws UnsoundGraphException,
 			CancelException {
 		nonPrunedCG = initalCG.cg;
-		progress.subTask("pruning call graph...");
+		progress.beginTask("pruning call graph...", IProgressMonitor.UNKNOWN);
 		cg = convertAndPruneCallGraph(cfg.prunecg, initalCG, progress);
-		progress.worked(1);
+		progress.done();
 		if (cfg.debugCallGraphDotOutput) {
 			debugDumpGraph(cg, "callgraph.dot");
 		}
@@ -488,6 +505,7 @@ public class SDGBuilder implements CallGraphFilter {
 
 		if (cfg.exceptions == ExceptionAnalysis.INTERPROC) {
 			cfg.out.print("\tinterproc exception analysis... ");
+            progress.beginTask("interproc exception analysis... ", IProgressMonitor.UNKNOWN);
 
 			try {
 				interprocExceptionResult = NullPointerAnalysis.computeInterprocAnalysis(
@@ -497,7 +515,7 @@ public class SDGBuilder implements CallGraphFilter {
 				throw new CancelException(e);
 			}
 
-			cfg.out.println("done.");
+			progress.done();
 			if (IS_DEBUG) debug.outln(interprocExceptionResult.toString());
 		}
 
@@ -514,8 +532,7 @@ public class SDGBuilder implements CallGraphFilter {
 		}
 
 		cfg.out.print("\tintraproc: ");
-		progress.subTask("computing intraprocedural flow...");
-		final int fivePercent = cg.vertexSet().size() / 20;
+		progress.beginTask("computing intraprocedural flow", cg.vertexSet().size());
 		int currentNum = 1;
 
 		for (CallGraph.Node node : cg.vertexSet()) {
@@ -526,26 +543,7 @@ public class SDGBuilder implements CallGraphFilter {
 			final CGNode cgm = node.node;
 			final PDG pdg = createAndAddPDG(cgm, progress);
 
-			currentNum++;
-			if (fivePercent > 0) {
-				if (currentNum % fivePercent == 0) {
-					int percent = currentNum / fivePercent;
-					String str = ".";
-					if (percent == 5) {
-						str = "25%";
-					} else if (percent == 10) {
-						str = "50%";
-					} else if (percent == 15) {
-						str = "75%";
-					} else if (percent == 20) {
-						str = "100%";
-					}
-
-					cfg.out.print(str);
-				}
-			} else {
-				cfg.out.print(".");
-			}
+			progress.worked(currentNum++);
 
 			MonitorUtil.throwExceptionIfCanceled(progress);
 
@@ -553,16 +551,16 @@ public class SDGBuilder implements CallGraphFilter {
 				debugOutput(pdg);
 			}
 		}
-		progress.worked(1);
+		progress.done();
 
 		if (cfg.exceptions == ExceptionAnalysis.INTERPROC) {
 			// save memory - let garbage collector do its work.
 			interprocExceptionResult = null;
 		}
 
-		cfg.out.print("\n\tinterproc: ");
-		progress.subTask("computing interprocedural flow...");
 		cfg.out.print("calls");
+        progress.beginTask("interproc: connect call sites", pdgs.size());
+        currentNum = 0;
 		// connect call sites
 		for (PDG pdg : pdgs) {
 			if (isImmutableStub(pdg.getMethod().getDeclaringClass().getReference())) {
@@ -579,6 +577,8 @@ public class SDGBuilder implements CallGraphFilter {
 					call.setUnresolvedCallTarget(null);
 				}
 			}
+
+            progress.worked(currentNum++);
 		}
 
 		cfg.out.print(".");
@@ -596,8 +596,11 @@ public class SDGBuilder implements CallGraphFilter {
 			partitions = null;
 		}
 
-		if (cfg.staticInitializers != StaticInitializationTreatment.NONE) {
-			progress.subTask("handling static initializers...");
+		cfg.out.print(".");
+		progress.done();
+		
+        if (cfg.staticInitializers != StaticInitializationTreatment.NONE) {
+			progress.beginTask("interproc: handling static initializers (clinit)...", IProgressMonitor.UNKNOWN);
 			cfg.out.print("clinit");
 			switch (cfg.staticInitializers) {
 			case SIMPLE:
@@ -613,62 +616,70 @@ public class SDGBuilder implements CallGraphFilter {
 			cfg.out.print(".");
 
 		}
-		progress.worked(1);
+		progress.done();
 		cfg.out.print("statics");
 		// propagate static root nodes and add dataflow
-		progress.subTask("adding data flow for static fields...");
+		progress.beginTask("interproc: adding data flow for static fields...", IProgressMonitor.UNKNOWN);
 		addDataFlowForStaticFields(progress);
-		progress.worked(1);
+		progress.done();
 		cfg.out.print(".");
 
 		cfg.out.print("heap");
 		// compute dataflow through heap/fields (no-alias)
-		progress.subTask("adding data flow for heap fields...");
+		progress.beginTask("interproc: adding data flow for heap fields...", IProgressMonitor.UNKNOWN);
 		addDataFlowForHeapFields(progress);
-		progress.worked(1);
+		progress.done();
 		cfg.out.print(".");
 
 		cfg.out.print("misc");
 		// compute dummy connections for unresolved calls
-		progress.subTask("adding dummy data flow to unresolved calls...");
+		progress.beginTask("interproc: adding dummy data flow to unresolved calls...", IProgressMonitor.UNKNOWN);
 		addDummyDataFlowToUnresolvedCalls();
-		progress.worked(1);
+		progress.done();
 		cfg.out.print(".");
 
 		if (cfg.localKillingDefs) {
 			cfg.out.print("killdef");
-			progress.subTask("computing local killing defintions...");
+			progress.beginTask("interproc: computing local killing defintions...", IProgressMonitor.UNKNOWN);
 			LocalKillingDefs.run(this, progress);
+            progress.done();
 			cfg.out.print(".");
 		}
 
 		if (cfg.accessPath) {
 			cfg.out.print("accesspath");
-			progress.subTask("computing access path information...");
+			progress.beginTask("interproc: computing access path information...", IProgressMonitor.UNKNOWN);
 			// compute access path info
 			AccessPath.compute(this, getMainPDG());
+            progress.done();
 			cfg.out.print(".");
 		}
 
 		addReturnEdges();
+
 		progress.worked(1);
 		if (cfg.computeAllocationSites) {
 			call2alloc = new AllCallsAllocationSiteFinder(this).getAllocationSites();
 		}
+
+		progress.worked(1);
+
 		if (cfg.computeInterference) {
 			cfg.out.print("interference");
 			ThreadInformationProvider tiProvider = new ThreadInformationProvider(this);
+
 			if (!cfg.computeAllocationSites) {
 				call2alloc = tiProvider.getAllocationSitesForThreadStartCalls();
 			}
-			progress.subTask("adding interference edges...");
+
+			progress.beginTask("adding interference edges...", IProgressMonitor.UNKNOWN);
 			addInterferenceEdges(tiProvider, progress);
 			progress.subTask("introducing fork edges...");
 			introduceForkEdges(tiProvider);
 			cfg.out.print(".");
 		}
 
-		progress.worked(1);
+		progress.done();
 		addEntryExitCFEdges();
 
 		final Logger l = Log.getLogger(Log.L_WALA_UNRESOLVED_CLASSES);
@@ -908,7 +919,7 @@ public class SDGBuilder implements CallGraphFilter {
 
 		com.ibm.wala.ipa.callgraph.CallGraph curcg = walaCG.cg;
 
-		if (prune >= 0) {
+        if (prune >= 0) {
 			CallGraphPruning cgp = new CallGraphPruning(walaCG.cg);
 			Set<CGNode> appl = cgp.findNodes(prune, cfg.pruningPolicy);
 			PrunedCallGraph pcg = new PrunedCallGraph(walaCG.cg, appl);
@@ -1396,11 +1407,11 @@ public class SDGBuilder implements CallGraphFilter {
 	 * @author Juergen Graf <juergen.graf@gmail.com>
 	 *
 	 */
-	public static class SDGBuilderConfig {
-		public PrintStream out = System.out;
-		public AnalysisScope scope = null;
-		public AnalysisCache cache = null;
-		public IClassHierarchy cha = null;
+	public static class SDGBuilderConfig implements java.io.Serializable {
+		public transient PrintStream out = System.out;
+		public transient AnalysisScope scope = null;
+		public transient AnalysisCache cache = null;
+		public transient IClassHierarchy cha = null;
 		public IMethod entry = null;
 		public ExternalCallCheck ext = null;
 		public String[] immutableNoOut = Main.IMMUTABLE_NO_OUT;

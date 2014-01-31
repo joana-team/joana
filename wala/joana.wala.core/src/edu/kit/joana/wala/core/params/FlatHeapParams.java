@@ -116,6 +116,10 @@ public class FlatHeapParams {
 
 		final Map<PDGNode, PDGNode[]> entry2out = new HashMap<PDGNode, PDGNode[]>();
 
+        int progressCtr = 0;
+        progress.beginTask("interproc: adding data flow for heap fields...", 3 * sdg.getAllPDGs().size());
+        progress.subTask("add out nodes for each non-primitive parameter (flat FieldPropagation)");
+
 		// add out nodes for each non-primitive parameter
 		for (final PDG pdg : sdg.getAllPDGs()) {
 			// primitive types nodes are null
@@ -151,8 +155,11 @@ public class FlatHeapParams {
 
 				entry2out.put(call, actOuts);
 			}
+
+            progress.worked(progressCtr++);
 		}
 
+        progress.subTask("connect form-outs of called procedures with act-outs (flat FieldPropagation)");
 		// connect form-outs of called procedures with act-outs
 		for (final PDG pdg : sdg.getAllPDGs()) {
 			for (final PDGNode call : pdg.getCalls()) {
@@ -165,7 +172,19 @@ public class FlatHeapParams {
 						final PDGNode[] formOuts = entry2out.get(calleeEntry);
 						final PDG callee = sdg.getPDGforId(calleeEntry.getPdgId());
 						assert formOuts != null;
-						assert actOuts.length == formOuts.length;
+						if (actOuts.length != formOuts.length) {
+                            System.err.println( "Error actOuts:" + actOuts.length + " != " +
+                                                "formOuts:" + formOuts.length + " in count! In PDG:" + pdg.toString() );
+                            System.err.println( "Act Outs are:" );
+                            for (final PDGNode o : actOuts) {
+                                System.err.println("  " + o.toString());
+                            }
+                            System.err.println( "\nForm Outs are:" );
+                            for (final PDGNode o : formOuts) {
+                                System.err.println("  " + ((o == null)?"null": o.toString()));
+                            }
+                            assert (actOuts.length == formOuts.length);
+                        }
 
 						for (int i = 0; i < actOuts.length; i++) {
 							final PDGNode actOut = actOuts[i];
@@ -182,6 +201,7 @@ public class FlatHeapParams {
 					}
 				}
 			}
+            progress.worked(progressCtr++);
 		}
 
 		GraphReachability<Object> heapReach;
@@ -198,6 +218,7 @@ public class FlatHeapParams {
 			heapReach.solve(progress);
 		}
 
+        progress.subTask("collect reachable points-to elements for reachable fields for each parameter (flat FieldPropagation)");
 		// collect reachable points-to elements for reachable fields for each parameter
 		for (final PDG pdg : sdg.getAllPDGs()) {
 			final Map<PDGNode, OrdinalSet<PointerKey>> node2ptsMod = new HashMap<PDGNode, OrdinalSet<PointerKey>>();
@@ -345,6 +366,7 @@ public class FlatHeapParams {
 			// to aliasing. It starts with assuming all heap deps are aliases.
 			FlatHeapParamsDataFlow.compute(pdg, node2ptsMod, node2ptsRef,
 					(sdg.cfg.accessPath ? PDGEdge.Kind.DATA_ALIAS : PDGEdge.Kind.DATA_HEAP), progress);
+            progress.worked(progressCtr++);
 		}
 	}
 

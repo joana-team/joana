@@ -248,6 +248,7 @@ public final class ObjGraphParams {
 	private void run(final IProgressMonitor progress) throws CancelException {
 		final Logger logStats = Log.getLogger(Log.L_OBJGRAPH_STATS);
 		sdg.cfg.out.print("(if");
+        progress.subTask("Computing ModRef");
 
 		// step 1 create candidates
 		final CallGraph cg = stripCallsFromThreadStartToRun(sdg.getNonPrunedWalaCallGraph());
@@ -301,12 +302,14 @@ public final class ObjGraphParams {
 		if (sdg.cfg.sideEffects != null) {
 			// detect modifications to a given pointerkey
 			sdg.cfg.out.print(",se");
+            progress.subTask("side effects");
 			sdg.cfg.sideEffects.runAnalysis(sdg, cg, mrefs, progress);
 			// free memory
 			sdg.cfg.sideEffects = null;
 		}
 		
 		sdg.cfg.out.print(",df");
+        progress.subTask("dataflow");
 
 		ModRefDataFlow.compute(mrefs, sdg, progress);
 
@@ -318,6 +321,7 @@ public final class ObjGraphParams {
 		long sdgNodeCountGraph = 0;
 		if (opt.convertToObjTree) {
 			sdg.cfg.out.print(",2tree");
+            progress.subTask("converting to object tree");
 
 			if (logStats.isEnabled()) {
 				sdgNodeCountGraph = sdg.countNodes();

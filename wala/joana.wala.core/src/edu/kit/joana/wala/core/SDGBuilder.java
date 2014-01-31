@@ -33,6 +33,9 @@ import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.CallGraphBuilderCancelException;
 import com.ibm.wala.ipa.callgraph.Entrypoint;
+import com.ibm.wala.ipa.callgraph.MethodTargetSelector;
+import com.ibm.wala.ipa.callgraph.propagation.SSAContextInterpreter;
+import com.ibm.wala.ipa.callgraph.ContextSelector;
 import com.ibm.wala.ipa.callgraph.impl.SubtypesEntrypoint;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
 import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
@@ -849,6 +852,9 @@ public class SDGBuilder implements CallGraphFilter {
 		} else {
 			options.setReflectionOptions(ReflectionOptions.NONE);
 		}
+        if (cfg.methodTargetSelector != null) {
+            options.setSelector(cfg.methodTargetSelector);
+        }
 
 		CallGraphBuilder cgb = null;
 		switch (cfg.pts) {
@@ -860,11 +866,13 @@ public class SDGBuilder implements CallGraphFilter {
 			break;
 		case TYPE_BASED: // 0-CFA
 			// Fastest option.
-			cgb = WalaPointsToUtil.makeContextFreeType(options, cfg.cache, cfg.cha, cfg.scope);
+			cgb = WalaPointsToUtil.makeContextFreeType(options, cfg.cache, cfg.cha, cfg.scope,
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
 			break;
 		case INSTANCE_BASED: // 0-1-CFA
 			// Best bang for buck
-			cgb = WalaPointsToUtil.makeContextSensSite(options, cfg.cache, cfg.cha, cfg.scope);
+			cgb = WalaPointsToUtil.makeContextSensSite(options, cfg.cache, cfg.cha, cfg.scope,
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
 			break;
 		case N1_OBJECT_SENSITIVE:
 			// Receiver context is limited to 1-level. 
@@ -875,14 +883,16 @@ public class SDGBuilder implements CallGraphFilter {
 					return true;
 				}
 			};
-			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope);
+			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope,
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
 			break;
 		case OBJECT_SENSITIVE:
 			// Very precise for OO heavy code - best option for really precise analysis.
 			// Unlimited receiver context for application code, 1-level receiver context for library code. 
 			// Uses n-CFA as fallback for static methods. Customizable: Provide objSensFilter to specify 'n' for fallback
 			// n-CFA and filter for methods where object-sensitivity should be engaged. Default 'n = 1'.
-			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope);
+			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope,
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
 			break;
 		case UNLIMITED_OBJECT_SENSITIVE:
 			// Very precise for OO heavy code, but also very slow.
@@ -894,7 +904,8 @@ public class SDGBuilder implements CallGraphFilter {
 					return false;
 				}
 			};
-			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope);
+			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope,
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
 			break;
 		case N1_CALL_STACK: // 1-CFA
 			// Slower as 0-1-CFA, yet few precision improvements
@@ -1474,6 +1485,20 @@ public class SDGBuilder implements CallGraphFilter {
 		 */
 		public boolean computeAllocationSites = false;
 		public SideEffectDetectorConfig sideEffects = null;
+        /** The methodTargetSelector from the AnalysisOptions. 
+         *
+         * It will get copied back there before CallGraphConstruction. If it's null the default of the 
+         * AnalysisOptions Constructor will be used */
+        public MethodTargetSelector methodTargetSelector = null;
+        /**
+         *  Context will be the Union of this and Joanas Context with additionalContextSelector having
+         *  precedence.
+         */
+        public ContextSelector additionalContextSelector = null;
+        /**
+         *  Will be the one queried first from the FallbackContextInterpreter.
+         */
+        public SSAContextInterpreter additionalContextInterpreter = null;
 	}
 
 	public String getMainMethodName() {

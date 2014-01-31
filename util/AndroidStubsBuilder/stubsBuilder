@@ -1,0 +1,523 @@
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+
+#  Copyright (c) 2013,
+#      Tobias Blaschke <code@tobiasblaschke.de>
+#  All rights reserved.
+#
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions are met:
+#
+#  1. Redistributions of source code must retain the above copyright notice,
+#     this list of conditions and the following disclaimer.
+#
+#  2. Redistributions in binary form must reproduce the above copyright notice,
+#     this list of conditions and the following disclaimer in the documentation
+#     and/or other materials provided with the distribution.
+#
+#  3. The names of the contributors may not be used to endorse or promote
+#     products derived from this software without specific prior written
+#     permission.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+#  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+#  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+#  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+#  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+#  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+#  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+#  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+#  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+#  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+#  POSSIBILITY OF SUCH DAMAGE.
+
+try:
+    from cement.core import arg, backend, foundation, controller, handler
+    from cement.ext.ext_argparse import ArgParseArgumentHandler
+except ImportError as e:
+    print "The StubsBuilder depends on the cement-library. It can be installed using pip or easy_install"
+    raise e
+
+from os import path
+import os
+import sys
+import tempfile
+import zipfile
+import ConfigParser
+import shutil
+import subprocess
+import Stubify
+import datetime
+import re
+
+# THE ORDER OF INPUT-JARS MATTERS!
+# During extraction files get overwritten!
+trySdkPath = ['~/andoird-sdk/', '/opt/andoird-sdk/', '/opt/andoid']
+
+class InputPaths:
+    sdk = None
+    # Property: platforms
+    # Property: platform
+    # Property: platform_path
+    inputJars = ['uiautomator.jar', path.join('data', 'layoutlib.jar'), 'android.jar']
+
+    def __init__(self, log, sdk_path = None):
+        self.log = log
+        if sdk_path:
+            if self._verify_sdk_path(sdk_path):
+                self.sdk = sdk_path
+            else:
+                raise Exception("The given SDK-Path is not usable")
+        else:
+            for test in trySdkPath:
+                if self._verify_sdk_path(test, writeOut = False):
+                    self.sdk = test
+        if not self.sdk:
+            raise Exception("No usable Android-SDK found. Try using the --sdk-path option")
+        else:
+            self.log.info("Using the Android SDK located in " + self.sdk)
+    
+    def _write(self, msg, writeOut = True):
+        if writeOut:
+            print msg
+        else:
+            self.log.debug(msg)
+
+    def _verify_sdk_path(self, sdk, writeOut = True):
+        if path.isdir(sdk):
+            plat = path.join(sdk, "platforms")
+            if not path.isdir(plat):
+                self._write("The Android SDK located at " + sdk + " does not contain a platforms-directory.", writeOut)
+                return False
+
+            containsUsablePlatform = False
+            plats = os.listdir(plat)
+            if len(plats) == 0:
+                self._write("The directory '%s' does not contain a platform" % plat, writeOut)
+                return False
+            for p in plats:
+                if self._verify_platform(path.join(plat, p), writeOut):
+                    if self._verify_sources(path.join(sdk, "sources", p)):
+                        containsUsablePlatform = True
+                    else:
+                        self._write("Skipping platform " + p + ": no sources available", writeOut)
+                else:
+                    self._write("Skipping unusable platform " + p, writeOut)
+            return containsUsablePlatform
+        else:
+            self._write("The path to the Andoid SDK ought to be a directory.", writeOut)
+            return False
+
+    def _verify_platform(self, plat, writeOut = True):
+        if not path.isdir(plat):
+            self._write("The path " + plat + " is not a directory.", writeOut)
+            return False
+
+        for inJar in self.inputJars:
+            j = path.join(plat, inJar)
+            if not path.isfile(j):
+                self._write("The platforms directory '%s' of the Android SDK does not include the required file '%s'" % \
+                        (plat, inJar), writeOut)
+                return False
+        return True
+
+    @property 
+    def platforms(self):
+        """List basenames of usable platforms in self.sdk/platforms"""
+        ret = []
+        plat = path.join(self.sdk, "platforms")
+        srcs = path.join(self.sdk, "sources")
+        for p in os.listdir(plat):
+            if self._verify_platform(path.join(plat, p), writeOut = False) and \
+                    self._verify_sources(path.join(srcs, p), writeOut = False):
+                ret.append(p)
+        return ret 
+    
+    _platform = None
+    @property
+    def platform(self):
+        if self._platform:
+            return self._platform
+        elif len(self.platforms) == 1:
+            self._platform = self.platforms[0]
+            self.log.debug("Selecting the only usable platform: " + self._platform)
+            return self._platform
+        else:
+            raise Exception("No decision which platform to use could be made. Use the --platform option.")
+
+    @platform.setter
+    def platform(self, value):
+        value = basename(value)
+        if value in self.platforms:
+            self._platform = value
+        else:
+            raise Exception("Invalid Platform: %s" % value)
+
+    @property
+    def platform_path(self):
+        if self.platform:
+            plat = path.join(self.sdk, "platforms", self.platform)
+            assert (path.isdir(plat))
+            return plat
+        else:
+            raise Exception("The platform must be set before requesting its path")
+
+    def _verify_sources(self, src, writeOut = True):
+        if not path.isdir(src):
+            self._write("The path " + src + " is not a directory.", writeOut)
+            return False
+
+#        for inJar in inputJars:
+#            j = path.join(plat, inJar)
+#            if not path.isfile(j):
+#                self._write("The platforms directory '%s' of the Android SDK does not include the required file '%s'" % \
+#                        (plat, inJar), writeOut)
+#                return False
+        return True
+
+    @property
+    def sources_path(self):
+        if self.platform:
+            src = path.join(self.sdk, "sources", self.platform)
+            assert (path.isdir(src))
+            return src
+        else:
+            raise Exception("The platform must be set before requesting its path")
+
+    @property
+    def classpath(self):
+        cp = os.getenv('CLASSPATH', "")
+        for jar in self.inputJars:
+            cp = self.get(jar) + ":" + cp
+        return cp
+
+    def get(self, whichFile):
+        if whichFile in self.inputJars:
+            f = path.join(self.platform_path, whichFile)
+            if not path.isfile(f):
+                raise Exception("Not a file: " + f)
+            else:
+                return f
+        elif path.isfile(path.join(self.sources_path, whichFile)):
+            return path.join(self.sources_path, whichFile)
+
+        raise Exception("File Not found: " + whichFile)
+
+class OutputPaths:
+    out_path = None
+
+    def __init__(self, log, out_path = None):
+        self.log = log
+        if out_path:
+            if path.isdir(out_path):
+                if len(os.listdir(out_path)) > 0:
+                    self.log.warn("The output directory is not empty: " + out_path)
+                    raise Exception("Only empty directorys are allowed by now")
+                else:
+                    self.out_path = out_path
+            else:
+                self.log.debug("Creating directory " + out_path)
+                os.makedirs(out_path)
+                self.out_path = out_path
+        else:
+            self.out_path = tempfile.mkdtemp()
+            self.log.info("Writing temporary files to " + self.out_path)
+
+    @property
+    def classes(self):
+        cdir = path.join(self.out_path, "classes")
+        if path.isdir(cdir):
+            return cdir
+        else:
+            os.makedirs(cdir)
+            return cdir
+
+    @property
+    def sources(self):
+        cdir = path.join(self.out_path, "sources")
+        if path.isdir(cdir):
+            return cdir
+        else:
+            os.makedirs(cdir)
+            return cdir
+
+    _jar = None
+    @property
+    def jar(self):
+        if self._jar:
+            return self._jar
+        test = path.join(self.out_path, "stubs.jar")
+        while path.isfile(test):
+            test = path.join(self.out_path, "stubs%s.jar" % (datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")))
+        self._jar = test
+        self.log.debug("Choosing out-jar: " + test)
+        return test
+    @jar.setter
+    def jar(self, value):
+        self._jar = value
+
+
+class BuilderPaths:
+    configFile = None
+
+    def __init__(self, log, basePath = None, configFile = None):
+        self.log = log
+        if configFile:
+            assert(path.isfile(configFile))
+            self.configFile = configFile
+        else:
+            if path.isfile(path.join(self.cwd, 'stubsBuilder.ini')):
+                self.configFile = path.join(self.cwd, 'stubsBuilder.ini')
+            elif path.isfile(path.join(self.pwd, 'stubsBuilder.ini')):
+                self.configFile = path.join(self.pwd, 'stubsBuilder.ini')
+            else:
+                raise Exception("Unable to locate a 'stubsBuilder.ini', use the --config option")
+            log.info("Using cofing from " + self.configFile)
+
+    @property
+    def cwd(self):
+        return os.getcwd()
+
+    @property
+    def pwd(self):
+        return os.path.dirname(os.path.realpath(__file__)) 
+
+    @property
+    def additional(self):
+        return os.path.join(self.pwd, "addJava")
+
+    _javac = None
+    @property
+    def javac(self):
+        if self._javac:
+            return self._javac
+        else:
+            for p in os.environ["PATH"].split(os.pathsep):
+                if os.path.exists(os.path.join(p, 'javac')):
+                    # Are there any Windows-users?
+                    self._javac = os.path.join(p, 'javac')
+                    break
+                elif os.path.exists(os.path.join(p, 'javac.exe')):
+                    # Are there any Windows-users?
+                    self._javac = os.path.join(p, 'javac.exe')
+                    break
+            if not self._javac:
+                raise Exception("The command javac was not found. Add the path to javac to the PATH environment variable")
+            else:
+                self.log.debug("Using javac: " + self._javac)
+                return self._javac
+
+    _jar = None
+    @property
+    def jar(self):
+        if self._jar:
+            return self._jar
+        else:
+            for p in os.environ["PATH"].split(os.pathsep):
+                if os.path.exists(os.path.join(p, 'jar')):
+                    # Are there any Windows-users?
+                    self._javac = os.path.join(p, 'jar')
+                    break
+                elif os.path.exists(os.path.join(p, 'jar.exe')):
+                    # Are there any Windows-users?
+                    self._javac = os.path.join(p, 'jar.exe')
+                    break
+            if not self._javac:
+                raise Exception("The command jar was not found. Add the path to javac to the PATH environment variable")
+            else:
+                self.log.debug("Using jar: " + self._javac)
+                return self._javac
+
+
+class StubsBuilder(controller.CementBaseController):
+    class Meta:
+        label = 'base'
+        arguments = [
+                (['--sdk-path', '-i'], dict(metavar="PATH", type=str, 
+                    help="Path to the Android-SDK")),
+                (['--platform', '-p'], dict(metavar="PLAT", type=str,
+                    help="The platform e.g. version of android to use")),
+                (['--work-dir', '-d'], dict(metavar="PATH", type=str,
+                    help="The directory to place class- and java-files during construction")),
+                (['--config', '-c'] , dict(metavar="FILE", type=str,
+                    help="Specify an alternative config file for stubsBuilder.ini")),
+                (['--out-jar', '-o'], dict(metavar="FILE", type=str,
+                    help="Location to place the generated stubs at"))
+                #(['--verbose', '-v'], dict(action='store_true', help='Output more information'))
+                ]
+        description = "Extend vanilla Andoid stubs to stubs usable with the WALA implementation of the " + \
+                "android livecycle.\n\nDon't expect that this works on the first run: The stubsBuilder.ini " + \
+                "will have to be adapted multiple times until all compilation errors vanish."
+
+
+    inputPaths = None
+    outputPaths = None
+    builderPaths = None
+    config = None
+
+    _isPrepared = False
+    def prepare(self):
+        """Genrate internal objects based on the options"""
+        if self._isPrepared:
+            return
+
+        if self.app.pargs.config:
+            self.builderPaths = BilderPaths(log = self.log, configFile = self.app.pargs.config)
+        else:
+            self.builderPaths = BuilderPaths(log = self.log)
+
+        self.config = ConfigParser.SafeConfigParser()
+        self.config.read(self.builderPaths.configFile)
+        section = 'general'
+
+        sdk = None
+        if self.app.pargs.sdk_path:
+            sdk = self.app.pargs.sdk_path
+        else:
+            try:
+                sdk = self.config.get(section, 'sdk')
+            except ConfigParser.NoOptionError:
+                pass
+        self.inputPaths = InputPaths(self.log, sdk) 
+    
+        if self.app.pargs.platform:
+            self.inputPath.platform = self.app.pargs.platform
+        else:
+            try:
+                self.inputPath.platform = self.config.get(section, 'platform')
+            except ConfigParser.NoOptionError:
+                pass
+
+        if self.app.pargs.work_dir:
+            self.outputPaths = OutputPaths(self.log, self.app.pargs.work_dir)
+        else:
+            self.outputPaths = OutputPaths(self.log)
+
+        if self.app.pargs.out_jar:
+            self.outputPaths.jar = self.app.pargs.out_jar
+    
+        #try:
+        self.inputPaths.inputJars = self.config.get(section, 'jars').split()
+        #except ConfigParser.NoOptionError:
+        #    pass
+        self._isPrepared = True
+
+    @controller.expose(help="List platforms usable with the StubsBuilder. Try the --debug Option to get " +
+            "reasons an existing platform may not be suited.")
+    def platforms(self):
+        sdk = None
+        if self.app.pargs.sdk_path:
+            sdk = self.app.pargs.sdk_path
+        paths = InputPaths(self.log, sdk)
+
+        if len(paths.platforms) == 0:
+            raise Exception("No usable platforms have been found in %s" % paths.sdk)
+        else:
+            print("The following platforms may be used:")
+            for plat in paths.platforms:
+                print("\t" + plat)
+
+    @controller.expose(help="Unpack class-files of the Vanilla stubs. This is the first step of the build-command.")
+    def extract(self):
+        self.prepare()  # generate self.inputPaths, outputPaths, ...
+        for jar in self.inputPaths.inputJars:
+            self.log.info("Extracting " + jar)
+            jar = self.inputPaths.get(jar)
+            with zipfile.ZipFile(jar) as j:
+                j.extractall(path = self.outputPaths.classes)
+
+    @controller.expose(help="Collect all sources to compile additionally into the stubs.")
+    def collect(self):
+        self.prepare()
+        stubber = Stubify.Stubifier(configFile = self.builderPaths.configFile)
+
+        copyIn = self.config.get('general', 'copy_in').split()
+        for file in copyIn:
+            self.log.debug("Generating stub of " + file)
+            inFile = self.inputPaths.get(file)
+            outFile = path.join(self.outputPaths.sources, file)
+            opath = path.dirname(outFile)
+            if not path.isdir(opath):
+                os.makedirs(opath)
+            stubber.stubify(inFile, outFile)
+
+        copyIn = self.config.get('general', 'additional').split()
+        for file in copyIn:
+            self.log.debug("Copy " + file)
+            inFile = path.join(self.builderPaths.additional, file)
+            outFile = path.join(self.outputPaths.sources, file)
+            opath = path.dirname(outFile)
+            if not path.isdir(opath):
+                os.makedirs(opath)
+            shutil.copyfile(inFile, outFile)
+            
+    @controller.expose(help="Run javac on the collected files")
+    def compile(self):
+        self.prepare()
+        os.chdir(self.outputPaths.sources)
+        cmd = [self.builderPaths.javac, "-classpath", self.inputPaths.classpath]
+        cmd.extend(self.config.get('general', 'additional').split())
+        cmd.extend(self.config.get('general', 'copy_in').split())
+        
+        self.log.info("Compiling with: " + " ".join(cmd))
+        subprocess.check_call(cmd)
+        self.log.info("Copy in compiled classes")
+        self.copyIn(self.outputPaths.sources)
+
+    def copyIn(self, from_base, subdir = "", overwrite = True, filter=r'\.class'):
+        current = path.join(from_base, subdir)
+        entries = os.listdir(current)
+        filter = re.compile(filter)
+        for entry in entries:
+            epath = path.join(current, entry)
+            if path.isfile(epath):
+                #if filter.match(entry):
+                    outFile = path.join(self.outputPaths.classes, subdir, entry)
+                    shutil.copyfile(epath, outFile)
+                    self.log.debug("copy: %s -> %s" % (epath, outFile))
+                #else:
+                #    outFile = path.join(self.outputPaths.classes, subdir, entry)
+                #    self.log.debug("skip copy of %s -> %s " % (epath, outFile))
+            elif path.isdir(epath):
+                outDir = path.join(self.outputPaths.classes, subdir, entry)
+                if not path.isdir(outDir):
+                    os.makedirs(outDir)
+                self.copyIn(from_base, path.join(subdir, entry), overwrite, filter)
+
+    @controller.expose(help="Generate the JAR-file containing the stub code")
+    def pack(self):
+        self.prepare()
+        os.chdir(self.outputPaths.classes)
+        cmd = [self.builderPaths.jar, 'cf', self.outputPaths.jar, '.']
+        self.log.info("Building JAR-File: " + " ".join(cmd))
+        subprocess.check_call(cmd)
+        print "Written JAR-File to '%s'" + self.outputPaths.jar
+
+    @controller.expose(help="Executes all steps for building stubs. E.g. in order: " + \
+            "extract, collect, compile, pack")
+    def all(self):
+        self.extract()
+        self.collect()
+        self.compile()
+        self.pack()
+
+class App(foundation.CementApp):
+    class Meta:
+        label = "AndroidSubsBuilder"
+        base_controller = StubsBuilder
+
+if __name__ == "__main__":
+    try:
+        app = App()
+        app.setup()
+        app.run()
+        app.close()
+    except NotImplementedError as e:
+        print "The requested Command is not implemented."
+        print "Use stubsBuilder --help to see a list of implemented Commands"
+    #except Exception as e:
+    #    print str(e)
+    #    app.close()
+        #raise e
+        #sys.exit(42)
+

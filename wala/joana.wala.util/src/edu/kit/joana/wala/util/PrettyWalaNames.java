@@ -286,7 +286,12 @@ public final class PrettyWalaNames {
 	}
 	
 	public static final String methodName(final IMethod method, final boolean printParamNum) {
-		return methodName(method.getReference(), (printParamNum ? (method.isStatic() ? 0 : 1) : -1));
+		try {
+            return methodName(method.getReference(), (printParamNum ? (method.isStatic() ? 0 : 1) : -1));
+        } catch (java.lang.NullPointerException e) {
+            System.out.println("ERROR: NULL pointer exception @ edu.kit.joana.wala.util.PrettyWalaNames.methodName");
+            return "LOOKUP_FAILED!";    // TODO: Return sompething more useful
+        }
 	}
 
 	public static final String methodName(final MethodReference method) {
@@ -297,6 +302,9 @@ public final class PrettyWalaNames {
 		StringBuilder name =
 			new StringBuilder(simpleTypeName(method.getDeclaringClass().getName()));
 
+        if (method == null) {
+            return ("NAMEERROR: " + method.toString());
+        }
 		name.append(".");
 		String mName = method.getName().toString();
 		mName = mName.replace("<", "_").replace(">", "_");

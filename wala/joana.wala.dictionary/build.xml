@@ -31,7 +31,7 @@
 
 	<target name="compile" depends="init,collect_wala_sources,collect_sources">
 		<path id="lib.path.ref">
-			<fileset dir="${joana.contrib.base.dir}" includes="*.jar" />
+            <fileset dir="${joana.contrib.base.dir}" includes="*.jar" />
 			<pathelement path="${dest.dir.classes}" />
 		</path>
 		<javac
@@ -78,8 +78,19 @@
 		</copy>
 	</target>
 
-	<target name="collect_wala_sources">
+    <target name="collect_wala_sources">
 		<copy todir="${dest.dir.sources}">
+            <fileset dir="${com.ibm.wala.cast.base.dir}/source">
+                <and>
+                    <filename name="**/*.java" />
+                    <not>
+                        <or>
+                            <filename name="**/plugin/**/*.java" />
+                            <filename name="**/*Plugin*.java" />
+                        </or>
+                    </not>
+                </and>
+            </fileset>
 			<fileset dir="${com.ibm.wala.core.base.dir}/src">
 				<filename name="**/*.java" />
 			</fileset>

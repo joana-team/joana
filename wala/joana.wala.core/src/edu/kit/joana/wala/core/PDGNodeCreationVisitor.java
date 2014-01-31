@@ -37,6 +37,7 @@ import com.ibm.wala.ssa.SymbolTable;
 import com.ibm.wala.types.FieldReference;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.TypeReference;
+import com.ibm.wala.analysis.typeInference.TypeInference;
 
 import edu.kit.joana.wala.core.PDGNode.Kind;
 import edu.kit.joana.wala.util.PrettyWalaNames;
@@ -55,6 +56,9 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 
 	public PDGNode lastNode = null;
 
+    private boolean showTypeNameInValue = false; 
+    private TypeInference typeInf = null;       // Only needed for `showTypeNameInValue = true`
+
 	public PDGNodeCreationVisitor(PDG pdg, IClassHierarchy cha, ParameterFieldFactory params,
 			SymbolTable sym, boolean ignoreStaticFields) {
 		this.pdg = pdg;
@@ -64,7 +68,17 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		this.ignoreStaticFields = ignoreStaticFields;
 	}
 
+    public static PDGNodeCreationVisitor makeWithTypeInf(PDG pdg, IClassHierarchy cha, ParameterFieldFactory params,
+            SymbolTable sym, boolean ignoreStaticFields, boolean showTypeNameInValue, TypeInference typeInf) {
+        PDGNodeCreationVisitor visitor = new PDGNodeCreationVisitor(pdg, cha, params, sym, ignoreStaticFields);
+        visitor.showTypeNameInValue = showTypeNameInValue;
+        visitor.typeInf = typeInf;
+        return visitor;
+    }
+
 	private String tmpName(int var) {
+        String type = "";
+
 		if (var < 0) {
 			return "v?(" + var + ")";
 		} else if (sym.isConstant(var)) {
@@ -95,17 +109,43 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 			}
 
 			return "#(" + cst + ")";
-		} else if (var <= pdg.getMethod().getNumberOfParameters()) {
-			if (pdg.getMethod().isStatic()) {
-				return "p" + var;
-			} else if (var == 1){
-				return "this";
-			} else {
-				return "p" + (var - 1);
-			}
 		} else {
-			return "v" + var;
-		}
+            if (var <= pdg.getMethod().getNumberOfParameters()) {
+                if (this.showTypeNameInValue) {
+                    // Append the type name to the variables name
+                    assert (this.typeInf != null) : "You have to give a TypeInference in order to use showTypeNameInValue";
+                    if (var > 0) {
+                        if (this.typeInf.getType(var) != null) {
+                            if (this.typeInf.getType(var).getTypeReference() != null) {
+                                type = " <" + this.typeInf.getType(var).getTypeReference().getName().toString() + ">";
+                            } else type = " <unknown>";
+                        } else {
+                            type = " <NoneType>";
+                        }
+                    }
+                }
+
+                if (pdg.getMethod().isStatic()) {
+                    return "p" + var + type;
+                } else if (var == 1){
+                    return "this";
+                } else {
+                    return "p" + (var - 1) + type;
+                }
+            } else {
+                try {
+                    final int bcIndex = 0;  // TODO: Get the index
+                    String name = pdg.getMethod().getLocalVariableName(bcIndex, var);
+                    if ((name != null) && (! name.isEmpty())) {
+                        return name + "_" + var;
+                    }
+                    return "v" + var + type;
+                } catch (Exception e) {
+                    //System.out.println(e.toString());
+                    return "v" + var + type;
+                }
+            }
+        }
 	}
 
 	@Override

@@ -21,6 +21,7 @@ import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
 
+import com.ibm.wala.analysis.typeInference.TypeInference;
 import com.ibm.wala.cfg.ControlFlowGraph;
 import com.ibm.wala.classLoader.IBytecodeMethod;
 import com.ibm.wala.classLoader.IClass;
@@ -222,7 +223,8 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 	private void checkForExternalCalls(final ExternalCallCheck ext, final PrintStream out) {
 		for (final PDGNode call : calls) {
 			final SSAInvokeInstruction invk = (SSAInvokeInstruction) node2instr.get(call);
-
+    
+            assert (ext != null);
 			if (ext.isCallToModule(invk)) {
 				out.print("E" + getId());
 				//out.println("Call to external module: " + invk.getDeclaredTarget().getSignature());
@@ -1193,8 +1195,17 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 	}
 
 	private void addNodesForInstructions(final IR ir) {
-		PDGNodeCreationVisitor visitor = new PDGNodeCreationVisitor(this, builder.getClassHierarchy(),
+        PDGNodeCreationVisitor visitor;
+        if (this.builder.cfg.showTypeNameInValue) {
+            TypeInference typeInf = TypeInference.make(ir, true /* doPrimitives */); // ==> Unexpected: JavaPrimitiveType
+            // Use AbstractFixedPointSolver? 
+            visitor = PDGNodeCreationVisitor.makeWithTypeInf(this, builder.getClassHierarchy(),
+                builder.getParameterFieldFactory(), ir.getSymbolTable(), ignoreStaticFields, true /* showTypeNameInValue */ ,
+                typeInf  );
+        } else {
+		    visitor = new PDGNodeCreationVisitor(this, builder.getClassHierarchy(),
 				builder.getParameterFieldFactory(), ir.getSymbolTable(), ignoreStaticFields);
+        }
 
 		for (Iterator<SSAInstruction> it = ir.iterateAllInstructions(); it.hasNext();) {
 			SSAInstruction instr = it.next();
@@ -1754,6 +1765,12 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 	}
 
 	public void connectCall(PDGNode call, Set<PDG> tgts) {
+        if (call == null) {
+			throw new IllegalArgumentException("Call node is null");
+        }
+        if (tgts == null) {
+			throw new IllegalArgumentException("Tagets are null");
+        }
 		if (call.getPdgId() != id || call.getKind() != PDGNode.Kind.CALL) {
 			throw new IllegalArgumentException("Not a call node of this pdg: " + call);
 		}
@@ -1762,28 +1779,40 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 		final PDGCallReturn actOut = call2out.get(call);
 
 		for (PDG tgt : tgts) {
-			addVertex(tgt.entry);
-			if (call.getType().equals("static")) {
-				addEdge(call, tgt.entry, PDGEdge.Kind.CALL_STATIC);
-			} else {
-				addEdge(call, tgt.entry, PDGEdge.Kind.CALL_VIRTUAL);
-			}
+            if (tgt == null) {  
+                System.out.println("\nERROR: Target is null; call was: " + call.toString() + " target count is: " + tgts.size());
+                continue;
+            }
+           
+            try {       
+                addVertex(tgt.entry);
+                if (call.getType().equals("static")) {
+                    addEdge(call, tgt.entry, PDGEdge.Kind.CALL_STATIC);
+                } else {
+                    addEdge(call, tgt.entry, PDGEdge.Kind.CALL_VIRTUAL);
+                }
 
-			for (int i = 0; i < actIn.length; i++) {
-				PDGNode formIn = tgt.params[i];
-				addVertex(formIn);
-				addEdge(actIn[i], formIn, PDGEdge.Kind.PARAMETER_IN);
-			}
+                for (int i = 0; i < actIn.length; i++) {
+                    PDGNode formIn = tgt.params[i];
+                    addVertex(formIn);
+                    addEdge(actIn[i], formIn, PDGEdge.Kind.PARAMETER_IN);
+                }
 
-			if (actOut.retVal != null) {
-				tgt.addVertex(actOut.retVal);
-				tgt.addEdge(tgt.exit, actOut.retVal, PDGEdge.Kind.PARAMETER_OUT);
-			}
+                if (actOut.retVal != null) {
+                    tgt.addVertex(actOut.retVal);
+                    tgt.addEdge(tgt.exit, actOut.retVal, PDGEdge.Kind.PARAMETER_OUT);
+                }
 
-			if (actOut.excVal != null) {
-				tgt.addVertex(actOut.excVal);
-				tgt.addEdge(tgt.exception, actOut.excVal, PDGEdge.Kind.PARAMETER_OUT);
-			}
+                if (actOut.excVal != null) {
+                    tgt.addVertex(actOut.excVal);
+                    tgt.addEdge(tgt.exception, actOut.excVal, PDGEdge.Kind.PARAMETER_OUT);
+                }
+            } catch (Exception e) { // XXX: Do better Exception-Handling here!
+                System.err.println("\nIgnoring Exception while processing call" + call.toString());
+                System.err.println("Exception was: " + e.getMessage());
+                e.printStackTrace();
+                continue;
+            }
 		}
 	}
 

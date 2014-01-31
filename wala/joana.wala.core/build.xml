@@ -38,7 +38,8 @@
 			includeantruntime="false"
 			srcdir="${dest.dir.sources}"
 			destdir="${dest.dir.classes}"
-			verbose="no"
+            verbose="no"
+            debug="true"
 			source="1.6"
 			target="1.6"
 			encoding="utf-8"
@@ -88,7 +89,22 @@
 			</fileset>
 			<fileset dir="${com.ibm.wala.util.base.dir}/src">
 				<filename name="**/*.java" />
-			</fileset>
+            </fileset>
+            <!--
+                Needed for optional second type-inference. This is needed for replacing
+                variable-names in the generated SDG-file
+             -->
+            <fileset dir="${com.ibm.wala.cast.base.dir}/source">
+                <and>
+                    <filename name="**/*.java" />
+                    <not>
+                        <or>
+                            <filename name="**/plugin/**/*.java" />
+                            <filename name="**/*Plugin*.java" />
+                        </or>
+                    </not>
+                </and>
+            </fileset>
 		</copy>
 	</target>
 

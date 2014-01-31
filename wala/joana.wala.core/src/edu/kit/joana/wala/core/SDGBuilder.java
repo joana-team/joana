@@ -1485,6 +1485,16 @@ public class SDGBuilder implements CallGraphFilter {
 		 */
 		public boolean computeAllocationSites = false;
 		public SideEffectDetectorConfig sideEffects = null;
+        /**
+         *  Debugging-Option: Rename variables in the SDG when no name is available.
+         *
+         *  If this is set to false variables in the SDG will have names like "v#" or "p#" if
+         *  no actual name can be determined. If it is set to true the Type-Name will be appended
+         *  (like "v# Integer"). This shall help manually reading pdg-Files.
+         *
+         *  @todo   Enabling this may Throw errors when generation a new TypeInference.
+         */
+        public boolean showTypeNameInValue = false;
         /** The methodTargetSelector from the AnalysisOptions. 
          *
          * It will get copied back there before CallGraphConstruction. If it's null the default of the 

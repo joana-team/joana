@@ -1,4 +1,4 @@
-### About
+### About JoDroid
 
 JoDroid is the starting point for analyzing an Android-Application usin Joana. Doing so involves multiple steps - see Usage
 
@@ -23,7 +23,8 @@ Analyzing an Android-Application involves multiple steps:
 
     Example:
         java -ea -Xmx2048m -jar joana.wala.jodroid.jar --manifest project/AndroidManifest.xml --scan project/project.apk
-        # produces: project/project.apk.ntrP
+        
+        produces: project/project.apk.ntrP
 
 5. Edit the entrypoint-specification file to match the needs of the analysis. Options under the settings-tag are _not_ read back yet. However entrypoints may be added or moved in the model at this point. Instantiation-behavior and resolution of intents may be changed.
 
@@ -33,7 +34,8 @@ If the file is not edited JoDroid should produce usable results too. However due
 
     Example:
         java -ea -Xmx2048m -jar joana.wala.jodroid.jar --ep-file project/project.apk.ntrP project/project.apk
-        # produces: project/project.apk.pdg
+        
+        produces: project/project.apk.pdg
 
 7. Launch the IFC-Console (/dist/joana.ui.ifc.wala.console.jar).
 

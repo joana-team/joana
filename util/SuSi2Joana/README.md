@@ -1,4 +1,4 @@
-### About
+### About SuSi2Joana
 
 SuSi (see links) is a tool to automaticly select sources and sinks of an Android-Application.
 This tool (SuSi2Joana) converts SuSis findings to a format usable with Joana.

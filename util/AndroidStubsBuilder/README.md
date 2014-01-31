@@ -1,4 +1,4 @@
-### About
+### About StubsBuilder
 
 StubsBuilder is a tool to generate Android-Stubs usable by JoDroid. This ist done by combining the vanilla-Stubs to a single file and compiling in some extra classes.
 

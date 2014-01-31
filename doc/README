@@ -1,0 +1,8 @@
+Documentation may be either generated using doxygen or JavaDoc
+
+To use doxygen navigate to the Joana-root folder (eg. ..) and type 'doxygen'
+Then point your Web-Browser to 'doc/wala/html/index.html'
+
+For the usage of JavaDoc there's only a target for WALA. To generate this 
+documentation navigate to the Joana-root folder (eg. ..) and type 'ant doc-wala'
+

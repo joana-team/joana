@@ -1,0 +1,13 @@
+
+/* Make brief more brief */
+.mdescRight .params {
+    display:    none;
+}
+
+.mdescRight .return {
+    display:    none;
+}
+
+.mdescRight a {     /* Dangerous: remove more-link */
+    display:    none;
+}

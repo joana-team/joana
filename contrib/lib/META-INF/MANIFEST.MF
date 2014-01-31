@@ -6,7 +6,8 @@ Bundle-Version: 1.0.0.qualifier
 Bundle-ClassPath: antlr-runtime-3.1.3.jar,
  jgrapht-jdk1.6.jar,
  jutil.jar,
- trove-3.0.0a3.jar
+ trove-3.0.0a3.jar,
+ slf4j-api-1.7.2.jar
 Export-Package: gnu.trove,
  gnu.trove.decorator,
  gnu.trove.function,
@@ -50,5 +51,8 @@ Export-Package: gnu.trove,
  org.jgrapht.generate,
  org.jgrapht.graph,
  org.jgrapht.traverse,
- org.jgrapht.util
+ org.jgrapht.util,
+ org.slf4j,
+ org.slf4j.helpers,
+ org.slf4j.spi
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6

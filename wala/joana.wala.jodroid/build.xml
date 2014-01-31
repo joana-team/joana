@@ -45,6 +45,7 @@
 			srcdir="${dest.dir.sources}"
 			destdir="${dest.dir.classes}"
 			verbose="no"
+			debug="yes"
 			source="1.6"
 			target="1.6"
 			encoding="utf-8"
@@ -81,7 +82,12 @@
 			</filelist>
 			<filelist dir="${com.ibm.wala.core.base.dir}/lib">
 				<file name="primordial.jar.model" />
-			</filelist>
+            </filelist>
+			<filelist dir="${joana.wala.jodroid.base.dir}/lib">
+				<file name="android-18.jar" />
+				<file name="exclusions.txt" />
+				<file name="logback.xml" />
+            </filelist>
 			<filelist dir="${joana.contrib.base.dir}/stubs">
 				<file name="natives_empty.xml" />
 				<file name="jSDG-stubs-jre1.4.jar" />

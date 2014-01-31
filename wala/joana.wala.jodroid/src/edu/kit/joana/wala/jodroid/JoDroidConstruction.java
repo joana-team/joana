@@ -1,163 +1,602 @@
+/*
+ *  Copyright (c) 2013,
+ *      Tobias Blaschke <code@tobiasblaschke.de>
+ *  All rights reserved.
+
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are met:
+ *
+ *  1. Redistributions of source code must retain the above copyright notice,
+ *     this list of conditions and the following disclaimer.
+ *
+ *  2. Redistributions in binary form must reproduce the above copyright notice,
+ *     this list of conditions and the following disclaimer in the documentation
+ *     and/or other materials provided with the distribution.
+ *
+ *  3. The names of the contributors may not be used to endorse or promote
+ *     products derived from this software without specific prior written
+ *     permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ *  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ *  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ *  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ *  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ *  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ *  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ *  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ *  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ */
 package edu.kit.joana.wala.jodroid;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.jar.JarFile;
-
-import com.ibm.wala.classLoader.IClass;
-import com.ibm.wala.classLoader.IMethod;
-import com.ibm.wala.dalvik.classLoader.DexIRFactory;
-import com.ibm.wala.dalvik.util.AndroidAnalysisScope;
-import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
+import com.ibm.wala.dalvik.util.AndroidAnalysisScope;
+import com.ibm.wala.dalvik.util.AndroidManifestXMLReader;
+
+import edu.kit.joana.wala.jodroid.AnalysisPresets;
+import edu.kit.joana.wala.jodroid.AnalysisPresets.Preset;
+
+import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
-import com.ibm.wala.ipa.cha.IClassHierarchy;
-import com.ibm.wala.ssa.IRFactory;
-import com.ibm.wala.ssa.SSAInvokeInstruction;
+
+import com.ibm.wala.classLoader.IMethod;
+
+import com.ibm.wala.ipa.callgraph.MethodTargetSelector;
+import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.IntentContextInterpreter;
+import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.IntentContextSelector;
+import com.ibm.wala.dalvik.ipa.callgraph.androidModel.AndroidModel;
+import com.ibm.wala.dalvik.ipa.callgraph.androidModel.stubs.Overrides;
+import com.ibm.wala.dalvik.util.AndroidEntryPointLocator;
+import com.ibm.wala.dalvik.util.AndroidEntryPointLocator.LocatorFlags;
+import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationBehavior;
+import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.LoadedInstantiationBehavior;
+
+import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.wala.core.SDGBuilder;
+import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
+
+import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
+import com.ibm.wala.util.NullProgressMonitor;
+
+import com.ibm.wala.dalvik.util.AndroidPreFlightChecks;
+
+
 import com.ibm.wala.types.ClassLoaderReference;
+
+// Needed by findMethod:
+import com.ibm.wala.classLoader.IClass;
+import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.Selector;
-import com.ibm.wala.types.TypeReference;
+
+import edu.kit.joana.wala.jodroid.entrypointsFile.Writer;
+import edu.kit.joana.wala.jodroid.entrypointsFile.Reader;
+
+import java.io.File;
+import java.net.URI;
+import java.io.FileOutputStream;
+import java.util.jar.JarFile;
+import java.io.IOException;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
-import edu.kit.joana.ifc.sdg.graph.SDG;
-import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
-import edu.kit.joana.util.Maybe;
-import edu.kit.joana.wala.core.ExternalCallCheck;
-import edu.kit.joana.wala.core.Main;
-import edu.kit.joana.wala.core.SDGBuilder;
-import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
-import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
-import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
-import edu.kit.joana.wala.core.SDGBuilder.SDGBuilderConfig;
-import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
-import edu.kit.joana.wala.flowless.pointsto.AliasGraph;
-import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public final class JoDroidConstruction {
+/**
+ *  "Main-Routines" of the inner JoDroid.
+ *
+ *  These methods get called by UI/CLI components.
+ *  
+ *  @see edu.kit.joana.wala.jodroid.JodDroidCLI
+ */
+public class JoDroidConstruction {
+    private static final Logger logger = LoggerFactory.getLogger(JoDroidConstruction.class);
 
-	public static void buildAndroidSDGAndSave(String classPath, String androidLib, String entryMethod, String sdgFile)
-			throws SDGConstructionException, IOException {
-		SDG sdg = buildAndroidSDG(classPath, androidLib, Maybe.<String>nothing(), entryMethod);
-		SDGSerializer.toPDGFormat(sdg, new FileOutputStream(sdgFile));
-	}
+    /**
+     *  The Preset contains any settings needed during JoDroid-runs.
+     */
+    final Preset p;
 
-	public static void buildAndroidSDGAndSave(String classPath, String androidLib, String stubsPath, String entryMethod, String sdgFile)
-			throws SDGConstructionException, IOException {
-		SDG sdg = buildAndroidSDG(classPath, androidLib, Maybe.just(stubsPath), entryMethod);
-		SDGSerializer.toPDGFormat(sdg, new FileOutputStream(sdgFile));
-	}
+    /**
+     *  Locate Entrypoints and fill InstantiationBehavior.
+     *
+     *  The scan-results may be found in p.aem.ENTRIES after this method was called.
+     *
+     *  Sideeffects:
+     *      * Fill Preset.aem.ENTRIES
+     *      * Fill Cache of p.aem.getInstantiationBehavior()
+     */
+    public void scanEntryPoints() throws SDGConstructionException {
+        if (p.scfg.cha == null) {
+            throw new IllegalStateException("The cha has to be built first");
+        }
 
-	public static IClassHierarchy computeCH(String classPath, String androidLib) throws IOException,
-			ClassHierarchyException {
-		AnalysisScope scope = AndroidAnalysisScope.setUpAndroidAnalysisScope(androidLib, classPath);
-		return ClassHierarchy.make(scope);
-	}
+        // Manifest?
+        final IProgressMonitor mon = p.aem.getProgressMonitor();
+        final IClassHierarchy cha = p.scfg.cha;
 
-	public static SDG buildAndroidSDG(String classPath, String androidLib, Maybe<String> stubsPath, String entryMethod)
-			throws SDGConstructionException, IOException {
-		AnalysisScope scope = AndroidAnalysisScope.setUpAndroidAnalysisScope(androidLib, classPath);
-		if (stubsPath.isJust()) {
-			String stubs = stubsPath.extract();
-			scope.addToScope(ClassLoaderReference.Primordial, new JarFile(stubs));
-		}
-		IClassHierarchy cha;
-		try {
-			cha = ClassHierarchy.make(scope);
-			return buildAndroidSDG(findMethod(cha, entryMethod));
-		} catch (ClassHierarchyException e) {
-			throw new SDGConstructionException(e);
-		} catch (MethodNotFoundException e) {
-			throw new SDGConstructionException(e);
-		}
-	}
+        try {
+            logger.info("Scanning for EntryPoints");
+            logger.debug("Using flags: {}", p.entrypointLocatorFlags.toString());
+            final AndroidEntryPointLocator epl = new AndroidEntryPointLocator(p.entrypointLocatorFlags);
+            p.aem.ENTRIES = epl.getEntryPoints(cha);
 
-	public static SDG buildAndroidSDG(String classPath, String androidLib, String entryMethod)
-			throws SDGConstructionException, IOException {
-		return buildAndroidSDG(classPath, androidLib, Maybe.<String>nothing(), entryMethod);
-	}
+            final IInstantiationBehavior instantiationBehvior;
+            { // Grab the instantiation behavior of attributes to the entrypoints
+                mon.beginTask("Filling InstantiationBehavior...", IProgressMonitor.UNKNOWN);
+                mon.worked(1);
+                instantiationBehvior = p.aem.getInstantiationBehavior(cha);
 
-	public static SDG buildAndroidSDG(IMethod entryMethod)
-			throws SDGConstructionException, IOException {
-		// com.ibm.wala.ipa.callgraph.impl.Util.setNativeSpec(null);
-		AnalysisScope scope = entryMethod.getClassHierarchy().getScope();
-		IClassHierarchy cha = entryMethod.getClassHierarchy();
-		SDGBuilderConfig scfg = new SDGBuilderConfig();
-		scfg.out = System.out;
-		scfg.scope = scope;
-		scfg.cache = new AnalysisCache((IRFactory<IMethod>) new DexIRFactory());
-		scfg.cha = cha;
-		scfg.entry = entryMethod;
-		scfg.ext = makeStandardExternalCallCheck();
-		scfg.immutableNoOut = Main.IMMUTABLE_NO_OUT;
-		scfg.immutableStubs = Main.IMMUTABLE_STUBS;
-		scfg.ignoreStaticFields = Main.IGNORE_STATIC_FIELDS;
-		scfg.exceptions = ExceptionAnalysis.ALL_NO_ANALYSIS;
-		scfg.accessPath = false;
-		scfg.prunecg = Main.DEFAULT_PRUNE_CG;
-		scfg.pts = PointsToPrecision.INSTANCE_BASED;
-		scfg.staticInitializers = StaticInitializationTreatment.SIMPLE;
-		scfg.fieldPropagation = FieldPropagation.OBJ_GRAPH;
-		scfg.debugManyGraphsDotOutput = false;
-		scfg.computeInterference = false;
+                // By building the model we fill the instanciationBehvior-cache. This is only needed when
+                // writing out the ntrP-File directly. As it's rather inepensive we do it always non the 
+                // less.
+                final IMethod model = new AndroidModel(cha, p.options, p.scfg.cache).getMethod();
+                mon.done();
+            }
+        } catch (CancelException e) {
+            throw new SDGConstructionException(e);
+        }
+    }
 
-		try {
-			return SDGBuilder.build(scfg);
-		} catch (UnsoundGraphException e) {
-			throw new SDGConstructionException(e);
-		} catch (CancelException e) {
-			throw new SDGConstructionException(e);
-		}
-	}
+    /**
+     *  Does an extensive search which results in a compete list of issued intents.
+     *
+     *  To get a list of all Intents issued by the app in analysis a small CallGraph has to be built.
+     *
+     *  Sideeffects:
+     *      * Fill Preset.aem.ENTRIES
+     *      * Fill Cache of p.aem.getInstantiationBehavior()
+     *      * Fill p.em.getSeen() with instructions that start Intents
+     */
+    public void scanEntryPointsExtended() {
+        throw new UnsupportedOperationException("Not implemented");
 
-	private static IMethod findMethod(IClassHierarchy cha, String mSig) throws MethodNotFoundException {
-		int off = mSig.lastIndexOf('.');
-		String type = "L" + mSig.substring(0, off).replace('.', '/');
-		String mSel = mSig.substring(off + 1);
-		TypeReference tRef = TypeReference.findOrCreate(ClassLoaderReference.Application, type);
-		MethodReference mRef = MethodReference.findOrCreate(tRef, Selector.make(mSel));
-		IMethod cand = cha.resolveMethod(mRef);
-		if (cand != null) {
-			return cand;
-		} else {
-			for (IClass c : cha) {
-				for (IMethod m : c.getAllMethods()) {
-					if (m.getSignature().equals(mSig)) {
-						return m;
-					}
-				}
-			}
+        // 1. Do scanEntryPoints()
+        // 2. Generate minimum settings for CallGraphBuilder
+        // 3. Add IntentContextSelector /-Interpreter to the CGB
+        // 4. Call AndroidModel().getMethod()
+        // 5. Build CallGraph and throw it away
+    }
 
-			throw new MethodNotFoundException(mSig);
-		}
-	}
+    /**
+     *  Read in an extracted AndroidManifest.xml.
+     *
+     *  The file has to be previously extracted to the "real" XML-Format. 
+     *  Reading the Manifest is optional. Doing so will enable JoDroid to resolve app-internal
+     *  Intents.
+     *
+     *  Sideeffects:
+     *      * Fill Preset.aem.overrideIntents 
+     *      * Set Preset.aem.getPackage()
+     *
+     *  @param  manifest The path to the AndroidManifest.xml to read
+     */
+    public void loadAndroidManifest(final File manifest) {
+        if (p.scfg.cha == null) {
+            throw new IllegalStateException("The cha has to be built first");
+        }
 
-	private static ExternalCallCheck makeStandardExternalCallCheck() {
-		return new ExternalCallCheck() {
-			@Override
-			public boolean isCallToModule(SSAInvokeInstruction invk) {
-				return false;
-			}
+        if (manifest != null) {
+            try {
+                final AndroidManifestXMLReader reader = new AndroidManifestXMLReader(manifest);
+            } catch (IOException e) {
+                System.err.println();
+                System.err.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                System.err.println("Error reading in the Manifest. - Continuing without it!");
+                e.printStackTrace();
+            }
+        }
+    }
 
-			@Override
-			public void registerAliasContext(SSAInvokeInstruction invk, int callNodeId, AliasGraph.MayAliasGraph context) {
-			}
+    /**
+     *  Write the ntrP-File.
+     *
+     *  The ntrP-File contains all data detected during the --scan-Phase. It may be edited by the user and
+     *  handed in in the --run-Pase.
+     *
+     *  Writes configs, intents, instantiation-behavior and entypoints to a file in XML-Fomrat.
+     *
+     *  @param  outFile Where to write the ntrP-File to
+     */
+    public void saveEntryPoints(final URI outFile) throws IOException {
+        if (outFile == null) {
+            throw new IllegalArgumentException("OutFile may not be null");
+        }
 
-			@Override
-			public void setClassHierarchy(IClassHierarchy cha) {
-			}
+        final IProgressMonitor mon = this.p.aem.getProgressMonitor();
+        final IInstantiationBehavior instantiationBehvior = this.p.aem.getInstantiationBehavior(this.p.scfg.cha);
+        final Writer writer = new Writer();
 
-			@Override
-			public MethodInfo checkForModuleMethod(IMethod im) {
-				return null;
-			}
+        mon.beginTask("Serializing and writing...", 5);
+        mon.subTask("Android Model Config");
+        writer.add(this.p.aem);
+        mon.subTask("Joana Config"); mon.worked(1);
+        writer.add(this.p.scfg);
+        mon.subTask("Intent information"); mon.worked(2);
+        writer.add(this.p.aem.overrideIntents);
+        mon.subTask("Instantiation Behavior"); mon.worked(3);
+        writer.add(instantiationBehvior);
+        mon.subTask("Entry Points"); mon.worked(4);
+        writer.add(this.p.aem.ENTRIES);
+        mon.subTask("Writing"); mon.worked(5);
+        writer.write(new File(outFile));
+        mon.done();
+    }
 
-			@Override
-			public boolean resolveReflection() {
-				return false;
-			}
-		};
-	}
+    /**
+     *  Reads a file generated using saveEntryPoints().
+     *
+     *  After setting up the AnalysisScope and creating the ClassHierarchy the definitions may be read
+     *  from a ntrP-File. These contain: Intent-Overrides, Entrypoints and InstantiationBehavior.
+     *
+     *  Sideeffects:
+     *      * Fill Preset.aem.ENTRIES
+     *      * Fill Cache of p.aem.getInstantiationBehavior()
+     *      * Fill Preset.aem.overrideIntents 
+     *      * Set Preset.aem.getPackage()
+     *
+     *  @param  entryPointFile  Where to read the ntrP-File from
+     *  @throws IllegalStateException If the cha has not been built before.
+     */
+    public void loadEntryPoints(final File entryPointFile) throws IOException {
+        if (entryPointFile == null) {
+            throw new IllegalArgumentException("entryPointFile may not be null");
+        }
+        if (p.scfg.cha == null) {
+            throw new IllegalStateException("The cha has to be constructed before reading back the entrypoints");
+        }
+        if (p.scfg.scope == null) {
+            throw new IllegalStateException("The scope has to be set before reading back the entrypoints");
+        }
+
+        final Reader reader = new Reader(entryPointFile, p.scfg.cha);
+        final IInstantiationBehavior beh = new LoadedInstantiationBehavior(p.scfg.cha);
+
+        reader.addTarget(beh);
+        reader.addTarget(p.aem.ENTRIES);
+        reader.read();
+
+        p.aem.setInstantiationBehavior(beh);
+    }
+
+    /**
+     *  Use a _single_ entry-point.
+     *
+     *  Setting an Entrypoint using this method will disable the generation of an Android-Livecycle.
+     *
+     *  @param  ep  The single EntryPoint to use
+     */
+    public void setSingleEntryPoint(final IMethod ep) {
+        throw new UnsupportedOperationException("Not implemented!");
+    }
+
+    /**
+     *  Generate the Android-Livecycle and produce joanas SDG.
+     *
+     *  Before calling this method the AnalysisScope has to be set and the ClassHierarchy created. Entrypoints
+     *  have to be specified.
+     *
+     *  This method will then construct the Livecycle for the android-App and build a SDG.
+     *
+     *  @throws IllegalStateException If cha has not been built before or no entrypoints have been specified
+     *  @return The System-Dependence-Graph for the analyzed application
+     */
+    public SDG buildAndroidSDG() throws SDGConstructionException {
+        if (p.scfg.cha == null) {
+            throw new IllegalStateException("The cha has to be constructed before building the SDG");
+        }
+        if (p.aem.ENTRIES.isEmpty()) {
+            throw new IllegalStateException("Androids entrypoints have to be set before generating the SDG! " + 
+                    "This can be done using the scan-function or by reading a ntrP-File" );
+        }
+        if (p.scfg.scope == null) {
+            throw new IllegalStateException("The scope has to be set before constructing the SDG!");
+        }
+
+        final IMethod livecycle;
+        final AndroidModel modeller;
+        { // Build the model
+            modeller = new AndroidModel(p.scfg.cha, p.options, p.scfg.cache);
+            try {
+                livecycle = modeller.getMethod();
+            } catch (CancelException e) {
+                throw new SDGConstructionException(e);
+            }
+        }
+
+        { // Add overrides necessary for context-free analysis (context sensitive fall back)
+            final MethodTargetSelector overrideStartComponent;
+
+            try {
+                final Overrides overrides = new Overrides(modeller, p.scfg.cha, p.options, p.scfg.cache);
+                overrideStartComponent = overrides.overrideAll();
+            } catch (CancelException e) {
+                throw new SDGConstructionException(e);
+            }
+
+            p.scfg.methodTargetSelector = overrideStartComponent;
+        } // */
+
+        { // Add IntentContextSelector & -Interpreter
+            // These are needed to detect the targets of Intents and replace their starts with a wrapper-function
+            p.scfg.additionalContextSelector = new IntentContextSelector(p.scfg.cha);
+            p.scfg.additionalContextInterpreter = new IntentContextInterpreter(p.scfg.cha, p.options, p.scfg.cache);
+        }
+
+        { // Some optional checks...
+            final AndroidPreFlightChecks pfc = new AndroidPreFlightChecks(p.aem, p.options, p.scfg.cha);
+            final boolean pass = pfc.all();
+            if (! pass) {
+                logger.warn("Not all preFlightChecks passed");
+            }
+        } // */
+
+        final SDG sdg;
+        { // Hand over to Joana to construct the SDG
+            try {
+                p.scfg.entry = livecycle;
+                sdg = SDGBuilder.build(p.scfg, p.aem.getProgressMonitor());
+            } catch (UnsoundGraphException e) {
+                throw new SDGConstructionException(e);
+            } catch (CancelException e) {
+                throw new SDGConstructionException(e);
+            }
+        }
+
+        return sdg;
+    }
+
+    /**
+     *  JoDroid is stateful, create a state.
+     *
+     *  CAUTION: JoDroid uses static fields in some of its classes. During the livetime of the application
+     *  it is only save to have a single instance of JoDroidConstruction! 
+     *
+     *  @param  scope   Where to load various parts of the app in analysis from
+     *  @param  preset  Name of a hardcoded preset (the other constructor may be used to customize).
+     */
+    public JoDroidConstruction(final AnalysisScope scope, final AnalysisPresets.PresetDescription preset) throws SDGConstructionException {
+        try {
+            final IClassHierarchy cha = ClassHierarchy.make(scope, Preset.aem.getProgressMonitor());
+            this.p = AnalysisPresets.make(preset, scope, cha);
+        } catch (ClassHierarchyException e) {
+            throw new SDGConstructionException(e);
+        }
+    }
+
+    /**
+     *  JoDroid is stateful, create a state.
+     *
+     *  CAUTION: JoDroid uses static fields in some of its classes. During the livetime of the application
+     *  it is only save to have a single instance of JoDroidConstruction! 
+     *
+     *  @param  p   Options to JoDroid may be set in p
+     */
+    public JoDroidConstruction(final Preset p) {
+        this.p = p;
+    }
+
+    /**
+     *  "main"-method usable by JoDroid-UIs.
+     *
+     *  User-Exposed options or set in "ExecutionOptions ex". This method dispatches the execution of JoDroid
+     *  based on this settings
+     *
+     *  @param  ex  Options exposed to the user.
+     */
+    public static void dispatch(final ExecutionOptions ex) throws SDGConstructionException, IOException {
+        final AnalysisScope scope;
+        { // generate the scope
+            final URI classPath = ex.getClassPath();
+            final URI androidStubs = ex.getAndroidLib();
+            final File javaStubs = ex.getJavaStubsFile();
+            final File exclusions = ex.getExclusionsFile();
+            
+            logger.info("Using ClassPath:\t{}", classPath.toString());
+            logger.info("Using Android Stubs:\t{}", androidStubs.toString());
+            logger.info("Using Java Stubs:\t{}", javaStubs.toString());
+
+            assert (exclusions != null); // XXX: Handle case without exclusions?
+            scope = AndroidAnalysisScope.setUpAndroidAnalysisScope(androidStubs, classPath, exclusions);
+            
+            if (javaStubs != null) {
+                scope.addToScope(ClassLoaderReference.Primordial, new JarFile(javaStubs.getPath()));
+            }
+        }
+        
+        final IClassHierarchy cha;
+        { // Build cha
+            try {
+                if (ex.getOutput() == AnalysisPresets.OutputDescription.QUIET) {
+                    cha = ClassHierarchy.make(scope, new NullProgressMonitor());
+                } else {
+                    cha = ClassHierarchy.make(scope, Preset.aem.getProgressMonitor());
+                }
+            } catch (ClassHierarchyException e) {
+                throw new SDGConstructionException(e);
+            }
+        }
+
+        Preset p = AnalysisPresets.make(ex.getPreset(), scope, cha);
+        AnalysisPresets.applyOutput(ex.getOutput(), p);
+        final JoDroidConstruction constr = new JoDroidConstruction(p);
+
+        constr.loadAndroidManifest(ex.getManifestFile());
+
+        if (ex.getEntryMethod() != null) {
+            try {
+                constr.setSingleEntryPoint(findMethod(cha, ex.getEntryMethod()));
+            } catch (MethodNotFoundException e) {
+                throw new SDGConstructionException(e);
+            }
+        } else {
+            final File epFile = new File(ex.getEpFile());   
+            if (epFile.exists()) {
+                constr.loadEntryPoints(epFile);
+            }
+        }
+        if (ex.isScan()) {  // XXX What about extended scan
+            constr.scanEntryPoints();
+        }
+        if (ex.isWriteEpFile()) {
+            constr.saveEntryPoints(ex.getEpFile());
+        }
+        SDG sdg; 
+        if (ex.isConstruct()) {
+            sdg = constr.buildAndroidSDG();
+            final File outFile = new File(ex.getSdgFile());
+            if (! outFile.exists()) {
+                outFile.createNewFile();
+            }
+            SDGSerializer.toPDGFormat(sdg, new FileOutputStream(outFile));
+        }
+    }   
+
+
+    //
+    // Short-Hand and compatibility stuff follows
+    //
+
+    /**
+     *  Search the entrypoints of an Android-App and write results to a ntrP-File.
+     *
+     *  @param  classPath   The android-application to analyze
+     *  @param  androidLib  null or path to Android-Stubs. If null the bundled-ones will be used.
+     *  @param  outFile     null or path where to write the ntrP-File to.
+     *  @param  manifest    AndroidManifest.xml of the App in analysis (may be null)
+     */
+    public static void scanEntryPointsAndSave(final String classPath, final String androidLib, final String ntrPFile, final File manifest)
+                throws SDGConstructionException, IOException {
+        if (classPath == null) {
+            throw new IllegalArgumentException("classPath may not be null");
+        }
+
+        final ExecutionOptions ex = new ExecutionOptions();
+        ex.setClassPath(classPath);
+        if (androidLib != null) {
+            ex.setAndroidLib(androidLib);
+        }
+        if (ntrPFile != null) {
+            ex.setEpFile(ntrPFile);
+        }
+        if (manifest != null) {
+            ex.setManifest(manifest.getPath());
+        }
+        ex.setScan(true);
+        ex.setConstruct(false);
+        ex.setWriteEpFile(true);
+        dispatch(ex);
+    }
+
+    /**
+     *  Generate the ClassHierarchy for an Android-App.
+     *
+     *  A bundled exclusions-File is used during generation!
+     *
+     *  @param  classPath   The Android-App to generate the cha for
+     *  @param  androidLib  Adroid-Stubs to use during generation. If null: use bunded ones.
+     */
+    public static IClassHierarchy computeCH(String classPath, String androidLib) throws IOException, ClassHierarchyException {
+        final ExecutionOptions ex = new ExecutionOptions();
+        {
+            ex.setClassPath(classPath);
+            if (androidLib != null) {
+                ex.setAndroidLib(androidLib);
+            }
+        } 
+
+        final AnalysisScope scope;
+        { // generate the scope
+            final URI classPathUri = ex.getClassPath();
+            final URI androidStubs = ex.getAndroidLib();
+            final File javaStubs = ex.getJavaStubsFile();
+            final File exclusions = ex.getExclusionsFile();
+            
+            logger.info("Using ClassPath:\t{}", classPathUri.toString());
+            logger.info("Using Android Stubs:\t{}", androidStubs.toString());
+            logger.info("Using Java Stubs:\t{}", javaStubs.toString());
+
+            assert (exclusions != null); // XXX: Handle case without exclusions?
+            scope = AndroidAnalysisScope.setUpAndroidAnalysisScope(androidStubs, classPathUri, exclusions);
+            
+            if (javaStubs != null) {
+                scope.addToScope(ClassLoaderReference.Primordial, new JarFile(javaStubs.getPath()));
+            }
+        }
+
+        return ClassHierarchy.make(scope, Preset.aem.getProgressMonitor());
+    }
+
+    // public static SDG buildAndroidSDG(IMethod entryMethod) throws SDGConstructionException, IOException
+    // public static SDG buildAndroidSDG(String classPath, String androidLib, String entryMethod) throws SDGConstructionException, IOException
+    // public static SDG buildAndroidSDG(String classPath, String androidLib, Maybe<String> stubsPath, String entryMethod)
+    public static void buildAndroidSDGAndSave(String classPath, String androidLib, String entryMethod, String sdgFile) throws SDGConstructionException, IOException {
+        buildAndroidSDGAndSave(classPath, androidLib, /* stubsPath = */ null, entryMethod, sdgFile);
+    }
+
+    /**
+     *  Analyze an Android-App using a single EntryPoint - e.g without Livecycle-Model.
+     *
+     *  @param  classPath   Android-App to analyze
+     *  @param  androidLib  Android-Stubs to use. If null: Use the bundled ones
+     *  @param  stubsPath   Java-Stubs to use. If null: Use the bundled ones
+     *  @param  entryMethod Signature of the EntryPoint
+     *  @param  sdgFile     Where to write the results
+     */
+    public static void buildAndroidSDGAndSave(String classPath, String androidLib, String stubsPath, String entryMethod, String sdgFile)
+                             throws SDGConstructionException, IOException {
+        if (classPath == null) {
+            throw new IllegalArgumentException("classPath may not be null");
+        }
+        if (entryMethod == null) {
+            throw new IllegalArgumentException("entryMethod may not be null");
+        }
+
+        final ExecutionOptions ex = new ExecutionOptions();
+        ex.setClassPath(classPath);
+        if (androidLib != null) {
+            ex.setAndroidLib(androidLib);
+        }
+        if (stubsPath != null) {
+            ex.setJavaStubs(stubsPath);
+        }
+        ex.setEntryMethod(entryMethod);
+        if (sdgFile != null) {
+            ex.setSdgFile(sdgFile);
+        }
+
+        ex.setScan(false);
+        ex.setConstruct(true);
+        ex.setWriteEpFile(false);
+        dispatch(ex);
+    }
+
+    /**
+     *  Resolves a method-signature to an IMethod.
+     */
+    private static IMethod findMethod(IClassHierarchy cha, String mSig) throws MethodNotFoundException {
+        int off = mSig.lastIndexOf('.');
+        String type = "L" + mSig.substring(0, off).replace('.', '/');
+        String mSel = mSig.substring(off + 1);
+        TypeReference tRef = TypeReference.findOrCreate(ClassLoaderReference.Application, type);
+        MethodReference mRef = MethodReference.findOrCreate(tRef, Selector.make(mSel));
+        IMethod cand = cha.resolveMethod(mRef);
+        if (cand != null) {
+            return cand;
+        } else {
+            for (IClass c : cha) {
+                for (IMethod m : c.getAllMethods()) {
+                    if (m.getSignature().equals(mSig)) {
+                        return m;
+                    }
+                }
+            }
+
+            throw new MethodNotFoundException(mSig);
+        }
+    }
 }

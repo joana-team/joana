@@ -70,6 +70,7 @@
 	<target name="compile" depends="init,collect_wala_sources,collect_sources">
 		<path id="lib.path.ref">
             <fileset dir="${joana.contrib.base.dir}" includes="*.jar" />
+            <fileset dir="${com.ibm.wala.dalvik.base.dir}/lib" includes="*.jar" />
 			<pathelement path="${dest.dir.classes}" />
 		</path>
 		<javac
@@ -147,6 +148,9 @@
 			</fileset>
 			<fileset dir="${com.ibm.wala.util.base.dir}/src">
 				<filename name="**/*.java" />
+            </fileset>
+            <fileset dir="${com.ibm.wala.dalvik.base.dir}/src">
+                <filename name="**/*.java" />
             </fileset>
 		</copy>
 	</target>

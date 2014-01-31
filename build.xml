@@ -42,6 +42,10 @@
 		<ant antfile="${joana.wala.core.base.dir}/build.xml" target="fulljar" inheritall="false" />
 	</target>
 
+    <target name="joana.wala.jodroid">
+		<ant antfile="${joana.wala.jodroid.base.dir}/build.xml" target="fulljar" inheritall="false" />
+	</target>
+
 	<target name="joana.wala.core_clean">
 		<ant antfile="${joana.wala.core.base.dir}/build.xml" target="clean" inheritall="false" />
 	</target>
@@ -102,11 +106,30 @@
 		<ant antfile="${joana.ui.ifc.sdg.graphviewer.base.dir}/build.xml" target="deploy" inheritall="false" />
 	</target>
 
-
 	<target name="clean" depends="joana.api_clean,joana.wala.core_clean,joana.wala.dictionary_clean,joana.ifc.sdg.core_clean,joana.api.test_clean,joana.ui.wala.flowless_clean,joana.ui.ifc.wala.console_clean,joana.ui.ifc.sdg.graphviewer_clean" />
 
 	<target name="full_clean">
 		<delete dir="${joana.dist.dir}" />
 	</target>
+
+
+    <!-- SOURCES
+        contrib/wala/com.ibm.wala.cast/source/java
+        contrib/wala/com.ibm.wala.ide.tests/src
+        contrib/wala/com.ibm.wala.core/src
+        contrib/wala/com.ibm.wala.ide/src
+        contrib/wala/com.ibm.wala.util/src
+        contrib/wala/com.ibm.wala.shrike/src
+        contrib/wala/com.ibm.wala.ide.jdt/source
+        contrib/wala/com.ibm.wala.cast.java/src
+        contrib/wala/com.ibm.wala.dalvik/src
+    -->
+	<target name="doc-wala" >
+        <javadoc sourcepath="contrib/wala/com.ibm.wala.cast/source/java:contrib/wala/com.ibm.wala.ide.tests/src:contrib/wala/com.ibm.wala.core/src:contrib/wala/com.ibm.wala.ide/src:contrib/wala/com.ibm.wala.util/src:contrib/wala/com.ibm.wala.shrike/src:contrib/wala/com.ibm.wala.ide.jdt/source:contrib/wala/com.ibm.wala.cast.java/src:contrib/wala/com.ibm.wala.dalvik/src" destdir="doc/wala" packagenames="*" > 
+            <arg value="-author"/>
+            <arg value="-version"/>
+        </javadoc>
+    </target>
+
 
 </project>

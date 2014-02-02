@@ -435,7 +435,7 @@ public class JoDroidConstruction {
             }
         } else {
             final File epFile = new File(ex.getEpFile());   
-            if (epFile.exists()) {
+            if (epFile.exists()) {  // XXX: This is a bad way to check
                 constr.loadEntryPoints(epFile);
             }
         }

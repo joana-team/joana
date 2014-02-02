@@ -78,7 +78,6 @@ import org.xml.sax.SAXException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.helpers.NOPLogger;
 
 /**
  * Tags have a ParserItem associated to them that handles the reading-process.
@@ -97,8 +96,7 @@ import org.slf4j.helpers.NOPLogger;
  * @author  Tobias Blaschke <code@tobiasblaschke.de>
  */
 class Items {
-    //private static final Logger logger = LoggerFactory.getLogger(Items.class);
-    private static final Logger logger = NOPLogger.NOP_LOGGER;
+    private static final Logger logger = LoggerFactory.getLogger(Items.class);
 
     private static WalaObjectFactory factory = null;
     private static Deserializer disel = null;
@@ -194,8 +192,8 @@ class Items {
                     logger.debug("Popping " + relevant + " of value " + attributesHistory.get(relevant).peek() + " in " + self);
                     attributesHistory.get(relevant).pop();
                  }  catch (java.util.EmptyStackException e) {
-                    System.err.println(self + " failed to pop " + relevant);
-                    throw e;
+                    logger.error(self + " failed to pop " + relevant);
+                    //throw e;
                  }
              }
              if (attributesHistory.containsKey(self) && attributesHistory.get(self) != null &&
@@ -425,10 +423,13 @@ class Items {
         @Override
         public void leave() {
             super.leave();
-        
-            final InstanceBehavior beh = (InstanceBehavior) attributesHistory.get(Attr.DEFAULT).peek();
-
-            disel.deserialize(beh);
+       
+            try {
+                final InstanceBehavior beh = (InstanceBehavior) attributesHistory.get(Attr.DEFAULT).peek();
+                disel.deserialize(beh);
+            } catch (java.util.EmptyStackException e) {
+                logger.warn("No default instantiation-behavior was set in the ntrP-File");
+            }
         }
     }
 

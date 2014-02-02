@@ -54,7 +54,6 @@ import javax.xml.stream.XMLStreamWriter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.helpers.NOPLogger;
 
 import javax.xml.stream.XMLStreamException;
 import edu.kit.joana.wala.jodroid.entrypointsFile.Exceptions.ParserException;
@@ -65,8 +64,7 @@ import edu.kit.joana.wala.jodroid.entrypointsFile.Exceptions.ParserException;
  *  @since  2013-10-26
  */
 class Marshall {
-    //private static final Logger logger = LoggerFactory.getLogger(Marshall.class);
-    private static final Logger logger = NOPLogger.NOP_LOGGER;
+    private static final Logger logger = LoggerFactory.getLogger(Marshall.class);
 
     static class Document {
         private final Node root;

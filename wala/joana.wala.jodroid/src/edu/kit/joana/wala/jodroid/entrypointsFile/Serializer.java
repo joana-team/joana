@@ -59,7 +59,6 @@ import java.util.ArrayList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.helpers.NOPLogger;
 
 /**
  *  Extract the data to write from WALAs structures.
@@ -78,8 +77,7 @@ import org.slf4j.helpers.NOPLogger;
  *  @since  2013-10-26
  */
 public class Serializer {
-    //private static final Logger logger = LoggerFactory.getLogger(Serializer.class);
-    private static final Logger logger = NOPLogger.NOP_LOGGER;
+    private static final Logger logger = LoggerFactory.getLogger(Serializer.class);
    
 
     /**

@@ -65,6 +65,7 @@ public class LogLevels {
         // figure out why.
         com.ibm.wala.dalvik.classLoader.DexFileModule.class,
         // "no instruction at ..." is not of particualr interest. ZAP!
+        com.ibm.wala.ipa.summaries.VolatileMethodSummary.class,
     };
 
     /**

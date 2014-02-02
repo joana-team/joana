@@ -269,9 +269,6 @@ public class AnalysisPresets {
 
         LogLevels.setLevels();
 
-        // XXX TEMP:
-        p.aem.setDoBootSequence(false);
-
         return p;
     }
 

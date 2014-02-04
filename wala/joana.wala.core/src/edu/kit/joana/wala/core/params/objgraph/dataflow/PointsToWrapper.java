@@ -33,6 +33,9 @@ public final class PointsToWrapper {
 		assert f.field.isField();
 
 		final PointerKey pk = hm.getPointerKeyForStaticField(f.field.getField());
+    if (pk == null) {
+      return OrdinalSet.empty();
+    }
 
 		return pa.getPointsToSet(pk);
 	}
@@ -45,18 +48,27 @@ public final class PointsToWrapper {
 
 		final int valNum = ir.getParameter(paramNum);
 		final PointerKey pk = hm.getPointerKeyForLocal(n, valNum);
+    if (pk == null) {
+      return OrdinalSet.empty();
+    }
 
 		return pa.getPointsToSet(pk);
 	}
 
 	public OrdinalSet<InstanceKey> getMethodReturnPTS(final CGNode n) {
 		final PointerKey pk = hm.getPointerKeyForReturnValue(n);
+    if (pk == null) {
+      return OrdinalSet.empty();
+    }
 
 		return pa.getPointsToSet(pk);
 	}
 
 	public OrdinalSet<InstanceKey> getMethodExceptionPTS(final CGNode n) {
 		final PointerKey pk = hm.getPointerKeyForExceptionalReturnValue(n);
+    if (pk == null) {
+      return OrdinalSet.empty();
+    }
 
 		return pa.getPointsToSet(pk);
 	}
@@ -65,6 +77,9 @@ public final class PointsToWrapper {
 			final int paramNum) {
 		final int valNum = invk.getUse(paramNum);
 		final PointerKey pk = hm.getPointerKeyForLocal(n, valNum);
+    if (pk == null) {
+      return OrdinalSet.empty();
+    }
 
 		return pa.getPointsToSet(pk);
 	}
@@ -72,6 +87,9 @@ public final class PointsToWrapper {
 	public OrdinalSet<InstanceKey> getCallReturnPTS(final CGNode n, final SSAInvokeInstruction invk) {
 		final int valNum = invk.getReturnValue(0);
 		final PointerKey pk = hm.getPointerKeyForLocal(n, valNum);
+    if (pk == null) {
+      return OrdinalSet.empty();
+    }
 
 		return pa.getPointsToSet(pk);
 	}
@@ -79,6 +97,9 @@ public final class PointsToWrapper {
 	public OrdinalSet<InstanceKey> getCallExceptionPTS(final CGNode n, final SSAInvokeInstruction invk) {
 		final int valNum = invk.getException();
 		final PointerKey pk = hm.getPointerKeyForLocal(n, valNum);
+    if (pk == null) {
+      return OrdinalSet.empty();
+    }
 
 		return pa.getPointsToSet(pk);
 	}

@@ -36,7 +36,7 @@ public class ObjSensContextSelector implements ContextSelector {
 	public interface MethodFilter {
 		/**
 		 * Decides for which methods an object sensitive points-to analysis should be engaged. A one level call string
-		 * sensitivity is used as a fallback. Note that static methods have no reciever, so they cannot be
+		 * sensitivity is used as a fallback. Note that static methods have no receiver, so they cannot be
 		 * analyzed with object sensitivity. Therefore no static method will be passed to this interface.
 		 * @param m The method that may be analyzed in an object sensitive context.
 		 * @return <tt>true</tt> if calls to the method should be analyzed with object sensitivity, <tt>false</tt>

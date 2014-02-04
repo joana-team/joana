@@ -280,7 +280,7 @@ public class ModRefCandidates {
 				public OrdinalSet<InstanceKey> getPointsTo(final int ssaVar) {
 					if (ssaVar >= 0) {
 						final PointerKey pk = hm.getPointerKeyForLocal(n, ssaVar);
-						return pa.getPointsToSet(pk);
+						return (pk != null ? pa.getPointsToSet(pk) : null);
 					}
 
 					return null;
@@ -317,7 +317,7 @@ public class ModRefCandidates {
 		public OrdinalSet<InstanceKey> getPointsTo(final int ssaVar) {
 			if (ssaVar >= 0) {
 				final PointerKey pk = hm.getPointerKeyForLocal(n, ssaVar);
-				return pa.getPointsToSet(pk);
+				return (pk != null ? pa.getPointsToSet(pk) : null);
 			}
 
 			return null;

@@ -15,10 +15,13 @@ import com.ibm.wala.ipa.callgraph.CallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.ContextSelector;
 import com.ibm.wala.ipa.callgraph.impl.DefaultContextSelector;
 import com.ibm.wala.ipa.callgraph.impl.Util;
+import com.ibm.wala.ipa.callgraph.propagation.SSAPropagationCallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.DefaultSSAInterpreter;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.FallbackContextInterpreter;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.ZeroXCFABuilder;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.ZeroXInstanceKeys;
+import com.ibm.wala.ipa.callgraph.propagation.cfa.nCFABuilder;
+import com.ibm.wala.ipa.callgraph.propagation.rta.BasicRTABuilder;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 
 import edu.kit.joana.wala.flowless.wala.ObjSensContextSelector;
@@ -27,9 +30,19 @@ import edu.kit.joana.wala.flowless.wala.ObjSensZeroXCFABuilder;
 public final class WalaPointsToUtil {
 
 	private WalaPointsToUtil() {}
+	
+	public static CallGraphBuilder makeRTA(final AnalysisOptions options, final AnalysisCache cache,
+			final IClassHierarchy cha, final AnalysisScope scope) {
 
-	public static CallGraphBuilder makeContextFreeType(AnalysisOptions options, AnalysisCache cache,
-		      IClassHierarchy cha, AnalysisScope scope) {
+		Util.addDefaultSelectors(options, cha);
+		Util.addDefaultBypassLogic(options, scope, Util.class.getClassLoader(), cha);
+
+		return new BasicRTABuilder(cha, options, cache, null, null);
+	}
+
+	public static CallGraphBuilder makeContextFreeType(final AnalysisOptions options, final AnalysisCache cache,
+			final IClassHierarchy cha, final AnalysisScope scope) {
+		
 	    if (options == null) {
 	      throw new IllegalArgumentException("options is null");
 	    }
@@ -40,26 +53,29 @@ public final class WalaPointsToUtil {
 	    return ZeroXCFABuilder.make(cha, options, cache, null, null, ZeroXInstanceKeys.NONE);
 	}
 
-	public static CallGraphBuilder makeContextSensSite(AnalysisOptions options, AnalysisCache cache,
-		      IClassHierarchy cha, AnalysisScope scope) {
+	public static CallGraphBuilder makeContextSensSite(final AnalysisOptions options, final AnalysisCache cache,
+			final IClassHierarchy cha, final AnalysisScope scope) {
 
 	    if (options == null) {
 	      throw new IllegalArgumentException("options is null");
 	    }
+	    
 	    Util.addDefaultSelectors(options, cha);
 	    Util.addDefaultBypassLogic(options, scope, Util.class.getClassLoader(), cha);
 
-	    return ZeroXCFABuilder.make(cha, options, cache, null, new FallbackContextInterpreter(new DefaultSSAInterpreter(options, cache)),
+	    return ZeroXCFABuilder.make(cha, options, cache, null, new FallbackContextInterpreter(
+	    		new DefaultSSAInterpreter(options, cache)),
 	    		ZeroXInstanceKeys.ALLOCATIONS | ZeroXInstanceKeys.CONSTANT_SPECIFIC | ZeroXInstanceKeys.SMUSH_MANY
-	    		| ZeroXInstanceKeys.SMUSH_THROWABLES);
+	    			| ZeroXInstanceKeys.SMUSH_THROWABLES);
 	}
 
-	public static CallGraphBuilder makeObjectSens(AnalysisOptions options, AnalysisCache cache,
-		      IClassHierarchy cha, AnalysisScope scope, ObjSensContextSelector.MethodFilter filter) {
+	public static CallGraphBuilder makeObjectSens(final AnalysisOptions options, final AnalysisCache cache,
+			final IClassHierarchy cha, final AnalysisScope scope, final ObjSensContextSelector.MethodFilter filter) {
 
 	    if (options == null) {
 	      throw new IllegalArgumentException("options is null");
 	    }
+	    
 	    Util.addDefaultSelectors(options, cha);
 	    Util.addDefaultBypassLogic(options, scope, Util.class.getClassLoader(), cha);
 	    final ContextSelector defaultSelector = new DefaultContextSelector(options, cha);
@@ -67,7 +83,23 @@ public final class WalaPointsToUtil {
 		return ObjSensZeroXCFABuilder.make(cha, options, cache, new ObjSensContextSelector(defaultSelector, filter),
 				new FallbackContextInterpreter(new DefaultSSAInterpreter(options, cache)),
 				ZeroXInstanceKeys.ALLOCATIONS | ZeroXInstanceKeys.CONSTANT_SPECIFIC | ZeroXInstanceKeys.SMUSH_MANY
-	    		| ZeroXInstanceKeys.SMUSH_THROWABLES);
+	    			| ZeroXInstanceKeys.SMUSH_THROWABLES);
 	}
 
+	public static CallGraphBuilder makeNCallStackSens(final int n, final AnalysisOptions options,
+			final AnalysisCache cache, final IClassHierarchy cha, final AnalysisScope scope) {
+	    if (options == null) {
+	      throw new IllegalArgumentException("options is null");
+	    }
+	    Util.addDefaultSelectors(options, cha);
+	    Util.addDefaultBypassLogic(options, scope, Util.class.getClassLoader(), cha);
+	    final SSAPropagationCallGraphBuilder result =
+	    	new nCFABuilder(n, cha, options, cache, null, null);
+	    // nCFABuilder uses type-based heap abstraction by default, but we want allocation sites
+	    result.setInstanceKeys(new ZeroXInstanceKeys(options, cha, result.getContextInterpreter(),
+	    	ZeroXInstanceKeys.ALLOCATIONS | ZeroXInstanceKeys.SMUSH_MANY | ZeroXInstanceKeys.SMUSH_PRIMITIVE_HOLDERS
+	    		| ZeroXInstanceKeys.SMUSH_STRINGS | ZeroXInstanceKeys.SMUSH_THROWABLES));
+	    
+	    return result;
+	}
 }

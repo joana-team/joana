@@ -106,39 +106,135 @@ public class SDGBuilder implements CallGraphFilter {
 	public final static int NO_PDG_ID = -1;
 	public final static boolean DATA_FLOW_FOR_GET_FROM_FIELD_NODE =
 			Config.getBool(Config.C_SDG_DATAFLOW_FOR_GET_FROM_FIELD, false);
-	// private final static Context DEFAULT_CONTEXT = Everywhere.EVERYWHERE;
-	// private final static SSAOptions DEFAULT_SSA_OPTIONS = new SSAOptions();
 
 	public final SDGBuilderConfig cfg;
 
 	public static enum ExceptionAnalysis {
+		/*
+		 * Act as if exceptions can never occur.
+		 */
 		IGNORE_ALL,
+		/*
+		 * Assume each instruction that potentially can throw an exception may throw one. 
+		 */
 		ALL_NO_ANALYSIS,
-		INTERPROC,
-		INTRAPROC
+		/*
+		 * Like ALL_NO_ANALYSIS but apply an intraprocedural analysis that detects intructions that definitely can not
+		 * throw an exception. E.g. access to this pointer, subsequent accesses to the same unchanged object,
+		 * if-guarded accesses, etc. 
+		 */
+		INTRAPROC,
+		/*
+		 * Like INTRAPROC but extended to an interprocedural analysis.
+		 */
+		INTERPROC
 	}
 
 	public static enum PointsToPrecision {
+		/*
+		 * Rapid Type Analysis
+		 * Maybe UNSOUND - WALAs implementation looks suspicious.
+		 * Its also less precise and slower (blows up dynamic calls) as TYPE (0-CFA).
+		 * Its just here for academic purposes.
+		 */
+		RTA,
+		/*
+		 * 0-CFA
+		 * Fastest option. Use this in case everything else is too slow aka the callgraph is getting too big.
+		 */
 		TYPE,
+		/* DEFAULT
+		 * 0-1-CFA
+		 * Best bang for buck. Use this in case you are not sure what to pick.
+		 */
 		CONTEXT_SENSITIVE,
-		OBJECT_SENSITIVE
+		/*
+		 * Object-sensitive (receiver object context)
+		 * Very precise for OO heavy code - best option for really precise analysis.
+		 * Uses n-CFA as fallback for static methods. Customizable: Provide objSensFilter to specify 'n' for fallback
+		 * n-CFA and filter for methods where object-sensitivity should be engaged.
+		 */
+		OBJECT_SENSITIVE,
+		/*
+		 * 1-CFA
+		 * Slower as 0-1-CFA, yet few precision improvements
+		 */
+		N1_CALL_STACK,
+		/*
+		 * 2-CFA
+ 		 * Slow, but precise
+		 */
+		N2_CALL_STACK,
+		/*
+		 * 3-CFA
+		 * Very slow and little bit more precise. Not much improvement over 2-CFA.
+		 */
+		N3_CALL_STACK
 	}
 
 	public static enum StaticInitializationTreatment {
+		/*
+		 * Ignore static initializers
+		 */
 		NONE,
+		/* DEFAULT
+		 * Assume all static initializers are called once before the program starts. 
+		 */
 		SIMPLE,
+		/*
+		 * NOT YET WORKING.
+		 * Place calls to static initializers where they may in fact occur.
+		 */
 		ACCURATE
 	}
 
 	public static enum FieldPropagation {
+		/*
+		 * Very imprecise side-effect computation. Merges all effects/heap locations reachable through a methods
+		 * parameter to a single node.
+		 * Slow (could be optimized through caching) and imprecise. Do not use unless for ecademic evaluation purposes.
+		 */
 		FLAT,
+		/* DEFAULT
+		 * A fine-grained side-effect computation. Scales well with precise and imprecise points-to analysis.
+		 * This is your best bet in case you don't know what to choose.
+		 */
 		OBJ_GRAPH,
+		/*
+		 * Object graph algorithm without speed/space optimization. Does not merge nodes, when their number is getting
+		 * large. Does not merge accesses to the same field.
+		 */
 		OBJ_GRAPH_NO_FIELD_MERGE,
+		/*
+		 * Object graph algorithm with fixpoint propagation. Do not choose if you don't know what it does. It
+		 * exists for academic evaluation purposes.
+		 */
 		OBJ_GRAPH_FIXPOINT_PROPAGATION,
+		/*
+		 * Use object graph algorithm, but do not apply an escape analysis. This increases runtime and space needed,
+		 * while the precision is decreased. No sane person would choose this option. It exists only to evaluate the
+		 * effect of the integrated escape analysis.
+		 */
 		OBJ_GRAPH_NO_ESCAPE,
+		/*
+		 * Run object graph algorithm without any optimizations. Again do not choose if you don't know what this means.
+		 * Only for evaluation.
+		 */
 		OBJ_GRAPH_NO_OPTIMIZATION,
+		/*
+		 * Object graph algorithm with a simple propagation. Should be faster (and less precise) as the fixpoint
+		 * propagation. Do not choose if you don't know what it does. It exists for academic evaluation purposes.
+		 */
 		OBJ_GRAPH_SIMPLE_PROPAGATION,
+		/*
+		 * Old deprecated object tree algorithm. The predecessor of the object graph. Scales less well for imprecise
+		 * points-to analysis, Is overall slower. Kept around for evaluation purposes. 
+		 */
 		OBJ_TREE,
+		/*
+		 * A special variant of the object tree algorithm that allows multiple nodes for a single field. A little bit
+		 * more precise and even slower. Again kept around for evaluation purposes.
+		 */
 		OBJ_TREE_NO_FIELD_MERGE
 	}
 
@@ -626,24 +722,47 @@ public class SDGBuilder implements CallGraphFilter {
 
 	private CGResult buildCallgraph(final IProgressMonitor progress) throws IllegalArgumentException,
 			CallGraphBuilderCancelException {
-		List<Entrypoint> entries = new LinkedList<Entrypoint>();
-		Entrypoint ep = new SubtypesEntrypoint(cfg.entry, cfg.cha);
+		final List<Entrypoint> entries = new LinkedList<Entrypoint>();
+		final Entrypoint ep = new SubtypesEntrypoint(cfg.entry, cfg.cha);
 		entries.add(ep);
-		AnalysisOptions options = new AnalysisOptions(cfg.scope, entries);
+		final AnalysisOptions options = new AnalysisOptions(cfg.scope, entries);
 		if (cfg.ext.resolveReflection()) {
 			options.setReflectionOptions(ReflectionOptions.NO_STRING_CONSTANTS);
 		}
 
 		CallGraphBuilder cgb = null;
 		switch (cfg.pts) {
-		case TYPE:
+		case RTA: // Rapid Type Analysis
+			// Maybe UNSOUND - WALAs implementation looks suspicious.
+			// Its also less precise and slower (blows up dynamic calls) as TYPE (0-CFA).
+			// Its just here for academic purposes.
+			cgb = WalaPointsToUtil.makeRTA(options, cfg.cache, cfg.cha, cfg.scope);
+			break;
+		case TYPE: // 0-CFA
+			// Fastest option.
 			cgb = WalaPointsToUtil.makeContextFreeType(options, cfg.cache, cfg.cha, cfg.scope);
 			break;
-		case CONTEXT_SENSITIVE:
+		case CONTEXT_SENSITIVE: // 0-1-CFA
+			// Best bang for buck
 			cgb = WalaPointsToUtil.makeContextSensSite(options, cfg.cache, cfg.cha, cfg.scope);
 			break;
 		case OBJECT_SENSITIVE:
+			// Very precise for OO heavy code - best option for really precise analysis. Uses n-CFA as fallback for
+			// static methods. Customizable: Provide objSensFilter to specify 'n' for fallback n-CFA and filter for
+			// methods where obj-sens should be engaged.
 			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope, cfg.objSensFilter);
+			break;
+		case N1_CALL_STACK: // 1-CFA
+			// Slower as 0-1-CFA, yet few precision improvements
+			cgb = WalaPointsToUtil.makeNCallStackSens(1, options, cfg.cache, cfg.cha, cfg.scope);
+			break;
+		case N2_CALL_STACK: // 2-CFA
+			// Slow, but precise
+			cgb = WalaPointsToUtil.makeNCallStackSens(2, options, cfg.cache, cfg.cha, cfg.scope);
+			break;
+		case N3_CALL_STACK: // 3-CFA
+			// Very slow and little bit more precise. Not much improvement over 2-CFA.
+			cgb = WalaPointsToUtil.makeNCallStackSens(3, options, cfg.cache, cfg.cha, cfg.scope);
 			break;
 		}
 

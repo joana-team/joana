@@ -218,6 +218,9 @@ public class JoDroidConstruction {
         writer.add(this.p.scfg);
         mon.subTask("Intent information"); mon.worked(2);
         writer.add(this.p.aem.overrideIntents);
+        /*{ // DEBUG
+            System.out.println("OVR: " + this.p.aem.overrideIntents);
+        } // */
         mon.subTask("Instantiation Behavior"); mon.worked(3);
         writer.add(instantiationBehvior);
         mon.subTask("Entry Points"); mon.worked(4);
@@ -258,6 +261,7 @@ public class JoDroidConstruction {
 
         reader.addTarget(beh);
         reader.addTarget(p.aem.ENTRIES);
+        //reader.addTarget(p.aem.overrideIntents); // TODO: Implement
         reader.read();
 
         p.aem.setInstantiationBehavior(beh);
@@ -433,7 +437,7 @@ public class JoDroidConstruction {
             } catch (MethodNotFoundException e) {
                 throw new SDGConstructionException(e);
             }
-        } else {
+        } else if (! ex.isScan()) {  // XXX: Is ther a reason to scan and read the file?
             final File epFile = new File(ex.getEpFile());   
             if (epFile.exists()) {  // XXX: This is a bad way to check
                 constr.loadEntryPoints(epFile);

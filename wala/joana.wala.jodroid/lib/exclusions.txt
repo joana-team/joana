@@ -16,3 +16,4 @@ android/speech/.*
 android/bluetooth/.*
 android/gesture/.*
 android/graphics/pdf/.*
+android/content/IntentSender.*

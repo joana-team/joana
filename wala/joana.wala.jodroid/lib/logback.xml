@@ -14,6 +14,9 @@
   <logger name="com.ibm.wala" level="WARN"/>
   <logger name="org.scandroid.util.CGAnalysisContext" level="ALL"/>
   <logger name="org.scandroid.flow.functions.TaintTransferFunctions" level="ALL"/>
+  <!-- logger name="com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.Instantiator" level="OFF"/ -->
+  <logger name="com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.Instantiator" level="ERROR"/>
+  <logger name="com.ibm.wala.util.ssa.ParameterAccessor" level="OFF"/>
 
   <root level="ALL">
     <appender-ref ref="STDOUT" /> <!-- change to ref="DEVNULL" for no output -->

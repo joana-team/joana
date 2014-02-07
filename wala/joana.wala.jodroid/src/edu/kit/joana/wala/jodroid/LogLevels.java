@@ -53,8 +53,6 @@ public class LogLevels {
     private static final Class[] defaultMute = new Class[] {
         // The ParameterAccessor dumps a lot of messages about not finding ceratin
         // classes. These are not really fatal, so zap them.
-        com.ibm.wala.util.ssa.ParameterAccessor.class,
-        com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.Instantiator.class
     };
 
     private static final Class[] defaultError = new Class[] {

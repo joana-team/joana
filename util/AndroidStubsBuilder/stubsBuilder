@@ -491,7 +491,7 @@ class StubsBuilder(controller.CementBaseController):
         cmd = [self.builderPaths.jar, 'cf', self.outputPaths.jar, '.']
         self.log.info("Building JAR-File: " + " ".join(cmd))
         subprocess.check_call(cmd)
-        print "Written JAR-File to '%s'" + self.outputPaths.jar
+        print "Written JAR-File to '%s'" % self.outputPaths.jar
 
     @controller.expose(help="Executes all steps for building stubs. E.g. in order: " + \
             "extract, collect, compile, pack")

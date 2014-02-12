@@ -125,7 +125,8 @@ public class IFCConsole {
 				"loads instructions from given file and executes them."), QUIT("quit", 0, "", "Exit the IFC console."), SHOW_CLASSES(
 				"showClasses", 0, "", "shows all classes contained in the current sdg"), SHOWBCI("showBCI", 0, "",
 				"shows all bc indices seen so far."), VERIFY_ANNOTATIONS("verifyAnnotations", 0, "",
-				"Verifies that the recorded annotations are mapped consistently to the sdg and vice versa.");
+				"Verifies that the recorded annotations are mapped consistently to the sdg and vice versa."),
+                CHOP("chop", 2, "<source> <sink>", "Generates a chop between two programPoints");
 
 		private final String name;
 		private final int minArity;
@@ -231,7 +232,8 @@ public class IFCConsole {
 		// }
 
 		public boolean executeCommand(CMD cmd, String[] args) {
-			return availCommands.get(cmd.getName()).execute(args);
+			final Command command = availCommands.get(cmd.getName());
+            return command.execute(args);
 		}
 
 		public CMD getCommand(String cmdstr) {
@@ -275,7 +277,8 @@ public class IFCConsole {
 	// private IStaticLattice<String> securityLattice;
 	private Collection<IViolation<SecurityNode>> lastAnalysisResult = new LinkedList<IViolation<SecurityNode>>();
 	private TObjectIntMap<IViolation<SDGProgramPart>> groupedIFlows = new TObjectIntHashMap<IViolation<SDGProgramPart>>();
-	private final EntryLocator loc = new EntryLocator();
+	private Set<edu.kit.joana.api.sdg.SDGInstruction> lastComputedChop = null;
+    private final EntryLocator loc = new EntryLocator();
 	private List<IFCConsoleListener> consoleListeners = new LinkedList<IFCConsoleListener>();
 	private IProgressMonitor monitor = NullProgressMonitor.INSTANCE;
 	private final SDGMethodSelector methodSelector = new SDGMethodSelector(this);
@@ -678,6 +681,16 @@ public class IFCConsole {
 		};
 	}
 
+    private Command makeCommandChop() {
+		return new Command(CMD.CHOP) {
+			@Override
+			boolean execute(String[] args) {
+                return createChop(args[1], args[2]);
+			}
+		};
+	}
+
+
 	private boolean verifyAnnotations() {
 		if (getSDG() == null) {
 			return ifcAnalysis.getSources().isEmpty() && ifcAnalysis.getSinks().isEmpty()
@@ -803,6 +816,7 @@ public class IFCConsole {
 		repo.addCommand(makeCommandSaveScript());
 		repo.addCommand(makeCommandShowClasses());
 		repo.addCommand(makeCommandVerifyAnnotations());
+        repo.addCommand(makeCommandChop());
 
 		setLattice(LATTICE_BINARY);
 	}
@@ -1173,7 +1187,6 @@ public class IFCConsole {
 	}
 
 	public synchronized boolean processCommand(final CMD cmd, final String[] parts) {
-
 		beforeCommand(cmd, parts);
 		boolean success;
 
@@ -1490,6 +1503,45 @@ public class IFCConsole {
 			return true;
 		}
 	}
+
+
+    public Set<edu.kit.joana.api.sdg.SDGInstruction> getLastComputedChop() {
+        return this.lastComputedChop;
+    }
+
+    public boolean createChop(final String source, final String sink) {
+        final SDGProgramPart sourceP = getProgramPartFromSelectorString(source, false);
+        final SDGProgramPart sinkP = getProgramPartFromSelectorString(sink, false);
+        return createChop(sourceP, sinkP);
+    }
+
+    public boolean createChop(final SDGProgramPart source, final SDGProgramPart sink) {
+        final SDGProgram program = getProgram();
+        
+        if (source == null) {
+            out.info("Chop: Source is null - aborted");
+            return false;
+        }
+        if (sink == null) {
+            out.info("Chop: Sink is null - aborted");
+            return false;
+        }
+        if (program == null) {
+            out.info("No program loaded");
+            return false;
+        }
+
+        this.out.logln("Calculating Chop from " + source + " to " + sink + "...");
+
+        final Set<edu.kit.joana.api.sdg.SDGInstruction> chop = program.computeInstructionChop(source, sink);
+        this.lastComputedChop = chop;
+
+        out.logln("Chop from " + source + " to " + sink + " is:");
+        for (final edu.kit.joana.api.sdg.SDGInstruction inst : chop) {
+            out.logln("  " + inst);
+        }
+        return true;
+    }
 
 	public static String convertIFCType(IFCType ifcType) {
 		switch (ifcType) {

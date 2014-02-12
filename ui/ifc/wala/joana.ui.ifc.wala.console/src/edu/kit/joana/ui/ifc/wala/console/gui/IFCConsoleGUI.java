@@ -54,6 +54,7 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 	private final IFCConfigPanel configPane;
 	private final IFCTreePanel treePane;
 	private final IFCReportAndRunPanel runPane;
+    private final IFCResultsPanel resultsPane;
 	private final IFCConsole console;
 
 	public static final String PROPERTIES = "gui.properties";
@@ -105,6 +106,7 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 		// JOptionPanePrintStream.TYPE.ERROR));
 		treePane = new IFCTreePanel(this);
 		runPane = new IFCReportAndRunPanel(this);
+        resultsPane = new IFCResultsPanel(this);
 		// final GridBagLayout gbl = new GridBagLayout();
 		// root.setLayout(gbl);
 		// root.setLayout(new BorderLayout());
@@ -112,6 +114,7 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 		tabbedPane.addTab("Configuration", configPane);
 		tabbedPane.addTab("Annotate", treePane);
 		tabbedPane.addTab("Run", runPane);
+		tabbedPane.addTab("Results", resultsPane);
 		// tabbedPane.addTab("Console", consolePane);
 		// root.add(tabbedPane, mkgbc_fillxy(0, 0, 1, 1));
 		// root.add(consolePane, mkgbc_fillxy(0, 1, 1, 1));
@@ -175,7 +178,7 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 		}
 	}
 
-	private void executeCmd(final CMD cmd, final String[] args) {
+	public void executeCmd(final CMD cmd, final String[] args) {
 		final List<Command> cmds = new LinkedList<Command>();
 		cmds.add(new Command(cmd, args));
 		executeCmdList(cmds);
@@ -275,10 +278,16 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 		case RUN:
 			if (getLastAnalysisResult().isEmpty()) {
 				runPane.greenLight();
+                resultsPane.updateEntries(getLastAnalysisResultGrouped().keySet());
 			} else {
 				runPane.redLight();
+                resultsPane.updateEntries(getLastAnalysisResultGrouped().keySet());
 			}
 			break;
+        case CHOP:
+            resultsPane.updateChop(console.getLastComputedChop());
+            resultsPane.unmute();
+            break;
 		case BUILD_SDG:
 		case LOAD_SDG:
 			configPane.sdgLoadedOrBuilt();
@@ -385,6 +394,13 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 		return new Command(CMD.SINK, new String[] { CMD.SINK.getName(), console.getSelectorStringFromMethodPart(part),
 				level });
 	}
+
+    public Command createCmdChop(SDGProgramPart source, SDGProgramPart sink) {
+        return new Command(CMD.CHOP, new String[] { 
+            CMD.CHOP.getName(), 
+               console.getSelectorStringFromMethodPart(source),
+               console.getSelectorStringFromMethodPart(sink) });
+    }
 
 	public Command createCmdDeclassify(SDGProgramPart part, String level1, String level2) {
 		return new Command(CMD.DECLASS, new String[] { CMD.DECLASS.getName(),

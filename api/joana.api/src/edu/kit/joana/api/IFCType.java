@@ -8,13 +8,13 @@
 package edu.kit.joana.api;
 
 public enum IFCType {
-	POSSIBILISTIC, PROBABILISTIC_WITH_SIMPLE_MHP, PROBABILISTIC_WITH_PRECISE_MHP;
+	CLASSICAL_NI, PROBABILISTIC_WITH_SIMPLE_MHP, PROBABILISTIC_WITH_PRECISE_MHP;
 
 	@Override
 	public String toString() {
 		switch (this) {
-		case POSSIBILISTIC:
-			return "possibilistic";
+		case CLASSICAL_NI:
+			return "classical non-interference (extended to threads)";
 		case PROBABILISTIC_WITH_PRECISE_MHP:
 			return "probabilistic (with precise mhp)";
 		case PROBABILISTIC_WITH_SIMPLE_MHP:

@@ -101,7 +101,7 @@ public final class RunSingleFileIFC {
 	}
 	
 	private static boolean checkIFC(final SDGProgram prog) {
-		return checkIFC(prog, IFCType.POSSIBILISTIC);
+		return checkIFC(prog, IFCType.CLASSICAL_NI);
 	}
 
 	private static boolean checkIFC(final SDGProgram prog, final IFCType type) {

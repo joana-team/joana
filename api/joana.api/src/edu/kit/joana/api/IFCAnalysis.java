@@ -61,7 +61,7 @@ public class IFCAnalysis {
 	private SDGProgram program;
 	private IFCAnnotationManager annManager;
 	private IStaticLattice<String> secLattice;
-	private IFCType ifcType = IFCType.POSSIBILISTIC;
+	private IFCType ifcType = IFCType.CLASSICAL_NI;
 	private IFC ifc;
 	private boolean timeSensitiveAnalysis = false;
 	private boolean removeRedundantFlows = false;
@@ -76,7 +76,7 @@ public class IFCAnalysis {
 		}
 		setProgram(program);
 		setLattice(secLattice);
-		setIFCType(IFCType.POSSIBILISTIC);
+		setIFCType(IFCType.CLASSICAL_NI);
 	}
 
 	public IFCAnalysis(SDGProgram program) {
@@ -99,7 +99,7 @@ public class IFCAnalysis {
 	private void setIFCType(IFCType ifcType) {
 		this.ifcType = ifcType;
 		switch (this.ifcType) {
-		case POSSIBILISTIC:
+		case CLASSICAL_NI:
 			this.ifc = new PossibilisticNIChecker(this.program.getSDG(), secLattice);
 			if (timeSensitiveAnalysis) {
 				if (this.program.getSDG().getThreadsInfo() == null) {
@@ -251,7 +251,7 @@ public class IFCAnalysis {
 	
 
 	public Collection<? extends IViolation<SecurityNode>> doIFC() {
-		return doIFC(IFCType.POSSIBILISTIC);
+		return doIFC(IFCType.CLASSICAL_NI);
 	}
 
 	public boolean isAnnotated(SDGProgramPart part) {

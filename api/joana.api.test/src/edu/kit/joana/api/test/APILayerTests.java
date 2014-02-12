@@ -57,6 +57,6 @@ public class APILayerTests {
 		
 		Assert.assertEquals(1, ana.getSources().size());
 		Assert.assertEquals(1, ana.getSinks().size());
-		Assert.assertEquals(1, ana.doIFCAndGroupByPPPart(IFCType.POSSIBILISTIC).size());
+		Assert.assertEquals(1, ana.doIFCAndGroupByPPPart(IFCType.CLASSICAL_NI).size());
 	}
 }

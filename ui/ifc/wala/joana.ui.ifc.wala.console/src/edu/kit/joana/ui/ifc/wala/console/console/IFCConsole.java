@@ -99,10 +99,10 @@ public class IFCConsole {
 				"<index> <level1> <level2>",
 				"Declassify specified node from <level1> to <level2>. <index> refers to the indices shown in the currently active method."), RUN(
 				"run", 0, 2, " [type] ",
-				"Run IFC analysis with specified data. The optional parameter type denotes the type of ifc analysis. It can be \""
-						+ IFCTYPE_POSS + "\" for possibilistic analysis or " + IFCTYPE_PROB_WITH_SIMPLE_MHP + " or "
+				"Run IFC analysis with specified data. The optional parameter type denotes the type of ifc analysis. It can be "
+						+ IFCTYPE_CLASSICAL_NI + ", " + IFCTYPE_PROB_WITH_SIMPLE_MHP + " or "
 						+ IFCTYPE_PROB_WITH_PRECISE_MHP
-						+ "\" for probabilistic analysis. If it is omitted, possibilistic analysis is used."), RESET(
+						+ "\" for probabilistic analysis. If it is omitted, classical non-interference is used."), RESET(
 				"reset", 0, "", "Reset node data."), SAVE_ANNOTATIONS("saveAnnotations", 1, "<filename>",
 				"Save annotations done so far in specified file."), LOAD_ANNOTATIONS("loadAnnotations", 1,
 				"<filename>", "Load annotations from specified file."), SHOW_ANNOTATIONS("showAnnotations", 0, "",
@@ -249,7 +249,7 @@ public class IFCConsole {
 		}
 	}
 
-	private static final String IFCTYPE_POSS = "poss";
+	private static final String IFCTYPE_CLASSICAL_NI = "classical-ni";
 	private static final String IFCTYPE_PROB_WITH_SIMPLE_MHP = "prob-simplemhp";
 	private static final String IFCTYPE_PROB_WITH_PRECISE_MHP = "prob-precisemhp";
 
@@ -498,7 +498,7 @@ public class IFCConsole {
 			@Override
 			boolean execute(String[] args) {
 				if (args.length == 1) {
-					return doIFC(IFCType.POSSIBILISTIC, false);
+					return doIFC(IFCType.CLASSICAL_NI, false);
 				} else {
 					IFCType ifcType = parseIFCType(args[1]);
 					// standard value for time-sensitivity is false; only set to true if mentioned explicitly
@@ -514,8 +514,8 @@ public class IFCConsole {
 			}
 
 			private IFCType parseIFCType(String s) {
-				if (IFCTYPE_POSS.equals(s)) {
-					return IFCType.POSSIBILISTIC;
+				if (IFCTYPE_CLASSICAL_NI.equals(s)) {
+					return IFCType.CLASSICAL_NI;
 				} else if (IFCTYPE_PROB_WITH_SIMPLE_MHP.equals(s)) {
 					return IFCType.PROBABILISTIC_WITH_SIMPLE_MHP;
 				} else if (IFCTYPE_PROB_WITH_PRECISE_MHP.equals(s)) {
@@ -1493,8 +1493,8 @@ public class IFCConsole {
 
 	public static String convertIFCType(IFCType ifcType) {
 		switch (ifcType) {
-		case POSSIBILISTIC:
-			return IFCTYPE_POSS;
+		case CLASSICAL_NI:
+			return IFCTYPE_CLASSICAL_NI;
 		case PROBABILISTIC_WITH_SIMPLE_MHP:
 			return IFCTYPE_PROB_WITH_SIMPLE_MHP;
 		case PROBABILISTIC_WITH_PRECISE_MHP:

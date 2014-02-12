@@ -126,7 +126,7 @@ public class JoinAnalysisIFCMantelTest {
 	public void testMantelWithPreciseAnalysis() {
 		try {
 			IFCAnalysis ana = buildAndAnnotateMantel(MHPType.PRECISE);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.PROBABILISTIC_WITH_PRECISE_MHP);
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.RLSOD);
 			assertEquals(0, illegal.size());
 			assertTrue(illegal.isEmpty());
 		} catch (ApiTestException e) {

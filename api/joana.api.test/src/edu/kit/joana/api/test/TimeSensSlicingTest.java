@@ -98,7 +98,7 @@ public class TimeSensSlicingTest {
 		}
 		
 		
-		ifcAnalysis.doIFC(IFCType.PROBABILISTIC_WITH_PRECISE_MHP);
+		ifcAnalysis.doIFC(IFCType.RLSOD);
 	
 	}
 	

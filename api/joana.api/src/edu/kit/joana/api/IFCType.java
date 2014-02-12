@@ -8,15 +8,15 @@
 package edu.kit.joana.api;
 
 public enum IFCType {
-	CLASSICAL_NI, PROBABILISTIC_WITH_SIMPLE_MHP, PROBABILISTIC_WITH_PRECISE_MHP;
+	CLASSICAL_NI, PROBABILISTIC_WITH_SIMPLE_MHP, RLSOD;
 
 	@Override
 	public String toString() {
 		switch (this) {
 		case CLASSICAL_NI:
 			return "classical non-interference (extended to threads)";
-		case PROBABILISTIC_WITH_PRECISE_MHP:
-			return "probabilistic (with precise mhp)";
+		case RLSOD:
+			return "relaxed low-security observational determinism (RLSOD)";
 		case PROBABILISTIC_WITH_SIMPLE_MHP:
 			return "probabilistic (with simple mhp)";
 		default:

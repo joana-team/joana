@@ -101,7 +101,7 @@ public class IFCConsole {
 				"run", 0, 2, " [type] ",
 				"Run IFC analysis with specified data. The optional parameter type denotes the type of ifc analysis. It can be "
 						+ IFCTYPE_CLASSICAL_NI + ", " + IFCTYPE_PROB_WITH_SIMPLE_MHP + " or "
-						+ IFCTYPE_PROB_WITH_PRECISE_MHP
+						+ IFCTYPE_RLSOD
 						+ "\" for probabilistic analysis. If it is omitted, classical non-interference is used."), RESET(
 				"reset", 0, "", "Reset node data."), SAVE_ANNOTATIONS("saveAnnotations", 1, "<filename>",
 				"Save annotations done so far in specified file."), LOAD_ANNOTATIONS("loadAnnotations", 1,
@@ -251,7 +251,7 @@ public class IFCConsole {
 
 	private static final String IFCTYPE_CLASSICAL_NI = "classical-ni";
 	private static final String IFCTYPE_PROB_WITH_SIMPLE_MHP = "prob-simplemhp";
-	private static final String IFCTYPE_PROB_WITH_PRECISE_MHP = "prob-precisemhp";
+	private static final String IFCTYPE_RLSOD = "rlsod";
 
 	public static final String LATTICE_BINARY = "BINARY";
 	public static final String LATTICE_TERNARY = "TERNARY";
@@ -518,8 +518,8 @@ public class IFCConsole {
 					return IFCType.CLASSICAL_NI;
 				} else if (IFCTYPE_PROB_WITH_SIMPLE_MHP.equals(s)) {
 					return IFCType.PROBABILISTIC_WITH_SIMPLE_MHP;
-				} else if (IFCTYPE_PROB_WITH_PRECISE_MHP.equals(s)) {
-					return IFCType.PROBABILISTIC_WITH_PRECISE_MHP;
+				} else if (IFCTYPE_RLSOD.equals(s)) {
+					return IFCType.RLSOD;
 				} else {
 					return null;
 				}
@@ -1497,8 +1497,8 @@ public class IFCConsole {
 			return IFCTYPE_CLASSICAL_NI;
 		case PROBABILISTIC_WITH_SIMPLE_MHP:
 			return IFCTYPE_PROB_WITH_SIMPLE_MHP;
-		case PROBABILISTIC_WITH_PRECISE_MHP:
-			return IFCTYPE_PROB_WITH_PRECISE_MHP;
+		case RLSOD:
+			return IFCTYPE_RLSOD;
 		default:
 			throw new IllegalStateException("not all cases handled by this method!");
 		}

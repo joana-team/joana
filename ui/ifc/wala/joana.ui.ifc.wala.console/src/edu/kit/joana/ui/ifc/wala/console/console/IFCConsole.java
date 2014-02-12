@@ -498,11 +498,30 @@ public class IFCConsole {
 			@Override
 			boolean execute(String[] args) {
 				if (args.length == 1) {
-					return doIFC(IFCTYPE_POSS, false);
-				} else if (args.length == 2) {
-					return doIFC(args[1], false);
+					return doIFC(IFCType.POSSIBILISTIC, false);
 				} else {
-					return doIFC(args[1], AVOID_TIME_TRAVEL.equals(args[2]));
+					IFCType ifcType = parseIFCType(args[1]);
+					// standard value for time-sensitivity is false; only set to true if mentioned explicitly
+					boolean timeSens = args.length > 2 && AVOID_TIME_TRAVEL.equals(args[2]);
+
+					if (ifcType == null) {
+						out.error("unknown ifc type: " + args[1]);
+						return false;
+					} else {
+						return doIFC(ifcType, timeSens);
+					}
+				}
+			}
+
+			private IFCType parseIFCType(String s) {
+				if (IFCTYPE_POSS.equals(s)) {
+					return IFCType.POSSIBILISTIC;
+				} else if (IFCTYPE_PROB_WITH_SIMPLE_MHP.equals(s)) {
+					return IFCType.PROBABILISTIC_WITH_SIMPLE_MHP;
+				} else if (IFCTYPE_PROB_WITH_PRECISE_MHP.equals(s)) {
+					return IFCType.PROBABILISTIC_WITH_PRECISE_MHP;
+				} else {
+					return null;
 				}
 			}
 		};
@@ -1438,22 +1457,11 @@ public class IFCConsole {
 		return groupedIFlows;
 	}
 
-	public boolean doIFC(String type, boolean timeSens) {
+	public boolean doIFC(IFCType ifcType, boolean timeSens) {
 		if (ifcAnalysis == null || ifcAnalysis.getProgram() == null) {
 			out.info("No program to analyze.");
 			return false;
 		} else {
-			IFCType ifcType;
-			if (IFCTYPE_POSS.equals(type) || IFCType.POSSIBILISTIC.toString().equals(type)) {
-				ifcType = IFCType.POSSIBILISTIC;
-			} else if (IFCTYPE_PROB_WITH_SIMPLE_MHP.equals(type)) {
-				ifcType = IFCType.PROBABILISTIC_WITH_SIMPLE_MHP;
-			} else if (IFCTYPE_PROB_WITH_PRECISE_MHP.equals(type)) {
-				ifcType = IFCType.PROBABILISTIC_WITH_PRECISE_MHP;
-			} else {
-				out.error("unknown ifc type " + type);
-				return false;
-			}
 			ifcAnalysis.setTimesensitivity(timeSens);
 			out.logln("Performing IFC - Analysis type: " + ifcType);
 			Collection<? extends IViolation<SecurityNode>> vios = ifcAnalysis.doIFC(ifcType);

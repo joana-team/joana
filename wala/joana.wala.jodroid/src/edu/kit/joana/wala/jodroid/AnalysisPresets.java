@@ -269,6 +269,9 @@ public class AnalysisPresets {
 
         LogLevels.setLevels();
 
+        // XXX TEMP:
+        p.aem.setDoBootSequence(false);
+
         return p;
     }
 
@@ -282,7 +285,7 @@ public class AnalysisPresets {
     public static Preset applyFull(final Preset p) {
         p.scfg.exceptions = ExceptionAnalysis.INTERPROC;
         p.scfg.staticInitializers = StaticInitializationTreatment.SIMPLE;   // Do not use ACCURATE: Is defunct
-        //p.scfg.pts = PointsToPrecision.OBJECT_SENSITIVE;  // TODO: Enable in "full"
+        p.scfg.pts = PointsToPrecision.OBJECT_SENSITIVE;  // TODO: Enable in "full"
 
         // Some of the following settings will match the dafults of AndroidEntypointManager.
         // However they are repeated here to be shure.

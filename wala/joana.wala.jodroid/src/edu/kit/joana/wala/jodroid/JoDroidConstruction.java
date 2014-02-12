@@ -312,7 +312,10 @@ public class JoDroidConstruction {
             }
         }
 
-        { // Add overrides necessary for context-free analysis (context sensitive fall back)
+        // XXX CAUTION!
+        // Activating Context-Free overrides will yield the cartesian product of Sources and Sinks
+        // as the result of the later IFC-Analysis. This is most definetly conservative!
+        /* { // Add overrides necessary for context-free analysis (context sensitive fall back)
             final MethodTargetSelector overrideStartComponent;
 
             try {
@@ -329,7 +332,7 @@ public class JoDroidConstruction {
             // These are needed to detect the targets of Intents and replace their starts with a wrapper-function
             p.scfg.additionalContextSelector = new IntentContextSelector(p.scfg.cha);
             p.scfg.additionalContextInterpreter = new IntentContextInterpreter(p.scfg.cha, p.options, p.scfg.cache);
-        }
+        } // */
 
         { // Some optional checks...
             final AndroidPreFlightChecks pfc = new AndroidPreFlightChecks(p.aem, p.options, p.scfg.cha);
@@ -458,6 +461,16 @@ public class JoDroidConstruction {
             }
             SDGSerializer.toPDGFormat(sdg, new FileOutputStream(outFile));
         }
+
+        { // Pretty :/
+            final java.util.Map< com.ibm.wala.classLoader.CallSiteReference, com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.Intent > seen = p.aem.getSeen ();
+            
+            System.out.println("Encountered Intents were:");
+            for (final com.ibm.wala.classLoader.CallSiteReference site : seen.keySet()) {
+                System.out.println("\t" + site + " calls " + seen.get(site));
+            }
+
+        } // */
     }   
 
 

@@ -55,6 +55,67 @@ import java.net.URLConnection;
  *  @author Tobias Blaschke <code@tobiasblaschke.de>
  */
 public class ExecutionOptions {
+    /**
+     *  Modes how to retreive the information later presented in the ntrP-File.
+     *  
+     *  This information includes entrypoints, intents and initialisation-behavior
+     *
+     *  @see    setScan(ScanMode)
+     */
+    public static enum ScanMode {
+        /** Do not scan anything, rely on information already there ie using an ntrP-file */
+        OFF("(default) do not scan anything, rely on information already there ie using an ntrP-file"),
+        /** A fast scan based on cha and AndroidManifst.xml */
+        NORMAL("A fast scan based on cha and AndroidManifst.xml"),
+        /** Build a small call-graph to find out about issued intents */
+        EXTENDED("Build a small call-graph to find out about issued intents");
+        public final String description;
+        private ScanMode(String description) {
+            this.description = description;
+        }
+        public static String dumpOptions() {
+            String ret = "";
+            for (final ScanMode d : ScanMode.values()) {
+                ret = ret + d.toString() + ": " + d.description + "\n";
+            }
+            return ret;
+        }
+    }
+
+    /**
+     *  How to build the SDG.
+     *
+     *  @see    setConstruct(BuildMode)
+     */
+    public static enum BuildMode {
+        /** Do not build the SDG, useful in scan-only runs */
+        OFF("(default) Do not build the SDG, useful in scan-only runs"),
+        /** A conservative setting which causes inclusion of all android-components.
+         *  This has been the default before */
+        ALL("A conservative setting which causes inclusion of all android-components."),
+        /** This causes a model of the target of the MAIN-Intent to be the entrypoint.
+         *  Entrypoints detected by Heuristics and for CallBacks will not yet be part
+         *  of the model
+         */
+        MAIN("This causes a model of the target of the MAIN-Intent to be the entrypoint."),
+        /** A generalized version of the MAIN-Setting with selectable Intent. */
+        INTENT("A generalized version of the MAIN-Setting with selectable Intent."),
+        /** Does not use an Android livecycle model but a single method as entrypoint. */
+        METHOD("Does not use an Android livecycle model but a single method as entrypoint.");
+        public final String description;
+        private BuildMode(String description) {
+            this.description = description;
+        }
+        public static String dumpOptions() {
+            String ret = "";
+            for (final BuildMode d : BuildMode.values()) {
+                ret = ret + d.toString() + ": " + d.description + "\n";
+            }
+            return ret;
+        }
+    }
+
+
     private URI classPath = null;
     private URI androidLib;
     private URI javaStubs;
@@ -62,12 +123,14 @@ public class ExecutionOptions {
     private String entryMethod = null;
     private URI sdgFile;
     private String manifest = null;
-    private boolean scan = false;
-    private boolean construct = false;
+    private ScanMode scan = ScanMode.OFF;
+    private BuildMode construct = BuildMode.OFF;
+    private String intent = null;
     private boolean writeEpFile = true;
     private URI epFile;
     private AnalysisPresets.PresetDescription preset = AnalysisPresets.PresetDescription.DEFAULT;
     private AnalysisPresets.OutputDescription output = AnalysisPresets.OutputDescription.PRETTY;
+
 
     public ExecutionOptions() {
         try {
@@ -77,6 +140,17 @@ public class ExecutionOptions {
         } catch (URISyntaxException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    /**
+     *  Set the Intent for INTENT-BuildMode.
+     */
+    public void setIntent(String intent) {
+        this.intent = intent;
+    }
+
+    public String getIntent() {
+        return this.intent;
     }
 
     /**
@@ -361,20 +435,20 @@ public class ExecutionOptions {
     /**
      *  Wheter to search the App for EntryPoints.
      */
-    public void setScan(boolean scan) {
+    public void setScan(ScanMode scan) {
         this.scan = scan;
     }
-    public boolean isScan() {
+    public ScanMode getScan() {
         return this.scan;
     }
 
     /**
      *  Wheter to build the SDG.
      */
-    public void setConstruct(boolean construct) {
+    public void setConstruct(BuildMode construct) {
         this.construct = construct;
     }
-    public boolean isConstruct() {
+    public BuildMode getConstruct() {
         return this.construct;
     }
 

@@ -80,14 +80,14 @@ public class JoDroidCLI {
         //
         // Set available options
         //
-        options.addOption( "s", "scan", false, "scan for possible entry points" );
         options.addOption( "h", "help", false, "show help message" );
         options.addOption( "v", "verbose", false, AnalysisPresets.OutputDescription.VERBOSE.description );
         options.addOption( "q", "quiet", false, AnalysisPresets.OutputDescription.QUIET.description );
         options.addOption( "d", "debug", false, AnalysisPresets.OutputDescription.DEBUG.description );
         options.addOption(  //"o", "outfile", 
                 OptionBuilder.withLongOpt( "outfile" )
-                .withDescription( "specifies the path to the file in which the resulting SDG is to be written" )
+                .withDescription( "specifies the path to the file in which the resulting SDG is to be written. " +
+                    "It defaults to <classpath>.pdg")
                 .hasArg() //.isRequired() 
                 .withArgName("FILE")
                 .create("o") );
@@ -114,6 +114,24 @@ public class JoDroidCLI {
                 .hasArg()
                 .withArgName("PRESET")
                 .create("a") );
+        options.addOption(  //"s", "scan",
+                OptionBuilder.withLongOpt( "scan" )
+                .withDescription(
+                    "scan for possible entry points. Possible values are:\n" +
+                    ExecutionOptions.ScanMode.dumpOptions()
+                    )
+                .hasArg()
+                .withArgName("SETTING")
+                .create("s") );
+        options.addOption(  //"c", "construct",
+                OptionBuilder.withLongOpt( "construct" )
+                .withDescription(
+                    "construct the SDG. Possible values are:\n" +
+                    ExecutionOptions.BuildMode.dumpOptions()
+                    )
+                .hasArg()
+                .withArgName("SETTING")
+                .create("c") );
         options.addOption(  //"f", "ep-file"
                 OptionBuilder.withLongOpt( "ep-file" )
                 .withDescription( "load entry points for file (generate with the '--scan'-option)" )
@@ -142,7 +160,13 @@ public class JoDroidCLI {
                 .hasArg()
                 .withArgName("FILE")
                 .create("x") );
- 
+          options.addOption(  //"i", "intent"
+                OptionBuilder.withLongOpt( "intent" )
+                .withDescription( "The intent for INTENT-Construction mode.")
+                .hasArg()
+                .withArgName("SIG")
+                .create("i") );
+
          //
          // Read options into ExecutionOptipons p
          //
@@ -181,8 +205,16 @@ public class JoDroidCLI {
                 p.setExclusions(commandLine.getOptionValue("exclusions"));
             }
 
+            if ( commandLine.hasOption( "intent" ) ) {
+                p.setIntent(commandLine.getOptionValue("intent"));
+            }
+
             if ( commandLine.hasOption( "analysis" ) ) {
                 p.setPreset(AnalysisPresets.PresetDescription.valueOf(commandLine.getOptionValue("analysis").toUpperCase()));
+            }
+
+            if ( commandLine.hasOption( "construct" ) ) {
+                p.setConstruct(ExecutionOptions.BuildMode.valueOf(commandLine.getOptionValue("construct").toUpperCase()));
             }
 
             // Entry points
@@ -196,23 +228,20 @@ public class JoDroidCLI {
             if (commandLine.hasOption("e")) {
                 final String entryMethod = commandLine.getOptionValue("e");
                 if (entryMethod.equals("@all")) {
-                    p.setScan(true);
-                    p.setConstruct(true);
+                    //p.setScan(true);
+                    //p.setConstruct(true);
                 } else {
-                    p.setScan(false);
-                    p.setConstruct(true);
+                    //p.setScan(false);
+                    //p.setConstruct(true);
                     p.setEntryMethod(entryMethod);
                 }
             }
            
             if (commandLine.hasOption("scan")) {
-                p.setScan(true);
-                p.setConstruct(false);
+                p.setScan(ExecutionOptions.ScanMode.valueOf(commandLine.getOptionValue("scan").toUpperCase()));
             }
 
             if (commandLine.hasOption("ep-file")) {
-                p.setScan(false);
-                p.setConstruct(true);
                 p.setEpFile(commandLine.getOptionValue("ep-file"));
             }
 

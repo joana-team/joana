@@ -44,9 +44,6 @@ import com.ibm.wala.ipa.cha.ClassHierarchyException;
 
 import com.ibm.wala.classLoader.IMethod;
 
-import com.ibm.wala.ipa.callgraph.MethodTargetSelector;
-import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.IntentContextInterpreter;
-import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.IntentContextSelector;
 import com.ibm.wala.dalvik.ipa.callgraph.androidModel.AndroidModel;
 import com.ibm.wala.dalvik.ipa.callgraph.androidModel.stubs.Overrides;
 import com.ibm.wala.dalvik.util.AndroidEntryPointLocator;
@@ -54,15 +51,15 @@ import com.ibm.wala.dalvik.util.AndroidEntryPointLocator.LocatorFlags;
 import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationBehavior;
 import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.LoadedInstantiationBehavior;
 
+import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.Intent;
+import com.ibm.wala.dalvik.ipa.callgraph.androidModel.IntentModel;
+
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.NullProgressMonitor;
-
-import com.ibm.wala.dalvik.util.AndroidPreFlightChecks;
-
 
 import com.ibm.wala.types.ClassLoaderReference;
 
@@ -289,7 +286,7 @@ public class JoDroidConstruction {
      *  @throws IllegalStateException If cha has not been built before or no entrypoints have been specified
      *  @return The System-Dependence-Graph for the analyzed application
      */
-    public SDG buildAndroidSDG() throws SDGConstructionException {
+    public SDG buildAndroidSDGAll() throws SDGConstructionException {
         if (p.scfg.cha == null) {
             throw new IllegalStateException("The cha has to be constructed before building the SDG");
         }
@@ -312,35 +309,7 @@ public class JoDroidConstruction {
             }
         }
 
-        // XXX CAUTION!
-        // Activating Context-Free overrides will yield the cartesian product of Sources and Sinks
-        // as the result of the later IFC-Analysis. This is most definetly conservative!
-        /* { // Add overrides necessary for context-free analysis (context sensitive fall back)
-            final MethodTargetSelector overrideStartComponent;
-
-            try {
-                final Overrides overrides = new Overrides(modeller, p.scfg.cha, p.options, p.scfg.cache);
-                overrideStartComponent = overrides.overrideAll();
-            } catch (CancelException e) {
-                throw new SDGConstructionException(e);
-            }
-
-            p.scfg.methodTargetSelector = overrideStartComponent;
-        } // */
-
-        { // Add IntentContextSelector & -Interpreter
-            // These are needed to detect the targets of Intents and replace their starts with a wrapper-function
-            p.scfg.additionalContextSelector = new IntentContextSelector(p.scfg.cha);
-            p.scfg.additionalContextInterpreter = new IntentContextInterpreter(p.scfg.cha, p.options, p.scfg.cache);
-        } // */
-
-        { // Some optional checks...
-            final AndroidPreFlightChecks pfc = new AndroidPreFlightChecks(p.aem, p.options, p.scfg.cha);
-            final boolean pass = pfc.all();
-            if (! pass) {
-                logger.warn("Not all preFlightChecks passed");
-            }
-        } // */
+        AnalysisPresets.prepareBuild(p);
 
         final SDG sdg;
         { // Hand over to Joana to construct the SDG
@@ -356,6 +325,68 @@ public class JoDroidConstruction {
 
         return sdg;
     }
+
+    /**
+     *  Generate the Android-Livecycle for a single Intent.
+     *
+     *  @param  intent The intent to build a livecycle for.
+     *  @throws IllegalStateException If cha has not been built before or no entrypoints have been specified
+     *  @return The System-Dependence-Graph for the analyzed application
+     */
+    public SDG buildAndroidSDGIntent(Intent intent) throws SDGConstructionException {
+        if (p.scfg.cha == null) {
+            throw new IllegalStateException("The cha has to be constructed before building the SDG");
+        }
+        if (p.aem.ENTRIES.isEmpty()) {
+            throw new IllegalStateException("Androids entrypoints have to be set before generating the SDG! " + 
+                    "This can be done using the scan-function or by reading a ntrP-File" );
+        }
+        if (p.scfg.scope == null) {
+            throw new IllegalStateException("The scope has to be set before constructing the SDG!");
+        }
+        if (intent == null) {
+            throw new IllegalArgumentException("The intent may not be null");
+        }
+        
+        intent = p.aem.getIntent(intent);   // resolve intent
+        if (! intent.isInternal(/* strict = */ true)) {
+            throw new IllegalArgumentException("The Intent " + intent + " is not internally resolvable! " +
+                    "Are specifications loaded - either from manifest or ntrP?");
+        }
+
+        final IMethod livecycle;
+        final AndroidModel modeller;
+        { // Build the model
+            try {
+                { // TODO Get rid of this:
+                    // The makroModel registers itself as a sideeffect - expected to be there
+                    final AndroidModel makroModel = new AndroidModel(p.scfg.cha, p.options, p.scfg.cache);
+                    makroModel.getMethod();
+                }
+                modeller = new IntentModel(p.scfg.cha, p.options, p.scfg.cache, intent.action);
+                livecycle = modeller.getMethod();   // TODO Use getMethodAs?
+            } catch (CancelException e) {
+                throw new SDGConstructionException(e);
+            }
+        }
+
+        AnalysisPresets.prepareBuild(p);
+
+        final SDG sdg;
+        { // Hand over to Joana to construct the SDG
+            try {
+                p.scfg.entry = livecycle;
+                sdg = SDGBuilder.build(p.scfg, p.aem.getProgressMonitor());
+            } catch (UnsoundGraphException e) {
+                throw new SDGConstructionException(e);
+            } catch (CancelException e) {
+                throw new SDGConstructionException(e);
+            }
+        }
+
+        return sdg;
+    }
+
 
     /**
      *  JoDroid is stateful, create a state.
@@ -434,32 +465,70 @@ public class JoDroidConstruction {
 
         constr.loadAndroidManifest(ex.getManifestFile());
 
-        if (ex.getEntryMethod() != null) {
-            try {
-                constr.setSingleEntryPoint(findMethod(cha, ex.getEntryMethod()));
-            } catch (MethodNotFoundException e) {
-                throw new SDGConstructionException(e);
-            }
-        } else if (! ex.isScan()) {  // XXX: Is ther a reason to scan and read the file?
+        { // Read in the ntrP-File  TODO
             final File epFile = new File(ex.getEpFile());   
             if (epFile.exists()) {  // XXX: This is a bad way to check
                 constr.loadEntryPoints(epFile);
             }
         }
-        if (ex.isScan()) {  // XXX What about extended scan
-            constr.scanEntryPoints();
+
+        switch (ex.getScan()) {
+            case OFF:
+                break;
+            case NORMAL:
+                constr.scanEntryPoints();
+                break;
+            case EXTENDED:
+                constr.scanEntryPointsExtended();
+                break;
+            default:
+                throw new IllegalStateException("The Scan-Mode " + ex.getScan() + " is not implemented.");
         }
+
+        SDG sdg = null; 
+        switch (ex.getConstruct()) {
+            case OFF:
+                sdg = null;
+                break;
+            case ALL:
+                sdg = constr.buildAndroidSDGAll();
+                break;
+            case MAIN:
+                ex.setIntent("Landroid/intent/action/MAIN");
+                // no break
+            case INTENT:
+                final String intent = ex.getIntent();
+                if (intent == null) {
+                    throw new IllegalStateException("In INTENT-Construction mode an intent has to be set.");
+                }
+                sdg = constr.buildAndroidSDGIntent(new Intent(intent));
+                break;
+            case METHOD:
+                if (ex.getEntryMethod() == null) {
+                    throw new IllegalStateException("In METHOD-Construction mode a method has to be set.");
+                }
+                try {
+                    constr.setSingleEntryPoint(findMethod(cha, ex.getEntryMethod()));
+                } catch (MethodNotFoundException e) {
+                    throw new SDGConstructionException(e);
+                }
+                break;
+            default:
+                throw new IllegalStateException("The Construction-Mode " + ex.getConstruct() + " is not implemented.");
+        }
+
         if (ex.isWriteEpFile()) {
             constr.saveEntryPoints(ex.getEpFile());
         }
-        SDG sdg; 
-        if (ex.isConstruct()) {
-            sdg = constr.buildAndroidSDG();
-            final File outFile = new File(ex.getSdgFile());
-            if (! outFile.exists()) {
-                outFile.createNewFile();
+
+        { // Write the pdg-file
+            if (sdg != null) {
+                final File outFile = new File(ex.getSdgFile());
+                if (! outFile.exists()) {
+                    outFile.createNewFile();
+                }
+                SDGSerializer.toPDGFormat(sdg, new FileOutputStream(outFile));
             }
-            SDGSerializer.toPDGFormat(sdg, new FileOutputStream(outFile));
         }
 
         { // Pretty :/
@@ -503,8 +572,8 @@ public class JoDroidConstruction {
         if (manifest != null) {
             ex.setManifest(manifest.getPath());
         }
-        ex.setScan(true);
-        ex.setConstruct(false);
+        ex.setScan(ExecutionOptions.ScanMode.NORMAL);
+        ex.setConstruct(ExecutionOptions.BuildMode.OFF);
         ex.setWriteEpFile(true);
         dispatch(ex);
     }
@@ -586,8 +655,8 @@ public class JoDroidConstruction {
             ex.setSdgFile(sdgFile);
         }
 
-        ex.setScan(false);
-        ex.setConstruct(true);
+        ex.setScan(ExecutionOptions.ScanMode.OFF);
+        ex.setConstruct(ExecutionOptions.BuildMode.ALL);
         ex.setWriteEpFile(false);
         dispatch(ex);
     }

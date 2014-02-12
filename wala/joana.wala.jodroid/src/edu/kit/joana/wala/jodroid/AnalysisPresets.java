@@ -90,6 +90,12 @@ import edu.kit.joana.wala.core.CliProgressMonitor;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.NullProgressMonitor;
 
+// Prepare build
+import com.ibm.wala.ipa.callgraph.MethodTargetSelector;
+import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.IntentContextInterpreter;
+import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.IntentContextSelector;
+import com.ibm.wala.dalvik.util.AndroidPreFlightChecks;
+
 import edu.kit.joana.wala.core.Main;
 import edu.kit.joana.wala.util.pointsto.WalaPointsToUtil;
 import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
@@ -275,6 +281,40 @@ public class AnalysisPresets {
         return p;
     }
 
+    public static void prepareBuild(Preset p) {
+        // Set overrides
+        /* { // Add overrides necessary for context-free analysis (context sensitive fall back)
+            // XXX CAUTION!
+            // Activating Context-Free overrides will yield the cartesian product of Sources and Sinks
+            // as the result of the later IFC-Analysis. This is most definetly conservative!
+                final AndroidModel modeller = new AndroidModel(p.scfg.cha, p.options, p.scfg.cache);
+                final MethodTargetSelector overrideStartComponent;
+
+                try {
+                    final Overrides overrides = new Overrides(modeller, p.scfg.cha, p.options, p.scfg.cache);
+                    overrideStartComponent = overrides.overrideAll();
+                } catch (CancelException e) {
+                    throw new SDGConstructionException(e);
+                }
+
+                p.scfg.methodTargetSelector = overrideStartComponent;
+        } // */        
+
+        { // Add IntentContextSelector & -Interpreter
+            // These are needed to detect the targets of Intents and replace their starts with a wrapper-function
+            p.scfg.additionalContextSelector = new IntentContextSelector(p.scfg.cha);
+            p.scfg.additionalContextInterpreter = new IntentContextInterpreter(p.scfg.cha, p.options, p.scfg.cache);
+        } // */
+
+        { // Some optional checks...
+            final AndroidPreFlightChecks pfc = new AndroidPreFlightChecks(p.aem, p.options, p.scfg.cha);
+            final boolean pass = pfc.all();
+            //if (! pass) {
+            //    logger.warn("Not all preFlightChecks passed");
+            //}
+        } // */
+    }
+
     /**
      *  Enable optional computations in a preset.
      *
@@ -283,7 +323,8 @@ public class AnalysisPresets {
      *  @todo TODO: Make the full-Preset object-sensitive.
      */
     public static Preset applyFull(final Preset p) {
-        p.scfg.exceptions = ExceptionAnalysis.INTERPROC;
+        p.scfg.exceptions = ExceptionAnalysis.IGNORE_ALL;
+        //p.scfg.exceptions = ExceptionAnalysis.INTERPROC;
         p.scfg.staticInitializers = StaticInitializationTreatment.SIMPLE;   // Do not use ACCURATE: Is defunct
         p.scfg.pts = PointsToPrecision.OBJECT_SENSITIVE;  // TODO: Enable in "full"
 

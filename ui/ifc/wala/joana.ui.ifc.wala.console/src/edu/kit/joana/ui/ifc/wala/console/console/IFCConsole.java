@@ -102,7 +102,7 @@ public class IFCConsole {
 				"Run IFC analysis with specified data. The optional parameter type denotes the type of ifc analysis. It can be "
 						+ IFCTYPE_CLASSICAL_NI + ", " + IFCTYPE_PROB_WITH_SIMPLE_MHP + " or "
 						+ IFCTYPE_RLSOD
-						+ "\" for probabilistic analysis. If it is omitted, classical non-interference is used."), RESET(
+						+ ". If it is omitted, classical non-interference is used."), RESET(
 				"reset", 0, "", "Reset node data."), SAVE_ANNOTATIONS("saveAnnotations", 1, "<filename>",
 				"Save annotations done so far in specified file."), LOAD_ANNOTATIONS("loadAnnotations", 1,
 				"<filename>", "Load annotations from specified file."), SHOW_ANNOTATIONS("showAnnotations", 0, "",
@@ -517,7 +517,7 @@ public class IFCConsole {
 				if (IFCTYPE_CLASSICAL_NI.equals(s)) {
 					return IFCType.CLASSICAL_NI;
 				} else if (IFCTYPE_PROB_WITH_SIMPLE_MHP.equals(s)) {
-					return IFCType.PROBABILISTIC_WITH_SIMPLE_MHP;
+					return IFCType.LSOD;
 				} else if (IFCTYPE_RLSOD.equals(s)) {
 					return IFCType.RLSOD;
 				} else {
@@ -1495,7 +1495,7 @@ public class IFCConsole {
 		switch (ifcType) {
 		case CLASSICAL_NI:
 			return IFCTYPE_CLASSICAL_NI;
-		case PROBABILISTIC_WITH_SIMPLE_MHP:
+		case LSOD:
 			return IFCTYPE_PROB_WITH_SIMPLE_MHP;
 		case RLSOD:
 			return IFCTYPE_RLSOD;

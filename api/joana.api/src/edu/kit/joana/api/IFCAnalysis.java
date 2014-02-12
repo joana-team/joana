@@ -33,7 +33,9 @@ import edu.kit.joana.api.sdg.SDGProgramPartWriter;
 import edu.kit.joana.ifc.sdg.core.IFC;
 import edu.kit.joana.ifc.sdg.core.ReduceRedundantFlows;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
+import edu.kit.joana.ifc.sdg.core.conc.ConflictScanner;
 import edu.kit.joana.ifc.sdg.core.conc.DataConflict;
+import edu.kit.joana.ifc.sdg.core.conc.LSODNISlicer;
 import edu.kit.joana.ifc.sdg.core.conc.OrderConflict;
 import edu.kit.joana.ifc.sdg.core.conc.PossibilisticNIChecker;
 import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNIChecker;
@@ -111,13 +113,15 @@ public class IFCAnalysis {
 				}
 			}
 			break;
-		case PROBABILISTIC_WITH_SIMPLE_MHP:
+		case LSOD:
 			if (this.program.getSDG().getThreadsInfo() == null) {
 				CSDGPreprocessor.preprocessSDG(this.program.getSDG());
 			}
-			MHPAnalysis mhpSimple = SimpleMHPAnalysis.analyze(this.program.getSDG());
-			this.ifc = new ProbabilisticNIChecker(this.program.getSDG(), secLattice, mhpSimple,
-					this.timeSensitiveAnalysis);
+			MHPAnalysis mhp = PreciseMHPAnalysis.analyze(this.program.getSDG());
+			ConflictScanner lsodScanner = LSODNISlicer.simpleCheck(this.program.getSDG(), secLattice, mhp,
+			this.timeSensitiveAnalysis);
+			this.ifc = new ProbabilisticNIChecker(this.program.getSDG(), secLattice, lsodScanner,
+					mhp, this.timeSensitiveAnalysis);
 			break;
 		case RLSOD:
 			if (this.program.getSDG().getThreadsInfo() == null) {

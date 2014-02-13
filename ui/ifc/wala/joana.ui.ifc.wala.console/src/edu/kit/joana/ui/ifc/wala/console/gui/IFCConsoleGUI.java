@@ -60,6 +60,8 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 	public static final String PROPERTIES = "gui.properties";
 
 	public static final boolean DECLASS_ENABLED;
+	
+	public static final boolean CHOP_VIEW_ENABLED;
 
 	static {
 		final InputStream propertyStream = IFCConsoleGUI.class.getClassLoader().getResourceAsStream(PROPERTIES);
@@ -74,6 +76,12 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 			declassEnabled = System.getProperty("declassEnabled");
 		}
 		DECLASS_ENABLED = (declassEnabled != null && declassEnabled.equals("true"));
+		
+		String chopviewEnabled = p.getProperty("chopview");
+		if (chopviewEnabled == null) {
+			chopviewEnabled = System.getProperty("chopview");
+		}
+		CHOP_VIEW_ENABLED = (chopviewEnabled != null);
 	}
 
 	public static final String VERSION_ID = "versionid.properties";
@@ -114,7 +122,9 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 		tabbedPane.addTab("Configuration", configPane);
 		tabbedPane.addTab("Annotate", treePane);
 		tabbedPane.addTab("Run", runPane);
-		tabbedPane.addTab("Results", resultsPane);
+		if (CHOP_VIEW_ENABLED) {
+			tabbedPane.addTab("Results", resultsPane);
+		}
 		// tabbedPane.addTab("Console", consolePane);
 		// root.add(tabbedPane, mkgbc_fillxy(0, 0, 1, 1));
 		// root.add(consolePane, mkgbc_fillxy(0, 1, 1, 1));

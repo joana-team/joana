@@ -53,6 +53,8 @@ public class LogLevels {
     private static final Class[] defaultMute = new Class[] {
         // The ParameterAccessor dumps a lot of messages about not finding ceratin
         // classes. These are not really fatal, so zap them.
+        ch.qos.logback.classic.LoggerContext.class,
+        ch.qos.logback.core.util.ContextUtil.class
     };
 
     private static final Class[] defaultError = new Class[] {

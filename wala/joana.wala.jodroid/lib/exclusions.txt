@@ -17,3 +17,4 @@ android/bluetooth/.*
 android/gesture/.*
 android/graphics/pdf/.*
 android/content/IntentSender.*
+com/android/layoutlib/bridge/android/BridgeContext

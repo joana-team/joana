@@ -275,6 +275,7 @@ public class AnalysisPresets {
 
         LogLevels.setLevels();
 
+        p.aem.setOverrides(p.aem.DEFAULT_INTENT_OVERRIDES);
         // XXX TEMP:
         p.aem.setDoBootSequence(false);
 

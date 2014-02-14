@@ -91,7 +91,11 @@ import org.slf4j.LoggerFactory;
  *  @see edu.kit.joana.wala.jodroid.JodDroidCLI
  */
 public class JoDroidConstruction {
-    private static final Logger logger = LoggerFactory.getLogger(JoDroidConstruction.class);
+    private static final Logger logger;
+    static {
+        
+        logger = LoggerFactory.getLogger(JoDroidConstruction.class);
+    }
 
     /**
      *  The Preset contains any settings needed during JoDroid-runs.
@@ -303,7 +307,8 @@ public class JoDroidConstruction {
         { // Build the model
             modeller = new AndroidModel(p.scfg.cha, p.options, p.scfg.cache);
             try {
-                livecycle = modeller.getMethod();
+                livecycle = modeller.getMethod();         // This variant uses FakeRoot-Init
+                //livecycle = modeller.getMethodEncap();      // Uses new Instantiator
             } catch (CancelException e) {
                 throw new SDGConstructionException(e);
             }

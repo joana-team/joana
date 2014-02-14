@@ -100,7 +100,7 @@ public class IFCConsole {
 				"Declassify specified node from <level1> to <level2>. <index> refers to the indices shown in the currently active method."), RUN(
 				"run", 0, 2, " [type] ",
 				"Run IFC analysis with specified data. The optional parameter type denotes the type of ifc analysis. It can be "
-						+ IFCTYPE_CLASSICAL_NI + ", " + IFCTYPE_PROB_WITH_SIMPLE_MHP + " or "
+						+ IFCTYPE_CLASSICAL_NI + ", " + IFCTYPE_LSOD + " or "
 						+ IFCTYPE_RLSOD
 						+ ". If it is omitted, classical non-interference is used."), RESET(
 				"reset", 0, "", "Reset node data."), SAVE_ANNOTATIONS("saveAnnotations", 1, "<filename>",
@@ -252,7 +252,7 @@ public class IFCConsole {
 	}
 
 	private static final String IFCTYPE_CLASSICAL_NI = "classical-ni";
-	private static final String IFCTYPE_PROB_WITH_SIMPLE_MHP = "prob-simplemhp";
+	private static final String IFCTYPE_LSOD = "lsod";
 	private static final String IFCTYPE_RLSOD = "rlsod";
 
 	public static final String LATTICE_BINARY = "BINARY";
@@ -519,7 +519,7 @@ public class IFCConsole {
 			private IFCType parseIFCType(String s) {
 				if (IFCTYPE_CLASSICAL_NI.equals(s)) {
 					return IFCType.CLASSICAL_NI;
-				} else if (IFCTYPE_PROB_WITH_SIMPLE_MHP.equals(s)) {
+				} else if (IFCTYPE_LSOD.equals(s)) {
 					return IFCType.LSOD;
 				} else if (IFCTYPE_RLSOD.equals(s)) {
 					return IFCType.RLSOD;
@@ -1548,7 +1548,7 @@ public class IFCConsole {
 		case CLASSICAL_NI:
 			return IFCTYPE_CLASSICAL_NI;
 		case LSOD:
-			return IFCTYPE_PROB_WITH_SIMPLE_MHP;
+			return IFCTYPE_LSOD;
 		case RLSOD:
 			return IFCTYPE_RLSOD;
 		default:

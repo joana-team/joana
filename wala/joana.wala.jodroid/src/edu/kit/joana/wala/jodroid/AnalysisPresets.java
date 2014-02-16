@@ -244,7 +244,8 @@ public class AnalysisPresets {
         p.scfg.ignoreStaticFields = Main.IGNORE_STATIC_FIELDS;
 
         // What to considder
-        p.scfg.exceptions = ExceptionAnalysis.ALL_NO_ANALYSIS;
+        //p.scfg.exceptions = ExceptionAnalysis.ALL_NO_ANALYSIS;
+        p.scfg.exceptions = ExceptionAnalysis.IGNORE_ALL;
         p.scfg.staticInitializers = StaticInitializationTreatment.SIMPLE;   // Do not use ACCURATE: Is defunct
 
         // Precision
@@ -263,8 +264,10 @@ public class AnalysisPresets {
      
         // No changes to the settings of AndroidEntypointManager...
         // p.aem
-        p.entrypointLocatorFlags = EnumSet.of(LocatorFlags.EP_HEURISTIC, LocatorFlags.WITH_SUPER, LocatorFlags.WITH_CTOR, 
-                LocatorFlags.INCLUDE_CALLBACKS, LocatorFlags.CB_HEURISTIC);
+        //p.entrypointLocatorFlags = EnumSet.of(LocatorFlags.EP_HEURISTIC, LocatorFlags.WITH_SUPER,  
+        //        LocatorFlags.INCLUDE_CALLBACKS, LocatorFlags.CB_HEURISTIC);
+        p.entrypointLocatorFlags = EnumSet.of(LocatorFlags.EP_HEURISTIC, LocatorFlags.CB_HEURISTIC,
+                LocatorFlags.INCLUDE_CALLBACKS);
 
         // The following selectors will be injected when Joana generates its new 
         // AnalysisOptions

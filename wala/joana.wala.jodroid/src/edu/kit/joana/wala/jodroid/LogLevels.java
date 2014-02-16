@@ -60,7 +60,6 @@ public class LogLevels {
     private static final Class[] defaultError = new Class[] {
         // The IntentContextSelector currently warns on all null-values. This is a
         // bit annoying. This should rather be fixed than zaped 
-        com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.IntentContextSelector.class,
         // This class currently disrespects the defaultLoglevel. It's here until I
         // figure out why.
         com.ibm.wala.dalvik.classLoader.DexFileModule.class,

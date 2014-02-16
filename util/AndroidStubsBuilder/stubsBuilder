@@ -362,7 +362,7 @@ class StubsBuilder(controller.CementBaseController):
             return
 
         if self.app.pargs.config:
-            self.builderPaths = BilderPaths(log = self.log, configFile = self.app.pargs.config)
+            self.builderPaths = BuilderPaths(log = self.log, configFile = self.app.pargs.config)
         else:
             self.builderPaths = BuilderPaths(log = self.log)
 
@@ -458,7 +458,11 @@ class StubsBuilder(controller.CementBaseController):
         cmd = [self.builderPaths.javac, "-classpath", self.inputPaths.classpath]
         cmd.extend(self.config.get('general', 'additional').split())
         cmd.extend(self.config.get('general', 'copy_in').split())
-        
+       
+        if (not self.config.get('general', 'additional').split()) and (not self.config.get('general', 'copy_in').split()):
+            self.log.info("Skip compiling: no sources")
+            return
+
         self.log.info("Compiling with: " + " ".join(cmd))
         subprocess.check_call(cmd)
         self.log.info("Copy in compiled classes")
@@ -488,6 +492,9 @@ class StubsBuilder(controller.CementBaseController):
     def pack(self):
         self.prepare()
         os.chdir(self.outputPaths.classes)
+        prune = self.config.get('general', 'prune').split()
+        for path in prune:
+            shutil.rmtree(path)
         cmd = [self.builderPaths.jar, 'cf', self.outputPaths.jar, '.']
         self.log.info("Building JAR-File: " + " ".join(cmd))
         subprocess.check_call(cmd)

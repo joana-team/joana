@@ -62,6 +62,7 @@ class Stubifier:
             self.int_consts[c] = cur
             cur = cur << 1
 
+        self.str_consts = self.config.get(section, "str_consts").split()
         h_fkt = self.config.get(section, "hash_functions")
         self.hash_functions = h_fkt.split()
         s_fkt = self.config.get(section, "string_functions")
@@ -75,7 +76,10 @@ class Stubifier:
         zap = self.config.get(section, "zap_function")
         self.zap_functions = zap.split()
         self.int_zap_functions = self.config.get(section, "int_zap_function").split()
+        self.false_zap_functions = self.config.get(section, "false_zap_function").split()
         self.singleton = self.config.get(section, "singleton").split()
+        self.delete_lines = self.config.get(section, "delete_lines").split()
+
 
     def stubify(self, inFile, outFile):
         if inFile == outFile:
@@ -101,7 +105,14 @@ class Stubifier:
         ret = self._replace_consts(ret, None)
         ret = self._strip_calls(ret)
         ret = self._replace_fields(ret)
+        ret = self._delete_lines(ret)
         return ret
+
+    def _delete_lines(self, line):
+        for d in self.delete_lines:
+            r = re.compile(r'[\n\r]+\s*' + d + r'.*[\n\r]*')
+            line = r.sub("\n/* zap line */\n", line)
+        return line
 
     def _singleton(self, line):
         for s in self.singleton:
@@ -115,6 +126,7 @@ class Stubifier:
         all = []
         all.extend(self.zap_functions)
         all.extend(self.int_zap_functions)
+        all.extend(self.false_zap_functions)
         for fkt in all:
             r = re.compile(r'[\w]+[\.\w\d]*\.' + fkt + '\s*\(')
             match = r.search(line)
@@ -145,6 +157,8 @@ class Stubifier:
                         retLine = retLine + " null "
                     elif fkt in self.int_zap_functions:
                         retLine = retLine + " 42 "
+                    elif fkt in self.false_zap_functions:
+                        retLine = retLine + " false "
                     else:
                         raise Exception("Unknown ZAP-Type for " + fkt)
                 retLine += line[end:]
@@ -170,6 +184,8 @@ class Stubifier:
     def _replace_consts(self, line, inFile):
         for k, v in self.int_consts.items():
             line = line.replace(k, str(v))
+        for c in self.str_consts:
+            line = line.replace(c, "\"" + c + "\"")
         return line
 
     def _replace_fields(self, line):

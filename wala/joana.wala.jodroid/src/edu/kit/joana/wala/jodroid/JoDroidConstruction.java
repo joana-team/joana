@@ -307,8 +307,8 @@ public class JoDroidConstruction {
         { // Build the model
             modeller = new AndroidModel(p.scfg.cha, p.options, p.scfg.cache);
             try {
-                livecycle = modeller.getMethod();         // This variant uses FakeRoot-Init
-                //livecycle = modeller.getMethodEncap();      // Uses new Instantiator
+                //livecycle = modeller.getMethod();         // This variant uses FakeRoot-Init
+                livecycle = modeller.getMethodEncap();      // Uses new Instantiator
             } catch (CancelException e) {
                 throw new SDGConstructionException(e);
             }
@@ -363,13 +363,14 @@ public class JoDroidConstruction {
         final AndroidModel modeller;
         { // Build the model
             try {
-                { // TODO Get rid of this:
+                /* { // TODO Get rid of this:
                     // The makroModel registers itself as a sideeffect - expected to be there
                     final AndroidModel makroModel = new AndroidModel(p.scfg.cha, p.options, p.scfg.cache);
                     makroModel.getMethod();
-                }
+                } // */
                 modeller = new IntentModel(p.scfg.cha, p.options, p.scfg.cache, intent.action);
-                livecycle = modeller.getMethod();   // TODO Use getMethodAs?
+                //livecycle = modeller.getMethod();   
+                livecycle = modeller.getMethodEncap();   
             } catch (CancelException e) {
                 throw new SDGConstructionException(e);
             }

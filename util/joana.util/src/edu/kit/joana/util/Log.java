@@ -37,6 +37,7 @@ public final class Log {
 	public static final String L_SDG_INFO 						= "sdg.info";
 	public static final String L_MHP_DEBUG 						= "mhp.debug";
 	public static final String L_MHP_INFO						= "mhp.info";
+	public static final String L_WALA_UNRESOLVED_CLASSES		= "wala.unresolved";
 	public static final String L_WALA_CORE_DEBUG				= "wala.core.debug";
 	public static final String L_WALA_IR_DUMP					= "wala.dump.ssa";
 	public static final String L_WALA_CFG_DUMP					= "wala.dump.cfg";

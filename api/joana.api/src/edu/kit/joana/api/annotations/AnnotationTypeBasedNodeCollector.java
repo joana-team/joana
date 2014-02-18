@@ -9,8 +9,10 @@ package edu.kit.joana.api.annotations;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Set;
 
 import edu.kit.joana.api.sdg.SDGActualParameter;
@@ -25,11 +27,13 @@ import edu.kit.joana.api.sdg.SDGInstruction;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGMethodExitNode;
 import edu.kit.joana.api.sdg.SDGPhi;
+import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.api.sdg.SDGProgramPartVisitor;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.util.Pair;
 
 /**
  * @author Martin Mohr
@@ -38,6 +42,7 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 
 	private SDG sdg;
 	private final SDGClassComputation pp2NodeTrans;
+	private final Map<Pair<SDGProgramPart, AnnotationType>, Set<SDGNode>> cache = new HashMap<Pair<SDGProgramPart, AnnotationType>, Set<SDGNode>>();
 
 	public AnnotationTypeBasedNodeCollector(SDG sdg) {
 		this(sdg, new SDGClassComputation(sdg));
@@ -48,8 +53,21 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 		this.pp2NodeTrans = pp2NodeTrans;
 	}
 
+	public void init(SDGProgram program) {
+		this.cache.clear();
+		for (SDGProgramPart ppart : program.getAllProgramParts()) {
+			collectNodes(ppart, AnnotationType.SOURCE);
+			collectNodes(ppart, AnnotationType.SINK);
+		}
+	}
+
 	public Set<SDGNode> collectNodes(SDGProgramPart ppart, AnnotationType type) {
-		return ppart.acceptVisitor(this, type);
+		Set<SDGNode> result = cache.get(Pair.pair(ppart, type));
+		if (result == null) {
+			result = ppart.acceptVisitor(this, type);
+			cache.put(Pair.pair(ppart, type), result);
+		}
+		return result;
 	}
 
 	@Override

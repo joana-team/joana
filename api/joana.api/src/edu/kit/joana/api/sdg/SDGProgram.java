@@ -135,6 +135,7 @@ public class SDGProgram {
 	private final SDG sdg;
 	private SDGProgramPartParserBC ppartParser;
 	private final Map<SDGProgramPart, Collection<Annotation>> annotations = new HashMap<SDGProgramPart, Collection<Annotation>>();
+	private final AnnotationTypeBasedNodeCollector coll;
 
 	private static Logger debug = Log.getLogger(Log.L_API_DEBUG);
 
@@ -142,6 +143,7 @@ public class SDGProgram {
 		this.sdg = sdg;
 		this.ppartParser = new SDGProgramPartParserBC(this);
 		this.classComp = new SDGClassComputation(sdg);
+		this.coll = new AnnotationTypeBasedNodeCollector(sdg, this.classComp);
 	}
 
 	public static SDGProgram loadSDG(String path) throws IOException {
@@ -418,9 +420,9 @@ public class SDGProgram {
 	}
 
 	public boolean covers(SDGProgramPart ppart, SDGNode node) {
-		AnnotationTypeBasedNodeCollector c = new AnnotationTypeBasedNodeCollector(sdg);
-		return c.collectNodes(ppart, AnnotationType.SOURCE).contains(node) || c.collectNodes(ppart, AnnotationType.SINK).contains(node);
+		return coll.collectNodes(ppart, AnnotationType.SOURCE).contains(node) || coll.collectNodes(ppart, AnnotationType.SINK).contains(node);
 	}
+
 	/**
 	 * Given a source and a sink instructions, computes a chop of these two program parts and collects all instructions which are on the way.
 	 * This works only for sequential programs

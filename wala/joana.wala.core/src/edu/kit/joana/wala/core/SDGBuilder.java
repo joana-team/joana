@@ -571,6 +571,16 @@ public class SDGBuilder implements CallGraphFilter {
 
 		progress.worked(1);
 		addEntryExitCFEdges();
+		
+		final Logger l = Log.getLogger(Log.L_WALA_UNRESOLVED_CLASSES);
+		if (l.isEnabled()) {
+			final Set<TypeReference> unresolved = cfg.cha.getUnresolvedClasses();
+			if (unresolved != null) {
+				for (final TypeReference tref : unresolved) {
+					l.outln("unresolved: " + tref);
+				}
+			}
+		}
 	}
 
 	private void addEntryExitCFEdges() {

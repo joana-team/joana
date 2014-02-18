@@ -9,128 +9,52 @@ package edu.kit.joana.api.sdg;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import edu.kit.joana.ifc.sdg.graph.SDG;
-import edu.kit.joana.ifc.sdg.graph.SDGEdge;
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.graph.SDGNode.Kind;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
-import edu.kit.joana.ifc.sdg.util.JavaType.Format;
 
 public class SDGMethod implements SDGProgramPart {
 
-	private final SDG sdg;
-	private SDGNode entry;
 	private SDGMethodExitNode exit;
 	private JavaMethodSignature sig;
 	private SortedMap<Integer, SDGFormalParameter> params = new TreeMap<Integer, SDGFormalParameter>();
 	private List<SDGInstruction> instructions = new ArrayList<SDGInstruction>();
 	private List<SDGCall> calls = new ArrayList<SDGCall>();
 	private List<SDGPhi> phis = new ArrayList<SDGPhi>();
-	private boolean initialized = false;
 
-	public SDGMethod(SDG sdg, SDGNode entry) {
-		this.sdg = sdg;
-		this.entry = entry;
-		this.sig = JavaMethodSignature.fromString(entry.getBytecodeName());
-		initialize(sdg);
-	}
+	public SDGMethod(JavaMethodSignature sig, boolean isStatic) {
 
-	private void setExit(SDG sdg) {
-		for (SDGNode node : sdg.getFormalOutsOfProcedure(entry)) {
-			if (node.getKind() == SDGNode.Kind.EXIT)
-				this.exit = new SDGMethodExitNode(node, this);
+		this.sig = sig;
+		if (!isStatic) {
+			this.params.put(0, new SDGFormalParameter(this, 0, "this", sig.getDeclaringType()));
 		}
-	}
-	
-	SDG getSDG() {
-		return sdg;
-	}
-
-	public void initialize(SDG sdg) {
-		if (!initialized) {
-			setExit(sdg);
-			int instructionIndex = 0;
-			for (SDGNode n : sdg.getNodesOfProcedure(entry)) {
-				if (n.getBytecodeIndex() >= 0) {
-					if (n.getKind() == SDGNode.Kind.CALL) {
-						SDGCall newCall = newCall(n, instructionIndex);
-						calls.add(newCall);
-						instructions.add(newCall);
-					} else {
-						instructions.add(new SDGInstruction(this, n, instructionIndex));
-						instructionIndex++;
-					}
-				} else if (BytecodeLocation.isNormalFormalParameter(n)) {
-					int paramIndex = BytecodeLocation.getRootParamIndex(n
-							.getBytecodeName());
-					if (paramIndex >= 0) {
-						SDGFormalParameter p;
-						if (!params.containsKey(paramIndex)) {
-							p = new SDGFormalParameter(this, paramIndex);
-							params.put(paramIndex, p);
-						} else {
-							p = params.get(paramIndex);
-						}
-
-						switch (n.getKind()) {
-						case FORMAL_IN:
-							p.setInRoot(n);
-							break;
-						case FORMAL_OUT:
-							p.setOutRoot(n);
-							break;
-						default:
-							break;
-						}
-						p.setType(JavaType.parseSingleTypeFromString(n.getType(), Format.BC));
-					} else {
-						throw new IllegalStateException();
-					}
-				} else if (BytecodeLocation.isPhiNode(n)) {
-					phis.add(new SDGPhi(this, n));
-				}
-			}
-			Collections.sort(instructions);
-			initialized = true;
+		int paramIndex = 1;
+		for (JavaType argType : this.sig.getArgumentTypes()) {
+			this.params.put(paramIndex, new SDGFormalParameter(this, paramIndex, BytecodeLocation.getRootParamName(paramIndex), argType));
+			paramIndex++;
 		}
-	}
-	
-	private SDGCall newCall(SDGNode n, int instructionIndex) {
-		SDGCall newCall = new SDGCall(this, n, instructionIndex);
-
-		// add actual parameters
-		for (SDGEdge e : sdg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
-			SDGNode node = e.getTarget();
-			if (node.getKind() == Kind.ACTUAL_IN || node.getKind() == Kind.ACTUAL_OUT) {
-				newCall.addActualParameter(node);
-			}
-		}
-
-		// add possible call targets
-		List<SDGEdge> callEdges = sdg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CALL);
-		if (callEdges.isEmpty() && n.getUnresolvedCallTarget() != null) {
-			newCall.addPossibleCallTarget(JavaMethodSignature.fromString(n.getUnresolvedCallTarget()));
-		} else {
-			for (SDGEdge callEdge : callEdges) {
-				SDGNode tgt = callEdge.getTarget();
-				newCall.addPossibleCallTarget(JavaMethodSignature.fromString(tgt.getBytecodeMethod()));
-			}
-		}
-		return newCall;
+		this.exit = new SDGMethodExitNode(this, this.sig.getReturnType());
+		this.instructions = new ArrayList<SDGInstruction>();
+		this.calls = new ArrayList<SDGCall>();
+		this.phis = new ArrayList<SDGPhi>();
 	}
 
-	public SDGNode getEntry() {
-		return entry;
+	void addInstruction(SDGInstruction i) {
+		this.instructions.add(i);
+	}
+
+	void addPhi(SDGPhi phi) {
+		this.phis.add(phi);
+	}
+
+	public void addCall(SDGCall newCall) {
+		this.calls.add(newCall);
+		addInstruction(newCall);
 	}
 
 	public SDGFormalParameter getParameter(int i) {
@@ -148,16 +72,16 @@ public class SDGMethod implements SDGProgramPart {
 			return instructions.get(i);
 		}
 	}
-	
+
 	public List<SDGCall> getAllCalls(JavaMethodSignature target) {
 		List<SDGCall> ret = new LinkedList<SDGCall>();
-		
+
 		for (SDGCall call : calls) {
 			if (call.possiblyCalls(target)) {
 				ret.add(call);
 			}
 		}
-		
+
 		return ret;
 	}
 
@@ -215,34 +139,13 @@ public class SDGMethod implements SDGProgramPart {
 	}
 
 	@Override
-	public String toString() {
-		return sig.toBCString();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((entry == null) ? 0 : entry.hashCode());
-		result = prime * result + ((exit == null) ? 0 : exit.hashCode());
-		result = prime * result + (initialized ? 1231 : 1237);
-		result = prime * result
-		+ ((instructions == null) ? 0 : instructions.hashCode());
-		result = prime * result + ((params == null) ? 0 : params.hashCode());
 		result = prime * result + ((sig == null) ? 0 : sig.hashCode());
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
@@ -255,37 +158,6 @@ public class SDGMethod implements SDGProgramPart {
 			return false;
 		}
 		SDGMethod other = (SDGMethod) obj;
-		if (entry == null) {
-			if (other.entry != null) {
-				return false;
-			}
-		} else if (!entry.equals(other.entry)) {
-			return false;
-		}
-		if (exit == null) {
-			if (other.exit != null) {
-				return false;
-			}
-		} else if (!exit.equals(other.exit)) {
-			return false;
-		}
-		if (initialized != other.initialized) {
-			return false;
-		}
-		if (instructions == null) {
-			if (other.instructions != null) {
-				return false;
-			}
-		} else if (!instructions.equals(other.instructions)) {
-			return false;
-		}
-		if (params == null) {
-			if (other.params != null) {
-				return false;
-			}
-		} else if (!params.equals(other.params)) {
-			return false;
-		}
 		if (sig == null) {
 			if (other.sig != null) {
 				return false;
@@ -297,6 +169,11 @@ public class SDGMethod implements SDGProgramPart {
 	}
 
 	@Override
+	public String toString() {
+		return sig.toBCString();
+	}
+
+	@Override
 	public <R, D> R acceptVisitor(SDGProgramPartVisitor<R, D> v, D data) {
 		return v.visitMethod(this, data);
 	}
@@ -304,142 +181,5 @@ public class SDGMethod implements SDGProgramPart {
 	@Override
 	public SDGMethod getOwningMethod() {
 		return this;
-	}
-
-	@Override
-	public boolean covers(SDGNode node) {
-		if (node.equals(entry)) {
-			return true;
-		}
-
-		for (SDGFormalParameter p : getParameters()) {
-			if (p.covers(node)) {
-				return true;
-			}
-		}
-
-		if (getExit().covers(node))
-			return true;
-
-		for (SDGInstruction i : getInstructions()) {
-			if (i.covers(node)) {
-				return true;
-			}
-		}
-
-		for (SDGPhi phi : getPhis()) {
-			if (phi.covers(node))
-				return true;
-		}
-
-		return false;
-	}
-
-	@Override
-	public Collection<SDGNode> getAttachedNodes() {
-		Set<SDGNode> ret = new HashSet<SDGNode>();
-
-		ret.add(entry);
-
-		for (SDGFormalParameter p : getParameters()) {
-			ret.addAll(p.getAttachedNodes());
-		}
-
-		ret.addAll(getExit().getAttachedNodes());
-
-		for (SDGInstruction i : getInstructions()) {
-			ret.addAll(i.getAttachedNodes());
-		}
-
-		for (SDGPhi phi : getPhis()) {
-			ret.addAll(phi.getAttachedNodes());
-		}
-
-		return ret;
-	}
-
-	@Override
-	public Collection<SDGNode> getAttachedSourceNodes() {
-		Set<SDGNode> ret = new HashSet<SDGNode>();
-
-		ret.add(entry);
-
-		for (SDGFormalParameter p : getParameters()) {
-			ret.addAll(p.getAttachedSourceNodes());
-		}
-
-		ret.addAll(getExit().getAttachedSourceNodes());
-
-		for (SDGInstruction i : getInstructions()) {
-			ret.addAll(i.getAttachedSourceNodes());
-		}
-
-		for (SDGPhi phi : getPhis()) {
-			ret.addAll(phi.getAttachedSourceNodes());
-		}
-
-		return ret;
-	}
-
-	@Override
-	public Collection<SDGNode> getAttachedSinkNodes() {
-		Set<SDGNode> ret = new HashSet<SDGNode>();
-
-		ret.add(entry);
-
-		for (SDGFormalParameter p : getParameters()) {
-			ret.addAll(p.getAttachedSinkNodes());
-		}
-
-		ret.addAll(getExit().getAttachedSinkNodes());
-
-		for (SDGInstruction i : getInstructions()) {
-			ret.addAll(i.getAttachedSinkNodes());
-		}
-
-		for (SDGPhi phi : getPhis()) {
-			ret.addAll(phi.getAttachedSinkNodes());
-		}
-
-		return ret;
-	}
-	
-	public SDGInstruction getCoveringInstruction(SDGNode node) {
-		for (SDGInstruction i : getInstructions()) {
-			if (i.covers(node)) {
-				return i;
-			}
-		}
-		return null;
-	}
-
-	@Override
-	public SDGProgramPart getCoveringComponent(SDGNode node) {
-		if (entry.equals(node)) {
-			return this;
-		}
-		SDGProgramPart exitCP = exit.getCoveringComponent(node);
-		if (exitCP != null) {
-			return exitCP;
-		}
-		for (SDGFormalParameter p : getParameters()) {
-			SDGProgramPart pCP = p.getCoveringComponent(node);
-			if (pCP != null) {
-				return pCP;
-			}
-		}
-		for (SDGPhi phi : getPhis()) {
-			SDGProgramPart phiCP = phi.getCoveringComponent(node);
-			if (phiCP != null) {
-				return phiCP;
-			}
-		}
-		for (SDGInstruction i : getInstructions()) {
-			SDGProgramPart iCP = i.getCoveringComponent(node);
-			if (iCP != null) {
-				return iCP;
-			}
-		}
-		return null;
 	}
 }

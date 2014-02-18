@@ -268,7 +268,7 @@ public class IFCConsole {
 	// private PrintStream infoOut;
 	//
 	private IFCConsoleOutput out;
-	
+
 	private boolean showPrompt = true;
 
 	// private SDG sdg;
@@ -704,7 +704,7 @@ public class IFCConsole {
 				boolean found = false;
 				if (sNode.isInformationSource()) {
 					for (IFCAnnotation source : sources) {
-						if (source.getProgramPart().covers(sNode)) {
+						if (ifcAnalysis.getProgram().covers(source.getProgramPart(),sNode)) {
 							found = true;
 							break;
 						}
@@ -715,7 +715,7 @@ public class IFCConsole {
 					}
 				} else if (sNode.isInformationSink()) {
 					for (IFCAnnotation sink : sinks) {
-						if (sink.getProgramPart().covers(sNode)) {
+						if (ifcAnalysis.getProgram().covers(sink.getProgramPart(), sNode)) {
 							found = true;
 							break;
 						}
@@ -726,7 +726,7 @@ public class IFCConsole {
 					}
 				} else if (sNode.isDeclassification()) {
 					for (IFCAnnotation dec : declass) {
-						if (dec.getProgramPart().covers(sNode)) {
+						if (ifcAnalysis.getProgram().covers(dec.getProgramPart(), sNode)) {
 							found = true;
 							break;
 						}
@@ -1141,7 +1141,7 @@ public class IFCConsole {
 
 	/**
 	 * Sets the lattice used from now on.
-	 * 
+	 *
 	 * @param latticeSpec
 	 *            either one of the constants for the built-in lattices (
 	 *            {@link #LATTICE_BINARY}, {@link #LATTICE_TERNARY},
@@ -1322,8 +1322,8 @@ public class IFCConsole {
 				return false;
 			}
 		}
-		
-		
+
+
 
 		return true;
 	}
@@ -1395,7 +1395,7 @@ public class IFCConsole {
 			out.info("No entry method selected. Select entry method first!");
 			return false;
 		} else {
-	
+
 			SDGProgram program;
 
 			try {
@@ -1587,11 +1587,11 @@ public class IFCConsole {
 			}
 		}
 	}
-	
+
 	public void setShowPrompt(boolean showPrompt) {
 		this.showPrompt = showPrompt;
 	}
-	
+
 	public boolean isQuit(String cmd) {
 		return CMD.QUIT.getName().equals(cmd);
 	}
@@ -1691,7 +1691,7 @@ public class IFCConsole {
 	/**
 	 * Returns the program currently under analysis, if there is any. Returns
 	 * {@code null} if no program was loaded.
-	 * 
+	 *
 	 * @return the program currently under analysis, {@code null} if there is
 	 *         none
 	 */

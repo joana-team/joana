@@ -31,8 +31,8 @@ public class SDGCall extends SDGInstruction implements SDGCallPart {
 	private SDGCallExceptionNode exceptionNode;
 	private Set<JavaMethodSignature> possibleTargets = new HashSet<JavaMethodSignature>();
 
-	public SDGCall(SDGMethod owner, SDGNode callNode, int index) {
-		super(owner, callNode, index);
+	public SDGCall(SDGMethod owner, int bcIndex, String label, String type, String op) {
+		super(owner, bcIndex, label, type, op);
 	}
 
 	void addActualParameter(SDGNode act) {
@@ -49,16 +49,11 @@ public class SDGCall extends SDGInstruction implements SDGCallPart {
 				} else {
 					actP = actParams.get(index);
 				}
-				if (act.getKind() == Kind.ACTUAL_IN) {
-					actP.setInRoot(act);
-				} else {
-					actP.setOutRoot(act);
-				}
 			} else {
 				if (act.getBytecodeName().equals(BytecodeLocation.RETURN_PARAM)) {
-					this.returnNode = new SDGCallReturnNode(act, this);
+					this.returnNode = new SDGCallReturnNode(this);
 				} else if (act.getBytecodeName().equals(BytecodeLocation.EXCEPTION_PARAM)) {
-					this.exceptionNode = new SDGCallExceptionNode(act, this);
+					this.exceptionNode = new SDGCallExceptionNode(this);
 				}
 			}
 		}
@@ -67,19 +62,19 @@ public class SDGCall extends SDGInstruction implements SDGCallPart {
 	void addPossibleCallTarget(JavaMethodSignature pTgt) {
 		possibleTargets.add(pTgt);
 	}
-	
+
 	public Collection<SDGActualParameter> getActualParameters() {
 		return actParams.values();
 	}
-	
+
 	public SDGCallReturnNode getReturn() {
 		return returnNode;
 	}
-	
+
 	public SDGCallExceptionNode getExceptionNode() {
 		return exceptionNode;
 	}
-	
+
 	public Collection<? extends SDGCallPart> getParts() {
 		List<SDGCallPart> ret = new LinkedList<SDGCallPart>();
 		ret.add(this);
@@ -100,7 +95,7 @@ public class SDGCall extends SDGInstruction implements SDGCallPart {
 	 * <li>is a call instruction</li>
 	 * <li>has the method with the given signature as possible call target</li>
 	 * </ol>
-	 * 
+	 *
 	 * @param target
 	 * @return {@code true}, if this instruction is a call instruction having
 	 *         the method with the given signature as possible target,
@@ -109,14 +104,14 @@ public class SDGCall extends SDGInstruction implements SDGCallPart {
 	public boolean possiblyCalls(JavaMethodSignature target) {
 		return possibleTargets.contains(target);
 	}
-	
+
 	public Set<JavaMethodSignature> getPossibleTargets() {
 		return new HashSet<JavaMethodSignature>(possibleTargets);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * edu.kit.joana.api.sdg.SDGInstruction#acceptVisitor(edu.kit.joana.api.
 	 * sdg.SDGProgramPartVisitor, java.lang.Object)
@@ -142,65 +137,8 @@ public class SDGCall extends SDGInstruction implements SDGCallPart {
 		v.visitCallInstruction(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see
-	 * edu.kit.joana.api.sdg.SDGInstruction#covers(edu.kit.joana.ifc.sdg.graph
-	 * .SDGNode)
-	 */
 	@Override
-	public boolean covers(SDGNode node) {
-		if (node.equals(getNode())) {
-			return true;
-		} else if (returnNode != null && returnNode.covers(node)) {
-			return true;
-		} else if (exceptionNode != null && exceptionNode.covers(node)) {
-			return true;
-		} else {
-			for (SDGActualParameter p : actParams.values()) {
-				if (p.covers(node)) {
-					return true;
-				}
-			}
-			return false;
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see
-	 * edu.kit.joana.api.sdg.SDGInstruction#getCoveringComponent(edu.kit.joana
-	 * .ifc.sdg.graph.SDGNode)
-	 */
-	@Override
-	public SDGProgramPart getCoveringComponent(SDGNode node) {
-		if (node.equals(getNode())) {
-			return this;
-		}
-
-		if (returnNode != null) {
-			SDGProgramPart retCP = returnNode.getCoveringComponent(node);
-			if (retCP != null) {
-				return retCP;
-			}
-		}
-
-		if (exceptionNode != null) {
-			SDGProgramPart excCP = exceptionNode.getCoveringComponent(node);
-			if (excCP != null) {
-				return excCP;
-			}
-		}
-
-		for (SDGActualParameter p : actParams.values()) {
-			SDGProgramPart pCP = p.getCoveringComponent(node);
-			if (pCP != null) {
-				return pCP;
-			}
-		}
-
-		return null;
+	public boolean isCall() {
+		return true;
 	}
 }

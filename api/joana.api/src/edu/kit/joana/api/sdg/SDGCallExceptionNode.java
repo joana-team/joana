@@ -7,24 +7,21 @@
  */
 package edu.kit.joana.api.sdg;
 
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
-
 /**
  * @author Martin Mohr
  */
-public class SDGCallExceptionNode extends SDGNodeWrapper implements SDGCallPart {
-	
+public class SDGCallExceptionNode implements SDGCallPart {
+
 	private SDGCall owningCall;
-	
+
 	/**
 	 * @param node
 	 * @param owningMethod
 	 */
-	public SDGCallExceptionNode(SDGNode node, SDGCall owningCall) {
-		super(node, owningCall.getOwningMethod());
+	public SDGCallExceptionNode(SDGCall owningCall) {
 		this.owningCall = owningCall;
 	}
-	
+
 	@Override
 	public SDGCall getOwningCall() {
 		return owningCall;
@@ -37,7 +34,7 @@ public class SDGCallExceptionNode extends SDGNodeWrapper implements SDGCallPart 
 	public <R, D> R acceptVisitor(SDGProgramPartVisitor<R, D> v, D data) {
 		return v.visitCallExceptionNode(this, data);
 	}
-	
+
 	@Override
 	public String toString() {
 		return owningCall.toString() + "->exc";
@@ -49,6 +46,14 @@ public class SDGCallExceptionNode extends SDGNodeWrapper implements SDGCallPart 
 	@Override
 	public void acceptVisitor(SDGCallPartVisitor v) {
 		v.visitExceptionNode(this);
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPart#getOwningMethod()
+	 */
+	@Override
+	public SDGMethod getOwningMethod() {
+		return owningCall.getOwningMethod();
 	}
 
 }

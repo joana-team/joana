@@ -10,14 +10,11 @@ package edu.kit.joana.ui.ifc.wala.console.console;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.ifc.sdg.graph.SDG;
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 
 /**
@@ -74,9 +71,9 @@ public class SDGMethodSelector {
 	 *         method exists.
 	 */
 	public SDGMethod getMethod(JavaMethodSignature sig) {
-		for (SDGNode entry : getMethods()) {
-			if (sig.toBCString().equals(entry.getBytecodeName()))
-				return new SDGMethod(getSDG(), entry);
+		for (SDGMethod m : console.getProgram().getAllMethods()) {
+			if (m.getSignature().equals(sig))
+				return m;
 		}
 
 		return null;
@@ -85,9 +82,9 @@ public class SDGMethodSelector {
 	private boolean search(Pattern searchPattern) {
 		// Debug.println("searching for "+searchPattern);
 		List<SDGMethod> newResults = new ArrayList<SDGMethod>();
-		for (SDGNode entry : getMethods()) {
-			if (searchPattern.matcher(entry.getBytecodeName()).matches()) {
-				newResults.add(new SDGMethod(getSDG(), entry));
+		for (SDGMethod m : console.getProgram().getAllMethods()) {
+			if (searchPattern.matcher(m.getSignature().toBCString()).matches()) {
+				newResults.add(m);
 			}
 		}
 		if (!newResults.isEmpty()) {
@@ -109,15 +106,6 @@ public class SDGMethodSelector {
 
 	}
 
-	private Set<SDGNode> getMethods() {
-		Set<SDGNode> ret = new HashSet<SDGNode>();
-		for (SDGNode n : getSDG().vertexSet())
-			if (getSDG().getEntry(n) != null
-					&& getSDG().getEntry(n).getBytecodeName() != null)
-				ret.add(getSDG().getEntry(n));
-		return ret;
-	}
-
 	public boolean lastSearchResultEmpty() {
 		return lastMethodSearchResults.isEmpty();
 	}
@@ -132,7 +120,6 @@ public class SDGMethodSelector {
 
 	public SDGMethod getMethod(int i) {
 		SDGMethod ret = lastMethodSearchResults.get(i);
-		ret.initialize(getSDG());
 		return ret;
 	}
 
@@ -141,8 +128,6 @@ public class SDGMethodSelector {
 	}
 
 	public SDGMethod getActiveMethod() {
-		if (methodSelected())
-			activeMethod.initialize(getSDG());
 		return activeMethod;
 	}
 

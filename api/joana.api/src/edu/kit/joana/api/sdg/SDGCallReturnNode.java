@@ -7,26 +7,24 @@
  */
 package edu.kit.joana.api.sdg;
 
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
 /**
  * This class represents the node which corresponds to the return node of a call. It is
  * not to be confused with a CALL_RET node.
  * @author Martin Mohr
  */
-public class SDGCallReturnNode extends SDGNodeWrapper implements SDGCallPart {
-	
+public class SDGCallReturnNode implements SDGCallPart {
+
 	private SDGCall owningCall;
-	
+
 	/**
 	 * @param node
 	 * @param owningMethod
 	 */
-	public SDGCallReturnNode(SDGNode node, SDGCall owningCall) {
-		super(node, owningCall.getOwningMethod());
+	public SDGCallReturnNode(SDGCall owningCall) {
 		this.owningCall = owningCall;
 	}
-	
+
 	@Override
 	public SDGCall getOwningCall() {
 		return owningCall;
@@ -39,7 +37,7 @@ public class SDGCallReturnNode extends SDGNodeWrapper implements SDGCallPart {
 	public <R, D> R acceptVisitor(SDGProgramPartVisitor<R, D> v, D data) {
 		return v.visitCallReturnNode(this, data);
 	}
-	
+
 	@Override
 	public String toString() {
 		return owningCall.toString() + "->ret";
@@ -51,6 +49,14 @@ public class SDGCallReturnNode extends SDGNodeWrapper implements SDGCallPart {
 	@Override
 	public void acceptVisitor(SDGCallPartVisitor v) {
 		v.visitReturnNode(this);
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPart#getOwningMethod()
+	 */
+	@Override
+	public SDGMethod getOwningMethod() {
+		return owningCall.getOwningMethod();
 	}
 
 }

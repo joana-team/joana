@@ -11,8 +11,8 @@ import java.util.Collection;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
-import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.annotations.AnnotationType;
+import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 
 

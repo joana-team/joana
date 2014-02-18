@@ -85,7 +85,7 @@ public class IFCJoinTest {
 				"joana.api.testdata.conc.Thread0.run()V", "Ljoana/api/testdata/conc/Joining1.f");
 		Assert.assertFalse(coll.isEmpty());
 		Assert.assertTrue(coll.size() == 1);
-		Assert.assertTrue(coll.iterator().next().getId() == 127);
+		Assert.assertEquals(127, coll.iterator().next().getId());
 		Collection<SDGNode> calls = ana.collectCallsInMethod("joana.api.testdata.conc.Joining1.main([Ljava/lang/String;)V", "java.io.PrintStream.println(I)V");
 		Assert.assertFalse(calls.isEmpty());
 		Assert.assertTrue(calls.size() == 1);

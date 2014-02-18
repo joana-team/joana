@@ -8,7 +8,6 @@
 package edu.kit.joana.api.annotations;
 
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -54,7 +53,7 @@ public class IFCAnnotationApplicator {
 			}
 		}
 	}
-	
+
 	/**
 	 * Given an annotated security node, retrieves the program part to which the security node belongs.
 	 * @param sNode node to find out program part for
@@ -99,15 +98,15 @@ public class IFCAnnotationApplicator {
 			}
 		}
 	}
-	
+
 	Collection<SDGNode> getSourceNodes() {
 		return getNodes(NodeAnnotationInfo.PROV);
 	}
-	
+
 	Collection<SDGNode> getSinkNodes() {
 		return getNodes(NodeAnnotationInfo.REQ);
 	}
-	
+
 	private Collection<SDGNode> getNodes(String which) {
 		final Collection<SDGNode> ret = new LinkedList<SDGNode>();
 		for (Map.Entry<SecurityNode, NodeAnnotationInfo> e : annotatedNodes.entrySet()) {
@@ -162,7 +161,7 @@ public class IFCAnnotationApplicator {
 			default:
 				throw new IllegalStateException();
 			}
-			
+
 			if (debug.isEnabled()) {
 				debug.outln("Annotated node " + nai.getNode() + " as " + nai.getAnnotation().getLevel1() + " "
 					+ nai.getAnnotation().getType());

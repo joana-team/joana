@@ -118,6 +118,14 @@ public class SDGMethod implements SDGProgramPart {
 		return null;
 	}
 
+	public Collection<SDGInstruction> getInstructionsWithLabelMatching(String labelRegEx) {
+		List<SDGInstruction> ret = new LinkedList<SDGInstruction>();
+		for (SDGInstruction i : instructions)
+			if (i.getLabel().matches(labelRegEx))
+				ret.add(i);
+		return ret;
+	}
+
 	public SDGMethodExitNode getExit() {
 		return exit;
 	}

@@ -992,15 +992,15 @@ public class IFCConsole {
 	}
 
 	public Collection<String> getSecurityLevels() {
-		return ifcAnalysis.getSecurityLattice().getElements();
+		return ifcAnalysis.getLattice().getElements();
 	}
 
 	private boolean inSecurityLattice(String level) {
-		return ifcAnalysis.getSecurityLattice().getElements().contains(level);
+		return ifcAnalysis.getLattice().getElements().contains(level);
 	}
 
 	private boolean greaterOrEqual(String level1, String level2) {
-		return ifcAnalysis.getSecurityLattice().leastUpperBound(level1, level2).equals(level1);
+		return ifcAnalysis.getLattice().leastUpperBound(level1, level2).equals(level1);
 	}
 
 	public void displayLastSearchResults() {
@@ -1645,7 +1645,7 @@ public class IFCConsole {
 	}
 
 	public IStaticLattice<String> getLattice() {
-		return ifcAnalysis.getSecurityLattice();
+		return ifcAnalysis.getLattice();
 	}
 
 	public boolean canAnnotate(Collection<SDGProgramPart> selectedParts, AnnotationType type) {

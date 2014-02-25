@@ -297,11 +297,7 @@ public class IFCAnalysis {
 		return program;
 	}
 
-	public void setSecurityLattice(IEditableLattice<String> l0) {
-		this.secLattice = l0;
-	}
-
-	public IStaticLattice<String> getSecurityLattice() {
+	public IStaticLattice<String> getLattice() {
 		return secLattice;
 	}
 

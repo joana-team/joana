@@ -310,6 +310,18 @@ public class SDGProgram {
 		return classRes.getInstruction(methodSig.getDeclaringType(), methodSig, bcIndex);
 	}
 
+	/**
+	 * Get instructions by label, i.e. the label of the corresponding sdg node. Precisely, all
+	 *
+	 * @param methodSig method in which to search
+	 * @param labelRegEx label to look for
+	 * @return instructions for which the label matches the given regex
+	 */
+	public Collection<SDGInstruction> getInstruction(JavaMethodSignature methodSig, String labelRegEx) {
+		build();
+		return classRes.getInstruction(methodSig.getDeclaringType(), methodSig, labelRegEx);
+	}
+
 	public Collection<SDGCall> getCallsToMethod(JavaMethodSignature tgt) {
 		Collection<SDGCall> ret = new LinkedList<SDGCall>();
 		build();
@@ -708,6 +720,16 @@ class SDGClassResolver {
 		Collection<SDGInstruction> ret = new LinkedList<SDGInstruction>();
 		for (SDGMethod m : ms) {
 			ret.add(m.getInstructionWithBCIndex(bcIndex));
+		}
+
+		return ret;
+	}
+
+	public Collection<SDGInstruction> getInstruction(JavaType typeName, JavaMethodSignature methodSig, String labelRegEx) {
+		Collection<SDGMethod> ms = getMethod(typeName, methodSig);
+		Collection<SDGInstruction> ret = new LinkedList<SDGInstruction>();
+		for (SDGMethod m : ms) {
+			ret.addAll(m.getInstructionsWithLabelMatching(labelRegEx));
 		}
 
 		return ret;

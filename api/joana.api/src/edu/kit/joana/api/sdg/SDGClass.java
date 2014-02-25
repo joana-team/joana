@@ -62,11 +62,11 @@ public class SDGClass implements SDGProgramPart {
 		Set<SDGMethod> ret = new HashSet<SDGMethod>();
 		if (methodEntryNodes != null) {
 			for (SDGNode entry : methodEntryNodes) {
-				boolean isStatic = false;
+				boolean isStatic = true; // we have a static method unless there is a formal-in parameter with index 0 (--> this-pointer)
 				for (SDGNode formalIn : sdg.getFormalInsOfProcedure(entry)) {
 					int paramIndex = BytecodeLocation.getRootParamIndex(formalIn.getBytecodeName());
 					if (paramIndex == 0) {
-						isStatic = true;
+						isStatic = false;
 						break;
 					}
 				}

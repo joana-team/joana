@@ -144,6 +144,7 @@ public class SDGProgram {
 		this.ppartParser = new SDGProgramPartParserBC(this);
 		this.classComp = new SDGClassComputation(sdg);
 		this.coll = new AnnotationTypeBasedNodeCollector(sdg, this.classComp);
+		this.coll.init(this);
 	}
 
 	public static SDGProgram loadSDG(String path) throws IOException {
@@ -402,12 +403,7 @@ public class SDGProgram {
 	}
 
 	public SDGProgramPart findCoveringProgramPart(SDGNode node) {
-		Set<SDGProgramPart> candidates = new HashSet<SDGProgramPart>();
-		for (SDGProgramPart ppart : getAllProgramParts()) {
-			if (covers(ppart, node)) {
-				candidates.add(ppart);
-			}
-		}
+		Set<SDGProgramPart> candidates = coll.getCoveringCandidates(node);
 		if (candidates.isEmpty()) {
 			return null;
 		}

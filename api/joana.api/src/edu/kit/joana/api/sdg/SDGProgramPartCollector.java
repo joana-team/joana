@@ -52,7 +52,7 @@ public class SDGProgramPartCollector extends
 		for (SDGFormalParameter p : m.getParameters()) {
 			p.acceptVisitor(this, base);
 		}
-		
+		m.getExit().acceptVisitor(this, base);
 		for (SDGInstruction i : m.getInstructions()) {
 			i.acceptVisitor(this, base);
 		}
@@ -115,6 +115,11 @@ public class SDGProgramPartCollector extends
 	@Override
 	protected Void visitCall(SDGCall c, Collection<SDGProgramPart> base) {
 		base.add(c);
+		for (SDGCallPart part : c.getParts()) {
+			if (part != c) {
+				part.acceptVisitor(this, base);
+			}
+		}
 		return null;
 	}
 	

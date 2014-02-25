@@ -43,6 +43,7 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 	private SDG sdg;
 	private final SDGClassComputation pp2NodeTrans;
 	private final Map<Pair<SDGProgramPart, AnnotationType>, Set<SDGNode>> cache = new HashMap<Pair<SDGProgramPart, AnnotationType>, Set<SDGNode>>();
+	private final Map<SDGNode, Set<SDGProgramPart>> coveringCandidates = new HashMap<SDGNode, Set<SDGProgramPart>>();
 
 	public AnnotationTypeBasedNodeCollector(SDG sdg) {
 		this(sdg, new SDGClassComputation(sdg));
@@ -55,9 +56,20 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 
 	public void init(SDGProgram program) {
 		this.cache.clear();
+		this.coveringCandidates.clear();
 		for (SDGProgramPart ppart : program.getAllProgramParts()) {
-			collectNodes(ppart, AnnotationType.SOURCE);
-			collectNodes(ppart, AnnotationType.SINK);
+			Set<SDGNode> result = collectNodes(ppart, AnnotationType.SOURCE);
+			result.addAll(collectNodes(ppart, AnnotationType.SINK));
+			for (SDGNode n : result) {
+				Set<SDGProgramPart> cands;
+				if (coveringCandidates.containsKey(n)) {
+					cands = coveringCandidates.get(n);
+				} else {
+					cands = new HashSet<SDGProgramPart>();
+					coveringCandidates.put(n, cands);
+				}
+				cands.add(ppart);
+			}
 		}
 	}
 
@@ -70,6 +82,14 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 		return result;
 	}
 
+	public Set<SDGProgramPart> getCoveringCandidates(SDGNode n) {
+		Set<SDGProgramPart> ret = coveringCandidates.get(n);
+		if (ret != null) {
+			return coveringCandidates.get(n);
+		} else {
+			return Collections.emptySet();
+		}
+	}
 	@Override
 	protected Set<SDGNode> visitParameter(SDGFormalParameter param, AnnotationType type) {
 		assert !pp2NodeTrans.getOutRoots(param).isEmpty() || !pp2NodeTrans.getInRoots(param).isEmpty();

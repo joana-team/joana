@@ -97,8 +97,8 @@ public final class WalaPointsToUtil {
 	    	new nCFABuilder(n, cha, options, cache, null, null);
 	    // nCFABuilder uses type-based heap abstraction by default, but we want allocation sites
 	    result.setInstanceKeys(new ZeroXInstanceKeys(options, cha, result.getContextInterpreter(),
-	    	ZeroXInstanceKeys.ALLOCATIONS | ZeroXInstanceKeys.SMUSH_MANY | ZeroXInstanceKeys.SMUSH_PRIMITIVE_HOLDERS
-	    		| ZeroXInstanceKeys.SMUSH_STRINGS | ZeroXInstanceKeys.SMUSH_THROWABLES));
+	        ZeroXInstanceKeys.ALLOCATIONS | ZeroXInstanceKeys.SMUSH_MANY | ZeroXInstanceKeys.CONSTANT_SPECIFIC
+	      | ZeroXInstanceKeys.SMUSH_THROWABLES));
 	    
 	    return result;
 	}

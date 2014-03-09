@@ -629,9 +629,7 @@ public class SDGBuilder implements CallGraphFilter {
 
 		cfg.out.print("heap");
 		// compute dataflow through heap/fields (no-alias)
-		progress.beginTask("interproc: adding data flow for heap fields...", IProgressMonitor.UNKNOWN);
 		addDataFlowForHeapFields(progress);
-		progress.done();
 		cfg.out.print(".");
 
 		cfg.out.print("misc");

@@ -194,6 +194,9 @@ public class CliProgressMonitor implements IProgressMonitor {
                     out.print("\b \b");
                     position = ePosition.INDICATOR;
                 }
+                if (subTaskLenght == 0) {
+                    position = ePosition.INDICATOR;
+                }
             }
         }
         /*
@@ -208,6 +211,7 @@ public class CliProgressMonitor implements IProgressMonitor {
     }
 
     private void drawBar(int work) {
+        if (work < 0) work = 0;
         if (this.totalWork == IProgressMonitor.UNKNOWN) {
             switch (position) {
                 case HOME:
@@ -288,6 +292,8 @@ public class CliProgressMonitor implements IProgressMonitor {
         }
         this.taskName = name;
         this.totalWork = totalWork;
+        this.worked = 0;
+        this.subTaskName = "";
 	    subTaskLenght = 0;
         printTask();	
         isWorking = true;
@@ -301,6 +307,7 @@ public class CliProgressMonitor implements IProgressMonitor {
             out.println(" still done");
         } else {
             isWorking = false;
+            worked(totalWork);
             deleteSubTask();
             printTask();
             if (totalWork == IProgressMonitor.UNKNOWN) {
@@ -365,6 +372,7 @@ public class CliProgressMonitor implements IProgressMonitor {
         deleteSubTask();
         printSubTask();
 		subTaskName = name;
+        
         if (this.delegate != null) {
             this.delegate.subTask(name);
         }

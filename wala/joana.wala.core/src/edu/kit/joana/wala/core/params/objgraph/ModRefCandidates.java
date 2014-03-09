@@ -276,9 +276,18 @@ public class ModRefCandidates implements Iterable<CGNode> {
 
 	private void run(final CallGraph cg, final IProgressMonitor progress) throws CancelException {
 		final HeapModel hm = pa.getHeapModel();
+        int progressCtr = 0;
+
+        if (progress != null) {
+            progress.beginTask("IntraProc ModRef candidates", cg.getNumberOfNodes());
+        }
 
 		for (final CGNode n : cg) {
 			MonitorUtil.throwExceptionIfCanceled(progress);
+            if (progress != null) {
+                progressCtr++;
+                if (progressCtr % 103 == 0) progress.worked(progressCtr);
+            }
 			final IR ir = n.getIR();
 			if (ir == null) { continue; }
 
@@ -299,6 +308,8 @@ public class ModRefCandidates implements Iterable<CGNode> {
 			final ModRefSSAVisitor visitor = new ModRefSSAVisitor(consumer, paramFact, pts, cg.getClassHierarchy(), doStaticFields);
 			ir.visitNormalInstructions(visitor);
 		}
+
+        if (progress != null) progress.done();
 	}
 
 	public InterProcCandidateModel getCandidates(final CGNode n) {

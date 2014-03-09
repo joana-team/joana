@@ -248,7 +248,6 @@ public final class ObjGraphParams {
 	private void run(final IProgressMonitor progress) throws CancelException {
 		final Logger logStats = Log.getLogger(Log.L_OBJGRAPH_STATS);
 		sdg.cfg.out.print("(if");
-        progress.subTask("Computing ModRef");
 
 		// step 1 create candidates
 		final CallGraph cg = stripCallsFromThreadStartToRun(sdg.getNonPrunedWalaCallGraph());
@@ -266,6 +265,18 @@ public final class ObjGraphParams {
 		} else {
 			candFact = new CandidateFactoryImpl(MergeStrategy.NO_INITIAL_MERGE, fieldMapping);
 		}
+
+        int progressCtr = 0;
+        if (progress != null) {
+            int totalSteps = 4;
+            if ((sdg.cfg.sideEffects != null) || SideEffectDetectorConfig.isActivated()) totalSteps+=2;
+            if (sdg.cfg.localKillingDefs) totalSteps++;
+            if (opt.convertToObjTree) totalSteps++;
+            
+            progress.beginTask("interproc: adding data flow for heap fields...", totalSteps);
+            progress.subTask("step 1: create candidates");
+        }
+
 		final ModRefCandidates mrefs = ModRefCandidates.computeIntracProc(pfact, candFact, cg,
 				sdg.getPointerAnalysis(), opt.doStaticFields, progress);
 
@@ -276,61 +287,71 @@ public final class ObjGraphParams {
 		
 		if (sdg.cfg.sideEffects != null) {
 			sdg.cfg.sideEffects.copyIntraprocState(mrefs);
+            if (progress != null) progress.worked(++progressCtr);
 		}
 		
-		// step 2 propagate interprocedural
+        // step 2 propagate interprocedural
 		long t1 = 0, t2 = 0;
 		if (logStats.isEnabled()) { t1 = System.currentTimeMillis(); }
 
 		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> interModRef;
 		if (opt.isUseAdvancedInterprocPropagation) {
+            if (progress != null) progress.subTask("step 2: propagate interprocedural - fixpointReachabilityPropagate");
 			interModRef = fixpointReachabilityPropagate(sdg, cg, mrefs, progress);
 		} else {
+            if (progress != null) progress.subTask("step 2: propagate interprocedural - simpleReachabilityPropagate");
 			interModRef = simpleReachabilityPropagate(cg, mrefs, progress);
 		}
-
-		long sdgNodeCount = 0;
+	    if (progress != null) progress.worked(++progressCtr);
+		
+        long sdgNodeCount = 0;
 		if (logStats.isEnabled()) {
 			t2 = System.currentTimeMillis();
 			sdgNodeCount = sdg.countNodes();
 		}
+        if (progress != null) progress.subTask("step 2 propagate interprocedural - adjustModRef");
 
 		sdg.cfg.out.print(",adj");
 
 		adjustInterprocModRef(cg, interModRef, mrefs, sdg, progress);
-
-		if (sdg.cfg.sideEffects != null) {
+        if (progress != null) progress.worked(++progressCtr);
+		
+        if (sdg.cfg.sideEffects != null) {
 			// detect modifications to a given pointerkey
 			sdg.cfg.out.print(",se");
-            progress.subTask("side effects");
+            if (progress != null) progress.subTask("side effects");
 			sdg.cfg.sideEffects.runAnalysis(sdg, cg, mrefs, progress);
 			// free memory
 			sdg.cfg.sideEffects = null;
+            if (progress != null) progress.worked(++progressCtr);
 		}
 		
 		sdg.cfg.out.print(",df");
-        progress.subTask("dataflow");
-
+        if (progress != null) progress.subTask("dataflow");
 		ModRefDataFlow.compute(mrefs, sdg, progress);
-
-		if (sdg.cfg.localKillingDefs) {
+	    if (progress != null) progress.worked(++progressCtr);
+		
+        if (sdg.cfg.localKillingDefs) {
 			sdg.registerFinalModRef(mrefs, progress);
 			sdg.cfg.out.print(",reg");
+            if (progress != null) progress.worked(++progressCtr);
 		}
 
 		long sdgNodeCountGraph = 0;
 		if (opt.convertToObjTree) {
 			sdg.cfg.out.print(",2tree");
-            progress.subTask("converting to object tree");
+            if (progress != null) progress.subTask("converting to object tree");
 
 			if (logStats.isEnabled()) {
 				sdgNodeCountGraph = sdg.countNodes();
 			}
 
 			ObjTreeConverter.convert(sdg, progress);
+            if (progress != null) progress.worked(++progressCtr);
 		}
 
 		sdg.cfg.out.print(")");
+        if (progress != null) progress.done();
 
 		if (logStats.isEnabled()) {
 			long t3 = System.currentTimeMillis();
@@ -364,6 +385,7 @@ public final class ObjGraphParams {
 			final ModRefCandidates modref, final SDGBuilder sdg, final IProgressMonitor progress) throws CancelException {
 		final Logger debug = Log.getLogger(Log.L_OBJGRAPH_DEBUG);
 		final boolean isDebug = debug.isEnabled();
+        int progressCtr = 0;
 
 		// add all nodes to the interface
 		for (final CGNode n : cg) {
@@ -383,10 +405,21 @@ public final class ObjGraphParams {
 				|| opt.maxNodesPerInterface != Options.UNLIMITED_NODES_PER_INTERFACE) {
 			final PointsToWrapper pa = new PointsToWrapper(sdg.getPointerAnalysis());
 
+            if (progress != null) {
+                progress.beginTask("adjustInterprocModRef", sdg.getAllPDGs().size());
+            }
+
+
 			for (final PDG pdg : sdg.getAllPDGs()) {
 				MonitorUtil.throwExceptionIfCanceled(progress);
 				final InterProcCandidateModel pdgModRef = modref.getCandidates(pdg.cgNode);
-				if (pdgModRef == null) { continue; }
+
+				if (pdgModRef == null) { progressCtr++; continue; }
+
+                if (progress != null) {
+                    progress.subTask(pdg.getMethod().toString());
+                    progress.worked(progressCtr++);
+                }
 
 				final ModRefCandidateGraph mrg = ModRefCandidateGraph.compute(pa, modref, pdg);
 
@@ -456,7 +489,7 @@ public final class ObjGraphParams {
 					if (pdgModRef.size() > opt.maxNodesPerInterface) {
 						if (isDebug) { debug.out(" a[6"); }
 						final int threshold = opt.maxNodesPerInterface / 2;
-						smushManySameFields(pdgModRef, threshold);
+						smushManySameFields(pdgModRef, threshold, progress);
 						if (isDebug) {
 							final int curNodeCount = pdgModRef.size();
 							debug.out("](-" + (lastNodeCount - curNodeCount) + ")");
@@ -494,7 +527,8 @@ public final class ObjGraphParams {
 		}
 	}
 
-	private static void smushManySameFields(final InterProcCandidateModel pdgModRef, final int threshold) {
+	private static void smushManySameFields(final InterProcCandidateModel pdgModRef, final int threshold,
+			final IProgressMonitor progress) {
 		final TObjectIntMap<ParameterField> counter = new TObjectIntHashMap<ParameterField>();
 		for (final ModRefFieldCandidate mrf : pdgModRef) {
 			if (!mrf.pc.isUnique()) { continue; }
@@ -516,6 +550,8 @@ public final class ObjGraphParams {
 				mergeAllSingleFields(pdgModRef, field);
 			}
 		}
+
+        if (progress != null) { progress.done(); }
 	}
 
 	private static void mergeAllSingleFields(final InterProcCandidateModel pdgModRef, final ParameterField field) {
@@ -871,12 +907,20 @@ public final class ObjGraphParams {
 		solver.solve(progress);
 
 		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> result = HashMapFactory.make();
+        int progressCtr = 0;
+        if (progress != null) {
+            progress.beginTask("simpleReachabilityPropagate", cg.getNumberOfNodes());
+        }
 		for (final CGNode cgNode : cg) {
 			final BitVectorVariable bv = solver.getOut(cgNode);
 			result.put(cgNode, new OrdinalSet<ModRefFieldCandidate>(bv.getValue(), genReach.getLatticeValues()));
 			MonitorUtil.throwExceptionIfCanceled(progress);
+            if (progress != null) {
+                if (progressCtr++ % 103 == 0) progress.worked(progressCtr);
+            }
 		}
 
+        if (progress != null) progress.done();
 		return result;
 	}
 
@@ -982,6 +1026,10 @@ public final class ObjGraphParams {
 		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> simple =
 				simpleReachabilityPropagate(nonPrunedCG, mrefs, progress);
 
+        int progressCtr = 0;
+        if (progress != null) {
+            progress.beginTask("fixpointReachabilityPropagate", IProgressMonitor.UNKNOWN);
+        }
 		// init with roots
 		final Map<CGNode, Collection<ModRefFieldCandidate>> cg2localfields = mrefs.getCandidateMap();
 		for (final PDG pdg : sdg.getAllPDGs()) {
@@ -1006,6 +1054,7 @@ public final class ObjGraphParams {
 				}
 			}
 		}
+        if (progress != null) { progress.worked(progressCtr++); }
 
 		// init reach info callees
 		for (final CGNode n : dfsFinish) {
@@ -1023,6 +1072,7 @@ public final class ObjGraphParams {
 				}
 			}
 		}
+        if (progress != null) { progress.worked(progressCtr++); }
 		
 		boolean changed = true;
 		while (changed) {
@@ -1038,11 +1088,14 @@ public final class ObjGraphParams {
 					changed |= changeN;
 				}
 			}
-			
+
+            if (progress != null) { progress.worked(progressCtr++); }
 		}
 
 		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> result = convertResult(cg2reach, simple);
 
+        if (progress != null) { progress.done(); }
+        
 		return result;
 	}
 

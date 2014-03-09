@@ -56,6 +56,10 @@ public class ModRefDataFlow {
 	private void run(final ModRefCandidates modref, final SDGBuilder sdg, final IProgressMonitor progress)
 			throws CancelException {
 		final CallGraph cg = sdg.getNonPrunedWalaCallGraph();
+        int progressCtr = 0;
+        if (progress != null) {
+            progress.beginTask("ModRef Dataflow", sdg.getAllPDGs().size());
+        }
 
 		// saves mapping, so we can create parameter-in and -out edges afterwards
 		final TIntObjectHashMap<ModRefFieldCandidate> pdgnode2modref =
@@ -63,6 +67,10 @@ public class ModRefDataFlow {
 
 		for (final PDG pdg : sdg.getAllPDGs()) {
 			MonitorUtil.throwExceptionIfCanceled(progress);
+            if (progress != null) {
+                progress.subTask(pdg.getMethod().toString());
+                progress.worked(progressCtr++);
+            }
 
 			final ModRefControlFlowGraph cfg = ModRefControlFlowGraph.compute(modref, pdg, cg, progress);
 
@@ -83,6 +91,7 @@ public class ModRefDataFlow {
 
 		connectFormalAndActualParams(sdg, pdgnode2modref);
 		connectParameterStructure(sdg, pdgnode2modref);
+        if (progress != null) progress.done();
 	}
 
 	private static void connectParameterStructure(final SDGBuilder sdg,

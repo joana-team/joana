@@ -200,6 +200,9 @@ public class JoDroidConstruction {
         }
     }
 
+    public void loadAndroidManifest(final ExecutionOptions ex) {
+        loadAndroidManifest(ex.getManifestFile());
+    }
     /**
      *  Write the ntrP-File.
      *
@@ -590,13 +593,15 @@ public class JoDroidConstruction {
         final AnalysisScope scope;
         { // generate the scope
             final URI classPathUri = ex.getClassPath();
+            assert (classPathUri != null);
             final URI androidStubs = ex.getAndroidLib();
+            assert(androidStubs != null);
             final URI javaStubs = ex.getJavaStubs();
             final File exclusions = ex.getExclusionsFile();
             
-            logger.info("Using ClassPath:\t{}", classPathUri.toString());
-            logger.info("Using Android Stubs:\t{}", androidStubs.toString());
-            logger.info("Using Java Stubs:\t{}", javaStubs.toString());
+            logger.info("Using ClassPath:\t{}", classPathUri);
+            logger.info("Using Android Stubs:\t{}", androidStubs);
+            logger.info("Using Java Stubs:\t{}", javaStubs);
 
             assert (exclusions != null); // XXX: Handle case without exclusions?
             

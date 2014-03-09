@@ -154,7 +154,7 @@ public class Serializer {
      *
      *  See a specialized Serializers serialize function for usage examples.
      */
-    protected static class Reflected<T> {
+    public static class Reflected<T> {
         /**
          *  The thing boxed by Reflected&lt;T&gt;.
          */

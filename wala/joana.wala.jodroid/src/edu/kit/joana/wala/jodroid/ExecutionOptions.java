@@ -192,13 +192,15 @@ public class ExecutionOptions {
      *  @param  androidLib path of a .jar-File containing the stubs.
      */
     public void setAndroidLib(String androidLib) {
-        final File f = new File(androidLib);
-        if (! f.exists()) {
-            System.err.println("The Android-Stubs cannot be found at '" + androidLib + "'");
-            System.exit(17);
+        try {
+            this.androidLib = new URI(androidLib);
+            final File f = new File(androidLib);
+            if (! f.exists()) {
+                System.err.println("The Android-Stubs cannot be found at '" + androidLib + "'");
+            }
+        } catch (java.net.URISyntaxException e) {
+            throw new IllegalArgumentException(e);
         }
-
-        this.androidLib = f.toURI();
     }
     public URI getAndroidLib() {
         try {
@@ -385,10 +387,20 @@ public class ExecutionOptions {
      *  @param  manifest    Path to AndroidManifest.xml
      */
     public void setManifest(String manifest) {
+        /*try {
+            this.manifest = new URI(manifest);
+            final File f = new File(androidLib);
+            if (! f.exists()) {
+            }
+        } catch (java.net.URISyntaxException e) {
+            throw new IllegalArgumentException(e);
+        } */
+
+
         final File f = new File(manifest);
         if (! f.exists()) {
             System.out.println("The Manifest-file '" + manifest + "' does not exist.");
-            System.exit(20);
+            throw new IllegalArgumentException("The Manifest-file '" + manifest + "' does not exist.");
         } else {
             try {
                 final String mime;
@@ -408,14 +420,13 @@ public class ExecutionOptions {
                     // This happens if file is a symlink, ...
                     // Do further handling?
                 } else if (!(mime.equals("text/xml"))) {
-                    System.err.println("The Manifest given is expected to be in the Format 'text/xml'. " +
+                    throw new RuntimeException("The Manifest given is expected to be in the Format 'text/xml'. " +
                             "It was detected as '" + mime + "'. I'll continue for now but reading it later will " +
                             "Almost certainly fail.");
-                    System.exit(12);
                 }
             } catch (java.io.IOException e) {
                 e.printStackTrace();
-                System.exit(3);
+                throw new RuntimeException(e);
             } 
         }
 

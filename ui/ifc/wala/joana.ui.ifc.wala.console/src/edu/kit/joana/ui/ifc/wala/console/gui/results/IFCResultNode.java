@@ -7,8 +7,6 @@
  */
 package edu.kit.joana.ui.ifc.wala.console.gui.results;
 
-import java.util.Collection;
-
 import javax.swing.tree.DefaultMutableTreeNode;
 
 public class IFCResultNode extends DefaultMutableTreeNode {

@@ -9,32 +9,21 @@ package edu.kit.joana.ui.ifc.wala.console.gui.results;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Iterator;
-import java.util.TreeMap;
-import java.util.HashMap;
-import java.util.TreeSet;
 
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
 
-import edu.kit.joana.api.sdg.SDGProgramPart;
-import edu.kit.joana.ifc.sdg.core.violations.IllegalFlow;
-import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.api.sdg.SDGInstruction;
 import edu.kit.joana.api.sdg.SDGMethod;
-import edu.kit.joana.ifc.sdg.util.JavaPackage;
-import edu.kit.joana.ui.ifc.wala.console.gui.tree.IFCTreeNode.Kind;
-
+import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
+import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 
 public class IFCResultModel extends DefaultTreeModel {
 
@@ -60,7 +49,7 @@ public class IFCResultModel extends DefaultTreeModel {
 
         final Map<SDGProgramPart, IFCResultNode> sourceNodes = new HashMap<SDGProgramPart, IFCResultNode>();
 
-        for (Iterator it = vios.iterator(); it.hasNext();) {
+        for (Iterator<? extends IViolation<SDGProgramPart>> it = vios.iterator(); it.hasNext();) {
             final IViolation<SDGProgramPart> vio = (IViolation<SDGProgramPart>) it.next();
         
             final SDGProgramPart source;

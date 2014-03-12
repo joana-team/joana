@@ -29,7 +29,7 @@ import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
  */
 public class ProbabilisticNIChecker extends IFC {
 
-	private final MHPAnalysis mhp;
+	//private final MHPAnalysis mhp;
 
 	private final boolean timeSens;
 	
@@ -60,7 +60,7 @@ public class ProbabilisticNIChecker extends IFC {
 		probInit = System.currentTimeMillis();
 		this.prob = cScanner;
 		probInit = System.currentTimeMillis() - probInit;
-		this.mhp = mhp;
+		//this.mhp = mhp;
 		this.timeSens = timeSens;
 	}
 

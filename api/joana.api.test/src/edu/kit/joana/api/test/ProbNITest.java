@@ -117,6 +117,7 @@ public class ProbNITest {
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	private void assertNoTraditionalLeaks(SDG sdg) {
 		BarrierIFCSlicer tradIFC = new BarrierIFCSlicer(sdg, BuiltinLattices.getBinaryLattice());
 		Collection<ClassifiedViolation> exImpVios = tradIFC.checkIFlow();

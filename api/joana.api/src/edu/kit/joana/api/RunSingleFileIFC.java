@@ -31,7 +31,7 @@ import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 
 /**
- * A simple IFC demonstrator that performs a confitentiality check on a single .java file.
+ * A simple IFC demonstrator that performs a confidentiality check on a single .java file.
  * It automatically 
  * 1. compiles the source, 
  * 2. builds an sdg from the compiles class,
@@ -197,14 +197,28 @@ public final class RunSingleFileIFC {
 	
 	private static boolean incPointsToPrecision(final SDGConfig config) {
 		switch (config.getPointsToPrecision()) {
+		case RTA:
+			config.setPointsToPrecision(PointsToPrecision.TYPE);
+			return true;
 		case TYPE:
 			config.setPointsToPrecision(PointsToPrecision.CONTEXT_SENSITIVE);
 			return true;
 		case CONTEXT_SENSITIVE:
+			config.setPointsToPrecision(PointsToPrecision.N1_CALL_STACK);
+			return true;
+		case N1_CALL_STACK:
+			config.setPointsToPrecision(PointsToPrecision.N2_CALL_STACK);
+			return true;
+		case N2_CALL_STACK:
+			config.setPointsToPrecision(PointsToPrecision.N3_CALL_STACK);
+			return true;
+		case N3_CALL_STACK:
 			config.setPointsToPrecision(PointsToPrecision.OBJECT_SENSITIVE);
 			return true;
 		case OBJECT_SENSITIVE:
 			return false;
+		default:
+			break;
 		}
 		
 		return false;
@@ -223,14 +237,26 @@ public final class RunSingleFileIFC {
 		sb.append("[");
 		sb.append("points-to: ");
 		if (config.computeInterferences()) {
-			sb.append("context-sensitive");
+			sb.append("instance-based");
 		} else {
 			switch (config.getPointsToPrecision()) {
+			case RTA:
+				sb.append("rapid-type");
+				break;
 			case TYPE:
 				sb.append("type-based");
 				break;
 			case CONTEXT_SENSITIVE:
-				sb.append("context-sensitive");
+				sb.append("instance-based");
+				break;
+			case N1_CALL_STACK:
+				sb.append("1-call-stack");
+				break;
+			case N2_CALL_STACK:
+				sb.append("2-call-stack");
+				break;
+			case N3_CALL_STACK:
+				sb.append("3-call-stack");
 				break;
 			case OBJECT_SENSITIVE:
 				sb.append("object-sensitive");

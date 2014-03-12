@@ -10,37 +10,22 @@ package edu.kit.joana.ui.ifc.wala.console.gui;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import javax.swing.JButton;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
-import javax.swing.tree.TreePath;
 
 import edu.kit.joana.api.sdg.SDGProgramPart;
-import edu.kit.joana.ifc.sdg.core.violations.IllegalFlow;
 import edu.kit.joana.ifc.sdg.core.violations.IViolation;
-
 import edu.kit.joana.ui.ifc.wala.console.gui.IFCConsoleGUI.Command;
-import edu.kit.joana.ui.ifc.wala.console.gui.results.IFCResultModel;
-import edu.kit.joana.ui.ifc.wala.console.gui.results.IFCResultNode;
-import edu.kit.joana.ui.ifc.wala.console.console.IFCConsole.CMD;
-
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-
 import edu.kit.joana.ui.ifc.wala.console.gui.results.ChopNode;
+import edu.kit.joana.ui.ifc.wala.console.gui.results.IFCResultModel;
 
 public class IFCResultsPanel extends JPanel {
 	private static final long serialVersionUID = 206500411193181862L;

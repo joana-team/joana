@@ -7,7 +7,6 @@
  */
 package edu.kit.joana.ui.ifc.wala.console.gui.results;
 
-import edu.kit.joana.api.sdg.SDGProgramPart;
 
 public class IFCRootNode extends IFCResultNode {
 	private static final long serialVersionUID = 648154741391113815L;

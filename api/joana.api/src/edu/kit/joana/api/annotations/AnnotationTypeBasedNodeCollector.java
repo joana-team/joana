@@ -204,6 +204,7 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 				|| (type == AnnotationType.SOURCE && (node.getKind() == SDGNode.Kind.EXIT || node.getKind() == SDGNode.Kind.FORMAL_OUT));
 	}
 
+	@SuppressWarnings("unused")
 	private static final boolean compatibleNodes(SDGNode node1, SDGNode node2) {
 		return compatibleNodesOfDirection(node1, node2, AnnotationType.SOURCE)
 				|| compatibleNodesOfDirection(node1, node2, AnnotationType.SINK);

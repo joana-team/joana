@@ -114,7 +114,7 @@ public class RunTestModular {
 
 		Config cfg = new Config("program", "program.Program.main([Ljava/lang/String;)V",
 				"../joana.wala.modular.testdata/dist/mojo-test-program.jar",
-				PointsToPrecision.CONTEXT_SENSITIVE, ExceptionAnalysis.INTRAPROC, false, Main.STD_EXCLUSION_REG_EXP,
+				PointsToPrecision.INSTANCE_BASED, ExceptionAnalysis.INTRAPROC, false, Main.STD_EXCLUSION_REG_EXP,
 				"../../contrib/lib/stubs/natives_empty.xml", "../../contrib/lib/stubs/jSDG-stubs-jre1.4.jar", mlc,
 				"./out/", FieldPropagation.FLAT);
 

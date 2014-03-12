@@ -98,7 +98,7 @@ public class RunTestAccessPath {
 
 		// build accesspath sdgs for module methods
 		final Config cfg = new Config("runtestaccesspath", "<main entry not used>",
-				"../joana.wala.modular.testdata/dist/mojo-test-program.jar", PointsToPrecision.CONTEXT_SENSITIVE,
+				"../joana.wala.modular.testdata/dist/mojo-test-program.jar", PointsToPrecision.INSTANCE_BASED,
 				ExceptionAnalysis.INTRAPROC, true, Main.STD_EXCLUSION_REG_EXP,
 				"../../contrib/lib/stubs/natives_empty.xml", "../../contrib/lib/stubs/jSDG-stubs-jre1.4.jar", mlc,
 				"./out/", FieldPropagation.OBJ_TREE);

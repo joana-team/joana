@@ -142,12 +142,12 @@ public class SDGBuilder implements CallGraphFilter {
 		 * 0-CFA
 		 * Fastest option. Use this in case everything else is too slow aka the callgraph is getting too big.
 		 */
-		TYPE,
+		TYPE_BASED,
 		/* DEFAULT
 		 * 0-1-CFA
 		 * Best bang for buck. Use this in case you are not sure what to pick.
 		 */
-		CONTEXT_SENSITIVE,
+		INSTANCE_BASED,
 		/*
 		 * Object-sensitive (receiver object context)
 		 * Very precise for OO heavy code - best option for really precise analysis.
@@ -748,11 +748,11 @@ public class SDGBuilder implements CallGraphFilter {
 			// Its just here for academic purposes.
 			cgb = WalaPointsToUtil.makeRTA(options, cfg.cache, cfg.cha, cfg.scope);
 			break;
-		case TYPE: // 0-CFA
+		case TYPE_BASED: // 0-CFA
 			// Fastest option.
 			cgb = WalaPointsToUtil.makeContextFreeType(options, cfg.cache, cfg.cha, cfg.scope);
 			break;
-		case CONTEXT_SENSITIVE: // 0-1-CFA
+		case INSTANCE_BASED: // 0-1-CFA
 			// Best bang for buck
 			cgb = WalaPointsToUtil.makeContextSensSite(options, cfg.cache, cfg.cha, cfg.scope);
 			break;
@@ -1270,7 +1270,7 @@ public class SDGBuilder implements CallGraphFilter {
 		public boolean keepPhiNodes = true;
 		public int prunecg = DO_NOT_PRUNE;
 		public PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
-		public PointsToPrecision pts = PointsToPrecision.CONTEXT_SENSITIVE;
+		public PointsToPrecision pts = PointsToPrecision.INSTANCE_BASED;
 		// only used iff pts is set to object sensitive. If null defaults to
 		// "do object sensitive analysis for all methods"
 		public ObjSensContextSelector.MethodFilter objSensFilter = null;

@@ -459,13 +459,13 @@ public final class Main {
 		}
 
 		public Config(String name, String entryMethod, FieldPropagation fieldPropagation) {
-			this(name, entryMethod, STD_CLASS_PATH, PointsToPrecision.CONTEXT_SENSITIVE, DEFAULT_EXCEPTION_ANALYSIS,
+			this(name, entryMethod, STD_CLASS_PATH, PointsToPrecision.INSTANCE_BASED, DEFAULT_EXCEPTION_ANALYSIS,
 					DEFAULT_ACCESS_PATH, STD_EXCLUSION_REG_EXP, JoanaConstants.DEFAULT_NATIVES_XML, /* stubs */null,
 					/*ext-call*/null, "./", fieldPropagation);
 		}
 
 		public Config(String name, String entryMethod, String classpath, FieldPropagation fieldPropagation) {
-			this(name, entryMethod, classpath, PointsToPrecision.CONTEXT_SENSITIVE, DEFAULT_EXCEPTION_ANALYSIS,
+			this(name, entryMethod, classpath, PointsToPrecision.INSTANCE_BASED, DEFAULT_EXCEPTION_ANALYSIS,
 					DEFAULT_ACCESS_PATH, STD_EXCLUSION_REG_EXP, JoanaConstants.DEFAULT_NATIVES_XML, /* stubs */null,
 					/*ext-call*/null, "./", fieldPropagation);
 		}
@@ -479,7 +479,7 @@ public final class Main {
 
 		public Config(String name, String entryMethod, String classpath, String exclusions,
 				FieldPropagation fieldPropagation) {
-			this(name, entryMethod, classpath, PointsToPrecision.CONTEXT_SENSITIVE, DEFAULT_EXCEPTION_ANALYSIS,
+			this(name, entryMethod, classpath, PointsToPrecision.INSTANCE_BASED, DEFAULT_EXCEPTION_ANALYSIS,
 					DEFAULT_ACCESS_PATH, exclusions, JoanaConstants.DEFAULT_NATIVES_XML, /* stubs */null,
 					/*ext-call*/null, "./", fieldPropagation);
 		}

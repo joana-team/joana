@@ -232,7 +232,7 @@ public final class CheckFlowLessWithAlias {
 		final Config cfg = new Config(WITH_EXC_SUFFIX);
 		cfg.entryMethod = "<main entry not used>";
 		cfg.classpath=  cfc.bin;
-		cfg.pts = PointsToPrecision.CONTEXT_SENSITIVE;
+		cfg.pts = PointsToPrecision.INSTANCE_BASED;
 		cfg.exceptions = ExceptionAnalysis.INTRAPROC;
 		cfg.accessPath = true;
 		cfg.exclusions = Main.STD_EXCLUSION_REG_EXP;
@@ -315,10 +315,10 @@ public final class CheckFlowLessWithAlias {
 		final AnalysisOptions opt = mojo.createAnalysisOptionsWithPTS(ptsMax, im);
 		final CallGraphResult cgr;
 		switch (cfg.pts) {
-		case TYPE:
+		case TYPE_BASED:
 			cgr = mojo.computeContextSensitiveCallGraph(opt);
 			break;
-		case CONTEXT_SENSITIVE:
+		case INSTANCE_BASED:
 			cgr = mojo.computeContextSensitiveCallGraph(opt);
 			break;
 		case OBJECT_SENSITIVE:

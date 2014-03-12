@@ -89,7 +89,7 @@ public class MoJoTest {
 
 	public Config createDefaultConfig() {
 		final Config cfg = new Config("mojotest", "<main entry not used>", bin,
-				PointsToPrecision.CONTEXT_SENSITIVE, ExceptionAnalysis.INTRAPROC, true, Main.STD_EXCLUSION_REG_EXP,
+				PointsToPrecision.INSTANCE_BASED, ExceptionAnalysis.INTRAPROC, true, Main.STD_EXCLUSION_REG_EXP,
 				"../jSDG/lib/natives_empty.xml", "../jSDG/lib/jSDG-stubs-jre1.4.jar", ExternalCallCheck.EMPTY, out,
 				FieldPropagation.OBJ_TREE);
 
@@ -219,7 +219,7 @@ public class MoJoTest {
 		}
 
 		final Config cfg = new Config("runtestaccesspath", "<main entry not used>", "../Test-Modular/dist/mojo-test-program.jar",
-				PointsToPrecision.CONTEXT_SENSITIVE, ExceptionAnalysis.INTRAPROC, true, Main.STD_EXCLUSION_REG_EXP,
+				PointsToPrecision.INSTANCE_BASED, ExceptionAnalysis.INTRAPROC, true, Main.STD_EXCLUSION_REG_EXP,
 				"../jSDG/lib/natives_empty.xml", "../jSDG/lib/jSDG-stubs-jre1.4.jar", mlc, "./out/", FieldPropagation.FLAT);
 
 		System.out.print("Setting up analysis scope... ");

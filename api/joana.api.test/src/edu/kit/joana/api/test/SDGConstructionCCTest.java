@@ -35,7 +35,7 @@ public class SDGConstructionCCTest {
 	public void testBuildStaticNativeExample() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
 		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass("joana.api.testdata.seq.LocalKillDefRegression");
 		final SDGConfig config = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, mainMethod.toBCString(), Stubs.NO_STUBS,
-				ExceptionAnalysis.ALL_NO_ANALYSIS, FieldPropagation.OBJ_GRAPH, PointsToPrecision.TYPE, false, false, MHPType.NONE);
+				ExceptionAnalysis.ALL_NO_ANALYSIS, FieldPropagation.OBJ_GRAPH, PointsToPrecision.TYPE_BASED, false, false, MHPType.NONE);
 		SDGProgram.createSDGProgram(config);
 	}
 }

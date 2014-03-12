@@ -97,7 +97,7 @@ public final class JoDroidConstruction {
 		scfg.exceptions = ExceptionAnalysis.ALL_NO_ANALYSIS;
 		scfg.accessPath = false;
 		scfg.prunecg = Main.DEFAULT_PRUNE_CG;
-		scfg.pts = PointsToPrecision.CONTEXT_SENSITIVE;
+		scfg.pts = PointsToPrecision.INSTANCE_BASED;
 		scfg.staticInitializers = StaticInitializationTreatment.SIMPLE;
 		scfg.fieldPropagation = FieldPropagation.OBJ_GRAPH;
 		scfg.debugManyGraphsDotOutput = false;

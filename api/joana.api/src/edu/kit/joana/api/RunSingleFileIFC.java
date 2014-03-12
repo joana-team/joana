@@ -157,9 +157,9 @@ public final class RunSingleFileIFC {
 			// if current config is save skip all points-to
 			if (thisConfigIsSecure) {
 				// skip additional points-to precision. enhance exception analysis
-				if (config.getPointsToPrecision() != PointsToPrecision.TYPE) {
+				if (config.getPointsToPrecision() != PointsToPrecision.TYPE_BASED) {
 					nextConfigReady = incExceptionPrecision(config);
-					config.setPointsToPrecision(PointsToPrecision.TYPE);
+					config.setPointsToPrecision(PointsToPrecision.TYPE_BASED);
 				}
 			} else {
 				// increase points-to precision
@@ -169,7 +169,7 @@ public final class RunSingleFileIFC {
 					// increase exception analysis precision
 					nextConfigReady = incExceptionPrecision(config);
 					// reset points-to
-					config.setPointsToPrecision(PointsToPrecision.TYPE);
+					config.setPointsToPrecision(PointsToPrecision.TYPE_BASED);
 				}
 			}
 		}
@@ -198,12 +198,12 @@ public final class RunSingleFileIFC {
 	private static boolean incPointsToPrecision(final SDGConfig config) {
 		switch (config.getPointsToPrecision()) {
 		case RTA:
-			config.setPointsToPrecision(PointsToPrecision.TYPE);
+			config.setPointsToPrecision(PointsToPrecision.TYPE_BASED);
 			return true;
-		case TYPE:
-			config.setPointsToPrecision(PointsToPrecision.CONTEXT_SENSITIVE);
+		case TYPE_BASED:
+			config.setPointsToPrecision(PointsToPrecision.INSTANCE_BASED);
 			return true;
-		case CONTEXT_SENSITIVE:
+		case INSTANCE_BASED:
 			config.setPointsToPrecision(PointsToPrecision.N1_CALL_STACK);
 			return true;
 		case N1_CALL_STACK:
@@ -243,10 +243,10 @@ public final class RunSingleFileIFC {
 			case RTA:
 				sb.append("rapid-type");
 				break;
-			case TYPE:
+			case TYPE_BASED:
 				sb.append("type-based");
 				break;
-			case CONTEXT_SENSITIVE:
+			case INSTANCE_BASED:
 				sb.append("instance-based");
 				break;
 			case N1_CALL_STACK:
@@ -306,7 +306,7 @@ public final class RunSingleFileIFC {
 		config.setComputeInterferences(false);
 		config.setExceptionAnalysis(ExceptionAnalysis.ALL_NO_ANALYSIS);
 		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH);
-		config.setPointsToPrecision(PointsToPrecision.TYPE);
+		config.setPointsToPrecision(PointsToPrecision.TYPE_BASED);
 		
 		return config;
 	}

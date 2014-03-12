@@ -45,11 +45,11 @@ public class FullIFCSensitivityTest {
 
 
 	public static IFCAnalysis buildAndAnnotate(final String className) throws ApiTestException {
-		return buildAndAnnotate(className, PointsToPrecision.CONTEXT_SENSITIVE);
+		return buildAndAnnotate(className, PointsToPrecision.INSTANCE_BASED);
 	}
 	
 	public static IFCAnalysis buildWithThreadsAndAnnotate(final String className, MHPType mhpType) throws ApiTestException {
-		return buildAndAnnotate(className, PointsToPrecision.CONTEXT_SENSITIVE, true, mhpType);
+		return buildAndAnnotate(className, PointsToPrecision.INSTANCE_BASED, true, mhpType);
 	}
 	
 	public static IFCAnalysis buildAndAnnotate(final String className, PointsToPrecision pts) throws ApiTestException {
@@ -197,7 +197,7 @@ public class FullIFCSensitivityTest {
 	@Test
 	public void testObjectSensValidFailOnContextSens() {
 		try {
-			IFCAnalysis ana = buildAndAnnotate("sensitivity.ObjectSensValid", PointsToPrecision.CONTEXT_SENSITIVE);
+			IFCAnalysis ana = buildAndAnnotate("sensitivity.ObjectSensValid", PointsToPrecision.INSTANCE_BASED);
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
 			assertEquals(2, illegal.size());

@@ -43,7 +43,7 @@ public class ParameterPropagationTest {
 			final MoJoTest mt = MoJoTest.create(src, bin, out);
 			final Config cfg = mt.createDefaultConfig();
 			cfg.name = "simple-prop";
-			cfg.pts = SDGBuilder.PointsToPrecision.CONTEXT_SENSITIVE;
+			cfg.pts = SDGBuilder.PointsToPrecision.INSTANCE_BASED;
 			cfg.fieldPropagation = SDGBuilder.FieldPropagation.OBJ_GRAPH_SIMPLE_PROPAGATION;
 			cfg.accessPath = false;
 			cfg.exceptions = ExceptionAnalysis.INTERPROC;
@@ -107,7 +107,7 @@ public class ParameterPropagationTest {
 			final MoJoTest mt = MoJoTest.create(src, bin, out);
 			final Config cfg = mt.createDefaultConfig();
 			cfg.name = "fixpoint-prop";
-			cfg.pts = SDGBuilder.PointsToPrecision.CONTEXT_SENSITIVE;
+			cfg.pts = SDGBuilder.PointsToPrecision.INSTANCE_BASED;
 			cfg.fieldPropagation = SDGBuilder.FieldPropagation.OBJ_GRAPH_FIXPOINT_PROPAGATION;
 			cfg.exceptions = ExceptionAnalysis.INTERPROC;
 			cfg.accessPath = false;
@@ -171,7 +171,7 @@ public class ParameterPropagationTest {
 			final MoJoTest mt = MoJoTest.create(src, bin, out);
 			final Config cfg = mt.createDefaultConfig();
 			cfg.name = "objtree-ap-prop";
-			cfg.pts = SDGBuilder.PointsToPrecision.CONTEXT_SENSITIVE;
+			cfg.pts = SDGBuilder.PointsToPrecision.INSTANCE_BASED;
 			cfg.fieldPropagation = SDGBuilder.FieldPropagation.OBJ_TREE;
 			cfg.accessPath = true;
 			cfg.exceptions = ExceptionAnalysis.INTERPROC;

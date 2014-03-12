@@ -36,7 +36,7 @@ public class SDGConfig {
 	private String nativesXML = JoanaConstants.DEFAULT_NATIVES_XML;
 
 	public SDGConfig(String classPath, String entryMethod, Stubs stubsPath) {
-		this(classPath, entryMethod, stubsPath, ExceptionAnalysis.INTERPROC, FieldPropagation.OBJ_GRAPH, PointsToPrecision.CONTEXT_SENSITIVE, false, false, MHPType.NONE);
+		this(classPath, entryMethod, stubsPath, ExceptionAnalysis.INTERPROC, FieldPropagation.OBJ_GRAPH, PointsToPrecision.INSTANCE_BASED, false, false, MHPType.NONE);
 	}
 
 	public SDGConfig(String classPath, String entryMethod, Stubs stubsPath, ExceptionAnalysis exceptionAnalysis, FieldPropagation fieldPropagation,

@@ -44,7 +44,7 @@ public class FullIFCSequentialTest {
 
 	public static IFCAnalysis buildAndAnnotate(final String className, final String secSrc,
 			final String pubOut) throws ApiTestException {
-		return buildAndAnnotate(className, secSrc, pubOut, PointsToPrecision.CONTEXT_SENSITIVE);
+		return buildAndAnnotate(className, secSrc, pubOut, PointsToPrecision.INSTANCE_BASED);
 	}
 	
 	public static IFCAnalysis buildAndAnnotate(final String className, final String secSrc,

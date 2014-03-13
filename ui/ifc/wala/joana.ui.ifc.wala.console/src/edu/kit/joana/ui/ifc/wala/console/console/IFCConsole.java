@@ -68,65 +68,83 @@ import edu.kit.joana.util.Stubs;
 import edu.kit.joana.util.io.IOFactory;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
+import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 
 public class IFCConsole {
 
+/** @formatter:off */
 	public enum CMD {
-		HELP("help", 0, "", "Display this help."), SEARCH_ENTRIES("searchEntries", 0, "",
-				"Searches for possible entry methods."), SELECT_ENTRY("selectEntry", 1, "",
-				"Selects an entry method for sdg generation."), SET_CLASSPATH("setClasspath", 1, "<path>",
-				"Sets the class path for sdg generation. Can be for example a bin directory or a jar file."), INFO(
-				"info", 0, "", "display the current configuration for sdg generation and ifc analysis"), BUILD_SDG(
-				"buildSDG", 2, 3, "<compute interference?> <mhptype> [<exception analysis type>]",
-				"Build SDG with respect to selected entry method."), LOAD_SDG("loadSDG", 1, "<filename>",
-				"Load SDG stored in <filename>."), SOURCE(
-				"source",
-				2,
-				"<index> <level>",
-				"Annotate specified part of method with provided security level <level>. <index> is either of the form p<number> for parameters of i<number> for instructions."), SAVE_SDG(
-				"saveSDG", 1, "<filename>", "Store current SDG in file specified by <filename>."), SINK(
-				"sink",
-				2,
-				"<index> <level>",
-				"Annotate specified node with required security level <level>. <index> refers to the indices shown in the currently active method."), CLEAR(
-				"clear", 1, "<index>",
-				"Clear annotation of specified node. <index> refers to the indices shown in the currently active method."), CLEARALL(
-				"clearAll", 0, "", "Clear all annotations."), DECLASS(
-				"declass",
-				3,
-				"<index> <level1> <level2>",
-				"Declassify specified node from <level1> to <level2>. <index> refers to the indices shown in the currently active method."), RUN(
-				"run", 0, 2, " [type] ",
-				"Run IFC analysis with specified data. The optional parameter type denotes the type of ifc analysis. It can be "
-						+ IFCTYPE_CLASSICAL_NI + ", " + IFCTYPE_LSOD + " or "
-						+ IFCTYPE_RLSOD
-						+ ". If it is omitted, classical non-interference is used."), RESET(
-				"reset", 0, "", "Reset node data."), SAVE_ANNOTATIONS("saveAnnotations", 1, "<filename>",
-				"Save annotations done so far in specified file."), LOAD_ANNOTATIONS("loadAnnotations", 1,
-				"<filename>", "Load annotations from specified file."), SHOW_ANNOTATIONS("showAnnotations", 0, "",
-				"Show the annotations done so far."), LOAD_LATTICE("loadLattice", 1, "<filename>",
-				"Load security lattice definition from file specified by <filename>."), SET_LATTICE(
-				"setLattice",
-				1,
-				"<latticeSpec>",
-				"Set lattice to the one given by <latticeSpec>. <latticeSpec> is a comma-separated list (without any spaces) of inequalities of the form lhs<=rhs specifying the lattice."), SEARCH(
-				"search",
-				1,
-				"<pattern>",
-				"Searches for method names containing the given pattern and displays result. <pattern> is a java-style regular expression."), SET_STUBSPATH(
-				"setStubsPath", 1, "<path>",
-				"sets the path to the stubs file. If <path> is 'none', then no stubs will be used."), LIST("list", 0,
-				"", "Displays last method search results."), SELECT("select", 1, "<index>",
-				"Selects method with index <index> from last search result list."), ACTIVE("active", 0, "",
-				"Shows the active method."), SAVESCRIPT("saveScript", 1, "<filename>",
-				"saves the instructions up to now to given file."), LOADSCRIPT("loadScript", 1, "<filename>",
-				"loads instructions from given file and executes them."), QUIT("quit", 0, "", "Exit the IFC console."), SHOW_CLASSES(
-				"showClasses", 0, "", "shows all classes contained in the current sdg"), SHOWBCI("showBCI", 0, "",
-				"shows all bc indices seen so far."), VERIFY_ANNOTATIONS("verifyAnnotations", 0, "",
-				"Verifies that the recorded annotations are mapped consistently to the sdg and vice versa."),
-                CHOP("chop", 2, "<source> <sink>", "Generates a chop between two programPoints");
+		// format is
+		// 		(String name, int arity, String format, String description)
+		// or 	(String name, int minArity, int maxArity, String format, String description)
+		HELP(			"help", 				0, 		"",
+							"Display this help."),
+		SEARCH_ENTRIES(	"searchEntries", 		0, 		"",
+							"Searches for possible entry methods."),
+		SELECT_ENTRY(	"selectEntry", 			1, 		"",
+							"Selects an entry method for sdg generation."),
+		SET_CLASSPATH(	"setClasspath", 		1, 		"<path>",
+							"Sets the class path for sdg generation. Can be for example a bin directory or a jar file."),
+		SET_POINTSTO(	"setPointsTo", 			1, 		"<points-to precision>",
+							"Sets the points-to precision for sdg generation."),
+		INFO(			"info", 				0, 		"",
+							"Display the current configuration for sdg generation and ifc analysis"),
+		BUILD_SDG(		"buildSDG", 			2, 	3, 	"<compute interference?> <mhptype> [<exception analysis type>]",
+							"Build sdg with respect to selected entry method."),
+		LOAD_SDG(		"loadSDG", 				1, 		"<filename>",
+							"Load sdg stored in <filename>."),
+		SOURCE(			"source", 				2, 		"<index> <level>",
+							"Annotate specified part of method with provided security level <level>. <index> is either of the form p<number> for parameters of i<number> for instructions."),
+		SAVE_SDG(		"saveSDG", 				1, 		"<filename>",
+							"Store current SDG in file specified by <filename>."),
+		SINK(			"sink", 				2, 		"<index> <level>",
+							"Annotate specified node with required security level <level>. <index> refers to the indices shown in the currently active method."),
+		CLEAR(			"clear", 				1, 		"<index>",
+							"Clear annotation of specified node. <index> refers to the indices shown in the currently active method."),
+		CLEARALL(		"clearAll", 			0, 		"",
+							"Clear all annotations."),
+		DECLASS(		"declass", 				3, 		"<index> <level1> <level2>",
+							"Declassify specified node from <level1> to <level2>. <index> refers to the indices shown in the currently active method."),
+		RUN(			"run", 					0, 	2, 	" [type] ",
+							"Run IFC analysis with specified data. The optional parameter type denotes the type of ifc analysis. It can be " + IFCTYPE_CLASSICAL_NI + ", " + IFCTYPE_LSOD + " or " + IFCTYPE_RLSOD + ". If it is omitted, classical non-interference is used."),
+		RESET(			"reset", 				0, 		"",
+							"Reset node data."),
+		SAVE_ANNOT(		"saveAnnotations", 		1, 		"<filename>",
+							"Save annotations done so far in specified file."),
+		LOAD_ANNOT(		"loadAnnotations", 		1, 		"<filename>",
+							"Load annotations from specified file."),
+		SHOW_ANNOT(		"showAnnotations", 		0, 		"",
+							"Show the annotations done so far."),
+		LOAD_LATTICE(	"loadLattice", 			1, 		"<filename>",
+							"Load security lattice definition from file specified by <filename>."),
+		SET_LATTICE(	"setLattice", 			1, 		"<latticeSpec>",
+							"Set lattice to the one given by <latticeSpec>. <latticeSpec> is a comma-separated list (without any spaces) of inequalities of the form lhs<=rhs specifying the lattice."),
+		SEARCH(			"search", 				1, 		"<pattern>",
+							"Searches for method names containing the given pattern and displays result. <pattern> is a java-style regular expression."),
+		SET_STUBSPATH(	"setStubsPath", 		1, 		"<path>",
+							"Sets the path to the stubs file. If <path> is 'none', then no stubs will be used."),
+		LIST(			"list", 				0, 		"",
+							"Displays last method search results."),
+		SELECT(			"select", 				1, 		"<index>",
+							"Selects method with index <index> from last search result list."),
+		ACTIVE(			"active", 				0, 		"",
+							"Shows the active method."),
+		SAVESCRIPT(		"saveScript", 			1, 		"<filename>",
+							"Saves the instructions up to now to given file."),
+		LOADSCRIPT(		"loadScript", 			1, 		"<filename>",
+							"Loads instructions from given file and executes them."),
+		QUIT(			"quit", 				0, 		"",
+							"Exit the IFC console."),
+		SHOW_CLASSES(	"showClasses", 			0, 		"",
+							"Shows all classes contained in the current sdg"),
+		SHOWBCI(		"showBCI", 				0, 		"",
+							"Shows all bc indices seen so far."),
+		VERIFY_ANNOT(	"verifyAnnotations", 	0, 		"",
+							"Verifies that the recorded annotations are mapped consistently to the sdg and vice versa."),
+        CHOP(			"chop", 				2, 		"<source> <sink>",
+        					"Generates a chop between two program points");
 
 		private final String name;
 		private final int minArity;
@@ -166,7 +184,8 @@ public class IFCConsole {
 			return this.description;
 		}
 	}
-
+/** @formatter:on */
+	
 	private static abstract class Command {
 
 		private final CMD cmd;
@@ -204,7 +223,7 @@ public class IFCConsole {
 					sb.append(getExpectedFormat());
 				}
 
-				sb.append(" - " + getDescription());
+				sb.append("\n\t" + getDescription());
 				stringRepr = sb.toString();
 			}
 
@@ -541,7 +560,7 @@ public class IFCConsole {
 	}
 
 	private Command makeCommandSaveMarkings() {
-		return new Command(CMD.SAVE_ANNOTATIONS) {
+		return new Command(CMD.SAVE_ANNOT) {
 			@Override
 			boolean execute(String[] args) {
 				return saveAnnotations(args[1]);
@@ -550,7 +569,7 @@ public class IFCConsole {
 	}
 
 	private Command makeCommandLoadMarkings() {
-		return new Command(CMD.LOAD_ANNOTATIONS) {
+		return new Command(CMD.LOAD_ANNOT) {
 
 			@Override
 			boolean execute(String[] args) {
@@ -563,7 +582,7 @@ public class IFCConsole {
 	}
 
 	private Command makeCommandShowMarkings() {
-		return new Command(CMD.SHOW_ANNOTATIONS) {
+		return new Command(CMD.SHOW_ANNOT) {
 			@Override
 			boolean execute(String[] args) {
 				showAnnotations();
@@ -672,7 +691,7 @@ public class IFCConsole {
 	}
 
 	private Command makeCommandVerifyAnnotations() {
-		return new Command(CMD.VERIFY_ANNOTATIONS) {
+		return new Command(CMD.VERIFY_ANNOT) {
 
 			@Override
 			boolean execute(String[] args) {
@@ -1411,7 +1430,7 @@ public class IFCConsole {
 				out.error("\nI/O problem during sdg creation: " + e.getMessage());
 				return false;
 			} catch (CancelException e) {
-				out.error("\nsdg creation cancelled.");
+				out.error("\nSDG creation cancelled.");
 				return false;
 			} catch (UnsoundGraphException e) {
 				out.error("\nResulting SDG is not sound: " + e.getMessage());

@@ -20,7 +20,7 @@ import edu.kit.joana.wala.flowless.wala.ObjSensZeroXCFABuilder.MethodFilter;
  */
 public class ExtendedAnalysisOptions extends AnalysisOptions {
 
-	public final MethodFilter filter;
+	public MethodFilter filter;
 	
 	public ExtendedAnalysisOptions(final MethodFilter filter, final AnalysisScope scope, final Iterable<? extends Entrypoint> e) {
 		super(scope, e);

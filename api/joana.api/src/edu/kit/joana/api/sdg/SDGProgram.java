@@ -50,7 +50,6 @@ import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.flowless.wala.ObjSensZeroXCFABuilder;
-import edu.kit.joana.wala.flowless.wala.ObjSensZeroXCFABuilder.MethodFilter;
 
 public class SDGProgram {
 
@@ -208,28 +207,17 @@ public class SDGProgram {
 
 		if (config.computeInterferences()) {
 			cfg.pts = PointsToPrecision.OBJECT_SENSITIVE;
-			if (config.getPointsToPrecision() == PointsToPrecision.OBJECT_SENSITIVE) {
-				if (config.getMethodFilter() == null) {
-					cfg.objSensFilter = null;
-				} else {
-				cfg.objSensFilter = new MethodFilterChain(new ThreadSensitiveMethodFilterWithCaching(),
-						config.getMethodFilter());
-				}
+			if (config.getPointsToPrecision() == PointsToPrecision.OBJECT_SENSITIVE && config.getMethodFilter() != null) {
+				cfg.objSensFilter = new MethodFilterChain(new ThreadSensitiveMethodFilterWithCaching(),	config.getMethodFilter());
 			} else {
 				cfg.objSensFilter = new ThreadSensitiveMethodFilterWithCaching();
 			}
 		} else {
-			if (config.getPointsToPrecision() == PointsToPrecision.OBJECT_SENSITIVE) {
-				if (config.getMethodFilter() == null) {
-					cfg.objSensFilter = null;
-				} else {
-					cfg.objSensFilter = config.getMethodFilter();
-				}
-			}
+			cfg.objSensFilter = config.getMethodFilter();
 		}
 		monitor.beginTask("build SDG", 20);
-		final com.ibm.wala.util.collections.Pair<SDG, SDGBuilder> p = SDGBuildPreparation.computeAndKeepBuilder(out, cfg,
-				config.computeInterferences(), monitor);
+		final com.ibm.wala.util.collections.Pair<SDG, SDGBuilder> p =
+				SDGBuildPreparation.computeAndKeepBuilder(out, cfg,	config.computeInterferences(), monitor);
 		final SDG sdg = p.fst;
 		final SDGBuilder builder = p.snd;
 

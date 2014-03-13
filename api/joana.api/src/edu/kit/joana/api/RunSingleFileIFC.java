@@ -57,6 +57,16 @@ public final class RunSingleFileIFC {
 		DUMP_SDG_FILES = "true".equals(debug);
 	}
 	
+	private static final boolean SKIP_RUNS_IF_RESULT_CAN_BE_IMPLIED;
+	static {
+		final String debug = System.getProperty("skip-runs");
+		SKIP_RUNS_IF_RESULT_CAN_BE_IMPLIED = "true".equals(debug);
+	}
+	
+	private static long lastSDGtime = 0;
+	private static long lastSDGsize = 0;
+	private static long lastViolations = 0;
+	
 	private RunSingleFileIFC() {}
 	
 	public static void main(String[] args) {
@@ -108,6 +118,7 @@ public final class RunSingleFileIFC {
 	private static boolean checkIFC(final SDGProgram prog, final IFCType type) {
 		final IFCAnalysis ana = annotateSDG(prog);
 		final Collection<? extends IViolation<SecurityNode>> leaks = ana.doIFC(type);
+		lastViolations = leaks.size();
 		
 		return leaks.isEmpty();
 	}
@@ -186,17 +197,17 @@ public final class RunSingleFileIFC {
 	}
 	
 	private static boolean incPointsToPrecision(final SDGConfig config, final boolean lastRunWasSecure) {
-/*		if (lastRunWasSecure) {
+		if (SKIP_RUNS_IF_RESULT_CAN_BE_IMPLIED && lastRunWasSecure) {
 			switch (config.getPointsToPrecision()) {
 			case N1_CALL_STACK:
 			case N2_CALL_STACK:
 			case N3_CALL_STACK:
-				config.setPointsToPrecision(PointsToPrecision.OBJECT_SENSITIVE);
+				config.setPointsToPrecision(PointsToPrecision.N1_OBJECT_SENSITIVE);
 				return true;
 			default:
 				return false;
 			}
-		} */
+		}
 		
 		switch (config.getPointsToPrecision()) {
 		case RTA:
@@ -215,9 +226,15 @@ public final class RunSingleFileIFC {
 			config.setPointsToPrecision(PointsToPrecision.N3_CALL_STACK);
 			return true;
 		case N3_CALL_STACK:
+			config.setPointsToPrecision(PointsToPrecision.N1_OBJECT_SENSITIVE);
+			return true;
+		case N1_OBJECT_SENSITIVE:
 			config.setPointsToPrecision(PointsToPrecision.OBJECT_SENSITIVE);
 			return true;
 		case OBJECT_SENSITIVE:
+			config.setPointsToPrecision(PointsToPrecision.UNLIMITED_OBJECT_SENSITIVE);
+			return true;
+		case UNLIMITED_OBJECT_SENSITIVE:
 			return false;
 		}
 		
@@ -225,11 +242,11 @@ public final class RunSingleFileIFC {
 	}
 	
 	private static void printResult(final boolean secure, final int numRun, final SDGConfig config) {
-		if (secure) {
-			print(numRun + "\t SECURE  " + configToString(config));
-		} else {
-			print(numRun + "\t ILLEGAL " + configToString(config));
-		}
+		print(numRun + (secure ? "\t SECURE  " : "\t ILLEGAL ")  + analysisInfo() + "\t" + configToString(config));
+	}
+	
+	private static String analysisInfo() {
+		return "<sdg:(" + lastSDGsize + ")" + lastSDGtime + "ms, leaks:" + lastViolations + ">";
 	}
 	
 	private static String configToString(final SDGConfig config) {
@@ -258,8 +275,14 @@ public final class RunSingleFileIFC {
 			case N3_CALL_STACK:
 				sb.append("3-call-stack");
 				break;
+			case N1_OBJECT_SENSITIVE:
+				sb.append("1-object-sensitive");
+				break;
 			case OBJECT_SENSITIVE:
 				sb.append("object-sensitive");
+				break;
+			case UNLIMITED_OBJECT_SENSITIVE:
+				sb.append("*-object-sensitive");
 				break;
 			}
 		}
@@ -331,7 +354,11 @@ public final class RunSingleFileIFC {
 		SDGProgram prog = null;
 		
 		try {
+			final long t1 = System.currentTimeMillis();
 			prog = SDGProgram.createSDGProgram(config);
+			final long t2 = System.currentTimeMillis();
+			lastSDGtime = t2 - t1;
+			lastSDGsize = prog.getSDG().vertexSet().size();
 		} catch (Exception e) {
 			errorExit(e);
 		}

@@ -157,12 +157,28 @@ public class SDGBuilder implements CallGraphFilter {
 		 */
 		INSTANCE_BASED(true, "instance-based (0-1-CFA)"),
 		/*
-		 * Object-sensitive (receiver object context)
+		 * Object-sensitive (unlimited receiver object context for application code)
 		 * Very precise for OO heavy code - best option for really precise analysis.
+		 * Unlimited receiver context for application code, 1-level receiver context for library code. 
 		 * Uses n-CFA as fallback for static methods. Customizable: Provide objSensFilter to specify 'n' for fallback
 		 * n-CFA and filter for methods where object-sensitivity should be engaged. Default 'n = 1'.
 		 */
 		OBJECT_SENSITIVE(true, "object-sensitive + 1-level call-stack"),
+		/*
+		 * 1-level object-sensitive (1-level receiver object context)
+		 * Receiver context is limited to 1-level. 
+		 * Uses n-CFA as fallback for static methods. Customizable: Provide objSensFilter to specify 'n' for fallback
+		 * n-CFA and filter for methods where object-sensitivity should be engaged. Default 'n = 1'.
+		 */
+		N1_OBJECT_SENSITIVE(true, "1-level object-sensitive + 1-level call-stack"),
+		/*
+		 * Object-sensitive (unlimited receiver object context)
+		 * Very precise for OO heavy code, but also very slow.
+		 * Unlimited receiver context for the whole code - application as well as library. 
+		 * Uses n-CFA as fallback for static methods. Customizable: Provide objSensFilter to specify 'n' for fallback
+		 * n-CFA and filter for methods where object-sensitivity should be engaged. Default 'n = 1'.
+		 */
+		UNLIMITED_OBJECT_SENSITIVE(true, "unlimited object-sensitive + 1-level call-stack"),
 		/*
 		 * 1-CFA
 		 * Slower as 0-1-CFA, yet few precision improvements
@@ -788,10 +804,34 @@ public class SDGBuilder implements CallGraphFilter {
 			// Best bang for buck
 			cgb = WalaPointsToUtil.makeContextSensSite(options, cfg.cache, cfg.cha, cfg.scope);
 			break;
+		case N1_OBJECT_SENSITIVE:
+			// Receiver context is limited to 1-level. 
+			// Uses 1-CFA as fallback for static methods.
+			options.filter = new ObjSensZeroXCFABuilder.DefaultMethodFilter() {
+				@Override
+				public boolean restrictToOneLevelObjectSensitivity(final IMethod m) {
+					return true;
+				}
+			};
+			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope);
+			break;
 		case OBJECT_SENSITIVE:
-			// Very precise for OO heavy code - best option for really precise analysis. Uses n-CFA as fallback for
-			// static methods. Customizable: Provide objSensFilter to specify 'n' for fallback n-CFA and filter for
-			// methods where obj-sens should be engaged.
+			// Very precise for OO heavy code - best option for really precise analysis.
+			// Unlimited receiver context for application code, 1-level receiver context for library code. 
+			// Uses n-CFA as fallback for static methods. Customizable: Provide objSensFilter to specify 'n' for fallback
+			// n-CFA and filter for methods where object-sensitivity should be engaged. Default 'n = 1'.
+			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope);
+			break;
+		case UNLIMITED_OBJECT_SENSITIVE:
+			// Very precise for OO heavy code, but also very slow.
+			// Unlimited receiver context for the whole code - application as well as library. 
+			// Uses 1-CFA as fallback for static methods.
+			options.filter = new ObjSensZeroXCFABuilder.DefaultMethodFilter() {
+				@Override
+				public boolean restrictToOneLevelObjectSensitivity(final IMethod m) {
+					return false;
+				}
+			};
 			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope);
 			break;
 		case N1_CALL_STACK: // 1-CFA

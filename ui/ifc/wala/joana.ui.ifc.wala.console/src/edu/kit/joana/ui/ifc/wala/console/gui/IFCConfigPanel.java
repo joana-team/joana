@@ -590,7 +590,7 @@ public class IFCConfigPanel extends JPanel {
 		if (selIndex != cselIndex) {
 			ignoreSelection = true;
 			entryMethodSelect.setSelectedIndex(cselIndex);
-			entryMethodSelect.updateUI();
+			entryMethodSelect.repaint();
 			ignoreSelection = false;
 		}
 
@@ -601,7 +601,7 @@ public class IFCConfigPanel extends JPanel {
 			if (item.element == pts) {
 				ignoreSelection = true;
 				pointstoCombo.setSelectedIndex(ptsIndex);
-				pointstoCombo.updateUI();
+				pointstoCombo.repaint();
 				ignoreSelection = false;
 				break;
 			}

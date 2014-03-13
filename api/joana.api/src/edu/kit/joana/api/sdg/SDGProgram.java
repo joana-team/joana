@@ -36,7 +36,7 @@ import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.chopper.Chopper;
-import edu.kit.joana.ifc.sdg.graph.chopper.conc.ThreadChopper;
+import edu.kit.joana.ifc.sdg.graph.chopper.NonSameLevelChopper;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.mhpoptimization.PruneInterferences;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
@@ -433,12 +433,13 @@ public class SDGProgram {
 
 	/**
 	 * Given a source and a sink instructions, computes a chop of these two program parts and collects all instructions which are on the way.
+	 * This works only for sequential programs
 	 * @param source source instruction
 	 * @param sink sink instruction
 	 * @return instructions through which information may flow from source to sink
 	 */
 	public Set<SDGInstruction> computeInstructionChop(SDGProgramPart source, SDGProgramPart sink) {
-		Chopper chopper = new ThreadChopper(this.sdg);
+		Chopper chopper = new NonSameLevelChopper(this.sdg);
 		AnnotationTypeBasedNodeCollector c = new AnnotationTypeBasedNodeCollector(this.sdg);
 		Collection<SDGNode> chop = chopper.chop(c.collectNodes(source, AnnotationType.SOURCE), c.collectNodes(sink, AnnotationType.SINK));
 		Set<SDGInstruction> ret = new HashSet<SDGInstruction>();

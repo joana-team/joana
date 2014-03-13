@@ -29,6 +29,7 @@ import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
+import edu.kit.joana.wala.util.NotImplementedException;
 
 /**
  * A simple IFC demonstrator that performs a confidentiality check on a single .java file.
@@ -114,21 +115,18 @@ public final class RunSingleFileIFC {
 	private static void doSequentialIFCanalysis(final SDGConfig config, final SDGProgram first) {
 		SDGProgram currentProgram = first;
 		boolean nextConfigAvailable = true;
-		int numSecure = 0;
-		int numLeaks = 0;
+		int numRun = 0;
 		
 		while (nextConfigAvailable) {
-			boolean secure = checkIFC(currentProgram);
-			printResult(secure, config);
+			final boolean secure = checkIFC(currentProgram);
+			printResult(secure, numRun, config);
 			
 			if (DUMP_SDG_FILES) {
 				final String fileName;
 				if (secure) {
-					numSecure++;
-					fileName = "secure-" + numSecure + ".pdg";
+					fileName = numRun + "-secure.pdg";
 				} else {
-					numLeaks++;
-					fileName = "leaks-" + numLeaks + ".pdg";
+					fileName = numRun + "-illegal.pdg";
 				}
 
 				final SDG sdg = currentProgram.getSDG();
@@ -142,7 +140,8 @@ public final class RunSingleFileIFC {
 			
 			nextConfigAvailable = nextConfig(config, secure);
 		
-			if (nextConfigAvailable && !secure) {
+			if (nextConfigAvailable) {
+				numRun++;
 				currentProgram = buildSDG(config);
 			}
 		}
@@ -152,25 +151,16 @@ public final class RunSingleFileIFC {
 		boolean nextConfigReady = false;
 		
 		if (config.computeInterferences()) {
-			
+			throw new NotImplementedException();
 		} else {
-			// if current config is save skip all points-to
-			if (thisConfigIsSecure) {
-				// skip additional points-to precision. enhance exception analysis
-				if (config.getPointsToPrecision() != PointsToPrecision.TYPE_BASED) {
-					nextConfigReady = incExceptionPrecision(config);
-					config.setPointsToPrecision(PointsToPrecision.TYPE_BASED);
-				}
-			} else {
-				// increase points-to precision
-				nextConfigReady = incPointsToPrecision(config);
-	
-				if (!nextConfigReady) {
-					// increase exception analysis precision
-					nextConfigReady = incExceptionPrecision(config);
-					// reset points-to
-					config.setPointsToPrecision(PointsToPrecision.TYPE_BASED);
-				}
+			// increase points-to precision
+			nextConfigReady = incPointsToPrecision(config, thisConfigIsSecure);
+
+			if (!nextConfigReady) {
+				// increase exception analysis precision
+				nextConfigReady = incExceptionPrecision(config);
+				// reset points-to
+				config.setPointsToPrecision(PointsToPrecision.RTA);
 			}
 		}
 		
@@ -195,7 +185,19 @@ public final class RunSingleFileIFC {
 		return false;
 	}
 	
-	private static boolean incPointsToPrecision(final SDGConfig config) {
+	private static boolean incPointsToPrecision(final SDGConfig config, final boolean lastRunWasSecure) {
+/*		if (lastRunWasSecure) {
+			switch (config.getPointsToPrecision()) {
+			case N1_CALL_STACK:
+			case N2_CALL_STACK:
+			case N3_CALL_STACK:
+				config.setPointsToPrecision(PointsToPrecision.OBJECT_SENSITIVE);
+				return true;
+			default:
+				return false;
+			}
+		} */
+		
 		switch (config.getPointsToPrecision()) {
 		case RTA:
 			config.setPointsToPrecision(PointsToPrecision.TYPE_BASED);
@@ -217,18 +219,16 @@ public final class RunSingleFileIFC {
 			return true;
 		case OBJECT_SENSITIVE:
 			return false;
-		default:
-			break;
 		}
 		
 		return false;
 	}
 	
-	private static void printResult(final boolean secure, final SDGConfig config) {
+	private static void printResult(final boolean secure, final int numRun, final SDGConfig config) {
 		if (secure) {
-			print("SECURE  " + configToString(config));
+			print(numRun + "\t SECURE  " + configToString(config));
 		} else {
-			print("ILLEGAL " + configToString(config));
+			print(numRun + "\t ILLEGAL " + configToString(config));
 		}
 	}
 	
@@ -306,7 +306,7 @@ public final class RunSingleFileIFC {
 		config.setComputeInterferences(false);
 		config.setExceptionAnalysis(ExceptionAnalysis.ALL_NO_ANALYSIS);
 		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH);
-		config.setPointsToPrecision(PointsToPrecision.TYPE_BASED);
+		config.setPointsToPrecision(PointsToPrecision.RTA);
 		
 		return config;
 	}
@@ -359,6 +359,7 @@ public final class RunSingleFileIFC {
 	}
 	
 	private static void errorExit(Throwable t) {
+		t.printStackTrace();
 		errorExit(t.getMessage());
 	}
 	

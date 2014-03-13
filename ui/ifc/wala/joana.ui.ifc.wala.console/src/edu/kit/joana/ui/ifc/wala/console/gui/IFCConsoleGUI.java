@@ -319,6 +319,7 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 		Collection<IFCAnnotation> declasses = console.getDeclassifications();
 		treePane.updateEntries(sources, sinks, declasses);
 		runPane.updateEntries();
+		consolePane.grabFocusForCommandline(); // make sure command line textbox has focus
 	}
 
 	public void execSearchForEntries() {

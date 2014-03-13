@@ -135,10 +135,13 @@ public class IFCConsolePanel extends JPanel {
 
 			@Override
 			public void keyTyped(KeyEvent arg0) {
-
 			}
 
 		};
+	}
+	
+	public void grabFocusForCommandline() {
+		input.grabFocus();
 	}
 
 	public void println(String str) {

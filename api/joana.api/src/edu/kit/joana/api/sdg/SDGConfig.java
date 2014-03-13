@@ -17,7 +17,7 @@ import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig;
-import edu.kit.joana.wala.flowless.wala.ObjSensZeroXCFABuilder;
+import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder;
 
 public class SDGConfig {
 	private PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;

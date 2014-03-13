@@ -49,7 +49,7 @@ import edu.kit.joana.util.io.IOFactory;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
-import edu.kit.joana.wala.flowless.wala.ObjSensZeroXCFABuilder;
+import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder;
 
 public class SDGProgram {
 

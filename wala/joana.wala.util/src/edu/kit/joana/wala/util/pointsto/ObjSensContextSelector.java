@@ -5,10 +5,9 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-package edu.kit.joana.wala.flowless.wala;
+package edu.kit.joana.wala.util.pointsto;
 
 import com.ibm.wala.classLoader.CallSiteReference;
-import com.ibm.wala.classLoader.IClassLoader;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.Context;
@@ -16,7 +15,6 @@ import com.ibm.wala.ipa.callgraph.ContextSelector;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.ReceiverInstanceContext;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.nCFAContextSelector;
-import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.intset.EmptyIntSet;
 import com.ibm.wala.util.intset.IntSet;

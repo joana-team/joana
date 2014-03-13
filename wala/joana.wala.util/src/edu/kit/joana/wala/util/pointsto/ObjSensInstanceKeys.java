@@ -5,10 +5,9 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-package edu.kit.joana.wala.flowless.wala;
+package edu.kit.joana.wala.util.pointsto;
 
 import com.ibm.wala.classLoader.NewSiteReference;
-import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.propagation.AllocationSite;
 import com.ibm.wala.ipa.callgraph.propagation.AllocationSiteInNode;
@@ -17,8 +16,6 @@ import com.ibm.wala.ipa.callgraph.propagation.ReceiverInstanceContext;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.ZeroXInstanceKeys;
 import com.ibm.wala.ipa.callgraph.propagation.rta.RTAContextInterpreter;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
-
-import edu.kit.joana.wala.flowless.wala.ObjSensZeroXCFABuilder.MethodFilter;
 
 /**
  * InstanceKeys of the object sensitive points-to analysis

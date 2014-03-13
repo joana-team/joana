@@ -62,8 +62,8 @@ import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
 import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
 import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
-import edu.kit.joana.wala.flowless.wala.ObjSensZeroXCFABuilder;
 import edu.kit.joana.wala.util.WriteGraphToDot;
+import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder;
 
 public final class SDGBuildPreparation {
 

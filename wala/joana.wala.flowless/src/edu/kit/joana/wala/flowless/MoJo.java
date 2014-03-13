@@ -85,9 +85,9 @@ import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
 import edu.kit.joana.wala.flowless.util.GraphWriter;
 import edu.kit.joana.wala.flowless.util.Util;
 import edu.kit.joana.wala.flowless.wala.EntryUtil;
-import edu.kit.joana.wala.flowless.wala.ObjSensContextSelector;
-import edu.kit.joana.wala.flowless.wala.ObjSensZeroXCFABuilder;
 import edu.kit.joana.wala.util.ParamNum;
+import edu.kit.joana.wala.util.pointsto.ObjSensContextSelector;
+import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder;
 
 /**
  * This class is the main entrypoint for the Modular Joana (MoJo) framework. It lets you

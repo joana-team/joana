@@ -5,13 +5,13 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-package edu.kit.joana.wala.flowless.wala;
+package edu.kit.joana.wala.util.pointsto;
 
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.Entrypoint;
 
-import edu.kit.joana.wala.flowless.wala.ObjSensZeroXCFABuilder.MethodFilter;
+import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder.MethodFilter;
 
 /**
  * AnalysisOptions with additional attributes for Joana specific options.

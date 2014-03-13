@@ -24,7 +24,7 @@ import com.ibm.wala.ipa.callgraph.propagation.cfa.nCFABuilder;
 import com.ibm.wala.ipa.callgraph.propagation.rta.BasicRTABuilder;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 
-import edu.kit.joana.wala.flowless.wala.ObjSensContextSelector;
+import edu.kit.joana.wala.flowless.wala.ExtendedAnalysisOptions;
 import edu.kit.joana.wala.flowless.wala.ObjSensZeroXCFABuilder;
 
 public final class WalaPointsToUtil {
@@ -69,8 +69,8 @@ public final class WalaPointsToUtil {
 	    			| ZeroXInstanceKeys.SMUSH_THROWABLES);
 	}
 
-	public static CallGraphBuilder makeObjectSens(final AnalysisOptions options, final AnalysisCache cache,
-			final IClassHierarchy cha, final AnalysisScope scope, final ObjSensContextSelector.MethodFilter filter) {
+	public static CallGraphBuilder makeObjectSens(final ExtendedAnalysisOptions options, final AnalysisCache cache,
+			final IClassHierarchy cha, final AnalysisScope scope) {
 
 	    if (options == null) {
 	      throw new IllegalArgumentException("options is null");
@@ -80,7 +80,7 @@ public final class WalaPointsToUtil {
 	    Util.addDefaultBypassLogic(options, scope, Util.class.getClassLoader(), cha);
 	    final ContextSelector defaultSelector = new DefaultContextSelector(options, cha);
 
-		return ObjSensZeroXCFABuilder.make(cha, options, cache, new ObjSensContextSelector(defaultSelector, filter),
+		return ObjSensZeroXCFABuilder.make(cha, options, cache, defaultSelector,
 				new FallbackContextInterpreter(new DefaultSSAInterpreter(options, cache)),
 				ZeroXInstanceKeys.ALLOCATIONS | ZeroXInstanceKeys.CONSTANT_SPECIFIC | ZeroXInstanceKeys.SMUSH_MANY
 	    			| ZeroXInstanceKeys.SMUSH_THROWABLES);

@@ -7,6 +7,7 @@
  */
 package edu.kit.joana.wala.flowless.wala;
 
+import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
@@ -17,6 +18,9 @@ import com.ibm.wala.ipa.callgraph.propagation.SSAPropagationCallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.ZeroXCFABuilder;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.ZeroXInstanceKeys;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
+import com.ibm.wala.types.ClassLoaderReference;
+
+import edu.kit.joana.wala.util.NotImplementedException;
 
 /**
  * CallGraph builder for the object sensitive points-to analysis
@@ -26,60 +30,76 @@ import com.ibm.wala.ipa.cha.IClassHierarchy;
  */
 public class ObjSensZeroXCFABuilder extends ZeroXCFABuilder {
 
-	public ObjSensZeroXCFABuilder(IClassHierarchy cha, AnalysisOptions options,
-			AnalysisCache cache, ContextSelector appContextSelector,
-			SSAContextInterpreter appContextInterpreter, int instancePolicy) {
-		super(cha, options, cache, appContextSelector, appContextInterpreter, instancePolicy);
+	public interface MethodFilter {
+		/**
+		 * Decides for which methods an object sensitive points-to analysis should be engaged. A one level call string
+		 * sensitivity is used as a fallback. Note that static methods have no receiver, so they cannot be
+		 * analyzed with object sensitivity. Therefore no static method will be passed to this interface.
+		 * @param m The method that may be analyzed in an object sensitive context.
+		 * @return <tt>true</tt> if calls to the method should be analyzed with object sensitivity, <tt>false</tt>
+		 * if a one level call string sensitivity should be used.
+		 */
+		public boolean engageObjectSensitivity(IMethod m);
+	
+		public boolean restrictToOneLevelObjectSensitivity(IMethod m);
+		
+		public int getFallbackCallsiteSensitivity();
+	}
+	
+	public static class DefaultMethodFilter implements MethodFilter {
+
+		@Override
+		public boolean engageObjectSensitivity(final IMethod m) {
+			// use context sensitivity for all methods as default
+			return true;
+		}
+
+		@Override
+		public boolean restrictToOneLevelObjectSensitivity(final IMethod m) {
+			// use unlimited object-sensitivity only for application code.
+			return m.getDeclaringClass().getClassLoader().getReference().getName() != ClassLoaderReference.Application.getName();
+		}
+
+		@Override
+		public int getFallbackCallsiteSensitivity() {
+			return 1;
+		}
+		
 	}
 
-	protected ZeroXInstanceKeys makeInstanceKeys(IClassHierarchy cha,
-			AnalysisOptions options, SSAContextInterpreter contextInterpreter,
-			int instancePolicy) {
-		ObjSensInstanceKeys zik = new ObjSensInstanceKeys(options, cha,	contextInterpreter, instancePolicy);
-		return zik;
+	public ObjSensZeroXCFABuilder(final IClassHierarchy cha, final ExtendedAnalysisOptions options, final AnalysisCache cache,
+			final ObjSensContextSelector objSensSelector, final SSAContextInterpreter appContextInterpreter,
+			final int instancePolicy) {
+		super(cha, options, cache, objSensSelector, appContextInterpreter, instancePolicy);
 	}
 
-	  /**
-	   * @param options
-	   *            options that govern call graph construction
-	   * @param cha
-	   *            governing class hierarchy
-	   * @param cl
-	   *            classloader that can find WALA resources
-	   * @param scope
-	   *            representation of the analysis scope
-	   * @param xmlFiles
-	   *            set of Strings that are names of XML files holding bypass logic specifications.
-	   * @return a 0-1-Opt-CFA Call Graph Builder.
-	   * @throws IllegalArgumentException
-	   *             if options is null
-	   * @throws IllegalArgumentException
-	   *             if xmlFiles == null
-	   */
-	  public static SSAPropagationCallGraphBuilder make(AnalysisOptions options, AnalysisCache cache, IClassHierarchy cha,
-	      ClassLoader cl, AnalysisScope scope, String[] xmlFiles, byte instancePolicy) throws IllegalArgumentException {
+	@Override
+	protected ZeroXInstanceKeys makeInstanceKeys(final IClassHierarchy cha,	final AnalysisOptions options,
+			final SSAContextInterpreter contextInterpreter,	final int instancePolicy) {
+		return new ObjSensInstanceKeys((ExtendedAnalysisOptions) options, cha, contextInterpreter, instancePolicy);
+	}
 
-	    if (xmlFiles == null) {
-	      throw new IllegalArgumentException("xmlFiles == null");
-	    }
-	    if (options == null) {
-	      throw new IllegalArgumentException("options is null");
-	    }
-	    Util.addDefaultSelectors(options, cha);
-	    for (int i = 0; i < xmlFiles.length; i++) {
-	      Util.addBypassLogic(options, scope, cl, xmlFiles[i], cha);
-	    }
+	public static ZeroXCFABuilder make(final IClassHierarchy cha, final ExtendedAnalysisOptions options,
+			final AnalysisCache cache, final ContextSelector appContextSelector,
+			final SSAContextInterpreter appCtxInterp, final int instancePolicy) throws IllegalArgumentException {
+		if (options == null) {
+			throw new IllegalArgumentException("options == null");
+		}
+	    
+		final ObjSensContextSelector objSensSelector = new ObjSensContextSelector(appContextSelector, options.filter);
+	    
+		return new ObjSensZeroXCFABuilder(cha, options, cache, objSensSelector, appCtxInterp, instancePolicy);
+	}
 
-	    return new ObjSensZeroXCFABuilder(cha, options, cache, null, null, instancePolicy);
-	  }
+	public static SSAPropagationCallGraphBuilder make(AnalysisOptions options, AnalysisCache cache, IClassHierarchy cha,
+			ClassLoader cl, AnalysisScope scope, String[] xmlFiles, byte instancePolicy) throws IllegalArgumentException {
+		throw new NotImplementedException("This cannot be used to create an object sensitive analysis.");
+	}
 
-	  public static ZeroXCFABuilder make(IClassHierarchy cha, AnalysisOptions options, AnalysisCache cache,
-	      ContextSelector appContextSelector, SSAContextInterpreter appContextInterpreter,
-	      int instancePolicy) throws IllegalArgumentException {
-	    if (options == null) {
-	      throw new IllegalArgumentException("options == null");
-	    }
-	    return new ObjSensZeroXCFABuilder(cha, options, cache, appContextSelector, appContextInterpreter, instancePolicy);
-	  }
+	public static ZeroXCFABuilder make(IClassHierarchy cha, AnalysisOptions options, AnalysisCache cache,
+			ContextSelector appContextSelector, SSAContextInterpreter appContextInterpreter, int instancePolicy)
+			throws IllegalArgumentException {
+		throw new NotImplementedException("This cannot be used to create an object sensitive analysis.");
+	}
 
 }

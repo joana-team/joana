@@ -49,7 +49,8 @@ import edu.kit.joana.util.io.IOFactory;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
-import edu.kit.joana.wala.flowless.wala.ObjSensContextSelector.MethodFilter;
+import edu.kit.joana.wala.flowless.wala.ObjSensZeroXCFABuilder;
+import edu.kit.joana.wala.flowless.wala.ObjSensZeroXCFABuilder.MethodFilter;
 
 public class SDGProgram {
 
@@ -835,7 +836,7 @@ class SDGClassResolver {
 	}
 }
 
-class ThreadSensitiveMethodFilter implements MethodFilter {
+class ThreadSensitiveMethodFilter implements ObjSensZeroXCFABuilder.MethodFilter {
 
 	@Override
 	public boolean engageObjectSensitivity(IMethod m) {
@@ -847,6 +848,11 @@ class ThreadSensitiveMethodFilter implements MethodFilter {
 	@Override
 	public int getFallbackCallsiteSensitivity() {
 		return 1;
+	}
+
+	@Override
+	public boolean restrictToOneLevelObjectSensitivity(IMethod m) {
+		return true;
 	}
 
 }
@@ -869,13 +875,13 @@ class ThreadSensitiveMethodFilter implements MethodFilter {
  *
  * @author Martin Mohr
  */
-class MethodFilterChain implements MethodFilter {
+class MethodFilterChain implements ObjSensZeroXCFABuilder.MethodFilter {
 
 	/** the first filter to be used */
-	private MethodFilter filter1;
+	private ObjSensZeroXCFABuilder.MethodFilter filter1;
 
 	/** the second filter to be used */
-	private MethodFilter filter2;
+	private ObjSensZeroXCFABuilder.MethodFilter filter2;
 
 	/**
 	 * Chains together this method filter from the two given method filters
@@ -886,7 +892,7 @@ class MethodFilterChain implements MethodFilter {
 	 *            'fall back filter' to be used if the first filter says that
 	 *            object sensitivity shall not be engaged
 	 */
-	MethodFilterChain(MethodFilter filter1, MethodFilter filter2) {
+	MethodFilterChain(ObjSensZeroXCFABuilder.MethodFilter filter1, ObjSensZeroXCFABuilder.MethodFilter filter2) {
 		this.filter1 = filter1;
 		this.filter2 = filter2;
 	}
@@ -919,9 +925,17 @@ class MethodFilterChain implements MethodFilter {
 		return filter1.getFallbackCallsiteSensitivity();
 	}
 
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.wala.flowless.wala.ObjSensContextSelector.MethodFilter#restrictToOneLevelObjectSensitivity(com.ibm.wala.classLoader.IMethod)
+	 */
+	@Override
+	public boolean restrictToOneLevelObjectSensitivity(IMethod m) {
+		return filter1.restrictToOneLevelObjectSensitivity(m) && filter2.restrictToOneLevelObjectSensitivity(m);
+	}
+
 }
 
-class ThreadSensitiveMethodFilterWithCaching implements MethodFilter {
+class ThreadSensitiveMethodFilterWithCaching implements ObjSensZeroXCFABuilder.MethodFilter {
 	private final Set<IClass> threadClasses = new HashSet<IClass>();
 	private final Set<IClass> nonThreadClasses = new HashSet<IClass>();
 	private final ThreadSensitiveMethodFilter normalFilter = new ThreadSensitiveMethodFilter();
@@ -955,5 +969,10 @@ class ThreadSensitiveMethodFilterWithCaching implements MethodFilter {
 			}
 			return ret;
 		}
+	}
+
+	@Override
+	public boolean restrictToOneLevelObjectSensitivity(IMethod m) {
+		return normalFilter.restrictToOneLevelObjectSensitivity(m);
 	}
 }

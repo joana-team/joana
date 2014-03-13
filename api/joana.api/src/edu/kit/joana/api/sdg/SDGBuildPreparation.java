@@ -62,7 +62,7 @@ import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
 import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
 import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
-import edu.kit.joana.wala.flowless.wala.ObjSensContextSelector;
+import edu.kit.joana.wala.flowless.wala.ObjSensZeroXCFABuilder;
 import edu.kit.joana.wala.util.WriteGraphToDot;
 
 public final class SDGBuildPreparation {
@@ -380,7 +380,7 @@ public final class SDGBuildPreparation {
 		public PointsToPrecision pts;
 		// only used iff pts is set to object sensitive. If null defaults to
 		// "do object sensitive analysis for all methods"
-		public ObjSensContextSelector.MethodFilter objSensFilter = null;
+		public ObjSensZeroXCFABuilder.MethodFilter objSensFilter = null;
 		public ExceptionAnalysis exceptions;
 		public boolean accessPath;
 		public boolean debugManyGraphsDotOutput = false;

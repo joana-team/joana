@@ -26,7 +26,6 @@ import com.ibm.wala.cfg.exc.NullPointerAnalysis;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.escape.TrivialMethodEscape;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
-import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions.ReflectionOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CGNode;
@@ -82,7 +81,8 @@ import edu.kit.joana.wala.core.params.objgraph.ObjGraphParams;
 import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig;
 import edu.kit.joana.wala.core.pointsto.WalaPointsToUtil;
 import edu.kit.joana.wala.flowless.util.Util;
-import edu.kit.joana.wala.flowless.wala.ObjSensContextSelector;
+import edu.kit.joana.wala.flowless.wala.ExtendedAnalysisOptions;
+import edu.kit.joana.wala.flowless.wala.ObjSensZeroXCFABuilder;
 import edu.kit.joana.wala.summary.SummaryComputation;
 import edu.kit.joana.wala.summary.WorkPackage;
 import edu.kit.joana.wala.summary.WorkPackage.EntryPoint;
@@ -767,7 +767,7 @@ public class SDGBuilder implements CallGraphFilter {
 		final List<Entrypoint> entries = new LinkedList<Entrypoint>();
 		final Entrypoint ep = new SubtypesEntrypoint(cfg.entry, cfg.cha);
 		entries.add(ep);
-		final AnalysisOptions options = new AnalysisOptions(cfg.scope, entries);
+		final ExtendedAnalysisOptions options = new ExtendedAnalysisOptions(cfg.objSensFilter, cfg.scope, entries);
 		if (cfg.ext.resolveReflection()) {
 			options.setReflectionOptions(ReflectionOptions.NO_STRING_CONSTANTS);
 		}
@@ -792,7 +792,7 @@ public class SDGBuilder implements CallGraphFilter {
 			// Very precise for OO heavy code - best option for really precise analysis. Uses n-CFA as fallback for
 			// static methods. Customizable: Provide objSensFilter to specify 'n' for fallback n-CFA and filter for
 			// methods where obj-sens should be engaged.
-			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope, cfg.objSensFilter);
+			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope);
 			break;
 		case N1_CALL_STACK: // 1-CFA
 			// Slower as 0-1-CFA, yet few precision improvements
@@ -1305,7 +1305,7 @@ public class SDGBuilder implements CallGraphFilter {
 		public PointsToPrecision pts = PointsToPrecision.INSTANCE_BASED;
 		// only used iff pts is set to object sensitive. If null defaults to
 		// "do object sensitive analysis for all methods"
-		public ObjSensContextSelector.MethodFilter objSensFilter = null;
+		public ObjSensZeroXCFABuilder.MethodFilter objSensFilter = null;
 		public FieldPropagation fieldPropagation = FieldPropagation.FLAT;
 		public boolean debugAccessPath = false;
 		/*

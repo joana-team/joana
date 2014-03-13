@@ -18,6 +18,8 @@ import com.ibm.wala.ipa.callgraph.propagation.cfa.ZeroXInstanceKeys;
 import com.ibm.wala.ipa.callgraph.propagation.rta.RTAContextInterpreter;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 
+import edu.kit.joana.wala.flowless.wala.ObjSensZeroXCFABuilder.MethodFilter;
+
 /**
  * InstanceKeys of the object sensitive points-to analysis
  *
@@ -26,16 +28,26 @@ import com.ibm.wala.ipa.cha.IClassHierarchy;
  */
 public class ObjSensInstanceKeys extends ZeroXInstanceKeys {
 
-	public ObjSensInstanceKeys(AnalysisOptions options, IClassHierarchy cha,
-			RTAContextInterpreter contextInterpreter, int policy) {
+	private final ObjSensZeroXCFABuilder.MethodFilter filter;
+	
+	public ObjSensInstanceKeys(final ExtendedAnalysisOptions options, final IClassHierarchy cha,
+			final RTAContextInterpreter contextInterpreter, final int policy) {
 		super(options, cha, contextInterpreter, policy);
+		
+		if (options.filter == null) {
+			throw new IllegalArgumentException();
+		}
+		
+		this.filter = options.filter;
 	}
 
-	public InstanceKey getInstanceKeyForAllocation(CGNode node, NewSiteReference allocation) {
-		InstanceKey ik = super.getInstanceKeyForAllocation(node, allocation);
+	@Override
+	public InstanceKey getInstanceKeyForAllocation(final CGNode node, final NewSiteReference allocation) {
+		final InstanceKey ik = super.getInstanceKeyForAllocation(node, allocation);
 
-		if (ik instanceof AllocationSiteInNode) {
-			AllocationSiteInNode a = (AllocationSiteInNode) ik;
+		if (ik instanceof AllocationSiteInNode && filter.restrictToOneLevelObjectSensitivity(node.getMethod())) {
+			// unwrap context of allocation node
+			final AllocationSiteInNode a = (AllocationSiteInNode) ik;
 			if (a.getNode().getContext() instanceof ReceiverInstanceContext) {
 				return new AllocationSite(a.getNode().getMethod(), a.getSite(), a.getConcreteType());
 			}

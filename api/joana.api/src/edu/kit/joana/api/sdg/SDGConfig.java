@@ -17,7 +17,8 @@ import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig;
-import edu.kit.joana.wala.flowless.wala.ObjSensContextSelector.MethodFilter;
+import edu.kit.joana.wala.flowless.wala.ObjSensZeroXCFABuilder;
+import edu.kit.joana.wala.flowless.wala.ObjSensZeroXCFABuilder.MethodFilter;
 
 public class SDGConfig {
 	private PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
@@ -32,7 +33,7 @@ public class SDGConfig {
 	private boolean computeInterferences;
 	private MHPType mhpType = MHPType.NONE;
 	private SideEffectDetectorConfig sideEffects;
-	private MethodFilter methodFilter;
+	private ObjSensZeroXCFABuilder.MethodFilter methodFilter;
 	private String nativesXML = JoanaConstants.DEFAULT_NATIVES_XML;
 
 	public SDGConfig(String classPath, String entryMethod, Stubs stubsPath) {
@@ -126,7 +127,7 @@ public class SDGConfig {
 	 * Returns the method filter used by this configuration. Can be {@code null}, e.g. if method filter was never set
 	 * @return if not {@code null}, the method filter used by this configuration
 	 */
-	public MethodFilter getMethodFilter() {
+	public ObjSensZeroXCFABuilder.MethodFilter getMethodFilter() {
 		return methodFilter;
 	}
 	
@@ -134,7 +135,7 @@ public class SDGConfig {
 	 * Set the method filter used by the SDG builder to distinguish methods by object instance.
 	 * Only used if points-to precision is set to OBJECT_SENSITIVE
 	 */
-	public void setMethodFilter(MethodFilter methodFilter) {
+	public void setMethodFilter(ObjSensZeroXCFABuilder.MethodFilter methodFilter) {
 		this.methodFilter = methodFilter;
 	}
 	

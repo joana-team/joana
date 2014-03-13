@@ -588,7 +588,7 @@ public class MoJo {
 	 * @throws CancelException
 	 */
 	public CallGraphResult computeObjectSensitiveCallGraph(AnalysisOptions options,
-			ObjSensContextSelector.MethodFilter filter) throws IllegalArgumentException, CancelException {
+			ObjSensZeroXCFABuilder.MethodFilter filter) throws IllegalArgumentException, CancelException {
 		AnalysisCache cache = new AnalysisCache();
 		SSAPropagationCallGraphBuilder builder = makeObjectSens(options, cache, cha, cha.getScope(), filter);
 
@@ -600,7 +600,7 @@ public class MoJo {
 	}
 
 	private static SSAPropagationCallGraphBuilder makeObjectSens(AnalysisOptions options, AnalysisCache cache,
-		      IClassHierarchy cha, AnalysisScope scope, ObjSensContextSelector.MethodFilter filter) {
+		      IClassHierarchy cha, AnalysisScope scope, ObjSensZeroXCFABuilder.MethodFilter filter) {
 
 	    if (options == null) {
 	      throw new IllegalArgumentException("options is null");

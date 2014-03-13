@@ -5,7 +5,7 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-package edu.kit.joana.wala.core.pointsto;
+package edu.kit.joana.wala.util.pointsto;
 
 
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
@@ -24,8 +24,6 @@ import com.ibm.wala.ipa.callgraph.propagation.cfa.nCFABuilder;
 import com.ibm.wala.ipa.callgraph.propagation.rta.BasicRTABuilder;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 
-import edu.kit.joana.wala.util.pointsto.ExtendedAnalysisOptions;
-import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder;
 
 public final class WalaPointsToUtil {
 

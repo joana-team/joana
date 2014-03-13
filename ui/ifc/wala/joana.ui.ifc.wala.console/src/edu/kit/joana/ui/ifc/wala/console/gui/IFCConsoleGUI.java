@@ -42,6 +42,7 @@ import edu.kit.joana.ui.ifc.wala.console.console.IFCConsoleListener;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCConsoleOutput;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.util.io.IOFactory;
+import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import gnu.trove.map.TObjectIntMap;
 
 public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, IFCConsoleOutput {
@@ -332,9 +333,12 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 				new Command(CMD.SEARCH_ENTRIES, new String[] {CMD.SEARCH_ENTRIES.getName()}));
 	}
 	
+	public void execSetPointsTo(PointsToPrecision pts) {
+		executeCmd(CMD.SET_POINTSTO, new String[] { CMD.SET_POINTSTO.getName(), pts.name() });
+	}
+
 	public void execSetStubsPath(String stubsPath) {
 		executeCmd(CMD.SET_STUBSPATH, new String[] { CMD.SET_STUBSPATH.getName(), stubsPath });
-		
 	}
 
 	public void execLoadSDG(String pathToSDG) {
@@ -456,6 +460,10 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 
 	public String getClassPath() {
 		return console.getClassPath();
+	}
+
+	public PointsToPrecision getPointsTo() {
+		return console.getPointsTo();
 	}
 
 	public Stubs getStubsPath() {

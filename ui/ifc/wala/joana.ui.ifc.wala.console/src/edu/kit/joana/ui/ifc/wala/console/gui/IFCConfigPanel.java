@@ -44,6 +44,7 @@ import edu.kit.joana.ui.ifc.wala.console.console.IFCConsole;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCConsoleOutput.Answer;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
+import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class IFCConfigPanel extends JPanel {
@@ -62,6 +63,7 @@ public class IFCConfigPanel extends JPanel {
 	private final JCheckBox compIFECheckbox = new JCheckBox("compute interference edges");
 	private final JComboBox mhpCombo = new JComboBox();
 	private final JComboBox exceptionCombo = new JComboBox();
+	private final JComboBox pointstoCombo = new JComboBox();
 	private final JComboBox stubsCombo = new JComboBox();
 	private final JButton loadSDG = new JButton("load SDG from file");
 	private final JButton saveSDG = new JButton("save current SDG as");
@@ -71,21 +73,13 @@ public class IFCConfigPanel extends JPanel {
 	private final JButton loadScript = new JButton("load script");
 	private final JButton saveScript = new JButton("save script");
 
-	private static final String EXC_IGNORE_ALL = "ignore all exceptions";
-	private static final String EXC_ALL_NO_ANALYSIS = "integrate all exceptions without optimization";
-	private static final String EXC_INTRAPROC = "integrate all exceptions, optimize intraprocedurally";
-	private static final String EXC_INTERPROC = "integrate all exceptions, optimize interprocedurally";
-
 	private static final String MHP_NONE = "no may-happen-in-parallel analysis";
 	private static final String MHP_SIMPLE = "simple may-happen-in-parallel analysis";
 	private static final String MHP_PRECISE = "precise may-happen-in-parallel analysis";
-
 	
 	private static final String LATTICE_BINARY = "binary lattice low <= high";
 	private static final String LATTICE_TERNARY = "ternary lattice low <= mid <= high";
 	private static final String LATTICE_DIAMOND = "diamond lattice low <= midA <= high, low <= midB <= high";
-	
-
 
 	public IFCConfigPanel(final IFCConsoleGUI console) {
 		super();
@@ -200,8 +194,14 @@ public class IFCConfigPanel extends JPanel {
 		ret.setBorder(BorderFactory.createTitledBorder("SDG Build options"));
 		ret.setLayout(new GridBagLayout());
 
+		ret.add(new JLabel("Analyze exceptions: "), GUIUtil.mkgbc_nofill(0, 0, 1, 1));
 		initExceptionCombo();
-		ret.add(exceptionCombo, GUIUtil.mkgbc_nofill(0, 0, 2, 1));
+		ret.add(exceptionCombo, GUIUtil.mkgbc_nofill(1, 0, 1, 1));
+		
+		ret.add(new JLabel("Points-to precision: "), GUIUtil.mkgbc_nofill(0, 1, 1, 1));
+		initPointsToCombo();
+		ret.add(pointstoCombo, GUIUtil.mkgbc_nofill(1,  1, 1, 1));
+
 		compIFECheckbox.addChangeListener(new ChangeListener() {
 
 			@Override
@@ -210,15 +210,15 @@ public class IFCConfigPanel extends JPanel {
 			}
 
 		});
-		ret.add(compIFECheckbox, GUIUtil.mkgbc_nofill(0, 1, 1, 1));
+		ret.add(compIFECheckbox, GUIUtil.mkgbc_nofill(0, 2, 1, 1));
 		initMHPCombo();
-		ret.add(mhpCombo, GUIUtil.mkgbc_nofill(1, 1, 1, 1));
+		ret.add(mhpCombo, GUIUtil.mkgbc_nofill(1, 2, 1, 1));
 
 		
 		
-		ret.add(new JLabel("select stubs to use: "), GUIUtil.mkgbc_nofill(0, 2, 1, 1));
+		ret.add(new JLabel("Choose stubs: "), GUIUtil.mkgbc_nofill(0, 3, 1, 1));
 		initStubsCombo();
-		ret.add(stubsCombo, GUIUtil.mkgbc_nofill(1, 2, 1, 1));
+		ret.add(stubsCombo, GUIUtil.mkgbc_nofill(1, 3, 1, 1));
 		stubsCombo.addActionListener(new ActionListener() {
 
 			@Override
@@ -230,8 +230,8 @@ public class IFCConfigPanel extends JPanel {
 
 		});
 	
-		ret.add(buildSDG, GUIUtil.mkgbc_nofill(0, 3, 1, 1));
-		ret.add(autoSaveSDGCheckbox, GUIUtil.mkgbc_fillx(1, 3, 1, 1));
+		ret.add(buildSDG, GUIUtil.mkgbc_nofill(0, 4, 1, 1));
+		ret.add(autoSaveSDGCheckbox, GUIUtil.mkgbc_fillx(1, 4, 1, 1));
 
 		return ret;
 	}
@@ -258,7 +258,7 @@ public class IFCConfigPanel extends JPanel {
 	}
 	
 	private void initStubsCombo() {
-		MutableComboBoxModel possibleStubs = new DefaultComboBoxModel();
+		final MutableComboBoxModel possibleStubs = new DefaultComboBoxModel();
 		for (Stubs stubs : Stubs.values()) {
 			possibleStubs.addElement(stubs);
 		}
@@ -268,17 +268,26 @@ public class IFCConfigPanel extends JPanel {
 	}
 
 	private void initExceptionCombo() {
-		MutableComboBoxModel exceptionTypes = new DefaultComboBoxModel();
-		exceptionTypes.addElement(new ElementWithDescription<ExceptionAnalysis>(ExceptionAnalysis.INTRAPROC,
-				EXC_INTRAPROC));
-		exceptionTypes.addElement(new ElementWithDescription<ExceptionAnalysis>(ExceptionAnalysis.INTERPROC,
-				EXC_INTERPROC));
-		exceptionTypes.addElement(new ElementWithDescription<ExceptionAnalysis>(ExceptionAnalysis.IGNORE_ALL,
-				EXC_IGNORE_ALL));
-		exceptionTypes.addElement(new ElementWithDescription<ExceptionAnalysis>(ExceptionAnalysis.ALL_NO_ANALYSIS,
-				EXC_ALL_NO_ANALYSIS));
+		final MutableComboBoxModel exceptionTypes = new DefaultComboBoxModel();
+		for (final ExceptionAnalysis elem : ExceptionAnalysis.values()) {
+			if (elem.recommended) {
+				exceptionTypes.addElement(new ElementWithDescription<ExceptionAnalysis>(elem, elem.desc));	
+			}
+		}
 
 		exceptionCombo.setModel(exceptionTypes);
+	}
+
+	private void initPointsToCombo() {
+		final MutableComboBoxModel pointstoTypes = new DefaultComboBoxModel();
+		for (final PointsToPrecision elem: PointsToPrecision.values()) {
+			if (elem.recommended) {
+				pointstoTypes.addElement(new ElementWithDescription<PointsToPrecision>(elem, elem.desc));
+			}
+		}
+
+		pointstoCombo.setModel(pointstoTypes);
+		pointstoCombo.addItemListener(makeSelectPointsToListener());
 	}
 
 	private ActionListener makeLoadScriptAction() {
@@ -410,6 +419,28 @@ public class IFCConfigPanel extends JPanel {
 		};
 	}
 
+	private ItemListener makeSelectPointsToListener() {
+		return new ItemListener() {
+
+			private Object previous = null;
+
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (!ignoreSelection && e.getStateChange() == ItemEvent.SELECTED) {
+					final Object item = e.getItem();
+
+					if (previous != item && item instanceof ElementWithDescription<?>) {
+						final ElementWithDescription<Object> elem = (ElementWithDescription<Object>) item;
+						if (elem.element instanceof PointsToPrecision) {
+							consoleGui.execSetPointsTo((PointsToPrecision) elem.element);
+							previous = item;
+						}
+					}
+				}
+			}
+		};
+	}
+	
 	private ActionListener makeSaveSDGAction() {
 		return new ActionListener() {
 
@@ -559,7 +590,21 @@ public class IFCConfigPanel extends JPanel {
 		if (selIndex != cselIndex) {
 			ignoreSelection = true;
 			entryMethodSelect.setSelectedIndex(cselIndex);
+			entryMethodSelect.updateUI();
 			ignoreSelection = false;
+		}
+
+		final PointsToPrecision pts = consoleGui.getPointsTo();
+		for (int ptsIndex = 0; ptsIndex < pointstoCombo.getItemCount(); ptsIndex++) {
+			final ElementWithDescription<PointsToPrecision> item =
+					(ElementWithDescription<PointsToPrecision>) pointstoCombo.getItemAt(ptsIndex);
+			if (item.element == pts) {
+				ignoreSelection = true;
+				pointstoCombo.setSelectedIndex(ptsIndex);
+				pointstoCombo.updateUI();
+				ignoreSelection = false;
+				break;
+			}
 		}
 	}
 
@@ -599,6 +644,10 @@ public class IFCConfigPanel extends JPanel {
 		return ((ElementWithDescription<ExceptionAnalysis>) exceptionCombo.getSelectedItem()).getElement();
 	}
 
+	public PointsToPrecision getPointsToPrecision() {
+		return ((ElementWithDescription<PointsToPrecision>) pointstoCombo.getSelectedItem()).getElement();
+	}
+
 	public String getSDGFile() {
 		return sdgStatusLabel.getText();
 	}
@@ -606,25 +655,25 @@ public class IFCConfigPanel extends JPanel {
 	public void sdgLoadedOrBuilt() {
 		saveSDG.setEnabled(true);
 	}
-}
 
-class ElementWithDescription<A> {
-
-	private A element;
-	private String description;
-
-	ElementWithDescription(A element, String description) {
-		this.element = element;
-		this.description = description;
+	private static class ElementWithDescription<A> {
+	
+		private final A element;
+		private final String description;
+	
+		private ElementWithDescription(A element, String description) {
+			this.element = element;
+			this.description = description;
+		}
+	
+		public A getElement() {
+			return element;
+		}
+	
+		@Override
+		public String toString() {
+			return description;
+		}
+	
 	}
-
-	A getElement() {
-		return element;
-	}
-
-	@Override
-	public String toString() {
-		return description;
-	}
-
 }

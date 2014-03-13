@@ -293,6 +293,7 @@ public class IFCConsole {
 	// private SDG sdg;
 	private IFCAnalysis ifcAnalysis = null;
 	private String classPath = "bin";
+	private PointsToPrecision pointsTo = PointsToPrecision.INSTANCE_BASED;
 	// private IStaticLattice<String> securityLattice;
 	private Collection<IViolation<SecurityNode>> lastAnalysisResult = new LinkedList<IViolation<SecurityNode>>();
 	private TObjectIntMap<IViolation<SDGProgramPart>> groupedIFlows = new TObjectIntHashMap<IViolation<SDGProgramPart>>();
@@ -364,6 +365,19 @@ public class IFCConsole {
 			boolean execute(String[] args) {
 				setClasspath(args[1]);
 				out.logln("classPath = " + classPath);
+				return true;
+			}
+
+		};
+	}
+
+	private Command makeCommandSetPointsTo() {
+		return new Command(CMD.SET_POINTSTO) {
+
+			@Override
+			boolean execute(String[] args) {
+				setPointsTo(args[1]);
+				out.logln("points-to = " + pointsTo.desc);
 				return true;
 			}
 
@@ -798,6 +812,7 @@ public class IFCConsole {
 		repo.addCommand(makeCommandSearchEntries());
 		repo.addCommand(makeCommandSelectEntry());
 		repo.addCommand(makeCommandSetClasspath());
+		repo.addCommand(makeCommandSetPointsTo());
 		repo.addCommand(makeCommandSetStubsPath());
 		repo.addCommand(makeCommandInfo());
 		repo.addCommand(makeCommandBuildSDG());
@@ -1002,6 +1017,15 @@ public class IFCConsole {
 		this.classPath = newClasspath;
 	}
 
+	public void setPointsTo(final String newPts) {
+		for (final PointsToPrecision pts : PointsToPrecision.values()) {
+			if (pts.name().equals(newPts)) {
+				this.pointsTo = pts;
+				break;
+			}
+		}
+	}
+
 	public Stubs getStubsPath() {
 		return stubsPath;
 	}
@@ -1089,6 +1113,7 @@ public class IFCConsole {
 		out.logln("classpath = " + classPath);
 		out.logln("entry = " + (loc.getActiveEntry() == null ? "<none>" : loc.getActiveEntry()));
 		out.logln("output directory = " + outputDirectory);
+		out.logln("points-to = " + pointsTo.desc);
 		out.logln("lattice = " + latticeFile);
 		// out.logln("sdg = " + sdgFile);
 
@@ -1422,6 +1447,7 @@ public class IFCConsole {
 				config.setComputeInterferences(computeInterference);
 				config.setMhpType(mhpType);
 				config.setExceptionAnalysis(exA);
+				config.setPointsToPrecision(pointsTo);
 				program = SDGProgram.createSDGProgram(config, out.getPrintStream(), monitor);
 			} catch (ClassHierarchyException e) {
 				out.error(e.getMessage());
@@ -1621,6 +1647,10 @@ public class IFCConsole {
 
 	public String getClassPath() {
 		return classPath;
+	}
+
+	public PointsToPrecision getPointsTo() {
+		return pointsTo;
 	}
 
 	public Collection<IFCAnnotation> getSources() {

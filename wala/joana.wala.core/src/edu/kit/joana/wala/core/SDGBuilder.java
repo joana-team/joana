@@ -113,21 +113,29 @@ public class SDGBuilder implements CallGraphFilter {
 		/*
 		 * Act as if exceptions can never occur.
 		 */
-		IGNORE_ALL,
+		IGNORE_ALL(true, "ignore all exceptions (may miss information flow)"),
 		/*
 		 * Assume each instruction that potentially can throw an exception may throw one. 
 		 */
-		ALL_NO_ANALYSIS,
+		ALL_NO_ANALYSIS(true, "naively assume every potential exception may occur"),
 		/*
-		 * Like ALL_NO_ANALYSIS but apply an intraprocedural analysis that detects intructions that definitely can not
+		 * Like ALL_NO_ANALYSIS but apply an intraprocedural analysis that detects instructions that definitely can not
 		 * throw an exception. E.g. access to this pointer, subsequent accesses to the same unchanged object,
 		 * if-guarded accesses, etc. 
 		 */
-		INTRAPROC,
+		INTRAPROC(true, "detect impossible exceptions through intraprocedural analysis"),
 		/*
 		 * Like INTRAPROC but extended to an interprocedural analysis.
 		 */
-		INTERPROC
+		INTERPROC(true, "detect impossible exceptions through interprocedural analysis");
+		
+		public final String desc;		  // short textual description of the option - can be used for gui
+		public final boolean recommended; // option can make sense aside for academic evaluation
+		
+		private ExceptionAnalysis(final boolean recommended, final String desc) {
+			this.recommended = recommended;
+			this.desc = desc;
+		}
 	}
 
 	public static enum PointsToPrecision {
@@ -137,105 +145,129 @@ public class SDGBuilder implements CallGraphFilter {
 		 * Its also less precise and slower (blows up dynamic calls) as TYPE (0-CFA).
 		 * Its just here for academic purposes.
 		 */
-		RTA,
+		RTA(false, "rapid type analysis"),
 		/*
 		 * 0-CFA
 		 * Fastest option. Use this in case everything else is too slow aka the callgraph is getting too big.
 		 */
-		TYPE_BASED,
+		TYPE_BASED(true, "type-based (0-CFA)"),
 		/* DEFAULT
 		 * 0-1-CFA
 		 * Best bang for buck. Use this in case you are not sure what to pick.
 		 */
-		INSTANCE_BASED,
+		INSTANCE_BASED(true, "instance-based (0-1-CFA)"),
 		/*
 		 * Object-sensitive (receiver object context)
 		 * Very precise for OO heavy code - best option for really precise analysis.
 		 * Uses n-CFA as fallback for static methods. Customizable: Provide objSensFilter to specify 'n' for fallback
-		 * n-CFA and filter for methods where object-sensitivity should be engaged.
+		 * n-CFA and filter for methods where object-sensitivity should be engaged. Default 'n = 1'.
 		 */
-		OBJECT_SENSITIVE,
+		OBJECT_SENSITIVE(true, "object-sensitive + 1-level call-stack"),
 		/*
 		 * 1-CFA
 		 * Slower as 0-1-CFA, yet few precision improvements
 		 */
-		N1_CALL_STACK,
+		N1_CALL_STACK(true, "1-level call-stack (1-CFA)"),
 		/*
 		 * 2-CFA
  		 * Slow, but precise
 		 */
-		N2_CALL_STACK,
+		N2_CALL_STACK(true, "2-level call-stack (2-CFA)"),
 		/*
 		 * 3-CFA
-		 * Very slow and little bit more precise. Not much improvement over 2-CFA.
+		 * Very slow with little increased precision. Not much improvement over 2-CFA.
 		 */
-		N3_CALL_STACK
+		N3_CALL_STACK(true, "3-level call-stack (3-CFA)");
+
+		public final String desc;		  // short textual description of the option - can be used for gui
+		public final boolean recommended; // option can make sense aside for academic evaluation
+		
+		private PointsToPrecision(final boolean recommended, final String desc) {
+			this.recommended = recommended;
+			this.desc = desc;
+		}
 	}
 
 	public static enum StaticInitializationTreatment {
 		/*
 		 * Ignore static initializers
 		 */
-		NONE,
+		NONE(true, "ignore static initialization"),
 		/* DEFAULT
 		 * Assume all static initializers are called once before the program starts. 
 		 */
-		SIMPLE,
+		SIMPLE(true, "simple approximation of static intialization"),
 		/*
 		 * NOT YET WORKING.
 		 * Place calls to static initializers where they may in fact occur.
 		 */
-		ACCURATE
+		ACCURATE(false, "(unfinished - do not use for now) simple approximation of static intialization");
+
+		public final String desc;		  // short textual description of the option - can be used for gui
+		public final boolean recommended; // option can make sense aside for academic evaluation
+		
+		private StaticInitializationTreatment(final boolean recommended, final String desc) {
+			this.recommended = recommended;
+			this.desc = desc;
+		}
 	}
 
 	public static enum FieldPropagation {
 		/*
 		 * Very imprecise side-effect computation. Merges all effects/heap locations reachable through a methods
 		 * parameter to a single node.
-		 * Slow (could be optimized through caching) and imprecise. Do not use unless for ecademic evaluation purposes.
+		 * Slow (could be optimized through caching) and imprecise. Do not use unless for academic evaluation purposes.
 		 */
-		FLAT,
+		FLAT(true, "flat - merge all reachable locations in single root nodes"),
 		/* DEFAULT
 		 * A fine-grained side-effect computation. Scales well with precise and imprecise points-to analysis.
 		 * This is your best bet in case you don't know what to choose.
 		 */
-		OBJ_GRAPH,
+		OBJ_GRAPH(true, "object-graph - precise and fast (default)"),
 		/*
 		 * Object graph algorithm without speed/space optimization. Does not merge nodes, when their number is getting
 		 * large. Does not merge accesses to the same field.
 		 */
-		OBJ_GRAPH_NO_FIELD_MERGE,
+		OBJ_GRAPH_NO_FIELD_MERGE(false, "object-graph - no merge of nodes with same field name (internal use only)"),
 		/*
 		 * Object graph algorithm with fixpoint propagation. Do not choose if you don't know what it does. It
 		 * exists for academic evaluation purposes.
 		 */
-		OBJ_GRAPH_FIXPOINT_PROPAGATION,
+		OBJ_GRAPH_FIXPOINT_PROPAGATION(false, "object-graph - with fixpoint propagation (internal use only)"),
 		/*
 		 * Use object graph algorithm, but do not apply an escape analysis. This increases runtime and space needed,
 		 * while the precision is decreased. No sane person would choose this option. It exists only to evaluate the
 		 * effect of the integrated escape analysis.
 		 */
-		OBJ_GRAPH_NO_ESCAPE,
+		OBJ_GRAPH_NO_ESCAPE(false, "object-graph - without escape analysis (internal use only)"),
 		/*
 		 * Run object graph algorithm without any optimizations. Again do not choose if you don't know what this means.
 		 * Only for evaluation.
 		 */
-		OBJ_GRAPH_NO_OPTIMIZATION,
+		OBJ_GRAPH_NO_OPTIMIZATION(false, "object-graph - without optimization (internal use only)"),
 		/*
 		 * Object graph algorithm with a simple propagation. Should be faster (and less precise) as the fixpoint
 		 * propagation. Do not choose if you don't know what it does. It exists for academic evaluation purposes.
 		 */
-		OBJ_GRAPH_SIMPLE_PROPAGATION,
+		OBJ_GRAPH_SIMPLE_PROPAGATION(false, "object-graph - with simple propagation (internal use only)"),
 		/*
 		 * Old deprecated object tree algorithm. The predecessor of the object graph. Scales less well for imprecise
 		 * points-to analysis, Is overall slower. Kept around for evaluation purposes. 
 		 */
-		OBJ_TREE,
+		OBJ_TREE(false, "object-tree - old tree-based propagation (internal use only)"),
 		/*
 		 * A special variant of the object tree algorithm that allows multiple nodes for a single field. A little bit
 		 * more precise and even slower. Again kept around for evaluation purposes.
 		 */
-		OBJ_TREE_NO_FIELD_MERGE
+		OBJ_TREE_NO_FIELD_MERGE(false, "object-tree - old tree-based propagation without field merge (internal use only)");
+
+		public final String desc;		  // short textual description of the option - can be used for gui
+		public final boolean recommended; // option can make sense aside for academic evaluation
+		
+		private FieldPropagation(final boolean recommended, final String desc) {
+			this.recommended = recommended;
+			this.desc = desc;
+		}
 	}
 
 	public static SDGBuilder create(final SDGBuilderConfig cfg) throws UnsoundGraphException, CancelException {

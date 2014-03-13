@@ -117,17 +117,17 @@ public class SDGBuilder implements CallGraphFilter {
 		/*
 		 * Assume each instruction that potentially can throw an exception may throw one. 
 		 */
-		ALL_NO_ANALYSIS(true, "naively assume every potential exception may occur"),
+		ALL_NO_ANALYSIS(true, "integrate all exceptions without optimization"),
 		/*
 		 * Like ALL_NO_ANALYSIS but apply an intraprocedural analysis that detects instructions that definitely can not
 		 * throw an exception. E.g. access to this pointer, subsequent accesses to the same unchanged object,
 		 * if-guarded accesses, etc. 
 		 */
-		INTRAPROC(true, "detect impossible exceptions through intraprocedural analysis"),
+		INTRAPROC(true, "integrate all exceptions, optimize intraprocedurally"),
 		/*
 		 * Like INTRAPROC but extended to an interprocedural analysis.
 		 */
-		INTERPROC(true, "detect impossible exceptions through interprocedural analysis");
+		INTERPROC(true, "integrate all exceptions, optimize interprocedurally");
 		
 		public final String desc;		  // short textual description of the option - can be used for gui
 		public final boolean recommended; // option can make sense aside for academic evaluation

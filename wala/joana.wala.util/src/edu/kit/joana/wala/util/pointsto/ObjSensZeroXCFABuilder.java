@@ -12,6 +12,7 @@ import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.ContextSelector;
+import com.ibm.wala.ipa.callgraph.impl.DelegatingContextSelector;
 import com.ibm.wala.ipa.callgraph.propagation.SSAContextInterpreter;
 import com.ibm.wala.ipa.callgraph.propagation.SSAPropagationCallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.ZeroXCFABuilder;
@@ -77,7 +78,7 @@ public class ObjSensZeroXCFABuilder extends ZeroXCFABuilder {
 	}
 
 	public ObjSensZeroXCFABuilder(final IClassHierarchy cha, final ExtendedAnalysisOptions options, final AnalysisCache cache,
-			final ObjSensContextSelector objSensSelector, final SSAContextInterpreter appContextInterpreter,
+			final ContextSelector objSensSelector, final SSAContextInterpreter appContextInterpreter,
 			final int instancePolicy) {
 		super(cha, options, cache, objSensSelector, appContextInterpreter, instancePolicy);
 	}
@@ -88,17 +89,31 @@ public class ObjSensZeroXCFABuilder extends ZeroXCFABuilder {
 		return new ObjSensInstanceKeys((ExtendedAnalysisOptions) options, cha, contextInterpreter, instancePolicy);
 	}
 
-	public static ZeroXCFABuilder make(final IClassHierarchy cha, final ExtendedAnalysisOptions options,
+    public static ZeroXCFABuilder make(final IClassHierarchy cha, final ExtendedAnalysisOptions options,
 			final AnalysisCache cache, final ContextSelector appContextSelector,
+			final SSAContextInterpreter appCtxInterp, final int instancePolicy) throws IllegalArgumentException {
+        return make(cha, options, cache, appContextSelector, null, appCtxInterp, instancePolicy);
+    }
+
+	public static ZeroXCFABuilder make(final IClassHierarchy cha, final ExtendedAnalysisOptions options,
+			final AnalysisCache cache, final ContextSelector appContextSelector, final ContextSelector additionalContextSelector,
 			final SSAContextInterpreter appCtxInterp, final int instancePolicy) throws IllegalArgumentException {
 		if (options == null) {
 			throw new IllegalArgumentException("options == null");
 		}
-	    
+	   
 		final ObjSensContextSelector objSensSelector = new ObjSensContextSelector(appContextSelector, options.filter);
-	    
-		return new ObjSensZeroXCFABuilder(cha, options, cache, objSensSelector, appCtxInterp, instancePolicy);
+        final ContextSelector contextSelector;
+        
+        if (additionalContextSelector != null) {
+            contextSelector = new DelegatingContextSelector(objSensSelector, additionalContextSelector);
+        } else {
+            contextSelector = objSensSelector;
+        }
+
+		return new ObjSensZeroXCFABuilder(cha, options, cache, contextSelector, appCtxInterp, instancePolicy);
 	}
+
 
 	public static SSAPropagationCallGraphBuilder make(AnalysisOptions options, AnalysisCache cache, IClassHierarchy cha,
 			ClassLoader cl, AnalysisScope scope, String[] xmlFiles, byte instancePolicy) throws IllegalArgumentException {

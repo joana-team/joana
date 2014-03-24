@@ -249,7 +249,7 @@ public class AnalysisPresets {
         p.scfg.staticInitializers = StaticInitializationTreatment.SIMPLE;   // Do not use ACCURATE: Is defunct
 
         // Precision
-        p.scfg.pts = PointsToPrecision.CONTEXT_SENSITIVE;
+        p.scfg.pts = PointsToPrecision.INSTANCE_BASED;
 
         p.scfg.prunecg = Main.DEFAULT_PRUNE_CG;
         //p.scfg.fieldPropagation = FieldPropagation.OBJ_GRAPH;   // Do not use OBJ_TREE: Is outdated

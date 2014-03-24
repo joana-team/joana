@@ -18,6 +18,7 @@ import com.ibm.wala.ipa.callgraph.CallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.ContextSelector;
 import com.ibm.wala.ipa.callgraph.MethodTargetSelector;
 import com.ibm.wala.ipa.callgraph.impl.DefaultContextSelector;
+import com.ibm.wala.ipa.callgraph.impl.DelegatingContextSelector;
 import com.ibm.wala.ipa.callgraph.impl.Util;
 import com.ibm.wala.ipa.callgraph.propagation.SSAContextInterpreter;
 import com.ibm.wala.ipa.callgraph.propagation.SSAPropagationCallGraphBuilder;
@@ -32,7 +33,6 @@ import com.ibm.wala.util.intset.OrdinalSet;
 // Available in a special variant of WALA
 
 public final class WalaPointsToUtil {
-    private static AnalysisScope myScope;
 
 	private WalaPointsToUtil() {}
 	
@@ -57,11 +57,15 @@ public final class WalaPointsToUtil {
      *  Asks parent-selector to resolve target; ask child only if not found by parent.
      */
     private static class DelegatingMethodTargetSelector implements MethodTargetSelector {
-        MethodTargetSelector parent;
-        MethodTargetSelector child;
-        public DelegatingMethodTargetSelector(MethodTargetSelector parent, MethodTargetSelector child) {
+        private final MethodTargetSelector parent;
+        private final MethodTargetSelector child;
+        private final AnalysisScope scope;
+
+        public DelegatingMethodTargetSelector(final MethodTargetSelector parent, final MethodTargetSelector child, 
+                final AnalysisScope scope) {
             this.parent = parent;
             this.child = child;
+            this.scope = scope;
         }
         @Override
         public IMethod getCalleeTarget (CGNode caller, CallSiteReference site, IClass receiver) {
@@ -75,7 +79,7 @@ public final class WalaPointsToUtil {
             }
 
             // Assert it's not explicitly excluded (is this necessary?)
-            if (!(myScope.getExclusions().contains(site.getDeclaredTarget().getDeclaringClass()))) {
+            if (!(scope.getExclusions().contains(site.getDeclaredTarget().getDeclaringClass()))) {
                 // This should not be!
                 IClassHierarchy cha = caller.getClassHierarchy();
                 
@@ -118,7 +122,6 @@ public final class WalaPointsToUtil {
 	    if (options == null) {
 	      throw new IllegalArgumentException("options is null");
 	    }
-        myScope = scope;
 
         { // Set the MethodTargetSelector
             MethodTargetSelector oldMethodTargetSelector = options.getMethodTargetSelector();
@@ -126,7 +129,7 @@ public final class WalaPointsToUtil {
 	        Util.addDefaultBypassLogic(options, scope, Util.class.getClassLoader(), cha);
 
             if (oldMethodTargetSelector != null) {
-                options.setSelector(new DelegatingMethodTargetSelector(oldMethodTargetSelector, options.getMethodTargetSelector()));
+                options.setSelector(new DelegatingMethodTargetSelector(oldMethodTargetSelector, options.getMethodTargetSelector(), scope));
             }
         }
         
@@ -142,7 +145,6 @@ public final class WalaPointsToUtil {
 	    if (options == null) {
 	      throw new IllegalArgumentException("options is null");
 	    }
-        myScope = scope;
        
         { // Set the MethodTargetSelector
             MethodTargetSelector oldMethodTargetSelector = options.getMethodTargetSelector();
@@ -150,7 +152,7 @@ public final class WalaPointsToUtil {
             Util.addDefaultBypassLogic(options, scope, Util.class.getClassLoader(), cha);
 
             if (oldMethodTargetSelector != null) {
-                options.setSelector(new DelegatingMethodTargetSelector(oldMethodTargetSelector, options.getMethodTargetSelector()));
+                options.setSelector(new DelegatingMethodTargetSelector(oldMethodTargetSelector, options.getMethodTargetSelector(), scope));
             }
         }
 
@@ -176,18 +178,18 @@ public final class WalaPointsToUtil {
 	    if (options == null) {
 	      throw new IllegalArgumentException("options is null");
 	    }
-        myScope = scope;	    
 
         { // Set the MethodTargetSelector
-            MethodTargetSelector oldMethodTargetSelector = options.getMethodTargetSelector();
+            final MethodTargetSelector oldMethodTargetSelector = options.getMethodTargetSelector();
             Util.addDefaultSelectors(options, cha);
             Util.addDefaultBypassLogic(options, scope, Util.class.getClassLoader(), cha);
 
             if (oldMethodTargetSelector != null) {
-                options.setSelector(new DelegatingMethodTargetSelector(oldMethodTargetSelector, options.getMethodTargetSelector()));
+                options.setSelector(new DelegatingMethodTargetSelector(oldMethodTargetSelector, options.getMethodTargetSelector(), scope));
             }
         }
-        
+
+
         final SSAContextInterpreter contextInterpreter;
         if (additionalContextInterpreter == null) {
         	contextInterpreter = new FallbackContextInterpreter(new DefaultSSAInterpreter(options, cache));
@@ -195,11 +197,12 @@ public final class WalaPointsToUtil {
         	contextInterpreter = additionalContextInterpreter;
         }
 
+        final ContextSelector defaultSelector = new DefaultContextSelector(options, cha);
         final ContextSelector contextSelector;
         if (additionalContextSelector == null) {
-        	contextSelector = new DefaultContextSelector(options, cha);
+        	contextSelector = defaultSelector;
         } else {
-        	contextSelector = additionalContextSelector;
+        	contextSelector = new DelegatingContextSelector(additionalContextSelector, defaultSelector);
         }
         
         final int instancePolicy =  ZeroXInstanceKeys.ALLOCATIONS |
@@ -207,7 +210,8 @@ public final class WalaPointsToUtil {
                                     ZeroXInstanceKeys.SMUSH_MANY |
                                     ZeroXInstanceKeys.SMUSH_THROWABLES;
 
-		return ObjSensZeroXCFABuilder.make(cha, options, cache, contextSelector, contextInterpreter, instancePolicy);
+		return ObjSensZeroXCFABuilder.make(cha, options, cache, defaultSelector, contextSelector, contextInterpreter,
+				instancePolicy);
 	}
 
     /**

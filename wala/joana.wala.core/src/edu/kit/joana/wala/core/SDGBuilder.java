@@ -907,15 +907,15 @@ public class SDGBuilder implements CallGraphFilter {
 			break;
 		case N1_CALL_STACK: // 1-CFA
 			// Slower as 0-1-CFA, yet few precision improvements
-			cgb = WalaPointsToUtil.makeNCallStackSens(1, options, cfg.cache, cfg.cha, cfg.scope);
+			cgb = WalaPointsToUtil.makeNCallStackSens(1, options, cfg.cache, cfg.cha, cfg.scope, cfg);
 			break;
 		case N2_CALL_STACK: // 2-CFA
 			// Slow, but precise
-			cgb = WalaPointsToUtil.makeNCallStackSens(2, options, cfg.cache, cfg.cha, cfg.scope);
+			cgb = WalaPointsToUtil.makeNCallStackSens(2, options, cfg.cache, cfg.cha, cfg.scope, cfg);
 			break;
 		case N3_CALL_STACK: // 3-CFA
 			// Very slow and little bit more precise. Not much improvement over 2-CFA.
-			cgb = WalaPointsToUtil.makeNCallStackSens(3, options, cfg.cache, cfg.cha, cfg.scope);
+			cgb = WalaPointsToUtil.makeNCallStackSens(3, options, cfg.cache, cfg.cha, cfg.scope, cfg);
 			break;
 		}
 		com.ibm.wala.ipa.callgraph.CallGraph callgraph = cgb.makeCallGraph(options, progress);

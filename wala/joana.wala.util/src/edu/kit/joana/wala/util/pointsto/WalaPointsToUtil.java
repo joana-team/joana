@@ -218,15 +218,42 @@ public final class WalaPointsToUtil {
      *  @todo TODO  Does not respect SDGBuilderConfig.additinalContextSelector and additionalContextInterpreter
      */
 	public static CallGraphBuilder makeNCallStackSens(final int n, final AnalysisOptions options,
-			final AnalysisCache cache, final IClassHierarchy cha, final AnalysisScope scope) {
+			final AnalysisCache cache, final IClassHierarchy cha, final AnalysisScope scope,
+            final SDGBuilderConfig scfg) {
+
 	    if (options == null) {
 	      throw new IllegalArgumentException("options is null");
 	    }
-	    Util.addDefaultSelectors(options, cha);
-	    Util.addDefaultBypassLogic(options, scope, Util.class.getClassLoader(), cha);
+
+        { // Set the MethodTargetSelector
+            MethodTargetSelector oldMethodTargetSelector = options.getMethodTargetSelector();
+            Util.addDefaultSelectors(options, cha);
+            Util.addDefaultBypassLogic(options, scope, Util.class.getClassLoader(), cha);
+
+            if (oldMethodTargetSelector != null) {
+                options.setSelector(new DelegatingMethodTargetSelector(oldMethodTargetSelector, options.getMethodTargetSelector(), scope));
+            }
+        }
+
 	    final SSAPropagationCallGraphBuilder result =
 	    	new nCFABuilder(n, cha, options, cache, null, null);
-	    // nCFABuilder uses type-based heap abstraction by default, but we want allocation sites
+	   
+        { // Set the ContextSelector
+            if ((scfg != null) && (scfg.additionalContextSelector != null)) {
+                final ContextSelector nCFA = result.getContextSelector();
+                result.setContextSelector(new UnionContextSelector(nCFA, scfg.additionalContextSelector));
+            }
+        }
+
+        { // Set the ContextInterpreter
+            if ((scfg != null) && (scfg.additionalContextInterpreter != null)) {
+                final SSAContextInterpreter nCFA = result.getCFAContextInterpreter();
+                result.setContextInterpreter(new FallbackContextInterpreter(new DelegatingSSAContextInterpreter(
+                                nCFA, scfg.additionalContextInterpreter)));
+            }
+        }
+        
+        // nCFABuilder uses type-based heap abstraction by default, but we want allocation sites
 	    result.setInstanceKeys(new ZeroXInstanceKeys(options, cha, result.getContextInterpreter(),
 	        ZeroXInstanceKeys.ALLOCATIONS | ZeroXInstanceKeys.SMUSH_MANY | ZeroXInstanceKeys.CONSTANT_SPECIFIC
 	      | ZeroXInstanceKeys.SMUSH_THROWABLES));
@@ -236,6 +263,11 @@ public final class WalaPointsToUtil {
     //
     // Old methods follow for compatibility reasons
     //
+	public static CallGraphBuilder makeNCallStackSens(final int n, final AnalysisOptions options,
+			final AnalysisCache cache, final IClassHierarchy cha, final AnalysisScope scope) {
+        return makeNCallStackSens(n, options, cache, cha, scope, null);
+    }
+
 	public static CallGraphBuilder makeContextFreeType(final AnalysisOptions options, final AnalysisCache cache,
 		      final IClassHierarchy cha, final  AnalysisScope scope) {
         return makeContextFreeType(options, cache, cha, scope, null, null);

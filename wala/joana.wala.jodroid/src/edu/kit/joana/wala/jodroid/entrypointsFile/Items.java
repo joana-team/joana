@@ -326,6 +326,56 @@ class Items {
         }
     }
 
+    public static class IntentItem extends ParserItem {
+        @Override
+        public void leave() {
+            //super.leave();
+
+            final List<Intent> to = new ArrayList<Intent>();
+            { // Select override-tags into to
+                while (parserStack.peek() != self) {
+                    final Tag current = parserStack.pop();
+                    final Set<Tag> allowedTags = self.getAllowedSubTags();
+                    if (! allowedTags.contains(current)) {
+                        throw new IllegalStateException("In " + self + ": Tag " + current + " not allowed in Context " + parserStack + "\n\t"+ "Allowed Tags: " + allowedTags);
+                    }
+                    assert (current == Tag.OVERRIDE);
+                    
+                    final String name = (String) attributesHistory.get(Attr.NAME).peek();
+                    final String of = (String) attributesHistory.get(Attr.OF).peek();
+                    final String resolves = (String) attributesHistory.get(Attr.RESOLVES).peek();
+
+                    final Intent target = factory.Intent(name, resolves);
+                    to.add(target);
+
+                    current.getHandler().popAttributes();
+                }
+            }
+          
+            final Intent from;
+            {
+                final String name = (String) attributesHistory.get(Attr.NAME).peek();
+                final String of = (String) attributesHistory.get(Attr.OF).peek();
+                final String resolves = (String) attributesHistory.get(Attr.RESOLVES).peek();
+                from = factory.Intent(name, resolves);
+            }
+
+            /** @todo TODO Dont' place directly in aem but use an indirection to be able to disbale
+                Reading in intents */
+
+            final AndroidEntryPointManager aem = AndroidEntryPointManager.MANAGER;
+            if (to.size() == 0) {
+                aem.registerIntentForce(from);
+            } else {
+                for (final Intent i : to) {
+                    aem.setOverrideForce(from, i);
+                }
+            }
+
+            //attributesHistory.get(self).push(ep);*/
+        }
+    }
+
 
     public static class EPItem extends FinalItem {
         @Override

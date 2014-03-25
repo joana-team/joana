@@ -23,6 +23,7 @@ import com.ibm.wala.ipa.callgraph.impl.Util;
 import com.ibm.wala.ipa.callgraph.propagation.SSAContextInterpreter;
 import com.ibm.wala.ipa.callgraph.propagation.SSAPropagationCallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.DefaultSSAInterpreter;
+import com.ibm.wala.ipa.callgraph.propagation.cfa.DelegatingSSAContextInterpreter;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.FallbackContextInterpreter;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.ZeroXCFABuilder;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.ZeroXInstanceKeys;
@@ -219,7 +220,8 @@ public final class WalaPointsToUtil {
      */
 	public static CallGraphBuilder makeNCallStackSens(final int n, final AnalysisOptions options,
 			final AnalysisCache cache, final IClassHierarchy cha, final AnalysisScope scope,
-            final SDGBuilderConfig scfg) {
+			final ContextSelector additionalContextSelector,
+			final SSAContextInterpreter additionalContextInterpreter) {
 
 	    if (options == null) {
 	      throw new IllegalArgumentException("options is null");
@@ -239,17 +241,17 @@ public final class WalaPointsToUtil {
 	    	new nCFABuilder(n, cha, options, cache, null, null);
 	   
         { // Set the ContextSelector
-            if ((scfg != null) && (scfg.additionalContextSelector != null)) {
+            if (additionalContextSelector != null) {
                 final ContextSelector nCFA = result.getContextSelector();
-                result.setContextSelector(new UnionContextSelector(nCFA, scfg.additionalContextSelector));
+                result.setContextSelector(new DelegatingContextSelector(additionalContextSelector, nCFA));
             }
         }
 
         { // Set the ContextInterpreter
-            if ((scfg != null) && (scfg.additionalContextInterpreter != null)) {
+            if (additionalContextInterpreter != null) {
                 final SSAContextInterpreter nCFA = result.getCFAContextInterpreter();
                 result.setContextInterpreter(new FallbackContextInterpreter(new DelegatingSSAContextInterpreter(
-                                nCFA, scfg.additionalContextInterpreter)));
+                                nCFA, additionalContextInterpreter)));
             }
         }
         
@@ -265,7 +267,7 @@ public final class WalaPointsToUtil {
     //
 	public static CallGraphBuilder makeNCallStackSens(final int n, final AnalysisOptions options,
 			final AnalysisCache cache, final IClassHierarchy cha, final AnalysisScope scope) {
-        return makeNCallStackSens(n, options, cache, cha, scope, null);
+        return makeNCallStackSens(n, options, cache, cha, scope, null, null);
     }
 
 	public static CallGraphBuilder makeContextFreeType(final AnalysisOptions options, final AnalysisCache cache,

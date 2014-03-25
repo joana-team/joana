@@ -420,7 +420,7 @@ public class AnalysisPresets {
 
         // Some of the following settings will match the dafults of AndroidEntypointManager.
         // However they are repeated here to be shure.
-        p.aem.setDoBootSequence(true);
+        p.aem.setDoBootSequence(false);
         p.entrypointLocatorFlags = EnumSet.allOf(LocatorFlags.class);
 
         return p;

@@ -36,6 +36,8 @@ import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationB
 import com.ibm.wala.dalvik.ipa.callgraph.impl.AndroidEntryPoint;
 import com.ibm.wala.dalvik.ipa.callgraph.impl.AndroidEntryPoint.ExecutionOrder;
 import com.ibm.wala.dalvik.ipa.callgraph.impl.DexEntryPoint;
+import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.Intent;
+import com.ibm.wala.dalvik.util.AndroidSettingFactory;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.types.MethodReference;
@@ -52,7 +54,7 @@ import edu.kit.joana.wala.jodroid.entrypointsFile.Exceptions.StringUnpackExcepti
  *  @author Tobias Blaschke <code@tobiasblaschke.de>
  *  @since  2013-10-27
  */
-class WalaObjectFactory {
+class WalaObjectFactory extends AndroidSettingFactory {
     final IClassHierarchy cha;
 
     public WalaObjectFactory(final IClassHierarchy cha) {
@@ -160,4 +162,49 @@ class WalaObjectFactory {
         }
     }
 
+    public static Intent Intent(final String action, final String resolves) {
+        Intent.IntentType res;
+        { // parse resolves
+            try {
+                res = Intent.IntentType.valueOf(resolves.toUpperCase());  
+            } catch (IllegalArgumentException e) {
+                //logger.error("Unable to parse resolves value " + resolves + " for intent " + 
+                //        action + "! Using UNKNOWN_TARGET.");
+                res = Intent.IntentType.UNKNOWN_TARGET;
+            }
+        }
+
+        return Intent(action, res);
+    }
+
+    public static Intent Intent(final String action, final Intent.IntentType resolves) {
+        final Intent intent;
+
+        switch (resolves) {
+            case BROADCAST:
+                intent = new UnknownIntent(action);
+                break;
+            case EXTERNAL_TARGET:
+                intent = new ExternalIntent(action);
+                break;
+            case IGNORE:
+                intent = new IgnoreIntent(action);
+                break;
+            case INTERNAL_TARGET:
+                intent =  new InternalIntent(action);
+                break;
+            case STANDARD_ACTION:
+                intent = new StandardIntent(action);
+                break;
+            case SYSTEM_SERVICE:
+                throw new UnsupportedOperationException("The IntentType " + resolves + " cannot be handed in this implementation!");
+            case UNKNOWN_TARGET:
+                intent = new UnknownIntent(action);
+                break;
+            default:
+                throw new UnsupportedOperationException("The IntentType " + resolves + " cannot be handed in this implementation!");
+        }
+
+        return intent;
+    }
 }

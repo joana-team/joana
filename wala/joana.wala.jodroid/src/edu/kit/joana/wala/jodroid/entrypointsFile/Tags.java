@@ -154,7 +154,7 @@ public class Tags {
                         new ISubTags() { public Set<Tag> getSubTags() {
                             return EnumSet.of(Tag.OVERRIDE); }},
                         EnumSet.of(Attr.NAME, Attr.OF, Attr.RESOLVES),
-                        NoOpItem.class),
+                        IntentItem.class),
                     OVERRIDE("override",
                             new ISubTags() { public Set<Tag> getSubTags() {
                                 return Collections.EMPTY_SET; }},

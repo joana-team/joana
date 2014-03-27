@@ -22,7 +22,7 @@ Analyzing an Android-Application involves multiple steps:
 4. Run joana.wala.jodroid.jar using the --scan (and optionally the --manifest) options. Be sure to give java enough memory (using the -Xmx-Option). This will generate a entrypoint-specification file (.ntrP)
 
     Example:
-        java -ea -Xmx2048m -jar joana.wala.jodroid.jar --manifest project/AndroidManifest.xml --scan project/project.apk
+        java -Xss16m -Xmx2048m -jar joana.wala.jodroid.jar --manifest project/AndroidManifest.xml --scan normal project/project.apk
         
         produces: project/project.apk.ntrP
 
@@ -33,9 +33,13 @@ If the file is not edited JoDroid should produce usable results too. However due
 6. Run JoDroid again using the specifications-file. This will produce a SDG (.pdg-File)
 
     Example:
-        java -ea -Xmx2048m -jar joana.wala.jodroid.jar --ep-file project/project.apk.ntrP project/project.apk
+        java -Xss16m -Xmx2048m -jar joana.wala.jodroid.jar --ep-file project/project.apk.ntrP --construct all --analysis full project/project.apk
         
         produces: project/project.apk.pdg
+
+        The Option "--analysis full" generates an Object-Sensitive SDG.
+        The Option "--contruct all" tells JoDroid to considder all components of the application as the reason the app was started. A Useful alternative would be "--construct main" to start with the Main-Intent. The later variant is however less conservative and fails for Apps without Main-Intent.
+
 
 7. Launch the IFC-Console (/dist/joana.ui.ifc.wala.console.jar).
 

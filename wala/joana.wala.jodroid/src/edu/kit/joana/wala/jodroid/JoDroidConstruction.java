@@ -62,6 +62,12 @@ import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.NullProgressMonitor;
 
 import com.ibm.wala.types.ClassLoaderReference;
+import com.ibm.wala.util.io.FileSuffixes;
+import java.util.jar.JarInputStream;
+import java.util.jar.JarFile;
+import com.ibm.wala.classLoader.JarStreamModule;
+import com.ibm.wala.dalvik.dex.util.config.DexAnalysisScopeReader;
+import com.ibm.wala.util.config.AnalysisScopeReader;
 
 // Needed by findMethod:
 import com.ibm.wala.classLoader.IClass;
@@ -77,6 +83,7 @@ import java.net.URI;
 import java.io.FileOutputStream;
 import java.util.jar.JarFile;
 import java.io.IOException;
+import java.io.InputStream;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
@@ -357,7 +364,7 @@ public class JoDroidConstruction {
         if (! intent.isInternal(/* strict = */ true)) {
             throw new IllegalArgumentException("The Intent " + intent + " is not internally resolvable! " +
                     "Are specifications loaded - either from manifest or ntrP?");
-        }
+        } 
 
         final IMethod livecycle;
         final AndroidModel modeller;
@@ -368,7 +375,7 @@ public class JoDroidConstruction {
                     final AndroidModel makroModel = new AndroidModel(p.scfg.cha, p.options, p.scfg.cache);
                     makroModel.getMethod();
                 } // */
-                modeller = new IntentModel(p.scfg.cha, p.options, p.scfg.cache, intent.action);
+                modeller = new IntentModel(p.scfg.cha, p.options, p.scfg.cache, intent.getAction());
                 //livecycle = modeller.getMethod();   
                 livecycle = modeller.getMethodEncap();   
             } catch (CancelException e) {
@@ -433,25 +440,8 @@ public class JoDroidConstruction {
      *  @param  ex  Options exposed to the user.
      */
     public static void dispatch(final ExecutionOptions ex) throws SDGConstructionException, IOException {
-        final AnalysisScope scope;
-        { // generate the scope
-            final URI classPath = ex.getClassPath();
-            final URI androidStubs = ex.getAndroidLib();
-            final File javaStubs = ex.getJavaStubsFile();
-            final File exclusions = ex.getExclusionsFile();
-            
-            logger.info("Using ClassPath:\t{}", classPath.toString());
-            logger.info("Using Android Stubs:\t{}", androidStubs.toString());
-            logger.info("Using Java Stubs:\t{}", javaStubs.toString());
+        final AnalysisScope scope = makeScope(null, null, ex);
 
-            assert (exclusions != null); // XXX: Handle case without exclusions?
-            scope = AndroidAnalysisScope.setUpAndroidAnalysisScope(androidStubs, classPath, exclusions);
-            
-            if (javaStubs != null) {
-                scope.addToScope(ClassLoaderReference.Primordial, new JarFile(javaStubs.getPath()));
-            }
-        }
-        
         final IClassHierarchy cha;
         { // Build cha
             try {
@@ -584,18 +574,14 @@ public class JoDroidConstruction {
         dispatch(ex);
     }
 
-    /**
-     *  Generate the ClassHierarchy for an Android-App.
-     *
-     *  A bundled exclusions-File is used during generation!
-     *
-     *  @param  classPath   The Android-App to generate the cha for
-     *  @param  androidLib  Adroid-Stubs to use during generation. If null: use bunded ones.
-     */
-    public static IClassHierarchy computeCH(String classPath, String androidLib) throws IOException, ClassHierarchyException {
-        final ExecutionOptions ex = new ExecutionOptions();
+    public static AnalysisScope makeScope(final String classPath, final String androidLib, ExecutionOptions ex) throws IOException {
         {
-            ex.setClassPath(classPath);
+            if (ex == null) {
+                ex = new ExecutionOptions();
+            }
+            if (classPath != null) {
+                ex.setClassPath(classPath);
+            }
             if (androidLib != null) {
                 ex.setAndroidLib(androidLib);
             }
@@ -605,7 +591,7 @@ public class JoDroidConstruction {
         { // generate the scope
             final URI classPathUri = ex.getClassPath();
             final URI androidStubs = ex.getAndroidLib();
-            final File javaStubs = ex.getJavaStubsFile();
+            final URI javaStubs = ex.getJavaStubs();
             final File exclusions = ex.getExclusionsFile();
             
             logger.info("Using ClassPath:\t{}", classPathUri.toString());
@@ -613,13 +599,49 @@ public class JoDroidConstruction {
             logger.info("Using Java Stubs:\t{}", javaStubs.toString());
 
             assert (exclusions != null); // XXX: Handle case without exclusions?
-            scope = AndroidAnalysisScope.setUpAndroidAnalysisScope(androidStubs, classPathUri, exclusions);
             
-            if (javaStubs != null) {
-                scope.addToScope(ClassLoaderReference.Primordial, new JarFile(javaStubs.getPath()));
+            scope = DexAnalysisScopeReader.makeAndroidBinaryAnalysisScope(classPathUri, exclusions);
+            scope.setLoaderImpl(ClassLoaderReference.Application,
+                    "com.ibm.wala.dalvik.classLoader.WDexClassLoaderImpl");
+            scope.setLoaderImpl(ClassLoaderReference.Primordial,
+                    "com.ibm.wala.dalvik.classLoader.WDexClassLoaderImpl");
+
+            scope.addToScope(AnalysisScopeReader.makePrimordialScope(exclusions)); // Reads primordial.txt 
+
+            if (FileSuffixes.isRessourceFromJar(javaStubs)) {
+                final InputStream is = javaStubs.toURL().openStream();
+                scope.addToScope(ClassLoaderReference.Primordial,
+                        new JarStreamModule(new JarInputStream(is)));
+            } else {
+                scope.addToScope(ClassLoaderReference.Primordial, new JarFile(new File(
+                                javaStubs)));
             }
+
+
+            if (FileSuffixes.isRessourceFromJar(androidStubs)) {
+                final InputStream is = androidStubs.toURL().openStream();
+                scope.addToScope(ClassLoaderReference.Primordial,
+                        new JarStreamModule(new JarInputStream(is)));
+            } else {
+                scope.addToScope(ClassLoaderReference.Primordial, new JarFile(new File(
+                                androidStubs)));
+            }
+
         }
 
+        return scope;
+    }
+
+    /**
+     *  Generate the ClassHierarchy for an Android-App.
+     *
+     *  A bundled exclusions-File is used during generation!
+     *
+     *  @param  classPath   The Android-App to generate the cha for
+     *  @param  androidLib  Adroid-Stubs to use during generation. If null: use bunded ones.
+     */
+    public static IClassHierarchy computeCH(String classPath, String androidLib) throws IOException, ClassHierarchyException {
+        final AnalysisScope scope = makeScope(classPath, androidLib, new ExecutionOptions()); 
         return ClassHierarchy.make(scope, Preset.aem.getProgressMonitor());
     }
 

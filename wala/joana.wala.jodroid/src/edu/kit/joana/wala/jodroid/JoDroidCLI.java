@@ -144,6 +144,12 @@ public class JoDroidCLI {
                 .hasArg()
                 .withArgName("FILE")
                 .create("l") );
+        options.addOption(  //"L", "lib-java", 
+                OptionBuilder.withLongOpt( "lib-java" )
+                .withDescription( "specifies the path to the .jar which contains the java library." )
+                .hasArg()
+                .withArgName("FILE")
+                .create("L") );
         options.addOption(  //"m", "manifest"
                 OptionBuilder.withLongOpt( "manifest" )
                 .withDescription( "Read in the manifest of an Android-Application. This mainly makes sense in a " +
@@ -195,6 +201,10 @@ public class JoDroidCLI {
 
             if ( commandLine.hasOption( "lib" ) ) {
                 p.setAndroidLib(commandLine.getOptionValue("lib"));
+            }
+
+            if ( commandLine.hasOption( "lib-java" ) ) {
+                p.setJavaStubs(commandLine.getOptionValue("lib-java"));
             }
 
             if ( commandLine.hasOption( "manifest" ) ) {

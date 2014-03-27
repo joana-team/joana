@@ -18,14 +18,16 @@
   <!-- logger name="com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.Instantiator" level="OFF"/ -->
   <logger name="com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.Instantiator" level="OFF"/>
   <logger name="com.ibm.wala.util.ssa.ParameterAccessor" level="OFF"/>
-  <logger name="com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.IntentContextInterpreter" level="WARN"/>
-  <logger name="com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.IntentContextSelector" level="DEBUG"/>
+  <logger name="com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.IntentContextInterpreter" level="INFO" />
+  <logger name="com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.IntentContextSelector" level="INFO"/>
+  <logger name="com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.Intent" level="WARN" />
   <logger name="com.ibm.wala.dalvik.util.AndroidEntryPointManager" level="OFF"/>
+  <logger name="com.ibm.wala.dalvik.ipa.callgraph.androidModel.MiniModel" level="DEBUG" />
   <!--logger name="com.ibm.wala.cfg.InducedCFG" level="DEBUG" />
   <logger name="com.ibm.wala.dalvik.ipa.callgraph.androidModel.structure.LoopAndroidModel" level="DEBUG" />
   <logger name="com.ibm.wala.dalvik.ipa.callgraph.androidModel.structure.AbstractAndroidModel" level="DEBUG" /-->
-   <logger name="com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.FlatInstantiator" level="INFO" />
-   <logger name="com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.SpecializedInstantiator" level="INFO" />
+   <!--logger name="com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.FlatInstantiator" level="INFO" />
+   <logger name="com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.SpecializedInstantiator" level="INFO" /-->
 
   <root level="ALL">
     <appender-ref ref="STDOUT" /> <!-- change to ref="DEVNULL" for no output -->

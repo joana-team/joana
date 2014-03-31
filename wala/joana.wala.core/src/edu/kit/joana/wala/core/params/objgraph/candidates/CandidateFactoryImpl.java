@@ -334,6 +334,11 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		@Override
 		public void merge(final OrdinalSet<UniqueParameterCandidate> additional) {
 			this.cands = OrdinalSet.unify(this.cands, additional);
+			// invalidate cached results
+			if (this.isArray != V.MAYBE) { this.isArray = V.UNKNOWN; }
+			if (this.isStatic != V.MAYBE) { this.isStatic = V.UNKNOWN; }
+			if (this.isPrimitive != V.MAYBE) { this.isPrimitive = V.UNKNOWN; }
+			if (this.isRoot != V.MAYBE) { this.isRoot = V.UNKNOWN; }
 		}
 
 		@Override

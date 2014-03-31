@@ -204,10 +204,12 @@ public class IFCConfigPanel extends JPanel {
 		compIFECheckbox.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				if (e.getStateChange() == ItemEvent.SELECTED) {
-					consoleGui.execSetComputeInterferences(true);
-				} else if (e.getStateChange() == ItemEvent.DESELECTED) {
-					consoleGui.execSetComputeInterferences(false);
+				if (!ignoreSelection) {
+					if (e.getStateChange() == ItemEvent.SELECTED) {
+						consoleGui.execSetComputeInterferences(true);
+					} else if (e.getStateChange() == ItemEvent.DESELECTED) {
+						consoleGui.execSetComputeInterferences(false);
+					}
 				}
 			}
 
@@ -669,8 +671,10 @@ public class IFCConfigPanel extends JPanel {
 				break;
 			}
 		}
+		ignoreSelection = true;
 		compIFECheckbox.setSelected(consoleGui.getComputeInterferences());
 		compIFECheckbox.repaint();
+		ignoreSelection = false;
 		mhpCombo.setEnabled(compIFECheckbox.isSelected());
 		mhpCombo.repaint();
 	}

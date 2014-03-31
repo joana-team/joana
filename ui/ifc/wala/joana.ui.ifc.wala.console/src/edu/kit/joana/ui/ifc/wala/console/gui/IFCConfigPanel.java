@@ -35,7 +35,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.MutableComboBoxModel;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
@@ -202,11 +201,14 @@ public class IFCConfigPanel extends JPanel {
 		initPointsToCombo();
 		ret.add(pointstoCombo, GUIUtil.mkgbc_nofill(1,  1, 1, 1));
 
-		compIFECheckbox.addChangeListener(new ChangeListener() {
-
+		compIFECheckbox.addItemListener(new ItemListener() {
 			@Override
-			public void stateChanged(ChangeEvent e) {
-				mhpCombo.setEnabled(compIFECheckbox.isSelected());
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					consoleGui.execSetComputeInterferences(true);
+				} else if (e.getStateChange() == ItemEvent.DESELECTED) {
+					consoleGui.execSetComputeInterferences(false);
+				}
 			}
 
 		});
@@ -276,6 +278,7 @@ public class IFCConfigPanel extends JPanel {
 		}
 
 		exceptionCombo.setModel(exceptionTypes);
+		exceptionCombo.addItemListener(makeSelectExceptionAnalysisListener());
 	}
 
 	private void initPointsToCombo() {
@@ -441,6 +444,28 @@ public class IFCConfigPanel extends JPanel {
 		};
 	}
 	
+	private ItemListener makeSelectExceptionAnalysisListener() {
+		return new ItemListener() {
+
+			private Object previous = null;
+
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (!ignoreSelection && e.getStateChange() == ItemEvent.SELECTED) {
+					final Object item = e.getItem();
+
+					if (previous != item && item instanceof ElementWithDescription<?>) {
+						final ElementWithDescription<Object> elem = (ElementWithDescription<Object>) item;
+						if (elem.element instanceof ExceptionAnalysis) {
+							consoleGui.execSetExcAnalysis((ExceptionAnalysis) elem.element);
+							previous = item;
+						}
+					}
+				}
+			}
+		};
+	}
+
 	private ActionListener makeSaveSDGAction() {
 		return new ActionListener() {
 
@@ -606,6 +631,23 @@ public class IFCConfigPanel extends JPanel {
 				break;
 			}
 		}
+
+		final ExceptionAnalysis exc = consoleGui.getExceptionAnalysis();
+		for (int excIndex = 0; excIndex < exceptionCombo.getItemCount(); excIndex++) {
+			final ElementWithDescription<ExceptionAnalysis> item =
+					(ElementWithDescription<ExceptionAnalysis>) exceptionCombo.getItemAt(excIndex);
+			if (item.element == exc) {
+				ignoreSelection = true;
+				exceptionCombo.setSelectedIndex(excIndex);
+				exceptionCombo.repaint();
+				ignoreSelection = false;
+				break;
+			}
+		}
+		compIFECheckbox.setSelected(consoleGui.getComputeInterferences());
+		compIFECheckbox.repaint();
+		mhpCombo.setEnabled(compIFECheckbox.isSelected());
+		mhpCombo.repaint();
 	}
 
 	public void mute() {

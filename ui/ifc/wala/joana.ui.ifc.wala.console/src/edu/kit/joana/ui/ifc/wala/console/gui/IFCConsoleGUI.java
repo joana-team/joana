@@ -42,6 +42,7 @@ import edu.kit.joana.ui.ifc.wala.console.console.IFCConsoleListener;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCConsoleOutput;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.util.io.IOFactory;
+import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import gnu.trove.map.TObjectIntMap;
 
@@ -337,6 +338,14 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 		executeCmd(CMD.SET_POINTSTO, new String[] { CMD.SET_POINTSTO.getName(), pts.name() });
 	}
 
+	public void execSetComputeInterferences(boolean newValue) {
+		executeCmd(CMD.SET_COMPUTE_INTERFERENCES, new String[] { CMD.SET_COMPUTE_INTERFERENCES.getName(), Boolean.toString(newValue)});
+	}
+
+	public void execSetExcAnalysis(ExceptionAnalysis exc) {
+		executeCmd(CMD.SET_EXCEPTIONS, new String[] { CMD.SET_EXCEPTIONS.getName(), exc.name() });
+	}
+
 	public void execSetStubsPath(String stubsPath) {
 		executeCmd(CMD.SET_STUBSPATH, new String[] { CMD.SET_STUBSPATH.getName(), stubsPath });
 	}
@@ -466,6 +475,14 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 		return console.getPointsTo();
 	}
 
+	public ExceptionAnalysis getExceptionAnalysis() {
+		return console.getExceptionAnalysis();
+	}
+
+	public boolean getComputeInterferences() {
+		return console.getComputeInterferences();
+	}
+
 	public Stubs getStubsPath() {
 		return console.getStubsPath();
 	}
@@ -563,7 +580,7 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 		return configPane.getSDGFile();
 	}
 
-	
+
 
 	// public SDGProgramPart getInterferingPart(SDGProgramPart part, Type type)
 	// {

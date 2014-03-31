@@ -676,7 +676,17 @@ public class IFCConfigPanel extends JPanel {
 		compIFECheckbox.repaint();
 		ignoreSelection = false;
 		mhpCombo.setEnabled(compIFECheckbox.isSelected());
-		mhpCombo.repaint();
+		final MHPType mhp = consoleGui.getMHPType();
+		for (int mhpIndex = 0; mhpIndex < mhpCombo.getItemCount(); mhpIndex++) {
+			final ElementWithDescription<MHPType> item = (ElementWithDescription<MHPType>) mhpCombo.getItemAt(mhpIndex);
+			if (item.element == mhp) {
+				ignoreSelection = true;
+				mhpCombo.setSelectedIndex(mhpIndex);
+				mhpCombo.repaint();
+				ignoreSelection = true;
+				break;
+			}
+		}
 	}
 
 	public void mute() {

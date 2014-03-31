@@ -90,15 +90,15 @@ public class ListEntryPoints {
 		IMethod onActCreate = cha.resolveMethod(onActCreateRef);
 		IMethod onAppCreate = cha.resolveMethod(onAppCreateRef);
 		
-		if (onStart != null) {
+		if (onStart != null && onStart.getReference().equals(onStartRef)) {
 			ret.add(onStartRef);
 		}
 		
-		if (onActCreate != null) {
+		if (onActCreate != null && onActCreate.getReference().equals(onActCreateRef)) {
 			ret.add(onActCreateRef);
 		}
 		
-		if (onAppCreate != null) {
+		if (onAppCreate != null && onAppCreate.getReference().equals(onAppCreateRef)) {
 			ret.add(onAppCreateRef);
 		}
 		

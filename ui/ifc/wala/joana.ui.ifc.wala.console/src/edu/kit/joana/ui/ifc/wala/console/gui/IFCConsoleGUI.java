@@ -34,6 +34,7 @@ import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
+import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.ifc.wala.console.console.EntryLocator;
 import edu.kit.joana.ui.ifc.wala.console.console.IFCConsole;
@@ -346,6 +347,10 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 		executeCmd(CMD.SET_EXCEPTIONS, new String[] { CMD.SET_EXCEPTIONS.getName(), exc.name() });
 	}
 
+	public void execSetMHPType(MHPType mhp) {
+		executeCmd(CMD.SET_MHP_TYPE, new String[] {CMD.SET_MHP_TYPE.getName(), mhp.name()});
+	}
+
 	public void execSetStubsPath(String stubsPath) {
 		executeCmd(CMD.SET_STUBSPATH, new String[] { CMD.SET_STUBSPATH.getName(), stubsPath });
 	}
@@ -481,6 +486,10 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 
 	public boolean getComputeInterferences() {
 		return console.getComputeInterferences();
+	}
+
+	public MHPType getMHPType() {
+		return console.getMHPType();
 	}
 
 	public Stubs getStubsPath() {

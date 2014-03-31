@@ -256,7 +256,9 @@ public class IFCConfigPanel extends JPanel {
 		mhpTypes.addElement(new ElementWithDescription<MHPType>(MHPType.SIMPLE, MHP_SIMPLE));
 		mhpTypes.addElement(new ElementWithDescription<MHPType>(MHPType.PRECISE, MHP_PRECISE));
 		mhpCombo.setModel(mhpTypes);
+		mhpCombo.setSelectedItem(consoleGui.getMHPType());
 		mhpCombo.setEnabled(false);
+		mhpCombo.addItemListener(makeSelectMHPTypeListener());
 	}
 	
 	private void initStubsCombo() {
@@ -443,7 +445,30 @@ public class IFCConfigPanel extends JPanel {
 			}
 		};
 	}
-	
+
+	private ItemListener makeSelectMHPTypeListener() {
+		return new ItemListener() {
+
+			private Object previous = null;
+
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (!ignoreSelection && e.getStateChange() == ItemEvent.SELECTED) {
+					final Object item = e.getItem();
+
+					if (previous != item && item instanceof ElementWithDescription<?>) {
+						final ElementWithDescription<Object> elem = (ElementWithDescription<Object>) item;
+						if (elem.element instanceof MHPType) {
+							consoleGui.execSetMHPType((MHPType) elem.element);
+							previous = item;
+						}
+					}
+				}
+			}
+		};
+	}
+
+
 	private ItemListener makeSelectExceptionAnalysisListener() {
 		return new ItemListener() {
 

@@ -87,8 +87,10 @@ public class IFCConsole {
 							"Selects an entry method for sdg generation."),
 		SET_CLASSPATH(	"setClasspath", 		1, 		"<path>",
 							"Sets the class path for sdg generation. Can be for example a bin directory or a jar file."),
+		SET_EXCEPTIONS( "setExceptionAnalysis", 1, "<exception analysis type>", "Sets the type of exception analysis to perform during SDG construction. Possible values are: " + Arrays.toString(ExceptionAnalysis.values())),
 		SET_POINTSTO(	"setPointsTo", 			1, 		"<points-to precision>",
 							"Sets the points-to precision for sdg generation."),
+		SET_COMPUTE_INTERFERENCES("setComputeInterferences", 1, "true|false", "Sets whether interference edges shall be computed or not."),
 		INFO(			"info", 				0, 		"",
 							"Display the current configuration for sdg generation and ifc analysis"),
 		BUILD_SDG(		"buildSDG", 			2, 	3, 	"<compute interference?> <mhptype> [<exception analysis type>]",
@@ -294,6 +296,8 @@ public class IFCConsole {
 	private IFCAnalysis ifcAnalysis = null;
 	private String classPath = "bin";
 	private PointsToPrecision pointsTo = PointsToPrecision.INSTANCE_BASED;
+	private ExceptionAnalysis excAnalysis = ExceptionAnalysis.INTRAPROC;
+	private boolean computeInterference = false;
 	// private IStaticLattice<String> securityLattice;
 	private Collection<IViolation<SecurityNode>> lastAnalysisResult = new LinkedList<IViolation<SecurityNode>>();
 	private TObjectIntMap<IViolation<SDGProgramPart>> groupedIFlows = new TObjectIntHashMap<IViolation<SDGProgramPart>>();
@@ -379,6 +383,38 @@ public class IFCConsole {
 				setPointsTo(args[1]);
 				out.logln("points-to = " + pointsTo.desc);
 				return true;
+			}
+
+		};
+	}
+
+	private Command makeCommandSetExceptionAnalysis() {
+		return new Command(CMD.SET_EXCEPTIONS) {
+
+			@Override
+			boolean execute(String[] args) {
+				setExceptionAnalysis(args[1]);
+				out.logln("exceptionAnalysis = " + excAnalysis.desc);
+				return true;
+			}
+
+		};
+	}
+
+	private Command makeCommandSetComputeInterferences() {
+		return new Command(CMD.SET_COMPUTE_INTERFERENCES) {
+
+			@Override
+			boolean execute(String[] args) {
+				if (!("true".equals(args[1]) || "false".equals(args[1]))) {
+					out.logln("invalid setting: " + args[1]);
+					return false;
+				} else {
+					boolean b = "true".equals(args[1]);
+					setComputeInterferences(b);
+					out.logln("computeInterferences = " + args[1]);
+					return true;
+				}
 			}
 
 		};
@@ -812,7 +848,9 @@ public class IFCConsole {
 		repo.addCommand(makeCommandSearchEntries());
 		repo.addCommand(makeCommandSelectEntry());
 		repo.addCommand(makeCommandSetClasspath());
+		repo.addCommand(makeCommandSetExceptionAnalysis());
 		repo.addCommand(makeCommandSetPointsTo());
+		repo.addCommand(makeCommandSetComputeInterferences());
 		repo.addCommand(makeCommandSetStubsPath());
 		repo.addCommand(makeCommandInfo());
 		repo.addCommand(makeCommandBuildSDG());
@@ -1024,6 +1062,19 @@ public class IFCConsole {
 				break;
 			}
 		}
+	}
+
+	public void setExceptionAnalysis(final String newExc) {
+		for (final ExceptionAnalysis exc : ExceptionAnalysis.values()) {
+			if (exc.name().equals(newExc)) {
+				this.excAnalysis = exc;
+				break;
+			}
+		}
+	}
+
+	public void setComputeInterferences(boolean cmpInt) {
+		this.computeInterference = cmpInt;
 	}
 
 	public Stubs getStubsPath() {
@@ -1651,6 +1702,14 @@ public class IFCConsole {
 
 	public PointsToPrecision getPointsTo() {
 		return pointsTo;
+	}
+
+	public ExceptionAnalysis getExceptionAnalysis() {
+		return excAnalysis;
+	}
+
+	public boolean getComputeInterferences() {
+		return computeInterference;
 	}
 
 	public Collection<IFCAnnotation> getSources() {

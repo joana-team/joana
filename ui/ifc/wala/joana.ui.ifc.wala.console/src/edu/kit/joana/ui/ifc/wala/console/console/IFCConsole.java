@@ -91,6 +91,8 @@ public class IFCConsole {
 		SET_POINTSTO(	"setPointsTo", 			1, 		"<points-to precision>",
 							"Sets the points-to precision for sdg generation."),
 		SET_COMPUTE_INTERFERENCES("setComputeInterferences", 1, "true|false", "Sets whether interference edges shall be computed or not."),
+		SET_MHP_TYPE(
+						"setMHPType", 		1, 	"<mhp type>", 			"Sets the type of MHP analysis to use if interference edges are activated. Possible values are: " + Arrays.toString(MHPType.values())),
 		INFO(			"info", 				0, 		"",
 							"Display the current configuration for sdg generation and ifc analysis"),
 		BUILD_SDG(		"buildSDG", 			2, 	3, 	"<compute interference?> <mhptype> [<exception analysis type>]",
@@ -298,6 +300,7 @@ public class IFCConsole {
 	private PointsToPrecision pointsTo = PointsToPrecision.INSTANCE_BASED;
 	private ExceptionAnalysis excAnalysis = ExceptionAnalysis.INTRAPROC;
 	private boolean computeInterference = false;
+	private MHPType mhpType = MHPType.NONE;
 	// private IStaticLattice<String> securityLattice;
 	private Collection<IViolation<SecurityNode>> lastAnalysisResult = new LinkedList<IViolation<SecurityNode>>();
 	private TObjectIntMap<IViolation<SDGProgramPart>> groupedIFlows = new TObjectIntHashMap<IViolation<SDGProgramPart>>();
@@ -395,6 +398,19 @@ public class IFCConsole {
 			boolean execute(String[] args) {
 				setExceptionAnalysis(args[1]);
 				out.logln("exceptionAnalysis = " + excAnalysis.desc);
+				return true;
+			}
+
+		};
+	}
+
+	private Command makeCommandSetMHPType() {
+		return new Command(CMD.SET_MHP_TYPE) {
+
+			@Override
+			boolean execute(String[] args) {
+				setMHPType(args[1]);
+				out.logln("mhpAnalysis = " + mhpType);
 				return true;
 			}
 
@@ -851,6 +867,7 @@ public class IFCConsole {
 		repo.addCommand(makeCommandSetExceptionAnalysis());
 		repo.addCommand(makeCommandSetPointsTo());
 		repo.addCommand(makeCommandSetComputeInterferences());
+		repo.addCommand(makeCommandSetMHPType());
 		repo.addCommand(makeCommandSetStubsPath());
 		repo.addCommand(makeCommandInfo());
 		repo.addCommand(makeCommandBuildSDG());
@@ -1068,6 +1085,15 @@ public class IFCConsole {
 		for (final ExceptionAnalysis exc : ExceptionAnalysis.values()) {
 			if (exc.name().equals(newExc)) {
 				this.excAnalysis = exc;
+				break;
+			}
+		}
+	}
+
+	public void setMHPType(final String newMHPType) {
+		for (final MHPType mhp : MHPType.values()) {
+			if (mhp.name().equals(newMHPType)) {
+				this.mhpType = mhp;
 				break;
 			}
 		}
@@ -1710,6 +1736,10 @@ public class IFCConsole {
 
 	public boolean getComputeInterferences() {
 		return computeInterference;
+	}
+
+	public MHPType getMHPType() {
+		return mhpType;
 	}
 
 	public Collection<IFCAnnotation> getSources() {

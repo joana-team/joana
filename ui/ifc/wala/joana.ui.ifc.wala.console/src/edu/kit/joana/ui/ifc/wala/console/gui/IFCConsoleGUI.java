@@ -375,9 +375,7 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 
 	public void execBuildSDG(String path) {
 		List<Command> cmdList = new LinkedList<Command>();
-		cmdList.add(new Command(CMD.BUILD_SDG, new String[] { CMD.BUILD_SDG.getName(),
-				Boolean.toString(configPane.computeInterferenceEdges()), configPane.getMHPType().toString(),
-				configPane.getExceptionAnalysisType().toString() }));
+		cmdList.add(new Command(CMD.BUILD_SDG, new String[] { CMD.BUILD_SDG.getName() }));
 		if (path != null) {
 			cmdList.add(new Command(CMD.SAVE_SDG, new String[] { CMD.SAVE_SDG.getName(), path }));
 		}

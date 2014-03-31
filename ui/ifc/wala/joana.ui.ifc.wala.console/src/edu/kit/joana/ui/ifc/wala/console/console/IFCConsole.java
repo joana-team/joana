@@ -95,8 +95,8 @@ public class IFCConsole {
 						"setMHPType", 		1, 	"<mhp type>", 			"Sets the type of MHP analysis to use if interference edges are activated. Possible values are: " + Arrays.toString(MHPType.values())),
 		INFO(			"info", 				0, 		"",
 							"Display the current configuration for sdg generation and ifc analysis"),
-		BUILD_SDG(		"buildSDG", 			2, 	3, 	"<compute interference?> <mhptype> [<exception analysis type>]",
-							"Build sdg with respect to selected entry method."),
+		BUILD_SDG(		"buildSDG", 			0, 	3, 	"<compute interference?> <mhptype> [<exception analysis type>]",
+							"Build sdg with respect to selected entry method. It is possible to use this command parameterless, then the current values of the respective options are taken. Otherwise, provide <compute interference> , <mhptype> and optionally <exception analysis type>. If, in this latter form, <exception analysis type> is not provided, INTERPROC is used."),
 		LOAD_SDG(		"loadSDG", 				1, 		"<filename>",
 							"Load sdg stored in <filename>."),
 		SOURCE(			"source", 				2, 		"<index> <level>",
@@ -471,7 +471,9 @@ public class IFCConsole {
 		return new Command(CMD.BUILD_SDG) {
 			@Override
 			boolean execute(String[] args) {
-				if (args.length == 3) {
+				if (args.length == 1) {
+					return buildSDG(IFCConsole.this.computeInterference, IFCConsole.this.mhpType, IFCConsole.this.excAnalysis);
+				} else if (args.length == 3) {
 					if ("true".equals(args[1])) {
 						return buildSDG(true, MHPType.valueOf(MHPType.class, args[2]), ExceptionAnalysis.INTERPROC);
 					} else {

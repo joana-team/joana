@@ -55,7 +55,7 @@ public class ObjSensContextSelector implements ContextSelector {
 			if (useFallBackCallString(callee)) {
 				return nLevel.getCalleeTarget(caller, site, callee, actualParameters);
 			} else {
-				return new ReceiverInstanceContext(receiver);
+				return (receiver != null ? new ReceiverInstanceContext(receiver) : null);
 			}
 		} else {
 			return null;

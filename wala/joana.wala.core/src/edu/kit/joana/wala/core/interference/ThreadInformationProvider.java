@@ -308,12 +308,16 @@ class ThreadEntryLocator {
 			}
 
 			// add main to runnables - this thread is always there:
-			Set<CGNode> cgMain = Utility.getCGNodesForMethod(builder, builder.getEntry());
-
-			assert (cgMain != null);
-			assert (cgMain.size() == 1) : "More then one main method in callgraph - this is weird!: " + cgMain;
-
-			threadEntries.addAll(cgMain);
+			if (builder.getEntry() == null) {
+				threadEntries.add(getCallGraph().getFakeRootNode());
+			} else {
+				Set<CGNode> cgMain = Utility.getCGNodesForMethod(builder, builder.getEntry());
+	
+				assert (cgMain != null);
+				assert (cgMain.size() == 1) : "More then one main method in callgraph - this is weird!: " + cgMain;
+	
+				threadEntries.addAll(cgMain);
+			}
 		}
 	}
 

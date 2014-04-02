@@ -305,6 +305,34 @@ public class SDGBuilder implements CallGraphFilter {
 		return builder;
 	}
 
+	
+	public static SDG build(final SDGBuilderConfig cfg, final com.ibm.wala.ipa.callgraph.CallGraph walaCG,
+			final PointerAnalysis pts) throws UnsoundGraphException, CancelException {
+		SDG sdg = null;
+		WorkPackage pack = null;
+		IProgressMonitor progress = NullProgressMonitor.INSTANCE;
+		
+		/* additional scope so SDGBuilder object can be garbage collected */{
+			SDGBuilder builder = new SDGBuilder(cfg);
+			builder.run(walaCG, pts, progress);
+			sdg = convertToJoana(cfg.out, builder, progress);
+
+			if (cfg.computeSummary) {
+				pack = createSummaryWorkPackage(cfg.out, builder, sdg, progress);
+			}
+		}
+
+		if (cfg.computeSummary) {
+			if (cfg.accessPath) {
+				computeDataAndAliasSummaryEdges(cfg.out, pack, sdg, progress);
+			} else {
+				computeSummaryEdges(cfg.out, pack, sdg, progress);
+			}
+		}
+
+		return sdg;
+	}
+	
 	public static SDG build(final SDGBuilderConfig cfg, IProgressMonitor progress) throws UnsoundGraphException, CancelException {
 		SDG sdg = null;
 		WorkPackage pack = null;
@@ -485,7 +513,7 @@ public class SDGBuilder implements CallGraphFilter {
 		int currentNum = 1;
 
 		for (CallGraph.Node node : cg.vertexSet()) {
-			if (node.node.getMethod() == cfg.entry) {
+			if (node.node == cg.getRoot().node) {
 				continue;
 			}
 

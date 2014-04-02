@@ -128,7 +128,14 @@ public final class CallGraph extends AbstractJoanaGraph<CallGraph.Node, CallGrap
 		this.filter = filter;
 		this.cg = orig;
 		this.pts = pts;
-		this.root = findOrCreate(orig.getEntrypointNodes().iterator().next());
+		if (entry == null) {
+			// custom callgraph with multiple entrypoints -> use fakeroot
+			this.root = findOrCreate(orig.getFakeRootNode());
+		} else {
+			// single entry point
+			this.root = findOrCreate(orig.getEntrypointNodes().iterator().next());
+			assert root.node.getMethod() == entry;
+		}	
 	}
 
 	public com.ibm.wala.ipa.callgraph.CallGraph getOrig() {

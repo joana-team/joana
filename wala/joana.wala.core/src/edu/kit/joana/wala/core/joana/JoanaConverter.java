@@ -43,8 +43,10 @@ public class JoanaConverter {
 
 	private JoanaConverter() {}
 
-	public static SDG convert(SDGBuilder b, IProgressMonitor progress) throws CancelException {
-		SDG sdg = new SDG(PrettyWalaNames.methodName(b.getEntry()));
+	public static SDG convert(final SDGBuilder b, IProgressMonitor progress) throws CancelException {
+		final SDG sdg = (b.getEntry() == null
+			? new SDG("multiple-entrypoints.SDG()")
+			: new SDG(PrettyWalaNames.methodName(b.getEntry())));
 
         progress.subTask("Building utility edges");
         addUtilityEdges(b);

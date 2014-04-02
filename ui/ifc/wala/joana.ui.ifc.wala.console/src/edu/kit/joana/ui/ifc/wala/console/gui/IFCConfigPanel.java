@@ -34,7 +34,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.MutableComboBoxModel;
-import javax.swing.event.ChangeEvent;
 import javax.swing.filechooser.FileFilter;
 
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;

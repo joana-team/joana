@@ -18,7 +18,6 @@ import com.ibm.wala.dataflow.graph.BitVectorSolver;
 import com.ibm.wala.dataflow.graph.ITransferFunctionProvider;
 import com.ibm.wala.fixpoint.BitVectorVariable;
 import com.ibm.wala.ipa.callgraph.CallGraph;
-import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil;
@@ -198,19 +197,6 @@ public class ModRefDataFlow {
 
 									called.addEdge(fOut, aOut, PDGEdge.Kind.PARAMETER_OUT);
 								}
-							}
-						}
-					}
-				}
-
-				// connect dummies
-				if (entries.isEmpty()) {
-					final SSAInvokeInstruction invk = (SSAInvokeInstruction) pdg.getInstruction(call);
-
-					if (!sdg.cfg.ext.isCallToModule(invk)) {
-						for (final PDGNode ai : actIn) {
-							for (final PDGNode ao : actOut) {
-								pdg.addEdge(ai, ao, PDGEdge.Kind.DATA_DEP);
 							}
 						}
 					}

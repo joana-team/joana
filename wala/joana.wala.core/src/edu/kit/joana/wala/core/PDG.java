@@ -1014,7 +1014,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 
 	private SourceLocation defSrcLoc = null;
 	private String defBcName = null;
-	private int defBcIndex = BytecodeLocation.UNDEFINED_POS_IN_BYTECODE;
+	public final int defBcIndex = BytecodeLocation.UNDEFINED_POS_IN_BYTECODE;
 
 	private void addSourcecodeInfoToNodes(IR ir) {
 		defSrcLoc = SourceLocation.getLocation(sourceFile, 0, 0, 0, 0);
@@ -1290,7 +1290,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 
 	@Override
 	public boolean removeNode(PDGNode node) {
-		SSAInstruction instr = node2instr.get(node);
+		final SSAInstruction instr = node2instr.get(node);
 		if (instr != null) {
 			node2instr.remove(node);
 			instr2node.remove(instr);
@@ -1306,7 +1306,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 	}
 
 	private PDGNode createNopNode() {
-		PDGNode nop = createNode(NOP_LABEL, PDGNode.Kind.NORMAL, PDGNode.DEFAULT_TYPE);
+		final PDGNode nop = createNode(NOP_LABEL, PDGNode.Kind.NORMAL, PDGNode.DEFAULT_TYPE);
 
 		nop.setSourceLocation(defSrcLoc);
 		nop.setBytecodeIndex(defBcIndex);
@@ -1315,16 +1315,26 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 		return nop;
 	}
 
+	public PDGNode createDummyNode(final String label) {
+		final PDGNode node = createNode(label, Kind.NORMAL, PDGNode.DEFAULT_NO_TYPE);
+
+		node.setSourceLocation(defSrcLoc);
+		node.setBytecodeIndex(defBcIndex);
+		node.setBytecodeName(defBcName);
+
+		return node;
+	}
+	
 	public PDGNode createNode(final String label, final PDGNode.Kind kind, final TypeReference type) {
 		final int nodeId = builder.getNextNodeId();
-		PDGNode node = new PDGNode(nodeId, id, label, kind, type);
+		final PDGNode node = new PDGNode(nodeId, id, label, kind, type);
 		addVertex(node);
 
 		return node;
 	}
 
 	public PDGNode createCallReturnNode(PDGNode call) {
-		PDGNode callRetNode = createNode(SDGConstants.CALLRET_LABEL, Kind.NORMAL, PDGNode.DEFAULT_NO_TYPE);
+		final PDGNode callRetNode = createNode(SDGConstants.CALLRET_LABEL, Kind.NORMAL, PDGNode.DEFAULT_NO_TYPE);
 		callRetNode.setBytecodeName(call.getBytecodeName());
 		callRetNode.setSourceLocation(call.getSourceLocation());
 		callRetNode.setBytecodeIndex(BytecodeLocation.CALL_RET);

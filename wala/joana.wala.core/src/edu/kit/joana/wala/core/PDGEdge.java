@@ -111,6 +111,10 @@ public final class PDGEdge {
 //		return from.toString() + "-" + kind.name() + "->" + to.toString();
 		return kind.toString();
 	}
+	
+	public String toDetailedString() {
+		return from.toString() + "-" + kind.name() + "->" + to.toString();
+	}
 
 	public void setLabel(String string) {
 		if (kind != Kind.DATA_ALIAS) {

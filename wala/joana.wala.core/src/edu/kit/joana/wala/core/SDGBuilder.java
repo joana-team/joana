@@ -985,12 +985,12 @@ public class SDGBuilder implements CallGraphFilter {
 
 	private void addDummyDataFlowToUnresolvedCalls() {
 		// connect call sites
-		for (PDG pdg : pdgs) {
+		for (final PDG pdg : pdgs) {
 			if (isImmutableStub(pdg.getMethod().getDeclaringClass().getReference())) {
 				// direct data deps from all formal-in to formal-outs
-				List<PDGNode> inParam = new LinkedList<PDGNode>();
-				List<PDGNode> outParam = new LinkedList<PDGNode>();
-				for (PDGEdge e : pdg.outgoingEdgesOf(pdg.entry)) {
+				final List<PDGNode> inParam = new LinkedList<PDGNode>();
+				final List<PDGNode> outParam = new LinkedList<PDGNode>();
+				for (final PDGEdge e : pdg.outgoingEdgesOf(pdg.entry)) {
 					if (e.kind == PDGEdge.Kind.CONTROL_DEP_EXPR) {
 						switch (e.to.getKind()) {
 						case FORMAL_IN:
@@ -1006,19 +1006,15 @@ public class SDGBuilder implements CallGraphFilter {
 					}
 				}
 
-				for (PDGNode ain : inParam) {
-					for (PDGNode aout : outParam) {
-						pdg.addEdge(ain, aout, PDGEdge.Kind.DATA_DEP);
-					}
-				}
+				connectIn2OutDummys(pdg, inParam, outParam);
 			} else {
-				for (PDGNode call : pdg.getCalls()) {
-					Set<PDG> tgts = findPossibleTargets(cg, pdg, call);
+				for (final PDGNode call : pdg.getCalls()) {
+					final Set<PDG> tgts = findPossibleTargets(cg, pdg, call);
 					if (tgts.isEmpty() && !cfg.ext.isCallToModule((SSAInvokeInstruction) pdg.getInstruction(call))) {
 						// do direct data deps dummies
-						List<PDGNode> inParam = new LinkedList<PDGNode>();
-						List<PDGNode> outParam = new LinkedList<PDGNode>();
-						for (PDGEdge e : pdg.outgoingEdgesOf(call)) {
+						final List<PDGNode> inParam = new LinkedList<PDGNode>();
+						final List<PDGNode> outParam = new LinkedList<PDGNode>();
+						for (final PDGEdge e : pdg.outgoingEdgesOf(call)) {
 							if (e.kind == PDGEdge.Kind.CONTROL_DEP_EXPR) {
 								switch (e.to.getKind()) {
 								case ACTUAL_IN:
@@ -1032,15 +1028,49 @@ public class SDGBuilder implements CallGraphFilter {
 							}
 						}
 
-						for (PDGNode ain : inParam) {
-							for (PDGNode aout : outParam) {
-								pdg.addEdge(ain, aout, PDGEdge.Kind.DATA_DEP);
-							}
-						}
+						connectIn2OutDummys(pdg, inParam, outParam);
 					}
 				}
 			}
 		}
+	}
+	
+	private static void connectIn2OutDummys(final PDG pdg, final List<PDGNode> inParam, final List<PDGNode> outParam) {
+		// old version - fully connected...
+		//		for (PDGNode ain : inParam) {
+		//			for (PDGNode aout : outParam) {
+		//				pdg.addEdge(ain, aout, PDGEdge.Kind.DATA_DEP);
+		//			}
+		//		}
+
+		final PDGNode m2m = pdg.createDummyNode("many2many");
+		
+		final List<PDGEdge> toRemove = new LinkedList<PDGEdge>();
+		
+		for (final PDGNode ain : inParam) {
+			for (final PDGEdge e : pdg.outgoingEdgesOf(ain)) {
+				if (e.kind == PDGEdge.Kind.DATA_DEP) {
+					toRemove.add(e);
+//					System.out.println("3 remove " + e.toDetailedString());
+				}
+			}
+			pdg.addEdge(ain, m2m, PDGEdge.Kind.DATA_DEP);
+		}
+		
+		for (final PDGNode aout : outParam) {
+			for (final PDGEdge e : pdg.incomingEdgesOf(aout)) {
+				if (e.kind == PDGEdge.Kind.DATA_DEP) {
+					toRemove.add(e);
+//					System.out.println("4 remove " + e.toDetailedString());
+				}
+			}
+			pdg.addEdge(m2m, aout, PDGEdge.Kind.DATA_DEP);
+		}
+		
+//		if (toRemove.size() > 0) {
+//			System.out.println("REMOVE: " + toRemove.size());
+//		}
+		pdg.removeAllEdges(toRemove);
 	}
 
 	public Set<PDG> findPossibleTargets(CallGraph cg, PDG caller, PDGNode call) {

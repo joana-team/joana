@@ -145,7 +145,9 @@ public class NandaForward implements NandaMode {
 		LinkedList<TopologicalNumber> nrs = new LinkedList<TopologicalNumber>();
         LinkedList<TopologicalNumber> reached = contextGraphs.getTopologicalNumbersNew(neighbourNode, thread);
 
-        if (reached.size() == 1) {
+        if (reached == null) {
+        	return nrs.iterator();
+        } else if (reached.size() == 1) {
         	// a simple optimization
         	return reached.iterator();
 

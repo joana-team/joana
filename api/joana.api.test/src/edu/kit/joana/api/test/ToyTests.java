@@ -87,9 +87,9 @@ public class ToyTests {
 		final String className = clazz.getCanonicalName();
 		final String classPath;
 		if (ignore) {
-			classPath = JoanaPath.JOANA_API_TEST_DATA_CLASSPATH + ":" + JoanaPath.ANNOTATIONS_IGNORE_CLASSPATH;
+			classPath = JoanaPath.JOANA_API_TEST_DATA_CLASSPATH + File.pathSeparator + JoanaPath.ANNOTATIONS_IGNORE_CLASSPATH;
 		} else {
-			classPath = JoanaPath.JOANA_API_TEST_DATA_CLASSPATH + ":" + JoanaPath.ANNOTATIONS_PASSON_CLASSPATH;
+			classPath = JoanaPath.JOANA_API_TEST_DATA_CLASSPATH + File.pathSeparator + JoanaPath.ANNOTATIONS_PASSON_CLASSPATH;
 		}
 		config.setClassPath(classPath);
 		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(className);

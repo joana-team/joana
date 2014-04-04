@@ -682,7 +682,7 @@ public class IFCConfigPanel extends JPanel {
 				ignoreSelection = true;
 				mhpCombo.setSelectedIndex(mhpIndex);
 				mhpCombo.repaint();
-				ignoreSelection = true;
+				ignoreSelection = false;
 				break;
 			}
 		}

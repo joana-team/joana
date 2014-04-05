@@ -7,7 +7,12 @@
  */
 package tests;
 
+import sensitivity.Security;
+
 public class ThreadSpawning {
+	
+	public static int shared;
+	
 	public static void main(String[] args) {
 		T1 t1b = new T1();
 		t1b.start();
@@ -16,17 +21,24 @@ public class ThreadSpawning {
 		while (true) {
 			T1 t1 = new T1();
 			t1.start();
+			Security.PUBLIC = shared;
 		}
 	}
 }
 
 class T1 extends Thread {
 	public void run() {
+		ThreadSpawning.shared = 23;
+		if (Security.SECRET > 0 ) {
+			Security.SECRET--;
+		}
 		T2 t2 = new T2();
-		t2.start();
+			t2.start();
 	}
 }
 
 class T2 extends Thread {
-	public void run() { }
+	public void run() { 
+		ThreadSpawning.shared = 42;
+	}
 }

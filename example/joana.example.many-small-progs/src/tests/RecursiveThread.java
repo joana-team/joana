@@ -7,6 +7,8 @@
  */
 package tests;
 
+import sensitivity.Security;
+
 public class RecursiveThread {
 	public static void main(String[] args) {
 		T t = new T(10);
@@ -26,6 +28,7 @@ class T extends Thread {
 			x--;
 			foo();
 		}
+		x -= Security.SECRET;
 	}
 
 	void foo() {
@@ -38,6 +41,7 @@ class T extends Thread {
                 e.printStackTrace();
             }
 
+            Security.leak(x);
             System.out.println(x);
         }
 	}

@@ -14,10 +14,4 @@ public class TransitiveDeclass {
 		int low = med + med;
 		System.out.println(low);
 	}
-//	public static void main(String[] args) {
-//		String high = args[0];
-//		String med = args[1] + high;
-//		String low = args[2] + med;
-//		System.out.println(low);
-//	}
 }

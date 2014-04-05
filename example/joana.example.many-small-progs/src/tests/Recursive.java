@@ -7,15 +7,19 @@
  */
 package tests;
 
+import sensitivity.Security;
+
 public class Recursive {
 	public static void main(String[] args) {
-		System.out.println(foo(2, 5, 4));
+		int val = foo(2, 5, Security.SECRET);
+		Security.PUBLIC = val;
+		System.out.println(val);
 	}
 
 	public static int foo (int x, int y, int z) {
 		if (z > 0) {
 			z--;
-			return foo(y, x, z);
+			return foo(y, x + x, z);
 		} else {
 			return x * x;
 		}

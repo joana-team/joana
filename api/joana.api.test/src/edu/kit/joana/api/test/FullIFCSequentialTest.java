@@ -521,4 +521,19 @@ public class FullIFCSequentialTest {
 		}
 	}
 
+	@Test
+	public void testRecursive() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("tests.Recursive",
+					"sensitivity.Security.SECRET",
+					"sensitivity.Security.PUBLIC");
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertFalse(illegal.isEmpty());
+			assertEquals(2, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
 }

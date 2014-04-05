@@ -7,6 +7,8 @@
  */
 package tests;
 
+import sensitivity.Security;
+
 public class VolpanoSmith98Page3 {
 	static class Alpha extends Thread {
 		public void run() {
@@ -80,6 +82,7 @@ public class VolpanoSmith98Page3 {
 		a.join();
 		b.join();
 
+		Security.leak(result);
 		System.out.println(result);
 	}
 }

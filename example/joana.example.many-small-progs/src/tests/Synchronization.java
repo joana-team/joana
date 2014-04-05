@@ -9,6 +9,8 @@ package tests;
 
 import java.util.LinkedList;
 
+import sensitivity.Security;
+
 public class Synchronization {
 
 	public static void main(String[] args) {
@@ -50,7 +52,7 @@ class Prod extends Thread {
 
 	public void run() {
 		while(true) {
-		    int i = 1;
+		    int i = Security.SECRET;
 		    b.put(i);
 		}
 	}
@@ -66,6 +68,7 @@ class Cons extends Thread {
 	public void run() {
 		while(true) {
 			Object o = b.get();
+			Security.PUBLIC = o.hashCode();
 			System.out.println(o);
 		}
 	}

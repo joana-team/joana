@@ -356,5 +356,139 @@ public class FullIFCConcurrentTest {
 		}
 	}
 
+	@Test
+	public void testRecursiveThread() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("tests.RecursiveThread",
+					"sensitivity.Security.SECRET",
+					"sensitivity.Security.PUBLIC");
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(199, illegal.size());
+			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(189, illegal.size());
+			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(40, illegal.size());
+			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(33, illegal.size());
+			illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+			assertFalse(illegal.isEmpty());
+			assertEquals(9, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testSynchronization() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("tests.Synchronization",
+					"sensitivity.Security.SECRET",
+					"sensitivity.Security.PUBLIC");
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(20, illegal.size());
+			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(16, illegal.size());
+			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(10, illegal.size());
+			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(3, illegal.size());
+			illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+			assertTrue(illegal.isEmpty());
+			assertEquals(0, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testThreadJoining() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("tests.ThreadJoining",
+					"sensitivity.Security.SECRET",
+					"sensitivity.Security.PUBLIC");
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(12, illegal.size());
+			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(12, illegal.size());
+			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(5, illegal.size());
+			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(4, illegal.size());
+			illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+			assertFalse(illegal.isEmpty());
+			assertEquals(4, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testThreadSpawning() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("tests.ThreadSpawning",
+					"sensitivity.Security.SECRET",
+					"sensitivity.Security.PUBLIC");
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(177, illegal.size());
+			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(165, illegal.size());
+			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(14, illegal.size());
+			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(14, illegal.size());
+			illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+			assertTrue(illegal.isEmpty());
+			assertEquals(0, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testVolpanoSmith98Page3() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("tests.VolpanoSmith98Page3",
+					"tests.VolpanoSmith98Page3.PIN",
+					"sensitivity.Security.PUBLIC");
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(83, illegal.size());
+			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(77, illegal.size());
+			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(21, illegal.size());
+			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(7, illegal.size());
+			illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+			assertTrue(illegal.isEmpty());
+			assertEquals(0, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
 
 }

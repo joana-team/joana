@@ -7,17 +7,20 @@
  */
 package tests;
 
+import sensitivity.Security;
+
 public class ThreadJoining {
 	public static void main(String[] args) throws InterruptedException {
 		A a = new A();
 		a.start();
 		a.join();
+		Security.leak(a.x);
 		System.out.println(a.x);
 	}
 }
 
 class A extends Thread {
-    int x = 100;
+    int x = Security.SECRET;
 	public void run() {
 	    while (x > 0) {
 	        x--;

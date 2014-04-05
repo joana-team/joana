@@ -5,12 +5,19 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-package tests;
+package exc;
+
+import sensitivity.Security;
 
 public class ExceptionTest {
 
 	public static void main(String[] args) throws Exception {
-		exc(args[0]);
+		try {
+			exc(args[Security.SECRET]);
+		} catch (MyException me) {
+			int len = me.mess.length();
+			Security.leak(len);
+		}
 	}
 
 	public static void exc(String str) throws Exception {

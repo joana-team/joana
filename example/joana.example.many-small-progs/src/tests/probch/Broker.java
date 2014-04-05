@@ -5,9 +5,10 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-package tests;
+package tests.probch;
 
 import java.util.HashMap;
+
 
 public class Broker {
 	public static final Thread MAIN_THREAD = new Thread(){public void run(){}};

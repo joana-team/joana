@@ -238,5 +238,140 @@ public class FullIFCSequentialTest {
 		}
 	}
 
+	@Test
+	public void testExceptionHandlingNoOpt() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionHandling",
+					"sensitivity.Security.SECRET",
+					"sensitivity.Security.PUBLIC",
+					PointsToPrecision.INSTANCE_BASED,
+					ExceptionAnalysis.ALL_NO_ANALYSIS);
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertFalse(illegal.isEmpty());
+			assertEquals(3, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testExceptionHandlingIntra() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionHandling",
+					"sensitivity.Security.SECRET",
+					"sensitivity.Security.PUBLIC",
+					PointsToPrecision.INSTANCE_BASED,
+					ExceptionAnalysis.INTRAPROC);
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertFalse(illegal.isEmpty());
+			assertEquals(3, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testExceptionHandlingInter() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionHandling",
+					"sensitivity.Security.SECRET",
+					"sensitivity.Security.PUBLIC",
+					PointsToPrecision.INSTANCE_BASED,
+					ExceptionAnalysis.INTERPROC);
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertFalse(illegal.isEmpty());
+			assertEquals(3, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testExceptionHandlingIgnore() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionHandling",
+					"sensitivity.Security.SECRET",
+					"sensitivity.Security.PUBLIC",
+					PointsToPrecision.INSTANCE_BASED,
+					ExceptionAnalysis.IGNORE_ALL);
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertTrue(illegal.isEmpty());
+			assertEquals(0, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testExceptionTestNoOpt() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionTest",
+					"sensitivity.Security.SECRET",
+					"sensitivity.Security.PUBLIC",
+					PointsToPrecision.INSTANCE_BASED,
+					ExceptionAnalysis.ALL_NO_ANALYSIS);
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertFalse(illegal.isEmpty());
+			assertEquals(6, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testExceptionTestIntra() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionTest",
+					"sensitivity.Security.SECRET",
+					"sensitivity.Security.PUBLIC",
+					PointsToPrecision.INSTANCE_BASED,
+					ExceptionAnalysis.INTRAPROC);
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertFalse(illegal.isEmpty());
+			assertEquals(6, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testExceptionTestInter() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionTest",
+					"sensitivity.Security.SECRET",
+					"sensitivity.Security.PUBLIC",
+					PointsToPrecision.INSTANCE_BASED,
+					ExceptionAnalysis.INTERPROC);
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertFalse(illegal.isEmpty());
+			assertEquals(6, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testExceptionTestIgnore() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionTest",
+					"sensitivity.Security.SECRET",
+					"sensitivity.Security.PUBLIC",
+					PointsToPrecision.INSTANCE_BASED,
+					ExceptionAnalysis.IGNORE_ALL);
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertTrue(illegal.isEmpty());
+			assertEquals(0, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
 
 }

@@ -5,7 +5,9 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-package tests;
+package tests.probch;
+
+import sensitivity.Security;
 
 public class ProbChannel {
 
@@ -38,7 +40,7 @@ class Thread1 extends Thread	{
     ProbChannel.Data d;
 
     public void run() {
-        int h = 3;
+        int h = Security.SECRET;
         while (h > 0) {
             h --;
         }

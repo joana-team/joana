@@ -5,21 +5,23 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-package tests;
+package exc;
+
+import sensitivity.Security;
 
 public class ExceptionHandling {
     static int x;
-    static int y;
+    static int y = Security.SECRET;
 
     public static void main(String[] args) {
         try {
             foo();
-            System.out.println(x);
+            Security.PUBLIC = x;
 
         } catch(Exception e) {
-            System.out.println(x);
+            Security.PUBLIC = x;
         }
-        System.out.println(x);
+        Security.PUBLIC = x;
     }
 
     static void foo() throws Exception {

@@ -10,6 +10,7 @@ package edu.kit.joana.api.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
@@ -22,6 +23,7 @@ import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
 import edu.kit.joana.api.IFCAnalysis;
+import edu.kit.joana.api.IFCType;
 import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
@@ -30,6 +32,7 @@ import edu.kit.joana.api.test.util.ApiTestException;
 import edu.kit.joana.api.test.util.JoanaPath;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.IViolation;
+import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
@@ -243,5 +246,34 @@ public class FullIFCConcurrentTest {
 			fail(e.getMessage());
 		}
 	}
+
+
+	@Test
+	public void testProbChannelMulti() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("tests.probch.ProbChannel",
+					"sensitivity.Security.SECRET",
+					"tests.probch.ProbChannel$Data.a");
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(78, illegal.size());
+			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(75, illegal.size());
+			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(18, illegal.size());
+			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(16, illegal.size());
+			illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+			assertTrue(illegal.isEmpty());
+			assertEquals(0, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
 
 }

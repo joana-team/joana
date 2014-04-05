@@ -5,9 +5,12 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-package tests;
+package tests.probch;
 
 import java.util.LinkedList;
+
+import tests.ReadMailbox;
+import tests.WriteMailbox;
 
 public final class LinearMailbox implements ReadMailbox, WriteMailbox {
     private LinkedList data; // LiFo queue

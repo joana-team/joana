@@ -7,7 +7,10 @@
  */
 package tests;
 
+import sensitivity.Security;
+
 public class IndirectRecursiveThreads {
+	
 	public static void main(String[] args) {
 		Ta t1b = new Ta();
 		t1b.start();
@@ -21,9 +24,14 @@ public class IndirectRecursiveThreads {
 }
 
 class Ta extends Thread {
+	
+	private static int shared;
+	
 	public void run() {
+		Security.PUBLIC = shared;
 		Tb t2 = new Tb();
 		t2.start();
+		shared = Security.SECRET;
 	}
 }
 

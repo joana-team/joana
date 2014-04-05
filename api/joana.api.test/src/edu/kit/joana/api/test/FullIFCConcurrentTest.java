@@ -302,4 +302,59 @@ public class FullIFCConcurrentTest {
 		}
 	}
 
+	@Test
+	public void testIndirectRecursive() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("tests.IndirectRecursiveThreads",
+					"sensitivity.Security.SECRET",
+					"sensitivity.Security.PUBLIC");
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(51, illegal.size());
+			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(43, illegal.size());
+			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(23, illegal.size());
+			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(17, illegal.size());
+			illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+			assertFalse(illegal.isEmpty());
+			assertEquals(6, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testProbPasswordFile() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("tests.ProbPasswordFile",
+					"sensitivity.Security.SECRET",
+					"sensitivity.Security.PUBLIC");
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(9, illegal.size());
+			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(6, illegal.size());
+			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(4, illegal.size());
+			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(2, illegal.size());
+			illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+			assertTrue(illegal.isEmpty());
+			assertEquals(0, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+
 }

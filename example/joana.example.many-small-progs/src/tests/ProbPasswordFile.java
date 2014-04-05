@@ -7,10 +7,12 @@
  */
 package tests;
 
+import sensitivity.Security;
+
 public class ProbPasswordFile extends Thread {
     private static String user;
     private static String[] names = { "A", "B"};
-    private static String[] passwords = { "x", "y"};
+    private static String[] passwords = { (Security.SECRET > 0 ? "x" : "z"), "y"};
 
     public boolean check(String user, String password) {
         boolean match = false;
@@ -32,7 +34,9 @@ public class ProbPasswordFile extends Thread {
         user = args[0];
 
         pw.start();
-        System.out.println(pw.check(args[0], args[1]));
+        boolean val = pw.check(args[0], args[1]);
+        Security.PUBLIC = 23;
+        System.out.println(val);
     }
 
     public void run() {
@@ -47,6 +51,7 @@ public class ProbPasswordFile extends Thread {
             }
         } catch (Throwable t) {};
 
+        Security.PUBLIC = 8;
         System.out.println("8 chars");
     }
 }

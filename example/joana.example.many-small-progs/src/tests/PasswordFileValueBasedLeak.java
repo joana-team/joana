@@ -7,9 +7,11 @@
  */
 package tests;
 
-public class LibraryTest {
+import sensitivity.Security;
+
+public class PasswordFileValueBasedLeak {
   private String[] names = { "A", "B"};
-  private String[] passwords = { "x", "y"};
+  private String[] passwords = { (Security.SECRET > 0 ? "x" : "z"), "y"};
 
   public boolean check(String user, String password) {
     boolean match = false;
@@ -26,8 +28,9 @@ public class LibraryTest {
  }
 
   public static void main(String[] args) {
-    LibraryTest lt = new LibraryTest();
+    PasswordFileValueBasedLeak lt = new PasswordFileValueBasedLeak();
     boolean b = lt.check(args[0], args[1]);
+    Security.PUBLIC = (b ? 1 : 0);
     System.out.println(b);
   }
 }

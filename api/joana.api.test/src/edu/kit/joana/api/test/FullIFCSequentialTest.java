@@ -491,4 +491,34 @@ public class FullIFCSequentialTest {
 		}
 	}
 
+	@Test
+	public void testPasswordFileValueBasedLeak() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("tests.PasswordFileValueBasedLeak",
+					"sensitivity.Security.SECRET",
+					"sensitivity.Security.PUBLIC");
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertFalse(illegal.isEmpty());
+			assertEquals(2, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testPasswordFileNoLeak() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("tests.PasswordFileNoLeak",
+					"sensitivity.Security.SECRET",
+					"sensitivity.Security.PUBLIC");
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertTrue(illegal.isEmpty());
+			assertEquals(0, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
 }

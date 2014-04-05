@@ -374,4 +374,106 @@ public class FullIFCSequentialTest {
 		}
 	}
 
+	@Test
+	public void testHammerObjSens() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("tests.Hammer",
+					"sensitivity.Security.SECRET",
+					"sensitivity.Security.PUBLIC",
+					PointsToPrecision.OBJECT_SENSITIVE,
+					ExceptionAnalysis.INTRAPROC);
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertFalse(illegal.isEmpty());
+			assertEquals(4, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testHammerTypeBased() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("tests.Hammer",
+					"sensitivity.Security.SECRET",
+					"sensitivity.Security.PUBLIC",
+					PointsToPrecision.TYPE_BASED,
+					ExceptionAnalysis.INTRAPROC);
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertFalse(illegal.isEmpty());
+			assertEquals(6, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testHammerDistributedObjSens() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("tests.HammerDistributed",
+					"sensitivity.Security.SECRET",
+					"sensitivity.Security.PUBLIC",
+					PointsToPrecision.OBJECT_SENSITIVE,
+					ExceptionAnalysis.INTRAPROC);
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertFalse(illegal.isEmpty());
+			assertEquals(4, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testHammerDistributedTypeBased() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("tests.HammerDistributed",
+					"sensitivity.Security.SECRET",
+					"sensitivity.Security.PUBLIC",
+					PointsToPrecision.TYPE_BASED,
+					ExceptionAnalysis.INTRAPROC);
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertFalse(illegal.isEmpty());
+			assertEquals(6, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testHammerDistributed1Stack() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("tests.HammerDistributed",
+					"sensitivity.Security.SECRET",
+					"sensitivity.Security.PUBLIC",
+					PointsToPrecision.N1_CALL_STACK,
+					ExceptionAnalysis.INTRAPROC);
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertFalse(illegal.isEmpty());
+			assertEquals(4, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testHammerDistributed2Stack() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("tests.HammerDistributed",
+					"sensitivity.Security.SECRET",
+					"sensitivity.Security.PUBLIC",
+					PointsToPrecision.N2_CALL_STACK,
+					ExceptionAnalysis.INTRAPROC);
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertFalse(illegal.isEmpty());
+			assertEquals(4, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
 }

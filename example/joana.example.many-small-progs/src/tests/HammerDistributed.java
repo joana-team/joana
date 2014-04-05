@@ -7,9 +7,11 @@
  */
 package tests;
 
+import sensitivity.Security;
+
 public class HammerDistributed {
     public static void main (String[] args) {
-        int sec = Integer.parseInt(args[1]);
+        int sec = Security.SECRET;
         int pub = Integer.parseInt(args[2]);
 
         // 1. no information flow
@@ -17,16 +19,16 @@ public class HammerDistributed {
         o.set(sec);
         o = new HammerA();
         o.set(pub);
-        System.out.println(o.get());
+        Security.PUBLIC = o.get();
 
         // 2. dynamic dispatch
         if (sec == 0 && args[0].equals("007")) {
             o = new HammerB();
         }
         o.set();
-        System.out.println(o.get());
+        Security.PUBLIC = o.get();
 
         // 3. instanceof
-        System.out.println(o instanceof HammerB);
+        Security.PUBLIC = (o instanceof HammerB ? 0 : 1);
     }
 }

@@ -275,5 +275,31 @@ public class FullIFCConcurrentTest {
 		}
 	}
 
+	@Test
+	public void testConcPasswordFile() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("tests.ConcPasswordFile",
+					"tests.ConcPasswordFile.passwords",
+					"tests.ConcPasswordFile.b");
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(38, illegal.size());
+			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(32, illegal.size());
+			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(21, illegal.size());
+			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
+			assertFalse(illegal.isEmpty());
+			assertEquals(21, illegal.size());
+			illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+			assertFalse(illegal.isEmpty());
+			assertEquals(14, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
 
 }

@@ -9,8 +9,6 @@ package tests.probch;
 
 import java.util.LinkedList;
 
-import tests.ReadMailbox;
-import tests.WriteMailbox;
 
 public final class LinearMailbox implements ReadMailbox, WriteMailbox {
     private LinkedList data; // LiFo queue

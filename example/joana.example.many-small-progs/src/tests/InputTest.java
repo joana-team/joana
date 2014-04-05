@@ -7,6 +7,8 @@
  */
 package tests;
 
+import sensitivity.Security;
+
 public class InputTest {
     public static void main(String[] args) {
         int low = 0;
@@ -16,11 +18,12 @@ public class InputTest {
             low = input();
         }
 
+        Security.PUBLIC = low;
         System.out.println(low);
     }
 
     private static int inputPIN() {
-        return 1;
+        return Security.SECRET;
     }
 
     private static int input() {

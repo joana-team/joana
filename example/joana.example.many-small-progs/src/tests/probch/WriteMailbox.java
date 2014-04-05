@@ -5,7 +5,7 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-package tests;
+package tests.probch;
 
 public interface WriteMailbox {
     public void put (Object msg) throws InterruptedException;

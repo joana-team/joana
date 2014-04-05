@@ -1,3 +1,5 @@
+import sensitivity.Security;
+
 /**
  * This file is part of the Joana IFC project. It is developed at the
  * Programming Paradigms Group of the Karlsruhe Institute of Technology.
@@ -9,14 +11,16 @@ public class Main {
     public static void main(String[] args) {
         String str = "10.";
         double d = conv(str);
+        Security.leak((int) d);
         System.out.println(d);
         d = conv(str);
+        Security.leak((int) d);
         System.out.println(d);
     }
 
     static double conv(String input) {
         double result = 0.0;
-        double precision = 1.0;
+        double precision = (Security.SECRET > 0 ? 1.0 : 1.1);
         boolean point = false;
         boolean error = false;
         int pos = 0;

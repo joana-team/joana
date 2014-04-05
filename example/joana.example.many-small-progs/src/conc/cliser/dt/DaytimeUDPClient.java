@@ -22,8 +22,10 @@ class DaytimeUDPClient extends UDPClient {
         super("Daytime", remoteHost, remotePort);
     }
 
+    private static String message = "Hi"; 
+    
     public void interactWithServer() {
-        this.send("Hi");
+        this.send(message);
         System.out.println(this.receive());
     }
 

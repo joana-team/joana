@@ -7,6 +7,8 @@
  */
 package exc;
 
+import sensitivity.Security;
+
 /**
  * @author Juergen Graf <graf@kit.edu>
  *
@@ -17,24 +19,45 @@ public class ExceptionOptimize {
 
 	public static void main(String[] argv) {
 		ExceptionOptimize opt = new ExceptionOptimize();
-		opt.simpleTests(null);
+		opt.simpleTests(new A());
 	}
 
 	public int simpleTests(A p) {
 		A a = new A();
-		a.i = 4;		// NEVER Exc
+		if (Security.SECRET > 2) {
+			a.i = 4;		// NEVER Exc
+		}
 		A b = new A();
+		if (Security.SECRET > 2) {
+			b.i = p.i;		// NEVER Exc (interproc)
+		}
 		A c = p;
 		if (p != null) {
-			c.i = 4;	// NEVER Exc
+			if (Security.SECRET > 2) {
+				c.i = 4;	// NEVER Exc
+			}
 		} else {
-			c = b;
-			p.i = 13;	// ALWAYS Exc
+			if (Security.SECRET > 2) {
+				c = b;
+				p.i = 13;	// ALWAYS Exc
+			}
 		}
 
-		c.i = b.i;		// MAYBE Exc (c maybe null)
+		if (Security.SECRET > 2) {
+			c.i = b.i;		// MAYBE Exc (c maybe null)
+		}
 
-		return a.i + b.i + c.i; // NEVER Exc
+		if (Security.SECRET > 2) {
+			a.i = a.i + b.i + c.i; // NEVER Exc
+		}
+		
+		if (Security.SECRET > 2) {
+			b.x = 23;
+		}
+		
+		Security.leak(23);
+		
+		return b.x;
 	}
 
 }

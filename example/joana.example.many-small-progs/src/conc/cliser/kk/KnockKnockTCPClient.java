@@ -22,8 +22,10 @@ class KnockKnockTCPClient extends TCPClient {
         super("KnockKnock", remoteHost, remotePort);
     }
 
+    private String received1;
+    
     public void interactWithServer() {
-        String received1 = this.receive();
+        received1 = this.receive();
 
         if (received1.equalsIgnoreCase("Knock knock")) {
             System.out.println(received1);

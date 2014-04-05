@@ -7,6 +7,8 @@
  */
 package term;
 
+import sensitivity.Security;
+
 /**
  * @author Juergen Graf <graf@kit.edu>
  *
@@ -63,5 +65,44 @@ public class A {
 		x++;
 
 		return x;
+	}
+	
+	public static void main(String[] args) {
+		A a = new A();
+		
+		switch (Security.SECRET) {
+		case 1: a.start1();
+			Security.leak(23);
+			break;
+		case 2: a.start2();
+			Security.leak(23);
+			break;
+		case 3: a.start3();
+			Security.leak(23);
+			break;
+		case 4: a.start4();
+			Security.leak(23);
+			break;
+		case 5: a.start5();
+			Security.leak(23);
+			break;
+		case 6: a.four();
+			Security.leak(23);
+			break;
+		case 7: a.recursion(5);
+			Security.leak(23);
+			break;
+		case 8: a.recurs1();
+			Security.leak(23);
+			break;
+		case 9: a.recurs2();
+			Security.leak(23);
+			break;
+		case 10: a.endless();
+			Security.leak(23);
+			break;
+		}
+		
+		Security.leak(23);
 	}
 }

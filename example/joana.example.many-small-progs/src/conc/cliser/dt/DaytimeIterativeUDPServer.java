@@ -23,9 +23,11 @@ class DaytimeIterativeUDPServer extends IterativeUDPServer {
     public DaytimeIterativeUDPServer(int localPort) {
         super("Daytime", localPort);
     }
+    
+    public String recieved;
 
     public void interactWithClient() {
-        String discard = this.receive();
+        recieved = this.receive();
         this.send((new Date()).toString());
     }
 

@@ -7,9 +7,11 @@
  */
 package lob;
 
+import sensitivity.Security;
+
 public class First {
 	public static void main(String[] args) {
-		String str = "10.";
+		String str = (Security.SECRET > 0 ? "10." : "11.");
 		double d = conv(str);
 	}
 
@@ -39,6 +41,8 @@ public class First {
 			pos = pos + 1;
 		}
 
+		Security.leak((int) result);
+		
 		if (error || (input.length() == 0)) {
 			return -1.0;
 		} else {

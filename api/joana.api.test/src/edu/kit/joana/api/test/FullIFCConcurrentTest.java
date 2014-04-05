@@ -10,7 +10,6 @@ package edu.kit.joana.api.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
@@ -40,19 +39,19 @@ import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 /**
  * @author Juergen Graf <graf@kit.edu>
  */
-public class FullIFCSequentialTest {
+public class FullIFCConcurrentTest {
 
 	public static IFCAnalysis buildAndAnnotate(final String className, final String secSrc,
 			final String pubOut) throws ApiTestException {
-		return buildAndAnnotate(className, secSrc, pubOut, PointsToPrecision.INSTANCE_BASED, ExceptionAnalysis.INTRAPROC);
+		return buildAndAnnotate(className, secSrc, pubOut, PointsToPrecision.INSTANCE_BASED);
 	}
 	
 	public static IFCAnalysis buildAndAnnotate(final String className, final String secSrc,
-			final String pubOut, final PointsToPrecision pts, final ExceptionAnalysis exc) throws ApiTestException {
+			final String pubOut, final PointsToPrecision pts) throws ApiTestException {
 		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(className);
 		SDGConfig config = new SDGConfig(JoanaPath.JOANA_MANY_SMALL_PROGRAMS_CLASSPATH, mainMethod.toBCString(), Stubs.JRE_14);
-		config.setComputeInterferences(false);
-		config.setExceptionAnalysis(exc);
+		config.setComputeInterferences(true);
+		config.setExceptionAnalysis(ExceptionAnalysis.INTRAPROC);
 		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH);
 		config.setPointsToPrecision(pts);
 		SDGProgram prog = null;
@@ -81,29 +80,14 @@ public class FullIFCSequentialTest {
 	}
 	
 	@Test
-	public void testPraktomatValid() {
+	public void testAlarmClock() {
 		try {
-			IFCAnalysis ana = buildAndAnnotate("sequential.PraktomatValid",
-					"sequential.PraktomatValid$Submission.matrNr",
-					"sequential.PraktomatValid$Review.failures");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertTrue(illegal.isEmpty());
-			assertEquals(0, illegal.size());
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void testPraktomatLeak() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("sequential.PraktomatLeak",
-					"sequential.PraktomatLeak$Submission.matrNr",
-					"sequential.PraktomatLeak$Review.failures");
+			IFCAnalysis ana = buildAndAnnotate("conc.ac.AlarmClock",
+					"conc.ac.Clock.max",
+					"conc.ac.Client.name");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
-			assertEquals(14, illegal.size());
+			assertEquals(16, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -111,47 +95,11 @@ public class FullIFCSequentialTest {
 	}
 
 	@Test
-	public void testExceptionOptimizeNoOpt() {
+	public void testProducerConsumer() {
 		try {
-			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionOptimize",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC",
-					PointsToPrecision.INSTANCE_BASED,
-					ExceptionAnalysis.ALL_NO_ANALYSIS);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(24, illegal.size());
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void testExceptionOptimizeIntra() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionOptimize",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC",
-					PointsToPrecision.INSTANCE_BASED,
-					ExceptionAnalysis.INTRAPROC);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(15, illegal.size());
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void testExceptionOptimizeInter() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionOptimize",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC",
-					PointsToPrecision.INSTANCE_BASED,
-					ExceptionAnalysis.INTERPROC);
+			IFCAnalysis ana = buildAndAnnotate("conc.bb.ProducerConsumer",
+					"conc.bb.BoundedBuffer.putIn",
+					"conc.bb.BoundedBuffer.takeOut");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
 			assertEquals(12, illegal.size());
@@ -162,16 +110,14 @@ public class FullIFCSequentialTest {
 	}
 
 	@Test
-	public void testExceptionOptimizeIgnoreExc() {
+	public void testDaytimeClientServer() {
 		try {
-			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionOptimize",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC",
-					PointsToPrecision.INSTANCE_BASED,
-					ExceptionAnalysis.IGNORE_ALL);
+			IFCAnalysis ana = buildAndAnnotate("conc.cliser.dt.Main",
+					"conc.cliser.dt.DaytimeUDPClient.message",
+					"conc.cliser.dt.DaytimeIterativeUDPServer.recieved");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertTrue(illegal.isEmpty());
-			assertEquals(0, illegal.size());
+			assertFalse(illegal.isEmpty());
+			assertEquals(96, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -179,14 +125,104 @@ public class FullIFCSequentialTest {
 	}
 
 	@Test
-	public void testFirst() {
+	public void testKnockKnock() {
 		try {
-			IFCAnalysis ana = buildAndAnnotate("lob.First",
-					"sensitivity.Security.SECRET",
+			IFCAnalysis ana = buildAndAnnotate("conc.cliser.kk.Main",
+					"conc.cliser.kk.KnockKnockThread.message",
+					"conc.cliser.kk.KnockKnockTCPClient.received1");
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertFalse(illegal.isEmpty());
+			assertEquals(180, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testDaisy() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("conc.daisy.DaisyTest",
+					"conc.daisy.DaisyUserThread.iterations",
+					"conc.daisy.DaisyDir.dirsize");
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertFalse(illegal.isEmpty());
+			assertEquals(8, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testDiningPhilosophers() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("conc.dp.DiningPhilosophers",
+					"conc.dp.Philosopher.id",
+					"conc.dp.DiningServer.state");
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertFalse(illegal.isEmpty());
+			assertEquals(160, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testDiskScheduler() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("conc.ds.DiskSchedulerDriver",
+					"conc.ds.DiskScheduler.position",
+					"conc.ds.DiskReader.active");
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertFalse(illegal.isEmpty());
+			assertEquals(22, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testKnapsack() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("conc.kn.Knapsack5",
+					"conc.kn.Knapsack5$Item.profit",
+					"conc.kn.PriorityRunQueue.numThreadsWaiting");
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertFalse(illegal.isEmpty());
+			assertEquals(176, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testLaplaceGrid() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("conc.lg.LaplaceGrid",
+					"conc.lg.Partition.values",
+					"conc.lg.Partition.in");
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertFalse(illegal.isEmpty());
+			assertEquals(1100, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testProbChannel() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("conc.pc.ProbChannel",
+					"conc.pc.ProbChannel.x",
 					"sensitivity.Security.PUBLIC");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
-			assertEquals(6, illegal.size());
+			assertEquals(12, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -194,49 +230,18 @@ public class FullIFCSequentialTest {
 	}
 
 	@Test
-	public void testTermination() {
+	public void testSharedQueue() {
 		try {
-			IFCAnalysis ana = buildAndAnnotate("term.A",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC");
+			IFCAnalysis ana = buildAndAnnotate("conc.sq.SharedQueue",
+					"conc.sq.SharedQueue.next",
+					"conc.sq.Semaphore.count");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
-			assertEquals(6, illegal.size());
+			assertEquals(280, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
 		}
 	}
-
-	@Test
-	public void testMain() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("Main",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.leak(I)V->p1");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(2, illegal.size());
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void testUtil() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("Util",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.leak(I)V->p1");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(2, illegal.size());
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
 
 }

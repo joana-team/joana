@@ -25,9 +25,11 @@ class KnockKnockThread extends ServiceThread {
         super();
     }
 
+    private static String message = "Knock knock";
+    
     public void interactWithClient() {
         int randomIndex = myGenerator.nextInt(FIRST_PART.length);
-        this.send("Knock knock");
+        this.send(message);
         String reply1 = this.receive();
 
         if (reply1.equalsIgnoreCase("Who's there?")) {

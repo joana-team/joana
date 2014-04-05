@@ -125,7 +125,11 @@ public class DaisyDir {
 	  DaisyLock.fileLocks[d.file.inodenum] == null
 	}
      */
+    
+    private static long dirsize;
+    
     static int closeDirectory(Directory d) {
+    	dirsize = d.size;
         for (int i = 0; i < d.size; i++) {
             DaisyDir.writeLong(d.file.inodenum,
                     i * DirectoryEntry.ENTRYSIZE,

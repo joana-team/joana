@@ -90,7 +90,7 @@ public class FullIFCConcurrentTest {
 					"conc.ac.Client.name");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
-			assertEquals(16, illegal.size());
+			assertEquals(14, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -120,7 +120,7 @@ public class FullIFCConcurrentTest {
 					"conc.cliser.dt.DaytimeIterativeUDPServer.recieved");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
-			assertEquals(96, illegal.size());
+			assertEquals(62, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -135,11 +135,11 @@ public class FullIFCConcurrentTest {
 					"conc.cliser.kk.KnockKnockTCPClient.received1");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
-			// somehow running from ant produces 220 violations, while running
-			// from eclipse results only in 180. Perhaps differences in the included
+			// somehow running from ant produces 216 violations, while running
+			// from eclipse results only in 176. Perhaps differences in the included
 			// runtime libraries.
 			final int size = illegal.size();
-			assertTrue("unexpected number of violations: " + size, size == 180 || size == 220);
+			assertTrue("unexpected number of violations: " + size, size == 176 || size == 216);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -214,7 +214,7 @@ public class FullIFCConcurrentTest {
 					"conc.lg.Partition.in");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
-			assertEquals(1100, illegal.size());
+			assertEquals(1016, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -260,16 +260,16 @@ public class FullIFCConcurrentTest {
 					"tests.probch.ProbChannel$Data.a");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(78, illegal.size());
+			assertEquals(56, illegal.size());
 			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(75, illegal.size());
+			assertEquals(53, illegal.size());
 			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(18, illegal.size());
+			assertEquals(14, illegal.size());
 			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(16, illegal.size());
+			assertEquals(12, illegal.size());
 			illegal = ana.doIFC(IFCType.CLASSICAL_NI);
 			assertTrue(illegal.isEmpty());
 			assertEquals(0, illegal.size());
@@ -287,19 +287,19 @@ public class FullIFCConcurrentTest {
 					"tests.ConcPasswordFile.b");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(38, illegal.size());
+			assertEquals(26, illegal.size());
 			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(32, illegal.size());
+			assertEquals(22, illegal.size());
 			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(21, illegal.size());
+			assertEquals(15, illegal.size());
 			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(21, illegal.size());
+			assertEquals(15, illegal.size());
 			illegal = ana.doIFC(IFCType.CLASSICAL_NI);
 			assertFalse(illegal.isEmpty());
-			assertEquals(14, illegal.size());
+			assertEquals(10, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

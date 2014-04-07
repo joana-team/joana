@@ -16,6 +16,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
+import edu.kit.joana.util.Log;
 
 
 public class NandaBackward implements NandaMode {
@@ -147,19 +148,19 @@ public class NandaBackward implements NandaMode {
 	            }
 	        }
         }
-        }catch(NullPointerException ex) {
-        	System.out.println("A");
-        	System.out.println(reached);
-        	System.out.println(neighbourNode+" reached in thread "+thread);
-        	for (int t : neighbourNode.getThreadNumbers()) {
-            	System.out.println(t);
-        	}
+        } catch (NullPointerException ex) {
+        	Log.ERROR.outln("failed intraprocedural neighbour check (reach): " + ex.getStackTrace()[0]);
+//        	System.out.println("A");
+//        	System.out.println(reached);
+//        	System.out.println(neighbourNode+" reached in thread "+thread);
+//        	for (int t : neighbourNode.getThreadNumbers()) {
+//            	System.out.println(t);
+//        	}
         	throw ex;
         }
-        // FIXME: this hack is necessary because the control flow of phi nodes is incorrect
+        // FIXME: this hack is necessary because the control flow phi nodes are not part of the control flow
         // the hack will work most of the times, but the slices are not guaranteed to be
         // time- and context-sensitive
-        // please complain to Juergen Graf (grafj@ipd.uni-karlsruhe.de)
         try{
         if (nrs.size() == 0) {
         	for (TopologicalNumber t : reached) {
@@ -168,9 +169,10 @@ public class NandaBackward implements NandaMode {
 	            }
 	        }
         }
-        }catch(NullPointerException ex) {
-        	System.out.println("B");
-        	System.out.println(nrs);
+        } catch (NullPointerException ex) {
+        	Log.ERROR.outln("failed intraprocedural neighbour check (phi control flow): " + ex.getStackTrace()[0]);
+//        	System.out.println("B");
+//        	System.out.println(nrs);
         }
 
         return nrs.descendingIterator();//.iterator();

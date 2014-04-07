@@ -44,9 +44,11 @@ import edu.kit.joana.wala.core.params.objgraph.ModRefCandidates.InterProcCandida
 import edu.kit.joana.wala.core.params.objgraph.TVL.V;
 import edu.kit.joana.wala.core.params.objgraph.candidates.CandidateFactory;
 import edu.kit.joana.wala.core.params.objgraph.candidates.CandidateFactoryImpl;
+import edu.kit.joana.wala.core.params.objgraph.candidates.MergeByPartition;
 import edu.kit.joana.wala.core.params.objgraph.candidates.MergeStrategy;
 import edu.kit.joana.wala.core.params.objgraph.dataflow.ModRefDataFlow;
 import edu.kit.joana.wala.core.params.objgraph.dataflow.PointsToWrapper;
+import edu.kit.joana.wala.util.PrettyWalaNames;
 
 /**
  *
@@ -75,6 +77,7 @@ public final class ObjGraphParams {
 			this.isUseAdvancedInterprocPropagation = true;
 			this.maxNodesPerInterface = DEFAULT_MAX_NODES_PER_INTERFACE;
 			this.convertToObjTree = false;
+			this.doStaticFields = false;
 		}
 
 		private void adjustWithProperties() {
@@ -110,6 +113,10 @@ public final class ObjGraphParams {
 			if (Config.isDefined(Config.C_OBJGRAPH_MERGE_PRUNED_CALL_NODES)) {
 				isMergePrunedCallNodes = Config.getBool(Config.C_OBJGRAPH_MERGE_PRUNED_CALL_NODES);
 			}
+
+			if (Config.isDefined(Config.C_OBJGRAPH_DO_STATIC_FIELDS)) {
+				doStaticFields = Config.getBool(Config.C_OBJGRAPH_DO_STATIC_FIELDS);
+			}
 		}
 		
 		/**
@@ -142,6 +149,11 @@ public final class ObjGraphParams {
 			IMMUTABLES.add(TypeReference.JavaLangFloat);
 			IMMUTABLES.add(TypeReference.JavaLangShort);
 		};
+
+		/**
+		 * Compute also nodes and data deps for static fields - normally handled by a separate previous phase.
+		 */
+		public boolean doStaticFields;
 
 		/**
 		 * Merge all fields that are only reachable through an exception to a single node.
@@ -200,10 +212,22 @@ public final class ObjGraphParams {
 		sdg.cfg.out.print("(if");
 
 		// step 1 create candidates
-		final CandidateFactory candFact = new CandidateFactoryImpl(MergeStrategy.NO_INITIAL_MERGE);
+		final CandidateFactory candFact;
+		if (sdg.cfg.mergeFieldsOfPrunedCalls) {
+			final LinkedList<Set<ParameterField>> partition = sdg.partitions;
+			assert partition != null;
+			sdg.partitions = null;	// after this step we don't need them anymore
+			final MergeByPartition mergeAll = new MergeByPartition(partition);
+			candFact = new CandidateFactoryImpl(mergeAll);
+			mergeAll.setFactory(candFact);
+		} else {
+			candFact = new CandidateFactoryImpl(MergeStrategy.NO_INITIAL_MERGE);
+		}
 		final CallGraph cg = stripCallsFromThreadStartToRun(sdg.getNonPrunedWalaCallGraph());
 		final ModRefCandidates mrefs = ModRefCandidates.computeIntracProc(sdg.getParameterFieldFactory(), candFact, cg,
-				sdg.getPointerAnalysis(), progress);
+				sdg.getPointerAnalysis(), opt.doStaticFields, progress);
+
+		sdg.cfg.out.print("1");
 
 		// create side-effect detector if command line option has been set.
 		if (sdg.cfg.sideEffects == null && SideEffectDetectorConfig.isActivated()) {
@@ -225,13 +249,19 @@ public final class ObjGraphParams {
 			interModRef = simpleReachabilityPropagate(cg, mrefs, progress);
 		}
 
+		sdg.cfg.out.print("8");
+
 		long sdgNodeCount = 0;
 		if (logStats.isEnabled()) {
 			t2 = System.currentTimeMillis();
 			sdgNodeCount = sdg.countNodes();
 		}
 
+		sdg.cfg.out.print("9");
+
 		adjustInterprocModRef(cg, interModRef, mrefs, sdg, progress);
+
+		sdg.cfg.out.print("-");
 
 		if (sdg.cfg.sideEffects != null) {
 			// detect modifications to a given pointerkey
@@ -307,6 +337,8 @@ public final class ObjGraphParams {
 			}
 		}
 
+		sdg.cfg.out.print("a");
+		
 		if (opt.isCutOffUnreachable || opt.isMergeException || opt.isCutOffImmutables || opt.isMergeOneFieldPerParent) {
 			final PointsToWrapper pa = new PointsToWrapper(sdg.getPointerAnalysis());
 
@@ -315,25 +347,35 @@ public final class ObjGraphParams {
 				final ModRefCandidateGraph mrg = ModRefCandidateGraph.compute(pa, modref, pdg);
 				final InterProcCandidateModel pdgModRef = modref.getCandidates(pdg.cgNode);
 
+				sdg.cfg.out.println(PrettyWalaNames.methodName(pdg.getMethod()));
+
 				if (pdgModRef == null) { continue; }
 
 				// cut off unreachable nodes
 				if (opt.isCutOffUnreachable) {
+					sdg.cfg.out.print("a[1");
 					cutOffUnreachable(pdgModRef, mrg, mrg.getRoots());
+					sdg.cfg.out.print("]");
 				}
 
 				// merge nodes only reachable from exceptions
 				if (opt.isMergeException) {
+					sdg.cfg.out.print("a[2");
 					mergeException(pdgModRef, mrg);
+					sdg.cfg.out.print("]");
 				}
 
 				// cut off fields of immutables
 				if (opt.isCutOffImmutables) {
+					sdg.cfg.out.print("a[3");
 					cutOffImmutables(pdgModRef, mrg, pdg);
+					sdg.cfg.out.print("]");
 				}
 
 				if (opt.isMergeOneFieldPerParent) {
+					sdg.cfg.out.print("a[4");
 					mergeOneFieldPerParent(pdgModRef, mrg);
+					sdg.cfg.out.print("]");
 				}
 
 				if (opt.maxNodesPerInterface != Options.UNLIMITED_NODES_PER_INTERFACE
@@ -342,15 +384,22 @@ public final class ObjGraphParams {
 
 					for (int level = Options.STD_MERGE_LEVEL; level > 0
 							&& pdgModRef.size() > opt.maxNodesPerInterface; level--) {
+						sdg.cfg.out.print("a[5");
+
 						mergeAtLevel(pdgModRef, mrg, level);
 						//System.err.print(" -(" + level + ")-> " + pdgModRef.size());
+						sdg.cfg.out.print("]");
+
 					}
 
 					if (pdgModRef.size() > opt.maxNodesPerInterface) {
+						sdg.cfg.out.print("a[6");
+
 						// if the interface is still too big, we try to merge all locations only reachable through
 						// static fields to a single candidate.
 						mergeAllStatics(pdgModRef, mrg);
 						//System.err.print(" -(S)-> " + pdgModRef.size());
+						sdg.cfg.out.print("]");
 					}
 
 					//System.err.println(" done.");
@@ -358,10 +407,15 @@ public final class ObjGraphParams {
 			}
 		}
 
+		sdg.cfg.out.print("b");
+
 		// merge nodes for cut off cgnodes
 		if (opt.isMergePrunedCallNodes) {
 			mergePrunedCallNodes(sdg, cg, interModRef, modref, progress);
 		}
+		
+		sdg.cfg.out.print("c");
+
 	}
 
 	private static void cutOffUnreachable(final InterProcCandidateModel pdgModRef, final ModRefCandidateGraph mrg,
@@ -680,17 +734,27 @@ public final class ObjGraphParams {
 	private Map<CGNode, OrdinalSet<ModRefFieldCandidate>> simpleReachabilityPropagate(final CallGraph cg,
 			final ModRefCandidates mrefs, final IProgressMonitor progress) throws CancelException {
 		final Graph<CGNode> cgInverted = GraphInverter.invert(cg);
+		sdg.cfg.out.print("2");
+
 		final Map<CGNode, Collection<ModRefFieldCandidate>> gen = mrefs.getCandidateMap();
+		sdg.cfg.out.print("3");
 		MonitorUtil.throwExceptionIfCanceled(progress);
 		final GenReach<CGNode, ModRefFieldCandidate> genReach = new GenReach<CGNode, ModRefFieldCandidate>(cgInverted, gen);
+		sdg.cfg.out.print("4");
+
 		final BitVectorSolver<CGNode> solver = new BitVectorSolver<CGNode>(genReach);
+		sdg.cfg.out.print("5");
+
 		solver.solve(progress);
+		sdg.cfg.out.print("6");
+
 		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> result = HashMapFactory.make();
 		for (final CGNode cgNode : cg) {
 			final BitVectorVariable bv = solver.getOut(cgNode);
 			result.put(cgNode, new OrdinalSet<ModRefFieldCandidate>(bv.getValue(), genReach.getLatticeValues()));
 			MonitorUtil.throwExceptionIfCanceled(progress);
 		}
+		sdg.cfg.out.print("7");
 
 		return result;
 	}
@@ -706,6 +770,8 @@ public final class ObjGraphParams {
 		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> simple =
 				simpleReachabilityPropagate(nonPrunedCG, mrefs, progress);
 
+		sdg.cfg.out.print("z");
+		
 		// init with roots
 		for (final PDG pdg : sdg.getAllPDGs()) {
 			final List<ModRefRootCandidate> roots = ModRefCandidateGraph.findMethodRoots(pa, pdg);
@@ -715,6 +781,9 @@ public final class ObjGraphParams {
 			localPropagate(cands, cg2localfields.get(pdg.cgNode));
 		}
 
+		sdg.cfg.out.print("y");
+
+		
 		boolean changed = true;
 		while (changed) {
 			changed = false;
@@ -743,8 +812,12 @@ public final class ObjGraphParams {
 			}
 		}
 
+		sdg.cfg.out.print("x");
+		
 		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> result = convertResult(cg2candidates, simple);
 
+		sdg.cfg.out.print("w");
+		
 		return result;
 	}
 

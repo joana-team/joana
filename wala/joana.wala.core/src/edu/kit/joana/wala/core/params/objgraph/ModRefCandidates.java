@@ -57,20 +57,22 @@ public class ModRefCandidates {
 	private final SingleCandidateConsumer single;
 	private final ModRefSSAVisitor singleVisitor;
 	private final SingleCandidatePointsTo singlePts;
+	private final boolean doStaticFields = false;
 
 	private ModRefCandidates(final CandidateFactory candFact, final ParameterFieldFactory paramFact,
-			final PointerAnalysis pa) {
+			final PointerAnalysis pa, final boolean doStaticFields) {
 		this.candFact = candFact;
 		this.paramFact = paramFact;
 		this.pa = pa;
 		this.single = new SingleCandidateConsumer(candFact);
 		this.singlePts = new SingleCandidatePointsTo(pa.getHeapModel(), pa);
-		this.singleVisitor = new ModRefSSAVisitor(single, paramFact, singlePts, pa.getClassHierarchy(), false);
+		this.singleVisitor = new ModRefSSAVisitor(single, paramFact, singlePts, pa.getClassHierarchy(), doStaticFields);
 	}
 
-	public static ModRefCandidates computeIntracProc(final ParameterFieldFactory paramFact, final CandidateFactory candFact,
-			final CallGraph cg, final PointerAnalysis pa, final IProgressMonitor progress) throws CancelException {
-		final ModRefCandidates modref = new ModRefCandidates(candFact, paramFact, pa);
+	public static ModRefCandidates computeIntracProc(final ParameterFieldFactory paramFact,
+			final CandidateFactory candFact, final CallGraph cg, final PointerAnalysis pa,
+			final boolean doStaticFields, final IProgressMonitor progress) throws CancelException {
+		final ModRefCandidates modref = new ModRefCandidates(candFact, paramFact, pa, doStaticFields);
 
 		modref.run(cg, progress);
 
@@ -289,7 +291,7 @@ public class ModRefCandidates {
 
 			final CGNodeCandidates consumer = new CGNodeCandidates(candFact);
 			all.put(n, consumer);
-			final ModRefSSAVisitor visitor = new ModRefSSAVisitor(consumer, paramFact, pts, cg.getClassHierarchy(), false);
+			final ModRefSSAVisitor visitor = new ModRefSSAVisitor(consumer, paramFact, pts, cg.getClassHierarchy(), doStaticFields);
 			ir.visitNormalInstructions(visitor);
 		}
 	}

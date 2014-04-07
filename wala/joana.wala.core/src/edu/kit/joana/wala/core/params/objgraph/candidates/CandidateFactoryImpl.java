@@ -598,12 +598,12 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 
 		@Override
 		public boolean isBaseAliased(OrdinalSet<InstanceKey> otherPts) {
-			return basePts != null && basePts.containsAny(otherPts);
+			return basePts != null && otherPts != null && basePts.containsAny(otherPts);
 		}
 
 		@Override
 		public boolean isFieldAliased(OrdinalSet<InstanceKey> otherPts) {
-			return fieldPts != null && fieldPts.containsAny(otherPts);
+			return fieldPts != null && otherPts != null && fieldPts.containsAny(otherPts);
 		}
 
 		@Override

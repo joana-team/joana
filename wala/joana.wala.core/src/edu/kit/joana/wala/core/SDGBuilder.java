@@ -75,6 +75,7 @@ import edu.kit.joana.wala.core.killdef.LocalKillingDefs;
 import edu.kit.joana.wala.core.killdef.impl.FieldsMayModComputation;
 import edu.kit.joana.wala.core.killdef.impl.SimpleFieldsMayMod;
 import edu.kit.joana.wala.core.params.FlatHeapParams;
+import edu.kit.joana.wala.core.params.SearchFieldsOfPrunedCalls;
 import edu.kit.joana.wala.core.params.StaticFieldParams;
 import edu.kit.joana.wala.core.params.objgraph.ModRefCandidates;
 import edu.kit.joana.wala.core.params.objgraph.ObjGraphParams;
@@ -108,6 +109,8 @@ public class SDGBuilder implements CallGraphFilter {
 			Config.getBool(Config.C_SDG_DATAFLOW_FOR_GET_FROM_FIELD, false);
 
 	public final SDGBuilderConfig cfg;
+	
+	public LinkedList<Set<ParameterField>> partitions;
 
 	public static enum ExceptionAnalysis {
 		/*
@@ -574,8 +577,22 @@ public class SDGBuilder implements CallGraphFilter {
 				}
 			}
 		}
+		
 		cfg.out.print(".");
 		progress.worked(1);
+
+		
+		if (cfg.mergeFieldsOfPrunedCalls) {
+			cfg.out.print("mergeable");
+
+			partitions = SearchFieldsOfPrunedCalls.compute(this, progress);
+			
+			cfg.out.print(".");
+			progress.worked(1);
+		} else {
+			partitions = null;
+		}
+		
 		if (cfg.staticInitializers != StaticInitializationTreatment.NONE) {
 			progress.subTask("handling static initializers...");
 			cfg.out.print("clinit");
@@ -1399,6 +1416,7 @@ public class SDGBuilder implements CallGraphFilter {
 		public boolean localKillingDefs = true;
 		public boolean keepPhiNodes = true;
 		public int prunecg = DO_NOT_PRUNE;
+		public boolean mergeFieldsOfPrunedCalls = true;
 		public PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
 		public PointsToPrecision pts = PointsToPrecision.INSTANCE_BASED;
 		// only used iff pts is set to object sensitive. If null defaults to

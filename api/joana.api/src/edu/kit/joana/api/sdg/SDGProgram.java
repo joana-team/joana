@@ -203,6 +203,7 @@ public class SDGProgram {
 		cfg.stubs = config.getStubsPath().getPath();
 		cfg.nativesXML = config.getNativesXML();
 		cfg.pruningPolicy = config.getPruningPolicy();
+		cfg.exclusions = config.getExclusions();
 		debug.outln(cfg.stubs);
 
 		if (config.computeInterferences()) {

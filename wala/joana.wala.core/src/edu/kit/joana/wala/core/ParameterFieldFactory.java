@@ -17,6 +17,8 @@ import com.ibm.wala.types.FieldReference;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.types.annotations.Annotation;
 import com.ibm.wala.util.collections.HashMapFactory;
+import com.ibm.wala.util.intset.MutableMapping;
+import com.ibm.wala.util.intset.OrdinalSetMapping;
 import com.ibm.wala.util.strings.Atom;
 
 /**
@@ -28,12 +30,18 @@ import com.ibm.wala.util.strings.Atom;
  */
 public final class ParameterFieldFactory {
 
-	private Map<IField, ObjectField> ifield2field;
-	private Map<TypeReference, ArrayField> type2field;
+	private final Map<IField, ObjectField> ifield2field;
+	private final Map<TypeReference, ArrayField> type2field;
 
+	private final MutableMapping<ParameterField> fieldMapping;
+
+	
 	public ParameterFieldFactory() {
 		ifield2field = HashMapFactory.make();
 		type2field = HashMapFactory.make();
+		fieldMapping = MutableMapping.make();
+		fieldMapping.add(LOCK_FIELD);
+		fieldMapping.add(CLASS_LOCK_FIELD);
 	}
 
 	/**
@@ -52,6 +60,7 @@ public final class ParameterFieldFactory {
 		if (ofield == null) {
 			ofield = new ObjectField(field);
 			ifield2field.put(field, ofield);
+			fieldMapping.add(ofield);
 		}
 
 		return ofield;
@@ -74,11 +83,16 @@ public final class ParameterFieldFactory {
 		if (aField == null) {
 			aField = new ArrayField(elemType);
 			type2field.put(elemType, aField);
+			fieldMapping.add(aField);
 		}
 
 		return aField;
 	}
 
+	public OrdinalSetMapping<ParameterField> getMapping() {
+		return fieldMapping;
+	}
+	
 	private static final Atom LOCK_NAME = Atom.findOrCreateAsciiAtom("<lock>");
 	private static final FieldReference FIELD_REF = FieldReference.findOrCreate(TypeReference.JavaLangObject, LOCK_NAME, TypeReference.Boolean);
 	private static final IField ILOCK = new IField() {

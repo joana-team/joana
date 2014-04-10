@@ -31,7 +31,8 @@ public interface ParameterCandidate {
 	boolean isReachableFrom(ParameterCandidate other);
 	boolean isBaseAliased(OrdinalSet<InstanceKey> pts);
 	boolean isFieldAliased(OrdinalSet<InstanceKey> other);
-	boolean isReferenceToField(ParameterField otherField);
+	boolean isReferenceToField(OrdinalSet<InstanceKey> pts, ParameterField otherField);
+	boolean isReferenceToAnyField(OrdinalSet<ParameterField> otherField);
 	OrdinalSet<UniqueParameterCandidate> getUniques();
 	boolean isMustAliased(ParameterCandidate pc);
 	boolean isMayAliased(ParameterCandidate pc);

@@ -67,8 +67,8 @@ public class ModRefCandidateGraph implements Graph<ModRefCandidate> {
 	}
 
 	/**
-	 * Get toe root candidates for a pdg. This method searches all root-dormal-in and out nodes and creates/finds
-	 * the proper ModRecCandidates.
+	 * Get the root candidates for a pdg. This method searches all root-formal-in and out nodes and creates/finds
+	 * the proper ModRefCandidates.
 	 */
 	public static List<ModRefRootCandidate> findMethodRoots(final PointsToWrapper pa, final PDG pdg) {
 		final List<ModRefRootCandidate> roots = new LinkedList<ModRefRootCandidate>();

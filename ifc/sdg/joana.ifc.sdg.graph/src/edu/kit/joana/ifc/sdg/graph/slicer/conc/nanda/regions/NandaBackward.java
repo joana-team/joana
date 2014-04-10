@@ -130,47 +130,48 @@ public class NandaBackward implements NandaMode {
         LinkedList<TopologicalNumber> nrs = new LinkedList<TopologicalNumber>();
         LinkedList<TopologicalNumber> reached =
         	contextGraphs.getTopologicalNumbersNew(neighbourNode, from.getThread());
-        try {
+        
+        if (reached == null) {
+        	Log.ERROR.outln("failed intraprocedural neighbour check (reach) " + this.getClass().getName());
+        	return nrs.descendingIterator();
+        }
+        
         if (reached.size() == 1) {
         	// a simple optimization
         	return reached.descendingIterator();
 
-        } else {
-	        for (TopologicalNumber t : reached) {
-	        	if (t.getProcID() == from.getProcID()) {
-	                if (contextGraphs.reach(t, from)) {
-	                    nrs.add(t);
-	                }
-	            }
-	        }
         }
-        } catch (NullPointerException ex) {
-        	Log.ERROR.outln("failed intraprocedural neighbour check (reach): " + ex.getStackTrace()[0]);
-//        	System.out.println("A");
-//        	System.out.println(reached);
-//        	System.out.println(neighbourNode+" reached in thread "+from.getThread());
-//        	for (int t : neighbourNode.getThreadNumbers()) {
-//            	System.out.println(t);
-//        	}
+        
+        for (TopologicalNumber t : reached) {
+        	if (t.getProcID() == from.getProcID()) {
+                if (contextGraphs.reach(t, from)) {
+                    nrs.add(t);
+                }
+            }
         }
+        
         // FIXME: this hack is necessary because the control flow phi nodes are not part of the control flow
         // the hack will work most of the times, but the slices are not guaranteed to be
         // time- and context-sensitive
-        try{
         if (nrs.size() == 0) {
+        	Log.ERROR.outln("fixme " + this.getClass().getName());
         	for (TopologicalNumber t : reached) {
 	        	if (t.getProcID() == from.getProcID()) {
                     nrs.add(t);
 	            }
 	        }
         }
-        } catch (NullPointerException ex) {
-        	Log.ERROR.outln("failed intraprocedural neighbour check (phi control flow): " + ex.getStackTrace()[0]);
-//        	System.out.println("B");
-//        	System.out.println(nrs);
-        }
+        	
+//    	System.out.println("A");
+//    	System.out.println(reached);
+//    	System.out.println(neighbourNode+" reached in thread "+thread);
+//    	for (int t : neighbourNode.getThreadNumbers()) {
+//        	System.out.println(t);
+//    	}
+//    	System.out.println("B");
+//    	System.out.println(nrs);
 
-        return nrs.descendingIterator();//.iterator();
+        return nrs.descendingIterator();
     }
 
 	/** Compute the intra-procedural predecessors of a context.

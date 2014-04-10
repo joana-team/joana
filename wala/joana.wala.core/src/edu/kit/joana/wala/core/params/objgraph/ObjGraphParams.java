@@ -28,6 +28,8 @@ import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.graph.Graph;
 import com.ibm.wala.util.graph.impl.GraphInverter;
+import com.ibm.wala.util.graph.traverse.DFS;
+import com.ibm.wala.util.graph.traverse.DFSFinishTimeIterator;
 import com.ibm.wala.util.intset.BitVectorIntSet;
 import com.ibm.wala.util.intset.MutableMapping;
 import com.ibm.wala.util.intset.OrdinalSet;
@@ -38,6 +40,7 @@ import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.ParameterField;
+import edu.kit.joana.wala.core.ParameterFieldFactory;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.dataflow.GenReach;
 import edu.kit.joana.wala.core.params.objgraph.ModRefCandidates.InterProcCandidateModel;
@@ -167,7 +170,7 @@ public final class ObjGraphParams {
 		public boolean isMergeOneFieldPerParent;
 
 		/**
-		 * Merge all fields that are only referenced or modified through methods that were rpuned in the cg.
+		 * Merge all fields that are only referenced or modified through methods that were pruned in the cg.
 		 */
 		public boolean isMergePrunedCallNodes;
 
@@ -212,19 +215,22 @@ public final class ObjGraphParams {
 		sdg.cfg.out.print("(if");
 
 		// step 1 create candidates
+		final CallGraph cg = stripCallsFromThreadStartToRun(sdg.getNonPrunedWalaCallGraph());
+		final ParameterFieldFactory pfact = sdg.getParameterFieldFactory();
+		final OrdinalSetMapping<ParameterField> fieldMapping = pfact.getMapping();
+
 		final CandidateFactory candFact;
 		if (sdg.cfg.mergeFieldsOfPrunedCalls) {
 			final LinkedList<Set<ParameterField>> partition = sdg.partitions;
 			assert partition != null;
 			sdg.partitions = null;	// after this step we don't need them anymore
 			final MergeByPartition mergeAll = new MergeByPartition(partition);
-			candFact = new CandidateFactoryImpl(mergeAll);
+			candFact = new CandidateFactoryImpl(mergeAll, fieldMapping);
 			mergeAll.setFactory(candFact);
 		} else {
-			candFact = new CandidateFactoryImpl(MergeStrategy.NO_INITIAL_MERGE);
+			candFact = new CandidateFactoryImpl(MergeStrategy.NO_INITIAL_MERGE, fieldMapping);
 		}
-		final CallGraph cg = stripCallsFromThreadStartToRun(sdg.getNonPrunedWalaCallGraph());
-		final ModRefCandidates mrefs = ModRefCandidates.computeIntracProc(sdg.getParameterFieldFactory(), candFact, cg,
+		final ModRefCandidates mrefs = ModRefCandidates.computeIntracProc(pfact, candFact, cg,
 				sdg.getPointerAnalysis(), opt.doStaticFields, progress);
 
 		sdg.cfg.out.print("1");
@@ -783,13 +789,22 @@ public final class ObjGraphParams {
 
 		sdg.cfg.out.print("y");
 
-		
+		// prepare dfs finish time sorted list for fixpoint iteration.
+		final LinkedList<CGNode> dfsFinish = new LinkedList<CGNode>();
+		{
+			final DFSFinishTimeIterator<CGNode> it = DFS.iterateFinishTime(prunedCG);
+			while (it.hasNext()) {
+				final CGNode n = it.next();
+				if (sdg.getPDGforMethod(n) != null) {
+					dfsFinish.add(n);
+				}
+			}
+		}
 		boolean changed = true;
 		while (changed) {
 			changed = false;
-
-			for (final PDG pdg : sdg.getAllPDGs()) {
-				final CGNode n = pdg.cgNode;
+			
+			for (final CGNode n : dfsFinish) { 
 				final Set<ModRefCandidate> caller = cg2candidates.get(n);
 				final Collection<ModRefFieldCandidate> fields = cg2localfields.get(n);
 				if (fields != null && !fields.isEmpty()) {

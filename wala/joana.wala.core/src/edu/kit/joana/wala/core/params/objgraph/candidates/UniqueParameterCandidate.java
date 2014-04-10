@@ -7,12 +7,9 @@
  */
 package edu.kit.joana.wala.core.params.objgraph.candidates;
 
-import java.util.Set;
-
 import com.ibm.wala.util.intset.OrdinalSet;
 
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
-import edu.kit.joana.wala.core.ParameterField;
 import edu.kit.joana.wala.core.params.objgraph.TVL.V;
 
 /**
@@ -26,7 +23,7 @@ public abstract class UniqueParameterCandidate implements ParameterCandidate {
 		return true;
 	}
 
-	public abstract Set<ParameterField> getFields();
+//	public abstract Set<ParameterField> getFields();
 	public abstract int hashCode();
 	public abstract boolean equals(Object obj);
 	public abstract String toString();

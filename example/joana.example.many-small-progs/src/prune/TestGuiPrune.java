@@ -7,6 +7,7 @@
  */
 package prune;
 
+import javax.swing.JButton;
 import javax.swing.JTextField;
 
 import sensitivity.Security;
@@ -28,5 +29,7 @@ public class TestGuiPrune {
 
 	private TestGuiPrune(String data) {
 		field = new JTextField(data);
+		new JButton(data).add(data, field);
+		field.setVisible(true);
 	}
 }

@@ -8,7 +8,6 @@
 package edu.kit.joana.wala.core.params.objgraph.candidates;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -20,6 +19,8 @@ import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.intset.MutableMapping;
 import com.ibm.wala.util.intset.OrdinalSet;
+import com.ibm.wala.util.intset.OrdinalSetMapping;
+import com.ibm.wala.util.intset.SparseIntSet;
 import com.ibm.wala.util.strings.Atom;
 
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
@@ -40,10 +41,12 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 	/* Maps parameter field -> set of candidates */
 	private final Map<ParameterField, Set<UniqueParameterCandidate>> cache =
 			new HashMap<ParameterField, Set<UniqueParameterCandidate>>();
-	private MutableMapping<UniqueParameterCandidate> mapping = MutableMapping.make();
+	private final MutableMapping<UniqueParameterCandidate> mapping = MutableMapping.make();
+	private final OrdinalSetMapping<ParameterField> fieldMapping;
 
-	public CandidateFactoryImpl(final MergeStrategy merge) {
+	public CandidateFactoryImpl(final MergeStrategy merge, final OrdinalSetMapping<ParameterField> fieldMapping) {
 		this.merge = merge;
+		this.fieldMapping = fieldMapping;
 	}
 
 	/* (non-Javadoc)
@@ -92,30 +95,6 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		}
 
 		return c;
-	}
-
-	/* (non-Javadoc)
-	 * @see edu.kit.joana.wala.core.params.objgraph.candidates.CandidateFactory#removeUniqueCandidate(edu.kit.joana.wala.core.params.objgraph.candidates.UniqueParameterCandidate)
-	 */
-	@Override
-	public void removeUniqueCandidate(final UniqueParameterCandidate toRemove) {
-		final UniqueParameterCandidate cand = (UniqueParameterCandidate) toRemove;
-
-		for (final ParameterField f : cand.getFields()) {
-			final Set<UniqueParameterCandidate> candSet = cache.get(f);
-			if (candSet != null) {
-				candSet.remove(cand);
-
-				if (candSet.isEmpty()) {
-					cache.remove(f);
-				}
-			}
-		}
-
-		if (toRemove.isMerged()) {
-			MultipleParamCandImpl merge = (MultipleParamCandImpl) toRemove;
-			id2cand.remove(merge.id);
-		}
 	}
 
 	/* (non-Javadoc)
@@ -239,27 +218,27 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		}
 
 		@Override
-		public boolean isReachableFrom(ParameterCandidate other) {
+		public boolean isReachableFrom(final ParameterCandidate other) {
 			return a.isReachableFrom(other) || b.isReachableFrom(other);
 		}
 
 		@Override
-		public boolean isBaseAliased(OrdinalSet<InstanceKey> pts) {
+		public boolean isBaseAliased(final OrdinalSet<InstanceKey> pts) {
 			return a.isBaseAliased(pts) || b.isBaseAliased(pts);
 		}
 
 		@Override
-		public boolean isFieldAliased(OrdinalSet<InstanceKey> other) {
+		public boolean isFieldAliased(final OrdinalSet<InstanceKey> other) {
 			return a.isFieldAliased(other) || b.isFieldAliased(other);
 		}
 
 		@Override
-		public boolean isReferenceToField(ParameterField otherField) {
-			return a.isReferenceToField(otherField) || b.isReferenceToField(otherField);
+		public boolean isReferenceToField(final OrdinalSet<InstanceKey> other, final ParameterField otherField) {
+			return a.isReferenceToField(other, otherField) || b.isReferenceToField(other, otherField);
 		}
 
 		@Override
-		public void merge(ParameterCandidate toMerge) {
+		public void merge(final ParameterCandidate toMerge) {
 			this.b = new MergeCandTwoImpl(this.b, toMerge);
 		}
 
@@ -287,7 +266,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 
 		@Override
 		public final boolean isMayAliased(final ParameterCandidate pc) {
-			return a.isMayAliased(pc) || b.isMayAliased(pc);
+			return this == pc || a.isMayAliased(pc) || b.isMayAliased(pc);
 		}
 
 		@Override
@@ -312,6 +291,11 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			final ParameterField fB = b.getField();
 
 			return (fA.equals(fB) ? fA : null);
+		}
+
+		@Override
+		public boolean isReferenceToAnyField(final OrdinalSet<ParameterField> otherField) {
+			return a.isReferenceToAnyField(otherField) || b.isReferenceToAnyField(otherField);
 		}
 	}
 
@@ -414,7 +398,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		}
 
 		@Override
-		public boolean isReachableFrom(ParameterCandidate other) {
+		public boolean isReachableFrom(final ParameterCandidate other) {
 			for (ParameterCandidate c : cands) {
 				if (c.isReachableFrom(other)) {
 					return true;
@@ -425,7 +409,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		}
 
 		@Override
-		public boolean isBaseAliased(OrdinalSet<InstanceKey> pts) {
+		public boolean isBaseAliased(final OrdinalSet<InstanceKey> pts) {
 			for (ParameterCandidate c : cands) {
 				if (c.isBaseAliased(pts)) {
 					return true;
@@ -436,7 +420,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		}
 
 		@Override
-		public boolean isFieldAliased(OrdinalSet<InstanceKey> other) {
+		public boolean isFieldAliased(final OrdinalSet<InstanceKey> other) {
 			for (ParameterCandidate c : cands) {
 				if (c.isFieldAliased(other)) {
 					return true;
@@ -447,9 +431,9 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		}
 
 		@Override
-		public boolean isReferenceToField(final ParameterField otherField) {
+		public boolean isReferenceToField(final OrdinalSet<InstanceKey> other, final ParameterField otherField) {
 			for (final ParameterCandidate c : cands) {
-				if (c.isReferenceToField(otherField)) {
+				if (c.isReferenceToField(other, otherField)) {
 					return true;
 				}
 			}
@@ -464,6 +448,10 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 
 		@Override
 		public boolean isMayAliased(final ParameterCandidate pc) {
+			if (pc == this) {
+				return true;
+			}
+			
 			for (final UniqueParameterCandidate upc : cands) {
 				if (upc.isMayAliased(pc)) {
 					return true;
@@ -524,15 +512,26 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			return f;
 		}
 
+		@Override
+		public boolean isReferenceToAnyField(final OrdinalSet<ParameterField> otherField) {
+			for (final UniqueParameterCandidate upc : cands) {
+				if (upc.isReferenceToAnyField(otherField)) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 	}
 
-	private final static class MultipleParamCandImpl extends UniqueMergableParameterCandidate {
+	private final class MultipleParamCandImpl extends UniqueMergableParameterCandidate {
 
 		// main representation (e.g. some artificial field)
 		private final Atom id;
 		private OrdinalSet<InstanceKey> basePts = null;
 		private OrdinalSet<InstanceKey> fieldPts = null;
-		private final Set<ParameterField> fieldEquiv = new HashSet<ParameterField>();
+		private OrdinalSet<ParameterField> fieldEquiv = null;
 		private V isArray = V.UNKNOWN;
 		private V isStatic = V.UNKNOWN;
 		private V isPrimitive = V.UNKNOWN;
@@ -549,7 +548,12 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 				final OrdinalSet<InstanceKey> fieldPts) {
 			this.basePts = unify(this.basePts, basePts);
 			this.fieldPts = unify(this.fieldPts, fieldPts);
-			this.fieldEquiv.add(field);
+			if (fieldEquiv == null || !fieldEquiv.contains(field)) {
+				final int index = fieldMapping.getMappedIndex(field);
+				final OrdinalSet<ParameterField> single =
+						new OrdinalSet<ParameterField>(SparseIntSet.singleton(index), fieldMapping);
+				this.fieldEquiv = unify(this.fieldEquiv, single);
+			}
 			final V curArray = (field.isArray() ? V.YES : V.NO);
 			final V curStatic = (field.isStatic() ? V.YES : V.NO);
 			final V curRoot = (basePts == null || basePts.isEmpty() ? V.YES : V.NO);
@@ -588,7 +592,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		}
 
 		@Override
-		public boolean isReachableFrom(ParameterCandidate other) {
+		public boolean isReachableFrom(final ParameterCandidate other) {
 			if (basePts != null && basePts.size() > 0 && !TVL.isTrue(other.isPrimitive())) {
 				return other.isFieldAliased(basePts);
 			}
@@ -597,23 +601,22 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		}
 
 		@Override
-		public boolean isBaseAliased(OrdinalSet<InstanceKey> otherPts) {
+		public boolean isBaseAliased(final OrdinalSet<InstanceKey> otherPts) {
 			return basePts != null && otherPts != null && basePts.containsAny(otherPts);
 		}
 
 		@Override
-		public boolean isFieldAliased(OrdinalSet<InstanceKey> otherPts) {
+		public boolean isFieldAliased(final OrdinalSet<InstanceKey> otherPts) {
 			return fieldPts != null && otherPts != null && fieldPts.containsAny(otherPts);
 		}
 
 		@Override
-		public boolean isReferenceToField(ParameterField otherField) {
-			return fieldEquiv.contains(otherField);
-		}
-
-		@Override
-		public Set<ParameterField> getFields() {
-			return Collections.unmodifiableSet(fieldEquiv);
+		public boolean isReferenceToField(final OrdinalSet<InstanceKey> other, final ParameterField otherField) {
+			if (otherField.isStatic()) {
+				return fieldEquiv.contains(otherField);
+			} else {
+				return basePts != null && other != null && basePts.containsAny(fieldPts) && fieldEquiv.contains(otherField);
+			}
 		}
 
 		@Override
@@ -624,13 +627,6 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		@Override
 		public boolean equals(final Object obj) {
 			return this == obj;
-			//			if (obj instanceof MultipleParamCandImpl) {
-//				final MultipleParamCandImpl other = (MultipleParamCandImpl) obj;
-//
-//				return this == other;
-//			}
-//
-//			return false;
 		}
 
 		@Override
@@ -640,14 +636,26 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 
 		@Override
 		public boolean isMayAliased(final ParameterCandidate pc) {
-			if (pc.isBaseAliased(basePts)) {
-				for (final ParameterField f : fieldEquiv) {
-					if (pc.isReferenceToField(f)) {
-						return true;
-					}
-				}
+			if (pc == this) {
+				return true;
 			}
-
+			
+			if (pc.isStatic() == V.NO) {
+				final ParameterField otherField = pc.getField();
+				if (otherField == null) {
+					// merged candidate
+					if (pc instanceof MultipleParamCandImpl) {
+						return pc.isBaseAliased(basePts) && fieldEquiv.containsAny(((MultipleParamCandImpl) pc).fieldEquiv);
+					} else {
+						return pc.isBaseAliased(basePts) && pc.isReferenceToAnyField(fieldEquiv);
+					}
+				} else {
+					return pc.isBaseAliased(basePts) && fieldEquiv.contains(otherField);
+				}
+			} else if (isStatic() != V.NO) {
+				return pc.isReferenceToAnyField(fieldEquiv);
+			}
+			
 			return false;
 		}
 
@@ -673,6 +681,11 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			}
 
 			return null;
+		}
+
+		@Override
+		public boolean isReferenceToAnyField(final OrdinalSet<ParameterField> otherField) {
+			return fieldEquiv.containsAny(otherField);
 		}
 
 	}
@@ -725,7 +738,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		}
 
 		@Override
-		public boolean isReachableFrom(ParameterCandidate other) {
+		public boolean isReachableFrom(final ParameterCandidate other) {
 			if (basePts != null && basePts.size() > 0 && !TVL.isTrue(other.isPrimitive())) {
 				return other.isFieldAliased(basePts);
 			}
@@ -734,18 +747,22 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		}
 
 		@Override
-		public boolean isBaseAliased(OrdinalSet<InstanceKey> other) {
+		public boolean isBaseAliased(final OrdinalSet<InstanceKey> other) {
 			return basePts == other || (basePts != null && other != null && basePts.containsAny(other));
 		}
 
 		@Override
-		public boolean isFieldAliased(OrdinalSet<InstanceKey> other) {
+		public boolean isFieldAliased(final OrdinalSet<InstanceKey> other) {
 			return fieldPts == other || (fieldPts != null && other != null && fieldPts.containsAny(other));
 		}
 
 		@Override
-		public boolean isReferenceToField(ParameterField otherField) {
-			return field.equals(otherField);
+		public boolean isReferenceToField(final OrdinalSet<InstanceKey> other, final ParameterField otherField) {
+			if (otherField.isStatic()) {
+				return field.equals(otherField);
+			} else {
+				return basePts != null && other != null && basePts.containsAny(other) && field.equals(otherField);
+			}
 		}
 
 		@Override
@@ -754,7 +771,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		}
 
 		@Override
-		public boolean equals(Object obj) {
+		public boolean equals(final Object obj) {
 			if (obj == this) {
 				return true;
 			}
@@ -767,11 +784,6 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			}
 
 			return false;
-		}
-
-		@Override
-		public Set<ParameterField> getFields() {
-			return Collections.singleton(field);
 		}
 
 		@Override
@@ -802,7 +814,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		@Override
 		public boolean isMustAliased(final ParameterCandidate pc) {
 			if (field.isStatic()) {
-				return !pc.isMerged() && pc.isReferenceToField(field);
+				return !pc.isMerged() && pc.isReferenceToField(basePts, field);
 			}
 
 			return false;
@@ -810,7 +822,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 
 		@Override
 		public boolean isMayAliased(final ParameterCandidate pc) {
-			return pc.isBaseAliased(basePts) && pc.isReferenceToField(field);
+			return this == pc || pc.isReferenceToField(basePts, field);
 		}
 
 		@Override
@@ -826,6 +838,11 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		@Override
 		public ParameterField getField() {
 			return field;
+		}
+
+		@Override
+		public boolean isReferenceToAnyField(final OrdinalSet<ParameterField> otherField) {
+			return otherField.contains(field);
 		}
 
 	}

@@ -84,6 +84,10 @@ public final class ArrayField extends ParameterField {
 
 	@Override
 	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		
 		if (obj instanceof ArrayField) {
 			final ArrayField other = (ArrayField) obj;
 

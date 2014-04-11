@@ -114,8 +114,8 @@ public final class ModRefFieldCandidate extends ModRefCandidate implements Clone
 		return pc.getBytecodeName();
 	}
 
-	public ParameterField getField() {
-		return pc.getField();
+	public OrdinalSet<ParameterField> getFields() {
+		return pc.getFields();
 	}
 
 }

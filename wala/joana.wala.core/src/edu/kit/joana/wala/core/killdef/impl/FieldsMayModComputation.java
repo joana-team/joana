@@ -76,8 +76,8 @@ public class FieldsMayModComputation implements IFieldsMayMod {
 				for (final ModRefCandidate cand : model) {
 					if (cand instanceof ModRefFieldCandidate) {
 						final ModRefFieldCandidate fieldCand = (ModRefFieldCandidate) cand;
-						final ParameterField field = fieldCand.getField();
-						if (field != null) {
+						final OrdinalSet<ParameterField> fields = fieldCand.getFields();
+						for (final ParameterField field : fields) {
 							final int id = mapping.getMappedIndex(field);
 							if (cand.isMod()) {
 								bvMayMod.add(id);
@@ -120,8 +120,8 @@ public class FieldsMayModComputation implements IFieldsMayMod {
 				for (final ModRefCandidate cand : model) {
 					if (cand instanceof ModRefFieldCandidate) {
 						final ModRefFieldCandidate fieldCand = (ModRefFieldCandidate) cand;
-						final ParameterField field = fieldCand.getField();
-						if (field != null) {
+						final OrdinalSet<ParameterField> fields = fieldCand.getFields();
+						for (final ParameterField field : fields) {
 							all.add(field);
 						}
 					}

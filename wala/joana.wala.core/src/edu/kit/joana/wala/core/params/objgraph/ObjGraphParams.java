@@ -571,9 +571,9 @@ public final class ObjGraphParams {
 		while (it.hasNext()) {
 			final ModRefFieldCandidate succ = (ModRefFieldCandidate) it.next();
 
-			final ParameterField f = succ.getField();
+			final OrdinalSet<ParameterField> fields = succ.getFields();
 
-			if (f != null) {
+			for (final ParameterField f : fields) { 
 				Set<ModRefFieldCandidate> fcs = field2cand.get(f);
 				if (fcs == null) {
 					fcs = new HashSet<ModRefFieldCandidate>();

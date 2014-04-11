@@ -120,7 +120,7 @@ public class FullIFCConcurrentTest {
 					"conc.cliser.dt.DaytimeIterativeUDPServer.recieved");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
-			assertEquals(62, illegal.size());
+			assertEquals(84, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

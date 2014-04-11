@@ -161,8 +161,13 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		}
 
 		public final String toString() {
-			final ParameterField f = getField();
-			return "MERGE " + (f == null ? "*" : f.toString());
+			final OrdinalSet<ParameterField> fs = getFields();
+			if (fs.size() == 1) {
+				final ParameterField f = fs.iterator().next();
+				return "MERGE "+ f.toString();
+			} else {
+				return "MERGE *";
+			}
 		}
 
 		public final int getBytecodeIndex() {
@@ -285,17 +290,22 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			return (bcNameA.equals(bcNameB) ? bcNameA : BytecodeLocation.UNKNOWN_PARAM);
 		}
 
-		@Override
-		public ParameterField getField() {
-			final ParameterField fA = a.getField();
-			final ParameterField fB = b.getField();
-
-			return (fA.equals(fB) ? fA : null);
-		}
+//		@Override
+//		public ParameterField getField() {
+//			final ParameterField fA = a.getField();
+//			final ParameterField fB = b.getField();
+//
+//			return (fA.equals(fB) ? fA : null);
+//		}
 
 		@Override
 		public boolean isReferenceToAnyField(final OrdinalSet<ParameterField> otherField) {
 			return a.isReferenceToAnyField(otherField) || b.isReferenceToAnyField(otherField);
+		}
+
+		@Override
+		public OrdinalSet<ParameterField> getFields() {
+			return unify(a.getFields(), b.getFields());
 		}
 	}
 
@@ -495,22 +505,22 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			return (bcName == null ? BytecodeLocation.UNKNOWN_PARAM : bcName);
 		}
 
-		@Override
-		public ParameterField getField() {
-			ParameterField f = null;
-
-			for (final UniqueParameterCandidate uc : cands) {
-				final ParameterField cur = uc.getField();
-
-				if (cur == null || (f != null && !f.equals(cur))) {
-					return null;
-				}
-
-				f = cur;
-			}
-
-			return f;
-		}
+//		@Override
+//		public ParameterField getField() {
+//			ParameterField f = null;
+//
+//			for (final UniqueParameterCandidate uc : cands) {
+//				final ParameterField cur = uc.getField();
+//
+//				if (cur == null || (f != null && !f.equals(cur))) {
+//					return null;
+//				}
+//
+//				f = cur;
+//			}
+//
+//			return f;
+//		}
 
 		@Override
 		public boolean isReferenceToAnyField(final OrdinalSet<ParameterField> otherField) {
@@ -521,6 +531,16 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			}
 
 			return false;
+		}
+
+		@Override
+		public OrdinalSet<ParameterField> getFields() {
+			OrdinalSet<ParameterField> set = OrdinalSet.empty();
+			for (final UniqueParameterCandidate upc : cands) {
+				set = unify(set, upc.getFields());
+			}
+			
+			return set;
 		}
 
 	}
@@ -641,8 +661,8 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			}
 			
 			if (pc.isStatic() == V.NO) {
-				final ParameterField otherField = pc.getField();
-				if (otherField == null) {
+				final OrdinalSet<ParameterField> otherField = pc.getFields();
+				if (otherField.size() > 1) {
 					// merged candidate
 					if (pc instanceof MultipleParamCandImpl) {
 						return pc.isBaseAliased(basePts) && fieldEquiv.containsAny(((MultipleParamCandImpl) pc).fieldEquiv);
@@ -650,7 +670,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 						return pc.isBaseAliased(basePts) && pc.isReferenceToAnyField(fieldEquiv);
 					}
 				} else {
-					return pc.isBaseAliased(basePts) && fieldEquiv.contains(otherField);
+					return pc.isBaseAliased(basePts) && fieldEquiv.containsAny(otherField);
 				}
 			} else if (isStatic() != V.NO) {
 				return pc.isReferenceToAnyField(fieldEquiv);
@@ -674,18 +694,23 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			return bcName;
 		}
 
-		@Override
-		public ParameterField getField() {
-			if (fieldEquiv.size() == 1) {
-				return fieldEquiv.iterator().next();
-			}
-
-			return null;
-		}
+//		@Override
+//		public ParameterField getField() {
+//			if (fieldEquiv.size() == 1) {
+//				return fieldEquiv.iterator().next();
+//			}
+//
+//			return null;
+//		}
 
 		@Override
 		public boolean isReferenceToAnyField(final OrdinalSet<ParameterField> otherField) {
 			return fieldEquiv.containsAny(otherField);
+		}
+
+		@Override
+		public OrdinalSet<ParameterField> getFields() {
+			return fieldEquiv;
 		}
 
 	}
@@ -700,16 +725,19 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		}
 	}
 
-	private final static class SingleParamCandImpl extends UniqueParameterCandidate {
+	private final class SingleParamCandImpl extends UniqueParameterCandidate {
 		private final OrdinalSet<InstanceKey> basePts;
 		private final ParameterField field;
 		private final OrdinalSet<InstanceKey> fieldPts;
+		private final OrdinalSet<ParameterField> fields;
 
 		private SingleParamCandImpl(final OrdinalSet<InstanceKey> basePts, final ParameterField field,
 				final OrdinalSet<InstanceKey> fieldPts) {
 			this.basePts = basePts;
 			this.field = field;
 			this.fieldPts = fieldPts;
+			final int id = fieldMapping.getMappedIndex(field);
+			this.fields = new OrdinalSet<ParameterField>(SparseIntSet.singleton(id), fieldMapping);
 		}
 
 		@Override
@@ -835,14 +863,19 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			return (field.isField() ? PrettyWalaNames.bcFieldName(field.getField()) : BytecodeLocation.ARRAY_PARAM);
 		}
 
-		@Override
-		public ParameterField getField() {
-			return field;
-		}
+//		@Override
+//		public ParameterField getField() {
+//			return field;
+//		}
 
 		@Override
 		public boolean isReferenceToAnyField(final OrdinalSet<ParameterField> otherField) {
 			return otherField.contains(field);
+		}
+
+		@Override
+		public OrdinalSet<ParameterField> getFields() {
+			return fields;
 		}
 
 	}

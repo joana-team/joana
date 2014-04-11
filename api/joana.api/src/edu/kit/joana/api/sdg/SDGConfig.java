@@ -13,7 +13,6 @@ import com.ibm.wala.ipa.callgraph.pruned.PruningPolicy;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.util.JoanaConstants;
 import edu.kit.joana.util.Stubs;
-import edu.kit.joana.wala.core.Main;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
@@ -26,7 +25,7 @@ public class SDGConfig {
 	private String thirdPartyLibsPath;
 	private String entryMethod;
 	private Stubs stubsPath;
-	private String exclusions = Main.STD_EXCLUSION_REG_EXP;
+	private String exclusions = SDGBuildPreparation.STD_EXCLUSION_REG_EXP;
 	private ExceptionAnalysis exceptionAnalysis;
 	private FieldPropagation fieldPropagation;
 	private PointsToPrecision pointsToPrecision;

@@ -29,6 +29,7 @@ import com.ibm.wala.util.intset.OrdinalSetMapping;
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
+import edu.kit.joana.wala.core.ParameterField;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.params.objgraph.ModRefCandidateGraph;
 import edu.kit.joana.wala.core.params.objgraph.ModRefCandidates;
@@ -403,7 +404,12 @@ public class ModRefDataFlow {
 		newNode.setSourceLocation(parent.getSourceLocation());
 		newNode.setBytecodeIndex(c.getBytecodeIndex());
 		newNode.setBytecodeName(c.getBytecodeName());
-		newNode.setParameterField(c.getField());
+		final OrdinalSet<ParameterField> fields = c.getFields();
+		if (fields.size() == 1) {
+			newNode.setParameterField(fields.iterator().next());
+		} else {
+			newNode.setParameterField(null);
+		}
 		pdg.addEdge(parent, newNode, PDGEdge.Kind.CONTROL_DEP_EXPR);
 
 		return newNode;

@@ -488,9 +488,13 @@ public class SideEffectDetector {
 			for (final ModRefFieldCandidate c : ipcm) {
 				if (c.isMod() && potentiallyReachable.contains(c)) {
 					if (direct.contains(c)) {
-						result.addDirectFieldModification(n.getMethod(), c.getField());
+						for (final ParameterField f : c.getFields()) {
+							result.addDirectFieldModification(n.getMethod(), f);
+						}
 					} else {
-						result.addIndirectFieldModification(n.getMethod(), c.getField());
+						for (final ParameterField f : c.getFields()) {
+							result.addIndirectFieldModification(n.getMethod(), f);
+						}
 					}
 				}
 			}
@@ -516,25 +520,27 @@ public class SideEffectDetector {
 			final Collection<ModRefFieldCandidate> direct = sideEffectsDirect.get(n);
 			
 			for (final ModRefFieldCandidate c : ipcm) {
-				final ParameterField pf = c.pc.getField();
-				if (filter.isRelevant(pf)) {
-					log.outln("found candidate: " + c);
-					input.fieldCandidates.add(c);
-					result.addSelectedField(pf);
-					
-					if (c.isMod()) {
-						boolean isDirect = false;
-						for (final ModRefFieldCandidate dc : direct) {
-							if (dc.isMod() && dc.isMayAliased(c)) {
-								isDirect = true;
-								break;
-							}
-						}
+				final OrdinalSet<ParameterField> pfs = c.pc.getFields();
+				for (final ParameterField pf : pfs) {
+					if (filter.isRelevant(pf)) {
+						log.outln("found candidate: " + c);
+						input.fieldCandidates.add(c);
+						result.addSelectedField(pf);
 						
-						if (isDirect) {
-							result.addDirectModification(n.getMethod(), pf);
-						} else {
-							result.addIndirectModification(n.getMethod(), pf);
+						if (c.isMod()) {
+							boolean isDirect = false;
+							for (final ModRefFieldCandidate dc : direct) {
+								if (dc.isMod() && dc.isMayAliased(c)) {
+									isDirect = true;
+									break;
+								}
+							}
+							
+							if (isDirect) {
+								result.addDirectModification(n.getMethod(), pf);
+							} else {
+								result.addIndirectModification(n.getMethod(), pf);
+							}
 						}
 					}
 				}

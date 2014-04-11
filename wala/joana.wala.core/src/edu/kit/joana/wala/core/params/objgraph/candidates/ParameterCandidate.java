@@ -39,6 +39,7 @@ public interface ParameterCandidate {
 	TypeReference getType();
 	int getBytecodeIndex();
 	String getBytecodeName();
-	ParameterField getField();
+	OrdinalSet<ParameterField> getFields();
+	//ParameterField getField();
 
 }

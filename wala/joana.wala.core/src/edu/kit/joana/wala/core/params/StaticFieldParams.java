@@ -64,7 +64,7 @@ public class StaticFieldParams {
 		for (final PDG pdg : sdg.getAllPDGs()) {
 			final Graph<PDGNode> cfg = extractControlFlow(pdg);
 
-			final Map<PDGNode, ParameterField> access = pdg.getStaticAccessMap();
+			final Map<PDGNode, OrdinalSet<ParameterField>> access = pdg.getStaticAccessMap();
 			final Set<PDGNode> relevant = access.keySet();
 			final PDGNode[] arr = new PDGNode[relevant.size()];
 			relevant.toArray(arr);

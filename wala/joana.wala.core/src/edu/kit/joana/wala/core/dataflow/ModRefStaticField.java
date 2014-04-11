@@ -13,6 +13,7 @@ import java.util.Map;
 import com.ibm.wala.fixpoint.BitVectorVariable;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
+import com.ibm.wala.util.intset.OrdinalSet;
 import com.ibm.wala.util.intset.OrdinalSetMapping;
 
 import edu.kit.joana.wala.core.PDGNode;
@@ -26,11 +27,11 @@ public class ModRefStaticField implements IModRef {
 	private final TIntObjectMap<BitVectorVariable> nodeid2ref = new TIntObjectHashMap<BitVectorVariable>();
 	private final TIntObjectMap<BitVectorVariable> nodeid2mod = new TIntObjectHashMap<BitVectorVariable>();
 	private boolean isComputed = false;
-	private Map<PDGNode, ParameterField> access; // not final because the reference is removed after the computation.
+	private Map<PDGNode, OrdinalSet<ParameterField>> access; // not final because the reference is removed after the computation.
 
 	private static final BitVectorVariable EMPTY = new BitVectorVariable();
 
-	public ModRefStaticField(OrdinalSetMapping<PDGNode> nodes, Map<PDGNode, ParameterField> access) {
+	public ModRefStaticField(OrdinalSetMapping<PDGNode> nodes, Map<PDGNode, OrdinalSet<ParameterField>> access) {
 		this.nodes = nodes;
 		this.access = access;
 	}
@@ -38,82 +39,88 @@ public class ModRefStaticField implements IModRef {
 	@Override
 	public void compute(IProgressMonitor monitor) throws CancelException {
 		if (!isComputed) {
-			Map<ParameterField, BitVectorVariable> reads = new HashMap<ParameterField, BitVectorVariable>();
-			Map<ParameterField, BitVectorVariable> writes = new HashMap<ParameterField, BitVectorVariable>();
+			final Map<ParameterField, BitVectorVariable> reads = new HashMap<ParameterField, BitVectorVariable>();
+			final Map<ParameterField, BitVectorVariable> writes = new HashMap<ParameterField, BitVectorVariable>();
 
-			for (PDGNode node : nodes) {
-				ParameterField field = access.get(node);
-				if (field == null || !field.isStatic()) {
-					continue;
-				}
-
-				switch (node.getKind()) {
-				case ACTUAL_IN:
-				case HREAD:
-				case FORMAL_OUT: {
-					BitVectorVariable v = reads.get(field);
-					if (v == null) {
-						v = new BitVectorVariable();
-						reads.put(field, v);
+			for (final PDGNode node : nodes) {
+				final OrdinalSet<ParameterField> fields = access.get(node);
+				
+				for (final ParameterField field : fields) {
+					if (field == null || !field.isStatic()) {
+						continue;
 					}
-					v.set(nodes.getMappedIndex(node));
-				} break;
-				case ACTUAL_OUT:
-				case HWRITE:
-				case FORMAL_IN: {
-					BitVectorVariable v = writes.get(field);
-					if (v == null) {
-						v = new BitVectorVariable();
-						writes.put(field, v);
+	
+					switch (node.getKind()) {
+					case ACTUAL_IN:
+					case HREAD:
+					case FORMAL_OUT: {
+						BitVectorVariable v = reads.get(field);
+						if (v == null) {
+							v = new BitVectorVariable();
+							reads.put(field, v);
+						}
+						v.set(nodes.getMappedIndex(node));
+					} break;
+					case ACTUAL_OUT:
+					case HWRITE:
+					case FORMAL_IN: {
+						BitVectorVariable v = writes.get(field);
+						if (v == null) {
+							v = new BitVectorVariable();
+							writes.put(field, v);
+						}
+						v.set(nodes.getMappedIndex(node));
+					} break;
+					default:
+						throw new IllegalStateException("Don't know what to do with: " + node);
 					}
-					v.set(nodes.getMappedIndex(node));
-				} break;
-				default:
-					throw new IllegalStateException("Don't know what to do with: " + node);
 				}
 			}
 
-			for (PDGNode node : nodes) {
-				ParameterField field = access.get(node);
-				if (field == null || !field.isStatic()) {
-					continue;
-				}
-
-				final int nodeId = nodes.getMappedIndex(node);
-
-				switch (node.getKind()) {
-				case FORMAL_OUT:
-				case HREAD:
-				case ACTUAL_IN: {
-					// read access
-					BitVectorVariable ref = nodeid2ref.get(nodeId);
-					if (ref == null) {
-						ref = new BitVectorVariable();
-						nodeid2ref.put(nodeId, ref);
+			for (final PDGNode node : nodes) {
+				final OrdinalSet<ParameterField> fields = access.get(node);
+				
+				for (final ParameterField field : fields) {
+					if (field == null || !field.isStatic()) {
+						continue;
 					}
-
-					BitVectorVariable w = writes.get(field);
-					if (w != null) {
-						ref.addAll(w);
+	
+					final int nodeId = nodes.getMappedIndex(node);
+	
+					switch (node.getKind()) {
+					case FORMAL_OUT:
+					case HREAD:
+					case ACTUAL_IN: {
+						// read access
+						BitVectorVariable ref = nodeid2ref.get(nodeId);
+						if (ref == null) {
+							ref = new BitVectorVariable();
+							nodeid2ref.put(nodeId, ref);
+						}
+	
+						BitVectorVariable w = writes.get(field);
+						if (w != null) {
+							ref.addAll(w);
+						}
+					} break;
+					case ACTUAL_OUT:
+						// actual out may or may not modify other values..
+						break;
+					case FORMAL_IN:
+					case HWRITE: {
+						BitVectorVariable mod = nodeid2mod.get(nodeId);
+						if (mod == null) {
+							mod = new BitVectorVariable();
+							nodeid2mod.put(nodeId, mod);
+						}
+	
+						BitVectorVariable r = reads.get(field);
+						if (r != null) {
+							mod.addAll(r);
+						}
+					} break;
+					default: // nothing to do here
 					}
-				} break;
-				case ACTUAL_OUT:
-					// actual out may or may not modify other values..
-					break;
-				case FORMAL_IN:
-				case HWRITE: {
-					BitVectorVariable mod = nodeid2mod.get(nodeId);
-					if (mod == null) {
-						mod = new BitVectorVariable();
-						nodeid2mod.put(nodeId, mod);
-					}
-
-					BitVectorVariable r = reads.get(field);
-					if (r != null) {
-						mod.addAll(r);
-					}
-				} break;
-				default: // nothing to do here
 				}
 			}
 

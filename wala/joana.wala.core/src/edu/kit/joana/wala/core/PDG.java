@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 
@@ -49,6 +50,10 @@ import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.collections.Pair;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 import com.ibm.wala.util.graph.INodeWithNumber;
+import com.ibm.wala.util.intset.BitVectorIntSet;
+import com.ibm.wala.util.intset.MutableIntSet;
+import com.ibm.wala.util.intset.OrdinalSet;
+import com.ibm.wala.util.intset.OrdinalSetMapping;
 
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.ifc.sdg.util.SDGConstants;
@@ -1958,58 +1963,79 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 
 		return pdgField.node;
 	}
+	
+	private static <T,V> void addToMap(final Map<T, MutableIntSet> map, final OrdinalSetMapping<V> mapping,
+			final T from, final V to) {
+		MutableIntSet set = map.get(from);
+		if (set == null) {
+			set = new BitVectorIntSet();
+			map.put(from, set);
+		}
+		
+		final int id = mapping.getMappedIndex(to);
+		set.add(id);
+	}
 
-	public Map<PDGNode, ParameterField> getStaticAccessMap() {
-		Map<PDGNode, ParameterField> access = new HashMap<PDGNode, ParameterField>();
+	public Map<PDGNode, OrdinalSet<ParameterField>> getStaticAccessMap() {
+		final Map<PDGNode, MutableIntSet> access = new HashMap<PDGNode, MutableIntSet>();
+		final ParameterFieldFactory pfact = builder.getParameterFieldFactory();
+		final OrdinalSetMapping<ParameterField> fieldMap = pfact.getMapping();
 
 		for (PDGField f : staticReads) {
-			access.put(f.node, f.field);
+			addToMap(access, fieldMap, f.node, f.field);
 		}
 
 		for (PDGField f : staticWrites) {
-			access.put(f.node, f.field);
+			addToMap(access, fieldMap, f.node, f.field);
 		}
 
 		for (PDGField f : staticInterprocReads) {
-			access.put(f.node, f.field);
+			addToMap(access, fieldMap, f.node, f.field);
 		}
 
 		for (PDGField f : staticInterprocWrites) {
-			access.put(f.node, f.field);
+			addToMap(access, fieldMap, f.node, f.field);
 		}
 
 		for (PDGNode call : calls) {
 			List<PDGField> actIns = call2staticIn.get(call);
 			if (actIns != null) {
 				for (PDGField f : actIns) {
-					access.put(f.node, f.field);
+					addToMap(access, fieldMap, f.node, f.field);
 				}
 			}
 
 			List<PDGField> actOuts = call2staticOut.get(call);
 			if (actOuts != null) {
 				for (PDGField f : actOuts) {
-					access.put(f.node, f.field);
+					addToMap(access, fieldMap, f.node, f.field);
 				}
 			}
 		}
 
 		for (PDGField f : hread) {
 			if (f.field.isStatic()) {
-				access.put(f.node, f.field);
+				addToMap(access, fieldMap, f.node, f.field);
 			}
 		}
 
 		for (PDGField f : hwrite) {
 			if (f.field.isStatic()) {
-				access.put(f.node, f.field);
+				addToMap(access, fieldMap, f.node, f.field);
 			}
 		}
 
-		return access;
+		
+		final Map<PDGNode, OrdinalSet<ParameterField>> map = new HashMap<PDGNode, OrdinalSet<ParameterField>>();
+		for (final Entry<PDGNode, MutableIntSet> e : access.entrySet()) {
+			final OrdinalSet<ParameterField> set = new OrdinalSet<ParameterField>(e.getValue(), fieldMap);
+			map.put(e.getKey(), set);
+		}
+		
+		return map;
 	}
 
-	public PDGField getField(PDGNode node) {
+	public PDGField getField(final PDGNode node) {
 		if (node.getPdgId() != id) {
 			throw new IllegalArgumentException("Node not part of this pdg: " + node + " not in " + toString());
 		}

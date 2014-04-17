@@ -7,11 +7,12 @@
  */
 package edu.kit.joana.wala.core.params.objgraph;
 
+import static edu.kit.joana.wala.util.pointsto.WalaPointsToUtil.unify;
+
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
 
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
@@ -24,9 +25,6 @@ import edu.kit.joana.wala.core.PDGField;
 import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.params.objgraph.ModRefCandidates.InterProcCandidateModel;
 import edu.kit.joana.wala.core.params.objgraph.dataflow.PointsToWrapper;
-import edu.kit.joana.wala.util.NotImplementedException;
-
-import static edu.kit.joana.wala.util.pointsto.WalaPointsToUtil.unify;
 
 /**
  *
@@ -37,35 +35,31 @@ public class ModRefCandidateGraph implements Graph<ModRefCandidate> {
 
 	private final InterProcCandidateModel modref;
 	private final List<ModRefRootCandidate> roots;
+	private final OrdinalSet<InstanceKey> rootsPts;
 
-	private ModRefCandidateGraph(final InterProcCandidateModel modref, final List<ModRefRootCandidate> roots) {
+	private ModRefCandidateGraph(final InterProcCandidateModel modref, final List<ModRefRootCandidate> roots,
+			final OrdinalSet<InstanceKey> rootsPts) {
 		this.modref = modref;
 		this.roots = roots;
+		this.rootsPts = rootsPts;
 	}
 
 	public static ModRefCandidateGraph compute(final PointsToWrapper pa, final ModRefCandidates modref, final PDG pdg) {
 		final InterProcCandidateModel pdgModRef = modref.getCandidates(pdg.cgNode);
 		final List<ModRefRootCandidate> roots = findMethodRoots(pa, pdg);
+		final OrdinalSet<InstanceKey> rootsPts = findMethodRootPts(pa, pdg);
 
-		final ModRefCandidateGraph g = new ModRefCandidateGraph(pdgModRef, roots);
+		final ModRefCandidateGraph g = new ModRefCandidateGraph(pdgModRef, roots, rootsPts);
 
 		return g;
 	}
 
-	public static ModRefCandidateGraph compute(final PointsToWrapper pa, final ModRefCandidates modref, final PDG pdg,
-			final PDGNode call) {
-		//TODO get all candidate models from all targets
-		throw new NotImplementedException();
-//		final InterProcCandidateModel pdgModRef = modref.getCandidates(pdg.cgNode);
-//		final List<ModRefRootCandidate> roots = findCallRoots(pa, pdg, call);
-//
-//		final ModRefCandidateGraph g = new ModRefCandidateGraph(pdgModRef, roots);
-//
-//		return g;
-	}
-
 	public List<ModRefRootCandidate> getRoots() {
 		return Collections.unmodifiableList(roots);
+	}
+	
+	public OrdinalSet<InstanceKey> getRootsPts() {
+		return rootsPts;
 	}
 
 	public static OrdinalSet<InstanceKey> findMethodRootPts(final PointsToWrapper pa, final PDG pdg) {

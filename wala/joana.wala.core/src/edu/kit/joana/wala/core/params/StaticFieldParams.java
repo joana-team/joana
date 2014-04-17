@@ -137,18 +137,18 @@ public class StaticFieldParams {
 		return cfg;
 	}
 
-	private void propagateStaticFields(IProgressMonitor progress) throws CancelException {
-		Map<PDG, Collection<FieldAccess>> accessMap = createStaticFieldAccessMap();
-		Graph<PDG> cgPDG = sdg.createCallGraph();
-		Graph<PDG> invertedCG = GraphInverter.invert(cgPDG);
-		GenReach<PDG, FieldAccess> genReach = new GenReach<PDG, FieldAccess>(invertedCG, accessMap);
-		BitVectorSolver<PDG> solver = new BitVectorSolver<PDG>(genReach);
+	private void propagateStaticFields(final IProgressMonitor progress) throws CancelException {
+		final Map<PDG, Collection<FieldAccess>> accessMap = createStaticFieldAccessMap();
+		final Graph<PDG> cgPDG = sdg.createCallGraph();
+		final Graph<PDG> invertedCG = GraphInverter.invert(cgPDG);
+		final GenReach<PDG, FieldAccess> genReach = new GenReach<PDG, FieldAccess>(invertedCG, accessMap);
+		final BitVectorSolver<PDG> solver = new BitVectorSolver<PDG>(genReach);
 		solver.solve(progress);
 
-		for (PDG pdg : sdg.getAllPDGs()) {
-			BitVectorVariable bv = solver.getOut(pdg);
-			OrdinalSet<FieldAccess> faccs=  new OrdinalSet<FieldAccess>(bv.getValue(), genReach.getLatticeValues());
-			for (FieldAccess facc : faccs) {
+		for (final PDG pdg : sdg.getAllPDGs()) {
+			final BitVectorVariable bv = solver.getOut(pdg);
+			final OrdinalSet<FieldAccess> faccs=  new OrdinalSet<FieldAccess>(bv.getValue(), genReach.getLatticeValues());
+			for (final FieldAccess facc : faccs) {
 				if (facc.isWrite) {
 					pdg.addStaticWrite(facc.field);
 				} else {
@@ -159,31 +159,31 @@ public class StaticFieldParams {
 		}
 
 		// propagate new formal-in/-out nodes to callsites
-		for (PDG pdg : sdg.getAllPDGs()) {
-			for (PDGNode call : pdg.getCalls()) {
-				Set<PDG> tgts = sdg.getPossibleTargets(call);
-				for (PDG target : tgts) {
+		for (final PDG pdg : sdg.getAllPDGs()) {
+			for (final PDGNode call : pdg.getCalls()) {
+				final Set<PDG> tgts = sdg.getPossibleTargets(call);
+				for (final PDG target : tgts) {
 					// get new interproc reads
-					for (PDGField read : target.staticReads) {
-						PDGNode actIn = pdg.addStaticReadToCall(call, read.field);
+					for (final PDGField read : target.staticReads) {
+						final PDGNode actIn = pdg.addStaticReadToCall(call, read.field);
 						pdg.addVertex(read.node);
 						pdg.addEdge(actIn, read.node, PDGEdge.Kind.PARAMETER_IN);
 					}
 
-					for (PDGField read : target.staticInterprocReads) {
-						PDGNode actIn = pdg.addStaticReadToCall(call, read.field);
+					for (final PDGField read : target.staticInterprocReads) {
+						final PDGNode actIn = pdg.addStaticReadToCall(call, read.field);
 						pdg.addVertex(read.node);
 						pdg.addEdge(actIn, read.node, PDGEdge.Kind.PARAMETER_IN);
 					}
 
-					for (PDGField write : target.staticWrites) {
-						PDGNode actOut = pdg.addStaticWriteToCall(call, write.field);
+					for (final PDGField write : target.staticWrites) {
+						final PDGNode actOut = pdg.addStaticWriteToCall(call, write.field);
 						target.addVertex(actOut);
 						target.addEdge(write.node, actOut, PDGEdge.Kind.PARAMETER_OUT);
 					}
 
-					for (PDGField write : target.staticInterprocWrites) {
-						PDGNode actOut = pdg.addStaticWriteToCall(call, write.field);
+					for (final PDGField write : target.staticInterprocWrites) {
+						final PDGNode actOut = pdg.addStaticWriteToCall(call, write.field);
 						target.addVertex(actOut);
 						target.addEdge(write.node, actOut, PDGEdge.Kind.PARAMETER_OUT);
 					}

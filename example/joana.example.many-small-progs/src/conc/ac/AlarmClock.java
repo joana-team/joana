@@ -7,6 +7,8 @@
  */
 package conc.ac;
 
+import sensitivity.Security;
+
 
 /**
  * This is a simulation of an Alarm Clock.
@@ -100,7 +102,7 @@ class Client extends Thread {
         int maxSleepTime = 5;
         int interval;
         System.out.println("I am thread " + name + " number " + id);
-        interval = 2;
+        interval = Security.SECRET;
         monitor.wakeme(id, interval);
     }
 }
@@ -143,6 +145,7 @@ class Monitor {
                 waitList.removeElementAt(0);
 
                 synchronized (wakeup) {
+                	Security.PUBLIC = 42;
                     wakeup.notifyAll();
                 }
             }

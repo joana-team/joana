@@ -51,6 +51,29 @@ public class FullIFCConcurrentTest {
 	
 	public static IFCAnalysis buildAndAnnotate(final String className, final String secSrc,
 			final String pubOut, final PointsToPrecision pts) throws ApiTestException {
+		final SDGProgram prog = build(className, pts);
+		final IFCAnalysis ana = annotate(prog, secSrc, pubOut);
+		
+		return ana;
+	}
+	
+	public static IFCAnalysis annotate(final SDGProgram prog, final String secSrc, final String pubOut) {
+		final IFCAnalysis ana = new IFCAnalysis(prog);
+		SDGProgramPart secret = ana.getProgramPart(secSrc);
+		assertNotNull(secret);
+		ana.addSourceAnnotation(secret, BuiltinLattices.STD_SECLEVEL_HIGH);
+		SDGProgramPart output = ana.getProgramPart(pubOut);
+		assertNotNull(output);
+		ana.addSinkAnnotation(output, BuiltinLattices.STD_SECLEVEL_LOW);
+		
+		return ana;
+	}
+	
+	public static SDGProgram build(final String className) throws ApiTestException {
+		return build(className, PointsToPrecision.INSTANCE_BASED);
+	}
+	
+	public static SDGProgram build(final String className, final PointsToPrecision pts) throws ApiTestException {
 		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(className);
 		SDGConfig config = new SDGConfig(JoanaPath.JOANA_MANY_SMALL_PROGRAMS_CLASSPATH, mainMethod.toBCString(), Stubs.JRE_14);
 		config.setComputeInterferences(true);
@@ -70,27 +93,26 @@ public class FullIFCConcurrentTest {
 		} catch (CancelException e) {
 			throw new ApiTestException(e);
 		}
-		
-		IFCAnalysis ana = new IFCAnalysis(prog);
-		SDGProgramPart secret = ana.getProgramPart(secSrc);
-		assertNotNull(secret);
-		ana.addSourceAnnotation(secret, BuiltinLattices.STD_SECLEVEL_HIGH);
-		SDGProgramPart output = ana.getProgramPart(pubOut);
-		assertNotNull(output);
-		ana.addSinkAnnotation(output, BuiltinLattices.STD_SECLEVEL_LOW);
-		
-		return ana;
+
+		return prog;
 	}
 	
 	@Test
 	public void testAlarmClock() {
 		try {
-			IFCAnalysis ana = buildAndAnnotate("conc.ac.AlarmClock",
-					"conc.ac.Clock.max",
-					"conc.ac.Client.name");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(14, illegal.size());
+			final SDGProgram prog = build("conc.ac.AlarmClock");
+			{
+				final IFCAnalysis ana1 = annotate(prog, "conc.ac.Clock.max", "conc.ac.Client.name");
+				Collection<? extends IViolation<SecurityNode>> illegal = ana1.doIFC();
+				assertTrue(illegal.isEmpty());
+				assertEquals(0, illegal.size());
+			}
+			{
+				final IFCAnalysis ana2 = annotate(prog, "sensitivity.Security.SECRET", "sensitivity.Security.PUBLIC");
+				Collection<? extends IViolation<SecurityNode>> illegal = ana2.doIFC();
+				assertFalse(illegal.isEmpty());
+				assertEquals(3, illegal.size());
+			}
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -120,7 +142,7 @@ public class FullIFCConcurrentTest {
 					"conc.cliser.dt.DaytimeIterativeUDPServer.recieved");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
-			assertEquals(84, illegal.size());
+			assertEquals(2, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -134,12 +156,16 @@ public class FullIFCConcurrentTest {
 					"conc.cliser.kk.KnockKnockThread.message",
 					"conc.cliser.kk.KnockKnockTCPClient.received1");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
+			// communication appears in network socket layer - this can only be detected if stubs are used that model
+			// network communication. We are now precise enough to not detect flow in java library code.
+			assertTrue(illegal.isEmpty());
+			assertEquals(0,  illegal.size());
+	
 			// somehow running from ant produces 216 violations, while running
 			// from eclipse results only in 176. Perhaps differences in the included
 			// runtime libraries.
-			final int size = illegal.size();
-			assertTrue("unexpected number of violations: " + size, size == 176 || size == 216);
+//			final int size = illegal.size();
+//			assertTrue("unexpected number of violations: " + size, size == 176 || size == 216);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -199,7 +225,7 @@ public class FullIFCConcurrentTest {
 					"conc.kn.PriorityRunQueue.numThreadsWaiting");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
-			assertEquals(176, illegal.size());
+			assertEquals(154, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -214,7 +240,7 @@ public class FullIFCConcurrentTest {
 					"conc.lg.Partition.in");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
-			assertEquals(1016, illegal.size());
+			assertEquals(848, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -244,7 +270,7 @@ public class FullIFCConcurrentTest {
 					"conc.sq.Semaphore.count");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
-			assertEquals(280, illegal.size());
+			assertEquals(224, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -260,16 +286,16 @@ public class FullIFCConcurrentTest {
 					"tests.probch.ProbChannel$Data.a");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(56, illegal.size());
+			assertEquals(45, illegal.size());
 			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(53, illegal.size());
+			assertEquals(42, illegal.size());
 			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(14, illegal.size());
+			assertEquals(12, illegal.size());
 			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(12, illegal.size());
+			assertEquals(10, illegal.size());
 			illegal = ana.doIFC(IFCType.CLASSICAL_NI);
 			assertTrue(illegal.isEmpty());
 			assertEquals(0, illegal.size());
@@ -287,19 +313,19 @@ public class FullIFCConcurrentTest {
 					"tests.ConcPasswordFile.b");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(26, illegal.size());
+			assertEquals(20, illegal.size());
 			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(22, illegal.size());
+			assertEquals(17, illegal.size());
 			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(15, illegal.size());
+			assertEquals(12, illegal.size());
 			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(15, illegal.size());
+			assertEquals(12, illegal.size());
 			illegal = ana.doIFC(IFCType.CLASSICAL_NI);
 			assertFalse(illegal.isEmpty());
-			assertEquals(10, illegal.size());
+			assertEquals(8, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -476,13 +502,13 @@ public class FullIFCConcurrentTest {
 					"sensitivity.Security.PUBLIC");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(83, illegal.size());
+			assertEquals(77, illegal.size());
 			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(77, illegal.size());
+			assertEquals(71, illegal.size());
 			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(21, illegal.size());
+			assertEquals(20, illegal.size());
 			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
 			assertFalse(illegal.isEmpty());
 			assertEquals(7, illegal.size());

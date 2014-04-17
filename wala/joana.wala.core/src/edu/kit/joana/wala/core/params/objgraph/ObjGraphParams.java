@@ -7,6 +7,8 @@
  */
 package edu.kit.joana.wala.core.params.objgraph;
 
+import static edu.kit.joana.wala.util.pointsto.WalaPointsToUtil.unify;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,6 +23,7 @@ import com.ibm.wala.dataflow.graph.BitVectorSolver;
 import com.ibm.wala.fixpoint.BitVectorVariable;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
+import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil;
@@ -199,8 +202,12 @@ public final class ObjGraphParams {
 		 * to increase this iff the points-to precision has been significantly improved as well as maxNodesPerInterface
 		 * is set to a larger threshold (ca. >50). Otherwise increasing this value will have no effect, as the depth
 		 * level will be decreased until the threshold is reached.
+		 * 
+		 * As we optimized our depth merge computation, we can start at 5 without loosing too much speed, because we
+		 * automatically merge at a lower level as soon as we notice that the number of individual nodes will be too
+		 * huge otherwise.
 		 */
-		public static final int STD_MERGE_LEVEL = 3;
+		public static final int STD_MERGE_LEVEL = 5;
 
 	}
 
@@ -233,8 +240,6 @@ public final class ObjGraphParams {
 		final ModRefCandidates mrefs = ModRefCandidates.computeIntracProc(pfact, candFact, cg,
 				sdg.getPointerAnalysis(), opt.doStaticFields, progress);
 
-		sdg.cfg.out.print("1");
-
 		// create side-effect detector if command line option has been set.
 		if (sdg.cfg.sideEffects == null && SideEffectDetectorConfig.isActivated()) {
 			sdg.cfg.sideEffects = SideEffectDetectorConfig.maybeCreateInstance();
@@ -255,19 +260,15 @@ public final class ObjGraphParams {
 			interModRef = simpleReachabilityPropagate(cg, mrefs, progress);
 		}
 
-		sdg.cfg.out.print("8");
-
 		long sdgNodeCount = 0;
 		if (logStats.isEnabled()) {
 			t2 = System.currentTimeMillis();
 			sdgNodeCount = sdg.countNodes();
 		}
 
-		sdg.cfg.out.print("9");
+		sdg.cfg.out.print(",adj");
 
 		adjustInterprocModRef(cg, interModRef, mrefs, sdg, progress);
-
-		sdg.cfg.out.print("-");
 
 		if (sdg.cfg.sideEffects != null) {
 			// detect modifications to a given pointerkey
@@ -343,85 +344,99 @@ public final class ObjGraphParams {
 			}
 		}
 
-		sdg.cfg.out.print("a");
-		
-		if (opt.isCutOffUnreachable || opt.isMergeException || opt.isCutOffImmutables || opt.isMergeOneFieldPerParent) {
+		if (opt.isCutOffUnreachable || opt.isMergeException || opt.isCutOffImmutables || opt.isMergeOneFieldPerParent
+				|| opt.maxNodesPerInterface != Options.UNLIMITED_NODES_PER_INTERFACE) {
 			final PointsToWrapper pa = new PointsToWrapper(sdg.getPointerAnalysis());
 
+			sdg.cfg.out.println();
+
+			
 			for (final PDG pdg : sdg.getAllPDGs()) {
 				MonitorUtil.throwExceptionIfCanceled(progress);
 				final ModRefCandidateGraph mrg = ModRefCandidateGraph.compute(pa, modref, pdg);
 				final InterProcCandidateModel pdgModRef = modref.getCandidates(pdg.cgNode);
 
-				sdg.cfg.out.println(PrettyWalaNames.methodName(pdg.getMethod()));
-
 				if (pdgModRef == null) { continue; }
+
+				final int initialNodeCount = pdgModRef.size();
+				int lastNodeCount = initialNodeCount; 
+				sdg.cfg.out.print(PrettyWalaNames.methodName(pdg.getMethod()) +" (" + lastNodeCount + "):");
+
 
 				// cut off unreachable nodes
 				if (opt.isCutOffUnreachable) {
-					sdg.cfg.out.print("a[1");
+					sdg.cfg.out.print(" a[1");
 					cutOffUnreachable(pdgModRef, mrg, mrg.getRoots());
-					sdg.cfg.out.print("]");
+					final int curNodeCount = pdgModRef.size();
+					sdg.cfg.out.print("](-" + (lastNodeCount - curNodeCount) + ")");
+					lastNodeCount = curNodeCount;
 				}
 
 				// merge nodes only reachable from exceptions
 				if (opt.isMergeException) {
-					sdg.cfg.out.print("a[2");
+					sdg.cfg.out.print(" a[2");
 					mergeException(pdgModRef, mrg);
-					sdg.cfg.out.print("]");
+					final int curNodeCount = pdgModRef.size();
+					sdg.cfg.out.print("](-" + (lastNodeCount - curNodeCount) + ")");
+					lastNodeCount = curNodeCount;
 				}
 
 				// cut off fields of immutables
 				if (opt.isCutOffImmutables) {
-					sdg.cfg.out.print("a[3");
+					sdg.cfg.out.print(" a[3");
 					cutOffImmutables(pdgModRef, mrg, pdg);
-					sdg.cfg.out.print("]");
+					final int curNodeCount = pdgModRef.size();
+					sdg.cfg.out.print("](-" + (lastNodeCount - curNodeCount) + ")");
+					lastNodeCount = curNodeCount;
 				}
 
 				if (opt.isMergeOneFieldPerParent) {
-					sdg.cfg.out.print("a[4");
+					sdg.cfg.out.print(" a[4");
 					mergeOneFieldPerParent(pdgModRef, mrg);
-					sdg.cfg.out.print("]");
+					final int curNodeCount = pdgModRef.size();
+					sdg.cfg.out.print("](-" + (lastNodeCount - curNodeCount) + ")");
+					lastNodeCount = curNodeCount;
 				}
 
 				if (opt.maxNodesPerInterface != Options.UNLIMITED_NODES_PER_INTERFACE
 						&& opt.maxNodesPerInterface < pdgModRef.size()) {
-					//System.err.print(pdg + ": " + pdgModRef.size());
-
-					for (int level = Options.STD_MERGE_LEVEL; level > 0
-							&& pdgModRef.size() > opt.maxNodesPerInterface; level--) {
-						sdg.cfg.out.print("a[5");
-
-						mergeAtLevel(pdgModRef, mrg, level);
-						//System.err.print(" -(" + level + ")-> " + pdgModRef.size());
-						sdg.cfg.out.print("]");
-
-					}
 
 					if (pdgModRef.size() > opt.maxNodesPerInterface) {
-						sdg.cfg.out.print("a[6");
+						sdg.cfg.out.print(" a[5");
 
 						// if the interface is still too big, we try to merge all locations only reachable through
 						// static fields to a single candidate.
 						mergeAllStatics(pdgModRef, mrg);
-						//System.err.print(" -(S)-> " + pdgModRef.size());
-						sdg.cfg.out.print("]");
+						final int curNodeCount = pdgModRef.size();
+						sdg.cfg.out.print("](-" + (lastNodeCount - curNodeCount) + ")");
+						lastNodeCount = curNodeCount;
 					}
 
-					//System.err.println(" done.");
+					if (pdgModRef.size() > opt.maxNodesPerInterface) {
+						sdg.cfg.out.print(" a[6");
+
+						mergeAutomaticAtDepthLevel(pdgModRef, mrg, opt.maxNodesPerInterface);
+						final int curNodeCount = pdgModRef.size();
+						sdg.cfg.out.print("](-" + (lastNodeCount - curNodeCount) + ")");
+						lastNodeCount = curNodeCount;
+					}
+
 				}
+				
+				lastNodeCount = pdgModRef.size();
+				sdg.cfg.out.println(" ==>(" + lastNodeCount + " " 
+				+ (initialNodeCount > 0 ? ((100 *lastNodeCount) / initialNodeCount) : "--") + "%)");
 			}
 		}
 
-		sdg.cfg.out.print("b");
+		sdg.cfg.out.println();
 
 		// merge nodes for cut off cgnodes
 		if (opt.isMergePrunedCallNodes) {
+			sdg.cfg.out.print("merge pruned call nodes... ");
 			mergePrunedCallNodes(sdg, cg, interModRef, modref, progress);
+			sdg.cfg.out.println("done.");
 		}
-		
-		sdg.cfg.out.print("c");
-
 	}
 
 	private static void cutOffUnreachable(final InterProcCandidateModel pdgModRef, final ModRefCandidateGraph mrg,
@@ -620,33 +635,56 @@ public final class ObjGraphParams {
 		}
 	}
 
-	private static void mergeAtLevel(final InterProcCandidateModel pdgModRef, final ModRefCandidateGraph mrg,
-			final int level) {
-		assert level >= 0;
+	private void mergeAutomaticAtDepthLevel(final InterProcCandidateModel pdgModRef, final ModRefCandidateGraph mrg,
+			final int maxNodes) {
+		final int maxDepthLevel = Options.STD_MERGE_LEVEL;
 
-		final List<ModRefCandidate> start = new LinkedList<ModRefCandidate>();
-		for (final ModRefCandidate c : mrg.getRoots()) {
-			start.add(c);
+		OrdinalSet<InstanceKey> reachPts = mrg.getRootsPts();
+
+		final Set<ModRefFieldCandidate> fields = new HashSet<ModRefFieldCandidate>();
+		for (final ModRefFieldCandidate fc : pdgModRef) {
+			fields.add(fc);
 		}
-		final Set<ModRefCandidate> reachable = new HashSet<ModRefCandidate>();
-		final List<ModRefCandidate> border = new LinkedList<ModRefCandidate>();
-
-		for (int i = level; i > 0; i--) {
-			final Set<ModRefCandidate> succs = findDirectSuccReachable(mrg, start);
-
-			if (i == 1) {
-				for (final ModRefCandidate c : succs) {
-					if (!reachable.contains(c)) {
-						border.add(c);
-					}
+				
+		List<ModRefFieldCandidate> border = new LinkedList<ModRefFieldCandidate>();
+		final List<ModRefFieldCandidate> reachable = new LinkedList<ModRefFieldCandidate>();
+		
+		for (int i = maxDepthLevel; i > 0; i--) {
+			final List<ModRefFieldCandidate> notReachable = new LinkedList<ModRefFieldCandidate>();
+			final List<ModRefFieldCandidate> reachTmp = new LinkedList<ModRefFieldCandidate>();
+			
+			for (final ModRefFieldCandidate fc : fields) {
+				if (fc.isReachableFrom(reachPts)) {
+					reachTmp.add(fc);
+				} else {
+					notReachable.add(fc);
 				}
 			}
+			
+			sdg.cfg.out.print(".");
+			
+			fields.removeAll(reachTmp);
+			if (reachable.isEmpty() && reachTmp.size() > maxNodes) {
+				reachable.addAll(reachTmp);
+				border = reachTmp;
+				break;
+			} else if (!reachable.isEmpty() && (reachable.size() + reachTmp.size() > maxNodes)) {
+				break;
+			}
+			
+			reachable.addAll(reachTmp);
+			border = reachTmp;
 
-			reachable.addAll(succs);
-			start.clear();
-			start.addAll(succs);
-		}
+			if (i > 1) {
+				for (final ModRefFieldCandidate fc : reachTmp) {
+					reachPts = unify(reachPts, fc.pc.getFieldPointsTo());
+				}
+			}
+			
+		}		
+		
 
+		//TODO optimize this thing.
 		for (final ModRefCandidate c : border) {
 			// merge reachable
 			final List<ModRefCandidate> single = new LinkedList<ModRefCandidate>();
@@ -696,21 +734,6 @@ public final class ObjGraphParams {
 		}
 	}
 
-	private static Set<ModRefCandidate> findDirectSuccReachable(final ModRefCandidateGraph g,
-			final List<? extends ModRefCandidate> start) {
-		final Set<ModRefCandidate> reach = new HashSet<ModRefCandidate>();
-
-		for (final ModRefCandidate c : start) {
-			final Iterator<ModRefCandidate> it = g.getSuccNodes(c);
-			while (it.hasNext()) {
-				final ModRefCandidate succ = it.next();
-				reach.add(succ);
-			}
-		}
-
-		return reach;
-	}
-
 	private static Set<ModRefCandidate> findReachable(final ModRefCandidateGraph g,
 			final List<? extends ModRefCandidate> start) {
 		final Set<ModRefCandidate> reachable = new HashSet<ModRefCandidate>();
@@ -740,19 +763,12 @@ public final class ObjGraphParams {
 	private Map<CGNode, OrdinalSet<ModRefFieldCandidate>> simpleReachabilityPropagate(final CallGraph cg,
 			final ModRefCandidates mrefs, final IProgressMonitor progress) throws CancelException {
 		final Graph<CGNode> cgInverted = GraphInverter.invert(cg);
-		sdg.cfg.out.print("2");
-
 		final Map<CGNode, Collection<ModRefFieldCandidate>> gen = mrefs.getCandidateMap();
-		sdg.cfg.out.print("3");
 		MonitorUtil.throwExceptionIfCanceled(progress);
+
 		final GenReach<CGNode, ModRefFieldCandidate> genReach = new GenReach<CGNode, ModRefFieldCandidate>(cgInverted, gen);
-		sdg.cfg.out.print("4");
-
 		final BitVectorSolver<CGNode> solver = new BitVectorSolver<CGNode>(genReach);
-		sdg.cfg.out.print("5");
-
 		solver.solve(progress);
-		sdg.cfg.out.print("6");
 
 		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> result = HashMapFactory.make();
 		for (final CGNode cgNode : cg) {
@@ -760,34 +776,124 @@ public final class ObjGraphParams {
 			result.put(cgNode, new OrdinalSet<ModRefFieldCandidate>(bv.getValue(), genReach.getLatticeValues()));
 			MonitorUtil.throwExceptionIfCanceled(progress);
 		}
-		sdg.cfg.out.print("7");
 
 		return result;
 	}
 
+	private static class ReachInfo {
+		private final CGNode node;
+		private final Set<ModRefFieldCandidate> reached = new HashSet<ModRefFieldCandidate>();
+		private final Set<ModRefFieldCandidate> unreachable = new HashSet<ModRefFieldCandidate>();
+		private OrdinalSet<InstanceKey> reaching;
+		private List<ReachInfo> callees = new LinkedList<ReachInfo>();
+		private OrdinalSet<ModRefFieldCandidate> pruned = null;
+		private boolean changedFromLocal = true;
+		private boolean changedFromCallee = false;
+		
+		private ReachInfo(final CGNode node, final OrdinalSet<InstanceKey> reaching) {
+			this.node = node;
+			this.reaching = reaching;
+		}
+		
+		public final boolean localPropagate() {
+			if (unreachable == null || unreachable.isEmpty()) {
+				return false;
+			} else if (!(changedFromLocal || changedFromCallee)) {
+				return false;
+			}
+			
+			changedFromLocal = false;
+
+			boolean addedCandidates = false;
+			boolean change = true;
+
+			while (change) {
+				change = false;
+
+				final LinkedList<ModRefFieldCandidate> added = new LinkedList<ModRefFieldCandidate>();
+				
+				for (final ModRefFieldCandidate f : unreachable) {
+					if (f.isReachableFrom(reaching)) {
+						change = true;
+						reaching = unify(reaching, f.pc.getFieldPointsTo());
+						added.add(f);
+					}
+				}
+
+				if (change) {
+					addedCandidates = true;
+
+					for (final ModRefFieldCandidate f : added) {
+						unreachable.remove(f);
+						reached.add(f);
+					}
+				}
+			}
+
+			changedFromLocal = addedCandidates;
+			
+			return addedCandidates;
+		}
+
+		private boolean firstRun = true;
+		
+		public final boolean propagateFromCallees() {
+			boolean changed = false;
+			
+			for (final ReachInfo callee : callees) {
+				if (!(changed || changedFromLocal || changedFromCallee
+						|| callee.changedFromLocal || callee.changedFromCallee)) {
+					continue;
+				}
+				
+				for (final ModRefFieldCandidate c : callee.reached) {
+					if (!reached.contains(c) && c.isReachableFrom(reaching)) {
+						changed = true;
+						reached.add(c);
+						reaching = unify(reaching, c.pc.getFieldPointsTo());
+					}
+				}
+			}
+			
+			if (pruned != null && (firstRun || changed || changedFromLocal || changedFromCallee)) {
+				for (final ModRefFieldCandidate c : pruned) {
+					if (!reached.contains(c) && c.isReachableFrom(reaching)) {
+						changed = true;
+						reached.add(c);
+						reaching = unify(reaching, c.pc.getFieldPointsTo());
+					}
+				}
+			}
+			
+			changedFromCallee = changed;
+			firstRun = false;
+			
+			return changed;
+		}
+	}
+	
 	private Map<CGNode, OrdinalSet<ModRefFieldCandidate>> fixpointReachabilityPropagate(final SDGBuilder sdg,
 			final CallGraph nonPrunedCG, final ModRefCandidates mrefs, final IProgressMonitor progress)
 	throws CancelException {
-		final Map<CGNode, Set<ModRefCandidate>> cg2candidates = new HashMap<CGNode, Set<ModRefCandidate>>();
+		final Map<CGNode, ReachInfo> cg2reach = new HashMap<CGNode, ReachInfo>();
 		final CallGraph prunedCG = sdg.getWalaCallGraph();
 		final PointsToWrapper pa = new PointsToWrapper(sdg.getPointerAnalysis());
-		final Map<CGNode, Collection<ModRefFieldCandidate>> cg2localfields = mrefs.getCandidateMap();
 
 		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> simple =
 				simpleReachabilityPropagate(nonPrunedCG, mrefs, progress);
 
-		sdg.cfg.out.print("z");
-		
 		// init with roots
+		final Map<CGNode, Collection<ModRefFieldCandidate>> cg2localfields = mrefs.getCandidateMap();
 		for (final PDG pdg : sdg.getAllPDGs()) {
-			final List<ModRefRootCandidate> roots = ModRefCandidateGraph.findMethodRoots(pa, pdg);
-			final Set<ModRefCandidate> cands = new HashSet<ModRefCandidate>();
-			cands.addAll(roots);
-			cg2candidates.put(pdg.cgNode, cands);
-			localPropagate(cands, cg2localfields.get(pdg.cgNode));
+			final CGNode n = pdg.cgNode;
+			final OrdinalSet<InstanceKey> initialRoot = ModRefCandidateGraph.findMethodRootPts(pa, pdg);
+			final ReachInfo reach = new ReachInfo(n, initialRoot);
+			final Collection<ModRefFieldCandidate> locals = cg2localfields.get(n);
+			if (locals != null) {
+				reach.unreachable.addAll(locals);
+			}
+			cg2reach.put(n, reach);
 		}
-
-		sdg.cfg.out.print("y");
 
 		// prepare dfs finish time sorted list for fixpoint iteration.
 		final LinkedList<CGNode> dfsFinish = new LinkedList<CGNode>();
@@ -800,103 +906,63 @@ public final class ObjGraphParams {
 				}
 			}
 		}
+
+		// init reach info callees
+		for (final CGNode n : dfsFinish) {
+			final ReachInfo reach = cg2reach.get(n);
+			for (final Iterator<CGNode> it = nonPrunedCG.getSuccNodes(n); it.hasNext();) {
+				final CGNode succ = it.next();
+				final ReachInfo succReach = cg2reach.get(succ);
+				
+				if (succReach != null) {
+					reach.callees.add(succReach);
+				} else {
+					// pruned call
+					final OrdinalSet<ModRefFieldCandidate> prunedSucc = simple.get(succReach);
+					reach.pruned = unify(reach.pruned, prunedSucc);
+				}
+			}
+		}
+		
 		boolean changed = true;
 		while (changed) {
 			changed = false;
 			
-			for (final CGNode n : dfsFinish) { 
-				final Set<ModRefCandidate> caller = cg2candidates.get(n);
-				final Collection<ModRefFieldCandidate> fields = cg2localfields.get(n);
-				if (fields != null && !fields.isEmpty()) {
-					changed |= localPropagate(caller, fields);
-				}
+			for (final CGNode n : dfsFinish) {
+				final ReachInfo callerReach = cg2reach.get(n);
+				changed |= callerReach.localPropagate();
 
-				final List<Set<ModRefCandidate>> calleeCands = findAllCalleeCandidates(n, cg2candidates, prunedCG,
-						simple, nonPrunedCG);
 				boolean changeN = true;
-
 				while (changeN) {
-					changeN = false;
-
-					for (final Set<ModRefCandidate> callee : calleeCands) {
-						changeN |= propagate(caller, callee);
-					}
-
+					changeN = callerReach.propagateFromCallees();
 					changed |= changeN;
 				}
 			}
+			
 		}
 
-		sdg.cfg.out.print("x");
-		
-		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> result = convertResult(cg2candidates, simple);
+		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> result = convertResult(cg2reach, simple);
 
-		sdg.cfg.out.print("w");
-		
 		return result;
 	}
 
-	private static boolean localPropagate(final Set<ModRefCandidate> cands, final Collection<ModRefFieldCandidate> fields) {
-		if (fields == null || fields.isEmpty()) {
-			return false;
-		}
-
-		boolean addedCandidates = false;
-		boolean change = true;
-
-		while (change) {
-			change = false;
-
-			final List<ModRefFieldCandidate> added = new LinkedList<ModRefFieldCandidate>();
-
-			for (final ModRefFieldCandidate f : fields) {
-				boolean addF = false;
-
-				for (final ModRefCandidate c : cands) {
-					if (c.isPotentialParentOf(f)) {
-						addF = true;
-						break;
-					}
-				}
-
-				if (addF) {
-					cands.add(f);
-					added.add(f);
-				}
-			}
-
-			if (!added.isEmpty()) {
-				change = true;
-				addedCandidates = true;
-				for (final ModRefFieldCandidate f : added) {
-					fields.remove(f);
-				}
-			}
-		}
-
-		return addedCandidates;
-	}
-
 	private static Map<CGNode, OrdinalSet<ModRefFieldCandidate>> convertResult(
-			final Map<CGNode, Set<ModRefCandidate>> cg2candidates,
-			final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> simple) {
+			final Map<CGNode, ReachInfo> cg2reach,	final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> simple) {
 		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> result =
 				new HashMap<CGNode, OrdinalSet<ModRefFieldCandidate>>();
 		final OrdinalSetMapping<ModRefFieldCandidate> domain;
 		if (simple.isEmpty()) {
-			domain = createMapping(cg2candidates);
+			domain = createMapping(cg2reach);
 		} else {
 			domain = simple.values().iterator().next().getMapping();
 			assert domain != null;
 		}
 
-		for (final Entry<CGNode, Set<ModRefCandidate>> e : cg2candidates.entrySet()) {
+		for (final ReachInfo reach : cg2reach.values()) {
 			final BitVectorIntSet set = new BitVectorIntSet();
-			for (final ModRefCandidate c : e.getValue()) {
-				if (c instanceof ModRefFieldCandidate) {
-					final int id = domain.getMappedIndex((ModRefFieldCandidate) c);
-					set.add(id);
-				}
+			for (final ModRefFieldCandidate c : reach.reached) {
+				final int id = domain.getMappedIndex(c);
+				set.add(id);
 			}
 
 			final OrdinalSet<ModRefFieldCandidate> cands;
@@ -906,7 +972,7 @@ public final class ObjGraphParams {
 				cands = new OrdinalSet<ModRefFieldCandidate>(set, domain);
 			}
 
-			result.put(e.getKey(), cands);
+			result.put(reach.node, cands);
 		}
 
 		for (final Entry<CGNode, OrdinalSet<ModRefFieldCandidate>> e : simple.entrySet()) {
@@ -920,71 +986,16 @@ public final class ObjGraphParams {
 	}
 
 	private static OrdinalSetMapping<ModRefFieldCandidate> createMapping(
-			final Map<CGNode, Set<ModRefCandidate>> cg2candidates) {
+			final Map<CGNode, ReachInfo> cg2reach) {
 	    final MutableMapping<ModRefFieldCandidate> result = MutableMapping.make();
 
-	    for (final Set<ModRefCandidate> cands : cg2candidates.values()) {
-	    	for (final ModRefCandidate c : cands) {
-	    		if (c instanceof ModRefFieldCandidate) {
-	    			result.add((ModRefFieldCandidate) c);
-	    		}
+	    for (final ReachInfo reach : cg2reach.values()) {
+	    	for (final ModRefFieldCandidate c : reach.reached) {
+    			result.add(c);
 	    	}
 	    }
 
 	    return result;
-	}
-
-	private static List<Set<ModRefCandidate>> findAllCalleeCandidates(final CGNode n,
-			final Map<CGNode, Set<ModRefCandidate>> cg2candidates, final CallGraph pruned,
-			final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> simple, final CallGraph nonPruned) {
-		final List<Set<ModRefCandidate>> list = new LinkedList<Set<ModRefCandidate>>();
-
-		final Iterator<CGNode> succIt = nonPruned.getSuccNodes(n);
-		while (succIt.hasNext()) {
-			final CGNode callee = succIt.next();
-
-			if (!cg2candidates.containsKey(callee)) {
-				// use simple propagation result
-				final OrdinalSet<ModRefFieldCandidate> cands = simple.get(callee);
-				final Set<ModRefCandidate> cSet = new HashSet<ModRefCandidate>();
-				for (final ModRefFieldCandidate f : cands) {
-					cSet.add(f);
-				}
-				cg2candidates.put(callee, cSet);
-				list.add(cSet);
-			} else {
-				// use result from map
-				final Set<ModRefCandidate> cSet = cg2candidates.get(callee);
-				assert cSet != null;
-				list.add(cSet);
-			}
-		}
-
-		return list;
-	}
-
-	private static boolean propagate(final Set<ModRefCandidate> caller, final Set<ModRefCandidate> callee) {
-		boolean changed = false;
-
-		for (final ModRefCandidate c : callee) {
-			if (c instanceof ModRefFieldCandidate && !caller.contains(c)) {
-				final ModRefFieldCandidate f = (ModRefFieldCandidate) c;
-				final List<ModRefFieldCandidate> toAdd = new LinkedList<ModRefFieldCandidate>();
-
-				for (final ModRefCandidate parent : caller) {
-					if (parent.isPotentialParentOf(f)) {
-						toAdd.add(f);
-					}
-				}
-
-				if (toAdd.size() > 0) {
-					changed = true;
-					caller.addAll(toAdd);
-				}
-			}
-		}
-
-		return changed;
 	}
 
 	private CallGraph stripCallsFromThreadStartToRun(final CallGraph cg) {

@@ -23,12 +23,30 @@ import com.ibm.wala.ipa.callgraph.propagation.cfa.ZeroXInstanceKeys;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.nCFABuilder;
 import com.ibm.wala.ipa.callgraph.propagation.rta.BasicRTABuilder;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
+import com.ibm.wala.util.intset.OrdinalSet;
 
 
 public final class WalaPointsToUtil {
 
 	private WalaPointsToUtil() {}
 	
+	/**
+	 * Unifies two points-to sets even if they refer to null - OrdinalSet.unify does not allow this.
+	 * Unify (a, null) -> a, (null, b) -> b, (null,null) -> null, (a,b) -> OrdinalSet.unify(a,b)
+	 * @param a Set a.
+	 * @param b Set b.
+	 * @return Unification of a and b.
+	 */
+	public static final <T> OrdinalSet<T> unify(final OrdinalSet<T> a, final OrdinalSet<T> b) {
+		if (a != null && b != null) {
+			return OrdinalSet.unify(a, b);
+		} else if (a == null) {
+			return b;
+		} else {
+			return a;
+		}
+	}
+
 	public static CallGraphBuilder makeRTA(final AnalysisOptions options, final AnalysisCache cache,
 			final IClassHierarchy cha, final AnalysisScope scope) {
 

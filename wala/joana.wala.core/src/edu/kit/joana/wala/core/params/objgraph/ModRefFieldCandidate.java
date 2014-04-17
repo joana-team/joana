@@ -118,4 +118,9 @@ public final class ModRefFieldCandidate extends ModRefCandidate implements Clone
 		return pc.getFields();
 	}
 
+	@Override
+	public boolean isReachableFrom(final OrdinalSet<InstanceKey> reachable) {
+		return pc.isBaseAliased(reachable);
+	}
+
 }

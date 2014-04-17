@@ -26,6 +26,8 @@ import edu.kit.joana.wala.core.params.objgraph.ModRefCandidates.InterProcCandida
 import edu.kit.joana.wala.core.params.objgraph.dataflow.PointsToWrapper;
 import edu.kit.joana.wala.util.NotImplementedException;
 
+import static edu.kit.joana.wala.util.pointsto.WalaPointsToUtil.unify;
+
 /**
  *
  * @author Juergen Graf <juergen.graf@gmail.com>
@@ -64,6 +66,54 @@ public class ModRefCandidateGraph implements Graph<ModRefCandidate> {
 
 	public List<ModRefRootCandidate> getRoots() {
 		return Collections.unmodifiableList(roots);
+	}
+
+	public static OrdinalSet<InstanceKey> findMethodRootPts(final PointsToWrapper pa, final PDG pdg) {
+		OrdinalSet<InstanceKey> roots = null;
+		final CGNode n = pdg.cgNode;
+
+		for (int i = 0; i < pdg.params.length; i++) {
+			final OrdinalSet<InstanceKey> pts = pa.getMethodParamPTS(n, i);
+			roots = unify(roots, pts);
+		}
+
+		if (pdg.staticReads != null) {
+			for (int i = 0; i < pdg.staticReads.length; i++) {
+				final PDGField f = pdg.staticReads[i];
+				final OrdinalSet<InstanceKey> pts = pa.getStaticFieldPTS(f);
+				roots = unify(roots, pts);
+			}
+		}
+
+		if (pdg.staticWrites != null) {
+			for (int i = 0; i < pdg.staticWrites.length; i++) {
+				final PDGField f = pdg.staticWrites[i];
+				final OrdinalSet<InstanceKey> pts = pa.getStaticFieldPTS(f);
+				roots = unify(roots, pts);
+			}
+		}
+
+		for (final PDGField f : pdg.staticInterprocReads) {
+			final OrdinalSet<InstanceKey> pts = pa.getStaticFieldPTS(f);
+			roots = unify(roots, pts);
+		}
+
+		for (final PDGField f : pdg.staticInterprocWrites) {
+			final OrdinalSet<InstanceKey> pts = pa.getStaticFieldPTS(f);
+			roots = unify(roots, pts);
+		}
+
+		if (!pdg.isVoid()) {
+			final OrdinalSet<InstanceKey> pts = pa.getMethodReturnPTS(n);
+			roots = unify(roots, pts);
+		}
+
+		{
+			final OrdinalSet<InstanceKey> pts = pa.getMethodExceptionPTS(n);
+			roots = unify(roots, pts);
+		}
+
+		return roots;
 	}
 
 	/**

@@ -41,5 +41,7 @@ public interface ParameterCandidate {
 	String getBytecodeName();
 	OrdinalSet<ParameterField> getFields();
 	//ParameterField getField();
+	OrdinalSet<InstanceKey> getBasePointsTo();
+	OrdinalSet<InstanceKey> getFieldPointsTo();
 
 }

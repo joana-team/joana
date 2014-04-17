@@ -8,7 +8,7 @@
 package edu.kit.joana.wala.core.params.objgraph.candidates;
 
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -16,65 +16,65 @@ import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.util.intset.OrdinalSet;
 import com.ibm.wala.util.strings.Atom;
 
-import edu.kit.joana.util.io.IOFactory;
 import edu.kit.joana.wala.core.ParameterField;
-import gnu.trove.map.TObjectIntMap;
-import gnu.trove.map.hash.TObjectIntHashMap;
 
 /**
+ * Takes a set of partitioned parameter fields and creates a single parameter candidate for each partition. It merges
+ * all fields of a partition to a single parameter candidate. This is mainly used for fields of pruned library calls.
+ * 
  * @author Martin Mohr
+ * @author Juergen Graf <juergen.graf@gmail.com>
  */
 public class MergeByPartition implements MergeStrategy {
 	
 	private CandidateFactory candFact;
-	private final Map<ParameterField, Set<ParameterField>> eqClasses;
-	private final TObjectIntMap<Set<ParameterField>> eqClass2Index;
+	// maps all fields that are part of an equivalence class (mostly fields accesses from pruned calls) to a single 
+	// name that represents the equivalence class. This name is then used to create a single candidate for all fields
+	// of the same equivalence class
+	private final Map<ParameterField, Atom> param2eqName;
 	
-	public MergeByPartition(LinkedList<Set<ParameterField>> partition) {
-		eqClasses = computeEquivalenceClasses(partition);
-		eqClass2Index = computeEqClass2Index(partition);
+	public MergeByPartition(final List<Set<ParameterField>> partition) {
+		param2eqName = computeParam2eqName(partition);
 	}
 
-	private Map<ParameterField, Set<ParameterField>> computeEquivalenceClasses(LinkedList<Set<ParameterField>> partition) {
-		Map<ParameterField, Set<ParameterField>> eqClasses = new HashMap<ParameterField, Set<ParameterField>>();
-		for (Set<ParameterField> s : partition) {
-			for (ParameterField p : s) {
-				eqClasses.put(p, s);
+	private static Map<ParameterField, Atom> computeParam2eqName(final List<Set<ParameterField>> partition) {
+		final Map<ParameterField, Atom> ret = new HashMap<ParameterField, Atom>();
+		
+		int eqIndex = 0;
+		for (final Set<ParameterField> part : partition) {
+			final Atom eqName = Atom.findOrCreateAsciiAtom("p<" + eqIndex + ">");
+			for (final ParameterField field : part) {
+				ret.put(field, eqName);
 			}
+			eqIndex++;
 		}
-		return eqClasses;
-	}
-	
-	private TObjectIntMap<Set<ParameterField>> computeEqClass2Index(LinkedList<Set<ParameterField>> partition) {
-		TObjectIntMap<Set<ParameterField>> ret = new TObjectIntHashMap<Set<ParameterField>>();
-		int counter = 0;
-		for (Set<ParameterField> p : partition) {
-			ret.put(p, counter);
-			counter++;
-		}
+		
 		return ret;
 	}
 
 	public void setFactory(CandidateFactory candFact) {
 		this.candFact = candFact;
 	}
+
 	/* (non-Javadoc)
 	 * @see edu.kit.joana.wala.core.params.objgraph.candidates.MergeStrategy#doMerge(com.ibm.wala.util.intset.OrdinalSet, edu.kit.joana.wala.core.ParameterField, com.ibm.wala.util.intset.OrdinalSet)
 	 */
 	@Override
-	public boolean doMerge(OrdinalSet<InstanceKey> basePts, ParameterField field, OrdinalSet<InstanceKey> fieldPts) {
-		return eqClasses.keySet().contains(field);
+	public boolean doMerge(final OrdinalSet<InstanceKey> basePts, final ParameterField field,
+			final OrdinalSet<InstanceKey> fieldPts) {
+		return param2eqName.containsKey(field);
 	}
 
 	/* (non-Javadoc)
 	 * @see edu.kit.joana.wala.core.params.objgraph.candidates.MergeStrategy#getMergeCandidate(com.ibm.wala.util.intset.OrdinalSet, edu.kit.joana.wala.core.ParameterField, com.ibm.wala.util.intset.OrdinalSet)
 	 */
 	@Override
-	public UniqueParameterCandidate getMergeCandidate(OrdinalSet<InstanceKey> basePts, ParameterField field,
-			OrdinalSet<InstanceKey> fieldPts) {
-		final Atom f = Atom.findOrCreate(IOFactory.createUTF8Bytes(Integer.toString(eqClass2Index.get(eqClasses.get(field)))));
-		final UniqueMergableParameterCandidate mp = candFact.findOrCreateUniqueMergable(f);
+	public UniqueParameterCandidate getMergeCandidate(final OrdinalSet<InstanceKey> basePts, final ParameterField field,
+			final OrdinalSet<InstanceKey> fieldPts) {
+		final Atom eqName = param2eqName.get(field);
+		final UniqueMergableParameterCandidate mp = candFact.findOrCreateUniqueMergable(eqName);
 		mp.merge(basePts, field, fieldPts);
+		
 		return mp;
 	}
 

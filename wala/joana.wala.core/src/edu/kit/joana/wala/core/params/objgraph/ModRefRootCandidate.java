@@ -57,6 +57,11 @@ public abstract class ModRefRootCandidate extends ModRefCandidate {
 		return mref;
 	}
 
+	public final boolean isReachableFrom(final OrdinalSet<InstanceKey> reachable) {
+		// root nodes are not reachable from other nodes
+		return false;
+	}
+	
 	private static final class ModRefNodeRootCandidate extends ModRefRootCandidate {
 
 		private final PDGNode n;

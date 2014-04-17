@@ -29,6 +29,8 @@ import edu.kit.joana.wala.core.params.objgraph.TVL;
 import edu.kit.joana.wala.core.params.objgraph.TVL.V;
 import edu.kit.joana.wala.util.PrettyWalaNames;
 
+import static edu.kit.joana.wala.util.pointsto.WalaPointsToUtil.unify;
+
 /**
  *
  * @author Juergen Graf <juergen.graf@gmail.com>
@@ -307,6 +309,16 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		public OrdinalSet<ParameterField> getFields() {
 			return unify(a.getFields(), b.getFields());
 		}
+
+		@Override
+		public OrdinalSet<InstanceKey> getBasePointsTo() {
+			return unify(a.getBasePointsTo(), b.getBasePointsTo());
+		}
+
+		@Override
+		public OrdinalSet<InstanceKey> getFieldPointsTo() {
+			return unify(a.getFieldPointsTo(), b.getFieldPointsTo());
+		}
 	}
 
 	private static final class MergeCandImpl extends MergableParameterCandidate implements MultiMergableParameterCandidate {
@@ -316,128 +328,79 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		private V isStatic;
 		private V isPrimitive;
 		private V isRoot;
+		private OrdinalSet<InstanceKey> basePts;
+		private OrdinalSet<InstanceKey> fieldPts;
 
 		private MergeCandImpl(final OrdinalSet<UniqueParameterCandidate> cands) {
+			if (cands == null || cands.isEmpty()) {
+				throw new IllegalArgumentException();
+			}
 			this.cands = cands;
 			this.isArray = V.UNKNOWN;
 			this.isStatic = V.UNKNOWN;
 			this.isPrimitive = V.UNKNOWN;
 			this.isRoot = V.UNKNOWN;
+			adjustValues(cands);
+		}
+		
+		private void adjustValues(final OrdinalSet<UniqueParameterCandidate> cands) {
+			for (final UniqueParameterCandidate c : cands) {
+				if (this.isArray != V.MAYBE) { 
+					this.isArray = TVL.or(this.isArray, c.isArray()); 
+				}
+				if (this.isStatic != V.MAYBE) { 
+					this.isStatic = TVL.or(this.isStatic, c.isStatic()); 
+				}
+				if (this.isPrimitive != V.MAYBE) { 
+					this.isPrimitive = TVL.or(this.isPrimitive, c.isPrimitive()); 
+				}
+				if (this.isRoot != V.MAYBE) {
+					this.isRoot = TVL.or(this.isRoot, c.isRoot());
+				}
+				basePts = unify(basePts, c.getBasePointsTo());
+				fieldPts = unify(fieldPts, c.getFieldPointsTo());
+			}
 		}
 
 		@Override
 		public void merge(final OrdinalSet<UniqueParameterCandidate> additional) {
 			this.cands = OrdinalSet.unify(this.cands, additional);
-			// invalidate cached results
-			if (this.isArray != V.MAYBE) { this.isArray = V.UNKNOWN; }
-			if (this.isStatic != V.MAYBE) { this.isStatic = V.UNKNOWN; }
-			if (this.isPrimitive != V.MAYBE) { this.isPrimitive = V.UNKNOWN; }
-			if (this.isRoot != V.MAYBE) { this.isRoot = V.UNKNOWN; }
+			adjustValues(additional);
 		}
 
 		@Override
 		public TVL.V isArray() {
-			if (isArray == V.UNKNOWN) {
-				// not cached => compute
-				V tmp = V.UNKNOWN;
-				for (final ParameterCandidate c : cands) {
-					tmp = TVL.or(tmp, c.isArray());
-					if (tmp == V.MAYBE) {
-						break;
-					}
-				}
-
-				isArray = tmp;
-			}
-
 			return isArray;
 		}
 
 		@Override
 		public V isStatic() {
-			if (isStatic == V.UNKNOWN) {
-				// not cached => compute
-				V tmp = V.UNKNOWN;
-				for (final ParameterCandidate c : cands) {
-					tmp = TVL.or(tmp, c.isStatic());
-					if (tmp == V.MAYBE) {
-						break;
-					}
-				}
-
-				isStatic = tmp;
-			}
-
 			return isStatic;
 		}
 
 		@Override
 		public TVL.V isRoot() {
-			if (isRoot == V.UNKNOWN) {
-				// not cached => compute
-				V tmp = V.UNKNOWN;
-				for (final ParameterCandidate c : cands) {
-					tmp = TVL.or(tmp, c.isRoot());
-					if (tmp == V.MAYBE) {
-						break;
-					}
-				}
-
-				isRoot = tmp;
-			}
-
 			return isRoot;
 		}
 
 		@Override
 		public TVL.V isPrimitive() {
-			if (isPrimitive == V.UNKNOWN) {
-				// not cached => compute
-				V tmp = V.UNKNOWN;
-				for (final ParameterCandidate c : cands) {
-					tmp = TVL.or(tmp, c.isPrimitive());
-					if (tmp == V.MAYBE) {
-						break;
-					}
-				}
-
-				isPrimitive = tmp;
-			}
-
 			return isPrimitive;
 		}
 
 		@Override
 		public boolean isReachableFrom(final ParameterCandidate other) {
-			for (ParameterCandidate c : cands) {
-				if (c.isReachableFrom(other)) {
-					return true;
-				}
-			}
-
-			return false;
+			return other.isFieldAliased(basePts);
 		}
 
 		@Override
 		public boolean isBaseAliased(final OrdinalSet<InstanceKey> pts) {
-			for (ParameterCandidate c : cands) {
-				if (c.isBaseAliased(pts)) {
-					return true;
-				}
-			}
-
-			return false;
+			return basePts != null && pts != null && basePts.containsAny(pts);
 		}
 
 		@Override
 		public boolean isFieldAliased(final OrdinalSet<InstanceKey> other) {
-			for (ParameterCandidate c : cands) {
-				if (c.isFieldAliased(other)) {
-					return true;
-				}
-			}
-
-			return false;
+			return fieldPts != null && other != null && fieldPts.containsAny(other);
 		}
 
 		@Override
@@ -541,6 +504,16 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			}
 			
 			return set;
+		}
+
+		@Override
+		public OrdinalSet<InstanceKey> getBasePointsTo() {
+			return basePts;
+		}
+
+		@Override
+		public OrdinalSet<InstanceKey> getFieldPointsTo() {
+			return fieldPts;
 		}
 
 	}
@@ -713,16 +686,16 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			return fieldEquiv;
 		}
 
-	}
-
-	private static final <T> OrdinalSet<T> unify(final OrdinalSet<T> a, final OrdinalSet<T> b) {
-		if (a != null && b != null) {
-			return OrdinalSet.unify(a, b);
-		} else if (a == null) {
-			return b;
-		} else {
-			return a;
+		@Override
+		public OrdinalSet<InstanceKey> getBasePointsTo() {
+			return basePts;
 		}
+
+		@Override
+		public OrdinalSet<InstanceKey> getFieldPointsTo() {
+			return fieldPts;
+		}
+
 	}
 
 	private final class SingleParamCandImpl extends UniqueParameterCandidate {
@@ -876,6 +849,16 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		@Override
 		public OrdinalSet<ParameterField> getFields() {
 			return fields;
+		}
+
+		@Override
+		public OrdinalSet<InstanceKey> getBasePointsTo() {
+			return basePts;
+		}
+
+		@Override
+		public OrdinalSet<InstanceKey> getFieldPointsTo() {
+			return fieldPts;
 		}
 
 	}

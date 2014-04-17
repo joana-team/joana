@@ -7,7 +7,9 @@
  */
 package edu.kit.joana.wala.core.params.objgraph;
 
+import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.types.TypeReference;
+import com.ibm.wala.util.intset.OrdinalSet;
 
 import edu.kit.joana.wala.core.params.objgraph.TVL.V;
 
@@ -34,6 +36,7 @@ public abstract class ModRefCandidate {
 	public abstract int getBytecodeIndex();
 	public abstract String getBytecodeName();
 	public abstract boolean isPotentialParentOf(final ModRefFieldCandidate other);
+	public abstract boolean isReachableFrom(final OrdinalSet<InstanceKey> reachable);
 	public abstract int hashCode();
 	public abstract boolean equals(Object obj);
 

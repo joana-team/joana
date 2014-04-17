@@ -28,16 +28,18 @@ import com.ibm.wala.types.FieldReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.core.ParameterField;
 import edu.kit.joana.wala.core.ParameterFieldFactory;
 import edu.kit.joana.wala.core.SDGBuilder;
-import edu.kit.joana.wala.util.PrettyWalaNames;
 
 /**
  * @author Juergen Graf <juergen.graf@gmail.com>
  */
 public class SearchFieldsOfPrunedCalls {
 
+	private static final Logger debug = Log.getLogger(Log.L_PRUNE_DEBUG);
 	private final SDGBuilder sdg;
 
 	private SearchFieldsOfPrunedCalls(final SDGBuilder sdg) {
@@ -53,6 +55,7 @@ public class SearchFieldsOfPrunedCalls {
 		final Set<CGNode> containsPrunedCalls = new HashSet<CGNode>();
 		final CallGraph prunedCG = sdg.getWalaCallGraph();
 		final CallGraph nonPrunedCG = sdg.getNonPrunedWalaCallGraph();
+
 		for (final CGNode n : prunedCG) {
 			if (prunedCG.getSuccNodeCount(n) == 0 && nonPrunedCG.getSuccNodeCount(n) > 0) {
 				containsPrunedCalls.add(n);
@@ -72,11 +75,6 @@ public class SearchFieldsOfPrunedCalls {
 		}
 		
 		final Set<ParameterField> appFields = fav.getFields();
-
-//		for (final ParameterField f : appFields) {
-//			System.out.println("app field: " + f);
-//		}
-		
 		final FieldAccessVisitor favPruned = new FieldAccessVisitor(pfact, cha, appFields);
 
 		for (final CGNode n : nonPrunedCG) {
@@ -91,34 +89,18 @@ public class SearchFieldsOfPrunedCalls {
 		}
 		
 		final Set<ParameterField> prunedFields = favPruned.getFields();
-		
-//		for (final ParameterField f : prunedFields) {
-//			System.out.println("pruned field: " + f);
-//		}
-		
 		final LinkedList<Set<ParameterField>> subsets = new LinkedList<Set<ParameterField>>();
 		
 		for (final CGNode n : containsPrunedCalls) {
 			final Set<ParameterField> pfOfN = findPrunedFieldsOf(n, appFields, prunedCG, nonPrunedCG, pfact, cha);
 			subsets.add(pfOfN);
-//			System.out.print("pruned of " + PrettyWalaNames.methodName(n.getMethod()) + ": ");
-//			for (final ParameterField p : pfOfN) {
-//				System.out.print(p + "; ");
-//			}
-//			System.out.println();
 		}
 		
 		final LinkedList<Set<ParameterField>> partitions = computePartitions(prunedFields, subsets);
-//		for (final Set<ParameterField> part : partitions) {
-//			System.out.print("part: ");
-//			for (final ParameterField p : part) {
-//				System.out.print(p + "; ");
-//			}
-//			System.out.println();
-//		}
-		
-		System.out.println(appFields.size() + " application fields + (" + prunedFields.size() + " library fields -> "
+
+		debug.outln(appFields.size() + " application fields + (" + prunedFields.size() + " library fields -> "
 				+ partitions.size() + " partitions)");
+		
 		return partitions;
 	}
 	

@@ -48,7 +48,7 @@ import edu.kit.joana.wala.core.params.objgraph.candidates.UniqueParameterCandida
  * @author Juergen Graf <juergen.graf@gmail.com>
  *
  */
-public class ModRefCandidates {
+public class ModRefCandidates implements Iterable<CGNode> {
 
 	private final Map<CGNode, Collection<ModRefFieldCandidate>> all = new HashMap<CGNode, Collection<ModRefFieldCandidate>>();
 	private final CandidateFactory candFact;
@@ -382,4 +382,10 @@ public class ModRefCandidates {
 
 		return counter;
 	}
+	
+	@Override
+	public Iterator<CGNode> iterator() {
+		return all.keySet().iterator();
+	}
+
 }

@@ -39,6 +39,12 @@ public class ModRefCandidateGraph implements Graph<ModRefCandidate> {
 
 	private ModRefCandidateGraph(final InterProcCandidateModel modref, final List<ModRefRootCandidate> roots,
 			final OrdinalSet<InstanceKey> rootsPts) {
+		if (modref == null) {
+			throw new IllegalArgumentException();
+		} else if (roots == null) {
+			throw new IllegalArgumentException();
+		}
+
 		this.modref = modref;
 		this.roots = roots;
 		this.rootsPts = rootsPts;
@@ -250,21 +256,21 @@ public class ModRefCandidateGraph implements Graph<ModRefCandidate> {
 	public Iterator<ModRefCandidate> iterator() {
 		return new Iterator<ModRefCandidate>() {
 
-			private Iterator<ModRefRootCandidate> rootIt = roots.iterator();
-			private Iterator<ModRefFieldCandidate> fieldsIt = modref.iterator();
+			private final Iterator<ModRefRootCandidate> rootIt = roots.iterator();
+			private final Iterator<ModRefFieldCandidate> fieldsIt = modref.iterator();
 
 			@Override
-			public boolean hasNext() {
+			public final boolean hasNext() {
 				return rootIt.hasNext() || fieldsIt.hasNext();
 			}
 
 			@Override
-			public ModRefCandidate next() {
+			public final ModRefCandidate next() {
 				return (rootIt.hasNext() ? rootIt.next() : fieldsIt.next());
 			}
 
 			@Override
-			public void remove() {
+			public final void remove() {
 				throw new UnsupportedOperationException();
 			}
 		};

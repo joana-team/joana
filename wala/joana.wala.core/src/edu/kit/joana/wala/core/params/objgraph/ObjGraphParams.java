@@ -353,10 +353,10 @@ public final class ObjGraphParams {
 			
 			for (final PDG pdg : sdg.getAllPDGs()) {
 				MonitorUtil.throwExceptionIfCanceled(progress);
-				final ModRefCandidateGraph mrg = ModRefCandidateGraph.compute(pa, modref, pdg);
 				final InterProcCandidateModel pdgModRef = modref.getCandidates(pdg.cgNode);
-
 				if (pdgModRef == null) { continue; }
+
+				final ModRefCandidateGraph mrg = ModRefCandidateGraph.compute(pa, modref, pdg);
 
 				final int initialNodeCount = pdgModRef.size();
 				int lastNodeCount = initialNodeCount; 
@@ -721,6 +721,8 @@ public final class ObjGraphParams {
 		}
 
 		final Set<ModRefCandidate> reachStatic = findReachable(mrg, statics);
+		final Set<ModRefCandidate> reachOthers = findReachable(mrg, others);
+		reachStatic.removeAll(reachOthers);
 
 		final List<ModRefFieldCandidate> toMerge = new LinkedList<ModRefFieldCandidate>();
 		for (final ModRefCandidate c : reachStatic) {

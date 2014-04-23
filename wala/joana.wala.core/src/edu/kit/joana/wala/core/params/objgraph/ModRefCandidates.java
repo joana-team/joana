@@ -97,7 +97,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 		 * Merge all given candidates to a single candidate.
 		 * @param toMerge A list of candidates that should be merged.
 		 */
-		public void mergeCandidates(Iterable<ModRefFieldCandidate> toMerge);
+		public void mergeCandidates(Iterable<ModRefFieldCandidate> toMerge, int markWithFlags);
 
 		/**
 		 * Remove a candidate from this model
@@ -234,10 +234,11 @@ public class ModRefCandidates implements Iterable<CGNode> {
 		}
 
 		@Override
-		public void mergeCandidates(final Iterable<ModRefFieldCandidate> toMerge) {
+		public void mergeCandidates(final Iterable<ModRefFieldCandidate> toMerge, final int markWithFlags) {
 			final List<ParameterCandidate> pcands = new LinkedList<ParameterCandidate>();
 			boolean isMod = false;
 			boolean isRef = false;
+			int flags = ModRefCandidate.FLAG_NOT_SET;
 
 			for (final ModRefFieldCandidate mrc : toMerge) {
 				// they could have been merged before
@@ -246,6 +247,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 
 				isMod |= mrc.isMod();
 				isRef |= mrc.isRef();
+				flags |= mrc.flags;
 				pcands.add(mrc.pc);
 				all.remove(mrc);
 			}
@@ -253,6 +255,8 @@ public class ModRefCandidates implements Iterable<CGNode> {
 			final OrdinalSet<UniqueParameterCandidate> pcs = fact.findUniqueSet(pcands);
 			final MultiMergableParameterCandidate mmpc = fact.createMerge(pcs);
 			final ModRefFieldCandidate newCand = new ModRefFieldCandidate(isMod, isRef, mmpc);
+			flags |= markWithFlags;
+			newCand.flags = flags;
 
 			cands.put(mmpc, newCand);
 

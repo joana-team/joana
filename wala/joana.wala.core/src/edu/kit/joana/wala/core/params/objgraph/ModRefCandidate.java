@@ -22,6 +22,10 @@ public abstract class ModRefCandidate {
 
 	private boolean isMod;
 	private boolean isRef;
+	// multi purpose field to flag candidate
+	public int flags = FLAG_NOT_SET;
+	
+	public static final int FLAG_NOT_SET = 0; 
 
 	public ModRefCandidate(final boolean isMod, final boolean isRef) {
 		assert isMod || isRef;

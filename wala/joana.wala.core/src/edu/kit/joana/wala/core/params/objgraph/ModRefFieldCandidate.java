@@ -35,7 +35,10 @@ public final class ModRefFieldCandidate extends ModRefCandidate implements Clone
 	}
 
 	public ModRefFieldCandidate clone() {
-		return new ModRefFieldCandidate(isMod(), isRef(), pc);
+		final ModRefFieldCandidate clone = new ModRefFieldCandidate(isMod(), isRef(), pc);
+		clone.flags = flags;
+		
+		return clone;
 	}
 
 	@Override

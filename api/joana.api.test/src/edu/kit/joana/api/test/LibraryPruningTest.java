@@ -13,6 +13,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Collection;
 
 import org.junit.Test;
@@ -42,17 +43,24 @@ import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
  */
 public class LibraryPruningTest {
 
+	private PrintStream out = null;
+	
 	public static void main(String[] args) {
 		LibraryPruningTest test = new LibraryPruningTest();
-		test.testGuiPrune();
+		test.setOutput(System.out);
+		test.testGuiPruneExtended();
 	}
 
-	public static IFCAnalysis buildAndAnnotate(final String className, final String secSrc,
+	public void setOutput(final PrintStream out) {
+		this.out = out;
+	}
+	
+	public IFCAnalysis buildAndAnnotate(final String className, final String secSrc,
 			final String pubOut) throws ApiTestException {
 		return buildAndAnnotate(className, secSrc, pubOut, PointsToPrecision.INSTANCE_BASED, ExceptionAnalysis.INTRAPROC);
 	}
 	
-	public static IFCAnalysis buildAndAnnotate(final String className, final String secSrc,
+	public IFCAnalysis buildAndAnnotate(final String className, final String secSrc,
 			final String pubOut, final PointsToPrecision pts, final ExceptionAnalysis exc) throws ApiTestException {
 		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(className);
 		SDGConfig config = new SDGConfig(JoanaPath.JOANA_MANY_SMALL_PROGRAMS_CLASSPATH, mainMethod.toBCString(), Stubs.JRE_14);
@@ -79,7 +87,9 @@ public class LibraryPruningTest {
 		SDGProgram prog = null;
 		
 		try {
-			prog = SDGProgram.createSDGProgram(config, System.out, NullProgressMonitor.INSTANCE);
+			prog = (out != null
+				? SDGProgram.createSDGProgram(config, out, NullProgressMonitor.INSTANCE)
+				: SDGProgram.createSDGProgram(config));
 		} catch (ClassHierarchyException e) {
 			throw new ApiTestException(e);
 		} catch (IOException e) {
@@ -118,8 +128,9 @@ public class LibraryPruningTest {
 		}
 	}
 	
-	// no test for now - produces weird stack overflow in com.ibm.wala.util.graph.Acyclic.dfs(Acyclic.java:80)
-	//@Test
+	// You need to increase stack size  (-Xss16m is enough) and heap size (-Xmx2048m is enough) of the java vm in order
+	// for this test to work. 
+	@Test
 	public void testGuiPruneExtended() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("prune.TestGuiPruneExtended",

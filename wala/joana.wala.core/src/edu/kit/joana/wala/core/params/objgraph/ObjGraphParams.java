@@ -40,6 +40,7 @@ import com.ibm.wala.util.intset.OrdinalSetMapping;
 
 import edu.kit.joana.util.Config;
 import edu.kit.joana.util.Log;
+import edu.kit.joana.util.LogUtil;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.ParameterField;
@@ -123,6 +124,21 @@ public final class ObjGraphParams {
 			if (Config.isDefined(Config.C_OBJGRAPH_DO_STATIC_FIELDS)) {
 				doStaticFields = Config.getBool(Config.C_OBJGRAPH_DO_STATIC_FIELDS);
 			}
+		}
+		
+		// remove redundant options like superflous reachability check if fixed point reachablility propagation has been
+		// used
+		private void optimize() {
+			final Logger log = Log.getLogger(Log.L_OBJGRAPH_DEBUG);
+			
+			log.outln("obj-graph configuration options:");
+			
+			if (isCutOffUnreachable && isUseAdvancedInterprocPropagation) {
+				log.outln("ignoring option 'isCutOffUnreachable' as 'isUseAdvancedInterprocPropagation' is also set.");
+				isCutOffUnreachable = false;
+			}
+			
+			if (log.isEnabled()) { log.outln(LogUtil.attributesToString(this)); }
 		}
 		
 		/**
@@ -211,10 +227,18 @@ public final class ObjGraphParams {
 
 	}
 
+	private static final int FLAG_MERGE_EXCEPTION 		= 1 << 0;
+	private static final int FLAG_MERGE_IMMUTABLE 		= 1 << 1;
+	private static final int FLAG_MERGE_SAME_FIELD 		= 1 << 2;
+	private static final int FLAG_MERGE_PRUNED_CALL 	= 1 << 3;
+	private static final int FLAG_MERGE_AT_DEPTH 		= 1 << 4;
+	private static final int FLAG_MERGE_STATICS			= 1 << 5;
+	
 	private ObjGraphParams(final SDGBuilder sdg, final Options opt) {
 		this.sdg = sdg;
 		this.opt = opt;
 		this.opt.adjustWithProperties();
+		this.opt.optimize();
 	}
 	
 	private void run(final IProgressMonitor progress) throws CancelException {
@@ -330,6 +354,9 @@ public final class ObjGraphParams {
 
 	private void adjustInterprocModRef(final CallGraph cg, final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> interModRef,
 			final ModRefCandidates modref, final SDGBuilder sdg, final IProgressMonitor progress) throws CancelException {
+		final Logger debug = Log.getLogger(Log.L_OBJGRAPH_DEBUG);
+		final boolean isDebug = debug.isEnabled();
+
 		// add all nodes to the interface
 		for (final CGNode n : cg) {
 			MonitorUtil.throwExceptionIfCanceled(progress);
@@ -348,9 +375,6 @@ public final class ObjGraphParams {
 				|| opt.maxNodesPerInterface != Options.UNLIMITED_NODES_PER_INTERFACE) {
 			final PointsToWrapper pa = new PointsToWrapper(sdg.getPointerAnalysis());
 
-			sdg.cfg.out.println();
-
-			
 			for (final PDG pdg : sdg.getAllPDGs()) {
 				MonitorUtil.throwExceptionIfCanceled(progress);
 				final InterProcCandidateModel pdgModRef = modref.getCandidates(pdg.cgNode);
@@ -360,82 +384,94 @@ public final class ObjGraphParams {
 
 				final int initialNodeCount = pdgModRef.size();
 				int lastNodeCount = initialNodeCount; 
-				sdg.cfg.out.print(PrettyWalaNames.methodName(pdg.getMethod()) +" (" + lastNodeCount + "):");
+				if (isDebug) { debug.out(PrettyWalaNames.methodName(pdg.getMethod()) +" (" + lastNodeCount + "):");	}
 
 
 				// cut off unreachable nodes
 				if (opt.isCutOffUnreachable) {
-					sdg.cfg.out.print(" a[1");
+					if (isDebug) { debug.out(" a[1"); }
 					cutOffUnreachable(pdgModRef, mrg, mrg.getRoots());
-					final int curNodeCount = pdgModRef.size();
-					sdg.cfg.out.print("](-" + (lastNodeCount - curNodeCount) + ")");
-					lastNodeCount = curNodeCount;
+					if (isDebug) {
+						final int curNodeCount = pdgModRef.size();
+						debug.out("](-" + (lastNodeCount - curNodeCount) + ")");
+						lastNodeCount = curNodeCount;
+					}
 				}
 
 				// merge nodes only reachable from exceptions
 				if (opt.isMergeException) {
-					sdg.cfg.out.print(" a[2");
+					if (isDebug) { debug.out(" a[2"); }
 					mergeException(pdgModRef, mrg);
-					final int curNodeCount = pdgModRef.size();
-					sdg.cfg.out.print("](-" + (lastNodeCount - curNodeCount) + ")");
-					lastNodeCount = curNodeCount;
+					if (isDebug) {
+						final int curNodeCount = pdgModRef.size();
+						debug.out("](-" + (lastNodeCount - curNodeCount) + ")");
+						lastNodeCount = curNodeCount;
+					}
 				}
 
 				// cut off fields of immutables
 				if (opt.isCutOffImmutables) {
-					sdg.cfg.out.print(" a[3");
+					if (isDebug) { debug.out(" a[3"); }
 					cutOffImmutables(pdgModRef, mrg, pdg);
-					final int curNodeCount = pdgModRef.size();
-					sdg.cfg.out.print("](-" + (lastNodeCount - curNodeCount) + ")");
-					lastNodeCount = curNodeCount;
+					if (isDebug) {
+						final int curNodeCount = pdgModRef.size();
+						debug.out("](-" + (lastNodeCount - curNodeCount) + ")");
+						lastNodeCount = curNodeCount;
+					}
 				}
 
 				if (opt.isMergeOneFieldPerParent) {
-					sdg.cfg.out.print(" a[4");
+					if (isDebug) { debug.out(" a[4"); }
 					mergeOneFieldPerParent(pdgModRef, mrg);
-					final int curNodeCount = pdgModRef.size();
-					sdg.cfg.out.print("](-" + (lastNodeCount - curNodeCount) + ")");
-					lastNodeCount = curNodeCount;
+					if (isDebug) {
+						final int curNodeCount = pdgModRef.size();
+						debug.out("](-" + (lastNodeCount - curNodeCount) + ")");
+						lastNodeCount = curNodeCount;
+					}
 				}
 
 				if (opt.maxNodesPerInterface != Options.UNLIMITED_NODES_PER_INTERFACE
 						&& opt.maxNodesPerInterface < pdgModRef.size()) {
 
 					if (pdgModRef.size() > opt.maxNodesPerInterface) {
-						sdg.cfg.out.print(" a[5");
-
+						if (isDebug) { debug.out(" a[5"); }
 						// if the interface is still too big, we try to merge all locations only reachable through
 						// static fields to a single candidate.
 						mergeAllStatics(pdgModRef, mrg);
-						final int curNodeCount = pdgModRef.size();
-						sdg.cfg.out.print("](-" + (lastNodeCount - curNodeCount) + ")");
-						lastNodeCount = curNodeCount;
+						if (isDebug) {
+							final int curNodeCount = pdgModRef.size();
+							debug.out("](-" + (lastNodeCount - curNodeCount) + ")");
+							lastNodeCount = curNodeCount;
+						}
 					}
 
 					if (pdgModRef.size() > opt.maxNodesPerInterface) {
-						sdg.cfg.out.print(" a[6");
-
-						mergeAutomaticAtDepthLevel(pdgModRef, mrg, opt.maxNodesPerInterface);
-						final int curNodeCount = pdgModRef.size();
-						sdg.cfg.out.print("](-" + (lastNodeCount - curNodeCount) + ")");
-						lastNodeCount = curNodeCount;
+						if (isDebug) { debug.out(" a[6"); }
+						mergeAutomaticAtDepthLevel(pdgModRef, mrg, opt.maxNodesPerInterface, debug);
+						if (isDebug) {
+							final int curNodeCount = pdgModRef.size();
+							debug.out("](-" + (lastNodeCount - curNodeCount) + ")");
+							lastNodeCount = curNodeCount;
+						}
 					}
 
 				}
 				
-				lastNodeCount = pdgModRef.size();
-				sdg.cfg.out.println(" ==>(" + lastNodeCount + " " 
-				+ (initialNodeCount > 0 ? ((100 *lastNodeCount) / initialNodeCount) : "--") + "%)");
+				if (isDebug) {
+					lastNodeCount = pdgModRef.size();
+					debug.outln(" ==>(" + lastNodeCount + " "
+							+ (initialNodeCount > 0 ? ((100 *lastNodeCount) / initialNodeCount) : "--") + "%)");
+				}
 			}
 		}
 
-		sdg.cfg.out.println();
+		if (isDebug) { debug.outln(""); }
 
 		// merge nodes for cut off cgnodes
 		if (opt.isMergePrunedCallNodes) {
-			sdg.cfg.out.print("merge pruned call nodes... ");
+			if (isDebug) { debug.out("merge pruned call nodes... "); }
 			mergePrunedCallNodes(sdg, cg, interModRef, modref, progress);
-			sdg.cfg.out.println("done.");
+			if (isDebug) { debug.outln("done."); }
 		}
 	}
 
@@ -477,7 +513,7 @@ public final class ObjGraphParams {
 		}
 
 		if (!toMerge.isEmpty()) {
-			pdgModRef.mergeCandidates(toMerge);
+			pdgModRef.mergeCandidates(toMerge, FLAG_MERGE_EXCEPTION);
 		}
 	}
 
@@ -540,7 +576,7 @@ public final class ObjGraphParams {
 					}
 				}
 
-				pdgModRef.mergeCandidates(toMerge);
+				pdgModRef.mergeCandidates(toMerge, FLAG_MERGE_IMMUTABLE);
 			}
 		}
 
@@ -603,7 +639,7 @@ public final class ObjGraphParams {
 			final Set<ModRefFieldCandidate> cands = entry.getValue();
 
 			if (cands.size() > 1) {
-				pdgModRef.mergeCandidates(cands);
+				pdgModRef.mergeCandidates(cands, FLAG_MERGE_SAME_FIELD);
 			}
 		}
 	}
@@ -630,20 +666,24 @@ public final class ObjGraphParams {
 
 			if (!pimod.isEmpty()) {
 				final InterProcCandidateModel interCands = modref.getCandidates(n);
-				interCands.mergeCandidates(pimod);
+				interCands.mergeCandidates(pimod, FLAG_MERGE_PRUNED_CALL);
 			}
 		}
 	}
 
-	private void mergeAutomaticAtDepthLevel(final InterProcCandidateModel pdgModRef, final ModRefCandidateGraph mrg,
-			final int maxNodes) {
+	private static void mergeAutomaticAtDepthLevel(final InterProcCandidateModel pdgModRef, final ModRefCandidateGraph mrg,
+			final int maxNodes, final Logger debug) {
 		final int maxDepthLevel = Options.STD_MERGE_LEVEL;
 
 		OrdinalSet<InstanceKey> reachPts = mrg.getRootsPts();
 
 		final Set<ModRefFieldCandidate> fields = new HashSet<ModRefFieldCandidate>();
 		for (final ModRefFieldCandidate fc : pdgModRef) {
-			fields.add(fc);
+			// do not merge fields previously merged through merge statics. Those are merge nodes that consist
+			// of a large number of individual field accesses. Further merging them would harm the precision.
+			if ((fc.flags & FLAG_MERGE_STATICS) == 0) {
+				fields.add(fc);
+			}
 		}
 				
 		List<ModRefFieldCandidate> border = new LinkedList<ModRefFieldCandidate>();
@@ -661,7 +701,7 @@ public final class ObjGraphParams {
 				}
 			}
 			
-			sdg.cfg.out.print(".");
+			debug.out(".");
 			
 			fields.removeAll(reachTmp);
 			if (reachable.isEmpty() && reachTmp.size() > maxNodes) {
@@ -683,8 +723,6 @@ public final class ObjGraphParams {
 			
 		}		
 		
-
-		//TODO optimize this thing.
 		for (final ModRefCandidate c : border) {
 			// merge reachable
 			final List<ModRefCandidate> single = new LinkedList<ModRefCandidate>();
@@ -699,7 +737,7 @@ public final class ObjGraphParams {
 			}
 
 			if (!toMerge.isEmpty()) {
-				pdgModRef.mergeCandidates(toMerge);
+				pdgModRef.mergeCandidates(toMerge, FLAG_MERGE_AT_DEPTH);
 			}
 		}
 	}
@@ -732,7 +770,7 @@ public final class ObjGraphParams {
 		}
 
 		if (!toMerge.isEmpty()) {
-			pdgModRef.mergeCandidates(toMerge);
+			pdgModRef.mergeCandidates(toMerge, FLAG_MERGE_STATICS);
 		}
 	}
 

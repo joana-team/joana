@@ -39,7 +39,7 @@ import edu.kit.joana.wala.core.SDGBuilder;
  */
 public class SearchFieldsOfPrunedCalls {
 
-	private static final Logger debug = Log.getLogger(Log.L_PRUNE_DEBUG);
+	private final Logger debug = Log.getLogger(Log.L_PRUNE_DEBUG);
 	private final SDGBuilder sdg;
 
 	private SearchFieldsOfPrunedCalls(final SDGBuilder sdg) {
@@ -98,8 +98,10 @@ public class SearchFieldsOfPrunedCalls {
 		
 		final LinkedList<Set<ParameterField>> partitions = computePartitions(prunedFields, subsets);
 
-		debug.outln(appFields.size() + " application fields + (" + prunedFields.size() + " library fields -> "
+		if (debug.isEnabled()) {
+			debug.outln(appFields.size() + " application fields + (" + prunedFields.size() + " library fields -> "
 				+ partitions.size() + " partitions)");
+		}
 		
 		return partitions;
 	}

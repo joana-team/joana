@@ -58,6 +58,8 @@
 
 	<target name="test" description="run all tests assuming that there is a current joana.api.jar in lib.">
 		<junit fork="true" showoutput="yes" failureproperty="junit.failure">
+			<jvmarg value="-Xmx2048m"/>
+			<jvmarg value="-Xss16m"/>
 			<classpath>
 				<pathelement location="${project.joanalib}"/>
 				<pathelement location="${project.build.classes}" />

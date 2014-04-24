@@ -292,14 +292,6 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			return (bcNameA.equals(bcNameB) ? bcNameA : BytecodeLocation.UNKNOWN_PARAM);
 		}
 
-//		@Override
-//		public ParameterField getField() {
-//			final ParameterField fA = a.getField();
-//			final ParameterField fB = b.getField();
-//
-//			return (fA.equals(fB) ? fA : null);
-//		}
-
 		@Override
 		public boolean isReferenceToAnyField(final OrdinalSet<ParameterField> otherField) {
 			return a.isReferenceToAnyField(otherField) || b.isReferenceToAnyField(otherField);
@@ -467,23 +459,6 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 
 			return (bcName == null ? BytecodeLocation.UNKNOWN_PARAM : bcName);
 		}
-
-//		@Override
-//		public ParameterField getField() {
-//			ParameterField f = null;
-//
-//			for (final UniqueParameterCandidate uc : cands) {
-//				final ParameterField cur = uc.getField();
-//
-//				if (cur == null || (f != null && !f.equals(cur))) {
-//					return null;
-//				}
-//
-//				f = cur;
-//			}
-//
-//			return f;
-//		}
 
 		@Override
 		public boolean isReferenceToAnyField(final OrdinalSet<ParameterField> otherField) {
@@ -666,15 +641,6 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		public String getBytecodeName() {
 			return bcName;
 		}
-
-//		@Override
-//		public ParameterField getField() {
-//			if (fieldEquiv.size() == 1) {
-//				return fieldEquiv.iterator().next();
-//			}
-//
-//			return null;
-//		}
 
 		@Override
 		public boolean isReferenceToAnyField(final OrdinalSet<ParameterField> otherField) {

@@ -57,7 +57,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 	private final SingleCandidateConsumer single;
 	private final ModRefSSAVisitor singleVisitor;
 	private final SingleCandidatePointsTo singlePts;
-	private final boolean doStaticFields = false;
+	private final boolean doStaticFields;
 
 	private ModRefCandidates(final CandidateFactory candFact, final ParameterFieldFactory paramFact,
 			final PointerAnalysis pa, final boolean doStaticFields) {
@@ -66,6 +66,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 		this.pa = pa;
 		this.single = new SingleCandidateConsumer(candFact);
 		this.singlePts = new SingleCandidatePointsTo(pa.getHeapModel(), pa);
+		this.doStaticFields = doStaticFields;
 		this.singleVisitor = new ModRefSSAVisitor(single, paramFact, singlePts, pa.getClassHierarchy(), doStaticFields);
 	}
 

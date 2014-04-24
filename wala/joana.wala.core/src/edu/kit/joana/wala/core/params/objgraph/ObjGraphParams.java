@@ -56,6 +56,9 @@ import edu.kit.joana.wala.core.params.objgraph.candidates.MergeStrategy;
 import edu.kit.joana.wala.core.params.objgraph.dataflow.ModRefDataFlow;
 import edu.kit.joana.wala.core.params.objgraph.dataflow.PointsToWrapper;
 import edu.kit.joana.wala.util.PrettyWalaNames;
+import gnu.trove.iterator.TObjectIntIterator;
+import gnu.trove.map.TObjectIntMap;
+import gnu.trove.map.hash.TObjectIntHashMap;
 
 /**
  *
@@ -233,6 +236,7 @@ public final class ObjGraphParams {
 	private static final int FLAG_MERGE_PRUNED_CALL 	= 1 << 3;
 	private static final int FLAG_MERGE_AT_DEPTH 		= 1 << 4;
 	private static final int FLAG_MERGE_STATICS			= 1 << 5;
+	private static final int FLAG_MERGE_SMUSH_MANY 		= 1 << 6;
 	
 	private ObjGraphParams(final SDGBuilder sdg, final Options opt) {
 		this.sdg = sdg;
@@ -447,6 +451,17 @@ public final class ObjGraphParams {
 
 					if (pdgModRef.size() > opt.maxNodesPerInterface) {
 						if (isDebug) { debug.out(" a[6"); }
+						final int threshold = opt.maxNodesPerInterface / 2;
+						smushManySameFields(pdgModRef, threshold);
+						if (isDebug) {
+							final int curNodeCount = pdgModRef.size();
+							debug.out("](-" + (lastNodeCount - curNodeCount) + ")");
+							lastNodeCount = curNodeCount;
+						}
+					}
+					
+					if (pdgModRef.size() > opt.maxNodesPerInterface) {
+						if (isDebug) { debug.out(" a[7"); }
 						mergeAutomaticAtDepthLevel(pdgModRef, mrg, opt.maxNodesPerInterface, debug);
 						if (isDebug) {
 							final int curNodeCount = pdgModRef.size();
@@ -475,6 +490,47 @@ public final class ObjGraphParams {
 		}
 	}
 
+	private static void smushManySameFields(final InterProcCandidateModel pdgModRef, final int threshold) {
+		final TObjectIntMap<ParameterField> counter = new TObjectIntHashMap<ParameterField>();
+		for (final ModRefFieldCandidate mrf : pdgModRef) {
+			if (!mrf.pc.isUnique()) { continue; }
+			
+			final OrdinalSet<ParameterField> fields = mrf.getFields();
+			if (fields.size() == 1) {
+				final ParameterField pf = fields.iterator().next();
+				int count = (counter.containsKey(pf) ? counter.get(pf) : 0);
+				count++;
+				counter.put(pf, count);
+			}
+		}
+		
+		for (final TObjectIntIterator<ParameterField> it = counter.iterator(); it.hasNext();) {
+			it.advance();
+			final int count = it.value();
+			if (count > threshold) {
+				final ParameterField field = it.key();
+				mergeAllSingleFields(pdgModRef, field);
+			}
+		}
+	}
+
+	private static void mergeAllSingleFields(final InterProcCandidateModel pdgModRef, final ParameterField field) {
+		final List<ModRefFieldCandidate> toMerge = new LinkedList<ModRefFieldCandidate>();
+		for (final ModRefFieldCandidate mrf : pdgModRef) {
+			if (!mrf.pc.isUnique()) { continue; }
+
+			final OrdinalSet<ParameterField> fields = mrf.getFields();
+			if (fields.size() == 1) {
+				final ParameterField pf = fields.iterator().next();
+				if (pf.equals(field)) {
+					toMerge.add(mrf);
+				}
+			}
+		}
+		
+		pdgModRef.mergeCandidates(toMerge, FLAG_MERGE_SMUSH_MANY);
+	}
+	
 	private static void cutOffUnreachable(final InterProcCandidateModel pdgModRef, final ModRefCandidateGraph mrg,
 			final List<? extends ModRefCandidate> start) {
 		final Set<ModRefCandidate> reachable = findReachable(mrg, start);

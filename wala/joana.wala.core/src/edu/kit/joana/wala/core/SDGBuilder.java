@@ -831,6 +831,8 @@ public class SDGBuilder implements CallGraphFilter {
 		final ExtendedAnalysisOptions options = new ExtendedAnalysisOptions(cfg.objSensFilter, cfg.scope, entries);
 		if (cfg.ext.resolveReflection()) {
 			options.setReflectionOptions(ReflectionOptions.NO_STRING_CONSTANTS);
+		} else {
+			options.setReflectionOptions(ReflectionOptions.NONE);
 		}
 
 		CallGraphBuilder cgb = null;

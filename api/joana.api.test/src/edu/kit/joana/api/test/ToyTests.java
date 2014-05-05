@@ -314,8 +314,8 @@ public class ToyTests {
 	}
 	
 
-	// TODO: Try whether this still crashes using latest wala
-	@Test(expected=java.lang.NullPointerException.class)
+	// TODO: This should crash when we turn on reflection
+	@Test
 	public void testWalaBugReflection() throws ClassHierarchyException, ApiTestException, IOException,	UnsoundGraphException, CancelException {
 		build(joana.api.testdata.toy.test.Reflection.class,bottom_sequential, false);
 	}

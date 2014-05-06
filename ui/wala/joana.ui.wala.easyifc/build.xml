@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="joana.ui.wala.easyifc" default="copy_joana_api_jar" basedir=".">
+ 	<description>
+  	builds joana.api.jar for joana.ui.wala.easyifc plugin
+ 	</description>
+	
+	<!-- set project related properties -->
+	<property file="project.properties" />
+	<property name="projectname" value="joana.ui.wala.easyifc" />
+	<!-- set global properties for this build -->
+	<property file="${joana.base.dir}/joana-project-location.properties" />
+
+	<target name="copy_joana_api_jar" depends="compile_joana_api">
+		<delete file="${joana.ui.wala.easyifc.base.dir}/lib/joana.api.jar" />
+		<copy todir="${joana.ui.wala.easyifc.base.dir}/lib">
+			<fileset dir="${joana.dist.dir}">
+				<filename name="joana.api.jar" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="compile_joana_api">
+		<ant antfile="${joana.api.base.dir}/build.xml" target="fulljar" inheritall="false" />
+	</target>
+
+	<target name="clean">
+		<ant antfile="${joana.api.base.dir}/build.xml" target="clean" inheritall="false" />
+	</target>
+
+</project>

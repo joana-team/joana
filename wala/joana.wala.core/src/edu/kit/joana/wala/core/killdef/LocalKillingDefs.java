@@ -14,8 +14,6 @@ import java.util.Map;
 import java.util.Set;
 
 import com.ibm.wala.cfg.ControlFlowGraph;
-import com.ibm.wala.cfg.exc.ExceptionPruningAnalysis;
-import com.ibm.wala.cfg.exc.NullPointerAnalysis;
 import com.ibm.wala.cfg.exc.intra.MutableCFG;
 import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.dataflow.graph.AbstractMeetOperator;
@@ -170,15 +168,12 @@ public final class LocalKillingDefs {
 
 		if (DEBUG_PRINT) System.out.println(pdg.getMethod().getName() + ":");
 
-		final ExceptionPruningAnalysis<SSAInstruction, IExplodedBasicBlock> npe =
-				NullPointerAnalysis.createIntraproceduralExplodedCFGAnalysis(ir);
+		final ControlFlowGraph<SSAInstruction, IExplodedBasicBlock> ecfg;
 		try {
-			npe.compute(progress);
+			ecfg = sdg.createIntraExceptionAnalyzedCFG(pdg.cgNode, progress);
 		} catch (UnsoundGraphException e1) {
 			throw new CancelException(e1);
 		}
-		
-		final ControlFlowGraph<SSAInstruction, IExplodedBasicBlock> ecfg = npe.getCFG();
 
 		for (final IExplodedBasicBlock bb : ecfg) {
 			final SSAInstruction instr = bb.getInstruction();
@@ -373,7 +368,7 @@ public final class LocalKillingDefs {
 			// remove all deps from formal-in nodes
 			final List<PDGEdge> toRemove = new LinkedList<PDGEdge>();
 			for (final PDGEdge e : pdg.incomingEdgesOf(fieldTo.accfield)) {
-				if ((e.kind == PDGEdge.Kind.DATA_HEAP || e.kind == PDGEdge.Kind.DATA_ALIAS)
+				if ((e.kind == PDGEdge.Kind.DATA_HEAP || e.kind == PDGEdge.Kind.DATA_ALIAS|| e.kind == PDGEdge.Kind.DATA_DEP)
 						&& e.from.getKind() == PDGNode.Kind.FORMAL_IN) {
 					if (INFO_PRINT) {
 						System.out.println("remove " + e.from.getId() + "(" + e.from.getLabel() + ")->"
@@ -393,7 +388,7 @@ public final class LocalKillingDefs {
 			if (fieldFrom != null) {
 				final List<PDGEdge> toRemove = new LinkedList<PDGEdge>();
 				for (final PDGEdge e : pdg.incomingEdgesOf(fieldTo.accfield)) {
-					if ((e.kind == PDGEdge.Kind.DATA_HEAP || e.kind == PDGEdge.Kind.DATA_ALIAS)
+					if ((e.kind == PDGEdge.Kind.DATA_HEAP || e.kind == PDGEdge.Kind.DATA_ALIAS || e.kind == PDGEdge.Kind.DATA_DEP)
 							&& e.from == fieldFrom.accfield) {
 						if (INFO_PRINT) {
 							System.out.println("remove " + e.from.getId() + "(" + e.from.getLabel() + ")->"

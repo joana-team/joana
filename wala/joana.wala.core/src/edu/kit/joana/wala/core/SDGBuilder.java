@@ -23,6 +23,7 @@ import com.ibm.wala.cfg.ControlFlowGraph;
 import com.ibm.wala.cfg.exc.ExceptionPruningAnalysis;
 import com.ibm.wala.cfg.exc.InterprocAnalysisResult;
 import com.ibm.wala.cfg.exc.NullPointerAnalysis;
+import com.ibm.wala.cfg.exc.intra.MethodState;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.escape.TrivialMethodEscape;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
@@ -489,7 +490,9 @@ public class SDGBuilder implements CallGraphFilter {
 			cfg.out.print("\tinterproc exception analysis... ");
 
 			try {
-				interprocExceptionResult = NullPointerAnalysis.computeInterprocAnalysis(nonPrunedCG, progress);
+				interprocExceptionResult = NullPointerAnalysis.computeInterprocAnalysis(
+						NullPointerAnalysis.DEFAULT_IGNORE_EXCEPTIONS, nonPrunedCG,	cfg.defaultExceptionMethodState,
+						progress);
 			} catch (WalaException e) {
 				throw new CancelException(e);
 			}
@@ -681,6 +684,17 @@ public class SDGBuilder implements CallGraphFilter {
 			pdg.addEdge(pdg.entry, pdg.exit, PDGEdge.Kind.CONTROL_FLOW);
 		}
 	}
+	
+	public ControlFlowGraph<SSAInstruction, IExplodedBasicBlock> createIntraExceptionAnalyzedCFG(final CGNode n,
+			final IProgressMonitor progress) throws UnsoundGraphException, CancelException {
+		final ExceptionPruningAnalysis<SSAInstruction, IExplodedBasicBlock> npa = NullPointerAnalysis
+				.createIntraproceduralExplodedCFGAnalysis(NullPointerAnalysis.DEFAULT_IGNORE_EXCEPTIONS, n.getIR(),
+						null, cfg.defaultExceptionMethodState);
+
+		npa.compute(progress);
+
+		return npa.getCFG();
+	}
 
 	public ControlFlowGraph<SSAInstruction, IExplodedBasicBlock> createExceptionAnalyzedCFG(final CGNode n,
 			final IProgressMonitor progress) throws UnsoundGraphException, CancelException {
@@ -692,35 +706,22 @@ public class SDGBuilder implements CallGraphFilter {
 		}
 			break;
 		case INTRAPROC: {
-			final ExceptionPruningAnalysis<SSAInstruction, IExplodedBasicBlock> npa = NullPointerAnalysis
-					.createIntraproceduralExplodedCFGAnalysis(n.getIR());
-
-			npa.compute(progress);
-
-			ecfg = npa.getCFG();
+			ecfg = createIntraExceptionAnalyzedCFG(n, progress);
 		}
 			break;
 		case INTERPROC: {
-			if (interprocExceptionResult == null) {
-				throw new IllegalStateException("called at the wrong time. we do not keep the interprocedural analysis"
-						+ " result during the whole computation due to memory usage.");
+			final ExceptionPruningAnalysis<SSAInstruction, IExplodedBasicBlock> npa =
+					(interprocExceptionResult != null ? interprocExceptionResult.getResult(n) : null);
+
+			if (npa != null) {
+				npa.compute(progress);
+				ecfg = npa.getCFG();
+			} else {
+				// No result for this method or called at the wrong time. We do not keep the interprocedural analysis
+				// result during the whole computation due to memory usage. -> fallback intraproc analysis
+
+				ecfg = createIntraExceptionAnalyzedCFG(n, progress);
 			}
-
-			ExceptionPruningAnalysis<SSAInstruction, IExplodedBasicBlock> npa = interprocExceptionResult.getResult(n);
-
-			if (npa == null) {
-				npa = NullPointerAnalysis.createIntraproceduralExplodedCFGAnalysis(n.getIR());
-			}
-
-			npa.compute(progress);
-			// removed++;
-			// ExceptionPruningAnalysis<SSAInstruction, IExplodedBasicBlock>
-			// npa2 =
-			// NullPointerAnalysis.createIntraproceduralExplodedCFGAnalysis(n.getIR());
-			// int removed2 = npa2.compute(progress);
-			// removed2++;
-
-			ecfg = npa.getCFG();
 		}
 			break;
 		case IGNORE_ALL: {
@@ -1414,6 +1415,7 @@ public class SDGBuilder implements CallGraphFilter {
 		public String[] immutableStubs = Main.IMMUTABLE_STUBS;
 		public String[] ignoreStaticFields = Main.IGNORE_STATIC_FIELDS;
 		public ExceptionAnalysis exceptions = ExceptionAnalysis.INTRAPROC;
+		public MethodState defaultExceptionMethodState = null;
 		public boolean accessPath = false;
 		public boolean localKillingDefs = true;
 		public boolean keepPhiNodes = true;

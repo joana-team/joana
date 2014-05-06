@@ -197,6 +197,7 @@ public class SDGProgram {
 				config.getFieldPropagation());
 		cfg.thirdPartyLibPath = config.getThirdPartyLibsPath();
 		cfg.exceptions = config.getExceptionAnalysis();
+		cfg.defaultExceptionMethodState = config.getDefaultExceptionMethodState();
 		cfg.pts = config.getPointsToPrecision();
 		cfg.accessPath = config.computeAccessPaths();
 		cfg.sideEffects = config.getSideEffectDetectorConfig();

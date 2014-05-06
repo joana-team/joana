@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
 
+import com.ibm.wala.cfg.exc.intra.MethodState;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.JarFileModule;
@@ -298,6 +299,7 @@ public final class SDGBuildPreparation {
 		scfg.immutableStubs = IMMUTABLE_STUBS;
 		scfg.ignoreStaticFields = IGNORE_STATIC_FIELDS;
 		scfg.exceptions = cfg.exceptions;
+		scfg.defaultExceptionMethodState = cfg.defaultExceptionMethodState;
 		scfg.accessPath = cfg.accessPath;
 		scfg.sideEffects = cfg.sideEffects;
 		scfg.prunecg = DEFAULT_PRUNE_CG;
@@ -382,6 +384,7 @@ public final class SDGBuildPreparation {
 		// "do object sensitive analysis for all methods"
 		public ObjSensZeroXCFABuilder.MethodFilter objSensFilter = null;
 		public ExceptionAnalysis exceptions;
+		public MethodState defaultExceptionMethodState = null;
 		public boolean accessPath;
 		public boolean debugManyGraphsDotOutput = false;
 		public FieldPropagation fieldPropagation;

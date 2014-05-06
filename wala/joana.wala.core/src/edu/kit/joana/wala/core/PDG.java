@@ -146,12 +146,12 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 	private final boolean keepPhiNodes;
 	private final boolean noBasePointerDependency;
 
-	private PDG(SDGBuilder builder, String name, CGNode node, int pdgId) {
+	private PDG(final SDGBuilder builder, final String name, final CGNode node, final int pdgId) {
 		this.id = pdgId;
 		this.nodeID = pdgId;
 		this.cgNode = node;
 		this.method = node.getMethod();
-		IClass cls = method.getDeclaringClass();
+		final IClass cls = method.getDeclaringClass();
 		this.sourceFile = PrettyWalaNames.sourceFileName(cls.getName());;
 		this.builder = builder;
 		this.entry = createNode(name, PDGNode.Kind.ENTRY, PDGNode.DEFAULT_NO_TYPE);

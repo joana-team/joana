@@ -148,6 +148,7 @@ public class StaticFieldParams {
 		for (final PDG pdg : sdg.getAllPDGs()) {
 			final BitVectorVariable bv = solver.getOut(pdg);
 			final OrdinalSet<FieldAccess> faccs=  new OrdinalSet<FieldAccess>(bv.getValue(), genReach.getLatticeValues());
+			
 			for (final FieldAccess facc : faccs) {
 				if (facc.isWrite) {
 					pdg.addStaticWrite(facc.field);
@@ -217,6 +218,10 @@ public class StaticFieldParams {
 
 			return false;
 		}
+		
+		public String toString() {
+			return field.toString() + (isWrite ? "[w]" : "[r]");
+		}
 	}
 
 	private Map<PDG, Collection<FieldAccess>> createStaticFieldAccessMap() {
@@ -234,6 +239,11 @@ public class StaticFieldParams {
 			for (PDGField write : pdg.staticWrites) {
 				FieldAccess facc = new FieldAccess(write.field, true);
 				statics.add(facc);
+			}
+			
+			if (statics.size() > 10) {
+				System.out.println(pdg.toString() + ": " + statics.size());
+				System.out.println("\t" + statics);
 			}
 		}
 

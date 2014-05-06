@@ -7,6 +7,7 @@
  */
 package edu.kit.joana.api.sdg;
 
+import com.ibm.wala.cfg.exc.intra.MethodState;
 import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
 import com.ibm.wala.ipa.callgraph.pruned.PruningPolicy;
 
@@ -27,6 +28,7 @@ public class SDGConfig {
 	private Stubs stubsPath;
 	private String exclusions = SDGBuildPreparation.STD_EXCLUSION_REG_EXP;
 	private ExceptionAnalysis exceptionAnalysis;
+	private MethodState defaultExceptionMethodState = null;
 	private FieldPropagation fieldPropagation;
 	private PointsToPrecision pointsToPrecision;
 	private boolean computeAccessPaths;
@@ -210,6 +212,14 @@ public class SDGConfig {
 	 */
 	public void setExceptionAnalysis(ExceptionAnalysis exceptionAnalysis) {
 		this.exceptionAnalysis = exceptionAnalysis;
+	}
+
+	public MethodState getDefaultExceptionMethodState() {
+		return defaultExceptionMethodState;
+	}
+
+	public void setDefaultExceptionMethodState(final MethodState defaultExceptionMethodState) {
+		this.defaultExceptionMethodState = defaultExceptionMethodState;
 	}
 
 	/**

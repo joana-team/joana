@@ -147,7 +147,7 @@ public class EasyIFCView extends ViewPart {
 	private class UpdateTreeViewerConsumer implements IFCCheckResultConsumer {
 
 		@Override
-		public void consume(final MethodResult result) {
+		public void consume(final IFCResult result) {
 			Display.getDefault().asyncExec(new Runnable() {
 
 				@Override
@@ -216,7 +216,7 @@ public class EasyIFCView extends ViewPart {
 	}
 
 	public void showMessage(String message) {
-		MessageDialog.openInformation(tree.getControl().getShell(), "IFC Annotation Checker", message);
+		MessageDialog.openInformation(tree.getControl().getShell(), "Information Flow Control Analysis", message);
 	}
 
 	private void hookDoubleClickAction() {

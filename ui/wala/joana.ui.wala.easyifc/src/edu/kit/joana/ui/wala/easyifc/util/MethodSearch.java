@@ -27,6 +27,7 @@ import org.eclipse.jdt.internal.core.SourceMethod;
 
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.FlowStmtResult;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.FlowStmtResultPart;
+import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.IFCResult;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.MethodResult;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.flowless.spec.FlowLessBuilder.FlowError;
@@ -166,6 +167,32 @@ public class MethodSearch {
 		}
 	}
 
+	public static MethodSearch searchMethod(final IJavaProject jp, final IFCResult mres) {
+		final IJavaSearchScope scope = SearchEngine.createJavaSearchScope(new IJavaElement[] {jp});
+		
+		return null;
+//		final String mpat = searchPattern(mres);
+//		System.out.println("Searching for " + mpat);
+//		final SearchPattern pat = SearchPattern.createPattern(mpat,
+//				IJavaSearchConstants.METHOD, 1, SearchPattern.R_EXACT_MATCH | SearchPattern.R_CASE_SENSITIVE | SearchPattern.R_FULL_MATCH);
+//		final SearchEngine eng = new SearchEngine();
+//		final SearchParticipant[] defaultParts =
+//				new SearchParticipant[] {SearchEngine.getDefaultSearchParticipant()};
+//		final Requestor req = new Requestor(mres.getInfo());
+//		try {
+//			eng.search(pat, defaultParts, scope, req, null);
+//		} catch (CoreException e) {
+//			e.printStackTrace();
+//		}
+//
+//		if (req.methodFound()) {
+//			return new MethodSearch(jp, mres, req.getMethod());
+//		} else {
+//			return null;
+//		}
+	}
+
+	
 	private static final class Requestor extends SearchRequestor {
 
 		private final MethodInfo nfo;

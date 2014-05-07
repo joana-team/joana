@@ -29,6 +29,7 @@ import edu.kit.joana.ui.wala.easyifc.Activator;
 import edu.kit.joana.ui.wala.easyifc.model.FileSourcePositions;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.FlowStmtResult;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.FlowStmtResultPart;
+import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SLeak;
 import edu.kit.joana.ui.wala.easyifc.model.SourcePosition;
 import edu.kit.joana.wala.flowless.spec.FlowLessBuilder.FlowError;
 import gnu.trove.map.TIntObjectMap;
@@ -82,6 +83,10 @@ public class CheckFlowMarkerAndImageManager {
 		return Activator.getImageDescriptor(FLOW_ILLEGAL_IMG).createImage();
     }
 
+    public Image getImage(final SLeak leak) {
+    	return Activator.getImageDescriptor(FLOW_ILLEGAL_IMG).createImage();
+    }
+    
     public Image getImage(final FlowStmtResult fsr) {
     	if (fsr.isAlwaysSatisfied()) {
     		return Activator.getImageDescriptor(FLOW_OK_IMG).createImage();

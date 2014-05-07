@@ -118,8 +118,8 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 
 	public void inputChanged(Viewer v, Object oldInput, Object newInput) {
 		if (oldInput != newInput) {
-			if (newInput instanceof MethodResult) {
-				consume((MethodResult) newInput);
+			if (newInput instanceof IFCResult) {
+				consume((IFCResult) newInput);
 			} else {
 				root.clear();
 				final IJavaProject jp = view.getCurrentProject();
@@ -172,27 +172,37 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 	}
 
 	@Override
-	public void consume(final MethodResult res) {
+	public void consume(final IFCResult res) {
 		final IJavaProject jp = view.getCurrentProject();
-		final MethodInfoNode cur = new MethodInfoNode(root, res);
-		cur.searchMatchingJavaElement(jp);
-
-		if (!res.hasErrors()) {
-			for (final FlowStmtResult fl : res.getStmtResults()) {
-				final StmtInfoNode child = new StmtInfoNode(cur, fl);
-				child.searchMatchingJavaElement(jp);
-
-				for (final FlowStmtResultPart flpart : fl.getParts()) {
-					final TreeNode part = new StmtPartNode(child, flpart);
-					part.searchMatchingJavaElement(jp);
-				}
-			}
-		} else {
-			for (final FlowError ferr : res.getErrors()) {
-				final FlowErrorNode fn = new FlowErrorNode(cur, ferr);
-				fn.searchMatchingJavaElement(jp);
-			}
+		final IFCInfoNode cur = new IFCInfoNode(root, res);
+		
+		for (final SLeak leak : res.getNoExcLeaks()) {
+			final LeakInfoNode lnfo = new LeakInfoNode(cur, leak);
 		}
+		
+		for (final SLeak leak : res.getExcLeaks()) {
+			final LeakInfoNode lnfo = new LeakInfoNode(cur, leak);
+		}
+		
+//		final MethodInfoNode cur = new MethodInfoNode(root, res);
+//		cur.searchMatchingJavaElement(jp);
+//
+//		if (!res.hasErrors()) {
+//			for (final FlowStmtResult fl : res.getStmtResults()) {
+//				final StmtInfoNode child = new StmtInfoNode(cur, fl);
+//				child.searchMatchingJavaElement(jp);
+//
+//				for (final FlowStmtResultPart flpart : fl.getParts()) {
+//					final TreeNode part = new StmtPartNode(child, flpart);
+//					part.searchMatchingJavaElement(jp);
+//				}
+//			}
+//		} else {
+//			for (final FlowError ferr : res.getErrors()) {
+//				final FlowErrorNode fn = new FlowErrorNode(cur, ferr);
+//				fn.searchMatchingJavaElement(jp);
+//			}
+//		}
 	}
 
 	public static abstract class TreeNode {
@@ -280,6 +290,118 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		}
 
 	}
+	
+	public static final class IFCInfoNode extends TreeNode {
+		private final IFCResult result;
+		private IJavaProject project;
+		private MethodSearch search = null;
+		private IMarker sideMarker = null;
+		
+		private IFCInfoNode(final TreeNode parent, final IFCResult result) {
+			super(parent);
+			this.result = result;
+		}
+
+		public String toString() {
+			return result.toString();
+		}
+
+		@Override
+		public void searchMatchingJavaElement(final IJavaProject project) {
+			this.project = project;
+			search = MethodSearch.searchMethod(project, result);
+		}
+
+		@Override
+		public SourceRefElement getSourceRef() {
+			return (search != null ? search.getMethod() : null);
+		}
+
+		@Override
+		public IMarker getMarker() {
+			return null;
+		}
+
+		@Override
+		public Image getImage() {
+			if (search != null) {
+				final SourceMethod m = search.getMethod();
+				return CheckFlowMarkerAndImageManager.getInstance().getImage(m);
+			}
+
+			return super.getImage();
+		}
+
+		@Override
+		public IMarker getSideMarker() {
+			return sideMarker;
+		}
+
+		@Override
+		public String getTmpDir() {
+			return result.getTmpDir();
+		}
+
+		@Override
+		public IJavaProject getProject() {
+			return project;
+		}
+
+	}
+	
+	public static final class LeakInfoNode extends TreeNode {
+		private final SLeak leak;
+		private IMarker marker = null;
+		private IMarker sideMarker = null;
+
+		private LeakInfoNode(final IFCInfoNode parent, final SLeak leak) {
+			super(parent);
+			this.leak = leak;
+		}
+
+		public String toString() {
+			return leak.toString();
+		}
+
+		@Override
+		public void searchMatchingJavaElement(final IJavaProject project) {
+			final MethodSearch search = getIFCInfo().search;
+			if (search != null) {
+//				marker = search.findIFCStmt(result.getStmt());
+//				sideMarker = search.makeSideMarker(result);
+			}
+		}
+
+		public SLeak getLeak() {
+			return leak;
+		}
+
+		public IFCInfoNode getIFCInfo() {
+			return (IFCInfoNode) getParent();
+		}
+
+		@Override
+		public SourceRefElement getSourceRef() {
+			return getIFCInfo().getSourceRef();
+		}
+
+		@Override
+		public IMarker getMarker() {
+			return marker;
+		}
+
+		@Override
+		public IMarker getSideMarker() {
+			return sideMarker;
+		}
+
+		@Override
+		public Image getImage() {
+			return CheckFlowMarkerAndImageManager.getInstance().getImage(leak);
+		}
+
+	}
+
 
 	public static final class MethodInfoNode extends TreeNode {
 		private final MethodResult result;

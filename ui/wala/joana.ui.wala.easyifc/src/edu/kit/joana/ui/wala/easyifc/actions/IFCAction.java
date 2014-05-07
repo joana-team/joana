@@ -207,7 +207,7 @@ public class IFCAction extends Action implements ISelectionListener {
 			resultConsumer.consume(null);
 			final ProjectConf pconf = ProjectConf.create(jp);
 			PlatformUI.getWorkbench().getProgressService().run(true, true, new IFCRunnable(pconf, resultConsumer));
-			view.showMessage(pconf.toString());
+			//view.showMessage(pconf.toString());
 		} catch (InvocationTargetException e) {
 			view.showMessage(e.getClass().getCanonicalName());
 			e.printStackTrace();

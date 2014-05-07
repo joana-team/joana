@@ -52,7 +52,7 @@ public class IFCRunnable implements IRunnableWithProgress {
 			final IProject project = conf.getProject().getProject();
 			project.refreshLocal(IResource.DEPTH_INFINITE, monitor);
 			project.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, monitor);
-			cfl.runCheckFlowLess();
+			cfl.runCheckIFC();
 		} catch (ClassHierarchyException e) {
 			throw new InvocationTargetException(e, e.getMessage());
 		} catch (IllegalArgumentException e) {

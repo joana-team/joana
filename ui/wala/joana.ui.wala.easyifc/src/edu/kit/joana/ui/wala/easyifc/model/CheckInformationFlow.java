@@ -7,63 +7,68 @@
  */
 package edu.kit.joana.ui.wala.easyifc.model;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.net.URL;
-import java.net.URLConnection;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.jar.JarFile;
-import java.util.jar.JarInputStream;
+import java.util.Set;
+import java.util.TreeSet;
 
-import com.ibm.wala.classLoader.IMethod;
-import com.ibm.wala.classLoader.JarFileModule;
-import com.ibm.wala.classLoader.JarStreamModule;
-import com.ibm.wala.classLoader.Module;
-import com.ibm.wala.ipa.callgraph.AnalysisOptions;
+import com.ibm.wala.cfg.exc.intra.MethodState;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
-import com.ibm.wala.ipa.callgraph.impl.SetOfClasses;
-import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
-import com.ibm.wala.types.ClassLoaderReference;
+import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
 import com.ibm.wala.util.CancelException;
-import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
-import com.ibm.wala.util.config.AnalysisScopeReader;
-import com.ibm.wala.util.config.FileOfClasses;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
+import edu.kit.joana.api.IFCAnalysis;
+import edu.kit.joana.api.IFCType;
+import edu.kit.joana.api.lattice.BuiltinLattices;
+import edu.kit.joana.api.sdg.SDGActualParameter;
+import edu.kit.joana.api.sdg.SDGCall;
+import edu.kit.joana.api.sdg.SDGCallReturnNode;
+import edu.kit.joana.api.sdg.SDGConfig;
+import edu.kit.joana.api.sdg.SDGMethod;
+import edu.kit.joana.api.sdg.SDGProgram;
+import edu.kit.joana.ifc.sdg.core.SecurityNode;
+import edu.kit.joana.ifc.sdg.core.conc.DataConflict;
+import edu.kit.joana.ifc.sdg.core.conc.OrderConflict;
+import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
+import edu.kit.joana.ifc.sdg.core.violations.IViolation;
+import edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor;
 import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
-import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.FlowStmtResult;
+import edu.kit.joana.ifc.sdg.graph.chopper.NonSameLevelChopper;
+import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
+import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.FlowStmtResultPart;
-import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.MethodResult;
-import edu.kit.joana.wala.core.ExternalCallCheck;
-import edu.kit.joana.wala.core.Main;
-import edu.kit.joana.wala.core.Main.Config;
+import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.IFCResult;
+import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.Reason;
+import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SLeak;
+import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SPos;
+import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.NullProgressMonitor;
-import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
-import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
-import edu.kit.joana.wala.core.accesspath.AccessPath;
 import edu.kit.joana.wala.flowless.MoJo;
-import edu.kit.joana.wala.flowless.MoJo.CallGraphResult;
-import edu.kit.joana.wala.flowless.pointsto.GraphAnnotater.Aliasing;
-import edu.kit.joana.wala.flowless.pointsto.PointsToSetBuilder.PointsTo;
-import edu.kit.joana.wala.flowless.spec.FlowLessBuilder.FlowError;
 import edu.kit.joana.wala.flowless.spec.ast.FlowAstVisitor.FlowAstException;
 import edu.kit.joana.wala.flowless.spec.ast.IFCStmt;
 import edu.kit.joana.wala.flowless.spec.java.ast.ClassInfo;
-import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
 
 public final class CheckInformationFlow {
 
+	private static final String THREAD_START = "java.lang.Thread.start()V";
+	private static final boolean DUMP_SDG_FILES = false;
+	private static final String DEFAULT_SECRET_SOURCE = "ifc.Main.inputPIN()I";
+	private static final String DEFAULT_PUBLIC_OUTPUT = "ifc.Main.print(I)V";
+
+	
 	public static class CheckIFCConfig {
 		public static final String DEFAULT_TMP_OUT_DIR = "./out/";
 		public static final String DEFAULT_LIB_DIR = "../jSDG/lib/";
@@ -135,33 +140,6 @@ public final class CheckInformationFlow {
 		return ps;
 	}
 
-	public static void main(String[] argv) {
-		final CheckIFCConfig[] RUNS = new CheckIFCConfig[] {
-				new CheckIFCConfig("../MoJo-TestCode/bin", "../MoJo-TestCode/src", createPrintStream("check_flow.log")),
-//				new CheckFlowConfig("../../3.7/runtime-EclipseApplication/eVoting-Joana/bin", "../../3.7/runtime-EclipseApplication/eVoting-Joana/src", createPrintStream("cf_evoting.log")),
-//				new CheckFlowConfig("../../3.7/workspace-ifc/eVoting-Joana/bin", "../../3.7/workspace-ifc/eVoting-Joana/src", createPrintStream("cf_evoting.log")),
-//				new CheckFlowConfig("../MoJo-TestCode/bin", "../MoJo-TestCode/src2", createPrintStream("check_flow.log")),
-//				new CheckFlowConfig("../MoJo-TestCode/bin", "../MoJo-TestCode/src3", createPrintStream("check_flow.log")),
-		};
-
-		for (final CheckIFCConfig run : RUNS) {
-			try {
-				final CheckInformationFlow check = new CheckInformationFlow(run);
-				check.runCheckFlowLess();
-			} catch (ClassHierarchyException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			} catch (IllegalArgumentException e) {
-				e.printStackTrace();
-			} catch (CancelException e) {
-				e.printStackTrace();
-			} catch (UnsoundGraphException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
 	private final CheckIFCConfig cfc;
 
 	public CheckInformationFlow(final CheckIFCConfig cfc) {
@@ -169,18 +147,9 @@ public final class CheckInformationFlow {
 		this.printStatistics = cfc.printStatistics;
 	}
 
-	private static final String WITH_EXC_SUFFIX = "cf_with_exc";
-	private static final String NO_EXC_SUFFIX = "cf_no_exc";
-
 	private final boolean printStatistics;
-	private long timePreprareSDG = 0;
-	private long numPreparedSDGs = 0;
-	private long timeAdjustSDG = 0;
-	private long numAdjustSDGs = 0;
-	private long startPrepareTime, endPrepareTime;
-//	private long startAdjustTime, endAdjustTime;
 
-	public void runCheckFlowLess() throws IOException, ClassHierarchyException, IllegalArgumentException, CancelException, UnsoundGraphException {
+	public void runCheckIFC() throws IOException, ClassHierarchyException, IllegalArgumentException, CancelException, UnsoundGraphException {
 		cfc.out.print("Parsing source files... ");
 		List<ClassInfo> clsInfos = MoJo.parseSourceFiles(cfc.src);
 		cfc.out.println("done.");
@@ -203,154 +172,166 @@ public final class CheckInformationFlow {
 //			}
 //		}
 
-		final Config cfg = new Config(WITH_EXC_SUFFIX);
-		cfg.entryMethod = "<main entry not used>";
-		cfg.classpath=  cfc.bin;
-		cfg.pts = PointsToPrecision.INSTANCE_BASED;
-		cfg.exceptions = ExceptionAnalysis.INTRAPROC;
-		cfg.accessPath = true;
-		cfg.exclusions = Main.STD_EXCLUSION_REG_EXP;
-		cfg.nativesXML = cfc.libDir + "natives_empty.xml";
-		cfg.stubs = cfc.libDir + "jSDG-stubs-jre1.4.jar";
-		cfg.extern = ExternalCallCheck.EMPTY;
-		cfg.outputDir = cfc.tmpDir;
-		cfg.fieldPropagation = FieldPropagation.OBJ_TREE;
-
-		cfc.out.println(cfg);
-
-		if (cfc.scope == null) {
-			cfc.out.print("Setting up analysis scope... ");
-			cfc.scope = createAnalysisScope(cfg);
-		    cfc.out.println("done.");
-		} else {
-			cfc.out.println("Using provided analysis scope.");
-		}
-
-		cfc.out.print("Creating MoJo... (class hierarchy: ");
-		final ClassHierarchy cha = ClassHierarchy.make(cfc.scope);
-		cfg.extern.setClassHierarchy(cha);
-		cfc.out.print(cha.getNumberOfClasses() + " classes) ");
-		final MoJo mojo = MoJo.create(cha, cfg.outputDir);
-		cfc.out.println("done.");
-
-		for (final ClassInfo cls : clsInfos) {
-			for (final MethodInfo m : cls.getMethods()) {
-				MonitorUtil.throwExceptionIfCanceled(cfc.progress);
-
-				if (m.hasIFCStmts() && !m.hasErrors()) {
-					final IMethod start = mojo.findMethod(m);
-					final MethodResult mres = new MethodResult(m, cfg.outputDir);
-					checkFlowLessForMethod(start, mres, mojo, cfg, cfc.progress);
-					if (!mres.isAllValid()) {
-						cfg.name = NO_EXC_SUFFIX;
-						cfg.exceptions = ExceptionAnalysis.IGNORE_ALL;
-						cfc.out.println("Without exceptions:");
-						checkFlowLessForMethod(start, mres, mojo, cfg, cfc.progress);
-						cfg.exceptions = ExceptionAnalysis.INTRAPROC;
-						cfg.name = WITH_EXC_SUFFIX;
-					}
-					cfc.results.consume(mres);
-				} else if (m.hasErrors()) {
-					cfc.out.println("Found " + m.getErrors().size()
-							+ " errors in flowless ifc annotation of " + m + " - skipping method.");
-					for (final FlowError ferr : m.getErrors()) {
-						cfc.out.println("\t" + ferr);
-					}
-					final MethodResult mres = new MethodResult(m, cfg.outputDir);
-					cfc.results.consume(mres);
-				}
-			}
-		}
-
-		if (printStatistics) {
-			System.out.println("Total prepared SDGs     : " + numPreparedSDGs);
-			System.out.println("Total prepared SDGs time: " + timePreprareSDG);
-			System.out.println("Total adjusted SDGs     : " + numAdjustSDGs);
-			System.out.println("Total adjusted SDGs time: " + timeAdjustSDG);
-			final long avgPrepare = (numPreparedSDGs > 0 ? (timePreprareSDG / numPreparedSDGs) : 0);
-			final long avgAdjust = (numAdjustSDGs > 0 ? (timeAdjustSDG / numAdjustSDGs) : 0);
-			System.out.println("Avg. prepared SDGs time : " + avgPrepare);
-			System.out.println("Avg. adjusted SDGs time : " + avgAdjust);
-			System.out.println("Speed gain by adjust: " + (avgAdjust > 0 ? (avgPrepare / avgAdjust) : 0) + "x faster");
-			numPreparedSDGs = 0;
-			timePreprareSDG = 0;
-			numAdjustSDGs = 0;
-			timeAdjustSDG = 0;
-		}
-	}
-
-	private void checkFlowLessForMethod(final IMethod im, final MethodResult m, final MoJo mojo, final Config cfg,
-			final IProgressMonitor progress)
-			throws IllegalArgumentException, CancelException, ClassHierarchyException, IOException, UnsoundGraphException {
-		if (printStatistics) { startPrepareTime = System.currentTimeMillis(); }
-		cfc.out.println("Checking '" + m + "'");
-		final Aliasing minMax = mojo.computeMinMaxAliasing(im);
-		final PointsTo ptsMax = MoJo.computePointsTo(minMax.upperBound);
-		final AnalysisOptions opt = mojo.createAnalysisOptionsWithPTS(ptsMax, im);
-		final CallGraphResult cgr;
-		switch (cfg.pts) {
-		case TYPE_BASED:
-			cgr = mojo.computeContextSensitiveCallGraph(opt);
-			break;
-		case INSTANCE_BASED:
-			cgr = mojo.computeContextSensitiveCallGraph(opt);
-			break;
-		case OBJECT_SENSITIVE:
-			cgr = mojo.computeObjectSensitiveCallGraph(opt, cfg.objSensFilter);
-			break;
-		default:
-			throw new IllegalStateException();
-		}
-
-		final SDG sdg = create(cfc.out, opt.getAnalysisScope(), mojo, cgr, im, cfg.outputDir, cfg);
-
-		boolean resetNeeded = false;
-
-		if (printStatistics) {
-			endPrepareTime = System.currentTimeMillis();
-			numPreparedSDGs++;
-			timePreprareSDG += (endPrepareTime - startPrepareTime);
-		}
-
-		for (final IFCStmt stmt : m.getInfo().getIFCStmts()) {
-			cfc.out.print("IFC check '" + stmt + "': ");
-			if (resetNeeded) {
-				resetNeeded = false;
-			}
-
-			final FlowStmtResult stmtResult = m.findOrCreateStmtResult(stmt);
-//			try {
-//				final List<BasicIFCStmt> simplified = FlowLessSimplifier.simplify(stmt);
-//				//FlowLess2SDGMatcher.printDebugMatches = true;
-//				final Matcher match = FlowLess2SDGMatcher.findMatchingNodes(sdg, sdg.getRoot(), stmt);
-//				if (simplified.isEmpty()) {
-//					cfc.out.println("ERROR(empty simplified statements)");
-//					stmtResult.addPart(new FlowStmtResultPart(null, "ERROR(empty simplified statements)",
-//							false, false, cfg.exceptions, sdg.getFileName()));
-//				} else {
-//					checkBasicIFCStmts(alias, match, simplified, m.getInfo(), stmtResult, cfg.exceptions, progress);
-//				}
-//			} catch (FlowAstException e) {
-				cfc.out.println("ERROR( not implemented )");
-				stmtResult.addPart(new FlowStmtResultPart(null, "ERROR( not implementd )", false, false,
-						cfg.exceptions, sdg.getFileName()));
-//			}
-
-			resetNeeded = true;
-		}
-
-	}
-
-	public static class EntityNotFoundException extends FlowAstException {
-
-		public EntityNotFoundException(String message) {
-			super(message);
-		}
-
-		private static final long serialVersionUID = -1553942031552394940L;
+		final SDGConfig config = createDefaultConfig(cfc, "ifc.Main");
+		final SDGProgram p = buildSDG(config);
 		
+		if (containsThreads(p)) {			
+			cfc.out.print("checking '" + cfc.bin + "' for concurrent confidentiality.");
+			config.setComputeInterferences(true);
+			config.setMhpType(MHPType.PRECISE);
+			final SDGProgram concProg = buildSDG(config); 
+			final IFCResult result = doThreadIFCanalysis(config, concProg);
+			cfc.results.consume(result);
+		} else {
+			cfc.out.print("checking '" + cfc.bin + "' for sequential confidentiality.");
+			final IFCResult result = doSequentialIFCanalysis(config, p);
+			cfc.results.consume(result);
+		}
+
+		if (printStatistics) {
+			//TODO print something useful
+		}
 	}
 	
+	private IFCResult doSequentialIFCanalysis(final SDGConfig config, final SDGProgram prog) {
+		final IFCResult result = new IFCResult(cfc.tmpDir);
+		
+		final Set<SLeak> excLeaks = checkIFC(Reason.EXCEPTION, prog, IFCType.CLASSICAL_NI);
+		final boolean isSecure = excLeaks.isEmpty();
+		printResult(excLeaks.isEmpty(), 0, config);
+		dumpSDGtoFile(prog.getSDG(), "exc", isSecure);
+		
+		if (!isSecure) {
+			config.setExceptionAnalysis(ExceptionAnalysis.IGNORE_ALL);
+			final SDGProgram noExcProg = buildSDG(config);
+			final Set<SLeak> noExcLeaks = checkIFC(Reason.BOTH_FLOW, noExcProg, IFCType.CLASSICAL_NI);
+			printResult(noExcLeaks.isEmpty(), 1, config);
+			dumpSDGtoFile(noExcProg.getSDG(), "no_exc", noExcLeaks.isEmpty());
+
+			excLeaks.removeAll(noExcLeaks);
+			for (final SLeak leak : noExcLeaks) {
+				result.addNoExcLeak(leak);
+			}
+			for (final SLeak leak : excLeaks) {
+				result.addExcLeak(leak);
+			}
+
+			cfc.out.println("Information leaks detected. Program is NOT SECURE.");
+		} else {
+			cfc.out.println("No information leaks detected. Program is SECURE.");
+		}
+		
+		return result;
+	}
+	
+	private IFCResult doThreadIFCanalysis(final SDGConfig config, final SDGProgram prog) {
+		final IFCResult result = new IFCResult(cfc.tmpDir);
+		final Set<SLeak> threadLeaks = checkIFC(Reason.THREAD, prog, IFCType.RLSOD);
+		final boolean isSecure = threadLeaks.isEmpty();
+
+		printResult(threadLeaks.isEmpty(), 0, config);
+		dumpSDGtoFile(prog.getSDG(), "thread", isSecure);
+
+		if (!isSecure) {
+			config.setExceptionAnalysis(ExceptionAnalysis.IGNORE_ALL);
+			final SDGProgram noExcProg = buildSDG(config);
+			final Set<SLeak> noExcLeaks = checkIFC(Reason.THREAD, noExcProg, IFCType.RLSOD);
+			
+			printResult(noExcLeaks.isEmpty(), 1, config);
+			dumpSDGtoFile(noExcProg.getSDG(), "no_exc_thread", noExcLeaks.isEmpty());
+
+			threadLeaks.removeAll(noExcLeaks);
+			for (final SLeak leak : noExcLeaks) {
+				result.addNoExcLeak(leak);
+			}
+			for (final SLeak leak : threadLeaks) {
+				result.addExcLeak(leak);
+			}
+
+			cfc.out.print("Information leaks detected. Program is NOT SECURE.");
+		} else {
+			cfc.out.print("No information leaks detected. Program is SECURE.");
+		}
+		
+		return result;
+	}
+	
+	private void dumpSDGtoFile(final SDG sdg, final String suffix, final boolean isSecure) {
+		if (DUMP_SDG_FILES) {
+			final String fileName = sdg.getName() + "-" + suffix + (isSecure ? "-secure.pdg" : "-illegal.pdg");
+	
+			try {
+				SDGSerializer.toPDGFormat(sdg, new FileOutputStream(fileName));
+				cfc.out.println("writing SDG to " + fileName);
+			} catch (FileNotFoundException e) {
+				throw new RuntimeException(e.getMessage());
+			}
+		}
+	}
+	
+	private void printResult(final boolean secure, final int numRun, final SDGConfig config) {
+		cfc.out.println(numRun + (secure ? "\t SECURE  " : "\t ILLEGAL ")  + analysisInfo() + "\t" + configToString(config));
+	}
+	
+	private static int lastSDGsize, lastViolations;
+	private static long lastSDGtime; 
+	
+	private static String analysisInfo() {
+		return "<sdg:(" + lastSDGsize + ")" + lastSDGtime + "ms, leaks:" + lastViolations + ">";
+	}
+
+	
+	private static boolean containsThreads(final SDGProgram p) {
+		final SDGMethod m = p.getMethod(THREAD_START);
+		
+		return m != null;
+	}
+	
+	private static SDGConfig createDefaultConfig(final CheckIFCConfig cfc, final String mainClass) {
+		final JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(mainClass);
+		final SDGConfig config = new SDGConfig(cfc.bin, mainMethod.toBCString(), Stubs.JRE_14);
+		config.setNativesXML(cfc.libDir + "natives_empty.xml");
+//		cfg.stubs = cfc.libDir + "jSDG-stubs-jre1.4.jar";
+		config.setComputeInterferences(false);
+		config.setExceptionAnalysis(ExceptionAnalysis.INTERPROC);
+		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH);
+		config.setPointsToPrecision(PointsToPrecision.OBJECT_SENSITIVE);
+		config.setDefaultExceptionMethodState(new MethodState() {
+			@Override
+			public boolean throwsException(final SSAAbstractInvokeInstruction node) {
+				if (node.isSpecial()) {
+					if (node.getDeclaredTarget().getSignature().contains("Object.<init>")) {
+						return false;
+					}
+				} else if (node.isStatic()) {
+					final String sig = node.getDeclaredTarget().getSignature();
+					if (sig.contains("inputPIN") || sig.contains("print")) {
+						return false;
+					}
+				}
+				
+				return true;
+			}
+		});
+		
+		return config;
+	}
+	
+	private static SDGProgram buildSDG(final SDGConfig config) {
+		SDGProgram prog = null;
+		
+		try {
+			final long t1 = System.currentTimeMillis();
+			prog = SDGProgram.createSDGProgram(config);
+			final long t2 = System.currentTimeMillis();
+			lastSDGtime = t2 - t1;
+			lastSDGsize = prog.getSDG().vertexSet().size();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
+		return prog;
+	}
 
 	public static ProgramSourcePositions sliceIFCStmt(final IFCStmt stmt, final FlowStmtResultPart fp,
 			final String tmpDir, final IProgressMonitor progress)
@@ -368,109 +349,206 @@ public final class CheckInformationFlow {
 		return pspos;
 	}
 
-	private SDG create(PrintStream out, AnalysisScope scope, MoJo mojo, CallGraphResult cg, IMethod im,
-			String outDir, Config cfg) throws IOException, ClassHierarchyException, UnsoundGraphException, CancelException {
-		return create(out, scope, mojo, cg, im, outDir, cfg, cfg.exceptions);
-	}
-
-	private SDG create(PrintStream out, AnalysisScope scope, MoJo mojo, CallGraphResult cg, IMethod im,
-			String outDir, Config cfg, ExceptionAnalysis exc) throws IOException, ClassHierarchyException, UnsoundGraphException, CancelException {
-		if (!Main.checkOrCreateOutputDir(outDir)) {
-			out.println("Could not access/create diretory '" + cfg.outputDir +"'");
-			return null;
-		}
-
-		out.print("Building system dependence graph... ");
-
-		final ExternalCallCheck chk;
-		if (cfg.extern == null) {
-			chk = ExternalCallCheck.EMPTY;
+	private static String configToString(final SDGConfig config) {
+		final StringBuilder sb = new StringBuilder();
+		sb.append("[");
+		sb.append("points-to: ");
+		if (config.computeInterferences()) {
+			sb.append("instance-based");
 		} else {
-			chk = cfg.extern;
+			switch (config.getPointsToPrecision()) {
+			case RTA:
+				sb.append("rapid-type");
+				break;
+			case TYPE_BASED:
+				sb.append("type-based");
+				break;
+			case INSTANCE_BASED:
+				sb.append("instance-based");
+				break;
+			case N1_CALL_STACK:
+				sb.append("1-call-stack");
+				break;
+			case N2_CALL_STACK:
+				sb.append("2-call-stack");
+				break;
+			case N3_CALL_STACK:
+				sb.append("3-call-stack");
+				break;
+			case N1_OBJECT_SENSITIVE:
+				sb.append("1-object-sensitive");
+				break;
+			case OBJECT_SENSITIVE:
+				sb.append("object-sensitive");
+				break;
+			case UNLIMITED_OBJECT_SENSITIVE:
+				sb.append("*-object-sensitive");
+				break;
+			}
+		}
+		
+		sb.append(", exceptions: ");
+		switch (config.getExceptionAnalysis()) {
+		case ALL_NO_ANALYSIS:
+			sb.append("very imprecise (unoptimized)");
+			break;
+		case INTRAPROC:
+			sb.append("intraprocedural optimized");
+			break;
+		case INTERPROC:
+			sb.append("interprocedural optimized");
+			break;
+		case IGNORE_ALL:
+			sb.append("ignore all effects (unsound)");
+			break;
 		}
 
-		final SDGBuilder.SDGBuilderConfig scfg = new SDGBuilder.SDGBuilderConfig();
-		scfg.out = out;
-		scfg.scope = scope;
-		scfg.cache = cg.cache;
-		scfg.cha = mojo.getHierarchy();
-		scfg.entry = im;
-		scfg.ext = chk;
-		scfg.immutableNoOut = Main.IMMUTABLE_NO_OUT;
-		scfg.immutableStubs = Main.IMMUTABLE_STUBS;
-		scfg.ignoreStaticFields = Main.IGNORE_STATIC_FIELDS;
-		scfg.exceptions = cfg.exceptions;
-		scfg.accessPath = cfg.accessPath;
-		scfg.sideEffects = cfg.sideEffects;
-		scfg.prunecg = Main.DEFAULT_PRUNE_CG;
-		scfg.pts = cfg.pts;
-		if (cfg.objSensFilter != null) {
-			scfg.objSensFilter = cfg.objSensFilter;
+		if (config.computeInterferences()) {
+			sb.append(", may-happen-in-parallel: ");
+			switch (config.getMhpType()) {
+			case NONE:
+				sb.append("very imprecise");
+				break;
+			case SIMPLE:
+				sb.append("simple optimizations");
+				break;
+			case PRECISE:
+				sb.append("precise analysis");
+				break;
+			}
 		}
-		scfg.debugAccessPath = true;
-		scfg.debugAccessPathOutputDir = "out/";
-		scfg.computeInterference = false;
-		scfg.staticInitializers = StaticInitializationTreatment.NONE;
-		scfg.debugStaticInitializers = false;
-		scfg.fieldPropagation = cfg.fieldPropagation;
-		scfg.debugManyGraphsDotOutput = cfg.debugManyGraphsDotOutput;
-
-		final SDGBuilder sdg = SDGBuilder.create(scfg, cg.cg, cg.pts);
-
-
-		final SDG joanaSDG = SDGBuilder.convertToJoana(cfc.out, sdg, NullProgressMonitor.INSTANCE);
-
-		AccessPath.computeMinMaxAliasSummaryEdges(cfc.out, sdg, sdg.getMainPDG(), joanaSDG, NullProgressMonitor.INSTANCE);
-
-		cfc.out.println("\ndone.");
-
-		cfc.out.print("Writing SDG to disk... ");
-		joanaSDG.setFileName(cfg.name != null ? sdg.getMainMethodName() + "-" + cfg.name : sdg.getMainMethodName());
-		final String fileName =
-				(outDir.endsWith(File.separator) ? outDir : outDir + File.separator) + joanaSDG.getFileName() + ".pdg";
-		final File file = new File(fileName);
-		cfc.out.print("(" + file.getAbsolutePath() + ") ");
-		PrintWriter pw = new PrintWriter(file);
-		SDGSerializer.toPDGFormat(joanaSDG, pw);
-		cfc.out.println("done.");
-
-		return joanaSDG;
+		
+		sb.append("]");
+		
+		return sb.toString();
+	}
+	
+	private static Set<SLeak> checkIFC(final Reason reason, final SDGProgram prog, final IFCType type) {
+		final IFCAnalysis ana = annotateSDG(prog);
+		final Collection<? extends IViolation<SecurityNode>> leaks = ana.doIFC(type);
+		lastViolations = leaks.size();
+		
+		final Set<SLeak> sleaks = extractLeaks(ana, leaks, reason);
+		
+		return sleaks;
 	}
 
-	/**
-	 * Search file in filesystem. If not found, try to load from classloader (e.g. from inside the jarfile).
-	 */
-	private static Module findJarModule(final String path) throws IOException {
-		final File f = new File(path);
-		if (f.exists()) {
-			return new JarFileModule(new JarFile(f));
-		} else {
-			final URL url = CheckInformationFlow.class.getClassLoader().getResource(path);
-			final URLConnection con = url.openConnection();
-			final InputStream in = con.getInputStream();
-			return new JarStreamModule(new JarInputStream(in));
+	private static IFCAnalysis annotateSDG(final SDGProgram p) {
+		final IFCAnalysis ana = new IFCAnalysis(p);
+
+		// annotate sources
+		{
+			final Collection<SDGCall> calls = p.getCallsToMethod(JavaMethodSignature.fromString(DEFAULT_SECRET_SOURCE));
+			for (final SDGCall call : calls) {
+				final SDGCallReturnNode ret = call.getReturn();
+				ana.addSourceAnnotation(ret, BuiltinLattices.STD_SECLEVEL_HIGH);
+			}
 		}
+		
+		// annotate sinks
+		{
+			final Collection<SDGCall> calls = p.getCallsToMethod(JavaMethodSignature.fromString(DEFAULT_PUBLIC_OUTPUT));
+			for (final SDGCall call : calls) {
+				final Collection<SDGActualParameter> params = call.getActualParameters();
+				for (final SDGActualParameter aIn : params) {
+					if (aIn.getIndex() == 1) {
+						ana.addSinkAnnotation(aIn, BuiltinLattices.STD_SECLEVEL_LOW);
+					}
+				}
+			}
+		}
+		
+		return ana;
+	}
+	
+	private static Set<SLeak> extractLeaks(final IFCAnalysis ana,
+			final Collection<? extends IViolation<SecurityNode>> leaks, final Reason reason) {
+		final TreeSet<SLeak> sleaks = new TreeSet<SLeak>();
+		for (final IViolation<SecurityNode> leak : leaks) {
+			leak.accept(new IViolationVisitor<SecurityNode>() {
+				
+				@Override
+				public void visitOrderConflict(final OrderConflict<SecurityNode> orderConf) {
+					final SecurityNode source = orderConf.getConflictEdge().getSource();
+					final SecurityNode sink = orderConf.getConflictEdge().getTarget();
+					final SPos ssource = new SPos(source.getSource(), source.getSr(), source.getEr(), source.getSc(), source.getEc());
+					final SPos ssink = new SPos(sink.getSource(), sink.getSr(), sink.getEr(), sink.getSc(), sink.getEc());
+					final Set<SPos> slice = new TreeSet<SPos>();
+					slice.add(ssource);
+					slice.add(ssink);
+					final SLeak sleak = new SLeak(ssource, ssink, reason, slice);
+					sleaks.add(sleak);
+				}
+				
+				@Override
+				public void visitIllegalFlow(final IIllegalFlow<SecurityNode> iFlow) {
+					final SDG sdg = ana.getProgram().getSDG();
+					final SecurityNode source = iFlow.getSource();
+					final SecurityNode sink = iFlow.getSink();
+					final NonSameLevelChopper chopper = new NonSameLevelChopper(sdg);
+					final Collection<SDGNode> nodes = chopper.chop(source, sink);
+					final SLeak sleak = extractSourceLeaks(source, sink, reason, nodes);
+					if (sleak != null) {
+						sleaks.add(sleak);
+					}
+				}
+				
+				@Override
+				public void visitDataConflict(final DataConflict<SecurityNode> dataConf) {
+					final SecurityNode source = dataConf.getConflictEdge().getSource();
+					final SecurityNode sink = dataConf.getConflictEdge().getTarget();
+					final SPos ssource = new SPos(source.getSource(), source.getSr(), source.getEr(), source.getSc(), source.getEc());
+					final SPos ssink = new SPos(sink.getSource(), sink.getSr(), sink.getEr(), sink.getSc(), sink.getEc());
+					final Set<SPos> slice = new TreeSet<SPos>();
+					slice.add(ssource);
+					slice.add(ssink);
+					final SLeak sleak = new SLeak(ssource, ssink, reason, slice);
+					sleaks.add(sleak);
+				}
+			});
+		}
+		
+		return sleaks;
+	}
+	
+	private static SLeak extractSourceLeaks(final SecurityNode source, final SecurityNode sink, final Reason reason,
+			final Collection<SDGNode> nodes) {
+		final TreeSet<SPos> positions = new TreeSet<SPos>();
+		
+		final List<SPos> toRemove = new LinkedList<SPos>();
+		
+		for (final SDGNode n : nodes) {
+			if (n.getSource() != null) {
+				final SPos spos = new SPos(n.getSource(), n.getSr(), n.getEr(), n.getSc(), n.getEc());
+				if (n.kind == SDGNode.Kind.ENTRY || n.kind == SDGNode.Kind.FORMAL_IN 
+						|| n.kind == SDGNode.Kind.FORMAL_OUT
+						|| (n.kind == SDGNode.Kind.CALL && n.getUnresolvedCallTarget() != null
+							&& n.getUnresolvedCallTarget().contains("Object.<init>"))) {
+					toRemove.add(spos);
+				}
+				if (!spos.isAllZero()) {
+					positions.add(spos);
+				}
+			}
+			
+			positions.removeAll(toRemove);
+		}
+
+		if (positions.isEmpty()) {
+			final SPos ssource = new SPos(source.getSource(), source.getSr(), source.getEr(), source.getSc(), source.getEc());
+			final SPos ssink = new SPos(sink.getSource(), sink.getSr(), sink.getEr(), sink.getSc(), sink.getEc());
+			final Set<SPos> slice = new TreeSet<SPos>();
+			slice.add(ssource);
+			slice.add(ssink);
+			final SLeak sleak = new SLeak(ssource, ssink, reason, slice);
+			
+			return sleak;
+		}
+		final SPos ssource = positions.first();
+		final SPos ssink = positions.last();
+		
+		final SLeak leak = new SLeak(ssource, ssink, reason, positions);
+		return leak;
 	}
 
-	private static AnalysisScope createAnalysisScope(final Config cfg) throws IOException {
-		final AnalysisScope scope = AnalysisScopeReader.makePrimordialScope(null);
-
-		if (cfg.nativesXML != null) {
-			com.ibm.wala.ipa.callgraph.impl.Util.setNativeSpec(cfg.nativesXML);
-		}
-
-		// if use stubs
-		if (cfg.stubs != null) {
-			scope.addToScope(ClassLoaderReference.Primordial, findJarModule(cfg.stubs));
-		}
-
-		// Nimmt unnoetige Klassen raus
-		final SetOfClasses exclusions = new FileOfClasses(new ByteArrayInputStream(cfg.exclusions.getBytes()));
-		scope.setExclusions(exclusions);
-
-	    final ClassLoaderReference loader = scope.getLoader(AnalysisScope.APPLICATION);
-	    AnalysisScopeReader.addClassPathToScope(cfg.classpath, scope, loader);
-
-	    return scope;
-	}
 }

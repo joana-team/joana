@@ -7,11 +7,18 @@
  */
 package edu.kit.joana.ui.wala.easyifc.model;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.flowless.spec.FlowLessBuilder.FlowError;
@@ -22,15 +29,15 @@ import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
 public interface IFCCheckResultConsumer {
 
 	/**
-	 * Handle flow check results.
-	 * @param mres flow check results.
+	 * Handle information flow check results.
+	 * @param ifcres information flow check results.
 	 */
-	public void consume(MethodResult mres);
-
+	public void consume(IFCResult ifcres);
+	
 	public static IFCCheckResultConsumer DEFAULT = new IFCCheckResultConsumer() {
 
 		@Override
-		public void consume(final MethodResult mres) {
+		public void consume(final IFCResult ifcres) {
 			// do nothing
 		}
 	};
@@ -38,11 +45,278 @@ public interface IFCCheckResultConsumer {
 	public static IFCCheckResultConsumer STDOUT = new IFCCheckResultConsumer() {
 
 		@Override
-		public void consume(final MethodResult mres) {
-			System.out.println(mres);
+		public void consume(final IFCResult ifcres) {
+			System.out.println(ifcres);
 		}
 	};
+	
+	public final class IFCResult {
+		
+		private final String tmpDir;
+		
+		private final SortedSet<SLeak> excLeaks = new TreeSet<SLeak>();  
+		private final SortedSet<SLeak> noExcLeaks = new TreeSet<SLeak>();
+		
+		public IFCResult(final String tmpDir) {
+			this.tmpDir = tmpDir;
+		}
+		
+		public String getTmpDir() {
+			return tmpDir;
+		}
+		
+		public void addExcLeak(final SLeak leak) {
+			excLeaks.add(leak);
+		}
 
+		public void addNoExcLeak(final SLeak leak) {
+			noExcLeaks.add(leak);
+		}
+		
+		public String toString() {
+			final int excl = excLeaks.size();
+			final int total = excl + noExcLeaks.size();
+			
+			if (total > 0) {
+				return "Program is UNSAFE: " + total + " leak" + (total > 1 ? "s" : "") + " found."
+						+ (excLeaks.size() > 0 ? " " + excLeaks.size() + " due to implicit flow caused by exceptions." : "");
+			} else {
+				return "Program is SECURE.";
+			}
+		}
+		
+		public SortedSet<SLeak> getNoExcLeaks() {
+			return Collections.unmodifiableSortedSet(noExcLeaks);
+		}
+
+		public SortedSet<SLeak> getExcLeaks() {
+			return Collections.unmodifiableSortedSet(excLeaks);
+		}
+	}
+
+	public static enum Reason { DIRECT_FLOW(1), INDIRECT_FLOW(2), BOTH_FLOW(3), EXCEPTION(4), THREAD(5);
+
+		public final int importance;
+	
+		private Reason(final int importance) {
+			this.importance = importance;
+		}
+	
+	}
+
+	public static class SLeak implements Comparable<SLeak> {
+		private final SPos source;
+		private final SPos sink;
+		private final Reason reason;
+		private final Set<SPos> slice;
+		
+		public SLeak(final SPos source, final SPos sink, final Reason reason, final Set<SPos> slice) {
+			this.source = source;
+			this.sink = sink;
+			this.reason = reason;
+			this.slice = slice;
+		}
+		
+		public int hashCode() {
+			return source.hashCode() + 23 * sink.hashCode();
+		}
+		
+		public boolean equals(Object o) {
+			if (o instanceof SLeak) {
+				final SLeak l = (SLeak) o;
+				return source.equals(l.source) && sink.equals(l.sink);
+			}
+			
+			return false;
+		}
+		
+		public String toString() {
+			return "from '" + source.toString() + "' to '" + sink.toString() + "'";
+		}
+		
+		public String toString(final File srcFile) {
+			StringBuffer sbuf = new StringBuffer();
+			switch (reason) {
+			case DIRECT_FLOW:
+				sbuf.append("explicit flow:\n");
+				break;
+			case INDIRECT_FLOW:
+				sbuf.append("implicit flow:\n");
+				break;
+			case BOTH_FLOW:
+				sbuf.append("explicit and implicit flow:\n");
+				break;
+			case EXCEPTION:
+				sbuf.append("implicit flow due to exceptions:\n");
+				break;
+			case THREAD:
+				sbuf.append("possibilistic or probabilistic flow:\n");
+				break;
+			default:
+				sbuf.append("reason: " + reason + "\n");
+			}
+			
+			sbuf.append("from '" + source.toString() + "' to '" + sink.toString() + "'\n");
+			
+			for (final SPos pos : slice) {
+				sbuf.append(pos.toString() + "\t");
+				final String code = pos.getSourceCode(srcFile);
+				sbuf.append(code + "\n");
+			}
+			
+			return sbuf.toString();
+		}
+	
+		@Override
+		public int compareTo(final SLeak o) {
+			if (o == this || this.equals(o)) {
+				return 0;
+			}
+	
+			if (!source.equals(o.source)) {
+				return source.compareTo(o.source);
+			}
+			
+			if (!sink.equals(o.sink)) {
+				return sink.compareTo(o.sink);
+			}
+			
+			return 0;
+		}
+		
+	}
+	
+	public static class SPos implements Comparable<SPos> {
+		private final String sourceFile;
+		private final int startChar;
+		private final int endChar;
+		private final int startLine;
+		private final int endLine;
+		
+		public SPos(final String sourceFile, final int startLine, final int endLine, final int startChar,
+				final int endChar) {
+			this.sourceFile = sourceFile;
+			this.startLine = startLine;
+			this.endLine = endLine;
+			this.startChar = startChar;
+			this.endChar = endChar;
+		}
+		
+		public int hashCode() {
+			return sourceFile.hashCode() + 13 * startLine;
+		}
+		
+		public boolean isAllZero() {
+			return startLine == 0 && endLine == 0 && startChar == 0 && endChar == 0;
+		}
+		
+		public boolean hasCharPos() {
+			return !(startChar == 0 && startChar == endChar);
+		}
+		
+		public boolean isMultipleLines() {
+			return startLine != endLine;
+		}
+		
+		public boolean equals(Object o) {
+			if (o instanceof SPos) {
+				final SPos spos = (SPos) o;
+				return sourceFile.equals(spos.sourceFile) && startLine == spos.startLine && endLine == spos.endLine
+						&& startChar == spos.startChar && endChar == spos.endChar;
+			}
+			
+			return false;
+		}
+	
+		@Override
+		public int compareTo(SPos o) {
+			if (sourceFile.compareTo(o.sourceFile) != 0) {
+				return sourceFile.compareTo(o.sourceFile);
+			}
+			
+			if (startLine != o.startLine) {
+				return startLine - o.startLine;
+			}
+			
+			if (endLine != o.endLine) {
+				return endLine - o.endLine;
+			}
+			
+			if (startChar != o.startChar) {
+				return startChar - o.startChar;
+			}
+			
+			if (endChar != o.endChar) {
+				return endChar - o.endChar;
+			}
+			
+			return 0;
+		}
+		
+		public String toString() {
+			if (hasCharPos() && isMultipleLines()) {
+				return sourceFile + ":(" + startLine + "," + startChar + ")-(" + endLine + "," + endChar +")"; 
+			} else if (hasCharPos()) {
+				return sourceFile + ":(" + startLine + "," + startChar + "-" + endChar +")"; 
+			} else if (isMultipleLines()) {
+				return sourceFile + ":" + startLine + "-" + endLine; 
+			} else {
+				return sourceFile + ":" + startLine; 
+			}
+		}
+		
+		public String getSourceCode(final File sourceFile) {
+			final File f = sourceFile;
+			try {
+				String code = "";
+				final BufferedReader read = new BufferedReader(new FileReader(f));
+				for (int i = 0; i < startLine-1; i++) {
+					read.readLine();
+				}
+	
+				if (!isMultipleLines()) {
+					final String line = read.readLine();
+					if (hasCharPos()) {
+						code = line.substring(startChar, endChar);
+					} else {
+						code = line;
+					}
+				} else {
+					{
+						final String line = read.readLine();
+						if (hasCharPos()) {
+							code = line.substring(startChar);
+						} else {
+							code = line;
+						}
+					}
+					
+					for (int i = startLine; i < endLine-1; i++) {
+						code += read.readLine();
+					}
+					
+					{
+						final String line = read.readLine();
+						if (hasCharPos()) {
+							code += line.substring(0, endChar);
+						} else {
+							code += line;
+						}
+					}
+				}
+	
+				read.close();
+				
+				return code;
+			} catch (IOException e) {}
+			
+			return  "error getting source";
+		}
+	}
+
+	
+	// OLD STUFF BELOW
+	
 	public final class MethodResult {
 		private final MethodInfo mInfo;
 		private final String tmpDir;

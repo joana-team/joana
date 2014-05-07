@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            name="Information Flow Control"
+            icon="icons/check_flow.png"
+            category="joana.ui.wala.easyifc.views"
+            class="edu.kit.joana.ui.wala.easyifc.views.EasyIFCView"
+            id="joana.ui.wala.easyifc.views.EasyIFCView">
+      </view>
+      <category
+            id="joana.ui.wala.easyifc.views"
+            name="Joana IFC">
+      </category>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.eclipse.jdt.ui.JavaPerspective">
+         <view
+               ratio="0.5"
+               relative="org.eclipse.ui.views.TaskList"
+               relationship="right"
+               id="joana.ui.wala.easyifc.views.EasyIFCView">
+         </view>
+      </perspectiveExtension>
+   </extension>
+   <extension
+         id="edu.kit.joana.ui.checkflow_marker"
+         name="IFC generic marker"
+         point="org.eclipse.core.resources.markers">
+	  <super type="org.eclipse.core.resources.marker"/>
+      <persistent value="false"/>
+   </extension>
+   <extension
+         id="edu.kit.joana.ui.checkflow_ok"
+         name="IFC ok marker"
+         point="org.eclipse.core.resources.markers">
+      <super type="edu.kit.joana.ui.checkflow_marker"/>
+      <persistent value="false"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.ide.markerImageProviders">
+      <imageprovider
+            icon="icons/flow_ok.png"
+            id="edu.kit.joana.ui.checkflow_img_ok"
+            markertype="edu.kit.joana.ui.checkflow_ok">
+      </imageprovider>
+   </extension>
+   <extension
+         id="edu.kit.joana.ui.checkflow_no_exc_ok"
+         name="IFC no exceptions ok marker"
+         point="org.eclipse.core.resources.markers">
+      <super type="edu.kit.joana.ui.checkflow_marker"/>
+      <persistent value="false"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.ide.markerImageProviders">
+      <imageprovider
+            icon="icons/flow_no_exc_ok.png"
+            id="edu.kit.joana.ui.checkflow_img_no_exc_ok"
+            markertype="edu.kit.joana.ui.checkflow_no_exc_ok">
+      </imageprovider>
+   </extension>
+   <extension
+         id="edu.kit.joana.ui.checkflow_inferred_ok"
+         name="IFC inferred ok marker"
+         point="org.eclipse.core.resources.markers">
+      <super type="edu.kit.joana.ui.checkflow_marker"/>
+      <persistent value="false"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.ide.markerImageProviders">
+      <imageprovider
+            icon="icons/flow_inferred_ok.png"
+            id="edu.kit.joana.ui.checkflow_img_inferred_ok"
+            markertype="edu.kit.joana.ui.checkflow_inferred_ok">
+      </imageprovider>
+   </extension>
+   <extension
+         id="edu.kit.joana.ui.checkflow_inferred_no_exc_ok"
+         name="IFC inferred no exception ok marker"
+         point="org.eclipse.core.resources.markers">
+      <super type="edu.kit.joana.ui.checkflow_marker"/>
+      <persistent value="false"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.ide.markerImageProviders">
+      <imageprovider
+            icon="icons/flow_inferred_no_exc_ok.png"
+            id="edu.kit.joana.ui.checkflow_img_inferred_no_exc_ok"
+            markertype="edu.kit.joana.ui.checkflow_inferred_no_exc_ok">
+      </imageprovider>
+   </extension>
+   <extension
+         id="edu.kit.joana.ui.checkflow_illegal"
+         name="IFC illegal marker"
+         point="org.eclipse.core.resources.markers">
+      <super type="edu.kit.joana.ui.checkflow_marker"/>
+      <persistent value="false"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.ide.markerImageProviders">
+      <imageprovider
+            icon="icons/flow_illegal.png"
+            id="edu.kit.joana.ui.checkflow_img_illegal"
+            markertype="edu.kit.joana.ui.checkflow_illegal">
+      </imageprovider>
+   </extension>
+<!-- textual highlight stuff -->
+	<extension id="edu.kit.joana.ui.checkflow.highlight.highlightMarker" 
+    	point="org.eclipse.core.resources.markers"
+    	name="highlightMarker">
+    	<super type="org.eclipse.core.resources.textmarker"/>
+    	<persistent value="false"/>
+	</extension>
+
+  	<extension id="edu.kit.joana.ui.checkflow.highlight.level0" 
+    	point="org.eclipse.core.resources.markers"
+    	name="level0">
+    	<super type="org.eclipse.core.resources.textmarker"/>
+    	<super type="edu.kit.joana.ui.checkflow.highlight.highlightMarker"/>    
+    	<persistent value="false"/>
+	</extension>
+	<extension 
+		point="org.eclipse.ui.editors.annotationTypes">
+  		<type 
+  			name="edu.kit.joana.ui.checkflow.highlight.level0annotation" 
+  			markerType="edu.kit.joana.ui.checkflow.highlight.level0" /> 
+  	</extension>
+	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+  		<specification
+  			annotationType="edu.kit.joana.ui.checkflow.highlight.level0annotation" 
+  			textPreferenceKey="highlight.text"
+  			textPreferenceValue="true" 
+  			highlightPreferenceKey="highlight.background" 
+  			highlightPreferenceValue="true"
+  			colorPreferenceKey="highlight.color"
+  			colorPreferenceValue="0,180,255" 
+  			overviewRulerPreferenceKey="highlight.rulers.overview" 
+  			overviewRulerPreferenceValue="false"
+  			presentationLayer="4"  
+  			label="Default Slice Highlighting" 
+			verticalRulerPreferenceKey="highlight.rulers.vertical" 
+  			verticalRulerPreferenceValue="true" 
+  			includeOnPreferencePage="true"
+  			textStylePreferenceKey="highlight.text.style" 
+  			textStylePreferenceValue="NONE" /> 
+  	</extension>
+
+</plugin>

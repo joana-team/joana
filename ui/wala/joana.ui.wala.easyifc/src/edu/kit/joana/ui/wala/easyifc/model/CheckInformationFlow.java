@@ -471,8 +471,19 @@ public final class CheckInformationFlow {
 				public void visitOrderConflict(final OrderConflict<SecurityNode> orderConf) {
 					final SecurityNode source = orderConf.getConflictEdge().getSource();
 					final SecurityNode sink = orderConf.getConflictEdge().getTarget();
-					final SPos ssource = new SPos(source.getSource(), source.getSr(), source.getEr(), source.getSc(), source.getEc());
-					final SPos ssink = new SPos(sink.getSource(), sink.getSr(), sink.getEr(), sink.getSc(), sink.getEc());
+					final SPos one = new SPos(source.getSource(), source.getSr(), source.getEr(), source.getSc(), source.getEc());
+					final SPos two = new SPos(sink.getSource(), sink.getSr(), sink.getEr(), sink.getSc(), sink.getEc());
+
+					final SPos ssource;
+					final SPos ssink;
+					if (one.compareTo(two) < 0) {
+						ssource = one;
+						ssink = two;
+					} else {
+						ssource = two;
+						ssink = one;
+					}
+
 					final Set<SPos> slice = new TreeSet<SPos>();
 					slice.add(ssource);
 					slice.add(ssink);
@@ -497,8 +508,19 @@ public final class CheckInformationFlow {
 				public void visitDataConflict(final DataConflict<SecurityNode> dataConf) {
 					final SecurityNode source = dataConf.getConflictEdge().getSource();
 					final SecurityNode sink = dataConf.getConflictEdge().getTarget();
-					final SPos ssource = new SPos(source.getSource(), source.getSr(), source.getEr(), source.getSc(), source.getEc());
-					final SPos ssink = new SPos(sink.getSource(), sink.getSr(), sink.getEr(), sink.getSc(), sink.getEc());
+					final SPos one = new SPos(source.getSource(), source.getSr(), source.getEr(), source.getSc(), source.getEc());
+					final SPos two = new SPos(sink.getSource(), sink.getSr(), sink.getEr(), sink.getSc(), sink.getEc());
+
+					final SPos ssource;
+					final SPos ssink;
+					if (one.compareTo(two) < 0) {
+						ssource = one;
+						ssink = two;
+					} else {
+						ssource = two;
+						ssink = one;
+					}
+
 					final Set<SPos> slice = new TreeSet<SPos>();
 					slice.add(ssource);
 					slice.add(ssink);

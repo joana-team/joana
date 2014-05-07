@@ -7,10 +7,16 @@
  */
 package edu.kit.joana.api.annotations;
 
+import edu.kit.joana.ui.annotations.Level;
+import edu.kit.joana.ui.annotations.Sink;
+import edu.kit.joana.ui.annotations.Source;
+
+//TODO: Klasse in sinnvolleren package und projektnamen verschieben
+
 /**
  * @author Martin Hecker
  */
-public class Annotations {
+public class ToyTestsDefaultSourcesAndSinks {
 	@Source(Level.HIGH)
 	public static boolean SECRET_BOOL = true;
 	

@@ -10,10 +10,16 @@ package edu.kit.joana.api.annotations;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
+import edu.kit.joana.ui.annotations.Level;
+import edu.kit.joana.ui.annotations.Sink;
+import edu.kit.joana.ui.annotations.Source;
+
+//TODO: Klasse in sinnvolleren package und projektnamen verschieben
+
 /**
  * @author Martin Hecker
  */
-public class Annotations {
+public class ToyTestsDefaultSourcesAndSinks {
 	@Source(Level.HIGH)
 	public static boolean SECRET_BOOL = true;
 	
@@ -77,7 +83,7 @@ public class Annotations {
 	}
 	
 	public static void main(String[] args) {
-		final Method[] methods = Annotations.class.getMethods();
+		final Method[] methods = ToyTestsDefaultSourcesAndSinks.class.getMethods();
 		for (Method m : methods) {
 			for (Annotation a : m.getAnnotations()) { 
 				System.out.println(a);

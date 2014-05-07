@@ -7,7 +7,7 @@
  */
 package joana.api.testdata.toy.pw;
 
-import static edu.kit.joana.api.annotations.Annotations.*;
+import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.*;
 
 class MySystem {
 	public static PublicOutput out1 = new PublicOutput();

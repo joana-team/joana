@@ -7,7 +7,7 @@
  */
 package joana.api.testdata.toy.test;
 
-import static edu.kit.joana.api.annotations.Annotations.*;
+import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.*;
 
 /**
  * This example demonstrates some imprecision of our analysis in connection

@@ -7,7 +7,7 @@
  */
 package joana.api.testdata.seq;
 
-import static edu.kit.joana.api.annotations.Annotations.*;
+import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.*;
 
 /**
  * @author Martin Mohr

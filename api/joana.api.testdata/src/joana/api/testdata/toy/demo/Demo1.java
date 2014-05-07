@@ -7,7 +7,7 @@
  */
 package joana.api.testdata.toy.demo;
 
-import static edu.kit.joana.api.annotations.Annotations.*;
+import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.*;
 
 class Secret {
 	int value1;

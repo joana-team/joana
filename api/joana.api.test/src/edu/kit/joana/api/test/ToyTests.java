@@ -108,6 +108,7 @@ public class ToyTests {
 			return ana;
 	}
 		
+	@Deprecated
 	public static <T> IFCAnalysis buildAndAnnotate(Class<T> clazz, SDGConfig config, boolean ignore)
 			throws ApiTestException, ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
 		IFCAnalysis ana = build(clazz,config,ignore);
@@ -150,7 +151,7 @@ public class ToyTests {
 			IOException, UnsoundGraphException, CancelException {
 		final String classname = clazz.getCanonicalName();
 		{ // There are leaks if secret is really passed on
-			IFCAnalysis ana = buildAndAnnotate(clazz, top_sequential, false);
+			IFCAnalysis ana = buldAndUseJavaAnnotations(clazz, top_sequential, false);
 			
 
 			if (outputPDGFiles) {

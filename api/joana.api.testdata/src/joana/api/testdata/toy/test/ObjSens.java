@@ -7,7 +7,7 @@
  */
 package joana.api.testdata.toy.test;
 
-import static edu.kit.joana.api.annotations.Annotations.*;
+import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.*;
 
 class IntPrinter {
 	int val;

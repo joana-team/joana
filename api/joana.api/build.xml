@@ -132,6 +132,9 @@
 			<fileset dir="${joana.api.annotations.passon.base.dir}/src">
 				<filename name="**/*.java" />
 			</fileset>
+			<fileset dir="${joana.ui.annotations.base.dir}/src">
+				<filename name="**/*.java" />
+			</fileset>
 			<!-- joana.api code -->
 			<fileset dir="${joana.api.base.dir}/src">
 				<filename name="**/*.java" />

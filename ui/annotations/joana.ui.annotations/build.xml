@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="joana.api" default="fulljar" basedir=".">
+	<description>
+    ifc api standalone jar
+	</description>
+
+	<!-- set project related properties -->
+	<property file="project.properties" />
+	<property name="projectname" value="joana.ui.annotations" />
+	<!-- set global properties for this build -->
+	<property file="${joana.base.dir}/joana-project-location.properties" />
+
+	<property name="dest.dir" value="${joana.dist.dir}/${projectname}" />
+	<property name="dest.dir.sources" location="${dest.dir}/sources" />
+	<property name="dest.dir.classes" location="${dest.dir}/classes" />
+	
+	<target name="fulljar" depends="compile" description="generate the stand-alone jar file">
+		<delete file="${joana.dist.dir}/${projectname}.jar" />
+		<jar jarfile="${joana.dist.dir}/${projectname}.jar">
+			<fileset dir="${dest.dir.classes}">
+				<not>
+					<or>
+						<filename name="**/package.html" />
+						<filename name="**/doc-files/**/*" />
+						<filename name="**/META-INF/**/*" />
+					</or>
+				</not>
+			</fileset>
+		</jar>
+	</target>
+
+	<target name="compile" depends="init,collect_sources">
+		<javac
+			includeantruntime="false"
+			srcdir="${dest.dir.sources}"
+			destdir="${dest.dir.classes}"
+			verbose="no"
+			source="1.6"
+			target="1.6"
+			encoding="utf-8"
+		/>
+	</target>
+
+	<target name="init" depends="clean">
+		<delete dir="${dest.dir}" />
+		<mkdir dir="${dest.dir}" />
+		<mkdir dir="${dest.dir.sources}" />
+		<mkdir dir="${dest.dir.classes}" />
+	</target>
+
+	<target name="collect_sources">
+		<copy todir="${dest.dir.sources}">
+			<!-- joana.api code -->
+			<fileset dir="${joana.ui.annotations.base.dir}/src">
+				<filename name="**/*.java" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="clean">
+		<delete dir="${dest.dir}" />
+	</target>
+
+	<target name="full_clean" depends="clean">
+		<delete file="${joana.dist.dir}/${projectname}.jar" />
+	</target>
+
+</project>

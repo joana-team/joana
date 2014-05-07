@@ -29,6 +29,7 @@ import edu.kit.joana.ui.wala.easyifc.Activator;
 import edu.kit.joana.ui.wala.easyifc.model.FileSourcePositions;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.FlowStmtResult;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.FlowStmtResultPart;
+import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.IFCResult;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SLeak;
 import edu.kit.joana.ui.wala.easyifc.model.SourcePosition;
 import edu.kit.joana.wala.flowless.spec.FlowLessBuilder.FlowError;
@@ -79,11 +80,30 @@ public class CheckFlowMarkerAndImageManager {
 		return jLables.getImage(m);
     }
 
+    public Image getImage(final IFCResult ifcres) {
+		return (ifcres.hasLeaks() 
+				? Activator.getImageDescriptor(FLOW_ILLEGAL_IMG).createImage()
+				: Activator.getImageDescriptor(FLOW_OK_IMG).createImage());
+    }
+
     public Image getImage(final FlowError ferr) {
 		return Activator.getImageDescriptor(FLOW_ILLEGAL_IMG).createImage();
     }
 
     public Image getImage(final SLeak leak) {
+    	switch (leak.getReason()) {
+    	case BOTH_FLOW:
+    	case DIRECT_FLOW:
+    	case INDIRECT_FLOW:
+        	return Activator.getImageDescriptor(FLOW_ILLEGAL_IMG).createImage();
+    	case EXCEPTION:
+        	return Activator.getImageDescriptor(FLOW_NO_EXC_OK).createImage();
+    	case THREAD:
+        	return Activator.getImageDescriptor(FLOW_NO_EXC_OK_IMG).createImage();
+    	case THREAD_EXCEPTION:
+        	return Activator.getImageDescriptor(FLOW_INFERRED_NO_EXC_OK_IMG).createImage();
+    	}
+    	
     	return Activator.getImageDescriptor(FLOW_ILLEGAL_IMG).createImage();
     }
     

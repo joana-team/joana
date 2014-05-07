@@ -226,7 +226,7 @@ public final class CheckInformationFlow {
 	
 	private IFCResult doThreadIFCanalysis(final SDGConfig config, final SDGProgram prog) {
 		final IFCResult result = new IFCResult(cfc.tmpDir);
-		final Set<SLeak> threadLeaks = checkIFC(Reason.THREAD, prog, IFCType.RLSOD);
+		final Set<SLeak> threadLeaks = checkIFC(Reason.THREAD_EXCEPTION, prog, IFCType.RLSOD);
 		final boolean isSecure = threadLeaks.isEmpty();
 
 		printResult(threadLeaks.isEmpty(), 0, config);
@@ -498,7 +498,17 @@ public final class CheckInformationFlow {
 					final SecurityNode sink = iFlow.getSink();
 					final NonSameLevelChopper chopper = new NonSameLevelChopper(sdg);
 					final Collection<SDGNode> nodes = chopper.chop(source, sink);
-					final SLeak sleak = extractSourceLeaks(source, sink, reason, nodes);
+					
+					final Reason realReason;
+					if (reason == Reason.THREAD) {
+						realReason = Reason.BOTH_FLOW;
+					} else if (reason == Reason.THREAD_EXCEPTION){
+						realReason = Reason.EXCEPTION;
+					} else {
+						realReason = reason;
+					}
+					
+					final SLeak sleak = extractSourceLeaks(source, sink, realReason, nodes);
 					if (sleak != null) {
 						sleaks.add(sleak);
 					}
@@ -520,7 +530,7 @@ public final class CheckInformationFlow {
 						ssource = two;
 						ssink = one;
 					}
-
+					
 					final Set<SPos> slice = new TreeSet<SPos>();
 					slice.add(ssource);
 					slice.add(ssink);

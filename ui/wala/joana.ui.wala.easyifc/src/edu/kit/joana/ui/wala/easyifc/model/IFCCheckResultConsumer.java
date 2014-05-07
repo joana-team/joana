@@ -61,6 +61,10 @@ public interface IFCCheckResultConsumer {
 			this.tmpDir = tmpDir;
 		}
 		
+		public boolean hasLeaks() {
+			return !(excLeaks.isEmpty() && noExcLeaks.isEmpty());
+		}
+		
 		public String getTmpDir() {
 			return tmpDir;
 		}
@@ -78,10 +82,10 @@ public interface IFCCheckResultConsumer {
 			final int total = excl + noExcLeaks.size();
 			
 			if (total > 0) {
-				return "Program is UNSAFE: " + total + " leak" + (total > 1 ? "s" : "") + " found."
+				return "UNSAFE: " + total + " leak" + (total > 1 ? "s" : "") + " found."
 						+ (excLeaks.size() > 0 ? " " + excLeaks.size() + " due to implicit flow caused by exceptions." : "");
 			} else {
-				return "Program is SECURE.";
+				return "SECURE.";
 			}
 		}
 		
@@ -94,7 +98,8 @@ public interface IFCCheckResultConsumer {
 		}
 	}
 
-	public static enum Reason { DIRECT_FLOW(1), INDIRECT_FLOW(2), BOTH_FLOW(3), EXCEPTION(4), THREAD(5);
+	public static enum Reason { 
+		DIRECT_FLOW(1), INDIRECT_FLOW(2), BOTH_FLOW(3), EXCEPTION(4), THREAD(5), THREAD_EXCEPTION(6);
 
 		public final int importance;
 	
@@ -117,6 +122,10 @@ public interface IFCCheckResultConsumer {
 			this.slice = slice;
 		}
 		
+		public Reason getReason() {
+			return reason;
+		}
+		
 		public int hashCode() {
 			return source.hashCode() + 23 * sink.hashCode();
 		}
@@ -131,7 +140,29 @@ public interface IFCCheckResultConsumer {
 		}
 		
 		public String toString() {
-			return "from '" + source.toString() + "' to '" + sink.toString() + "'";
+			String info = "";
+			switch (reason) {
+			case BOTH_FLOW:
+				info = "explicit and implicit flow ";
+				break;
+			case DIRECT_FLOW:
+				info = "explicit flow ";
+				break;
+			case INDIRECT_FLOW:
+				info = "implicit flow ";
+				break;
+			case EXCEPTION:
+				info = "flow caused by exceptions ";
+				break;
+			case THREAD:
+				info = "critical thread interference ";
+				break;
+			case THREAD_EXCEPTION:
+				info = "critical thread interference caused by exceptions ";
+				break;
+			}
+			
+			return info + "from '" + source.toString() + "' to '" + sink.toString() + "'";
 		}
 		
 		public String toString(final File srcFile) {
@@ -151,6 +182,9 @@ public interface IFCCheckResultConsumer {
 				break;
 			case THREAD:
 				sbuf.append("possibilistic or probabilistic flow:\n");
+				break;
+			case THREAD_EXCEPTION:
+				sbuf.append("possibilistic or probabilistic flow caused by exceptions:\n");
 				break;
 			default:
 				sbuf.append("reason: " + reason + "\n");

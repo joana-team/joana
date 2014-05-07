@@ -174,7 +174,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 	@Override
 	public void consume(final IFCResult res) {
 		final IJavaProject jp = view.getCurrentProject();
-		final IFCInfoNode cur = new IFCInfoNode(root, res);
+		final IFCInfoNode cur = new IFCInfoNode(root, res, jp);
 		
 		for (final SLeak leak : res.getNoExcLeaks()) {
 			final LeakInfoNode lnfo = new LeakInfoNode(cur, leak);
@@ -293,22 +293,22 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 	
 	public static final class IFCInfoNode extends TreeNode {
 		private final IFCResult result;
-		private IJavaProject project;
+		private final IJavaProject project;
 		private MethodSearch search = null;
 		private IMarker sideMarker = null;
 		
-		private IFCInfoNode(final TreeNode parent, final IFCResult result) {
+		private IFCInfoNode(final TreeNode parent, final IFCResult result, final IJavaProject project) {
 			super(parent);
 			this.result = result;
+			this.project = project;
 		}
 
 		public String toString() {
-			return result.toString();
+			return "Project " + project.getProject().getName() + " is " + result.toString();
 		}
 
 		@Override
 		public void searchMatchingJavaElement(final IJavaProject project) {
-			this.project = project;
 			search = MethodSearch.searchMethod(project, result);
 		}
 
@@ -324,12 +324,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 
 		@Override
 		public Image getImage() {
-			if (search != null) {
-				final SourceMethod m = search.getMethod();
-				return CheckFlowMarkerAndImageManager.getInstance().getImage(m);
-			}
-
-			return super.getImage();
+			return CheckFlowMarkerAndImageManager.getInstance().getImage(result);
 		}
 
 		@Override

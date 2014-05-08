@@ -41,14 +41,13 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.ViewPart;
 
-import edu.kit.joana.ui.wala.easyifc.actions.IFCAction;
 import edu.kit.joana.ui.wala.easyifc.actions.CollapseNodesAction;
 import edu.kit.joana.ui.wala.easyifc.actions.ExpandNodesAction;
 import edu.kit.joana.ui.wala.easyifc.actions.HighlightIFCResultAction;
+import edu.kit.joana.ui.wala.easyifc.actions.IFCAction;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer;
 import edu.kit.joana.ui.wala.easyifc.views.IFCTreeContentProvider.IFCInfoNode;
 import edu.kit.joana.ui.wala.easyifc.views.IFCTreeContentProvider.LeakInfoNode;
-import edu.kit.joana.ui.wala.easyifc.views.IFCTreeContentProvider.StmtPartNode;
 import edu.kit.joana.ui.wala.easyifc.views.IFCTreeContentProvider.TreeNode;
 
 
@@ -67,7 +66,7 @@ public class EasyIFCView extends ViewPart {
 
 	private IFCTreeViewer tree;
 	private IFCAction checkIFCAction;
-	private HighlightIFCResultAction sliceAction;
+	private HighlightIFCResultAction markCriticalAction;
 	private ExpandNodesAction expandNodesAction;
 	private CollapseNodesAction collapseNodesAction;
 	private Action doubleClickAction;
@@ -100,8 +99,6 @@ public class EasyIFCView extends ViewPart {
 		tree.setSorter(IFCTreeContentProvider.makeSorter());
 		tree.setInput(null);
 
-		// Create the help context id for the viewer's control
-		PlatformUI.getWorkbench().getHelpSystem().setHelp(tree.getControl(), "MoJo-FlowLess-Plugin.viewer");
 		makeActions();
 		hookContextMenu();
 		hookDoubleClickAction();
@@ -131,7 +128,7 @@ public class EasyIFCView extends ViewPart {
 	}
 
 	private void fillContextMenu(IMenuManager manager) {
-		manager.add(sliceAction);
+		manager.add(markCriticalAction);
 		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 		manager.add(expandNodesAction);
 		manager.add(collapseNodesAction);
@@ -165,8 +162,8 @@ public class EasyIFCView extends ViewPart {
 	private void makeActions() {
 		checkIFCAction = new IFCAction(this, new UpdateTreeViewerConsumer());
 		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().addSelectionListener(checkIFCAction);
-		sliceAction = new HighlightIFCResultAction(this);
-		sliceAction.setEnabled(false);
+		markCriticalAction = new HighlightIFCResultAction(this);
+		markCriticalAction.setEnabled(false);
 		tree.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
 			public void selectionChanged(final SelectionChangedEvent event) {
@@ -174,7 +171,7 @@ public class EasyIFCView extends ViewPart {
 					final Object obj = ((IStructuredSelection) event.getSelection()).getFirstElement();
 
 					if (obj instanceof TreeNode) {
-						sliceAction.setEnabled(obj instanceof LeakInfoNode || obj instanceof IFCInfoNode);
+						markCriticalAction.setEnabled(obj instanceof LeakInfoNode || obj instanceof IFCInfoNode);
 					}
 				}
 			}
@@ -187,30 +184,19 @@ public class EasyIFCView extends ViewPart {
 					final Object obj = tsel.getFirstElement();
 					if (obj instanceof TreeNode) {
 						final TreeNode tn = (TreeNode) obj;
-						final IMarker m = tn.getMarker();
-						if (m != null) {
+						final SourceRefElement sref = tn.getSourceRef();
+						if (sref != null) {
 							try {
-								IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), m);
+								JavaUI.openInEditor(sref);
 							} catch (PartInitException e) {
-							}
+							} catch (JavaModelException e) {}
 						} else {
-							final SourceRefElement sref = tn.getSourceRef();
-							if (sref != null) {
+							final IMarker[] side = tn.getSideMarker();
+							if (side != null && side.length > 0 && side[0] != null) {
+								final IMarker im = side[0];
 								try {
-									JavaUI.openInEditor(sref);
-								} catch (PartInitException e) {
-								} catch (JavaModelException e) {
-								}
-	//							System.out.println("Click click: " + tsel.getFirstElement());
-							} else {
-								final IMarker[] side = tn.getSideMarker();
-								if (side != null && side.length > 0 && side[0] != null) {
-									final IMarker im = side[0];
-									try {
-										IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), im);
-									} catch (PartInitException e) {
-									}
-								}
+									IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), im);
+								} catch (PartInitException e) {}
 							}
 						}
 					}

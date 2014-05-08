@@ -6,7 +6,7 @@
          point="org.eclipse.ui.views">
       <view
             name="Information Flow Control"
-            icon="icons/check_flow.png"
+            icon="icons/easy_ifc.png"
             category="joana.ui.wala.easyifc.views"
             class="edu.kit.joana.ui.wala.easyifc.views.EasyIFCView"
             id="joana.ui.wala.easyifc.views.EasyIFCView">
@@ -118,7 +118,7 @@
     	<persistent value="false"/>
 	</extension>
 
-  	<extension id="edu.kit.joana.ui.checkflow.highlight.level0" 
+  	<extension id="joana.ui.easyifc.highlight.critical" 
     	point="org.eclipse.core.resources.markers"
     	name="level0">
     	<super type="org.eclipse.core.resources.textmarker"/>
@@ -128,22 +128,22 @@
 	<extension 
 		point="org.eclipse.ui.editors.annotationTypes">
   		<type 
-  			name="edu.kit.joana.ui.checkflow.highlight.level0annotation" 
-  			markerType="edu.kit.joana.ui.checkflow.highlight.level0" /> 
+  			name="joana.ui.easyifc.highlight.annotation" 
+  			markerType="joana.ui.easyifc.highlight.critical" /> 
   	</extension>
 	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
   		<specification
-  			annotationType="edu.kit.joana.ui.checkflow.highlight.level0annotation" 
+  			annotationType="joana.ui.easyifc.highlight.annotation" 
   			textPreferenceKey="highlight.text"
   			textPreferenceValue="true" 
   			highlightPreferenceKey="highlight.background" 
   			highlightPreferenceValue="true"
   			colorPreferenceKey="highlight.color"
-  			colorPreferenceValue="0,180,255" 
+  			colorPreferenceValue="255,215,198" 
   			overviewRulerPreferenceKey="highlight.rulers.overview" 
   			overviewRulerPreferenceValue="false"
   			presentationLayer="4"  
-  			label="Default Slice Highlighting" 
+  			label="Default Critical Statements Highlighting" 
 			verticalRulerPreferenceKey="highlight.rulers.vertical" 
   			verticalRulerPreferenceValue="true" 
   			includeOnPreferencePage="true"

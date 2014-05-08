@@ -29,7 +29,7 @@ import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.IFCResult;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SLeak;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SPos;
 import edu.kit.joana.ui.wala.easyifc.model.ProgramSourcePositions;
-import edu.kit.joana.ui.wala.easyifc.util.CheckFlowMarkerAndImageManager;
+import edu.kit.joana.ui.wala.easyifc.util.EasyIFCMarkerAndImageManager;
 import edu.kit.joana.ui.wala.easyifc.util.ProjectUtil;
 import edu.kit.joana.ui.wala.easyifc.views.EasyIFCView;
 import edu.kit.joana.ui.wala.easyifc.views.IFCTreeContentProvider.IFCInfoNode;
@@ -135,7 +135,7 @@ public class HighlightIFCResultAction extends Action {
 
 					@Override
 					public void run(final IProgressMonitor progress) throws CoreException {
-						CheckFlowMarkerAndImageManager.getInstance().clearAllSliceMarkers();
+						EasyIFCMarkerAndImageManager.getInstance().clearAllSliceMarkers();
 						final List<IPath> srcs = ProjectUtil.findProjectSourcePaths(jp);
 						final IProject p = jp.getProject();
 						final IWorkspaceRoot root = p.getWorkspace().getRoot();
@@ -152,7 +152,7 @@ public class HighlightIFCResultAction extends Action {
 							}
 
 							if (file.exists()) {
-								CheckFlowMarkerAndImageManager.getInstance().createSliceMarkers(file, f);
+								EasyIFCMarkerAndImageManager.getInstance().createChopMarkers(file, f);
 							}
 						}
 					}

@@ -27,8 +27,6 @@ import org.eclipse.swt.graphics.Image;
 
 import edu.kit.joana.ui.wala.easyifc.Activator;
 import edu.kit.joana.ui.wala.easyifc.model.FileSourcePositions;
-import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.FlowStmtResult;
-import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.FlowStmtResultPart;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.IFCResult;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SLeak;
 import edu.kit.joana.ui.wala.easyifc.model.SourcePosition;
@@ -42,7 +40,7 @@ import gnu.trove.map.hash.TIntObjectHashMap;
  *
  */
 @SuppressWarnings("restriction")
-public class CheckFlowMarkerAndImageManager {
+public class EasyIFCMarkerAndImageManager {
 
 	public static final String FLOW_OK = "edu.kit.joana.ui.checkflow_ok";
 	public static final String FLOW_OK_IMG = "icons/flow_ok_big.png";
@@ -59,18 +57,18 @@ public class CheckFlowMarkerAndImageManager {
 	public static final String FLOW_ILLEGAL = "edu.kit.joana.ui.checkflow_illegal";
 	public static final String FLOW_ILLEGAL_IMG = "icons/flow_illegal_big.png";
 
-	public static final String SLICE_MARKER = "edu.kit.joana.ui.checkflow.highlight.level0";
+	public static final String CRITICAL_MARKER = "joana.ui.easyifc.highlight.critical";
 	public static final String CHECK_FLOW_MARKER = "edu.kit.joana.ui.checkflow_marker";
 
     private final List<IMarker> markers = new LinkedList<IMarker>();
 
-    private static CheckFlowMarkerAndImageManager instance = null;
+    private static EasyIFCMarkerAndImageManager instance = null;
 
     private final JavaElementLabelProvider jLables = new JavaElementLabelProvider();
 
-    public static CheckFlowMarkerAndImageManager getInstance() {
+    public static EasyIFCMarkerAndImageManager getInstance() {
     	if (instance == null) {
-    		instance = new CheckFlowMarkerAndImageManager();
+    		instance = new EasyIFCMarkerAndImageManager();
     	}
 
     	return instance;
@@ -107,30 +105,6 @@ public class CheckFlowMarkerAndImageManager {
     	return Activator.getImageDescriptor(FLOW_ILLEGAL_IMG).createImage();
     }
     
-    public Image getImage(final FlowStmtResult fsr) {
-    	if (fsr.isAlwaysSatisfied()) {
-    		return Activator.getImageDescriptor(FLOW_OK_IMG).createImage();
-    	} else if (fsr.isNeverSatisfied()) {
-    		return Activator.getImageDescriptor(FLOW_ILLEGAL_IMG).createImage();
-    	} else if (fsr.isNoExceptionSatisfied()) {
-    		return Activator.getImageDescriptor(FLOW_NO_EXC_OK_IMG).createImage();
-    	} else if (fsr.isInferredSatisfied()) {
-    		return Activator.getImageDescriptor(FLOW_INFERRED_OK_IMG).createImage();
-    	} else if (fsr.isInferredNoExcSatisfied()) {
-    		return Activator.getImageDescriptor(FLOW_INFERRED_NO_EXC_OK_IMG).createImage();
-    	} else {
-    		return Activator.getImageDescriptor(FLOW_ILLEGAL_IMG).createImage();
-    	}
-    }
-
-    public Image getImage(final FlowStmtResultPart fsr) {
-    	if (fsr.isSatisfied()) {
-    		return Activator.getImageDescriptor(FLOW_OK_IMG).createImage();
-    	} else {
-    		return Activator.getImageDescriptor(FLOW_ILLEGAL_IMG).createImage();
-    	}
-    }
-
     public IMarker createMarker(final IResource res, final String msg, final int lineNr, final String kind) {
     	if (FLOW_OK.equals(kind)) {
     		return createMarkerOk(res, msg, lineNr);
@@ -231,7 +205,7 @@ public class CheckFlowMarkerAndImageManager {
     	sliceMarkers.clear();
     }
 
-	public synchronized void createSliceMarkers(final IFile file, final FileSourcePositions f) {
+	public synchronized void createChopMarkers(final IFile file, final FileSourcePositions f) {
 		try {
 			final TIntObjectMap<LinePos> line2char = countCharsToLine(file);
 
@@ -264,10 +238,8 @@ public class CheckFlowMarkerAndImageManager {
 						m.put(IMarker.PRIORITY, IMarker.PRIORITY_HIGH);
 						m.put(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
 
-						final IMarker marker = file.createMarker(SLICE_MARKER);
+						final IMarker marker = file.createMarker(CRITICAL_MARKER);
 						marker.setAttributes(m);
-//						MarkerUtilities.createMarker(file, m, SLICE_MARKER);
-
 						sliceMarkers.add(marker);
 					} catch (CoreException e) {
 						e.printStackTrace();

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Joana IFC
 Bundle-SymbolicName: joana.ui.wala.easyifc;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.0.1.qualifier
 Bundle-Activator: edu.kit.joana.ui.wala.easyifc.Activator
 Bundle-Vendor: KIT
 Require-Bundle: org.eclipse.ui,

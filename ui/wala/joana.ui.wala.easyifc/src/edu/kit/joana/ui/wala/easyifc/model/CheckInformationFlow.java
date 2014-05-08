@@ -44,7 +44,6 @@ import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.chopper.NonSameLevelChopper;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
-import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.FlowStmtResultPart;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.IFCResult;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.Reason;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SLeak;
@@ -54,10 +53,6 @@ import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
-import edu.kit.joana.wala.flowless.MoJo;
-import edu.kit.joana.wala.flowless.spec.ast.FlowAstVisitor.FlowAstException;
-import edu.kit.joana.wala.flowless.spec.ast.IFCStmt;
-import edu.kit.joana.wala.flowless.spec.java.ast.ClassInfo;
 
 public final class CheckInformationFlow {
 
@@ -69,37 +64,32 @@ public final class CheckInformationFlow {
 
 	
 	public static class CheckIFCConfig {
-		public static final String DEFAULT_TMP_OUT_DIR = "./out/";
 		public static final String DEFAULT_LIB_DIR = "../jSDG/lib/";
 
 		public final String bin;
 		public final String src;
-		public final String tmpDir;
 		public final String libDir;
 		public final PrintStream out;
 		public final IFCCheckResultConsumer results;
 		public final IProgressMonitor progress;
-		public boolean printStatistics = true;
 		public AnalysisScope scope = null;
 
 		public CheckIFCConfig(final String bin, final String src) {
-			this(bin, src, DEFAULT_TMP_OUT_DIR, DEFAULT_LIB_DIR, System.out, IFCCheckResultConsumer.DEFAULT,
+			this(bin, src, DEFAULT_LIB_DIR, System.out, IFCCheckResultConsumer.DEFAULT,
 					NullProgressMonitor.INSTANCE);
 		}
 
 		public CheckIFCConfig(final String bin, final String src, final PrintStream out) {
-			this(bin, src, DEFAULT_TMP_OUT_DIR, DEFAULT_LIB_DIR, out, IFCCheckResultConsumer.STDOUT,
+			this(bin, src, DEFAULT_LIB_DIR, out, IFCCheckResultConsumer.STDOUT,
 					NullProgressMonitor.INSTANCE);
 		}
 
-		public CheckIFCConfig(final String bin, final String src, final String tmpDir, final String libDir,
+		public CheckIFCConfig(final String bin, final String src, final String libDir,
 				final PrintStream out, final IFCCheckResultConsumer results, IProgressMonitor progress) {
 			if (src == null) {
 				throw new IllegalArgumentException("src directory is null.");
 			} else if (bin == null) {
 				throw new IllegalArgumentException("bin directory is null.");
-			} else if (tmpDir == null) {
-				throw new IllegalArgumentException("tmpDir directory is null.");
 			} else if (libDir == null) {
 				throw new IllegalArgumentException("libDir directory is null.");
 			} else if (out == null) {
@@ -112,7 +102,6 @@ public final class CheckInformationFlow {
 
 			this.src = src;
 			this.bin = bin;
-			this.tmpDir = tmpDir;
 			this.libDir = libDir;
 			this.out = out;
 			this.results = results;
@@ -146,59 +135,30 @@ public final class CheckInformationFlow {
 
 	public CheckInformationFlow(final CheckIFCConfig cfc) {
 		this.cfc = cfc;
-		this.printStatistics = cfc.printStatistics;
 		this.annotationMethod = AnnotationMethod.FROM_ANNOTATIONS;
 	}
 
-	private final boolean printStatistics;
-
 	public void runCheckIFC() throws IOException, ClassHierarchyException, IllegalArgumentException, CancelException, UnsoundGraphException {
-		cfc.out.print("Parsing source files... ");
-		List<ClassInfo> clsInfos = MoJo.parseSourceFiles(cfc.src);
-		cfc.out.println("done.");
-		cfc.out.print("Checking for syntactic errors... ");
-		final int errors = MoJo.prepareFlowLessStmts(clsInfos);
-		if (errors > 0) {
-			cfc.out.print("(" + errors + " errors) ");
-		}
-		cfc.out.println("done.");
-
-//		final MethodListCheck mlc = new MethodListCheck(null, cfc.tmpDir, /* do debug output */ false);
-//
-//		for (ClassInfo cls : clsInfos) {
-//			for (MethodInfo m : cls.getMethods()) {
-//				if (m.hasIFCStmts()) {
-//					// mark as external call targets
-////					System.err.println(m.toString());
-//					mlc.addMethod(m);
-//				}
-//			}
-//		}
-
 		final SDGConfig config = createDefaultConfig(cfc, "ifc.Main");
 		final SDGProgram p = buildSDG(config);
 		
 		if (containsThreads(p)) {			
-			cfc.out.print("checking '" + cfc.bin + "' for concurrent confidentiality.");
+			cfc.out.println("checking '" + cfc.bin + "' for concurrent confidentiality.");
 			config.setComputeInterferences(true);
 			config.setMhpType(MHPType.PRECISE);
 			final SDGProgram concProg = buildSDG(config); 
 			final IFCResult result = doThreadIFCanalysis(config, concProg);
 			cfc.results.consume(result);
 		} else {
-			cfc.out.print("checking '" + cfc.bin + "' for sequential confidentiality.");
+			cfc.out.println("checking '" + cfc.bin + "' for sequential confidentiality.");
 			final IFCResult result = doSequentialIFCanalysis(config, p);
 			cfc.results.consume(result);
-		}
-
-		if (printStatistics) {
-			//TODO print something useful
 		}
 	}
 	
 	private IFCResult doSequentialIFCanalysis(final SDGConfig config, final SDGProgram prog) {
 		final SDGMethod m = prog.getMethod(config.getEntryMethod());
-		final IFCResult result = new IFCResult(cfc.tmpDir, config.getEntryMethod(), m);
+		final IFCResult result = new IFCResult(config.getEntryMethod(), m);
 		
 		final Set<SLeak> excLeaks = checkIFC(Reason.EXCEPTION, prog, IFCType.CLASSICAL_NI,annotationMethod);
 		final boolean isSecure = excLeaks.isEmpty();
@@ -230,7 +190,7 @@ public final class CheckInformationFlow {
 	
 	private IFCResult doThreadIFCanalysis(final SDGConfig config, final SDGProgram prog) {
 		final SDGMethod m = prog.getMethod(config.getEntryMethod());
-		final IFCResult result = new IFCResult(cfc.tmpDir, config.getEntryMethod(), m);
+		final IFCResult result = new IFCResult(config.getEntryMethod(), m);
 		final Set<SLeak> threadLeaks = checkIFC(Reason.THREAD_EXCEPTION, prog, IFCType.RLSOD, annotationMethod);
 		final boolean isSecure = threadLeaks.isEmpty();
 
@@ -336,22 +296,6 @@ public final class CheckInformationFlow {
 		}
 
 		return prog;
-	}
-
-	public static ProgramSourcePositions sliceIFCStmt(final IFCStmt stmt, final FlowStmtResultPart fp,
-			final String tmpDir, final IProgressMonitor progress)
-			throws IOException, CancelException, FlowAstException {
-		if (!fp.hasAlias()) {
-			throw new IllegalArgumentException("Cannot create slice, as no alias context is provided.");
-		}
-		
-//		final String pathToSDG = tmpDir + (tmpDir.endsWith(File.separator) ? "" : File.separator)
-//				+ fp.getSDGFilename() + ".pdg";
-
-
-		final ProgramSourcePositions pspos = new ProgramSourcePositions();
-
-		return pspos;
 	}
 
 	private static String configToString(final SDGConfig config) {

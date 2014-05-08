@@ -47,6 +47,7 @@ import org.eclipse.ui.views.navigator.ResourceNavigator;
 
 import edu.kit.joana.ui.wala.easyifc.Activator;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer;
+import edu.kit.joana.ui.wala.easyifc.util.EasyIFCMarkerAndImageManager;
 import edu.kit.joana.ui.wala.easyifc.util.ProjectUtil;
 import edu.kit.joana.ui.wala.easyifc.views.EasyIFCView;
 
@@ -68,8 +69,8 @@ public class IFCAction extends Action implements ISelectionListener {
 		this.resultConsumer = resultConsumer;
 		this.setText("Check IFC");
 		this.setDescription("Check the information flow of the current project.");
-		this.setId("joana.ui.wala.easyifc.checkIFCAction");
-		this.setImageDescriptor(Activator.getImageDescriptor("icons/check_flow_action.png"));
+		this.setId("joana.ui.wala.easyifc.runIFCAction");
+		this.setImageDescriptor(Activator.getImageDescriptor("icons/run_ifc_action.png"));
 	}
 
 	public final static class ProjectConf {
@@ -162,7 +163,7 @@ public class IFCAction extends Action implements ISelectionListener {
 		}
 
 		public String getLibLocation() {
-			// libs are contained in the checkflow jar - at the root level
+			// libs are contained in the joana.api.jar - at the root level
 			// the loading routine should try to load the resource from the classloader, if the filesystem
 			// does not contain the requested file.
 			return "/";
@@ -196,12 +197,14 @@ public class IFCAction extends Action implements ISelectionListener {
 		if (getCurrentProject() == null) {
 			tryToGuessProject();
 		}
-
+		
 		if (getCurrentProject() == null) {
 			view.showMessage("Could not find current project. Aborting.");
 			return;
 		}
 
+		EasyIFCMarkerAndImageManager.getInstance().clearAllSliceMarkers();
+		
 		final IJavaProject jp = getCurrentProject();
 		try {
 			resultConsumer.consume(null);

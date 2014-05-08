@@ -44,8 +44,10 @@ import org.eclipse.ui.part.ViewPart;
 import edu.kit.joana.ui.wala.easyifc.actions.IFCAction;
 import edu.kit.joana.ui.wala.easyifc.actions.CollapseNodesAction;
 import edu.kit.joana.ui.wala.easyifc.actions.ExpandNodesAction;
-import edu.kit.joana.ui.wala.easyifc.actions.SliceIFCResultAction;
+import edu.kit.joana.ui.wala.easyifc.actions.HighlightIFCResultAction;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer;
+import edu.kit.joana.ui.wala.easyifc.views.IFCTreeContentProvider.IFCInfoNode;
+import edu.kit.joana.ui.wala.easyifc.views.IFCTreeContentProvider.LeakInfoNode;
 import edu.kit.joana.ui.wala.easyifc.views.IFCTreeContentProvider.StmtPartNode;
 import edu.kit.joana.ui.wala.easyifc.views.IFCTreeContentProvider.TreeNode;
 
@@ -65,7 +67,7 @@ public class EasyIFCView extends ViewPart {
 
 	private IFCTreeViewer tree;
 	private IFCAction checkIFCAction;
-	private SliceIFCResultAction sliceAction;
+	private HighlightIFCResultAction sliceAction;
 	private ExpandNodesAction expandNodesAction;
 	private CollapseNodesAction collapseNodesAction;
 	private Action doubleClickAction;
@@ -163,7 +165,7 @@ public class EasyIFCView extends ViewPart {
 	private void makeActions() {
 		checkIFCAction = new IFCAction(this, new UpdateTreeViewerConsumer());
 		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().addSelectionListener(checkIFCAction);
-		sliceAction = new SliceIFCResultAction(this);
+		sliceAction = new HighlightIFCResultAction(this);
 		sliceAction.setEnabled(false);
 		tree.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
@@ -172,11 +174,7 @@ public class EasyIFCView extends ViewPart {
 					final Object obj = ((IStructuredSelection) event.getSelection()).getFirstElement();
 
 					if (obj instanceof TreeNode) {
-						if (obj instanceof StmtPartNode) {
-							sliceAction.setEnabled(true);
-						} else {
-							sliceAction.setEnabled(false);
-						}
+						sliceAction.setEnabled(obj instanceof LeakInfoNode || obj instanceof IFCInfoNode);
 					}
 				}
 			}

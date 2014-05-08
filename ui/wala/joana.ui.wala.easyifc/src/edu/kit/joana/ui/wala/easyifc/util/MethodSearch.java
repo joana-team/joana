@@ -7,12 +7,14 @@
  */
 package edu.kit.joana.ui.wala.easyifc.util;
 
+import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.ILocalVariable;
@@ -25,7 +27,6 @@ import org.eclipse.jdt.core.search.SearchParticipant;
 import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.core.search.SearchRequestor;
 import org.eclipse.jdt.internal.core.SourceMethod;
-import org.eclipse.jdt.internal.core.SourceRefElement;
 import org.eclipse.jdt.internal.core.SourceType;
 
 import edu.kit.joana.api.sdg.SDGFormalParameter;
@@ -37,6 +38,7 @@ import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.IFCResult;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.MethodResult;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SPos;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
+import edu.kit.joana.wala.core.params.objgraph.TVL.V;
 import edu.kit.joana.wala.flowless.spec.FlowLessBuilder.FlowError;
 import edu.kit.joana.wala.flowless.spec.ast.IFCStmt;
 
@@ -57,10 +59,16 @@ public class MethodSearch {
 		this.ifcresult = ifcresult;
 		this.jMethod = jMethod;
 	}
-
-	public static IMarker searchPosition(final IJavaProject jp, final SPos spos) {
+	
+	private final Map<String, ICompilationUnit> file2cu = new HashMap<String, ICompilationUnit>();
+	
+	public ICompilationUnit getCompilationUnit(final String fileName) {
+		if (file2cu.containsKey(fileName)) {
+			return file2cu.get(fileName);
+		}
+		
 		final IJavaSearchScope scope = SearchEngine.createJavaSearchScope(new IJavaElement[] {jp});
-		final String classOfFile = spos.sourceFile.substring(0, spos.sourceFile.lastIndexOf('.')).replace('/', '.').replace('$', '.');
+		final String classOfFile = fileName.substring(0, fileName.lastIndexOf('.')).replace('/', '.').replace('$', '.');
 		
 		final SearchPattern pat = SearchPattern.createPattern(classOfFile,
 				IJavaSearchConstants.TYPE, IJavaSearchConstants.DECLARATIONS, SearchPattern.R_EXACT_MATCH | SearchPattern.R_CASE_SENSITIVE | SearchPattern.R_FULL_MATCH);
@@ -88,8 +96,24 @@ public class MethodSearch {
 
 		if (!found.isEmpty()) {
 			final SourceType t =  found.element();
-			final IResource res = t.getResource();
+			final ICompilationUnit cu = t.getCompilationUnit();
 			
+			file2cu.put(fileName, cu);
+			
+			return cu;
+		} else {
+			file2cu.put(fileName, null);
+			
+			return null;
+		}
+	}
+
+	public IMarker createSideMarker(final SPos spos) {
+		final ICompilationUnit cu = getCompilationUnit(spos.sourceFile);
+		
+		if (cu != null) {
+			final IResource res = cu.getResource();
+
 			return CheckFlowMarkerAndImageManager.getInstance().createMarkerInferredOk(res, "foo", spos.startLine);
 		} else {
 			return null;

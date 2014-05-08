@@ -7,7 +7,6 @@
  */
 package edu.kit.joana.ui.wala.easyifc.actions;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
@@ -24,38 +23,41 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.ui.PlatformUI;
 
-import com.ibm.wala.util.CancelException;
-
 import edu.kit.joana.ui.wala.easyifc.Activator;
-import edu.kit.joana.ui.wala.easyifc.model.CheckInformationFlow;
 import edu.kit.joana.ui.wala.easyifc.model.FileSourcePositions;
-import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.FlowStmtResult;
-import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.FlowStmtResultPart;
+import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.IFCResult;
+import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SLeak;
+import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SPos;
 import edu.kit.joana.ui.wala.easyifc.model.ProgramSourcePositions;
 import edu.kit.joana.ui.wala.easyifc.util.CheckFlowMarkerAndImageManager;
-import edu.kit.joana.ui.wala.easyifc.util.ProgressMonitorDelegate;
 import edu.kit.joana.ui.wala.easyifc.util.ProjectUtil;
-import edu.kit.joana.ui.wala.easyifc.views.IFCTreeContentProvider.StmtPartNode;
-import edu.kit.joana.ui.wala.easyifc.views.IFCTreeContentProvider.TreeNode;
 import edu.kit.joana.ui.wala.easyifc.views.EasyIFCView;
-import edu.kit.joana.wala.flowless.spec.ast.FlowAstVisitor.FlowAstException;
+import edu.kit.joana.ui.wala.easyifc.views.IFCTreeContentProvider.IFCInfoNode;
+import edu.kit.joana.ui.wala.easyifc.views.IFCTreeContentProvider.LeakInfoNode;
+import edu.kit.joana.ui.wala.easyifc.views.IFCTreeContentProvider.TreeNode;
 
-public class SliceIFCResultAction extends Action {
+public class HighlightIFCResultAction extends Action {
 
 	private final EasyIFCView view;
 
-	public SliceIFCResultAction(final EasyIFCView view) {
+	public HighlightIFCResultAction(final EasyIFCView view) {
 		this.view = view;
-		this.setText("Compute program slice");
-		this.setDescription("Compute the program slice under the selected alias configuration.");
-		this.setId("joana.ui.wala.easyifc.sliceIFCResultAction");
+		this.setText("Highlight critical program parts");
+		this.setDescription("Compute the program chop between source and sink.");
+		this.setId("joana.ui.wala.easyifc.highlightIFCResultAction");
 		this.setImageDescriptor(Activator.getImageDescriptor("icons/run_slice.png"));
 	}
 
 	public void run() {
 		final TreeNode tn = view.getTree().getSelectedNode();
-		if (tn instanceof StmtPartNode) {
-			final SliceFlowRunnable sfr = new SliceFlowRunnable((StmtPartNode) tn);
+		if (tn instanceof LeakInfoNode || tn instanceof IFCInfoNode) {
+			final ChopFlowRunnable sfr;
+			if (tn instanceof LeakInfoNode) {
+				sfr = new ChopFlowRunnable((LeakInfoNode) tn);
+			} else {
+				sfr = new ChopFlowRunnable((IFCInfoNode) tn);
+			}
+					
 			try {
 				PlatformUI.getWorkbench().getProgressService().run(true, true, sfr);
 			} catch (InvocationTargetException e) {
@@ -68,28 +70,72 @@ public class SliceIFCResultAction extends Action {
 		}
 	}
 
-	private static class SliceFlowRunnable implements IRunnableWithProgress {
+	private static class ChopFlowRunnable implements IRunnableWithProgress {
 
-		private final StmtPartNode spn;
+		private final LeakInfoNode leaknfo;
+		private final IFCInfoNode ifcnfo;
 
-		private SliceFlowRunnable(final StmtPartNode spn) {
-			this.spn = spn;
+		private ChopFlowRunnable(final LeakInfoNode leaknfo) {
+			this.leaknfo = leaknfo;
+			this.ifcnfo = null;
 		}
 
+		private ChopFlowRunnable(final IFCInfoNode ifcnfo) {
+			this.leaknfo = null;
+			this.ifcnfo = ifcnfo;
+		}
+
+		private static ProgramSourcePositions buildSourcePositions(final SLeak leak) {
+			final ProgramSourcePositions psp = new ProgramSourcePositions();
+			
+			for (final SPos pos : leak.getChop()) {
+				psp.addSourcePosition(pos.sourceFile, pos.startLine, pos.endLine, pos.startChar, pos.endChar);
+			}
+			
+			return psp;
+		}
+		
+		private static ProgramSourcePositions buildSourcePositions(final IFCResult result) {
+			final ProgramSourcePositions psp = new ProgramSourcePositions();
+			
+			for (final SLeak leak : result.getNoExcLeaks()) {
+				for (final SPos pos : leak.getChop()) {
+					psp.addSourcePosition(pos.sourceFile, pos.startLine, pos.endLine, pos.startChar, pos.endChar);
+				}
+			}
+			
+			for (final SLeak leak : result.getExcLeaks()) {
+				for (final SPos pos : leak.getChop()) {
+					psp.addSourcePosition(pos.sourceFile, pos.startLine, pos.endLine, pos.startChar, pos.endChar);
+				}
+			}
+
+			return psp;
+		}
+		
 		@Override
 		public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-			final FlowStmtResult fsr = spn.getStmtInfo().getResult();
-			final FlowStmtResultPart res = spn.getResult();
+			final ProgramSourcePositions pos;
+			final IJavaProject jp;
+			
+			if (leaknfo != null) {
+				final SLeak leak = leaknfo.getLeak();
+				pos = buildSourcePositions(leak);
+				jp = leaknfo.getProject();
+			} else if (ifcnfo != null) {
+				final IFCResult result = ifcnfo.getResult();
+				pos = buildSourcePositions(result);
+				jp = ifcnfo.getProject();
+			} else {
+				return;
+			}
+			
 			try {
-				final ProgramSourcePositions pos = CheckInformationFlow.sliceIFCStmt(fsr.getStmt(), res,
-						spn.getTmpDir(), ProgressMonitorDelegate.createProgressMonitorDelegate(monitor));
-
 				final IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
 
 					@Override
 					public void run(final IProgressMonitor progress) throws CoreException {
 						CheckFlowMarkerAndImageManager.getInstance().clearAllSliceMarkers();
-						final IJavaProject jp = spn.getProject();
 						final List<IPath> srcs = ProjectUtil.findProjectSourcePaths(jp);
 						final IProject p = jp.getProject();
 						final IWorkspaceRoot root = p.getWorkspace().getRoot();
@@ -112,13 +158,7 @@ public class SliceIFCResultAction extends Action {
 					}
 				};
 
-				spn.getProject().getResource().getWorkspace().run(runnable, null, IWorkspace.AVOID_UPDATE, monitor);
-			} catch (IOException e) {
-				throw new InvocationTargetException(e, e.getMessage());
-			} catch (CancelException e) {
-				throw new InterruptedException(e.getMessage());
-			} catch (FlowAstException e) {
-				throw new InvocationTargetException(e, e.getMessage());
+				jp.getResource().getWorkspace().run(runnable, null, IWorkspace.AVOID_UPDATE, monitor);
 			} catch (CoreException e) {
 				throw new InvocationTargetException(e, e.getMessage());
 			}

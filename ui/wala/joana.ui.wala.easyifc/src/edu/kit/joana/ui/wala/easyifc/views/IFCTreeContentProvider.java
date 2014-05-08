@@ -306,6 +306,10 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 			this.project = project;
 		}
 
+		public IFCResult getResult() {
+			return result;
+		}
+		
 		public String toString() {
 			return "Project " + project.getProject().getName() + " is " + result.toString();
 		}
@@ -351,8 +355,6 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		private final SLeak leak;
 		private IMarker marker = null;
 		private IMarker sideMarker[] = null;
-		private SourceRefElement source;
-		private SourceRefElement sink;
 
 		private LeakInfoNode(final IFCInfoNode parent, final SLeak leak) {
 			super(parent);
@@ -365,15 +367,16 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 
 		@Override
 		public void searchMatchingJavaElement() {
-			final IJavaProject jp = getIFCInfo().project;
-			if (jp != null) {
+			final MethodSearch search = getIFCInfo().search;
+			
+			if (search != null) {
 				sideMarker = new IMarker[2];
 				{
-					sideMarker[0] = MethodSearch.searchPosition(jp, leak.getSource());
+					sideMarker[0] = search.createSideMarker(leak.getSource());
 //					source = elem;
 				}
 				{
-					sideMarker[1] = MethodSearch.searchPosition(jp, leak.getSink());
+					sideMarker[1] = search.createSideMarker(leak.getSink());
 //					sink = elem;
 				}
 //				marker = search.findIFCStmt(result.getStmt());
@@ -391,7 +394,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 
 		@Override
 		public SourceRefElement getSourceRef() {
-			return source;
+			return null;
 		}
 
 		@Override

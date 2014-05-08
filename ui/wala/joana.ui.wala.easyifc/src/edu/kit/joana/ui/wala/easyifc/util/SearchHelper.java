@@ -32,6 +32,7 @@ import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.IFCResult;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SPos;
+import edu.kit.joana.ui.wala.easyifc.util.EasyIFCMarkerAndImageManager.Marker;
 
 /**
  *
@@ -120,13 +121,13 @@ public class SearchHelper {
 		}
 	}
 
-	public IMarker createSideMarker(final SPos spos) {
+	public IMarker createSideMarker(final SPos spos, final String message, final Marker marker) {
 		final ICompilationUnit cu = getCompilationUnit(spos.sourceFile);
 		
 		if (cu != null) {
 			final IResource res = cu.getResource();
 
-			return EasyIFCMarkerAndImageManager.getInstance().createMarkerInferredOk(res, "foo", spos.startLine);
+			return EasyIFCMarkerAndImageManager.getInstance().createMarker(res, message, spos.startLine, marker);
 		} else {
 			return null;
 		}

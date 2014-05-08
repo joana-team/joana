@@ -213,9 +213,9 @@ public final class CheckInformationFlow {
 				result.addExcLeak(leak);
 			}
 
-			cfc.out.print("Information leaks detected. Program is NOT SECURE.");
+			cfc.out.println("Information leaks detected. Program is NOT SECURE.");
 		} else {
-			cfc.out.print("No information leaks detected. Program is SECURE.");
+			cfc.out.println("No information leaks detected. Program is SECURE.");
 		}
 		
 		return result;

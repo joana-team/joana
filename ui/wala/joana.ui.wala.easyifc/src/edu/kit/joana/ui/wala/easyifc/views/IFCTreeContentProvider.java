@@ -8,6 +8,10 @@
 package edu.kit.joana.ui.wala.easyifc.views;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.jdt.core.IJavaProject;
@@ -21,6 +25,7 @@ import org.eclipse.ui.PlatformUI;
 
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer;
 import edu.kit.joana.ui.wala.easyifc.util.EasyIFCMarkerAndImageManager;
+import edu.kit.joana.ui.wala.easyifc.util.EasyIFCMarkerAndImageManager.Marker;
 import edu.kit.joana.ui.wala.easyifc.util.SearchHelper;
 
 /**
@@ -47,6 +52,10 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 
 	    			final SLeak l1 = m1.getLeak();
 	    			final SLeak l2 = m2.getLeak();
+	    			
+	    			if (l1.getReason().importance != l2.getReason().importance) {
+	    				return l1.getReason().importance - l2.getReason().importance;
+	    			}
 	    			
 	    			return l1.compareTo(l2);
 	    		} else {
@@ -125,17 +134,33 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		final IFCInfoNode cur = new IFCInfoNode(root, res, jp);
 		cur.searchMatchingJavaElement();
 		
+		final List<LeakInfoNode> nodes = new LinkedList<LeakInfoNode>();
+		
 		for (final SLeak leak : res.getNoExcLeaks()) {
 			final LeakInfoNode lnfo = new LeakInfoNode(cur, leak);
-			lnfo.searchMatchingJavaElement();
+			nodes.add(lnfo);
 		}
 		
 		for (final SLeak leak : res.getExcLeaks()) {
 			final LeakInfoNode lnfo = new LeakInfoNode(cur, leak);
+			nodes.add(lnfo);
+		}
+		
+		createSideMarkerByImportance(nodes);
+	}
+
+	private static void createSideMarkerByImportance(final List<LeakInfoNode> nodes) {
+		Collections.sort(nodes, new Comparator<LeakInfoNode>() {
+			@Override
+			public int compare(final LeakInfoNode o1, final LeakInfoNode o2) {
+				return o1.getLeak().getReason().importance - o2.getLeak().getReason().importance;
+			}});
+		
+		for (final LeakInfoNode lnfo : nodes) {
 			lnfo.searchMatchingJavaElement();
 		}
 	}
-
+	
 	public static abstract class TreeNode {
 		private final TreeNode parent;
 		private final ArrayList<TreeNode> children;
@@ -278,8 +303,20 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 			
 			if (search != null) {
 				sideMarker = new IMarker[2];
-				sideMarker[0] = search.createSideMarker(leak.getSource());
-				sideMarker[1] = search.createSideMarker(leak.getSink());
+				switch (leak.getReason()) {
+				case DIRECT_FLOW:
+				case INDIRECT_FLOW:
+				case BOTH_FLOW:
+				case EXCEPTION:
+					sideMarker[0] = search.createSideMarker(leak.getSource(), "Secret source of illegal flow.", Marker.SECRET_INPUT);
+					sideMarker[1] = search.createSideMarker(leak.getSink(), "Public sink of illegal flow.", Marker.PUBLIC_OUTPUT);
+					break;
+				case THREAD:
+				case THREAD_EXCEPTION:
+					sideMarker[0] = search.createSideMarker(leak.getSource(), "Statement part of critical interference.", Marker.CRITICAL_INTERFERENCE);
+					sideMarker[1] = search.createSideMarker(leak.getSink(), "Statement part of critical interference.", Marker.CRITICAL_INTERFERENCE);
+					break;
+				}
 			}
 		}
 		

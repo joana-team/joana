@@ -30,7 +30,6 @@ import edu.kit.joana.ui.wala.easyifc.model.FileSourcePositions;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.IFCResult;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SLeak;
 import edu.kit.joana.ui.wala.easyifc.model.SourcePosition;
-import edu.kit.joana.wala.flowless.spec.FlowLessBuilder.FlowError;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
@@ -42,23 +41,29 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 @SuppressWarnings("restriction")
 public class EasyIFCMarkerAndImageManager {
 
-	public static final String FLOW_OK = "edu.kit.joana.ui.checkflow_ok";
-	public static final String FLOW_OK_IMG = "icons/flow_ok_big.png";
-
-    public static final String FLOW_NO_EXC_OK = "edu.kit.joana.ui.checkflow_no_exc_ok";
-    public static final String FLOW_NO_EXC_OK_IMG = "icons/flow_no_exc_ok_big.png";
-
-	public static final String FLOW_INFERRED_OK = "edu.kit.joana.ui.checkflow_inferred_ok";
-	public static final String FLOW_INFERRED_OK_IMG = "icons/flow_inferred_ok_big.png";
-
-	public static final String FLOW_INFERRED_NO_EXC_OK = "edu.kit.joana.ui.checkflow_inferred_no_exc_ok";
-	public static final String FLOW_INFERRED_NO_EXC_OK_IMG = "icons/flow_inferred_no_exc_ok_big.png";
-
-	public static final String FLOW_ILLEGAL = "edu.kit.joana.ui.checkflow_illegal";
-	public static final String FLOW_ILLEGAL_IMG = "icons/flow_illegal_big.png";
+	public enum Marker {
+		SECRET_INPUT("joana.ui.easyifc.marker.secret_input", "icons/secret_input_big.png"),
+		PUBLIC_OUTPUT("joana.ui.easyifc.marker.public_output", "icons/public_output_big.png"),
+		CRITICAL_INTERFERENCE("joana.ui.easyifc.marker.critical_interference", "icons/critical_interference_big.png");
+		
+		public final String id;
+		public final String bigImg;
+		
+		private Marker(final String id, final String bigImg) {
+			this.id = id;
+			this.bigImg = bigImg;
+		}
+		
+	}
+	
+	public static final String NO_LEAK_IMG					= "icons/no_leak_big.png";
+    public static final String ILLEGAL_FLOW_EXC_IMG 		= "icons/illegal_flow_exc_big.png";
+	public static final String ILLEGAL_FLOW_THREAD_IMG 		= "icons/illegal_flow_thread_big.png";
+	public static final String ILLEGAL_FLOW_THREAD_EXC_IMG 	= "icons/illegal_flow_thread_exc_big.png";
+	public static final String ILLEGAL_FLOW_IMG 			= "icons/illegal_flow_big.png";
 
 	public static final String CRITICAL_MARKER = "joana.ui.easyifc.highlight.critical";
-	public static final String CHECK_FLOW_MARKER = "edu.kit.joana.ui.checkflow_marker";
+	public static final String IFC_MARKER = "joana.ui.easyifc.marker";
 
     private final List<IMarker> markers = new LinkedList<IMarker>();
 
@@ -80,12 +85,8 @@ public class EasyIFCMarkerAndImageManager {
 
     public Image getImage(final IFCResult ifcres) {
 		return (ifcres.hasLeaks() 
-				? Activator.getImageDescriptor(FLOW_ILLEGAL_IMG).createImage()
-				: Activator.getImageDescriptor(FLOW_OK_IMG).createImage());
-    }
-
-    public Image getImage(final FlowError ferr) {
-		return Activator.getImageDescriptor(FLOW_ILLEGAL_IMG).createImage();
+				? Activator.getImageDescriptor(ILLEGAL_FLOW_IMG).createImage()
+				: Activator.getImageDescriptor(NO_LEAK_IMG).createImage());
     }
 
     public Image getImage(final SLeak leak) {
@@ -93,34 +94,18 @@ public class EasyIFCMarkerAndImageManager {
     	case BOTH_FLOW:
     	case DIRECT_FLOW:
     	case INDIRECT_FLOW:
-        	return Activator.getImageDescriptor(FLOW_ILLEGAL_IMG).createImage();
+        	return Activator.getImageDescriptor(ILLEGAL_FLOW_IMG).createImage();
     	case EXCEPTION:
-        	return Activator.getImageDescriptor(FLOW_NO_EXC_OK).createImage();
+        	return Activator.getImageDescriptor(ILLEGAL_FLOW_EXC_IMG).createImage();
     	case THREAD:
-        	return Activator.getImageDescriptor(FLOW_NO_EXC_OK_IMG).createImage();
+        	return Activator.getImageDescriptor(ILLEGAL_FLOW_THREAD_IMG).createImage();
     	case THREAD_EXCEPTION:
-        	return Activator.getImageDescriptor(FLOW_INFERRED_NO_EXC_OK_IMG).createImage();
+        	return Activator.getImageDescriptor(ILLEGAL_FLOW_THREAD_EXC_IMG).createImage();
     	}
     	
-    	return Activator.getImageDescriptor(FLOW_ILLEGAL_IMG).createImage();
+    	return Activator.getImageDescriptor(ILLEGAL_FLOW_IMG).createImage();
     }
     
-    public IMarker createMarker(final IResource res, final String msg, final int lineNr, final String kind) {
-    	if (FLOW_OK.equals(kind)) {
-    		return createMarkerOk(res, msg, lineNr);
-    	} else if (FLOW_NO_EXC_OK.equals(kind)) {
-    		return createMarkerNoExcOk(res, msg, lineNr);
-    	} else if (FLOW_INFERRED_OK.equals(kind)) {
-    		return createMarkerInferredOk(res, msg, lineNr);
-    	} else if (FLOW_INFERRED_NO_EXC_OK.equals(kind)) {
-    		return createMarkerInferredNoExcOk(res, msg, lineNr);
-    	} else if (FLOW_ILLEGAL.equals(kind)) {
-    		return createMarkerIllegal(res, msg, lineNr);
-    	} else {
-    		throw new IllegalArgumentException("Unknown marker kind: " + kind);
-    	}
-    }
-
     private synchronized IMarker create(final IResource res, final String msg, final int lineNr, final String kind) {
     	try {
 			final IMarker m = res.createMarker(kind);
@@ -139,28 +124,8 @@ public class EasyIFCMarkerAndImageManager {
     	return null;
     }
 
-    public IMarker createMarkerOk(final IResource res, final String msg, final int lineNr) {
-    	return create(res, msg, lineNr, FLOW_OK);
-    }
-
-    public IMarker createMarkerNoExcOk(final IResource res, final String msg, final int lineNr) {
-    	return create(res, msg, lineNr, FLOW_NO_EXC_OK);
-    }
-
-    public IMarker createMarkerInferredOk(final IResource res, final String msg, final int lineNr) {
-    	return create(res, msg, lineNr, FLOW_INFERRED_OK);
-    }
-
-    public IMarker createMarkerError(final IResource res, final String msg, final int lineNr) {
-    	return create(res, msg, lineNr, FLOW_ILLEGAL);
-    }
-
-    public IMarker createMarkerInferredNoExcOk(final IResource res, final String msg, final int lineNr) {
-    	return create(res, msg, lineNr, FLOW_INFERRED_NO_EXC_OK);
-    }
-
-    public IMarker createMarkerIllegal(final IResource res, final String msg, final int lineNr) {
-    	return create(res, msg, lineNr, FLOW_ILLEGAL);
+    public IMarker createMarker(final IResource res, final String msg, final int lineNr, final Marker marker) {
+    	return create(res, msg, lineNr, marker.id);
     }
 
     public synchronized void clearAll(final IProject p) {
@@ -178,7 +143,7 @@ public class EasyIFCMarkerAndImageManager {
     	// search rest of textmarkers (left over from crashed runs)
     	if (p != null) {
     		try {
-				final IMarker[] found = p.findMarkers(CHECK_FLOW_MARKER, true, IResource.DEPTH_INFINITE);
+				final IMarker[] found = p.findMarkers(IFC_MARKER, true, IResource.DEPTH_INFINITE);
 				if (found != null) {
 					for (final IMarker m : found) {
 						if (m.exists()) {

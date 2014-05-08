@@ -29,89 +29,59 @@
       </perspectiveExtension>
    </extension>
    <extension
-         id="edu.kit.joana.ui.checkflow_marker"
+         id="joana.ui.easyifc.marker"
          name="IFC generic marker"
          point="org.eclipse.core.resources.markers">
 	  <super type="org.eclipse.core.resources.marker"/>
       <persistent value="false"/>
    </extension>
    <extension
-         id="edu.kit.joana.ui.checkflow_ok"
-         name="IFC ok marker"
+         id="joana.ui.easyifc.marker.public_output"
+         name="IFC public output marker"
          point="org.eclipse.core.resources.markers">
-      <super type="edu.kit.joana.ui.checkflow_marker"/>
+      <super type="joana.ui.easyifc.marker"/>
       <persistent value="false"/>
    </extension>
    <extension
          point="org.eclipse.ui.ide.markerImageProviders">
       <imageprovider
-            icon="icons/flow_ok.png"
-            id="edu.kit.joana.ui.checkflow_img_ok"
-            markertype="edu.kit.joana.ui.checkflow_ok">
+            icon="icons/public_output.png"
+            id="joana.ui.easyifc.marker.public_output.img"
+            markertype="joana.ui.easyifc.marker.public_output">
       </imageprovider>
    </extension>
    <extension
-         id="edu.kit.joana.ui.checkflow_no_exc_ok"
-         name="IFC no exceptions ok marker"
+         id="joana.ui.easyifc.marker.secret_input"
+         name="IFC secret input marker"
          point="org.eclipse.core.resources.markers">
-      <super type="edu.kit.joana.ui.checkflow_marker"/>
+      <super type="joana.ui.easyifc.marker"/>
       <persistent value="false"/>
    </extension>
    <extension
          point="org.eclipse.ui.ide.markerImageProviders">
       <imageprovider
-            icon="icons/flow_no_exc_ok.png"
-            id="edu.kit.joana.ui.checkflow_img_no_exc_ok"
-            markertype="edu.kit.joana.ui.checkflow_no_exc_ok">
+            icon="icons/secret_input.png"
+            id="joana.ui.easyifc.marker.secret_input.img"
+            markertype="joana.ui.easyifc.marker.secret_input">
       </imageprovider>
    </extension>
    <extension
-         id="edu.kit.joana.ui.checkflow_inferred_ok"
-         name="IFC inferred ok marker"
+         id="joana.ui.easyifc.marker.critical_interference"
+         name="IFC critical thread interference marker"
          point="org.eclipse.core.resources.markers">
-      <super type="edu.kit.joana.ui.checkflow_marker"/>
+      <super type="joana.ui.easyifc.marker"/>
       <persistent value="false"/>
    </extension>
    <extension
          point="org.eclipse.ui.ide.markerImageProviders">
       <imageprovider
-            icon="icons/flow_inferred_ok.png"
-            id="edu.kit.joana.ui.checkflow_img_inferred_ok"
-            markertype="edu.kit.joana.ui.checkflow_inferred_ok">
-      </imageprovider>
-   </extension>
-   <extension
-         id="edu.kit.joana.ui.checkflow_inferred_no_exc_ok"
-         name="IFC inferred no exception ok marker"
-         point="org.eclipse.core.resources.markers">
-      <super type="edu.kit.joana.ui.checkflow_marker"/>
-      <persistent value="false"/>
-   </extension>
-   <extension
-         point="org.eclipse.ui.ide.markerImageProviders">
-      <imageprovider
-            icon="icons/flow_inferred_no_exc_ok.png"
-            id="edu.kit.joana.ui.checkflow_img_inferred_no_exc_ok"
-            markertype="edu.kit.joana.ui.checkflow_inferred_no_exc_ok">
-      </imageprovider>
-   </extension>
-   <extension
-         id="edu.kit.joana.ui.checkflow_illegal"
-         name="IFC illegal marker"
-         point="org.eclipse.core.resources.markers">
-      <super type="edu.kit.joana.ui.checkflow_marker"/>
-      <persistent value="false"/>
-   </extension>
-   <extension
-         point="org.eclipse.ui.ide.markerImageProviders">
-      <imageprovider
-            icon="icons/flow_illegal.png"
-            id="edu.kit.joana.ui.checkflow_img_illegal"
-            markertype="edu.kit.joana.ui.checkflow_illegal">
+            icon="icons/critical_interference.png"
+            id="joana.ui.easyifc.marker.critical_interference.img"
+            markertype="joana.ui.easyifc.marker.critical_interference">
       </imageprovider>
    </extension>
 <!-- textual highlight stuff -->
-	<extension id="edu.kit.joana.ui.checkflow.highlight.highlightMarker" 
+	<extension id="joana.ui.easyifc.highlight.marker" 
     	point="org.eclipse.core.resources.markers"
     	name="highlightMarker">
     	<super type="org.eclipse.core.resources.textmarker"/>
@@ -122,7 +92,7 @@
     	point="org.eclipse.core.resources.markers"
     	name="level0">
     	<super type="org.eclipse.core.resources.textmarker"/>
-    	<super type="edu.kit.joana.ui.checkflow.highlight.highlightMarker"/>    
+    	<super type="joana.ui.easyifc.highlight.marker"/>    
     	<persistent value="false"/>
 	</extension>
 	<extension 

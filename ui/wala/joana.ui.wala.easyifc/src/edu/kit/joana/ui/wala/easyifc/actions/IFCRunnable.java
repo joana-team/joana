@@ -44,14 +44,19 @@ public class IFCRunnable implements IRunnableWithProgress {
 
 	@Override
 	public void run(final IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+		monitor.beginTask("Running information flow control analysis...", IProgressMonitor.UNKNOWN);
+		
 		final ProgressMonitorDelegate walaProgress = ProgressMonitorDelegate.createProgressMonitorDelegate(monitor);
 		try {
 			final CheckIFCConfig cfc = new CheckIFCConfig(conf.getBinDir(), conf.getSrcDirs().get(0),
 					conf.getLibLocation(), conf.getLogOut(), resultConsumer, walaProgress);
 			final CheckInformationFlow cfl = new CheckInformationFlow(cfc);
 			final IProject project = conf.getProject().getProject();
+			monitor.subTask("Refreshing project.");
 			project.refreshLocal(IResource.DEPTH_INFINITE, monitor);
+			monitor.subTask("Building project.");
 			project.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, monitor);
+			monitor.subTask("Checking information flow.");
 			cfl.runCheckIFC();
 		} catch (ClassHierarchyException e) {
 			throw new InvocationTargetException(e, e.getMessage());
@@ -66,6 +71,8 @@ public class IFCRunnable implements IRunnableWithProgress {
 		} catch (CoreException e) {
 			throw new InvocationTargetException(e, e.getMessage());
 		}
+		
+		monitor.done();
 	}
 
 }

@@ -23,10 +23,15 @@ import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.annotations.IFCAnnotationManager;
 import edu.kit.joana.api.lattice.BuiltinLattices;
+import edu.kit.joana.api.sdg.SDGActualParameter;
+import edu.kit.joana.api.sdg.SDGAttribute;
+import edu.kit.joana.api.sdg.SDGCall;
+import edu.kit.joana.api.sdg.SDGCallReturnNode;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.api.sdg.SDGProgramPartWriter;
+import edu.kit.joana.api.sdg.ThrowingSDGProgramPartVisitor;
 import edu.kit.joana.ifc.sdg.core.IFC;
 import edu.kit.joana.ifc.sdg.core.ReduceRedundantFlows;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
@@ -48,7 +53,9 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.SimpleMHPAnalysis;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
+import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
+import edu.kit.joana.ui.annotations.AnnotationPolicy;
 import edu.kit.joana.ui.annotations.Level;
 import edu.kit.joana.ui.annotations.Sink;
 import edu.kit.joana.ui.annotations.Source;
@@ -320,6 +327,48 @@ public class IFCAnalysis {
 		addSinkAnnotation(toMark, level, null);
 	}
 
+	@Deprecated
+	public void addSourceAnnotationsToCallers(JavaMethodSignature signature, String level) {
+		final Collection<SDGCall> calls = program.getCallsToMethod(signature);
+		for (final SDGCall call : calls) {
+			final SDGCallReturnNode ret = call.getReturn();
+			addSourceAnnotation(ret, level);
+		}
+	}
+	
+	public void addSourceAnnotation(SDGMethod methodToMark, String level, AnnotationPolicy annotationPolicy) {
+		switch (annotationPolicy) {
+			// TODO: AFAICT, relying on the methods Signature to obtain all calls to this method,
+			// different SDGMethod instances of the same Method (with the same signature),
+			// created e.g. due to call-string sensitive points-to analysis,
+			// will get lumped together here again.
+			case ANNOTATE_USAGES: addSourceAnnotationsToCallers(methodToMark.getSignature(), level);	break;
+			case ANNOTATE_CALLE:  addSourceAnnotation(methodToMark, level); break;
+			default: throw new IllegalArgumentException("Unknown AnnotationPolicy: " + annotationPolicy);
+		}
+	}
+	
+	@Deprecated
+	public void addSinkAnnotationsToActualsAtCallsites(JavaMethodSignature signature, String level) {
+		final Collection<SDGCall> calls = program.getCallsToMethod(signature);
+		for (final SDGCall call : calls) {
+			final Collection<SDGActualParameter> params = call.getActualParameters();
+			for (final SDGActualParameter aIn : params) {
+				if (aIn.getIndex() != 1) throw new IllegalArgumentException("rofl");
+				addSinkAnnotation(aIn, level);
+			}
+		}
+	}
+	
+	public void addSinkAnnotation(SDGMethod methodToMark, String level, AnnotationPolicy annotationPolicy) {
+		switch (annotationPolicy) {
+			case ANNOTATE_USAGES: addSinkAnnotationsToActualsAtCallsites(methodToMark.getSignature(), level); break;
+			case ANNOTATE_CALLE:  addSinkAnnotation(methodToMark, level); break;
+			default: throw new IllegalArgumentException("Unknown AnnotationPolicy: " + annotationPolicy);
+		}
+	}
+	
+
 	public boolean isAnnotationLegal(IFCAnnotation ann) {
 		return annManager.isAnnotationLegal(ann);
 	}
@@ -340,23 +389,42 @@ public class IFCAnalysis {
 			      TypeName.findOrCreate(JavaType.parseSingleTypeFromString(Sink.class.getCanonicalName()).toBCString(false)));
 
 		final TypeName level = TypeName.findOrCreate(JavaType.parseSingleTypeFromString(Level.class.getCanonicalName()).toBCString());
+		final TypeName annotationPolicy = TypeName.findOrCreate(JavaType.parseSingleTypeFromString(AnnotationPolicy.class.getCanonicalName()).toBCString());
 		final Map<SDGProgramPart,Collection<Annotation>> annotations = program.getJavaSourceAnnotations();
 		
-		
-		
-		for (Entry<SDGProgramPart,Collection<Annotation>> e : annotations.entrySet()) {
-			for(Annotation a : e.getValue()) {
+		for (final Entry<SDGProgramPart,Collection<Annotation>> e : annotations.entrySet()) {
+			for(final Annotation a : e.getValue()) {
 				debug.outln("Processing::: " + a);
 				if(source.equals(a.getType()) || sink.equals(a.getType())) {
-					final ElementValue elemvalue = a.getNamedArguments().get("value");
+					final ElementValue elemvalue = a.getNamedArguments().get("level");
 
 					// As per @Sink / @Source Definition: "value" is an Enum .. 
-					assert (elemvalue != null && elemvalue instanceof EnumElementValue);  
+					assert (elemvalue    != null && elemvalue    instanceof EnumElementValue); 
 					final EnumElementValue enumvalue = (EnumElementValue) elemvalue;
-					// .. of Type Level 
+					// .. of Type Level / AnnotationPolicy
 					assert (level.equals(TypeName.findOrCreate(enumvalue.enumType)));
 					final Level l = Level.valueOf(enumvalue.enumVal);
 					assert l!=null;
+
+					// If "annotate" is missing, use the default value 
+					final ElementValue elemannotate = a.getNamedArguments().get("annotate");
+					final AnnotationPolicy ap; 
+					if (elemannotate == null) {
+						AnnotationPolicy temp = null;
+						try {
+							temp = (AnnotationPolicy) Source.class.getMethod("annotate").getDefaultValue();
+						} catch (Exception e1) {
+							assert false;
+						} finally {
+							ap = temp;
+						}
+					} else {
+						assert (elemannotate instanceof EnumElementValue);
+						final EnumElementValue enumannotate = (EnumElementValue) elemannotate;
+						assert (annotationPolicy.equals(TypeName.findOrCreate(enumannotate.enumType)));
+						ap = AnnotationPolicy.valueOf(enumannotate.enumVal);						
+					}
+					assert ap!=null;
 					
 					// TODO: instead of two "Typeswitches" (over latticelevel and a.getType()), do something nicer.
 					final String latticeLevel;
@@ -365,8 +433,27 @@ public class IFCAnalysis {
 						case LOW:  latticeLevel = BuiltinLattices.STD_SECLEVEL_LOW; break;
 						default: latticeLevel = null; throw new IllegalArgumentException("Unknown Security-Level:" + l);
 					}
-					if (source.equals(a.getType())) addSourceAnnotation(e.getKey(), latticeLevel); 
-					if (sink.equals(a.getType()))   addSinkAnnotation(e.getKey(), latticeLevel);
+					
+					
+					e.getKey().acceptVisitor(new ThrowingSDGProgramPartVisitor<Void, Void>() {
+						@Override
+						protected Void visitMethod(SDGMethod m, Void data) {
+							if (source.equals(a.getType())) addSourceAnnotation(m, latticeLevel,ap); 
+							if (sink.equals(a.getType()))   addSinkAnnotation(m, latticeLevel,ap);
+							return null;
+						}
+						
+						@Override
+						protected Void visitAttribute(SDGAttribute attribute, Void data) {
+							if (ap != AnnotationPolicy.ANNOTATE_USAGES) {
+								throw new IllegalArgumentException("Fields may onlye be annotated with annotate == " + 
+							                                        AnnotationPolicy.ANNOTATE_USAGES);
+							}
+							if (source.equals(a.getType())) addSourceAnnotation(attribute, latticeLevel); 
+							if (sink.equals(a.getType()))   addSinkAnnotation(attribute, latticeLevel);
+							return null;
+						}
+					}, null);
 					
 					debug.outln("Added " + a.getType().getName().getClassName() + " Annotation: " + e.getKey() + ":::" + latticeLevel);
 				}

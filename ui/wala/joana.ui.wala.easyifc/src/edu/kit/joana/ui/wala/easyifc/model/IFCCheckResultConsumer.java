@@ -16,10 +16,10 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.flowless.spec.FlowLessBuilder.FlowError;
 import edu.kit.joana.wala.flowless.spec.FlowLessSimplifier.BasicIFCStmt;
@@ -53,12 +53,24 @@ public interface IFCCheckResultConsumer {
 	public final class IFCResult {
 		
 		private final String tmpDir;
+		private final String mainMethod;
+		private final SDGMethod mainIMethod;
 		
 		private final SortedSet<SLeak> excLeaks = new TreeSet<SLeak>();  
 		private final SortedSet<SLeak> noExcLeaks = new TreeSet<SLeak>();
 		
-		public IFCResult(final String tmpDir) {
+		public IFCResult(final String tmpDir, final String mainMethod, final SDGMethod mainIMethod) {
 			this.tmpDir = tmpDir;
+			this.mainMethod = mainMethod;
+			this.mainIMethod = mainIMethod;
+		}
+		
+		public String getMainMethod() {
+			return mainMethod;
+		}
+		
+		public SDGMethod getMainIMethod() {
+			return mainIMethod;
 		}
 		
 		public boolean hasLeaks() {
@@ -113,13 +125,25 @@ public interface IFCCheckResultConsumer {
 		private final SPos source;
 		private final SPos sink;
 		private final Reason reason;
-		private final Set<SPos> slice;
+		private final SortedSet<SPos> chop;
 		
-		public SLeak(final SPos source, final SPos sink, final Reason reason, final Set<SPos> slice) {
+		public SLeak(final SPos source, final SPos sink, final Reason reason, final SortedSet<SPos> chop) {
 			this.source = source;
 			this.sink = sink;
 			this.reason = reason;
-			this.slice = slice;
+			this.chop = chop;
+		}
+		
+		public SortedSet<SPos> getChop() {
+			return Collections.unmodifiableSortedSet(chop);
+		}
+		
+		public SPos getSource() {
+			return source;
+		}
+		
+		public SPos getSink() {
+			return sink;
 		}
 		
 		public Reason getReason() {
@@ -192,7 +216,7 @@ public interface IFCCheckResultConsumer {
 			
 			sbuf.append("from '" + source.toString() + "' to '" + sink.toString() + "'\n");
 			
-			for (final SPos pos : slice) {
+			for (final SPos pos : chop) {
 				sbuf.append(pos.toString() + "\t");
 				final String code = pos.getSourceCode(srcFile);
 				sbuf.append(code + "\n");
@@ -221,11 +245,11 @@ public interface IFCCheckResultConsumer {
 	}
 	
 	public static class SPos implements Comparable<SPos> {
-		private final String sourceFile;
-		private final int startChar;
-		private final int endChar;
-		private final int startLine;
-		private final int endLine;
+		public final String sourceFile;
+		public final int startChar;
+		public final int endChar;
+		public final int startLine;
+		public final int endLine;
 		
 		public SPos(final String sourceFile, final int startLine, final int endLine, final int startChar,
 				final int endChar) {

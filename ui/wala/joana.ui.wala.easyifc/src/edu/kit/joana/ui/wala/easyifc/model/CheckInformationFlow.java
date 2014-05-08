@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
 import com.ibm.wala.cfg.exc.intra.MethodState;
@@ -194,7 +195,8 @@ public final class CheckInformationFlow {
 	}
 	
 	private IFCResult doSequentialIFCanalysis(final SDGConfig config, final SDGProgram prog) {
-		final IFCResult result = new IFCResult(cfc.tmpDir);
+		final SDGMethod m = prog.getMethod(config.getEntryMethod());
+		final IFCResult result = new IFCResult(cfc.tmpDir, config.getEntryMethod(), m);
 		
 		final Set<SLeak> excLeaks = checkIFC(Reason.EXCEPTION, prog, IFCType.CLASSICAL_NI);
 		final boolean isSecure = excLeaks.isEmpty();
@@ -225,7 +227,8 @@ public final class CheckInformationFlow {
 	}
 	
 	private IFCResult doThreadIFCanalysis(final SDGConfig config, final SDGProgram prog) {
-		final IFCResult result = new IFCResult(cfc.tmpDir);
+		final SDGMethod m = prog.getMethod(config.getEntryMethod());
+		final IFCResult result = new IFCResult(cfc.tmpDir, config.getEntryMethod(), m);
 		final Set<SLeak> threadLeaks = checkIFC(Reason.THREAD_EXCEPTION, prog, IFCType.RLSOD);
 		final boolean isSecure = threadLeaks.isEmpty();
 
@@ -484,10 +487,10 @@ public final class CheckInformationFlow {
 						ssink = one;
 					}
 
-					final Set<SPos> slice = new TreeSet<SPos>();
-					slice.add(ssource);
-					slice.add(ssink);
-					final SLeak sleak = new SLeak(ssource, ssink, reason, slice);
+					final SortedSet<SPos> chop = new TreeSet<SPos>();
+					chop.add(ssource);
+					chop.add(ssink);
+					final SLeak sleak = new SLeak(ssource, ssink, reason, chop);
 					sleaks.add(sleak);
 				}
 				
@@ -531,10 +534,10 @@ public final class CheckInformationFlow {
 						ssink = one;
 					}
 					
-					final Set<SPos> slice = new TreeSet<SPos>();
-					slice.add(ssource);
-					slice.add(ssink);
-					final SLeak sleak = new SLeak(ssource, ssink, reason, slice);
+					final SortedSet<SPos> chop = new TreeSet<SPos>();
+					chop.add(ssource);
+					chop.add(ssink);
+					final SLeak sleak = new SLeak(ssource, ssink, reason, chop);
 					sleaks.add(sleak);
 				}
 			});
@@ -569,10 +572,10 @@ public final class CheckInformationFlow {
 		if (positions.isEmpty()) {
 			final SPos ssource = new SPos(source.getSource(), source.getSr(), source.getEr(), source.getSc(), source.getEc());
 			final SPos ssink = new SPos(sink.getSource(), sink.getSr(), sink.getEr(), sink.getSc(), sink.getEc());
-			final Set<SPos> slice = new TreeSet<SPos>();
-			slice.add(ssource);
-			slice.add(ssink);
-			final SLeak sleak = new SLeak(ssource, ssink, reason, slice);
+			final SortedSet<SPos> chop = new TreeSet<SPos>();
+			chop.add(ssource);
+			chop.add(ssink);
+			final SLeak sleak = new SLeak(ssource, ssink, reason, chop);
 			
 			return sleak;
 		}

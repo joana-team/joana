@@ -175,13 +175,16 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 	public void consume(final IFCResult res) {
 		final IJavaProject jp = view.getCurrentProject();
 		final IFCInfoNode cur = new IFCInfoNode(root, res, jp);
+		cur.searchMatchingJavaElement();
 		
 		for (final SLeak leak : res.getNoExcLeaks()) {
 			final LeakInfoNode lnfo = new LeakInfoNode(cur, leak);
+			lnfo.searchMatchingJavaElement();
 		}
 		
 		for (final SLeak leak : res.getExcLeaks()) {
 			final LeakInfoNode lnfo = new LeakInfoNode(cur, leak);
+			lnfo.searchMatchingJavaElement();
 		}
 		
 //		final MethodInfoNode cur = new MethodInfoNode(root, res);
@@ -236,9 +239,9 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 
 		public abstract SourceRefElement getSourceRef();
 		public abstract IMarker getMarker();
-		public abstract IMarker getSideMarker();
+		public abstract IMarker[] getSideMarker();
 
-		public abstract void searchMatchingJavaElement(final IJavaProject project);
+		public abstract void searchMatchingJavaElement();
 
 		public abstract String toString();
 
@@ -270,7 +273,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		}
 
 		@Override
-		public void searchMatchingJavaElement(final IJavaProject project) {
+		public void searchMatchingJavaElement() {
 			// there is none for the root node
 		}
 
@@ -285,7 +288,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		}
 
 		@Override
-		public IMarker getSideMarker() {
+		public IMarker[] getSideMarker() {
 			return null;
 		}
 
@@ -295,7 +298,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		private final IFCResult result;
 		private final IJavaProject project;
 		private MethodSearch search = null;
-		private IMarker sideMarker = null;
+		private IMarker[] sideMarker = null;
 		
 		private IFCInfoNode(final TreeNode parent, final IFCResult result, final IJavaProject project) {
 			super(parent);
@@ -308,7 +311,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		}
 
 		@Override
-		public void searchMatchingJavaElement(final IJavaProject project) {
+		public void searchMatchingJavaElement() {
 			search = MethodSearch.searchMethod(project, result);
 		}
 
@@ -328,7 +331,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		}
 
 		@Override
-		public IMarker getSideMarker() {
+		public IMarker[] getSideMarker() {
 			return sideMarker;
 		}
 
@@ -347,7 +350,9 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 	public static final class LeakInfoNode extends TreeNode {
 		private final SLeak leak;
 		private IMarker marker = null;
-		private IMarker sideMarker = null;
+		private IMarker sideMarker[] = null;
+		private SourceRefElement source;
+		private SourceRefElement sink;
 
 		private LeakInfoNode(final IFCInfoNode parent, final SLeak leak) {
 			super(parent);
@@ -359,14 +364,23 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		}
 
 		@Override
-		public void searchMatchingJavaElement(final IJavaProject project) {
-			final MethodSearch search = getIFCInfo().search;
-			if (search != null) {
+		public void searchMatchingJavaElement() {
+			final IJavaProject jp = getIFCInfo().project;
+			if (jp != null) {
+				sideMarker = new IMarker[2];
+				{
+					sideMarker[0] = MethodSearch.searchPosition(jp, leak.getSource());
+//					source = elem;
+				}
+				{
+					sideMarker[1] = MethodSearch.searchPosition(jp, leak.getSink());
+//					sink = elem;
+				}
 //				marker = search.findIFCStmt(result.getStmt());
 //				sideMarker = search.makeSideMarker(result);
 			}
 		}
-
+		
 		public SLeak getLeak() {
 			return leak;
 		}
@@ -377,7 +391,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 
 		@Override
 		public SourceRefElement getSourceRef() {
-			return getIFCInfo().getSourceRef();
+			return source;
 		}
 
 		@Override
@@ -386,7 +400,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		}
 
 		@Override
-		public IMarker getSideMarker() {
+		public IMarker[] getSideMarker() {
 			return sideMarker;
 		}
 
@@ -402,7 +416,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		private final MethodResult result;
 		private IJavaProject project;
 		private MethodSearch search = null;
-		private IMarker sideMarker = null;
+		private IMarker[] sideMarker = null;
 
 		private MethodInfoNode(final TreeNode parent, final MethodResult result) {
 			super(parent);
@@ -418,9 +432,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		}
 
 		@Override
-		public void searchMatchingJavaElement(final IJavaProject project) {
-			this.project = project;
-			search = MethodSearch.searchMethod(project, result);
+		public void searchMatchingJavaElement() {
 		}
 
 		@Override
@@ -444,7 +456,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		}
 
 		@Override
-		public IMarker getSideMarker() {
+		public IMarker[] getSideMarker() {
 			return sideMarker;
 		}
 
@@ -463,7 +475,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 
 		private final FlowError ferr;
 		private IMarker marker = null;
-		private IMarker sideMarker = null;
+		private IMarker[] sideMarker = null;
 
 		private FlowErrorNode(final MethodInfoNode parent, final FlowError ferr) {
 			super(parent);
@@ -488,12 +500,12 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		}
 
 		@Override
-		public void searchMatchingJavaElement(final IJavaProject project) {
-			final MethodSearch search = getMethodInfo().search;
-			if (search != null) {
-				marker = search.findFlowError(ferr);
-				sideMarker = search.makeSideMarker(ferr);
-			}
+		public void searchMatchingJavaElement() {
+//			final MethodSearch search = getMethodInfo().search;
+//			if (search != null) {
+//				marker = search.findFlowError(ferr);
+//				sideMarker = search.makeSideMarker(ferr);
+//			}
 		}
 
 		@Override
@@ -507,7 +519,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		}
 
 		@Override
-		public IMarker getSideMarker() {
+		public IMarker[] getSideMarker() {
 			return sideMarker;
 		}
 
@@ -521,7 +533,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 	public static final class StmtInfoNode extends TreeNode {
 		private final FlowStmtResult result;
 		private IMarker marker = null;
-		private IMarker sideMarker = null;
+		private IMarker sideMarker[] = null;
 
 		private StmtInfoNode(final MethodInfoNode parent, final FlowStmtResult result) {
 			super(parent);
@@ -533,12 +545,12 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		}
 
 		@Override
-		public void searchMatchingJavaElement(final IJavaProject project) {
-			final MethodSearch search = getMethodInfo().search;
-			if (search != null) {
-				marker = search.findIFCStmt(result.getStmt());
-				sideMarker = search.makeSideMarker(result);
-			}
+		public void searchMatchingJavaElement() {
+//			final MethodSearch search = getMethodInfo().search;
+//			if (search != null) {
+//				marker = search.findIFCStmt(result.getStmt());
+//				sideMarker = search.makeSideMarker(result);
+//			}
 		}
 
 		public FlowStmtResult getResult() {
@@ -560,7 +572,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		}
 
 		@Override
-		public IMarker getSideMarker() {
+		public IMarker[] getSideMarker() {
 			return sideMarker;
 		}
 
@@ -613,7 +625,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		}
 
 		@Override
-		public void searchMatchingJavaElement(final IJavaProject project) {
+		public void searchMatchingJavaElement() {
 		}
 
 		public FlowStmtResultPart getResult() {
@@ -635,7 +647,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		}
 
 		@Override
-		public IMarker getSideMarker() {
+		public IMarker[] getSideMarker() {
 			return null;
 		}
 

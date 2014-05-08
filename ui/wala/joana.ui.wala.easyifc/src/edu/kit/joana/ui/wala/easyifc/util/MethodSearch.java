@@ -7,6 +7,7 @@
  */
 package edu.kit.joana.ui.wala.easyifc.util;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.core.resources.IMarker;
@@ -24,16 +25,20 @@ import org.eclipse.jdt.core.search.SearchParticipant;
 import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.core.search.SearchRequestor;
 import org.eclipse.jdt.internal.core.SourceMethod;
+import org.eclipse.jdt.internal.core.SourceRefElement;
+import org.eclipse.jdt.internal.core.SourceType;
 
+import edu.kit.joana.api.sdg.SDGFormalParameter;
+import edu.kit.joana.api.sdg.SDGMethod;
+import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.FlowStmtResult;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.FlowStmtResultPart;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.IFCResult;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.MethodResult;
+import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SPos;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.flowless.spec.FlowLessBuilder.FlowError;
 import edu.kit.joana.wala.flowless.spec.ast.IFCStmt;
-import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
-import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo.ParamInfo;
 
 /**
  *
@@ -43,21 +48,68 @@ import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo.ParamInfo;
 @SuppressWarnings("restriction")
 public class MethodSearch {
 
-//	private final IJavaProject jp;
-//	private final MethodResult m;
+	private final IJavaProject jp;
+	private final IFCResult ifcresult;
 	private final SourceMethod jMethod;
 
-	private MethodSearch(final IJavaProject jp, final MethodResult m, final SourceMethod jMethod) {
-//		this.jp = jp;
-//		this.m = m;
+	private MethodSearch(final IJavaProject jp, final IFCResult ifcresult, final SourceMethod jMethod) {
+		this.jp = jp;
+		this.ifcresult = ifcresult;
 		this.jMethod = jMethod;
 	}
 
-	private static String searchPattern(final MethodResult mres) {
-		final MethodInfo nfo = mres.getInfo();
+	public static IMarker searchPosition(final IJavaProject jp, final SPos spos) {
+		final IJavaSearchScope scope = SearchEngine.createJavaSearchScope(new IJavaElement[] {jp});
+		final String classOfFile = spos.sourceFile.substring(0, spos.sourceFile.lastIndexOf('.')).replace('/', '.').replace('$', '.');
+		
+		final SearchPattern pat = SearchPattern.createPattern(classOfFile,
+				IJavaSearchConstants.TYPE, IJavaSearchConstants.DECLARATIONS, SearchPattern.R_EXACT_MATCH | SearchPattern.R_CASE_SENSITIVE | SearchPattern.R_FULL_MATCH);
+		final SearchEngine eng = new SearchEngine();
+		final SearchParticipant[] defaultParts =
+				new SearchParticipant[] {SearchEngine.getDefaultSearchParticipant()};
+		final LinkedList<SourceType> found = new LinkedList<SourceType>();
+		final SearchRequestor req = new SearchRequestor() {
+			@Override
+			public void acceptSearchMatch(final SearchMatch match) throws CoreException {
+				if (match.getElement() instanceof SourceType) {
+					final SourceType t = (SourceType) match.getElement();
+					if (classOfFile.equals(t.getFullyQualifiedName('.'))) {
+						found.add(t);
+					}
+				}
+			}
+		};
+		
+		try {
+			eng.search(pat, defaultParts, scope, req, null);
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
 
-		return nfo.getClassInfo().getName() + "." + nfo.getName();
+		if (!found.isEmpty()) {
+			final SourceType t =  found.element();
+			final IResource res = t.getResource();
+			
+			return CheckFlowMarkerAndImageManager.getInstance().createMarkerInferredOk(res, "foo", spos.startLine);
+		} else {
+			return null;
+		}
 	}
+	
+	private static String searchPattern(final IFCResult ifcres) {
+		final String m = ifcres.getMainMethod();
+
+		final String clsName = m.substring(0, m.lastIndexOf('.')).replace('$', '.');
+		final String methodName = m.substring(m.lastIndexOf('.') + 1, m.indexOf('('));
+		
+		return clsName + "." + methodName;
+	}
+
+//	private static String searchPattern(final MethodResult mres) {
+//		final MethodInfo nfo = mres.getInfo();
+//
+//		return nfo.getClassInfo().getName() + "." + nfo.getName();
+//	}
 
 	public SourceMethod getMethod() {
 		return jMethod;
@@ -145,32 +197,7 @@ public class MethodSearch {
 	}
 
 	public static MethodSearch searchMethod(final IJavaProject jp, final MethodResult mres) {
-		final IJavaSearchScope scope = SearchEngine.createJavaSearchScope(new IJavaElement[] {jp});
-		final String mpat = searchPattern(mres);
-		System.out.println("Searching for " + mpat);
-		final SearchPattern pat = SearchPattern.createPattern(mpat,
-				IJavaSearchConstants.METHOD, 1, SearchPattern.R_EXACT_MATCH | SearchPattern.R_CASE_SENSITIVE | SearchPattern.R_FULL_MATCH);
-		final SearchEngine eng = new SearchEngine();
-		final SearchParticipant[] defaultParts =
-				new SearchParticipant[] {SearchEngine.getDefaultSearchParticipant()};
-		final Requestor req = new Requestor(mres.getInfo());
-		try {
-			eng.search(pat, defaultParts, scope, req, null);
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
-
-		if (req.methodFound()) {
-			return new MethodSearch(jp, mres, req.getMethod());
-		} else {
-			return null;
-		}
-	}
-
-	public static MethodSearch searchMethod(final IJavaProject jp, final IFCResult mres) {
-		final IJavaSearchScope scope = SearchEngine.createJavaSearchScope(new IJavaElement[] {jp});
-		
-		return null;
+//		final IJavaSearchScope scope = SearchEngine.createJavaSearchScope(new IJavaElement[] {jp});
 //		final String mpat = searchPattern(mres);
 //		System.out.println("Searching for " + mpat);
 //		final SearchPattern pat = SearchPattern.createPattern(mpat,
@@ -188,49 +215,75 @@ public class MethodSearch {
 //		if (req.methodFound()) {
 //			return new MethodSearch(jp, mres, req.getMethod());
 //		} else {
-//			return null;
+			return null;
 //		}
+	}
+
+	public static MethodSearch searchMethod(final IJavaProject jp, final IFCResult ifcres) {
+		final IJavaSearchScope scope = SearchEngine.createJavaSearchScope(new IJavaElement[] {jp});
+		
+		final String mpat = searchPattern(ifcres);
+		System.out.println("Searching for " + mpat);
+		final SearchPattern pat = SearchPattern.createPattern(mpat,
+				IJavaSearchConstants.METHOD, IJavaSearchConstants.IMPLEMENTORS, SearchPattern.R_EXACT_MATCH | SearchPattern.R_CASE_SENSITIVE | SearchPattern.R_FULL_MATCH);
+		final SearchEngine eng = new SearchEngine();
+		final SearchParticipant[] defaultParts =
+				new SearchParticipant[] {SearchEngine.getDefaultSearchParticipant()};
+		final Requestor req = new Requestor(ifcres);
+		try {
+			eng.search(pat, defaultParts, scope, req, null);
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+
+		if (req.methodFound()) {
+			return new MethodSearch(jp, ifcres, req.getMethod());
+		} else {
+			return null;
+		}
 	}
 
 	
 	private static final class Requestor extends SearchRequestor {
 
-		private final MethodInfo nfo;
+		private final IFCResult nfo;
 		private SourceMethod found = null;
 
-		private Requestor(final MethodInfo nfo) {
+		private Requestor(final IFCResult nfo) {
 			this.nfo = nfo;
 		}
 
 		private boolean isBetterResult(final SourceMethod sm) {
-			try {
-				final String newDoc = sm.getAttachedJavadoc(null);
-				final String oldDoc = found.getAttachedJavadoc(null);
-
-				if (oldDoc.contains("@ifc:") && !newDoc.contains("@ifc:")) {
-					return false;
-				} else if (newDoc.contains("@ifc:") && !oldDoc.contains("@ifc:")) {
-					return true;
-				}
-			} catch (JavaModelException e) {}
-
 			final String[] newParams = sm.getParameterTypes();
 			final String[] oldParams = found.getParameterTypes();
-			final List<ParamInfo> ps = nfo.getParameters();
-			if (!nfo.isStatic()) {
-				// remove this pointer before check
-				ps.remove(0);
-			}
+			final SDGMethod im = nfo.getMainIMethod();
 
+			final int numParam;
+			if (im.parameterIndexValid(0)) {
+				// dynamic method with this pointer
+				numParam = im.getParameters().size() - 1;
+			} else {
+				numParam = im.getParameters().size();
+			}
+			
+			if (numParam != newParams.length) {
+				return false;
+			}
+			
+			if (newParams.length != oldParams.length) {
+				return true;
+			}
+			
 			int newMatch = 0;
 			int oldMatch = 0;
 
 			for (int i = 0; i < sm.getNumberOfParameters(); i++) {
-				final ParamInfo pi = ps.get(i);
-				if (pi.type.equals(oldParams[i])) {
+				
+				final SDGFormalParameter tref = im.getParameter(i + 1);
+				if (isMatching(tref,oldParams[i])) {
 					oldMatch++;
 				}
-				if (pi.type.equals(newParams[i])) {
+				if (isMatching(tref,newParams[i])) {
 					newMatch++;
 				}
 			}
@@ -242,12 +295,25 @@ public class MethodSearch {
 			return false;
 		}
 
+		private static boolean isMatching(final SDGFormalParameter tref, final String eType) {
+			final JavaType jt = tref.getType();
+			jt.toBCString();
+			
+			//TODO
+			
+			return true;
+		}
+		
 		@Override
 		public void acceptSearchMatch(final SearchMatch match) throws CoreException {
 			if (match.getElement() instanceof SourceMethod) {
 				final SourceMethod sm = (SourceMethod) match.getElement();
-				final int paramCount = nfo.isStatic() ? nfo.getParameters().size() : nfo.getParameters().size() - 1;
-				if (sm.getElementName().equals(nfo.getName()) && sm.getParameterNames().length == paramCount) {
+				final SDGMethod im = nfo.getMainIMethod();
+				final int paramCount = 
+						im.instructionIndexValid(0) ? im.getParameters().size() : im.getParameters().size() - 1;
+						
+				final String name = im.getSignature().getMethodName(); 
+				if (sm.getElementName().equals(name) && sm.getParameterNames().length == paramCount) {
 					if (found == null || isBetterResult(sm)) {
 						found = sm;
 					}

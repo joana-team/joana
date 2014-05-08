@@ -204,6 +204,15 @@ public class EasyIFCView extends ViewPart {
 								} catch (JavaModelException e) {
 								}
 	//							System.out.println("Click click: " + tsel.getFirstElement());
+							} else {
+								final IMarker[] side = tn.getSideMarker();
+								if (side != null && side.length > 0 && side[0] != null) {
+									final IMarker im = side[0];
+									try {
+										IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), im);
+									} catch (PartInitException e) {
+									}
+								}
 							}
 						}
 					}

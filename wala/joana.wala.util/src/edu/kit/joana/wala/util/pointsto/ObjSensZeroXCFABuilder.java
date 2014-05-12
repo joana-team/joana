@@ -39,7 +39,17 @@ public class ObjSensZeroXCFABuilder extends ZeroXCFABuilder {
 		 * if a one level call string sensitivity should be used.
 		 */
 		public boolean engageObjectSensitivity(IMethod m);
-	
+
+		/**
+		 * Decides for a method where {@link #engageObjectSensitivity(IMethod)} returns {@code true}, whether
+		 * the object creation history context should be restricted to one level.<br>
+		 * This has the effect that all methods which may be called from m are analyzed in a more coarse-grained
+		 * context.
+		 * @param m a method for which {@link #engageObjectSensitivity(IMethod)} returns {@code true}.
+		 * @return {@code true}, if the object creation history context should be restricted to one level and
+		 * in effect all methods which may be called from the given method are explored in a more coarse-grained
+		 * context.
+		 */
 		public boolean restrictToOneLevelObjectSensitivity(IMethod m);
 		
 		public int getFallbackCallsiteSensitivity();

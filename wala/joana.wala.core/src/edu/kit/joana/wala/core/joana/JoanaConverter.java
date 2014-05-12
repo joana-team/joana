@@ -1,7 +1,7 @@
 /**
  * This file is part of the Joana IFC project. It is developed at the
  * Programming Paradigms Group of the Karlsruhe Institute of Technology.
- *
+
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
@@ -218,11 +218,9 @@ public class JoanaConverter {
 		case CALL:
 			op = Operation.CALL;
 			kind = Kind.CALL;
-			if (sdg.cfg.computeInterference) {
-				TIntSet allocNodesAsSet = sdg.getAllocationNodes(node);
-				if (allocNodesAsSet != null) {
-					allocNodes = allocNodesAsSet.toArray();
-				}
+			TIntSet allocNodesAsSet = sdg.getAllocationNodes(node);
+			if (allocNodesAsSet != null) {
+				allocNodes = allocNodesAsSet.toArray();
 			}
 			break;
 		case ENTRY:

@@ -1,7 +1,7 @@
 /**
  * This file is part of the Joana IFC project. It is developed at the
  * Programming Paradigms Group of the Karlsruhe Institute of Technology.
- *
+
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
@@ -110,7 +110,7 @@ public class SDGBuilder implements CallGraphFilter {
 			Config.getBool(Config.C_SDG_DATAFLOW_FOR_GET_FROM_FIELD, false);
 
 	public final SDGBuilderConfig cfg;
-	
+
 	public LinkedList<Set<ParameterField>> partitions;
 
 	public static enum ExceptionAnalysis {
@@ -132,10 +132,10 @@ public class SDGBuilder implements CallGraphFilter {
 		 * Like INTRAPROC but extended to an interprocedural analysis.
 		 */
 		INTERPROC(true, "integrate all exceptions, optimize interprocedurally");
-		
+
 		public final String desc;		  // short textual description of the option - can be used for gui
 		public final boolean recommended; // option can make sense aside for academic evaluation
-		
+
 		private ExceptionAnalysis(final boolean recommended, final String desc) {
 			this.recommended = recommended;
 			this.desc = desc;
@@ -201,7 +201,7 @@ public class SDGBuilder implements CallGraphFilter {
 
 		public final String desc;		  // short textual description of the option - can be used for gui
 		public final boolean recommended; // option can make sense aside for academic evaluation
-		
+
 		private PointsToPrecision(final boolean recommended, final String desc) {
 			this.recommended = recommended;
 			this.desc = desc;
@@ -225,7 +225,7 @@ public class SDGBuilder implements CallGraphFilter {
 
 		public final String desc;		  // short textual description of the option - can be used for gui
 		public final boolean recommended; // option can make sense aside for academic evaluation
-		
+
 		private StaticInitializationTreatment(final boolean recommended, final String desc) {
 			this.recommended = recommended;
 			this.desc = desc;
@@ -283,7 +283,7 @@ public class SDGBuilder implements CallGraphFilter {
 
 		public final String desc;		  // short textual description of the option - can be used for gui
 		public final boolean recommended; // option can make sense aside for academic evaluation
-		
+
 		private FieldPropagation(final boolean recommended, final String desc) {
 			this.recommended = recommended;
 			this.desc = desc;
@@ -309,13 +309,13 @@ public class SDGBuilder implements CallGraphFilter {
 		return builder;
 	}
 
-	
+
 	public static SDG build(final SDGBuilderConfig cfg, final com.ibm.wala.ipa.callgraph.CallGraph walaCG,
 			final PointerAnalysis pts) throws UnsoundGraphException, CancelException {
 		SDG sdg = null;
 		WorkPackage pack = null;
 		IProgressMonitor progress = NullProgressMonitor.INSTANCE;
-		
+
 		/* additional scope so SDGBuilder object can be garbage collected */{
 			SDGBuilder builder = new SDGBuilder(cfg);
 			builder.run(walaCG, pts, progress);
@@ -336,7 +336,7 @@ public class SDGBuilder implements CallGraphFilter {
 
 		return sdg;
 	}
-	
+
 	public static SDG build(final SDGBuilderConfig cfg, IProgressMonitor progress) throws UnsoundGraphException, CancelException {
 		SDG sdg = null;
 		WorkPackage pack = null;
@@ -580,22 +580,22 @@ public class SDGBuilder implements CallGraphFilter {
 				}
 			}
 		}
-		
+
 		cfg.out.print(".");
 		progress.worked(1);
 
-		
+
 		if (cfg.mergeFieldsOfPrunedCalls) {
 			cfg.out.print("mergeable");
 
 			partitions = SearchFieldsOfPrunedCalls.compute(this, progress);
-			
+
 			cfg.out.print(".");
 			progress.worked(1);
 		} else {
 			partitions = null;
 		}
-		
+
 		if (cfg.staticInitializers != StaticInitializationTreatment.NONE) {
 			progress.subTask("handling static initializers...");
 			cfg.out.print("clinit");
@@ -652,22 +652,25 @@ public class SDGBuilder implements CallGraphFilter {
 
 		addReturnEdges();
 		progress.worked(1);
-
+		if (cfg.computeAllocationSites) {
+			call2alloc = new AllCallsAllocationSiteFinder(this).getAllocationSites();
+		}
 		if (cfg.computeInterference) {
 			cfg.out.print("interference");
 			ThreadInformationProvider tiProvider = new ThreadInformationProvider(this);
-			call2alloc = tiProvider.getAllocationSitesForThreadStartCalls();
+			if (!cfg.computeAllocationSites) {
+				call2alloc = tiProvider.getAllocationSitesForThreadStartCalls();
+			}
 			progress.subTask("adding interference edges...");
 			addInterferenceEdges(tiProvider, progress);
 			progress.subTask("introducing fork edges...");
 			introduceForkEdges(tiProvider);
-
 			cfg.out.print(".");
 		}
 
 		progress.worked(1);
 		addEntryExitCFEdges();
-		
+
 		final Logger l = Log.getLogger(Log.L_WALA_UNRESOLVED_CLASSES);
 		if (l.isEnabled()) {
 			final Set<TypeReference> unresolved = cfg.cha.getUnresolvedClasses();
@@ -684,7 +687,7 @@ public class SDGBuilder implements CallGraphFilter {
 			pdg.addEdge(pdg.entry, pdg.exit, PDGEdge.Kind.CONTROL_FLOW);
 		}
 	}
-	
+
 	public ControlFlowGraph<SSAInstruction, IExplodedBasicBlock> createIntraExceptionAnalyzedCFG(final CGNode n,
 			final IProgressMonitor progress) throws UnsoundGraphException, CancelException {
 		final ExceptionPruningAnalysis<SSAInstruction, IExplodedBasicBlock> npa = NullPointerAnalysis
@@ -895,7 +898,6 @@ public class SDGBuilder implements CallGraphFilter {
 			cgb = WalaPointsToUtil.makeNCallStackSens(3, options, cfg.cache, cfg.cha, cfg.scope);
 			break;
 		}
-
 		com.ibm.wala.ipa.callgraph.CallGraph callgraph = cgb.makeCallGraph(options, progress);
 
 		return new CGResult(callgraph, cgb.getPointerAnalysis());
@@ -1054,7 +1056,7 @@ public class SDGBuilder implements CallGraphFilter {
 			}
 		}
 	}
-	
+
 	private static void connectIn2OutDummys(final PDG pdg, final List<PDGNode> inParam, final List<PDGNode> outParam) {
 		// old version - fully connected...
 		//		for (PDGNode ain : inParam) {
@@ -1064,9 +1066,9 @@ public class SDGBuilder implements CallGraphFilter {
 		//		}
 
 		final PDGNode m2m = pdg.createDummyNode("many2many");
-		
+
 		final List<PDGEdge> toRemove = new LinkedList<PDGEdge>();
-		
+
 		for (final PDGNode ain : inParam) {
 			for (final PDGEdge e : pdg.outgoingEdgesOf(ain)) {
 				if (e.kind == PDGEdge.Kind.DATA_DEP) {
@@ -1076,7 +1078,7 @@ public class SDGBuilder implements CallGraphFilter {
 			}
 			pdg.addEdge(ain, m2m, PDGEdge.Kind.DATA_DEP);
 		}
-		
+
 		for (final PDGNode aout : outParam) {
 			for (final PDGEdge e : pdg.incomingEdgesOf(aout)) {
 				if (e.kind == PDGEdge.Kind.DATA_DEP) {
@@ -1086,7 +1088,7 @@ public class SDGBuilder implements CallGraphFilter {
 			}
 			pdg.addEdge(m2m, aout, PDGEdge.Kind.DATA_DEP);
 		}
-		
+
 //		if (toRemove.size() > 0) {
 //			System.out.println("REMOVE: " + toRemove.size());
 //		}
@@ -1462,6 +1464,14 @@ public class SDGBuilder implements CallGraphFilter {
 		public boolean debugStaticInitializers = false;
 		public boolean computeInterference = true;
 		public boolean computeSummary = true;
+		/*
+		 * If this flag is set, pdg nodes for all call sites of virtual methods contain
+		 * the possible allocation sites of the this-pointer (the ids of PDG nodes of the
+		 * respective allocation sites). If not and 'computeInterference' is set, then this 
+		 * is done only for calls of Thread.start, Thread.join or Runnable.run() (or overriding
+		 * methods). Otherwise, no call site contains any allocation sites.
+		 */
+		public boolean computeAllocationSites = false;
 		public SideEffectDetectorConfig sideEffects = null;
 	}
 

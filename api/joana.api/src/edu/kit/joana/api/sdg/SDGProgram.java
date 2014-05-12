@@ -328,7 +328,12 @@ public class SDGProgram {
 		if (classComp.getNodes(i).isEmpty()) {
 			return null;
 		} else {
-			return ClassLoader.fromSDGNode(classComp.getNodes(i).iterator().next());
+			SDGNode n = classComp.getNodes(i).iterator().next();
+			if (n.getKind() == SDGNode.Kind.ENTRY) {
+				return ClassLoader.fromSDGNode(n);
+			} else {
+				return ClassLoader.fromSDGNode(sdg.getEntry(n));
+			}
 		}
 	}
 

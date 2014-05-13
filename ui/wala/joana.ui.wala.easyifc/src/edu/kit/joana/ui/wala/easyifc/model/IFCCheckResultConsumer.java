@@ -46,6 +46,8 @@ public interface IFCCheckResultConsumer {
 		private final String mainMethod;
 		private final SDGMethod mainIMethod;
 		
+		private final SortedSet<SLeak> leaks = new TreeSet<SLeak>();  
+		private final SortedSet<SLeak> directLeaks = new TreeSet<SLeak>();  
 		private final SortedSet<SLeak> excLeaks = new TreeSet<SLeak>();  
 		private final SortedSet<SLeak> noExcLeaks = new TreeSet<SLeak>();
 		
@@ -63,40 +65,47 @@ public interface IFCCheckResultConsumer {
 		}
 		
 		public boolean hasLeaks() {
-			return !(excLeaks.isEmpty() && noExcLeaks.isEmpty());
+			return !(excLeaks.isEmpty() && noExcLeaks.isEmpty() && directLeaks.isEmpty());
 		}
 		
+		public void addDirectLeak(final SLeak leak) {
+			leaks.add(leak);
+			directLeaks.add(leak);
+		}
+
 		public void addExcLeak(final SLeak leak) {
+			leaks.add(leak);
 			excLeaks.add(leak);
 		}
 
 		public void addNoExcLeak(final SLeak leak) {
+			leaks.add(leak);
 			noExcLeaks.add(leak);
 		}
 		
 		public String toString() {
+			final int dir = directLeaks.size();
 			final int excl = excLeaks.size();
-			final int total = excl + noExcLeaks.size();
+			final int total = dir + excl + noExcLeaks.size();
 			
 			if (total > 0) {
 				return "UNSAFE: " + total + " leak" + (total > 1 ? "s" : "") + " found."
-						+ (excLeaks.size() > 0 ? " " + excLeaks.size() + " due to implicit flow caused by exceptions." : "");
+						+ (excl > 0 ? " " + excl + " due to indirect flow caused by exceptions." : "")
+						+ (dir > 0 ? " " + dir + " due to direct flow." : "");
 			} else {
 				return "SECURE.";
 			}
 		}
 		
-		public SortedSet<SLeak> getNoExcLeaks() {
-			return Collections.unmodifiableSortedSet(noExcLeaks);
+		public SortedSet<SLeak> getLeaks() {
+			return Collections.unmodifiableSortedSet(leaks);
 		}
 
-		public SortedSet<SLeak> getExcLeaks() {
-			return Collections.unmodifiableSortedSet(excLeaks);
-		}
 	}
 
 	public static enum Reason { 
-		DIRECT_FLOW(1), INDIRECT_FLOW(2), BOTH_FLOW(3), EXCEPTION(4), THREAD(5), THREAD_EXCEPTION(6);
+		DIRECT_FLOW(1), INDIRECT_FLOW(2), BOTH_FLOW(3), EXCEPTION(4), THREAD(5), THREAD_DATA(6), THREAD_ORDER(7),
+		THREAD_EXCEPTION(8);
 
 		public final int importance;
 	
@@ -152,13 +161,13 @@ public interface IFCCheckResultConsumer {
 			String info = "";
 			switch (reason) {
 			case BOTH_FLOW:
-				info = "explicit and implicit flow ";
+				info = "direct and indirect flow ";
 				break;
 			case DIRECT_FLOW:
-				info = "explicit flow ";
+				info = "direct flow ";
 				break;
 			case INDIRECT_FLOW:
-				info = "implicit flow ";
+				info = "indirect flow ";
 				break;
 			case EXCEPTION:
 				info = "flow caused by exceptions ";
@@ -166,31 +175,54 @@ public interface IFCCheckResultConsumer {
 			case THREAD:
 				info = "critical thread interference ";
 				break;
+			case THREAD_DATA:
+				info = "critical thread interference (data) ";
+				break;
+			case THREAD_ORDER:
+				info = "critical thread interference (order) ";
+				break;
 			case THREAD_EXCEPTION:
 				info = "critical thread interference caused by exceptions ";
 				break;
 			}
 			
-			return info + "from '" + source.toString() + "' to '" + sink.toString() + "'";
+			switch (reason) {
+			case THREAD:
+			case THREAD_DATA:
+			case THREAD_ORDER:
+			case THREAD_EXCEPTION:
+				info += "between '" + source.toString() + "' and '" + sink.toString() + "'";
+				break;
+			default:
+				info += "from '" + source.toString() + "' to '" + sink.toString() + "'";
+			}
+			
+			return info;
 		}
 		
 		public String toString(final File srcFile) {
 			StringBuffer sbuf = new StringBuffer();
 			switch (reason) {
 			case DIRECT_FLOW:
-				sbuf.append("explicit flow:\n");
+				sbuf.append("direct flow:\n");
 				break;
 			case INDIRECT_FLOW:
-				sbuf.append("implicit flow:\n");
+				sbuf.append("indirect flow:\n");
 				break;
 			case BOTH_FLOW:
-				sbuf.append("explicit and implicit flow:\n");
+				sbuf.append("direct and indirect flow:\n");
 				break;
 			case EXCEPTION:
-				sbuf.append("implicit flow due to exceptions:\n");
+				sbuf.append("flow due to exceptions:\n");
 				break;
 			case THREAD:
 				sbuf.append("possibilistic or probabilistic flow:\n");
+				break;
+			case THREAD_DATA:
+				sbuf.append("possibilistic flow:\n");
+				break;
+			case THREAD_ORDER:
+				sbuf.append("probabilistic flow:\n");
 				break;
 			case THREAD_EXCEPTION:
 				sbuf.append("possibilistic or probabilistic flow caused by exceptions:\n");

@@ -135,13 +135,8 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		cur.searchMatchingJavaElement();
 		
 		final List<LeakInfoNode> nodes = new LinkedList<LeakInfoNode>();
-		
-		for (final SLeak leak : res.getNoExcLeaks()) {
-			final LeakInfoNode lnfo = new LeakInfoNode(cur, leak);
-			nodes.add(lnfo);
-		}
-		
-		for (final SLeak leak : res.getExcLeaks()) {
+
+		for (final SLeak leak : res.getLeaks()) {
 			final LeakInfoNode lnfo = new LeakInfoNode(cur, leak);
 			nodes.add(lnfo);
 		}
@@ -312,6 +307,8 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 					sideMarker[1] = search.createSideMarker(leak.getSink(), "Public sink of illegal flow.", Marker.PUBLIC_OUTPUT);
 					break;
 				case THREAD:
+				case THREAD_DATA:
+				case THREAD_ORDER:
 				case THREAD_EXCEPTION:
 					sideMarker[0] = search.createSideMarker(leak.getSource(), "Statement part of critical interference.", Marker.CRITICAL_INTERFERENCE);
 					sideMarker[1] = search.createSideMarker(leak.getSink(), "Statement part of critical interference.", Marker.CRITICAL_INTERFERENCE);

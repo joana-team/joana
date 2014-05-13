@@ -60,6 +60,7 @@ public class EasyIFCMarkerAndImageManager {
     public static final String ILLEGAL_FLOW_EXC_IMG 		= "icons/illegal_flow_exc_big.png";
 	public static final String ILLEGAL_FLOW_THREAD_IMG 		= "icons/illegal_flow_thread_big.png";
 	public static final String ILLEGAL_FLOW_THREAD_EXC_IMG 	= "icons/illegal_flow_thread_exc_big.png";
+	public static final String ILLEGAL_FLOW_DIRECT_IMG 		= "icons/illegal_flow_direct_big.png";
 	public static final String ILLEGAL_FLOW_IMG 			= "icons/illegal_flow_big.png";
 
 	public static final String CRITICAL_MARKER = "joana.ui.easyifc.highlight.critical";
@@ -91,13 +92,16 @@ public class EasyIFCMarkerAndImageManager {
 
     public Image getImage(final SLeak leak) {
     	switch (leak.getReason()) {
-    	case BOTH_FLOW:
     	case DIRECT_FLOW:
+        	return Activator.getImageDescriptor(ILLEGAL_FLOW_DIRECT_IMG).createImage();
+    	case BOTH_FLOW:
     	case INDIRECT_FLOW:
         	return Activator.getImageDescriptor(ILLEGAL_FLOW_IMG).createImage();
     	case EXCEPTION:
         	return Activator.getImageDescriptor(ILLEGAL_FLOW_EXC_IMG).createImage();
     	case THREAD:
+    	case THREAD_DATA:
+    	case THREAD_ORDER:
         	return Activator.getImageDescriptor(ILLEGAL_FLOW_THREAD_IMG).createImage();
     	case THREAD_EXCEPTION:
         	return Activator.getImageDescriptor(ILLEGAL_FLOW_THREAD_EXC_IMG).createImage();

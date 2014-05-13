@@ -97,14 +97,8 @@ public class HighlightIFCResultAction extends Action {
 		
 		private static ProgramSourcePositions buildSourcePositions(final IFCResult result) {
 			final ProgramSourcePositions psp = new ProgramSourcePositions();
-			
-			for (final SLeak leak : result.getNoExcLeaks()) {
-				for (final SPos pos : leak.getChop()) {
-					psp.addSourcePosition(pos.sourceFile, pos.startLine, pos.endLine, pos.startChar, pos.endChar);
-				}
-			}
-			
-			for (final SLeak leak : result.getExcLeaks()) {
+
+			for (final SLeak leak : result.getLeaks()) {
 				for (final SPos pos : leak.getChop()) {
 					psp.addSourcePosition(pos.sourceFile, pos.startLine, pos.endLine, pos.startChar, pos.endChar);
 				}

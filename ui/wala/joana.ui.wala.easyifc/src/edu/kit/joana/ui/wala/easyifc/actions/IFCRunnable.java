@@ -57,7 +57,7 @@ public class IFCRunnable implements IRunnableWithProgress {
 			monitor.subTask("Building project.");
 			project.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, monitor);
 			monitor.subTask("Checking information flow.");
-			cfl.runCheckIFC();
+			cfl.runCheckIFC(walaProgress);
 		} catch (ClassHierarchyException e) {
 			throw new InvocationTargetException(e, e.getMessage());
 		} catch (IllegalArgumentException e) {

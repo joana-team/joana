@@ -7,6 +7,7 @@
  */
 package edu.kit.joana.ui.wala.easyifc.model;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -39,6 +40,7 @@ import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
 import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor;
 import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.chopper.NonSameLevelChopper;
@@ -53,6 +55,11 @@ import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
+import edu.kit.joana.wala.summary.SummaryComputation;
+import edu.kit.joana.wala.summary.WorkPackage;
+import edu.kit.joana.wala.summary.WorkPackage.EntryPoint;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 
 public final class CheckInformationFlow {
 
@@ -138,7 +145,8 @@ public final class CheckInformationFlow {
 		this.annotationMethod = AnnotationMethod.FROM_ANNOTATIONS;
 	}
 
-	public void runCheckIFC() throws IOException, ClassHierarchyException, IllegalArgumentException, CancelException, UnsoundGraphException {
+	public void runCheckIFC(final IProgressMonitor progress) throws IOException, ClassHierarchyException,
+			IllegalArgumentException, CancelException, UnsoundGraphException {
 		final SDGConfig config = createDefaultConfig(cfc, "ifc.Main");
 		final SDGProgram p = buildSDG(config);
 		
@@ -151,12 +159,13 @@ public final class CheckInformationFlow {
 			cfc.results.consume(result);
 		} else {
 			cfc.out.println("checking '" + cfc.bin + "' for sequential confidentiality.");
-			final IFCResult result = doSequentialIFCanalysis(config, p);
+			final IFCResult result = doSequentialIFCanalysis(config, p, progress);
 			cfc.results.consume(result);
 		}
 	}
 	
-	private IFCResult doSequentialIFCanalysis(final SDGConfig config, final SDGProgram prog) {
+	private IFCResult doSequentialIFCanalysis(final SDGConfig config, final SDGProgram prog,
+			final IProgressMonitor progress) throws CancelException {
 		final SDGMethod m = prog.getMethod(config.getEntryMethod());
 		final IFCResult result = new IFCResult(config.getEntryMethod(), m);
 		
@@ -172,12 +181,38 @@ public final class CheckInformationFlow {
 			printResult(noExcLeaks.isEmpty(), 1, config);
 			dumpSDGtoFile(noExcProg.getSDG(), "no_exc", noExcLeaks.isEmpty());
 
-			excLeaks.removeAll(noExcLeaks);
-			for (final SLeak leak : noExcLeaks) {
-				result.addNoExcLeak(leak);
-			}
-			for (final SLeak leak : excLeaks) {
-				result.addExcLeak(leak);
+			if (!noExcLeaks.isEmpty()) {
+				// run without control deps
+				stripControlDeps(noExcProg, progress);
+				final Set<SLeak> directLeaks = checkIFC(Reason.DIRECT_FLOW, noExcProg, IFCType.CLASSICAL_NI, annotationMethod);
+				printResult(directLeaks.isEmpty(), 2, config);
+				dumpSDGtoFile(noExcProg.getSDG(), "no_cdeps", directLeaks.isEmpty());
+				
+				noExcLeaks.removeAll(directLeaks);
+				excLeaks.removeAll(directLeaks);
+				excLeaks.removeAll(noExcLeaks);
+				
+				for (final SLeak leak : directLeaks) {
+					result.addDirectLeak(leak);
+				}
+
+				for (final SLeak leak : noExcLeaks) {
+					result.addNoExcLeak(leak);
+				}
+				
+				for (final SLeak leak : excLeaks) {
+					result.addExcLeak(leak);
+				}
+			} else {
+				excLeaks.removeAll(noExcLeaks);
+				
+				for (final SLeak leak : noExcLeaks) {
+					result.addNoExcLeak(leak);
+				}
+			
+				for (final SLeak leak : excLeaks) {
+					result.addExcLeak(leak);
+				}
 			}
 
 			cfc.out.println("Information leaks detected. Program is NOT SECURE.");
@@ -221,13 +256,57 @@ public final class CheckInformationFlow {
 		return result;
 	}
 	
+	private void stripControlDeps(final SDGProgram prog, final IProgressMonitor progress) throws CancelException {
+		final SDG sdg = prog.getSDG();
+		final List<SDGEdge> toRemove = new LinkedList<SDGEdge>();
+		for (final SDGEdge e : sdg.edgeSet()) {
+			switch (e.getKind()) {
+			case CONTROL_DEP_COND:
+			case CONTROL_DEP_UNCOND:
+			case SUMMARY:
+			case SUMMARY_DATA:
+			case SUMMARY_NO_ALIAS:
+				toRemove.add(e);
+				break;
+			default: // nothing to do
+			}
+		}
+		sdg.removeAllEdges(toRemove);
+		
+		// rerun summary computation
+		final WorkPackage wp = createSummaryWorkpackage(sdg);
+		SummaryComputation.computeHeapDataDep(wp, progress);
+	}
+	
+	private static WorkPackage createSummaryWorkpackage(final SDG sdg) {
+		final Set<EntryPoint> entries = new TreeSet<EntryPoint>();
+		final SDGNode root = sdg.getRoot();
+
+		final TIntSet formalIns = new TIntHashSet();
+		for (final SDGNode fIn : sdg.getFormalIns(root)) {
+			formalIns.add(fIn.getId());
+		}
+		
+		final TIntSet formalOuts = new TIntHashSet();
+		for (final SDGNode fOut : sdg.getFormalOuts(root)) {
+			formalOuts.add(fOut.getId());
+		}
+		
+		final EntryPoint ep = new EntryPoint(root.getId(), formalIns, formalOuts);
+		entries.add(ep);
+
+		return WorkPackage.create(sdg, entries, "no_control_deps");
+	}
+	
 	private void dumpSDGtoFile(final SDG sdg, final String suffix, final boolean isSecure) {
 		if (DUMP_SDG_FILES) {
 			final String fileName = sdg.getName() + "-" + suffix + (isSecure ? "-secure.pdg" : "-illegal.pdg");
 	
 			try {
-				SDGSerializer.toPDGFormat(sdg, new FileOutputStream(fileName));
-				cfc.out.println("writing SDG to " + fileName);
+				final File f = new File(fileName);
+				final FileOutputStream fOut = new FileOutputStream(f);
+				SDGSerializer.toPDGFormat(sdg, fOut);
+				cfc.out.println("writing SDG to " + f.getAbsolutePath());
 			} catch (FileNotFoundException e) {
 				throw new RuntimeException(e.getMessage());
 			}
@@ -425,7 +504,8 @@ public final class CheckInformationFlow {
 					final SortedSet<SPos> chop = new TreeSet<SPos>();
 					chop.add(ssource);
 					chop.add(ssink);
-					final SLeak sleak = new SLeak(ssource, ssink, reason, chop);
+					final SLeak sleak = new SLeak(ssource, ssink,
+							(reason == Reason.THREAD ? Reason.THREAD_ORDER : reason), chop);
 					sleaks.add(sleak);
 				}
 				
@@ -472,7 +552,8 @@ public final class CheckInformationFlow {
 					final SortedSet<SPos> chop = new TreeSet<SPos>();
 					chop.add(ssource);
 					chop.add(ssink);
-					final SLeak sleak = new SLeak(ssource, ssink, reason, chop);
+					final SLeak sleak = new SLeak(ssource, ssink,
+							(reason == Reason.THREAD ? Reason.THREAD_DATA : reason), chop);
 					sleaks.add(sleak);
 				}
 			});
@@ -485,28 +566,19 @@ public final class CheckInformationFlow {
 			final Collection<SDGNode> nodes) {
 		final TreeSet<SPos> positions = new TreeSet<SPos>();
 		
-		final List<SPos> toRemove = new LinkedList<SPos>();
-		
 		for (final SDGNode n : nodes) {
 			if (n.getSource() != null) {
 				final SPos spos = new SPos(n.getSource(), n.getSr(), n.getEr(), n.getSc(), n.getEc());
-				if (n.kind == SDGNode.Kind.ENTRY || n.kind == SDGNode.Kind.FORMAL_IN 
-						|| n.kind == SDGNode.Kind.FORMAL_OUT
-						|| (n.kind == SDGNode.Kind.CALL && n.getUnresolvedCallTarget() != null
-							&& n.getUnresolvedCallTarget().contains("Object.<init>"))) {
-					toRemove.add(spos);
-				}
 				if (!spos.isAllZero()) {
 					positions.add(spos);
 				}
 			}
-			
-			positions.removeAll(toRemove);
 		}
 
+		final SPos ssource = new SPos(source.getSource(), source.getSr(), source.getEr(), source.getSc(), source.getEc());
+		final SPos ssink = new SPos(sink.getSource(), sink.getSr(), sink.getEr(), sink.getSc(), sink.getEc());
+
 		if (positions.isEmpty()) {
-			final SPos ssource = new SPos(source.getSource(), source.getSr(), source.getEr(), source.getSc(), source.getEc());
-			final SPos ssink = new SPos(sink.getSource(), sink.getSr(), sink.getEr(), sink.getSc(), sink.getEc());
 			final SortedSet<SPos> chop = new TreeSet<SPos>();
 			chop.add(ssource);
 			chop.add(ssink);
@@ -514,8 +586,6 @@ public final class CheckInformationFlow {
 			
 			return sleak;
 		}
-		final SPos ssource = positions.first();
-		final SPos ssink = positions.last();
 		
 		final SLeak leak = new SLeak(ssource, ssink, reason, positions);
 		return leak;

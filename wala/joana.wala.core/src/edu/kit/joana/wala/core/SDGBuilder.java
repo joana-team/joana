@@ -1028,7 +1028,7 @@ public class SDGBuilder implements CallGraphFilter {
 					}
 				}
 
-				connectIn2OutDummys(pdg, inParam, outParam);
+				connectIn2OutDummys(pdg, pdg.entry, inParam, outParam);
 			} else {
 				for (final PDGNode call : pdg.getCalls()) {
 					final Set<PDG> tgts = findPossibleTargets(cg, pdg, call);
@@ -1050,22 +1050,17 @@ public class SDGBuilder implements CallGraphFilter {
 							}
 						}
 
-						connectIn2OutDummys(pdg, inParam, outParam);
+						connectIn2OutDummys(pdg, call, inParam, outParam);
 					}
 				}
 			}
 		}
 	}
 
-	private static void connectIn2OutDummys(final PDG pdg, final List<PDGNode> inParam, final List<PDGNode> outParam) {
-		// old version - fully connected...
-		//		for (PDGNode ain : inParam) {
-		//			for (PDGNode aout : outParam) {
-		//				pdg.addEdge(ain, aout, PDGEdge.Kind.DATA_DEP);
-		//			}
-		//		}
-
+	private static void connectIn2OutDummys(final PDG pdg, final PDGNode parent, final List<PDGNode> inParam,
+			final List<PDGNode> outParam) {
 		final PDGNode m2m = pdg.createDummyNode("many2many");
+		pdg.addEdge(parent, m2m, PDGEdge.Kind.CONTROL_DEP_EXPR);
 
 		final List<PDGEdge> toRemove = new LinkedList<PDGEdge>();
 
@@ -1073,7 +1068,6 @@ public class SDGBuilder implements CallGraphFilter {
 			for (final PDGEdge e : pdg.outgoingEdgesOf(ain)) {
 				if (e.kind == PDGEdge.Kind.DATA_DEP) {
 					toRemove.add(e);
-//					System.out.println("3 remove " + e.toDetailedString());
 				}
 			}
 			pdg.addEdge(ain, m2m, PDGEdge.Kind.DATA_DEP);
@@ -1083,15 +1077,11 @@ public class SDGBuilder implements CallGraphFilter {
 			for (final PDGEdge e : pdg.incomingEdgesOf(aout)) {
 				if (e.kind == PDGEdge.Kind.DATA_DEP) {
 					toRemove.add(e);
-//					System.out.println("4 remove " + e.toDetailedString());
 				}
 			}
 			pdg.addEdge(m2m, aout, PDGEdge.Kind.DATA_DEP);
 		}
 
-//		if (toRemove.size() > 0) {
-//			System.out.println("REMOVE: " + toRemove.size());
-//		}
 		pdg.removeAllEdges(toRemove);
 	}
 

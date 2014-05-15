@@ -48,8 +48,15 @@ public class IFCRunnable implements IRunnableWithProgress {
 		
 		final ProgressMonitorDelegate walaProgress = ProgressMonitorDelegate.createProgressMonitorDelegate(monitor);
 		try {
+			final String thirdPartyJar;
+			if (conf.getJarDirs().size() > 0) {
+				thirdPartyJar = conf.getJarDirs().get(0);
+			} else {
+				thirdPartyJar = null;
+			}
+			
 			final CheckIFCConfig cfc = new CheckIFCConfig(conf.getBinDir(), conf.getSrcDirs().get(0),
-					conf.getLibLocation(), conf.getLogOut(), resultConsumer, walaProgress);
+					conf.getLibLocation(), thirdPartyJar, conf.getLogOut(), resultConsumer, walaProgress);
 			final CheckInformationFlow cfl = new CheckInformationFlow(cfc);
 			final IProject project = conf.getProject().getProject();
 			monitor.subTask("Refreshing project.");

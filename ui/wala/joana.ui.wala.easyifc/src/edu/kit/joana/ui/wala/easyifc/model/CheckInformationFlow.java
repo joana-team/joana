@@ -72,26 +72,28 @@ public final class CheckInformationFlow {
 	
 	public static class CheckIFCConfig {
 		public static final String DEFAULT_LIB_DIR = "../jSDG/lib/";
+		public static final String DEFAULT_THIRD_PARTY_LIB = null;
 
 		public final String bin;
 		public final String src;
 		public final String libDir;
+		public final String thirdPartyLib;
 		public final PrintStream out;
 		public final IFCCheckResultConsumer results;
 		public final IProgressMonitor progress;
 		public AnalysisScope scope = null;
 
 		public CheckIFCConfig(final String bin, final String src) {
-			this(bin, src, DEFAULT_LIB_DIR, System.out, IFCCheckResultConsumer.DEFAULT,
-					NullProgressMonitor.INSTANCE);
+			this(bin, src, DEFAULT_LIB_DIR, DEFAULT_THIRD_PARTY_LIB, System.out,
+					IFCCheckResultConsumer.DEFAULT, NullProgressMonitor.INSTANCE);
 		}
 
 		public CheckIFCConfig(final String bin, final String src, final PrintStream out) {
-			this(bin, src, DEFAULT_LIB_DIR, out, IFCCheckResultConsumer.STDOUT,
+			this(bin, src, DEFAULT_LIB_DIR, DEFAULT_THIRD_PARTY_LIB, out, IFCCheckResultConsumer.STDOUT,
 					NullProgressMonitor.INSTANCE);
 		}
 
-		public CheckIFCConfig(final String bin, final String src, final String libDir,
+		public CheckIFCConfig(final String bin, final String src, final String libDir, final String thirdPartyLib,
 				final PrintStream out, final IFCCheckResultConsumer results, IProgressMonitor progress) {
 			if (src == null) {
 				throw new IllegalArgumentException("src directory is null.");
@@ -110,13 +112,14 @@ public final class CheckInformationFlow {
 			this.src = src;
 			this.bin = bin;
 			this.libDir = libDir;
+			this.thirdPartyLib = thirdPartyLib;
 			this.out = out;
 			this.results = results;
 			this.progress = progress;
-		}
+	}
 
 		public String toString() {
-			return "check flowless at src(" + src + "), bin(" + bin + ")";
+			return "check information flow at src(" + src + "), bin(" + bin + ")";
 		}
 	}
 
@@ -169,7 +172,7 @@ public final class CheckInformationFlow {
 		final SDGMethod m = prog.getMethod(config.getEntryMethod());
 		final IFCResult result = new IFCResult(config.getEntryMethod(), m);
 		
-		final Set<SLeak> excLeaks = checkIFC(Reason.EXCEPTION, prog, IFCType.CLASSICAL_NI,annotationMethod);
+		final Set<SLeak> excLeaks = checkIFC(Reason.EXCEPTION, prog, IFCType.CLASSICAL_NI, annotationMethod);
 		final boolean isSecure = excLeaks.isEmpty();
 		printResult(excLeaks.isEmpty(), 0, config);
 		dumpSDGtoFile(prog.getSDG(), "exc", isSecure);
@@ -347,16 +350,14 @@ public final class CheckInformationFlow {
 					if (node.getDeclaredTarget().getSignature().contains("Object.<init>")) {
 						return false;
 					}
-				} else if (node.isStatic()) {
-					final String sig = node.getDeclaredTarget().getSignature();
-					if (sig.contains("inputPIN") || sig.contains("print")) {
-						return false;
-					}
 				}
 				
 				return true;
 			}
 		});
+		if (cfc.thirdPartyLib != null) {
+			config.setThirdPartyLibsPath(cfc.thirdPartyLib);
+		}
 		
 		return config;
 	}

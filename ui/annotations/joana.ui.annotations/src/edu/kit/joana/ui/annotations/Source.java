@@ -21,6 +21,6 @@ import edu.kit.joana.ui.annotations.Level;
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.FIELD,ElementType.METHOD})
 public @interface Source {
-	Level level();
+	Level level() default Level.HIGH;
 	AnnotationPolicy annotate() default AnnotationPolicy.ANNOTATE_USAGES;
 }

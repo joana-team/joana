@@ -397,14 +397,30 @@ public class IFCAnalysis {
 				debug.outln("Processing::: " + a);
 				if(source.equals(a.getType()) || sink.equals(a.getType())) {
 					final ElementValue elemvalue = a.getNamedArguments().get("level");
-
-					// As per @Sink / @Source Definition: "value" is an Enum .. 
-					assert (elemvalue    != null && elemvalue    instanceof EnumElementValue); 
-					final EnumElementValue enumvalue = (EnumElementValue) elemvalue;
-					// .. of Type Level / AnnotationPolicy
-					assert (level.equals(TypeName.findOrCreate(enumvalue.enumType)));
-					final Level l = Level.valueOf(enumvalue.enumVal);
-					assert l!=null;
+					final Level l;
+					if (elemvalue == null) {
+						// try to get default value
+						Level temp = null;
+						try {
+							if (source.equals(a.getType())) {
+								temp = (Level) Source.class.getMethod("level").getDefaultValue();
+							} else {
+								temp = (Level) Sink.class.getMethod("level").getDefaultValue();
+							}
+						} catch (Exception e1) {
+							assert false;
+						} finally {
+							l = temp;
+						}
+					} else {
+						// As per @Sink / @Source Definition: "value" is an Enum .. 
+						assert (elemvalue != null && elemvalue instanceof EnumElementValue); 
+						final EnumElementValue enumvalue = (EnumElementValue) elemvalue;
+						// .. of Type Level / AnnotationPolicy
+						assert (level.equals(TypeName.findOrCreate(enumvalue.enumType)));
+						l = Level.valueOf(enumvalue.enumVal);
+					}
+					assert (l != null);
 
 					// If "annotate" is missing, use the default value 
 					final ElementValue elemannotate = a.getNamedArguments().get("annotate");

@@ -42,6 +42,7 @@ import com.ibm.wala.util.intset.EmptyIntSet;
 import com.ibm.wala.util.intset.IntIterator;
 import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.intset.IntSetAction;
+import com.ibm.wala.util.intset.IntSetUtil;
 import com.ibm.wala.util.intset.MutableIntSet;
 import com.ibm.wala.util.intset.MutableMapping;
 import com.ibm.wala.util.intset.OrdinalSet;
@@ -645,7 +646,7 @@ public class InterferenceComputation {
 			final IntSet threadId;
 			if (pdg.getMethod().equals(builder.getMainPDG().getMethod())) {
 				// theres definitely only one main thread, so a single id is sufficent
-				threadId = SparseIntSet.singleton(0);
+				threadId = IntSetUtil.make(new int[] {0});
 				// put  static initializers (as approximation) in the same
 				// thread as the main methods
 				final MutableIntSet clinitIds = getClinitsIntSet();

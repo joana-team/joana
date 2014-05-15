@@ -19,8 +19,8 @@ import com.ibm.wala.fixpoint.UnaryOperator;
 import com.ibm.wala.util.intset.BitVector;
 import com.ibm.wala.util.intset.BitVectorIntSet;
 import com.ibm.wala.util.intset.IntSet;
+import com.ibm.wala.util.intset.IntSetUtil;
 import com.ibm.wala.util.intset.OrdinalSetMapping;
-import com.ibm.wala.util.intset.SparseIntSet;
 
 import edu.kit.joana.wala.core.params.objgraph.dataflow.ModRefControlFlowGraph.Node;
 
@@ -73,7 +73,7 @@ implements ITransferFunctionProvider<ModRefControlFlowGraph.Node, BitVectorVaria
 			final int id = domain.getMappedIndex(node);
 			assert (id >= 0) : "No id in mapping for: " + node;
 
-			return SparseIntSet.singleton(id);
+			return IntSetUtil.make(new int[] {id});
 		} else {
 			return emptySet;
 		}

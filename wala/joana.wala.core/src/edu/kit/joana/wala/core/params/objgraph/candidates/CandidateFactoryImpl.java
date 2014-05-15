@@ -17,7 +17,9 @@ import java.util.Set;
 
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.types.TypeReference;
+import com.ibm.wala.util.intset.IntSetUtil;
 import com.ibm.wala.util.intset.MutableMapping;
+import com.ibm.wala.util.intset.MutableSharedBitVectorIntSet;
 import com.ibm.wala.util.intset.OrdinalSet;
 import com.ibm.wala.util.intset.OrdinalSetMapping;
 import com.ibm.wala.util.intset.SparseIntSet;
@@ -519,7 +521,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			if (fieldEquiv == null || !fieldEquiv.contains(field)) {
 				final int index = fieldMapping.getMappedIndex(field);
 				final OrdinalSet<ParameterField> single =
-						new OrdinalSet<ParameterField>(SparseIntSet.singleton(index), fieldMapping);
+						new OrdinalSet<ParameterField>(IntSetUtil.make(new int[] {index}), fieldMapping);
 				this.fieldEquiv = unify(this.fieldEquiv, single);
 			}
 			final V curArray = (field.isArray() ? V.YES : V.NO);
@@ -676,7 +678,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			this.field = field;
 			this.fieldPts = fieldPts;
 			final int id = fieldMapping.getMappedIndex(field);
-			this.fields = new OrdinalSet<ParameterField>(SparseIntSet.singleton(id), fieldMapping);
+			this.fields = new OrdinalSet<ParameterField>(IntSetUtil.make(new int[] {id}), fieldMapping);
 		}
 
 		@Override

@@ -16,6 +16,7 @@ import com.ibm.wala.util.collections.ObjectArrayMapping;
 import com.ibm.wala.util.intset.BitVector;
 import com.ibm.wala.util.intset.BitVectorIntSet;
 import com.ibm.wala.util.intset.IntSet;
+import com.ibm.wala.util.intset.MutableSharedBitVectorIntSet;
 import com.ibm.wala.util.intset.OrdinalSetMapping;
 
 import edu.kit.joana.wala.core.params.objgraph.ModRefFieldCandidate;
@@ -99,9 +100,9 @@ public class ModRefProviderImpl implements ModRefProvider {
 			}
 
 
-			node2mustMod.put(n, new BitVectorIntSet(bvMustMod));
-			node2mayMod.put(n, new BitVectorIntSet(bvMayMod));
-			node2mayRef.put(n, new BitVectorIntSet(bvMayRef));
+			node2mustMod.put(n, new MutableSharedBitVectorIntSet(new BitVectorIntSet(bvMustMod)));
+			node2mayMod.put(n, new MutableSharedBitVectorIntSet(new BitVectorIntSet(bvMayMod)));
+			node2mayRef.put(n, new MutableSharedBitVectorIntSet(new BitVectorIntSet(bvMayRef)));
 		}
 	}
 

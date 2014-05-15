@@ -343,7 +343,7 @@ public class IFCAnalysis {
 			// created e.g. due to call-string sensitive points-to analysis,
 			// will get lumped together here again.
 			case ANNOTATE_USAGES: addSourceAnnotationsToCallers(methodToMark.getSignature(), level);	break;
-			case ANNOTATE_CALLE:  addSourceAnnotation(methodToMark, level); break;
+			case ANNOTATE_CALLEE:  addSourceAnnotation(methodToMark, level); break;
 			default: throw new IllegalArgumentException("Unknown AnnotationPolicy: " + annotationPolicy);
 		}
 	}
@@ -363,7 +363,7 @@ public class IFCAnalysis {
 	public void addSinkAnnotation(SDGMethod methodToMark, String level, AnnotationPolicy annotationPolicy) {
 		switch (annotationPolicy) {
 			case ANNOTATE_USAGES: addSinkAnnotationsToActualsAtCallsites(methodToMark.getSignature(), level); break;
-			case ANNOTATE_CALLE:  addSinkAnnotation(methodToMark, level); break;
+			case ANNOTATE_CALLEE:  addSinkAnnotation(methodToMark, level); break;
 			default: throw new IllegalArgumentException("Unknown AnnotationPolicy: " + annotationPolicy);
 		}
 	}

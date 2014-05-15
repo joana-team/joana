@@ -40,22 +40,22 @@ public class ToyTestsDefaultSourcesAndSinks {
 	
 	public static Object PUBLIC_OBJECT = new Object();
 
-	@Sink(level = Level.LOW, annotate = AnnotationPolicy.ANNOTATE_CALLE)
+	@Sink(level = Level.LOW, annotate = AnnotationPolicy.ANNOTATE_CALLEE)
 	public static void leak(int i) {
 		PUBLIC += i;
 	}
 	
-	@Sink(level = Level.LOW, annotate = AnnotationPolicy.ANNOTATE_CALLE)
+	@Sink(level = Level.LOW, annotate = AnnotationPolicy.ANNOTATE_CALLEE)
 	public static void leak(boolean b) {
 		PUBLIC_BOOL &= b;
 	}
 
-	@Sink(level = Level.LOW, annotate = AnnotationPolicy.ANNOTATE_CALLE)
+	@Sink(level = Level.LOW, annotate = AnnotationPolicy.ANNOTATE_CALLEE)
 	public static void leak(String s) {
 		PUBLIC_STRING = s;
 	}
 
-	@Sink(level = Level.LOW, annotate = AnnotationPolicy.ANNOTATE_CALLE)
+	@Sink(level = Level.LOW, annotate = AnnotationPolicy.ANNOTATE_CALLEE)
 	public static void leak(Object o) {
 		PUBLIC_OBJECT = o;
 	}

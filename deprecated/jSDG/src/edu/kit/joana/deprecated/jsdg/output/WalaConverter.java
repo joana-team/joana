@@ -20,6 +20,7 @@ import com.ibm.wala.classLoader.IMethod.SourcePosition;
 import com.ibm.wala.classLoader.ShrikeBTMethod;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
+import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
 import com.ibm.wala.ipa.slicer.ExceptionalReturnCaller;
 import com.ibm.wala.ipa.slicer.GetCaughtExceptionStatement;
@@ -220,7 +221,7 @@ public class WalaConverter {
 	}
 
 	private void computeInterference(final IProgressMonitor progress) throws CancelException, WalaException {
-		final PointerAnalysis pts = wSDG.getPointerAnalysis();
+		final PointerAnalysis<InstanceKey> pts = wSDG.getPointerAnalysis();
 		final HeapGraph hg = pts.getHeapGraph();
 
 		WalaSDGInterferenceComputation ifc =

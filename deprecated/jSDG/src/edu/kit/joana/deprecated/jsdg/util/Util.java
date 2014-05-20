@@ -28,7 +28,6 @@ import com.ibm.wala.analysis.pointers.HeapGraph;
 import com.ibm.wala.cfg.ControlFlowGraph;
 import com.ibm.wala.cfg.IBasicBlock;
 import com.ibm.wala.classLoader.BinaryDirectoryTreeModule;
-import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.Module;
@@ -1466,18 +1465,6 @@ public final class Util {
 			}
 		}
 
-		public void add(IClass klass) {
-		    if (klass == null) {
-		        throw new IllegalArgumentException("klass is null");
-		      }
-		      if (regex == null) {
-		        regex = klass.getReference().getName().toString();
-		      } else {
-		        regex = regex + '|' + klass.getReference().getName().toString();
-		      }
-		      needsCompile = true;
-		}
-
 		@Override
 		public boolean contains(String klassName) {
 			if (needsCompile) {
@@ -1490,14 +1477,6 @@ public final class Util {
 
 			Matcher m = pattern.matcher(klassName);
 			return m.matches();
-		}
-
-		public boolean contains(TypeReference klass) {
-			if (klass == null) {
-				throw new IllegalArgumentException("klass is null");
-			}
-
-			return contains(klass.getName().toString());
 		}
 
 		@Override
@@ -1521,17 +1500,9 @@ public final class Util {
 			return new SetComplement(set);
 		}
 
-		public void add(IClass klass) {
-			Assertions.UNREACHABLE();
-		}
-
 		@Override
 		public boolean contains(String klassName) {
 			return !set.contains(klassName);
-		}
-
-		public boolean contains(TypeReference klass) {
-			return !set.contains(klass);
 		}
 
 		@Override

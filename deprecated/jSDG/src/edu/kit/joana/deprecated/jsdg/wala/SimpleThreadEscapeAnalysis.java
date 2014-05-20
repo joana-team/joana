@@ -75,7 +75,7 @@ public class SimpleThreadEscapeAnalysis {
    * @throws CancelException
    * @throws IllegalArgumentException
    */
-  public Set<IClass> gatherThreadEscapingClasses(CallGraph cg, PointerAnalysis pa, ClassHierarchy cha)
+  public Set<IClass> gatherThreadEscapingClasses(CallGraph cg, PointerAnalysis<InstanceKey> pa, ClassHierarchy cha)
   throws ClassHierarchyException, IllegalArgumentException, CancelException {
 
     //

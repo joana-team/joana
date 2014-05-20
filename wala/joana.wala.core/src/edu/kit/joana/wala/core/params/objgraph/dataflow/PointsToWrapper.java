@@ -21,9 +21,9 @@ import edu.kit.joana.wala.core.PDGField;
 public final class PointsToWrapper {
 
 	private final HeapModel hm;
-	private final PointerAnalysis pa;
+	private final PointerAnalysis<InstanceKey> pa;
 
-	public PointsToWrapper(final PointerAnalysis pa) {
+	public PointsToWrapper(final PointerAnalysis<InstanceKey> pa) {
 		this.pa = pa;
 		this.hm = pa.getHeapModel();
 	}

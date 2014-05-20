@@ -44,7 +44,7 @@ public class ObjectTreeBuilder {
 
 	private final HeapGraph heap;
 	private final HeapExclusions excl;
-	private final PointerAnalysis pta;
+	private final PointerAnalysis<InstanceKey> pta;
 
 	/**
 	 * Stores all pointerkey objects that have been visited so far during
@@ -58,7 +58,7 @@ public class ObjectTreeBuilder {
 	 */
 	private Set<Integer> visitedIks;
 
-	public ObjectTreeBuilder(PointerAnalysis pta) {
+	public ObjectTreeBuilder(PointerAnalysis<InstanceKey> pta) {
 		this.heap = pta.getHeapGraph();
 		this.pta = pta;
 		AnalysisScope scope = pta.getClassHierarchy().getScope();

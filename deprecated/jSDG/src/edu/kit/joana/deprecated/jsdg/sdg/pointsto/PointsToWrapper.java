@@ -32,9 +32,9 @@ import com.ibm.wala.util.intset.OrdinalSet;
 public class PointsToWrapper implements IPointerAnalysis {
 
 	private final IDemandPointerAnalysis demandPts;
-	private final PointerAnalysis pta;
+	private final PointerAnalysis<InstanceKey> pta;
 
-	public PointsToWrapper(IDemandPointerAnalysis demandPts, PointerAnalysis pta) {
+	public PointsToWrapper(IDemandPointerAnalysis demandPts, PointerAnalysis<InstanceKey> pta) {
 		this.demandPts = demandPts;
 		this.pta = pta;
 	}

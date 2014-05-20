@@ -29,6 +29,7 @@ import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.IMethod.SourcePosition;
 import com.ibm.wala.ipa.callgraph.CGNode;
+import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.ssa.IR;
@@ -229,7 +230,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 				out.print("E" + getId());
 				//out.println("Call to external module: " + invk.getDeclaredTarget().getSignature());
 				final CGNode cgnode = cgNode;
-				final PointerAnalysis pts = builder.getPointerAnalysis();
+				final PointerAnalysis<InstanceKey> pts = builder.getPointerAnalysis();
 				final MayAliasGraph mayAlias = Pts2AliasGraph.computeCurrentAliasing(pts, cgnode, invk);
 
 				ext.registerAliasContext(invk, call.getId(), mayAlias);

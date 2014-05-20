@@ -43,6 +43,7 @@ import com.ibm.wala.ipa.callgraph.Entrypoint;
 import com.ibm.wala.ipa.callgraph.MethodTargetSelector;
 import com.ibm.wala.ipa.callgraph.impl.ClassHierarchyClassTargetSelector;
 import com.ibm.wala.ipa.callgraph.impl.ClassHierarchyMethodTargetSelector;
+import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKeyFactory;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
 import com.ibm.wala.ipa.callgraph.propagation.PointerKeyFactory;
@@ -682,13 +683,13 @@ public class SDGFactory {
 		}
 
 		if (Debug.Var.DUMP_HEAP_GRAPH.isSet()) {
-			PointerAnalysis pta = builder.getPointerAnalysis();
+			PointerAnalysis<InstanceKey> pta = builder.getPointerAnalysis();
 			HeapGraph hg = pta.getHeapGraph();
 			Util.dumpHeapGraph(cfg.mainClass.replace('/','.').substring(1) +
 				"." + cfg.pointsTo, hg, null);
 		}
 
-		PointerAnalysis pta = builder.getPointerAnalysis();
+		PointerAnalysis<InstanceKey> pta = builder.getPointerAnalysis();
 		progress.done();
 
 		DemandRefinementPointsTo demandPts = null;
@@ -778,7 +779,7 @@ public class SDGFactory {
 
 		progress.subTask(Messages.getString("Analyzer.SubTask_Call_Graph")); //$NON-NLS-1$
 		CallGraph cg = builder.makeCallGraph(options, progress);
-		PointerAnalysis pta = builder.getPointerAnalysis();
+		PointerAnalysis<InstanceKey> pta = builder.getPointerAnalysis();
 		progress.done();
 
         if (progress.isCanceled()) {
@@ -1152,7 +1153,7 @@ public class SDGFactory {
 
 		progress.subTask(Messages.getString("Analyzer.SubTask_Call_Graph")); //$NON-NLS-1$
 		CallGraph cg = builder.makeCallGraph(options, progress);
-		PointerAnalysis pta = builder.getPointerAnalysis();
+		PointerAnalysis<InstanceKey> pta = builder.getPointerAnalysis();
 		progress.done();
 
 		ExtractImmutables.getImmutables(cg, cha, pta);

@@ -31,8 +31,8 @@ import com.ibm.wala.ipa.callgraph.CallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.CallGraphBuilderCancelException;
 import com.ibm.wala.ipa.callgraph.Entrypoint;
 import com.ibm.wala.ipa.callgraph.impl.DefaultEntrypoint;
-import com.ibm.wala.ipa.callgraph.impl.SetOfClasses;
 import com.ibm.wala.ipa.callgraph.impl.Util;
+import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
 import com.ibm.wala.ipa.cfg.EdgeFilter;
 import com.ibm.wala.ipa.cfg.PrunedCFG;
@@ -49,6 +49,7 @@ import com.ibm.wala.util.WalaException;
 import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.config.AnalysisScopeReader;
 import com.ibm.wala.util.config.FileOfClasses;
+import com.ibm.wala.util.config.SetOfClasses;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 import com.ibm.wala.util.strings.StringStuff;
 
@@ -79,7 +80,7 @@ public class ExceptionPruneAnalysis extends ExceptionPrunedCFGAnalysis<SSAInstru
 
     public static final boolean DEBUG = false;
 
-    public ExceptionPruneAnalysis(CallGraph cg, PointerAnalysis pta, AnalysisCache cache) {
+    public ExceptionPruneAnalysis(CallGraph cg, PointerAnalysis<InstanceKey> pta, AnalysisCache cache) {
     	super(cg, pta, cache);
     }
 
@@ -111,7 +112,7 @@ public class ExceptionPruneAnalysis extends ExceptionPrunedCFGAnalysis<SSAInstru
         CallGraphBuilder builder = Util.makeZeroOneContainerCFABuilder(options, cache, cha, scope);
         CallGraph cg = builder.makeCallGraph(options, null);
 
-        PointerAnalysis pta = builder.getPointerAnalysis();
+        PointerAnalysis<InstanceKey> pta = builder.getPointerAnalysis();
 
         ExceptionPruneAnalysis mCFG = new ExceptionPruneAnalysis(cg, pta, cache);
 
@@ -158,7 +159,7 @@ public class ExceptionPruneAnalysis extends ExceptionPrunedCFGAnalysis<SSAInstru
         CallGraph cg = builder.makeCallGraph(options, null);
         System.out.println("Done.");
 
-        PointerAnalysis pta = builder.getPointerAnalysis();
+        PointerAnalysis<InstanceKey> pta = builder.getPointerAnalysis();
 
         ExceptionPruneAnalysis mCFG = new ExceptionPruneAnalysis(cg, pta, cache);
 

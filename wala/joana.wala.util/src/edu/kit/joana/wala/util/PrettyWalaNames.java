@@ -302,9 +302,6 @@ public final class PrettyWalaNames {
 		StringBuilder name =
 			new StringBuilder(simpleTypeName(method.getDeclaringClass().getName()));
 
-        if (method == null) {
-            return ("NAMEERROR: " + method.toString());
-        }
 		name.append(".");
 		String mName = method.getName().toString();
 		mName = mName.replace("<", "_").replace(">", "_");

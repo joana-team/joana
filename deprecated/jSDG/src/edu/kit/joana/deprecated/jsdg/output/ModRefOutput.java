@@ -61,7 +61,7 @@ public class ModRefOutput {
         Map<Integer, Set<Integer>> use = new HashMap<Integer, Set<Integer>>(); // SDGNode -> local variables
         Map<Integer, Set<Integer>> def = new HashMap<Integer, Set<Integer>>(); // SDGNode -> local variables
 
-        PointerAnalysis pta = sdg.getPointerAnalysis();
+        PointerAnalysis<InstanceKey> pta = sdg.getPointerAnalysis();
         AnalysisScope scope = sdg.getAnalysisScope();
 
         ModRef modRef = ModRef.make();

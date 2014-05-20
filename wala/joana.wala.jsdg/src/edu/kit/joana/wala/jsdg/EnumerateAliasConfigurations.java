@@ -15,25 +15,24 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
-import com.ibm.wala.ipa.callgraph.impl.SetOfClasses;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.WalaException;
 import com.ibm.wala.util.config.AnalysisScopeReader;
 import com.ibm.wala.util.config.FileOfClasses;
+import com.ibm.wala.util.config.SetOfClasses;
 
 import edu.kit.joana.deprecated.jsdg.Analyzer;
 import edu.kit.joana.deprecated.jsdg.SDGFactory.Config;
 import edu.kit.joana.deprecated.jsdg.sdg.nodes.JDependencyGraph.PDGFormatException;
 import edu.kit.joana.deprecated.jsdg.util.Util;
 import edu.kit.joana.wala.flowless.MoJo;
-import edu.kit.joana.wala.flowless.pointsto.PtsParameter;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
 import edu.kit.joana.wala.flowless.pointsto.GraphAnnotater.Aliasing;
+import edu.kit.joana.wala.flowless.pointsto.PtsParameter;
 import edu.kit.joana.wala.flowless.pointsto.PtsParameter.RootParameter;
 import edu.kit.joana.wala.flowless.spec.ast.FlowAstVisitor.FlowAstException;
 import edu.kit.joana.wala.jsdg.EvaluationRunner.CFG;

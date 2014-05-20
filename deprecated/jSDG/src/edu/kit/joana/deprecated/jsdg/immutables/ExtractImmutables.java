@@ -16,6 +16,7 @@ import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
+import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ssa.IR;
@@ -62,11 +63,11 @@ public class ExtractImmutables {
 	private final CallGraph cg;
 	private final ClassHierarchy cha;
 	private final HeapGraph hg;
-	private final PointerAnalysis pta;
+	private final PointerAnalysis<InstanceKey> pta;
 	private final Set<IClass> immutables;
 	private final PureVisitor pureVisitor = new PureVisitor();
 
-	private ExtractImmutables(CallGraph cg, ClassHierarchy cha, PointerAnalysis pta) {
+	private ExtractImmutables(CallGraph cg, ClassHierarchy cha, PointerAnalysis<InstanceKey> pta) {
 		this.cg = cg;
 		this.cha = cha;
 		this.pta = pta;
@@ -74,7 +75,7 @@ public class ExtractImmutables {
 		this.immutables = HashSetFactory.make();
 	}
 
-	public static Set<IClass> getImmutables(CallGraph cg, ClassHierarchy cha, PointerAnalysis pta) {
+	public static Set<IClass> getImmutables(CallGraph cg, ClassHierarchy cha, PointerAnalysis<InstanceKey> pta) {
 		ExtractImmutables ei = new ExtractImmutables(cg, cha, pta);
 		Util.dumpCallGraph(cg, "ExtractImmutables", null);
 		ei.compute();

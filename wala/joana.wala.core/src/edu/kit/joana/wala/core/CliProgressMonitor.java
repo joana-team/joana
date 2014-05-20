@@ -386,4 +386,9 @@ public class CliProgressMonitor implements IProgressMonitor {
         }
 	}
 
+	@Override
+	public String getCancelMessage() {
+		return "canceled.";
+	}
+
 }

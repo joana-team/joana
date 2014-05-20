@@ -76,4 +76,9 @@ public class VerboseProgressMonitor implements IProgressMonitor {
 		out.print('.');
 	}
 
+	@Override
+	public String getCancelMessage() {
+		return "canceled.";
+	}
+
 }

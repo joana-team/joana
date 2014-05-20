@@ -17,6 +17,7 @@ import com.ibm.wala.classLoader.Language;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
+import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.types.MethodReference;
@@ -37,7 +38,7 @@ import com.ibm.wala.util.strings.StringStuff;
 public abstract class ExceptionPrunedCFGAnalysis<I, T extends IBasicBlock<I>> {
 
     protected final CallGraph cg;
-    protected final PointerAnalysis pta;
+    protected final PointerAnalysis<InstanceKey> pta;
     protected final AnalysisCache cache;
 
     // Debug stuff
@@ -51,7 +52,7 @@ public abstract class ExceptionPrunedCFGAnalysis<I, T extends IBasicBlock<I>> {
 	 * @param pta Points-to analysis of the program.
 	 * @param cache Analysis cache of the program.
 	 */
-	public ExceptionPrunedCFGAnalysis(CallGraph cg, PointerAnalysis pta, AnalysisCache cache) {
+	public ExceptionPrunedCFGAnalysis(CallGraph cg, PointerAnalysis<InstanceKey> pta, AnalysisCache cache) {
 		this.cg = cg;
 		this.pta = pta;
 		this.cache = cache;

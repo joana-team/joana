@@ -20,6 +20,7 @@ import org.jgrapht.EdgeFactory;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraphBuilderCancelException;
+import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
 import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
@@ -33,7 +34,7 @@ public final class CallGraph extends AbstractJoanaGraph<CallGraph.Node, CallGrap
 	private final static EdgeFactory<Node, Edge> DEFAULT_EDGE_FACTORY = new CGEdgeFactory();
 
 	public static CallGraph build(CallGraphFilter filter, com.ibm.wala.ipa.callgraph.CallGraph callgraph,
-			PointerAnalysis pts, IMethod entry, IProgressMonitor progress)
+			PointerAnalysis<InstanceKey> pts, IMethod entry, IProgressMonitor progress)
 	throws IllegalArgumentException, CallGraphBuilderCancelException {
 		CallGraph cg = new CallGraph(filter, entry, callgraph, pts);
 
@@ -118,12 +119,13 @@ public final class CallGraph extends AbstractJoanaGraph<CallGraph.Node, CallGrap
 	}
 
 	private final com.ibm.wala.ipa.callgraph.CallGraph cg;
-	private final PointerAnalysis pts;
+	private final PointerAnalysis<InstanceKey> pts;
 	private final CallGraphFilter filter;
 	private final Node root;
 	private final Map<CGNode, Node> method2node = new HashMap<CGNode, Node>();
 
-	private CallGraph(CallGraphFilter filter, IMethod entry, com.ibm.wala.ipa.callgraph.CallGraph orig, PointerAnalysis pts) {
+	private CallGraph(CallGraphFilter filter, IMethod entry, com.ibm.wala.ipa.callgraph.CallGraph orig,
+			PointerAnalysis<InstanceKey> pts) {
 		super(DEFAULT_EDGE_FACTORY);
 		this.filter = filter;
 		this.cg = orig;
@@ -142,7 +144,7 @@ public final class CallGraph extends AbstractJoanaGraph<CallGraph.Node, CallGrap
 		return cg;
 	}
 
-	public PointerAnalysis getPTS() {
+	public PointerAnalysis<InstanceKey> getPTS() {
 		return pts;
 	}
 

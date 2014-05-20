@@ -56,4 +56,9 @@ public class SwingProgressMonitorDelegate implements IProgressMonitor {
 		delegate.setProgress(workDone);
 	}
 
+	@Override
+	public String getCancelMessage() {
+		return "canceled.";
+	}
+
 }

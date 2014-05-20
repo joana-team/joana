@@ -7,6 +7,8 @@
  */
 package edu.kit.joana.wala.core.params.objgraph.candidates;
 
+import static edu.kit.joana.wala.util.pointsto.WalaPointsToUtil.unify;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,10 +21,8 @@ import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.intset.IntSetUtil;
 import com.ibm.wala.util.intset.MutableMapping;
-import com.ibm.wala.util.intset.MutableSharedBitVectorIntSet;
 import com.ibm.wala.util.intset.OrdinalSet;
 import com.ibm.wala.util.intset.OrdinalSetMapping;
-import com.ibm.wala.util.intset.SparseIntSet;
 import com.ibm.wala.util.strings.Atom;
 
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
@@ -30,8 +30,6 @@ import edu.kit.joana.wala.core.ParameterField;
 import edu.kit.joana.wala.core.params.objgraph.TVL;
 import edu.kit.joana.wala.core.params.objgraph.TVL.V;
 import edu.kit.joana.wala.util.PrettyWalaNames;
-
-import static edu.kit.joana.wala.util.pointsto.WalaPointsToUtil.unify;
 
 /**
  *

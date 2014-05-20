@@ -43,4 +43,9 @@ public class NullProgressMonitor implements IProgressMonitor {
 	public void worked(int units) {
 	}
 
+	@Override
+	public String getCancelMessage() {
+		return "cancel.";
+	}
+
 }

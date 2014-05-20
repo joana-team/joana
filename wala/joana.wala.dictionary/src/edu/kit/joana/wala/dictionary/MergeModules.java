@@ -30,8 +30,8 @@ import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.ipa.callgraph.Entrypoint;
-import com.ibm.wala.ipa.callgraph.impl.SetOfClasses;
 import com.ibm.wala.ipa.callgraph.impl.SubtypesEntrypoint;
+import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
 import com.ibm.wala.ipa.callgraph.propagation.SSAPropagationCallGraphBuilder;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
@@ -45,6 +45,7 @@ import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.config.AnalysisScopeReader;
 import com.ibm.wala.util.config.FileOfClasses;
+import com.ibm.wala.util.config.SetOfClasses;
 import com.ibm.wala.util.strings.StringStuff;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -102,7 +103,7 @@ public class MergeModules {
 	private Set<SDGNode> extCallNodes;
 	private Dictionary dict;
 	private CallGraph cg;
-	private PointerAnalysis pts;
+	private PointerAnalysis<InstanceKey> pts;
 
 
 	public MergeModules(final String name, final String baseDir, final ModuleCFG mainModule,

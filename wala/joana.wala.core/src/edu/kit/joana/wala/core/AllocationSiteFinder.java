@@ -76,7 +76,7 @@ public abstract class AllocationSiteFinder {
 		final SSAInvokeInstruction invk = (SSAInvokeInstruction) callInstruction;
 		final Set<PDGNode> alloc = new HashSet<PDGNode>();
 		final int ssaVar = invk.getReceiver();
-		PointerAnalysis pts = builder.getPointerAnalysis();
+		PointerAnalysis<InstanceKey> pts = builder.getPointerAnalysis();
 		final PointerKey pk = pts.getHeapModel().getPointerKeyForLocal(method, ssaVar);
 		final OrdinalSet<InstanceKey> ptsSet = pts.getPointsToSet(pk);
 		for (final InstanceKey ik : ptsSet) {

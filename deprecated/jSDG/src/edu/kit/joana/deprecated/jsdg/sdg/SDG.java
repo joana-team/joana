@@ -20,6 +20,7 @@ import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.ipa.callgraph.impl.FakeRootClass;
+import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.analysis.IExplodedBasicBlock;
@@ -100,7 +101,7 @@ public class SDG extends JDependencyGraph {
 
 	private final String[] immutables;
 
-	private PointerAnalysis pTo;
+	private PointerAnalysis<InstanceKey> pTo;
     private AnalysisScope scope;
 
 	private SDG(IMethod main, CallGraph cg, IKey2Origin k2o, IPointerAnalysis pta,
@@ -716,11 +717,11 @@ public class SDG extends JDependencyGraph {
 		pdg.addParamOutDependency(from, to);
 	}
 
-	public void setPointerAnalysis(PointerAnalysis pTo) {
+	public void setPointerAnalysis(PointerAnalysis<InstanceKey> pTo) {
 	    this.pTo = pTo;
 	}
 
-    public PointerAnalysis getPointerAnalysis() {
+    public PointerAnalysis<InstanceKey> getPointerAnalysis() {
         return pTo;
     }
 

@@ -179,11 +179,13 @@ public class HeapParams {
 			final OrdinalSetMapping<PDGNode> map) throws CancelException {
 		final Graph<PDGNode> cfg = extractControlFlow(pdg);
 		final Graph<PDGNode> invertcfg = GraphInverter.invert(cfg);
-		final GraphReachability<PDGNode> reach = new GraphReachability<PDGNode>(invertcfg, new Filter<PDGNode>() {
-			@Override
-			public boolean accepts(PDGNode o) {
-				return true;
-			}});
+		final GraphReachability<PDGNode, PDGNode> reach =
+			new GraphReachability<PDGNode, PDGNode>(invertcfg, new Filter<PDGNode>() {
+				@Override
+				public boolean accepts(PDGNode o) {
+					return true;
+				}
+			});
 
 		reach.solve(null);
 

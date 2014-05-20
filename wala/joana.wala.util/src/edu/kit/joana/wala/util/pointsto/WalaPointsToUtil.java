@@ -80,7 +80,8 @@ public final class WalaPointsToUtil {
             }
 
             // Assert it's not explicitly excluded (is this necessary?)
-            if (!(scope.getExclusions().contains(site.getDeclaredTarget().getDeclaringClass()))) {
+            final String clsName = site.getDeclaredTarget().getDeclaringClass().getName().toString().substring(1);
+            if (!(scope.getExclusions().contains(clsName))) {
                 // This should not be!
                 IClassHierarchy cha = caller.getClassHierarchy();
                 

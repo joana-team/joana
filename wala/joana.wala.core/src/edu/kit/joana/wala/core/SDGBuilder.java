@@ -34,6 +34,7 @@ import com.ibm.wala.ipa.callgraph.CallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.CallGraphBuilderCancelException;
 import com.ibm.wala.ipa.callgraph.Entrypoint;
 import com.ibm.wala.ipa.callgraph.MethodTargetSelector;
+import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.SSAContextInterpreter;
 import com.ibm.wala.ipa.callgraph.ContextSelector;
 import com.ibm.wala.ipa.callgraph.impl.SubtypesEntrypoint;
@@ -311,7 +312,7 @@ public class SDGBuilder implements CallGraphFilter {
 
 
 	public static SDGBuilder create(final SDGBuilderConfig cfg, final com.ibm.wala.ipa.callgraph.CallGraph walaCG,
-			final PointerAnalysis pts) throws UnsoundGraphException, CancelException {
+			final PointerAnalysis<InstanceKey> pts) throws UnsoundGraphException, CancelException {
         IProgressMonitor progress = NullProgressMonitor.INSTANCE;
 
 		SDGBuilder builder = new SDGBuilder(cfg);
@@ -321,7 +322,7 @@ public class SDGBuilder implements CallGraphFilter {
 	}
 
 	public static SDG build(final SDGBuilderConfig cfg, final com.ibm.wala.ipa.callgraph.CallGraph walaCG,
-			final PointerAnalysis pts) throws UnsoundGraphException, CancelException {
+			final PointerAnalysis<InstanceKey> pts) throws UnsoundGraphException, CancelException {
 		SDG sdg = null;
 		WorkPackage pack = null;
 		IProgressMonitor progress = NullProgressMonitor.INSTANCE;
@@ -348,7 +349,7 @@ public class SDGBuilder implements CallGraphFilter {
 	}
 
 	public static SDGBuilder create(final SDGBuilderConfig cfg, final com.ibm.wala.ipa.callgraph.CallGraph walaCG,
-			final PointerAnalysis pts, IProgressMonitor progress) throws UnsoundGraphException, CancelException {
+			final PointerAnalysis<InstanceKey> pts, IProgressMonitor progress) throws UnsoundGraphException, CancelException {
 
 		SDGBuilder builder = new SDGBuilder(cfg);
 		builder.run(walaCG, pts, progress);
@@ -485,7 +486,7 @@ public class SDGBuilder implements CallGraphFilter {
 		run(walaCG, progress);
 	}
 
-	private void run(final com.ibm.wala.ipa.callgraph.CallGraph walaCG, final PointerAnalysis pts,
+	private void run(final com.ibm.wala.ipa.callgraph.CallGraph walaCG, final PointerAnalysis<InstanceKey> pts,
 			final IProgressMonitor progress) throws UnsoundGraphException, CancelException {
 		cfg.out.print("\n\tcallgraph: ");
 
@@ -831,9 +832,9 @@ public class SDGBuilder implements CallGraphFilter {
 
 	private static class CGResult {
 		private final com.ibm.wala.ipa.callgraph.CallGraph cg;
-		private final PointerAnalysis pts;
+		private final PointerAnalysis<InstanceKey> pts;
 
-		private CGResult(com.ibm.wala.ipa.callgraph.CallGraph cg, PointerAnalysis pts) {
+		private CGResult(com.ibm.wala.ipa.callgraph.CallGraph cg, PointerAnalysis<InstanceKey> pts) {
 			this.cg = cg;
 			this.pts = pts;
 		}
@@ -1393,7 +1394,7 @@ public class SDGBuilder implements CallGraphFilter {
 		return cfg.staticInitializers != StaticInitializationTreatment.SIMPLE;
 	}
 
-	public PointerAnalysis getPointerAnalysis() {
+	public PointerAnalysis<InstanceKey> getPointerAnalysis() {
 		return cg.getPTS();
 	}
 
@@ -1420,6 +1421,7 @@ public class SDGBuilder implements CallGraphFilter {
 	 *
 	 */
 	public static class SDGBuilderConfig implements java.io.Serializable {
+		private static final long serialVersionUID = 237647794827893127L;
 		public transient PrintStream out = System.out;
 		public transient AnalysisScope scope = null;
 		public transient AnalysisCache cache = null;

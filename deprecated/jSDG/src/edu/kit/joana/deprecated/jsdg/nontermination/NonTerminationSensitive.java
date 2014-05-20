@@ -89,7 +89,7 @@ public class NonTerminationSensitive {
 
 		CallGraph cg = sdg.getCallGraph();
 		Graph<CGNode> inverted = GraphInverter.invert(cg);
-		GraphReachability<CGNode> reach = new GraphReachability<CGNode>(inverted, new TrueFilter());
+		GraphReachability<CGNode,CGNode> reach = new GraphReachability<CGNode,CGNode>(inverted, new TrueFilter());
 		progress.subTask("Searching potential non-returning calls");
 		reach.solve(progress);
 
@@ -411,7 +411,7 @@ public class NonTerminationSensitive {
 
 	private Set<CGNode> findRecursiveMethods(IProgressMonitor progress) throws CancelException {
 		CallGraph cg = sdg.getCallGraph();
-		GraphReachability<CGNode> reach = new GraphReachability<CGNode>(cg, new TrueFilter());
+		GraphReachability<CGNode,CGNode> reach = new GraphReachability<CGNode,CGNode>(cg, new TrueFilter());
 		progress.subTask("Searching recursive methods");
 		reach.solve(progress);
 

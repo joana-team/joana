@@ -53,14 +53,14 @@ public class ModRefCandidates implements Iterable<CGNode> {
 	private final Map<CGNode, Collection<ModRefFieldCandidate>> all = new HashMap<CGNode, Collection<ModRefFieldCandidate>>();
 	private final CandidateFactory candFact;
 	private final ParameterFieldFactory paramFact;
-	private final PointerAnalysis pa;
+	private final PointerAnalysis<InstanceKey> pa;
 	private final SingleCandidateConsumer single;
 	private final ModRefSSAVisitor singleVisitor;
 	private final SingleCandidatePointsTo singlePts;
 	private final boolean doStaticFields;
 
 	private ModRefCandidates(final CandidateFactory candFact, final ParameterFieldFactory paramFact,
-			final PointerAnalysis pa, final boolean doStaticFields) {
+			final PointerAnalysis<InstanceKey> pa, final boolean doStaticFields) {
 		this.candFact = candFact;
 		this.paramFact = paramFact;
 		this.pa = pa;
@@ -71,7 +71,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 	}
 
 	public static ModRefCandidates computeIntracProc(final ParameterFieldFactory paramFact,
-			final CandidateFactory candFact, final CallGraph cg, final PointerAnalysis pa,
+			final CandidateFactory candFact, final CallGraph cg, final PointerAnalysis<InstanceKey> pa,
 			final boolean doStaticFields, final IProgressMonitor progress) throws CancelException {
 		final ModRefCandidates modref = new ModRefCandidates(candFact, paramFact, pa, doStaticFields);
 
@@ -323,10 +323,10 @@ public class ModRefCandidates implements Iterable<CGNode> {
 	private static final class SingleCandidatePointsTo implements PointsTo {
 
 		private final HeapModel hm;
-		private final PointerAnalysis pa;
+		private final PointerAnalysis<InstanceKey> pa;
 		private CGNode n;
 
-		private SingleCandidatePointsTo(final HeapModel hm, final PointerAnalysis pa) {
+		private SingleCandidatePointsTo(final HeapModel hm, final PointerAnalysis<InstanceKey> pa) {
 			this.hm = hm;
 			this.pa = pa;
 		}

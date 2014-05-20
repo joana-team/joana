@@ -41,7 +41,6 @@ import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.ipa.callgraph.Entrypoint;
-import com.ibm.wala.ipa.callgraph.impl.SetOfClasses;
 import com.ibm.wala.ipa.callgraph.propagation.AllocationSite;
 import com.ibm.wala.ipa.callgraph.propagation.AllocationSiteInNode;
 import com.ibm.wala.ipa.callgraph.propagation.ArrayContentsKey;
@@ -85,6 +84,7 @@ import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.NullProgressMonitor;
 import com.ibm.wala.util.WalaException;
 import com.ibm.wala.util.collections.HashSetFactory;
+import com.ibm.wala.util.config.SetOfClasses;
 import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.graph.Graph;
 import com.ibm.wala.util.intset.BitVector;
@@ -300,7 +300,7 @@ public final class Util {
 		if (conf.exclusions != null && !conf.exclusions.isEmpty()) {
 			SetOfClasses soc = new RegexOfClasses(conf.exclusions);
 			if (conf.invertExclusion) {
-				soc = SetComplement.complement(soc);
+				soc = SetComplement.complement((RegexOfClasses) soc);
 			}
 
 			scope.setExclusions(soc);
@@ -1006,7 +1006,7 @@ public final class Util {
 		}
 	}
 
-	public static void printOrigins(CGNode method, int ssaVar, PointerAnalysis pta, IKey2Origin k2o) {
+	public static void printOrigins(CGNode method, int ssaVar, PointerAnalysis<InstanceKey> pta, IKey2Origin k2o) {
 		PointerKey pk =
 			pta.getHeapModel().getPointerKeyForLocal(method, ssaVar);
 
@@ -1466,7 +1466,6 @@ public final class Util {
 			}
 		}
 
-		@Override
 		public void add(IClass klass) {
 		    if (klass == null) {
 		        throw new IllegalArgumentException("klass is null");
@@ -1493,13 +1492,17 @@ public final class Util {
 			return m.matches();
 		}
 
-		@Override
 		public boolean contains(TypeReference klass) {
 			if (klass == null) {
 				throw new IllegalArgumentException("klass is null");
 			}
 
 			return contains(klass.getName().toString());
+		}
+
+		@Override
+		public void add(String klass) {
+			Assertions.UNREACHABLE();
 		}
 	}
 
@@ -1508,17 +1511,16 @@ public final class Util {
 
 		private static final long serialVersionUID = 9195409285667103269L;
 
-		private final SetOfClasses set;
+		private final RegexOfClasses set;
 
-		private SetComplement(SetOfClasses set) {
+		private SetComplement(RegexOfClasses set) {
 			this.set = set;
 		}
 
-		public static SetComplement complement(SetOfClasses set) {
+		public static SetComplement complement(RegexOfClasses set) {
 			return new SetComplement(set);
 		}
 
-		@Override
 		public void add(IClass klass) {
 			Assertions.UNREACHABLE();
 		}
@@ -1528,9 +1530,13 @@ public final class Util {
 			return !set.contains(klassName);
 		}
 
-		@Override
 		public boolean contains(TypeReference klass) {
 			return !set.contains(klass);
+		}
+
+		@Override
+		public void add(String klass) {
+			Assertions.UNREACHABLE();
 		}
 	}
 

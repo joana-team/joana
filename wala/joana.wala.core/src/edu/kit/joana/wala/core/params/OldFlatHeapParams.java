@@ -274,14 +274,14 @@ public class OldFlatHeapParams {
 	}
 
 	private OrdinalSet<InstanceKey> findReachableInstances(final CGNode node, final int ssaVar) {
-		final PointerAnalysis pts = sdg.getPointerAnalysis();
+		final PointerAnalysis<InstanceKey> pts = sdg.getPointerAnalysis();
 		final PointerKey pkStart = pts.getHeapModel().getPointerKeyForLocal(node, ssaVar);
 
 		return findReachableInstances(pts, pkStart);
 	}
 
 	private OrdinalSet<InstanceKey> pointsToArrayField(final CGNode node, final int ssaVarBase) {
-		final PointerAnalysis pts = sdg.getPointerAnalysis();
+		final PointerAnalysis<InstanceKey> pts = sdg.getPointerAnalysis();
 
 		final PointerKey pkBase = pts.getHeapModel().getPointerKeyForLocal(node, ssaVarBase);
 		final OrdinalSet<InstanceKey> basePts = pts.getPointsToSet(pkBase);
@@ -301,7 +301,7 @@ public class OldFlatHeapParams {
 	}
 
 	private OrdinalSet<InstanceKey> pointsToObjectField(final CGNode node, final int ssaVarBase, final IField field) {
-		final PointerAnalysis pts = sdg.getPointerAnalysis();
+		final PointerAnalysis<InstanceKey> pts = sdg.getPointerAnalysis();
 
 		final PointerKey pkBase = pts.getHeapModel().getPointerKeyForLocal(node, ssaVarBase);
 		final OrdinalSet<InstanceKey> basePts = pts.getPointsToSet(pkBase);
@@ -320,7 +320,8 @@ public class OldFlatHeapParams {
 //		return ptsSet;
 	}
 
-	private static OrdinalSet<InstanceKey> findReachableInstances(final PointerAnalysis pts, final PointerKey pkStart) {
+	private static OrdinalSet<InstanceKey> findReachableInstances(final PointerAnalysis<InstanceKey> pts,
+			final PointerKey pkStart) {
 		final HeapGraph hg = pts.getHeapGraph();
 		if (!hg.containsNode(pkStart)) {
 			return OrdinalSet.empty();
@@ -330,7 +331,8 @@ public class OldFlatHeapParams {
 
 		final BitVectorIntSet resultSet = new BitVectorIntSet();
 
-		final NumberedDFSDiscoverTimeIterator<Object> dfsDiscover = new NumberedDFSDiscoverTimeIterator<Object>(hg, pkStart);
+		final NumberedDFSDiscoverTimeIterator<Object> dfsDiscover =
+				new NumberedDFSDiscoverTimeIterator<Object>(hg, pkStart);
 		while (dfsDiscover.hasNext()) {
 			Object obj = dfsDiscover.next();
 			if (obj instanceof InstanceKey) {

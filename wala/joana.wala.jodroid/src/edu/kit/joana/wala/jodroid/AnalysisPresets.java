@@ -31,87 +31,56 @@
  */
 package edu.kit.joana.wala.jodroid;
 
-import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
+import java.io.PrintStream;
+import java.util.EnumSet;
+import java.util.Set;
 
-// Basic representations
+import com.ibm.wala.analysis.reflection.ReflectionContextInterpreter;
+import com.ibm.wala.analysis.reflection.ReflectionContextSelector;
 import com.ibm.wala.classLoader.IMethod;
-import com.ibm.wala.ssa.SSAInvokeInstruction;
-
-// Overall settings
+import com.ibm.wala.dalvik.classLoader.DexIRFactory;
+import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.DefaultInstantiationBehavior;
+import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.IntentContextInterpreter;
+import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.IntentContextSelector;
+import com.ibm.wala.dalvik.util.AndroidEntryPointLocator.LocatorFlags;
+import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
+import com.ibm.wala.dalvik.util.AndroidPreFlightChecks;
+import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions.ReflectionOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
-import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
-
-// Building the class hierarchy..
-import com.ibm.wala.ipa.cha.IClassHierarchy;
-import com.ibm.wala.ipa.cha.ClassHierarchy;
-
-// Controll the beahaviour of the android-model
-import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationBehavior;
-import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.DefaultInstantiationBehavior;
-import com.ibm.wala.dalvik.util.AndroidEntryPointLocator.LocatorFlags;
-
-// Controll the generaton of the call-graph and pointsto anaysis
-import com.ibm.wala.ipa.callgraph.impl.Util;
-import com.ibm.wala.ipa.callgraph.CallGraph;
-import com.ibm.wala.ipa.callgraph.CallGraphBuilder;
-import com.ibm.wala.ipa.callgraph.propagation.cfa.ZeroXCFABuilder;
-
-import com.ibm.wala.ipa.callgraph.propagation.SSAContextInterpreter;
-import com.ibm.wala.ipa.callgraph.propagation.cfa.DefaultSSAInterpreter;
-import com.ibm.wala.ipa.callgraph.propagation.cfa.DelegatingSSAContextInterpreter;
-import com.ibm.wala.analysis.reflection.ReflectionContextInterpreter;
-
 import com.ibm.wala.ipa.callgraph.ContextSelector;
 import com.ibm.wala.ipa.callgraph.impl.DefaultContextSelector;
-import com.ibm.wala.analysis.reflection.ReflectionContextSelector;
-import com.ibm.wala.ipa.callgraph.impl.ContextInsensitiveSelector;
-
+import com.ibm.wala.ipa.callgraph.impl.Util;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKeyFactory;
+import com.ibm.wala.ipa.callgraph.propagation.SSAContextInterpreter;
+import com.ibm.wala.ipa.callgraph.propagation.cfa.DefaultSSAInterpreter;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.ZeroXInstanceKeys;
+import com.ibm.wala.ipa.cha.IClassHierarchy;
+import com.ibm.wala.ssa.IRFactory;
+import com.ibm.wala.ssa.SSAInvokeInstruction;
+import com.ibm.wala.util.NullProgressMonitor;
 
-// Building the SDG
-import edu.kit.joana.wala.core.SDGBuilder.SDGBuilderConfig;
+import edu.kit.joana.wala.core.CliProgressMonitor;
+import edu.kit.joana.wala.core.ExternalCallCheck;
+import edu.kit.joana.wala.core.Main;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
+import edu.kit.joana.wala.core.SDGBuilder.SDGBuilderConfig;
 import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
-import edu.kit.joana.wala.core.ExternalCallCheck;
-
-// Intermediate Reperesentation stuff
-import com.ibm.wala.ssa.IRFactory;
-import com.ibm.wala.dalvik.classLoader.DexIRFactory;
-
-// Additional helpers
-import com.ibm.wala.ipa.callgraph.AnalysisCache;
-import edu.kit.joana.wala.util.VerboseProgressMonitor;
-import edu.kit.joana.wala.core.CliProgressMonitor;
-import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
-import com.ibm.wala.util.NullProgressMonitor;
-
-// Prepare build
-import com.ibm.wala.ipa.callgraph.MethodTargetSelector;
-import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.IntentContextInterpreter;
-import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.IntentContextSelector;
-import com.ibm.wala.dalvik.util.AndroidPreFlightChecks;
-
-import edu.kit.joana.wala.core.Main;
-import edu.kit.joana.wala.util.pointsto.WalaPointsToUtil;
-import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph;
-import com.ibm.wala.ipa.callgraph.impl.ExplicitCallGraph;
-
-import com.ibm.wala.ipa.callgraph.impl.SetOfClasses;
-import com.ibm.wala.types.TypeReference;
-import com.ibm.wala.types.ClassLoaderReference;
-
-import edu.kit.joana.wala.core.Main;
-import edu.kit.joana.wala.jodroid.LogLevels;
-
-import java.util.Set;
-import java.util.EnumSet;
-import java.io.PrintStream;
+import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
+import edu.kit.joana.wala.jodroid.AnalysisPresets.Preset;
+// Basic representations
+// Overall settings
+// Building the class hierarchy..
+// Controll the beahaviour of the android-model
+// Controll the generaton of the call-graph and pointsto anaysis
+// Building the SDG
+// Intermediate Reperesentation stuff
+// Additional helpers
+// Prepare build
 
 /**
  * This class provides presets for the various aspects of the SDG-generation.

@@ -36,7 +36,8 @@ public final class Pts2AliasGraph {
 
 	private Pts2AliasGraph() {}
 
-	public static MayAliasGraph computeCurrentAliasing(final PointerAnalysis pts, final CGNode node, final SSAInvokeInstruction invk) {
+	public static MayAliasGraph computeCurrentAliasing(final PointerAnalysis<InstanceKey> pts, final CGNode node,
+			final SSAInvokeInstruction invk) {
 
 		// System.out.println("Creating alias graph for callsite: " + node + " - " + invk);
 
@@ -79,8 +80,8 @@ public final class Pts2AliasGraph {
 		return mayAlias;
 	}
 
-	private static void createParamFields(final Pts2AliasParam parent, final HeapGraph hg, final PointerAnalysis pts,
-			final Set<Pts2AliasParam> created) {
+	private static void createParamFields(final Pts2AliasParam parent, final HeapGraph hg,
+			final PointerAnalysis<InstanceKey> pts, final Set<Pts2AliasParam> created) {
 		for (final InstanceKey ik : parent.pts) {
 			for (Iterator<Object> it = hg.getSuccNodes(ik); it.hasNext(); ) {
 				final PointerKey succ = (PointerKey) it.next();

@@ -755,9 +755,9 @@ public class InterferenceComputation {
 
 	private static final class PointsToWrapper {
 		
-		private final PointerAnalysis pta;
+		private final PointerAnalysis<InstanceKey> pta;
 
-		public PointsToWrapper(final PointerAnalysis pta) {
+		public PointsToWrapper(final PointerAnalysis<InstanceKey> pta) {
 			this.pta = pta;
 		}
 

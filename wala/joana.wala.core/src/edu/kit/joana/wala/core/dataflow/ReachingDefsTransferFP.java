@@ -21,7 +21,6 @@ import com.ibm.wala.util.intset.BitVectorIntSet;
 import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.intset.IntSetUtil;
 import com.ibm.wala.util.intset.OrdinalSetMapping;
-import com.ibm.wala.util.intset.SparseIntSet;
 
 import edu.kit.joana.wala.core.PDGNode;
 

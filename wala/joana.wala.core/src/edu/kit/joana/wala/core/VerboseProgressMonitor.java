@@ -49,4 +49,9 @@ public class VerboseProgressMonitor implements IProgressMonitor {
 		cancel = true;
 	}
 
+	@Override
+	public String getCancelMessage() {
+		return "canceled.";
+	}
+
 }

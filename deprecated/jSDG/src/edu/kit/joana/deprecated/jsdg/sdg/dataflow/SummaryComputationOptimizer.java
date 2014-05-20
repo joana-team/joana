@@ -51,7 +51,7 @@ public class SummaryComputationOptimizer {
 
 		CallGraph cg = sdg.getCallGraph();
 
-		GraphReachability<CGNode> reach = new GraphReachability<CGNode>(cg, new TrueFilter());
+		GraphReachability<CGNode,CGNode> reach = new GraphReachability<CGNode,CGNode>(cg, new TrueFilter());
 		progress.subTask("Searching recursive methods");
 		reach.solve(progress);
 

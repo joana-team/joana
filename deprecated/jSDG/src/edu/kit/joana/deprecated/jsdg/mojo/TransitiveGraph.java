@@ -25,8 +25,8 @@ import com.ibm.wala.util.graph.impl.GraphInverter;
 public class TransitiveGraph<E> implements Graph<E> {
 
 	private final Graph<E> g;
-	private GraphReachability<E> reach = null;
-	private GraphReachability<E> reachInvers = null;
+	private GraphReachability<E,E> reach = null;
+	private GraphReachability<E,E> reachInvers = null;
 	public boolean changed = true;
 
 	public TransitiveGraph(Graph<E> g) {
@@ -35,7 +35,7 @@ public class TransitiveGraph<E> implements Graph<E> {
 
 	private void recomputeIfNeeded() {
 		if (changed) {
-			reach = new GraphReachability<E>(g, new Filter<E>() {
+			reach = new GraphReachability<E,E>(g, new Filter<E>() {
 
 				@Override
 				public boolean accepts(E o) {
@@ -50,7 +50,7 @@ public class TransitiveGraph<E> implements Graph<E> {
 			}
 
 			Graph<E> inverted = GraphInverter.invert(g);
-			reachInvers = new GraphReachability<E>(inverted, new Filter<E>() {
+			reachInvers = new GraphReachability<E,E>(inverted, new Filter<E>() {
 
 				@Override
 				public boolean accepts(E o) {

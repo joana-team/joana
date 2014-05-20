@@ -25,6 +25,7 @@ import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.ipa.callgraph.ContextSelector;
 import com.ibm.wala.ipa.callgraph.impl.DefaultContextSelector;
+import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
 import com.ibm.wala.ipa.callgraph.propagation.SSAPropagationCallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.DefaultSSAInterpreter;
@@ -528,10 +529,10 @@ public class MoJo {
 
 	public static class CallGraphResult {
 		public final CallGraph cg;
-		public final PointerAnalysis pts;
+		public final PointerAnalysis<InstanceKey> pts;
 		public final AnalysisCache cache;
 
-		public CallGraphResult(CallGraph cg, PointerAnalysis pts, AnalysisCache cache) {
+		public CallGraphResult(CallGraph cg, PointerAnalysis<InstanceKey> pts, AnalysisCache cache) {
 			this.cg = cg;
 			this.cache = cache;
 			this.pts = pts;

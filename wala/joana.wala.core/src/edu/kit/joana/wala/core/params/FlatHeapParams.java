@@ -54,7 +54,7 @@ public class FlatHeapParams {
 	private final SDGBuilder sdg;
 	private final Map<CGNode, OrdinalSet<PointerKey>> cg2mod;
 	private final Map<CGNode, OrdinalSet<PointerKey>> cg2ref;
-	private final PointerAnalysis pts;
+	private final PointerAnalysis<InstanceKey> pts;
 	private final OrdinalSetMapping<PointerKey> mapping;
 
 	public static final boolean DO_REACHABILITY_PER_METHOD = true;
@@ -81,7 +81,7 @@ public class FlatHeapParams {
 		this.cg2ref = new HashMap<CGNode, OrdinalSet<PointerKey>>();
 	}
 
-	private GraphReachability<Object> computeReachblePointerKeys(final OrdinalSet<PointerKey> mod,
+	private GraphReachability<Object, Object> computeReachblePointerKeys(final OrdinalSet<PointerKey> mod,
 			final OrdinalSet<PointerKey> ref, final IProgressMonitor progress) throws CancelException {
 		HeapGraph heap = pts.getHeapGraph();
 
@@ -94,7 +94,7 @@ public class FlatHeapParams {
 			}
 		});
 
-		GraphReachability<Object> reach = new GraphReachability<Object>(pruned, new Filter<Object>() {
+		GraphReachability<Object, Object> reach = new GraphReachability<Object, Object>(pruned, new Filter<Object>() {
 			@Override
 			public boolean accepts(final Object o) {
 				return isRelevantPointerKey(o);
@@ -204,10 +204,10 @@ public class FlatHeapParams {
             progress.worked(progressCtr++);
 		}
 
-		GraphReachability<Object> heapReach;
+		GraphReachability<Object, Object> heapReach;
 		if (!DO_REACHABILITY_PER_METHOD) {
 			// solve reachability of heapgraph for whole program
-			heapReach = new GraphReachability<Object>(pts.getHeapGraph(), new Filter<Object>() {
+			heapReach = new GraphReachability<Object, Object>(pts.getHeapGraph(), new Filter<Object>() {
 				@Override
 				public boolean accepts(final Object o) {
 					return isRelevantPointerKey(o) || o instanceof PointerKey;
@@ -432,7 +432,8 @@ public class FlatHeapParams {
 
 	}
 
-	private OrdinalSet<PointerKey> findReachableInstances(final GraphReachability<Object> heapReach, final CGNode node, final int ssaVar) throws CancelException {
+	private OrdinalSet<PointerKey> findReachableInstances(final GraphReachability<Object, Object> heapReach,
+			final CGNode node, final int ssaVar) throws CancelException {
 		final PointerKey pkStart = pts.getHeapModel().getPointerKeyForLocal(node, ssaVar);
 
 		return findReachableInstances(heapReach, node, pkStart);
@@ -470,8 +471,8 @@ public class FlatHeapParams {
 		return new OrdinalSet<PointerKey>(set, mapping);
 	}
 
-	private OrdinalSet<PointerKey> findReachableInstances(final GraphReachability<Object> heapReach, final CGNode node,
-			final PointerKey pkStart) throws CancelException {
+	private OrdinalSet<PointerKey> findReachableInstances(final GraphReachability<Object, Object> heapReach,
+			final CGNode node, final PointerKey pkStart) throws CancelException {
 		final HeapGraph hg = pts.getHeapGraph();
 		if (!hg.containsNode(pkStart)) {
 			return OrdinalSet.empty();

@@ -50,6 +50,7 @@ import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.IFCResult;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.Reason;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SLeak;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SPos;
+import edu.kit.joana.ui.wala.easyifc.util.EntryPointSearch.EntryPointConfiguration;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
@@ -148,9 +149,10 @@ public final class CheckInformationFlow {
 		this.annotationMethod = AnnotationMethod.FROM_ANNOTATIONS;
 	}
 
-	public void runCheckIFC(final IProgressMonitor progress) throws IOException, ClassHierarchyException,
+
+	public void runCheckIFC(EntryPointConfiguration entryPoint, final IProgressMonitor progress) throws IOException, ClassHierarchyException,
 			IllegalArgumentException, CancelException, UnsoundGraphException {
-		final SDGConfig config = createDefaultConfig(cfc, "ifc.Main");
+		final SDGConfig config = entryPoint.getSDGConfigFor(cfc);
 		final SDGProgram p = buildSDG(config);
 		
 		if (containsThreads(p)) {			
@@ -158,19 +160,18 @@ public final class CheckInformationFlow {
 			config.setComputeInterferences(true);
 			config.setMhpType(MHPType.PRECISE);
 			final SDGProgram concProg = buildSDG(config); 
-			final IFCResult result = doThreadIFCanalysis(config, concProg);
+			final IFCResult result = doThreadIFCanalysis(config, concProg, entryPoint);
 			cfc.results.consume(result);
 		} else {
 			cfc.out.println("checking '" + cfc.bin + "' for sequential confidentiality.");
-			final IFCResult result = doSequentialIFCanalysis(config, p, progress);
+			final IFCResult result = doSequentialIFCanalysis(config, p, entryPoint, progress);
 			cfc.results.consume(result);
 		}
 	}
 	
 	private IFCResult doSequentialIFCanalysis(final SDGConfig config, final SDGProgram prog,
-			final IProgressMonitor progress) throws CancelException {
-		final SDGMethod m = prog.getMethod(config.getEntryMethod());
-		final IFCResult result = new IFCResult(config.getEntryMethod(), m);
+			final EntryPointConfiguration entryPoint, final IProgressMonitor progress) throws CancelException {
+		final IFCResult result = new IFCResult(entryPoint);
 		
 		final Set<SLeak> excLeaks = checkIFC(Reason.EXCEPTION, prog, IFCType.CLASSICAL_NI, annotationMethod);
 		final boolean isSecure = excLeaks.isEmpty();
@@ -226,9 +227,8 @@ public final class CheckInformationFlow {
 		return result;
 	}
 	
-	private IFCResult doThreadIFCanalysis(final SDGConfig config, final SDGProgram prog) {
-		final SDGMethod m = prog.getMethod(config.getEntryMethod());
-		final IFCResult result = new IFCResult(config.getEntryMethod(), m);
+	private IFCResult doThreadIFCanalysis(final SDGConfig config, final SDGProgram prog, final EntryPointConfiguration entryPoint) {
+		final IFCResult result = new IFCResult(entryPoint);
 		final Set<SLeak> threadLeaks = checkIFC(Reason.THREAD_EXCEPTION, prog, IFCType.RLSOD, annotationMethod);
 		final boolean isSecure = threadLeaks.isEmpty();
 
@@ -334,8 +334,7 @@ public final class CheckInformationFlow {
 		return m != null;
 	}
 	
-	private static SDGConfig createDefaultConfig(final CheckIFCConfig cfc, final String mainClass) {
-		final JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(mainClass);
+	public static SDGConfig createDefaultConfig(final CheckIFCConfig cfc, final JavaMethodSignature mainMethod) {
 		final SDGConfig config = new SDGConfig(cfc.bin, mainMethod.toBCString(), Stubs.JRE_14);
 		config.setNativesXML(cfc.libDir + "natives_empty.xml");
 //		cfg.stubs = cfc.libDir + "jSDG-stubs-jre1.4.jar";

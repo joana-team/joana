@@ -24,6 +24,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.internal.core.SourceMethod;
 import org.eclipse.jdt.ui.JavaElementLabelProvider;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.ui.PlatformUI;
 
 import edu.kit.joana.ui.wala.easyifc.Activator;
 import edu.kit.joana.ui.wala.easyifc.model.FileSourcePositions;
@@ -62,7 +63,7 @@ public class EasyIFCMarkerAndImageManager {
 	public static final String ILLEGAL_FLOW_THREAD_EXC_IMG 	= "icons/illegal_flow_thread_exc_big.png";
 	public static final String ILLEGAL_FLOW_DIRECT_IMG 		= "icons/illegal_flow_direct_big.png";
 	public static final String ILLEGAL_FLOW_IMG 			= "icons/illegal_flow_big.png";
-
+	
 	public static final String CRITICAL_MARKER = "joana.ui.easyifc.highlight.critical";
 	public static final String IFC_MARKER = "joana.ui.easyifc.marker";
 
@@ -80,6 +81,10 @@ public class EasyIFCMarkerAndImageManager {
     	return instance;
     }
 
+    public Image getSharedImage(String symbolicName) {
+    	return PlatformUI.getWorkbench().getSharedImages().getImage(symbolicName);
+    }
+    
     public Image getImage(final SourceMethod m) {
 		return jLables.getImage(m);
     }

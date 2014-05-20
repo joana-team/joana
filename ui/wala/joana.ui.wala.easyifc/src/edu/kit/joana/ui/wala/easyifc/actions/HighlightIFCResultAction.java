@@ -49,7 +49,7 @@ public class HighlightIFCResultAction extends Action {
 	}
 
 	public void run() {
-		final TreeNode tn = view.getTree().getSelectedNode();
+		final TreeNode<?,?,?> tn = view.getTree().getSelectedNode();
 		if (tn instanceof LeakInfoNode || tn instanceof IFCInfoNode) {
 			final ChopFlowRunnable sfr;
 			if (tn instanceof LeakInfoNode) {

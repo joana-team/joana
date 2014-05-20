@@ -12,6 +12,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -24,6 +25,7 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
@@ -33,6 +35,7 @@ import org.eclipse.jdt.internal.ui.javaeditor.JavaEditor;
 import org.eclipse.jdt.internal.ui.packageview.PackageFragmentRootContainer;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -48,6 +51,8 @@ import org.eclipse.ui.views.navigator.ResourceNavigator;
 import edu.kit.joana.ui.wala.easyifc.Activator;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer;
 import edu.kit.joana.ui.wala.easyifc.util.EasyIFCMarkerAndImageManager;
+import edu.kit.joana.ui.wala.easyifc.util.EntryPointSearch;
+import edu.kit.joana.ui.wala.easyifc.util.EntryPointSearch.EntryPointConfiguration;
 import edu.kit.joana.ui.wala.easyifc.util.ProjectUtil;
 import edu.kit.joana.ui.wala.easyifc.views.EasyIFCView;
 
@@ -209,8 +214,29 @@ public class IFCAction extends Action implements ISelectionListener {
 		try {
 			resultConsumer.consume(null);
 			final ProjectConf pconf = ProjectConf.create(jp);
-			final IFCRunnable ifcrun = new IFCRunnable(pconf, resultConsumer);
-			PlatformUI.getWorkbench().getProgressService().run(true, true, ifcrun);
+			PlatformUI.getWorkbench().getProgressService().run(true, true, new IRunnableWithProgress() {
+				@Override
+				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+					try {
+
+						Collection<EntryPointConfiguration> entryPoints = EntryPointSearch.findEntryPointsIn(jp, monitor);
+						if (entryPoints.size() == 1) {
+							for (EntryPointConfiguration entryPoint : entryPoints) {
+								final IFCRunnable ifcrun = new IFCRunnable(pconf, resultConsumer, entryPoint);
+								ifcrun.run(monitor);
+							}
+						} else {
+							for (EntryPointConfiguration entryPoint : entryPoints) {
+								resultConsumer.inform(entryPoint);
+							}
+						}
+					} catch (CoreException e) {
+						view.showMessage(e.getClass().getCanonicalName());
+						e.printStackTrace();
+						throw new RuntimeException(e);
+					}
+				}
+			});
 			//view.showMessage(pconf.toString());
 		} catch (InvocationTargetException e) {
 			view.showMessage(e.getClass().getCanonicalName());

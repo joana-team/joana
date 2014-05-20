@@ -15,7 +15,9 @@ import java.util.Collections;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import edu.kit.joana.api.sdg.SDGMethod;
+import org.eclipse.jdt.core.IMethod;
+
+import edu.kit.joana.ui.wala.easyifc.util.EntryPointSearch.EntryPointConfiguration;
 
 public interface IFCCheckResultConsumer {
 
@@ -25,12 +27,18 @@ public interface IFCCheckResultConsumer {
 	 */
 	public void consume(IFCResult ifcres);
 	
+	public void inform(EntryPointConfiguration discovered);
+	
 	public static IFCCheckResultConsumer DEFAULT = new IFCCheckResultConsumer() {
 
 		@Override
 		public void consume(final IFCResult ifcres) {
 			// do nothing
 		}
+		
+		public void inform(EntryPointConfiguration discovered) {
+			// do nothing
+		};
 	};
 
 	public static IFCCheckResultConsumer STDOUT = new IFCCheckResultConsumer() {
@@ -39,30 +47,38 @@ public interface IFCCheckResultConsumer {
 		public void consume(final IFCResult ifcres) {
 			System.out.println(ifcres);
 		}
+		
+		public void inform(EntryPointConfiguration discovered) {
+			System.out.println("discovered: " + discovered);
+		};
 	};
 	
-	public final class IFCResult {
+	public class IFCResult {
 		
-		private final String mainMethod;
-		private final SDGMethod mainIMethod;
+		private final EntryPointConfiguration mainMethod;
 		
 		private final SortedSet<SLeak> leaks = new TreeSet<SLeak>();  
 		private final SortedSet<SLeak> directLeaks = new TreeSet<SLeak>();  
 		private final SortedSet<SLeak> excLeaks = new TreeSet<SLeak>();  
 		private final SortedSet<SLeak> noExcLeaks = new TreeSet<SLeak>();
 		
-		public IFCResult(final String mainMethod, final SDGMethod mainIMethod) {
+		public IFCResult(final EntryPointConfiguration mainMethod) {
 			this.mainMethod = mainMethod;
-			this.mainIMethod = mainIMethod;
 		}
 		
-		public String getMainMethod() {
+		public EntryPointConfiguration getEntryPointConfiguration() {
 			return mainMethod;
 		}
 		
-		public SDGMethod getMainIMethod() {
-			return mainIMethod;
+		@Deprecated
+		public IMethod getEntryPoint() {
+			return mainMethod.getEntryPointMethod();
 		}
+		@Deprecated
+		public String getMainMethod() {
+			return mainMethod.getEntryPointMethod().toString();
+		}
+		
 		
 		public boolean hasLeaks() {
 			return !(excLeaks.isEmpty() && noExcLeaks.isEmpty() && directLeaks.isEmpty());
@@ -89,11 +105,11 @@ public interface IFCCheckResultConsumer {
 			final int total = dir + excl + noExcLeaks.size();
 			
 			if (total > 0) {
-				return "UNSAFE: " + total + " leak" + (total > 1 ? "s" : "") + " found."
+				return "is UNSAFE: " + total + " leak" + (total > 1 ? "s" : "") + " found."
 						+ (excl > 0 ? " " + excl + " due to indirect flow caused by exceptions." : "")
 						+ (dir > 0 ? " " + dir + " due to direct flow." : "");
 			} else {
-				return "SECURE.";
+				return "is SECURE.";
 			}
 		}
 		
@@ -102,6 +118,7 @@ public interface IFCCheckResultConsumer {
 		}
 
 	}
+	
 
 	public static enum Reason { 
 		DIRECT_FLOW(1), INDIRECT_FLOW(2), BOTH_FLOW(3), EXCEPTION(4), THREAD(5), THREAD_DATA(6), THREAD_ORDER(7),

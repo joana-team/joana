@@ -22,10 +22,10 @@ import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
-
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer;
 import edu.kit.joana.ui.wala.easyifc.util.EasyIFCMarkerAndImageManager;
 import edu.kit.joana.ui.wala.easyifc.util.EasyIFCMarkerAndImageManager.Marker;
+import edu.kit.joana.ui.wala.easyifc.util.EntryPointSearch.EntryPointConfiguration;
 import edu.kit.joana.ui.wala.easyifc.util.SearchHelper;
 
 /**
@@ -80,6 +80,8 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		if (oldInput != newInput) {
 			if (newInput instanceof IFCResult) {
 				consume((IFCResult) newInput);
+			} else if (newInput instanceof EntryPointConfiguration){
+				inform((EntryPointConfiguration) newInput);
 			} else {
 				root.clear();
 				final IJavaProject jp = view.getCurrentProject();
@@ -92,16 +94,17 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		root.clear();
 	}
 
+	@Override
 	public Object[] getElements(Object parent) {
-		return root.getChildren();
+		return root.getChildren().toArray();
 	}
 
 	@Override
 	public Object[] getChildren(Object parent) {
 		if (parent instanceof TreeNode) {
-			return ((TreeNode) parent).getChildren();
+			return ((TreeNode<?,?,?>) parent).getChildren().toArray();
 		} else if (parent == null) {
-			return root.getChildren();
+			return root.getChildren().toArray();
 		}
 
 		return new Object[0];
@@ -110,7 +113,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 	@Override
 	public Object getParent(Object element) {
 		if (element instanceof TreeNode) {
-			final TreeNode tn = (TreeNode) element;
+			final TreeNode<?,?,?> tn = (TreeNode<?,?,?>) element;
 			return tn.parent;
 		}
 
@@ -120,7 +123,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 	@Override
 	public boolean hasChildren(Object element) {
 		if (element instanceof TreeNode) {
-			return ((TreeNode) element).hasChildren();
+			return ((TreeNode<?,?,?>) element).hasChildren();
 		} else if (element == null) {
 			return root.hasChildren();
 		}
@@ -131,7 +134,9 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 	@Override
 	public void consume(final IFCResult res) {
 		final IJavaProject jp = view.getCurrentProject();
-		final IFCInfoNode cur = new IFCInfoNode(root, res, jp);
+		final IFCInfoNode cur = new IFCInfoNode(root, res, jp); // implicitly added to root
+		@SuppressWarnings("unused") // implicitly added to root
+		final IFCConfigurationInfoNode configNode = new IFCConfigurationInfoNode(cur, res.getEntryPointConfiguration()); 
 		cur.searchMatchingJavaElement();
 		
 		final List<LeakInfoNode> nodes = new LinkedList<LeakInfoNode>();
@@ -140,10 +145,17 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 			final LeakInfoNode lnfo = new LeakInfoNode(cur, leak);
 			nodes.add(lnfo);
 		}
-		
+
 		createSideMarkerByImportance(nodes);
 	}
 
+	@Override
+	public void inform(EntryPointConfiguration discovered) {
+		final IJavaProject jp = view.getCurrentProject();
+		new NotRunYetNode(root, discovered, jp); // implicitly added to root
+	}
+
+	
 	private static void createSideMarkerByImportance(final List<LeakInfoNode> nodes) {
 		Collections.sort(nodes, new Comparator<LeakInfoNode>() {
 			@Override
@@ -156,32 +168,38 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		}
 	}
 	
-	public static abstract class TreeNode {
-		private final TreeNode parent;
-		private final ArrayList<TreeNode> children;
+	public static abstract class TreeNode<Self extends TreeNode<Self,C,P>, C extends TreeNode<C,?,Self>, P extends TreeNode<P, Self,?>> {
+		private final P parent;
+		private final ArrayList<C> children;
 
-		private TreeNode(final TreeNode parent) {
+		protected TreeNode(final P parent) {
 			this.parent = parent;
-			this.children = new ArrayList<IFCTreeContentProvider.TreeNode>();
+			this.children = new ArrayList<C>();
 			if (parent != null) {
-				parent.addChild(this);
+				parent.addChild(self());
 			}
 		}
+		
+		abstract Self self();
 
 		public boolean hasChildren() {
 			return !children.isEmpty();
 		}
 
-		private void addChild(final TreeNode child) {
+		protected void addChild(final C child) {
 			assert child.parent == this;
 			this.children.add(child);
 		}
 
-		public final TreeNode[] getChildren() {
-			return children.toArray(new TreeNode[children.size()]);
+		protected void removeChild(final C child) {
+			this.children.remove(child);
 		}
 
-		public final TreeNode getParent() {
+		public final List<C> getChildren() {
+			return Collections.unmodifiableList(children);
+		}
+
+		public final P getParent() {
 			return parent;
 		}
 
@@ -201,8 +219,25 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		}
 
 	}
+	
+	public abstract static class Some<P extends TreeNode<P, Some<P>,?>> extends TreeNode<Some<P>, Some<Some<P>>, P>{
+		private Some() {
+			super(null);
+		}
+	}
+	public abstract static class None<C extends TreeNode<C, ?, None<C>>> extends TreeNode<None<C>, C, None<None<C>>>{
+		private None() {
+			super(null);
+		}
+	}
+	public abstract static class SecondLevelNode extends TreeNode<SecondLevelNode, Some<SecondLevelNode>, IFCInfoNode>{
+		private SecondLevelNode(IFCInfoNode parent) {
+			super(parent);
+		}
+	}
 
-	public static final class RootNode extends TreeNode {
+
+	public static final class RootNode extends TreeNode<RootNode,IFCInfoNode,None<RootNode>> {
 		private RootNode() {
 			super(null);
 		}
@@ -230,18 +265,67 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 			return null;
 		}
 
+		@Override
+		RootNode self() {
+			return this;
+		}
+
+	}
+
+	public static final class IFCConfigurationInfoNode extends SecondLevelNode {
+		private final EntryPointConfiguration configuration;
+
+		public IFCConfigurationInfoNode(final IFCInfoNode parent, EntryPointConfiguration configuration) {
+			super(parent);
+			this.configuration = configuration;
+		}
+		
+		@Override
+		public SourceRefElement getSourceRef() {
+			return configuration.getSourceRef();
+		}
+
+		@Override
+		public IMarker[] getSideMarker() {
+			return null;
+		}
+
+		@Override
+		public void searchMatchingJavaElement() {
+		}
+
+		@Override
+		public String toString() {
+			return configuration.toString();
+		}
+
+		@Override
+		SecondLevelNode self() {
+			return this;
+		}
+		
 	}
 	
-	public static final class IFCInfoNode extends TreeNode {
+	public static class IFCInfoNode extends TreeNode<IFCInfoNode, SecondLevelNode, RootNode> {
 		private final IFCResult result;
 		private final IJavaProject project;
 		private SearchHelper search = null;
 		private IMarker[] sideMarker = null;
 		
-		private IFCInfoNode(final TreeNode parent, final IFCResult result, final IJavaProject project) {
+		private IFCInfoNode(final RootNode parent, final IFCResult result, final IJavaProject project) {
 			super(parent);
 			this.result = result;
 			this.project = project;
+			// TODO: replace by proper use of some Collection
+			IFCInfoNode oldChildWithSameEntryPointConfiguration = null;
+			for (IFCInfoNode oldChild : parent.getChildren()) {
+				if (oldChild.getResult().getEntryPointConfiguration() == result.getEntryPointConfiguration()
+				    && oldChild != this) {
+					oldChildWithSameEntryPointConfiguration = oldChild;
+				}
+			}
+			parent.removeChild(oldChildWithSameEntryPointConfiguration);
+
 		}
 
 		public IFCResult getResult() {
@@ -249,17 +333,17 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		}
 		
 		public String toString() {
-			return "Project " + project.getProject().getName() + " is " + result.toString();
+			return "Entrypoint " + result.getEntryPointConfiguration().getEntryPointMethod().getElementName() + " from Project " + project.getProject().getName() + " " + result.toString();
 		}
 
 		@Override
 		public void searchMatchingJavaElement() {
-			search = SearchHelper.create(project, result);
+			search = SearchHelper.create(project);
 		}
 
 		@Override
 		public SourceRefElement getSourceRef() {
-			return (search != null ? search.getMethod() : null);
+			return result.getEntryPointConfiguration().getEntryPointSourceRef();
 		}
 
 		@Override
@@ -277,9 +361,29 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 			return project;
 		}
 
+		@Override
+		IFCInfoNode self() {
+			return this;
+		}
 	}
 	
-	public static final class LeakInfoNode extends TreeNode {
+	public static class NotRunYetNode extends IFCInfoNode {
+		private NotRunYetNode(final RootNode parent, EntryPointConfiguration discovered, IJavaProject project) {
+			super(parent, new IFCResult(discovered) {
+				@Override
+				public String toString() {
+					return "has not been analysed, yet.";
+				}},
+				project);
+		}
+
+		@Override
+		public Image getImage() {
+			return EasyIFCMarkerAndImageManager.getInstance().getSharedImage(ISharedImages.IMG_OBJS_INFO_TSK);
+		}
+	}
+
+	public static final class LeakInfoNode extends SecondLevelNode {
 		private final SLeak leak;
 		private IMarker sideMarker[] = null;
 
@@ -340,10 +444,14 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 			return EasyIFCMarkerAndImageManager.getInstance().getImage(leak);
 		}
 
+		@Override
+		SecondLevelNode self() {
+			return this;
+		}
+
 	}
 
 	public Object getRoot() {
 		return root;
 	}
-
  }

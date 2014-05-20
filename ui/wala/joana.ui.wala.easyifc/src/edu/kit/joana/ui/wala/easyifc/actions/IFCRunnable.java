@@ -26,6 +26,7 @@ import edu.kit.joana.ui.wala.easyifc.model.CheckInformationFlow;
 import edu.kit.joana.ui.wala.easyifc.model.CheckInformationFlow.CheckIFCConfig;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer;
 import edu.kit.joana.ui.wala.easyifc.util.ProgressMonitorDelegate;
+import edu.kit.joana.ui.wala.easyifc.util.EntryPointSearch.EntryPointConfiguration;
 
 /**
  *
@@ -34,12 +35,14 @@ import edu.kit.joana.ui.wala.easyifc.util.ProgressMonitorDelegate;
  */
 public class IFCRunnable implements IRunnableWithProgress {
 
+	private final EntryPointConfiguration entryPoint;
 	private final ProjectConf conf;
 	private final IFCCheckResultConsumer resultConsumer;
 
-	public IFCRunnable(final ProjectConf conf, final IFCCheckResultConsumer resultConsumer) {
+	public IFCRunnable(final ProjectConf conf, final IFCCheckResultConsumer resultConsumer, final EntryPointConfiguration entryPoint) {
 		this.conf = conf;
 		this.resultConsumer = resultConsumer;
+		this.entryPoint = entryPoint;
 	}
 
 	@Override
@@ -64,7 +67,7 @@ public class IFCRunnable implements IRunnableWithProgress {
 			monitor.subTask("Building project.");
 			project.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, monitor);
 			monitor.subTask("Checking information flow.");
-			cfl.runCheckIFC(walaProgress);
+			cfl.runCheckIFC(entryPoint, walaProgress);
 		} catch (ClassHierarchyException e) {
 			throw new InvocationTargetException(e, e.getMessage());
 		} catch (IllegalArgumentException e) {

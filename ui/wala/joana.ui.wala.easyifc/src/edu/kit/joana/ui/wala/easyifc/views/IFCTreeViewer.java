@@ -37,14 +37,14 @@ public class IFCTreeViewer extends TreeViewer {
 		return (IFCTreeContentProvider) super.getContentProvider();
 	}
 
-	public TreeNode getSelectedNode() {
+	public TreeNode<?,?,?> getSelectedNode() {
 		final ISelection sel = getSelection();
 		if (sel instanceof IStructuredSelection) {
 			final IStructuredSelection ssel = (IStructuredSelection) sel;
 			if (!ssel.isEmpty()) {
 				final Object o = ssel.getFirstElement();
 				if (o instanceof TreeNode) {
-					return (TreeNode) o;
+					return (TreeNode<?,?,?>) o;
 				}
 			}
 		}

@@ -205,6 +205,7 @@ public class SDGProgram {
 		cfg.nativesXML = config.getNativesXML();
 		cfg.pruningPolicy = config.getPruningPolicy();
 		cfg.exclusions = config.getExclusions();
+		cfg.computeAllocationSites = config.computeAllocationSites();
 		debug.outln(cfg.stubs);
 
 		if (config.computeInterferences()) {

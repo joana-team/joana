@@ -312,7 +312,7 @@ public final class SDGBuildPreparation {
 		scfg.fieldPropagation = cfg.fieldPropagation;
 		scfg.debugManyGraphsDotOutput = cfg.debugManyGraphsDotOutput;
 		scfg.computeInterference = computeInterference;
-
+		scfg.computeAllocationSites = cfg.computeAllocationSites;
 		return Pair.make(startTime, scfg);
 	}
 
@@ -390,6 +390,7 @@ public final class SDGBuildPreparation {
 		public FieldPropagation fieldPropagation;
 		public SideEffectDetectorConfig sideEffects = null;
 		public PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
+		public boolean computeAllocationSites = false;
 
 		public Config(String name) {
 			this(name, "<no entry defined>", FieldPropagation.OBJ_GRAPH);

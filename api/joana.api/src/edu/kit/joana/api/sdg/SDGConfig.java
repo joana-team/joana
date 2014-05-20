@@ -37,6 +37,7 @@ public class SDGConfig {
 	private SideEffectDetectorConfig sideEffects;
 	private ObjSensZeroXCFABuilder.MethodFilter methodFilter;
 	private String nativesXML = JoanaConstants.DEFAULT_NATIVES_XML;
+	private boolean computeAllocationSites = false;
 
 	public SDGConfig(String classPath, String entryMethod, Stubs stubsPath) {
 		this(classPath, entryMethod, stubsPath, ExceptionAnalysis.INTERPROC, FieldPropagation.OBJ_GRAPH, PointsToPrecision.INSTANCE_BASED, false, false, MHPType.NONE);
@@ -265,5 +266,13 @@ public class SDGConfig {
 
 	public void setThirdPartyLibsPath(String thirdPartyLibsPath) {
 		this.thirdPartyLibsPath = thirdPartyLibsPath;
+	}
+
+	public boolean computeAllocationSites() {
+		return computeAllocationSites;
+	}
+
+	public void setComputeAllocationSites(boolean computeAllocationSites) {
+		this.computeAllocationSites = computeAllocationSites;
 	}
 }

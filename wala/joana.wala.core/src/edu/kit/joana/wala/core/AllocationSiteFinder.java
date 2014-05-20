@@ -18,6 +18,7 @@ import com.ibm.wala.ipa.callgraph.propagation.AllocationSiteInNode;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
 import com.ibm.wala.ipa.callgraph.propagation.PointerKey;
+import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.util.intset.OrdinalSet;
@@ -54,7 +55,9 @@ public abstract class AllocationSiteFinder {
 	private void run() {
 		for (PDG pdg : builder.getAllPDGs()) {
 			for (PDGNode call : pdg.getCalls()) {
-				if (isInterestingCall(pdg, call)) {
+				assert pdg.getInstruction(call) instanceof SSAAbstractInvokeInstruction: "call node without call instruction?!";
+				SSAAbstractInvokeInstruction invk = (SSAAbstractInvokeInstruction) pdg.getInstruction(call);
+				if (invk.isDispatch() && isInterestingCall(pdg, call)) {
 					final Set<PDGNode> allocNodes = findAllocNodes(builder, pdg.cgNode, pdg.getInstruction(call));
 					TIntSet allocIds = new TIntHashSet();
 					for (PDGNode n : allocNodes) {
@@ -81,6 +84,9 @@ public abstract class AllocationSiteFinder {
 				final AllocationSiteInNode asin = (AllocationSiteInNode) ik;
 				final CGNode node = asin.getNode();
 				final PDG allocPdg = builder.getPDGforMethod(node);
+				if (allocPdg == null) {
+					continue;
+				}
 				final NewSiteReference nsr = asin.getSite();
 				final PDGNode allocNode = findDeclarationForBytecodeIndex(allocPdg, nsr.getProgramCounter());
 

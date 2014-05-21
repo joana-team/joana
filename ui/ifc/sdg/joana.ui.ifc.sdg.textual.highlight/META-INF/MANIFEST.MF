@@ -30,4 +30,4 @@ Export-Package: edu.kit.joana.ui.ifc.sdg.textual.highlight.graphviewer,
    org.osgi.framework",
  edu.kit.joana.ui.ifc.sdg.textual.highlight.highlight.preferences
 Bundle-ClassPath: .
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7

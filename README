@@ -58,7 +58,7 @@ ant
 
 1. General remarks
 
-Joana needs Java 1.6 or above.
+Joana needs Java 1.7 or above.
 
 We suggest to use and compile Joana using eclipse, but you may also just
 build and use its core parts with ant. Please see the "Building Joana with
@@ -232,7 +232,7 @@ The whole Joana project uses UTF-8 and Unix line delimiter for all text files.
 You can find code template, formatter and style definitions for Eclipse in the
 joana-*.xml files in the root directory.
 
-All joana projects should use the Java-1.6 execution environment. Use
+All joana projects should use the Java-1.7 execution environment. Use
 classpath options in Eclipse to change this.
 
 Use the Java code conventions and common sense. Common sense is allowed to

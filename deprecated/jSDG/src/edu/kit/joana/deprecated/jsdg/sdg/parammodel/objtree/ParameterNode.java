@@ -106,7 +106,7 @@ public abstract class ParameterNode<A extends ParameterNode<A>> extends Abstract
 		return parent != null;
 	}
 
-	private void addChild(A node) {
+	protected void addChild(A node) {
 		if (childs == null) {
 			childs = new HashSet<A>();
 		}

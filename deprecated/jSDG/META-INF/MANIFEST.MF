@@ -28,5 +28,5 @@ Export-Package: edu.kit.joana.deprecated.jsdg,
  edu.kit.joana.deprecated.jsdg.wala,
  edu.kit.joana.deprecated.jsdg.wala.objecttree
 Bundle-ClassPath: .
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy

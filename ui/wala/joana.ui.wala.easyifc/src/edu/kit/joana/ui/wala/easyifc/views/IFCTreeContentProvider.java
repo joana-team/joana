@@ -187,7 +187,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		}
 
 		protected void addChild(final C child) {
-			assert child.parent == this;
+			assert child.getParent() == this;
 			this.children.add(child);
 		}
 

@@ -54,8 +54,8 @@
 			srcdir="${dest.dir.sources}"
 			destdir="${dest.dir.classes}"
 			verbose="no"
-			source="1.6"
-			target="1.6"
+			source="1.7"
+			target="1.7"
 			encoding="utf-8"
 			classpathref="lib.path.ref"
 		/>

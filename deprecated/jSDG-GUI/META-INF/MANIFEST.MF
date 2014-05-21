@@ -50,4 +50,4 @@ Export-Package: edu.kit.joana.deprecated.jsdg.gui;
    org.eclipse.swt.widgets,
    org.eclipse.debug.core.model,
    edu.kit.joana.wala.util"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7

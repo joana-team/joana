@@ -51,6 +51,6 @@ Export-Package: edu.kit.joana.ifc.sdg.graph;
  edu.kit.joana.ifc.sdg.graph.slicer.graph.threads;uses:="joana.sdg.slicer.graph,joana.sdg",
  edu.kit.joana.ifc.sdg.io.dot
 Bundle-Vendor: Karlsruhe Institute of Technology, Programming Paradigms Group
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Require-Bundle: joana.contrib.lib;bundle-version="1.0.0",
  joana.util;bundle-version="1.0.0"

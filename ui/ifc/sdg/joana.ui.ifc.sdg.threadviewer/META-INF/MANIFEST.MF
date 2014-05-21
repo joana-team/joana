@@ -22,7 +22,7 @@ Require-Bundle: org.eclipse.ui,
  joana.ifc.sdg.util;bundle-version="1.0.0",
  joana.ifc.sdg.mhpoptimization;bundle-version="0.0.1",
  joana.contrib.lib;bundle-version="1.0.0"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Import-Package: org.eclipse.pde.internal.ui.views.dependencies
 Bundle-ClassPath: .
 Bundle-ActivationPolicy: lazy

@@ -30,7 +30,7 @@
 
 	<target name="dirty_compile" depends="init,compile_all_testprograms" >
 		<mkdir dir="${project.build.classes}" />
-		<javac srcdir="${project.source}" destdir="${project.build.classes}" verbose="no" source="1.6" target="1.6" encoding="utf-8" includeantruntime="false" classpath="${project.joanalib}:${joana.api.testdata.classpath}"/>	
+		<javac srcdir="${project.source}" destdir="${project.build.classes}" verbose="no" source="1.7" target="1.7" encoding="utf-8" includeantruntime="false" classpath="${project.joanalib}:${joana.api.testdata.classpath}"/>	
 	</target>
 
 	<target name="copy_joana_api" depends="compile_joana_api">
@@ -103,15 +103,15 @@
 		<mkdir dir="${annotations.ignore.classpath}" />
 
 		<!-- Second step: do actual compilation -->
-		<javac srcdir="${joana.api.annotations.ignore.base.dir}/src" destdir="${annotations.ignore.classpath}" verbose="no" source="1.6" target="1.6" encoding="utf-8" includeantruntime="false" classpath="${joana.dist.dir}/joana.ui.annotations.jar"/>
-		<javac srcdir="${joana.api.annotations.passon.base.dir}/src" destdir="${annotations.passon.classpath}" verbose="no" source="1.6" target="1.6" encoding="utf-8" includeantruntime="false" classpath="${joana.dist.dir}/joana.ui.annotations.jar"/>
-		<javac srcdir="${joana.api.testdata.base.dir}/src" destdir="${joana.api.testdata.classpath}" verbose="no" source="1.6" target="1.6" encoding="utf-8" includeantruntime="false">
+		<javac srcdir="${joana.api.annotations.ignore.base.dir}/src" destdir="${annotations.ignore.classpath}" verbose="no" source="1.7" target="1.7" encoding="utf-8" includeantruntime="false" classpath="${joana.dist.dir}/joana.ui.annotations.jar"/>
+		<javac srcdir="${joana.api.annotations.passon.base.dir}/src" destdir="${annotations.passon.classpath}" verbose="no" source="1.7" target="1.7" encoding="utf-8" includeantruntime="false" classpath="${joana.dist.dir}/joana.ui.annotations.jar"/>
+		<javac srcdir="${joana.api.testdata.base.dir}/src" destdir="${joana.api.testdata.classpath}" verbose="no" source="1.7" target="1.7" encoding="utf-8" includeantruntime="false">
 			<classpath>
 				<pathelement location="${joana.dist.dir}/joana.ui.annotations.jar"/>
 				<pathelement location="${annotations.passon.classpath}"/>
 			</classpath>
 		</javac>
-		<javac srcdir="${joana.example.many-small-progs.dir}/src" destdir="${joana.many.small.programs.classpath}" verbose="no" source="1.6" target="1.6" encoding="utf-8" includeantruntime="false"/>
+		<javac srcdir="${joana.example.many-small-progs.dir}/src" destdir="${joana.many.small.programs.classpath}" verbose="no" source="1.7" target="1.7" encoding="utf-8" includeantruntime="false"/>
 	</target>
 
 

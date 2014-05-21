@@ -4,7 +4,7 @@ Bundle-Name: joana.ifc.sdg.mhpoptimization
 Bundle-SymbolicName: joana.ifc.sdg.mhpoptimization
 Bundle-Version: 0.0.1
 Bundle-Vendor: IPD/Snelting
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Require-Bundle: joana.ifc.sdg.graph;bundle-version="1.1.0",
  joana.ifc.sdg.util;bundle-version="1.0.0",
  joana.util;bundle-version="1.0.0",

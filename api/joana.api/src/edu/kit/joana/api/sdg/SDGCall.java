@@ -67,6 +67,21 @@ public class SDGCall extends SDGInstruction implements SDGCallPart {
 		return actParams.values();
 	}
 
+	/**
+	* @param i number between 1 and the number of actual parameters
+	* @return the actual parameter which denotes the i'th parameter
+	*/
+	public SDGActualParameter getActualParameter(int i) {
+		return actParams.get(i);
+	}
+
+	/**
+	* @return the actual parameter which denotes the receiver object of this call
+	*/
+	public SDGActualParameter getThis() {
+		return actParams.get(0);
+	}
+
 	public SDGCallReturnNode getReturn() {
 		return returnNode;
 	}

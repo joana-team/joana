@@ -8,6 +8,7 @@
 package edu.kit.joana.ui.wala.easyifc.views;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -320,13 +321,22 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 			this.project = project;
 			// TODO: replace by proper use of some Collection
 			IFCInfoNode oldChildWithSameEntryPointConfiguration = null;
+			Collection<IFCInfoNode> supersededChildren = new LinkedList<>();
 			for (IFCInfoNode oldChild : parent.getChildren()) {
 				if (oldChild.getResult().getEntryPointConfiguration() == result.getEntryPointConfiguration()
 				    && oldChild != this) {
 					oldChildWithSameEntryPointConfiguration = oldChild;
 				}
+				if (oldChild.getResult().getEntryPointConfiguration().replaces(result.getEntryPointConfiguration())) {
+					supersededChildren.add(oldChild);
+				} else if (result.getEntryPointConfiguration().replaces(oldChild.getResult().getEntryPointConfiguration())) {
+					supersededChildren.add(this);
+				}
 			}
 			parent.removeChild(oldChildWithSameEntryPointConfiguration);
+			for (IFCInfoNode node : supersededChildren) {
+				parent.removeChild(node);
+			}
 
 		}
 

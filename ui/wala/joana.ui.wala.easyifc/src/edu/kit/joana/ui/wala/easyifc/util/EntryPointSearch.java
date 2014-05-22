@@ -123,6 +123,12 @@ public class EntryPointSearch {
 			parser.setResolveBindings(true);
 			return (CompilationUnit) parser.createAST(null);
 		}
+
+		protected abstract int priority();
+
+		public final boolean replaces(EntryPointConfiguration other) {
+			return this.priority() > other.priority() && this.entryPointMethod.equals(other.entryPointMethod);
+		}
 	}
 	
 	public static class DefaultMainEntryPointConfiguration extends EntryPointConfiguration {
@@ -138,10 +144,15 @@ public class EntryPointSearch {
 			JavaMethodSignature mainMethodSignature = JavaMethodSignature.fromString(s);
 			return CheckInformationFlow.createDefaultConfig(cfc, mainMethodSignature);
 		}
-		
+
 		@Override
 		public String toString() {
 			return "default Configuration";
+		}
+
+		@Override
+		protected int priority() {
+			return 0;
 		}
 	}
 	
@@ -167,6 +178,11 @@ public class EntryPointSearch {
 		@Override
 		public String toString() {
 			return annotation.toString();
+		}
+		
+		@Override
+		protected int priority() {
+			return 100;
 		}
 	}
 	

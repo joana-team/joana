@@ -21,6 +21,7 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.internal.core.SourceMethod;
 import org.eclipse.jdt.ui.JavaElementLabelProvider;
 import org.eclipse.swt.graphics.Image;
@@ -85,7 +86,7 @@ public class EasyIFCMarkerAndImageManager {
     	return PlatformUI.getWorkbench().getSharedImages().getImage(symbolicName);
     }
     
-    public Image getImage(final SourceMethod m) {
+    public Image getImage(final IMethod m) {
 		return jLables.getImage(m);
     }
 

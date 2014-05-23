@@ -63,4 +63,10 @@ public class ProgressMonitorDelegate implements IProgressMonitor {
     delegate.setCanceled(true);
   }
 /** END Custom change: subtasks and canceling */
+
+  @Override
+  public String getCancelMessage() {
+	return "canceled.";
+  }
+  
 }

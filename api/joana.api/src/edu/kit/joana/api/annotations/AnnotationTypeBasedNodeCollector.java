@@ -57,20 +57,6 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 	public void init(SDGProgram program) {
 		this.cache.clear();
 		this.coveringCandidates.clear();
-		for (SDGProgramPart ppart : program.getAllProgramParts()) {
-			Set<SDGNode> result = collectNodes(ppart, AnnotationType.SOURCE);
-			result.addAll(collectNodes(ppart, AnnotationType.SINK));
-			for (SDGNode n : result) {
-				Set<SDGProgramPart> cands;
-				if (coveringCandidates.containsKey(n)) {
-					cands = coveringCandidates.get(n);
-				} else {
-					cands = new HashSet<SDGProgramPart>();
-					coveringCandidates.put(n, cands);
-				}
-				cands.add(ppart);
-			}
-		}
 	}
 
 	public Set<SDGNode> collectNodes(SDGProgramPart ppart, AnnotationType type) {
@@ -78,6 +64,16 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 		if (result == null) {
 			result = ppart.acceptVisitor(this, type);
 			cache.put(Pair.pair(ppart, type), result);
+		}
+		for (SDGNode n : result) {
+			Set<SDGProgramPart> cands;
+			if (coveringCandidates.containsKey(n)) {
+				cands = coveringCandidates.get(n);
+			} else {
+				cands = new HashSet<SDGProgramPart>();
+				coveringCandidates.put(n, cands);
+			}
+			cands.add(ppart);
 		}
 		return result;
 	}

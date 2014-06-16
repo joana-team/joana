@@ -9,6 +9,7 @@ package edu.kit.joana.api.sdg;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,6 +36,7 @@ import edu.kit.joana.api.annotations.AnnotationTypeBasedNodeCollector;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.chopper.Chopper;
 import edu.kit.joana.ifc.sdg.graph.chopper.NonSameLevelChopper;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
@@ -189,8 +191,13 @@ public class SDGProgram {
 		return createSDGProgram(config, IOFactory.createUTF8PrintStream(new ByteArrayOutputStream()),
 				NullProgressMonitor.INSTANCE);
 	}
-
+	
 	public static SDGProgram createSDGProgram(SDGConfig config, PrintStream out, IProgressMonitor monitor)
+			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+		return createSDGProgram(config, out, monitor, null);
+	}
+
+	public static SDGProgram createSDGProgram(SDGConfig config, PrintStream out, IProgressMonitor monitor, OutputStream sdgFileOut)
 			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
 		JavaMethodSignature mainMethod = JavaMethodSignature.fromString(config.getEntryMethod());// JavaMethodSignature.mainMethodOfClass(config.getMainClass());
 		SDGBuildPreparation.Config cfg = new SDGBuildPreparation.Config(mainMethod.toBCString(), mainMethod.toBCString(), config.getClassPath(),
@@ -226,6 +233,10 @@ public class SDGProgram {
 
 		if (config.computeInterferences()) {
 			PruneInterferences.preprocessAndPruneCSDG(sdg, config.getMhpType());
+		}
+		if (sdgFileOut != null) {
+			SDGSerializer.toPDGFormat(sdg, sdgFileOut);
+			sdgFileOut.flush();
 		}
 		SDGProgram ret = new SDGProgram(sdg);
 

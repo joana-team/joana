@@ -21,6 +21,7 @@ import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.ifc.sdg.util.JavaType.Format;
 import edu.kit.joana.util.Pair;
+import gnu.trove.map.hash.TIntObjectHashMap;
 
 
 
@@ -32,10 +33,10 @@ public class SDGClass implements SDGProgramPart {
 	private final Set<SDGMethod> methods;
 
 	SDGClass(JavaType typeName, Collection<SDGNode> declNodes, Map<String, Pair<Set<SDGNode>, Set<SDGNode>>> attributeNodes,
-			Set<SDGNode> methodEntryNodes, SDG sdg) {
+			Set<SDGNode> methodEntryNodes, SDG sdg, TIntObjectHashMap<HashSet<SDGNode>> sdgByProc) {
 		this.typeName = typeName;
 		this.attributes = createSDGAttributes(attributeNodes);
-		this.methods = createSDGMethods(methodEntryNodes, sdg);
+		this.methods = createSDGMethods(methodEntryNodes, sdg, sdgByProc);
 	}
 
 	private Set<SDGAttribute> createSDGAttributes(Map<String, Pair<Set<SDGNode>, Set<SDGNode>>> attributeNodes) {
@@ -58,7 +59,7 @@ public class SDGClass implements SDGProgramPart {
 		return ret;
 	}
 
-	private Set<SDGMethod> createSDGMethods(Set<SDGNode> methodEntryNodes, SDG sdg) {
+	private Set<SDGMethod> createSDGMethods(Set<SDGNode> methodEntryNodes, SDG sdg, TIntObjectHashMap<HashSet<SDGNode>> sdgByProc) {
 		Set<SDGMethod> ret = new HashSet<SDGMethod>();
 		if (methodEntryNodes != null) {
 			for (SDGNode entry : methodEntryNodes) {
@@ -70,9 +71,9 @@ public class SDGClass implements SDGProgramPart {
 						break;
 					}
 				}
-				SDGMethod m = new SDGMethod(JavaMethodSignature.fromString(entry.getBytecodeMethod()), isStatic);
+				SDGMethod m = new SDGMethod(JavaMethodSignature.fromString(entry.getBytecodeMethod()), entry.getClassLoader(), isStatic);
 				ret.add(m);
-				for (SDGNode nInstr : sdg.getNodesOfProcedure(entry)) {
+				for (SDGNode nInstr : sdgByProc.get(entry.getProc())) {
 					if (nInstr.getBytecodeIndex() >= 0) {
 						if (nInstr.getKind() == SDGNode.Kind.CALL) {
 							m.addCall(newCall(m, nInstr, sdg));

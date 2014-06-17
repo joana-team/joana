@@ -28,6 +28,8 @@ import edu.kit.joana.ifc.sdg.util.JavaType.Format;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.Pair;
+import gnu.trove.map.hash.TIntObjectHashMap;
+import gnu.trove.procedure.TIntObjectProcedure;
 
 public class SDGClassComputation {
 
@@ -252,8 +254,14 @@ public class SDGClassComputation {
 		seenAttributes.clear();
 		seenMethods.clear();
 		List<SDGClass> result = new ArrayList<SDGClass>();
-
+		TIntObjectHashMap<HashSet<SDGNode>> sdgByProc = new TIntObjectHashMap<HashSet<SDGNode>>();
 		for (SDGNode node : sdg.vertexSet()) {
+			HashSet<SDGNode> nodesOfProc = sdgByProc.get(node.getProc());
+			if (nodesOfProc == null) {
+				nodesOfProc = new HashSet<SDGNode>();
+				sdgByProc.put(node.getProc(), nodesOfProc);
+			}
+			nodesOfProc.add(node);
 			switch (node.getKind()) {
 			case ENTRY:
 				seenMethod(node);
@@ -278,7 +286,7 @@ public class SDGClassComputation {
 
 		for (JavaType typeName : declNodes.keySet()) {
 			result.add(new SDGClass(typeName, declNodes.get(typeName), seenAttributes.get(typeName), seenMethods
-					.get(typeName), sdg));
+					.get(typeName), sdg, sdgByProc));
 		}
 
 		return result;

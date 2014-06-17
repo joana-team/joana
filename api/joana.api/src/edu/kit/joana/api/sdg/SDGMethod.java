@@ -9,6 +9,7 @@ package edu.kit.joana.api.sdg;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedMap;
@@ -26,8 +27,8 @@ public class SDGMethod implements SDGProgramPart {
 	private List<SDGInstruction> instructions = new ArrayList<SDGInstruction>();
 	private List<SDGCall> calls = new ArrayList<SDGCall>();
 	private List<SDGPhi> phis = new ArrayList<SDGPhi>();
-
-	public SDGMethod(JavaMethodSignature sig, boolean isStatic) {
+	private final String classLoader;
+	public SDGMethod(JavaMethodSignature sig, String classLoader, boolean isStatic) {
 
 		this.sig = sig;
 		if (!isStatic) {
@@ -42,6 +43,11 @@ public class SDGMethod implements SDGProgramPart {
 		this.instructions = new ArrayList<SDGInstruction>();
 		this.calls = new ArrayList<SDGCall>();
 		this.phis = new ArrayList<SDGPhi>();
+		this.classLoader = classLoader;
+	}
+	
+	public String getClassLoader() {
+		return classLoader;
 	}
 
 	void addInstruction(SDGInstruction i) {
@@ -86,7 +92,7 @@ public class SDGMethod implements SDGProgramPart {
 	}
 
 	public List<SDGCall> getAllCalls() {
-		return new ArrayList<SDGCall>(calls);
+		return Collections.unmodifiableList(calls);
 	}
 
 	public int getInstructionIndex(SDGInstruction instr) {

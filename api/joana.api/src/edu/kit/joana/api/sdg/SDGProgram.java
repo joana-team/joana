@@ -92,6 +92,16 @@ public class SDGProgram {
 				return new ClassLoader(clsLoader);
 			}
 		}
+		
+		public static ClassLoader fromString(String clsLoader) {
+			if (clsLoader.equals("Application")) {
+				return APPLICATION;
+			} else if (clsLoader.equals("Primordial")){
+				return PRIMORDIAL;
+			} else {
+				return new ClassLoader(clsLoader);
+			}
+		}
 
 		/* (non-Javadoc)
 		 * @see java.lang.Object#hashCode()
@@ -337,24 +347,11 @@ public class SDGProgram {
 	}
 
 	public ClassLoader getClassLoader(SDGInstruction i) {
-		if (classComp.getNodes(i).isEmpty()) {
-			return null;
-		} else {
-			SDGNode n = classComp.getNodes(i).iterator().next();
-			if (n.getKind() == SDGNode.Kind.ENTRY) {
-				return ClassLoader.fromSDGNode(n);
-			} else {
-				return ClassLoader.fromSDGNode(sdg.getEntry(n));
-			}
-		}
+		return ClassLoader.fromString(i.getOwningMethod().getClassLoader());
 	}
 
 	public ClassLoader getClassLoader(SDGMethod m) {
-		if (classComp.getEntries(m).isEmpty()) {
-			return null;
-		} else {
-			return ClassLoader.fromSDGNode(classComp.getEntries(m).iterator().next());
-		}
+		return ClassLoader.fromString(m.getClassLoader());
 	}
 
 	/**

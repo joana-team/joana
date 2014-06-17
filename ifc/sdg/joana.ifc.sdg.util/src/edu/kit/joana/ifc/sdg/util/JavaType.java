@@ -47,6 +47,10 @@ public class JavaType {
 	private final JavaPackage pack;
 	private final String baseType;
 	private final int arrDim;
+	
+	private final String bcStringWTS;
+	private final String bcStringWOTS;
+	private final int hashCode;
 
 	private static final String[] bcBaseTypes = { "V", "Z", "C", "B", "C", "S",
 		"I", "J", "F", "D" };
@@ -85,6 +89,9 @@ public class JavaType {
 			throw new IllegalStateException();
 		}
 		this.baseType = baseType;
+		this.bcStringWOTS = mkBCChars(false);
+		this.bcStringWTS = mkBCChars(true);
+		this.hashCode = this.bcStringWTS.hashCode();
 	}
 
 	private boolean isPrimitiveBC(String baseType2) {
@@ -104,7 +111,16 @@ public class JavaType {
 	public String toBCString() {
 		return toBCString(true);
 	}
+
 	public String toBCString(final boolean trailingsemicolon) {
+		if (trailingsemicolon) {
+			return bcStringWTS;
+		} else {
+			return bcStringWOTS;
+		}
+	}
+	
+	private String mkBCChars(final boolean trailingsemicolon) {
 		StringBuilder sbBC = new StringBuilder("");
 		for (int i = 0; i < arrDim; i++) {
 			sbBC.append('[');
@@ -331,7 +347,7 @@ public class JavaType {
 	 */
 	@Override
 	public int hashCode() {
-		return toBCString().hashCode();
+		return hashCode;
 	}
 
 	/*
@@ -351,6 +367,6 @@ public class JavaType {
 			return false;
 		}
 		JavaType other = (JavaType) obj;
-		return toBCString().equals(other.toBCString());
+		return bcStringWTS.equals(other.bcStringWTS);
 	}
 }

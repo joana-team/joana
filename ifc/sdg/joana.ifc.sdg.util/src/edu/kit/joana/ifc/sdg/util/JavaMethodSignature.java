@@ -26,7 +26,8 @@ public final class JavaMethodSignature {
 	private final String methodName;
 	private final List<JavaType> argumentTypes;
 	private final JavaType returnType;
-
+	private final int hash;
+	private final String bcString;
 	private static final Pattern pMethodBC = Pattern
 	.compile("(.+)\\((.*)\\)(.+)");
 	private static final Pattern pMethodHR = Pattern
@@ -39,6 +40,8 @@ public final class JavaMethodSignature {
 		this.returnType = returnType;
 		this.declaringType = JavaType.parseSingleTypeFromString(methodName.substring(0, methodName.lastIndexOf('.')), Format.HR);
 		assert this.declaringType != null;
+		this.hash = computeHashCode();
+		this.bcString = makeBCString();
 	}
 
 	public String getMethodName() {
@@ -79,8 +82,12 @@ public final class JavaMethodSignature {
 		sbHR.append(")");
 		return sbHR.toString();
 	}
-
+	
 	public String toBCString() {
+		return bcString;
+	}
+	
+	private String makeBCString() {
 		StringBuilder sbBC = new StringBuilder();
 		sbBC.append(declaringType.toHRString());
 		sbBC.append(".");
@@ -223,13 +230,7 @@ public final class JavaMethodSignature {
 		return sbHR.toString();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
+	private int computeHashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result
@@ -241,6 +242,16 @@ public final class JavaMethodSignature {
 		result = prime * result
 		+ ((returnType == null) ? 0 : returnType.hashCode());
 		return result;
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return hash;
 	}
 
 	/*
@@ -260,35 +271,7 @@ public final class JavaMethodSignature {
 			return false;
 		}
 		JavaMethodSignature other = (JavaMethodSignature) obj;
-		if (argumentTypes == null) {
-			if (other.argumentTypes != null) {
-				return false;
-			}
-		} else if (!argumentTypes.equals(other.argumentTypes)) {
-			return false;
-		}
-		if (declaringType == null) {
-			if (other.declaringType != null) {
-				return false;
-			}
-		} else if (!declaringType.equals(other.declaringType)) {
-			return false;
-		}
-		if (methodName == null) {
-			if (other.methodName != null) {
-				return false;
-			}
-		} else if (!methodName.equals(other.methodName)) {
-			return false;
-		}
-		if (returnType == null) {
-			if (other.returnType != null) {
-				return false;
-			}
-		} else if (!returnType.equals(other.returnType)) {
-			return false;
-		}
-		return true;
+		return this.bcString.equals(other.bcString);
 	}
 
 	/**

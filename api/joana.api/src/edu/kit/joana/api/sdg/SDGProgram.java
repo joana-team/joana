@@ -41,6 +41,7 @@ import edu.kit.joana.ifc.sdg.graph.chopper.Chopper;
 import edu.kit.joana.ifc.sdg.graph.chopper.NonSameLevelChopper;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.mhpoptimization.PruneInterferences;
+import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.ifc.sdg.util.JavaType.Format;
@@ -419,8 +420,19 @@ public class SDGProgram {
 		return ret;
 	}
 
+	/**
+	 * Tries to find a covering program part for the given SDG node. Currently, the following types of nodes are supported:
+	 * <ul>
+	 * <li>nodes of kind ENTRY, FORMAL_IN, FORMAL_OUT, EXIT</li>
+	 * <li>nodes of kind ACTUAL_IN, ACTUAL_OUT</li>
+	 * <li>other nodes with non-negative bytecode index</li>
+	 * </ul>
+	 * For all other types of nodes, {@code null} is returned.
+	 * @param node node for which a covering program part shall be found
+	 * @return covering program part for the given node, or {@code null} if the node is not supported (see above)
+	 */
 	public SDGProgramPart findCoveringProgramPart(SDGNode node) {
-		Set<SDGProgramPart> candidates = coll.getCoveringCandidates(node);
+		Set<SDGProgramPart> candidates = collectCoveringCandidates(node);
 		if (candidates.isEmpty()) {
 			return null;
 		}
@@ -430,6 +442,70 @@ public class SDGProgram {
 		}
 		debug.outln("node " + node + " has no program part!");
 		return null;
+	}
+
+	private Set<SDGProgramPart> collectCoveringCandidates(SDGNode node) {
+		Set<SDGProgramPart> ret = new HashSet<SDGProgramPart>();
+		SDGNode entry = sdg.getEntry(node);
+		JavaMethodSignature sig = JavaMethodSignature.fromString(entry.getBytecodeMethod());
+		Collection<SDGMethod> methods = getMethods(sig);
+		int bcIndex = node.getBytecodeIndex();
+		switch (node.getKind()) {
+		case ENTRY:
+			ret.addAll(methods);
+			break;
+		case FORMAL_IN:
+		case FORMAL_OUT:
+		case EXIT:
+			ret.addAll(methods);
+			List<SDGNode> rootParams = SDGParameterUtils.collectPsBWReachableRootParameters(node, sdg);
+			for (SDGNode rootParam : rootParams) {
+				if (rootParam.getBytecodeName().equals(BytecodeLocation.RETURN_PARAM)) {
+					for (SDGMethod m : methods) {
+						ret.add(m.getExit());
+					}
+				} else if (rootParam.getBytecodeName().equals(BytecodeLocation.EXCEPTION_PARAM)) {
+					continue;
+				} else {
+					int paramIndex = BytecodeLocation.getRootParamIndex(rootParam.getBytecodeName());
+					for (SDGMethod m : methods) {
+						ret.add(m.getParameter(paramIndex));
+					}
+				}
+			}
+			break;
+		case ACTUAL_IN:
+		case ACTUAL_OUT:
+			List<SDGNode> actRootParams = SDGParameterUtils.collectPsBWReachableRootParameters(node, sdg);
+			for (SDGNode rootParam : actRootParams) {
+				SDGNode callNode = SDGParameterUtils.locateCall(rootParam, sdg);
+				int callBCIndex = callNode.getBytecodeIndex();
+				for (SDGMethod m : methods) {
+					SDGInstruction i = m.getInstructionWithBCIndex(callBCIndex);
+					if (!(i instanceof SDGCall)) {
+						throw new IllegalStateException(String.format("instruction should be a call instruction: (%s):%d", m.getSignature(), callBCIndex));
+					}
+					SDGCall call = (SDGCall) m.getInstructionWithBCIndex(callBCIndex);
+					if (rootParam.getBytecodeName().equals(BytecodeLocation.RETURN_PARAM)) {
+						ret.add(call.getReturn());
+					} else if (rootParam.getBytecodeName().equals(BytecodeLocation.EXCEPTION_PARAM)) {
+						ret.add(call.getExceptionNode());
+					} else {
+						int paramIndex = BytecodeLocation.getRootParamIndex(rootParam.getBytecodeName());
+						ret.add(call.getActualParameter(paramIndex));
+					}
+				}
+			}
+			break;
+		default:
+			if (bcIndex >= 0) {
+				for (SDGMethod m : methods) {
+					ret.add(m.getInstructionWithBCIndex(bcIndex));
+				}
+			}
+			break;
+		}
+		return ret;
 	}
 
 	public boolean covers(SDGProgramPart ppart, SDGNode node) {

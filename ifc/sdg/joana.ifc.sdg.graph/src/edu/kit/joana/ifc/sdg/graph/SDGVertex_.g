@@ -5,7 +5,7 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-grammar SDG_;
+grammar SDGVertex_;
 
 options {
   language = Java;
@@ -24,30 +24,9 @@ package edu.kit.joana.ifc.sdg.graph;
 import java.util.LinkedList;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
 }
 
 @members {
-  private SDGNode.NodeFactory nodeFact = new SDGNode.SDGNodeFactory();
-  
-  public void setNodeFactory(SDGNode.NodeFactory nodeFact) {
-    this.nodeFact = nodeFact;
-  }
-
-  public void createNodesAndEdges(final SDG sdg, final List<SDGNodeStub> stubs) {
-    // 1. create all nodes
-    for (SDGNodeStub n : stubs) {
-      final SDGNode node = n.createNode(nodeFact);
-      sdg.addVertex(node);
-    }
-    
-    // 2. create all edges
-    for (SDGNodeStub n : stubs) {
-      n.createEdges(sdg);
-    }
-  } 
-
   // Stores always the last position specified by a previous node. This is used
   // for sane error recovery, when no position is defined for a node:
   // We assume that its position may be somewhat equal to its pred node. 
@@ -82,25 +61,6 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
     }
   }
 
-  static class SDGHeader {
-    private int version;
-    private String name;
-    
-    private SDGHeader(int version, String name) {
-      this.version = version;
-      this.name = name;
-    }
-    
-    private SDG createSDG() {
-      SDG sdg = (name == null ? new SDG() : new SDG(name));
-      return sdg;
-    }
-    
-    public String toString() {
-      return "SDG of " + name + " (v" + version + ")";
-    }
-  }
-  
   static final class SDGNodeStub {
   
     private final SDGNode.Kind kind;
@@ -138,7 +98,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
       return 0;
     }
   
-    private SDGNode createNode(final SDGNode.NodeFactory nf) {
+    public SDGNode createNode(final SDGNode.NodeFactory nf) {
       final int kindId = findKindId(op, kind);
       final SDGNode n = nf.createNode(op, kindId, id, val, procId, type, spos.filename,
         spos.startRow, spos.startColumn, spos.endRow, spos.endColumn, bpos.name, bpos.index);
@@ -169,7 +129,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
       return n;
     }
     
-    private void createEdges(final SDG sdg) {
+    public void createEdges(final SDG sdg) {
       final SDGNode from = sdg.getNode(id);
       
       for (final SDGEdgeStub e : edges) {
@@ -191,7 +151,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
     private final int endRow;
     private final int endColumn;
   
-    private SourcePos(final String filename, final int startRow, final int startColumn,
+    public SourcePos(final String filename, final int startRow, final int startColumn,
         final int endRow, final int endColumn) {
         this.filename = filename;
         this.startRow = startRow;
@@ -206,7 +166,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
     private final String name;
     private final int index;
     
-    private ByteCodePos(final String name, final int index) {
+    public ByteCodePos(final String name, final int index) {
       this.name = name;
       this.index = index;
     }
@@ -267,58 +227,7 @@ package edu.kit.joana.ifc.sdg.graph;
   }
 }
 
-sdg_file returns [SDG sdg]
-  : head=sdg_header         { sdg = head.createSDG(); }
-    '{' 
-      ('JComp'              { sdg.setJoanaCompiler(true); } )? 
-      nl=node_list          { createNodesAndEdges(sdg, nl); }
-      (ti=thread_info[sdg]  { sdg.setThreadsInfo(ti); } )?
-    '}'
-  ;
-
-private thread_info[SDG sdg] returns [ThreadsInformation tinfo]
-  : { final LinkedList<ThreadInstance> tis = new LinkedList<ThreadInstance>(); }
-    (t=thread[sdg] { tis.add(t); } )+
-    { tinfo = new ThreadsInformation(tis); }
-  ;
-
-private thread[SDG sdg] returns [ThreadInstance ti]
-  : 'Thread' id=number '{'
-      'Entry'   en=number ';'
-      'Exit'    ex=number ';'
-      'Fork'    fo=number ';'
-      'Join'    jo=number ';'
-      'Context' con=context[sdg] ';'
-      'Dynamic' dyn=bool ';'
-    '}'
-    {
-      final SDGNode entry = sdg.getNode(en);
-      SDGNode exit = null; if (ex != 0) { exit = sdg.getNode(ex); }
-      SDGNode fork = null; if (fo != 0) { fork = sdg.getNode(fo); }
-      SDGNode join = null; if (jo != 0) { join = sdg.getNode(jo); }
-      ti = new ThreadInstance(id, entry, exit, fork, join, con, dyn);
-    }
-  ;
-  
-private context[SDG sdg] returns [LinkedList<SDGNode> cx = new LinkedList<SDGNode>();]
-  : 'null'
-  | '[' i=mayNegNumber { cx.add(sdg.getNode(i)); } (',' i=mayNegNumber { cx.add(sdg.getNode(i)); } )* ']'
-  ;
-
-private sdg_header returns [SDGHeader header]
-  : 'SDG' 
-    { int version = SDG.DEFAULT_VERSION; }
-      ('v' n=number { version = n; })?
-    { String name = null; }
-      (na=string { name = na; })? 
-    { header = new SDGHeader(version, name); }
-  ;
-
-private node_list returns [List<SDGNodeStub> list = new LinkedList<SDGNodeStub>();]
-  : (n=node { list.add(n); } )*
-  ;
-
-private node returns [SDGNodeStub nstub]
+node returns [SDGNodeStub nstub]
   : k=node_kind id=mayNegNumber { nstub = new SDGNodeStub(k, id, defaultSrcPos, defaultBcPos); } 
     '{' 
       node_attributes[nstub] 

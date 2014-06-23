@@ -10,6 +10,7 @@ package edu.kit.joana.ifc.sdg.graph;
  * Created on Feb 25, 2004
  */
 
+import edu.kit.joana.ifc.sdg.graph.SDG_Parser.SDGHeader;
 import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
@@ -750,12 +751,33 @@ public class SDG extends JoanaGraph implements Cloneable {
      */
     public static SDG readFrom(String sdgFile) throws IOException {
     	SDG_Lexer lexer = new SDG_Lexer(new ANTLRFileStream(sdgFile));
-    	CommonTokenStream tokens = new CommonTokenStream();
-    	tokens.setTokenSource(lexer);
+    	CommonTokenStream tokens = new CommonTokenStream(lexer);
     	SDG_Parser parser = new SDG_Parser(tokens);
     	SDG sdg;
     	try {
     		sdg = parser.sdg_file();
+    	} catch (RecognitionException e) {
+    		throw new IOException(e);
+    	}
+
+    	final int sepIndex = sdgFile.lastIndexOf(File.separator);
+    	String fileName = (sepIndex > 0 ? sdgFile.substring(sepIndex) : sdgFile);
+    	sdg.setFileName(fileName);
+
+    	return sdg;
+    }
+
+    /**
+     * Read in a graph from file with SDGManualParser. Use this for large SDGs if normal parser runs out of heap space.
+     * This parser is more fragile and does less error checking. However it is optimized for minimal memory usage.
+     * @param sdgFile file which is parsed
+     * @throws IOException if file does not exist
+     * @return a SDG representation of the file
+     */
+    public static SDG readFromAndUseLessHeap(String sdgFile) throws IOException {
+    	SDG sdg = null;
+    	try {
+    		sdg = SDGManualParser.parse(sdgFile);
     	} catch (RecognitionException e) {
     		throw new IOException(e);
     	}

@@ -37,7 +37,7 @@ public class IFCAnnotationApplicator {
 	}
 
 	public void applyAnnotations(Collection<IFCAnnotation> anns) {
-		AnnotationTypeBasedNodeCollector collector = new AnnotationTypeBasedNodeCollector(program.getSDG());
+		AnnotationTypeBasedNodeCollector collector = program.getNodeCollector();
 		for (IFCAnnotation ann : anns) {
 			if (ann.getType() == AnnotationType.SOURCE || ann.getType() == AnnotationType.SINK) {
 				annotationDebug.outln(String.format("Annnotation nodes for %s '%s' of security level %s...", ann.getType().toString(), ann.getProgramPart(), ann.getLevel1()));

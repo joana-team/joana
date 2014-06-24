@@ -160,6 +160,10 @@ public class SDGProgram {
 		this.coll.init(this);
 	}
 
+	public AnnotationTypeBasedNodeCollector getNodeCollector() {
+		return coll;
+	}
+
 	public static SDGProgram loadSDG(String path) throws IOException {
 		return new SDGProgram(SDG.readFrom(path, new SecurityNode.SecurityNodeFactory()));
 	}

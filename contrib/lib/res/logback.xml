@@ -1,0 +1,4 @@
+<configuration>
+  <logger name="com.ibm.wala" level="OFF" />
+  <logger name="edu.kit.joana" level="OFF" />
+</configuration>

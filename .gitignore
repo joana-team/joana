@@ -16,6 +16,7 @@ api/joana.api.test/build/*
 api/joana.api.test/lib
 api/joana.api/bin
 checkflow_tmp
+contrib/lib/bin
 CVS
 deprecated/joana.deprecated.jsdg/*.csv
 deprecated/joana.deprecated.jsdg/dist_simple

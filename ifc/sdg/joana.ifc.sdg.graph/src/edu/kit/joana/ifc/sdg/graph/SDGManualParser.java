@@ -19,22 +19,25 @@ import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 
+import edu.kit.joana.ifc.sdg.graph.SDGNode.NodeFactory;
 import edu.kit.joana.ifc.sdg.graph.SDGThreadInstance_Parser.ThreadInstanceStub;
 import edu.kit.joana.ifc.sdg.graph.SDGVertex_Parser.ByteCodePos;
 import edu.kit.joana.ifc.sdg.graph.SDGVertex_Parser.SDGNodeStub;
 import edu.kit.joana.ifc.sdg.graph.SDGVertex_Parser.SourcePos;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.procedure.TIntProcedure;
 
 /**
- * Due to excessive memory consumption of the ANTLR parser for the whole SDG, we are forced to parse parts of the
+ * Due to excessive memory consumption of the "whole SDG" ANTLR parser, we are forced to parse parts of the
  * SDG manually and only use ANTLR separate for each node and the ThreadInformation part. You will still need around
  * 10*filesize of RAM to parse the SDG.
  * 
- * WARNING: In order for this parser to work we the SDG format has to fulfill an additional constraints
+ * WARNING: In order for this parser to work the SDG format has to fulfill an additional constraints
  * (that all generated SDGs currently do). The header of a new node e.g. "ENTR 42 {" as well as the end token of a node
  * "}" have to be in a separate line. If newlines are artificially removed from the SDG this parser will not work. 
  * 
@@ -42,19 +45,34 @@ import gnu.trove.procedure.TIntProcedure;
  */
 public class SDGManualParser {
 
-	private SDGManualParser() {
-	}
-	
-	public static SDG parse(final String filename) throws IOException, RecognitionException {
-		final FileInputStream fIn = new FileInputStream(filename);
-		return parse(fIn);
-	}
+    private NodeFactory nodeFact = new SDGNode.SDGNodeFactory();
+    
+	private SDGManualParser() {}
+
+    public void setNodeFactory(final NodeFactory nodeFact) {
+    	this.nodeFact = nodeFact;
+    }
 	
 	public static SDG parse(final InputStream in) throws IOException, RecognitionException {
+		return parse(in, null);
+	}
+	
+	public static SDG parse(final InputStream in, final NodeFactory nodeFact)
+			throws IOException, RecognitionException {
+		final SDGManualParser parser = new SDGManualParser();
+		if (nodeFact != null) {
+			parser.setNodeFactory(nodeFact);
+		}
+		
+		return parser.run(in);
+	}
+	
+	public SDG run(final InputStream in) throws IOException, RecognitionException {
+		final Logger log = Log.getLogger(Log.L_SDG_GRAPH_PARSE_INFO);
+		final long startTime = System.currentTimeMillis();
 		final BufferedReader br = new BufferedReader(new InputStreamReader(in));
 
-		System.out.print("parsing sdg ");
-		
+		log.out("parsing sdg ");
 		final SDGHeader header = parseHeader(br);
 		final LinkedList<SDGNodeStub> nodeStubs = new LinkedList<SDGNodeStub>();
 		final LinkedList<ThreadInstanceStub> threadStubs = new LinkedList<ThreadInstanceStub>();
@@ -83,27 +101,40 @@ public class SDGManualParser {
 				final SDGNodeStub stub = parseVertex(line + node.toString());
 				nodeStubs.add(stub);
 				if (nodeStubs.size() % 10000 == 0) {
-					System.out.print(".");
+					log.out(".");
 				}
 			}
 		}
+		log.outln("done.");
 		
-		System.out.println("done.");
+		final long usedMemPhase1 = currentlyUsedMemInMegs(); 
 		
+		// close to free additional memory
 		br.close();
+		Runtime.getRuntime().gc();
 		
-		System.out.print("building sdg... ");
-		
+		log.out("building sdg... ");
 		final SDG sdg = header.createSDG();
 		sdg.setJoanaCompiler(joanaCompiler);
-		
-		createNodesAndEdges(sdg, nodeStubs);
-
+		final long maxUsedMemPhase2 = createNodesAndEdges(sdg, nodeStubs);
 		createThreadsInformation(sdg, threadStubs);
+		log.outln(" done.");
 		
-		System.out.println("done.");
+		final long endTime = System.currentTimeMillis();
+		
+		if (log.isEnabled()) {
+			final long time = endTime - startTime;
+			final long maxHeapInMegs = Runtime.getRuntime().maxMemory() / (1024 * 1024);
+			final long maxMem = Math.max(usedMemPhase1, maxUsedMemPhase2);
+			log.outln("read " + header + " with " + sdg.vertexSet().size() + " nodes and " + sdg.edgeSet().size()
+				+ " edges in " + time + "ms using " + maxMem + "m of " + maxHeapInMegs + "m max heap.");
+		}
 		
 		return sdg;
+	}
+	
+	private static long currentlyUsedMemInMegs() {
+		return (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1024);
 	}
 	
 	private static ThreadInstanceStub parseThreadInstance(final String str) throws RecognitionException {
@@ -181,6 +212,15 @@ public class SDGManualParser {
 			version = SDG.DEFAULT_VERSION;
 		}
 		
+		if (name != null) {
+			if (name.startsWith("\"")) {
+				name = name.substring(1);
+			}
+			if (name.endsWith("\"")) {
+				name = name.substring(0, name.length() - 1);
+			}
+		}
+		
 		return new SDGHeader(version, name);
 	}
 	
@@ -203,14 +243,13 @@ public class SDGManualParser {
         }
     }
     
-    private static SDGNode.NodeFactory nodeFact = new SDGNode.SDGNodeFactory();
-    
-    public static void setNodeFactory(SDGNode.NodeFactory nodeFact) {
-    	SDGManualParser.nodeFact = nodeFact;
-    }
-    
     private static void createThreadsInformation(final SDG sdg, final LinkedList<ThreadInstanceStub> stubs) {
-    	System.out.print("(thread info...");
+    	if (stubs.isEmpty()) {
+    		return;
+    	}
+    	
+		final Logger log = Log.getLogger(Log.L_SDG_GRAPH_PARSE_INFO);
+		log.out("(thread info...");
     	
     	final LinkedList<ThreadInstance> threads = new LinkedList<>();
     	
@@ -225,29 +264,39 @@ public class SDGManualParser {
     		sdg.setThreadsInfo(tnfo);
     	}
     	
-    	System.out.print("ok) ");
+    	log.out("ok)");
     }
 
-    private static void createNodesAndEdges(final SDG sdg, final LinkedList<SDGNodeStub> stubs) {
-    	System.out.print("(nodes...");
+    private long createNodesAndEdges(final SDG sdg, final LinkedList<SDGNodeStub> stubs) {
+		final Logger log = Log.getLogger(Log.L_SDG_GRAPH_PARSE_INFO);
+    	log.out("(nodes...");
     	// 1. create all nodes
 	    for (SDGNodeStub n : stubs) {
 	    	final SDGNode node = n.createNode(nodeFact);
 	    	sdg.addVertex(node);
 	    }
-    	System.out.print("ok)");
+    	log.out("ok)");
 
-    	System.out.print("(edges ...");
+    	long maxMem = currentlyUsedMemInMegs();
+    	int count = 0;
+    	
+    	log.out("(edges...");
 	    // 2. create all edges
     	while (!stubs.isEmpty()) {
+    		count++;
+    		if (count % 10000 == 0) {
+    			long curMaxMem = currentlyUsedMemInMegs();
+    			maxMem = Math.max(maxMem, curMaxMem);
+    		}
     		final SDGNodeStub n = stubs.removeFirst();
     		n.createEdges(sdg);
     	}
-    	System.out.print("ok) ");
+    	log.out("ok)");
+    	
+    	return maxMem;
     } 
 
     private static void error(final String msg) {
-    	System.err.println(msg);
     	throw new RuntimeException(msg);
     }
     

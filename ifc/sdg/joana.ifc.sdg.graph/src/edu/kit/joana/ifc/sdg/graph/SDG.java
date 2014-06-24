@@ -15,7 +15,9 @@ import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 import java.util.Collection;
 import java.util.Collections;
@@ -743,53 +745,95 @@ public class SDG extends JoanaGraph implements Cloneable {
     /* FACTORIES */
 
     /**
-     * Parses a graph, using the ANTLR grammar <code>SDG_.g</code>
-     *
-     * @param sdgFile file which is parsed
-     * @throws IOException if file does not exist
-     * @return a SDG representation of the file
-     */
-    public static SDG readFrom(String sdgFile) throws IOException {
-    	SDG_Lexer lexer = new SDG_Lexer(new ANTLRFileStream(sdgFile));
-    	CommonTokenStream tokens = new CommonTokenStream(lexer);
-    	SDG_Parser parser = new SDG_Parser(tokens);
-    	SDG sdg;
-    	try {
-    		sdg = parser.sdg_file();
-    	} catch (RecognitionException e) {
-    		throw new IOException(e);
-    	}
-
-    	final int sepIndex = sdgFile.lastIndexOf(File.separator);
-    	String fileName = (sepIndex > 0 ? sdgFile.substring(sepIndex) : sdgFile);
-    	sdg.setFileName(fileName);
-
-    	return sdg;
-    }
-
-    /**
      * Read in a graph from file with SDGManualParser. Use this for large SDGs if normal parser runs out of heap space.
      * This parser is more fragile and does less error checking. However it is optimized for minimal memory usage.
      * @param sdgFile file which is parsed
      * @throws IOException if file does not exist
      * @return a SDG representation of the file
      */
-    public static SDG readFromAndUseLessHeap(String sdgFile) throws IOException {
-    	SDG sdg = null;
-    	try {
-    		sdg = SDGManualParser.parse(sdgFile);
-    	} catch (RecognitionException e) {
-    		throw new IOException(e);
-    	}
+    public static SDG readFromAndUseLessHeap(final String sdgFile) throws IOException {
+    	return readFromAndUseLessHeap(sdgFile, null);
+    }
+
+    /**
+     * Read in a graph from file with SDGManualParser. Use this for large SDGs if normal parser runs out of heap space.
+     * This parser is more fragile and does less error checking. However it is optimized for minimal memory usage.
+     * @param sdgFile file which is parsed
+     * @param nodeFactory factory that is used to create SDGNodes
+     * @throws IOException if file does not exist
+     * @return a SDG representation of the file
+     */
+    public static SDG readFromAndUseLessHeap(final String sdgFile, final SDGNode.NodeFactory nodeFactory)
+    		throws IOException {
+    	final InputStream in = new FileInputStream(sdgFile);
+    	final SDG sdg = readFromAndUseLessHeap(in, nodeFactory);
 
     	final int sepIndex = sdgFile.lastIndexOf(File.separator);
-    	String fileName = (sepIndex > 0 ? sdgFile.substring(sepIndex) : sdgFile);
+    	final String fileName = (sepIndex > 0 ? sdgFile.substring(sepIndex) : sdgFile);
     	sdg.setFileName(fileName);
 
     	return sdg;
     }
 
     /**
+     * Read in a graph from an input stream with SDGManualParser. Use this for large SDGs if normal parser runs out of
+     * heap space. This parser is more fragile and does less error checking. However it is optimized for minimal memory
+     * usage.
+     * @param in InputStream which is parsed
+     * @throws IOException if file does not exist
+     * @return a SDG representation of the file
+     */
+    public static SDG readFromAndUseLessHeap(final InputStream in) throws IOException {
+    	return readFromAndUseLessHeap(in, null);
+    }
+
+    /**
+     * Read in a graph from an input stream with SDGManualParser. Use this for large SDGs if normal parser runs out of
+     * heap space. This parser is more fragile and does less error checking. However it is optimized for minimal memory
+     * usage.
+     * @param in InputStream which is parsed
+     * @param nodeFactory factory that is used to create SDGNodes
+     * @throws IOException if file does not exist
+     * @return a SDG representation of the file
+     */
+    public static SDG readFromAndUseLessHeap(final InputStream in, final SDGNode.NodeFactory nodeFactory)
+    		throws IOException {
+    	SDG sdg = null;
+    	try {
+    		sdg = SDGManualParser.parse(in, nodeFactory);
+    	} catch (RecognitionException e) {
+    		throw new IOException(e);
+    	}
+
+    	return sdg;
+    }
+
+	/**
+	 * Parses a graph, using the ANTLR grammar <code>SDG_.g</code>
+	 *
+	 * @param sdgFile file which is parsed
+	 * @throws IOException if file does not exist
+	 * @return a SDG representation of the file
+	 */
+	public static SDG readFrom(String sdgFile) throws IOException {
+		SDG_Lexer lexer = new SDG_Lexer(new ANTLRFileStream(sdgFile));
+		CommonTokenStream tokens = new CommonTokenStream(lexer);
+		SDG_Parser parser = new SDG_Parser(tokens);
+		SDG sdg;
+		try {
+			sdg = parser.sdg_file();
+		} catch (RecognitionException e) {
+			throw new IOException(e);
+		}
+	
+		final int sepIndex = sdgFile.lastIndexOf(File.separator);
+		String fileName = (sepIndex > 0 ? sdgFile.substring(sepIndex) : sdgFile);
+		sdg.setFileName(fileName);
+	
+		return sdg;
+	}
+
+	/**
      * Parses a graph, using the ANTLR grammar <code>SDG_.g</code>
      *
      * @param sdgFile file which is parsed

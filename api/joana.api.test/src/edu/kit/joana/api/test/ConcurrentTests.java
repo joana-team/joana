@@ -10,17 +10,18 @@ package edu.kit.joana.api.test;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import edu.kit.joana.api.test.util.BuildSDG;
 import edu.kit.joana.api.test.util.JoanaPath;
 import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
 
@@ -51,26 +52,14 @@ public class ConcurrentTests {
 		testData.put("recursive_spawning", new TestData("joana.api.testdata.conc.RecursiveSpawning", "recursive_spawning.pdg", 3, 1));
 	}
 
-	@BeforeClass
-	public static void setUp() {
-		for (String testKey : testData.keySet()) {
-			final TestData td = testData.get(testKey);
-			if (FORCE_REBUILD) {
-				final BuildSDG b = BuildSDG.standardConcSetup(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, td.mainClass, td.sdgFile);
-				b.run();
-			} else {
-				final File f = new File(td.sdgFile);
-				if (!f.exists() || !f.canRead()) {
-					final BuildSDG b = BuildSDG.standardConcSetup(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, td.mainClass, td.sdgFile);
-					b.run();
-				}
-			}
-		}
-	}
-
 	@Test
 	public void mantelTest() throws IOException {
 		doTest("mantel");
+	}
+
+	@Test
+	public void mantelTestReadWrite() throws IOException {
+		doTestReadWrite("mantel");
 	}
 
 	@Test
@@ -79,8 +68,18 @@ public class ConcurrentTests {
 	}
 	
 	@Test
+	public void simpleTestReadWrite() throws IOException {
+		doTestReadWrite("simple");
+	}
+	
+	@Test
 	public void spawnAfterLoopTest() throws IOException {
 		doTest("spawn_after_loop");
+	}
+	
+	@Test
+	public void spawnAfterLoopTestReadWrite() throws IOException {
+		doTestReadWrite("spawn_after_loop");
 	}
 	
 	@Test
@@ -89,8 +88,18 @@ public class ConcurrentTests {
 	}
 	
 	@Test
+	public void spawnWithinLoopTestReadWrite() throws IOException {
+		doTestReadWrite("spawn_within_loop");
+	}
+	
+	@Test
 	public void threadHierarchyTest() throws IOException {
 		doTest("thread_hierarchy");
+	}
+	
+	@Test
+	public void threadHierarchyTestReadWrite() throws IOException {
+		doTestReadWrite("thread_hierarchy");
 	}
 	
 	@Test
@@ -99,8 +108,18 @@ public class ConcurrentTests {
 	}
 	
 	@Test
+	public void simpleRecursiveSpawningTestReadWrite() throws IOException {
+		doTestReadWrite("simple_recursive_spawning");
+	}
+	
+	@Test
 	public void spawningInRecursiveCycleTest() throws IOException {
 		doTest("spawning_in_recursive_cycle");
+	}
+	
+	@Test
+	public void spawningInRecursiveCycleTestReadWrite() throws IOException {
+		doTestReadWrite("spawning_in_recursive_cycle");
 	}
 	
 	@Test
@@ -108,12 +127,52 @@ public class ConcurrentTests {
 		doTest("recursive_spawning");
 	}
 	
+	@Test
+	public void recursiveSpawningTestReadWrite() throws IOException {
+		doTestReadWrite("recursive_spawning");
+	}
+	
+	public static void buildOrLoad(TestData td) {
+		if (FORCE_REBUILD) {
+			final BuildSDG b = BuildSDG.standardConcSetup(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, td.mainClass, td.sdgFile);
+			b.run();
+		} else {
+			final File f = new File(td.sdgFile);
+			if (!f.exists() || !f.canRead()) {
+				final BuildSDG b = BuildSDG.standardConcSetup(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, td.mainClass, td.sdgFile);
+				b.run();
+			}
+		}
+	}
+	
 	public void doTest(String key) throws IOException {
 		TestData t = testData.get(key);
 		if (t == null) {
 			Assert.fail("wrong test key: " + key);
 		}
+		buildOrLoad(t);
 		SDG sdg = SDG.readFrom(t.sdgFile);
+		doTestSDG(key, t, sdg);
+	}
+
+	public void doTestReadWrite(String key) throws IOException {
+		TestData t = testData.get(key);
+		if (t == null) {
+			Assert.fail("wrong test key: " + key);
+		}
+		buildOrLoad(t);
+		SDG sdg = SDG.readFrom(t.sdgFile);
+		doTestSDG(key, t, sdg);
+		sdg = SDG.readFromAndUseLessHeap(t.sdgFile);
+		doTestSDG(key, t, sdg);
+		SDGSerializer.toPDGFormat(sdg, new FileOutputStream(t.sdgFile));
+		sdg = SDG.readFrom(t.sdgFile);
+		doTestSDG(key, t, sdg);
+		sdg = SDG.readFromAndUseLessHeap(t.sdgFile);
+		doTestSDG(key, t, sdg);
+	}
+	
+	public void doTestSDG(String key, TestData t, SDG sdg) throws IOException {
 		ThreadsInformation tinfo = sdg.getThreadsInfo();
 		int numberOfThreads = 0;
 		int numberOfDynamicThreads = 0;

@@ -7,6 +7,7 @@
  */
 package edu.kit.joana.ifc.sdg.core;
 
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.LinkedList;
 
@@ -20,6 +21,8 @@ import edu.kit.joana.ifc.sdg.graph.slicer.ContextSlicerBackward;
 import edu.kit.joana.ifc.sdg.graph.slicer.Slicer;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 
 /**
  * This class provides an IFC algorithm based on a given slicing algorithm, which is interchangeable. 
@@ -37,6 +40,8 @@ import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
  * @author Martin Mohr
  */
 public class SlicingBasedIFC extends IFC {
+
+	private static final Logger DEBUG = Log.getLogger(Log.L_IFC_DEBUG);
 
 	private final DirectedSlicer slicer;
 	
@@ -60,16 +65,42 @@ public class SlicingBasedIFC extends IFC {
 	 */
 	@Override
 	public Collection<ClassifiedViolation> checkIFlow() throws NotInLatticeException {
+		DEBUG.outln(String.format("[%s] Executing slicing-based IFC on a graph with %d nodes and %d edges.", Calendar.getInstance().getTime(), this.g.vertexSet().size(), this.g.edgeSet().size()));
+		String startpointsStr = this.slicer.getDirection()==Direction.BACKWARD?"sources":"sinks";
+		String endpointsStr = this.slicer.getDirection()==Direction.BACKWARD?"sinks":"sources";
+		DEBUG.outln(String.format("[%s] Collecting %s...", Calendar.getInstance().getTime(), startpointsStr));
+		Collection<SecurityNode> startPoints = collectStartpoints();
+		DEBUG.outln(String.format("[%s] done. Collected %d %s", Calendar.getInstance().getTime(), startPoints.size(), startpointsStr));
+		DEBUG.outln(String.format("[%s] Collecting %s...", Calendar.getInstance().getTime(), endpointsStr));
 		Collection<SecurityNode> endPoints = collectEndpoints();
+		DEBUG.outln(String.format("[%s] done. Collected %d %s", Calendar.getInstance().getTime(), endPoints.size(), endpointsStr));
 		Collection<ClassifiedViolation> vios = new LinkedList<ClassifiedViolation>();
+		DEBUG.outln(String.format("[%s] slicing each of the %d %s...", Calendar.getInstance().getTime(), endPoints.size(), endpointsStr));
+		int count = 0;
 		for (SecurityNode endPoint : endPoints) {
+			count++;
+			DEBUG.outln(String.format("[%s] %d of %d...", Calendar.getInstance().getTime(), count, endPoints.size()));
 			Collection<SDGNode> slice = slicer.slice(endPoint);
+			DEBUG.outln(String.format("[%s] done. Slice contains %d items", Calendar.getInstance().getTime(), slice.size()));
+			DEBUG.outln(String.format("[%s] scanning for sources...", Calendar.getInstance().getTime()));
 			addPossibleViolations(endPoint, slice, vios);
+			DEBUG.outln(String.format("[%s] done.", Calendar.getInstance().getTime()));
 		}
 		
 		return vios;
 	}
-	
+
+	private Collection<SecurityNode> collectStartpoints() {
+		Collection<SecurityNode> ret = new LinkedList<SecurityNode>();
+		for (SDGNode n : this.g.vertexSet()) {
+			SecurityNode sN = (SecurityNode) n;
+			if (isStartpoint(sN)) {
+				ret.add(sN);
+			}
+		}
+		return ret;
+	}
+
 	private Collection<SecurityNode> collectEndpoints() {
 		Collection<SecurityNode> ret = new LinkedList<SecurityNode>();
 		for (SDGNode n : this.g.vertexSet()) {
@@ -78,11 +109,9 @@ public class SlicingBasedIFC extends IFC {
 				ret.add(sN);
 			}
 		}
-		
 		return ret;
 	}
-	
-	
+
 	private boolean isEndpoint(SecurityNode n) {
 		switch (slicer.getDirection()) {
 		case BACKWARD:

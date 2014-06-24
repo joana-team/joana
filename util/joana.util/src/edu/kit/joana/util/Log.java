@@ -28,6 +28,7 @@ public final class Log {
 	public static final String L_API_DEBUG 						= "api.debug";
 	public static final String L_API_ANNOTATION_DEBUG			= "api.annotation.debug";
 	public static final String L_CONSOLE_DEBUG 					= "console.debug";
+	public static final String L_IFC_DEBUG						= "ifc.debug";
 	public static final String L_SDG_CORE_DEBUG 				= "sdg.core.debug";
 	public static final String L_SDG_GRAPH_DEBUG 				= "sdg.graph.debug";
 	public static final String L_SDG_GRAPH_PARSE_INFO			= "sdg.graph.parse.info";

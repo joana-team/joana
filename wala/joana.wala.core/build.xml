@@ -76,6 +76,12 @@
 				<file name="natives_empty.xml" />
 				<file name="jSDG-stubs-jre1.4.jar" />
 			</filelist>
+			<filelist dir="${joana.contrib.base.dir}/res">
+			    <file name="logback.xml" />
+			</filelist>
+			<filelist dir="${joana.contrib.base.dir}/res">
+				<file name="logback.xml" />
+			</filelist>
 		</copy>
 	</target>
 

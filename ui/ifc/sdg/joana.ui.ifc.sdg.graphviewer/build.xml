@@ -105,6 +105,9 @@
 	
 	<target name="copy_non_java_files" depends="versionid">
 		<copy todir="${dest.dir.classes}">
+		    <filelist dir="${joana.contrib.base.dir}/res">
+		        <file name="logback.xml" />
+		    </filelist>
 			<fileset dir="${joana.ui.ifc.sdg.graphviewer.base.dir}">
 				<or>
 				<filename name="versionid.properties" />

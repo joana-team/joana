@@ -115,6 +115,9 @@
 				<file name="jSDG-stubs-jre1.4.jar" />
 				<file name="jSDG-stubs-jre1.5.jar" />
 			</filelist>
+			<filelist dir="${joana.contrib.base.dir}/res">
+			    <file name="logback.xml" />
+			</filelist>
 			<fileset dir="${joana.ui.ifc.wala.console.base.dir}/res">
 				<or>
 				<filename name="**/*.png" />

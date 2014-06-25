@@ -43,7 +43,9 @@ public class SlicingBasedIFC extends IFC {
 
 	private static final Logger DEBUG = Log.getLogger(Log.L_IFC_DEBUG);
 
-	private final DirectedSlicer slicer;
+	private final DirectedSlicer slicerForw;
+	private final DirectedSlicer slicerBackw;
+	private DirectedSlicer slicer;
 	
 	/**
 	 * Instantiates a new SlicingBasedIFC algorithm. 
@@ -55,9 +57,10 @@ public class SlicingBasedIFC extends IFC {
 	 * @param dir additional information which denotes whether the given slicer is a backward slicer or a forward slicer - note that the algorithm will
 	 * produce wrong results if the given direction is not consistent with the given slicer.
 	 */
-	public SlicingBasedIFC(SDG sdg, IStaticLattice<String> lattice, Slicer slicer, Direction dir) {
+	public SlicingBasedIFC(SDG sdg, IStaticLattice<String> lattice, Slicer slicerForw, Slicer slicerBackw) {
 		super(sdg, lattice);
-		this.slicer = DirectedSlicer.decorateWithDirection(slicer, dir);
+		this.slicerForw = DirectedSlicer.decorateWithDirection(slicerForw, Direction.FORWARD);
+		this.slicerBackw = DirectedSlicer.decorateWithDirection(slicerBackw, Direction.BACKWARD);
 	}
 
 	/* (non-Javadoc)
@@ -65,15 +68,27 @@ public class SlicingBasedIFC extends IFC {
 	 */
 	@Override
 	public Collection<ClassifiedViolation> checkIFlow() throws NotInLatticeException {
+		this.slicer = slicerBackw;
+		Collection<SecurityNode> sources = collectStartpoints();
 		DEBUG.outln(String.format("[%s] Executing slicing-based IFC on a graph with %d nodes and %d edges.", Calendar.getInstance().getTime(), this.g.vertexSet().size(), this.g.edgeSet().size()));
-		String startpointsStr = this.slicer.getDirection()==Direction.BACKWARD?"sources":"sinks";
-		String endpointsStr = this.slicer.getDirection()==Direction.BACKWARD?"sinks":"sources";
-		DEBUG.outln(String.format("[%s] Collecting %s...", Calendar.getInstance().getTime(), startpointsStr));
-		Collection<SecurityNode> startPoints = collectStartpoints();
-		DEBUG.outln(String.format("[%s] done. Collected %d %s", Calendar.getInstance().getTime(), startPoints.size(), startpointsStr));
-		DEBUG.outln(String.format("[%s] Collecting %s...", Calendar.getInstance().getTime(), endpointsStr));
-		Collection<SecurityNode> endPoints = collectEndpoints();
-		DEBUG.outln(String.format("[%s] done. Collected %d %s", Calendar.getInstance().getTime(), endPoints.size(), endpointsStr));
+		DEBUG.outln(String.format("[%s] Collecting sinks...", Calendar.getInstance().getTime()));
+		Collection<SecurityNode> sinks = collectEndpoints();
+		DEBUG.outln(String.format("[%s] done. Collected %d sinks.", Calendar.getInstance().getTime(), sinks.size()));
+		DEBUG.outln(String.format("[%s] Collecting sources...", Calendar.getInstance().getTime()));
+		DEBUG.outln(String.format("[%s] done. Collected %d sources.", Calendar.getInstance().getTime(), sources.size()));
+		Collection<SecurityNode> endPoints;
+		String endpointsStr;
+		if (sources.size() < sinks.size()) {
+			this.slicer = slicerForw;
+			endPoints = sources;
+			endpointsStr = "sources";
+			DEBUG.outln(String.format("[%s] Using forward slicing.", Calendar.getInstance().getTime()));
+		} else {
+			this.slicer = slicerBackw;
+			endPoints = sinks;
+			endpointsStr = "sinks";
+			DEBUG.outln(String.format("[%s] Using backward slicing.", Calendar.getInstance().getTime()));
+		}
 		Collection<ClassifiedViolation> vios = new LinkedList<ClassifiedViolation>();
 		DEBUG.outln(String.format("[%s] slicing each of the %d %s...", Calendar.getInstance().getTime(), endPoints.size(), endpointsStr));
 		int count = 0;
@@ -86,7 +101,7 @@ public class SlicingBasedIFC extends IFC {
 			addPossibleViolations(endPoint, slice, vios);
 			DEBUG.outln(String.format("[%s] done.", Calendar.getInstance().getTime()));
 		}
-		
+		DEBUG.outln(String.format("[%s] done. Found %d violation(s).", Calendar.getInstance().getTime(), vios.size()));
 		return vios;
 	}
 
@@ -140,11 +155,15 @@ public class SlicingBasedIFC extends IFC {
 			String secLevelOfOtherEndpoint = getLevel(sNode);
 			String secLevelOfEndpoint = getLevel(endPoint);
 			if (isStartpoint(sNode) && secLevelOfOtherEndpoint != null && isLeakage(endPoint, sNode)) {
-				vios.add(ClassifiedViolation.createViolation(endPoint, sNode, secLevelOfEndpoint));
+				if (endPoint.isInformationSource() && sNode.isInformationSink()) {
+					vios.add(ClassifiedViolation.createViolation(sNode, endPoint, secLevelOfEndpoint));
+				} else if (endPoint.isInformationSink() && sNode.isInformationSource()) {
+					vios.add(ClassifiedViolation.createViolation(endPoint, sNode, secLevelOfEndpoint));
+				}
 			}
 		}
 	}
-	
+
 	private boolean isLeakage(SecurityNode n1, SecurityNode n2) {
 		if (!(xor(n1.isInformationSource(), n2.isInformationSource()) && xor(n1.isInformationSink(), n2.isInformationSink()) && !n1.isDeclassification() && !n2.isDeclassification())) {
 			throw new IllegalArgumentException("Exactly one of the provided nodes must be an information source, the other must be an information sink!");

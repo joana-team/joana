@@ -113,7 +113,7 @@ public class IFCAnalysis {
 		MHPAnalysis mhp;
 		switch (this.ifcType) {
 		case CLASSICAL_NI:
-			this.ifc = new SlicingBasedIFC(this.program.getSDG(), secLattice, new I2PForward(this.program.getSDG()), new I2PBackward(this.program.getSDG()));//new PossibilisticNIChecker(this.program.getSDG(), secLattice);
+			this.ifc = new SlicingBasedIFC(this.program.getSDG(), secLattice, new I2PForward(this.program.getSDG()), new I2PBackward(this.program.getSDG()));
 			if (timeSensitiveAnalysis) {
 				if (this.program.getSDG().getThreadsInfo() == null) {
 					CSDGPreprocessor.preprocessSDG(this.program.getSDG());

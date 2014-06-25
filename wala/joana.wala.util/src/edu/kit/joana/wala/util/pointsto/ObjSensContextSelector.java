@@ -52,7 +52,7 @@ public class ObjSensContextSelector implements ContextSelector {
 			IMethod callee, InstanceKey[] actualParameters) {
 		final InstanceKey receiver = (actualParameters != null && actualParameters.length > 0 ? actualParameters[0] : null);
 		if (mayUnderstand(caller, site, callee, receiver)) {
-			if (useFallBackCallString(callee)) {
+			if (useFallBackCallString(caller, callee)) {
 				return nLevel.getCalleeTarget(caller, site, callee, actualParameters);
 			} else {
 				return (receiver != null ? new ReceiverInstanceContext(receiver) : null);
@@ -62,8 +62,8 @@ public class ObjSensContextSelector implements ContextSelector {
 		}
 	}
 
-	private boolean useFallBackCallString(IMethod callee) {
-		return (callee.isStatic() && !callee.isInit()) || !filter.engageObjectSensitivity(callee);
+	private boolean useFallBackCallString(CGNode caller, IMethod callee) {
+		return (callee.isStatic() && !callee.isInit()) || !filter.engageObjectSensitivity(caller, callee);
 	}
 
 	private boolean mayUnderstand(CGNode caller, CallSiteReference site,

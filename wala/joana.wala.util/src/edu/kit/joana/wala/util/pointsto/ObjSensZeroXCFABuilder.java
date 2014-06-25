@@ -11,6 +11,7 @@ import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
+import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.ContextSelector;
 import com.ibm.wala.ipa.callgraph.impl.DelegatingContextSelector;
 import com.ibm.wala.ipa.callgraph.propagation.SSAContextInterpreter;
@@ -35,11 +36,14 @@ public class ObjSensZeroXCFABuilder extends ZeroXCFABuilder {
 		 * Decides for which methods an object sensitive points-to analysis should be engaged. A one level call string
 		 * sensitivity is used as a fallback. Note that static methods have no receiver, so they cannot be
 		 * analyzed with object sensitivity. Therefore no static method will be passed to this interface.
+		 * The decision whether to engage object sensitivity can be made dependent on the calling context, i.e. the cg node of
+		 * the caller.
+		 * @param caller the context in which the method is called
 		 * @param m The method that may be analyzed in an object sensitive context.
 		 * @return <tt>true</tt> if calls to the method should be analyzed with object sensitivity, <tt>false</tt>
 		 * if a one level call string sensitivity should be used.
 		 */
-		public boolean engageObjectSensitivity(IMethod m);
+		public boolean engageObjectSensitivity(CGNode caller, IMethod m);
 
 		/**
 		 * Decides for a method where {@link #engageObjectSensitivity(IMethod)} returns {@code true}, whether
@@ -59,7 +63,7 @@ public class ObjSensZeroXCFABuilder extends ZeroXCFABuilder {
 	public static class DefaultMethodFilter implements MethodFilter {
 
 		@Override
-		public boolean engageObjectSensitivity(final IMethod m) {
+		public boolean engageObjectSensitivity(final CGNode caller, final IMethod m) {
 			// use context sensitivity for all methods as default
 			return true;
 		}

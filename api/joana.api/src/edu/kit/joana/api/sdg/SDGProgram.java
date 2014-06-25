@@ -23,6 +23,7 @@ import java.util.Set;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.classLoader.IMethod;
+import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.types.TypeReference;
@@ -923,7 +924,7 @@ class SDGClassResolver {
 class ThreadSensitiveMethodFilter implements ObjSensZeroXCFABuilder.MethodFilter {
 
 	@Override
-	public boolean engageObjectSensitivity(IMethod m) {
+	public boolean engageObjectSensitivity(CGNode caller, IMethod m) {
 		IClassHierarchy cha = m.getClassHierarchy();
 		return !m.isStatic()
 				&& (cha.isAssignableFrom(cha.lookupClass(TypeReference.JavaLangThread), m.getDeclaringClass()));
@@ -989,11 +990,11 @@ class MethodFilterChain implements ObjSensZeroXCFABuilder.MethodFilter {
 	 * engageObjectSensitivity(com.ibm.wala.classLoader.IMethod)
 	 */
 	@Override
-	public boolean engageObjectSensitivity(IMethod m) {
-		if (filter1.engageObjectSensitivity(m)) {
+	public boolean engageObjectSensitivity(CGNode caller, IMethod m) {
+		if (filter1.engageObjectSensitivity(caller, m)) {
 			return true;
 		} else {
-			return filter2.engageObjectSensitivity(m);
+			return filter2.engageObjectSensitivity(caller, m);
 		}
 	}
 
@@ -1037,7 +1038,7 @@ class ThreadSensitiveMethodFilterWithCaching implements ObjSensZeroXCFABuilder.M
 	}
 
 	@Override
-	public boolean engageObjectSensitivity(IMethod m) {
+	public boolean engageObjectSensitivity(CGNode caller, IMethod m) {
 		if (nonThreadClasses.contains(m.getDeclaringClass())) {
 			return false;
 		} else if (threadClasses.contains(m.getDeclaringClass())) {
@@ -1045,7 +1046,7 @@ class ThreadSensitiveMethodFilterWithCaching implements ObjSensZeroXCFABuilder.M
 		} else {
 			IClassHierarchy cha = m.getClassHierarchy();
 			initJavaLangThread(cha);
-			boolean ret = normalFilter.engageObjectSensitivity(m);
+			boolean ret = normalFilter.engageObjectSensitivity(caller, m);
 			if (ret) {
 				threadClasses.add(m.getDeclaringClass());
 			} else {

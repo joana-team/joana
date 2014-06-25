@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.Stack;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -65,18 +66,21 @@ class SDGParameterUtils {
 	 */
 	static List<SDGNode> collectPsBWReachableRootParameters(SDGNode node, SDG sdg) {
 		LinkedList<SDGNode> ret = new LinkedList<SDGNode>();
-		LinkedList<SDGNode> worklist = new LinkedList<SDGNode>();
+		Stack<SDGNode> worklist = new Stack<SDGNode>();
 		Set<SDGNode> visited = new HashSet<SDGNode>();
 		worklist.add(node);
 		while (!worklist.isEmpty()) {
-			SDGNode next = worklist.poll();
+			SDGNode next = worklist.pop();
+			if (visited.contains(next)) {
+				continue;
+			}
 			visited.add(next);
 			if (next.getBytecodeIndex() == BytecodeLocation.ROOT_PARAMETER) {
 				ret.add(next);
 			} else {
 				for (SDGEdge out : sdg.incomingEdgesOf(next)) {
-					if (out.getKind() == SDGEdge.Kind.PARAMETER_STRUCTURE && !visited.contains(out.getSource())) {
-						worklist.add(out.getSource());
+					if (out.getKind() == SDGEdge.Kind.PARAMETER_STRUCTURE) {
+						worklist.push(out.getSource());
 					}
 				}
 			}

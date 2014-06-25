@@ -35,6 +35,7 @@ import edu.kit.joana.api.sdg.ThrowingSDGProgramPartVisitor;
 import edu.kit.joana.ifc.sdg.core.IFC;
 import edu.kit.joana.ifc.sdg.core.ReduceRedundantFlows;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
+import edu.kit.joana.ifc.sdg.core.SlicingBasedIFC;
 import edu.kit.joana.ifc.sdg.core.conc.ConflictScanner;
 import edu.kit.joana.ifc.sdg.core.conc.DataConflict;
 import edu.kit.joana.ifc.sdg.core.conc.LSODNISlicer;
@@ -47,6 +48,8 @@ import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
 import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.core.violations.IllegalFlow;
 import edu.kit.joana.ifc.sdg.core.violations.ViolationMapper;
+import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PBackward;
+import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PForward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.SimpleMHPAnalysis;
@@ -110,7 +113,7 @@ public class IFCAnalysis {
 		MHPAnalysis mhp;
 		switch (this.ifcType) {
 		case CLASSICAL_NI:
-			this.ifc = new PossibilisticNIChecker(this.program.getSDG(), secLattice);
+			this.ifc = new SlicingBasedIFC(this.program.getSDG(), secLattice, new I2PForward(this.program.getSDG()), new I2PBackward(this.program.getSDG()));//new PossibilisticNIChecker(this.program.getSDG(), secLattice);
 			if (timeSensitiveAnalysis) {
 				if (this.program.getSDG().getThreadsInfo() == null) {
 					CSDGPreprocessor.preprocessSDG(this.program.getSDG());

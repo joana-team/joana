@@ -23,7 +23,7 @@ import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
  * Provides utility code used for parameters.
  * @author Martin Mohr
  */
-class SDGParameterUtils {
+public class SDGParameterUtils {
 	private SDGParameterUtils() {}
 
 	/**
@@ -37,7 +37,7 @@ class SDGParameterUtils {
 	 * @param sdg sdg in which to search
 	 * @return whether inRoot or outRoot can reach the given node using only {@link SDGEdge.Kind#PARAMETER_STRUCTURE} edges
 	 */
-	static boolean psBackwardsReachable(SDGNode node, SDGNode inRoot, SDGNode outRoot, SDG sdg) {
+	public static boolean psBackwardsReachable(SDGNode node, SDGNode inRoot, SDGNode outRoot, SDG sdg) {
 		LinkedList<SDGNode> worklist = new LinkedList<SDGNode>();
 		Set<SDGNode> visited = new HashSet<SDGNode>();
 		worklist.add(node);
@@ -64,7 +64,7 @@ class SDGParameterUtils {
 	 * @param sdg sdg in which to search
 	 * @return all root parameter nodes or static field nodes from which the given node may be reached using only {@link SDGEdge.PARAMETER_STRUCTURE} edges
 	 */
-	static List<SDGNode> collectPsBWReachableRootParameters(SDGNode node, SDG sdg) {
+	public static List<SDGNode> collectPsBWReachableRootParameters(SDGNode node, SDG sdg) {
 		LinkedList<SDGNode> ret = new LinkedList<SDGNode>();
 		Stack<SDGNode> worklist = new Stack<SDGNode>();
 		Set<SDGNode> visited = new HashSet<SDGNode>();
@@ -89,21 +89,55 @@ class SDGParameterUtils {
 	}
 
 	/**
+	 * Locates one root parameter or static field node from which the given node may be reached using only
+	 * {@link SDGEdge.PARAMETER_STRUCTURE} edges
+	 * @param node node to check - should be of kind ACT_IN or ACT_OUT to get a reasonable result
+	 * @param sdg sdg in which to search
+	 * @return one root parameter or static field node from which the given node may be reached using only
+	 * {@link SDGEdge.PARAMETER_STRUCTURE} edges, or {@code null} if none is found
+	 */
+	public static SDGNode findOnePsBWReachableRootParameter(SDGNode node, SDG sdg) {
+		Stack<SDGNode> worklist = new Stack<SDGNode>();
+		Set<SDGNode> visited = new HashSet<SDGNode>();
+		worklist.add(node);
+		while (!worklist.isEmpty()) {
+			SDGNode next = worklist.pop();
+			if (visited.contains(next)) {
+				continue;
+			}
+			visited.add(next);
+			if (next.getBytecodeIndex() == BytecodeLocation.ROOT_PARAMETER) {
+				return next;
+			} else {
+				for (SDGEdge out : sdg.incomingEdgesOf(next)) {
+					if (out.getKind() == SDGEdge.Kind.PARAMETER_STRUCTURE) {
+						worklist.push(out.getSource());
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Locates the method call node to which the given node belongs. The given node must be of kind
-	 * {@link SDGNode.Kind#ACTUAL_IN} or {@link SDGNode.Kind#ACTUAL_OUT} and a root parameter or a
-	 * static field.
+	 * {@link SDGNode.Kind#ACTUAL_IN} or {@link SDGNode.Kind#ACTUAL_OUT}.
 	 * @param node node to find corresponding call of
 	 * @param sdg sdg in which to search
 	 * @return the method call node to which the given node belongs
 	 */
-	static SDGNode locateCall(SDGNode node, SDG sdg) {
+	public static SDGNode locateCall(SDGNode node, SDG sdg) {
 		if (node.getKind() != SDGNode.Kind.ACTUAL_IN && node.getKind() != SDGNode.Kind.ACTUAL_OUT) {
 			throw new IllegalArgumentException(String.format("Given node must be of kind %s or %s!", SDGNode.Kind.ACTUAL_IN.toString(), SDGNode.Kind.ACTUAL_OUT.toString()));
 		}
+		SDGNode rootNode = node;
 		if (node.getBytecodeIndex() != BytecodeLocation.ROOT_PARAMETER && node.getBytecodeIndex() != BytecodeLocation.STATIC_FIELD) {
-			throw new IllegalArgumentException("Given node must denote a root parameter or a static field!");
+			rootNode = findOnePsBWReachableRootParameter(node, sdg);
+			if (rootNode == null) {
+				throw new IllegalStateException("Found a dangling actual-param node (not connected to any root-param or static-field node): " + node);
+			}
 		}
-		for (SDGEdge eIn : sdg.incomingEdgesOf(node)) {
+		for (SDGEdge eIn : sdg.incomingEdgesOf(rootNode)) {
 			if (eIn.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR && eIn.getSource().getKind() == Kind.CALL) {
 				return eIn.getSource();
 			}

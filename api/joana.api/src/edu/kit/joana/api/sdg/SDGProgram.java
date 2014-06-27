@@ -467,14 +467,18 @@ public class SDGProgram {
 			for (SDGNode rootParam : rootParams) {
 				if (rootParam.getBytecodeName().equals(BytecodeLocation.RETURN_PARAM)) {
 					for (SDGMethod m : methods) {
-						ret.add(m.getExit());
+						if (m.getExit() != null) {
+							ret.add(m.getExit());
+						}
 					}
 				} else if (rootParam.getBytecodeName().equals(BytecodeLocation.EXCEPTION_PARAM)) {
 					continue;
 				} else {
 					int paramIndex = BytecodeLocation.getRootParamIndex(rootParam.getBytecodeName());
 					for (SDGMethod m : methods) {
-						ret.add(m.getParameter(paramIndex));
+						if (m.getParameter(paramIndex) != null) {
+							ret.add(m.getParameter(paramIndex));
+						}
 					}
 				}
 			}
@@ -492,12 +496,18 @@ public class SDGProgram {
 					}
 					SDGCall call = (SDGCall) m.getInstructionWithBCIndex(callBCIndex);
 					if (rootParam.getBytecodeName().equals(BytecodeLocation.RETURN_PARAM)) {
-						ret.add(call.getReturn());
+						if (call.getReturn() != null) {
+							ret.add(call.getReturn());
+						}
 					} else if (rootParam.getBytecodeName().equals(BytecodeLocation.EXCEPTION_PARAM)) {
-						ret.add(call.getExceptionNode());
+						if (call.getExceptionNode() != null) {
+							ret.add(call.getExceptionNode());
+						}
 					} else {
 						int paramIndex = BytecodeLocation.getRootParamIndex(rootParam.getBytecodeName());
-						ret.add(call.getActualParameter(paramIndex));
+						if (call.getActualParameter(paramIndex) != null) {
+							ret.add(call.getActualParameter(paramIndex));
+						}
 					}
 				}
 			}
@@ -505,7 +515,9 @@ public class SDGProgram {
 		default:
 			if (bcIndex >= 0) {
 				for (SDGMethod m : methods) {
-					ret.add(m.getInstructionWithBCIndex(bcIndex));
+					if (m.getInstructionWithBCIndex(bcIndex) != null) {
+						ret.add(m.getInstructionWithBCIndex(bcIndex));
+					}
 				}
 			}
 			break;

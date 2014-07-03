@@ -81,7 +81,7 @@ public final class ObjGraphParams {
 		public Options() {
 			this.isCutOffUnreachable = true;
 			this.isMergeException = true;
-			this.isCutOffImmutables = true;
+			this.isCutOffImmutables = false;
 			this.isMergeOneFieldPerParent = true;
 			this.isMergePrunedCallNodes = true;
 			this.isUseAdvancedInterprocPropagation = true;
@@ -208,7 +208,7 @@ public final class ObjGraphParams {
 		public int maxNodesPerInterface;
 
 		public static final int UNLIMITED_NODES_PER_INTERFACE = -1;
-		public static final int DEFAULT_MAX_NODES_PER_INTERFACE = 30;
+		public static final int DEFAULT_MAX_NODES_PER_INTERFACE = 60;
 		/**
 		 * If maxNodePerInterface is set, this constant defines at which depth level in the graph structure
 		 * the merging of nodes should start. So iff #nodes > maxNodesPerInterface we try to merge all nodes

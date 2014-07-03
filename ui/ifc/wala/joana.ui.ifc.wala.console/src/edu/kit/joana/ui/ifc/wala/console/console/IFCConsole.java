@@ -68,6 +68,7 @@ import edu.kit.joana.util.Stubs;
 import edu.kit.joana.util.io.IOFactory;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
+import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
@@ -1527,6 +1528,7 @@ public class IFCConsole {
 				config.setMhpType(mhpType);
 				config.setExceptionAnalysis(exA);
 				config.setPointsToPrecision(pointsTo);
+				config.setFieldPropagation(FieldPropagation.OBJ_GRAPH_SIMPLE_PROPAGATION);
 				program = SDGProgram.createSDGProgram(config, out.getPrintStream(), monitor);
 			} catch (ClassHierarchyException e) {
 				out.error(e.getMessage());

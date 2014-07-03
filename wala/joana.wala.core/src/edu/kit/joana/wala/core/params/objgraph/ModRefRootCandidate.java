@@ -216,4 +216,10 @@ public abstract class ModRefRootCandidate extends ModRefCandidate {
 		return isPrimitive() != V.YES && pts != null && other.isBaseAliased(pts);
 	}
 
+	@Override
+	public String toString() {
+		final String prefix = super.toString();
+		
+		return prefix + getNode().getBytecodeName();
+	}
 }

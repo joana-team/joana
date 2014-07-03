@@ -24,6 +24,9 @@ import com.ibm.wala.fixpoint.BitVectorVariable;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
+import com.ibm.wala.ssa.SSAInstruction;
+import com.ibm.wala.ssa.SSAInvokeInstruction;
+import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil;
@@ -38,11 +41,14 @@ import com.ibm.wala.util.intset.MutableMapping;
 import com.ibm.wala.util.intset.OrdinalSet;
 import com.ibm.wala.util.intset.OrdinalSetMapping;
 
+import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.util.Config;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.LogUtil;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.core.PDG;
+import edu.kit.joana.wala.core.PDGEdge;
+import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.ParameterField;
 import edu.kit.joana.wala.core.ParameterFieldFactory;
 import edu.kit.joana.wala.core.SDGBuilder;
@@ -330,7 +336,14 @@ public final class ObjGraphParams {
         if (progress != null) progress.subTask("dataflow");
 		ModRefDataFlow.compute(mrefs, sdg, progress);
 	    if (progress != null) progress.worked(++progressCtr);
-		
+
+	    if (opt.isCutOffImmutables) {
+	    	// connect initializer out nodes with this-pointer of immutable object. 
+	        if (progress != null) progress.subTask("dataflow");
+	        connectImmutableInitializersToThisPtr(mrefs, sdg, progress);
+		    if (progress != null) progress.worked(++progressCtr);
+	    }
+	    
         if (sdg.cfg.localKillingDefs) {
 			sdg.registerFinalModRef(mrefs, progress);
 			sdg.cfg.out.print(",reg");
@@ -380,7 +393,55 @@ public final class ObjGraphParams {
 			logStats.outln("\n---- END: Parameter Propagation Statistics ----\n");
 		}
 	}
+	
+	private static void connectImmutableInitializersToThisPtr(final ModRefCandidates mrefs, final SDGBuilder sdg,
+			final IProgressMonitor progress) {
+		for (final PDG pdg: sdg.getAllPDGs()) {
+			for (final PDGNode n : pdg.getCalls()) {
+				final SSAInstruction ii = pdg.getInstruction(n);
+				if (ii instanceof SSAInvokeInstruction) {
+					final SSAInvokeInstruction invk = (SSAInvokeInstruction) ii;
+					final MethodReference mref = invk.getDeclaredTarget();
+					if (mref.isInit() && sdg.isImmutableStub(mref.getDeclaringClass())) {
+						// found a call to an init method that needs to be handled.
+						final PDGNode newStmt = searchMatchingNewStatement(pdg, n);
+						final PDGNode imm = pdg.createDummyNode("immutable");
+						for (final PDGEdge e : pdg.outgoingEdgesOf(n)) {
+							if (e.kind == PDGEdge.Kind.CONTROL_DEP_EXPR && e.to.getKind() == PDGNode.Kind.ACTUAL_OUT) {
+								pdg.addEdge(e.to, imm, PDGEdge.Kind.DATA_DEP);
+							}
+						}
+						pdg.addEdge(n, imm, PDGEdge.Kind.CONTROL_DEP_EXPR);
+						pdg.addEdge(imm, newStmt, PDGEdge.Kind.DATA_DEP);
+					}
+				}
+			}
+		}
+	}
 
+	private static PDGNode searchMatchingNewStatement(final PDG pdg, final PDGNode call) {
+		final PDGNode[] ins = pdg.getParamIn(call);
+		if (ins == null || ins.length == 0) {
+			return null;
+		}
+		
+		final PDGNode thisPtr = ins[0];
+		assert (thisPtr.getBytecodeIndex() == BytecodeLocation.ROOT_PARAMETER 
+				&& thisPtr.getBytecodeName().equals(BytecodeLocation.getRootParamName(0)))
+			: "expected this pointer, found " + thisPtr;
+		
+		// this-pointer of initializers are directly connected to the appropriate new statement through a dd edge
+		PDGNode newStmt = null;
+		for (final PDGEdge e : pdg.incomingEdgesOf(thisPtr)) {
+			if (e.kind == PDGEdge.Kind.DATA_DEP) {
+				newStmt = e.from;
+				break;
+			}
+		}
+		
+		return newStmt;
+	}
+	
 	private void adjustInterprocModRef(final CallGraph cg, final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> interModRef,
 			final ModRefCandidates modref, final SDGBuilder sdg, final IProgressMonitor progress) throws CancelException {
 		final Logger debug = Log.getLogger(Log.L_OBJGRAPH_DEBUG);

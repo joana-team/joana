@@ -130,14 +130,7 @@ public class SDGParameterUtils {
 		if (node.getKind() != SDGNode.Kind.ACTUAL_IN && node.getKind() != SDGNode.Kind.ACTUAL_OUT) {
 			throw new IllegalArgumentException(String.format("Given node must be of kind %s or %s!", SDGNode.Kind.ACTUAL_IN.toString(), SDGNode.Kind.ACTUAL_OUT.toString()));
 		}
-		SDGNode rootNode = node;
-		if (node.getBytecodeIndex() != BytecodeLocation.ROOT_PARAMETER && node.getBytecodeIndex() != BytecodeLocation.STATIC_FIELD) {
-			rootNode = findOnePsBWReachableRootParameter(node, sdg);
-			if (rootNode == null) {
-				throw new IllegalStateException("Found a dangling actual-param node (not connected to any root-param or static-field node): " + node);
-			}
-		}
-		for (SDGEdge eIn : sdg.incomingEdgesOf(rootNode)) {
+		for (SDGEdge eIn : sdg.incomingEdgesOf(node)) {
 			if (eIn.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR && eIn.getSource().getKind() == Kind.CALL) {
 				return eIn.getSource();
 			}

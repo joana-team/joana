@@ -483,6 +483,9 @@ public class SDGBuilder implements CallGraphFilter {
 		progress.beginTask("building call graph...", IProgressMonitor.UNKNOWN);
 		final CGResult walaCG = buildCallgraph(progress);
 		progress.done();
+		if (cfg.cgConsumer != null) {
+			cfg.cgConsumer.consume(walaCG.cg, walaCG.pts);
+		}
 		run(walaCG, progress);
 	}
 
@@ -1512,6 +1515,11 @@ public class SDGBuilder implements CallGraphFilter {
          *  Will be the one queried first from the FallbackContextInterpreter.
          */
         public SSAContextInterpreter additionalContextInterpreter = null;
+        /**
+         * Special object which takes the call graph produced during SDG construction and
+         * does something useful with it
+         */
+        public CGConsumer cgConsumer = null;
 	}
 
 	public String getMainMethodName() {

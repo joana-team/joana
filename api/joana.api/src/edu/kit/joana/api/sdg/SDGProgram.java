@@ -229,6 +229,7 @@ public class SDGProgram {
 		cfg.pruningPolicy = config.getPruningPolicy();
 		cfg.exclusions = config.getExclusions();
 		cfg.computeAllocationSites = config.computeAllocationSites();
+		cfg.cgConsumer = config.getCGConsumer();
 		debug.outln(cfg.stubs);
 
 		if (config.computeInterferences()) {

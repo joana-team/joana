@@ -14,6 +14,7 @@ import com.ibm.wala.ipa.callgraph.pruned.PruningPolicy;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.util.JoanaConstants;
 import edu.kit.joana.util.Stubs;
+import edu.kit.joana.wala.core.CGConsumer;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
@@ -38,6 +39,7 @@ public class SDGConfig {
 	private ObjSensZeroXCFABuilder.MethodFilter methodFilter;
 	private String nativesXML = JoanaConstants.DEFAULT_NATIVES_XML;
 	private boolean computeAllocationSites = false;
+	private CGConsumer cgConsumer = null;
 
 	public SDGConfig(String classPath, String entryMethod, Stubs stubsPath) {
 		this(classPath, entryMethod, stubsPath, ExceptionAnalysis.INTERPROC, FieldPropagation.OBJ_GRAPH, PointsToPrecision.INSTANCE_BASED, false, false, MHPType.NONE);
@@ -274,5 +276,13 @@ public class SDGConfig {
 
 	public void setComputeAllocationSites(boolean computeAllocationSites) {
 		this.computeAllocationSites = computeAllocationSites;
+	}
+
+	public CGConsumer getCGConsumer() {
+		return cgConsumer;
+	}
+
+	public void setCGConsumer(CGConsumer cgConsumer) {
+		this.cgConsumer = cgConsumer;
 	}
 }

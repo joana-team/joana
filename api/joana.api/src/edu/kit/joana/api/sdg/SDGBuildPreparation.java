@@ -53,6 +53,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.util.JoanaConstants;
 import edu.kit.joana.util.LogUtil;
 import edu.kit.joana.util.io.IOFactory;
+import edu.kit.joana.wala.core.CGConsumer;
 import edu.kit.joana.wala.core.ExternalCallCheck;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder;
@@ -313,6 +314,7 @@ public final class SDGBuildPreparation {
 		scfg.debugManyGraphsDotOutput = cfg.debugManyGraphsDotOutput;
 		scfg.computeInterference = computeInterference;
 		scfg.computeAllocationSites = cfg.computeAllocationSites;
+		scfg.cgConsumer = cfg.cgConsumer;
 		return Pair.make(startTime, scfg);
 	}
 
@@ -391,7 +393,7 @@ public final class SDGBuildPreparation {
 		public SideEffectDetectorConfig sideEffects = null;
 		public PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
 		public boolean computeAllocationSites = false;
-
+		public CGConsumer cgConsumer = null;
 		public Config(String name) {
 			this(name, "<no entry defined>", FieldPropagation.OBJ_GRAPH);
 		}

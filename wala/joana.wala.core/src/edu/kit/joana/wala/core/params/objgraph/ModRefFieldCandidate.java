@@ -99,7 +99,7 @@ public final class ModRefFieldCandidate extends ModRefCandidate implements Clone
 	public String toString() {
 		final String prefix = super.toString();
 
-		return prefix + (pc == null ? "???" : pc.toString());
+		return prefix + "|" + flags + "|" + (pc == null ? "???" : pc.toString());
 	}
 
 	@Override

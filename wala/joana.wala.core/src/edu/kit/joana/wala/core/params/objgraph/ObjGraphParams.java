@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.dataflow.graph.BitVectorSolver;
 import com.ibm.wala.fixpoint.BitVectorVariable;
 import com.ibm.wala.ipa.callgraph.CGNode;
@@ -37,6 +38,8 @@ import com.ibm.wala.util.graph.impl.GraphInverter;
 import com.ibm.wala.util.graph.traverse.DFS;
 import com.ibm.wala.util.graph.traverse.DFSFinishTimeIterator;
 import com.ibm.wala.util.intset.BitVectorIntSet;
+import com.ibm.wala.util.intset.IntSet;
+import com.ibm.wala.util.intset.IntSetAction;
 import com.ibm.wala.util.intset.MutableMapping;
 import com.ibm.wala.util.intset.OrdinalSet;
 import com.ibm.wala.util.intset.OrdinalSetMapping;
@@ -236,13 +239,14 @@ public final class ObjGraphParams {
 
 	}
 
-	private static final int FLAG_MERGE_EXCEPTION 		= 1 << 0;
-	private static final int FLAG_MERGE_IMMUTABLE 		= 1 << 1;
-	private static final int FLAG_MERGE_SAME_FIELD 		= 1 << 2;
-	private static final int FLAG_MERGE_PRUNED_CALL 	= 1 << 3;
-	private static final int FLAG_MERGE_AT_DEPTH 		= 1 << 4;
-	private static final int FLAG_MERGE_STATICS			= 1 << 5;
-	private static final int FLAG_MERGE_SMUSH_MANY 		= 1 << 6;
+	public static final int FLAG_MERGE_EXCEPTION 		= 1 << 0;
+	public static final int FLAG_MERGE_IMMUTABLE 		= 1 << 1;
+	public static final int FLAG_MERGE_SAME_FIELD 		= 1 << 2;
+	public static final int FLAG_MERGE_PRUNED_CALL 		= 1 << 3;
+	public static final int FLAG_MERGE_AT_DEPTH 		= 1 << 4;
+	public static final int FLAG_MERGE_STATICS			= 1 << 5;
+	public static final int FLAG_MERGE_SMUSH_MANY 		= 1 << 6;
+	public static final int FLAG_MERGE_INITIAL_LIBRARY 	= 1 << 7;
 	
 	private ObjGraphParams(final SDGBuilder sdg, final Options opt) {
 		this.sdg = sdg;
@@ -306,7 +310,8 @@ public final class ObjGraphParams {
 			interModRef = fixpointReachabilityPropagate(sdg, cg, mrefs, progress);
 		} else {
             if (progress != null) progress.subTask("step 2: propagate interprocedural - simpleReachabilityPropagate");
-			interModRef = simpleReachabilityPropagate(cg, mrefs, progress);
+			interModRef = simpleReachabilityPropagate(cg, sdg.getWalaCallGraph(), mrefs,
+					new PointsToWrapper(sdg.getPointerAnalysis()), progress);
 		}
 	    if (progress != null) progress.worked(++progressCtr);
 		
@@ -453,7 +458,7 @@ public final class ObjGraphParams {
 			MonitorUtil.throwExceptionIfCanceled(progress);
 			final OrdinalSet<ModRefFieldCandidate> pimod = interModRef.get(n);
 
-			if (!pimod.isEmpty()) {
+			if (pimod != null && !pimod.isEmpty()) {
 				final InterProcCandidateModel interCands = modref.getCandidates(n);
 
 				for (final ModRefFieldCandidate c : pimod) {
@@ -958,23 +963,107 @@ public final class ObjGraphParams {
 	}
 
 	private Map<CGNode, OrdinalSet<ModRefFieldCandidate>> simpleReachabilityPropagate(final CallGraph cg,
-			final ModRefCandidates mrefs, final IProgressMonitor progress) throws CancelException {
-		final Graph<CGNode> cgInverted = GraphInverter.invert(cg);
+			final CallGraph prunedCg, final ModRefCandidates mrefs, final PointsToWrapper pa,
+			final IProgressMonitor progress) throws CancelException {
 		final Map<CGNode, Collection<ModRefFieldCandidate>> gen = mrefs.getCandidateMap();
 		MonitorUtil.throwExceptionIfCanceled(progress);
 
+		// gen-reach in non-pruned callgraph
+		final Graph<CGNode> cgInverted = GraphInverter.invert(cg);
 		final GenReach<CGNode, ModRefFieldCandidate> genReach = new GenReach<CGNode, ModRefFieldCandidate>(cgInverted, gen);
 		final BitVectorSolver<CGNode> solver = new BitVectorSolver<CGNode>(genReach);
 		solver.solve(progress);
+		final OrdinalSetMapping<ModRefFieldCandidate> modRefMapping = genReach.getLatticeValues();
+		
+		MonitorUtil.throwExceptionIfCanceled(progress);
+		
+		// gen-reach in pruned callgraph
+		final CallGraph pNoThreadsCG = stripCallsFromThreadStartToRun(prunedCg);
+		final Graph<CGNode> cgPrunedInverted = GraphInverter.invert(pNoThreadsCG);
+		final GenReach<CGNode, ModRefFieldCandidate> genReachPruned =
+				new GenReach<CGNode, ModRefFieldCandidate>(cgPrunedInverted, gen, modRefMapping);
+		final BitVectorSolver<CGNode> solverPruned = new BitVectorSolver<CGNode>(genReachPruned);
+		solverPruned.solve(progress);
 
 		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> result = HashMapFactory.make();
         int progressCtr = 0;
         if (progress != null) {
             progress.beginTask("simpleReachabilityPropagate", cg.getNumberOfNodes());
         }
+        
+        // check for pruned calls which nodes are at the border.
+        final Set<CGNode> borderNodes = new HashSet<CGNode>();
+        for (final CGNode n : prunedCg) {
+        	for (Iterator<CGNode> it = cg.getSuccNodes(n); it.hasNext();) {
+        		final CGNode succ = it.next();
+        		if (!prunedCg.containsNode(succ)) {
+        			borderNodes.add(succ);
+        		}
+        	}
+        }
+        
+        // Make a bitvector of all candidates that exist in the pruned version
+        final BitVectorIntSet bvInt = new BitVectorIntSet();
+		for (final CGNode cgNode : cgPrunedInverted) {
+			final BitVectorVariable bv = solverPruned.getOut(cgNode);
+			bvInt.addAll(bv.getValue());
+		}
+		
 		for (final CGNode cgNode : cg) {
+			if (!prunedCg.containsNode(cgNode) && !borderNodes.contains(cgNode)) {
+				continue;
+			}
+			
 			final BitVectorVariable bv = solver.getOut(cgNode);
-			result.put(cgNode, new OrdinalSet<ModRefFieldCandidate>(bv.getValue(), genReach.getLatticeValues()));
+			final IntSet nonPrunedInt = bv.getValue();
+			if (nonPrunedInt.isEmpty()) {
+				result.put(cgNode, new OrdinalSet<ModRefFieldCandidate>(nonPrunedInt, modRefMapping));
+				continue;
+			}
+			
+			// detect unreachable
+			final IntSet reachable = detectReachable(cgNode, nonPrunedInt, modRefMapping, pa);
+			
+			final IntSet alsoInPruned = reachable.intersection(bvInt);
+			final BitVectorIntSet toMergeRef = new BitVectorIntSet();
+			final BitVectorIntSet toMergeMod = new BitVectorIntSet();
+			final BitVectorIntSet alreadyMerged = new BitVectorIntSet();
+			reachable.foreachExcluding(alsoInPruned, new IntSetAction() {
+				@Override
+				public void act(final int x) {
+					final ModRefFieldCandidate fc = modRefMapping.getMappedObject(x);
+				//	if ((fc.flags & FLAG_MERGE_INITIAL_LIBRARY) == 0) {
+						if (fc.isMod()) {
+							toMergeMod.add(x);
+						}
+						
+						if (fc.isRef()) {
+							toMergeRef.add(x);
+						}
+//					} else {
+//						alreadyMerged.add(x);
+//					}
+				}
+			});
+			
+			final IntSet prunedAndMerged = alsoInPruned.union(alreadyMerged);
+			final BitVectorIntSet allNodes = new BitVectorIntSet(prunedAndMerged);
+
+			final InterProcCandidateModel ipcm = mrefs.getCandidates(cgNode);
+			if (!toMergeRef.isEmpty()) {
+				final ModRefFieldCandidate mergedRef = 
+						ipcm.mergeCandidates(new OrdinalSet<ModRefFieldCandidate>(toMergeRef, modRefMapping), FLAG_MERGE_PRUNED_CALL);
+				modRefMapping.add(mergedRef);
+				allNodes.add(modRefMapping.getMappedIndex(mergedRef));
+			}
+			if (!toMergeMod.isEmpty()) {
+				final ModRefFieldCandidate mergedMod = 
+						ipcm.mergeCandidates(new OrdinalSet<ModRefFieldCandidate>(toMergeMod, modRefMapping), FLAG_MERGE_PRUNED_CALL);
+				modRefMapping.add(mergedMod); 
+				allNodes.add(modRefMapping.getMappedIndex(mergedMod));
+			}
+			
+			result.put(cgNode, new OrdinalSet<ModRefFieldCandidate>(allNodes, modRefMapping));
 			MonitorUtil.throwExceptionIfCanceled(progress);
             if (progress != null) {
                 if (progressCtr++ % 103 == 0) progress.worked(progressCtr);
@@ -985,6 +1074,95 @@ public final class ObjGraphParams {
 		return result;
 	}
 
+	private static IntSet detectReachable(final CGNode n, final IntSet candidates,
+			final OrdinalSetMapping<ModRefFieldCandidate> map, final PointsToWrapper pa) {
+		
+		final Set<ModRefRootCandidate> roots = new HashSet<ModRefRootCandidate>();
+		final IMethod im = n.getMethod();
+		for (int i = 0; i < im.getNumberOfParameters(); i++) {
+			final OrdinalSet<InstanceKey> pts = pa.getMethodParamPTS(n, i);
+			if (pts != null && !pts.isEmpty()) {
+				final PDGNode node = new PDGNode(i, n.getGraphNodeId(), "param " + i, PDGNode.Kind.FORMAL_IN,
+						im.getParameterType(i));
+				node.setBytecodeIndex(BytecodeLocation.ROOT_PARAMETER);
+				node.setBytecodeName(BytecodeLocation.getRootParamName(i));
+				final ModRefRootCandidate rp = ModRefRootCandidate.createRef(node, pts);
+				roots.add(rp);
+			}
+		}
+		
+		if (im.getReturnType().isReferenceType()) {
+			final OrdinalSet<InstanceKey> pts = pa.getMethodReturnPTS(n);
+			if (pts != null && !pts.isEmpty()) {
+				final PDGNode node = new PDGNode(-1, n.getGraphNodeId(), "ret", PDGNode.Kind.EXIT,
+						im.getReturnType());
+				node.setBytecodeIndex(BytecodeLocation.ROOT_PARAMETER);
+				node.setBytecodeName(BytecodeLocation.RETURN_PARAM);
+				final ModRefRootCandidate rp = ModRefRootCandidate.createRef(node, pts);
+				roots.add(rp);
+			}
+		}
+		
+		final Set<ModRefFieldCandidate> reachable = new HashSet<ModRefFieldCandidate>();
+		final LinkedList<ModRefFieldCandidate> work = new LinkedList<ModRefFieldCandidate>();
+		candidates.foreach(new IntSetAction() {
+			@Override
+			public void act(final int x) {
+				work.add(map.getMappedObject(x));
+			}
+		});
+		
+		// add reachable from roots
+		LinkedList<ModRefFieldCandidate> newlyAdded = new LinkedList<ModRefFieldCandidate>();
+		{
+			final int initialSize = work.size();
+			for (int i = 0; i < initialSize; i++) {
+				final ModRefFieldCandidate toCheck = work.removeFirst();
+				for (final ModRefRootCandidate root : roots) {
+					if (root.isPotentialParentOf(toCheck)) {
+						reachable.add(toCheck);
+						newlyAdded.add(toCheck);
+						break;
+					}
+				}
+				// add to check later
+				work.addLast(toCheck);
+			}
+		}
+		
+		while (!newlyAdded.isEmpty()) {
+			// use newly added set
+			final LinkedList<ModRefFieldCandidate> addedThisTurn = new LinkedList<ModRefFieldCandidate>();
+			
+			final int initialSize = work.size();
+			for (int i = 0; i < initialSize; i++) {
+				final ModRefFieldCandidate toCheck = work.removeFirst();
+				
+				for (final ModRefFieldCandidate fc : newlyAdded) {
+					if (fc.isPotentialParentOf(toCheck)) {
+						reachable.add(toCheck);
+						addedThisTurn.add(toCheck);
+						break;
+					}
+				}
+
+				// unchanged - add back to worklist.
+				work.addLast(toCheck);
+			}
+			
+			newlyAdded = addedThisTurn;
+		}
+		
+		final BitVectorIntSet result = new BitVectorIntSet();
+		for (final ModRefFieldCandidate fc : reachable) {
+			final int id = map.getMappedIndex(fc);
+			result.add(id);
+		}
+		
+		return result;
+	}
+	
+	
 	private static class ReachInfo {
 		private final CGNode node;
 		private final Set<ModRefFieldCandidate> reached = new HashSet<ModRefFieldCandidate>();
@@ -1085,7 +1263,7 @@ public final class ObjGraphParams {
 		final PointsToWrapper pa = new PointsToWrapper(sdg.getPointerAnalysis());
 
 		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> simple =
-				simpleReachabilityPropagate(nonPrunedCG, mrefs, progress);
+				simpleReachabilityPropagate(nonPrunedCG, prunedCG, mrefs, pa, progress);
 
         int progressCtr = 0;
         if (progress != null) {
@@ -1128,7 +1306,8 @@ public final class ObjGraphParams {
 					reach.callees.add(succReach);
 				} else {
 					// pruned call
-					final OrdinalSet<ModRefFieldCandidate> prunedSucc = simple.get(succReach);
+					final OrdinalSet<ModRefFieldCandidate> prunedSucc = simple.get(succ);
+					// todo: check if is escaping && merge before propagation
 					reach.pruned = unify(reach.pruned, prunedSucc);
 				}
 			}

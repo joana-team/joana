@@ -98,7 +98,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 		 * Merge all given candidates to a single candidate.
 		 * @param toMerge A list of candidates that should be merged.
 		 */
-		public void mergeCandidates(Iterable<ModRefFieldCandidate> toMerge, int markWithFlags);
+		public ModRefFieldCandidate mergeCandidates(Iterable<ModRefFieldCandidate> toMerge, int markWithFlags);
 
 		/**
 		 * Remove a candidate from this model
@@ -141,6 +141,9 @@ public class ModRefCandidates implements Iterable<CGNode> {
 				mrc.setMod();
 			} else {
 				final ModRefFieldCandidate mrc = new ModRefFieldCandidate(true, false, pc);
+				if (pc.isMerged()) {
+					mrc.flags |= ObjGraphParams.FLAG_MERGE_INITIAL_LIBRARY;
+				}
 				cands.put(pc, mrc);
 				all.add(mrc);
 			}
@@ -156,6 +159,9 @@ public class ModRefCandidates implements Iterable<CGNode> {
 				mrc.setRef();
 			} else {
 				final ModRefFieldCandidate mrc = new ModRefFieldCandidate(false, true, pc);
+				if (pc.isMerged()) {
+					mrc.flags |= ObjGraphParams.FLAG_MERGE_INITIAL_LIBRARY;
+				}
 				cands.put(pc, mrc);
 				all.add(mrc);
 			}
@@ -235,7 +241,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 		}
 
 		@Override
-		public void mergeCandidates(final Iterable<ModRefFieldCandidate> toMerge, final int markWithFlags) {
+		public ModRefFieldCandidate mergeCandidates(final Iterable<ModRefFieldCandidate> toMerge, final int markWithFlags) {
 			final List<ParameterCandidate> pcands = new LinkedList<ParameterCandidate>();
 			boolean isMod = false;
 			boolean isRef = false;
@@ -265,6 +271,8 @@ public class ModRefCandidates implements Iterable<CGNode> {
 				cands.put(pc, newCand);
 			}
 			all.add(newCand);
+			
+			return newCand;
 		}
 
 		@Override

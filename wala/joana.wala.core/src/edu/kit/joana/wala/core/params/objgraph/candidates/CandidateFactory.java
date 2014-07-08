@@ -31,8 +31,6 @@ public interface CandidateFactory {
 
 	ParameterCandidate createMerge(OrdinalSet<UniqueParameterCandidate> cands);
 
-	OrdinalSet<UniqueParameterCandidate> createSet(Collection<UniqueParameterCandidate> cands);
-
 	OrdinalSet<UniqueParameterCandidate> findUniqueSet(Collection<ParameterCandidate> cands);
 
 	Iterable<UniqueParameterCandidate> getUniqueCandidates();

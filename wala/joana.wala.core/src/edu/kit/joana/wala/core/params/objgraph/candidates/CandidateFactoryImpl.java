@@ -19,6 +19,7 @@ import java.util.Set;
 
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.types.TypeReference;
+import com.ibm.wala.util.intset.BitVector;
 import com.ibm.wala.util.intset.BitVectorIntSet;
 import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.intset.IntSetUtil;
@@ -110,21 +111,28 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 	public ParameterCandidate createMerge(final ParameterCandidate a, final ParameterCandidate b) {
 		return new MergeCandTwoImpl(a, b);
 	}
+	
+	private final Map<BitVector, ParameterCandidate> mergeCache = new HashMap<BitVector, ParameterCandidate>();
 
 	/* (non-Javadoc)
 	 * @see edu.kit.joana.wala.core.params.objgraph.candidates.CandidateFactory#createMerge(com.ibm.wala.util.intset.OrdinalSet)
 	 */
 	@Override
 	public ParameterCandidate createMerge(final OrdinalSet<UniqueParameterCandidate> cands) {
+		final IntSet set = cands.getBackingSet();
+		if (set instanceof BitVectorIntSet) {
+			final BitVectorIntSet bvint = (BitVectorIntSet) set;
+			final BitVector bv = bvint.getBitVector();
+			ParameterCandidate pc = mergeCache.get(bv);
+			if (pc == null) {
+				pc = new MergeCandImpl(cands);
+				mergeCache.put(bv, pc);
+			}
+			
+			return pc;
+		}
+		
 		return new MergeCandImpl(cands);
-	}
-
-	/* (non-Javadoc)
-	 * @see edu.kit.joana.wala.core.params.objgraph.candidates.CandidateFactory#createSet(java.util.Collection)
-	 */
-	@Override
-	public OrdinalSet<UniqueParameterCandidate> createSet(final Collection<UniqueParameterCandidate> cands) {
-		return OrdinalSet.toOrdinalSet(cands, mapping);
 	}
 
 	/*
@@ -840,11 +848,6 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			return (field.isField() ? PrettyWalaNames.bcFieldName(field.getField()) : BytecodeLocation.ARRAY_PARAM);
 		}
 
-//		@Override
-//		public ParameterField getField() {
-//			return field;
-//		}
-
 		@Override
 		public boolean isReferenceToAnyField(final OrdinalSet<ParameterField> otherField) {
 			return otherField.contains(field);
@@ -868,6 +871,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 	}
 
 	private static boolean pointsToEquals(final OrdinalSet<InstanceKey> a, final OrdinalSet<InstanceKey> b) {
+		// TODO speedup
 		return OrdinalSet.equals(a, b);
 	}
 

@@ -1071,6 +1071,7 @@ public final class ObjGraphParams {
 		}
 
         if (progress != null) progress.done();
+        
 		return result;
 	}
 
@@ -1136,18 +1137,22 @@ public final class ObjGraphParams {
 			
 			final int initialSize = work.size();
 			for (int i = 0; i < initialSize; i++) {
+				boolean changed = false;
 				final ModRefFieldCandidate toCheck = work.removeFirst();
 				
 				for (final ModRefFieldCandidate fc : newlyAdded) {
 					if (fc.isPotentialParentOf(toCheck)) {
 						reachable.add(toCheck);
 						addedThisTurn.add(toCheck);
+						changed = true;
 						break;
 					}
 				}
 
 				// unchanged - add back to worklist.
-				work.addLast(toCheck);
+				if (!changed) {
+					work.addLast(toCheck);
+				} 
 			}
 			
 			newlyAdded = addedThisTurn;
@@ -1332,7 +1337,7 @@ public final class ObjGraphParams {
             if (progress != null) { progress.worked(progressCtr++); }
 		}
 
-		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> result = convertResult(cg2reach, simple);
+		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> result = convertResult(cg2reach, simple, mrefs);
 
         if (progress != null) { progress.done(); }
         
@@ -1340,7 +1345,8 @@ public final class ObjGraphParams {
 	}
 
 	private static Map<CGNode, OrdinalSet<ModRefFieldCandidate>> convertResult(
-			final Map<CGNode, ReachInfo> cg2reach,	final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> simple) {
+			final Map<CGNode, ReachInfo> cg2reach,	final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> simple,
+			final ModRefCandidates mrefs) {
 		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> result =
 				new HashMap<CGNode, OrdinalSet<ModRefFieldCandidate>>();
 		final OrdinalSetMapping<ModRefFieldCandidate> domain;
@@ -1366,6 +1372,15 @@ public final class ObjGraphParams {
 			}
 
 			result.put(reach.node, cands);
+			
+			if (!reach.unreachable.isEmpty()) {
+				final InterProcCandidateModel interCands = mrefs.getCandidates(reach.node);
+				for (final ModRefFieldCandidate fc : reach.unreachable) {
+					if (interCands.contains(fc)) {
+						interCands.removeCandidate(fc);
+					}
+				}
+			}
 		}
 
 		for (final Entry<CGNode, OrdinalSet<ModRefFieldCandidate>> e : simple.entrySet()) {

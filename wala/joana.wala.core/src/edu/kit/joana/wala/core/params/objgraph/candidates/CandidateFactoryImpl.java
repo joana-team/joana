@@ -19,7 +19,10 @@ import java.util.Set;
 
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.types.TypeReference;
+import com.ibm.wala.util.intset.BitVectorIntSet;
+import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.intset.IntSetUtil;
+import com.ibm.wala.util.intset.MutableIntSet;
 import com.ibm.wala.util.intset.MutableMapping;
 import com.ibm.wala.util.intset.OrdinalSet;
 import com.ibm.wala.util.intset.OrdinalSetMapping;
@@ -130,19 +133,19 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 	 */
 	@Override
 	public OrdinalSet<UniqueParameterCandidate> findUniqueSet(final Collection<ParameterCandidate> cands) {
-		final List<UniqueParameterCandidate> uniques = new LinkedList<UniqueParameterCandidate>();
-
+		final MutableIntSet uniq = new BitVectorIntSet();
+		
 		for (final ParameterCandidate c : cands) {
 			if (c.isUnique()) {
-				uniques.add((UniqueParameterCandidate) c);
+				uniq.add(mapping.getMappedIndex(c));
 			} else {
-				for (final UniqueParameterCandidate u : c.getUniques()) {
-					uniques.add(u);
-				}
+				final OrdinalSet<UniqueParameterCandidate> cUniq = c.getUniques();
+				final IntSet backSet = cUniq.getBackingSet();
+				uniq.addAll(backSet);
 			}
 		}
-
-		return OrdinalSet.toOrdinalSet(uniques, mapping);
+		
+		return new OrdinalSet<UniqueParameterCandidate>(uniq, mapping);
 	}
 
 

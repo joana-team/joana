@@ -1312,7 +1312,7 @@ public final class ObjGraphParams {
 				} else {
 					// pruned call
 					final OrdinalSet<ModRefFieldCandidate> prunedSucc = simple.get(succ);
-					// todo: check if is escaping && merge before propagation
+					// check if is escaping && merge before propagation
 					reach.pruned = unify(reach.pruned, prunedSucc);
 				}
 			}

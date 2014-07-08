@@ -27,9 +27,9 @@ public interface CandidateFactory {
 
 	UniqueMergableParameterCandidate findOrCreateUniqueMergable(Atom id);
 
-	MetaMergableParameterCandidate createMerge(ParameterCandidate a, ParameterCandidate b);
+	ParameterCandidate createMerge(ParameterCandidate a, ParameterCandidate b);
 
-	MultiMergableParameterCandidate createMerge(OrdinalSet<UniqueParameterCandidate> cands);
+	ParameterCandidate createMerge(OrdinalSet<UniqueParameterCandidate> cands);
 
 	OrdinalSet<UniqueParameterCandidate> createSet(Collection<UniqueParameterCandidate> cands);
 

@@ -37,7 +37,6 @@ import edu.kit.joana.wala.core.ParameterFieldFactory;
 import edu.kit.joana.wala.core.params.objgraph.ModRefSSAVisitor.CandidateConsumer;
 import edu.kit.joana.wala.core.params.objgraph.ModRefSSAVisitor.PointsTo;
 import edu.kit.joana.wala.core.params.objgraph.candidates.CandidateFactory;
-import edu.kit.joana.wala.core.params.objgraph.candidates.MultiMergableParameterCandidate;
 import edu.kit.joana.wala.core.params.objgraph.candidates.ParameterCandidate;
 import edu.kit.joana.wala.core.params.objgraph.candidates.UniqueParameterCandidate;
 
@@ -260,7 +259,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 			}
 
 			final OrdinalSet<UniqueParameterCandidate> pcs = fact.findUniqueSet(pcands);
-			final MultiMergableParameterCandidate mmpc = fact.createMerge(pcs);
+			final ParameterCandidate mmpc = fact.createMerge(pcs);
 			final ModRefFieldCandidate newCand = new ModRefFieldCandidate(isMod, isRef, mmpc);
 			flags |= markWithFlags;
 			newCand.flags = flags;

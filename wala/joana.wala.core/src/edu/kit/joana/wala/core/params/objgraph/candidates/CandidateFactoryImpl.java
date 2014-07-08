@@ -29,6 +29,7 @@ import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.wala.core.ParameterField;
 import edu.kit.joana.wala.core.params.objgraph.TVL;
 import edu.kit.joana.wala.core.params.objgraph.TVL.V;
+import edu.kit.joana.wala.util.NotImplementedException;
 import edu.kit.joana.wala.util.PrettyWalaNames;
 
 /**
@@ -103,7 +104,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 	 * @see edu.kit.joana.wala.core.params.objgraph.candidates.CandidateFactory#createMerge(edu.kit.joana.wala.core.params.objgraph.candidates.ParameterCandidate, edu.kit.joana.wala.core.params.objgraph.candidates.ParameterCandidate)
 	 */
 	@Override
-	public MetaMergableParameterCandidate createMerge(final ParameterCandidate a, final ParameterCandidate b) {
+	public ParameterCandidate createMerge(final ParameterCandidate a, final ParameterCandidate b) {
 		return new MergeCandTwoImpl(a, b);
 	}
 
@@ -111,7 +112,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 	 * @see edu.kit.joana.wala.core.params.objgraph.candidates.CandidateFactory#createMerge(com.ibm.wala.util.intset.OrdinalSet)
 	 */
 	@Override
-	public MultiMergableParameterCandidate createMerge(final OrdinalSet<UniqueParameterCandidate> cands) {
+	public ParameterCandidate createMerge(final OrdinalSet<UniqueParameterCandidate> cands) {
 		return new MergeCandImpl(cands);
 	}
 
@@ -192,18 +193,43 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		public final boolean isMustAliased(final ParameterCandidate other) {
 			return false;
 		}
+		
+		public boolean equals(final Object obj) {
+			throw new NotImplementedException();
+		}
+		
+		public int hashCode() {
+			throw new NotImplementedException();
+		}
 	}
 
-	private final class MergeCandTwoImpl extends MergableParameterCandidate implements MetaMergableParameterCandidate {
+	private final class MergeCandTwoImpl extends MergableParameterCandidate {
 
 		private final ParameterCandidate a;
-		private ParameterCandidate b;
+		private final ParameterCandidate b;
 
 		private MergeCandTwoImpl(final ParameterCandidate a, final ParameterCandidate b) {
 			this.a = a;
 			this.b = b;
 		}
 
+		public int hashCode() {
+			return a.hashCode() + b.hashCode();
+		}
+		
+		public boolean equals(final Object o) {
+			if (this == o) {
+				return true;
+			} else if (o instanceof MergeCandTwoImpl) {
+				final MergeCandTwoImpl other = (MergeCandTwoImpl) o;
+				
+				return (a.equals(other.a) && b.equals(other.b))
+					|| (a.equals(other.b) && b.equals(other.a));
+			}
+			
+			return false;
+		}
+		
 		@Override
 		public V isArray() {
 			return TVL.or(a.isArray(), b.isArray());
@@ -242,11 +268,6 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		@Override
 		public boolean isReferenceToField(final OrdinalSet<InstanceKey> other, final ParameterField otherField) {
 			return a.isReferenceToField(other, otherField) || b.isReferenceToField(other, otherField);
-		}
-
-		@Override
-		public void merge(final ParameterCandidate toMerge) {
-			this.b = new MergeCandTwoImpl(this.b, toMerge);
 		}
 
 		@Override
@@ -313,7 +334,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		}
 	}
 
-	private static final class MergeCandImpl extends MergableParameterCandidate implements MultiMergableParameterCandidate {
+	private static final class MergeCandImpl extends MergableParameterCandidate {
 
 		private OrdinalSet<UniqueParameterCandidate> cands;
 		private V isArray;
@@ -322,6 +343,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		private V isRoot;
 		private OrdinalSet<InstanceKey> basePts;
 		private OrdinalSet<InstanceKey> fieldPts;
+		private int hashCode;
 
 		private MergeCandImpl(final OrdinalSet<UniqueParameterCandidate> cands) {
 			if (cands == null || cands.isEmpty()) {
@@ -351,15 +373,28 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 				}
 				basePts = unify(basePts, c.getBasePointsTo());
 				fieldPts = unify(fieldPts, c.getFieldPointsTo());
+				hashCode += c.hashCode();
 			}
 		}
 
 		@Override
-		public void merge(final OrdinalSet<UniqueParameterCandidate> additional) {
-			this.cands = OrdinalSet.unify(this.cands, additional);
-			adjustValues(additional);
+		public int hashCode() {
+			return hashCode;
 		}
-
+		
+		@Override
+		public boolean equals(final Object o) {
+			if (this == o) {
+				return true;
+			} else if (o instanceof MergeCandImpl) {
+				final MergeCandImpl other = (MergeCandImpl) o;
+				return OrdinalSet.equals(basePts, other.basePts) && OrdinalSet.equals(fieldPts, other.fieldPts)
+						&& OrdinalSet.equals(cands, other.cands);
+			}
+			
+			return false;
+		}
+		
 		@Override
 		public TVL.V isArray() {
 			return isArray;

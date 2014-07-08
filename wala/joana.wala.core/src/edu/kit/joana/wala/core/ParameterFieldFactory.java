@@ -74,7 +74,7 @@ public final class ParameterFieldFactory {
 	 * @param elemType type of the referenced objects in the array
 	 * @return ParameterField
 	 */
-	public ParameterField getArrayField(TypeReference elemType) {
+	public ParameterField getArrayField(final TypeReference elemType) {
 		if (elemType == null) {
 			throw new IllegalArgumentException("Element type should not be null.");
 		}

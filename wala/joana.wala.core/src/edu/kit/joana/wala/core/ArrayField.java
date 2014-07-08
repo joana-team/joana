@@ -21,7 +21,7 @@ public final class ArrayField extends ParameterField {
 
 	private final TypeReference elemType;
 
-	ArrayField(TypeReference elemType) {
+	ArrayField(final TypeReference elemType) {
 		this.elemType = elemType;
 	}
 

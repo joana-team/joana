@@ -451,7 +451,7 @@ public class SDGProgram {
 		return null;
 	}
 
-	private Set<SDGProgramPart> collectCoveringCandidates(SDGNode node) {
+	public Set<SDGProgramPart> collectCoveringCandidates(SDGNode node) {
 		Set<SDGProgramPart> ret = new HashSet<SDGProgramPart>();
 		SDGNode entry = sdg.getEntry(node);
 		JavaMethodSignature sig = JavaMethodSignature.fromString(entry.getBytecodeMethod());

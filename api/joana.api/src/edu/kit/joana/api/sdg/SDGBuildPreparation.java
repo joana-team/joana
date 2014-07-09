@@ -304,7 +304,7 @@ public final class SDGBuildPreparation {
 		scfg.defaultExceptionMethodState = cfg.defaultExceptionMethodState;
 		scfg.accessPath = cfg.accessPath;
 		scfg.sideEffects = cfg.sideEffects;
-		scfg.prunecg = 1;
+		scfg.prunecg = DEFAULT_PRUNE_CG;
 		scfg.pruningPolicy = cfg.pruningPolicy;
 		scfg.pts = cfg.pts;
 		if (cfg.objSensFilter != null) {

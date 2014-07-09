@@ -230,6 +230,7 @@ public class SDGProgram {
 		cfg.exclusions = config.getExclusions();
 		cfg.computeAllocationSites = config.computeAllocationSites();
 		cfg.cgConsumer = config.getCGConsumer();
+		cfg.ctxSelector = config.getContextSelector();
 		debug.outln(cfg.stubs);
 
 		if (config.computeInterferences()) {

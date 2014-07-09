@@ -8,6 +8,7 @@
 package edu.kit.joana.api.sdg;
 
 import com.ibm.wala.cfg.exc.intra.MethodState;
+import com.ibm.wala.ipa.callgraph.ContextSelector;
 import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
 import com.ibm.wala.ipa.callgraph.pruned.PruningPolicy;
 
@@ -40,6 +41,7 @@ public class SDGConfig {
 	private String nativesXML = JoanaConstants.DEFAULT_NATIVES_XML;
 	private boolean computeAllocationSites = false;
 	private CGConsumer cgConsumer = null;
+	private ContextSelector ctxSelector;
 
 	public SDGConfig(String classPath, String entryMethod, Stubs stubsPath) {
 		this(classPath, entryMethod, stubsPath, ExceptionAnalysis.INTERPROC, FieldPropagation.OBJ_GRAPH, PointsToPrecision.INSTANCE_BASED, false, false, MHPType.NONE);
@@ -284,5 +286,13 @@ public class SDGConfig {
 
 	public void setCGConsumer(CGConsumer cgConsumer) {
 		this.cgConsumer = cgConsumer;
+	}
+
+	public ContextSelector getContextSelector() {
+		return ctxSelector;
+	}
+
+	public void setContextSelector(ContextSelector ctxSelector) {
+		this.ctxSelector = ctxSelector;
 	}
 }

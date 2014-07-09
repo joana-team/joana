@@ -30,6 +30,7 @@ import com.ibm.wala.classLoader.Language;
 import com.ibm.wala.classLoader.Module;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
+import com.ibm.wala.ipa.callgraph.ContextSelector;
 import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
 import com.ibm.wala.ipa.callgraph.pruned.PruningPolicy;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
@@ -303,7 +304,7 @@ public final class SDGBuildPreparation {
 		scfg.defaultExceptionMethodState = cfg.defaultExceptionMethodState;
 		scfg.accessPath = cfg.accessPath;
 		scfg.sideEffects = cfg.sideEffects;
-		scfg.prunecg = DEFAULT_PRUNE_CG;
+		scfg.prunecg = 1;
 		scfg.pruningPolicy = cfg.pruningPolicy;
 		scfg.pts = cfg.pts;
 		if (cfg.objSensFilter != null) {
@@ -315,6 +316,7 @@ public final class SDGBuildPreparation {
 		scfg.computeInterference = computeInterference;
 		scfg.computeAllocationSites = cfg.computeAllocationSites;
 		scfg.cgConsumer = cfg.cgConsumer;
+		scfg.additionalContextSelector = cfg.ctxSelector;
 		return Pair.make(startTime, scfg);
 	}
 
@@ -394,6 +396,7 @@ public final class SDGBuildPreparation {
 		public PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
 		public boolean computeAllocationSites = false;
 		public CGConsumer cgConsumer = null;
+		public ContextSelector ctxSelector = null;
 		public Config(String name) {
 			this(name, "<no entry defined>", FieldPropagation.OBJ_GRAPH);
 		}

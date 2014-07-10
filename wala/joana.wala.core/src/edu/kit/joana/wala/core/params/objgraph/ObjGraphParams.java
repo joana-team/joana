@@ -204,7 +204,7 @@ public final class ObjGraphParams {
 		 * Merge all fields that are only referenced or modified through methods that were pruned in the cg.
 		 */
 		public boolean isMergePrunedCallNodes;
-
+		
 		/**
 		 * Use advanced (and slower fixed point based) interprocedural propagation with reachability check during propagation.
 		 */
@@ -961,56 +961,54 @@ public final class ObjGraphParams {
 
 		return reachable;
 	}
-
-	private Map<CGNode, OrdinalSet<ModRefFieldCandidate>> simpleReachabilityPropagate(final CallGraph cg,
-			final CallGraph prunedCg, final ModRefCandidates mrefs, final PointsToWrapper pa,
-			final IProgressMonitor progress) throws CancelException {
-		final Map<CGNode, Collection<ModRefFieldCandidate>> gen = mrefs.getCandidateMap();
-		MonitorUtil.throwExceptionIfCanceled(progress);
-
+	
+	private Map<CGNode, OrdinalSet<ModRefFieldCandidate>> simpleReachabilityPropagateWithMerge(
+			final CallGraph nonPrunedCG, final CallGraph prunedCG, final ModRefCandidates mrefs,
+			final PointsToWrapper pa, final IProgressMonitor progress) throws CancelException {
 		// gen-reach in non-pruned callgraph
-		final Graph<CGNode> cgInverted = GraphInverter.invert(cg);
-		final GenReach<CGNode, ModRefFieldCandidate> genReach = new GenReach<CGNode, ModRefFieldCandidate>(cgInverted, gen);
-		final BitVectorSolver<CGNode> solver = new BitVectorSolver<CGNode>(genReach);
-		solver.solve(progress);
-		final OrdinalSetMapping<ModRefFieldCandidate> modRefMapping = genReach.getLatticeValues();
+		final OrdinalSetMapping<ModRefFieldCandidate> modRefMapping;
+		final BitVectorSolver<CGNode> solver;
+		final BitVectorSolver<CGNode> solverPruned;
+		{
+			final Map<CGNode, Collection<ModRefFieldCandidate>> intraprocModRef = mrefs.getCandidateMap();
+			final Graph<CGNode> cgInverted = GraphInverter.invert(nonPrunedCG);
+			final GenReach<CGNode, ModRefFieldCandidate> genReach =
+				new GenReach<CGNode, ModRefFieldCandidate>(cgInverted, intraprocModRef);
+			solver = new BitVectorSolver<CGNode>(genReach);
+			solver.solve(progress);
+			modRefMapping = genReach.getLatticeValues();
+			
+			MonitorUtil.throwExceptionIfCanceled(progress);
+			
+			// gen-reach in pruned callgraph
+			final CallGraph pNoThreadsCG = stripCallsFromThreadStartToRun(prunedCG);
+			final Graph<CGNode> cgPrunedInverted = GraphInverter.invert(pNoThreadsCG);
+			final GenReach<CGNode, ModRefFieldCandidate> genReachPruned =
+				new GenReach<CGNode, ModRefFieldCandidate>(cgPrunedInverted, intraprocModRef, modRefMapping);
+			solverPruned = new BitVectorSolver<CGNode>(genReachPruned);
+			solverPruned.solve(progress);
+		}
 		
 		MonitorUtil.throwExceptionIfCanceled(progress);
-		
-		// gen-reach in pruned callgraph
-		final CallGraph pNoThreadsCG = stripCallsFromThreadStartToRun(prunedCg);
-		final Graph<CGNode> cgPrunedInverted = GraphInverter.invert(pNoThreadsCG);
-		final GenReach<CGNode, ModRefFieldCandidate> genReachPruned =
-				new GenReach<CGNode, ModRefFieldCandidate>(cgPrunedInverted, gen, modRefMapping);
-		final BitVectorSolver<CGNode> solverPruned = new BitVectorSolver<CGNode>(genReachPruned);
-		solverPruned.solve(progress);
-
-		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> result = HashMapFactory.make();
         int progressCtr = 0;
         if (progress != null) {
-            progress.beginTask("simpleReachabilityPropagate", cg.getNumberOfNodes());
+            progress.beginTask("simpleReachabilityPropagateMerge", nonPrunedCG.getNumberOfNodes());
         }
         
-        // check for pruned calls which nodes are at the border.
-        final Set<CGNode> borderNodes = new HashSet<CGNode>();
-        for (final CGNode n : prunedCg) {
-        	for (Iterator<CGNode> it = cg.getSuccNodes(n); it.hasNext();) {
-        		final CGNode succ = it.next();
-        		if (!prunedCg.containsNode(succ)) {
-        			borderNodes.add(succ);
-        		}
-        	}
-        }
-        
+		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> result = HashMapFactory.make();
+		// check for pruned calls which nodes are at the border.
+        final Set<CGNode> borderNodes = findBorderNodes(nonPrunedCG, prunedCG);
         // Make a bitvector of all candidates that exist in the pruned version
         final BitVectorIntSet bvInt = new BitVectorIntSet();
-		for (final CGNode cgNode : cgPrunedInverted) {
+		for (final CGNode cgNode : prunedCG) {
 			final BitVectorVariable bv = solverPruned.getOut(cgNode);
 			bvInt.addAll(bv.getValue());
 		}
-		
-		for (final CGNode cgNode : cg) {
-			if (!prunedCg.containsNode(cgNode) && !borderNodes.contains(cgNode)) {
+        
+		for (final CGNode cgNode : nonPrunedCG) {
+			// skip results for methods that are not in the pruned cg or not called directly from a
+			// method in the pruned cg.
+			if (!prunedCG.containsNode(cgNode) && !borderNodes.contains(cgNode)) {
 				continue;
 			}
 			
@@ -1022,59 +1020,145 @@ public final class ObjGraphParams {
 			}
 			
 			// detect unreachable
-			final IntSet reachable = detectReachable(cgNode, nonPrunedInt, modRefMapping, pa);
-			
+			final IntSet reachable = (opt.isUseAdvancedInterprocPropagation && opt.isCutOffUnreachable
+					? detectReachable(cgNode, nonPrunedInt, modRefMapping, pa)
+					: nonPrunedInt);
+
+			// leave only nodes in the set that we are not going to merge
 			final IntSet alsoInPruned = reachable.intersection(bvInt);
 			final BitVectorIntSet toMergeRef = new BitVectorIntSet();
 			final BitVectorIntSet toMergeMod = new BitVectorIntSet();
-			final BitVectorIntSet alreadyMerged = new BitVectorIntSet();
+			// mark all other nodes that are only reachable from non-pruned cg to be merged.
 			reachable.foreachExcluding(alsoInPruned, new IntSetAction() {
 				@Override
 				public void act(final int x) {
 					final ModRefFieldCandidate fc = modRefMapping.getMappedObject(x);
-				//	if ((fc.flags & FLAG_MERGE_INITIAL_LIBRARY) == 0) {
-						if (fc.isMod()) {
-							toMergeMod.add(x);
-						}
-						
-						if (fc.isRef()) {
-							toMergeRef.add(x);
-						}
-//					} else {
-//						alreadyMerged.add(x);
-//					}
+					if (fc.isMod()) {
+						toMergeMod.add(x);
+					}
+					
+					if (fc.isRef()) {
+						toMergeRef.add(x);
+					}
 				}
 			});
 			
-			final IntSet prunedAndMerged = alsoInPruned.union(alreadyMerged);
-			final BitVectorIntSet allNodes = new BitVectorIntSet(prunedAndMerged);
+			final BitVectorIntSet allNodes = new BitVectorIntSet(alsoInPruned);
 
+			// merge nodes that are only reachable from pruned method side-effects
 			final InterProcCandidateModel ipcm = mrefs.getCandidates(cgNode);
 			if (!toMergeRef.isEmpty()) {
-				final ModRefFieldCandidate mergedRef = 
-						ipcm.mergeCandidates(new OrdinalSet<ModRefFieldCandidate>(toMergeRef, modRefMapping), FLAG_MERGE_PRUNED_CALL);
+				final OrdinalSet<ModRefFieldCandidate> mRefSet =
+					new OrdinalSet<ModRefFieldCandidate>(toMergeRef, modRefMapping); 
+				final ModRefFieldCandidate mergedRef = ipcm.mergeCandidates(mRefSet, FLAG_MERGE_PRUNED_CALL);
 				modRefMapping.add(mergedRef);
 				allNodes.add(modRefMapping.getMappedIndex(mergedRef));
 			}
 			if (!toMergeMod.isEmpty()) {
-				final ModRefFieldCandidate mergedMod = 
-						ipcm.mergeCandidates(new OrdinalSet<ModRefFieldCandidate>(toMergeMod, modRefMapping), FLAG_MERGE_PRUNED_CALL);
+				final OrdinalSet<ModRefFieldCandidate> mModSet =
+						new OrdinalSet<ModRefFieldCandidate>(toMergeMod, modRefMapping);
+				final ModRefFieldCandidate mergedMod = ipcm.mergeCandidates(mModSet, FLAG_MERGE_PRUNED_CALL);
 				modRefMapping.add(mergedMod); 
 				allNodes.add(modRefMapping.getMappedIndex(mergedMod));
 			}
 			
 			result.put(cgNode, new OrdinalSet<ModRefFieldCandidate>(allNodes, modRefMapping));
+
 			MonitorUtil.throwExceptionIfCanceled(progress);
-            if (progress != null) {
-                if (progressCtr++ % 103 == 0) progress.worked(progressCtr);
-            }
+            if (progress != null && progressCtr++ % 103 == 0) { progress.worked(progressCtr); }
 		}
 
-        if (progress != null) progress.done();
+        if (progress != null) { progress.done(); }
         
 		return result;
 	}
+	
+	private Map<CGNode, OrdinalSet<ModRefFieldCandidate>> simpleReachabilityPropagateNoMerge(
+			final CallGraph nonPrunedCG, final CallGraph prunedCG, final ModRefCandidates mrefs,
+			final PointsToWrapper pa, final IProgressMonitor progress) throws CancelException {
+		// gen-reach in non-pruned callgraph
+		final BitVectorSolver<CGNode> solver;
+		final OrdinalSetMapping<ModRefFieldCandidate> modRefMapping;
+		{
+			final Map<CGNode, Collection<ModRefFieldCandidate>> intraprocModRef = mrefs.getCandidateMap();
+			final Graph<CGNode> nonPrunedInvCG = GraphInverter.invert(nonPrunedCG);
+			final GenReach<CGNode, ModRefFieldCandidate> genReach =
+				new GenReach<CGNode, ModRefFieldCandidate>(nonPrunedInvCG, intraprocModRef);
+			solver = new BitVectorSolver<CGNode>(genReach);
+			solver.solve(progress);
+			modRefMapping = genReach.getLatticeValues();
+		}
+		
+		MonitorUtil.throwExceptionIfCanceled(progress);
+		int progressCtr = 0;
+        if (progress != null) {
+            progress.beginTask("simpleReachabilityPropagateNoMerge", nonPrunedCG.getNumberOfNodes());
+        }
 
+		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> result = HashMapFactory.make();
+        // check for pruned calls which nodes are at the border.
+        final Set<CGNode> borderNodes = findBorderNodes(nonPrunedCG, prunedCG);
+        
+		for (final CGNode cgNode : nonPrunedCG) {
+			// skip results for methods that are not in the pruned cg or not called directly from a
+			// method in the pruned cg.
+			if (!prunedCG.containsNode(cgNode) && !borderNodes.contains(cgNode)) {
+				continue;
+			}
+			
+			final BitVectorVariable bv = solver.getOut(cgNode);
+			final IntSet nonPrunedInt = bv.getValue();
+			if (nonPrunedInt.isEmpty()) {
+				result.put(cgNode, new OrdinalSet<ModRefFieldCandidate>(nonPrunedInt, modRefMapping));
+				continue;
+			}
+			
+			// detect unreachable
+			final IntSet reachable = (opt.isUseAdvancedInterprocPropagation && opt.isCutOffUnreachable
+					? detectReachable(cgNode, nonPrunedInt, modRefMapping, pa)
+					: nonPrunedInt);
+
+			final BitVectorIntSet allNodes = new BitVectorIntSet(reachable);
+			result.put(cgNode, new OrdinalSet<ModRefFieldCandidate>(allNodes, modRefMapping));
+
+			MonitorUtil.throwExceptionIfCanceled(progress);
+            if (progress != null && progressCtr++ % 103 == 0) { progress.worked(progressCtr); }
+		}
+
+        if (progress != null) { progress.done(); }
+        
+		return result;
+	}
+	
+	
+	private Map<CGNode, OrdinalSet<ModRefFieldCandidate>> simpleReachabilityPropagate(final CallGraph cg,
+			final CallGraph prunedCg, final ModRefCandidates mrefs, final PointsToWrapper pa,
+			final IProgressMonitor progress) throws CancelException {
+		if (opt.isMergePrunedCallNodes) {
+			return simpleReachabilityPropagateWithMerge(cg, prunedCg, mrefs, pa, progress);
+		} else {
+			return simpleReachabilityPropagateNoMerge(cg, prunedCg, mrefs, pa, progress);
+		}
+	}
+
+	/**
+	 * Search all nodes in the non-pruned callgraph that are not part of the pruned callgraph, but are called directly
+	 * from a node in the pruned callgraph. 
+	 */
+	private static Set<CGNode> findBorderNodes(final CallGraph nonPrunedCG, final CallGraph prunedCG) {
+        final Set<CGNode> borderNodes = new HashSet<CGNode>();
+        for (final CGNode n : prunedCG) {
+        	for (Iterator<CGNode> it = nonPrunedCG.getSuccNodes(n); it.hasNext();) {
+        		final CGNode succ = it.next();
+        		if (!prunedCG.containsNode(succ)) {
+        			borderNodes.add(succ);
+        		}
+        	}
+        }
+
+        return borderNodes;
+	}
+	
 	private static IntSet detectReachable(final CGNode n, final IntSet candidates,
 			final OrdinalSetMapping<ModRefFieldCandidate> map, final PointsToWrapper pa) {
 		

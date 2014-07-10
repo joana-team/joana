@@ -51,6 +51,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 	/* Maps parameter field -> set of candidates */
 	private final Map<ParameterField, Set<UniqueParameterCandidate>> cache =
 			new HashMap<ParameterField, Set<UniqueParameterCandidate>>();
+	/* special map for object array fields, see documentation of makeObjArrayHash() below for details */
 	private final TIntObjectMap<Set<UniqueParameterCandidate>> cacheObjArray =
 			new TIntObjectHashMap<Set<UniqueParameterCandidate>>();
 	private final MutableMapping<UniqueParameterCandidate> mapping = MutableMapping.make();
@@ -68,35 +69,9 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 	public UniqueParameterCandidate findOrCreateUnique(final OrdinalSet<InstanceKey> basePts, final ParameterField field,
 			final OrdinalSet<InstanceKey> fieldPts) {
 		if (field.isArray() && !field.getElementType().isPrimitiveType()) {
-			// special case for object array fields - element types of array fields are atm always Object, so we need
+			// special case for object array fields - static types of array fields are always Object, so we need
 			// some additional information for better hashing.
-			final int id = makeObjArrayHash(fieldPts);
-
-			Set<UniqueParameterCandidate> candSet = cacheObjArray.get(id);
-
-			if (candSet == null) {
-				candSet = new HashSet<UniqueParameterCandidate>();
-				cacheObjArray.put(id, candSet);
-			}
-
-			final UniqueParameterCandidate newCand;
-
-			if (merge.doMerge(basePts, field, fieldPts)) {
-				newCand = merge.getMergeCandidate(basePts, field, fieldPts);
-			} else {
-				newCand = new SingleParamCandImpl(basePts, field, fieldPts);
-			}
-
-			for (final UniqueParameterCandidate cand : candSet) {
-				if (cand.equals(newCand)) {
-					return cand;
-				}
-			}
-
-			candSet.add(newCand);
-			mapping.add(newCand);
-
-			return newCand;
+			return findOrCreateUniqueObjArray(basePts, field, fieldPts);
 		}
 
 		Set<UniqueParameterCandidate> candSet = cache.get(field);
@@ -126,6 +101,37 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		return newCand;
 	}
 
+	private UniqueParameterCandidate findOrCreateUniqueObjArray(final OrdinalSet<InstanceKey> basePts,
+			final ParameterField field,	final OrdinalSet<InstanceKey> fieldPts) {
+		final int id = makeObjArrayHash(fieldPts);
+
+		Set<UniqueParameterCandidate> candSet = cacheObjArray.get(id);
+
+		if (candSet == null) {
+			candSet = new HashSet<UniqueParameterCandidate>();
+			cacheObjArray.put(id, candSet);
+		}
+
+		final UniqueParameterCandidate newCand;
+
+		if (merge.doMerge(basePts, field, fieldPts)) {
+			newCand = merge.getMergeCandidate(basePts, field, fieldPts);
+		} else {
+			newCand = new SingleParamCandImpl(basePts, field, fieldPts);
+		}
+
+		for (final UniqueParameterCandidate cand : candSet) {
+			if (cand.equals(newCand)) {
+				return cand;
+			}
+		}
+
+		candSet.add(newCand);
+		mapping.add(newCand);
+
+		return newCand;
+	}
+	
 	/* (non-Javadoc)
 	 * @see edu.kit.joana.wala.core.params.objgraph.candidates.CandidateFactory#findOrCreateUniqueMergable(com.ibm.wala.util.strings.Atom)
 	 */
@@ -914,11 +920,18 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 	}
 
 	private final boolean pointsToEquals(final OrdinalSet<InstanceKey> a, final OrdinalSet<InstanceKey> b) {
-		final boolean result = OrdinalSet.equals(a, b);
-
-		return result;
+		return OrdinalSet.equals(a, b);
 	}
 
+	/**
+	 * In wala the static type of every non-primitive array is Object[]. Therefore our generated ParameterField name
+	 * is "[Object]" for every non-primitive array access in the program. As we normally use the ParameterField to
+	 * hash relevant information, we get huge collisions for array accesses. Thus we create a special hash value for
+	 * object array accesses that includes additional information. We use the first element of the points-to set of
+	 * access. As the points-to set is ordered, the first element is deterministic. 
+	 * @param pts points-to set of the array access
+	 * @return id of the first element of the points-to set (or some other fixed number if the set is empty or null)
+	 */
 	private static int makeObjArrayHash(final OrdinalSet<InstanceKey> pts) {
 		if (pts == null) {
 			return -2;

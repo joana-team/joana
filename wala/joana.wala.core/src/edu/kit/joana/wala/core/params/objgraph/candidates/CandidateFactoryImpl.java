@@ -21,6 +21,7 @@ import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.intset.BitVector;
 import com.ibm.wala.util.intset.BitVectorIntSet;
+import com.ibm.wala.util.intset.IntIterator;
 import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.intset.IntSetUtil;
 import com.ibm.wala.util.intset.MutableIntSet;
@@ -35,6 +36,8 @@ import edu.kit.joana.wala.core.params.objgraph.TVL;
 import edu.kit.joana.wala.core.params.objgraph.TVL.V;
 import edu.kit.joana.wala.util.NotImplementedException;
 import edu.kit.joana.wala.util.PrettyWalaNames;
+import gnu.trove.map.TIntObjectMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
 
 /**
  *
@@ -48,6 +51,8 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 	/* Maps parameter field -> set of candidates */
 	private final Map<ParameterField, Set<UniqueParameterCandidate>> cache =
 			new HashMap<ParameterField, Set<UniqueParameterCandidate>>();
+	private final TIntObjectMap<Set<UniqueParameterCandidate>> cacheObjArray =
+			new TIntObjectHashMap<Set<UniqueParameterCandidate>>();
 	private final MutableMapping<UniqueParameterCandidate> mapping = MutableMapping.make();
 	private final OrdinalSetMapping<ParameterField> fieldMapping;
 
@@ -62,6 +67,38 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 	@Override
 	public UniqueParameterCandidate findOrCreateUnique(final OrdinalSet<InstanceKey> basePts, final ParameterField field,
 			final OrdinalSet<InstanceKey> fieldPts) {
+		if (field.isArray() && !field.getElementType().isPrimitiveType()) {
+			// special case for object array fields - element types of array fields are atm always Object, so we need
+			// some additional information for better hashing.
+			final int id = makeObjArrayHash(fieldPts);
+
+			Set<UniqueParameterCandidate> candSet = cacheObjArray.get(id);
+
+			if (candSet == null) {
+				candSet = new HashSet<UniqueParameterCandidate>();
+				cacheObjArray.put(id, candSet);
+			}
+
+			final UniqueParameterCandidate newCand;
+
+			if (merge.doMerge(basePts, field, fieldPts)) {
+				newCand = merge.getMergeCandidate(basePts, field, fieldPts);
+			} else {
+				newCand = new SingleParamCandImpl(basePts, field, fieldPts);
+			}
+
+			for (final UniqueParameterCandidate cand : candSet) {
+				if (cand.equals(newCand)) {
+					return cand;
+				}
+			}
+
+			candSet.add(newCand);
+			mapping.add(newCand);
+
+			return newCand;
+		}
+
 		Set<UniqueParameterCandidate> candSet = cache.get(field);
 
 		if (candSet == null) {
@@ -715,6 +752,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		private final ParameterField field;
 		private final OrdinalSet<InstanceKey> fieldPts;
 		private final OrdinalSet<ParameterField> fields;
+		private final int hash;
 
 		private SingleParamCandImpl(final OrdinalSet<InstanceKey> basePts, final ParameterField field,
 				final OrdinalSet<InstanceKey> fieldPts) {
@@ -723,6 +761,11 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			this.fieldPts = fieldPts;
 			final int id = fieldMapping.getMappedIndex(field);
 			this.fields = new OrdinalSet<ParameterField>(IntSetUtil.make(new int[] {id}), fieldMapping);
+			if (field.isArray() && !field.getElementType().isPrimitiveType()) {
+				hash = field.hashCode() + 7 * makeObjArrayHash(fieldPts);
+			} else {
+				hash = field.hashCode();
+			}
 		}
 
 		@Override
@@ -780,7 +823,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 
 		@Override
 		public int hashCode() {
-			return field.hashCode();
+			return hash;
 		}
 
 		@Override
@@ -870,9 +913,20 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 
 	}
 
-	private static boolean pointsToEquals(final OrdinalSet<InstanceKey> a, final OrdinalSet<InstanceKey> b) {
-		// TODO speedup
-		return OrdinalSet.equals(a, b);
+	private final boolean pointsToEquals(final OrdinalSet<InstanceKey> a, final OrdinalSet<InstanceKey> b) {
+		final boolean result = OrdinalSet.equals(a, b);
+
+		return result;
 	}
 
+	private static int makeObjArrayHash(final OrdinalSet<InstanceKey> pts) {
+		if (pts == null) {
+			return -2;
+		} else if (pts.isEmpty()) {
+			return -3;
+		} else {
+			final IntIterator it = pts.getBackingSet().intIterator();
+			return it.next();
+		}
+	}
 }

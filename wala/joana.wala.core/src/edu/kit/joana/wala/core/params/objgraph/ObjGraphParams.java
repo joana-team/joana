@@ -344,7 +344,7 @@ public final class ObjGraphParams {
 
 	    if (opt.isCutOffImmutables) {
 	    	// connect initializer out nodes with this-pointer of immutable object. 
-	        if (progress != null) progress.subTask("dataflow");
+	        if (progress != null) progress.subTask("immutable optimization");
 	        connectImmutableInitializersToThisPtr(mrefs, sdg, progress);
 		    if (progress != null) progress.worked(++progressCtr);
 	    }

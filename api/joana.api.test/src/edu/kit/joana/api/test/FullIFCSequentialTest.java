@@ -536,4 +536,21 @@ public class FullIFCSequentialTest {
 		}
 	}
 
+	@Test
+	public void testImmutableAndStringBuilder() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("immutable.StringAppend",
+					"immutable.StringAppend.high",
+					"immutable.StringAppend.low",
+					PointsToPrecision.INSTANCE_BASED,
+					ExceptionAnalysis.IGNORE_ALL);
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertFalse(illegal.isEmpty());
+			assertEquals(2, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
 }

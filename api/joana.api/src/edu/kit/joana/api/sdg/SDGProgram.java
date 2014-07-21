@@ -234,10 +234,15 @@ public class SDGProgram {
 		debug.outln(cfg.stubs);
 
 		if (config.computeInterferences()) {
-			cfg.pts = PointsToPrecision.OBJECT_SENSITIVE;
-			if (config.getPointsToPrecision() == PointsToPrecision.OBJECT_SENSITIVE && config.getMethodFilter() != null) {
-				cfg.objSensFilter = new MethodFilterChain(new ThreadSensitiveMethodFilterWithCaching(),	config.getMethodFilter());
+			if (config.getPointsToPrecision().isObjSens()) {
+				cfg.pts = config.getPointsToPrecision();
+				if (config.getMethodFilter() == null) {
+					cfg.objSensFilter = new ThreadSensitiveMethodFilterWithCaching();
+				} else {
+					cfg.objSensFilter = new MethodFilterChain(new ThreadSensitiveMethodFilterWithCaching(),	config.getMethodFilter());
+				}
 			} else {
+				cfg.pts = PointsToPrecision.OBJECT_SENSITIVE;
 				cfg.objSensFilter = new ThreadSensitiveMethodFilterWithCaching();
 			}
 		} else {

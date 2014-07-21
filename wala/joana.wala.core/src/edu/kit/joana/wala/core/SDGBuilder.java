@@ -210,6 +210,10 @@ public class SDGBuilder implements CallGraphFilter {
 			this.recommended = recommended;
 			this.desc = desc;
 		}
+
+		public boolean isObjSens() {
+			return this == OBJECT_SENSITIVE || this == UNLIMITED_OBJECT_SENSITIVE || this == N1_OBJECT_SENSITIVE;
+		}
 	}
 
 	public static enum StaticInitializationTreatment {

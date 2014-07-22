@@ -76,6 +76,10 @@ public class IFCAnnotationManager {
 		return new LinkedList<IFCAnnotation>(annotations.values());
 	}
 
+	public Map<SecurityNode, NodeAnnotationInfo> getAnnotatedNodes() {
+		return app.getAnnotatedNodes();
+	}
+
 	public boolean isAnnotated(SDGProgramPart part) {
 		return annotations.keySet().contains(part);
 	}

@@ -22,6 +22,7 @@ import com.ibm.wala.types.annotations.Annotation;
 import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.annotations.IFCAnnotationManager;
+import edu.kit.joana.api.annotations.NodeAnnotationInfo;
 import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGActualParameter;
 import edu.kit.joana.api.sdg.SDGAttribute;
@@ -186,6 +187,12 @@ public class IFCAnalysis {
 		return annManager.getSinks();
 	}
 
+	public Map<SecurityNode, NodeAnnotationInfo> getAnnotatedNodes() {
+		annManager.applyAllAnnotations();
+		Map<SecurityNode, NodeAnnotationInfo> ret = annManager.getAnnotatedNodes();
+		annManager.unapplyAllAnnotations();
+		return ret;
+	}
 	public Collection<IFCAnnotation> getDeclassifications() {
 		return annManager.getDeclassifications();
 	}

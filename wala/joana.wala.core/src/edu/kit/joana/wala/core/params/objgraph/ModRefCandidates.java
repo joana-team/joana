@@ -221,7 +221,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 		@Override
 		public void removeCandidate(final ModRefFieldCandidate toRemove) {
 			if (!cands.containsKey(toRemove.pc)) {
-				throw new IllegalArgumentException();
+				return;
 			}
 
 			cands.remove(toRemove.pc);

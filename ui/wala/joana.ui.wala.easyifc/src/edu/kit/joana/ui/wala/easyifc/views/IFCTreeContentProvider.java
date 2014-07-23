@@ -16,7 +16,8 @@ import java.util.List;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.internal.core.SourceMethod;
+import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.internal.core.SourceRefElement;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
@@ -138,8 +139,9 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 	public void consume(final IFCResult res) {
 		final IJavaProject jp = view.getCurrentProject();
 		final IFCInfoNode cur = new IFCInfoNode(root, res, jp); // implicitly added to root
-		@SuppressWarnings("unused") // implicitly added to root
-		final IFCConfigurationInfoNode configNode = new IFCConfigurationInfoNode(cur, res.getEntryPointConfiguration()); 
+		if (!res.getEntryPointConfiguration().isDefaultParameters()) {
+			new IFCConfigurationInfoNode(cur, res.getEntryPointConfiguration());
+		}
 		cur.searchMatchingJavaElement();
 		
 		final List<LeakInfoNode> nodes = new LinkedList<LeakInfoNode>();
@@ -278,7 +280,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 	public static final class IFCConfigurationInfoNode extends SecondLevelNode {
 		private final EntryPointConfiguration configuration;
 
-		public IFCConfigurationInfoNode(final IFCInfoNode parent, EntryPointConfiguration configuration) {
+		public IFCConfigurationInfoNode(final IFCInfoNode parent, final EntryPointConfiguration configuration) {
 			super(parent);
 			this.configuration = configuration;
 		}
@@ -306,7 +308,11 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		SecondLevelNode self() {
 			return this;
 		}
-		
+
+		public Image getImage() {
+			return EasyIFCMarkerAndImageManager.getInstance().getImage(configuration);
+		}
+
 	}
 	
 	public static class IFCInfoNode extends TreeNode<IFCInfoNode, SecondLevelNode, RootNode> {
@@ -345,7 +351,25 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		}
 		
 		public String toString() {
-			return "Entrypoint " + result.getEntryPointConfiguration().getEntryPointMethod().getElementName() + " from Project " + project.getProject().getName() + " " + result.toString();
+			return "Entrypoint " + niceName(result.getEntryPoint())	+ " from project " + project.getProject().getName()
+				+ " " + result.toString();
+		}
+		
+		private static String niceName(final IMethod im) {
+			final StringBuilder sb = new StringBuilder(im.getElementName());
+			sb.append("(");
+			final String[] types = im.getParameterTypes();
+			if (types != null && types.length > 0) {
+				for (int i = 0; i < types.length; i++) {
+					sb.append(Signature.getSignatureSimpleName(types[i]));
+					if (i + 1 < types.length) {
+						sb.append(",");
+					}
+				}
+			}
+			sb.append(")");
+			
+			return sb.toString();
 		}
 
 		@Override
@@ -380,7 +404,8 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 	}
 	
 	public static class NotRunYetNode extends IFCInfoNode {
-		private NotRunYetNode(final RootNode parent, EntryPointConfiguration discovered, IJavaProject project) {
+		private NotRunYetNode(final RootNode parent, final EntryPointConfiguration discovered,
+				final IJavaProject project) {
 			super(parent, new IFCResult(discovered) {
 				@Override
 				public String toString() {
@@ -391,7 +416,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 
 		@Override
 		public Image getImage() {
-			return EasyIFCMarkerAndImageManager.getInstance().getImage((SourceMethod)getResult().getEntryPoint());
+			return EasyIFCMarkerAndImageManager.getInstance().getImage(getResult().getEntryPoint());
 		}
 	}
 

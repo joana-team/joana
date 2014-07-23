@@ -70,16 +70,10 @@ public interface IFCCheckResultConsumer {
 			return mainMethod;
 		}
 		
-		@Deprecated
 		public IMethod getEntryPoint() {
 			return mainMethod.getEntryPointMethod();
 		}
-		@Deprecated
-		public String getMainMethod() {
-			return mainMethod.getEntryPointMethod().toString();
-		}
-		
-		
+
 		public boolean hasLeaks() {
 			return !(excLeaks.isEmpty() && noExcLeaks.isEmpty() && directLeaks.isEmpty());
 		}

@@ -9,6 +9,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
@@ -124,6 +125,8 @@ public class EntryPointSearch {
 			return (CompilationUnit) parser.createAST(null);
 		}
 
+		public abstract boolean isDefaultParameters();
+		
 		protected abstract int priority();
 
 		public final boolean replaces(EntryPointConfiguration other) {
@@ -147,12 +150,17 @@ public class EntryPointSearch {
 
 		@Override
 		public String toString() {
-			return "default Configuration";
+			return "default configuration";
 		}
 
 		@Override
 		protected int priority() {
 			return 0;
+		}
+
+		@Override
+		public boolean isDefaultParameters() {
+			return true;
 		}
 	}
 	
@@ -177,12 +185,38 @@ public class EntryPointSearch {
 		
 		@Override
 		public String toString() {
-			return annotation.toString();
+			try {
+				final IMemberValuePair mps[] = annotation.getMemberValuePairs();
+				if (mps != null && mps.length > 0) {
+					final StringBuilder sb = new StringBuilder("configuration: ");
+					for (final IMemberValuePair mp : mps) {
+						sb.append(mp.getMemberName() + "=" + mp.getValue());
+						sb.append(", ");
+					}
+					sb.delete(sb.length() - 2, sb.length());
+					
+					return sb.toString();
+				}
+			} catch (JavaModelException e) {
+			}
+
+			return "default configuration";
 		}
 		
 		@Override
 		protected int priority() {
 			return 100;
+		}
+
+		@Override
+		public boolean isDefaultParameters() {
+			boolean isDefault = true;
+			try { 
+				final IMemberValuePair[] mvp = annotation.getMemberValuePairs();
+				isDefault = (mvp == null || mvp.length == 0);
+			} catch (JavaModelException e) {}
+			
+			return isDefault;
 		}
 	}
 	

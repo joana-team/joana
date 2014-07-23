@@ -22,7 +22,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IMethod;
-import org.eclipse.jdt.internal.core.SourceMethod;
 import org.eclipse.jdt.ui.JavaElementLabelProvider;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.PlatformUI;
@@ -32,6 +31,7 @@ import edu.kit.joana.ui.wala.easyifc.model.FileSourcePositions;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.IFCResult;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SLeak;
 import edu.kit.joana.ui.wala.easyifc.model.SourcePosition;
+import edu.kit.joana.ui.wala.easyifc.util.EntryPointSearch.EntryPointConfiguration;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
@@ -40,7 +40,6 @@ import gnu.trove.map.hash.TIntObjectHashMap;
  * @author Juergen Graf <juergen.graf@gmail.com>
  *
  */
-@SuppressWarnings("restriction")
 public class EasyIFCMarkerAndImageManager {
 
 	public enum Marker {
@@ -64,6 +63,7 @@ public class EasyIFCMarkerAndImageManager {
 	public static final String ILLEGAL_FLOW_THREAD_EXC_IMG 	= "icons/illegal_flow_thread_exc_big.png";
 	public static final String ILLEGAL_FLOW_DIRECT_IMG 		= "icons/illegal_flow_direct_big.png";
 	public static final String ILLEGAL_FLOW_IMG 			= "icons/illegal_flow_big.png";
+	public static final String ANALYSIS_CONFIG_IMG 			= "icons/analysis_configuration_big.png";
 	
 	public static final String CRITICAL_MARKER = "joana.ui.easyifc.highlight.critical";
 	public static final String IFC_MARKER = "joana.ui.easyifc.marker";
@@ -84,6 +84,10 @@ public class EasyIFCMarkerAndImageManager {
 
     public Image getSharedImage(String symbolicName) {
     	return PlatformUI.getWorkbench().getSharedImages().getImage(symbolicName);
+    }
+    
+    public Image getImage(final EntryPointConfiguration cfg) {
+    	return Activator.getImageDescriptor(ANALYSIS_CONFIG_IMG).createImage();
     }
     
     public Image getImage(final IMethod m) {

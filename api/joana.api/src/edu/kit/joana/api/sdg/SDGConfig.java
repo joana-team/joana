@@ -30,6 +30,7 @@ public class SDGConfig {
 	private Stubs stubsPath;
 	private String exclusions = SDGBuildPreparation.STD_EXCLUSION_REG_EXP;
 	private ExceptionAnalysis exceptionAnalysis;
+	private boolean ignoreIndirectFlows = false;
 	private MethodState defaultExceptionMethodState = null;
 	private FieldPropagation fieldPropagation;
 	private PointsToPrecision pointsToPrecision;
@@ -210,6 +211,14 @@ public class SDGConfig {
 	 */
 	public ExceptionAnalysis getExceptionAnalysis() {
 		return exceptionAnalysis;
+	}
+
+	public boolean getIgnoreIndirectFlows() {
+		return ignoreIndirectFlows;
+	}
+
+	public void setIgnoreIndirectFlows(boolean newValue) {
+		this.ignoreIndirectFlows = newValue;
 	}
 
 	/**

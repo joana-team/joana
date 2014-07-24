@@ -19,6 +19,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IField;
@@ -36,6 +37,7 @@ import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.api.annotations.AnnotationTypeBasedNodeCollector;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.chopper.Chopper;
@@ -53,7 +55,12 @@ import edu.kit.joana.util.io.IOFactory;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
+import edu.kit.joana.wala.summary.SummaryComputation;
+import edu.kit.joana.wala.summary.WorkPackage;
+import edu.kit.joana.wala.summary.WorkPackage.EntryPoint;
 import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 
 public class SDGProgram {
 
@@ -257,12 +264,14 @@ public class SDGProgram {
 		if (config.computeInterferences()) {
 			PruneInterferences.preprocessAndPruneCSDG(sdg, config.getMhpType());
 		}
+		if (config.getIgnoreIndirectFlows()) {
+			throwAwayControlDeps(sdg);
+		}
 		if (sdgFileOut != null) {
 			SDGSerializer.toPDGFormat(sdg, sdgFileOut);
 			sdgFileOut.flush();
 		}
 		SDGProgram ret = new SDGProgram(sdg);
-
 		// TODO: Iterate only over classes present in the call graph
 		for (IClass c : builder.getClassHierarchy()) {
 			final String walaClassName = c.getName().toString();
@@ -293,6 +302,42 @@ public class SDGProgram {
 		}
 
 		return ret;
+	}
+	private static void throwAwayControlDeps(SDG sdg) throws CancelException {
+		final List<SDGEdge> toRemove = new LinkedList<SDGEdge>();
+		for (final SDGEdge e : sdg.edgeSet()) {
+			switch (e.getKind()) {
+			case CONTROL_DEP_COND:
+			case CONTROL_DEP_UNCOND:
+			case SUMMARY:
+			case SUMMARY_DATA:
+			case SUMMARY_NO_ALIAS:
+				toRemove.add(e);
+				break;
+			default: // nothing to do
+			}
+		}
+		sdg.removeAllEdges(toRemove);
+		// rerun summary computation
+		final WorkPackage wp = createSummaryWorkpackage(sdg);
+		SummaryComputation.computeHeapDataDep(wp, new com.ibm.wala.util.NullProgressMonitor());
+	}
+
+	private static WorkPackage createSummaryWorkpackage(final SDG sdg) {
+		final Set<EntryPoint> entries = new TreeSet<EntryPoint>();
+		final SDGNode root = sdg.getRoot();
+
+		final TIntSet formalIns = new TIntHashSet();
+		for (final SDGNode fIn : sdg.getFormalIns(root)) {
+			formalIns.add(fIn.getId());
+		}
+		final TIntSet formalOuts = new TIntHashSet();
+		for (final SDGNode fOut : sdg.getFormalOuts(root)) {
+			formalOuts.add(fOut.getId());
+		}
+		final EntryPoint ep = new EntryPoint(root.getId(), formalIns, formalOuts);
+		entries.add(ep);
+		return WorkPackage.create(sdg, entries, "no_control_deps");
 	}
 
 	private void build() {

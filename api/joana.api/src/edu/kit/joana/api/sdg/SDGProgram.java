@@ -222,42 +222,9 @@ public class SDGProgram {
 
 	public static SDGProgram createSDGProgram(SDGConfig config, PrintStream out, IProgressMonitor monitor, OutputStream sdgFileOut)
 			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		JavaMethodSignature mainMethod = JavaMethodSignature.fromString(config.getEntryMethod());// JavaMethodSignature.mainMethodOfClass(config.getMainClass());
-		SDGBuildPreparation.Config cfg = new SDGBuildPreparation.Config(mainMethod.toBCString(), mainMethod.toBCString(), config.getClassPath(),
-				config.getFieldPropagation());
-		cfg.thirdPartyLibPath = config.getThirdPartyLibsPath();
-		cfg.exceptions = config.getExceptionAnalysis();
-		cfg.defaultExceptionMethodState = config.getDefaultExceptionMethodState();
-		cfg.pts = config.getPointsToPrecision();
-		cfg.accessPath = config.computeAccessPaths();
-		cfg.sideEffects = config.getSideEffectDetectorConfig();
-		cfg.stubs = config.getStubsPath().getPath();
-		cfg.nativesXML = config.getNativesXML();
-		cfg.pruningPolicy = config.getPruningPolicy();
-		cfg.exclusions = config.getExclusions();
-		cfg.computeAllocationSites = config.computeAllocationSites();
-		cfg.cgConsumer = config.getCGConsumer();
-		cfg.ctxSelector = config.getContextSelector();
-		debug.outln(cfg.stubs);
-
-		if (config.computeInterferences()) {
-			if (config.getPointsToPrecision().isObjSens()) {
-				cfg.pts = config.getPointsToPrecision();
-				if (config.getMethodFilter() == null) {
-					cfg.objSensFilter = new ThreadSensitiveMethodFilterWithCaching();
-				} else {
-					cfg.objSensFilter = new MethodFilterChain(new ThreadSensitiveMethodFilterWithCaching(),	config.getMethodFilter());
-				}
-			} else {
-				cfg.pts = PointsToPrecision.OBJECT_SENSITIVE;
-				cfg.objSensFilter = new ThreadSensitiveMethodFilterWithCaching();
-			}
-		} else {
-			cfg.objSensFilter = config.getMethodFilter();
-		}
 		monitor.beginTask("build SDG", 20);
 		final com.ibm.wala.util.collections.Pair<SDG, SDGBuilder> p =
-				SDGBuildPreparation.computeAndKeepBuilder(out, cfg,	config.computeInterferences(), monitor);
+				SDGBuildPreparation.computeAndKeepBuilder(out, makeBuildPreparationConfig(config),	config.computeInterferences(), monitor);
 		final SDG sdg = p.fst;
 		final SDGBuilder builder = p.snd;
 
@@ -302,6 +269,45 @@ public class SDGProgram {
 		}
 
 		return ret;
+	}
+	public static SDGBuilder createSDGBuilder(SDGConfig config) throws ClassHierarchyException, UnsoundGraphException, CancelException, IOException {
+		return SDGBuildPreparation.createBuilder(IOFactory.createUTF8PrintStream(new ByteArrayOutputStream()), makeBuildPreparationConfig(config), config.computeInterferences(), NullProgressMonitor.INSTANCE);
+	}
+	private static SDGBuildPreparation.Config makeBuildPreparationConfig(SDGConfig config) {
+		JavaMethodSignature mainMethod = JavaMethodSignature.fromString(config.getEntryMethod());// JavaMethodSignature.mainMethodOfClass(config.getMainClass());
+		SDGBuildPreparation.Config cfg = new SDGBuildPreparation.Config(mainMethod.toBCString(), mainMethod.toBCString(), config.getClassPath(),
+				config.getFieldPropagation());
+		cfg.thirdPartyLibPath = config.getThirdPartyLibsPath();
+		cfg.exceptions = config.getExceptionAnalysis();
+		cfg.defaultExceptionMethodState = config.getDefaultExceptionMethodState();
+		cfg.pts = config.getPointsToPrecision();
+		cfg.accessPath = config.computeAccessPaths();
+		cfg.sideEffects = config.getSideEffectDetectorConfig();
+		cfg.stubs = config.getStubsPath().getPath();
+		cfg.nativesXML = config.getNativesXML();
+		cfg.pruningPolicy = config.getPruningPolicy();
+		cfg.exclusions = config.getExclusions();
+		cfg.computeAllocationSites = config.computeAllocationSites();
+		cfg.cgConsumer = config.getCGConsumer();
+		cfg.ctxSelector = config.getContextSelector();
+		debug.outln(cfg.stubs);
+
+		if (config.computeInterferences()) {
+			if (config.getPointsToPrecision().isObjSens()) {
+				cfg.pts = config.getPointsToPrecision();
+				if (config.getMethodFilter() == null) {
+					cfg.objSensFilter = new ThreadSensitiveMethodFilterWithCaching();
+				} else {
+					cfg.objSensFilter = new MethodFilterChain(new ThreadSensitiveMethodFilterWithCaching(),	config.getMethodFilter());
+				}
+			} else {
+				cfg.pts = PointsToPrecision.OBJECT_SENSITIVE;
+				cfg.objSensFilter = new ThreadSensitiveMethodFilterWithCaching();
+			}
+		} else {
+			cfg.objSensFilter = config.getMethodFilter();
+		}
+		return cfg;
 	}
 	private static void throwAwayControlDeps(SDG sdg) throws CancelException {
 		final List<SDGEdge> toRemove = new LinkedList<SDGEdge>();

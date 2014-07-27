@@ -837,7 +837,7 @@ public class SDGBuilder implements CallGraphFilter {
 
 	public static final int DO_NOT_PRUNE = -1;
 
-	private static class CGResult {
+	public static class CGResult {
 		private final com.ibm.wala.ipa.callgraph.CallGraph cg;
 		private final PointerAnalysis<InstanceKey> pts;
 
@@ -847,7 +847,7 @@ public class SDGBuilder implements CallGraphFilter {
 		}
 	}
 
-	private CGResult buildCallgraph(final IProgressMonitor progress) throws IllegalArgumentException,
+	public CGResult buildCallgraph(final IProgressMonitor progress) throws IllegalArgumentException,
 			CallGraphBuilderCancelException {
 		final List<Entrypoint> entries = new LinkedList<Entrypoint>();
 		final Entrypoint ep = new SubtypesEntrypoint(cfg.entry, cfg.cha);

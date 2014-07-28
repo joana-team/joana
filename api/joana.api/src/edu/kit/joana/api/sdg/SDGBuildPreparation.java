@@ -353,7 +353,7 @@ public final class SDGBuildPreparation {
 
 	public static SDGBuilder createBuilder(PrintStream out, Config cfg, boolean computeInterference, IProgressMonitor progress) throws UnsoundGraphException, CancelException, ClassHierarchyException, IOException {
 		Pair<Long, SDGBuilder.SDGBuilderConfig> p = prepareBuild(out, cfg, computeInterference, progress);
-		return SDGBuilder.create(p.snd);
+		return SDGBuilder.onlyCreate(p.snd);
 	}
 
 	public static boolean checkOrCreateOutputDir(String dir) {

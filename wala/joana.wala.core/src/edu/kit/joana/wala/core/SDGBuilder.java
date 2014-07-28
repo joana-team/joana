@@ -298,6 +298,10 @@ public class SDGBuilder implements CallGraphFilter {
 		}
 	}
 
+	public static SDGBuilder onlyCreate(final SDGBuilderConfig cfg) throws UnsoundGraphException, CancelException {
+		SDGBuilder builder = new SDGBuilder(cfg);
+		return builder;
+	}
 	public static SDGBuilder create(final SDGBuilderConfig cfg) throws UnsoundGraphException, CancelException {
         IProgressMonitor progress = NullProgressMonitor.INSTANCE;
 

@@ -838,8 +838,8 @@ public class SDGBuilder implements CallGraphFilter {
 	public static final int DO_NOT_PRUNE = -1;
 
 	public static class CGResult {
-		private final com.ibm.wala.ipa.callgraph.CallGraph cg;
-		private final PointerAnalysis<InstanceKey> pts;
+		public final com.ibm.wala.ipa.callgraph.CallGraph cg;
+		public final PointerAnalysis<InstanceKey> pts;
 
 		private CGResult(com.ibm.wala.ipa.callgraph.CallGraph cg, PointerAnalysis<InstanceKey> pts) {
 			this.cg = cg;

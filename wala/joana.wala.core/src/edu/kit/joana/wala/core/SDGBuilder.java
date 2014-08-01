@@ -258,6 +258,10 @@ public class SDGBuilder implements CallGraphFilter {
 		 */
 		OBJ_GRAPH_NO_FIELD_MERGE(false, "object-graph - no merge of nodes with same field name (internal use only)"),
 		/*
+		 * Object graph algorithm with no merging at all.
+		 */
+		OBJ_GRAPH_NO_MERGE_AT_ALL(false, "object-graph - no merge at all (internal use only)"),
+		/*
 		 * Object graph algorithm with fixpoint propagation. Do not choose if you don't know what it does. It
 		 * exists for academic evaluation purposes.
 		 */
@@ -989,6 +993,18 @@ public class SDGBuilder implements CallGraphFilter {
 			ObjGraphParams.compute(this, opt, progress);
 		}
 			break;
+		case OBJ_GRAPH_NO_MERGE_AT_ALL: {
+			final ObjGraphParams.Options opt = new ObjGraphParams.Options();
+			opt.isMergeOneFieldPerParent = false;
+			opt.isUseAdvancedInterprocPropagation = false;
+			opt.maxNodesPerInterface = ObjGraphParams.Options.UNLIMITED_NODES_PER_INTERFACE;
+			opt.isMergePrunedCallNodes = false;
+			opt.isMergeException = false;
+			this.cfg.mergeFieldsOfPrunedCalls = false;
+			opt.isMergeDuringCutoffImmutables = false;
+			ObjGraphParams.compute(this, opt, progress);
+		}
+			break;
 		case OBJ_GRAPH_SIMPLE_PROPAGATION: {
 			final ObjGraphParams.Options opt = new ObjGraphParams.Options();
 			opt.isUseAdvancedInterprocPropagation = false;
@@ -1448,7 +1464,7 @@ public class SDGBuilder implements CallGraphFilter {
 		public boolean localKillingDefs = true;
 		public boolean keepPhiNodes = true;
 		public int prunecg = DO_NOT_PRUNE;
-		public boolean mergeFieldsOfPrunedCalls = true;
+		public boolean mergeFieldsOfPrunedCalls = false;
 		public PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
 		public PointsToPrecision pts = PointsToPrecision.INSTANCE_BASED;
 		// only used iff pts is set to object sensitive. If null defaults to

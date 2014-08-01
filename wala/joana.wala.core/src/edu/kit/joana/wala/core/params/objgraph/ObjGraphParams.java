@@ -206,6 +206,12 @@ public final class ObjGraphParams {
 		public boolean isMergePrunedCallNodes;
 		
 		/**
+		 * Merge fields of immutables during cutoff
+		 */
+		public boolean isMergeDuringCutoffImmutables;
+
+		
+		/**
 		 * Use advanced (and slower fixed point based) interprocedural propagation with reachability check during propagation.
 		 */
 		public boolean isUseAdvancedInterprocPropagation;
@@ -737,8 +743,9 @@ public final class ObjGraphParams {
 						toMerge.add((ModRefFieldCandidate) c);
 					}
 				}
-
-				pdgModRef.mergeCandidates(toMerge, FLAG_MERGE_IMMUTABLE);
+				if (this.opt.isMergeDuringCutoffImmutables) {
+					pdgModRef.mergeCandidates(toMerge, FLAG_MERGE_IMMUTABLE);
+				}
 			}
 		}
 

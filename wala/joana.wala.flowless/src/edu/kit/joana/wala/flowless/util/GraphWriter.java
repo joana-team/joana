@@ -12,16 +12,16 @@ import com.ibm.wala.util.graph.Graph;
 import com.ibm.wala.viz.DotUtil;
 import com.ibm.wala.viz.NodeDecorator;
 
-public abstract class GraphWriter {
+public abstract class GraphWriter<T> {
 
-	public abstract void writeGraph(Graph<?> graph, String nameSuffix);
+	public abstract void writeGraph(Graph<T> graph, String nameSuffix);
 
-	public static GraphWriter NO_OUTPUT = new GraphWriter() {
+	public static class NoOutput<V> extends GraphWriter<V> {
 		@Override
-		public void writeGraph(Graph<?> graph, String nameSuffix) {}
+		public void writeGraph(Graph<V> graph, String nameSuffix) {}
 	};
 
-	public static class DotWriter extends GraphWriter {
+	public static class DotWriter<V> extends GraphWriter<V> {
 		private final String outDir;
 		private final String prefix;
 
@@ -30,10 +30,11 @@ public abstract class GraphWriter {
 			this.prefix = prefix;
 		}
 
-		public void writeGraph(Graph<?> graph, String nameSuffix) {
+		public void writeGraph(Graph<V> graph, String nameSuffix) {
 			try {
 				final String name = prefix + (nameSuffix == null ? "" : nameSuffix);
-				DotUtil.writeDotFile(graph, NodeDecorator.DEFAULT, graph.getClass().getSimpleName() + " of " + name, outDir + name + ".dot");
+				DotUtil.writeDotFile(graph, new ExtendedNodeDecorator.DefaultImpl<V>(),
+					graph.getClass().getSimpleName() + " of " + name, outDir + name + ".dot");
 			} catch (WalaException e) {
 				e.printStackTrace();
 			}

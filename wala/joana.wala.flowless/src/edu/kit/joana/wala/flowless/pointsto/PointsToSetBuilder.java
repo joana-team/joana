@@ -343,7 +343,7 @@ public class PointsToSetBuilder {
 	 * @return A points-to configuration that conforms to the specified alias configuration.
 	 */
 	public static PointsTo compute(MayAliasGraph alias) {
-		return compute(alias, GraphWriter.NO_OUTPUT);
+		return compute(alias, new GraphWriter.NoOutput<PtsParameter>());
 	}
 
 	/**
@@ -357,7 +357,7 @@ public class PointsToSetBuilder {
 	 * @param graphOut A graph writer that can be used to output the created merged alias graphs.
 	 * @return A points-to configuration that conforms to the specified alias configuration.
 	 */
-	public static PointsTo compute(MayAliasGraph alias, GraphWriter graphOut) {
+	public static PointsTo compute(MayAliasGraph alias, GraphWriter<PtsParameter> graphOut) {
 		PointsTo result = new PointsTo();
 
 		NoMayAliasGraph mergedNoAlias = createMergedNoAlias(alias);

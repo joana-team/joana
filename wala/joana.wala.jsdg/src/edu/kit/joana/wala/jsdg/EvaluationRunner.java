@@ -44,6 +44,7 @@ import edu.kit.joana.wala.flowless.MoJo;
 import edu.kit.joana.wala.flowless.MoJo.CallGraphResult;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.AliasGraphException;
 import edu.kit.joana.wala.flowless.pointsto.GraphAnnotater;
+import edu.kit.joana.wala.flowless.pointsto.PtsParameter;
 import edu.kit.joana.wala.flowless.pointsto.PointsToSetBuilder.PointsTo;
 import edu.kit.joana.wala.flowless.spec.FlowLessBuilder.FlowError;
 import edu.kit.joana.wala.flowless.spec.ast.FlowAstVisitor.FlowAstException;
@@ -199,7 +200,7 @@ public class EvaluationRunner {
 		boolean isFlowOk = true;
 
 		{
-			GraphWriter gOut = new GraphWriter.DotWriter("out/", prefix + "-bottom");
+			GraphWriter<PtsParameter> gOut = new GraphWriter.DotWriter<PtsParameter>("out/", prefix + "-bottom");
 			System.out.print("\tMIN alias: points-to... ");
 			edu.kit.joana.deprecated.jsdg.util.Util.dumpGraph(unrestrictedAlias.lowerBound, prefix + "-pts-bottom");
 			PointsTo ptsMin = MoJo.computePointsTo(unrestrictedAlias.lowerBound, gOut);
@@ -222,7 +223,7 @@ public class EvaluationRunner {
 
 
 		{
-			GraphWriter gOut = new GraphWriter.DotWriter("out/", prefix + "-min");
+			GraphWriter<PtsParameter> gOut = new GraphWriter.DotWriter<PtsParameter>("out/", prefix + "-min");
 			System.out.print("\tmin alias: points-to... ");
 			edu.kit.joana.deprecated.jsdg.util.Util.dumpGraph(mayAlias.lowerBound, prefix + "-pts-min");
 			PointsTo ptsMin = MoJo.computePointsTo(mayAlias.lowerBound, gOut);
@@ -245,7 +246,7 @@ public class EvaluationRunner {
 
 
 		{
-			GraphWriter gOut = new GraphWriter.DotWriter("out/", prefix + "-max");
+			GraphWriter<PtsParameter> gOut = new GraphWriter.DotWriter<PtsParameter>("out/", prefix + "-max");
 			System.out.print("\tmax alias: points-to... ");
 			edu.kit.joana.deprecated.jsdg.util.Util.dumpGraph(mayAlias.upperBound, prefix + "-pts-max");
 			PointsTo ptsMax = MoJo.computePointsTo(mayAlias.upperBound, gOut);
@@ -268,7 +269,7 @@ public class EvaluationRunner {
 
 
 		{
-			GraphWriter gOut = new GraphWriter.DotWriter("out/", prefix + "-top");
+			GraphWriter<PtsParameter> gOut = new GraphWriter.DotWriter<PtsParameter>("out/", prefix + "-top");
 			System.out.print("\tMAX alias: points-to... ");
 			edu.kit.joana.deprecated.jsdg.util.Util.dumpGraph(unrestrictedAlias.upperBound, prefix + "-pts-top");
 			PointsTo ptsMax = MoJo.computePointsTo(unrestrictedAlias.upperBound, gOut);

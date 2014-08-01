@@ -43,7 +43,8 @@ import com.ibm.wala.viz.NodeDecorator;
  */
 public class DotUtil {
 
-	public static <T,M> void dotify(Graph<T> g, EdgeManager<T> edges, ExtendedNodeDecorator labels, String dotFile, IProgressMonitor monitor) throws WalaException, CancelException {
+	public static <T,M> void dotify(Graph<T> g, EdgeManager<T> edges, ExtendedNodeDecorator<T> labels, String dotFile,
+			IProgressMonitor monitor) throws WalaException, CancelException {
 		if (g == null) {
 			throw new IllegalArgumentException("g is null");
 		}
@@ -52,21 +53,24 @@ public class DotUtil {
 	}
 
 	public static <T,M> void dot(Graph<T> g, String dotFile) throws WalaException, CancelException {
-		dotify(g, g, ExtendedNodeDecorator.DEFAULT, dotFile, NullProgressMonitor.INSTANCE);
+		dotify(g, g, new ExtendedNodeDecorator.DefaultImpl<T>(), dotFile, NullProgressMonitor.INSTANCE);
 	}
 
 	public static <T,M> void dotify(LabeledGraph<T, M> g, String dotFile) throws WalaException, CancelException {
-		dotify(g, g, ExtendedNodeDecorator.DEFAULT, EdgeDecorator.DEFAULT, dotFile, NullProgressMonitor.INSTANCE, false);
+		dotify(g, g, new ExtendedNodeDecorator.DefaultImpl<T>(), EdgeDecorator.DEFAULT, dotFile,
+			NullProgressMonitor.INSTANCE, false);
 	}
 
-	public static <T,M> void dotify(LabeledGraph<T, M> g, LabeledEdgeManager<T,M> edges, ExtendedNodeDecorator nDecor,
-			EdgeDecorator eDecor, String dotFile, String psFile, String dotExe, IProgressMonitor monitor)
+	public static <T,M> void dotify(LabeledGraph<T, M> g, LabeledEdgeManager<T,M> edges,
+			ExtendedNodeDecorator<T> nDecor, EdgeDecorator eDecor, String dotFile, String psFile, String dotExe,
+			IProgressMonitor monitor)
 	throws WalaException, CancelException {
 		dotify(g, edges, nDecor, eDecor, dotFile, monitor, false);
 	}
 
-	public static <T,M> void dotify(LabeledGraph<T, M> g, LabeledEdgeManager<T,M> edges, ExtendedNodeDecorator nDecor,
-			EdgeDecorator eDecor, String dotFile, IProgressMonitor monitor,	boolean ignoreDefaultLabel)
+	public static <T,M> void dotify(LabeledGraph<T, M> g, LabeledEdgeManager<T,M> edges,
+			ExtendedNodeDecorator<T> nDecor, EdgeDecorator eDecor, String dotFile, IProgressMonitor monitor,
+			boolean ignoreDefaultLabel)
 	throws WalaException, CancelException {
 		if (g == null) {
 			throw new IllegalArgumentException("g is null");
@@ -75,7 +79,7 @@ public class DotUtil {
 		writeDotFile(g, edges, nDecor, eDecor, dotFile, monitor, ignoreDefaultLabel);
 	}
 
-	private static <T,M> File writeDotFile(Graph<T> g, EdgeManager<T> edges, ExtendedNodeDecorator labels,
+	private static <T,M> File writeDotFile(Graph<T> g, EdgeManager<T> edges, ExtendedNodeDecorator<T> labels,
 			String dotfile, IProgressMonitor monitor)
 	throws WalaException {
 		if (g == null) {
@@ -98,8 +102,9 @@ public class DotUtil {
 		}
 	}
 
-	private static <T,M> File writeDotFile(LabeledGraph<T,M> g, LabeledEdgeManager<T,M> edges, ExtendedNodeDecorator nDecor,
-			EdgeDecorator eDecor, String dotfile, IProgressMonitor monitor, boolean ignoreDefaultLabels)
+	private static <T,M> File writeDotFile(LabeledGraph<T,M> g, LabeledEdgeManager<T,M> edges,
+			ExtendedNodeDecorator<T> nDecor, EdgeDecorator eDecor, String dotfile, IProgressMonitor monitor,
+			boolean ignoreDefaultLabels)
 	throws WalaException {
 		if (g == null) {
 			throw new IllegalArgumentException("g is null");
@@ -131,7 +136,8 @@ public class DotUtil {
 	 * @return StringBuffer holding dot output representing G
 	 * @throws WalaException
 	 */
-	private static <T, M> void dotOutput(Graph<T> g, EdgeManager<T> edges, ExtendedNodeDecorator labels, PrintStream out)
+	private static <T, M> void dotOutput(Graph<T> g, EdgeManager<T> edges, ExtendedNodeDecorator<T> labels,
+			PrintStream out)
 	throws WalaException {
 		out.print("digraph \"DirectedGraph\" {\n");
 
@@ -167,8 +173,8 @@ public class DotUtil {
 	 * @return StringBuffer holding dot output representing G
 	 * @throws WalaException
 	 */
-	private static <T, M> void dotOutputLabeld(LabeledGraph<T, M> g, LabeledEdgeManager<T, M> edges, ExtendedNodeDecorator nDecor,
-			EdgeDecorator eDecor, PrintStream out, boolean ignoreDefaultLabel)
+	private static <T, M> void dotOutputLabeld(LabeledGraph<T, M> g, LabeledEdgeManager<T, M> edges,
+			ExtendedNodeDecorator<T> nDecor, EdgeDecorator eDecor, PrintStream out, boolean ignoreDefaultLabel)
 	throws WalaException {
 		out.print("digraph \"DirectedGraph\" {\n");
 
@@ -208,7 +214,7 @@ public class DotUtil {
 		out.print("\n}");
 	}
 
-	private static <T extends Object> void outputNodes(ExtendedNodeDecorator labels, PrintStream out,
+	private static <T extends Object> void outputNodes(ExtendedNodeDecorator<T> labels, PrintStream out,
 			Collection<T> dotNodes, NumberedGraph<T> g)
 	throws WalaException {
 		for (T node : dotNodes) {
@@ -216,7 +222,7 @@ public class DotUtil {
 		}
 	}
 
-	private static void outputNode(ExtendedNodeDecorator labels, PrintStream out, Object n, int number)
+	private static <T> void outputNode(ExtendedNodeDecorator<T> labels, PrintStream out, T n, int number)
 	throws WalaException {
 		out.print("   \"");
 		out.print(System.identityHashCode(n));
@@ -224,14 +230,15 @@ public class DotUtil {
 		out.print(decorateNode(n, labels, number));
 	}
 
-	private static <T extends Object> void outputNodes(ExtendedNodeDecorator labels, PrintStream out, Collection<T> dotNodes)
+	private static <T extends Object> void outputNodes(ExtendedNodeDecorator<T> labels, PrintStream out,
+			Collection<T> dotNodes)
 	throws WalaException {
 		for (T node : dotNodes) {
 			outputNode(labels, out, node);
 		}
 	}
 
-	private static void outputNode(ExtendedNodeDecorator labels, PrintStream out, Object n) throws WalaException {
+	private static <T> void outputNode(ExtendedNodeDecorator<T> labels, PrintStream out, T n) throws WalaException {
 		out.print("   \"");
 		out.print(System.identityHashCode(n));
 		out.print("\" ");
@@ -270,7 +277,7 @@ public class DotUtil {
 		return result.toString();
 	}
 
-	private static String decorateNode(Object n, ExtendedNodeDecorator d, int number) throws WalaException {
+	private static <T> String decorateNode(T n, ExtendedNodeDecorator<T> d, int number) throws WalaException {
 		StringBuffer result = new StringBuffer();
 
 		if (d != null) {
@@ -290,7 +297,7 @@ public class DotUtil {
 		return result.toString();
 	}
 
-	private static String decorateNode(Object n, ExtendedNodeDecorator d) throws WalaException {
+	private static <T> String decorateNode(T n, ExtendedNodeDecorator<T> d) throws WalaException {
 		StringBuffer result = new StringBuffer();
 
 		if (d != null) {
@@ -310,7 +317,7 @@ public class DotUtil {
 		return result.toString();
 	}
 
-	private static String getPort(Object o, NodeDecorator d) throws WalaException {
+	private static <T> String getPort(T o, NodeDecorator<T> d) throws WalaException {
 		return "" + System.identityHashCode(o);
 	}
 

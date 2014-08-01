@@ -244,14 +244,9 @@ public final class AliasGraphIO {
 	}
 
 	private final static PtsNodeDecorator PTS_NODE_DEC = new PtsNodeDecorator();
-	private static class PtsNodeDecorator extends ExtendedNodeDecorator.DefaultImpl {
-		public String getLabel(Object o) {
-			if (o instanceof PtsParameter) {
-				PtsParameter pts = (PtsParameter) o;
-				return pts.getName();
-			}
-
-			return o.toString();
+	private static class PtsNodeDecorator extends ExtendedNodeDecorator.DefaultImpl<PtsParameter> {
+		public String getLabel(PtsParameter pts) {
+			return pts.getName();
 		}
 	}
 

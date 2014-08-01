@@ -185,36 +185,32 @@ public final class LocalKillingDefs {
 
 		if (DEBUG_PRINT) {
 			try {
-				DotUtil.dotify(ecfg, ecfg, new ExtendedNodeDecorator() {
+				DotUtil.dotify(ecfg, ecfg, new ExtendedNodeDecorator<IExplodedBasicBlock>() {
 					
 					@Override
-					public String getLabel(Object o) throws WalaException {
-						if (o instanceof IExplodedBasicBlock) {
-							final IExplodedBasicBlock eb = (IExplodedBasicBlock) o;
-							final SSAInstruction sa = eb.getInstruction();
-							if (sa != null) {
-								final Access<IExplodedBasicBlock> acc = accesses.getAccForInstr(sa);
-								if (acc != null) {
-									return acc.toString();
-								} else {
-									return edu.kit.joana.wala.flowless.util.Util.prettyShortInstruction(sa);
-								}
+					public String getLabel(IExplodedBasicBlock eb) throws WalaException {
+						final SSAInstruction sa = eb.getInstruction();
+						if (sa != null) {
+							final Access<IExplodedBasicBlock> acc = accesses.getAccForInstr(sa);
+							if (acc != null) {
+								return acc.toString();
 							} else {
-								return (eb.isEntryBlock() ? "entry" 
-										: (eb.isExitBlock() ? "exit" :
-											(eb.isCatchBlock() ? "catch" : "nop")));
+								return edu.kit.joana.wala.flowless.util.Util.prettyShortInstruction(sa);
 							}
+						} else {
+							return (eb.isEntryBlock() ? "entry" 
+									: (eb.isExitBlock() ? "exit" :
+										(eb.isCatchBlock() ? "catch" : "nop")));
 						}
-						return ExtendedNodeDecorator.DEFAULT.getLabel(o);
 					}
 					
 					@Override
-					public String getShape(Object o) throws WalaException {
+					public String getShape(IExplodedBasicBlock o) throws WalaException {
 						return ExtendedNodeDecorator.DEFAULT.getShape(o);
 					}
 					
 					@Override
-					public String getColor(Object o) throws WalaException {
+					public String getColor(IExplodedBasicBlock o) throws WalaException {
 						return ExtendedNodeDecorator.DEFAULT.getColor(o);
 					}
 				}, pdg.getMethod().getName() + "-cfg.dot", progress);

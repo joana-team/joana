@@ -83,6 +83,7 @@ import edu.kit.joana.wala.flowless.spec.ast.UniqueStmt;
 import edu.kit.joana.wala.flowless.spec.java.LightweightParser;
 import edu.kit.joana.wala.flowless.spec.java.ast.ClassInfo;
 import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
+import edu.kit.joana.wala.flowless.util.ExtendedNodeDecorator;
 import edu.kit.joana.wala.flowless.util.GraphWriter;
 import edu.kit.joana.wala.flowless.util.Util;
 import edu.kit.joana.wala.flowless.wala.EntryUtil;
@@ -484,7 +485,7 @@ public class MoJo {
 	 * @return A points-to set configuration that conforms to the alias specification.
 	 */
 	public static PointsTo computePointsTo(final MayAliasGraph graph) {
-		return computePointsTo(graph, GraphWriter.NO_OUTPUT);
+		return computePointsTo(graph, new GraphWriter.NoOutput<PtsParameter>());
 	}
 
 	/**
@@ -496,7 +497,7 @@ public class MoJo {
 	 * @param gWriter A graph writer that can be used to output the created merged alias graphs.
 	 * @return A points-to set configuration that conforms to the alias specification.
 	 */
-	public static PointsTo computePointsTo(final MayAliasGraph graph, final GraphWriter gWriter) {
+	public static PointsTo computePointsTo(final MayAliasGraph graph, final GraphWriter<PtsParameter> gWriter) {
 		final PointsTo pointsTo = PointsToSetBuilder.compute(graph, gWriter);
 
 		if (debug.isEnabled()) {
@@ -763,13 +764,14 @@ public class MoJo {
 		return matches;
 	}
 
-	private void writeDotFile(Graph<?> graph, IMethod m, String nameSuffix) {
+	private void writeDotFile(Graph<PtsParameter> graph, IMethod m, String nameSuffix) {
 		final IClass cls = m.getDeclaringClass();
 
 		try {
 			String name = cls.getName().getClassName() + "." + m.getSelector().getName() + "_"
 				+ m.getNumberOfParameters() + (nameSuffix == null ? "" : "_" + nameSuffix);
-			DotUtil.writeDotFile(graph, NodeDecorator.DEFAULT, graph.getClass().getSimpleName() + " of " + name, outDir + name + ".dot");
+			DotUtil.writeDotFile(graph, new ExtendedNodeDecorator.DefaultImpl<PtsParameter>(), graph.getClass().getSimpleName()
+				+ " of " + name, outDir + name + ".dot");
 		} catch (WalaException e) {
 			e.printStackTrace();
 		}

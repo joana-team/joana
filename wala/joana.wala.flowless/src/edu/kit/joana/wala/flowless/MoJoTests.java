@@ -53,6 +53,7 @@ import edu.kit.joana.wala.flowless.spec.ast.FlowAstVisitor.FlowAstException;
 import edu.kit.joana.wala.flowless.spec.java.LightweightParser;
 import edu.kit.joana.wala.flowless.spec.java.ast.ClassInfo;
 import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
+import edu.kit.joana.wala.flowless.util.ExtendedNodeDecorator;
 import edu.kit.joana.wala.flowless.util.Util;
 import edu.kit.joana.wala.flowless.wala.EntryUtil;
 
@@ -247,13 +248,14 @@ public class MoJoTests {
 
 	private static String OUT_DIR = "out/";
 
-	private static void writeDotFile(Graph<?> graph, IMethod m, String nameSuffix) {
+	private static void writeDotFile(Graph<PtsParameter> graph, IMethod m, String nameSuffix) {
 		final IClass cls = m.getDeclaringClass();
 
 		try {
 			String name = cls.getName().getClassName() + "." + m.getSelector().getName() + "_"
 				+ m.getNumberOfParameters() + (nameSuffix == null ? "" : "_" + nameSuffix);
-			DotUtil.writeDotFile(graph, NodeDecorator.DEFAULT, graph.getClass().getSimpleName() + " of " + name, OUT_DIR + name + ".dot");
+			DotUtil.writeDotFile(graph, new ExtendedNodeDecorator.DefaultImpl<PtsParameter>(),
+				graph.getClass().getSimpleName() + " of " + name, OUT_DIR + name + ".dot");
 		} catch (WalaException e) {
 			e.printStackTrace();
 		}

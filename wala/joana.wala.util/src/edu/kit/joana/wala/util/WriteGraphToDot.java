@@ -36,10 +36,9 @@ public class WriteGraphToDot {
 
     public static File writeCfgToDot(final ControlFlowGraph<SSAInstruction, IExplodedBasicBlock> cfg, final IR ir,
     		final String title, final String fileName) {
-		return writeDotFile(cfg, new NodeDecorator() {
+		return writeDotFile(cfg, new NodeDecorator<IExplodedBasicBlock>() {
 			@Override
-			public String getLabel(Object o) throws WalaException {
-				final IExplodedBasicBlock bb = (IExplodedBasicBlock) o;
+			public String getLabel(IExplodedBasicBlock bb) throws WalaException {
 				String phis = "";
 				for (final Iterator<SSAPhiInstruction> phit = bb.iteratePhis(); phit.hasNext();) {
 					final SSAPhiInstruction phi = phit.next();
@@ -60,7 +59,7 @@ public class WriteGraphToDot {
 		}, title, fileName);
     }
     
-    public static <T> File writeDotFile(Graph<T> g, NodeDecorator labels, String title, String dotfile) {
+    public static <T> File writeDotFile(Graph<T> g, NodeDecorator<T> labels, String title, String dotfile) {
     	File f = null;
     	
     	try { 

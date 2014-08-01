@@ -93,6 +93,7 @@ public final class ObjGraphParams {
 			this.isCutOffImmutables = true;
 			this.isMergeOneFieldPerParent = true;
 			this.isMergePrunedCallNodes = true;
+			this.isMergeDuringCutoffImmutables = true;
 			this.isUseAdvancedInterprocPropagation = true;
 			this.maxNodesPerInterface = DEFAULT_MAX_NODES_PER_INTERFACE;
 			this.convertToObjTree = false;
@@ -204,7 +205,7 @@ public final class ObjGraphParams {
 		 * Merge all fields that are only referenced or modified through methods that were pruned in the cg.
 		 */
 		public boolean isMergePrunedCallNodes;
-		
+
 		/**
 		 * Merge fields of immutables during cutoff
 		 */

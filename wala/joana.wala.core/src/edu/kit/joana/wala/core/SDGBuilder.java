@@ -1464,7 +1464,7 @@ public class SDGBuilder implements CallGraphFilter {
 		public boolean localKillingDefs = true;
 		public boolean keepPhiNodes = true;
 		public int prunecg = DO_NOT_PRUNE;
-		public boolean mergeFieldsOfPrunedCalls = false;
+		public boolean mergeFieldsOfPrunedCalls = true;
 		public PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
 		public PointsToPrecision pts = PointsToPrecision.INSTANCE_BASED;
 		// only used iff pts is set to object sensitive. If null defaults to

@@ -43,7 +43,8 @@ public class SDGConfig {
 	private boolean computeAllocationSites = false;
 	private CGConsumer cgConsumer = null;
 	private ContextSelector ctxSelector;
-
+	private ConstructionNotifier notifier = null;
+	
 	public SDGConfig(String classPath, String entryMethod, Stubs stubsPath) {
 		this(classPath, entryMethod, stubsPath, ExceptionAnalysis.INTERPROC, FieldPropagation.OBJ_GRAPH, PointsToPrecision.INSTANCE_BASED, false, false, MHPType.NONE);
 	}
@@ -303,5 +304,19 @@ public class SDGConfig {
 
 	public void setContextSelector(ContextSelector ctxSelector) {
 		this.ctxSelector = ctxSelector;
+	}
+
+	/**
+	 * @return the notifier
+	 */
+	public ConstructionNotifier getNotifier() {
+		return notifier;
+	}
+
+	/**
+	 * @param notifier the notifier to set
+	 */
+	public void setNotifier(ConstructionNotifier notifier) {
+		this.notifier = notifier;
 	}
 }

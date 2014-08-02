@@ -223,6 +223,10 @@ public class SDGProgram {
 	public static SDGProgram createSDGProgram(SDGConfig config, PrintStream out, IProgressMonitor monitor, OutputStream sdgFileOut)
 			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
 		monitor.beginTask("build SDG", 20);
+		ConstructionNotifier notifier = config.getNotifier();
+		if (notifier != null) {
+			notifier.sdgStarted();
+		}
 		final com.ibm.wala.util.collections.Pair<SDG, SDGBuilder> p =
 				SDGBuildPreparation.computeAndKeepBuilder(out, makeBuildPreparationConfig(config),	config.computeInterferences(), monitor);
 		final SDG sdg = p.fst;
@@ -231,8 +235,19 @@ public class SDGProgram {
 		if (config.computeInterferences()) {
 			PruneInterferences.preprocessAndPruneCSDG(sdg, config.getMhpType());
 		}
+		if (notifier != null) {
+			notifier.sdgFinished();
+			notifier.numberOfCGNodes(builder.getNonPrunedWalaCallGraph().getNumberOfNodes(), builder.getWalaCallGraph().getNumberOfNodes());
+		}
 		if (config.getIgnoreIndirectFlows()) {
+			if (notifier != null) {
+				notifier.stripControlDepsStarted();
+			}
 			throwAwayControlDeps(sdg);
+			if (notifier != null) {
+				notifier.stripControlDepsFinished();
+			}
+			
 		}
 		if (sdgFileOut != null) {
 			SDGSerializer.toPDGFormat(sdg, sdgFileOut);

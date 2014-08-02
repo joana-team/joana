@@ -79,6 +79,7 @@
 			<filelist dir="${joana.contrib.base.dir}/stubs">
 				<file name="natives_empty.xml" />
 				<file name="jSDG-stubs-jre1.4.jar" />
+				<file name="jSDG-stubs-jre1.5.jar" />
 			</filelist>
 		</copy>
 	</target>

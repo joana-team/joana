@@ -29,6 +29,8 @@ import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.intset.OrdinalSet;
 import com.ibm.wala.util.intset.OrdinalSetMapping;
 
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGField;
@@ -41,7 +43,8 @@ import edu.kit.joana.wala.core.dataflow.ModRefStaticField;
 import edu.kit.joana.wala.core.dataflow.ReachingDefsTransferFP;
 
 public class StaticFieldParams {
-
+	private final static Logger debug = Log.getLogger(Log.L_WALA_CORE_DEBUG);
+	private final static boolean IS_DEBUG = debug.isEnabled();
 	private final SDGBuilder sdg;
 
 	public static void compute(SDGBuilder sdg, IProgressMonitor progress) throws CancelException {
@@ -241,7 +244,7 @@ public class StaticFieldParams {
 				statics.add(facc);
 			}
 			
-			if (statics.size() > 10) {
+			if (IS_DEBUG && statics.size() > 10) {
 				System.out.println(pdg.toString() + ": " + statics.size());
 				System.out.println("\t" + statics);
 			}

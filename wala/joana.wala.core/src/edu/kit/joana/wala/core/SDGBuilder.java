@@ -175,16 +175,14 @@ public class SDGBuilder implements CallGraphFilter {
 		/*
 		 * 1-level object-sensitive (1-level receiver object context)
 		 * Receiver context is limited to 1-level. 
-		 * Uses n-CFA as fallback for static methods. Customizable: Provide objSensFilter to specify 'n' for fallback
-		 * n-CFA and filter for methods where object-sensitivity should be engaged. Default 'n = 1'.
+		 * Uses 1-CFA as fallback for static methods.
 		 */
 		N1_OBJECT_SENSITIVE(true, "1-level object-sensitive + 1-level call-stack"),
 		/*
 		 * Object-sensitive (unlimited receiver object context)
 		 * Very precise for OO heavy code, but also very slow.
 		 * Unlimited receiver context for the whole code - application as well as library. 
-		 * Uses n-CFA as fallback for static methods. Customizable: Provide objSensFilter to specify 'n' for fallback
-		 * n-CFA and filter for methods where object-sensitivity should be engaged. Default 'n = 1'.
+		 * Uses 1-CFA as fallback for static methods.
 		 */
 		UNLIMITED_OBJECT_SENSITIVE(true, "unlimited object-sensitive + 1-level call-stack"),
 		/*

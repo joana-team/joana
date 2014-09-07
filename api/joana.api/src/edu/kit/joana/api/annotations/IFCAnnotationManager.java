@@ -33,11 +33,14 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 public class IFCAnnotationManager {
 
 	private final IFCAnnotationApplicator app;
-	private final Map<SDGProgramPart, IFCAnnotation> annotations;
-
+	private final Map<SDGProgramPart, IFCAnnotation> sourceAnnotations;
+	private final Map<SDGProgramPart, IFCAnnotation> sinkAnnotations;
+	private final Map<SDGProgramPart, IFCAnnotation> declassAnnotations;
 
 	public IFCAnnotationManager(SDGProgram program) {
-		this.annotations = new HashMap<SDGProgramPart, IFCAnnotation>();
+		this.sourceAnnotations = new HashMap<SDGProgramPart, IFCAnnotation>();
+		this.sinkAnnotations = new HashMap<SDGProgramPart, IFCAnnotation>();
+		this.declassAnnotations = new HashMap<SDGProgramPart, IFCAnnotation>();
 		this.app = new IFCAnnotationApplicator(program);
 	}
 
@@ -49,15 +52,25 @@ public class IFCAnnotationManager {
 		if (!isAnnotationLegal(ann)) {
 			throw new IllegalArgumentException();
 		}
-		annotations.put(ann.getProgramPart(), ann);
+		if (ann.getType() == AnnotationType.SOURCE) {
+			sourceAnnotations.put(ann.getProgramPart(), ann);
+		} else if (ann.getType() == AnnotationType.SINK) {
+			sinkAnnotations.put(ann.getProgramPart(), ann);
+		} else {
+			declassAnnotations.put(ann.getProgramPart(), ann);
+		}
 	}
 
 	public void removeAnnotation(SDGProgramPart programPart) {
-		annotations.remove(programPart);
+		sourceAnnotations.remove(programPart);
+		sinkAnnotations.remove(programPart);
+		declassAnnotations.remove(programPart);
 	}
 
 	public void removeAllAnnotations() {
-		annotations.clear();
+		sourceAnnotations.clear();
+		sinkAnnotations.clear();
+		declassAnnotations.clear();
 	}
 
 	public void addSourceAnnotation(SDGProgramPart progPart, String level, SDGMethod context) {
@@ -73,7 +86,11 @@ public class IFCAnnotationManager {
 	}
 
 	public Collection<IFCAnnotation> getAnnotations() {
-		return new LinkedList<IFCAnnotation>(annotations.values());
+		LinkedList<IFCAnnotation> ret = new LinkedList<IFCAnnotation>();
+		ret.addAll(sourceAnnotations.values());
+		ret.addAll(sinkAnnotations.values());
+		ret.addAll(declassAnnotations.values());
+		return ret;
 	}
 
 	public Map<SecurityNode, NodeAnnotationInfo> getAnnotatedNodes() {
@@ -81,7 +98,7 @@ public class IFCAnnotationManager {
 	}
 
 	public boolean isAnnotated(SDGProgramPart part) {
-		return annotations.keySet().contains(part);
+		return sourceAnnotations.keySet().contains(part) || sinkAnnotations.keySet().contains(part) || declassAnnotations.keySet().contains(part);
 	}
 
 	public Collection<IFCAnnotation> getSources() {

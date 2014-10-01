@@ -156,7 +156,7 @@ public class SlicingBasedIFC extends IFC {
 			String secLevelOfEndpoint = getLevel(endPoint);
 			if (isStartpoint(sNode) && secLevelOfOtherEndpoint != null && isLeakage(endPoint, sNode)) {
 				if (endPoint.isInformationSource() && sNode.isInformationSink()) {
-					vios.add(ClassifiedViolation.createViolation(sNode, endPoint, secLevelOfEndpoint));
+					vios.add(ClassifiedViolation.createViolation(sNode, endPoint, secLevelOfOtherEndpoint));
 				} else if (endPoint.isInformationSink() && sNode.isInformationSource()) {
 					vios.add(ClassifiedViolation.createViolation(endPoint, sNode, secLevelOfEndpoint));
 				}

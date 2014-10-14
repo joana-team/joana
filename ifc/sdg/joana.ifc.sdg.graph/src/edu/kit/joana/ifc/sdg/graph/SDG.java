@@ -305,7 +305,8 @@ public class SDG extends JoanaGraph implements Cloneable {
 	        		if (e.getKind() != SDGEdge.Kind.CONTROL_DEP_CALL
 	        				&& e.getKind() != SDGEdge.Kind.CONTROL_DEP_COND
 	        				&& e.getKind() != SDGEdge.Kind.CONTROL_DEP_EXPR
-	        				&& e.getKind() != SDGEdge.Kind.CONTROL_DEP_UNCOND)
+	        				&& e.getKind() != SDGEdge.Kind.CONTROL_DEP_UNCOND
+	        				&& e.getKind() != SDGEdge.Kind.HELP)
 	        			continue;
 
 	        		if (set.add(e.getSource())) {

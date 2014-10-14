@@ -183,7 +183,7 @@ public class Test {
 		return i;
 	}
 
-	// 1. ok, 2. ok, 3. ok
+	// 1. ok, 2. leak, 3. ok
 	//@ifc: !{a, b} => a -!> b
 	//@ifc: !{a, a} => a -!> b
 	//@ifc: ? => a -!> b

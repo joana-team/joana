@@ -751,7 +751,7 @@ public class SDG extends JDependencyGraph {
 	    		}
 	    	}
 			DecimalFormat df = new DecimalFormat("00.00");
-	    	Log.info("EXC-AVG: " + df.format(sum / (double) count) + "% cfg edges removed.");
+	    	Log.info("EXC-AVG: " + (sum == 0 || count == 0 ? 0 : df.format(sum / (double) count)) + "% cfg edges removed.");
     	}
 
     	{
@@ -765,7 +765,7 @@ public class SDG extends JDependencyGraph {
 	    		}
 	    	}
 			DecimalFormat df = new DecimalFormat("00.00");
-	    	Log.info("EXC-AVG: " + df.format(sum / (double) count) + "% exceptions removed.");
+	    	Log.info("EXC-AVG: " + (sum == 0 || count == 0 ? 0 : df.format(sum / (double) count)) + "% exceptions removed.");
     	}
 
 		if (Debug.Var.PRINT_INTERFACE.isSet()) {

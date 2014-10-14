@@ -1111,9 +1111,16 @@ public final class CheckFlowLessWithAlias {
 			return new JarFileModule(new JarFile(f));
 		} else {
 			final URL url = CheckFlowLessWithAlias.class.getClassLoader().getResource(path);
-			final URLConnection con = url.openConnection();
-			final InputStream in = con.getInputStream();
-			return new JarStreamModule(new JarInputStream(in));
+			if (url != null) {
+				final URLConnection con = url.openConnection();
+				final InputStream in = con.getInputStream();
+				return new JarStreamModule(new JarInputStream(in));
+			} else {
+				// special fall-back for eclipse plug-in
+				final URL url2 = new URL("platform:/plugin/joana.contrib.lib/stubs" + path);
+				final InputStream in = url2.openConnection().getInputStream();
+				return new JarStreamModule(new JarInputStream(in));
+			}
 		}
 	}
 

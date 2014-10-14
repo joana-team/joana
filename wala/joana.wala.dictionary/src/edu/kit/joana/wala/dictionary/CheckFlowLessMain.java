@@ -66,7 +66,7 @@ public class CheckFlowLessMain {
 			}
 		}
 
-		final CheckFlowConfig cfc = new CheckFlowConfig(binDir, srcDir, TMP_OUT_DIR, TMP_OUT_DIR,
+		final CheckFlowConfig cfc = new CheckFlowConfig(binDir, new String[] {srcDir}, TMP_OUT_DIR, TMP_OUT_DIR,
 				CheckFlowLessWithAlias.createPrintStream(LOG_FILE), FlowCheckResultConsumer.STDOUT,
 				NullProgressMonitor.INSTANCE);
 

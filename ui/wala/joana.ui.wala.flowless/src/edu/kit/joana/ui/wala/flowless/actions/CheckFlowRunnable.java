@@ -46,7 +46,9 @@ public class CheckFlowRunnable implements IRunnableWithProgress {
 	public void run(final IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 		final ProgressMonitorDelegate walaProgress = ProgressMonitorDelegate.createProgressMonitorDelegate(monitor);
 		try {
-			final CheckFlowConfig cfc = new CheckFlowConfig(conf.getBinDir(), conf.getSrcDirs().get(0), conf.getTempDir(),
+			String[] srcDirs = new String[conf.getSrcDirs().size()];
+			srcDirs = conf.getSrcDirs().toArray(srcDirs);
+			final CheckFlowConfig cfc = new CheckFlowConfig(conf.getBinDir(), srcDirs, conf.getTempDir(),
 					conf.getLibLocation(), conf.getLogOut(), resultConsumer, walaProgress);
 			final CheckFlowLessWithAlias cfl = new CheckFlowLessWithAlias(cfc);
 			final IProject project = conf.getProject().getProject();

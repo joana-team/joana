@@ -94,7 +94,7 @@ public final class CheckFlowLessWithAlias {
 		public static final String DEFAULT_LIB_DIR = "../jSDG/lib/";
 
 		public final String bin;
-		public final String src;
+		public final String[] src;
 		public final String tmpDir;
 		public final String libDir;
 		public final PrintStream out;
@@ -103,17 +103,17 @@ public final class CheckFlowLessWithAlias {
 		public boolean printStatistics = true;
 		public AnalysisScope scope = null;
 
-		public CheckFlowConfig(final String bin, final String src) {
+		public CheckFlowConfig(final String bin, final String[] src) {
 			this(bin, src, DEFAULT_TMP_OUT_DIR, DEFAULT_LIB_DIR, System.out, FlowCheckResultConsumer.DEFAULT,
 					NullProgressMonitor.INSTANCE);
 		}
 
-		public CheckFlowConfig(final String bin, final String src, final PrintStream out) {
+		public CheckFlowConfig(final String bin, final String[] src, final PrintStream out) {
 			this(bin, src, DEFAULT_TMP_OUT_DIR, DEFAULT_LIB_DIR, out, FlowCheckResultConsumer.STDOUT,
 					NullProgressMonitor.INSTANCE);
 		}
 
-		public CheckFlowConfig(final String bin, final String src, final String tmpDir, final String libDir,
+		public CheckFlowConfig(final String bin, final String[] src, final String tmpDir, final String libDir,
 				final PrintStream out, final FlowCheckResultConsumer results, IProgressMonitor progress) {
 			if (src == null) {
 				throw new IllegalArgumentException("src directory is null.");
@@ -162,7 +162,7 @@ public final class CheckFlowLessWithAlias {
 
 	public static void main(String[] argv) {
 		final CheckFlowConfig[] RUNS = new CheckFlowConfig[] {
-				new CheckFlowConfig("../MoJo-TestCode/bin", "../MoJo-TestCode/src", createPrintStream("check_flow.log")),
+				new CheckFlowConfig("../MoJo-TestCode/bin", new String[] {"../MoJo-TestCode/src"}, createPrintStream("check_flow.log")),
 //				new CheckFlowConfig("../../3.7/runtime-EclipseApplication/eVoting-Joana/bin", "../../3.7/runtime-EclipseApplication/eVoting-Joana/src", createPrintStream("cf_evoting.log")),
 //				new CheckFlowConfig("../../3.7/workspace-ifc/eVoting-Joana/bin", "../../3.7/workspace-ifc/eVoting-Joana/src", createPrintStream("cf_evoting.log")),
 //				new CheckFlowConfig("../MoJo-TestCode/bin", "../MoJo-TestCode/src2", createPrintStream("check_flow.log")),
@@ -207,7 +207,11 @@ public final class CheckFlowLessWithAlias {
 
 	public void runCheckFlowLess() throws IOException, ClassHierarchyException, IllegalArgumentException, CancelException, UnsoundGraphException {
 		cfc.out.print("Parsing source files... ");
-		List<ClassInfo> clsInfos = MoJo.parseSourceFiles(cfc.src);
+		final List<ClassInfo> clsInfos = new LinkedList<ClassInfo>();
+		for (final String src : cfc.src) {
+			List<ClassInfo> clsNfoTmp = MoJo.parseSourceFiles(src);
+			clsInfos.addAll(clsNfoTmp);
+		}
 		cfc.out.println("done.");
 		cfc.out.print("Checking for syntactic errors... ");
 		final int errors = MoJo.prepareFlowLessStmts(clsInfos);

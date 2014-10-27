@@ -371,6 +371,8 @@ public class AP {
 		public FieldNode(final Node parent, final ParameterField field) {
 			if (parent == null) {
 				throw new IllegalArgumentException();
+			} else if (field == null) {
+				throw new IllegalArgumentException();
 			}
 
 			this.parent = parent;

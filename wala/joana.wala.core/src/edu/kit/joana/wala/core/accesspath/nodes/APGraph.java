@@ -386,24 +386,28 @@ public final class APGraph extends AbstractNumberedGraph<APNode> {
 		final List<PDGField> sIns = pdg.getStaticIn(n);
 		if (sIns != null) {
 			for (final PDGField sIn : sIns) {
-				final AP init = new AP(new AP.StaticParamNode(sIn.field.getField(), sIn.node.getId()));
-				final APActualParamNode apSIn = APActualParamNode.createParamInStatic(iindex, sIn.node, sIn.field);
-				createActualChildren(apSIn);
-				apSIn.addPath(init);
-				addInitialValue(apSIn, init);
-				apCall.addParameterStaticIn(sIn.field.getField(), apSIn);
+				if (!sIn.field.isPrimitiveType()) {
+					final AP init = new AP(new AP.StaticParamNode(sIn.field.getField(), sIn.node.getId()));
+					final APActualParamNode apSIn = APActualParamNode.createParamInStatic(iindex, sIn.node, sIn.field);
+					createActualChildren(apSIn);
+					apSIn.addPath(init);
+					addInitialValue(apSIn, init);
+					apCall.addParameterStaticIn(sIn.field.getField(), apSIn);
+				}
 			}
 		}
 
 		final List<PDGField> sOuts = pdg.getStaticOut(n);
 		if (sOuts != null) {
 			for (final PDGField sOut : sOuts) {
-				final AP init = new AP(new AP.StaticParamNode(sOut.field.getField(), sOut.node.getId()));
-				final APActualParamNode apSOut = APActualParamNode.createParamOutStatic(iindex, sOut.node, sOut.field);
-				createActualChildren(apSOut);
-				apSOut.addPath(init);
-				addInitialValue(apSOut, init);
-				apCall.addParameterStaticOut(sOut.field.getField(), apSOut);
+				if (!sOut.field.isPrimitiveType()) {
+					final AP init = new AP(new AP.StaticParamNode(sOut.field.getField(), sOut.node.getId()));
+					final APActualParamNode apSOut = APActualParamNode.createParamOutStatic(iindex, sOut.node, sOut.field);
+					createActualChildren(apSOut);
+					apSOut.addPath(init);
+					addInitialValue(apSOut, init);
+					apCall.addParameterStaticOut(sOut.field.getField(), apSOut);
+				}
 			}
 		}
 

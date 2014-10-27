@@ -60,13 +60,17 @@ public abstract class APParamNode extends APSimplePropagationNode {
 	 * @return true if any node in the tree has change its set of access paths.
 	 */
 	private void propagateDown(final AP path) {
-		AP sub = path.getSubPathTo(field);
-
-		if (sub == null) {
-			sub = path.append(field);
+		if (field != null) {
+			AP sub = path.getSubPathTo(field);
+	
+			if (sub == null) {
+				sub = path.append(field);
+			}
+	
+			addPath(sub);
+		} else {
+			addPath(path);
 		}
-
-		addPath(sub);
 	}
 
 	public boolean hasChildren() {

@@ -20,6 +20,7 @@ import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
+import edu.kit.joana.wala.core.PDGEdge.Kind;
 import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.SDGBuilder;
 
@@ -71,8 +72,36 @@ public final class ObjTreeConverter {
 				}
 			}
 		}
+		
+		// remove spurious nodes that are no longer part of the 
+		trimCallsiteTrees();
 	}
 
+	private void trimCallsiteTrees() {
+		for (final PDG caller : sdg.getAllPDGs()) {
+			final List<PDGNode> toRemove = new LinkedList<PDGNode>();
+			
+			for (final PDGNode call : caller.getCalls()) {
+				for (final PDGEdge e : caller.outgoingEdgesOf(call)) {
+					if (e.kind == Kind.CONTROL_DEP_EXPR && e.to.getKind() == PDGNode.Kind.ACTUAL_IN) {
+						// check if actual-in connects to formal-ins no longer present in their respective PDG
+						for (final PDGEdge e2 : caller.outgoingEdgesOf(e.to)) {
+							if (e2.kind == Kind.PARAMETER_IN) {
+								final PDGNode toCheck = e2.to;
+								final PDG pdg = sdg.getPDGforId(toCheck.getPdgId());
+								if (!pdg.containsVertex(toCheck)) {
+									toRemove.add(toCheck);
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			caller.removeAllVertices(toRemove);
+		}
+	}
+	
 	private void deleteOrigNodes(final PDG pdg, final TreeRoots treeRoots) {
 		for (final PDGNode root : treeRoots.getRoots()) {
 			final TreeElem rootElem = treeRoots.getRootTree(root);

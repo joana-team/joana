@@ -94,7 +94,7 @@ public abstract class APNode implements INodeWithNumber {
 	public Iterator<AP> getOutgoingPaths() {
 		return new Iterator<AP>() {
 
-			private final Iterator<AP> it = paths.iterator();
+			private final Iterator<AP> it = new HashSet<AP>(paths).iterator();
 
 			@Override
 			public boolean hasNext() {

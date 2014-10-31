@@ -48,6 +48,7 @@ public final class SideEffectDetectorConfig {
 	 */
 	public static interface ResultConsumer {
 		public void consume(List<CandidateFilter> usedFilters, boolean isOneLevelOnly, List<Result> results);
+		public void consumeModRef(ModRefCandidates modref);
 	}
 	
 	/**
@@ -65,7 +66,11 @@ public final class SideEffectDetectorConfig {
 			}
 			System.out.println("<<<<< side-effect detector results <<<<<");
 		}
-		
+
+		@Override
+		public void consumeModRef(ModRefCandidates modref) {
+
+		}
 	}
 	
 	/**
@@ -292,9 +297,8 @@ public final class SideEffectDetectorConfig {
 				Log.ERROR.outln("No side-effect detector result for '" + filter + "'");
 			}
 		}
-		
 		resultConsumer.consume(varsToAnalyze, isOneLevelOnly, results);
-		
+		resultConsumer.consumeModRef(modref);
 		// cleanup
 		sideEffectsDirect = null;
 	}

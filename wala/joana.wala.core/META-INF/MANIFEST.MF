@@ -44,4 +44,5 @@ Export-Package: edu.kit.joana.wala.core;
  edu.kit.joana.wala.core.joana;uses:="edu.kit.joana.wala.flowless.chasdg,edu.kit.joana.ifc.sdg.graph,com.ibm.wala.util",
  edu.kit.joana.wala.core.params;uses:="edu.kit.joana.wala.flowless.chasdg,com.ibm.wala.util",
  edu.kit.joana.wala.core.params.objgraph,
+ edu.kit.joana.wala.core.params.objgraph.candidates,
  edu.kit.joana.wala.core.summary

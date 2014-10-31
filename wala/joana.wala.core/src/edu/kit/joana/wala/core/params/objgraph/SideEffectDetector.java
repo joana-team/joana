@@ -109,13 +109,15 @@ public class SideEffectDetector {
 		 * @author Juergen Graf <juergen.graf@gmail.com>
 		 */
 		public static class Entry {
+			public final ModRefCandidate cand;
 			public final ParameterField param;
 			public final CandidateFilter filter;
 			public final Type type;
 			public final IMethod method;
 			
-			public Entry(final ParameterField param, final CandidateFilter filter, final Type type,
+			public Entry(final ModRefCandidate cand, final ParameterField param, final CandidateFilter filter, final Type type,
 					final IMethod method) {
+				this.cand = cand;
 				this.param = param;
 				this.filter = filter;
 				this.method = method;
@@ -191,27 +193,27 @@ public class SideEffectDetector {
 			selectedFields.add(field);
 		}
 		
-		private void addDirectModification(final IMethod m, final ParameterField pf) {
-			final Entry e = new Entry(pf, filter, Type.DIRECT_MOD, m);
+		private void addDirectModification(final IMethod m, final ModRefCandidate cand, final ParameterField pf) {
+			final Entry e = new Entry(cand, pf, filter, Type.DIRECT_MOD, m);
 			entries.add(e);
 			directModification.add(m);
 			directAndIndirectModification.add(m);
 		}
 
-		private void addIndirectModification(final IMethod m, final ParameterField pf) {
-			final Entry e = new Entry(pf, filter, Type.INDIRECT_MOD, m);
+		private void addIndirectModification(final IMethod m, final ModRefCandidate cand, final ParameterField pf) {
+			final Entry e = new Entry(cand, pf, filter, Type.INDIRECT_MOD, m);
 			entries.add(e);
 			directAndIndirectModification.add(m);
 		}
 		
-		private void addIndirectFieldModification(final IMethod m, final ParameterField pf) {
-			final Entry e = new Entry(pf, filter, Type.INDIRECT_REACHABLE, m);
+		private void addIndirectFieldModification(final IMethod m, final ModRefCandidate cand, final ParameterField pf) {
+			final Entry e = new Entry(cand, pf, filter, Type.INDIRECT_REACHABLE, m);
 			entries.add(e);
 			directAndIndirectReachableFieldModification.add(m);
 		}
 
-		private void addDirectFieldModification(final IMethod m, final ParameterField pf) {
-			final Entry e = new Entry(pf, filter, Type.DIRECT_REACHABLE, m);
+		private void addDirectFieldModification(final IMethod m, final ModRefCandidate cand, final ParameterField pf) {
+			final Entry e = new Entry(cand, pf, filter, Type.DIRECT_REACHABLE, m);
 			entries.add(e);
 			directAndIndirectReachableFieldModification.add(m);
 			directReachableFieldModification.add(m);
@@ -489,11 +491,11 @@ public class SideEffectDetector {
 				if (c.isMod() && potentiallyReachable.contains(c)) {
 					if (direct.contains(c)) {
 						for (final ParameterField f : c.getFields()) {
-							result.addDirectFieldModification(n.getMethod(), f);
+							result.addDirectFieldModification(n.getMethod(), c, f);
 						}
 					} else {
 						for (final ParameterField f : c.getFields()) {
-							result.addIndirectFieldModification(n.getMethod(), f);
+							result.addIndirectFieldModification(n.getMethod(), c, f);
 						}
 					}
 				}
@@ -537,9 +539,9 @@ public class SideEffectDetector {
 							}
 							
 							if (isDirect) {
-								result.addDirectModification(n.getMethod(), pf);
+								result.addDirectModification(n.getMethod(), c, pf);
 							} else {
-								result.addIndirectModification(n.getMethod(), pf);
+								result.addIndirectModification(n.getMethod(), c, pf);
 							}
 						}
 					}
@@ -573,11 +575,14 @@ public class SideEffectDetector {
 							result.addSelectedField(f.field);
 							
 							final OrdinalSet<InstanceKey> pts = pa.getStaticFieldPTS(f);
+							final ModRefRootCandidate rp;
 							if (pts != null && !pts.isEmpty()) {
-								final ModRefRootCandidate rp = ModRefRootCandidate.createMod(f, pts);
+								rp = ModRefRootCandidate.createMod(f, pts);
 								input.rootCandidates.add(rp);
+							} else {
+								rp = null;
 							}
-							result.addDirectModification(pdg.getMethod(), f.field);
+							result.addDirectModification(pdg.getMethod(), rp, f.field);
 							if (log.isEnabled()) {
 								log.outln("found static root direct write in "
 									+ PrettyWalaNames.methodName(pdg.getMethod()));
@@ -607,11 +612,14 @@ public class SideEffectDetector {
 						result.addSelectedField(f.field);
 						
 						final OrdinalSet<InstanceKey> pts = pa.getStaticFieldPTS(f);
+						final ModRefRootCandidate rp;
 						if (pts != null && !pts.isEmpty()) {
-							final ModRefRootCandidate rp = ModRefRootCandidate.createMod(f, pts);
+							rp = ModRefRootCandidate.createMod(f, pts);
 							input.rootCandidates.add(rp);
+						} else {
+							rp = null;
 						}
-						result.addIndirectModification(pdg.getMethod(), f.field);
+						result.addIndirectModification(pdg.getMethod(), rp, f.field);
 						if (log.isEnabled()) {
 							log.outln("found static root indirect write in "
 								+ PrettyWalaNames.methodName(pdg.getMethod()));

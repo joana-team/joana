@@ -117,8 +117,18 @@ public final class LocalKillingDefs {
 		return removed;
 	}
 
+	public static final int MAX_ACCESSES_THRESHOLD = 1000;
+	
 	public static int run(final SDGBuilder sdg, final PDG pdg, final IProgressMonitor progress)
 			throws CancelException {
+		final int numberOfAccesses = pdg.getFieldReads().size() + pdg.getFieldWrites().size() + pdg.staticReads.length
+				+ pdg.staticWrites.length;
+		// currently the local killing definitions analysis does not scale well. We simply skip them for unusual large
+		// methods.
+		if (numberOfAccesses > MAX_ACCESSES_THRESHOLD) {
+			return 0;
+		}
+		
 		final LocalKillingDefs lkd = new LocalKillingDefs(sdg, pdg);
 		lkd.run(progress);
 

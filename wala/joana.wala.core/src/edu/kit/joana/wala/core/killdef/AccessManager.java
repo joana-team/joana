@@ -156,9 +156,27 @@ public final class AccessManager<T> {
 		return equiv;
 	}
 
+	private Map<ParameterField, List<FieldAccess<T>>> groupReadAccessesByField() {
+		final Map<ParameterField, List<FieldAccess<T>>> map = new HashMap<ParameterField, List<FieldAccess<T>>>();
+		
+		for (final FieldAccess<T> r : read) {
+			List<FieldAccess<T>> l = map.get(r.getField());
+			if (l == null) {
+				l = new LinkedList<FieldAccess<T>>();
+				map.put(r.getField(), l);
+			}
+			
+			l.add(r);
+		}
+		
+		return map;
+	}
+	
 	@SuppressWarnings("unused")
 	private void computeValueEquivClasses(final Reachability<T> reach, final IProgressMonitor progress)
 			throws CancelException {
+		final Map<ParameterField, List<FieldAccess<T>>> grouped = groupReadAccessesByField();
+
 		boolean changed = true;
 
 		while (changed) {
@@ -173,20 +191,24 @@ public final class AccessManager<T> {
 			 *
 			 * merge (v2, v3)
 			 */
-			for (final FieldAccess<T> to : read) {
-				final Value<Integer> val = to.getValue();
-
-				for (final FieldAccess<T> from : read) {
-					if (to == from) continue;
-
-					if (to.isSameAccess(from) && reach.isReachFromTo(from, to)
-							&& !reach.isWriteInBetween(from, to, to.getField())) {
-						final Value<Integer> val2 = from.getValue();
-						final boolean change = val.merge(val2);
-						changed |= change;
-
-						if (DEBUG_PRINT && change) {
-							System.out.println("\tm1(v" + val + ", v" + val2 + ")");
+			for (final ParameterField f : grouped.keySet()) {
+				final List<FieldAccess<T>> freads = grouped.get(f);
+				
+				for (final FieldAccess<T> to : read) {
+					final Value<Integer> val = to.getValue();
+	
+					for (final FieldAccess<T> from : read) {
+						if (to == from) continue;
+	
+						if (to.isSameAccess(from) && reach.isReachFromTo(from, to)
+								&& !reach.isWriteInBetween(from, to, to.getField())) {
+							final Value<Integer> val2 = from.getValue();
+							final boolean change = val.merge(val2);
+							changed |= change;
+	
+							if (DEBUG_PRINT && change) {
+								System.out.println("\tm1(v" + val + ", v" + val2 + ")");
+							}
 						}
 					}
 				}
@@ -201,22 +223,26 @@ public final class AccessManager<T> {
 			 *
 			 * merge (v3, v2) iff n1 dominates n3 and no other write to f is in between
 			 */
-			for (final FieldAccess<T> readA : read) {
-				final Value<Integer> val = readA.getValue();
-
-				for (final FieldAccess<T> readF : read) {
-					if (readA.getField().equals(readF.getField())) continue;
-
-					final FieldAccess<T> writeF = reach.findLastWriteDominating(readF);
-
-					if (writeF != null && writeF.getValue().equals(val) && reach.isDominating(readA, writeF)
-							&& writeF.isSameAccess(readF)) {
-						final Value<Integer> valReadF = readF.getValue();
-						boolean change = val.merge(valReadF);
-						changed |= change;
-						
-						if (DEBUG_PRINT && change) {
-							System.out.println("\tm2(v" + val + ", v" + valReadF + ")");
+			for (final ParameterField f : grouped.keySet()) {
+				final List<FieldAccess<T>> freads = grouped.get(f);
+				
+				for (final FieldAccess<T> readA : read) {
+					final Value<Integer> val = readA.getValue();
+	
+					for (final FieldAccess<T> readF : read) {
+						if (readA.getField().equals(readF.getField())) continue;
+	
+						final FieldAccess<T> writeF = reach.findLastWriteDominating(readF);
+	
+						if (writeF != null && writeF.getValue().equals(val) && reach.isDominating(readA, writeF)
+								&& writeF.isSameAccess(readF)) {
+							final Value<Integer> valReadF = readF.getValue();
+							boolean change = val.merge(valReadF);
+							changed |= change;
+							
+							if (DEBUG_PRINT && change) {
+								System.out.println("\tm2(v" + val + ", v" + valReadF + ")");
+							}
 						}
 					}
 				}

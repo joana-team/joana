@@ -162,7 +162,7 @@ public final class WalaPointsToUtil {
         if (additionalContextInterpreter == null) {
         	contextInterpreter = new FallbackContextInterpreter(new DefaultSSAInterpreter(options, cache));
         } else {
-        	contextInterpreter = additionalContextInterpreter;
+        	contextInterpreter = new DelegatingSSAContextInterpreter(additionalContextInterpreter, new FallbackContextInterpreter(new DefaultSSAInterpreter(options, cache)));
         }
         
         final int instancePolicy =  ZeroXInstanceKeys.ALLOCATIONS |

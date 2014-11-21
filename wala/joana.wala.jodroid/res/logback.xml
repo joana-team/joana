@@ -11,11 +11,11 @@
   <appender name="DEVNULL"
     class="ch.qos.logback.core.helpers.NOPAppender" />
 
-  <logger name="com.ibm.wala" level="WARN"/>
-  <logger name="org.scandroid.util.CGAnalysisContext" level="ALL"/>
-  <logger name="org.scandroid.flow.functions.TaintTransferFunctions" level="ALL"/>
+  <logger name="com.ibm.wala" level="OFF"/>
+  <logger name="org.scandroid.util.CGAnalysisContext" level="OFF"/>
+  <logger name="org.scandroid.flow.functions.TaintTransferFunctions" level="OFF"/>
 
-  <root level="ALL">
-    <appender-ref ref="STDOUT" /> <!-- change to ref="DEVNULL" for no output -->
+  <root level="OFF">
+    <appender-ref ref="DEVNULL" /> <!-- change to ref="DEVNULL" for no output -->
   </root> 
 </configuration>

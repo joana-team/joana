@@ -194,7 +194,7 @@ public class ExecutionOptions {
     public void setAndroidLib(String androidLib) {
         try {
             this.androidLib = new URI(androidLib);
-            final File f = new File(androidLib);
+            final File f = new File(this.androidLib);
             if (! f.exists()) {
                 System.err.println("The Android-Stubs cannot be found at '" + androidLib + "'");
             }

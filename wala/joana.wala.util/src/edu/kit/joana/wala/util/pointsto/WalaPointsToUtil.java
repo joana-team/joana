@@ -19,6 +19,7 @@ import com.ibm.wala.ipa.callgraph.ContextSelector;
 import com.ibm.wala.ipa.callgraph.MethodTargetSelector;
 import com.ibm.wala.ipa.callgraph.impl.DefaultContextSelector;
 import com.ibm.wala.ipa.callgraph.impl.DelegatingContextSelector;
+import com.ibm.wala.ipa.callgraph.impl.UnionContextSelector;
 import com.ibm.wala.ipa.callgraph.impl.Util;
 import com.ibm.wala.ipa.callgraph.propagation.SSAContextInterpreter;
 import com.ibm.wala.ipa.callgraph.propagation.SSAPropagationCallGraphBuilder;
@@ -196,7 +197,7 @@ public final class WalaPointsToUtil {
         if (additionalContextInterpreter == null) {
         	contextInterpreter = new FallbackContextInterpreter(new DefaultSSAInterpreter(options, cache));
         } else {
-        	contextInterpreter = additionalContextInterpreter;
+        	contextInterpreter = new DelegatingSSAContextInterpreter(additionalContextInterpreter, new FallbackContextInterpreter(new DefaultSSAInterpreter(options, cache)));
         }
 
         final ContextSelector defaultSelector = new DefaultContextSelector(options, cha);
@@ -204,7 +205,7 @@ public final class WalaPointsToUtil {
         if (additionalContextSelector == null) {
         	contextSelector = defaultSelector;
         } else {
-        	contextSelector = new DelegatingContextSelector(additionalContextSelector, defaultSelector);
+        	contextSelector = new UnionContextSelector(additionalContextSelector, defaultSelector);
         }
         
         final int instancePolicy =  ZeroXInstanceKeys.ALLOCATIONS |

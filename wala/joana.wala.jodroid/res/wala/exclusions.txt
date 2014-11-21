@@ -1,0 +1,6 @@
+sun/awt/.*
+sun/swing/.*
+com/sun/.*
+apple/awt/.*
+com/apple/.*
+org/omg/.*

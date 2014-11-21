@@ -83,11 +83,16 @@
 			<filelist dir="${com.ibm.wala.core.base.dir}/lib">
 				<file name="primordial.jar.model" />
             </filelist>
-			<filelist dir="${joana.wala.jodroid.base.dir}/lib">
+			<filelist dir="${joana.wala.jodroid.base.dir}/analysis-libs">
 				<file name="android-18.jar" />
+			</filelist>
+			<filelist dir="${joana.wala.jodroid.base.dir}/res/wala">
 				<file name="exclusions.txt" />
+			</filelist>	
+			<filelist dir="${joana.wala.jodroid.base.dir}/res">
 				<file name="logback.xml" />
-            </filelist>
+			</filelist>
+
 			<filelist dir="${joana.contrib.base.dir}/stubs">
 				<file name="natives_empty.xml" />
 				<file name="jSDG-stubs-jre1.4.jar" />

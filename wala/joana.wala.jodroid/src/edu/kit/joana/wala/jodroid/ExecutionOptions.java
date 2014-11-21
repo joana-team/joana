@@ -129,7 +129,7 @@ public class ExecutionOptions {
     private boolean writeEpFile = true;
     private URI epFile;
     private AnalysisPresets.PresetDescription preset = AnalysisPresets.PresetDescription.DEFAULT;
-    private AnalysisPresets.OutputDescription output = AnalysisPresets.OutputDescription.PRETTY;
+    private AnalysisPresets.OutputDescription output = AnalysisPresets.OutputDescription.BASIC;
 
 
     public ExecutionOptions() {

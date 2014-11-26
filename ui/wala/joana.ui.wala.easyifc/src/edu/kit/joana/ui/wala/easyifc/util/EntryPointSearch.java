@@ -180,7 +180,7 @@ public class EntryPointSearch {
 	
 	public static class AnnotationEntryPointConfiguration extends EntryPointConfiguration {
 		private final IAnnotation annotation;
-		private final EditableLatticeSimple<String> lattice;
+		private final IStaticLattice<String> lattice;
 		public AnnotationEntryPointConfiguration(IMethod method, IAnnotation annotation) {
 			super(method, (annotation instanceof SourceRefElement)? (SourceRefElement) annotation : null,
 			              (method instanceof SourceRefElement)? (SourceRefElement) method : null);
@@ -188,22 +188,25 @@ public class EntryPointSearch {
 			assert (method instanceof SourceRefElement) == (method instanceof SourceMethod); 
 			this.annotation = annotation;
 			
-			this.lattice = new EditableLatticeSimple<String>();
+			boolean latticeSpecified = false;
+			EditableLatticeSimple<String> specifiedLattice  = new EditableLatticeSimple<String>();
 			try {
 				for (IMemberValuePair pair : annotation.getMemberValuePairs()) {
 					if ("levels".equals(pair.getMemberName())) {
+						latticeSpecified = true;
 						if  (pair.getValueKind() != IMemberValuePair.K_STRING) {
 							throw new IllegalArgumentException("Illegal levels specification: " + pair.getValue() + "  - use literal Strings instead (e.g.: { \"low\", \"high\" })");
 						}
 						Object[] levels = (Object[]) pair.getValue();
 						for (Object o : levels) {
 							String level = (String) o;
-							lattice.addElement(level);
+							specifiedLattice.addElement(level);
 						}
 					}
 				}
 				for (IMemberValuePair pair : annotation.getMemberValuePairs()) {
 					if ("lattice".equals(pair.getMemberName())) {
+						latticeSpecified = true;
 						assert (pair.getValueKind() == IMemberValuePair.K_ANNOTATION);
 						Object[] mayflows = (Object[]) pair.getValue();
 						for (Object o : mayflows) {
@@ -225,23 +228,29 @@ public class EntryPointSearch {
 								}
 							}
 							assert (from != null && to != null);
-							if(!lattice.getElements().contains(from)) {
+							if(!specifiedLattice.getElements().contains(from)) {
 								throw new IllegalArgumentException("Unknown from-level: " + from);
 							}
-							if(!lattice.getElements().contains(to)) {
+							if(!specifiedLattice.getElements().contains(to)) {
 								throw new IllegalArgumentException("Unknown to-level: " + from);
 							}
 
-							lattice.setImmediatelyGreater(from, to);
+							specifiedLattice.setImmediatelyGreater(from, to);
 						}
 					}
+				}
+				if (!latticeSpecified) {
+					this.lattice = BuiltinLattices.getBinaryLattice();
+				} else {
+					LatticeUtil.naiveTopBottomCompletion(specifiedLattice);
+					this.lattice = specifiedLattice;
 				}
 			} catch (JavaModelException e) {
 				// Thrown by IAnnotation.getMemberValuePairs()
 				// TODO: better error handling
 				throw new RuntimeException(e);
 			}
-			LatticeUtil.naiveTopBottomCompletion(lattice);
+
 		}
 		
 		@Override

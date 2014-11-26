@@ -19,8 +19,8 @@ import edu.kit.joana.ui.annotations.Level;
  * @author Martin Hecker <martin.hecker@kit.edu>
  */
 @Retention(RetentionPolicy.CLASS)
-@Target({ElementType.FIELD,ElementType.METHOD})
+@Target({ElementType.FIELD,ElementType.METHOD, ElementType.PARAMETER})
 public @interface Source {
-	Level level() default Level.HIGH;
+	String level() default "HIGH";
 	AnnotationPolicy annotate() default AnnotationPolicy.ANNOTATE_USAGES;
 }

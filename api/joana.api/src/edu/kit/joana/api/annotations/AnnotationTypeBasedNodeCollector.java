@@ -97,6 +97,25 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 	protected Set<SDGNode> visitParameter(SDGFormalParameter param, AnnotationType type) {
 		assert !pp2NodeTrans.getOutRoots(param).isEmpty() || !pp2NodeTrans.getInRoots(param).isEmpty();
 		Set<SDGNode> ret = new HashSet<SDGNode>();
+
+		
+		if (false) {
+			ret.addAll(pp2NodeTrans.getInRoots(param));
+			ret.addAll(pp2NodeTrans.getOutRoots(param));
+			addAllAppropriateParameterNodesFrom(pp2NodeTrans.getInRoots(param), type, ret);
+			if (pp2NodeTrans.getInRoots(param) != null && type == AnnotationType.SINK) {
+				/**
+				 *  also mark all act_out nodes of this parameters as source, to capture
+				 *  possible information flows from this parameter to the environment
+				 *  just marking the formal-in would not suffice
+				 *  TODO: think about this!
+				 **/
+				addAllAppropriateParameterNodesFrom(getCorrespondingActOuts(param), type, ret);
+			}
+			
+			addAllAppropriateParameterNodesFrom(pp2NodeTrans.getOutRoots(param), type, ret);
+		} else {
+		// TODO: Discuss with mmohr why inRoots themselves (pp2NodeTrans.getInRoots(param)) aren't added to ret
 		addAllAppropriateParameterNodesFrom(pp2NodeTrans.getInRoots(param), type, ret);
 		if (pp2NodeTrans.getInRoots(param) != null && type == AnnotationType.SINK) {
 			/**
@@ -107,8 +126,9 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 			 **/
 			addAllAppropriateParameterNodesFrom(getCorrespondingActOuts(param), type, ret);
 		}
-
+		
 		addAllAppropriateParameterNodesFrom(pp2NodeTrans.getOutRoots(param), type, ret);
+		}
 		return ret;
 	}
 

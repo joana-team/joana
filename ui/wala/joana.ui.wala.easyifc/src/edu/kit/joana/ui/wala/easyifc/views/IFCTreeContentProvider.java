@@ -344,9 +344,9 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 					oldChildWithSameEntryPointConfiguration = oldChild;
 				}
 				if (oldChild.getResult().getEntryPointConfiguration().replaces(result.getEntryPointConfiguration())) {
-					supersededChildren.add(oldChild);
-				} else if (result.getEntryPointConfiguration().replaces(oldChild.getResult().getEntryPointConfiguration())) {
 					supersededChildren.add(this);
+				} else if (result.getEntryPointConfiguration().replaces(oldChild.getResult().getEntryPointConfiguration())) {
+					supersededChildren.add(oldChild);
 				}
 			}
 			parent.removeChild(oldChildWithSameEntryPointConfiguration);

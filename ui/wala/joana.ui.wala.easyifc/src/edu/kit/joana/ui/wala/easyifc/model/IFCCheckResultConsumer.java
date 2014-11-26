@@ -82,6 +82,10 @@ public interface IFCCheckResultConsumer {
 			return !(excLeaks.isEmpty() && noExcLeaks.isEmpty() && directLeaks.isEmpty());
 		}
 		
+		public boolean hasImportantLeaks() {
+			return !(noExcLeaks.isEmpty() && directLeaks.isEmpty());
+		}
+		
 		public void addDirectLeak(final SLeak leak) {
 			if (filter.isOk(LeakType.DIRECT, leak)) {
 				leaks.add(leak);

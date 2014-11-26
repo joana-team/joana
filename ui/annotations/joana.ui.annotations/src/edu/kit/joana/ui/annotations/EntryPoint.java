@@ -9,4 +9,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.METHOD})
 public @interface EntryPoint {
+	String[] levels() default {"low", "high"};
+	MayFlow[] lattice() default { @MayFlow(from="low", to="high") };
 }

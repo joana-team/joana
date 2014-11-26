@@ -11,9 +11,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream.GetField;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -521,4 +524,32 @@ public class LatticeUtil {
 	public static <ElementType> boolean isLeq(IStaticLattice<ElementType> l, ElementType l1, ElementType l2) {
 		return l.leastUpperBound(l1, l2).equals(l2);
 	}
+	
+	
+	
+	public static void naiveTopBottomCompletion(IEditableLattice<String> lattice) {
+		Collection<String> tops = findTopElements(lattice.getElements(), lattice);
+		Collection<String> bots = findBottomElements(lattice.getElements(), lattice);
+		
+		if (tops.size() > 1 ) {
+			if (lattice.getElements().contains("top")) {
+				throw new IllegalArgumentException("Lattice contains element named \"top\" that isn't the top element");
+			}
+			lattice.addElement("top");
+			for (String t : tops) {
+				lattice.setImmediatelyGreater(t, "top");
+			}
+		}
+		
+		if (bots.size() > 1 ) {
+			if (lattice.getElements().contains("bottom")) {
+				throw new IllegalArgumentException("Lattice contains element named \"bottom\" that isn't the bottom element");
+			}
+			lattice.addElement("bottom");
+			for (String t : bots) {
+				lattice.setImmediatelyLower(t, "bottom");
+			}
+		}
+	}
+	
 }

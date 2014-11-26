@@ -16,7 +16,7 @@ public class Joana {
 
 	private Joana() {}
 	
-	public static int declassify(final Level from, final Level to, final int value) {
+	public static int declassify(final String from, final String to, final int value) {
 		return 0;
 	}
 
@@ -24,7 +24,7 @@ public class Joana {
 		return declassify(Level.HIGH, Level.LOW, value);
 	}
 
-	public static boolean declassify(final Level from, final Level to, final boolean value) {
+	public static boolean declassify(final String from, final String to, final boolean value) {
 		return false;
 	}
 
@@ -32,7 +32,7 @@ public class Joana {
 		return declassify(Level.HIGH, Level.LOW, value);
 	}
 
-	public static byte declassify(final Level from, final Level to, final byte value) {
+	public static byte declassify(final String from, final String to, final byte value) {
 		return 0;
 	}
 
@@ -40,7 +40,7 @@ public class Joana {
 		return declassify(Level.HIGH, Level.LOW, value);
 	}
 
-	public static double declassify(final Level from, final Level to, final double value) {
+	public static double declassify(final String from, final String to, final double value) {
 		return 0.0d;
 	}
 
@@ -48,7 +48,7 @@ public class Joana {
 		return declassify(Level.HIGH, Level.LOW, value);
 	}
 
-	public static float declassify(final Level from, final Level to, final float value) {
+	public static float declassify(final String from, final String to, final float value) {
 		return 0.0f;
 	}
 
@@ -56,7 +56,7 @@ public class Joana {
 		return declassify(Level.HIGH, Level.LOW, value);
 	}
 
-	public static char declassify(final Level from, final Level to, final char value) {
+	public static char declassify(final String from, final String to, final char value) {
 		return '\u0000';
 	}
 
@@ -64,7 +64,7 @@ public class Joana {
 		return declassify(Level.HIGH, Level.LOW, value);
 	}
 
-	public static long declassify(final Level from, final Level to, final long value) {
+	public static long declassify(final String from, final String to, final long value) {
 		return 0L;
 	}
 
@@ -72,7 +72,7 @@ public class Joana {
 		return declassify(Level.HIGH, Level.LOW, value);
 	}
 
-	public static short declassify(final Level from, final Level to, final short value) {
+	public static short declassify(final String from, final String to, final short value) {
 		return 0;
 	}
 
@@ -80,7 +80,7 @@ public class Joana {
 		return declassify(Level.HIGH, Level.LOW, value);
 	}
 
-	public static String declassify(final Level from, final Level to, final String value) {
+	public static String declassify(final String from, final String to, final String value) {
 		return "declassify";
 	}
 
@@ -88,7 +88,7 @@ public class Joana {
 		return declassify(Level.HIGH, Level.LOW, value);
 	}
 
-	public static int[] declassify(final Level from, final Level to, final int[] value) {
+	public static int[] declassify(final String from, final String to, final int[] value) {
 		return new int[1];
 	}
 
@@ -96,7 +96,7 @@ public class Joana {
 		return declassify(Level.HIGH, Level.LOW, value);
 	}
 
-	public static boolean[] declassify(final Level from, final Level to, final boolean[] value) {
+	public static boolean[] declassify(final String from, final String to, final boolean[] value) {
 		return new boolean[1];
 	}
 
@@ -104,7 +104,7 @@ public class Joana {
 		return declassify(Level.HIGH, Level.LOW, value);
 	}
 
-	public static byte[] declassify(final Level from, final Level to, final byte[] value) {
+	public static byte[] declassify(final String from, final String to, final byte[] value) {
 		return new byte[1];
 	}
 
@@ -112,7 +112,7 @@ public class Joana {
 		return declassify(Level.HIGH, Level.LOW, value);
 	}
 
-	public static double[] declassify(final Level from, final Level to, final double[] value) {
+	public static double[] declassify(final String from, final String to, final double[] value) {
 		return new double[1];
 	}
 
@@ -120,7 +120,7 @@ public class Joana {
 		return declassify(Level.HIGH, Level.LOW, value);
 	}
 
-	public static float[] declassify(final Level from, final Level to, final float[] value) {
+	public static float[] declassify(final String from, final String to, final float[] value) {
 		return new float[1];
 	}
 
@@ -128,7 +128,7 @@ public class Joana {
 		return declassify(Level.HIGH, Level.LOW, value);
 	}
 
-	public static char[] declassify(final Level from, final Level to, final char[] value) {
+	public static char[] declassify(final String from, final String to, final char[] value) {
 		return new char[1];
 	}
 
@@ -136,7 +136,7 @@ public class Joana {
 		return declassify(Level.HIGH, Level.LOW, value);
 	}
 
-	public static long[] declassify(final Level from, final Level to, final long[] value) {
+	public static long[] declassify(final String from, final String to, final long[] value) {
 		return new long[1];
 	}
 
@@ -144,7 +144,7 @@ public class Joana {
 		return declassify(Level.HIGH, Level.LOW, value);
 	}
 
-	public static short[] declassify(final Level from, final Level to, final short[] value) {
+	public static short[] declassify(final String from, final String to, final short[] value) {
 		return new short[1];
 	}
 

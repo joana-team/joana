@@ -220,7 +220,7 @@ public class ToyTests {
 		}
 	}
 	
-	private static void dumpSDG(SDG sdg, String filename) throws FileNotFoundException {
+	public static void dumpSDG(SDG sdg, String filename) throws FileNotFoundException {
 		BufferedOutputStream bOut = new BufferedOutputStream(new FileOutputStream(outputDir + "/" + filename));
 		SDGSerializer.toPDGFormat(sdg, bOut);
 	}

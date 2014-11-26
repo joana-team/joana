@@ -1,9 +1,11 @@
 package edu.kit.joana.ui.wala.easyifc.util;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IAnnotation;
@@ -32,7 +34,12 @@ import org.eclipse.jdt.internal.core.Annotation;
 import org.eclipse.jdt.internal.core.SourceMethod;
 import org.eclipse.jdt.internal.core.SourceRefElement;
 
+import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGConfig;
+import edu.kit.joana.ifc.sdg.lattice.IEditableLattice;
+import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
+import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
+import edu.kit.joana.ifc.sdg.lattice.impl.EditableLatticeSimple;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.annotations.EntryPoint;
 import edu.kit.joana.ui.wala.easyifc.model.CheckInformationFlow;
@@ -127,6 +134,8 @@ public class EntryPointSearch {
 
 		public abstract boolean isDefaultParameters();
 		
+		public abstract IStaticLattice<String> lattice();
+		
 		protected abstract int priority();
 
 		public final boolean replaces(EntryPointConfiguration other) {
@@ -162,16 +171,77 @@ public class EntryPointSearch {
 		public boolean isDefaultParameters() {
 			return true;
 		}
+		
+		@Override
+		public IStaticLattice<String> lattice() {
+			return BuiltinLattices.getBinaryLattice();
+		}
 	}
 	
 	public static class AnnotationEntryPointConfiguration extends EntryPointConfiguration {
 		private final IAnnotation annotation;
+		private final EditableLatticeSimple<String> lattice;
 		public AnnotationEntryPointConfiguration(IMethod method, IAnnotation annotation) {
 			super(method, (annotation instanceof SourceRefElement)? (SourceRefElement) annotation : null,
 			              (method instanceof SourceRefElement)? (SourceRefElement) method : null);
 			assert (annotation instanceof SourceRefElement) == (annotation instanceof Annotation);
 			assert (method instanceof SourceRefElement) == (method instanceof SourceMethod); 
 			this.annotation = annotation;
+			
+			this.lattice = new EditableLatticeSimple<String>();
+			try {
+				for (IMemberValuePair pair : annotation.getMemberValuePairs()) {
+					if ("levels".equals(pair.getMemberName())) {
+						if  (pair.getValueKind() != IMemberValuePair.K_STRING) {
+							throw new IllegalArgumentException("Illegal levels specification: " + pair.getValue() + "  - use literal Strings instead (e.g.: { \"low\", \"high\" })");
+						}
+						Object[] levels = (Object[]) pair.getValue();
+						for (Object o : levels) {
+							String level = (String) o;
+							lattice.addElement(level);
+						}
+					}
+				}
+				for (IMemberValuePair pair : annotation.getMemberValuePairs()) {
+					if ("lattice".equals(pair.getMemberName())) {
+						assert (pair.getValueKind() == IMemberValuePair.K_ANNOTATION);
+						Object[] mayflows = (Object[]) pair.getValue();
+						for (Object o : mayflows) {
+							IAnnotation mayflow = (IAnnotation) o;
+							String from = null;
+							String to = null;
+							for (IMemberValuePair fromto : mayflow.getMemberValuePairs()) {
+								if ("from".equals(fromto.getMemberName())) {
+									if  (fromto.getValueKind() != IMemberValuePair.K_STRING) {
+										throw new IllegalArgumentException("Illegal from-level : " + pair.getValue() + "  - use literal String instead (e.g.: \"low\")");
+									}
+									from = (String) fromto.getValue();
+								}
+								if ("to".equals(fromto.getMemberName())) {
+									if  (fromto.getValueKind() != IMemberValuePair.K_STRING) {
+										throw new IllegalArgumentException("Illegal to-level : " + pair.getValue() + "  - use literal String instead (e.g.: \"low\")");
+									}
+									to = (String) fromto.getValue();
+								}
+							}
+							assert (from != null && to != null);
+							if(!lattice.getElements().contains(from)) {
+								throw new IllegalArgumentException("Unknown from-level: " + from);
+							}
+							if(!lattice.getElements().contains(to)) {
+								throw new IllegalArgumentException("Unknown to-level: " + from);
+							}
+
+							lattice.setImmediatelyGreater(from, to);
+						}
+					}
+				}
+			} catch (JavaModelException e) {
+				// Thrown by IAnnotation.getMemberValuePairs()
+				// TODO: better error handling
+				throw new RuntimeException(e);
+			}
+			LatticeUtil.naiveTopBottomCompletion(lattice);
 		}
 		
 		@Override
@@ -190,7 +260,31 @@ public class EntryPointSearch {
 				if (mps != null && mps.length > 0) {
 					final StringBuilder sb = new StringBuilder("configuration: ");
 					for (final IMemberValuePair mp : mps) {
-						sb.append(mp.getMemberName() + "=" + mp.getValue());
+						sb.append(mp.getMemberName() + "=");
+						switch (mp.getMemberName()) {
+							case "levels":
+								Object[] levels = (Object[]) mp.getValue();
+								sb.append(Arrays.toString(levels));
+								break;
+							case "lattice":
+								sb.append("{");
+								Object[] flows = (Object[]) mp.getValue();
+								for (Object o : flows) {
+									IAnnotation flow = (IAnnotation) o;
+									sb.append("@MayFlow(");
+									for (IMemberValuePair fromto : flow.getMemberValuePairs()) {
+										sb.append(fromto.getMemberName());
+										sb.append("=");
+										sb.append(fromto.getValue());
+										sb.append(", ");
+									}
+									sb.delete(sb.length() - 2, sb.length());
+									sb.append("), ");
+								}
+								sb.delete(sb.length() - 2, sb.length());
+								break;
+							default: assert (false);
+						}
 						sb.append(", ");
 					}
 					sb.delete(sb.length() - 2, sb.length());
@@ -217,6 +311,11 @@ public class EntryPointSearch {
 			} catch (JavaModelException e) {}
 			
 			return isDefault;
+		}
+		
+		@Override
+		public IStaticLattice<String> lattice() {
+			return lattice;
 		}
 	}
 	

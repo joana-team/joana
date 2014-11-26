@@ -95,9 +95,9 @@ public class EasyIFCMarkerAndImageManager {
     }
 
     public Image getImage(final IFCResult ifcres) {
-		return (ifcres.hasLeaks() 
-				? Activator.getImageDescriptor(ILLEGAL_FLOW_IMG).createImage()
-				: Activator.getImageDescriptor(NO_LEAK_IMG).createImage());
+		if (!ifcres.hasLeaks())          return Activator.getImageDescriptor(NO_LEAK_IMG).createImage();
+		if (!ifcres.hasImportantLeaks()) return Activator.getImageDescriptor(ILLEGAL_FLOW_EXC_IMG).createImage();
+		return Activator.getImageDescriptor(ILLEGAL_FLOW_IMG).createImage();
     }
     
     public Image getTriggerImage() {

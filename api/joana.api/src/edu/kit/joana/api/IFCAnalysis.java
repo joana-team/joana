@@ -7,11 +7,13 @@
  */
 package edu.kit.joana.api;
 
+import java.lang.invoke.ConstantCallSite;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.ibm.wala.shrikeCT.AnnotationsReader.ConstantElementValue;
 import com.ibm.wala.shrikeCT.AnnotationsReader.ElementValue;
 import com.ibm.wala.shrikeCT.AnnotationsReader.EnumElementValue;
 import com.ibm.wala.types.ClassLoaderReference;
@@ -28,6 +30,8 @@ import edu.kit.joana.api.sdg.SDGActualParameter;
 import edu.kit.joana.api.sdg.SDGAttribute;
 import edu.kit.joana.api.sdg.SDGCall;
 import edu.kit.joana.api.sdg.SDGCallReturnNode;
+import edu.kit.joana.api.sdg.SDGFieldOfParameter;
+import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
@@ -415,11 +419,21 @@ public class IFCAnalysis {
 	public SDGProgramPart getProgramPart(String ppartDesc) {
 		return program.getPart(ppartDesc);
 	}
+
+	
 	
 	/**
 	 * If Java Source annotations are available, add corresponding IFC Annotations to the Analysis.
 	 */
 	public void addAllJavaSourceAnnotations() {
+		addAllJavaSourceAnnotations(BuiltinLattices.getBinaryLattice());
+	}
+
+	
+	/**
+	 * If Java Source annotations are available, add corresponding IFC Annotations to the Analysis.
+	 */
+	public <L> void  addAllJavaSourceAnnotations(IStaticLattice<String> lattice) {
 		final TypeReference source = TypeReference.findOrCreate(
 		      ClassLoaderReference.Application,
 		      TypeName.findOrCreate(JavaType.parseSingleTypeFromString(Source.class.getCanonicalName()).toBCString(false)));
@@ -436,30 +450,32 @@ public class IFCAnalysis {
 				debug.outln("Processing::: " + a);
 				if(source.equals(a.getType()) || sink.equals(a.getType())) {
 					final ElementValue elemvalue = a.getNamedArguments().get("level");
-					final Level l;
+					final String latticeLevel;
 					if (elemvalue == null) {
 						// try to get default value
-						Level temp = null;
+						String temp = null;
 						try {
 							if (source.equals(a.getType())) {
-								temp = (Level) Source.class.getMethod("level").getDefaultValue();
+								temp = (String) Source.class.getMethod("level").getDefaultValue();
 							} else {
-								temp = (Level) Sink.class.getMethod("level").getDefaultValue();
+								temp = (String) Sink.class.getMethod("level").getDefaultValue();
 							}
 						} catch (Exception e1) {
 							assert false;
 						} finally {
-							l = temp;
+							latticeLevel = temp;
 						}
 					} else {
-						// As per @Sink / @Source Definition: "value" is an Enum .. 
-						assert (elemvalue != null && elemvalue instanceof EnumElementValue); 
-						final EnumElementValue enumvalue = (EnumElementValue) elemvalue;
-						// .. of Type Level / AnnotationPolicy
-						assert (level.equals(TypeName.findOrCreate(enumvalue.enumType)));
-						l = Level.valueOf(enumvalue.enumVal);
+						// As per @Sink / @Source Definition: "level" is a constant String (such as "LOW" or "HIGH") 
+						assert (elemvalue != null && elemvalue instanceof ConstantElementValue); 
+						final ConstantElementValue constantvalue = (ConstantElementValue) elemvalue;
+						// .. of Type String
+						latticeLevel = (String) constantvalue.val;
 					}
-					assert (l != null);
+					assert (latticeLevel != null);
+					if (!lattice.getElements().contains(latticeLevel)) {
+						throw new IllegalArgumentException("Unknown Security-Level:" + latticeLevel);
+					}
 
 					// If "annotate" is missing, use the default value 
 					final ElementValue elemannotate = a.getNamedArguments().get("annotate");
@@ -481,14 +497,6 @@ public class IFCAnalysis {
 					}
 					assert ap!=null;
 					
-					// TODO: instead of two "Typeswitches" (over latticelevel and a.getType()), do something nicer.
-					final String latticeLevel;
-					switch (l) {
-						case HIGH: latticeLevel = BuiltinLattices.STD_SECLEVEL_HIGH; break;
-						case LOW:  latticeLevel = BuiltinLattices.STD_SECLEVEL_LOW; break;
-						default: latticeLevel = null; throw new IllegalArgumentException("Unknown Security-Level:" + l);
-					}
-					
 					
 					e.getKey().acceptVisitor(new ThrowingSDGProgramPartVisitor<Void, Void>() {
 						@Override
@@ -506,6 +514,17 @@ public class IFCAnalysis {
 							}
 							if (source.equals(a.getType())) addSourceAnnotation(attribute, latticeLevel); 
 							if (sink.equals(a.getType()))   addSinkAnnotation(attribute, latticeLevel);
+							return null;
+						}
+						
+						@Override
+						protected Void visitParameter(SDGFormalParameter p, Void data) {
+							if (ap != AnnotationPolicy.ANNOTATE_USAGES) {
+								throw new IllegalArgumentException("Fields may onlye be annotated with annotate == " + 
+							                                        AnnotationPolicy.ANNOTATE_USAGES);
+							}
+							if (source.equals(a.getType())) addSourceAnnotation(p, latticeLevel); 
+							if (sink.equals(a.getType()))   addSinkAnnotation(p, latticeLevel);
 							return null;
 						}
 					}, null);

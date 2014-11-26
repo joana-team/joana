@@ -24,6 +24,8 @@ import java.util.TreeSet;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.classLoader.IMethod;
+import com.ibm.wala.classLoader.ShrikeCTMethod;
+import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.types.annotations.Annotation;
 import com.ibm.wala.util.CancelException;
@@ -154,7 +156,7 @@ public class SDGProgram {
 	private final AnnotationTypeBasedNodeCollector coll;
 
 	private static Logger debug = Log.getLogger(Log.L_API_DEBUG);
-
+	
 	public SDGProgram(SDG sdg) {
 		this.sdg = sdg;
 		this.ppartParser = new SDGProgramPartParserBC(this);
@@ -269,7 +271,6 @@ public class SDGProgram {
 				}
 
 			}
-
 			for (IMethod m : c.getAllMethods()) {
 				if (m.getAnnotations() != null && !m.getAnnotations().isEmpty()) {
 					final Collection<SDGMethod> methods = ret.getMethods(JavaMethodSignature.fromString(m
@@ -278,6 +279,27 @@ public class SDGProgram {
 						ret.annotations.put(sdgm, m.getAnnotations());
 					debug.outln("Annotated: " + jt + ":::" + m.getName() + " with " + m.getAnnotations());
 				}
+				
+				if (m instanceof ShrikeCTMethod) {
+					ShrikeCTMethod method = (ShrikeCTMethod) m;
+					Collection<SDGMethod> methods = Collections.emptyList();
+
+					int parameternumber = m.isStatic() ? 1 : 0;
+					for(Collection<Annotation> parameter : method.getParameterAnnotations() ) {
+						if (!parameter.isEmpty()) {
+							if (methods.isEmpty()) { 
+								methods = ret.getMethods(JavaMethodSignature.fromString(m.getSignature()));
+							}
+							for (SDGMethod sdgm : methods) {
+								ret.annotations.put(sdgm.getParameter(parameternumber), parameter);
+							}
+							parameternumber++;
+						}
+					}
+				} else {
+					debug.outln("Warning: Parameter Annotation Processing not supported for Methods representet by " + m.getClass());
+				}
+
 
 			}
 

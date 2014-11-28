@@ -33,6 +33,7 @@ package edu.kit.joana.wala.jodroid;
 
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.dalvik.util.AndroidAnalysisScope;
+import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
 import com.ibm.wala.dalvik.util.AndroidManifestXMLReader;
 
 import edu.kit.joana.wala.jodroid.AnalysisPresets;
@@ -124,20 +125,20 @@ public class JoDroidConstruction {
         }
 
         // Manifest?
-        final IProgressMonitor mon = p.aem.getProgressMonitor();
+        final IProgressMonitor mon = Preset.aem.getProgressMonitor();
         final IClassHierarchy cha = p.scfg.cha;
 
         try {
             logger.info("Scanning for EntryPoints");
             logger.debug("Using flags: {}", p.entrypointLocatorFlags.toString());
             final AndroidEntryPointLocator epl = new AndroidEntryPointLocator(p.entrypointLocatorFlags);
-            p.aem.ENTRIES = epl.getEntryPoints(cha);
+            AndroidEntryPointManager.ENTRIES = epl.getEntryPoints(cha);
 
             final IInstantiationBehavior instantiationBehvior;
             { // Grab the instantiation behavior of attributes to the entrypoints
                 mon.beginTask("Filling InstantiationBehavior...", IProgressMonitor.UNKNOWN);
                 mon.worked(1);
-                instantiationBehvior = p.aem.getInstantiationBehavior(cha);
+                instantiationBehvior = Preset.aem.getInstantiationBehavior(cha);
 
                 // By building the model we fill the instanciationBehvior-cache. This is only needed when
                 // writing out the ntrP-File directly. As it's rather inepensive we do it always non the 
@@ -218,24 +219,24 @@ public class JoDroidConstruction {
             throw new IllegalArgumentException("OutFile may not be null");
         }
 
-        final IProgressMonitor mon = this.p.aem.getProgressMonitor();
-        final IInstantiationBehavior instantiationBehvior = this.p.aem.getInstantiationBehavior(this.p.scfg.cha);
+        final IProgressMonitor mon = Preset.aem.getProgressMonitor();
+        final IInstantiationBehavior instantiationBehvior = Preset.aem.getInstantiationBehavior(this.p.scfg.cha);
         final Writer writer = new Writer();
 
         mon.beginTask("Serializing and writing...", 5);
         mon.subTask("Android Model Config");
-        writer.add(this.p.aem);
+        writer.add(Preset.aem);
         mon.subTask("Joana Config"); mon.worked(1);
         writer.add(this.p.scfg);
         mon.subTask("Intent information"); mon.worked(2);
-        writer.add(this.p.aem.overrideIntents);
+        writer.add(Preset.aem.overrideIntents);
         /*{ // DEBUG
             System.out.println("OVR: " + this.p.aem.overrideIntents);
         } // */
         mon.subTask("Instantiation Behavior"); mon.worked(3);
         writer.add(instantiationBehvior);
         mon.subTask("Entry Points"); mon.worked(4);
-        writer.add(this.p.aem.ENTRIES);
+        writer.add(AndroidEntryPointManager.ENTRIES);
         mon.subTask("Writing"); mon.worked(5);
         writer.write(new File(outFile));
         mon.done();
@@ -271,11 +272,11 @@ public class JoDroidConstruction {
         final IInstantiationBehavior beh = new LoadedInstantiationBehavior(p.scfg.cha);
 
         reader.addTarget(beh);
-        reader.addTarget(p.aem.ENTRIES);
+        reader.addTarget(AndroidEntryPointManager.ENTRIES);
         //reader.addTarget(p.aem.overrideIntents); // TODO: Implement
         reader.read();
 
-        p.aem.setInstantiationBehavior(beh);
+        Preset.aem.setInstantiationBehavior(beh);
     }
 
     /**
@@ -304,7 +305,7 @@ public class JoDroidConstruction {
         if (p.scfg.cha == null) {
             throw new IllegalStateException("The cha has to be constructed before building the SDG");
         }
-        if (p.aem.ENTRIES.isEmpty()) {
+        if (AndroidEntryPointManager.ENTRIES.isEmpty()) {
             throw new IllegalStateException("Androids entrypoints have to be set before generating the SDG! " + 
                     "This can be done using the scan-function or by reading a ntrP-File" );
         }
@@ -330,7 +331,7 @@ public class JoDroidConstruction {
         { // Hand over to Joana to construct the SDG
             try {
                 p.scfg.entry = livecycle;
-                sdg = SDGBuilder.build(p.scfg, p.aem.getProgressMonitor());
+                sdg = SDGBuilder.build(p.scfg, Preset.aem.getProgressMonitor());
             } catch (UnsoundGraphException e) {
                 throw new SDGConstructionException(e);
             } catch (CancelException e) {
@@ -352,7 +353,7 @@ public class JoDroidConstruction {
         if (p.scfg.cha == null) {
             throw new IllegalStateException("The cha has to be constructed before building the SDG");
         }
-        if (p.aem.ENTRIES.isEmpty()) {
+        if (AndroidEntryPointManager.ENTRIES.isEmpty()) {
             throw new IllegalStateException("Androids entrypoints have to be set before generating the SDG! " + 
                     "This can be done using the scan-function or by reading a ntrP-File" );
         }
@@ -363,7 +364,7 @@ public class JoDroidConstruction {
             throw new IllegalArgumentException("The intent may not be null");
         }
         
-        intent = p.aem.getIntent(intent);   // resolve intent
+        intent = Preset.aem.getIntent(intent);   // resolve intent
         if (! intent.isInternal(/* strict = */ true)) {
             throw new IllegalArgumentException("The Intent " + intent + " is not internally resolvable! " +
                     "Are specifications loaded - either from manifest or ntrP?");
@@ -392,7 +393,7 @@ public class JoDroidConstruction {
         { // Hand over to Joana to construct the SDG
             try {
                 p.scfg.entry = livecycle;
-                sdg = SDGBuilder.build(p.scfg, p.aem.getProgressMonitor());
+                sdg = SDGBuilder.build(p.scfg, Preset.aem.getProgressMonitor());
             } catch (UnsoundGraphException e) {
                 throw new SDGConstructionException(e);
             } catch (CancelException e) {
@@ -531,7 +532,7 @@ public class JoDroidConstruction {
         }
 
         { // Pretty :/
-            final java.util.Map< com.ibm.wala.classLoader.CallSiteReference, com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.Intent > seen = p.aem.getSeen ();
+            final java.util.Map< com.ibm.wala.classLoader.CallSiteReference, com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.Intent > seen = Preset.aem.getSeen ();
             
             System.out.println("Encountered Intents were:");
             for (final com.ibm.wala.classLoader.CallSiteReference site : seen.keySet()) {

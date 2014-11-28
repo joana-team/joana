@@ -233,8 +233,8 @@ public class AnalysisPresets {
         p.entrypointLocatorFlags = EnumSet.of(LocatorFlags.EP_HEURISTIC, LocatorFlags.CB_HEURISTIC,
                 LocatorFlags.INCLUDE_CALLBACKS);
 
-        p.aem.setOverrides(p.aem.DEFAULT_INTENT_OVERRIDES);
-        p.aem.setDoBootSequence(false);
+        Preset.aem.setOverrides(AndroidEntryPointManager.DEFAULT_INTENT_OVERRIDES);
+        Preset.aem.setDoBootSequence(false);
 
         return p;
     }
@@ -333,9 +333,9 @@ public class AnalysisPresets {
 
         LogLevels.setLevels();
 
-        p.aem.setOverrides(p.aem.DEFAULT_INTENT_OVERRIDES);
+        Preset.aem.setOverrides(AndroidEntryPointManager.DEFAULT_INTENT_OVERRIDES);
         // XXX TEMP:
-        p.aem.setDoBootSequence(false);
+        Preset.aem.setDoBootSequence(false);
 
         return p;
     }
@@ -366,7 +366,7 @@ public class AnalysisPresets {
         } // */
 
         { // Some optional checks...
-            final AndroidPreFlightChecks pfc = new AndroidPreFlightChecks(p.aem, p.options, p.scfg.cha);
+            final AndroidPreFlightChecks pfc = new AndroidPreFlightChecks(Preset.aem, p.options, p.scfg.cha);
             final boolean pass = pfc.all();
             //if (! pass) {
             //    logger.warn("Not all preFlightChecks passed");
@@ -389,7 +389,7 @@ public class AnalysisPresets {
 
         // Some of the following settings will match the dafults of AndroidEntypointManager.
         // However they are repeated here to be shure.
-        p.aem.setDoBootSequence(false);
+        Preset.aem.setDoBootSequence(false);
         p.entrypointLocatorFlags = EnumSet.allOf(LocatorFlags.class);
 
         return p;
@@ -421,7 +421,7 @@ public class AnalysisPresets {
         p.scfg.fieldPropagation = FieldPropagation.FLAT;
         p.scfg.pts = PointsToPrecision.TYPE_BASED;
 
-        p.aem.setDoBootSequence(false);
+        Preset.aem.setDoBootSequence(false);
         // The setting of entrypointLocatorFlags causes missed entrypoints!
         p.entrypointLocatorFlags = EnumSet.noneOf(LocatorFlags.class);
 
@@ -498,7 +498,7 @@ public class AnalysisPresets {
         }
 
         p.scfg.out = nullPrinter;
-        p.aem.setProgressMonitor(new CliProgressMonitor(System.out));
+        Preset.aem.setProgressMonitor(new CliProgressMonitor(System.out));
 
         return p;
     }
@@ -508,7 +508,7 @@ public class AnalysisPresets {
      */
     public static Preset applyBasicCLIOutput(final Preset p) {
         p.scfg.out = System.out;
-        p.aem.setProgressMonitor(new edu.kit.joana.wala.util.VerboseProgressMonitor(System.out));
+        Preset.aem.setProgressMonitor(new edu.kit.joana.wala.util.VerboseProgressMonitor(System.out));
 
         return p;
     }
@@ -535,7 +535,7 @@ public class AnalysisPresets {
         }
 
         p.scfg.out = nullPrinter;
-        p.aem.setProgressMonitor(new NullProgressMonitor());
+        Preset.aem.setProgressMonitor(new NullProgressMonitor());
         // TODO: Set log-level
 
         return p;

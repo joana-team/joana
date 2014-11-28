@@ -280,7 +280,7 @@ class Items {
                 String attr = saxAttrs.getValue(relevant.getName());
 
                 if (relevant == Attr.NAME) {
-                    final ExecutionOrder order = factory.ExecutionOrder(attr);
+                    final ExecutionOrder order = WalaObjectFactory.ExecutionOrder(attr);
                     attributesHistory.get(relevant).push(order);
                     logger.debug("Pushing '" + order + "' for " + relevant + " in " + self);
                     nameSet = true;
@@ -345,7 +345,7 @@ class Items {
                     final String of = (String) attributesHistory.get(Attr.OF).peek();
                     final String resolves = (String) attributesHistory.get(Attr.RESOLVES).peek();
 
-                    final Intent target = factory.Intent(name, resolves);
+                    final Intent target = WalaObjectFactory.Intent(name, resolves);
                     to.add(target);
 
                     current.getHandler().popAttributes();
@@ -357,7 +357,7 @@ class Items {
                 final String name = (String) attributesHistory.get(Attr.NAME).peek();
                 final String of = (String) attributesHistory.get(Attr.OF).peek();
                 final String resolves = (String) attributesHistory.get(Attr.RESOLVES).peek();
-                from = factory.Intent(name, resolves);
+                from = WalaObjectFactory.Intent(name, resolves);
             }
 
             /** @todo TODO Dont' place directly in aem but use an indirection to be able to disbale
@@ -387,7 +387,7 @@ class Items {
                 }
 
                 if (relevant == Attr.CALL) {
-                    final MethodReference mRef = factory.MethodReference(attr);
+                    final MethodReference mRef = WalaObjectFactory.MethodReference(attr);
                     attributesHistory.get(relevant).push(mRef);
                     logger.debug("Pushing '" + mRef + "' for " + relevant + " in " + self);
                 } else {
@@ -460,7 +460,7 @@ class Items {
                 if (attr != null) {
                     switch (relevant) {
                         case DEFAULT:
-                            final InstanceBehavior beh = factory.InstanceBehavior(attr);
+                            final InstanceBehavior beh = WalaObjectFactory.InstanceBehavior(attr);
                             attributesHistory.get(relevant).push(beh);
                             break;
                         default:
@@ -494,12 +494,12 @@ class Items {
                 if (attr != null) {
                     switch (relevant) {
                         case EXACTNESS:
-                            final Exactness exactness = factory.Exactness(attr);
+                            final Exactness exactness = WalaObjectFactory.Exactness(attr);
                             attributesHistory.get(relevant).push(exactness);
                             logger.debug("Pushing '" + attr + "' for " + relevant + " in " + self);
                             break;
                         case OF: 
-                            final InstanceBehavior beh = factory.InstanceBehavior(attr);
+                            final InstanceBehavior beh = WalaObjectFactory.InstanceBehavior(attr);
                             attributesHistory.get(relevant).push(beh);
                             break;
                         case TYPE:
@@ -507,14 +507,14 @@ class Items {
                             attributesHistory.get(relevant).push(type);
                             break;
                         case PACKAGE:
-                            final Atom pack = factory.Atom(attr);
+                            final Atom pack = WalaObjectFactory.Atom(attr);
                             attributesHistory.get(relevant).push(pack);
                             break;
                         case TO:
                             final TypeName toClass = factory.TypeName(attr);
                             attributesHistory.get(relevant).push(toClass);
                         case CALL:
-                            final MethodReference inCall = factory.MethodReference(attr);
+                            final MethodReference inCall = WalaObjectFactory.MethodReference(attr);
                             attributesHistory.get(relevant).push(inCall);
                         case NAME:
                         default:

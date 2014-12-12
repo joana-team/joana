@@ -242,8 +242,7 @@ public class EntryPointSearch {
 				if (!latticeSpecified) {
 					this.lattice = BuiltinLattices.getBinaryLattice();
 				} else {
-					LatticeUtil.naiveTopBottomCompletion(specifiedLattice);
-					this.lattice = specifiedLattice;
+					this.lattice = LatticeUtil.dedekindMcNeilleCompletion(specifiedLattice);
 				}
 			} catch (JavaModelException e) {
 				// Thrown by IAnnotation.getMemberValuePairs()

@@ -15,6 +15,9 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
+import com.ibm.wala.types.TypeName;
+import com.ibm.wala.types.TypeReference;
+
 import edu.kit.joana.api.sdg.SDGActualParameter;
 import edu.kit.joana.api.sdg.SDGAttribute;
 import edu.kit.joana.api.sdg.SDGCall;
@@ -235,7 +238,8 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 		while (!toDo.isEmpty()) {
 			SDGNode next = toDo.poll();
 			visited.add(next);
-			if (isParameterNodeOfKind(next, type)) {
+			TypeName paramName = TypeName.findOrCreate(next.getType());
+			if ((TypeReference.VoidName.equals(paramName) && TypeReference.isPrimitiveType(paramName)) || isParameterNodeOfKind(next, type)) {
 				base.add(next);
 			}
 			for (SDGEdge e : sdg.getOutgoingEdgesOfKind(next, SDGEdge.Kind.PARAMETER_STRUCTURE)) {

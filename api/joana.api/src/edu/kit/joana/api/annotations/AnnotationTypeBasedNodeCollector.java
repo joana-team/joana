@@ -36,6 +36,7 @@ import edu.kit.joana.api.sdg.SDGProgramPartVisitor;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.util.Pair;
 
 /**
@@ -239,7 +240,7 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 			SDGNode next = toDo.poll();
 			visited.add(next);
 			TypeName paramName = TypeName.findOrCreate(next.getType());
-			if ((TypeReference.VoidName.equals(paramName) && TypeReference.isPrimitiveType(paramName)) || isParameterNodeOfKind(next, type)) {
+			if (next.getBytecodeIndex() == BytecodeLocation.ROOT_PARAMETER || (TypeReference.VoidName.equals(paramName) && TypeReference.isPrimitiveType(paramName)) || isParameterNodeOfKind(next, type)) {
 				base.add(next);
 			}
 			for (SDGEdge e : sdg.getOutgoingEdgesOfKind(next, SDGEdge.Kind.PARAMETER_STRUCTURE)) {

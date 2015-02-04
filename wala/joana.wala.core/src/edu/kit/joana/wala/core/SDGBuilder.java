@@ -286,6 +286,10 @@ public class SDGBuilder implements CallGraphFilter {
 		 */
 		OBJ_TREE(false, "object-tree - old tree-based propagation (internal use only)"),
 		/*
+		 * Special variant of object-tree for access paths. 
+		 */
+		OBJ_TREE_AP(false, "object-tree - old tree-based propagation for access paths (internal use only)"),
+		/*
 		 * A special variant of the object tree algorithm that allows multiple nodes for a single field. A little bit
 		 * more precise and even slower. Again kept around for evaluation purposes.
 		 */
@@ -1028,6 +1032,18 @@ public class SDGBuilder implements CallGraphFilter {
 			opt.isMergeException = false;
 			opt.isMergeOneFieldPerParent = true;
 			opt.isMergePrunedCallNodes = true;
+			opt.isUseAdvancedInterprocPropagation = true;
+			opt.convertToObjTree = true;
+			ObjGraphParams.compute(this, opt, progress);
+		}
+			break;
+		case OBJ_TREE_AP: {
+			final ObjGraphParams.Options opt = new ObjGraphParams.Options();
+			opt.isCutOffImmutables = true;
+			opt.isCutOffUnreachable = true;
+			opt.isMergeException = false;
+			opt.isMergeOneFieldPerParent = true;
+			opt.isMergePrunedCallNodes = false;
 			opt.isUseAdvancedInterprocPropagation = true;
 			opt.convertToObjTree = true;
 			ObjGraphParams.compute(this, opt, progress);

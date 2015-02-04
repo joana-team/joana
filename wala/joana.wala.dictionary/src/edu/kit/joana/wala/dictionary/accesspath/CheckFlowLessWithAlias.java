@@ -319,7 +319,7 @@ public final class CheckFlowLessWithAlias {
 		final CallGraphResult cgr;
 		switch (cfg.pts) {
 		case TYPE_BASED:
-			cgr = mojo.computeContextSensitiveCallGraph(opt);
+			cgr = mojo.computeContextInsensitiveCallGraph(opt);
 			break;
 		case INSTANCE_BASED:
 			cgr = mojo.computeContextSensitiveCallGraph(opt);

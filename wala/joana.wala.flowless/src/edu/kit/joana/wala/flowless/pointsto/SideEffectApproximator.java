@@ -38,6 +38,57 @@ import edu.kit.joana.wala.util.ParamNum.PType;
 public final class SideEffectApproximator {
 
 	private final IClassHierarchy cha;
+	private final UnfoldingCriterion unfold;
+	
+	private final static String[] IMMUTABLE_STUBS = {
+		"Ljava/lang/String",
+		"Ljava/lang/Integer",
+		"Ljava/lang/Long",
+		"Ljava/lang/Character",
+		"Ljava/lang/Object",
+		"Ljava/lang/Throwable",
+		"Ljava/lang/Exception",
+	};
+	
+	public interface UnfoldingCriterion {
+		boolean unfoldFurther(FieldParameter fp);
+		boolean unfoldType(TypeReference type);
+	}
+	
+	public static final UnfoldingCriterion UNFOLD_1_RECURS = new UnfoldingCriterion() {
+		
+		@Override
+		public boolean unfoldFurther(final FieldParameter fp) {
+			PtsParameter walk = fp.parent;
+			int countSteps = 0;
+			while (walk != null && !walk.isRoot()) {
+				if (walk.getName().equals(fp.name) || countSteps > 0) {
+					return false;
+				}
+				walk = walk.getParent();
+				countSteps++;
+			}
+			
+			return true;
+		}
+
+		@Override
+		public boolean unfoldType(final TypeReference type) {
+			if (type.isPrimitiveType()) {
+				return false;
+			}
+			
+			final String name = type.getName().toString();
+
+			for (final String imm : IMMUTABLE_STUBS) {
+				if (imm.equals(name)) {
+					return false;
+				}
+			}
+			
+			return true;
+		}
+	};
 
 	/**
 	 * Creates a new instance of the points-to util class. A class hierarchy has
@@ -51,6 +102,7 @@ public final class SideEffectApproximator {
 		}
 
 		this.cha = cha;
+		this.unfold = UNFOLD_1_RECURS;
 	}
 
 	/**
@@ -139,37 +191,43 @@ public final class SideEffectApproximator {
 	/**
 	 * The parameter paramNum must already be converted into the ParamNummberUtil format.
 	 */
-	private RootParameter doCreateParamTree(IMethod method, ParamNum paramNum) {
-		RootParameter root = new RootParameter(method, paramNum);
+	private RootParameter doCreateParamTree(final IMethod method, final ParamNum paramNum) {
+		final RootParameter root = new RootParameter(method, paramNum);
 
-		List<PtsParameter> work = new LinkedList<PtsParameter>();
+		final List<PtsParameter> work = new LinkedList<PtsParameter>();
 		work.add(root);
 
 		while (!work.isEmpty()) {
-			PtsParameter current = work.remove(0);
-			TypeReference type = current.getType();
+			final PtsParameter current = work.remove(0);
+			final TypeReference type = current.getType();
 
-			if (!type.isPrimitiveType()) {
+			if (!type.isPrimitiveType() && unfold.unfoldType(type)) {
 				if (type.isArrayType()) {
 					assert (current instanceof FieldParameter) || (current instanceof RootParameter);
 					if (current instanceof FieldParameter) {
-						FieldParameter fParam = (FieldParameter) current;
-						ArrayFieldParameter arrayParam = new ArrayFieldParameter(fParam, type.getArrayElementType());
-						work.add(arrayParam);
+						final FieldParameter fParam = (FieldParameter) current;
+						final ArrayFieldParameter arrayParam = new ArrayFieldParameter(fParam, type.getArrayElementType());
+						if (unfold.unfoldFurther(arrayParam)) {
+							work.add(arrayParam);
+						}
 					} else {
-						RootParameter rParam = (RootParameter) current;
-						ArrayFieldParameter arrayParam = new ArrayFieldParameter(rParam, type.getArrayElementType());
-						work.add(arrayParam);
+						final RootParameter rParam = (RootParameter) current;
+						final ArrayFieldParameter arrayParam = new ArrayFieldParameter(rParam, type.getArrayElementType());
+			            if (unfold.unfoldFurther(arrayParam)) {
+			            	work.add(arrayParam);
+			            }
 					}
 				} else {
-					IClass cls = cha.lookupClass(type);
+					final IClass cls = cha.lookupClass(type);
 					if (cls != null) {
 						final Collection<IField> fields = cls.getAllInstanceFields();
 						if (fields != null) {
-							for (IField field : fields) {
+							for (final IField field : fields) {
 								if (!current.hasParent(field)) {
-									NormalFieldParameter fParam = new NormalFieldParameter(current, field);
-									work.add(fParam);
+									final NormalFieldParameter fParam = new NormalFieldParameter(current, field);
+						            if (unfold.unfoldFurther(fParam)) {
+						            	work.add(fParam);
+						            }
 								} else {
 									// we cut at level 1
 								}

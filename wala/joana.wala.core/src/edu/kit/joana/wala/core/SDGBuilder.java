@@ -32,13 +32,13 @@ import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.CallGraphBuilderCancelException;
+import com.ibm.wala.ipa.callgraph.ContextSelector;
 import com.ibm.wala.ipa.callgraph.Entrypoint;
 import com.ibm.wala.ipa.callgraph.MethodTargetSelector;
-import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
-import com.ibm.wala.ipa.callgraph.propagation.SSAContextInterpreter;
-import com.ibm.wala.ipa.callgraph.ContextSelector;
 import com.ibm.wala.ipa.callgraph.impl.SubtypesEntrypoint;
+import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
+import com.ibm.wala.ipa.callgraph.propagation.SSAContextInterpreter;
 import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
 import com.ibm.wala.ipa.callgraph.pruned.CallGraphPruning;
 import com.ibm.wala.ipa.callgraph.pruned.PrunedCallGraph;
@@ -74,6 +74,7 @@ import edu.kit.joana.wala.core.interference.Call2ForkConverter;
 import edu.kit.joana.wala.core.interference.InterferenceComputation;
 import edu.kit.joana.wala.core.interference.InterferenceEdge;
 import edu.kit.joana.wala.core.interference.ThreadInformationProvider;
+import edu.kit.joana.wala.core.joana.DumpSDG;
 import edu.kit.joana.wala.core.joana.JoanaConverter;
 import edu.kit.joana.wala.core.killdef.IFieldsMayMod;
 import edu.kit.joana.wala.core.killdef.LocalKillingDefs;
@@ -671,6 +672,7 @@ public class SDGBuilder implements CallGraphFilter {
 		}
 
 		if (cfg.accessPath) {
+			DumpSDG.dumpIfEnabled(this, Log.L_SDG_DUMP_PRE_AP);
 			cfg.out.print("accesspath");
 			progress.beginTask("interproc: computing access path information...", IProgressMonitor.UNKNOWN);
 			// compute access path info

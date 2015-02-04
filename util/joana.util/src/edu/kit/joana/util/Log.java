@@ -37,6 +37,8 @@ public final class Log {
 	public static final String L_SDG_CALLGRAPH_DEBUG 			= "sdg.callgraph.debug";
 	public static final String L_SDG_ISCR_DEBUG 				= "sdg.iscr.debug";
 	public static final String L_SDG_INFO 						= "sdg.info";
+	public static final String L_SDG_DUMP_PRE_AP 				= "sdg.dump.pre-ap";
+	public static final String L_SDG_DUMP_PRE_TREE 				= "sdg.dump.pre-tree";
 	public static final String L_MHP_DEBUG 						= "mhp.debug";
 	public static final String L_MHP_INFO						= "mhp.info";
 	public static final String L_WALA_UNRESOLVED_CLASSES		= "wala.unresolved";

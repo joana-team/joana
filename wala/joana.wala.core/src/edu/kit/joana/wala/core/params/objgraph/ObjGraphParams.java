@@ -56,6 +56,7 @@ import edu.kit.joana.wala.core.ParameterField;
 import edu.kit.joana.wala.core.ParameterFieldFactory;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.dataflow.GenReach;
+import edu.kit.joana.wala.core.joana.DumpSDG;
 import edu.kit.joana.wala.core.params.objgraph.ModRefCandidates.InterProcCandidateModel;
 import edu.kit.joana.wala.core.params.objgraph.TVL.V;
 import edu.kit.joana.wala.core.params.objgraph.candidates.CandidateFactory;
@@ -348,6 +349,7 @@ public final class ObjGraphParams {
 
 		long sdgNodeCountGraph = 0;
 		if (opt.convertToObjTree) {
+			DumpSDG.dumpIfEnabled(sdg, Log.L_SDG_DUMP_PRE_TREE);
 			sdg.cfg.out.print(",2tree");
             if (progress != null) progress.subTask("converting to object tree");
 

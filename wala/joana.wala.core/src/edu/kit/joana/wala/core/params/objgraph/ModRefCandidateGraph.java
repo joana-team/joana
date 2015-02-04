@@ -191,6 +191,53 @@ public class ModRefCandidateGraph implements Graph<ModRefCandidate> {
 		return roots;
 	}
 
+	public static OrdinalSet<InstanceKey> findCallRootsPts(final PointsToWrapper pa, final PDG pdg, final PDGNode call,
+			final boolean ignoreExceptions) {
+		OrdinalSet<InstanceKey> roots = null;
+		final SSAInvokeInstruction invk = (SSAInvokeInstruction) pdg.getInstruction(call);
+		final CGNode n = pdg.cgNode;
+
+		{
+			final PDGNode pIns[] = pdg.getParamIn(call);
+			for (int i = 0; i < pIns.length; i++) {
+				final OrdinalSet<InstanceKey> pts = pa.getCallParamPTS(n, invk, i);
+				roots = unify(roots, pts);
+			}
+		}
+
+		{
+			final List<PDGField> sIns = pdg.getStaticIn(call);
+			if (sIns != null) {
+				for (final PDGField f : sIns) {
+					final OrdinalSet<InstanceKey> pts = pa.getStaticFieldPTS(f);
+					roots = unify(roots, pts);
+				}
+			}
+		}
+
+		{
+			final List<PDGField> sOuts = pdg.getStaticOut(call);
+			if (sOuts != null) {
+				for (final PDGField f : sOuts) {
+					final OrdinalSet<InstanceKey> pts = pa.getStaticFieldPTS(f);
+					roots = unify(roots, pts);
+				}
+			}
+		}
+
+		if (invk.getNumberOfReturnValues() > 0) {
+			final OrdinalSet<InstanceKey> pts = pa.getCallReturnPTS(n, invk);
+			roots = unify(roots, pts);
+		}
+
+		if (!ignoreExceptions) {
+			final OrdinalSet<InstanceKey> pts = pa.getCallExceptionPTS(n, invk);
+			roots = unify(roots, pts);
+		}
+		
+		return roots;
+	}
+	
 	public static List<ModRefRootCandidate> findCallRoots(final PointsToWrapper pa, final PDG pdg, final PDGNode call,
 			final boolean ignoreExceptions) {
 		final List<ModRefRootCandidate> roots = new LinkedList<ModRefRootCandidate>();

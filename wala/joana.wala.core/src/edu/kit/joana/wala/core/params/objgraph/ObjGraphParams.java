@@ -19,12 +19,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.dataflow.graph.BitVectorSolver;
 import com.ibm.wala.fixpoint.BitVectorVariable;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
+import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.types.MethodReference;
@@ -40,6 +42,8 @@ import com.ibm.wala.util.graph.traverse.DFSFinishTimeIterator;
 import com.ibm.wala.util.intset.BitVectorIntSet;
 import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.intset.IntSetAction;
+import com.ibm.wala.util.intset.IntSetUtil;
+import com.ibm.wala.util.intset.MutableIntSet;
 import com.ibm.wala.util.intset.MutableMapping;
 import com.ibm.wala.util.intset.OrdinalSet;
 import com.ibm.wala.util.intset.OrdinalSetMapping;
@@ -47,7 +51,6 @@ import com.ibm.wala.util.intset.OrdinalSetMapping;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.util.Config;
 import edu.kit.joana.util.Log;
-import edu.kit.joana.util.LogUtil;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
@@ -1344,6 +1347,8 @@ public final class ObjGraphParams {
 		}
 	}
 	
+	private static boolean USE_NORMAL_PRUNED_SE = true;
+	
 	private Map<CGNode, OrdinalSet<ModRefFieldCandidate>> fixpointReachabilityPropagate(final SDGBuilder sdg,
 			final CallGraph nonPrunedCG, final ModRefCandidates mrefs, final IProgressMonitor progress)
 	throws CancelException {
@@ -1398,7 +1403,45 @@ public final class ObjGraphParams {
 					// pruned call
 					final OrdinalSet<ModRefFieldCandidate> prunedSucc = simple.get(succ);
 					// check if is escaping && merge before propagation
-					reach.pruned = unify(reach.pruned, prunedSucc);
+					if (USE_NORMAL_PRUNED_SE) {
+						reach.pruned = unify(reach.pruned, prunedSucc);
+					} else {
+						final PDG callerPDG = sdg.getPDGforMethod(n);
+						final Iterator<CallSiteReference> csrs = nonPrunedCG.getPossibleSites(n, succ);
+						//callerPDG.
+						while (csrs.hasNext()) {
+							final CallSiteReference csr = csrs.next();
+							final IR ir = n.getIR();
+							final SSAInstruction[] instrs = ir.getInstructions();
+							final IntSet calli = ir.getCallInstructionIndices(csr);
+							calli.foreach(new IntSetAction() {
+	
+								@Override
+								public void act(final int index) {
+									final SSAInstruction i = instrs[index];
+									if (i == null) {
+										return;
+									}
+									final PDGNode calln = callerPDG.getNode(i);
+									if (calln == null) {
+										return;
+									}
+									final OrdinalSet<InstanceKey> roots = ModRefCandidateGraph.findCallRootsPts(pa,
+										callerPDG, calln, mrefs.ignoreExceptions);
+									if (roots != null && !roots.isEmpty()) {
+										final OrdinalSet<ModRefFieldCandidate> reachable =
+											filterUnreachable(roots, prunedSucc);
+										reach.pruned = unify(reach.pruned, reachable);
+									}
+								}
+								
+							});
+						}
+						
+						if (reach.pruned == null) {
+							reach.pruned = prunedSucc;
+						}
+					}
 				}
 			}
 		}
@@ -1427,6 +1470,38 @@ public final class ObjGraphParams {
         if (progress != null) { progress.done(); }
         
 		return result;
+	}
+	
+	private static OrdinalSet<ModRefFieldCandidate> filterUnreachable(final OrdinalSet<InstanceKey> roots,
+			final OrdinalSet<ModRefFieldCandidate> cands) {
+		OrdinalSet<InstanceKey> reachablePts = roots;
+		final MutableIntSet reach = IntSetUtil.make();
+		final MutableIntSet check = IntSetUtil.makeMutableCopy(reachablePts.getBackingSet());
+		final OrdinalSetMapping<ModRefFieldCandidate> mapping = cands.getMapping();
+		final OrdinalSet<ModRefFieldCandidate> reachSet = new OrdinalSet<ModRefFieldCandidate>(reach, mapping);
+		final OrdinalSet<ModRefFieldCandidate> checkSet = new OrdinalSet<ModRefFieldCandidate>(check, mapping);
+		
+		boolean changed = true;
+		while (changed) {
+			changed = false;
+			for (final ModRefFieldCandidate c : checkSet) {
+				if (!reachSet.contains(c)) {
+					if (c.isReachableFrom(reachablePts)) {
+						changed = true;
+						reach.add(mapping.getMappedIndex(c));
+					} else {
+						for (final ModRefFieldCandidate r : reachSet) {
+							if (r.isPotentialParentOf(c)) {
+								changed = true;
+								reach.add(mapping.getMappedIndex(c));
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		return new OrdinalSet<ModRefFieldCandidate>(reach, mapping);
 	}
 
 	private static Map<CGNode, OrdinalSet<ModRefFieldCandidate>> convertResult(

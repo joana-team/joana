@@ -67,7 +67,8 @@ public class AccessPath {
 	 */
 	public static List<AliasEdge> compute(final SDGBuilder sdg, final PDG start) throws CancelException {
 		if (sdg.cfg.fieldPropagation != FieldPropagation.OBJ_TREE
-				&& sdg.cfg.fieldPropagation != FieldPropagation.OBJ_TREE_NO_FIELD_MERGE) {
+				&& sdg.cfg.fieldPropagation != FieldPropagation.OBJ_TREE_NO_FIELD_MERGE
+				&& sdg.cfg.fieldPropagation != FieldPropagation.OBJ_TREE_AP) {
 			throw new IllegalStateException("Access path can only be computed when object tree is turned on. "
 					+ "Currently used parameter propagation: " + sdg.cfg.fieldPropagation);
 		}

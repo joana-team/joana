@@ -229,6 +229,7 @@ public final class APGraph extends AbstractNumberedGraph<APNode> {
 			case NORMAL:
 			case EXPRESSION:
 			case PREDICATE:
+			case SYNCHRONIZATION:
 			case PHI: {
 				final SSAInstruction instr = pdg.getInstruction(n);
 				if (instr != null) {
@@ -479,13 +480,15 @@ public final class APGraph extends AbstractNumberedGraph<APNode> {
 		}
 
 		for (final PDGField sIn : pdg.staticInterprocReads) {
-			final AP init = new AP(new AP.StaticParamNode(sIn.field.getField(), sIn.node.getId()));
-			final APFormalParamNode apSIn = APFormalParamNode.createParamInStatic(iindex, sIn.node, sIn.field);
-			createFormalChildren(apSIn);
-			apSIn.addPath(init);
-			addInitialValue(apSIn, init);
-			root2pdg.put(init.getRoot(), sIn.node);
-			apEntry.addParameterStaticIn(sIn.field.getField(), apSIn);
+			if (!sIn.field.isPrimitiveType()) {
+				final AP init = new AP(new AP.StaticParamNode(sIn.field.getField(), sIn.node.getId()));
+				final APFormalParamNode apSIn = APFormalParamNode.createParamInStatic(iindex, sIn.node, sIn.field);
+				createFormalChildren(apSIn);
+				apSIn.addPath(init);
+				addInitialValue(apSIn, init);
+				root2pdg.put(init.getRoot(), sIn.node);
+				apEntry.addParameterStaticIn(sIn.field.getField(), apSIn);
+			}
 		}
 
 		for (final PDGField sOut : pdg.staticWrites) {
@@ -500,12 +503,14 @@ public final class APGraph extends AbstractNumberedGraph<APNode> {
 		}
 
 		for (final PDGField sOut : pdg.staticInterprocWrites) {
-			final AP init = new AP(new AP.StaticParamNode(sOut.field.getField(), sOut.node.getId()));
-			final APFormalParamNode apSOut = APFormalParamNode.createParamOutStatic(iindex, sOut.node, sOut.field);
-			createFormalChildren(apSOut);
-			apSOut.addPath(init);
-			addInitialValue(apSOut, init);
-			apEntry.addParameterStaticOut(sOut.field.getField(), apSOut);
+			if (!sOut.field.isPrimitiveType()) {
+				final AP init = new AP(new AP.StaticParamNode(sOut.field.getField(), sOut.node.getId()));
+				final APFormalParamNode apSOut = APFormalParamNode.createParamOutStatic(iindex, sOut.node, sOut.field);
+				createFormalChildren(apSOut);
+				apSOut.addPath(init);
+				addInitialValue(apSOut, init);
+				apEntry.addParameterStaticOut(sOut.field.getField(), apSOut);
+			}
 		}
 
 		return apEntry;

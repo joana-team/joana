@@ -29,7 +29,6 @@ import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.Pair;
 import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.procedure.TIntObjectProcedure;
 
 public class SDGClassComputation {
 
@@ -308,7 +307,8 @@ public class SDGClassComputation {
 
 	private void seenMethod(SDGNode entry) {
 		// we need this to fill the cache for entry nodes
-		SDGNode dummy = sdg.getEntry(entry);
+		sdg.getEntry(entry);
+		
 		if (entry.getBytecodeName() != null) {
 			int offset = entry.getBytecodeName().lastIndexOf('.');
 			if (offset >= 0) {

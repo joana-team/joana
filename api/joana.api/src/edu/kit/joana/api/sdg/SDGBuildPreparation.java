@@ -186,11 +186,12 @@ public final class SDGBuildPreparation {
 
 		AnalysisScope scope;
 		// if use stubs
-		if (cfg.stubs != null) {
+		if (cfg.stubs != null && cfg.stubs.length > 0) {
 			scope = AnalysisScope.createJavaAnalysisScope();
-			final Module stubs = findJarModule(out, cfg.stubs);
-			scope.addToScope(ClassLoaderReference.Primordial, stubs);
-
+			for (final String stub : cfg.stubs) {
+				final Module stubs = findJarModule(out, stub);
+				scope.addToScope(ClassLoaderReference.Primordial, stubs);
+			}
 		} else {
 			scope = AnalysisScopeReader.makePrimordialScope(null);
 		}
@@ -385,7 +386,7 @@ public final class SDGBuildPreparation {
 		public String thirdPartyLibPath;
 		public String exclusions;
 		public String nativesXML;
-		public String stubs;
+		public String[] stubs;
 		public String outputDir;
 		public ExternalCallCheck extern;
 		public PointsToPrecision pts;
@@ -440,7 +441,7 @@ public final class SDGBuildPreparation {
 		}
 
 		public Config(String name, String entryMethod, String classpath, PointsToPrecision pts,
-				ExceptionAnalysis exceptions, boolean accessPath, String exclusions, String nativesXML, String stubs,
+				ExceptionAnalysis exceptions, boolean accessPath, String exclusions, String nativesXML, String[] stubs,
 				ExternalCallCheck extern, String outputDir,	FieldPropagation fieldPropagation) {
 			this.name = name;
 			this.pts = pts;

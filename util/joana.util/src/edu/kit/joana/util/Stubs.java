@@ -20,16 +20,18 @@ import java.util.Properties;
  * @author Martin Mohr
  */
 public enum Stubs {
-	NO_STUBS("NONE", null), JRE_14("JRE_14", "jSDG-stubs-jre1.4.jar"), JRE_15("JRE_15", "jSDG-stubs-jre1.5.jar");
+	NO_STUBS("NONE", null), JRE_14("JRE_14", "jSDG-stubs-jre1.4.jar"), JRE_15("JRE_15", "jSDG-stubs-jre1.5.jar"),
+	JAVACARD("JAVACARD", "jSDG-stubs-javacard.jar:api.jar"),
+	J2ME("J2ME", "jSDG-stubs-j2me2.0.jar:jsr184.jar:mmapi.jar");
 
 	private static final String PROPERTIES = "project.properties";
 
-	private String name;
-	private String fileName;
+	private final String name;
+	private final String[] files;
 
-	private Stubs(String name, String fileName) {
+	private Stubs(final String name, final String fileName) {
 		this.name = name;
-		this.fileName = fileName;
+		this.files = (fileName != null ? fileName.split(":") : new String[0]);
 	}
 
 	public String getName() {
@@ -40,19 +42,22 @@ public enum Stubs {
 		return name;
 	}
 
-	public String getPath() {
-		switch (this) {
-		case NO_STUBS:
-			return null;
-		default:
-			if (locateableByClassLoader()) {
-				return this.fileName;
+	public String[] getPaths() {
+		String stubsBaseDir = null;
+		final String[] paths = new String[files.length];
+		
+		for (int i = 0; i < files.length; i++) {
+			final String name = files[i];
+		
+			if (locateableByClassLoader(name)) {
+				paths[i] = name;
 			} else {
-				String stubsBaseDir = determineStubsBasePath();
-				return stubsBaseDir + "/" + this.fileName;
+				if (stubsBaseDir == null) { stubsBaseDir = determineStubsBasePath(); }
+				paths[i] = stubsBaseDir + "/" + name;
 			}
 		}
-
+		
+		return paths;
 	}
 
 	private String determineStubsBasePath() {
@@ -69,8 +74,8 @@ public enum Stubs {
 		}
 
 		if (joanaBaseDir == null) {
-			throw new Error(
-					"Cannot locate property 'joana.base.dir'! Please provide a property 'joana.base.dir' to the jvm or a project.properties in the base dir of your eclipse project!");
+			throw new Error("Cannot locate property 'joana.base.dir'! Please provide a property 'joana.base.dir'"
+				+ " to the jvm or a project.properties in the base dir of your eclipse project!");
 		} else {
 			File fBase = new File(joanaBaseDir + "/contrib/lib/stubs/");
 			if (!fBase.exists()) {
@@ -81,13 +86,9 @@ public enum Stubs {
 		}
 	}
 
-	private boolean locateableByClassLoader() {
-		URL urlStubsLocation = getClass().getClassLoader().getResource(fileName);
-		if (urlStubsLocation == null) {
-			return false;
-		} else {
-			return true;
-		}
+	private boolean locateableByClassLoader(final String name) {
+		final URL urlStubsLocation = getClass().getClassLoader().getResource(name);
+		return (urlStubsLocation != null);
 	}
 
 	/**
@@ -107,5 +108,16 @@ public enum Stubs {
 		}
 
 		return null;
+	}
+
+	public static Stubs getStubForStr(String name) {
+		for (Stubs s : Stubs.values()) {
+			if (s.name.equals(name)) {
+				return s;
+			}
+			
+		}
+		
+		throw new IllegalArgumentException("Stub with name '" + name + "' not found.");
 	}
 }

@@ -3,7 +3,9 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Jodroid
 Bundle-SymbolicName: joana.wala.jodroid
 Bundle-Version: 1.0.0.qualifier
-Export-Package: .
+Export-Package: .,
+ edu.kit.joana.wala.jodroid,
+ edu.kit.joana.wala.jodroid.entrypointsFile
 Require-Bundle: com.ibm.wala.core;bundle-version="1.1.3",
  com.ibm.wala.ide;bundle-version="1.1.3",
  com.ibm.wala.shrike;bundle-version="1.3.1",

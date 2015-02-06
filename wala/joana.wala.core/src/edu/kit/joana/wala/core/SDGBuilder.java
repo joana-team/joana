@@ -271,6 +271,11 @@ public class SDGBuilder implements CallGraphFilter {
 		 */
 		OBJ_GRAPH_NO_ESCAPE(false, "object-graph - without escape analysis (internal use only)"),
 		/*
+		 * Object graph algorithm with fixpoint propagation and additional separate escape analysis. Do not choose if
+		 * you don't know what it does. It exists for academic evaluation purposes.
+		 */
+		OBJ_GRAPH_FIXPOINT_AND_ESCAPE(false, "object-graph - with fixpoint propagation and additional escpae analysis (internal use only)"),
+		/*
 		 * Run object graph algorithm without any optimizations. Again do not choose if you don't know what this means.
 		 * Only for evaluation.
 		 */
@@ -976,6 +981,14 @@ public class SDGBuilder implements CallGraphFilter {
 			break;
 		case OBJ_GRAPH_FIXPOINT_PROPAGATION: {
 			final ObjGraphParams.Options opt = new ObjGraphParams.Options();
+			opt.isCutOffUnreachable = false;
+			opt.isUseAdvancedInterprocPropagation = true;
+			ObjGraphParams.compute(this, opt, progress);
+		}
+			break;
+		case OBJ_GRAPH_FIXPOINT_AND_ESCAPE: {
+			final ObjGraphParams.Options opt = new ObjGraphParams.Options();
+			opt.isCutOffUnreachable = true;
 			opt.isUseAdvancedInterprocPropagation = true;
 			ObjGraphParams.compute(this, opt, progress);
 		}
@@ -989,6 +1002,7 @@ public class SDGBuilder implements CallGraphFilter {
 			break;
 		case OBJ_GRAPH_NO_FIELD_MERGE: {
 			final ObjGraphParams.Options opt = new ObjGraphParams.Options();
+			opt.isCutOffUnreachable = true;
 			opt.isMergeOneFieldPerParent = false;
 			opt.isUseAdvancedInterprocPropagation = false;
 			opt.maxNodesPerInterface = ObjGraphParams.Options.UNLIMITED_NODES_PER_INTERFACE;
@@ -997,6 +1011,7 @@ public class SDGBuilder implements CallGraphFilter {
 			break;
 		case OBJ_GRAPH_NO_MERGE_AT_ALL: {
 			final ObjGraphParams.Options opt = new ObjGraphParams.Options();
+			opt.isCutOffUnreachable = true;
 			opt.isMergeOneFieldPerParent = false;
 			opt.isUseAdvancedInterprocPropagation = false;
 			opt.maxNodesPerInterface = ObjGraphParams.Options.UNLIMITED_NODES_PER_INTERFACE;
@@ -1009,6 +1024,7 @@ public class SDGBuilder implements CallGraphFilter {
 			break;
 		case OBJ_GRAPH_SIMPLE_PROPAGATION: {
 			final ObjGraphParams.Options opt = new ObjGraphParams.Options();
+			opt.isCutOffUnreachable = true;
 			opt.isUseAdvancedInterprocPropagation = false;
 			ObjGraphParams.compute(this, opt, progress);
 		}

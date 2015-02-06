@@ -88,7 +88,7 @@ public final class ObjGraphParams {
 	public static final class Options {
 
 		public Options() {
-			this.isCutOffUnreachable = true;
+			this.isCutOffUnreachable = false;
 			this.isMergeException = true;
 			this.isCutOffImmutables = true;
 			this.isMergeOneFieldPerParent = true;
@@ -137,21 +137,6 @@ public final class ObjGraphParams {
 			if (Config.isDefined(Config.C_OBJGRAPH_DO_STATIC_FIELDS)) {
 				doStaticFields = Config.getBool(Config.C_OBJGRAPH_DO_STATIC_FIELDS);
 			}
-		}
-		
-		// remove redundant options like superflous reachability check if fixed point reachablility propagation has been
-		// used
-		private void optimize() {
-			final Logger log = Log.getLogger(Log.L_OBJGRAPH_DEBUG);
-			
-			log.outln("obj-graph configuration options:");
-			
-			if (isCutOffUnreachable && isUseAdvancedInterprocPropagation) {
-				log.outln("ignoring option 'isCutOffUnreachable' as 'isUseAdvancedInterprocPropagation' is also set.");
-				isCutOffUnreachable = false;
-			}
-			
-			if (log.isEnabled()) { log.outln(LogUtil.attributesToString(this)); }
 		}
 		
 		/**
@@ -259,7 +244,6 @@ public final class ObjGraphParams {
 		this.sdg = sdg;
 		this.opt = opt;
 		this.opt.adjustWithProperties();
-		this.opt.optimize();
 	}
 	
 	private void run(final IProgressMonitor progress) throws CancelException {

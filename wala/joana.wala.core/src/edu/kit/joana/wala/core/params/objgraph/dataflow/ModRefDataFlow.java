@@ -31,6 +31,7 @@ import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.ParameterField;
 import edu.kit.joana.wala.core.SDGBuilder;
+import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.params.objgraph.ModRefCandidateGraph;
 import edu.kit.joana.wala.core.params.objgraph.ModRefCandidates;
 import edu.kit.joana.wala.core.params.objgraph.ModRefFieldCandidate;
@@ -97,6 +98,7 @@ public class ModRefDataFlow {
 	private static void connectParameterStructure(final SDGBuilder sdg,
 			final TIntObjectHashMap<ModRefFieldCandidate> pdgnode2modref) {
 		final PointsToWrapper pa = new PointsToWrapper(sdg.getPointerAnalysis());
+		final boolean ignoreExceptions = sdg.cfg.exceptions == ExceptionAnalysis.IGNORE_ALL;
 
 		for (final PDG pdg : sdg.getAllPDGs()) {
 			{
@@ -110,7 +112,7 @@ public class ModRefDataFlow {
 				}
 
 				connectParameterStructureNodes(pdg, pdgnode2modref, formals);
-				final List<ModRefRootCandidate> roots = ModRefCandidateGraph.findMethodRoots(pa, pdg);
+				final List<ModRefRootCandidate> roots = ModRefCandidateGraph.findMethodRoots(pa, pdg, ignoreExceptions);
 				connectParameterStructureRoots(pdg, pdgnode2modref, roots, formals);
 			}
 
@@ -125,7 +127,8 @@ public class ModRefDataFlow {
 				}
 
 				connectParameterStructureNodes(pdg, pdgnode2modref, actuals);
-				final List<ModRefRootCandidate> roots = ModRefCandidateGraph.findCallRoots(pa, pdg, call);
+				final List<ModRefRootCandidate> roots =
+					ModRefCandidateGraph.findCallRoots(pa, pdg, call, ignoreExceptions);
 				connectParameterStructureRoots(pdg, pdgnode2modref, roots, actuals);
 			}
 		}

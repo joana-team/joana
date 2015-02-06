@@ -978,6 +978,7 @@ public class SDGBuilder implements CallGraphFilter {
 			break;
 		case OBJ_GRAPH: {
 			final ObjGraphParams.Options opt = new ObjGraphParams.Options();
+			opt.ignoreExceptions = cfg.exceptions == ExceptionAnalysis.IGNORE_ALL;
 			ObjGraphParams.compute(this, opt, progress);
 		}
 			break;
@@ -985,6 +986,7 @@ public class SDGBuilder implements CallGraphFilter {
 			final ObjGraphParams.Options opt = new ObjGraphParams.Options();
 			opt.isCutOffUnreachable = false;
 			opt.isUseAdvancedInterprocPropagation = true;
+			opt.ignoreExceptions = cfg.exceptions == ExceptionAnalysis.IGNORE_ALL;
 			ObjGraphParams.compute(this, opt, progress);
 		}
 			break;
@@ -992,6 +994,7 @@ public class SDGBuilder implements CallGraphFilter {
 			final ObjGraphParams.Options opt = new ObjGraphParams.Options();
 			opt.isCutOffUnreachable = true;
 			opt.isUseAdvancedInterprocPropagation = true;
+			opt.ignoreExceptions = cfg.exceptions == ExceptionAnalysis.IGNORE_ALL;
 			ObjGraphParams.compute(this, opt, progress);
 		}
 			break;
@@ -999,6 +1002,7 @@ public class SDGBuilder implements CallGraphFilter {
 			final ObjGraphParams.Options opt = new ObjGraphParams.Options();
 			opt.isCutOffUnreachable = false;
 			opt.isUseAdvancedInterprocPropagation = false;
+			opt.ignoreExceptions = cfg.exceptions == ExceptionAnalysis.IGNORE_ALL;
 			ObjGraphParams.compute(this, opt, progress);
 		}
 			break;
@@ -1008,6 +1012,7 @@ public class SDGBuilder implements CallGraphFilter {
 			opt.isMergeOneFieldPerParent = false;
 			opt.isUseAdvancedInterprocPropagation = false;
 			opt.maxNodesPerInterface = ObjGraphParams.Options.UNLIMITED_NODES_PER_INTERFACE;
+			opt.ignoreExceptions = cfg.exceptions == ExceptionAnalysis.IGNORE_ALL;
 			ObjGraphParams.compute(this, opt, progress);
 		}
 			break;
@@ -1021,6 +1026,7 @@ public class SDGBuilder implements CallGraphFilter {
 			opt.isMergeException = false;
 			this.cfg.mergeFieldsOfPrunedCalls = false;
 			opt.isMergeDuringCutoffImmutables = false;
+			opt.ignoreExceptions = cfg.exceptions == ExceptionAnalysis.IGNORE_ALL;
 			ObjGraphParams.compute(this, opt, progress);
 		}
 			break;
@@ -1028,6 +1034,7 @@ public class SDGBuilder implements CallGraphFilter {
 			final ObjGraphParams.Options opt = new ObjGraphParams.Options();
 			opt.isCutOffUnreachable = true;
 			opt.isUseAdvancedInterprocPropagation = false;
+			opt.ignoreExceptions = cfg.exceptions == ExceptionAnalysis.IGNORE_ALL;
 			ObjGraphParams.compute(this, opt, progress);
 		}
 			break;
@@ -1040,6 +1047,7 @@ public class SDGBuilder implements CallGraphFilter {
 			opt.isMergePrunedCallNodes = false;
 			opt.maxNodesPerInterface = ObjGraphParams.Options.UNLIMITED_NODES_PER_INTERFACE;
 			opt.isUseAdvancedInterprocPropagation = false;
+			opt.ignoreExceptions = cfg.exceptions == ExceptionAnalysis.IGNORE_ALL;
 			ObjGraphParams.compute(this, opt, progress);
 		}
 			break;
@@ -1052,6 +1060,7 @@ public class SDGBuilder implements CallGraphFilter {
 			opt.isMergePrunedCallNodes = true;
 			opt.isUseAdvancedInterprocPropagation = true;
 			opt.convertToObjTree = true;
+			opt.ignoreExceptions = cfg.exceptions == ExceptionAnalysis.IGNORE_ALL;
 			ObjGraphParams.compute(this, opt, progress);
 		}
 			break;
@@ -1064,6 +1073,7 @@ public class SDGBuilder implements CallGraphFilter {
 			opt.isMergePrunedCallNodes = false;
 			opt.isUseAdvancedInterprocPropagation = true;
 			opt.convertToObjTree = true;
+			opt.ignoreExceptions = cfg.exceptions == ExceptionAnalysis.IGNORE_ALL;
 			ObjGraphParams.compute(this, opt, progress);
 		}
 			break;
@@ -1076,6 +1086,7 @@ public class SDGBuilder implements CallGraphFilter {
 			opt.isMergePrunedCallNodes = false;
 			opt.isUseAdvancedInterprocPropagation = true;
 			opt.convertToObjTree = true;
+			opt.ignoreExceptions = cfg.exceptions == ExceptionAnalysis.IGNORE_ALL;
 			ObjGraphParams.compute(this, opt, progress);
 		}
 			break;

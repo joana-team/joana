@@ -57,22 +57,24 @@ public class ModRefCandidates implements Iterable<CGNode> {
 	private final ModRefSSAVisitor singleVisitor;
 	private final SingleCandidatePointsTo singlePts;
 	private final boolean doStaticFields;
+	public final boolean ignoreExceptions;
 
 	private ModRefCandidates(final CandidateFactory candFact, final ParameterFieldFactory paramFact,
-			final PointerAnalysis<InstanceKey> pa, final boolean doStaticFields) {
+			final PointerAnalysis<InstanceKey> pa, final boolean doStaticFields, final boolean ignoreExceptions) {
 		this.candFact = candFact;
 		this.paramFact = paramFact;
 		this.pa = pa;
 		this.single = new SingleCandidateConsumer(candFact);
 		this.singlePts = new SingleCandidatePointsTo(pa.getHeapModel(), pa);
 		this.doStaticFields = doStaticFields;
+		this.ignoreExceptions = ignoreExceptions;
 		this.singleVisitor = new ModRefSSAVisitor(single, paramFact, singlePts, pa.getClassHierarchy(), doStaticFields);
 	}
 
 	public static ModRefCandidates computeIntracProc(final ParameterFieldFactory paramFact,
 			final CandidateFactory candFact, final CallGraph cg, final PointerAnalysis<InstanceKey> pa,
-			final boolean doStaticFields, final IProgressMonitor progress) throws CancelException {
-		final ModRefCandidates modref = new ModRefCandidates(candFact, paramFact, pa, doStaticFields);
+			final boolean doStaticFields, final boolean ignoreExceptions, final IProgressMonitor progress) throws CancelException {
+		final ModRefCandidates modref = new ModRefCandidates(candFact, paramFact, pa, doStaticFields, ignoreExceptions);
 
 		modref.run(cg, progress);
 

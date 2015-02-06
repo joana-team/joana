@@ -99,6 +99,7 @@ public final class ObjGraphParams {
 			this.maxNodesPerInterface = DEFAULT_MAX_NODES_PER_INTERFACE;
 			this.convertToObjTree = false;
 			this.doStaticFields = false;
+			this.ignoreExceptions = false;
 		}
 
 		private void adjustWithProperties() {
@@ -175,6 +176,11 @@ public final class ObjGraphParams {
 		 * Compute also nodes and data deps for static fields - normally handled by a separate previous phase.
 		 */
 		public boolean doStaticFields;
+
+		/**
+		 * Do not propagate side-effects that occur due to exceptions.
+		 */
+		public boolean ignoreExceptions;
 
 		/**
 		 * Merge all fields that are only reachable through an exception to a single node.
@@ -280,7 +286,7 @@ public final class ObjGraphParams {
         }
 
 		final ModRefCandidates mrefs = ModRefCandidates.computeIntracProc(pfact, candFact, cg,
-				sdg.getPointerAnalysis(), opt.doStaticFields, progress);
+				sdg.getPointerAnalysis(), opt.doStaticFields, opt.ignoreExceptions, progress);
 
 		// create side-effect detector if command line option has been set.
 		if (sdg.cfg.sideEffects == null && SideEffectDetectorConfig.isActivated()) {
@@ -1356,7 +1362,8 @@ public final class ObjGraphParams {
 		final Map<CGNode, Collection<ModRefFieldCandidate>> cg2localfields = mrefs.getCandidateMap();
 		for (final PDG pdg : sdg.getAllPDGs()) {
 			final CGNode n = pdg.cgNode;
-			final OrdinalSet<InstanceKey> initialRoot = ModRefCandidateGraph.findMethodRootPts(pa, pdg);
+			final OrdinalSet<InstanceKey> initialRoot =
+					ModRefCandidateGraph.findMethodRootPts(pa, pdg, mrefs.ignoreExceptions);
 			final ReachInfo reach = new ReachInfo(n, initialRoot);
 			final Collection<ModRefFieldCandidate> locals = cg2localfields.get(n);
 			if (locals != null) {

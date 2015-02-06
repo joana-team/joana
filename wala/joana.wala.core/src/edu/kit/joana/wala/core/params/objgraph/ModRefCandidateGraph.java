@@ -52,8 +52,8 @@ public class ModRefCandidateGraph implements Graph<ModRefCandidate> {
 
 	public static ModRefCandidateGraph compute(final PointsToWrapper pa, final ModRefCandidates modref, final PDG pdg) {
 		final InterProcCandidateModel pdgModRef = modref.getCandidates(pdg.cgNode);
-		final List<ModRefRootCandidate> roots = findMethodRoots(pa, pdg);
-		final OrdinalSet<InstanceKey> rootsPts = findMethodRootPts(pa, pdg);
+		final List<ModRefRootCandidate> roots = findMethodRoots(pa, pdg, modref.ignoreExceptions);
+		final OrdinalSet<InstanceKey> rootsPts = findMethodRootPts(pa, pdg, modref.ignoreExceptions);
 
 		final ModRefCandidateGraph g = new ModRefCandidateGraph(pdgModRef, roots, rootsPts);
 
@@ -68,7 +68,8 @@ public class ModRefCandidateGraph implements Graph<ModRefCandidate> {
 		return rootsPts;
 	}
 
-	public static OrdinalSet<InstanceKey> findMethodRootPts(final PointsToWrapper pa, final PDG pdg) {
+	public static OrdinalSet<InstanceKey> findMethodRootPts(final PointsToWrapper pa, final PDG pdg,
+			final boolean ignoreExceptions) {
 		OrdinalSet<InstanceKey> roots = null;
 		final CGNode n = pdg.cgNode;
 
@@ -108,7 +109,7 @@ public class ModRefCandidateGraph implements Graph<ModRefCandidate> {
 			roots = unify(roots, pts);
 		}
 
-		{
+		if (!ignoreExceptions) {
 			final OrdinalSet<InstanceKey> pts = pa.getMethodExceptionPTS(n);
 			roots = unify(roots, pts);
 		}
@@ -120,7 +121,8 @@ public class ModRefCandidateGraph implements Graph<ModRefCandidate> {
 	 * Get the root candidates for a pdg. This method searches all root-formal-in and out nodes and creates/finds
 	 * the proper ModRefCandidates.
 	 */
-	public static List<ModRefRootCandidate> findMethodRoots(final PointsToWrapper pa, final PDG pdg) {
+	public static List<ModRefRootCandidate> findMethodRoots(final PointsToWrapper pa, final PDG pdg,
+			final boolean ignoreExceptions) {
 		final List<ModRefRootCandidate> roots = new LinkedList<ModRefRootCandidate>();
 		final CGNode n = pdg.cgNode;
 
@@ -178,7 +180,7 @@ public class ModRefCandidateGraph implements Graph<ModRefCandidate> {
 			}
 		}
 
-		{
+		if (!ignoreExceptions) {
 			final OrdinalSet<InstanceKey> pts = pa.getMethodExceptionPTS(n);
 			if (pts != null && !pts.isEmpty()) {
 				final ModRefRootCandidate rp = ModRefRootCandidate.createMod(pdg.exception, pts);
@@ -189,7 +191,8 @@ public class ModRefCandidateGraph implements Graph<ModRefCandidate> {
 		return roots;
 	}
 
-	public static List<ModRefRootCandidate> findCallRoots(final PointsToWrapper pa, final PDG pdg, final PDGNode call) {
+	public static List<ModRefRootCandidate> findCallRoots(final PointsToWrapper pa, final PDG pdg, final PDGNode call,
+			final boolean ignoreExceptions) {
 		final List<ModRefRootCandidate> roots = new LinkedList<ModRefRootCandidate>();
 		final SSAInvokeInstruction invk = (SSAInvokeInstruction) pdg.getInstruction(call);
 		final CGNode n = pdg.cgNode;
@@ -240,7 +243,7 @@ public class ModRefCandidateGraph implements Graph<ModRefCandidate> {
 			}
 		}
 
-		{
+		if (!ignoreExceptions) {
 			final PDGNode cException = pdg.getExceptionOut(call);
 			final OrdinalSet<InstanceKey> pts = pa.getCallExceptionPTS(n, invk);
 			if (pts != null && !pts.isEmpty()) {

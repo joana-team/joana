@@ -117,7 +117,7 @@ public final class LocalKillingDefs {
 		return removed;
 	}
 
-	public static final int MAX_ACCESSES_THRESHOLD = 1000;
+	public static final int MAX_ACCESSES_THRESHOLD = 200;
 	
 	public static int run(final SDGBuilder sdg, final PDG pdg, final IProgressMonitor progress)
 			throws CancelException {

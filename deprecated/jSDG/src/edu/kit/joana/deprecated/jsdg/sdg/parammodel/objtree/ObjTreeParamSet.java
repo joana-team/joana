@@ -71,7 +71,7 @@ public class ObjTreeParamSet implements IParamSet<ParameterNode<?>> {
 	}
 
 	public boolean contains(IParameter param) {
-		throw new NotImplementedException();
+		return nodes.contains(param);
 	}
 
 }

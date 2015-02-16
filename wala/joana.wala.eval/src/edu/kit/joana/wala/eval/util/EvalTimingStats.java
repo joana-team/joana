@@ -41,6 +41,10 @@ public class EvalTimingStats implements ConstructionNotifier {
 			return name + ": " + numberPruned + " methods (" + numberUnpruned + " unpruned) total of " + numberOfNodes
 				+ " nodes and " + numberOfEdges + " edges. Computation time was " + (finishTime - startTime) + " ms";
 		}
+		
+		public long totalTime() {
+			return finishTime - startTime;
+		}
 	}
 	
 	private TaskInfo current = new TaskInfo("standard");
@@ -48,10 +52,11 @@ public class EvalTimingStats implements ConstructionNotifier {
 	
 	public void setCurrentTask(final String name) {
 		current = new TaskInfo(name);
+		currentFastest = current;
 	}
 	
 	public void saveCurrent() {
-		name2info.put(current.name, current);
+		name2info.put(currentFastest.name, currentFastest);
 	}
 	
 	/* (non-Javadoc)
@@ -102,5 +107,13 @@ public class EvalTimingStats implements ConstructionNotifier {
 
 	public TaskInfo getCurrent() {
 		return current;
+	}
+
+	private TaskInfo currentFastest = current;
+	
+	public void nextRun() {
+		if (currentFastest.totalTime() > current.totalTime()) {
+			currentFastest = current;
+		}
 	}
 }

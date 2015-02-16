@@ -13,6 +13,7 @@ import static org.junit.Assert.fail;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import org.junit.Test;
 
@@ -51,7 +52,7 @@ public class TestObjGraphPerformance {
 	
 	public static EvalTimingStats stats = new EvalTimingStats(); 
 	
-	public static SDGConfig createConfig(final String testCase, final PointsToPrecision pts,
+	public SDGConfig createConfig(final String testCase, final PointsToPrecision pts,
 			final FieldPropagation fprop, final Stubs stubs, final String cp, final String className) {
 		final JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(className);
 		final SDGConfig config = new SDGConfig(cp, mainMethod.toBCString(), stubs);
@@ -59,16 +60,33 @@ public class TestObjGraphPerformance {
 		config.setExceptionAnalysis(ExceptionAnalysis.INTRAPROC);
 		config.setFieldPropagation(fprop);
 		config.setPointsToPrecision(pts);
-		//config.setPruningPolicy(DoNotPrune.INSTANCE);
 		config.setComputeAllocationSites(false);
 		config.setComputeAccessPaths(false);
 		config.setNotifier(stats);
+		config.setSkipSDGProgramPart(true);
 		stats.setCurrentTask(testCase);
+		
+		postCreateConfigHook(config);
 		
 		return config;
 	}
 	
-	public static SDG buildSDG(final SDGConfig config) throws ApiTestException {
+	protected void postCreateConfigHook(final SDGConfig cfg) {
+		// overwrite this method if you want to add something to the default config
+	}
+
+	public SDG buildSDG(final SDGConfig config, final int numberOfRuns) throws ApiTestException {
+		SDG sdg = null;
+		
+		for (int i = 0; i < numberOfRuns; i++) {
+			sdg = buildSDG(config);
+			stats.nextRun();
+		}
+		
+		return sdg;
+	}
+	
+	public SDG buildSDG(final SDGConfig config) throws ApiTestException {
 		SDGProgram prog = null;
 		
 		try {
@@ -96,6 +114,23 @@ public class TestObjGraphPerformance {
 		stats.readAdditionalStats(sdg, cfg);
 		final TaskInfo ti = stats.getCurrent();
 		System.out.println(ti);
+		// write stats to file
+		try {
+			final String statsFileName = EvalPaths.getOutputPath(testMethodName + ".log");
+			final PrintWriter pw = new PrintWriter(statsFileName);
+			pw.print(ti.toString());
+			pw.println();
+			pw.print(cfg.toString());
+			pw.flush();
+			pw.close();
+		} catch (final EvalException e) {
+			System.err.println("Could not write statistics to file: " + e.getMessage());
+			e.printStackTrace();
+		} catch (final FileNotFoundException e) {
+			System.err.println("Could not write statistics to file: " + e.getMessage());
+			e.printStackTrace();
+		}
+		
 		try {
 			final String sdgFileName = EvalPaths.getOutputPath(testMethodName + ".pdg");
 			System.out.println("Writing sdg to file '" + sdgFileName + "'");
@@ -105,539 +140,13 @@ public class TestObjGraphPerformance {
 		} catch (final EvalException e) {
 			System.err.println("Could not write sdg to file: " + e.getMessage());
 			e.printStackTrace();
-		} catch (FileNotFoundException e) {
+		} catch (final FileNotFoundException e) {
 			System.err.println("Could not write sdg to file: " + e.getMessage());
 			e.printStackTrace();
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			System.err.println("Could not write sdg to file: " + e.getMessage());
 			e.printStackTrace();
 		} 
-	}
-	
-	@Test
-	public void test_J2ME_Barcode_PtsType_Graph() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
-					EvalPaths.J2ME_STUBS, EvalPaths.J2ME_BARCODE, "MainEmulator");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_J2ME_Safe_PtsType_Graph() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
-					EvalPaths.J2ME_STUBS, EvalPaths.J2ME_SAFE, "MainEmulator");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_J2ME_KeePass_PtsType_Graph() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
-					EvalPaths.J2ME_STUBS, EvalPaths.J2ME_KEEPASS, "MainEmulator");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_J2ME_OneTimePass_PtsType_Graph() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
-					EvalPaths.J2ME_STUBS, EvalPaths.J2ME_ONETIMEPASS, "MainEmulator");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_J2ME_bExplore_PtsType_Graph() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
-					EvalPaths.J2ME_STUBS, EvalPaths.J2ME_BEXPLORE, "MainEmulator");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-	
-	@Test
-	public void test_JRE14_HSQLDB_PtsType_Graph() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
-					Stubs.JRE_14, EvalPaths.JRE14_HSQLDB, "org.hsqldb.Server");
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JRE14_HSQLDB_PtsInst_Graph() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED, FieldPropagation.OBJ_GRAPH,
-					Stubs.JRE_14, EvalPaths.JRE14_HSQLDB, "org.hsqldb.Server");
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JRE14_JavaGrandeBarrier_PtsType_Graph() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
-					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFBarrierBench");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JRE14_JavaGrandeCrypt_PtsType_Graph() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
-					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFCryptBenchSizeA");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JRE14_JavaGrandeForkJoin_PtsType_Graph() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
-					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFForkJoinBench");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JRE14_JavaGrandeLUFact_PtsType_Graph() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
-					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFLUFactBenchSizeA");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JRE14_JavaGrandeMolDyn_PtsType_Graph() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
-					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFMolDynBenchSizeA");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JRE14_JavaGrandeMonteCarlo_PtsType_Graph() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
-					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFMonteCarloBenchSizeA");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JRE14_JavaGrandeRayTracer_PtsType_Graph() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
-					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFRayTracerBenchSizeA");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JRE14_JavaGrandeSeries_PtsType_Graph() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
-					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFSeriesBenchSizeA");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JRE14_JavaGrandeSOR_PtsType_Graph() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
-					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFSORBenchSizeA");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JRE14_JavaGrandeSparseMatmult_PtsType_Graph() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
-					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFSparseMatmultBenchSizeA");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JRE14_JavaGrandeSync_PtsType_Graph() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
-					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFSyncBench");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JC_Purse_PtsType_Graph() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
-					EvalPaths.JC_STUBS, EvalPaths.JC_PURSE, "javacard.framework.JCMainPurse");
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JC_Safe_PtsType_Graph() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
-					EvalPaths.JC_STUBS, EvalPaths.JC_SAFE, "javacard.framework.JCMainSafeApplet");
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JC_Wallet_PtsType_Graph() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
-					EvalPaths.JC_STUBS, EvalPaths.JC_WALLET, "javacard.framework.JCMain");
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JC_CorporateCard_PtsType_Graph_NoEscape() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH_NO_ESCAPE,
-					EvalPaths.JC_STUBS, EvalPaths.JC_CORPORATECARD, "javacard.framework.JCMainCorporateCard");
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JC_CorporateCard_PtsType_Graph_Fast() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH_SIMPLE_PROPAGATION,
-					EvalPaths.JC_STUBS, EvalPaths.JC_CORPORATECARD, "javacard.framework.JCMainCorporateCard");
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JC_CorporateCard_PtsType_Graph_Standard() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
-					EvalPaths.JC_STUBS, EvalPaths.JC_CORPORATECARD, "javacard.framework.JCMainCorporateCard");
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JC_CorporateCard_PtsType_Graph_Fixpoint() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH_FIXPOINT_PROPAGATION,
-					EvalPaths.JC_STUBS, EvalPaths.JC_CORPORATECARD, "javacard.framework.JCMainCorporateCard");
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JC_CorporateCard_PtsType_Graph_NoMergeAtAll() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH_NO_MERGE_AT_ALL,
-					EvalPaths.JC_STUBS, EvalPaths.JC_CORPORATECARD, "javacard.framework.JCMainCorporateCard");
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JC_CorporateCard_PtsObj_Graph_NoEscape() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.OBJECT_SENSITIVE, FieldPropagation.OBJ_GRAPH_NO_ESCAPE,
-					EvalPaths.JC_STUBS, EvalPaths.JC_CORPORATECARD, "javacard.framework.JCMainCorporateCard");
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JC_CorporateCard_PtsObj_Graph_Fast() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.OBJECT_SENSITIVE, FieldPropagation.OBJ_GRAPH_SIMPLE_PROPAGATION,
-					EvalPaths.JC_STUBS, EvalPaths.JC_CORPORATECARD, "javacard.framework.JCMainCorporateCard");
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JC_CorporateCard_PtsObj_Graph_Standard() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.OBJECT_SENSITIVE, FieldPropagation.OBJ_GRAPH,
-					EvalPaths.JC_STUBS, EvalPaths.JC_CORPORATECARD, "javacard.framework.JCMainCorporateCard");
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JC_CorporateCard_PtsObj_Graph_Fixpoint() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.OBJECT_SENSITIVE, FieldPropagation.OBJ_GRAPH_FIXPOINT_PROPAGATION,
-					EvalPaths.JC_STUBS, EvalPaths.JC_CORPORATECARD, "javacard.framework.JCMainCorporateCard");
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JC_CorporateCard_PtsObj_Graph_NoMerge() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.OBJECT_SENSITIVE, FieldPropagation.OBJ_GRAPH_NO_MERGE_AT_ALL,
-					EvalPaths.JC_STUBS, EvalPaths.JC_CORPORATECARD, "javacard.framework.JCMainCorporateCard");
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-//	@Test
-//	public void test_JC_CorporateCard_PtsObj_Tree() {
-//		try {
-//			final String currentTestcase = currentMethodName();
-//			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.OBJECT_SENSITIVE, FieldPropagation.OBJ_TREE,
-//					EvalPaths.JC_STUBS, EvalPaths.JC_CORPORATECARD, "javacard.framework.JCMainCorporateCard");
-//			final SDG sdg = buildSDG(cfg);
-//			assertFalse(sdg.vertexSet().isEmpty());
-//			outputStatistics(sdg, cfg, currentTestcase);
-//		} catch (ApiTestException e) {
-//			e.printStackTrace();
-//			fail(e.getMessage());
-//		}
-//	}
-//
-	@Test
-	public void test_JC_CorporateCard_PtsInstance_Tree() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED, FieldPropagation.OBJ_TREE,
-					EvalPaths.JC_STUBS, EvalPaths.JC_CORPORATECARD, "javacard.framework.JCMainCorporateCard");
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JC_CorporateCard_PtsType_Tree() {
-		try {
-			final String currentTestcase = currentMethodName();
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_TREE,
-					EvalPaths.JC_STUBS, EvalPaths.JC_CORPORATECARD, "javacard.framework.JCMainCorporateCard");
-			final SDG sdg = buildSDG(cfg);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
 	}
 
 }

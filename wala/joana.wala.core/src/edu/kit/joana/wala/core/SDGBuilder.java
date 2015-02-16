@@ -262,11 +262,16 @@ public class SDGBuilder implements CallGraphFilter {
 		 * Object graph algorithm without speed/space optimization. Does not merge nodes, when their number is getting
 		 * large. Does not merge accesses to the same field.
 		 */
-		OBJ_GRAPH_NO_FIELD_MERGE(false, "object-graph - no merge of nodes with same field name (internal use only)"),
+		OBJ_GRAPH_FIXP_NO_OPT(false, "object-graph - fipoint propagation with no additioal optimizations (internal use only)"),
 		/*
-		 * Object graph algorithm with no merging at all.
+		 * Object graph algorithm with simple propagation with no additional optimization.
 		 */
-		OBJ_GRAPH_NO_MERGE_AT_ALL(false, "object-graph - no merge at all (internal use only)"),
+		OBJ_GRAPH_SIMPLE_NO_OPT(false, "object-graph - simple propagation with no additional optimization (internal use only)"),
+		/*
+		 * Object graph algorithm with simple propagation, no optimizations and no additional separate escape analysis.
+		 * Do not choose if you don't know what it does. It exists for academic evaluation purposes.
+		 */
+		OBJ_GRAPH_SIMPLE_NO_OPT_NO_ESCAPE(false, "object-graph - with simple propagation and no additional escape analysis (internal use only)"),
 		/*
 		 * Object graph algorithm with fixpoint propagation. Do not choose if you don't know what it does. It
 		 * exists for academic evaluation purposes.
@@ -278,11 +283,6 @@ public class SDGBuilder implements CallGraphFilter {
 		 * effect of the integrated escape analysis.
 		 */
 		OBJ_GRAPH_NO_ESCAPE(false, "object-graph - without escape analysis (internal use only)"),
-		/*
-		 * Object graph algorithm with fixpoint propagation and additional separate escape analysis. Do not choose if
-		 * you don't know what it does. It exists for academic evaluation purposes.
-		 */
-		OBJ_GRAPH_FIXPOINT_AND_ESCAPE(false, "object-graph - with fixpoint propagation and additional escpae analysis (internal use only)"),
 		/*
 		 * Run object graph algorithm without any optimizations. Again do not choose if you don't know what this means.
 		 * Only for evaluation.
@@ -1061,6 +1061,16 @@ public class SDGBuilder implements CallGraphFilter {
 			break;
 		case OBJ_GRAPH: {
 			final ObjGraphParams.Options opt = new ObjGraphParams.Options();
+			opt.isCutOffUnreachable = false;
+			opt.isMergeException = true;
+			opt.isCutOffImmutables = true;
+			opt.isMergeOneFieldPerParent = true;
+			opt.isMergePrunedCallNodes = true;
+			opt.isMergeDuringCutoffImmutables = true;
+			opt.isUseAdvancedInterprocPropagation = true;
+			opt.maxNodesPerInterface = ObjGraphParams.Options.DEFAULT_MAX_NODES_PER_INTERFACE;
+			opt.convertToObjTree = false;
+			opt.doStaticFields = false;
 			opt.ignoreExceptions = cfg.exceptions == ExceptionAnalysis.IGNORE_ALL;
 			ObjGraphParams.compute(this, opt, progress);
 		}
@@ -1068,69 +1078,111 @@ public class SDGBuilder implements CallGraphFilter {
 		case OBJ_GRAPH_FIXPOINT_PROPAGATION: {
 			final ObjGraphParams.Options opt = new ObjGraphParams.Options();
 			opt.isCutOffUnreachable = false;
+			opt.isMergeException = true;
+			opt.isCutOffImmutables = true;
+			opt.isMergeOneFieldPerParent = true;
+			opt.isMergePrunedCallNodes = true;
+			opt.isMergeDuringCutoffImmutables = true;
 			opt.isUseAdvancedInterprocPropagation = true;
+			opt.maxNodesPerInterface = ObjGraphParams.Options.DEFAULT_MAX_NODES_PER_INTERFACE;
+			opt.convertToObjTree = false;
+			opt.doStaticFields = false;
 			opt.ignoreExceptions = cfg.exceptions == ExceptionAnalysis.IGNORE_ALL;
 			ObjGraphParams.compute(this, opt, progress);
 		}
 			break;
-		case OBJ_GRAPH_FIXPOINT_AND_ESCAPE: {
+		case OBJ_GRAPH_FIXP_NO_OPT: {
 			final ObjGraphParams.Options opt = new ObjGraphParams.Options();
-			opt.isCutOffUnreachable = true;
+			opt.isCutOffUnreachable = false;
 			opt.isUseAdvancedInterprocPropagation = true;
 			opt.ignoreExceptions = cfg.exceptions == ExceptionAnalysis.IGNORE_ALL;
+			opt.isMergeException = false;
+			opt.isCutOffImmutables = false;
+			opt.isMergeOneFieldPerParent = false;
+			opt.isMergePrunedCallNodes = false;
+			opt.isMergeDuringCutoffImmutables = false;
+			opt.maxNodesPerInterface = ObjGraphParams.Options.UNLIMITED_NODES_PER_INTERFACE;
+			opt.convertToObjTree = false;
+			opt.doStaticFields = false;
 			ObjGraphParams.compute(this, opt, progress);
 		}
 			break;
 		case OBJ_GRAPH_NO_ESCAPE: {
 			final ObjGraphParams.Options opt = new ObjGraphParams.Options();
 			opt.isCutOffUnreachable = false;
+			opt.isMergeException = true;
+			opt.isCutOffImmutables = true;
+			opt.isMergeOneFieldPerParent = true;
+			opt.isMergePrunedCallNodes = true;
+			opt.isMergeDuringCutoffImmutables = true;
 			opt.isUseAdvancedInterprocPropagation = false;
+			opt.maxNodesPerInterface = ObjGraphParams.Options.DEFAULT_MAX_NODES_PER_INTERFACE;
+			opt.convertToObjTree = false;
+			opt.doStaticFields = false;
 			opt.ignoreExceptions = cfg.exceptions == ExceptionAnalysis.IGNORE_ALL;
 			ObjGraphParams.compute(this, opt, progress);
 		}
 			break;
-		case OBJ_GRAPH_NO_FIELD_MERGE: {
+		case OBJ_GRAPH_SIMPLE_NO_OPT_NO_ESCAPE: {
 			final ObjGraphParams.Options opt = new ObjGraphParams.Options();
-			opt.isCutOffUnreachable = true;
-			opt.isMergeOneFieldPerParent = false;
+			opt.isCutOffUnreachable = false;
 			opt.isUseAdvancedInterprocPropagation = false;
-			opt.maxNodesPerInterface = ObjGraphParams.Options.UNLIMITED_NODES_PER_INTERFACE;
 			opt.ignoreExceptions = cfg.exceptions == ExceptionAnalysis.IGNORE_ALL;
-			ObjGraphParams.compute(this, opt, progress);
-		}
-			break;
-		case OBJ_GRAPH_NO_MERGE_AT_ALL: {
-			final ObjGraphParams.Options opt = new ObjGraphParams.Options();
-			opt.isCutOffUnreachable = true;
-			opt.isMergeOneFieldPerParent = false;
-			opt.isUseAdvancedInterprocPropagation = false;
-			opt.maxNodesPerInterface = ObjGraphParams.Options.UNLIMITED_NODES_PER_INTERFACE;
-			opt.isMergePrunedCallNodes = false;
 			opt.isMergeException = false;
-			this.cfg.mergeFieldsOfPrunedCalls = false;
+			opt.isCutOffImmutables = false;
+			opt.isMergeOneFieldPerParent = false;
+			opt.isMergePrunedCallNodes = false;
 			opt.isMergeDuringCutoffImmutables = false;
+			opt.maxNodesPerInterface = ObjGraphParams.Options.UNLIMITED_NODES_PER_INTERFACE;
+			opt.convertToObjTree = false;
+			opt.doStaticFields = false;
+			ObjGraphParams.compute(this, opt, progress);
+		}
+			break;
+		case OBJ_GRAPH_SIMPLE_NO_OPT: {
+			final ObjGraphParams.Options opt = new ObjGraphParams.Options();
+			opt.isCutOffUnreachable = true;
+			opt.isUseAdvancedInterprocPropagation = false;
 			opt.ignoreExceptions = cfg.exceptions == ExceptionAnalysis.IGNORE_ALL;
+			opt.isMergeException = false;
+			opt.isCutOffImmutables = false;
+			opt.isMergeOneFieldPerParent = false;
+			opt.isMergePrunedCallNodes = false;
+			opt.isMergeDuringCutoffImmutables = false;
+			opt.maxNodesPerInterface = ObjGraphParams.Options.UNLIMITED_NODES_PER_INTERFACE;
+			opt.convertToObjTree = false;
+			opt.doStaticFields = false;
 			ObjGraphParams.compute(this, opt, progress);
 		}
 			break;
 		case OBJ_GRAPH_SIMPLE_PROPAGATION: {
 			final ObjGraphParams.Options opt = new ObjGraphParams.Options();
 			opt.isCutOffUnreachable = true;
+			opt.isMergeException = true;
+			opt.isCutOffImmutables = true;
+			opt.isMergeOneFieldPerParent = true;
+			opt.isMergePrunedCallNodes = true;
+			opt.isMergeDuringCutoffImmutables = true;
 			opt.isUseAdvancedInterprocPropagation = false;
+			opt.maxNodesPerInterface = ObjGraphParams.Options.DEFAULT_MAX_NODES_PER_INTERFACE;
+			opt.convertToObjTree = false;
+			opt.doStaticFields = false;
 			opt.ignoreExceptions = cfg.exceptions == ExceptionAnalysis.IGNORE_ALL;
 			ObjGraphParams.compute(this, opt, progress);
 		}
 			break;
 		case OBJ_GRAPH_NO_OPTIMIZATION: {
 			final ObjGraphParams.Options opt = new ObjGraphParams.Options();
-			opt.isCutOffImmutables = false;
 			opt.isCutOffUnreachable = false;
 			opt.isMergeException = false;
+			opt.isCutOffImmutables = false;
 			opt.isMergeOneFieldPerParent = false;
 			opt.isMergePrunedCallNodes = false;
+			opt.isMergeDuringCutoffImmutables = true;
+			opt.isUseAdvancedInterprocPropagation = true;
 			opt.maxNodesPerInterface = ObjGraphParams.Options.UNLIMITED_NODES_PER_INTERFACE;
-			opt.isUseAdvancedInterprocPropagation = false;
-			opt.ignoreExceptions = cfg.exceptions == ExceptionAnalysis.IGNORE_ALL;
+			opt.convertToObjTree = false;
+			opt.doStaticFields = false;
 			ObjGraphParams.compute(this, opt, progress);
 		}
 			break;

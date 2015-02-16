@@ -50,6 +50,7 @@ public class Analyzer {
 
 			String file = null;
 			Integer timeout = null;
+			int runs = 1;
 			boolean lazy = false;
 			boolean verify = true;
 
@@ -74,6 +75,24 @@ public class Analyzer {
 						} else {
 							timeout = null;
 							System.err.println("No timeout value provided - timeout not enabled.");
+						}
+					} else if (args[i].equals("-runs")) {
+						if (args.length > i + 1) {
+							try {
+								runs = Integer.parseInt(args[i+1]);
+								i++;
+								if (runs < 1) {
+									runs = 1;
+								} else {
+									System.out.println("number of requested runs: " + runs);
+								}
+							} catch (NumberFormatException nf) {
+								System.err.println("Number of runs value is no number - defaulting to single run: " + nf.getMessage());
+								runs = 1;
+							}
+						} else {
+							runs = 1;
+							System.err.println("No value for number of runs provided - defaulting to 1.");
 						}
 					} else if (args[i].equals("-no-verify")) {
 						verify = false;
@@ -125,7 +144,10 @@ public class Analyzer {
 			Activator act = new Activator();
 //			act.getFactory().runExtractImmutables(cfg, progress);
 
-			edu.kit.joana.ifc.sdg.graph.SDG sdg = act.getFactory().getJoanaSDG(cfg, progress);
+			edu.kit.joana.ifc.sdg.graph.SDG sdg = null;
+			for (int i = 0; i < runs; i++) {
+				sdg = act.getFactory().getJoanaSDG(cfg, progress);
+			}
 
 			if (watchdog != null && watchdog.isAlive()) {
 				// tell watchdog to stop

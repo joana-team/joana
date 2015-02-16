@@ -228,7 +228,7 @@ public class SDGProgram {
 			notifier.sdgStarted();
 		}
 		final com.ibm.wala.util.collections.Pair<SDG, SDGBuilder> p =
-				SDGBuildPreparation.computeAndKeepBuilder(out, makeBuildPreparationConfig(config),	config.computeInterferences(), monitor);
+				SDGBuildPreparation.computeAndKeepBuilder(out, makeBuildPreparationConfig(config), monitor);
 		final SDG sdg = p.fst;
 		final SDGBuilder builder = p.snd;
 
@@ -253,7 +253,12 @@ public class SDGProgram {
 			SDGSerializer.toPDGFormat(sdg, sdgFileOut);
 			sdgFileOut.flush();
 		}
-		SDGProgram ret = new SDGProgram(sdg);
+		final SDGProgram ret = new SDGProgram(sdg);
+		
+		if (config.isSkipSDGProgramPart()) {
+			return ret;
+		}
+		
 		// TODO: Iterate only over classes present in the call graph
 		for (IClass c : builder.getClassHierarchy()) {
 			final String walaClassName = c.getName().toString();
@@ -286,7 +291,7 @@ public class SDGProgram {
 		return ret;
 	}
 	public static SDGBuilder createSDGBuilder(SDGConfig config) throws ClassHierarchyException, UnsoundGraphException, CancelException, IOException {
-		return SDGBuildPreparation.createBuilder(IOFactory.createUTF8PrintStream(new ByteArrayOutputStream()), makeBuildPreparationConfig(config), config.computeInterferences(), NullProgressMonitor.INSTANCE);
+		return SDGBuildPreparation.createBuilder(IOFactory.createUTF8PrintStream(new ByteArrayOutputStream()), makeBuildPreparationConfig(config), NullProgressMonitor.INSTANCE);
 	}
 	private static SDGBuildPreparation.Config makeBuildPreparationConfig(SDGConfig config) {
 		JavaMethodSignature mainMethod = JavaMethodSignature.fromString(config.getEntryMethod());// JavaMethodSignature.mainMethodOfClass(config.getMainClass());
@@ -306,6 +311,8 @@ public class SDGProgram {
 		cfg.cgConsumer = config.getCGConsumer();
 		cfg.ctxSelector = config.getContextSelector();
 		cfg.ddisp = config.getDynamicDispatchHandling();
+		cfg.computeSummaryEdges = config.isComputeSummaryEdges();
+		cfg.computeInterference = config.computeInterferences();
 		debug.outln(cfg.stubs);
 
 		if (config.computeInterferences()) {

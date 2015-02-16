@@ -14,6 +14,7 @@ import com.ibm.wala.ipa.callgraph.pruned.PruningPolicy;
 
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.util.JoanaConstants;
+import edu.kit.joana.util.LogUtil;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.CGConsumer;
 import edu.kit.joana.wala.core.SDGBuilder.DynamicDispatchHandling;
@@ -46,6 +47,8 @@ public class SDGConfig {
 	private ContextSelector ctxSelector;
 	private ConstructionNotifier notifier = null;
 	private DynamicDispatchHandling ddisp = DynamicDispatchHandling.SIMPLE;
+	private boolean computeSummaryEdges = true;
+	private boolean skipSDGProgramPart = false;
 	
 	public SDGConfig(String classPath, String entryMethod, Stubs stubsPath) {
 		this(classPath, entryMethod, stubsPath, ExceptionAnalysis.INTERPROC, FieldPropagation.OBJ_GRAPH, PointsToPrecision.INSTANCE_BASED, false, false, MHPType.NONE);
@@ -62,6 +65,22 @@ public class SDGConfig {
 		this.computeAccessPaths = computeAccessPaths;
 		this.computeInterferences = computeInterferences;
 		this.mhpType = mhpType;
+	}
+	
+	public void setComputeSummaryEdges(final boolean value) {
+		this.computeSummaryEdges = value;
+	}
+	
+	public boolean isComputeSummaryEdges() {
+		return this.computeSummaryEdges;
+	}
+
+	public void setSkipSDGProgramPart(final boolean value) {
+		this.skipSDGProgramPart = value;
+	}
+	
+	public boolean isSkipSDGProgramPart() {
+		return this.skipSDGProgramPart;
 	}
 
 	/**
@@ -329,4 +348,9 @@ public class SDGConfig {
 	public void setDynamicDispatchHandling(DynamicDispatchHandling ddisp) {
 		this.ddisp = ddisp;
 	}
+	
+	public String toString() {
+		return LogUtil.attributesToString(this);
+	}
+
 }

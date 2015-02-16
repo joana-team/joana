@@ -215,12 +215,7 @@ public final class SDGBuildPreparation {
 		return compute(out, cfg, NullProgressMonitor.INSTANCE);
 	}
 
-
-	public static SDG compute(PrintStream out, Config cfg, IProgressMonitor progress) throws IOException, ClassHierarchyException, UnsoundGraphException, CancelException {
-		return compute(out, cfg, false, progress);
-	}
-
-	private static Pair<Long, SDGBuilder.SDGBuilderConfig> prepareBuild(PrintStream out, Config cfg, boolean computeInterference, IProgressMonitor progress) throws IOException, ClassHierarchyException {
+	private static Pair<Long, SDGBuilder.SDGBuilderConfig> prepareBuild(PrintStream out, Config cfg, IProgressMonitor progress) throws IOException, ClassHierarchyException {
 		if (!checkOrCreateOutputDir(cfg.outputDir)) {
 			out.println("Could not access/create diretory '" + cfg.outputDir +"'");
 			return null;
@@ -315,7 +310,8 @@ public final class SDGBuildPreparation {
 		scfg.staticInitializers = StaticInitializationTreatment.SIMPLE;
 		scfg.fieldPropagation = cfg.fieldPropagation;
 		scfg.debugManyGraphsDotOutput = cfg.debugManyGraphsDotOutput;
-		scfg.computeInterference = computeInterference;
+		scfg.computeInterference = cfg.computeInterference;
+		scfg.computeSummary = cfg.computeSummaryEdges;
 		scfg.computeAllocationSites = cfg.computeAllocationSites;
 		scfg.cgConsumer = cfg.cgConsumer;
 		scfg.additionalContextSelector = cfg.ctxSelector;
@@ -332,8 +328,8 @@ public final class SDGBuildPreparation {
 				+ "M used.");
 	}
 
-	public static SDG compute(PrintStream out, Config cfg, boolean computeInterference, IProgressMonitor progress) throws IOException, ClassHierarchyException, UnsoundGraphException, CancelException {
-		Pair<Long, SDGBuilder.SDGBuilderConfig> p = prepareBuild(out, cfg, computeInterference, progress);
+	public static SDG compute(PrintStream out, Config cfg, IProgressMonitor progress) throws IOException, ClassHierarchyException, UnsoundGraphException, CancelException {
+		Pair<Long, SDGBuilder.SDGBuilderConfig> p = prepareBuild(out, cfg, progress);
 		long startTime = p.fst;
 		SDGBuilder.SDGBuilderConfig scfg = p.snd;
 		final SDG sdg = SDGBuilder.build(scfg, progress);
@@ -343,8 +339,8 @@ public final class SDGBuildPreparation {
 		return sdg;
 	}
 
-	public static Pair<SDG, SDGBuilder> computeAndKeepBuilder(PrintStream out, Config cfg, boolean computeInterference, IProgressMonitor progress) throws UnsoundGraphException, CancelException, IOException, ClassHierarchyException {
-		Pair<Long, SDGBuilder.SDGBuilderConfig> p = prepareBuild(out, cfg, computeInterference, progress);
+	public static Pair<SDG, SDGBuilder> computeAndKeepBuilder(PrintStream out, Config cfg, IProgressMonitor progress) throws UnsoundGraphException, CancelException, IOException, ClassHierarchyException {
+		Pair<Long, SDGBuilder.SDGBuilderConfig> p = prepareBuild(out, cfg, progress);
 		long startTime = p.fst;
 		SDGBuilder.SDGBuilderConfig scfg = p.snd;
 		final Pair<SDG, SDGBuilder> ret = SDGBuilder.buildAndKeepBuilder(scfg, progress);
@@ -354,8 +350,8 @@ public final class SDGBuildPreparation {
 		return ret;
 	}
 
-	public static SDGBuilder createBuilder(PrintStream out, Config cfg, boolean computeInterference, IProgressMonitor progress) throws UnsoundGraphException, CancelException, ClassHierarchyException, IOException {
-		Pair<Long, SDGBuilder.SDGBuilderConfig> p = prepareBuild(out, cfg, computeInterference, progress);
+	public static SDGBuilder createBuilder(PrintStream out, Config cfg, IProgressMonitor progress) throws UnsoundGraphException, CancelException, ClassHierarchyException, IOException {
+		Pair<Long, SDGBuilder.SDGBuilderConfig> p = prepareBuild(out, cfg, progress);
 		return SDGBuilder.onlyCreate(p.snd);
 	}
 
@@ -396,6 +392,8 @@ public final class SDGBuildPreparation {
 		public ExceptionAnalysis exceptions;
 		public MethodState defaultExceptionMethodState = null;
 		public boolean accessPath;
+		public boolean computeInterference = false;
+		public boolean computeSummaryEdges = true;
 		public boolean debugManyGraphsDotOutput = false;
 		public FieldPropagation fieldPropagation;
 		public SideEffectDetectorConfig sideEffects = null;

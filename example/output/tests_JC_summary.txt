@@ -1,0 +1,72 @@
+test_JC_Purse_PtsType_Graph_StdNoOpt: 669 methods (669 unpruned) total of 69896 nodes and 659918 edges. Computation time was 16730 ms
+Writing sdg to file '../../example/output/test_JC_Purse_PtsType_Graph_StdNoOpt.pdg'
+test_JC_Safe_PtsType_Graph_StdNoOpt: 201 methods (201 unpruned) total of 10200 nodes and 66719 edges. Computation time was 1240 ms
+Writing sdg to file '../../example/output/test_JC_Safe_PtsType_Graph_StdNoOpt.pdg'
+test_JC_Wallet_PtsType_Graph_StdNoOpt: 232 methods (232 unpruned) total of 12407 nodes and 84622 edges. Computation time was 1498 ms
+Writing sdg to file '../../example/output/test_JC_Wallet_PtsType_Graph_StdNoOpt.pdg'
+test_JC_CorporateCard_PtsType_Graph_StdNoOpt: 201 methods (201 unpruned) total of 10200 nodes and 66719 edges. Computation time was 898 ms
+Writing sdg to file '../../example/output/test_JC_CorporateCard_PtsType_Graph_StdNoOpt.pdg'
+test_JC_Purse_PtsInst_Graph_StdNoOpt: 669 methods (669 unpruned) total of 75918 nodes and 860345 edges. Computation time was 20273 ms
+Writing sdg to file '../../example/output/test_JC_Purse_PtsInst_Graph_StdNoOpt.pdg'
+test_JC_Safe_PtsInst_Graph_StdNoOpt: 201 methods (201 unpruned) total of 10482 nodes and 70998 edges. Computation time was 754 ms
+Writing sdg to file '../../example/output/test_JC_Safe_PtsInst_Graph_StdNoOpt.pdg'
+test_JC_Wallet_PtsInst_Graph_StdNoOpt: 232 methods (232 unpruned) total of 12930 nodes and 92996 edges. Computation time was 1025 ms
+Writing sdg to file '../../example/output/test_JC_Wallet_PtsInst_Graph_StdNoOpt.pdg'
+test_JC_CorporateCard_PtsInst_Graph_StdNoOpt: 201 methods (201 unpruned) total of 10482 nodes and 70998 edges. Computation time was 741 ms
+Writing sdg to file '../../example/output/test_JC_CorporateCard_PtsInst_Graph_StdNoOpt.pdg'
+test_JC_Purse_PtsObj_Graph_StdNoOpt: 1644 methods (1644 unpruned) total of 130779 nodes and 1546069 edges. Computation time was 43592 ms
+Writing sdg to file '../../example/output/test_JC_Purse_PtsObj_Graph_StdNoOpt.pdg'
+test_JC_Safe_PtsObj_Graph_StdNoOpt: 487 methods (487 unpruned) total of 20282 nodes and 131604 edges. Computation time was 1368 ms
+Writing sdg to file '../../example/output/test_JC_Safe_PtsObj_Graph_StdNoOpt.pdg'
+test_JC_Wallet_PtsObj_Graph_StdNoOpt: 549 methods (549 unpruned) total of 24040 nodes and 163094 edges. Computation time was 1823 ms
+Writing sdg to file '../../example/output/test_JC_Wallet_PtsObj_Graph_StdNoOpt.pdg'
+test_JC_CorporateCard_PtsObj_Graph_StdNoOpt: 487 methods (487 unpruned) total of 20282 nodes and 131604 edges. Computation time was 1517 ms
+Writing sdg to file '../../example/output/test_JC_CorporateCard_PtsObj_Graph_StdNoOpt.pdg'
+test_JC_Purse_PtsObj_Graph_FastNoEscape: 1644 methods (1644 unpruned) total of 131795 nodes and 1562600 edges. Computation time was 48218 ms
+Writing sdg to file '../../example/output/test_JC_Purse_PtsObj_Graph_FastNoEscape.pdg'
+test_JC_Safe_PtsObj_Graph_FastNoEscape: 487 methods (487 unpruned) total of 20545 nodes and 134524 edges. Computation time was 1417 ms
+Writing sdg to file '../../example/output/test_JC_Safe_PtsObj_Graph_FastNoEscape.pdg'
+test_JC_Wallet_PtsObj_Graph_FastNoEscape: 549 methods (549 unpruned) total of 24364 nodes and 167054 edges. Computation time was 2289 ms
+Writing sdg to file '../../example/output/test_JC_Wallet_PtsObj_Graph_FastNoEscape.pdg'
+test_JC_CorporateCard_PtsObj_Graph_FastNoEscape: 487 methods (487 unpruned) total of 20519 nodes and 134163 edges. Computation time was 1418 ms
+Writing sdg to file '../../example/output/test_JC_CorporateCard_PtsObj_Graph_FastNoEscape.pdg'
+test_JC_Purse_PtsObj_Graph_FastNoOpt: 1644 methods (1644 unpruned) total of 130841 nodes and 1541613 edges. Computation time was 47134 ms
+Writing sdg to file '../../example/output/test_JC_Purse_PtsObj_Graph_FastNoOpt.pdg'
+test_JC_Safe_PtsObj_Graph_FastNoOpt: 487 methods (487 unpruned) total of 20496 nodes and 134037 edges. Computation time was 1867 ms
+Writing sdg to file '../../example/output/test_JC_Safe_PtsObj_Graph_FastNoOpt.pdg'
+test_JC_Wallet_PtsObj_Graph_FastNoOpt: 549 methods (549 unpruned) total of 24253 nodes and 165300 edges. Computation time was 2062 ms
+Writing sdg to file '../../example/output/test_JC_Wallet_PtsObj_Graph_FastNoOpt.pdg'
+test_JC_CorporateCard_PtsObj_Graph_FastNoOpt: 487 methods (487 unpruned) total of 20452 nodes and 133319 edges. Computation time was 1809 ms
+Writing sdg to file '../../example/output/test_JC_CorporateCard_PtsObj_Graph_FastNoOpt.pdg'
+test_JC_Purse_PtsType_Graph_Std: 669 methods (669 unpruned) total of 61528 nodes and 452420 edges. Computation time was 11963 ms
+Writing sdg to file '../../example/output/test_JC_Purse_PtsType_Graph_Std.pdg'
+test_JC_Safe_PtsType_Graph_Std: 201 methods (201 unpruned) total of 10078 nodes and 63795 edges. Computation time was 798 ms
+Writing sdg to file '../../example/output/test_JC_Safe_PtsType_Graph_Std.pdg'
+test_JC_Wallet_PtsType_Graph_Std: 232 methods (232 unpruned) total of 12056 nodes and 77281 edges. Computation time was 1221 ms
+Writing sdg to file '../../example/output/test_JC_Wallet_PtsType_Graph_Std.pdg'
+test_JC_CorporateCard_PtsType_Graph_Std: 201 methods (201 unpruned) total of 10078 nodes and 63795 edges. Computation time was 705 ms
+Writing sdg to file '../../example/output/test_JC_CorporateCard_PtsType_Graph_Std.pdg'
+test_JC_Purse_PtsInst_Graph_Std: 669 methods (669 unpruned) total of 62067 nodes and 457450 edges. Computation time was 14245 ms
+Writing sdg to file '../../example/output/test_JC_Purse_PtsInst_Graph_Std.pdg'
+test_JC_Safe_PtsInst_Graph_Std: 201 methods (201 unpruned) total of 10049 nodes and 63034 edges. Computation time was 1821 ms
+Writing sdg to file '../../example/output/test_JC_Safe_PtsInst_Graph_Std.pdg'
+test_JC_Wallet_PtsInst_Graph_Std: 232 methods (232 unpruned) total of 12209 nodes and 78697 edges. Computation time was 1145 ms
+Writing sdg to file '../../example/output/test_JC_Wallet_PtsInst_Graph_Std.pdg'
+test_JC_CorporateCard_PtsInst_Graph_Std: 201 methods (201 unpruned) total of 10049 nodes and 63034 edges. Computation time was 943 ms
+Writing sdg to file '../../example/output/test_JC_CorporateCard_PtsInst_Graph_Std.pdg'
+test_JC_Purse_PtsObj_Graph_Std: 1644 methods (1644 unpruned) total of 98918 nodes and 686327 edges. Computation time was 25679 ms
+Writing sdg to file '../../example/output/test_JC_Purse_PtsObj_Graph_Std.pdg'
+test_JC_Safe_PtsObj_Graph_Std: 487 methods (487 unpruned) total of 18672 nodes and 113718 edges. Computation time was 2126 ms
+Writing sdg to file '../../example/output/test_JC_Safe_PtsObj_Graph_Std.pdg'
+test_JC_Wallet_PtsObj_Graph_Std: 549 methods (549 unpruned) total of 22058 nodes and 136908 edges. Computation time was 2325 ms
+Writing sdg to file '../../example/output/test_JC_Wallet_PtsObj_Graph_Std.pdg'
+test_JC_CorporateCard_PtsObj_Graph_Std: 487 methods (487 unpruned) total of 18672 nodes and 113680 edges. Computation time was 1917 ms
+Writing sdg to file '../../example/output/test_JC_CorporateCard_PtsObj_Graph_Std.pdg'
+test_JC_Purse_PtsObj_Graph_Fast: 1644 methods (1644 unpruned) total of 99083 nodes and 689175 edges. Computation time was 18925 ms
+Writing sdg to file '../../example/output/test_JC_Purse_PtsObj_Graph_Fast.pdg'
+test_JC_Safe_PtsObj_Graph_Fast: 487 methods (487 unpruned) total of 18738 nodes and 114650 edges. Computation time was 1594 ms
+Writing sdg to file '../../example/output/test_JC_Safe_PtsObj_Graph_Fast.pdg'
+test_JC_Wallet_PtsObj_Graph_Fast: 549 methods (549 unpruned) total of 22096 nodes and 137517 edges. Computation time was 1743 ms
+Writing sdg to file '../../example/output/test_JC_Wallet_PtsObj_Graph_Fast.pdg'
+test_JC_CorporateCard_PtsObj_Graph_Fast: 487 methods (487 unpruned) total of 18697 nodes and 114065 edges. Computation time was 1476 ms
+Writing sdg to file '../../example/output/test_JC_CorporateCard_PtsObj_Graph_Fast.pdg'

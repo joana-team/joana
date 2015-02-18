@@ -259,10 +259,15 @@ public class SDGBuilder implements CallGraphFilter {
 		 */
 		OBJ_GRAPH(true, "object-graph - precise and fast (default)"),
 		/*
+		 * Object graph algorithm. Does not merge nodes, when their number is getting
+		 * large. Does not merge accesses to the same field.
+		 */
+		OBJ_GRAPH_NO_FIELD_MERGE(false, "object-graph - fixpoint propagation with no field merging (internal use only)"),
+		/*
 		 * Object graph algorithm without speed/space optimization. Does not merge nodes, when their number is getting
 		 * large. Does not merge accesses to the same field.
 		 */
-		OBJ_GRAPH_FIXP_NO_OPT(false, "object-graph - fipoint propagation with no additioal optimizations (internal use only)"),
+		OBJ_GRAPH_FIXP_NO_OPT(false, "object-graph - fixpoint propagation with no additional optimizations (internal use only)"),
 		/*
 		 * Object graph algorithm with simple propagation with no additional optimization.
 		 */
@@ -1072,6 +1077,22 @@ public class SDGBuilder implements CallGraphFilter {
 			opt.convertToObjTree = false;
 			opt.doStaticFields = false;
 			opt.ignoreExceptions = cfg.exceptions == ExceptionAnalysis.IGNORE_ALL;
+			ObjGraphParams.compute(this, opt, progress);
+		}
+			break;
+		case OBJ_GRAPH_NO_FIELD_MERGE: {
+			final ObjGraphParams.Options opt = new ObjGraphParams.Options();
+			opt.isCutOffUnreachable = false;
+			opt.isUseAdvancedInterprocPropagation = true;
+			opt.ignoreExceptions = cfg.exceptions == ExceptionAnalysis.IGNORE_ALL;
+			opt.isMergeException = false;
+			opt.isCutOffImmutables = true;
+			opt.isMergeOneFieldPerParent = false;
+			opt.isMergePrunedCallNodes = false;
+			opt.isMergeDuringCutoffImmutables = false;
+			opt.maxNodesPerInterface = ObjGraphParams.Options.UNLIMITED_NODES_PER_INTERFACE;
+			opt.convertToObjTree = false;
+			opt.doStaticFields = false;
 			ObjGraphParams.compute(this, opt, progress);
 		}
 			break;

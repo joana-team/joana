@@ -1,0 +1,18 @@
+test_JRE14_Battleship_PtsType_Graph: 229 methods (229 unpruned) total of 7154 nodes and 44009 edges. Computation time was 1587 ms
+Writing sdg to file '../../example/output/test_JRE14_Battleship_PtsType_Graph.pdg'
+test_JRE14_Battleship_PtsInst_Graph: 229 methods (229 unpruned) total of 7121 nodes and 43633 edges. Computation time was 1209 ms
+Writing sdg to file '../../example/output/test_JRE14_Battleship_PtsInst_Graph.pdg'
+test_JRE14_Battleship_PtsObj_Graph: 903 methods (903 unpruned) total of 18604 nodes and 122956 edges. Computation time was 2660 ms
+Writing sdg to file '../../example/output/test_JRE14_Battleship_PtsObj_Graph.pdg'
+test_JRE14_Battleship_PtsType_Graph_StdNoOpt: 229 methods (229 unpruned) total of 9131 nodes and 72403 edges. Computation time was 1244 ms
+Writing sdg to file '../../example/output/test_JRE14_Battleship_PtsType_Graph_StdNoOpt.pdg'
+test_JRE14_Battleship_PtsInst_Graph_StdNoOpt: 229 methods (229 unpruned) total of 10131 nodes and 94057 edges. Computation time was 1419 ms
+Writing sdg to file '../../example/output/test_JRE14_Battleship_PtsInst_Graph_StdNoOpt.pdg'
+test_JRE14_Battleship_PtsType_Graph_FastNoOpt: 229 methods (229 unpruned) total of 9214 nodes and 73459 edges. Computation time was 1502 ms
+Writing sdg to file '../../example/output/test_JRE14_Battleship_PtsType_Graph_FastNoOpt.pdg'
+test_JRE14_Battleship_PtsInst_Graph_FastNoOpt: 229 methods (229 unpruned) total of 10221 nodes and 95381 edges. Computation time was 1301 ms
+Writing sdg to file '../../example/output/test_JRE14_Battleship_PtsInst_Graph_FastNoOpt.pdg'
+test_JRE14_Battleship_PtsObj_Graph_FastNoOpt: 903 methods (903 unpruned) total of 30072 nodes and 269709 edges. Computation time was 3513 ms
+Writing sdg to file '../../example/output/test_JRE14_Battleship_PtsObj_Graph_FastNoOpt.pdg'
+test_JRE14_Battleship_PtsObj_Graph_StdNoOpt: 903 methods (903 unpruned) total of 29352 nodes and 260026 edges. Computation time was 3404 ms
+Writing sdg to file '../../example/output/test_JRE14_Battleship_PtsObj_Graph_StdNoOpt.pdg'

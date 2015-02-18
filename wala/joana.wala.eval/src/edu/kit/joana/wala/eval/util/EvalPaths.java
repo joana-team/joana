@@ -36,6 +36,7 @@ public class EvalPaths {
 	public static final String J2ME_BEXPLORE;
 	public static final String J2ME_ONETIMEPASS;
 	public static final String JRE14_HSQLDB;
+	public static final String JRE14_BATTLESHIP;
 
 	static {
 		final String propFile = loadPropertyOrFallback("joana.eval.prop-file", "eval.properties");
@@ -64,6 +65,7 @@ public class EvalPaths {
 		}
 		{
 			JRE14_HSQLDB = tryToLoadProperty("joana.jre14.hsqldb", propFile);
+			JRE14_BATTLESHIP = tryToLoadProperty("joana.jre14.battleship", propFile);
 		}
 	}
 	

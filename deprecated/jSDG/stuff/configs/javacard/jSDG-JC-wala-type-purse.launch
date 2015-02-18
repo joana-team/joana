@@ -7,7 +7,7 @@
 <listEntry value="1"/>
 </listAttribute>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="edu.kit.joana.deprecated.jsdg.Analyzer"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-cfg stuff/configs/javacard/tree-objsens/Wallet.cfg -no-verify -runs 3"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-cfg stuff/configs/javacard/wala-0-cfa/Purse.cfg -no-verify -runs 3"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="joana.deprecated.jsdg"/>
 <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Xmx4096M"/>
 </launchConfiguration>

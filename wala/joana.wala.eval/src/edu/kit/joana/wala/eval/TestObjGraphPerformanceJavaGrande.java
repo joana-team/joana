@@ -24,14 +24,16 @@ import edu.kit.joana.wala.eval.util.EvalPaths;
  */
 public class TestObjGraphPerformanceJavaGrande extends TestObjGraphPerformance {
 
+	public static final int NUMBER_OF_RUNS = 3;
+	
 	@Test
 	public void test_JRE14_JavaGrandeBarrier_PtsType_Graph() {
 		try {
 			final String currentTestcase = currentMethodName();
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
 					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFBarrierBench");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
 			assertFalse(sdg.vertexSet().isEmpty());
 			outputStatistics(sdg, cfg, currentTestcase);
 		} catch (ApiTestException e) {
@@ -46,8 +48,8 @@ public class TestObjGraphPerformanceJavaGrande extends TestObjGraphPerformance {
 			final String currentTestcase = currentMethodName();
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
 					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFCryptBenchSizeA");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
 			assertFalse(sdg.vertexSet().isEmpty());
 			outputStatistics(sdg, cfg, currentTestcase);
 		} catch (ApiTestException e) {
@@ -62,8 +64,8 @@ public class TestObjGraphPerformanceJavaGrande extends TestObjGraphPerformance {
 			final String currentTestcase = currentMethodName();
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
 					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFForkJoinBench");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
 			assertFalse(sdg.vertexSet().isEmpty());
 			outputStatistics(sdg, cfg, currentTestcase);
 		} catch (ApiTestException e) {
@@ -78,8 +80,8 @@ public class TestObjGraphPerformanceJavaGrande extends TestObjGraphPerformance {
 			final String currentTestcase = currentMethodName();
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
 					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFLUFactBenchSizeA");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
 			assertFalse(sdg.vertexSet().isEmpty());
 			outputStatistics(sdg, cfg, currentTestcase);
 		} catch (ApiTestException e) {
@@ -94,8 +96,8 @@ public class TestObjGraphPerformanceJavaGrande extends TestObjGraphPerformance {
 			final String currentTestcase = currentMethodName();
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
 					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFMolDynBenchSizeA");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
 			assertFalse(sdg.vertexSet().isEmpty());
 			outputStatistics(sdg, cfg, currentTestcase);
 		} catch (ApiTestException e) {
@@ -110,8 +112,8 @@ public class TestObjGraphPerformanceJavaGrande extends TestObjGraphPerformance {
 			final String currentTestcase = currentMethodName();
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
 					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFMonteCarloBenchSizeA");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
 			assertFalse(sdg.vertexSet().isEmpty());
 			outputStatistics(sdg, cfg, currentTestcase);
 		} catch (ApiTestException e) {
@@ -126,8 +128,8 @@ public class TestObjGraphPerformanceJavaGrande extends TestObjGraphPerformance {
 			final String currentTestcase = currentMethodName();
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
 					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFRayTracerBenchSizeA");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
 			assertFalse(sdg.vertexSet().isEmpty());
 			outputStatistics(sdg, cfg, currentTestcase);
 		} catch (ApiTestException e) {
@@ -142,8 +144,8 @@ public class TestObjGraphPerformanceJavaGrande extends TestObjGraphPerformance {
 			final String currentTestcase = currentMethodName();
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
 					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFSeriesBenchSizeA");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
 			assertFalse(sdg.vertexSet().isEmpty());
 			outputStatistics(sdg, cfg, currentTestcase);
 		} catch (ApiTestException e) {
@@ -158,8 +160,8 @@ public class TestObjGraphPerformanceJavaGrande extends TestObjGraphPerformance {
 			final String currentTestcase = currentMethodName();
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
 					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFSORBenchSizeA");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
 			assertFalse(sdg.vertexSet().isEmpty());
 			outputStatistics(sdg, cfg, currentTestcase);
 		} catch (ApiTestException e) {
@@ -174,8 +176,8 @@ public class TestObjGraphPerformanceJavaGrande extends TestObjGraphPerformance {
 			final String currentTestcase = currentMethodName();
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
 					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFSparseMatmultBenchSizeA");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
 			assertFalse(sdg.vertexSet().isEmpty());
 			outputStatistics(sdg, cfg, currentTestcase);
 		} catch (ApiTestException e) {
@@ -190,8 +192,360 @@ public class TestObjGraphPerformanceJavaGrande extends TestObjGraphPerformance {
 			final String currentTestcase = currentMethodName();
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
 					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFSyncBench");
-			cfg.setComputeInterferences(true);
-			final SDG sdg = buildSDG(cfg);
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void test_JRE14_JavaGrandeBarrier_PtsInst_Graph() {
+		try {
+			final String currentTestcase = currentMethodName();
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED, FieldPropagation.OBJ_GRAPH,
+					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFBarrierBench");
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void test_JRE14_JavaGrandeCrypt_PtsInst_Graph() {
+		try {
+			final String currentTestcase = currentMethodName();
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED, FieldPropagation.OBJ_GRAPH,
+					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFCryptBenchSizeA");
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void test_JRE14_JavaGrandeForkJoin_PtsInst_Graph() {
+		try {
+			final String currentTestcase = currentMethodName();
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED, FieldPropagation.OBJ_GRAPH,
+					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFForkJoinBench");
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void test_JRE14_JavaGrandeLUFact_PtsInst_Graph() {
+		try {
+			final String currentTestcase = currentMethodName();
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED, FieldPropagation.OBJ_GRAPH,
+					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFLUFactBenchSizeA");
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void test_JRE14_JavaGrandeMolDyn_PtsInst_Graph() {
+		try {
+			final String currentTestcase = currentMethodName();
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED, FieldPropagation.OBJ_GRAPH,
+					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFMolDynBenchSizeA");
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void test_JRE14_JavaGrandeMonteCarlo_PtsInst_Graph() {
+		try {
+			final String currentTestcase = currentMethodName();
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED, FieldPropagation.OBJ_GRAPH,
+					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFMonteCarloBenchSizeA");
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void test_JRE14_JavaGrandeRayTracer_PtsInst_Graph() {
+		try {
+			final String currentTestcase = currentMethodName();
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED, FieldPropagation.OBJ_GRAPH,
+					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFRayTracerBenchSizeA");
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void test_JRE14_JavaGrandeSeries_PtsInst_Graph() {
+		try {
+			final String currentTestcase = currentMethodName();
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED, FieldPropagation.OBJ_GRAPH,
+					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFSeriesBenchSizeA");
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void test_JRE14_JavaGrandeSOR_PtsInst_Graph() {
+		try {
+			final String currentTestcase = currentMethodName();
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED, FieldPropagation.OBJ_GRAPH,
+					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFSORBenchSizeA");
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void test_JRE14_JavaGrandeSparseMatmult_PtsInst_Graph() {
+		try {
+			final String currentTestcase = currentMethodName();
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED, FieldPropagation.OBJ_GRAPH,
+					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFSparseMatmultBenchSizeA");
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void test_JRE14_JavaGrandeSync_PtsInst_Graph() {
+		try {
+			final String currentTestcase = currentMethodName();
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED, FieldPropagation.OBJ_GRAPH,
+					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFSyncBench");
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void test_JRE14_JavaGrandeBarrier_PtsObj_Graph() {
+		try {
+			final String currentTestcase = currentMethodName();
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.OBJECT_SENSITIVE, FieldPropagation.OBJ_GRAPH,
+					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFBarrierBench");
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void test_JRE14_JavaGrandeCrypt_PtsObj_Graph() {
+		try {
+			final String currentTestcase = currentMethodName();
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.OBJECT_SENSITIVE, FieldPropagation.OBJ_GRAPH,
+					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFCryptBenchSizeA");
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void test_JRE14_JavaGrandeForkJoin_PtsObj_Graph() {
+		try {
+			final String currentTestcase = currentMethodName();
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.OBJECT_SENSITIVE, FieldPropagation.OBJ_GRAPH,
+					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFForkJoinBench");
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void test_JRE14_JavaGrandeLUFact_PtsObj_Graph() {
+		try {
+			final String currentTestcase = currentMethodName();
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.OBJECT_SENSITIVE, FieldPropagation.OBJ_GRAPH,
+					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFLUFactBenchSizeA");
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void test_JRE14_JavaGrandeMolDyn_PtsObj_Graph() {
+		try {
+			final String currentTestcase = currentMethodName();
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.OBJECT_SENSITIVE, FieldPropagation.OBJ_GRAPH,
+					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFMolDynBenchSizeA");
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void test_JRE14_JavaGrandeMonteCarlo_PtsObj_Graph() {
+		try {
+			final String currentTestcase = currentMethodName();
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.OBJECT_SENSITIVE, FieldPropagation.OBJ_GRAPH,
+					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFMonteCarloBenchSizeA");
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void test_JRE14_JavaGrandeRayTracer_PtsObj_Graph() {
+		try {
+			final String currentTestcase = currentMethodName();
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.OBJECT_SENSITIVE, FieldPropagation.OBJ_GRAPH,
+					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFRayTracerBenchSizeA");
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void test_JRE14_JavaGrandeSeries_PtsObj_Graph() {
+		try {
+			final String currentTestcase = currentMethodName();
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.OBJECT_SENSITIVE, FieldPropagation.OBJ_GRAPH,
+					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFSeriesBenchSizeA");
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void test_JRE14_JavaGrandeSOR_PtsObj_Graph() {
+		try {
+			final String currentTestcase = currentMethodName();
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.OBJECT_SENSITIVE, FieldPropagation.OBJ_GRAPH,
+					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFSORBenchSizeA");
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void test_JRE14_JavaGrandeSparseMatmult_PtsObj_Graph() {
+		try {
+			final String currentTestcase = currentMethodName();
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.OBJECT_SENSITIVE, FieldPropagation.OBJ_GRAPH,
+					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFSparseMatmultBenchSizeA");
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void test_JRE14_JavaGrandeSync_PtsObj_Graph() {
+		try {
+			final String currentTestcase = currentMethodName();
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.OBJECT_SENSITIVE, FieldPropagation.OBJ_GRAPH,
+					EvalPaths.JAVAGRANDE_STUBS, EvalPaths.JAVAGRANDE_CP, "def.JGFSyncBench");
+//			cfg.setComputeInterferences(true);
+			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
 			assertFalse(sdg.vertexSet().isEmpty());
 			outputStatistics(sdg, cfg, currentTestcase);
 		} catch (ApiTestException e) {

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+<listEntry value="/joana.deprecated.jsdg/src/edu/kit/joana/deprecated/jsdg/Analyzer.java"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+<listEntry value="1"/>
+</listAttribute>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="edu.kit.joana.deprecated.jsdg.Analyzer"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-cfg stuff/configs/jre14/tree-0-1-cfa/jg-barrier.cfg -no-verify -runs 3"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="joana.deprecated.jsdg"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Xmx4096M"/>
+</launchConfiguration>

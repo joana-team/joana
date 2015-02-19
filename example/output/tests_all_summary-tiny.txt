@@ -1,0 +1,248 @@
+test_JRE14_HSQLDB_PtsInst_Graph: 3782 methods (4242 unpruned) total of 1792009 nodes and 30849387 edges. Computation time was 7735904 ms
+Writing sdg to file '../../example/output/test_JRE14_HSQLDB_PtsInst_Graph.pdg'
+test_JRE14_HSQLDB_PtsType_Graph: 3798 methods (4245 unpruned) total of 1431006 nodes and 17897112 edges. Computation time was 1701671 ms
+Writing sdg to file '../../example/output/test_JRE14_HSQLDB_PtsType_Graph.pdg'
+test_JC_CorporateCard_PtsObj_Graph_FastNoEscape: 487 methods (487 unpruned) total of 20519 nodes and 134163 edges. Computation time was 1147 ms
+Writing sdg to file '../../example/output/test_JC_CorporateCard_PtsObj_Graph_FastNoEscape.pdg'
+test_JC_Safe_PtsObj_Graph_StdNoOpt: 487 methods (487 unpruned) total of 20282 nodes and 131604 edges. Computation time was 1484 ms
+Writing sdg to file '../../example/output/test_JC_Safe_PtsObj_Graph_StdNoOpt.pdg'
+test_JC_Wallet_PtsInst_Graph_Std: 232 methods (232 unpruned) total of 12209 nodes and 78697 edges. Computation time was 547 ms
+Writing sdg to file '../../example/output/test_JC_Wallet_PtsInst_Graph_Std.pdg'
+test_JC_CorporateCard_PtsObj_Graph_Std: 487 methods (487 unpruned) total of 18672 nodes and 113680 edges. Computation time was 859 ms
+Writing sdg to file '../../example/output/test_JC_CorporateCard_PtsObj_Graph_Std.pdg'
+test_JC_CorporateCard_PtsInst_Graph_Std: 201 methods (201 unpruned) total of 10049 nodes and 63034 edges. Computation time was 438 ms
+Writing sdg to file '../../example/output/test_JC_CorporateCard_PtsInst_Graph_Std.pdg'
+test_JC_Purse_PtsObj_Graph_Fast: 1644 methods (1644 unpruned) total of 98978 nodes and 687705 edges. Computation time was 11099 ms
+Writing sdg to file '../../example/output/test_JC_Purse_PtsObj_Graph_Fast.pdg'
+test_JC_Safe_PtsType_Graph_StdNoOpt: 201 methods (201 unpruned) total of 10200 nodes and 66719 edges. Computation time was 438 ms
+Writing sdg to file '../../example/output/test_JC_Safe_PtsType_Graph_StdNoOpt.pdg'
+test_JC_Purse_PtsInst_Graph_StdNoOpt: 669 methods (669 unpruned) total of 75918 nodes and 860345 edges. Computation time was 9862 ms
+Writing sdg to file '../../example/output/test_JC_Purse_PtsInst_Graph_StdNoOpt.pdg'
+test_JC_Wallet_PtsInst_Graph_StdNoOpt: 232 methods (232 unpruned) total of 12930 nodes and 92996 edges. Computation time was 616 ms
+Writing sdg to file '../../example/output/test_JC_Wallet_PtsInst_Graph_StdNoOpt.pdg'
+test_JC_Safe_PtsObj_Graph_FastNoOpt: 487 methods (487 unpruned) total of 20478 nodes and 133679 edges. Computation time was 962 ms
+Writing sdg to file '../../example/output/test_JC_Safe_PtsObj_Graph_FastNoOpt.pdg'
+test_JC_Purse_PtsType_Graph_Std: 669 methods (669 unpruned) total of 61528 nodes and 452420 edges. Computation time was 6037 ms
+Writing sdg to file '../../example/output/test_JC_Purse_PtsType_Graph_Std.pdg'
+test_JC_Wallet_PtsObj_Graph_Fast: 549 methods (549 unpruned) total of 22096 nodes and 137517 edges. Computation time was 996 ms
+Writing sdg to file '../../example/output/test_JC_Wallet_PtsObj_Graph_Fast.pdg'
+test_JC_CorporateCard_PtsInst_Graph_StdNoOpt: 201 methods (201 unpruned) total of 10482 nodes and 70998 edges. Computation time was 456 ms
+Writing sdg to file '../../example/output/test_JC_CorporateCard_PtsInst_Graph_StdNoOpt.pdg'
+test_JC_CorporateCard_PtsType_Graph_StdNoOpt: 201 methods (201 unpruned) total of 10200 nodes and 66719 edges. Computation time was 412 ms
+Writing sdg to file '../../example/output/test_JC_CorporateCard_PtsType_Graph_StdNoOpt.pdg'
+test_JC_Purse_PtsType_Graph_StdNoOpt: 669 methods (669 unpruned) total of 69896 nodes and 659918 edges. Computation time was 7170 ms
+Writing sdg to file '../../example/output/test_JC_Purse_PtsType_Graph_StdNoOpt.pdg'
+test_JC_Purse_PtsObj_Graph_StdNoOpt: 1644 methods (1644 unpruned) total of 130779 nodes and 1594711 edges. Computation time was 23046 ms
+Writing sdg to file '../../example/output/test_JC_Purse_PtsObj_Graph_StdNoOpt.pdg'
+test_JC_Purse_PtsObj_Graph_FastNoOpt: 1644 methods (1644 unpruned) total of 130841 nodes and 1596497 edges. Computation time was 23722 ms
+Writing sdg to file '../../example/output/test_JC_Purse_PtsObj_Graph_FastNoOpt.pdg'
+test_JC_Safe_PtsInst_Graph_StdNoOpt: 201 methods (201 unpruned) total of 10482 nodes and 70998 edges. Computation time was 470 ms
+Writing sdg to file '../../example/output/test_JC_Safe_PtsInst_Graph_StdNoOpt.pdg'
+test_JC_Safe_PtsInst_Graph_Std: 201 methods (201 unpruned) total of 10049 nodes and 63034 edges. Computation time was 451 ms
+Writing sdg to file '../../example/output/test_JC_Safe_PtsInst_Graph_Std.pdg'
+test_JC_Purse_PtsObj_Graph_Std: 1644 methods (1644 unpruned) total of 98918 nodes and 686310 edges. Computation time was 11176 ms
+Writing sdg to file '../../example/output/test_JC_Purse_PtsObj_Graph_Std.pdg'
+test_JC_Wallet_PtsObj_Graph_FastNoEscape: 549 methods (549 unpruned) total of 24310 nodes and 165854 edges. Computation time was 1236 ms
+Writing sdg to file '../../example/output/test_JC_Wallet_PtsObj_Graph_FastNoEscape.pdg'
+test_JC_CorporateCard_PtsObj_Graph_FastNoOpt: 487 methods (487 unpruned) total of 20470 nodes and 133677 edges. Computation time was 900 ms
+Writing sdg to file '../../example/output/test_JC_CorporateCard_PtsObj_Graph_FastNoOpt.pdg'
+test_JC_Purse_PtsObj_Graph_FastNoEscape: 1644 methods (1644 unpruned) total of 131943 nodes and 1567140 edges. Computation time was 22120 ms
+Writing sdg to file '../../example/output/test_JC_Purse_PtsObj_Graph_FastNoEscape.pdg'
+test_JC_Wallet_PtsObj_Graph_StdNoOpt: 549 methods (549 unpruned) total of 24040 nodes and 163094 edges. Computation time was 1101 ms
+Writing sdg to file '../../example/output/test_JC_Wallet_PtsObj_Graph_StdNoOpt.pdg'
+test_JC_Safe_PtsObj_Graph_FastNoEscape: 487 methods (487 unpruned) total of 20545 nodes and 134524 edges. Computation time was 923 ms
+Writing sdg to file '../../example/output/test_JC_Safe_PtsObj_Graph_FastNoEscape.pdg'
+test_JC_Wallet_PtsObj_Graph_FastNoOpt: 549 methods (549 unpruned) total of 24253 nodes and 165300 edges. Computation time was 1117 ms
+Writing sdg to file '../../example/output/test_JC_Wallet_PtsObj_Graph_FastNoOpt.pdg'
+test_JC_Safe_PtsObj_Graph_Std: 487 methods (487 unpruned) total of 18672 nodes and 113680 edges. Computation time was 863 ms
+Writing sdg to file '../../example/output/test_JC_Safe_PtsObj_Graph_Std.pdg'
+test_JC_Purse_PtsInst_Graph_Std: 669 methods (669 unpruned) total of 62067 nodes and 457450 edges. Computation time was 6943 ms
+Writing sdg to file '../../example/output/test_JC_Purse_PtsInst_Graph_Std.pdg'
+test_JC_Wallet_PtsObj_Graph_Std: 549 methods (549 unpruned) total of 22058 nodes and 136908 edges. Computation time was 1016 ms
+Writing sdg to file '../../example/output/test_JC_Wallet_PtsObj_Graph_Std.pdg'
+test_JC_Safe_PtsObj_Graph_Fast: 487 methods (487 unpruned) total of 18720 nodes and 114336 edges. Computation time was 843 ms
+Writing sdg to file '../../example/output/test_JC_Safe_PtsObj_Graph_Fast.pdg'
+test_JC_Wallet_PtsType_Graph_Std: 232 methods (232 unpruned) total of 12056 nodes and 77281 edges. Computation time was 533 ms
+Writing sdg to file '../../example/output/test_JC_Wallet_PtsType_Graph_Std.pdg'
+test_JC_Safe_PtsType_Graph_Std: 201 methods (201 unpruned) total of 10078 nodes and 63795 edges. Computation time was 450 ms
+Writing sdg to file '../../example/output/test_JC_Safe_PtsType_Graph_Std.pdg'
+test_JC_CorporateCard_PtsType_Graph_Std: 201 methods (201 unpruned) total of 10078 nodes and 63795 edges. Computation time was 445 ms
+Writing sdg to file '../../example/output/test_JC_CorporateCard_PtsType_Graph_Std.pdg'
+test_JC_CorporateCard_PtsObj_Graph_Fast: 487 methods (487 unpruned) total of 18715 nodes and 114379 edges. Computation time was 850 ms
+Writing sdg to file '../../example/output/test_JC_CorporateCard_PtsObj_Graph_Fast.pdg'
+test_JC_Wallet_PtsType_Graph_StdNoOpt: 232 methods (232 unpruned) total of 12407 nodes and 84622 edges. Computation time was 585 ms
+Writing sdg to file '../../example/output/test_JC_Wallet_PtsType_Graph_StdNoOpt.pdg'
+test_JC_CorporateCard_PtsObj_Graph_StdNoOpt: 487 methods (487 unpruned) total of 20282 nodes and 131604 edges. Computation time was 896 ms
+Writing sdg to file '../../example/output/test_JC_CorporateCard_PtsObj_Graph_StdNoOpt.pdg'
+test_JRE14_JavaGrandeMonteCarlo_PtsInst_Graph: 243 methods (459 unpruned) total of 17609 nodes and 155878 edges. Computation time was 2304 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeMonteCarlo_PtsInst_Graph.pdg'
+test_JRE14_JavaGrandeMonteCarlo_PtsType_Graph: 243 methods (459 unpruned) total of 18074 nodes and 143526 edges. Computation time was 1496 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeMonteCarlo_PtsType_Graph.pdg'
+test_JRE14_JavaGrandeSparseMatmult_PtsObj_Graph: 349 methods (1123 unpruned) total of 15873 nodes and 163239 edges. Computation time was 4883 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeSparseMatmult_PtsObj_Graph.pdg'
+test_JRE14_JavaGrandeSparseMatmult_PtsInst_Graph: 83 methods (263 unpruned) total of 6440 nodes and 45892 edges. Computation time was 2788 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeSparseMatmult_PtsInst_Graph.pdg'
+test_JRE14_JavaGrandeSparseMatmult_PtsType_Graph: 83 methods (263 unpruned) total of 6514 nodes and 46219 edges. Computation time was 2639 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeSparseMatmult_PtsType_Graph.pdg'
+test_JRE14_JavaGrandeSOR_PtsInst_Graph: 81 methods (261 unpruned) total of 6084 nodes and 44004 edges. Computation time was 1058 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeSOR_PtsInst_Graph.pdg'
+test_JRE14_JavaGrandeRayTracer_PtsObj_Graph: 865 methods (1579 unpruned) total of 43344 nodes and 430830 edges. Computation time was 9334 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeRayTracer_PtsObj_Graph.pdg'
+test_JRE14_JavaGrandeSeries_PtsObj_Graph: 362 methods (1080 unpruned) total of 15673 nodes and 165977 edges. Computation time was 2509 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeSeries_PtsObj_Graph.pdg'
+test_JRE14_JavaGrandeSync_PtsObj_Graph: 399 methods (1139 unpruned) total of 19506 nodes and 220575 edges. Computation time was 3314 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeSync_PtsObj_Graph.pdg'
+test_JRE14_JavaGrandeMolDyn_PtsObj_Graph: 471 methods (1218 unpruned) total of 31316 nodes and 305885 edges. Computation time was 9187 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeMolDyn_PtsObj_Graph.pdg'
+test_JRE14_JavaGrandeSeries_PtsInst_Graph: 84 methods (244 unpruned) total of 5753 nodes and 41770 edges. Computation time was 495 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeSeries_PtsInst_Graph.pdg'
+test_JRE14_JavaGrandeMonteCarlo_PtsObj_Graph: 1039 methods (2121 unpruned) total of 66514 nodes and 758371 edges. Computation time was 17670 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeMonteCarlo_PtsObj_Graph.pdg'
+test_JRE14_JavaGrandeLUFact_PtsObj_Graph: 356 methods (1073 unpruned) total of 16816 nodes and 167836 edges. Computation time was 3186 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeLUFact_PtsObj_Graph.pdg'
+test_JRE14_JavaGrandeBarrier_PtsObj_Graph: 379 methods (1101 unpruned) total of 17654 nodes and 187758 edges. Computation time was 2925 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeBarrier_PtsObj_Graph.pdg'
+test_JRE14_JavaGrandeForkJoin_PtsObj_Graph: 381 methods (1116 unpruned) total of 17520 nodes and 196316 edges. Computation time was 3044 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeForkJoin_PtsObj_Graph.pdg'
+test_JRE14_JavaGrandeSOR_PtsObj_Graph: 346 methods (1120 unpruned) total of 15644 nodes and 161086 edges. Computation time was 3591 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeSOR_PtsObj_Graph.pdg'
+test_JRE14_JavaGrandeCrypt_PtsObj_Graph: 371 methods (1156 unpruned) total of 18074 nodes and 182099 edges. Computation time was 6247 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeCrypt_PtsObj_Graph.pdg'
+test_JRE14_JavaGrandeSync_PtsInst_Graph: 65 methods (223 unpruned) total of 5219 nodes and 41141 edges. Computation time was 392 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeSync_PtsInst_Graph.pdg'
+test_JRE14_JavaGrandeForkJoin_PtsType_Graph: 69 methods (227 unpruned) total of 5064 nodes and 38152 edges. Computation time was 316 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeForkJoin_PtsType_Graph.pdg'
+test_JRE14_JavaGrandeBarrier_PtsType_Graph: 71 methods (228 unpruned) total of 5148 nodes and 38445 edges. Computation time was 309 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeBarrier_PtsType_Graph.pdg'
+test_JRE14_JavaGrandeMolDyn_PtsType_Graph: 95 methods (255 unpruned) total of 10047 nodes and 75296 edges. Computation time was 1671 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeMolDyn_PtsType_Graph.pdg'
+test_JRE14_JavaGrandeSeries_PtsType_Graph: 84 methods (244 unpruned) total of 5864 nodes and 42545 edges. Computation time was 344 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeSeries_PtsType_Graph.pdg'
+test_JRE14_JavaGrandeSOR_PtsType_Graph: 81 methods (261 unpruned) total of 6173 nodes and 43999 edges. Computation time was 890 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeSOR_PtsType_Graph.pdg'
+test_JRE14_JavaGrandeBarrier_PtsInst_Graph: 71 methods (228 unpruned) total of 5084 nodes and 38739 edges. Computation time was 383 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeBarrier_PtsInst_Graph.pdg'
+test_JRE14_JavaGrandeCrypt_PtsInst_Graph: 82 methods (262 unpruned) total of 6842 nodes and 49270 edges. Computation time was 1565 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeCrypt_PtsInst_Graph.pdg'
+test_JRE14_JavaGrandeSync_PtsType_Graph: 65 methods (223 unpruned) total of 5250 nodes and 40124 edges. Computation time was 330 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeSync_PtsType_Graph.pdg'
+test_JRE14_JavaGrandeLUFact_PtsInst_Graph: 87 methods (247 unpruned) total of 7030 nodes and 48646 edges. Computation time was 844 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeLUFact_PtsInst_Graph.pdg'
+test_JRE14_JavaGrandeLUFact_PtsType_Graph: 87 methods (247 unpruned) total of 6996 nodes and 47834 edges. Computation time was 737 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeLUFact_PtsType_Graph.pdg'
+test_JRE14_JavaGrandeRayTracer_PtsType_Graph: 147 methods (299 unpruned) total of 10968 nodes and 82634 edges. Computation time was 1007 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeRayTracer_PtsType_Graph.pdg'
+test_JRE14_JavaGrandeForkJoin_PtsInst_Graph: 69 methods (227 unpruned) total of 5027 nodes and 38882 edges. Computation time was 410 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeForkJoin_PtsInst_Graph.pdg'
+test_JRE14_JavaGrandeMolDyn_PtsInst_Graph: 95 methods (255 unpruned) total of 9864 nodes and 73512 edges. Computation time was 1833 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeMolDyn_PtsInst_Graph.pdg'
+test_JRE14_JavaGrandeCrypt_PtsType_Graph: 82 methods (262 unpruned) total of 6890 nodes and 48704 edges. Computation time was 1520 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeCrypt_PtsType_Graph.pdg'
+test_JRE14_JavaGrandeRayTracer_PtsInst_Graph: 147 methods (299 unpruned) total of 10947 nodes and 82543 edges. Computation time was 1277 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeRayTracer_PtsInst_Graph.pdg'
+test_JRE14_Battleship_PtsInst_Graph_FastNoOpt: 229 methods (229 unpruned) total of 10221 nodes and 95381 edges. Computation time was 673 ms
+Writing sdg to file '../../example/output/test_JRE14_Battleship_PtsInst_Graph_FastNoOpt.pdg'
+test_JRE14_Battleship_PtsType_Graph_FastNoOpt: 229 methods (229 unpruned) total of 9214 nodes and 73459 edges. Computation time was 585 ms
+Writing sdg to file '../../example/output/test_JRE14_Battleship_PtsType_Graph_FastNoOpt.pdg'
+test_JRE14_Battleship_PtsObj_Graph_StdNoOpt: 903 methods (903 unpruned) total of 29352 nodes and 260026 edges. Computation time was 1815 ms
+Writing sdg to file '../../example/output/test_JRE14_Battleship_PtsObj_Graph_StdNoOpt.pdg'
+test_JRE14_Battleship_PtsInst_Graph_StdNoOpt: 229 methods (229 unpruned) total of 10131 nodes and 94057 edges. Computation time was 645 ms
+Writing sdg to file '../../example/output/test_JRE14_Battleship_PtsInst_Graph_StdNoOpt.pdg'
+test_JRE14_Battleship_PtsObj_Graph: 903 methods (903 unpruned) total of 18604 nodes and 122956 edges. Computation time was 1288 ms
+Writing sdg to file '../../example/output/test_JRE14_Battleship_PtsObj_Graph.pdg'
+test_JRE14_Battleship_PtsType_Graph: 229 methods (229 unpruned) total of 7154 nodes and 44009 edges. Computation time was 438 ms
+Writing sdg to file '../../example/output/test_JRE14_Battleship_PtsType_Graph.pdg'
+test_JRE14_Battleship_PtsType_Graph_StdNoOpt: 229 methods (229 unpruned) total of 9131 nodes and 72403 edges. Computation time was 527 ms
+Writing sdg to file '../../example/output/test_JRE14_Battleship_PtsType_Graph_StdNoOpt.pdg'
+test_JRE14_Battleship_PtsObj_Graph_FastNoOpt: 903 methods (903 unpruned) total of 30072 nodes and 269709 edges. Computation time was 1911 ms
+Writing sdg to file '../../example/output/test_JRE14_Battleship_PtsObj_Graph_FastNoOpt.pdg'
+test_JRE14_Battleship_PtsInst_Graph: 229 methods (229 unpruned) total of 7121 nodes and 43633 edges. Computation time was 505 ms
+Writing sdg to file '../../example/output/test_JRE14_Battleship_PtsInst_Graph.pdg'
+fork site with id 24630 contains no allocation site information!
+
+fork site with id 24649 contains no allocation site information!
+
+test_J2ME_bExplore_PtsType_Graph: 2008 methods (2572 unpruned) total of 196304 nodes and 3234035 edges. Computation time was 373257 ms
+Writing sdg to file '../../example/output/test_J2ME_bExplore_PtsType_Graph.pdg'
+test_J2ME_Barcode_PtsType_Graph: 243 methods (509 unpruned) total of 12118 nodes and 89981 edges. Computation time was 1168 ms
+Writing sdg to file '../../example/output/test_J2ME_Barcode_PtsType_Graph.pdg'
+fork site with id 8906 contains no allocation site information!
+
+fork site with id 11090 contains no allocation site information!
+
+fork site with id 14698 contains no allocation site information!
+
+fork site with id 40458 contains no allocation site information!
+
+test_J2ME_KeePass_PtsType_Graph: 1087 methods (1573 unpruned) total of 77280 nodes and 788947 edges. Computation time was 39979 ms
+Writing sdg to file '../../example/output/test_J2ME_KeePass_PtsType_Graph.pdg'
+test_J2ME_OneTimePass_PtsType_Graph: 1000 methods (1255 unpruned) total of 74376 nodes and 522345 edges. Computation time was 62850 ms
+Writing sdg to file '../../example/output/test_J2ME_OneTimePass_PtsType_Graph.pdg'
+test_J2ME_Safe_PtsType_Graph: 142 methods (545 unpruned) total of 9567 nodes and 90691 edges. Computation time was 2867 ms
+Writing sdg to file '../../example/output/test_J2ME_Safe_PtsType_Graph.pdg'
+test_JRE14_JavaGrandeMonteCarlo_PtsInst_Graph-noopt: 469 methods (469 unpruned) total of 28037 nodes and 185836 edges. Computation time was 2678 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeMonteCarlo_PtsInst_Graph-noopt.pdg'
+test_JRE14_JavaGrandeMonteCarlo_PtsType_Graph-noopt: 469 methods (469 unpruned) total of 28036 nodes and 187035 edges. Computation time was 2146 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeMonteCarlo_PtsType_Graph-noopt.pdg'
+test_JRE14_JavaGrandeSparseMatmult_PtsObj_Graph-noopt: 1133 methods (1133 unpruned) total of 21840 nodes and 159996 edges. Computation time was 4426 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeSparseMatmult_PtsObj_Graph-noopt.pdg'
+test_JRE14_JavaGrandeSparseMatmult_PtsInst_Graph-noopt: 273 methods (273 unpruned) total of 13162 nodes and 79823 edges. Computation time was 3179 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeSparseMatmult_PtsInst_Graph-noopt.pdg'
+test_JRE14_JavaGrandeSparseMatmult_PtsType_Graph-noopt: 273 methods (273 unpruned) total of 13389 nodes and 83816 edges. Computation time was 3104 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeSparseMatmult_PtsType_Graph-noopt.pdg'
+test_JRE14_JavaGrandeSOR_PtsInst_Graph-noopt: 271 methods (271 unpruned) total of 12862 nodes and 78760 edges. Computation time was 1373 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeSOR_PtsInst_Graph-noopt.pdg'
+test_JRE14_JavaGrandeRayTracer_PtsObj_Graph-noopt: 1582 methods (1582 unpruned) total of 44661 nodes and 351695 edges. Computation time was 5507 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeRayTracer_PtsObj_Graph-noopt.pdg'
+test_JRE14_JavaGrandeSeries_PtsObj_Graph-noopt: 1083 methods (1083 unpruned) total of 19925 nodes and 148992 edges. Computation time was 1910 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeSeries_PtsObj_Graph-noopt.pdg'
+test_JRE14_JavaGrandeSync_PtsObj_Graph-noopt: 1142 methods (1142 unpruned) total of 23494 nodes and 182627 edges. Computation time was 2264 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeSync_PtsObj_Graph-noopt.pdg'
+test_JRE14_JavaGrandeMolDyn_PtsObj_Graph-noopt: 1221 methods (1221 unpruned) total of 34270 nodes and 260620 edges. Computation time was 7574 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeMolDyn_PtsObj_Graph-noopt.pdg'
+test_JRE14_JavaGrandeSeries_PtsInst_Graph-noopt: 247 methods (247 unpruned) total of 11681 nodes and 72050 edges. Computation time was 768 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeSeries_PtsInst_Graph-noopt.pdg'
+test_JRE14_JavaGrandeMonteCarlo_PtsObj_Graph-noopt: 2131 methods (2131 unpruned) total of 70281 nodes and 579221 edges. Computation time was 11098 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeMonteCarlo_PtsObj_Graph-noopt.pdg'
+test_JRE14_JavaGrandeLUFact_PtsObj_Graph-noopt: 1076 methods (1076 unpruned) total of 21349 nodes and 155171 edges. Computation time was 2599 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeLUFact_PtsObj_Graph-noopt.pdg'
+test_JRE14_JavaGrandeBarrier_PtsObj_Graph-noopt: 1104 methods (1104 unpruned) total of 22002 nodes and 167231 edges. Computation time was 2053 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeBarrier_PtsObj_Graph-noopt.pdg'
+test_JRE14_JavaGrandeForkJoin_PtsObj_Graph-noopt: 1119 methods (1119 unpruned) total of 21764 nodes and 168059 edges. Computation time was 2110 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeForkJoin_PtsObj_Graph-noopt.pdg'
+test_JRE14_JavaGrandeSOR_PtsObj_Graph-noopt: 1130 methods (1130 unpruned) total of 21739 nodes and 159683 edges. Computation time was 3159 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeSOR_PtsObj_Graph-noopt.pdg'
+test_JRE14_JavaGrandeCrypt_PtsObj_Graph-noopt: 1166 methods (1166 unpruned) total of 23921 nodes and 175444 edges. Computation time was 5986 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeCrypt_PtsObj_Graph-noopt.pdg'
+test_JRE14_JavaGrandeSync_PtsInst_Graph-noopt: 226 methods (226 unpruned) total of 11215 nodes and 71051 edges. Computation time was 766 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeSync_PtsInst_Graph-noopt.pdg'
+test_JRE14_JavaGrandeForkJoin_PtsType_Graph-noopt: 230 methods (230 unpruned) total of 11102 nodes and 71113 edges. Computation time was 669 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeForkJoin_PtsType_Graph-noopt.pdg'
+test_JRE14_JavaGrandeBarrier_PtsType_Graph-noopt: 231 methods (231 unpruned) total of 11168 nodes and 71401 edges. Computation time was 690 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeBarrier_PtsType_Graph-noopt.pdg'
+test_JRE14_JavaGrandeMolDyn_PtsType_Graph-noopt: 258 methods (258 unpruned) total of 15899 nodes and 105390 edges. Computation time was 2079 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeMolDyn_PtsType_Graph-noopt.pdg'
+test_JRE14_JavaGrandeSeries_PtsType_Graph-noopt: 247 methods (247 unpruned) total of 11745 nodes and 73748 edges. Computation time was 684 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeSeries_PtsType_Graph-noopt.pdg'
+test_JRE14_JavaGrandeSOR_PtsType_Graph-noopt: 271 methods (271 unpruned) total of 13008 nodes and 80937 edges. Computation time was 1297 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeSOR_PtsType_Graph-noopt.pdg'
+test_JRE14_JavaGrandeBarrier_PtsInst_Graph-noopt: 231 methods (231 unpruned) total of 11085 nodes and 69328 edges. Computation time was 740 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeBarrier_PtsInst_Graph-noopt.pdg'
+test_JRE14_JavaGrandeCrypt_PtsInst_Graph-noopt: 272 methods (272 unpruned) total of 13612 nodes and 83798 edges. Computation time was 2067 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeCrypt_PtsInst_Graph-noopt.pdg'
+test_JRE14_JavaGrandeSync_PtsType_Graph-noopt: 226 methods (226 unpruned) total of 11295 nodes and 73184 edges. Computation time was 738 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeSync_PtsType_Graph-noopt.pdg'
+test_JRE14_JavaGrandeLUFact_PtsInst_Graph-noopt: 250 methods (250 unpruned) total of 12961 nodes and 78930 edges. Computation time was 1187 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeLUFact_PtsInst_Graph-noopt.pdg'
+test_JRE14_JavaGrandeLUFact_PtsType_Graph-noopt: 250 methods (250 unpruned) total of 12969 nodes and 80220 edges. Computation time was 1106 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeLUFact_PtsType_Graph-noopt.pdg'
+test_JRE14_JavaGrandeRayTracer_PtsType_Graph-noopt: 302 methods (302 unpruned) total of 16797 nodes and 113330 edges. Computation time was 1387 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeRayTracer_PtsType_Graph-noopt.pdg'
+test_JRE14_JavaGrandeForkJoin_PtsInst_Graph-noopt: 230 methods (230 unpruned) total of 11016 nodes and 68984 edges. Computation time was 724 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeForkJoin_PtsInst_Graph-noopt.pdg'
+test_JRE14_JavaGrandeMolDyn_PtsInst_Graph-noopt: 258 methods (258 unpruned) total of 15732 nodes and 101478 edges. Computation time was 2204 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeMolDyn_PtsInst_Graph-noopt.pdg'
+test_JRE14_JavaGrandeCrypt_PtsType_Graph-noopt: 272 methods (272 unpruned) total of 13746 nodes and 85946 edges. Computation time was 1913 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeCrypt_PtsType_Graph-noopt.pdg'
+test_JRE14_JavaGrandeRayTracer_PtsInst_Graph-noopt: 302 methods (302 unpruned) total of 16697 nodes and 111211 edges. Computation time was 1604 ms
+Writing sdg to file '../../example/output/test_JRE14_JavaGrandeRayTracer_PtsInst_Graph-noopt.pdg'

@@ -30,7 +30,6 @@ public class TestObjGraphPerformanceJ2ME extends TestObjGraphPerformance {
 			final String currentTestcase = currentMethodName();
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
 					EvalPaths.J2ME_STUBS, EvalPaths.J2ME_BARCODE, "MainEmulator");
-			cfg.setComputeInterferences(true);
 			final SDG sdg = buildSDG(cfg);
 			assertFalse(sdg.vertexSet().isEmpty());
 			outputStatistics(sdg, cfg, currentTestcase);
@@ -46,7 +45,6 @@ public class TestObjGraphPerformanceJ2ME extends TestObjGraphPerformance {
 			final String currentTestcase = currentMethodName();
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
 					EvalPaths.J2ME_STUBS, EvalPaths.J2ME_SAFE, "MainEmulator");
-			cfg.setComputeInterferences(true);
 			final SDG sdg = buildSDG(cfg);
 			assertFalse(sdg.vertexSet().isEmpty());
 			outputStatistics(sdg, cfg, currentTestcase);
@@ -62,7 +60,6 @@ public class TestObjGraphPerformanceJ2ME extends TestObjGraphPerformance {
 			final String currentTestcase = currentMethodName();
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
 					EvalPaths.J2ME_STUBS, EvalPaths.J2ME_KEEPASS, "MainEmulator");
-			cfg.setComputeInterferences(true);
 			final SDG sdg = buildSDG(cfg);
 			assertFalse(sdg.vertexSet().isEmpty());
 			outputStatistics(sdg, cfg, currentTestcase);
@@ -78,7 +75,6 @@ public class TestObjGraphPerformanceJ2ME extends TestObjGraphPerformance {
 			final String currentTestcase = currentMethodName();
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
 					EvalPaths.J2ME_STUBS, EvalPaths.J2ME_ONETIMEPASS, "MainEmulator");
-			cfg.setComputeInterferences(true);
 			final SDG sdg = buildSDG(cfg);
 			assertFalse(sdg.vertexSet().isEmpty());
 			outputStatistics(sdg, cfg, currentTestcase);
@@ -94,7 +90,6 @@ public class TestObjGraphPerformanceJ2ME extends TestObjGraphPerformance {
 			final String currentTestcase = currentMethodName();
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
 					EvalPaths.J2ME_STUBS, EvalPaths.J2ME_BEXPLORE, "MainEmulator");
-			cfg.setComputeInterferences(true);
 			final SDG sdg = buildSDG(cfg);
 			assertFalse(sdg.vertexSet().isEmpty());
 			outputStatistics(sdg, cfg, currentTestcase);

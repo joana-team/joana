@@ -50,7 +50,6 @@ import com.ibm.wala.ipa.callgraph.propagation.PointerKeyFactory;
 import com.ibm.wala.ipa.callgraph.propagation.PropagationCallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.propagation.SSAContextInterpreter;
 import com.ibm.wala.ipa.callgraph.propagation.SSAPropagationCallGraphBuilder;
-import com.ibm.wala.ipa.callgraph.propagation.cfa.DefaultSSAInterpreter;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.ZeroXInstanceKeys;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.nCFABuilder;
 import com.ibm.wala.ipa.callgraph.pruned.CallGraphPruning;
@@ -90,7 +89,6 @@ import edu.kit.joana.deprecated.jsdg.sdg.interference.CSDGPreprocessor;
 import edu.kit.joana.deprecated.jsdg.sdg.nodes.JDependencyGraph.PDGFormatException;
 import edu.kit.joana.deprecated.jsdg.sdg.parammodel.IParamComputation;
 import edu.kit.joana.deprecated.jsdg.sdg.pointsto.IPointerAnalysis;
-import edu.kit.joana.deprecated.jsdg.sdg.pointsto.ObjSensContextSelector;
 import edu.kit.joana.deprecated.jsdg.sdg.pointsto.ObjSensZeroXCFABuilder;
 import edu.kit.joana.deprecated.jsdg.sdg.pointsto.PointsToWrapper;
 import edu.kit.joana.deprecated.jsdg.util.Debug;
@@ -100,6 +98,8 @@ import edu.kit.joana.deprecated.jsdg.util.Util;
 import edu.kit.joana.deprecated.jsdg.wala.objecttree.IKey2Origin;
 import edu.kit.joana.deprecated.jsdg.wala.objecttree.InstanceAndPointerKeyFactoryAdapter;
 import edu.kit.joana.ifc.sdg.graph.SDGVerifier;
+import edu.kit.joana.wala.util.pointsto.ExtendedAnalysisOptions;
+import edu.kit.joana.wala.util.pointsto.WalaPointsToUtil;
 
 /**
  *
@@ -643,7 +643,7 @@ public class SDGFactory {
 
 		Iterable<Entrypoint> entrypoints =
 			com.ibm.wala.ipa.callgraph.impl.Util.makeMainEntrypoints(scope, cha, cfg.mainClass);
-		AnalysisOptions options = new AnalysisOptions(scope, entrypoints);
+		ExtendedAnalysisOptions options = new ExtendedAnalysisOptions(scope, entrypoints);
 	    AnalysisCache cache = new AnalysisCache();
 
 	    progress.subTask(Messages.getString("Analyzer.SubTask_Call_Graph_Builder") + cfg.pointsTo); //$NON-NLS-1$
@@ -752,7 +752,7 @@ public class SDGFactory {
 
 		Iterable<Entrypoint> entrypoints = com.ibm.wala.ipa.callgraph.impl.
 			Util.makeMainEntrypoints(scope, cha, cfg.mainClass);
-		AnalysisOptions options = new AnalysisOptions(scope, entrypoints);
+		ExtendedAnalysisOptions options = new ExtendedAnalysisOptions(scope, entrypoints);
 	    AnalysisCache cache = new AnalysisCache();
 
 	    progress.subTask(Messages.getString("Analyzer.SubTask_Call_Graph_Builder") + cfg.pointsTo); //$NON-NLS-1$
@@ -862,7 +862,7 @@ public class SDGFactory {
 
 		Iterable<Entrypoint> entrypoints = com.ibm.wala.ipa.callgraph.impl.
 			Util.makeMainEntrypoints(scope, cha, cfg.mainClass);
-		AnalysisOptions options = new AnalysisOptions(scope, entrypoints);
+		ExtendedAnalysisOptions options = new ExtendedAnalysisOptions(scope, entrypoints);
 	    AnalysisCache cache = new AnalysisCache();
 
 	    progress.subTask(Messages.getString("Analyzer.SubTask_Call_Graph_Builder") + cfg.pointsTo); //$NON-NLS-1$
@@ -930,7 +930,7 @@ public class SDGFactory {
 	}
 
 	public final static SSAPropagationCallGraphBuilder getCallGraphBuilder(PointsToType type,
-			AnalysisOptions options, AnalysisCache cache, IClassHierarchy cha,
+			ExtendedAnalysisOptions options, AnalysisCache cache, IClassHierarchy cha,
 			AnalysisScope scope) {
 		SSAPropagationCallGraphBuilder cg = null;
 
@@ -941,20 +941,25 @@ public class SDGFactory {
 				PrettyWalaNames.makeRTABuilder(options, cache, cha, scope);
 			break; */
 		case ZERO_CFA:
-			cg = com.ibm.wala.ipa.callgraph.impl.
-				Util.makeZeroCFABuilder(options, cache, cha, scope);
+			cg = (SSAPropagationCallGraphBuilder) WalaPointsToUtil.makeContextFreeType(options, cache, cha, scope); 
+//				com.ibm.wala.ipa.callgraph.impl.
+//				Util.makeZeroCFABuilder(options, cache, cha, scope);
 			break;
 		case ZERO_ONE_CFA:
-			cg = com.ibm.wala.ipa.callgraph.impl.
-				Util.makeZeroOneCFABuilder(options, cache, cha, scope);
+			cg = (SSAPropagationCallGraphBuilder) WalaPointsToUtil.makeContextSensSite(options, cache, cha, scope); 
+//			
+//			com.ibm.wala.ipa.callgraph.impl.
+//				Util.makeZeroOneCFABuilder(options, cache, cha, scope);
 			break;
 		case VANILLA_ZERO_ONE_CFA:
 			cg = com.ibm.wala.ipa.callgraph.impl.
 				Util.makeVanillaZeroOneCFABuilder(options, cache, cha, scope);
 			break;
 		case OBJ_SENS:
-			cg = makeObjSensZeroXCFABuilder(options, cache, cha, scope,
-					new ObjSensContextSelector(), new DefaultSSAInterpreter(options, cache));
+			cg = (SSAPropagationCallGraphBuilder) WalaPointsToUtil.makeObjectSens(options, cache, cha, scope);
+			
+			//makeObjSensZeroXCFABuilder(options, cache, cha, scope,
+				//	new ObjSensContextSelector(), new DefaultSSAInterpreter(options, cache));
 			break;
 		case VANILLA_ZERO_ONE_CONTAINER_CFA:
 			cg = com.ibm.wala.ipa.callgraph.impl.
@@ -1005,7 +1010,10 @@ public class SDGFactory {
 		addDefaultBypassLogic(options, scope, Util.class.getClassLoader(), cha);
 
 		return ObjSensZeroXCFABuilder.make(cha, options, cache, customSelector, customInterpreter,
-				ZeroXInstanceKeys.ALLOCATIONS | ZeroXInstanceKeys.CONSTANT_SPECIFIC);
+				ZeroXInstanceKeys.ALLOCATIONS |
+                ZeroXInstanceKeys.CONSTANT_SPECIFIC |
+                ZeroXInstanceKeys.SMUSH_MANY |
+                ZeroXInstanceKeys.SMUSH_THROWABLES);
 	}
 
 
@@ -1142,7 +1150,7 @@ public class SDGFactory {
 
 		Iterable<Entrypoint> entrypoints = com.ibm.wala.ipa.callgraph.impl.
 			Util.makeMainEntrypoints(scope, cha, cfg.mainClass);
-		AnalysisOptions options = new AnalysisOptions(scope, entrypoints);
+		ExtendedAnalysisOptions options = new ExtendedAnalysisOptions(scope, entrypoints);
 	    AnalysisCache cache = new AnalysisCache();
 
 	    progress.subTask(Messages.getString("Analyzer.SubTask_Call_Graph_Builder") + cfg.pointsTo); //$NON-NLS-1$

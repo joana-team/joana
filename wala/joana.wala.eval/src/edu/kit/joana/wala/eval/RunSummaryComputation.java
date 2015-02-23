@@ -8,6 +8,7 @@
 package edu.kit.joana.wala.eval;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -17,6 +18,7 @@ import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.io.FileUtil;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.eval.util.SummaryEdgeDriver;
 import edu.kit.joana.wala.eval.util.SummaryEdgeDriver.Result;
@@ -100,13 +102,15 @@ public class RunSummaryComputation {
 
 		final List<Task> tasks = buildTaskList(filelist, recursive);
 		for (final Task t : tasks) {
-			System.out.println("working on '" + t.filename + "'");
 			work(t, v);
 		}
 	}
 	
 	private static void work(final Task t, final Variant v) {
+		System.out.print("working on '" + t.filename + "' with " + v.name() + "... ");
+
 		SummaryEdgeDriver su = null;
+		final SummaryEdgeDriver delete = SummaryEdgeDriver.getDeleteVariant();
 		
 		switch (v) {
 		case NEW:
@@ -116,23 +120,34 @@ public class RunSummaryComputation {
 			su = SummaryEdgeDriver.getOldVariant();
 			break;
 		case DELETE:
-			su = null; //TODO: add a remove edges driver
+			su = delete;
 			break;
 		}
 		
 		
 		try {
 			final SDG sdg = SDG.readFrom(t.filename);
+			if (v != Variant.DELETE) {
+				delete.compute(sdg, NullProgressMonitor.INSTANCE);
+			}
+			
 			final Result r = su.compute(sdg, NullProgressMonitor.INSTANCE);
 
 			t.startTime = r.startTime;
 			t.endTime = r.endTime;
 			t.numOfSumEdges = r.numSumEdges;
+			
+			// write results back
+			SDGSerializer.toPDGFormat(sdg, new FileOutputStream(t.filename));
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (CancelException e) {
 			e.printStackTrace();
+		} catch (NullPointerException e) {
+			e.printStackTrace();
 		}
+		
+		System.out.println(t.numOfSumEdges + " edges in " + (t.endTime - t.startTime) + " ms"); 
 	}
 	
 	private static List<Task> buildTaskList(final List<File> filelist, final boolean recursive) {

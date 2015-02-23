@@ -7,6 +7,8 @@
  */
 package edu.kit.joana.wala.eval.util;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -15,6 +17,7 @@ import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 
 import edu.kit.joana.deprecated.jsdg.sdg.dataflow.SummaryEdgeComputation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.wala.summary.SummaryComputation;
 import edu.kit.joana.wala.summary.WorkPackage;
@@ -59,8 +62,22 @@ public abstract class SummaryEdgeDriver {
 				final WorkPackage pack = WorkPackage.create(sdg, entries, sdg.getName() + "-summaryedgedriver");
 
 				r.startTime = System.currentTimeMillis();
-				r.numSumEdges = SummaryComputation.compute(pack, progress);
+				SummaryComputation.compute(pack, progress);
 				r.endTime = System.currentTimeMillis();
+				
+				int numSum = 0;
+				for (final SDGEdge e : sdg.edgeSet()) {
+					switch (e.getKind()) {
+					case SUMMARY:
+					case SUMMARY_DATA:
+					case SUMMARY_NO_ALIAS:
+						numSum++;
+						break;
+					default:
+						// noop
+					}
+				}
+				r.numSumEdges = numSum;
 				
 				return r;
 			}
@@ -74,8 +91,55 @@ public abstract class SummaryEdgeDriver {
 			public Result compute(final SDG sdg, final IProgressMonitor progress) throws CancelException {
 				final Result r = new Result();
 
+				edu.kit.joana.deprecated.jsdg.util.Log.noLogging();
+				
 				r.startTime = System.currentTimeMillis();
-				r.numSumEdges = SummaryEdgeComputation.compute(sdg, progress).size();
+				SummaryEdgeComputation.compute(sdg, progress);
+				r.endTime = System.currentTimeMillis();
+				
+				int numSum = 0;
+				for (final SDGEdge e : sdg.edgeSet()) {
+					switch (e.getKind()) {
+					case SUMMARY:
+					case SUMMARY_DATA:
+					case SUMMARY_NO_ALIAS:
+						numSum++;
+						break;
+					default:
+						// noop
+					}
+				}
+				r.numSumEdges = numSum;
+				
+				return r;
+			}
+			
+		};
+	}
+	
+	public static SummaryEdgeDriver getDeleteVariant() {
+		return new SummaryEdgeDriver() {
+			@Override
+			public Result compute(final SDG sdg, final IProgressMonitor progress) throws CancelException {
+				final Result r = new Result();
+
+				r.startTime = System.currentTimeMillis();
+				
+				final List<SDGEdge> toDelete = new LinkedList<SDGEdge>();
+				for (final SDGEdge e : sdg.edgeSet()) {
+					switch (e.getKind()) {
+					case SUMMARY:
+					case SUMMARY_DATA:
+					case SUMMARY_NO_ALIAS:
+						toDelete.add(e);
+						break;
+					default:
+						// nop;
+					}
+				}
+				sdg.removeAllEdges(toDelete);
+				r.numSumEdges = toDelete.size();
+				
 				r.endTime = System.currentTimeMillis();
 				
 				return r;

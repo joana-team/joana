@@ -64,6 +64,7 @@ public class TestObjGraphPerformance {
 		config.setComputeAccessPaths(false);
 		config.setNotifier(stats);
 		config.setSkipSDGProgramPart(true);
+		config.setComputeSummaryEdges(false);
 		stats.setCurrentTask(testCase);
 		
 		postCreateConfigHook(config);

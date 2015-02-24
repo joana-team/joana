@@ -12,17 +12,20 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Date;
 
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
+import com.ibm.wala.util.NullProgressMonitor;
 import com.ibm.wala.util.WalaException;
 
 import edu.kit.joana.deprecated.jsdg.SDGFactory.Config;
 import edu.kit.joana.deprecated.jsdg.sdg.nodes.JDependencyGraph.PDGFormatException;
 import edu.kit.joana.deprecated.jsdg.util.Debug;
 import edu.kit.joana.deprecated.jsdg.util.Log;
+import edu.kit.joana.deprecated.jsdg.util.Log.LogLevel;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.SDGVerifier;
@@ -46,7 +49,7 @@ public class Analyzer {
 		// try catch block added due to problems with eclipse on mac osx
 		// (exceptions got lost - program simply terminated)
 		try {
-			final IProgressMonitor progress = new VerboseProgressMonitor(System.out);
+			final IProgressMonitor progress = edu.kit.joana.deprecated.jsdg.wala.NullProgressMonitor.INSTANCE;
 
 			String file = null;
 			Integer timeout = null;
@@ -108,15 +111,19 @@ public class Analyzer {
 			}
 
 			if (file != null) {
-				System.out.println("Using config from file: " + file);
+				System.out.print("using config from file '" + file + "'");
 				cfg = SDGFactory.Config.readFrom(new FileInputStream(file));
+				System.out.println(" saving SDG to '" + cfg.outputSDGfile + "'");
 			} else {
 				System.out.println("Usage: progname [-cfg <configfile>] [-timeout <minutes>] [-lazy] [-help]");
 				System.out.println("No configuration file selected - aborting...");
 				return;
 			}
-			System.out.println(cfg.toString());
-			System.out.println(Debug.getSettings());
+			//System.out.println(cfg.toString());
+			//System.out.println(Debug.getSettings());
+			Log.noLogging();
+			final String logFile = cfg.logFile;
+			cfg.logFile = null;
 
 			if (lazy) {
 				File f = new File(cfg.outputSDGfile);
@@ -141,12 +148,18 @@ public class Analyzer {
 				watchdog.start();
 			}
 
-			Activator act = new Activator();
+			final Activator act = Activator.getDefault();
 //			act.getFactory().runExtractImmutables(cfg, progress);
 
+			long duration = 0;;
 			edu.kit.joana.ifc.sdg.graph.SDG sdg = null;
 			for (int i = 0; i < runs; i++) {
+				final long startTime = System.currentTimeMillis();
 				sdg = act.getFactory().getJoanaSDG(cfg, progress);
+				final long endTime = System.currentTimeMillis();
+				if (i == 0 || endTime - startTime < duration) {
+					duration = endTime - startTime;
+				}
 			}
 
 			if (watchdog != null && watchdog.isAlive()) {
@@ -158,7 +171,7 @@ public class Analyzer {
 
 			// do not interrupt writing to file. we've come so far - we wont stop now.
 			if (cfg.outputSDGfile != null) {
-				final IProgressMonitor progress2 = new VerboseProgressMonitor(System.out);
+				final IProgressMonitor progress2 = edu.kit.joana.deprecated.jsdg.wala.NullProgressMonitor.INSTANCE;
 				progress2.beginTask("Saving SDG to " + cfg.outputSDGfile, -1);
 				BufferedOutputStream bOut = new BufferedOutputStream(
 						new FileOutputStream(cfg.outputSDGfile));
@@ -169,6 +182,16 @@ public class Analyzer {
 			if (verify) {
 				SDGVerifier.verify(sdg, !cfg.useWalaSdg, cfg.addControlFlow);
 			}
+
+			cfg.logFile = logFile;
+			final PrintStream out = new PrintStream(cfg.logFile);
+			out.println(sdg.vertexSet().size() + " nodes and " + sdg.edgeSet().size() + " edges in " + duration + " ms");
+			out.println("using config file: " + file);
+			out.println(cfg.toString());
+			out.flush();
+			out.close();
+			System.out.println(sdg.vertexSet().size() + " nodes and " + sdg.edgeSet().size() + " edges in " + duration
+					+ " ms logged to '" + cfg.logFile + "'");
 		} finally {
 			if (watchdog != null && watchdog.isAlive()) {
 				// tell watchdog to stop
@@ -177,8 +200,8 @@ public class Analyzer {
 				watchdog.interrupt();
 			}
 
-			Date date = new Date();
-			Log.info("Stopped Analysis at " + date);
+			//Date date = new Date();
+			//Log.info("Stopped Analysis at " + date);
 		}
 	}
 

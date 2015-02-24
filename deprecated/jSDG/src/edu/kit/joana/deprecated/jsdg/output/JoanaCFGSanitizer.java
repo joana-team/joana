@@ -54,14 +54,24 @@ public class JoanaCFGSanitizer {
 	public static void sanitizeCFG(SDG sdg) {
 		sanitizeCFG(sdg, KEEP_CONSTANTS_IN_SDG);
 	}
+	
+	public static boolean silent = true;
 
 	public static void sanitizeCFG(SDG sdg, boolean keepConstants) {
 		JoanaCFGSanitizer scfg = new JoanaCFGSanitizer(sdg);
 		scfg.run(keepConstants);
 	}
+	
+	private void print(String str) {
+		if (!silent) System.out.print(str);
+	}
+
+	private void println(String str) {
+		if (!silent) System.out.println(str);
+	}
 
 	private void run(final boolean keepConstants) {
-		System.out.println("Sanitizing control flow... ");
+		println("Sanitizing control flow... ");
 
 		Set<SDGNode> constPhis = new HashSet<SDGNode>();
 		Set<SDGNode> phis = new HashSet<SDGNode>();
@@ -77,10 +87,10 @@ public class JoanaCFGSanitizer {
 			}
 		}
 
-		System.out.println("\tfound " + phis.size() + " PHIs and " + constPhis.size() + " constants.");
+		println("\tfound " + phis.size() + " PHIs and " + constPhis.size() + " constants.");
 
 		if (keepConstants) {
-			System.out.print("\tadding const nodes to control flow... ");
+			print("\tadding const nodes to control flow... ");
 			// 1. add const nodes to control flow
 			assert onlyControlDepToRootOrHelp(constPhis);
 			for (SDGNode cnst : constPhis) {
@@ -97,16 +107,16 @@ public class JoanaCFGSanitizer {
 				SDGEdge edge = new SDGEdge(entry, cnst, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_FLOW);
 				sdg.addEdge(edge);
 			}
-			System.out.println("done.");
+			println("done.");
 		} else {
-			System.out.print("\tremoving all const nodes... ");
+			print("\tremoving all const nodes... ");
 			// 1. remove const nodes
 			assert onlyControlDepToRootOrHelp(constPhis);
 			sdg.removeAllVertices(constPhis);
-			System.out.println("done.");
+			println("done.");
 		}
 
-		System.out.print("\tadding data deps for phi nodes... ");
+		print("\tadding data deps for phi nodes... ");
 		// 2. alter dependencies and remove phi nodes
 		for (SDGNode phi : phis) {
 			Set<SDGEdge> in = sdg.incomingEdgesOf(phi);
@@ -130,14 +140,14 @@ public class JoanaCFGSanitizer {
 				}
 			}
 		}
-		System.out.println("done.");
+		println("done.");
 
 		// now we can remove all phi nodes
-		System.out.print("\tremoving all phi nodes... ");
+		print("\tremoving all phi nodes... ");
 		sdg.removeAllVertices(phis);
-		System.out.println("done.");
+		println("done.");
 
-		System.out.println("Sanitizing control flow done.");
+		println("Sanitizing control flow done.");
 	}
 
 	private static boolean isControlDep(SDGEdge edge) {

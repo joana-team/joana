@@ -34,6 +34,10 @@ public abstract class SummaryEdgeDriver {
 		public int numSumEdges;
 		public long startTime;
 		public long endTime;
+		
+		public long duration() {
+			return endTime - startTime;
+		}
 	}
 	
 	public abstract Result compute(final SDG sdg, final IProgressMonitor progress) throws CancelException;

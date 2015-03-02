@@ -8,6 +8,7 @@
 package edu.kit.joana.wala.util.jobber.server;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.CharBuffer;
@@ -32,22 +33,39 @@ public class JobberServer extends Thread {
 	private List<Job> jobs = new LinkedList<Job>();
 	private Set<Integer> workersToCancel = new HashSet<Integer>();
 	private ServerSocket in;
+	private PrintStream logOut = System.out;
 
 	private JobberServer() {}
 
 	public static JobberServer create() throws IOException {
-		return create(PORT);
+		return create(PORT, System.out);
 	}
 
 	public static JobberServer create(final int port) throws IOException {
+		return create(port, System.out);
+	}
+
+	public static JobberServer create(final PrintStream logOut) throws IOException {
+		return create(PORT, logOut);
+	}
+
+	public static JobberServer create(final int port, final PrintStream logOut) throws IOException {
 		final JobberServer jd = new JobberServer();
 		jd.in = new ServerSocket(port);
+		jd.logOut = logOut;
 
 		return jd;
 	}
 
 	public static void main(final String[] argv) throws IOException {
-		final JobberServer jd = JobberServer.create();
+		PrintStream logOut = System.out;
+		for (final String arg : argv) {
+			if ("-nolog".equals(arg.trim().toLowerCase())) {
+				logOut = null;
+			}
+		}
+		
+		final JobberServer jd = JobberServer.create(logOut);
 		jd.start();
 	}
 
@@ -70,6 +88,14 @@ public class JobberServer extends Thread {
 	public int getPort() {
 		return this.in.getLocalPort();
 	}
+	
+	/**
+	 * Set the printstream the server uses to log its activity. If set to null nothing is logged/
+	 * @param logOut The stream all log messages are sent to.
+	 */
+	public void setLog(final PrintStream logOut) {
+		this.logOut = logOut;
+	}
 
 	private void process(final Socket soc) throws IOException {
 		final CmdInterpreter interp = new CmdInterpreter(this);
@@ -77,12 +103,18 @@ public class JobberServer extends Thread {
 		interp.start();
 	}
 
-	protected void log(Exception exc) {
-		exc.printStackTrace();
+	protected void log(final Exception exc) {
+		if (logOut != null) {
+			exc.printStackTrace(logOut);
+		} else {
+			exc.printStackTrace();
+		}
 	}
 
-	protected void log(String str) {
-		System.out.println("Jobber[" + in.getLocalPort() + "] " + str);
+	protected void log(final String str) {
+		if (logOut != null) {
+			logOut.println("Jobber[" + in.getLocalPort() + "] " + str);
+		}
 	}
 
 	protected Worker newWorker(final String name, final String type) {

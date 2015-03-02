@@ -104,7 +104,7 @@ public class HeavySlicer {
 
 		boolean error = false;
 		try {
-			final SDG sdg = SDG.readFrom(t.filename);
+			final SDG sdg = SDG.readFromAndUseLessHeap(t.filename);
 
 			long allSliceNodes = 0;
 			long allRelevantSliceNodes = 0;

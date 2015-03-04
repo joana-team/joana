@@ -194,9 +194,13 @@ public class HeavySlicer {
 
 		final Task t = new Task();
 		t.filename = f.getAbsolutePath();
-		t.logname = t.filename + "-heavyslicing.log";
+		t.logname = defaultLogFileName(t.filename);
 		
 		return t;
+	}
+	
+	public static String defaultLogFileName(final String sdgFile) {
+		return sdgFile + "-heavyslicing.log";
 	}
 	
 	public void print(final String str) {

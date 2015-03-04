@@ -19,6 +19,7 @@ import java.util.List;
 
 import com.ibm.wala.util.io.FileUtil;
 
+import edu.kit.joana.wala.eval.util.HeavySlicer;
 import edu.kit.joana.wala.util.jobber.Job;
 import edu.kit.joana.wala.util.jobber.JobState;
 import edu.kit.joana.wala.util.jobber.client.ManagerClient;
@@ -48,6 +49,7 @@ public class HeavySlicingManager extends ManagerClient {
 		final HeavySlicingManager hsm = new HeavySlicingManager("localhost", JobberServer.PORT, System.out);
 		
 		boolean recursive = false;
+		boolean lazy = false;
 		final List<File> filelist = new LinkedList<File>();
 		
 		
@@ -55,6 +57,8 @@ public class HeavySlicingManager extends ManagerClient {
 			for (int i = 0; i < args.length; i++) {
 				if (args[i].equals("-recursive")) {
 					recursive = true;
+				} else if (args[i].equals("-lazy")) {
+					lazy = true;
 				} else if (args[i].equals("-help")) {
 					System.out.println("Usage: progname [-variant [new|old|delete]] [-runs <numberofruns>] [-recursive] [-help] <files or dir>");
 					return;
@@ -77,29 +81,39 @@ public class HeavySlicingManager extends ManagerClient {
 		}
 
 		for (final File f : filelist) {
-			hsm.addDirectoryToWorklist(f.getAbsolutePath(), SDG_REGEX, recursive);
+			hsm.addDirectoryToWorklist(f.getAbsolutePath(), SDG_REGEX, recursive, lazy);
 		}
 		
 		hsm.start();
 	}
 	
-	public void addFileToWorklist(final String filename) {
+	public void addFileToWorklist(final String filename, final boolean lazy) {
 		final File f = new File(filename);
 		if (f.canRead() && !f.isDirectory()) {
-			worklist.add(f);
+			if (lazy) {
+				// check for existing log file. file exists and size > 0 => not added to worklist
+				final String logFile = HeavySlicer.defaultLogFileName(f.getAbsolutePath());
+				final File lf = new File(logFile);
+				if (!(lf.exists() && lf.isFile() && lf.length() > 0)) {
+					worklist.add(f);
+				}
+			} else {
+				worklist.add(f);
+			}
 		} else {
 			displayError("ignoring unreadable file: '" + filename + "'");
 		}
 	}
 	
-	public void addDirectoryToWorklist(final String dir, final String regex, final boolean recursive) {
+	public void addDirectoryToWorklist(final String dir, final String regex, final boolean recursive,
+			final boolean lazy) {
 		final File f = new File(dir);
 		if (!f.isDirectory()) {
-			addFileToWorklist(dir);
+			addFileToWorklist(dir, lazy);
 		} else {
 			final Collection<File> result = FileUtil.listFiles(f.getAbsolutePath(), regex, recursive);
 			for (final File found : result) {
-				addFileToWorklist(found.getAbsolutePath());
+				addFileToWorklist(found.getAbsolutePath(), lazy);
 			}
 		}
 	}

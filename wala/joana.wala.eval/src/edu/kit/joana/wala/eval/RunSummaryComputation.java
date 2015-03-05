@@ -34,6 +34,8 @@ public class RunSummaryComputation {
 
 	private static final String SDG_REGEX = ".*\\.pdg";
 	
+	private static long NO_MULTIPLE_RUNS_THRESHOLD = 1000000; 
+	
 	private enum Variant { OLD, NEW, DELETE };
 	
 	public static class Task {
@@ -96,7 +98,7 @@ public class RunSummaryComputation {
 					if (!f.exists()) {
 						error("File does not exist: '" + filename + "' - skipping");
 					} else if (!f.canRead()) {
-						error("File is not readable: '" + filename + "' -skipping");
+						error("File is not readable: '" + filename + "' - skipping");
 					} else {
 						filelist.add(f);
 					}
@@ -140,7 +142,7 @@ public class RunSummaryComputation {
 		
 		boolean error = false;
 		try {
-			final SDG sdg = SDG.readFrom(t.filename);
+			final SDG sdg = SDG.readFromAndUseLessHeap(t.filename);
 			
 			for (int i = 0; i < runs; i++) {
 				if (v != Variant.DELETE) {
@@ -156,6 +158,10 @@ public class RunSummaryComputation {
 					t.startTime = r.startTime;
 					t.endTime = r.endTime;
 					t.numOfSumEdges = r.numSumEdges;
+				}
+				
+				if (t.duration() > NO_MULTIPLE_RUNS_THRESHOLD) {
+					break;
 				}
 			}
 			

@@ -19,7 +19,6 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
-import edu.kit.joana.wala.eval.TestObjGraphPerformance.ApiTestException;
 import edu.kit.joana.wala.eval.util.EvalPaths;
 
 /**
@@ -40,6 +39,10 @@ public class TestObjGraphPerformanceJRE14 extends TestObjGraphPerformance {
 	public void test_JRE14_Battleship_PtsType_Graph() {
 		try {
 			final String currentTestcase = currentMethodName();
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
 					Stubs.JRE_14, EvalPaths.JRE14_BATTLESHIP, "Main");
 			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
@@ -55,6 +58,10 @@ public class TestObjGraphPerformanceJRE14 extends TestObjGraphPerformance {
 	public void test_JRE14_Battleship_PtsInst_Graph() {
 		try {
 			final String currentTestcase = currentMethodName();
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED, FieldPropagation.OBJ_GRAPH,
 					Stubs.JRE_14, EvalPaths.JRE14_BATTLESHIP, "Main");
 			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
@@ -70,6 +77,10 @@ public class TestObjGraphPerformanceJRE14 extends TestObjGraphPerformance {
 	public void test_JRE14_Battleship_PtsObj_Graph() {
 		try {
 			final String currentTestcase = currentMethodName();
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.OBJECT_SENSITIVE, FieldPropagation.OBJ_GRAPH,
 					Stubs.JRE_14, EvalPaths.JRE14_BATTLESHIP, "Main");
 			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
@@ -85,6 +96,10 @@ public class TestObjGraphPerformanceJRE14 extends TestObjGraphPerformance {
 	public void test_JRE14_Battleship_PtsType_Graph_StdNoOpt() {
 		try {
 			final String currentTestcase = currentMethodName();
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH_FIXP_NO_OPT,
 					Stubs.JRE_14, EvalPaths.JRE14_BATTLESHIP, "Main");
 			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
@@ -100,6 +115,10 @@ public class TestObjGraphPerformanceJRE14 extends TestObjGraphPerformance {
 	public void test_JRE14_Battleship_PtsInst_Graph_StdNoOpt() {
 		try {
 			final String currentTestcase = currentMethodName();
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED, FieldPropagation.OBJ_GRAPH_FIXP_NO_OPT,
 					Stubs.JRE_14, EvalPaths.JRE14_BATTLESHIP, "Main");
 			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
@@ -115,6 +134,10 @@ public class TestObjGraphPerformanceJRE14 extends TestObjGraphPerformance {
 	public void test_JRE14_Battleship_PtsObj_Graph_StdNoOpt() {
 		try {
 			final String currentTestcase = currentMethodName();
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.OBJECT_SENSITIVE, FieldPropagation.OBJ_GRAPH_FIXP_NO_OPT,
 					Stubs.JRE_14, EvalPaths.JRE14_BATTLESHIP, "Main");
 			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
@@ -130,6 +153,10 @@ public class TestObjGraphPerformanceJRE14 extends TestObjGraphPerformance {
 	public void test_JRE14_Battleship_PtsType_Graph_FastNoOpt() {
 		try {
 			final String currentTestcase = currentMethodName();
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH_SIMPLE_NO_OPT,
 					Stubs.JRE_14, EvalPaths.JRE14_BATTLESHIP, "Main");
 			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
@@ -145,6 +172,10 @@ public class TestObjGraphPerformanceJRE14 extends TestObjGraphPerformance {
 	public void test_JRE14_Battleship_PtsInst_Graph_FastNoOpt() {
 		try {
 			final String currentTestcase = currentMethodName();
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED, FieldPropagation.OBJ_GRAPH_SIMPLE_NO_OPT,
 					Stubs.JRE_14, EvalPaths.JRE14_BATTLESHIP, "Main");
 			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
@@ -160,6 +191,10 @@ public class TestObjGraphPerformanceJRE14 extends TestObjGraphPerformance {
 	public void test_JRE14_Battleship_PtsObj_Graph_FastNoOpt() {
 		try {
 			final String currentTestcase = currentMethodName();
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.OBJECT_SENSITIVE, FieldPropagation.OBJ_GRAPH_SIMPLE_NO_OPT,
 					Stubs.JRE_14, EvalPaths.JRE14_BATTLESHIP, "Main");
 			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);

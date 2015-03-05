@@ -19,7 +19,6 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
-import edu.kit.joana.wala.eval.TestObjGraphPerformance.ApiTestException;
 import edu.kit.joana.wala.eval.util.EvalPaths;
 
 /**
@@ -40,6 +39,10 @@ public class TestObjGraphPerformanceHSQLDB_NoOpt extends TestObjGraphPerformance
 	public void test_JRE14_HSQLDB_PtsType_Graph() {
 		try {
 			final String currentTestcase = currentMethodName() + SUFFIX;
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
 					Stubs.JRE_14, EvalPaths.JRE14_HSQLDB, "org.hsqldb.Server");
 			final SDG sdg = buildSDG(cfg);
@@ -55,6 +58,10 @@ public class TestObjGraphPerformanceHSQLDB_NoOpt extends TestObjGraphPerformance
 	public void test_JRE14_HSQLDB_PtsInst_Graph() {
 		try {
 			final String currentTestcase = currentMethodName() + SUFFIX;
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED, FieldPropagation.OBJ_GRAPH,
 					Stubs.JRE_14, EvalPaths.JRE14_HSQLDB, "org.hsqldb.Server");
 			final SDG sdg = buildSDG(cfg);

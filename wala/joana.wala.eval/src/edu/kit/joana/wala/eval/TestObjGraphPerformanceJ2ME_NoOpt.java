@@ -18,7 +18,6 @@ import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
-import edu.kit.joana.wala.eval.TestObjGraphPerformance.ApiTestException;
 import edu.kit.joana.wala.eval.util.EvalPaths;
 
 /**
@@ -41,6 +40,10 @@ public class TestObjGraphPerformanceJ2ME_NoOpt extends TestObjGraphPerformance {
 	public void test_J2ME_Barcode_PtsType_Graph() {
 		try {
 			final String currentTestcase = currentMethodName() + SUFFIX;
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
 					EvalPaths.J2ME_STUBS, EvalPaths.J2ME_BARCODE, "MainEmulator");
 			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
@@ -56,6 +59,10 @@ public class TestObjGraphPerformanceJ2ME_NoOpt extends TestObjGraphPerformance {
 	public void test_J2ME_Safe_PtsType_Graph() {
 		try {
 			final String currentTestcase = currentMethodName() + SUFFIX;
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
 					EvalPaths.J2ME_STUBS, EvalPaths.J2ME_SAFE, "MainEmulator");
 			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
@@ -71,6 +78,10 @@ public class TestObjGraphPerformanceJ2ME_NoOpt extends TestObjGraphPerformance {
 	public void test_J2ME_KeePass_PtsType_Graph() {
 		try {
 			final String currentTestcase = currentMethodName() + SUFFIX;
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
 					EvalPaths.J2ME_STUBS, EvalPaths.J2ME_KEEPASS, "MainEmulator");
 			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
@@ -86,6 +97,10 @@ public class TestObjGraphPerformanceJ2ME_NoOpt extends TestObjGraphPerformance {
 	public void test_J2ME_OneTimePass_PtsType_Graph() {
 		try {
 			final String currentTestcase = currentMethodName() + SUFFIX;
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
 					EvalPaths.J2ME_STUBS, EvalPaths.J2ME_ONETIMEPASS, "MainEmulator");
 			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
@@ -101,6 +116,10 @@ public class TestObjGraphPerformanceJ2ME_NoOpt extends TestObjGraphPerformance {
 	public void test_J2ME_bExplore_PtsType_Graph() {
 		try {
 			final String currentTestcase = currentMethodName() + SUFFIX;
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
 					EvalPaths.J2ME_STUBS, EvalPaths.J2ME_BEXPLORE, "MainEmulator");
 			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
@@ -116,6 +135,10 @@ public class TestObjGraphPerformanceJ2ME_NoOpt extends TestObjGraphPerformance {
 	public void test_J2ME_Barcode_PtsInst_Graph() {
 		try {
 			final String currentTestcase = currentMethodName() + SUFFIX;
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED, FieldPropagation.OBJ_GRAPH,
 					EvalPaths.J2ME_STUBS, EvalPaths.J2ME_BARCODE, "MainEmulator");
 			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
@@ -131,6 +154,10 @@ public class TestObjGraphPerformanceJ2ME_NoOpt extends TestObjGraphPerformance {
 	public void test_J2ME_Safe_PtsInst_Graph() {
 		try {
 			final String currentTestcase = currentMethodName() + SUFFIX;
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED, FieldPropagation.OBJ_GRAPH,
 					EvalPaths.J2ME_STUBS, EvalPaths.J2ME_SAFE, "MainEmulator");
 			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
@@ -146,6 +173,10 @@ public class TestObjGraphPerformanceJ2ME_NoOpt extends TestObjGraphPerformance {
 	public void test_J2ME_KeePass_PtsInst_Graph() {
 		try {
 			final String currentTestcase = currentMethodName() + SUFFIX;
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED, FieldPropagation.OBJ_GRAPH,
 					EvalPaths.J2ME_STUBS, EvalPaths.J2ME_KEEPASS, "MainEmulator");
 			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
@@ -161,6 +192,10 @@ public class TestObjGraphPerformanceJ2ME_NoOpt extends TestObjGraphPerformance {
 	public void test_J2ME_OneTimePass_PtsInst_Graph() {
 		try {
 			final String currentTestcase = currentMethodName() + SUFFIX;
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED, FieldPropagation.OBJ_GRAPH,
 					EvalPaths.J2ME_STUBS, EvalPaths.J2ME_ONETIMEPASS, "MainEmulator");
 			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
@@ -176,6 +211,10 @@ public class TestObjGraphPerformanceJ2ME_NoOpt extends TestObjGraphPerformance {
 	public void test_J2ME_bExplore_PtsInst_Graph() {
 		try {
 			final String currentTestcase = currentMethodName() + SUFFIX;
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED, FieldPropagation.OBJ_GRAPH,
 					EvalPaths.J2ME_STUBS, EvalPaths.J2ME_BEXPLORE, "MainEmulator");
 			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);

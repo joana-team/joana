@@ -12,8 +12,11 @@ import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
+import com.ibm.wala.ipa.callgraph.pruned.DoNotPrune;
+
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.eval.util.EvalPaths;
@@ -21,14 +24,24 @@ import edu.kit.joana.wala.eval.util.EvalPaths;
 /**
  * @author Juergen Graf <juergen.graf@gmail.com>
  */
-public class TestObjGraphPerformanceJ2ME extends TestObjGraphPerformance {
+public class TestObjGraphPerformanceJ2ME_NoOptAllExc extends TestObjGraphPerformance {
 
-	public static final int NUMBER_OF_RUNS = 3;
+	public static final int NUMBER_OF_RUNS = 2;
 
+	public static final String SUFFIX = "-noopt-allexc";
+	
+	@Override
+	protected void postCreateConfigHook(final SDGConfig config) {
+		config.setPruningPolicy(DoNotPrune.INSTANCE);
+		config.setExclusions("");
+		config.setExceptionAnalysis(ExceptionAnalysis.ALL_NO_ANALYSIS);
+		//config.setComputeSummaryEdges(false);
+	}
+	
 	@Test
 	public void test_J2ME_Barcode_PtsType_Graph() {
 		try {
-			final String currentTestcase = currentMethodName();
+			final String currentTestcase = currentMethodName() + SUFFIX;
 			if (areWeLazy(currentTestcase)) {
 				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
 				return;
@@ -47,7 +60,7 @@ public class TestObjGraphPerformanceJ2ME extends TestObjGraphPerformance {
 	@Test
 	public void test_J2ME_Safe_PtsType_Graph() {
 		try {
-			final String currentTestcase = currentMethodName();
+			final String currentTestcase = currentMethodName() + SUFFIX;
 			if (areWeLazy(currentTestcase)) {
 				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
 				return;
@@ -66,7 +79,7 @@ public class TestObjGraphPerformanceJ2ME extends TestObjGraphPerformance {
 	@Test
 	public void test_J2ME_KeePass_PtsType_Graph() {
 		try {
-			final String currentTestcase = currentMethodName();
+			final String currentTestcase = currentMethodName() + SUFFIX;
 			if (areWeLazy(currentTestcase)) {
 				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
 				return;
@@ -85,7 +98,7 @@ public class TestObjGraphPerformanceJ2ME extends TestObjGraphPerformance {
 	@Test
 	public void test_J2ME_OneTimePass_PtsType_Graph() {
 		try {
-			final String currentTestcase = currentMethodName();
+			final String currentTestcase = currentMethodName() + SUFFIX;
 			if (areWeLazy(currentTestcase)) {
 				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
 				return;
@@ -104,7 +117,7 @@ public class TestObjGraphPerformanceJ2ME extends TestObjGraphPerformance {
 	@Test
 	public void test_J2ME_bExplore_PtsType_Graph() {
 		try {
-			final String currentTestcase = currentMethodName();
+			final String currentTestcase = currentMethodName() + SUFFIX;
 			if (areWeLazy(currentTestcase)) {
 				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
 				return;
@@ -123,7 +136,7 @@ public class TestObjGraphPerformanceJ2ME extends TestObjGraphPerformance {
 	@Test
 	public void test_J2ME_Barcode_PtsInst_Graph() {
 		try {
-			final String currentTestcase = currentMethodName();
+			final String currentTestcase = currentMethodName() + SUFFIX;
 			if (areWeLazy(currentTestcase)) {
 				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
 				return;
@@ -142,7 +155,7 @@ public class TestObjGraphPerformanceJ2ME extends TestObjGraphPerformance {
 	@Test
 	public void test_J2ME_Safe_PtsInst_Graph() {
 		try {
-			final String currentTestcase = currentMethodName();
+			final String currentTestcase = currentMethodName() + SUFFIX;
 			if (areWeLazy(currentTestcase)) {
 				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
 				return;
@@ -161,7 +174,7 @@ public class TestObjGraphPerformanceJ2ME extends TestObjGraphPerformance {
 	@Test
 	public void test_J2ME_KeePass_PtsInst_Graph() {
 		try {
-			final String currentTestcase = currentMethodName();
+			final String currentTestcase = currentMethodName() + SUFFIX;
 			if (areWeLazy(currentTestcase)) {
 				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
 				return;
@@ -180,7 +193,7 @@ public class TestObjGraphPerformanceJ2ME extends TestObjGraphPerformance {
 	@Test
 	public void test_J2ME_OneTimePass_PtsInst_Graph() {
 		try {
-			final String currentTestcase = currentMethodName();
+			final String currentTestcase = currentMethodName() + SUFFIX;
 			if (areWeLazy(currentTestcase)) {
 				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
 				return;
@@ -199,7 +212,7 @@ public class TestObjGraphPerformanceJ2ME extends TestObjGraphPerformance {
 	@Test
 	public void test_J2ME_bExplore_PtsInst_Graph() {
 		try {
-			final String currentTestcase = currentMethodName();
+			final String currentTestcase = currentMethodName() + SUFFIX;
 			if (areWeLazy(currentTestcase)) {
 				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
 				return;

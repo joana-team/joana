@@ -7,17 +7,12 @@
  */
 package edu.kit.joana.wala.eval;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
-
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.junit.Test;
-
-import com.ibm.wala.ipa.callgraph.pruned.DoNotPrune;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
@@ -41,6 +36,8 @@ import edu.kit.joana.wala.eval.util.EvalTimingStats.TaskInfo;
  */
 public class TestObjGraphPerformance {
 
+	public static boolean lazy = true;
+	
 	public static class ApiTestException extends Exception {
 
 		private static final long serialVersionUID = 7000978878774124747L;
@@ -109,6 +106,28 @@ public class TestObjGraphPerformance {
 		final Throwable t = new Throwable();
 		final StackTraceElement e = t.getStackTrace()[1];
 		return e.getMethodName();
+	}
+	
+	public static boolean areWeLazy(final String testMethodName) {
+		if (!lazy) {
+			return false;
+		}
+		
+		try {
+			final boolean nonEmptyLogExists = checkExists(EvalPaths.getOutputPath(testMethodName + ".log"));
+			final boolean nonEmptySdgExists = checkExists(EvalPaths.getOutputPath(testMethodName + ".pdg"));
+			
+			return nonEmptyLogExists && nonEmptySdgExists;
+		} catch (final EvalException e) {
+			e.printStackTrace();
+		}
+		
+		return false;
+	}
+	
+	private static boolean checkExists(final String fileName) {
+		final File f = new File(fileName);
+		return f.exists() && f.isFile() && f.length() > 0;
 	}
 	
 	public static void outputStatistics(final SDG sdg, final SDGConfig cfg, final String testMethodName) {

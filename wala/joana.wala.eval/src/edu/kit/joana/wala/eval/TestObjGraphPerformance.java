@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
@@ -23,6 +24,7 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.util.Stubs;
+import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
@@ -73,22 +75,15 @@ public class TestObjGraphPerformance {
 		// overwrite this method if you want to add something to the default config
 	}
 
-	public SDG buildSDG(final SDGConfig config, final int numberOfRuns) throws ApiTestException {
-		SDG sdg = null;
-		
-		for (int i = 0; i < numberOfRuns; i++) {
-			sdg = buildSDG(config);
-			stats.nextRun();
-		}
-		
-		return sdg;
-	}
-	
-	public SDG buildSDG(final SDGConfig config) throws ApiTestException {
+	public SDGProgram buildSDGProgram(final SDGConfig config, final PrintStream log) throws ApiTestException {
 		SDGProgram prog = null;
 		
 		try {
-			prog = SDGProgram.createSDGProgram(config);
+			if (log == null) {
+				prog = SDGProgram.createSDGProgram(config);
+			} else {
+				prog = SDGProgram.createSDGProgram(config, log, NullProgressMonitor.INSTANCE);
+			}
 		} catch (ClassHierarchyException e) {
 			throw new ApiTestException(e);
 		} catch (IOException e) {
@@ -99,7 +94,32 @@ public class TestObjGraphPerformance {
 			throw new ApiTestException(e);
 		}
 		
-		return prog.getSDG();
+		return prog;
+	}
+	
+	public SDG buildSDG(final SDGConfig config, final int numberOfRuns, final PrintStream log) throws ApiTestException {
+		SDG sdg = null;
+		
+		for (int i = 0; i < numberOfRuns; i++) {
+			sdg = buildSDG(config, log);
+			stats.nextRun();
+		}
+		
+		return sdg;
+	}
+	
+	public SDG buildSDG(final SDGConfig config, final int numberOfRuns) throws ApiTestException {
+		return buildSDG(config, numberOfRuns, null);
+	}
+
+	public SDG buildSDG(final SDGConfig config) throws ApiTestException {
+		return buildSDG(config, null);
+	}
+	
+	public SDG buildSDG(final SDGConfig config, final PrintStream log) throws ApiTestException {
+		final SDGProgram prog = buildSDGProgram(config, log);
+		
+		return  prog.getSDG();
 	}
 
 	public static String currentMethodName() {

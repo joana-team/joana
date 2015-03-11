@@ -249,6 +249,10 @@ public final class PrettyWalaNames {
 	}
 
 	public static final String val2string(final SymbolTable stab, final int val) {
+		if (val < 0) {
+			return "v" + val;
+		}
+		
 		if (stab.isConstant(val)) {
 			if (stab.isBooleanConstant(val)) {
 				return (stab.isTrue(val) ? "#true" : "#false");

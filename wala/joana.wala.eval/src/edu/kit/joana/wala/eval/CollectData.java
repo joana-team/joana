@@ -17,10 +17,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import javax.jws.soap.SOAPBinding.ParameterStyle;
+
 import com.ibm.wala.util.io.FileUtil;
 
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
+import edu.kit.joana.wala.eval.CollectData.SDGData.SumStatus;
 
 /**
  * @author Juergen Graf <juergen.graf@gmail.com>
@@ -42,6 +45,257 @@ public class CollectData {
 			System.out.println(pd.name + ": " + pd.runs.size());
 			pd.readData();
 		}
+		
+		System.out.println();
+		
+		final StatPrinter totalTime = new StatPrinter() {
+			@Override
+			public String info() {
+				return "total time";
+			}
+			
+			@Override
+			public String extractValue(final SDGData data) {
+				return data.totalTime() + "";
+			}
+		};
+		printComputationTime(totalTime, cd);
+
+		System.out.println();
+		
+		final StatPrinter sumTime = new StatPrinter() {
+			@Override
+			public String info() {
+				return "summary time";
+			}
+			
+			@Override
+			public String extractValue(final SDGData data) {
+				return data.summaryTime + "";
+			}
+		};
+		printComputationTime(sumTime, cd);
+
+		System.out.println();
+		
+		final StatPrinter computationTime = new StatPrinter() {
+			@Override
+			public String info() {
+				return "computation time";
+			}
+			
+			@Override
+			public String extractValue(final SDGData data) {
+				return data.computationTime + "";
+			}
+		};
+		printComputationTime(computationTime, cd);
+	}
+
+
+	public interface StatPrinter {
+		String extractValue(SDGData data);
+		String info();
+	}
+
+	public static void printComputationTime(final StatPrinter sp, final CollectData cd) {
+		System.out.println(sp.info() + ";tree-type;tree-inst;tree-obj; unstruct-type;unstruct-inst;unstruct-obj;"
+			+ "graph-type;graph-inst;graph-obj;graph-fp-type;grpah-fp-inst;grpah-fp-obj;graph-opt-type;graph-opt-inst;"
+			+ "graph-opt-obj;graph-fp-opt-type;graph-fp-opt-inst;graph-fp-opt-obj;");
+		for (final ProgramData pd : cd.name2data.values()) {
+			List<SDGData> noexc = filterRuns(pd.runs, FILTER_INTRAEXC);
+			noexc = filterRuns(noexc, FILTER_SUMMARY);
+			List<SDGData> tree = filterRuns(noexc, FILTER_TREE);
+			List<SDGData> unstruct = filterRuns(noexc, FILTER_UNSTRUCTURED);
+			List<SDGData> graph = filterRuns(noexc, new DataFilterList(new DataFilter[] {FILTER_GRAPH_SIMPLE, FILTER_ESCAPE, FILTER_NOOPT}));
+			List<SDGData> graphfp = filterRuns(noexc, new DataFilterList(new DataFilter[] {FILTER_GRAPH_FIXP, FILTER_ESCAPE, FILTER_NOOPT}));
+			List<SDGData> graphopt = filterRuns(noexc, new DataFilterList(new DataFilter[] {FILTER_GRAPH_SIMPLE, FILTER_ESCAPE, FILTER_OPT}));
+			List<SDGData> graphfpopt = filterRuns(noexc, new DataFilterList(new DataFilter[] {FILTER_GRAPH_FIXP, FILTER_ESCAPE, FILTER_OPT}));
+//			for (final SDGData d : tree) {
+//				printComputationTime(d, pd.name);
+//			}
+//			for (final SDGData d : unstruct) {
+//				printComputationTime(d, pd.name);
+//			}
+//			for (final SDGData d : graph) {
+//				printComputationTime(d, pd.name);
+//			}
+//			for (final SDGData d : graphfp) {
+//				printComputationTime(d, pd.name);
+//			}
+			System.out.print(pd.name + ";");
+			printSeparated(sp, tree, ";", new DataFilter[] {FILTER_PTS_TYPE, FILTER_PTS_INST, FILTER_PTS_OBJ});
+			printSeparated(sp, unstruct, ";", new DataFilter[] {FILTER_PTS_TYPE, FILTER_PTS_INST, FILTER_PTS_OBJ});
+			printSeparated(sp, graph, ";", new DataFilter[] {FILTER_PTS_TYPE, FILTER_PTS_INST, FILTER_PTS_OBJ});
+			printSeparated(sp, graphfp, ";", new DataFilter[] {FILTER_PTS_TYPE, FILTER_PTS_INST, FILTER_PTS_OBJ});
+			printSeparated(sp, graphopt, ";", new DataFilter[] {FILTER_PTS_TYPE, FILTER_PTS_INST, FILTER_PTS_OBJ});
+			printSeparated(sp, graphfpopt, ";", new DataFilter[] {FILTER_PTS_TYPE, FILTER_PTS_INST, FILTER_PTS_OBJ});
+			System.out.println();
+		}
+	}
+	
+	private static void printSeparated(final StatPrinter sp, final List<SDGData> data, final String separator,
+			final DataFilter[] filters) {
+		for (final DataFilter df : filters) {
+			final List<SDGData> d = filterRuns(data, df);
+			if (d.isEmpty()) {
+				System.out.print("-");
+			} else if (d.size() == 1) {
+				final SDGData sd = d.get(0);
+				System.out.print(sp.extractValue(sd));
+			} else {
+				System.out.print("?");
+				System.err.println("abigous: multiple entrires:");
+				for (final SDGData sd : d) {
+					System.err.println(sd);
+				}
+			}
+			System.out.print(separator);
+		}
+		//System.out.println();
+	}
+	
+	private static void printComputationTime(final SDGData d, final String name) {
+		System.out.println(name + "(" + d.model  + "): " + d.computationTime + " - " + (d.summaryStat == SumStatus.OK ? d.summaryTime : d.summaryStat)  + "   " + d.totalTime());
+	}
+	
+	private static final DataFilter FILTER_ESCAPE = new DataFilter() {
+		@Override
+		public boolean accept(SDGData data) {
+			return (data.model == ParamModel.OBJ_GRAPH_FIXP || data.model == ParamModel.OBJ_GRAPH_SIMPLE)
+				&& !data.noEscape;
+		}
+	};
+	
+	private static final DataFilter FILTER_PTS_TYPE = new DataFilter() {
+		@Override
+		public boolean accept(SDGData data) {
+			return data.pts == PointsToPrecision.TYPE_BASED;
+		}
+	};
+	
+	private static final DataFilter FILTER_PTS_INST = new DataFilter() {
+		@Override
+		public boolean accept(SDGData data) {
+			return data.pts == PointsToPrecision.INSTANCE_BASED;
+		}
+	};
+	
+	private static final DataFilter FILTER_PTS_OBJ = new DataFilter() {
+		@Override
+		public boolean accept(SDGData data) {
+			return data.pts == PointsToPrecision.OBJECT_SENSITIVE;
+		}
+	};
+	
+	private static final DataFilter FILTER_ALLEXC = new DataFilter() {
+		@Override
+		public boolean accept(SDGData data) {
+			return data.exc == ExceptionAnalysis.ALL_NO_ANALYSIS;
+		}
+	};
+	
+	private static final DataFilter FILTER_IGNOREEXC = new DataFilter() {
+		@Override
+		public boolean accept(SDGData data) {
+			return data.exc == ExceptionAnalysis.IGNORE_ALL;
+		}
+	};
+	
+	private static final DataFilter FILTER_INTRAEXC = new DataFilter() {
+		@Override
+		public boolean accept(SDGData data) {
+			return data.exc == ExceptionAnalysis.INTRAPROC;
+		}
+	};
+	
+	private static final DataFilter FILTER_INTEREXC = new DataFilter() {
+		@Override
+		public boolean accept(SDGData data) {
+			return data.exc == ExceptionAnalysis.INTERPROC;
+		}
+	};
+	
+	private static final DataFilter FILTER_TREE = new DataFilter() {
+		@Override
+		public boolean accept(SDGData data) {
+			return data.model == ParamModel.OBJ_TREE;
+		}
+	};
+	
+	private static final DataFilter FILTER_GRAPH_FIXP = new DataFilter() {
+		@Override
+		public boolean accept(SDGData data) {
+			return data.model == ParamModel.OBJ_GRAPH_FIXP;
+		}
+	};
+	
+	private static final DataFilter FILTER_NOOPT = new DataFilter() {
+		@Override
+		public boolean accept(SDGData data) {
+			return data.noOptimizations;
+		}
+	};
+	
+	private static final DataFilter FILTER_OPT = new DataFilter() {
+		@Override
+		public boolean accept(SDGData data) {
+			return !data.noOptimizations;
+		}
+	};
+	
+	private static final DataFilter FILTER_GRAPH_SIMPLE = new DataFilter() {
+		@Override
+		public boolean accept(SDGData data) {
+			return data.model == ParamModel.OBJ_GRAPH_SIMPLE;
+		}
+	};
+	
+	private static final DataFilter FILTER_UNSTRUCTURED = new DataFilter() {
+		@Override
+		public boolean accept(SDGData data) {
+			return data.model == ParamModel.UNSTRUCTURED;
+		}
+	};
+	
+	private static final DataFilter FILTER_SUMMARY = new DataFilter() {
+		@Override
+		public boolean accept(SDGData data) {
+			return data.summaryStat == SumStatus.OK;
+		}
+	};
+	
+	private interface DataFilter {
+		boolean accept(final SDGData data);
+	}
+	
+	private static class DataFilterList implements DataFilter {
+		private final DataFilter[] filters;
+		
+		public DataFilterList(final DataFilter[] filters) {
+			this.filters = filters;
+		}
+		
+		public boolean accept(final SDGData data) {
+			for (final DataFilter df : filters) {
+				if (!df.accept(data)) {
+					return false;
+				}
+			}
+			
+			return true;
+		}
+	}
+	
+	private static List<SDGData> filterRuns(final List<SDGData> list, final DataFilter filter) {
+		final List<SDGData> filtered = new LinkedList<SDGData>();
+		for (final SDGData data : list) {
+			if (filter.accept(data)) {
+				filtered.add(data);
+			}
+		}
+		
+		return filtered;
 	}
 
 	public Map<String, ProgramData> name2data = new HashMap<String, CollectData.ProgramData>();
@@ -89,6 +343,10 @@ public class CollectData {
 			// typical name: C:\Users\Juergen\git\joana\deprecated\jSDG\out\tree-0-1-cfa\j2me-Barcode.pdg
 			name = pdgFile.substring(pdgFile.lastIndexOf("-") + 1);
 			name = name.substring(0, name.length() - SDG_SUFFIX.length());
+			if (name.contains("KeePassJ2ME")) {
+				// special treatment for bogus name
+				name = "KeePass";
+			}
 		}
 		
 		return name.toLowerCase();
@@ -120,6 +378,9 @@ public class CollectData {
 			}
 		}
 		
+		public String toString() {
+			return "program data of " + name;
+		}
 	}
 	
 	public static enum ParamModel {
@@ -132,12 +393,17 @@ public class CollectData {
 		PointsToPrecision pts;
 		ParamModel model;
 		boolean noOptimizations;
+		boolean noEscape;
 		int numberOfNormalNodes;
 		int numberOfParameterNodes;
 		int numberOfNormalEdges;
 		int numberOfSummaryEdges;		
 		long computationTime;
 		long summaryTime;
+		SumStatus summaryStat = SumStatus.UNKNOWN;
+		
+		public enum SumStatus { UNKNOWN, OK, TIMEOUT, OUT_OF_MEMORY }
+		
 		
 		public SDGData(final String fileName) {
 			this.sdgFile = fileName;
@@ -148,9 +414,11 @@ public class CollectData {
 			extractExceptionAnalysis();
 			extractPointsToPrecision();
 			extractNoOpt();
+			extractNoEscape();
 			
-			if (checkExists(statsFile(sdgFile))) {
-				final BufferedReader bIn = new BufferedReader(new FileReader(statsFile(sdgFile)));
+			final String statsFile = statsFile(sdgFile);
+			if (checkExists(statsFile)) {
+				final BufferedReader bIn = new BufferedReader(new FileReader(statsFile));
 				final String line = bIn.readLine();
 				// string for obj-tree and unstructured:
 				// "114558 nodes and 1027491 edges in 12208 ms"
@@ -163,7 +431,7 @@ public class CollectData {
 					}
 					numberOfNormalNodes = Integer.parseInt(nodes);
 				} else {
-					System.err.println("illegal line found in " + sdgFile);
+					System.err.println("illegal line found in " + statsFile);
 					System.err.println(line);
 				}
 				
@@ -172,7 +440,7 @@ public class CollectData {
 					edges = edges.substring(edges.indexOf("nodes and ") + "nodes and ".length());
 					numberOfNormalEdges = Integer.parseInt(edges);
 				} else {
-					System.err.println("illegal line found in " + sdgFile);
+					System.err.println("illegal line found in " + statsFile);
 					System.err.println(line);
 				}
 				
@@ -185,14 +453,35 @@ public class CollectData {
 					}
 					computationTime = Long.parseLong(time);
 				} else {
-					System.err.println("illegal line found in " + sdgFile);
+					System.err.println("illegal line found in " + statsFile);
 					System.err.println(line);
 				}
+				bIn.close();
 			}
 			
-			if (checkExists(statsNewSumFile(sdgFile))) {
-				// TODO
-				
+			final String statsNewSumFile = statsNewSumFile(sdgFile);
+			if (checkExists(statsNewSumFile)) {
+				// example line:
+				// 75073 edges in 1462 ms for C:\Users\Juergen\git\joana\wala\joana.wala.eval\..\..\deprecated\jSDG\out\tree-0-1-cfa\j2me-Barcode.pdg
+				final BufferedReader bIn = new BufferedReader(new FileReader(statsNewSumFile(sdgFile)));
+				final String line = bIn.readLine();
+				if (line.contains(" edges in ")) {
+					final String edges = line.substring(0, line.indexOf(" edges in "));
+					numberOfSummaryEdges = Integer.parseInt(edges);
+					
+					String sumTime = line.substring(line.indexOf(" edges in ") + " edges in ".length());
+					sumTime = sumTime.substring(0, sumTime.indexOf(" ms for "));
+					summaryTime = Long.parseLong(sumTime);
+					summaryStat = SumStatus.OK;
+				} else if (line.contains("TIMEOUT ERROR")) {
+					summaryStat = SumStatus.TIMEOUT;
+				} else if (line.contains("OUT OF MEMORY")) {
+					summaryStat = SumStatus.OUT_OF_MEMORY;
+				} else {
+					System.err.println("illegal line found in " + statsNewSumFile);
+					System.err.println(line);
+				}
+				bIn.close();
 			}
 		}
 		
@@ -202,6 +491,15 @@ public class CollectData {
 				noOptimizations = false;
 				if (sdgFile.contains("NoOpt") || sdgFile.contains("-noopt")) {
 					noOptimizations = true;
+				}
+			}
+		}
+		
+		private void extractNoEscape() {
+			noEscape = false;
+			if (model == ParamModel.OBJ_GRAPH_FIXP || model == ParamModel.OBJ_GRAPH_SIMPLE) {
+				if (sdgFile.contains("NoEscape") || sdgFile.contains("-noesc")) {
+					noEscape = true;
 				}
 			}
 		}
@@ -253,5 +551,14 @@ public class CollectData {
 		public long totalTime() {
 			return computationTime + summaryTime;
 		}
+		
+		public String toString() {
+			return sdgFile + ": " + totalTime() + "ms";
+		}
+		
+	}
+	
+	public String toString() {
+		return "collected data: " + name2data.size() + " programs";
 	}
 }

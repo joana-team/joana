@@ -15,7 +15,7 @@ public class NullProgressMonitor implements IProgressMonitor {
 
 	private boolean cancel = false;
 
-	private NullProgressMonitor() {}
+	public NullProgressMonitor() {}
 
 	@Override
 	public void beginTask(String task, int totalWork) {

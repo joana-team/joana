@@ -10,7 +10,12 @@ package edu.kit.joana.wala.util;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 
 
-
+/**
+ * This Thread can be used to monitor long running evaluation tasks and trigger termination in case they hit a certain
+ * timelimit.
+ * 
+ * @author Juergen Graf <juergen.graf@gmail.com>
+ */
 public class WatchDog extends Thread {
 
 	private final IProgressMonitor progress;
@@ -18,7 +23,7 @@ public class WatchDog extends Thread {
 	private final long msToCleanup;
 	private boolean done = false;
 
-	public WatchDog(final IProgressMonitor progress, long msTillAbort, long msToCleanup) {
+	public WatchDog(final IProgressMonitor progress, final long msTillAbort, final long msToCleanup) {
 		this.progress = progress;
 		this.msTillAbort = msTillAbort;
 		this.msToCleanup = msToCleanup;
@@ -46,7 +51,7 @@ public class WatchDog extends Thread {
 		}
 
 		if (!done) {
-			System.out.println("TIMEOUT hit - aborting computation. Program has " + msToCleanup + " to exit gracefully.");
+			//System.out.println("TIMEOUT hit - aborting computation. Program has " + msToCleanup + " to exit gracefully.");
 			progress.cancel();
 
 			// wait for normal termination, then force quit
@@ -62,7 +67,7 @@ public class WatchDog extends Thread {
 				System.exit(4711);
 			}
 		} else {
-			System.out.println("WatchDog: normal termination.");
+		//	System.out.println("WatchDog: normal termination.");
 		}
 	}
 

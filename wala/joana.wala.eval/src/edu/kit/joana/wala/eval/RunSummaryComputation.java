@@ -7,9 +7,11 @@
  */
 package edu.kit.joana.wala.eval;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Collection;
@@ -17,6 +19,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.ibm.wala.util.CancelException;
+import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.io.FileUtil;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -24,6 +27,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.eval.util.SummaryEdgeDriver;
 import edu.kit.joana.wala.eval.util.SummaryEdgeDriver.Result;
+import edu.kit.joana.wala.util.WatchDog;
 
 /**
  * Performs summary edge computation on each SDG found in the given directory.
@@ -53,7 +57,9 @@ public class RunSummaryComputation {
 	public static void main(String[] args) {
 		Variant v = Variant.NEW;
 		boolean recursive = false;
+		boolean lazy = false;
 		int runs = 1;
+		int timeout = -1;
 		List<File> filelist = new LinkedList<File>();
 		
 		
@@ -85,8 +91,23 @@ public class RunSummaryComputation {
 						runs = 1;
 						error("No value for number of runs provided - defaulting to 1.");
 					}
+				} else if (args[i].equals("-timeout")) {
+					if (args.length > i + 1) {
+						try {
+							timeout = Integer.parseInt(args[i+1]);
+							i++;
+						} catch (NumberFormatException nf) {
+							error("Timeout value is no number - timeout not enabled: " + nf.getMessage());
+							timeout = -1;
+						}
+					} else {
+						timeout = -1;
+						error("No timeout value provided - timeout not enabled.");
+					}
 				} else if (args[i].equals("-recursive")) {
 					recursive = true;
+				} else if (args[i].equals("-lazy")) {
+					lazy = true;
 				} else if (args[i].equals("-help")) {
 					println("Usage: progname [-variant [new|old|delete]] [-runs <numberofruns>] [-recursive] [-help] <files or dir>");
 					return;
@@ -107,14 +128,18 @@ public class RunSummaryComputation {
 				}
 			}
 		}
-
-		final List<Task> tasks = buildTaskList(filelist, recursive, v);
+		
+		if (timeout > 0) {
+			println("timeout set to " + timeout + " minutes.");
+		}
+		
+		final List<Task> tasks = buildTaskList(filelist, recursive, lazy, v);
 		for (final Task t : tasks) {
-			work(t, v, runs);
+			work(t, v, runs, timeout);
 		}
 	}
 	
-	private static void work(final Task t, final Variant v, final int runs) {
+	private static void work(final Task t, final Variant v, final int runs, final int timeout) {
 		PrintStream log = null;
 		if (v != Variant.DELETE) {
 			try {
@@ -123,6 +148,21 @@ public class RunSummaryComputation {
 				error(e1);
 			}
 		}
+
+		final IProgressMonitor progress = new NullProgressMonitor();
+		final WatchDog watchdog;
+		
+		if (timeout > 0) {
+			final long timeoutInMs = ((long) timeout) * 60L * 1000L;
+			// give program 1 minute to exit when progress.cancel() was triggered
+			final long timeToCleanup = 60L * 60L * 1000L;
+
+			watchdog = new WatchDog(progress, timeoutInMs, timeToCleanup);
+			watchdog.start();
+		} else {
+			watchdog = null;
+		}
+		
 		print("working on '" + t.filename + "' with " + v.name() + "... ");
 
 		SummaryEdgeDriver su = null;
@@ -139,20 +179,21 @@ public class RunSummaryComputation {
 			su = delete;
 			break;
 		}
-		
+
 		boolean error = false;
+		boolean timeoutOccured = false;
 		try {
 			final SDG sdg = SDG.readFromAndUseLessHeap(t.filename);
 			
 			for (int i = 0; i < runs; i++) {
 				if (v != Variant.DELETE) {
-					delete.compute(sdg, NullProgressMonitor.INSTANCE);
+					delete.compute(sdg, progress);
 				} else if (i > 0) {
 					// only run once for delete variant
 					break;
 				}
 				
-				final Result r = su.compute(sdg, NullProgressMonitor.INSTANCE);
+				final Result r = su.compute(sdg, progress);
 	
 				if (i == 0 || t.duration() > r.duration()) {
 					t.startTime = r.startTime;
@@ -170,32 +211,72 @@ public class RunSummaryComputation {
 		} catch (IOException e) {
 			error(e);
 			error = true;
-		} catch (CancelException e) { 
-			error(e);
+		} catch (CancelException e) {
+			if (watchdog != null && progress.isCanceled()) {
+				// expected cancel
+				timeoutOccured = true;
+			} else {
+				error(e);
+			}
 			error = true;
 		} catch (NullPointerException e) {
 			error(e);
 			error = true;
+		} finally {
+			if (watchdog != null && watchdog.isAlive()) {
+				// tell watchdog to stop
+				watchdog.done();
+				watchdog.interrupt();
+			}
 		}
 		
 		if (!error) {
 			println(t.numOfSumEdges + " edges in " + t.duration() + " ms");
 		} else {
-			println("ERROR");
+			println(timeoutOccured ? "TIMEOUT ERROR" : "ERROR");
 		}
 		
 		if (v != Variant.DELETE && log != null) {
 			if (!error) {
 				log.println(t.numOfSumEdges + " edges in " + t.duration() + " ms for " + t.filename);
 			} else {
-				log.println("ERROR");
+				log.println(timeoutOccured ? "TIMEOUT ERROR" : "ERROR");
 			}
 			log.flush();
 			log.close();
 		}
 	}
 	
-	private static List<Task> buildTaskList(final List<File> filelist, final boolean recursive, final Variant v) {
+	private static String logFile(final String pdgFile, final Variant v) {
+		switch (v) {
+		case DELETE:
+			return pdgFile + "-sumdel.log";
+		case NEW:
+			return pdgFile + "-sumnew.log";
+		case OLD:
+			return pdgFile + "-sumold.log";
+		}
+		
+		throw new IllegalArgumentException("unkown variant: " + v);
+	}
+	
+	private static boolean nonEmptyFileExists(final String filename) {
+		final File lf = new File(filename);
+
+		if (lf.exists() && lf.isFile() && lf.length() > 0) {
+			try {
+				final BufferedReader br = new BufferedReader(new FileReader(lf));
+				final String line = br.readLine();
+				br.close();
+				return !line.contains("ERROR");
+			} catch (IOException exc) {}
+		}
+		
+		return false;
+	}
+	
+	private static List<Task> buildTaskList(final List<File> filelist, final boolean recursive, final boolean lazy,
+			final Variant v) {
 		final List<Task> tasks = new LinkedList<Task>();
 		
 		for (final File f : filelist) {
@@ -205,18 +286,10 @@ public class RunSummaryComputation {
 					if (found.canRead()) {
 						final Task t = new Task();
 						t.filename = found.getAbsolutePath();
-						switch (v) {
-						case DELETE:
-							t.logname = t.filename + "-sumdel.log";
-							break;
-						case NEW:
-							t.logname = t.filename + "-sumnew.log";
-							break;
-						case OLD:
-							t.logname = t.filename + "-sumold.log";
-							break;
+						t.logname = logFile(t.filename, v);
+						if (!(lazy && nonEmptyFileExists(t.logname))) {
+							tasks.add(t);
 						}
-						tasks.add(t);
 					} else {
 						error("File is not readable: '" + found.getAbsolutePath() + "' -skipping");
 					}
@@ -224,18 +297,10 @@ public class RunSummaryComputation {
 			} else {
 				final Task t = new Task();
 				t.filename = f.getAbsolutePath();
-				switch (v) {
-				case DELETE:
-					t.logname = t.filename + "-sumdel.log";
-					break;
-				case NEW:
-					t.logname = t.filename + "-sumnew.log";
-					break;
-				case OLD:
-					t.logname = t.filename + "-sumold.log";
-					break;
+				t.logname = logFile(t.filename, v);
+				if (!(lazy && nonEmptyFileExists(t.logname))) {
+					tasks.add(t);
 				}
-				tasks.add(t);
 			}
 		}
 		

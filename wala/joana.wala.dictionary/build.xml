@@ -52,6 +52,9 @@
 			<fileset dir="${joana.contrib.base.dir}">
 				<filename name="*.jar" />
 			</fileset>
+			<fileset dir="${joana.base.dir}/contrib/wala/com.ibm.wala.cast/lib">
+				<filename name="*.jar" />
+			</fileset>
 		</unjar>
 	</target>
 

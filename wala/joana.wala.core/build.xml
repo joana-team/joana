@@ -32,6 +32,7 @@
 	<target name="compile" depends="init,collect_wala_sources,collect_sources">
 		<path id="lib.path.ref">
 			<fileset dir="${joana.contrib.base.dir}" includes="*.jar" />
+			<fileset dir="${joana.base.dir}/contrib/wala/com.ibm.wala.cast/lib" includes="*.jar" />
 			<pathelement path="${dest.dir.classes}" />
 		</path>
 		<javac
@@ -50,6 +51,9 @@
 	<target name="spill_out_jars">
 		<unjar dest="${dest.dir.classes}">
 			<fileset dir="${joana.contrib.base.dir}">
+				<filename name="*.jar" />
+			</fileset>
+			<fileset dir="${joana.base.dir}/contrib/wala/com.ibm.wala.cast/lib">
 				<filename name="*.jar" />
 			</fileset>
 		</unjar>

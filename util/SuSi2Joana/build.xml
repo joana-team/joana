@@ -65,7 +65,10 @@
 		<unjar dest="${dest.dir.classes}">
 			<fileset dir="${joana.contrib.base.dir}">
 				<filename name="*.jar" />
-            </fileset>
+			</fileset>
+			<fileset dir="${joana.base.dir}/contrib/wala/com.ibm.wala.cast/lib" includes="*.jar" />
+				<filename name="*.jar" />
+			</fileset>
             <fileset dir="${edu.kit.joana.SuSi2Joana.base.dir}/lib" includes="*.jar" />
 		</unjar>
 	</target>

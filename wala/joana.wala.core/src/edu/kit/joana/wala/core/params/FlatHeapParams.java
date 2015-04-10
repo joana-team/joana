@@ -33,7 +33,6 @@ import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.Predicate;
-import com.ibm.wala.util.collections.Filter;
 import com.ibm.wala.util.graph.Graph;
 import com.ibm.wala.util.graph.GraphReachability;
 import com.ibm.wala.util.graph.GraphSlicer;
@@ -94,9 +93,9 @@ public class FlatHeapParams {
 			}
 		});
 
-		GraphReachability<Object, Object> reach = new GraphReachability<Object, Object>(pruned, new Filter<Object>() {
+		GraphReachability<Object, Object> reach = new GraphReachability<Object, Object>(pruned, new Predicate<Object>() {
 			@Override
-			public boolean accepts(final Object o) {
+			public boolean test(final Object o) {
 				return isRelevantPointerKey(o);
 			}
 
@@ -207,9 +206,9 @@ public class FlatHeapParams {
 		GraphReachability<Object, Object> heapReach;
 		if (!DO_REACHABILITY_PER_METHOD) {
 			// solve reachability of heapgraph for whole program
-			heapReach = new GraphReachability<Object, Object>(pts.getHeapGraph(), new Filter<Object>() {
+			heapReach = new GraphReachability<Object, Object>(pts.getHeapGraph(), new Predicate<Object>() {
 				@Override
-				public boolean accepts(final Object o) {
+				public boolean test(final Object o) {
 					return isRelevantPointerKey(o) || o instanceof PointerKey;
 				}
 

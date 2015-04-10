@@ -23,7 +23,7 @@ import com.ibm.wala.ipa.callgraph.Context;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.Selector;
-import com.ibm.wala.util.collections.Filter;
+import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.collections.FilterIterator;
 import com.ibm.wala.util.intset.BitVectorIntSet;
 import com.ibm.wala.util.intset.IntSet;
@@ -133,10 +133,10 @@ public class NoThreadStartToRunCallGraph implements CallGraph {
 	@Override
 	public Iterator<CGNode> getPredNodes(CGNode n) {
 		if (to.contains(n)) {
-			return new FilterIterator<CGNode>(cg.getPredNodes(n), new Filter<CGNode>() {
+			return new FilterIterator<CGNode>(cg.getPredNodes(n), new Predicate<CGNode>() {
 
 				@Override
-				public boolean accepts(CGNode o) {
+				public boolean test(CGNode o) {
 					return !from.contains(o);
 				}
 			});
@@ -164,10 +164,10 @@ public class NoThreadStartToRunCallGraph implements CallGraph {
 	@Override
 	public Iterator<CGNode> getSuccNodes(CGNode n) {
 		if (from.contains(n)) {
-			return new FilterIterator<CGNode>(cg.getSuccNodes(n), new Filter<CGNode>() {
+			return new FilterIterator<CGNode>(cg.getSuccNodes(n), new Predicate<CGNode>() {
 
 				@Override
-				public boolean accepts(CGNode o) {
+				public boolean test(CGNode o) {
 					return !to.contains(o);
 				}
 			});

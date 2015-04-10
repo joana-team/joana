@@ -606,7 +606,7 @@ public class JoDroidConstruction {
 
             assert (exclusions != null); // XXX: Handle case without exclusions?
             
-            scope = DexAnalysisScopeReader.makeAndroidBinaryAnalysisScope(classPathUri, exclusions);
+            scope = DexAnalysisScopeReader.makeAndroidBinaryAnalysisScope(classPathUri, exclusions.getAbsolutePath());
             scope.setLoaderImpl(ClassLoaderReference.Application,
                     "com.ibm.wala.dalvik.classLoader.WDexClassLoaderImpl");
             scope.setLoaderImpl(ClassLoaderReference.Primordial,

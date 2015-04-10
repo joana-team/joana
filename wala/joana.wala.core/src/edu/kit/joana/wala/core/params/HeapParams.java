@@ -19,7 +19,7 @@ import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
-import com.ibm.wala.util.collections.Filter;
+import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.collections.ObjectArrayMapping;
 import com.ibm.wala.util.graph.Graph;
 import com.ibm.wala.util.graph.GraphReachability;
@@ -179,13 +179,7 @@ public class HeapParams {
 			final OrdinalSetMapping<PDGNode> map) throws CancelException {
 		final Graph<PDGNode> cfg = extractControlFlow(pdg);
 		final Graph<PDGNode> invertcfg = GraphInverter.invert(cfg);
-		final GraphReachability<PDGNode, PDGNode> reach =
-			new GraphReachability<PDGNode, PDGNode>(invertcfg, new Filter<PDGNode>() {
-				@Override
-				public boolean accepts(PDGNode o) {
-					return true;
-				}
-			});
+		final GraphReachability<PDGNode, PDGNode> reach = new GraphReachability<>(invertcfg, Predicate.TRUE);
 
 		reach.solve(null);
 

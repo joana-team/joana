@@ -784,7 +784,7 @@ public class InterferenceComputation {
 			
 			if (pts == null) {
 				final HeapModel hm = pta.getHeapModel();
-				final InstanceKey ik = hm.getInstanceKeyForClassObject(cls.getReference());
+				final InstanceKey ik = hm.getInstanceKeyForMetadataObject(cls.getReference(), TypeReference.JavaLangClass);
 
 				final MutableMapping<InstanceKey> mutable = (MutableMapping<InstanceKey>) pta.getInstanceKeyMapping();
 				if (mutable.hasMappedIndex(ik)) {

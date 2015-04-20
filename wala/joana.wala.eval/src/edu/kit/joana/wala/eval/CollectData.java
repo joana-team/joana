@@ -32,7 +32,7 @@ public class CollectData {
 	
 	private static final String SDG_SUFFIX = ".pdg";
 	private static final String SDG_REGEX = ".*\\" + SDG_SUFFIX;
-	private static final String SLICING_SUFFIX = "-heavyslicing.pdg";
+	private static final String SLICING_SUFFIX = "-heavyslicing.log";
 	private static final String SDG_STATS_SUFFIX = ".log";
 	private static final String SDG_STATS_NEWSUM_SUFFIX = "-sumnew.log";
 	private static final String SDG_STATS_OLDSUM_SUFFIX = "-sumold.log";
@@ -59,7 +59,7 @@ public class CollectData {
 				return data.totalTime() + "";
 			}
 		};
-		printComputationTime(totalTime, cd);
+		printStats(totalTime, cd);
 
 		System.out.println();
 		
@@ -74,7 +74,7 @@ public class CollectData {
 				return data.summaryTime + "";
 			}
 		};
-		printComputationTime(sumTime, cd);
+		printStats(sumTime, cd);
 
 		System.out.println();
 		
@@ -89,7 +89,22 @@ public class CollectData {
 				return data.computationTime + "";
 			}
 		};
-		printComputationTime(computationTime, cd);
+		printStats(computationTime, cd);
+
+		System.out.println();
+		
+		final StatPrinter precision = new StatPrinter() {
+			@Override
+			public String info() {
+				return "slice precision";
+			}
+			
+			@Override
+			public String extractValue(final SDGData data) {
+				return data.slicePrecision + "%";
+			}
+		};
+		printStats(precision, cd);
 	}
 
 
@@ -98,9 +113,9 @@ public class CollectData {
 		String info();
 	}
 
-	public static void printComputationTime(final StatPrinter sp, final CollectData cd) {
+	public static void printStats(final StatPrinter sp, final CollectData cd) {
 		System.out.println(sp.info() + ";tree-type;tree-inst;tree-obj; unstruct-type;unstruct-inst;unstruct-obj;"
-			+ "graph-type;graph-inst;graph-obj;graph-fp-type;grpah-fp-inst;grpah-fp-obj;graph-opt-type;graph-opt-inst;"
+			+ "graph-type;graph-inst;graph-obj;graph-fp-type;graph-fp-inst;graph-fp-obj;graph-opt-type;graph-opt-inst;"
 			+ "graph-opt-obj;graph-fp-opt-type;graph-fp-opt-inst;graph-fp-opt-obj;");
 		for (final ProgramData pd : cd.name2data.values()) {
 			List<SDGData> noexc = filterRuns(pd.runs, FILTER_INTRAEXC);
@@ -335,6 +350,9 @@ public class CollectData {
 				name = name.substring(name.indexOf("_") + 1);
 				if (name.startsWith("JavaGrande")) {
 					name = name.substring("JavaGrande".length());
+				} else if (name.startsWith("RS3")) {
+					// special treatment for RS3 projects - cut off prefix
+					name = name.substring("RS3".length()); 
 				}
 				name = name.substring(0, name.indexOf("_"));
 			}
@@ -358,6 +376,10 @@ public class CollectData {
 	
 	public static String statsNewSumFile(final String pdgFile) {
 		return pdgFile + SDG_STATS_NEWSUM_SUFFIX;
+	}
+	
+	public static String statsHeavySlicingFile(final String pdgFile) {
+		return pdgFile + SLICING_SUFFIX;
 	}
 	
 	public static String statsOldSumFile(final String pdgFile) {
@@ -401,6 +423,7 @@ public class CollectData {
 		long computationTime;
 		long summaryTime;
 		SumStatus summaryStat = SumStatus.UNKNOWN;
+		double slicePrecision;
 		
 		public enum SumStatus { UNKNOWN, OK, TIMEOUT, OUT_OF_MEMORY }
 		
@@ -480,6 +503,19 @@ public class CollectData {
 				} else {
 					System.err.println("illegal line found in " + statsNewSumFile);
 					System.err.println(line);
+				}
+				bIn.close();
+			}
+			
+			final String statsHeavySlicingFile = statsHeavySlicingFile(sdgFile);
+			if (checkExists(statsHeavySlicingFile)) {
+				// TODO
+				final BufferedReader bIn = new BufferedReader(new FileReader(statsHeavySlicingFile(sdgFile)));
+				final String line = bIn.readLine();
+				if (line.contains("%")) {
+					final String percentStr = line.substring(0, line.indexOf("%")).replace(',','.');
+					double parsedPercent = Double.parseDouble(percentStr);
+					slicePrecision = parsedPercent;
 				}
 				bIn.close();
 			}

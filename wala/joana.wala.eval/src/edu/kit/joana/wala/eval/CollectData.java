@@ -114,18 +114,19 @@ public class CollectData {
 	}
 
 	public static void printStats(final StatPrinter sp, final CollectData cd) {
-		System.out.println(sp.info() + ";tree-type;tree-inst;tree-obj; unstruct-type;unstruct-inst;unstruct-obj;"
-			+ "graph-type;graph-inst;graph-obj;graph-fp-type;graph-fp-inst;graph-fp-obj;graph-opt-type;graph-opt-inst;"
-			+ "graph-opt-obj;graph-fp-opt-type;graph-fp-opt-inst;graph-fp-opt-obj;");
+		System.out.println(sp.info() + ";unstruct-type;unstruct-inst;unstruct-obj;tree-type;tree-inst;tree-obj;"
+			+ "graph-type;graph-inst;graph-obj;");
+//		"graph-fp-type;graph-fp-inst;graph-fp-obj;graph-opt-type;graph-opt-inst;"
+//			+ "graph-opt-obj;graph-fp-opt-type;graph-fp-opt-inst;graph-fp-opt-obj;");
 		for (final ProgramData pd : cd.name2data.values()) {
 			List<SDGData> noexc = filterRuns(pd.runs, FILTER_INTRAEXC);
 			noexc = filterRuns(noexc, FILTER_SUMMARY);
 			List<SDGData> tree = filterRuns(noexc, FILTER_TREE);
 			List<SDGData> unstruct = filterRuns(noexc, FILTER_UNSTRUCTURED);
-			List<SDGData> graph = filterRuns(noexc, new DataFilterList(new DataFilter[] {FILTER_GRAPH_SIMPLE, FILTER_ESCAPE, FILTER_NOOPT}));
+//			List<SDGData> graph = filterRuns(noexc, new DataFilterList(new DataFilter[] {FILTER_GRAPH_SIMPLE, FILTER_ESCAPE, FILTER_NOOPT}));
 			List<SDGData> graphfp = filterRuns(noexc, new DataFilterList(new DataFilter[] {FILTER_GRAPH_FIXP, FILTER_ESCAPE, FILTER_NOOPT}));
-			List<SDGData> graphopt = filterRuns(noexc, new DataFilterList(new DataFilter[] {FILTER_GRAPH_SIMPLE, FILTER_ESCAPE, FILTER_OPT}));
-			List<SDGData> graphfpopt = filterRuns(noexc, new DataFilterList(new DataFilter[] {FILTER_GRAPH_FIXP, FILTER_ESCAPE, FILTER_OPT}));
+//			List<SDGData> graphopt = filterRuns(noexc, new DataFilterList(new DataFilter[] {FILTER_GRAPH_SIMPLE, FILTER_ESCAPE, FILTER_OPT}));
+//			List<SDGData> graphfpopt = filterRuns(noexc, new DataFilterList(new DataFilter[] {FILTER_GRAPH_FIXP, FILTER_ESCAPE, FILTER_OPT}));
 //			for (final SDGData d : tree) {
 //				printComputationTime(d, pd.name);
 //			}
@@ -139,12 +140,12 @@ public class CollectData {
 //				printComputationTime(d, pd.name);
 //			}
 			System.out.print(pd.name + ";");
-			printSeparated(sp, tree, ";", new DataFilter[] {FILTER_PTS_TYPE, FILTER_PTS_INST, FILTER_PTS_OBJ});
 			printSeparated(sp, unstruct, ";", new DataFilter[] {FILTER_PTS_TYPE, FILTER_PTS_INST, FILTER_PTS_OBJ});
-			printSeparated(sp, graph, ";", new DataFilter[] {FILTER_PTS_TYPE, FILTER_PTS_INST, FILTER_PTS_OBJ});
+			printSeparated(sp, tree, ";", new DataFilter[] {FILTER_PTS_TYPE, FILTER_PTS_INST, FILTER_PTS_OBJ});
+//			printSeparated(sp, graph, ";", new DataFilter[] {FILTER_PTS_TYPE, FILTER_PTS_INST, FILTER_PTS_OBJ});
 			printSeparated(sp, graphfp, ";", new DataFilter[] {FILTER_PTS_TYPE, FILTER_PTS_INST, FILTER_PTS_OBJ});
-			printSeparated(sp, graphopt, ";", new DataFilter[] {FILTER_PTS_TYPE, FILTER_PTS_INST, FILTER_PTS_OBJ});
-			printSeparated(sp, graphfpopt, ";", new DataFilter[] {FILTER_PTS_TYPE, FILTER_PTS_INST, FILTER_PTS_OBJ});
+//			printSeparated(sp, graphopt, ";", new DataFilter[] {FILTER_PTS_TYPE, FILTER_PTS_INST, FILTER_PTS_OBJ});
+//			printSeparated(sp, graphfpopt, ";", new DataFilter[] {FILTER_PTS_TYPE, FILTER_PTS_INST, FILTER_PTS_OBJ});
 			System.out.println();
 		}
 	}

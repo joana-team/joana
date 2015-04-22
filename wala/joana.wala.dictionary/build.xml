@@ -32,7 +32,8 @@
 	<target name="compile" depends="init,collect_wala_sources,collect_sources">
 		<path id="lib.path.ref">
             <fileset dir="${joana.contrib.base.dir}" includes="*.jar" />
-            <fileset dir="${com.ibm.wala.dalvik.base.dir}/lib" includes="*.jar" />
+			<fileset dir="${joana.base.dir}/contrib/wala/com.ibm.wala.cast/lib" includes="*.jar" />
+			<fileset dir="${com.ibm.wala.dalvik.base.dir}/lib" includes="*.jar" />
 			<pathelement path="${dest.dir.classes}" />
 		</path>
 		<javac

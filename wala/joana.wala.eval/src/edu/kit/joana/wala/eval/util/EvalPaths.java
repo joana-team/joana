@@ -37,6 +37,7 @@ public class EvalPaths {
 	public static final String J2ME_ONETIMEPASS;
 	public static final String JRE14_HSQLDB;
 	public static final String JRE14_BATTLESHIP;
+	public static final String JRE14_RS3EXAMPLESCP;
 	public static final String JRE14_FREECS;
 	public static final String JRE14_UPM;
 
@@ -68,6 +69,7 @@ public class EvalPaths {
 		{
 			JRE14_HSQLDB = tryToLoadProperty("joana.jre14.hsqldb", propFile);
 			JRE14_BATTLESHIP = tryToLoadProperty("joana.jre14.battleship", propFile);
+			JRE14_RS3EXAMPLESCP = tryToLoadProperty("joana.jre14.rs3examplescp", propFile);
 			JRE14_FREECS = tryToLoadProperty("joana.jre14.freecs", propFile);
 			JRE14_UPM = tryToLoadProperty("joana.jre14.upm", propFile);
 		}

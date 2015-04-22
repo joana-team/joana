@@ -13,11 +13,9 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.Collection;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.graph.slicer.SummarySlicerBackward;
 import edu.kit.joana.wala.eval.util.LineNrSlicer.Result;
 
 /**
@@ -106,32 +104,32 @@ public class HeavySlicer {
 		try {
 			final SDG sdg = SDG.readFromAndUseLessHeap(t.filename);
 
-			long allSliceNodes = 0;
-			long allRelevantSliceNodes = 0;
+//			long allSliceNodes = 0;
+//			long allRelevantSliceNodes = 0;
 			
 			final LineNrSlicer lns = new LineNrSlicer(sdg);
 			final Result r = lns.heavySliceBackw();
 			t.numOfLines = r.numberOfLines;
 			t.avgLinesInSlice = r.avgLinesPerSlice;
 			
-			final SummarySlicerBackward ssb = new SummarySlicerBackward(sdg);
-			for (final SDGNode n : sdg.vertexSet()) {
-				t.numOfTotalNodes++;
-				if (isCounting(n)) {
-					t.numOfRelevantNodes++;
-					
-					final Collection<SDGNode> slice = ssb.slice(n);
-					allSliceNodes += slice.size();
-					for (final SDGNode sn : slice) {
-						if (isCounting(sn)) {
-							allRelevantSliceNodes++;
-						}
-					}
-				}
-			}
-			
-			t.avgRelevantNodesInSlice = allRelevantSliceNodes / t.numOfRelevantNodes;
-			t.avgTotalNodesInSlice = allSliceNodes / t.numOfRelevantNodes;
+//			final SummarySlicerBackward ssb = new SummarySlicerBackward(sdg);
+//			for (final SDGNode n : sdg.vertexSet()) {
+//				t.numOfTotalNodes++;
+//				if (isCounting(n)) {
+//					t.numOfRelevantNodes++;
+//					
+//					final Collection<SDGNode> slice = ssb.slice(n);
+//					allSliceNodes += slice.size();
+//					for (final SDGNode sn : slice) {
+//						if (isCounting(sn)) {
+//							allRelevantSliceNodes++;
+//						}
+//					}
+//				}
+//			}
+//			
+//			t.avgRelevantNodesInSlice = allRelevantSliceNodes / t.numOfRelevantNodes;
+//			t.avgTotalNodesInSlice = allSliceNodes / t.numOfRelevantNodes;
 		} catch (IOException e) {
 			error(e);
 			error = true;

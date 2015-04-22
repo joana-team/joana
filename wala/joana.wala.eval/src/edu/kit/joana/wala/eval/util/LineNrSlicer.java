@@ -11,7 +11,11 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -108,22 +112,28 @@ public class LineNrSlicer {
 		return getLinesForNodes(result);
 	}
 
-	public Set<Line> sliceBackward(Line line) {
+	public Set<Line> sliceBackward(Line line, Map<Line,Set<SDGNode>> line2nodes) {
 		if (sdg == null) {
 			throw new IllegalStateException("Run readIn first to load sdg from file.");
 		}
 
 		Set<Line> lines = new HashSet<Line>();
 		lines.add(line);
-		return sliceBackward(lines);
+		return sliceBackward(lines, line2nodes);
 	}
 
-	public Set<Line> sliceBackward(Set<Line> line) {
+	public Set<Line> sliceBackward(Set<Line> line, Map<Line,Set<SDGNode>> line2nodes) {
 		if (sdg == null) {
 			throw new IllegalStateException("Run readIn first to load sdg from file.");
 		}
 
-		Set<SDGNode> crit = getNodesForLine(line);
+		Set<SDGNode> crit = new HashSet<>();
+		for (Line l : line) {
+			Set<SDGNode> nodes = line2nodes.get(l);
+			if (nodes != null) {
+				crit.addAll(nodes);
+			}
+		}
 		Collection<SDGNode> result = slicerBack.slice(crit);
 
 		return getLinesForNodes(result);
@@ -198,21 +208,52 @@ public class LineNrSlicer {
 	public Result heavySliceBackw() {
 		final Result r = new Result();
 		final Set<Line> lines = new TreeSet<Line>();
+		final Map<Line,Set<SDGNode>> line2nodes = new HashMap<>();
 		final BreadthFirstIterator<SDGNode, SDGEdge> it = new BreadthFirstIterator<SDGNode, SDGEdge>(sdg);
 		while (it.hasNext()) {
 			final SDGNode node = it.next();
 			if (node.getSource() != null && node.getSr() >= 0) {
 				Line line = new Line(node.getSource(), node.getSr());
 				lines.add(line);
+				Set<SDGNode> nodes = line2nodes.get(line);
+				if (nodes == null) {
+					nodes = new HashSet<>();
+					line2nodes.put(line, nodes);
+				}
+				nodes.add(node);
 			}
 		}
 
+		// enrich lines2nodes with missing actInOuts
+		for (final Line l : lines) {
+			final Set<SDGNode> nodes = line2nodes.get(l);
+			if (nodes != null) {
+				final Set<SDGNode> toAdd = new HashSet<>();
+				for (final SDGNode n : nodes) {
+					if (n.getKind() == Kind.CALL) {
+						// collect act-in-out nodes
+						addActInOutSuccs(n, toAdd);
+					}
+				}
+				nodes.addAll(toAdd);
+			}
+		}
+		
 		r.numberOfLines = lines.size();
 		//System.out.println(lines.size() + " different sourcecode lines found.");
 		long sliceTotal = 0;
-		for (final Line l : lines) {
-			final Set<Line> slice = sliceBackward(l);
+//		long linesCurrent = 0;
+//		double percentCurrent;
+		final LinkedList<Line> worklist = new LinkedList<>();
+		worklist.addAll(lines);
+		Collections.shuffle(worklist);
+		for (final Line l : worklist) {
+			final Set<Line> slice = sliceBackward(l, line2nodes);
+//			linesCurrent++;
 			sliceTotal += slice.size();
+//			double avgLines = (double) sliceTotal / (double) linesCurrent;
+//			percentCurrent = (100.0 * avgLines) / (double) r.numberOfLines;
+//			if (linesCurrent % 20 == 0) { System.out.print("[" + NF.format(percentCurrent) + "%]"); }
 			//System.out.println(l + ": " + size);
 		}
 

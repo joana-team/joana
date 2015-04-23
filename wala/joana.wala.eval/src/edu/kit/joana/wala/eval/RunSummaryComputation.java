@@ -14,9 +14,12 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.attribute.FileTime;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
@@ -275,6 +278,34 @@ public class RunSummaryComputation {
 		return false;
 	}
 	
+	private static boolean needsToBeComputed(final boolean lazy, final String sdgFile, final String logFile) {
+		if (!lazy) {
+			return true;
+		}
+		
+		if (nonEmptyFileExists(logFile)) {
+			final File sdg = new File(sdgFile);
+			final File log = new File(logFile);
+			try {
+				final Map<String,Object> sdgAttr = Files.readAttributes(sdg.toPath(), "lastModifiedTime");
+				final Map<String,Object> logAttr = Files.readAttributes(log.toPath(), "lastModifiedTime");
+				if (sdgAttr.containsKey("lastModifiedTime") && logAttr.containsKey("lastModifiedTime")) {
+					final FileTime ftSdg = (FileTime) sdgAttr.get("lastModifiedTime");
+					final FileTime ftLog = (FileTime) logAttr.get("lastModifiedTime");
+					if (ftSdg.compareTo(ftLog) <= 0) {
+						// sdg before after log file -> no rerun needed
+						System.out.println("skipping " + sdg.getName() + " as it is older or same date then summary log.");
+						return false;
+					}
+				}
+			} catch (IOException e) {
+				error(e);
+			}
+		}
+		
+		return true;
+	}
+	
 	private static List<Task> buildTaskList(final List<File> filelist, final boolean recursive, final boolean lazy,
 			final Variant v) {
 		final List<Task> tasks = new LinkedList<Task>();
@@ -287,7 +318,7 @@ public class RunSummaryComputation {
 						final Task t = new Task();
 						t.filename = found.getAbsolutePath();
 						t.logname = logFile(t.filename, v);
-						if (!(lazy && nonEmptyFileExists(t.logname))) {
+						if (needsToBeComputed(lazy, t.filename, t.logname)) {
 							tasks.add(t);
 						}
 					} else {
@@ -298,7 +329,7 @@ public class RunSummaryComputation {
 				final Task t = new Task();
 				t.filename = f.getAbsolutePath();
 				t.logname = logFile(t.filename, v);
-				if (!(lazy && nonEmptyFileExists(t.logname))) {
+				if (needsToBeComputed(lazy, t.filename, t.logname)) {
 					tasks.add(t);
 				}
 			}

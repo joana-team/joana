@@ -7,7 +7,7 @@
 <listEntry value="1"/>
 </listAttribute>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="edu.kit.joana.wala.eval.RunSummaryComputation"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-variant old -runs 3 -recursive ../../deprecated/jSDG/out/"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-variant old -runs 3 -lazy -recursive -timeout 240 ../../deprecated/jSDG/out/"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="joana.wala.eval"/>
-<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Xmx4096M"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Xmx31096M"/>
 </launchConfiguration>

@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 
+import com.ibm.wala.ipa.callgraph.pruned.DoNotPrune;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
@@ -23,6 +24,7 @@ import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
+import edu.kit.joana.util.Config;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
@@ -38,7 +40,8 @@ import edu.kit.joana.wala.eval.util.EvalTimingStats.TaskInfo;
  */
 public class TestObjGraphPerformance {
 
-	public static boolean lazy = true;
+	public static boolean lazy = false;
+	public static final String[] LAZY_IF_CONTAINS = new String [] {"HSQLDB", "FreeCS", "UPM"};
 	
 	public static class ApiTestException extends Exception {
 
@@ -65,6 +68,19 @@ public class TestObjGraphPerformance {
 		config.setSkipSDGProgramPart(true);
 		config.setComputeSummaryEdges(false);
 		stats.setCurrentTask(testCase);
+		
+		config.setExclusions("sun\\/awt\\/.*\n"
+				+ "sun\\/swing\\/.*\n"
+				+ "com\\/sun\\/.*\n"
+				+ "sun\\/.*\n"
+				+ "apple\\/awt\\/.*\n"
+				+ "com\\/apple\\/.*\n"
+				+ "org\\/omg\\/.*\n");
+		config.setPruningPolicy(DoNotPrune.INSTANCE);
+		System.setProperty(Config.C_OBJGRAPH_MAX_NODES_PER_INTERFACE, "-1");
+		System.setProperty(Config.C_OBJGRAPH_CUT_OFF_IMMUTABLE, "true");
+		System.setProperty(Config.C_OBJGRAPH_CUT_OFF_UNREACHABLE, "true");
+
 		
 		postCreateConfigHook(config);
 		
@@ -129,6 +145,12 @@ public class TestObjGraphPerformance {
 	}
 	
 	public static boolean areWeLazy(final String testMethodName) {
+		for (final String name : LAZY_IF_CONTAINS) {
+			if (testMethodName.contains(name)) {
+				return true;
+			}
+		}
+		
 		if (!lazy) {
 			return false;
 		}

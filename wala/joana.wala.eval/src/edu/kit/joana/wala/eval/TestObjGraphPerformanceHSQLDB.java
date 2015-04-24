@@ -26,9 +26,6 @@ public class TestObjGraphPerformanceHSQLDB extends TestObjGraphPerformance {
 
 	@Override
 	protected void postCreateConfigHook(final SDGConfig config) {
-//		config.setPruningPolicy(DoNotPrune.INSTANCE);
-//		config.setExclusions("");
-		config.setComputeSummaryEdges(false);
 	}
 	
 	@Test

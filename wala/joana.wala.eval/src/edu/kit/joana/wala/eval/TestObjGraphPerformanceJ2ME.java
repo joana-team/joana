@@ -25,6 +25,10 @@ public class TestObjGraphPerformanceJ2ME extends TestObjGraphPerformance {
 
 	public static final int NUMBER_OF_RUNS = 3;
 
+	@Override
+	protected void postCreateConfigHook(final SDGConfig config) {
+	}
+
 	@Test
 	public void test_J2ME_Barcode_PtsType_Graph() {
 		try {

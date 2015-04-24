@@ -37,6 +37,11 @@ public class TestIFCApplicationUPM extends TestObjGraphPerformance {
 	public void test_JRE14_UPM_PtsInst_Graph_Std() {
 		try {
 			final String currentTestcase = currentMethodName();
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
+
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED,
 					FieldPropagation.OBJ_GRAPH,
 					Stubs.NO_STUBS, EvalPaths.JRE14_UPM, "com.od.upm.gui.MainWindow");
@@ -64,6 +69,11 @@ public class TestIFCApplicationUPM extends TestObjGraphPerformance {
 	public void test_JRE14_UPM_PtsType_Graph_Std() {
 		try {
 			final String currentTestcase = currentMethodName();
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
+
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED,
 					FieldPropagation.OBJ_GRAPH,
 					Stubs.NO_STUBS, EvalPaths.JRE14_UPM, "com.od.upm.gui.MainWindow");
@@ -80,6 +90,11 @@ public class TestIFCApplicationUPM extends TestObjGraphPerformance {
 	public void test_JRE14_UPM_PtsObj_Graph_Std() {
 		try {
 			final String currentTestcase = currentMethodName();
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
+
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.OBJECT_SENSITIVE,
 					FieldPropagation.OBJ_GRAPH,
 					Stubs.NO_STUBS, EvalPaths.JRE14_UPM, "com.od.upm.gui.MainWindow");
@@ -96,6 +111,11 @@ public class TestIFCApplicationUPM extends TestObjGraphPerformance {
 	public void test_JRE14_UPM_PtsInst_Graph_Fast() {
 		try {
 			final String currentTestcase = currentMethodName();
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
+
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED,
 					FieldPropagation.OBJ_GRAPH_SIMPLE_PROPAGATION,
 					Stubs.NO_STUBS, EvalPaths.JRE14_UPM, "com.od.upm.gui.MainWindow");
@@ -112,6 +132,11 @@ public class TestIFCApplicationUPM extends TestObjGraphPerformance {
 	public void test_JRE14_UPM_PtsType_Graph_Fast() {
 		try {
 			final String currentTestcase = currentMethodName();
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
+
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED,
 					FieldPropagation.OBJ_GRAPH_SIMPLE_PROPAGATION,
 					Stubs.NO_STUBS, EvalPaths.JRE14_UPM, "com.od.upm.gui.MainWindow");
@@ -128,6 +153,11 @@ public class TestIFCApplicationUPM extends TestObjGraphPerformance {
 	public void test_JRE14_UPM_PtsObj_Graph_Fast() {
 		try {
 			final String currentTestcase = currentMethodName();
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
+
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.OBJECT_SENSITIVE,
 					FieldPropagation.OBJ_GRAPH_SIMPLE_PROPAGATION,
 					Stubs.NO_STUBS, EvalPaths.JRE14_UPM, "com.od.upm.gui.MainWindow");

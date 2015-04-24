@@ -7,15 +7,20 @@
  */
 package edu.kit.joana.wala.eval;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.net.UnknownHostException;
 import java.nio.CharBuffer;
+import java.nio.file.Files;
+import java.nio.file.attribute.FileTime;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import com.ibm.wala.util.io.FileUtil;
 
@@ -33,9 +38,12 @@ import edu.kit.joana.wala.util.jobber.server.JobberServer;
 public class HeavySlicingManager extends ManagerClient {
 
 	private static final String SDG_REGEX = ".*\\.pdg";
+	private static final String NAME_MUST_CONTAIN = null;
+	private static final boolean SKIP_SDGS_WITH_PREVIOUS_ERROR = false;
 
 	public static final int POLL_FOR_JOBS_FINISHED_MS = 200;
 	public static final int SLEEP_IN_BETWEEN_SINGLE_POLL = 30;
+
 
 	private final PrintStream log;
 	private final LinkedList<File> worklist = new LinkedList<File>(); 
@@ -87,17 +95,59 @@ public class HeavySlicingManager extends ManagerClient {
 		hsm.start();
 	}
 	
+	private static boolean nonEmptyFileExists(final String filename) {
+		final File lf = new File(filename);
+
+		if (lf.exists() && lf.isFile() && lf.length() > 0) {
+			if (SKIP_SDGS_WITH_PREVIOUS_ERROR) {
+				try {
+					final BufferedReader br = new BufferedReader(new FileReader(lf));
+					final String line = br.readLine();
+					br.close();
+					return !line.contains("ERROR");
+				} catch (IOException exc) {}
+			}
+			return true;
+		}
+		
+		return false;
+	}
+	
+	private boolean needsToBeComputed(final boolean lazy, final String sdgFile, final String logFile) {
+		if (NAME_MUST_CONTAIN != null && !sdgFile.contains(NAME_MUST_CONTAIN)) {
+			return false;
+		} else 	if (!lazy) {
+			return true;
+		}
+		
+		if (nonEmptyFileExists(logFile)) {
+			final File sdg = new File(sdgFile);
+			final File log = new File(logFile);
+			try {
+				final Map<String,Object> sdgAttr = Files.readAttributes(sdg.toPath(), "lastModifiedTime");
+				final Map<String,Object> logAttr = Files.readAttributes(log.toPath(), "lastModifiedTime");
+				if (sdgAttr.containsKey("lastModifiedTime") && logAttr.containsKey("lastModifiedTime")) {
+					final FileTime ftSdg = (FileTime) sdgAttr.get("lastModifiedTime");
+					final FileTime ftLog = (FileTime) logAttr.get("lastModifiedTime");
+					if (ftSdg.compareTo(ftLog) <= 0) {
+						// sdg before after log file -> no rerun needed
+						System.out.println("skipping " + sdg.getName() + " as it is older or same date then summary log.");
+						return false;
+					}
+				}
+			} catch (IOException e) {
+				displayError(e);
+			}
+		}
+		
+		return true;
+	}
+	
 	public void addFileToWorklist(final String filename, final boolean lazy) {
 		final File f = new File(filename);
 		if (f.canRead() && !f.isDirectory()) {
-			if (lazy) {
-				// check for existing log file. file exists and size > 0 => not added to worklist
-				final String logFile = HeavySlicer.defaultLogFileName(f.getAbsolutePath());
-				final File lf = new File(logFile);
-				if (!(lf.exists() && lf.isFile() && lf.length() > 0)) {
-					worklist.add(f);
-				}
-			} else {
+			final String logFile = HeavySlicer.defaultLogFileName(f.getAbsolutePath());
+			if (needsToBeComputed(lazy, filename, logFile)) {
 				worklist.add(f);
 			}
 		} else {

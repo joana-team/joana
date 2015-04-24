@@ -40,6 +40,8 @@ import edu.kit.joana.wala.util.WatchDog;
 public class RunSummaryComputation {
 
 	private static final String SDG_REGEX = ".*\\.pdg";
+	private static final boolean SKIP_SDGS_WITH_PREVIOUS_ERROR = true;
+	private static final String NAME_MUST_CONTAIN = null;
 	
 	private static long NO_MULTIPLE_RUNS_THRESHOLD = 1000000; 
 	
@@ -267,19 +269,24 @@ public class RunSummaryComputation {
 		final File lf = new File(filename);
 
 		if (lf.exists() && lf.isFile() && lf.length() > 0) {
-			try {
-				final BufferedReader br = new BufferedReader(new FileReader(lf));
-				final String line = br.readLine();
-				br.close();
-				return !line.contains("ERROR");
-			} catch (IOException exc) {}
+			if (SKIP_SDGS_WITH_PREVIOUS_ERROR) {
+				try {
+					final BufferedReader br = new BufferedReader(new FileReader(lf));
+					final String line = br.readLine();
+					br.close();
+					return !line.contains("ERROR");
+				} catch (IOException exc) {}
+			}
+			return true;
 		}
 		
 		return false;
 	}
 	
 	private static boolean needsToBeComputed(final boolean lazy, final String sdgFile, final String logFile) {
-		if (!lazy) {
+		if (NAME_MUST_CONTAIN != null && !sdgFile.contains(NAME_MUST_CONTAIN)) {
+			return false;
+		} else 	if (!lazy) {
 			return true;
 		}
 		

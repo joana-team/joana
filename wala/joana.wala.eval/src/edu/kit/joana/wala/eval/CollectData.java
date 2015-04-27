@@ -17,8 +17,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.jws.soap.SOAPBinding.ParameterStyle;
-
 import com.ibm.wala.util.io.FileUtil;
 
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
@@ -36,6 +34,7 @@ public class CollectData {
 	private static final String SDG_STATS_SUFFIX = ".log";
 	private static final String SDG_STATS_NEWSUM_SUFFIX = "-sumnew.log";
 	private static final String SDG_STATS_OLDSUM_SUFFIX = "-sumold.log";
+	private static final boolean USE_OLD_SUMMARY = true;
 
 	public static void main(String[] args) throws IOException {
 		final CollectData cd = new CollectData();
@@ -375,6 +374,14 @@ public class CollectData {
 		return pdgFile.substring(0, pdgFile.length() - SDG_SUFFIX.length()) + SDG_STATS_SUFFIX;
 	}
 	
+	public static String statsSumFile(final String pdgFile) {
+		if (USE_OLD_SUMMARY) {
+			return statsOldSumFile(pdgFile);
+		} else {
+			return statsNewSumFile(pdgFile);
+		}
+	}
+	
 	public static String statsNewSumFile(final String pdgFile) {
 		return pdgFile + SDG_STATS_NEWSUM_SUFFIX;
 	}
@@ -384,7 +391,7 @@ public class CollectData {
 	}
 	
 	public static String statsOldSumFile(final String pdgFile) {
-		return pdgFile + SDG_STATS_NEWSUM_SUFFIX;
+		return pdgFile + SDG_STATS_OLDSUM_SUFFIX;
 	}
 	
 	public static class ProgramData {

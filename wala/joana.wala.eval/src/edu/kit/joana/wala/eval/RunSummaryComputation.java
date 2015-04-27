@@ -42,6 +42,8 @@ public class RunSummaryComputation {
 	private static final String SDG_REGEX = ".*\\.pdg";
 	private static final boolean SKIP_SDGS_WITH_PREVIOUS_ERROR = true;
 	private static final String NAME_MUST_CONTAIN = null;
+	public static final String[] SKIP_COMPUTATION = new String [] {"HSQLDB", "FreeCS", "UPM", "bExplore", "OneTimePass"};
+
 	
 	private static long NO_MULTIPLE_RUNS_THRESHOLD = 1000000; 
 	
@@ -269,14 +271,6 @@ public class RunSummaryComputation {
 		final File lf = new File(filename);
 
 		if (lf.exists() && lf.isFile() && lf.length() > 0) {
-			if (SKIP_SDGS_WITH_PREVIOUS_ERROR) {
-				try {
-					final BufferedReader br = new BufferedReader(new FileReader(lf));
-					final String line = br.readLine();
-					br.close();
-					return !line.contains("ERROR");
-				} catch (IOException exc) {}
-			}
 			return true;
 		}
 		
@@ -286,11 +280,30 @@ public class RunSummaryComputation {
 	private static boolean needsToBeComputed(final boolean lazy, final String sdgFile, final String logFile) {
 		if (NAME_MUST_CONTAIN != null && !sdgFile.contains(NAME_MUST_CONTAIN)) {
 			return false;
-		} else 	if (!lazy) {
+		} 
+		
+		for (final String name : SKIP_COMPUTATION) {
+			if (sdgFile.contains(name)) {
+				return false;
+			}
+		}
+
+		if (!lazy) {
 			return true;
 		}
 		
 		if (nonEmptyFileExists(logFile)) {
+			if (SKIP_SDGS_WITH_PREVIOUS_ERROR) {
+				try {
+					final BufferedReader br = new BufferedReader(new FileReader(logFile));
+					final String line = br.readLine();
+					br.close();
+					if (line.contains("ERROR")) {
+						return false;
+					}
+				} catch (IOException exc) {}
+			}
+
 			final File sdg = new File(sdgFile);
 			final File log = new File(logFile);
 			try {

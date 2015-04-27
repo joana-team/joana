@@ -40,6 +40,7 @@ public class HeavySlicingManager extends ManagerClient {
 	private static final String SDG_REGEX = ".*\\.pdg";
 	private static final String NAME_MUST_CONTAIN = null;
 	private static final boolean SKIP_SDGS_WITH_PREVIOUS_ERROR = false;
+	public static final String[] SKIP_COMPUTATION = new String [] {"HSQLDB", "FreeCS", "UPM"};
 
 	public static final int POLL_FOR_JOBS_FINISHED_MS = 200;
 	public static final int SLEEP_IN_BETWEEN_SINGLE_POLL = 30;
@@ -116,7 +117,15 @@ public class HeavySlicingManager extends ManagerClient {
 	private boolean needsToBeComputed(final boolean lazy, final String sdgFile, final String logFile) {
 		if (NAME_MUST_CONTAIN != null && !sdgFile.contains(NAME_MUST_CONTAIN)) {
 			return false;
-		} else 	if (!lazy) {
+		}
+		
+		for (final String name : SKIP_COMPUTATION) {
+			if (sdgFile.contains(name)) {
+				return false;
+			}
+		}
+
+		if (!lazy) {
 			return true;
 		}
 		

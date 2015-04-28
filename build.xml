@@ -129,7 +129,12 @@
             <arg value="-author"/>
             <arg value="-version"/>
         </javadoc>
-    </target>
+	</target>
+
+	<target name="init-wala" description="initialize wala by downloading needed jars">
+		<ant antfile="${com.ibm.wala.cast.base.dir}/build.xml" inheritall="false"/>
+		<ant antfile="${com.ibm.wala.dalvik.base.dir}/build.xml" inheritall="false"/>	
+	</target>
 
 
 </project>

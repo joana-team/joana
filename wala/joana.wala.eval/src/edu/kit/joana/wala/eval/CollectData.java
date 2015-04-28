@@ -490,11 +490,11 @@ public class CollectData {
 				bIn.close();
 			}
 			
-			final String statsNewSumFile = statsNewSumFile(sdgFile);
+			final String statsNewSumFile = statsSumFile(sdgFile);
 			if (checkExists(statsNewSumFile)) {
 				// example line:
 				// 75073 edges in 1462 ms for C:\Users\Juergen\git\joana\wala\joana.wala.eval\..\..\deprecated\jSDG\out\tree-0-1-cfa\j2me-Barcode.pdg
-				final BufferedReader bIn = new BufferedReader(new FileReader(statsNewSumFile(sdgFile)));
+				final BufferedReader bIn = new BufferedReader(new FileReader(statsSumFile(sdgFile)));
 				final String line = bIn.readLine();
 				if (line.contains(" edges in ")) {
 					final String edges = line.substring(0, line.indexOf(" edges in "));

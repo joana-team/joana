@@ -99,9 +99,8 @@ public class FilteredEdgeManager<T> implements NumberedEdgeManager<T> {
 
 		Iterator<T> it = new FilterIterator<T>(delegate.getPredNodes(N), new Predicate<T>() {
 
-			@SuppressWarnings("unchecked")
 			public boolean test(T o) {
-				int num = delegate.getNumber((T) o);
+				int num = delegate.getNumber(o);
 				return nodesOk.contains(num);
 			}});
 
@@ -151,7 +150,6 @@ public class FilteredEdgeManager<T> implements NumberedEdgeManager<T> {
 
 		Iterator<T> it = new FilterIterator<T>(delegate.getSuccNodes(N), new Predicate<T>() {
 
-			@SuppressWarnings("unchecked")
 			public boolean test(T t) {
 				int num = delegate.getNumber(t);
 				return nodesOk.contains(num);

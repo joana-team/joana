@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-
 import com.ibm.wala.cfg.ControlFlowGraph;
 import com.ibm.wala.dataflow.graph.BitVectorOr;
 import com.ibm.wala.fixedpoint.impl.DefaultFixedPointSolver;
@@ -71,7 +70,6 @@ public class NonTerminationSensitive {
 		NonTerminationSensitive nts = new NonTerminationSensitive(sdg);
 		return nts.compute(progress);
 	}
-
 
 	private Set<CallNode> compute(IProgressMonitor progress) throws CancelException {
 		Set<CallNode> calls = HashSetFactory.make();

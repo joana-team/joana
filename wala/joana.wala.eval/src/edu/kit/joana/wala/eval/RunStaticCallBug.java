@@ -3,6 +3,7 @@ package edu.kit.joana.wala.eval;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -10,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import com.ibm.wala.classLoader.ClassLoaderImpl;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.dalvik.classLoader.DexIRFactory;
@@ -811,9 +813,12 @@ new String[]{
 	
 	public static void main(String[] args) throws IOException, ClassHierarchyException, UnsoundGraphException, CancelException {
 		final String androidLib = "/Users/jgf/Applications/android-sdk-mac_x86/platforms/android-17/android.jar";
+		final URI andLibURI = URI.create(androidLib);
 		final String apkFileName = "/Users/jgf/Desktop/derr/bug-2/appinventor.ai_ariseo.OFWapp.apk";
+		final URI apkFileURI = URI.create(apkFileName);
+		final ClassLoader loader = RunStaticCallBug.class.getClassLoader();
 		// als Android.jar benutze ich die Stub-version aus dem SDG mit API level 17 (wobei das level eigentlich egal sein sollte)
-		final AnalysisScope scope = AndroidAnalysisScope.setUpAndroidAnalysisScope(androidLib, apkFileName, "");  // no exclusions
+		final AnalysisScope scope = AndroidAnalysisScope.setUpAndroidAnalysisScope(apkFileURI, "", loader, andLibURI);  // no exclusions
 		final IClassHierarchy cha = ClassHierarchy.make(scope);
 		final RunStaticCallBug runner = new RunStaticCallBug();
 		runner.buildGraphs(cha);

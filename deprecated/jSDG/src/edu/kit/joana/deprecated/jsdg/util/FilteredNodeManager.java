@@ -75,7 +75,6 @@ public class FilteredNodeManager<T> implements NumberedNodeManager<T> {
 	 */
 	public Iterator<T> iterator() {
 		FilterIterator<T> it = new FilterIterator<T>(delegate.iterator(), new Predicate<T>() {
-			@SuppressWarnings("unchecked")
 			public boolean test(T t) {
 				int num = delegate.getNumber(t);
 				return ok.contains(num);

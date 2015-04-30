@@ -479,13 +479,12 @@ public class RunKillDefBug {
 	
 	public static void main(String[] args) throws IOException, ClassHierarchyException, UnsoundGraphException, CancelException {
 		final String androidLib = "/Users/jgf/Applications/android-sdk-mac_x86/platforms/android-17/android.jar";
+		final URI andLibURI = URI.create(androidLib);
 		final String apkFileName = "/Users/jgf/Desktop/derr/bug/com.kstapp.apptitle.apk";
-		final URI androidLibURI = URI.create(androidLib);
 		final URI apkFileURI = URI.create(apkFileName);
 		final ClassLoader loader = RunKillDefBug.class.getClassLoader();
-
 		// als Android.jar benutze ich die Stub-version aus dem SDG mit API level 17 (wobei das level eigentlich egal sein sollte)
-		final AnalysisScope scope = AndroidAnalysisScope.setUpAndroidAnalysisScope(apkFileURI, "", loader, androidLibURI);  // no exclusions
+		final AnalysisScope scope = AndroidAnalysisScope.setUpAndroidAnalysisScope(apkFileURI, "", loader, andLibURI);  // no exclusions
 		final IClassHierarchy cha = ClassHierarchy.make(scope);
 		final RunKillDefBug runner = new RunKillDefBug();
 		runner.buildGraphs(cha);

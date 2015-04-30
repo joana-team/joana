@@ -521,12 +521,15 @@ public class ObjectTreeParamComputation {
 			for (CallNode call : caller.getAllCalls()) {
 //				for (CGNode cgTarget : call.getPossibleTargets()) {
 					CGNode cgTarget = call.getTarget();
-
 					if (cgTarget == null) {
 						continue;
 					}
 
 					PDG target = sdg.getPdgForMethodSignature(cgTarget);
+					if (target == null) {
+						continue;
+					}
+					
 					if (propagateInParams(caller, call, target)) {
 						changed.add(caller);
 					}

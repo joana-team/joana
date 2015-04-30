@@ -450,7 +450,9 @@ public class ModRefHeapParams implements IModRef {
 
 			BitVector bv = mayRefField.get(field);
 
-			removeThisNodeFromSet(pnode, bv);
+			if (bv != null) {
+				removeThisNodeFromSet(pnode, bv);
+			}
 
 			return bv;
 		}

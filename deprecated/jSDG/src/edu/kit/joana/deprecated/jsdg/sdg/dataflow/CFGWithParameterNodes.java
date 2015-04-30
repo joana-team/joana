@@ -243,7 +243,7 @@ public class CFGWithParameterNodes implements Graph<CFGWithParameterNodes.CFGNod
 			Set<CFGNode> last = HashSetFactory.make(1);
 			last.add(cfgNode);
 			lastNodes.put(block, last);
-		} else if (block.isCatchBlock() && instr != null) {
+		} else if (block.isCatchBlock() && instr != null && pdg.getNodesForInstruction(instr) != null) {
 			// special case where a single cfg node corresponds to 2 statements...
 
 			CFGNode cfgNode = createNode(block);

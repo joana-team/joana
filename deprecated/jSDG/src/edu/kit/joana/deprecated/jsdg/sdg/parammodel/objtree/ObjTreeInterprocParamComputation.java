@@ -294,6 +294,9 @@ public class ObjTreeInterprocParamComputation extends ObjTreeIntraprocParamCompu
 					}
 
 					PDG target = sdg.getPdgForMethodSignature(cgTarget);
+					if (target == null) {
+						continue;
+					}
 					IParamModel tModel = target.getParamModel();
 					if (!(tModel instanceof ObjTreeParamModel)) {
 						throw new IllegalStateException("expected obj-tree param model: " + tModel.getClass().getCanonicalName());

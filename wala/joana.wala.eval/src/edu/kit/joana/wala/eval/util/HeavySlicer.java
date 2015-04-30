@@ -98,6 +98,152 @@ public class HeavySlicer {
 		this.out = out;
 	}
 	
+	public static void main(String argv[]) {
+		final HeavySlicer hs = new HeavySlicer(System.out);
+		final String[] todo = new String[] {
+//				"C:\\Users\\Juergen\\git\\joana\\example\\output\\test_JRE14_JavaGrandeCrypt_PtsType_Graph-noopt.pdg",
+				"C:\\Users\\Juergen\\git\\joana\\example\\output\\test_JRE14_JavaGrandeCrypt_PtsInst_Graph-noopt.pdg",
+//				"C:\\Users\\Juergen\\git\\joana\\example\\output\\test_JRE14_JavaGrandeCrypt_PtsObj_Graph-noopt.pdg",
+//				"C:\\Users\\Juergen\\git\\joana\\deprecated\\jSDG\\out\\tree-0-cfa\\jre14-jg-Crypt.pdg",
+				"C:\\Users\\Juergen\\git\\joana\\deprecated\\jSDG\\out\\tree-0-1-cfa\\jre14-jg-Crypt.pdg",
+//				"C:\\Users\\Juergen\\git\\joana\\deprecated\\jSDG\\out\\tree-objsens\\jre14-jg-Crypt.pdg",
+//				"C:\\Users\\Juergen\\git\\joana\\deprecated\\jSDG\\out\\wala-0-cfa\\jre14-jg-Crypt.pdg",
+//				"C:\\Users\\Juergen\\git\\joana\\deprecated\\jSDG\\out\\wala-0-1-cfa\\jre14-jg-Crypt.pdg",
+//				"C:\\Users\\Juergen\\git\\joana\\deprecated\\jSDG\\out\\wala-objsens\\jre14-jg-Crypt.pdg",
+		};
+
+//		final Task t1 = hs.createTask(todo[0]);
+//		final Task t2 = hs.createTask(todo[1]);
+//		hs.compare(t1, t2, new Line("crypt/IDEATest.java", 208));
+		
+		for (final String sdg : todo) {
+			final Task tsk = hs.createTask(sdg);
+			//tsk.extendedStats = true;
+			hs.work(tsk);
+		}
+//		
+	}
+	
+	private static boolean hasSummaryEdges(final SDG sdg) {
+		for (final SDGEdge e : sdg.edgeSet()) {
+			switch (e.getKind()) {
+			case SUMMARY:
+			case SUMMARY_DATA:
+			case SUMMARY_NO_ALIAS:
+				return true;
+			default:
+			}
+		}
+		return false;
+	}
+
+	public void compare(final Task t1, final Task t2, final Line line) {
+		println("comparing on '" + t1.filename + "' and '" + t2.filename + "'");
+		println("on line " + line);
+
+		try {
+			final LineNrSlicer lns1 = getSlicer(t1);
+			final LineNrSlicer lns2 = getSlicer(t2);
+			
+			final Set<Line> slice1 = lns1.sliceBackward(line);
+			final Set<Line> slice2 = lns2.sliceBackward(line);
+			
+			final SortedSet<Line> notInSlice1 = new TreeSet<Line>();
+			notInSlice1.addAll(slice2);
+			notInSlice1.removeAll(slice1);
+			final SortedSet<Line> notInSlice2 = new TreeSet<Line>();
+			notInSlice2.addAll(slice1);
+			notInSlice2.removeAll(slice2);
+			
+			if (!notInSlice2.isEmpty()) {
+				println(line + " has " + notInSlice2.size() + " additional lines in '" + t1.filename + "'");
+				printLines(notInSlice2);
+			}
+
+			if (!notInSlice1.isEmpty()) {
+				println(line + " has " + notInSlice1.size() + " additional lines in '" + t2.filename + "'");
+				printLines(notInSlice1);
+			}
+		} catch (IOException e) {
+			error(e);
+		} catch (NullPointerException e) {
+			error(e);
+		}
+	}
+	
+	public void compare(final Task t1, final Task t2) {
+		println("comparing on '" + t1.filename + "' and '" + t2.filename + "'");
+
+		try {
+			final LineNrSlicer lns1 = getSlicer(t1);
+			final LineNrSlicer lns2 = getSlicer(t2);
+			
+			final SortedSet<Line> lines1 = lns1.getLines();
+			final SortedSet<Line> lines2 = lns2.getLines();
+			
+			final SortedSet<Line> notIn1 = new TreeSet<Line>();
+			notIn1.addAll(lines2);
+			notIn1.removeAll(lines1);
+			final SortedSet<Line> notIn2 = new TreeSet<Line>();
+			notIn2.addAll(lines1);
+			notIn2.removeAll(lines2);
+			final SortedSet<Line> inBoth = new TreeSet<Line>();
+			inBoth.addAll(lines1);
+			inBoth.removeAll(notIn2);
+			
+			println(inBoth.size() + " similar lines.");
+			println(notIn1.size() + " lines not in '" + t1.filename + "':");
+			printLines(notIn1);
+			println(notIn2.size() + " lines not in '" + t2.filename + "':");
+			printLines(notIn2);
+			
+			println("start slicing...");
+			
+			for (final Line l : inBoth) {
+				final Set<Line> slice1 = lns1.sliceBackward(l);
+				final Set<Line> slice2 = lns2.sliceBackward(l);
+				
+				final SortedSet<Line> notInSlice1 = new TreeSet<Line>();
+				notInSlice1.addAll(slice2);
+				notInSlice1.removeAll(slice1);
+				final SortedSet<Line> notInSlice2 = new TreeSet<Line>();
+				notInSlice2.addAll(slice1);
+				notInSlice2.removeAll(slice2);
+				
+				if (!notInSlice2.isEmpty()) {
+					println(l + " has " + notInSlice2.size() + " additional lines in '" + t1.filename + "'");
+				}
+
+				if (!notInSlice1.isEmpty()) {
+					println(l + " has " + notInSlice1.size() + " additional lines in '" + t2.filename + "'");
+				}
+			}
+		} catch (IOException e) {
+			error(e);
+		} catch (NullPointerException e) {
+			error(e);
+		}
+	}
+
+	private void printLines(final Collection<Line> lines) {
+		for (final Line l : lines) {
+			println(l.toString());
+		}
+	}
+	
+	private LineNrSlicer getSlicer(final Task t) throws IOException {
+		final SDG sdg = SDG.readFromAndUseLessHeap(t.filename);
+
+		t.summaryEdgesFound = hasSummaryEdges(sdg);
+		if (!t.summaryEdgesFound) {
+			print(" _no_summary_edges_found_ ");
+		}
+		
+		final LineNrSlicer lns = new LineNrSlicer(sdg, t.extendedStats);
+		
+		return lns;
+	}
+	
 	public synchronized boolean work(final Task t) {
 		PrintStream log = null;
 		try {

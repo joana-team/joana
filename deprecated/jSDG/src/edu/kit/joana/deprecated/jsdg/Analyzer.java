@@ -45,6 +45,7 @@ public class Analyzer {
 	public static void main(String args[]) throws WalaException, IOException,
 	IllegalArgumentException, CancelException, PDGFormatException, InvalidClassFileException {
 		WatchDog watchdog = null;
+		String logFile = null;
 
 		// try catch block added due to problems with eclipse on mac osx
 		// (exceptions got lost - program simply terminated)
@@ -52,7 +53,7 @@ public class Analyzer {
 			final IProgressMonitor progress = edu.kit.joana.deprecated.jsdg.wala.NullProgressMonitor.INSTANCE;
 
 			String file = null;
-			Integer timeout = null;
+			Integer timeout = 60; // stop per default after 1 hour
 			int runs = 1;
 			boolean lazy = false;
 			boolean verify = true;
@@ -122,7 +123,7 @@ public class Analyzer {
 			//System.out.println(cfg.toString());
 			//System.out.println(Debug.getSettings());
 			Log.noLogging();
-			final String logFile = cfg.logFile;
+			logFile = cfg.logFile;
 			cfg.logFile = null;
 
 			if (lazy) {
@@ -192,6 +193,18 @@ public class Analyzer {
 			out.close();
 			System.out.println(sdg.vertexSet().size() + " nodes and " + sdg.edgeSet().size() + " edges in " + duration
 					+ " ms logged to '" + cfg.logFile + "'");
+		} catch (Exception e) {
+			if (cfg.logFile == null) {
+				cfg.logFile = logFile;
+			}
+			if (cfg.logFile != null) {
+				final PrintStream out = new PrintStream(cfg.logFile);
+				out.println("ERROR");
+				e.printStackTrace(out);
+				out.flush();
+				out.close();
+			}
+			e.printStackTrace();
 		} finally {
 			if (watchdog != null && watchdog.isAlive()) {
 				// tell watchdog to stop

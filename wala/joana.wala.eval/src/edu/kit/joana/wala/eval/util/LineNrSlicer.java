@@ -27,6 +27,7 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGNode.Kind;
+import edu.kit.joana.ifc.sdg.graph.SDGNode.Operation;
 import edu.kit.joana.ifc.sdg.graph.slicer.Slicer;
 import edu.kit.joana.ifc.sdg.graph.slicer.SummarySlicerBackward;
 
@@ -87,6 +88,9 @@ public class LineNrSlicer {
 	private Slicer slicerBack;
 	private Slicer slicerForw;
 	private final boolean extendedStats;
+	
+	private Map<Line,Set<SDGNode>> line2nodes;
+	private SortedSet<Line> lines;
 
 	public LineNrSlicer(final SDG sdg) {
 		this(sdg, false);
@@ -97,8 +101,56 @@ public class LineNrSlicer {
 		this.extendedStats = extendedStats;
 		this.slicerBack = new SummarySlicerBackward(sdg);
 		this.slicerForw = new SummarySlicerBackward(sdg);
+		createLine2Nodes();
 	}
 
+	public SortedSet<Line> getLines() {
+		return Collections.unmodifiableSortedSet(lines);
+	}
+	
+//	private void fixupSDG() {
+//		for (final SDGNode n : sdg.vertexSet()) {
+//			if (n.kind == SDGNode.Kind.CALL) {
+//				
+//			}
+//		}
+//	}
+	
+	private void createLine2Nodes() {
+		line2nodes = new HashMap<>();
+		lines = new TreeSet<Line>();
+
+		final BreadthFirstIterator<SDGNode, SDGEdge> it = new BreadthFirstIterator<SDGNode, SDGEdge>(sdg);
+		while (it.hasNext()) {
+			final SDGNode node = it.next();
+			if (isRelevantLine(node)) {
+				Line line = new Line(node.getSource(), node.getSr());
+				lines.add(line);
+				Set<SDGNode> nodes = line2nodes.get(line);
+				if (nodes == null) {
+					nodes = new HashSet<>();
+					line2nodes.put(line, nodes);
+				}
+				nodes.add(node);
+			}
+		}
+
+//		// enrich lines2nodes with missing actInOuts
+//		for (final Line l : lines) {
+//			final Set<SDGNode> nodes = line2nodes.get(l);
+//			if (nodes != null) {
+//				final Set<SDGNode> toAdd = new HashSet<>();
+//				for (final SDGNode n : nodes) {
+//					if (n.getKind() == Kind.CALL) {
+//						// collect act-in-out nodes
+//						addActInOutSuccs(n, toAdd);
+//					}
+//				}
+//				nodes.addAll(toAdd);
+//			}
+//		}
+	}
+	
 	public Set<Line> sliceForward(Line line) {
 		if (sdg == null) {
 			throw new IllegalStateException("Run readIn first to load sdg from file.");
@@ -120,17 +172,17 @@ public class LineNrSlicer {
 		return getLinesForNodes(result);
 	}
 
-	public Set<Line> sliceBackward(Line line, Map<Line,Set<SDGNode>> line2nodes) {
+	public Set<Line> sliceBackward(Line line) {
 		if (sdg == null) {
 			throw new IllegalStateException("Run readIn first to load sdg from file.");
 		}
 
 		Set<Line> lines = new HashSet<Line>();
 		lines.add(line);
-		return sliceBackward(lines, line2nodes);
+		return sliceBackward(lines);
 	}
 
-	public Set<Line> sliceBackward(Set<Line> line, Map<Line,Set<SDGNode>> line2nodes) {
+	public Set<Line> sliceBackward(Set<Line> line) {
 		if (sdg == null) {
 			throw new IllegalStateException("Run readIn first to load sdg from file.");
 		}
@@ -168,7 +220,7 @@ public class LineNrSlicer {
 		while (it.hasNext()) {
 			SDGNode node = it.next();
 			for (Line line : lines) {
-				if (line.filename.equals(node.getSource()) && line.line == node.getSr()) {
+				if (line.filename.equals(node.getSource()) && line.line == node.getSr() && isRelevantLine(node)) {
 //					System.out.println("Added " + node.getKind() + ": " + node.getLabel());
 					nodes.add(node);
 				}
@@ -179,17 +231,17 @@ public class LineNrSlicer {
 			throw new IllegalStateException("Lines not found in graph: " + lines);
 		}
 
-		Set<SDGNode> actInOut = new HashSet<SDGNode>();
-		for (SDGNode node : nodes) {
-			if (node.getKind() == Kind.CALL) {
-				// collect act-in-out nodes
-				addActInOutSuccs(node, actInOut);
-			}
-		}
-
-		for (SDGNode node : actInOut) {
-			nodes.add(node);
-		}
+//		Set<SDGNode> actInOut = new HashSet<SDGNode>();
+//		for (SDGNode node : nodes) {
+//			if (node.getKind() == Kind.CALL) {
+//				// collect act-in-out nodes
+//				addActInOutSuccs(node, actInOut);
+//			}
+//		}
+//
+//		for (SDGNode node : actInOut) {
+//			nodes.add(node);
+//		}
 
 		return nodes;
 	}
@@ -272,47 +324,18 @@ public class LineNrSlicer {
 	
 	private static boolean isExcluded(final String str) {
 		return str.contains("java/lang") || str.contains("java/io") || str.contains("java/util")
-				|| str.contains("com/ibm/wala") || str.contains("sun/reflect") || str.contains("java/security");
+				|| str.contains("com/ibm/wala") || str.contains("sun/reflect") || str.contains("java/security")
+				|| str.contains("sun/") ;
 	}
 	
 	private static boolean isRelevantLine(final SDGNode node) {
-		return node.getSource() != null && node.getSr() >= 0 && !isExcluded(node.getSource());
+		return node.getKind() == SDGNode.Kind.EXPRESSION && !node.getLabel().startsWith("CONST") && !node.getLabel().contains("= catch ")
+				&& node.getSource() != null && node.getSr() > 0 && !isExcluded(node.getSource());
 	}
 	
 	public Result heavySliceBackw() {
 		final Result r = new Result();
-		final Set<Line> lines = new TreeSet<Line>();
-		final Map<Line,Set<SDGNode>> line2nodes = new HashMap<>();
 		final Map<Line,LineInSlice> line2lis = (extendedStats ? new HashMap<Line, LineInSlice>() : null);
-		final BreadthFirstIterator<SDGNode, SDGEdge> it = new BreadthFirstIterator<SDGNode, SDGEdge>(sdg);
-		while (it.hasNext()) {
-			final SDGNode node = it.next();
-			if (isRelevantLine(node)) {
-				Line line = new Line(node.getSource(), node.getSr());
-				lines.add(line);
-				Set<SDGNode> nodes = line2nodes.get(line);
-				if (nodes == null) {
-					nodes = new HashSet<>();
-					line2nodes.put(line, nodes);
-				}
-				nodes.add(node);
-			}
-		}
-
-		// enrich lines2nodes with missing actInOuts
-		for (final Line l : lines) {
-			final Set<SDGNode> nodes = line2nodes.get(l);
-			if (nodes != null) {
-				final Set<SDGNode> toAdd = new HashSet<>();
-				for (final SDGNode n : nodes) {
-					if (n.getKind() == Kind.CALL) {
-						// collect act-in-out nodes
-						addActInOutSuccs(n, toAdd);
-					}
-				}
-				nodes.addAll(toAdd);
-			}
-		}
 
 		if (extendedStats) {
 			for (final Line l : lines) {
@@ -328,7 +351,7 @@ public class LineNrSlicer {
 		worklist.addAll(lines);
 		Collections.shuffle(worklist);
 		for (final Line l : worklist) {
-			final Set<Line> slice = sliceBackward(l, line2nodes);
+			final Set<Line> slice = sliceBackward(l);
 			if (extendedStats) {
 				for (Line sliceline : slice) {
 					LineInSlice lis = line2lis.get(sliceline);

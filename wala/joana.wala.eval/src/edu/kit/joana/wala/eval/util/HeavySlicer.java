@@ -13,9 +13,15 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.Collection;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.wala.eval.util.LineNrSlicer.Line;
 import edu.kit.joana.wala.eval.util.LineNrSlicer.Result;
 
 /**
@@ -37,12 +43,14 @@ public class HeavySlicer {
 	public static class Task {
 		String filename;
 		String logname;
+		boolean extendedStats = false;
 		int numOfLines;
 		int numOfRelevantNodes;
 		int numOfTotalNodes;
 		long avgRelevantNodesInSlice;
 		long avgTotalNodesInSlice;
 		long avgLinesInSlice;
+		boolean summaryEdgesFound;
 
 		public String percentTotalStr() {
 			return NF.format(percentTotal()) + "%";
@@ -57,7 +65,7 @@ public class HeavySlicer {
 		}
 		
 		public String allPercentsStr() {
-			return percentLinesStr() + " (" + percentRelevantStr() + " - " + percentTotalStr() + ")";
+			return percentLinesStr() + " (" + avgLinesInSlice + " of " + numOfLines + ")";
 		}
 		
 		public double percentTotal() {
@@ -79,8 +87,8 @@ public class HeavySlicer {
 		}
 		
 		public String toString() {
-			return 
-				"nodes   : " + percentTotalStr() + " (" + avgTotalNodesInSlice + " of " + numOfTotalNodes + ")\n"
+			return (summaryEdgesFound ? "" : "no summary edges found\n")
+			+	"nodes   : " + percentTotalStr() + " (" + avgTotalNodesInSlice + " of " + numOfTotalNodes + ")\n"
 			+	"relevant: " + percentRelevantStr() + " (" + avgRelevantNodesInSlice + " of " + numOfRelevantNodes + ")\n"
 			+	"lines   : " + percentLinesStr() + " (" + avgLinesInSlice + " of " + numOfLines + ")";
 		}
@@ -106,11 +114,18 @@ public class HeavySlicer {
 
 //			long allSliceNodes = 0;
 //			long allRelevantSliceNodes = 0;
+			t.summaryEdgesFound = hasSummaryEdges(sdg);
+			if (!t.summaryEdgesFound) {
+				print(" _no_summary_edges_found_ ");
+			}
 			
-			final LineNrSlicer lns = new LineNrSlicer(sdg);
+			final LineNrSlicer lns = new LineNrSlicer(sdg, t.extendedStats);
 			final Result r = lns.heavySliceBackw();
 			t.numOfLines = r.numberOfLines;
 			t.avgLinesInSlice = r.avgLinesPerSlice;
+			if (t.extendedStats) {
+				r.printPerLineResult(out);
+			}
 			
 //			final SummarySlicerBackward ssb = new SummarySlicerBackward(sdg);
 //			for (final SDGNode n : sdg.vertexSet()) {

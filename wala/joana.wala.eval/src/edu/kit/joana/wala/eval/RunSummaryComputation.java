@@ -42,8 +42,7 @@ public class RunSummaryComputation {
 	private static final String SDG_REGEX = ".*\\.pdg";
 	private static final boolean SKIP_SDGS_WITH_PREVIOUS_ERROR = true;
 	private static final String NAME_MUST_CONTAIN = null;
-	public static final String[] SKIP_COMPUTATION = new String [] {"HSQLDB", "FreeCS", "UPM", "bExplore", "OneTimePass"};
-
+	public static final String[] SKIP_COMPUTATION = new String [] {/*"HSQLDB", "FreeCS", "UPM", "bExplore", "OneTimePass"*/};
 	
 	private static long NO_MULTIPLE_RUNS_THRESHOLD = 1000000; 
 	

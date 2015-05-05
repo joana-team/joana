@@ -30,7 +30,7 @@ public class TestObjGraphPerformanceJC extends TestObjGraphPerformance {
 	@Override
 	protected void postCreateConfigHook(final SDGConfig config) {
 		config.setPruningPolicy(DoNotPrune.INSTANCE);
-		config.setExclusions("");
+		//config.setExclusions("");
 		//config.setComputeSummaryEdges(false);
 	}
 	

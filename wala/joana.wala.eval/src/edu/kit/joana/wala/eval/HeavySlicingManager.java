@@ -40,7 +40,7 @@ public class HeavySlicingManager extends ManagerClient {
 	private static final String SDG_REGEX = ".*\\.pdg";
 	private static final String NAME_MUST_CONTAIN = null;
 	private static final boolean SKIP_SDGS_WITH_PREVIOUS_ERROR = false;
-	public static final String[] SKIP_COMPUTATION = new String [] {"HSQLDB", "FreeCS", "UPM"};
+	public static final String[] SKIP_COMPUTATION = new String [] {/*"HSQLDB", "FreeCS", "UPM", "bExplore" */};
 
 	public static final int POLL_FOR_JOBS_FINISHED_MS = 200;
 	public static final int SLEEP_IN_BETWEEN_SINGLE_POLL = 30;
@@ -100,14 +100,6 @@ public class HeavySlicingManager extends ManagerClient {
 		final File lf = new File(filename);
 
 		if (lf.exists() && lf.isFile() && lf.length() > 0) {
-			if (SKIP_SDGS_WITH_PREVIOUS_ERROR) {
-				try {
-					final BufferedReader br = new BufferedReader(new FileReader(lf));
-					final String line = br.readLine();
-					br.close();
-					return !line.contains("ERROR");
-				} catch (IOException exc) {}
-			}
 			return true;
 		}
 		
@@ -132,6 +124,18 @@ public class HeavySlicingManager extends ManagerClient {
 		if (nonEmptyFileExists(logFile)) {
 			final File sdg = new File(sdgFile);
 			final File log = new File(logFile);
+
+			if (SKIP_SDGS_WITH_PREVIOUS_ERROR) {
+				try {
+					final BufferedReader br = new BufferedReader(new FileReader(log));
+					final String line = br.readLine();
+					br.close();
+					if (line.contains("ERROR")) {
+						return false;
+					}
+				} catch (IOException exc) {}
+			}
+
 			try {
 				final Map<String,Object> sdgAttr = Files.readAttributes(sdg.toPath(), "lastModifiedTime");
 				final Map<String,Object> logAttr = Files.readAttributes(log.toPath(), "lastModifiedTime");

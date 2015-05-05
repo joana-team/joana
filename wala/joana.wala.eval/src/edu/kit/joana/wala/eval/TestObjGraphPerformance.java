@@ -41,7 +41,7 @@ import edu.kit.joana.wala.eval.util.EvalTimingStats.TaskInfo;
 public class TestObjGraphPerformance {
 
 	public static boolean lazy = false;
-	public static final String[] LAZY_IF_CONTAINS = new String [] {"HSQLDB", "FreeCS", "UPM"};
+	public static final String[] LAZY_IF_CONTAINS = new String [] {/*"HSQLDB", "FreeCS", "UPM" */};
 	
 	public static class ApiTestException extends Exception {
 
@@ -59,7 +59,7 @@ public class TestObjGraphPerformance {
 		final JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(className);
 		final SDGConfig config = new SDGConfig(cp, mainMethod.toBCString(), stubs);
 		config.setComputeInterferences(false);
-		config.setExceptionAnalysis(ExceptionAnalysis.INTRAPROC);
+		config.setExceptionAnalysis(ExceptionAnalysis.IGNORE_ALL);
 		config.setFieldPropagation(fprop);
 		config.setPointsToPrecision(pts);
 		config.setComputeAllocationSites(false);

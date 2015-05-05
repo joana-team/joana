@@ -12,8 +12,6 @@ import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
-import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
-
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.util.Stubs;
@@ -28,9 +26,7 @@ public class TestIFCApplicationFreeCS extends TestObjGraphPerformance {
 
 	@Override
 	protected void postCreateConfigHook(final SDGConfig config) {
-		config.setPruningPolicy(ApplicationLoaderPolicy.INSTANCE);
-//		config.setExclusions("");
-//		config.setComputeSummaryEdges(true);
+//		config.setPruningPolicy(ApplicationLoaderPolicy.INSTANCE);
 	}
 	
 	@Test
@@ -55,27 +51,6 @@ public class TestIFCApplicationFreeCS extends TestObjGraphPerformance {
 	}
 
 	@Test
-	public void test_JRE14_FreeCS_PtsInst_Graph_StdNoOpt() {
-		try {
-			final String currentTestcase = currentMethodName();
-			if (areWeLazy(currentTestcase)) {
-				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
-				return;
-			}
-
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED,
-					FieldPropagation.OBJ_GRAPH_FIXP_NO_OPT,
-					Stubs.JRE_14, EvalPaths.JRE14_FREECS, "freecs.Server");
-			final SDG sdg = buildSDG(cfg, System.out);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
 	public void test_JRE14_FreeCS_PtsType_Graph_Std() {
 		try {
 			final String currentTestcase = currentMethodName();
@@ -85,111 +60,6 @@ public class TestIFCApplicationFreeCS extends TestObjGraphPerformance {
 			}
 
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
-					Stubs.JRE_14, EvalPaths.JRE14_FREECS, "freecs.Server");
-			final SDG sdg = buildSDG(cfg, System.out);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JRE14_FreeCS_PtsType_Graph_StdNoOpt() {
-		try {
-			final String currentTestcase = currentMethodName();
-			if (areWeLazy(currentTestcase)) {
-				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
-				return;
-			}
-
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED,
-					FieldPropagation.OBJ_GRAPH_FIXP_NO_OPT,
-					Stubs.JRE_14, EvalPaths.JRE14_FREECS, "freecs.Server");
-			final SDG sdg = buildSDG(cfg, System.out);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JRE14_FreeCS_PtsInst_Graph_Fast() {
-		try {
-			final String currentTestcase = currentMethodName();
-			if (areWeLazy(currentTestcase)) {
-				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
-				return;
-			}
-
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED,
-					FieldPropagation.OBJ_GRAPH_SIMPLE_PROPAGATION,
-					Stubs.JRE_14, EvalPaths.JRE14_FREECS, "freecs.Server");
-			final SDG sdg = buildSDG(cfg, System.out);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JRE14_FreeCS_PtsType_Graph_Fast() {
-		try {
-			final String currentTestcase = currentMethodName();
-			if (areWeLazy(currentTestcase)) {
-				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
-				return;
-			}
-
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED,
-					FieldPropagation.OBJ_GRAPH_SIMPLE_PROPAGATION,
-					Stubs.JRE_14, EvalPaths.JRE14_FREECS, "freecs.Server");
-			final SDG sdg = buildSDG(cfg, System.out);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JRE14_FreeCS_PtsInst_Graph_FastNoOpt() {
-		try {
-			final String currentTestcase = currentMethodName();
-			if (areWeLazy(currentTestcase)) {
-				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
-				return;
-			}
-
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED,
-					FieldPropagation.OBJ_GRAPH_SIMPLE_NO_OPT,
-					Stubs.JRE_14, EvalPaths.JRE14_FREECS, "freecs.Server");
-			final SDG sdg = buildSDG(cfg, System.out);
-			assertFalse(sdg.vertexSet().isEmpty());
-			outputStatistics(sdg, cfg, currentTestcase);
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public void test_JRE14_FreeCS_PtsType_Graph_FastNoOpt() {
-		try {
-			final String currentTestcase = currentMethodName();
-			if (areWeLazy(currentTestcase)) {
-				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
-				return;
-			}
-
-			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED,
-					FieldPropagation.OBJ_GRAPH_SIMPLE_NO_OPT,
 					Stubs.JRE_14, EvalPaths.JRE14_FREECS, "freecs.Server");
 			final SDG sdg = buildSDG(cfg, System.out);
 			assertFalse(sdg.vertexSet().isEmpty());

@@ -8,6 +8,9 @@ import java.io.PrintWriter;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.junit.Assert;
+import org.junit.Test;
+
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
@@ -28,12 +31,10 @@ import edu.kit.joana.wala.core.ExternalCallCheck;
 import edu.kit.joana.wala.core.Main;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder;
-import edu.kit.joana.wala.core.Main.Config;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
-import edu.kit.joana.wala.core.accesspath.AccessPath;
 import edu.kit.joana.wala.flowless.MoJo;
 import edu.kit.joana.wala.flowless.MoJo.CallGraphResult;
 import edu.kit.joana.wala.flowless.pointsto.GraphAnnotater.Aliasing;
@@ -135,16 +136,43 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 //						+ "apple\\/awt\\/.*\n" + "com\\/apple\\/.*\n"),
 	};
 	
-	private TestAccessPathComputation() {}
+	public TestAccessPathComputation() {}
 
+	public static String currentMethodName() {
+		final Throwable t = new Throwable();
+		final StackTraceElement e = t.getStackTrace()[1];
+		return e.getMethodName();
+	}
+	
+	@Test
+	public void test_modularLibraryCall() {
+		final Run run = new Run(currentMethodName(),
+			"modular.Library.call(Lmodular/Library$A;Lmodular/Library$A;Lmodular/Library$A;I)I",
+			"../../example/joana.example.many-small-progs/bin");
+		try {
+			out.println(run.name + " starts...");
+			final ClassHierarchy cha = createHierarchy(run);
+			Assert.assertNotNull(cha);
+			final IMethod im = findEntryMethod(cha, run);
+			Assert.assertNotNull(im);
+			final MoJo mojo = MoJo.create(cha, run.outputDir);
+			final SDG sdg = computeAccessPaths(run, mojo, im);
+			Assert.assertNotNull(sdg);
+			out.println(run.name + " done.");
+		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
+				| UnsoundGraphException e) {
+			Assert.fail(e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
 	public static void main(String[] args) throws ClassHierarchyException, IOException, IllegalArgumentException, CancelException, UnsoundGraphException {
 		for (final Run run : RUNS) {
 			exec(run);
 		}
 	}
 
-	private static void exec(final Run run) throws IOException, ClassHierarchyException, IllegalArgumentException, CancelException, UnsoundGraphException {
-		out.println("analyzing " + run.name);
+	private static ClassHierarchy createHierarchy(final Run run) throws ClassHierarchyException, IOException {
 		out.print("\tcreating class hierarchy... ");
 
 		final AnalysisScope scope = AnalysisScopeReader.makePrimordialScope(null);
@@ -155,6 +183,29 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 		final ClassHierarchy cha = ClassHierarchy.make(scope);
 
 		out.println("done.");
+		
+		return cha;
+	}
+	
+	private static IMethod findEntryMethod(final ClassHierarchy cha, final Run run) {
+		for (final IClass cls : cha) {
+			if (cls.getClassLoader().getName() == AnalysisScope.APPLICATION && !cls.isInterface()) {
+				for (final IMethod im : cls.getDeclaredMethods()) {
+					final String sig = im.getSignature();
+					if (!im.isAbstract() && run.entryMethod.equals(sig)) {
+						return im;
+					}
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	private static void exec(final Run run) throws IOException, ClassHierarchyException, IllegalArgumentException, CancelException, UnsoundGraphException {
+		out.println("analyzing " + run.name);
+
+		final ClassHierarchy cha = createHierarchy(run);
 		
 		out.println("\tcomputing access paths... ");
 		final MoJo mojo = MoJo.create(cha);
@@ -230,7 +281,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 		final AnalysisOptions opt = mojo.createAnalysisOptionsWithPTS(ptsMax, im);
 		out.print(".");
 		final CallGraphResult cgr = mojo.computeContextSensitiveCallGraph(opt);
-		out.print(".");
+		out.println(".");
 		final SDG sdg = create(run, opt.getAnalysisScope(), mojo, cgr, im);
 		out.println();
 		return sdg;
@@ -242,7 +293,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			return null;
 		}
 
-		out.print("Building system dependence graph... ");
+		out.print("\tbuilding system dependence graph... ");
 
 		final ExternalCallCheck chk = ExternalCallCheck.EMPTY;
 //		if (cfg.extern == null) {
@@ -265,8 +316,8 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 		scfg.accessPath = true;
 		scfg.prunecg = Main.DEFAULT_PRUNE_CG;
 		scfg.pts = PointsToPrecision.INSTANCE_BASED;
-		scfg.debugAccessPath = false;
-		scfg.debugAccessPathOutputDir = "out/";
+		scfg.debugAccessPath = true;
+		scfg.debugAccessPathOutputDir = run.outputDir;
 		scfg.computeInterference = false;
 		scfg.staticInitializers = StaticInitializationTreatment.NONE;
 		scfg.debugStaticInitializers = false;
@@ -278,20 +329,20 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 
 
 		final SDG joanaSDG = SDGBuilder.convertToJoana(out, sdg, NullProgressMonitor.INSTANCE);
-
-		AccessPath.computeMinMaxAliasSummaryEdges(out, sdg, sdg.getMainPDG(), joanaSDG, NullProgressMonitor.INSTANCE);
-
-		out.println("\ndone.");
-
-		out.print("Writing SDG to disk... ");
+//
+//		AccessPath.computeMinMaxAliasSummaryEdges(out, sdg, sdg.getMainPDG(), joanaSDG, NullProgressMonitor.INSTANCE);
+//
+		out.print("\n\tsystem dependence graph done.");
+//
+		out.print("\n\twriting SDG to disk... ");
 		joanaSDG.setFileName(run.name != null ? sdg.getMainMethodName() + "-" + run.name : sdg.getMainMethodName());
-		final String fileName =
-				(run.outputDir.endsWith(File.separator) ? run.outputDir : run.outputDir + File.separator) + joanaSDG.getFileName() + ".pdg";
+		final String fileName =	(run.outputDir.endsWith(File.separator)
+			? run.outputDir : run.outputDir + File.separator) + joanaSDG.getFileName() + ".pdg";
 		final File file = new File(fileName);
 		out.print("(" + file.getAbsolutePath() + ") ");
-		PrintWriter pw = new PrintWriter(file);
+		final PrintWriter pw = new PrintWriter(file);
 		SDGSerializer.toPDGFormat(joanaSDG, pw);
-		out.println("done.");
+		out.print("done.");
 
 		return joanaSDG;
 	}

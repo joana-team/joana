@@ -36,8 +36,6 @@ import edu.kit.joana.wala.core.accesspath.nodes.APGraph;
 import edu.kit.joana.wala.core.accesspath.nodes.APGraph.APEdge;
 import edu.kit.joana.wala.core.accesspath.nodes.APNode;
 import edu.kit.joana.wala.core.accesspath.nodes.APParamNode;
-import edu.kit.joana.wala.flowless.util.DotUtil;
-import edu.kit.joana.wala.util.WriteGraphToDot;
 import gnu.trove.iterator.TIntIterator;
 
 public class APIntraProcV2 {
@@ -255,11 +253,7 @@ public class APIntraProcV2 {
 		}
 		
 		try {
-			String outDir = (cfg.debugAccessPathOutputDir == null ? "" : cfg.debugAccessPathOutputDir);
-			if (!outDir.isEmpty() && !outDir.equals(".") && !outDir.endsWith("/")) {
-				outDir += "/";
-			}
-			DotUtil.dot(graph, outDir + WriteGraphToDot.sanitizeFileName(pdg.getMethod().getName().toString()) + suffix);
+			APUtil.writeAPGraphToFile(graph, cfg.debugAccessPathOutputDir, pdg, suffix);
 		} catch (WalaException e) {
 			e.printStackTrace();
 		} catch (CancelException e) {
@@ -680,5 +674,22 @@ public class APIntraProcV2 {
 		}
 
 		assert !edge.toAlias.isEmpty();
+	}
+
+	public APNode findAPNode(final PDGNode n) {
+		return graph.findNode(n);
+	}
+
+	public Set<AP> getAllAPs() {
+		final Set<AP> aps = new HashSet<>();
+
+		for (final APNode n : graph){
+			final Iterator<AP> it = n.getOutgoingPaths();
+			while (it.hasNext()) {
+				aps.add(it.next());
+			}
+		}
+		
+		return aps;
 	}
 }

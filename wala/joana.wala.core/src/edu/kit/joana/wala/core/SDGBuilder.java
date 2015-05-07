@@ -1694,7 +1694,6 @@ public class SDGBuilder implements CallGraphFilter {
 		// "do object sensitive analysis for all methods"
 		public ObjSensZeroXCFABuilder.MethodFilter objSensFilter = null;
 		public FieldPropagation fieldPropagation = FieldPropagation.FLAT;
-		public boolean debugAccessPath = false;
 		/*
 		 * Turns off control dependency from field access operation to base-pointer node and moves
 		 * "nullpointer access exception" control dependency from instruction to basepointer node.
@@ -1722,6 +1721,7 @@ public class SDGBuilder implements CallGraphFilter {
 		 *
 		 */
 		public boolean noBasePointerDependency = true;
+		public boolean debugAccessPath = false;
 		public String debugAccessPathOutputDir = null;
 		public boolean debugCallGraphDotOutput = false;
 		public boolean debugManyGraphsDotOutput = false; // CFG, CDG, PDG, DDG

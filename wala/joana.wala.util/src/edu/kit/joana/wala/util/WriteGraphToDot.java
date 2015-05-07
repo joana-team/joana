@@ -129,8 +129,20 @@ public class WriteGraphToDot {
         return "" + System.identityHashCode(o);
     }
 
-    public static String sanitizeFileName(String string) {
+    public static String sanitizeFileName(final String string) {
         return string.replace(';', '_').replace('/', '.').replace('\\', '_').replace('>', '_').replace('<', '_');
+    }
+    
+    public static String fixupDirectoryName(final String dir) {
+    	if (dir == null || dir.isEmpty()) {
+    		return "";
+    	}
+    	
+    	if (!dir.endsWith(File.separator) && !dir.endsWith("/")) {
+    		return dir + File.separator;
+    	}
+    	
+    	return dir;
     }
 
 }

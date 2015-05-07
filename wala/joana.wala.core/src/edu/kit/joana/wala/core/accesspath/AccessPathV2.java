@@ -156,6 +156,13 @@ public class AccessPathV2 {
 //			ap.addPotentialAliasInfoToFormalIns();
 //		}
 
+		if (sdg.cfg.debugAccessPath) {
+			for (final PDG pdg :reachable) {
+				final APIntraProcV2 ap = pdg2ap.get(pdg);
+				APUtil.writeAliasEdgesToFile(ap, sdg.cfg.debugAccessPathOutputDir, pdg, "-ap.txt");
+			}
+		}
+		
 		return alias;
 	}
 

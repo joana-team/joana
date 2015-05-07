@@ -584,6 +584,10 @@ public final class APGraph extends AbstractNumberedGraph<APNode> {
 		return entry;
 	}
 
+	public APNode findNode(final PDGNode n) {
+		return pdg2ap.get(n);
+	}
+	
 	public boolean hasInitialValue(final APNode n) {
 		return initialValues.containsKey(n);
 	}

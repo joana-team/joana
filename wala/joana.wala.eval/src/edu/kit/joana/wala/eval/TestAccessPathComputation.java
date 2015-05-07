@@ -166,6 +166,138 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 		}
 	}
 	
+	@Test
+	public void test_modularLibraryCompute() {
+		final Run run = new Run(currentMethodName(),
+			"modular.Library.compute(Lmodular/Library$A1;Lmodular/Library$A1;Lmodular/Library$A1;Lmodular/Library$A1;Lmodular/Library$A1;Lmodular/Library$A1;)I",
+			"../../example/joana.example.many-small-progs/bin");
+		try {
+			out.println(run.name + " starts...");
+			final ClassHierarchy cha = createHierarchy(run);
+			Assert.assertNotNull(cha);
+			final IMethod im = findEntryMethod(cha, run);
+			Assert.assertNotNull(im);
+			final MoJo mojo = MoJo.create(cha, run.outputDir);
+			final SDG sdg = computeAccessPaths(run, mojo, im);
+			Assert.assertNotNull(sdg);
+			out.println(run.name + " done.");
+		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
+				| UnsoundGraphException e) {
+			Assert.fail(e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
+	@Test
+	public void test_modularLibraryCallIndirect() {
+		final Run run = new Run(currentMethodName(),
+			"modular.Library.callIndirect(Lmodular/Library$A;Lmodular/Library$A;Lmodular/Library$A;I)I",
+			"../../example/joana.example.many-small-progs/bin");
+		try {
+			out.println(run.name + " starts...");
+			final ClassHierarchy cha = createHierarchy(run);
+			Assert.assertNotNull(cha);
+			final IMethod im = findEntryMethod(cha, run);
+			Assert.assertNotNull(im);
+			final MoJo mojo = MoJo.create(cha, run.outputDir);
+			final SDG sdg = computeAccessPaths(run, mojo, im);
+			Assert.assertNotNull(sdg);
+			out.println(run.name + " done.");
+		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
+				| UnsoundGraphException e) {
+			Assert.fail(e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
+	@Test
+	public void test_modularLibraryCallIndirect2() {
+		final Run run = new Run(currentMethodName(),
+			"modular.Library.callIndirect2(Lmodular/Library$A;Lmodular/Library$A;Lmodular/Library$A;I)I",
+			"../../example/joana.example.many-small-progs/bin");
+		try {
+			out.println(run.name + " starts...");
+			final ClassHierarchy cha = createHierarchy(run);
+			Assert.assertNotNull(cha);
+			final IMethod im = findEntryMethod(cha, run);
+			Assert.assertNotNull(im);
+			final MoJo mojo = MoJo.create(cha, run.outputDir);
+			final SDG sdg = computeAccessPaths(run, mojo, im);
+			Assert.assertNotNull(sdg);
+			out.println(run.name + " done.");
+		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
+				| UnsoundGraphException e) {
+			Assert.fail(e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
+	@Test
+	public void test_modularLibraryCall2() {
+		final Run run = new Run(currentMethodName(),
+			"modular.Library.call2(Lmodular/Library$A;Lmodular/Library$A;)I",
+			"../../example/joana.example.many-small-progs/bin");
+		try {
+			out.println(run.name + " starts...");
+			final ClassHierarchy cha = createHierarchy(run);
+			Assert.assertNotNull(cha);
+			final IMethod im = findEntryMethod(cha, run);
+			Assert.assertNotNull(im);
+			final MoJo mojo = MoJo.create(cha, run.outputDir);
+			final SDG sdg = computeAccessPaths(run, mojo, im);
+			Assert.assertNotNull(sdg);
+			out.println(run.name + " done.");
+		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
+				| UnsoundGraphException e) {
+			Assert.fail(e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
+	@Test
+	public void test_modularLibraryReturn2() {
+		final Run run = new Run(currentMethodName(),
+			"modular.Library.return2(Lmodular/Library$A;Lmodular/Library$A;)I",
+			"../../example/joana.example.many-small-progs/bin");
+		try {
+			out.println(run.name + " starts...");
+			final ClassHierarchy cha = createHierarchy(run);
+			Assert.assertNotNull(cha);
+			final IMethod im = findEntryMethod(cha, run);
+			Assert.assertNotNull(im);
+			final MoJo mojo = MoJo.create(cha, run.outputDir);
+			final SDG sdg = computeAccessPaths(run, mojo, im);
+			Assert.assertNotNull(sdg);
+			out.println(run.name + " done.");
+		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
+				| UnsoundGraphException e) {
+			Assert.fail(e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
+	@Test
+	public void test_modularLibraryCall3() {
+		final Run run = new Run(currentMethodName(),
+			"modular.Library.call3(Lmodular/Library$A;Lmodular/Library$A;)Lmodular/Library$A;",
+			"../../example/joana.example.many-small-progs/bin");
+		try {
+			out.println(run.name + " starts...");
+			final ClassHierarchy cha = createHierarchy(run);
+			Assert.assertNotNull(cha);
+			final IMethod im = findEntryMethod(cha, run);
+			Assert.assertNotNull(im);
+			final MoJo mojo = MoJo.create(cha, run.outputDir);
+			final SDG sdg = computeAccessPaths(run, mojo, im);
+			Assert.assertNotNull(sdg);
+			out.println(run.name + " done.");
+		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
+				| UnsoundGraphException e) {
+			Assert.fail(e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
 	public static void main(String[] args) throws ClassHierarchyException, IOException, IllegalArgumentException, CancelException, UnsoundGraphException {
 		for (final Run run : RUNS) {
 			exec(run);
@@ -326,7 +458,6 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 		scfg.debugManyGraphsDotOutput = false;
 
 		final SDGBuilder sdg = SDGBuilder.create(scfg, cg.cg, cg.pts);
-
 
 		final SDG joanaSDG = SDGBuilder.convertToJoana(out, sdg, NullProgressMonitor.INSTANCE);
 //

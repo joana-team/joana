@@ -21,6 +21,7 @@ import edu.kit.joana.wala.core.accesspath.AP.FieldNode;
 import edu.kit.joana.wala.core.accesspath.AP.RootNode;
 
 /**
+ * Maps access paths to a pdg node. Includes methods to propagate access paths.
  *
  * @author Juergen Graf <juergen.graf@gmail.com>
  *

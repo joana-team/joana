@@ -17,6 +17,12 @@ import com.ibm.wala.ipa.callgraph.CGNode;
 
 import edu.kit.joana.wala.core.ParameterField;
 
+/**
+ * Models a single access path from a root node to an end field node. The path consists of node objects that can be
+ * shared among multiple AP paths to save memory.
+ * 
+ * @author Juergen Graf <juergen.graf@gmail.com>
+ */
 public class AP {
 
 	public enum NodeType { FIELD, PARAM, NEW, RETURN };

@@ -298,6 +298,50 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 		}
 	}
 	
+	@Test
+	public void test_modularLibraryMergeOp() {
+		final Run run = new Run(currentMethodName(),
+			"modular.Library.mergeOp(Lmodular/Library$E;Lmodular/Library$E;)I",
+			"../../example/joana.example.many-small-progs/bin");
+		try {
+			out.println(run.name + " starts...");
+			final ClassHierarchy cha = createHierarchy(run);
+			Assert.assertNotNull(cha);
+			final IMethod im = findEntryMethod(cha, run);
+			Assert.assertNotNull(im);
+			final MoJo mojo = MoJo.create(cha, run.outputDir);
+			final SDG sdg = computeAccessPaths(run, mojo, im);
+			Assert.assertNotNull(sdg);
+			out.println(run.name + " done.");
+		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
+				| UnsoundGraphException e) {
+			Assert.fail(e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
+	@Test
+	public void test_modularLibraryPhiTest() {
+		final Run run = new Run(currentMethodName(),
+			"modular.Library.phiTest(Lmodular/Library$E;Lmodular/Library$E;Z)I",
+			"../../example/joana.example.many-small-progs/bin");
+		try {
+			out.println(run.name + " starts...");
+			final ClassHierarchy cha = createHierarchy(run);
+			Assert.assertNotNull(cha);
+			final IMethod im = findEntryMethod(cha, run);
+			Assert.assertNotNull(im);
+			final MoJo mojo = MoJo.create(cha, run.outputDir);
+			final SDG sdg = computeAccessPaths(run, mojo, im);
+			Assert.assertNotNull(sdg);
+			out.println(run.name + " done.");
+		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
+				| UnsoundGraphException e) {
+			Assert.fail(e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
 	public static void main(String[] args) throws ClassHierarchyException, IOException, IllegalArgumentException, CancelException, UnsoundGraphException {
 		for (final Run run : RUNS) {
 			exec(run);

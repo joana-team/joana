@@ -89,5 +89,39 @@ public class Library {
 		int w = y.i;
 		return w;
 	}
+
+	// merge op example
 	
+	public static class C {
+		D d1;
+		D d2;
+	}
+	
+	public static class D {
+		int i;
+	}
+
+	public static class E {
+		C c1;
+		C c2;
+	}
+	
+	public static int mergeOp(E e0, E e1) {
+		C x = e0.c2;
+		C y = e1.c1;
+		x.d1 = y.d2;
+		return e0.c2.d1.i;
+	}
+	
+	public static int phiTest(E e0, E e1, boolean b) {
+		C x;
+		if (b) {
+			x = e0.c2;
+		} else {
+			x = e1.c2;
+		}
+		C y = e1.c1;
+		x.d1 = y.d2;
+		return e0.c2.d1.i;
+	}
 }

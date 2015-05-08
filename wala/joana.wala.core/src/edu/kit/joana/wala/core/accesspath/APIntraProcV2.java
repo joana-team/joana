@@ -8,6 +8,8 @@
 package edu.kit.joana.wala.core.accesspath;
 
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -19,15 +21,25 @@ import java.util.Set;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IField;
+import com.ibm.wala.dataflow.graph.BitVectorSolver;
+import com.ibm.wala.fixpoint.BitVectorVariable;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
+import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.WalaException;
+import com.ibm.wala.util.graph.Graph;
+import com.ibm.wala.util.graph.impl.SparseNumberedGraph;
+import com.ibm.wala.util.intset.OrdinalSet;
+import com.ibm.wala.util.intset.OrdinalSetMapping;
+import com.ibm.wala.viz.NodeDecorator;
 
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
+import edu.kit.joana.wala.core.PDGField;
 import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.SDGBuilder;
+import edu.kit.joana.wala.core.SDGBuilder.SDGBuilderConfig;
 import edu.kit.joana.wala.core.accesspath.AP.RootNode;
 import edu.kit.joana.wala.core.accesspath.AccessPathV2.AliasEdge;
 import edu.kit.joana.wala.core.accesspath.nodes.APCallNode;
@@ -36,6 +48,8 @@ import edu.kit.joana.wala.core.accesspath.nodes.APGraph;
 import edu.kit.joana.wala.core.accesspath.nodes.APGraph.APEdge;
 import edu.kit.joana.wala.core.accesspath.nodes.APNode;
 import edu.kit.joana.wala.core.accesspath.nodes.APParamNode;
+import edu.kit.joana.wala.core.dataflow.GenReach;
+import edu.kit.joana.wala.util.WriteGraphToDot;
 import gnu.trove.iterator.TIntIterator;
 
 public class APIntraProcV2 {
@@ -70,6 +84,10 @@ public class APIntraProcV2 {
 		this.cfg = cfg;
 	}
 
+	public SDGBuilderConfig getConfig() {
+		return cfg;
+	}
+	
 	/**
 	 * is only run once: directly after creation of this object.
 	 */
@@ -691,5 +709,246 @@ public class APIntraProcV2 {
 		}
 		
 		return aps;
+	}
+	
+	public static class MergeInfo {
+		public final PDG pdg;
+		
+		private final Set<Merges> merges = new HashSet<>();
+		private final Map<PDGNode, Merges> n2m = new HashMap<>(); // initial gen merge
+		private final Map<PDGNode, Set<AP>> n2ap = new HashMap<>();
+		private final Map<PDGNode, OrdinalSet<Merges>> n2reach = new HashMap<>();
+		
+		public MergeInfo(final PDG pdg) {
+			this.pdg = pdg;
+		}
+		
+		@SuppressWarnings("unchecked")
+		public void computeReach(final SDGBuilderConfig cfg, final IProgressMonitor progress) throws CancelException {
+			final Map<PDGNode, Collection<Merges>> gen = new HashMap<>();
+			for (final PDGNode n : n2m.keySet()) {
+				final Merges m = n2m.get(n);
+				if (m != null) {
+					gen.put(n, Collections.singleton(m));
+				} else {
+					gen.put(n, (Set<Merges>) Collections.EMPTY_SET);
+				}
+			}
+			final Graph<PDGNode> flowGraph = extractCFG(pdg);
+			if (cfg.debugAccessPath) {
+				final String fileName = APUtil.outputFileName(cfg.debugAccessPathOutputDir, pdg, "-cfg.dot");
+				WriteGraphToDot.writeDotFile(flowGraph, new NodeDecorator<PDGNode>() {
+					@Override
+					public String getLabel(PDGNode n) throws WalaException {
+						return n.getId() + "_" + n.getLabel();
+					}
+				},
+					"control flow graph of " + pdg.toString(),fileName);
+			}
+			final GenReach<PDGNode, Merges> genreach = GenReach.createUnionFramework(flowGraph, gen);
+			final BitVectorSolver<PDGNode> solver = new BitVectorSolver<PDGNode>(genreach);
+			solver.solve(progress);
+			final OrdinalSetMapping<Merges> mapping = genreach.getLatticeValues();
+			for (final PDGNode n : gen.keySet()) {
+				final BitVectorVariable out = solver.getOut(n);
+				final OrdinalSet<Merges> outSet = new OrdinalSet<>(out.getValue(), mapping);
+				n2reach.put(n, outSet);
+			}
+		}
+		
+		private static Graph<PDGNode> extractCFG(final PDG pdg) {
+			final SparseNumberedGraph<PDGNode> graph = new SparseNumberedGraph<>(2);
+			
+			for (final PDGNode n : pdg.vertexSet()) {
+				graph.addNode(n);
+			}
+			
+			for (final PDGEdge e : pdg.edgeSet()) {
+				if (e.kind == PDGEdge.Kind.CONTROL_FLOW || e.kind == PDGEdge.Kind.CONTROL_FLOW_EXC) {
+					graph.addEdge(e.from, e.to);
+				}
+			}
+			
+			return graph;
+		}
+		
+		public OrdinalSet<Merges> getReachM(final PDGNode n) {
+			return n2reach.get(n);
+		}
+		
+		public void addMergeOp(final PDGNode n, final MergeOp op) {
+			merges.add(op);
+			n2m.put(n, op);
+		}
+		
+		public void addCallMerge(final CallMergeOps cmop) {
+			n2m.put(cmop.call, cmop);
+			merges.add(cmop);
+		}
+		
+		public void addAPs(final PDGNode n, final Set<AP> aps) {
+			n2ap.put(n, aps);
+		}
+		
+		public Set<AP> getAPs(final PDGNode n) {
+			return n2ap.get(n);
+		}
+		
+		public Set<Merges> getAllMerges() {
+			return Collections.unmodifiableSet(merges);
+		}
+		
+		public Set<MergeOp> getAllMergeOps() {
+			final Set<MergeOp> mops = new HashSet<>();
+			for (final Merges m : merges) {
+				if (m instanceof MergeOp) {
+					mops.add((MergeOp) m);
+				} else if (m instanceof CallMergeOps) {
+					final CallMergeOps cmop = (CallMergeOps) m;
+					mops.addAll(cmop.ops);
+				} else {
+					throw new IllegalStateException("unknown merges type: " + m.getClass().getCanonicalName());
+				}
+			}
+			
+			return mops;
+		}
+	}
+	
+	public interface Merges {}
+
+	public static class CallMergeOps implements Merges {
+		public final Set<MergeOp> ops = new HashSet<>();
+		public final PDGNode call;
+		public boolean isPropagated = false;
+		
+		public CallMergeOps(final PDGNode call) {
+			if (call == null || call.getKind() != PDGNode.Kind.CALL) {
+				throw new IllegalArgumentException();
+			}
+			
+			this.call = call;
+		}
+		
+		public String toString() {
+			final StringBuilder sb = new StringBuilder();
+			sb.append("merge-ops(" + call.getId() + ") of " + call.getLabel() + "\n");
+			for (final MergeOp mop : ops) {
+				sb.append("\t" + mop + "\n");
+			}
+			sb.append("merge-ops(" + call.getId() + ") end");
+			return sb.toString();
+		}
+		
+		public int hashCode() {
+			return call.hashCode();
+		}
+		
+		public boolean equals(final Object o) {
+			if (this == o) {
+				return true;
+			} else if (o instanceof CallMergeOps) {
+				final CallMergeOps other = (CallMergeOps) o;
+				return call.equals(other.call);
+			}
+			
+			return false;
+		}
+	}
+	
+	public static class MergeOp implements Merges {
+		public final Set<AP> from;
+		public final Set<AP> to;
+		private final int hashCode;
+		
+		public MergeOp(final Set<AP> from, final Set<AP> to) {
+			if (from.size() < 1 || to.size() < 1) {
+				throw new IllegalArgumentException("from and to sets of merge op need to contain at least a single path");
+			}
+			
+			this.from = Collections.unmodifiableSet(from);
+			this.to = Collections.unmodifiableSet(to);
+			this.hashCode = from.iterator().next().hashCode() + (4711 * to.iterator().hashCode())
+				+ (23 * from.size()) + (217 * to.size());
+		}
+		
+		public String toString() {
+			final StringBuilder sb = new StringBuilder();
+			sb.append("merge([");
+			for (final AP fAP : from) {
+				sb.append(fAP);
+				sb.append(",");
+			}
+			sb.deleteCharAt(sb.length() -1);
+			sb.append("],[");
+			for (final AP tAP : to) {
+				sb.append(tAP);
+				sb.append(",");
+			}
+			sb.deleteCharAt(sb.length() -1);
+			sb.append("])");
+			
+			return sb.toString();
+		}
+		
+		public boolean equals(final Object o) {
+			if (o == this) {
+				return true;
+			} else if (o instanceof MergeOp) {
+				final MergeOp other = (MergeOp) o;
+				return from.equals(other.from) && to.equals(other.to);
+			}
+			
+			return false;
+		}
+		
+		public int hashCode() {
+			return hashCode;
+		}
+	}
+	
+	public MergeInfo extractIntraprocMerge() {
+		final MergeInfo mnfo = new MergeInfo(pdg);
+		
+		for (final PDGField f : pdg.getFieldWrites()) {
+			// f.accfield; // access path of extend(base, fieldname)
+			final Set<AP> to = new HashSet<AP>(); 
+			{
+				final APNode apTo = findAPNode(f.accfield);
+				final Iterator<AP> itTo = apTo.getOutgoingPaths();
+				while (itTo.hasNext()) {
+					to.add(itTo.next());
+				}
+			}
+
+			// f.node // access paths merged of field and data deps
+			final Set<AP> from = new HashSet<AP>(); 
+			for (final PDGEdge e : pdg.incomingEdgesOf(f.node)) {
+				if (e.kind == PDGEdge.Kind.DATA_DEP && e.from != f.base && e.from != f.index) {
+					// get all aps from e.from
+					final APNode apFrom = findAPNode(e.from);
+					final Iterator<AP> itFrom = apFrom.getOutgoingPaths();
+					while (itFrom.hasNext()) {
+						from.add(itFrom.next());
+					}
+				}
+			}
+			
+			if (from.isEmpty() || to.isEmpty()) {
+//				System.err.println("empty set for: " + f);
+//				System.err.println("from: " + from);
+//				System.err.println("to: " + to);
+			} else {
+				final MergeOp mop = new MergeOp(from, to);
+				mnfo.addMergeOp(f.accfield, mop);
+			}
+		}
+		
+		for (final PDGNode call : pdg.getCalls()) {
+			final CallMergeOps cmop = new CallMergeOps(call);
+			mnfo.addCallMerge(cmop);
+		}
+		
+		return mnfo;
 	}
 }

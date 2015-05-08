@@ -19,9 +19,13 @@ import java.util.Set;
 
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.WalaException;
+import com.ibm.wala.util.intset.OrdinalSet;
 
+import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGNode;
+import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeInfo;
+import edu.kit.joana.wala.core.accesspath.APIntraProcV2.Merges;
 import edu.kit.joana.wala.core.accesspath.AccessPathV2.AliasEdge;
 import edu.kit.joana.wala.core.accesspath.nodes.APGraph;
 import edu.kit.joana.wala.core.accesspath.nodes.APNode;
@@ -104,6 +108,9 @@ public final class APUtil {
 	}
 
 	private static String extractAPstr(final APNode n) {
+		if (n == null) {
+			return "no paths";
+		}
 		final Set<AP> aps = extractAPs(Collections.singleton(n));
 		final StringBuilder sb = new StringBuilder();
 		for (final AP p : aps) {
@@ -135,10 +142,16 @@ public final class APUtil {
 		ap.findAndMarkAliasEdges(alias);
 		try {
 			final PrintWriter pw = new PrintWriter(outFile);
+			pw.println("access paths for all nodes...");
+			for (final PDGNode n : pdg.vertexSet()) {
+				final APNode nAP = ap.findAPNode(n);
+				pw.println(n.getId() + "|" + n.getKind() + "|" + n.getLabel() + ": " + extractAPstr(nAP));
+			}
+			pw.println("all alias edges...");
 			for (final AliasEdge e : alias) {
 				pw.println(e);
 			}
-			pw.println("now onto the alias edges...");
+			pw.println("now onto the alias edges between normal nodes...");
 			for (final AliasEdge e : alias) {
 				if (e.edge.from.getKind() == PDGNode.Kind.NORMAL && e.edge.to.getKind() == PDGNode.Kind.NORMAL) {
 					pw.println(e);
@@ -154,6 +167,30 @@ public final class APUtil {
 			for (final AliasEdge e : alias) {
 				if (e.edge.from.getKind() == PDGNode.Kind.NORMAL && e.edge.to.getKind() == PDGNode.Kind.NORMAL) {
 					pw.println(extractFineGrainedAliasStr(e, ap));
+				}
+			}
+			pw.println("extract intraproc merge operations...");
+			final MergeInfo mops = ap.extractIntraprocMerge();
+			for (final Merges mop : mops.getAllMerges()) {
+				pw.println(mop);
+			}
+			pw.println("computing reach mops...");
+			try {
+				mops.computeReach(ap.getConfig(), NullProgressMonitor.INSTANCE);
+			} catch (CancelException e1) {
+				e1.printStackTrace();
+			}
+			for (final PDGNode n : pdg.vertexSet()) {
+				final OrdinalSet<Merges> ms = mops.getReachM(n);
+				pw.print(n.getId() + "|" + n.getKind() + "|" + n.getLabel() + ": ");
+				if (ms == null || ms.isEmpty()) {
+					pw.println("none.");
+				} else {
+					for (final Merges m : ms) {
+						pw.print(m);
+						pw.print("; ");
+					}
+					pw.println();
 				}
 			}
 			pw.flush();

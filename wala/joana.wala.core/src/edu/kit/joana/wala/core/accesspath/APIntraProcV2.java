@@ -29,10 +29,8 @@ import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.WalaException;
 import com.ibm.wala.util.graph.Graph;
-import com.ibm.wala.util.graph.impl.SparseNumberedGraph;
 import com.ibm.wala.util.intset.OrdinalSet;
 import com.ibm.wala.util.intset.OrdinalSetMapping;
-import com.ibm.wala.viz.NodeDecorator;
 
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
@@ -49,7 +47,6 @@ import edu.kit.joana.wala.core.accesspath.nodes.APGraph.APEdge;
 import edu.kit.joana.wala.core.accesspath.nodes.APNode;
 import edu.kit.joana.wala.core.accesspath.nodes.APParamNode;
 import edu.kit.joana.wala.core.dataflow.GenReach;
-import edu.kit.joana.wala.util.WriteGraphToDot;
 import gnu.trove.iterator.TIntIterator;
 
 public class APIntraProcV2 {
@@ -734,16 +731,13 @@ public class APIntraProcV2 {
 					gen.put(n, (Set<Merges>) Collections.EMPTY_SET);
 				}
 			}
-			final Graph<PDGNode> flowGraph = extractCFG(pdg);
+			final Graph<PDGNode> flowGraph = APUtil.extractCFG(pdg);
 			if (cfg.debugAccessPath) {
-				final String fileName = APUtil.outputFileName(cfg.debugAccessPathOutputDir, pdg, "-cfg.dot");
-				WriteGraphToDot.writeDotFile(flowGraph, new NodeDecorator<PDGNode>() {
-					@Override
-					public String getLabel(PDGNode n) throws WalaException {
-						return n.getId() + "_" + n.getLabel();
-					}
-				},
-					"control flow graph of " + pdg.toString(),fileName);
+				try {
+					APUtil.writeCFGtoFile(flowGraph, cfg.debugAccessPathOutputDir, pdg, "-cfg.dot");
+				} catch (WalaException e) {
+					e.printStackTrace();
+				}
 			}
 			final GenReach<PDGNode, Merges> genreach = GenReach.createUnionFramework(flowGraph, gen);
 			final BitVectorSolver<PDGNode> solver = new BitVectorSolver<PDGNode>(genreach);
@@ -754,22 +748,6 @@ public class APIntraProcV2 {
 				final OrdinalSet<Merges> outSet = new OrdinalSet<>(out.getValue(), mapping);
 				n2reach.put(n, outSet);
 			}
-		}
-		
-		private static Graph<PDGNode> extractCFG(final PDG pdg) {
-			final SparseNumberedGraph<PDGNode> graph = new SparseNumberedGraph<>(2);
-			
-			for (final PDGNode n : pdg.vertexSet()) {
-				graph.addNode(n);
-			}
-			
-			for (final PDGEdge e : pdg.edgeSet()) {
-				if (e.kind == PDGEdge.Kind.CONTROL_FLOW || e.kind == PDGEdge.Kind.CONTROL_FLOW_EXC) {
-					graph.addEdge(e.from, e.to);
-				}
-			}
-			
-			return graph;
 		}
 		
 		public OrdinalSet<Merges> getReachM(final PDGNode n) {

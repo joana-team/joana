@@ -19,16 +19,20 @@ import java.util.Set;
 
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.WalaException;
+import com.ibm.wala.util.graph.Graph;
+import com.ibm.wala.util.graph.impl.SparseNumberedGraph;
 import com.ibm.wala.util.intset.OrdinalSet;
 
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.PDG;
+import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeInfo;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.Merges;
 import edu.kit.joana.wala.core.accesspath.AccessPathV2.AliasEdge;
 import edu.kit.joana.wala.core.accesspath.nodes.APGraph;
 import edu.kit.joana.wala.core.accesspath.nodes.APNode;
+import edu.kit.joana.wala.core.params.objgraph.dataflow.ModRefControlFlowGraph;
 import edu.kit.joana.wala.flowless.util.DotUtil;
 import edu.kit.joana.wala.util.WriteGraphToDot;
 import gnu.trove.procedure.TIntProcedure;
@@ -43,12 +47,30 @@ public final class APUtil {
 
 	private APUtil() {}
 	
+	public static void writeCFGtoFile(final String outDir, final PDG pdg, final String suffix)
+			throws WalaException, CancelException {
+		final Graph<PDGNode> graph = extractCFG(pdg); 
+		writeCFGtoFile(graph, outDir, pdg, suffix);
+	}
+	
+	public static void writeCFGtoFile(final Graph<PDGNode> graph, final String outDir, final PDG pdg, final String suffix)
+			throws WalaException, CancelException {
+		final String outFile = outputFileName(outDir, pdg, suffix); 
+		DotUtil.dot(graph, outFile);
+	}
+
 	public static void writeAPGraphToFile(final APGraph graph, final String outDir, final PDG pdg, final String suffix)
 			throws WalaException, CancelException {
 		final String outFile = outputFileName(outDir, pdg, suffix); 
 		DotUtil.dot(graph, outFile);
 	}
-	
+
+	public static void writeModRefCFGtoFile(final ModRefControlFlowGraph graph, final String outDir, final PDG pdg,
+			final String suffix) throws WalaException, CancelException {
+		final String outFile = outputFileName(outDir, pdg, suffix); 
+		DotUtil.dot(graph, outFile);
+	}
+
 	public static String sanitizedPDGname(final PDG pdg) {
 		return WriteGraphToDot.sanitizeFileName(pdg.getMethod().getName().toString());
 	}
@@ -133,6 +155,24 @@ public final class APUtil {
 		final String to = extractAPstr(apTo);
 		
 		return "(" + from + ") -> (" + to + ")";
+	}
+	
+	public static Graph<PDGNode> extractCFG(final PDG pdg) {
+		final SparseNumberedGraph<PDGNode> graph = new SparseNumberedGraph<>(2);
+		
+		for (final PDGNode n : pdg.vertexSet()) {
+			if (n.getPdgId() == pdg.getId()) {
+				graph.addNode(n);
+			}
+		}
+		
+		for (final PDGEdge e : pdg.edgeSet()) {
+			if (e.kind == PDGEdge.Kind.CONTROL_FLOW || e.kind == PDGEdge.Kind.CONTROL_FLOW_EXC) {
+				graph.addEdge(e.from, e.to);
+			}
+		}
+		
+		return graph;
 	}
 	
 	public static void writeAliasEdgesToFile(final APIntraProcV2 ap, final String debugAccessPathOutputDir,

@@ -723,7 +723,8 @@ public class APIntraProcV2 {
 		@SuppressWarnings("unchecked")
 		public void computeReach(final SDGBuilderConfig cfg, final IProgressMonitor progress) throws CancelException {
 			final Map<PDGNode, Collection<Merges>> gen = new HashMap<>();
-			for (final PDGNode n : n2m.keySet()) {
+			for (final PDGNode n : pdg.vertexSet()) {
+				if (n.getPdgId() != pdg.getId()) { continue; }
 				final Merges m = n2m.get(n);
 				if (m != null) {
 					gen.put(n, Collections.singleton(m));

@@ -118,27 +118,26 @@ public class AccessPathV2 {
 			pdg2ap.put(pdg, aip);
 		}
 
-//
-//		boolean changed = true;
-//		while (changed) {
-//			changed = false;
-//
-//			// propagate only from callee to callsite
-//			for (final PDG pdg : reachable) {
-//				for (final PDGNode call : pdg.getCalls()) {
-//					for (final PDG callee : sdg.getPossibleTargets(call)) {
-//						changed |= propagateCalleeToSite(callee, call, pdg, pdg2ap);
-//					}
-//				}
-//			}
-//
-//			if (changed) {
-//				// add edges for non-alias data deps
-//				for (final PDG pdg : reachable) {
-//					processIntraproc(pdg, pdg2ap);
-//				}
-//			}
-//		}
+		boolean changed = true;
+		while (changed) {
+			changed = false;
+
+			// propagate only from callee to callsite
+			for (final PDG pdg : reachable) {
+				for (final PDGNode call : pdg.getCalls()) {
+					for (final PDG callee : sdg.getPossibleTargets(call)) {
+						changed |= propagateCalleeToSite(callee, call, pdg, pdg2ap);
+					}
+				}
+			}
+
+			if (changed) {
+				// add edges for non-alias data deps
+				for (final PDG pdg : reachable) {
+					processIntraproc(pdg, pdg2ap);
+				}
+			}
+		}
 
 		if (sdg.cfg.debugAccessPath) {
 			for (final PDG pdg : reachable) {
@@ -186,7 +185,7 @@ public class AccessPathV2 {
 		while (change) {
 			change = false;
 			// 1. add new no-alias heap edges to graph
-			change |= ap.adjustNonAliasEdges();
+			ap.adjustNonAliasEdges();
 			// 2. propagate paths
 			if (change || firstRun) {
 				change |= ap.propagateIntra();

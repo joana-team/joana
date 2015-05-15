@@ -55,6 +55,7 @@ public class APIntraProcV2 {
 	private final APGraph graph;
 	// contains only edges for heap dependencies that are due to aliasing
 	private final List<APGraph.APEdge> alias;
+	private final MergeInfo mnfo;
 	private final SDGBuilder.SDGBuilderConfig cfg;
 
 	public static APIntraProcV2 compute(final PDG pdg, final SDGBuilder.SDGBuilderConfig cfg) {
@@ -78,6 +79,7 @@ public class APIntraProcV2 {
 		this.pdg = pdg;
 		this.graph = graph;
 		this.alias = alias;
+		this.mnfo = new MergeInfo(pdg);
 		this.cfg = cfg;
 	}
 
@@ -98,6 +100,8 @@ public class APIntraProcV2 {
 				adjustNonAliasEdges();
 			}
 		}
+		
+		extractIntraprocMerge();
 	}
 
 	public boolean propagateFrom(final APIntraProcV2 aipCallee, final PDGNode call) {
@@ -106,8 +110,15 @@ public class APIntraProcV2 {
 		final APCallNode apCall = graph.getCall(call);
 		final APEntryNode apEntry = aipCallee.graph.getEntry();
 
+		/**
+		 * maps formal-in nodes of callee to actual-in nodes of call-site
+		 */
 		final Map<APParamNode, APParamNode> callee2call = form2actual(apCall, apEntry);
 
+		/**
+		 * creates a map from the root node of the initial value of the formal-in nodes of the callee to the
+		 * actual-in nodes of the call
+		 */
 		final Map<RootNode, APParamNode> root2ap = aipCallee.graph.createRoot2ActInMap(callee2call);
 
 		{
@@ -154,6 +165,9 @@ public class APIntraProcV2 {
 
 		//System.out.println("propagation from " + apCall + " to " + apEntry);
 
+		// TODO propagate merge-ops from callee to callsite merge-ops
+		System.err.println("TODO: propagate merge-ops from " + aipCallee.pdg + " to " + call.getId() + "|" + call.getLabel());
+		
 		return changed;
 	}
 
@@ -282,11 +296,8 @@ public class APIntraProcV2 {
 
 	/**
 	 * Adds heap data edges to to graph that are not due to aliasing.
-	 * @return true iff new edges were added
 	 */
-	public boolean adjustNonAliasEdges() {
-		boolean changed = false;
-
+	public void adjustNonAliasEdges() {
 //		/* DEBUG */ final int a = alias.size();
 
 		for (final Iterator<APEdge> it = alias.iterator(); it.hasNext();) {
@@ -295,7 +306,6 @@ public class APIntraProcV2 {
 			if (shareAccessPath(e.from, e.to)) {
 				graph.addEdge(e.from, e.to);
 				it.remove();
-				changed = true;
 			}
 		}
 
@@ -303,8 +313,6 @@ public class APIntraProcV2 {
 //		/* DEBUG */ if (changed) {
 //		/* DEBUG */		System.err.println(pdg.toString() + ": removed " + (a - b) + " alias edges of " + a + " total.");
 //		/* DEBUG */ }
-
-		return changed;
 	}
 
 	public boolean shareAccessPath(final APNode n1, final APNode n2) {
@@ -711,6 +719,7 @@ public class APIntraProcV2 {
 	public static class MergeInfo {
 		public final PDG pdg;
 		
+		private boolean intraprocDone = false;
 		private final Set<Merges> merges = new HashSet<>();
 		private final Map<PDGNode, Merges> n2m = new HashMap<>(); // initial gen merge
 		private final Map<PDGNode, Set<AP>> n2ap = new HashMap<>();
@@ -886,8 +895,14 @@ public class APIntraProcV2 {
 		}
 	}
 	
-	public MergeInfo extractIntraprocMerge() {
-		final MergeInfo mnfo = new MergeInfo(pdg);
+	public MergeInfo getMergeInfo() {
+		return mnfo;
+	}
+	
+	private void extractIntraprocMerge() {
+		if (mnfo.intraprocDone) {
+			return;
+		}
 		
 		for (final PDGField f : pdg.getFieldWrites()) {
 			// f.accfield; // access path of extend(base, fieldname)
@@ -928,6 +943,6 @@ public class APIntraProcV2 {
 			mnfo.addCallMerge(cmop);
 		}
 		
-		return mnfo;
+		mnfo.intraprocDone = true;;
 	}
 }

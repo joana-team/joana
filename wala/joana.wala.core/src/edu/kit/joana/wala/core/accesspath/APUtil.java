@@ -210,7 +210,7 @@ public final class APUtil {
 				}
 			}
 			pw.println("extract intraproc merge operations...");
-			final MergeInfo mops = ap.extractIntraprocMerge();
+			final MergeInfo mops = ap.getMergeInfo();
 			for (final Merges mop : mops.getAllMerges()) {
 				pw.println(mop);
 			}

@@ -45,7 +45,7 @@ public class Pair<S, T> {
 	 * @param fst first component of the new pair
 	 * @param snd second component of the new pair
 	 */
-	private Pair(S fst, T snd) {
+	protected Pair(S fst, T snd) {
 		this.fst = fst;
 		this.snd = snd;
 	}

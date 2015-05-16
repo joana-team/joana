@@ -310,6 +310,27 @@ public class SDGBuilder implements CallGraphFilter {
 		}
 	}
 
+	/**
+	 * This controls dynamic dispatch is handled in terms of adding control dependencies for
+	 * virtual calls.
+	 * @author Martin Mohr
+	 */
+	public static enum DynamicDispatchHandling {
+		/**
+		 * always add control dependencies for virtual calls
+		 */
+		SIMPLE,
+		/**
+		 * add control dependency for a virtual call only if its target
+		 * is not unique.
+		 */
+		PRECISE,
+		/**
+		 * never add control dependencies for virtual calls
+		 */
+		IGNORE;
+	};
+
 	public static SDGBuilder onlyCreate(final SDGBuilderConfig cfg) throws UnsoundGraphException, CancelException {
 		SDGBuilder builder = new SDGBuilder(cfg);
 		return builder;
@@ -1509,6 +1530,7 @@ public class SDGBuilder implements CallGraphFilter {
 		public int prunecg = DO_NOT_PRUNE;
 		public boolean mergeFieldsOfPrunedCalls = true;
 		public PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
+		public DynamicDispatchHandling dynDisp = DynamicDispatchHandling.SIMPLE;
 		public PointsToPrecision pts = PointsToPrecision.INSTANCE_BASED;
 		// only used iff pts is set to object sensitive. If null defaults to
 		// "do object sensitive analysis for all methods"

@@ -490,7 +490,28 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 			if (in.length > 0) {
 				final SSAInvokeInstruction invk = (SSAInvokeInstruction) getInstruction(call);
 				if (!invk.isStatic()) {
-					addEdge(in[0], call, PDGEdge.Kind.CONTROL_DEP /* this may be a virtual control dependency */);
+					switch (builder.cfg.dynDisp) {
+						case SIMPLE:
+							// always add control-dep edge from this pointer to call
+							addEdge(in[0], call, PDGEdge.Kind.CONTROL_DEP /* this may be a virtual control dependency */);
+							break;
+						case PRECISE:
+							// determine call targets and their respective receiver types
+							// only add control dependency if there are at least two receiever types
+							Set<TypeReference> recvs = new HashSet<TypeReference>();
+							for (CGNode tgt : builder.getWalaCallGraph().getPossibleTargets(this.cgNode, invk.getCallSite())) {
+								recvs.add(tgt.getMethod().getDeclaringClass().getReference());
+							}
+							if (recvs.size() > 1) {
+								addEdge(in[0], call, PDGEdge.Kind.CONTROL_DEP /* this may be a virtual control dependency */);
+							}
+							break;
+						case IGNORE:
+							// ignore this kind of dependency completely
+						default:
+							// do nothing
+							break;
+					}
 				}
 			}
 

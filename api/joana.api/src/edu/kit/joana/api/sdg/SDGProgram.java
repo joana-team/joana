@@ -305,6 +305,7 @@ public class SDGProgram {
 		cfg.computeAllocationSites = config.computeAllocationSites();
 		cfg.cgConsumer = config.getCGConsumer();
 		cfg.ctxSelector = config.getContextSelector();
+		cfg.ddisp = config.getDynamicDispatchHandling();
 		debug.outln(cfg.stubs);
 
 		if (config.computeInterferences()) {

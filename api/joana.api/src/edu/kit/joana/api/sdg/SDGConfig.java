@@ -16,6 +16,7 @@ import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.util.JoanaConstants;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.CGConsumer;
+import edu.kit.joana.wala.core.SDGBuilder.DynamicDispatchHandling;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
@@ -44,6 +45,7 @@ public class SDGConfig {
 	private CGConsumer cgConsumer = null;
 	private ContextSelector ctxSelector;
 	private ConstructionNotifier notifier = null;
+	private DynamicDispatchHandling ddisp = DynamicDispatchHandling.SIMPLE;
 	
 	public SDGConfig(String classPath, String entryMethod, Stubs stubsPath) {
 		this(classPath, entryMethod, stubsPath, ExceptionAnalysis.INTERPROC, FieldPropagation.OBJ_GRAPH, PointsToPrecision.INSTANCE_BASED, false, false, MHPType.NONE);
@@ -318,5 +320,13 @@ public class SDGConfig {
 	 */
 	public void setNotifier(ConstructionNotifier notifier) {
 		this.notifier = notifier;
+	}
+
+	public DynamicDispatchHandling getDynamicDispatchHandling() {
+		return ddisp;
+	}
+
+	public void setDynamicDispatchHandling(DynamicDispatchHandling ddisp) {
+		this.ddisp = ddisp;
 	}
 }

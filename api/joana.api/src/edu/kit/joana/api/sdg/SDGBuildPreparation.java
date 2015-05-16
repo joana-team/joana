@@ -58,6 +58,7 @@ import edu.kit.joana.wala.core.CGConsumer;
 import edu.kit.joana.wala.core.ExternalCallCheck;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder;
+import edu.kit.joana.wala.core.SDGBuilder.DynamicDispatchHandling;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
@@ -317,6 +318,7 @@ public final class SDGBuildPreparation {
 		scfg.computeAllocationSites = cfg.computeAllocationSites;
 		scfg.cgConsumer = cfg.cgConsumer;
 		scfg.additionalContextSelector = cfg.ctxSelector;
+		scfg.dynDisp = cfg.ddisp;
 		return Pair.make(startTime, scfg);
 	}
 
@@ -400,6 +402,7 @@ public final class SDGBuildPreparation {
 		public boolean computeAllocationSites = false;
 		public CGConsumer cgConsumer = null;
 		public ContextSelector ctxSelector = null;
+		public DynamicDispatchHandling ddisp;
 		public Config(String name) {
 			this(name, "<no entry defined>", FieldPropagation.OBJ_GRAPH);
 		}

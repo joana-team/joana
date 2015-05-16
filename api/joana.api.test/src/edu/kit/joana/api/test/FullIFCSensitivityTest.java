@@ -34,6 +34,7 @@ import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.util.Stubs;
+import edu.kit.joana.wala.core.SDGBuilder.DynamicDispatchHandling;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
@@ -49,14 +50,14 @@ public class FullIFCSensitivityTest {
 	}
 	
 	public static IFCAnalysis buildWithThreadsAndAnnotate(final String className, MHPType mhpType) throws ApiTestException {
-		return buildAndAnnotate(className, PointsToPrecision.INSTANCE_BASED, true, mhpType);
+		return buildAndAnnotate(className, PointsToPrecision.INSTANCE_BASED, DynamicDispatchHandling.SIMPLE, true, mhpType);
 	}
 	
 	public static IFCAnalysis buildAndAnnotate(final String className, PointsToPrecision pts) throws ApiTestException {
-		return buildAndAnnotate(className, pts, false, MHPType.NONE);
+		return buildAndAnnotate(className, pts, DynamicDispatchHandling.SIMPLE, false, MHPType.NONE);
 	}
 	
-	public static IFCAnalysis buildAndAnnotate(final String className, final PointsToPrecision pts,
+	public static IFCAnalysis buildAndAnnotate(final String className, final PointsToPrecision pts, final DynamicDispatchHandling ddisp,
 			final boolean computeInterference, MHPType mhpType) throws ApiTestException {
 		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(className);
 		SDGConfig config = new SDGConfig(JoanaPath.JOANA_MANY_SMALL_PROGRAMS_CLASSPATH, mainMethod.toBCString(), Stubs.JRE_14);
@@ -64,6 +65,7 @@ public class FullIFCSensitivityTest {
 		config.setExceptionAnalysis(ExceptionAnalysis.INTRAPROC);
 		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH);
 		config.setPointsToPrecision(pts);
+		config.setDynamicDispatchHandling(ddisp);
 		config.setMhpType(mhpType);
 		SDGProgram prog = null;
 		
@@ -269,6 +271,47 @@ public class FullIFCSensitivityTest {
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
 			assertEquals(2, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testDynamicDispatchLeak() {
+		IFCAnalysis ana;
+		try {
+			ana = buildAndAnnotate("sensitivity.DynDispLeak", PointsToPrecision.INSTANCE_BASED, DynamicDispatchHandling.PRECISE, false, MHPType.NONE);
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertFalse(illegal.isEmpty());
+			assertEquals(4, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testDynamicDispatchValid() {
+		IFCAnalysis ana;
+		try {
+			ana = buildAndAnnotate("sensitivity.DynDispValid", PointsToPrecision.INSTANCE_BASED, DynamicDispatchHandling.PRECISE, false, MHPType.NONE);
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertTrue(illegal.isEmpty());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testDynamicDispatchValidImprecision() {
+		IFCAnalysis ana;
+		try {
+			ana = buildAndAnnotate("sensitivity.DynDispValid", PointsToPrecision.INSTANCE_BASED, DynamicDispatchHandling.SIMPLE, false, MHPType.NONE);
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertFalse(illegal.isEmpty());
+			assertEquals(4, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

@@ -325,7 +325,7 @@ public class SDGProgram {
 		}
 		return cfg;
 	}
-	private static void throwAwayControlDeps(SDG sdg) throws CancelException {
+	public static void throwAwayControlDeps(SDG sdg) throws CancelException {
 		final List<SDGEdge> toRemove = new LinkedList<SDGEdge>();
 		for (final SDGEdge e : sdg.edgeSet()) {
 			switch (e.getKind()) {

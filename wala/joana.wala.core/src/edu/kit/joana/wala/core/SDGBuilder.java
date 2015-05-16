@@ -200,7 +200,12 @@ public class SDGBuilder implements CallGraphFilter {
 		 * 3-CFA
 		 * Very slow with little increased precision. Not much improvement over 2-CFA.
 		 */
-		N3_CALL_STACK(true, "3-level call-stack (3-CFA)");
+		N3_CALL_STACK(true, "3-level call-stack (3-CFA)"),
+		/**
+		 * custom call graph builder for testing out experimental features such as IFC-driven
+		 * pointer analysis
+		 */
+		CUSTOM(false, "custom call graph builder - use only if you know what you're doing!");
 
 		public final String desc;		  // short textual description of the option - can be used for gui
 		public final boolean recommended; // option can make sense aside for academic evaluation
@@ -966,6 +971,8 @@ public class SDGBuilder implements CallGraphFilter {
 			cgb = WalaPointsToUtil.makeNCallStackSens(3, options, cfg.cache, cfg.cha, cfg.scope,
 					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
 			break;
+		case CUSTOM:
+			cgb = cfg.customCallGraphBuilder;
 		}
 		com.ibm.wala.ipa.callgraph.CallGraph callgraph = cgb.makeCallGraph(options, progress);
 
@@ -1532,6 +1539,9 @@ public class SDGBuilder implements CallGraphFilter {
 		public PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
 		public DynamicDispatchHandling dynDisp = DynamicDispatchHandling.SIMPLE;
 		public PointsToPrecision pts = PointsToPrecision.INSTANCE_BASED;
+		// only used iff pts is set to CUSTOM. must be consistent with cha and scope,
+		// to be sure also with cache
+		public CallGraphBuilder customCallGraphBuilder = null;
 		// only used iff pts is set to object sensitive. If null defaults to
 		// "do object sensitive analysis for all methods"
 		public ObjSensZeroXCFABuilder.MethodFilter objSensFilter = null;

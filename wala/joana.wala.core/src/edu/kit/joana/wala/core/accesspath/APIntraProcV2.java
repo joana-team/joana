@@ -38,6 +38,7 @@ import edu.kit.joana.wala.core.PDGField;
 import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.SDGBuilderConfig;
+import edu.kit.joana.wala.core.accesspath.AP.FieldNode;
 import edu.kit.joana.wala.core.accesspath.AP.RootNode;
 import edu.kit.joana.wala.core.accesspath.AccessPathV2.AliasEdge;
 import edu.kit.joana.wala.core.accesspath.nodes.APCallNode;
@@ -165,8 +166,14 @@ public class APIntraProcV2 {
 
 		//System.out.println("propagation from " + apCall + " to " + apEntry);
 
-		// TODO propagate merge-ops from callee to callsite merge-ops
-		System.err.println("TODO: propagate merge-ops from " + aipCallee.pdg + " to " + call.getId() + "|" + call.getLabel());
+		final CallMergeOps cmop = mnfo.getCallMop(call);
+		for (final MergeOp mop : aipCallee.getMergeInfo().getAllMergeOps()) {
+			final MergeOp moptr = mop.replaceRoots(root2ap);
+			if (!cmop.ops.contains(moptr)) {
+				cmop.ops.add(moptr);
+				changed = true;
+			}
+ 		}
 		
 		return changed;
 	}
@@ -774,6 +781,17 @@ public class APIntraProcV2 {
 			merges.add(cmop);
 		}
 		
+		public CallMergeOps getCallMop(final PDGNode call) {
+			if (call == null || call.getKind() != PDGNode.Kind.CALL) {
+				throw new IllegalArgumentException();
+			}
+			
+			final Merges m = n2m.get(call);
+			final CallMergeOps cmop = (CallMergeOps) m;
+			
+			return cmop;
+		}
+		
 		public void addAPs(final PDGNode n, final Set<AP> aps) {
 			n2ap.put(n, aps);
 		}
@@ -856,10 +874,47 @@ public class APIntraProcV2 {
 			
 			this.from = Collections.unmodifiableSet(from);
 			this.to = Collections.unmodifiableSet(to);
-			this.hashCode = from.iterator().next().hashCode() + (4711 * to.iterator().hashCode())
+			this.hashCode = from.hashCode() + (4711 * to.hashCode())
 				+ (23 * from.size()) + (217 * to.size());
 		}
 		
+		/**
+		 * Replace the root nodes of all access paths in this merge op with the access paths from the mapped parameter
+		 * node.
+		 * @param root2ap Map from root node to param node.
+		 * @return A merge op with replaced access path roots.
+		 */
+		public MergeOp replaceRoots(final Map<RootNode, APParamNode> root2ap) {
+			final Set<AP> fromRp = replace(from, root2ap);
+			final Set<AP> toRp = replace(to, root2ap);
+			final MergeOp mop = new MergeOp(fromRp, toRp);
+			
+			return mop;
+		}
+		
+		private static Set<AP> replace(final Set<AP> aps, final Map<RootNode, APParamNode> root2ap) {
+			final Set<AP> repl = new HashSet<>();
+			
+			for (final AP ap : aps) {
+				final RootNode r = ap.getRoot();
+				if (root2ap.containsKey(r)) {
+					final List<FieldNode> fp = ap.getFieldPath();
+					final APParamNode pn = root2ap.get(r);
+					final Iterator<AP> it = pn.getOutgoingPaths();
+					while (it.hasNext()) {
+						final AP apRoot = it.next();
+						// add everything from ap to apRoot, except the root node r itself.
+						final AP expanded = apRoot.expand(fp);
+						repl.add(expanded);
+					}
+				} else {
+					repl.add(ap);
+				}
+			}
+			
+			return repl;
+		}
+
 		public String toString() {
 			final StringBuilder sb = new StringBuilder();
 			sb.append("merge([");

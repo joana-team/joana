@@ -58,6 +58,16 @@ public class AP {
 
 		return append(fn.field);
 	}
+	
+	public AP expand(final List<FieldNode> fn) {
+		AP cur = this;
+		
+		for (final FieldNode f : fn) {
+			cur = cur.expand(f);
+		}
+		
+		return cur;
+	}
 
 	public List<Node> getPath() {
 		final LinkedList<Node> path = new LinkedList<Node>();

@@ -189,6 +189,28 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 	}
 	
 	@Test
+	public void test_modularLibraryCallToCompute() {
+		final Run run = new Run(currentMethodName(),
+			"modular.Library.callToCompute(Lmodular/Library$A1;Lmodular/Library$A1;Lmodular/Library$A1;Lmodular/Library$A1;)I",
+			"../../example/joana.example.many-small-progs/bin");
+		try {
+			out.println(run.name + " starts...");
+			final ClassHierarchy cha = createHierarchy(run);
+			Assert.assertNotNull(cha);
+			final IMethod im = findEntryMethod(cha, run);
+			Assert.assertNotNull(im);
+			final MoJo mojo = MoJo.create(cha, run.outputDir);
+			final SDG sdg = computeAccessPaths(run, mojo, im);
+			Assert.assertNotNull(sdg);
+			out.println(run.name + " done.");
+		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
+				| UnsoundGraphException e) {
+			Assert.fail(e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
+	@Test
 	public void test_modularLibraryCallIndirect() {
 		final Run run = new Run(currentMethodName(),
 			"modular.Library.callIndirect(Lmodular/Library$A;Lmodular/Library$A;Lmodular/Library$A;I)I",
@@ -236,6 +258,28 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 	public void test_modularLibraryCall2() {
 		final Run run = new Run(currentMethodName(),
 			"modular.Library.call2(Lmodular/Library$A;Lmodular/Library$A;)I",
+			"../../example/joana.example.many-small-progs/bin");
+		try {
+			out.println(run.name + " starts...");
+			final ClassHierarchy cha = createHierarchy(run);
+			Assert.assertNotNull(cha);
+			final IMethod im = findEntryMethod(cha, run);
+			Assert.assertNotNull(im);
+			final MoJo mojo = MoJo.create(cha, run.outputDir);
+			final SDG sdg = computeAccessPaths(run, mojo, im);
+			Assert.assertNotNull(sdg);
+			out.println(run.name + " done.");
+		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
+				| UnsoundGraphException e) {
+			Assert.fail(e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
+	@Test
+	public void test_modularLibraryCallToCall2() {
+		final Run run = new Run(currentMethodName(),
+			"modular.Library.callToCall2(Lmodular/Library$A;Lmodular/Library$A;)I",
 			"../../example/joana.example.many-small-progs/bin");
 		try {
 			out.println(run.name + " starts...");

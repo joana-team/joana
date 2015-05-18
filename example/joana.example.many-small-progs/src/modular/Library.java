@@ -55,6 +55,11 @@ public class Library {
 		return b.i;
 	}
 
+	public static int callToCall2(A a, A b) {
+		A c = new A();
+		return call2(c, a);
+	}
+	
 	public static A call3(A a, A b) {
 		if (a == null) {
 			return b;
@@ -90,6 +95,10 @@ public class Library {
 		return w;
 	}
 
+	public static int callToCompute(final A1 a, final A1 b, final A1 c, final A1 d) {
+		return compute(a, b, c, d, a, b);
+	}
+	
 	// merge op example
 	
 	public static class C {

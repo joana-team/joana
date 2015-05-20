@@ -161,8 +161,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
-			Assert.fail(e.getMessage());
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 	}
 	

@@ -178,8 +178,7 @@ public final class APUtil {
 	public static void writeAliasEdgesToFile(final APIntraProcV2 ap, final String debugAccessPathOutputDir,
 			final PDG pdg, final String suffix) {
 		final String outFile = outputFileName(debugAccessPathOutputDir, pdg, suffix);
-		final List<AliasEdge> alias = new LinkedList<>();
-		ap.findAndMarkAliasEdges(alias);
+		final int numAliasEdges = ap.findAndMarkAliasEdges();
 		try {
 			final PrintWriter pw = new PrintWriter(outFile);
 			pw.println("access paths for all nodes...");
@@ -187,28 +186,17 @@ public final class APUtil {
 				final APNode nAP = ap.findAPNode(n);
 				pw.println(n.getId() + "|" + n.getKind() + "|" + n.getLabel() + ": " + extractAPstr(nAP));
 			}
-			pw.println("all alias edges...");
-			for (final AliasEdge e : alias) {
-				pw.println(e);
-			}
-			pw.println("now onto the alias edges between normal nodes...");
-			for (final AliasEdge e : alias) {
-				if (e.edge.from.getKind() == PDGNode.Kind.NORMAL && e.edge.to.getKind() == PDGNode.Kind.NORMAL) {
-					pw.println(e);
-					pw.println(extractAliasStr(e, pdg, ap));
-					pw.println(extractFineGrainedAliasStr(e, ap));
-				}
-			}
+			pw.println("found alias edges: " + numAliasEdges);
 			pw.println("extracting access path graph");
 			final Set<AP> aps = ap.getAllAPs();
 			for (final AP p : aps) {
 				pw.println("(" + p + ")");
 			}
-			for (final AliasEdge e : alias) {
-				if (e.edge.from.getKind() == PDGNode.Kind.NORMAL && e.edge.to.getKind() == PDGNode.Kind.NORMAL) {
-					pw.println(extractFineGrainedAliasStr(e, ap));
-				}
-			}
+//			for (final AliasEdge e : alias) {
+//				if (e.edge.from.getKind() == PDGNode.Kind.NORMAL && e.edge.to.getKind() == PDGNode.Kind.NORMAL) {
+//					pw.println(extractFineGrainedAliasStr(e, ap));
+//				}
+//			}
 			pw.println("extract intraproc merge operations...");
 			final MergeInfo mops = ap.getMergeInfo();
 			for (final Merges mop : mops.getAllMerges()) {

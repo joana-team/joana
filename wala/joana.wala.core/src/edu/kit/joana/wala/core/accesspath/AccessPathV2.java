@@ -52,20 +52,7 @@ public class AccessPathV2 {
 	 * @param method entry method for the interprocedural computation.
 	 * @throws CancelException
 	 */
-	public static List<AliasEdge> compute(final SDGBuilder sdg, final String method) throws CancelException {
-		final AccessPathV2 ap = new AccessPathV2(sdg);
-
-		final PDG start = ap.findMethod(method);
-
-		return ap.run(start);
-	}
-
-	/**
-	 * Returns a subset of all data heap dependencies. Those that are dependent on aliasing.
-	 * @param method entry method for the interprocedural computation.
-	 * @throws CancelException
-	 */
-	public static List<AliasEdge> compute(final SDGBuilder sdg, final PDG start) throws CancelException {
+	public static int compute(final SDGBuilder sdg, final PDG start) throws CancelException {
 		if (sdg.cfg.fieldPropagation != FieldPropagation.OBJ_TREE
 				&& sdg.cfg.fieldPropagation != FieldPropagation.OBJ_TREE_NO_FIELD_MERGE
 				&& sdg.cfg.fieldPropagation != FieldPropagation.OBJ_TREE_AP) {
@@ -106,9 +93,9 @@ public class AccessPathV2 {
 		return Collections.unmodifiableSet(reachable);
 	}
 
-	private List<AliasEdge> run(final PDG start) throws CancelException {
+	private int run(final PDG start) throws CancelException {
 		if (start == null) {
-			return new LinkedList<AliasEdge>();
+			return 0;
 		}
 
 		final Set<PDG> reachable = findReachable(start);
@@ -130,19 +117,12 @@ public class AccessPathV2 {
 					}
 				}
 			}
-
-//			if (changed) {
-//				// add edges for non-alias data deps
-//				for (final PDG pdg : reachable) {
-//					processIntraproc(pdg, pdg2ap);
-//				}
-//			}
 		}
 
-		final List<AliasEdge> alias = new LinkedList<AccessPathV2.AliasEdge>();
+		int numOfAliasEdges = 0;
 		for (final PDG pdg : reachable) {
 			final APIntraProcV2 ap = pdg2ap.get(pdg);
-			ap.findAndMarkAliasEdges(alias);
+			numOfAliasEdges = ap.findAndMarkAliasEdges();
 			ap.addAliasConditionToActualIns();
 			ap.addPotentialAliasInfoToFormalIns();
 		}
@@ -155,7 +135,7 @@ public class AccessPathV2 {
 			}
 		}
 		
-		return alias;
+		return numOfAliasEdges;
 	}
 
 	private boolean propagateCalleeToSite(final PDG callee, final PDGNode call, final PDG caller,
@@ -168,23 +148,6 @@ public class AccessPathV2 {
 		changed |= aipCaller.propagateFrom(aipCallee, call);
 
 		return changed;
-	}
-
-	private void processIntraproc(final PDG pdg, final Map<PDG, APIntraProcV2> pdg2ap) {
-		boolean change = true;
-		boolean firstRun = true;
-		final APIntraProcV2 ap = pdg2ap.get(pdg);
-		// do while changing
-		while (change) {
-			change = false;
-			// 1. add new no-alias heap edges to graph
-			ap.adjustNonAliasEdges();
-			// 2. propagate paths
-			if (change || firstRun) {
-				change |= ap.propagateIntra();
-				firstRun = false;
-			}
-		}
 	}
 
 	/**
@@ -219,16 +182,6 @@ public class AccessPathV2 {
 		WorkPackage pack2 = WorkPackage.create(sdg, entries, sdg.getName());
 		SummaryComputation.computeFullAliasDataDep(pack2, progress);
 		out.print(".");
-	}
-
-	private PDG findMethod(String method) {
-		for (final PDG pdg : sdg.getAllPDGs()) {
-			if (pdg.getMethod().getSignature().equals(method)) {
-				return pdg;
-			}
-		}
-
-		return null;
 	}
 
 	public static class AliasEdge {

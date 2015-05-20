@@ -628,7 +628,9 @@ public class APIntraProcV2 {
 		}
 	}
 
-	public void findAndMarkAliasEdges(final List<AliasEdge> aliasEdges) {
+	public int findAndMarkAliasEdges() {
+		int found = 0;
+		
 		for (final APEdge ae : alias) {
 			final PDGNode from = ae.from.node;
 			final PDGNode to = ae.to.node;
@@ -643,12 +645,14 @@ public class APIntraProcV2 {
 			if (pdgEdge != null) {
 				final AliasEdge edge = new AliasEdge(pdgEdge);
 				findAndAddReason(ae, edge);
-				aliasEdges.add(edge);
+				found++;
 				pdg.removeEdge(pdgEdge);
 				final PDGEdge pdgAlias = pdg.addEdge(from, to, PDGEdge.Kind.DATA_ALIAS);
 				pdgAlias.setLabel(convertToReason(edge));
 			}
 		}
+		
+		return found;
 	}
 
 	private static String convertToReason(final AliasEdge ae) {

@@ -726,6 +726,7 @@ public class APIntraProcV2 {
 	public static class MergeInfo {
 		public final PDG pdg;
 		
+		private int numAliasEdges = 0;
 		private boolean intraprocDone = false;
 		private final Set<Merges> merges = new HashSet<>();
 		private final Map<PDGNode, Merges> n2m = new HashMap<>(); // initial gen merge
@@ -734,6 +735,14 @@ public class APIntraProcV2 {
 		
 		public MergeInfo(final PDG pdg) {
 			this.pdg = pdg;
+		}
+		
+		public int getNumAliasEdges() {
+			return numAliasEdges;
+		}
+		
+		void setNumAliasEdges(final int numAliasEdges) {
+			this.numAliasEdges = numAliasEdges;
 		}
 		
 		@SuppressWarnings("unchecked")

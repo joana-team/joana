@@ -35,6 +35,7 @@ import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
+import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeInfo;
 import edu.kit.joana.wala.summary.SummaryComputation;
 import edu.kit.joana.wala.summary.WorkPackage;
 import edu.kit.joana.wala.summary.WorkPackage.EntryPoint;
@@ -52,7 +53,7 @@ public class AccessPathV2 {
 	 * @param method entry method for the interprocedural computation.
 	 * @throws CancelException
 	 */
-	public static int compute(final SDGBuilder sdg, final PDG start) throws CancelException {
+	public static APResult compute(final SDGBuilder sdg, final PDG start) throws CancelException {
 		if (sdg.cfg.fieldPropagation != FieldPropagation.OBJ_TREE
 				&& sdg.cfg.fieldPropagation != FieldPropagation.OBJ_TREE_NO_FIELD_MERGE
 				&& sdg.cfg.fieldPropagation != FieldPropagation.OBJ_TREE_AP) {
@@ -64,7 +65,7 @@ public class AccessPathV2 {
 
 		return ap.run(start);
 	}
-
+	
 	private AccessPathV2(final SDGBuilder sdg) {
 		this.sdg = sdg;
 	}
@@ -93,9 +94,9 @@ public class AccessPathV2 {
 		return Collections.unmodifiableSet(reachable);
 	}
 
-	private int run(final PDG start) throws CancelException {
+	private APResult run(final PDG start) throws CancelException {
 		if (start == null) {
-			return 0;
+			return new APResult();
 		}
 
 		final Set<PDG> reachable = findReachable(start);
@@ -119,12 +120,15 @@ public class AccessPathV2 {
 			}
 		}
 
-		int numOfAliasEdges = 0;
+		final APResult result = new APResult();
 		for (final PDG pdg : reachable) {
 			final APIntraProcV2 ap = pdg2ap.get(pdg);
-			numOfAliasEdges = ap.findAndMarkAliasEdges();
+			final int numOfAliasEdges = ap.findAndMarkAliasEdges();
 			ap.addAliasConditionToActualIns();
 			ap.addPotentialAliasInfoToFormalIns();
+			final MergeInfo mnfo = ap.getMergeInfo();
+			mnfo.setNumAliasEdges(numOfAliasEdges);
+			result.add(mnfo);
 		}
 
 		if (sdg.cfg.debugAccessPath) {
@@ -135,7 +139,7 @@ public class AccessPathV2 {
 			}
 		}
 		
-		return numOfAliasEdges;
+		return result;
 	}
 
 	private boolean propagateCalleeToSite(final PDG callee, final PDGNode call, final PDG caller,

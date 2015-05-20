@@ -8,6 +8,7 @@
 package edu.kit.joana.wala.core.params.objgraph;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -17,12 +18,14 @@ import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
+import com.ibm.wala.util.WalaException;
 
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGEdge.Kind;
 import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.SDGBuilder;
+import edu.kit.joana.wala.core.accesspath.APUtil;
 
 /**
  * Converts an object graph sdg into an object tree sdg, by copying shared parameter fields to separate nodes.
@@ -46,10 +49,20 @@ public final class ObjTreeConverter {
 		final ObjTreeConverter objtree = new ObjTreeConverter(sdg);
 		objtree.run(progress);
 	}
-
+	
 	private void run(final IProgressMonitor progress) throws CancelException {
-		final Map<PDG, Map<PDGNode, List<PDGNode>>> pdg2succEntry = extractEntrySuccs();
-		final Map<PDG, Map<PDGNode, List<PDGNode>>> pdg2predExit = extractExitPreds();
+		if (sdg.cfg.debugAccessPath) {
+			for (final PDG pdg : sdg.getAllPDGs()) {
+				try {
+					APUtil.writeCFGtoFile(sdg.cfg.debugAccessPathOutputDir, pdg, "-pretree-cfg.dot");
+				} catch (WalaException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		final Map<PDG, Map<PDGNode, Set<PDGNode>>> pdg2succEntry = extractEntrySuccs();
+		final Map<PDG, Map<PDGNode, Set<PDGNode>>> pdg2predExit = extractExitPreds();
 		final Map<PDG, TreeRoots> pdgRoots = computeFormalTrees(progress);
 
 		for (final PDG caller : sdg.getAllPDGs()) {
@@ -80,22 +93,22 @@ public final class ObjTreeConverter {
 		fixupControlFlow(pdg2succEntry, pdg2predExit);
 	}
 	
-	private Map<PDG, Map<PDGNode, List<PDGNode>>> extractEntrySuccs() {
-		final Map<PDG, Map<PDGNode, List<PDGNode>>> pdg2succ = new HashMap<PDG, Map<PDGNode, List<PDGNode>>>();
+	private Map<PDG, Map<PDGNode, Set<PDGNode>>> extractEntrySuccs() {
+		final Map<PDG, Map<PDGNode, Set<PDGNode>>> pdg2succ = new HashMap<PDG, Map<PDGNode, Set<PDGNode>>>();
 
 		for (final PDG pdg : sdg.getAllPDGs()) {
-			final Map<PDGNode, List<PDGNode>> pdgMap = new HashMap<>();
+			final Map<PDGNode, Set<PDGNode>> pdgMap = new HashMap<>();
 			pdg2succ.put(pdg, pdgMap);
 			{
 				final List<PDGNode> formIn = extractFormalIns(pdg);
-				final List<PDGNode> inSuccs = extractNonParameterSucc(pdg, formIn);
+				final Set<PDGNode> inSuccs = extractNonParameterSucc(pdg, formIn, PDGNode.Kind.FORMAL_IN);
 				inSuccs.add(pdg.exception);
 				pdgMap.put(pdg.entry, inSuccs);
 			}
 			
 			for (final PDGNode call : pdg.getCalls()) {
 				final List<PDGNode> actOuts = extractActualOuts(pdg, call);
-				final List<PDGNode> outSuccs = extractNonParameterSucc(pdg, actOuts);
+				final Set<PDGNode> outSuccs = extractNonParameterSucc(pdg, actOuts, PDGNode.Kind.ACTUAL_OUT);
 				pdgMap.put(call, outSuccs);
 			}
 		}
@@ -103,21 +116,21 @@ public final class ObjTreeConverter {
 		return pdg2succ; 
 	}
 	
-	private Map<PDG, Map<PDGNode, List<PDGNode>>> extractExitPreds() {
-		final Map<PDG, Map<PDGNode, List<PDGNode>>> pdg2preds = new HashMap<PDG, Map<PDGNode, List<PDGNode>>>();
+	private Map<PDG, Map<PDGNode, Set<PDGNode>>> extractExitPreds() {
+		final Map<PDG, Map<PDGNode, Set<PDGNode>>> pdg2preds = new HashMap<PDG, Map<PDGNode, Set<PDGNode>>>();
 		
 		for (final PDG pdg : sdg.getAllPDGs()) {
-			final Map<PDGNode, List<PDGNode>> pdgMap = new HashMap<>();
+			final Map<PDGNode, Set<PDGNode>> pdgMap = new HashMap<>();
 			pdg2preds.put(pdg, pdgMap);
 			{
 				final List<PDGNode> formOut = extractFormalOuts(pdg);
-				final List<PDGNode> outPreds = extractNonParameterPreds(pdg, formOut);
+				final Set<PDGNode> outPreds = extractNonParameterPreds(pdg, formOut, PDGNode.Kind.FORMAL_OUT);
 				pdgMap.put(pdg.entry, outPreds);
 			}
 			
 			for (final PDGNode call : pdg.getCalls()) {
 				final List<PDGNode> actIns = extractActualIns(pdg, call);
-				final List<PDGNode> inPreds = extractNonParameterPreds(pdg, actIns);
+				final Set<PDGNode> inPreds = extractNonParameterPreds(pdg, actIns, PDGNode.Kind.ACTUAL_IN);
 				pdgMap.put(call, inPreds);
 			}
 		}
@@ -125,15 +138,37 @@ public final class ObjTreeConverter {
 		return pdg2preds; 
 	}
 	
-	private void fixupControlFlow(final Map<PDG, Map<PDGNode, List<PDGNode>>> pdg2entrySuccs,
-			final Map<PDG, Map<PDGNode, List<PDGNode>>> pdg2exitPreds) {
+	private PDGNode firstNode(final PDGNode n, final PDG pdg) {
+		if (n.getKind() == PDGNode.Kind.CALL) {
+			final List<PDGNode> ains = extractActualIns(pdg, n);
+			if (!ains.isEmpty()) {
+				return ains.get(0);
+			}
+		}
+		
+		return n;
+	}
+	
+	private PDGNode lastNode(final PDGNode n, final PDG pdg) {
+		if (n.getKind() == PDGNode.Kind.CALL) {
+			final List<PDGNode> aouts = extractActualOuts(pdg, n);
+			if (!aouts.isEmpty()) {
+				return aouts.get(aouts.size() - 1);
+			}
+		}
+		
+		return n;
+	}
+	
+	private void fixupControlFlow(final Map<PDG, Map<PDGNode, Set<PDGNode>>> pdg2entrySuccs,
+			final Map<PDG, Map<PDGNode, Set<PDGNode>>> pdg2exitPreds) {
 		for (final PDG caller : sdg.getAllPDGs()) {
-			final Map<PDGNode, List<PDGNode>> pdgSuccs = pdg2entrySuccs.get(caller);
+			final Map<PDGNode, Set<PDGNode>> pdgSuccs = pdg2entrySuccs.get(caller);
 			final List<PDGNode> formIn = extractFormalIns(caller);
-			final List<PDGNode> inSuccs = pdgSuccs.get(caller.entry);
-			final Map<PDGNode, List<PDGNode>> pdgPreds = pdg2exitPreds.get(caller);
+			final Set<PDGNode> inSuccs = pdgSuccs.get(caller.entry);
+			final Map<PDGNode, Set<PDGNode>> pdgPreds = pdg2exitPreds.get(caller);
 			final List<PDGNode> formOut = extractFormalOuts(caller);
-			final List<PDGNode> outPreds = pdgPreds.get(caller.entry);
+			final Set<PDGNode> outPreds = pdgPreds.get(caller.entry);
 			removeAnythingCF(formIn, caller);
 			removeAnythingCF(formOut, caller);
 			connectCFchain(formIn, caller);
@@ -142,14 +177,16 @@ public final class ObjTreeConverter {
 				caller.addEdge(caller.entry, first, PDGEdge.Kind.CONTROL_FLOW);
 				final PDGNode last = formIn.get(formIn.size() - 1);
 				for (final PDGNode is : inSuccs) {
-					caller.addEdge(last, is, PDGEdge.Kind.CONTROL_FLOW);
+					final PDGNode fn = firstNode(is, caller);
+					caller.addEdge(last, fn, PDGEdge.Kind.CONTROL_FLOW);
 				}
 			}
 			connectCFchain(formOut, caller);
 			if (formIn.size() > 0) {
 				final PDGNode first = formOut.get(0);
 				for (final PDGNode op : outPreds) {
-					caller.addEdge(op, first, PDGEdge.Kind.CONTROL_FLOW);
+					final PDGNode ln = lastNode(op, caller);
+					caller.addEdge(ln, first, PDGEdge.Kind.CONTROL_FLOW);
 				}
 				final PDGNode last = formOut.get(formOut.size() - 1);
 				caller.addEdge(last, caller.exit, PDGEdge.Kind.CONTROL_FLOW);
@@ -161,19 +198,20 @@ public final class ObjTreeConverter {
 		}
 	}
 	
-	private void fixupCallControlFlow(final PDG pdg, final PDGNode call, final Map<PDGNode, List<PDGNode>> pdgSuccs,
-			final Map<PDGNode, List<PDGNode>> pdgPreds) {
+	private void fixupCallControlFlow(final PDG pdg, final PDGNode call, final Map<PDGNode, Set<PDGNode>> pdgSuccs,
+			final Map<PDGNode, Set<PDGNode>> pdgPreds) {
 		final List<PDGNode> actIn = extractActualIns(pdg, call);
-		final List<PDGNode> inPreds = pdgPreds.get(call);
+		final Set<PDGNode> inPreds = pdgPreds.get(call);
 		final List<PDGNode> actOut = extractActualOuts(pdg, call);
-		final List<PDGNode> outSuccs = pdgSuccs.get(call);
+		final Set<PDGNode> outSuccs = pdgSuccs.get(call);
 		removeAnythingCF(actIn, pdg);
 		removeAnythingCF(actOut, pdg);
 		connectCFchain(actIn, pdg);
 		if (actIn.size() > 0) {
 			final PDGNode first = actIn.get(0);
 			for (final PDGNode pred : inPreds) {
-				pdg.addEdge(pred, first, PDGEdge.Kind.CONTROL_FLOW);
+				final PDGNode lp = lastNode(pred, pdg);
+				pdg.addEdge(lp, first, PDGEdge.Kind.CONTROL_FLOW);
 			}
 			final PDGNode last = actIn.get(actIn.size() - 1);
 			pdg.addEdge(last, call, PDGEdge.Kind.CONTROL_FLOW);
@@ -184,7 +222,8 @@ public final class ObjTreeConverter {
 			pdg.addEdge(call, first, PDGEdge.Kind.CONTROL_FLOW);
 			final PDGNode last = actOut.get(actOut.size() - 1);
 			for (final PDGNode succ : outSuccs) {
-				pdg.addEdge(last, succ, PDGEdge.Kind.CONTROL_FLOW);
+				final PDGNode fs = firstNode(succ, pdg);
+				pdg.addEdge(last, fs, PDGEdge.Kind.CONTROL_FLOW);
 			}
 		}
 	}
@@ -220,27 +259,61 @@ public final class ObjTreeConverter {
 		pdg.removeAllEdges(toRemove);
 	}
 	
-	private List<PDGNode> extractNonParameterSucc(final PDG pdg, final List<PDGNode> params) {
-		final List<PDGNode> succs = new LinkedList<>();
+	private Set<PDGNode> extractNonParameterSucc(final PDG pdg, final List<PDGNode> params, final PDGNode.Kind ignore) {
+		final Set<PDGNode> succs = new HashSet<>();
 		
 		for (final PDGNode p : params) {
 			for (final PDGEdge e : pdg.outgoingEdgesOf(p)) {
-				if (e.kind == PDGEdge.Kind.CONTROL_FLOW && isNoParameter(e.to)) {
-					succs.add(e.to);
+				if (e.kind == PDGEdge.Kind.CONTROL_FLOW && e.to.getKind() != ignore) {
+					if (isNoParameter(e.to)) {
+						succs.add(e.to);
+					} else {
+						final PDGNode par = findCEparent(pdg, e.to);
+						succs.add(par);
+					}
 				}
 			}
 		}
 		
 		return succs;
 	}
+	
+	private static PDGNode findCEparent(final PDG pdg, final PDGNode n) {
+		switch (n.getKind()) {
+		case ACTUAL_IN:
+		case ACTUAL_OUT:
+			// search call
+			for (final PDGEdge e : pdg.incomingEdgesOf(n)) {
+				if (e.kind == PDGEdge.Kind.CONTROL_DEP_EXPR) {
+					return e.from;
+				}
+			}
+			break;
+		case FORMAL_IN:
+			// search entry
+			return pdg.entry;
+		case FORMAL_OUT:
+			// search exit
+			return pdg.exit;
+		default:
+			return n;
+		}
+		
+		return n;
+	}
 
-	private List<PDGNode> extractNonParameterPreds(final PDG pdg, final List<PDGNode> params) {
-		final List<PDGNode> preds = new LinkedList<>();
+	private Set<PDGNode> extractNonParameterPreds(final PDG pdg, final List<PDGNode> params, final PDGNode.Kind ignore) {
+		final Set<PDGNode> preds = new HashSet<>();
 		
 		for (final PDGNode p : params) {
 			for (final PDGEdge e : pdg.incomingEdgesOf(p)) {
-				if (e.kind == PDGEdge.Kind.CONTROL_FLOW && isNoParameter(e.from)) {
-					preds.add(e.from);
+				if (e.kind == PDGEdge.Kind.CONTROL_FLOW && e.from.getKind() != ignore) {
+					if (isNoParameter(e.from)) {
+						preds.add(e.from);
+					} else {
+						final PDGNode par = findCEparent(pdg, e.from);
+						preds.add(par);
+					}
 				}
 			}
 		}

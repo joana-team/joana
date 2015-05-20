@@ -66,11 +66,7 @@ public class APIntraProcV2 {
 
 		final APIntraProcV2 ap = new APIntraProcV2(pdg, graph, alias, cfg);
 
-		ap.dumpGraph("-apg.dot");
-
 		ap.computeIntra();
-
-		ap.dumpGraph("-apg2.dot");
 
 		return ap;
 	}

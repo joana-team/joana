@@ -131,34 +131,27 @@ public class AccessPathV2 {
 				}
 			}
 
-			if (changed) {
-				// add edges for non-alias data deps
-				for (final PDG pdg : reachable) {
-					processIntraproc(pdg, pdg2ap);
-				}
-			}
+//			if (changed) {
+//				// add edges for non-alias data deps
+//				for (final PDG pdg : reachable) {
+//					processIntraproc(pdg, pdg2ap);
+//				}
+//			}
 		}
-
-		if (sdg.cfg.debugAccessPath) {
-			for (final PDG pdg : reachable) {
-				final APIntraProcV2 aip = pdg2ap.get(pdg);
-				aip.dumpGraph("-apg3.dot");
-			}
-		}
-
 
 		final List<AliasEdge> alias = new LinkedList<AccessPathV2.AliasEdge>();
-//		for (final PDG pdg : reachable) {
-//			final APIntraProcV2 ap = pdg2ap.get(pdg);
-//			ap.findAndMarkAliasEdges(alias);
-//			ap.addAliasConditionToActualIns();
-//			ap.addPotentialAliasInfoToFormalIns();
-//		}
+		for (final PDG pdg : reachable) {
+			final APIntraProcV2 ap = pdg2ap.get(pdg);
+			ap.findAndMarkAliasEdges(alias);
+			ap.addAliasConditionToActualIns();
+			ap.addPotentialAliasInfoToFormalIns();
+		}
 
 		if (sdg.cfg.debugAccessPath) {
 			for (final PDG pdg :reachable) {
 				final APIntraProcV2 ap = pdg2ap.get(pdg);
 				APUtil.writeAliasEdgesToFile(ap, sdg.cfg.debugAccessPathOutputDir, pdg, "-ap.txt");
+				ap.dumpGraph("-apg.dot");
 			}
 		}
 		

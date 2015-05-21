@@ -710,7 +710,7 @@ public class APIntraProcV2 {
 		return graph.findNode(n);
 	}
 
-	public Set<AP> getAllAPs() {
+	private Set<AP> findAllAPs() {
 		final Set<AP> aps = new HashSet<>();
 
 		for (final APNode n : graph){
@@ -732,9 +732,18 @@ public class APIntraProcV2 {
 		private final Map<PDGNode, Merges> n2m = new HashMap<>(); // initial gen merge
 		private final Map<PDGNode, Set<AP>> n2ap = new HashMap<>();
 		private final Map<PDGNode, OrdinalSet<Merges>> n2reach = new HashMap<>();
+		private Set<AP> allAPs;
 		
 		public MergeInfo(final PDG pdg) {
 			this.pdg = pdg;
+		}
+		
+		void setAllAPs(final Set<AP> allAPs) {
+			this.allAPs = allAPs;
+		}
+		
+		public Set<AP> getAllAPs() {
+			 return allAPs;
 		}
 		
 		public int getNumAliasEdges() {
@@ -1006,6 +1015,9 @@ public class APIntraProcV2 {
 			final CallMergeOps cmop = new CallMergeOps(call);
 			mnfo.addCallMerge(cmop);
 		}
+		
+		final Set<AP> allAPs = findAllAPs();
+		mnfo.setAllAPs(allAPs);
 		
 		mnfo.intraprocDone = true;;
 	}

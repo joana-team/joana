@@ -178,7 +178,7 @@ public final class APUtil {
 	public static void writeAliasEdgesToFile(final APIntraProcV2 ap, final String debugAccessPathOutputDir,
 			final PDG pdg, final String suffix) {
 		final String outFile = outputFileName(debugAccessPathOutputDir, pdg, suffix);
-		final int numAliasEdges = ap.findAndMarkAliasEdges();
+		final int numAliasEdges = ap.getMergeInfo().getNumAliasEdges();
 		try {
 			final PrintWriter pw = new PrintWriter(outFile);
 			pw.println("access paths for all nodes...");
@@ -188,7 +188,7 @@ public final class APUtil {
 			}
 			pw.println("found alias edges: " + numAliasEdges);
 			pw.println("extracting access path graph");
-			final Set<AP> aps = ap.getAllAPs();
+			final Set<AP> aps = ap.getMergeInfo().getAllAPs();
 			for (final AP p : aps) {
 				pw.println("(" + p + ")");
 			}

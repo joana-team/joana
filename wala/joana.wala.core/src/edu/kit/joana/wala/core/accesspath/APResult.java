@@ -13,22 +13,25 @@ import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
 /**
+ * Result of the accesspath and merge info computation. Contains info for each PDG in the SDG.
+ * 
  * @author Juergen Graf <juergen.graf@gmail.com>
  */
 public class APResult {
 	
-	private final TIntObjectMap<MergeInfo> pdgId2info = new TIntObjectHashMap<MergeInfo>();
+	private final TIntObjectMap<APContext> pdgId2ctx = new TIntObjectHashMap<>();
 	private int numOfAliasEdges = 0;
-
-	public void add(final MergeInfo mnfo) {
-		pdgId2info.put(mnfo.pdg.getId(), mnfo);
+	
+	void add(final MergeInfo mnfo) {
+		final APContext ctx = mnfo.extractContext();
+		pdgId2ctx.put(mnfo.pdg.getId(), ctx);
 		numOfAliasEdges += mnfo.getNumAliasEdges();
 	}
 	
-	public MergeInfo get(final PDG pdg) {
-		return pdgId2info.get(pdg.getId());
+	public APContext get(final PDG pdg) {
+		return pdgId2ctx.get(pdg.getId());
 	}
-	
+
 	public int getNumOfAliasEdges() {
 		return numOfAliasEdges;
 	}

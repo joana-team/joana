@@ -7,15 +7,16 @@
  */
 package edu.kit.joana.wala.core.accesspath;
 
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import com.ibm.wala.util.intset.OrdinalSet;
 
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
-import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeInfo;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeOp;
 import edu.kit.joana.wala.util.NotImplementedException;
 
@@ -27,15 +28,18 @@ public class APContext {
 	private final PDG pdg;
 	
 	private final List<MergeOp> merges = new LinkedList<MergeOp>();
-	private final Set<AP> paths = new HashSet<AP>();
-	
-	
-	public APContext(final PDG pdg) {
+	private final Set<AP> paths;
+	private final Set<MergeOp> origMerges;
+	private final Map<PDGNode, Set<AP>> n2ap;
+	private final Map<PDGNode, OrdinalSet<MergeOp>> n2reach;
+
+	public APContext(final PDG pdg, final Set<AP> paths, final Set<MergeOp> origMerges,
+			final Map<PDGNode, Set<AP>> n2ap, final Map<PDGNode, OrdinalSet<MergeOp>> n2reach) {
 		this.pdg = pdg;
-	}
-	
-	public void read(final MergeInfo nfo) {
-		throw new NotImplementedException();
+		this.paths = paths;
+		this.origMerges = origMerges;
+		this.n2ap = n2ap;
+		this.n2reach = n2reach;
 	}
 	
 	public boolean mayBeActive(final PDGEdge e) {

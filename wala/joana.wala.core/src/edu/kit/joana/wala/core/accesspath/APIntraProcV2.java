@@ -17,6 +17,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import com.ibm.wala.classLoader.IClass;
@@ -28,7 +29,10 @@ import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.WalaException;
+import com.ibm.wala.util.collections.ArrayIterator;
 import com.ibm.wala.util.graph.Graph;
+import com.ibm.wala.util.intset.MutableIntSet;
+import com.ibm.wala.util.intset.MutableSparseIntSet;
 import com.ibm.wala.util.intset.OrdinalSet;
 import com.ibm.wala.util.intset.OrdinalSetMapping;
 
@@ -738,6 +742,110 @@ public class APIntraProcV2 {
 			this.pdg = pdg;
 		}
 		
+		public APContext extractContext() {
+			if (!intraprocDone || allAPs == null) {
+				throw new IllegalStateException("run intraproc first and add all access paths.");
+			}
+			
+			final Set<MergeOp> allMerges = getAllMergeOps();
+			final Map<PDGNode, OrdinalSet<MergeOp>> reachOp = flattenReachMap(allMerges);
+			final APContext ctx = new APContext(pdg, allAPs, allMerges, n2ap, reachOp);
+			
+			return ctx;
+		}
+		
+		private Map<PDGNode, OrdinalSet<MergeOp>> flattenReachMap(final Set<MergeOp> allMerges) {
+			final OrdinalSetMapping<MergeOp> mapping = createMapping(allMerges);
+			final Map<PDGNode, OrdinalSet<MergeOp>> reachOp = new HashMap<>();
+			
+			for (final PDGNode n : n2reach.keySet()) {
+				final OrdinalSet<Merges> reach = n2reach.get(n);
+				final MutableIntSet rset = MutableSparseIntSet.makeEmpty();
+				for (final Merges m : reach) {
+					if (m instanceof MergeOp) {
+						final int id = mapping.getMappedIndex(m);
+						rset.add(id);
+					} else if (m instanceof CallMergeOps) {
+						final CallMergeOps cmo = (CallMergeOps) m;
+						for (final MergeOp mo : cmo.ops) {
+							final int id = mapping.getMappedIndex(mo);
+							rset.add(id);
+						}
+					}
+				}
+				
+				final OrdinalSet<MergeOp> rop = new OrdinalSet<MergeOp>(rset, mapping);
+				reachOp.put(n, rop);
+			}
+			
+			return reachOp;
+		}
+
+		private static OrdinalSetMapping<MergeOp> createMapping(final Set<MergeOp> allMerges) {
+			final MergeOp[] allMergesArr = new MergeOp[allMerges.size()];
+			{
+				int id = 0;
+				for (final MergeOp op : allMerges) {
+					op.id = id;
+					allMergesArr[id] = op;
+					id++;
+				}
+			}
+
+			final OrdinalSetMapping<MergeOp> mapping = new OrdinalSetMapping<APIntraProcV2.MergeOp>() {
+				
+				@Override
+				public Iterator<MergeOp> iterator() {
+					return new ArrayIterator<MergeOp>(allMergesArr);
+				}
+				
+				@Override
+				public boolean hasMappedIndex(final MergeOp o) {
+					return o.id != MergeOp.ID_UNDEF;
+				}
+				
+				@Override
+				public int getSize() {
+					return allMergesArr.length;
+				}
+				
+				@Override
+				public int getMaximumIndex() {
+					return allMergesArr.length - 1;
+				}
+				
+				@Override
+				public MergeOp getMappedObject(final int n) throws NoSuchElementException {
+					return allMergesArr[n];
+				}
+				
+				@Override
+				public int getMappedIndex(Object o) {
+					if (o instanceof MergeOp) {
+						final MergeOp op = (MergeOp) o;
+						if (op.id != MergeOp.ID_UNDEF) {
+							return op.id;
+						} else {
+							for (final MergeOp orig : allMergesArr) {
+								if (orig.equals(op)) {
+									return orig.id;
+								}
+							}
+						}
+					}
+					
+					return -1;
+				}
+				
+				@Override
+				public int add(MergeOp o) {
+					throw new UnsupportedOperationException();
+				}
+			};
+			
+			return mapping;
+		}
+		
 		void setAllAPs(final Set<AP> allAPs) {
 			this.allAPs = allAPs;
 		}
@@ -884,6 +992,8 @@ public class APIntraProcV2 {
 		public final Set<AP> from;
 		public final Set<AP> to;
 		private final int hashCode;
+		public static final int ID_UNDEF = -1;
+		public int id = ID_UNDEF; // used later on for ordinal set mapping
 		
 		public MergeOp(final Set<AP> from, final Set<AP> to) {
 			if (from.size() < 1 || to.size() < 1) {

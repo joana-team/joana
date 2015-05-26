@@ -749,7 +749,7 @@ public class APIntraProcV2 {
 			
 			final Set<MergeOp> allMerges = getAllMergeOps();
 			final Map<PDGNode, OrdinalSet<MergeOp>> reachOp = flattenReachMap(allMerges);
-			final APContext ctx = new APContext(pdg, allAPs, allMerges, n2ap, reachOp);
+			final APContext ctx = APContext.create(pdg, allAPs, allMerges, n2ap, reachOp);
 			
 			return ctx;
 		}
@@ -1018,6 +1018,10 @@ public class APIntraProcV2 {
 			final MergeOp mop = new MergeOp(fromRp, toRp);
 			
 			return mop;
+		}
+		
+		public boolean matches(final AP ap) {
+			return from.contains(ap) || to.contains(ap);
 		}
 		
 		private static Set<AP> replace(final Set<AP> aps, final Map<RootNode, APParamNode> root2ap) {

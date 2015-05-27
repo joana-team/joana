@@ -19,16 +19,16 @@ import gnu.trove.map.hash.TIntObjectHashMap;
  */
 public class APResult {
 	
-	private final TIntObjectMap<APContext> pdgId2ctx = new TIntObjectHashMap<>();
+	private final TIntObjectMap<APContextManager> pdgId2ctx = new TIntObjectHashMap<>();
 	private int numOfAliasEdges = 0;
 	
 	void add(final MergeInfo mnfo) {
-		final APContext ctx = mnfo.extractContext();
+		final APContextManager ctx = mnfo.extractContext();
 		pdgId2ctx.put(mnfo.pdg.getId(), ctx);
 		numOfAliasEdges += mnfo.getNumAliasEdges();
 	}
 	
-	public APContext get(final PDG pdg) {
+	public APContextManager get(final PDG pdg) {
 		return pdgId2ctx.get(pdg.getId());
 	}
 

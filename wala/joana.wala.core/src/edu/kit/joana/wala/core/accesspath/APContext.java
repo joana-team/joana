@@ -7,52 +7,34 @@
  */
 package edu.kit.joana.wala.core.accesspath;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import com.ibm.wala.util.intset.OrdinalSet;
 
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeOp;
 import edu.kit.joana.wala.util.NotImplementedException;
-import gnu.trove.list.TIntList;
-import gnu.trove.list.array.TIntArrayList;
-import gnu.trove.set.TIntSet;
 
 /**
  * @author Juergen Graf <juergen.graf@gmail.com>
  */
-public class APContext {
+public class APContext implements Cloneable {
 	
 	private final PDG pdg;
-	
-	private final List<MergeOp> merges = new LinkedList<MergeOp>();
-	private final Set<AP> paths;
-	private final Set<MergeOp> origMerges;
 	private final Map<PDGNode, Set<AP>> n2ap;
-	private final Map<PDGNode, OrdinalSet<MergeOp>> n2reach;
 	private final Set<EQClass> eqClasses = new HashSet<>();
 
-	private APContext(final PDG pdg, final Set<AP> paths, final Set<MergeOp> origMerges,
-			final Map<PDGNode, Set<AP>> n2ap, final Map<PDGNode, OrdinalSet<MergeOp>> n2reach) {
+	public APContext(final PDG pdg, final Map<PDGNode, Set<AP>> n2ap) {
 		this.pdg = pdg;
-		this.paths = paths;
-		this.origMerges = origMerges;
 		this.n2ap = n2ap;
-		this.n2reach = n2reach;
 	}
 	
-	public static APContext create(final PDG pdg, final Set<AP> paths, final Set<MergeOp> origMerges,
-			final Map<PDGNode, Set<AP>> n2ap, final Map<PDGNode, OrdinalSet<MergeOp>> n2reach) {
-		final APContext ctx = new APContext(pdg, paths, origMerges, n2ap, n2reach);
-		ctx.buildEQclasses();
-		
+	public APContext clone() {
+		final APContext ctx = new APContext(pdg, n2ap);
+		ctx.eqClasses.addAll(eqClasses);
 		return ctx;
 	}
 	
@@ -64,11 +46,11 @@ public class APContext {
 	
 	private static class EQClass {
 		private final int id;
-		private Set<AP> paths;
+		private final Set<AP> paths;
 		
 		private EQClass(final int id, final Set<AP> paths) {
 			this.id = id;
-			this.paths = paths;
+			this.paths = Collections.unmodifiableSet(paths);
 		}
 		
 		public boolean needsMerge(final EQClass other) {
@@ -120,16 +102,6 @@ public class APContext {
 		}
 	}
 
-	private void buildEQclasses() {
-		for (final MergeOp op : origMerges) {
-			addToEqClasses(op);
-		}
-		
-		for (final MergeOp op : merges) {
-			addToEqClasses(op);
-		}
-	}
-	
 	public boolean mayBeActive(final PDGEdge e) {
 		if (e.kind != PDGEdge.Kind.DATA_ALIAS) {
 			throw new IllegalArgumentException();
@@ -139,50 +111,60 @@ public class APContext {
 	}
 
 	public boolean mayBeAliased(final PDGNode n1, final PDGNode n2) {
-		final OrdinalSet<MergeOp> r1 = n2reach.get(n1);
-		final OrdinalSet<MergeOp> r2 = n2reach.get(n2);
-		
-		final OrdinalSet<MergeOp> unified = OrdinalSet.unify(r1, r2);
-		
-		// get matching context, then check
-		
-		throw new NotImplementedException();
+		final Set<AP> ap1 = n2ap.get(n1);
+		final Set<String> equiv1 = extractEquiv(ap1);
+		final Set<AP> ap2 = n2ap.get(n2);
+		final Set<String> equiv2 = extractEquiv(ap2);
+
+		// if equiv1 and equiv 2 share a common element, they may be aliased.
+		return equiv1.retainAll(equiv2); 
 	}
 
 	public void addMerge(final MergeOp mo) {
-		merges.add(mo);
 		addToEqClasses(mo);
+	}
+
+	private Set<String> extractEquiv(final Set<AP> paths) {
+		final Set<String> equiv = new HashSet<>();
+		
+		for (final AP ap : paths) {
+			final String eq = equivalenceClassAP(ap);
+			equiv.add(eq);
+		}
+		
+		return equiv;
 	}
 	
 	private String equivalenceClassAP(final AP ap) {
-		final StringBuilder sb = new StringBuilder();
-
-		final TIntList matches = new TIntArrayList();
-		
-		for (final MergeOp mop : origMerges) {
-			if (mop.matches(ap)) {
-				matches.add(mop.id);
-			}
-		}
-		
-		for (final MergeOp mop : merges) {
-			if (mop.matches(ap)) {
-				matches.add(mop.id);
-			}
-		}
-
-		if (matches.isEmpty()) {
-			return ap.toString();
-		} else {
-			// wrong build mop -> single id map first!! need to merge equivalence classes in case merge sets differ
-			final int[] ids = matches.toArray();
-			Arrays.sort(ids);
-			for (final int id : ids) {
-				sb.append("_" + id);
-			}
-
-			return sb.toString();
-		}
+		throw new NotImplementedException();
+//		final StringBuilder sb = new StringBuilder();
+//
+//		final TIntList matches = new TIntArrayList();
+//		
+//		for (final MergeOp mop : origMerges) {
+//			if (mop.matches(ap)) {
+//				matches.add(mop.id);
+//			}
+//		}
+//		
+//		for (final MergeOp mop : merges) {
+//			if (mop.matches(ap)) {
+//				matches.add(mop.id);
+//			}
+//		}
+//
+//		if (matches.isEmpty()) {
+//			return ap.toString();
+//		} else {
+//			// wrong build mop -> single id map first!! need to merge equivalence classes in case merge sets differ
+//			final int[] ids = matches.toArray();
+//			Arrays.sort(ids);
+//			for (final int id : ids) {
+//				sb.append("_" + id);
+//			}
+//
+//			return sb.toString();
+//		}
 	}
 	
 	public boolean isAliased(final AP a1, final AP a2) {

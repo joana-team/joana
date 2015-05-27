@@ -742,14 +742,14 @@ public class APIntraProcV2 {
 			this.pdg = pdg;
 		}
 		
-		public APContext extractContext() {
+		public APContextManager extractContext() {
 			if (!intraprocDone || allAPs == null) {
 				throw new IllegalStateException("run intraproc first and add all access paths.");
 			}
 			
 			final Set<MergeOp> allMerges = getAllMergeOps();
 			final Map<PDGNode, OrdinalSet<MergeOp>> reachOp = flattenReachMap(allMerges);
-			final APContext ctx = APContext.create(pdg, allAPs, allMerges, n2ap, reachOp);
+			final APContextManager ctx = APContextManager.create(pdg, allAPs, allMerges, n2ap, reachOp);
 			
 			return ctx;
 		}

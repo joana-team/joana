@@ -35,6 +35,8 @@ import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
+import edu.kit.joana.wala.core.accesspath.APResult;
+import edu.kit.joana.wala.core.accesspath.AccessPath;
 import edu.kit.joana.wala.flowless.MoJo;
 import edu.kit.joana.wala.flowless.MoJo.CallGraphResult;
 import edu.kit.joana.wala.flowless.pointsto.GraphAnnotater.Aliasing;
@@ -156,7 +158,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final IMethod im = findEntryMethod(cha, run);
 			Assert.assertNotNull(im);
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
-			final SDG sdg = computeAccessPaths(run, mojo, im);
+			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
@@ -177,7 +179,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final IMethod im = findEntryMethod(cha, run);
 			Assert.assertNotNull(im);
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
-			final SDG sdg = computeAccessPaths(run, mojo, im);
+			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
@@ -199,7 +201,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final IMethod im = findEntryMethod(cha, run);
 			Assert.assertNotNull(im);
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
-			final SDG sdg = computeAccessPaths(run, mojo, im);
+			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
@@ -221,7 +223,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final IMethod im = findEntryMethod(cha, run);
 			Assert.assertNotNull(im);
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
-			final SDG sdg = computeAccessPaths(run, mojo, im);
+			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
@@ -243,7 +245,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final IMethod im = findEntryMethod(cha, run);
 			Assert.assertNotNull(im);
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
-			final SDG sdg = computeAccessPaths(run, mojo, im);
+			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
@@ -265,7 +267,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final IMethod im = findEntryMethod(cha, run);
 			Assert.assertNotNull(im);
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
-			final SDG sdg = computeAccessPaths(run, mojo, im);
+			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
@@ -287,7 +289,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final IMethod im = findEntryMethod(cha, run);
 			Assert.assertNotNull(im);
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
-			final SDG sdg = computeAccessPaths(run, mojo, im);
+			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
@@ -309,7 +311,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final IMethod im = findEntryMethod(cha, run);
 			Assert.assertNotNull(im);
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
-			final SDG sdg = computeAccessPaths(run, mojo, im);
+			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
@@ -331,7 +333,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final IMethod im = findEntryMethod(cha, run);
 			Assert.assertNotNull(im);
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
-			final SDG sdg = computeAccessPaths(run, mojo, im);
+			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
@@ -353,7 +355,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final IMethod im = findEntryMethod(cha, run);
 			Assert.assertNotNull(im);
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
-			final SDG sdg = computeAccessPaths(run, mojo, im);
+			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
@@ -375,7 +377,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final IMethod im = findEntryMethod(cha, run);
 			Assert.assertNotNull(im);
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
-			final SDG sdg = computeAccessPaths(run, mojo, im);
+			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
@@ -491,7 +493,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 		return objParams > 1;
 	}
 	
-	private static SDG computeAccessPaths(final Run run, final MoJo mojo, final IMethod im) throws IllegalArgumentException, CancelException, ClassHierarchyException, IOException, UnsoundGraphException {
+	private static SDGResult computeAccessPaths(final Run run, final MoJo mojo, final IMethod im) throws IllegalArgumentException, CancelException, ClassHierarchyException, IOException, UnsoundGraphException {
 		out.print("\t" + PrettyWalaNames.methodName(im) + " ");
 		final Aliasing alias = mojo.computeMinMaxAliasing(im);
 		out.print(".");
@@ -501,12 +503,22 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 		out.print(".");
 		final CallGraphResult cgr = mojo.computeContextSensitiveCallGraph(opt);
 		out.println(".");
-		final SDG sdg = create(run, opt.getAnalysisScope(), mojo, cgr, im);
+		final SDGResult sdg = create(run, opt.getAnalysisScope(), mojo, cgr, im);
 		out.println();
 		return sdg;
 	}
+
+	private static class SDGResult {
+		public final SDG sdg;
+		public final APResult ap;
+		
+		public SDGResult(final SDG sdg, final APResult ap) {
+			this.sdg = sdg;
+			this.ap = ap;
+		}
+	}
 	
-	private static SDG create(final Run run, AnalysisScope scope, MoJo mojo, CallGraphResult cg, IMethod im) throws IOException, ClassHierarchyException, UnsoundGraphException, CancelException {
+	private static SDGResult create(final Run run, AnalysisScope scope, MoJo mojo, CallGraphResult cg, IMethod im) throws IOException, ClassHierarchyException, UnsoundGraphException, CancelException {
 		if (!Main.checkOrCreateOutputDir(run.outputDir)) {
 			out.println("Could not access/create diretory '" + run.outputDir +"'");
 			return null;
@@ -545,10 +557,12 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 		scfg.debugManyGraphsDotOutput = false;
 
 		final SDGBuilder sdg = SDGBuilder.create(scfg, cg.cg, cg.pts);
+		
+		final APResult apr = sdg.getAPResult();
 
 		final SDG joanaSDG = SDGBuilder.convertToJoana(out, sdg, NullProgressMonitor.INSTANCE);
 //
-//		AccessPath.computeMinMaxAliasSummaryEdges(out, sdg, sdg.getMainPDG(), joanaSDG, NullProgressMonitor.INSTANCE);
+		AccessPath.computeMinMaxAliasSummaryEdges(out, sdg, sdg.getMainPDG(), joanaSDG, NullProgressMonitor.INSTANCE);
 //
 		out.print("\n\tsystem dependence graph done.");
 //
@@ -562,7 +576,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 		SDGSerializer.toPDGFormat(joanaSDG, pw);
 		out.print("done.");
 
-		return joanaSDG;
+		return new SDGResult(joanaSDG, apr);
 	}
 
 }

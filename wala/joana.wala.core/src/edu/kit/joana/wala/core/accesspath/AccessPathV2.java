@@ -30,6 +30,7 @@ import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.wala.core.DependenceGraph;
+import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
@@ -126,6 +127,8 @@ public class AccessPathV2 {
 			final int numOfAliasEdges = ap.findAndMarkAliasEdges();
 			ap.addAliasConditionToActualIns();
 			ap.addPotentialAliasInfoToFormalIns();
+			ap.computeReachingMerges(NullProgressMonitor.INSTANCE);
+			ap.buildAP2NodeMap();
 			final MergeInfo mnfo = ap.getMergeInfo();
 			mnfo.setNumAliasEdges(numOfAliasEdges);
 			result.add(mnfo);

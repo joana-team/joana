@@ -49,6 +49,16 @@ public class AP {
 		return new AP(root, fn);
 	}
 
+	public Node getEnd() { 
+		return end;
+	}
+	
+	public AP getParentPath() {
+		final Node parent = end.getParent();
+		
+		return (parent == null ? null : new AP(root, parent));
+	}
+	
 	public AP expand(final FieldNode fn) {
 		final AP sub = getSubPathTo(fn.field);
 

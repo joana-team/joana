@@ -53,6 +53,8 @@ import edu.kit.joana.wala.core.accesspath.nodes.APNode;
 import edu.kit.joana.wala.core.accesspath.nodes.APParamNode;
 import edu.kit.joana.wala.core.dataflow.GenReach;
 import gnu.trove.iterator.TIntIterator;
+import gnu.trove.map.TIntObjectMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
 
 public class APIntraProcV2 {
 
@@ -366,6 +368,31 @@ public class APIntraProcV2 {
 		}
 
 		return changed;
+	}
+	
+	public void computeReachingMerges(final IProgressMonitor progress) throws CancelException {
+		mnfo.computeReach(cfg, progress);
+	}
+	
+	public void buildAP2NodeMap() {
+		for (final PDGNode n : pdg.vertexSet()) {
+			if (n.getPdgId() != pdg.getId()) {
+				continue;
+			}
+			
+			final APNode apn = findAPNode(n);
+			if (apn == null) {
+				continue;
+			}
+
+			final Set<AP> aps = new HashSet<>();
+			final Iterator<AP> it = apn.getOutgoingPaths();
+			while (it.hasNext()) {
+				aps.add(it.next());
+			}
+			
+			mnfo.addAPs(n, aps);
+		}
 	}
 
 	/**
@@ -734,7 +761,7 @@ public class APIntraProcV2 {
 		private boolean intraprocDone = false;
 		private final Set<Merges> merges = new HashSet<>();
 		private final Map<PDGNode, Merges> n2m = new HashMap<>(); // initial gen merge
-		private final Map<PDGNode, Set<AP>> n2ap = new HashMap<>();
+		private final TIntObjectMap<Set<AP>> n2ap = new TIntObjectHashMap<>();
 		private final Map<PDGNode, OrdinalSet<Merges>> n2reach = new HashMap<>();
 		private Set<AP> allAPs;
 		
@@ -748,15 +775,15 @@ public class APIntraProcV2 {
 			}
 			
 			final Set<MergeOp> allMerges = getAllMergeOps();
-			final Map<PDGNode, OrdinalSet<MergeOp>> reachOp = flattenReachMap(allMerges);
-			final APContextManager ctx = APContextManager.create(pdg, allAPs, allMerges, n2ap, reachOp);
+			final TIntObjectMap<OrdinalSet<MergeOp>> reachOp = flattenReachMap(allMerges);
+			final APContextManager ctx = APContextManager.create(pdg.getId(), allAPs, allMerges, n2ap, reachOp);
 			
 			return ctx;
 		}
 		
-		private Map<PDGNode, OrdinalSet<MergeOp>> flattenReachMap(final Set<MergeOp> allMerges) {
+		private TIntObjectMap<OrdinalSet<MergeOp>> flattenReachMap(final Set<MergeOp> allMerges) {
 			final OrdinalSetMapping<MergeOp> mapping = createMapping(allMerges);
-			final Map<PDGNode, OrdinalSet<MergeOp>> reachOp = new HashMap<>();
+			final TIntObjectMap<OrdinalSet<MergeOp>> reachOp = new TIntObjectHashMap<>();
 			
 			for (final PDGNode n : n2reach.keySet()) {
 				final OrdinalSet<Merges> reach = n2reach.get(n);
@@ -775,7 +802,7 @@ public class APIntraProcV2 {
 				}
 				
 				final OrdinalSet<MergeOp> rop = new OrdinalSet<MergeOp>(rset, mapping);
-				reachOp.put(n, rop);
+				reachOp.put(n.getId(), rop);
 			}
 			
 			return reachOp;
@@ -919,11 +946,11 @@ public class APIntraProcV2 {
 		}
 		
 		public void addAPs(final PDGNode n, final Set<AP> aps) {
-			n2ap.put(n, aps);
+			n2ap.put(n.getId(), aps);
 		}
 		
 		public Set<AP> getAPs(final PDGNode n) {
-			return n2ap.get(n);
+			return n2ap.get(n.getId());
 		}
 		
 		public Set<Merges> getAllMerges() {

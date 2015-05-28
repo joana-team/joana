@@ -9,31 +9,32 @@ package edu.kit.joana.wala.core.accesspath;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
-import edu.kit.joana.wala.core.PDG;
-import edu.kit.joana.wala.core.PDGEdge;
-import edu.kit.joana.wala.core.PDGNode;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeOp;
-import edu.kit.joana.wala.util.NotImplementedException;
+import gnu.trove.map.TIntObjectMap;
 
 /**
+ * Represents a single calling context configuration. This class can be asked if certain heap data dependencies are
+ * present in the alias configuration it represents.
+ * 
  * @author Juergen Graf <juergen.graf@gmail.com>
  */
 public class APContext implements Cloneable {
 	
-	private final PDG pdg;
-	private final Map<PDGNode, Set<AP>> n2ap;
+	private final int pdgId;
+	private final TIntObjectMap<Set<AP>> n2ap;
 	private final Set<EQClass> eqClasses = new HashSet<>();
 
-	public APContext(final PDG pdg, final Map<PDGNode, Set<AP>> n2ap) {
-		this.pdg = pdg;
+	public APContext(final int pdgId, final TIntObjectMap<Set<AP>> n2ap) {
+		this.pdgId = pdgId;
 		this.n2ap = n2ap;
 	}
 	
 	public APContext clone() {
-		final APContext ctx = new APContext(pdg, n2ap);
+		final APContext ctx = new APContext(pdgId, n2ap);
 		ctx.eqClasses.addAll(eqClasses);
 		return ctx;
 	}
@@ -65,6 +66,14 @@ public class APContext implements Cloneable {
 			}
 			
 			return false;
+		}
+		
+		public boolean contains(final AP ap) {
+			return paths.contains(ap);	
+		}
+		
+		public String toString() {
+			return "eq" + id;
 		}
 		
 		public static EQClass merge(final EQClass c1, final EQClass c2, final int newID) {
@@ -102,15 +111,19 @@ public class APContext implements Cloneable {
 		}
 	}
 
-	public boolean mayBeActive(final PDGEdge e) {
-		if (e.kind != PDGEdge.Kind.DATA_ALIAS) {
-			throw new IllegalArgumentException();
+	public boolean mayBeActive(final SDGEdge e) {
+		if (e.getKind() != SDGEdge.Kind.DATA_ALIAS) {
+			return true;
 		}
 		
-		return mayBeAliased(e.from, e.to);
+		return mayBeAliased(e.getSource(), e.getTarget());
 	}
 
-	public boolean mayBeAliased(final PDGNode n1, final PDGNode n2) {
+	public boolean mayBeAliased(final SDGNode n1, final SDGNode n2) {
+		return mayBeAliased(n1.getId(), n2.getId());
+	}
+	
+	public boolean mayBeAliased(final int n1, final int n2) {
 		final Set<AP> ap1 = n2ap.get(n1);
 		final Set<String> equiv1 = extractEquiv(ap1);
 		final Set<AP> ap2 = n2ap.get(n2);
@@ -135,40 +148,38 @@ public class APContext implements Cloneable {
 		return equiv;
 	}
 	
+	private EQClass findEQ(final AP ap) {
+		for (final EQClass cls : eqClasses) {
+			if (cls.contains(ap)) {
+				return cls;
+			}
+		}
+		
+		return null;
+	}
+	
+	private String searchForEQ(final AP ap, final String suffix) {
+		if (ap == null) {
+			return suffix;
+		}
+		
+		final EQClass eq = findEQ(ap);
+		if (eq != null) {
+			return eq + "." + suffix; 
+		} else {
+			final AP apParent = ap.getParentPath();
+			final AP.Node end = ap.getEnd();
+			final String newSuffix = (suffix == null || suffix.isEmpty() ? end.toString() : end + "." + suffix);
+			
+			return searchForEQ(apParent, newSuffix);
+		}
+	}
+	
 	private String equivalenceClassAP(final AP ap) {
-		throw new NotImplementedException();
-//		final StringBuilder sb = new StringBuilder();
-//
-//		final TIntList matches = new TIntArrayList();
-//		
-//		for (final MergeOp mop : origMerges) {
-//			if (mop.matches(ap)) {
-//				matches.add(mop.id);
-//			}
-//		}
-//		
-//		for (final MergeOp mop : merges) {
-//			if (mop.matches(ap)) {
-//				matches.add(mop.id);
-//			}
-//		}
-//
-//		if (matches.isEmpty()) {
-//			return ap.toString();
-//		} else {
-//			// wrong build mop -> single id map first!! need to merge equivalence classes in case merge sets differ
-//			final int[] ids = matches.toArray();
-//			Arrays.sort(ids);
-//			for (final int id : ids) {
-//				sb.append("_" + id);
-//			}
-//
-//			return sb.toString();
-//		}
+		return searchForEQ(ap, "");
 	}
 	
 	public boolean isAliased(final AP a1, final AP a2) {
-		//TODO lookup merged sub paths
 		if (a1.equals(a2)) {
 			return true;
 		}

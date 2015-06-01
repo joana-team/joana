@@ -292,6 +292,20 @@ public class FullIFCSensitivityTest {
 	}
 
 	@Test
+	public void testDynamicDispatchLeak2() {
+		IFCAnalysis ana;
+		try {
+			ana = buildAndAnnotate("sensitivity.DynDispLeak2", PointsToPrecision.INSTANCE_BASED, DynamicDispatchHandling.PRECISE, false, MHPType.NONE);
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertFalse(illegal.isEmpty());
+			assertEquals(2, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
 	public void testDynamicDispatchValid() {
 		IFCAnalysis ana;
 		try {

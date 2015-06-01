@@ -22,11 +22,6 @@ public class DynDispLeak2 {
 			Security.leak(x);
 		}
 	}
-	static class B extends A {
-		void foo() {
-			
-		}
-	}
 	public static void main(String[] args) {
 		A a1 = new A(); a1.x = 0;
 		A a2 = new A(); a2.x = 1;

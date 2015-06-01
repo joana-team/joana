@@ -7,7 +7,6 @@
  */
 package edu.kit.joana.wala.core.accesspath;
 
-import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeInfo;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
@@ -28,8 +27,8 @@ public class APResult {
 		numOfAliasEdges += mnfo.getNumAliasEdges();
 	}
 	
-	public APContextManager get(final PDG pdg) {
-		return pdgId2ctx.get(pdg.getId());
+	public APContextManager get(final int pdgId) {
+		return pdgId2ctx.get(pdgId);
 	}
 
 	public int getNumOfAliasEdges() {

@@ -80,4 +80,8 @@ public class APContextManager {
 		}
 	}
 	
+	public Set<AP> getAccessPaths(final int pdgNodeId) {
+		return n2ap.get(pdgNodeId);
+	}
+	
 }

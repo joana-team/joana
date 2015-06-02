@@ -7,11 +7,13 @@
  */
 package edu.kit.joana.wala.core.accesspath;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import com.ibm.wala.util.intset.OrdinalSet;
 
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
+import edu.kit.joana.wala.core.accesspath.AP.RootNode;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeOp;
 import gnu.trove.map.TIntObjectMap;
 
@@ -32,6 +34,7 @@ public class APContextManager {
 	// map that records for each node id which origMerges may affect it
 	private final TIntObjectMap<OrdinalSet<MergeOp>> n2reach;
 	private APContext baseContext;
+	private Set<NoAlias> noAlias = new HashSet<>();
 
 	private APContextManager(final int pdgId, final Set<AP> paths, final Set<MergeOp> origMerges,
 			final TIntObjectMap<Set<AP>> n2ap, final TIntObjectMap<OrdinalSet<MergeOp>> n2reach) {
@@ -58,6 +61,11 @@ public class APContextManager {
 		}
 	}
 	
+	public void setInitialNoAlias(final Set<NoAlias> noAlias) {
+		this.noAlias = noAlias;
+		this.baseContext.setInitialNoAlias(noAlias);
+	}
+	
 	public APContext getMatchingContext(final SDGEdge e) {
 		return getMatchingContext(e.getSource().getId(), e.getTarget().getId());
 	}
@@ -82,6 +90,54 @@ public class APContextManager {
 	
 	public Set<AP> getAccessPaths(final int pdgNodeId) {
 		return n2ap.get(pdgNodeId);
+	}
+	
+	public static final class NoAlias {
+		
+		// the lexically smaller string is always stored in ap1
+		public final String ap1;
+		public final String ap2;
+		
+		public NoAlias(final AP ap1, final AP ap2) {
+			// add '.' so fields with same prefix are not accidentally matched. e.g. ("p1.f2" starts with "p1.f")
+			final String s1 = ap1.toString() + ".";
+			final String s2 = ap2.toString() + ".";
+			if (s1.compareTo(s2) <= 0) {
+				this.ap1 = s1;
+				this.ap2 = s2;
+			} else {
+				this.ap1 = s2;
+				this.ap2 = s1;
+			}
+		}
+		
+		public boolean captures(final AP p1, final AP p2) {
+			final String s1 = p1.toString() + ".";
+			final String s2 = p2.toString() + ".";
+			
+			if (s1.compareTo(s2) <= 0) {
+				return s1.startsWith(ap1) && s2.startsWith(ap2);
+			} else {
+				return s1.startsWith(ap2) && s2.startsWith(ap1);
+			}
+		}
+		
+		public int hashCode() {
+			return ap1.hashCode() + ap2.hashCode();
+		}
+		
+		public boolean equals(final Object o) {
+			if (o == this) {
+				return true;
+			}
+			
+			if (o instanceof NoAlias) {
+				final NoAlias na = (NoAlias) o;
+				return na.ap1.equals(ap1) && na.ap2.equals(ap2);
+			}
+			
+			return false;
+		}
 	}
 	
 }

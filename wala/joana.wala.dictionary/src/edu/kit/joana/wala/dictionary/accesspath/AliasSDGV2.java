@@ -19,7 +19,6 @@ import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.intset.BitVectorIntSet;
-import com.ibm.wala.util.intset.IntIterator;
 import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.intset.MutableIntSet;
 
@@ -30,15 +29,16 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.core.accesspath.AP;
+import edu.kit.joana.wala.core.accesspath.APContext;
 import edu.kit.joana.wala.core.accesspath.APContextManager;
+import edu.kit.joana.wala.core.accesspath.APContextManager.NoAlias;
 import edu.kit.joana.wala.core.accesspath.APResult;
 import edu.kit.joana.wala.summary.GraphUtil;
 import edu.kit.joana.wala.summary.GraphUtil.SummaryProperties;
 import edu.kit.joana.wala.summary.SummaryComputation;
 import edu.kit.joana.wala.summary.WorkPackage;
 import edu.kit.joana.wala.summary.WorkPackage.EntryPoint;
-import gnu.trove.iterator.TIntIterator;
-import gnu.trove.set.TIntSet;
+import edu.kit.joana.wala.util.NotImplementedException;
 
 /**
  * Combines pre-computed SDG with current alias information and prepares a context-aware SDG. 
@@ -50,132 +50,8 @@ public class AliasSDGV2 {
 	private final SDG sdg;
 	private final APResult ap;
 	private WorkPackage workPack;
-	private final Alias mayAlias = new Alias();
-	private final Alias noAlias = new Alias();
+	private final Set<NoAlias> noAlias = new HashSet<>();
 	private final List<SDGEdge> currentlyRemoved = new LinkedList<SDGEdge>();
-
-	//done: rewrite to contain pairs, because this is wrong: !(a,a) && !(b,b) => !(a,b)
-	public static class Alias implements Cloneable {
-
-		private static final class P {
-			private final int id1; // id1 <= id2
-			private final int id2;
-
-			private P(final int num1, final int num2) {
-				if (num1 <= num2) {
-					this.id1 = num1;
-					this.id2 = num2;
-				} else {
-					this.id1 = num2;
-					this.id2 = num1;
-				}
-			}
-
-			public boolean equals(final Object o) {
-				if (this == o) {
-					return true;
-				}
-
-				if (o instanceof P) {
-					final P other = (P) o;
-					return id1 == other.id1 && id2 == other.id2;
-				}
-
-				return false;
-			}
-
-			public int hashCode() {
-				return id1 + 23 * id2;
-			}
-
-			public String toString() {
-				return "(" + id1 + "," + id2 + ")";
-			}
-		}
-
-		private final Set<P> set = new HashSet<P>();
-
-		public Alias clone() {
-			final Alias clone = new Alias();
-			clone.set.addAll(set);
-
-			return clone;
-		}
-
-		public int size() {
-			return set.size();
-		}
-
-		public boolean add(final int a, final int b) {
-			final P p = new P(a, b);
-
-			return set.add(p);
-		}
-
-		public void reset() {
-			set.clear();
-		}
-
-		public boolean isSet(final int a, final int b) {
-			final P p = new P(a, b);
-
-			return set.contains(p);
-		}
-
-		public boolean addAll(final Alias otherAlias) {
-			return set.addAll(otherAlias.set);
-		}
-
-		public boolean containsAll(final AliasCondition ac) {
-			for (final IntIterator it1 = ac.id1.intIterator(); it1.hasNext();) {
-				final int i1 = it1.next();
-				for (final IntIterator it2 = ac.id2.intIterator(); it2.hasNext();) {
-					final int i2 = it2.next();
-					if (!isSet(i1, i2)) {
-						return false;
-					}
-				}
-			}
-
-			return true;
-		}
-
-		public boolean containsAny(final AliasCondition ac) {
-			for (final IntIterator it1 = ac.id1.intIterator(); it1.hasNext();) {
-				final int i1 = it1.next();
-				for (final IntIterator it2 = ac.id2.intIterator(); it2.hasNext();) {
-					final int i2 = it2.next();
-					if (isSet(i1, i2)) {
-						return true;
-					}
-				}
-			}
-
-			return false;
-		}
-
-		/**
-		 * performs a logical and to the aliases stored in this class, using the aliases given in the
-		 * parameter otherAlias.
-		 * All aliases that are not contained in otherAlias are removed from this Alias configuration.
-		 */
-		public void and(final Alias otherAlias) {
-			final List<P> toRemove = new LinkedList<P>();
-
-			for (final P p : set) {
-				if (!otherAlias.set.contains(p)) {
-					toRemove.add(p);
-				}
-			}
-
-			set.removeAll(toRemove);
-		}
-
-		public String toString() {
-			return "Alias: " + set.toString();
-		}
-
-	}
 
 	private AliasSDGV2(final SDG sdg, final WorkPackage workPack, final APResult ap) {
 		this.sdg = sdg;
@@ -207,17 +83,8 @@ public class AliasSDGV2 {
 		return sdg;
 	}
 
-	public void setNoAlias(final Alias alias) {
-		this.noAlias.reset();
-		this.noAlias.addAll(alias);
-	}
-
 	public String getFileName() {
 		return sdg.getFileName();
-	}
-
-	public Alias getNoAlias() {
-		return noAlias.clone();
 	}
 
 	/**
@@ -232,6 +99,7 @@ public class AliasSDGV2 {
 		
 		
 		if (noAlias.size() > 0) {
+			// TODO rewrite propagation
 			if (debug.isEnabled()) {
 				debug.out("propagating no-aliases... ");
 				final int sizeBefore = noAlias.size();
@@ -254,8 +122,7 @@ public class AliasSDGV2 {
 			if (e.getKind() == SDGEdge.Kind.DATA_ALIAS) {
 				MonitorUtil.throwExceptionIfCanceled(progress);
 				aliasEdges++;
-				final AliasCondition ac = parseAliasEdge(e);
-				if (noAlias.containsAll(ac)) {
+				if (isNotAliased(e.getSource(), e.getTarget())) {
 					toDisable.add(e);
 				}
 			}
@@ -281,30 +148,19 @@ public class AliasSDGV2 {
 			for (final SDGNode entry : sdg.vertexSet()) {
 				if (entry.kind == SDGNode.Kind.ENTRY) {
 					// summarize no-aliases from all callsites (or clone for specific alias sets)
-					Alias mergedAliases = null;
 					for (final SDGNode call : sdg.getCallers(entry)) {
-						final Alias callAlias = propagateAliasesFromCall(call, entry);
-						if (mergedAliases == null) {
-							mergedAliases = callAlias;
-						} else {
-							// only set no-aliases that are valid in all calling contexts
-							mergedAliases.and(callAlias);
-						}
+						propagateAliasesFromCall(call, entry);
+						
 					}
 
-					if (mergedAliases != null) {
-						change |= noAlias.addAll(mergedAliases);
-						totalChange |= change;
-					}
 				}
 			}
 		}
 
-		return totalChange;
+		throw new NotImplementedException();
 	}
 
-	private Alias propagateAliasesFromCall(final SDGNode call, final SDGNode entry) {
-		final Alias alias = new Alias();
+	private void propagateAliasesFromCall(final SDGNode call, final SDGNode entry) {
 
 		// compute no-aliases for current call (containing formal-in nodes of entry)
 		final Set<SDGNode> formIns = sdg.getFormalInsOfProcedure(entry);
@@ -327,56 +183,19 @@ public class AliasSDGV2 {
 				if (isNotAliased(a1, a2)) {
 					final int f1id = formInId[i];
 					final int f2id = formInId[i2];
-
-					alias.add(f1id, f2id);
+					//...
 				}
 			}
 		}
-
-		return alias;
+		
+		throw new NotImplementedException();
 	}
 
 	private boolean isNotAliased(final SDGNode n1, final SDGNode n2) {
-		final TIntSet n1a = n1.getAliasDataSources();
-		final TIntSet n2a = n2.getAliasDataSources();
-
-		/*
-		 *
-		 */
-		if (n1a != null && n2a != null) {
-			if (n1 == n2) {
-				if (n1a.contains(n2.getId())) {
-					return false;
-				} else {
-					final TIntIterator it = n1a.iterator();
-					while (it.hasNext()) {
-						final int id = it.next();
-						if (sdg.getNode(id).kind == SDGNode.Kind.FORMAL_IN) {
-							// other kinds (new-sites) are not aliased by default
-							if (!noAlias.isSet(id, id)) {
-								return false;
-							}
-						}
-					}
-				}
-			} else {
-				for (final TIntIterator it1 = n1a.iterator(); it1.hasNext();) {
-					final int id1 = it1.next();
-
-					for (final TIntIterator it2 = n2a.iterator(); it2.hasNext();) {
-						final int id2 = it2.next();
-
-						if (!noAlias.isSet(id1, id2)) {
-							return false;
-						}
-					}
-				}
-			}
-
-			return true;
-		}
-
-		return false;
+		final APContextManager ctxmanag = ap.get(n1.getProc());
+		final APContext ctx = ctxmanag.getMatchingContext(n1.getId(), n2.getId());
+		
+		return !ctx.mayBeAliased(n1, n2);
 	}
 
 	/**
@@ -384,8 +203,7 @@ public class AliasSDGV2 {
 	 * removes all non- and may-aliasing states.
 	 */
 	public void reset() {
-		noAlias.reset();
-		mayAlias.reset();
+		noAlias.clear();
 		workPack.reset();
 
 		final List<SDGEdge> toDelete = new LinkedList<SDGEdge>();
@@ -502,12 +320,14 @@ public class AliasSDGV2 {
 		final APContextManager ctx = ap.get(n1.getProc());
 		final Set<AP> ap1 = ctx.getAccessPaths(nodeId1);
 		final Set<AP> ap2 = ctx.getAccessPaths(nodeId2);
-		// TODO remove any initial merge-ops that catch ap1 x ap2
-		return noAlias.add(nodeId1, nodeId2);
-	}
-
-	public boolean isNoAlias(final int nodeId1, final int nodeId2) {
-		return noAlias.isSet(nodeId1, nodeId2);
+		for (final AP a1 : ap1) {
+			for (final AP a2 : ap2) {
+				final NoAlias noa = new NoAlias(a1, a2);
+				noAlias.add(noa);
+			}
+		}
+		
+		return true;
 	}
 
 	public int countEdges(final Kind kind) {

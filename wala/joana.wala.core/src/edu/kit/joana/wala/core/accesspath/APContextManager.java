@@ -16,6 +16,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.wala.core.accesspath.AP.RootNode;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeOp;
 import gnu.trove.map.TIntObjectMap;
+import gnu.trove.set.TIntSet;
 
 /**
  * Manages and prepares the various context configurations of a single method/pdg.
@@ -90,6 +91,13 @@ public class APContextManager {
 	
 	public Set<AP> getAccessPaths(final int pdgNodeId) {
 		return n2ap.get(pdgNodeId);
+	}
+	
+	public static final class CallContext {
+		int callId;
+		int calleeId;
+		TIntSet actualIns;
+		TIntSet act2formal;
 	}
 	
 	public static final class NoAlias {

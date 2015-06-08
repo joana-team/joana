@@ -8,6 +8,7 @@
 package edu.kit.joana.wala.core.accesspath;
 
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeInfo;
+import edu.kit.joana.wala.util.NotImplementedException;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
@@ -20,11 +21,20 @@ public class APResult {
 	
 	private final TIntObjectMap<APContextManager> pdgId2ctx = new TIntObjectHashMap<>();
 	private int numOfAliasEdges = 0;
+	private final int rootPdgId;
+	
+	public APResult(final int rootPdgId) {
+		this.rootPdgId = rootPdgId;
+	}
 	
 	void add(final MergeInfo mnfo) {
 		final APContextManager ctx = mnfo.extractContext();
 		pdgId2ctx.put(mnfo.pdg.getId(), ctx);
 		numOfAliasEdges += mnfo.getNumAliasEdges();
+	}
+	
+	public void replaceAPsForwardFromRoot() {
+		throw new NotImplementedException();
 	}
 	
 	public APContextManager get(final int pdgId) {

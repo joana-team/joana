@@ -15,8 +15,11 @@ import com.ibm.wala.util.intset.OrdinalSet;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.wala.core.accesspath.AP.RootNode;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeOp;
+import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.TIntObjectMap;
+import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 
 /**
  * Manages and prepares the various context configurations of a single method/pdg.
@@ -35,6 +38,7 @@ public class APContextManager {
 	// map that records for each node id which origMerges may affect it
 	private final TIntObjectMap<OrdinalSet<MergeOp>> n2reach;
 	private APContext baseContext;
+	private final Set<CallContext> calls = new HashSet<>(); 
 	private Set<NoAlias> noAlias = new HashSet<>();
 
 	private APContextManager(final int pdgId, final Set<AP> paths, final Set<MergeOp> origMerges,
@@ -52,6 +56,10 @@ public class APContextManager {
 		final APContextManager manager = new APContextManager(pdgId, paths, origMerges, n2ap, n2reach);
 
 		return manager;
+	}
+	
+	public void addCallContext(final CallContext ctx) {
+		calls.add(ctx);
 	}
 	
 	public void setInitialAlias(final Set<MergeOp> initialAliasing) {
@@ -94,10 +102,38 @@ public class APContextManager {
 	}
 	
 	public static final class CallContext {
-		int callId;
-		int calleeId;
-		TIntSet actualIns;
-		TIntSet act2formal;
+		final int callId;
+		final int calleeId;
+		final int callSite;
+		final TIntSet actualIns = new TIntHashSet();
+		final TIntIntMap act2formal = new TIntIntHashMap();
+		
+		public CallContext(final int callId, final int calleeId, final int callSite) {
+			this.callId = callId;
+			this.calleeId = calleeId;
+			this.callSite = callSite;
+		}
+		
+		public boolean equals(final Object o) {
+			if (o == this) {
+				return true;
+			}
+			
+			if (o instanceof CallContext) {
+				final CallContext other = (CallContext) o;
+				return callId == other.callId && calleeId == other.calleeId && callSite == other.callSite;
+			}
+			
+			return false;
+		}
+		
+		public String toString() {
+			return "call-ctx " + callId + " to " + calleeId + " at " + callSite; 
+		}
+		
+		public int hashCode() {
+			return callId + 7 * calleeId + 23 * callSite;
+		}
 	}
 	
 	public static final class NoAlias {

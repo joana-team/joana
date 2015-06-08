@@ -44,6 +44,7 @@ import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.SDGBuilderConfig;
 import edu.kit.joana.wala.core.accesspath.AP.FieldNode;
 import edu.kit.joana.wala.core.accesspath.AP.RootNode;
+import edu.kit.joana.wala.core.accesspath.APContextManager.CallContext;
 import edu.kit.joana.wala.core.accesspath.AccessPathV2.AliasEdge;
 import edu.kit.joana.wala.core.accesspath.nodes.APCallNode;
 import edu.kit.joana.wala.core.accesspath.nodes.APEntryNode;
@@ -105,6 +106,28 @@ public class APIntraProcV2 {
 		}
 		
 		extractIntraprocMerge();
+	}
+	
+	public final CallContext extractContext(final APIntraProcV2 aipCallee, final PDGNode call) {
+		final CallContext ctx = new CallContext(pdg.getId(), aipCallee.pdg.getId(), call.getId());
+
+		final APCallNode apCall = graph.getCall(call);
+		final APEntryNode apEntry = aipCallee.graph.getEntry();
+
+		final Map<APParamNode, APParamNode> callee2call = form2actual(apCall, apEntry);
+		
+		for (final APParamNode fnode : callee2call.keySet()) {
+			final APParamNode anode = callee2call.get(fnode);
+			final int aid = anode.node.getId();
+			final int fid = fnode.node.getId();
+			if (anode.isInput()) {
+				ctx.actualIns.add(aid);
+			}
+			
+			ctx.act2formal.put(aid, fid);
+		}
+				
+		return ctx;
 	}
 
 	public boolean propagateFrom(final APIntraProcV2 aipCallee, final PDGNode call) {
@@ -764,9 +787,14 @@ public class APIntraProcV2 {
 		private final TIntObjectMap<Set<AP>> n2ap = new TIntObjectHashMap<>();
 		private final Map<PDGNode, OrdinalSet<Merges>> n2reach = new HashMap<>();
 		private Set<AP> allAPs;
+		private final Set<CallContext> calls = new HashSet<>();
 		
 		public MergeInfo(final PDG pdg) {
 			this.pdg = pdg;
+		}
+		
+		public void addCallCtx(final CallContext ctx) {
+			calls.add(ctx);
 		}
 		
 		public APContextManager extractContext() {
@@ -777,6 +805,10 @@ public class APIntraProcV2 {
 			final Set<MergeOp> allMerges = getAllMergeOps();
 			final TIntObjectMap<OrdinalSet<MergeOp>> reachOp = flattenReachMap(allMerges);
 			final APContextManager ctx = APContextManager.create(pdg.getId(), allAPs, allMerges, n2ap, reachOp);
+			
+			for (final CallContext callctx : calls) {
+				ctx.addCallContext(callctx);
+			}
 			
 			return ctx;
 		}

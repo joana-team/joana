@@ -36,6 +36,7 @@ import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
+import edu.kit.joana.wala.core.accesspath.APContextManager.CallContext;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeInfo;
 import edu.kit.joana.wala.summary.SummaryComputation;
 import edu.kit.joana.wala.summary.WorkPackage;
@@ -97,7 +98,7 @@ public class AccessPathV2 {
 
 	private APResult run(final PDG start) throws CancelException {
 		if (start == null) {
-			return new APResult();
+			return new APResult(-1);
 		}
 
 		final Set<PDG> reachable = findReachable(start);
@@ -121,7 +122,7 @@ public class AccessPathV2 {
 			}
 		}
 
-		final APResult result = new APResult();
+		final APResult result = new APResult(start.getId());
 		for (final PDG pdg : reachable) {
 			final APIntraProcV2 ap = pdg2ap.get(pdg);
 			final int numOfAliasEdges = ap.findAndMarkAliasEdges();
@@ -130,9 +131,17 @@ public class AccessPathV2 {
 			ap.computeReachingMerges(NullProgressMonitor.INSTANCE);
 			ap.buildAP2NodeMap();
 			final MergeInfo mnfo = ap.getMergeInfo();
+			for (final PDGNode call : pdg.getCalls()) {
+				for (final PDG callee : sdg.getPossibleTargets(call)) {
+					final CallContext ctx = extractCallContext(callee, call, pdg, pdg2ap);
+					mnfo.addCallCtx(ctx);
+				}
+			}
 			mnfo.setNumAliasEdges(numOfAliasEdges);
 			result.add(mnfo);
 		}
+		
+		result.replaceAPsForwardFromRoot();
 
 		if (sdg.cfg.debugAccessPath) {
 			for (final PDG pdg :reachable) {
@@ -157,6 +166,17 @@ public class AccessPathV2 {
 		return changed;
 	}
 
+	private CallContext extractCallContext(final PDG callee, final PDGNode call, final PDG caller,
+			final Map<PDG, APIntraProcV2> pdg2ap) {
+
+		final APIntraProcV2 aipCaller = pdg2ap.get(caller);
+		final APIntraProcV2 aipCallee = pdg2ap.get(callee);
+
+		final CallContext ctx = aipCaller.extractContext(aipCallee, call);
+		
+		return ctx;
+	}
+	
 	/**
 	 * Compute summary edges for information flow without heap aliases and with aliases. Currently SUMMARY_P is used for
 	 * "always there dataflow". DATA_HEAP is used for always on information flow (summary edges without aliasing) and

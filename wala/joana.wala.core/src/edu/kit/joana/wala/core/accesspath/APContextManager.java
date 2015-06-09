@@ -7,17 +7,20 @@
  */
 package edu.kit.joana.wala.core.accesspath;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import com.ibm.wala.util.intset.OrdinalSet;
 
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
-import edu.kit.joana.wala.core.accesspath.AP.RootNode;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeOp;
 import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntIntHashMap;
+import gnu.trove.procedure.TIntProcedure;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 
@@ -60,6 +63,10 @@ public class APContextManager {
 	
 	public void addCallContext(final CallContext ctx) {
 		calls.add(ctx);
+	}
+	
+	public Set<CallContext> getCallContexts() {
+		return Collections.unmodifiableSet(calls);
 	}
 	
 	public void setInitialAlias(final Set<MergeOp> initialAliasing) {
@@ -181,6 +188,86 @@ public class APContextManager {
 			}
 			
 			return false;
+		}
+	}
+
+	public int getPdgId() {
+		return pdgId;
+	}
+
+	public void replaceAPsForCall(final CallContext ctx, final APContextManager callee) {
+		final Set<ReplaceAP> toReplace = new HashSet<ReplaceAP>();
+
+		ctx.actualIns.forEach(new TIntProcedure() {
+			@Override
+			public boolean execute(final int id) {
+				final int fin = ctx.act2formal.get(id);
+				final Set<AP> aInAPs = n2ap.get(id);
+				callee.buildReplaceAPOps(fin, aInAPs, toReplace);
+				return true;
+			}
+		});
+		
+		callee.executeReplaceAPs(toReplace);
+	}
+	
+	private void executeReplaceAPs(final Set<ReplaceAP> cmds) {
+		final Map<AP, Set<AP>> replaceWith = new HashMap<>();
+		for (final ReplaceAP rap : cmds) {
+			System.out.println(rap);
+			Set<AP> set = replaceWith.get(rap.orig);
+			if (set == null) {
+				set = new HashSet<>();
+				replaceWith.put(rap.orig, set);
+			}
+			set.add(rap.replacement);
+		}
+		
+		
+	}
+
+	protected void buildReplaceAPOps(final int fin, final Set<AP> aInAPs, final Set<ReplaceAP> toReplace) {
+		// replace mapping of fin to APs and rewrite all merge-ops that contain original aps with new ones.
+		final Set<AP> oldAPs = n2ap.get(fin);
+		for (final AP old : oldAPs) {
+			for (final AP newap : aInAPs) {
+				if (!old.equals(newap)) {
+					final ReplaceAP replace = new ReplaceAP(old, newap);
+					toReplace.add(replace);
+				}
+			}
+		}
+	}
+	
+	public class ReplaceAP {
+		public final AP orig;
+		public final AP replacement;
+		
+		public ReplaceAP(final AP orig, final AP replacement) {
+			this.orig = orig;
+			this.replacement = replacement;
+		}
+		
+		public int hashCode() {
+			return orig.hashCode() + 2711 * replacement.hashCode();
+		}
+		
+		public boolean equals(final Object o) {
+			if (this == o) {
+				return true;
+			}
+			
+			if (o instanceof ReplaceAP) {
+				final ReplaceAP other = (ReplaceAP) o;
+				
+				return orig.equals(other.orig) && replacement.equals(other.replacement);
+			}
+			
+			return false;
+		}
+		
+		public String toString() {
+			return "replace " + orig + " with " + replacement;
 		}
 	}
 	

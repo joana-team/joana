@@ -7,10 +7,13 @@
  */
 package edu.kit.joana.wala.core.accesspath;
 
+import edu.kit.joana.wala.core.accesspath.APContextManager.CallContext;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeInfo;
 import edu.kit.joana.wala.util.NotImplementedException;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 
 /**
  * Result of the accesspath and merge info computation. Contains info for each PDG in the SDG.
@@ -34,6 +37,17 @@ public class APResult {
 	}
 	
 	public void replaceAPsForwardFromRoot() {
+		final TIntSet worked = new TIntHashSet();
+		APContextManager current = pdgId2ctx.get(rootPdgId);
+		while (current != null && !worked.contains(current.getPdgId())) {
+			worked.add(current.getPdgId());
+			for (final CallContext ctx : current.getCallContexts()) {
+				// todo replace aps
+				final APContextManager callee = pdgId2ctx.get(ctx.calleeId);
+				current.replaceAPsForCall(ctx, callee);
+			}
+		}
+		
 		throw new NotImplementedException();
 	}
 	

@@ -10,13 +10,18 @@ package edu.kit.joana.wala.core.accesspath;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.ibm.wala.util.intset.MutableMapping;
 import com.ibm.wala.util.intset.OrdinalSet;
+import com.ibm.wala.util.intset.OrdinalSetMapping;
 
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
+import edu.kit.joana.wala.core.ParameterField;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeOp;
+import gnu.trove.iterator.TIntIterator;
 import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntIntHashMap;
@@ -43,20 +48,24 @@ public class APContextManager {
 	private APContext baseContext;
 	private final Set<CallContext> calls = new HashSet<>(); 
 	private Set<NoAlias> noAlias = new HashSet<>();
+	private final MutableMapping<MergeOp> mergeMap;
 
 	private APContextManager(final int pdgId, final Set<AP> paths, final Set<MergeOp> origMerges,
-			final TIntObjectMap<Set<AP>> n2ap, final TIntObjectMap<OrdinalSet<MergeOp>> n2reach) {
+			final TIntObjectMap<Set<AP>> n2ap, final TIntObjectMap<OrdinalSet<MergeOp>> n2reach,
+			final MutableMapping<MergeOp> mergeMap) {
 		this.pdgId = pdgId;
 		this.paths = paths;
 		this.origMerges = origMerges;
 		this.n2ap = n2ap;
 		this.n2reach = n2reach;
+		this.mergeMap = mergeMap;
 		this.baseContext = new APContext(pdgId, n2ap);
 	}
 	
 	public static APContextManager create(final int pdgId, final Set<AP> paths, final Set<MergeOp> origMerges,
-			final TIntObjectMap<Set<AP>> n2ap, final TIntObjectMap<OrdinalSet<MergeOp>> n2reach) {
-		final APContextManager manager = new APContextManager(pdgId, paths, origMerges, n2ap, n2reach);
+			final TIntObjectMap<Set<AP>> n2ap, final TIntObjectMap<OrdinalSet<MergeOp>> n2reach,
+			final MutableMapping<MergeOp> mergeMap) {
+		final APContextManager manager = new APContextManager(pdgId, paths, origMerges, n2ap, n2reach, mergeMap);
 
 		return manager;
 	}
@@ -212,6 +221,7 @@ public class APContextManager {
 	}
 	
 	private void executeReplaceAPs(final Set<ReplaceAP> cmds) {
+		final Set<AP> newallaps = new HashSet<>();
 		final Map<AP, Set<AP>> replaceWith = new HashMap<>();
 		for (final ReplaceAP rap : cmds) {
 			System.out.println(rap);
@@ -221,9 +231,77 @@ public class APContextManager {
 				replaceWith.put(rap.orig, set);
 			}
 			set.add(rap.replacement);
+			newallaps.add(rap.replacement);
 		}
 		
+		//extend mapping
+		for (final AP orig : paths) {
+			for (final AP newap : replaceWith.keySet()) {
+				if (!newap.equals(orig) && newap.isSubPathOf(orig)) {
+					// add to mapping
+					final List<ParameterField> subp = orig.getSubPathFrom(newap);
+					final Set<AP> newrepl = replaceWith.get(newap);
+					Set<AP> extrepl = replaceWith.get(orig);
+					if (extrepl == null) {
+						extrepl = new HashSet<>();
+						replaceWith.put(orig, extrepl);
+					}
+					for (final AP newrepap : newrepl) {
+						final AP extap = newrepap.append(subp);
+						newallaps.add(extap);
+						extrepl.add(extap);
+					}
+				}
+			}
+		}
 		
+		// execute replacement
+		final TIntSet keys = n2ap.keySet();
+		for (final TIntIterator it = keys.iterator(); it.hasNext(); ){
+			final int cur = it.next();
+			final Set<AP> old = n2ap.get(cur);
+			final Set<AP> newaps = new HashSet<>();
+			for (final AP o : old) {
+				final Set<AP> repl = replaceWith.get(o);
+				if (repl != null) {
+					newaps.addAll(repl);
+				} else {
+					newaps.add(o);
+				}
+			}
+			n2ap.put(cur, newaps);
+		}
+		
+		// replace orig merges
+		final Set<MergeOp> newMerges = new HashSet<>();
+		for (final MergeOp mop : origMerges) {
+			final Set<AP> from = new HashSet<AP>();
+			for (final AP ap : mop.from) {
+				final Set<AP> repl = replaceWith.get(ap);
+				if (repl != null) {
+					from.addAll(repl);
+				} else {
+					from.add(ap);
+				}
+			}
+			final Set<AP> to = new HashSet<AP>();
+			for (final AP ap : mop.to) {
+				final Set<AP> repl = replaceWith.get(ap);
+				if (repl != null) {
+					to.addAll(repl);
+				} else {
+					to.add(ap);
+				}
+			}
+			
+			final MergeOp newOP = new MergeOp(from, to);
+			newOP.id = mop.id;
+			newMerges.add(newOP);
+			mergeMap.replace(mop, newOP);
+		}
+		
+		origMerges.clear();
+		origMerges.addAll(newMerges);
 	}
 
 	protected void buildReplaceAPOps(final int fin, final Set<AP> aInAPs, final Set<ReplaceAP> toReplace) {

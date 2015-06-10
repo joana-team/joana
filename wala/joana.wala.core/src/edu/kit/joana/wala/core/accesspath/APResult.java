@@ -47,8 +47,8 @@ public class APResult {
 				current.replaceAPsForCall(ctx, callee);
 			}
 		}
-		
-		throw new NotImplementedException();
+
+		System.err.println("todo propagate");
 	}
 	
 	public APContextManager get(final int pdgId) {

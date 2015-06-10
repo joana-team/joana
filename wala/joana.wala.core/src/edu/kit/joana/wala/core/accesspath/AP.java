@@ -49,6 +49,16 @@ public class AP {
 		return new AP(root, fn);
 	}
 
+	public AP append(final List<ParameterField> fields) {
+		AP result = this;
+		
+		for (final ParameterField f : fields) {
+			result = result.append(f);
+		}
+		
+		return result;
+	}
+	
 	public Node getEnd() { 
 		return end;
 	}
@@ -125,6 +135,16 @@ public class AP {
 
 		return null;
 	}
+	
+	public List<ParameterField> getSubPathFrom(final AP other) {
+		final LinkedList<ParameterField> path = new LinkedList<>();
+		
+		for (Node cur = this.end; cur != null && !cur.equals(other.end); cur = cur.getParent()) {
+			path.addFirst(((FieldNode) cur).field);
+		}
+		
+		return path;
+	}
 
 	public List<Node> getSubPathTo(final Node end) {
 		assert contains(end);
@@ -148,6 +168,24 @@ public class AP {
 		return false;
 	}
 
+	public boolean isSubPathOf(final AP other) {
+		if (this == other) {
+			return true;
+		}
+		
+		if (this.root.equals(other.root)) {
+			if (end instanceof FieldNode) {
+				final FieldNode fn = (FieldNode) end;
+				final AP subPath = other.getSubPathTo(fn.field);
+				return subPath != null;
+			} else {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
 	public int hashCode() {
 		return (root.hashCode() << 3) + end.hashCode();
 	}

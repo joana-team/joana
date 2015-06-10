@@ -141,6 +141,13 @@ public class AccessPathV2 {
 			result.add(mnfo);
 		}
 		
+		if (sdg.cfg.debugAccessPath) {
+			for (final PDG pdg :reachable) {
+				final APIntraProcV2 ap = pdg2ap.get(pdg);
+				APUtil.writeAliasEdgesToFile(ap, sdg.cfg.debugAccessPathOutputDir, pdg, "-ap-pre-inter.txt");
+			}
+		}
+
 		result.replaceAPsForwardFromRoot();
 
 		if (sdg.cfg.debugAccessPath) {

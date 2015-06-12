@@ -47,8 +47,8 @@ public class Library {
 
 	public static int call2(A a, A b) {
 		A c = new A();
-		c.i = a.i;
-		return return2(c, b);
+		c.i = b.i;
+		return return2(c, a);
 	}
 
 	public static int return2(A a, A b) {

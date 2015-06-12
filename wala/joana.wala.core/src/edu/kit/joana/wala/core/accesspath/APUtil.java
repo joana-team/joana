@@ -9,6 +9,7 @@ package edu.kit.joana.wala.core.accesspath;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -16,6 +17,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.WalaException;
@@ -27,7 +30,9 @@ import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
+import edu.kit.joana.wala.core.accesspath.APContextManager.CallContext;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeInfo;
+import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeOp;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.Merges;
 import edu.kit.joana.wala.core.accesspath.AccessPathV2.AliasEdge;
 import edu.kit.joana.wala.core.accesspath.nodes.APGraph;
@@ -37,6 +42,7 @@ import edu.kit.joana.wala.flowless.util.DotUtil;
 import edu.kit.joana.wala.util.WriteGraphToDot;
 import gnu.trove.procedure.TIntProcedure;
 import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 
 /**
  * Utils mainly for debugging purposes.
@@ -173,6 +179,91 @@ public final class APUtil {
 		}
 		
 		return graph;
+	}
+	
+	public static void writeResultToFile(final APResult result,  final String debugAccessPathOutputDir,
+			final PDG mainPdg, final String suffix) {
+		final String outFile = outputFileName(debugAccessPathOutputDir, mainPdg, suffix);
+		try {
+			final PrintWriter pw = new PrintWriter(outFile);
+			final APContextManager start = result.get(mainPdg.getId());
+			final LinkedList<APContextManager> worklist = new LinkedList<>();
+			worklist.add(start);
+			final TIntSet visited = new TIntHashSet();
+			visited.add(start.getPdgId());
+			
+			while (!worklist.isEmpty()) {
+				final APContextManager cur = worklist.removeFirst();
+				
+				printContext(cur, pw);
+				
+				for (final CallContext call : cur.getCallContexts()) {
+					if (!visited.contains(call.calleeId)) {
+						visited.add(call.calleeId);
+						final APContextManager callee = result.get(call.calleeId);
+						worklist.add(callee);
+					}
+				}
+			}
+			pw.flush();
+			pw.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private static void printContext(final APContextManager ctx, final PrintWriter pw) {
+		pw.println("====================================");
+		pw.println(ctx);
+		pw.println("--- all paths ---");
+		{
+			final SortedSet<String> sorted = new TreeSet<>();
+			for (final AP ap : ctx.getAllPaths()) {
+				sorted.add(ap.toString());
+			}
+			for (final String str : sorted) {
+				pw.println(str);
+			}
+		}
+		pw.println("--- mapped nodes ---");
+		{
+			final TIntSet allMapped = ctx.getAllMappedNodes();
+			final int[] keys = allMapped.toArray();
+			Arrays.sort(keys);
+			for (final int cur : keys) {
+				final Set<AP> paths = ctx.getAccessPaths(cur);
+				if (paths == null || paths.isEmpty()) continue;
+				
+				pw.print(cur + "\t: ");
+				for (final AP ap : paths) {
+					pw.print(ap + " ");
+				}
+				pw.println();
+			}
+		}
+		pw.println("--- merge ops ---");
+		{
+			for (final MergeOp mop : ctx.getOrigMerges()) {
+				pw.println("(" + mop.id + ") " + mop);
+			}
+		}
+		pw.println("--- mop map ---");
+		{
+			final TIntSet allMapped = ctx.getAllMappedNodes();
+			final int[] keys = allMapped.toArray();
+			Arrays.sort(keys);
+			for (final int id : keys) {
+				final OrdinalSet<MergeOp> reached = ctx.getReachingMerges(id);
+				if (reached == null || reached.isEmpty()) continue;
+				
+				pw.print(id + "\t: ");
+				for (final MergeOp mop : reached) {
+					pw.print("(" + mop.id + ") " + mop + "; ");
+				}
+				pw.println();
+			}
+		}
+		pw.println("====================================");
 	}
 	
 	public static void writeAliasEdgesToFile(final APIntraProcV2 ap, final String debugAccessPathOutputDir,

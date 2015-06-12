@@ -142,20 +142,13 @@ public class AccessPathV2 {
 		}
 		
 		if (sdg.cfg.debugAccessPath) {
-			for (final PDG pdg :reachable) {
-				final APIntraProcV2 ap = pdg2ap.get(pdg);
-				APUtil.writeAliasEdgesToFile(ap, sdg.cfg.debugAccessPathOutputDir, pdg, "-ap-pre-inter.txt");
-			}
+			APUtil.writeResultToFile(result, sdg.cfg.debugAccessPathOutputDir, start, "-ap-pre-inter.txt");
 		}
 
 		result.replaceAPsForwardFromRoot();
 
 		if (sdg.cfg.debugAccessPath) {
-			for (final PDG pdg :reachable) {
-				final APIntraProcV2 ap = pdg2ap.get(pdg);
-				APUtil.writeAliasEdgesToFile(ap, sdg.cfg.debugAccessPathOutputDir, pdg, "-ap.txt");
-				ap.dumpGraph("-apg.dot");
-			}
+			APUtil.writeResultToFile(result, sdg.cfg.debugAccessPathOutputDir, start, "-ap.txt");
 		}
 		
 		return result;

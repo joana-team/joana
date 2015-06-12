@@ -36,7 +36,8 @@ import gnu.trove.set.hash.TIntHashSet;
  */
 public class APContextManager {
 	
-	private final int pdgId;
+	public final String pdgName;
+	public final int pdgId;
 	// set of all access paths relevant to this method context
 	private final Set<AP> paths;
 	private Set<MergeOp> initialAlias; // merges/alias context at method entry
@@ -50,9 +51,10 @@ public class APContextManager {
 	private Set<NoAlias> noAlias = new HashSet<>();
 	private final MutableMapping<MergeOp> mergeMap;
 
-	private APContextManager(final int pdgId, final Set<AP> paths, final Set<MergeOp> origMerges,
+	private APContextManager(final String pdgName, final int pdgId, final Set<AP> paths, final Set<MergeOp> origMerges,
 			final TIntObjectMap<Set<AP>> n2ap, final TIntObjectMap<OrdinalSet<MergeOp>> n2reach,
 			final MutableMapping<MergeOp> mergeMap) {
+		this.pdgName = pdgName;
 		this.pdgId = pdgId;
 		this.paths = paths;
 		this.origMerges = origMerges;
@@ -62,12 +64,16 @@ public class APContextManager {
 		this.baseContext = new APContext(pdgId, n2ap);
 	}
 	
-	public static APContextManager create(final int pdgId, final Set<AP> paths, final Set<MergeOp> origMerges,
-			final TIntObjectMap<Set<AP>> n2ap, final TIntObjectMap<OrdinalSet<MergeOp>> n2reach,
-			final MutableMapping<MergeOp> mergeMap) {
-		final APContextManager manager = new APContextManager(pdgId, paths, origMerges, n2ap, n2reach, mergeMap);
+	public static APContextManager create(final String pdgName, final int pdgId, final Set<AP> paths,
+			final Set<MergeOp> origMerges, final TIntObjectMap<Set<AP>> n2ap,
+			final TIntObjectMap<OrdinalSet<MergeOp>> n2reach, final MutableMapping<MergeOp> mergeMap) {
+		final APContextManager manager = new APContextManager(pdgName, pdgId, paths, origMerges, n2ap, n2reach, mergeMap);
 
 		return manager;
+	}
+	
+	public String toString() {
+		return "context manager of " + pdgName + " (" + pdgId + ")";
 	}
 	
 	public void addCallContext(final CallContext ctx) {
@@ -115,6 +121,22 @@ public class APContextManager {
 	
 	public Set<AP> getAccessPaths(final int pdgNodeId) {
 		return n2ap.get(pdgNodeId);
+	}
+	
+	public TIntSet getAllMappedNodes() {
+		return n2ap.keySet();
+	}
+	
+	public Set<MergeOp> getOrigMerges() {
+		return Collections.unmodifiableSet(origMerges);
+	}
+	
+	public Set<AP> getAllPaths() {
+		return Collections.unmodifiableSet(paths);
+	}
+	
+	public OrdinalSet<MergeOp> getReachingMerges(final int id) {
+		return n2reach.get(id);
 	}
 	
 	public static final class CallContext {

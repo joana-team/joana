@@ -54,6 +54,7 @@ import edu.kit.joana.wala.core.accesspath.nodes.APGraph.APEdge;
 import edu.kit.joana.wala.core.accesspath.nodes.APNode;
 import edu.kit.joana.wala.core.accesspath.nodes.APParamNode;
 import edu.kit.joana.wala.core.dataflow.GenReach;
+import edu.kit.joana.wala.util.PrettyWalaNames;
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
@@ -806,7 +807,8 @@ public class APIntraProcV2 {
 			final Set<MergeOp> allMerges = getAllMergeOps();
 			final MutableMapping<MergeOp> mapping = createMapping(allMerges);
 			final TIntObjectMap<OrdinalSet<MergeOp>> reachOp = flattenReachMap(allMerges, mapping);
-			final APContextManager ctx = APContextManager.create(pdg.getId(), allAPs, allMerges, n2ap, reachOp, mapping);
+			final APContextManager ctx = APContextManager.create(PrettyWalaNames.methodName(pdg.getMethod()),
+					pdg.getId(), allAPs, allMerges, n2ap, reachOp, mapping);
 			
 			for (final CallContext callctx : calls) {
 				ctx.addCallContext(callctx);

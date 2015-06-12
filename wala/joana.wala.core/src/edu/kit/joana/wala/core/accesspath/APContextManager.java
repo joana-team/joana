@@ -322,6 +322,8 @@ public class APContextManager {
 			mergeMap.replace(mop, newOP);
 		}
 		
+		paths.clear();
+		paths.addAll(newallaps);
 		origMerges.clear();
 		origMerges.addAll(newMerges);
 	}

@@ -36,7 +36,7 @@ import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
-import edu.kit.joana.wala.core.accesspath.APContextManager.CallContext;
+import edu.kit.joana.wala.core.accesspath.APIntraprocContextManager.CallContext;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeInfo;
 import edu.kit.joana.wala.summary.SummaryComputation;
 import edu.kit.joana.wala.summary.WorkPackage;

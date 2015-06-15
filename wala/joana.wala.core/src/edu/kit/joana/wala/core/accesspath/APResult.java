@@ -7,7 +7,9 @@
  */
 package edu.kit.joana.wala.core.accesspath;
 
-import edu.kit.joana.wala.core.accesspath.APContextManager.CallContext;
+import java.util.LinkedList;
+
+import edu.kit.joana.wala.core.accesspath.APIntraprocContextManager.CallContext;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeInfo;
 import edu.kit.joana.wala.util.NotImplementedException;
 import gnu.trove.map.TIntObjectMap;
@@ -22,7 +24,7 @@ import gnu.trove.set.hash.TIntHashSet;
  */
 public class APResult {
 	
-	private final TIntObjectMap<APContextManager> pdgId2ctx = new TIntObjectHashMap<>();
+	private final TIntObjectMap<APIntraprocContextManager> pdgId2ctx = new TIntObjectHashMap<>();
 	private int numOfAliasEdges = 0;
 	private final int rootPdgId;
 	
@@ -31,27 +33,36 @@ public class APResult {
 	}
 	
 	void add(final MergeInfo mnfo) {
-		final APContextManager ctx = mnfo.extractContext();
+		final APIntraprocContextManager ctx = mnfo.extractContext();
 		pdgId2ctx.put(mnfo.pdg.getId(), ctx);
 		numOfAliasEdges += mnfo.getNumAliasEdges();
 	}
 	
 	public void replaceAPsForwardFromRoot() {
 		final TIntSet worked = new TIntHashSet();
-		APContextManager current = pdgId2ctx.get(rootPdgId);
-		while (current != null && !worked.contains(current.getPdgId())) {
-			worked.add(current.getPdgId());
+		final LinkedList<APIntraprocContextManager> worklist = new LinkedList<>();
+		worklist.add(pdgId2ctx.get(rootPdgId));
+		worked.add(rootPdgId);
+		
+		while (!worklist.isEmpty()) {
+			final APIntraprocContextManager current = worklist.removeFirst();
+			
 			for (final CallContext ctx : current.getCallContexts()) {
-				// todo replace aps
-				final APContextManager callee = pdgId2ctx.get(ctx.calleeId);
+				// replace aps
+				final APIntraprocContextManager callee = pdgId2ctx.get(ctx.calleeId);
 				current.replaceAPsForCall(ctx, callee);
+				
+				if (!worked.contains(ctx.calleeId)) {
+					worklist.add(pdgId2ctx.get(ctx.calleeId));
+					worked.add(ctx.calleeId);
+				}
 			}
 		}
 
-		System.err.println("todo propagate");
+		//System.err.println("todo propagate");
 	}
 	
-	public APContextManager get(final int pdgId) {
+	public APContextManagerView get(final int pdgId) {
 		return pdgId2ctx.get(pdgId);
 	}
 

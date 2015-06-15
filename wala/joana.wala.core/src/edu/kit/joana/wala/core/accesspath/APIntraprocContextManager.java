@@ -16,7 +16,6 @@ import java.util.Set;
 
 import com.ibm.wala.util.intset.MutableMapping;
 import com.ibm.wala.util.intset.OrdinalSet;
-import com.ibm.wala.util.intset.OrdinalSetMapping;
 
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.wala.core.ParameterField;
@@ -34,7 +33,7 @@ import gnu.trove.set.hash.TIntHashSet;
  * 
  * @author Juergen Graf <juergen.graf@gmail.com>
  */
-public class APContextManager {
+public class APIntraprocContextManager implements APContextManagerView {
 	
 	public final String pdgName;
 	public final int pdgId;
@@ -51,7 +50,7 @@ public class APContextManager {
 	private Set<NoAlias> noAlias = new HashSet<>();
 	private final MutableMapping<MergeOp> mergeMap;
 
-	private APContextManager(final String pdgName, final int pdgId, final Set<AP> paths, final Set<MergeOp> origMerges,
+	private APIntraprocContextManager(final String pdgName, final int pdgId, final Set<AP> paths, final Set<MergeOp> origMerges,
 			final TIntObjectMap<Set<AP>> n2ap, final TIntObjectMap<OrdinalSet<MergeOp>> n2reach,
 			final MutableMapping<MergeOp> mergeMap) {
 		this.pdgName = pdgName;
@@ -64,10 +63,10 @@ public class APContextManager {
 		this.baseContext = new APContext(pdgId, n2ap);
 	}
 	
-	public static APContextManager create(final String pdgName, final int pdgId, final Set<AP> paths,
+	public static APIntraprocContextManager create(final String pdgName, final int pdgId, final Set<AP> paths,
 			final Set<MergeOp> origMerges, final TIntObjectMap<Set<AP>> n2ap,
 			final TIntObjectMap<OrdinalSet<MergeOp>> n2reach, final MutableMapping<MergeOp> mergeMap) {
-		final APContextManager manager = new APContextManager(pdgName, pdgId, paths, origMerges, n2ap, n2reach, mergeMap);
+		final APIntraprocContextManager manager = new APIntraprocContextManager(pdgName, pdgId, paths, origMerges, n2ap, n2reach, mergeMap);
 
 		return manager;
 	}
@@ -226,7 +225,7 @@ public class APContextManager {
 		return pdgId;
 	}
 
-	public void replaceAPsForCall(final CallContext ctx, final APContextManager callee) {
+	public void replaceAPsForCall(final CallContext ctx, final APIntraprocContextManager callee) {
 		final Set<ReplaceAP> toReplace = new HashSet<ReplaceAP>();
 
 		ctx.actualIns.forEach(new TIntProcedure() {
@@ -246,7 +245,7 @@ public class APContextManager {
 		final Set<AP> newallaps = new HashSet<>();
 		final Map<AP, Set<AP>> replaceWith = new HashMap<>();
 		for (final ReplaceAP rap : cmds) {
-			System.out.println(rap);
+			//System.out.println(rap);
 			Set<AP> set = replaceWith.get(rap.orig);
 			if (set == null) {
 				set = new HashSet<>();

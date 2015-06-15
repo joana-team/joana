@@ -30,8 +30,9 @@ import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.core.accesspath.AP;
 import edu.kit.joana.wala.core.accesspath.APContext;
-import edu.kit.joana.wala.core.accesspath.APContextManager;
-import edu.kit.joana.wala.core.accesspath.APContextManager.NoAlias;
+import edu.kit.joana.wala.core.accesspath.APIntraprocContextManager;
+import edu.kit.joana.wala.core.accesspath.APIntraprocContextManager.NoAlias;
+import edu.kit.joana.wala.core.accesspath.APContextManagerView;
 import edu.kit.joana.wala.core.accesspath.APResult;
 import edu.kit.joana.wala.summary.GraphUtil;
 import edu.kit.joana.wala.summary.GraphUtil.SummaryProperties;
@@ -192,7 +193,7 @@ public class AliasSDGV2 {
 	}
 
 	private boolean isNotAliased(final SDGNode n1, final SDGNode n2) {
-		final APContextManager ctxmanag = ap.get(n1.getProc());
+		final APContextManagerView ctxmanag = ap.get(n1.getProc());
 		final APContext ctx = ctxmanag.getMatchingContext(n1.getId(), n2.getId());
 		
 		return !ctx.mayBeAliased(n1, n2);
@@ -317,7 +318,7 @@ public class AliasSDGV2 {
 		final SDGNode n1 = sdg.getNode(nodeId1);
 		final SDGNode n2 = sdg.getNode(nodeId2);
 		assert (n1.getProc() == n2.getProc());
-		final APContextManager ctx = ap.get(n1.getProc());
+		final APContextManagerView ctx = ap.get(n1.getProc());
 		final Set<AP> ap1 = ctx.getAccessPaths(nodeId1);
 		final Set<AP> ap2 = ctx.getAccessPaths(nodeId2);
 		for (final AP a1 : ap1) {

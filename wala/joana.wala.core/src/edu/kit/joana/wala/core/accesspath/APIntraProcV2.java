@@ -45,7 +45,7 @@ import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.SDGBuilderConfig;
 import edu.kit.joana.wala.core.accesspath.AP.FieldNode;
 import edu.kit.joana.wala.core.accesspath.AP.RootNode;
-import edu.kit.joana.wala.core.accesspath.APContextManager.CallContext;
+import edu.kit.joana.wala.core.accesspath.APIntraprocContextManager.CallContext;
 import edu.kit.joana.wala.core.accesspath.AccessPathV2.AliasEdge;
 import edu.kit.joana.wala.core.accesspath.nodes.APCallNode;
 import edu.kit.joana.wala.core.accesspath.nodes.APEntryNode;
@@ -799,7 +799,7 @@ public class APIntraProcV2 {
 			calls.add(ctx);
 		}
 		
-		public APContextManager extractContext() {
+		public APIntraprocContextManager extractContext() {
 			if (!intraprocDone || allAPs == null) {
 				throw new IllegalStateException("run intraproc first and add all access paths.");
 			}
@@ -807,7 +807,7 @@ public class APIntraProcV2 {
 			final Set<MergeOp> allMerges = getAllMergeOps();
 			final MutableMapping<MergeOp> mapping = createMapping(allMerges);
 			final TIntObjectMap<OrdinalSet<MergeOp>> reachOp = flattenReachMap(allMerges, mapping);
-			final APContextManager ctx = APContextManager.create(PrettyWalaNames.methodName(pdg.getMethod()),
+			final APIntraprocContextManager ctx = APIntraprocContextManager.create(PrettyWalaNames.methodName(pdg.getMethod()),
 					pdg.getId(), allAPs, allMerges, n2ap, reachOp, mapping);
 			
 			for (final CallContext callctx : calls) {

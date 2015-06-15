@@ -40,6 +40,11 @@ import edu.kit.joana.wala.flowless.util.DotUtil;
 import edu.kit.joana.wala.util.WriteGraphToDot;
 import gnu.trove.iterator.TIntIterator;
 
+/**
+ * intraprocedural access path computation for a single method.
+ * 
+ * @author Juergen Graf <juergen.graf@gmail.com>
+ */
 public class APIntraProc {
 
 	private final PDG pdg;

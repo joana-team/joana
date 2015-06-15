@@ -30,7 +30,7 @@ import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
-import edu.kit.joana.wala.core.accesspath.APContextManager.CallContext;
+import edu.kit.joana.wala.core.accesspath.APIntraprocContextManager.CallContext;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeInfo;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeOp;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.Merges;
@@ -186,21 +186,21 @@ public final class APUtil {
 		final String outFile = outputFileName(debugAccessPathOutputDir, mainPdg, suffix);
 		try {
 			final PrintWriter pw = new PrintWriter(outFile);
-			final APContextManager start = result.get(mainPdg.getId());
-			final LinkedList<APContextManager> worklist = new LinkedList<>();
+			final APContextManagerView start = result.get(mainPdg.getId());
+			final LinkedList<APContextManagerView> worklist = new LinkedList<>();
 			worklist.add(start);
 			final TIntSet visited = new TIntHashSet();
 			visited.add(start.getPdgId());
 			
 			while (!worklist.isEmpty()) {
-				final APContextManager cur = worklist.removeFirst();
+				final APContextManagerView cur = worklist.removeFirst();
 				
 				printContext(cur, pw);
 				
 				for (final CallContext call : cur.getCallContexts()) {
 					if (!visited.contains(call.calleeId)) {
 						visited.add(call.calleeId);
-						final APContextManager callee = result.get(call.calleeId);
+						final APContextManagerView callee = result.get(call.calleeId);
 						worklist.add(callee);
 					}
 				}
@@ -212,7 +212,7 @@ public final class APUtil {
 		}
 	}
 	
-	private static void printContext(final APContextManager ctx, final PrintWriter pw) {
+	private static void printContext(final APContextManagerView ctx, final PrintWriter pw) {
 		pw.println("====================================");
 		pw.println(ctx);
 		pw.println("--- all paths ---");

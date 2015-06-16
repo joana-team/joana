@@ -8,23 +8,17 @@
 package edu.kit.joana.wala.core.accesspath;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import com.ibm.wala.util.intset.MutableMapping;
 import com.ibm.wala.util.intset.OrdinalSet;
 
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
-import edu.kit.joana.wala.core.ParameterField;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeOp;
-import gnu.trove.iterator.TIntIterator;
 import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntIntHashMap;
-import gnu.trove.procedure.TIntProcedure;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 
@@ -47,7 +41,6 @@ public class APIntraprocContextManager implements APContextManagerView {
 	private final TIntObjectMap<OrdinalSet<MergeOp>> n2reach;
 	private APContext baseContext;
 	private final Set<CallContext> calls = new HashSet<>(); 
-	private Set<NoAlias> noAlias = new HashSet<>();
 	private final MutableMapping<MergeOp> mergeMap;
 
 	private APIntraprocContextManager(final String pdgName, final int pdgId, final Set<AP> paths, final Set<MergeOp> origMerges,
@@ -91,9 +84,8 @@ public class APIntraprocContextManager implements APContextManagerView {
 		}
 	}
 	
-	public void setInitialNoAlias(final Set<NoAlias> noAlias) {
-		this.noAlias = noAlias;
-		this.baseContext.setInitialNoAlias(noAlias);
+	public Set<MergeOp> getInitialAlias() {
+		return Collections.unmodifiableSet(initialAlias);
 	}
 	
 	public APContext getMatchingContext(final SDGEdge e) {
@@ -173,203 +165,19 @@ public class APIntraprocContextManager implements APContextManagerView {
 		}
 	}
 	
-	public static final class NoAlias {
-		
-		// the lexically smaller string is always stored in ap1
-		public final String ap1;
-		public final String ap2;
-		
-		public NoAlias(final AP ap1, final AP ap2) {
-			// add '.' so fields with same prefix are not accidentally matched. e.g. ("p1.f2" starts with "p1.f")
-			final String s1 = ap1.toString() + ".";
-			final String s2 = ap2.toString() + ".";
-			if (s1.compareTo(s2) <= 0) {
-				this.ap1 = s1;
-				this.ap2 = s2;
-			} else {
-				this.ap1 = s2;
-				this.ap2 = s1;
-			}
-		}
-		
-		public boolean captures(final AP p1, final AP p2) {
-			final String s1 = p1.toString() + ".";
-			final String s2 = p2.toString() + ".";
-			
-			if (s1.compareTo(s2) <= 0) {
-				return s1.startsWith(ap1) && s2.startsWith(ap2);
-			} else {
-				return s1.startsWith(ap2) && s2.startsWith(ap1);
-			}
-		}
-		
-		public int hashCode() {
-			return ap1.hashCode() + ap2.hashCode();
-		}
-		
-		public boolean equals(final Object o) {
-			if (o == this) {
-				return true;
-			}
-			
-			if (o instanceof NoAlias) {
-				final NoAlias na = (NoAlias) o;
-				return na.ap1.equals(ap1) && na.ap2.equals(ap2);
-			}
-			
-			return false;
-		}
-	}
-
 	public int getPdgId() {
 		return pdgId;
 	}
 
-	public void replaceAPsForCall(final CallContext ctx, final APIntraprocContextManager callee) {
-		final Set<ReplaceAP> toReplace = new HashSet<ReplaceAP>();
-
-		ctx.actualIns.forEach(new TIntProcedure() {
-			@Override
-			public boolean execute(final int id) {
-				final int fin = ctx.act2formal.get(id);
-				final Set<AP> aInAPs = n2ap.get(id);
-				callee.buildReplaceAPOps(fin, aInAPs, toReplace);
-				return true;
-			}
-		});
-		
-		callee.executeReplaceAPs(toReplace);
+	public final void triggerReplaceMapping(final APReplacer rep) {
+		rep.replaceMapping(n2ap);
 	}
 	
-	private void executeReplaceAPs(final Set<ReplaceAP> cmds) {
-		final Set<AP> newallaps = new HashSet<>();
-		final Map<AP, Set<AP>> replaceWith = new HashMap<>();
-		for (final ReplaceAP rap : cmds) {
-			//System.out.println(rap);
-			Set<AP> set = replaceWith.get(rap.orig);
-			if (set == null) {
-				set = new HashSet<>();
-				replaceWith.put(rap.orig, set);
-			}
-			set.add(rap.replacement);
-			newallaps.add(rap.replacement);
-		}
-		
-		//extend mapping
-		for (final AP orig : paths) {
-			for (final AP newap : replaceWith.keySet()) {
-				if (!newap.equals(orig) && newap.isSubPathOf(orig)) {
-					// add to mapping
-					final List<ParameterField> subp = orig.getSubPathFrom(newap);
-					final Set<AP> newrepl = replaceWith.get(newap);
-					Set<AP> extrepl = replaceWith.get(orig);
-					if (extrepl == null) {
-						extrepl = new HashSet<>();
-						replaceWith.put(orig, extrepl);
-					}
-					for (final AP newrepap : newrepl) {
-						final AP extap = newrepap.append(subp);
-						newallaps.add(extap);
-						extrepl.add(extap);
-					}
-				}
-			}
-		}
-		
-		// execute replacement
-		final TIntSet keys = n2ap.keySet();
-		for (final TIntIterator it = keys.iterator(); it.hasNext(); ){
-			final int cur = it.next();
-			final Set<AP> old = n2ap.get(cur);
-			final Set<AP> newaps = new HashSet<>();
-			for (final AP o : old) {
-				final Set<AP> repl = replaceWith.get(o);
-				if (repl != null) {
-					newaps.addAll(repl);
-				} else {
-					newaps.add(o);
-				}
-			}
-			n2ap.put(cur, newaps);
-		}
-		
-		// replace orig merges
-		final Set<MergeOp> newMerges = new HashSet<>();
-		for (final MergeOp mop : origMerges) {
-			final Set<AP> from = new HashSet<AP>();
-			for (final AP ap : mop.from) {
-				final Set<AP> repl = replaceWith.get(ap);
-				if (repl != null) {
-					from.addAll(repl);
-				} else {
-					from.add(ap);
-				}
-			}
-			final Set<AP> to = new HashSet<AP>();
-			for (final AP ap : mop.to) {
-				final Set<AP> repl = replaceWith.get(ap);
-				if (repl != null) {
-					to.addAll(repl);
-				} else {
-					to.add(ap);
-				}
-			}
-			
-			final MergeOp newOP = new MergeOp(from, to);
-			newOP.id = mop.id;
-			newMerges.add(newOP);
-			mergeMap.replace(mop, newOP);
-		}
-		
-		paths.clear();
-		paths.addAll(newallaps);
-		origMerges.clear();
-		origMerges.addAll(newMerges);
-	}
-
-	protected void buildReplaceAPOps(final int fin, final Set<AP> aInAPs, final Set<ReplaceAP> toReplace) {
-		// replace mapping of fin to APs and rewrite all merge-ops that contain original aps with new ones.
-		final Set<AP> oldAPs = n2ap.get(fin);
-		for (final AP old : oldAPs) {
-			for (final AP newap : aInAPs) {
-				if (!old.equals(newap)) {
-					final ReplaceAP replace = new ReplaceAP(old, newap);
-					toReplace.add(replace);
-				}
-			}
-		}
+	public final void triggerReplaceMerges(final APReplacer rep) {
+		rep.replaceMerges(origMerges, mergeMap);
 	}
 	
-	public class ReplaceAP {
-		public final AP orig;
-		public final AP replacement;
-		
-		public ReplaceAP(final AP orig, final AP replacement) {
-			this.orig = orig;
-			this.replacement = replacement;
-		}
-		
-		public int hashCode() {
-			return orig.hashCode() + 2711 * replacement.hashCode();
-		}
-		
-		public boolean equals(final Object o) {
-			if (this == o) {
-				return true;
-			}
-			
-			if (o instanceof ReplaceAP) {
-				final ReplaceAP other = (ReplaceAP) o;
-				
-				return orig.equals(other.orig) && replacement.equals(other.replacement);
-			}
-			
-			return false;
-		}
-		
-		public String toString() {
-			return "replace " + orig + " with " + replacement;
-		}
+	public final void triggerReplaceAllAPs(final APReplacer rep) {
+		rep.replaceAllAPs(paths);
 	}
-	
 }

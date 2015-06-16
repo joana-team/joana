@@ -9,7 +9,6 @@ package edu.kit.joana.wala.core.accesspath;
 
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.wala.core.accesspath.APIntraprocContextManager.NoAlias;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeOp;
 import gnu.trove.map.TIntObjectMap;
 
@@ -28,21 +27,15 @@ public class APContext implements Cloneable {
 	private final int pdgId;
 	private final TIntObjectMap<Set<AP>> n2ap;
 	private final Set<EQClass> eqClasses = new HashSet<>();
-	private Set<NoAlias> initialNoAlias = new HashSet<>();
 
 	public APContext(final int pdgId, final TIntObjectMap<Set<AP>> n2ap) {
 		this.pdgId = pdgId;
 		this.n2ap = n2ap;
 	}
 	
-	public void setInitialNoAlias(final Set<NoAlias> noAlias) {
-		this.initialNoAlias = noAlias;
-	}
-	
 	public APContext clone() {
 		final APContext ctx = new APContext(pdgId, n2ap);
 		ctx.eqClasses.addAll(eqClasses);
-		ctx.setInitialNoAlias(initialNoAlias);
 		return ctx;
 	}
 	
@@ -194,23 +187,7 @@ public class APContext implements Cloneable {
 		final String eqAP1 = equivalenceClassAP(a1);
 		final String eqAP2 = equivalenceClassAP(a2);
 		
-		if (eqAP1.equals(eqAP2)) { 
-			return true;
-		} else if (compatibleType(a1, a2)) {
-			for (final NoAlias na : initialNoAlias) {
-				if (na.captures(a1, a2)) {
-					return false;
-				}
-			}
-			
-			return true;
-		}
-		
-		return false;
-	}
-	
-	public boolean compatibleType(final AP a1, final AP a2) {
-		return true;
+		return eqAP1.equals(eqAP2);
 	}
 	
 }

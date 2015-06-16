@@ -7,15 +7,9 @@
  */
 package edu.kit.joana.wala.core.accesspath;
 
-import java.util.LinkedList;
-
-import edu.kit.joana.wala.core.accesspath.APIntraprocContextManager.CallContext;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeInfo;
-import edu.kit.joana.wala.util.NotImplementedException;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.set.TIntSet;
-import gnu.trove.set.hash.TIntHashSet;
 
 /**
  * Result of the accesspath and merge info computation. Contains info for each PDG in the SDG.
@@ -38,32 +32,12 @@ public class APResult {
 		numOfAliasEdges += mnfo.getNumAliasEdges();
 	}
 	
-	public void replaceAPsForwardFromRoot() {
-		final TIntSet worked = new TIntHashSet();
-		final LinkedList<APIntraprocContextManager> worklist = new LinkedList<>();
-		worklist.add(pdgId2ctx.get(rootPdgId));
-		worked.add(rootPdgId);
-		
-		while (!worklist.isEmpty()) {
-			final APIntraprocContextManager current = worklist.removeFirst();
-			
-			for (final CallContext ctx : current.getCallContexts()) {
-				// replace aps
-				final APIntraprocContextManager callee = pdgId2ctx.get(ctx.calleeId);
-				current.replaceAPsForCall(ctx, callee);
-				
-				if (!worked.contains(ctx.calleeId)) {
-					worklist.add(pdgId2ctx.get(ctx.calleeId));
-					worked.add(ctx.calleeId);
-				}
-			}
-		}
-
-		//System.err.println("todo propagate");
-	}
-	
 	public APContextManagerView get(final int pdgId) {
 		return pdgId2ctx.get(pdgId);
+	}
+	
+	public APContextManagerView getRoot() {
+		return get(rootPdgId);
 	}
 
 	public int getNumOfAliasEdges() {

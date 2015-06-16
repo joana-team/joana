@@ -142,12 +142,6 @@ public class AccessPathV2 {
 		}
 		
 		if (sdg.cfg.debugAccessPath) {
-			APUtil.writeResultToFile(result, sdg.cfg.debugAccessPathOutputDir, start, "-ap-pre-inter.txt");
-		}
-
-		result.replaceAPsForwardFromRoot();
-
-		if (sdg.cfg.debugAccessPath) {
 			APUtil.writeResultToFile(result, sdg.cfg.debugAccessPathOutputDir, start, "-ap.txt");
 		}
 		

@@ -30,8 +30,6 @@ import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.core.accesspath.AP;
 import edu.kit.joana.wala.core.accesspath.APContext;
-import edu.kit.joana.wala.core.accesspath.APIntraprocContextManager;
-import edu.kit.joana.wala.core.accesspath.APIntraprocContextManager.NoAlias;
 import edu.kit.joana.wala.core.accesspath.APContextManagerView;
 import edu.kit.joana.wala.core.accesspath.APResult;
 import edu.kit.joana.wala.summary.GraphUtil;
@@ -343,4 +341,49 @@ public class AliasSDGV2 {
 		return count;
 	}
 
+	public static final class NoAlias {
+		
+		private final String id1;
+		private final String id2;
+		
+		public NoAlias(final AP i1, final AP i2) {
+			final String s1 = i1.toString();
+			final String s2 = i2.toString();
+			if (s1.compareTo(s2) < 0) {
+				id1 = s1;
+				id2 = s2;
+			} else {
+				id1 = s2;
+				id2 = s1;
+			}
+		}
+		
+		public boolean captures(final AP i1, final AP i2) {
+			final String s1 = i1.toString();
+			final String s2 = i2.toString();
+			
+			return ((s1.compareTo(s2) < 0) ? (id1.equals(s1) && id2.equals(s2)) : (id1.equals(s2) && id2.equals(s1))); 
+		}
+		
+		public boolean equals(final Object o) {
+			if (this == o) {
+				return true;
+			}
+			
+			if (o instanceof NoAlias) {
+				final NoAlias noa = (NoAlias) o;
+				return id1.equals(noa.id1) && id2.equals(noa.id2);
+			}
+			
+			return false;
+		}
+		
+		public String toString() {
+			return "noalias(" + id1 + "," + id2 + ")";
+		}
+		
+		public int hashCode() {
+			return id1.hashCode() + 47 * id2.hashCode();
+		}
+	}
 }

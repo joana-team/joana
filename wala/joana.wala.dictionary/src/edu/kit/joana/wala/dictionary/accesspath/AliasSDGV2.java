@@ -28,7 +28,6 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
-import edu.kit.joana.wala.core.accesspath.AP;
 import edu.kit.joana.wala.core.accesspath.APContext;
 import edu.kit.joana.wala.core.accesspath.APContextManagerView;
 import edu.kit.joana.wala.core.accesspath.APResult;
@@ -317,14 +316,9 @@ public class AliasSDGV2 {
 		final SDGNode n2 = sdg.getNode(nodeId2);
 		assert (n1.getProc() == n2.getProc());
 		final APContextManagerView ctx = ap.get(n1.getProc());
-		final Set<AP> ap1 = ctx.getAccessPaths(nodeId1);
-		final Set<AP> ap2 = ctx.getAccessPaths(nodeId2);
-		for (final AP a1 : ap1) {
-			for (final AP a2 : ap2) {
-				final NoAlias noa = new NoAlias(a1, a2);
-				noAlias.add(noa);
-			}
-		}
+		System.err.println("TODO set no alias in context manager");
+		final NoAlias noa = new NoAlias(nodeId1, nodeId2);
+		noAlias.add(noa);
 		
 		return true;
 	}
@@ -343,26 +337,25 @@ public class AliasSDGV2 {
 
 	public static final class NoAlias {
 		
-		private final String id1;
-		private final String id2;
+		private final int id1;
+		private final int id2;
 		
-		public NoAlias(final AP i1, final AP i2) {
-			final String s1 = i1.toString();
-			final String s2 = i2.toString();
-			if (s1.compareTo(s2) < 0) {
-				id1 = s1;
-				id2 = s2;
+		public NoAlias(final int i1, final int i2) {
+			if (i1 < i2) {
+				id1 = i1;
+				id2 = i2;
 			} else {
-				id1 = s2;
-				id2 = s1;
+				id1 = i2;
+				id2 = i1;
 			}
 		}
 		
-		public boolean captures(final AP i1, final AP i2) {
-			final String s1 = i1.toString();
-			final String s2 = i2.toString();
-			
-			return ((s1.compareTo(s2) < 0) ? (id1.equals(s1) && id2.equals(s2)) : (id1.equals(s2) && id2.equals(s1))); 
+		public boolean captures(final SDGNode n1, final SDGNode n2) {
+			return captures(n1.getId(), n2.getId());
+		}
+		
+		public boolean captures(final int i1, final int i2) {
+			return ((i1 < i2) ? (id1 == i1 && id2 == i2) : (id1 == i2 && id2 == i1)); 
 		}
 		
 		public boolean equals(final Object o) {
@@ -372,7 +365,7 @@ public class AliasSDGV2 {
 			
 			if (o instanceof NoAlias) {
 				final NoAlias noa = (NoAlias) o;
-				return id1.equals(noa.id1) && id2.equals(noa.id2);
+				return id1 == noa.id1 && id2 == noa.id2;
 			}
 			
 			return false;
@@ -383,7 +376,7 @@ public class AliasSDGV2 {
 		}
 		
 		public int hashCode() {
-			return id1.hashCode() + 47 * id2.hashCode();
+			return id1 + 47 * id2;
 		}
 	}
 }

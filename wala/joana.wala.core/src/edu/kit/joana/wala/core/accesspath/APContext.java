@@ -132,6 +132,13 @@ public class APContext implements Cloneable {
 		// if equiv1 and equiv 2 share a common element, they may be aliased.
 		return equiv1.retainAll(equiv2); 
 	}
+	
+	public void addMerge(final int n1, final int n2) {
+		final Set<AP> sap1 = n2ap.get(n1);
+		final Set<AP> sap2 = n2ap.get(n2);
+		final MergeOp mop = new MergeOp(sap1, sap2);
+		addMerge(mop);
+	}
 
 	public void addMerge(final MergeOp mo) {
 		addToEqClasses(mo);

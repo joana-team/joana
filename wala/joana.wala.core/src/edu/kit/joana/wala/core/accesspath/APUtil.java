@@ -193,7 +193,7 @@ public final class APUtil {
 			visited.add(start.getPdgId());
 			
 			while (!worklist.isEmpty()) {
-				final APContextManagerView cur = worklist.removeFirst();
+				final APIntraprocContextManager cur = (APIntraprocContextManager) worklist.removeFirst();
 				
 				printContext(cur, pw);
 				
@@ -212,7 +212,7 @@ public final class APUtil {
 		}
 	}
 	
-	private static void printContext(final APContextManagerView ctx, final PrintWriter pw) {
+	private static void printContext(final APIntraprocContextManager ctx, final PrintWriter pw) {
 		pw.println("====================================");
 		pw.println(ctx);
 		pw.println("--- all paths ---");

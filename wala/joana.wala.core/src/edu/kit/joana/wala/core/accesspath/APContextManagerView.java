@@ -7,13 +7,7 @@
  */
 package edu.kit.joana.wala.core.accesspath;
 
-import java.util.Set;
-
-import com.ibm.wala.util.intset.OrdinalSet;
-
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
-import edu.kit.joana.wala.core.accesspath.APIntraprocContextManager.CallContext;
-import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeOp;
 import gnu.trove.set.TIntSet;
 
 /**
@@ -23,13 +17,9 @@ import gnu.trove.set.TIntSet;
  */
 public interface APContextManagerView {
 
-	public Set<AP> getAllPaths();
-	public OrdinalSet<MergeOp> getReachingMerges(final int id);
 	public TIntSet getAllMappedNodes();
-	public Set<AP> getAccessPaths(final int pdgNodeId);
-	public Set<CallContext> getCallContexts();
+	public TIntSet getCalledMethods();
 	public int getPdgId();
-	public Set<MergeOp> getOrigMerges();
 	public APContext getMatchingContext(final SDGEdge e);
 	public APContext getMatchingContext(final int n1Id, final int n2Id);
 

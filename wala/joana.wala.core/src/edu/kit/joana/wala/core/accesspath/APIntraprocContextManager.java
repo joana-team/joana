@@ -76,6 +76,74 @@ public class APIntraprocContextManager implements APContextManagerView {
 		return Collections.unmodifiableSet(calls);
 	}
 	
+	public TIntSet getCalledMethods() {
+		final TIntSet called = new TIntHashSet();
+		
+		for (final CallContext call : calls) {
+			called.add(call.calleeId);
+		}
+		
+		return called;
+	}
+	
+	public APContext getMatchingContext(final CallContext call) {
+		final OrdinalSet<MergeOp> rcall = n2reach.get(call.callSite);
+
+		final APContext callCtx = baseContext.clone();
+		for (final MergeOp mo : rcall) {
+			callCtx.addMerge(mo);
+		}
+		
+		return callCtx;
+	}
+	
+	public APContext computeContextForAllCallsTo(final APIntraprocContextManager callee) {
+		final APContext ctx = callee.baseContext.clone();
+		
+		for (final CallContext call : calls) {
+			if (call.calleeId == callee.pdgId) {
+				// add this context to end result
+				final APContext callerCtx = getMatchingContext(call);
+				mergeAdditionalCallContext(callerCtx, call, ctx);
+			}
+		}
+		
+		return ctx;
+	}
+	
+	/**
+	 * Translate the APContext of a callsite of this method to a matching method local context.
+	 * @param caller The context at the callsite
+	 * @param call Description of the call with mapping between actual and formal parameters
+	 * @return An APContext with access paths relative to this methods parameters.
+	 */
+	public APContext translateToLocalContext(final APContext caller, final CallContext call) {
+		final APContext ctx = baseContext.clone();
+		
+		mergeAdditionalCallContext(caller, call, ctx);
+		
+		return ctx;
+	}
+	
+	public void mergeAdditionalCallContext(final APContext caller, final CallContext call, final APContext toMerge) {
+		final int[] actIns = call.actualIns.toArray();
+		
+		for (int i = 0; i < actIns.length; i++) {
+			final int a1 = actIns[i];
+			final int f1 = call.act2formal.get(a1);
+			
+			for (int j = i+1; j < actIns.length; j++) {
+				final int a2 = actIns[j];
+				
+				if (caller.mayBeAliased(a1, a2)) {
+					// add alias to matching formal-ins
+					final int f2 = call.act2formal.get(a2);
+					toMerge.addMerge(f1, f2);
+				}
+			}
+		}
+	}
+	
 	public void setInitialAlias(final Set<MergeOp> initialAliasing) {
 		this.initialAlias = initialAliasing;
 		this.baseContext = new APContext(pdgId, n2ap);

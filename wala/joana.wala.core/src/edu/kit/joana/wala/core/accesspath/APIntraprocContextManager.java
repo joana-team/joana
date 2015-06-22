@@ -16,6 +16,7 @@ import com.ibm.wala.util.intset.OrdinalSet;
 
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeOp;
+import edu.kit.joana.wala.util.NotImplementedException;
 import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntIntHashMap;
@@ -42,26 +43,159 @@ public class APIntraprocContextManager implements APContextManagerView {
 	private APContext baseContext;
 	private final Set<CallContext> calls = new HashSet<>(); 
 	private final MutableMapping<MergeOp> mergeMap;
+	private final Set<MergeOp> maxMerges;
+	private final Set<NoMerge> noAlias = new HashSet<>();
 
 	private APIntraprocContextManager(final String pdgName, final int pdgId, final Set<AP> paths, final Set<MergeOp> origMerges,
-			final TIntObjectMap<Set<AP>> n2ap, final TIntObjectMap<OrdinalSet<MergeOp>> n2reach,
+			final TIntObjectMap<Set<AP>> n2ap, final Set<MergeOp> maxMerges, final TIntObjectMap<OrdinalSet<MergeOp>> n2reach,
 			final MutableMapping<MergeOp> mergeMap) {
 		this.pdgName = pdgName;
 		this.pdgId = pdgId;
 		this.paths = paths;
 		this.origMerges = origMerges;
 		this.n2ap = n2ap;
+		this.maxMerges = maxMerges;
 		this.n2reach = n2reach;
 		this.mergeMap = mergeMap;
 		this.baseContext = new APContext(pdgId, n2ap);
 	}
 	
 	public static APIntraprocContextManager create(final String pdgName, final int pdgId, final Set<AP> paths,
-			final Set<MergeOp> origMerges, final TIntObjectMap<Set<AP>> n2ap,
+			final Set<MergeOp> origMerges, final TIntObjectMap<Set<AP>> n2ap, final Set<MergeOp> maxMerges,
 			final TIntObjectMap<OrdinalSet<MergeOp>> n2reach, final MutableMapping<MergeOp> mergeMap) {
-		final APIntraprocContextManager manager = new APIntraprocContextManager(pdgName, pdgId, paths, origMerges, n2ap, n2reach, mergeMap);
+		final APIntraprocContextManager manager = new APIntraprocContextManager(pdgName, pdgId, paths, origMerges, n2ap, maxMerges, n2reach, mergeMap);
 
 		return manager;
+	}
+	
+	private static class NoMerge {
+		
+		public final String ap1str;
+		public final String ap2str;
+		public final AP ap1;
+		public final AP ap2;
+		
+		public NoMerge(final AP ap1, final AP ap2) {
+			final String a1 = flatten(ap1);
+			final String a2 = flatten(ap2);
+			if (a1.compareTo(a2) < 0) {
+				this.ap1str = a1;
+				this.ap2str = a2;
+				this.ap1 = ap1;
+				this.ap2 = ap2;
+			} else {
+				this.ap1str = a2;
+				this.ap2str = a1;
+				this.ap1 = ap2;
+				this.ap2 = ap1;
+			}
+		}
+		
+		public static String flatten(final AP ap) {
+			return ap.toString() + ".";
+		}
+		
+		public boolean violates(final MergeOp mop) {
+			boolean vio11 = false;
+			boolean vio12 = false;
+			
+			for (final AP a1 : mop.from) {
+				final String a1flat = flatten(a1);
+				if (a1flat.startsWith(ap1str)) {
+					vio11 = true;
+				} else if (a1flat.startsWith(ap2str)) {
+					vio12 = true;
+				}
+				
+				if (vio11 && vio12) break;
+			}
+			
+			if (!(vio11 || vio12)) {
+				return false;
+			}
+			
+			for (final AP a2 : mop.to) {
+				final String a2flat = flatten(a2);
+				if (vio12 && a2flat.startsWith(ap1str)) {
+					return true;
+				} else if (vio11 && a2flat.startsWith(ap2str)) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+		
+		public boolean equals(final Object o) {
+			if (this == o) {
+				return true;
+			}
+			
+			if (o instanceof NoMerge) {
+				final NoMerge nom = (NoMerge) o;
+				return ap1str.equals(nom.ap1str) && ap2str.equals(nom.ap2str);
+			}
+			
+			return false;
+		}
+		
+		public int hashCode() {
+			return ap1str.hashCode() + 4711 * ap2str.hashCode();
+		}
+	}
+	
+	/**
+	 * Compute the maximal set of initial merge operations that do not violate the previously set no-alias options.
+	 */
+	public void computeMaxInitialContext() {
+		final Set<MergeOp> ok = new HashSet<>();
+		final Set<MergeOp> splitted = new HashSet<>();
+		
+		for (final MergeOp mop : maxMerges) {
+			final NoMerge nm = findViolatingNoAlias(mop);
+			
+			if (nm != null) {
+				// split mergeOp
+				final Set<MergeOp> split = splitUp(nm, mop);
+				splitted.addAll(split);
+			} else {
+				ok.add(mop);
+			}
+		}
+
+		//TODO
+		throw new NotImplementedException();
+	}
+	
+	private Set<MergeOp> splitUp(final NoMerge nm, final MergeOp mop) {
+		throw new NotImplementedException();
+	}
+	
+	private NoMerge findViolatingNoAlias(final MergeOp mop) {
+		for (final NoMerge nm : noAlias) {
+			if (nm.violates(mop)) {
+				return nm;
+			}
+		}
+		
+		return null;
+	}
+	
+	public boolean addNoAlias(final NoAlias noa) {
+		boolean changed = false;
+		
+		final int id1 = noa.getId1();
+		final Set<AP> ap1 = n2ap.get(id1);
+		final int id2 = noa.getId2();
+		final Set<AP> ap2 = n2ap.get(id2);
+		for (final AP a1 : ap1) {
+			for (final AP a2 : ap2) {
+				final NoMerge nm = new NoMerge(a1, a2);
+				changed |= noAlias.add(nm);
+			}
+		}
+		
+		return changed;
 	}
 	
 	public String toString() {

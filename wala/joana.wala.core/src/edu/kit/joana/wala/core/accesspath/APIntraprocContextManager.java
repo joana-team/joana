@@ -16,7 +16,6 @@ import com.ibm.wala.util.intset.OrdinalSet;
 
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeOp;
-import edu.kit.joana.wala.util.NotImplementedException;
 import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntIntHashMap;
@@ -95,15 +94,19 @@ public class APIntraprocContextManager implements APContextManagerView {
 			return ap.toString() + ".";
 		}
 		
+		public static boolean prefixMatch(final String s1, final String s2) {
+			return s1.startsWith(s2) || s2.startsWith(s1);
+		}
+		
 		public boolean violates(final MergeOp mop) {
 			boolean vio11 = false;
 			boolean vio12 = false;
 			
 			for (final AP a1 : mop.from) {
 				final String a1flat = flatten(a1);
-				if (a1flat.startsWith(ap1str)) {
+				if (prefixMatch(a1flat, ap1str)) {
 					vio11 = true;
-				} else if (a1flat.startsWith(ap2str)) {
+				} else if (prefixMatch(a1flat, ap2str)) {
 					vio12 = true;
 				}
 				
@@ -116,9 +119,9 @@ public class APIntraprocContextManager implements APContextManagerView {
 			
 			for (final AP a2 : mop.to) {
 				final String a2flat = flatten(a2);
-				if (vio12 && a2flat.startsWith(ap1str)) {
+				if (vio12 && prefixMatch(a2flat, ap1str)) {
 					return true;
-				} else if (vio11 && a2flat.startsWith(ap2str)) {
+				} else if (vio11 && prefixMatch(a2flat, ap2str)) {
 					return true;
 				}
 			}
@@ -147,28 +150,59 @@ public class APIntraprocContextManager implements APContextManagerView {
 	/**
 	 * Compute the maximal set of initial merge operations that do not violate the previously set no-alias options.
 	 */
-	public void computeMaxInitialContext() {
+	public Set<MergeOp> computeMaxInitialContext() {
 		final Set<MergeOp> ok = new HashSet<>();
-		final Set<MergeOp> splitted = new HashSet<>();
 		
 		for (final MergeOp mop : maxMerges) {
 			final NoMerge nm = findViolatingNoAlias(mop);
 			
 			if (nm != null) {
-				// split mergeOp
-				final Set<MergeOp> split = splitUp(nm, mop);
-				splitted.addAll(split);
+				final Set<MergeOp> splitted = splitUp(nm, mop);
+				ok.addAll(splitted);
 			} else {
 				ok.add(mop);
 			}
 		}
 
-		//TODO
-		throw new NotImplementedException();
+		return ok;
 	}
 	
 	private Set<MergeOp> splitUp(final NoMerge nm, final MergeOp mop) {
-		throw new NotImplementedException();
+		final Set<MergeOp> split = new HashSet<>();
+
+		final Set<AP> okFrom = new HashSet<>();
+		final Set<AP> okTo = new HashSet<>();
+		final Set<AP> vioFrom = new HashSet<>();
+		final Set<AP> vioTo = new HashSet<>();
+		
+		for (final AP ap : mop.from) {
+			final String apStr = NoMerge.flatten(ap);
+			if (NoMerge.prefixMatch(apStr, nm.ap1str)) {
+				vioFrom.add(ap);
+			} else if (NoMerge.prefixMatch(apStr, nm.ap2str)) {
+				vioFrom.add(ap);
+			} else {
+				okFrom.add(ap);
+			}
+		}
+		
+		for (final AP ap : mop.to) {
+			final String apStr = NoMerge.flatten(ap);
+			if (NoMerge.prefixMatch(apStr, nm.ap1str)) {
+				vioTo.add(ap);
+			} else if (NoMerge.prefixMatch(apStr, nm.ap2str)) {
+				vioTo.add(ap);
+			} else {
+				okTo.add(ap);
+			}
+		}
+
+		if (!okTo.isEmpty() && !okFrom.isEmpty()) {
+			final MergeOp op1ok = new MergeOp(okFrom, okTo);
+			split.add(op1ok);
+		}
+		
+		return split;
 	}
 	
 	private NoMerge findViolatingNoAlias(final MergeOp mop) {

@@ -52,6 +52,7 @@ import edu.kit.joana.wala.core.accesspath.nodes.APGraph.APEdge;
 import edu.kit.joana.wala.core.accesspath.nodes.APNode;
 import edu.kit.joana.wala.core.accesspath.nodes.APParamNode;
 import edu.kit.joana.wala.core.dataflow.GenReach;
+import edu.kit.joana.wala.util.NotImplementedException;
 import edu.kit.joana.wala.util.PrettyWalaNames;
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.map.TIntObjectMap;
@@ -803,10 +804,11 @@ public class APIntraProcV2 {
 			}
 			
 			final Set<MergeOp> allMerges = getAllMergeOps();
+			final Set<MergeOp> maxMerged = getMaximalInitialMerge();
 			final MutableMapping<MergeOp> mapping = createMapping(allMerges);
 			final TIntObjectMap<OrdinalSet<MergeOp>> reachOp = flattenReachMap(allMerges, mapping);
 			final APIntraprocContextManager ctx = APIntraprocContextManager.create(PrettyWalaNames.methodName(pdg.getMethod()),
-					pdg.getId(), allAPs, allMerges, n2ap, reachOp, mapping);
+					pdg.getId(), allAPs, allMerges, n2ap, maxMerged, reachOp, mapping);
 			
 			for (final CallContext callctx : calls) {
 				ctx.addCallContext(callctx);
@@ -942,6 +944,10 @@ public class APIntraProcV2 {
 			return Collections.unmodifiableSet(merges);
 		}
 		
+		public Set<MergeOp> getMaximalInitialMerge() {
+			throw new NotImplementedException();
+		}
+		
 		public Set<MergeOp> getAllMergeOps() {
 			final Set<MergeOp> mops = new HashSet<>();
 			for (final Merges m : merges) {
@@ -1002,12 +1008,13 @@ public class APIntraProcV2 {
 	}
 	
 	public static class MergeOp implements Merges {
+		
 		public final Set<AP> from;
 		public final Set<AP> to;
 		private final int hashCode;
 		public static final int ID_UNDEF = -1;
 		public int id = ID_UNDEF; // used later on for ordinal set mapping
-		
+
 		public MergeOp(final Set<AP> from, final Set<AP> to) {
 			if (from.size() < 1 || to.size() < 1) {
 				throw new IllegalArgumentException("from and to sets of merge op need to contain at least a single path");

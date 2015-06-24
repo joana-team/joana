@@ -7,7 +7,6 @@
  */
 package edu.kit.joana.wala.core.accesspath;
 
-import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeInfo;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
@@ -26,10 +25,9 @@ public class APResult {
 		this.rootPdgId = rootPdgId;
 	}
 	
-	void add(final MergeInfo mnfo) {
-		final APIntraprocContextManager ctx = mnfo.extractContext();
-		pdgId2ctx.put(mnfo.pdg.getId(), ctx);
-		numOfAliasEdges += mnfo.getNumAliasEdges();
+	void add(final APIntraprocContextManager ctx, final int numOfCurAliasEdges) {
+		pdgId2ctx.put(ctx.getPdgId(), ctx);
+		numOfAliasEdges += numOfCurAliasEdges;
 	}
 	
 	public APContextManagerView get(final int pdgId) {

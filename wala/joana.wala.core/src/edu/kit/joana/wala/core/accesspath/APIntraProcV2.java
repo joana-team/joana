@@ -778,6 +778,81 @@ public class APIntraProcV2 {
 		return aps;
 	}
 	
+	private static Set<APParamNode> collectReachable(final APParamNode n) {
+		final Set<APParamNode> result = new HashSet<>();
+		
+		final LinkedList<APParamNode> work = new LinkedList<>();
+		work.add(n);
+		
+		while (!work.isEmpty()) {
+			final APParamNode cur = work.removeLast();
+
+			if (!cur.getType().isPrimitiveType()) {
+				result.add(cur);
+
+				if (cur.hasChildren()) {
+					for (final APParamNode ch : cur.getChildren()) {
+						work.addLast(ch);
+					}
+				}
+			}
+		}
+		
+		return result;
+	}
+	
+	private static boolean compatibleTypes(final TypeReference t1, final TypeReference t2) {
+		// TODO check subtype relation
+		return t1.equals(t2);
+	}
+	
+	private static void populateMaxMerge(final APParamNode[] roots, final Set<MergeOp> max) {
+		for (int i = 0; i < roots.length; i++) {
+			final APParamNode r1 = roots[i];
+			final Set<APParamNode> reach1 = collectReachable(r1);
+			
+			for (int j = i+1; j < roots.length; j++) {
+				final APParamNode r2 = roots[j];
+				final Set<APParamNode> reach2 = collectReachable(r2);
+				
+				for (final APParamNode n1 : reach1) {
+					Set<AP> from = null;
+
+					for (final APParamNode n2 : reach2) {
+						if (from != null && from.isEmpty()) break;
+						
+						if (compatibleTypes(n1.getType(), n2.getType())) {
+							if (from == null) {
+								from = new HashSet<AP>();
+								
+								final Iterator<AP> it = n1.getOutgoingPaths();
+								while (it.hasNext()) {
+									final AP ap = it.next();
+									from.add(ap);
+								}
+							}
+							
+							final Set<AP> to = new HashSet<>();
+							if (!from.isEmpty()) {
+								final Iterator<AP> it = n2.getOutgoingPaths();
+								while (it.hasNext()) {
+									final AP ap = it.next();
+									to.add(ap);
+								}
+							}
+							
+							if (!from.isEmpty() && !to.isEmpty()) {
+								final MergeOp mop = new MergeOp(from, to);
+								max.add(mop);
+							}
+						}
+					}
+				}
+				
+			}
+		}
+	}
+	
 	public static class MergeInfo {
 		public final PDG pdg;
 		
@@ -794,21 +869,42 @@ public class APIntraProcV2 {
 			this.pdg = pdg;
 		}
 		
+		private Set<MergeOp> computeMaxMerge(final APGraph graph) {
+			final Set<MergeOp> max = new HashSet<>();
+			final APEntryNode entry = graph.getEntry();
+			
+			final Set<APParamNode> roots = new HashSet<>();
+			
+			for (int i = 0; i < entry.getParameterNum(); i++) {
+				final APParamNode p = entry.getParameterIn(i);
+				roots.add(p);
+			}
+			
+			for (final Entry<IField, APParamNode> e : entry.getStaticIns()) {
+				roots.add(e.getValue());
+			}
+			
+			final APParamNode[] rootsarray = roots.toArray(new APParamNode[roots.size()]);
+			populateMaxMerge(rootsarray, max);
+			
+			return max;
+		}
+		
 		public void addCallCtx(final CallContext ctx) {
 			calls.add(ctx);
 		}
 		
-		public APIntraprocContextManager extractContext() {
+		public APIntraprocContextManager extractContext(final APGraph graph) {
 			if (!intraprocDone || allAPs == null) {
 				throw new IllegalStateException("run intraproc first and add all access paths.");
 			}
 			
 			final Set<MergeOp> allMerges = getAllMergeOps();
-			final Set<MergeOp> maxMerged = getMaximalInitialMerge();
 			final MutableMapping<MergeOp> mapping = createMapping(allMerges);
 			final TIntObjectMap<OrdinalSet<MergeOp>> reachOp = flattenReachMap(allMerges, mapping);
+			final Set<MergeOp> maxMerges = computeMaxMerge(graph);
 			final APIntraprocContextManager ctx = APIntraprocContextManager.create(PrettyWalaNames.methodName(pdg.getMethod()),
-					pdg.getId(), allAPs, allMerges, n2ap, maxMerged, reachOp, mapping);
+					pdg.getId(), allAPs, allMerges, n2ap, maxMerges, reachOp, mapping);
 			
 			for (final CallContext callctx : calls) {
 				ctx.addCallContext(callctx);
@@ -942,10 +1038,6 @@ public class APIntraProcV2 {
 		
 		public Set<Merges> getAllMerges() {
 			return Collections.unmodifiableSet(merges);
-		}
-		
-		public Set<MergeOp> getMaximalInitialMerge() {
-			throw new NotImplementedException();
 		}
 		
 		public Set<MergeOp> getAllMergeOps() {
@@ -1104,6 +1196,10 @@ public class APIntraProcV2 {
 	
 	public MergeInfo getMergeInfo() {
 		return mnfo;
+	}
+	
+	public APGraph getAliasGraph() {
+		return graph;
 	}
 	
 	private void extractIntraprocMerge() {

@@ -138,7 +138,8 @@ public class AccessPathV2 {
 				}
 			}
 			mnfo.setNumAliasEdges(numOfAliasEdges);
-			result.add(mnfo);
+			final APIntraprocContextManager ctx = mnfo.extractContext(ap.getAliasGraph());
+			result.add(ctx, numOfAliasEdges);
 		}
 		
 		if (sdg.cfg.debugAccessPath) {

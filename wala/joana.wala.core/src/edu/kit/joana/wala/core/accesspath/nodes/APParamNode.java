@@ -27,6 +27,10 @@ public abstract class APParamNode extends APSimplePropagationNode {
 		this.field = field;
 	}
 
+	public TypeReference getType() {
+		return node.getTypeRef();
+	}
+	
 	public boolean isRoot() {
 		return field == null || field.isStatic();
 	}

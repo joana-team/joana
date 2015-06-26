@@ -37,6 +37,7 @@ import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
 import edu.kit.joana.wala.core.accesspath.APResult;
 import edu.kit.joana.wala.core.accesspath.AccessPath;
+import edu.kit.joana.wala.dictionary.accesspath.AliasSDGV2;
 import edu.kit.joana.wala.flowless.MoJo;
 import edu.kit.joana.wala.flowless.MoJo.CallGraphResult;
 import edu.kit.joana.wala.flowless.pointsto.GraphAnnotater.Aliasing;
@@ -160,6 +161,9 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
 			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
+			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
+			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(precompSum > 0);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -181,6 +185,9 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
 			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
+			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
+			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(precompSum > 0);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -203,6 +210,9 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
 			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
+			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
+			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(precompSum > 0);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -225,6 +235,9 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
 			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
+			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
+			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(precompSum > 0);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -247,6 +260,9 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
 			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
+			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
+			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(precompSum > 0);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -269,6 +285,9 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
 			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
+			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
+			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(precompSum > 0);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -291,6 +310,9 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
 			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
+			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
+			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(precompSum == 0);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -313,6 +335,9 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
 			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
+			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
+			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(precompSum > 0);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -335,6 +360,9 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
 			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
+			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
+			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(precompSum > 0);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -357,6 +385,9 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
 			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
+			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
+			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(precompSum > 0);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -379,6 +410,9 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
 			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
+			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
+			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(precompSum > 0);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {

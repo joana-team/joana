@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-
 import org.jgrapht.DirectedGraph;
 
 import com.ibm.wala.ipa.callgraph.CGNode;
@@ -36,8 +35,9 @@ import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
-import edu.kit.joana.wala.core.accesspath.APIntraprocContextManager.CallContext;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeInfo;
+import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeOp;
+import edu.kit.joana.wala.core.accesspath.APIntraprocContextManager.CallContext;
 import edu.kit.joana.wala.summary.SummaryComputation;
 import edu.kit.joana.wala.summary.WorkPackage;
 import edu.kit.joana.wala.summary.WorkPackage.EntryPoint;
@@ -138,7 +138,8 @@ public class AccessPathV2 {
 				}
 			}
 			mnfo.setNumAliasEdges(numOfAliasEdges);
-			final APIntraprocContextManager ctx = mnfo.extractContext(ap.getAliasGraph());
+			final Set<MergeOp> maxMerge = ap.computeMaxMerge();
+			final APIntraprocContextManager ctx = mnfo.extractContext(maxMerge);
 			result.add(ctx, numOfAliasEdges);
 		}
 		

@@ -23,6 +23,8 @@ public interface APContextManagerView {
 	public int getPdgId();
 	public APContext getMatchingContext(final SDGEdge e);
 	public APContext getMatchingContext(final int n1Id, final int n2Id);
+	public boolean addNoAlias(final NoAlias noa);
+	public void resetNoAlias();
 
 	public static final class NoAlias {
 		

@@ -49,7 +49,6 @@ public class AliasSDGV2 {
 	private final SDG sdg;
 	private final APResult ap;
 	private WorkPackage workPack;
-	private final Set<NoAlias> noAlias = new HashSet<>();
 	private final List<SDGEdge> currentlyRemoved = new LinkedList<SDGEdge>();
 
 	private AliasSDGV2(final SDG sdg, final WorkPackage workPack, final APResult ap) {
@@ -97,23 +96,8 @@ public class AliasSDGV2 {
 		final Logger debug = Log.getLogger(Log.L_MOJO_DEBUG);
 		
 		
-		if (noAlias.size() > 0) {
-			// TODO rewrite propagation
-			if (debug.isEnabled()) {
-				debug.out("propagating no-aliases... ");
-				final int sizeBefore = noAlias.size();
-
-				if (propagateAliasesFromCallSites()) {
-					debug.out("[" + sizeBefore + " => " + noAlias.size() + "] ");
-				} else {
-					debug.out("[no change] ");
-				}
-
-				debug.outln("done.");
-			} else {
-				propagateAliasesFromCallSites();
-			}
-		}
+		//TODO propagate aliases from starting apcontextmanager
+		propagateAliasesFromCallSites();
 
 		int aliasEdges = 0;
 
@@ -202,7 +186,6 @@ public class AliasSDGV2 {
 	 * removes all non- and may-aliasing states.
 	 */
 	public void reset() {
-		noAlias.clear();
 		workPack.reset();
 
 		final List<SDGEdge> toDelete = new LinkedList<SDGEdge>();
@@ -316,10 +299,10 @@ public class AliasSDGV2 {
 		final SDGNode n1 = sdg.getNode(nodeId1);
 		final SDGNode n2 = sdg.getNode(nodeId2);
 		assert (n1.getProc() == n2.getProc());
+
 		final APContextManagerView ctx = ap.get(n1.getProc());
-		System.err.println("TODO set no alias in context manager");
 		final NoAlias noa = new NoAlias(nodeId1, nodeId2);
-		noAlias.add(noa);
+		ctx.addNoAlias(noa);
 		
 		return true;
 	}

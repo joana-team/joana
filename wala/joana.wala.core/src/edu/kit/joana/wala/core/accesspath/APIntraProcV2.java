@@ -52,7 +52,6 @@ import edu.kit.joana.wala.core.accesspath.nodes.APGraph.APEdge;
 import edu.kit.joana.wala.core.accesspath.nodes.APNode;
 import edu.kit.joana.wala.core.accesspath.nodes.APParamNode;
 import edu.kit.joana.wala.core.dataflow.GenReach;
-import edu.kit.joana.wala.util.NotImplementedException;
 import edu.kit.joana.wala.util.PrettyWalaNames;
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.map.TIntObjectMap;
@@ -61,6 +60,7 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 public class APIntraProcV2 {
 
 	private final PDG pdg;
+	private final IClassHierarchy cha;
 	private final APGraph graph;
 	// contains only edges for heap dependencies that are due to aliasing
 	private final List<APGraph.APEdge> alias;
@@ -86,6 +86,7 @@ public class APIntraProcV2 {
 		this.alias = alias;
 		this.mnfo = new MergeInfo(pdg);
 		this.cfg = cfg;
+		this.cha = pdg.cgNode.getClassHierarchy();
 	}
 
 	public SDGBuilderConfig getConfig() {
@@ -801,12 +802,18 @@ public class APIntraProcV2 {
 		return result;
 	}
 	
-	private static boolean compatibleTypes(final TypeReference t1, final TypeReference t2) {
-		// TODO check subtype relation
-		return t1.equals(t2);
+	private boolean compatibleTypes(final TypeReference t1, final TypeReference t2) {
+		if (t1.equals(t2)) {
+			return true;
+		}
+		
+		final IClass c1 = cha.lookupClass(t1);
+		final IClass c2 = cha.lookupClass(t2);
+
+		return cha.isSubclassOf(c1, c2) || cha.isSubclassOf(c2, c1);
 	}
 	
-	private static void populateMaxMerge(final APParamNode[] roots, final Set<MergeOp> max) {
+	private void populateMaxMerge(final APParamNode[] roots, final Set<MergeOp> max) {
 		for (int i = 0; i < roots.length; i++) {
 			final APParamNode r1 = roots[i];
 			final Set<APParamNode> reach1 = collectReachable(r1);
@@ -852,6 +859,27 @@ public class APIntraProcV2 {
 			}
 		}
 	}
+
+	public Set<MergeOp> computeMaxMerge() {
+		final Set<MergeOp> max = new HashSet<>();
+		final APEntryNode entry = graph.getEntry();
+		
+		final Set<APParamNode> roots = new HashSet<>();
+		
+		for (int i = 0; i < entry.getParameterNum(); i++) {
+			final APParamNode p = entry.getParameterIn(i);
+			roots.add(p);
+		}
+		
+		for (final Entry<IField, APParamNode> e : entry.getStaticIns()) {
+			roots.add(e.getValue());
+		}
+		
+		final APParamNode[] rootsarray = roots.toArray(new APParamNode[roots.size()]);
+		populateMaxMerge(rootsarray, max);
+		
+		return max;
+	}
 	
 	public static class MergeInfo {
 		public final PDG pdg;
@@ -869,32 +897,11 @@ public class APIntraProcV2 {
 			this.pdg = pdg;
 		}
 		
-		private Set<MergeOp> computeMaxMerge(final APGraph graph) {
-			final Set<MergeOp> max = new HashSet<>();
-			final APEntryNode entry = graph.getEntry();
-			
-			final Set<APParamNode> roots = new HashSet<>();
-			
-			for (int i = 0; i < entry.getParameterNum(); i++) {
-				final APParamNode p = entry.getParameterIn(i);
-				roots.add(p);
-			}
-			
-			for (final Entry<IField, APParamNode> e : entry.getStaticIns()) {
-				roots.add(e.getValue());
-			}
-			
-			final APParamNode[] rootsarray = roots.toArray(new APParamNode[roots.size()]);
-			populateMaxMerge(rootsarray, max);
-			
-			return max;
-		}
-		
 		public void addCallCtx(final CallContext ctx) {
 			calls.add(ctx);
 		}
 		
-		public APIntraprocContextManager extractContext(final APGraph graph) {
+		public APIntraprocContextManager extractContext(final Set<MergeOp> maxMerges) {
 			if (!intraprocDone || allAPs == null) {
 				throw new IllegalStateException("run intraproc first and add all access paths.");
 			}
@@ -902,7 +909,6 @@ public class APIntraProcV2 {
 			final Set<MergeOp> allMerges = getAllMergeOps();
 			final MutableMapping<MergeOp> mapping = createMapping(allMerges);
 			final TIntObjectMap<OrdinalSet<MergeOp>> reachOp = flattenReachMap(allMerges, mapping);
-			final Set<MergeOp> maxMerges = computeMaxMerge(graph);
 			final APIntraprocContextManager ctx = APIntraprocContextManager.create(PrettyWalaNames.methodName(pdg.getMethod()),
 					pdg.getId(), allAPs, allMerges, n2ap, maxMerges, reachOp, mapping);
 			

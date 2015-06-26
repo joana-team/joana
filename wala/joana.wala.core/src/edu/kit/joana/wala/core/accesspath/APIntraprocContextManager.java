@@ -71,8 +71,6 @@ public class APIntraprocContextManager implements APContextManagerView {
 		
 		public final String ap1str;
 		public final String ap2str;
-		public final AP ap1;
-		public final AP ap2;
 		
 		public NoMerge(final AP ap1, final AP ap2) {
 			final String a1 = flatten(ap1);
@@ -80,13 +78,9 @@ public class APIntraprocContextManager implements APContextManagerView {
 			if (a1.compareTo(a2) < 0) {
 				this.ap1str = a1;
 				this.ap2str = a2;
-				this.ap1 = ap1;
-				this.ap2 = ap2;
 			} else {
 				this.ap1str = a2;
 				this.ap2str = a1;
-				this.ap1 = ap2;
-				this.ap2 = ap1;
 			}
 		}
 		
@@ -213,6 +207,10 @@ public class APIntraprocContextManager implements APContextManagerView {
 		}
 		
 		return null;
+	}
+	
+	public void resetNoAlias() {
+		noAlias.clear();
 	}
 	
 	public boolean addNoAlias(final NoAlias noa) {

@@ -43,7 +43,7 @@ import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.SDGBuilderConfig;
 import edu.kit.joana.wala.core.accesspath.AP.FieldNode;
 import edu.kit.joana.wala.core.accesspath.AP.RootNode;
-import edu.kit.joana.wala.core.accesspath.APIntraprocContextManager.CallContext;
+import edu.kit.joana.wala.core.accesspath.APContextManagerView.CallContext;
 import edu.kit.joana.wala.core.accesspath.AccessPathV2.AliasEdge;
 import edu.kit.joana.wala.core.accesspath.nodes.APCallNode;
 import edu.kit.joana.wala.core.accesspath.nodes.APEntryNode;

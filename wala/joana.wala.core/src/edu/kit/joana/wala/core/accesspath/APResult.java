@@ -7,8 +7,10 @@
  */
 package edu.kit.joana.wala.core.accesspath;
 
+import gnu.trove.iterator.TIntIterator;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
+import gnu.trove.set.TIntSet;
 
 /**
  * Result of the accesspath and merge info computation. Contains info for each PDG in the SDG.
@@ -40,5 +42,24 @@ public class APResult {
 
 	public int getNumOfAliasEdges() {
 		return numOfAliasEdges;
+	}
+	
+	public boolean propagateInitialContextToCalls(final int startId) {
+		boolean changed = false;
+		final APIntraprocContextManager cur = pdgId2ctx.get(startId);
+		final TIntSet called = cur.getCalledMethods();
+		final TIntIterator it = called.iterator();
+		
+		while (it.hasNext()) {
+			final int curM = it.next();
+			final APIntraprocContextManager callee = pdgId2ctx.get(curM);
+			final APContext ctxCallee = cur.computeContextForAllCallsTo(callee);
+			if (ctxCallee != null) {
+				cur.setInitialAlias(ctxCallee);
+				changed = true;
+			}
+		}
+
+		return changed;
 	}
 }

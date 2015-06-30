@@ -16,8 +16,8 @@ import java.util.Set;
 import com.ibm.wala.util.intset.MutableMapping;
 
 import edu.kit.joana.wala.core.ParameterField;
+import edu.kit.joana.wala.core.accesspath.APContextManagerView.CallContext;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeOp;
-import edu.kit.joana.wala.core.accesspath.APIntraprocContextManager.CallContext;
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.procedure.TIntProcedure;

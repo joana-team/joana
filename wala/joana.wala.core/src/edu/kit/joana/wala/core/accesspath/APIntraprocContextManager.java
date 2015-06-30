@@ -16,9 +16,7 @@ import com.ibm.wala.util.intset.OrdinalSet;
 
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeOp;
-import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 
@@ -263,36 +261,33 @@ public class APIntraprocContextManager implements APContextManagerView {
 		return callCtx;
 	}
 	
+	/**
+	 * @return null if the context did not change
+	 */
 	public APContext computeContextForAllCallsTo(final APIntraprocContextManager callee) {
 		final APContext ctx = callee.baseContext.clone();
+		
+		boolean changed = false;
 		
 		for (final CallContext call : calls) {
 			if (call.calleeId == callee.pdgId) {
 				// add this context to end result
 				final APContext callerCtx = getMatchingContext(call);
-				mergeAdditionalCallContext(callerCtx, call, ctx);
+				changed |= mergeAdditionalCallContext(callerCtx, call, ctx);
 			}
 		}
 		
-		return ctx;
+		if (changed) {
+			return ctx;
+		} else {
+			return null;
+		}
 	}
 	
-	/**
-	 * Translate the APContext of a callsite of this method to a matching method local context.
-	 * @param caller The context at the callsite
-	 * @param call Description of the call with mapping between actual and formal parameters
-	 * @return An APContext with access paths relative to this methods parameters.
-	 */
-	public APContext translateToLocalContext(final APContext caller, final CallContext call) {
-		final APContext ctx = baseContext.clone();
-		
-		mergeAdditionalCallContext(caller, call, ctx);
-		
-		return ctx;
-	}
-	
-	public void mergeAdditionalCallContext(final APContext caller, final CallContext call, final APContext toMerge) {
+	public boolean mergeAdditionalCallContext(final APContext caller, final CallContext call, final APContext toMerge) {
 		final int[] actIns = call.actualIns.toArray();
+		
+		boolean changed = false;
 		
 		for (int i = 0; i < actIns.length; i++) {
 			final int a1 = actIns[i];
@@ -304,22 +299,23 @@ public class APIntraprocContextManager implements APContextManagerView {
 				if (caller.mayBeAliased(a1, a2)) {
 					// add alias to matching formal-ins
 					final int f2 = call.act2formal.get(a2);
-					toMerge.addMerge(f1, f2);
+					changed |= toMerge.addMerge(f1, f2);
 				}
 			}
 		}
+		
+		return changed;
+	}
+	
+	public void setInitialAlias(final APContext ctx) {
+		this.baseContext = ctx;
 	}
 	
 	public void setInitialAlias(final Set<MergeOp> initialAliasing) {
-		this.initialAlias = initialAliasing;
 		this.baseContext = new APContext(pdgId, n2ap);
 		for (final MergeOp mop : initialAliasing) {
 			this.baseContext.addMerge(mop);
 		}
-	}
-	
-	public Set<MergeOp> getInitialAlias() {
-		return Collections.unmodifiableSet(initialAlias);
 	}
 	
 	public APContext getMatchingContext(final SDGEdge e) {
@@ -362,41 +358,6 @@ public class APIntraprocContextManager implements APContextManagerView {
 	
 	public OrdinalSet<MergeOp> getReachingMerges(final int id) {
 		return n2reach.get(id);
-	}
-	
-	public static final class CallContext {
-		final int callId;
-		final int calleeId;
-		final int callSite;
-		final TIntSet actualIns = new TIntHashSet();
-		final TIntIntMap act2formal = new TIntIntHashMap();
-		
-		public CallContext(final int callId, final int calleeId, final int callSite) {
-			this.callId = callId;
-			this.calleeId = calleeId;
-			this.callSite = callSite;
-		}
-		
-		public boolean equals(final Object o) {
-			if (o == this) {
-				return true;
-			}
-			
-			if (o instanceof CallContext) {
-				final CallContext other = (CallContext) o;
-				return callId == other.callId && calleeId == other.calleeId && callSite == other.callSite;
-			}
-			
-			return false;
-		}
-		
-		public String toString() {
-			return "call-ctx " + callId + " to " + calleeId + " at " + callSite; 
-		}
-		
-		public int hashCode() {
-			return callId + 7 * calleeId + 23 * callSite;
-		}
 	}
 	
 	public int getPdgId() {

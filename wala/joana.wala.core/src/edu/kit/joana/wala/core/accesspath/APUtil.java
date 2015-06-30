@@ -30,7 +30,7 @@ import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
-import edu.kit.joana.wala.core.accesspath.APIntraprocContextManager.CallContext;
+import edu.kit.joana.wala.core.accesspath.APContextManagerView.CallContext;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeInfo;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeOp;
 import edu.kit.joana.wala.core.accesspath.APIntraProcV2.Merges;

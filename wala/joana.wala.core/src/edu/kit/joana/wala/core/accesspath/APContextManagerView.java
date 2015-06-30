@@ -9,7 +9,10 @@ package edu.kit.joana.wala.core.accesspath;
 
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import gnu.trove.map.TIntIntMap;
+import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 
 /**
  * Interface for the intra and interprocedural implementations of the context manager.
@@ -76,6 +79,41 @@ public interface APContextManagerView {
 
 		public int getId2() {
 			return id2;
+		}
+	}
+
+	public static final class CallContext {
+		public final int callId;
+		public final int calleeId;
+		public final int callSite;
+		final TIntSet actualIns = new TIntHashSet();
+		final TIntIntMap act2formal = new TIntIntHashMap();
+		
+		public CallContext(final int callId, final int calleeId, final int callSite) {
+			this.callId = callId;
+			this.calleeId = calleeId;
+			this.callSite = callSite;
+		}
+		
+		public boolean equals(final Object o) {
+			if (o == this) {
+				return true;
+			}
+			
+			if (o instanceof CallContext) {
+				final CallContext other = (CallContext) o;
+				return callId == other.callId && calleeId == other.calleeId && callSite == other.callSite;
+			}
+			
+			return false;
+		}
+		
+		public String toString() {
+			return "call-ctx " + callId + " to " + calleeId + " at " + callSite; 
+		}
+		
+		public int hashCode() {
+			return callId + 7 * calleeId + 23 * callSite;
 		}
 	}
 

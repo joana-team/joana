@@ -84,16 +84,16 @@ public class APContext implements Cloneable {
 		}
 	}
 	
-	private void addToEqClasses(final MergeOp op) {
+	private boolean addToEqClasses(final MergeOp op) {
 		final int id = getNextID();
 		final Set<AP> paths = new HashSet<>();
 		paths.addAll(op.from);
 		paths.addAll(op.to);
 		final EQClass cls = new EQClass(id, paths);
-		addToEqClasses(cls);
+		return addToEqClasses(cls);
 	}
 
-	private void addToEqClasses(final EQClass cls) {
+	private boolean addToEqClasses(final EQClass cls) {
 		EQClass toMerge = null;
 		for (final EQClass eqc : eqClasses) {
 			if (eqc.needsMerge(cls)) {
@@ -103,11 +103,17 @@ public class APContext implements Cloneable {
 		}
 		
 		if (toMerge != null) {
-			eqClasses.remove(toMerge);
-			final EQClass mergedEQ = EQClass.merge(toMerge, cls, cls.id);
-			eqClasses.add(mergedEQ);
+			if (toMerge.paths.containsAll(cls.paths)) {
+				return false;
+			} else {
+				eqClasses.remove(toMerge);
+				final EQClass mergedEQ = EQClass.merge(toMerge, cls, cls.id);
+				eqClasses.add(mergedEQ);
+				return true;
+			}
 		} else {
 			eqClasses.add(cls);
+			return true;
 		}
 	}
 
@@ -133,15 +139,15 @@ public class APContext implements Cloneable {
 		return equiv1.retainAll(equiv2); 
 	}
 	
-	public void addMerge(final int n1, final int n2) {
+	public boolean addMerge(final int n1, final int n2) {
 		final Set<AP> sap1 = n2ap.get(n1);
 		final Set<AP> sap2 = n2ap.get(n2);
 		final MergeOp mop = new MergeOp(sap1, sap2);
-		addMerge(mop);
+		return addMerge(mop);
 	}
 
-	public void addMerge(final MergeOp mo) {
-		addToEqClasses(mo);
+	public boolean addMerge(final MergeOp mo) {
+		return addToEqClasses(mo);
 	}
 
 	private Set<String> extractEquiv(final Set<AP> paths) {

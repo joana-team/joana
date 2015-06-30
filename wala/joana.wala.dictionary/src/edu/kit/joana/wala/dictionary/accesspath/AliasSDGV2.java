@@ -30,6 +30,7 @@ import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.core.accesspath.APContext;
 import edu.kit.joana.wala.core.accesspath.APContextManagerView;
+import edu.kit.joana.wala.core.accesspath.APContextManagerView.CallContext;
 import edu.kit.joana.wala.core.accesspath.APContextManagerView.NoAlias;
 import edu.kit.joana.wala.core.accesspath.APResult;
 import edu.kit.joana.wala.summary.GraphUtil;
@@ -123,24 +124,11 @@ public class AliasSDGV2 {
 
 	private boolean propagateAliasesFromCallSites() {
 		boolean totalChange = false;
-		// propagate alias from call-sites to formal-in of callees
-		boolean change = true;
-		while (change) {
-			change = false;
+		
+		final APContextManagerView ctxRoot = ap.getRoot();
+		totalChange = ap.propagateInitialContextToCalls(ctxRoot.getPdgId());
 
-			for (final SDGNode entry : sdg.vertexSet()) {
-				if (entry.kind == SDGNode.Kind.ENTRY) {
-					// summarize no-aliases from all callsites (or clone for specific alias sets)
-					for (final SDGNode call : sdg.getCallers(entry)) {
-						propagateAliasesFromCall(call, entry);
-						
-					}
-
-				}
-			}
-		}
-
-		throw new NotImplementedException();
+		return totalChange;
 	}
 
 	private void propagateAliasesFromCall(final SDGNode call, final SDGNode entry) {

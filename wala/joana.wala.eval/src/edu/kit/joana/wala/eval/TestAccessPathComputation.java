@@ -163,6 +163,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			Assert.assertNotNull(sdg);
 			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
+			sdg.ap.propagateInitialContextToCalls(sdg.ap.getRoot().getPdgId());
 			Assert.assertTrue(precompSum > 0);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException

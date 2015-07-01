@@ -146,6 +146,10 @@ public class APContext implements Cloneable {
 		return addMerge(mop);
 	}
 
+	public void resetEqClasses() {
+		eqClasses.clear();
+	}
+	
 	public boolean addMerge(final MergeOp mo) {
 		return addToEqClasses(mo);
 	}

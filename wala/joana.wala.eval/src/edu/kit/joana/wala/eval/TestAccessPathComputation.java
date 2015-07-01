@@ -163,8 +163,18 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			Assert.assertNotNull(sdg);
 			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
-			sdg.ap.propagateInitialContextToCalls(sdg.ap.getRoot().getPdgId());
 			Assert.assertTrue(precompSum > 0);
+			asdg.setNoAlias(5, 6);
+			asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			final int recompSum = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(recompSum > 0);
+			asdg.reset();
+			asdg.setNoAlias(5, 6);
+			asdg.setNoAlias(4, 6);			
+			asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			final int recompSum2 = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(recompSum2 > 0);
+			Assert.assertTrue(recompSum2 < recompSum);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -189,6 +199,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
+			asdg.adjustSDG(NullProgressMonitor.INSTANCE);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -214,6 +225,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
+			asdg.adjustSDG(NullProgressMonitor.INSTANCE);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -239,6 +251,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
+			asdg.adjustSDG(NullProgressMonitor.INSTANCE);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -264,6 +277,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
+			asdg.adjustSDG(NullProgressMonitor.INSTANCE);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -289,6 +303,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
+			asdg.adjustSDG(NullProgressMonitor.INSTANCE);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -314,6 +329,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum == 0);
+			asdg.adjustSDG(NullProgressMonitor.INSTANCE);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -339,6 +355,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
+			asdg.adjustSDG(NullProgressMonitor.INSTANCE);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -364,6 +381,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
+			asdg.adjustSDG(NullProgressMonitor.INSTANCE);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -389,6 +407,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
+			asdg.adjustSDG(NullProgressMonitor.INSTANCE);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -414,6 +433,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
+			asdg.adjustSDG(NullProgressMonitor.INSTANCE);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {

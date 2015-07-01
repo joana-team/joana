@@ -7,6 +7,8 @@
  */
 package edu.kit.joana.wala.core.accesspath;
 
+import java.util.LinkedList;
+
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
@@ -46,20 +48,36 @@ public class APResult {
 	
 	public boolean propagateInitialContextToCalls(final int startId) {
 		boolean changed = false;
-		final APIntraprocContextManager cur = pdgId2ctx.get(startId);
-		final TIntSet called = cur.getCalledMethods();
-		final TIntIterator it = called.iterator();
+		final APIntraprocContextManager root = pdgId2ctx.get(startId);
+		final LinkedList<APIntraprocContextManager> work = new LinkedList<>();
+		work.add(root);
 		
-		while (it.hasNext()) {
-			final int curM = it.next();
-			final APIntraprocContextManager callee = pdgId2ctx.get(curM);
-			final APContext ctxCallee = cur.computeContextForAllCallsTo(callee);
-			if (ctxCallee != null) {
-				cur.setInitialAlias(ctxCallee);
-				changed = true;
+		while (!work.isEmpty()) {
+			final APIntraprocContextManager cur = work.removeLast();
+			final TIntSet called = cur.getCalledMethods();
+			final TIntIterator it = called.iterator();
+			
+			while (it.hasNext()) {
+				final int curM = it.next();
+				final APIntraprocContextManager callee = pdgId2ctx.get(curM);
+				final APContext ctxCallee = cur.computeContextForAllCallsTo(callee);
+				
+				if (ctxCallee != null) {
+					callee.setInitialAlias(ctxCallee);
+					changed = true;
+					if (!work.contains(callee)) {
+						work.add(callee);
+					}
+				}
 			}
 		}
 
 		return changed;
+	}
+
+	public void reset() {
+		for (final APIntraprocContextManager ctx : pdgId2ctx.valueCollection()) {
+			ctx.resetInitialAlias();
+		}
 	}
 }

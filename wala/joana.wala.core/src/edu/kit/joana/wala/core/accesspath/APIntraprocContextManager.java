@@ -307,6 +307,10 @@ public class APIntraprocContextManager implements APContextManagerView {
 		return changed;
 	}
 	
+	public void resetInitialAlias() {
+		this.baseContext.resetEqClasses();
+	}
+	
 	public void setInitialAlias(final APContext ctx) {
 		this.baseContext = ctx;
 	}

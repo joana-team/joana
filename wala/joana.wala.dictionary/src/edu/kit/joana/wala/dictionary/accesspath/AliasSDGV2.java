@@ -96,10 +96,10 @@ public class AliasSDGV2 {
 		final List<SDGEdge> toDisable = new LinkedList<SDGEdge>();
 		final Logger debug = Log.getLogger(Log.L_MOJO_DEBUG);
 		
-		
-		//TODO propagate aliases from starting apcontextmanager
-		propagateAliasesFromCallSites();
+		// propagate aliases from starting apcontextmanager
+		propagateAliasesFromRoot();
 
+		// enable active alias edges and remove inactive ones
 		int aliasEdges = 0;
 
 		for (final SDGEdge e : sdg.edgeSet()) {
@@ -122,13 +122,13 @@ public class AliasSDGV2 {
 		return !toDisable.isEmpty();
 	}
 
-	private boolean propagateAliasesFromCallSites() {
-		boolean totalChange = false;
+	private boolean propagateAliasesFromRoot() {
+		boolean changed = false;
 		
 		final APContextManagerView ctxRoot = ap.getRoot();
-		totalChange = ap.propagateInitialContextToCalls(ctxRoot.getPdgId());
+		changed = ap.propagateInitialContextToCalls(ctxRoot.getPdgId());
 
-		return totalChange;
+		return changed;
 	}
 
 	private void propagateAliasesFromCall(final SDGNode call, final SDGNode entry) {
@@ -175,6 +175,7 @@ public class AliasSDGV2 {
 	 */
 	public void reset() {
 		workPack.reset();
+		ap.reset();
 
 		final List<SDGEdge> toDelete = new LinkedList<SDGEdge>();
 

@@ -7,12 +7,14 @@
  */
 package edu.kit.joana.wala.core.accesspath;
 
-import java.util.LinkedList;
-
+import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeOp;
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.set.TIntSet;
+
+import java.util.LinkedList;
+import java.util.Set;
 
 /**
  * Result of the accesspath and merge info computation. Contains info for each PDG in the SDG.
@@ -49,6 +51,8 @@ public class APResult {
 	public boolean propagateInitialContextToCalls(final int startId) {
 		boolean changed = false;
 		final APIntraprocContextManager root = pdgId2ctx.get(startId);
+		final Set<MergeOp> initial = root.computeMaxInitialContext();
+		root.setInitialAlias(initial);
 		final LinkedList<APIntraprocContextManager> work = new LinkedList<>();
 		work.add(root);
 		

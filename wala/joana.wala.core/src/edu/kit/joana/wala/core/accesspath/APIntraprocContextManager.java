@@ -308,7 +308,8 @@ public class APIntraprocContextManager implements APContextManagerView {
 	}
 	
 	public void resetInitialAlias() {
-		this.baseContext.resetEqClasses();
+		setInitialAlias(Collections.<MergeOp> emptySet());
+		noAlias.clear();
 	}
 	
 	public void setInitialAlias(final APContext ctx) {

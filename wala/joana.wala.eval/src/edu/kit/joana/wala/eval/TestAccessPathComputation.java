@@ -167,14 +167,15 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			asdg.setNoAlias(5, 6);
 			asdg.setNoAlias(4, 6);			
 			asdg.setNoAlias(4, 5);			
-			asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			final int disabled = asdg.adjustSDG(NullProgressMonitor.INSTANCE);
 			final int recompSum = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(recompSum > 0);
 			asdg.reset();
-			asdg.setNoAlias(5, 6);
-			asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			final int disabled2 = asdg.adjustSDG(NullProgressMonitor.INSTANCE);
 			final int recompSum2 = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(recompSum2 > 0);
+			out.println("\tpre: " + precompSum + ", recomp(" + disabled + "): " + recompSum
+					+ ", recomp2(" + disabled2 + "): " + recompSum2);
 			Assert.assertTrue(recompSum2 > recompSum);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException

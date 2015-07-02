@@ -89,10 +89,10 @@ public class AliasSDGV2 {
 	/**
 	 * Adjusts the internal SDG to the current alias setting. Returns true iff some edges have changed:
 	 * added heap dependencies, removed alias dependencies.
-	 * @return true iff some edges have changed: added heap dependencies, removed alias dependencies.
+	 * @return number of removed (max) alias dependencies.
 	 * @throws CancelException
 	 */
-	public boolean adjustSDG(final IProgressMonitor progress) throws CancelException {
+	public int adjustSDG(final IProgressMonitor progress) throws CancelException {
 		final List<SDGEdge> toDisable = new LinkedList<SDGEdge>();
 		final Logger debug = Log.getLogger(Log.L_MOJO_DEBUG);
 		
@@ -119,7 +119,7 @@ public class AliasSDGV2 {
 			currentlyRemoved.add(alias);
 		}
 
-		return !toDisable.isEmpty();
+		return toDisable.size();
 	}
 
 	private boolean propagateAliasesFromRoot() {

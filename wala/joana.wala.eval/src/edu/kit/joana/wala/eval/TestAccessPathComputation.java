@@ -164,6 +164,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
+			// 4 params, with nodeids 4..7
 			asdg.setNoAlias(5, 6);
 			asdg.setNoAlias(4, 6);			
 			asdg.setNoAlias(4, 5);			
@@ -201,7 +202,32 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
-			asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			// 6 params, with nodeids 4..9
+//			asdg.setNoAlias(4, 5);
+			asdg.setNoAlias(4, 6);
+//			asdg.setNoAlias(4, 7);
+			asdg.setNoAlias(4, 8);
+			asdg.setNoAlias(4, 9);
+			asdg.setNoAlias(5, 6);
+			asdg.setNoAlias(5, 7);
+			asdg.setNoAlias(5, 8);
+			asdg.setNoAlias(5, 9);
+			asdg.setNoAlias(6, 7);
+			asdg.setNoAlias(6, 8);
+			asdg.setNoAlias(6, 9);
+			asdg.setNoAlias(7, 8);
+			asdg.setNoAlias(7, 9);
+			asdg.setNoAlias(8, 9);
+			final int disabled = asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			final int recompSum = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(recompSum > 0);
+			asdg.reset();
+			final int disabled2 = asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			final int recompSum2 = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(recompSum2 > 0);
+			out.println("\tpre: " + precompSum + ", recomp(" + disabled + "): " + recompSum
+					+ ", recomp2(" + disabled2 + "): " + recompSum2);
+			Assert.assertTrue(recompSum2 > recompSum);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -227,7 +253,20 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
-			asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			// 4 params with nodeIds 4..7
+			asdg.setNoAlias(new int[] {4, 5, 6});
+			asdg.setNoAlias(4, 7);
+			asdg.setNoAlias(5, 7);
+			final int disabled = asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			final int recompSum = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(recompSum > 0);
+			asdg.reset();
+			final int disabled2 = asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			final int recompSum2 = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(recompSum2 > 0);
+			out.println("\tpre: " + precompSum + ", recomp(" + disabled + "): " + recompSum
+					+ ", recomp2(" + disabled2 + "): " + recompSum2);
+			Assert.assertTrue(recompSum2 > recompSum);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -253,7 +292,20 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
-			asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			// 4 params with node ids 4..7
+			asdg.setNoAlias(new int[] {4, 5, 6});
+			asdg.setNoAlias(4, 7);
+			asdg.setNoAlias(5, 7);
+			final int disabled = asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			final int recompSum = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(recompSum > 0);
+			asdg.reset();
+			final int disabled2 = asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			final int recompSum2 = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(recompSum2 > 0);
+			out.println("\tpre: " + precompSum + ", recomp(" + disabled + "): " + recompSum
+					+ ", recomp2(" + disabled2 + "): " + recompSum2);
+			Assert.assertTrue(recompSum2 > recompSum);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -279,7 +331,20 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
-			asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			// 4 params with node ids 4..7
+			asdg.setNoAlias(new int[] {4, 5, 6});
+			asdg.setNoAlias(4, 7);
+			asdg.setNoAlias(5, 7);
+			final int disabled = asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			final int recompSum = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(recompSum > 0);
+			asdg.reset();
+			final int disabled2 = asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			final int recompSum2 = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(recompSum2 > 0);
+			out.println("\tpre: " + precompSum + ", recomp(" + disabled + "): " + recompSum
+					+ ", recomp2(" + disabled2 + "): " + recompSum2);
+			Assert.assertTrue(recompSum2 > recompSum);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -305,7 +370,18 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
-			asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			// 2 params with node ids 4..5
+			asdg.setNoAlias(4, 5);
+			final int disabled = asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			final int recompSum = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(disabled > 0);
+			asdg.reset();
+			final int disabled2 = asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			final int recompSum2 = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(disabled2 > 0);
+			out.println("\tpre: " + precompSum + ", recomp(" + disabled + "): " + recompSum
+					+ ", recomp2(" + disabled2 + "): " + recompSum2);
+			Assert.assertTrue(disabled > disabled2);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -331,7 +407,18 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum == 0);
-			asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			// 2 params with node ids 4..5
+			asdg.setNoAlias(4, 5);
+			final int disabled = asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			final int recompSum = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(disabled > 0);
+			asdg.reset();
+			final int disabled2 = asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			final int recompSum2 = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(disabled2 >= 0);
+			out.println("\tpre: " + precompSum + ", recomp(" + disabled + "): " + recompSum
+					+ ", recomp2(" + disabled2 + "): " + recompSum2);
+			Assert.assertTrue(disabled > disabled2);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -357,7 +444,18 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
-			asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			// 2 params with node ids 4..5
+			asdg.setNoAlias(4, 5);
+			final int disabled = asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			final int recompSum = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(recompSum > 0);
+			asdg.reset();
+			final int disabled2 = asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			final int recompSum2 = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(recompSum2 > 0);
+			out.println("\tpre: " + precompSum + ", recomp(" + disabled + "): " + recompSum
+					+ ", recomp2(" + disabled2 + "): " + recompSum2);
+			Assert.assertTrue(recompSum2 > recompSum);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -383,7 +481,18 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
-			asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			// 2 params with node ids 4..5
+			asdg.setNoAlias(4, 5);
+			final int disabled = asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			final int recompSum = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(recompSum > 0);
+			asdg.reset();
+			final int disabled2 = asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			final int recompSum2 = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(recompSum2 > 0);
+			out.println("\tpre: " + precompSum + ", recomp(" + disabled + "): " + recompSum
+					+ ", recomp2(" + disabled2 + "): " + recompSum2);
+			Assert.assertTrue(recompSum2 > recompSum);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -409,7 +518,18 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
-			asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			// 2 params with node ids 4..5
+			asdg.setNoAlias(4, 5);
+			final int disabled = asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			final int recompSum = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(recompSum > 0);
+			asdg.reset();
+			final int disabled2 = asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			final int recompSum2 = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(recompSum2 > 0);
+			out.println("\tpre: " + precompSum + ", recomp(" + disabled + "): " + recompSum
+					+ ", recomp2(" + disabled2 + "): " + recompSum2);
+			Assert.assertTrue(recompSum2 > recompSum);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
@@ -435,7 +555,18 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
-			asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			// 3 params with node ids 4..6
+			asdg.setNoAlias(4, 5);
+			final int disabled = asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			final int recompSum = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(recompSum > 0);
+			asdg.reset();
+			final int disabled2 = asdg.adjustSDG(NullProgressMonitor.INSTANCE);
+			final int recompSum2 = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
+			Assert.assertTrue(recompSum2 > 0);
+			out.println("\tpre: " + precompSum + ", recomp(" + disabled + "): " + recompSum
+					+ ", recomp2(" + disabled2 + "): " + recompSum2);
+			Assert.assertTrue(recompSum2 > recompSum);
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {

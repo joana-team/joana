@@ -284,6 +284,32 @@ public class AliasSDGV2 {
 		return new AliasCondition(id1, id2);
 	}
 
+	public boolean setNoAlias(final int[] nodeIds) {
+		if (nodeIds.length < 2) {
+			return false;
+		}
+		
+		boolean changed = false;
+		
+		final APContextManagerView ctx;
+		{
+			final SDGNode n = sdg.getNode(nodeIds[0]);
+			ctx = ap.get(n.getProc());
+		}
+		
+		for (int i = 0; i < nodeIds.length; i++) {
+			final int id1 = nodeIds[i];
+
+			for (int j = i + 1; j < nodeIds.length; j++) {
+				final int id2 = nodeIds[j];
+				final NoAlias noa = new NoAlias(id1, id2);
+				changed |= ctx.addNoAlias(noa);
+			}
+		}
+		
+		return changed;
+	}
+	
 	public boolean setNoAlias(final int nodeId1, final int nodeId2) {
 		final SDGNode n1 = sdg.getNode(nodeId1);
 		final SDGNode n2 = sdg.getNode(nodeId2);
@@ -291,9 +317,9 @@ public class AliasSDGV2 {
 
 		final APContextManagerView ctx = ap.get(n1.getProc());
 		final NoAlias noa = new NoAlias(nodeId1, nodeId2);
-		ctx.addNoAlias(noa);
+		final boolean changed = ctx.addNoAlias(noa);
 		
-		return true;
+		return changed;
 	}
 
 	public int countEdges(final Kind kind) {

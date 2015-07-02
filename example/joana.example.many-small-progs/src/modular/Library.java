@@ -48,6 +48,9 @@ public class Library {
 	public static int call2(A a, A b) {
 		A c = new A();
 		c.i = b.i;
+		if (b.i > 3) {
+			c = b;
+		}
 		return return2(c, a);
 	}
 

@@ -135,8 +135,21 @@ public class APContext implements Cloneable {
 		final Set<AP> ap2 = n2ap.get(n2);
 		final Set<String> equiv2 = extractEquiv(ap2);
 
+		if (equiv1.size() > equiv2.size()) {
+			for (final String e2s : equiv2) {
+				if (equiv1.contains(e2s)) {
+					return true;
+				}
+			}
+		} else {
+			for (final String e1s : equiv1) {
+				if (equiv2.contains(e1s)) {
+					return true;
+				}
+			}
+		}
 		// if equiv1 and equiv 2 share a common element, they may be aliased.
-		return equiv1.retainAll(equiv2); 
+		return false; 
 	}
 	
 	public boolean addMerge(final int n1, final int n2) {

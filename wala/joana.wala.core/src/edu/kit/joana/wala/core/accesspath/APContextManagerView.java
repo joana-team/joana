@@ -26,15 +26,17 @@ public interface APContextManagerView {
 	public int getPdgId();
 	public APContext getMatchingContext(final SDGEdge e);
 	public APContext getMatchingContext(final int n1Id, final int n2Id);
-	public boolean addNoAlias(final NoAlias noa);
-	public void resetNoAlias();
+	public boolean addNoAlias(final AliasPair noa);
+	public boolean addMinAlias(final AliasPair noa);
+	public void reset();
 
-	public static final class NoAlias {
+	public static final class AliasPair {
 		
+		// ids of pdg nodes (formal-in nodes) that should (or shoud not) be aliased
 		private final int id1;
 		private final int id2;
 		
-		public NoAlias(final int i1, final int i2) {
+		public AliasPair(final int i1, final int i2) {
 			if (i1 < i2) {
 				id1 = i1;
 				id2 = i2;
@@ -57,8 +59,8 @@ public interface APContextManagerView {
 				return true;
 			}
 			
-			if (o instanceof NoAlias) {
-				final NoAlias noa = (NoAlias) o;
+			if (o instanceof AliasPair) {
+				final AliasPair noa = (AliasPair) o;
 				return id1 == noa.id1 && id2 == noa.id2;
 			}
 			

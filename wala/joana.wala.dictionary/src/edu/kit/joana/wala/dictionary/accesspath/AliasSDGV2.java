@@ -10,7 +10,6 @@ package edu.kit.joana.wala.dictionary.accesspath;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -30,15 +29,13 @@ import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.core.accesspath.APContext;
 import edu.kit.joana.wala.core.accesspath.APContextManagerView;
-import edu.kit.joana.wala.core.accesspath.APContextManagerView.CallContext;
-import edu.kit.joana.wala.core.accesspath.APContextManagerView.NoAlias;
+import edu.kit.joana.wala.core.accesspath.APContextManagerView.AliasPair;
 import edu.kit.joana.wala.core.accesspath.APResult;
 import edu.kit.joana.wala.summary.GraphUtil;
 import edu.kit.joana.wala.summary.GraphUtil.SummaryProperties;
 import edu.kit.joana.wala.summary.SummaryComputation;
 import edu.kit.joana.wala.summary.WorkPackage;
 import edu.kit.joana.wala.summary.WorkPackage.EntryPoint;
-import edu.kit.joana.wala.util.NotImplementedException;
 
 /**
  * Combines pre-computed SDG with current alias information and prepares a context-aware SDG. 
@@ -86,19 +83,43 @@ public class AliasSDGV2 {
 		return sdg.getFileName();
 	}
 
+
+	/**
+	 * Adjusts the internal SDG to the current max alias setting. Returns true iff some edges have changed:
+	 * added heap dependencies, removed alias dependencies.
+	 * @return number of removed (max) alias dependencies.
+	 * @throws CancelException
+	 */
+	public int adjustMaxSDG(final IProgressMonitor progress) throws CancelException {
+		// propagate aliases from starting apcontextmanager
+		propagateMaxAliasesFromRoot();
+		
+		return adjustSDG(progress);
+	}
+	
+	/**
+	 * Adjusts the internal SDG to the current min alias setting. Returns true iff some edges have changed:
+	 * added heap dependencies, removed alias dependencies.
+	 * @return number of removed (max) alias dependencies.
+	 * @throws CancelException
+	 */
+	public int adjustMinSDG(final IProgressMonitor progress) throws CancelException {
+		// propagate aliases from starting apcontextmanager
+		propagateMinAliasesFromRoot();
+		
+		return adjustSDG(progress);
+	}
+	
 	/**
 	 * Adjusts the internal SDG to the current alias setting. Returns true iff some edges have changed:
 	 * added heap dependencies, removed alias dependencies.
 	 * @return number of removed (max) alias dependencies.
 	 * @throws CancelException
 	 */
-	public int adjustSDG(final IProgressMonitor progress) throws CancelException {
+	private int adjustSDG(final IProgressMonitor progress) throws CancelException {
 		final List<SDGEdge> toDisable = new LinkedList<SDGEdge>();
 		final Logger debug = Log.getLogger(Log.L_MOJO_DEBUG);
 		
-		// propagate aliases from starting apcontextmanager
-		propagateAliasesFromRoot();
-
 		// enable active alias edges and remove inactive ones
 		int aliasEdges = 0;
 
@@ -122,44 +143,22 @@ public class AliasSDGV2 {
 		return toDisable.size();
 	}
 
-	private boolean propagateAliasesFromRoot() {
+	private boolean propagateMaxAliasesFromRoot() {
 		boolean changed = false;
 		
 		final APContextManagerView ctxRoot = ap.getRoot();
-		changed = ap.propagateInitialContextToCalls(ctxRoot.getPdgId());
+		changed = ap.propagateMaxInitialContextToCalls(ctxRoot.getPdgId());
 
 		return changed;
 	}
 
-	private void propagateAliasesFromCall(final SDGNode call, final SDGNode entry) {
-
-		// compute no-aliases for current call (containing formal-in nodes of entry)
-		final Set<SDGNode> formIns = sdg.getFormalInsOfProcedure(entry);
-		final SDGNode[] actIns = new SDGNode[formIns.size()];
-		final int[] formInId = new int[actIns.length];
-		int cur = 0;
-		for (final SDGNode fIn : formIns) {
-			final SDGNode actIn = sdg.getActualIn(call, fIn);
-			assert actIn != null;
-			actIns[cur] = actIn;
-			formInId[cur] = fIn.getId();
-			cur++;
-		}
-
-		for (int i = 0; i < actIns.length; i++) {
-			final SDGNode a1 = actIns[i];
-			for (int i2 = i; i2 < actIns.length; i2++) {
-				final SDGNode a2 = actIns[i2];
-
-				if (isNotAliased(a1, a2)) {
-					final int f1id = formInId[i];
-					final int f2id = formInId[i2];
-					//...
-				}
-			}
-		}
+	private boolean propagateMinAliasesFromRoot() {
+		boolean changed = false;
 		
-		throw new NotImplementedException();
+		final APContextManagerView ctxRoot = ap.getRoot();
+		changed = ap.propagateMinInitialContextToCalls(ctxRoot.getPdgId());
+
+		return changed;
 	}
 
 	private boolean isNotAliased(final SDGNode n1, final SDGNode n2) {
@@ -302,7 +301,7 @@ public class AliasSDGV2 {
 
 			for (int j = i + 1; j < nodeIds.length; j++) {
 				final int id2 = nodeIds[j];
-				final NoAlias noa = new NoAlias(id1, id2);
+				final AliasPair noa = new AliasPair(id1, id2);
 				changed |= ctx.addNoAlias(noa);
 			}
 		}
@@ -316,7 +315,7 @@ public class AliasSDGV2 {
 		assert (n1.getProc() == n2.getProc());
 
 		final APContextManagerView ctx = ap.get(n1.getProc());
-		final NoAlias noa = new NoAlias(nodeId1, nodeId2);
+		final AliasPair noa = new AliasPair(nodeId1, nodeId2);
 		final boolean changed = ctx.addNoAlias(noa);
 		
 		return changed;

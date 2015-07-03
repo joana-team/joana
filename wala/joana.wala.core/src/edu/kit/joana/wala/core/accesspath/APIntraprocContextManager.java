@@ -31,7 +31,6 @@ public class APIntraprocContextManager implements APContextManagerView {
 	public final int pdgId;
 	// set of all access paths relevant to this method context
 	private final Set<AP> paths;
-	private Set<MergeOp> initialAlias; // merges/alias context at method entry
 	private final Set<MergeOp> origMerges; // all merges that occur naturally during execution
 	// map of pdg node id to its access paths
 	private final TIntObjectMap<Set<AP>> n2ap;
@@ -41,6 +40,7 @@ public class APIntraprocContextManager implements APContextManagerView {
 	private final Set<CallContext> calls = new HashSet<>(); 
 	private final MutableMapping<MergeOp> mergeMap;
 	private final Set<MergeOp> maxMerges;
+	private final Set<MergeOp> minMerges = new HashSet<>(); // merges/alias context at method entry
 	private final Set<NoMerge> noAlias = new HashSet<>();
 
 	private APIntraprocContextManager(final String pdgName, final int pdgId, final Set<AP> paths, final Set<MergeOp> origMerges,
@@ -207,11 +207,11 @@ public class APIntraprocContextManager implements APContextManagerView {
 		return null;
 	}
 	
-	public void resetNoAlias() {
+	private void resetNoAlias() {
 		noAlias.clear();
 	}
 	
-	public boolean addNoAlias(final NoAlias noa) {
+	public boolean addNoAlias(final AliasPair noa) {
 		boolean changed = false;
 		
 		final int id1 = noa.getId1();
@@ -226,6 +226,33 @@ public class APIntraprocContextManager implements APContextManagerView {
 		}
 		
 		return changed;
+	}
+	
+	private void resetMinAlias() {
+		minMerges.clear();
+	}
+	
+	public void reset() {
+		resetMinAlias();
+		resetNoAlias();
+		resetInitialAlias();
+	}
+	
+	public boolean addMinAlias(final AliasPair noa) {
+		boolean changed = false;
+		
+		final int id1 = noa.getId1();
+		final Set<AP> ap1 = n2ap.get(id1);
+		final int id2 = noa.getId2();
+		final Set<AP> ap2 = n2ap.get(id2);
+		final MergeOp nm = new MergeOp(ap1, ap2);
+		changed |= minMerges.add(nm);
+		
+		return changed;
+	}
+	
+	public Set<MergeOp> computeMinInitialContext() {
+		return Collections.unmodifiableSet(minMerges);
 	}
 	
 	public String toString() {
@@ -307,9 +334,8 @@ public class APIntraprocContextManager implements APContextManagerView {
 		return changed;
 	}
 	
-	public void resetInitialAlias() {
+	private void resetInitialAlias() {
 		setInitialAlias(Collections.<MergeOp> emptySet());
-		noAlias.clear();
 	}
 	
 	public void setInitialAlias(final APContext ctx) {

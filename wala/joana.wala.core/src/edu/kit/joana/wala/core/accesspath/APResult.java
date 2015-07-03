@@ -47,12 +47,25 @@ public class APResult {
 	public int getNumOfAliasEdges() {
 		return numOfAliasEdges;
 	}
-	
-	public boolean propagateInitialContextToCalls(final int startId) {
-		boolean changed = false;
+
+	public boolean propagateMaxInitialContextToCalls(final int startId) {
 		final APIntraprocContextManager root = pdgId2ctx.get(startId);
 		final Set<MergeOp> initial = root.computeMaxInitialContext();
 		root.setInitialAlias(initial);
+
+		return propagateInitialContextToCalls(root);
+	}
+	
+	public boolean propagateMinInitialContextToCalls(final int startId) {
+		final APIntraprocContextManager root = pdgId2ctx.get(startId);
+		final Set<MergeOp> initial = root.computeMinInitialContext();
+		root.setInitialAlias(initial);
+		
+		return propagateInitialContextToCalls(root);
+	}
+	
+	private boolean propagateInitialContextToCalls(final APIntraprocContextManager root) {
+		boolean changed = false;
 		final LinkedList<APIntraprocContextManager> work = new LinkedList<>();
 		work.add(root);
 		
@@ -81,7 +94,7 @@ public class APResult {
 
 	public void reset() {
 		for (final APIntraprocContextManager ctx : pdgId2ctx.valueCollection()) {
-			ctx.resetInitialAlias();
+			ctx.reset();
 		}
 	}
 }

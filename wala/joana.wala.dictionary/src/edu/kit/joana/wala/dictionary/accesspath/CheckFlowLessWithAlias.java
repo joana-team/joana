@@ -60,6 +60,7 @@ import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
+import edu.kit.joana.wala.core.accesspath.APResult;
 import edu.kit.joana.wala.core.accesspath.AccessPath;
 import edu.kit.joana.wala.dictionary.accesspath.FlowCheckResultConsumer.FlowStmtResult;
 import edu.kit.joana.wala.dictionary.accesspath.FlowCheckResultConsumer.FlowStmtResultPart;
@@ -331,9 +332,10 @@ public final class CheckFlowLessWithAlias {
 			throw new IllegalStateException();
 		}
 
-		final SDG sdg = create(cfc.out, opt.getAnalysisScope(), mojo, cgr, im, cfg.outputDir, cfg);
+		final SDGResult sdgResult = create(cfc.out, opt.getAnalysisScope(), mojo, cgr, im, cfg.outputDir, cfg);
+		final SDG sdg = sdgResult.sdg;
 
-		final AliasSDG alias = AliasSDG.create(sdg);
+		final AliasSDG alias = AliasSDG.create(sdg, sdgResult.ap);
 		alias.precomputeSummary(progress);
 		boolean resetNeeded = false;
 
@@ -410,7 +412,7 @@ public final class CheckFlowLessWithAlias {
 		}
 
 		if (printStatistics) { startAdjustTime = System.currentTimeMillis(); }
-		alias.adjustSDG(progress);
+		alias.adjustMaxSDG(progress);
 		alias.recomputeSummary(progress);
 		if (printStatistics) {
 			endAdjustTime = System.currentTimeMillis();
@@ -461,7 +463,7 @@ public final class CheckFlowLessWithAlias {
 				+ fp.getSDGFilename() + ".pdg";
 		final AliasSDG alias = AliasSDG.readFrom(pathToSDG);
 		alias.setNoAlias(fp.getAlias());
-		alias.adjustSDG(progress);
+		alias.adjustMaxSDG(progress);
 		alias.recomputeSummary(progress);
 		final SDG sdg = alias.getSDG();
 		final Matcher match = FlowLess2SDGMatcher.findMatchingNodes(sdg, sdg.getRoot(), stmt);
@@ -715,7 +717,7 @@ public final class CheckFlowLessWithAlias {
 		alias.reset();
 		perm.resetNoChange();
 		perm.adjustAlias(alias);
-		if (alias.adjustSDG(progress)) {
+		if (alias.adjustMaxSDG(progress) > 0) {
 			alias.recomputeSummary(progress);
 		} else {
 			perm.markAsNoChange();
@@ -1033,12 +1035,12 @@ public final class CheckFlowLessWithAlias {
 
 	}
 
-	private SDG create(PrintStream out, AnalysisScope scope, MoJo mojo, CallGraphResult cg, IMethod im,
+	private SDGResult create(PrintStream out, AnalysisScope scope, MoJo mojo, CallGraphResult cg, IMethod im,
 			String outDir, Config cfg) throws IOException, ClassHierarchyException, UnsoundGraphException, CancelException {
 		return create(out, scope, mojo, cg, im, outDir, cfg, cfg.exceptions);
 	}
 
-	private SDG create(PrintStream out, AnalysisScope scope, MoJo mojo, CallGraphResult cg, IMethod im,
+	private SDGResult create(PrintStream out, AnalysisScope scope, MoJo mojo, CallGraphResult cg, IMethod im,
 			String outDir, Config cfg, ExceptionAnalysis exc) throws IOException, ClassHierarchyException, UnsoundGraphException, CancelException {
 		if (!Main.checkOrCreateOutputDir(outDir)) {
 			out.println("Could not access/create diretory '" + cfg.outputDir +"'");
@@ -1081,7 +1083,7 @@ public final class CheckFlowLessWithAlias {
 		scfg.debugManyGraphsDotOutput = cfg.debugManyGraphsDotOutput;
 
 		final SDGBuilder sdg = SDGBuilder.create(scfg, cg.cg, cg.pts);
-
+		final APResult ap = sdg.getAPResult();
 
 		final SDG joanaSDG = SDGBuilder.convertToJoana(cfc.out, sdg, NullProgressMonitor.INSTANCE);
 
@@ -1099,9 +1101,19 @@ public final class CheckFlowLessWithAlias {
 		SDGSerializer.toPDGFormat(joanaSDG, pw);
 		cfc.out.println("done.");
 
-		return joanaSDG;
+		return new SDGResult(joanaSDG, ap);
 	}
-
+	
+	private static class SDGResult {
+		public final SDG sdg;
+		public final APResult ap;
+		
+		public SDGResult(final SDG sdg, final APResult ap) {
+			this.sdg = sdg;
+			this.ap = ap;
+		}
+	}
+	
 	/**
 	 * Search file in filesystem. If not found, try to load from classloader (e.g. from inside the jarfile).
 	 */

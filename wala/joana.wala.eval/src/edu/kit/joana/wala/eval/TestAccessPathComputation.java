@@ -37,7 +37,7 @@ import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
 import edu.kit.joana.wala.core.accesspath.APResult;
 import edu.kit.joana.wala.core.accesspath.AccessPath;
-import edu.kit.joana.wala.dictionary.accesspath.AliasSDGV2;
+import edu.kit.joana.wala.dictionary.accesspath.AliasSDG;
 import edu.kit.joana.wala.flowless.MoJo;
 import edu.kit.joana.wala.flowless.MoJo.CallGraphResult;
 import edu.kit.joana.wala.flowless.pointsto.GraphAnnotater.Aliasing;
@@ -161,7 +161,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
 			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
-			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
+			final AliasSDG asdg = AliasSDG.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
 			// 4 params, with nodeids 4..7
@@ -199,7 +199,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
 			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
-			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
+			final AliasSDG asdg = AliasSDG.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
 			// 6 params, with nodeids 4..9
@@ -250,7 +250,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
 			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
-			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
+			final AliasSDG asdg = AliasSDG.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
 			// 4 params with nodeIds 4..7
@@ -289,7 +289,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
 			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
-			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
+			final AliasSDG asdg = AliasSDG.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
 			// 4 params with node ids 4..7
@@ -328,7 +328,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
 			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
-			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
+			final AliasSDG asdg = AliasSDG.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
 			// 4 params with node ids 4..7
@@ -367,7 +367,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
 			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
-			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
+			final AliasSDG asdg = AliasSDG.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
 			// 2 params with node ids 4..5
@@ -404,7 +404,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
 			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
-			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
+			final AliasSDG asdg = AliasSDG.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum == 0);
 			// 2 params with node ids 4..5
@@ -441,7 +441,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
 			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
-			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
+			final AliasSDG asdg = AliasSDG.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
 			// 2 params with node ids 4..5
@@ -478,7 +478,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
 			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
-			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
+			final AliasSDG asdg = AliasSDG.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
 			// 2 params with node ids 4..5
@@ -515,7 +515,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
 			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
-			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
+			final AliasSDG asdg = AliasSDG.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
 			// 2 params with node ids 4..5
@@ -552,7 +552,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 			final MoJo mojo = MoJo.create(cha, run.outputDir);
 			final SDGResult sdg = computeAccessPaths(run, mojo, im);
 			Assert.assertNotNull(sdg);
-			final AliasSDGV2 asdg = AliasSDGV2.create(sdg.sdg, sdg.ap);
+			final AliasSDG asdg = AliasSDG.create(sdg.sdg, sdg.ap);
 			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
 			Assert.assertTrue(precompSum > 0);
 			// 3 params with node ids 4..6

@@ -7,20 +7,6 @@
  */
 package edu.kit.joana.wala.dictionary.accesspath;
 
-import edu.kit.joana.ifc.sdg.graph.SDG;
-import edu.kit.joana.ifc.sdg.graph.SDGEdge;
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind;
-import edu.kit.joana.util.Log;
-import edu.kit.joana.util.Logger;
-import edu.kit.joana.wala.summary.GraphUtil;
-import edu.kit.joana.wala.summary.SummaryComputation;
-import edu.kit.joana.wala.summary.WorkPackage;
-import edu.kit.joana.wala.summary.GraphUtil.SummaryProperties;
-import edu.kit.joana.wala.summary.WorkPackage.EntryPoint;
-import gnu.trove.iterator.TIntIterator;
-import gnu.trove.set.TIntSet;
-
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Collections;
@@ -28,7 +14,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-
 
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil;
@@ -38,14 +23,366 @@ import com.ibm.wala.util.intset.IntIterator;
 import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.intset.MutableIntSet;
 
+import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
+import edu.kit.joana.wala.core.accesspath.APContext;
+import edu.kit.joana.wala.core.accesspath.APContextManagerView;
+import edu.kit.joana.wala.core.accesspath.APContextManagerView.AliasPair;
+import edu.kit.joana.wala.core.accesspath.APResult;
+import edu.kit.joana.wala.summary.GraphUtil;
+import edu.kit.joana.wala.summary.GraphUtil.SummaryProperties;
+import edu.kit.joana.wala.summary.SummaryComputation;
+import edu.kit.joana.wala.summary.WorkPackage;
+import edu.kit.joana.wala.summary.WorkPackage.EntryPoint;
+import edu.kit.joana.wala.util.NotImplementedException;
+
+/**
+ * Combines pre-computed SDG with current alias information and prepares a context-aware SDG. 
+ * 
+ * @author Juergen Graf <juergen.graf@gmail.com>
+ */
 public class AliasSDG {
 
 	private final SDG sdg;
-	private WorkPackage workPack;
+	private final APResult ap;
 	private final Alias mayAlias = new Alias();
 	private final Alias noAlias = new Alias();
+	private WorkPackage workPack;
 	private final List<SDGEdge> currentlyRemoved = new LinkedList<SDGEdge>();
 
+	private AliasSDG(final SDG sdg, final WorkPackage workPack, final APResult ap) {
+		this.sdg = sdg;
+		this.ap = ap;
+		this.workPack = workPack;
+	}
+
+	public static AliasSDG create(final SDG sdg, final APResult ap) {
+		final WorkPackage wp = createWorkPack(sdg);
+
+		return new AliasSDG(sdg, wp, ap);
+	}
+	
+	public static AliasSDG readFrom(final String file) throws IOException {
+		throw new NotImplementedException("need to implement read/write of apresult");
+	}
+
+	public static AliasSDG readFrom(final Reader reader) throws IOException {
+		throw new NotImplementedException("need to implement read/write of apresult");
+	}
+
+	public static AliasSDG readFrom(final String file, final APResult ap) throws IOException {
+		final SDG sdg = SDG.readFrom(file);
+		final WorkPackage wp = createWorkPack(sdg);
+
+		return new AliasSDG(sdg, wp, ap);
+	}
+
+	public static AliasSDG readFrom(final Reader reader, final APResult ap) throws IOException {
+		final SDG sdg = SDG.readFrom(reader);
+		final WorkPackage wp = createWorkPack(sdg);
+
+		return new AliasSDG(sdg, wp, ap);
+	}
+
+	public SDG getSDG() {
+		return sdg;
+	}
+
+	public String getFileName() {
+		return sdg.getFileName();
+	}
+
+
+	/**
+	 * Adjusts the internal SDG to the current max alias setting. Returns true iff some edges have changed:
+	 * added heap dependencies, removed alias dependencies.
+	 * @return number of removed (max) alias dependencies.
+	 * @throws CancelException
+	 */
+	public int adjustMaxSDG(final IProgressMonitor progress) throws CancelException {
+		// propagate aliases from starting apcontextmanager
+		propagateMaxAliasesFromRoot();
+		
+		return adjustSDG(progress);
+	}
+	
+	/**
+	 * Adjusts the internal SDG to the current min alias setting. Returns true iff some edges have changed:
+	 * added heap dependencies, removed alias dependencies.
+	 * @return number of removed (max) alias dependencies.
+	 * @throws CancelException
+	 */
+	public int adjustMinSDG(final IProgressMonitor progress) throws CancelException {
+		// propagate aliases from starting apcontextmanager
+		propagateMinAliasesFromRoot();
+		
+		return adjustSDG(progress);
+	}
+	
+	/**
+	 * Adjusts the internal SDG to the current alias setting. Returns true iff some edges have changed:
+	 * added heap dependencies, removed alias dependencies.
+	 * @return number of removed (max) alias dependencies.
+	 * @throws CancelException
+	 */
+	private int adjustSDG(final IProgressMonitor progress) throws CancelException {
+		final List<SDGEdge> toDisable = new LinkedList<SDGEdge>();
+		final Logger debug = Log.getLogger(Log.L_MOJO_DEBUG);
+		
+		// enable active alias edges and remove inactive ones
+		int aliasEdges = 0;
+
+		for (final SDGEdge e : sdg.edgeSet()) {
+			if (e.getKind() == SDGEdge.Kind.DATA_ALIAS) {
+				MonitorUtil.throwExceptionIfCanceled(progress);
+				aliasEdges++;
+				if (isNotAliased(e.getSource(), e.getTarget())) {
+					toDisable.add(e);
+				}
+			}
+		}
+
+		debug.outln("disabling " + toDisable.size() + " of " + aliasEdges + " alias edges.");
+
+		for (final SDGEdge alias : toDisable) {
+			sdg.removeEdge(alias);
+			currentlyRemoved.add(alias);
+		}
+
+		return toDisable.size();
+	}
+
+	private boolean propagateMaxAliasesFromRoot() {
+		boolean changed = false;
+		
+		final APContextManagerView ctxRoot = ap.getRoot();
+		changed = ap.propagateMaxInitialContextToCalls(ctxRoot.getPdgId());
+
+		return changed;
+	}
+
+	private boolean propagateMinAliasesFromRoot() {
+		boolean changed = false;
+		
+		final APContextManagerView ctxRoot = ap.getRoot();
+		changed = ap.propagateMinInitialContextToCalls(ctxRoot.getPdgId());
+
+		return changed;
+	}
+
+	private boolean isNotAliased(final SDGNode n1, final SDGNode n2) {
+		final APContextManagerView ctxmanag = ap.get(n1.getProc());
+		final APContext ctx = ctxmanag.getMatchingContext(n1.getId(), n2.getId());
+		
+		return !ctx.mayBeAliased(n1, n2);
+	}
+
+	/**
+	 * Resets all adjustments that were made to the alias sdg. This adds previously disabled edges and
+	 * removes all non- and may-aliasing states.
+	 */
+	public void reset() {
+		workPack.reset();
+		mayAlias.reset();
+		noAlias.reset();
+		ap.reset();
+
+		final List<SDGEdge> toDelete = new LinkedList<SDGEdge>();
+
+		for (final SDGEdge e : sdg.edgeSet()) {
+			if (e.getKind() == SDGEdge.Kind.SUMMARY_DATA) {
+				toDelete.add(e);
+			}
+		}
+
+		sdg.removeAllEdges(toDelete);
+
+		if (!currentlyRemoved.isEmpty()) {
+			sdg.addAllEdges(currentlyRemoved);
+			currentlyRemoved.clear();
+		}
+	}
+
+	/**
+	 * Creates a summary computation workpackage that holds for all alias configurations
+	 * @param sdg The SDG we compute the work package for.
+	 * @return A summary computation work package for the given SDG.
+	 */
+	private static WorkPackage createWorkPack(final SDG sdg) {
+		final EntryPoint ep = GraphUtil.extractEntryPoint(sdg, sdg.getRoot());
+		final Set<WorkPackage.EntryPoint> entries =	Collections.singleton(ep);
+		final SummaryProperties sumProp = GraphUtil.createSummaryProperties(sdg);
+		final WorkPackage wp = WorkPackage.create(sdg, entries, sdg.getName() + "-alias-sdg", null,
+				sumProp.fullyConnectedIds, sumProp.out2in);
+
+		return wp;
+	}
+
+	/**
+	 * Run once precomputeSummary beforehand. Do before each subsequent invocation.
+	 */
+	public int recomputeSummary(final IProgressMonitor progress) throws CancelException {
+		if (workPack.isFinished()) {
+			workPack.reset();
+		}
+
+		final int newEdges = SummaryComputation.computeAdjustedAliasDep(workPack, progress);
+
+		return newEdges;
+	}
+
+	/**
+	 * Do this once before running recompute summary (as long as there are not already precomputed no-alias
+	 * dep summary edges in the loaded sdg)
+	 */
+	public int precomputeSummary(final IProgressMonitor progress) throws CancelException {
+		if (workPack.isFinished()) {
+			workPack.reset();
+		}
+
+		final int newEdges = SummaryComputation.computeNoAliasDataDep(workPack, progress);
+
+		workPack = createWorkPack(sdg);
+
+		return newEdges;
+	}
+
+	public int precomputeAllAliasSummary(final IProgressMonitor progress) throws CancelException {
+		if (workPack.isFinished()) {
+			workPack.reset();
+		}
+
+		final int newEdges = SummaryComputation.computeFullAliasDataDep(workPack, progress);
+
+		return newEdges;
+	}
+
+	private static class AliasCondition {
+		public final IntSet id1;
+		public final IntSet id2;
+
+		public AliasCondition(final IntSet id1, final IntSet id2) {
+			this.id1 = id1;
+			this.id2 = id2;
+		}
+	}
+
+	private static AliasCondition parseAliasEdge(final SDGEdge e) throws NumberFormatException {
+		final String str = e.getLabel();
+		assert str != null;
+		assert str.charAt(0) == '[';
+
+		final String firstPart = str.substring(1, str.indexOf(']'));
+		final String secondPart = str.substring(str.lastIndexOf('[') + 1, str.length() - 1);
+
+		//System.out.print(str + ": '" + firstPart + "' - '" + secondPart + "'");
+
+		final MutableIntSet id1 = new BitVectorIntSet();
+		for (final String part : firstPart.split(",")) {
+			final int i = Integer.parseInt(part);
+			id1.add(i);
+		}
+
+		final MutableIntSet id2 = new BitVectorIntSet();
+		for (final String part : secondPart.split(",")) {
+			final int i = Integer.parseInt(part);
+			id2.add(i);
+		}
+
+		// System.out.println(" -> " + id1 + " - " + id2);
+
+		return new AliasCondition(id1, id2);
+	}
+
+	public void setNoAlias(final Alias alias) {
+		for (final Alias.P p : alias.set) {
+			setNoAlias(p.id1, p.id2);
+		}
+	}
+	
+	public boolean isNoAlias(final int nodeId1, final int nodeId2) {
+		return noAlias.isSet(nodeId1, nodeId2);
+	}
+
+	public boolean setNoAlias(final int[] nodeIds) {
+		if (nodeIds.length < 2) {
+			return false;
+		}
+		
+		boolean changed = false;
+		
+		final APContextManagerView ctx;
+		{
+			final SDGNode n = sdg.getNode(nodeIds[0]);
+			ctx = ap.get(n.getProc());
+		}
+		
+		for (int i = 0; i < nodeIds.length; i++) {
+			final int id1 = nodeIds[i];
+
+			for (int j = i + 1; j < nodeIds.length; j++) {
+				final int id2 = nodeIds[j];
+				final AliasPair noa = new AliasPair(id1, id2);
+				changed |= ctx.addNoAlias(noa);
+				noAlias.add(id1, id2);
+			}
+		}
+		
+		return changed;
+	}
+	
+	public boolean setNoAlias(final int nodeId1, final int nodeId2) {
+		final SDGNode n1 = sdg.getNode(nodeId1);
+		final SDGNode n2 = sdg.getNode(nodeId2);
+		assert (n1.getProc() == n2.getProc());
+
+		final APContextManagerView ctx = ap.get(n1.getProc());
+		final AliasPair noa = new AliasPair(nodeId1, nodeId2);
+		final boolean changed = ctx.addNoAlias(noa);
+		
+		noAlias.add(nodeId1, nodeId2);
+		
+		return changed;
+	}
+	
+	public boolean setMayAlias(final int nodeId1, final int nodeId2) {
+		final SDGNode n1 = sdg.getNode(nodeId1);
+		final SDGNode n2 = sdg.getNode(nodeId2);
+		assert (n1.getProc() == n2.getProc());
+
+		final APContextManagerView ctx = ap.get(n1.getProc());
+		final AliasPair noa = new AliasPair(nodeId1, nodeId2);
+		final boolean changed = ctx.addMinAlias(noa);
+		
+		mayAlias.add(nodeId1, nodeId2);
+		
+		return changed;
+	}
+
+	public Alias getMayAlias() {
+		return mayAlias.clone();
+	}
+	
+	public Alias getNoAlias() {
+		return noAlias.clone();
+	}
+	
+	public int countEdges(final Kind kind) {
+		int count = 0;
+
+		for (final SDGEdge e : sdg.edgeSet()) {
+			if (e.getKind() == kind) {
+				count++;
+			}
+		}
+
+		return count;
+	}
+	
 	//done: rewrite to contain pairs, because this is wrong: !(a,a) && !(b,b) => !(a,b)
 	public static class Alias implements Cloneable {
 
@@ -167,351 +504,6 @@ public class AliasSDG {
 			return "Alias: " + set.toString();
 		}
 
-	}
-
-	private AliasSDG(final SDG sdg, final WorkPackage workPack) {
-		this.sdg = sdg;
-		this.workPack = workPack;
-	}
-
-	public static AliasSDG create(final SDG sdg) {
-		final WorkPackage wp = createWorkPack(sdg);
-
-		return new AliasSDG(sdg, wp);
-	}
-
-	public static AliasSDG readFrom(final String file) throws IOException {
-		final SDG sdg = SDG.readFrom(file);
-		final WorkPackage wp = createWorkPack(sdg);
-
-		return new AliasSDG(sdg, wp);
-	}
-
-	public static AliasSDG readFrom(final Reader reader) throws IOException {
-		final SDG sdg = SDG.readFrom(reader);
-		final WorkPackage wp = createWorkPack(sdg);
-
-		return new AliasSDG(sdg, wp);
-	}
-
-	public SDG getSDG() {
-		return sdg;
-	}
-
-	public void setNoAlias(final Alias alias) {
-		this.noAlias.reset();
-		this.noAlias.addAll(alias);
-	}
-
-	public String getFileName() {
-		return sdg.getFileName();
-	}
-
-	public Alias getNoAlias() {
-		return noAlias.clone();
-	}
-
-	/**
-	 * Adjusts the internal SDG to the current alias setting. Returns true iff some edges have changed:
-	 * added heap dependencies, removed alias dependencies.
-	 * @return true iff some edges have changed: added heap dependencies, removed alias dependencies.
-	 * @throws CancelException
-	 */
-	public boolean adjustSDG(final IProgressMonitor progress) throws CancelException {
-		final List<SDGEdge> toDisable = new LinkedList<SDGEdge>();
-		final Logger debug = Log.getLogger(Log.L_MOJO_DEBUG);
-		
-		
-		if (noAlias.size() > 0) {
-			if (debug.isEnabled()) {
-				debug.out("propagating no-aliases... ");
-				final int sizeBefore = noAlias.size();
-
-				if (propagateAliasesFromCallSites()) {
-					debug.out("[" + sizeBefore + " => " + noAlias.size() + "] ");
-				} else {
-					debug.out("[no change] ");
-				}
-
-				debug.outln("done.");
-			} else {
-				propagateAliasesFromCallSites();
-			}
-		}
-
-		int aliasEdges = 0;
-
-		for (final SDGEdge e : sdg.edgeSet()) {
-			if (e.getKind() == SDGEdge.Kind.DATA_ALIAS) {
-				MonitorUtil.throwExceptionIfCanceled(progress);
-				aliasEdges++;
-				final AliasCondition ac = parseAliasEdge(e);
-				if (noAlias.containsAll(ac)) {
-					toDisable.add(e);
-				}
-			}
-		}
-
-		debug.outln("disabling " + toDisable.size() + " of " + aliasEdges + " alias edges.");
-
-		for (final SDGEdge alias : toDisable) {
-			sdg.removeEdge(alias);
-			currentlyRemoved.add(alias);
-		}
-
-		return !toDisable.isEmpty();
-	}
-
-	private boolean propagateAliasesFromCallSites() {
-		boolean totalChange = false;
-		// propagate alias from call-sites to formal-in of callees
-		boolean change = true;
-		while (change) {
-			change = false;
-
-			for (final SDGNode entry : sdg.vertexSet()) {
-				if (entry.kind == SDGNode.Kind.ENTRY) {
-					// summarize no-aliases from all callsites (or clone for specific alias sets)
-					Alias mergedAliases = null;
-					for (final SDGNode call : sdg.getCallers(entry)) {
-						final Alias callAlias = propagateAliasesFromCall(call, entry);
-						if (mergedAliases == null) {
-							mergedAliases = callAlias;
-						} else {
-							// only set no-aliases that are valid in all calling contexts
-							mergedAliases.and(callAlias);
-						}
-					}
-
-					if (mergedAliases != null) {
-						change |= noAlias.addAll(mergedAliases);
-						totalChange |= change;
-					}
-				}
-			}
-		}
-
-		return totalChange;
-	}
-
-	private Alias propagateAliasesFromCall(final SDGNode call, final SDGNode entry) {
-		final Alias alias = new Alias();
-
-		// compute no-aliases for current call (containing formal-in nodes of entry)
-		final Set<SDGNode> formIns = sdg.getFormalInsOfProcedure(entry);
-		final SDGNode[] actIns = new SDGNode[formIns.size()];
-		final int[] formInId = new int[actIns.length];
-		int cur = 0;
-		for (final SDGNode fIn : formIns) {
-			final SDGNode actIn = sdg.getActualIn(call, fIn);
-			assert actIn != null;
-			actIns[cur] = actIn;
-			formInId[cur] = fIn.getId();
-			cur++;
-		}
-
-		for (int i = 0; i < actIns.length; i++) {
-			final SDGNode a1 = actIns[i];
-			for (int i2 = i; i2 < actIns.length; i2++) {
-				final SDGNode a2 = actIns[i2];
-
-				if (isNotAliased(a1, a2)) {
-					final int f1id = formInId[i];
-					final int f2id = formInId[i2];
-
-					alias.add(f1id, f2id);
-				}
-			}
-		}
-
-		return alias;
-	}
-
-	private boolean isNotAliased(final SDGNode n1, final SDGNode n2) {
-		final TIntSet n1a = n1.getAliasDataSources();
-		final TIntSet n2a = n2.getAliasDataSources();
-
-		/*
-		 *
-		 */
-		if (n1a != null && n2a != null) {
-			if (n1 == n2) {
-				if (n1a.contains(n2.getId())) {
-					return false;
-				} else {
-					final TIntIterator it = n1a.iterator();
-					while (it.hasNext()) {
-						final int id = it.next();
-						if (sdg.getNode(id).kind == SDGNode.Kind.FORMAL_IN) {
-							// other kinds (new-sites) are not aliased by default
-							if (!noAlias.isSet(id, id)) {
-								return false;
-							}
-						}
-					}
-				}
-			} else {
-				for (final TIntIterator it1 = n1a.iterator(); it1.hasNext();) {
-					final int id1 = it1.next();
-
-					for (final TIntIterator it2 = n2a.iterator(); it2.hasNext();) {
-						final int id2 = it2.next();
-
-						if (!noAlias.isSet(id1, id2)) {
-							return false;
-						}
-					}
-				}
-			}
-
-			return true;
-		}
-
-		return false;
-	}
-
-	/**
-	 * Resets all adjustments that were made to the alias sdg. This adds previously disabled edges and
-	 * removes all non- and may-aliasing states.
-	 */
-	public void reset() {
-		noAlias.reset();
-		mayAlias.reset();
-		workPack.reset();
-
-		final List<SDGEdge> toDelete = new LinkedList<SDGEdge>();
-
-		for (final SDGEdge e : sdg.edgeSet()) {
-			if (e.getKind() == SDGEdge.Kind.SUMMARY_DATA) {
-				toDelete.add(e);
-			}
-		}
-
-		sdg.removeAllEdges(toDelete);
-
-		if (!currentlyRemoved.isEmpty()) {
-			sdg.addAllEdges(currentlyRemoved);
-			currentlyRemoved.clear();
-		}
-	}
-
-	/**
-	 * Creates a summary computation workpackage that holds for all alias configurations
-	 * @param sdg The SDG we compute the work package for.
-	 * @return A summary computation work package for the given SDG.
-	 */
-	private static WorkPackage createWorkPack(final SDG sdg) {
-		final EntryPoint ep = GraphUtil.extractEntryPoint(sdg, sdg.getRoot());
-		final Set<WorkPackage.EntryPoint> entries =	Collections.singleton(ep);
-		final SummaryProperties sumProp = GraphUtil.createSummaryProperties(sdg);
-		final WorkPackage wp = WorkPackage.create(sdg, entries, sdg.getName() + "-alias-sdg", null,
-				sumProp.fullyConnectedIds, sumProp.out2in);
-
-		return wp;
-	}
-
-	/**
-	 * Run once precomputeSummary beforehand. Do before each subsequent invocation.
-	 */
-	public int recomputeSummary(final IProgressMonitor progress) throws CancelException {
-		if (workPack.isFinished()) {
-			workPack.reset();
-		}
-
-		final int newEdges = SummaryComputation.computeAdjustedAliasDep(workPack, progress);
-
-		return newEdges;
-	}
-
-	/**
-	 * Do this once before running recompute summary (as long as there are not already precomputed no-alias
-	 * dep summary edges in the loaded sdg)
-	 */
-	public int precomputeSummary(final IProgressMonitor progress) throws CancelException {
-		if (workPack.isFinished()) {
-			workPack.reset();
-		}
-
-		final int newEdges = SummaryComputation.computeNoAliasDataDep(workPack, progress);
-
-		workPack = createWorkPack(sdg);
-
-		return newEdges;
-	}
-
-	public int precomputeAllAliasSummary(final IProgressMonitor progress) throws CancelException {
-		if (workPack.isFinished()) {
-			workPack.reset();
-		}
-
-		final int newEdges = SummaryComputation.computeFullAliasDataDep(workPack, progress);
-
-		return newEdges;
-	}
-
-	private static class AliasCondition {
-		public final IntSet id1;
-		public final IntSet id2;
-
-		public AliasCondition(final IntSet id1, final IntSet id2) {
-			this.id1 = id1;
-			this.id2 = id2;
-		}
-	}
-
-	private static AliasCondition parseAliasEdge(final SDGEdge e) throws NumberFormatException {
-		final String str = e.getLabel();
-		assert str != null;
-		assert str.charAt(0) == '[';
-
-		final String firstPart = str.substring(1, str.indexOf(']'));
-		final String secondPart = str.substring(str.lastIndexOf('[') + 1, str.length() - 1);
-
-		//System.out.print(str + ": '" + firstPart + "' - '" + secondPart + "'");
-
-		final MutableIntSet id1 = new BitVectorIntSet();
-		for (final String part : firstPart.split(",")) {
-			final int i = Integer.parseInt(part);
-			id1.add(i);
-		}
-
-		final MutableIntSet id2 = new BitVectorIntSet();
-		for (final String part : secondPart.split(",")) {
-			final int i = Integer.parseInt(part);
-			id2.add(i);
-		}
-
-		// System.out.println(" -> " + id1 + " - " + id2);
-
-		return new AliasCondition(id1, id2);
-	}
-
-	public boolean setMayAlias(final int nodeId1, final int nodeId2) {
-		return mayAlias.add(nodeId1, nodeId2);
-	}
-
-	public boolean isMayAlias(final int nodeId1, final int nodeId2) {
-		return mayAlias.isSet(nodeId1, nodeId2);
-	}
-
-	public boolean setNoAlias(final int nodeId1, final int nodeId2) {
-		return noAlias.add(nodeId1, nodeId2);
-	}
-
-	public boolean isNoAlias(final int nodeId1, final int nodeId2) {
-		return noAlias.isSet(nodeId1, nodeId2);
-	}
-
-	public int countEdges(final Kind kind) {
-		int count = 0;
-
-		for (final SDGEdge e : sdg.edgeSet()) {
-			if (e.getKind() == kind) {
-				count++;
-			}
-		}
-
-		return count;
 	}
 
 }

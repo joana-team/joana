@@ -10,15 +10,6 @@ package edu.kit.joana.wala.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
-import edu.kit.joana.ifc.sdg.graph.SDG;
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
-import edu.kit.joana.wala.dictionary.accesspath.AliasSDG;
-import edu.kit.joana.wala.flowless.util.NullProgressMonitor;
-import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.set.TIntSet;
-import gnu.trove.set.hash.TIntHashSet;
 
 import java.io.IOException;
 
@@ -28,6 +19,16 @@ import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.intset.BitVector;
+
+import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
+import edu.kit.joana.wala.dictionary.accesspath.AliasSDG;
+import edu.kit.joana.wala.flowless.util.NullProgressMonitor;
+import gnu.trove.map.TIntObjectMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 
 public class AdjustAliasSDGTest {
 
@@ -138,7 +139,7 @@ public class AdjustAliasSDGTest {
 				int newSumRun1 = -1;
 				int newSumRun2 = -1;
 
-				if (alias.adjustSDG(progress)) {
+				if (alias.adjustMaxSDG(progress) > 0) {
 					newSumRun1 = alias.recomputeSummary(progress);
 //					System.out.println("\t\tremoved " + (maximalOn - newSumRun1) + " - " + newSumRun1 + " remaining..");
 //				} else {
@@ -150,7 +151,7 @@ public class AdjustAliasSDGTest {
 				perms.adjustAlias(alias);
 				System.out.print(" => ");
 
-				if (alias.adjustSDG(progress)) {
+				if (alias.adjustMaxSDG(progress) > 0) {
 					newSumRun2 = alias.recomputeSummary(progress);
 //					System.out.println("\t\tremoved " + (maximalOn - newSumRun2) + " - " + newSumRun2 + " remaining.");
 //				} else {

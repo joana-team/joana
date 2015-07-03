@@ -98,7 +98,7 @@ public class RandomAliasSDGTest {
 		System.out.print((change ? ": " : " "));
 
 		try {
-			if (alias.adjustSDG(progress)) {
+			if (alias.adjustMaxSDG(progress) > 0) {
 				assertTrue(change);
 				final int newSum = alias.recomputeSummary(progress);
 				System.out.println("removed " + (maximalOn - newSum) + " summary edges. " + newSum + " remaining.");

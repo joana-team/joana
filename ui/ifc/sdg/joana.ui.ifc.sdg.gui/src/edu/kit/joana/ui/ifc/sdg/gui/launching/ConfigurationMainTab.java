@@ -314,7 +314,7 @@ public class ConfigurationMainTab extends AbstractJoanaTab {
 		configuration.setAttribute(ConfigurationAttributes.SDG_LOCATION, "");
 		configuration.setAttribute(ConfigurationAttributes.LATTICE_LOCATION, "");
 		configuration.setAttribute(ConfigurationAttributes.PROJECT_NAME, "");
-		configuration.setAttribute("MAIN_CLASS", new LinkedList<IJavaElement>());
+		configuration.setAttribute("MAIN_CLASS", new LinkedList<String>());  // TODO: find out if this is ever used
 		configuration.setAttribute(ConfigurationAttributes.SDG_REB_ALW, true);
 		configuration.setAttribute(ConfigurationAttributes.SDG_REB_NEC, false);
 		configuration.setAttribute(ConfigurationAttributes.SDG_REB_NEV, false);

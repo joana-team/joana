@@ -23,7 +23,7 @@ import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAPutInstruction;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
-import com.ibm.wala.util.collections.Filter;
+import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.collections.FilterIterator;
 import com.ibm.wala.util.collections.Pair;
 import com.ibm.wala.util.intset.OrdinalSet;
@@ -264,9 +264,9 @@ public abstract class ObjTreeIntraprocParamComputation implements IParamComputat
 			assert (pdg.getMethod().getReturnType().isPrimitiveType() == pdg.getExit().isPrimitive());
 		}
 
-		Filter<SSAFieldAccessInstruction> filterStatic =
-			new Filter<SSAFieldAccessInstruction>() {
-				public boolean accepts(SSAFieldAccessInstruction o) {
+		Predicate<SSAFieldAccessInstruction> filterStatic =
+			new Predicate<SSAFieldAccessInstruction>() {
+				public boolean test(SSAFieldAccessInstruction o) {
 					return o.isStatic();
 				}
 		};

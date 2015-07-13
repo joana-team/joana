@@ -19,7 +19,7 @@ import com.ibm.wala.fixpoint.BitVectorVariable;
 import com.ibm.wala.ssa.analysis.ExplodedControlFlowGraph;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
-import com.ibm.wala.util.collections.Filter;
+import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.collections.FilterIterator;
 import com.ibm.wala.util.collections.Iterator2Collection;
 import com.ibm.wala.util.collections.ObjectArrayMapping;
@@ -388,12 +388,13 @@ public class DataFlowAnalysis {
 		 * fields.
 		 */
 
-		Filter<AbstractPDGNode> filter = new Filter<AbstractPDGNode>() {
+		Predicate<AbstractPDGNode> filter = new Predicate<AbstractPDGNode>() {
 
 			private RelevantNodesVisitor acceptRelevantNodesVisitor =
 				new RelevantNodesVisitor();
 
-			public boolean accepts(AbstractPDGNode o) {
+			@Override
+			public boolean test(AbstractPDGNode o) {
 				o.accept(acceptRelevantNodesVisitor);
 
 				return o.getPdgId() == pdg.getId() &&

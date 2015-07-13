@@ -9,7 +9,7 @@ package edu.kit.joana.deprecated.jsdg.util;
 
 import java.util.Iterator;
 
-import com.ibm.wala.util.collections.Filter;
+import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.collections.FilterIterator;
 import com.ibm.wala.util.graph.NumberedEdgeManager;
 import com.ibm.wala.util.graph.NumberedGraph;
@@ -97,10 +97,10 @@ public class FilteredEdgeManager<T> implements NumberedEdgeManager<T> {
 			};
 		}
 
-		Iterator<T> it = new FilterIterator<T>(delegate.getPredNodes(N), new Filter<Object>() {
+		Iterator<T> it = new FilterIterator<T>(delegate.getPredNodes(N), new Predicate<T>() {
 
 			@SuppressWarnings("unchecked")
-			public boolean accepts(Object o) {
+			public boolean test(T o) {
 				int num = delegate.getNumber((T) o);
 				return nodesOk.contains(num);
 			}});
@@ -149,11 +149,11 @@ public class FilteredEdgeManager<T> implements NumberedEdgeManager<T> {
 			};
 		}
 
-		Iterator<T> it = new FilterIterator<T>(delegate.getSuccNodes(N), new Filter<Object>() {
+		Iterator<T> it = new FilterIterator<T>(delegate.getSuccNodes(N), new Predicate<T>() {
 
 			@SuppressWarnings("unchecked")
-			public boolean accepts(Object o) {
-				int num = delegate.getNumber((T) o);
+			public boolean test(T t) {
+				int num = delegate.getNumber(t);
 				return nodesOk.contains(num);
 			}});
 

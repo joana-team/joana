@@ -18,6 +18,7 @@ import com.ibm.wala.ipa.callgraph.propagation.HeapModel;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
 import com.ibm.wala.ipa.callgraph.propagation.PointerKey;
+import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.intset.BitVectorIntSet;
 import com.ibm.wala.util.intset.MutableMapping;
@@ -99,7 +100,7 @@ public class PointsToWrapper implements IPointerAnalysis {
 		OrdinalSet<InstanceKey> pts = cls2pts.get(cls);
 		if (pts == null) {
 			HeapModel hm = (demandPts == null ? pta.getHeapModel() : demandPts.getHeapModel());
-			InstanceKey ik = hm.getInstanceKeyForClassObject(cls.getReference());
+			InstanceKey ik = hm.getInstanceKeyForMetadataObject(cls.getReference(), TypeReference.JavaLangClass);
 
 			MutableMapping<InstanceKey> mutable = (MutableMapping<InstanceKey>) pta.getInstanceKeyMapping();
 			if (mutable.hasMappedIndex(ik)) {

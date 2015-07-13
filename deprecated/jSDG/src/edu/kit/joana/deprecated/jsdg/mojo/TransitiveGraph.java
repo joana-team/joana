@@ -10,7 +10,7 @@ package edu.kit.joana.deprecated.jsdg.mojo;
 import java.util.Iterator;
 
 import com.ibm.wala.util.CancelException;
-import com.ibm.wala.util.collections.Filter;
+import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.graph.Graph;
 import com.ibm.wala.util.graph.GraphReachability;
 import com.ibm.wala.util.graph.impl.GraphInverter;
@@ -35,10 +35,10 @@ public class TransitiveGraph<E> implements Graph<E> {
 
 	private void recomputeIfNeeded() {
 		if (changed) {
-			reach = new GraphReachability<E,E>(g, new Filter<E>() {
+			reach = new GraphReachability<E,E>(g, new Predicate<E>() {
 
 				@Override
-				public boolean accepts(E o) {
+				public boolean test(E o) {
 					return true;
 				}
 			});
@@ -50,10 +50,10 @@ public class TransitiveGraph<E> implements Graph<E> {
 			}
 
 			Graph<E> inverted = GraphInverter.invert(g);
-			reachInvers = new GraphReachability<E,E>(inverted, new Filter<E>() {
+			reachInvers = new GraphReachability<E,E>(inverted, new Predicate<E>() {
 
 				@Override
-				public boolean accepts(E o) {
+				public boolean test(E o) {
 					return true;
 				}
 			});

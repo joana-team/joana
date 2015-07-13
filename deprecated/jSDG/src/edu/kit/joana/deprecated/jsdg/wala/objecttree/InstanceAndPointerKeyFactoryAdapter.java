@@ -62,10 +62,10 @@ public class InstanceAndPointerKeyFactoryAdapter extends AbstractKey2Origin
 		return iKey;
 	}
 
-	public InstanceKey getInstanceKeyForClassObject(TypeReference type) {
-		InstanceKey iKey = ikFact.getInstanceKeyForClassObject(type);
+	public InstanceKey getInstanceKeyForMetadataObject(Object obj, TypeReference objType) {
+		InstanceKey iKey = ikFact.getInstanceKeyForMetadataObject(obj, objType);
 
-		InstanceKeyOrigin origin = findOrigin(type);
+		InstanceKeyOrigin origin = findOrigin(objType);
 		addOrigin(iKey, origin);
 
 		return iKey;

@@ -9,7 +9,7 @@ package edu.kit.joana.deprecated.jsdg.util;
 
 import java.util.Iterator;
 
-import com.ibm.wala.util.collections.Filter;
+import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.collections.FilterIterator;
 import com.ibm.wala.util.graph.NumberedNodeManager;
 import com.ibm.wala.util.intset.IntSet;
@@ -74,10 +74,10 @@ public class FilteredNodeManager<T> implements NumberedNodeManager<T> {
 	 * @see com.ibm.wala.util.graph.NodeManager#iterator()
 	 */
 	public Iterator<T> iterator() {
-		FilterIterator<T> it = new FilterIterator<T>(delegate.iterator(), new Filter<Object>() {
+		FilterIterator<T> it = new FilterIterator<T>(delegate.iterator(), new Predicate<T>() {
 			@SuppressWarnings("unchecked")
-			public boolean accepts(Object o) {
-				int num = delegate.getNumber((T) o);
+			public boolean test(T t) {
+				int num = delegate.getNumber(t);
 				return ok.contains(num);
 			}});
 

@@ -12,7 +12,7 @@ import java.util.Iterator;
 import com.ibm.wala.cfg.ControlFlowGraph;
 import com.ibm.wala.cfg.IBasicBlock;
 import com.ibm.wala.ipa.cfg.EdgeFilter;
-import com.ibm.wala.util.collections.Filter;
+import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.collections.FilterIterator;
 import com.ibm.wala.util.collections.Iterator2Collection;
 import com.ibm.wala.util.graph.NumberedEdgeManager;
@@ -75,8 +75,8 @@ public class FilteredEdgeManager<I, T extends IBasicBlock<I>> implements Numbere
 
 	public Iterator<T> getExceptionalSuccessors(final T N) {
 		return new FilterIterator<T>(
-				cfg.getExceptionalSuccessors(N).iterator(), new Filter<T>() {
-					public boolean accepts(T o) {
+				cfg.getExceptionalSuccessors(N).iterator(), new Predicate<T>() {
+					public boolean test(T o) {
 						return currentCFGNodes.containsNode(o)
 								&& filter.hasExceptionalEdge(N, o);
 					}
@@ -85,8 +85,8 @@ public class FilteredEdgeManager<I, T extends IBasicBlock<I>> implements Numbere
 
 	public Iterator<T> getNormalSuccessors(final T N) {
 		return new FilterIterator<T>(cfg.getNormalSuccessors(N).iterator(),
-				new Filter<T>() {
-					public boolean accepts(T o) {
+				new Predicate<T>() {
+					public boolean test(T o) {
 						return currentCFGNodes.containsNode(o)
 								&& filter.hasNormalEdge(N, o);
 					}
@@ -95,8 +95,8 @@ public class FilteredEdgeManager<I, T extends IBasicBlock<I>> implements Numbere
 
 	public Iterator<T> getExceptionalPredecessors(final T N) {
 		return new FilterIterator<T>(cfg.getExceptionalPredecessors(N)
-				.iterator(), new Filter<T>() {
-			public boolean accepts(T o) {
+				.iterator(), new Predicate<T>() {
+			public boolean test(T o) {
 				return currentCFGNodes.containsNode(o)
 						&& filter.hasExceptionalEdge(o, N);
 			}
@@ -105,8 +105,8 @@ public class FilteredEdgeManager<I, T extends IBasicBlock<I>> implements Numbere
 
 	public Iterator<T> getNormalPredecessors(final T N) {
 		return new FilterIterator<T>(cfg.getNormalPredecessors(N).iterator(),
-				new Filter<T>() {
-					public boolean accepts(T o) {
+				new Predicate<T>() {
+					public boolean test(T o) {
 						return currentCFGNodes.containsNode(o)
 								&& filter.hasNormalEdge(o, N);
 					}
@@ -114,8 +114,8 @@ public class FilteredEdgeManager<I, T extends IBasicBlock<I>> implements Numbere
 	}
 
 	public Iterator<T> getSuccNodes(final T N) {
-		return new FilterIterator<T>(cfg.getSuccNodes(N), new Filter<T>() {
-			public boolean accepts(T o) {
+		return new FilterIterator<T>(cfg.getSuccNodes(N), new Predicate<T>() {
+			public boolean test(T o) {
 				return currentCFGNodes.containsNode(o)
 						&& (filter.hasNormalEdge(N, o) || filter
 								.hasExceptionalEdge(N, o));
@@ -137,8 +137,8 @@ public class FilteredEdgeManager<I, T extends IBasicBlock<I>> implements Numbere
 	}
 
 	public Iterator<T> getPredNodes(final T N) {
-		return new FilterIterator<T>(cfg.getPredNodes(N), new Filter<T>() {
-			public boolean accepts(T o) {
+		return new FilterIterator<T>(cfg.getPredNodes(N), new Predicate<T>() {
+			public boolean test(T o) {
 				return currentCFGNodes.containsNode(o)
 						&& (filter.hasNormalEdge(o, N) || filter
 								.hasExceptionalEdge(o, N));

@@ -15,7 +15,7 @@ import com.ibm.wala.util.intset.MutableMapping;
 import com.ibm.wala.util.intset.OrdinalSet;
 
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
-import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeOp;
+import edu.kit.joana.wala.core.accesspath.APIntraProc.MergeOp;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;

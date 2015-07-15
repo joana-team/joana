@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-
 import org.jgrapht.DirectedGraph;
 
 import com.ibm.wala.ipa.callgraph.CGNode;
@@ -30,11 +29,15 @@ import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.wala.core.DependenceGraph;
+import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
+import edu.kit.joana.wala.core.accesspath.APContextManagerView.CallContext;
+import edu.kit.joana.wala.core.accesspath.APIntraProc.MergeInfo;
+import edu.kit.joana.wala.core.accesspath.APIntraProc.MergeOp;
 import edu.kit.joana.wala.summary.SummaryComputation;
 import edu.kit.joana.wala.summary.WorkPackage;
 import edu.kit.joana.wala.summary.WorkPackage.EntryPoint;
@@ -52,20 +55,7 @@ public class AccessPath {
 	 * @param method entry method for the interprocedural computation.
 	 * @throws CancelException
 	 */
-	public static List<AliasEdge> compute(final SDGBuilder sdg, final String method) throws CancelException {
-		final AccessPath ap = new AccessPath(sdg);
-
-		final PDG start = ap.findMethod(method);
-
-		return ap.run(start);
-	}
-
-	/**
-	 * Returns a subset of all data heap dependencies. Those that are dependent on aliasing.
-	 * @param method entry method for the interprocedural computation.
-	 * @throws CancelException
-	 */
-	public static List<AliasEdge> compute(final SDGBuilder sdg, final PDG start) throws CancelException {
+	public static APResult compute(final SDGBuilder sdg, final PDG start) throws CancelException {
 		if (sdg.cfg.fieldPropagation != FieldPropagation.OBJ_TREE
 				&& sdg.cfg.fieldPropagation != FieldPropagation.OBJ_TREE_NO_FIELD_MERGE
 				&& sdg.cfg.fieldPropagation != FieldPropagation.OBJ_TREE_AP) {
@@ -77,7 +67,7 @@ public class AccessPath {
 
 		return ap.run(start);
 	}
-
+	
 	private AccessPath(final SDGBuilder sdg) {
 		this.sdg = sdg;
 	}
@@ -106,9 +96,9 @@ public class AccessPath {
 		return Collections.unmodifiableSet(reachable);
 	}
 
-	private List<AliasEdge> run(final PDG start) throws CancelException {
+	private APResult run(final PDG start) throws CancelException {
 		if (start == null) {
-			return new LinkedList<AliasEdge>();
+			return new APResult(-1);
 		}
 
 		final Set<PDG> reachable = findReachable(start);
@@ -117,7 +107,6 @@ public class AccessPath {
 			final APIntraProc aip = APIntraProc.compute(pdg, sdg.cfg);
 			pdg2ap.put(pdg, aip);
 		}
-
 
 		boolean changed = true;
 		while (changed) {
@@ -131,32 +120,34 @@ public class AccessPath {
 					}
 				}
 			}
-
-			if (changed) {
-				// add edges for non-alias data deps
-				for (final PDG pdg : reachable) {
-					processIntraproc(pdg, pdg2ap);
-				}
-			}
 		}
 
-		if (sdg.cfg.debugAccessPath) {
-			for (final PDG pdg : reachable) {
-				final APIntraProc aip = pdg2ap.get(pdg);
-				aip.dumpGraph("-apg3.dot");
-			}
-		}
-
-
-		final List<AliasEdge> alias = new LinkedList<AccessPath.AliasEdge>();
+		final APResult result = new APResult(start.getId());
 		for (final PDG pdg : reachable) {
 			final APIntraProc ap = pdg2ap.get(pdg);
-			ap.findAndMarkAliasEdges(alias);
+			final int numOfAliasEdges = ap.findAndMarkAliasEdges();
 			ap.addAliasConditionToActualIns();
 			ap.addPotentialAliasInfoToFormalIns();
+			ap.computeReachingMerges(NullProgressMonitor.INSTANCE);
+			ap.buildAP2NodeMap();
+			final MergeInfo mnfo = ap.getMergeInfo();
+			for (final PDGNode call : pdg.getCalls()) {
+				for (final PDG callee : sdg.getPossibleTargets(call)) {
+					final CallContext ctx = extractCallContext(callee, call, pdg, pdg2ap);
+					mnfo.addCallCtx(ctx);
+				}
+			}
+			mnfo.setNumAliasEdges(numOfAliasEdges);
+			final Set<MergeOp> maxMerge = ap.computeMaxMerge();
+			final APIntraprocContextManager ctx = mnfo.extractContext(maxMerge);
+			result.add(ctx, numOfAliasEdges);
 		}
-
-		return alias;
+		
+		if (sdg.cfg.debugAccessPath) {
+			APUtil.writeResultToFile(result, sdg.cfg.debugAccessPathOutputDir, start, "-ap.txt");
+		}
+		
+		return result;
 	}
 
 	private boolean propagateCalleeToSite(final PDG callee, final PDGNode call, final PDG caller,
@@ -171,23 +162,17 @@ public class AccessPath {
 		return changed;
 	}
 
-	private void processIntraproc(final PDG pdg, final Map<PDG, APIntraProc> pdg2ap) {
-		boolean change = true;
-		boolean firstRun = true;
-		final APIntraProc ap = pdg2ap.get(pdg);
-		// do while changing
-		while (change) {
-			change = false;
-			// 1. add new no-alias heap edges to graph
-			change |= ap.adjustNonAliasEdges();
-			// 2. propagate paths
-			if (change || firstRun) {
-				change |= ap.propagateIntra();
-				firstRun = false;
-			}
-		}
-	}
+	private CallContext extractCallContext(final PDG callee, final PDGNode call, final PDG caller,
+			final Map<PDG, APIntraProc> pdg2ap) {
 
+		final APIntraProc aipCaller = pdg2ap.get(caller);
+		final APIntraProc aipCallee = pdg2ap.get(callee);
+
+		final CallContext ctx = aipCaller.extractContext(aipCallee, call);
+		
+		return ctx;
+	}
+	
 	/**
 	 * Compute summary edges for information flow without heap aliases and with aliases. Currently SUMMARY_P is used for
 	 * "always there dataflow". DATA_HEAP is used for always on information flow (summary edges without aliasing) and
@@ -220,16 +205,6 @@ public class AccessPath {
 		WorkPackage pack2 = WorkPackage.create(sdg, entries, sdg.getName());
 		SummaryComputation.computeFullAliasDataDep(pack2, progress);
 		out.print(".");
-	}
-
-	private PDG findMethod(String method) {
-		for (final PDG pdg : sdg.getAllPDGs()) {
-			if (pdg.getMethod().getSignature().equals(method)) {
-				return pdg;
-			}
-		}
-
-		return null;
 	}
 
 	public static class AliasEdge {

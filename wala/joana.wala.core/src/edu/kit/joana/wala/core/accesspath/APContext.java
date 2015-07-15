@@ -9,7 +9,7 @@ package edu.kit.joana.wala.core.accesspath;
 
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeOp;
+import edu.kit.joana.wala.core.accesspath.APIntraProc.MergeOp;
 import gnu.trove.map.TIntObjectMap;
 
 import java.util.Collections;

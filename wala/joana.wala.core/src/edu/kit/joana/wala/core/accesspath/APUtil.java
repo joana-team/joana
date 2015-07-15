@@ -31,10 +31,10 @@ import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.accesspath.APContextManagerView.CallContext;
-import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeInfo;
-import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeOp;
-import edu.kit.joana.wala.core.accesspath.APIntraProcV2.Merges;
-import edu.kit.joana.wala.core.accesspath.AccessPathV2.AliasEdge;
+import edu.kit.joana.wala.core.accesspath.APIntraProc.MergeInfo;
+import edu.kit.joana.wala.core.accesspath.APIntraProc.MergeOp;
+import edu.kit.joana.wala.core.accesspath.APIntraProc.Merges;
+import edu.kit.joana.wala.core.accesspath.AccessPath.AliasEdge;
 import edu.kit.joana.wala.core.accesspath.nodes.APGraph;
 import edu.kit.joana.wala.core.accesspath.nodes.APNode;
 import edu.kit.joana.wala.core.params.objgraph.dataflow.ModRefControlFlowGraph;
@@ -87,7 +87,7 @@ public final class APUtil {
 		return sanOutDir + sanPdgName + suffix;
 	}
 
-	private static List<APNode> extractAPNodes(final TIntSet pdgNodeIds, final PDG pdg, final APIntraProcV2 ap) {
+	private static List<APNode> extractAPNodes(final TIntSet pdgNodeIds, final PDG pdg, final APIntraProc ap) {
 		final List<APNode> apnodelist = new LinkedList<>();
 		pdgNodeIds.forEach(new TIntProcedure() {
 			@Override
@@ -114,7 +114,7 @@ public final class APUtil {
 		return aps;
 	}
 	
-	private static String extractAPstr(final TIntSet pdgNodeIds, final PDG pdg, final APIntraProcV2 ap) {
+	private static String extractAPstr(final TIntSet pdgNodeIds, final PDG pdg, final APIntraProc ap) {
 		final List<APNode> nodes = extractAPNodes(pdgNodeIds, pdg, ap);
 		final Set<AP> aps = extractAPs(nodes);
 		final StringBuilder sb = new StringBuilder();
@@ -129,7 +129,7 @@ public final class APUtil {
 		return sb.toString();
 	}
 	
-	private static String extractAliasStr(final AliasEdge e, final PDG pdg, final APIntraProcV2 ap) {
+	private static String extractAliasStr(final AliasEdge e, final PDG pdg, final APIntraProc ap) {
 		final String from = extractAPstr(e.fromAlias, pdg, ap);
 		final String to = extractAPstr(e.toAlias, pdg, ap);
 		return "(" + from + ") -> (" + to + ")";
@@ -153,7 +153,7 @@ public final class APUtil {
 	}
 	
 
-	private static String extractFineGrainedAliasStr(final AliasEdge e, final APIntraProcV2 ap) {
+	private static String extractFineGrainedAliasStr(final AliasEdge e, final APIntraProc ap) {
 		final APNode apFrom = ap.findAPNode(e.edge.from);
 		final APNode apTo = ap.findAPNode(e.edge.to);
 
@@ -266,7 +266,7 @@ public final class APUtil {
 		pw.println("====================================");
 	}
 	
-	public static void writeAliasEdgesToFile(final APIntraProcV2 ap, final String debugAccessPathOutputDir,
+	public static void writeAliasEdgesToFile(final APIntraProc ap, final String debugAccessPathOutputDir,
 			final PDG pdg, final String suffix) {
 		final String outFile = outputFileName(debugAccessPathOutputDir, pdg, suffix);
 		final int numAliasEdges = ap.getMergeInfo().getNumAliasEdges();

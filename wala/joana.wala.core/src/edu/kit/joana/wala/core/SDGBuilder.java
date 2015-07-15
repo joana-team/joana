@@ -70,7 +70,7 @@ import edu.kit.joana.wala.core.CallGraph.CallGraphFilter;
 import edu.kit.joana.wala.core.CallGraph.Edge;
 import edu.kit.joana.wala.core.CallGraph.Node;
 import edu.kit.joana.wala.core.accesspath.APResult;
-import edu.kit.joana.wala.core.accesspath.AccessPathV2;
+import edu.kit.joana.wala.core.accesspath.AccessPath;
 import edu.kit.joana.wala.core.clinit.StaticInitializers;
 import edu.kit.joana.wala.core.interference.Call2ForkConverter;
 import edu.kit.joana.wala.core.interference.InterferenceComputation;
@@ -713,7 +713,7 @@ public class SDGBuilder implements CallGraphFilter {
 			cfg.out.print("accesspath");
 			progress.beginTask("interproc: computing access path information...", IProgressMonitor.UNKNOWN);
 			// compute access path info
-			this.apResult = AccessPathV2.compute(this, getMainPDG());
+			this.apResult = AccessPath.compute(this, getMainPDG());
             progress.done();
 			cfg.out.print(".");
 		}

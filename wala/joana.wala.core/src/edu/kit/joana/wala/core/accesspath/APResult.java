@@ -7,7 +7,7 @@
  */
 package edu.kit.joana.wala.core.accesspath;
 
-import edu.kit.joana.wala.core.accesspath.APIntraProcV2.MergeOp;
+import edu.kit.joana.wala.core.accesspath.APIntraProc.MergeOp;
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;

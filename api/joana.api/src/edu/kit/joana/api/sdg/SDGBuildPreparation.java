@@ -30,7 +30,6 @@ import com.ibm.wala.classLoader.Language;
 import com.ibm.wala.classLoader.Module;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
-import com.ibm.wala.ipa.callgraph.CallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.ContextSelector;
 import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
 import com.ibm.wala.ipa.callgraph.pruned.PruningPolicy;
@@ -309,7 +308,6 @@ public final class SDGBuildPreparation {
 		scfg.prunecg = DEFAULT_PRUNE_CG;
 		scfg.pruningPolicy = cfg.pruningPolicy;
 		scfg.pts = cfg.pts;
-		scfg.customCallGraphBuilder = cfg.customCallGraphBuilder;
 		if (cfg.objSensFilter != null) {
 			scfg.objSensFilter = cfg.objSensFilter;
 		}
@@ -394,10 +392,6 @@ public final class SDGBuildPreparation {
 		// only used iff pts is set to object sensitive. If null defaults to
 		// "do object sensitive analysis for all methods"
 		public ObjSensZeroXCFABuilder.MethodFilter objSensFilter = null;
-		// only used iff pts is set to CUSTOM.
-		// IF pts is set to CUSTOM, then this call graph builder will be used
-		// and other related settings will be ignored
-		public CallGraphBuilder customCallGraphBuilder = null;
 		public ExceptionAnalysis exceptions;
 		public MethodState defaultExceptionMethodState = null;
 		public boolean accessPath;

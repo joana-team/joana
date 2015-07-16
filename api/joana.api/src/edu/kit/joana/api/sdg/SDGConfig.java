@@ -8,6 +8,7 @@
 package edu.kit.joana.api.sdg;
 
 import com.ibm.wala.cfg.exc.intra.MethodState;
+import com.ibm.wala.ipa.callgraph.CallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.ContextSelector;
 import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
 import com.ibm.wala.ipa.callgraph.pruned.PruningPolicy;
@@ -35,6 +36,7 @@ public class SDGConfig {
 	private MethodState defaultExceptionMethodState = null;
 	private FieldPropagation fieldPropagation;
 	private PointsToPrecision pointsToPrecision;
+	private CallGraphBuilder customCallGraphBuilder;
 	private boolean computeAccessPaths;
 	private boolean computeInterferences;
 	private MHPType mhpType = MHPType.NONE;
@@ -328,5 +330,21 @@ public class SDGConfig {
 
 	public void setDynamicDispatchHandling(DynamicDispatchHandling ddisp) {
 		this.ddisp = ddisp;
+	}
+
+	/**
+	 * @return the call graph builder to be used if PointsToPrecision is set to CUSTOM.
+	 */
+	public CallGraphBuilder getCustomCallGraphBuilder() {
+		return this.customCallGraphBuilder;
+	}
+
+	/**
+	 * Sets the call graph builder to be used if PointsToPrecision is set to CUSTOM.
+	 * Normally, you can ignore this. Only use the CUSTOM setting if you know what you're doing!
+	 * @param builder custom call graph builder to use
+	 */
+	public void setCustomCallGraphBuilder(CallGraphBuilder builder) {
+		this.customCallGraphBuilder = builder;
 	}
 }

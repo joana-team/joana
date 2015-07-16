@@ -296,6 +296,7 @@ public class SDGProgram {
 		cfg.exceptions = config.getExceptionAnalysis();
 		cfg.defaultExceptionMethodState = config.getDefaultExceptionMethodState();
 		cfg.pts = config.getPointsToPrecision();
+		cfg.customCallGraphBuilder = config.getCustomCallGraphBuilder();
 		cfg.accessPath = config.computeAccessPaths();
 		cfg.sideEffects = config.getSideEffectDetectorConfig();
 		cfg.stubs = config.getStubsPath().getPath();

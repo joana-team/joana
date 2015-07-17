@@ -92,6 +92,7 @@ import edu.kit.joana.wala.summary.WorkPackage;
 import edu.kit.joana.wala.summary.WorkPackage.EntryPoint;
 import edu.kit.joana.wala.util.EdgeFilter;
 import edu.kit.joana.wala.util.WriteGraphToDot;
+import edu.kit.joana.wala.util.pointsto.CallGraphBuilderFactory;
 import edu.kit.joana.wala.util.pointsto.ExtendedAnalysisOptions;
 import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder;
 import edu.kit.joana.wala.util.pointsto.WalaPointsToUtil;
@@ -972,7 +973,7 @@ public class SDGBuilder implements CallGraphFilter {
 					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
 			break;
 		case CUSTOM:
-			cgb = cfg.customCallGraphBuilder;
+			cgb = cfg.customCGBFactory.createCallGraphBuilder(options, cfg.cache, cfg.cha, cfg.scope, cfg.additionalContextSelector, cfg.additionalContextInterpreter);
 		}
 		com.ibm.wala.ipa.callgraph.CallGraph callgraph = cgb.makeCallGraph(options, progress);
 
@@ -1542,6 +1543,7 @@ public class SDGBuilder implements CallGraphFilter {
 		// only used iff pts is set to CUSTOM. must be consistent with cha and scope,
 		// to be sure also with cache
 		public CallGraphBuilder customCallGraphBuilder = null;
+		public CallGraphBuilderFactory customCGBFactory = null;
 		// only used iff pts is set to object sensitive. If null defaults to
 		// "do object sensitive analysis for all methods"
 		public ObjSensZeroXCFABuilder.MethodFilter objSensFilter = null;

@@ -1540,9 +1540,9 @@ public class SDGBuilder implements CallGraphFilter {
 		public PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
 		public DynamicDispatchHandling dynDisp = DynamicDispatchHandling.SIMPLE;
 		public PointsToPrecision pts = PointsToPrecision.INSTANCE_BASED;
-		// only used iff pts is set to CUSTOM. must be consistent with cha and scope,
-		// to be sure also with cache
-		public CallGraphBuilder customCallGraphBuilder = null;
+		// only used iff pts is set to CUSTOM. Gets access to hopefully all
+		// information needed to create a call graph builder, consistent
+		// with the information internal to the SDG Builder
 		public CallGraphBuilderFactory customCGBFactory = null;
 		// only used iff pts is set to object sensitive. If null defaults to
 		// "do object sensitive analysis for all methods"

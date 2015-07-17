@@ -1075,7 +1075,7 @@ public final class CheckFlowLessWithAlias {
 			scfg.objSensFilter = cfg.objSensFilter;
 		}
 		scfg.debugAccessPath = true;
-		scfg.debugAccessPathOutputDir = "out/";
+		scfg.debugAccessPathOutputDir = outDir;//"out/";
 		scfg.computeInterference = false;
 		scfg.staticInitializers = StaticInitializationTreatment.NONE;
 		scfg.debugStaticInitializers = false;

@@ -449,7 +449,7 @@ public final class CheckFlowLessWithAlias {
 
 		for (final FlowStmtResultPart part : toInfere) {
 			// special case => try inference of valid alias configurations
-			inferValidAliasConfigurations(alias, part.getBasicStmt(), match, mInfo, stmtResult, excCfg, progress);
+			inferValidAliasConfigurations(cfc, alias, part.getBasicStmt(), match, mInfo, stmtResult, excCfg, progress);
 		}
 	}
 
@@ -492,7 +492,7 @@ public final class CheckFlowLessWithAlias {
 		return pspos;
 	}
 
-	private static boolean hasIllegalFlow(final ExplicitFlowStmt fl, final Matcher match,
+	public static boolean hasIllegalFlow(final ExplicitFlowStmt fl, final Matcher match,
 			final SummarySlicerBackward ssb, final AliasSDG sdg) {
 		final Set<SDGNode> from = new HashSet<SDGNode>();
 		for (final Parameter fp : fl.getFrom()) {
@@ -635,7 +635,7 @@ public final class CheckFlowLessWithAlias {
 		return bc == BytecodeLocation.ROOT_PARAMETER || bc == BytecodeLocation.STATIC_FIELD;
 	}
 
-	private void inferValidAliasConfigurations(final AliasSDG alias, final BasicIFCStmt ifc,
+	public static void inferValidAliasConfigurations(final CheckFlowConfig cfc, final AliasSDG alias, final BasicIFCStmt ifc,
 			final Matcher match, final MethodInfo mInfo, final FlowStmtResult stmtResult,
 			final ExceptionAnalysis excCfg,	final IProgressMonitor progress) throws CancelException {
 		cfc.out.println("infering valid alias configurations... ");

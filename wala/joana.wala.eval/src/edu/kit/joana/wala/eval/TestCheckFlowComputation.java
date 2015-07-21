@@ -8,15 +8,18 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.JarFileModule;
 import com.ibm.wala.classLoader.JarStreamModule;
@@ -26,20 +29,23 @@ import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.types.ClassLoaderReference;
-import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
+import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.config.AnalysisScopeReader;
 import com.ibm.wala.util.config.FileOfClasses;
 import com.ibm.wala.util.config.SetOfClasses;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
+import edu.kit.joana.ifc.sdg.graph.slicer.SummarySlicerBackward;
 import edu.kit.joana.wala.core.ExternalCallCheck;
 import edu.kit.joana.wala.core.Main;
+import edu.kit.joana.wala.core.Main.Config;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder;
-import edu.kit.joana.wala.core.Main.Config;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
@@ -48,14 +54,27 @@ import edu.kit.joana.wala.core.accesspath.APResult;
 import edu.kit.joana.wala.core.accesspath.AccessPath;
 import edu.kit.joana.wala.dictionary.accesspath.AliasSDG;
 import edu.kit.joana.wala.dictionary.accesspath.CheckFlowLessWithAlias;
-import edu.kit.joana.wala.dictionary.accesspath.FlowCheckResultConsumer;
 import edu.kit.joana.wala.dictionary.accesspath.CheckFlowLessWithAlias.CheckFlowConfig;
+import edu.kit.joana.wala.dictionary.accesspath.CheckFlowLessWithAlias.EntityNotFoundException;
+import edu.kit.joana.wala.dictionary.accesspath.FlowCheckResultConsumer;
+import edu.kit.joana.wala.dictionary.accesspath.FlowCheckResultConsumer.FlowStmtResult;
+import edu.kit.joana.wala.dictionary.accesspath.FlowCheckResultConsumer.FlowStmtResultPart;
+import edu.kit.joana.wala.dictionary.accesspath.FlowCheckResultConsumer.MethodResult;
+import edu.kit.joana.wala.dictionary.accesspath.FlowLess2SDGMatcher;
+import edu.kit.joana.wala.dictionary.accesspath.Matcher;
 import edu.kit.joana.wala.flowless.MoJo;
 import edu.kit.joana.wala.flowless.MoJo.CallGraphResult;
 import edu.kit.joana.wala.flowless.pointsto.GraphAnnotater.Aliasing;
 import edu.kit.joana.wala.flowless.pointsto.PointsToSetBuilder.PointsTo;
+import edu.kit.joana.wala.flowless.spec.FlowLessSimplifier;
+import edu.kit.joana.wala.flowless.spec.FlowLessSimplifier.BasicIFCStmt;
+import edu.kit.joana.wala.flowless.spec.ast.ExplicitFlowStmt;
+import edu.kit.joana.wala.flowless.spec.ast.FlowAstVisitor.FlowAstException;
+import edu.kit.joana.wala.flowless.spec.ast.IFCStmt;
+import edu.kit.joana.wala.flowless.spec.ast.Parameter;
+import edu.kit.joana.wala.flowless.spec.ast.PrimitiveAliasStmt;
 import edu.kit.joana.wala.flowless.spec.java.ast.ClassInfo;
-import edu.kit.joana.wala.util.PrettyWalaNames;
+import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
 
 public final class TestCheckFlowComputation {
 
@@ -72,7 +91,16 @@ public final class TestCheckFlowComputation {
 		public String entryMethod;
 		public String classpath;
 		public String outputDir = STD_OUT_DIR;
-		public String exclusions = EXCLUSION_REG_EXP;
+		public IMethod im;
+		public MethodResult m;
+		public ExpR[] expected;
+		public long timePreprareSDG = 0;
+		public long numPreparedSDGs = 0;
+		public long timeAdjustSDG = 0;
+		public long numAdjustSDGs = 0;
+		public long startPrepareTime, endPrepareTime;
+		public long startAdjustTime, endAdjustTime;
+
 		
 		public Run(String name, String entryMethod, String classpath) {
 			this.name = name;
@@ -80,77 +108,11 @@ public final class TestCheckFlowComputation {
 			this.classpath = classpath;
 		}
 		
-		public Run(String name, String entryMethod, String classpath, String exclusions) {
-			this(name, entryMethod, classpath);
-			this.exclusions = exclusions;
-		}
-		
 		public String toString() {
 			return name + "(" + entryMethod + ")(" + classpath + ")";
 		}
 		
 	}
-	
-/*
-de.uni.trier.infsec.protocols.smt_voting.Server.onSendResult(java.lang.String,int):
-accesspathException in thread "main" java.util.ConcurrentModificationException
-	at java.util.HashMap$HashIterator.nextEntry(HashMap.java:806)
-	at java.util.HashMap$KeyIterator.next(HashMap.java:841)
-	at edu.kit.joana.wala.core.accesspath.nodes.APNode$1.next(APNode.java:106)
-	at edu.kit.joana.wala.core.accesspath.nodes.APNode$1.next(APNode.java:1)
-	at edu.kit.joana.wala.core.accesspath.nodes.APNode.propagateTo(APNode.java:66)
-	at edu.kit.joana.wala.core.accesspath.APIntraProc.propagateFrom(APIntraProc.java:144)
-	at edu.kit.joana.wala.core.accesspath.AccessPath.propagateCalleeToSite(AccessPath.java:169)
-	at edu.kit.joana.wala.core.accesspath.AccessPath.run(AccessPath.java:130)
-	at edu.kit.joana.wala.core.accesspath.AccessPath.compute(AccessPath.java:78)
-	at edu.kit.joana.wala.core.SDGBuilder.run(SDGBuilder.java:685)
-	at edu.kit.joana.wala.core.SDGBuilder.run(SDGBuilder.java:514)
-	at edu.kit.joana.wala.core.SDGBuilder.create(SDGBuilder.java:335)
-	at edu.kit.joana.wala.eval.RunEvalModular.create(RunEvalModular.java:246)
-	at edu.kit.joana.wala.eval.RunEvalModular.computeAccessPaths(RunEvalModular.java:204)
-	at edu.kit.joana.wala.eval.RunEvalModular.exec(RunEvalModular.java:152)
-	at edu.kit.joana.wala.eval.RunEvalModular.main(RunEvalModular.java:127)
- */
-	
-	private static String[] SKIP_METHODS = {
-		"raytracer.RayTracer.shade(int,double,raytracer.Vec,raytracer.Vec,raytracer.Vec,raytracer.Isect)",
-		/*
-Exception in thread "main" java.lang.IllegalArgumentException: Arguments should not be null: PARAM_IN(-1_2589)[<p1@32>.P.z], null
-	at edu.kit.joana.wala.core.accesspath.nodes.APGraph$APEdge.<init>(APGraph.java:48)
-	at edu.kit.joana.wala.core.accesspath.nodes.APGraph$APEdge.<init>(APGraph.java:46)
-	at edu.kit.joana.wala.core.accesspath.nodes.APGraph.findAliasEdges(APGraph.java:91)
-	at edu.kit.joana.wala.core.accesspath.APIntraProc.compute(APIntraProc.java:53)
-	at edu.kit.joana.wala.core.accesspath.AccessPath.run(AccessPath.java:117)
-	at edu.kit.joana.wala.core.accesspath.AccessPath.compute(AccessPath.java:78)
-	at edu.kit.joana.wala.core.SDGBuilder.run(SDGBuilder.java:685)
-	at edu.kit.joana.wala.core.SDGBuilder.run(SDGBuilder.java:514)
-	at edu.kit.joana.wala.core.SDGBuilder.create(SDGBuilder.java:335)
-	at edu.kit.joana.wala.eval.RunEvalModular.create(RunEvalModular.java:218)
-	at edu.kit.joana.wala.eval.RunEvalModular.computeAccessPaths(RunEvalModular.java:176)
-	at edu.kit.joana.wala.eval.RunEvalModular.exec(RunEvalModular.java:128)
-	at edu.kit.joana.wala.eval.RunEvalModular.main(RunEvalModular.java:103)
-		 */
-	};
-	
-	private static Run[] RUNS = new Run[] {
-		new Run("eVoting ClientServer", "rs3.clientserver.protocol.Setup.main([Ljava/lang/String;)V", "../../example/joana.example.many-small-progs/bin",	AGGRESSIVE_EXCLUSION_REG_EXP),
-//		new Run("JGF Barrier", "def.JGFBarrierBench.main([Ljava/lang/String;)V", "../../example/joana.example.jars/javagrande/benchmarks.jar",	AGGRESSIVE_EXCLUSION_REG_EXP),
-//		new Run("JGF Crypt", "def.JGFCryptBenchSizeA.main([Ljava/lang/String;)V", "../../example/joana.example.jars/javagrande/benchmarks.jar",	AGGRESSIVE_EXCLUSION_REG_EXP),
-//		new Run("JGF ForkJoin", "def.JGFForkJoinBench.main([Ljava/lang/String;)V", "../../example/joana.example.jars/javagrande/benchmarks.jar", AGGRESSIVE_EXCLUSION_REG_EXP),
-//		new Run("JGF LUFact", "def.JGFLUFactBenchSizeA.main([Ljava/lang/String;)V",	"../../example/joana.example.jars/javagrande/benchmarks.jar", AGGRESSIVE_EXCLUSION_REG_EXP),
-//		new Run("JGF MolDyn", "def.JGFMolDynBenchSizeA.main([Ljava/lang/String;)V",	"../../example/joana.example.jars/javagrande/benchmarks.jar", AGGRESSIVE_EXCLUSION_REG_EXP),
-//		new Run("JGF MonteCarlo", "def.JGFMonteCarloBenchSizeA.main([Ljava/lang/String;)V",	"../../example/joana.example.jars/javagrande/benchmarks.jar", AGGRESSIVE_EXCLUSION_REG_EXP),
-//		new Run("JGF RayTracer", "def.JGFRayTracerBenchSizeA.main([Ljava/lang/String;)V", "../../example/joana.example.jars/javagrande/benchmarks.jar",	AGGRESSIVE_EXCLUSION_REG_EXP),
-//		new Run("JGF Series", "def.JGFSeriesBenchSizeA.main([Ljava/lang/String;)V", "../../example/joana.example.jars/javagrande/benchmarks.jar", AGGRESSIVE_EXCLUSION_REG_EXP),
-//		new Run("JGF SOR", "def.JGFSORBenchSizeA.main([Ljava/lang/String;)V", "../../example/joana.example.jars/javagrande/benchmarks.jar",	AGGRESSIVE_EXCLUSION_REG_EXP),
-//		new Run("JGF SparseMatmult", "def.JGFSparseMatmultBenchSizeA.main([Ljava/lang/String;)V", "../../example/joana.example.jars/javagrande/benchmarks.jar",	AGGRESSIVE_EXCLUSION_REG_EXP),
-//		new Run("JGF Sync", "def.JGFSyncBench.main([Ljava/lang/String;)V", "../../example/joana.example.jars/javagrande/benchmarks.jar", AGGRESSIVE_EXCLUSION_REG_EXP),
-//		new Run("HSQLDB", "org.hsqldb.Server.main([Ljava/lang/String;)V", "../../example/joana.example.jars/hsqldb/HSQLDB.jar",	AGGRESSIVE_EXCLUSION_REG_EXP),
-//		new Run("jEdit", "org.gjt.sp.jedit.jEdit.main([Ljava/lang/String;)V", "../../example/joana.example.jars/jedit/jedit.jar",
-//				EXCLUSION_REG_EXP + "java\\/nio\\/.*\n" + "javax\\/.*\n" + "java\\/util\\/.*\n"
-//						+ "java\\/security\\/.*\n" + "java\\/beans\\/.*\n" + "org\\/omg\\/.*\n"
-//						+ "apple\\/awt\\/.*\n" + "com\\/apple\\/.*\n"),
-	};
 	
 	public TestCheckFlowComputation() {}
 
@@ -162,20 +124,21 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 	
 	private static final String WITH_EXC_SUFFIX = "cf_with_exc";
 	private static final String LOG_FILE = STD_OUT_DIR + "checkflow.log";
-	private static final String LIB_DIR = "../../contrib/lib/stubs";
+	private static final String LIB_DIR = "../../contrib/lib/stubs/";
 	private static final String BIN_DIR = "../joana.wala.testdata/bin";
 	private static final String SRC_DIR = "../joana.wala.testdata/src";
 
 	
-	private CheckFlowConfig prepareConfig() {
+	private static void prepareConfig() {
 		final CheckFlowConfig cfc = new CheckFlowConfig(BIN_DIR, new String[] { SRC_DIR }, STD_OUT_DIR, LIB_DIR,
 				CheckFlowLessWithAlias.createPrintStream(LOG_FILE), FlowCheckResultConsumer.STDOUT,
 				NullProgressMonitor.INSTANCE);
 		
-		return cfc;
+		setup.cfc = cfc;
 	}
 	
-	private MoJo createMoJo(final CheckFlowConfig cfc) throws IOException, ClassHierarchyException {
+	private static void createMoJo() throws IOException, ClassHierarchyException {
+		final CheckFlowConfig cfc = setup.cfc;
 		cfc.out.print("Parsing source files... ");
 		final List<ClassInfo> clsInfos = new LinkedList<ClassInfo>();
 		for (final String src : cfc.src) {
@@ -190,6 +153,9 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 		}
 		cfc.out.println("done.");
 
+		// set static field for later use
+		setup.clsInfo = clsInfos;
+		
 		final Config cfg = new Config(WITH_EXC_SUFFIX);
 		cfg.entryMethod = "<main entry not used>";
 		cfg.classpath=  cfc.bin;
@@ -203,6 +169,8 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 		cfg.outputDir = cfc.tmpDir;
 		cfg.fieldPropagation = FieldPropagation.OBJ_TREE;
 
+		setup.cfg = cfg;
+		
 		cfc.out.println(cfg);
 
 		if (cfc.scope == null) {
@@ -220,440 +188,323 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 		final MoJo mojo = MoJo.create(cha, cfg.outputDir);
 		cfc.out.println("done.");
 
-		return mojo;
+		setup.mojo = mojo;
 	}
 	
-	@Test
-	public void test_modularLibraryCall() {
-		final Run run = new Run(currentMethodName(),
-			"modular.Library.call(Lmodular/Library$A;Lmodular/Library$A;Lmodular/Library$A;I)I",
-			"../../example/joana.example.many-small-progs/bin");
-		try {
+	private static class Setup {
+		private List<ClassInfo> clsInfo;
+		private CheckFlowConfig cfc;
+		private Config cfg;
+		private MoJo mojo;
+		private final boolean printStatistics = true;
+		
+		private void reset() {
+			clsInfo = null;
+			cfc = null;
+			mojo = null;
+		}
+	}
+	
+	private static final Setup setup = new Setup();
+	
+    @BeforeClass
+    public static void setUp() {
+    	System.out.println("setting up");
+    	prepareConfig();
+    	try {
+			createMoJo();
+		} catch (ClassHierarchyException e) {
+			Assert.fail(e.getMessage());
+			e.printStackTrace(System.out);
+		} catch (IOException e) {
+			Assert.fail(e.getMessage());
+			e.printStackTrace(System.out);
+		}
+    }
+
+    @AfterClass
+    public static void tearDown() {
+    	System.out.println("tearing down");
+    	setup.reset();
+    }
+	
+    private static MethodInfo findMethod(final String name) {
+    	if (setup.clsInfo == null) {
+    		Assert.fail("No class info available.");
+    	}
+    	
+		for (final ClassInfo cls : setup.clsInfo) {
+			for (final MethodInfo m : cls.getMethods()) {
+				if (m.getName().equals(name)) {
+					return m;
+				}
+			}
+		}
+		
+		return null;
+    }
+    
+    private static final class ExpR {
+    	private final String clause;
+    	private final Res res;
+    	
+    	private ExpR(final String clause, final Res res) {
+    		this.clause = clause;
+    		this.res = res;
+    	}
+    	
+    	public boolean matches(final IFCStmt ifc) {
+    		return clause.equals(ifc.toString());
+    	}
+    	
+    	public String check(final FlowStmtResult stmt) {
+    		final IFCStmt ifc = stmt.getStmt();
+    		Assert.assertTrue("'" + clause + "' doesn't match current stmt: '" + ifc.toString() + "'", matches(ifc));
+    		switch (res) {
+    		case ALWAYS_SATISFIED:
+    			Assert.assertTrue("'" + clause + "' not always satisfied.", stmt.isAlwaysSatisfied());
+    			return "always satisfied.";
+    		case NEVER_SATISFIED:
+    			Assert.assertTrue("'" + clause + "' should not be satisfied.", stmt.isNeverSatisfied());
+    			return "never satisfied.";
+    		case NO_EXC_SATISFIED:
+    			Assert.assertTrue("'" + clause + "' not satisfied without exceptions.", stmt.isNoExceptionSatisfied());
+    			return "satisfied without exceptions.";
+    		case INFERRED_SATISFIED:
+    			Assert.assertTrue("'" + clause + "' could not be inferred.", stmt.isInferredSatisfied());
+    			return "can be inferred.";
+    		case NO_EXC_INFERRED_SATISFIED:
+    			Assert.assertTrue("'" + clause + "' could not be inferred without exceptions.", stmt.isInferredNoExcSatisfied());
+    			return "can be inferred without exceptions.";
+    		}
+    		
+    		return "weird should not happen.";
+    	}
+    	
+    }
+    
+    private static enum Res { ALWAYS_SATISFIED, NEVER_SATISFIED, NO_EXC_SATISFIED, INFERRED_SATISFIED, NO_EXC_INFERRED_SATISFIED };
+    
+    private static String check(final FlowStmtResult result, final ExpR[] expected) {
+    	final IFCStmt ifc = result.getStmt();
+    	ExpR exp = null;
+    	for (final ExpR cur : expected) {
+    		if (cur.matches(ifc)) {
+    			exp = cur;
+    			break;
+    		}
+    	}
+    	
+    	Assert.assertNotNull("no expected outcome found for '" + ifc + "'", exp);
+    	return exp.check(result);
+    }
+    
+    private void checkRun(final Run run) {
+    	try { 
 			out.println(run.name + " starts...");
-			final ClassHierarchy cha = createHierarchy(run);
-			Assert.assertNotNull(cha);
-			final IMethod im = findEntryMethod(cha, run);
-			Assert.assertNotNull(im);
-			final MoJo mojo = MoJo.create(cha, run.outputDir);
-			final SDGResult sdg = computeAccessPaths(run, mojo, im);
-			Assert.assertNotNull(sdg);
-			final AliasSDG asdg = AliasSDG.create(sdg.sdg, sdg.ap);
-			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(precompSum > 0);
-			// 4 params, with nodeids 4..7
-			asdg.setNoAlias(5, 6);
-			asdg.setNoAlias(4, 6);			
-			asdg.setNoAlias(4, 5);			
-			final int disabled = asdg.adjustMaxSDG(NullProgressMonitor.INSTANCE);
-			final int recompSum = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(recompSum > 0);
-			asdg.reset();
-			final int disabled2 = asdg.adjustMaxSDG(NullProgressMonitor.INSTANCE);
-			final int recompSum2 = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(recompSum2 > 0);
-			out.println("\tpre: " + precompSum + ", recomp(" + disabled + "): " + recompSum
-					+ ", recomp2(" + disabled2 + "): " + recompSum2);
-			Assert.assertTrue(recompSum2 > recompSum);
+			final MethodInfo mnfo = findMethod(run.entryMethod);
+			Assert.assertNotNull(mnfo);
+			Assert.assertTrue(mnfo.hasIFCStmts());
+			final IMethod start = setup.mojo.findMethod(mnfo);
+			Assert.assertNotNull(start);
+			run.im = start;
+			final MethodResult mres = new MethodResult(mnfo, setup.cfc.tmpDir);
+			run.m = mres;
+			final AliasSDG alias = prepareForFlowLessCheck(run, NullProgressMonitor.INSTANCE);
+	
+			out.println("\t'" + mnfo + "' preparation done, ifc check starts...");
+			
+			boolean resetNeeded = false;
+	
+			for (final IFCStmt stmt : mres.getInfo().getIFCStmts()) {
+				setup.cfc.out.print("ifc check '" + stmt + "': ");
+				out.print("\t\tifc check '" + stmt + "': ");
+				if (resetNeeded) {
+					alias.reset();
+					resetNeeded = false;
+				}
+	
+				final FlowStmtResult stmtResult = mres.findOrCreateStmtResult(stmt);
+				
+				checkFlowLessForStatement(run, alias, stmtResult, NullProgressMonitor.INSTANCE);
+	
+				final String chk = check(stmtResult, run.expected);
+				
+				out.println(chk);
+				
+				resetNeeded = true;
+			}
+			
+			out.println("\t'" + mnfo + "' ifc check done.");
+	
+			if (setup.printStatistics) {
+				out.println("\ttotal prepared SDGs     : " + run.numPreparedSDGs);
+				out.println("\ttotal prepared SDGs time: " + run.timePreprareSDG);
+				out.println("\ttotal adjusted SDGs     : " + run.numAdjustSDGs);
+				out.println("\ttotal adjusted SDGs time: " + run.timeAdjustSDG);
+				final long avgPrepare = (run.numPreparedSDGs > 0 ? (run.timePreprareSDG / run.numPreparedSDGs) : 0);
+				final long avgAdjust = (run.numAdjustSDGs > 0 ? (run.timeAdjustSDG / run.numAdjustSDGs) : 0);
+				out.println("\tavg. prepared SDGs time : " + avgPrepare);
+				out.println("\tavg. adjusted SDGs time : " + avgAdjust);
+				out.println("\tspeed gain by adjust: " + (avgAdjust > 0 ? (avgPrepare / avgAdjust) : 0) + "x faster");
+			}
+	
 			out.println(run.name + " done.");
 		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
 				| UnsoundGraphException e) {
 			throw new RuntimeException(e);
 		}
+    }
+    
+	@Test
+	public void test_exceptionalFlow1() {
+		final Run run = new Run(currentMethodName(),
+			"exceptionalFlow1",
+			"../../example/joana.example.many-small-progs/bin");
+		run.expected = new ExpR[] { 
+			new ExpR("!{a, b} => (a.x)-!>(b.x)", Res.ALWAYS_SATISFIED),
+		};
+		
+		checkRun(run);
 	}
 	
-	@Test
-	public void test_modularLibraryCompute() {
-		final Run run = new Run(currentMethodName(),
-			"modular.Library.compute(Lmodular/Library$A1;Lmodular/Library$A1;Lmodular/Library$A1;Lmodular/Library$A1;Lmodular/Library$A1;Lmodular/Library$A1;)I",
-			"../../example/joana.example.many-small-progs/bin");
+	private AliasSDG prepareForFlowLessCheck(final Run run, final IProgressMonitor progress)
+			throws IllegalArgumentException, CancelException, ClassHierarchyException, IOException, UnsoundGraphException {
+		if (setup.printStatistics) { run.startPrepareTime = System.currentTimeMillis(); }
+		final CheckFlowConfig cfc = setup.cfc;
+		final IMethod im = run.im;
+		final MethodResult m = run.m;
+		final MoJo mojo = setup.mojo;
+		final Config cfg = setup.cfg;
+		cfc.out.println("checking '" + m + "'");
+		final Aliasing minMax = mojo.computeMinMaxAliasing(im);
+		final PointsTo ptsMax = MoJo.computePointsTo(minMax.upperBound);
+		final AnalysisOptions opt = mojo.createAnalysisOptionsWithPTS(ptsMax, im);
+		final CallGraphResult cgr;
+		switch (cfg.pts) {
+		case TYPE_BASED:
+			cgr = mojo.computeContextInsensitiveCallGraph(opt);
+			break;
+		case INSTANCE_BASED:
+			cgr = mojo.computeContextSensitiveCallGraph(opt);
+			break;
+		case OBJECT_SENSITIVE:
+			cgr = mojo.computeObjectSensitiveCallGraph(opt, cfg.objSensFilter);
+			break;
+		default:
+			throw new IllegalStateException();
+		}
+
+		final SDGResult sdgResult = create(run, opt.getAnalysisScope(), cgr);
+		final SDG sdg = sdgResult.sdg;
+
+		final AliasSDG alias = AliasSDG.create(sdg, sdgResult.ap);
+		alias.precomputeSummary(progress);
+
+		if (setup.printStatistics) {
+			run.endPrepareTime = System.currentTimeMillis();
+			run.numPreparedSDGs++;
+			run.timePreprareSDG += (run.endPrepareTime - run.startPrepareTime);
+		}
+		
+		return alias;
+	}
+	
+	private void checkFlowLessForStatement(final Run run, final AliasSDG alias, final FlowStmtResult stmtResult,
+			final IProgressMonitor progress) throws IllegalArgumentException, CancelException, ClassHierarchyException,
+			IOException, UnsoundGraphException {
+		final CheckFlowConfig cfc = setup.cfc;
+		final Config cfg = setup.cfg;
+		final SDG sdg = alias.getSDG();
+		final IFCStmt stmt = stmtResult.getStmt();
+
 		try {
-			out.println(run.name + " starts...");
-			final ClassHierarchy cha = createHierarchy(run);
-			Assert.assertNotNull(cha);
-			final IMethod im = findEntryMethod(cha, run);
-			Assert.assertNotNull(im);
-			final MoJo mojo = MoJo.create(cha, run.outputDir);
-			final SDGResult sdg = computeAccessPaths(run, mojo, im);
-			Assert.assertNotNull(sdg);
-			final AliasSDG asdg = AliasSDG.create(sdg.sdg, sdg.ap);
-			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(precompSum > 0);
-			// 6 params, with nodeids 4..9
-//			asdg.setNoAlias(4, 5);
-			asdg.setNoAlias(4, 6);
-//			asdg.setNoAlias(4, 7);
-			asdg.setNoAlias(4, 8);
-			asdg.setNoAlias(4, 9);
-			asdg.setNoAlias(5, 6);
-			asdg.setNoAlias(5, 7);
-			asdg.setNoAlias(5, 8);
-			asdg.setNoAlias(5, 9);
-			asdg.setNoAlias(6, 7);
-			asdg.setNoAlias(6, 8);
-			asdg.setNoAlias(6, 9);
-			asdg.setNoAlias(7, 8);
-			asdg.setNoAlias(7, 9);
-			asdg.setNoAlias(8, 9);
-			final int disabled = asdg.adjustMaxSDG(NullProgressMonitor.INSTANCE);
-			final int recompSum = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(recompSum > 0);
-			asdg.reset();
-			final int disabled2 = asdg.adjustMaxSDG(NullProgressMonitor.INSTANCE);
-			final int recompSum2 = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(recompSum2 > 0);
-			out.println("\tpre: " + precompSum + ", recomp(" + disabled + "): " + recompSum
-					+ ", recomp2(" + disabled2 + "): " + recompSum2);
-			Assert.assertTrue(recompSum2 > recompSum);
-			out.println(run.name + " done.");
-		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
-				| UnsoundGraphException e) {
-			Assert.fail(e.getMessage());
-			e.printStackTrace();
+			final List<BasicIFCStmt> simplified = FlowLessSimplifier.simplify(stmt);
+			//FlowLess2SDGMatcher.printDebugMatches = true;
+			final Matcher match = FlowLess2SDGMatcher.findMatchingNodes(sdg, sdg.getRoot(), stmt);
+			if (simplified.isEmpty()) {
+				cfc.out.println("ERROR(empty simplified statements)");
+				stmtResult.addPart(new FlowStmtResultPart(null, "ERROR(empty simplified statements)",
+						false, false, cfg.exceptions, sdg.getFileName()));
+			} else {
+				checkBasicIFCStmts(alias, match, simplified, run, stmtResult, progress);
+			}
+		} catch (FlowAstException e) {
+			cfc.out.println("ERROR(" + e.getMessage() + ")");
+			stmtResult.addPart(new FlowStmtResultPart(null, "ERROR(" + e.getMessage() + ")", false, false,
+					cfg.exceptions, sdg.getFileName()));
 		}
 	}
 	
-	@Test
-	public void test_modularLibraryCallToCompute() {
-		final Run run = new Run(currentMethodName(),
-			"modular.Library.callToCompute(Lmodular/Library$A1;Lmodular/Library$A1;Lmodular/Library$A1;Lmodular/Library$A1;)I",
-			"../../example/joana.example.many-small-progs/bin");
-		try {
-			out.println(run.name + " starts...");
-			final ClassHierarchy cha = createHierarchy(run);
-			Assert.assertNotNull(cha);
-			final IMethod im = findEntryMethod(cha, run);
-			Assert.assertNotNull(im);
-			final MoJo mojo = MoJo.create(cha, run.outputDir);
-			final SDGResult sdg = computeAccessPaths(run, mojo, im);
-			Assert.assertNotNull(sdg);
-			final AliasSDG asdg = AliasSDG.create(sdg.sdg, sdg.ap);
-			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(precompSum > 0);
-			// 4 params with nodeIds 4..7
-			asdg.setNoAlias(new int[] {4, 5, 6});
-			asdg.setNoAlias(4, 7);
-			asdg.setNoAlias(5, 7);
-			final int disabled = asdg.adjustMaxSDG(NullProgressMonitor.INSTANCE);
-			final int recompSum = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(recompSum > 0);
-			asdg.reset();
-			final int disabled2 = asdg.adjustMaxSDG(NullProgressMonitor.INSTANCE);
-			final int recompSum2 = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(recompSum2 > 0);
-			out.println("\tpre: " + precompSum + ", recomp(" + disabled + "): " + recompSum
-					+ ", recomp2(" + disabled2 + "): " + recompSum2);
-			Assert.assertTrue(recompSum2 > recompSum);
-			out.println(run.name + " done.");
-		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
-				| UnsoundGraphException e) {
-			Assert.fail(e.getMessage());
-			e.printStackTrace();
+	private void checkBasicIFCStmts(final AliasSDG alias, final Matcher match,
+			final List<BasicIFCStmt> stmts, final Run run, final FlowStmtResult stmtResult,
+			final IProgressMonitor progress) throws CancelException, EntityNotFoundException {
+		final MethodInfo mInfo = run.m.getInfo();
+		final CheckFlowConfig cfc = setup.cfc;
+		final ExceptionAnalysis exc = setup.cfg.exceptions;
+		
+		for (final BasicIFCStmt s : stmts) {
+			for (final PrimitiveAliasStmt noAlias : s.aMinus) {
+				final Parameter[] noalias = noAlias.getParams().toArray(new Parameter[1]);
+				for (int i = 0; i < noalias.length; i++) {
+					assert match.hasMatchFor(noalias[i]);
+					final SDGNode n1 = match.getMatch(noalias[i]);
+					if (n1 == null) {
+						throw new EntityNotFoundException("found no matching parameter for '" + noalias[i] + "' in "
+								+ mInfo.toString());
+					}
+					for (int j = i + 1; j < noalias.length; j++) {
+						assert match.hasMatchFor(noalias[j]);
+						final SDGNode n2 = match.getMatch(noalias[j]);
+						if (n2 == null) {
+							throw new EntityNotFoundException("found no matching parameter for '" + noalias[j] + "' in "
+									+ mInfo.toString());
+						}
+						alias.setNoAlias(n1.getId(), n2.getId());
+					}
+				}
+			}
 		}
-	}
-	
-	@Test
-	public void test_modularLibraryCallIndirect() {
-		final Run run = new Run(currentMethodName(),
-			"modular.Library.callIndirect(Lmodular/Library$A;Lmodular/Library$A;Lmodular/Library$A;I)I",
-			"../../example/joana.example.many-small-progs/bin");
-		try {
-			out.println(run.name + " starts...");
-			final ClassHierarchy cha = createHierarchy(run);
-			Assert.assertNotNull(cha);
-			final IMethod im = findEntryMethod(cha, run);
-			Assert.assertNotNull(im);
-			final MoJo mojo = MoJo.create(cha, run.outputDir);
-			final SDGResult sdg = computeAccessPaths(run, mojo, im);
-			Assert.assertNotNull(sdg);
-			final AliasSDG asdg = AliasSDG.create(sdg.sdg, sdg.ap);
-			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(precompSum > 0);
-			// 4 params with node ids 4..7
-			asdg.setNoAlias(new int[] {4, 5, 6});
-			asdg.setNoAlias(4, 7);
-			asdg.setNoAlias(5, 7);
-			final int disabled = asdg.adjustMaxSDG(NullProgressMonitor.INSTANCE);
-			final int recompSum = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(recompSum > 0);
-			asdg.reset();
-			final int disabled2 = asdg.adjustMaxSDG(NullProgressMonitor.INSTANCE);
-			final int recompSum2 = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(recompSum2 > 0);
-			out.println("\tpre: " + precompSum + ", recomp(" + disabled + "): " + recompSum
-					+ ", recomp2(" + disabled2 + "): " + recompSum2);
-			Assert.assertTrue(recompSum2 > recompSum);
-			out.println(run.name + " done.");
-		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
-				| UnsoundGraphException e) {
-			Assert.fail(e.getMessage());
-			e.printStackTrace();
+
+		if (setup.printStatistics) { run.startAdjustTime = System.currentTimeMillis(); }
+		alias.adjustMaxSDG(progress);
+		alias.recomputeSummary(progress);
+		if (setup.printStatistics) {
+			run.endAdjustTime = System.currentTimeMillis();
+			run.numAdjustSDGs++;
+			run.timeAdjustSDG += (run.endAdjustTime - run.startAdjustTime);
 		}
-	}
-	
-	@Test
-	public void test_modularLibraryCallIndirect2() {
-		final Run run = new Run(currentMethodName(),
-			"modular.Library.callIndirect2(Lmodular/Library$A;Lmodular/Library$A;Lmodular/Library$A;I)I",
-			"../../example/joana.example.many-small-progs/bin");
-		try {
-			out.println(run.name + " starts...");
-			final ClassHierarchy cha = createHierarchy(run);
-			Assert.assertNotNull(cha);
-			final IMethod im = findEntryMethod(cha, run);
-			Assert.assertNotNull(im);
-			final MoJo mojo = MoJo.create(cha, run.outputDir);
-			final SDGResult sdg = computeAccessPaths(run, mojo, im);
-			Assert.assertNotNull(sdg);
-			final AliasSDG asdg = AliasSDG.create(sdg.sdg, sdg.ap);
-			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(precompSum > 0);
-			// 4 params with node ids 4..7
-			asdg.setNoAlias(new int[] {4, 5, 6});
-			asdg.setNoAlias(4, 7);
-			asdg.setNoAlias(5, 7);
-			final int disabled = asdg.adjustMaxSDG(NullProgressMonitor.INSTANCE);
-			final int recompSum = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(recompSum > 0);
-			asdg.reset();
-			final int disabled2 = asdg.adjustMaxSDG(NullProgressMonitor.INSTANCE);
-			final int recompSum2 = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(recompSum2 > 0);
-			out.println("\tpre: " + precompSum + ", recomp(" + disabled + "): " + recompSum
-					+ ", recomp2(" + disabled2 + "): " + recompSum2);
-			Assert.assertTrue(recompSum2 > recompSum);
-			out.println(run.name + " done.");
-		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
-				| UnsoundGraphException e) {
-			Assert.fail(e.getMessage());
-			e.printStackTrace();
+
+		final Set<SDGEdge.Kind> omit = new HashSet<SDGEdge.Kind>();
+		final SummarySlicerBackward ssb = new SummarySlicerBackward(alias.getSDG(), omit);
+		ssb.addToOmit(SDGEdge.Kind.SUMMARY); // use only SUMMARY_HEAP
+
+		final List<FlowStmtResultPart> toInfere = new LinkedList<FlowStmtResultPart>();
+
+		for (final BasicIFCStmt s : stmts) {
+			for (final ExplicitFlowStmt fl : s.flow.fMinus) {
+				if (CheckFlowLessWithAlias.hasIllegalFlow(fl, match, ssb, alias)) {
+					final FlowStmtResultPart illegalPart = new FlowStmtResultPart(s, fl.toString(), false, false,
+							exc, alias.getFileName());
+					illegalPart.setAlias(alias.getNoAlias());
+					stmtResult.addPart(illegalPart);
+					cfc.out.println("illegal flow found:" + s.flow);
+					if (s.shouldBeInferred) {
+						toInfere.add(illegalPart);
+					}
+				} else {
+					final FlowStmtResultPart okPart = new FlowStmtResultPart(s, fl.toString(), true, false, exc,
+							alias.getFileName());
+					okPart.setAlias(alias.getNoAlias());
+					stmtResult.addPart(okPart);
+					cfc.out.println("ok:" + s.flow);
+				}
+			}
 		}
-	}
-	
-	@Test
-	public void test_modularLibraryCall2() {
-		final Run run = new Run(currentMethodName(),
-			"modular.Library.call2(Lmodular/Library$A;Lmodular/Library$A;)I",
-			"../../example/joana.example.many-small-progs/bin");
-		try {
-			out.println(run.name + " starts...");
-			final ClassHierarchy cha = createHierarchy(run);
-			Assert.assertNotNull(cha);
-			final IMethod im = findEntryMethod(cha, run);
-			Assert.assertNotNull(im);
-			final MoJo mojo = MoJo.create(cha, run.outputDir);
-			final SDGResult sdg = computeAccessPaths(run, mojo, im);
-			Assert.assertNotNull(sdg);
-			final AliasSDG asdg = AliasSDG.create(sdg.sdg, sdg.ap);
-			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(precompSum > 0);
-			// 2 params with node ids 4..5
-			asdg.setNoAlias(4, 5);
-			final int disabled = asdg.adjustMaxSDG(NullProgressMonitor.INSTANCE);
-			final int recompSum = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(disabled > 0);
-			asdg.reset();
-			final int disabled2 = asdg.adjustMaxSDG(NullProgressMonitor.INSTANCE);
-			final int recompSum2 = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(disabled2 > 0);
-			out.println("\tpre: " + precompSum + ", recomp(" + disabled + "): " + recompSum
-					+ ", recomp2(" + disabled2 + "): " + recompSum2);
-			Assert.assertTrue(disabled > disabled2);
-			out.println(run.name + " done.");
-		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
-				| UnsoundGraphException e) {
-			Assert.fail(e.getMessage());
-			e.printStackTrace();
-		}
-	}
-	
-	@Test
-	public void test_modularLibraryCallToCall2() {
-		final Run run = new Run(currentMethodName(),
-			"modular.Library.callToCall2(Lmodular/Library$A;Lmodular/Library$A;)I",
-			"../../example/joana.example.many-small-progs/bin");
-		try {
-			out.println(run.name + " starts...");
-			final ClassHierarchy cha = createHierarchy(run);
-			Assert.assertNotNull(cha);
-			final IMethod im = findEntryMethod(cha, run);
-			Assert.assertNotNull(im);
-			final MoJo mojo = MoJo.create(cha, run.outputDir);
-			final SDGResult sdg = computeAccessPaths(run, mojo, im);
-			Assert.assertNotNull(sdg);
-			final AliasSDG asdg = AliasSDG.create(sdg.sdg, sdg.ap);
-			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(precompSum == 0);
-			// 2 params with node ids 4..5
-			asdg.setNoAlias(4, 5);
-			final int disabled = asdg.adjustMaxSDG(NullProgressMonitor.INSTANCE);
-			final int recompSum = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(disabled > 0);
-			asdg.reset();
-			final int disabled2 = asdg.adjustMaxSDG(NullProgressMonitor.INSTANCE);
-			final int recompSum2 = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(disabled2 >= 0);
-			out.println("\tpre: " + precompSum + ", recomp(" + disabled + "): " + recompSum
-					+ ", recomp2(" + disabled2 + "): " + recompSum2);
-			Assert.assertTrue(disabled > disabled2);
-			out.println(run.name + " done.");
-		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
-				| UnsoundGraphException e) {
-			e.printStackTrace();
-			Assert.fail(e.getMessage());
-		}
-	}
-	
-	@Test
-	public void test_modularLibraryReturn2() {
-		final Run run = new Run(currentMethodName(),
-			"modular.Library.return2(Lmodular/Library$A;Lmodular/Library$A;)I",
-			"../../example/joana.example.many-small-progs/bin");
-		try {
-			out.println(run.name + " starts...");
-			final ClassHierarchy cha = createHierarchy(run);
-			Assert.assertNotNull(cha);
-			final IMethod im = findEntryMethod(cha, run);
-			Assert.assertNotNull(im);
-			final MoJo mojo = MoJo.create(cha, run.outputDir);
-			final SDGResult sdg = computeAccessPaths(run, mojo, im);
-			Assert.assertNotNull(sdg);
-			final AliasSDG asdg = AliasSDG.create(sdg.sdg, sdg.ap);
-			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(precompSum > 0);
-			// 2 params with node ids 4..5
-			asdg.setNoAlias(4, 5);
-			final int disabled = asdg.adjustMaxSDG(NullProgressMonitor.INSTANCE);
-			final int recompSum = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(recompSum > 0);
-			asdg.reset();
-			final int disabled2 = asdg.adjustMaxSDG(NullProgressMonitor.INSTANCE);
-			final int recompSum2 = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(recompSum2 > 0);
-			out.println("\tpre: " + precompSum + ", recomp(" + disabled + "): " + recompSum
-					+ ", recomp2(" + disabled2 + "): " + recompSum2);
-			Assert.assertTrue(recompSum2 > recompSum);
-			out.println(run.name + " done.");
-		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
-				| UnsoundGraphException e) {
-			Assert.fail(e.getMessage());
-			e.printStackTrace();
-		}
-	}
-	
-	@Test
-	public void test_modularLibraryCall3() {
-		final Run run = new Run(currentMethodName(),
-			"modular.Library.call3(Lmodular/Library$A;Lmodular/Library$A;)Lmodular/Library$A;",
-			"../../example/joana.example.many-small-progs/bin");
-		try {
-			out.println(run.name + " starts...");
-			final ClassHierarchy cha = createHierarchy(run);
-			Assert.assertNotNull(cha);
-			final IMethod im = findEntryMethod(cha, run);
-			Assert.assertNotNull(im);
-			final MoJo mojo = MoJo.create(cha, run.outputDir);
-			final SDGResult sdg = computeAccessPaths(run, mojo, im);
-			Assert.assertNotNull(sdg);
-			final AliasSDG asdg = AliasSDG.create(sdg.sdg, sdg.ap);
-			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(precompSum > 0);
-			// 2 params with node ids 4..5
-			asdg.setNoAlias(4, 5);
-			final int disabled = asdg.adjustMaxSDG(NullProgressMonitor.INSTANCE);
-			final int recompSum = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(recompSum > 0);
-			asdg.reset();
-			final int disabled2 = asdg.adjustMaxSDG(NullProgressMonitor.INSTANCE);
-			final int recompSum2 = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(recompSum2 > 0);
-			out.println("\tpre: " + precompSum + ", recomp(" + disabled + "): " + recompSum
-					+ ", recomp2(" + disabled2 + "): " + recompSum2);
-			Assert.assertTrue(recompSum2 > recompSum);
-			out.println(run.name + " done.");
-		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
-				| UnsoundGraphException e) {
-			Assert.fail(e.getMessage());
-			e.printStackTrace();
-		}
-	}
-	
-	@Test
-	public void test_modularLibraryMergeOp() {
-		final Run run = new Run(currentMethodName(),
-			"modular.Library.mergeOp(Lmodular/Library$E;Lmodular/Library$E;)I",
-			"../../example/joana.example.many-small-progs/bin");
-		try {
-			out.println(run.name + " starts...");
-			final ClassHierarchy cha = createHierarchy(run);
-			Assert.assertNotNull(cha);
-			final IMethod im = findEntryMethod(cha, run);
-			Assert.assertNotNull(im);
-			final MoJo mojo = MoJo.create(cha, run.outputDir);
-			final SDGResult sdg = computeAccessPaths(run, mojo, im);
-			Assert.assertNotNull(sdg);
-			final AliasSDG asdg = AliasSDG.create(sdg.sdg, sdg.ap);
-			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(precompSum > 0);
-			// 2 params with node ids 4..5
-			asdg.setNoAlias(4, 5);
-			final int disabled = asdg.adjustMaxSDG(NullProgressMonitor.INSTANCE);
-			final int recompSum = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(recompSum > 0);
-			asdg.reset();
-			final int disabled2 = asdg.adjustMaxSDG(NullProgressMonitor.INSTANCE);
-			final int recompSum2 = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(recompSum2 > 0);
-			out.println("\tpre: " + precompSum + ", recomp(" + disabled + "): " + recompSum
-					+ ", recomp2(" + disabled2 + "): " + recompSum2);
-			Assert.assertTrue(recompSum2 > recompSum);
-			out.println(run.name + " done.");
-		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
-				| UnsoundGraphException e) {
-			Assert.fail(e.getMessage());
-			e.printStackTrace();
-		}
-	}
-	
-	@Test
-	public void test_modularLibraryPhiTest() {
-		final Run run = new Run(currentMethodName(),
-			"modular.Library.phiTest(Lmodular/Library$E;Lmodular/Library$E;Z)I",
-			"../../example/joana.example.many-small-progs/bin");
-		try {
-			out.println(run.name + " starts...");
-			final ClassHierarchy cha = createHierarchy(run);
-			Assert.assertNotNull(cha);
-			final IMethod im = findEntryMethod(cha, run);
-			Assert.assertNotNull(im);
-			final MoJo mojo = MoJo.create(cha, run.outputDir);
-			final SDGResult sdg = computeAccessPaths(run, mojo, im);
-			Assert.assertNotNull(sdg);
-			final AliasSDG asdg = AliasSDG.create(sdg.sdg, sdg.ap);
-			final int precompSum = asdg.precomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(precompSum > 0);
-			// 3 params with node ids 4..6
-			asdg.setNoAlias(4, 5);
-			final int disabled = asdg.adjustMaxSDG(NullProgressMonitor.INSTANCE);
-			final int recompSum = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(recompSum > 0);
-			asdg.reset();
-			final int disabled2 = asdg.adjustMaxSDG(NullProgressMonitor.INSTANCE);
-			final int recompSum2 = asdg.recomputeSummary(NullProgressMonitor.INSTANCE);
-			Assert.assertTrue(recompSum2 > 0);
-			out.println("\tpre: " + precompSum + ", recomp(" + disabled + "): " + recompSum
-					+ ", recomp2(" + disabled2 + "): " + recompSum2);
-			Assert.assertTrue(recompSum2 > recompSum);
-			out.println(run.name + " done.");
-		} catch (ClassHierarchyException | IllegalArgumentException | IOException | CancelException
-				| UnsoundGraphException e) {
-			Assert.fail(e.getMessage());
-			e.printStackTrace();
-		}
-	}
-	
-	public static void main(String[] args) throws ClassHierarchyException, IOException, IllegalArgumentException, CancelException, UnsoundGraphException {
-		for (final Run run : RUNS) {
-			exec(run);
+
+		for (final FlowStmtResultPart part : toInfere) {
+			// special case => try inference of valid alias configurations
+			CheckFlowLessWithAlias.inferValidAliasConfigurations(cfc, alias, part.getBasicStmt(), match, mInfo, stmtResult, exc, progress);
 		}
 	}
 	
@@ -701,121 +552,6 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 		}
 	}
 
-	private static ClassHierarchy createHierarchy(final Run run) throws ClassHierarchyException, IOException {
-		out.print("\tcreating class hierarchy... ");
-
-		final AnalysisScope scope = AnalysisScopeReader.makePrimordialScope(null);
-		final SetOfClasses exclusions = new FileOfClasses(new ByteArrayInputStream(run.exclusions.getBytes()));
-		scope.setExclusions(exclusions);
-		final ClassLoaderReference loader = scope.getLoader(AnalysisScope.APPLICATION);
-		AnalysisScopeReader.addClassPathToScope(run.classpath, scope, loader);
-		final ClassHierarchy cha = ClassHierarchy.make(scope);
-
-		out.println("done.");
-		
-		return cha;
-	}
-	
-	private static IMethod findEntryMethod(final ClassHierarchy cha, final Run run) {
-		for (final IClass cls : cha) {
-			if (cls.getClassLoader().getName() == AnalysisScope.APPLICATION && !cls.isInterface()) {
-				for (final IMethod im : cls.getDeclaredMethods()) {
-					final String sig = im.getSignature();
-					if (!im.isAbstract() && run.entryMethod.equals(sig)) {
-						return im;
-					}
-				}
-			}
-		}
-		
-		return null;
-	}
-	
-	private static void exec(final Run run) throws IOException, ClassHierarchyException, IllegalArgumentException, CancelException, UnsoundGraphException {
-		out.println("analyzing " + run.name);
-
-		final ClassHierarchy cha = createHierarchy(run);
-		
-		out.println("\tcomputing access paths... ");
-		final MoJo mojo = MoJo.create(cha);
-		
-		int numComputed = 0;
-		for (final IClass cls : cha) {
-			if (cls.getClassLoader().getName() == AnalysisScope.APPLICATION) {
-				for (final IMethod im : cls.getDeclaredMethods()) {
-					if (isValidForAP(im)) {
-						computeAccessPaths(run, mojo, im);
-						numComputed++;
-					}
-				}
-			}
-		}
-
-		out.println("(" + numComputed + " variants) done.");
-	}
-	
-	private List<IMethod> findValidMethods(final ClassHierarchy cha) {
-		final List<IMethod> valid = new LinkedList<>();
-		for (final IClass cls : cha) {
-			if (cls.getClassLoader().getName() == AnalysisScope.APPLICATION) {
-				for (final IMethod im : cls.getDeclaredMethods()) {
-					if (isValidForAP(im)) {
-						valid.add(im);
-					}
-				}
-			}
-		}
-		
-		return valid;
-	}
-	
-	private static boolean isInSkipMethods(final IMethod im) {
-		final String name = PrettyWalaNames.methodName(im);
-		for (final String m : SKIP_METHODS) {
-			if (name.equals(m)) {
-				return true;
-			}
-		}
-		
-		return false;
-	}
-	
-	private static boolean isValidForAP(final IMethod im) {
-		if (im.isAbstract() || im.isInit() || im.isNative() || im.isSynthetic() || im.isClinit()
-				|| isInSkipMethods(im)) {
-			return false;
-		}
-		
-		int objParams = 0;
-		for (int num = 0; num < im.getNumberOfParameters(); num++) {
-			final TypeReference tr = im.getParameterType(num);
-			if (tr.isClassType() && tr.getClassLoader().getName() == AnalysisScope.APPLICATION) {
-				objParams++;
-			}
-		}
-		
-//		if (objParams <= 1) {
-//			System.out.println("\nnon-valid method: " + PrettyWalaNames.methodName(im));
-//		}
-				
-		return objParams > 1;
-	}
-	
-	private static SDGResult computeAccessPaths(final Run run, final MoJo mojo, final IMethod im) throws IllegalArgumentException, CancelException, ClassHierarchyException, IOException, UnsoundGraphException {
-		out.print("\t" + PrettyWalaNames.methodName(im) + " ");
-		final Aliasing alias = mojo.computeMinMaxAliasing(im);
-		out.print(".");
-		final PointsTo ptsMax = MoJo.computePointsTo(alias.upperBound);
-		out.print(".");
-		final AnalysisOptions opt = mojo.createAnalysisOptionsWithPTS(ptsMax, im);
-		out.print(".");
-		final CallGraphResult cgr = mojo.computeContextSensitiveCallGraph(opt);
-		out.println(".");
-		final SDGResult sdg = create(run, opt.getAnalysisScope(), mojo, cgr, im);
-		out.println();
-		return sdg;
-	}
-
 	private static class SDGResult {
 		public final SDG sdg;
 		public final APResult ap;
@@ -826,21 +562,19 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 		}
 	}
 	
-	private static SDGResult create(final Run run, AnalysisScope scope, MoJo mojo, CallGraphResult cg, IMethod im) throws IOException, ClassHierarchyException, UnsoundGraphException, CancelException {
+	private static SDGResult create(final Run run, final AnalysisScope scope, final CallGraphResult cg)
+			throws IOException, ClassHierarchyException, UnsoundGraphException, CancelException {
 		if (!Main.checkOrCreateOutputDir(run.outputDir)) {
 			out.println("Could not access/create diretory '" + run.outputDir +"'");
 			return null;
 		}
 
+		final MoJo mojo = setup.mojo;
+		final IMethod im = run.im;
+		
 		out.print("\tbuilding system dependence graph... ");
 
 		final ExternalCallCheck chk = ExternalCallCheck.EMPTY;
-//		if (cfg.extern == null) {
-//			chk = ExternalCallCheck.EMPTY;
-//		} else {
-//			chk = cfg.extern;
-//		}
-
 		final SDGBuilder.SDGBuilderConfig scfg = new SDGBuilder.SDGBuilderConfig();
 		scfg.out = out;
 		scfg.scope = scope;
@@ -869,11 +603,11 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 		final APResult apr = sdg.getAPResult();
 
 		final SDG joanaSDG = SDGBuilder.convertToJoana(out, sdg, NullProgressMonitor.INSTANCE);
-//
+
 		AccessPath.computeMinMaxAliasSummaryEdges(out, sdg, sdg.getMainPDG(), joanaSDG, NullProgressMonitor.INSTANCE);
-//
+
 		out.print("\n\tsystem dependence graph done.");
-//
+
 		out.print("\n\twriting SDG to disk... ");
 		joanaSDG.setFileName(run.name != null ? sdg.getMainMethodName() + "-" + run.name : sdg.getMainMethodName());
 		final String fileName =	(run.outputDir.endsWith(File.separator)
@@ -882,7 +616,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 		out.print("(" + file.getAbsolutePath() + ") ");
 		final PrintWriter pw = new PrintWriter(file);
 		SDGSerializer.toPDGFormat(joanaSDG, pw);
-		out.print("done.");
+		out.println("done.");
 
 		return new SDGResult(joanaSDG, apr);
 	}

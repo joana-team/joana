@@ -39,6 +39,14 @@ public class IntraproceduralSlicerForward extends IntraproceduralSlicer implemen
 	protected Collection<SDGEdge> adjacentEdges(SDGNode n) {
 		return graph.outgoingEdgesOf(n);
 	}
+	
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.ifc.sdg.graph.slicer.IntraproceduralSlicer#adjacentTarget(edu.kit.joana.ifc.sdg.graph.SDGEdge)
+	 */
+	@Override
+	protected SDGNode adjacentNode(SDGEdge e) {
+		return e.getTarget();
+	}
 
    
     public static void main(String[] args) throws Exception {

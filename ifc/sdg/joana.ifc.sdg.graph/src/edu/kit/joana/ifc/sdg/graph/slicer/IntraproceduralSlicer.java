@@ -44,6 +44,15 @@ public abstract class IntraproceduralSlicer implements Slicer {
     protected abstract Collection<SDGEdge> adjacentEdges(SDGNode n);
     
     /**
+     * Returns either the {@link SDGEdge#getTarget() target} or the {@link SDGEdge#getSource() source} node of
+     * the given edge, depending on whether the overriding subclass implements a forward or a backward slicer.
+     * @param e edge to retrieve the adjacent node of
+     * @return the {@link SDGEdge#getTarget() target} or the {@link SDGEdge#getSource() source} node of
+     * the given edge, depending on whether the overriding subclass implements a forward or a backward slicer.
+     */
+    protected abstract SDGNode adjacentNode(SDGEdge e);
+    
+    /**
      * Returns whether the slicer shall traverse the given edge. Standardly, the slicer is allowed to traverse
      * the given edge if it is a valid {@link SDGEdge#isIntraproceduralEdge()} intraprocedural} {@link SDGEdge#isSDGEdge sdg edge}. Subclasses are
      * allowed to be more restrictive, for example they can restrict the allowed edges to data flow edges (which then results in an intraprocedural data slice).<br>
@@ -56,6 +65,7 @@ public abstract class IntraproceduralSlicer implements Slicer {
         		&& e.getKind().isIntraproceduralEdge();
     }
     
+    
     public Collection<SDGNode> slice(Collection<SDGNode> nodes) {
         LinkedList<SDGNode> worklist = new LinkedList<SDGNode>();
         HashSet<SDGNode> slice = new HashSet<SDGNode>();
@@ -67,10 +77,11 @@ public abstract class IntraproceduralSlicer implements Slicer {
             SDGNode next = worklist.poll();
 
             for (SDGEdge e : adjacentEdges(next)) {
-                if (isAllowedEdge(e) && !slice.contains(e.getTarget())){
+            	final SDGNode adjacentNode = adjacentNode(e);
+                if (isAllowedEdge(e) && !slice.contains(adjacentNode)){
 
-                    worklist.add(e.getTarget());
-                    slice.add(e.getTarget());
+                    worklist.add(adjacentNode);
+                    slice.add(adjacentNode);
                 }
             }
         }

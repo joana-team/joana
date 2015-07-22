@@ -47,24 +47,33 @@ public class Test {
 		return a.f2 + c.f3;
 	}
 
+	//@ifc: ? => b -!> \result
 	public static A2 indirectFoo1(A a, A b) {
 		return foo1(a, b);
 	}
 
+	//@ifc: ? => b -!> \result
+	//@ifc: ? => a -!> \result
 	public static A2 indirectRevFoo1(A a, A b) {
 		return foo1(b, a);
 	}
 
+	//@ifc: ? => b -!> \result
+	//@ifc: ? => a -!> \result
 	public static A2 indirectMultipleFoo1(A a, A b) {
 		foo1(a, b);
 		foo1(b, a);
 		return foo1(a, b);
 	}
 
+	//@ifc: ? => b -!> \result
+	//@ifc: ? => a -!> \result
 	public static A2 indirectSameFoo1(A a, A b) {
 		return foo1(a, a);
 	}
 
+	//@ifc: ? => b -!> \result
+	//@ifc: ? => a -!> \result
 	public static int foo2(A a, A b) {
 		A2 c = b.f;
 		c.f2 = 3;
@@ -76,6 +85,8 @@ public class Test {
 		}
 	}
 
+	//@ifc: ? => b -!> \result
+	//@ifc: ? => a -!> \result
 	public static int foo3(A a, A b) {
 		int tmp = 42;
 
@@ -89,17 +100,32 @@ public class Test {
 		return tmp;
 	}
 
+	
+	//@ifc: !{a.*, b.*} & !{a.*, c.*} & !{a.*, d.*} & !{b.*, c.*} & !{b.*, d.*} & !{c.*, d.*} => a -!> \result
+	//@ifc: ? => a -!> \result
+	//@ifc: ? => b -!> \result
+	//@ifc: ? => c -!> \result
+	//@ifc: ? => d -!> \result
 	public static int foo4(A a, A b, A c, A d) {
-		foo2(a, b);
-		foo3(c, d);
+//		foo2(a, b);
+//		foo3(c, d);
 
 		return d.f.f2;
 	}
 
+	//@ifc: !{a.*, b.*} & !{a.*, c.*} & !{a.*, d.*} & !{b.*, c.*} & !{b.*, d.*} & !{c.*, d.*} => a -!> \result
+	//@ifc: ? => a -!> \result
+	//@ifc: ? => b -!> \result
+	//@ifc: ? => c -!> \result
+	//@ifc: ? => d -!> \result
 	public static int foo5(A a, A b, A c, A d) {
 		return foo4(a, b, c, d);
 	}
 
+	//@ifc: ? => a -!> b
+	//@ifc: !{a.*, b.*} => a -!> b
+	//@ifc: ? => a -!> \result
+	//@ifc: ? => b -!> \result
 	public static int foo6(A a, A b) {
 		if (a.f.f2 > 3) {
 			return 42;
@@ -108,6 +134,10 @@ public class Test {
 		return b.f.f2;
 	}
 
+	//@ifc: ? => a -!> b
+	//@ifc: !{a.*, b.*} => a -!> b
+	//@ifc: ? => a -!> \result
+	//@ifc: ? => b -!> \result
 	public static int foo7(A3 a, A3 b) {
 		a.f1 = a;
 		a.f2 = a;
@@ -116,18 +146,32 @@ public class Test {
 		return b.f3;
 	}
 
+	//@ifc: ? => a -!> b
+	//@ifc: !{a.*, b.*} => a -!> b
+	//@ifc: ? => a -!> \result
+	//@ifc: ? => b -!> \result
 	public static int foo8(A3 a, A3 b) {
 		a.f1.f2.f2.f1.f2.f1.f3 = 4;
 
 		return b.f3;
 	}
 
+	//@ifc: ? => a -!> b
+	//@ifc: !{a.*, b.*} => a -!> b
+	//@ifc: ? => b -!> a
+	//@ifc: !{a.*, b.*} => b -!> a
+	//@ifc: ? => a -!> \result
+	//@ifc: ? => b -!> \result
 	public static int foo9(A a, A2 b) {
 		foo10(a.f, b);
 
 		return b.f2;
 	}
 
+	//@ifc: ? => a -!> b
+	//@ifc: !{a.*, b.*} => a -!> b
+	//@ifc: ? => b -!> a
+	//@ifc: !{a.*, b.*} => b -!> a
 	public static void foo10(A2 a, A2 b) {
 		b.f2 = a.f2;
 	}
@@ -143,7 +187,7 @@ public class Test {
 	}
 
 	//
-	//@ifc: !{a, b} => a -!> b
+	//@ifc: !{a.*, b.*} => a -!> b
 	public static void foo12(A3 a, A3 b) {
 		if (a.f1.f2.f3 < 3) {
 			return;
@@ -154,12 +198,16 @@ public class Test {
 		foo13(b, a);
 	}
 
+	//@ifc: !{a.*, b.*} => a -!> b
 	public static void foo13(A3 a, A3 b) {
 		b.f2 = a.f1;
 
 		foo12(a, b);
 	}
 
+	//@ifc: => a -!> b
+	//@ifc: ? => a -!> \result
+	//@ifc: ? => b -!> \result
 	private static A3 getField1(A3 a, A3 b) {
 		return a.f1;
 	}
@@ -206,7 +254,7 @@ public class Test {
 	//
 	//@ifc: !{a, b} => a -!> b
 	//@ifc: !{a, a} => a -!> b
-	//@ifc: => a -!> b
+	//@ifc: ? => a -!> b
 	public static int indirectAliasTest(A3 a, A3 b) {
 		return aliasTest(a, b);
 	}
@@ -215,6 +263,7 @@ public class Test {
 	//@ifc: => a -!> \result
 	//@ifc: => a.f2 -!> \result
 	//@ifc: !{a,a} => a.f2.f3 -!> \result
+	//@ifc: !{a,a} => a.f1.f3 -!> \result
 	public static int invokeSingleParamAlias(A3 a) {
 		try {
 			a.f2.f3 = 42;
@@ -237,6 +286,8 @@ public class Test {
 		return singleParamAlias(a);
 	}
 
+	//@ifc: ? => a -!> \result
+	//@ifc: => s1 -!> \result
 	public static int invokeStringAndPrintln(String s1, String s2, A a) {
 		System.out.println(s1);
 

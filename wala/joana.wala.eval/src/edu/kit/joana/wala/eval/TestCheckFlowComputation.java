@@ -368,6 +368,347 @@ public final class TestCheckFlowComputation {
 		checkRun(run);
 	}
 	
+	@Test
+	public void test_foo1() {
+		final Run run = new Run(currentMethodName(),
+			"foo1",
+			"../../example/joana.example.many-small-progs/bin");
+		run.expected = new ExpR[] { 
+			new ExpR("? => (b)-!>(\\result)", Res.INFERRED_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+	
+	@Test
+	public void test_impossibleAlias() {
+		final Run run = new Run(currentMethodName(),
+			"impossibleAlias",
+			"../../example/joana.example.many-small-progs/bin");
+		run.expected = new ExpR[] { 
+			new ExpR("? => (b)-!>(\\result)", Res.INFERRED_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+	
+	@Test
+	public void test_indirectFoo1() {
+		final Run run = new Run(currentMethodName(),
+			"indirectFoo1",
+			"../../example/joana.example.many-small-progs/bin");
+		run.expected = new ExpR[] { 
+			new ExpR("? => (b)-!>(\\result)", Res.INFERRED_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+	
+	@Test
+	public void test_indirectRevFoo1() {
+		final Run run = new Run(currentMethodName(),
+			"indirectRevFoo1",
+			"../../example/joana.example.many-small-progs/bin");
+		run.expected = new ExpR[] { 
+			new ExpR("? => (a)-!>(\\result)", Res.INFERRED_SATISFIED),
+			new ExpR("? => (b)-!>(\\result)", Res.NEVER_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+	
+	@Test
+	public void test_indirectMultipleFoo1() {
+		final Run run = new Run(currentMethodName(),
+			"indirectMultipleFoo1",
+			"../../example/joana.example.many-small-progs/bin");
+		run.expected = new ExpR[] { 
+			new ExpR("? => (a)-!>(\\result)", Res.NEVER_SATISFIED),
+			new ExpR("? => (b)-!>(\\result)", Res.INFERRED_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+
+	@Test
+	public void test_indirectSameFoo1() {
+		final Run run = new Run(currentMethodName(),
+			"indirectSameFoo1",
+			"../../example/joana.example.many-small-progs/bin");
+		run.expected = new ExpR[] { 
+				new ExpR("? => (a)-!>(\\result)", Res.NEVER_SATISFIED),
+				new ExpR("? => (b)-!>(\\result)", Res.INFERRED_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+
+	@Test
+	public void test_foo2() {
+		final Run run = new Run(currentMethodName(),
+			"foo2",
+			"../../example/joana.example.many-small-progs/bin");
+		run.expected = new ExpR[] { 
+				new ExpR("? => (a)-!>(\\result)", Res.NEVER_SATISFIED),
+				new ExpR("? => (b)-!>(\\result)", Res.INFERRED_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+
+	@Test
+	public void test_foo3() {
+		final Run run = new Run(currentMethodName(),
+			"foo3",
+			"../../example/joana.example.many-small-progs/bin");
+		run.expected = new ExpR[] { 
+				new ExpR("? => (a)-!>(\\result)", Res.NEVER_SATISFIED),
+				new ExpR("? => (b)-!>(\\result)", Res.INFERRED_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+
+	@Test
+	public void test_foo4() {
+		final Run run = new Run(currentMethodName(),
+			"foo4",
+			"../../example/joana.example.many-small-progs/bin");
+		run.expected = new ExpR[] { 
+				new ExpR("(!{a.*, b.*}) && ((!{a.*, c.*}) && ((!{a.*, d.*}) && ((!{b.*, c.*}) && ((!{b.*, d.*}) && (!{c.*, d.*}))))) => (a)-!>(\\result)", Res.ALWAYS_SATISFIED),
+				new ExpR("? => (a)-!>(\\result)", Res.NEVER_SATISFIED), // Res.INFERRED_SATISFIED), //TODO
+				new ExpR("? => (b)-!>(\\result)", Res.NEVER_SATISFIED), // Res.INFERRED_SATISFIED),
+				new ExpR("? => (c)-!>(\\result)", Res.NEVER_SATISFIED), // Res.INFERRED_SATISFIED),
+				new ExpR("? => (d)-!>(\\result)", Res.NEVER_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+
+	@Test
+	public void test_foo5() {
+		final Run run = new Run(currentMethodName(),
+			"foo5",
+			"../../example/joana.example.many-small-progs/bin");
+		run.expected = new ExpR[] { 
+				new ExpR("(!{a.*, b.*}) && ((!{a.*, c.*}) && ((!{a.*, d.*}) && ((!{b.*, c.*}) && ((!{b.*, d.*}) && (!{c.*, d.*}))))) => (a)-!>(\\result)", Res.ALWAYS_SATISFIED),
+				new ExpR("? => (a)-!>(\\result)", Res.NEVER_SATISFIED), // Res.INFERRED_SATISFIED), //TODO
+				new ExpR("? => (b)-!>(\\result)", Res.NEVER_SATISFIED), // Res.INFERRED_SATISFIED),
+				new ExpR("? => (c)-!>(\\result)", Res.NEVER_SATISFIED), // Res.INFERRED_SATISFIED),
+				new ExpR("? => (d)-!>(\\result)", Res.NEVER_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+
+	@Test
+	public void test_foo6() {
+		final Run run = new Run(currentMethodName(),
+			"foo6",
+			"../../example/joana.example.many-small-progs/bin");
+		run.expected = new ExpR[] { 
+				new ExpR("!{a.*, b.*} => (a)-!>(b)", Res.ALWAYS_SATISFIED),
+				new ExpR("? => (a)-!>(b)", Res.INFERRED_SATISFIED),
+				new ExpR("? => (a)-!>(\\result)", Res.NEVER_SATISFIED),
+				new ExpR("? => (b)-!>(\\result)", Res.NEVER_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+
+	@Test
+	public void test_foo7() {
+		final Run run = new Run(currentMethodName(),
+			"foo7",
+			"../../example/joana.example.many-small-progs/bin");
+		run.expected = new ExpR[] { 
+				new ExpR("!{a.*, b.*} => (a)-!>(b)", Res.ALWAYS_SATISFIED),
+				new ExpR("? => (a)-!>(b)", Res.INFERRED_SATISFIED),
+				new ExpR("? => (a)-!>(\\result)", Res.INFERRED_SATISFIED),
+				new ExpR("? => (b)-!>(\\result)", Res.NEVER_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+
+	@Test
+	public void test_foo8() {
+		final Run run = new Run(currentMethodName(),
+			"foo8",
+			"../../example/joana.example.many-small-progs/bin");
+		run.expected = new ExpR[] { 
+				new ExpR("!{a.*, b.*} => (a)-!>(b)", Res.ALWAYS_SATISFIED),
+				new ExpR("? => (a)-!>(b)", Res.INFERRED_SATISFIED),
+				new ExpR("? => (a)-!>(\\result)", Res.INFERRED_SATISFIED),
+				new ExpR("? => (b)-!>(\\result)", Res.NEVER_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+	
+	@Test
+	public void test_foo9() {
+		final Run run = new Run(currentMethodName(),
+			"foo9",
+			"../../example/joana.example.many-small-progs/bin");
+		run.expected = new ExpR[] { 
+				new ExpR("!{a.*, b.*} => (a)-!>(b)", Res.NEVER_SATISFIED),
+				new ExpR("? => (a)-!>(b)", Res.NEVER_SATISFIED),
+				new ExpR("!{a.*, b.*} => (b)-!>(a)", Res.NEVER_SATISFIED), // Res.ALWAYS_SATISFIED), // TODO
+				new ExpR("? => (b)-!>(a)", Res.NEVER_SATISFIED),
+				new ExpR("? => (a)-!>(\\result)", Res.NEVER_SATISFIED),
+				new ExpR("? => (b)-!>(\\result)", Res.NEVER_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+	
+	@Test
+	public void test_foo10() {
+		final Run run = new Run(currentMethodName(),
+			"foo10",
+			"../../example/joana.example.many-small-progs/bin");
+		run.expected = new ExpR[] { 
+				new ExpR("!{a.*, b.*} => (a)-!>(b)", Res.NEVER_SATISFIED),
+				new ExpR("? => (a)-!>(b)", Res.NEVER_SATISFIED),
+				new ExpR("!{a.*, b.*} => (b)-!>(a)", Res.NEVER_SATISFIED), // Res.ALWAYS_SATISFIED), // TODO
+				new ExpR("? => (b)-!>(a)", Res.NEVER_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+	
+	@Test
+	public void test_foo12() {
+		final Run run = new Run(currentMethodName(),
+			"foo12",
+			"../../example/joana.example.many-small-progs/bin");
+		run.expected = new ExpR[] { 
+				new ExpR("!{a.*, b.*} => (a)-!>(b)", Res.NEVER_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+	
+	@Test
+	public void test_foo13() {
+		final Run run = new Run(currentMethodName(),
+			"foo13",
+			"../../example/joana.example.many-small-progs/bin");
+		run.expected = new ExpR[] { 
+				new ExpR("!{a.*, b.*} => (a)-!>(b)", Res.NEVER_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+	
+	@Test
+	public void test_getField1() {
+		final Run run = new Run(currentMethodName(),
+			"getField1",
+			"../../example/joana.example.many-small-progs/bin");
+
+		run.expected = new ExpR[] { 
+				new ExpR(" => (a)-!>(b)", Res.NEVER_SATISFIED), // Res.ALWAYS_SATISFIED), //TODO
+				new ExpR("? => (a)-!>(\\result)", Res.NEVER_SATISFIED),
+				new ExpR("? => (b)-!>(\\result)", Res.INFERRED_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+	
+	@Test
+	public void test_aliasExcTest() {
+		final Run run = new Run(currentMethodName(),
+			"aliasExcTest",
+			"../../example/joana.example.many-small-progs/bin");
+
+		run.expected = new ExpR[] { 
+				new ExpR("!{a, b} => (a)-!>(b)", Res.NO_EXC_SATISFIED),
+				new ExpR("? => (a)-!>(b)", Res.INFERRED_SATISFIED),
+				new ExpR(" => (a)-!>(b)", Res.NEVER_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+	
+	@Test
+	public void test_aliasTest() {
+		final Run run = new Run(currentMethodName(),
+			"aliasTest",
+			"../../example/joana.example.many-small-progs/bin");
+
+		run.expected = new ExpR[] { 
+				new ExpR("!{a, b} => (a)-!>(b)", Res.ALWAYS_SATISFIED),
+				new ExpR("!{a, a} => (a)-!>(b)", Res.NEVER_SATISFIED),
+				new ExpR("? => (a)-!>(b)", Res.INFERRED_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+	
+	@Test
+	public void test_indirectAliasTest() {
+		final Run run = new Run(currentMethodName(),
+			"indirectAliasTest",
+			"../../example/joana.example.many-small-progs/bin");
+
+		run.expected = new ExpR[] { 
+				new ExpR("!{a, b} => (a)-!>(b)", Res.ALWAYS_SATISFIED),
+				new ExpR("!{a, a} => (a)-!>(b)", Res.NEVER_SATISFIED),
+				new ExpR("? => (a)-!>(b)", Res.INFERRED_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+	
+	@Test
+	public void test_invokeSingleParamAlias() {
+		final Run run = new Run(currentMethodName(),
+			"invokeSingleParamAlias",
+			"../../example/joana.example.many-small-progs/bin");
+
+		run.expected = new ExpR[] { 
+				new ExpR(" => (a)-!>(\\result)", Res.NEVER_SATISFIED),
+				new ExpR(" => (a.f2)-!>(\\result)", Res.ALWAYS_SATISFIED),
+				new ExpR("!{a, a} => (a.f2.f3)-!>(\\result)", Res.ALWAYS_SATISFIED), // TODO only satisfied if a.f1 != a.f2
+				new ExpR("!{a, a} => (a.f1.f3)-!>(\\result)", Res.NEVER_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+
+	@Test
+	public void test_invokeMultipleParamAlias() {
+		final Run run = new Run(currentMethodName(),
+			"invokeMultipleParamAlias",
+			"../../example/joana.example.many-small-progs/bin");
+
+		run.expected = new ExpR[] { 
+				new ExpR("? => (d.f2)-!>(\\result)", Res.INFERRED_SATISFIED),
+				new ExpR("(!{b, a}) && ((!{d, a}) && (!{a, c})) => (d.f2)-!>(\\result)", Res.ALWAYS_SATISFIED),
+				new ExpR("(!{b, a}) && (!{d, a}) => (d.f2)-!>(\\result)", Res.NEVER_SATISFIED), 
+				new ExpR("(!{b, a}) && ((!{d, a}) && ((!{a, c}) && (!{d, c}))) => (d.f2)-!>(\\result)", Res.ALWAYS_SATISFIED),
+				new ExpR("(!{b, a}) && ((!{d, a}) && ((!{a, c}) && (!{a, a}))) => (a.f2.f3)-!>(\\result)", Res.ALWAYS_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+
+	@Test
+	public void test_invokeStringAndPrintln() {
+		final Run run = new Run(currentMethodName(),
+			"invokeStringAndPrintln",
+			"../../example/joana.example.many-small-progs/bin");
+
+		run.expected = new ExpR[] { 
+				new ExpR(" => (s1)-!>(\\result)", Res.NO_EXC_SATISFIED),
+				new ExpR("? => (a)-!>(\\result)", Res.NEVER_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+	
 	private AliasSDG prepareForFlowLessCheck(final Run run, final IProgressMonitor progress)
 			throws IllegalArgumentException, CancelException, ClassHierarchyException, IOException, UnsoundGraphException {
 		if (setup.printStatistics) { run.startPrepareTime = System.currentTimeMillis(); }

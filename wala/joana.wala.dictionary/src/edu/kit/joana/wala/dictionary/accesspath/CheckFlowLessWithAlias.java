@@ -673,14 +673,11 @@ public final class CheckFlowLessWithAlias {
 				}
 
 				if (current.isNoChange()) {
-//					cfc.out.println(" => no change.");
-					if (noChange == null) {
-						noChange = current.clone();
-					} else {
-						noChange.addAll(current);
-					}
-//				} else {
-//					cfc.out.println(" => changes.");
+//					if (noChange == null) {
+//						noChange = current.clone();
+//					} else {
+//						noChange.addAll(current);
+//					}
 				}
 			}
 

@@ -476,9 +476,9 @@ public final class TestCheckFlowComputation {
 			"../../example/joana.example.many-small-progs/bin");
 		run.expected = new ExpR[] { 
 				new ExpR("(!{a.*, b.*}) && ((!{a.*, c.*}) && ((!{a.*, d.*}) && ((!{b.*, c.*}) && ((!{b.*, d.*}) && (!{c.*, d.*}))))) => (a)-!>(\\result)", Res.ALWAYS_SATISFIED),
-				new ExpR("? => (a)-!>(\\result)", Res.NEVER_SATISFIED), // Res.INFERRED_SATISFIED), //TODO
-				new ExpR("? => (b)-!>(\\result)", Res.NEVER_SATISFIED), // Res.INFERRED_SATISFIED),
-				new ExpR("? => (c)-!>(\\result)", Res.NEVER_SATISFIED), // Res.INFERRED_SATISFIED),
+				new ExpR("? => (a)-!>(\\result)", Res.INFERRED_SATISFIED),
+				new ExpR("? => (b)-!>(\\result)", Res.INFERRED_SATISFIED),
+				new ExpR("? => (c)-!>(\\result)", Res.INFERRED_SATISFIED),
 				new ExpR("? => (d)-!>(\\result)", Res.NEVER_SATISFIED),
 		};
 		
@@ -492,9 +492,9 @@ public final class TestCheckFlowComputation {
 			"../../example/joana.example.many-small-progs/bin");
 		run.expected = new ExpR[] { 
 				new ExpR("(!{a.*, b.*}) && ((!{a.*, c.*}) && ((!{a.*, d.*}) && ((!{b.*, c.*}) && ((!{b.*, d.*}) && (!{c.*, d.*}))))) => (a)-!>(\\result)", Res.ALWAYS_SATISFIED),
-				new ExpR("? => (a)-!>(\\result)", Res.NEVER_SATISFIED), // Res.INFERRED_SATISFIED), //TODO
-				new ExpR("? => (b)-!>(\\result)", Res.NEVER_SATISFIED), // Res.INFERRED_SATISFIED),
-				new ExpR("? => (c)-!>(\\result)", Res.NEVER_SATISFIED), // Res.INFERRED_SATISFIED),
+				new ExpR("? => (a)-!>(\\result)", Res.INFERRED_SATISFIED),
+				new ExpR("? => (b)-!>(\\result)", Res.INFERRED_SATISFIED),
+				new ExpR("? => (c)-!>(\\result)", Res.INFERRED_SATISFIED),
 				new ExpR("? => (d)-!>(\\result)", Res.NEVER_SATISFIED),
 		};
 		

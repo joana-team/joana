@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 import org.antlr.runtime.ANTLRFileStream;
@@ -657,19 +658,30 @@ public class SDG extends JoanaGraph implements Cloneable {
 	 * Returns n random nodes of this graph.
 	 * Used for evaluations.
 	 * Throws an IllegalArgumentException in case n > #nodes.
-	 *
+	 * @param random the random number generator to be used
 	 * @return  A list of nodes, free of duplicates.
 	 */
-	public List<SDGNode> getNRandomNodes(int n) {
+	public List<SDGNode> getNRandomNodes(int n, Random random) {
 		if (n > vertexSet().size()) {
 			throw new IllegalArgumentException("n is too big: the SDG contains only "+vertexSet().size()+" nodes.");
 		}
 
 		LinkedList<SDGNode> nodes = new LinkedList<SDGNode>();
 		nodes.addAll(vertexSet());
-		Collections.shuffle(nodes);
+		Collections.shuffle(nodes, random);
 
 		return nodes.subList(0, n);
+	}
+	
+	/**
+	 * Returns n random nodes of this graph.
+	 * Used for evaluations.
+	 * Throws an IllegalArgumentException in case n > #nodes.
+	 *
+	 * @return  A list of nodes, free of duplicates.
+	 */
+	public List<SDGNode> getNRandomNodes(int n) {
+		return getNRandomNodes(n, new Random());
 	}
 
 	/**

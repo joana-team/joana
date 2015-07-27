@@ -1579,7 +1579,7 @@ public class SDGBuilder implements CallGraphFilter {
 		public String[] immutableStubs = Main.IMMUTABLE_STUBS;
 		public String[] ignoreStaticFields = Main.IGNORE_STATIC_FIELDS;
 		public ExceptionAnalysis exceptions = ExceptionAnalysis.INTRAPROC;
-		public boolean pruneDDEdgesToDanglingExceptionNodes = false;
+		public boolean pruneDDEdgesToDanglingExceptionNodes = true;
 		public MethodState defaultExceptionMethodState = null;
 		public boolean accessPath = false;
 		public boolean localKillingDefs = true;

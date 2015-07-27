@@ -789,19 +789,23 @@ public final class TestCheckFlowComputation {
 				final Parameter[] noalias = noAlias.getParams().toArray(new Parameter[1]);
 				for (int i = 0; i < noalias.length; i++) {
 					assert match.hasMatchFor(noalias[i]);
-					final SDGNode n1 = match.getMatch(noalias[i]);
+					final Parameter n1p = noalias[i];
+					final SDGNode n1 = match.getMatch(n1p);
 					if (n1 == null) {
 						throw new EntityNotFoundException("found no matching parameter for '" + noalias[i] + "' in "
 								+ mInfo.toString());
 					}
 					for (int j = i + 1; j < noalias.length; j++) {
 						assert match.hasMatchFor(noalias[j]);
-						final SDGNode n2 = match.getMatch(noalias[j]);
+						final Parameter n2p = noalias[j];
+						final SDGNode n2 = match.getMatch(n2p);
 						if (n2 == null) {
 							throw new EntityNotFoundException("found no matching parameter for '" + noalias[j] + "' in "
 									+ mInfo.toString());
 						}
-						alias.setNoAlias(n1.getId(), n2.getId());
+						
+						alias.setNoAlias(n1.getId(), n1p.endsWithWildcard(), n2.getId(), n2p.endsWithWildcard());
+//						alias.setNoAlias(n1.getId(), n2.getId());
 					}
 				}
 			}

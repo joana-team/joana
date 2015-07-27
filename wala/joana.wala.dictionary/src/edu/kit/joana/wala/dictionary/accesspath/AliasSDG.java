@@ -39,6 +39,12 @@ import edu.kit.joana.wala.summary.SummaryComputation;
 import edu.kit.joana.wala.summary.WorkPackage;
 import edu.kit.joana.wala.summary.WorkPackage.EntryPoint;
 import edu.kit.joana.wala.util.NotImplementedException;
+import gnu.trove.list.TIntList;
+import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
+import gnu.trove.stack.TIntStack;
+import gnu.trove.stack.array.TIntArrayStack;
 
 /**
  * Combines pre-computed SDG with current alias information and prepares a context-aware SDG. 
@@ -333,6 +339,74 @@ public class AliasSDG {
 		}
 		
 		return changed;
+	}
+	
+	private int[] findReaching(final int nodeId1) {
+		final TIntSet reach = new TIntHashSet();
+		final LinkedList<Integer> work = new LinkedList<>();
+		work.add(nodeId1);
+		reach.add(nodeId1);
+		
+		while (!work.isEmpty()) {
+			final int curId = work.removeFirst();
+			final SDGNode cur = sdg.getNode(curId);
+			
+			for (final SDGEdge e : sdg.getOutgoingEdgesOfKind(cur, SDGEdge.Kind.PARAMETER_STRUCTURE)) {
+				final int nextId = e.getTarget().getId();
+				if (!reach.contains(nextId)) {
+					reach.add(nextId);
+					work.add(nextId);
+				}
+			}
+		}
+		
+		return reach.toArray();
+	}
+	
+	public boolean setNoAlias(final int nodeId1, final boolean n1wildcard, final int nodeId2, final boolean n2wildcard) {
+		if (!n1wildcard && !n2wildcard) {
+			return setNoAlias(nodeId1, nodeId2);
+		} else {
+			int[] n1arr;
+			if (n1wildcard) {
+				n1arr =findReaching(nodeId1);
+			} else {
+				n1arr = new int[] { nodeId1 };
+			}
+
+			int[] n2arr;
+			if (n2wildcard) {
+				n2arr =findReaching(nodeId2);
+			} else {
+				n2arr = new int[] { nodeId2 };
+			}
+			
+			return setNoAlias(n1arr, n2arr);
+		}
+	}
+	
+	public boolean setNoAlias(final int[] n1arr, final int[] n2arr) {
+		boolean result = false;
+		
+		for (final int n1id : n1arr) {
+			final SDGNode n1 = sdg.getNode(n1id);
+			for (final int n2id : n2arr) {
+				final SDGNode n2 = sdg.getNode(n2id);
+				if (typesCompatible(n1, n2)) {
+					result |= setNoAlias(n1id, n2id);
+				}
+			}
+		}
+		
+		return result;
+	}
+	
+	private boolean typesCompatible(final SDGNode n1, final SDGNode n2) {
+		//TODO alias data sources contian no field nodes only root nodes.
+		final TIntSet s1 = n1.getAliasDataSources();
+		final TIntSet s2 = n2.getAliasDataSources();
+		
+		return (s1 != null && s1.contains(n2.getId())) || (s2 != null && s2.contains(n1.getId())); 
 	}
 	
 	public boolean setNoAlias(final int nodeId1, final int nodeId2) {

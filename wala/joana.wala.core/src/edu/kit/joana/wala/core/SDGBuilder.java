@@ -564,7 +564,7 @@ public class SDGBuilder implements CallGraphFilter {
 			try {
 				interprocExceptionResult = NullPointerAnalysis.computeInterprocAnalysis(
 						NullPointerAnalysis.DEFAULT_IGNORE_EXCEPTIONS, nonPrunedCG,	cfg.defaultExceptionMethodState,
-						progress);
+						progress, cfg.pruneDDEdgesToDanglingExceptionNodes);
 			} catch (WalaException e) {
 				throw new CancelException(e);
 			}
@@ -755,7 +755,7 @@ public class SDGBuilder implements CallGraphFilter {
 			final IProgressMonitor progress) throws UnsoundGraphException, CancelException {
 		final ExceptionPruningAnalysis<SSAInstruction, IExplodedBasicBlock> npa = NullPointerAnalysis
 				.createIntraproceduralExplodedCFGAnalysis(NullPointerAnalysis.DEFAULT_IGNORE_EXCEPTIONS, n.getIR(),
-						null, cfg.defaultExceptionMethodState);
+						null, cfg.defaultExceptionMethodState, cfg.pruneDDEdgesToDanglingExceptionNodes);
 
 		npa.compute(progress);
 

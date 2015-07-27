@@ -607,11 +607,6 @@ public class SDGBuilder implements CallGraphFilter {
 		}
 		progress.done();
 
-		if (cfg.exceptions == ExceptionAnalysis.INTERPROC) {
-			// save memory - let garbage collector do its work.
-			interprocExceptionResult = null;
-		}
-
 		cfg.out.print("calls");
         progress.beginTask("interproc: connect call sites", pdgs.size());
         currentNum = 0;
@@ -735,6 +730,10 @@ public class SDGBuilder implements CallGraphFilter {
 		progress.done();
 		addEntryExitCFEdges();
 
+		if (cfg.pruneDDEdgesToDanglingExceptionNodes) {
+			pruneDDEdgesToDanglingExceptionNodes();
+		}
+
 		final Logger l = Log.getLogger(Log.L_WALA_UNRESOLVED_CLASSES);
 		if (l.isEnabled()) {
 			final Set<TypeReference> unresolved = cfg.cha.getUnresolvedClasses();
@@ -798,6 +797,55 @@ public class SDGBuilder implements CallGraphFilter {
 		}
 
 		return ecfg;
+	}
+
+	private void pruneDDEdgesToDanglingExceptionNodes() {
+		for (PDG pdg : getAllPDGs()) {
+			for (PDGNode call : pdg.getCalls()) {
+				PDGNode excOut = pdg.getExceptionOut(call);
+				boolean calleeMayThrowException = getPossibleTargets(call).isEmpty();
+				for (PDG possibleTarget : getPossibleTargets(call)) {
+					if (mayThrowException(possibleTarget.cgNode)) {
+						calleeMayThrowException = true;
+					}
+				}
+				if (!calleeMayThrowException) {
+					pdg.removeEdge(excOut, pdg.exception, PDGEdge.Kind.DATA_DEP);
+				}
+			}
+		}
+	}
+
+	public boolean mayThrowException(CGNode n) {
+		switch (cfg.exceptions) {
+		case ALL_NO_ANALYSIS:
+			return true;
+		case IGNORE_ALL:
+			return false;
+		case INTRAPROC:
+			ExceptionPruningAnalysis<SSAInstruction, IExplodedBasicBlock> npa = NullPointerAnalysis
+			.createIntraproceduralExplodedCFGAnalysis(NullPointerAnalysis.DEFAULT_IGNORE_EXCEPTIONS, n.getIR(),
+					null, cfg.defaultExceptionMethodState);
+			try {
+				npa.compute(NullProgressMonitor.INSTANCE);
+			} catch (UnsoundGraphException e) {
+				return true;
+			} catch (CancelException e) {
+				return true;
+			}
+			return npa.hasExceptions();
+		case INTERPROC:
+		}
+		if (interprocExceptionResult == null) {
+			return true;
+		} else {
+				ExceptionPruningAnalysis<SSAInstruction, IExplodedBasicBlock> result = interprocExceptionResult.getResult(n);
+				if (result == null) {
+					return true;
+				} else {
+					return result.hasExceptions();
+				}
+		}
 	}
 
 	private void addReturnEdges() {
@@ -1531,6 +1579,7 @@ public class SDGBuilder implements CallGraphFilter {
 		public String[] immutableStubs = Main.IMMUTABLE_STUBS;
 		public String[] ignoreStaticFields = Main.IGNORE_STATIC_FIELDS;
 		public ExceptionAnalysis exceptions = ExceptionAnalysis.INTRAPROC;
+		public boolean pruneDDEdgesToDanglingExceptionNodes = false;
 		public MethodState defaultExceptionMethodState = null;
 		public boolean accessPath = false;
 		public boolean localKillingDefs = true;

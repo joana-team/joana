@@ -50,7 +50,7 @@ public class WriteGraphToDot {
 				} else if (bb.isExitBlock()) {
 					return (phis.isEmpty() ? "EXIT" : "EXIT (" + phis + ")");
 				} else if (bb.getInstruction() == null) {
-					return (phis.isEmpty() ? "nop" : "nop (" + phis + ")");
+					return (phis.isEmpty() ? "nop-"+bb.getNumber() : "nop-"+bb.getNumber()+ "(" + phis + ")");
 				} else {
 					final String instr = PrettyWalaNames.instr2string(ir, bb.getInstruction(), ir.getControlFlowGraph());
 					return (phis.isEmpty() ? instr : "(" + phis +") " + instr);

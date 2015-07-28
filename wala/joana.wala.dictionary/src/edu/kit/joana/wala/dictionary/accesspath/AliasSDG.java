@@ -402,11 +402,7 @@ public class AliasSDG {
 	}
 	
 	private boolean typesCompatible(final SDGNode n1, final SDGNode n2) {
-		//TODO alias data sources contian no field nodes only root nodes.
-		final TIntSet s1 = n1.getAliasDataSources();
-		final TIntSet s2 = n2.getAliasDataSources();
-		
-		return (s1 != null && s1.contains(n2.getId())) || (s2 != null && s2.contains(n1.getId())); 
+		return ap.typesMayAlias(n1, n2);
 	}
 	
 	public boolean setNoAlias(final int nodeId1, final int nodeId2) {

@@ -98,7 +98,7 @@ public class AccessPath {
 
 	private APResult run(final PDG start) throws CancelException {
 		if (start == null) {
-			return new APResult(-1);
+			return new APResult(-1, sdg.getClassHierarchy());
 		}
 
 		final Set<PDG> reachable = findReachable(start);
@@ -122,7 +122,7 @@ public class AccessPath {
 			}
 		}
 
-		final APResult result = new APResult(start.getId());
+		final APResult result = new APResult(start.getId(), sdg.getClassHierarchy());
 		for (final PDG pdg : reachable) {
 			final APIntraProc ap = pdg2ap.get(pdg);
 			final int numOfAliasEdges = ap.findAndMarkAliasEdges();

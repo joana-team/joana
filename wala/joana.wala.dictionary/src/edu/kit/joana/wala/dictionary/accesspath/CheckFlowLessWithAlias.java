@@ -840,7 +840,7 @@ public final class CheckFlowLessWithAlias {
 						final int node1Id = params[p1];
 						final int node2Id = params[p2];
 
-						alias.setNoAlias(node1Id, node2Id);
+						alias.setNoAlias(node1Id, true, node2Id, true);
 //						cfc.out.print(" (" + node1Id + "," + node2Id + ")");
 					}
 

@@ -571,8 +571,8 @@ public final class TestCheckFlowComputation {
 		run.expected = new ExpR[] { 
 				new ExpR("!{a.*, b.*} => (a)-!>(b)", Res.NEVER_SATISFIED),
 				new ExpR("? => (a)-!>(b)", Res.NEVER_SATISFIED),
-				new ExpR("!{a.*, b.*} => (b)-!>(a)", Res.NEVER_SATISFIED), // Res.ALWAYS_SATISFIED), // TODO
-				new ExpR("? => (b)-!>(a)", Res.NEVER_SATISFIED),
+				new ExpR("!{a.*, b.*} => (b)-!>(a)", Res.ALWAYS_SATISFIED),
+				new ExpR("? => (b)-!>(a)", Res.INFERRED_SATISFIED),
 		};
 		
 		checkRun(run);

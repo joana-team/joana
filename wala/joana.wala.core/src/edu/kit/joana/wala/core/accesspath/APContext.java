@@ -206,7 +206,18 @@ public class APContext implements Cloneable {
 	}
 	
 	private String equivalenceClassAP(final AP ap) {
-		return searchForEQ(ap, "");
+		/**
+		 * We decide if two locations are aliased based on their equivalence class. For field accesses v1.f1, v2.f2
+		 * that means they are aliased, iff their base pointers (v1, v2) point to the same location and f1 == f2.
+		 * So we get the equivalence class for the base pointer.
+		 */
+		final AP parent = ap.getParentPath();
+		final AP.Node end = ap.getEnd();
+		if (parent != null) {
+			return searchForEQ(parent, end.toString());
+		} else {
+			return end.toString();
+		}
 	}
 	
 	public boolean isAliased(final AP a1, final AP a2) {

@@ -162,8 +162,8 @@ public class Test {
 	//@ifc: !{a.*, b.*} => b -!> a
 	//@ifc: ? => a -!> \result
 	//@ifc: ? => b -!> \result
-	public static int foo9(A a, A2 b) {
-		foo10(a.f, b);
+	public static int foo9(A2 a, A2 b) {
+		foo10(a, b);
 
 		return b.f2;
 	}
@@ -174,6 +174,18 @@ public class Test {
 	//@ifc: !{a.*, b.*} => b -!> a
 	public static void foo10(A2 a, A2 b) {
 		b.f2 = a.f2;
+	}
+
+	//@ifc: ? => a -!> b
+	//@ifc: !{a.*, b.*} => a -!> b
+	//@ifc: ? => b -!> a
+	//@ifc: !{a.f.*, b.*} => b -!> a
+	//@ifc: ? => a -!> \result
+	//@ifc: ? => b -!> \result
+	public static int foo9b(A a, A2 b) {
+		foo10(a.f, b);
+
+		return b.f2;
 	}
 
 	public static A3 foo11() {

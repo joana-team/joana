@@ -341,7 +341,7 @@ public class AliasSDG {
 		return changed;
 	}
 	
-	private int[] findReaching(final int nodeId1) {
+	private int[] findReachingIn(final int nodeId1) {
 		final TIntSet reach = new TIntHashSet();
 		final LinkedList<Integer> work = new LinkedList<>();
 		work.add(nodeId1);
@@ -352,15 +352,27 @@ public class AliasSDG {
 			final SDGNode cur = sdg.getNode(curId);
 			
 			for (final SDGEdge e : sdg.getOutgoingEdgesOfKind(cur, SDGEdge.Kind.PARAMETER_STRUCTURE)) {
-				final int nextId = e.getTarget().getId();
-				if (!reach.contains(nextId)) {
-					reach.add(nextId);
-					work.add(nextId);
+				if (isInputParam(e.getTarget())) {
+					final int nextId = e.getTarget().getId();
+					if (!reach.contains(nextId)) {
+						reach.add(nextId);
+						work.add(nextId);
+					}
 				}
 			}
 		}
 		
 		return reach.toArray();
+	}
+	
+	private static boolean isInputParam(final SDGNode n) {
+		switch (n.kind) {
+		case ACTUAL_IN:
+		case FORMAL_IN:
+			return true;
+		default:
+			return false;
+		}
 	}
 	
 	public boolean setNoAlias(final int nodeId1, final boolean n1wildcard, final int nodeId2, final boolean n2wildcard) {
@@ -369,14 +381,14 @@ public class AliasSDG {
 		} else {
 			int[] n1arr;
 			if (n1wildcard) {
-				n1arr =findReaching(nodeId1);
+				n1arr =findReachingIn(nodeId1);
 			} else {
 				n1arr = new int[] { nodeId1 };
 			}
 
 			int[] n2arr;
 			if (n2wildcard) {
-				n2arr =findReaching(nodeId2);
+				n2arr =findReachingIn(nodeId2);
 			} else {
 				n2arr = new int[] { nodeId2 };
 			}

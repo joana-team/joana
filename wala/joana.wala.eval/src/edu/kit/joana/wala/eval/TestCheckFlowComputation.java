@@ -554,7 +554,25 @@ public final class TestCheckFlowComputation {
 		run.expected = new ExpR[] { 
 				new ExpR("!{a.*, b.*} => (a)-!>(b)", Res.NEVER_SATISFIED),
 				new ExpR("? => (a)-!>(b)", Res.NEVER_SATISFIED),
+				new ExpR("!{a.*, b.*} => (b)-!>(a)", Res.ALWAYS_SATISFIED),
+				new ExpR("? => (b)-!>(a)", Res.INFERRED_SATISFIED),
+				new ExpR("? => (a)-!>(\\result)", Res.NEVER_SATISFIED),
+				new ExpR("? => (b)-!>(\\result)", Res.NEVER_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+	
+	@Test
+	public void test_foo9b() {
+		final Run run = new Run(currentMethodName(),
+			"foo9b",
+			"../../example/joana.example.many-small-progs/bin");
+		run.expected = new ExpR[] { 
+				new ExpR("!{a.*, b.*} => (a)-!>(b)", Res.NEVER_SATISFIED),
+				new ExpR("? => (a)-!>(b)", Res.NEVER_SATISFIED),
 				new ExpR("!{a.*, b.*} => (b)-!>(a)", Res.NEVER_SATISFIED), // Res.ALWAYS_SATISFIED), // TODO
+				new ExpR("!{a.f.*, b.*} => (b)-!>(a)", Res.NEVER_SATISFIED), // Res.ALWAYS_SATISFIED), // TODO
 				new ExpR("? => (b)-!>(a)", Res.NEVER_SATISFIED),
 				new ExpR("? => (a)-!>(\\result)", Res.NEVER_SATISFIED),
 				new ExpR("? => (b)-!>(\\result)", Res.NEVER_SATISFIED),

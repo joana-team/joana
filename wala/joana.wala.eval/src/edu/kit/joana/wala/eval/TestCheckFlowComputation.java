@@ -508,7 +508,7 @@ public final class TestCheckFlowComputation {
 			"../../example/joana.example.many-small-progs/bin");
 		run.expected = new ExpR[] { 
 				new ExpR("!{a.*, b.*} => (a)-!>(b)", Res.ALWAYS_SATISFIED),
-				new ExpR("? => (a)-!>(b)", Res.INFERRED_SATISFIED),
+				new ExpR("? => (a)-!>(b)", Res.ALWAYS_SATISFIED),
 				new ExpR("? => (a)-!>(\\result)", Res.NEVER_SATISFIED),
 				new ExpR("? => (b)-!>(\\result)", Res.NEVER_SATISFIED),
 		};
@@ -571,9 +571,9 @@ public final class TestCheckFlowComputation {
 		run.expected = new ExpR[] { 
 				new ExpR("!{a.*, b.*} => (a)-!>(b)", Res.NEVER_SATISFIED),
 				new ExpR("? => (a)-!>(b)", Res.NEVER_SATISFIED),
-				new ExpR("!{a.*, b.*} => (b)-!>(a)", Res.NEVER_SATISFIED), // Res.ALWAYS_SATISFIED), // TODO
-				new ExpR("!{a.f.*, b.*} => (b)-!>(a)", Res.NEVER_SATISFIED), // Res.ALWAYS_SATISFIED), // TODO
-				new ExpR("? => (b)-!>(a)", Res.NEVER_SATISFIED),
+				new ExpR("!{a.*, b.*} => (b)-!>(a)", Res.ALWAYS_SATISFIED),
+				new ExpR("!{a.f.*, b.*} => (b)-!>(a)", Res.ALWAYS_SATISFIED),
+				new ExpR("? => (b)-!>(a)", Res.INFERRED_SATISFIED),
 				new ExpR("? => (a)-!>(\\result)", Res.NEVER_SATISFIED),
 				new ExpR("? => (b)-!>(\\result)", Res.NEVER_SATISFIED),
 		};
@@ -627,7 +627,7 @@ public final class TestCheckFlowComputation {
 			"../../example/joana.example.many-small-progs/bin");
 
 		run.expected = new ExpR[] { 
-				new ExpR(" => (a)-!>(b)", Res.NEVER_SATISFIED), // Res.ALWAYS_SATISFIED), //TODO
+				new ExpR(" => (a)-!>(b)", Res.ALWAYS_SATISFIED),
 				new ExpR("? => (a)-!>(\\result)", Res.NEVER_SATISFIED),
 				new ExpR("? => (b)-!>(\\result)", Res.INFERRED_SATISFIED),
 		};
@@ -808,7 +808,7 @@ public final class TestCheckFlowComputation {
 				for (int i = 0; i < noalias.length; i++) {
 					assert match.hasMatchFor(noalias[i]);
 					final Parameter n1p = noalias[i];
-					final SDGNode n1 = match.getMatch(n1p);
+					final SDGNode n1 = match.getFineMatchIN(n1p);
 					if (n1 == null) {
 						throw new EntityNotFoundException("found no matching parameter for '" + noalias[i] + "' in "
 								+ mInfo.toString());
@@ -816,7 +816,7 @@ public final class TestCheckFlowComputation {
 					for (int j = i + 1; j < noalias.length; j++) {
 						assert match.hasMatchFor(noalias[j]);
 						final Parameter n2p = noalias[j];
-						final SDGNode n2 = match.getMatch(n2p);
+						final SDGNode n2 = match.getFineMatchIN(n2p);
 						if (n2 == null) {
 							throw new EntityNotFoundException("found no matching parameter for '" + noalias[j] + "' in "
 									+ mInfo.toString());

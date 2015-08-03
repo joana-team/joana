@@ -176,12 +176,12 @@ public class Test {
 		b.f2 = a.f2;
 	}
 
-	//@ifc: ? => a -!> b
-	//@ifc: !{a.*, b.*} => a -!> b
-	//@ifc: ? => b -!> a
+	//ifc: ? => a -!> b
+	//ifc: !{a.*, b.*} => a -!> b
+	//ifc: ? => b -!> a
 	//@ifc: !{a.f.*, b.*} => b -!> a
-	//@ifc: ? => a -!> \result
-	//@ifc: ? => b -!> \result
+	//ifc: ? => a -!> \result
+	//ifc: ? => b -!> \result
 	public static int foo9b(A a, A2 b) {
 		foo10(a.f, b);
 

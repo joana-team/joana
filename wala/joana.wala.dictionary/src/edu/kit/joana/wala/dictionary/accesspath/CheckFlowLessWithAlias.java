@@ -505,7 +505,7 @@ public final class CheckFlowLessWithAlias {
 			}
 		}
 
-		adjustSetWithPotentialAliases(sdg, ParamKind.IN, from);
+		//adjustSetWithPotentialAliases(sdg, ParamKind.IN, from);
 
 		final Set<SDGNode> to = new HashSet<SDGNode>();
 		for (final Parameter tp : fl.getTo()) {
@@ -518,7 +518,7 @@ public final class CheckFlowLessWithAlias {
 			}
 		}
 
-		adjustSetWithPotentialAliases(sdg, ParamKind.OUT, to);
+		//adjustSetWithPotentialAliases(sdg, ParamKind.OUT, to);
 
 //		cfc.out.println("edu.kit.joana.deprecated.jsdg.slicing: " + to);
 //		cfc.out.println("input: " + from);

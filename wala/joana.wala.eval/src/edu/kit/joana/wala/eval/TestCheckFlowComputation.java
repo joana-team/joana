@@ -727,6 +727,36 @@ public final class TestCheckFlowComputation {
 		checkRun(run);
 	}
 	
+
+	@Test
+	public void test_compute() {
+		final Run run = new Run(currentMethodName(),
+			"compute",
+			"../../example/joana.example.many-small-progs/bin");
+
+		run.expected = new ExpR[] { 
+				new ExpR(" => (d)-!>(\\result)", Res.NEVER_SATISFIED),
+				new ExpR("!{a.*, b.*, c.*, d.*, e.*, g.*} => (d)-!>(\\result)", Res.ALWAYS_SATISFIED),
+				new ExpR("!{a.*, b.*, c.*, d.*, e.*} => (d)-!>(\\result)", Res.NO_EXC_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+
+	@Test
+	public void test_callToCompute() {
+		final Run run = new Run(currentMethodName(),
+			"callToCompute",
+			"../../example/joana.example.many-small-progs/bin");
+
+		run.expected = new ExpR[] { 
+				new ExpR(" => (d)-!>(\\result)", Res.NEVER_SATISFIED),
+				new ExpR("!{a.*, b.*, c.*, d.*} => (d)-!>(\\result)", Res.ALWAYS_SATISFIED),
+		};
+		
+		checkRun(run);
+	}
+	
 	private AliasSDG prepareForFlowLessCheck(final Run run, final IProgressMonitor progress)
 			throws IllegalArgumentException, CancelException, ClassHierarchyException, IOException, UnsoundGraphException {
 		if (setup.printStatistics) { run.startPrepareTime = System.currentTimeMillis(); }

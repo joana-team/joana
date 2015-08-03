@@ -1,3 +1,4 @@
+
 /**
  * This file is part of the Joana IFC project. It is developed at the
  * Programming Paradigms Group of the Karlsruhe Institute of Technology.
@@ -309,4 +310,39 @@ public class Test {
 
 		return a.f.f2 + 10;
 	}
+	
+	//BEGIN compute example - breaks previous access paths computation
+	public static class A1 {
+		B1 f;
+	}
+	
+	public static class B1 {
+		int i;
+	}
+	
+	//@ifc: => d -!> \result
+	//@ifc: !{a.*, b.*, c.*, d.*, e.*, g.*} => d-!>\result
+	//@ifc: !{a.*, b.*, c.*, d.*, e.*} => d-!>\result
+	public static int compute(A1 a, A1 b, A1 c, A1 d, A1 e, A1 g) {
+		B1 x = c.f;
+		a.f = x;
+		B1 y = b.f;
+		
+		B1 v = d.f;
+		e.f = v;
+		B1 z = g.f;
+		
+		z.i = 3;
+		int w = y.i;
+		return w;
+	}
+
+	//@ifc: => d -!> \result
+	//@ifc: !{a.*, b.*, c.*, d.*} => d-!>\result
+	public static int callToCompute(final A1 a, final A1 b, final A1 c, final A1 d) {
+		return compute(a, b, c, d, a, b);
+	}
+
+	//END compute example - breaks previous access paths computation
+
 }

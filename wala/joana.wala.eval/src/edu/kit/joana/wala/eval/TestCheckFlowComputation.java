@@ -272,7 +272,17 @@ public final class TestCheckFlowComputation {
     			return "satisfied without exceptions.";
     		case INFERRED_SATISFIED:
     			Assert.assertTrue("'" + clause + "' could not be inferred.", stmt.isInferredSatisfied());
-    			return "can be inferred.";
+    			
+    			final StringBuffer sb = new StringBuffer("can be inferred.\n");
+    			for (final FlowStmtResultPart part : stmt.getParts()) {
+    				if (part.isSatisfied()) {
+        				final String condition = part.getDescription();
+    					sb.append("\t\t\t" + condition + ": " + (part.isSatisfied() ? "ok" : "fail") +  "\n");
+    				}
+    			}
+    			sb.append("\t\tinference done.");
+    			
+    			return sb.toString();
     		case NO_EXC_INFERRED_SATISFIED:
     			Assert.assertTrue("'" + clause + "' could not be inferred without exceptions.", stmt.isInferredNoExcSatisfied());
     			return "can be inferred without exceptions.";

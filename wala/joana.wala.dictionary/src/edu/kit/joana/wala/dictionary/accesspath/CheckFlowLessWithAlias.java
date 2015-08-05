@@ -646,8 +646,8 @@ public final class CheckFlowLessWithAlias {
 		int checked = 0;
 		final SortedSet<Permutations> working = new TreeSet<Permutations>();
 		final Permutations current = new Permutations(formals);
-		Permutations noChange = null;
-		for (boolean thereIsMore = true; thereIsMore;) {
+//		Permutations noChange = null;
+		for (boolean thereIsMore = true; thereIsMore && working.isEmpty();) {
 			thereIsMore = current.hasNext();
 			total++;
 			MonitorUtil.throwExceptionIfCanceled(progress);
@@ -660,7 +660,7 @@ public final class CheckFlowLessWithAlias {
 				}
 			}
 
-			if (!isSubSetOfWorking && !(noChange != null && current.containsAny(noChange))
+			if (!isSubSetOfWorking //&& !(noChange != null && current.containsAny(noChange))
 					&& !current.containsImpossibleAliases(potentialAliases)) {
 				// check flow for current permutation
 //				cfc.out.print("#" + total + ":" + current.getParameterAliases(nf));
@@ -672,13 +672,13 @@ public final class CheckFlowLessWithAlias {
 					working.add(copy);
 				}
 
-				if (current.isNoChange()) {
-//					if (noChange == null) {
-//						noChange = current.clone();
-//					} else {
-//						noChange.addAll(current);
-//					}
-				}
+//				if (current.isNoChange()) {
+////					if (noChange == null) {
+////						noChange = current.clone();
+////					} else {
+////						noChange.addAll(current);
+////					}
+//				}
 			}
 
 			current.next();

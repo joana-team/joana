@@ -324,6 +324,7 @@ public class Test {
 	//@ifc: !{a.*, b.*, c.*, d.*, e.*, g.*} => d-!>\result
 	//@ifc: !{a.*, b.*, c.*, d.*, e.*} => d-!>\result
 	//@ifc: ? => d -!> \result
+	//@ifc: !{e, b} & !{b, d} & !{b, a} & !{b, g} & !{b, c} =>  d -!> \result 
 	public static int compute(A1 a, A1 b, A1 c, A1 d, A1 e, A1 g) {
 		B1 x = c.f;
 		a.f = x;

@@ -748,6 +748,7 @@ public final class TestCheckFlowComputation {
 				new ExpR(" => (d)-!>(\\result)", Res.NEVER_SATISFIED),
 				new ExpR("!{a.*, b.*, c.*, d.*, e.*, g.*} => (d)-!>(\\result)", Res.ALWAYS_SATISFIED),
 				new ExpR("!{a.*, b.*, c.*, d.*, e.*} => (d)-!>(\\result)", Res.NO_EXC_SATISFIED),
+				new ExpR("? => (d)-!>(\\result)", Res.INFERRED_SATISFIED),
 		};
 		
 		checkRun(run);

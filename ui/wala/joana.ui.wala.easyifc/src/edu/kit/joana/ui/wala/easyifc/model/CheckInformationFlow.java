@@ -23,6 +23,8 @@ import java.util.TreeSet;
 
 import com.ibm.wala.cfg.exc.intra.MethodState;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
+import com.ibm.wala.ipa.callgraph.pruned.DoNotPrune;
+import com.ibm.wala.ipa.callgraph.pruned.PruningPolicy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
 import com.ibm.wala.util.CancelException;
@@ -55,6 +57,7 @@ import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.Reason;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SLeak;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SPos;
 import edu.kit.joana.ui.wala.easyifc.util.EntryPointSearch.EntryPointConfiguration;
+import edu.kit.joana.util.Config;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
@@ -371,6 +374,10 @@ public final class CheckInformationFlow {
 		if (cfc.thirdPartyLib != null) {
 			config.setThirdPartyLibsPath(cfc.thirdPartyLib);
 		}
+		config.setPruningPolicy(DoNotPrune.INSTANCE);
+		System.setProperty(Config.C_OBJGRAPH_MAX_NODES_PER_INTERFACE, "-1");
+		System.setProperty(Config.C_OBJGRAPH_CUT_OFF_IMMUTABLE, "true");
+		System.setProperty(Config.C_OBJGRAPH_CUT_OFF_UNREACHABLE, "true");
 		
 		return config;
 	}

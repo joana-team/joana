@@ -1162,6 +1162,10 @@ public class APIntraProc {
 				}
 			}
 			
+			if (repl.isEmpty()) {
+				repl.addAll(aps);
+			}
+			
 			return repl;
 		}
 

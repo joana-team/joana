@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
@@ -83,7 +84,7 @@ public class ProbabilisticNISlicer implements ConflictScanner {
         private Set<DataConflict<SecurityNode>> dataConflicts;
         private Set<OrderConflict<SecurityNode>> orderConflicts;
         
-        private Set<Pair<SDGNode, SDGNode>> confEdges = new HashSet<Pair<SDGNode, SDGNode>>();
+        private Map<Pair<SDGNode, SDGNode>, IConflictLeak<SecurityNode>> confMap = new HashMap<Pair<SDGNode, SDGNode>, IConflictLeak<SecurityNode>>();
         
         /**
          * Initialisierung.
@@ -113,22 +114,26 @@ public class ProbabilisticNISlicer implements ConflictScanner {
          * @param edge    Vom Typ SDGEdge.Kind.CONFLICT_DATA oder SDGEdge.Kind.CONFLICT_ORDER.
          */
         public void updateConflicts(SecurityNode sink, SecurityNode source, SDGEdge edge, String attackerLevel) {
-            if (edge.getKind() == SDGEdge.Kind.CONFLICT_DATA) {
-                // erzeuge neuen Conflict
-                if (!confEdges.contains(Pair.pair(edge.getSource(), edge.getTarget())) && !confEdges.contains(Pair.pair(edge.getTarget(), edge.getSource()))) {
-                    DataConflict<SecurityNode> con  = new DataConflict<SecurityNode>(ConflictEdge.fromSDGEdge(edge), sink, attackerLevel, Maybe.just(source));
-                    conflicts.add(con);
-                    dataConflicts.add(con);
-                    confEdges.add(Pair.pair(edge.getSource(), edge.getTarget()));
+            Pair<SDGNode, SDGNode> confEdge = Pair.pair(edge.getSource(), edge.getTarget());
+            Pair<SDGNode, SDGNode> confEdgeRev = Pair.pair(edge.getTarget(), edge.getSource());
+            if (!confMap.containsKey(confEdge) && !confMap.containsKey(confEdgeRev)) {
+                if (edge.getKind() == SDGEdge.Kind.CONFLICT_DATA) {
+                    DataConflict<SecurityNode> dcon  = new DataConflict<SecurityNode>(ConflictEdge.fromSDGEdge(edge), sink, attackerLevel, Maybe.just(source));
+                    confMap.put(confEdge, dcon);
+                    conflicts.add(dcon);
+                    dataConflicts.add(dcon);
+                } else if (edge.getKind() == SDGEdge.Kind.CONFLICT_ORDER) {
+                    OrderConflict<SecurityNode> ocon  = new OrderConflict<SecurityNode>(ConflictEdge.fromSDGEdge(edge), attackerLevel, Maybe.just(source));
+                    conflicts.add(ocon);
+                    orderConflicts.add(ocon);
+                    confMap.put(confEdge, ocon);
                 }
-            } else if (edge.getKind() == SDGEdge.Kind.CONFLICT_ORDER) {
-                // erzeuge neuen OrderConflict
-            	if (!confEdges.contains(Pair.pair(edge.getSource(), edge.getTarget())) && !confEdges.contains(Pair.pair(edge.getTarget(), edge.getSource()))) {
-            		OrderConflict<SecurityNode> con  = new OrderConflict<SecurityNode>(ConflictEdge.fromSDGEdge(edge), attackerLevel, Maybe.just(source));
-                    conflicts.add(con);
-                    orderConflicts.add(con);
-                    confEdges.add(Pair.pair(edge.getSource(), edge.getTarget()));
-            	}
+            } else {
+                IConflictLeak<SecurityNode> con1 = confMap.get(confEdge);
+                IConflictLeak<SecurityNode> con2 = confMap.get(confEdgeRev);
+                assert con1 != con2 && (con1 == null || con2 == null);
+                IConflictLeak<SecurityNode> con = con1==null?con2:con1;
+                con.addTrigger(source);
             }
         }
 

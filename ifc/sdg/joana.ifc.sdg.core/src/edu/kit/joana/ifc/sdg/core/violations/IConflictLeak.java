@@ -7,6 +7,8 @@
  */
 package edu.kit.joana.ifc.sdg.core.violations;
 
+import java.util.Set;
+
 import edu.kit.joana.util.Maybe;
 
 /**
@@ -17,9 +19,21 @@ import edu.kit.joana.util.Maybe;
 public interface IConflictLeak<T> extends IViolation<T> {
 	
 	/**
-	 * @return the trigger of the conflict or {@link Maybe#nothing} if there is no source is available
+	 * @return a trigger of the conflict or {@link Maybe#nothing} if there is no source is available; the returned trigger is contained in the
+	 * set returned by {@link #getAllTriggers()}.
 	 */
 	Maybe<T> getTrigger();
+
+	/**
+	 * @return all triggers of the conflict; empty set if there is no source available;
+	 */
+	Set<T> getAllTriggers();
+
+	/**
+	 * Adds a trigger for this conflict.
+	 * @param trigger trigger to add
+	 */
+	void addTrigger(T trigger);
 	
 	/**
 	 * @return The conflict leading to this conflict leak

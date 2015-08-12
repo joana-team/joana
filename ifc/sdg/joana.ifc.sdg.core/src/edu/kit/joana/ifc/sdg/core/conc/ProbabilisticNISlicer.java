@@ -127,11 +127,12 @@ public class ProbabilisticNISlicer implements ConflictScanner {
                     conflicts.add(ocon);
                     orderConflicts.add(ocon);
                     confMap.put(confEdge, ocon);
+                    confMap.put(confEdgeRev, ocon);
                 }
             } else {
                 IConflictLeak<SecurityNode> con1 = confMap.get(confEdge);
                 IConflictLeak<SecurityNode> con2 = confMap.get(confEdgeRev);
-                assert con1 != con2 && (con1 == null || con2 == null);
+                assert con1 == con2 || (con1 == null || con2 == null);
                 IConflictLeak<SecurityNode> con = con1==null?con2:con1;
                 con.addTrigger(source);
             }

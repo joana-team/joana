@@ -94,12 +94,12 @@ public final class TestCheckFlowComputation {
 		public IMethod im;
 		public MethodResult m;
 		public ExpR[] expected;
-		public long timePreprareSDG = 0;
-		public long numPreparedSDGs = 0;
-		public long timeAdjustSDG = 0;
-		public long numAdjustSDGs = 0;
-		public long startPrepareTime, endPrepareTime;
-		public long startAdjustTime, endAdjustTime;
+		public static long timePreprareSDG = 0;
+		public static long numPreparedSDGs = 0;
+		public static long timeAdjustSDG = 0;
+		public static long numAdjustSDGs = 0;
+		public static long startPrepareTime, endPrepareTime;
+		public static long startAdjustTime, endAdjustTime;
 
 		
 		public Run(String name, String entryMethod, String classpath) {
@@ -771,7 +771,7 @@ public final class TestCheckFlowComputation {
 	
 	private AliasSDG prepareForFlowLessCheck(final Run run, final IProgressMonitor progress)
 			throws IllegalArgumentException, CancelException, ClassHierarchyException, IOException, UnsoundGraphException {
-		if (setup.printStatistics) { run.startPrepareTime = System.currentTimeMillis(); }
+		if (setup.printStatistics) { run.startPrepareTime = System.nanoTime(); }
 		final CheckFlowConfig cfc = setup.cfc;
 		final IMethod im = run.im;
 		final MethodResult m = run.m;
@@ -803,7 +803,7 @@ public final class TestCheckFlowComputation {
 		alias.precomputeSummary(progress);
 
 		if (setup.printStatistics) {
-			run.endPrepareTime = System.currentTimeMillis();
+			run.endPrepareTime = System.nanoTime();
 			run.numPreparedSDGs++;
 			run.timePreprareSDG += (run.endPrepareTime - run.startPrepareTime);
 		}
@@ -871,11 +871,11 @@ public final class TestCheckFlowComputation {
 			}
 		}
 
-		if (setup.printStatistics) { run.startAdjustTime = System.currentTimeMillis(); }
+		if (setup.printStatistics) { run.startAdjustTime = System.nanoTime(); }
 		alias.adjustMaxSDG(progress);
 		alias.recomputeSummary(progress);
 		if (setup.printStatistics) {
-			run.endAdjustTime = System.currentTimeMillis();
+			run.endAdjustTime = System.nanoTime();
 			run.numAdjustSDGs++;
 			run.timeAdjustSDG += (run.endAdjustTime - run.startAdjustTime);
 		}

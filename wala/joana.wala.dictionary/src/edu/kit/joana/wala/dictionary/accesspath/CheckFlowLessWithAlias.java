@@ -62,6 +62,7 @@ import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
 import edu.kit.joana.wala.core.accesspath.APResult;
 import edu.kit.joana.wala.core.accesspath.AccessPath;
+import edu.kit.joana.wala.dictionary.accesspath.CheckFlowLessWithAlias.CheckFlowConfig.Stats;
 import edu.kit.joana.wala.dictionary.accesspath.FlowCheckResultConsumer.FlowStmtResult;
 import edu.kit.joana.wala.dictionary.accesspath.FlowCheckResultConsumer.FlowStmtResultPart;
 import edu.kit.joana.wala.dictionary.accesspath.FlowCheckResultConsumer.MethodResult;
@@ -101,9 +102,32 @@ public final class CheckFlowLessWithAlias {
 		public final PrintStream out;
 		public final FlowCheckResultConsumer results;
 		public final IProgressMonitor progress;
+		public Stats stats;
 		public boolean printStatistics = true;
 		public AnalysisScope scope = null;
 
+		public static class Stats {
+			public long startTime;
+			public long endTime;
+			public int adjustments = 0;
+			public long totalTime;
+			
+			public void registerStart() {
+				startTime = System.nanoTime();
+				adjustments++;
+			}
+			
+			public void registerEnd() {
+				endTime = System.nanoTime();
+				totalTime += lastDuration();
+			}
+			
+			public long lastDuration() {
+				return endTime - startTime;
+			}
+			
+		}
+		
 		public CheckFlowConfig(final String bin, final String[] src) {
 			this(bin, src, DEFAULT_TMP_OUT_DIR, DEFAULT_LIB_DIR, System.out, FlowCheckResultConsumer.DEFAULT,
 					NullProgressMonitor.INSTANCE);
@@ -666,7 +690,7 @@ public final class CheckFlowLessWithAlias {
 //				cfc.out.print("#" + total + ":" + current.getParameterAliases(nf));
 
 				checked++;
-				if (checkPermutationFlow(current, alias, ifc, match, progress)) {
+				if (checkPermutationFlow(current, alias, ifc, match, cfc.stats, progress)) {
 					// flow ok with this permutation
 					final Permutations copy = current.clone();
 					working.add(copy);
@@ -710,9 +734,12 @@ public final class CheckFlowLessWithAlias {
 	}
 
 	private static boolean checkPermutationFlow(final Permutations perm, final AliasSDG alias, final BasicIFCStmt ifc,
-			final Matcher match, final IProgressMonitor progress) throws CancelException {
+			final Matcher match, final Stats stats, final IProgressMonitor progress) throws CancelException {
 		alias.reset();
 		perm.resetNoChange();
+
+		if (stats != null) { stats.registerStart(); }
+		
 		perm.adjustAlias(alias);
 		if (alias.adjustMaxSDG(progress) > 0) {
 			alias.recomputeSummary(progress);
@@ -720,6 +747,7 @@ public final class CheckFlowLessWithAlias {
 			perm.markAsNoChange();
 		}
 
+		if (stats != null) { stats.registerEnd(); }
 		//cfc.out.println("checking " + perm.getParameterAliases());
 
 		final SummarySlicerBackward ssb = new SummarySlicerBackward(alias.getSDG());

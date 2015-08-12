@@ -58,6 +58,7 @@ import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SLeak;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SPos;
 import edu.kit.joana.ui.wala.easyifc.util.EntryPointSearch.EntryPointConfiguration;
 import edu.kit.joana.util.Config;
+import edu.kit.joana.util.Maybe;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
@@ -527,6 +528,16 @@ public final class CheckInformationFlow {
 					final SortedSet<SPos> chop = new TreeSet<SPos>();
 					chop.add(ssource);
 					chop.add(ssink);
+					final Maybe<SecurityNode> mayTrigger = orderConf.getTrigger();
+					final SPos trpos;
+					if (mayTrigger.isJust()) {
+						final SecurityNode trigger = mayTrigger.extract();
+						trpos = new SPos(trigger.getSource(), trigger.getSr(), trigger.getEr(), trigger.getSc(), trigger.getEc());
+						chop.add(trpos);
+					} else {
+						trpos = null;
+					}
+					
 					final SLeak sleak = new SLeak(ssource, ssink,
 							(reason == Reason.THREAD ? Reason.THREAD_ORDER : reason), chop);
 					for (final SecurityNode sn : orderConf.getAllTriggers()) {
@@ -579,8 +590,18 @@ public final class CheckInformationFlow {
 					final SortedSet<SPos> chop = new TreeSet<SPos>();
 					chop.add(ssource);
 					chop.add(ssink);
+					final Maybe<SecurityNode> mayTrigger = dataConf.getTrigger();
+					final SPos trpos;
+					if (mayTrigger.isJust()) {
+						final SecurityNode trigger = mayTrigger.extract();
+						trpos = new SPos(trigger.getSource(), trigger.getSr(), trigger.getEr(), trigger.getSc(), trigger.getEc());
+						chop.add(trpos);
+					} else {
+						trpos = null;
+					}
+					
 					final SLeak sleak = new SLeak(ssource, ssink,
-							(reason == Reason.THREAD ? Reason.THREAD_DATA : reason), chop);
+							(reason == Reason.THREAD ? Reason.THREAD_DATA : reason), chop, trpos);
 					sleaks.add(sleak);
 				}
 

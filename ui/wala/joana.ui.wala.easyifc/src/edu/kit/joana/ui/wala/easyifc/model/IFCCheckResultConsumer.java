@@ -141,8 +141,24 @@ public interface IFCCheckResultConsumer {
 		private final Reason reason;
 		private final SortedSet<SPos> chop;
 		private final Set<SPos> trigger = new TreeSet<>();
-		
+
 		public SLeak(final SPos source, final SPos sink, final Reason reason, final SortedSet<SPos> chop) {
+			this(source, sink, reason, chop, null);
+		}
+		
+		public SLeak(final SPos source, final SPos sink, final Reason reason, final SortedSet<SPos> chop, final SPos trigger) {
+			if (trigger != null) {
+				switch (reason) {
+				case THREAD:
+				case THREAD_DATA:
+				case THREAD_EXCEPTION:
+				case THREAD_ORDER:
+					break;
+				default:
+					throw new IllegalArgumentException("A trigger position only makes sense for a thread conflict.");
+				}
+			}
+
 			this.source = source;
 			this.sink = sink;
 			this.reason = reason;
@@ -178,13 +194,14 @@ public interface IFCCheckResultConsumer {
 		}
 		
 		public int hashCode() {
-			return source.hashCode() + 23 * sink.hashCode();
+			return source.hashCode() + 23 * sink.hashCode() + 49 * reason.hashCode()
+					+ (trigger != null ? 4711 * trigger.hashCode() : 0);
 		}
 		
 		public boolean equals(Object o) {
 			if (o instanceof SLeak) {
 				final SLeak l = (SLeak) o;
-				return source.equals(l.source) && sink.equals(l.sink);
+				return source.equals(l.source) && sink.equals(l.sink) && reason == l.reason;
 			}
 			
 			return false;
@@ -220,10 +237,13 @@ public interface IFCCheckResultConsumer {
 			}
 			
 			switch (reason) {
+			case THREAD_ORDER:
 			case THREAD:
 			case THREAD_DATA:
-			case THREAD_ORDER:
 			case THREAD_EXCEPTION:
+				if (trigger != null) {
+					info += "caused by '" + trigger.toString() + "' ";
+				}
 				info += "between '" + source.toString() + "' and '" + sink.toString() + "'";
 				break;
 			default:
@@ -300,6 +320,7 @@ public interface IFCCheckResultConsumer {
 	
 	public static class SPos implements Comparable<SPos> {
 		public final String sourceFile;
+		public final String simpleSource;
 		public final int startChar;
 		public final int endChar;
 		public final int startLine;
@@ -308,6 +329,13 @@ public interface IFCCheckResultConsumer {
 		public SPos(final String sourceFile, final int startLine, final int endLine, final int startChar,
 				final int endChar) {
 			this.sourceFile = sourceFile;
+			if (sourceFile.contains("/")) {
+				this.simpleSource = sourceFile.substring(sourceFile.lastIndexOf("/") + 1);
+			} else if (sourceFile.contains("\\")) {
+				this.simpleSource = sourceFile.substring(sourceFile.lastIndexOf("\\") + 1);
+			} else {
+				this.simpleSource = sourceFile;
+			}
 			this.startLine = startLine;
 			this.endLine = endLine;
 			this.startChar = startChar;
@@ -367,13 +395,13 @@ public interface IFCCheckResultConsumer {
 		
 		public String toString() {
 			if (hasCharPos() && isMultipleLines()) {
-				return sourceFile + ":(" + startLine + "," + startChar + ")-(" + endLine + "," + endChar +")"; 
+				return simpleSource + ":(" + startLine + "," + startChar + ")-(" + endLine + "," + endChar +")"; 
 			} else if (hasCharPos()) {
-				return sourceFile + ":(" + startLine + "," + startChar + "-" + endChar +")"; 
+				return simpleSource + ":(" + startLine + "," + startChar + "-" + endChar +")"; 
 			} else if (isMultipleLines()) {
-				return sourceFile + ":" + startLine + "-" + endLine; 
+				return simpleSource + ":" + startLine + "-" + endLine; 
 			} else {
-				return sourceFile + ":" + startLine; 
+				return simpleSource + ":" + startLine; 
 			}
 		}
 		

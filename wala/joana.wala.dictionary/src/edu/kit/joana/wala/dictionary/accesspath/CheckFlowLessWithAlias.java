@@ -659,6 +659,7 @@ public final class CheckFlowLessWithAlias {
 		return bc == BytecodeLocation.ROOT_PARAMETER || bc == BytecodeLocation.STATIC_FIELD;
 	}
 
+	
 	public static void inferValidAliasConfigurations(final CheckFlowConfig cfc, final AliasSDG alias, final BasicIFCStmt ifc,
 			final Matcher match, final MethodInfo mInfo, final FlowStmtResult stmtResult,
 			final ExceptionAnalysis excCfg,	final IProgressMonitor progress) throws CancelException {

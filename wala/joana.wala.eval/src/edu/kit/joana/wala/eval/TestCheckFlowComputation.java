@@ -94,13 +94,12 @@ public final class TestCheckFlowComputation {
 		public IMethod im;
 		public MethodResult m;
 		public ExpR[] expected;
-		public static long timePreprareSDG = 0;
-		public static long numPreparedSDGs = 0;
-		public static long timeAdjustSDG = 0;
-		public static long numAdjustSDGs = 0;
-		public static long startPrepareTime, endPrepareTime;
-		public static long startAdjustTime, endAdjustTime;
-
+		public long timePreprareSDG = 0;
+		public long numPreparedSDGs = 0;
+		public long timeAdjustSDG = 0;
+		public long numAdjustSDGs = 0;
+		public long startPrepareTime, endPrepareTime;
+		public long startAdjustTime, endAdjustTime;
 		
 		public Run(String name, String entryMethod, String classpath) {
 			this.name = name;
@@ -112,7 +111,15 @@ public final class TestCheckFlowComputation {
 			return name + "(" + entryMethod + ")(" + classpath + ")";
 		}
 		
+		public void addStats(final Run run) {
+			timePreprareSDG += run.timePreprareSDG;
+			numPreparedSDGs += run.numPreparedSDGs;
+			timeAdjustSDG += run.timeAdjustSDG;
+			numAdjustSDGs += run.numAdjustSDGs;
+		}
 	}
+	
+	private static Run OVERALL; 
 	
 	public TestCheckFlowComputation() {}
 
@@ -210,6 +217,7 @@ public final class TestCheckFlowComputation {
     @BeforeClass
     public static void setUp() {
     	System.out.println("setting up");
+    	OVERALL = new Run("overall", "<only stats>", "<no cp>");
     	prepareConfig();
     	try {
 			createMoJo();
@@ -224,8 +232,18 @@ public final class TestCheckFlowComputation {
 
     @AfterClass
     public static void tearDown() {
-    	System.out.println("tearing down");
+    	System.out.println("tearing down...");
+		System.out.println("\ttotal prepared SDGs     : " + OVERALL.numPreparedSDGs);
+		System.out.println("\ttotal prepared SDGs time: " + OVERALL.timePreprareSDG);
+		System.out.println("\ttotal adjusted SDGs     : " + OVERALL.numAdjustSDGs);
+		System.out.println("\ttotal adjusted SDGs time: " + OVERALL.timeAdjustSDG);
+		final long avgPrepare = (OVERALL.numPreparedSDGs > 0 ? (OVERALL.timePreprareSDG / OVERALL.numPreparedSDGs) : 0);
+		final long avgAdjust = (OVERALL.numAdjustSDGs > 0 ? (OVERALL.timeAdjustSDG / OVERALL.numAdjustSDGs) : 0);
+		System.out.println("\tavg. prepared SDGs time : " + avgPrepare);
+		System.out.println("\tavg. adjusted SDGs time : " + avgAdjust);
+		System.out.println("\tspeed gain by adjust: " + (avgAdjust > 0 ? (avgPrepare / avgAdjust) : 0) + "x faster");
     	setup.reset();
+    	System.out.println("done.");
     }
 	
     private static MethodInfo findMethod(final String name) {
@@ -347,6 +365,8 @@ public final class TestCheckFlowComputation {
 			
 			out.println("\t'" + mnfo + "' ifc check done.");
 	
+			OVERALL.addStats(run);
+			
 			if (setup.printStatistics) {
 				out.println("\ttotal prepared SDGs     : " + run.numPreparedSDGs);
 				out.println("\ttotal prepared SDGs time: " + run.timePreprareSDG);
@@ -907,9 +927,16 @@ public final class TestCheckFlowComputation {
 			}
 		}
 
-		for (final FlowStmtResultPart part : toInfere) {
-			// special case => try inference of valid alias configurations
-			CheckFlowLessWithAlias.inferValidAliasConfigurations(cfc, alias, part.getBasicStmt(), match, mInfo, stmtResult, exc, progress);
+		if (!toInfere.isEmpty()) {
+			cfc.stats = new CheckFlowConfig.Stats();
+			
+			for (final FlowStmtResultPart part : toInfere) {
+				// special case => try inference of valid alias configurations
+				CheckFlowLessWithAlias.inferValidAliasConfigurations(cfc, alias, part.getBasicStmt(), match, mInfo, stmtResult, exc, progress);
+			}
+			
+			run.timeAdjustSDG += cfc.stats.totalTime;
+			run.numAdjustSDGs += cfc.stats.adjustments;
 		}
 	}
 	

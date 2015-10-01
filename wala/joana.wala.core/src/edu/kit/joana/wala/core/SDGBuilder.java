@@ -533,7 +533,9 @@ public class SDGBuilder implements CallGraphFilter {
 		if (cfg.cgConsumer != null) {
 			cfg.cgConsumer.consume(walaCG.cg, walaCG.pts);
 		}
-		run(walaCG, progress);
+		if (!cfg.abortAfterCG) {
+			run(walaCG, progress);
+		}
 	}
 
 	private void run(final com.ibm.wala.ipa.callgraph.CallGraph walaCG, final PointerAnalysis<InstanceKey> pts,
@@ -1670,6 +1672,14 @@ public class SDGBuilder implements CallGraphFilter {
          * does something useful with it
          */
         public CGConsumer cgConsumer = null;
+        /**
+         * Shall the SDG be constructed or shall the construction be aborted after the
+         * call graph has been built?
+         * It is sometimes useful to only construct the call graph, for example if one
+         * is interested in properties of the call graph itself rather than of the PDG
+         * but wants to have it built exactly as the SDGBuilderConfig dictates.
+         */
+        public boolean abortAfterCG = false;
 	}
 
 	public String getMainMethodName() {

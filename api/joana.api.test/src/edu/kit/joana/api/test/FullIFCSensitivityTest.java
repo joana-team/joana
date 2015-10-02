@@ -284,7 +284,7 @@ public class FullIFCSensitivityTest {
 			ana = buildAndAnnotate("sensitivity.DynDispLeak", PointsToPrecision.INSTANCE_BASED, DynamicDispatchHandling.PRECISE, false, MHPType.NONE);
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
-			assertEquals(4, illegal.size());
+			assertEquals(6, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -325,7 +325,7 @@ public class FullIFCSensitivityTest {
 			ana = buildAndAnnotate("sensitivity.DynDispValid", PointsToPrecision.INSTANCE_BASED, DynamicDispatchHandling.SIMPLE, false, MHPType.NONE);
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
-			assertEquals(4, illegal.size());
+			assertEquals(6, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

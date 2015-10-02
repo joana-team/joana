@@ -241,7 +241,9 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 			visited.add(next);
 			TypeName paramName = TypeName.findOrCreate(next.getType());
 			/** annotate root parameters if their type is either primitive (non-void!) or they have no fields (like e.g. types assumed to be immutable) */
-			if ((next.getBytecodeIndex() == BytecodeLocation.ROOT_PARAMETER && (paramName.isPrimitiveType() || (paramName.isClassType() && !hasFields(next))) && !TypeReference.VoidName.equals(paramName)) || isParameterNodeOfKind(next, type)) {
+			if (paramName.isPrimitiveType() && !TypeReference.VoidName.equals(paramName) || !hasFields(next)) {
+				base.add(next);
+			} else if (isParameterNodeOfKind(next, type)) {
 				base.add(next);
 			}
 			for (SDGEdge e : sdg.getOutgoingEdgesOfKind(next, SDGEdge.Kind.PARAMETER_STRUCTURE)) {
@@ -256,8 +258,8 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 
 	private boolean hasFields(SDGNode param) {
 		return !sdg.getOutgoingEdgesOfKind(param, SDGEdge.Kind.PARAMETER_STRUCTURE).isEmpty();
-		//return false;
 	}
+
 	private boolean isParameterNodeOfKind(SDGNode param, AnnotationType type) {
 		return isActualNodeOfKind(param, type) || isFormalNodeOfKind(param, type);
 	}

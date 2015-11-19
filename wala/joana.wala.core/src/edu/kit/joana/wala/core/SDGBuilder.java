@@ -412,6 +412,7 @@ public class SDGBuilder implements CallGraphFilter {
 		/* additional scope so SDGBuilder object can be garbage collected */{
 			SDGBuilder builder = new SDGBuilder(cfg);
 			builder.run(progress);
+			if (cfg.abortAfterCG) return null;
 			sdg = convertToJoana(cfg.out, builder, progress);
 
 			if (cfg.computeSummary) {

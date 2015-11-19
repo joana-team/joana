@@ -26,6 +26,8 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 
+import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
+import edu.kit.joana.ifc.sdg.util.JavaType.Format;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer;
 import edu.kit.joana.ui.wala.easyifc.util.EasyIFCMarkerAndImageManager;
 import edu.kit.joana.ui.wala.easyifc.util.EasyIFCMarkerAndImageManager.Marker;
@@ -356,7 +358,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		}
 		
 		private static String niceName(final IMethod im) {
-			final StringBuilder sb = new StringBuilder(im.getElementName());
+			final StringBuilder sb = new StringBuilder(im.getDeclaringType().getFullyQualifiedName()+"."+im.getElementName());
 			sb.append("(");
 			final String[] types = im.getParameterTypes();
 			if (types != null && types.length > 0) {

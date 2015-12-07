@@ -729,7 +729,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 					continue;
 				}
 
-				if (nextNode == exit) {
+				if (next.isExitBlock()) {
 					addEdge(from, exception, PDGEdge.Kind.CONTROL_FLOW_EXC);
 				} else {
 					addEdge(from, nextNode, PDGEdge.Kind.CONTROL_FLOW_EXC);

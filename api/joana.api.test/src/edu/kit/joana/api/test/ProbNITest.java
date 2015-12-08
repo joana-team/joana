@@ -55,6 +55,8 @@ public class ProbNITest {
 		addTestCase("dataconf-rw-benign", "joana.api.testdata.conc.DataConflictRWBenign");
 		addTestCase("dataconf-rw", "joana.api.testdata.conc.DataConflictRW");
 		addTestCase("orderconf", "joana.api.testdata.conc.OrderConflict");
+		addTestCase("dataconf-rw-nomhp", "joana.api.testdata.conc.DataConflictRWNoMHP");
+		addTestCase("nodataconf-rw-nomhp", "joana.api.testdata.conc.NoDataConflictRWNoMHP");
 	}
 
 	private static final void addTestCase(String testName, String mainClass) {
@@ -80,7 +82,7 @@ public class ProbNITest {
 		}
 	}
 	
-	
+	@Test
 	public void testDataConflictRWBenign() throws IOException {
 		TestData tData = testData.get("dataconf-rw-benign");
 		SDG sdg = SDG.readFrom(tData.sdgFile, new SecurityNodeFactory());
@@ -100,6 +102,7 @@ public class ProbNITest {
 		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), mhp, false, false);
 		Set<IConflictLeak<SecurityNode>> vios = checker.check();
 		Assert.assertFalse(vios.isEmpty());
+			
 	}
 	
 	@Test
@@ -197,6 +200,100 @@ public class ProbNITest {
 				debug.outln(v);
 			}
 		}
+	}
+	
+	@Test
+	public void testDataConflictRWNoMHP() throws IOException {
+		if (DEBUG) debug.outln("=== Mohr LSOD ===");
+		SDG sdg = annotateDataConflictRWNoMHP();
+		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), false);
+		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
+		Assert.assertFalse(vios.isEmpty());
+		if (DEBUG) {
+			for (IConflictLeak<SecurityNode> v : vios) {
+				debug.outln(v);
+			}
+		}
+	}
+	
+	@Test
+	public void testNoDataConflictRWNoMHP() throws IOException {
+		if (DEBUG) debug.outln("=== Mohr LSOD ===");
+		SDG sdg = annotateNoDataConflictRWNoMHP();
+		assertNoTraditionalLeaks(sdg);
+		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), false);
+		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
+		Assert.assertTrue(vios.isEmpty());
+		if (DEBUG) {
+			for (IConflictLeak<SecurityNode> v : vios) {
+				debug.outln(v);
+			}
+		}
+	}
+	
+	
+	private SDG annotateDataConflictRWNoMHP() throws IOException {
+		TestData tData = testData.get("dataconf-rw-nomhp");
+		SDG sdg = SDG.readFrom(tData.sdgFile, new SecurityNodeFactory());
+		SDGAnalyzer ana = new SDGAnalyzer(sdg);
+		Assert.assertTrue(ana.isLocatable("java.io.PrintStream.println(I)V"));
+		Assert.assertTrue(ana.isLocatable("joana.api.testdata.conc.DataConflictRWNoMHP$Thread2.run()V"));
+		Assert.assertTrue(ana.isLocatable("joana.api.testdata.conc.DataConflictRWNoMHP.main([Ljava/lang/String;)V"));
+		
+		Collection<SDGNode> secSources = ana.collectModificationsAndAssignmentsInMethod("joana.api.testdata.conc.DataConflictRWNoMHP.main([Ljava/lang/String;)V", "Ljoana/api/testdata/conc/DataConflictRWNoMHP.x");
+		Assert.assertFalse(secSources.isEmpty());
+		for (SDGNode sSrc : secSources) {
+			SecurityNode ssSrc = (SecurityNode) sSrc;
+			ssSrc.setProvided(BuiltinLattices.STD_SECLEVEL_HIGH);
+			if (DEBUG) debug.outln("Annotated node " + ssSrc + " as high source.");
+		}
+		
+		Collection<SDGNode> pubSinks = ana.collectCalls("java.io.PrintStream.println(I)V");
+		Assert.assertNotNull(pubSinks);
+		Assert.assertFalse(pubSinks.isEmpty());
+		for (SDGNode pSink : pubSinks) {
+			SecurityNode spSink = (SecurityNode) pSink;
+			spSink.setRequired(BuiltinLattices.STD_SECLEVEL_LOW);
+			if (DEBUG) debug.outln("Annotated node " + spSink + " as low sink.");
+			for (SDGEdge out : sdg.getOutgoingEdgesOfKind(spSink, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
+				SecurityNode npSink = (SecurityNode) out.getTarget();
+				npSink.setRequired(BuiltinLattices.STD_SECLEVEL_LOW);
+			}
+		}
+		
+		return sdg;
+	}
+	
+	private SDG annotateNoDataConflictRWNoMHP() throws IOException {
+		TestData tData = testData.get("nodataconf-rw-nomhp");
+		SDG sdg = SDG.readFrom(tData.sdgFile, new SecurityNodeFactory());
+		SDGAnalyzer ana = new SDGAnalyzer(sdg);
+		Assert.assertTrue(ana.isLocatable("java.io.PrintStream.println(I)V"));
+		Assert.assertTrue(ana.isLocatable("joana.api.testdata.conc.NoDataConflictRWNoMHP$Thread2.run()V"));
+		Assert.assertTrue(ana.isLocatable("joana.api.testdata.conc.NoDataConflictRWNoMHP.main([Ljava/lang/String;)V"));
+		
+		Collection<SDGNode> secSources = ana.collectModificationsAndAssignmentsInMethod("joana.api.testdata.conc.NoDataConflictRWNoMHP.main([Ljava/lang/String;)V", "Ljoana/api/testdata/conc/NoDataConflictRWNoMHP.x");
+		Assert.assertFalse(secSources.isEmpty());
+		for (SDGNode sSrc : secSources) {
+			SecurityNode ssSrc = (SecurityNode) sSrc;
+			ssSrc.setProvided(BuiltinLattices.STD_SECLEVEL_HIGH);
+			if (DEBUG) debug.outln("Annotated node " + ssSrc + " as high source.");
+		}
+		
+		Collection<SDGNode> pubSinks = ana.collectCalls("java.io.PrintStream.println(I)V");
+		Assert.assertNotNull(pubSinks);
+		Assert.assertFalse(pubSinks.isEmpty());
+		for (SDGNode pSink : pubSinks) {
+			SecurityNode spSink = (SecurityNode) pSink;
+			spSink.setRequired(BuiltinLattices.STD_SECLEVEL_LOW);
+			if (DEBUG) debug.outln("Annotated node " + spSink + " as low sink.");
+			for (SDGEdge out : sdg.getOutgoingEdgesOfKind(spSink, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
+				SecurityNode npSink = (SecurityNode) out.getTarget();
+				npSink.setRequired(BuiltinLattices.STD_SECLEVEL_LOW);
+			}
+		}
+		
+		return sdg;
 	}
 	
 	private SDG annotateDataConflictRW() throws IOException {

@@ -122,6 +122,19 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
 		public void setDynamic(boolean dynamic) {
 			this.dynamic = dynamic;
 		}
+
+		@Override
+		public int hashCode() {
+			return 31 + getId() * 17;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (!(obj instanceof ThreadInstance)) return false;
+			ThreadInstance ti = (ThreadInstance) obj;
+			return getId() == ti.getId();
+		}
     }
 
     // Class Invariant: ThreadInstance ID's are consistent with the order in the threads list

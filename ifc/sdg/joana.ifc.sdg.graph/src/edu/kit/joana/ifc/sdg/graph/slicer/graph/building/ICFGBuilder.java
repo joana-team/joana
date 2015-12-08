@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import edu.kit.joana.ifc.sdg.graph.JoanaGraph;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -35,7 +36,7 @@ public class ICFGBuilder {
      * @param ipdg  The TIPDG whose ICFG is needed.
      * @return      A new graph, the ICFG.
      */
-    public static CFG extractICFG(SDG sdg){
+    public static CFG extractICFG(JoanaGraph sdg){
 //    	debuggingControlFlowInspector(sdg);
 
         // create new graph and copy all ICFG-related edges and associated

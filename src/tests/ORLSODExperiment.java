@@ -110,7 +110,11 @@ public class ORLSODExperiment {
 	}
 	@Test
 	public void testORLSOD_imprecise() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		// NOTE: The program is actually secure but ORLSOD by design fails to detect this.
+		/**
+		 * NOTE: The program is actually secure but ORLSOD by design fails to detect this.
+		 * RLSOD and LSOD deem this program secure (no "normal" flows and o low-observable conflict).
+		 * TODO: add test code which proves this silly claim!
+		 */
 		doConfig(new StandardTestConfig("example/bin", "Lorlsod/ORLSODImprecise", "orlsod_imprecise", 1, 1, 1));
 	}
 

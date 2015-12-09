@@ -16,8 +16,8 @@ public class PathBasedORLSODChecker<L> extends OptORLSODChecker<L> {
 
 	private DirectedGraph<SDGNode, DefaultEdge> depGraph;
 
-	public PathBasedORLSODChecker(SDG sdg, IStaticLattice<L> secLattice, Map<SDGNode, L> srcAnn, Map<SDGNode, L> snkAnn, ProbInfComputer probInf) {
-		super(sdg, secLattice, srcAnn, snkAnn, probInf);
+	public PathBasedORLSODChecker(SDG sdg, IStaticLattice<L> secLattice, Map<SDGNode, L> srcAnn, ProbInfComputer probInf) {
+		super(sdg, secLattice, srcAnn, probInf);
 	}
 
 	@Override
@@ -31,14 +31,15 @@ public class PathBasedORLSODChecker<L> extends OptORLSODChecker<L> {
 			}
 		}
 		int noVios = 0;
-		for (Map.Entry<SDGNode, L> srcEntry : srcAnn.entrySet()) {
-			for (Map.Entry<SDGNode, L> snkEntry : snkAnn.entrySet()) {
-				List<DefaultEdge> path = DijkstraShortestPath.findPathBetween(depGraph, srcEntry.getKey(), snkEntry.getKey());
+		for (Map.Entry<SDGNode, L> userEntry1 : userAnn.entrySet()) {
+			for (Map.Entry<SDGNode, L> userEntry2 : userAnn.entrySet()) {
+				if (userEntry2.equals(userEntry1)) continue;
+				List<DefaultEdge> path = DijkstraShortestPath.findPathBetween(depGraph, userEntry1.getKey(), userEntry2.getKey());
 				if (path != null) {
 					System.out.println(path);
 					noVios++;
 				} else {
-					System.out.println(String.format("%s cannot influence %s.", srcEntry.getKey(), snkEntry.getKey()));
+					System.out.println(String.format("%s cannot influence %s.", userEntry1.getKey(), userEntry2.getKey()));
 				}
 			}
 		}

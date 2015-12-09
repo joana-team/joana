@@ -23,11 +23,15 @@ import edu.kit.joana.ifc.orlsod.ORLSODChecker;
 import edu.kit.joana.ifc.orlsod.PathBasedORLSODChecker;
 import edu.kit.joana.ifc.orlsod.ProbInfComputer;
 import edu.kit.joana.ifc.orlsod.ThreadModularCDomOracle;
+import edu.kit.joana.ifc.orlsod.VeryConservativeCDomOracle;
+import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNIChecker;
+import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNISlicer;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 import edu.kit.joana.ifc.sdg.mhpoptimization.PruneInterferences;
@@ -72,23 +76,27 @@ public class ORLSODExperiment {
 		PrintWriter pw = new PrintWriter(cfg.outputFiles.pdgFile);
 		SDGSerializer.toPDGFormat(sdg, pw);
 		pw.close();
-		Map<SDGNode, String> srcAnn = new HashMap<SDGNode, String>();
+		Map<SDGNode, String> userAnn = new HashMap<SDGNode, String>();
+		int noHighThings = 0;
 		for (SDGNode src : cfg.srcSelector.select(sdg)) {
-			srcAnn.put(src, BuiltinLattices.STD_SECLEVEL_HIGH);
-			System.out.println(String.format("srcAnn(%s) = %s", src, BuiltinLattices.STD_SECLEVEL_HIGH));
+			userAnn.put(src, BuiltinLattices.STD_SECLEVEL_HIGH);
+			System.out.println(String.format("userAnn(%s) = %s", src, BuiltinLattices.STD_SECLEVEL_HIGH));
+			noHighThings++;
 		}
-		Assert.assertEquals(cfg.expectedNoSources, srcAnn.keySet().size());
-		Map<SDGNode, String> snkAnn = new HashMap<SDGNode, String>();
+		Assert.assertEquals(cfg.expectedNoHighThings, noHighThings);
+		int noLowThings = 0;
 		for (SDGNode snk : cfg.snkSelector.select(sdg)) {
-			snkAnn.put(snk, BuiltinLattices.STD_SECLEVEL_LOW);
-			System.out.println(String.format("snkAnn(%s) = %s", snk, BuiltinLattices.STD_SECLEVEL_LOW));
+			userAnn.put(snk, BuiltinLattices.STD_SECLEVEL_LOW);
+			System.out.println(String.format("userAnn(%s) = %s", snk, BuiltinLattices.STD_SECLEVEL_LOW));
+			noLowThings++;
 		}
-		Assert.assertEquals(cfg.expectedNoSinks, snkAnn.keySet().size());
+		Assert.assertEquals(cfg.expectedNoLowThings, noLowThings);
 		ThreadModularCDomOracle tmdo = new ThreadModularCDomOracle(sdg);
 		ProbInfComputer probInf = new ProbInfComputer(sdg, tmdo);
-		ORLSODChecker<String> checker = new PathBasedORLSODChecker<String>(sdg, BuiltinLattices.getBinaryLattice(), srcAnn, snkAnn, probInf);
+		ORLSODChecker<String> checker = new PathBasedORLSODChecker<String>(sdg, BuiltinLattices.getBinaryLattice(), userAnn, probInf);
 		int noVios = checker.check();
 		Assert.assertEquals(cfg.expectedNoViolations, noVios);
+
 	}
 
 	@Test
@@ -106,8 +114,8 @@ public class ORLSODExperiment {
 		OutputFiles outputFiles;
 		NodeSelector srcSelector;
 		NodeSelector snkSelector;
-		int expectedNoSources;
-		int expectedNoSinks;
+		int expectedNoHighThings;
+		int expectedNoLowThings;
 		int expectedNoViolations;
 	}
 	private static class StandardTestConfig extends TestConfig {
@@ -116,8 +124,8 @@ public class ORLSODExperiment {
 			this.outputFiles = new OutputFiles(String.format("%s.dot", shortName), String.format("%s.pdg", shortName));
 			this.srcSelector = new CriterionBasedNodeSelector(FieldAccess.staticRead(mainClass+".HIGH"));
 			this.snkSelector = new CriterionBasedNodeSelector(FieldAccess.staticWrite(mainClass+".LOW"));
-			this.expectedNoSources = expectedNoSources;
-			this.expectedNoSinks = expectedNoSinks;
+			this.expectedNoHighThings = expectedNoSources;
+			this.expectedNoLowThings = expectedNoSinks;
 			this.expectedNoViolations = expectedNoViolations;
 		}
 	}

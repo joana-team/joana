@@ -23,8 +23,8 @@ public class OptORLSODChecker<L> extends ORLSODChecker<L> {
 	/** maps each node to the nodes from which the security level of the node can be computed */
 	private Map<SDGNode, Set<SDGNode>> backwDep;
 
-	public OptORLSODChecker(SDG sdg, IStaticLattice<L> secLattice, Map<SDGNode, L> srcAnn, Map<SDGNode, L> snkAnn, ProbInfComputer probInf) {
-		super(sdg, secLattice, srcAnn, snkAnn, probInf);
+	public OptORLSODChecker(SDG sdg, IStaticLattice<L> secLattice, Map<SDGNode, L> userAnn, ProbInfComputer probInf) {
+		super(sdg, secLattice, userAnn, probInf);
 		this.backw = new I2PBackward(sdg);
 	}
 
@@ -34,14 +34,14 @@ public class OptORLSODChecker<L> extends ORLSODChecker<L> {
 		backwDep = computeBackwardDep();
 		forwDep = MapUtils.invert(backwDep);
 		LinkedList<SDGNode> worklist = new LinkedList<SDGNode>();
-		for (SDGNode src : srcAnn.keySet()) {
-			worklist.add(src);
+		for (SDGNode n : userAnn.keySet()) {
+			worklist.add(n);
 		}
 		while (!worklist.isEmpty()) {
 			SDGNode next = worklist.poll();
 			// update security level of next
 			L oldLevel = cl.get(next);
-			L newLevel = srcAnn.containsKey(next)?srcAnn.get(next):oldLevel;
+			L newLevel = userAnn.containsKey(next)?userAnn.get(next):oldLevel;
 			for (SDGNode m : backwDep.get(next)) {
 				newLevel = secLattice.leastUpperBound(newLevel, cl.get(m));
 			}

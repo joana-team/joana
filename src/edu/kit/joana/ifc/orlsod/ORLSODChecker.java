@@ -18,11 +18,8 @@ public class ORLSODChecker<L> {
 	/** the SDG we want to check */
 	protected SDG sdg;
 
-	/** user-provided source annotations */
-	protected Map<SDGNode, L> srcAnn;
-
-	/** user-provided sink annotations */
-	protected Map<SDGNode, L> snkAnn;
+	/** user-provided annotations */
+	protected Map<SDGNode, L> userAnn;
 
 	/** maps each node to its so-called <i>probabilistic influencers</i> */
 	protected ProbInfComputer probInf;
@@ -30,19 +27,18 @@ public class ORLSODChecker<L> {
 	/** classification which is computed in a fixed-point iteration */
 	protected Map<SDGNode, L> cl;
 
-	public ORLSODChecker(SDG sdg, IStaticLattice<L> secLattice, Map<SDGNode, L> srcAnn, Map<SDGNode, L> snkAnn, ProbInfComputer probInf) {
+	public ORLSODChecker(SDG sdg, IStaticLattice<L> secLattice, Map<SDGNode, L> userAnn, ProbInfComputer probInf) {
 		this.sdg = sdg;
 		this.secLattice = secLattice;
-		this.srcAnn = srcAnn;
-		this.snkAnn = snkAnn;
+		this.userAnn = userAnn;
 		this.probInf = probInf;
 	}
 
-	protected Map<SDGNode, L> initCL(boolean incorporateSourceAnns) {
+	protected Map<SDGNode, L> initCL(boolean incorporateUserAnns) {
 		Map<SDGNode, L> ret = new HashMap<SDGNode, L>();
 		for (SDGNode n : sdg.vertexSet()) {
-			if (incorporateSourceAnns && srcAnn.containsKey(n)) {
-				ret.put(n, srcAnn.get(n));
+			if (incorporateUserAnns && userAnn.containsKey(n)) {
+				ret.put(n, userAnn.get(n));
 			} else {
 				ret.put(n, secLattice.getBottom());
 			}
@@ -53,7 +49,7 @@ public class ORLSODChecker<L> {
 	public int check() {
 		I2PBackward backw = new I2PBackward(sdg);
 		// 1.) initialize classification: we go from the bottom up, so every node is classified as low initially
-		// except for the sources: They are classified with the user-annotated source level
+		// except for the user annotated nodes: They are classified with the level given by the user
 		cl = initCL(true);
 		// 2.) fixed-point iteration
 		int numIters = 0;
@@ -97,11 +93,11 @@ public class ORLSODChecker<L> {
 	protected final int checkCompliance() {
 		boolean compliant = true;
 		int noViolations = 0;
-		for (Map.Entry<SDGNode, L> snkEntry : snkAnn.entrySet()) {
-			SDGNode s = snkEntry.getKey();
-			L snkLevel = snkEntry.getValue();
-			if (!LatticeUtil.isLeq(secLattice, cl.get(s), snkLevel)) {
-				System.out.println("Violation at node " + s + ": user-annotated level is " + snkLevel + ", computed level is " + cl.get(s));
+		for (Map.Entry<SDGNode, L> userAnnEntry : userAnn.entrySet()) {
+			SDGNode s = userAnnEntry.getKey();
+			L userLvl = userAnnEntry.getValue();
+			if (!LatticeUtil.isLeq(secLattice, cl.get(s), userLvl)) {
+				System.out.println("Violation at node " + s + ": user-annotated level is " + userLvl + ", computed level is " + cl.get(s));
 				noViolations++;
 				compliant = false;
 			}

@@ -108,6 +108,11 @@ public class ORLSODExperiment {
 	public void testPost_Fig2_3() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
 		doConfig(new StandardTestConfig("example/bin", "Lpost16/Fig2_3", "post_fig2_3", 1, 2, 2));
 	}
+	@Test
+	public void testORLSOD_imprecise() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+		// NOTE: The program is actually secure but ORLSOD by design fails to detect this.
+		doConfig(new StandardTestConfig("example/bin", "Lorlsod/ORLSODImprecise", "orlsod_imprecise", 1, 1, 1));
+	}
 
 	private static class TestConfig {
 		ProgDesc progDesc;

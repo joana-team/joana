@@ -40,30 +40,30 @@ public class ORLSODExperimentTiming {
 
 	@Test
 	public void doORLSOD1() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfigTiming(new StandardTestConfig("example/bin", "Lorlsod/ORLSOD1", "orlsod1", 1, 2, 2));
+		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lorlsod/ORLSOD1", "orlsod1", 1, 2, 2));
 	}
 
 	@Test
 	public void doORLSOD2() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfigTiming(new StandardTestConfig("example/bin", "Lorlsod/ORLSOD2", "orlsod2", 1, 2, 0));
+		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lorlsod/ORLSOD2", "orlsod2", 1, 2, 0));
 	}
 
 	@Test
 	public void doORLSOD3() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfigTiming(new StandardTestConfig("example/bin", "Lorlsod/ORLSOD3", "orlsod3", 1, 2, 0));
+		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lorlsod/ORLSOD3", "orlsod3", 1, 2, 0));
 	}
 	@Test
 	public void doNoSecret() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfigTiming(new StandardTestConfig("example/bin", "Lorlsod/NoSecret", "noSecret", 0, 2, 0));
+		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lorlsod/NoSecret", "noSecret", 0, 2, 0));
 	}
 
 	@Test
 	public void doLateSecretAccess() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfigTiming(new StandardTestConfig("example/bin", "Lorlsod/LateSecretAccess", "lateSecAccess", 1, 2, 0));
+		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lorlsod/LateSecretAccess", "lateSecAccess", 1, 2, 0));
 	}
 
 	
-	private static void doConfigTiming(TestConfig cfg) throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+	private static void doConfigTiming(ORLSODExperiment.TestConfig cfg) throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
 		SDG sdg = JoanaRunner.buildSDG(cfg.progDesc.classPath, cfg.progDesc.mainClass);
 		CSDGPreprocessor.preprocessSDG(sdg);
 		CFG redCFG = ReducedCFGBuilder.extractReducedCFG(sdg);
@@ -95,18 +95,18 @@ public class ORLSODExperimentTiming {
 
 	@Test
 	public void testORLSOD5a() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfigTiming(new StandardTestConfig("example/bin", "Lorlsod/ORLSOD5a", "orlsod5a", 1, 2, 6));
+		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lorlsod/ORLSOD5a", "orlsod5a", 1, 2, 6));
 	}
 
 	@Test
 	public void testORLSODSecure() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfigTiming(new StandardTestConfig("example/bin", "Lorlsod/ORLSOD5Secure", "orlsod5secure", 1, 2, 0));
+		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lorlsod/ORLSOD5Secure", "orlsod5secure", 1, 2, 0));
 	}
 
 	
 	@Test
 	public void testPost_Fig2_3() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfigTiming(new StandardTestConfig("example/bin", "Lpost16/Fig2_3", "post_fig2_3", 1, 2, 2));
+		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lpost16/Fig2_3", "post_fig2_3", 1, 2, 2));
 	}
 
 }

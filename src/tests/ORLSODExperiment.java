@@ -118,7 +118,7 @@ public class ORLSODExperiment {
 		doConfig(new StandardTestConfig("example/bin", "Lorlsod/ORLSODImprecise", "orlsod_imprecise", 1, 1, 1));
 	}
 
-	private static class TestConfig {
+	static class TestConfig {
 		ProgDesc progDesc;
 		OutputFiles outputFiles;
 		NodeSelector srcSelector;
@@ -127,7 +127,7 @@ public class ORLSODExperiment {
 		int expectedNoLowThings;
 		int expectedNoViolations;
 	}
-	private static class StandardTestConfig extends TestConfig {
+	static class StandardTestConfig extends TestConfig {
 		StandardTestConfig(String classPath, String mainClass, String shortName, int expectedNoSources, int expectedNoSinks, int expectedNoViolations) {
 			this.progDesc = new ProgDesc(classPath, mainClass);
 			this.outputFiles = new OutputFiles(String.format("%s.dot", shortName), String.format("%s.pdg", shortName));
@@ -139,7 +139,7 @@ public class ORLSODExperiment {
 		}
 	}
 
-	private static class ProgDesc {
+	static class ProgDesc {
 		String classPath;
 		String mainClass;
 		ProgDesc(String classPath, String mainClass) {
@@ -147,7 +147,7 @@ public class ORLSODExperiment {
 			this.mainClass = mainClass;
 		}
 	}
-	private static class OutputFiles {
+	static class OutputFiles {
 		String dotFile;
 		String pdgFile;
 		OutputFiles(String dotFile, String pdgFile) {
@@ -155,7 +155,7 @@ public class ORLSODExperiment {
 			this.pdgFile = pdgFile;
 		}
 	}
-	private static interface NodeSelector {
+	static interface NodeSelector {
 		Collection<? extends SDGNode> select(SDG sdg);
 	}
 	@FunctionalInterface

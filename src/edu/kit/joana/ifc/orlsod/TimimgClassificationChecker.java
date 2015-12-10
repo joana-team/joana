@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -21,6 +22,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
 import edu.kit.joana.util.Pair;
+import edu.kit.joana.util.maps.MapUtils;
 
 public class TimimgClassificationChecker<L> {
 
@@ -30,11 +32,9 @@ public class TimimgClassificationChecker<L> {
 	/** the SDG we want to check */
 	protected final SDG sdg;
 
-	/** user-provided source annotations */
-	protected final Map<SDGNode, L> srcAnn;
+	/** user-provided annotations */
+	protected final Map<SDGNode, L> userAnn;
 
-	/** user-provided sink annotations */
-	protected final Map<SDGNode, L> snkAnn;
 
 	/** maps each node to its so-called <i>probabilistic influencers</i> */
 	protected final ProbInfComputer probInf;
@@ -42,7 +42,7 @@ public class TimimgClassificationChecker<L> {
 	protected final CFG icfg;
 	protected final Map<SDGNode, Collection<SDGNode>> transClosure;
 	
-	protected final Map<SDGNode, Collection<SDGNode>> timingDependence;
+	protected final Map<SDGNode, Set<SDGNode>> timingDependence;
 	protected final Map<Pair<SDGNode,SDGNode>, Collection<? extends SDGNode>> chops;
 	
 	protected final SimpleTCFGChopper tcfgChopper;
@@ -58,11 +58,10 @@ public class TimimgClassificationChecker<L> {
 	
 	protected Map<Pair<SDGNode, SDGNode>, L> clt; 
 
-	public TimimgClassificationChecker(SDG sdg, IStaticLattice<L> secLattice, Map<SDGNode, L> srcAnn, Map<SDGNode, L> snkAnn, ProbInfComputer probInf, PreciseMHPAnalysis mhp, ICDomOracle cdomOracle) {
+	public TimimgClassificationChecker(SDG sdg, IStaticLattice<L> secLattice, Map<SDGNode, L> userAnn, ProbInfComputer probInf, PreciseMHPAnalysis mhp, ICDomOracle cdomOracle) {
 		this.sdg = sdg;
 		this.secLattice = secLattice;
-		this.srcAnn = srcAnn;
-		this.snkAnn = snkAnn;
+		this.userAnn = userAnn;
 		this.probInf = probInf;
 		this.mhp = mhp;
 		this.cdomOracle = cdomOracle;
@@ -75,8 +74,8 @@ public class TimimgClassificationChecker<L> {
 		this.tcfgChopper = new SimpleTCFGChopper(icfg);
 		this.tcfgForwardSlicer = new CFGForward(icfg);
 		this.chops = new HashMap<>();
-		this.timingDependence = new HashMap<>();
 		
+		final Map<SDGNode, Set<SDGNode>> timingDependence = new HashMap<>();
 		for (SDGNode n : icfg.vertexSet()) {
 			final List<SDGEdge> edges =
 				icfg.outgoingEdgesOf(n)
@@ -86,15 +85,14 @@ public class TimimgClassificationChecker<L> {
 			
 			final int nr = edges.size();
 			
-			if (!(nr==0 || nr == 1 || nr == 2 || n.kind.equals(SDGNode.Kind.ENTRY))) {
-				int x= nr*2;
-			}
-			
 			// ENTRY Nodes may have three successors:
 			//       i)   A formal-in node, which eventually leads to the procedured "real" control flow
 			//       ii)  The EXIT node, as required for control-deps 
 			//       iii) A formal-out node, also leading to to EXIT Node
 			// TODO: possibly fix this in the graph construction
+			
+			// The following still doesn't hold
+			// TODO: characterize exceptions to this assertion.
 			//assert (nr==0 || nr == 1 || nr == 2 || n.kind.equals(SDGNode.Kind.ENTRY));
 			
 			if (nr == 2) {
@@ -104,24 +102,25 @@ public class TimimgClassificationChecker<L> {
 				transClosure.computeIfAbsent(n2, tcfgForwardSlicer::slice);
 				transClosure.computeIfAbsent(n3, tcfgForwardSlicer::slice);
 				
-				final List<SDGNode> dependentNodes =
+				final Set<SDGNode> dependentNodes =
 					transClosure.get(n2)
 					            .stream()
 					            .filter(transClosure.get(n3)::contains)
-					            .collect(Collectors.toList());
+					            .collect(Collectors.toSet());
 				timingDependence.put(n, dependentNodes);
 			} else {
 				timingDependence.put(n, Collections.emptySet());
 			}
 		}
+		this.timingDependence = MapUtils.invert(timingDependence);
 		
 	}
 
 	protected Map<SDGNode, L> initCL(boolean incorporateSourceAnns) {
 		Map<SDGNode, L> ret = new HashMap<SDGNode, L>();
 		for (SDGNode n : sdg.vertexSet()) {
-			if (incorporateSourceAnns && srcAnn.containsKey(n)) {
-				ret.put(n, srcAnn.get(n));
+			if (incorporateSourceAnns && userAnn.containsKey(n)) {
+				ret.put(n, userAnn.get(n));
 			} else {
 				ret.put(n, secLattice.getBottom());
 			}
@@ -226,9 +225,14 @@ public class TimimgClassificationChecker<L> {
 								pair -> tcfgChopper.chop(pair.getFirst(), pair.getSecond())
 						);
 						List<? extends SDGNode> relevant = Stream.concat(
-							chops.get(Pair.pair(c,n)).stream(),
-							timingDependence.get(n).stream()
+							chops.get(Pair.pair(c,n))
+							     .stream()
+							     .filter(timingDependence.get(n)::contains),
+							chops.get(Pair.pair(c,m))
+								     .stream()
+								     .filter(timingDependence.get(m)::contains)
 						).collect(Collectors.toList());
+						
 						for (SDGNode c2 : relevant) {
 							newLevel = secLattice.leastUpperBound(newLevel, cl.get(c2));
 							if (secLattice.getTop().equals(newLevel)) {
@@ -256,7 +260,7 @@ public class TimimgClassificationChecker<L> {
 	protected final int checkCompliance() {
 		boolean compliant = true;
 		int noViolations = 0;
-		for (Map.Entry<SDGNode, L> snkEntry : snkAnn.entrySet()) {
+		for (Map.Entry<SDGNode, L> snkEntry : userAnn.entrySet()) {
 			SDGNode s = snkEntry.getKey();
 			L snkLevel = snkEntry.getValue();
 			if (!LatticeUtil.isLeq(secLattice, cl.get(s), snkLevel)) {
@@ -268,12 +272,12 @@ public class TimimgClassificationChecker<L> {
 		for (Pair<SDGNode,SDGNode> nm : clt.keySet()) {
 			final SDGNode n = nm.getFirst();
 			final SDGNode m = nm.getSecond();
-			if(snkAnn.containsKey(n) && snkAnn.containsKey(m) && (
-			      !LatticeUtil.isLeq(secLattice, clt.get(nm), snkAnn.get(n))
-			   || !LatticeUtil.isLeq(secLattice, clt.get(nm), snkAnn.get(m)))
+			if(userAnn.containsKey(n) && userAnn.containsKey(m) && (
+			      !LatticeUtil.isLeq(secLattice, clt.get(nm), userAnn.get(n))
+			   || !LatticeUtil.isLeq(secLattice, clt.get(nm), userAnn.get(m)))
 			){
 				System.out.println("Violation at nodes " + nm + ": user-annotated levels are (" +
-			                       snkAnn.get(n) + ", "+ snkAnn.get(m) + "), " +
+			                       userAnn.get(n) + ", "+ userAnn.get(m) + "), " +
 				                   "but their relative timing is classified " + clt.get(nm));
 				noViolations++;
 				compliant = false;

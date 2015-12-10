@@ -40,7 +40,7 @@ public class ORLSODExperimentTiming {
 
 	@Test
 	public void doORLSOD1() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lorlsod/ORLSOD1", "orlsod1", 1, 2, 2));
+		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lorlsod/ORLSOD1", "orlsod1", 1, 2, 4));
 	}
 
 	@Test
@@ -62,7 +62,6 @@ public class ORLSODExperimentTiming {
 		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lorlsod/LateSecretAccess", "lateSecAccess", 1, 2, 0));
 	}
 
-	
 	private static void doConfigTiming(ORLSODExperiment.TestConfig cfg) throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
 		SDG sdg = JoanaRunner.buildSDG(cfg.progDesc.classPath, cfg.progDesc.mainClass);
 		CSDGPreprocessor.preprocessSDG(sdg);
@@ -74,21 +73,24 @@ public class ORLSODExperimentTiming {
 		PrintWriter pw = new PrintWriter(cfg.outputFiles.pdgFile);
 		SDGSerializer.toPDGFormat(sdg, pw);
 		pw.close();
-		Map<SDGNode, String> srcAnn = new HashMap<SDGNode, String>();
+		Map<SDGNode, String> userAnn = new HashMap<SDGNode, String>();
+		int noHighThings = 0;
 		for (SDGNode src : cfg.srcSelector.select(sdg)) {
-			srcAnn.put(src, BuiltinLattices.STD_SECLEVEL_HIGH);
-			System.out.println(String.format("srcAnn(%s) = %s", src, BuiltinLattices.STD_SECLEVEL_HIGH));
+			userAnn.put(src, BuiltinLattices.STD_SECLEVEL_HIGH);
+			System.out.println(String.format("userAnn(%s) = %s", src, BuiltinLattices.STD_SECLEVEL_HIGH));
+			noHighThings++;
 		}
-		Assert.assertEquals(cfg.expectedNoSources, srcAnn.keySet().size());
-		Map<SDGNode, String> snkAnn = new HashMap<SDGNode, String>();
+		Assert.assertEquals(cfg.expectedNoHighThings, noHighThings);
+		int noLowThings = 0;
 		for (SDGNode snk : cfg.snkSelector.select(sdg)) {
-			snkAnn.put(snk, BuiltinLattices.STD_SECLEVEL_LOW);
-			System.out.println(String.format("snkAnn(%s) = %s", snk, BuiltinLattices.STD_SECLEVEL_LOW));
+			userAnn.put(snk, BuiltinLattices.STD_SECLEVEL_LOW);
+			System.out.println(String.format("userAnn(%s) = %s", snk, BuiltinLattices.STD_SECLEVEL_LOW));
+			noLowThings++;
 		}
-		Assert.assertEquals(cfg.expectedNoSinks, snkAnn.keySet().size());
+		Assert.assertEquals(cfg.expectedNoLowThings, noLowThings);
 		ThreadModularCDomOracle tmdo = new ThreadModularCDomOracle(sdg);
 		ProbInfComputer probInf = new ProbInfComputer(sdg, tmdo);
-		TimimgClassificationChecker<String> checker = new TimimgClassificationChecker<>(sdg, BuiltinLattices.getBinaryLattice(), srcAnn, snkAnn, probInf, mhp, tmdo);
+		TimimgClassificationChecker<String> checker = new TimimgClassificationChecker<>(sdg, BuiltinLattices.getBinaryLattice(), userAnn, probInf, mhp, tmdo);
 		int noVios = checker.check();
 		Assert.assertEquals(cfg.expectedNoViolations, noVios);
 	}
@@ -106,7 +108,7 @@ public class ORLSODExperimentTiming {
 	
 	@Test
 	public void testPost_Fig2_3() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lpost16/Fig2_3", "post_fig2_3", 1, 2, 2));
+		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lpost16/Fig2_3", "post_fig2_3", 1, 2, 4));
 	}
 
 }

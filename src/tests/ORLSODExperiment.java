@@ -106,7 +106,7 @@ public class ORLSODExperiment {
 
 	@Test
 	public void testPost_Fig2_3() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfig(new StandardTestConfig("example/bin", "Lpost16/Fig2_3", "post_fig2_3", 1, 2, 2));
+		doConfig(new StandardTestConfig("example/bin", "Lpost16/Fig2_3", "post_fig2_3", 1, 2, 1));
 	}
 	@Test
 	public void testORLSOD_imprecise() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {

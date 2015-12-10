@@ -9,7 +9,7 @@ public class Fig2_3 {
 
 	public static void main(String[] argv) throws InterruptedException {
 		Thread_1 t1 = new Thread_1(); t1.start();
-		t1.join();
+//		t1.join();
 		new Thread_2().start();
 //		h = inputPIN();
 //		while (h != 0)

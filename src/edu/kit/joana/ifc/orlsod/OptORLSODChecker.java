@@ -24,7 +24,7 @@ public class OptORLSODChecker<L> extends ORLSODChecker<L> {
 	private Map<SDGNode, Set<SDGNode>> backwDep;
 
 	public OptORLSODChecker(SDG sdg, IStaticLattice<L> secLattice, Map<SDGNode, L> userAnn, ProbInfComputer probInf) {
-		super(sdg, secLattice, userAnn, probInf);
+		super(sdg, secLattice, userAnn, probInf, null);
 		this.backw = new I2PBackward(sdg);
 	}
 

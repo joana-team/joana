@@ -21,6 +21,7 @@ import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.ifc.orlsod.ClassicCDomOracle;
 import edu.kit.joana.ifc.orlsod.ORLSODChecker;
 import edu.kit.joana.ifc.orlsod.PathBasedORLSODChecker;
+import edu.kit.joana.ifc.orlsod.PredecessorMethod;
 import edu.kit.joana.ifc.orlsod.ProbInfComputer;
 import edu.kit.joana.ifc.orlsod.ThreadModularCDomOracle;
 import edu.kit.joana.ifc.orlsod.VeryConservativeCDomOracle;
@@ -93,9 +94,17 @@ public class ORLSODExperiment {
 		Assert.assertEquals(cfg.expectedNoLowThings, noLowThings);
 		ThreadModularCDomOracle tmdo = new ThreadModularCDomOracle(sdg);
 		ProbInfComputer probInf = new ProbInfComputer(sdg, tmdo);
-		ORLSODChecker<String> checker = new PathBasedORLSODChecker<String>(sdg, BuiltinLattices.getBinaryLattice(), userAnn, probInf);
-		int noVios = checker.check();
-		Assert.assertEquals(cfg.expectedNoViolations, noVios);
+		ORLSODChecker<String> checkerPath = new PathBasedORLSODChecker<String>(sdg, BuiltinLattices.getBinaryLattice(), userAnn, probInf);
+		final int noViosPath = checkerPath.check();
+		Assert.assertEquals(cfg.expectedNoViolations, noViosPath);
+
+		// The optimization finds exactly the same number of violations.
+		// Also, because the classification Map cl is context-insensitive anayway, it is indeed sufficient to propagate along
+		// sdg edges, instead of propagating all levels in the i2p-slice of a node.
+		ORLSODChecker<String> checkerSlice = new ORLSODChecker<String>(sdg, BuiltinLattices.getBinaryLattice(), userAnn, probInf, PredecessorMethod.SLICE);
+		Assert.assertEquals(noViosPath, checkerSlice.check());
+		ORLSODChecker<String> checkerEdge = new ORLSODChecker<String>(sdg, BuiltinLattices.getBinaryLattice(), userAnn, probInf, PredecessorMethod.EDGE);
+		Assert.assertEquals(noViosPath, checkerEdge.check());
 
 	}
 

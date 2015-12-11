@@ -21,6 +21,7 @@ import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.ifc.orlsod.ClassicCDomOracle;
 import edu.kit.joana.ifc.orlsod.ORLSODChecker;
 import edu.kit.joana.ifc.orlsod.PathBasedORLSODChecker;
+import edu.kit.joana.ifc.orlsod.PredecessorMethod;
 import edu.kit.joana.ifc.orlsod.ProbInfComputer;
 import edu.kit.joana.ifc.orlsod.ThreadModularCDomOracle;
 import edu.kit.joana.ifc.orlsod.TimimgClassificationChecker;
@@ -90,9 +91,15 @@ public class ORLSODExperimentTiming {
 		Assert.assertEquals(cfg.expectedNoLowThings, noLowThings);
 		ThreadModularCDomOracle tmdo = new ThreadModularCDomOracle(sdg);
 		ProbInfComputer probInf = new ProbInfComputer(sdg, tmdo);
-		TimimgClassificationChecker<String> checker = new TimimgClassificationChecker<>(sdg, BuiltinLattices.getBinaryLattice(), userAnn, probInf, mhp, tmdo);
-		int noVios = checker.check();
+		TimimgClassificationChecker<String> checkerSlice = new TimimgClassificationChecker<>(sdg, BuiltinLattices.getBinaryLattice(), userAnn, probInf, mhp, tmdo, PredecessorMethod.SLICE);
+		int noVios = checkerSlice.check();
 		Assert.assertEquals(cfg.expectedNoViolations, noVios);
+		
+		TimimgClassificationChecker<String> checkerEdge = new TimimgClassificationChecker<>(sdg, BuiltinLattices.getBinaryLattice(), userAnn, probInf, mhp, tmdo, PredecessorMethod.EDGE);
+		checkerEdge.check();
+		Assert.assertEquals(checkerSlice.getCL(), checkerEdge.getCL());
+		Assert.assertEquals(checkerSlice.getCLT(), checkerEdge.getCLT());
+		
 	}
 
 	@Test

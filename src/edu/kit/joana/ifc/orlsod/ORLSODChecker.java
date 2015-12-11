@@ -3,8 +3,10 @@ package edu.kit.joana.ifc.orlsod;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PBackward;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
@@ -27,11 +29,15 @@ public class ORLSODChecker<L> {
 	/** classification which is computed in a fixed-point iteration */
 	protected Map<SDGNode, L> cl;
 
-	public ORLSODChecker(SDG sdg, IStaticLattice<L> secLattice, Map<SDGNode, L> userAnn, ProbInfComputer probInf) {
+	/** When propagation security levels along the SDG (step "2.a"), use the whole slice, or just the sdg predecessors **/
+	protected final PredecessorMethod predecessorMethod;
+	
+	public ORLSODChecker(SDG sdg, IStaticLattice<L> secLattice, Map<SDGNode, L> userAnn, ProbInfComputer probInf, PredecessorMethod predecessorMethod) {
 		this.sdg = sdg;
 		this.secLattice = secLattice;
 		this.userAnn = userAnn;
 		this.probInf = probInf;
+		this.predecessorMethod = predecessorMethod;
 	}
 
 	protected Map<SDGNode, L> initCL(boolean incorporateUserAnns) {
@@ -61,9 +67,25 @@ public class ORLSODChecker<L> {
 				// nothing changes if current level is top already
 				if (secLattice.getTop().equals(oldLevel)) continue;
 				L newLevel = oldLevel;
-				// 2a.) propagate from backward slice
-				System.out.println(String.format("BS(%s) = %s", n, backw.slice(n)));
-				for (SDGNode m : backw.slice(n)) {
+
+				// 2a.) propagate from sdg predecessors
+				final Collection<SDGNode> predecessors;
+				switch (predecessorMethod) {
+					case EDGE:
+						predecessors = sdg.incomingEdgesOf(n)
+						                   .stream()
+						                   .filter((e) -> e.getKind().isSDGEdge())
+						                   .map(SDGEdge::getSource)
+						                   .collect(Collectors.toSet());
+						System.out.println(String.format("BS(%s) = %s", n, predecessors));
+						break;
+					case SLICE:
+						predecessors = backw.slice(n);
+						System.out.println(String.format("PRED(%s) = %s", n, predecessors));
+						break;
+					default : throw new IllegalArgumentException(predecessorMethod.toString());
+				}
+				for (SDGNode m : predecessors) {
 					newLevel = secLattice.leastUpperBound(newLevel, cl.get(m));
 					if (secLattice.getTop().equals(newLevel)) {
 						break; // we can abort the loop here - level cannot get any higher

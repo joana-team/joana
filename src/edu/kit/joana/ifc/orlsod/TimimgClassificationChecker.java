@@ -57,14 +57,20 @@ public class TimimgClassificationChecker<L> {
 	protected Map<SDGNode, L> cl;
 	
 	protected Map<Pair<SDGNode, SDGNode>, L> clt; 
+	
+	protected boolean checked = false;
 
-	public TimimgClassificationChecker(SDG sdg, IStaticLattice<L> secLattice, Map<SDGNode, L> userAnn, ProbInfComputer probInf, PreciseMHPAnalysis mhp, ICDomOracle cdomOracle) {
+	protected final PredecessorMethod predecessorMethod;
+	
+	public TimimgClassificationChecker(SDG sdg, IStaticLattice<L> secLattice, Map<SDGNode, L> userAnn, ProbInfComputer probInf, PreciseMHPAnalysis mhp, ICDomOracle cdomOracle, PredecessorMethod predecessorMethod) {
 		this.sdg = sdg;
 		this.secLattice = secLattice;
 		this.userAnn = userAnn;
 		this.probInf = probInf;
 		this.mhp = mhp;
 		this.cdomOracle = cdomOracle;
+		
+		this.predecessorMethod = predecessorMethod;
 		
 		this.transClosure = new HashMap<>();
 		
@@ -138,6 +144,16 @@ public class TimimgClassificationChecker<L> {
 		return ret;
 	}
 	
+	public Map<SDGNode, L> getCL() {
+		if (!checked) throw new IllegalStateException();
+		return cl;
+	}
+
+	public Map<Pair<SDGNode,SDGNode>, L> getCLT() {
+		if (!checked) throw new IllegalStateException();
+		return clt;
+	}
+	
 	private boolean interferenceWriteUndirected(SDGNode n) {
 		for (SDGEdge e : sdg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.INTERFERENCE_WRITE) ) {
 			boolean found = false;
@@ -165,9 +181,25 @@ public class TimimgClassificationChecker<L> {
 				// nothing changes if current level is top already
 				if (secLattice.getTop().equals(oldLevel)) continue;
 				L newLevel = oldLevel;
-				// 2a.) propagate from backward slice
-				System.out.println(String.format("BS(%s) = %s", n, backw.slice(n)));
-				for (SDGNode m : backw.slice(n)) {
+
+				// 2a.) propagate from sdg predecessors
+				final Collection<SDGNode> predecessors;
+				switch (predecessorMethod) {
+					case EDGE:
+						predecessors = sdg.incomingEdgesOf(n)
+						                   .stream()
+						                   .filter((e) -> e.getKind().isSDGEdge())
+						                   .map(SDGEdge::getSource)
+						                   .collect(Collectors.toSet());
+						System.out.println(String.format("BS(%s) = %s", n, predecessors));
+						break;
+					case SLICE:
+						predecessors = backw.slice(n);
+						System.out.println(String.format("PRED(%s) = %s", n, predecessors));
+						break;
+					default : throw new IllegalArgumentException(predecessorMethod.toString());
+				}
+				for (SDGNode m : predecessors) {
 					newLevel = secLattice.leastUpperBound(newLevel, cl.get(m));
 					if (secLattice.getTop().equals(newLevel)) {
 						break; // we can abort the loop here - level cannot get any higher
@@ -253,6 +285,9 @@ public class TimimgClassificationChecker<L> {
 			numIters++;
 		} while (change);
 		System.out.println(String.format("needed %d iteration(s).", numIters));
+		
+		checked = true;
+		
 		// 3.) check that sink levels comply
 		return checkCompliance();
 	}

@@ -35,10 +35,6 @@ public class TimimgClassificationChecker<L> {
 	/** user-provided annotations */
 	protected final Map<SDGNode, L> userAnn;
 
-
-	/** maps each node to its so-called <i>probabilistic influencers</i> */
-	protected final ProbInfComputer probInf;
-
 	protected final CFG icfg;
 	protected final Map<SDGNode, Collection<SDGNode>> transClosure;
 	
@@ -53,20 +49,33 @@ public class TimimgClassificationChecker<L> {
 	
 	protected final PreciseMHPAnalysis mhp;
 	
-	/** classification which is computed in a fixed-point iteration */
+	/** "classical" classification of a node, i.e.: cl(n) == l if
+	 *  * the values of variables used ad n,
+	 *  * or whether ("how often") n is executed 
+	 *  is influences by level l
+	 */
 	protected Map<SDGNode, L> cl;
 	
+	/** "timing" classification of a pair of node, i.e.: cl(n,m) == l if
+	 *  the "relative timing" (which one may be  executed before the other)
+	 *  is influences by level l
+	 */
 	protected Map<Pair<SDGNode, SDGNode>, L> clt; 
 	
+	/**
+	 * check == true iff check() has been called already.
+	 */
 	protected boolean checked = false;
 
+	/**
+	 * Mode of determining predecessor during propagation along the sdg.
+	 */
 	protected final PredecessorMethod predecessorMethod;
 	
-	public TimimgClassificationChecker(SDG sdg, IStaticLattice<L> secLattice, Map<SDGNode, L> userAnn, ProbInfComputer probInf, PreciseMHPAnalysis mhp, ICDomOracle cdomOracle, PredecessorMethod predecessorMethod) {
+	public TimimgClassificationChecker(SDG sdg, IStaticLattice<L> secLattice, Map<SDGNode, L> userAnn, PreciseMHPAnalysis mhp, ICDomOracle cdomOracle, PredecessorMethod predecessorMethod) {
 		this.sdg = sdg;
 		this.secLattice = secLattice;
 		this.userAnn = userAnn;
-		this.probInf = probInf;
 		this.mhp = mhp;
 		this.cdomOracle = cdomOracle;
 		
@@ -122,10 +131,10 @@ public class TimimgClassificationChecker<L> {
 		
 	}
 
-	protected Map<SDGNode, L> initCL(boolean incorporateSourceAnns) {
+	protected Map<SDGNode, L> initCL() {
 		Map<SDGNode, L> ret = new HashMap<SDGNode, L>();
 		for (SDGNode n : sdg.vertexSet()) {
-			if (incorporateSourceAnns && userAnn.containsKey(n)) {
+			if (userAnn.containsKey(n)) {
 				ret.put(n, userAnn.get(n));
 			} else {
 				ret.put(n, secLattice.getBottom());
@@ -154,6 +163,12 @@ public class TimimgClassificationChecker<L> {
 		return clt;
 	}
 	
+	/**
+	 * Solely used to state some assumptions on the sdg
+	 * @param n
+	 * @return true iff any INTERFERENCE_WRITE edge from n to some m is matched by an
+	 * INTERFERENCE_WRITE edge from m to n.
+	 */
 	private boolean interferenceWriteUndirected(SDGNode n) {
 		for (SDGEdge e : sdg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.INTERFERENCE_WRITE) ) {
 			boolean found = false;
@@ -169,7 +184,7 @@ public class TimimgClassificationChecker<L> {
 		I2PBackward backw = new I2PBackward(sdg);
 		// 1.) initialize classification: we go from the bottom up, so every node is classified as low initially
 		// except for the sources: They are classified with the user-annotated source level
-		cl  = initCL(true);
+		cl  = initCL();
 		clt = initCLT(); 
 		// 2.) fixed-point iteration
 		int numIters = 0;
@@ -187,10 +202,10 @@ public class TimimgClassificationChecker<L> {
 				switch (predecessorMethod) {
 					case EDGE:
 						predecessors = sdg.incomingEdgesOf(n)
-						                   .stream()
-						                   .filter((e) -> e.getKind().isSDGEdge())
-						                   .map(SDGEdge::getSource)
-						                   .collect(Collectors.toSet());
+						                  .stream()
+						                  .filter((e) -> e.getKind().isSDGEdge())
+						                  .map(SDGEdge::getSource)
+						                  .collect(Collectors.toSet());
 						System.out.println(String.format("BS(%s) = %s", n, predecessors));
 						break;
 					case SLICE:

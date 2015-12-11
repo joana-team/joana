@@ -91,12 +91,11 @@ public class ORLSODExperimentTiming {
 		}
 		Assert.assertEquals(cfg.expectedNoLowThings, noLowThings);
 		ThreadModularCDomOracle tmdo = new ThreadModularCDomOracle(sdg);
-		ProbInfComputer probInf = new ProbInfComputer(sdg, tmdo);
-		TimimgClassificationChecker<String> checkerSlice = new TimimgClassificationChecker<>(sdg, BuiltinLattices.getBinaryLattice(), userAnn, probInf, mhp, tmdo, PredecessorMethod.SLICE);
+		TimimgClassificationChecker<String> checkerSlice = new TimimgClassificationChecker<>(sdg, BuiltinLattices.getBinaryLattice(), userAnn, mhp, tmdo, PredecessorMethod.SLICE);
 		int noVios = checkerSlice.check();
 		Assert.assertEquals(cfg.expectedNoViolations, noVios);
 		
-		TimimgClassificationChecker<String> checkerEdge = new TimimgClassificationChecker<>(sdg, BuiltinLattices.getBinaryLattice(), userAnn, probInf, mhp, tmdo, PredecessorMethod.EDGE);
+		TimimgClassificationChecker<String> checkerEdge = new TimimgClassificationChecker<>(sdg, BuiltinLattices.getBinaryLattice(), userAnn, mhp, tmdo, PredecessorMethod.EDGE);
 		checkerEdge.check();
 		Assert.assertEquals(checkerSlice.getCL(), checkerEdge.getCL());
 		Assert.assertEquals(checkerSlice.getCLT(), checkerEdge.getCLT());

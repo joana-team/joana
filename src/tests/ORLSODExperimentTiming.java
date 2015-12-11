@@ -36,6 +36,7 @@ import edu.kit.joana.ifc.sdg.mhpoptimization.PruneInterferences;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.ifc.sdg.util.sdg.ReducedCFGBuilder;
 import edu.kit.joana.util.Util;
+import tests.ORLSODExperiment.StandardTestConfig;
 
 public class ORLSODExperimentTiming {
 
@@ -118,4 +119,13 @@ public class ORLSODExperimentTiming {
 		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lpost16/Fig2_3", "post_fig2_3", 1, 2, 4));
 	}
 
+	@Test
+	public void testORLSOD_imprecise() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+		/**
+		 * NOTE: The program is actually secure AND TimingClassification does detect this
+		 * RLSOD and LSOD deem this program secure (no "normal" flows and o low-observable conflict).
+		 * TODO: add test code which proves this silly claim!
+		 */
+		doConfigTiming(new StandardTestConfig("example/bin", "Lorlsod/ORLSODImprecise", "orlsod_imprecise", 1, 1, 0));
+	}
 }

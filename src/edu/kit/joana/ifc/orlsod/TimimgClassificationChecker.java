@@ -211,10 +211,14 @@ public class TimimgClassificationChecker<L> {
 				//      ii) nodes m from other threads whose execution write some value used at n
 				//          (i.e.: there is an interference dependence from m to n, or
 				//           a interference-write dependence between n and m)
+				// Reminder: INTERFERENCE-Dependencies can hold between non-mhp nodes (e.g.: when a write in the main
+				// thread is seen from a Thread started afterwards. Then heir then their relative timing is fixed!
+				// TODO: find out if the situation is the same for INTERFERENCE_WRITE.
 				assert(interferenceWriteUndirected(n));
 				
 				for (SDGEdge e : sdg.getIncomingEdgesOfKind(n, SDGEdge.Kind.INTERFERENCE)) {
 					final SDGNode m = e.getSource();
+					if (!mhp.isParallel(n, m)) continue;
 					newLevel = secLattice.leastUpperBound(newLevel, clt.get(Pair.pair(n, m)));
 					if (secLattice.getTop().equals(newLevel)) {
 						break; // we can abort the loop here - level cannot get any higher

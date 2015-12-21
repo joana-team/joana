@@ -258,7 +258,13 @@ public class SummaryComputation {
                     for (Edge e : aiaoPairs) {
                         if (e.source == null || e.target == null) continue;
 
-                        if (graph.containsEdge(e.source, e.target)) continue; // already connected
+                        boolean connectedInPDG = false;
+                        for (SDGEdge eOut : graph.getAllEdges(e.source, e.target)) {
+                            if (eOut.getKind().isSDGEdge()) {
+                                connectedInPDG = true;
+                            }
+                        }
+                        if (connectedInPDG) continue; // already connected
 
                         SDGEdge sum;
                         if (annotate != null && !annotate.isEmpty()) {

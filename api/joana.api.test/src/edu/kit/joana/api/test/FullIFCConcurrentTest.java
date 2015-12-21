@@ -152,9 +152,8 @@ public class FullIFCConcurrentTest {
 	@Test
 	public void testKnockKnock() {
 		try {
-			IFCAnalysis ana = buildAndAnnotate("conc.cliser.kk.Main",
-					"conc.cliser.kk.KnockKnockThread.message",
-					"conc.cliser.kk.KnockKnockTCPClient.received1");
+			SDGProgram p = build("conc.cliser.kk.Main", PointsToPrecision.UNLIMITED_OBJECT_SENSITIVE);
+			IFCAnalysis ana = annotate(p, "conc.cliser.kk.KnockKnockThread.message", "conc.cliser.kk.KnockKnockTCPClient.received1");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			// communication appears in network socket layer - this can only be detected if stubs are used that model
 			// network communication. We are now precise enough to not detect flow in java library code.
@@ -421,13 +420,13 @@ public class FullIFCConcurrentTest {
 					"sensitivity.Security.PUBLIC");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(20, illegal.size());
+			assertEquals(23, illegal.size());
 			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(16, illegal.size());
+			assertEquals(19, illegal.size());
 			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(10, illegal.size());
+			assertEquals(11, illegal.size());
 			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
 			assertFalse(illegal.isEmpty());
 			assertEquals(3, illegal.size());

@@ -157,8 +157,7 @@ public class FullIFCConcurrentTest {
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			// communication appears in network socket layer - this can only be detected if stubs are used that model
 			// network communication. We are now precise enough to not detect flow in java library code.
-			assertTrue(illegal.isEmpty());
-			assertEquals(0,  illegal.size());
+			assertTrue(String.format("Expected no violations, found %d", illegal.size()), illegal.isEmpty());
 	
 			// somehow running from ant produces 216 violations, while running
 			// from eclipse results only in 176. Perhaps differences in the included

@@ -63,6 +63,7 @@ import com.ibm.wala.ipa.summaries.BypassClassTargetSelector;
 import com.ibm.wala.ipa.summaries.BypassMethodTargetSelector;
 import com.ibm.wala.ipa.summaries.XMLMethodSummaryReader;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
+import com.ibm.wala.ssa.SSABinaryOpInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.analysis.IExplodedBasicBlock;
 import com.ibm.wala.types.MethodReference;
@@ -70,9 +71,12 @@ import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.WalaException;
+import com.ibm.wala.util.collections.Pair;
+import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 import com.ibm.wala.util.strings.Atom;
 import com.ibm.wala.util.strings.StringStuff;
 
+import edu.kit.joana.api.sdg.SDGBuildPreparation;
 import edu.kit.joana.deprecated.jsdg.SDGFactory.Config.ObjTreeType;
 import edu.kit.joana.deprecated.jsdg.SDGFactory.Config.PointsToType;
 import edu.kit.joana.deprecated.jsdg.exceptions.ExceptionPrunedCFGAnalysis;
@@ -98,6 +102,12 @@ import edu.kit.joana.deprecated.jsdg.util.Util;
 import edu.kit.joana.deprecated.jsdg.wala.objecttree.IKey2Origin;
 import edu.kit.joana.deprecated.jsdg.wala.objecttree.InstanceAndPointerKeyFactoryAdapter;
 import edu.kit.joana.ifc.sdg.graph.SDGVerifier;
+import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
+import edu.kit.joana.wala.core.NullProgressMonitor;
+import edu.kit.joana.wala.core.SDGBuilder;
+import edu.kit.joana.wala.core.SDGBuilder.CGResult;
+import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
+import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.util.pointsto.ExtendedAnalysisOptions;
 import edu.kit.joana.wala.util.pointsto.WalaPointsToUtil;
 
@@ -625,29 +635,128 @@ public class SDGFactory {
 		return computeWalaSDG(cfg, progress);
 	}
 
+	private SDGBuildPreparation.Config translateConfig(Config cfg) {
+		final SDGBuildPreparation.Config ncfg = new SDGBuildPreparation.Config("tranlated from jsdg of " + cfg.mainClass);
+		ncfg.accessPath = false;
+		ncfg.cgConsumer = null;
+		ncfg.classpath = cfg.classpath;
+		ncfg.computeAllocationSites = false;
+		ncfg.computeInterference = cfg.computeInterference;
+		ncfg.computeSummaryEdges = cfg.computeSummaryEdges;
+		ncfg.ctxSelector = null;
+		ncfg.ddisp = null;
+		ncfg.debugManyGraphsDotOutput = false;
+		ncfg.defaultExceptionMethodState = null;
+		final JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(cfg.mainClass.substring(1));
+		ncfg.entryMethod = mainMethod.toBCString();
+		ncfg.exceptions = (cfg.ignoreExceptions ? ExceptionAnalysis.IGNORE_ALL : 
+			(cfg.optimizeExceptions ? ExceptionAnalysis.INTRAPROC : ExceptionAnalysis.ALL_NO_ANALYSIS));
+		
+		final StringBuilder excl = new StringBuilder();
+		if (cfg.exclusions != null) {
+			for (final String e : cfg.exclusions) {
+				excl.append(e + "\n");
+			}
+		}
+		ncfg.exclusions = excl.toString();
+		
+		ncfg.extern = null;
+		switch (cfg.pointsTo) {
+		case n0CFA:
+			ncfg.pts = PointsToPrecision.TYPE_BASED;
+			break;
+		case n1CFA:
+			ncfg.pts = PointsToPrecision.N1_CALL_STACK;
+			break;
+		case n2CFA:
+			ncfg.pts = PointsToPrecision.N2_CALL_STACK;
+			break;
+		case n3CFA:
+			ncfg.pts = PointsToPrecision.N3_CALL_STACK;
+			break;
+		case OBJ_SENS:
+			ncfg.pts = PointsToPrecision.OBJECT_SENSITIVE;
+			break;
+		case VANILLA_ZERO_ONE_CFA:
+			ncfg.pts = PointsToPrecision.INSTANCE_BASED;
+			break;
+		case ZERO_ONE_CFA:
+			ncfg.pts = PointsToPrecision.INSTANCE_BASED;
+			break;
+		case VANILLA_ZERO_ONE_CONTAINER_CFA:
+			ncfg.pts = PointsToPrecision.INSTANCE_BASED;
+			break;
+		case ZERO_CFA:
+			ncfg.pts = PointsToPrecision.TYPE_BASED;
+			break;
+		}
+		
+//		ncfg.fieldPropagation =
+		ncfg.nativesXML = cfg.nativesXML;
+//		ncfg.objSensFilter =
+		ncfg.sideEffects = null;
+
+		ncfg.stubs = new String[cfg.scopeData.size()];
+		int index = 0;
+		for (final String sc : cfg.scopeData) {
+			final String stub = sc.substring(sc.lastIndexOf(",") + 1);
+			ncfg.stubs[index] = stub;
+			index++;
+		}
+		//ncfg.stubs = 
+		
+		ncfg.thirdPartyLibPath = null;
+		
+		return ncfg;
+	}
+
+	private SSAPropagationCallGraphBuilder makeBuilder(final SDGBuildPreparation.Config cfg) throws ClassHierarchyException, IOException, CancelException {
+		System.out.println();
+		System.out.println("----- build config deprecated jsdg -----");
+		System.out.println(cfg);
+		System.out.println("===== build config deprecated jsdg =====");
+		System.out.println();
+		final Pair<Long, SDGBuilder.SDGBuilderConfig> prep = SDGBuildPreparation.prepareBuild(System.out, cfg, NullProgressMonitor.INSTANCE);
+		final SDGBuilder sdgb = SDGBuilder.onlyCreate(prep.snd);
+		final CallGraphBuilder cgb = sdgb.createCallgraphBuilder(NullProgressMonitor.INSTANCE);
+		return (SSAPropagationCallGraphBuilder) cgb;
+	}
+	
 	private SDG getOrigSDG(Config cfg, IProgressMonitor progress)
 	throws IllegalArgumentException, CancelException, PDGFormatException, IOException, WalaException, InvalidClassFileException {
 		progress.beginTask(Messages.getString("Analyzer.Task_Prepare_IR"), -1); //$NON-NLS-1$
 
-		com.ibm.wala.ipa.callgraph.impl.Util.setNativeSpec(cfg.nativesXML);
-
+		final SDGBuildPreparation.Config pcfg = translateConfig(cfg);
+		
+//		com.ibm.wala.ipa.callgraph.impl.Util.setNativeSpec(cfg.nativesXML);
 
 		progress.subTask(Messages.getString("Analyzer.SubTask_Analysis_Scope")); //$NON-NLS-1$
 
-		ClassLoader loader = getClass().getClassLoader();
-		AnalysisScope scope = Util.makeAnalysisScope(cfg, loader);
+		//AnalysisScope scope = SDGBuildPreparation.setUpAnalysisScope(System.out, pcfg);
+//		ClassLoader loader = getClass().getClassLoader();
+//		AnalysisScope scope = Util.makeAnalysisScope(cfg, loader);
 			//AnalysisScopeReader.makeJavaBinaryAnalysisScope(cfg.scopeFile, cfg.classpath, null);
 		progress.done();
 
-		ClassHierarchy cha = ClassHierarchy.make(scope, progress);
-
-		Iterable<Entrypoint> entrypoints =
-			com.ibm.wala.ipa.callgraph.impl.Util.makeMainEntrypoints(scope, cha, cfg.mainClass);
-		ExtendedAnalysisOptions options = new ExtendedAnalysisOptions(scope, entrypoints);
-	    AnalysisCache cache = new AnalysisCache();
+//		ClassHierarchy cha = ClassHierarchy.make(scope, progress);
+//
+//		Iterable<Entrypoint> entrypoints =
+//			com.ibm.wala.ipa.callgraph.impl.Util.makeMainEntrypoints(scope, cha, cfg.mainClass);
+//		ExtendedAnalysisOptions options = new ExtendedAnalysisOptions(scope, entrypoints);
+//	    AnalysisCache cache = new AnalysisCache();
 
 	    progress.subTask(Messages.getString("Analyzer.SubTask_Call_Graph_Builder") + cfg.pointsTo); //$NON-NLS-1$
-		SSAPropagationCallGraphBuilder builder = getCallGraphBuilder(cfg.pointsTo, options, cache, cha, scope);
+	    
+//		SSAPropagationCallGraphBuilder builder = getCallGraphBuilder(cfg.pointsTo, options, cache, cha, scope);
+	    final SSAPropagationCallGraphBuilder builder = makeBuilder(pcfg);
+	    final AnalysisOptions options = builder.getOptions();
+	    final AnalysisScope scope = options.getAnalysisScope();
+	    AnalysisCache cache = builder.getAnalysisCache();
+	    final List<Entrypoint> eps = new LinkedList<>();
+	    for (final Entrypoint ep : options.getEntrypoints()) {
+	    	eps.add(ep);
+	    }
+	    final Iterable<Entrypoint> entrypoints = eps;
 
 		/**
 		 * Change the wala internal pointer and instancekeyfactory of the
@@ -677,7 +786,8 @@ public class SDGFactory {
 			cg = new PrunedCallGraph(cg, sopt);
 			System.out.println("Optimized Call Graph has " + cg.getNumberOfNodes() + " Nodes.");
 		}
-
+		System.out.println("\ncall graph has " + cg.getNumberOfNodes() + " nodes.");
+		
 		if (Debug.Var.DUMP_CALLGRAPH.isSet()) {
 			Util.dumpCallGraph(cg, cfg.mainClass.replace('/','.').substring(1), progress);
 		}

@@ -27,6 +27,7 @@ import edu.kit.joana.deprecated.jsdg.util.Debug;
 import edu.kit.joana.deprecated.jsdg.util.Log;
 import edu.kit.joana.deprecated.jsdg.util.Log.LogLevel;
 import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.SDGVerifier;
 import edu.kit.joana.wala.util.VerboseProgressMonitor;
@@ -185,14 +186,16 @@ public class Analyzer {
 			}
 
 			cfg.logFile = logFile;
+			final int methodsNum = countMethods(sdg);
 			final PrintStream out = new PrintStream(cfg.logFile);
-			out.println(sdg.vertexSet().size() + " nodes and " + sdg.edgeSet().size() + " edges in " + duration + " ms");
+			out.println(sdg.vertexSet().size() + " nodes and " + sdg.edgeSet().size() + " edges in " + duration
+					+ " ms (" + methodsNum + " methods)");
 			out.println("using config file: " + file);
 			out.println(cfg.toString());
 			out.flush();
 			out.close();
 			System.out.println(sdg.vertexSet().size() + " nodes and " + sdg.edgeSet().size() + " edges in " + duration
-					+ " ms logged to '" + cfg.logFile + "'");
+					+ " ms logged to '" + cfg.logFile + "' " + methodsNum + " methods in graph.");
 		} catch (Exception e) {
 			if (cfg.logFile == null) {
 				cfg.logFile = logFile;
@@ -218,4 +221,17 @@ public class Analyzer {
 		}
 	}
 
+	private static int countMethods(edu.kit.joana.ifc.sdg.graph.SDG sdg) {
+		return sdg.lastProc() - 1;
+//		int count = 0;
+//		
+//		for (final SDGNode n : sdg.vertexSet()) {
+//			if (n.kind == SDGNode.Kind.ENTRY) {
+//				count++;
+//			}
+//		}
+//		
+//		return count;
+	}
+	
 }

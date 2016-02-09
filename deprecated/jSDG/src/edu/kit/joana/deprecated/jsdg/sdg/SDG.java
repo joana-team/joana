@@ -478,7 +478,10 @@ public class SDG extends JDependencyGraph {
 			IProgressMonitor progress) throws PDGFormatException, CancelException {
 		Set<CGNode> toIgnore;
 		if (ignoreExceptions) {
-			toIgnore = ExceptionFilter.findExceptionOnlyNodes(cg);
+//			toIgnore = ExceptionFilter.findExceptionOnlyNodes(cg);
+			toIgnore = new HashSet<CGNode>(); 
+			// for evaluation purposes this is deactivated to make callgraphs comparable with obj-graph appreoach
+			// in the future this optimization needs to come to the new obj-graph branch.
 		} else {
 			toIgnore = new HashSet<CGNode>();
 		}

@@ -12,6 +12,8 @@ import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
+import com.ibm.wala.ipa.callgraph.pruned.DoNotPrune;
+
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
@@ -27,6 +29,11 @@ public class TestObjGraphPerformanceJavaGrande extends TestObjGraphPerformance {
 	
 	@Override
 	protected void postCreateConfigHook(final SDGConfig config) {
+		config.setExclusions("");
+		config.setPruningPolicy(DoNotPrune.INSTANCE);
+		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH_FIXP_NO_OPT);
+//		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH_NO_ESCAPE);
+		config.setComputeSummaryEdges(false);
 	}
 
 	@Test

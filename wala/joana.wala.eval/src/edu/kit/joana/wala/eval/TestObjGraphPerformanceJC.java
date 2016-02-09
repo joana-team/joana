@@ -30,8 +30,18 @@ public class TestObjGraphPerformanceJC extends TestObjGraphPerformance {
 	@Override
 	protected void postCreateConfigHook(final SDGConfig config) {
 		config.setPruningPolicy(DoNotPrune.INSTANCE);
-		//config.setExclusions("");
-		//config.setComputeSummaryEdges(false);
+//		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH_NO_ESCAPE);
+		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH_FIXP_NO_OPT);
+		config.setExclusions("");
+/*		config.setExclusions("sun\\/awt\\/.*\n"
+				+ "sun\\/swing\\/.*\n"
+			//	+ "com\\/sun\\/.*\n"
+				+ "sun\\/.*\n"
+				+ "apple\\/awt\\/.*\n"
+				+ "com\\/apple\\/.*\n"
+				+ "org\\/omg\\/.*\n");
+*/
+		config.setComputeSummaryEdges(false);
 	}
 	
 	@Test

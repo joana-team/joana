@@ -42,6 +42,8 @@ public class TestObjGraphPerformance {
 
 	public static boolean lazy = false;
 	public static final String[] LAZY_IF_CONTAINS = new String [] {/*"HSQLDB", "FreeCS", "UPM" */};
+	public static final String[] IGNORE_TESTCASES_METHOD = new String [] { "_Fast", "_StdNoOpt" };
+	public static final String[] IGNORE_TESTCASES_CLASS = new String [] { "_NoOpt", "FreeCS", "UPM", "HSQLDB" };
 	
 	public static class ApiTestException extends Exception {
 
@@ -67,6 +69,9 @@ public class TestObjGraphPerformance {
 		config.setNotifier(stats);
 		config.setSkipSDGProgramPart(true);
 		config.setComputeSummaryEdges(false);
+		
+		//config.setDynamicDispatchHandling(DynamicDispatchHandling.IGNORE);
+
 		stats.setCurrentTask(testCase);
 		
 		config.setExclusions("sun\\/awt\\/.*\n"
@@ -81,6 +86,9 @@ public class TestObjGraphPerformance {
 		System.setProperty(Config.C_OBJGRAPH_CUT_OFF_IMMUTABLE, "true");
 		System.setProperty(Config.C_OBJGRAPH_CUT_OFF_UNREACHABLE, "true");
 
+	/*	System.setProperty(Config.C_OBJGRAPH_MERGE_EXCEPTIONS, "true");
+		System.setProperty(Config.C_OBJGRAPH_MERGE_ONE_FIELD_PER_PARENT, "true");
+		System.setProperty(Config.C_OBJGRAPH_MERGE_PRUNED_CALL_NODES, "true"); */
 		
 		postCreateConfigHook(config);
 		
@@ -144,7 +152,32 @@ public class TestObjGraphPerformance {
 		return e.getMethodName();
 	}
 	
+	public static boolean skipTest() {
+		final Throwable t = new Throwable();
+		final StackTraceElement e = t.getStackTrace()[2];
+		final String caller = e.getMethodName();
+		final String callerClass = e.getClassName();
+			
+		for (final String str : IGNORE_TESTCASES_CLASS) {
+			if (callerClass.contains(str)) {
+				return true;
+			}
+		}
+		
+		for (final String str : IGNORE_TESTCASES_METHOD) {
+			if (caller.contains(str)) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
 	public static boolean areWeLazy(final String testMethodName) {
+		if (skipTest()) {
+			return true;
+		}
+		
 		for (final String name : LAZY_IF_CONTAINS) {
 			if (testMethodName.contains(name)) {
 				return true;

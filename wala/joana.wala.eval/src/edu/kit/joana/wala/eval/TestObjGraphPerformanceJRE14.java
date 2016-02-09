@@ -32,6 +32,8 @@ public class TestObjGraphPerformanceJRE14 extends TestObjGraphPerformance {
 	protected void postCreateConfigHook(final SDGConfig config) {
 		config.setPruningPolicy(DoNotPrune.INSTANCE);
 		config.setExclusions("");
+		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH_FIXP_NO_OPT);
+
 		//config.setComputeSummaryEdges(false);
 	}
 	

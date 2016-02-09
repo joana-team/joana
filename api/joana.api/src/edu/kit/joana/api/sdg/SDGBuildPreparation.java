@@ -215,7 +215,7 @@ public final class SDGBuildPreparation {
 		return compute(out, cfg, NullProgressMonitor.INSTANCE);
 	}
 
-	private static Pair<Long, SDGBuilder.SDGBuilderConfig> prepareBuild(PrintStream out, Config cfg, IProgressMonitor progress) throws IOException, ClassHierarchyException {
+	public static Pair<Long, SDGBuilder.SDGBuilderConfig> prepareBuild(PrintStream out, Config cfg, IProgressMonitor progress) throws IOException, ClassHierarchyException {
 		if (!checkOrCreateOutputDir(cfg.outputDir)) {
 			out.println("Could not access/create diretory '" + cfg.outputDir +"'");
 			return null;

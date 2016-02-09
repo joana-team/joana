@@ -11,7 +11,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -19,6 +22,9 @@ import java.util.Map;
 
 import com.ibm.wala.util.io.FileUtil;
 
+import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.eval.CollectData.SDGData.SumStatus;
@@ -32,10 +38,43 @@ public class CollectData {
 	private static final String SDG_REGEX = ".*\\" + SDG_SUFFIX;
 	private static final String SLICING_SUFFIX = "-heavyslicing.log";
 	private static final String SDG_STATS_SUFFIX = ".log";
+	private static final String SDG_STATS_SIZE_SUFFIX = ".size";
 	private static final String SDG_STATS_NEWSUM_SUFFIX = "-sumnew.log";
 	private static final String SDG_STATS_OLDSUM_SUFFIX = "-sumold.log";
 	private static final boolean USE_OLD_SUMMARY = true;
+	private static final boolean CREATE_SIZE_STATS_ON_DEMAND = true;
 
+	private static final FixedComp fixComp = new FixedComp();
+	
+	static {
+		fixComp.add("corporatecard", 1);
+		fixComp.add("purse", 2);
+		fixComp.add("safeapplet", 3);
+		fixComp.add("wallet", 4);
+		fixComp.add("battleship", 5);
+		fixComp.add("cloudstorage", 6);
+		fixComp.add("clientserver", 7);
+		fixComp.add("hybrid", 8);
+		fixComp.add("barrier", 9);
+		fixComp.add("crypt", 10);
+		fixComp.add("forkjoin", 11);
+		fixComp.add("lufact", 12);
+		fixComp.add("moldyn", 13);
+		fixComp.add("montecarlo", 14);
+		fixComp.add("raytracer", 15);
+		fixComp.add("series", 16);
+		fixComp.add("sor", 17);
+		fixComp.add("sparsematmult", 18);
+		fixComp.add("sync", 19);
+		fixComp.add("barcode", 20);
+		fixComp.add("bexplore", 21);
+		fixComp.add("j2mesafe", 22);
+		fixComp.add("keepass", 23);
+		fixComp.add("onetimepass", 24);
+		fixComp.add("freecs", 25);
+		fixComp.add("hsqldb", 26);
+	}
+	
 	public static void main(String[] args) throws IOException {
 		final CollectData cd = new CollectData();
 		cd.scanDir("../../example/output");
@@ -104,8 +143,147 @@ public class CollectData {
 			}
 		};
 		printStats(precision, cd);
+
+		System.out.println();
+
+		final StatPrinter methods = new StatPrinter() {
+			@Override
+			public String info() {
+				return "method count";
+			}
+			
+			@Override
+			public String extractValue(final SDGData data) {
+				return data.numberOfMethods + "";
+			}
+		};
+		printStats(methods, cd);
+
+		System.out.println();
+
+		final StatPrinter totalnodes = new StatPrinter() {
+			@Override
+			public String info() {
+				return "total nodes";
+			}
+			
+			@Override
+			public String extractValue(final SDGData data) {
+				return data.totalNumberOfNodes() + "";
+			}
+		};
+		printStats(totalnodes, cd);
+
+		System.out.println();
+
+		final StatPrinter paramnodes = new StatPrinter() {
+			@Override
+			public String info() {
+				return "param nodes";
+			}
+			
+			@Override
+			public String extractValue(final SDGData data) {
+				return data.numberOfParameterNodes + "";
+			}
+		};
+		printStats(paramnodes, cd);
+
+		System.out.println();
+
+		final StatPrinter edges = new StatPrinter() {
+			@Override
+			public String info() {
+				return "edge count";
+			}
+			
+			@Override
+			public String extractValue(final SDGData data) {
+				return data.totalNumberOfEdges() + "";
+			}
+		};
+		printStats(edges, cd);
+
+		System.out.println();
+
+		final StatPrinter sumedge = new StatPrinter() {
+			@Override
+			public String info() {
+				return "sum edge count";
+			}
+			
+			@Override
+			public String extractValue(final SDGData data) {
+				return data.numberOfSummaryEdges + "";
+			}
+		};
+		printStats(sumedge, cd);
+
+		System.out.println();
+
+		final StatPrinter linessliced = new StatPrinter() {
+			@Override
+			public String info() {
+				return "sliced lines";
+			}
+			
+			@Override
+			public String extractValue(final SDGData data) {
+				return data.sliceLinesAvg + "";
+			}
+		};
+		printStats(linessliced, cd);
+
+		System.out.println();
+
+		final StatPrinter linestotal = new StatPrinter() {
+			@Override
+			public String info() {
+				return "total lines";
+			}
+			
+			@Override
+			public String extractValue(final SDGData data) {
+				return data.sliceLinesRelevant + "";
+			}
+		};
+		printStats(linestotal, cd);
 	}
 
+	static class FixedComp implements Comparator<ProgramData> {
+		private final Map<String, Integer> name2num = new HashMap<String, Integer>();
+		
+		public void add(final String str, final int num) {
+			name2num.put(str, num);
+		}
+
+		/* (non-Javadoc)
+		 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+		 */
+		@Override
+		public int compare(final ProgramData p1, final ProgramData p2) {
+			final String o1 = p1.name;
+			final String o2 = p2.name;
+			
+			if (name2num.containsKey(o1)) {
+				if (name2num.containsKey(o2)) {
+					final int i1 = name2num.get(o1);
+					final int i2 = name2num.get(o2);
+					return i1 - i2;
+				} else {
+					return -1;
+				}
+			} else {
+				if (name2num.containsKey(o2)) {
+					return 1;
+				} else {
+					return o1.compareTo(o2);
+				}
+			}
+		}
+		
+		
+	}
 
 	public interface StatPrinter {
 		String extractValue(SDGData data);
@@ -117,13 +295,17 @@ public class CollectData {
 			+ "graph-type;graph-inst;graph-obj;");
 //		"graph-fp-type;graph-fp-inst;graph-fp-obj;graph-opt-type;graph-opt-inst;"
 //			+ "graph-opt-obj;graph-fp-opt-type;graph-fp-opt-inst;graph-fp-opt-obj;");
-		for (final ProgramData pd : cd.name2data.values()) {
-			List<SDGData> noexc = filterRuns(pd.runs, FILTER_INTRAEXC);
-			noexc = filterRuns(noexc, FILTER_SUMMARY);
+		
+		final LinkedList<ProgramData> pdata = new LinkedList<ProgramData>(cd.name2data.values());
+		Collections.sort(pdata, fixComp);
+		
+		for (final ProgramData pd : pdata) {
+			List<SDGData> noexc = pd.runs; //filterRuns(pd.runs, FILTER_INTRAEXC);
+			//noexc = filterRuns(noexc, FILTER_SUMMARY);
 			List<SDGData> tree = filterRuns(noexc, FILTER_TREE);
 			List<SDGData> unstruct = filterRuns(noexc, FILTER_UNSTRUCTURED);
 //			List<SDGData> graph = filterRuns(noexc, new DataFilterList(new DataFilter[] {FILTER_GRAPH_SIMPLE, FILTER_ESCAPE, FILTER_NOOPT}));
-			List<SDGData> graphfp = filterRuns(noexc, new DataFilterList(new DataFilter[] {FILTER_GRAPH_FIXP, FILTER_ESCAPE, FILTER_NOOPT}));
+			List<SDGData> graphfp = filterRuns(noexc, new DataFilterList(new DataFilter[] { FILTER_GRAPH_FIXP /*, FILTER_ESCAPE /*, FILTER_NOOPT */}));
 //			List<SDGData> graphopt = filterRuns(noexc, new DataFilterList(new DataFilter[] {FILTER_GRAPH_SIMPLE, FILTER_ESCAPE, FILTER_OPT}));
 //			List<SDGData> graphfpopt = filterRuns(noexc, new DataFilterList(new DataFilter[] {FILTER_GRAPH_FIXP, FILTER_ESCAPE, FILTER_OPT}));
 //			for (final SDGData d : tree) {
@@ -374,6 +556,10 @@ public class CollectData {
 		return pdgFile.substring(0, pdgFile.length() - SDG_SUFFIX.length()) + SDG_STATS_SUFFIX;
 	}
 	
+	public static String statsSizeFile(String pdgFile) {
+		return pdgFile.substring(0, pdgFile.length() - SDG_SUFFIX.length()) + SDG_STATS_SIZE_SUFFIX;
+	}
+	
 	public static String statsSumFile(final String pdgFile) {
 		if (USE_OLD_SUMMARY) {
 			return statsOldSumFile(pdgFile);
@@ -424,6 +610,7 @@ public class CollectData {
 		ParamModel model;
 		boolean noOptimizations;
 		boolean noEscape;
+		int numberOfMethods;
 		int numberOfNormalNodes;
 		int numberOfParameterNodes;
 		int numberOfNormalEdges;
@@ -432,6 +619,8 @@ public class CollectData {
 		long summaryTime;
 		SumStatus summaryStat = SumStatus.UNKNOWN;
 		double slicePrecision;
+		int sliceLinesAvg;
+		int sliceLinesRelevant;
 		
 		public enum SumStatus { UNKNOWN, OK, TIMEOUT, OUT_OF_MEMORY }
 		
@@ -517,16 +706,104 @@ public class CollectData {
 			
 			final String statsHeavySlicingFile = statsHeavySlicingFile(sdgFile);
 			if (checkExists(statsHeavySlicingFile)) {
-				// TODO
 				final BufferedReader bIn = new BufferedReader(new FileReader(statsHeavySlicingFile(sdgFile)));
-				final String line = bIn.readLine();
-				if (line.contains("%")) {
-					final String percentStr = line.substring(0, line.indexOf("%")).replace(',','.');
-					double parsedPercent = Double.parseDouble(percentStr);
-					slicePrecision = parsedPercent;
+				while (bIn.ready()) {
+					final String line = bIn.readLine();
+
+					if (line.contains("lines   :")) {
+						final String extract = line.substring(line.indexOf("lines   :") + "lines   :".length());
+						final String percentStr = extract.substring(0, extract.indexOf("%")).replace(',','.');
+						double parsedPercent = Double.parseDouble(percentStr);
+						this.slicePrecision = parsedPercent;
+						final String avgLines = extract.substring(extract.indexOf("(") + 1, extract.indexOf(" of"));
+						this.sliceLinesAvg = Integer.parseInt(avgLines);
+						final String totalLines = extract.substring(extract.indexOf("of ") + "of ".length(), extract.indexOf(")"));
+						this.sliceLinesRelevant = Integer.parseInt(totalLines);
+					}
 				}
+				
 				bIn.close();
 			}
+			
+			final String statsSizeFile = statsSizeFile(sdgFile);
+			if (!checkExists(statsSizeFile) && CREATE_SIZE_STATS_ON_DEMAND) {
+				createStatsSizeFile(sdgFile, statsSizeFile);
+			}
+			
+			if (checkExists(statsSizeFile)) {
+				int methodCount = 0;
+				int nodeCount = 0;
+				int edgeCount = 0;
+				int paramCount = 0;
+				int sumCount = 0;
+				final BufferedReader bIn = new BufferedReader(new FileReader(statsSizeFile));
+				while (bIn.ready()) {
+					final String line = bIn.readLine();
+					if (line.startsWith("methods ")) {
+						final String mCount = line.substring("methods ".length());
+						methodCount = Integer.parseInt(mCount);
+					} else if (line.startsWith("nodes ")) {
+						final String nCount = line.substring("nodes ".length());
+						nodeCount = Integer.parseInt(nCount);
+					} else if (line.startsWith("edges ")) {
+						final String eCount = line.substring("edges ".length());
+						edgeCount = Integer.parseInt(eCount);
+					} else if (line.startsWith("param nodes ")) {
+						final String pCount = line.substring("param nodes ".length(),  line.indexOf("(") - 1);
+						paramCount = Integer.parseInt(pCount);
+					} else if (line.startsWith("sum edges ")) {
+						final String sCount = line.substring("sum edges ".length(), line.indexOf("(") - 1);
+						sumCount = Integer.parseInt(sCount);
+					}
+				}
+				bIn.close();
+				this.numberOfMethods = methodCount;
+				this.numberOfParameterNodes = paramCount;
+				this.numberOfNormalNodes = nodeCount - paramCount;
+				this.numberOfNormalEdges = edgeCount - sumCount;
+				this.numberOfSummaryEdges = sumCount;
+			}
+		}
+		
+		private static void createStatsSizeFile(final String sdgFile, final String statsSizeFile) throws IOException {
+			// build you own statsSizeFile
+			final SDG sdg = SDG.readFromAndUseLessHeap(sdgFile);
+			final int nodeCount = sdg.vertexSet().size();
+			final int edgeCount = sdg.edgeSet().size();
+			final int methodCount = sdg.lastProc() - 1;
+			int sumEdge = 0;
+			for (final SDGEdge e : sdg.edgeSet()) {
+				switch (e.getKind()) {
+				case SUMMARY:
+				case SUMMARY_DATA:
+				case SUMMARY_NO_ALIAS:
+					sumEdge++;
+				default:
+					break;
+				}
+			}
+			
+			int paramNodes = 0;
+			for (final SDGNode n : sdg.vertexSet()) {
+				switch (n.kind) {
+				case ACTUAL_IN:
+				case ACTUAL_OUT:
+				case FORMAL_IN:
+				case FORMAL_OUT:
+					paramNodes++;
+				default:
+					break;
+				}
+			}
+			
+			final PrintWriter pw = new PrintWriter(statsSizeFile);
+			pw.println("methods " + methodCount);
+			pw.println("nodes " + nodeCount);
+			pw.println("edges " + edgeCount);
+			pw.println("param nodes " + paramNodes + " (" + ((paramNodes * 100) / nodeCount) + " %)");
+			pw.println("sum edges " + sumEdge + " (" + ((sumEdge * 100) / edgeCount) + " %)");
+			pw.flush();
+			pw.close();
 		}
 		
 		private void extractNoOpt() {

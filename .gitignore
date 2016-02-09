@@ -6,6 +6,7 @@
 *.pdg
 *.pdg.opt
 *.pdg-sdpn
+*.size
 *.tokens
 .cvsignore
 .DS_Store

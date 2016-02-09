@@ -348,12 +348,12 @@ public class SDGBuilder implements CallGraphFilter {
 		IGNORE;
 	};
 
-	public static SDGBuilder onlyCreate(final SDGBuilderConfig cfg) throws UnsoundGraphException, CancelException {
+	public static SDGBuilder onlyCreate(final SDGBuilderConfig cfg) throws CancelException {
 		SDGBuilder builder = new SDGBuilder(cfg);
 		return builder;
 	}
 	public static SDGBuilder create(final SDGBuilderConfig cfg) throws UnsoundGraphException, CancelException {
-        IProgressMonitor progress = NullProgressMonitor.INSTANCE;
+		IProgressMonitor progress = NullProgressMonitor.INSTANCE;
 
 		SDGBuilder builder = new SDGBuilder(cfg);
 		builder.run(progress);
@@ -371,7 +371,7 @@ public class SDGBuilder implements CallGraphFilter {
 
 	public static SDGBuilder create(final SDGBuilderConfig cfg, final com.ibm.wala.ipa.callgraph.CallGraph walaCG,
 			final PointerAnalysis<InstanceKey> pts) throws UnsoundGraphException, CancelException {
-        IProgressMonitor progress = NullProgressMonitor.INSTANCE;
+		IProgressMonitor progress = NullProgressMonitor.INSTANCE;
 
 		SDGBuilder builder = new SDGBuilder(cfg);
 		builder.run(walaCG, pts, progress);
@@ -574,7 +574,7 @@ public class SDGBuilder implements CallGraphFilter {
 
 		if (cfg.exceptions == ExceptionAnalysis.INTERPROC) {
 			cfg.out.print("\tinterproc exception analysis... ");
-            progress.beginTask("interproc exception analysis... ", IProgressMonitor.UNKNOWN);
+			progress.beginTask("interproc exception analysis... ", IProgressMonitor.UNKNOWN);
 
 			try {
 				interprocExceptionResult = NullPointerAnalysis.computeInterprocAnalysis(
@@ -623,8 +623,8 @@ public class SDGBuilder implements CallGraphFilter {
 		progress.done();
 
 		cfg.out.print("calls");
-        progress.beginTask("interproc: connect call sites", pdgs.size());
-        currentNum = 0;
+		progress.beginTask("interproc: connect call sites", pdgs.size());
+		currentNum = 0;
 		// connect call sites
 		for (PDG pdg : pdgs) {
 			if (isImmutableStub(pdg.getMethod().getDeclaringClass().getReference())) {
@@ -642,7 +642,7 @@ public class SDGBuilder implements CallGraphFilter {
 				}
 			}
 
-            progress.worked(currentNum++);
+			progress.worked(currentNum++);
 		}
 
 		cfg.out.print(".");
@@ -663,7 +663,7 @@ public class SDGBuilder implements CallGraphFilter {
 		cfg.out.print(".");
 		progress.done();
 		
-        if (cfg.staticInitializers != StaticInitializationTreatment.NONE) {
+		if (cfg.staticInitializers != StaticInitializationTreatment.NONE) {
 			progress.beginTask("interproc: handling static initializers (clinit)...", IProgressMonitor.UNKNOWN);
 			cfg.out.print("clinit");
 			switch (cfg.staticInitializers) {
@@ -704,7 +704,7 @@ public class SDGBuilder implements CallGraphFilter {
 			cfg.out.print("killdef");
 			progress.beginTask("interproc: computing local killing defintions...", IProgressMonitor.UNKNOWN);
 			LocalKillingDefs.run(this, progress);
-            progress.done();
+			progress.done();
 			cfg.out.print(".");
 		}
 
@@ -714,7 +714,7 @@ public class SDGBuilder implements CallGraphFilter {
 			progress.beginTask("interproc: computing access path information...", IProgressMonitor.UNKNOWN);
 			// compute access path info
 			this.apResult = AccessPath.compute(this, getMainPDG());
-            progress.done();
+			progress.done();
 			cfg.out.print(".");
 		}
 
@@ -838,7 +838,9 @@ public class SDGBuilder implements CallGraphFilter {
 		case IGNORE_ALL:
 			return false;
 		case INTRAPROC:
-			if (n.getIR() == null) return true;
+			if (n.getIR() == null) {
+				return true;
+			}
 			ExceptionPruningAnalysis<SSAInstruction, IExplodedBasicBlock> npa = NullPointerAnalysis
 			.createIntraproceduralExplodedCFGAnalysis(NullPointerAnalysis.DEFAULT_IGNORE_EXCEPTIONS, n.getIR(),
 					null, cfg.defaultExceptionMethodState);
@@ -955,6 +957,93 @@ public class SDGBuilder implements CallGraphFilter {
 		}
 	}
 
+	public CallGraphBuilder createCallgraphBuilder(final IProgressMonitor progress) {
+		final List<Entrypoint> entries = new LinkedList<Entrypoint>();
+		final Entrypoint ep = new SubtypesEntrypoint(cfg.entry, cfg.cha);
+		entries.add(ep);
+		final ExtendedAnalysisOptions options = new ExtendedAnalysisOptions(cfg.objSensFilter, cfg.scope, entries);
+		if (cfg.ext.resolveReflection()) {
+			options.setReflectionOptions(ReflectionOptions.NO_STRING_CONSTANTS);
+		} else {
+			options.setReflectionOptions(ReflectionOptions.NONE);
+		}
+		if (cfg.methodTargetSelector != null) {
+			options.setSelector(cfg.methodTargetSelector);
+		}
+
+		CallGraphBuilder cgb = null;
+		switch (cfg.pts) {
+		case RTA: // Rapid Type Analysis
+			// Maybe UNSOUND - WALAs implementation looks suspicious.
+			// Its also less precise and slower (blows up dynamic calls) as TYPE (0-CFA).
+			// Its just here for academic purposes.
+			cgb = WalaPointsToUtil.makeRTA(options, cfg.cache, cfg.cha, cfg.scope);
+			break;
+		case TYPE_BASED: // 0-CFA
+			// Fastest option.
+			cgb = WalaPointsToUtil.makeContextFreeType(options, cfg.cache, cfg.cha, cfg.scope,
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+			break;
+		case INSTANCE_BASED: // 0-1-CFA
+			// Best bang for buck
+			cgb = WalaPointsToUtil.makeContextSensSite(options, cfg.cache, cfg.cha, cfg.scope,
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+			break;
+		case N1_OBJECT_SENSITIVE:
+			// Receiver context is limited to 1-level. 
+			// Uses 1-CFA as fallback for static methods.
+			options.filter = new ObjSensZeroXCFABuilder.DefaultMethodFilter() {
+				@Override
+				public boolean restrictToOneLevelObjectSensitivity(final IMethod m) {
+					return true;
+				}
+			};
+			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope,
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+			break;
+		case OBJECT_SENSITIVE:
+			// Very precise for OO heavy code - best option for really precise analysis.
+			// Unlimited receiver context for application code, 1-level receiver context for library code. 
+			// Uses n-CFA as fallback for static methods. Customizable: Provide objSensFilter to specify 'n' for fallback
+			// n-CFA and filter for methods where object-sensitivity should be engaged. Default 'n = 1'.
+			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope,
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+			break;
+		case UNLIMITED_OBJECT_SENSITIVE:
+			// Very precise for OO heavy code, but also very slow.
+			// Unlimited receiver context for the whole code - application as well as library. 
+			// Uses 1-CFA as fallback for static methods.
+			options.filter = new ObjSensZeroXCFABuilder.DefaultMethodFilter() {
+				@Override
+				public boolean restrictToOneLevelObjectSensitivity(final IMethod m) {
+					return false;
+				}
+			};
+			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope,
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+			break;
+		case N1_CALL_STACK: // 1-CFA
+			// Slower as 0-1-CFA, yet few precision improvements
+			cgb = WalaPointsToUtil.makeNCallStackSens(1, options, cfg.cache, cfg.cha, cfg.scope,
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+			break;
+		case N2_CALL_STACK: // 2-CFA
+			// Slow, but precise
+			cgb = WalaPointsToUtil.makeNCallStackSens(2, options, cfg.cache, cfg.cha, cfg.scope,
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+			break;
+		case N3_CALL_STACK: // 3-CFA
+			// Very slow and little bit more precise. Not much improvement over 2-CFA.
+			cgb = WalaPointsToUtil.makeNCallStackSens(3, options, cfg.cache, cfg.cha, cfg.scope,
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+			break;
+		case CUSTOM:
+			cgb = cfg.customCGBFactory.createCallGraphBuilder(options, cfg.cache, cfg.cha, cfg.scope, cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+		}
+		
+		return cgb;
+	}
+	
 	public CGResult buildCallgraph(final IProgressMonitor progress) throws IllegalArgumentException,
 			CallGraphBuilderCancelException {
 		final List<Entrypoint> entries = new LinkedList<Entrypoint>();
@@ -966,9 +1055,9 @@ public class SDGBuilder implements CallGraphFilter {
 		} else {
 			options.setReflectionOptions(ReflectionOptions.NONE);
 		}
-        if (cfg.methodTargetSelector != null) {
-            options.setSelector(cfg.methodTargetSelector);
-        }
+		if (cfg.methodTargetSelector != null) {
+			options.setSelector(cfg.methodTargetSelector);
+		}
 
 		CallGraphBuilder cgb = null;
 		switch (cfg.pts) {
@@ -1042,6 +1131,8 @@ public class SDGBuilder implements CallGraphFilter {
 		cfg.options = options;
 		com.ibm.wala.ipa.callgraph.CallGraph callgraph = cgb.makeCallGraph(options, progress);
 
+		System.out.println("call graph has " + callgraph.getNumberOfNodes() + " nodes.");
+		
 		return new CGResult(callgraph, cgb.getPointerAnalysis());
 	}
 
@@ -1050,7 +1141,7 @@ public class SDGBuilder implements CallGraphFilter {
 
 		com.ibm.wala.ipa.callgraph.CallGraph curcg = walaCG.cg;
 
-        if (prune >= 0) {
+		if (prune >= 0) {
 			CallGraphPruning cgp = new CallGraphPruning(walaCG.cg);
 			Set<CGNode> appl = cgp.findNodes(prune, cfg.pruningPolicy);
 			PrunedCallGraph pcg = new PrunedCallGraph(walaCG.cg, appl);
@@ -1740,56 +1831,56 @@ public class SDGBuilder implements CallGraphFilter {
 		 */
 		public boolean computeAllocationSites = false;
 		public SideEffectDetectorConfig sideEffects = null;
-        /**
-         *  Debugging-Option: Rename variables in the SDG when no name is available.
-         *
-         *  If this is set to false variables in the SDG will have names like "v#" or "p#" if
-         *  no actual name can be determined. If it is set to true the Type-Name will be appended
-         *  (like "v# Integer"). This shall help manually reading pdg-Files.
-         *
-         *  @todo   Enabling this may Throw errors when generation a new TypeInference.
-         */
-        public boolean showTypeNameInValue = false;
-        /** The methodTargetSelector from the AnalysisOptions. 
-         *
-         * It will get copied back there before CallGraphConstruction. If it's null the default of the 
-         * AnalysisOptions Constructor will be used */
-        public MethodTargetSelector methodTargetSelector = null;
-        /**
-         *  Context will be the Union of this and Joanas Context with additionalContextSelector having
-         *  precedence.
-         */
-        public ContextSelector additionalContextSelector = null;
-        /**
-         *  Will be the one queried first from the FallbackContextInterpreter.
-         */
-        public SSAContextInterpreter additionalContextInterpreter = null;
-        /**
-         * Special object which takes the call graph produced during SDG construction and
-         * does something useful with it
-         */
-        public CGConsumer cgConsumer = null;
-        /**
-         * Shall the SDG be constructed or shall the construction be aborted after the
-         * call graph has been built?
-         * It is sometimes useful to only construct the call graph, for example if one
-         * is interested in properties of the call graph itself rather than of the PDG
-         * but wants to have it built exactly as the SDGBuilderConfig dictates.
-         */
-        public boolean abortAfterCG = false;
-
-        /**
-         * This hook object can be used to capture the mapping between parameter nodes
-         * and mod ref candidates when the object graph algorithm is finished.
-         * This is useful for situations in which information about the correspondence
-         * between parameter nodes in the PDG and points-to sets is needed.
-         */
-        public ParameterPointsToConsumer parameterPTSConsumer;
-
-        /**
-         * the SDG builder stores here the analysis options used to build the call graph
-         */
-        public AnalysisOptions options;
+		/**
+		 *  Debugging-Option: Rename variables in the SDG when no name is available.
+		 *
+		 *  If this is set to false variables in the SDG will have names like "v#" or "p#" if
+		 *  no actual name can be determined. If it is set to true the Type-Name will be appended
+		 *  (like "v# Integer"). This shall help manually reading pdg-Files.
+		 *
+		 *  @todo   Enabling this may Throw errors when generation a new TypeInference.
+		 */
+		public boolean showTypeNameInValue = false;
+		/** The methodTargetSelector from the AnalysisOptions. 
+		 *
+		 * It will get copied back there before CallGraphConstruction. If it's null the default of the 
+		 * AnalysisOptions Constructor will be used */
+		public MethodTargetSelector methodTargetSelector = null;
+		/**
+		 *  Context will be the Union of this and Joanas Context with additionalContextSelector having
+		 *  precedence.
+		 */
+		public ContextSelector additionalContextSelector = null;
+		/**
+		 *  Will be the one queried first from the FallbackContextInterpreter.
+		 */
+		public SSAContextInterpreter additionalContextInterpreter = null;
+		/**
+		 * Special object which takes the call graph produced during SDG construction and
+		 * does something useful with it
+		 */
+		public CGConsumer cgConsumer = null;
+		/**
+		 * Shall the SDG be constructed or shall the construction be aborted after the
+		 * call graph has been built?
+		 * It is sometimes useful to only construct the call graph, for example if one
+		 * is interested in properties of the call graph itself rather than of the PDG
+		 * but wants to have it built exactly as the SDGBuilderConfig dictates.
+		 */
+		public boolean abortAfterCG = false;
+		
+		/**
+		 * This hook object can be used to capture the mapping between parameter nodes
+		 * and mod ref candidates when the object graph algorithm is finished.
+		 * This is useful for situations in which information about the correspondence
+		 * between parameter nodes in the PDG and points-to sets is needed.
+		 */
+		public ParameterPointsToConsumer parameterPTSConsumer;
+		
+		/**
+		 * the SDG builder stores here the analysis options used to build the call graph
+		 */
+		public AnalysisOptions options;
 	}
 
 	public String getMainMethodName() {

@@ -102,14 +102,22 @@ public class HeavySlicer {
 		final HeavySlicer hs = new HeavySlicer(System.out);
 		final String[] todo = new String[] {
 //				"C:\\Users\\Juergen\\git\\joana\\example\\output\\test_JRE14_JavaGrandeCrypt_PtsType_Graph-noopt.pdg",
-				"C:\\Users\\Juergen\\git\\joana\\example\\output\\test_JRE14_JavaGrandeCrypt_PtsInst_Graph-noopt.pdg",
+//				"C:\\Users\\Juergen\\git\\joana\\example\\output\\test_JRE14_JavaGrandeCrypt_PtsInst_Graph-noopt.pdg",
 //				"C:\\Users\\Juergen\\git\\joana\\example\\output\\test_JRE14_JavaGrandeCrypt_PtsObj_Graph-noopt.pdg",
+//				"C:\\Users\\Juergen\\git\\joana\\example\\output\\test_JC_Purse_PtsInst_Graph_StdNoOpt.pdg",
+//				"C:\\Users\\Juergen\\git\\joana\\example\\output\\test_JRE14_JavaGrandeSparseMatmult_PtsType_Graph.pdg",
+				
+//				"C:\\Users\\Juergen\\git\\joana\\deprecated\\jSDG\\out\\wala-0-cfa\\jc-Purse.pdg",
+//				"C:\\Users\\Juergen\\git\\joana\\deprecated\\jSDG\\out\\tree-0-cfa\\jc-Purse.pdg",
+				"C:\\Users\\Juergen\\git\\joana\\example\\output\\test_JC_Purse_PtsType_Graph_Std.pdg",
+				
 //				"C:\\Users\\Juergen\\git\\joana\\deprecated\\jSDG\\out\\tree-0-cfa\\jre14-jg-Crypt.pdg",
-				"C:\\Users\\Juergen\\git\\joana\\deprecated\\jSDG\\out\\tree-0-1-cfa\\jre14-jg-Crypt.pdg",
+//				"C:\\Users\\Juergen\\git\\joana\\deprecated\\jSDG\\out\\tree-0-1-cfa\\jre14-jg-Crypt.pdg",
 //				"C:\\Users\\Juergen\\git\\joana\\deprecated\\jSDG\\out\\tree-objsens\\jre14-jg-Crypt.pdg",
 //				"C:\\Users\\Juergen\\git\\joana\\deprecated\\jSDG\\out\\wala-0-cfa\\jre14-jg-Crypt.pdg",
 //				"C:\\Users\\Juergen\\git\\joana\\deprecated\\jSDG\\out\\wala-0-1-cfa\\jre14-jg-Crypt.pdg",
 //				"C:\\Users\\Juergen\\git\\joana\\deprecated\\jSDG\\out\\wala-objsens\\jre14-jg-Crypt.pdg",
+			//	"C:\\Users\\Juergen\\git\\joana\\deprecated\\jSDG\\out\\tree-0-1-cfa\\jc-Purse.pdg",
 		};
 
 //		final Task t1 = hs.createTask(todo[0]);

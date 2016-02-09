@@ -121,6 +121,35 @@ public abstract class SummaryEdgeDriver {
 		};
 	}
 	
+	public static SummaryEdgeDriver getCountParams() {
+		return new SummaryEdgeDriver() {
+			@Override
+			public Result compute(final SDG sdg, final IProgressMonitor progress) throws CancelException {
+				final Result r = new Result();
+
+				edu.kit.joana.deprecated.jsdg.util.Log.noLogging();
+				
+				int numParams = 0;
+				for (final SDGNode e : sdg.vertexSet()) {
+					switch (e.getKind()) {
+					case ACTUAL_IN:
+					case ACTUAL_OUT:
+					case FORMAL_IN:
+					case FORMAL_OUT:
+						numParams++;
+						break;
+					default:
+						// noop
+					}
+				}
+				r.numSumEdges = numParams;
+				
+				return r;
+			}
+			
+		};
+	}	
+	
 	public static SummaryEdgeDriver getDeleteVariant() {
 		return new SummaryEdgeDriver() {
 			@Override

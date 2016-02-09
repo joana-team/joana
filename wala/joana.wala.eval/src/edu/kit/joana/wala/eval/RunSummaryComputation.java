@@ -46,7 +46,7 @@ public class RunSummaryComputation {
 	
 	private static long NO_MULTIPLE_RUNS_THRESHOLD = 1000000; 
 	
-	private enum Variant { OLD, NEW, DELETE };
+	public enum Variant { OLD, NEW, DELETE, COUNT_PARAMS };
 	
 	public static class Task {
 		String filename;
@@ -54,6 +54,7 @@ public class RunSummaryComputation {
 		long startTime;
 		long endTime;
 		int numOfSumEdges;
+		int numOfNodes;
 		
 		public long duration() {
 			return endTime - startTime;
@@ -63,7 +64,7 @@ public class RunSummaryComputation {
 	public static void main(String[] args) {
 		Variant v = Variant.NEW;
 		boolean recursive = false;
-		boolean lazy = false;
+		boolean lazy = true;
 		int runs = 1;
 		int timeout = -1;
 		List<File> filelist = new LinkedList<File>();
@@ -145,7 +146,7 @@ public class RunSummaryComputation {
 		}
 	}
 	
-	private static void work(final Task t, final Variant v, final int runs, final int timeout) {
+	static void work(final Task t, final Variant v, final int runs, final int timeout) {
 		PrintStream log = null;
 		if (v != Variant.DELETE) {
 			try {
@@ -184,6 +185,8 @@ public class RunSummaryComputation {
 		case DELETE:
 			su = delete;
 			break;
+		case COUNT_PARAMS:
+			su = SummaryEdgeDriver.getCountParams();
 		}
 
 		boolean error = false;
@@ -205,6 +208,7 @@ public class RunSummaryComputation {
 					t.startTime = r.startTime;
 					t.endTime = r.endTime;
 					t.numOfSumEdges = r.numSumEdges;
+					t.numOfNodes = sdg.vertexSet().size();
 				}
 				
 				if (t.duration() > NO_MULTIPLE_RUNS_THRESHOLD) {
@@ -237,7 +241,7 @@ public class RunSummaryComputation {
 		}
 		
 		if (!error) {
-			println(t.numOfSumEdges + " edges in " + t.duration() + " ms");
+			println(t.numOfSumEdges + " edges in " + t.duration() + " ms. " + t.numOfNodes + " nodes.");
 		} else {
 			println(timeoutOccured ? "TIMEOUT ERROR" : "ERROR");
 		}
@@ -261,6 +265,8 @@ public class RunSummaryComputation {
 			return pdgFile + "-sumnew.log";
 		case OLD:
 			return pdgFile + "-sumold.log";
+		case COUNT_PARAMS:
+			return pdgFile + "-paramcount.log";
 		}
 		
 		throw new IllegalArgumentException("unkown variant: " + v);

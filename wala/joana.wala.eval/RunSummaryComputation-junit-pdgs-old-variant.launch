@@ -9,5 +9,5 @@
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="edu.kit.joana.wala.eval.RunSummaryComputation"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-variant old -runs 3 -lazy -recursive -timeout 120  ../../example/output/"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="joana.wala.eval"/>
-<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Xmx31096M"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Xmx31096M -Xss6m"/>
 </launchConfiguration>

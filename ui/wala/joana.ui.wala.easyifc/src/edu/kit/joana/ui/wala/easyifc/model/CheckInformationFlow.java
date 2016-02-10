@@ -477,6 +477,9 @@ public final class CheckInformationFlow {
 	
 	private static Set<SLeak> checkIFC(final Reason reason, final SDGProgram prog, final IFCType type, final AnnotationMethod annotationMethod) {
 		final IFCAnalysis ana = annotateSDG(prog, annotationMethod);
+		if (type == IFCType.RLSOD) {
+			ana.setTimesensitivity(true);
+		}
 		final Collection<? extends IViolation<SecurityNode>> leaks = ana.doIFC(type);
 		lastViolations = leaks.size();
 		

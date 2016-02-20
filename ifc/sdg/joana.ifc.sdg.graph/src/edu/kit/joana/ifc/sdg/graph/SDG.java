@@ -284,7 +284,7 @@ public class SDG extends JoanaGraph implements Cloneable {
     /**
      * Returns the entry node of the procedure that is specified by the given node.
      */
-    public SDGNode getEntry(SDGNode node){
+    public synchronized SDGNode getEntry(SDGNode node){
     	if (entryCache.get(node.getProc()) == null) {
 	        SDGNode entry = null;
 	        LinkedList<SDGNode> wl = new LinkedList<SDGNode>();
@@ -326,7 +326,7 @@ public class SDG extends JoanaGraph implements Cloneable {
     	}
     }
 
-    public SDGNode getExit(SDGNode node){
+    public synchronized SDGNode getExit(SDGNode node){
     	if (exitCache.get(node.getProc()) == null) {
 	        SDGNode entry = getEntry(node);
 

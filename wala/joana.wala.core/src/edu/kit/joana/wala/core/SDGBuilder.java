@@ -27,6 +27,7 @@ import com.ibm.wala.cfg.exc.intra.MethodState;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.escape.TrivialMethodEscape;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
+import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions.ReflectionOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CGNode;
@@ -1026,6 +1027,7 @@ public class SDGBuilder implements CallGraphFilter {
 		case CUSTOM:
 			cgb = cfg.customCGBFactory.createCallGraphBuilder(options, cfg.cache, cfg.cha, cfg.scope, cfg.additionalContextSelector, cfg.additionalContextInterpreter);
 		}
+		cfg.options = options;
 		com.ibm.wala.ipa.callgraph.CallGraph callgraph = cgb.makeCallGraph(options, progress);
 
 		return new CGResult(callgraph, cgb.getPointerAnalysis());
@@ -1681,6 +1683,11 @@ public class SDGBuilder implements CallGraphFilter {
          * but wants to have it built exactly as the SDGBuilderConfig dictates.
          */
         public boolean abortAfterCG = false;
+
+        /**
+         * the SDG builder stores here the analysis options used to build the call graph
+         */
+        public AnalysisOptions options;
 	}
 
 	public String getMainMethodName() {

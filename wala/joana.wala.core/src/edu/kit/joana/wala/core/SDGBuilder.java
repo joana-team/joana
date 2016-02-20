@@ -1686,6 +1686,14 @@ public class SDGBuilder implements CallGraphFilter {
         public boolean abortAfterCG = false;
 
         /**
+         * This hook object can be used to capture the mapping between parameter nodes
+         * and mod ref candidates when the object graph algorithm is finished.
+         * This is useful for situations in which information about the correspondence
+         * between parameter nodes in the PDG and points-to sets is needed.
+         */
+        public ParameterPointsToConsumer parameterPTSConsumer;
+
+        /**
          * the SDG builder stores here the analysis options used to build the call graph
          */
         public AnalysisOptions options;

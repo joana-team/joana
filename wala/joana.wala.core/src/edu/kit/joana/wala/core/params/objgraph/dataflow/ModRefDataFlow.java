@@ -86,12 +86,12 @@ public class ModRefDataFlow {
 
 			final Map<Node, OrdinalSet<Node>> mayRead = computeLastReachingDefs(solver, domain, provider);
 			final Map<Node, PDGNode> node2pdg = createPDGNodes(cfg, pdg, pdgnode2modref);
-
 			addDataDepEdgesToPDG(node2pdg, mayRead, pdg);
 		}
 
 		connectFormalAndActualParams(sdg, pdgnode2modref);
 		connectParameterStructure(sdg, pdgnode2modref);
+		if (sdg.cfg.parameterPTSConsumer != null) sdg.cfg.parameterPTSConsumer.commitPDGNode2ModRefMapping(pdgnode2modref);
         if (progress != null) progress.done();
 	}
 

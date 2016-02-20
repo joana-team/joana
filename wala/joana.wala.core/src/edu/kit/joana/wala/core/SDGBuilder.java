@@ -827,6 +827,7 @@ public class SDGBuilder implements CallGraphFilter {
 		case IGNORE_ALL:
 			return false;
 		case INTRAPROC:
+			if (n.getIR() == null) return true;
 			ExceptionPruningAnalysis<SSAInstruction, IExplodedBasicBlock> npa = NullPointerAnalysis
 			.createIntraproceduralExplodedCFGAnalysis(NullPointerAnalysis.DEFAULT_IGNORE_EXCEPTIONS, n.getIR(),
 					null, cfg.defaultExceptionMethodState);

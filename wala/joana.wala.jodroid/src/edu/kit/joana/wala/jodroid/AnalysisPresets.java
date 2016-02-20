@@ -331,7 +331,6 @@ public class AnalysisPresets {
         p.ctxIpr = new DefaultSSAInterpreter(p.options, p.scfg.cache);
         p.instKeys = new ZeroXInstanceKeys(p.options, p.scfg.cha, p.ctxIpr, ZeroXInstanceKeys.NONE);
 
-        LogLevels.setLevels();
 
         Preset.aem.setOverrides(AndroidEntryPointManager.DEFAULT_INTENT_OVERRIDES);
         // XXX TEMP:

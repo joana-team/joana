@@ -2,17 +2,24 @@ package edu.kit.joana.ifc.orlsod;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import edu.kit.joana.ifc.sdg.core.IFC;
+import edu.kit.joana.ifc.sdg.core.SecurityNode;
+import edu.kit.joana.ifc.sdg.core.violations.IUnaryViolation;
+import edu.kit.joana.ifc.sdg.core.violations.IViolation;
+import edu.kit.joana.ifc.sdg.core.violations.UnaryViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PBackward;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
+import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
 
-public class ORLSODChecker<L> {
+public class ORLSODChecker<L> extends IFC<L> {
 
 	/** the lattice which provides the security levels we annotate nodes with */
 	protected IStaticLattice<L> secLattice;
@@ -33,6 +40,7 @@ public class ORLSODChecker<L> {
 	protected final PredecessorMethod predecessorMethod;
 	
 	public ORLSODChecker(SDG sdg, IStaticLattice<L> secLattice, Map<SDGNode, L> userAnn, ProbInfComputer probInf, PredecessorMethod predecessorMethod) {
+		super(sdg, secLattice);
 		this.sdg = sdg;
 		this.secLattice = secLattice;
 		this.userAnn = userAnn;
@@ -52,7 +60,21 @@ public class ORLSODChecker<L> {
 		return ret;
 	}
 
-	public int check() {
+	protected final Collection<? extends IViolation<SecurityNode>> checkCompliance() {
+		LinkedList<IUnaryViolation<SecurityNode, L>> ret = new LinkedList<>();
+		for (Map.Entry<SDGNode, L> userAnnEntry : userAnn.entrySet()) {
+			SDGNode s = userAnnEntry.getKey();
+			L userLvl = userAnnEntry.getValue();
+			if (!LatticeUtil.isLeq(secLattice, cl.get(s), userLvl)) {
+				ret.add(new UnaryViolation<SecurityNode, L>(new SecurityNode(s), userLvl, cl.get(s)));
+				System.out.println("Violation at node " + s + ": user-annotated level is " + userLvl + ", computed level is " + cl.get(s));
+			}
+		}
+		return ret;
+	}
+
+	@Override
+	public Collection<? extends IViolation<SecurityNode>> checkIFlow() throws NotInLatticeException {
 		I2PBackward backw = new I2PBackward(sdg);
 		// 1.) initialize classification: we go from the bottom up, so every node is classified as low initially
 		// except for the user annotated nodes: They are classified with the level given by the user
@@ -110,23 +132,5 @@ public class ORLSODChecker<L> {
 		System.out.println(String.format("needed %d iteration(s).", numIters));
 		// 3.) check that sink levels comply
 		return checkCompliance();
-	}
-
-	protected final int checkCompliance() {
-		boolean compliant = true;
-		int noViolations = 0;
-		for (Map.Entry<SDGNode, L> userAnnEntry : userAnn.entrySet()) {
-			SDGNode s = userAnnEntry.getKey();
-			L userLvl = userAnnEntry.getValue();
-			if (!LatticeUtil.isLeq(secLattice, cl.get(s), userLvl)) {
-				System.out.println("Violation at node " + s + ": user-annotated level is " + userLvl + ", computed level is " + cl.get(s));
-				noViolations++;
-				compliant = false;
-			}
-		}
-		if (compliant) {
-			System.out.println("no violations found.");
-		}
-		return noViolations;
 	}
 }

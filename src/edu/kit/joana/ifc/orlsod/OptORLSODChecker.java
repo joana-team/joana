@@ -1,15 +1,19 @@
 package edu.kit.joana.ifc.orlsod;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
+import edu.kit.joana.ifc.sdg.core.SecurityNode;
+import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PBackward;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
+import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
 import edu.kit.joana.util.maps.MapUtils;
 
 public class OptORLSODChecker<L> extends ORLSODChecker<L> {
@@ -29,7 +33,7 @@ public class OptORLSODChecker<L> extends ORLSODChecker<L> {
 	}
 
 	@Override
-	public int check() {
+	public Collection<? extends IViolation<SecurityNode>> checkIFlow() throws NotInLatticeException {
 		cl = initCL(false);
 		backwDep = computeBackwardDep();
 		forwDep = MapUtils.invert(backwDep);

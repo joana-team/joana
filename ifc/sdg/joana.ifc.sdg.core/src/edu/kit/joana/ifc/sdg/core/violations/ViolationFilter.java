@@ -38,7 +38,7 @@ public abstract class ViolationFilter<T> implements IViolationVisitor<T> {
 	protected boolean acceptDataConflict(DataConflict<T> dataConf) { return true; }
 	protected boolean acceptOrderConflict(OrderConflict<T> orderConf) { return true; }
 	protected <L> boolean acceptUnaryViolation(IUnaryViolation<T,L> unVio) { return true; }
-	
+	protected <L> boolean acceptBinaryViolation(IBinaryViolation<T,L> binVio) { return true; }
 	/* (non-Javadoc)
 	 * @see edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor#visitIllegalFlow(edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow)
 	 */
@@ -66,5 +66,10 @@ public abstract class ViolationFilter<T> implements IViolationVisitor<T> {
 	@Override
 	public <L> void visitUnaryViolation(IUnaryViolation<T, L> unVio) {
 		lastResult = acceptUnaryViolation(unVio);
+	}
+
+	@Override
+	public <L> void visitBinaryViolation(IBinaryViolation<T, L> binVio) {
+		lastResult = acceptBinaryViolation(binVio);
 	}
 }

@@ -42,6 +42,7 @@ public abstract class ViolationPartialMapper<T,U> implements IViolationVisitor<T
 	protected Maybe<U> maybeMapDataConflict(DataConflict<T> dc) { return Maybe.nothing(); };
 	protected Maybe<U> maybeMapOrderConflict(OrderConflict<T> oc) { return Maybe.nothing(); };
 	protected <L> Maybe<U> maybeMapUnaryViolation(IUnaryViolation<T,L> uv) { return Maybe.nothing(); };
+	protected <L> Maybe<U> maybeMapBinaryViolation(IBinaryViolation<T,L> uv) { return Maybe.nothing(); };
 
 	/* (non-Javadoc)
 	 * @see edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor#visitIllegalFlow(edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow)
@@ -69,6 +70,10 @@ public abstract class ViolationPartialMapper<T,U> implements IViolationVisitor<T
 	@Override
 	public <L> void visitUnaryViolation(IUnaryViolation<T, L> unVio) {
 		lastResult = maybeMapUnaryViolation(unVio);
+	}
+	@Override
+	public <L> void visitBinaryViolation(IBinaryViolation<T, L> binVio) {
+		lastResult = maybeMapBinaryViolation(binVio);
 	}
 
 }

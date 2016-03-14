@@ -18,4 +18,5 @@ public interface IViolationVisitor<T> {
 	public void visitDataConflict(DataConflict<T> dataConf);
 	public void visitOrderConflict(OrderConflict<T> orderConf);
 	public <L> void visitUnaryViolation(IUnaryViolation<T,L> unVio);
+	public <L> void visitBinaryViolation(IBinaryViolation<T,L> binVio);
 }

@@ -27,7 +27,7 @@ import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
  * 
  * @author giffhorn
  */
-public class ProbabilisticNIChecker extends IFC {
+public class ProbabilisticNIChecker extends IFC<String> {
 
 	//private final MHPAnalysis mhp;
 
@@ -77,7 +77,7 @@ public class ProbabilisticNIChecker extends IFC {
 	 */
 	public Collection<? extends IViolation<SecurityNode>> checkIFlow() throws NotInLatticeException {
 		Collection<IViolation<SecurityNode>> ret = new LinkedList<IViolation<SecurityNode>>(); // list to be returned
-		IFC is = new BarrierIFCSlicer(g, l);
+		IFC<String> is = new BarrierIFCSlicer(g, l);
 		
 		if (timeSens) {
 			is = new TimeSensitiveIFCDecorator(is);

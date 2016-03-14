@@ -38,7 +38,7 @@ import edu.kit.joana.ifc.sdg.lattice.WrongLatticeDefinitionException;
  *
  * @author giffhorn
  */
-public abstract class IFC implements ProgressListener, ProgressAnnouncer {
+public abstract class IFC<L> implements ProgressListener, ProgressAnnouncer {
 	
 	
 	
@@ -47,7 +47,7 @@ public abstract class IFC implements ProgressListener, ProgressAnnouncer {
     // der SDG
 	protected SDG g;
     // der lattice
-	protected IStaticLattice<String> l;
+	protected IStaticLattice<L> l;
 
 
     /** Berechnet, ob der SDG noninterferent ist und aktualisiert die Progressbar.
@@ -64,7 +64,7 @@ public abstract class IFC implements ProgressListener, ProgressAnnouncer {
      * @param sdg       Ein SDG
      * @param lattice   Ein Sicherheitsverband
      */
-	public IFC(SDG sdg, IStaticLattice<String> lattice) {
+	public IFC(SDG sdg, IStaticLattice<L> lattice) {
 		this.l = lattice;
 	    this.g = sdg;
 	}
@@ -73,40 +73,15 @@ public abstract class IFC implements ProgressListener, ProgressAnnouncer {
 		return g;
 	}
 
-	public IStaticLattice<String> getLattice() {
+	public IStaticLattice<L> getLattice() {
 		return l;
-	}
-
-    /** Erzeugt eine neue Instanz
-     *
-     * @param sdg       Eine Datei, die einen SDG enthaelt
-     * @param lattice   Eine Datei, die einen Sicherheitsverband enthaelt
-     *
-     * @throws WrongLatticeDefinitionException
-     * @throws IOException
-     */
-	public IFC(File sdg, File lattice) throws WrongLatticeDefinitionException, IOException {
-		setLattice(lattice);
-		setSDG(sdg);
-	}
-
-
-    /** Zur Wiederverwendung mit neuem Verband.
-     *
-     * @param lattice   Eine Datei, die einen Verband enthaelt.
-     *
-     * @throws WrongLatticeDefinitionException
-     * @throws IOException
-     */
-	public void setLattice(File lattice) throws WrongLatticeDefinitionException, IOException {
-		this.l = LatticeUtil.compileBitsetLattice(new FileInputStream(lattice));
 	}
 
     /** Zur Wiederverwendung mit neuem Verband.
      *
      * @param lattice   Ein Verband.
      */
-    public void setLattice(IStaticLattice<String> lattice) {
+    public void setLattice(IStaticLattice<L> lattice) {
         this.l = lattice;
     }
 

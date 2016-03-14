@@ -42,7 +42,7 @@ import edu.kit.joana.ifc.sdg.lattice.WrongLatticeDefinitionException;
  * Other approaches:
  * secure --(secure to normal)--> normal --(normal to public)--> public
  */
-public class IntransitiveIFCChecker extends IFC {
+public class IntransitiveIFCChecker extends IFC<String> {
 	private static final boolean TIME = false;
 	private static final boolean TIME_VIO = false;
 
@@ -50,11 +50,6 @@ public class IntransitiveIFCChecker extends IFC {
 	private Collection<SecurityNode> declass;
 
 	public IntransitiveIFCChecker(SDG sdg, IStaticLattice<String> lattice) {
-		super(sdg, lattice);
-		initBarrierChopper();
-	}
-
-	public IntransitiveIFCChecker(File sdg, File lattice) throws WrongLatticeDefinitionException, IOException {
 		super(sdg, lattice);
 		initBarrierChopper();
 	}

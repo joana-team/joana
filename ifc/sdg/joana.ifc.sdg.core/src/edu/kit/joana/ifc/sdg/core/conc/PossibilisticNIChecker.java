@@ -7,8 +7,6 @@
  */
 package edu.kit.joana.ifc.sdg.core.conc;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 
 import edu.kit.joana.ifc.sdg.core.IFC;
@@ -16,7 +14,6 @@ import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
-import edu.kit.joana.ifc.sdg.lattice.WrongLatticeDefinitionException;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 
@@ -27,7 +24,7 @@ import edu.kit.joana.util.Logger;
  *
  * @author giffhorn
  */
-public class PossibilisticNIChecker extends IFC {
+public class PossibilisticNIChecker extends IFC<String> {
 
 	private final Logger debug = Log.getLogger(Log.L_SDG_INTERFERENCE_DEBUG);
 	
@@ -37,18 +34,6 @@ public class PossibilisticNIChecker extends IFC {
      * @param lattice   Ein Sicherheitsverband
      */
     public PossibilisticNIChecker(SDG sdg, IStaticLattice<String> lattice) {
-        super(sdg, lattice);
-    }
-
-    /** Erzeugt eine neue Instanz
-     *
-     * @param sdg       Eine Datei, die einen SDG enthaelt
-     * @param lattice   Eine Datei, die einen Sicherheitsverband enthaelt
-     *
-     * @throws WrongLatticeDefinitionException
-     * @throws IOException
-     */
-    public PossibilisticNIChecker(File sdg, File lattice) throws WrongLatticeDefinitionException, IOException {
         super(sdg, lattice);
     }
 

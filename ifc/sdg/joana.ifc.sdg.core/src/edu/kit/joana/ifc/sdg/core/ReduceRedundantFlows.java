@@ -31,12 +31,12 @@ import edu.kit.joana.util.Maybe;
  * To identify a flow as redundant, barrier slicing is applied.
  * @author Martin Mohr
  */
-public class ReduceRedundantFlows extends IFC {
+public class ReduceRedundantFlows extends IFC<String> {
 	
-	private final IFC baseIFC;
+	private final IFC<String> baseIFC;
 	private final BarrierChopper bs;
 	
-	private ReduceRedundantFlows(IFC baseIFC, BarrierChopper bs) {
+	private ReduceRedundantFlows(IFC<String> baseIFC, BarrierChopper bs) {
 		super(baseIFC.getSDG(), baseIFC.getLattice());
 		this.baseIFC = baseIFC;
 		this.bs = bs;
@@ -81,7 +81,7 @@ public class ReduceRedundantFlows extends IFC {
 	 * @return a redundant-flow-reducing ifc checker for sequential programs, which uses {@link CSBarrierSlicerBackward}
 	 * as barrier slicer.
 	 */
-	public static final IFC makeReducingSequentialIFC(IFC baseIFC) {
+	public static final IFC<String> makeReducingSequentialIFC(IFC<String> baseIFC) {
 		return new ReduceRedundantFlows(baseIFC, new NonSameLevelBarrierChopper(baseIFC.getSDG()));
 	}
 	
@@ -92,7 +92,7 @@ public class ReduceRedundantFlows extends IFC {
 	 * @return a redundant-flow-reducing ifc checker for concurrent programs, which uses {@link I2PBarrierBackward}
 	 * as barrier slicer.
 	 */
-	public static final IFC makeReducingConcurrentIFC(IFC baseIFC) {
+	public static final IFC<String> makeReducingConcurrentIFC(IFC<String> baseIFC) {
 		return new ReduceRedundantFlows(baseIFC, new SimpleThreadBarrierChopper(baseIFC.getSDG()));
 	}
 	

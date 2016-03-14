@@ -26,11 +26,11 @@ import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
  * ifc checkers.
  * @author Martin Mohr
  */
-public class TimeSensitiveIFCDecorator extends IFC {
+public class TimeSensitiveIFCDecorator extends IFC<String> {
 	
-	private final IFC baseIFC;
+	private final IFC<String> baseIFC;
 	
-	public TimeSensitiveIFCDecorator(IFC baseIFC) {
+	public TimeSensitiveIFCDecorator(IFC<String> baseIFC) {
 		super(baseIFC.getSDG(), baseIFC.getLattice());
 		this.baseIFC = baseIFC;
 	}

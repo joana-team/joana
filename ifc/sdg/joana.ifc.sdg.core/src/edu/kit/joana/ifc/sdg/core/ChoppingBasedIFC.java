@@ -30,7 +30,7 @@ import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
  * Also, there is no support for declassification, unless the provided chopper is configured appropriately.
  * @author Martin Mohr
  */
-public class ChoppingBasedIFC extends IFC {
+public class ChoppingBasedIFC extends IFC<String> {
 	
 	private final Chopper chopper;
 	

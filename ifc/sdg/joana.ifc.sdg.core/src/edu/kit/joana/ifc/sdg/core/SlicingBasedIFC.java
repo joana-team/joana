@@ -39,7 +39,7 @@ import edu.kit.joana.util.Logger;
  * Also, there is no support for declassification, unless the provided chopper is configured appropriately.
  * @author Martin Mohr
  */
-public class SlicingBasedIFC extends IFC {
+public class SlicingBasedIFC extends IFC<String> {
 
 	private static final Logger DEBUG = Log.getLogger(Log.L_IFC_DEBUG);
 

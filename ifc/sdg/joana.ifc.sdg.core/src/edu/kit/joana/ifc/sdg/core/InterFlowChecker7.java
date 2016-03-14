@@ -47,18 +47,13 @@ import edu.kit.joana.ifc.sdg.lattice.WrongLatticeDefinitionException;
  * NodeB's Incoming Class is lower than NodeA's Outgoing Class
  *
  */
-public class InterFlowChecker7 extends IFC {
+public class InterFlowChecker7 extends IFC<String> {
 	private static final boolean TIME = false;
 	private static final boolean TIME_VIO = false;
 
 	public InterFlowChecker7(SDG sdg, IStaticLattice<String> lattice) {
 		super(sdg, lattice);
 	}
-
-	public InterFlowChecker7(File sdg, File lattice) throws WrongLatticeDefinitionException, IOException {
-		super(sdg, lattice);
-	}
-
 
 	/**
 	 * Determines security violations by applying slicing to all 'outgoing' and

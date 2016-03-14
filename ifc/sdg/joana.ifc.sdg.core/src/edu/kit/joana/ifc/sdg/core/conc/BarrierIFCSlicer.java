@@ -33,7 +33,7 @@ import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
  *
  * @author giffhorn
  */
-public class BarrierIFCSlicer extends IFC implements ProgressAnnouncer {
+public class BarrierIFCSlicer extends IFC<String> implements ProgressAnnouncer {
 	
     private ArrayList<ProgressListener> pls = new ArrayList<ProgressListener>();
     private HashMap<SDGEdge, Set<Rule>> summaryDeclass;  // deklassifikationen an den summary-kanten

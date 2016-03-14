@@ -18,16 +18,15 @@ import edu.kit.joana.ifc.sdg.core.violations.ViolationTranslator;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
-import edu.kit.joana.ifc.sdg.lattice.WrongLatticeDefinitionException;
 
 /**
  * @author Martin Mohr
  */
-public class ClassifyingIFC extends IFC {
+public class ClassifyingIFC extends IFC<String> {
 
-	private final IFC ifc;
+	private final IFC<String> ifc;
 
-	public ClassifyingIFC(IFC ifc) {
+	public ClassifyingIFC(IFC<String> ifc) {
 		super(ifc.getSDG(), ifc.getLattice());
 		this.ifc = ifc;
 	}
@@ -55,24 +54,6 @@ public class ClassifyingIFC extends IFC {
 	 */
 	public IStaticLattice<String> getLattice() {
 		return ifc.getLattice();
-	}
-
-	/**
-	 * @param lattice
-	 * @throws WrongLatticeDefinitionException
-	 * @throws IOException
-	 * @see edu.kit.joana.ifc.sdg.core.IFC#setLattice(java.io.File)
-	 */
-	public void setLattice(File lattice) throws WrongLatticeDefinitionException, IOException {
-		ifc.setLattice(lattice);
-	}
-
-	/**
-	 * @param lattice
-	 * @see edu.kit.joana.ifc.sdg.core.IFC#setLattice(edu.kit.joana.ifc.sdg.lattice.IStaticLattice)
-	 */
-	public void setLattice(IStaticLattice<String> lattice) {
-		ifc.setLattice(lattice);
 	}
 
 	/**

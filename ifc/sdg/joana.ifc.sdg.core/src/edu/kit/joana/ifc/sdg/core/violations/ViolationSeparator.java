@@ -25,6 +25,7 @@ public class ViolationSeparator<T> implements IViolationVisitor<T> {
 	private Collection<IIllegalFlow<T>> iFlows = new LinkedList<IIllegalFlow<T>>();
 	private Collection<DataConflict<T>> dConfs = new LinkedList<DataConflict<T>>();
 	private Collection<OrderConflict<T>> oConfs = new LinkedList<OrderConflict<T>>();
+	private Collection<IUnaryViolation<T,?>> unVios = new LinkedList<IUnaryViolation<T,?>>();
  	
 	/* (non-Javadoc)
 	 * @see edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor#visitIllegalFlow(edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow)
@@ -50,6 +51,13 @@ public class ViolationSeparator<T> implements IViolationVisitor<T> {
 		oConfs.add(orderConf);
 	}
 	
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor#visitUnaryViolation(edu.kit.joana.ifc.sdg.core.violations.IUnaryViolation)
+	 */
+	@Override
+	public <L> void visitUnaryViolation(IUnaryViolation<T, L> unVio) {
+		unVios.add(unVio);
+	}
 	/**
 	 * Separates the given collection of violations into the different groups. Use
 	 * appropriate getter method to access the individual groups.

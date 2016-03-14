@@ -17,4 +17,5 @@ public interface IViolationVisitor<T> {
 	public void visitIllegalFlow(IIllegalFlow<T> iFlow);
 	public void visitDataConflict(DataConflict<T> dataConf);
 	public void visitOrderConflict(OrderConflict<T> orderConf);
+	public <L> void visitUnaryViolation(IUnaryViolation<T,L> unVio);
 }

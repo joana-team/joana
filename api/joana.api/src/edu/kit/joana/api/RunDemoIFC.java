@@ -36,6 +36,7 @@ import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.conc.DataConflict;
 import edu.kit.joana.ifc.sdg.core.conc.OrderConflict;
 import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
+import edu.kit.joana.ifc.sdg.core.violations.IUnaryViolation;
 import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor;
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -179,6 +180,11 @@ public final class RunDemoIFC {
 					slice.add(ssink);
 					final SLeak sleak = new SLeak(ssource, ssink, reason, slice);
 					sleaks.add(sleak);
+				}
+
+				@Override
+				public <L> void visitUnaryViolation(IUnaryViolation<SecurityNode, L> unVio) {
+					throw new UnsupportedOperationException("IUnaryViolations are not supported yet (only occur with iRLSOD and not with RLSOD or CLASSICAL_NI).");
 				}
 			});
 		}

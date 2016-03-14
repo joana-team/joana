@@ -116,7 +116,7 @@ public interface IFCCheckResultConsumer {
 
 	public static enum Reason { 
 		DIRECT_FLOW(1), INDIRECT_FLOW(2), BOTH_FLOW(3), EXCEPTION(4), THREAD(5), THREAD_DATA(6), THREAD_ORDER(7),
-		THREAD_EXCEPTION(8);
+		THREAD_EXCEPTION(8), UNKNOWN(9);
 
 		public final int importance;
 	

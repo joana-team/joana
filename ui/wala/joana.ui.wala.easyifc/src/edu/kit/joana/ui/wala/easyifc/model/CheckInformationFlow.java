@@ -13,6 +13,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -36,7 +38,9 @@ import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.conc.DataConflict;
 import edu.kit.joana.ifc.sdg.core.conc.OrderConflict;
+import edu.kit.joana.ifc.sdg.core.violations.IBinaryViolation;
 import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
+import edu.kit.joana.ifc.sdg.core.violations.IUnaryViolation;
 import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor;
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -554,6 +558,23 @@ public final class CheckInformationFlow {
 					chop.add(ssink);
 					final SLeak sleak = new SLeak(ssource, ssink,
 							(reason == Reason.THREAD ? Reason.THREAD_DATA : reason), chop);
+					sleaks.add(sleak);
+				}
+
+				@Override
+				public <L> void visitUnaryViolation(IUnaryViolation<SecurityNode, L> unVio) {
+					SLeak sleak = extractSourceLeaks(unVio.getNode(), unVio.getNode(), reason, Collections.<SDGNode>singleton(unVio.getNode()));
+					assert sleak != null;
+					sleaks.add(sleak);
+				}
+
+				@Override
+				public <L> void visitBinaryViolation(IBinaryViolation<SecurityNode, L> binVio) {
+					HashSet<SDGNode> chop = new HashSet<SDGNode>();
+					chop.add(binVio.getNode());
+					chop.add(binVio.getInfluencedBy());
+					SLeak sleak = extractSourceLeaks(binVio.getInfluencedBy(), binVio.getNode(), reason, chop);
+					assert sleak != null;
 					sleaks.add(sleak);
 				}
 			});

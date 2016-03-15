@@ -140,6 +140,9 @@
 			<fileset dir="${joana.ifc.sdg.core.base.dir}/src">
 				<filename name="**/*.java" />
 			</fileset>
+			<fileset dir="${joana.ifc.sdg.irlsod.base.dir}/src">
+				<filename name="**/*.java" />
+			</fileset>
 			<fileset dir="${joana.ifc.sdg.graph.base.dir}/src">
 				<filename name="**/*.java" />
 			</fileset>

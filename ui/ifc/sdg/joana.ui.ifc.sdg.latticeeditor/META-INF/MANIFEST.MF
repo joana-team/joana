@@ -12,7 +12,7 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.gef;bundle-version="3.5.0",
  joana.ifc.sdg.core;bundle-version="3.3.0"
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-Vendor: Karlsruhe Institute of Technology, Programming Paradigms Group
 Export-Package: edu.kit.joana.ui.ifc.sdg.latticeeditor,
  edu.kit.joana.ui.ifc.sdg.latticeeditor.actions,

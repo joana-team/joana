@@ -13,4 +13,4 @@ Require-Bundle: joana.wala.flowless;bundle-version="1.0.0",
  joana.contrib.lib;bundle-version="1.0.0",
  joana.ifc.sdg.util;bundle-version="1.0.0",
  joana.util;bundle-version="1.0.0"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8

@@ -7,7 +7,7 @@
 	<classpathentry exported="true" kind="lib" path="jutil.jar"/>
 	<classpathentry exported="true" kind="lib" path="trove-3.0.0a3.jar"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
 	<classpathentry kind="lib" path="logback-classic-1.0.9.jar"/>
 	<classpathentry kind="lib" path="logback-core-1.0.9.jar"/>
 	<classpathentry kind="output" path="bin"/>

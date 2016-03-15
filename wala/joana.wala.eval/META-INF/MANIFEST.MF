@@ -14,4 +14,4 @@ Require-Bundle: joana.contrib.lib;bundle-version="1.0.0",
  joana.wala.jsdg;bundle-version="1.0.0",
  joana.wala.dictionary;bundle-version="1.0.0",
  joana.deprecated.jsdg;bundle-version="0.0.2"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8

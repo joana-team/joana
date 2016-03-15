@@ -23,5 +23,5 @@ Require-Bundle: org.eclipse.core.runtime,
  joana.contrib.lib;bundle-version="1.0.0",
  joana.util;bundle-version="1.0.0"
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: edu.kit.joana.ui.ifc.sdg.gui

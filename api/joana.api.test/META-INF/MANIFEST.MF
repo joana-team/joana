@@ -4,5 +4,5 @@ Bundle-Name: Test
 Bundle-SymbolicName: joana.api.test
 Bundle-Version: 1.0.0.qualifier
 Export-Package: .
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: joana.contrib.lib;bundle-version="1.0.0"

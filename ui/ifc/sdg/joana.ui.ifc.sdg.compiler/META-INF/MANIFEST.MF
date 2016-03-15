@@ -14,4 +14,4 @@ Bundle-ClassPath: lib/javac.jar,lib/tools.jar,
  .
 Export-Package: edu.kit.joana.ui.ifc.sdg.compiler
 Bundle-Vendor: Karlsruhe Institute of Technology, Programming Paradigms Group
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8

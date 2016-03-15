@@ -19,4 +19,4 @@ Require-Bundle: org.eclipse.jdt.core,
  joana.deprecated.jsdg.gui;bundle-version="0.0.1"
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: Karlsruhe Institute of Technology, Programming Paradigms Group
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8

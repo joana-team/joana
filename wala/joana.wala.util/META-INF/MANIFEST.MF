@@ -5,7 +5,7 @@ Bundle-SymbolicName: joana.wala.util;singleton:=true
 Bundle-Version: 0.0.1
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: Juergen Graf
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ClassPath: .
 Export-Package: edu.kit.joana.wala.util;
   uses:="org.eclipse.core.runtime,

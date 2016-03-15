@@ -272,16 +272,16 @@ public class TimimgClassificationChecker<L> {
 							pair -> tcfgChopper.chop(pair.getFirst(), pair.getSecond())
 						);
 						chops.computeIfAbsent(
-								Pair.pair(c, m),
-								pair -> tcfgChopper.chop(pair.getFirst(), pair.getSecond())
+							Pair.pair(c, m),
+							pair -> tcfgChopper.chop(pair.getFirst(), pair.getSecond())
 						);
 						List<? extends SDGNode> relevant = Stream.concat(
 							chops.get(Pair.pair(c,n))
 							     .stream()
 							     .filter(timingDependence.get(n)::contains),
 							chops.get(Pair.pair(c,m))
-								     .stream()
-								     .filter(timingDependence.get(m)::contains)
+							     .stream()
+							     .filter(timingDependence.get(m)::contains)
 						).collect(Collectors.toList());
 						
 						for (SDGNode c2 : relevant) {

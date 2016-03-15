@@ -1,4 +1,4 @@
-package edu.kit.joana.ifc.orlsod;
+package edu.kit.joana.ifc.sdg.irlsod;
 
 import java.util.LinkedList;
 import java.util.List;

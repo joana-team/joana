@@ -1,4 +1,4 @@
-package edu.kit.joana.ifc.orlsod;
+package edu.kit.joana.ifc.sdg.irlsod;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.DefaultDirectedGraph;

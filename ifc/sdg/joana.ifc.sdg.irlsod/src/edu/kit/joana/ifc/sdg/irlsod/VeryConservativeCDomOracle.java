@@ -1,4 +1,4 @@
-package edu.kit.joana.ifc.orlsod;
+package edu.kit.joana.ifc.sdg.irlsod;
 
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;

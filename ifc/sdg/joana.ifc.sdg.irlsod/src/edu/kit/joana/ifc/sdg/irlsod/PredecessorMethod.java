@@ -1,3 +1,3 @@
-package edu.kit.joana.ifc.orlsod;
+package edu.kit.joana.ifc.sdg.irlsod;
 
 public enum PredecessorMethod { SLICE, EDGE }

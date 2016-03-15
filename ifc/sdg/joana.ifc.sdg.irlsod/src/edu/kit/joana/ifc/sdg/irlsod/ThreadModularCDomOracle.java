@@ -92,7 +92,8 @@ public class ThreadModularCDomOracle implements ICDomOracle {
 		return tct.incomingEdgesOf(ti).isEmpty();
 	}
 
-	private SDGNode lowestNonDynamicCommonDominator(final SDGNode n1, final SDGNode n2, final Dominators<SDGNode, SDGEdge> dom) {
+	private SDGNode lowestNonDynamicCommonDominator(final SDGNode n1, final SDGNode n2,
+			final Dominators<SDGNode, SDGEdge> dom) {
 		final DFSIntervalOrder<SDGNode, DomEdge> dio = new DFSIntervalOrder<SDGNode, DomEdge>(dom.getDominationTree());
 		SDGNode cur = n1;
 		while (!dio.isLeq(n2, cur)) {

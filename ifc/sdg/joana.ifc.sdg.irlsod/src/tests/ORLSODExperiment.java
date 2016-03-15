@@ -92,8 +92,8 @@ public class ORLSODExperiment {
 		Assert.assertEquals(cfg.expectedNoLowThings, noLowThings);
 		final ThreadModularCDomOracle tmdo = new ThreadModularCDomOracle(sdg);
 		final ProbInfComputer probInf = new ProbInfComputer(sdg, tmdo);
-		final ORLSODChecker<String> checkerPath = new PathBasedORLSODChecker<String>(sdg, BuiltinLattices.getBinaryLattice(),
-				userAnn, probInf);
+		final ORLSODChecker<String> checkerPath = new PathBasedORLSODChecker<String>(sdg,
+				BuiltinLattices.getBinaryLattice(), userAnn, probInf);
 		final int noViosPath = checkerPath.checkIFlow().size();
 		Assert.assertEquals(cfg.expectedNoViolations, noViosPath);
 
@@ -102,11 +102,11 @@ public class ORLSODExperiment {
 		// anayway, it is indeed sufficient to propagate along
 		// sdg edges, instead of propagating all levels in the i2p-slice of a
 		// node.
-		final ORLSODChecker<String> checkerSlice = new ORLSODChecker<String>(sdg, BuiltinLattices.getBinaryLattice(), userAnn,
-				probInf, PredecessorMethod.SLICE);
+		final ORLSODChecker<String> checkerSlice = new ORLSODChecker<String>(sdg, BuiltinLattices.getBinaryLattice(),
+				userAnn, probInf, PredecessorMethod.SLICE);
 		Assert.assertEquals(noViosPath, checkerSlice.checkIFlow().size());
-		final ORLSODChecker<String> checkerEdge = new ORLSODChecker<String>(sdg, BuiltinLattices.getBinaryLattice(), userAnn,
-				probInf, PredecessorMethod.EDGE);
+		final ORLSODChecker<String> checkerEdge = new ORLSODChecker<String>(sdg, BuiltinLattices.getBinaryLattice(),
+				userAnn, probInf, PredecessorMethod.EDGE);
 		Assert.assertEquals(noViosPath, checkerEdge.checkIFlow().size());
 
 	}
@@ -125,10 +125,9 @@ public class ORLSODExperiment {
 	public void testORLSOD_imprecise()
 			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
 		/**
-		 * NOTE: The program is actually secure but ORLSOD by design fails to
-		 * detect this. RLSOD and LSOD deem this program secure (no "normal"
-		 * flows and o low-observable conflict). TODO: add test code which
-		 * proves this silly claim!
+		 * NOTE: The program is actually secure but ORLSOD by design fails to detect this. RLSOD and LSOD deem this
+		 * program secure (no "normal" flows and o low-observable conflict). TODO: add test code which proves this silly
+		 * claim!
 		 */
 		doConfig(new StandardTestConfig("example/bin", "Lorlsod/ORLSODImprecise", "orlsod_imprecise", 1, 1, 1));
 	}
@@ -144,8 +143,8 @@ public class ORLSODExperiment {
 	}
 
 	static class StandardTestConfig extends TestConfig {
-		StandardTestConfig(final String classPath, final String mainClass, final String shortName, final int expectedNoSources,
-				final int expectedNoSinks, final int expectedNoViolations) {
+		StandardTestConfig(final String classPath, final String mainClass, final String shortName,
+				final int expectedNoSources, final int expectedNoSinks, final int expectedNoViolations) {
 			this.progDesc = new ProgDesc(classPath, mainClass);
 			this.outputFiles = new OutputFiles(String.format("%s.dot", shortName), String.format("%s.pdg", shortName));
 			this.srcSelector = new CriterionBasedNodeSelector(FieldAccess.staticRead(mainClass + ".HIGH"));

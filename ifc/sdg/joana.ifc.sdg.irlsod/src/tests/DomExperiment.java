@@ -311,8 +311,9 @@ public class DomExperiment {
 		return icfg;
 	}
 
-	private static <V, E> void runExample(final AbstractCFG<V, E> example, final DOTExporter<V, E> exporterCFG, final String cfFileName,
-			final DOTExporter<V, DefaultEdge> exporterDom, final String dgFileName) throws FileNotFoundException {
+	private static <V, E> void runExample(final AbstractCFG<V, E> example, final DOTExporter<V, E> exporterCFG,
+			final String cfFileName, final DOTExporter<V, DefaultEdge> exporterDom, final String dgFileName)
+					throws FileNotFoundException {
 		final DirectedGraph<V, DefaultEdge> domGraph = makeDomGraph(example);
 		export(example.getUnderlyingGraph(), exporterCFG, cfFileName);
 		export(domGraph, exporterDom, dgFileName);

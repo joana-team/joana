@@ -43,9 +43,8 @@ public class TimimgClassificationCheckerDomPaths<L> extends IFC<L> {
 	protected final PreciseMHPAnalysis mhp;
 
 	/**
-	 * "classical" classification of a node, i.e.: cl(n) == l if * the values of
-	 * variables used ad n, * or whether ("how often") n is executed is
-	 * influences by level l
+	 * "classical" classification of a node, i.e.: cl(n) == l if * the values of variables used ad n, * or whether (
+	 * "how often") n is executed is influences by level l
 	 */
 	protected Map<SDGNode, L> cl;
 
@@ -61,8 +60,9 @@ public class TimimgClassificationCheckerDomPaths<L> extends IFC<L> {
 	 */
 	protected final PredecessorMethod predecessorMethod;
 
-	public TimimgClassificationCheckerDomPaths(final SDG sdg, final IStaticLattice<L> secLattice, final Map<SDGNode, L> userAnn,
-			final PreciseMHPAnalysis mhp, final ICDomOracle cdomOracle, final PredecessorMethod predecessorMethod) {
+	public TimimgClassificationCheckerDomPaths(final SDG sdg, final IStaticLattice<L> secLattice,
+			final Map<SDGNode, L> userAnn, final PreciseMHPAnalysis mhp, final ICDomOracle cdomOracle,
+			final PredecessorMethod predecessorMethod) {
 		super(sdg, secLattice);
 		this.userAnn = userAnn;
 		this.mhp = mhp;

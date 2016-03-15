@@ -94,7 +94,8 @@ public class DynamicityAnalysis {
 	}
 
 	private DirectedGraph<SDGNode, DefaultEdge> extractCallGraph() {
-		final DirectedGraph<SDGNode, DefaultEdge> ret = new DefaultDirectedGraph<SDGNode, DefaultEdge>(DefaultEdge.class);
+		final DirectedGraph<SDGNode, DefaultEdge> ret = new DefaultDirectedGraph<SDGNode, DefaultEdge>(
+				DefaultEdge.class);
 		for (final Map.Entry<SDGNode, Set<SDGNode>> entryAndProc : threadGraph.sortByProcedures().entrySet()) {
 			ret.addVertex(entryAndProc.getKey());
 			for (final SDGNode n : entryAndProc.getValue()) {

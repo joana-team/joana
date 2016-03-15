@@ -118,10 +118,9 @@ public class ORLSODExperimentTiming {
 	public void testORLSOD_imprecise()
 			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
 		/**
-		 * NOTE: The program is actually secure AND TimingClassification does
-		 * detect this RLSOD and LSOD deem this program secure (no "normal"
-		 * flows and o low-observable conflict). TODO: add test code which
-		 * proves this silly claim!
+		 * NOTE: The program is actually secure AND TimingClassification does detect this RLSOD and LSOD deem this
+		 * program secure (no "normal" flows and o low-observable conflict). TODO: add test code which proves this silly
+		 * claim!
 		 */
 		doConfigTiming(new StandardTestConfig("example/bin", "Lorlsod/ORLSODImprecise", "orlsod_imprecise", 1, 1, 0));
 	}

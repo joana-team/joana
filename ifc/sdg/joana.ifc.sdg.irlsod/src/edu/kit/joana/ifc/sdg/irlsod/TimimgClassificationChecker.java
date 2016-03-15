@@ -48,16 +48,14 @@ public class TimimgClassificationChecker<L> extends IFC<L> {
 	protected final PreciseMHPAnalysis mhp;
 
 	/**
-	 * "classical" classification of a node, i.e.: cl(n) == l if * the values of
-	 * variables used ad n, * or whether ("how often") n is executed is
-	 * influences by level l
+	 * "classical" classification of a node, i.e.: cl(n) == l if * the values of variables used ad n, * or whether (
+	 * "how often") n is executed is influences by level l
 	 */
 	protected Map<SDGNode, L> cl;
 
 	/**
-	 * "timing" classification of a pair of node, i.e.: cl(n,m) == l if the
-	 * "relative timing" (which one may be executed before the other) is
-	 * influences by level l
+	 * "timing" classification of a pair of node, i.e.: cl(n,m) == l if the "relative timing" (which one may be executed
+	 * before the other) is influences by level l
 	 */
 	protected Map<Pair<SDGNode, SDGNode>, L> clt;
 
@@ -168,8 +166,8 @@ public class TimimgClassificationChecker<L> extends IFC<L> {
 	 * Solely used to state some assumptions on the sdg
 	 *
 	 * @param n
-	 * @return true iff any INTERFERENCE_WRITE edge from n to some m is matched
-	 *         by an INTERFERENCE_WRITE edge from m to n.
+	 * @return true iff any INTERFERENCE_WRITE edge from n to some m is matched by an INTERFERENCE_WRITE edge from m to
+	 *         n.
 	 */
 	private boolean interferenceWriteUndirected(final SDGNode n) {
 		for (final SDGEdge e : g.getOutgoingEdgesOfKind(n, SDGEdge.Kind.INTERFERENCE_WRITE)) {
@@ -298,7 +296,7 @@ public class TimimgClassificationChecker<L> extends IFC<L> {
 							Pair.pair(c, m),
 							pair -> tcfgChopper.chop(pair.getFirst(), pair.getSecond())
 						);
-						final List<? extends SDGNode> relevant = 
+						final List<? extends SDGNode> relevant =
 							Stream.concat(chops.get(Pair.pair(c, n)).stream().filter(timingDependence.get(n)::contains),
 							              chops.get(Pair.pair(c, m)).stream().filter(timingDependence.get(m)::contains))
 							      .collect(Collectors.toList());

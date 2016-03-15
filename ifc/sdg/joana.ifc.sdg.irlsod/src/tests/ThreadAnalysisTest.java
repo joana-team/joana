@@ -288,7 +288,8 @@ public class ThreadAnalysisTest {
 		return ret;
 	}
 
-	private static ThreadInstance getForker(final ThreadInstance ti, final DirectedGraph<ThreadInstance, ThreadInstanceEdge> tct) {
+	private static ThreadInstance getForker(final ThreadInstance ti,
+			final DirectedGraph<ThreadInstance, ThreadInstanceEdge> tct) {
 		if (tct.containsVertex(ti) && (tct.incomingEdgesOf(ti).size() > 0)) {
 			final ThreadInstanceEdge forkEdge = tct.incomingEdgesOf(ti).iterator().next();
 			return forkEdge.getThread1();

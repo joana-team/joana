@@ -5,9 +5,8 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
 
 /**
- * This cdom oracle chooses the start node of the given cfg as cdom of any two
- * nodes. When plugged into an ORLSOD algorithm, this yields the RLSOD
- * algorithm.
+ * This cdom oracle chooses the start node of the given cfg as cdom of any two nodes. When plugged into an ORLSOD
+ * algorithm, this yields the RLSOD algorithm.
  *
  * @author Martin Mohr&lt;martin.mohr@kit.edu&gt;
  *

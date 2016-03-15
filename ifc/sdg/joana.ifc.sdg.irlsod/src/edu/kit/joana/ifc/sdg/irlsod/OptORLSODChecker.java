@@ -22,18 +22,17 @@ public class OptORLSODChecker<L> extends ORLSODChecker<L> {
 	private final I2PBackward backw;
 
 	/**
-	 * maps each node to all the nodes which must be updated when the security
-	 * level of the node has changed
+	 * maps each node to all the nodes which must be updated when the security level of the node has changed
 	 */
 	private Map<SDGNode, Set<SDGNode>> forwDep;
 
 	/**
-	 * maps each node to the nodes from which the security level of the node can
-	 * be computed
+	 * maps each node to the nodes from which the security level of the node can be computed
 	 */
 	private Map<SDGNode, Set<SDGNode>> backwDep;
 
-	public OptORLSODChecker(final SDG sdg, final IStaticLattice<L> secLattice, final Map<SDGNode, L> userAnn, final ProbInfComputer probInf) {
+	public OptORLSODChecker(final SDG sdg, final IStaticLattice<L> secLattice, final Map<SDGNode, L> userAnn,
+			final ProbInfComputer probInf) {
 		super(sdg, secLattice, userAnn, probInf, null);
 		this.backw = new I2PBackward(sdg);
 	}

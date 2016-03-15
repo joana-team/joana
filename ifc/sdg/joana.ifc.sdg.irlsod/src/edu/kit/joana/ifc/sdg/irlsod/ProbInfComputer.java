@@ -15,12 +15,10 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 
 /**
- * This provides a computation of the probabilistic influencers of a given node.
- * It relies on a function cdom which outputs a common dominator of any two
- * nodes n,m. The set of probabilistic influencers of n (with respect to cdom)
- * is defined as the least with the following property: Let m be a node which
- * may happen in parallel to n and c = cdom(n,m). Any node in the cfg chop
- * between c and n is a probabilistic influencer of n.
+ * This provides a computation of the probabilistic influencers of a given node. It relies on a function cdom which
+ * outputs a common dominator of any two nodes n,m. The set of probabilistic influencers of n (with respect to cdom) is
+ * defined as the least with the following property: Let m be a node which may happen in parallel to n and c =
+ * cdom(n,m). Any node in the cfg chop between c and n is a probabilistic influencer of n.
  *
  * @author Martin Mohr&lt;martin.mohr@kit.edu&gt;
  *

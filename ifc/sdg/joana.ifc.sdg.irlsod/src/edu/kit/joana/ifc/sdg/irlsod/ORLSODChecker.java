@@ -37,13 +37,12 @@ public class ORLSODChecker<L> extends IFC<L> {
 	protected Map<SDGNode, L> cl;
 
 	/**
-	 * When propagation security levels along the SDG (step "2.a"), use the
-	 * whole slice, or just the sdg predecessors
+	 * When propagation security levels along the SDG (step "2.a"), use the whole slice, or just the sdg predecessors
 	 **/
 	protected final PredecessorMethod predecessorMethod;
 
-	public ORLSODChecker(final SDG sdg, final IStaticLattice<L> secLattice, final Map<SDGNode, L> userAnn, final ProbInfComputer probInf,
-			final PredecessorMethod predecessorMethod) {
+	public ORLSODChecker(final SDG sdg, final IStaticLattice<L> secLattice, final Map<SDGNode, L> userAnn,
+			final ProbInfComputer probInf, final PredecessorMethod predecessorMethod) {
 		super(sdg, secLattice);
 		this.sdg = sdg;
 		this.secLattice = secLattice;

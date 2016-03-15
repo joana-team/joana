@@ -147,7 +147,8 @@ public class JoanaRunner {
 		pw.close();
 	}
 
-	public static DirectedGraph<ThreadInstance, DefaultEdge> buildThreadCreationTree(final ThreadsInformation threadInfo) {
+	public static DirectedGraph<ThreadInstance, DefaultEdge> buildThreadCreationTree(
+			final ThreadsInformation threadInfo) {
 		final DirectedGraph<ThreadInstance, DefaultEdge> tct = new DefaultDirectedGraph<ThreadInstance, DefaultEdge>(
 				DefaultEdge.class);
 		for (final ThreadInstance ti1 : threadInfo) {
@@ -209,8 +210,8 @@ public class JoanaRunner {
 
 	private static boolean isCallCallRetEdge(final SDGEdge e) {
 		// @formatter:off
-		return     e.getKind() == SDGEdge.Kind.CONTROL_FLOW
-				&& e.getSource().getKind() == SDGNode.Kind.CALL
+		return     (e.getKind() == SDGEdge.Kind.CONTROL_FLOW)
+				&& (e.getSource().getKind() == SDGNode.Kind.CALL)
 				&& BytecodeLocation.isCallRetNode(e.getTarget());
 		// @formatter:on
 	}

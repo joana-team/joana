@@ -3,14 +3,19 @@ package edu.kit.joana.ifc.orlsod;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.jgrapht.alg.TransitiveClosure;
-
+import edu.kit.joana.ifc.sdg.core.IFC;
+import edu.kit.joana.ifc.sdg.core.SecurityNode;
+import edu.kit.joana.ifc.sdg.core.conc.OrderConflict;
+import edu.kit.joana.ifc.sdg.core.violations.ConflictEdge;
+import edu.kit.joana.ifc.sdg.core.violations.IViolation;
+import edu.kit.joana.ifc.sdg.core.violations.UnaryViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -21,17 +26,11 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
+import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.maps.MapUtils;
 
-public class TimimgClassificationChecker<L> {
-
-	/** the lattice which provides the security levels we annotate nodes with */
-	protected final IStaticLattice<L> secLattice;
-
-	/** the SDG we want to check */
-	protected final SDG sdg;
-
+public class TimimgClassificationChecker<L> extends IFC<L> {
 	/** user-provided annotations */
 	protected final Map<SDGNode, L> userAnn;
 
@@ -73,8 +72,7 @@ public class TimimgClassificationChecker<L> {
 	protected final PredecessorMethod predecessorMethod;
 	
 	public TimimgClassificationChecker(SDG sdg, IStaticLattice<L> secLattice, Map<SDGNode, L> userAnn, PreciseMHPAnalysis mhp, ICDomOracle cdomOracle, PredecessorMethod predecessorMethod) {
-		this.sdg = sdg;
-		this.secLattice = secLattice;
+		super(sdg, secLattice);
 		this.userAnn = userAnn;
 		this.mhp = mhp;
 		this.cdomOracle = cdomOracle;
@@ -133,11 +131,11 @@ public class TimimgClassificationChecker<L> {
 
 	protected Map<SDGNode, L> initCL() {
 		Map<SDGNode, L> ret = new HashMap<SDGNode, L>();
-		for (SDGNode n : sdg.vertexSet()) {
+		for (SDGNode n : g.vertexSet()) {
 			if (userAnn.containsKey(n)) {
 				ret.put(n, userAnn.get(n));
 			} else {
-				ret.put(n, secLattice.getBottom());
+				ret.put(n, l.getBottom());
 			}
 		}
 		return ret;
@@ -147,7 +145,7 @@ public class TimimgClassificationChecker<L> {
 		Map<Pair<SDGNode,SDGNode>, L> ret = new HashMap<>();
 		for (SDGNode n : icfg.vertexSet()) {
 			for (SDGNode m : icfg.vertexSet()) {
-				if (mhp.isParallel(m, n)) ret.put(Pair.pair(n,m), secLattice.getBottom());
+				if (mhp.isParallel(m, n)) ret.put(Pair.pair(n,m), l.getBottom());
 			}
 		}
 		return ret;
@@ -170,9 +168,9 @@ public class TimimgClassificationChecker<L> {
 	 * INTERFERENCE_WRITE edge from m to n.
 	 */
 	private boolean interferenceWriteUndirected(SDGNode n) {
-		for (SDGEdge e : sdg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.INTERFERENCE_WRITE) ) {
+		for (SDGEdge e : g.getOutgoingEdgesOfKind(n, SDGEdge.Kind.INTERFERENCE_WRITE) ) {
 			boolean found = false;
-			for (SDGEdge e2 : sdg.getOutgoingEdgesOfKind(e.getTarget(), SDGEdge.Kind.INTERFERENCE_WRITE)) {
+			for (SDGEdge e2 : g.getOutgoingEdgesOfKind(e.getTarget(), SDGEdge.Kind.INTERFERENCE_WRITE)) {
 				if (e2.getTarget().equals(n)) found = true;
 			}
 			return found;
@@ -180,8 +178,10 @@ public class TimimgClassificationChecker<L> {
 		return true;
 	}
 	
-	public int check() {
-		I2PBackward backw = new I2PBackward(sdg);
+	
+	@Override
+	public Collection<? extends IViolation<SecurityNode>> checkIFlow() throws NotInLatticeException {
+		I2PBackward backw = new I2PBackward(g);
 		// 1.) initialize classification: we go from the bottom up, so every node is classified as low initially
 		// except for the sources: They are classified with the user-annotated source level
 		cl  = initCL();
@@ -191,21 +191,21 @@ public class TimimgClassificationChecker<L> {
 		boolean change;
 		do {
 			change = false;
-			for (SDGNode n : sdg.vertexSet()) {
+			for (SDGNode n : g.vertexSet()) {
 				L oldLevel = cl.get(n);
 				// nothing changes if current level is top already
-				if (secLattice.getTop().equals(oldLevel)) continue;
+				if (l.getTop().equals(oldLevel)) continue;
 				L newLevel = oldLevel;
 
 				// 2a.) propagate from sdg predecessors
 				final Collection<SDGNode> predecessors;
 				switch (predecessorMethod) {
 					case EDGE:
-						predecessors = sdg.incomingEdgesOf(n)
-						                  .stream()
-						                  .filter((e) -> e.getKind().isSDGEdge())
-						                  .map(SDGEdge::getSource)
-						                  .collect(Collectors.toSet());
+						predecessors = g.incomingEdgesOf(n)
+						                .stream()
+						                .filter((e) -> e.getKind().isSDGEdge())
+						                .map(SDGEdge::getSource)
+						                .collect(Collectors.toSet());
 						System.out.println(String.format("BS(%s) = %s", n, predecessors));
 						break;
 					case SLICE:
@@ -215,8 +215,8 @@ public class TimimgClassificationChecker<L> {
 					default : throw new IllegalArgumentException(predecessorMethod.toString());
 				}
 				for (SDGNode m : predecessors) {
-					newLevel = secLattice.leastUpperBound(newLevel, cl.get(m));
-					if (secLattice.getTop().equals(newLevel)) {
+					newLevel = l.leastUpperBound(newLevel, cl.get(m));
+					if (l.getTop().equals(newLevel)) {
 						break; // we can abort the loop here - level cannot get any higher
 					}
 				}
@@ -231,18 +231,18 @@ public class TimimgClassificationChecker<L> {
 				// TODO: find out if the situation is the same for INTERFERENCE_WRITE.
 				assert(interferenceWriteUndirected(n));
 				
-				for (SDGEdge e : sdg.getIncomingEdgesOfKind(n, SDGEdge.Kind.INTERFERENCE)) {
+				for (SDGEdge e : g.getIncomingEdgesOfKind(n, SDGEdge.Kind.INTERFERENCE)) {
 					final SDGNode m = e.getSource();
 					if (!mhp.isParallel(n, m)) continue;
-					newLevel = secLattice.leastUpperBound(newLevel, clt.get(Pair.pair(n, m)));
-					if (secLattice.getTop().equals(newLevel)) {
+					newLevel = l.leastUpperBound(newLevel, clt.get(Pair.pair(n, m)));
+					if (l.getTop().equals(newLevel)) {
 						break; // we can abort the loop here - level cannot get any higher
 					}
 				}
-				for (SDGEdge e : sdg.getIncomingEdgesOfKind(n, SDGEdge.Kind.INTERFERENCE_WRITE)) {
+				for (SDGEdge e : g.getIncomingEdgesOfKind(n, SDGEdge.Kind.INTERFERENCE_WRITE)) {
 					final SDGNode m = e.getSource();
-					newLevel = secLattice.leastUpperBound(newLevel, clt.get(Pair.pair(n, m)));
-					if (secLattice.getTop().equals(newLevel)) {
+					newLevel = l.leastUpperBound(newLevel, clt.get(Pair.pair(n, m)));
+					if (l.getTop().equals(newLevel)) {
 						break; // we can abort the loop here - level cannot get any higher
 					}
 				}
@@ -255,7 +255,7 @@ public class TimimgClassificationChecker<L> {
 			for (Pair<SDGNode,SDGNode> nm : clt.keySet()) {
 				L oldLevel = clt.get(nm);
 				// nothing changes if current level is top already
-				if (secLattice.getTop().equals(oldLevel)) continue;
+				if (l.getTop().equals(oldLevel)) continue;
 				L newLevel = oldLevel;
 				
 				final SDGNode n = nm.getFirst();
@@ -285,8 +285,8 @@ public class TimimgClassificationChecker<L> {
 						).collect(Collectors.toList());
 						
 						for (SDGNode c2 : relevant) {
-							newLevel = secLattice.leastUpperBound(newLevel, cl.get(c2));
-							if (secLattice.getTop().equals(newLevel)) {
+							newLevel = l.leastUpperBound(newLevel, cl.get(c2));
+							if (l.getTop().equals(newLevel)) {
 								break; // we can abort the loop here - level cannot get any higher
 							}
 						}
@@ -311,35 +311,34 @@ public class TimimgClassificationChecker<L> {
 		return checkCompliance();
 	}
 
-	protected final int checkCompliance() {
-		boolean compliant = true;
-		int noViolations = 0;
-		for (Map.Entry<SDGNode, L> snkEntry : userAnn.entrySet()) {
-			SDGNode s = snkEntry.getKey();
-			L snkLevel = snkEntry.getValue();
-			if (!LatticeUtil.isLeq(secLattice, cl.get(s), snkLevel)) {
-				System.out.println("Violation at node " + s + ": user-annotated level is " + snkLevel + ", computed level is " + cl.get(s));
-				noViolations++;
-				compliant = false;
+	protected final Collection<? extends IViolation<SecurityNode>> checkCompliance() {
+		LinkedList<IViolation<SecurityNode>> violations = new LinkedList<>();
+		for (Map.Entry<SDGNode, L> obsEntry : userAnn.entrySet()) {
+			final SDGNode obs = obsEntry.getKey();
+			final L obsLevel = obsEntry.getValue();
+			if (!LatticeUtil.isLeq(l, cl.get(obs), obsLevel)) {
+				violations.add(new UnaryViolation<SecurityNode, L>(new SecurityNode(obs), obsLevel, cl.get(obs)));
 			}
 		}
 		for (Pair<SDGNode,SDGNode> nm : clt.keySet()) {
 			final SDGNode n = nm.getFirst();
 			final SDGNode m = nm.getSecond();
-			if(userAnn.containsKey(n) && userAnn.containsKey(m) && (
-			      !LatticeUtil.isLeq(secLattice, clt.get(nm), userAnn.get(n))
-			   || !LatticeUtil.isLeq(secLattice, clt.get(nm), userAnn.get(m)))
-			){
-				System.out.println("Violation at nodes " + nm + ": user-annotated levels are (" +
-			                       userAnn.get(n) + ", "+ userAnn.get(m) + "), " +
-				                   "but their relative timing is classified " + clt.get(nm));
-				noViolations++;
-				compliant = false;
+			
+			if(userAnn.containsKey(n) && userAnn.containsKey(m)) {
+				final L attackerLevel = l.greatestLowerBound(userAnn.get(n), userAnn.get(m));
+				if (!LatticeUtil.isLeq(l, clt.get(nm), attackerLevel)) {
+					violations.add(
+						new OrderConflict<SecurityNode>(
+							new ConflictEdge<SecurityNode>(
+								new SecurityNode(n),
+								new SecurityNode(m)
+							),
+							attackerLevel.toString()
+						)
+					);
+				}
 			}
 		}
-		if (compliant) {
-			System.out.println("no violations found.");
-		}
-		return noViolations;
+		return violations;
 	}
 }

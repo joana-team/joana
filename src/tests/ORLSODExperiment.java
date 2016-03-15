@@ -95,16 +95,16 @@ public class ORLSODExperiment {
 		ThreadModularCDomOracle tmdo = new ThreadModularCDomOracle(sdg);
 		ProbInfComputer probInf = new ProbInfComputer(sdg, tmdo);
 		ORLSODChecker<String> checkerPath = new PathBasedORLSODChecker<String>(sdg, BuiltinLattices.getBinaryLattice(), userAnn, probInf);
-		final int noViosPath = checkerPath.check();
+		final int noViosPath = checkerPath.checkIFlow().size();
 		Assert.assertEquals(cfg.expectedNoViolations, noViosPath);
 
 		// The optimization finds exactly the same number of violations.
 		// Also, because the classification Map cl is context-insensitive anayway, it is indeed sufficient to propagate along
 		// sdg edges, instead of propagating all levels in the i2p-slice of a node.
 		ORLSODChecker<String> checkerSlice = new ORLSODChecker<String>(sdg, BuiltinLattices.getBinaryLattice(), userAnn, probInf, PredecessorMethod.SLICE);
-		Assert.assertEquals(noViosPath, checkerSlice.check());
+		Assert.assertEquals(noViosPath, checkerSlice.checkIFlow().size());
 		ORLSODChecker<String> checkerEdge = new ORLSODChecker<String>(sdg, BuiltinLattices.getBinaryLattice(), userAnn, probInf, PredecessorMethod.EDGE);
-		Assert.assertEquals(noViosPath, checkerEdge.check());
+		Assert.assertEquals(noViosPath, checkerEdge.checkIFlow().size());
 
 	}
 

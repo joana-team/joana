@@ -20,22 +20,24 @@ import edu.kit.joana.wala.core.graphs.Dominators.DomEdge;
 
 public class ClassicCDomOracle implements ICDomOracle {
 
-	private Dominators<SDGNode, SDGEdge> dom;
-	private DFSIntervalOrder<SDGNode, DomEdge> dio;
-	private MHPAnalysis mhp;
+	private final Dominators<SDGNode, SDGEdge> dom;
+	private final DFSIntervalOrder<SDGNode, DomEdge> dio;
+	private final MHPAnalysis mhp;
 
-	public ClassicCDomOracle(SDG sdg, MHPAnalysis mhp) {
-		CFG icfg = ICFGBuilder.extractICFG(sdg);
+	public ClassicCDomOracle(final SDG sdg, final MHPAnalysis mhp) {
+		final CFG icfg = ICFGBuilder.extractICFG(sdg);
 		GraphModifier.removeCallCallRetEdges(icfg);
 		this.dom = Dominators.compute(icfg, icfg.getRoot());
 		this.dio = new DFSIntervalOrder<SDGNode, DomEdge>(dom.getDominationTree());
 		this.mhp = mhp;
 	}
 
-	public static void removeCallExcEdges(JoanaGraph cfg) {
-		List<SDGEdge> toRemove = new LinkedList<SDGEdge>();
-		for (SDGEdge e : cfg.edgeSet()) {
-			if (e.getKind() == Kind.CONTROL_FLOW && e.getSource().getKind() == SDGNode.Kind.CALL && e.getTarget().getKind() == SDGNode.Kind.ACTUAL_OUT && e.getTarget().getBytecodeName().equals(BytecodeLocation.EXCEPTION_PARAM)) {
+	public static void removeCallExcEdges(final JoanaGraph cfg) {
+		final List<SDGEdge> toRemove = new LinkedList<SDGEdge>();
+		for (final SDGEdge e : cfg.edgeSet()) {
+			if ((e.getKind() == Kind.CONTROL_FLOW) && (e.getSource().getKind() == SDGNode.Kind.CALL)
+					&& (e.getTarget().getKind() == SDGNode.Kind.ACTUAL_OUT)
+					&& e.getTarget().getBytecodeName().equals(BytecodeLocation.EXCEPTION_PARAM)) {
 				if (cfg.outDegreeOf(e.getSource()) > 1) {
 					toRemove.add(e);
 				}
@@ -47,7 +49,7 @@ public class ClassicCDomOracle implements ICDomOracle {
 	}
 
 	@Override
-	public VirtualNode cdom(SDGNode n1, int threadN1, SDGNode n2, int threadN2) {
+	public VirtualNode cdom(final SDGNode n1, final int threadN1, final SDGNode n2, final int threadN2) {
 		if (this.dio.isLeq(n1, n2)) {
 			return new VirtualNode(n1, threadN1);
 		} else if (this.dio.isLeq(n2, n1)) {

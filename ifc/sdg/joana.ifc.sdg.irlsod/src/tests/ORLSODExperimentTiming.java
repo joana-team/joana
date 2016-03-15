@@ -43,52 +43,58 @@ public class ORLSODExperimentTiming {
 	public void doORLSOD3() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
 		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lorlsod/ORLSOD3", "orlsod3", 1, 2, 0));
 	}
+
 	@Test
 	public void doNoSecret() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
 		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lorlsod/NoSecret", "noSecret", 0, 2, 0));
 	}
 
 	@Test
-	public void doLateSecretAccess() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lorlsod/LateSecretAccess", "lateSecAccess", 1, 2, 0));
+	public void doLateSecretAccess()
+			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lorlsod/LateSecretAccess",
+				"lateSecAccess", 1, 2, 0));
 	}
 
-	private static void doConfigTiming(ORLSODExperiment.TestConfig cfg) throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		SDG sdg = JoanaRunner.buildSDG(cfg.progDesc.classPath, cfg.progDesc.mainClass);
+	private static void doConfigTiming(final ORLSODExperiment.TestConfig cfg)
+			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+		final SDG sdg = JoanaRunner.buildSDG(cfg.progDesc.classPath, cfg.progDesc.mainClass);
 		CSDGPreprocessor.preprocessSDG(sdg);
-		CFG redCFG = ReducedCFGBuilder.extractReducedCFG(sdg);
+		final CFG redCFG = ReducedCFGBuilder.extractReducedCFG(sdg);
 		GraphModifier.removeCallCallRetEdges(redCFG);
 		DomExperiment.export(redCFG, DomExperiment.joanaGraphExporter(), cfg.outputFiles.dotFile);
-		PreciseMHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
+		final PreciseMHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
 		PruneInterferences.pruneInterferences(sdg, mhp);
-		PrintWriter pw = new PrintWriter(cfg.outputFiles.pdgFile);
+		final PrintWriter pw = new PrintWriter(cfg.outputFiles.pdgFile);
 		SDGSerializer.toPDGFormat(sdg, pw);
 		pw.close();
-		Map<SDGNode, String> userAnn = new HashMap<SDGNode, String>();
+		final Map<SDGNode, String> userAnn = new HashMap<SDGNode, String>();
 		int noHighThings = 0;
-		for (SDGNode src : cfg.srcSelector.select(sdg)) {
+		for (final SDGNode src : cfg.srcSelector.select(sdg)) {
 			userAnn.put(src, BuiltinLattices.STD_SECLEVEL_HIGH);
 			System.out.println(String.format("userAnn(%s) = %s", src, BuiltinLattices.STD_SECLEVEL_HIGH));
 			noHighThings++;
 		}
 		Assert.assertEquals(cfg.expectedNoHighThings, noHighThings);
 		int noLowThings = 0;
-		for (SDGNode snk : cfg.snkSelector.select(sdg)) {
+		for (final SDGNode snk : cfg.snkSelector.select(sdg)) {
 			userAnn.put(snk, BuiltinLattices.STD_SECLEVEL_LOW);
 			System.out.println(String.format("userAnn(%s) = %s", snk, BuiltinLattices.STD_SECLEVEL_LOW));
 			noLowThings++;
 		}
 		Assert.assertEquals(cfg.expectedNoLowThings, noLowThings);
-		ThreadModularCDomOracle tmdo = new ThreadModularCDomOracle(sdg);
-		TimimgClassificationChecker<String> checkerSlice = new TimimgClassificationChecker<>(sdg, BuiltinLattices.getBinaryLattice(), userAnn, mhp, tmdo, PredecessorMethod.SLICE);
-		int noVios = checkerSlice.checkIFlow().size();
+		final ThreadModularCDomOracle tmdo = new ThreadModularCDomOracle(sdg);
+		final TimimgClassificationChecker<String> checkerSlice = new TimimgClassificationChecker<>(sdg,
+				BuiltinLattices.getBinaryLattice(), userAnn, mhp, tmdo, PredecessorMethod.SLICE);
+		final int noVios = checkerSlice.checkIFlow().size();
 		Assert.assertEquals(cfg.expectedNoViolations, noVios);
-		
-		TimimgClassificationChecker<String> checkerEdge = new TimimgClassificationChecker<>(sdg, BuiltinLattices.getBinaryLattice(), userAnn, mhp, tmdo, PredecessorMethod.EDGE);
+
+		final TimimgClassificationChecker<String> checkerEdge = new TimimgClassificationChecker<>(sdg,
+				BuiltinLattices.getBinaryLattice(), userAnn, mhp, tmdo, PredecessorMethod.EDGE);
 		checkerEdge.checkIFlow();
 		Assert.assertEquals(checkerSlice.getCL(), checkerEdge.getCL());
 		Assert.assertEquals(checkerSlice.getCLT(), checkerEdge.getCLT());
-		
+
 	}
 
 	@Test
@@ -98,21 +104,24 @@ public class ORLSODExperimentTiming {
 
 	@Test
 	public void testORLSODSecure() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lorlsod/ORLSOD5Secure", "orlsod5secure", 1, 2, 0));
+		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lorlsod/ORLSOD5Secure", "orlsod5secure",
+				1, 2, 0));
 	}
 
-	
 	@Test
 	public void testPost_Fig2_3() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lpost16/Fig2_3", "post_fig2_3", 1, 2, 4));
+		doConfigTiming(
+				new ORLSODExperiment.StandardTestConfig("example/bin", "Lpost16/Fig2_3", "post_fig2_3", 1, 2, 4));
 	}
 
 	@Test
-	public void testORLSOD_imprecise() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+	public void testORLSOD_imprecise()
+			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
 		/**
-		 * NOTE: The program is actually secure AND TimingClassification does detect this
-		 * RLSOD and LSOD deem this program secure (no "normal" flows and o low-observable conflict).
-		 * TODO: add test code which proves this silly claim!
+		 * NOTE: The program is actually secure AND TimingClassification does
+		 * detect this RLSOD and LSOD deem this program secure (no "normal"
+		 * flows and o low-observable conflict). TODO: add test code which
+		 * proves this silly claim!
 		 */
 		doConfigTiming(new StandardTestConfig("example/bin", "Lorlsod/ORLSODImprecise", "orlsod_imprecise", 1, 1, 0));
 	}

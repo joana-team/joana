@@ -86,6 +86,8 @@ public abstract class CFGSlicer {
             for (SDGEdge e : edgesToTraverse(next)) {
             	if (omittedEdges.contains(e.getKind())) continue;
 
+            	// TODO: why isn't e.getKind().isControlFlowEdge() used?
+            	// i.e.: why don't we follow SDGEdge.Kind.NO_FLOW or SDGEdge.Kind.JUMP_FLOW??
                 if (e.getKind() != SDGEdge.Kind.CONTROL_FLOW
                 		&& e.getKind() != SDGEdge.Kind.CALL
                 		&& e.getKind() != SDGEdge.Kind.RETURN

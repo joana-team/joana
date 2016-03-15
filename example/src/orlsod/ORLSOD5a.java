@@ -1,6 +1,5 @@
 package orlsod;
 
-import edu.kit.joana.ifc.orlsod.SrcSnk;
 
 public class ORLSOD5a {
 	public static int HIGH;

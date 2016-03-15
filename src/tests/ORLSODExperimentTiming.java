@@ -2,13 +2,8 @@ package tests;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -18,22 +13,16 @@ import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
 import edu.kit.joana.api.lattice.BuiltinLattices;
-import edu.kit.joana.ifc.orlsod.ClassicCDomOracle;
-import edu.kit.joana.ifc.orlsod.ORLSODChecker;
-import edu.kit.joana.ifc.orlsod.PathBasedORLSODChecker;
 import edu.kit.joana.ifc.orlsod.PredecessorMethod;
-import edu.kit.joana.ifc.orlsod.ProbInfComputer;
 import edu.kit.joana.ifc.orlsod.ThreadModularCDomOracle;
 import edu.kit.joana.ifc.orlsod.TimimgClassificationChecker;
 import edu.kit.joana.ifc.sdg.graph.SDG;
-import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 import edu.kit.joana.ifc.sdg.mhpoptimization.PruneInterferences;
-import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.ifc.sdg.util.sdg.ReducedCFGBuilder;
 import edu.kit.joana.util.Util;
 import tests.ORLSODExperiment.StandardTestConfig;

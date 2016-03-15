@@ -1,7 +1,5 @@
 package orlsod;
 
-import edu.kit.joana.ifc.orlsod.SrcSnk;
-
 public class ORLSOD5Secure {
 	public static int HIGH;
 	public static int LOW;

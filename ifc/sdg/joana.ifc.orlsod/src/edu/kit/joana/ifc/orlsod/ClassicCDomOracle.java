@@ -14,9 +14,9 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
+import edu.kit.joana.ifc.sdg.util.sdg.GraphModifier;
 import edu.kit.joana.wala.core.graphs.Dominators;
 import edu.kit.joana.wala.core.graphs.Dominators.DomEdge;
-import util.Util;
 
 public class ClassicCDomOracle implements ICDomOracle {
 
@@ -26,7 +26,7 @@ public class ClassicCDomOracle implements ICDomOracle {
 
 	public ClassicCDomOracle(SDG sdg, MHPAnalysis mhp) {
 		CFG icfg = ICFGBuilder.extractICFG(sdg);
-		Util.removeCallCallRetEdges(icfg);
+		GraphModifier.removeCallCallRetEdges(icfg);
 		this.dom = Dominators.compute(icfg, icfg.getRoot());
 		this.dio = new DFSIntervalOrder<SDGNode, DomEdge>(dom.getDominationTree());
 		this.mhp = mhp;
@@ -43,7 +43,7 @@ public class ClassicCDomOracle implements ICDomOracle {
 		}
 		System.out.println("remove " + toRemove);
 		cfg.removeAllEdges(toRemove);
-		Util.removeUnreachable(cfg);
+		GraphModifier.removeUnreachable(cfg);
 	}
 
 	@Override

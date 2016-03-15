@@ -1,18 +1,25 @@
-package edu.kit.joana.util;
+/**
+ * This file is part of the Joana IFC project. It is developed at the
+ * Programming Paradigms Group of the Karlsruhe Institute of Technology.
+ *
+ * For further details on licensing please read the information at
+ * http://joana.ipd.kit.edu or contact the authors.
+ */
+package edu.kit.joana.ifc.sdg.util.sdg;
 
 import java.util.LinkedList;
 import java.util.List;
 
 import edu.kit.joana.ifc.sdg.graph.JoanaGraph;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
-import edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
-import edu.kit.joana.ifc.sdg.util.sdg.ReducedCFGBuilder;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind;
 
-public class Util {
-
+/**
+ * @author Martin Mohr
+ */
+public class GraphModifier {
 	public static void removeCallCallRetEdges(JoanaGraph cfg) {
 		List<SDGEdge> toRemove = new LinkedList<SDGEdge>();
 		for (SDGEdge e : cfg.edgeSet()) {
@@ -23,17 +30,7 @@ public class Util {
 			}
 		}
 		cfg.removeAllEdges(toRemove);
-		removeUnreachable(cfg);
 	}
-
-	public static void removeUnreachable(JoanaGraph cfg) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public static void removeEntryExitExcConnections(CFG icfg) {
-		// TODO Auto-generated method stub
-
-	}
+	
 
 }

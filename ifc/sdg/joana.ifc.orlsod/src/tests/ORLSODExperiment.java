@@ -32,8 +32,8 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 import edu.kit.joana.ifc.sdg.mhpoptimization.PruneInterferences;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
+import edu.kit.joana.ifc.sdg.util.sdg.GraphModifier;
 import edu.kit.joana.ifc.sdg.util.sdg.ReducedCFGBuilder;
-import edu.kit.joana.util.Util;
 
 public class ORLSODExperiment {
 
@@ -65,7 +65,7 @@ public class ORLSODExperiment {
 		SDG sdg = JoanaRunner.buildSDG(cfg.progDesc.classPath, cfg.progDesc.mainClass);
 		CSDGPreprocessor.preprocessSDG(sdg);
 		CFG redCFG = ReducedCFGBuilder.extractReducedCFG(sdg);
-		Util.removeCallCallRetEdges(redCFG);
+		GraphModifier.removeCallCallRetEdges(redCFG);
 		DomExperiment.export(redCFG, DomExperiment.joanaGraphExporter(), cfg.outputFiles.dotFile);
 		PreciseMHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
 		PruneInterferences.pruneInterferences(sdg, mhp);

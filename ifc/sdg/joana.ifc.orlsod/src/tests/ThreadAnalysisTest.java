@@ -34,7 +34,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadRegion;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
-import edu.kit.joana.util.Util;
+import edu.kit.joana.ifc.sdg.util.sdg.GraphModifier;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 
@@ -62,7 +62,6 @@ public class ThreadAnalysisTest {
 //
 //		});
 		CFG icfg = ICFGBuilder.extractICFGIncludingJoins(sdg);
-		Util.removeEntryExitExcConnections(icfg);
 		JoanaCFGAdapter icfg2 = new JoanaCFGAdapter(icfg);
 		DOTExporter<VirtualNode, VirtualEdge> exporterCFG = new DOTExporter<VirtualNode, VirtualEdge>(
 				new VertexNameProvider<VirtualNode>() {

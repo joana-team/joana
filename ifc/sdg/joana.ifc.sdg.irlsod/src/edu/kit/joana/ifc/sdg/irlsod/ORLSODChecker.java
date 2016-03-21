@@ -41,6 +41,11 @@ public class ORLSODChecker<L> extends IFC<L> {
 	 **/
 	protected final PredecessorMethod predecessorMethod;
 
+	public ORLSODChecker(final SDG sdg, final IStaticLattice<L> secLattice,
+			final ProbInfComputer probInf, final PredecessorMethod predecessorMethod) {
+		this(sdg, secLattice, null, probInf, predecessorMethod);
+	}
+	
 	public ORLSODChecker(final SDG sdg, final IStaticLattice<L> secLattice, final Map<SDGNode, L> userAnn,
 			final ProbInfComputer probInf, final PredecessorMethod predecessorMethod) {
 		super(sdg, secLattice);
@@ -77,8 +82,36 @@ public class ORLSODChecker<L> extends IFC<L> {
 		return ret;
 	}
 
+	protected void inferUserAnnotationsOnDemand() {
+		if (userAnn != null) return;
+		
+		userAnn = new HashMap<>();
+		for (final SDGNode n : sdg.vertexSet()) {
+			if (n instanceof SecurityNode) {
+				final SecurityNode sn = (SecurityNode) n;
+				final String req = sn.getRequired();
+				if (req != null && !req.equals(SecurityNode.UNDEFINED)) {
+					for (final L elem : secLattice.getElements()) {
+						if (req.equals(elem.toString())) {
+							userAnn.put(n, elem);
+						}
+					}
+				}
+				final String prov = sn.getProvided();
+				if (prov != null && !prov.equals(SecurityNode.UNDEFINED)) {
+					for (final L elem : secLattice.getElements()) {
+						if (prov.equals(elem.toString())) {
+							userAnn.put(n, elem);
+						}
+					}
+				}
+			}
+		}
+	}
+	
 	@Override
 	public Collection<? extends IViolation<SecurityNode>> checkIFlow() throws NotInLatticeException {
+		inferUserAnnotationsOnDemand();
 		final I2PBackward backw = new I2PBackward(sdg);
 		// 1.) initialize classification: we go from the bottom up, so every
 		// node is classified as low initially

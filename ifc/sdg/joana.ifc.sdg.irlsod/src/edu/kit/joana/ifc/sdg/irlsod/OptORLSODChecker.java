@@ -31,6 +31,10 @@ public class OptORLSODChecker<L> extends ORLSODChecker<L> {
 	 */
 	private Map<SDGNode, Set<SDGNode>> backwDep;
 
+	public OptORLSODChecker(final SDG sdg, final IStaticLattice<L> secLattice, final ProbInfComputer probInf) {
+		this(sdg, secLattice, null, probInf);
+	}
+
 	public OptORLSODChecker(final SDG sdg, final IStaticLattice<L> secLattice, final Map<SDGNode, L> userAnn,
 			final ProbInfComputer probInf) {
 		super(sdg, secLattice, userAnn, probInf, null);
@@ -39,6 +43,7 @@ public class OptORLSODChecker<L> extends ORLSODChecker<L> {
 
 	@Override
 	public Collection<? extends IViolation<SecurityNode>> checkIFlow() throws NotInLatticeException {
+		inferUserAnnotationsOnDemand();
 		cl = initCL(false);
 		backwDep = computeBackwardDep();
 		forwDep = MapUtils.invert(backwDep);

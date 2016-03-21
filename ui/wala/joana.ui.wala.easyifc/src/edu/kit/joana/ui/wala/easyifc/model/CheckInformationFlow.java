@@ -231,13 +231,39 @@ public final class CheckInformationFlow {
 		return result;
 	}
 	
+	private Set<SLeak> combine(final Set<SLeak> one, final Set<SLeak> two) {
+		final Set<SLeak> comb = new HashSet<>();
+
+		comb.addAll(one);
+		comb.retainAll(two);
+		
+		cfc.out.println("ONE:");
+		for (final SLeak o : one) {
+			cfc.out.println("\t" + o);
+		}
+		
+		cfc.out.println("TWO:");
+		for (final SLeak t : two) {
+			cfc.out.println("\t" + t);
+		}
+		
+		return comb;
+	}
+	
 	private IFCResult doThreadIFCanalysis(final SDGConfig config, final SDGProgram prog, final EntryPointConfiguration entryPoint) {
 		final IFCResult result = new IFCResult(entryPoint);
 		final Set<SLeak> threadLeaks = checkIFC(Reason.THREAD_EXCEPTION, prog, IFCType.RLSOD, annotationMethod);
 		final boolean isSecure = threadLeaks.isEmpty();
-
+		
 		printResult(threadLeaks.isEmpty(), 0, config);
 		dumpSDGtoFile(prog.getSDG(), "thread", isSecure);
+		
+		final Set<SLeak> orlsodLeaks = checkIFC(Reason.THREAD_EXCEPTION, prog, IFCType.ORLSOD, annotationMethod);
+		printResult(orlsodLeaks.isEmpty(), 2, config);
+		
+		final Set<SLeak> combined = combine(threadLeaks, orlsodLeaks);
+		printResult(combined.isEmpty(), 3, config);
+		cfc.out.println("normal - rlsod: " + threadLeaks.size() + " orlsod: " + orlsodLeaks.size() + " combined: " + combined.size());
 
 		if (!isSecure) {
 			config.setExceptionAnalysis(ExceptionAnalysis.IGNORE_ALL);
@@ -255,6 +281,14 @@ public final class CheckInformationFlow {
 				result.addExcLeak(leak);
 			}
 
+			final Set<SLeak> noExcOrlsodLeaks = checkIFC(Reason.THREAD, noExcProg, IFCType.ORLSOD, annotationMethod);
+			printResult(noExcOrlsodLeaks.isEmpty(), 4, config);
+			
+			final Set<SLeak> combinedNoExc = combine(noExcLeaks, noExcOrlsodLeaks);
+			printResult(combinedNoExc.isEmpty(), 5, config);
+			cfc.out.println("no exc - rlsod: " + noExcLeaks.size() + " orlsod: " + noExcOrlsodLeaks.size() + " combined: " + combinedNoExc.size());
+
+			
 			cfc.out.println("Information leaks detected. Program is NOT SECURE.");
 		} else {
 			cfc.out.println("No information leaks detected. Program is SECURE.");

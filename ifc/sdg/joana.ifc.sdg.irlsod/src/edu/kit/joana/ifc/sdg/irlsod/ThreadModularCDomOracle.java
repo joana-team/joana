@@ -47,7 +47,7 @@ public class ThreadModularCDomOracle implements ICDomOracle {
 			final Dominators<SDGNode, SDGEdge> threadDomTree = Dominators.compute(threadGraph, cAnc.getEntry());
 			cdom = new VirtualNode(lowestNonDynamicCommonDominator(fork1, fork2, threadDomTree), cAnc.getId());
 		}
-		System.out.println(String.format("cdom(%s, %s) = %s", n1, n2, cdom.getNode()));
+		//System.out.println(String.format("cdom(%s, %s) = %s", n1, n2, cdom.getNode()));
 		return cdom;
 	}
 

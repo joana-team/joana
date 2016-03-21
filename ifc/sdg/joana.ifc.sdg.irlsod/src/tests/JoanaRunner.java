@@ -34,7 +34,6 @@ import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
-import edu.kit.joana.api.sdg.SDGBuildPreparation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -48,6 +47,7 @@ import edu.kit.joana.ifc.sdg.irlsod.RegionClusterBasedCDomOracle;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.wala.core.ExternalCallCheck;
+import edu.kit.joana.wala.core.Main;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.DynamicDispatchHandling;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
@@ -101,9 +101,9 @@ public class JoanaRunner {
 		scfg.cha = ClassHierarchy.make(scfg.scope);
 		scfg.entry = findMethod(scfg.cha, mainClass);
 		scfg.ext = ExternalCallCheck.EMPTY;
-		scfg.immutableNoOut = SDGBuildPreparation.IMMUTABLE_NO_OUT;
-		scfg.immutableStubs = SDGBuildPreparation.IMMUTABLE_STUBS;
-		scfg.ignoreStaticFields = SDGBuildPreparation.IGNORE_STATIC_FIELDS;
+		scfg.immutableNoOut = Main.IMMUTABLE_NO_OUT;
+		scfg.immutableStubs = Main.IMMUTABLE_STUBS;
+		scfg.ignoreStaticFields = Main.IGNORE_STATIC_FIELDS;
 		scfg.exceptions = ExceptionAnalysis.INTERPROC;
 		scfg.pruneDDEdgesToDanglingExceptionNodes = true;
 		scfg.defaultExceptionMethodState = MethodState.DEFAULT;

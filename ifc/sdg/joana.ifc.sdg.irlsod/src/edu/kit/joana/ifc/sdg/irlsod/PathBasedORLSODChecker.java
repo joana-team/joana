@@ -23,6 +23,10 @@ public class PathBasedORLSODChecker<L> extends OptORLSODChecker<L> {
 
 	private DirectedGraph<SDGNode, DefaultEdge> depGraph;
 
+	public PathBasedORLSODChecker(final SDG sdg, final IStaticLattice<L> secLattice, final ProbInfComputer probInf) {
+		this(sdg, secLattice, null, probInf);
+	}
+
 	public PathBasedORLSODChecker(final SDG sdg, final IStaticLattice<L> secLattice, final Map<SDGNode, L> srcAnn,
 			final ProbInfComputer probInf) {
 		super(sdg, secLattice, srcAnn, probInf);
@@ -30,6 +34,7 @@ public class PathBasedORLSODChecker<L> extends OptORLSODChecker<L> {
 
 	@Override
 	public Collection<? extends IViolation<SecurityNode>> checkIFlow() throws NotInLatticeException {
+		inferUserAnnotationsOnDemand();
 		this.depGraph = new DefaultDirectedGraph<SDGNode, DefaultEdge>(DefaultEdge.class);
 		for (final SDGNode n : sdg.vertexSet()) {
 			for (final SDGNode inflN : computeBackwardDeps(n)) {

@@ -49,11 +49,17 @@ import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
 import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.core.violations.IllegalFlow;
 import edu.kit.joana.ifc.sdg.core.violations.ViolationMapper;
+import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PBackward;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PForward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.SimpleMHPAnalysis;
+import edu.kit.joana.ifc.sdg.irlsod.ORLSODChecker;
+import edu.kit.joana.ifc.sdg.irlsod.OptORLSODChecker;
+import edu.kit.joana.ifc.sdg.irlsod.PathBasedORLSODChecker;
+import edu.kit.joana.ifc.sdg.irlsod.ProbInfComputer;
+import edu.kit.joana.ifc.sdg.irlsod.ThreadModularCDomOracle;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
@@ -142,6 +148,18 @@ public class IFCAnalysis {
 			mhp = performMHPAnalysis(mhpType);
 			this.ifc = new ProbabilisticNIChecker(this.program.getSDG(), secLattice, mhp,
 					this.timeSensitiveAnalysis);
+			break;
+		case ORLSOD:
+			if (this.program.getSDG().getThreadsInfo() == null) {
+				CSDGPreprocessor.preprocessSDG(this.program.getSDG());
+			}
+			mhp = performMHPAnalysis(mhpType);
+			final SDG sdg = this.program.getSDG();
+			final ThreadModularCDomOracle tmdo = new ThreadModularCDomOracle(sdg);
+			final ProbInfComputer probInf = new ProbInfComputer(sdg, tmdo);
+//			this.ifc = new ORLSODChecker<String>(sdg, secLattice, probInf, null);
+			this.ifc = new OptORLSODChecker<String>(sdg, secLattice, probInf);
+//			this.ifc = new PathBasedORLSODChecker<String>(sdg, secLattice, probInf);
 			break;
 		default:
 			throw new IllegalStateException("unhandled ifc type: " + ifcType + "!");
@@ -364,7 +382,7 @@ public class IFCAnalysis {
 		for (final SDGCall call : calls) {
 			final Collection<SDGActualParameter> params = call.getActualParameters();
 			for (final SDGActualParameter aIn : params) {
-				if (aIn.getIndex() != 1) throw new IllegalArgumentException("rofl");
+				//if (aIn.getIndex() != 1) throw new IllegalArgumentException("rofl");
 				addSinkAnnotation(aIn, level);
 			}
 		}

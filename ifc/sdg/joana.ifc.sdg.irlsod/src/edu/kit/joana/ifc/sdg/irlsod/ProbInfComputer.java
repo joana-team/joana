@@ -54,11 +54,11 @@ public class ProbInfComputer {
 				for (final SDGNode m : icfg.vertexSet()) {
 					for (final int threadM : m.getThreadNumbers()) {
 						if (mhp.isParallel(n, threadN, m, threadM)) {
-							System.out.println(String.format("MHP(%s,%s)", n, m));
+							//System.out.println(String.format("MHP(%s,%s)", n, m));
 							final Collection<? extends SDGNode> cfgChop = tcfgChopper
 									.chop(cdomOracle.cdom(n, threadN, m, threadM).getNode(), n);
-							System.out.println(String.format("CFGChop(%s,%s) = %s",
-									cdomOracle.cdom(n, threadN, m, threadM), n, cfgChop));
+							//System.out.println(String.format("CFGChop(%s,%s) = %s",
+							//		cdomOracle.cdom(n, threadN, m, threadM), n, cfgChop));
 							ret.addAll(cfgChop);
 						}
 					}

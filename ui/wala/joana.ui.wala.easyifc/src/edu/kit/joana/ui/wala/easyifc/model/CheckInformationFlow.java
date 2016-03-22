@@ -87,19 +87,21 @@ public final class CheckInformationFlow {
 		public final IFCCheckResultConsumer results;
 		public final IProgressMonitor progress;
 		public AnalysisScope scope = null;
+		public final IFCType selectedIFCType;
 
 		public CheckIFCConfig(final String bin, final String src) {
 			this(bin, src, DEFAULT_LIB_DIR, DEFAULT_THIRD_PARTY_LIB, System.out,
-					IFCCheckResultConsumer.DEFAULT, NullProgressMonitor.INSTANCE);
+					IFCCheckResultConsumer.DEFAULT, NullProgressMonitor.INSTANCE, IFCType.RLSOD);
 		}
 
 		public CheckIFCConfig(final String bin, final String src, final PrintStream out) {
 			this(bin, src, DEFAULT_LIB_DIR, DEFAULT_THIRD_PARTY_LIB, out, IFCCheckResultConsumer.STDOUT,
-					NullProgressMonitor.INSTANCE);
+					NullProgressMonitor.INSTANCE, IFCType.RLSOD);
 		}
 
 		public CheckIFCConfig(final String bin, final String src, final String libDir, final String thirdPartyLib,
-				final PrintStream out, final IFCCheckResultConsumer results, IProgressMonitor progress) {
+				final PrintStream out, final IFCCheckResultConsumer results, final IProgressMonitor progress,
+				final IFCType selectedIFCType) {
 			if (src == null) {
 				throw new IllegalArgumentException("src directory is null.");
 			} else if (bin == null) {
@@ -121,6 +123,7 @@ public final class CheckInformationFlow {
 			this.out = out;
 			this.results = results;
 			this.progress = progress;
+			this.selectedIFCType = selectedIFCType;
 	}
 
 		public String toString() {
@@ -231,44 +234,21 @@ public final class CheckInformationFlow {
 		return result;
 	}
 	
-	private Set<SLeak> combine(final Set<SLeak> one, final Set<SLeak> two) {
-		final Set<SLeak> comb = new HashSet<>();
-
-		comb.addAll(one);
-		comb.retainAll(two);
-		
-		cfc.out.println("ONE:");
-		for (final SLeak o : one) {
-			cfc.out.println("\t" + o);
-		}
-		
-		cfc.out.println("TWO:");
-		for (final SLeak t : two) {
-			cfc.out.println("\t" + t);
-		}
-		
-		return comb;
-	}
-	
 	private IFCResult doThreadIFCanalysis(final SDGConfig config, final SDGProgram prog, final EntryPointConfiguration entryPoint) {
+		final IFCType ifcType = cfc.selectedIFCType;
+		cfc.out.println("using " + ifcType + " algorithm.");
+		
 		final IFCResult result = new IFCResult(entryPoint);
-		final Set<SLeak> threadLeaks = checkIFC(Reason.THREAD_EXCEPTION, prog, IFCType.RLSOD, annotationMethod);
+		final Set<SLeak> threadLeaks = checkIFC(Reason.THREAD_EXCEPTION, prog, ifcType, annotationMethod);
 		final boolean isSecure = threadLeaks.isEmpty();
 		
 		printResult(threadLeaks.isEmpty(), 0, config);
 		dumpSDGtoFile(prog.getSDG(), "thread", isSecure);
 		
-		final Set<SLeak> orlsodLeaks = checkIFC(Reason.THREAD_EXCEPTION, prog, IFCType.ORLSOD, annotationMethod);
-		printResult(orlsodLeaks.isEmpty(), 2, config);
-		
-		final Set<SLeak> combined = combine(threadLeaks, orlsodLeaks);
-		printResult(combined.isEmpty(), 3, config);
-		cfc.out.println("normal - rlsod: " + threadLeaks.size() + " orlsod: " + orlsodLeaks.size() + " combined: " + combined.size());
-
 		if (!isSecure) {
 			config.setExceptionAnalysis(ExceptionAnalysis.IGNORE_ALL);
 			final SDGProgram noExcProg = buildSDG(config);
-			final Set<SLeak> noExcLeaks = checkIFC(Reason.THREAD, noExcProg, IFCType.RLSOD, annotationMethod);
+			final Set<SLeak> noExcLeaks = checkIFC(Reason.THREAD, noExcProg, ifcType, annotationMethod);
 			
 			printResult(noExcLeaks.isEmpty(), 1, config);
 			dumpSDGtoFile(noExcProg.getSDG(), "no_exc_thread", noExcLeaks.isEmpty());
@@ -280,14 +260,6 @@ public final class CheckInformationFlow {
 			for (final SLeak leak : threadLeaks) {
 				result.addExcLeak(leak);
 			}
-
-			final Set<SLeak> noExcOrlsodLeaks = checkIFC(Reason.THREAD, noExcProg, IFCType.ORLSOD, annotationMethod);
-			printResult(noExcOrlsodLeaks.isEmpty(), 4, config);
-			
-			final Set<SLeak> combinedNoExc = combine(noExcLeaks, noExcOrlsodLeaks);
-			printResult(combinedNoExc.isEmpty(), 5, config);
-			cfc.out.println("no exc - rlsod: " + noExcLeaks.size() + " orlsod: " + noExcOrlsodLeaks.size() + " combined: " + combinedNoExc.size());
-
 			
 			cfc.out.println("Information leaks detected. Program is NOT SECURE.");
 		} else {
@@ -450,6 +422,8 @@ public final class CheckInformationFlow {
 			case UNLIMITED_OBJECT_SENSITIVE:
 				sb.append("*-object-sensitive");
 				break;
+			case CUSTOM:
+				sb.append("custom");
 			}
 		}
 		

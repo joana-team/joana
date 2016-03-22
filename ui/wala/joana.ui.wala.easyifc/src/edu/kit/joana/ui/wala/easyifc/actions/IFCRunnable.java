@@ -59,7 +59,8 @@ public class IFCRunnable implements IRunnableWithProgress {
 			}
 			
 			final CheckIFCConfig cfc = new CheckIFCConfig(conf.getBinDir(), conf.getSrcDirs().get(0),
-					conf.getLibLocation(), thirdPartyJar, conf.getLogOut(), resultConsumer, walaProgress);
+					conf.getLibLocation(), thirdPartyJar, conf.getLogOut(), resultConsumer, walaProgress,
+					conf.getSelectedIFCType());
 			final CheckInformationFlow cfl = new CheckInformationFlow(cfc);
 			final IProject project = conf.getProject().getProject();
 			monitor.subTask("Refreshing project.");

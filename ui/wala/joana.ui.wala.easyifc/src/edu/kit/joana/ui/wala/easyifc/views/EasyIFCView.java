@@ -44,12 +44,14 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.ViewPart;
 
+import edu.kit.joana.api.IFCType;
 import edu.kit.joana.ui.wala.easyifc.Activator;
 import edu.kit.joana.ui.wala.easyifc.actions.CollapseNodesAction;
 import edu.kit.joana.ui.wala.easyifc.actions.ExpandNodesAction;
 import edu.kit.joana.ui.wala.easyifc.actions.HighlightIFCResultAction;
 import edu.kit.joana.ui.wala.easyifc.actions.IFCAction;
 import edu.kit.joana.ui.wala.easyifc.actions.IFCRunnable;
+import edu.kit.joana.ui.wala.easyifc.actions.SelectIFCTypeAction;
 import edu.kit.joana.ui.wala.easyifc.actions.IFCAction.ProjectConf;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer;
 import edu.kit.joana.ui.wala.easyifc.util.EntryPointSearch.EntryPointConfiguration;
@@ -79,7 +81,11 @@ public class EasyIFCView extends ViewPart {
 	private CollapseNodesAction collapseNodesAction;
 	private Action doubleClickAction;
 	private SingleIFCAction runIFCforSelectedEntryPoint;
+	private SelectIFCTypeAction selectIFCTypeAction;
 
+	public IFCType getSelectedIFCType() {
+		return selectIFCTypeAction.getSelectedIFCtype();
+	}
 
 	public IFCTreeViewer getTree() {
 		return tree;
@@ -191,6 +197,8 @@ public class EasyIFCView extends ViewPart {
 		manager.add(expandNodesAction);
 		manager.add(collapseNodesAction);
 		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
+		manager.add(selectIFCTypeAction);
+		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 		manager.add(checkIFCAction);
 		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 	}
@@ -291,6 +299,7 @@ public class EasyIFCView extends ViewPart {
 
 		expandNodesAction = new ExpandNodesAction(tree);
 		collapseNodesAction = new CollapseNodesAction(tree);
+		selectIFCTypeAction = new SelectIFCTypeAction();
 	}
 
 	public void showMessage(String message) {

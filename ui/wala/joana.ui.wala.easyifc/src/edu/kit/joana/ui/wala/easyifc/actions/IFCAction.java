@@ -48,6 +48,7 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.views.navigator.ResourceNavigator;
 
+import edu.kit.joana.api.IFCType;
 import edu.kit.joana.ui.wala.easyifc.Activator;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer;
 import edu.kit.joana.ui.wala.easyifc.util.EasyIFCMarkerAndImageManager;
@@ -88,6 +89,8 @@ public class IFCAction extends Action implements ISelectionListener {
 		private final List<String> srcDirs = new LinkedList<String>();
 		private final List<String> extraJars = new LinkedList<String>();
 
+		private IFCType selectedIFCType = IFCType.RLSOD;
+		
 		private ProjectConf(final IJavaProject jp, final String binDir) {
 			if (binDir == null || jp == null) {
 				throw new IllegalArgumentException();
@@ -177,6 +180,14 @@ public class IFCAction extends Action implements ISelectionListener {
 		public PrintStream getLogOut() {
 			return System.out;
 		}
+		
+		public IFCType getSelectedIFCType() {
+			return selectedIFCType;
+		}
+		
+		public void setSelectedIFCType(final IFCType selectedIFCType) {
+			this.selectedIFCType = selectedIFCType;
+		}
 
 		public String toString() {
 			final StringBuffer sb = new StringBuffer("Project configuration of " + jp.getElementName() + "\n");
@@ -207,13 +218,15 @@ public class IFCAction extends Action implements ISelectionListener {
 			view.showMessage("Could not find current project. Aborting.");
 			return;
 		}
-
+		
 		EasyIFCMarkerAndImageManager.getInstance().clearAllSliceMarkers();
 		
 		final IJavaProject jp = getCurrentProject();
 		try {
 			resultConsumer.consume(null);
 			final ProjectConf pconf = ProjectConf.create(jp);
+			final IFCType selectedIFCType = view.getSelectedIFCType();
+			pconf.setSelectedIFCType(selectedIFCType);
 			PlatformUI.getWorkbench().getProgressService().run(true, true, new IRunnableWithProgress() {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {

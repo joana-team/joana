@@ -68,6 +68,7 @@ import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
 import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
 import edu.kit.joana.wala.util.WriteGraphToDot;
 import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder;
+import joana.contrib.lib.Contrib;
 
 public final class SDGBuildPreparation {
 
@@ -170,7 +171,7 @@ public final class SDGBuildPreparation {
 			out.print("(from file " + path + ") ");
 			return new JarFileModule(new JarFile(f));
 		} else {
-			final URL url = SDGBuildPreparation.class.getClassLoader().getResource(path);
+			final URL url = Contrib.class.getClassLoader().getResource(path);
 			final URLConnection con = url.openConnection();
 			final InputStream in = con.getInputStream();
 			out.print("(from jar stream " + path + ") ");

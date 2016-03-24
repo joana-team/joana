@@ -13,6 +13,8 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Properties;
 
+import joana.contrib.lib.Contrib;
+
 /**
  * This class encapsulates the functionality to locate stubs. It is hopefully
  * the only place to change, when something in connection with stubs is changed.
@@ -20,9 +22,9 @@ import java.util.Properties;
  * @author Martin Mohr
  */
 public enum Stubs {
-	NO_STUBS("NONE", null), JRE_14("JRE_14", "jSDG-stubs-jre1.4.jar"), JRE_15("JRE_15", "jSDG-stubs-jre1.5.jar"),
-	JAVACARD("JAVACARD", "jSDG-stubs-javacard.jar:api.jar"),
-	J2ME("J2ME", "jSDG-stubs-j2me2.0.jar:jsr184.jar:mmapi.jar");
+	NO_STUBS("NONE", null), JRE_14("JRE_14", "stubs/jSDG-stubs-jre1.4.jar"), JRE_15("JRE_15", "stubs/jSDG-stubs-jre1.5.jar"),
+	JAVACARD("JAVACARD", "stubs/jSDG-stubs-javacard.jar:stubs/api.jar"),
+	J2ME("J2ME", "stubs/jSDG-stubs-j2me2.0.jar:stubs/jsr184.jar:stubs/mmapi.jar");
 
 	private static final String PROPERTIES = "project.properties";
 
@@ -77,7 +79,7 @@ public enum Stubs {
 			throw new Error("Cannot locate property 'joana.base.dir'! Please provide a property 'joana.base.dir'"
 				+ " to the jvm or a project.properties in the base dir of your eclipse project!");
 		} else {
-			File fBase = new File(joanaBaseDir + "/contrib/lib/stubs/");
+			File fBase = new File(joanaBaseDir + "/contrib/lib/");
 			if (!fBase.exists()) {
 				throw new Error("Invalid location " + joanaBaseDir + " for joana.base.dir!");
 			} else {
@@ -87,7 +89,7 @@ public enum Stubs {
 	}
 
 	private boolean locateableByClassLoader(final String name) {
-		final URL urlStubsLocation = getClass().getClassLoader().getResource(name);
+		final URL urlStubsLocation = Contrib.class.getClassLoader().getResource(name);
 		return (urlStubsLocation != null);
 	}
 

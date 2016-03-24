@@ -174,7 +174,7 @@ public class IFCAction extends Action implements ISelectionListener {
 			// libs are contained in the joana.api.jar - at the root level
 			// the loading routine should try to load the resource from the classloader, if the filesystem
 			// does not contain the requested file.
-			return "/";
+			return "/stubs/";
 		}
 
 		public PrintStream getLogOut() {

@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Annotations
+Bundle-SymbolicName: joana.ui.annotations
+Bundle-Version: 1.0.0.qualifier
+Export-Package: edu.kit.joana.ui.annotations
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8

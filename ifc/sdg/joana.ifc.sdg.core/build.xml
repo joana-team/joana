@@ -65,6 +65,10 @@
 
 	<target name="collect_sources">
 		<copy todir="${dest.dir.sources}">
+			<!-- joana.contrib -->
+			<fileset dir="${joana.contrib.base.dir}/src">
+				<filename name="**/*.java" />
+			</fileset>
 			<!-- joana.util -->
 			<fileset dir="${joana.util.base.dir}/src">
 				<filename name="**/*.java" />

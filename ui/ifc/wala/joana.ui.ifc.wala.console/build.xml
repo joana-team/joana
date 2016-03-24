@@ -164,6 +164,10 @@
 
 	<target name="collect_sources">
 		<copy todir="${dest.dir.sources}">
+			<!-- joana.contrib -->
+			<fileset dir="${joana.contrib.base.dir}/src">
+				<filename name="**/*.java" />
+			</fileset>
 			<!-- joana.util -->
 			<fileset dir="${joana.util.base.dir}/src">
 				<filename name="**/*.java" />
@@ -192,6 +196,9 @@
 				<filename name="**/*.java" />
 			</fileset>
 			<fileset dir="${joana.ifc.sdg.util.base.dir}/src">
+				<filename name="**/*.java" />
+			</fileset>
+			<fileset dir="${joana.ifc.sdg.irlsod.base.dir}/src">
 				<filename name="**/*.java" />
 			</fileset>
 			<!-- joana.api code -->

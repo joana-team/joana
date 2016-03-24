@@ -34,6 +34,8 @@ import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.util.intset.OrdinalSet;
 // Available in a special variant of WALA
 
+import joana.contrib.lib.Contrib;
+
 public final class WalaPointsToUtil {
 
 	private WalaPointsToUtil() {}
@@ -185,7 +187,7 @@ public final class WalaPointsToUtil {
         { // Set the MethodTargetSelector
             final MethodTargetSelector oldMethodTargetSelector = options.getMethodTargetSelector();
             Util.addDefaultSelectors(options, cha);
-            Util.addDefaultBypassLogic(options, scope, Util.class.getClassLoader(), cha);
+            Util.addDefaultBypassLogic(options, scope, Contrib.class.getClassLoader(), cha);
 
             if (oldMethodTargetSelector != null) {
                 options.setSelector(new DelegatingMethodTargetSelector(oldMethodTargetSelector, options.getMethodTargetSelector(), scope));

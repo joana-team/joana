@@ -21,9 +21,9 @@ public class SelectIFCTypeAction extends Action implements IMenuCreator {
 
 	private Menu menu;
 	private IFCType selected = IFCType.RLSOD;
-	private final static String TXT_LSOD 	= "LSOD     ";
-	private final static String TXT_RLSOD 	= "RLSOD   ";
-	private final static String TXT_ORLSOD 	= "ORLSOD";
+	private final static String TXT_LSOD 	= "   LSOD    ";
+	private final static String TXT_RLSOD 	= "  RLSOD   ";
+	private final static String TXT_ORLSOD 	= " ORLSOD";
 	
 	public SelectIFCTypeAction() {
 		super(TXT_RLSOD, Action.AS_DROP_DOWN_MENU);

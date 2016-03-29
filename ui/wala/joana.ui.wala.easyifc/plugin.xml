@@ -80,6 +80,21 @@
             markertype="joana.ui.easyifc.marker.critical_interference">
       </imageprovider>
    </extension>
+   <extension
+         id="joana.ui.easyifc.marker.interference_trigger"
+         name="IFC thread interference trigger marker"
+         point="org.eclipse.core.resources.markers">
+      <super type="joana.ui.easyifc.marker"/>
+      <persistent value="false"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.ide.markerImageProviders">
+      <imageprovider
+            icon="icons/flow.png"
+            id="joana.ui.easyifc.marker.interference_trigger.img"
+            markertype="joana.ui.easyifc.marker.interference_trigger">
+      </imageprovider>
+   </extension>
 <!-- textual highlight stuff -->
 	<extension id="joana.ui.easyifc.highlight.marker" 
     	point="org.eclipse.core.resources.markers"

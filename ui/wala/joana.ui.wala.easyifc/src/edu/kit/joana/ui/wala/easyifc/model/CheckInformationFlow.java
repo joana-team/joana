@@ -88,20 +88,21 @@ public final class CheckInformationFlow {
 		public final IProgressMonitor progress;
 		public AnalysisScope scope = null;
 		public final IFCType selectedIFCType;
+		public final IFCResultFilter filter;
 
 		public CheckIFCConfig(final String bin, final String src) {
-			this(bin, src, DEFAULT_LIB_DIR, DEFAULT_THIRD_PARTY_LIB, System.out,
-					IFCCheckResultConsumer.DEFAULT, NullProgressMonitor.INSTANCE, IFCType.RLSOD);
+			this(bin, src, DEFAULT_LIB_DIR, DEFAULT_THIRD_PARTY_LIB, System.out, IFCCheckResultConsumer.STDOUT,
+					IFCResultFilter.DEFAULT, NullProgressMonitor.INSTANCE, IFCType.RLSOD);
 		}
 
 		public CheckIFCConfig(final String bin, final String src, final PrintStream out) {
 			this(bin, src, DEFAULT_LIB_DIR, DEFAULT_THIRD_PARTY_LIB, out, IFCCheckResultConsumer.STDOUT,
-					NullProgressMonitor.INSTANCE, IFCType.RLSOD);
+					IFCResultFilter.DEFAULT, NullProgressMonitor.INSTANCE, IFCType.RLSOD);
 		}
 
 		public CheckIFCConfig(final String bin, final String src, final String libDir, final String thirdPartyLib,
-				final PrintStream out, final IFCCheckResultConsumer results, final IProgressMonitor progress,
-				final IFCType selectedIFCType) {
+				final PrintStream out, final IFCCheckResultConsumer results, final IFCResultFilter filter,
+				final IProgressMonitor progress, final IFCType selectedIFCType) {
 			if (src == null) {
 				throw new IllegalArgumentException("src directory is null.");
 			} else if (bin == null) {
@@ -122,6 +123,7 @@ public final class CheckInformationFlow {
 			this.thirdPartyLib = thirdPartyLib;
 			this.out = out;
 			this.results = results;
+			this.filter = filter;
 			this.progress = progress;
 			this.selectedIFCType = selectedIFCType;
 	}
@@ -167,18 +169,19 @@ public final class CheckInformationFlow {
 			config.setComputeInterferences(true);
 			config.setMhpType(MHPType.PRECISE);
 			final SDGProgram concProg = buildSDG(config); 
-			final IFCResult result = doThreadIFCanalysis(config, concProg, entryPoint);
+			final IFCResult result = doThreadIFCanalysis(config, concProg, entryPoint, cfc.filter);
 			cfc.results.consume(result);
 		} else {
 			cfc.out.println("checking '" + cfc.bin + "' for sequential confidentiality.");
-			final IFCResult result = doSequentialIFCanalysis(config, p, entryPoint, progress);
+			final IFCResult result = doSequentialIFCanalysis(config, p, entryPoint, cfc.filter, progress);
 			cfc.results.consume(result);
 		}
 	}
 	
 	private IFCResult doSequentialIFCanalysis(final SDGConfig config, final SDGProgram prog,
-			final EntryPointConfiguration entryPoint, final IProgressMonitor progress) throws CancelException {
-		final IFCResult result = new IFCResult(entryPoint);
+			final EntryPointConfiguration entryPoint, final IFCResultFilter filter,
+			final IProgressMonitor progress) throws CancelException {
+		final IFCResult result = new IFCResult(entryPoint, filter);
 		
 		final Set<SLeak> excLeaks = checkIFC(Reason.EXCEPTION, prog, IFCType.CLASSICAL_NI, annotationMethod);
 		final boolean isSecure = excLeaks.isEmpty();
@@ -234,11 +237,12 @@ public final class CheckInformationFlow {
 		return result;
 	}
 	
-	private IFCResult doThreadIFCanalysis(final SDGConfig config, final SDGProgram prog, final EntryPointConfiguration entryPoint) {
+	private IFCResult doThreadIFCanalysis(final SDGConfig config, final SDGProgram prog,
+			final EntryPointConfiguration entryPoint, final IFCResultFilter filter) {
 		final IFCType ifcType = cfc.selectedIFCType;
 		cfc.out.println("using " + ifcType + " algorithm.");
 		
-		final IFCResult result = new IFCResult(entryPoint);
+		final IFCResult result = new IFCResult(entryPoint, filter);
 		final Set<SLeak> threadLeaks = checkIFC(Reason.THREAD_EXCEPTION, prog, ifcType, annotationMethod);
 		final boolean isSecure = threadLeaks.isEmpty();
 		
@@ -518,6 +522,10 @@ public final class CheckInformationFlow {
 					chop.add(ssink);
 					final SLeak sleak = new SLeak(ssource, ssink,
 							(reason == Reason.THREAD ? Reason.THREAD_ORDER : reason), chop);
+					for (final SecurityNode sn : orderConf.getAllTriggers()) {
+						final SPos strigger= new SPos(sn.getSource(), sn.getSr(), sn.getEr(), sn.getSc(), sn.getEc());
+						sleak.addTrigger(strigger);
+					}
 					sleaks.add(sleak);
 				}
 				

@@ -12,11 +12,13 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.eclipse.jdt.core.IMethod;
 
+import edu.kit.joana.ui.wala.easyifc.model.IFCResultFilter.LeakType;
 import edu.kit.joana.ui.wala.easyifc.util.EntryPointSearch.EntryPointConfiguration;
 
 public interface IFCCheckResultConsumer {
@@ -61,9 +63,11 @@ public interface IFCCheckResultConsumer {
 		private final SortedSet<SLeak> directLeaks = new TreeSet<SLeak>();  
 		private final SortedSet<SLeak> excLeaks = new TreeSet<SLeak>();  
 		private final SortedSet<SLeak> noExcLeaks = new TreeSet<SLeak>();
+		private final IFCResultFilter filter;
 		
-		public IFCResult(final EntryPointConfiguration mainMethod) {
+		public IFCResult(final EntryPointConfiguration mainMethod, final IFCResultFilter filter) {
 			this.mainMethod = mainMethod;
+			this.filter = (filter == null ? IFCResultFilter.DEFAULT : filter);
 		}
 		
 		public EntryPointConfiguration getEntryPointConfiguration() {
@@ -79,18 +83,24 @@ public interface IFCCheckResultConsumer {
 		}
 		
 		public void addDirectLeak(final SLeak leak) {
-			leaks.add(leak);
-			directLeaks.add(leak);
+			if (filter.isOk(LeakType.DIRECT, leak)) {
+				leaks.add(leak);
+				directLeaks.add(leak);
+			}
 		}
 
 		public void addExcLeak(final SLeak leak) {
-			leaks.add(leak);
-			excLeaks.add(leak);
+			if (filter.isOk(LeakType.EXCEPTION, leak)) {
+				leaks.add(leak);
+				excLeaks.add(leak);
+			}
 		}
 
 		public void addNoExcLeak(final SLeak leak) {
-			leaks.add(leak);
-			noExcLeaks.add(leak);
+			if (filter.isOk(LeakType.INDIRECT, leak)) {
+				leaks.add(leak);
+				noExcLeaks.add(leak);
+			}
 		}
 		
 		public String toString() {
@@ -113,7 +123,6 @@ public interface IFCCheckResultConsumer {
 
 	}
 	
-
 	public static enum Reason { 
 		DIRECT_FLOW(1), INDIRECT_FLOW(2), BOTH_FLOW(3), EXCEPTION(4), THREAD(5), THREAD_DATA(6), THREAD_ORDER(7),
 		THREAD_EXCEPTION(8), UNKNOWN(9);
@@ -131,12 +140,25 @@ public interface IFCCheckResultConsumer {
 		private final SPos sink;
 		private final Reason reason;
 		private final SortedSet<SPos> chop;
+		private final Set<SPos> trigger = new TreeSet<>();
 		
 		public SLeak(final SPos source, final SPos sink, final Reason reason, final SortedSet<SPos> chop) {
 			this.source = source;
 			this.sink = sink;
 			this.reason = reason;
 			this.chop = chop;
+		}
+		
+		public void addTrigger(final SPos tpos) {
+			trigger.add(tpos);
+		}
+		
+		public Set<SPos> getTrigger() {
+			return Collections.unmodifiableSet(trigger);
+		}
+		
+		public boolean hasTrigger() {
+			return !trigger.isEmpty();
 		}
 		
 		public SortedSet<SPos> getChop() {
@@ -206,6 +228,10 @@ public interface IFCCheckResultConsumer {
 				break;
 			default:
 				info += "from '" + source.toString() + "' to '" + sink.toString() + "'";
+			}
+			
+			if (hasTrigger()) {
+				info += " (" + trigger.size() + " trigger)";
 			}
 			
 			return info;

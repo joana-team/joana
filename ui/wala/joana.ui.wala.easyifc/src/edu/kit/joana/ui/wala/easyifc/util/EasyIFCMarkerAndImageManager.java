@@ -45,14 +45,13 @@ public class EasyIFCMarkerAndImageManager {
 	public enum Marker {
 		SECRET_INPUT("joana.ui.easyifc.marker.secret_input", "icons/secret_input_big.png"),
 		PUBLIC_OUTPUT("joana.ui.easyifc.marker.public_output", "icons/public_output_big.png"),
-		CRITICAL_INTERFERENCE("joana.ui.easyifc.marker.critical_interference", "icons/critical_interference_big.png");
+		CRITICAL_INTERFERENCE("joana.ui.easyifc.marker.critical_interference", "icons/critical_interference_big.png"),
+		INTERFERENCE_TRIGGER("joana.ui.easyifc.marker.interference_trigger", "icons/flow_big.png");
 		
 		public final String id;
-		public final String bigImg;
 		
 		private Marker(final String id, final String bigImg) {
 			this.id = id;
-			this.bigImg = bigImg;
 		}
 		
 	}
@@ -64,6 +63,7 @@ public class EasyIFCMarkerAndImageManager {
 	public static final String ILLEGAL_FLOW_DIRECT_IMG 		= "icons/illegal_flow_direct_big.png";
 	public static final String ILLEGAL_FLOW_IMG 			= "icons/illegal_flow_big.png";
 	public static final String ANALYSIS_CONFIG_IMG 			= "icons/analysis_configuration_big.png";
+	public static final String TRIGGER_IMG					= "icons/flow_big.png";
 	
 	public static final String CRITICAL_MARKER = "joana.ui.easyifc.highlight.critical";
 	public static final String IFC_MARKER = "joana.ui.easyifc.marker";
@@ -98,6 +98,10 @@ public class EasyIFCMarkerAndImageManager {
 		return (ifcres.hasLeaks() 
 				? Activator.getImageDescriptor(ILLEGAL_FLOW_IMG).createImage()
 				: Activator.getImageDescriptor(NO_LEAK_IMG).createImage());
+    }
+    
+    public Image getTriggerImage() {
+    	return Activator.getImageDescriptor(TRIGGER_IMG).createImage();
     }
 
     public Image getImage(final SLeak leak) {

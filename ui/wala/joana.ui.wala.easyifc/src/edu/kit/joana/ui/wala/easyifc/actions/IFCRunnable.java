@@ -24,7 +24,10 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 import edu.kit.joana.ui.wala.easyifc.actions.IFCAction.ProjectConf;
 import edu.kit.joana.ui.wala.easyifc.model.CheckInformationFlow;
 import edu.kit.joana.ui.wala.easyifc.model.CheckInformationFlow.CheckIFCConfig;
+import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SLeak;
+import edu.kit.joana.ui.wala.easyifc.model.IFCResultFilter.LeakType;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer;
+import edu.kit.joana.ui.wala.easyifc.model.IFCResultFilter;
 import edu.kit.joana.ui.wala.easyifc.util.ProgressMonitorDelegate;
 import edu.kit.joana.ui.wala.easyifc.util.EntryPointSearch.EntryPointConfiguration;
 
@@ -39,6 +42,8 @@ public class IFCRunnable implements IRunnableWithProgress {
 	private final ProjectConf conf;
 	private final IFCCheckResultConsumer resultConsumer;
 
+	private final IFCResultFilter filter = null;
+	
 	public IFCRunnable(final ProjectConf conf, final IFCCheckResultConsumer resultConsumer, final EntryPointConfiguration entryPoint) {
 		this.conf = conf;
 		this.resultConsumer = resultConsumer;
@@ -59,8 +64,8 @@ public class IFCRunnable implements IRunnableWithProgress {
 			}
 			
 			final CheckIFCConfig cfc = new CheckIFCConfig(conf.getBinDir(), conf.getSrcDirs().get(0),
-					conf.getLibLocation(), thirdPartyJar, conf.getLogOut(), resultConsumer, walaProgress,
-					conf.getSelectedIFCType());
+					conf.getLibLocation(), thirdPartyJar, conf.getLogOut(), resultConsumer, filter,
+					walaProgress, conf.getSelectedIFCType());
 			final CheckInformationFlow cfl = new CheckInformationFlow(cfc);
 			final IProject project = conf.getProject().getProject();
 			monitor.subTask("Refreshing project.");

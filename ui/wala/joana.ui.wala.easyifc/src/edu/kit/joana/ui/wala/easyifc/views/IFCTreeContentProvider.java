@@ -26,8 +26,6 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 
-import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
-import edu.kit.joana.ifc.sdg.util.JavaType.Format;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer;
 import edu.kit.joana.ui.wala.easyifc.util.EasyIFCMarkerAndImageManager;
 import edu.kit.joana.ui.wala.easyifc.util.EasyIFCMarkerAndImageManager.Marker;
@@ -151,6 +149,11 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		for (final SLeak leak : res.getLeaks()) {
 			final LeakInfoNode lnfo = new LeakInfoNode(cur, leak);
 			nodes.add(lnfo);
+			if (leak.hasTrigger()) {
+				for (final SPos trigger : leak.getTrigger()) {
+					new TriggerInfoNode(lnfo, trigger);
+				}
+			}
 		}
 
 		createSideMarkerByImportance(nodes);
@@ -237,12 +240,17 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 			super(null);
 		}
 	}
-	public abstract static class SecondLevelNode extends TreeNode<SecondLevelNode, Some<SecondLevelNode>, IFCInfoNode>{
+	public abstract static class SecondLevelNode extends TreeNode<SecondLevelNode, ThirdLevelNode, IFCInfoNode>{
 		private SecondLevelNode(IFCInfoNode parent) {
 			super(parent);
 		}
 	}
 
+	public abstract static class ThirdLevelNode extends TreeNode<ThirdLevelNode, Some<ThirdLevelNode>, SecondLevelNode>{
+		private ThirdLevelNode(SecondLevelNode parent) {
+			super(parent);
+		}
+	}
 
 	public static final class RootNode extends TreeNode<RootNode,IFCInfoNode,None<RootNode>> {
 		private RootNode() {
@@ -408,7 +416,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 	public static class NotRunYetNode extends IFCInfoNode {
 		private NotRunYetNode(final RootNode parent, final EntryPointConfiguration discovered,
 				final IJavaProject project) {
-			super(parent, new IFCResult(discovered) {
+			super(parent, new IFCResult(discovered, null) {
 				@Override
 				public String toString() {
 					return "has not been analysed, yet.";
@@ -420,6 +428,54 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		public Image getImage() {
 			return EasyIFCMarkerAndImageManager.getInstance().getImage(getResult().getEntryPoint());
 		}
+	}
+	
+	public static final class TriggerInfoNode extends ThirdLevelNode {
+
+		private final SPos trigger;
+		private IMarker[] marker = null;
+		
+		private TriggerInfoNode(final LeakInfoNode parent, final SPos trigger) {
+			super(parent);
+			this.trigger = trigger;
+		}
+		
+		@Override
+		TriggerInfoNode self() {
+			return this;
+		}
+
+		@Override
+		public SourceRefElement getSourceRef() {
+			return null;
+		}
+
+		@Override
+		public IMarker[] getSideMarker() {
+			return marker;
+		}
+
+		@Override
+		public void searchMatchingJavaElement() {
+			final LeakInfoNode p = (LeakInfoNode) getParent();
+			final SearchHelper search = p.getIFCInfo().search;
+			final IMarker triggerMarker = search.createSideMarker(trigger, "causing " + p.toString(), Marker.INTERFERENCE_TRIGGER);
+			if (triggerMarker != null) {
+				marker = new IMarker[1];
+				marker[0] = triggerMarker;
+			}
+		}
+
+		@Override
+		public Image getImage() {
+			return EasyIFCMarkerAndImageManager.getInstance().getTriggerImage();
+		}
+		
+		@Override
+		public String toString() {
+			return "caused by secret in '" + trigger.sourceFile + ":" + trigger.startLine + "'";
+		}
+		
 	}
 
 	public static final class LeakInfoNode extends SecondLevelNode {
@@ -456,6 +512,10 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 					sideMarker[0] = search.createSideMarker(leak.getSource(), "Statement part of critical interference.", Marker.CRITICAL_INTERFERENCE);
 					sideMarker[1] = search.createSideMarker(leak.getSink(), "Statement part of critical interference.", Marker.CRITICAL_INTERFERENCE);
 					break;
+				}
+				
+				for (final ThirdLevelNode child : getChildren()) {
+					child.searchMatchingJavaElement();
 				}
 			}
 		}

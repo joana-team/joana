@@ -96,24 +96,40 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
      * @return
      */
     public boolean isParallel(SDGNode m, int mThread, SDGNode n, int nThread) {
-    	ThreadRegion mRegion = regions.getThreadRegion(m, mThread);
-    	ThreadRegion nRegion = regions.getThreadRegion(n, nThread);
-    	return map.get(mRegion.getID(), nRegion.getID());
+        if (!isDynamic(mThread) && mThread == nThread) {
+           return false;
+        } else {
+            ThreadRegion mRegion = regions.getThreadRegion(m, mThread);
+            ThreadRegion nRegion = regions.getThreadRegion(n, nThread);
+            return map.get(mRegion.getID(), nRegion.getID());
+        }
     }
 
     public boolean isParallel(VirtualNode m, VirtualNode n) {
-    	ThreadRegion mRegion = regions.getThreadRegion(m);
-    	ThreadRegion nRegion = regions.getThreadRegion(n);
-    	return map.get(mRegion.getID(), nRegion.getID());
+        if (!isDynamic(m.getNumber()) && m.getNumber() == n.getNumber()) {
+            return false;
+        } else {
+            ThreadRegion mRegion = regions.getThreadRegion(m);
+            ThreadRegion nRegion = regions.getThreadRegion(n);
+            return map.get(mRegion.getID(), nRegion.getID());
+        }
     }
 
 	public boolean isParallel(SDGNode m, int mThread, int region) {
-    	ThreadRegion mRegion = regions.getThreadRegion(m, mThread);
-    	return map.get(mRegion.getID(), region);
+        ThreadRegion mRegion = regions.getThreadRegion(m, mThread);
+        if (mThread == mRegion.getThread() && !isDynamic(mThread)) {
+            return false;
+        } else {
+            return map.get(mRegion.getID(), region);
+        }
 	}
 
     public boolean isParallel(ThreadRegion r, ThreadRegion s) {
-    	return map.get(r.getID(), s.getID());
+        if (!isDynamic(r.getThread()) && s.getThread() == r.getThread()) {
+            return false;
+        } else {
+            return map.get(r.getID(), s.getID());
+        }
     }
 
 

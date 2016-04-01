@@ -12,6 +12,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadRegion;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 
 /**
@@ -51,14 +52,12 @@ public class ProbInfComputer {
 			final Set<SDGNode> ret = new HashSet<SDGNode>();
 			final SimpleTCFGChopper tcfgChopper = new SimpleTCFGChopper(icfg);
 			for (final int threadN : n.getThreadNumbers()) {
-				for (final SDGNode m : icfg.vertexSet()) {
-					for (final int threadM : m.getThreadNumbers()) {
-						if (mhp.isParallel(n, threadN, m, threadM)) {
-							//System.out.println(String.format("MHP(%s,%s)", n, m));
+				ThreadRegion trN = mhp.getThreadRegion(n, threadN);
+				for (ThreadRegion trM : mhp.getThreadRegions()) {
+					if (mhp.isParallel(trN, trM)) {
+						for (SDGNode m : trM.getNodes()) {
 							final Collection<? extends SDGNode> cfgChop = tcfgChopper
-									.chop(cdomOracle.cdom(n, threadN, m, threadM).getNode(), n);
-							//System.out.println(String.format("CFGChop(%s,%s) = %s",
-							//		cdomOracle.cdom(n, threadN, m, threadM), n, cfgChop));
+									.chop(cdomOracle.cdom(n, threadN, m, trM.getThread()).getNode(), n);
 							ret.addAll(cfgChop);
 						}
 					}

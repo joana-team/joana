@@ -149,7 +149,7 @@ public class IFCAnalysis {
 			this.ifc = new ProbabilisticNIChecker(this.program.getSDG(), secLattice, mhp,
 					this.timeSensitiveAnalysis);
 			break;
-		case ORLSOD:
+		case iRLSOD:
 			if (this.program.getSDG().getThreadsInfo() == null) {
 				CSDGPreprocessor.preprocessSDG(this.program.getSDG());
 			}

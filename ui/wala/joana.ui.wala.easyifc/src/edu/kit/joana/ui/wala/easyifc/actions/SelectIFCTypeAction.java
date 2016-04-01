@@ -23,7 +23,7 @@ public class SelectIFCTypeAction extends Action implements IMenuCreator {
 	private IFCType selected = IFCType.RLSOD;
 	private final static String TXT_LSOD 	= "   LSOD    ";
 	private final static String TXT_RLSOD 	= "  RLSOD   ";
-	private final static String TXT_ORLSOD 	= " ORLSOD";
+	private final static String TXT_iRLSOD 	= "  iRLSOD  ";
 	
 	public SelectIFCTypeAction() {
 		super(TXT_RLSOD, Action.AS_DROP_DOWN_MENU);
@@ -84,20 +84,20 @@ public class SelectIFCTypeAction extends Action implements IMenuCreator {
 				setText(TXT_RLSOD);
 			}
 		});
-		final MenuItem iORLSOD = new MenuItem(menu, Action.AS_RADIO_BUTTON);
-		iORLSOD.setText(IFCType.ORLSOD.toString());
-		iORLSOD.addSelectionListener(new SelectionListener() {
+		final MenuItem iIRLSOD = new MenuItem(menu, Action.AS_RADIO_BUTTON);
+		iIRLSOD.setText(IFCType.iRLSOD.toString());
+		iIRLSOD.addSelectionListener(new SelectionListener() {
 			
 			@Override
 			public void widgetSelected(final SelectionEvent e) {
-				selected = IFCType.ORLSOD;
-				setText(TXT_ORLSOD);
+				selected = IFCType.iRLSOD;
+				setText(TXT_iRLSOD);
 			}
 			
 			@Override
 			public void widgetDefaultSelected(final SelectionEvent e) {
-				selected = IFCType.ORLSOD;
-				setText(TXT_ORLSOD);
+				selected = IFCType.iRLSOD;
+				setText(TXT_iRLSOD);
 			}
 		});
 		

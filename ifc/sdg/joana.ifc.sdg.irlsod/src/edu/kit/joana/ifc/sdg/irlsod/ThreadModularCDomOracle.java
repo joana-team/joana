@@ -21,8 +21,10 @@ public class ThreadModularCDomOracle implements ICDomOracle {
 	private final SDG sdg;
 	private final DirectedGraph<ThreadInstance, DefaultEdge> tct;
 	private final DFSIntervalOrder<ThreadInstance, DefaultEdge> dioTCT;
+	private TIntObjectMap<CFG> threadsToCFG = new TIntObjectHashMap<>();
 	private TIntObjectMap<DynamicityAnalysis> threadsToDyna = new TIntObjectHashMap<>();
-	private TIntObjectMap<Dominators<SDGNode, SDGEdge>> threadsToDomTree = new TIntObjectHashMap<>();
+	private TIntObjectMap<Dominators<SDGNode, SDGEdge>> threadsToDom = new TIntObjectHashMap<>();
+	private TIntObjectMap<DFSIntervalOrder<SDGNode, DomEdge>> threadsToDIO = new TIntObjectHashMap<>();
 
 	public ThreadModularCDomOracle(final SDG sdg) {
 		this.sdg = sdg;
@@ -45,18 +47,27 @@ public class ThreadModularCDomOracle implements ICDomOracle {
 			final SDGNode fork1 = findIndirectForkSite(cAnc, threadN1);
 			final SDGNode fork2 = findIndirectForkSite(cAnc, threadN2);
 			// 3.) find a common dominator of the two forks
-			final CFG threadGraph = JoanaRunner.unfoldCFGFor(sdg, cAnc.getId());
+			CFG threadGraph = threadsToCFG.get(cAnc.getId());
+			if (threadGraph == null) {
+				threadGraph = JoanaRunner.unfoldCFGFor(sdg, cAnc.getId());
+				threadsToCFG.put(cAnc.getId(), threadGraph);
+			}
 			DynamicityAnalysis dyna = threadsToDyna.get(cAnc.getId());
 			if (dyna == null) {
 				dyna = new DynamicityAnalysis(sdg, threadGraph);
 				threadsToDyna.put(cAnc.getId(), dyna);
 			}
-			Dominators<SDGNode, SDGEdge> threadDomTree = threadsToDomTree.get(cAnc.getId());
-			if (threadDomTree == null) {
-				threadDomTree = Dominators.compute(threadGraph, cAnc.getEntry());
-				threadsToDomTree.put(cAnc.getId(), threadDomTree);
+			Dominators<SDGNode, SDGEdge> threadDom = threadsToDom.get(cAnc.getId());
+			if (threadDom == null) {
+				threadDom = Dominators.compute(threadGraph, cAnc.getEntry());
+				threadsToDom.put(cAnc.getId(), threadDom);
 			}
-			cdom = new VirtualNode(lowestNonDynamicCommonDominator(fork1, fork2, threadDomTree, dyna), cAnc.getId());
+			DFSIntervalOrder<SDGNode, DomEdge> threadDIO = threadsToDIO.get(cAnc.getId());
+			if (threadDIO == null) {
+				threadDIO = new DFSIntervalOrder<SDGNode, DomEdge>(threadDom.getDominationTree());
+				threadsToDIO.put(cAnc.getId(), threadDIO);
+			}
+			cdom = new VirtualNode(lowestNonDynamicCommonDominator(fork1, fork2, threadDom, threadDIO, dyna), cAnc.getId());
 		}
 		//System.out.println(String.format("cdom(%s, %s) = %s", n1, n2, cdom.getNode()));
 		return cdom;
@@ -104,8 +115,7 @@ public class ThreadModularCDomOracle implements ICDomOracle {
 	}
 
 	private SDGNode lowestNonDynamicCommonDominator(final SDGNode n1, final SDGNode n2,
-			final Dominators<SDGNode, SDGEdge> dom, final DynamicityAnalysis dyna) {
-		final DFSIntervalOrder<SDGNode, DomEdge> dio = new DFSIntervalOrder<SDGNode, DomEdge>(dom.getDominationTree());
+			final Dominators<SDGNode, SDGEdge> dom, final DFSIntervalOrder<SDGNode, DomEdge> dio, final DynamicityAnalysis dyna) {
 		SDGNode cur = n1;
 		while (!dio.isLeq(n2, cur)) {
 			cur = dom.getIDom(cur);

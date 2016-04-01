@@ -67,6 +67,19 @@ public class ORLSODChecker<L> extends IFC<L> {
 		}
 		return ret;
 	}
+	/**
+	 * like initCL but assigns nothing and not bottom to non-user-annotated nodes
+	 * @return user annotations as map
+	 */
+	protected Map<SDGNode, L> initCLPartial(final boolean incorporateUserAnns) {
+		final Map<SDGNode, L> ret = new HashMap<SDGNode, L>();
+		for (final SDGNode n : sdg.vertexSet()) {
+			if (incorporateUserAnns && userAnn.containsKey(n)) {
+				ret.put(n, userAnn.get(n));
+			}
+		}
+		return ret;
+	}
 
 	protected final Collection<? extends IViolation<SecurityNode>> checkCompliance() {
 		final LinkedList<IUnaryViolation<SecurityNode, L>> ret = new LinkedList<>();
@@ -74,6 +87,28 @@ public class ORLSODChecker<L> extends IFC<L> {
 			final SDGNode s = userAnnEntry.getKey();
 			final L userLvl = userAnnEntry.getValue();
 			if (!LatticeUtil.isLeq(secLattice, cl.get(s), userLvl)) {
+				ret.add(new UnaryViolation<SecurityNode, L>(new SecurityNode(s), userLvl, cl.get(s)));
+				System.out.println("Violation at node " + s + ": user-annotated level is " + userLvl
+						+ ", computed level is " + cl.get(s));
+			}
+		}
+		return ret;
+	}
+
+	/**
+	 * Like checkCompliance, but the other way round: checkCompliance looks for nodes
+	 * whose security levels are too high (i.e. low nodes which may be influenced
+	 * by high nodes) - this method looks for nodes whose security levels are too low
+	 * (i.e. high nodes which may influence low nodes). This method is to be used when doing
+	 * backwards analysis, i.e. if the propagation is started from the sinks
+	 * @return nodes whose levels do not comply
+	 */
+	protected final Collection<? extends IViolation<SecurityNode>> checkComplianceDual() {
+		final LinkedList<IUnaryViolation<SecurityNode, L>> ret = new LinkedList<>();
+		for (final Map.Entry<SDGNode, L> userAnnEntry : userAnn.entrySet()) {
+			final SDGNode s = userAnnEntry.getKey();
+			final L userLvl = userAnnEntry.getValue();
+			if (!LatticeUtil.isLeq(secLattice, userLvl, cl.get(s))) {
 				ret.add(new UnaryViolation<SecurityNode, L>(new SecurityNode(s), userLvl, cl.get(s)));
 				System.out.println("Violation at node " + s + ": user-annotated level is " + userLvl
 						+ ", computed level is " + cl.get(s));

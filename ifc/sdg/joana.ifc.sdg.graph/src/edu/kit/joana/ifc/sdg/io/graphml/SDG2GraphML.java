@@ -43,7 +43,7 @@ public class SDG2GraphML {
 	private static final String JOANA_NODE_KIND = "nodeKind";
 	
 	/**
-	 * Constants for names from the graphml namespace
+	 * Constants for names from the GraphML namespace
 	 */
 	private static final String GRAPHML_DIRECTED = "directed";
 	private static final String GRAPHML_EDGEDEFAULT = "edgedefault";
@@ -265,6 +265,15 @@ public class SDG2GraphML {
 		writer.writeEndElement();
 	}
 
+	/**
+	 * Write a GraphML representation of the the given {@link SDG} into the the given {@link OutputStream}.
+	 * The written graph is non-hierarchical.
+	 * 
+	 * @see <a href="http://graphml.graphdrawing.org/">http://graphml.graphdrawing.org/</a>
+	 * @param sdg
+	 * @param out
+	 * @throws XMLStreamException
+	 */
 	public static void convert(SDG sdg, OutputStream out) throws XMLStreamException {
 		XMLOutputFactory output = XMLOutputFactory.newInstance();
 		XMLStreamWriter writer = new IndentingXMLStreamWriter(output.createXMLStreamWriter(out, ENCODING));
@@ -288,6 +297,16 @@ public class SDG2GraphML {
 		writeEndRoot(writer);
 		writer.flush();
 	}
+	
+	/**
+	 * Write a GraphML representation of the the given {@link SDG} into the the given {@link OutputStream}.
+	 * The written graph is hierarchical: Nodes are grouped by the procedure they belong to.
+	 * 
+	 * @see <a href="http://graphml.graphdrawing.org/">http://graphml.graphdrawing.org/</a>
+	 * @param sdg
+	 * @param out
+	 * @throws XMLStreamException
+	 */
 	
 	public static void convertHierachical(SDG sdg, OutputStream out) throws XMLStreamException {
 		XMLOutputFactory output = XMLOutputFactory.newInstance();
@@ -327,9 +346,4 @@ public class SDG2GraphML {
 		writeEndRoot(writer);
 		writer.flush();
 	}
-	
-	public static void main(String[] args) throws XMLStreamException {
-		SDG2GraphML.convert(null, System.out);
-	}
-
 }

@@ -17,6 +17,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collection;
 
+import javax.xml.stream.XMLStreamException;
+
 import org.junit.Test;
 
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
@@ -34,6 +36,7 @@ import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
+import edu.kit.joana.ifc.sdg.io.graphml.SDG2GraphML;
 import edu.kit.joana.ifc.sdg.lattice.IEditableLattice;
 import edu.kit.joana.ifc.sdg.lattice.impl.EditableLatticeSimple;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
@@ -51,6 +54,7 @@ public class ToyTests {
 	static final Stubs STUBS = Stubs.JRE_14;
 
 	static final boolean outputPDGFiles = false;
+	static final boolean outputGraphMLFiles = false;
 	
 	static final String outputDir = "out";
 	
@@ -75,7 +79,7 @@ public class ToyTests {
 		}
 		configurations.setImmediatelyGreater(bottom_sequential, top_sequential);
 
-		if (outputPDGFiles) {
+		if (outputPDGFiles || outputGraphMLFiles) {
 			File fOutDir = new File(outputDir);
 			if (!fOutDir.exists()) {
 				fOutDir.mkdir();
@@ -157,6 +161,9 @@ public class ToyTests {
 			if (outputPDGFiles) {
 				dumpSDG(ana.getProgram().getSDG(), classname + ".passon.pdg");
 			}
+			if (outputGraphMLFiles) {
+				dumpGraphML(ana.getProgram().getSDG(), classname + ".passon.pdg");
+			}
 
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
@@ -167,6 +174,9 @@ public class ToyTests {
 
 			if (outputPDGFiles) {
 				dumpSDG(ana.getProgram().getSDG(), classname + ".ignore.pdg");
+			}
+			if (outputGraphMLFiles) {
+				dumpGraphML(ana.getProgram().getSDG(), classname + ".ignore.pdg");
 			}
 
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
@@ -183,6 +193,10 @@ public class ToyTests {
 			if (outputPDGFiles) {
 				dumpSDG(ana.getProgram().getSDG(), classname + ".passon.pdg");
 			}
+			
+			if (outputGraphMLFiles) {
+				dumpGraphML(ana.getProgram().getSDG(), classname + ".passon.pdg");
+			}
 
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
@@ -196,6 +210,10 @@ public class ToyTests {
 				dumpSDG(ana.getProgram().getSDG(), classname + ".ignore.pdg");
 			}
 
+			if (outputGraphMLFiles) {
+				dumpGraphML(ana.getProgram().getSDG(), classname + ".ignore.pdg");
+			}
+
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
 		}
@@ -204,6 +222,18 @@ public class ToyTests {
 	private static void dumpSDG(SDG sdg, String filename) throws FileNotFoundException {
 		BufferedOutputStream bOut = new BufferedOutputStream(new FileOutputStream(outputDir + "/" + filename));
 		SDGSerializer.toPDGFormat(sdg, bOut);
+	}
+	
+	private static void dumpGraphML(SDG sdg, String filename) throws FileNotFoundException {
+		final BufferedOutputStream bOut = new BufferedOutputStream(new FileOutputStream(outputDir + "/" + filename + ".graphml"));
+		final BufferedOutputStream bOutHierachical = new BufferedOutputStream(new FileOutputStream(outputDir + "/" + filename + ".hierarchical.graphml"));
+		try {
+			SDG2GraphML.convert(sdg, bOut);
+			SDG2GraphML.convertHierachical(sdg, bOutHierachical);
+		} catch (XMLStreamException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	@Test

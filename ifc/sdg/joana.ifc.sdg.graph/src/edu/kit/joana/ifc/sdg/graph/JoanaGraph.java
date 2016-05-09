@@ -326,12 +326,12 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
     	TIntObjectHashMap<Set<SDGNode>> aux = new TIntObjectHashMap<Set<SDGNode>>();
 
     	for (SDGNode n : vertexSet()) {
-    		int id = n.getId();
-    		Set<SDGNode> set = aux.get(id);
+    		final int procId = n.getProc();
+    		Set<SDGNode> set = aux.get(procId);
 
     		if (set == null) {
     			set = new HashSet<SDGNode>();
-    			aux.put(id, set);
+    			aux.put(procId, set);
     		}
 
     		set.add(n);
@@ -342,7 +342,7 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
     	}
 
     	for (SDGNode entry : map.keySet()) {
-    		map.put(entry, aux.get(entry.getId()));
+    		map.put(entry, aux.get(entry.getProc()));
     	}
 
     	return map;

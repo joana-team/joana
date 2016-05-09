@@ -283,7 +283,7 @@ public class SDG2GraphML {
 			for (SDGEdge e : sdg.edgeSet()) {
 				writeEdge(e, writer);
 			}
-		}
+		} writer.writeEndElement();
 		
 		writeEndRoot(writer);
 		writer.flush();

@@ -230,20 +230,14 @@ public class SDG2GraphML {
 		
 		writer.writeEmptyElement(GRAPHML_KEY); {
 			writer.writeAttribute(GRAPHML_ID, JOANA_EDGE_KIND);
-			writer.writeAttribute(GRAPHML_FOR, GRAPHML_NODE);
+			writer.writeAttribute(GRAPHML_FOR, GRAPHML_EDGE);
 			writer.writeAttribute(GRAPHML_ATTR_NAME, JOANA_EDGE_KIND);
 			writer.writeAttribute(GRAPHML_ATTR_TYPE, GRAPHML_STRING);
 		}
 		
 		writer.writeEmptyElement(GRAPHML_KEY); {
-			writer.writeAttribute(GRAPHML_ID, JOANA_EDGE_KIND);
-			writer.writeAttribute(GRAPHML_FOR, GRAPHML_NODE);
-			writer.writeAttribute(GRAPHML_ATTR_NAME, JOANA_EDGE_KIND);
-			writer.writeAttribute(GRAPHML_ATTR_TYPE, GRAPHML_STRING);
-		}
-		writer.writeEmptyElement(GRAPHML_KEY); {
 			writer.writeAttribute(GRAPHML_ID, JOANA_EDGE_LABEL);
-			writer.writeAttribute(GRAPHML_FOR, GRAPHML_NODE);
+			writer.writeAttribute(GRAPHML_FOR, GRAPHML_EDGE);
 			writer.writeAttribute(GRAPHML_ATTR_NAME, JOANA_EDGE_LABEL);
 			writer.writeAttribute(GRAPHML_ATTR_TYPE, GRAPHML_STRING);
 		}

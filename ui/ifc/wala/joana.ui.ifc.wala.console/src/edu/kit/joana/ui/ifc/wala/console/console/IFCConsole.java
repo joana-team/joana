@@ -27,6 +27,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.regex.PatternSyntaxException;
 
+import javax.xml.stream.XMLStreamException;
+
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
@@ -50,6 +52,7 @@ import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
+import edu.kit.joana.ifc.sdg.io.graphml.SDG2GraphML;
 import edu.kit.joana.ifc.sdg.lattice.IEditableLattice;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.InvalidLatticeException;
@@ -104,6 +107,8 @@ public class IFCConsole {
 							"Annotate specified part of method with provided security level <level>. <index> is either of the form p<number> for parameters of i<number> for instructions."),
 		SAVE_SDG(		"saveSDG", 				1, 		"<filename>",
 							"Store current SDG in file specified by <filename>."),
+		EXPORT_SDG("exportSDG", 				1, 		"<filename>",
+				"Export current SDG in GraphML format to file specified by <filename>."),
 		SINK(			"sink", 				2, 		"<index> <level>",
 							"Annotate specified node with required security level <level>. <index> refers to the indices shown in the currently active method."),
 		CLEAR(			"clear", 				1, 		"<index>",
@@ -508,6 +513,17 @@ public class IFCConsole {
 		};
 	}
 
+	private Command makeCommandExportSDG() {
+		return new Command(CMD.EXPORT_SDG) {
+
+			@Override
+			boolean execute(String[] args) {
+				return exportGraphML(args[1]);
+			}
+
+		};
+	}
+
 	// this command is redundant!
 	// private Command makeCommandBuildCSDG() {
 	// return new Command(CMD.BUILD_CSDG) {
@@ -878,6 +894,7 @@ public class IFCConsole {
 		// redundant!
 		repo.addCommand(makeCommandLoadSDG());
 		repo.addCommand(makeCommandSaveSDG());
+		repo.addCommand(makeCommandExportSDG());
 
 		// ifc commands
 
@@ -1566,7 +1583,32 @@ public class IFCConsole {
 
 		return true;
 	}
-
+	
+	public synchronized boolean exportGraphML(String path) {
+		if (ifcAnalysis == null || ifcAnalysis.getProgram() == null) {
+			out.info("No active program.");
+		} else {
+			BufferedOutputStream bOut;
+			
+			try {
+				bOut = new BufferedOutputStream(new FileOutputStream(path));
+			} catch (FileNotFoundException e) {
+				out.error("I/O problem while exporting GraphML into file " + path + "!");
+				return false;
+			}
+			
+			final SDG sdg = ifcAnalysis.getProgram().getSDG();
+			try {
+				SDG2GraphML.convertHierachical(sdg, bOut);
+			} catch (XMLStreamException e) {
+				out.error("A problem occured while exporting the SDG to GraphML." +
+				          "This is most certainly a bug, please report it to the JOANA developers.");
+				return false;
+			}
+		}
+		
+		return true;
+	}
 	public synchronized boolean loadSDG(String path) {
 
 		SDG sdg;

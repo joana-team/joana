@@ -57,6 +57,7 @@ public class IFCConfigPanel extends JPanel {
 	private final JButton selectClassPath = new JButton("browse");
 	private final JButton entryMethodUpdate = new JButton("update");
 	private final JCheckBox autoSaveSDGCheckbox = new JCheckBox("auto-save");
+	private final JCheckBox autoGraphMLCheckbox = new JCheckBox("auto-graphml-export");
 	private final JLabel sdgStatusLabel = new JLabel("<no sdg in memory>");
 	private final JCheckBox compIFECheckbox = new JCheckBox("compute interference edges");
 	private final JComboBox mhpCombo = new JComboBox();
@@ -64,7 +65,8 @@ public class IFCConfigPanel extends JPanel {
 	private final JComboBox pointstoCombo = new JComboBox();
 	private final JComboBox stubsCombo = new JComboBox();
 	private final JButton loadSDG = new JButton("load SDG from file");
-	private final JButton saveSDG = new JButton("save current SDG as");
+	private final JButton saveSDG = new JButton("save current SDG");
+	private final JButton saveGraphML = new JButton("export current SDG (GraphML)");
 	private final JButton buildSDG = new JButton("build");
 	private final JLabel latticeLabel = new JLabel("Security lattice: ");
 	private final JComboBox curLatticeComboBox = new JComboBox();
@@ -235,6 +237,7 @@ public class IFCConfigPanel extends JPanel {
 	
 		ret.add(buildSDG, GUIUtil.mkgbc_nofill(0, 4, 1, 1));
 		ret.add(autoSaveSDGCheckbox, GUIUtil.mkgbc_fillx(1, 4, 1, 1));
+		ret.add(autoGraphMLCheckbox, GUIUtil.mkgbc_fillx(1, 5, 1, 1));
 
 		return ret;
 	}
@@ -248,6 +251,9 @@ public class IFCConfigPanel extends JPanel {
 		ret.add(saveSDG, GUIUtil.mkgbc_nofill(2, 0, 1, 1));
 		saveSDG.addActionListener(makeSaveSDGAction());
 		saveSDG.setEnabled(false);
+		ret.add(saveGraphML, GUIUtil.mkgbc_nofill(2, 1, 1, 1));
+		saveGraphML.addActionListener(makeExportSDGAction());
+		saveGraphML.setEnabled(false);
 		return ret;
 	}
 
@@ -492,7 +498,42 @@ public class IFCConfigPanel extends JPanel {
 		};
 	}
 
+	private static interface OnSave {
+		void onSave(JFileChooser choose);
+	}
+	
 	private ActionListener makeSaveSDGAction() {
+		return makeGenericSaveAction(
+			".*\\.pdg",
+			"SDG files (*.pdg)",
+			".pdg",
+			new OnSave() {
+				@Override
+				public void onSave(JFileChooser choose) {
+					consoleGui.execSaveSDG(choose.getSelectedFile().getAbsolutePath());
+					sdgStatusLabel.setText("current sdg stored in: "
+							+ choose.getSelectedFile().getAbsolutePath());
+				}
+			});
+	}
+
+	private ActionListener makeExportSDGAction() {
+		return makeGenericSaveAction(
+			".*\\.pdg.graphml",
+			"SDG files in GraphML format (*.pdg.graphml)",
+			".pdg.graphml",
+			new OnSave() {
+				@Override
+				public void onSave(JFileChooser choose) {
+					consoleGui.execSExportSDG(choose.getSelectedFile().getAbsolutePath());
+					sdgStatusLabel.setText("current sdg exported as GraphML in: "
+							+ choose.getSelectedFile().getAbsolutePath());
+					
+				}
+			});
+	}
+	
+	private ActionListener makeGenericSaveAction(String pattern, String description, String postfix, OnSave onSave) {
 		return new ActionListener() {
 
 			@Override
@@ -504,12 +545,12 @@ public class IFCConfigPanel extends JPanel {
 
 						@Override
 						public boolean accept(File arg0) {
-							return arg0.isDirectory() || Pattern.matches(".*\\.pdg", arg0.getName());
+							return arg0.isDirectory() || Pattern.matches(pattern, arg0.getName());
 						}
 
 						@Override
 						public String getDescription() {
-							return "SDG files (*.pdg)";
+							return description;
 						}
 
 					});
@@ -523,20 +564,18 @@ public class IFCConfigPanel extends JPanel {
 							File selectedFile = choose.getSelectedFile();
 							String path = selectedFile.getAbsolutePath();
 							boolean doSave = true;
-							if (path.endsWith(".pdg")) {
+							if (path.endsWith(postfix)) {
 								if (selectedFile.exists()) {
 									Answer a = consoleGui.question("The selected file already exists. Overwrite? (Y/N)");
 									doSave = (a == Answer.YES);
 								}
 								if (doSave) {
-									consoleGui.execSaveSDG(choose.getSelectedFile().getAbsolutePath());
-									sdgStatusLabel.setText("current sdg stored in: "
-											+ choose.getSelectedFile().getAbsolutePath());
+									onSave.onSave(choose);
 								} else {
 									approvedAndSuccess = false;
 								}
 							} else {
-								consoleGui.error("Chosen file has wrong suffix! Must end with '.pdg'!");
+								consoleGui.error("Chosen file has wrong suffix! Must end with '" + postfix + "'!");
 								approvedAndSuccess = false;
 							}
 						} else {
@@ -593,6 +632,7 @@ public class IFCConfigPanel extends JPanel {
 					consoleGui.info("Please select classpath and entry method first.");
 				} else {
 					String saveSDGPath = null;
+					String exportGraphMLPath = null;
 					if (autoSaveSDGCheckbox.isSelected()) {
 						try {
 							saveSDGPath = new File(consoleGui.getEntryMethod().getFullyQualifiedMethodName() + ".pdg")
@@ -602,7 +642,17 @@ public class IFCConfigPanel extends JPanel {
 									+ consoleGui.getEntryMethod().getFullyQualifiedMethodName() + ".pdg");
 						}
 					}
-					consoleGui.execBuildSDG(saveSDGPath);
+					if (autoGraphMLCheckbox.isSelected()) {
+						try {
+							exportGraphMLPath = new File(consoleGui.getEntryMethod().getFullyQualifiedMethodName() + ".pdg.graphml")
+									.getCanonicalPath();
+						} catch (IOException e) {
+							consoleGui.error("I/O error while exporting SDG to "
+									+ consoleGui.getEntryMethod().getFullyQualifiedMethodName() + ".pdg.graphml");
+						}
+					}
+					
+					consoleGui.execBuildSDG(saveSDGPath, exportGraphMLPath);
 					if (saveSDGPath != null) {
 						sdgStatusLabel.setText("current SDG stored in: " + saveSDGPath);
 					} else {
@@ -734,6 +784,7 @@ public class IFCConfigPanel extends JPanel {
 
 	public void sdgLoadedOrBuilt() {
 		saveSDG.setEnabled(true);
+		//saveGraphML.setEnabled(true);
 	}
 
 	private static class ElementWithDescription<A> {

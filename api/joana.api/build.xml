@@ -68,6 +68,7 @@
 		<mkdir dir="${dest.dir}" />
 		<mkdir dir="${dest.dir.sources}" />
 		<mkdir dir="${dest.dir.classes}" />
+		<mkdir dir="${dest.dir.classes}/stubs" />
 	</target>
 
 	<target name="copy_non_java_files">
@@ -82,8 +83,14 @@
 			</filelist>
 			<filelist dir="${joana.contrib.base.dir}/stubs">
 				<file name="natives_empty.xml" />
+			</filelist>
+		</copy>
+		<copy todir="${dest.dir.classes}/stubs">
+			<filelist dir="${joana.contrib.base.dir}/stubs">
 				<file name="jSDG-stubs-jre1.4.jar" />
 				<file name="jSDG-stubs-jre1.5.jar" />
+				<file name="jSDG-stubs-javacard.jar" />
+				<file name="jSDG-stubs-j2me2.0.jar" />
 			</filelist>
 		</copy>
 	</target>

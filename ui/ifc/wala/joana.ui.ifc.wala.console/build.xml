@@ -102,6 +102,7 @@
 		<mkdir dir="${dest.dir}" />
 		<mkdir dir="${dest.dir.sources}" />
 		<mkdir dir="${dest.dir.classes}" />
+		<mkdir dir="${dest.dir.classes}/stubs" />
 	</target>
 
 	<target name="copy_non_java_files" depends="versionid">
@@ -116,8 +117,6 @@
 			</filelist>
 			<filelist dir="${joana.contrib.base.dir}/stubs">
 				<file name="natives_empty.xml" />
-				<file name="jSDG-stubs-jre1.4.jar" />
-				<file name="jSDG-stubs-jre1.5.jar" />
 			</filelist>
 			<filelist dir="${joana.contrib.base.dir}/res">
 			    <file name="logback.xml" />
@@ -128,6 +127,14 @@
 				<filename name="**/*.gif" />
 				</or>
 			</fileset>
+		</copy>
+		<copy todir="${dest.dir.classes}/stubs">
+			<filelist dir="${joana.contrib.base.dir}/stubs">
+				<file name="jSDG-stubs-jre1.4.jar" />
+				<file name="jSDG-stubs-jre1.5.jar" />
+				<file name="jSDG-stubs-javacard.jar" />
+				<file name="jSDG-stubs-j2me2.0.jar" />
+			</filelist>
 		</copy>
 		<copy file="versionid.properties" todir="${dest.dir.classes}" failonerror="false" />
 		<mkdir dir="${dest.dir.classes}/JNLP-INF" />

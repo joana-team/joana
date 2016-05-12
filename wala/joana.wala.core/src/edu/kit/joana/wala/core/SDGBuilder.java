@@ -117,6 +117,12 @@ public class SDGBuilder implements CallGraphFilter {
 	public final static boolean DATA_FLOW_FOR_GET_FROM_FIELD_NODE =
 			Config.getBool(Config.C_SDG_DATAFLOW_FOR_GET_FROM_FIELD, false);
 
+
+	public static final TypeReference[] DEFAULT_IGNORE_EXCEPTIONS = {
+	    TypeReference.JavaLangOutOfMemoryError,
+	    TypeReference.JavaLangExceptionInInitializerError
+	};
+
 	public final SDGBuilderConfig cfg;
 
 	public LinkedList<Set<ParameterField>> partitions;
@@ -578,7 +584,7 @@ public class SDGBuilder implements CallGraphFilter {
 
 			try {
 				interprocExceptionResult = NullPointerAnalysis.computeInterprocAnalysis(
-						NullPointerAnalysis.DEFAULT_IGNORE_EXCEPTIONS, nonPrunedCG,	cfg.defaultExceptionMethodState,
+						DEFAULT_IGNORE_EXCEPTIONS, nonPrunedCG,	cfg.defaultExceptionMethodState,
 						progress, cfg.pruneDDEdgesToDanglingExceptionNodes);
 			} catch (WalaException e) {
 				throw new CancelException(e);
@@ -769,7 +775,7 @@ public class SDGBuilder implements CallGraphFilter {
 	public ControlFlowGraph<SSAInstruction, IExplodedBasicBlock> createIntraExceptionAnalyzedCFG(final CGNode n,
 			final IProgressMonitor progress) throws UnsoundGraphException, CancelException {
 		final ExceptionPruningAnalysis<SSAInstruction, IExplodedBasicBlock> npa = NullPointerAnalysis
-				.createIntraproceduralExplodedCFGAnalysis(NullPointerAnalysis.DEFAULT_IGNORE_EXCEPTIONS, n.getIR(),
+				.createIntraproceduralExplodedCFGAnalysis(DEFAULT_IGNORE_EXCEPTIONS, n.getIR(),
 						null, cfg.defaultExceptionMethodState, cfg.pruneDDEdgesToDanglingExceptionNodes);
 
 		npa.compute(progress);
@@ -842,7 +848,7 @@ public class SDGBuilder implements CallGraphFilter {
 				return true;
 			}
 			ExceptionPruningAnalysis<SSAInstruction, IExplodedBasicBlock> npa = NullPointerAnalysis
-			.createIntraproceduralExplodedCFGAnalysis(NullPointerAnalysis.DEFAULT_IGNORE_EXCEPTIONS, n.getIR(),
+			.createIntraproceduralExplodedCFGAnalysis(DEFAULT_IGNORE_EXCEPTIONS, n.getIR(),
 					null, cfg.defaultExceptionMethodState);
 			try {
 				npa.compute(NullProgressMonitor.INSTANCE);

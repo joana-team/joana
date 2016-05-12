@@ -179,6 +179,23 @@ public class FullIFCSequentialTest {
 	}
 
 	@Test
+	public void testNegativeArraySizeException() {
+		try {
+			IFCAnalysis ana = buildAndAnnotate("exc.Exception_NegativeArraySize",
+					"sensitivity.Security.SECRET",
+					"sensitivity.Security.PUBLIC",
+					PointsToPrecision.INSTANCE_BASED,
+					ExceptionAnalysis.INTRAPROC);
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertFalse(illegal.isEmpty());
+			assertEquals(6, illegal.size());
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
 	public void testFirst() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("lob.First",

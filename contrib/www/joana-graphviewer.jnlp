@@ -14,7 +14,7 @@
 	</information>
 	<resources>
 		<!-- Application Resources -->
-		<java version="1.6+" java-vm-args="-Xmx1024m" />
+		<java version="1.8+" java-vm-args="-Xmx1024m" />
 		<jar href="webstart-jars/joana.ui.ifc.sdg.graphviewer.jar" main="true" />
 	</resources>
 	<application-desc

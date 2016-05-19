@@ -368,12 +368,17 @@ public class SDGNode implements Cloneable {
     }
 
     /**
-     * If this node is a call of Thread.start() or Thread.join() or a method overriding Thread.run(),
-     * this method returns the ids of the nodes, at which the object, on
+     * If available, this method returns the ids of the nodes, at which the object, on
      * which the respective method is called, is possibly allocated. <br>
-     * In all other cases, {@code null} is returned.
-     * @return possible allocation sites, if this node represents a call to Thread.start(), Thread.join() or
-     * a method overriding Thread.run(), or {@code null} otherwise
+     * Otherwise, {@code null} is returned.
+     *
+     * Specifically, these allocation Sites for calls of Thread.start() or Thread.join() or a method overriding Thread.run()
+     * if the SDG was built with {@code computeInterference} enabled,
+     * or for all call nodes if built with {@code computeAllocationSites} enabled. 
+     *
+     * @return possible allocation sites, if this node represents a call node,
+     * and if the allocationSites were computed during SDG creation, 
+     * or {@code null} otherwise
      */
     public int[] getAllocationSites() {
         return this.allocationSites;

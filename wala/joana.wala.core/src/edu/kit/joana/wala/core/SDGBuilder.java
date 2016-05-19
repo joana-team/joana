@@ -1894,7 +1894,6 @@ public class SDGBuilder implements CallGraphFilter {
 	}
 
 	public TIntSet getAllocationNodes(PDGNode n) {
-		assert cfg.computeInterference : "Only computed for calls to Thread.start when interference is on.";
 		return (call2alloc != null && call2alloc.containsKey(n) ? call2alloc.get(n) : null);
 	}
 

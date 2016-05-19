@@ -76,6 +76,8 @@ import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.killdef.Access.Kind;
 import edu.kit.joana.wala.flowless.util.DotUtil;
 import edu.kit.joana.wala.flowless.util.ExtendedNodeDecorator;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 
 /**
  *
@@ -167,7 +169,13 @@ public final class LocalKillingDefs {
 
 	@SuppressWarnings("unused")
 	private void run(final IProgressMonitor progress) throws CancelException {
-		final AccessCreationVisitor acv = new AccessCreationVisitor();
+		final ControlFlowGraph<SSAInstruction, IExplodedBasicBlock> ecfg;
+		try {
+			ecfg = sdg.createExceptionAnalyzedCFG(pdg.cgNode, progress);
+		} catch (UnsoundGraphException e1) {
+			throw new CancelException(e1);
+		}
+		final AccessCreationVisitor acv = new AccessCreationVisitor(ecfg);
 		ir.visitAllInstructions(acv);
 
 		if (!acv.hasWrite) {
@@ -177,13 +185,6 @@ public final class LocalKillingDefs {
 		}
 
 		if (DEBUG_PRINT) System.out.println(pdg.getMethod().getName() + ":");
-
-		final ControlFlowGraph<SSAInstruction, IExplodedBasicBlock> ecfg;
-		try {
-			ecfg = sdg.createIntraExceptionAnalyzedCFG(pdg.cgNode, progress);
-		} catch (UnsoundGraphException e1) {
-			throw new CancelException(e1);
-		}
 
 		for (final IExplodedBasicBlock bb : ecfg) {
 			final SSAInstruction instr = bb.getInstruction();
@@ -568,12 +569,36 @@ public final class LocalKillingDefs {
 	private class AccessCreationVisitor extends SSAInstruction.Visitor {
 
 		private boolean hasWrite = false;
+		/**
+		 * We have to restrict this visitor to the instructions which are reachable in the given cfg.
+		 * The cfg may be the result of optimization analyses which rendered certain instructions
+		 * unreachable. But unreachable instructions have no basic block and thus the killdef analysis
+		 * cannot compute a reasonable result for them.
+		 */
+		private TIntSet reachableIIndices;
 
+		public AccessCreationVisitor(ControlFlowGraph<SSAInstruction, IExplodedBasicBlock> cfg) {
+			this.reachableIIndices = computeReachableIIndices(cfg);
+		}
+
+		private TIntSet computeReachableIIndices(ControlFlowGraph<SSAInstruction, IExplodedBasicBlock> cfg) {
+			/**
+			 * I'd like to make this method static to make clear that it really does not do anything
+			 * on the state of the receiver object. But JLS forbids this. So, I hereby promise:
+			 * This method only accesses its parameter and not the object state...
+			 */
+			TIntSet ret = new TIntHashSet();
+			for (IExplodedBasicBlock bb : cfg) {
+				if (bb.getInstruction() != null) ret.add(bb.getInstruction().iindex);
+			}
+			return ret;
+		}
 	    public void visitInvoke(final SSAInvokeInstruction ii) {
 	    	accesses.addCall(ii.iindex, ii.getCallSite());
 	    }
 
 	    public void visitArrayLoad(final SSAArrayLoadInstruction ii) {
+	        if (!reachableIIndices.contains(ii.iindex)) return;
 	    	final int base = ii.getArrayRef();
 	    	final int index = ii.getIndex();
 	    	final ParameterField field = pfact.getArrayField(ii.getElementType());
@@ -582,6 +607,7 @@ public final class LocalKillingDefs {
 	    }
 
 	    public void visitArrayStore(final SSAArrayStoreInstruction ii) {
+	        if (!reachableIIndices.contains(ii.iindex)) return;
 	    	hasWrite = true;
 	    	final int base = ii.getArrayRef();
 	    	final int index = ii.getIndex();
@@ -591,6 +617,7 @@ public final class LocalKillingDefs {
 	    }
 
 	    public void visitGet(final SSAGetInstruction ii) {
+	        if (!reachableIIndices.contains(ii.iindex)) return;
 	    	final IField f = cha.resolveField(ii.getDeclaredField());
 	    	if (f == null) {
 	    		defaultVisit(ii);
@@ -609,6 +636,7 @@ public final class LocalKillingDefs {
 	    }
 
 	    public void visitPut(final SSAPutInstruction ii) {
+	        if (!reachableIIndices.contains(ii.iindex)) return;
 	    	final IField f = cha.resolveField(ii.getDeclaredField());
 	    	if (f == null) {
 	    		defaultVisit(ii);
@@ -628,6 +656,7 @@ public final class LocalKillingDefs {
 	    }
 
 	    private void defaultVisit(final SSAInstruction ii) {
+	        if (!reachableIIndices.contains(ii.iindex)) return;
 	    	if (ii.iindex >= 0) {
 	    		accesses.addDummy(ii.iindex);
 	    	}

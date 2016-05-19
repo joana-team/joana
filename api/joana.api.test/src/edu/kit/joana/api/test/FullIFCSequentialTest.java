@@ -181,7 +181,7 @@ public class FullIFCSequentialTest {
 	@Test
 	public void testNegativeArraySizeException() {
 		try {
-			IFCAnalysis ana = buildAndAnnotate("exc.Exception_NegativeArraySize",
+			IFCAnalysis ana = buildAndAnnotate("exc.Exception_NegativeArraySizeLeak",
 					"sensitivity.Security.SECRET",
 					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,

@@ -9,7 +9,7 @@ package exc;
 
 import sensitivity.Security;
 
-public class Exception_NegativeArraySize {
+public class Exception_NegativeArraySizeLeak {
 
 	public static void main(String[] args) throws Exception {
 		int res;

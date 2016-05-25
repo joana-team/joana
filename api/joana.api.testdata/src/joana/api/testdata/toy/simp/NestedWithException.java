@@ -9,7 +9,10 @@ package joana.api.testdata.toy.simp;
 
 import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.*;
 
-public class Nested {
+/**
+ * @author Simon Bischof <simon.bischof@kit.edu>
+ */
+public class NestedWithException {
 	public class Layer1 {
 		public class Layer2 {
 			public class Layer3 {
@@ -17,17 +20,21 @@ public class Nested {
 
 				public Layer3(int x) {
 					this.x = toggle(x);
-					// if uncommented, this would cause the execution to end, independent of secret
-					// therefore, the secret could not be leaked
-					//throw new Error("Foo.");
+					// just that a leak is found if toggle passes on its parameter
+					leak(this.x);
+					throw new Error("Foo.");
 				}
 			}
 		}
 	}
 
 	public static void main(String[] main) {
-		Nested n = new Nested();
-		Nested.Layer1.Layer2.Layer3 l = new Nested().new Layer1().new Layer2().new Layer3(SECRET);
-		leak(l.x);
+		NestedWithException.Layer1.Layer2.Layer3 l
+		    = new NestedWithException().new Layer1().new Layer2().new Layer3(SECRET);
+		// the exception thrown in the constructor of Layer3 prevents the leakage,
+		// so this program should be considered secure.
+		// However, JOANA currently does not recognize this
+		leak(SECRET);
 	}
 }
+

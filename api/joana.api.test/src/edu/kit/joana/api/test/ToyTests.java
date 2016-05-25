@@ -261,6 +261,12 @@ public class ToyTests {
 	}
 
 	@Test
+	public void testNestedWithException() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
+			CancelException {
+		testTooImprecise(joana.api.testdata.toy.simp.NestedWithException.class);
+	}
+
+	@Test
 	public void testSick() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
 		testPreciseEnough(joana.api.testdata.toy.simp.Sick.class);

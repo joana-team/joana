@@ -99,6 +99,7 @@ public class Demo1 {
 		Secret sec1 = new Secret(17, 0);
 		Secret sec2 = new SecretB();
 		Demo1 d = new Demo1(SECRET>0?sec2:sec1, SECRET>0?sec1:sec2);
+		d.pub = new PublicAccessible();
 		d.leak1();
 		d.leak2(17);
 		d.leak3();

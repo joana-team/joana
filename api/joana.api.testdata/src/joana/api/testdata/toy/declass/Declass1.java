@@ -30,12 +30,14 @@ public class Declass1 {
 	}
 
 	public static void main(String[] args) {
-		Secret s = (Secret) SECRET_OBJECT;
+		Object o = SECRET_BOOL ? new Secret() : new Secret();
+		Secret s = (Secret) o;
 		
 		/**
-		 * Our analysis does not rule out, that SECRET_OBJECT is null. If it is, the cast will fail
-		 * and subsequent events do not happen. Therefore, everything is dependent on SECRET_OBJECT
-		 * even if it does not seem to be.
+		 * Our analysis does not see that because "o" is always an instance of Secret,
+		 * the cast always succeeds.
+		 * So JOANA thinks everything is dependent on SECRET_OBJECT
+		 * even if it is not the case.
 		 */
 		Secret s2 = declass(toggle(s));
 		bar(s2);

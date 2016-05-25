@@ -260,17 +260,24 @@ public class ToyTests {
 		testPreciseEnough(joana.api.testdata.toy.simp.Nested.class);
 	}
 
-	// TODO: find out why we're not precise enough here.
 	@Test
 	public void testSick() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
-		testTooImprecise(joana.api.testdata.toy.simp.Sick.class);
+		testPreciseEnough(joana.api.testdata.toy.simp.Sick.class);
 	}
 
 	@Test
 	public void testSick2() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
 		testPreciseEnough(joana.api.testdata.toy.simp.Sick2.class);
+	}
+
+	// we're not precise enough here because JOANA thinks Math.round can throw an exception.
+	// TODO: find out why
+	@Test
+	public void testMathRound() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
+			CancelException {
+		testTooImprecise(joana.api.testdata.toy.simp.MathRound.class);
 	}
 
 	@Test
@@ -309,7 +316,9 @@ public class ToyTests {
 		testPreciseEnough(joana.api.testdata.toy.rec.MyList.class);
 	}
 
-	// TODO: find out why we're precise enough for MyList, but not for MyList2
+	// we're precise enough for MyList, but not for MyList2 because JOANA thinks
+	// only MyList2.add can throw an exception (see also comments in MyList2.main).
+	// TODO: find out why (maybe because of recursion?)
 	@Test
 	public void testMyList2() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {

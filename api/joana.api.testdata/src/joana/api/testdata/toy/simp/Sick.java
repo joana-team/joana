@@ -15,7 +15,8 @@ public class Sick {
 	private short salt = 5;
 
 	public void bar(A a) {
-		a.b.c.x = (5 - toggle((int) Math.round(SECRET))) << salt;
+		// use manual rounding here since JOANA thinks Math.round will throw an exception
+		a.b.c.x = (5 - toggle((int) (SECRET + 0.5))) << salt;
 	}
 
 	public int bar2(A a, B b) {

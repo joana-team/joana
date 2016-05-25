@@ -45,10 +45,14 @@ public class MyList2 {
 	}
 
 	public static void main(String[] args) {
-		MyList2 l = new MyList2(0, null);
+		MyList2 l = new MyList2(SECRET, null);
 		for (int i = 1; i < 10; i++)
+			// JOANA falsely thinks that add(I)V can throw an exception
+			// maybe because of the recursion?
 			l.add(SECRET);
-		// head value is (influenced by) value of SECRET
+		// head value is (influenced by) value of SECRET;
+		// however, since JOANA thinks that add(I)V can throw an exception,
+		// it assumes the execution of this line may depend on secret
 		leak(toggle(l.data));
 
 		// but the lists size isn't

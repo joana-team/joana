@@ -38,6 +38,20 @@ import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 
 /**
+ * This class contains test cases whose primary purpose is to test IFC scanners
+ * that check whether programs contain probabilistic data or order channels.
+ * 
+ * Normally, probabilistic analysis consists of two steps:
+ * 1. Verifying that a program does not contain explicit or implicit flow
+ *    (including possible flows of that sort that occur between threads)
+ * 2. Verifying that a program does not contain probabilistic data or order channels
+ *    (which is tested by those scanners here)
+ * 
+ * Since some programs fulfill property 2 but fail 1, it might be confusing
+ * if one asserts that there are no violations after testing just for 2.
+ * Thus, for clarification purposes, those are accompanied by checks verifying that
+ * the IFC behavior concerning property 1 is as expected.
+ * 
  * @author Martin Mohr
  */
 public class ProbNITest {
@@ -81,9 +95,176 @@ public class ProbNITest {
 			}
 		}
 	}
+
+	/*
+	 * used to assert that property 1 as defined above holds as expected
+	 */
+	private void assertNoTraditionalLeaks(SDG sdg) {
+		BarrierIFCSlicer tradIFC = new BarrierIFCSlicer(sdg, BuiltinLattices.getBinaryLattice());
+		Collection<ClassifiedViolation> exImpVios = tradIFC.checkIFlow();
+		Assert.assertTrue(exImpVios.isEmpty());
+	}
+
+	/*
+	 * used to assert that property 1 as defined above is violated as expected
+	 */
+	private void assertTraditionalLeaks(SDG sdg) {
+		BarrierIFCSlicer tradIFC = new BarrierIFCSlicer(sdg, BuiltinLattices.getBinaryLattice());
+		Collection<ClassifiedViolation> exImpVios = tradIFC.checkIFlow();
+		Assert.assertFalse(exImpVios.isEmpty());
+	}
+	
+	/*
+	 * used to check that an expected violation of property 2 as defined above is found
+	 */
+	private void checkSoundness(Collection<IConflictLeak<SecurityNode>> vios) {
+		Assert.assertFalse(vios.isEmpty());
+		if (DEBUG) {
+			for (IConflictLeak<SecurityNode> v : vios) {
+				debug.outln(v);
+			}
+		}
+	}
+	
+	/*
+	 * used to check that for a program that fulfills property 2 as defined above,
+	 * indeed no violations are found
+	 */
+	private void checkPreciseEnough(Collection<IConflictLeak<SecurityNode>> vios) {
+		Assert.assertTrue(vios.isEmpty());
+		if (DEBUG) {
+			for (IConflictLeak<SecurityNode> v : vios) {
+				debug.outln(v);
+			}
+		}
+	}
+	
+	/*
+	 * used if a program fulfills property 2 as defined above,
+	 * but our analysis currently cannot show this.
+	 * Hopefully, some day such test will fail.
+	 */
+	private void checkTooImprecise(Collection<IConflictLeak<SecurityNode>> vios) {
+		// for a precise enough analysis this should fail
+		Assert.assertFalse(vios.isEmpty());
+		if (DEBUG) {
+			for (IConflictLeak<SecurityNode> v : vios) {
+				debug.outln(v);
+			}
+		}
+	}
 	
 	@Test
 	public void testDataConflictRWBenign() throws IOException {
+		if (DEBUG) debug.outln("=== Mohr LSOD ===");
+		SDG sdg = annotateDataConflictRWBenign();
+		
+		assertNoTraditionalLeaks(sdg);
+		
+		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
+		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), mhp, false, false);
+		Set<IConflictLeak<SecurityNode>> vios = checker.check();
+		checkSoundness(vios);
+			
+	}
+	
+	@Test
+	public void testDataConflictRWLSOD() throws IOException {
+		if (DEBUG) debug.outln("=== Mohr LSOD ===");
+		SDG sdg = annotateDataConflictRW();
+		
+		assertTraditionalLeaks(sdg);
+		
+		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), false);
+		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
+		checkTooImprecise(vios);
+	}
+	
+	@Test
+	public void testDataConflictRWLSODOpt() throws IOException {
+		if (DEBUG) debug.outln("=== Mohr LSOD Opt. ===");
+		SDG sdg = annotateDataConflictRW();
+		
+		assertTraditionalLeaks(sdg);
+		
+		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), true);
+		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
+		checkTooImprecise(vios);
+	}
+	
+	@Test
+	public void testOrderConflictLSOD() throws IOException {
+		if (DEBUG) debug.outln("=== Mohr LSOD ===");
+		SDG sdg = annotateOrderConflict();
+		
+		assertNoTraditionalLeaks(sdg);
+		
+		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), false);
+		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
+		checkTooImprecise(vios);
+	}
+	
+	@Test
+	public void testOrderConflictLSODOpt() throws IOException {
+		if (DEBUG) debug.outln("=== Mohr LSOD Opt. ===");
+		SDG sdg = annotateOrderConflict();
+		
+		assertNoTraditionalLeaks(sdg);
+		
+		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), true);
+		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
+		checkTooImprecise(vios);
+	}
+	
+	@Test
+	public void testOrderConflictGiffhorn() throws IOException {
+		if (DEBUG) debug.outln("=== Giffhorn LSOD ===");
+		SDG sdg = annotateOrderConflict();
+		
+		assertNoTraditionalLeaks(sdg);
+		
+		ProbabilisticNISlicer checker = ProbabilisticNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice());
+		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
+		checkTooImprecise(vios);
+	}
+	
+	@Test
+	public void testDataConflictRWGiffhorn() throws IOException {
+		if (DEBUG) debug.outln("=== Giffhorn ===");
+		SDG sdg = annotateDataConflictRW();
+		
+		assertTraditionalLeaks(sdg);
+		
+		ProbabilisticNISlicer checker = ProbabilisticNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice());
+		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
+		checkTooImprecise(vios);
+	}
+	
+	@Test
+	public void testDataConflictRWNoMHP() throws IOException {
+		if (DEBUG) debug.outln("=== Mohr LSOD ===");
+		SDG sdg = annotateDataConflictRWNoMHP();
+		
+		assertTraditionalLeaks(sdg);
+		
+		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), false);
+		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
+		checkTooImprecise(vios);
+	}
+	
+	@Test
+	public void testNoDataConflictRWNoMHP() throws IOException {
+		if (DEBUG) debug.outln("=== Mohr LSOD ===");
+		SDG sdg = annotateNoDataConflictRWNoMHP();
+		
+		assertNoTraditionalLeaks(sdg);
+		
+		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), false);
+		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
+		checkPreciseEnough(vios);
+	}
+	
+	private SDG annotateDataConflictRWBenign() throws IOException {
 		TestData tData = testData.get("dataconf-rw-benign");
 		SDG sdg = SDG.readFrom(tData.sdgFile, new SecurityNodeFactory());
 		SDGAnalyzer ana = new SDGAnalyzer(sdg);
@@ -98,139 +279,8 @@ public class ProbNITest {
 			spSink.setRequired(BuiltinLattices.STD_SECLEVEL_LOW);
 		}
 		
-		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
-		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), mhp, false, false);
-		Set<IConflictLeak<SecurityNode>> vios = checker.check();
-		Assert.assertFalse(vios.isEmpty());
-			
+		return sdg;
 	}
-	
-	@Test
-	public void testDataConflictRWLSOD() throws IOException {
-		if (DEBUG) debug.outln("=== Mohr LSOD ===");
-		SDG sdg = annotateDataConflictRW();
-		//assertNoTraditionalLeaks(sdg);
-		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), false);
-		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
-		Assert.assertFalse(vios.isEmpty());
-		if (DEBUG) {
-			for (IConflictLeak<SecurityNode> v : vios) {
-				debug.outln(v);
-			}
-		}
-	}
-	
-	@SuppressWarnings("unused")
-	private void assertNoTraditionalLeaks(SDG sdg) {
-		BarrierIFCSlicer tradIFC = new BarrierIFCSlicer(sdg, BuiltinLattices.getBinaryLattice());
-		Collection<ClassifiedViolation> exImpVios = tradIFC.checkIFlow();
-		Assert.assertTrue(exImpVios.isEmpty());
-	}
-	
-	@Test
-	public void testDataConflictRWLSODOpt() throws IOException {
-		if (DEBUG) debug.outln("=== Mohr LSOD Opt. ===");
-		SDG sdg = annotateDataConflictRW();
-		//assertNoTraditionalLeaks(sdg);
-		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), true);
-		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
-		Assert.assertFalse(vios.isEmpty());
-		if (DEBUG) {
-			for (IConflictLeak<SecurityNode> v : vios) {
-				debug.outln(v);
-			}
-		}
-	}
-	
-	@Test
-	public void testOrderConflictLSOD() throws IOException {
-		if (DEBUG) debug.outln("=== Mohr LSOD ===");
-		SDG sdg = annotateOrderConflict();
-		//assertNoTraditionalLeaks(sdg);
-		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), false);
-		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
-		Assert.assertFalse(vios.isEmpty());
-		if (DEBUG) {
-			for (IConflictLeak<SecurityNode> v : vios) {
-				debug.outln(v);
-			}
-		}
-	}
-	
-	@Test
-	public void testOrderConflictLSODOpt() throws IOException {
-		if (DEBUG) debug.outln("=== Mohr LSOD Opt. ===");
-		SDG sdg = annotateOrderConflict();
-		//assertNoTraditionalLeaks(sdg);
-		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), true);
-		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
-		Assert.assertFalse(vios.isEmpty());
-		if (DEBUG) {
-			for (IConflictLeak<SecurityNode> v : vios) {
-				debug.outln(v);
-			}
-		}
-	}
-	
-	@Test
-	public void testOrderConflictGiffhorn() throws IOException {
-		if (DEBUG) debug.outln("=== Giffhorn LSOD ===");
-		SDG sdg = annotateOrderConflict();
-		//assertNoTraditionalLeaks(sdg);
-		ProbabilisticNISlicer checker = ProbabilisticNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice());
-		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
-		Assert.assertFalse(vios.isEmpty());
-		if (DEBUG) {
-			for (IConflictLeak<SecurityNode> v : vios) {
-				debug.outln(v);
-			}
-		}
-	}
-	
-	@Test
-	public void testDataConflictRWGiffhorn() throws IOException {
-		if (DEBUG) debug.outln("=== Giffhorn ===");
-		SDG sdg = annotateDataConflictRW();
-		//assertNoTraditionalLeaks(sdg);
-		ProbabilisticNISlicer checker = ProbabilisticNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice());
-		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
-		Assert.assertFalse(vios.isEmpty());
-		if (DEBUG) {
-			for (IConflictLeak<SecurityNode> v : vios) {
-				debug.outln(v);
-			}
-		}
-	}
-	
-	@Test
-	public void testDataConflictRWNoMHP() throws IOException {
-		if (DEBUG) debug.outln("=== Mohr LSOD ===");
-		SDG sdg = annotateDataConflictRWNoMHP();
-		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), false);
-		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
-		Assert.assertFalse(vios.isEmpty());
-		if (DEBUG) {
-			for (IConflictLeak<SecurityNode> v : vios) {
-				debug.outln(v);
-			}
-		}
-	}
-	
-	@Test
-	public void testNoDataConflictRWNoMHP() throws IOException {
-		if (DEBUG) debug.outln("=== Mohr LSOD ===");
-		SDG sdg = annotateNoDataConflictRWNoMHP();
-		assertNoTraditionalLeaks(sdg);
-		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), false);
-		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
-		Assert.assertTrue(vios.isEmpty());
-		if (DEBUG) {
-			for (IConflictLeak<SecurityNode> v : vios) {
-				debug.outln(v);
-			}
-		}
-	}
-	
 	
 	private SDG annotateDataConflictRWNoMHP() throws IOException {
 		TestData tData = testData.get("dataconf-rw-nomhp");

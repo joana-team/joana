@@ -46,6 +46,7 @@ public class MHPAnalysisTest {
 		addTestCase("nodataconf-rw-nomhp", "joana.api.testdata.conc.NoDataConflictRWNoMHP");
 		addTestCase("sequential-spawn", "joana.api.testdata.conc.SequentialSpawn");
 		addTestCase("branched-spawn", "joana.api.testdata.conc.BranchedSpawn");
+		addTestCase("both-branches-spawn", "joana.api.testdata.conc.BothBranchesSpawn");
 	}
 
 	private static final void addTestCase(String testName, String mainClass) {
@@ -180,6 +181,40 @@ public class MHPAnalysisTest {
 		checkPrecision(mhp, p2, p3);
 		checkSoundness(mhp, p2, p4);
 		checkSoundness(mhp, p3, p4);
+	}
+	
+	@Test
+	public void testBothBranchesSpawn() {
+		SDG sdg = buildOrLoad("both-branches-spawn");
+		SDGAnalyzer ana = new SDGAnalyzer(sdg);
+		SDGNode p1 = getStringPrintInMethod(ana, "BothBranchesSpawn$Thread1.run()V");
+		//SDGNode p2 = getStringPrintInMethod(ana, "BothBranchesSpawn$Thread2.run()V");
+		//SDGNode ps = getStringPrintInMethod(ana, "BothBranchesSpawn.main([Ljava/lang/String;)V");
+		//SDGNode p3 = getStringPrintInMethod(ana, "BothBranchesSpawn$Thread3.run()V");
+		//SDGNode p4 = getStringPrintInMethod(ana, "BothBranchesSpawn$Thread4.run()V");
+		SDGNode pi = getIntPrintInMethod(ana, "BothBranchesSpawn.main([Ljava/lang/String;)V");
+		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
+		/*checkPrecision(mhp, p1, p1);
+		checkSoundness(mhp, p1, p2);
+		checkSoundness(mhp, p1, ps);
+		checkSoundness(mhp, p1, p3);
+		checkSoundness(mhp, p1, p4);*/
+		checkSoundness(mhp, p1, pi);
+		/*checkTooImprecise(mhp, p2, p2);
+		checkPrecision(mhp, p2, ps);
+		checkPrecision(mhp, p2, p3);
+		checkPrecision(mhp, p2, p4);
+		checkPrecision(mhp, p2, pi);
+		checkPrecision(mhp, ps, ps);
+		checkPrecision(mhp, ps, p3);
+		checkPrecision(mhp, ps, p4);
+		checkPrecision(mhp, ps, pi);
+		checkPrecision(mhp, p3, p3);
+		checkTooImprecise(mhp, p3, p4);
+		checkTooImprecise(mhp, p3, pi);
+		checkTooImprecise(mhp, p4, p4);
+		checkSoundness(mhp, p4, pi);
+		checkPrecision(mhp, pi, pi);*/
 	}
 
 	private SDGNode getIntPrintInMethod(SDGAnalyzer ana, String shortName) {

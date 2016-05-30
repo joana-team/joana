@@ -8,9 +8,9 @@
 package joana.api.testdata.conc;
 
 /**
- * @author Simon Bischof <simon.bischof@kit.edu>
+ * @author Martin Mohr
  */
-public class OrderConflict {
+public class NoOrderConflict {
 	
 	static class Thread1 extends Thread {
 		public void run() {
@@ -34,7 +34,7 @@ public class OrderConflict {
 		Thread1 t1 = new Thread1();
 		Thread2 t2 = new Thread2();
 		
-		t1.start();
+		t1.start(); t1.join();
 		t2.start();
 	}
 	

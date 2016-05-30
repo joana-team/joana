@@ -10,14 +10,10 @@ package joana.api.testdata.conc;
 /**
  * @author Simon Bischof <simon.bischof@kit.edu>
  */
-public class OrderConflict {
+public class OrderConflictBenign {
 	
 	static class Thread1 extends Thread {
 		public void run() {
-			x = 1;
-			while (x > 0) {
-				x--;
-			}
 			System.out.println("Thread 1 ready.");
 		}
 	}

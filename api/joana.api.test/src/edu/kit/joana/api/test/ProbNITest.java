@@ -69,6 +69,8 @@ public class ProbNITest {
 		addTestCase("dataconf-rw-benign", "joana.api.testdata.conc.DataConflictRWBenign");
 		addTestCase("dataconf-rw", "joana.api.testdata.conc.DataConflictRW");
 		addTestCase("orderconf", "joana.api.testdata.conc.OrderConflict");
+		addTestCase("orderconfbenign", "joana.api.testdata.conc.OrderConflictBenign");
+		addTestCase("noorderconf", "joana.api.testdata.conc.NoOrderConflict");
 		addTestCase("dataconf-rw-nomhp", "joana.api.testdata.conc.DataConflictRWNoMHP");
 		addTestCase("nodataconf-rw-nomhp", "joana.api.testdata.conc.NoDataConflictRWNoMHP");
 	}
@@ -165,7 +167,31 @@ public class ProbNITest {
 		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), mhp, false, false);
 		Set<IConflictLeak<SecurityNode>> vios = checker.check();
 		checkSoundness(vios);
-			
+	}
+	
+	@Test
+	public void testDataConflictRWBenignLSODOpt() throws IOException {
+		if (DEBUG) debug.outln("=== Mohr LSOD Opt. ===");
+		SDG sdg = annotateDataConflictRWBenign();
+		
+		assertNoTraditionalLeaks(sdg);
+		
+		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
+		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), mhp, false, true);
+		Set<IConflictLeak<SecurityNode>> vios = checker.check();
+		checkPreciseEnough(vios);
+	}
+	
+	@Test
+	public void testDataConflictRWBenignGiffhorn() throws IOException {
+		if (DEBUG) debug.outln("=== Giffhorn Opt. ===");
+		SDG sdg = annotateDataConflictRWBenign();
+		
+		assertNoTraditionalLeaks(sdg);
+		
+		ProbabilisticNISlicer checker = ProbabilisticNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice());
+		Set<IConflictLeak<SecurityNode>> vios = checker.check();
+		checkPreciseEnough(vios);
 	}
 	
 	@Test
@@ -201,7 +227,7 @@ public class ProbNITest {
 		
 		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), false);
 		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
-		checkTooImprecise(vios);
+		checkSoundness(vios);
 	}
 	
 	@Test
@@ -213,7 +239,7 @@ public class ProbNITest {
 		
 		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), true);
 		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
-		checkTooImprecise(vios);
+		checkSoundness(vios);
 	}
 	
 	@Test
@@ -225,7 +251,79 @@ public class ProbNITest {
 		
 		ProbabilisticNISlicer checker = ProbabilisticNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice());
 		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
+		checkSoundness(vios);
+	}
+	
+	@Test
+	public void testNoOrderConflictLSOD() throws IOException {
+		if (DEBUG) debug.outln("=== Mohr LSOD ===");
+		SDG sdg = annotateNoOrderConflict();
+		
+		assertNoTraditionalLeaks(sdg);
+		
+		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), false);
+		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
 		checkTooImprecise(vios);
+	}
+	
+	@Test
+	public void testNoOrderConflictLSODOpt() throws IOException {
+		if (DEBUG) debug.outln("=== Mohr LSOD Opt. ===");
+		SDG sdg = annotateNoOrderConflict();
+		
+		assertNoTraditionalLeaks(sdg);
+		
+		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), true);
+		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
+		checkTooImprecise(vios);
+	}
+	
+	@Test
+	public void testNoOrderConflictGiffhorn() throws IOException {
+		if (DEBUG) debug.outln("=== Giffhorn LSOD ===");
+		SDG sdg = annotateNoOrderConflict();
+		
+		assertNoTraditionalLeaks(sdg);
+		
+		ProbabilisticNISlicer checker = ProbabilisticNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice());
+		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
+		checkTooImprecise(vios);
+	}
+	
+	@Test
+	public void testOrderConflictBenignLSOD() throws IOException {
+		if (DEBUG) debug.outln("=== Mohr LSOD ===");
+		SDG sdg = annotateOrderConflictBenign();
+		
+		assertNoTraditionalLeaks(sdg);
+		
+		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), false);
+		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
+		checkSoundness(vios);
+	}
+	
+	@Test
+	public void testOrderConflictBenignLSODOpt() throws IOException {
+		if (DEBUG) debug.outln("=== Mohr LSOD Opt. ===");
+		SDG sdg = annotateOrderConflictBenign();
+		
+		assertNoTraditionalLeaks(sdg);
+		
+		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), true);
+		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
+		checkPreciseEnough(vios);
+	}
+	
+	@Test
+	public void testOrderConflictBenignGiffhorn() throws IOException {
+		if (DEBUG) debug.outln("=== Giffhorn LSOD ===");
+		SDG sdg = annotateOrderConflictBenign();
+		
+		assertNoTraditionalLeaks(sdg);
+		
+		ProbabilisticNISlicer checker = ProbabilisticNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice());
+		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
+		checkPreciseEnough(vios);
 	}
 	
 	@Test
@@ -393,6 +491,65 @@ public class ProbNITest {
 			ssSrc.setProvided(BuiltinLattices.STD_SECLEVEL_HIGH);
 			if (DEBUG) debug.outln("Annotated node " + ssSrc + " as high source.");
 		}
+		
+		Collection<SDGNode> pubSinks = ana.collectCalls("java.io.PrintStream.println(Ljava/lang/String;)V");
+		Assert.assertNotNull(pubSinks);
+		Assert.assertFalse(pubSinks.isEmpty());
+		for (SDGNode pSink : pubSinks) {
+			SecurityNode spSink = (SecurityNode) pSink;
+			spSink.setRequired(BuiltinLattices.STD_SECLEVEL_LOW);
+			if (DEBUG) debug.outln("Annotated node " + spSink + " as low sink.");
+			for (SDGEdge out : sdg.getOutgoingEdgesOfKind(spSink, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
+				SecurityNode npSink = (SecurityNode) out.getTarget();
+				npSink.setRequired(BuiltinLattices.STD_SECLEVEL_LOW);
+				if (DEBUG) debug.outln("Annotated node " + npSink + " as low sink.");
+			}
+		}
+		
+		return sdg;
+	}
+	
+	private SDG annotateNoOrderConflict() throws IOException {
+		TestData tData = testData.get("noorderconf");
+		SDG sdg = SDG.readFrom(tData.sdgFile, new SecurityNodeFactory());
+		SDGAnalyzer ana = new SDGAnalyzer(sdg);
+		Assert.assertTrue(ana.isLocatable("java.io.PrintStream.println(Ljava/lang/String;)V"));
+		Assert.assertTrue(ana.isLocatable("joana.api.testdata.conc.NoOrderConflict$Thread1.run()V"));
+		Assert.assertTrue(ana.isLocatable("joana.api.testdata.conc.NoOrderConflict$Thread2.run()V"));
+		
+		Collection<SDGNode> secSources = ana.collectModificationsAndAssignmentsInMethod("joana.api.testdata.conc.NoOrderConflict$Thread1.run()V", "Ljoana/api/testdata/conc/NoOrderConflict.x");
+		Assert.assertFalse(secSources.isEmpty());
+		for (SDGNode sSrc : secSources) {
+			SecurityNode ssSrc = (SecurityNode) sSrc;
+			ssSrc.setProvided(BuiltinLattices.STD_SECLEVEL_HIGH);
+			if (DEBUG) debug.outln("Annotated node " + ssSrc + " as high source.");
+		}
+		
+		Collection<SDGNode> pubSinks = ana.collectCalls("java.io.PrintStream.println(Ljava/lang/String;)V");
+		Assert.assertNotNull(pubSinks);
+		Assert.assertFalse(pubSinks.isEmpty());
+		for (SDGNode pSink : pubSinks) {
+			SecurityNode spSink = (SecurityNode) pSink;
+			spSink.setRequired(BuiltinLattices.STD_SECLEVEL_LOW);
+			if (DEBUG) debug.outln("Annotated node " + spSink + " as low sink.");
+			for (SDGEdge out : sdg.getOutgoingEdgesOfKind(spSink, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
+				SecurityNode npSink = (SecurityNode) out.getTarget();
+				npSink.setRequired(BuiltinLattices.STD_SECLEVEL_LOW);
+				if (DEBUG) debug.outln("Annotated node " + npSink + " as low sink.");
+			}
+		}
+		
+		return sdg;
+	}
+	
+	private SDG annotateOrderConflictBenign() throws IOException {
+		TestData tData = testData.get("orderconfbenign");
+		SDG sdg = SDG.readFrom(tData.sdgFile, new SecurityNodeFactory());
+		SDGAnalyzer ana = new SDGAnalyzer(sdg);
+		Assert.assertTrue(ana.isLocatable("java.io.PrintStream.println(Ljava/lang/String;)V"));
+		Assert.assertTrue(ana.isLocatable("joana.api.testdata.conc.OrderConflictBenign$Thread1.run()V"));
+		Assert.assertTrue(ana.isLocatable("joana.api.testdata.conc.OrderConflictBenign$Thread2.run()V"));
+		
 		
 		Collection<SDGNode> pubSinks = ana.collectCalls("java.io.PrintStream.println(Ljava/lang/String;)V");
 		Assert.assertNotNull(pubSinks);

@@ -5,4 +5,12 @@ Bundle-SymbolicName: joana.api.test
 Bundle-Version: 1.0.0.qualifier
 Export-Package: .
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Require-Bundle: joana.contrib.lib;bundle-version="1.0.0"
+Require-Bundle: joana.contrib.lib;bundle-version="1.0.0",
+ joana.api;bundle-version="1.0.0",
+ joana.wala.core;bundle-version="1.0.0",
+ joana.util;bundle-version="1.0.0",
+ joana.ifc.sdg.util;bundle-version="1.0.0",
+ com.ibm.wala.core;bundle-version="1.3.8",
+ joana.ifc.sdg.core;bundle-version="3.3.0",
+ joana.ifc.sdg.graph;bundle-version="1.1.0",
+ joana.ifc.sdg.mhpoptimization;bundle-version="0.0.1"

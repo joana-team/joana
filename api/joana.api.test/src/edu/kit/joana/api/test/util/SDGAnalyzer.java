@@ -204,6 +204,20 @@ public class SDGAnalyzer {
 		}
 	}
 
+	public Collection<SDGNode> collectAllCallsInMethods(String callerMethodName,
+			String calleeMethodName) {
+		Collection<SDGNode> ret = new LinkedList<SDGNode>();
+		Collection<SDGNode> callerEntries = locateAllEntriesOf(callerMethodName);
+		Collection<SDGNode> calleeEntries = locateAllEntriesOf(calleeMethodName);
+		for (SDGNode callerEntry : callerEntries) {
+			for (SDGNode calleeEntry : calleeEntries) {
+				ret.addAll(collectCalls(callerEntry, calleeEntry));
+			}
+		}
+		
+		return ret;
+	}
+
 	private Collection<SDGNode> collectCalls(SDGNode callerEntry,
 			SDGNode calleeEntry) {
 		

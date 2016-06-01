@@ -23,9 +23,12 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.SimpleMHPAnalysis;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
+import edu.kit.joana.util.Pair;
 
 /**
- * Class for testing our MHP analyses (mostly {@link PreciseMHPAnalysis})
+ * Class for testing our MHP analyses (mostly {@link PreciseMHPAnalysis}).
  * 
  * @author Simon Bischof <simon.bischof@kit.edu>
  */
@@ -47,6 +50,8 @@ public class MHPAnalysisTest {
 		addTestCase("sequential-spawn", "joana.api.testdata.conc.SequentialSpawn");
 		addTestCase("branched-spawn", "joana.api.testdata.conc.BranchedSpawn");
 		addTestCase("both-branches-spawn", "joana.api.testdata.conc.BothBranchesSpawn");
+		addTestCase("dynamic-spawn", "joana.api.testdata.conc.DynamicSpawn");
+		addTestCase("more-recursive-spawn", "joana.api.testdata.conc.MoreRecursiveSpawn");
 	}
 
 	private static final void addTestCase(String testName, String mainClass) {
@@ -85,6 +90,18 @@ public class MHPAnalysisTest {
 	 * the MHP analysis will indeed show that they may happen in parallel
 	 */
 	private void checkSoundness(MHPAnalysis mhp, SDGNode m, SDGNode n) {
+		Assert.assertTrue(mhp.isParallel(m, n));
+	}
+	
+	/*
+	 * wrapper method used only for our simple MHP analysis.
+	 * It is used when both nodes are in different threads, but semantically
+	 * may not happen in parallel (which a more precise analysis might show).
+	 * In this case we require the simple MHP analysis to find that the nodes
+	 * may happen in parallel due to its specification.
+	 * 
+	 */
+	private void checkSimpleSoundness(MHPAnalysis mhp, SDGNode m, SDGNode n) {
 		Assert.assertTrue(mhp.isParallel(m, n));
 	}
 	
@@ -200,7 +217,7 @@ public class MHPAnalysisTest {
 		checkSoundness(mhp, p1, p3);
 		checkSoundness(mhp, p1, p4);*/
 		checkSoundness(mhp, p1, pi);
-		/*checkTooImprecise(mhp, p2, p2);
+		/*checkPrecision(mhp, p2, p2);
 		checkPrecision(mhp, p2, ps);
 		checkPrecision(mhp, p2, p3);
 		checkPrecision(mhp, p2, p4);
@@ -212,9 +229,123 @@ public class MHPAnalysisTest {
 		checkPrecision(mhp, p3, p3);
 		checkTooImprecise(mhp, p3, p4);
 		checkTooImprecise(mhp, p3, pi);
-		checkTooImprecise(mhp, p4, p4);
+		checkPrecision(mhp, p4, p4);
 		checkSoundness(mhp, p4, pi);
 		checkPrecision(mhp, pi, pi);*/
+	}
+	
+	@Test
+	public void testDynamicSpawn() {
+		SDG sdg = buildOrLoad("dynamic-spawn");
+		SDGAnalyzer ana = new SDGAnalyzer(sdg);
+		SDGNode p1 = getStringPrintInMethod(ana, "DynamicSpawn$Thread1.run()V");
+		SDGNode p2 = getStringPrintInMethod(ana, "DynamicSpawn$Thread2.run()V");
+		SDGNode p3 = getStringPrintInMethod(ana, "DynamicSpawn$Thread3.run()V");
+		SDGNode p4 = getStringPrintInMethod(ana, "DynamicSpawn$Thread4.run()V");
+		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
+		checkSoundness(mhp, p1, p1);
+		checkSoundness(mhp, p1, p2);
+		checkSoundness(mhp, p1, p3);
+		checkSoundness(mhp, p1, p4);
+		checkSoundness(mhp, p2, p2);
+		checkPrecision(mhp, p2, p3);
+		checkPrecision(mhp, p2, p4);
+		checkSoundness(mhp, p3, p3);
+		checkSoundness(mhp, p3, p4);
+		checkSoundness(mhp, p4, p4);
+	}
+	
+	@Test
+	public void testDynamicSpawnSimpleMHP() {
+		SDG sdg = buildOrLoad("dynamic-spawn");
+		SDGAnalyzer ana = new SDGAnalyzer(sdg);
+		SDGNode p1 = getStringPrintInMethod(ana, "DynamicSpawn$Thread1.run()V");
+		SDGNode p2 = getStringPrintInMethod(ana, "DynamicSpawn$Thread2.run()V");
+		SDGNode p3 = getStringPrintInMethod(ana, "DynamicSpawn$Thread3.run()V");
+		SDGNode p4 = getStringPrintInMethod(ana, "DynamicSpawn$Thread4.run()V");
+		MHPAnalysis mhp = SimpleMHPAnalysis.analyze(sdg);
+		checkSoundness(mhp, p1, p1);
+		checkSoundness(mhp, p1, p2);
+		checkSoundness(mhp, p1, p3);
+		checkSoundness(mhp, p1, p4);
+		checkSoundness(mhp, p2, p2);
+		checkSimpleSoundness(mhp, p2, p3);
+		checkSimpleSoundness(mhp, p2, p4);
+		checkSoundness(mhp, p3, p3);
+		checkSoundness(mhp, p3, p4);
+		checkSoundness(mhp, p4, p4);
+	}
+	
+	@Test
+	public void testRecursiveSpawn() {
+		SDG sdg = buildOrLoad("more-recursive-spawn");
+		SDGAnalyzer ana = new SDGAnalyzer(sdg);
+		SDGNode p1 = getStringPrintInMethod(ana, "MoreRecursiveSpawn$Thread1.run()V");
+		Pair<SDGNode,SDGNode> pair2 = getPrintsInRecursiveMethod(sdg, ana, "MoreRecursiveSpawn$Thread2.run()V");
+		SDGNode p2 = pair2.getFirst();
+		SDGNode p2a = pair2.getSecond();
+		Pair<SDGNode,SDGNode> pair3 = getPrintsInRecursiveMethod(sdg, ana, "MoreRecursiveSpawn$Thread3.run()V");
+		SDGNode p3 = pair3.getFirst();
+		SDGNode p3a = pair3.getSecond();
+		SDGNode p4 = getStringPrintInMethod(ana, "MoreRecursiveSpawn$Thread4.run()V");
+		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
+		checkSoundness(mhp, p1, p1);
+		checkSoundness(mhp, p1, p2);
+		checkSoundness(mhp, p1, p2a);
+		checkSoundness(mhp, p1, p3);
+		checkSoundness(mhp, p1, p3a);
+		checkSoundness(mhp, p1, p4);
+		checkPrecision(mhp, p2, p2);
+		checkSoundness(mhp, p2, p2a);
+		checkPrecision(mhp, p2, p3);
+		checkPrecision(mhp, p2, p3a);
+		checkPrecision(mhp, p2, p4);
+		checkSoundness(mhp, p2a, p2a);
+		checkPrecision(mhp, p2a, p3);
+		checkPrecision(mhp, p2a, p3a);
+		checkPrecision(mhp, p2a, p4);
+		checkPrecision(mhp, p3, p3);
+		checkSoundness(mhp, p3, p3a);
+		checkSoundness(mhp, p3, p4);
+		checkSoundness(mhp, p3a, p3a);
+		checkSoundness(mhp, p3a, p4);
+		checkSoundness(mhp, p4, p4);
+	}
+	
+	@Test
+	public void testRecursiveSpawnSimpleMHP() {
+		SDG sdg = buildOrLoad("more-recursive-spawn");
+		SDGAnalyzer ana = new SDGAnalyzer(sdg);
+		SDGNode p1 = getStringPrintInMethod(ana, "MoreRecursiveSpawn$Thread1.run()V");
+		Pair<SDGNode,SDGNode> pair2 = getPrintsInRecursiveMethod(sdg, ana, "MoreRecursiveSpawn$Thread2.run()V");
+		SDGNode p2 = pair2.getFirst();
+		SDGNode p2a = pair2.getSecond();
+		Pair<SDGNode,SDGNode> pair3 = getPrintsInRecursiveMethod(sdg, ana, "MoreRecursiveSpawn$Thread3.run()V");
+		SDGNode p3 = pair3.getFirst();
+		SDGNode p3a = pair3.getSecond();
+		SDGNode p4 = getStringPrintInMethod(ana, "MoreRecursiveSpawn$Thread4.run()V");
+		MHPAnalysis mhp = SimpleMHPAnalysis.analyze(sdg);
+		checkSoundness(mhp, p1, p1);
+		checkSoundness(mhp, p1, p2);
+		checkSoundness(mhp, p1, p2a);
+		checkSoundness(mhp, p1, p3);
+		checkSoundness(mhp, p1, p3a);
+		checkSoundness(mhp, p1, p4);
+		checkPrecision(mhp, p2, p2);
+		checkSoundness(mhp, p2, p2a);
+		checkSimpleSoundness(mhp, p2, p3);
+		checkSimpleSoundness(mhp, p2, p3a);
+		checkSimpleSoundness(mhp, p2, p4);
+		checkSoundness(mhp, p2a, p2a);
+		checkSimpleSoundness(mhp, p2a, p3);
+		checkSimpleSoundness(mhp, p2a, p3a);
+		checkSimpleSoundness(mhp, p2a, p4);
+		checkPrecision(mhp, p3, p3);
+		checkSoundness(mhp, p3, p3a);
+		checkSoundness(mhp, p3, p4);
+		checkSoundness(mhp, p3a, p3a);
+		checkSoundness(mhp, p3a, p4);
+		checkSoundness(mhp, p4, p4);
 	}
 
 	private SDGNode getIntPrintInMethod(SDGAnalyzer ana, String shortName) {
@@ -233,6 +364,31 @@ public class MHPAnalysisTest {
 		Assert.assertNotNull(prints);
 		Assert.assertEquals(1, prints.size());
 		return (SDGNode) prints.toArray()[0];
+	}
+	
+	private Pair<SDGNode,SDGNode> getPrintsInRecursiveMethod(SDG sdg, SDGAnalyzer ana, String shortName) {
+		String methodName = TEST_PACKAGE + shortName;
+		Assert.assertTrue(ana.isLocatable(methodName));
+		Collection<SDGNode> prints = ana.collectAllCallsInMethods(methodName,
+													"java.io.PrintStream.println(Ljava/lang/String;)V");
+		Assert.assertNotNull(prints);
+		Assert.assertEquals(2, prints.size());
+		SDGNode[] arr = prints.toArray(new SDGNode[2]);
+		SDGNode n1 = arr[0];
+		ThreadInstance t1 = sdg.getThreadsInfo().getThread(n1.getThreadNumbers()[0]);
+		SDGNode n2 = arr[1];
+		ThreadInstance t2 = sdg.getThreadsInfo().getThread(n2.getThreadNumbers()[0]);
+		Pair<SDGNode,SDGNode> p = null;
+		//TODO: make more efficient by checking whether one is a suffix of the other
+		//instead of just using containsAll
+		if (t1.getThreadContext().containsAll(t2.getThreadContext())) {
+			p = Pair.<SDGNode,SDGNode>pair(n2, n1);
+		} else if (t2.getThreadContext().containsAll(t1.getThreadContext())) {
+			p = Pair.<SDGNode,SDGNode>pair(n1, n2);
+		} else {
+			Assert.fail("No recursive thread instance detected");
+		}
+		return p;
 	}
 
 	private SDGNode getAssignmentInMethod(SDGAnalyzer ana,

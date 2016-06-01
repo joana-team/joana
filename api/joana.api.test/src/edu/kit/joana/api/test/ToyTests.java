@@ -359,6 +359,17 @@ public class ToyTests {
 		testPreciseEnough(joana.api.testdata.seq.ExampleLeakage.class);
 	}
 	
+	@Test
+	public void testArrayAccess() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testTooImprecise(joana.api.testdata.seq.ArrayAccess.class);
+	}
+	
+	@Test
+	public void testFieldAccess() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testTooImprecise(joana.api.testdata.seq.FieldAccess.class);
+	}
 
 	// TODO: This should crash when we turn on reflection
 	@Test

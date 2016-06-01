@@ -474,7 +474,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         	HashSet<SDGNode> visited = new HashSet<SDGNode>();
         	LinkedList<SDGNode> w = new LinkedList<SDGNode>();
 
-//        	visited.add(join);
+        	visited.add(join);
         	w.add(join);
 
         	// compute a phase-1 forward slice, omit forks and calls
@@ -500,6 +500,8 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         		remove.clear();
 
         		for (SDGNode n : visited) {
+        			// the join always dominates itself
+        			if (n == join) continue;
         			for (SDGEdge inc : icfg.incomingEdgesOf(n)) {
             			if (inc.getKind() == SDGEdge.Kind.FORK || inc.getKind() == SDGEdge.Kind.CALL) {
             				continue;
@@ -508,8 +510,8 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         				SDGNode from = inc.getSource();
 
         				//skip synthetic edges
-        				if ((from.getKind() == SDGNode.Kind.CALL && inc.getKind() == SDGEdge.Kind.CONTROL_FLOW)
-        						|| (from.getKind() == SDGNode.Kind.ENTRY && n.getKind() == SDGNode.Kind.EXIT)) {
+        				if (/*(from.getKind() == SDGNode.Kind.CALL && inc.getKind() == SDGEdge.Kind.CONTROL_FLOW)
+        						||*/ (from.getKind() == SDGNode.Kind.ENTRY && n.getKind() == SDGNode.Kind.EXIT)) {
         					continue;
         				}
 

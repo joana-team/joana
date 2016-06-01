@@ -640,12 +640,14 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 			 */
 
 			for (final PDGField f : getFieldReads()) {
+				assert ((f.base == null) == f.field.isStatic());
 				if (f.base != null) {
 					toRemove.add(f.node);
 				}
 			}
 
 			for (final PDGField f : getFieldWrites()) {
+				assert ((f.base == null) == f.field.isStatic());
 				if (f.base != null) {
 					toRemove.add(f.node);
 				}

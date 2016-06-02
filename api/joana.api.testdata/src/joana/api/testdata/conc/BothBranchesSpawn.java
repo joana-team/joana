@@ -25,7 +25,7 @@ public class BothBranchesSpawn {
 	
 	static class Thread3 extends Thread {
 		public void run() {
-			//System.out.println("3");
+			System.out.println("3");
 		}
 	}
 	
@@ -39,27 +39,28 @@ public class BothBranchesSpawn {
 	
 	public static void main(String[] args) throws InterruptedException {
 		Thread1 t1 = new Thread1();
-		//Thread2 t2 = new Thread2();
+		Thread2 t2 = new Thread2();
 		Thread3 t3 = new Thread3();
-		//Thread4 t4 = new Thread4();
+		Thread4 t4 = new Thread4();
 		
 		t1.start();
 
 		if (x > 1) {
-			//t2.start();
 			t1.join();
-		} /*else {
-			//t2.start();
-		}*/
-		//System.out.println("main");
+			t2.start();
+		} else {
+			t2.start();
+		}
+		t2.join();
+		System.out.println("main");
 		t3.start();
-		/*if (x * x > 10) {
+		if (x * x > 10) {
 			t3.join();
 			t4.start();
 		} else {
 			t3.join();
 			t4.start();
-		}*/
+		}
 		System.out.println(5);
 	}
 }

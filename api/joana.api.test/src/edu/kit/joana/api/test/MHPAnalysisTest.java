@@ -52,6 +52,7 @@ public class MHPAnalysisTest {
 		addTestCase("both-branches-spawn", "joana.api.testdata.conc.BothBranchesSpawn");
 		addTestCase("dynamic-spawn", "joana.api.testdata.conc.DynamicSpawn");
 		addTestCase("more-recursive-spawn", "joana.api.testdata.conc.MoreRecursiveSpawn");
+		addTestCase("interproc-join", "joana.api.testdata.conc.InterprocJoin");
 	}
 
 	private static final void addTestCase(String testName, String mainClass) {
@@ -205,23 +206,23 @@ public class MHPAnalysisTest {
 		SDG sdg = buildOrLoad("both-branches-spawn");
 		SDGAnalyzer ana = new SDGAnalyzer(sdg);
 		SDGNode p1 = getStringPrintInMethod(ana, "BothBranchesSpawn$Thread1.run()V");
-		//SDGNode p2 = getStringPrintInMethod(ana, "BothBranchesSpawn$Thread2.run()V");
-		//SDGNode ps = getStringPrintInMethod(ana, "BothBranchesSpawn.main([Ljava/lang/String;)V");
-		//SDGNode p3 = getStringPrintInMethod(ana, "BothBranchesSpawn$Thread3.run()V");
-		//SDGNode p4 = getStringPrintInMethod(ana, "BothBranchesSpawn$Thread4.run()V");
+		SDGNode p2 = getStringPrintInMethod(ana, "BothBranchesSpawn$Thread2.run()V");
+		SDGNode ps = getStringPrintInMethod(ana, "BothBranchesSpawn.main([Ljava/lang/String;)V");
+		SDGNode p3 = getStringPrintInMethod(ana, "BothBranchesSpawn$Thread3.run()V");
+		SDGNode p4 = getStringPrintInMethod(ana, "BothBranchesSpawn$Thread4.run()V");
 		SDGNode pi = getIntPrintInMethod(ana, "BothBranchesSpawn.main([Ljava/lang/String;)V");
 		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
-		/*checkPrecision(mhp, p1, p1);
+		checkPrecision(mhp, p1, p1);
 		checkSoundness(mhp, p1, p2);
 		checkSoundness(mhp, p1, ps);
 		checkSoundness(mhp, p1, p3);
-		checkSoundness(mhp, p1, p4);*/
+		checkSoundness(mhp, p1, p4);
 		checkSoundness(mhp, p1, pi);
-		/*checkPrecision(mhp, p2, p2);
-		checkPrecision(mhp, p2, ps);
-		checkPrecision(mhp, p2, p3);
-		checkPrecision(mhp, p2, p4);
-		checkPrecision(mhp, p2, pi);
+		checkPrecision(mhp, p2, p2);
+		checkTooImprecise(mhp, p2, ps);
+		checkTooImprecise(mhp, p2, p3);
+		checkTooImprecise(mhp, p2, p4);
+		checkTooImprecise(mhp, p2, pi);
 		checkPrecision(mhp, ps, ps);
 		checkPrecision(mhp, ps, p3);
 		checkPrecision(mhp, ps, p4);
@@ -231,7 +232,7 @@ public class MHPAnalysisTest {
 		checkTooImprecise(mhp, p3, pi);
 		checkPrecision(mhp, p4, p4);
 		checkSoundness(mhp, p4, pi);
-		checkPrecision(mhp, pi, pi);*/
+		checkPrecision(mhp, pi, pi);
 	}
 	
 	@Test
@@ -346,6 +347,28 @@ public class MHPAnalysisTest {
 		checkSoundness(mhp, p3a, p3a);
 		checkSoundness(mhp, p3a, p4);
 		checkSoundness(mhp, p4, p4);
+	}
+	
+	@Test
+	public void testInterprocJoin() {
+		SDG sdg = buildOrLoad("interproc-join");
+		SDGAnalyzer ana = new SDGAnalyzer(sdg);
+		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
+		
+		//subtest 1
+		SDGNode p1 = getStringPrintInMethod(ana, "InterprocJoin$Thread1.run()V");
+		SDGNode pz = getPrintInMethod(ana, "InterprocJoin.main([Ljava/lang/String;)V", "Z");
+		checkSoundness(mhp, p1, pz);
+
+		//subtest 2
+		SDGNode p2 = getStringPrintInMethod(ana, "InterprocJoin$Thread2.run()V");
+		SDGNode pi = getIntPrintInMethod(ana, "InterprocJoin.main([Ljava/lang/String;)V");
+		checkSoundness(mhp, p2, pi);
+
+		//subtest 3
+		SDGNode p3 = getStringPrintInMethod(ana, "InterprocJoin$Thread3.run()V");
+		SDGNode ps = getStringPrintInMethod(ana, "InterprocJoin.main([Ljava/lang/String;)V");
+		checkTooImprecise(mhp, p3, ps);
 	}
 
 	private SDGNode getIntPrintInMethod(SDGAnalyzer ana, String shortName) {

@@ -378,8 +378,14 @@ public class MHPAnalysisTest {
 		SDGAnalyzer ana = new SDGAnalyzer(sdg);
 		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
 		SDGNode p1 = getStringPrintInMethod(ana, "ForkJoin$Thread1.run()V");
+		SDGNode p2 = getStringPrintInMethod(ana, "ForkJoin$Thread2.run()V");
 		SDGNode ps = getStringPrintInMethod(ana, "ForkJoin.main([Ljava/lang/String;)V");
+		checkPrecision(mhp, p1, p1);
+		checkSoundness(mhp, p1, p2);
 		checkSoundness(mhp, p1, ps);
+		checkSoundness(mhp, p2, p2);
+		checkSoundness(mhp, p2, ps);
+		checkPrecision(mhp, ps, ps);
 	}
 
 	private SDGNode getIntPrintInMethod(SDGAnalyzer ana, String shortName) {

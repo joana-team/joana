@@ -16,12 +16,31 @@ public class ForkJoin {
 			System.out.println("1");
 		}
 	}
+	
+	static class Thread2 extends Thread {
+		public void run() {
+			System.out.println("2");
+		}
+	}
 
 	static Thread1 t1 = new Thread1();
+	static Thread2 t2;
 	
 	public static void main(String[] args) throws InterruptedException {
 		t1.join();
 		t1.start();
+		startThread2_();
+		startThread2_();
+		t2.join();
 		System.out.println("Main");
+	}
+	
+	private static void startThread2_() {
+		startThread2();
+	}
+
+	static void startThread2() {
+		t2 = new Thread2();
+		t2.start();
 	}
 }

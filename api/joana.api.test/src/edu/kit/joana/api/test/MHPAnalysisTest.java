@@ -53,6 +53,7 @@ public class MHPAnalysisTest {
 		addTestCase("dynamic-spawn", "joana.api.testdata.conc.DynamicSpawn");
 		addTestCase("more-recursive-spawn", "joana.api.testdata.conc.MoreRecursiveSpawn");
 		addTestCase("interproc-join", "joana.api.testdata.conc.InterprocJoin");
+		addTestCase("fork-join", "joana.api.testdata.conc.ForkJoin");
 	}
 
 	private static final void addTestCase(String testName, String mainClass) {
@@ -369,6 +370,16 @@ public class MHPAnalysisTest {
 		SDGNode p3 = getStringPrintInMethod(ana, "InterprocJoin$Thread3.run()V");
 		SDGNode ps = getStringPrintInMethod(ana, "InterprocJoin.main([Ljava/lang/String;)V");
 		checkTooImprecise(mhp, p3, ps);
+	}
+	
+	@Test
+	public void testForkJoin() {
+		SDG sdg = buildOrLoad("fork-join");
+		SDGAnalyzer ana = new SDGAnalyzer(sdg);
+		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
+		SDGNode p1 = getStringPrintInMethod(ana, "ForkJoin$Thread1.run()V");
+		SDGNode ps = getStringPrintInMethod(ana, "ForkJoin.main([Ljava/lang/String;)V");
+		checkSoundness(mhp, p1, ps);
 	}
 
 	private SDGNode getIntPrintInMethod(SDGAnalyzer ana, String shortName) {

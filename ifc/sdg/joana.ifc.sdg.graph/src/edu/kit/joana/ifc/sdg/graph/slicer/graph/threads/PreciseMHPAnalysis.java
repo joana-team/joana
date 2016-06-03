@@ -19,6 +19,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.CFGForward;
+import edu.kit.joana.ifc.sdg.graph.slicer.conc.CFGJoinSensitiveForward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
@@ -307,13 +308,13 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         private HashMap<SDGNode, Set<SDGNode>> joinDominance;
         private LinkedList<DynamicContext> forks;
         private HashMap<DynamicContext, LinkedList<Integer>> indirectForks;
-        private CFGForward slicer;
+        private CFGJoinSensitiveForward slicer;
 
         private MHPComputation (CFG icfg, ThreadsInformation info, ThreadRegions tr) {
             this.icfg = icfg;
             this.info = info;
             this.tr = tr;
-            slicer = new CFGForward(icfg);
+            slicer = new CFGJoinSensitiveForward(icfg);
         }
 
         private PreciseMHPAnalysis getMHPMap() {
@@ -378,6 +379,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         			succ.add(e.getTarget());
         		}
 
+        		slicer.setJoin(info.getThread(fork.getThread()).getJoin());
         		Collection<SDGNode> slice = slicer.slice(succ);
         		LinkedList<ThreadRegion> inSlice = new LinkedList<ThreadRegion>();
 
@@ -417,7 +419,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         		}
         	}
         	// refine parallelism by inspecting joins
-        	debug.outln("\ninspecting joins");
+        	/*debug.outln("\ninspecting joins");
         	int ctr = 0;
         	for (int thread = 1; thread < info.getNumberOfThreads(); thread++) {
         		SDGNode join = info.getThreadJoin(thread);
@@ -438,7 +440,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         			}
         		}
         	}
-        	debug.outln("parallelism removed by join-analysis: " + ctr);
+        	debug.outln("parallelism removed by join-analysis: " + ctr);*/
         	debug.outln("done");
 
         	return result;

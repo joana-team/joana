@@ -31,8 +31,9 @@ public class SequentialSpawn {
 		Thread2 t2 = new Thread2();
 		
 		x = 1;
-		t1.start(); t1.join();
+		t1.start();
 		t2.start();
+		t1.join();
 		y = 2;
 	}
 }

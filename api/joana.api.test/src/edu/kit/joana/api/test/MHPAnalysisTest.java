@@ -141,7 +141,7 @@ public class MHPAnalysisTest {
 		SDGNode n = getAssignmentInMethod(ana, "DataConflictRW$Thread1.run()V", "DataConflictRW.x");
 		SDGNode p = getIntPrintInMethod(ana, "DataConflictRW$Thread2.run()V");
 		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
-		checkTooImprecise(mhp, n, p);
+		checkPrecision(mhp, n, p);
 	}
 	
 	@Test
@@ -195,7 +195,7 @@ public class MHPAnalysisTest {
 		SDGNode p4 = getStringPrintInMethod(ana, "BranchedSpawn$Thread4.run()V");
 		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
 		checkSoundness(mhp, p1, p2);
-		checkTooImprecise(mhp, p1, p3);
+		checkPrecision(mhp, p1, p3);
 		checkSoundness(mhp, p1, p4);
 		checkPrecision(mhp, p2, p3);
 		checkSoundness(mhp, p2, p4);
@@ -369,7 +369,7 @@ public class MHPAnalysisTest {
 		//subtest 3
 		SDGNode p3 = getStringPrintInMethod(ana, "InterprocJoin$Thread3.run()V");
 		SDGNode ps = getStringPrintInMethod(ana, "InterprocJoin.main([Ljava/lang/String;)V");
-		checkTooImprecise(mhp, p3, ps);
+		checkPrecision(mhp, p3, ps);
 	}
 	
 	@Test

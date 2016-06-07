@@ -215,7 +215,7 @@ public class ProbNITest {
 		
 		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), true);
 		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
-		checkTooImprecise(vios);
+		checkPreciseEnough(vios);
 	}
 	
 	@Test
@@ -263,7 +263,7 @@ public class ProbNITest {
 		
 		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), false);
 		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
-		checkTooImprecise(vios);
+		checkPreciseEnough(vios);
 	}
 	
 	@Test
@@ -275,7 +275,7 @@ public class ProbNITest {
 		
 		LSODNISlicer checker = LSODNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice(), true);
 		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
-		checkTooImprecise(vios);
+		checkPreciseEnough(vios);
 	}
 	
 	@Test
@@ -287,7 +287,7 @@ public class ProbNITest {
 		
 		ProbabilisticNISlicer checker = ProbabilisticNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice());
 		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
-		checkTooImprecise(vios);
+		checkPreciseEnough(vios);
 	}
 	
 	@Test
@@ -335,7 +335,7 @@ public class ProbNITest {
 		
 		ProbabilisticNISlicer checker = ProbabilisticNISlicer.simpleCheck(sdg, BuiltinLattices.getBinaryLattice());
 		Collection<IConflictLeak<SecurityNode>> vios = checker.check();
-		checkTooImprecise(vios);
+		checkPreciseEnough(vios);
 	}
 	
 	@Test

@@ -27,6 +27,7 @@ import gnu.trove.set.hash.TIntHashSet;
 
 /**
  * @author Simon Bischof <simon.bischof@kit.edu>
+ * (code for blockCFGSummaryEdges adapted from GraphModifier.blockSummaryEdges by Dennis Giffhorn)
  */
 public class CFGJoinSensitiveForward extends CFGForward {
 	private Collection<SDGNode> joins;
@@ -76,6 +77,7 @@ public class CFGJoinSensitiveForward extends CFGForward {
     	return ret;
     }
     
+    /* code copied from GraphModifier.blockSummaryEdges and adapted for CFGs */
     private Collection<SDGEdge> blockCFGSummaryEdges() {
         // initialisation
         HashSet<SDGEdge> deact = new HashSet<SDGEdge>();

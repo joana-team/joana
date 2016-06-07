@@ -148,22 +148,28 @@ public class JoinAnalysis {
 			if (fork_alloc.get(forks.iterator().next()).size() != 1)
 				continue;
 
-			// 3. the thread must not be dynamic
-			ThreadInstance thread = ti.getThread(alloc_fork.get(alloc).iterator().next());
+			// 3. only one thread to the given fork may exist and that thread must not be dynamic
+			Collection<ThreadInstance> threads = ti.getThreads(alloc_fork.get(alloc).iterator().next());
+			if (threads.size() != 1)
+				continue;
+			
+			ThreadInstance thread = threads.iterator().next();
 			if (thread.isDynamic())
 				continue;
 
-			// 4. the joining has to be unique
 			Set<SDGNode> joins = alloc_callJoin.get(alloc);
-			if (joins == null || joins.size() != 1)
+			if (joins == null)
 				continue;
 
-			// 5. the thread object has to be unique, too
-			if (callJoin_alloc.get(joins.iterator().next()).size() != 1)
-				continue;
+			
+			for (SDGNode join : joins) {
+				// 4. the thread object has to be unique
+				if (callJoin_alloc.get(join).size() != 1)
+					continue;
+				// we have found a must-joining!
+				thread.setJoin(join);
+			}
 
-			// we have found a must-joining!
-			thread.setJoin(alloc_callJoin.get(alloc).iterator().next());
 		}
 	}
 }

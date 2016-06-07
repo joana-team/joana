@@ -7,34 +7,53 @@
  */
 package edu.kit.joana.ifc.sdg.graph.slicer.conc;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.ifc.sdg.graph.SDGNodeTuple;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.CFGForward;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.CFGSlicer;
+import edu.kit.joana.ifc.sdg.graph.slicer.conc.CFGSlicer.Phase;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
+import edu.kit.joana.util.Pair;
+import gnu.trove.set.hash.TIntHashSet;
 
 /**
  * @author Simon Bischof <simon.bischof@kit.edu>
  */
 public class CFGJoinSensitiveForward extends CFGForward {
-	private SDGNode join;
+	private Collection<SDGNode> joins;
+	private Collection<SDGEdge> blockedEdges;
 
     /**
-	 * @return the join
+	 * @return the joins
 	 */
-	public SDGNode getJoin() {
-		return join;
+	public Collection<SDGNode> getJoins() {
+		return joins;
+	}
+
+	/**
+	 * @param joins the joins to set
+	 */
+	public void setJoins(Collection<SDGNode> joins) {
+		this.joins = joins;
+		blockedEdges = blockCFGSummaryEdges();
 	}
 
 	/**
 	 * @param join the join to set
 	 */
 	public void setJoin(SDGNode join) {
-		this.join = join;
+		Collection<SDGNode> js = new LinkedList<SDGNode>();
+		js.add(join);
+		setJoins(js);
 	}
 
 	public CFGJoinSensitiveForward(CFG g) {
@@ -48,38 +67,146 @@ public class CFGJoinSensitiveForward extends CFGForward {
     protected Collection<SDGEdge> edgesToTraverse(SDGNode node) {
     	Collection<SDGEdge> ret = new LinkedList<SDGEdge>();
     	for (SDGEdge e : this.g.outgoingEdgesOf(node)) {
-    		if (!(e.getTarget() == join)) {
+    		if (blockedEdges.contains(e))
+    			continue;
+    		if (!joins.contains(e.getTarget())) {
     			ret.add(e);
     		}
     	}
     	return ret;
     }
+    
+    private Collection<SDGEdge> blockCFGSummaryEdges() {
+        // initialisation
+        HashSet<SDGEdge> deact = new HashSet<SDGEdge>();
+        HashSet<SDGNodeTuple> exitList = new HashSet<SDGNodeTuple>();
+        LinkedList<SDGNodeTuple> worklist = new LinkedList<SDGNodeTuple>();
+        TIntHashSet markedProcs = new TIntHashSet();
 
-    protected SDGNode reachedNode(SDGEdge edge) {
-        return edge.getTarget();
-    }
+        // block _all_ reachable summary edges
+        for (SDGNode next : g.vertexSet()) {
+            if (markedProcs.contains(next.getProc())) {
+                continue;
+            }
+            
+            markedProcs.add(next.getProc());
 
-    protected Phase phase1() {
-        return new Phase() {
-            public boolean follow(SDGEdge e) {
-                return true;
+            SDGNode entry = g.getEntry(next);
+            SDGNode exit = null;
+            for (SDGEdge e : g.outgoingEdgesOf(entry)) {
+            	if (e.getTarget().getKind() == SDGNode.Kind.EXIT) {
+            		exit = e.getTarget();
+            	}
+            }
+            
+            if (!joins.contains(exit)) {
+                exitList.add(new SDGNodeTuple(exit, exit));
             }
 
-            public boolean saveInOtherWorklist(SDGEdge e) {
-                return e.getKind() == SDGEdge.Kind.CALL;
+            for (SDGEdge call : g.incomingEdgesOf(entry)) {
+                SDGNode callSite = call.getSource();
+                for (SDGEdge e : g.getOutgoingEdgesOfKind(callSite, SDGEdge.Kind.CONTROL_FLOW)) {
+                	if ("CALL_RET".equals(e.getTarget().getLabel())) {
+                		deact.add(e);
+                	}
+                }
             }
-        };
-    }
+        }
 
-    protected Phase phase2() {
-        return new Phase() {
-            public boolean follow(SDGEdge e) {
-            	return e.getKind() != SDGEdge.Kind.RETURN;
-            }
+        // unblock some summary edges
+        HashSet<SDGNodeTuple> markedEdges = new HashSet<SDGNodeTuple>();
+        worklist.addAll(exitList);
+        markedEdges.addAll(worklist);
 
-            public boolean saveInOtherWorklist(SDGEdge e) {
-                return false;
+        while (!worklist.isEmpty()) {
+        	SDGNodeTuple next = worklist.poll();
+
+            if (next.getFirstNode().getKind() == SDGNode.Kind.ENTRY) {
+                for (SDGEdge pi : g.getIncomingEdgesOfKind(next.getFirstNode(), SDGEdge.Kind.CALL)) {
+                    for (SDGEdge po : g.getOutgoingEdgesOfKind(next.getSecondNode(), SDGEdge.Kind.RETURN)) {
+                        SDGEdge unblock = null;
+
+                        for (SDGEdge su : deact) {
+                            if (su.getSource() == pi.getSource() && su.getTarget() == po.getTarget()) {
+                                // unblock summary edge
+                                unblock = su;
+                                break;
+                            }
+                        }
+
+                        if (unblock != null) {
+                            deact.remove(unblock);
+                            LinkedList<SDGNodeTuple> l = new LinkedList<SDGNodeTuple>();
+
+                            for (SDGNodeTuple np : markedEdges) {
+                                if (np.getFirstNode() == unblock.getTarget()
+                            			&& !joins.contains(unblock.getSource())) {
+                                	SDGNodeTuple p = new SDGNodeTuple(unblock.getSource(), np.getSecondNode());
+
+                                    if (!markedEdges.contains(p)) {
+                                        l.add(p);
+                                    }
+                                }
+                            }
+
+                            for (SDGNodeTuple np : l) {
+                                markedEdges.add(np);
+                                worklist.add(np);
+                            }
+                        }
+                    }
+                }
+
+            } else{
+                for (SDGEdge edge : g.incomingEdgesOf(next.getFirstNode())) {
+                    if (edge.getKind() != SDGEdge.Kind.CONTROL_FLOW) {
+                        continue;
+                    }
+                    
+                    SDGNode s = edge.getSource();
+                    SDGNode t = edge.getTarget();
+                    
+                    if (s.getKind() == SDGNode.Kind.CALL && "CALL_RET".equals(t.getLabel())) {
+                    	continue;
+                    }
+                    
+                    if (s.getKind() == SDGNode.Kind.ENTRY
+                			&& edge.getKind() == SDGEdge.Kind.CONTROL_FLOW) {
+                    	if (t.getKind() == SDGNode.Kind.EXIT) {
+                    		continue;
+                    	}
+                    	if (t.getKind() == SDGNode.Kind.FORMAL_OUT
+                    			&& "_exception_".equals(t.getLabel())) {
+                    		continue;
+                    	}
+                    }
+
+                    SDGNodeTuple np = new SDGNodeTuple(s, next.getSecondNode());
+
+                    if (!joins.contains(s) && !markedEdges.contains(np)) {
+                        markedEdges.add(np);
+                        worklist.add(np);
+                    }
+                }
+
+                for (SDGEdge su : g.incomingEdgesOf(next.getFirstNode())) {
+                	if (su.getSource().getKind() != SDGNode.Kind.CALL
+                			|| su.getKind() != SDGEdge.Kind.CONTROL_FLOW) {
+                		continue;
+                	}
+                	SDGNodeTuple np = new SDGNodeTuple(su.getSource(), next.getSecondNode());
+
+                    if (!joins.contains(su.getSource())
+                            && !deact.contains(su)
+                            && !markedEdges.contains(np)) {
+
+                        markedEdges.add(np);
+                        worklist.add(np);
+                    }
+                }
             }
-        };
+        }
+
+        return deact;
     }
 }

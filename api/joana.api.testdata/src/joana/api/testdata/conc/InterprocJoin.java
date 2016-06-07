@@ -60,11 +60,21 @@ public class InterprocJoin {
 		}
 
 		void subtest2call3() throws InterruptedException {
-			choice.subtest2call4();
-			t2.join();
+			new ChoiceA().subtest2call4();
 		}
 		
 		void subtest2call4() throws InterruptedException {
+			if (x > 0) {
+				subtest2call5();
+			}
+			t2.join();
+		}
+
+		void subtest2call5() throws InterruptedException {
+			subtest2call6();
+		}
+		
+		void subtest2call6() throws InterruptedException {
 		}
 		
 		void subtest3call4() throws InterruptedException {
@@ -83,13 +93,10 @@ public class InterprocJoin {
 		}
 
 		void subtest2call3() throws InterruptedException {
+			subtest2call4();
 		}
 
 		void subtest2call4() throws InterruptedException {
-			subtest2call4a();
-		}
-
-		void subtest2call4a() throws InterruptedException {
 		}
 		
 		void subtest3call4() throws InterruptedException {

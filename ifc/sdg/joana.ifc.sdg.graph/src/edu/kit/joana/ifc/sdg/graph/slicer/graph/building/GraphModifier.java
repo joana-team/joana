@@ -716,7 +716,7 @@ public class GraphModifier {
         TIntHashSet markedProcs = new TIntHashSet();
 
         // block _all_ reachable summary edgies
-        for (SDGNode next : barrier) {
+        for (SDGNode next : sdg.vertexSet()) {
             if (markedProcs.contains(next.getProc())) {
                 continue;
             }
@@ -734,39 +734,6 @@ public class GraphModifier {
                 SDGNode callSite = call.getSource();
                 Collection<SDGEdge> summaryEdgies = sdg.getSummaryEdges(callSite);
                 deact.addAll(summaryEdgies);
-            }
-        }
-
-        LinkedList<SDGEdge> tmp = new LinkedList<SDGEdge>();
-        tmp.addAll(deact);
-
-        for (int i = 0; i < tmp.size(); i++) {
-            SDGEdge edge = tmp.get(i);
-            SDGNode next = edge.getSource();
-
-            if (markedProcs.contains(next.getProc())) {
-                continue;
-            }
-
-            SDGNode entry = sdg.getEntry(next);
-            Collection<SDGNode> formOuts = sdg.getFormalOutsOfProcedure(entry);
-
-            for (SDGNode fo : formOuts) {
-                if (!barrier.contains(fo)) {
-                    fofo.add(new SDGNodeTuple(fo, fo));
-                }
-            }
-
-            for (SDGEdge call : sdg.incomingEdgesOf(entry)) {
-                SDGNode callSite = call.getSource();
-                Collection<SDGEdge> summaryEdgies = sdg.getSummaryEdges(callSite);
-
-                for (SDGEdge e : summaryEdgies) {
-                    if (!deact.contains(e)) {
-                        deact.add(e);
-                        tmp.addLast(e);
-                    }
-                }
             }
         }
 
@@ -796,7 +763,8 @@ public class GraphModifier {
                             LinkedList<SDGNodeTuple> l = new LinkedList<SDGNodeTuple>();
 
                             for (SDGNodeTuple np : markedEdges) {
-                                if (np.getFirstNode() == unblock.getTarget()) {
+                                if (np.getFirstNode() == unblock.getTarget()
+                                			&& !barrier.contains(unblock.getSource())) {
                                 	SDGNodeTuple p = new SDGNodeTuple(unblock.getSource(), np.getSecondNode());
 
                                     if (!markedEdges.contains(p)) {

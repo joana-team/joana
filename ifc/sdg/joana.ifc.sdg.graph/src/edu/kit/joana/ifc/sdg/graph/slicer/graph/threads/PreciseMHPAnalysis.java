@@ -7,6 +7,7 @@
  */
 package edu.kit.joana.ifc.sdg.graph.slicer.graph.threads;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -305,7 +306,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         private CFG icfg;
         private ThreadsInformation info;
         private ThreadRegions tr;
-        private HashMap<SDGNode, Set<SDGNode>> joinDominance;
+        //private HashMap<SDGNode, Set<SDGNode>> joinDominance;
         private LinkedList<DynamicContext> forks;
         private HashMap<DynamicContext, LinkedList<Integer>> indirectForks;
         private CFGJoinSensitiveForward slicer;
@@ -322,8 +323,8 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         	forks = collectForks();
         	debug.outln("collect indirect forks");//("Indirect Forks:\n"+indirectForks);
         	indirectForks = collectIndirectForks();
-        	debug.outln("compute join dominance");//("Indirect Forks:\n"+indirectForks);
-        	joinDominance = computeJoinDominance();
+        	//debug.outln("compute join dominance");//("Indirect Forks:\n"+indirectForks);
+        	//joinDominance = computeJoinDominance();
         	debug.outln("compute parallelism");//("Indirect Forks:\n"+indirectForks);
         	map = computeParallelism();
 
@@ -409,7 +410,13 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         	for (int thread = 0; thread < info.getNumberOfThreads(); thread++) {
         		debug.out(thread + ", ");
         		if (info.isDynamic(thread)) {
-        			Collection<ThreadRegion> regs = tr.getThreadRegionSet(thread);
+        			Collection<ThreadRegion> regs = new ArrayList<ThreadRegion>();
+        			for (DynamicContext fork : indirectForks.keySet()) {
+        				if (fork.getThread() != thread) continue;
+        				for (int other_thread : indirectForks.get(fork)) {
+        					regs.addAll(tr.getThreadRegionSet(other_thread));
+        				}
+        			}
         			for (ThreadRegion p : regs) {
         				for (ThreadRegion q : regs) {
         					result.set(p.getID(), q.getID());
@@ -453,7 +460,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
          * @param r
          * @return
          */
-        private HashMap<SDGNode, Set<SDGNode>> computeJoinDominance() {
+        /*private HashMap<SDGNode, Set<SDGNode>> computeJoinDominance() {
         	HashMap<SDGNode, Set<SDGNode>> result = new HashMap<SDGNode, Set<SDGNode>>();
 
         	for (SDGNode join : info.getAllJoins()) {
@@ -470,9 +477,9 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         	}
 
             return result;
-        }
+        }*/
 
-        private HashSet<SDGNode> phase1(SDGNode join) {
+        /*private HashSet<SDGNode> phase1(SDGNode join) {
         	HashSet<SDGNode> visited = new HashSet<SDGNode>();
         	LinkedList<SDGNode> w = new LinkedList<SDGNode>();
 
@@ -512,8 +519,8 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         				SDGNode from = inc.getSource();
 
         				//skip synthetic edges
-        				if (/*(from.getKind() == SDGNode.Kind.CALL && inc.getKind() == SDGEdge.Kind.CONTROL_FLOW)
-        						||*/ (from.getKind() == SDGNode.Kind.ENTRY && n.getKind() == SDGNode.Kind.EXIT)) {
+        				if (//(from.getKind() == SDGNode.Kind.CALL && inc.getKind() == SDGEdge.Kind.CONTROL_FLOW) ||
+        						(from.getKind() == SDGNode.Kind.ENTRY && n.getKind() == SDGNode.Kind.EXIT)) {
         					continue;
         				}
 
@@ -539,7 +546,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         	} while (!remove.isEmpty());
 
         	return visited;
-        }
+        }*/
 
         @SuppressWarnings("unused")
 		private HashSet<SDGNode> threadLocalSlice(SDGNode join) {

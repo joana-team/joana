@@ -137,7 +137,7 @@ public class FullIFCSequentialTest {
 					ExceptionAnalysis.INTRAPROC);
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
-			assertEquals(15, illegal.size());
+			assertEquals(18, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -154,7 +154,7 @@ public class FullIFCSequentialTest {
 					ExceptionAnalysis.INTERPROC);
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
-			assertEquals(12, illegal.size());
+			assertEquals(15, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

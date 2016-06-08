@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -52,6 +53,7 @@ public class MHPAnalysisTest {
 		addTestCase("both-branches-spawn", "joana.api.testdata.conc.BothBranchesSpawn");
 		addTestCase("dynamic-spawn", "joana.api.testdata.conc.DynamicSpawn");
 		addTestCase("more-recursive-spawn", "joana.api.testdata.conc.MoreRecursiveSpawn");
+		addTestCase("mutual-recursive-spawn", "joana.api.testdata.conc.MutualRecursiveSpawn");
 		addTestCase("interproc-join", "joana.api.testdata.conc.InterprocJoin");
 		addTestCase("fork-join", "joana.api.testdata.conc.ForkJoin");
 	}
@@ -351,6 +353,57 @@ public class MHPAnalysisTest {
 	}
 	
 	@Test
+	public void testMutualRecursiveSpawn() {
+		SDG sdg = buildOrLoad("mutual-recursive-spawn");
+		SDGAnalyzer ana = new SDGAnalyzer(sdg);
+		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
+		
+		Pair<SDGNode,SDGNode> pair1 = getPrintsInRecursiveMethod(sdg, ana, "MutualRecursiveSpawn$Thread1a.run()V");
+		SDGNode p1 = pair1.getFirst();
+		SDGNode p1a = pair1.getSecond();
+		SDGNode p1b = getStringPrintInMethod(ana, "MutualRecursiveSpawn$Thread1b.run()V");
+		checkPrecision(mhp, p1, p1);
+		checkPrecision(mhp, p1, p1a);
+		checkPrecision(mhp, p1, p1b);
+		checkTooImprecise(mhp, p1a, p1a);
+		checkTooImprecise(mhp, p1a, p1b);
+		checkTooImprecise(mhp, p1b, p1b);
+
+		Pair<SDGNode,SDGNode> pair2 = getPrintsInRecursiveMethod(sdg, ana, "MutualRecursiveSpawn$Thread2a.run()V");
+		SDGNode p2 = pair2.getFirst();
+		SDGNode p2a = pair2.getSecond();
+		SDGNode p2b = getStringPrintInMethod(ana, "MutualRecursiveSpawn$Thread2b.run()V");
+		checkPrecision(mhp, p2, p2);
+		checkPrecision(mhp, p2, p2a);
+		checkPrecision(mhp, p2, p2b);
+		checkTooImprecise(mhp, p2a, p2a);
+		checkSoundness(mhp, p2a, p2b);
+		checkSoundness(mhp, p2b, p2b);
+		
+		Pair<SDGNode,SDGNode> pair3 = getPrintsInRecursiveMethod(sdg, ana, "MutualRecursiveSpawn$Thread3a.run()V");
+		SDGNode p3 = pair3.getFirst();
+		SDGNode p3a = pair3.getSecond();
+		SDGNode p3b = getStringPrintInMethod(ana, "MutualRecursiveSpawn$Thread3b.run()V");
+		checkPrecision(mhp, p3, p3);
+		checkSoundness(mhp, p3, p3a);
+		checkSoundness(mhp, p3, p3b);
+		checkSoundness(mhp, p3a, p3a);
+		checkSoundness(mhp, p3a, p3b);
+		checkTooImprecise(mhp, p3b, p3b);
+		
+		Pair<SDGNode,SDGNode> pair4 = getPrintsInRecursiveMethod(sdg, ana, "MutualRecursiveSpawn$Thread4a.run()V");
+		SDGNode p4 = pair4.getFirst();
+		SDGNode p4a = pair4.getSecond();
+		SDGNode p4b = getStringPrintInMethod(ana, "MutualRecursiveSpawn$Thread4b.run()V");
+		checkPrecision(mhp, p4, p4);
+		checkSoundness(mhp, p4, p4a);
+		checkSoundness(mhp, p4, p4b);
+		checkSoundness(mhp, p4a, p4a);
+		checkSoundness(mhp, p4a, p4b);
+		checkSoundness(mhp, p4b, p4b);
+	}
+	
+	@Test
 	public void testInterprocJoin() {
 		SDG sdg = buildOrLoad("interproc-join");
 		SDGAnalyzer ana = new SDGAnalyzer(sdg);
@@ -419,12 +472,11 @@ public class MHPAnalysisTest {
 		SDGNode n2 = arr[1];
 		ThreadInstance t2 = sdg.getThreadsInfo().getThread(n2.getThreadNumbers()[0]);
 		Pair<SDGNode,SDGNode> p = null;
-		//TODO: make more efficient by checking whether one is a suffix of the other
-		//instead of just using containsAll
-		if (t1.getThreadContext().containsAll(t2.getThreadContext())) {
-			p = Pair.<SDGNode,SDGNode>pair(n2, n1);
-		} else if (t2.getThreadContext().containsAll(t1.getThreadContext())) {
+
+		if (isSuffixOf(t1.getThreadContext(), t2.getThreadContext())) {
 			p = Pair.<SDGNode,SDGNode>pair(n1, n2);
+		} else if (isSuffixOf(t2.getThreadContext(), t1.getThreadContext())) {
+			p = Pair.<SDGNode,SDGNode>pair(n2, n1);
 		} else {
 			Assert.fail("No recursive thread instance detected");
 		}
@@ -442,6 +494,23 @@ public class MHPAnalysisTest {
 		Assert.assertEquals(1, statements.size());
 		return (SDGNode) statements.toArray()[0];
 	}
+	
+    private static boolean isSuffixOf(List<SDGNode> t1, List<SDGNode> t2) {
+        if (t1.size() > t2.size()) return false;
+
+        int i = t1.size() - 1;
+        int j = t2.size() - 1;
+
+        while (i >= 0 && j >= 0) {
+            if (t1.get(i) != t2.get(j)) {
+                return false;
+            }
+            i--;
+            j--;
+        }
+
+        return true;
+    }
 	
 	private static class TestData {
 

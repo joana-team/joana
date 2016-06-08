@@ -13,6 +13,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
@@ -29,6 +30,7 @@ import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.api.test.util.ApiTestException;
+import edu.kit.joana.api.test.util.BuildSDG;
 import edu.kit.joana.api.test.util.JoanaPath;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.IViolation;
@@ -44,6 +46,18 @@ import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
  */
 public class FullIFCConcurrentTest {
 
+	static final boolean outputPDGFiles = true;
+	static final String outputDir = "out";
+	
+	static {
+		if (outputPDGFiles) {
+			File fOutDir = new File(outputDir);
+			if (!fOutDir.exists()) {
+				fOutDir.mkdir();
+			}
+		}
+	}
+	
 	public static IFCAnalysis buildAndAnnotate(final String className, final String secSrc,
 			final String pubOut) throws ApiTestException {
 		return buildAndAnnotate(className, secSrc, pubOut, PointsToPrecision.INSTANCE_BASED);
@@ -84,6 +98,9 @@ public class FullIFCConcurrentTest {
 		
 		try {
 			prog = SDGProgram.createSDGProgram(config);
+			if (outputPDGFiles) {
+				BuildSDG.saveSDGProgram(prog.getSDG(), outputDir + File.separator + className + ".pdg");
+			}
 		} catch (ClassHierarchyException e) {
 			throw new ApiTestException(e);
 		} catch (IOException e) {

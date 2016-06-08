@@ -1,4 +1,5 @@
 package edu.kit.joana.api.test.util;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -48,8 +49,8 @@ public class BuildSDG {
 		this.fileName = fileName;
 	}
 
-	private void saveSDGProgram(SDG sdg, String path) throws FileNotFoundException {
-		SDGSerializer.toPDGFormat(sdg, new FileOutputStream(path));
+	public static void saveSDGProgram(SDG sdg, String path) throws FileNotFoundException {
+		SDGSerializer.toPDGFormat(sdg, new BufferedOutputStream(new FileOutputStream(path)));
 	}
 
 	public void run() {

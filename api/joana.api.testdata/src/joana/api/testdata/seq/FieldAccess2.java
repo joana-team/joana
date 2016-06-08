@@ -15,30 +15,29 @@ import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.*;
  */
 
 
-class A {
+class B {
 	int f;
 }
 
-public class FieldAccess {
+public class FieldAccess2 {
 	public static void main(String[] args) {
 
-		A a1 = new A();
-		A a2 = new A();
+		B b1 = new B();
+		B b2 = new B();
 
-		A a;
+		B a;
 
-		a1.f = 42;
-		a2.f = 17;
+		b1.f = 42;
+		b2.f = 17;
 
-		A v3;
+		B b3;
 		if (SECRET_BOOL) {
-			v3 = a1;
+			b3 = b1;
 		} else {
-			v3 = a2;
+			b3 = b2;
 		}
-		v3.f = 0;
 		
-		int v4 = toggle(v3.f);
+		int v4 = toggle(b3.f);
 		leak(v4);
 	}
 }

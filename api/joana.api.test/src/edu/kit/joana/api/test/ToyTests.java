@@ -362,13 +362,18 @@ public class ToyTests {
 	@Test
 	public void testArrayAccess() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testTooImprecise(joana.api.testdata.seq.ArrayAccess.class);
+		testPreciseEnough(joana.api.testdata.seq.ArrayAccess.class);
 	}
 	
 	@Test
 	public void testFieldAccess() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testTooImprecise(joana.api.testdata.seq.FieldAccess.class);
+		testPreciseEnough(joana.api.testdata.seq.FieldAccess.class);
+	}
+	@Test
+	public void testFieldAccess2() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testPreciseEnough(joana.api.testdata.seq.FieldAccess2.class);
 	}
 
 	// TODO: This should crash when we turn on reflection

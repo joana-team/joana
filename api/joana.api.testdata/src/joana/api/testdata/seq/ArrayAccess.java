@@ -24,7 +24,8 @@ public class ArrayAccess {
 		users[u1.id] = u1;
 		users[u2.id] = u2;
 		
-		leak(users[u.id].password);
+		int pw = toggle(users[u.id].password);
+		leak(pw);
 	}
 }
 

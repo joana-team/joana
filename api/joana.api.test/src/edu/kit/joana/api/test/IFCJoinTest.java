@@ -178,7 +178,7 @@ public class IFCJoinTest {
 		
 		System.out.println(mhp.getThreadRegion(sdg.getNode(id1), thread1));
 		System.out.println(mhp.getThreadRegion(sdg.getNode(id2), thread2));
-		//Assert.assertFalse(mhp.isParallel(sdg.getNode(id1), sdg.getNode(id2))); // TODO: make this assertion pass!!
+		Assert.assertFalse(mhp.isParallel(sdg.getNode(id1), sdg.getNode(id2)));
 		
 	}
 	

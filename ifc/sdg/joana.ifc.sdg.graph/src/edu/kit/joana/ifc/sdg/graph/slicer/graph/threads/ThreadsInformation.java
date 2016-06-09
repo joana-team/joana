@@ -26,7 +26,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  * <li> the fork node ('null' for the main thread) </li>
  * <li> the thread allocation node ('null' for the main thread) </li>
  * <li> the thread invocation node ('null' for the main thread) </li>
- * <li> the join node (maybe 'null') </li>
+ * <li> the join nodes (maybe empty) </li>
  * </ul>
  * The class computes that information itself.
  *
@@ -40,7 +40,7 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
         private final SDGNode entry;
         private SDGNode exit = null;
         private final SDGNode fork;
-        private SDGNode join;
+        private Collection<SDGNode> join;
         private final LinkedList<SDGNode> threadContext;
         private boolean dynamic;
 
@@ -55,7 +55,9 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
             this.entry = en;
             this.exit = ex;
             this.fork = fo;
-            this.join = jo;
+            this.join = new LinkedList<SDGNode>();
+            if (jo != null)
+            	this.join.add(jo);
             this.threadContext = tc;
             this.dynamic = dyn;
         }
@@ -69,8 +71,8 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
             else b.append("Exit ").append(getExit()).append(";\n");
             if (getFork() == null) b.append("Fork ").append("0").append(";\n");
             else b.append("Fork ").append(getFork()).append(";\n");
-            if (join == null) b.append("Join ").append("0").append(";\n");
-            else b.append("Join ").append(join).append(";\n");
+            if (join.isEmpty()) b.append("Join ").append("0").append(";\n");
+            else b.append("Join ").append(join.iterator().next()).append(";\n");
             if (getThreadContext() == null || getThreadContext().size() == 0) b.append("Context null;\n");
             else b.append("Context ").append(getThreadContext()).append(";\n");
             b.append("Dynamic ").append(dynamic).append(";\n}\n");
@@ -101,14 +103,20 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
 		}
 
 		public SDGNode getJoin() {
+			if (join.isEmpty()) return null;
+			return join.iterator().next();
+		}
+		
+		public Collection<SDGNode> getJoins() {
 			return join;
 		}
 
 		public void setJoin(SDGNode join) {
-			if (this.join != null) {
+			this.join.add(join);
+			/*if (this.join != null) {
 				throw new IllegalStateException("The 'join' field of ThreadInstance is supposed to be set only once!");
 			}
-			this.join = join;
+			this.join = join;*/
 		}
 
 		public LinkedList<SDGNode> getThreadContext() {
@@ -211,6 +219,16 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
             }
         }
         return null;
+    }
+
+    public Collection<ThreadInstance> getThreads(SDGNode fork) {
+    	Collection<ThreadInstance> ret = new LinkedList<ThreadInstance>();
+        for (ThreadInstance ti : threads) {
+            if (ti.getFork() == fork) {
+                ret.add(ti);
+            }
+        }
+        return ret;
     }
 
     public boolean isDynamic(int thread) {

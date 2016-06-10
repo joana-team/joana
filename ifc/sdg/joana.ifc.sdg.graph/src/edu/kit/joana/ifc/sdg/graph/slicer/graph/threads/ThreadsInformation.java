@@ -76,6 +76,7 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
             if (getFork() == null) b.append("Fork ").append("0").append(";\n");
             else b.append("Fork ").append(getFork()).append(";\n");
             if (join.isEmpty()) b.append("Join ").append("0").append(";\n");
+            else if (join.size() == 1) b.append("Join ").append(join.iterator().next()).append(";\n");
             else b.append("Join ").append(join).append(";\n");
             if (getThreadContext() == null || getThreadContext().size() == 0) b.append("Context null;\n");
             else b.append("Context ").append(getThreadContext()).append(";\n");

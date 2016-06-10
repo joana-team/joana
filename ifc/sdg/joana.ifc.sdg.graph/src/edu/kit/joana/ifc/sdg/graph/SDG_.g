@@ -287,7 +287,7 @@ private thread[SDG sdg] returns [ThreadInstance ti]
       'Entry'   en=number ';'
       'Exit'    ex=number ';'
       'Fork'    fo=number ';'
-      'Join'    jo=number ';'
+      'Join'    joins=listOrSingleNumber[sdg] ';'
       'Context' con=context[sdg] ';'
       'Dynamic' dyn=bool ';'
     '}'
@@ -295,9 +295,22 @@ private thread[SDG sdg] returns [ThreadInstance ti]
       final SDGNode entry = sdg.getNode(en);
       SDGNode exit = null; if (ex != 0) { exit = sdg.getNode(ex); }
       SDGNode fork = null; if (fo != 0) { fork = sdg.getNode(fo); }
-      SDGNode join = null; if (jo != 0) { join = sdg.getNode(jo); }
-      ti = new ThreadInstance(id, entry, exit, fork, join, con, dyn);
+      ti = new ThreadInstance(id, entry, exit, fork, joins, con, dyn);
     }
+  ;
+  
+private listOrSingleNumber[SDG sdg] returns [LinkedList<SDGNode> js]
+  : joins=mayEmptyNumberList[sdg] { js = joins; }
+  | jo=number {
+                js = new LinkedList<SDGNode>();
+                if (jo != 0) { js.add(sdg.getNode(jo)); }
+              }
+  ;
+
+private mayEmptyNumberList[SDG sdg] returns [LinkedList<SDGNode> js = new LinkedList<SDGNode>();]
+  : 'null'
+  | '[' ']'
+  | '[' i=number { js.add(sdg.getNode(i)); } (',' i=number { js.add(sdg.getNode(i)); } )* ']'
   ;
   
 private context[SDG sdg] returns [LinkedList<SDGNode> cx = new LinkedList<SDGNode>();]

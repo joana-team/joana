@@ -68,16 +68,16 @@ import gnu.trove.procedure.TIntProcedure;
     private final int entry;
     private final int exit;
     private final int fork;
-    private final int join;
+    private final TIntList joins;
     private final TIntList threadContext;
     private boolean dynamic;
 
-    public ThreadInstanceStub(int id, int en, int ex, int fo, int jo, TIntList tc, boolean dyn) {
+    public ThreadInstanceStub(int id, int en, int ex, int fo, TIntList jo, TIntList tc, boolean dyn) {
       this.id = id;
       this.entry = en;
       this.exit = ex;
       this.fork = fo;
-      this.join = jo;
+      this.joins = jo;
       this.threadContext = tc;
       this.dynamic = dyn;
     }
@@ -86,10 +86,10 @@ import gnu.trove.procedure.TIntProcedure;
       final SDGNode tentry = findNode(sdg, entry);
       final SDGNode texit = findNode(sdg, exit);
       final SDGNode tfork = findNode(sdg, fork);
-      final SDGNode tjoin = findNode(sdg, join);
+      final LinkedList<SDGNode> tjoins = findNodes(sdg, joins);
       final LinkedList<SDGNode> tcontext = findNodes(sdg, threadContext);  
 
-      return new ThreadInstance(id, tentry, texit, tfork, tjoin, tcontext, dynamic);
+      return new ThreadInstance(id, tentry, texit, tfork, tjoins, tcontext, dynamic);
     }
 
     private static LinkedList<SDGNode> findNodes(final SDG sdg, final TIntList ctx) {
@@ -163,7 +163,7 @@ thread returns [ThreadInstanceStub ti]
       'Entry'   en=number ';'
       'Exit'    ex=number ';'
       'Fork'    fo=number ';'
-      'Join'    jo=number ';'
+      'Join'    joins=listOrSingleNumber ';'
       'Context' con=context ';'
       'Dynamic' dyn=bool ';'
     '}'
@@ -171,11 +171,25 @@ thread returns [ThreadInstanceStub ti]
       final int entry = en;
       int exit = ThreadInstanceStub.UNDEF_NODE; if (ex != 0) { exit = ex; }
       int fork = ThreadInstanceStub.UNDEF_NODE; if (fo != 0) { fork = fo; }
-      int join = ThreadInstanceStub.UNDEF_NODE; if (jo != 0) { join = jo; }
-      ti = new ThreadInstanceStub(id, entry, exit, fork, join, con, dyn);
+      ti = new ThreadInstanceStub(id, entry, exit, fork, joins, con, dyn);
     }
   ;
   
+private listOrSingleNumber returns [TIntList js]
+  : joins=mayEmptyNumberList { js = joins; }
+  | jo=number {
+                js = new TIntArrayList();
+                int join = ThreadInstanceStub.UNDEF_NODE; if (jo != 0) { join = jo; }
+                js.add(join);
+              }
+  ;
+
+private mayEmptyNumberList returns [TIntList cx = new TIntArrayList();]
+  : 'null'
+  | '[' ']'
+  | '[' i=number { cx.add(i); } (',' i=number { cx.add(i); } )* ']'
+  ;
+
 private context returns [TIntList cx = new TIntArrayList();]
   : 'null'
   | '[' i=mayNegNumber { cx.add(i); } (',' i=mayNegNumber { cx.add(i); } )* ']'

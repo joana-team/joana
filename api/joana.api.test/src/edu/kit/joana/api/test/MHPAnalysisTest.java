@@ -231,8 +231,8 @@ public class MHPAnalysisTest {
 		checkPrecision(mhp, ps, p4);
 		checkPrecision(mhp, ps, pi);
 		checkPrecision(mhp, p3, p3);
-		checkTooImprecise(mhp, p3, p4);
-		checkTooImprecise(mhp, p3, pi);
+		checkPrecision(mhp, p3, p4);
+		checkPrecision(mhp, p3, pi);
 		checkPrecision(mhp, p4, p4);
 		checkSoundness(mhp, p4, pi);
 		checkPrecision(mhp, pi, pi);

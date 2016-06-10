@@ -380,7 +380,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         			succ.add(e.getTarget());
         		}
 
-        		slicer.setJoin(info.getThread(fork.getThread()).getJoin());
+        		slicer.setJoins(info.getThread(fork.getThread()).getJoins());
         		Collection<SDGNode> slice = slicer.slice(succ);
         		LinkedList<ThreadRegion> inSlice = new LinkedList<ThreadRegion>();
 

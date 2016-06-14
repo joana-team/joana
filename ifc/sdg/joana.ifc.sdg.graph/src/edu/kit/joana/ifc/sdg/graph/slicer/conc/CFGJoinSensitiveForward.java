@@ -178,7 +178,7 @@ public class CFGJoinSensitiveForward extends CFGForward {
                     		continue;
                     	}
                     	if (t.getKind() == SDGNode.Kind.FORMAL_OUT
-                    			&& "_exception_".equals(t.getLabel())) {
+                    			&& "<exception>".equals(t.getBytecodeName())) {
                     		continue;
                     	}
                     }

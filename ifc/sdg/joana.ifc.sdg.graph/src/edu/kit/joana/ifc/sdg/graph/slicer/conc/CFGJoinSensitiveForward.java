@@ -9,6 +9,7 @@ package edu.kit.joana.ifc.sdg.graph.slicer.conc;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -22,6 +23,8 @@ import edu.kit.joana.ifc.sdg.graph.slicer.conc.CFGForward;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.CFGSlicer;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.CFGSlicer.Phase;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.util.Pair;
 import gnu.trove.set.hash.TIntHashSet;
 
@@ -31,7 +34,8 @@ import gnu.trove.set.hash.TIntHashSet;
  */
 public class CFGJoinSensitiveForward extends CFGForward {
 	private Collection<SDGNode> joins;
-	private Collection<SDGEdge> blockedEdges;
+	private CFGForward secondSlicer;
+	private Collection<SDGEdge> blockedEdges = new HashSet<SDGEdge>();
 
     /**
 	 * @return the joins
@@ -45,7 +49,10 @@ public class CFGJoinSensitiveForward extends CFGForward {
 	 */
 	public void setJoins(Collection<SDGNode> joins) {
 		this.joins = joins;
-		blockedEdges = blockCFGSummaryEdges();
+		blockedEdges.clear();
+		if (!joins.isEmpty()) {
+			blockedEdges = blockCFGSummaryEdges();
+		}
 	}
 
 	/**
@@ -53,31 +60,42 @@ public class CFGJoinSensitiveForward extends CFGForward {
 	 */
 	public void setJoin(SDGNode join) {
 		Collection<SDGNode> js = new LinkedList<SDGNode>();
-		js.add(join);
+		if (join != null) {
+			js.add(join);
+		}
 		setJoins(js);
 	}
 
 	public CFGJoinSensitiveForward(CFG g) {
         super(g);
+        secondSlicer = new CFGForward(g);
     }
 
     public CFGJoinSensitiveForward(SDG g) {
         super(g);
+        secondSlicer = new CFGForward(g);
     }
 
     protected Collection<SDGEdge> edgesToTraverse(SDGNode node) {
     	Collection<SDGEdge> ret = new LinkedList<SDGEdge>();
     	for (SDGEdge e : this.g.outgoingEdgesOf(node)) {
-    		if (blockedEdges.contains(e))
+    		if (blockedEdges.contains(e) || joins.contains(e.getTarget())) {
     			continue;
-    		if (!joins.contains(e.getTarget())) {
-    			ret.add(e);
     		}
+    		ret.add(e);
     	}
     	return ret;
     }
     
-    /* code copied from GraphModifier.blockSummaryEdges and adapted for CFGs */
+	public Collection<SDGNode> secondSlice(SDGNode c) {
+		return secondSlice(Collections.singleton(c));
+	}
+    
+	public Collection<SDGNode> secondSlice(Collection<SDGNode> c) {
+		return secondSlicer.slice(c);
+	}
+
+	/* code copied from GraphModifier.blockSummaryEdges and adapted for CFGs */
     private Collection<SDGEdge> blockCFGSummaryEdges() {
         // initialisation
         HashSet<SDGEdge> deact = new HashSet<SDGEdge>();

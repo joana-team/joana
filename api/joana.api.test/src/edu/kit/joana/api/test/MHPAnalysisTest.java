@@ -55,6 +55,7 @@ public class MHPAnalysisTest {
 		addTestCase("more-recursive-spawn", "joana.api.testdata.conc.MoreRecursiveSpawn");
 		addTestCase("mutual-recursive-spawn", "joana.api.testdata.conc.MutualRecursiveSpawn");
 		addTestCase("interproc-join", "joana.api.testdata.conc.InterprocJoin");
+		addTestCase("interthread-join", "joana.api.testdata.conc.InterthreadJoin");
 		addTestCase("fork-join", "joana.api.testdata.conc.ForkJoin");
 	}
 
@@ -423,6 +424,24 @@ public class MHPAnalysisTest {
 		SDGNode p3 = getStringPrintInMethod(ana, "InterprocJoin$Thread3.run()V");
 		SDGNode ps = getStringPrintInMethod(ana, "InterprocJoin.main([Ljava/lang/String;)V");
 		checkPrecision(mhp, p3, ps);
+	}
+	
+	@Test
+	public void testInterthreadJoin() {
+		SDG sdg = buildOrLoad("interthread-join");
+		SDGAnalyzer ana = new SDGAnalyzer(sdg);
+		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
+		
+		SDGNode p1a = getStringPrintInMethod(ana, "InterthreadJoin$Thread1a.run()V");
+		SDGNode p1b = getStringPrintInMethod(ana, "InterthreadJoin$Thread1b.run()V");
+		SDGNode p1c = getStringPrintInMethod(ana, "InterthreadJoin$Thread1c.run()V");
+		checkPrecision(mhp, p1a, p1b);
+		checkSoundness(mhp, p1a, p1c);
+		checkSoundness(mhp, p1b, p1c);
+
+		SDGNode p2a = getStringPrintInMethod(ana, "InterthreadJoin$Thread2a.run()V");
+		SDGNode p2b = getStringPrintInMethod(ana, "InterthreadJoin$Thread2b.run()V");
+		checkSoundness(mhp, p2a, p2b);
 	}
 	
 	@Test

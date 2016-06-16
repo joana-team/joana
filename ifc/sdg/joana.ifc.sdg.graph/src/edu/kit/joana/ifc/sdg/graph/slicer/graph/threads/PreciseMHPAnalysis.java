@@ -381,13 +381,18 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         		}
 
         		slicer.setJoins(info.getThread(fork.getThread()).getJoins());
-        		Collection<SDGNode> slice = slicer.slice(succ);
-        		LinkedList<ThreadRegion> inSlice = new LinkedList<ThreadRegion>();
+        		Collection<SDGNode> joinSlice = slicer.slice(succ);
+        		Collection<SDGNode> secondSlice = slicer.secondSlice(succ);
+        		LinkedList<ThreadRegion> inJoinSlice = new LinkedList<ThreadRegion>();
+        		LinkedList<ThreadRegion> inSecondSlice = new LinkedList<ThreadRegion>();
 
         		for (int x = 0; x < tr.size(); x++) {
         			ThreadRegion q = tr.getThreadRegion(x);
-        			if (fork.getNode() == q.getStart() || slice.contains(q.getStart())) {
-        				inSlice.add(q);
+        			if (fork.getNode() == q.getStart() || joinSlice.contains(q.getStart())) {
+        				inJoinSlice.add(q);
+        				inSecondSlice.add(q);
+        			} else if (secondSlice.contains(q.getStart())) {
+        				inSecondSlice.add(q);
         			}
         		}
 
@@ -399,9 +404,17 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 
             		if (!spawnedThreads.contains(p.getThread())) continue;
 
-            		for (ThreadRegion q : inSlice) {
-            			result.set(p.getID(), q.getID());
-            			result.set(q.getID(), p.getID());
+            		if (p.getThread() == fork.getThread()
+            					&& !info.getThread(fork.getThread()).isDynamic()) {
+	            		for (ThreadRegion q : inJoinSlice) {
+	            			result.set(p.getID(), q.getID());
+	            			result.set(q.getID(), p.getID());
+	            		}
+            		} else {
+	            		for (ThreadRegion q : inSecondSlice) {
+	            			result.set(p.getID(), q.getID());
+	            			result.set(q.getID(), p.getID());
+	            		}
             		}
             	}
         	}

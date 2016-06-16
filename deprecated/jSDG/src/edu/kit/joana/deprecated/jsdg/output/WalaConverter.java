@@ -83,7 +83,7 @@ import gnu.trove.map.hash.TIntObjectHashMap;
  */
 public class WalaConverter {
 
-	private final SDG wSDG;
+	private final SDG<InstanceKey> wSDG;
 	private final boolean addControlFlow;
 	private final boolean ignoreExceptions;
 	private final String entryMethod;
@@ -92,7 +92,7 @@ public class WalaConverter {
 	private final boolean useEscapeOpt;
 	private final IKey2Origin k2o;
 
-	public WalaConverter(final SDG wSDG, final SDGFactory.Config cfg,
+	public WalaConverter(final SDG<InstanceKey> wSDG, final SDGFactory.Config cfg,
 			final IKey2Origin k2o) {
 		this.wSDG = wSDG;
 		this.entryMethod = cfg.mainClass;
@@ -222,7 +222,7 @@ public class WalaConverter {
 
 	private void computeInterference(final IProgressMonitor progress) throws CancelException, WalaException {
 		final PointerAnalysis<InstanceKey> pts = wSDG.getPointerAnalysis();
-		final HeapGraph hg = pts.getHeapGraph();
+		final HeapGraph<InstanceKey> hg = pts.getHeapGraph();
 
 		WalaSDGInterferenceComputation ifc =
 			new WalaSDGInterferenceComputation(wSDG, cg, optimizeThisAccess, useEscapeOpt, hg, k2o);
@@ -433,7 +433,7 @@ public class WalaConverter {
 	 * @throws CancelException
 	 */
 	private SDGNode convert(final CGNode method, final int pdgId, final IProgressMonitor progress) throws CancelException {
-		final PDG pdg = wSDG.getPDG(method);
+		final PDG<InstanceKey> pdg = wSDG.getPDG(method);
 		Statement entry = null;
 		Statement exit = null;
 
@@ -554,7 +554,7 @@ public class WalaConverter {
 	 * @return entry node of the created pdg
 	 * @throws CancelException
 	 */
-	private SDGNode convert(final PDG pdg, final Statement entry,
+	private SDGNode convert(final PDG<InstanceKey> pdg, final Statement entry,
 			final Statement exit, final int pdgId, final IProgressMonitor progress) throws CancelException {
 		final IMethod imethod = pdg.getCallGraphNode().getMethod();
 		final IClass declaringClass = imethod.getDeclaringClass();
@@ -705,7 +705,7 @@ public class WalaConverter {
 							forkEdges = false;
 						}
 
-						final PDG callee = wSDG.getPDG(target);
+						final PDG<InstanceKey> callee = wSDG.getPDG(target);
 						final Statement[] params = callee.getParamCalleeStatements();
 						connect(pdg, pdgId, actInStats, actOutStats, callee,
 								targetId, params, forkEdges);
@@ -958,7 +958,7 @@ public class WalaConverter {
 		set.add(value);
 	}
 
-	private void createCFGforNode(final PDG pdg, final int pdgId, final ExplodedControlFlowGraph ecfg,
+	private void createCFGforNode(final PDG<InstanceKey> pdg, final int pdgId, final ExplodedControlFlowGraph ecfg,
 			final Map<IExplodedBasicBlock,Set<SDGNode>> first, final Map<IExplodedBasicBlock, Set<SDGNode>> last,
 			final SDGNode pdgEntry, final SDGNode pdgExit, final IExplodedBasicBlock block) {
 
@@ -1238,7 +1238,7 @@ public class WalaConverter {
 		return succs;
 	}
 
-	private Statement findStatementForInstruction(final PDG pdg,
+	private Statement findStatementForInstruction(final PDG<InstanceKey> pdg,
 			final SSAInstruction instr) {
 		Statement matchingStm = null;
 		for (final Statement st : pdg) {

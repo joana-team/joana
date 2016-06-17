@@ -69,7 +69,7 @@ implements ITransferFunctionProvider<ModRefControlFlowGraph.Node, BitVectorVaria
 	private final static BitVector emptyVector = null;
 
 	public IntSet gen(final Node node) {
-		if (domain.hasMappedIndex(node)) {
+		if (domain.hasMappedIndex(node) && node.isMod()) {
 			final int id = domain.getMappedIndex(node);
 			assert (id >= 0) : "No id in mapping for: " + node;
 

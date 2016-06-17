@@ -15,6 +15,7 @@ import java.util.Set;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.util.collections.Pair;
 
+import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.ifc.sdg.util.SDGConstants;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
@@ -44,7 +45,7 @@ public class Call2ForkConverter {
 		RemovalTask(PDG pdgToModify, PDGNode nodeToRemove, Set<PDG> possibleTargets) {
 			assert pdgToModify != null;
 			assert nodeToRemove != null;
-			assert nodeToRemove.getLabel().equals(SDGConstants.CALLRET_LABEL);
+			assert nodeToRemove.getBytecodeIndex() == BytecodeLocation.CALL_RET;
 			this.pdgToModify = pdgToModify;
 			this.nodeToRemove = nodeToRemove;
 			this.possibleTargets = possibleTargets;
@@ -187,7 +188,7 @@ public class Call2ForkConverter {
 
 				PDGNode callRet = null;
 				for (PDGEdge outgEdge : pdgOfThreadStart.outgoingEdgesOf(call)) {
-					if (outgEdge.to.getLabel().equals(SDGConstants.CALLRET_LABEL)) {
+					if (outgEdge.to.getBytecodeIndex() == BytecodeLocation.CALL_RET) {
 						callRet = outgEdge.to;
 						break;
 					}

@@ -61,6 +61,7 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 import com.ibm.wala.util.graph.impl.SparseNumberedGraph;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.ifc.sdg.util.SDGConstants;
 import edu.kit.joana.util.Config;
 import edu.kit.joana.util.Log;
@@ -889,7 +890,7 @@ public class SDGBuilder implements CallGraphFilter {
 
 					PDGNode uniqueSucc;
 
-					if (callSucc.size() == 1 && callSucc.get(0).getLabel().equals(SDGConstants.CALLRET_LABEL)) {
+					if (callSucc.size() == 1 && callSucc.get(0).getBytecodeIndex() == BytecodeLocation.CALL_RET) {
 						// already added a dummy node
 						uniqueSucc = callSucc.get(0);
 

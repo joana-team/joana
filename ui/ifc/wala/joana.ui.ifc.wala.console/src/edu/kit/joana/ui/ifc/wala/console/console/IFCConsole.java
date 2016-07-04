@@ -118,7 +118,7 @@ public class IFCConsole {
 		DECLASS(		"declass", 				3, 		"<index> <level1> <level2>",
 							"Declassify specified node from <level1> to <level2>. <index> refers to the indices shown in the currently active method."),
 		RUN(			"run", 					0, 	2, 	" [type] ",
-							"Run IFC analysis with specified data. The optional parameter type denotes the type of ifc analysis. It can be " + IFCTYPE_CLASSICAL_NI + ", " + IFCTYPE_LSOD + " or " + IFCTYPE_RLSOD + ". If it is omitted, classical non-interference is used."),
+							"Run IFC analysis with specified data. The optional parameter type denotes the type of ifc analysis. It can be " + IFCTYPE_CLASSICAL_NI + ", " + IFCTYPE_LSOD + ", " + IFCTYPE_RLSOD + " or " + IFCTYPE_iRLSOD + ". If it is omitted, classical non-interference is used."),
 		RESET(			"reset", 				0, 		"",
 							"Reset node data."),
 		SAVE_ANNOT(		"saveAnnotations", 		1, 		"<filename>",
@@ -283,6 +283,7 @@ public class IFCConsole {
 	private static final String IFCTYPE_CLASSICAL_NI = "classical-ni";
 	private static final String IFCTYPE_LSOD = "lsod";
 	private static final String IFCTYPE_RLSOD = "rlsod";
+	private static final String IFCTYPE_iRLSOD = "irlsod";
 
 	public static final String LATTICE_BINARY = "BINARY";
 	public static final String LATTICE_TERNARY = "TERNARY";
@@ -627,6 +628,8 @@ public class IFCConsole {
 					return IFCType.LSOD;
 				} else if (IFCTYPE_RLSOD.equals(s)) {
 					return IFCType.RLSOD;
+				} else if (IFCTYPE_iRLSOD.equals(s)) {
+					return IFCType.iRLSOD;
 				} else {
 					return null;
 				}
@@ -1719,6 +1722,8 @@ public class IFCConsole {
 			return IFCTYPE_LSOD;
 		case RLSOD:
 			return IFCTYPE_RLSOD;
+		case iRLSOD:
+			return IFCTYPE_iRLSOD;
 		default:
 			throw new IllegalStateException("not all cases handled by this method!");
 		}

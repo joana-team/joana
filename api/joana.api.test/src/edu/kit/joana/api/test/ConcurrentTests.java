@@ -24,13 +24,15 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
+import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
+import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 
 /**
  * @author Martin Mohr
  */
 public class ConcurrentTests {
 
-	private static final boolean FORCE_REBUILD = false;
+	private static final boolean FORCE_REBUILD = true;
 
 	private static final Map<String, TestData> testData = new HashMap<String, TestData>();
 

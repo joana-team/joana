@@ -62,7 +62,7 @@ public class ObjSensContextSelector implements ContextSelector {
 		}
 	}
 
-	private boolean useFallBackCallString(CGNode caller, IMethod callee) {
+	protected boolean useFallBackCallString(CGNode caller, IMethod callee) {
 		return (callee.isStatic() && !callee.isInit()) || !filter.engageObjectSensitivity(caller, callee);
 	}
 

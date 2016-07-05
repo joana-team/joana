@@ -134,12 +134,12 @@ public class ConcurrentTests {
 	
 	public static void buildOrLoad(TestData td) {
 		if (FORCE_REBUILD) {
-			final BuildSDG b = BuildSDG.standardConcSetup(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, td.mainClass, td.sdgFile);
+			final BuildSDG b = BuildSDG.standardConcSetup(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, JavaMethodSignature.mainMethodOfClass(td.mainClass), td.sdgFile, td.ptsPrecToUse);
 			b.run();
 		} else {
 			final File f = new File(td.sdgFile);
 			if (!f.exists() || !f.canRead()) {
-				final BuildSDG b = BuildSDG.standardConcSetup(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, td.mainClass, td.sdgFile);
+				final BuildSDG b = BuildSDG.standardConcSetup(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, JavaMethodSignature.mainMethodOfClass(td.mainClass), td.sdgFile, td.ptsPrecToUse);
 				b.run();
 			}
 		}
@@ -189,15 +189,21 @@ public class ConcurrentTests {
 
 	private static class TestData {
 		private final String mainClass;
+		private final PointsToPrecision ptsPrecToUse;
 		private final String sdgFile;
 		private final int expectedNumberOfThreads;
 		private final int expectedNumberOfDynamicThreads;
 
 		TestData(String mainClass, String sdgFile, int expectedNumberOfThreads, int expectedNumberOfDynamicThreads) {
+			this(mainClass, PointsToPrecision.INSTANCE_BASED, sdgFile, expectedNumberOfThreads, expectedNumberOfDynamicThreads);
+		}
+
+		TestData(String mainClass, PointsToPrecision ptsPrecToUse, String sdgFile, int expectedNumberOfThreads, int expectedNumberOfDynamicThreads) {
 			this.expectedNumberOfThreads = expectedNumberOfThreads;
 			this.expectedNumberOfDynamicThreads = expectedNumberOfDynamicThreads;
 			this.mainClass = mainClass;
 			this.sdgFile = sdgFile;
+			this.ptsPrecToUse = ptsPrecToUse;
 		}
 	}
 

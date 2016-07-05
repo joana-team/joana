@@ -24,6 +24,8 @@ import com.ibm.wala.cfg.exc.ExceptionPruningAnalysis;
 import com.ibm.wala.cfg.exc.InterprocAnalysisResult;
 import com.ibm.wala.cfg.exc.NullPointerAnalysis;
 import com.ibm.wala.cfg.exc.intra.MethodState;
+import com.ibm.wala.classLoader.CallSiteReference;
+import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.escape.TrivialMethodEscape;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
@@ -33,13 +35,21 @@ import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.CallGraphBuilderCancelException;
+import com.ibm.wala.ipa.callgraph.Context;
 import com.ibm.wala.ipa.callgraph.ContextSelector;
 import com.ibm.wala.ipa.callgraph.Entrypoint;
 import com.ibm.wala.ipa.callgraph.MethodTargetSelector;
+import com.ibm.wala.ipa.callgraph.impl.DefaultContextSelector;
+import com.ibm.wala.ipa.callgraph.impl.DelegatingContextSelector;
 import com.ibm.wala.ipa.callgraph.impl.SubtypesEntrypoint;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
+import com.ibm.wala.ipa.callgraph.propagation.PropagationCallGraphBuilder;
+import com.ibm.wala.ipa.callgraph.propagation.ReceiverInstanceContext;
 import com.ibm.wala.ipa.callgraph.propagation.SSAContextInterpreter;
+import com.ibm.wala.ipa.callgraph.propagation.cfa.DefaultSSAInterpreter;
+import com.ibm.wala.ipa.callgraph.propagation.cfa.ZeroXInstanceKeys;
+import com.ibm.wala.ipa.callgraph.propagation.cfa.nCFAContextSelector;
 import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
 import com.ibm.wala.ipa.callgraph.pruned.CallGraphPruning;
 import com.ibm.wala.ipa.callgraph.pruned.PrunedCallGraph;
@@ -59,10 +69,12 @@ import com.ibm.wala.util.collections.Pair;
 import com.ibm.wala.util.graph.Graph;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 import com.ibm.wala.util.graph.impl.SparseNumberedGraph;
+import com.ibm.wala.util.intset.EmptyIntSet;
+import com.ibm.wala.util.intset.IntSet;
+import com.ibm.wala.util.intset.IntSetUtil;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
-import edu.kit.joana.ifc.sdg.util.SDGConstants;
 import edu.kit.joana.util.Config;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.LogUtil;
@@ -97,6 +109,7 @@ import edu.kit.joana.wala.util.EdgeFilter;
 import edu.kit.joana.wala.util.WriteGraphToDot;
 import edu.kit.joana.wala.util.pointsto.CallGraphBuilderFactory;
 import edu.kit.joana.wala.util.pointsto.ExtendedAnalysisOptions;
+import edu.kit.joana.wala.util.pointsto.ObjSensInstanceKeys;
 import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder;
 import edu.kit.joana.wala.util.pointsto.WalaPointsToUtil;
 import gnu.trove.map.TIntIntMap;
@@ -1136,6 +1149,45 @@ public class SDGBuilder implements CallGraphFilter {
 			cgb = cfg.customCGBFactory.createCallGraphBuilder(options, cfg.cache, cfg.cha, cfg.scope, cfg.additionalContextSelector, cfg.additionalContextInterpreter);
 		}
 		cfg.options = options;
+		if (this.cfg.computeInterference) {
+			if (!(cgb instanceof PropagationCallGraphBuilder)) {
+				throw new IllegalArgumentException("Multithreading is only supported with a PropagationCallGraphBuilder - you created " + cgb.getClass());
+			}
+			ContextSelector contextSelector = ((PropagationCallGraphBuilder)cgb).getContextSelector();
+			ContextSelector threadAware = new ContextSelector() {
+				@Override
+				public Context getCalleeTarget(CGNode caller, CallSiteReference site, IMethod callee,
+						InstanceKey[] actualParameters) {
+					final InstanceKey receiver = (actualParameters != null && actualParameters.length > 0 ? actualParameters[0] : null);
+					if (receiver != null && isThreadSubClass(receiver.getConcreteType())) {
+						return new ReceiverInstanceContext(receiver);
+					} else {
+						return null;
+					}
+				}
+
+				private boolean isThreadSubClass(IClass cl) {
+					return cfg.cha.isAssignableFrom(cfg.cha.lookupClass(TypeReference.JavaLangThread), cl);
+				}
+
+				private final IntSet thisParameter = IntSetUtil.make(new int[] { 0 });
+
+				@Override
+				public IntSet getRelevantParameters(CGNode caller, CallSiteReference site) {
+					if (site.isDispatch() && site.getDeclaredTarget().getNumberOfParameters() > 0) {
+						return thisParameter;
+					} else if (site.isSpecial()) {
+						// constructor call is not dynamic, but we still want to distinguish them based on the this pointer.
+						return thisParameter;
+					} else {
+						return EmptyIntSet.instance;
+					}
+				}
+
+			};
+			((PropagationCallGraphBuilder)cgb).setContextSelector(new DelegatingContextSelector(threadAware, contextSelector));
+		}
+
 		com.ibm.wala.ipa.callgraph.CallGraph callgraph = cgb.makeCallGraph(options, progress);
 
 		System.out.println("call graph has " + callgraph.getNumberOfNodes() + " nodes.");

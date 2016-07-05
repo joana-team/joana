@@ -375,7 +375,13 @@ public class ToyTests {
 			UnsoundGraphException, CancelException {
 		testPreciseEnough(joana.api.testdata.seq.FieldAccess2.class);
 	}
-
+	
+	@Test
+	public void testFieldAccess3() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testPreciseEnough(joana.api.testdata.seq.FieldAccess3.class);
+	}
+	
 	// TODO: This should crash when we turn on reflection
 	@Test
 	public void testWalaBugReflection() throws ClassHierarchyException, ApiTestException, IOException,	UnsoundGraphException, CancelException {

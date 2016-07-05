@@ -19,8 +19,10 @@ import edu.kit.joana.ifc.sdg.mhpoptimization.PruneInterferences;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.NullProgressMonitor;
+import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
+import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 
 public class BuildSDG {
 
@@ -31,19 +33,21 @@ public class BuildSDG {
 	private final boolean computeInterference = true;
 	private final ExceptionAnalysis exceptionAnalysis;
 	private final FieldPropagation fieldPropagation;
+	private final PointsToPrecision ptsPrec;
 	private final MHPType mhpType = MHPType.NONE;
 
 	private SDG sdg = null;
 
 	public BuildSDG(String classPath, String entryMethod, Stubs stubsPath, String fileName) {
-		this(classPath, entryMethod, stubsPath, ExceptionAnalysis.IGNORE_ALL, FieldPropagation.OBJ_GRAPH, fileName);
+		this(classPath, entryMethod, stubsPath, PointsToPrecision.INSTANCE_BASED, ExceptionAnalysis.IGNORE_ALL, FieldPropagation.OBJ_GRAPH, fileName);
 	}
 
-	public BuildSDG(String classPath, String entryMethod, Stubs stubsPath, ExceptionAnalysis ea, FieldPropagation fp,
+	public BuildSDG(String classPath, String entryMethod, Stubs stubsPath, PointsToPrecision ptsPrec, ExceptionAnalysis ea, FieldPropagation fp,
 			String fileName) {
 		this.classPath = classPath;
 		this.entryMethod = entryMethod;
 		this.stubsPath = stubsPath;
+		this.ptsPrec = ptsPrec;
 		this.exceptionAnalysis = ea;
 		this.fieldPropagation = fp;
 		this.fileName = fileName;
@@ -87,17 +91,18 @@ public class BuildSDG {
 		cfg.setExceptionAnalysis(exceptionAnalysis);
 		cfg.setMhpType(mhpType);
 		cfg.setFieldPropagation(fieldPropagation);
+		cfg.setPointsToPrecision(ptsPrec);
 		SDGProgram p = SDGProgram.createSDGProgram(cfg, new PrintStream(new ByteArrayOutputStream()),
 				NullProgressMonitor.INSTANCE);
 		return p.getSDG();
 	}
 
-	public static BuildSDG standardConcSetup(String classPath, JavaMethodSignature entryMethod, String saveAs) {
+	public static BuildSDG standardConcSetup(String classPath, JavaMethodSignature entryMethod, String saveAs, PointsToPrecision ptsPrec) {
 		return new BuildSDG(classPath, entryMethod.toBCString(), Stubs.JRE_14,
-				ExceptionAnalysis.IGNORE_ALL, FieldPropagation.OBJ_GRAPH, saveAs);
+				ptsPrec, ExceptionAnalysis.IGNORE_ALL, FieldPropagation.OBJ_GRAPH, saveAs);
 	}
 	
 	public static BuildSDG standardConcSetup(String classPath, String mainClass, String saveAs) {
-		return standardConcSetup(classPath, JavaMethodSignature.mainMethodOfClass(mainClass), saveAs);
+		return standardConcSetup(classPath, JavaMethodSignature.mainMethodOfClass(mainClass), saveAs, PointsToPrecision.INSTANCE_BASED);
 	}
 }

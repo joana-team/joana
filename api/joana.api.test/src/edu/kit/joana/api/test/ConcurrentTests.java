@@ -193,9 +193,9 @@ public class ConcurrentTests {
 		private final int expectedNumberOfThreads;
 		private final int expectedNumberOfDynamicThreads;
 
-		TestData(String mainClass, String sdgFile, int expectedNumberOfDynamicThreads, int expectedNumberOfNonDynamicThreads) {
-			this.expectedNumberOfThreads = expectedNumberOfDynamicThreads;
-			this.expectedNumberOfDynamicThreads = expectedNumberOfNonDynamicThreads;
+		TestData(String mainClass, String sdgFile, int expectedNumberOfThreads, int expectedNumberOfDynamicThreads) {
+			this.expectedNumberOfThreads = expectedNumberOfThreads;
+			this.expectedNumberOfDynamicThreads = expectedNumberOfDynamicThreads;
 			this.mainClass = mainClass;
 			this.sdgFile = sdgFile;
 		}

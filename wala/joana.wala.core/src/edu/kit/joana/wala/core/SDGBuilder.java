@@ -34,15 +34,11 @@ import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.CallGraphBuilderCancelException;
 import com.ibm.wala.ipa.callgraph.ContextSelector;
-import com.ibm.wala.ipa.callgraph.DelegatingContext;
 import com.ibm.wala.ipa.callgraph.Entrypoint;
 import com.ibm.wala.ipa.callgraph.MethodTargetSelector;
-import com.ibm.wala.ipa.callgraph.impl.DefaultContextSelector;
-import com.ibm.wala.ipa.callgraph.impl.DelegatingContextSelector;
 import com.ibm.wala.ipa.callgraph.impl.SubtypesEntrypoint;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
-import com.ibm.wala.ipa.callgraph.propagation.PropagationCallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.propagation.SSAContextInterpreter;
 import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
 import com.ibm.wala.ipa.callgraph.pruned.CallGraphPruning;
@@ -66,6 +62,7 @@ import com.ibm.wala.util.graph.impl.SparseNumberedGraph;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
+import edu.kit.joana.ifc.sdg.util.SDGConstants;
 import edu.kit.joana.util.Config;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.LogUtil;
@@ -100,7 +97,6 @@ import edu.kit.joana.wala.util.EdgeFilter;
 import edu.kit.joana.wala.util.WriteGraphToDot;
 import edu.kit.joana.wala.util.pointsto.CallGraphBuilderFactory;
 import edu.kit.joana.wala.util.pointsto.ExtendedAnalysisOptions;
-import edu.kit.joana.wala.util.pointsto.ObjSensContextSelector;
 import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder;
 import edu.kit.joana.wala.util.pointsto.WalaPointsToUtil;
 import gnu.trove.map.TIntIntMap;
@@ -1140,39 +1136,6 @@ public class SDGBuilder implements CallGraphFilter {
 			cgb = cfg.customCGBFactory.createCallGraphBuilder(options, cfg.cache, cfg.cha, cfg.scope, cfg.additionalContextSelector, cfg.additionalContextInterpreter);
 		}
 		cfg.options = options;
-		if (this.cfg.computeInterference) {
-			if (!(cgb instanceof PropagationCallGraphBuilder)) {
-				throw new IllegalArgumentException("Multithreading is only supported with a PropagationCallGraphBuilder - you created " + cgb.getClass());
-			}
-			ContextSelector contextSelector = ((PropagationCallGraphBuilder)cgb).getContextSelector();
-			ContextSelector threadAware = new ObjSensContextSelector(new DefaultContextSelector(options, cfg.cha), new ObjSensZeroXCFABuilder.MethodFilter() {
-				@Override
-				public boolean engageObjectSensitivity(CGNode caller, IMethod m) {
-					IClassHierarchy cha = m.getClassHierarchy();
-					return !m.isStatic()
-							&& (cha.isAssignableFrom(cha.lookupClass(TypeReference.JavaLangThread), m.getDeclaringClass()));
-				}
-
-				@Override
-				public int getFallbackCallsiteSensitivity() {
-					return 1;
-				}
-
-				@Override
-				public boolean restrictToOneLevelObjectSensitivity(IMethod m) {
-					return true;
-				}
-			}) {
-
-				@Override
-				protected boolean useFallBackCallString(CGNode caller, IMethod callee) {
-					return false;
-				}
-
-			};
-			((PropagationCallGraphBuilder)cgb).setContextSelector(new DelegatingContextSelector(threadAware, contextSelector));
-		}
-
 		com.ibm.wala.ipa.callgraph.CallGraph callgraph = cgb.makeCallGraph(options, progress);
 
 		System.out.println("call graph has " + callgraph.getNumberOfNodes() + " nodes.");

@@ -193,7 +193,7 @@ public abstract class NodeSetValue<T> {
 		public boolean equals(Object o) {
 			if (this == o) return true;
 			if (!(o instanceof SetBased)) return false;
-			return this.elements.equals(((SetBased<T>)o).elements);
+			return this.elements.equals(((SetBased<?>)o).elements);
 		}
 
 		@Override

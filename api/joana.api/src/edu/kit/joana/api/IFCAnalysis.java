@@ -81,7 +81,7 @@ public class IFCAnalysis {
 	private IFCAnnotationManager annManager;
 	private IStaticLattice<String> secLattice;
 	private IFCType ifcType = IFCType.CLASSICAL_NI;
-	private IFC ifc;
+	private IFC<String> ifc;
 	private boolean timeSensitiveAnalysis = false;
 	private boolean removeRedundantFlows = false;
 
@@ -174,7 +174,7 @@ public class IFCAnalysis {
 		}
 	}
 
-	public IFC getIFC() {
+	public IFC<String> getIFC() {
 		return ifc;
 	}
 

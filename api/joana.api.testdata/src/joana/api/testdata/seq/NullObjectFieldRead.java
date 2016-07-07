@@ -16,6 +16,7 @@ public class NullObjectFieldRead {
 		new NullObjectFieldRead().q();
 	}
 	
+	@SuppressWarnings("null")
 	public int q() {
 		NullObjectFieldRead o_null = null;
 	    ignored=o_null.ignored;

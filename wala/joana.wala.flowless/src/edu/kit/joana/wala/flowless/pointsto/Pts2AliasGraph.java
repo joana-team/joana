@@ -55,7 +55,7 @@ public final class Pts2AliasGraph {
 			roots.add(p2aParam);
 		}
 
-		final HeapGraph hg = pts.getHeapGraph();
+		final HeapGraph<InstanceKey> hg = pts.getHeapGraph();
 
 		final Set<Pts2AliasParam> created = new HashSet<Pts2AliasParam>();
 		created.addAll(roots);
@@ -80,7 +80,7 @@ public final class Pts2AliasGraph {
 		return mayAlias;
 	}
 
-	private static void createParamFields(final Pts2AliasParam parent, final HeapGraph hg,
+	private static void createParamFields(final Pts2AliasParam parent, final HeapGraph<InstanceKey> hg,
 			final PointerAnalysis<InstanceKey> pts, final Set<Pts2AliasParam> created) {
 		for (final InstanceKey ik : parent.pts) {
 			for (Iterator<Object> it = hg.getSuccNodes(ik); it.hasNext(); ) {

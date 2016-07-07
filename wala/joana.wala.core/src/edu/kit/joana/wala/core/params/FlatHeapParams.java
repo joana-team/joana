@@ -82,7 +82,7 @@ public class FlatHeapParams {
 
 	private GraphReachability<Object, Object> computeReachblePointerKeys(final OrdinalSet<PointerKey> mod,
 			final OrdinalSet<PointerKey> ref, final IProgressMonitor progress) throws CancelException {
-		HeapGraph heap = pts.getHeapGraph();
+		HeapGraph<InstanceKey> heap = pts.getHeapGraph();
 
 		Graph<Object> pruned = GraphSlicer.prune(heap, new Predicate<Object>() {
 
@@ -370,7 +370,7 @@ public class FlatHeapParams {
 	}
 
 	private void buildModRefMaps(IProgressMonitor progress) throws CancelException {
-		final ModRef mref = ModRef.make();
+		final ModRef<InstanceKey> mref = ModRef.make();
 		// used non-pruned callgraph at this level
 		final Map<CGNode, OrdinalSet<PointerKey>> mod =  mref.computeMod(sdg.getNonPrunedWalaCallGraph(), pts);
 		final Map<CGNode, OrdinalSet<PointerKey>> ref =  mref.computeRef(sdg.getNonPrunedWalaCallGraph(), pts);
@@ -472,7 +472,7 @@ public class FlatHeapParams {
 
 	private OrdinalSet<PointerKey> findReachableInstances(final GraphReachability<Object, Object> heapReach,
 			final CGNode node, final PointerKey pkStart) throws CancelException {
-		final HeapGraph hg = pts.getHeapGraph();
+		final HeapGraph<InstanceKey> hg = pts.getHeapGraph();
 		if (!hg.containsNode(pkStart)) {
 			return OrdinalSet.empty();
 		}

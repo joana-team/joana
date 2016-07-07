@@ -1187,7 +1187,9 @@ public class SDGBuilder implements CallGraphFilter {
 			};
 			((PropagationCallGraphBuilder)cgb).setContextSelector(new DelegatingContextSelector(threadAware, contextSelector));
 		}
-
+		if (cfg.additionalNativeSpec != null) {
+			com.ibm.wala.ipa.callgraph.impl.Util.addBypassLogic(options, cfg.scope, SDGBuilder.class.getClassLoader(), cfg.additionalNativeSpec, cfg.cha);
+		}
 		com.ibm.wala.ipa.callgraph.CallGraph callgraph = cgb.makeCallGraph(options, progress);
 
 		System.out.println("call graph has " + callgraph.getNumberOfNodes() + " nodes.");
@@ -1822,6 +1824,7 @@ public class SDGBuilder implements CallGraphFilter {
 		public transient AnalysisScope scope = null;
 		public transient AnalysisCache cache = null;
 		public transient IClassHierarchy cha = null;
+		public String additionalNativeSpec = null; // specify additional XML method summary file for methods for which code is not available - path is relative to class path
 		public IMethod entry = null;
 		public ExternalCallCheck ext = null;
 		public String[] immutableNoOut = Main.IMMUTABLE_NO_OUT;

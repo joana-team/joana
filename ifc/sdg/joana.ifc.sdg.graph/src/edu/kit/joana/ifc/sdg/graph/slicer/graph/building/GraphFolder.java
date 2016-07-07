@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.List;
 import java.util.LinkedList;
 
-import org.jgrapht.alg.StrongConnectivityInspector;
+import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
 
 import edu.kit.joana.ifc.sdg.graph.JoanaGraph;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -133,8 +133,8 @@ public class GraphFolder {
         }
 
         // compute SCC's
-        StrongConnectivityInspector<SDGNode, SDGEdge> sci = new StrongConnectivityInspector<SDGNode, SDGEdge>(slicing_call);
-        List<Set<SDGNode>> tmp = sci.stronglyConnectedSets();
+        KosarajuStrongConnectivityInspector<SDGNode, SDGEdge> ksci = new KosarajuStrongConnectivityInspector<SDGNode, SDGEdge>(slicing_call);
+        List<Set<SDGNode>> tmp = ksci.stronglyConnectedSets();
         List<Set<SDGNode>> erg = new LinkedList<Set<SDGNode>>();
 
         for (Set<SDGNode> scc : tmp) {
@@ -183,8 +183,8 @@ public class GraphFolder {
        }
 
        // compute SCC's
-       StrongConnectivityInspector<SDGNode, SDGEdge> sci = new StrongConnectivityInspector<SDGNode, SDGEdge>(slicing_call);
-       List<Set<SDGNode>> tmp = sci.stronglyConnectedSets();
+       KosarajuStrongConnectivityInspector<SDGNode, SDGEdge> ksci = new KosarajuStrongConnectivityInspector<SDGNode, SDGEdge>(slicing_call);
+       List<Set<SDGNode>> tmp = ksci.stronglyConnectedSets();
        List<Set<SDGNode>> erg = new LinkedList<Set<SDGNode>>();
 
        for (Set<SDGNode> scc : tmp) {
@@ -238,8 +238,8 @@ public class GraphFolder {
         }
 
         // compute SCC's
-        StrongConnectivityInspector<SDGNode, SDGEdge> sci = new StrongConnectivityInspector<SDGNode, SDGEdge>(slicing_call);
-        List<Set<SDGNode>> tmp = sci.stronglyConnectedSets();
+        KosarajuStrongConnectivityInspector<SDGNode, SDGEdge> ksci = new KosarajuStrongConnectivityInspector<SDGNode, SDGEdge>(slicing_call);
+        List<Set<SDGNode>> tmp = ksci.stronglyConnectedSets();
         List<Set<SDGNode>> erg = new LinkedList<Set<SDGNode>>();
 
         for (Set<SDGNode> scc : tmp) {
@@ -474,7 +474,7 @@ public class GraphFolder {
      */
 	public static FoldedCFG foldSCC(CFG graph) {
         List<Set<SDGNode>> allSCCs = new LinkedList<Set<SDGNode>>();
-        StrongConnectivityInspector<SDGNode, SDGEdge> sci = null;
+        KosarajuStrongConnectivityInspector<SDGNode, SDGEdge> ksci = null;
 
         // construct new graph by copying edges and vertices
         CFG newGraph = new CFG();
@@ -495,8 +495,8 @@ public class GraphFolder {
         }
 
         // determine all SCC's of 'newGraph'
-        sci = new StrongConnectivityInspector<SDGNode, SDGEdge>(newGraph);
-        List<Set<SDGNode>> tmp = sci.stronglyConnectedSets();
+        ksci = new KosarajuStrongConnectivityInspector<SDGNode, SDGEdge>(newGraph);
+        List<Set<SDGNode>> tmp = ksci.stronglyConnectedSets();
 
         for (Set<SDGNode> scc : tmp) {
         	if (scc.size() > 1) {

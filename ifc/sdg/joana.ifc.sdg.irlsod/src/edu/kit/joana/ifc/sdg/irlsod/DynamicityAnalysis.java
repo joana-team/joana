@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
-import org.jgrapht.alg.StrongConnectivityInspector;
+import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 
@@ -34,8 +34,8 @@ public class DynamicityAnalysis {
 		// 1.) Find non-trivial SCCs on the call graph - all nodes contained in
 		// methods participating in such an SCC are dynamic
 		final DirectedGraph<SDGNode, DefaultEdge> callGraph = extractCallGraph();
-		final StrongConnectivityInspector<SDGNode, DefaultEdge> scc = new StrongConnectivityInspector<SDGNode, DefaultEdge>(
-				callGraph);
+		final KosarajuStrongConnectivityInspector<SDGNode, DefaultEdge> scc
+					= new KosarajuStrongConnectivityInspector<SDGNode, DefaultEdge>(callGraph);
 		for (final Set<SDGNode> entries : scc.stronglyConnectedSets()) {
 			if (entries.size() > 1) {
 				// n is the entry of a method participating in a cycle on the
@@ -51,8 +51,8 @@ public class DynamicityAnalysis {
 		// dynamic
 		for (final SDGNode entry : threadGraph.sortByProcedures().keySet()) {
 			final CFG procCFG = extractProcedureCFG(entry);
-			final StrongConnectivityInspector<SDGNode, SDGEdge> procSCC = new StrongConnectivityInspector<SDGNode, SDGEdge>(
-					procCFG);
+			final KosarajuStrongConnectivityInspector<SDGNode, SDGEdge> procSCC
+					= new KosarajuStrongConnectivityInspector<SDGNode, SDGEdge>(procCFG);
 			for (final Set<SDGNode> comp : procSCC.stronglyConnectedSets()) {
 				if (comp.size() > 1) {
 					markAllNodes(comp);

@@ -20,6 +20,7 @@ import edu.kit.joana.ifc.sdg.util.sdg.SDGNodePredicate;
 
 public class DynamicityAnalysis {
 
+	@SuppressWarnings("unused")
 	private final SDG sdg;
 	private final CFG threadGraph;
 	private final Set<SDGNode> dynamicNodes = new HashSet<SDGNode>();

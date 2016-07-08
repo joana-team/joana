@@ -273,6 +273,7 @@ public class AliasSDG {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private static AliasCondition parseAliasEdge(final SDGEdge e) throws NumberFormatException {
 		final String str = e.getLabel();
 		assert str != null;

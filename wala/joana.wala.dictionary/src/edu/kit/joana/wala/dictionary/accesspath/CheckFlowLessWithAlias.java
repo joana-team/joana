@@ -560,6 +560,7 @@ public final class CheckFlowLessWithAlias {
 
 	private enum ParamKind { IN, OUT }
 
+	@SuppressWarnings("unused")
 	private static void adjustSetWithPotentialAliases(final AliasSDG alias, final ParamKind kind,
 			final Set<SDGNode> toAdjust) {
 		if (toAdjust.isEmpty()) {
@@ -834,6 +835,7 @@ public final class CheckFlowLessWithAlias {
 			noChange = true;
 		}
 
+		@SuppressWarnings("unused")
 		public boolean isNoChange() {
 			return noChange;
 		}
@@ -842,6 +844,7 @@ public final class CheckFlowLessWithAlias {
 			noChange = false;
 		}
 
+		@SuppressWarnings("unused")
 		public boolean containsAny(final Permutations other) {
 			return !this.bv.intersectionEmpty(other.bv);
 		}
@@ -850,6 +853,7 @@ public final class CheckFlowLessWithAlias {
 			return this.bv.isSubset(other.bv);
 		}
 
+		@SuppressWarnings("unused")
 		public void addAll(final Permutations other) {
 			this.bv.or(other.bv);
 		}

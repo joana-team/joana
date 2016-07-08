@@ -164,6 +164,7 @@ public class ThreadAnalysisTest {
 		exporter.export(pw0, domGraph);
 	}
 
+	@SuppressWarnings("unused")
 	private static Set<SDGNode> findSomeIDoms(final SDGNode n1, final int thread1, final SDGNode n2, final int thread2,
 			final DirectedGraph<ThreadInstance, ThreadInstanceEdge> tct, final SDG sdg, final PreciseMHPAnalysis mhp,
 			final IInterprocDominators dom) {
@@ -279,6 +280,7 @@ public class ThreadAnalysisTest {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private static List<ThreadInstance> getChildren(final ThreadInstance ti,
 			final DirectedGraph<ThreadInstance, ThreadInstanceEdge> tct) {
 		final List<ThreadInstance> ret = new LinkedList<ThreadInstance>();
@@ -299,6 +301,7 @@ public class ThreadAnalysisTest {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private static boolean directlyConnected(final ThreadRegion region, final SDGNode node, final CFG icfg) {
 		for (final SDGNode rNode : region.getNodes()) {
 			for (final SDGEdge out : icfg.outgoingEdgesOf(rNode)) {
@@ -313,6 +316,7 @@ public class ThreadAnalysisTest {
 		return false;
 	}
 
+	@SuppressWarnings("unused")
 	private static <T> boolean isPrefixOf(final List<T> l1, final List<T> l2) {
 		if (l1.size() >= l2.size()) {
 			return false;

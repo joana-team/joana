@@ -132,6 +132,7 @@ public class InterprocDominators2<V,E> {
 //		}
 //	}
 
+	@SuppressWarnings("unused")
 	private <T> Set<T> diff(Set<T> s1, Set<T> s2) {
 		Set<T> ret = new HashSet<T>();
 		ret.addAll(s1);

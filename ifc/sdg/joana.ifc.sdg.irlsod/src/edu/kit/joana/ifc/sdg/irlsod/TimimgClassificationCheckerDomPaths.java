@@ -38,6 +38,7 @@ public class TimimgClassificationCheckerDomPaths<L> extends IFC<L> {
 	protected final SimpleTCFGChopper tcfgChopper;
 	protected final CFGForward tcfgForwardSlicer;
 
+	@SuppressWarnings("unused")
 	private final ICDomOracle cdomOracle;
 
 	protected final PreciseMHPAnalysis mhp;

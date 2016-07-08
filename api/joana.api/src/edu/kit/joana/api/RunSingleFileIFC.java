@@ -236,6 +236,8 @@ public final class RunSingleFileIFC {
 			return true;
 		case UNLIMITED_OBJECT_SENSITIVE:
 			return false;
+		case CUSTOM: //no action
+			break;
 		}
 		
 		return false;
@@ -283,6 +285,9 @@ public final class RunSingleFileIFC {
 				break;
 			case UNLIMITED_OBJECT_SENSITIVE:
 				sb.append("*-object-sensitive");
+				break;
+			case CUSTOM:
+				sb.append("custom");
 				break;
 			}
 		}

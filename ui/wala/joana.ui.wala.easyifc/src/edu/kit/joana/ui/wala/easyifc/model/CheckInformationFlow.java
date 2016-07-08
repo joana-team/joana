@@ -435,6 +435,7 @@ public final class CheckInformationFlow {
 				break;
 			case CUSTOM:
 				sb.append("custom");
+				break;
 			}
 		}
 		

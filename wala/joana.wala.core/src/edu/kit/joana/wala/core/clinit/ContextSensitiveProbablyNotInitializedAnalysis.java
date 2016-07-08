@@ -72,6 +72,7 @@ public class ContextSensitiveProbablyNotInitializedAnalysis {
   /**
    * controls numbering of class access instructions for use in tabulation
    */
+  @SuppressWarnings("serial")
   private class ReachingDefsDomain extends MutableMapping<Pair<CGNode, Integer>> implements
       TabulationDomain<Pair<CGNode, Integer>, BasicBlockInContext<IExplodedBasicBlock>> {
 

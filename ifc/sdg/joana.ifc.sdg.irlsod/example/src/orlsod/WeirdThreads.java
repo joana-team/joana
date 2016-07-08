@@ -13,6 +13,7 @@ public class WeirdThreads {
 	}
 	public static class Thread3 extends Thread {
 		public void run() {
+			@SuppressWarnings("unused")
 			int x = 1;
 		}
 	}

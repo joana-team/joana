@@ -64,5 +64,8 @@ public class JoanaUsageExample {
 		Collection<? extends IViolation<SecurityNode>> result = ana.doIFC();
 		TObjectIntMap<IViolation<SDGProgramPart>> resultByProgramPart = ana.groupByPPPart(result);
 		/** do something with result */
+		for (IViolation<SDGProgramPart> vio : resultByProgramPart.keySet()) {
+			System.out.println(vio);
+		}
 	}
 }

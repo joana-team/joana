@@ -369,6 +369,7 @@ public class FlatHeapParams {
 	}
 
 	private void buildModRefMaps(IProgressMonitor progress) throws CancelException {
+		@SuppressWarnings("unchecked") //ModRef.make() in package com.ibm.wala.ipa.modref uses raw types
 		final ModRef<InstanceKey> mref = ModRef.make();
 		// used non-pruned callgraph at this level
 		final Map<CGNode, OrdinalSet<PointerKey>> mod =  mref.computeMod(sdg.getNonPrunedWalaCallGraph(), pts);

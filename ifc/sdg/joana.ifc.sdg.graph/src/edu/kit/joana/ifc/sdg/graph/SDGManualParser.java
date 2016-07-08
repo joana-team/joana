@@ -8,29 +8,21 @@
 package edu.kit.joana.ifc.sdg.graph;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.LinkedList;
-import java.util.List;
-
 import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 
 import edu.kit.joana.ifc.sdg.graph.SDGNode.NodeFactory;
 import edu.kit.joana.ifc.sdg.graph.SDGThreadInstance_Parser.ThreadInstanceStub;
-import edu.kit.joana.ifc.sdg.graph.SDGVertex_Parser.ByteCodePos;
 import edu.kit.joana.ifc.sdg.graph.SDGVertex_Parser.SDGNodeStub;
-import edu.kit.joana.ifc.sdg.graph.SDGVertex_Parser.SourcePos;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
-import gnu.trove.list.TIntList;
-import gnu.trove.list.array.TIntArrayList;
-import gnu.trove.procedure.TIntProcedure;
 
 /**
  * Due to excessive memory consumption of the "whole SDG" ANTLR parser, we are forced to parse parts of the

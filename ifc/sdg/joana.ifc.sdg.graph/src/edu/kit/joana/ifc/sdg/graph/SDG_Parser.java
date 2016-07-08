@@ -16,9 +16,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
 
 
 import org.antlr.runtime.*;
-import java.util.Stack;
 import java.util.List;
-import java.util.ArrayList;
 
 /**
  * This file is part of the Joana IFC project. It is developed at the

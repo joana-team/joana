@@ -8,22 +8,13 @@
 
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.TreeSet;
-
 import edu.kit.joana.ifc.sdg.graph.PDGs;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.chopper.Chopper;
 import edu.kit.joana.ifc.sdg.graph.chopper.FixedPointChopper;
-import edu.kit.joana.ifc.sdg.graph.chopper.NonSameLevelChopper;
 import edu.kit.joana.ifc.sdg.graph.chopper.Opt1Chopper;
-import edu.kit.joana.ifc.sdg.graph.chopper.RepsRosayChopper;
-import edu.kit.joana.ifc.sdg.graph.chopper.RepsRosayChopperUnopt;
-import edu.kit.joana.ifc.sdg.graph.chopper.conc.AlmostTimeSensitiveThreadChopper;
-import edu.kit.joana.ifc.sdg.graph.chopper.conc.ContextSensitiveThreadChopper;
-import edu.kit.joana.ifc.sdg.graph.chopper.conc.ThreadChopper;
-import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.experimental.Nanda;
 
 
 @SuppressWarnings("unused")

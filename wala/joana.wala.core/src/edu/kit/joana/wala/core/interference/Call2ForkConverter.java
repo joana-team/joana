@@ -16,7 +16,6 @@ import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.util.collections.Pair;
 
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
-import edu.kit.joana.ifc.sdg.util.SDGConstants;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.core.PDG;

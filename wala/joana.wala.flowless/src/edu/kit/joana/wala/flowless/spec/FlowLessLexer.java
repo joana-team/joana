@@ -10,9 +10,6 @@ package edu.kit.joana.wala.flowless.spec;
 
 
 import org.antlr.runtime.*;
-import java.util.Stack;
-import java.util.List;
-import java.util.ArrayList;
 
 public class FlowLessLexer extends Lexer {
     public static final int STATE=13;

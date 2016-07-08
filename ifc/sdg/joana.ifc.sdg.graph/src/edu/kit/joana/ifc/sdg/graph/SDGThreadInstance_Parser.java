@@ -9,9 +9,6 @@
 package edu.kit.joana.ifc.sdg.graph;
 
 import java.util.LinkedList;
-import gnu.trove.set.TIntSet;
-import gnu.trove.set.hash.TIntHashSet;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
@@ -19,9 +16,6 @@ import gnu.trove.procedure.TIntProcedure;
 
 
 import org.antlr.runtime.*;
-import java.util.Stack;
-import java.util.List;
-import java.util.ArrayList;
 
 /**
  * This file is part of the Joana IFC project. It is developed at the

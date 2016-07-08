@@ -24,8 +24,6 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 import edu.kit.joana.ui.wala.easyifc.actions.IFCAction.ProjectConf;
 import edu.kit.joana.ui.wala.easyifc.model.CheckInformationFlow;
 import edu.kit.joana.ui.wala.easyifc.model.CheckInformationFlow.CheckIFCConfig;
-import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SLeak;
-import edu.kit.joana.ui.wala.easyifc.model.IFCResultFilter.LeakType;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer;
 import edu.kit.joana.ui.wala.easyifc.model.IFCResultFilter;
 import edu.kit.joana.ui.wala.easyifc.util.ProgressMonitorDelegate;

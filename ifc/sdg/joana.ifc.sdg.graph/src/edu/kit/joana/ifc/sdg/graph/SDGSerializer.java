@@ -12,7 +12,6 @@
 package edu.kit.joana.ifc.sdg.graph;
 
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
-import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import gnu.trove.iterator.TIntIterator;
 
 import java.io.OutputStream;

@@ -47,7 +47,6 @@ import edu.kit.joana.wala.core.PDGField;
 import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.SDGBuilder;
 
-@SuppressWarnings("deprecation")
 public class FlatHeapParams {
 
 	private final SDGBuilder sdg;

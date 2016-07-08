@@ -24,6 +24,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.Slicer;
  * @author  Dennis Giffhorn
  * @deprecated
  */
+@Deprecated
 public class OptimizedKrinke extends Krinke implements Slicer {
     /** An intrathreadual summary slicer. */
     private Context2PhaseSlicer contextSlicer;

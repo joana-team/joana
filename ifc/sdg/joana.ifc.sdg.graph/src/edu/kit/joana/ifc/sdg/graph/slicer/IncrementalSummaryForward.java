@@ -23,6 +23,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  * @author  Dennis Giffhorn
  * @deprecated  see <code>IncrementalSummarySlicer</code>
  */
+@Deprecated
 public class IncrementalSummaryForward extends IncrementalSummarySlicer {
 
     /**

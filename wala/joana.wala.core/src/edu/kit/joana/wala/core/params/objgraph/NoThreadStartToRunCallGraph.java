@@ -35,7 +35,6 @@ import edu.kit.joana.wala.core.interference.ThreadInformationProvider;
  * @author Juergen Graf <juergen.graf@gmail.com>
  *
  */
-@SuppressWarnings("deprecation")
 public class NoThreadStartToRunCallGraph implements CallGraph {
 
 	private final CallGraph cg;

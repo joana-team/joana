@@ -42,6 +42,7 @@ import edu.kit.joana.wala.core.SDGBuilder;
  * @author Juergen Graf <juergen.graf@gmail.com>
  * @deprecated
  */
+@Deprecated
 public class OldFlatHeapParams {
 
 	private final SDGBuilder sdg;

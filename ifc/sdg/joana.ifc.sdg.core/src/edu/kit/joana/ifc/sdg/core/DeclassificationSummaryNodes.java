@@ -33,6 +33,7 @@ import edu.kit.joana.util.maps.MultiMap;
  * @author hammer
  * @deprecated
  */
+@Deprecated
 public class DeclassificationSummaryNodes extends IncrementalSummaryBackward {
 	private static final SDGEdge.Kind KIND = Kind.HELP;
 

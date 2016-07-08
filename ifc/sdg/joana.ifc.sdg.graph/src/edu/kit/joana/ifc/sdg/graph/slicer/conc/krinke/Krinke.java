@@ -35,6 +35,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
  * @version 1.0
  * @deprecated
  */
+@Deprecated
 public class Krinke implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
 	public static long elems = 0L;
 

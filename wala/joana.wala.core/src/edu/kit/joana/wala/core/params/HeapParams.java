@@ -47,6 +47,7 @@ import gnu.trove.map.hash.TIntObjectHashMap;
  * @author Juergen Graf <juergen.graf@gmail.com>
  * @deprecated does not work. just here as a source to copy code from
  */
+@Deprecated
 public class HeapParams {
 
 	private final SDGBuilder sdg;

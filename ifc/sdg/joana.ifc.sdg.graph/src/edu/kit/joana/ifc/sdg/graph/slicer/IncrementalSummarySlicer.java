@@ -30,6 +30,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  * @author  Christian Hammer, Dennis Giffhorn
  * @deprecated  Works only with Hammer's SDGs (see the XXX-Flag in Method addSummaries)
  */
+@Deprecated
 public abstract class IncrementalSummarySlicer implements Slicer {
 	private static final SDGEdge.Kind KIND = SDGEdge.Kind.HELP;
     protected Set<SDGEdge.Kind> omittedEdges = SDGEdge.Kind.threadEdges();

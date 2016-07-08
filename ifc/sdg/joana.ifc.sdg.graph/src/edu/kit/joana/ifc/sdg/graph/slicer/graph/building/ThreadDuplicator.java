@@ -31,6 +31,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  * @author  Dennis Giffhorn
  * @deprecated
  */
+@Deprecated
 public class ThreadDuplicator {
     public static HashMap<SDGNode, SDGNode> idMap = new HashMap<SDGNode, SDGNode>();
 

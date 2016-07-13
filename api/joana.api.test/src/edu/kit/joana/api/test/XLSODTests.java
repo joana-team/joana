@@ -266,4 +266,88 @@ public class XLSODTests {
 		testPrecise(     joana.api.testdata.demo.Fig3_3.class, IFCType.RLSOD);
 		testPrecise(     joana.api.testdata.demo.Fig3_3.class, IFCType.iRLSOD);
 	}
+	
+	@Test
+	public void testLateSecretAccess() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testSound(       joana.api.testdata.demo.xrlsod.LateSecretAccess.class, IFCType.LSOD);
+		testPrecise(     joana.api.testdata.demo.xrlsod.LateSecretAccess.class, IFCType.RLSOD);
+		testPrecise(     joana.api.testdata.demo.xrlsod.LateSecretAccess.class, IFCType.iRLSOD);
+	}
+	
+	@Test
+	public void testNoSecret() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testSound(       joana.api.testdata.demo.xrlsod.NoSecret.class, IFCType.LSOD);
+		testPrecise(     joana.api.testdata.demo.xrlsod.NoSecret.class, IFCType.RLSOD);
+		testPrecise(     joana.api.testdata.demo.xrlsod.NoSecret.class, IFCType.iRLSOD);
+	}
+	
+	@Test
+	public void testORLSOD1() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testSound(       joana.api.testdata.demo.xrlsod.ORLSOD1.class, IFCType.LSOD);
+		testSound(       joana.api.testdata.demo.xrlsod.ORLSOD1.class, IFCType.RLSOD);
+		testSound(       joana.api.testdata.demo.xrlsod.ORLSOD1.class, IFCType.iRLSOD);
+	}
+	
+	@Test
+	public void testORLSOD2() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testSound(       joana.api.testdata.demo.xrlsod.ORLSOD2.class, IFCType.LSOD);
+		testTooImprecise(joana.api.testdata.demo.xrlsod.ORLSOD2.class, IFCType.RLSOD);
+		testPrecise(     joana.api.testdata.demo.xrlsod.ORLSOD2.class, IFCType.iRLSOD);
+	}
+	
+	@Test
+	public void testORLSOD3() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testSound(       joana.api.testdata.demo.xrlsod.ORLSOD3.class, IFCType.LSOD);
+		testTooImprecise(joana.api.testdata.demo.xrlsod.ORLSOD3.class, IFCType.RLSOD);
+		testPrecise(     joana.api.testdata.demo.xrlsod.ORLSOD3.class, IFCType.iRLSOD);
+	}
+	
+	@Test
+	public void testORLSOD4() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testSound(       joana.api.testdata.demo.xrlsod.ORLSOD4.class, IFCType.LSOD);
+		testSound(       joana.api.testdata.demo.xrlsod.ORLSOD4.class, IFCType.RLSOD);
+		testSound(       joana.api.testdata.demo.xrlsod.ORLSOD4.class, IFCType.iRLSOD);
+	}
+	
+	@Test
+	public void testORLSOD5a() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testTooImprecise(joana.api.testdata.demo.xrlsod.ORLSOD5a.class, IFCType.LSOD);
+		testTooImprecise(joana.api.testdata.demo.xrlsod.ORLSOD5a.class, IFCType.RLSOD);
+		testTooImprecise(joana.api.testdata.demo.xrlsod.ORLSOD5a.class, IFCType.iRLSOD);
+	}
+	
+	@Test
+	public void testORLSOD5b() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testSound(       joana.api.testdata.demo.xrlsod.ORLSOD5b.class, IFCType.LSOD);
+		testSound(       joana.api.testdata.demo.xrlsod.ORLSOD5b.class, IFCType.RLSOD);
+		testSound(       joana.api.testdata.demo.xrlsod.ORLSOD5b.class, IFCType.iRLSOD);
+	}
+	
+	@Test
+	public void testORLSOD5Secure() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testSound(       joana.api.testdata.demo.xrlsod.ORLSOD5Secure.class, IFCType.LSOD);
+		testTooImprecise(joana.api.testdata.demo.xrlsod.ORLSOD5Secure.class, IFCType.RLSOD);
+		testPrecise(     joana.api.testdata.demo.xrlsod.ORLSOD5Secure.class, IFCType.iRLSOD);
+	}
+	
+	@Test
+	public void testORLSODImprecise() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testTooImprecise(joana.api.testdata.demo.xrlsod.ORLSODImprecise.class, IFCType.LSOD);
+		testPrecise     (joana.api.testdata.demo.xrlsod.ORLSODImprecise.class, IFCType.RLSOD);
+		testTooImprecise(joana.api.testdata.demo.xrlsod.ORLSODImprecise.class, IFCType.iRLSOD);
+		// This kind of "embarassing" regression (wrt. RLSOD) is due classification of
+		// H2 = H; as high, and the fact that the iRLSOD check does not differentiate between
+		// the security level of the value read/written at some such a program point, and it's effect on
+		// the "timing" it has on subsequent points
+	}
 }

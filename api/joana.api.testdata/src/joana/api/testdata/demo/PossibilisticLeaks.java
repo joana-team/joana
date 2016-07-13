@@ -3,6 +3,11 @@ package joana.api.testdata.demo;
 import edu.kit.joana.ui.annotations.Sink;
 import edu.kit.joana.ui.annotations.Source;
 
+/*
+ * This program is not LSOD, because "print(x)", which is low-observable, can print 13 or 0
+ * depending on the execution order of "x = input()" and "x = y".
+ * It is RLSOD (and iRLSOD), however, since that conflict is not influenced by "inputPIN()".
+ */
 public class PossibilisticLeaks {
 
 	static int x, y;

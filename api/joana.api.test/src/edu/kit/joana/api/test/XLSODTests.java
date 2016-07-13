@@ -182,7 +182,7 @@ public class XLSODTests {
 	@Test
 	public void testPossibilisticLeaks() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testTooImprecise(joana.api.testdata.demo.PossibilisticLeaks.class, IFCType.LSOD); // TODO: investigate
+		testSound(       joana.api.testdata.demo.PossibilisticLeaks.class, IFCType.LSOD);
 		testPrecise(     joana.api.testdata.demo.PossibilisticLeaks.class, IFCType.RLSOD);
 		testPrecise(     joana.api.testdata.demo.PossibilisticLeaks.class, IFCType.iRLSOD);
 	}
@@ -206,9 +206,17 @@ public class XLSODTests {
 	@Test
 	public void testProbabilisticOK() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testTooImprecise(joana.api.testdata.demo.ProbabilisticOK.class, IFCType.LSOD); // TODO: investigate
+		testTooImprecise(joana.api.testdata.demo.ProbabilisticOK.class, IFCType.LSOD); // see comment in test data class
 		testPrecise(     joana.api.testdata.demo.ProbabilisticOK.class, IFCType.RLSOD);
 		testPrecise(     joana.api.testdata.demo.ProbabilisticOK.class, IFCType.iRLSOD);
+	}
+	
+	@Test
+	public void testProbabilisticSmall() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testTooImprecise(joana.api.testdata.demo.Prob_Small.class, IFCType.LSOD);
+		testPrecise(     joana.api.testdata.demo.Prob_Small.class, IFCType.RLSOD);
+		testPrecise(     joana.api.testdata.demo.Prob_Small.class, IFCType.iRLSOD);
 	}
 	
 	@Test
@@ -254,7 +262,7 @@ public class XLSODTests {
 	@Test
 	public void testFig3_3() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testTooImprecise(joana.api.testdata.demo.Fig3_3.class, IFCType.LSOD); // TODO: Investigate
+		testSound(       joana.api.testdata.demo.Fig3_3.class, IFCType.LSOD);
 		testPrecise(     joana.api.testdata.demo.Fig3_3.class, IFCType.RLSOD);
 		testPrecise(     joana.api.testdata.demo.Fig3_3.class, IFCType.iRLSOD);
 	}

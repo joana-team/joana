@@ -42,7 +42,7 @@ public class CombiAction extends AbstractGVAction implements ChangeListener {
 	public void stateChanged(ChangeEvent e) {
 		if (graphPane.getSelectedIndex() == -1 || graphPane.getComponentCount() == 0) {
 			setEnabled(false);
-		} if (graphPane.getSelectedJGraph() instanceof CallGraphView) {
+		} else if (graphPane.getSelectedJGraph() instanceof CallGraphView) {
 			setEnabled(false);
 
 		} else {

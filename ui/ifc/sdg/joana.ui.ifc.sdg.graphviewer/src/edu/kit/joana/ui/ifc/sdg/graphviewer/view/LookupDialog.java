@@ -131,19 +131,20 @@ public class LookupDialog extends GVPanel implements BundleConstants, ActionList
 		} catch (NumberFormatException e1) {
 			optionPane = new GVOptionPane(this.parent);
 			optionPane.showErrorDialog(new Resource(ACTIONS_BUNDLE,
-					"error_id.message", " "));
-
+					"error_nosuchid.message", " "));
 		} catch (NoSuchElementException e2) {
 			this.optionPane = new GVOptionPane(this.parent);
 			optionPane.showErrorDialog(new Resource(ACTIONS_BUNDLE,
-					"error_id.message", " "));
+					"error_nosuchid.message", " "));
 		} catch (ArrayIndexOutOfBoundsException e3) {
 			optionPane = new GVOptionPane(this.parent);
 			optionPane.showErrorDialog(new Resource(ACTIONS_BUNDLE,
-					"error_id.message", " "));
-		} catch(NullPointerException e4){
-			System.out.println("no such id");
-		}finally {
+					"error_nosuchid.message", " "));
+		} catch(NullPointerException e4) {
+			optionPane = new GVOptionPane(this.parent);
+			optionPane.showErrorDialog(new Resource(ACTIONS_BUNDLE,
+					"error_nosuchid.message", " "));
+		} finally {
 			tf_id.setText("");
 			this.dialog.setVisible(false);
 

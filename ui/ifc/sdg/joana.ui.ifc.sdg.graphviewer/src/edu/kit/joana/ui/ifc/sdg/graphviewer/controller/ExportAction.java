@@ -18,6 +18,7 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.view.Export;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVFileChooser;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVFrame;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVOptionPane;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -92,14 +93,17 @@ public class ExportAction extends AbstractGVAction {
 //	                    "exportMethod.success.status"));
 	        }
 	        catch(OutOfMemoryError err) {
-	        	err.printStackTrace(); // TODO: fehlermeldung
+				GVOptionPane optionPane = new GVOptionPane(frame);
+				optionPane.showErrorDialog(new Resource(ACTIONS_BUNDLE,
+						"export.io_error.message", "\n"+err.getLocalizedMessage()));
 	        }
 //	        return new CommandStatusEvent(this, CommandStatusEvent.FAILURE,
 //	                new Resource(COMMANDS_BUNDLE,
 //	                "exportMethod.outOfMemory.status"));
 			catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				GVOptionPane optionPane = new GVOptionPane(frame);
+				optionPane.showErrorDialog(new Resource(ACTIONS_BUNDLE,
+						"export.io_error.message", "\n"+e1.getLocalizedMessage()));
 			}
         }
     }

@@ -172,12 +172,21 @@ public class XLSODTests {
 	}
 
 
-//	@Test
-//	public void testDe_uni_trier_infsec_core_Setup() throws ClassHierarchyException, ApiTestException, IOException,
-//			UnsoundGraphException, CancelException {
-//		//testSound(de.uni.trier.infsec.core.Setup.class, IFCType.RLSOD);
-//		//testPreciseEnough(de.uni.trier.infsec.core.Setup.class, IFCType.iRLSOD);
-//	}
+	@Test
+	public void testDe_uni_trier_infsec_core_Setup() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testSound(       de.uni.trier.infsec.core.Setup.class, IFCType.LSOD);
+		testSound(       de.uni.trier.infsec.core.Setup.class, IFCType.RLSOD);
+		testSound(       de.uni.trier.infsec.core.Setup.class, IFCType.iRLSOD);
+	}
+	
+	@Test
+	public void testDe_uni_trier_infsec_core_SetupNoLeak() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testSound(       de.uni.trier.infsec.core.SetupNoLeak.class, IFCType.LSOD);
+		testTooImprecise(de.uni.trier.infsec.core.SetupNoLeak.class, IFCType.RLSOD);
+		testPrecise(     de.uni.trier.infsec.core.SetupNoLeak.class, IFCType.iRLSOD);
+	}
 	
 	@Test
 	public void testPossibilisticLeaks() throws ClassHierarchyException, ApiTestException, IOException,

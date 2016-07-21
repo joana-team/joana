@@ -55,6 +55,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PForward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.SimpleMHPAnalysis;
+import edu.kit.joana.ifc.sdg.irlsod.BetterORLSODChecker;
 import edu.kit.joana.ifc.sdg.irlsod.OptORLSODChecker;
 import edu.kit.joana.ifc.sdg.irlsod.ProbInfComputer;
 import edu.kit.joana.ifc.sdg.irlsod.ThreadModularCDomOracle;
@@ -158,6 +159,7 @@ public class IFCAnalysis {
 //			this.ifc = new ORLSODChecker<String>(sdg, secLattice, probInf, null);
 			this.ifc = new OptORLSODChecker<String>(sdg, secLattice, probInf);
 //			this.ifc = new PathBasedORLSODChecker<String>(sdg, secLattice, probInf);
+//			this.ifc = new BetterORLSODChecker<String>(sdg, secLattice, probInf);
 			break;
 		default:
 			throw new IllegalStateException("unhandled ifc type: " + ifcType + "!");

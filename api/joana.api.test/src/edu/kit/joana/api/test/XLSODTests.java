@@ -27,10 +27,8 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.IFCType;
-import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
-import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.api.test.util.ApiTestException;
 import edu.kit.joana.api.test.util.JoanaPath;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;

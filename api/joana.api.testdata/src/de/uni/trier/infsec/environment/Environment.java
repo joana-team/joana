@@ -1,7 +1,5 @@
 package de.uni.trier.infsec.environment;
 
-import edu.kit.joana.ui.annotations.Sink;
-
 class Node 
 {
 	long value;

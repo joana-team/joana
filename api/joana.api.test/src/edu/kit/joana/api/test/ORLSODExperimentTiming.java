@@ -1,7 +1,6 @@
 package edu.kit.joana.api.test;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,15 +15,12 @@ import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.irlsod.PredecessorMethod;
 import edu.kit.joana.ifc.sdg.irlsod.ThreadModularCDomOracle;
 import edu.kit.joana.ifc.sdg.irlsod.TimimgClassificationChecker;
-import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
-import edu.kit.joana.ifc.sdg.mhpoptimization.PruneInterferences;
 import edu.kit.joana.ifc.sdg.util.graph.io.dot.MiscGraph2Dot;
 import edu.kit.joana.ifc.sdg.util.sdg.GraphModifier;
 import edu.kit.joana.ifc.sdg.util.sdg.ReducedCFGBuilder;

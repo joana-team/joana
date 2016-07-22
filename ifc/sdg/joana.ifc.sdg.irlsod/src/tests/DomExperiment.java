@@ -1,28 +1,16 @@
 package tests;
 
 import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
-import org.jgrapht.Graph;
 import org.jgrapht.ext.DOTExporter;
-import org.jgrapht.ext.EdgeNameProvider;
-import org.jgrapht.ext.VertexNameProvider;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 
 import edu.kit.joana.graph.dominators.AbstractCFG;
 import edu.kit.joana.graph.dominators.CustomCFG;
 import edu.kit.joana.graph.dominators.InterprocDominators2;
-import edu.kit.joana.ifc.sdg.graph.SDGEdge;
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadRegion;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
 import edu.kit.joana.ifc.sdg.util.graph.io.dot.MiscGraph2Dot;
-import gnu.trove.map.TObjectIntMap;
-import gnu.trove.map.hash.TObjectIntHashMap;
 
 public class DomExperiment {
 

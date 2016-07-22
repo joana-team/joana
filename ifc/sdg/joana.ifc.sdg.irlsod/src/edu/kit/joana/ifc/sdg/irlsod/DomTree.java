@@ -1,13 +1,8 @@
 package edu.kit.joana.ifc.sdg.irlsod;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.alg.TransitiveReduction;
-import org.jgrapht.experimental.dag.DirectedAcyclicGraph;
 import org.jgrapht.experimental.dag.DirectedAcyclicGraph.CycleFoundException;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;

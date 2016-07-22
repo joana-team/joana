@@ -27,10 +27,15 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.maps.MapUtils;
 
 public class TimimgClassificationChecker<L> extends IFC<L> {
+	
+	private static Logger debug = Log.getLogger(Log.L_IFC_DEBUG);
+	
 	/** user-provided annotations */
 	protected final Map<SDGNode, L> userAnn;
 
@@ -214,11 +219,11 @@ public class TimimgClassificationChecker<L> extends IFC<L> {
 					                                   .map(SDGEdge::getSource)
 					                                   .collect(Collectors.toSet());
 					// @formatter:on
-					System.out.println(String.format("BS(%s) = %s", n, predecessors));
+					debug.outln(String.format("BS(%s) = %s", n, predecessors));
 					break;
 				case SLICE:
 					predecessors = backw.slice(n);
-					System.out.println(String.format("PRED(%s) = %s", n, predecessors));
+					debug.outln(String.format("PRED(%s) = %s", n, predecessors));
 					break;
 				default:
 					throw new IllegalArgumentException(predecessorMethod.toString());
@@ -319,7 +324,7 @@ public class TimimgClassificationChecker<L> extends IFC<L> {
 
 			numIters++;
 		} while (change);
-		System.out.println(String.format("needed %d iteration(s).", numIters));
+		debug.outln(String.format("needed %d iteration(s).", numIters));
 
 		checked = true;
 

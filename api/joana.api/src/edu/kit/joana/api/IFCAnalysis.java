@@ -55,7 +55,6 @@ import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PForward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.SimpleMHPAnalysis;
-import edu.kit.joana.ifc.sdg.irlsod.BetterORLSODChecker;
 import edu.kit.joana.ifc.sdg.irlsod.OptORLSODChecker;
 import edu.kit.joana.ifc.sdg.irlsod.ProbInfComputer;
 import edu.kit.joana.ifc.sdg.irlsod.ThreadModularCDomOracle;

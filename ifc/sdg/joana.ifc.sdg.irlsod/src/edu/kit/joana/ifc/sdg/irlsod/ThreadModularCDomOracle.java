@@ -10,6 +10,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
+import edu.kit.joana.ifc.sdg.util.graph.ThreadInformationUtil;
 import edu.kit.joana.wala.core.graphs.Dominators;
 import edu.kit.joana.wala.core.graphs.Dominators.DomEdge;
 import gnu.trove.map.TIntObjectMap;
@@ -28,7 +29,7 @@ public class ThreadModularCDomOracle implements ICDomOracle {
 
 	public ThreadModularCDomOracle(final SDG sdg) {
 		this.sdg = sdg;
-		this.tct = JoanaRunner.buildThreadCreationTree(sdg.getThreadsInfo());
+		this.tct = ThreadInformationUtil.buildThreadCreationTree(sdg.getThreadsInfo());
 		this.dioTCT = new DFSIntervalOrder<ThreadInstance, DefaultEdge>(tct);
 	}
 

@@ -6,10 +6,6 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.jar.JarInputStream;
 
 import org.jgrapht.DirectedGraph;
@@ -41,11 +37,12 @@ import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
 import edu.kit.joana.ifc.sdg.irlsod.RegionClusterBasedCDomOracle;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
+import edu.kit.joana.ifc.sdg.util.graph.ThreadInformationUtil;
+import edu.kit.joana.ifc.sdg.util.graph.io.dot.MiscGraph2Dot;
 import edu.kit.joana.wala.core.ExternalCallCheck;
 import edu.kit.joana.wala.core.Main;
 import edu.kit.joana.wala.core.SDGBuilder;
@@ -131,41 +128,20 @@ public class JoanaRunner {
 		final SDG sdg = buildSDG(CLASS_PATH, MAIN_CLASS);
 		CSDGPreprocessor.preprocessSDG(sdg);
 		System.out.println(sdg.getThreadsInfo());
-		final DirectedGraph<ThreadInstance, DefaultEdge> tct = buildThreadCreationTree(sdg.getThreadsInfo());
-		DomExperiment.export(tct, DomExperiment.tctExporter(), "tct.dot");
+		final DirectedGraph<ThreadInstance, DefaultEdge> tct = ThreadInformationUtil.buildThreadCreationTree(sdg.getThreadsInfo());
+		MiscGraph2Dot.export(tct, MiscGraph2Dot.tctExporter(), "tct.dot");
 		for (final ThreadInstance ti : sdg.getThreadsInfo()) {
 			final DirectedGraph<VirtualNode, SDGEdge> threadGraph = unfoldVirtualCFGFor(sdg, ti.getId());
-			DomExperiment.export(threadGraph, DomExperiment.threadGraphExporter(),
+			MiscGraph2Dot.export(threadGraph, MiscGraph2Dot.threadGraphExporter(),
 					String.format("thread-%d.dot", ti.getId()));
 			final Dominators<VirtualNode, SDGEdge> threadDom = Dominators.compute(threadGraph,
 					new VirtualNode(ti.getEntry(), ti.getId()));
-			DomExperiment.export(threadDom.getDominationTree(), DomExperiment.genericExporter(),
+			MiscGraph2Dot.export(threadDom.getDominationTree(), MiscGraph2Dot.genericExporter(),
 					String.format("thread-%d-dom.dot", ti.getId()));
 		}
 		final PrintWriter pw = new PrintWriter(PDG_FILE);
 		SDGSerializer.toPDGFormat(sdg, pw);
 		pw.close();
-	}
-
-	public static DirectedGraph<ThreadInstance, DefaultEdge> buildThreadCreationTree(
-			final ThreadsInformation threadInfo) {
-		final DirectedGraph<ThreadInstance, DefaultEdge> tct = new DefaultDirectedGraph<ThreadInstance, DefaultEdge>(
-				DefaultEdge.class);
-		for (final ThreadInstance ti1 : threadInfo) {
-			if (ti1.getThreadContext() == null) {
-				continue;
-			}
-			ThreadInstance lowestAnc = null;
-			for (final ThreadInstance ti2 : threadInfo) {
-				if ((lowestAnc == null) || (isAncestor(ti2, ti1) && isAncestor(lowestAnc, ti2))) {
-					lowestAnc = ti2;
-				}
-			}
-			tct.addVertex(lowestAnc);
-			tct.addVertex(ti1);
-			tct.addEdge(lowestAnc, ti1);
-		}
-		return tct;
 	}
 
 	public static CFG unfoldCFGFor(final SDG sdg, final int thread) {
@@ -215,55 +191,5 @@ public class JoanaRunner {
 				&& (e.getSource().getKind() == SDGNode.Kind.CALL)
 				&& BytecodeLocation.isCallRetNode(e.getTarget());
 		// @formatter:on
-	}
-
-	private static boolean isAncestor(final ThreadInstance ti1, final ThreadInstance ti2) {
-		if (ti1.getThreadContext() == null) {
-			return true;
-		}
-		if (ti2.getThreadContext() == null) {
-			return false;
-		}
-		return isSuffixOf(ti1.getThreadContext(), ti2.getThreadContext())
-				&& !ti1.getThreadContext().equals(ti2.getThreadContext());
-	}
-
-	private static <A> boolean isSuffixOf(final List<A> ls1, final List<A> ls2) {
-		if (ls1 == null) {
-			return true;
-		}
-		if (ls2 == null) {
-			return false;
-		}
-		if (ls1.size() > ls2.size()) {
-			return false;
-		}
-		final List<A> ls1Rev = new LinkedList<A>(ls1);
-		final List<A> ls2Rev = new LinkedList<A>(ls2);
-		Collections.reverse(ls1Rev);
-		Collections.reverse(ls2Rev);
-		return isPrefixOf(ls1Rev, ls2Rev);
-	}
-
-	private static <A> boolean isPrefixOf(final List<A> ls1, final List<A> ls2) {
-		if (ls1 == null) {
-			return true;
-		}
-		if (ls2 == null) {
-			return false;
-		}
-		if (ls1.size() > ls2.size()) {
-			return false;
-		}
-		final Iterator<A> iter1 = ls1.iterator();
-		final Iterator<A> iter2 = ls2.iterator();
-		while (iter1.hasNext()) {
-			final A x1 = iter1.next();
-			final A x2 = iter2.next();
-			if (!x1.equals(x2)) {
-				return false;
-			}
-		}
-		return true;
 	}
 }

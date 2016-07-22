@@ -15,6 +15,7 @@ api/joana.api.test/*.xml
 api/joana.api.test/bin
 api/joana.api.test/build/*
 api/joana.api.test/lib
+api/joana.api.testdata/bin
 api/joana.api/bin
 checkflow_tmp
 contrib/lib/bin

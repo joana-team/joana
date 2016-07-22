@@ -1,4 +1,4 @@
-package tests;
+package edu.kit.joana.api.test;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -23,46 +23,76 @@ import edu.kit.joana.ifc.sdg.irlsod.ThreadModularCDomOracle;
 import edu.kit.joana.ifc.sdg.irlsod.TimimgClassificationChecker;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 import edu.kit.joana.ifc.sdg.mhpoptimization.PruneInterferences;
+import edu.kit.joana.ifc.sdg.util.graph.io.dot.MiscGraph2Dot;
 import edu.kit.joana.ifc.sdg.util.sdg.GraphModifier;
 import edu.kit.joana.ifc.sdg.util.sdg.ReducedCFGBuilder;
-import tests.ORLSODExperiment.StandardTestConfig;
+import edu.kit.joana.api.test.ORLSODExperiment.StandardTestConfig;
+import edu.kit.joana.api.test.util.JoanaPath;
 
 public class ORLSODExperimentTiming {
 
 	@Test
 	public void doORLSOD1() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lorlsod/ORLSOD1", "orlsod1", 1, 2, 4));
+		doConfigTiming(new ORLSODExperiment.StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, "Ljoana/api/testdata/demo/xrlsod/ORLSOD1", "orlsod1", 1, 2, 4));
 	}
 
 	@Test
 	public void doORLSOD2() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lorlsod/ORLSOD2", "orlsod2", 1, 2, 0));
+		doConfigTiming(new ORLSODExperiment.StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, "Ljoana/api/testdata/demo/xrlsod/ORLSOD2", "orlsod2", 1, 2, 0));
 	}
 
 	@Test
 	public void doORLSOD3() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lorlsod/ORLSOD3", "orlsod3", 1, 2, 0));
+		doConfigTiming(new ORLSODExperiment.StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, "Ljoana/api/testdata/demo/xrlsod/ORLSOD3", "orlsod3", 1, 2, 0));
 	}
 
 	@Test
 	public void doNoSecret() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lorlsod/NoSecret", "noSecret", 0, 2, 0));
+		doConfigTiming(new ORLSODExperiment.StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, "Ljoana/api/testdata/demo/xrlsod/NoSecret", "noSecret", 0, 2, 0));
 	}
 
 	@Test
 	public void doLateSecretAccess()
 			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lorlsod/LateSecretAccess",
+		doConfigTiming(new ORLSODExperiment.StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, "Ljoana/api/testdata/demo/xrlsod/LateSecretAccess",
 				"lateSecAccess", 1, 2, 0));
 	}
+	
+	@Test
+	public void testORLSOD5a() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+		doConfigTiming(new ORLSODExperiment.StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, "Ljoana/api/testdata/demo/xrlsod/ORLSOD5a", "orlsod5a", 1, 2, 6));
+	}
 
+	@Test
+	public void testORLSODSecure() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+		doConfigTiming(new ORLSODExperiment.StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, "Ljoana/api/testdata/demo/xrlsod/ORLSOD5Secure", "orlsod5secure",
+				1, 2, 0));
+	}
+
+	@Test
+	public void testPost_Fig2_3() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+		doConfigTiming(
+				new ORLSODExperiment.StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, "Ljoana/api/testdata/demo/Fig2_3", "post_fig2_3", 1, 2, 4));
+	}
+
+	@Test
+	public void testORLSOD_imprecise()
+			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+		/**
+		 * NOTE: The program is actually secure AND TimingClassification does detect this RLSOD and LSOD deem this
+		 * program secure (no "normal" flows and o low-observable conflict). TODO: add test code which proves this silly
+		 * claim!
+		 */
+		doConfigTiming(new StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, "Ljoana/api/testdata/demo/xrlsod/ORLSODImprecise", "orlsod_imprecise", 1, 1, 0));
+	}
+	
 	private static void doConfigTiming(final ORLSODExperiment.TestConfig cfg)
 			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		final SDG sdg = JoanaRunner.buildSDG(cfg.progDesc.classPath, cfg.progDesc.mainClass);
+		final SDG sdg = ORLSODExperiment.buildSDG(cfg.progDesc.classPath, cfg.progDesc.mainClass);
 		CSDGPreprocessor.preprocessSDG(sdg);
 		final CFG redCFG = ReducedCFGBuilder.extractReducedCFG(sdg);
 		GraphModifier.removeCallCallRetEdges(redCFG);
-		DomExperiment.export(redCFG, DomExperiment.joanaGraphExporter(), cfg.outputFiles.dotFile);
+		MiscGraph2Dot.export(redCFG, MiscGraph2Dot.joanaGraphExporter(), cfg.outputFiles.dotFile);
 		final PreciseMHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
 		PruneInterferences.pruneInterferences(sdg, mhp);
 		final PrintWriter pw = new PrintWriter(cfg.outputFiles.pdgFile);
@@ -97,31 +127,4 @@ public class ORLSODExperimentTiming {
 
 	}
 
-	@Test
-	public void testORLSOD5a() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lorlsod/ORLSOD5a", "orlsod5a", 1, 2, 6));
-	}
-
-	@Test
-	public void testORLSODSecure() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfigTiming(new ORLSODExperiment.StandardTestConfig("example/bin", "Lorlsod/ORLSOD5Secure", "orlsod5secure",
-				1, 2, 0));
-	}
-
-	@Test
-	public void testPost_Fig2_3() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfigTiming(
-				new ORLSODExperiment.StandardTestConfig("example/bin", "Lpost16/Fig2_3", "post_fig2_3", 1, 2, 4));
-	}
-
-	@Test
-	public void testORLSOD_imprecise()
-			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		/**
-		 * NOTE: The program is actually secure AND TimingClassification does detect this RLSOD and LSOD deem this
-		 * program secure (no "normal" flows and o low-observable conflict). TODO: add test code which proves this silly
-		 * claim!
-		 */
-		doConfigTiming(new StandardTestConfig("example/bin", "Lorlsod/ORLSODImprecise", "orlsod_imprecise", 1, 1, 0));
-	}
 }

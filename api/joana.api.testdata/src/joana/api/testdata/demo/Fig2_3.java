@@ -5,7 +5,10 @@ import edu.kit.joana.ui.annotations.Source;
 
 public class Fig2_3 {
 
-	static int l, h;
+	@Source
+	public static int HIGH;
+	@Sink
+	public static String LOW;
 	
 	public static void main(String[] argv) throws InterruptedException {
 		new Thread_1().start();
@@ -21,22 +24,21 @@ public class Fig2_3 {
 
 	static class Thread_2 extends Thread {
 		public void run() {
-			h = inputPIN();
+			int h = inputPIN();
 			while (h != 0)
 				h--;
 			print("ST");
 		}
 	}
 	
-	@Source
-	public static int inputPIN() { return 42; }
-	@Sink
-	public static void print(String s) {}
+	public static int inputPIN() { return HIGH; }
+	public static void print(String s) { LOW = s;}
 	public static int input() { return 13; }
 
 	private static void longCmd() {
+		int x = 2;
 		for (int i = 0; i < 1000; i++) {
-			l *= 12;
+			x *= 12;
 		}
 	}
 	

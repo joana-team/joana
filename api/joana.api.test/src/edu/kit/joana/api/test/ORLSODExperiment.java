@@ -1,7 +1,11 @@
-package tests;
+package edu.kit.joana.api.test;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,15 +13,31 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.jar.JarInputStream;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.ibm.wala.cfg.exc.intra.MethodState;
+import com.ibm.wala.classLoader.BinaryDirectoryTreeModule;
+import com.ibm.wala.classLoader.IClass;
+import com.ibm.wala.classLoader.IMethod;
+import com.ibm.wala.classLoader.JarStreamModule;
+import com.ibm.wala.ipa.callgraph.AnalysisCache;
+import com.ibm.wala.ipa.callgraph.AnalysisScope;
+import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
+import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.ipa.cha.IClassHierarchy;
+import com.ibm.wala.ssa.DefaultIRFactory;
+import com.ibm.wala.types.ClassLoaderReference;
+import com.ibm.wala.types.Selector;
+import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
 import edu.kit.joana.api.lattice.BuiltinLattices;
+import edu.kit.joana.api.test.util.JoanaPath;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -32,44 +52,76 @@ import edu.kit.joana.ifc.sdg.irlsod.ThreadModularCDomOracle;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 import edu.kit.joana.ifc.sdg.mhpoptimization.PruneInterferences;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
+import edu.kit.joana.ifc.sdg.util.graph.io.dot.MiscGraph2Dot;
 import edu.kit.joana.ifc.sdg.util.sdg.GraphModifier;
 import edu.kit.joana.ifc.sdg.util.sdg.ReducedCFGBuilder;
+import edu.kit.joana.util.Stubs;
+import edu.kit.joana.wala.core.ExternalCallCheck;
+import edu.kit.joana.wala.core.Main;
+import edu.kit.joana.wala.core.SDGBuilder;
+import edu.kit.joana.wala.core.SDGBuilder.DynamicDispatchHandling;
+import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
+import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
+import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
+import edu.kit.joana.wala.core.SDGBuilder.SDGBuilderConfig;
+import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
 
 public class ORLSODExperiment {
 
 	@Test
 	public void doORLSOD1() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfig(new StandardTestConfig("example/bin", "Lorlsod/ORLSOD1", "orlsod1", 1, 2, 2));
+		doConfig(new StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, "Ljoana/api/testdata/demo/xrlsod/ORLSOD1", "orlsod1", 1, 2, 2));
 	}
 
 	@Test
 	public void doORLSOD2() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfig(new StandardTestConfig("example/bin", "Lorlsod/ORLSOD2", "orlsod2", 1, 2, 0));
+		doConfig(new StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, "Ljoana/api/testdata/demo/xrlsod/ORLSOD2", "orlsod2", 1, 2, 0));
 	}
 
 	@Test
 	public void doORLSOD3() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfig(new StandardTestConfig("example/bin", "Lorlsod/ORLSOD3", "orlsod3", 1, 2, 0));
+		doConfig(new StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, "Ljoana/api/testdata/demo/xrlsod/ORLSOD3", "orlsod3", 1, 2, 0));
 	}
 
 	@Test
 	public void doNoSecret() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfig(new StandardTestConfig("example/bin", "Lorlsod/NoSecret", "noSecret", 0, 2, 0));
+		doConfig(new StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, "Ljoana/api/testdata/demo/xrlsod/NoSecret", "noSecret", 0, 2, 0));
 	}
 
 	@Test
 	public void doLateSecretAccess()
 			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfig(new StandardTestConfig("example/bin", "Lorlsod/LateSecretAccess", "lateSecAccess", 1, 2, 0));
+		doConfig(new StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, "Ljoana/api/testdata/demo/xrlsod/LateSecretAccess", "lateSecAccess", 1, 2, 0));
+	}
+	
+	@Test
+	public void testORLSOD5a() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+		doConfig(new StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, "Ljoana/api/testdata/demo/xrlsod/ORLSOD5a", "orlsod5a", 1, 2, 2));
+	}
+
+	@Test
+	public void testPost_Fig2_3() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+		doConfig(new StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, "Ljoana/api/testdata/demo/Fig2_3", "post_fig2_3", 1, 2, 1));
+	}
+
+	@Test
+	public void testORLSOD_imprecise()
+			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+		/**
+		 * NOTE: The program is actually secure but ORLSOD by design fails to detect this. RLSOD and LSOD deem this
+		 * program secure (no "normal" flows and o low-observable conflict). TODO: add test code which proves this silly
+		 * claim!
+		 */
+		doConfig(new StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, "Ljoana/api/testdata/demo/xrlsod/ORLSODImprecise", "orlsod_imprecise", 1, 1, 1));
 	}
 
 	private static void doConfig(final TestConfig cfg)
 			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		final SDG sdg = JoanaRunner.buildSDG(cfg.progDesc.classPath, cfg.progDesc.mainClass);
+		final SDG sdg = ORLSODExperiment.buildSDG(cfg.progDesc.classPath, cfg.progDesc.mainClass);
 		CSDGPreprocessor.preprocessSDG(sdg);
 		final CFG redCFG = ReducedCFGBuilder.extractReducedCFG(sdg);
 		GraphModifier.removeCallCallRetEdges(redCFG);
-		DomExperiment.export(redCFG, DomExperiment.joanaGraphExporter(), cfg.outputFiles.dotFile);
+		MiscGraph2Dot.export(redCFG, MiscGraph2Dot.joanaGraphExporter(), cfg.outputFiles.dotFile);
 		final PreciseMHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
 		PruneInterferences.pruneInterferences(sdg, mhp);
 		final PrintWriter pw = new PrintWriter(cfg.outputFiles.pdgFile);
@@ -111,25 +163,60 @@ public class ORLSODExperiment {
 
 	}
 
-	@Test
-	public void testORLSOD5a() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfig(new StandardTestConfig("example/bin", "Lorlsod/ORLSOD5a", "orlsod5a", 1, 2, 2));
+	static AnalysisScope makeMinimalScope(final String appClassPath) throws IOException {
+		final AnalysisScope scope = AnalysisScope.createJavaAnalysisScope();
+		scope.addToScope(ClassLoaderReference.Application, new BinaryDirectoryTreeModule(new File(appClassPath)));
+		final URL url = Stubs.class.getClassLoader().getResource("jSDG-stubs-jre1.4.jar");
+		final URLConnection con = url.openConnection();
+		final InputStream in = con.getInputStream();
+		scope.addToScope(ClassLoaderReference.Primordial, new JarStreamModule(new JarInputStream(in)));
+		return scope;
 	}
 
-	@Test
-	public void testPost_Fig2_3() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		doConfig(new StandardTestConfig("example/bin", "Lpost16/Fig2_3", "post_fig2_3", 1, 2, 1));
+	static IMethod findMethod(final IClassHierarchy cha, final String mainClass) {
+		final IClass cl = cha.lookupClass(TypeReference.findOrCreate(ClassLoaderReference.Application, mainClass));
+		if (cl == null) {
+			throw new RuntimeException("class not found: " + mainClass);
+		}
+		final IMethod m = cl.getMethod(Selector.make("main([Ljava/lang/String;)V"));
+		if (m == null) {
+			throw new RuntimeException("main method of class " + cl + " not found!");
+		}
+		return m;
 	}
 
-	@Test
-	public void testORLSOD_imprecise()
-			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		/**
-		 * NOTE: The program is actually secure but ORLSOD by design fails to detect this. RLSOD and LSOD deem this
-		 * program secure (no "normal" flows and o low-observable conflict). TODO: add test code which proves this silly
-		 * claim!
-		 */
-		doConfig(new StandardTestConfig("example/bin", "Lorlsod/ORLSODImprecise", "orlsod_imprecise", 1, 1, 1));
+	static SDG buildSDG(final String classPath, final String mainClass)
+			throws IOException, ClassHierarchyException, UnsoundGraphException, CancelException {
+		final SDGBuilder.SDGBuilderConfig scfg = new SDGBuilder.SDGBuilderConfig();
+		scfg.out = System.out;
+		scfg.scope = ORLSODExperiment.makeMinimalScope(classPath);
+		scfg.cache = new AnalysisCache(new DefaultIRFactory());
+		scfg.cha = ClassHierarchy.make(scfg.scope);
+		scfg.entry = ORLSODExperiment.findMethod(scfg.cha, mainClass);
+		scfg.ext = ExternalCallCheck.EMPTY;
+		scfg.immutableNoOut = Main.IMMUTABLE_NO_OUT;
+		scfg.immutableStubs = Main.IMMUTABLE_STUBS;
+		scfg.ignoreStaticFields = Main.IGNORE_STATIC_FIELDS;
+		scfg.exceptions = ExceptionAnalysis.INTERPROC;
+		scfg.pruneDDEdgesToDanglingExceptionNodes = true;
+		scfg.defaultExceptionMethodState = MethodState.DEFAULT;
+		scfg.accessPath = false;
+		scfg.sideEffects = null;
+		scfg.prunecg = 2;
+		scfg.pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
+		scfg.pts = PointsToPrecision.N1_OBJECT_SENSITIVE;
+		scfg.customCGBFactory = null;
+		scfg.staticInitializers = StaticInitializationTreatment.SIMPLE;
+		scfg.fieldPropagation = FieldPropagation.OBJ_GRAPH_NO_MERGE_AT_ALL;
+		scfg.debugManyGraphsDotOutput = false;
+		scfg.computeInterference = true;
+		scfg.computeAllocationSites = true;
+		scfg.cgConsumer = null;
+		scfg.additionalContextSelector = null;
+		scfg.dynDisp = DynamicDispatchHandling.PRECISE;
+		scfg.debugManyGraphsDotOutput = true;
+		final SDG sdg = SDGBuilder.build(scfg);
+		return sdg;
 	}
 
 	static class TestConfig {

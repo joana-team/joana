@@ -6,9 +6,7 @@ import edu.kit.joana.ui.annotations.Source;
 public class ORLSODImprecise {
 	@Source
 	static int HIGH;
-	@Source
 	static int H;
-	@Source
 	static int H2;
 	static int X;
 	@Sink

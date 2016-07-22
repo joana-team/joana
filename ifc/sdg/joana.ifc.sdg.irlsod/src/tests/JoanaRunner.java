@@ -208,6 +208,7 @@ public class JoanaRunner {
 		return ret;
 	}
 
+	@SuppressWarnings("unused")
 	private static boolean isCallCallRetEdge(final SDGEdge e) {
 		// @formatter:off
 		return     (e.getKind() == SDGEdge.Kind.CONTROL_FLOW)

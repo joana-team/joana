@@ -10,7 +10,6 @@ package edu.kit.joana.wala.flowless.util;
 import com.ibm.wala.util.WalaException;
 import com.ibm.wala.util.graph.Graph;
 import com.ibm.wala.viz.DotUtil;
-import com.ibm.wala.viz.NodeDecorator;
 
 public abstract class GraphWriter<T> {
 

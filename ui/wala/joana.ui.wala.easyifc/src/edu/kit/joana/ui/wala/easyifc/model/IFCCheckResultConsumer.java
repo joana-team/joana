@@ -234,6 +234,8 @@ public interface IFCCheckResultConsumer {
 			case THREAD_EXCEPTION:
 				info = "critical thread interference caused by exceptions ";
 				break;
+			case UNKNOWN: //no action
+				break;
 			}
 			
 			switch (reason) {

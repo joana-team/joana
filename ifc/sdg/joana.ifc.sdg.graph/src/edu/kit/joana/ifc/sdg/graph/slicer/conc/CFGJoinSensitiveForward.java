@@ -7,21 +7,16 @@
  */
 package edu.kit.joana.ifc.sdg.graph.slicer.conc;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
-
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGNodeTuple;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.CFGForward;
-import edu.kit.joana.ifc.sdg.graph.slicer.conc.CFGSlicer;
-import edu.kit.joana.ifc.sdg.graph.slicer.conc.CFGSlicer.Phase;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
@@ -196,7 +191,7 @@ public class CFGJoinSensitiveForward extends CFGForward {
                     		continue;
                     	}
                     	if (t.getKind() == SDGNode.Kind.FORMAL_OUT
-                    			&& "_exception_".equals(t.getLabel())) {
+                    			&& "<exception>".equals(t.getBytecodeName())) {
                     		continue;
                     	}
                     }

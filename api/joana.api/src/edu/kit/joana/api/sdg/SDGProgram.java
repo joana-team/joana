@@ -24,10 +24,7 @@ import java.util.TreeSet;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.classLoader.IMethod;
-import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
-import com.ibm.wala.ipa.cha.IClassHierarchy;
-import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.types.annotations.Annotation;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
@@ -54,11 +51,9 @@ import edu.kit.joana.util.Stubs;
 import edu.kit.joana.util.io.IOFactory;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder;
-import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.summary.SummaryComputation;
 import edu.kit.joana.wala.summary.WorkPackage;
 import edu.kit.joana.wala.summary.WorkPackage.EntryPoint;
-import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 
@@ -314,22 +309,6 @@ public class SDGProgram {
 		cfg.computeSummaryEdges = config.isComputeSummaryEdges();
 		cfg.computeInterference = config.computeInterferences();
 		debug.outln(cfg.stubs);
-
-		if (config.computeInterferences()) {
-			if (config.getPointsToPrecision().isObjSens()) {
-				cfg.pts = config.getPointsToPrecision();
-				if (config.getMethodFilter() == null) {
-					cfg.objSensFilter = new ThreadSensitiveMethodFilterWithCaching();
-				} else {
-					cfg.objSensFilter = new MethodFilterChain(new ThreadSensitiveMethodFilterWithCaching(),	config.getMethodFilter());
-				}
-			} else {
-				cfg.pts = PointsToPrecision.OBJECT_SENSITIVE;
-				cfg.objSensFilter = new ThreadSensitiveMethodFilterWithCaching();
-			}
-		} else {
-			cfg.objSensFilter = config.getMethodFilter();
-		}
 		return cfg;
 	}
 	public static void throwAwayControlDeps(SDG sdg) throws CancelException {
@@ -1011,146 +990,5 @@ class SDGClassResolver {
 
 	public Set<SDGClass> getClasses() {
 		return classes;
-	}
-}
-
-class ThreadSensitiveMethodFilter implements ObjSensZeroXCFABuilder.MethodFilter {
-
-	@Override
-	public boolean engageObjectSensitivity(CGNode caller, IMethod m) {
-		IClassHierarchy cha = m.getClassHierarchy();
-		return !m.isStatic()
-				&& (cha.isAssignableFrom(cha.lookupClass(TypeReference.JavaLangThread), m.getDeclaringClass()));
-	}
-
-	@Override
-	public int getFallbackCallsiteSensitivity() {
-		return 1;
-	}
-
-	@Override
-	public boolean restrictToOneLevelObjectSensitivity(IMethod m) {
-		return true;
-	}
-
-}
-
-/**
- * Method filter which chains together two sub-filters F1 and F2.
- * <p/>
- * The intended use case is to have a method filter, which is at least as
- * object-sensitive as both F1 and F2, with a slight preference of F1 if neither
- * F1 nor F2 find a given method interesting enough to distinguish its object
- * contexts.
- * <p/>
- *
- * It works as follows:
- * <ul>
- * <li>For engageObjectSensitivity(), it first asks F1 - if F1 says
- * {@code false}, then F2 is asked.</li>
- * <li>For fallback callsite sensitivity, F1's return value is taken.</li>
- * </ul>
- *
- * @author Martin Mohr
- */
-class MethodFilterChain implements ObjSensZeroXCFABuilder.MethodFilter {
-
-	/** the first filter to be used */
-	private ObjSensZeroXCFABuilder.MethodFilter filter1;
-
-	/** the second filter to be used */
-	private ObjSensZeroXCFABuilder.MethodFilter filter2;
-
-	/**
-	 * Chains together this method filter from the two given method filters
-	 *
-	 * @param filter1
-	 *            first filter to be used
-	 * @param filter2
-	 *            'fall back filter' to be used if the first filter says that
-	 *            object sensitivity shall not be engaged
-	 */
-	MethodFilterChain(ObjSensZeroXCFABuilder.MethodFilter filter1, ObjSensZeroXCFABuilder.MethodFilter filter2) {
-		this.filter1 = filter1;
-		this.filter2 = filter2;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see
-	 * edu.kit.joana.wala.flowless.wala.ObjSensContextSelector.MethodFilter#
-	 * engageObjectSensitivity(com.ibm.wala.classLoader.IMethod)
-	 */
-	@Override
-	public boolean engageObjectSensitivity(CGNode caller, IMethod m) {
-		if (filter1.engageObjectSensitivity(caller, m)) {
-			return true;
-		} else {
-			return filter2.engageObjectSensitivity(caller, m);
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see
-	 * edu.kit.joana.wala.flowless.wala.ObjSensContextSelector.MethodFilter#
-	 * getFallbackCallsiteSensitivity()
-	 */
-	@Override
-	public int getFallbackCallsiteSensitivity() {
-		return filter1.getFallbackCallsiteSensitivity();
-	}
-
-	/* (non-Javadoc)
-	 * @see edu.kit.joana.wala.flowless.wala.ObjSensContextSelector.MethodFilter#restrictToOneLevelObjectSensitivity(com.ibm.wala.classLoader.IMethod)
-	 */
-	@Override
-	public boolean restrictToOneLevelObjectSensitivity(IMethod m) {
-		return filter1.restrictToOneLevelObjectSensitivity(m) && filter2.restrictToOneLevelObjectSensitivity(m);
-	}
-
-}
-
-class ThreadSensitiveMethodFilterWithCaching implements ObjSensZeroXCFABuilder.MethodFilter {
-	private final Set<IClass> threadClasses = new HashSet<IClass>();
-	private final Set<IClass> nonThreadClasses = new HashSet<IClass>();
-	private final ThreadSensitiveMethodFilter normalFilter = new ThreadSensitiveMethodFilter();
-	private IClass javaLangThread = null;
-
-	@Override
-	public int getFallbackCallsiteSensitivity() {
-		return 1;
-	}
-
-	private void initJavaLangThread(IClassHierarchy cha) {
-		if (javaLangThread == null) {
-			javaLangThread = cha.lookupClass(TypeReference.JavaLangThread);
-		}
-	}
-
-	@Override
-	public boolean engageObjectSensitivity(CGNode caller, IMethod m) {
-		if (nonThreadClasses.contains(m.getDeclaringClass())) {
-			return false;
-		} else if (threadClasses.contains(m.getDeclaringClass())) {
-			return !m.isStatic();
-		} else {
-			IClassHierarchy cha = m.getClassHierarchy();
-			initJavaLangThread(cha);
-			boolean ret = normalFilter.engageObjectSensitivity(caller, m);
-			if (ret) {
-				threadClasses.add(m.getDeclaringClass());
-			} else {
-				nonThreadClasses.add(m.getDeclaringClass());
-			}
-			return ret;
-		}
-	}
-
-	@Override
-	public boolean restrictToOneLevelObjectSensitivity(IMethod m) {
-		return normalFilter.restrictToOneLevelObjectSensitivity(m);
 	}
 }

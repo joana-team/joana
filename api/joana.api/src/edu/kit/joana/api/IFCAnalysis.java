@@ -55,9 +55,8 @@ import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PForward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.SimpleMHPAnalysis;
-import edu.kit.joana.ifc.sdg.irlsod.ORLSODChecker;
+import edu.kit.joana.ifc.sdg.irlsod.BetterORLSODChecker;
 import edu.kit.joana.ifc.sdg.irlsod.OptORLSODChecker;
-import edu.kit.joana.ifc.sdg.irlsod.PathBasedORLSODChecker;
 import edu.kit.joana.ifc.sdg.irlsod.ProbInfComputer;
 import edu.kit.joana.ifc.sdg.irlsod.ThreadModularCDomOracle;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
@@ -81,7 +80,7 @@ public class IFCAnalysis {
 	private IFCAnnotationManager annManager;
 	private IStaticLattice<String> secLattice;
 	private IFCType ifcType = IFCType.CLASSICAL_NI;
-	private IFC ifc;
+	private IFC<String> ifc;
 	private boolean timeSensitiveAnalysis = false;
 	private boolean removeRedundantFlows = false;
 
@@ -160,6 +159,7 @@ public class IFCAnalysis {
 //			this.ifc = new ORLSODChecker<String>(sdg, secLattice, probInf, null);
 			this.ifc = new OptORLSODChecker<String>(sdg, secLattice, probInf);
 //			this.ifc = new PathBasedORLSODChecker<String>(sdg, secLattice, probInf);
+//			this.ifc = new BetterORLSODChecker<String>(sdg, secLattice, probInf);
 			break;
 		default:
 			throw new IllegalStateException("unhandled ifc type: " + ifcType + "!");
@@ -174,7 +174,7 @@ public class IFCAnalysis {
 		}
 	}
 
-	public IFC getIFC() {
+	public IFC<String> getIFC() {
 		return ifc;
 	}
 

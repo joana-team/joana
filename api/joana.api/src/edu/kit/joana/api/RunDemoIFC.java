@@ -556,6 +556,9 @@ public final class RunDemoIFC {
 			case UNLIMITED_OBJECT_SENSITIVE:
 				sb.append("*-object-sensitive");
 				break;
+			case CUSTOM:
+				sb.append("custom");
+				break;
 			}
 		}
 		

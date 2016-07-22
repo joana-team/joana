@@ -105,11 +105,6 @@ public class SDG2GraphML {
 			} writer.writeEndElement();
 			
 			writer.writeStartElement(GRAPHML_DATA); {
-				writer.writeAttribute(GRAPHML_KEY, JOANA_NODE_BC_INDEX);
-				writer.writeCharacters(Integer.toString(n.getBytecodeIndex()));
-			} writer.writeEndElement();
-			
-			writer.writeStartElement(GRAPHML_DATA); {
 				writer.writeAttribute(GRAPHML_KEY, JOANA_NODE_SR);
 				writer.writeCharacters(Integer.toString(n.getSr()));
 			} writer.writeEndElement();

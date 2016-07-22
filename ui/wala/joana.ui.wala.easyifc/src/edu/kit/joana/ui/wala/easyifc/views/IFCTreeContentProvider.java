@@ -512,6 +512,8 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 					sideMarker[0] = search.createSideMarker(leak.getSource(), "Statement part of critical interference.", Marker.CRITICAL_INTERFERENCE);
 					sideMarker[1] = search.createSideMarker(leak.getSink(), "Statement part of critical interference.", Marker.CRITICAL_INTERFERENCE);
 					break;
+				case UNKNOWN: //no action
+					break;
 				}
 				
 				for (final ThirdLevelNode child : getChildren()) {

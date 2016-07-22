@@ -12,7 +12,6 @@
 package edu.kit.joana.ifc.sdg.core;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
@@ -24,9 +23,7 @@ import edu.kit.joana.ifc.sdg.core.interfaces.ProgressListener;
 import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
-import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
-import edu.kit.joana.ifc.sdg.lattice.WrongLatticeDefinitionException;
 
 
 //import org.eclipse.core.runtime.IProgressMonitor;

@@ -7,15 +7,10 @@
  */
 package edu.kit.joana.ifc.sdg.io.dot;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.jgrapht.ext.EdgeNameProvider;
-import org.jgrapht.ext.VertexNameProvider;
-
 import edu.kit.joana.ifc.sdg.graph.JoanaGraph;
-import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.io.dot.AbstractJoanaGraph2Dot;
 
 /**

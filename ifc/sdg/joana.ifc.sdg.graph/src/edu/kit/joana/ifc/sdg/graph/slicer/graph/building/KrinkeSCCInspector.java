@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Set;
 
 
-import org.jgrapht.alg.StrongConnectivityInspector;
+import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
 
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -57,8 +57,8 @@ public class KrinkeSCCInspector {
         }
 
         // then compute SCCs
-        StrongConnectivityInspector<SDGNode, SDGEdge> sci = new StrongConnectivityInspector<SDGNode, SDGEdge>(icfg);
-        List<Set<SDGNode>> erg = sci.stronglyConnectedSets();
+        KosarajuStrongConnectivityInspector<SDGNode, SDGEdge> ksci = new KosarajuStrongConnectivityInspector<SDGNode, SDGEdge>(icfg);
+        List<Set<SDGNode>> erg = ksci.stronglyConnectedSets();
 
         // put return edges back
         for (SDGEdge e : buffer) {
@@ -86,8 +86,8 @@ public class KrinkeSCCInspector {
         }
 
         // then compute SCCs
-        StrongConnectivityInspector<SDGNode, SDGEdge> sci = new StrongConnectivityInspector<SDGNode, SDGEdge>(icfg);
-        List<Set<SDGNode>> erg = sci.stronglyConnectedSets();
+        KosarajuStrongConnectivityInspector<SDGNode, SDGEdge> ksci = new KosarajuStrongConnectivityInspector<SDGNode, SDGEdge>(icfg);
+        List<Set<SDGNode>> erg = ksci.stronglyConnectedSets();
 
         // put call edges back
         for (SDGEdge e : buffer) {

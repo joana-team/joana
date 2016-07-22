@@ -72,7 +72,8 @@ public class GVOptionPane extends JComponent implements BundleConstants, Languag
         String[] options = new String[] { this.translator
                 .getString(new Resource(MAIN_FRAME_BUNDLE, "ok.label")) };
         JOptionPane.showOptionDialog(this.owner, this.translator
-                .getString(message), this.translator.getString(new Resource(
+                .getString(message) + (message.hasOpt() ? message.getOpt() : ""),
+                this.translator.getString(new Resource(
                 MAIN_FRAME_BUNDLE, "error.dialog.title")),
                 JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE, null,
                 options, options[0]);

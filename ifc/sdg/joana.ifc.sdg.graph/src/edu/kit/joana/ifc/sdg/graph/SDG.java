@@ -10,7 +10,6 @@ package edu.kit.joana.ifc.sdg.graph;
  * Created on Feb 25, 2004
  */
 
-import edu.kit.joana.ifc.sdg.graph.SDG_Parser.SDGHeader;
 import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 

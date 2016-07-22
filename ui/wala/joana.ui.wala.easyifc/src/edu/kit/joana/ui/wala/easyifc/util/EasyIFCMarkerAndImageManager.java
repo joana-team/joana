@@ -119,6 +119,8 @@ public class EasyIFCMarkerAndImageManager {
         	return Activator.getImageDescriptor(ILLEGAL_FLOW_THREAD_IMG).createImage();
     	case THREAD_EXCEPTION:
         	return Activator.getImageDescriptor(ILLEGAL_FLOW_THREAD_EXC_IMG).createImage();
+		case UNKNOWN: //no action
+			break;
     	}
     	
     	return Activator.getImageDescriptor(ILLEGAL_FLOW_IMG).createImage();

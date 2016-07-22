@@ -32,8 +32,6 @@ import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.WalaException;
 import com.ibm.wala.util.graph.Graph;
 import com.ibm.wala.viz.DotUtil;
-import com.ibm.wala.viz.NodeDecorator;
-
 import edu.kit.joana.wala.flowless.pointsto.GraphAnnotater;
 import edu.kit.joana.wala.flowless.pointsto.MatchPTSWithFlowLess;
 import edu.kit.joana.wala.flowless.pointsto.PointsToSetBuilder;

@@ -69,7 +69,7 @@ import gnu.trove.map.hash.TIntObjectHashMap;
  */
 public class WalaSDGInterferenceComputation {
 
-	private final SDG sdg;
+	private final SDG<InstanceKey> sdg;
 	private final CallGraph cg;
 	private final HeapModel heap;
 
@@ -106,8 +106,8 @@ public class WalaSDGInterferenceComputation {
 	private final TIntObjectHashMap<MutableIntSet> readWrite;
 	private final TIntObjectHashMap<MutableIntSet> writeWrite;
 
-	public WalaSDGInterferenceComputation(SDG sdg, CallGraph cg, boolean optimizeThisAccess, boolean useEscapeAnalysis,
-			HeapGraph hg, IKey2Origin k2o) {
+	public WalaSDGInterferenceComputation(SDG<InstanceKey> sdg, CallGraph cg, boolean optimizeThisAccess, boolean useEscapeAnalysis,
+			HeapGraph<InstanceKey> hg, IKey2Origin k2o) {
 		this.sdg = sdg;
 		this.cg = cg;
 		this.k2o = k2o;
@@ -156,7 +156,7 @@ public class WalaSDGInterferenceComputation {
 		Log.info("Computing read-write/write-write interference for threads");
 
 		for (CGNode cgNode : cg) {
-			PDG pdg = sdg.getPDG(cgNode);
+			PDG<InstanceKey> pdg = sdg.getPDG(cgNode);
 
 			Set<HeapWrite> writes = getHeapWrites(pdg);
 
@@ -276,7 +276,7 @@ public class WalaSDGInterferenceComputation {
 		}
 	}
 
-	private boolean mayRunInParallelThreads(PDG pdg1, PDG pdg2) {
+	private boolean mayRunInParallelThreads(PDG<InstanceKey> pdg1, PDG<InstanceKey> pdg2) {
 		int pdg1Id = cg.getNumber(pdg1.getCallGraphNode());
 		IntSet tids1 = getFromMapSet(pdgId2threadIds, pdg1Id);
 		int pdg2Id = cg.getNumber(pdg2.getCallGraphNode());
@@ -315,7 +315,7 @@ public class WalaSDGInterferenceComputation {
 		return false;
 	}
 
-	private Set<NormalStatement> findGets(PDG pdg) {
+	private Set<NormalStatement> findGets(PDG<InstanceKey> pdg) {
 		Set<NormalStatement> gets = HashSetFactory.make();
 
 		for (Statement stat : pdg) {
@@ -331,7 +331,7 @@ public class WalaSDGInterferenceComputation {
 		return gets;
 	}
 
-	private Set<NormalStatement> findArrayGets(PDG pdg) {
+	private Set<NormalStatement> findArrayGets(PDG<InstanceKey> pdg) {
 		Set<NormalStatement> gets = HashSetFactory.make();
 
 		for (Statement stat : pdg) {
@@ -347,7 +347,7 @@ public class WalaSDGInterferenceComputation {
 		return gets;
 	}
 
-	private Set<NormalStatement> findSyncs(PDG pdg) {
+	private Set<NormalStatement> findSyncs(PDG<InstanceKey> pdg) {
 		Set<NormalStatement> syncs = HashSetFactory.make();
 
 		for (Statement stat : pdg) {
@@ -363,7 +363,7 @@ public class WalaSDGInterferenceComputation {
 		return syncs;
 	}
 
-	private static Statement findEntryNode(PDG pdg) {
+	private static Statement findEntryNode(PDG<InstanceKey> pdg) {
 		for (Statement st : pdg) {
 			if (st.getKind() == Kind.METHOD_ENTRY) {
 				return st;
@@ -373,7 +373,7 @@ public class WalaSDGInterferenceComputation {
 		throw new IllegalStateException("A pdg must have an entry node! " + pdg);
 	}
 
-	private static Statement findExitNode(PDG pdg) {
+	private static Statement findExitNode(PDG<InstanceKey> pdg) {
 		for (Statement st : pdg) {
 			if (st.getKind() == Kind.METHOD_EXIT) {
 				return st;
@@ -383,7 +383,7 @@ public class WalaSDGInterferenceComputation {
 		throw new IllegalStateException("A pdg must have an exit node! " + pdg);
 	}
 
-	private Set<HeapRead> getHeapReads(PDG pdg) {
+	private Set<HeapRead> getHeapReads(PDG<InstanceKey> pdg) {
 		Set<HeapRead> hreads = HashSetFactory.make();
 
 		final CGNode cgNode = pdg.getCallGraphNode();
@@ -516,7 +516,7 @@ public class WalaSDGInterferenceComputation {
 		return hreads;
 	}
 
-	private Set<InstanceKeyOrigin> getPossibleAllocationSites(PDG pdg, int var) {
+	private Set<InstanceKeyOrigin> getPossibleAllocationSites(PDG<InstanceKey> pdg, int var) {
 		Set<InstanceKeyOrigin> result = HashSetFactory.make();
 		PointerKey pk = heap.getPointerKeyForLocal(pdg.getCallGraphNode(), var);
 		OrdinalSet<InstanceKey> iks = pts.getPointsToSet(pk);
@@ -530,7 +530,7 @@ public class WalaSDGInterferenceComputation {
 		return result;
 	}
 
-	private boolean mayBeEscaping(PDG pdg, SSAPutInstruction set) {
+	private boolean mayBeEscaping(PDG<InstanceKey> pdg, SSAPutInstruction set) {
 		if (escape != null && !set.isStatic()) {
 			//TODO add write only if it possibly escapes the thread.run
 			// method
@@ -563,7 +563,7 @@ public class WalaSDGInterferenceComputation {
 		}
 	}
 
-	private Set<NormalStatement> findSets(PDG pdg) {
+	private Set<NormalStatement> findSets(PDG<InstanceKey> pdg) {
 		Set<NormalStatement> gets = HashSetFactory.make();
 
 		for (Statement stat : pdg) {
@@ -579,7 +579,7 @@ public class WalaSDGInterferenceComputation {
 		return gets;
 	}
 
-	private Set<NormalStatement> findArraySets(PDG pdg) {
+	private Set<NormalStatement> findArraySets(PDG<InstanceKey> pdg) {
 		Set<NormalStatement> gets = HashSetFactory.make();
 
 		for (Statement stat : pdg) {
@@ -595,7 +595,7 @@ public class WalaSDGInterferenceComputation {
 		return gets;
 	}
 
-	private Set<HeapWrite> getHeapWrites(PDG pdg) throws WalaException {
+	private Set<HeapWrite> getHeapWrites(PDG<InstanceKey> pdg) throws WalaException {
 		Set<HeapWrite> hwrites = HashSetFactory.make();
 
 		final CGNode cgNode = pdg.getCallGraphNode();

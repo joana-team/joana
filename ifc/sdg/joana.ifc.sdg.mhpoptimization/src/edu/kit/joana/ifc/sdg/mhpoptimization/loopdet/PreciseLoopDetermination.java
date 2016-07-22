@@ -12,7 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.jgrapht.alg.StrongConnectivityInspector;
+import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
 
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -115,8 +115,8 @@ public class PreciseLoopDetermination extends ModularLoopDetermination {
 	 * @return list of all strongly-connected components of the control-flow graph
 	 */
 	private List<Set<SDGNode>> computeSCCs() {
-		StrongConnectivityInspector<SDGNode, SDGEdge> sci = new StrongConnectivityInspector<SDGNode, SDGEdge>(cfg);
-		return sci.stronglyConnectedSets();
+		KosarajuStrongConnectivityInspector<SDGNode, SDGEdge> ksci = new KosarajuStrongConnectivityInspector<SDGNode, SDGEdge>(cfg);
+		return ksci.stronglyConnectedSets();
 	}
 	
 	/**

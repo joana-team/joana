@@ -88,6 +88,7 @@ public class RegionBasedCDomOracle implements ICDomOracle {
 		return false;
 	}
 
+	@SuppressWarnings("unused")
 	private boolean differentMHPProperty(final ThreadRegion tr1, final ThreadRegion tr2) {
 		for (final ThreadRegion tr : mhp.getThreadRegions()) {
 			if (mhp.isParallel(tr1, tr) != mhp.isParallel(tr2, tr)) {

@@ -64,6 +64,7 @@ public class ProbablyNotInitilizedAnalysis {
 	/**
 	 * controls numbering of class access instructions for use in tabulation
 	 */
+	@SuppressWarnings("serial")
 	private class NotInitializedDomain extends MutableMapping<Pair<CGNode, Integer>> implements
 			TabulationDomain<Pair<CGNode, Integer>, BasicBlockInContext<IExplodedBasicBlock>> {
 

@@ -11,9 +11,11 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.chopper.Chopper;
 import edu.kit.joana.ifc.sdg.graph.chopper.conc.ContextSensitiveThreadChopper;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.BundleConstants;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Resource;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Translator;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVMenu;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVOptionPane;
 
 import java.awt.Color;
 import java.awt.event.MouseAdapter;
@@ -37,7 +39,7 @@ import org.jgraph.graph.DefaultGraphModel;
 import org.jgraph.graph.GraphLayoutCache;
 import org.jgraph.graph.GraphModel;
 
-public class ChoppingMenu extends GVMenu implements ChangeListener {
+public class ChoppingMenu extends GVMenu implements ChangeListener, BundleConstants {
 	/**
 	 *
 	 */
@@ -144,6 +146,18 @@ public class ChoppingMenu extends GVMenu implements ChangeListener {
 					graph = graphPane.getSelectedGraph().getCompleteSDG();
 					SDGNode source = graph.getNode(sourceNum);
 					SDGNode target = graph.getNode(targetNum);
+					
+					if (source == null) {
+						GVOptionPane optionPane = new GVOptionPane(mainFrame);
+						optionPane.showErrorDialog(new Resource(ACTIONS_BUNDLE,
+								"Chopping.error_nosuchnode.message", " " + sourceNum));
+						return;
+					} else if (target == null) {
+						GVOptionPane optionPane = new GVOptionPane(mainFrame);
+						optionPane.showErrorDialog(new Resource(ACTIONS_BUNDLE,
+								"Chopping.error_nosuchnode.message", " " + targetNum));
+						return;
+					}
 
 					if (chopper == null) {
 						chopper = new ContextSensitiveThreadChopper(graph);

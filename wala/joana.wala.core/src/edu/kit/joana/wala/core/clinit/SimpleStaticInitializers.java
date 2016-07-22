@@ -44,6 +44,7 @@ import edu.kit.joana.wala.util.NotImplementedException;
  * @deprecated Not used => We start earlier by using the fakeWorldClinit method of wala. We keep this here to serve as
  * starting point for the not-so-simple precise static initializer treatment that is yet to come.
  */
+@Deprecated
 public class SimpleStaticInitializers {
 
 	private final SDGBuilder sdg;

@@ -11,8 +11,6 @@
  */
 package edu.kit.joana.ifc.sdg.core;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
 
@@ -26,7 +24,6 @@ import edu.kit.joana.ifc.sdg.graph.chopper.barrier.BarrierChopper;
 import edu.kit.joana.ifc.sdg.graph.chopper.barrier.NonSameLevelBarrierChopper;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
-import edu.kit.joana.ifc.sdg.lattice.WrongLatticeDefinitionException;
 
 
 /**

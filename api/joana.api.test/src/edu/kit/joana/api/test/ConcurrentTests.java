@@ -24,13 +24,15 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
+import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
+import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 
 /**
  * @author Martin Mohr
  */
 public class ConcurrentTests {
 
-	private static final boolean FORCE_REBUILD = false;
+	private static final boolean FORCE_REBUILD = true;
 
 	private static final Map<String, TestData> testData = new HashMap<String, TestData>();
 
@@ -47,8 +49,8 @@ public class ConcurrentTests {
 			new TestData("joana.api.testdata.conc.ThreadHierarchy", "thread_hierarchy.pdg", 15, 0));
 		testData.put("two_threads_sequential",
 			new TestData("joana.api.testdata.conc.TwoThreadsSequential", "two_threads_sequential.pdg", 2, 0));
-		testData.put("simple_recursive_spawning", new TestData("joana.api.testdata.conc.SimpleRecursiveSpawning", "simple_recursive_spawning.pdg", 4, 1));
-		testData.put("spawning_in_recursive_cycle", new TestData("joana.api.testdata.conc.SpawningInRecursiveCycle", "spawning_in_recursive_cycle.pdg", 5, 2));
+		testData.put("simple_recursive_spawning", new TestData("joana.api.testdata.conc.SimpleRecursiveSpawning", PointsToPrecision.N1_CALL_STACK, "simple_recursive_spawning.pdg", 4, 1));
+		testData.put("spawning_in_recursive_cycle", new TestData("joana.api.testdata.conc.SpawningInRecursiveCycle", PointsToPrecision.N1_CALL_STACK, "spawning_in_recursive_cycle.pdg", 5, 2));
 		testData.put("recursive_spawning", new TestData("joana.api.testdata.conc.RecursiveSpawning", "recursive_spawning.pdg", 3, 1));
 	}
 
@@ -134,12 +136,12 @@ public class ConcurrentTests {
 	
 	public static void buildOrLoad(TestData td) {
 		if (FORCE_REBUILD) {
-			final BuildSDG b = BuildSDG.standardConcSetup(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, td.mainClass, td.sdgFile);
+			final BuildSDG b = BuildSDG.standardConcSetup(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, JavaMethodSignature.mainMethodOfClass(td.mainClass), td.sdgFile, td.ptsPrecToUse);
 			b.run();
 		} else {
 			final File f = new File(td.sdgFile);
 			if (!f.exists() || !f.canRead()) {
-				final BuildSDG b = BuildSDG.standardConcSetup(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, td.mainClass, td.sdgFile);
+				final BuildSDG b = BuildSDG.standardConcSetup(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, JavaMethodSignature.mainMethodOfClass(td.mainClass), td.sdgFile, td.ptsPrecToUse);
 				b.run();
 			}
 		}
@@ -189,15 +191,21 @@ public class ConcurrentTests {
 
 	private static class TestData {
 		private final String mainClass;
+		private final PointsToPrecision ptsPrecToUse;
 		private final String sdgFile;
 		private final int expectedNumberOfThreads;
 		private final int expectedNumberOfDynamicThreads;
 
-		TestData(String mainClass, String sdgFile, int expectedNumberOfDynamicThreads, int expectedNumberOfNonDynamicThreads) {
-			this.expectedNumberOfThreads = expectedNumberOfDynamicThreads;
-			this.expectedNumberOfDynamicThreads = expectedNumberOfNonDynamicThreads;
+		TestData(String mainClass, String sdgFile, int expectedNumberOfThreads, int expectedNumberOfDynamicThreads) {
+			this(mainClass, PointsToPrecision.INSTANCE_BASED, sdgFile, expectedNumberOfThreads, expectedNumberOfDynamicThreads);
+		}
+
+		TestData(String mainClass, PointsToPrecision ptsPrecToUse, String sdgFile, int expectedNumberOfThreads, int expectedNumberOfDynamicThreads) {
+			this.expectedNumberOfThreads = expectedNumberOfThreads;
+			this.expectedNumberOfDynamicThreads = expectedNumberOfDynamicThreads;
 			this.mainClass = mainClass;
 			this.sdgFile = sdgFile;
+			this.ptsPrecToUse = ptsPrecToUse;
 		}
 	}
 

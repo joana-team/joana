@@ -387,6 +387,11 @@ public class CallGraphView extends JGraph implements AttributeMapAdjustmentsList
 				DefaultGraphCell cell = (DefaultGraphCell) getFirstCellForLocation(
 						event.getX(), event.getY());
 
+				if (cell == null) {
+					//we double-clicked at an empty space
+					return;
+				}
+				
 				final Object clicked = cell.getUserObject();
 				if (clicked instanceof SDGNode) {
 					int proc = ((SDGNode) clicked).getProc();

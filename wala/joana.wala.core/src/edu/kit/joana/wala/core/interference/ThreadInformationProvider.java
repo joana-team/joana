@@ -215,8 +215,9 @@ class ThreadEntryLocator {
 		if (ThreadInformationProvider.JavaLangThreadRun.getSelector().equals(sel)) {
 			IClassHierarchy cha = callGraph.getClassHierarchy();
 			IClass javaLangThread = cha.lookupClass(TypeReference.JavaLangThread);
+			IClass javaLangRunnable= cha.lookupClass(ThreadInformationProvider.JavaLangRunnable);
 			IClass klass = method.getDeclaringClass();
-			return cha.isSubclassOf(klass, javaLangThread);
+			return cha.isSubclassOf(klass, javaLangThread) || cha.implementsInterface(klass, javaLangRunnable);
 		} else {
 			return false;
 		}

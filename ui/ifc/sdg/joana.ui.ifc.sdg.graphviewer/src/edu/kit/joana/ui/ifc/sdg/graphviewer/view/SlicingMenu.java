@@ -33,14 +33,16 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.SummarySlicer;
 import edu.kit.joana.ifc.sdg.graph.slicer.SummarySlicerBackward;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.BundleConstants;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Resource;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Translator;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVMenu;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVOptionPane;
 
 
-public class SlicingMenu extends GVMenu implements ChangeListener {
+public class SlicingMenu extends GVMenu implements ChangeListener, BundleConstants {
 	private static final long serialVersionUID = 5431822284677678749L;
-//	private MainFrame mainFrame = null;
+	private MainFrame mainFrame = null;
 	private GraphPane graphPane = null;
 	public final String SOURCE = "criterion:";
 	private int sourceID = 0;
@@ -49,7 +51,7 @@ public class SlicingMenu extends GVMenu implements ChangeListener {
 	public SlicingMenu(MainFrame owner, Translator translator, Resource text, MenuBar menuBar) {
 		super(translator, text);
 		bildUnterMenu();
-//		this.mainFrame = owner;
+		this.mainFrame = owner;
 		menuBar.add(this);
 		this.graphPane = owner.getGraphPane();
 
@@ -130,6 +132,12 @@ public class SlicingMenu extends GVMenu implements ChangeListener {
 
 			if (graphPane.getSelectedIndex() != -1) {
 				SDGNode source = graph.getNode(sourceNum);
+				if (source == null) {
+					GVOptionPane optionPane = new GVOptionPane(mainFrame);
+					optionPane.showErrorDialog(new Resource(ACTIONS_BUNDLE,
+							"Slicing.error_nosuchnode.message", " " + sourceNum));
+					return;
+				}
 				SummarySlicer slicer = new SummarySlicerBackward(graph);
 				Collection<SDGNode> slice = slicer.slice(Collections.singleton(source));
 				System.out.println(slice);

@@ -129,6 +129,7 @@ public final class APUtil {
 		return sb.toString();
 	}
 	
+	@SuppressWarnings("unused")
 	private static String extractAliasStr(final AliasEdge e, final PDG pdg, final APIntraProc ap) {
 		final String from = extractAPstr(e.fromAlias, pdg, ap);
 		final String to = extractAPstr(e.toAlias, pdg, ap);
@@ -153,6 +154,7 @@ public final class APUtil {
 	}
 	
 
+	@SuppressWarnings("unused")
 	private static String extractFineGrainedAliasStr(final AliasEdge e, final APIntraProc ap) {
 		final APNode apFrom = ap.findAPNode(e.edge.from);
 		final APNode apTo = ap.findAPNode(e.edge.to);

@@ -35,7 +35,6 @@ import edu.kit.joana.wala.core.interference.ThreadInformationProvider;
  * @author Juergen Graf <juergen.graf@gmail.com>
  *
  */
-@SuppressWarnings("deprecation")
 public class NoThreadStartToRunCallGraph implements CallGraph {
 
 	private final CallGraph cg;
@@ -278,6 +277,11 @@ public class NoThreadStartToRunCallGraph implements CallGraph {
 	}
 
 	@Override
+	public CGNode getFakeWorldClinitNode() {
+		return cg.getFakeWorldClinitNode();
+	}
+
+	@Override
 	public Collection<CGNode> getEntrypointNodes() {
 		return cg.getEntrypointNodes();
 	}
@@ -335,5 +339,4 @@ public class NoThreadStartToRunCallGraph implements CallGraph {
 
 		return cg.getPossibleSites(src, target);
 	}
-
 }

@@ -42,6 +42,7 @@ import edu.kit.joana.wala.core.SDGBuilder;
  * @author Juergen Graf <juergen.graf@gmail.com>
  * @deprecated
  */
+@Deprecated
 public class OldFlatHeapParams {
 
 	private final SDGBuilder sdg;
@@ -322,7 +323,7 @@ public class OldFlatHeapParams {
 
 	private static OrdinalSet<InstanceKey> findReachableInstances(final PointerAnalysis<InstanceKey> pts,
 			final PointerKey pkStart) {
-		final HeapGraph hg = pts.getHeapGraph();
+		final HeapGraph<InstanceKey> hg = pts.getHeapGraph();
 		if (!hg.containsNode(pkStart)) {
 			return OrdinalSet.empty();
 		}

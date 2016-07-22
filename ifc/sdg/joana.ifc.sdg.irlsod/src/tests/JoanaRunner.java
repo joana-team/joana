@@ -144,25 +144,6 @@ public class JoanaRunner {
 		pw.close();
 	}
 
-	public static CFG unfoldCFGFor(final SDG sdg, final int thread) {
-		final CFG icfg = ICFGBuilder.extractICFG(sdg);
-		final CFG ret = new CFG();
-		for (final SDGNode n : icfg.vertexSet()) {
-			if (!RegionClusterBasedCDomOracle.possiblyExecutesIn(n, thread)) {
-				continue;
-			}
-			for (final SDGEdge e : icfg.outgoingEdgesOf(n)) {
-				if (!RegionClusterBasedCDomOracle.possiblyExecutesIn(e.getTarget(), thread)) {
-					continue;
-				}
-				ret.addVertex(n);
-				ret.addVertex(e.getTarget());
-				ret.addEdge(n, e.getTarget(), e);
-			}
-		}
-		return ret;
-	}
-
 	public static DirectedGraph<VirtualNode, SDGEdge> unfoldVirtualCFGFor(final SDG sdg, final int thread) {
 		final CFG icfg = ICFGBuilder.extractICFG(sdg);
 		final DirectedGraph<VirtualNode, SDGEdge> ret = new DefaultDirectedGraph<VirtualNode, SDGEdge>(SDGEdge.class);

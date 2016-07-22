@@ -9,13 +9,13 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
 import edu.kit.joana.ifc.sdg.util.graph.ThreadInformationUtil;
 import edu.kit.joana.wala.core.graphs.Dominators;
 import edu.kit.joana.wala.core.graphs.Dominators.DomEdge;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
-import tests.JoanaRunner;
 
 public class ThreadModularCDomOracle implements ICDomOracle {
 
@@ -50,7 +50,7 @@ public class ThreadModularCDomOracle implements ICDomOracle {
 			// 3.) find a common dominator of the two forks
 			CFG threadGraph = threadsToCFG.get(cAnc.getId());
 			if (threadGraph == null) {
-				threadGraph = JoanaRunner.unfoldCFGFor(sdg, cAnc.getId());
+				threadGraph = ThreadModularCDomOracle.unfoldCFGFor(sdg, cAnc.getId());
 				threadsToCFG.put(cAnc.getId(), threadGraph);
 			}
 			DynamicityAnalysis dyna = threadsToDyna.get(cAnc.getId());
@@ -125,5 +125,24 @@ public class ThreadModularCDomOracle implements ICDomOracle {
 			cur = dom.getIDom(cur);
 		}
 		return cur;
+	}
+
+	private static CFG unfoldCFGFor(final SDG sdg, final int thread) {
+		final CFG icfg = ICFGBuilder.extractICFG(sdg);
+		final CFG ret = new CFG();
+		for (final SDGNode n : icfg.vertexSet()) {
+			if (!RegionClusterBasedCDomOracle.possiblyExecutesIn(n, thread)) {
+				continue;
+			}
+			for (final SDGEdge e : icfg.outgoingEdgesOf(n)) {
+				if (!RegionClusterBasedCDomOracle.possiblyExecutesIn(e.getTarget(), thread)) {
+					continue;
+				}
+				ret.addVertex(n);
+				ret.addVertex(e.getTarget());
+				ret.addEdge(n, e.getTarget(), e);
+			}
+		}
+		return ret;
 	}
 }

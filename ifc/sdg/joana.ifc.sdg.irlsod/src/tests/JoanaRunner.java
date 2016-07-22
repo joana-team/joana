@@ -43,6 +43,7 @@ import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.ifc.sdg.util.graph.ThreadInformationUtil;
 import edu.kit.joana.ifc.sdg.util.graph.io.dot.MiscGraph2Dot;
+import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.ExternalCallCheck;
 import edu.kit.joana.wala.core.Main;
 import edu.kit.joana.wala.core.SDGBuilder;
@@ -52,6 +53,7 @@ import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
 import edu.kit.joana.wala.core.graphs.Dominators;
+import joana.contrib.lib.Contrib;
 
 public class JoanaRunner {
 
@@ -59,7 +61,7 @@ public class JoanaRunner {
 	// "/data1/mmohr/git/MixServer_verif/bin";
 	// public static final String MAIN_CLASS =
 	// "Lselectvoting/system/core/Setup";
-	public static final String CLASS_PATH = "example-bin";
+	public static final String CLASS_PATH = "example/bin";
 	public static final String MAIN_CLASS = "Lorlsod/ORLSOD2";
 	public static final String PDG_FILE = "orlsod2.pdg";
 
@@ -78,7 +80,7 @@ public class JoanaRunner {
 	private static AnalysisScope makeMinimalScope(final String appClassPath) throws IOException {
 		final AnalysisScope scope = AnalysisScope.createJavaAnalysisScope();
 		scope.addToScope(ClassLoaderReference.Application, new BinaryDirectoryTreeModule(new File(appClassPath)));
-		final URL url = JoanaRunner.class.getClassLoader().getResource("jSDG-stubs-jre1.4.jar");
+		final URL url = new File(Stubs.JRE_14.getPaths()[0]).toURI().toURL();
 		final URLConnection con = url.openConnection();
 		final InputStream in = con.getInputStream();
 		scope.addToScope(ClassLoaderReference.Primordial, new JarStreamModule(new JarInputStream(in)));

@@ -67,7 +67,7 @@ public class DomTree {
 		if (reduce) {
 			try {
 				reduce();
-				this.isReduced = false;
+				this.isReduced = true;
 			} catch (IllegalStateException e) {
 				throw new IllegalArgumentException(e);
 			}

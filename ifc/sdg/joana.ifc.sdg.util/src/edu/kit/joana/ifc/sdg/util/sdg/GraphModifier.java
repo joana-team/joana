@@ -16,12 +16,17 @@ import edu.kit.joana.ifc.sdg.graph.JoanaGraph;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind;
 
 /**
  * @author Martin Mohr
  */
 public class GraphModifier {
+	
+	private static final Logger debug = Log.getLogger(Log.L_IFC_DEBUG);
+	
 	public static void removeCallCallRetEdges(JoanaGraph cfg) {
 		List<SDGEdge> toRemove = new LinkedList<SDGEdge>();
 		for (SDGEdge e : cfg.edgeSet()) {
@@ -50,4 +55,19 @@ public class GraphModifier {
 		cfg.removeAllVertices(unreachable);
 	}
 
+	public static void removeCallExcEdges(final JoanaGraph cfg) {
+		final List<SDGEdge> toRemove = new LinkedList<SDGEdge>();
+		for (final SDGEdge e : cfg.edgeSet()) {
+			if ((e.getKind() == Kind.CONTROL_FLOW) && (e.getSource().getKind() == SDGNode.Kind.CALL)
+					&& (e.getTarget().getKind() == SDGNode.Kind.ACTUAL_OUT)
+					&& e.getTarget().getBytecodeName().equals(BytecodeLocation.EXCEPTION_PARAM)) {
+				if (cfg.outDegreeOf(e.getSource()) > 1) {
+					toRemove.add(e);
+				}
+			}
+		}
+		debug.outln("remove " + toRemove);
+		cfg.removeAllEdges(toRemove);
+		GraphModifier.removeUnreachable(cfg);
+	}
 }

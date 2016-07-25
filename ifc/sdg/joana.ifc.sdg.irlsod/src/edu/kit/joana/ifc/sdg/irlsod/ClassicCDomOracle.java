@@ -1,19 +1,13 @@
 package edu.kit.joana.ifc.sdg.irlsod;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import edu.kit.joana.graph.dominators.slca.DFSIntervalOrder;
-import edu.kit.joana.ifc.sdg.graph.JoanaGraph;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
-import edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
-import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.ifc.sdg.util.sdg.GraphModifier;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
@@ -34,22 +28,6 @@ public class ClassicCDomOracle implements ICDomOracle {
 		this.dom = Dominators.compute(icfg, icfg.getRoot());
 		this.dio = new DFSIntervalOrder<SDGNode, DomEdge>(dom.getDominationTree());
 		this.mhp = mhp;
-	}
-
-	public static void removeCallExcEdges(final JoanaGraph cfg) {
-		final List<SDGEdge> toRemove = new LinkedList<SDGEdge>();
-		for (final SDGEdge e : cfg.edgeSet()) {
-			if ((e.getKind() == Kind.CONTROL_FLOW) && (e.getSource().getKind() == SDGNode.Kind.CALL)
-					&& (e.getTarget().getKind() == SDGNode.Kind.ACTUAL_OUT)
-					&& e.getTarget().getBytecodeName().equals(BytecodeLocation.EXCEPTION_PARAM)) {
-				if (cfg.outDegreeOf(e.getSource()) > 1) {
-					toRemove.add(e);
-				}
-			}
-		}
-		debug.outln("remove " + toRemove);
-		cfg.removeAllEdges(toRemove);
-		GraphModifier.removeUnreachable(cfg);
 	}
 
 	@Override

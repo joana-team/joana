@@ -33,6 +33,9 @@ public class RegionBasedCDomOracle implements ICDomOracle {
 	public void buildRegionGraph() {
 		this.regionGraph = new DefaultDirectedGraph<ThreadRegion, DefaultEdge>(DefaultEdge.class);
 		this.icfg = ICFGBuilder.extractICFG(sdg);
+		for (ThreadRegion region : mhp.getThreadRegions()) {
+			regionGraph.addVertex(region);
+		}
 		for (final SDGNode n : icfg.vertexSet()) {
 			for (final int threadN : n.getThreadNumbers()) {
 				final ThreadRegion trSource = mhp.getThreadRegion(n, threadN);

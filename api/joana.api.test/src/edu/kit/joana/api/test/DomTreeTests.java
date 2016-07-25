@@ -16,6 +16,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Set;
+import java.util.function.BiFunction;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -45,25 +47,31 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
 import edu.kit.joana.ifc.sdg.io.graphml.SDG2GraphML;
 import edu.kit.joana.ifc.sdg.irlsod.DomTree;
 import edu.kit.joana.ifc.sdg.irlsod.ICDomOracle;
+import edu.kit.joana.ifc.sdg.irlsod.RegionBasedCDomOracle;
 import edu.kit.joana.ifc.sdg.irlsod.ThreadModularCDomOracle;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.graph.ThreadInformationUtil;
 import edu.kit.joana.ifc.sdg.util.graph.io.dot.MiscGraph2Dot;
+import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
+import junit.framework.Assert;
 
 /**
  * @author Martin Hecker <martin.hecker@kit.edu>
  */
 public class DomTreeTests {
 
+	static enum Result { CYCLIC, ACYCLIC };
+	
 	static final Stubs STUBS = Stubs.JRE_14;
 
 	static final boolean outputPDGFiles = true;
 	static final boolean outputGraphMLFiles = false;
+	static final boolean outputDotFiles = false;
 	
 	static final String outputDir = "out";
 	
@@ -97,28 +105,59 @@ public class DomTreeTests {
 		return ana;
 	}
 
-	
-	private static <T> void testDomTree(Class<T> clazz) throws ClassHierarchyException, ApiTestException,
-	IOException, UnsoundGraphException, CancelException {
-		final String classname = clazz.getCanonicalName();
-		{ // There are leaks, and we're sound and hence report them
-			IFCAnalysis ana = build(clazz, top_concurrent);
+	private static BiFunction<SDG, PreciseMHPAnalysis, ICDomOracle> newRegionBasedCDomOracle =
+		(sdg,mhp) -> {
+			RegionBasedCDomOracle oracle = new RegionBasedCDomOracle(sdg, mhp);
+			oracle.buildRegionGraph();
+			return oracle;
+		};
 
-			if (outputPDGFiles) {
-				dumpSDG(ana.getProgram().getSDG(), classname + ".pdg");
-			}
-			if (outputGraphMLFiles) {
-				dumpGraphML(ana.getProgram().getSDG(), classname + ".pdg");
-			}
-			final SDG sdg = ana.getProgram().getSDG();
-			final MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
-			final ICDomOracle oracle = new ThreadModularCDomOracle(sdg);
-			final DomTree tree = new DomTree(sdg  , oracle , mhp);
-			final DirectedGraph<ThreadInstance, DefaultEdge> tct = ThreadInformationUtil.buildThreadCreationTree(sdg.getThreadsInfo());
-			MiscGraph2Dot.export(tree.getTree(), MiscGraph2Dot.cdomTreeExporter(), outputDir + "/" + classname + ".cdom.dot");
-			MiscGraph2Dot.export(tct,            MiscGraph2Dot.tctExporter(),      outputDir + "/" + classname + ".tct.dot");
-			CycleDetector<VirtualNode, DefaultEdge> detector = new CycleDetector<>(tree.getTree());
-			System.out.println(detector.findCycles());
+	private static BiFunction<SDG, PreciseMHPAnalysis, ICDomOracle> newThreadModularCDomOracle =
+			(sdg,mhp) -> new ThreadModularCDomOracle(sdg);
+	
+	private static class Common {
+		PreciseMHPAnalysis mhp;
+		SDG sdg;
+		DirectedGraph<ThreadInstance, DefaultEdge> tct;
+		String classname;
+	};
+	
+	private static <T> Common getCommon(Class<T> clazz) throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+		final Common result = new Common();
+		result.classname = clazz.getCanonicalName();
+		IFCAnalysis ana = build(clazz, top_concurrent);
+		result.sdg = ana.getProgram().getSDG();
+		result.mhp = PreciseMHPAnalysis.analyze(result.sdg);
+		result.tct = ThreadInformationUtil.buildThreadCreationTree(result.sdg.getThreadsInfo());
+
+		if (outputPDGFiles) {
+			dumpSDG(ana.getProgram().getSDG(), result.classname + ".pdg");
+		}
+		if (outputGraphMLFiles) {
+			dumpGraphML(ana.getProgram().getSDG(), result.classname + ".pdg");
+		}
+		if (outputDotFiles) {
+			MiscGraph2Dot.export(result.tct, MiscGraph2Dot.tctExporter(), outputDir + "/" + result.classname + ".tct.dot");	
+		}
+		
+		return result;
+	}
+	
+	private static <T> void testDomTree(Common common, BiFunction<SDG, PreciseMHPAnalysis, ICDomOracle> newOracle, Result result)
+			throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException, CancelException {
+		final ICDomOracle oracle = newOracle.apply(common.sdg,common.mhp);
+		final DomTree tree = new DomTree(common.sdg, oracle , common.mhp);
+		
+		if (outputDotFiles) {
+			MiscGraph2Dot.export(tree.getTree(), MiscGraph2Dot.cdomTreeExporter(), outputDir + "/" + common.classname + ".cdom.dot");	
+		}
+		
+		CycleDetector<VirtualNode, DefaultEdge> detector = new CycleDetector<>(tree.getTree());
+		final Set<VirtualNode> cycles = detector.findCycles();
+		
+		switch (result) {
+			case CYCLIC : assertFalse( 0 == cycles.size()); break;
+			case ACYCLIC: assertTrue(  0 == cycles.size()); break;
 		}
 	}
 	
@@ -139,151 +178,200 @@ public class DomTreeTests {
 		}
 	}
 
+	public static void main(String[] args) throws
+			ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException, CancelException {
+		new DomTreeTests().testPossibilisticLeaks();
+	}
 
 	/*
 	 * For now, one time-consuming test is enough :) 
 	@Test
 	public void testDe_uni_trier_infsec_core_Setup() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testDomTree(       de.uni.trier.infsec.core.Setup.class);
+		final Common common = getCommon(       de.uni.trier.infsec.core.Setup.class);
+		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 	}
 	 */
 	
 	@Test
 	public void testDe_uni_trier_infsec_core_SetupNoLeak() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testDomTree(       de.uni.trier.infsec.core.SetupNoLeak.class);
-
+		final Common common = getCommon(de.uni.trier.infsec.core.SetupNoLeak.class);
+		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 	}
 	
 	@Test
 	public void testPossibilisticLeaks() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testDomTree(       joana.api.testdata.demo.PossibilisticLeaks.class);
+		final Common common = getCommon(       joana.api.testdata.demo.PossibilisticLeaks.class);
+		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 
 	}
 	
 	@Test
 	public void testProbabilisticOKDueToJoin() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testDomTree(     joana.api.testdata.demo.ProbabilisticOKDueToJoin.class);
+		final Common common = getCommon(     joana.api.testdata.demo.ProbabilisticOKDueToJoin.class);
+		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 
 	}
 	
 	@Test
 	public void testProbabilisticLeaks() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testDomTree(       joana.api.testdata.demo.ProbabilisticLeaks.class);
+		final Common common = getCommon(       joana.api.testdata.demo.ProbabilisticLeaks.class);
+		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 	}
 	
 	@Test
 	public void testProbabilisticOK() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testDomTree(joana.api.testdata.demo.ProbabilisticOK.class); // see comment in test data class
+		final Common common = getCommon(joana.api.testdata.demo.ProbabilisticOK.class);
+		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC); // see comment in test data class
 	}
 	
 	@Test
 	public void testProbabilisticSmall() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testDomTree(joana.api.testdata.demo.Prob_Small.class);
+		final Common common = getCommon(joana.api.testdata.demo.Prob_Small.class);
+		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 
 	}
 	
 	@Test
 	public void testFig2_1() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testDomTree(       joana.api.testdata.demo.Fig2_1.class);
+		final Common common = getCommon(       joana.api.testdata.demo.Fig2_1.class);
+		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 	}
 	
 	@Test
 	public void testFig2_2() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testDomTree(       joana.api.testdata.demo.Fig2_2.class);
+		final Common common = getCommon(       joana.api.testdata.demo.Fig2_2.class);
+		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 	}
 	
 	@Test
 	public void testFig2_3() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testDomTree(       joana.api.testdata.demo.Fig2_3.class);
+		final Common common = getCommon(       joana.api.testdata.demo.Fig2_3.class);
+		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 
 	}
 	
 	@Test
 	public void testFig3_1() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testDomTree(     joana.api.testdata.demo.Fig3_1.class);
+		final Common common = getCommon(     joana.api.testdata.demo.Fig3_1.class);
+		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 
 	}
 	
 	@Test
 	public void testFig3_2() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testDomTree(     joana.api.testdata.demo.Fig3_2.class);
+		final Common common = getCommon(     joana.api.testdata.demo.Fig3_2.class);
+		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 	}
 	
 	@Test
 	public void testFig3_3() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testDomTree(       joana.api.testdata.demo.Fig3_3.class);
+		final Common common = getCommon(       joana.api.testdata.demo.Fig3_3.class);
+		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 	}
 	
 	@Test
 	public void testLateSecretAccess() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testDomTree(       joana.api.testdata.demo.xrlsod.LateSecretAccess.class);
+		final Common common = getCommon(       joana.api.testdata.demo.xrlsod.LateSecretAccess.class);
+		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 	}
 	
 	@Test
 	public void testNoSecret() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testDomTree(       joana.api.testdata.demo.xrlsod.NoSecret.class);
+		final Common common = getCommon(       joana.api.testdata.demo.xrlsod.NoSecret.class);
+		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 	}
 	
 	@Test
 	public void testORLSOD1() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testDomTree(       joana.api.testdata.demo.xrlsod.ORLSOD1.class);
+		final Common common = getCommon(       joana.api.testdata.demo.xrlsod.ORLSOD1.class);
+		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 	}
 	
 	@Test
 	public void testORLSOD2() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testDomTree(       joana.api.testdata.demo.xrlsod.ORLSOD2.class);
+		final Common common = getCommon(       joana.api.testdata.demo.xrlsod.ORLSOD2.class);
+		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 	}
 	
 	@Test
 	public void testORLSOD3() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testDomTree(       joana.api.testdata.demo.xrlsod.ORLSOD3.class);
+		final Common common = getCommon(       joana.api.testdata.demo.xrlsod.ORLSOD3.class);
+		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.CYCLIC);
 	}
 	
 	@Test
 	public void testORLSOD4() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testDomTree(       joana.api.testdata.demo.xrlsod.ORLSOD4.class);
+		final Common common = getCommon(       joana.api.testdata.demo.xrlsod.ORLSOD4.class);
+		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.CYCLIC);
 	}
 	
 	@Test
 	public void testORLSOD5a() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testDomTree(joana.api.testdata.demo.xrlsod.ORLSOD5a.class);
+		final Common common = getCommon(joana.api.testdata.demo.xrlsod.ORLSOD5a.class);
+		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.CYCLIC);
 	}
 	
 	@Test
 	public void testORLSOD5b() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testDomTree(       joana.api.testdata.demo.xrlsod.ORLSOD5b.class);
+		final Common common = getCommon(       joana.api.testdata.demo.xrlsod.ORLSOD5b.class);
+		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.CYCLIC);
 	}
 	
 	@Test
 	public void testORLSOD5Secure() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testDomTree(       joana.api.testdata.demo.xrlsod.ORLSOD5Secure.class);
+		final Common common = getCommon(       joana.api.testdata.demo.xrlsod.ORLSOD5Secure.class);
+		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.CYCLIC);
 	}
 	
 	@Test
 	public void testORLSODImprecise() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testDomTree(joana.api.testdata.demo.xrlsod.ORLSODImprecise.class);
+		final Common common = getCommon(joana.api.testdata.demo.xrlsod.ORLSODImprecise.class);
+		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 	}
 }

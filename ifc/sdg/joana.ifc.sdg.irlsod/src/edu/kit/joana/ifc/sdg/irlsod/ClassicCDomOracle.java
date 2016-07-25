@@ -15,11 +15,15 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.ifc.sdg.util.sdg.GraphModifier;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.core.graphs.Dominators;
 import edu.kit.joana.wala.core.graphs.Dominators.DomEdge;
 
 public class ClassicCDomOracle implements ICDomOracle {
 
+	private static final Logger debug = Log.getLogger(Log.L_IFC_DEBUG);
+	
 	private final Dominators<SDGNode, SDGEdge> dom;
 	private final DFSIntervalOrder<SDGNode, DomEdge> dio;
 	private final MHPAnalysis mhp;
@@ -43,7 +47,7 @@ public class ClassicCDomOracle implements ICDomOracle {
 				}
 			}
 		}
-		System.out.println("remove " + toRemove);
+		debug.outln("remove " + toRemove);
 		cfg.removeAllEdges(toRemove);
 		GraphModifier.removeUnreachable(cfg);
 	}
@@ -59,7 +63,7 @@ public class ClassicCDomOracle implements ICDomOracle {
 			while (!this.dio.isLeq(n2, cur) || mhp.isParallel(n1, cur) || mhp.isParallel(n2, cur)) {
 				cur = dom.getIDom(cur);
 			}
-			System.out.println(String.format("icdom(%s,%s) = %s", n1, n2, cur));
+			debug.outln(String.format("icdom(%s,%s) = %s", n1, n2, cur));
 			return new VirtualNode(cur, cur.getThreadNumbers()[0]);
 		}
 	}

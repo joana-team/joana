@@ -45,6 +45,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
 import edu.kit.joana.ifc.sdg.io.graphml.SDG2GraphML;
+import edu.kit.joana.ifc.sdg.irlsod.ClassicCDomOracle;
 import edu.kit.joana.ifc.sdg.irlsod.DomTree;
 import edu.kit.joana.ifc.sdg.irlsod.ICDomOracle;
 import edu.kit.joana.ifc.sdg.irlsod.RegionBasedCDomOracle;
@@ -69,9 +70,9 @@ public class DomTreeTests {
 	
 	static final Stubs STUBS = Stubs.JRE_14;
 
-	static final boolean outputPDGFiles = true;
+	static final boolean outputPDGFiles = false;
 	static final boolean outputGraphMLFiles = false;
-	static final boolean outputDotFiles = false;
+	static final boolean outputDotFiles = true;
 	
 	static final String outputDir = "out";
 	
@@ -109,6 +110,12 @@ public class DomTreeTests {
 		(sdg,mhp) -> {
 			RegionBasedCDomOracle oracle = new RegionBasedCDomOracle(sdg, mhp);
 			oracle.buildRegionGraph();
+			return oracle;
+		};
+		
+	private static BiFunction<SDG, PreciseMHPAnalysis, ICDomOracle> newClassicCDomOracle =
+		(sdg,mhp) -> {
+			ClassicCDomOracle oracle = new ClassicCDomOracle(sdg, mhp);
 			return oracle;
 		};
 
@@ -200,6 +207,7 @@ public class DomTreeTests {
 		final Common common = getCommon(de.uni.trier.infsec.core.SetupNoLeak.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
+		testDomTree(common, newClassicCDomOracle      , Result.CYCLIC);
 	}
 	
 	@Test
@@ -208,6 +216,7 @@ public class DomTreeTests {
 		final Common common = getCommon(       joana.api.testdata.demo.PossibilisticLeaks.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
+		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 
 	}
 	
@@ -217,7 +226,7 @@ public class DomTreeTests {
 		final Common common = getCommon(     joana.api.testdata.demo.ProbabilisticOKDueToJoin.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
-
+		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 	}
 	
 	@Test
@@ -226,6 +235,7 @@ public class DomTreeTests {
 		final Common common = getCommon(       joana.api.testdata.demo.ProbabilisticLeaks.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
+		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 	}
 	
 	@Test
@@ -234,6 +244,7 @@ public class DomTreeTests {
 		final Common common = getCommon(joana.api.testdata.demo.ProbabilisticOK.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC); // see comment in test data class
+		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC); // see comment in test data class
 	}
 	
 	@Test
@@ -242,6 +253,7 @@ public class DomTreeTests {
 		final Common common = getCommon(joana.api.testdata.demo.Prob_Small.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
+		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 
 	}
 	
@@ -251,6 +263,7 @@ public class DomTreeTests {
 		final Common common = getCommon(       joana.api.testdata.demo.Fig2_1.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
+		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 	}
 	
 	@Test
@@ -259,6 +272,7 @@ public class DomTreeTests {
 		final Common common = getCommon(       joana.api.testdata.demo.Fig2_2.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
+		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 	}
 	
 	@Test
@@ -267,6 +281,7 @@ public class DomTreeTests {
 		final Common common = getCommon(       joana.api.testdata.demo.Fig2_3.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
+		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 
 	}
 	
@@ -276,6 +291,7 @@ public class DomTreeTests {
 		final Common common = getCommon(     joana.api.testdata.demo.Fig3_1.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
+		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 
 	}
 	
@@ -285,6 +301,7 @@ public class DomTreeTests {
 		final Common common = getCommon(     joana.api.testdata.demo.Fig3_2.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
+		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 	}
 	
 	@Test
@@ -293,6 +310,7 @@ public class DomTreeTests {
 		final Common common = getCommon(       joana.api.testdata.demo.Fig3_3.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
+		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 	}
 	
 	@Test
@@ -301,6 +319,7 @@ public class DomTreeTests {
 		final Common common = getCommon(       joana.api.testdata.demo.xrlsod.LateSecretAccess.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
+		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 	}
 	
 	@Test
@@ -309,6 +328,7 @@ public class DomTreeTests {
 		final Common common = getCommon(       joana.api.testdata.demo.xrlsod.NoSecret.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
+		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 	}
 	
 	@Test
@@ -317,6 +337,7 @@ public class DomTreeTests {
 		final Common common = getCommon(       joana.api.testdata.demo.xrlsod.ORLSOD1.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
+		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 	}
 	
 	@Test
@@ -325,6 +346,7 @@ public class DomTreeTests {
 		final Common common = getCommon(       joana.api.testdata.demo.xrlsod.ORLSOD2.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
+		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 	}
 	
 	@Test
@@ -333,6 +355,7 @@ public class DomTreeTests {
 		final Common common = getCommon(       joana.api.testdata.demo.xrlsod.ORLSOD3.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.CYCLIC);
+		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 	}
 	
 	@Test
@@ -341,6 +364,7 @@ public class DomTreeTests {
 		final Common common = getCommon(       joana.api.testdata.demo.xrlsod.ORLSOD4.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.CYCLIC);
+		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 	}
 	
 	@Test
@@ -349,6 +373,7 @@ public class DomTreeTests {
 		final Common common = getCommon(joana.api.testdata.demo.xrlsod.ORLSOD5a.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.CYCLIC);
+		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 	}
 	
 	@Test
@@ -357,6 +382,7 @@ public class DomTreeTests {
 		final Common common = getCommon(       joana.api.testdata.demo.xrlsod.ORLSOD5b.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.CYCLIC);
+		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 	}
 	
 	@Test
@@ -365,6 +391,7 @@ public class DomTreeTests {
 		final Common common = getCommon(       joana.api.testdata.demo.xrlsod.ORLSOD5Secure.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.CYCLIC);
+		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 	}
 	
 	@Test
@@ -373,5 +400,6 @@ public class DomTreeTests {
 		final Common common = getCommon(joana.api.testdata.demo.xrlsod.ORLSODImprecise.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
+		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 	}
 }

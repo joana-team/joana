@@ -79,7 +79,7 @@ public class DomTreeTests {
 
 	static {
 
-		if (outputPDGFiles || outputGraphMLFiles) {
+		if (outputPDGFiles || outputGraphMLFiles || outputDotFiles) {
 			File fOutDir = new File(outputDir);
 			if (!fOutDir.exists()) {
 				fOutDir.mkdir();

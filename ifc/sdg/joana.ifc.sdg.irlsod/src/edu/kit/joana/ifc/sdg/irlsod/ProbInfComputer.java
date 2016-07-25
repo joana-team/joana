@@ -49,6 +49,7 @@ public class ProbInfComputer {
 		if (!icfg.containsVertex(n)) {
 			return Collections.emptyList();
 		} else {
+			Set<SDGNode> cdomList = new HashSet<SDGNode>();
 			final Set<SDGNode> ret = new HashSet<SDGNode>();
 			final SimpleTCFGChopper tcfgChopper = new SimpleTCFGChopper(icfg);
 			for (final int threadN : n.getThreadNumbers()) {
@@ -56,8 +57,11 @@ public class ProbInfComputer {
 				for (ThreadRegion trM : mhp.getThreadRegions()) {
 					if (mhp.isParallel(trN, trM)) {
 						for (SDGNode m : trM.getNodes()) {
+							SDGNode cdom = cdomOracle.cdom(n, threadN, m, trM.getThread()).getNode();
+							if (cdomList.contains(cdom)) continue;
+							cdomList.add(cdom);
 							final Collection<? extends SDGNode> cfgChop = tcfgChopper
-									.chop(cdomOracle.cdom(n, threadN, m, trM.getThread()).getNode(), n);
+									.chop(cdom, n);
 							ret.addAll(cfgChop);
 						}
 					}

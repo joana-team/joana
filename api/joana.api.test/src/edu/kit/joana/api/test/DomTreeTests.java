@@ -66,7 +66,7 @@ public class DomTreeTests {
 
 	static final boolean outputPDGFiles = false;
 	static final boolean outputGraphMLFiles = false;
-	static final boolean outputDotFiles = true;
+	static final boolean outputDotFiles = false;
 	
 	static final String outputDir = "out";
 	
@@ -162,7 +162,11 @@ public class DomTreeTests {
 		final DomTree tree = new DomTree(common.sdg, oracle , common.mhp);
 		
 		if (outputDotFiles) {
-			MiscGraph2Dot.export(tree.getTree(), MiscGraph2Dot.cdomTreeExporter(), outputDir + "/" + common.classname + ".cdom.dot");	
+			MiscGraph2Dot.export(
+			    tree.getTree(),
+			    MiscGraph2Dot.cdomTreeExporter(),
+			    outputDir + "/" + common.classname + "." + oracle.getClass().getSimpleName() +".cdom.dot"
+			);
 		}
 		
 		CycleDetector<VirtualNode, DefaultEdge> detector = new CycleDetector<>(tree.getTree());

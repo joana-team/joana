@@ -12,6 +12,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.jgrapht.DirectedGraph;
+
 import edu.kit.joana.ifc.sdg.graph.JoanaGraph;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -38,6 +40,22 @@ public class GraphModifier {
 		}
 		cfg.removeAllEdges(toRemove);
 		removeUnreachable(cfg);
+	}
+	
+	public static <V, E> void removeUnreachable(DirectedGraph<V, E> graph, V root) {
+		Set<V> unreachable = new HashSet<V>(graph.vertexSet());
+		LinkedList<V> wl = new LinkedList<V>();
+		wl.add(root);
+		while (!wl.isEmpty()) {
+			V next = wl.removeFirst();
+			if (!unreachable.contains(next)) continue;
+			unreachable.remove(next);
+			for (E eOut : graph.outgoingEdgesOf(next)) {
+				
+				wl.add(graph.getEdgeTarget(eOut));
+			}
+		}
+		graph.removeAllVertices(unreachable);
 	}
 
 	public static void removeUnreachable(JoanaGraph cfg) {

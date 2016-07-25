@@ -18,6 +18,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadRegion;
+import edu.kit.joana.ifc.sdg.util.sdg.GraphModifier;
 import edu.kit.joana.wala.core.graphs.Dominators;
 import edu.kit.joana.wala.core.graphs.Dominators.DomEdge;
 import edu.kit.joana.wala.core.graphs.Dominators.DomTree;
@@ -90,6 +91,7 @@ public class RegionClusterBasedCDomOracle implements ICDomOracle {
 				}
 			}
 		}
+		GraphModifier.removeUnreachable(regionGraph, mhpEq.get(mhp.getThreadRegion(1)));
 		domRegions = Dominators.compute(regionGraph, mhpEq.get(mhp.getThreadRegion(1)));
 		dioDomRegions = new DFSIntervalOrder<Set<ThreadRegion>, DomEdge>(domRegions.getDominationTree());
 	}
@@ -179,6 +181,7 @@ public class RegionClusterBasedCDomOracle implements ICDomOracle {
 			}
 		}
 		// 2.) dom tree
+		GraphModifier.removeUnreachable(regionCFG);
 		final Dominators<SDGNode, SDGEdge> regionClusterDom = Dominators.compute(regionCFG, start);
 		final DomTree<SDGNode> domTree = regionClusterDom.getDominationTree();
 		final DFSIntervalOrder<SDGNode, DomEdge> dioDomTree = new DFSIntervalOrder<SDGNode, DomEdge>(domTree);

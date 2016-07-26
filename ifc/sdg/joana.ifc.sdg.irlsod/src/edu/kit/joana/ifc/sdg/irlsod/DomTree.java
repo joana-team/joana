@@ -1,10 +1,14 @@
 package edu.kit.joana.ifc.sdg.irlsod;
 
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
-import org.jgrapht.alg.CycleDetector;
+import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
 import org.jgrapht.alg.TransitiveReduction;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
@@ -21,19 +25,20 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
  * This is usually expected to form a tree, but should at least a DAG (if, e.g., an interprocedural dominator variant is used),
  * hence the Name {@link DomTree}.
  * 
- * Optionally, the relations transitivie reduction can be computed. Using JGraphT's current implementation, however,
- * this is only sensible for DAGs, since otherwise a cyclic graph may silently be transformed into a DAG.
+ * Optionally, the relations transitive reduction can be computed. Using JGraphT's current implementation,
+ * and a pre-processing using SCCs in case the relation is cyclic.
  * 
  * @author Martin Hecker <martin.hecker@kit.edu>
  */
 public class DomTree {
 	
-	private final DirectedGraph<VirtualNode, DefaultEdge> tree = new DefaultDirectedGraph<>(DefaultEdge.class);
+	private DirectedGraph<VirtualNode, DefaultEdge> tree = new DefaultDirectedGraph<>(DefaultEdge.class);
 	private final SDG sdg;
 	private final MHPAnalysis mhp;
 	private final ICDomOracle cdomOracle;
 	private CFG icfg;
 	private boolean isReduced;
+	private boolean acyclic;
 
 	/**
 	 * Does not compute the relations tansitive reduction.
@@ -53,9 +58,7 @@ public class DomTree {
 	 * @param mhp The "May-Happen-in-Parallel"-analysis. Should match the analysis used by the {@link ICDomOracle} instance, if applicable.
 	 * @param reduce Shall the relations transitive reduction be computed?
 	 * 
-	 * @throws IllegalArgumentException if the underlying relation does not form a DAG, and reduction is requested
 	 */
-	
 	public DomTree(SDG sdg, ICDomOracle cdomOracle, MHPAnalysis mhp, boolean reduce) {
 		this.sdg = sdg;
 		this.cdomOracle = cdomOracle;
@@ -65,12 +68,8 @@ public class DomTree {
 		compute();
 
 		if (reduce) {
-			try {
-				reduce();
-				this.isReduced = true;
-			} catch (IllegalStateException e) {
-				throw new IllegalArgumentException(e);
-			}
+			reduce();
+			this.isReduced = true;
 		}
 		
 	}
@@ -105,20 +104,74 @@ public class DomTree {
 	}
 
 	/**
-	 * If the underlying relation forms a DAG, reduce it transitively.
+	 * transitively reduce the underlying relation.
 	 * 
-	 * @throws IllegalStateException if the underlying relation does not forms a DAG
+	 * @return true iff the underlying relation forms a DAG
 	 */
-	public void reduce() {
-		if (this.isReduced) return;
+	public boolean reduce() {
+		if (this.isReduced) return this.acyclic;
 		
-		final CycleDetector<VirtualNode, DefaultEdge> detector = new CycleDetector<>(tree);
-		final Set<VirtualNode> cycles = detector.findCycles();
-		if (cycles.size() != 0) {
-			throw new IllegalStateException(
-			    "Relation is not acyclic, hence currently cannot be correctly reduced"
-			);
+		final KosarajuStrongConnectivityInspector<VirtualNode, DefaultEdge> sccInspector =
+		    new KosarajuStrongConnectivityInspector<>(this.tree);
+		final List<Set<VirtualNode>> sccs = sccInspector.stronglyConnectedSets();
+		
+		if (sccs.stream().anyMatch(scc -> scc.size() > 1)) {
+			final Map<VirtualNode, Set<VirtualNode>> canonicalToSccs = new HashMap<>();
+			Map<VirtualNode, VirtualNode> nodeTocanonical = new HashMap<>();
+			sccs.stream().forEach( scc -> {
+				final VirtualNode canonical = scc.iterator().next();
+				canonicalToSccs.put(canonical, scc);
+				
+				scc.stream().forEach( node -> {
+					nodeTocanonical.put(node, canonical);
+				});
+				
+			});
+			
+			DirectedGraph<VirtualNode, DefaultEdge> g1 = new DefaultDirectedGraph<>(DefaultEdge.class);
+			
+			canonicalToSccs.entrySet().stream().forEach( entry -> {
+				final VirtualNode canonical = entry.getKey();
+				g1.addVertex(canonical);
+			});
+			tree.edgeSet().stream().forEach( e -> {
+				g1.addEdge(
+				    nodeTocanonical.get(tree.getEdgeSource(e)),
+				    nodeTocanonical.get(tree.getEdgeTarget(e))
+				);
+			});
+			
+			TransitiveReduction.INSTANCE.reduce(g1);
+			DirectedGraph<VirtualNode, DefaultEdge> g2 = new DefaultDirectedGraph<>(DefaultEdge.class);
+			tree.vertexSet().stream().forEach( node -> g2.addVertex(node));
+			
+			canonicalToSccs.entrySet().stream().forEach( entry -> {
+				final VirtualNode canonical = entry.getKey();
+				final Set<VirtualNode> scc  = entry.getValue();
+				Iterator<VirtualNode> n1s = scc.iterator();
+				Iterator<VirtualNode> n2s = scc.iterator();
+				n2s.next();
+				while (n1s.hasNext() && n2s.hasNext()) {
+					VirtualNode n1 = n1s.next();
+					VirtualNode n2 = n2s.next();
+					g2.addEdge(n1, n2);
+				};
+				
+				if (scc.size() > 1) {
+					g2.addEdge(n1s.next(), canonical);
+				}
+			});
+			g1.edgeSet().stream().forEach( e -> {
+				g2.addEdge(
+				    g1.getEdgeSource(e),
+				    g1.getEdgeTarget(e)
+				);
+			});
+			this.tree = g2;
+			return false;
+		} else {
+			TransitiveReduction.INSTANCE.reduce(tree);
+			return true;
 		}
-		TransitiveReduction.INSTANCE.reduce(tree);
 	}
 }

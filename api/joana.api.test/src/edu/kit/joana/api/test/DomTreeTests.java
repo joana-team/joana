@@ -64,9 +64,9 @@ public class DomTreeTests {
 	
 	static final Stubs STUBS = Stubs.JRE_14;
 
-	static final boolean outputPDGFiles = false;
+	static final boolean outputPDGFiles = true;
 	static final boolean outputGraphMLFiles = false;
-	static final boolean outputDotFiles = false;
+	static final boolean outputDotFiles = true;
 	
 	static final String outputDir = "out";
 	
@@ -160,7 +160,7 @@ public class DomTreeTests {
 			throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException, CancelException {
 		final ICDomOracle oracle = newOracle.apply(common.sdg,common.mhp);
 		final DomTree tree = new DomTree(common.sdg, oracle , common.mhp);
-		
+
 		if (outputDotFiles) {
 			MiscGraph2Dot.export(
 			    tree.getTree(),
@@ -169,12 +169,20 @@ public class DomTreeTests {
 			);
 		}
 		
-		CycleDetector<VirtualNode, DefaultEdge> detector = new CycleDetector<>(tree.getTree());
-		final Set<VirtualNode> cycles = detector.findCycles();
+		boolean acyclic = tree.reduce();
+		
+		if (outputDotFiles) {
+			MiscGraph2Dot.export(
+			    tree.getTree(),
+			    MiscGraph2Dot.cdomTreeExporter(),
+			    outputDir + "/" + common.classname + "." + oracle.getClass().getSimpleName() +".cdom.reduced.dot"
+			);
+		}
+		
 		
 		switch (result) {
-			case CYCLIC : assertFalse( 0 == cycles.size()); break;
-			case ACYCLIC: assertTrue(  0 == cycles.size()); break;
+			case CYCLIC : assertFalse(acyclic); break;
+			case ACYCLIC: assertTrue( acyclic); break;
 		}
 	}
 	
@@ -412,4 +420,15 @@ public class DomTreeTests {
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 	}
+	
+	@Test
+	public void testLotsOfDominationInMainThread() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		final Common common = getCommon(joana.api.testdata.conc.LotsOfDominationInMainThread.class);
+		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
+		testDomTree(common, newClassicCDomOracle      , Result.CYCLIC);
+	}
 }
+
+

@@ -49,6 +49,8 @@
 			target="1.8"
 			encoding="utf-8"
 			classpathref="lib.path.ref"
+			debug="true"
+			debuglevel="vars,lines,source"
 		/>
 	</target>
 

@@ -57,6 +57,7 @@ public class MHPAnalysisTest {
 		addTestCase("interproc-join", "joana.api.testdata.conc.InterprocJoin");
 		addTestCase("interthread-join", "joana.api.testdata.conc.InterthreadJoin");
 		addTestCase("fork-join", "joana.api.testdata.conc.ForkJoin");
+		addTestCase("aliased-join", "joana.api.testdata.conc.AliasedJoin");
 	}
 
 	private static final void addTestCase(String testName, String mainClass) {
@@ -458,6 +459,37 @@ public class MHPAnalysisTest {
 		checkSoundness(mhp, p2, p2);
 		checkSoundness(mhp, p2, ps);
 		checkPrecision(mhp, ps, ps);
+	}
+	
+	@Test
+	public void testAliasedJoin() {
+		SDG sdg = buildOrLoad("aliased-join");
+		SDGAnalyzer ana = new SDGAnalyzer(sdg);
+		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
+		SDGNode p1 = getStringPrintInMethod(ana, "AliasedJoin$Thread1.run()V");
+		SDGNode p2 = getStringPrintInMethod(ana, "AliasedJoin$Thread2.run()V");
+		SDGNode ps = getStringPrintInMethod(ana, "AliasedJoin.main([Ljava/lang/String;)V");
+		SDGNode pi = getIntPrintInMethod(ana, "AliasedJoin.main([Ljava/lang/String;)V");
+		
+		checkSoundness(mhp, p1, p2);
+		checkSoundness(mhp, p1, ps);
+		checkSoundness(mhp, p2, ps);
+		checkPrecision(mhp, p1, pi);
+		checkSoundness(mhp, p2, pi);
+		checkPrecision(mhp, ps, pi);
+		
+		checkSoundness(mhp, p2, p1);
+		checkSoundness(mhp, ps, p1);
+		checkSoundness(mhp, ps, p2);
+		checkPrecision(mhp, pi, p1);
+		checkSoundness(mhp, pi, p2);
+		checkPrecision(mhp, pi, ps);
+
+		
+		checkPrecision(mhp, p1, p1);
+		checkPrecision(mhp, p2, p2);
+		checkPrecision(mhp, ps, ps);
+		checkPrecision(mhp, pi, pi);
 	}
 
 	private SDGNode getIntPrintInMethod(SDGAnalyzer ana, String shortName) {

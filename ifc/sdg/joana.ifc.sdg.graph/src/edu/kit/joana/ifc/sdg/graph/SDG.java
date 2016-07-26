@@ -141,23 +141,26 @@ public class SDG extends JoanaGraph implements Cloneable {
     /**
      * Returns the call node of a call site.
      *
-     * @param actual  An actual-in/out node that belongs to the call site.
+     * @param actual  A call node or an actual-in/out node that belongs to a call site.
      */
     public SDGNode getCallSiteFor(SDGNode actual) {
-        SDGNode n = actual;
-
-        // follow control-dependence-expression edges from the source
-        // node of 'edge' to the call node
-        while(true){
-        	// the loop terminates because parameter graphs are acyclic
-            for(SDGEdge e : incomingEdgesOf(n)){
-                if(e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR){
-                    if(e.getSource().getKind() == SDGNode.Kind.CALL){
-                        return e.getSource();
+        if (actual.getKind() == SDGNode.Kind.CALL) {
+            return actual; // call nodes belong to their own call site
+        } else {
+            SDGNode n = actual;
+            // follow control-dependence-expression edges from the source
+            // node of 'edge' to the call node
+            while(true){
+                // the loop terminates because parameter graphs are acyclic
+                for(SDGEdge e : incomingEdgesOf(n)){
+                    if(e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR){
+                        if(e.getSource().getKind() == SDGNode.Kind.CALL){
+                            return e.getSource();
+                        }
+                        n = e.getSource();
+                        break;
                     }
-                    n = e.getSource();
-                    break;
-                }
+                 }
             }
         }
     }

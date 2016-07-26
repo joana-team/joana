@@ -34,6 +34,22 @@
 		</jar>
 	</target>
 
+	<target name="make-source-dist" depends="init,collect_wala_sources,collect_sources,spill_out_jars,copy_non_java_files" description="generate a zip file containing all the source code">
+		<delete file="${joana.dist.dir}/${projectname}-src.zip" />
+		<zip destfile="${joana.dist.dir}/${projectname}-src.zip">
+			<fileset dir="${dest.dir.sources}">
+				<not>
+					<or>
+						<filename name="**/package.html" />
+						<filename name="**/doc-files/**/*" />
+						<filename name="**/META-INF/**/*" />
+					</or>
+				</not>
+			</fileset>
+		</zip>
+	</target>
+
+
 	<target name="compile" depends="init,collect_wala_sources,collect_sources">
 		<path id="lib.path.ref">
 			<fileset dir="${joana.contrib.base.dir}" includes="*.jar" />

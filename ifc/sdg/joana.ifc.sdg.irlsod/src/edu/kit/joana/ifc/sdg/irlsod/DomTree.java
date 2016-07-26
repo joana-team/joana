@@ -1,17 +1,12 @@
 package edu.kit.joana.ifc.sdg.irlsod;
 
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
-import org.jgrapht.alg.TransitiveReduction;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.builder.DirectedGraphBuilder;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -19,6 +14,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
+import edu.kit.joana.util.graph.TransitiveReductionGeneral;
 
 /**
  * An explicit representation of the relation implicit in a given {@link ICDomOracle} instance.
@@ -111,67 +107,17 @@ public class DomTree {
 	public boolean reduce() {
 		if (this.isReduced) return this.acyclic;
 		
-		final KosarajuStrongConnectivityInspector<VirtualNode, DefaultEdge> sccInspector =
-		    new KosarajuStrongConnectivityInspector<>(this.tree);
-		final List<Set<VirtualNode>> sccs = sccInspector.stronglyConnectedSets();
+		KosarajuStrongConnectivityInspector<VirtualNode,DefaultEdge> sccInspector =
+			new KosarajuStrongConnectivityInspector<>(this.tree);
+		this.acyclic = sccInspector.stronglyConnectedSets().stream().allMatch(scc -> scc.size() == 1);
 		
-		if (sccs.stream().anyMatch(scc -> scc.size() > 1)) {
-			final Map<VirtualNode, Set<VirtualNode>> canonicalToSccs = new HashMap<>();
-			Map<VirtualNode, VirtualNode> nodeTocanonical = new HashMap<>();
-			sccs.stream().forEach( scc -> {
-				final VirtualNode canonical = scc.iterator().next();
-				canonicalToSccs.put(canonical, scc);
-				
-				scc.stream().forEach( node -> {
-					nodeTocanonical.put(node, canonical);
-				});
-				
-			});
-			
-			DirectedGraph<VirtualNode, DefaultEdge> g1 = new DefaultDirectedGraph<>(DefaultEdge.class);
-			
-			canonicalToSccs.entrySet().stream().forEach( entry -> {
-				final VirtualNode canonical = entry.getKey();
-				g1.addVertex(canonical);
-			});
-			tree.edgeSet().stream().forEach( e -> {
-				g1.addEdge(
-				    nodeTocanonical.get(tree.getEdgeSource(e)),
-				    nodeTocanonical.get(tree.getEdgeTarget(e))
-				);
-			});
-			
-			TransitiveReduction.INSTANCE.reduce(g1);
-			DirectedGraph<VirtualNode, DefaultEdge> g2 = new DefaultDirectedGraph<>(DefaultEdge.class);
-			tree.vertexSet().stream().forEach( node -> g2.addVertex(node));
-			
-			canonicalToSccs.entrySet().stream().forEach( entry -> {
-				final VirtualNode canonical = entry.getKey();
-				final Set<VirtualNode> scc  = entry.getValue();
-				Iterator<VirtualNode> n1s = scc.iterator();
-				Iterator<VirtualNode> n2s = scc.iterator();
-				n2s.next();
-				while (n1s.hasNext() && n2s.hasNext()) {
-					VirtualNode n1 = n1s.next();
-					VirtualNode n2 = n2s.next();
-					g2.addEdge(n1, n2);
-				};
-				
-				if (scc.size() > 1) {
-					g2.addEdge(n1s.next(), canonical);
-				}
-			});
-			g1.edgeSet().stream().forEach( e -> {
-				g2.addEdge(
-				    g1.getEdgeSource(e),
-				    g1.getEdgeTarget(e)
-				);
-			});
-			this.tree = g2;
-			return false;
-		} else {
-			TransitiveReduction.INSTANCE.reduce(tree);
-			return true;
-		}
+		DirectedGraphBuilder<VirtualNode, DefaultEdge, DefaultDirectedGraph<VirtualNode, DefaultEdge>> builder =
+			new DirectedGraphBuilder<VirtualNode, DefaultEdge, DefaultDirectedGraph<VirtualNode, DefaultEdge>>(
+				new DefaultDirectedGraph<VirtualNode, DefaultEdge>(DefaultEdge.class)
+			);
+		
+		this.tree = TransitiveReductionGeneral.INSTANCE.reduction(this.tree, builder);
+		this.isReduced = true;
+		return this.acyclic;
 	}
 }

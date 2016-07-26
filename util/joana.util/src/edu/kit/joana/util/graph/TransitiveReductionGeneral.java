@@ -36,26 +36,49 @@ public class TransitiveReductionGeneral {
 	 */
 	private TransitiveReductionGeneral() {
 	}
-
+	
 	/**
 	 * Computes a transitive reduction of a directed graph g.
 	 * 
 	 * Note that this transitive reduction of directed graph is, in general, neither unique, nor a subgraph of g,
-	 * specifically:  if g contains cycles. 
+	 * specifically:  if g contains cycles (see, e.g, http://dx.doi.org/10.1137/0201008 ).
 	 * 
 	 * Hence, the reduction will not modify g, but create a new graph using builder.
 	 *
 	 * @param g 
-	 * @author Martin Hecker <martin.hecker@kit.edu>
+	 * @param builder the builder used to build the transitive reduction.
 	 */
-	public <V, E, G extends DirectedGraph<V, E>> G reduction(final DirectedGraph<V, E> g, DirectedGraphBuilder<V, E, G> builder) {
-		final KosarajuStrongConnectivityInspector<V, E> sccInspector = new KosarajuStrongConnectivityInspector<>(g);
+	public <V, E, G extends DirectedGraph<V, E>> G reduction(
+		final DirectedGraph<V, E> g,
+		final DirectedGraphBuilder<V, E, G> builder
+	) {
+		return reduction(g,builder, new KosarajuStrongConnectivityInspector<V, E>(g));
+	}
+	
+	/**
+	 * Computes a transitive reduction of a directed graph g.
+	 * 
+	 * Note that this transitive reduction of directed graph is, in general, neither unique, nor a subgraph of g,
+	 * specifically:  if g contains cycles (see, e.g, http://dx.doi.org/10.1137/0201008 ).
+	 * 
+	 * Hence, the reduction will not modify g, but create a new graph using builder.
+	 *
+	 * @param g 
+	 * @param builder the builder used to build the transitive reduction.
+	 * @param sccInspector an sccInspector for g. Useful if the SCCs for g have already been computed elsewhere,
+	 *        and can be reused here
+	 */
+	public <V, E, G extends DirectedGraph<V, E>> G reduction(
+		final DirectedGraph<V, E> g,
+		final DirectedGraphBuilder<V, E, G> builder,
+		final KosarajuStrongConnectivityInspector<V, E> sccInspector
+	) {
 		final List<Set<V>> sccs = sccInspector.stronglyConnectedSets();
 		
 		if (sccs.stream().anyMatch(scc -> scc.size() > 1)) {
 			// If g is cyclic, we cannot use TransitiveReduction.reduce(..) directly,
 			// but have to base the reduction on the condensed graph of g's SCCs,
-			// each represented by its "canonnical" vertex (i.e.: it's first node in iteration order of the SCC).
+			// each represented by its "canonical" vertex (i.e.: it's first node in iteration order of the SCC).
 
 			final Map<V, Set<V>> canonicalToSccs = new HashMap<>();
 			Map<V, V> nodeTocanonical = new HashMap<>();
@@ -90,7 +113,7 @@ public class TransitiveReductionGeneral {
 				final Set<V> scc  = entry.getValue();
 				// We assume that the iteration order of n1s and n2s is the same.
 				// TODO: make code more robust wrt. Set.iterator() implementations for which this does not hold,
-				// by using a List or similiar.
+				// by using a List or similar.
 				Iterator<V> n1s = scc.iterator();
 				Iterator<V> n2s = scc.iterator();
 				n2s.next();
@@ -113,6 +136,7 @@ public class TransitiveReductionGeneral {
 			return builder.build();
 		} else {
 			// if g is acyclic, we can directly use TransitiveReduction.reduce(..)
+			
 			g.vertexSet().stream().forEach(builder::addVertex);
 			g.edgeSet().stream().forEach(e -> builder.addEdge(g.getEdgeSource(e), g.getEdgeTarget(e)));
 			final G result = builder.build();

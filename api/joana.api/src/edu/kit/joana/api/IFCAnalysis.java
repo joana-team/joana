@@ -58,6 +58,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.SimpleMHPAnalysis;
 import edu.kit.joana.ifc.sdg.irlsod.OptORLSODChecker;
 import edu.kit.joana.ifc.sdg.irlsod.ProbInfComputer;
 import edu.kit.joana.ifc.sdg.irlsod.ThreadModularCDomOracle;
+import edu.kit.joana.ifc.sdg.irlsod.TimimgClassificationChecker;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
@@ -147,7 +148,7 @@ public class IFCAnalysis {
 			this.ifc = new ProbabilisticNIChecker(this.program.getSDG(), secLattice, mhp,
 					this.timeSensitiveAnalysis);
 			break;
-		case iRLSOD:
+		case iRLSOD: {
 			if (this.program.getSDG().getThreadsInfo() == null) {
 				CSDGPreprocessor.preprocessSDG(this.program.getSDG());
 			}
@@ -160,6 +161,17 @@ public class IFCAnalysis {
 //			this.ifc = new PathBasedORLSODChecker<String>(sdg, secLattice, probInf);
 //			this.ifc = new BetterORLSODChecker<String>(sdg, secLattice, probInf);
 			break;
+		}
+		case timingiRLSOD: {
+			if (this.program.getSDG().getThreadsInfo() == null) {
+				CSDGPreprocessor.preprocessSDG(this.program.getSDG());
+			}
+			mhp = performMHPAnalysis(mhpType);
+			final SDG sdg = this.program.getSDG();
+			final ThreadModularCDomOracle tmdo = new ThreadModularCDomOracle(sdg);
+			this.ifc = new TimimgClassificationChecker<String>(sdg, secLattice, mhp, tmdo);
+			break;
+		}
 		default:
 			throw new IllegalStateException("unhandled ifc type: " + ifcType + "!");
 		}

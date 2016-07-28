@@ -8,7 +8,7 @@
 package edu.kit.joana.api;
 
 public enum IFCType {
-	CLASSICAL_NI, LSOD, RLSOD, iRLSOD;
+	CLASSICAL_NI, LSOD, RLSOD, iRLSOD,timingiRLSOD;
 
 	@Override
 	public String toString() {
@@ -19,6 +19,11 @@ public enum IFCType {
 			return "relaxed low-security observational determinism (RLSOD)";
 		case iRLSOD:
 			return "improved relaxed low-security observational determinism (iRLSOD)";
+		case timingiRLSOD:
+			return "improved relaxed low-security observational determinism (iRLSOD) variant that differentiates" + 
+			       "between the security level of a nodes possible values/execution, and the security level of it's" +
+			       "execution Timing";
+
 		case LSOD:
 			return "low-security observational determinism (LSOD)";
 		default:

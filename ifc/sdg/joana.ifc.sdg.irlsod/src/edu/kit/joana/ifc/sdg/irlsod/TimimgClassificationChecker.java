@@ -23,6 +23,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.conc.CFGForward;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PBackward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
@@ -37,7 +38,7 @@ public class TimimgClassificationChecker<L> extends IFC<L> {
 	private static Logger debug = Log.getLogger(Log.L_IFC_DEBUG);
 	
 	/** user-provided annotations */
-	protected final Map<SDGNode, L> userAnn;
+	protected Map<SDGNode, L> userAnn;
 
 	protected final CFG icfg;
 	protected final Map<SDGNode, Collection<SDGNode>> transClosure;
@@ -50,7 +51,7 @@ public class TimimgClassificationChecker<L> extends IFC<L> {
 
 	private final ICDomOracle cdomOracle;
 
-	protected final PreciseMHPAnalysis mhp;
+	protected final MHPAnalysis mhp;
 
 	/**
 	 * "classical" classification of a node, i.e.: cl(n) == l if * the values of variables used ad n, * or whether (
@@ -74,8 +75,12 @@ public class TimimgClassificationChecker<L> extends IFC<L> {
 	 */
 	protected final PredecessorMethod predecessorMethod;
 
+	public TimimgClassificationChecker(final SDG sdg, final IStaticLattice<L> secLattice,
+			final MHPAnalysis mhp, final ICDomOracle cdomOracle) {
+		this(sdg, secLattice, null, mhp, cdomOracle, PredecessorMethod.SLICE);
+	}
 	public TimimgClassificationChecker(final SDG sdg, final IStaticLattice<L> secLattice, final Map<SDGNode, L> userAnn,
-			final PreciseMHPAnalysis mhp, final ICDomOracle cdomOracle, final PredecessorMethod predecessorMethod) {
+			final MHPAnalysis mhp, final ICDomOracle cdomOracle, final PredecessorMethod predecessorMethod) {
 		super(sdg, secLattice);
 		this.userAnn = userAnn;
 		this.mhp = mhp;
@@ -189,6 +194,7 @@ public class TimimgClassificationChecker<L> extends IFC<L> {
 
 	@Override
 	public Collection<? extends IViolation<SecurityNode>> checkIFlow() throws NotInLatticeException {
+		inferUserAnnotationsOnDemand();
 		final I2PBackward backw = new I2PBackward(g);
 		// 1.) initialize classification: we go from the bottom up, so every
 		// node is classified as low initially
@@ -355,5 +361,35 @@ public class TimimgClassificationChecker<L> extends IFC<L> {
 			}
 		}
 		return violations;
+	}
+	
+	protected void inferUserAnnotationsOnDemand() {
+		
+		final IStaticLattice<L> secLattice = getLattice();
+		final SDG sdg = getSDG();
+		if (userAnn != null) return;
+		
+		this.userAnn = new HashMap<>();
+		for (final SDGNode n : sdg.vertexSet()) {
+			if (n instanceof SecurityNode) {
+				final SecurityNode sn = (SecurityNode) n;
+				final String req = sn.getRequired();
+				if (req != null && !req.equals(SecurityNode.UNDEFINED)) {
+					for (final L elem : secLattice.getElements()) {
+						if (req.equals(elem.toString())) {
+							userAnn.put(n, elem);
+						}
+					}
+				}
+				final String prov = sn.getProvided();
+				if (prov != null && !prov.equals(SecurityNode.UNDEFINED)) {
+					for (final L elem : secLattice.getElements()) {
+						if (prov.equals(elem.toString())) {
+							userAnn.put(n, elem);
+						}
+					}
+				}
+			}
+		}
 	}
 }

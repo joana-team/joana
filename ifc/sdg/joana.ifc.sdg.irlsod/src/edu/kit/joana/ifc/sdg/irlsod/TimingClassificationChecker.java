@@ -10,7 +10,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import edu.kit.joana.ifc.sdg.core.IFC;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.conc.OrderConflict;
 import edu.kit.joana.ifc.sdg.core.violations.ConflictEdge;
@@ -24,7 +23,6 @@ import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PBackward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
@@ -33,13 +31,10 @@ import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.maps.MapUtils;
 
-public class TimingClassificationChecker<L> extends IFC<L> {
+public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 	
 	private static Logger debug = Log.getLogger(Log.L_IFC_DEBUG);
 	
-	/** user-provided annotations */
-	protected Map<SDGNode, L> userAnn;
-
 	protected final CFG icfg;
 	protected final Map<SDGNode, Collection<SDGNode>> transClosure;
 
@@ -81,8 +76,7 @@ public class TimingClassificationChecker<L> extends IFC<L> {
 	}
 	public TimingClassificationChecker(final SDG sdg, final IStaticLattice<L> secLattice, final Map<SDGNode, L> userAnn,
 			final MHPAnalysis mhp, final ICDomOracle cdomOracle, final PredecessorMethod predecessorMethod) {
-		super(sdg, secLattice);
-		this.userAnn = userAnn;
+		super(sdg, secLattice, userAnn);
 		this.mhp = mhp;
 		this.cdomOracle = cdomOracle;
 
@@ -361,35 +355,5 @@ public class TimingClassificationChecker<L> extends IFC<L> {
 			}
 		}
 		return violations;
-	}
-	
-	protected void inferUserAnnotationsOnDemand() {
-		
-		final IStaticLattice<L> secLattice = getLattice();
-		final SDG sdg = getSDG();
-		if (userAnn != null) return;
-		
-		this.userAnn = new HashMap<>();
-		for (final SDGNode n : sdg.vertexSet()) {
-			if (n instanceof SecurityNode) {
-				final SecurityNode sn = (SecurityNode) n;
-				final String req = sn.getRequired();
-				if (req != null && !req.equals(SecurityNode.UNDEFINED)) {
-					for (final L elem : secLattice.getElements()) {
-						if (req.equals(elem.toString())) {
-							userAnn.put(n, elem);
-						}
-					}
-				}
-				final String prov = sn.getProvided();
-				if (prov != null && !prov.equals(SecurityNode.UNDEFINED)) {
-					for (final L elem : secLattice.getElements()) {
-						if (prov.equals(elem.toString())) {
-							userAnn.put(n, elem);
-						}
-					}
-				}
-			}
-		}
 	}
 }

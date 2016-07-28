@@ -6,7 +6,6 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import edu.kit.joana.ifc.sdg.core.IFC;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.IUnaryViolation;
 import edu.kit.joana.ifc.sdg.core.violations.IViolation;
@@ -19,10 +18,7 @@ import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
 
-public class ORLSODChecker<L> extends IFC<L> {
-
-	/** user-provided annotations */
-	protected Map<SDGNode, L> userAnn;
+public class ORLSODChecker<L> extends AnnotationMapChecker<L> {
 
 	/** maps each node to its so-called <i>probabilistic influencers</i> */
 	protected ProbInfComputer probInf;
@@ -42,8 +38,7 @@ public class ORLSODChecker<L> extends IFC<L> {
 	
 	public ORLSODChecker(final SDG sdg, final IStaticLattice<L> secLattice, final Map<SDGNode, L> userAnn,
 			final ProbInfComputer probInf, final PredecessorMethod predecessorMethod) {
-		super(sdg, secLattice);
-		this.userAnn = userAnn;
+		super(sdg, secLattice, userAnn);
 		this.probInf = probInf;
 		this.predecessorMethod = predecessorMethod;
 	}
@@ -117,35 +112,6 @@ public class ORLSODChecker<L> extends IFC<L> {
 		return ret;
 	}
 
-	protected void inferUserAnnotationsOnDemand() {
-		if (userAnn != null) return;
-		
-		final SDG sdg = this.getSDG();
-		final IStaticLattice<L> secLattice = this.getLattice();
-		
-		userAnn = new HashMap<>();
-		for (final SDGNode n : sdg.vertexSet()) {
-			if (n instanceof SecurityNode) {
-				final SecurityNode sn = (SecurityNode) n;
-				final String req = sn.getRequired();
-				if (req != null && !req.equals(SecurityNode.UNDEFINED)) {
-					for (final L elem : secLattice.getElements()) {
-						if (req.equals(elem.toString())) {
-							userAnn.put(n, elem);
-						}
-					}
-				}
-				final String prov = sn.getProvided();
-				if (prov != null && !prov.equals(SecurityNode.UNDEFINED)) {
-					for (final L elem : secLattice.getElements()) {
-						if (prov.equals(elem.toString())) {
-							userAnn.put(n, elem);
-						}
-					}
-				}
-			}
-		}
-	}
 	
 	@Override
 	public Collection<? extends IViolation<SecurityNode>> checkIFlow() throws NotInLatticeException {

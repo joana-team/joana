@@ -19,7 +19,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.irlsod.PredecessorMethod;
 import edu.kit.joana.ifc.sdg.irlsod.ThreadModularCDomOracle;
-import edu.kit.joana.ifc.sdg.irlsod.TimimgClassificationChecker;
+import edu.kit.joana.ifc.sdg.irlsod.TimingClassificationChecker;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.graph.io.dot.MiscGraph2Dot;
 import edu.kit.joana.ifc.sdg.util.sdg.GraphModifier;
@@ -120,12 +120,12 @@ public class ORLSODExperimentTiming {
 		    userAnn.values().stream().filter(l -> BuiltinLattices.STD_SECLEVEL_LOW.equals(l)).count()
 		);
 		final ThreadModularCDomOracle tmdo = new ThreadModularCDomOracle(sdg);
-		final TimimgClassificationChecker<String> checkerSlice = new TimimgClassificationChecker<>(sdg,
+		final TimingClassificationChecker<String> checkerSlice = new TimingClassificationChecker<>(sdg,
 				BuiltinLattices.getBinaryLattice(), userAnn, mhp, tmdo, PredecessorMethod.SLICE);
 		final int noVios = checkerSlice.checkIFlow().size();
 		Assert.assertEquals(cfg.expectedNoViolations, noVios);
 
-		final TimimgClassificationChecker<String> checkerEdge = new TimimgClassificationChecker<>(sdg,
+		final TimingClassificationChecker<String> checkerEdge = new TimingClassificationChecker<>(sdg,
 				BuiltinLattices.getBinaryLattice(), userAnn, mhp, tmdo, PredecessorMethod.EDGE);
 		checkerEdge.checkIFlow();
 		Assert.assertEquals(checkerSlice.getCL(), checkerEdge.getCL());

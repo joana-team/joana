@@ -58,7 +58,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.SimpleMHPAnalysis;
 import edu.kit.joana.ifc.sdg.irlsod.OptORLSODChecker;
 import edu.kit.joana.ifc.sdg.irlsod.ProbInfComputer;
 import edu.kit.joana.ifc.sdg.irlsod.ThreadModularCDomOracle;
-import edu.kit.joana.ifc.sdg.irlsod.TimimgClassificationChecker;
+import edu.kit.joana.ifc.sdg.irlsod.TimingClassificationChecker;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
@@ -169,7 +169,7 @@ public class IFCAnalysis {
 			mhp = performMHPAnalysis(mhpType);
 			final SDG sdg = this.program.getSDG();
 			final ThreadModularCDomOracle tmdo = new ThreadModularCDomOracle(sdg);
-			this.ifc = new TimimgClassificationChecker<String>(sdg, secLattice, mhp, tmdo);
+			this.ifc = new TimingClassificationChecker<String>(sdg, secLattice, mhp, tmdo);
 			break;
 		}
 		default:

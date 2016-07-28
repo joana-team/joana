@@ -33,7 +33,7 @@ import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.maps.MapUtils;
 
-public class TimimgClassificationChecker<L> extends IFC<L> {
+public class TimingClassificationChecker<L> extends IFC<L> {
 	
 	private static Logger debug = Log.getLogger(Log.L_IFC_DEBUG);
 	
@@ -75,11 +75,11 @@ public class TimimgClassificationChecker<L> extends IFC<L> {
 	 */
 	protected final PredecessorMethod predecessorMethod;
 
-	public TimimgClassificationChecker(final SDG sdg, final IStaticLattice<L> secLattice,
+	public TimingClassificationChecker(final SDG sdg, final IStaticLattice<L> secLattice,
 			final MHPAnalysis mhp, final ICDomOracle cdomOracle) {
 		this(sdg, secLattice, null, mhp, cdomOracle, PredecessorMethod.SLICE);
 	}
-	public TimimgClassificationChecker(final SDG sdg, final IStaticLattice<L> secLattice, final Map<SDGNode, L> userAnn,
+	public TimingClassificationChecker(final SDG sdg, final IStaticLattice<L> secLattice, final Map<SDGNode, L> userAnn,
 			final MHPAnalysis mhp, final ICDomOracle cdomOracle, final PredecessorMethod predecessorMethod) {
 		super(sdg, secLattice);
 		this.userAnn = userAnn;

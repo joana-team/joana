@@ -372,7 +372,7 @@ public class DomTreeTests {
 			UnsoundGraphException, CancelException {
 		final Common common = getCommon(       joana.api.testdata.demo.xrlsod.ORLSOD3.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
-		testDomTree(common, newThreadModularCDomOracle, Result.CYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 	}
 	
@@ -381,7 +381,7 @@ public class DomTreeTests {
 			UnsoundGraphException, CancelException {
 		final Common common = getCommon(       joana.api.testdata.demo.xrlsod.ORLSOD4.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
-		testDomTree(common, newThreadModularCDomOracle, Result.CYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 	}
 	
@@ -390,7 +390,7 @@ public class DomTreeTests {
 			UnsoundGraphException, CancelException {
 		final Common common = getCommon(joana.api.testdata.demo.xrlsod.ORLSOD5a.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
-		testDomTree(common, newThreadModularCDomOracle, Result.CYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 	}
 	
@@ -399,7 +399,7 @@ public class DomTreeTests {
 			UnsoundGraphException, CancelException {
 		final Common common = getCommon(       joana.api.testdata.demo.xrlsod.ORLSOD5b.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
-		testDomTree(common, newThreadModularCDomOracle, Result.CYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 	}
 	
@@ -408,7 +408,7 @@ public class DomTreeTests {
 			UnsoundGraphException, CancelException {
 		final Common common = getCommon(       joana.api.testdata.demo.xrlsod.ORLSOD5Secure.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
-		testDomTree(common, newThreadModularCDomOracle, Result.CYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 	}
 	

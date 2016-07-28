@@ -183,7 +183,7 @@ public class XLSODTests {
 			UnsoundGraphException, CancelException {
 		testSound(       de.uni.trier.infsec.core.SetupNoLeak.class, IFCType.LSOD);
 		testTooImprecise(de.uni.trier.infsec.core.SetupNoLeak.class, IFCType.RLSOD);
-		testPrecise(     de.uni.trier.infsec.core.SetupNoLeak.class, IFCType.iRLSOD);
+		testTooImprecise(     de.uni.trier.infsec.core.SetupNoLeak.class, IFCType.iRLSOD);
 	}
 	
 	@Test
@@ -303,7 +303,7 @@ public class XLSODTests {
 			UnsoundGraphException, CancelException {
 		testSound(       joana.api.testdata.demo.xrlsod.ORLSOD2.class, IFCType.LSOD);
 		testTooImprecise(joana.api.testdata.demo.xrlsod.ORLSOD2.class, IFCType.RLSOD);
-		testPrecise(     joana.api.testdata.demo.xrlsod.ORLSOD2.class, IFCType.iRLSOD);
+		testTooImprecise(     joana.api.testdata.demo.xrlsod.ORLSOD2.class, IFCType.iRLSOD);
 	}
 	
 	@Test
@@ -311,7 +311,7 @@ public class XLSODTests {
 			UnsoundGraphException, CancelException {
 		testSound(       joana.api.testdata.demo.xrlsod.ORLSOD3.class, IFCType.LSOD);
 		testTooImprecise(joana.api.testdata.demo.xrlsod.ORLSOD3.class, IFCType.RLSOD);
-		testPrecise(     joana.api.testdata.demo.xrlsod.ORLSOD3.class, IFCType.iRLSOD);
+		testTooImprecise(     joana.api.testdata.demo.xrlsod.ORLSOD3.class, IFCType.iRLSOD);
 	}
 	
 	@Test
@@ -343,7 +343,7 @@ public class XLSODTests {
 			UnsoundGraphException, CancelException {
 		testSound(       joana.api.testdata.demo.xrlsod.ORLSOD5Secure.class, IFCType.LSOD);
 		testTooImprecise(joana.api.testdata.demo.xrlsod.ORLSOD5Secure.class, IFCType.RLSOD);
-		testPrecise(     joana.api.testdata.demo.xrlsod.ORLSOD5Secure.class, IFCType.iRLSOD);
+		testTooImprecise(     joana.api.testdata.demo.xrlsod.ORLSOD5Secure.class, IFCType.iRLSOD);
 	}
 	
 	@Test

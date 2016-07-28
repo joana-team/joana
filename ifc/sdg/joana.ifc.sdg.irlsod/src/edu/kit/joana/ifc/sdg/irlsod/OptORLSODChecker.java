@@ -44,6 +44,9 @@ public class OptORLSODChecker<L> extends ORLSODChecker<L> {
 	@Override
 	public Collection<? extends IViolation<SecurityNode>> checkIFlow() throws NotInLatticeException {
 		inferUserAnnotationsOnDemand();
+		
+		final IStaticLattice<L> secLattice = this.getLattice();
+		
 		cl = initCL(false);
 		backwDep = computeBackwardDep();
 		forwDep = MapUtils.invert(backwDep);
@@ -75,7 +78,8 @@ public class OptORLSODChecker<L> extends ORLSODChecker<L> {
 	}
 
 	protected Map<SDGNode, Set<SDGNode>> computeBackwardDep() {
-
+		final SDG sdg = this.getSDG();
+		
 		final Map<SDGNode, Set<SDGNode>> ret = new HashMap<SDGNode, Set<SDGNode>>();
 		for (final SDGNode n : sdg.vertexSet()) {
 			ret.put(n, computeBackwardDeps(n));

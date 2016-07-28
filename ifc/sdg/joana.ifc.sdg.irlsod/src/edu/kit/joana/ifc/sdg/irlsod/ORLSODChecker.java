@@ -21,12 +21,6 @@ import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
 
 public class ORLSODChecker<L> extends IFC<L> {
 
-	/** the lattice which provides the security levels we annotate nodes with */
-	protected IStaticLattice<L> secLattice;
-
-	/** the SDG we want to check */
-	protected SDG sdg;
-
 	/** user-provided annotations */
 	protected Map<SDGNode, L> userAnn;
 
@@ -49,14 +43,14 @@ public class ORLSODChecker<L> extends IFC<L> {
 	public ORLSODChecker(final SDG sdg, final IStaticLattice<L> secLattice, final Map<SDGNode, L> userAnn,
 			final ProbInfComputer probInf, final PredecessorMethod predecessorMethod) {
 		super(sdg, secLattice);
-		this.sdg = sdg;
-		this.secLattice = secLattice;
 		this.userAnn = userAnn;
 		this.probInf = probInf;
 		this.predecessorMethod = predecessorMethod;
 	}
 
 	protected Map<SDGNode, L> initCL(final boolean incorporateUserAnns) {
+		final SDG sdg = this.getSDG();
+		final IStaticLattice<L> secLattice = this.getLattice();
 		final Map<SDGNode, L> ret = new HashMap<SDGNode, L>();
 		for (final SDGNode n : sdg.vertexSet()) {
 			if (incorporateUserAnns && userAnn.containsKey(n)) {
@@ -72,6 +66,8 @@ public class ORLSODChecker<L> extends IFC<L> {
 	 * @return user annotations as map
 	 */
 	protected Map<SDGNode, L> initCLPartial(final boolean incorporateUserAnns) {
+		final SDG sdg = this.getSDG();
+		
 		final Map<SDGNode, L> ret = new HashMap<SDGNode, L>();
 		for (final SDGNode n : sdg.vertexSet()) {
 			if (incorporateUserAnns && userAnn.containsKey(n)) {
@@ -82,6 +78,8 @@ public class ORLSODChecker<L> extends IFC<L> {
 	}
 
 	protected final Collection<? extends IViolation<SecurityNode>> checkCompliance() {
+		final IStaticLattice<L> secLattice = this.getLattice();
+		
 		final LinkedList<IUnaryViolation<SecurityNode, L>> ret = new LinkedList<>();
 		for (final Map.Entry<SDGNode, L> userAnnEntry : userAnn.entrySet()) {
 			final SDGNode s = userAnnEntry.getKey();
@@ -104,6 +102,8 @@ public class ORLSODChecker<L> extends IFC<L> {
 	 * @return nodes whose levels do not comply
 	 */
 	protected final Collection<? extends IViolation<SecurityNode>> checkComplianceDual() {
+		final IStaticLattice<L> secLattice = this.getLattice();
+		
 		final LinkedList<IUnaryViolation<SecurityNode, L>> ret = new LinkedList<>();
 		for (final Map.Entry<SDGNode, L> userAnnEntry : userAnn.entrySet()) {
 			final SDGNode s = userAnnEntry.getKey();
@@ -119,6 +119,9 @@ public class ORLSODChecker<L> extends IFC<L> {
 
 	protected void inferUserAnnotationsOnDemand() {
 		if (userAnn != null) return;
+		
+		final SDG sdg = this.getSDG();
+		final IStaticLattice<L> secLattice = this.getLattice();
 		
 		userAnn = new HashMap<>();
 		for (final SDGNode n : sdg.vertexSet()) {
@@ -147,6 +150,10 @@ public class ORLSODChecker<L> extends IFC<L> {
 	@Override
 	public Collection<? extends IViolation<SecurityNode>> checkIFlow() throws NotInLatticeException {
 		inferUserAnnotationsOnDemand();
+		
+		final SDG sdg = this.getSDG();
+		final IStaticLattice<L> secLattice = this.getLattice();
+		
 		final I2PBackward backw = new I2PBackward(sdg);
 		// 1.) initialize classification: we go from the bottom up, so every
 		// node is classified as low initially

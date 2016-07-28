@@ -22,6 +22,10 @@ public class BetterORLSODChecker<L> extends ORLSODChecker<L> {
 	@Override
 	public Collection<? extends IViolation<SecurityNode>> checkIFlow() throws NotInLatticeException {
 		inferUserAnnotationsOnDemand();
+		
+		final SDG sdg = this.getSDG();
+		final IStaticLattice<L> secLattice = this.getLattice();
+		
 		cl = initCLPartial(true);
 		Set<SDGNode> worklistSlice = new HashSet<SDGNode>();
 		Set<SDGNode> worklistProb = new HashSet<SDGNode>();

@@ -35,6 +35,10 @@ public class PathBasedORLSODChecker<L> extends OptORLSODChecker<L> {
 	@Override
 	public Collection<? extends IViolation<SecurityNode>> checkIFlow() throws NotInLatticeException {
 		inferUserAnnotationsOnDemand();
+		
+		final SDG sdg = this.getSDG();
+		final IStaticLattice<L> secLattice = this.getLattice();
+		
 		this.depGraph = new DefaultDirectedGraph<SDGNode, DefaultEdge>(DefaultEdge.class);
 		for (final SDGNode n : sdg.vertexSet()) {
 			for (final SDGNode inflN : computeBackwardDeps(n)) {
@@ -46,7 +50,7 @@ public class PathBasedORLSODChecker<L> extends OptORLSODChecker<L> {
 		final List<BinaryViolation<SecurityNode, L>> ret = new LinkedList<BinaryViolation<SecurityNode, L>>();
 		for (final Map.Entry<SDGNode, L> userEntry1 : userAnn.entrySet()) {
 			for (final Map.Entry<SDGNode, L> userEntry2 : userAnn.entrySet()) {
-				if (LatticeUtil.isLeq(this.secLattice, userEntry1.getValue(), userEntry2.getValue())) {
+				if (LatticeUtil.isLeq(secLattice, userEntry1.getValue(), userEntry2.getValue())) {
 					continue;
 				}
 				final List<DefaultEdge> path = DijkstraShortestPath.findPathBetween(depGraph, userEntry1.getKey(),

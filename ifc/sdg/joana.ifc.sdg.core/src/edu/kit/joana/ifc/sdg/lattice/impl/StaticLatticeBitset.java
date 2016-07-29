@@ -20,7 +20,6 @@ import java.util.Set;
 
 import edu.kit.joana.ifc.sdg.lattice.ILatticeOperations;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
-import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
 import static java.math.BigInteger.ZERO;
 
@@ -165,7 +164,7 @@ public class StaticLatticeBitset<ElementType> implements IStaticLattice<ElementT
 							if (d > 1) {
 								for (ElementType p : children) {
 									if (layer.get(p) > l) {
-										if (LatticeUtil.collectAllLowerElements(p, ops).contains(child))
+										if (ops.collectAllLowerElements(p).contains(child))
 											continue nextChild;
 									}
 								}

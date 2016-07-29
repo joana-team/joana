@@ -142,7 +142,11 @@ public class LatticeUtil {
 	 *            a <code>ILatticeOperations</code> object providing the
 	 *            basic lattice operations.
 	 * @return all transitive greater elements of <code>s</code>
+	 * 
+	 * @deprecated use {@link ILatticeOperations#collectAllGreaterElements(Object)} instead, which may have an optimized implementation
+	 * 
 	 */
+	@Deprecated
 	public static <ElementType> Collection<ElementType> collectAllGreaterElements(ElementType s, ILatticeOperations<ElementType> ops) {
 		Collection<ElementType> greaterElements = new HashSet<ElementType>();
 		greaterElements.add(s);
@@ -171,7 +175,11 @@ public class LatticeUtil {
 	 * @param lat lattice which provides the partial order
 	 *
 	 * @return all transitive greater elements of <code>s</code>
+	 * 
+	 * @deprecated use {@link IStaticLattice#collectAllGreaterElements(Object)} instead, which may have an optimized implementation
+	 * 
 	 */
+	@Deprecated
 	public static <ElementType> Collection<ElementType> collectAllGreaterElements(ElementType s, IStaticLattice<ElementType> lat) {
 		Collection<ElementType> greaterElements = new HashSet<ElementType>();
 
@@ -202,7 +210,11 @@ public class LatticeUtil {
 	 *         sweep, or <code>null</code> if all elements could be reached.
 	 * @throws InvalidLatticeException
 	 *             if the graph does not have a unique bottom element
+	 * 
+	 * @deprecated use {@link ILatticeOperations#findUnreachableFromBottom(Collection)} instead, which may have an optimized implementation
+	 * 
 	 */
+	@Deprecated
 	public static <ElementType> Collection<ElementType> findUnreachableFromBottom(Collection<ElementType> inElements, ILatticeOperations<ElementType> ops) throws InvalidLatticeException {
 		ArrayList<ElementType> elements = new ArrayList<ElementType>(inElements);
 		boolean seen[] = new boolean[elements.size()];
@@ -244,7 +256,11 @@ public class LatticeUtil {
 	 *         or <code>null</code> if all elements could be reached.
 	 * @throws InvalidLatticeException
 	 *             if the graph does not have a unique top element
+	 * 
+	 * @deprecated use {@link ILatticeOperations#findUnreachableFromTop(Collection)} instead, which may have an optimized implementation
+	 * 
 	 */
+	@Deprecated
 	public static <ElementType> Collection<ElementType> findUnreachableFromTop(Collection<ElementType> inElements, ILatticeOperations<ElementType> ops) throws InvalidLatticeException {
 		ArrayList<ElementType> elements = new ArrayList<ElementType>(inElements);
 		boolean seen[] = new boolean[elements.size()];
@@ -281,7 +297,10 @@ public class LatticeUtil {
 	 *            a <code>ILatticeOperations</code> object providing the
 	 *            basic lattice operations.
 	 * @return all transitive lower elements of <code>s</code>
+	 * 
+	 * @deprecated use {@link ILatticeOperations#collectAllLowerElements(Object))} instead, which may have an optimized implementation
 	 */
+	@Deprecated
 	public static <ElementType> Collection<ElementType> collectAllLowerElements(ElementType s, ILatticeOperations<ElementType> ops) {
 		Collection<ElementType> lowerElements = new HashSet<ElementType>();
 		lowerElements.add(s);
@@ -314,7 +333,10 @@ public class LatticeUtil {
 	 *            basic lattice operations.
 	 * @return all least upper bounds of the elements <code>s</code> and
 	 *         <code>t</code>
+	 * 
+	 * @deprecated use {@link ILatticeOperations#leastUpperBounds(Object, Object)} instead, which may have an optimized implementation
 	 */
+	@Deprecated
 	public static <ElementType> Collection<ElementType> leastUpperBounds(ElementType s, ElementType t, ILatticeOperations<ElementType> ops) {
 		assert s != null;
 		assert t != null;
@@ -362,7 +384,10 @@ public class LatticeUtil {
 	 *            basic lattice operations.
 	 * @return all greatest lower bounds of the elements <code>s</code> and
 	 *         <code>t</code>
+	 * 
+	 * @deprecated use {@link ILatticeOperations#greatestLowerBounds(Object, Object)} instead, which may have an optimized implementation
 	 */
+	@Deprecated
 	public static <ElementType> Collection<ElementType> greatestLowerBounds(ElementType s, ElementType t, ILatticeOperations<ElementType> ops) {
 		assert s != null;
 		assert t != null;
@@ -408,7 +433,10 @@ public class LatticeUtil {
 	 *            basic lattice operations.
 	 * @return all elements in <code>inElements</code> that do not have a
 	 *         predecessor.
+	 * 
+	 * @deprecated use {@link ILatticeOperations#findTopElements(Collection)} instead, which may have an optimized implementation
 	 */
+	@Deprecated
 	public static <ElementType> Collection<ElementType> findTopElements(Collection<ElementType> inElements, ILatticeOperations<ElementType> ops) {
 		Collection<ElementType> tops = new ArrayList<ElementType>();
 
@@ -431,7 +459,10 @@ public class LatticeUtil {
 	 *            basic lattice operations.
 	 * @return all elements in <code>inElements</code> that do not have a
 	 *         successor.
+	 * 
+	 * @deprecated use {@link ILatticeOperations#findBottomElements(Collection)} instead, which may have an optimized implementation
 	 */
+	@Deprecated
 	public static <ElementType> Collection<ElementType> findBottomElements(Collection<ElementType> inElements, ILatticeOperations<ElementType> ops) {
 		Collection<ElementType> bottoms = new ArrayList<ElementType>();
 
@@ -443,8 +474,9 @@ public class LatticeUtil {
 	}
 
 	/**
-	 *
+	 * @deprecated use {@link IStaticLattice#isLeq(Object, Object)} instead, which may have an optimized implementation
 	 */
+	@Deprecated
 	public static <ElementType> Collection<ElementType> collectNoninterferingElements(ElementType s, IStaticLattice<ElementType> lat) {
 		Collection<ElementType> noninterferingElements = new HashSet<ElementType>();
 
@@ -457,6 +489,10 @@ public class LatticeUtil {
 		return noninterferingElements;
 	}
 
+	/**
+	 * @deprecated use {@link IStaticLattice#isLeq(Object, Object)} instead, which may have an optimized implementation
+	 */
+	@Deprecated
 	public static <ElementType> Collection<ElementType> collectAllLowerElements(ElementType s, IStaticLattice<ElementType> lat) {
 		Collection<ElementType> lowerElements = new HashSet<ElementType>();
 
@@ -478,7 +514,10 @@ public class LatticeUtil {
 	 * @param l2 another element of the given lattice
 	 * @return {@code true} if the first given element is lower than or equal to the second given
 	 * element.
+	 * 
+	 * @deprecated use {@link IStaticLattice#isLeq(Object, Object)} instead, which may have an optimized implementation
 	 */
+	@Deprecated
 	public static <ElementType> boolean isLeq(IStaticLattice<ElementType> l, ElementType l1, ElementType l2) {
 		return l.leastUpperBound(l1, l2).equals(l2);
 	}

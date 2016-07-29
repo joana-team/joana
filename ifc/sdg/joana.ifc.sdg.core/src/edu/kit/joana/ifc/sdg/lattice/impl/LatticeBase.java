@@ -11,7 +11,6 @@ import java.util.Collection;
 
 import edu.kit.joana.ifc.sdg.lattice.IEditableLattice;
 import edu.kit.joana.ifc.sdg.lattice.InvalidLatticeException;
-import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
 
 
 /**
@@ -32,7 +31,7 @@ public abstract class LatticeBase<ElementType> implements IEditableLattice<Eleme
 	 *             if the graph does not have a unique bottom element.
 	 */
 	public ElementType getBottom() throws InvalidLatticeException {
-		Collection<ElementType> bottoms = LatticeUtil.findBottomElements(getElements(), this);
+		Collection<ElementType> bottoms = this.findBottomElements(getElements());
 		if (bottoms.size() != 1)
 			throw new InvalidLatticeException("No unique bottom element found");
 		return bottoms.iterator().next();
@@ -46,7 +45,7 @@ public abstract class LatticeBase<ElementType> implements IEditableLattice<Eleme
 	 *             if the graph does not have a unique top element.
 	 */
 	public ElementType getTop() throws InvalidLatticeException {
-		Collection<ElementType> tops = LatticeUtil.findTopElements(getElements(), this);
+		Collection<ElementType> tops = this.findTopElements(getElements());
 		if (tops.size() != 1)
 			throw new InvalidLatticeException("No unique top element found");
 		return tops.iterator().next();

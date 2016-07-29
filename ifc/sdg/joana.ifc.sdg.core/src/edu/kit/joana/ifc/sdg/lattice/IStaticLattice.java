@@ -76,34 +76,32 @@ public interface IStaticLattice<ElementType> {
     /**
      * @see LatticeUtil#collectAllGreaterElements(Object, IStaticLattice)
      */
-    default public Collection<ElementType> collectAllGreaterElements(ElementType s) {
+    @SuppressWarnings("deprecation")
+	default public Collection<ElementType> collectAllGreaterElements(ElementType s) {
     	return LatticeUtil.collectAllGreaterElements(s, this);
     }
     
     /**
      * @see LatticeUtil#collectAllGreaterElements(Object, IStaticLattice)
      */
-    default public Collection<ElementType> collectAllLowerElements(ElementType s) {
+    @SuppressWarnings("deprecation")
+	default public Collection<ElementType> collectAllLowerElements(ElementType s) {
     	return LatticeUtil.collectAllLowerElements(s, this);
     }
 
     /**
      * @see LatticeUtil#collectNoninterferingElements(Object, IStaticLattice)
      */
-    default public Collection<ElementType> collectNoninterferingElements(ElementType s) {
+    @SuppressWarnings("deprecation")
+	default public Collection<ElementType> collectNoninterferingElements(ElementType s) {
     	return LatticeUtil.collectNoninterferingElements(s,this);
-    }
-    /**
-     * @see LatticeUtil#collectAllLowerElements(Object, IStaticLattice)
-     */
-    default public Collection<ElementType> collectAllLowerElements(ElementType s, IStaticLattice<ElementType> lat) {
-    	return LatticeUtil.collectAllLowerElements(s, lat);
     }
     
     /**
      * @see LatticeUtil#isLeq(IStaticLattice, Object, Object)
 	 */
-    default public boolean isLeq(ElementType l1, ElementType l2) {
+    @SuppressWarnings("deprecation")
+	default public boolean isLeq(ElementType l1, ElementType l2) {
 		return LatticeUtil.isLeq(this, l1, l2);
 	}
 

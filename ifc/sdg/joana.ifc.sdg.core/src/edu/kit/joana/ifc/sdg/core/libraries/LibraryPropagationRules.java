@@ -15,7 +15,6 @@ import java.util.List;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.conc.Element;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
-import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
 
 
 /**
@@ -78,7 +77,7 @@ public class LibraryPropagationRules {
             // entferne alle garantiert deklassifizierten level aus levels
             for (SecurityNode s : declass) {
                 if (lattice.leastUpperBound(s.getProvided(), foLevel).equals(foLevel)) {
-                    levels.removeAll(LatticeUtil.collectAllLowerElements(s.getRequired(), lattice));
+                    levels.removeAll(lattice.collectAllLowerElements(s.getRequired()));
                 }
             }
 
@@ -96,7 +95,7 @@ public class LibraryPropagationRules {
                 for (SecurityNode s : summaryDeclass) {
                     HashSet<String> lvl = new HashSet<String>();
                     lvl.addAll(levels);
-                    lvl.removeAll(LatticeUtil.collectAllLowerElements(s.getRequired(), lattice));
+                    lvl.removeAll(lattice.collectAllLowerElements(s.getRequired()));
                     Element e = new Element(node, foLevel, lvl);
                     set.add(e);
                 }

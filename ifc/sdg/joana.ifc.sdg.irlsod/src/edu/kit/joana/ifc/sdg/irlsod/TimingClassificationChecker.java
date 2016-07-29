@@ -24,7 +24,6 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
-import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
@@ -363,7 +362,7 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 		for (final Map.Entry<SDGNode, L> obsEntry : userAnn.entrySet()) {
 			final SDGNode obs = obsEntry.getKey();
 			final L obsLevel = obsEntry.getValue();
-			if (!LatticeUtil.isLeq(l, cl.get(obs), obsLevel)) {
+			if (!l.isLeq(cl.get(obs), obsLevel)) {
 				violations.add(new UnaryViolation<SecurityNode, L>(new SecurityNode(obs), obsLevel, cl.get(obs)));
 			}
 		}
@@ -373,7 +372,7 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 
 			if (userAnn.containsKey(n) && userAnn.containsKey(m)) {
 				final L attackerLevel = l.greatestLowerBound(userAnn.get(n), userAnn.get(m));
-				if (!LatticeUtil.isLeq(l, clt.get(nm), attackerLevel)) {
+				if (!l.isLeq(clt.get(nm), attackerLevel)) {
 					violations.add(new OrderConflict<SecurityNode>(
 							new ConflictEdge<SecurityNode>(new SecurityNode(n), new SecurityNode(m)),
 							attackerLevel.toString()));

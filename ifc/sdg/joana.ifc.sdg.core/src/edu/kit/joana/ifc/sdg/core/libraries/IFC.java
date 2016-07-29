@@ -28,7 +28,6 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.GraphModifier;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
-import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
 
 
 /** Verwendet modulares IFC fuer sequentielle Programme.
@@ -173,7 +172,7 @@ public class IFC implements ProgressAnnouncer {
             if (temp.isInformationSink()) {
                 String label = temp.getRequired();
                 // suche alle label, die `label' nicht beeinflussen duerfen
-                Collection<String> bad = LatticeUtil.collectNoninterferingElements(label, this.l);
+                Collection<String> bad = this.l.collectNoninterferingElements(label);
                 // baue ein entsprechendes Element
                 Element e = new Element(temp, label, bad);
                 criteria.add(e);
@@ -181,7 +180,7 @@ public class IFC implements ProgressAnnouncer {
             } else if (temp.isInformationSource()) {
                 // dasselbe fuer informationsquellen
                 String label = temp.getProvided();
-                Collection<String> bad = LatticeUtil.collectNoninterferingElements(label, this.l);
+                Collection<String> bad = this.l.collectNoninterferingElements(label);
                 Element e = new Element(temp, label, bad);
                 criteria.add(e);
             }
@@ -370,7 +369,7 @@ public class IFC implements ProgressAnnouncer {
                     && l.leastUpperBound(reached.getProvided(), oldElement.getLevel()).equals(oldElement.getLevel())) {
 
                 // iflowin is declassified
-                newLabels.removeAll(LatticeUtil.collectAllLowerElements(reached.getRequired(), l));
+                newLabels.removeAll(l.collectAllLowerElements(reached.getRequired()));
             }
 
             if (e.getKind() == SDGEdge.Kind.SUMMARY) {
@@ -380,7 +379,7 @@ public class IFC implements ProgressAnnouncer {
                 if (rules != null) {
                     for (Rule r : rules) {
                         if (l.leastUpperBound(r.out(), oldElement.getLevel()).equals(oldElement.getLevel())) {
-                            newLabels.removeAll(LatticeUtil.collectAllLowerElements(r.in(), l));
+                            newLabels.removeAll(l.collectAllLowerElements(r.in()));
                         }
                     }
                 }

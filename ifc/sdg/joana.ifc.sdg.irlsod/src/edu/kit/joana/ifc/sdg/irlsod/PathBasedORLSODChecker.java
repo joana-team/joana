@@ -16,7 +16,6 @@ import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
-import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
 
 public class PathBasedORLSODChecker<L> extends OptORLSODChecker<L> {
@@ -50,7 +49,7 @@ public class PathBasedORLSODChecker<L> extends OptORLSODChecker<L> {
 		final List<BinaryViolation<SecurityNode, L>> ret = new LinkedList<BinaryViolation<SecurityNode, L>>();
 		for (final Map.Entry<SDGNode, L> userEntry1 : userAnn.entrySet()) {
 			for (final Map.Entry<SDGNode, L> userEntry2 : userAnn.entrySet()) {
-				if (LatticeUtil.isLeq(secLattice, userEntry1.getValue(), userEntry2.getValue())) {
+				if (secLattice.isLeq(userEntry1.getValue(), userEntry2.getValue())) {
 					continue;
 				}
 				final List<DefaultEdge> path = DijkstraShortestPath.findPathBetween(depGraph, userEntry1.getKey(),

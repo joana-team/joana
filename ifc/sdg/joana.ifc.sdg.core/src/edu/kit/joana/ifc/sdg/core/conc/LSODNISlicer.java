@@ -28,7 +28,6 @@ import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.NandaBackward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
-import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
 import edu.kit.joana.util.Maybe;
 import edu.kit.joana.util.Pair;
 
@@ -225,7 +224,7 @@ public class LSODNISlicer implements ConflictScanner {
 		for (SDGNode n : this.sources) {
 			SecurityNode secN = (SecurityNode) n;
 			if (secN.isInformationSource()
-					&& !LatticeUtil.isLeq(l, secN.getLevel(), refLevel)) {
+					&& !l.isLeq( secN.getLevel(), refLevel)) {
 				Collection<SDGNode> reachable = forw.slice(secN);
 				if ((reachable.contains(a) || mhp.isParallel(secN, a))
 						& (reachable.contains(b) || mhp.isParallel(secN, b))) {
@@ -259,8 +258,8 @@ public class LSODNISlicer implements ConflictScanner {
 		String levelS1 = s1.getLevel();
 		String levelS2 = s2.getLevel();
 		return levelS1 != null && levelS2 != null
-				&& LatticeUtil.isLeq(l, levelS1, refLevel)
-				&& LatticeUtil.isLeq(l, levelS2, refLevel);
+				&& l.isLeq(levelS1, refLevel)
+				&& l.isLeq(levelS2, refLevel);
 
 	}
 

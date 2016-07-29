@@ -15,7 +15,6 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PBackward;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
-import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
 
 public class ORLSODChecker<L> extends AnnotationMapChecker<L> {
@@ -79,7 +78,7 @@ public class ORLSODChecker<L> extends AnnotationMapChecker<L> {
 		for (final Map.Entry<SDGNode, L> userAnnEntry : userAnn.entrySet()) {
 			final SDGNode s = userAnnEntry.getKey();
 			final L userLvl = userAnnEntry.getValue();
-			if (!LatticeUtil.isLeq(secLattice, cl.get(s), userLvl)) {
+			if (!secLattice.isLeq(cl.get(s), userLvl)) {
 				ret.add(new UnaryViolation<SecurityNode, L>(new SecurityNode(s), userLvl, cl.get(s)));
 				System.out.println("Violation at node " + s + ": user-annotated level is " + userLvl
 						+ ", computed level is " + cl.get(s));
@@ -103,7 +102,7 @@ public class ORLSODChecker<L> extends AnnotationMapChecker<L> {
 		for (final Map.Entry<SDGNode, L> userAnnEntry : userAnn.entrySet()) {
 			final SDGNode s = userAnnEntry.getKey();
 			final L userLvl = userAnnEntry.getValue();
-			if (!LatticeUtil.isLeq(secLattice, userLvl, cl.get(s))) {
+			if (!secLattice.isLeq(userLvl, cl.get(s))) {
 				ret.add(new UnaryViolation<SecurityNode, L>(new SecurityNode(s), userLvl, cl.get(s)));
 				System.out.println("Violation at node " + s + ": user-annotated level is " + userLvl
 						+ ", computed level is " + cl.get(s));

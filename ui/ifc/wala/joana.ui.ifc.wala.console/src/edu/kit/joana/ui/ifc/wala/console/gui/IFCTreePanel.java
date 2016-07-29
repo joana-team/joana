@@ -33,7 +33,6 @@ import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
-import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
 import edu.kit.joana.ui.ifc.wala.console.gui.IFCConsoleGUI.Command;
 import edu.kit.joana.ui.ifc.wala.console.gui.tree.IFCTreeCellRenderer;
 import edu.kit.joana.ui.ifc.wala.console.gui.tree.IFCTreeModel;
@@ -345,9 +344,9 @@ public class IFCTreePanel extends JPanel {
 		public int compare(C lvl1, C lvl2) {
 			if (lvl1.equals(lvl2)) {
 				return 0;
-			} else if (LatticeUtil.isLeq(l, lvl1, lvl2)) {
+			} else if (l.isLeq(lvl1, lvl2)) {
 				return -1 * dir;
-			} else if (LatticeUtil.isLeq(l, lvl2, lvl1)) {
+			} else if (l.isLeq(lvl2, lvl1)) {
 				return 1 * dir;
 			} else {
 				return lvl1.compareTo(lvl2);

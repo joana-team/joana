@@ -14,7 +14,6 @@ import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.conc.Element;
 import edu.kit.joana.ifc.sdg.core.libraries.LibraryPropagationRules.HookInElement;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
-import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
 
 
 /**
@@ -51,7 +50,7 @@ public class PropagationRule {
 	    Collection<Element> coll = new HashSet<Element>();
 
 	    // berechne alle level, die prinzipiell nicht mit fo interferieren duerfen
-	    Collection<String> levels = LatticeUtil.collectNoninterferingElements(fo.getLevel(), lattice);
+	    Collection<String> levels = lattice.collectNoninterferingElements(fo.getLevel());
 
 	    for (HookInElement he : elems) {
 	        // berechne fuer jeden abstrakt annotierten FI-knoten konkrete annotationen

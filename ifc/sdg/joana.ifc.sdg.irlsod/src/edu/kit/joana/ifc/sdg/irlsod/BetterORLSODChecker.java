@@ -10,7 +10,6 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PBackward;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
-import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
 
 public class BetterORLSODChecker<L> extends ORLSODChecker<L> {
@@ -66,7 +65,7 @@ public class BetterORLSODChecker<L> extends ORLSODChecker<L> {
 					if (oldLevel == null || !newLevel.equals(oldLevel) && !worklistSlice.contains(m)) {
 						worklistProb.add(m);
 					}
-					if (userAnn.get(m) != null && LatticeUtil.isLeq(secLattice, newLevel, userAnn.get(m))
+					if (userAnn.get(m) != null && secLattice.isLeq(newLevel, userAnn.get(m))
 							&& !newLevel.equals(userAnn.get(m))) {
 						System.out.println("Violation detected!");
 					}
@@ -84,7 +83,7 @@ public class BetterORLSODChecker<L> extends ORLSODChecker<L> {
 					if (oldLevel == null || !newLevel.equals(oldLevel) && !worklistProb.contains(n0)) {
 						worklistSlice.add(n0);
 					}
-					if (userAnn.get(n0) != null && LatticeUtil.isLeq(secLattice, newLevel, userAnn.get(n0))
+					if (userAnn.get(n0) != null && secLattice.isLeq(newLevel, userAnn.get(n0))
 							&& !newLevel.equals(userAnn.get(n0))) {
 						System.out.println("Violation detected!");
 					}

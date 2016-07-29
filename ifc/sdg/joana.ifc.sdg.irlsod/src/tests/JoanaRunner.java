@@ -53,7 +53,6 @@ import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
 import edu.kit.joana.wala.core.graphs.Dominators;
-import joana.contrib.lib.Contrib;
 
 public class JoanaRunner {
 

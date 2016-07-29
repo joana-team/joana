@@ -49,49 +49,56 @@ public interface ILatticeOperations<ElementType> extends IStaticLattice<ElementT
 	/**
 	 * @see LatticeUtil#collectAllGreaterElements(Object, ILatticeOperations)
 	 */
-    default public Collection<ElementType> collectAllGreaterElements(ElementType s) {
+    @SuppressWarnings("deprecation")
+	default public Collection<ElementType> collectAllGreaterElements(ElementType s) {
     	return LatticeUtil.collectAllGreaterElements(s, this);
     }
     
     /**
      * @see LatticeUtil#findUnreachableFromBottom(Collection, ILatticeOperations)
      */
-    default public  Collection<ElementType> findUnreachableFromBottom(Collection<ElementType> inElements) throws InvalidLatticeException {
+    @SuppressWarnings("deprecation")
+	default public  Collection<ElementType> findUnreachableFromBottom(Collection<ElementType> inElements) throws InvalidLatticeException {
     	return LatticeUtil.findUnreachableFromBottom(inElements, this);
     }
 
     /**
      * @see LatticeUtil#findUnreachableFromTop(Collection, ILatticeOperations)
      */
-    default public Collection<ElementType> findUnreachableFromTop(Collection<ElementType> inElements) throws InvalidLatticeException {
+    @SuppressWarnings("deprecation")
+	default public Collection<ElementType> findUnreachableFromTop(Collection<ElementType> inElements) throws InvalidLatticeException {
     	return LatticeUtil.findUnreachableFromTop(inElements, this);
     }
     
     /**
      * @see LatticeUtil#leastUpperBounds(Object, Object, ILatticeOperations)
      */
-    default public Collection<ElementType> leastUpperBounds(ElementType s, ElementType t) {
+    @SuppressWarnings("deprecation")
+	default public Collection<ElementType> leastUpperBounds(ElementType s, ElementType t) {
     	return LatticeUtil.leastUpperBounds(s, t, this);
     }
     
     /**
      * @see LatticeUtil#greatestLowerBounds(Object, Object, ILatticeOperations)
      */
-    default public Collection<ElementType> greatestLowerBounds(ElementType s, ElementType t) {
+    @SuppressWarnings("deprecation")
+	default public Collection<ElementType> greatestLowerBounds(ElementType s, ElementType t) {
     	return LatticeUtil.greatestLowerBounds(s, t, this);
     }
     
     /**
      * @see LatticeUtil#findTopElements(Collection, ILatticeOperations)
      */
-    default public Collection<ElementType> findTopElements(Collection<ElementType> inElements) {
+    @SuppressWarnings("deprecation")
+	default public Collection<ElementType> findTopElements(Collection<ElementType> inElements) {
     	return LatticeUtil.findTopElements(inElements, this);
     }
     
     /**
      * @see LatticeUtil#findBottomElements(Collection, ILatticeOperations) 
      */
-    default public Collection<ElementType> findBottomElements(Collection<ElementType> inElements) {
+    @SuppressWarnings("deprecation")
+	default public Collection<ElementType> findBottomElements(Collection<ElementType> inElements) {
     	return LatticeUtil.findBottomElements(inElements, this);
     }
 }

@@ -34,7 +34,7 @@ public class LatticeValidator {
 	 *         <code>null</code> if no cycle was found.
 	 */
 	public static <ElementType> Collection<ElementType> findCycle(Collection<ElementType> inElements, ILatticeOperations<ElementType> ops) {
-		Collection<ElementType> tops = LatticeUtil.findTopElements(inElements, ops);
+		Collection<ElementType> tops = ops.findTopElements(inElements);
 		if (tops.size() != 1)
 			throw new InvalidLatticeException("Cycle detection requires a graph with a unique top element");
 
@@ -88,7 +88,7 @@ public class LatticeValidator {
 	 *             if no unique bottom element could be found.
 	 */
 	public static <ElementType> Collection<ElementType> validateBottomUp(Collection<ElementType> inElements, ILatticeOperations<ElementType> ops) throws InvalidLatticeException {
-		Collection<ElementType> bottoms = LatticeUtil.findBottomElements(inElements, ops);
+		Collection<ElementType> bottoms = ops.findBottomElements(inElements);
 		if (bottoms.size() != 1)
 			throw new InvalidLatticeException("Lattice does not have a unique bottom element");
 
@@ -102,7 +102,7 @@ public class LatticeValidator {
 
 		for (int i = 0; i < siblings.size(); i++) {
 			for (int j = i; j < siblings.size(); j++) {
-				Collection<ElementType> lubs = LatticeUtil.leastUpperBounds(siblings.get(i), siblings.get(j), ops);
+				Collection<ElementType> lubs = ops.leastUpperBounds(siblings.get(i), siblings.get(j));
 				if (lubs.size() != 1) {
 					ArrayList<ElementType> ret = new ArrayList<ElementType>();
 					ret.add(siblings.get(i));
@@ -142,13 +142,13 @@ public class LatticeValidator {
 		if(elements.size() == 0)
 			return new LatticeProblemDescription<ElementType>("Graph is empty");
 
-		Collection<ElementType> tops = LatticeUtil.findTopElements(elements, ops);
+		Collection<ElementType> tops = ops.findTopElements(elements);
 		if (tops.size() == 0)
 			return new LatticeProblemDescription<ElementType>("Graph does not have a top element");
 		if (tops.size() > 1)
 			return new LatticeProblemDescription<ElementType>("Graph has multiple top elements", tops);
 
-		Collection<ElementType> bottoms = LatticeUtil.findBottomElements(elements, ops);
+		Collection<ElementType> bottoms = ops.findBottomElements(elements);
 		if (bottoms.size() == 0)
 			return new LatticeProblemDescription<ElementType>("Graph does not have a bottom element");
 		if (bottoms.size() > 1)
@@ -158,7 +158,7 @@ public class LatticeValidator {
 		if (cycle != null)
 			return new LatticeProblemDescription<ElementType>("Graph has a cycle", cycle);
 
-		Collection<ElementType> unreachable = LatticeUtil.findUnreachableFromBottom(elements, ops);
+		Collection<ElementType> unreachable = ops.findUnreachableFromBottom(elements);
 		if (unreachable != null)
 			return new LatticeProblemDescription<ElementType>("Some elements can not be reached from bottom", unreachable);
 

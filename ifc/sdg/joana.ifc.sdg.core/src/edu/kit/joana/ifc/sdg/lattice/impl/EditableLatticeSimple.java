@@ -161,6 +161,7 @@ public class EditableLatticeSimple<ElementType> extends LatticeBase<ElementType>
 		assert t != null;
 		assert elements.contains(s);
 		assert elements.contains(t);
+		@SuppressWarnings("deprecation")
 		Collection<ElementType> greatestLowerBounds = LatticeUtil.greatestLowerBounds(s, t, this);
 		if (greatestLowerBounds.size() != 1)
 			throw new InvalidLatticeException("Graph is not a lattice");
@@ -172,6 +173,7 @@ public class EditableLatticeSimple<ElementType> extends LatticeBase<ElementType>
 		assert t != null;
 		assert elements.contains(s);
 		assert elements.contains(t);
+		@SuppressWarnings("deprecation")
 		Collection<ElementType> leastUpperBounds = LatticeUtil.leastUpperBounds(s, t, this);
 		if (leastUpperBounds.size() != 1)
 			throw new InvalidLatticeException("Graph is not a lattice");

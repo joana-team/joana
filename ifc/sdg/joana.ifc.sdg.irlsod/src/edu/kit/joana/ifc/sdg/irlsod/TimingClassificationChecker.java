@@ -142,8 +142,22 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 
 	protected Map<Pair<SDGNode, SDGNode>, L> initCLT() {
 		final Map<Pair<SDGNode, SDGNode>, L> ret = new HashMap<>();
-		for (final SDGNode n : icfg.vertexSet()) {
-			for (final SDGNode m : icfg.vertexSet()) {
+		// relative timing of conflicts
+		for (final SDGEdge e : g.edgeSet()) {
+			if (e.getKind() == SDGEdge.Kind.INTERFERENCE
+					|| e.getKind() == SDGEdge.Kind.INTERFERENCE_WRITE) {
+				SDGNode m = e.getSource();
+				SDGNode n = e.getTarget();
+				if (mhp.isParallel(m, n)) {
+					ret.put(Pair.pair(n, m), l.getBottom());
+					// TODO do we need this?
+					ret.put(Pair.pair(m, n), l.getBottom());
+				}
+			}
+		}
+		// relative timing of annotated nodes
+		for (final SDGNode n : userAnn.keySet()) {
+			for (final SDGNode m : userAnn.keySet()) {
 				if (mhp.isParallel(m, n)) {
 					ret.put(Pair.pair(n, m), l.getBottom());
 				}
@@ -255,7 +269,13 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 					if (!mhp.isParallel(n, m)) {
 						continue;
 					}
-					newLevel = l.leastUpperBound(newLevel, clt.get(Pair.pair(n, m)));
+					L timingLevel = clt.get(Pair.pair(n, m));
+					if (timingLevel == null) {
+						throw new IllegalStateException(
+								String.format("No timing classification for nodes %s and %s!",
+								m, n));
+					}
+					newLevel = l.leastUpperBound(newLevel, timingLevel);
 					if (l.getTop().equals(newLevel)) {
 						break; // we can abort the loop here - level cannot get
 						// any higher
@@ -263,7 +283,13 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 				}
 				for (final SDGEdge e : g.getIncomingEdgesOfKind(n, SDGEdge.Kind.INTERFERENCE_WRITE)) {
 					final SDGNode m = e.getSource();
-					newLevel = l.leastUpperBound(newLevel, clt.get(Pair.pair(n, m)));
+					L timingLevel = clt.get(Pair.pair(n, m));
+					if (timingLevel == null) {
+						throw new IllegalStateException(
+								String.format("No timing classification for nodes %s and %s!",
+								m, n));
+					}
+					newLevel = l.leastUpperBound(newLevel, timingLevel);
 					if (l.getTop().equals(newLevel)) {
 						break; // we can abort the loop here - level cannot get
 						// any higher

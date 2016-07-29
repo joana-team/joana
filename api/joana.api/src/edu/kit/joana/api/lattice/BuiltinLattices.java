@@ -85,14 +85,7 @@ public final class BuiltinLattices {
 	 *         {@link BuiltinLattices#STD_SECLEVEL_HIGH high}
 	 */
 	public static final IStaticLattice<String> getBinaryLattice() {
-		if (binary == null) {
-			IEditableLattice<String> retLattice = new EditableLatticeSimple<String>();
-			retLattice.addElement(BuiltinLattices.STD_SECLEVEL_LOW);
-			retLattice.addElement(BuiltinLattices.STD_SECLEVEL_HIGH);
-			retLattice.setImmediatelyGreater(BuiltinLattices.STD_SECLEVEL_LOW, BuiltinLattices.STD_SECLEVEL_HIGH);
-			binary = retLattice;
-		}
-		return binary;
+		return LowHighLattice.INSTANCE;
 	}
 
 	/**

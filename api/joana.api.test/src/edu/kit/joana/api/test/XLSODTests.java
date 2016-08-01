@@ -381,4 +381,13 @@ public class XLSODTests {
 		
 		testPrecise(     joana.api.testdata.demo.xrlsod.ORLSODImprecise.class, IFCType.timingiRLSOD);
 	}
+	
+	@Test
+	public void testSwitchManyCases() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testSound(     joana.api.testdata.demo.xrlsod.SwitchManyCases.class, IFCType.LSOD);
+		testSound(     joana.api.testdata.demo.xrlsod.SwitchManyCases.class, IFCType.RLSOD);
+		testSound(     joana.api.testdata.demo.xrlsod.SwitchManyCases.class, IFCType.iRLSOD);
+		testSound(     joana.api.testdata.demo.xrlsod.SwitchManyCases.class, IFCType.timingiRLSOD);
+	}
 }

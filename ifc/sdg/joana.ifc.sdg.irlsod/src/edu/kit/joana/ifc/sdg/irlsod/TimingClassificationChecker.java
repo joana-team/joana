@@ -109,7 +109,7 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 			// assert (nr==0 || nr == 1 || nr == 2 ||
 			// n.kind.equals(SDGNode.Kind.ENTRY));
 
-			if (nr == 2) {
+			if (nr >= 2) {
 				final SDGNode n2 = edges.get(0).getTarget();
 				final SDGNode n3 = edges.get(1).getTarget();
 

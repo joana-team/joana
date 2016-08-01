@@ -282,6 +282,9 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 				}
 				for (final SDGEdge e : g.getIncomingEdgesOfKind(n, SDGEdge.Kind.INTERFERENCE_WRITE)) {
 					final SDGNode m = e.getSource();
+					if (!mhp.isParallel(n, m)) {
+						continue;
+					}
 					L timingLevel = clt.get(Pair.pair(n, m));
 					if (timingLevel == null) {
 						throw new IllegalStateException(

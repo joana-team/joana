@@ -314,9 +314,6 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 				final SDGNode n = nm.getFirst();
 				final SDGNode m = nm.getSecond();
 
-				transClosure.computeIfAbsent(n, tcfgForwardSlicer::slice);
-				transClosure.computeIfAbsent(m, tcfgForwardSlicer::slice);
-
 				for (final int threadN : n.getThreadNumbers()) {
 					for (final int threadM : m.getThreadNumbers()) {
 						// @formatter:off

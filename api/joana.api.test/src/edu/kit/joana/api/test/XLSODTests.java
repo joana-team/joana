@@ -399,4 +399,41 @@ public class XLSODTests {
 		testSound(     joana.api.testdata.demo.xrlsod.TimingCascade.class, IFCType.iRLSOD);
 		testSound(     joana.api.testdata.demo.xrlsod.TimingCascade.class, IFCType.timingiRLSOD);
 	}
+	
+	@Test
+	public void testAlmostTimingCascade1() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testSound(       joana.api.testdata.demo.xrlsod.AlmostTimingCascade1.class, IFCType.LSOD);
+		testPrecise(joana.api.testdata.demo.xrlsod.AlmostTimingCascade1.class, IFCType.RLSOD);
+		testPrecise(joana.api.testdata.demo.xrlsod.AlmostTimingCascade1.class, IFCType.iRLSOD);
+		testPrecise(     joana.api.testdata.demo.xrlsod.AlmostTimingCascade1.class, IFCType.timingiRLSOD);
+	}
+	
+	@Test
+	public void testAlmostTimingCascade2() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testSound(       joana.api.testdata.demo.xrlsod.AlmostTimingCascade2.class, IFCType.LSOD);
+		testTooImprecise(joana.api.testdata.demo.xrlsod.AlmostTimingCascade2.class, IFCType.RLSOD);
+		testTooImprecise(joana.api.testdata.demo.xrlsod.AlmostTimingCascade2.class, IFCType.iRLSOD);
+		testPrecise(     joana.api.testdata.demo.xrlsod.AlmostTimingCascade2.class, IFCType.timingiRLSOD);
+	}
+	
+	@Test
+	public void testAlmostTimingCascade3() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testSound(       joana.api.testdata.demo.xrlsod.AlmostTimingCascade3.class, IFCType.LSOD);
+		testTooImprecise(joana.api.testdata.demo.xrlsod.AlmostTimingCascade3.class, IFCType.RLSOD);
+		testTooImprecise(joana.api.testdata.demo.xrlsod.AlmostTimingCascade3.class, IFCType.iRLSOD);
+		testPrecise(     joana.api.testdata.demo.xrlsod.AlmostTimingCascade3.class, IFCType.timingiRLSOD);
+	}
+	
+	@Test
+	public void testAlmostTimingCascade4() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+
+		testSound(       joana.api.testdata.demo.xrlsod.AlmostTimingCascade4.class, IFCType.LSOD);
+		testTooImprecise(joana.api.testdata.demo.xrlsod.AlmostTimingCascade4.class, IFCType.RLSOD);
+		testTooImprecise(joana.api.testdata.demo.xrlsod.AlmostTimingCascade4.class, IFCType.iRLSOD);
+		testPrecise(     joana.api.testdata.demo.xrlsod.AlmostTimingCascade4.class, IFCType.timingiRLSOD);
+	}
 }

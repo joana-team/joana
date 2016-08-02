@@ -390,4 +390,13 @@ public class XLSODTests {
 		testSound(     joana.api.testdata.demo.xrlsod.SwitchManyCases.class, IFCType.iRLSOD);
 		testSound(     joana.api.testdata.demo.xrlsod.SwitchManyCases.class, IFCType.timingiRLSOD);
 	}
+	
+	@Test
+	public void testTimingCascade() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testSound(     joana.api.testdata.demo.xrlsod.TimingCascade.class, IFCType.LSOD);
+		testSound(     joana.api.testdata.demo.xrlsod.TimingCascade.class, IFCType.RLSOD);
+		testSound(     joana.api.testdata.demo.xrlsod.TimingCascade.class, IFCType.iRLSOD);
+		testSound(     joana.api.testdata.demo.xrlsod.TimingCascade.class, IFCType.timingiRLSOD);
+	}
 }

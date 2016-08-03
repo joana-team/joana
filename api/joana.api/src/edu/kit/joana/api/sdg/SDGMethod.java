@@ -22,6 +22,7 @@ import edu.kit.joana.ifc.sdg.util.JavaType;
 public class SDGMethod implements SDGProgramPart {
 
 	private SDGMethodExitNode exit;
+	private SDGMethodExceptionNode exception;
 	private JavaMethodSignature sig;
 	private SortedMap<Integer, SDGFormalParameter> params = new TreeMap<Integer, SDGFormalParameter>();
 	private List<SDGInstruction> instructions = new ArrayList<SDGInstruction>();
@@ -40,6 +41,7 @@ public class SDGMethod implements SDGProgramPart {
 			paramIndex++;
 		}
 		this.exit = new SDGMethodExitNode(this, this.sig.getReturnType());
+		this.exception = new SDGMethodExceptionNode(this);
 		this.instructions = new ArrayList<SDGInstruction>();
 		this.calls = new ArrayList<SDGCall>();
 		this.phis = new ArrayList<SDGPhi>();
@@ -136,6 +138,10 @@ public class SDGMethod implements SDGProgramPart {
 		return exit;
 	}
 
+	public SDGMethodExceptionNode getException() {
+		return exception;
+	}
+	
 	public Collection<SDGFormalParameter> getParameters() {
 		return params.values();
 	}

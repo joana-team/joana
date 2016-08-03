@@ -19,6 +19,7 @@ import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGInstruction;
 import edu.kit.joana.api.sdg.SDGMethod;
+import edu.kit.joana.api.sdg.SDGMethodExceptionNode;
 import edu.kit.joana.api.sdg.SDGMethodExitNode;
 import edu.kit.joana.api.sdg.SDGPhi;
 import edu.kit.joana.api.sdg.SDGProgramPartVisitor;
@@ -99,6 +100,14 @@ class StdProgramPartToString extends ProgramPartToString {
 	 */
 	@Override
 	protected String visitCallExceptionNode(SDGCallExceptionNode c, Void data) {
+		return "exc";
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitException(edu.kit.joana.api.sdg.SDGMethodExceptionNode, java.lang.Object)
+	 */
+	@Override
+	protected String visitException(SDGMethodExceptionNode e, Void data) {
 		return "exc";
 	}
 }

@@ -141,4 +141,13 @@ public class SDGProgramPartCollector extends
 		return null;
 	}
 
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitException(edu.kit.joana.api.sdg.SDGMethodExceptionNode, java.lang.Object)
+	 */
+	@Override
+	protected Void visitException(SDGMethodExceptionNode e, Collection<SDGProgramPart> base) {
+		base.add(e);
+		return null;
+	}
+
 }

@@ -77,6 +77,14 @@ public class SDGPPConcretenessEvaluator extends SDGProgramPartVisitor<Integer, V
 		return 3;
 	}
 
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitException(edu.kit.joana.api.sdg.SDGMethodExceptionNode, java.lang.Object)
+	 */
+	@Override
+	protected Integer visitException(SDGMethodExceptionNode e, Void data) {
+		return 3;
+	}
+
 	@Override
 	protected Integer visitPhi(SDGPhi phi, Void data) {
 		return 3;

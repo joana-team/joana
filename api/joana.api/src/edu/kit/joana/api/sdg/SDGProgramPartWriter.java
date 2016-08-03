@@ -90,6 +90,14 @@ final class BytecodeCentricSDGMethodPartWriter extends SDGProgramPartWriter {
 		return visitCall(c.getOwningCall(), data) + "->" + "exc";
 	}
 
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitException(edu.kit.joana.api.sdg.SDGMethodExceptionNode, java.lang.Object)
+	 */
+	@Override
+	protected String visitException(SDGMethodExceptionNode e, Void data) {
+		return e.getOwningMethod().getSignature().toBCString() + "->" + "exc";
+	}
+
 }
 
 public abstract class SDGProgramPartWriter extends SDGProgramPartVisitor<String, Void> {

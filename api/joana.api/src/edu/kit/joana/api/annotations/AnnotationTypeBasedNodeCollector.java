@@ -28,6 +28,7 @@ import edu.kit.joana.api.sdg.SDGClassComputation;
 import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGInstruction;
 import edu.kit.joana.api.sdg.SDGMethod;
+import edu.kit.joana.api.sdg.SDGMethodExceptionNode;
 import edu.kit.joana.api.sdg.SDGMethodExitNode;
 import edu.kit.joana.api.sdg.SDGPhi;
 import edu.kit.joana.api.sdg.SDGProgram;
@@ -185,6 +186,13 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 	protected Set<SDGNode> visitExit(SDGMethodExitNode exit, AnnotationType type) {
 		Set<SDGNode> ret = new HashSet<SDGNode>();
 		addAllAppropriateParameterNodesFrom(pp2NodeTrans.getExits(exit), type, ret);
+		return ret;
+	}
+
+	@Override
+	protected Set<SDGNode> visitException(SDGMethodExceptionNode exc, AnnotationType type) {
+		Set<SDGNode> ret = new HashSet<SDGNode>();
+		addAllAppropriateParameterNodesFrom(pp2NodeTrans.getExceptions(exc), type, ret);
 		return ret;
 	}
 

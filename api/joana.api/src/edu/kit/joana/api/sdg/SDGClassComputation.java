@@ -155,6 +155,10 @@ public class SDGClassComputation {
 		return getRoots(exit);
 	}
 
+	public Set<SDGNode> getExceptions(SDGMethodExceptionNode exc) {
+		return getRoots(exc);
+	}
+
 	private Set<SDGNode> getRoots(SDGFormalParameter param, Kind k) {
 		Set<SDGNode> ret = new HashSet<SDGNode>();
 		for (SDGNode entry : getEntries(param.getOwningMethod())) {
@@ -177,6 +181,19 @@ public class SDGClassComputation {
 		for (SDGNode entry : getEntries(exit.getOwningMethod())) {
 			for (SDGNode n : sdg.getNodesOfProcedure(entry)) {
 				if (n.getKind() == SDGNode.Kind.EXIT) {
+					ret.add(n);
+					break;
+				}
+			}
+		}
+		return ret;
+	}
+
+	private Set<SDGNode> getRoots(SDGMethodExceptionNode exc) {
+		Set<SDGNode> ret = new HashSet<SDGNode>();
+		for (SDGNode entry : getEntries(exc.getOwningMethod())) {
+			for (SDGNode n : sdg.getNodesOfProcedure(entry)) {
+				if (n.getKind().equals(SDGNode.Kind.FORMAL_OUT) && BytecodeLocation.EXCEPTION_PARAM.equals(n.getBytecodeName())) {
 					ret.add(n);
 					break;
 				}

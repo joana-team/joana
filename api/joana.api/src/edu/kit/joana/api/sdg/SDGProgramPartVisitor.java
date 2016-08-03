@@ -21,6 +21,8 @@ public abstract class SDGProgramPartVisitor<R, D> {
 
 	protected abstract R visitExit(SDGMethodExitNode e, D data);
 
+	protected abstract R visitException(SDGMethodExceptionNode e, D data);
+
 	protected abstract R visitInstruction(SDGInstruction i, D data);
 
 	protected abstract R visitCall(SDGCall c, D data);

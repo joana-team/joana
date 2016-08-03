@@ -26,6 +26,8 @@ public abstract class ThrowingSDGProgramPartVisitor<R, D>  extends SDGProgramPar
 
 	protected  R visitExit(SDGMethodExitNode e, D data){ fail(SDGMethodExitNode.class); return null;}
 
+	protected  R visitException(SDGMethodExceptionNode e, D data){ fail(SDGMethodExceptionNode.class); return null;}
+
 	protected  R visitInstruction(SDGInstruction i, D data){ fail(SDGInstruction.class); return null;}
 
 	protected  R visitCall(SDGCall c, D data){ fail(SDGCall.class); return null;}

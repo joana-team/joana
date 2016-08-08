@@ -309,6 +309,13 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 				
 				if (!newLevel.equals(oldLevel)) {
 					clt.put(nm, newLevel);
+					// Timing classification has changed,
+					// so we need to update (classical) classification accordingly.
+					// This means that in the cl calculation loop,
+					// we don't have to check for clt levels every time
+					// we encounter an interference edge.
+					// We only need to update n here (and not also m), because
+					// n is the target of the interference edge.
 					cl.put(n, l.leastUpperBound(newLevel, cl.get(n)));
 					change = true;
 				}

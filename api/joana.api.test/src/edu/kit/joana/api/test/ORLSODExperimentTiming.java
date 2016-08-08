@@ -25,6 +25,7 @@ import edu.kit.joana.ifc.sdg.util.graph.io.dot.MiscGraph2Dot;
 import edu.kit.joana.ifc.sdg.util.sdg.GraphModifier;
 import edu.kit.joana.ifc.sdg.util.sdg.ReducedCFGBuilder;
 import joana.api.testdata.demo.Fig2_3;
+import joana.api.testdata.demo.xrlsod.ContextSens;
 import joana.api.testdata.demo.xrlsod.LateSecretAccess;
 import joana.api.testdata.demo.xrlsod.NoSecret;
 import joana.api.testdata.demo.xrlsod.ORLSOD1;
@@ -81,6 +82,12 @@ public class ORLSODExperimentTiming {
 	public void testPost_Fig2_3() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException, ApiTestException {
 		doConfigTiming(
 				new ORLSODExperiment.StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, Fig2_3.class, "post_fig2_3", 1, 2, 4));
+	}
+
+	@Test
+	public void testContextSens() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException, ApiTestException {
+		doConfigTiming(
+				new ORLSODExperiment.StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, ContextSens.class, "contextSens", 3, 2, 0));
 	}
 
 	@Test

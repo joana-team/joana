@@ -154,14 +154,6 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 				}
 			}
 		}
-		// relative timing of annotated nodes
-		for (final SDGNode n : userAnn.keySet()) {
-			for (final SDGNode m : userAnn.keySet()) {
-				if (mhp.isParallel(m, n)) {
-					ret.put(Pair.pair(n, m), l.getBottom());
-				}
-			}
-		}
 		return ret;
 	}
 
@@ -263,7 +255,7 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 				// INTERFERENCE_WRITE.
 				assert(interferenceWriteUndirected(n));
 
-				for (final SDGEdge e : g.getIncomingEdgesOfKind(n, SDGEdge.Kind.INTERFERENCE)) {
+				/*for (final SDGEdge e : g.getIncomingEdgesOfKind(n, SDGEdge.Kind.INTERFERENCE)) {
 					final SDGNode m = e.getSource();
 					if (!mhp.isParallel(n, m)) {
 						continue;
@@ -296,7 +288,7 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 						break; // we can abort the loop here - level cannot get
 						// any higher
 					}
-				}
+				}*/
 				if (!newLevel.equals(oldLevel)) {
 					cl.put(n, newLevel);
 					change = true;
@@ -309,39 +301,15 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 				if (l.getTop().equals(oldLevel)) {
 					continue;
 				}
-				L newLevel = oldLevel;
 
 				final SDGNode n = nm.getFirst();
 				final SDGNode m = nm.getSecond();
-
-				for (final int threadN : n.getThreadNumbers()) {
-					for (final int threadM : m.getThreadNumbers()) {
-						// @formatter:off
-						final SDGNode c = cdomOracle.cdom(n, threadN, m, threadM).getNode();
-						chops.computeIfAbsent(
-							Pair.pair(c, n),
-							pair -> tcfgChopper.chop(pair.getFirst(), pair.getSecond())
-						);
-						chops.computeIfAbsent(
-							Pair.pair(c, m),
-							pair -> tcfgChopper.chop(pair.getFirst(), pair.getSecond())
-						);
-						final List<? extends SDGNode> relevant =
-							Stream.concat(chops.get(Pair.pair(c, n)).stream().filter(timingDependence.get(n)::contains),
-							              chops.get(Pair.pair(c, m)).stream().filter(timingDependence.get(m)::contains))
-							      .collect(Collectors.toList());
-						// @formatter:on
-						for (final SDGNode c2 : relevant) {
-							newLevel = l.leastUpperBound(newLevel, cl.get(c2));
-							if (l.getTop().equals(newLevel)) {
-								break; // we can abort the loop here - level
-								// cannot get any higher
-							}
-						}
-					}
-				}
+				
+				L newLevel = calcClt(n, m, oldLevel);
+				
 				if (!newLevel.equals(oldLevel)) {
 					clt.put(nm, newLevel);
+					cl.put(n, l.leastUpperBound(newLevel, cl.get(n)));
 					change = true;
 				}
 
@@ -356,6 +324,38 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 		// 3.) check that sink levels comply
 		return checkCompliance();
 	}
+	
+	protected L calcClt(SDGNode n, SDGNode m, L oldLevel) {
+		L newLevel = oldLevel;
+	
+		for (final int threadN : n.getThreadNumbers()) {
+			for (final int threadM : m.getThreadNumbers()) {
+				// @formatter:off
+				final SDGNode c = cdomOracle.cdom(n, threadN, m, threadM).getNode();
+				chops.computeIfAbsent(
+					Pair.pair(c, n),
+					pair -> tcfgChopper.chop(pair.getFirst(), pair.getSecond())
+				);
+				chops.computeIfAbsent(
+					Pair.pair(c, m),
+					pair -> tcfgChopper.chop(pair.getFirst(), pair.getSecond())
+				);
+				final List<? extends SDGNode> relevant =
+					Stream.concat(chops.get(Pair.pair(c, n)).stream().filter(timingDependence.get(n)::contains),
+					              chops.get(Pair.pair(c, m)).stream().filter(timingDependence.get(m)::contains))
+					      .collect(Collectors.toList());
+				// @formatter:on
+				for (final SDGNode c2 : relevant) {
+					newLevel = l.leastUpperBound(newLevel, cl.get(c2));
+					if (l.getTop().equals(newLevel)) {
+						break; // we can abort the loop here - level
+						// cannot get any higher
+					}
+				}
+			}
+		}
+		return newLevel;
+	}
 
 	protected final Collection<? extends IViolation<SecurityNode>> checkCompliance() {
 		final LinkedList<IViolation<SecurityNode>> violations = new LinkedList<>();
@@ -366,16 +366,17 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 				violations.add(new UnaryViolation<SecurityNode, L>(new SecurityNode(obs), obsLevel, cl.get(obs)));
 			}
 		}
-		for (final Pair<SDGNode, SDGNode> nm : clt.keySet()) {
-			final SDGNode n = nm.getFirst();
-			final SDGNode m = nm.getSecond();
 
-			if (userAnn.containsKey(n) && userAnn.containsKey(m)) {
-				final L attackerLevel = l.greatestLowerBound(userAnn.get(n), userAnn.get(m));
-				if (!l.isLeq(clt.get(nm), attackerLevel)) {
-					violations.add(new OrderConflict<SecurityNode>(
-							new ConflictEdge<SecurityNode>(new SecurityNode(n), new SecurityNode(m)),
-							attackerLevel.toString()));
+		// relative timing of annotated nodes
+		for (final SDGNode n : userAnn.keySet()) {
+			for (final SDGNode m : userAnn.keySet()) {
+				if (mhp.isParallel(m, n)) {
+					final L attackerLevel = l.leastUpperBound(userAnn.get(n), userAnn.get(m));
+					if (!l.isLeq(calcClt(n, m, l.getBottom()), attackerLevel)) {
+						violations.add(new OrderConflict<SecurityNode>(
+								new ConflictEdge<SecurityNode>(new SecurityNode(n), new SecurityNode(m)),
+								attackerLevel.toString()));
+					}
 				}
 			}
 		}

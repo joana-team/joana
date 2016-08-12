@@ -342,21 +342,23 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 				chops.computeIfAbsent(
 					Pair.pair(c, n),
 					pair -> tcfgChopper.chop(pair.getFirst(), pair.getSecond())
+						.stream().filter(timingDependence.get(n)::contains).collect(Collectors.toSet())
 				);
 				chops.computeIfAbsent(
 					Pair.pair(c, m),
 					pair -> tcfgChopper.chop(pair.getFirst(), pair.getSecond())
+						.stream().filter(timingDependence.get(m)::contains).collect(Collectors.toSet())
 				);
 				final List<? extends SDGNode> relevant =
-					Stream.concat(chops.get(Pair.pair(c, n)).stream().filter(timingDependence.get(n)::contains),
-					              chops.get(Pair.pair(c, m)).stream().filter(timingDependence.get(m)::contains))
+					Stream.concat(chops.get(Pair.pair(c, n)).stream(),
+					              chops.get(Pair.pair(c, m)).stream())
 					      .collect(Collectors.toList());
 				// @formatter:on
 				for (final SDGNode c2 : relevant) {
 					newLevel = l.leastUpperBound(newLevel, cl.get(c2));
 					if (l.getTop().equals(newLevel)) {
-						break; // we can abort the loop here - level
-						// cannot get any higher
+						return newLevel; // we can return here -
+										 // level cannot get any higher
 					}
 				}
 			}

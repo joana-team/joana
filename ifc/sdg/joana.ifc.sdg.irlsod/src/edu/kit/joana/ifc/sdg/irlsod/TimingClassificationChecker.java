@@ -68,7 +68,7 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 
 	public TimingClassificationChecker(final SDG sdg, final IStaticLattice<L> secLattice,
 			final MHPAnalysis mhp, final ICDomOracle cdomOracle) {
-		this(sdg, secLattice, null, mhp, cdomOracle, PredecessorMethod.SLICE);
+		this(sdg, secLattice, null, mhp, cdomOracle, PredecessorMethod.EDGE);
 	}
 	public TimingClassificationChecker(final SDG sdg, final IStaticLattice<L> secLattice, final Map<SDGNode, L> userAnn,
 			final MHPAnalysis mhp, final ICDomOracle cdomOracle, final PredecessorMethod predecessorMethod) {

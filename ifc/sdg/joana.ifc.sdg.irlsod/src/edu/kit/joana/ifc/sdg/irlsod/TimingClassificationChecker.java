@@ -1,8 +1,8 @@
 package edu.kit.joana.ifc.sdg.irlsod;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +18,7 @@ import edu.kit.joana.ifc.sdg.core.violations.UnaryViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.graph.slicer.conc.CFGForward;
+import edu.kit.joana.ifc.sdg.graph.slicer.conc.CFGBackward;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PBackward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
@@ -28,20 +28,17 @@ import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.Pair;
-import edu.kit.joana.util.maps.MapUtils;
 
 public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 	
 	private static Logger debug = Log.getLogger(Log.L_IFC_DEBUG);
 	
 	protected final CFG icfg;
-	protected final Map<SDGNode, Collection<SDGNode>> transClosure;
 
 	protected final Map<SDGNode, Set<SDGNode>> timingDependence;
 	protected final Map<Pair<SDGNode, SDGNode>, Collection<? extends SDGNode>> chops;
 
 	protected final SimpleTCFGChopper tcfgChopper;
-	protected final CFGForward tcfgForwardSlicer;
 
 	private final ICDomOracle cdomOracle;
 
@@ -81,22 +78,20 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 
 		this.predecessorMethod = predecessorMethod;
 
-		this.transClosure = new HashMap<>();
-
 		// TODO: try not to annoy Jürgen by "doing Work" in a constructor!
 		this.icfg = ICFGBuilder.extractICFG(sdg);
 
 		this.tcfgChopper = new SimpleTCFGChopper(icfg);
-		this.tcfgForwardSlicer = new CFGForward(icfg);
 		this.chops = new HashMap<>();
-
-		final Map<SDGNode, Set<SDGNode>> timingDependence = new HashMap<>();
+		
+		inferUserAnnotationsOnDemand();
+		Map<SDGNode, Set<SDGNode>> splitNodes = new HashMap<>();
+		
 		for (final SDGNode n : icfg.vertexSet()) {
 			final List<SDGEdge> edges = icfg.outgoingEdgesOf(n).stream()
 					.filter(e -> !e.getKind().equals(SDGEdge.Kind.FORK)).collect(Collectors.toList());
 
 			final int nr = edges.size();
-
 			// ENTRY Nodes may have three successors:
 			// i) A formal-in node, which eventually leads to the procedured
 			// "real" control flow
@@ -113,18 +108,43 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 				final SDGNode n2 = edges.get(0).getTarget();
 				final SDGNode n3 = edges.get(1).getTarget();
 
-				transClosure.computeIfAbsent(n2, tcfgForwardSlicer::slice);
-				transClosure.computeIfAbsent(n3, tcfgForwardSlicer::slice);
-
-				final Set<SDGNode> dependentNodes = transClosure.get(n2).stream().filter(transClosure.get(n3)::contains)
-						.collect(Collectors.toSet());
-				timingDependence.put(n, dependentNodes);
-			} else {
-				timingDependence.put(n, Collections.emptySet());
+				Set<SDGNode> succs = new HashSet<>();
+				succs.add(n2);
+				succs.add(n3);
+				
+				splitNodes.put(n, succs);
 			}
 		}
-		this.timingDependence = MapUtils.invert(timingDependence);
-
+		
+		this.timingDependence = new HashMap<>();
+		Set<SDGNode> endPoints = new HashSet<>();
+		endPoints.addAll(this.userAnn.keySet());
+		
+		for (final SDGEdge e : g.edgeSet()) {
+			if (e.getKind() == SDGEdge.Kind.INTERFERENCE
+					|| e.getKind() == SDGEdge.Kind.INTERFERENCE_WRITE) {
+				SDGNode m = e.getSource();
+				SDGNode n = e.getTarget();
+				if (mhp.isParallel(m, n)) {
+					endPoints.add(n);
+					endPoints.add(m);
+				}
+			}
+		}
+		
+		CFGBackward cfgBackward = new CFGBackward(icfg);
+		for (SDGNode v : endPoints) {
+			Set<SDGNode> deps = new HashSet<>();
+			Collection<SDGNode> slice = cfgBackward.slice(v);
+			
+			//TODO: use filter?
+			for (SDGNode u : splitNodes.keySet()) {
+				if (slice.containsAll(splitNodes.get(u))) {
+					deps.add(u);
+				}
+			}
+			timingDependence.put(v, deps);
+		}
 	}
 
 	protected Map<SDGNode, L> initCL() {
@@ -304,7 +324,6 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 
 				final SDGNode n = nm.getFirst();
 				final SDGNode m = nm.getSecond();
-				
 				L newLevel = calcClt(n, m, oldLevel);
 				
 				if (!newLevel.equals(oldLevel)) {

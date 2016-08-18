@@ -24,6 +24,7 @@ public class DynamicityAnalysis {
 	private final SDG sdg;
 	private final CFG threadGraph;
 	private final Set<SDGNode> dynamicNodes = new HashSet<SDGNode>();
+	private Map<SDGNode, Set<SDGNode>> entry2procs;
 
 	public DynamicityAnalysis(final SDG sdg, final CFG threadGraph) {
 		this.sdg = sdg;
@@ -32,6 +33,7 @@ public class DynamicityAnalysis {
 	}
 
 	private void computeDynamicNodes() {
+		entry2procs = threadGraph.sortByProcedures();
 		// 1.) Find non-trivial SCCs on the call graph - all nodes contained in
 		// methods participating in such an SCC are dynamic
 		final DirectedGraph<SDGNode, DefaultEdge> callGraph = extractCallGraph();
@@ -50,7 +52,7 @@ public class DynamicityAnalysis {
 		// 2.) For each method, look for non-trivial SCCs in the intraprocedural
 		// control-flow graph - all nodes participating in such an SCC are
 		// dynamic
-		for (final SDGNode entry : threadGraph.sortByProcedures().keySet()) {
+		for (final SDGNode entry : entry2procs.keySet()) {
 			final CFG procCFG = extractProcedureCFG(entry);
 			final KosarajuStrongConnectivityInspector<SDGNode, SDGEdge> procSCC
 					= new KosarajuStrongConnectivityInspector<SDGNode, SDGEdge>(procCFG);
@@ -66,7 +68,7 @@ public class DynamicityAnalysis {
 		boolean changed;
 		do {
 			changed = false;
-			for (final Map.Entry<SDGNode, Set<SDGNode>> entryAndProc : threadGraph.sortByProcedures().entrySet()) {
+			for (final Map.Entry<SDGNode, Set<SDGNode>> entryAndProc : entry2procs.entrySet()) {
 				final SDGNode entry = entryAndProc.getKey();
 				if (isDynamic(entry)) {
 					continue;
@@ -79,10 +81,11 @@ public class DynamicityAnalysis {
 				}
 			}
 		} while (changed);
+		entry2procs = null;
 	}
 
 	private boolean markAllNodesInMethod(final SDGNode entry) {
-		return markAllNodes(threadGraph.getNodesOfProcedure(entry));
+		return markAllNodes(entry2procs.get(entry));
 	}
 
 	private boolean markAllNodes(final Collection<? extends SDGNode> nodes) {
@@ -97,7 +100,7 @@ public class DynamicityAnalysis {
 	private DirectedGraph<SDGNode, DefaultEdge> extractCallGraph() {
 		final DirectedGraph<SDGNode, DefaultEdge> ret = new DefaultDirectedGraph<SDGNode, DefaultEdge>(
 				DefaultEdge.class);
-		for (final Map.Entry<SDGNode, Set<SDGNode>> entryAndProc : threadGraph.sortByProcedures().entrySet()) {
+		for (final Map.Entry<SDGNode, Set<SDGNode>> entryAndProc : entry2procs.entrySet()) {
 			ret.addVertex(entryAndProc.getKey());
 			for (final SDGNode n : entryAndProc.getValue()) {
 				if (n.getKind() == SDGNode.Kind.CALL) {
@@ -113,8 +116,9 @@ public class DynamicityAnalysis {
 
 	private CFG extractProcedureCFG(final SDGNode entry) {
 		final CFG ret = new CFG();
-		ret.addAllVertices(threadGraph.getNodesOfProcedure(entry));
-		for (final SDGNode n : threadGraph.getNodesOfProcedure(entry)) {
+		Set<SDGNode> procNodes = entry2procs.get(entry);
+		ret.addAllVertices(procNodes);
+		for (final SDGNode n : procNodes) {
 			for (final SDGEdge e : threadGraph.outgoingEdgesOf(n)) {
 				if (ret.containsVertex(e.getTarget())) {
 					ret.addEdge(e);

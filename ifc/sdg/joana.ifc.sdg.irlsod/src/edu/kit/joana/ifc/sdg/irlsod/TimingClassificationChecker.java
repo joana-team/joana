@@ -19,7 +19,6 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.CFGBackward;
-import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PBackward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
@@ -214,7 +213,7 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 	@Override
 	public Collection<? extends IViolation<SecurityNode>> checkIFlow() throws NotInLatticeException {
 		inferUserAnnotationsOnDemand();
-		final I2PBackward backw = new I2PBackward(g);
+		//final I2PBackward backw = new I2PBackward(g);
 		// 1.) initialize classification: we go from the bottom up, so every
 		// node is classified as low initially
 		// except for the sources: They are classified with the user-annotated
@@ -223,41 +222,31 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 		clt = initCLT();
 		// 2.) fixed-point iteration
 		int numIters = 0;
+		LinkedList<SDGNode> worklist = new LinkedList<SDGNode>();
+		worklist.addAll(userAnn.keySet());
 		boolean change;
 		do {
 			change = false;
-			for (final SDGNode n : g.vertexSet()) {
-				final L oldLevel = cl.get(n);
-				// nothing changes if current level is top already
-				if (l.getTop().equals(oldLevel)) {
+			while (!worklist.isEmpty()) {
+				final SDGNode n = worklist.poll();
+				final L level = cl.get(n);
+				// nothing changes if current level is bottom
+				if (l.getBottom().equals(level)) {
 					continue;
 				}
-				L newLevel = oldLevel;
 
-				// 2a.) propagate from sdg predecessors
-				final Collection<SDGNode> predecessors;
-				switch (predecessorMethod) {
-				case EDGE:
-					// @formatter:off
-					predecessors = g.incomingEdgesOf(n).stream()
-					                                   .filter((e) -> e.getKind().isSDGEdge())
-					                                   .map(SDGEdge::getSource)
-					                                   .collect(Collectors.toSet());
-					// @formatter:on
-					debug.outln(String.format("BS(%s) = %s", n, predecessors));
-					break;
-				case SLICE:
-					predecessors = backw.slice(n);
-					debug.outln(String.format("PRED(%s) = %s", n, predecessors));
-					break;
-				default:
-					throw new IllegalArgumentException(predecessorMethod.toString());
-				}
-				for (final SDGNode m : predecessors) {
-					newLevel = l.leastUpperBound(newLevel, cl.get(m));
-					if (l.getTop().equals(newLevel)) {
-						break; // we can abort the loop here - level cannot get
-						// any higher
+				Collection<SDGNode> successors = g.outgoingEdgesOf(n).stream()
+                        .filter((e) -> e.getKind().isSDGEdge())
+                        .map(SDGEdge::getTarget)
+                        .collect(Collectors.toSet());
+				
+				for (final SDGNode m : successors) {
+					L oldLevel = cl.get(m);
+					L newLevel = l.leastUpperBound(level, oldLevel);
+					if (!newLevel.equals(oldLevel)) {
+						cl.put(m, newLevel);
+						worklist.add(m);
+						change = true;
 					}
 				}
 
@@ -309,10 +298,6 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 						// any higher
 					}
 				}*/
-				if (!newLevel.equals(oldLevel)) {
-					cl.put(n, newLevel);
-					change = true;
-				}
 			}
 
 			for (final Pair<SDGNode, SDGNode> nm : clt.keySet()) {
@@ -335,8 +320,13 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 					// we encounter an interference edge.
 					// We only need to update n here (and not also m), because
 					// n is the target of the interference edge.
-					cl.put(n, l.leastUpperBound(newLevel, cl.get(n)));
+					L oldLevelN = cl.get(n);
+					L newLevelN = l.leastUpperBound(newLevel, oldLevelN);
 					change = true;
+					if (!newLevelN.equals(oldLevelN)) {
+						cl.put(n, newLevelN);
+						worklist.add(n);
+					}
 				}
 
 			}
@@ -360,14 +350,13 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 				final SDGNode c = cdomOracle.cdom(n, threadN, m, threadM).getNode();
 				chops.computeIfAbsent(
 					Pair.pair(c, n),
-					pair -> tcfgChopper.chop(pair.getFirst(), pair.getSecond())
-						.stream().filter(timingDependence.get(n)::contains).collect(Collectors.toSet())
+					pair -> filteredChop(pair.getFirst(), pair.getSecond())
 				);
 				chops.computeIfAbsent(
 					Pair.pair(c, m),
-					pair -> tcfgChopper.chop(pair.getFirst(), pair.getSecond())
-						.stream().filter(timingDependence.get(m)::contains).collect(Collectors.toSet())
+					pair -> filteredChop(pair.getFirst(), pair.getSecond())
 				);
+
 				final List<? extends SDGNode> relevant =
 					Stream.concat(chops.get(Pair.pair(c, n)).stream(),
 					              chops.get(Pair.pair(c, m)).stream())
@@ -383,6 +372,16 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 			}
 		}
 		return newLevel;
+	}
+
+	private Set<SDGNode> filteredChop(SDGNode c, SDGNode n) {
+		Collection<? extends SDGNode> chop = tcfgChopper.chop(c, n);
+		// @formatter:off
+		Set<SDGNode> ret = chop.stream()
+							   .filter(timingDependence.get(n)::contains)
+							   .collect(Collectors.toSet());
+		// @formatter:on
+		return ret;
 	}
 
 	protected final Collection<? extends IViolation<SecurityNode>> checkCompliance() {

@@ -27,6 +27,8 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  * <li> the thread allocation node ('null' for the main thread) </li>
  * <li> the thread invocation node ('null' for the main thread) </li>
  * <li> the join nodes (maybe empty) </li>
+ * <li> the thread context (empty list for the main thread) </li>
+ * <li> whether this thread is dynamic </li>
  * </ul>
  * The class computes that information itself.
  *
@@ -78,7 +80,7 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
             if (join.isEmpty()) b.append("Join ").append("0").append(";\n");
             else if (join.size() == 1) b.append("Join ").append(join.iterator().next()).append(";\n");
             else b.append("Join ").append(join).append(";\n");
-            if (getThreadContext() == null || getThreadContext().size() == 0) b.append("Context null;\n");
+            if (getThreadContext() == null || getThreadContext().isEmpty()) b.append("Context null;\n");
             else b.append("Context ").append(getThreadContext()).append(";\n");
             b.append("Dynamic ").append(dynamic).append(";\n}\n");
             return b.toString();

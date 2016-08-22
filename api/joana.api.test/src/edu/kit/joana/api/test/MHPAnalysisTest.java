@@ -26,6 +26,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.SimpleMHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
+import edu.kit.joana.ifc.sdg.util.graph.ThreadInformationUtil;
 import edu.kit.joana.util.Pair;
 
 /**
@@ -524,9 +525,9 @@ public class MHPAnalysisTest {
 		ThreadInstance t2 = sdg.getThreadsInfo().getThread(n2.getThreadNumbers()[0]);
 		Pair<SDGNode,SDGNode> p = null;
 
-		if (isSuffixOf(t1.getThreadContext(), t2.getThreadContext())) {
+		if (ThreadInformationUtil.isSuffixOf(t1.getThreadContext(), t2.getThreadContext())) {
 			p = Pair.<SDGNode,SDGNode>pair(n1, n2);
-		} else if (isSuffixOf(t2.getThreadContext(), t1.getThreadContext())) {
+		} else if (ThreadInformationUtil.isSuffixOf(t2.getThreadContext(), t1.getThreadContext())) {
 			p = Pair.<SDGNode,SDGNode>pair(n2, n1);
 		} else {
 			Assert.fail("No recursive thread instance detected");
@@ -545,23 +546,6 @@ public class MHPAnalysisTest {
 		Assert.assertEquals(1, statements.size());
 		return (SDGNode) statements.toArray()[0];
 	}
-	
-    private static boolean isSuffixOf(List<SDGNode> t1, List<SDGNode> t2) {
-        if (t1.size() > t2.size()) return false;
-
-        int i = t1.size() - 1;
-        int j = t2.size() - 1;
-
-        while (i >= 0 && j >= 0) {
-            if (t1.get(i) != t2.get(j)) {
-                return false;
-            }
-            i--;
-            j--;
-        }
-
-        return true;
-    }
 	
 	private static class TestData {
 

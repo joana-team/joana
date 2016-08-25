@@ -252,6 +252,25 @@ public class XLSODTests {
 	}
 	
 	@Test
+	public void testContextSensClassical() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testSound(       joana.api.testdata.demo.xrlsod.ContextSensClassical.class, IFCType.LSOD);
+		testTooImprecise(joana.api.testdata.demo.xrlsod.ContextSensClassical.class, IFCType.RLSOD);
+		testTooImprecise(joana.api.testdata.demo.xrlsod.ContextSensClassical.class, IFCType.iRLSOD);
+		testPrecise(joana.api.testdata.demo.xrlsod.ContextSensClassical.class, IFCType.timingiRLSOD);
+	}
+	
+	@Test
+	public void testContextSensTiming() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testSound(       joana.api.testdata.demo.xrlsod.ContextSensTiming.class, IFCType.LSOD);
+		testPrecise(joana.api.testdata.demo.xrlsod.ContextSensTiming.class, IFCType.RLSOD);
+		// both iRLSOD implementations are imprecise since they lack context-sensitivity
+		testTooImprecise(joana.api.testdata.demo.xrlsod.ContextSensTiming.class, IFCType.iRLSOD);
+		testTooImprecise(joana.api.testdata.demo.xrlsod.ContextSensTiming.class, IFCType.timingiRLSOD);
+	}
+	
+	@Test
 	public void testContextSens2() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testSound(       joana.api.testdata.demo.xrlsod.ContextSens2.class, IFCType.LSOD);

@@ -30,6 +30,43 @@ import edu.kit.joana.util.Pair;
 
 public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 	
+	private enum Phase {
+		PHASE1 {
+			@Override
+			boolean ignore(SDGEdge e) {
+				return false;
+			}
+
+			@Override
+			Phase nextPhase(SDGEdge e) {
+				if (e.getKind() == SDGEdge.Kind.PARAMETER_IN) {
+					return PHASE2;
+				} else {
+					return PHASE1;
+				}
+			}
+			
+		},
+		
+		PHASE2 {
+			@Override
+			boolean ignore(SDGEdge e) {
+				return e.getKind() == SDGEdge.Kind.PARAMETER_OUT;
+			}
+
+			@Override
+			Phase nextPhase(SDGEdge e) {
+				if (e.getKind().isThreadEdge()) {
+					return PHASE1;
+				} else {
+					return PHASE2;
+				}
+			}
+		};
+		abstract boolean ignore(SDGEdge e);
+		abstract Phase nextPhase(SDGEdge e);
+	}
+	
 	private static Logger debug = Log.getLogger(Log.L_IFC_DEBUG);
 	
 	protected final CFG icfg;
@@ -48,6 +85,11 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 	 * "how often") n is executed is influences by level l
 	 */
 	protected Map<SDGNode, L> cl;
+	/**
+	 * helper maps for cl for the two phases
+	 */
+	protected Map<SDGNode, L> cl1;
+	protected Map<SDGNode, L> cl2;
 
 	/**
 	 * "timing" classification of a pair of node, i.e.: cl(n,m) == l if the "relative timing" (which one may be executed
@@ -158,6 +200,14 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 		return ret;
 	}
 
+	protected Map<SDGNode, L> initCLBottom() {
+		final Map<SDGNode, L> ret = new HashMap<SDGNode, L>();
+		for (final SDGNode n : g.vertexSet()) {
+			ret.put(n, l.getBottom());
+		}
+		return ret;
+	}
+
 	protected Map<Pair<SDGNode, SDGNode>, L> initCLT() {
 		final Map<Pair<SDGNode, SDGNode>, L> ret = new HashMap<>();
 		// relative timing of conflicts
@@ -189,6 +239,14 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 		}
 		return clt;
 	}
+	
+	public Map<SDGNode, L> getPhaseCL(Phase phase) {
+		if (phase == Phase.PHASE1) {
+			return cl1;
+		} else {
+			return cl2;
+		}
+	}
 
 	/**
 	 * Solely used to state some assumptions on the sdg
@@ -219,33 +277,46 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 		// except for the sources: They are classified with the user-annotated
 		// source level
 		cl = initCL();
+		cl1 = initCL();
+		cl2 = initCLBottom();
 		clt = initCLT();
 		// 2.) fixed-point iteration
 		int numIters = 0;
-		LinkedList<SDGNode> worklist = new LinkedList<SDGNode>();
-		worklist.addAll(userAnn.keySet());
+		LinkedList<Pair<SDGNode, Phase>> worklist = new LinkedList<>();
+		for (SDGNode ann : userAnn.keySet()) {
+			worklist.add(Pair.pair(ann, Phase.PHASE1));
+		}
+		
 		boolean change;
 		do {
 			change = false;
 			while (!worklist.isEmpty()) {
-				final SDGNode n = worklist.poll();
-				final L level = cl.get(n);
+				final Pair<SDGNode, Phase> p = worklist.poll();
+				final SDGNode n = p.getFirst();
+				final Phase phase = p.getSecond();
+				final L level = getPhaseCL(phase).get(n);
 				// nothing changes if current level is bottom
 				if (l.getBottom().equals(level)) {
 					continue;
 				}
 
-				Collection<SDGNode> successors = g.outgoingEdgesOf(n).stream()
+				Collection<SDGEdge> outEdges = g.outgoingEdgesOf(n).stream()
                         .filter((e) -> e.getKind().isSDGEdge())
-                        .map(SDGEdge::getTarget)
                         .collect(Collectors.toSet());
 				
-				for (final SDGNode m : successors) {
-					L oldLevel = cl.get(m);
+				for (final SDGEdge e : outEdges) {
+					if (phase.ignore(e)) {
+						continue;
+					}
+					SDGNode m = e.getTarget();
+					Phase nextPhase = phase.nextPhase(e);
+					Map<SDGNode, L> phaseCL = getPhaseCL(nextPhase);
+					L oldLevel = phaseCL.get(m);
 					L newLevel = l.leastUpperBound(level, oldLevel);
 					if (!newLevel.equals(oldLevel)) {
-						cl.put(m, newLevel);
-						worklist.add(m);
+						phaseCL.put(m, newLevel);
+						cl.put(m, l.leastUpperBound(cl.get(m), newLevel));
+						worklist.add(Pair.pair(m, nextPhase));
 						change = true;
 					}
 				}
@@ -320,12 +391,13 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 					// we encounter an interference edge.
 					// We only need to update n here (and not also m), because
 					// n is the target of the interference edge.
-					L oldLevelN = cl.get(n);
+					L oldLevelN = cl1.get(n);
 					L newLevelN = l.leastUpperBound(newLevel, oldLevelN);
 					change = true;
 					if (!newLevelN.equals(oldLevelN)) {
-						cl.put(n, newLevelN);
-						worklist.add(n);
+						cl1.put(n, newLevelN);
+						cl.put(m, l.leastUpperBound(cl.get(m), newLevelN));
+						worklist.add(Pair.pair(n, Phase.PHASE1));
 					}
 				}
 

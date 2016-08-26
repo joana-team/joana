@@ -370,10 +370,12 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 		if (i == accessPath.size()) {
 			return root;
 		} else {
+			String api = accessPath.get(i);
 			for (SDGEdge eOut : sdg.outgoingEdgesOf(root)) {
 				if (eOut.getKind() != SDGEdge.Kind.PARAMETER_STRUCTURE) continue;
 				SDGNode eTgt = eOut.getTarget();
-				if (eTgt.getBytecodeName().equals(accessPath.get(i))) return followAccessPath(root, accessPath, i+1);
+				String bcTgt = eTgt.getBytecodeName();
+				if (bcTgt.equals(api)) return followAccessPath(eTgt, accessPath, i+1);
 			}
 			return null;
 		}

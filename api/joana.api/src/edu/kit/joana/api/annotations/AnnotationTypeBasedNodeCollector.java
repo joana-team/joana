@@ -36,9 +36,11 @@ import edu.kit.joana.api.sdg.SDGPhi;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.api.sdg.SDGProgramPartVisitor;
+import edu.kit.joana.api.sdg.ThrowingSDGProgramPartVisitor;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.util.Pair;
 
 /**
@@ -320,7 +322,32 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 	protected Set<SDGNode> visitFieldOfParameter(SDGFieldOfParameter fop, AnnotationType type) {
 		SDGProgramPart root = fop.getRoot();
 		List<String> accessPath = fop.getAccessPath();
-		Set<SDGNode> rootNodes = root.acceptVisitor(this, type);
+		Set<SDGNode> rootNodes = root.acceptVisitor(new ThrowingSDGProgramPartVisitor<Set<SDGNode>, Void>() {
+			@Override
+			protected Set<SDGNode> visitActualParameter(SDGActualParameter ap, Void data) {
+				return pp2NodeTrans.getInRoots(ap);
+			}
+			@Override
+			protected Set<SDGNode> visitParameter(SDGFormalParameter p, Void data) {
+				return pp2NodeTrans.getInRoots(p);
+			}
+			@Override
+			protected Set<SDGNode> visitExit(SDGMethodExitNode e, Void data) {
+				return pp2NodeTrans.getExits(e);
+			}
+			@Override
+			protected Set<SDGNode> visitException(SDGMethodExceptionNode e, Void data) {
+				return pp2NodeTrans.getExceptions(e);
+			}
+			@Override
+			protected Set<SDGNode> visitCallReturnNode(SDGCallReturnNode c, Void data) {
+				return pp2NodeTrans.getNodes(c);
+			}
+			@Override
+			protected Set<SDGNode> visitCallExceptionNode(SDGCallExceptionNode c, Void data) {
+				return pp2NodeTrans.getNodes(c);
+			}
+		}, null);
 		return followAccessPath(rootNodes, accessPath);
 	}
 

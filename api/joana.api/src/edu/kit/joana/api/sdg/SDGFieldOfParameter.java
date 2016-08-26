@@ -163,7 +163,12 @@ public class SDGFieldOfParameter implements SDGProgramPart {
 		return makePP(root, accessPath);
 	}
 
-	private static SDGFieldOfParameter makePP(SDGProgramPart root, List<String> accessPath) {
+	/**
+	 * Makes a field-of-parameter selector which starts at the given program part and navigates along the given access path.<br>
+	 * For details of usage, see {@link SDGFieldOfParameter#make(SDGFormalParameter, List)}.
+	 * Use this method only if you know what you are doing!
+	 */
+	public static SDGFieldOfParameter makePP(SDGProgramPart root, List<String> accessPath) {
 		if (accessPath.isEmpty()) {
 			throw new IllegalArgumentException("access path must be non-empty!");
 		}

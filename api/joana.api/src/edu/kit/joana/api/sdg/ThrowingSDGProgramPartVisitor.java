@@ -11,6 +11,7 @@ package edu.kit.joana.api.sdg;
  * TODO: @hecker
  */
 public abstract class ThrowingSDGProgramPartVisitor<R, D>  extends SDGProgramPartVisitor<R, D> {
+
 	private static <T> void fail(Class<T> c) {
 		throw new IllegalArgumentException("Unhandled ProgramPart: " + c);
 	}
@@ -37,4 +38,7 @@ public abstract class ThrowingSDGProgramPartVisitor<R, D>  extends SDGProgramPar
 	protected  R visitCallExceptionNode(SDGCallExceptionNode c, D data){ fail(SDGCallExceptionNode.class); return null;}
 
 	protected  R visitPhi(SDGPhi phi, D data){ fail(SDGPhi.class); return null;}
+
+	@Override
+	protected R visitFieldOfParameter(SDGFieldOfParameter fop, D data) { fail(SDGFieldOfParameter.class); return null; }
 }

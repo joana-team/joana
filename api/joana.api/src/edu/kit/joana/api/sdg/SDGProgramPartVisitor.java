@@ -32,4 +32,6 @@ public abstract class SDGProgramPartVisitor<R, D> {
 	protected abstract R visitCallExceptionNode(SDGCallExceptionNode c, D data);
 
 	protected abstract R visitPhi(SDGPhi phi, D data);
+
+	protected abstract R visitFieldOfParameter(SDGFieldOfParameter fop, D data);
 }

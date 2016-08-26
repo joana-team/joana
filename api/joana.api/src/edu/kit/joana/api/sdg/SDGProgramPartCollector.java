@@ -150,4 +150,13 @@ public class SDGProgramPartCollector extends
 		return null;
 	}
 
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitFieldOfParameter(edu.kit.joana.api.sdg.SDGFieldOfParameter, java.lang.Object)
+	 */
+	@Override
+	protected Void visitFieldOfParameter(SDGFieldOfParameter fop, Collection<SDGProgramPart> base) {
+		base.add(fop);
+		return null;
+	}
+
 }

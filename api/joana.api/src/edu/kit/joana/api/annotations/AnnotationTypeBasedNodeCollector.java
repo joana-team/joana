@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -25,6 +26,7 @@ import edu.kit.joana.api.sdg.SDGCallExceptionNode;
 import edu.kit.joana.api.sdg.SDGCallReturnNode;
 import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGClassComputation;
+import edu.kit.joana.api.sdg.SDGFieldOfParameter;
 import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGInstruction;
 import edu.kit.joana.api.sdg.SDGMethod;
@@ -309,5 +311,44 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 		Set<SDGNode> ret = new HashSet<SDGNode>();
 		addAllAppropriateParameterNodesFrom(pp2NodeTrans.getNodes(c), type, ret);
 		return ret;
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitFieldOfParameter(edu.kit.joana.api.sdg.SDGFieldOfParameter, java.lang.Object)
+	 */
+	@Override
+	protected Set<SDGNode> visitFieldOfParameter(SDGFieldOfParameter fop, AnnotationType type) {
+		SDGProgramPart root = fop.getRoot();
+		List<String> accessPath = fop.getAccessPath();
+		Set<SDGNode> rootNodes = root.acceptVisitor(this, type);
+		return followAccessPath(rootNodes, accessPath);
+	}
+
+	private Set<SDGNode> followAccessPath(Set<SDGNode> rootNodes, List<String> accessPath) {
+		Set<SDGNode> result = new HashSet<SDGNode>();
+		for (SDGNode r : rootNodes) {
+			SDGNode resultForR = followAccessPath(r, accessPath);
+			if (resultForR != null) {
+				result.add(resultForR);
+			}
+		}
+		return result;
+	}
+
+	private SDGNode followAccessPath(SDGNode root, List<String> accessPath) {
+		return followAccessPath(root, accessPath, 0);
+	}
+
+	private SDGNode followAccessPath(SDGNode root, List<String> accessPath, int i) {
+		if (i == accessPath.size()) {
+			return root;
+		} else {
+			for (SDGEdge eOut : sdg.outgoingEdgesOf(root)) {
+				if (eOut.getKind() != SDGEdge.Kind.PARAMETER_STRUCTURE) continue;
+				SDGNode eTgt = eOut.getTarget();
+				if (eTgt.getBytecodeName().equals(accessPath.get(i))) return followAccessPath(root, accessPath, i+1);
+			}
+			return null;
+		}
 	}
 }

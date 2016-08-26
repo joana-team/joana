@@ -62,16 +62,14 @@ public class SDGFieldOfParameter implements SDGProgramPart {
 		SDGProgramPart current = this;
 		LinkedList<String> accessPath = new LinkedList<String>();
 		while (current instanceof SDGFieldOfParameter) {
-			accessPath.addFirst(((SDGFieldOfParameter) current).getFieldName());
+			accessPath.addFirst(((SDGFieldOfParameter) current).getDeclaringClass() + "." + ((SDGFieldOfParameter) current).getFieldName());
 			current = ((SDGFieldOfParameter) current).getParent();
 		}
 		return accessPath;
 	}
 	public SDGProgramPart getRoot() {
 		SDGProgramPart current = this;
-		LinkedList<String> accessPath = new LinkedList<String>();
 		while (current instanceof SDGFieldOfParameter) {
-			accessPath.addFirst(((SDGFieldOfParameter) current).getDeclaringClass() + "." + ((SDGFieldOfParameter) current).getFieldName());
 			current = ((SDGFieldOfParameter) current).getParent();
 		}
 		return current;

@@ -79,7 +79,7 @@ public class ThreadInformationUtil {
 		final DirectedGraph<ThreadInstance, DefaultEdge> tct = new DefaultDirectedGraph<ThreadInstance, DefaultEdge>(
 				DefaultEdge.class);
 		for (final ThreadInstance ti1 : threadInfo) {
-			if (ti1.getThreadContext() == null) {
+			if (ti1.getThreadContext().isEmpty()) {
 				continue;
 			}
 			ThreadInstance lowestAnc = null;

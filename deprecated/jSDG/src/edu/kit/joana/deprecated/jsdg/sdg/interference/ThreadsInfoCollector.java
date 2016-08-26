@@ -52,7 +52,7 @@ public final class ThreadsInfoCollector {
         LinkedList<ThreadInstance> result = new LinkedList<ThreadInstance>();
 
         // create a ThreadInstance for the main thread
-        ThreadInstance main = new ThreadInstance(0, cfg.getRoot(), null, null);
+        ThreadInstance main = new ThreadInstance(0, cfg.getRoot(), null, new LinkedList<SDGNode>());
         main.setDynamic(false);
         result.add(main);
 

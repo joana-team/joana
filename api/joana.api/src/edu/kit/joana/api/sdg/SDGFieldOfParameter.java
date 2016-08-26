@@ -95,7 +95,7 @@ public class SDGFieldOfParameter implements SDGProgramPart {
 	 * along the given access path.<br>
 	 * The items in the access path have the form '&lt;classname&gt;.&lt;fieldname&gt;, where
 	 * &lt;classname&gt; is the name of the declaring class of the respective field in bytecode notation
-	 * and &lt;fieldname&gt; is the name of the respective field.
+	 * (without ;) and &lt;fieldname&gt; is the name of the respective field.
 	 *
 	 * Example:
 	 * package foo;
@@ -106,9 +106,9 @@ public class SDGFieldOfParameter implements SDGProgramPart {
 	 * public void m(A a, B b)
 	 * ...
 	 * To get the field a.x of the first parameter of method m, 'root' is acquired in the usual way and
-	 * the accessPath has one single item 'Lfoo/A;.x'.
+	 * the accessPath has one single item 'Lfoo/A.x'.
 	 * To get the field b.f.x, 'root' denotes the second parameter of m and 'accessPath' has two items:
-	 * 'Lbar/B;.f', 'Lfoo/A;.x'
+	 * 'Lbar/B.f', 'Lfoo/A.x'
 	 * @param root the parameter from which navigation starts
 	 * @param accessPath the access path to navigate along
 	 * @return the parameter field which is obtained by starting at the given parameter and then navigating

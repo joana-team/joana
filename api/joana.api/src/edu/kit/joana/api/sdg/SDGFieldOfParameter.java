@@ -79,8 +79,7 @@ public class SDGFieldOfParameter implements SDGProgramPart {
 	 */
 	@Override
 	public <R, D> R acceptVisitor(SDGProgramPartVisitor<R, D> v, D data) {
-		// TODO Auto-generated method stub
-		return null;
+		return v.visitFieldOfParameter(this, data);
 	}
 
 	/* (non-Javadoc)

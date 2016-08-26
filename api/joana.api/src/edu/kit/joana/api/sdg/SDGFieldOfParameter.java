@@ -9,6 +9,8 @@ package edu.kit.joana.api.sdg;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * TODO: @author Add your name here.
@@ -90,4 +92,94 @@ public class SDGFieldOfParameter implements SDGProgramPart {
 		return parent.getOwningMethod();
 	}
 
+	/**
+	 * Makes a field-of-parameter selector which starts at the given formal parameter and navigates
+	 * along the given access path.<br>
+	 * The items in the access path have the form '&lt;classname&gt;.&lt;fieldname&gt;, where
+	 * &lt;classname&gt; is the name of the declaring class of the respective field in bytecode notation
+	 * and &lt;fieldname&gt; is the name of the respective field.
+	 *
+	 * Example:
+	 * package foo;
+	 * class A {int x;}
+	 * package bar;
+	 * class B {A f;}
+	 * ...
+	 * public void m(A a, B b)
+	 * ...
+	 * To get the field a.x of the first parameter of method m, 'root' is acquired in the usual way and
+	 * the accessPath has one single item 'Lfoo/A;.x'.
+	 * To get the field b.f.x, 'root' denotes the second parameter of m and 'accessPath' has two items:
+	 * 'Lbar/B;.f', 'Lfoo/A;.x'
+	 * @param root the parameter from which navigation starts
+	 * @param accessPath the access path to navigate along
+	 * @return the parameter field which is obtained by starting at the given parameter and then navigating
+	 * along the given accessPath
+	 */
+	public static SDGFieldOfParameter make(SDGFormalParameter root, List<String> accessPath) {
+		return makePP(root, accessPath);
+	}
+
+	/**
+	 * Makes a field-of-parameter selector which starts at the given method exit node (return) and navigates
+	 * along the given access path.<br>
+	 * For details of usage, see {@link SDGFieldOfParameter#make(SDGFormalParameter, List)}.
+	 */
+	public static SDGFieldOfParameter make(SDGMethodExitNode root, List<String> accessPath) {
+		return makePP(root, accessPath);
+	}
+
+	/**
+	 * Makes a field-of-parameter selector which starts at the given method exception node and navigates
+	 * along the given access path.<br>
+	 * For details of usage, see {@link SDGFieldOfParameter#make(SDGFormalParameter, List)}.
+	 */
+	public static SDGFieldOfParameter make(SDGMethodExceptionNode root, List<String> accessPath) {
+		return makePP(root, accessPath);
+	}
+
+	/**
+	 * Makes a field-of-parameter selector which starts at the given actual parameter node and navigates
+	 * along the given access path.<br>
+	 * For details of usage, see {@link SDGFieldOfParameter#make(SDGFormalParameter, List)}.
+	 */
+	public static SDGFieldOfParameter make(SDGActualParameter root, List<String> accessPath) {
+		return makePP(root, accessPath);
+	}
+
+	/**
+	 * Makes a field-of-parameter selector which starts at the given return node of a method call and navigates
+	 * along the given access path.<br>
+	 * For details of usage, see {@link SDGFieldOfParameter#make(SDGFormalParameter, List)}.
+	 */
+	public static SDGFieldOfParameter make(SDGCallReturnNode root, List<String> accessPath) {
+		return makePP(root, accessPath);
+	}
+
+	/**
+	 * Makes a field-of-parameter selector which starts at the given exception node of a method call and navigates
+	 * along the given access path.<br>
+	 * For details of usage, see {@link SDGFieldOfParameter#make(SDGFormalParameter, List)}.
+	 */
+	public static SDGFieldOfParameter make(SDGCallExceptionNode root, List<String> accessPath) {
+		return makePP(root, accessPath);
+	}
+
+	private static SDGFieldOfParameter makePP(SDGProgramPart root, List<String> accessPath) {
+		if (accessPath.isEmpty()) {
+			throw new IllegalArgumentException("access path must be non-empty!");
+		}
+		SDGFieldOfParameter result = null;
+		SDGProgramPart parent = root;
+		Pattern pField = Pattern.compile("(.*?)\\.(.*)");
+		for (int i = accessPath.size() - 1; i >= 0; i--) {
+			String item = accessPath.get(i);
+			Matcher m = pField.matcher(item);
+			if (!m.matches()) throw new IllegalArgumentException("Illegal access path item: " + item);
+			result = new SDGFieldOfParameter(parent, m.group(1), m.group(2));
+			parent = result;
+		}
+		assert result != null; // loop iterates at least once because 'accessPath' is non-empty.
+		return result;
+	}
 }

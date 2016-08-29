@@ -211,8 +211,8 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 	}
 
 	private static final boolean isFormalNodeOfKind(SDGNode node, AnnotationType type) {
-		return (type == AnnotationType.SINK && node.getKind() == SDGNode.Kind.FORMAL_IN)
-				|| (type == AnnotationType.SOURCE && (node.getKind() == SDGNode.Kind.EXIT || node.getKind() == SDGNode.Kind.FORMAL_OUT));
+		return (type == AnnotationType.SOURCE && node.getKind() == SDGNode.Kind.FORMAL_IN)
+				|| (type == AnnotationType.SINK && (node.getKind() == SDGNode.Kind.EXIT || node.getKind() == SDGNode.Kind.FORMAL_OUT));
 	}
 
 	@SuppressWarnings("unused")

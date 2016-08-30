@@ -107,7 +107,7 @@ public class IFCAnalysis {
 			throw new IllegalArgumentException("program must not be null!");
 		}
 		this.program = program;
-		this.annManager = new IFCAnnotationManager(program);
+		this.annManager = new IFCAnnotationManager(program, this);
 		if (this.ifc != null) {
 			this.ifc.setSDG(this.program.getSDG());
 		} else {

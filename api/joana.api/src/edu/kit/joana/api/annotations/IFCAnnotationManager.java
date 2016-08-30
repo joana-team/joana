@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 
+import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.sdg.SDGActualParameter;
 import edu.kit.joana.api.sdg.SDGAttribute;
 import edu.kit.joana.api.sdg.SDGCall;
@@ -39,11 +40,11 @@ public class IFCAnnotationManager {
 	private final Map<SDGProgramPart, IFCAnnotation> sinkAnnotations;
 	private final Map<SDGProgramPart, IFCAnnotation> declassAnnotations;
 
-	public IFCAnnotationManager(SDGProgram program) {
+	public IFCAnnotationManager(SDGProgram program, IFCAnalysis analysis) {
 		this.sourceAnnotations = new HashMap<SDGProgramPart, IFCAnnotation>();
 		this.sinkAnnotations = new HashMap<SDGProgramPart, IFCAnnotation>();
 		this.declassAnnotations = new HashMap<SDGProgramPart, IFCAnnotation>();
-		this.app = new IFCAnnotationApplicator(program);
+		this.app = new IFCAnnotationApplicator(program, analysis);
 	}
 
 	public boolean isAnnotationLegal(IFCAnnotation ann) {

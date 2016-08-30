@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGPPConcretenessEvaluator;
 import edu.kit.joana.api.sdg.SDGProgram;
@@ -30,10 +31,12 @@ public class IFCAnnotationApplicator {
 	private static final Logger annotationDebug = Log.getLogger(Log.L_API_ANNOTATION_DEBUG);
 
 	private final SDGProgram program;
+	private final IFCAnalysis analysis;
 	private final Map<SecurityNode, NodeAnnotationInfo> annotatedNodes = new HashMap<SecurityNode, NodeAnnotationInfo>();
 
-	public IFCAnnotationApplicator(SDGProgram program) {
+	public IFCAnnotationApplicator(SDGProgram program, IFCAnalysis analysis) {
 		this.program = program;
+		this.analysis = analysis;
 	}
 
 	public void applyAnnotations(Collection<IFCAnnotation> anns) {
@@ -147,16 +150,30 @@ public class IFCAnnotationApplicator {
 			SecurityNode sNode = (SecurityNode) node;
 			NodeAnnotationInfo nai;
 			switch (ann.getType()) {
-			case SOURCE:
-				sNode.setProvided(ann.getLevel1());
-				annotationDebug.outln(String.format("Annotated node %s of kind %s as SOURCE of level '%s'", node.toString(), node.getKind(), ann.getLevel1()));
+			case SOURCE: {
+				String newLevel;
+				if (sNode.getProvided() != null) {
+					newLevel = analysis.getLattice().leastUpperBound(ann.getLevel1(), sNode.getProvided());
+				} else {
+					newLevel = ann.getLevel1();
+				}
+				sNode.setProvided(newLevel);
+				annotationDebug.outln(String.format("Annotated node %s of kind %s as SOURCE of level '%s'", node.toString(), node.getKind(), newLevel));
 				nai = new NodeAnnotationInfo(sNode, ann, NodeAnnotationInfo.PROV);
 				break;
-			case SINK:
-				sNode.setRequired(ann.getLevel1());
-				annotationDebug.outln(String.format("Annotated node %s of kind %s as SINK of level '%s'", node.toString(), node.getKind(), ann.getLevel1()));
+			}
+			case SINK: {
+				String newLevel;
+				if (sNode.getProvided() != null) {
+					newLevel = analysis.getLattice().greatestLowerBound(ann.getLevel1(), sNode.getProvided());
+				} else {
+					newLevel = ann.getLevel1();
+				}
+				sNode.setRequired(newLevel);
+				annotationDebug.outln(String.format("Annotated node %s of kind %s as SINK of level '%s'", node.toString(), node.getKind(), newLevel));
 				nai = new NodeAnnotationInfo(sNode, ann, NodeAnnotationInfo.REQ);
 				break;
+			}
 			case DECLASS:
 				sNode.setRequired(ann.getLevel1());
 				sNode.setProvided(ann.getLevel2());

@@ -10,7 +10,6 @@ package edu.kit.joana.wala.core;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
 import com.ibm.wala.ipa.callgraph.pruned.PruningPolicy;
-import com.ibm.wala.ipa.cha.IClassHierarchy;
 
 import edu.kit.joana.wala.core.interference.ThreadInformationProvider;
 
@@ -19,18 +18,18 @@ import edu.kit.joana.wala.core.interference.ThreadInformationProvider;
  * away thread entries.
  * @author Martin Mohr &lt;martin.mohr@kit.edu&gt;
  */
-public class ThreadAwareApplicationLoaderPolicy implements PruningPolicy {
-	private final IClassHierarchy cha;
+public final class ThreadAwareApplicationLoaderPolicy implements PruningPolicy {
+	public static final ThreadAwareApplicationLoaderPolicy INSTANCE = new ThreadAwareApplicationLoaderPolicy();
 
-	public ThreadAwareApplicationLoaderPolicy(IClassHierarchy cha) {
-		this.cha = cha;
+	private ThreadAwareApplicationLoaderPolicy() {
+		
 	}
 	/* (non-Javadoc)
 	 * @see com.ibm.wala.ipa.callgraph.pruned.PruningPolicy#check(com.ibm.wala.ipa.callgraph.CGNode)
 	 */
 	@Override
 	public boolean check(CGNode n) {
-		return ApplicationLoaderPolicy.INSTANCE.check(n) || ThreadInformationProvider.overwritesThreadRun(cha, n);
+		return ApplicationLoaderPolicy.INSTANCE.check(n) || ThreadInformationProvider.overwritesThreadRun(n.getClassHierarchy(), n);
 	}
 
 }

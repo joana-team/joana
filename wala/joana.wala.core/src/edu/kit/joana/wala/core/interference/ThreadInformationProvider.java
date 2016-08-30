@@ -186,7 +186,7 @@ class ThreadEntryLocator {
 				// what has been called by thread.start
 				for (Iterator<? extends CGNode> it = getCallGraph().getSuccNodes(cgThread); it.hasNext();) {
 					CGNode callee = it.next();
-					if (overwritesThreadRun(getCallGraph(), callee)) {
+					if (ThreadInformationProvider.overwritesThreadRun(getCallGraph(), callee)) {
 						threadEntries.add(callee);
 					} else {
 						debug.outln("Skipping call from Thread.start to " + callee);
@@ -205,21 +205,6 @@ class ThreadEntryLocator {
 
 				threadEntries.addAll(cgMain);
 			}
-		}
-	}
-
-	public static boolean overwritesThreadRun(CallGraph callGraph, CGNode node) {
-		IMethod method = node.getMethod();
-		Selector sel = method.getSelector();
-
-		if (ThreadInformationProvider.JavaLangThreadRun.getSelector().equals(sel)) {
-			IClassHierarchy cha = callGraph.getClassHierarchy();
-			IClass javaLangThread = cha.lookupClass(TypeReference.JavaLangThread);
-			IClass javaLangRunnable= cha.lookupClass(ThreadInformationProvider.JavaLangRunnable);
-			IClass klass = method.getDeclaringClass();
-			return cha.isSubclassOf(klass, javaLangThread) || cha.implementsInterface(klass, javaLangRunnable);
-		} else {
-			return false;
 		}
 	}
 
@@ -295,5 +280,20 @@ public class ThreadInformationProvider {
 
 	public boolean isCallOfThreadRunOverriding(PDG callingCtx, PDGNode call) {
 		return threadAllocationSiteFinder.callOfThreadRunOverriding(callingCtx, call);
+	}
+
+	public static boolean overwritesThreadRun(CallGraph callGraph, CGNode node) {
+		IMethod method = node.getMethod();
+		Selector sel = method.getSelector();
+	
+		if (JavaLangThreadRun.getSelector().equals(sel)) {
+			IClassHierarchy cha = callGraph.getClassHierarchy();
+			IClass javaLangThread = cha.lookupClass(TypeReference.JavaLangThread);
+			IClass javaLangRunnable= cha.lookupClass(JavaLangRunnable);
+			IClass klass = method.getDeclaringClass();
+			return cha.isSubclassOf(klass, javaLangThread) || cha.implementsInterface(klass, javaLangRunnable);
+		} else {
+			return false;
+		}
 	}
 }

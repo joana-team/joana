@@ -1074,6 +1074,15 @@ public class SDGBuilder implements CallGraphFilter {
 			options.setSelector(cfg.methodTargetSelector);
 		}
 
+		CallGraphBuilder cgb = createCallgraphBuilder(cfg, options);
+		com.ibm.wala.ipa.callgraph.CallGraph callgraph = cgb.makeCallGraph(options, progress);
+
+		System.out.println("call graph has " + callgraph.getNumberOfNodes() + " nodes.");
+
+		return new CGResult(callgraph, cgb.getPointerAnalysis());
+	}
+
+	public static CallGraphBuilder createCallgraphBuilder(SDGBuilderConfig cfg, ExtendedAnalysisOptions options) {
 		CallGraphBuilder cgb = null;
 		switch (cfg.pts) {
 		case RTA: // Rapid Type Analysis
@@ -1144,7 +1153,7 @@ public class SDGBuilder implements CallGraphFilter {
 			cgb = cfg.customCGBFactory.createCallGraphBuilder(options, cfg.cache, cfg.cha, cfg.scope, cfg.additionalContextSelector, cfg.additionalContextInterpreter);
 		}
 		cfg.options = options;
-		if (this.cfg.computeInterference) {
+		if (cfg.computeInterference) {
 			if (!(cgb instanceof PropagationCallGraphBuilder)) {
 				throw new IllegalArgumentException("Multithreading is only supported with a PropagationCallGraphBuilder - you created " + cgb.getClass());
 			}
@@ -1185,13 +1194,8 @@ public class SDGBuilder implements CallGraphFilter {
 		if (cfg.additionalNativeSpec != null) {
 			com.ibm.wala.ipa.callgraph.impl.Util.addBypassLogic(options, cfg.scope, SDGBuilder.class.getClassLoader(), cfg.additionalNativeSpec, cfg.cha);
 		}
-		com.ibm.wala.ipa.callgraph.CallGraph callgraph = cgb.makeCallGraph(options, progress);
-
-		System.out.println("call graph has " + callgraph.getNumberOfNodes() + " nodes.");
-		
-		return new CGResult(callgraph, cgb.getPointerAnalysis());
+		return cgb;
 	}
-
 	private CallGraph convertAndPruneCallGraph(final int prune, final CGResult walaCG, final IProgressMonitor progress)
 			throws IllegalArgumentException, CallGraphBuilderCancelException {
 

@@ -1071,7 +1071,7 @@ public class SDGBuilder implements CallGraphFilter {
 	}
 
 	public static ExtendedAnalysisOptions createSingleEntryOptions(SDGBuilderConfig cfg) {
-		return createMultipleEntryOptions(cfg.scope, cfg.cha, cfg.objSensFilter, cfg.ext.resolveReflection(), cfg.methodTargetSelector, Collections.singletonList(cfg.entry));
+		return createMultipleEntryOptions(cfg.scope, cfg.cha, cfg.objSensFilter, cfg.ext!=null?cfg.ext.resolveReflection():false, cfg.methodTargetSelector, Collections.singletonList(cfg.entry));
 	}
 
 	public static ExtendedAnalysisOptions createMultipleEntryOptions(AnalysisScope scope, IClassHierarchy cha, ObjSensZeroXCFABuilder.MethodFilter objSensFilter, boolean resolveReflection, MethodTargetSelector methodTargetSelector, Collection<? extends IMethod> entryMethods) {

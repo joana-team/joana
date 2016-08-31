@@ -9,6 +9,7 @@ package edu.kit.joana.wala.core;
 
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -1055,33 +1056,41 @@ public class SDGBuilder implements CallGraphFilter {
 		case CUSTOM:
 			cgb = cfg.customCGBFactory.createCallGraphBuilder(options, cfg.cache, cfg.cha, cfg.scope, cfg.additionalContextSelector, cfg.additionalContextInterpreter);
 		}
-		
 		return cgb;
 	}
 	
 	public CGResult buildCallgraph(final IProgressMonitor progress) throws IllegalArgumentException,
 			CallGraphBuilderCancelException {
-		final List<Entrypoint> entries = new LinkedList<Entrypoint>();
-		final Entrypoint ep = new SubtypesEntrypoint(cfg.entry, cfg.cha);
-		entries.add(ep);
-		final ExtendedAnalysisOptions options = new ExtendedAnalysisOptions(cfg.objSensFilter, cfg.scope, entries);
-		if (cfg.ext.resolveReflection()) {
-			options.setReflectionOptions(ReflectionOptions.NO_STRING_CONSTANTS);
-		} else {
-			options.setReflectionOptions(ReflectionOptions.NONE);
-		}
-		if (cfg.methodTargetSelector != null) {
-			options.setSelector(cfg.methodTargetSelector);
-		}
+		ExtendedAnalysisOptions options = createSingleEntryOptions(cfg);
 
 		CallGraphBuilder cgb = createCallgraphBuilder(cfg, options);
 		com.ibm.wala.ipa.callgraph.CallGraph callgraph = cgb.makeCallGraph(options, progress);
 
 		System.out.println("call graph has " + callgraph.getNumberOfNodes() + " nodes.");
-
 		return new CGResult(callgraph, cgb.getPointerAnalysis());
 	}
 
+	public static ExtendedAnalysisOptions createSingleEntryOptions(SDGBuilderConfig cfg) {
+		return createMultipleEntryOptions(cfg.scope, cfg.cha, cfg.objSensFilter, cfg.ext.resolveReflection(), cfg.methodTargetSelector, Collections.singletonList(cfg.entry));
+	}
+
+	public static ExtendedAnalysisOptions createMultipleEntryOptions(AnalysisScope scope, IClassHierarchy cha, ObjSensZeroXCFABuilder.MethodFilter objSensFilter, boolean resolveReflection, MethodTargetSelector methodTargetSelector, Collection<? extends IMethod> entryMethods) {
+		final List<Entrypoint> entries = new LinkedList<Entrypoint>();
+		for (IMethod entry : entryMethods) {
+			final Entrypoint ep = new SubtypesEntrypoint(entry, cha);
+			entries.add(ep);
+		}
+		final ExtendedAnalysisOptions options = new ExtendedAnalysisOptions(objSensFilter, scope, entries);
+		if (resolveReflection) {
+			options.setReflectionOptions(ReflectionOptions.NO_STRING_CONSTANTS);
+		} else {
+			options.setReflectionOptions(ReflectionOptions.NONE);
+		}
+		if (methodTargetSelector != null) {
+			options.setSelector(methodTargetSelector);
+		}
+		return options;
+	}
 	public static CallGraphBuilder createCallgraphBuilder(SDGBuilderConfig cfg, ExtendedAnalysisOptions options) {
 		CallGraphBuilder cgb = null;
 		switch (cfg.pts) {

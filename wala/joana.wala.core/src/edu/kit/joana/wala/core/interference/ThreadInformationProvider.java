@@ -186,7 +186,7 @@ class ThreadEntryLocator {
 				// what has been called by thread.start
 				for (Iterator<? extends CGNode> it = getCallGraph().getSuccNodes(cgThread); it.hasNext();) {
 					CGNode callee = it.next();
-					if (ThreadInformationProvider.overwritesThreadRun(getCallGraph().getClassHierarchy(), callee)) {
+					if (ThreadInformationProvider.overwritesThreadRun(getCallGraph().getClassHierarchy(), callee.getMethod())) {
 						threadEntries.add(callee);
 					} else {
 						debug.outln("Skipping call from Thread.start to " + callee);
@@ -282,8 +282,7 @@ public class ThreadInformationProvider {
 		return threadAllocationSiteFinder.callOfThreadRunOverriding(callingCtx, call);
 	}
 
-	public static boolean overwritesThreadRun(IClassHierarchy cha, CGNode node) {
-		IMethod method = node.getMethod();
+	public static boolean overwritesThreadRun(IClassHierarchy cha, IMethod method) {
 		Selector sel = method.getSelector();
 	
 		if (JavaLangThreadRun.getSelector().equals(sel)) {

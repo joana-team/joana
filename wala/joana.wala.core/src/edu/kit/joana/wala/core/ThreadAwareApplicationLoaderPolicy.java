@@ -29,7 +29,7 @@ public final class ThreadAwareApplicationLoaderPolicy implements PruningPolicy {
 	 */
 	@Override
 	public boolean check(CGNode n) {
-		return ApplicationLoaderPolicy.INSTANCE.check(n) || ThreadInformationProvider.overwritesThreadRun(n.getClassHierarchy(), n);
+		return ApplicationLoaderPolicy.INSTANCE.check(n) || ThreadInformationProvider.overwritesThreadRun(n.getClassHierarchy(), n.getMethod());
 	}
 
 }

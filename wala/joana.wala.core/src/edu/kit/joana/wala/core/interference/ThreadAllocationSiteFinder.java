@@ -44,7 +44,7 @@ public final class ThreadAllocationSiteFinder extends AllocationSiteFinder {
 
 	public boolean callOfThreadRunOverriding(PDG callingCtx, PDGNode call) {
 		for (PDG possCallee: builder.getPossibleTargets(call)) {
-			if (ThreadInformationProvider.overwritesThreadRun(builder.getNonPrunedWalaCallGraph().getClassHierarchy(), possCallee.cgNode)) {
+			if (ThreadInformationProvider.overwritesThreadRun(builder.getNonPrunedWalaCallGraph().getClassHierarchy(), possCallee.cgNode.getMethod())) {
 				return true;
 			}
 		}

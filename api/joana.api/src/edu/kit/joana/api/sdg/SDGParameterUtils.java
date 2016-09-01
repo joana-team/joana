@@ -27,24 +27,23 @@ public class SDGParameterUtils {
 	private SDGParameterUtils() {}
 
 	/**
-	 * Checks if the given inRoot or outRoot node can reach the given node using only {@link SDGEdge.Kind#PARAMETER_STRUCTURE} edges.
-	 * This includes the case 'zero edges', i.e. this method also returns {@code true} if 'node' equals either 'inRoot' or 'outRoot'.
-	 * The given node must not be {@code null} and either all three nodes must be formal nodes or all three nodes
-	 * must be actual nodes. 
+	 * Checks if the given root node can reach the given node using only {@link SDGEdge.Kind#PARAMETER_STRUCTURE} edges.
+	 * This includes the case 'zero edges', i.e. this method also returns {@code true} if 'node' equals 'root'.
+	 * The given node must not be {@code null} and either both nodes must be formal nodes or both nodes
+	 * must be actual nodes. Otherwise, executing this method is a waste of time.
 	 * @param node node to check
-	 * @param inRoot possible root of a *-in parameter (may be {@code null})
-	 * @param outRoot possible root of a *-out parameter (may be {@code null})
+	 * @param root possible root parameter (may be {@code null})
 	 * @param sdg sdg in which to search
 	 * @return whether inRoot or outRoot can reach the given node using only {@link SDGEdge.Kind#PARAMETER_STRUCTURE} edges
 	 */
-	public static boolean psBackwardsReachable(SDGNode node, SDGNode inRoot, SDGNode outRoot, SDG sdg) {
+	public static boolean psBackwardsReachable(SDGNode node, SDGNode root, SDG sdg) {
 		LinkedList<SDGNode> worklist = new LinkedList<SDGNode>();
 		Set<SDGNode> visited = new HashSet<SDGNode>();
 		worklist.add(node);
 		while (!worklist.isEmpty()) {
 			SDGNode next = worklist.poll();
 			visited.add(next);
-			if (next.equals(inRoot) || next.equals(inRoot)) {
+			if (next.equals(root)) {
 				return true;
 			} else {
 				for (SDGEdge out : sdg.incomingEdgesOf(next)) {

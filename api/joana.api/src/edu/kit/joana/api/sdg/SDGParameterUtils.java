@@ -34,7 +34,7 @@ public class SDGParameterUtils {
 	 * @param node node to check
 	 * @param root possible root parameter (may be {@code null})
 	 * @param sdg sdg in which to search
-	 * @return whether inRoot or outRoot can reach the given node using only {@link SDGEdge.Kind#PARAMETER_STRUCTURE} edges
+	 * @return whether given root can reach the given node using only {@link SDGEdge.Kind#PARAMETER_STRUCTURE} edges
 	 */
 	public static boolean psBackwardsReachable(SDGNode node, SDGNode root, SDG sdg) {
 		LinkedList<SDGNode> worklist = new LinkedList<SDGNode>();

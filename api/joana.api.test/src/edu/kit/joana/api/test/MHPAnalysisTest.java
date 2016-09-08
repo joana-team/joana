@@ -11,7 +11,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -58,6 +57,10 @@ public class MHPAnalysisTest {
 		addTestCase("interproc-join", "joana.api.testdata.conc.InterprocJoin");
 		addTestCase("interthread-join", "joana.api.testdata.conc.InterthreadJoin");
 		addTestCase("fork-join", "joana.api.testdata.conc.ForkJoin");
+		addTestCase("fork-join-chain", "joana.api.testdata.conc.ForkJoinChain");
+		addTestCase("indirect-spawn-join", "joana.api.testdata.conc.IndirectSpawnJoin");
+		addTestCase("other-thread-joins", "joana.api.testdata.conc.OtherThreadJoins");
+		addTestCase("other-thread-joins-indirect", "joana.api.testdata.conc.OtherThreadJoinsIndirect");
 		addTestCase("aliased-join", "joana.api.testdata.conc.AliasedJoin");
 	}
 
@@ -460,6 +463,67 @@ public class MHPAnalysisTest {
 		checkSoundness(mhp, p2, p2);
 		checkSoundness(mhp, p2, ps);
 		checkPrecision(mhp, ps, ps);
+	}
+	
+	@Test
+	public void testForkJoinChain() {
+		SDG sdg = buildOrLoad("fork-join-chain");
+		SDGAnalyzer ana = new SDGAnalyzer(sdg);
+		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
+		SDGNode p1 = getStringPrintInMethod(ana, "ForkJoinChain$Thread1.run()V");
+		SDGNode p2 = getStringPrintInMethod(ana, "ForkJoinChain$Thread2.run()V");
+		SDGNode p3 = getStringPrintInMethod(ana, "ForkJoinChain$Thread3.run()V");
+		SDGNode ps = getStringPrintInMethod(ana, "ForkJoinChain.main([Ljava/lang/String;)V");
+		
+		checkPrecision(mhp, p1, p2);
+		checkTooImprecise(mhp, p1, p3);
+		checkPrecision(mhp, p1, ps);
+
+		checkPrecision(mhp, p2, p3);
+		checkTooImprecise(mhp, p2, ps);
+
+		checkTooImprecise(mhp, p3, ps);
+	}
+	
+	@Test
+	public void testIndirectSpawnJoin() {
+		SDG sdg = buildOrLoad("indirect-spawn-join");
+		SDGAnalyzer ana = new SDGAnalyzer(sdg);
+		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
+		SDGNode p2 = getStringPrintInMethod(ana, "IndirectSpawnJoin$Thread2.run()V");
+		SDGNode p4 = getStringPrintInMethod(ana, "IndirectSpawnJoin$Thread4.run()V");
+		SDGNode ps = getStringPrintInMethod(ana, "IndirectSpawnJoin.main([Ljava/lang/String;)V");
+		
+		checkTooImprecise(mhp, p2, ps);
+		checkSoundness(mhp, p4, ps);
+	}
+	
+	@Test
+	public void testOtherThreadJoins() {
+		SDG sdg = buildOrLoad("other-thread-joins");
+		SDGAnalyzer ana = new SDGAnalyzer(sdg);
+		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
+		SDGNode p1 = getStringPrintInMethod(ana, "OtherThreadJoins$Thread1.run()V");
+		SDGNode p2 = getStringPrintInMethod(ana, "OtherThreadJoins$Thread2.run()V");
+		SDGNode p3 = getStringPrintInMethod(ana, "OtherThreadJoins$Thread3.run()V");
+		SDGNode p4 = getStringPrintInMethod(ana, "OtherThreadJoins$Thread4.run()V");
+		SDGNode p6 = getStringPrintInMethod(ana, "OtherThreadJoins$Thread6.run()V");
+		SDGNode ps = getStringPrintInMethod(ana, "OtherThreadJoins.main([Ljava/lang/String;)V");
+		
+		checkSoundness(mhp, p1, p2);
+		checkPrecision(mhp, p3, p4);
+		checkTooImprecise(mhp, p6, ps);
+	}
+	
+	@Test
+	public void testOtherThreadJoinsIndirect() {
+		SDG sdg = buildOrLoad("other-thread-joins-indirect");
+		SDGAnalyzer ana = new SDGAnalyzer(sdg);
+		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
+		SDGNode p1 = getStringPrintInMethod(ana, "OtherThreadJoinsIndirect$Thread1.run()V");
+		SDGNode p3 = getStringPrintInMethod(ana, "OtherThreadJoinsIndirect$Thread3.run()V");
+		
+		checkSoundness(mhp, p1, p3);
 	}
 	
 	@Test

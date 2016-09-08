@@ -35,9 +35,22 @@ public class IndirectSpawnJoin {
 			System.out.println("4");
 		}
 	}
+	
+	static class Thread5 extends Thread {
+		public void run() {
+			t6.start();
+		}
+	}
+	
+	static class Thread6 extends Thread {
+		public void run() {
+			System.out.println("6");
+		}
+	}
 
 	static Thread2 t2 = new Thread2();
 	static Thread4 t4 = new Thread4();
+	static Thread6 t6 = new Thread6();
 	
 	public static void main(String[] args) throws InterruptedException {
 		Thread1 t1 = new Thread1();
@@ -48,6 +61,12 @@ public class IndirectSpawnJoin {
 		Thread3 t3 = new Thread3();
 		t3.start();
 		t4.join();
+		
+		Thread5 t5 = new Thread5();
+		t5.start();
+		t6.join();
+		t5.join();
+
 		System.out.println("Main");
 	}
 }

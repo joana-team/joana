@@ -492,10 +492,12 @@ public class MHPAnalysisTest {
 		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
 		SDGNode p2 = getStringPrintInMethod(ana, "IndirectSpawnJoin$Thread2.run()V");
 		SDGNode p4 = getStringPrintInMethod(ana, "IndirectSpawnJoin$Thread4.run()V");
+		SDGNode p6 = getStringPrintInMethod(ana, "IndirectSpawnJoin$Thread4.run()V");
 		SDGNode ps = getStringPrintInMethod(ana, "IndirectSpawnJoin.main([Ljava/lang/String;)V");
 		
 		checkTooImprecise(mhp, p2, ps);
 		checkSoundness(mhp, p4, ps);
+		checkSoundness(mhp, p6, ps);
 	}
 	
 	@Test

@@ -16,8 +16,12 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PBackward;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 
 public class ORLSODChecker<L> extends AnnotationMapChecker<L> {
+	
+	private static Logger debug = Log.getLogger(Log.L_IFC_DEBUG);
 
 	/** maps each node to its so-called <i>probabilistic influencers</i> */
 	protected ProbInfComputer probInf;
@@ -148,11 +152,11 @@ public class ORLSODChecker<L> extends AnnotationMapChecker<L> {
 					                                     .map(SDGEdge::getSource)
 					                                     .collect(Collectors.toSet());
 					// @formatter:on
-					System.out.println(String.format("BS(%s) = %s", n, predecessors));
+					debug.outln(String.format("BS(%s) = %s", n, predecessors));
 					break;
 				case SLICE:
 					predecessors = backw.slice(n);
-					System.out.println(String.format("PRED(%s) = %s", n, predecessors));
+					debug.outln(String.format("PRED(%s) = %s", n, predecessors));
 					break;
 				default:
 					throw new IllegalArgumentException(predecessorMethod.toString());
@@ -166,7 +170,7 @@ public class ORLSODChecker<L> extends AnnotationMapChecker<L> {
 				}
 				// 2b.) propagate security levels from probabilistic influencers
 				final Collection<? extends SDGNode> pi = probInf.getProbabilisticInfluencers(n);
-				System.out.println(String.format("ProbInf(%s) = %s", n, pi));
+				debug.outln(String.format("ProbInf(%s) = %s", n, pi));
 				for (final SDGNode cp : pi) {
 					newLevel = secLattice.leastUpperBound(newLevel, cl.get(cp));
 					if (secLattice.getTop().equals(newLevel)) {
@@ -181,7 +185,7 @@ public class ORLSODChecker<L> extends AnnotationMapChecker<L> {
 			}
 			numIters++;
 		} while (change);
-		System.out.println(String.format("needed %d iteration(s).", numIters));
+		debug.outln(String.format("needed %d iteration(s).", numIters));
 		// 3.) check that sink levels comply
 		return checkCompliance();
 	}

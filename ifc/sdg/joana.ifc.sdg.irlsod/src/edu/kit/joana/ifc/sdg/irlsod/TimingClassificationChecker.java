@@ -39,7 +39,8 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 
 			@Override
 			Phase nextPhase(SDGEdge e) {
-				if (e.getKind() == SDGEdge.Kind.PARAMETER_IN) {
+				if (e.getKind() == SDGEdge.Kind.PARAMETER_IN
+						|| e.getKind() == SDGEdge.Kind.CALL) {
 					return PHASE2;
 				} else {
 					return PHASE1;
@@ -218,8 +219,8 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 				SDGNode n = e.getTarget();
 				if (mhp.isParallel(m, n)) {
 					ret.put(Pair.pair(n, m), l.getBottom());
-					// TODO do we need this?
-					ret.put(Pair.pair(m, n), l.getBottom());
+					// TODO do we need this? I think we don't
+					//ret.put(Pair.pair(m, n), l.getBottom());
 				}
 			}
 		}

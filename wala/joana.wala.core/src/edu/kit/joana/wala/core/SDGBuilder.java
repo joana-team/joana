@@ -559,6 +559,7 @@ public class SDGBuilder implements CallGraphFilter {
 		progress.beginTask("building call graph...", IProgressMonitor.UNKNOWN);
 		final CGResult walaCG = buildCallgraph(progress);
 		progress.done();
+		run(walaCG, progress);
 	}
 
 	private void run(final com.ibm.wala.ipa.callgraph.CallGraph walaCG, final PointerAnalysis<InstanceKey> pts,

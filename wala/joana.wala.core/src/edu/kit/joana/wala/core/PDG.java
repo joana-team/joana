@@ -1120,23 +1120,6 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 					formIn.setSourceLocation(defSrcLoc);
 				}
 			}
-
-			for (PDGField sIn : staticReads) {
-				sIn.node.setSourceLocation(defSrcLoc);
-				assert sIn.field.isStatic();
-				IField f = sIn.field.getField();
-				sIn.node.setBytecodeName(PrettyWalaNames.bcFieldName(f));
-				sIn.node.setBytecodeIndex(BytecodeLocation.STATIC_FIELD);
-			}
-
-			for (PDGField sOut : staticWrites) {
-				sOut.node.setSourceLocation(defSrcLoc);
-				assert sOut.field.isStatic();
-				IField f = sOut.field.getField();
-				sOut.node.setBytecodeName(PrettyWalaNames.bcFieldName(f));
-				sOut.node.setBytecodeIndex(BytecodeLocation.STATIC_FIELD);
-			}
-
 			entry.setSourceLocation(defSrcLoc);
 			exception.setSourceLocation(defSrcLoc);
 			exit.setSourceLocation(defSrcLoc);
@@ -1209,7 +1192,21 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 				hw.accfield.setSourceLocation(hw.node.getSourceLocation());
 			}
 		}
+		for (PDGField sIn : staticReads) {
+			sIn.node.setSourceLocation(defSrcLoc);
+			assert sIn.field.isStatic();
+			IField f = sIn.field.getField();
+			sIn.node.setBytecodeName(PrettyWalaNames.bcFieldName(f));
+			sIn.node.setBytecodeIndex(BytecodeLocation.STATIC_FIELD);
+		}
 
+		for (PDGField sOut : staticWrites) {
+			sOut.node.setSourceLocation(defSrcLoc);
+			assert sOut.field.isStatic();
+			IField f = sOut.field.getField();
+			sOut.node.setBytecodeName(PrettyWalaNames.bcFieldName(f));
+			sOut.node.setBytecodeIndex(BytecodeLocation.STATIC_FIELD);
+		}
 		entry.setBytecodeIndex(defBcIndex);
 		entry.setBytecodeName(defBcName);
 		exception.setBytecodeIndex(BytecodeLocation.ROOT_PARAMETER);

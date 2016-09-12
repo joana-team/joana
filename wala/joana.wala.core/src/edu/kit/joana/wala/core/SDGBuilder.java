@@ -559,12 +559,6 @@ public class SDGBuilder implements CallGraphFilter {
 		progress.beginTask("building call graph...", IProgressMonitor.UNKNOWN);
 		final CGResult walaCG = buildCallgraph(progress);
 		progress.done();
-		if (cfg.cgConsumer != null) {
-			cfg.cgConsumer.consume(walaCG.cg, walaCG.pts);
-		}
-		if (!cfg.abortAfterCG) {
-			run(walaCG, progress);
-		}
 	}
 
 	private void run(final com.ibm.wala.ipa.callgraph.CallGraph walaCG, final PointerAnalysis<InstanceKey> pts,
@@ -578,6 +572,12 @@ public class SDGBuilder implements CallGraphFilter {
 
 	private void run(final CGResult initalCG, final IProgressMonitor progress) throws UnsoundGraphException,
 			CancelException {
+		if (cfg.cgConsumer != null) {
+			cfg.cgConsumer.consume(initalCG.cg, initalCG.pts);
+		}
+		if (cfg.abortAfterCG) {
+			return;
+		}
 		nonPrunedCG = initalCG.cg;
 		progress.beginTask("pruning call graph...", IProgressMonitor.UNKNOWN);
 		cg = convertAndPruneCallGraph(cfg.prunecg, initalCG, progress);

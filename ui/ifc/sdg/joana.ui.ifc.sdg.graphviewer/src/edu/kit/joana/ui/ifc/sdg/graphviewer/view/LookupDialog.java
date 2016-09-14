@@ -118,6 +118,7 @@ public class LookupDialog extends GVPanel implements BundleConstants, ActionList
 			SDG sdg = parent.getGraphPane().getSelectedGraph().getCompleteSDG();
 			SDGNode sdgnode = sdg.getNode(getId());
 			int procId = sdgnode.getProc();
+			parent.getGraphPane().setCenterID(getId());
 //			ActionMap actions = parent.getActions();
 //			OpenMethodAction action = (OpenMethodAction) actions
 //					.get(OpenMethodAction.class);

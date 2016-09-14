@@ -93,6 +93,8 @@ public class GraphPane extends JTabbedPane implements GraphViewerModelListener, 
 
 	protected AdjustmentsDialog adjustmentsDialog;
 
+	protected int centerID = -1;
+
 	protected SearchDialog searchDialog;
 	protected LookupDialog lookupDialog;
 	protected HideNodeDialog hideNodeDialog;
@@ -224,6 +226,8 @@ public class GraphPane extends JTabbedPane implements GraphViewerModelListener, 
 							int proc = PDGConstants.getProc(cell
 									.getAttributes());
 							if (proc >= 0 && proc != procID) {
+								centerID = PDGConstants.getID(cell
+										.getAttributes());
 								ActionMap actions = owner.getActions();
 								OpenMethodAction action = (OpenMethodAction) actions
 										.get(OpenMethodAction.class);
@@ -289,7 +293,7 @@ public class GraphPane extends JTabbedPane implements GraphViewerModelListener, 
 							idid = o.hashCode();
 						}
 					}
-					if (idid == lookupDialog.getId()) {
+					if (idid == centerID) {
 						rect = c.getBounds();
 
 						if (rect != null) {
@@ -303,8 +307,6 @@ public class GraphPane extends JTabbedPane implements GraphViewerModelListener, 
 					}
 				}
 
-
-
 				// add tab to GraphPane
 				addTabVersion(mg.getName(), "MethodGraph.png", scrollPane);
 
@@ -312,6 +314,14 @@ public class GraphPane extends JTabbedPane implements GraphViewerModelListener, 
 		}
 	//		}
 //		}.start();
+	}
+
+	public int getCenterID() {
+		return centerID;
+	}
+
+	public void setCenterID(int centerID) {
+		this.centerID = centerID;
 	}
 
 	/**

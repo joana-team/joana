@@ -68,7 +68,7 @@ public class ICFGBuilder {
      * @param ipdg  The TIPDG whose ICFG is needed.
      * @return      A new graph, the ICFG (including join edges).
      */
-    public static CFG extractICFGIncludingJoins(SDG sdg){
+    public static CFG extractICFGIncludingJoins(JoanaGraph sdg){
 //    	debuggingControlFlowInspector(sdg);
 
         // create new graph and copy all ICFG-related edges and associated

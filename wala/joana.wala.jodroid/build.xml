@@ -141,6 +141,9 @@
 
 	<target name="collect_sources">
 		<copy todir="${dest.dir.sources}">
+			<fileset dir="${joana.contrib.base.dir}/src">
+                <filename name="**/*.java" />
+            </fileset>
 			<fileset dir="${joana.wala.jodroid.base.dir}/src">
 				<filename name="**/*.java" />
 			</fileset>

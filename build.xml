@@ -12,7 +12,7 @@
 	<target name="all-jars-and-clean" depends="all-jars,clean" />
 
 	<target name="all-jars" depends="joana-jars,copy-to-project-jars,webstart-jars" />
-	<target name="joana-jars" depends="joana.api,joana.wala.core,joana.wala.dictionary,joana.ifc.sdg.core" />
+	<target name="joana-jars" depends="joana.api,joana.wala.core,joana.wala.dictionary,joana.ifc.sdg.core,joana.wala.jodroid" />
 	<target name="copy-to-project-jars" depends="joana.api.test,joana.ui.wala.flowless" />
 	<target name="webstart-jars" depends="joana.ui.ifc.wala.console,joana.ui.ifc.sdg.graphviewer" />
 

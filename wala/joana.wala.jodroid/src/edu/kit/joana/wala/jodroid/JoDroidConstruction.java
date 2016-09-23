@@ -67,6 +67,7 @@ import com.ibm.wala.util.io.FileSuffixes;
 import java.util.jar.JarInputStream;
 import java.util.jar.JarFile;
 import com.ibm.wala.classLoader.JarStreamModule;
+import com.ibm.wala.dalvik.classLoader.DexFileModule;
 import com.ibm.wala.dalvik.dex.util.config.DexAnalysisScopeReader;
 import com.ibm.wala.util.config.AnalysisScopeReader;
 
@@ -605,14 +606,10 @@ public class JoDroidConstruction {
             logger.info("Using Java Stubs:\t{}", javaStubs);
 
             assert (exclusions != null); // XXX: Handle case without exclusions?
-            
-            scope = DexAnalysisScopeReader.makeAndroidBinaryAnalysisScope(classPathUri, exclusions.getAbsolutePath());
-            scope.setLoaderImpl(ClassLoaderReference.Application,
-                    "com.ibm.wala.dalvik.classLoader.WDexClassLoaderImpl");
-            scope.setLoaderImpl(ClassLoaderReference.Primordial,
-                    "com.ibm.wala.dalvik.classLoader.WDexClassLoaderImpl");
-
-            scope.addToScope(AnalysisScopeReader.makePrimordialScope(exclusions)); // Reads primordial.txt 
+            scope = AnalysisScope.createJavaAnalysisScope();
+            scope.setLoaderImpl(ClassLoaderReference.Primordial, "com.ibm.wala.dalvik.classLoader.WDexClassLoaderImpl");
+            scope.setLoaderImpl(ClassLoaderReference.Application, "com.ibm.wala.dalvik.classLoader.WDexClassLoaderImpl");
+            scope.addToScope(ClassLoaderReference.Application, DexFileModule.make(new File(classPathUri)));
 
             if (FileSuffixes.isRessourceFromJar(javaStubs)) {
                 final InputStream is = javaStubs.toURL().openStream();

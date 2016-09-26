@@ -134,7 +134,7 @@ public class ExecutionOptions {
 
     public ExecutionOptions() {
         try {
-            this.javaStubs = ExecutionOptions.class.getResource("/jSDG-stubs-jre1.4.jar").toURI();
+            this.javaStubs = ExecutionOptions.class.getResource("/stubs/jSDG-stubs-jre1.4.jar").toURI();
             this.androidLib = ExecutionOptions.class.getResource("/android-18.jar").toURI();
             this.exclusions = ExecutionOptions.class.getResource("/exclusions.txt").toURI();
         } catch (URISyntaxException e) {

@@ -44,9 +44,10 @@ unauthorized user of the system
 
 0. Requirements
 
-- Java 1.8
-- ant  Furthermore, for setting up WALA, you need
-Maven 3.x and a dx.jar which you can get from an Android SDK.
+- Java >=1.8
+- ant >= 1.9.6
+- Maven >= 3.x
+- a dx.jar (you can get one from an Android SDK)
 
 1. Fetch submodule sources
 
@@ -62,9 +63,9 @@ git submodule update
 
 - Build WALA
 
-  pushd contrib/wala
+  cd contrib/wala
   mvn verify -DskipTests=true -e
-  popd
+  cd ..
 
 3. Run ant
 

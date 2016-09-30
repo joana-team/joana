@@ -65,7 +65,7 @@ git submodule update
 
   cd contrib/wala
   mvn verify -DskipTests=true -e
-  cd ..
+  cd ../..
 
 3. Run ant
 

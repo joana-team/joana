@@ -42,16 +42,35 @@ unauthorized user of the system
 ====================================================
 === Very quick first time setup (just compile .jars)
 
+0. Requirements
+
+- Java 1.8
+- ant  Furthermore, for setting up WALA, you need
+Maven 3.x and a dx.jar which you can get from an Android SDK.
+
 1. Fetch submodule sources
 
 git submodule init
 git submodule update
 
-2. Run ant
+2. Setup WALA
+
+- Get a dx.jar from an Android SDK and copy it to appropriate location:
+
+  mkdir -p contrib/wala/com.ibm.wala.dalvik.test/lib
+  cp dx.jar contrib/wala/com.ibm.wala.dalvik.test/lib
+
+- Build WALA
+
+  pushd contrib/wala
+  mvn verify -DskipTests=true -e
+  popd
+
+3. Run ant
 
 ant
 
-3. Jar-files should have been generated in dist/
+4. Jar-files should have been generated in dist/
 
 ====================
 === First time setup
@@ -161,6 +180,8 @@ The following jar files can be built. Normally you will want to choose
 joana.api.jar or joana.ui.ifc.wala.console.jar, depending on if you want
 a nice GUI or not. They contain all the classes you need for a standard IFC
 analysis. Other jar-files are mostly only relevant for development purposes.
+Please note that in order to build these jars, you first need to setup Joana
+and WALA as described in "Very quick first time setup".
 
 joana.api.jar
 	Contains wala, joana.wala and joana.ifc.sdg stuff.

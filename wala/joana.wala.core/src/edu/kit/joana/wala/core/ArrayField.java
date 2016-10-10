@@ -90,8 +90,11 @@ public final class ArrayField extends ParameterField {
 		
 		if (obj instanceof ArrayField) {
 			final ArrayField other = (ArrayField) obj;
-
-			return elemType.equals(other.elemType);
+			if (elemType.isPrimitiveType()) {
+				return elemType.equals(other.elemType);
+			} else {
+				return true;
+			}
 		}
 
 		return false;

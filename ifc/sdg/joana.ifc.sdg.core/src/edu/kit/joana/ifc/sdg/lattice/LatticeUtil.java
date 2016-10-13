@@ -532,8 +532,8 @@ public class LatticeUtil {
 	
 	
 	public static void naiveTopBottomCompletion(IEditableLattice<String> lattice) {
-		Collection<String> tops = findTopElements(lattice.getElements(), lattice);
-		Collection<String> bots = findBottomElements(lattice.getElements(), lattice);
+		Collection<String> tops = lattice.findTopElements(lattice.getElements());
+		Collection<String> bots = lattice.findBottomElements(lattice.getElements());
 		
 		if (tops.size() > 1 ) {
 			if (lattice.getElements().contains("top")) {

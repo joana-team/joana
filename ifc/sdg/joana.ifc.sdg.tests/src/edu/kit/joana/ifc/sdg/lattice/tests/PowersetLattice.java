@@ -5,7 +5,7 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-package edu.kit.joana.ifc.sdg.lattice.impl;
+package edu.kit.joana.ifc.sdg.lattice.tests;
 
 import java.util.BitSet;
 import java.util.Collection;
@@ -15,6 +15,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import edu.kit.joana.ifc.sdg.lattice.LatticeValidator;
+import edu.kit.joana.ifc.sdg.lattice.impl.EditableLatticeSimple;
 
 
 public class PowersetLattice {

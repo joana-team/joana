@@ -4,5 +4,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/joana.ifc.sdg.core"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.contrib.lib"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.api"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

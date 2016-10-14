@@ -186,7 +186,7 @@ public class LatticeValidator {
 	 *         <code>null</code> if the provided graph successfully passed
 	 *         lattice validation.
 	 */
-	public static <ElementType> LatticeProblemDescription<ElementType> validateIncremental(IEditableLattice<ElementType> lattice) {
+	public static <ElementType> LatticeProblemDescription<ElementType> validateIncremental(ILatticeOperations<ElementType> lattice) {
 		return validateIncremental(lattice.getElements(), lattice);
 	}
 }

@@ -6,6 +6,7 @@ Bundle-Version: 1.0.0.qualifier
 Export-Package: edu.kit.joana.api,
  edu.kit.joana.api.annotations;uses:="edu.kit.pp.joana.ifcconsole.sdg",
  edu.kit.joana.api.lattice,
+ edu.kit.joana.api.matchers,
  edu.kit.joana.api.sdg
 Require-Bundle: com.ibm.wala.core;bundle-version="1.1.3",
  joana.ifc.sdg.graph;bundle-version="1.1.0",

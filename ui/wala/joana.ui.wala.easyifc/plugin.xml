@@ -135,5 +135,20 @@
   			textStylePreferenceKey="highlight.text.style" 
   			textStylePreferenceValue="NONE" /> 
   	</extension>
+ <extension
+       point="org.eclipse.jdt.ui.classpathContainerPage">
+    <classpathContainerPage
+          class="edu.kit.joana.ui.wala.easyifc.views.AnnotationClassPathContainerPage"
+          id="joana.ui.wala.easyifc.classpathContainerPage1"
+          name="JOANA Annotations">
+    </classpathContainerPage>
+ </extension>
+ <extension
+       point="org.eclipse.jdt.core.classpathContainerInitializer">
+    <classpathContainerInitializer
+          class="edu.kit.joana.ui.wala.easyifc.AnnotationClasspathContainerInitializer"
+          id="joana.ui.wala.easyifc.JOANA_ANNOTATIONS">
+    </classpathContainerInitializer>
+ </extension>
 
 </plugin>

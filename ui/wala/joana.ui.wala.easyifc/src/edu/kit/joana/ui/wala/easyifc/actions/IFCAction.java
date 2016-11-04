@@ -89,7 +89,7 @@ public class IFCAction extends Action implements ISelectionListener {
 		private final List<String> srcDirs = new LinkedList<String>();
 		private final List<String> extraJars = new LinkedList<String>();
 
-		private IFCType selectedIFCType = IFCType.RLSOD;
+		private IFCType selectedIFCType = SelectIFCTypeAction.IFCTYPE_DEFAULT;
 		
 		private ProjectConf(final IJavaProject jp, final String binDir) {
 			if (binDir == null || jp == null) {
@@ -182,6 +182,7 @@ public class IFCAction extends Action implements ISelectionListener {
 		}
 		
 		public IFCType getSelectedIFCType() {
+			if (selectedIFCType == null) throw new IllegalStateException("selectedIFCType not set");
 			return selectedIFCType;
 		}
 		

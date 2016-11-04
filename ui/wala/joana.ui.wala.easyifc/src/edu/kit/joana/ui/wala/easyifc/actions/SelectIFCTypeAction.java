@@ -19,14 +19,21 @@ import edu.kit.joana.api.IFCType;
 
 public class SelectIFCTypeAction extends Action implements IMenuCreator {
 
+	
 	private Menu menu;
-	private IFCType selected = IFCType.RLSOD;
 	private final static String TXT_LSOD 	= "   LSOD    ";
 	private final static String TXT_RLSOD 	= "  RLSOD   ";
 	private final static String TXT_iRLSOD 	= "  iRLSOD  ";
+	private final static String TXT_TimingIRLSOD =
+		                                      "  tiRLSOD ";
+
+	private final static String TXT_DEFAULT      = TXT_RLSOD;
+	public final static IFCType IFCTYPE_DEFAULT = IFCType.RLSOD;
+
+	private IFCType selected = IFCTYPE_DEFAULT;
 	
 	public SelectIFCTypeAction() {
-		super(TXT_RLSOD, Action.AS_DROP_DOWN_MENU);
+		super(TXT_DEFAULT, Action.AS_DROP_DOWN_MENU);
 		this.setDescription("Select security criterion for multithreaded programs.");
 		this.setId("joana.ui.wala.easyifc.selectIFCTypeAction");
 		setMenuCreator(this);
@@ -51,6 +58,7 @@ public class SelectIFCTypeAction extends Action implements IMenuCreator {
 		}
 		
 		menu = new Menu(parent);
+		
 		
 		final MenuItem iLSOD = new MenuItem(menu, Action.AS_RADIO_BUTTON);
 		iLSOD.setText(IFCType.LSOD.toString());
@@ -101,8 +109,33 @@ public class SelectIFCTypeAction extends Action implements IMenuCreator {
 			}
 		});
 		
-		menu.setDefaultItem(iRLSOD);
-		selected = IFCType.RLSOD;
+		final MenuItem iTimingIRLSOD = new MenuItem(menu, Action.AS_RADIO_BUTTON);
+		iTimingIRLSOD.setText(IFCType.timingiRLSOD.toString());
+		iTimingIRLSOD.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(final SelectionEvent e) {
+				selected = IFCType. timingiRLSOD;
+				setText(TXT_TimingIRLSOD);
+			}
+			
+			@Override
+			public void widgetDefaultSelected(final SelectionEvent e) {
+				selected = IFCType.timingiRLSOD;
+				setText(TXT_TimingIRLSOD);
+			}
+		});
+		
+		final MenuItem defaultItem;
+		switch (IFCTYPE_DEFAULT) {
+			case LSOD:          defaultItem = iLSOD; break;
+			case RLSOD:         defaultItem = iRLSOD; break;
+			case iRLSOD:        defaultItem = iIRLSOD; break;
+			case timingiRLSOD:  defaultItem = iTimingIRLSOD; break;
+			default : throw new IllegalStateException("Unsupported criterion for multithreaded programs.");
+		}
+		menu.setDefaultItem(defaultItem);
+		selected = IFCTYPE_DEFAULT;
 		
 		return menu;
 	}

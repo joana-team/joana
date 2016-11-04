@@ -480,7 +480,7 @@ public final class CheckInformationFlow {
 	
 	private static Set<SLeak> checkIFC(final Reason reason, final SDGProgram prog, final IFCType type, final AnnotationMethod annotationMethod, final IStaticLattice<String> lattice) {
 		final IFCAnalysis ana = annotateSDG(prog, annotationMethod, lattice);
-		if (type == IFCType.RLSOD) {
+		if (type == IFCType.RLSOD || type == IFCType.LSOD) {
 			ana.setTimesensitivity(true);
 		}
 		final Collection<? extends IViolation<SecurityNode>> leaks = ana.doIFC(type);

@@ -414,6 +414,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 	}
 	
 	public static class NotRunYetNode extends IFCInfoNode {
+		
 		private NotRunYetNode(final RootNode parent, final EntryPointConfiguration discovered,
 				final IJavaProject project) {
 			super(parent, new IFCResult(discovered, null) {
@@ -422,11 +423,53 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 					return "has not been analysed, yet.";
 				}},
 				project);
+			for (String error : discovered.getErrors()) {
+				new EntryPointErrorNode(this, discovered, error);
+			}
 		}
 
 		@Override
 		public Image getImage() {
 			return EasyIFCMarkerAndImageManager.getInstance().getImage(getResult().getEntryPoint());
+		}
+	}
+	
+	public static final class EntryPointErrorNode extends SecondLevelNode {
+		private final EntryPointConfiguration configuration;
+		private final String error;
+		
+		public EntryPointErrorNode(IFCInfoNode parent, EntryPointConfiguration configuration, String error) {
+			super(parent);
+			this.configuration = configuration;
+			this.error = error;
+		}
+		
+		@Override
+		public SourceRefElement getSourceRef() {
+			return configuration.getSourceRef();
+		}
+
+		@Override
+		public IMarker[] getSideMarker() {
+			return null;
+		}
+
+		@Override
+		public void searchMatchingJavaElement() {
+		}
+
+		@Override
+		public String toString() {
+			return error;
+		}
+
+		@Override
+		SecondLevelNode self() {
+			return this;
+		}
+
+		public Image getImage() {
+			return EasyIFCMarkerAndImageManager.getInstance().getImage(configuration);
 		}
 	}
 	

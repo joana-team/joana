@@ -2,6 +2,7 @@ package edu.kit.joana.ui.wala.easyifc.util;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,7 @@ import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.ifc.sdg.lattice.IEditableLattice;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
+import edu.kit.joana.ifc.sdg.lattice.LatticeValidator;
 import edu.kit.joana.ifc.sdg.lattice.impl.EditableLatticeSimple;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.annotations.EntryPoint;
@@ -132,6 +134,8 @@ public class EntryPointSearch {
 			return (CompilationUnit) parser.createAST(null);
 		}
 
+		public abstract Collection<String> getErrors();
+
 		public abstract boolean isDefaultParameters();
 		
 		public abstract IStaticLattice<String> lattice();
@@ -176,9 +180,15 @@ public class EntryPointSearch {
 		public IStaticLattice<String> lattice() {
 			return BuiltinLattices.getBinaryLattice();
 		}
+
+		@Override
+		public Collection<String> getErrors() {
+			return Collections.emptyList();
+		}
 	}
 	
 	public static class AnnotationEntryPointConfiguration extends EntryPointConfiguration {
+		private final List<String> errors = new LinkedList<>();
 		private final IAnnotation annotation;
 		private final IStaticLattice<String> lattice;
 		public AnnotationEntryPointConfiguration(IMethod method, IAnnotation annotation) {
@@ -189,7 +199,7 @@ public class EntryPointSearch {
 			this.annotation = annotation;
 			
 			boolean latticeSpecified = false;
-			EditableLatticeSimple<String> specifiedLattice  = new EditableLatticeSimple<String>();
+			final EditableLatticeSimple<String> specifiedLattice  = new EditableLatticeSimple<String>();
 			try {
 				for (IMemberValuePair pair : annotation.getMemberValuePairs()) {
 					if ("levels".equals(pair.getMemberName())) {
@@ -242,7 +252,14 @@ public class EntryPointSearch {
 				if (!latticeSpecified) {
 					this.lattice = BuiltinLattices.getBinaryLattice();
 				} else {
-					this.lattice = LatticeUtil.dedekindMcNeilleCompletion(specifiedLattice);
+					assert (specifiedLattice instanceof EditableLatticeSimple<?>);
+					final Collection<String> antiSymmetryViolations = LatticeValidator.findAntisymmetryViolations(specifiedLattice);
+					if (antiSymmetryViolations.isEmpty()) {
+						this.lattice = LatticeUtil.dedekindMcNeilleCompletion(specifiedLattice);
+					} else {
+						errors.add("Cycle in user-specified lattice. Elements contained in a cycle: " + antiSymmetryViolations);
+						this.lattice = null;
+					}
 				}
 			} catch (JavaModelException e) {
 				// Thrown by IAnnotation.getMemberValuePairs()
@@ -324,6 +341,11 @@ public class EntryPointSearch {
 		@Override
 		public IStaticLattice<String> lattice() {
 			return lattice;
+		}
+
+		@Override
+		public Collection<String> getErrors() {
+			return Collections.unmodifiableCollection(this.errors);
 		}
 	}
 	

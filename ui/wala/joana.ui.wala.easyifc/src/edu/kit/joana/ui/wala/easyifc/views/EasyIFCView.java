@@ -264,6 +264,7 @@ public class EasyIFCView extends ViewPart {
 					if (obj instanceof IFCInfoNode) {
 						IFCInfoNode node = (IFCInfoNode) obj;
 						runIFCforSelectedEntryPoint.entryPoint = node.getResult().getEntryPointConfiguration();
+						runIFCforSelectedEntryPoint.setEnabled(runIFCforSelectedEntryPoint.entryPoint.getErrors().isEmpty());
 					}
 				}
 			}

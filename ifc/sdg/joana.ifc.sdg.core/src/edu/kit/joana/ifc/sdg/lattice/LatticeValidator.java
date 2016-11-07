@@ -9,7 +9,12 @@ package edu.kit.joana.ifc.sdg.lattice;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+
+import edu.kit.joana.util.Pair;
 
 /**
  * Implements functionality to test a graph for required lattice properties.
@@ -19,6 +24,43 @@ public class LatticeValidator {
 
 	private LatticeValidator() { }
 
+	public static <ElementType> Collection<ElementType> findAntisymmetryViolations(ILatticeOperations<ElementType> ops) {
+		return ops.getElements()
+		          .stream()
+		          .flatMap(e -> ops.getImmediatelyGreater(e).stream().map(e2 -> Pair.pair(e, e2)))
+		          .filter(p -> ops.collectAllGreaterElements(p.getSecond()).contains(p.getFirst()))
+		          .map(Pair::getFirst)
+		          .collect(Collectors.toList());
+	}
+	
+	public static <ElementType> Collection<Pair<ElementType,ElementType>> findLowerGreaterMissing(ILatticeOperations<ElementType> ops) {
+		List<Pair<ElementType,ElementType>> violations = new LinkedList<>();
+		for (ElementType e1 : ops.getElements()) {
+			violations.addAll(
+				ops.getImmediatelyGreater(e1)
+				   .stream()
+				   .filter( e2 -> !ops.getImmediatelyLower(e2).contains(e1))
+				   .map(e2 -> Pair.pair(e1, e2))
+				   .collect(Collectors.toList())
+			);
+		}
+		return violations;
+	}
+	
+	public static <ElementType> Collection<Pair<ElementType,ElementType>> findGreaterLowerMissing(ILatticeOperations<ElementType> ops) {
+		List<Pair<ElementType,ElementType>> violations = new LinkedList<>();
+		for (ElementType e1 : ops.getElements()) {
+			violations.addAll(
+				ops.getImmediatelyLower(e1)
+				   .stream()
+				   .filter( e2 -> !ops.getImmediatelyGreater(e2).contains(e1))
+				   .map(e2 -> Pair.pair(e1, e2))
+				   .collect(Collectors.toList())
+			);
+		}
+		return violations;
+	}
+	
 	/**
 	 * Finds a cycle in a graph. This function requires the graph to have a
 	 * unique top element.

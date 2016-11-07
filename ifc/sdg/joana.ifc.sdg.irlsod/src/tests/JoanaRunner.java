@@ -82,7 +82,7 @@ public class JoanaRunner {
 		final URL url = new File(Stubs.JRE_14.getPaths()[0]).toURI().toURL();
 		final URLConnection con = url.openConnection();
 		final InputStream in = con.getInputStream();
-		scope.addToScope(ClassLoaderReference.Primordial, new JarStreamModule(new JarInputStream(in)));
+		scope.addToScope(ClassLoaderReference.Primordial, new JarStreamModule(in));
 		return scope;
 	}
 

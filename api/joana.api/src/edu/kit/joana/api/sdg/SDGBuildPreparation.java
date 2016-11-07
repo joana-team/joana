@@ -175,7 +175,7 @@ public final class SDGBuildPreparation {
 			final URLConnection con = url.openConnection();
 			final InputStream in = con.getInputStream();
 			out.print("(from jar stream " + path + ") ");
-			return new JarStreamModule(new JarInputStream(in));
+			return new JarStreamModule(in);
 		}
 	}
 

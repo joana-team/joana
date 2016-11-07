@@ -614,7 +614,7 @@ public class JoDroidConstruction {
             if (FileSuffixes.isRessourceFromJar(javaStubs)) {
                 final InputStream is = javaStubs.toURL().openStream();
                 scope.addToScope(ClassLoaderReference.Primordial,
-                        new JarStreamModule(new JarInputStream(is)));
+                        new JarStreamModule(is));
             } else {
                 scope.addToScope(ClassLoaderReference.Primordial, new JarFile(new File(
                                 javaStubs)));
@@ -624,7 +624,7 @@ public class JoDroidConstruction {
             if (FileSuffixes.isRessourceFromJar(androidStubs)) {
                 final InputStream is = androidStubs.toURL().openStream();
                 scope.addToScope(ClassLoaderReference.Primordial,
-                        new JarStreamModule(new JarInputStream(is)));
+                        new JarStreamModule(is));
             } else {
                 scope.addToScope(ClassLoaderReference.Primordial, new JarFile(new File(
                                 androidStubs)));

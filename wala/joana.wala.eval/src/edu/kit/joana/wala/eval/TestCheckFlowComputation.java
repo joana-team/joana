@@ -979,7 +979,7 @@ public final class TestCheckFlowComputation {
 				// special fall-back for eclipse plug-in
 				final URL url2 = new URL("platform:/plugin/joana.contrib.lib/stubs" + path);
 				final InputStream in = url2.openConnection().getInputStream();
-				return new JarStreamModule(new JarInputStream(in));
+				return new JarStreamModule(in);
 			}
 		}
 	}

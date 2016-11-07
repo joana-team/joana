@@ -150,5 +150,17 @@
           id="joana.ui.wala.easyifc.JOANA_ANNOTATIONS">
     </classpathContainerInitializer>
  </extension>
-
+	<extension point="org.eclipse.ui.menus">
+		<menuContribution locationURI="menu:org.eclipse.ui.main.menu">
+			<menu label="Admin">
+				<command commandId="org.eclipse.ui.views.showView"
+				         label="Show Error View"
+				         style="push">
+					<parameter name="org.eclipse.ui.views.showView.viewId"
+					           value="org.eclipse.pde.runtime.LogView">
+					</parameter>
+				</command>
+			</menu>
+		</menuContribution>
+	</extension>
 </plugin>

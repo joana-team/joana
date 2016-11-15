@@ -22,5 +22,7 @@ import edu.kit.joana.ui.annotations.Level;
 @Target({ElementType.FIELD,ElementType.METHOD, ElementType.PARAMETER})
 public @interface Source {
 	String level() default Level.HIGH;
+	String[] mayKnow() default {};
+	String[] includes() default {};
 	AnnotationPolicy annotate() default AnnotationPolicy.ANNOTATE_USAGES;
 }

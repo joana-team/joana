@@ -22,5 +22,7 @@ import edu.kit.joana.ui.annotations.Level;
 @Target({ElementType.FIELD,ElementType.METHOD, ElementType.PARAMETER})
 public @interface Sink {
 	String level() default Level.LOW;
+	String[] seenBy() default {};
+	String[] mayInclude() default {};
 	AnnotationPolicy annotate() default AnnotationPolicy.ANNOTATE_USAGES;
 }

@@ -3,9 +3,11 @@ package edu.kit.joana.ui.wala.easyifc.util;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -35,13 +37,17 @@ import org.eclipse.jdt.internal.core.Annotation;
 import org.eclipse.jdt.internal.core.SourceMethod;
 import org.eclipse.jdt.internal.core.SourceRefElement;
 
+import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.ifc.sdg.lattice.IEditableLattice;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
 import edu.kit.joana.ifc.sdg.lattice.LatticeValidator;
+import edu.kit.joana.ifc.sdg.lattice.PrecomputedLattice;
 import edu.kit.joana.ifc.sdg.lattice.impl.EditableLatticeSimple;
+import edu.kit.joana.ifc.sdg.lattice.impl.PowersetLattice;
+import edu.kit.joana.ifc.sdg.lattice.impl.ReversedLattice;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.annotations.EntryPoint;
 import edu.kit.joana.ui.wala.easyifc.model.CheckInformationFlow;
@@ -123,6 +129,8 @@ public class EntryPointSearch {
 		
 		public abstract SDGConfig getSDGConfigFor(CheckIFCConfig cfc);
 		
+		public abstract void annotateSDG(IFCAnalysis analysis);
+		
 		// TODO: possibly cache the AST somehow?!?! or find a method to resolve FULLY-QUALIFIED type-names 
 		// that works with JDT's JavaModel only? 
 		protected CompilationUnit getASTForEntryPoint() {
@@ -185,21 +193,241 @@ public class EntryPointSearch {
 		public Collection<String> getErrors() {
 			return Collections.emptyList();
 		}
+		
+		@Override
+		public void annotateSDG(IFCAnalysis analysis) {
+			analysis.addAllJavaSourceAnnotations(this.lattice());
+		}
 	}
 	
-	public static class AnnotationEntryPointConfiguration extends EntryPointConfiguration {
-		private final List<String> errors = new LinkedList<>();
-		private final IAnnotation annotation;
+	public static class DefaultAnnotationEntryPointConfiguration extends AnnotationEntryPointConfiguration {
+		public DefaultAnnotationEntryPointConfiguration(IMethod method, IAnnotation annotation) {
+			super(method, annotation);
+		}
+		@Override
+		public void annotateSDG(IFCAnalysis analysis) {
+			analysis.addAllJavaSourceAnnotations();
+		}
+	}
+	
+	public static class InvalidAnnotationEntryPointConfiguration extends AnnotationEntryPointConfiguration {
+		public InvalidAnnotationEntryPointConfiguration(IMethod method, IAnnotation annotation) {
+			super(method, annotation);
+		}
+
+		@Override
+		public void annotateSDG(IFCAnalysis analysis) {
+			throw new UnsupportedOperationException("Invalid EntryPointConfiguration; cannot annotate SDG");
+		}
+		
+	}
+	
+	public static class DatasetsAnnotationEntryPointConfiguration extends AnnotationEntryPointConfiguration {
+		private final IStaticLattice<Set<String>> lattice;
+		public DatasetsAnnotationEntryPointConfiguration(IMethod method, IAnnotation annotation) {
+			super(method, annotation);
+			final Set<String> datasets  = new HashSet<>();
+			try {
+				for (IMemberValuePair pair : annotation.getMemberValuePairs()) {
+					if ("datasets".equals(pair.getMemberName())) {
+						if  (pair.getValueKind() != IMemberValuePair.K_STRING) {
+							errors.add("Illegal datasets specification: " + pair.getValue() + "  - use literal Strings instead (e.g.: { \"address\", \"bankingh\" })");
+						}
+						Object[] levels = (Object[]) pair.getValue();
+						for (Object o : levels) {
+							String dataset = (String) o;
+							boolean fresh = datasets.add(dataset);
+							if (!fresh) errors.add("Duplicate dataset: " + dataset);
+						}
+					}
+				}
+				this.lattice = new PowersetLattice<String>(datasets);
+			} catch (JavaModelException e) {
+				// Thrown by IAnnotation.getMemberValuePairs()
+				// TODO: better error handling
+				throw new RuntimeException(e);
+			}
+
+		}
+		@Override
+		public void annotateSDG(IFCAnalysis analysis) {
+			analysis.addAllJavaSourceIncludesAnnotations(this.lattice);
+		}
+	}
+	
+	public static class AdversariesAnnotationEntryPointConfiguration extends AnnotationEntryPointConfiguration {
+		private final IStaticLattice<Set<String>> lattice;
+		public AdversariesAnnotationEntryPointConfiguration(IMethod method, IAnnotation annotation) {
+			super(method, annotation);
+			final Set<String> datasets  = new HashSet<>();
+			try {
+				for (IMemberValuePair pair : annotation.getMemberValuePairs()) {
+					if ("adversaries".equals(pair.getMemberName())) {
+						if  (pair.getValueKind() != IMemberValuePair.K_STRING) {
+							errors.add("Illegal adversaries specification: " + pair.getValue() + "  - use literal Strings instead (e.g.: { \"admin\", \"guest\" })");
+						}
+						Object[] levels = (Object[]) pair.getValue();
+						for (Object o : levels) {
+							String adversary = (String) o;
+							boolean fresh = datasets.add(adversary);
+							if (!fresh) errors.add("Duplicate adversary: " + adversary);
+						}
+					}
+				}
+				this.lattice = new ReversedLattice<>(new PowersetLattice<String>(datasets));
+			} catch (JavaModelException e) {
+				// Thrown by IAnnotation.getMemberValuePairs()
+				// TODO: better error handling
+				throw new RuntimeException(e);
+			}
+
+		}
+		@Override
+		public void annotateSDG(IFCAnalysis analysis) {
+			analysis.addAllJavaSourceMayKnowAnnotations(lattice);
+		}
+	}
+	
+	public static class SpecifiedLatticeAnnotationEntryPointConfiguration extends AnnotationEntryPointConfiguration {
 		private final IStaticLattice<String> lattice;
-		public AnnotationEntryPointConfiguration(IMethod method, IAnnotation annotation) {
+		public SpecifiedLatticeAnnotationEntryPointConfiguration(IMethod method, IAnnotation annotation) {
+			super(method, annotation);
+			
+			final EditableLatticeSimple<String> specifiedLattice  = new EditableLatticeSimple<String>();
+			
+			try {
+				for (IMemberValuePair pair : annotation.getMemberValuePairs()) {
+					if ("levels".equals(pair.getMemberName())) {
+						if  (pair.getValueKind() != IMemberValuePair.K_STRING) {
+							throw new IllegalArgumentException("Illegal levels specification: " + pair.getValue() + "  - use literal Strings instead (e.g.: { \"low\", \"high\" })");
+						}
+						Object[] levels = (Object[]) pair.getValue();
+						for (Object o : levels) {
+							String level = (String) o;
+							specifiedLattice.addElement(level);
+						}
+					}
+				}
+				for (IMemberValuePair pair : annotation.getMemberValuePairs()) {
+					if ("lattice".equals(pair.getMemberName())) {
+						assert (pair.getValueKind() == IMemberValuePair.K_ANNOTATION);
+						Object[] mayflows = (Object[]) pair.getValue();
+						for (Object o : mayflows) {
+							IAnnotation mayflow = (IAnnotation) o;
+							String from = null;
+							String to = null;
+							for (IMemberValuePair fromto : mayflow.getMemberValuePairs()) {
+								if ("from".equals(fromto.getMemberName())) {
+									if  (fromto.getValueKind() != IMemberValuePair.K_STRING) {
+										errors.add("Illegal from-level : " + pair.getValue() + "  - use literal String instead (e.g.: \"low\")");
+									}
+									from = (String) fromto.getValue();
+								}
+								if ("to".equals(fromto.getMemberName())) {
+									if  (fromto.getValueKind() != IMemberValuePair.K_STRING) {
+										errors.add("Illegal to-level : " + pair.getValue() + "  - use literal String instead (e.g.: \"low\")");
+									}
+									to = (String) fromto.getValue();
+								}
+							}
+							assert (from != null && to != null);
+							if(!specifiedLattice.getElements().contains(from)) {
+								errors.add("Unknown from-level: " + from);
+							}
+							if(!specifiedLattice.getElements().contains(to)) {
+								errors.add("Unknown to-level: " + from);
+							}
+
+							specifiedLattice.setImmediatelyGreater(from, to);
+						}
+					}
+				}
+				final Collection<String> antiSymmetryViolations = LatticeValidator.findAntisymmetryViolations(specifiedLattice);
+				if (antiSymmetryViolations.isEmpty()) {
+					this.lattice = LatticeUtil.dedekindMcNeilleCompletion(specifiedLattice);
+				} else {
+					errors.add("Cycle in user-specified lattice. Elements contained in a cycle: " + antiSymmetryViolations);
+					this.lattice = null;
+				}
+			} catch (JavaModelException e) {
+				// Thrown by IAnnotation.getMemberValuePairs()
+				// TODO: better error handling
+				throw new RuntimeException(e);
+			}
+		}
+		@Override
+		public void annotateSDG(IFCAnalysis analysis) {
+			analysis.addAllJavaSourceAnnotations(lattice);
+		}
+	}
+	
+	public abstract static class AnnotationEntryPointConfiguration extends EntryPointConfiguration {
+		protected final List<String> errors = new LinkedList<>();
+		protected final IAnnotation annotation;
+
+		
+		private AnnotationEntryPointConfiguration(IMethod method, IAnnotation annotation) {
 			super(method, (annotation instanceof SourceRefElement)? (SourceRefElement) annotation : null,
 			              (method instanceof SourceRefElement)? (SourceRefElement) method : null);
 			assert (annotation instanceof SourceRefElement) == (annotation instanceof Annotation);
 			assert (method instanceof SourceRefElement) == (method instanceof SourceMethod); 
 			this.annotation = annotation;
-			
+		}
+		
+		public static AnnotationEntryPointConfiguration fromAnnotation(IMethod method, IAnnotation annotation) {
+			assert (annotation instanceof SourceRefElement) == (annotation instanceof Annotation);
+			assert (method instanceof SourceRefElement) == (method instanceof SourceMethod); 
+
 			boolean latticeSpecified = false;
+			boolean datasetsSpecified = false;
+			boolean adversariesSpecified = false;
+			
+			try {
+				for (IMemberValuePair pair : annotation.getMemberValuePairs()) {
+					if ("lattice".equals(pair.getMemberName())) {
+						latticeSpecified = ((Object[]) pair.getValue()).length > 0;
+					}
+					if ("datasets".equals(pair.getMemberName())) {
+						datasetsSpecified = ((Object[]) pair.getValue()).length > 0;
+					}
+					if ("adversaries".equals(pair.getMemberName())) {
+						adversariesSpecified = ((Object[]) pair.getValue()).length > 0;
+					}
+				}
+				
+				final int nrOfspecifications =
+						(latticeSpecified    ? 1 :0) + 
+						(datasetsSpecified   ? 1 :0) +
+						(adversariesSpecified? 1 :0);
+				if (nrOfspecifications == 0) {
+					return new DefaultAnnotationEntryPointConfiguration(method, annotation);
+				} else if (nrOfspecifications > 1) {
+					final AnnotationEntryPointConfiguration entryPointConfig = new InvalidAnnotationEntryPointConfiguration(method, annotation);
+					entryPointConfig.errors.add("An EntryPoint specification may at most contain one of: datasets,lattice,levels");
+					return entryPointConfig;
+				} else {
+					if (latticeSpecified) {
+						return new SpecifiedLatticeAnnotationEntryPointConfiguration(method, annotation);
+					} else if (datasetsSpecified) {
+						return new DatasetsAnnotationEntryPointConfiguration(method, annotation);
+					} else {
+						assert (adversariesSpecified);
+						return new AdversariesAnnotationEntryPointConfiguration(method, annotation);
+					}
+				}
+			} catch (JavaModelException e) {
+				// Thrown by IAnnotation.getMemberValuePairs()
+				// TODO: better error handling
+				throw new RuntimeException(e);
+			}
+			/*
+			boolean latticeSpecified = false;
+			boolean datasetsSpecified = false;
+			boolean adversariesSpecified = false;
+			
 			final EditableLatticeSimple<String> specifiedLattice  = new EditableLatticeSimple<String>();
+			final Set<String> datasets  = new HashSet<>();
+			final Set<String> adversaries = new HashSet<>();
 			try {
 				for (IMemberValuePair pair : annotation.getMemberValuePairs()) {
 					if ("levels".equals(pair.getMemberName())) {
@@ -226,39 +454,88 @@ public class EntryPointSearch {
 							for (IMemberValuePair fromto : mayflow.getMemberValuePairs()) {
 								if ("from".equals(fromto.getMemberName())) {
 									if  (fromto.getValueKind() != IMemberValuePair.K_STRING) {
-										throw new IllegalArgumentException("Illegal from-level : " + pair.getValue() + "  - use literal String instead (e.g.: \"low\")");
+										errors.add("Illegal from-level : " + pair.getValue() + "  - use literal String instead (e.g.: \"low\")");
 									}
 									from = (String) fromto.getValue();
 								}
 								if ("to".equals(fromto.getMemberName())) {
 									if  (fromto.getValueKind() != IMemberValuePair.K_STRING) {
-										throw new IllegalArgumentException("Illegal to-level : " + pair.getValue() + "  - use literal String instead (e.g.: \"low\")");
+										errors.add("Illegal to-level : " + pair.getValue() + "  - use literal String instead (e.g.: \"low\")");
 									}
 									to = (String) fromto.getValue();
 								}
 							}
 							assert (from != null && to != null);
 							if(!specifiedLattice.getElements().contains(from)) {
-								throw new IllegalArgumentException("Unknown from-level: " + from);
+								errors.add("Unknown from-level: " + from);
 							}
 							if(!specifiedLattice.getElements().contains(to)) {
-								throw new IllegalArgumentException("Unknown to-level: " + from);
+								errors.add("Unknown to-level: " + from);
 							}
 
 							specifiedLattice.setImmediatelyGreater(from, to);
 						}
 					}
 				}
-				if (!latticeSpecified) {
+				for (IMemberValuePair pair : annotation.getMemberValuePairs()) {
+					if ("datasets".equals(pair.getMemberName())) {
+						datasetsSpecified = true;
+						if  (pair.getValueKind() != IMemberValuePair.K_STRING) {
+							errors.add("Illegal datasets specification: " + pair.getValue() + "  - use literal Strings instead (e.g.: { \"address\", \"bankingh\" })");
+						}
+						Object[] levels = (Object[]) pair.getValue();
+						for (Object o : levels) {
+							String dataset = (String) o;
+							boolean fresh = datasets.add(dataset);
+							if (!fresh) errors.add("Duplicate dataset: " + dataset);
+						}
+					}
+				}
+				
+				for (IMemberValuePair pair : annotation.getMemberValuePairs()) {
+					if ("adversaries".equals(pair.getMemberName())) {
+						adversariesSpecified = true;
+						if  (pair.getValueKind() != IMemberValuePair.K_STRING) {
+							errors.add("Illegal adversaries specification: " + pair.getValue() + "  - use literal Strings instead (e.g.: { \"admin\", \"guest\" })");
+						}
+						Object[] levels = (Object[]) pair.getValue();
+						for (Object o : levels) {
+							String adversary = (String) o;
+							boolean fresh = datasets.add(adversary);
+							if (!fresh) errors.add("Duplicate adversary: " + adversary);
+						}
+					}
+				}
+				
+				final int nrOfspecifications =
+					(latticeSpecified    ? 1 :0) + 
+					(datasetsSpecified   ? 1 :0) +
+					(adversariesSpecified? 1 :0);
+				if (nrOfspecifications == 0) {
 					this.lattice = BuiltinLattices.getBinaryLattice();
+				} else if (nrOfspecifications > 1) {
+					errors.add("An EntryPoint specification may at most contain one of: datasets,lattice,levels");
+					this.lattice = null;
 				} else {
-					assert (specifiedLattice instanceof EditableLatticeSimple<?>);
-					final Collection<String> antiSymmetryViolations = LatticeValidator.findAntisymmetryViolations(specifiedLattice);
-					if (antiSymmetryViolations.isEmpty()) {
-						this.lattice = LatticeUtil.dedekindMcNeilleCompletion(specifiedLattice);
+					if (latticeSpecified) {
+						assert (specifiedLattice instanceof EditableLatticeSimple<?>);
+						final Collection<String> antiSymmetryViolations = LatticeValidator.findAntisymmetryViolations(specifiedLattice);
+						if (antiSymmetryViolations.isEmpty()) {
+							this.lattice = LatticeUtil.dedekindMcNeilleCompletion(specifiedLattice);
+						} else {
+							errors.add("Cycle in user-specified lattice. Elements contained in a cycle: " + antiSymmetryViolations);
+							this.lattice = null;
+						}
+					} else if (datasetsSpecified) {
+						this.lattice = new PrecomputedLattice(new PowersetLattice<String>(datasets));
 					} else {
-						errors.add("Cycle in user-specified lattice. Elements contained in a cycle: " + antiSymmetryViolations);
-						this.lattice = null;
+						assert (adversariesSpecified);
+						this.lattice =
+							new PrecomputedLattice(
+								new ReversedLattice<>(
+									new PowersetLattice<String>(datasets)
+								)
+							);
 					}
 				}
 			} catch (JavaModelException e) {
@@ -266,7 +543,7 @@ public class EntryPointSearch {
 				// TODO: better error handling
 				throw new RuntimeException(e);
 			}
-
+			*/
 		}
 		
 		@Override

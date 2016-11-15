@@ -7,8 +7,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.jar.JarInputStream;
-
 import org.junit.Assert;
 import org.junit.Test;
 

@@ -19,8 +19,6 @@ import java.net.URLConnection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.jar.JarFile;
-import java.util.jar.JarInputStream;
-
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.JarFileModule;

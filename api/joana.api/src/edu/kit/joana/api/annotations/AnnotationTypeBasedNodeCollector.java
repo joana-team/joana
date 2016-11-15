@@ -40,7 +40,6 @@ import edu.kit.joana.api.sdg.ThrowingSDGProgramPartVisitor;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.util.Pair;
 
 /**

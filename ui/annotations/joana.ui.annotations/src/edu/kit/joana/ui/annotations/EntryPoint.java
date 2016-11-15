@@ -11,6 +11,6 @@ import java.lang.annotation.Target;
 public @interface EntryPoint {
 	String[] levels() default { Level.LOW, Level.HIGH};
 	MayFlow[] lattice() default { @MayFlow(from=Level.LOW, to=Level.HIGH) };
-	String[] datasets();
-	String[] adversaries();
+	String[] datasets() default {};
+	String[] adversaries() default {};
 }

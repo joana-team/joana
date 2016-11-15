@@ -9,20 +9,20 @@ package edu.kit.joana.ifc.sdg.lattice.impl;
 
 import java.util.Collection;
 
-import edu.kit.joana.ifc.sdg.lattice.ILatticeOperations;
+import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.InvalidLatticeException;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
 
 /**
  * @author Martin Hecker <martin.hecker@kit.edu>
  */
-public class ReversedLattice<ElementType> implements ILatticeOperations<ElementType> {
+public class ReversedLattice<ElementType> implements IStaticLattice<ElementType> {
 
-	private final ILatticeOperations<ElementType> lattice;
+	private final IStaticLattice<ElementType> lattice;
 	/**
 	 * 
 	 */
-	public ReversedLattice(ILatticeOperations<ElementType> lattice) {
+	public ReversedLattice(IStaticLattice<ElementType> lattice) {
 		this.lattice = lattice;
 	}
 	/* (non-Javadoc)
@@ -65,21 +65,5 @@ public class ReversedLattice<ElementType> implements ILatticeOperations<ElementT
 		return lattice.getElements();
 	}
 
-	/* (non-Javadoc)
-	 * @see edu.kit.joana.ifc.sdg.lattice.ILatticeOperations#getImmediatelyLower(java.lang.Object)
-	 */
-	@Override
-	public Collection<ElementType> getImmediatelyLower(ElementType element) throws NotInLatticeException {
-		return lattice.getImmediatelyGreater(element);
-	}
-
-	/* (non-Javadoc)
-	 * @see edu.kit.joana.ifc.sdg.lattice.ILatticeOperations#getImmediatelyGreater(java.lang.Object)
-	 */
-	@Override
-	public Collection<ElementType> getImmediatelyGreater(ElementType element) throws NotInLatticeException {
-		return lattice.getImmediatelyLower(element);
-	}
-	
 
 }

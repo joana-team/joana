@@ -9,7 +9,9 @@ package edu.kit.joana.ifc.sdg.lattice;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableTable;
@@ -19,9 +21,10 @@ import com.google.common.collect.Table;
 /**
  * @author Martin Hecker <martin.hecker@kit.edu>
  */
-public class PrecomputedLattice implements IStaticLattice<String> {
+public class PrecomputedLattice<ElementType> implements IStaticLattice<String> {
 
 	private final Set<String> elements;
+	private final Map<ElementType, String> fromOriginal;
 	private final Table<String, String, String> glb;
 	private final Table<String, String, String> lub;
 	private final String top;
@@ -30,11 +33,17 @@ public class PrecomputedLattice implements IStaticLattice<String> {
 	/**
 	 * 
 	 */
-	public <ElementType> PrecomputedLattice(IStaticLattice<ElementType> lattice) {
+	public PrecomputedLattice(IStaticLattice<ElementType> lattice) {
 		final Collection<ElementType> latticeElements = lattice.getElements();
 		
 		this.elements = latticeElements.stream().map(Object::toString).collect(Collectors.toSet());
 		if (this.elements.size() != latticeElements.size()) throw new IllegalArgumentException("Lattice element Names are not unique");
+		
+		this.fromOriginal =	latticeElements
+			.stream()
+			.collect(
+				Collectors.toMap(Function.identity(),Object::toString)
+			);
 		
 		final Builder<String, String, String> glbBuilder = new ImmutableTable.Builder<>();
 		final Builder<String, String, String> lubBuilder = new ImmutableTable.Builder<>();
@@ -48,7 +57,7 @@ public class PrecomputedLattice implements IStaticLattice<String> {
 		this.glb = glbBuilder.build();
 		this.lub = lubBuilder.build();
 		this.top    = lattice.getTop().toString();
-		this.bottom = lattice.getTop().toString();
+		this.bottom = lattice.getBottom().toString();
 	}
 	
 	/* (non-Javadoc)
@@ -91,5 +100,8 @@ public class PrecomputedLattice implements IStaticLattice<String> {
 		return Collections.unmodifiableSet(this.elements);
 	}
 	
+	public Map<ElementType, String> getFromOriginalMap() {
+		return Collections.unmodifiableMap(this.fromOriginal);
+	}
 
 }

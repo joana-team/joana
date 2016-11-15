@@ -186,8 +186,8 @@ public final class CheckInformationFlow {
 			final EntryPointConfiguration entryPoint, final IFCResultFilter filter,
 			final IProgressMonitor progress) throws CancelException {
 		final IFCResult result = new IFCResult(entryPoint, filter);
-		final IStaticLattice<String> lattice = entryPoint.lattice();
-		final Set<SLeak> excLeaks = checkIFC(Reason.EXCEPTION, prog, IFCType.CLASSICAL_NI, annotationMethod, lattice);
+		//final IStaticLattice<String> lattice = entryPoint.lattice();
+		final Set<SLeak> excLeaks = checkIFC(Reason.EXCEPTION, prog, IFCType.CLASSICAL_NI, annotationMethod, entryPoint);
 		final boolean isSecure = excLeaks.isEmpty();
 		printResult(excLeaks.isEmpty(), 0, config);
 		dumpSDGtoFile(prog.getSDG(), "exc", isSecure);
@@ -195,14 +195,14 @@ public final class CheckInformationFlow {
 		if (!isSecure) {
 			config.setExceptionAnalysis(ExceptionAnalysis.IGNORE_ALL);
 			final SDGProgram noExcProg = buildSDG(config);
-			final Set<SLeak> noExcLeaks = checkIFC(Reason.BOTH_FLOW, noExcProg, IFCType.CLASSICAL_NI, annotationMethod, lattice);
+			final Set<SLeak> noExcLeaks = checkIFC(Reason.BOTH_FLOW, noExcProg, IFCType.CLASSICAL_NI, annotationMethod, entryPoint);
 			printResult(noExcLeaks.isEmpty(), 1, config);
 			dumpSDGtoFile(noExcProg.getSDG(), "no_exc", noExcLeaks.isEmpty());
 
 			if (!noExcLeaks.isEmpty()) {
 				// run without control deps
 				stripControlDeps(noExcProg, progress);
-				final Set<SLeak> directLeaks = checkIFC(Reason.DIRECT_FLOW, noExcProg, IFCType.CLASSICAL_NI, annotationMethod, lattice);
+				final Set<SLeak> directLeaks = checkIFC(Reason.DIRECT_FLOW, noExcProg, IFCType.CLASSICAL_NI, annotationMethod, entryPoint);
 				printResult(directLeaks.isEmpty(), 2, config);
 				dumpSDGtoFile(noExcProg.getSDG(), "no_cdeps", directLeaks.isEmpty());
 				
@@ -247,8 +247,7 @@ public final class CheckInformationFlow {
 		cfc.out.println("using " + ifcType + " algorithm.");
 		
 		final IFCResult result = new IFCResult(entryPoint, filter);
-		final IStaticLattice<String> lattice = entryPoint.lattice();
-		final Set<SLeak> threadLeaks = checkIFC(Reason.THREAD_EXCEPTION, prog, ifcType, annotationMethod, lattice);
+		final Set<SLeak> threadLeaks = checkIFC(Reason.THREAD_EXCEPTION, prog, ifcType, annotationMethod, entryPoint);
 		final boolean isSecure = threadLeaks.isEmpty();
 		
 		printResult(threadLeaks.isEmpty(), 0, config);
@@ -257,7 +256,7 @@ public final class CheckInformationFlow {
 		if (!isSecure) {
 			config.setExceptionAnalysis(ExceptionAnalysis.IGNORE_ALL);
 			final SDGProgram noExcProg = buildSDG(config);
-			final Set<SLeak> noExcLeaks = checkIFC(Reason.THREAD, noExcProg, ifcType, annotationMethod, lattice);
+			final Set<SLeak> noExcLeaks = checkIFC(Reason.THREAD, noExcProg, ifcType, annotationMethod, entryPoint);
 			
 			printResult(noExcLeaks.isEmpty(), 1, config);
 			dumpSDGtoFile(noExcProg.getSDG(), "no_exc_thread", noExcLeaks.isEmpty());
@@ -478,8 +477,17 @@ public final class CheckInformationFlow {
 		return sb.toString();
 	}
 	
-	private static Set<SLeak> checkIFC(final Reason reason, final SDGProgram prog, final IFCType type, final AnnotationMethod annotationMethod, final IStaticLattice<String> lattice) {
-		final IFCAnalysis ana = annotateSDG(prog, annotationMethod, lattice);
+	private static Set<SLeak> checkIFC(final Reason reason, final SDGProgram prog, final IFCType type, final AnnotationMethod annotationMethod, final EntryPointConfiguration entryPoint) {
+		final IFCAnalysis ana = new IFCAnalysis(prog,entryPoint.lattice());
+		if (AnnotationMethod.FROM_ANNOTATIONS == annotationMethod) {
+			entryPoint.annotateSDG(ana);
+		} else {
+			ana.addSourceAnnotationsToCallers(JavaMethodSignature.fromString(DEFAULT_SECRET_SOURCE), BuiltinLattices.STD_SECLEVEL_HIGH);
+			
+			// annotate sinks
+			ana.addSinkAnnotationsToActualsAtCallsites(JavaMethodSignature.fromString(DEFAULT_PUBLIC_OUTPUT), BuiltinLattices.STD_SECLEVEL_LOW);
+		}
+
 		if (type == IFCType.RLSOD || type == IFCType.LSOD) {
 			ana.setTimesensitivity(true);
 		}
@@ -491,23 +499,6 @@ public final class CheckInformationFlow {
 		return sleaks;
 	}
 
-	
-	private static IFCAnalysis annotateSDG(final SDGProgram p, final AnnotationMethod annotationMethod, final IStaticLattice<String> lattice) {
-		final IFCAnalysis ana = new IFCAnalysis(p,lattice);
-		
-		if (AnnotationMethod.FROM_ANNOTATIONS == annotationMethod) {
-			ana.addAllJavaSourceAnnotations(lattice);
-			return ana;
-		}
-
-		ana.addSourceAnnotationsToCallers(JavaMethodSignature.fromString(DEFAULT_SECRET_SOURCE), BuiltinLattices.STD_SECLEVEL_HIGH);
-		
-		// annotate sinks
-		ana.addSinkAnnotationsToActualsAtCallsites(JavaMethodSignature.fromString(DEFAULT_PUBLIC_OUTPUT), BuiltinLattices.STD_SECLEVEL_LOW);
-		
-		return ana;
-	}
-	
 	private static Set<SLeak> extractLeaks(final IFCAnalysis ana,
 			final Collection<? extends IViolation<SecurityNode>> leaks, final Reason reason) {
 		final TreeSet<SLeak> sleaks = new TreeSet<SLeak>();

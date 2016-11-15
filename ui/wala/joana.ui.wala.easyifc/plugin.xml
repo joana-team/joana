@@ -139,7 +139,7 @@
        point="org.eclipse.jdt.ui.classpathContainerPage">
     <classpathContainerPage
           class="edu.kit.joana.ui.wala.easyifc.views.AnnotationClassPathContainerPage"
-          id="joana.ui.wala.easyifc.classpathContainerPage1"
+          id="joana.ui.wala.easyifc.JOANA_ANNOTATIONS"
           name="JOANA Annotations">
     </classpathContainerPage>
  </extension>

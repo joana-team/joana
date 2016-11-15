@@ -35,7 +35,7 @@ import edu.kit.joana.deprecated.jsdg.sdg.nodes.JDependencyGraph;
 import edu.kit.joana.deprecated.jsdg.sdg.nodes.NormalNode;
 import edu.kit.joana.deprecated.jsdg.sdg.parammodel.IParamModel;
 import edu.kit.joana.deprecated.jsdg.util.Log;
-import edu.kit.joana.wala.util.MultiMap;
+import edu.kit.joana.util.maps.MultiMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
 /**
@@ -103,7 +103,7 @@ public abstract class AbstractPDG extends JDependencyGraph {
 	private final TIntObjectHashMap<SSAReturnInstruction> tmp2return;
 	private final TIntObjectHashMap<SSAThrowInstruction> tmp2throw;
 
-	private final MultiMap<CGNode, CallNode, Set<CallNode>> method2call;
+	private final MultiMap<CGNode, CallNode> method2call;
 	private final Set<CallNode> calls;
 
 	private final Set<NormalNode> returns;
@@ -125,7 +125,7 @@ public abstract class AbstractPDG extends JDependencyGraph {
 
 		this.tmp2return = new TIntObjectHashMap<SSAReturnInstruction>();
 		this.tmp2throw = new TIntObjectHashMap<SSAThrowInstruction>();
-		this.method2call = new MultiMap<CGNode, CallNode, Set<CallNode>>();
+		this.method2call = new MultiMap<CGNode, CallNode>();
 		this.calls = HashSetFactory.make();
 		this.returns = HashSetFactory.make();
 		this.throwz = HashSetFactory.make();

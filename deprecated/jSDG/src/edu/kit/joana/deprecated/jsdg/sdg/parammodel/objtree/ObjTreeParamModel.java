@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.types.TypeReference;
@@ -27,8 +26,8 @@ import edu.kit.joana.deprecated.jsdg.sdg.SDG;
 import edu.kit.joana.deprecated.jsdg.sdg.nodes.AbstractPDGNode;
 import edu.kit.joana.deprecated.jsdg.sdg.nodes.AbstractParameterNode;
 import edu.kit.joana.deprecated.jsdg.sdg.nodes.CallNode;
-import edu.kit.joana.deprecated.jsdg.sdg.nodes.ParameterField;
 import edu.kit.joana.deprecated.jsdg.sdg.nodes.JDependencyGraph.PDGFormatException;
+import edu.kit.joana.deprecated.jsdg.sdg.nodes.ParameterField;
 import edu.kit.joana.deprecated.jsdg.sdg.parammodel.IModRef;
 import edu.kit.joana.deprecated.jsdg.sdg.parammodel.IParamModel;
 import edu.kit.joana.deprecated.jsdg.sdg.parammodel.IParamSet;
@@ -36,7 +35,7 @@ import edu.kit.joana.deprecated.jsdg.sdg.parammodel.objtree.ParameterNode.Type;
 import edu.kit.joana.deprecated.jsdg.sdg.parammodel.objtree.dataflow.ModRefHeapParams;
 import edu.kit.joana.deprecated.jsdg.sdg.parammodel.objtree.interfacecomp.ObjTreeUnfoldingCriterion;
 import edu.kit.joana.deprecated.jsdg.util.Util;
-import edu.kit.joana.wala.util.MultiMap;
+import edu.kit.joana.util.maps.MultiMap;
 
 /**
  * Parameter model for the object tree
@@ -87,7 +86,7 @@ public class ObjTreeParamModel implements IParamModel {
 	 *
 	 * InstanceKey -> Set of ActualInOutNode
 	 */
-	private final MultiMap<InstanceKey, ActualInOutNode, Set<ActualInOutNode>> ikey2actout;
+	private final MultiMap<InstanceKey, ActualInOutNode> ikey2actout;
 
 	/**
 	 * Maps the points-to set elements InstanceKey to a set of may-aliasing
@@ -95,7 +94,7 @@ public class ObjTreeParamModel implements IParamModel {
 	 *
 	 * InstanceKey -> Set of FormalInOutNode
 	 */
-	private final MultiMap<InstanceKey, FormInOutNode, Set<FormInOutNode>> ikey2formin;
+	private final MultiMap<InstanceKey, FormInOutNode> ikey2formin;
 
 	/**
 	 * Maps the points-to set elements InstanceKey to a set of may-aliasing
@@ -103,7 +102,7 @@ public class ObjTreeParamModel implements IParamModel {
 	 *
 	 * InstanceKey -> Set of ActualInOutNode
 	 */
-	private final MultiMap<InstanceKey, ActualInOutNode, Set<ActualInOutNode>> ikey2actin;
+	private final MultiMap<InstanceKey, ActualInOutNode> ikey2actin;
 
 	/**
 	 * Maps the points-to set elements InstanceKey to a set of may-aliasing
@@ -111,14 +110,14 @@ public class ObjTreeParamModel implements IParamModel {
 	 *
 	 * InstanceKey -> Set of FormalInOutNode
 	 */
-	private final MultiMap<InstanceKey, FormInOutNode, Set<FormInOutNode>> ikey2formout;
+	private final MultiMap<InstanceKey, FormInOutNode> ikey2formout;
 
 
 	/**
 	 * act-in/out nodes for method calls
 	 */
-	private final MultiMap<CallNode, ActualInOutNode, Set<ActualInOutNode>> call2rootActIn;
-	private final MultiMap<CallNode, ActualInOutNode, Set<ActualInOutNode>> call2rootActOut;
+	private final MultiMap<CallNode, ActualInOutNode> call2rootActIn;
+	private final MultiMap<CallNode, ActualInOutNode> call2rootActOut;
 
 
 	private final ObjTreeUnfoldingCriterion unfold;
@@ -132,13 +131,13 @@ public class ObjTreeParamModel implements IParamModel {
 		this.rootFormIn = HashSetFactory.make();
 		this.rootFormOut = HashSetFactory.make();
 
-		this.ikey2actout = new MultiMap<InstanceKey, ActualInOutNode, Set<ActualInOutNode>>();
-		this.ikey2formin = new MultiMap<InstanceKey, FormInOutNode, Set<FormInOutNode>>();
-		this.ikey2actin = new MultiMap<InstanceKey, ActualInOutNode, Set<ActualInOutNode>>();
-		this.ikey2formout = new MultiMap<InstanceKey, FormInOutNode, Set<FormInOutNode>>();
+		this.ikey2actout = new MultiMap<InstanceKey, ActualInOutNode>();
+		this.ikey2formin = new MultiMap<InstanceKey, FormInOutNode>();
+		this.ikey2actin = new MultiMap<InstanceKey, ActualInOutNode>();
+		this.ikey2formout = new MultiMap<InstanceKey, FormInOutNode>();
 
-		this.call2rootActIn = new MultiMap<CallNode, ActualInOutNode, Set<ActualInOutNode>>();
-		this.call2rootActOut = new MultiMap<CallNode, ActualInOutNode, Set<ActualInOutNode>>();
+		this.call2rootActIn = new MultiMap<CallNode, ActualInOutNode>();
+		this.call2rootActOut = new MultiMap<CallNode, ActualInOutNode>();
 	}
 
 	private final boolean containsNode(AbstractPDGNode node) {

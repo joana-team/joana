@@ -59,7 +59,8 @@ import edu.kit.joana.deprecated.jsdg.util.Util;
 import edu.kit.joana.deprecated.jsdg.wala.BytecodeLocation;
 import edu.kit.joana.deprecated.jsdg.wala.SourceLocation;
 import edu.kit.joana.deprecated.jsdg.wala.objecttree.IKey2Origin;
-import edu.kit.joana.wala.util.MultiMap;
+import edu.kit.joana.util.maps.MultiMap;
+
 
 /**
  *
@@ -69,7 +70,7 @@ import edu.kit.joana.wala.util.MultiMap;
 public class SDG extends JDependencyGraph {
 	private final HashMap<CGNode, PDG> method2pdg;
 	private final HashMap<Integer, PDG> id2pdg;
-	private final MultiMap<IMethod, CGNode, Set<CGNode>> method2cgnode;
+	private final MultiMap<IMethod, CGNode> method2cgnode;
 	private final IKey2Origin k2o;
 	private final IPointerAnalysis pta;
 	private final IParamComputation pComp;
@@ -114,7 +115,7 @@ public class SDG extends JDependencyGraph {
 		this.pta = pta;
 		this.method2pdg = HashMapFactory.make();
 		this.id2pdg = HashMapFactory.make();
-		this.method2cgnode = new MultiMap<IMethod, CGNode, Set<CGNode>>();
+		this.method2cgnode = new MultiMap<IMethod, CGNode>();
 		this.clinits = HashSetFactory.make();
 		this.exceptionStubs = cfg.exceptionStubs;
 		this.ignoreExceptions = cfg.ignoreExceptions;

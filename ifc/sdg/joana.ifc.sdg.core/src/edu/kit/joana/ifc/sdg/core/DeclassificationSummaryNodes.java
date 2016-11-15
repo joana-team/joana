@@ -151,7 +151,7 @@ public class DeclassificationSummaryNodes extends IncrementalSummaryBackward {
 				if (isIPDG || withSummary) {
 					for (SecurityNode node : toAdd) {
 						PathEdge e = new PathEdge(node, node, freePathKind(!node.isDeclassification()), l.getTop());
-						pathEdge.addValue(node, e);
+						pathEdge.add(node, e);
 						worklist.add(e);
 					}
 					toAdd.clear();
@@ -163,17 +163,17 @@ public class DeclassificationSummaryNodes extends IncrementalSummaryBackward {
 	private void addToPathEdge(PathEdge edge) {
 		// if pathEdge does not contain edge or something has changed
 		SecurityNode source = (SecurityNode) edge.getSource();
-		for (PathEdge former : pathEdge.getAllValues(source)) {
+		for (PathEdge former : pathEdge.get(source)) {
 			if (edge.equals(former)) {
 				if (edge.getKind() != former.getKind() || !edge.getLabel().equals(former.getLabel())) {
-					pathEdge.getAllValues(source).remove(former);
-					pathEdge.addValue(source, edge);
+					pathEdge.get(source).remove(former);
+					pathEdge.add(source, edge);
 					worklist.add(edge);
 				}
 				return;
 			}
 		}
-		pathEdge.addValue(source, edge);
+		pathEdge.add(source, edge);
 		worklist.add(edge);
 	}
 
@@ -203,7 +203,7 @@ public class DeclassificationSummaryNodes extends IncrementalSummaryBackward {
 					graph.addEdge(sum);
 
 					// Iterate through all pathedges that originate in ao
-					Set<PathEdge> toCheck = pathEdge.getAllValues((SecurityNode) ao);
+					Set<PathEdge> toCheck = pathEdge.get((SecurityNode) ao);
 					for (PathEdge path : new LinkedList<PathEdge>(toCheck)) {
 						PathEdge edge = coreAlg(path, sum);
 						addToPathEdge(edge);
@@ -220,7 +220,7 @@ public class DeclassificationSummaryNodes extends IncrementalSummaryBackward {
 		SecurityNode v = (SecurityNode) reachedNode(shorter);
 
 		PathEdge longer = new PathEdge(w, ta, Kind.SUMMARY, l.getTop());
-		for (PathEdge nLonger : pathEdge.getAllValues(w)) {
+		for (PathEdge nLonger : pathEdge.get(w)) {
 			if (longer.equals(nLonger)) {
 				longer = nLonger;
 				break;
@@ -250,7 +250,7 @@ public class DeclassificationSummaryNodes extends IncrementalSummaryBackward {
 		SecurityNode w = (SecurityNode) reachedNode(e);
 
 		PathEdge longer = new PathEdge(w, ta, Kind.SUMMARY, l.getTop());
-		for (PathEdge nLonger : pathEdge.getAllValues(w)) {
+		for (PathEdge nLonger : pathEdge.get(w)) {
 			if (longer.equals(nLonger)) {
 				longer = nLonger;
 				break;

@@ -61,7 +61,7 @@ import edu.kit.joana.deprecated.jsdg.util.Util;
 import edu.kit.joana.deprecated.jsdg.wala.SourceLocation;
 import edu.kit.joana.deprecated.jsdg.wala.objecttree.IKey2Origin;
 import edu.kit.joana.deprecated.jsdg.wala.objecttree.IKey2Origin.InstanceKeyOrigin;
-import edu.kit.joana.wala.util.MultiMap;
+import edu.kit.joana.util.maps.MultiMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
 /**
@@ -73,7 +73,7 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 public class InterferenceComputation {
 
 	private final SDG sdg;
-	private final MultiMap<IMethod, CGNode, Set<CGNode>> method2cgnode;
+	private final MultiMap<IMethod, CGNode> method2cgnode;
 	private final CallGraph cg;
 	private final Set<PDG> clinits;
 	private final boolean optimizeThisAccess;
@@ -110,7 +110,7 @@ public class InterferenceComputation {
 	 * @throws WalaException
 	 */
 	public static void computeInterference(SDG sdg, CallGraph cg, Set<PDG> clinits,
-			MultiMap<IMethod, CGNode, Set<CGNode>> method2cgnode, boolean optimizeThisAccess, boolean useEscapeAnalysis,
+			MultiMap<IMethod, CGNode> method2cgnode, boolean optimizeThisAccess, boolean useEscapeAnalysis,
 			boolean ignoreClinits, HeapGraph hg, IKey2Origin k2o, IProgressMonitor progress) throws CancelException, WalaException {
 		progress.subTask(Messages.getString("SDG.SubTask_Interference_Dep")); //$NON-NLS-1$
 		Log.info("Computing thread interference");
@@ -131,7 +131,7 @@ public class InterferenceComputation {
 	}
 
 	private InterferenceComputation(SDG sdg, CallGraph cg, Set<PDG> clinits,
-			MultiMap<IMethod, CGNode, Set<CGNode>> method2cgnode,
+			MultiMap<IMethod, CGNode> method2cgnode,
 			boolean optimizeThisAccess, boolean useEscapeAnalysis,
 			HeapGraph hg, IKey2Origin k2o) {
 		this.sdg = sdg;

@@ -25,17 +25,16 @@ import java.util.Set;
  *
  **/
 public class MultiMap<K, T> {
-	
-	
+
+
 	private Map<K, Set<T>> map = new HashMap<K, Set<T>>();
-	
-	
+
 	/***
 	 * Adds a value to the value set of the given key.
 	 * @param key key to add value for
 	 * @param value value to add to the value set of the given key
 	 */
-	public void addValue(K key, T value) {
+	public void add(K key, T value) {
 		Set<T> vals;
 		if (!map.containsKey(key)) {
 			vals = new HashSet<T>();
@@ -46,13 +45,16 @@ public class MultiMap<K, T> {
 		vals.add(value);
 	}
 
+	public Set<K> keySet() {
+		return map.keySet();
+	}
 	/**
 	 * Returns all values associated to the given key. In particular, an empty set is returned, if
 	 * the given key is not contained in this map.
 	 * @param key key to retrieve value set for
 	 * @return set of all values associated with key
 	 */
-	public Set<T> getAllValues(K key) {
+	public Set<T> get(K key) {
 		Set<T> vals = map.get(key);
 		return vals == null ? new HashSet<T>() : vals;
 	}

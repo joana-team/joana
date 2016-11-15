@@ -271,7 +271,7 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 			MultiMap<SecurityNode, Pathedge> actoutPathedges,
 			Pathedge newlonger) {
 		/* Remember ACTOUT-pathedge for future retrieval */
-		actoutPathedges.addValue(newlonger.source, newlonger);
+		actoutPathedges.add(newlonger.source, newlonger);
 
 		/* do FORMALOUT-node */
 		for (SDGNode n : g.getFormalOuts(newlonger.source)) {
@@ -446,7 +446,7 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 			SecurityNode caller = (SecurityNode) n;
 			SecurityNode actualOut = (SecurityNode) g.getActualOut(caller, formalOut);
 			if (actualOut == null) continue;
-			Set<Pathedge> actpathedges = actoutPathedges.getAllValues(actualOut);
+			Set<Pathedge> actpathedges = actoutPathedges.get(actualOut);
 
 			for (Pathedge pe : actpathedges) {
 				Pathedge currentpe = visited.get(pe);

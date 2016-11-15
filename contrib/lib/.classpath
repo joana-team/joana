@@ -7,7 +7,6 @@
 	<classpathentry exported="true" kind="lib" path="stax-utils.jar" sourcepath="stax-utils-src.zip"/>
 	<classpathentry exported="true" kind="lib" path="slf4j-api-1.7.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="antlr-runtime-3.1.3.jar"/>
-	<classpathentry exported="true" kind="lib" path="jutil.jar"/>
 	<classpathentry exported="true" kind="lib" path="trove-3.0.0a3.jar"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>

@@ -46,31 +46,27 @@ public class OptORLSODChecker<L> extends ORLSODChecker<L> {
 		inferUserAnnotationsOnDemand();
 		
 		final IStaticLattice<L> secLattice = this.getLattice();
-		
 		cl = initCL(false);
 		backwDep = computeBackwardDep();
 		forwDep = MapUtils.invert(backwDep);
 		final LinkedList<SDGNode> worklist = new LinkedList<SDGNode>();
 		for (final SDGNode n : userAnn.keySet()) {
 			worklist.add(n);
+			cl.put(n, userAnn.get(n));
 		}
 		while (!worklist.isEmpty()) {
 			final SDGNode next = worklist.poll();
-			// update security level of next
-			final L oldLevel = cl.get(next);
-			L newLevel = userAnn.containsKey(next) ? userAnn.get(next) : oldLevel;
-			for (final SDGNode m : backwDep.get(next)) {
-				newLevel = secLattice.leastUpperBound(newLevel, cl.get(m));
+			L level = cl.get(next);
+			if (forwDep.get(next) == null) {
+				continue;
 			}
-			if (!newLevel.equals(oldLevel)) {
-				cl.put(next, newLevel);
-				if (forwDep.get(next) == null) {
-					continue;
-				}
-				for (final SDGNode depNext : forwDep.get(next)) {
-					if (!worklist.contains(depNext)) {
-						worklist.add(depNext);
-					}
+			
+			for (final SDGNode depNext : forwDep.get(next)) {
+				final L oldLevel = cl.get(depNext);
+				L newLevel = secLattice.leastUpperBound(oldLevel, level);
+				if (!newLevel.equals(oldLevel) && !worklist.contains(depNext)) {
+					worklist.add(depNext);
+					cl.put(depNext, newLevel);
 				}
 			}
 		}

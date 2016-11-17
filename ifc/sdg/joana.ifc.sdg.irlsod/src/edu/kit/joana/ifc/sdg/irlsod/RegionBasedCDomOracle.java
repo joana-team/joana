@@ -107,7 +107,7 @@ public class RegionBasedCDomOracle implements ICDomOracle {
 		final ThreadRegion trs1 = mhp.getThreadRegion(n1, threadN1);
 		final ThreadRegion trs2 = mhp.getThreadRegion(n2, threadN2);
 		ThreadRegion cur = trs1;
-		while ((domRegions.getIDom(cur) != null) && !dioDomRegions.isLeq(cur, trs2)) {
+		while ((domRegions.getIDom(cur) != null) && !dioDomRegions.isLeq(trs2, cur)) {
 			cur = domRegions.getIDom(cur);
 		}
 		return new VirtualNode(cur.getStart(), cur.getThread());

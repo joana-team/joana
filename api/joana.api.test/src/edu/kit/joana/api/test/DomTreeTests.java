@@ -222,7 +222,7 @@ public class DomTreeTests {
 		final Common common = getCommon(de.uni.trier.infsec.core.SetupNoLeak.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
-		testDomTree(common, newClassicCDomOracle      , Result.CYCLIC);
+		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 	}
 	
 	@Test
@@ -424,7 +424,7 @@ public class DomTreeTests {
 		final Common common = getCommon(joana.api.testdata.conc.LotsOfDominationInMainThread.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
-		testDomTree(common, newClassicCDomOracle      , Result.CYCLIC);
+		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 	}
 }
 

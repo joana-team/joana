@@ -389,7 +389,7 @@ public final class CheckInformationFlow {
 		
 		try {
 			final long t1 = System.currentTimeMillis();
-			prog = SDGProgram.createSDGProgram(config);
+			prog = SDGProgram.createSDGProgram(config, System.out, NullProgressMonitor.INSTANCE);
 			final long t2 = System.currentTimeMillis();
 			lastSDGtime = t2 - t1;
 			lastSDGsize = prog.getSDG().vertexSet().size();

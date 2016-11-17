@@ -197,20 +197,37 @@ public interface IFCCheckResultConsumer {
 			return reason;
 		}
 		
-		public int hashCode() {
-			return source.hashCode() + 23 * sink.hashCode() + 49 * reason.hashCode()
-					+ (trigger != null ? 4711 * trigger.hashCode() : 0);
-		}
 		
+		/* (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
+		 */
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + reason.hashCode();
+			result = prime * result + sink.hashCode();
+			result = prime * result + source.hashCode();
+			result = prime * result + chop.hashCode();
+			result = prime * result + ((trigger == null) ? 0 : trigger.hashCode());
+			return result;
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
 		public boolean equals(Object o) {
 			if (o instanceof SLeak) {
 				final SLeak l = (SLeak) o;
-				return source.equals(l.source) && sink.equals(l.sink) && reason == l.reason;
+				return reason == l.reason
+				    && sink.equals(l.sink)
+				    && source.equals(l.source)
+				    && chop.equals(l.chop);
 			}
 			
 			return false;
 		}
-		
+
 		public String toString() {
 			String info = "";
 			switch (reason) {
@@ -310,16 +327,18 @@ public interface IFCCheckResultConsumer {
 			if (o == this || this.equals(o)) {
 				return 0;
 			}
-	
-			if (!source.equals(o.source)) {
-				return source.compareTo(o.source);
-			}
 			
 			if (!sink.equals(o.sink)) {
 				return sink.compareTo(o.sink);
 			}
 			
-			return 0;
+			if (!source.equals(o.source)) {
+				return source.compareTo(o.source);
+			}
+			
+			// FIXME: this does not quite do what we would want to do: some unqueal SLeaks will be lumped together.
+			// on the other hand, we cannot easily totally order sets of SPos.
+			return Integer.compare(chop.hashCode(), o.chop.hashCode());
 		}
 		
 	}

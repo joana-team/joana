@@ -1,5 +1,8 @@
 package edu.kit.joana.ifc.sdg.irlsod;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 
@@ -22,13 +25,51 @@ public class ThreadModularCDomOracle implements ICDomOracle {
 	private final SDG sdg;
 	private final DirectedGraph<ThreadInstance, DefaultEdge> tct;
 	private final DFSIntervalOrder<ThreadInstance, DefaultEdge> dioTCT;
+	private final CFG icfg;
 	private TIntObjectMap<CFG> threadsToCFG = new TIntObjectHashMap<>();
 	private TIntObjectMap<DynamicityAnalysis> threadsToDyna = new TIntObjectHashMap<>();
 	private TIntObjectMap<Dominators<SDGNode, SDGEdge>> threadsToDom = new TIntObjectHashMap<>();
 	private TIntObjectMap<DFSIntervalOrder<SDGNode, DomEdge>> threadsToDIO = new TIntObjectHashMap<>();
+	private Map<ForksTuple, VirtualNode> forkCDom = new HashMap<>();
 
+	private final static class ForksTuple {
+		private final SDGNode fork1;
+		private final SDGNode fork2;
+		private final int tid;
+		
+		public ForksTuple(SDGNode fork1, SDGNode fork2, int tid) {
+			this.fork1 = fork1;
+			this.fork2 = fork2;
+			this.tid = tid;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = ((fork1 == null) ? 0 : fork1.hashCode())
+					+((fork2 == null) ? 0 : fork2.hashCode());
+			result = prime * result + tid;
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (!(obj instanceof ForksTuple))
+				return false;
+			ForksTuple other = (ForksTuple) obj;
+			if (tid != other.tid)
+				return false;
+			return (fork1 == other.fork1 && fork2 == other.fork2) ||
+					(fork1 == other.fork2 && fork2 == other.fork1);
+		}
+	}
+	
 	public ThreadModularCDomOracle(final SDG sdg) {
 		this.sdg = sdg;
+		icfg = ICFGBuilder.extractICFG(sdg);
 		this.tct = ThreadInformationUtil.buildThreadCreationTree(sdg.getThreadsInfo());
 		this.dioTCT = new DFSIntervalOrder<ThreadInstance, DefaultEdge>(tct);
 	}
@@ -44,10 +85,15 @@ public class ThreadModularCDomOracle implements ICDomOracle {
 		final SDGNode fork1 = (cAnc.getId() == threadN1) ? n1 : findIndirectForkSite(cAnc, threadN1);
 		final SDGNode fork2 = (cAnc.getId() == threadN2) ? n2 : findIndirectForkSite(cAnc, threadN2);
 		
+		VirtualNode cached = forkCDom.get(new ForksTuple(fork1, fork2, cAnc.getId()));
+		if (cached != null) {
+			return cached;
+		}
+		
 		// 3.) find a common dominator of the two forks
 		CFG threadGraph = threadsToCFG.get(cAnc.getId());
 		if (threadGraph == null) {
-			threadGraph = ThreadModularCDomOracle.unfoldCFGFor(sdg, cAnc.getId());
+			threadGraph = unfoldCFGFor(cAnc.getId());
 			threadsToCFG.put(cAnc.getId(), threadGraph);
 		}
 		DynamicityAnalysis dyna = threadsToDyna.get(cAnc.getId());
@@ -66,6 +112,9 @@ public class ThreadModularCDomOracle implements ICDomOracle {
 			threadsToDIO.put(cAnc.getId(), threadDIO);
 		}
 		cdom = new VirtualNode(lowestNonDynamicCommonDominator(fork1, fork2, threadDom, threadDIO, dyna), cAnc.getId());
+		
+		forkCDom.put(new ForksTuple(fork1, fork2, cAnc.getId()), cdom);
+		//forkCDom.put(new ForksTuple(fork2, fork1, cAnc.getId()), cdom);
 		
 		//System.out.println(String.format("cdom(%s, %s) = %s", n1, n2, cdom.getNode()));
 		return cdom;
@@ -124,8 +173,7 @@ public class ThreadModularCDomOracle implements ICDomOracle {
 		return cur;
 	}
 
-	private static CFG unfoldCFGFor(final SDG sdg, final int thread) {
-		final CFG icfg = ICFGBuilder.extractICFG(sdg);
+	private CFG unfoldCFGFor(final int thread) {
 		final CFG ret = new CFG();
 		for (final SDGNode n : icfg.vertexSet()) {
 			if (!RegionClusterBasedCDomOracle.possiblyExecutesIn(n, thread)) {

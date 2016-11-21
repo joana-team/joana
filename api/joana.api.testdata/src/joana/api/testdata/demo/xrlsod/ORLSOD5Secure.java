@@ -27,6 +27,7 @@ public class ORLSOD5Secure {
 		while (tmp > 0) {
 			tmp--;
 		}
+		LOW = 3;
 		for (int i = 0; i < 10; i++) {
 			Thread t1 = new ThreadA();
 			Thread t2 = new ThreadB();

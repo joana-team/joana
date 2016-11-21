@@ -71,7 +71,7 @@ public class ORLSODExperiment {
 	// imprecise due to current iRLSOD implementation
 	@Test
 	public void doORLSOD3() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException, ApiTestException {
-		doConfig(new StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, ORLSOD3.class, "orlsod3", 1, 2, 2));
+		doConfig(new StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, ORLSOD3.class, "orlsod3", 1, 3, 2));
 	}
 
 	@Test

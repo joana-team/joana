@@ -14,9 +14,9 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
-import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
-import edu.kit.joana.ifc.sdg.util.sdg.ReducedCFGBuilder;
-import edu.kit.joana.ifc.sdg.util.sdg.SDGNodePredicate;
+//import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
+//import edu.kit.joana.ifc.sdg.util.sdg.ReducedCFGBuilder;
+//import edu.kit.joana.ifc.sdg.util.sdg.SDGNodePredicate;
 
 public class DynamicityAnalysis {
 
@@ -125,7 +125,8 @@ public class DynamicityAnalysis {
 				}
 			}
 		}
-		return ReducedCFGBuilder.extractReducedCFG(ret, new SDGNodePredicate() {
+		return ret;
+		/*return ReducedCFGBuilder.extractReducedCFG(ret, new SDGNodePredicate() {
 			@Override
 			public boolean isInteresting(final SDGNode node) {
 				return (BytecodeLocation.OBJECT_FIELD != node.getBytecodeIndex())
@@ -134,6 +135,6 @@ public class DynamicityAnalysis {
 						&& (BytecodeLocation.ARRAY_INDEX != node.getBytecodeIndex())
 						&& (BytecodeLocation.STATIC_FIELD != node.getBytecodeIndex());
 			}
-		});
+		});*/
 	}
 }

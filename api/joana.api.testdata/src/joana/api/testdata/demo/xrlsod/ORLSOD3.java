@@ -27,6 +27,7 @@ public class ORLSOD3 {
 		while (tmp > 0) {
 			tmp--;
 		}
+		LOW = 3;
 		for (int i = 0; i < 42; i++) {
 			Thread t1 = new ThreadA();
 			Thread t2 = new ThreadB();

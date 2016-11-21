@@ -52,7 +52,7 @@ public class ORLSODExperimentTiming {
 
 	@Test
 	public void doORLSOD3() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException, ApiTestException {
-		doConfigTiming(new ORLSODExperiment.StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, ORLSOD3.class, "orlsod3", 1, 2, 0));
+		doConfigTiming(new ORLSODExperiment.StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, ORLSOD3.class, "orlsod3", 1, 3, 0));
 	}
 
 	@Test
@@ -75,7 +75,7 @@ public class ORLSODExperimentTiming {
 	@Test
 	public void testORLSODSecure() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException, ApiTestException {
 		doConfigTiming(new ORLSODExperiment.StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, ORLSOD5Secure.class, "orlsod5secure",
-				1, 2, 0));
+				1, 3, 0));
 	}
 
 	@Test

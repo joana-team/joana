@@ -32,8 +32,14 @@ import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.test.util.ApiTestException;
 import edu.kit.joana.api.test.util.JoanaPath;
+import edu.kit.joana.graph.dominators.slca.DFSIntervalOrder;
 import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
 import edu.kit.joana.ifc.sdg.io.graphml.SDG2GraphML;
@@ -43,14 +49,18 @@ import edu.kit.joana.ifc.sdg.irlsod.ICDomOracle;
 import edu.kit.joana.ifc.sdg.irlsod.RegionBasedCDomOracle;
 import edu.kit.joana.ifc.sdg.irlsod.RegionClusterBasedCDomOracle;
 import edu.kit.joana.ifc.sdg.irlsod.ThreadModularCDomOracle;
+import edu.kit.joana.ifc.sdg.irlsod.VeryConservativeCDomOracle;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.graph.ThreadInformationUtil;
 import edu.kit.joana.ifc.sdg.util.graph.io.dot.MiscGraph2Dot;
+import edu.kit.joana.ifc.sdg.util.sdg.GraphModifier;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
+import edu.kit.joana.wala.core.graphs.Dominators;
+import edu.kit.joana.wala.core.graphs.Dominators.DomEdge;
 
 /**
  * @author Martin Hecker <martin.hecker@kit.edu>
@@ -224,6 +234,67 @@ public class DomTreeTests {
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
 	}
+	
+	/*@Test
+	public void t() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		final Common common = getCommon(de.uni.trier.infsec.core.SetupNoLeak.class);
+		final SDG sdg = common.sdg;
+		final CFG icfg = ICFGBuilder.extractICFG(sdg);
+		GraphModifier.removeCallCallRetEdges(icfg);
+		Dominators<SDGNode, SDGEdge> dom = Dominators.compute(icfg, icfg.getRoot());
+		DFSIntervalOrder<SDGNode, DomEdge> dio = new DFSIntervalOrder<SDGNode, DomEdge>(dom.getDominationTree());
+
+		ThreadModularCDomOracle tmdo = new ThreadModularCDomOracle(sdg);
+		RegionBasedCDomOracle rbdo = 
+				new RegionBasedCDomOracle(sdg, PreciseMHPAnalysis.analyze(sdg));
+		rbdo.buildRegionGraph();
+		ClassicCDomOracle cdo = new ClassicCDomOracle(sdg,common.mhp);
+		VeryConservativeCDomOracle vcdo = new VeryConservativeCDomOracle(icfg);
+		int ctr = 0;
+		for (SDGNode n : icfg.vertexSet()) {
+			for (final int threadN : n.getThreadNumbers()) {
+				for (final SDGNode m : icfg.vertexSet()) {
+					for (final int threadM : m.getThreadNumbers()) {
+						if (common.mhp.isParallel(n, threadN, m, threadM)) {
+							if (n.getId()==3 && m.getId()==127) {
+								int i = 0;
+								i++;
+							}
+							ctr++;
+							SDGNode vt = tmdo.cdom(n, threadN, m, threadM).getNode();
+							SDGNode vr = rbdo.cdom(n, threadN, m, threadM).getNode();
+							SDGNode vc = cdo.cdom(n, threadN, m, threadM).getNode();
+							SDGNode vv = vcdo.cdom(n, threadN, m, threadM).getNode();
+							
+							assertTrue(dio.isLeq(vt, vv));
+							assertTrue(dio.isLeq(vr, vv));
+							assertTrue(dio.isLeq(vc, vv));
+							
+							assertTrue(dio.isLeq(n, vt));
+							assertTrue(dio.isLeq(m, vt));
+							assertTrue(dio.isLeq(n, vr));
+							assertTrue(dio.isLeq(m, vr));
+							assertTrue(dio.isLeq(n, vc));
+							assertTrue(dio.isLeq(m, vc));
+							assertTrue(dio.isLeq(n, vv));
+							assertTrue(dio.isLeq(m, vv));
+							
+							assertFalse(common.mhp.isParallel(vt,n));
+							assertFalse(common.mhp.isParallel(vt,m));
+							assertFalse(common.mhp.isParallel(vr,n));
+							assertFalse(common.mhp.isParallel(vr,m));
+							assertFalse(common.mhp.isParallel(vc,n));
+							assertFalse(common.mhp.isParallel(vc,m));
+							assertFalse(common.mhp.isParallel(vv,n));
+							assertFalse(common.mhp.isParallel(vv,m));
+						}
+					}
+				}
+			}
+		}
+		System.out.println(ctr);
+	}*/
 	
 	@Test
 	public void testPossibilisticLeaks() throws ClassHierarchyException, ApiTestException, IOException,

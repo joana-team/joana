@@ -21,6 +21,8 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.xml.stream.XMLStreamException;
+
 import com.ibm.wala.cfg.exc.intra.MethodState;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.pruned.DoNotPrune;
@@ -49,6 +51,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.chopper.NonSameLevelChopper;
+import edu.kit.joana.ifc.sdg.io.graphml.SDG2GraphML;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
@@ -328,6 +331,18 @@ public final class CheckInformationFlow {
 				final FileOutputStream fOut = new FileOutputStream(f);
 				SDGSerializer.toPDGFormat(sdg, fOut);
 				cfc.out.println("writing SDG to " + f.getAbsolutePath());
+			} catch (FileNotFoundException e) {
+				throw new RuntimeException(e.getMessage());
+			}
+			
+			try {
+				final File f = new File(fileName+".graphml");
+				final FileOutputStream fOut = new FileOutputStream(f);
+				SDG2GraphML.convertHierachical(sdg, fOut);
+				cfc.out.println("writing SDG to " + f.getAbsolutePath());
+				
+			} catch (XMLStreamException e) {
+				throw new RuntimeException(e.getMessage());
 			} catch (FileNotFoundException e) {
 				throw new RuntimeException(e.getMessage());
 			}

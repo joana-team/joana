@@ -208,7 +208,7 @@ public class SDGNode implements Cloneable {
         }
 
         public SDGNode createNode(int id, String value, int proc, String type,
-                String source, int sr, int sc, int er, int ec, String bcName, int bcIndex) {
+                String source, int sr, int sc, int er, int ec, String bcName, int bcIndex, String[] localDefNames, String[] localUseNames) {
             return new SDGNode(id, this, value, proc, type, source, sr, sc, er, ec, bcName, bcIndex);
         }
     }
@@ -300,6 +300,16 @@ public class SDGNode implements Cloneable {
 
     /* used for call nodes where there is no pdg for the call target */
     private String unresolvedCallTarget;
+    
+    /* for nodes defining a value that correspond to a definition of local variables, the names of the corresponding
+     * local variables; 
+     */
+    private String[] localDefNames;
+
+    /* for nodes using a value that correspond to a definition of local variables, the names of the corresponding
+     * local variables; 
+     */
+    private String[] localUseNames;
 
     public SDGNode(int id, Operation op, String value, int proc,
             String type, String source, int sr, int sc, int er, int ec, String bcName, int bcIndex) {
@@ -356,9 +366,48 @@ public class SDGNode implements Cloneable {
     		ret.setAllocationSites(allocationSites.clone());
     	}
 
+    	if (localDefNames != null) {
+    		ret.setLocalDefNames(localDefNames.clone());
+    	}
+
+    	if (localUseNames != null) {
+    		ret.setLocalDefNames(localUseNames.clone());
+    	}
+    	
     	return ret;
     }
 
+    
+    /**
+     * Sets the names of local variables defined at this nodes.
+     * @param localDefNames The names of local variables defined at this nodes.
+     */
+    public void setLocalDefNames(String[] localDefNames) {
+       this.localDefNames = localDefNames;
+    }
+    
+    /**
+     * @return The names of local variables defined at this nodes.
+     */
+    public String[] getLocalDefNames() {
+       return this.localDefNames;
+    }
+    
+    /**
+     * Sets the names of local variables used at this nodes.
+     * @param localUseNames The names of local variables used at this nodes.
+     */
+    public void setLocalUseNames(String[] localUseNames) {
+       this.localUseNames = localUseNames;
+    }
+    
+    /**
+     * @return The names of local variables used at this nodes.
+     */
+    public String[] getLocalUseNames() {
+       return this.localUseNames;
+    }
+    
     /**
      * Sets the thread numbers of the node to the given array.
      * @param tn  The new thread numbers.

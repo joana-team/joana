@@ -263,25 +263,25 @@ public class ModRefDataFlow {
 			switch (n.getKind()) {
 			case FORMAL_IN: {
 				// create form-in
-				final PDGNode fIn = createPDGNode(pdg, n.getCandidate(), pdg.entry, PDGNode.Kind.FORMAL_IN, PDGNode.DEFAULT_NO_LOCAL);
+				final PDGNode fIn = createPDGNode(pdg, n.getCandidate(), pdg.entry, PDGNode.Kind.FORMAL_IN, PDGNode.DEFAULT_NO_LOCAL, PDGNode.DEFAULT_NO_LOCAL);
 				map.put(n, fIn);
 				pdgnode2modref.put(fIn.getId(), n.getCandidate());
 			} break;
 			case FORMAL_OUT: {
 				// create form-out
-				final PDGNode fOut = createPDGNode(pdg, n.getCandidate(), pdg.entry, PDGNode.Kind.FORMAL_OUT, PDGNode.DEFAULT_NO_LOCAL);
+				final PDGNode fOut = createPDGNode(pdg, n.getCandidate(), pdg.entry, PDGNode.Kind.FORMAL_OUT, PDGNode.DEFAULT_NO_LOCAL, PDGNode.DEFAULT_NO_LOCAL);
 				map.put(n, fOut);
 				pdgnode2modref.put(fOut.getId(), n.getCandidate());
 			} break;
 			case ACTUAL_IN: {
 				// create actual-in
-				final PDGNode aIn = createPDGNode(pdg, n.getCandidate(), n.getNode(), PDGNode.Kind.ACTUAL_IN, PDGNode.DEFAULT_NO_LOCAL);
+				final PDGNode aIn = createPDGNode(pdg, n.getCandidate(), n.getNode(), PDGNode.Kind.ACTUAL_IN, PDGNode.DEFAULT_NO_LOCAL, PDGNode.DEFAULT_NO_LOCAL);
 				map.put(n, aIn);
 				pdgnode2modref.put(aIn.getId(), n.getCandidate());
 			} break;
 			case ACTUAL_OUT: {
 				// create actual-out
-				final PDGNode aOut = createPDGNode(pdg, n.getCandidate(), n.getNode(), PDGNode.Kind.ACTUAL_OUT, PDGNode.DEFAULT_NO_LOCAL);
+				final PDGNode aOut = createPDGNode(pdg, n.getCandidate(), n.getNode(), PDGNode.Kind.ACTUAL_OUT, PDGNode.DEFAULT_NO_LOCAL, PDGNode.DEFAULT_NO_LOCAL);
 				map.put(n, aOut);
 				pdgnode2modref.put(aOut.getId(), n.getCandidate());
 			} break;
@@ -409,10 +409,10 @@ public class ModRefDataFlow {
 	}
 
 	private static PDGNode createPDGNode(final PDG pdg, final ModRefFieldCandidate c, final PDGNode parent,
-			final PDGNode.Kind kind, final String[] localNames) {
+			final PDGNode.Kind kind, final String[] localDefNames, final String[] localUseNames) {
 		final String label = c.toString();
 		final TypeReference type = c.getType();
-		final PDGNode newNode = pdg.createNode(label, kind, type, localNames);
+		final PDGNode newNode = pdg.createNode(label, kind, type, localDefNames, localUseNames);
 		newNode.setSourceLocation(parent.getSourceLocation());
 		newNode.setBytecodeIndex(c.getBytecodeIndex());
 		newNode.setBytecodeName(c.getBytecodeName());

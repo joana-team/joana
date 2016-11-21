@@ -117,6 +117,8 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
     private String classLoader;
     private TIntSet allocSites;
     private TIntSet aliasDataSrc;
+    private List<String> localDefNames;
+    private List<String> localUseNames;
     private final List<SDGEdgeStub> edges = new LinkedList<SDGEdgeStub>();
     
     private SDGNodeStub(final SDGNode.Kind kind, final int id, SourcePos defSPos, ByteCodePos defBPos) {
@@ -166,6 +168,15 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
       if (unresolvedCallTarget != null) {
         n.setUnresolvedCallTarget(unresolvedCallTarget);
       }
+      
+      if (localDefNames != null) {
+        n.setLocalDefNames(localDefNames.toArray(new String[localDefNames.size()]));
+      }
+      
+      if (localUseNames != null) {
+        n.setLocalUseNames(localUseNames.toArray(new String[localUseNames.size()]));
+      }
+
       return n;
     }
     
@@ -313,6 +324,12 @@ private mayEmptyNumberList[SDG sdg] returns [LinkedList<SDGNode> js = new Linked
   | '[' i=number { js.add(sdg.getNode(i)); } (',' i=number { js.add(sdg.getNode(i)); } )* ']'
   ;
   
+private mayEmptyStringList returns [LinkedList<String> ss = new LinkedList<String>();]
+  : 'null'
+  | '[' ']'
+  | '[' s=string { ss.add(s); } (',' s=string { ss.add(s); } )* ']'
+  ;
+  
 private context[SDG sdg] returns [LinkedList<SDGNode> cx = new LinkedList<SDGNode>();]
   : 'null'
   | '[' i=mayNegNumber { cx.add(sdg.getNode(i)); } (',' i=mayNegNumber { cx.add(sdg.getNode(i)); } )* ']'
@@ -372,7 +389,12 @@ private node_attr[SDGNodeStub node]
   | 'A' al=pos_num_set      { node.allocSites = al; }     // possible allocation sites (node ids of 'new')
   | 'D' ds=pos_num_set      { node.aliasDataSrc = ds; }    // definitve data sources for this value
   | 'U' uct=string          { node.unresolvedCallTarget = uct; } // signature of call target if call target is a native method
-  ;
+  | 'LD' ldefs=mayEmptyStringList {
+                              node.localDefNames = ldefs;
+                            } // names of local variables defined
+  | 'LU' luses=mayEmptyStringList {
+                              node.localUseNames = ldefs;
+                            }; // names of local variables used
 
 private pos_num_set returns [TIntSet nums = new TIntHashSet();]
   : n=number { nums.add(n); } (',' n2=number { nums.add(n2); } )*

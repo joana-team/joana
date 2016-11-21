@@ -738,7 +738,7 @@ public class HeapParams {
 		final PDGNode first = fls.iterator().next();
 		String label = first.isFieldPtr() ? "fold " + first.getBytecodeName() : "fold base";
 
-		PDGNode fld = new PDGNode(sdg.getNextNodeId(), SDGBuilder.NO_PDG_ID, label, PDGNode.Kind.FOLDED, PDGNode.DEFAULT_TYPE);
+		PDGNode fld = new PDGNode(sdg.getNextNodeId(), SDGBuilder.NO_PDG_ID, label, PDGNode.Kind.FOLDED, PDGNode.DEFAULT_TYPE, PDGNode.DEFAULT_NO_LOCAL);
 		fld.setBytecodeIndex(first.getBytecodeIndex());
 		fld.setBytecodeName(first.getBytecodeName());
 		if (read && write) {

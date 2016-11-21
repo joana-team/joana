@@ -20,6 +20,8 @@ public final class PDGNode implements INodeWithNumber {
 
 	public final static TypeReference DEFAULT_TYPE = TypeReference.JavaLangObject;
 	public final static TypeReference DEFAULT_NO_TYPE = TypeReference.Null;
+	
+	public final static String[] DEFAULT_NO_LOCAL = null;
 
 	public static enum Kind {
 		/**
@@ -171,9 +173,14 @@ public final class PDGNode implements INodeWithNumber {
 
     /* signature of call target, if it is a unresolved, e.g. a native method and this node is a call node */
     private String unresolvedCallTarget;
+    
+    /* for nodes defining a value that correspond to a definition of local variables, the names of the corresponding
+     * local variables; 
+     */
+    private String[] localDefNames;
 
     public PDGNode clone(int newId, int newPdgId) {
-    	PDGNode clone = new PDGNode(newId, newPdgId, label, kind, type);
+    	PDGNode clone = new PDGNode(newId, newPdgId, label, kind, type, localDefNames);
     	clone.setBytecodeIndex(bcIndex);
     	clone.setBytecodeName(bcName);
     	clone.setSourceLocation(source);
@@ -184,7 +191,7 @@ public final class PDGNode implements INodeWithNumber {
 
     // can be used to clone param-in nodes to matching param-out nodes.
     public PDGNode clone(int newId, Kind newKind) {
-    	PDGNode clone = new PDGNode(newId, proc, label, newKind, type);
+    	PDGNode clone = new PDGNode(newId, proc, label, newKind, type, localDefNames);
     	clone.setBytecodeIndex(bcIndex);
     	clone.setBytecodeName(bcName);
     	clone.setSourceLocation(source);
@@ -264,14 +271,20 @@ public final class PDGNode implements INodeWithNumber {
 	public SourceLocation getSourceLocation() {
 		return source;
 	}
+	
+	// TODO: make copy to prevent mutation?
+	public String[] getLocalDefNames() {
+		return localDefNames;
+	}
 
-	public PDGNode(int id, int pdgId, String label, Kind kind, TypeReference type) {
+	public PDGNode(int id, int pdgId, String label, Kind kind, TypeReference type, String[] localDefNames) {
     	this.id = id;
     	this.nodeID = id;
     	this.proc = pdgId;
     	this.label = label;
     	this.kind = kind;
     	this.type = type;
+    	this.localDefNames = localDefNames;
     }
 
 	public void setDebug(String str) {

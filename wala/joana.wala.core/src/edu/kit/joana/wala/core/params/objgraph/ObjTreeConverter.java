@@ -804,7 +804,7 @@ public final class ObjTreeConverter {
 	}
 
 	private static PDGNode copyNode(final PDG pdg, final PDGNode toCopy) {
-		final PDGNode copy = pdg.createNode(toCopy.getLabel(), toCopy.getKind(), toCopy.getTypeRef());
+		final PDGNode copy = pdg.createNode(toCopy.getLabel(), toCopy.getKind(), toCopy.getTypeRef(), toCopy.getLocalDefNames());
 		copy.setBytecodeIndex(toCopy.getBytecodeIndex());
 		copy.setBytecodeName(toCopy.getBytecodeName());
 		copy.setDebug(toCopy.getDebug());

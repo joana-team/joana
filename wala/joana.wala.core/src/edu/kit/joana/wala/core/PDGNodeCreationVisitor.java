@@ -9,6 +9,8 @@ package edu.kit.joana.wala.core;
 
 import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
+import com.ibm.wala.ssa.IR;
+import com.ibm.wala.ssa.IR.SSA2LocalMap;
 import com.ibm.wala.ssa.SSAArrayLengthInstruction;
 import com.ibm.wala.ssa.SSAArrayLoadInstruction;
 import com.ibm.wala.ssa.SSAArrayStoreInstruction;
@@ -48,6 +50,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 
 	private final PDG pdg;
 	private final IClassHierarchy cha;
+	private final IR ir;
 	private final ParameterFieldFactory params;
 
 	private final SymbolTable sym;
@@ -56,21 +59,24 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 
 	public PDGNode lastNode = null;
 
-    private boolean showTypeNameInValue = false; 
+    private boolean showTypeNameInValue = false;
+    private final boolean associateLocalNames;
     private TypeInference typeInf = null;       // Only needed for `showTypeNameInValue = true`
 
 	public PDGNodeCreationVisitor(PDG pdg, IClassHierarchy cha, ParameterFieldFactory params,
-			SymbolTable sym, boolean ignoreStaticFields) {
+			SymbolTable sym, boolean ignoreStaticFields, IR ir, boolean associateLocalNames) {
 		this.pdg = pdg;
 		this.params = params;
 		this.cha = cha;
+		this.ir = ir;
 		this.sym = sym;
 		this.ignoreStaticFields = ignoreStaticFields;
+		this.associateLocalNames = associateLocalNames;
 	}
 
     public static PDGNodeCreationVisitor makeWithTypeInf(PDG pdg, IClassHierarchy cha, ParameterFieldFactory params,
-            SymbolTable sym, boolean ignoreStaticFields, boolean showTypeNameInValue, TypeInference typeInf) {
-        PDGNodeCreationVisitor visitor = new PDGNodeCreationVisitor(pdg, cha, params, sym, ignoreStaticFields);
+            SymbolTable sym, boolean ignoreStaticFields, boolean showTypeNameInValue, TypeInference typeInf, IR ir, boolean associateLocalNames) {
+        PDGNodeCreationVisitor visitor = new PDGNodeCreationVisitor(pdg, cha, params, sym, ignoreStaticFields, ir, associateLocalNames);
         visitor.showTypeNameInValue = showTypeNameInValue;
         visitor.typeInf = typeInf;
         return visitor;
@@ -150,7 +156,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 
 	@Override
 	public void visitGoto(SSAGotoInstruction instruction) {
-		lastNode = pdg.createNode("goto", Kind.NORMAL, PDGNode.DEFAULT_TYPE);
+		lastNode = pdg.createNode("goto", Kind.NORMAL, PDGNode.DEFAULT_TYPE, PDGNode.DEFAULT_NO_LOCAL);
 	}
 
 	@Override
@@ -158,7 +164,14 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		String label = tmpName(instruction.getDef()) + " = " + tmpName(instruction.getArrayRef())
 			+ "[" + tmpName(instruction.getIndex()) + "]";
 
-		lastNode = pdg.createNode(label, Kind.HREAD, instruction.getElementType());
+		final String[] localDefNames;
+		if (this.associateLocalNames) {
+			final int lastInstructionOfBB = ir.getBasicBlockForInstruction(instruction).getLastInstructionIndex();
+			localDefNames = ir.getLocalNames(lastInstructionOfBB, instruction.getDef());
+		} else {
+			localDefNames = PDGNode.DEFAULT_NO_LOCAL;
+		}
+		lastNode = pdg.createNode(label, Kind.HREAD, instruction.getElementType(), localDefNames);
 
 		ParameterField field = params.getArrayField(instruction.getElementType());
 		pdg.addFieldRead(field, lastNode);
@@ -169,7 +182,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		String label = tmpName(instruction.getArrayRef()) + "[" + tmpName(instruction.getIndex())
 			+ "] = " + tmpName(instruction.getValue());
 
-		lastNode = pdg.createNode(label, Kind.HWRITE, instruction.getElementType());
+		lastNode = pdg.createNode(label, Kind.HWRITE, instruction.getElementType(), PDGNode.DEFAULT_NO_LOCAL);
 
 		ParameterField field = params.getArrayField(instruction.getElementType());
 		pdg.addFieldWrite(field, lastNode);
@@ -181,8 +194,22 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 
 		String label = tmpName(instr.getDef()) + " = " + tmpName(instr.getUse(0)) + " " +  PrettyWalaNames.op2str(instr.getOperator()) + " "
 			+ tmpName(instr.getUse(1));
-
-		lastNode = pdg.createNode(label, Kind.EXPRESSION, PDGNode.DEFAULT_TYPE);
+		// The description of IR.getLocalNames() suggests that it is enough to call 
+		// ir.getLocalNames(instr.iindex, instr.getDef()).
+		// In fact, though, in Bytecode after a binary op, the result has not been written to any variable yet.
+		//
+		// Example: for an Java Source Code line such as: "x = y + z", translated to: "v1 = binop(v2,v3, add)", 
+		// after thi binop v1 is NOT YET associacted with with x.
+		//
+		// So what we do instead is to query v1's association at the end of the basic block.
+		final String[] localDefNames;
+		if (this.associateLocalNames) {
+			final int lastInstructionOfBB = ir.getBasicBlockForInstruction(instr).getLastInstructionIndex();
+			localDefNames = ir.getLocalNames(lastInstructionOfBB, instr.getDef());
+		} else {
+			localDefNames = PDGNode.DEFAULT_NO_LOCAL;
+		}
+		lastNode = pdg.createNode(label, Kind.EXPRESSION, PDGNode.DEFAULT_TYPE, localDefNames);
 	}
 
 	@Override
@@ -190,7 +217,14 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		String label = tmpName(instr.getDef()) + " = " + PrettyWalaNames.op2str(instr.getOpcode()) + "("
 			+ tmpName(instr.getUse(0)) + ")";
 
-		lastNode = pdg.createNode(label, Kind.EXPRESSION, PDGNode.DEFAULT_TYPE);
+		final String[] localDefNames;
+		if (this.associateLocalNames) {
+			final int lastInstructionOfBB = ir.getBasicBlockForInstruction(instr).getLastInstructionIndex();
+			localDefNames = ir.getLocalNames(lastInstructionOfBB, instr.getDef());
+		} else {
+			localDefNames = PDGNode.DEFAULT_NO_LOCAL;
+		}
+		lastNode = pdg.createNode(label, Kind.EXPRESSION, PDGNode.DEFAULT_TYPE, localDefNames);
 	}
 
 	@Override
@@ -198,7 +232,14 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		String label = tmpName(instr.getDef()) + " = CONVERT " + instr.getFromType().getName() + " to "
 			+ instr.getToType().getName() + " " + tmpName(instr.getUse(0));
 
-		lastNode = pdg.createNode(label, Kind.EXPRESSION, instr.getToType());
+		final String[] localDefNames;
+		if (this.associateLocalNames) {
+			final int lastInstructionOfBB = ir.getBasicBlockForInstruction(instr).getLastInstructionIndex();
+			localDefNames = ir.getLocalNames(lastInstructionOfBB, instr.getDef());
+		} else {
+			localDefNames = PDGNode.DEFAULT_NO_LOCAL;
+		}
+		lastNode = pdg.createNode(label, Kind.EXPRESSION, instr.getToType(), localDefNames);
 	}
 
 	@Override
@@ -208,7 +249,14 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		final String label = tmpName(instr.getDef()) + " = " + tmpName(instr.getUse(0)) + " "
 			+ PrettyWalaNames.op2str(instr.getOperator()) + " " + tmpName(instr.getUse(1));
 
-		lastNode = pdg.createNode(label, Kind.EXPRESSION, TypeReference.Boolean);
+		final String[] localDefNames;
+		if (this.associateLocalNames) {
+			final int lastInstructionOfBB = ir.getBasicBlockForInstruction(instr).getLastInstructionIndex();
+			localDefNames = ir.getLocalNames(lastInstructionOfBB, instr.getDef());
+		} else {
+			localDefNames = PDGNode.DEFAULT_NO_LOCAL;
+		}
+		lastNode = pdg.createNode(label, Kind.EXPRESSION, TypeReference.Boolean, localDefNames);
 	}
 
 	@Override
@@ -216,14 +264,14 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		String label = "if (" + tmpName(instr.getUse(0)) + " " + PrettyWalaNames.op2str(instr.getOperator())
 			+ " " + tmpName(instr.getUse(1)) + ")";
 
-		lastNode = pdg.createNode(label, Kind.PREDICATE, TypeReference.Boolean);
+		lastNode = pdg.createNode(label, Kind.PREDICATE, TypeReference.Boolean, PDGNode.DEFAULT_NO_LOCAL);
 	}
 
 	@Override
 	public void visitSwitch(SSASwitchInstruction instruction) {
 		String label = "switch " + tmpName(instruction.getUse(0));
 
-		lastNode = pdg.createNode(label, Kind.PREDICATE, PDGNode.DEFAULT_NO_TYPE);
+		lastNode = pdg.createNode(label, Kind.PREDICATE, PDGNode.DEFAULT_NO_TYPE, PDGNode.DEFAULT_NO_LOCAL);
 	}
 
 	@Override
@@ -234,7 +282,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 			label += " " + tmpName(instr.getResult());
 		}
 
-		lastNode = pdg.createNode(label, Kind.NORMAL, pdg.exit.getTypeRef());
+		lastNode = pdg.createNode(label, Kind.NORMAL, pdg.exit.getTypeRef(), PDGNode.DEFAULT_NO_LOCAL);
 
 		pdg.addReturn(lastNode);
 	}
@@ -242,7 +290,14 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 	@Override
 	public void visitGet(SSAGetInstruction instr) {
 		final int dest = instr.getDef();
-
+		final String[] localDefNames;
+		if (this.associateLocalNames) {
+			final int lastInstructionOfBB = ir.getBasicBlockForInstruction(instr).getLastInstructionIndex();
+			localDefNames = ir.getLocalNames(lastInstructionOfBB, instr.getDef());
+		} else {
+			localDefNames = PDGNode.DEFAULT_NO_LOCAL;
+		}
+		
 		final FieldReference fRef = instr.getDeclaredField();
 		final IField ifield = cha.resolveField(fRef);
 		final TypeReference type = instr.getDeclaredFieldType();
@@ -257,7 +312,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 				label += tmpName(instr.getRef()) + "." + fRef.getName();
 			}
 
-			lastNode = pdg.createNode(label, Kind.HREAD, type);
+			lastNode = pdg.createNode(label, Kind.HREAD, type, localDefNames);
 
 			pdg.addFieldRead(field, lastNode);
 		} else {
@@ -269,7 +324,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 			String label = tmpName(dest) + " = " + (instr.isStatic() ? "" : tmpName(instr.getRef()) + ".")
 				+ fRef.getName();
 
-			lastNode = pdg.createNode(label, Kind.EXPRESSION, type);
+			lastNode = pdg.createNode(label, Kind.EXPRESSION, type, localDefNames);
 		}
 	}
 
@@ -292,8 +347,10 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 			}
 
 			label += " = " + tmpName(val);
-
-			lastNode = pdg.createNode(label, Kind.HWRITE, type);
+			// SSAPutInstruction does not define a value, so we do not record
+			// the names of the corresponding (val's) local variables.
+			// TODO: maybe change this?
+			lastNode = pdg.createNode(label, Kind.HWRITE, type, PDGNode.DEFAULT_NO_LOCAL);
 
 			pdg.addFieldWrite(field, lastNode);
 		} else {
@@ -304,8 +361,11 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 			 */
 			String label = (instr.isStatic() ? "" : tmpName(instr.getRef()) + ".") + fRef.getName()
 				+ " = " + tmpName(val);
-
-			lastNode = pdg.createNode(label, Kind.EXPRESSION, type);
+			
+			// SSAPutInstruction does not define a value, so we do not record
+			// the names of the corresponding (val's) local variables.
+			// TODO: maybe change this?
+			lastNode = pdg.createNode(label, Kind.EXPRESSION, type, PDGNode.DEFAULT_NO_LOCAL);
 		}
 	}
 
@@ -321,7 +381,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		}
 
 		final TypeReference type = instr.getDeclaredResultType();
-		lastNode = pdg.createNode(label, Kind.CALL, type);
+		lastNode = pdg.createNode(label, Kind.CALL, type, PDGNode.DEFAULT_NO_LOCAL);
 		lastNode.setUnresolvedCallTarget(tgt.getSignature().toString());
 		final PDGNode[] in = new PDGNode[instr.getNumberOfParameters()];
 
@@ -342,7 +402,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 			if (instr.isStatic()) {
 				final TypeReference pType = instr.getDeclaredTarget().getParameterType(i);
 				// parameter index 0 is reserved for the this pointer. static method params start at 1.
-				PDGNode actIn = pdg.createNode("param " + (i + 1) + " [" + valLabel + "]", PDGNode.Kind.ACTUAL_IN, pType);
+				PDGNode actIn = pdg.createNode("param " + (i + 1) + " [" + valLabel + "]", PDGNode.Kind.ACTUAL_IN, pType, PDGNode.DEFAULT_NO_LOCAL);
 				in[i] = actIn;
 			} else {
 				final TypeReference tref;
@@ -353,7 +413,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 				}
 
 				// parameter index 0 is reserved for the this pointer. static method params start at 1.
-				PDGNode actIn = pdg.createNode((i == 0 ? "this" : "param " + i) + " [" + valLabel + "]", PDGNode.Kind.ACTUAL_IN, tref);
+				PDGNode actIn = pdg.createNode((i == 0 ? "this" : "param " + i) + " [" + valLabel + "]", PDGNode.Kind.ACTUAL_IN, tref, PDGNode.DEFAULT_NO_LOCAL);
 				in[i] = actIn;
 			}
 		}
@@ -363,12 +423,12 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 
 		PDGNode retOut = null;
 		if (instr.getNumberOfReturnValues() == 1) {
-			retOut = pdg.createNode("ret 0", PDGNode.Kind.ACTUAL_OUT, type);
+			retOut = pdg.createNode("ret 0", PDGNode.Kind.ACTUAL_OUT, type, PDGNode.DEFAULT_NO_LOCAL);
 		} else if (instr.getNumberOfReturnValues() > 1) {
 			throw new IllegalStateException("Currently not supported - method has more then a single return value: " + tgt);
 		}
 
-		final PDGNode excOut = pdg.createNode("ret _exception_", PDGNode.Kind.ACTUAL_OUT, TypeReference.JavaLangException);
+		final PDGNode excOut = pdg.createNode("ret _exception_", PDGNode.Kind.ACTUAL_OUT, TypeReference.JavaLangException, PDGNode.DEFAULT_NO_LOCAL);
 		final PDGCallReturn out = new PDGCallReturn(retOut, excOut);
 
 		pdg.addCall(lastNode, in, out);
@@ -379,21 +439,28 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		final TypeReference tref = instr.getConcreteType();
 		final String label = tmpName(instr.getDef()) + " = new " + PrettyWalaNames.simpleTypeName(tref);
 
-		lastNode = pdg.createNode(label, Kind.NEW, tref);
+		final String[] localDefNames;
+		if (this.associateLocalNames) {
+			final int lastInstructionOfBB = ir.getBasicBlockForInstruction(instr).getLastInstructionIndex();
+			localDefNames = ir.getLocalNames(lastInstructionOfBB, instr.getDef());
+		} else {
+			localDefNames = PDGNode.DEFAULT_NO_LOCAL;
+		}
+		lastNode = pdg.createNode(label, Kind.NEW, tref, localDefNames);
 	}
 
 	@Override
 	public void visitArrayLength(SSAArrayLengthInstruction instr) {
 		final String label = tmpName(instr.getDef()) + " = " + tmpName(instr.getArrayRef()) + ".length";
 
-		lastNode = pdg.createNode(label, Kind.EXPRESSION, TypeReference.Int);
+		lastNode = pdg.createNode(label, Kind.EXPRESSION, TypeReference.Int, PDGNode.DEFAULT_NO_LOCAL);
 	}
 
 	@Override
 	public void visitThrow(SSAThrowInstruction instruction) {
 		final String label = "throw " + tmpName(instruction.getException());
 
-		lastNode = pdg.createNode(label, Kind.NORMAL, TypeReference.JavaLangException);
+		lastNode = pdg.createNode(label, Kind.NORMAL, TypeReference.JavaLangException, PDGNode.DEFAULT_NO_LOCAL);
 	}
 
 	@Override
@@ -402,14 +469,21 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 
 		String label = (instr.isMonitorEnter() ? "MONITORENTER " : "MONITOREXIT ") + tmpName(ref);
 
-		lastNode = pdg.createNode(label, Kind.SYNCHRONIZATION, PDGNode.DEFAULT_TYPE);
+		lastNode = pdg.createNode(label, Kind.SYNCHRONIZATION, PDGNode.DEFAULT_TYPE, PDGNode.DEFAULT_NO_LOCAL);
 	}
 
 	@Override
 	public void visitCheckCast(SSACheckCastInstruction instr) {
 		String label = tmpName(instr.getDef()) + " = CHECKCAST " + tmpName(instr.getVal());
 
-		lastNode = pdg.createNode(label, Kind.EXPRESSION, PDGNode.DEFAULT_TYPE);
+		final String[] localDefNames;
+		if (this.associateLocalNames) {
+			final int lastInstructionOfBB = ir.getBasicBlockForInstruction(instr).getLastInstructionIndex();
+			localDefNames = ir.getLocalNames(lastInstructionOfBB, instr.getDef());
+		} else {
+			localDefNames = PDGNode.DEFAULT_NO_LOCAL;
+		}
+		lastNode = pdg.createNode(label, Kind.EXPRESSION, PDGNode.DEFAULT_TYPE, localDefNames);
 	}
 
 	@Override
@@ -417,7 +491,14 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		String label = tmpName(instr.getDef()) + "=" + tmpName(instr.getRef()) + " INSTANCEOF "
 			+ PrettyWalaNames.simpleTypeName(instr.getCheckedType());
 
-		lastNode = pdg.createNode(label, Kind.EXPRESSION, TypeReference.Boolean);
+		final String[] localDefNames;
+		if (this.associateLocalNames) {
+			final int lastInstructionOfBB = ir.getBasicBlockForInstruction(instr).getLastInstructionIndex();
+			localDefNames = ir.getLocalNames(lastInstructionOfBB, instr.getDef());
+		} else {
+			localDefNames = PDGNode.DEFAULT_NO_LOCAL;
+		}
+		lastNode = pdg.createNode(label, Kind.EXPRESSION, TypeReference.Boolean, localDefNames);
 	}
 
 	@Override
@@ -433,8 +514,15 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 				sb.append(", ");
 			}
 		}
-
-		lastNode = pdg.createNode(sb.toString(), Kind.PHI, PDGNode.DEFAULT_NO_TYPE);
+		
+		final String[] localDefNames;
+		if (this.associateLocalNames) {
+			final int lastInstructionOfBB = ir.getBasicBlockForInstruction(instr).getLastInstructionIndex();
+			localDefNames = ir.getLocalNames(lastInstructionOfBB, instr.getDef());
+		} else {
+			localDefNames = PDGNode.DEFAULT_NO_LOCAL;
+		}
+		lastNode = pdg.createNode(sb.toString(), Kind.PHI, PDGNode.DEFAULT_NO_TYPE, localDefNames);
 	}
 
 	@Override
@@ -446,14 +534,14 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 	public void visitGetCaughtException(SSAGetCaughtExceptionInstruction instr) {
 		String label = tmpName(instr.getDef()) + " = catch <exc>";
 
-		lastNode = pdg.createNode(label, Kind.EXPRESSION, TypeReference.JavaLangException);
+		lastNode = pdg.createNode(label, Kind.EXPRESSION, TypeReference.JavaLangException, PDGNode.DEFAULT_NO_LOCAL);
 	}
 
 	@Override
 	public void visitLoadMetadata(SSALoadMetadataInstruction instr) {
 		String label = tmpName(instr.getDef()) + " = metadata " + instr.getToken() + "->" + instr.getType();
 
-		lastNode = pdg.createNode(label, Kind.EXPRESSION, instr.getType());
+		lastNode = pdg.createNode(label, Kind.EXPRESSION, instr.getType(), PDGNode.DEFAULT_NO_LOCAL);
 	}
 
 }

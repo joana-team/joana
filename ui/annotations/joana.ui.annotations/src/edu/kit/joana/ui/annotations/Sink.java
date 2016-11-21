@@ -18,8 +18,8 @@ import edu.kit.joana.ui.annotations.Level;
  * 
  * @author Martin Hecker <martin.hecker@kit.edu>
  */
-@Retention(RetentionPolicy.CLASS)
-@Target({ElementType.FIELD,ElementType.METHOD, ElementType.PARAMETER})
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.FIELD,ElementType.METHOD, ElementType.PARAMETER, ElementType.LOCAL_VARIABLE})
 public @interface Sink {
 	String level() default Level.LOW;
 	String[] seenBy() default {};

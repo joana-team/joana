@@ -109,7 +109,7 @@ public class SimpleStaticInitializers {
 		String label = tgt.getSelector().getName().toString() + "()";
 
 		final TypeReference type = tgt.getReturnType();
-		lastCall = fakeRoot.createNode(label, Kind.CALL, type);
+		lastCall = fakeRoot.createNode(label, Kind.CALL, type, PDGNode.DEFAULT_NO_LOCAL);
 
 		final PDGNode[] in = new PDGNode[tgt.getNumberOfParameters()];
 
@@ -123,7 +123,7 @@ public class SimpleStaticInitializers {
 			}
 
 			final TypeReference pType = tgt.getParameterType(i);
-			PDGNode actIn = fakeRoot.createNode("param " + (i + 1) + " [?]", PDGNode.Kind.ACTUAL_IN, pType);
+			PDGNode actIn = fakeRoot.createNode("param " + (i + 1) + " [?]", PDGNode.Kind.ACTUAL_IN, pType, PDGNode.DEFAULT_NO_LOCAL);
 			in[i] = actIn;
 		}
 
@@ -132,10 +132,10 @@ public class SimpleStaticInitializers {
 
 		PDGNode retVal = null;
 		if (tgt.getReturnType() != TypeReference.Void) {
-			retVal = fakeRoot.createNode("ret 0", PDGNode.Kind.ACTUAL_OUT, type);
+			retVal = fakeRoot.createNode("ret 0", PDGNode.Kind.ACTUAL_OUT, type, PDGNode.DEFAULT_NO_LOCAL);
 		}
 		final PDGNode excVal = fakeRoot.createNode("ret _exception_", PDGNode.Kind.ACTUAL_OUT,
-				TypeReference.JavaLangException);
+				TypeReference.JavaLangException, PDGNode.DEFAULT_NO_LOCAL);
 		final PDGCallReturn out = new PDGCallReturn(retVal, excVal);
 
 		fakeRoot.addCall(lastCall, in, out);

@@ -16,6 +16,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -223,6 +224,7 @@ public class DomTreeTests {
 		final Common common = getCommon(       de.uni.trier.infsec.core.Setup.class);
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
+		testDomGuarantees(common);
 	}
 	 */
 	
@@ -233,68 +235,84 @@ public class DomTreeTests {
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
+		testDomGuarantees(common);
 	}
 	
-	/*@Test
-	public void t() throws ClassHierarchyException, ApiTestException, IOException,
+	public void testDomGuarantees(Common common) throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		final Common common = getCommon(de.uni.trier.infsec.core.SetupNoLeak.class);
 		final SDG sdg = common.sdg;
 		final CFG icfg = ICFGBuilder.extractICFG(sdg);
 		GraphModifier.removeCallCallRetEdges(icfg);
 		Dominators<SDGNode, SDGEdge> dom = Dominators.compute(icfg, icfg.getRoot());
-		DFSIntervalOrder<SDGNode, DomEdge> dio = new DFSIntervalOrder<SDGNode, DomEdge>(dom.getDominationTree());
+		final DFSIntervalOrder<SDGNode, DomEdge> dio =
+						new DFSIntervalOrder<SDGNode, DomEdge>(dom.getDominationTree());
 
 		ThreadModularCDomOracle tmdo = new ThreadModularCDomOracle(sdg);
 		RegionBasedCDomOracle rbdo = 
 				new RegionBasedCDomOracle(sdg, PreciseMHPAnalysis.analyze(sdg));
 		rbdo.buildRegionGraph();
-		ClassicCDomOracle cdo = new ClassicCDomOracle(sdg,common.mhp);
+		ClassicCDomOracle cldo = new ClassicCDomOracle(sdg,common.mhp);
 		VeryConservativeCDomOracle vcdo = new VeryConservativeCDomOracle(icfg);
-		int ctr = 0;
+		
+		BiPredicate<VirtualNode, VirtualNode> isLeq = (v1, v2) ->
+			dio.isLeq(v1.getNode(), v2.getNode());
+		
+		BiPredicate<VirtualNode, VirtualNode> isParallel = (d, m) -> {
+			PreciseMHPAnalysis mhp = common.mhp;
+			int tid = m.getNumber();
+			ThreadInstance thread = sdg.getThreadsInfo().getThread(tid);
+			if (!thread.isDynamic() && thread.getThreadContext().contains(d.getNode())) {
+				// the current MHP analysis returns that a fork is always MHP to the thread
+				// started by it, even though it isn't. Thus, we special case it here.
+				return false;
+			}
+			return mhp.isParallel(d, m);
+		};
+
 		for (SDGNode n : icfg.vertexSet()) {
 			for (final int threadN : n.getThreadNumbers()) {
+				VirtualNode vn = new VirtualNode(n, threadN);
 				for (final SDGNode m : icfg.vertexSet()) {
 					for (final int threadM : m.getThreadNumbers()) {
 						if (common.mhp.isParallel(n, threadN, m, threadM)) {
-							if (n.getId()==3 && m.getId()==127) {
-								int i = 0;
-								i++;
-							}
-							ctr++;
-							SDGNode vt = tmdo.cdom(n, threadN, m, threadM).getNode();
-							SDGNode vr = rbdo.cdom(n, threadN, m, threadM).getNode();
-							SDGNode vc = cdo.cdom(n, threadN, m, threadM).getNode();
-							SDGNode vv = vcdo.cdom(n, threadN, m, threadM).getNode();
+							VirtualNode vm = new VirtualNode(m, threadM);
 							
-							assertTrue(dio.isLeq(vt, vv));
-							assertTrue(dio.isLeq(vr, vv));
-							assertTrue(dio.isLeq(vc, vv));
+							VirtualNode vt = tmdo.cdom(n, threadN, m, threadM);
+							VirtualNode vr = rbdo.cdom(n, threadN, m, threadM);
+							VirtualNode vc = cldo.cdom(n, threadN, m, threadM);
+							VirtualNode vv = vcdo.cdom(n, threadN, m, threadM);
 							
-							assertTrue(dio.isLeq(n, vt));
+							assertTrue(isLeq.test(vt, vv));
+							assertTrue(isLeq.test(vr, vv));
+							assertTrue(isLeq.test(vc, vv));
+							
+							/* dio works on statement level, the CDomOracles on
+							 * virtualNode level. Thus, they can be more precise
+							 * than dio, so we cannot test it here.
+							 */
+							/*assertTrue(dio.isLeq(n, vt));
 							assertTrue(dio.isLeq(m, vt));
 							assertTrue(dio.isLeq(n, vr));
 							assertTrue(dio.isLeq(m, vr));
 							assertTrue(dio.isLeq(n, vc));
 							assertTrue(dio.isLeq(m, vc));
 							assertTrue(dio.isLeq(n, vv));
-							assertTrue(dio.isLeq(m, vv));
+							assertTrue(dio.isLeq(m, vv));*/
 							
-							assertFalse(common.mhp.isParallel(vt,n));
-							assertFalse(common.mhp.isParallel(vt,m));
-							assertFalse(common.mhp.isParallel(vr,n));
-							assertFalse(common.mhp.isParallel(vr,m));
-							assertFalse(common.mhp.isParallel(vc,n));
-							assertFalse(common.mhp.isParallel(vc,m));
-							assertFalse(common.mhp.isParallel(vv,n));
-							assertFalse(common.mhp.isParallel(vv,m));
+							assertFalse(isParallel.test(vt,vn));
+							assertFalse(isParallel.test(vt,vm));
+							assertFalse(isParallel.test(vr,vn));
+							assertFalse(isParallel.test(vr,vm));
+							assertFalse(isParallel.test(vc,vn));
+							assertFalse(isParallel.test(vc,vm));
+							assertFalse(isParallel.test(vv,vn));
+							assertFalse(isParallel.test(vv,vm));
 						}
 					}
 				}
 			}
 		}
-		System.out.println(ctr);
-	}*/
+	}
 	
 	@Test
 	public void testPossibilisticLeaks() throws ClassHierarchyException, ApiTestException, IOException,
@@ -303,6 +321,7 @@ public class DomTreeTests {
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
+		testDomGuarantees(common);
 
 	}
 	
@@ -313,6 +332,7 @@ public class DomTreeTests {
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
+		testDomGuarantees(common);
 	}
 	
 	@Test
@@ -322,6 +342,7 @@ public class DomTreeTests {
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
+		testDomGuarantees(common);
 	}
 	
 	@Test
@@ -331,6 +352,7 @@ public class DomTreeTests {
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC); // see comment in test data class
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC); // see comment in test data class
+		testDomGuarantees(common);
 	}
 	
 	@Test
@@ -340,6 +362,7 @@ public class DomTreeTests {
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
+		testDomGuarantees(common);
 
 	}
 	
@@ -350,6 +373,7 @@ public class DomTreeTests {
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
+		testDomGuarantees(common);
 	}
 	
 	@Test
@@ -359,6 +383,7 @@ public class DomTreeTests {
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
+		testDomGuarantees(common);
 	}
 	
 	@Test
@@ -368,6 +393,7 @@ public class DomTreeTests {
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
+		testDomGuarantees(common);
 
 	}
 	
@@ -378,6 +404,7 @@ public class DomTreeTests {
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
+		testDomGuarantees(common);
 
 	}
 	
@@ -388,6 +415,7 @@ public class DomTreeTests {
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
+		testDomGuarantees(common);
 	}
 	
 	@Test
@@ -397,6 +425,7 @@ public class DomTreeTests {
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
+		testDomGuarantees(common);
 	}
 	
 	@Test
@@ -406,6 +435,7 @@ public class DomTreeTests {
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
+		testDomGuarantees(common);
 	}
 	
 	@Test
@@ -415,6 +445,7 @@ public class DomTreeTests {
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
+		testDomGuarantees(common);
 	}
 	
 	@Test
@@ -424,6 +455,7 @@ public class DomTreeTests {
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
+		testDomGuarantees(common);
 	}
 	
 	@Test
@@ -433,6 +465,7 @@ public class DomTreeTests {
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
+		testDomGuarantees(common);
 	}
 	
 	@Test
@@ -442,6 +475,7 @@ public class DomTreeTests {
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
+		testDomGuarantees(common);
 	}
 	
 	@Test
@@ -451,6 +485,7 @@ public class DomTreeTests {
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
+		testDomGuarantees(common);
 	}
 	
 	@Test
@@ -460,6 +495,7 @@ public class DomTreeTests {
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
+		testDomGuarantees(common);
 	}
 	
 	@Test
@@ -469,6 +505,7 @@ public class DomTreeTests {
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
+		testDomGuarantees(common);
 	}
 	
 	@Test
@@ -478,6 +515,7 @@ public class DomTreeTests {
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
+		testDomGuarantees(common);
 	}
 	
 	@Test
@@ -487,6 +525,7 @@ public class DomTreeTests {
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
+		testDomGuarantees(common);
 	}
 	
 	@Test
@@ -496,6 +535,7 @@ public class DomTreeTests {
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
+		testDomGuarantees(common);
 	}
 }
 

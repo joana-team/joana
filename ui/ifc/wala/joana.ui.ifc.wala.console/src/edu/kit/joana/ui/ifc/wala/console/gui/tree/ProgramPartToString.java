@@ -19,6 +19,7 @@ import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGFieldOfParameter;
 import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGInstruction;
+import edu.kit.joana.api.sdg.SDGLocalVariable;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGMethodExceptionNode;
 import edu.kit.joana.api.sdg.SDGMethodExitNode;
@@ -118,6 +119,14 @@ class StdProgramPartToString extends ProgramPartToString {
 	@Override
 	protected String visitFieldOfParameter(SDGFieldOfParameter fop, Void data) {
 		return fop.getParent().acceptVisitor(this, data) + "." + fop.getFieldName();
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitLocalVariable(edu.kit.joana.api.sdg.SDGLocalVariable, java.lang.Object)
+	 */
+	@Override
+	protected String visitLocalVariable(SDGLocalVariable local, Void data) {
+		return local.getName();
 	}
 }
 

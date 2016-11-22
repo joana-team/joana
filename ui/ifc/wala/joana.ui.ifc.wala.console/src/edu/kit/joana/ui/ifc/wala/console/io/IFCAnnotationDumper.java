@@ -21,6 +21,7 @@ import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGFieldOfParameter;
 import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGInstruction;
+import edu.kit.joana.api.sdg.SDGLocalVariable;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGMethodExceptionNode;
 import edu.kit.joana.api.sdg.SDGMethodExitNode;
@@ -170,6 +171,15 @@ public class IFCAnnotationDumper extends SDGProgramPartVisitor<Void, Void> {
 	protected Void visitFieldOfParameter(SDGFieldOfParameter fop, Void data) {
 		out.print(String.format("field '%s' of ", fop.getFieldName()));
 		fop.getParent().acceptVisitor(this, data);
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitLocalVariable(edu.kit.joana.api.sdg.SDGLocalVariable, java.lang.Object)
+	 */
+	@Override
+	protected Void visitLocalVariable(SDGLocalVariable local, Void data) {
+		out.print(local.toString());
 		return null;
 	}
 

@@ -106,6 +106,15 @@ final class BytecodeCentricSDGMethodPartWriter extends SDGProgramPartWriter {
 		return fop.getParent().acceptVisitor(this, data) + "." + fop.getFieldName();
 	}
 
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitLocalVariable(edu.kit.joana.api.sdg.SDGLocalVariable, java.lang.Object)
+	 */
+	@Override
+	protected String visitLocalVariable(SDGLocalVariable local, Void data) {
+		return local.getOwningMethod().getSignature().toBCString() + "#"
+				+ local.getName();
+	}
+
 }
 
 public abstract class SDGProgramPartWriter extends SDGProgramPartVisitor<String, Void> {

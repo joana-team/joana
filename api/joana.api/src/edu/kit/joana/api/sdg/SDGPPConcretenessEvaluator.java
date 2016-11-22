@@ -122,4 +122,12 @@ public class SDGPPConcretenessEvaluator extends SDGProgramPartVisitor<Integer, V
 	protected Integer visitFieldOfParameter(SDGFieldOfParameter fop, Void data) {
 		return 6;
 	}
+	
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitLocalVariable(edu.kit.joana.api.sdg.SDGLocalVariable, java.lang.Object)
+	 */
+	@Override
+	protected Integer visitLocalVariable(SDGLocalVariable local, Void data) {
+		return 7;
+	}
 }

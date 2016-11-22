@@ -29,6 +29,7 @@ import edu.kit.joana.api.sdg.SDGClassComputation;
 import edu.kit.joana.api.sdg.SDGFieldOfParameter;
 import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGInstruction;
+import edu.kit.joana.api.sdg.SDGLocalVariable;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGMethodExceptionNode;
 import edu.kit.joana.api.sdg.SDGMethodExitNode;
@@ -193,6 +194,22 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 		}
 		return new HashSet<SDGNode>(toSelect);
 	}
+	
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitLocalVariable(edu.kit.joana.api.sdg.SDGLocalVariable, java.lang.Object)
+	 */
+	@Override
+	protected Set<SDGNode> visitLocalVariable(SDGLocalVariable local, AnnotationType type) {
+		switch (type) {
+			case SOURCE:
+				return local.getDefs();
+			case SINK:
+				return local.getUses();
+			default:
+				throw new UnsupportedOperationException("not implemented yet!");
+		}
+	}
+
 
 	@Override
 	protected Set<SDGNode> visitMethod(SDGMethod method, AnnotationType type) {

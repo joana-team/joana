@@ -28,6 +28,7 @@ public class SDGMethod implements SDGProgramPart {
 	private List<SDGInstruction> instructions = new ArrayList<SDGInstruction>();
 	private List<SDGCall> calls = new ArrayList<SDGCall>();
 	private List<SDGPhi> phis = new ArrayList<SDGPhi>();
+	private List<SDGLocalVariable> localVariables = new ArrayList<>();
 	private final String classLoader;
 	public SDGMethod(JavaMethodSignature sig, String classLoader, boolean isStatic) {
 
@@ -51,7 +52,10 @@ public class SDGMethod implements SDGProgramPart {
 	public String getClassLoader() {
 		return classLoader;
 	}
-
+	
+	void addLocalVariable(SDGLocalVariable var) {
+		this.localVariables.add(var);
+	}
 	void addInstruction(SDGInstruction i) {
 		this.instructions.add(i);
 	}
@@ -113,6 +117,10 @@ public class SDGMethod implements SDGProgramPart {
 
 	public List<SDGPhi> getPhis() {
 		return phis;
+	}
+	
+	public List<SDGLocalVariable> getLocalVariables() {
+		return localVariables;
 	}
 
 	public int getNumberOfInstructions() {

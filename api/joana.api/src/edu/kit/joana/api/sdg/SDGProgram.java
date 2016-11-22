@@ -413,7 +413,7 @@ public class SDGProgram {
 		build();
 		return classRes.getInstruction(methodSig.getDeclaringType(), methodSig, bcIndex);
 	}
-
+	
 	/**
 	 * Get instructions by label, i.e. the label of the corresponding sdg node. Precisely, all
 	 *
@@ -426,6 +426,12 @@ public class SDGProgram {
 		return classRes.getInstruction(methodSig.getDeclaringType(), methodSig, labelRegEx);
 	}
 
+	
+	public Collection<SDGLocalVariable> getLocalVariables(JavaMethodSignature methodSig, String varName) {
+		build();
+		return classRes.getLocalVariable(methodSig.getDeclaringType(), methodSig, varName);
+	}
+	
 	public Collection<SDGCall> getCallsToMethod(JavaMethodSignature tgt) {
 		Collection<SDGCall> ret = new LinkedList<SDGCall>();
 		build();
@@ -746,6 +752,22 @@ public class SDGProgram {
 			}
 		}
 
+		private Collection<SDGLocalVariable> getLocalVariables(String instr) {
+			if (!instr.contains("#")) {
+				return null;
+			} else {
+				int hashtagIndex = instr.lastIndexOf('#');
+				String methodSrc = instr.substring(0, hashtagIndex);
+				JavaMethodSignature m = JavaMethodSignature.fromString(methodSrc);
+				if (m == null) {
+					return null;
+				} else {
+					String name = instr.substring(hashtagIndex + 1);
+					return program.getLocalVariables(m, name);
+				}
+			}
+		}
+		
 		private Collection<SDGInstruction> getInstructions(String instr) {
 			if (!instr.contains(":")) {
 				return null;
@@ -812,6 +834,8 @@ public class SDGProgram {
 				} else {
 					return getAttributes(str);
 				}
+			} else if (str.contains("#")) {
+				return getLocalVariables(str);
 			} else {
 				return getClasss(str);
 			}
@@ -916,6 +940,15 @@ class SDGClassResolver {
 			ret.addAll(m.getInstructionsWithLabelMatching(labelRegEx));
 		}
 
+		return ret;
+	}
+	
+	public Collection<SDGLocalVariable> getLocalVariable(JavaType typeName, JavaMethodSignature methodSig, String varName) {
+		Collection<SDGMethod> ms = getMethod(typeName, methodSig);
+		Collection<SDGLocalVariable> ret = new LinkedList<SDGLocalVariable>();
+		for (SDGMethod m : ms) {
+			ret.addAll(m.getLocalVariables());
+		}
 		return ret;
 	}
 

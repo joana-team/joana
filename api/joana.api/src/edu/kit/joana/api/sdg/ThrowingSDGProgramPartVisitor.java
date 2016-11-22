@@ -54,4 +54,7 @@ public abstract class ThrowingSDGProgramPartVisitor<R, D>  extends SDGProgramPar
 
 	@Override
 	protected R visitFieldOfParameter(SDGFieldOfParameter fop, D data) { fail(SDGFieldOfParameter.class); return null; }
+	
+	@Override
+	protected R visitLocalVariable(SDGLocalVariable local, D data) { fail(SDGLocalVariable.class); return null; }
 }

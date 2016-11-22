@@ -34,4 +34,6 @@ public abstract class SDGProgramPartVisitor<R, D> {
 	protected abstract R visitPhi(SDGPhi phi, D data);
 
 	protected abstract R visitFieldOfParameter(SDGFieldOfParameter fop, D data);
+	
+	protected abstract R visitLocalVariable(SDGLocalVariable local, D data);
 }

@@ -210,35 +210,8 @@ public class DomTreeTests {
 			e.printStackTrace();
 		}
 	}
-
-	public static void main(String[] args) throws
-			ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException, CancelException {
-		new DomTreeTests().testPossibilisticLeaks();
-	}
-
-	/*
-	 * For now, one time-consuming test is enough :) 
-	@Test
-	public void testDe_uni_trier_infsec_core_Setup() throws ClassHierarchyException, ApiTestException, IOException,
-			UnsoundGraphException, CancelException {
-		final Common common = getCommon(       de.uni.trier.infsec.core.Setup.class);
-		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
-		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
-		testDomGuarantees(common);
-	}
-	 */
 	
-	@Test
-	public void testDe_uni_trier_infsec_core_SetupNoLeak() throws ClassHierarchyException, ApiTestException, IOException,
-			UnsoundGraphException, CancelException {
-		final Common common = getCommon(de.uni.trier.infsec.core.SetupNoLeak.class);
-		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
-		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
-		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
-		testDomGuarantees(common);
-	}
-	
-	public void testDomGuarantees(Common common) throws ClassHierarchyException, ApiTestException, IOException,
+	private void testDomGuarantees(Common common) throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		final SDG sdg = common.sdg;
 		final CFG icfg = ICFGBuilder.extractICFG(sdg);
@@ -312,6 +285,40 @@ public class DomTreeTests {
 				}
 			}
 		}
+	}
+
+	public static void main(String[] args) throws
+			ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException, CancelException {
+		new DomTreeTests().testPossibilisticLeaks();
+	}
+	
+	
+	@Test
+	public void testDe_uni_trier_infsec_core_Setup() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		final Common common = getCommon(       de.uni.trier.infsec.core.Setup.class);
+		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
+		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
+		/*
+		 * testGuarantees is currently disabled for this class because it gives false alarms.
+		 * In the isParallel method of testGuarantees, we special case forks
+		 * for non-dynamic threads. But in this case, the thread is marked as dynamic
+		 * but its fork is not. This stems from the fact that in the Setup program,
+		 * the run() method of some threads is called recursively as normal method call
+		 * (no new thread is started).
+		 */
+		//testDomGuarantees(common);
+	}
+	
+	@Test
+	public void testDe_uni_trier_infsec_core_SetupNoLeak() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		final Common common = getCommon(de.uni.trier.infsec.core.SetupNoLeak.class);
+		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
+		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
+		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
+		testDomGuarantees(common);
 	}
 	
 	@Test

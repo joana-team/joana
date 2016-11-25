@@ -2,6 +2,9 @@ package edu.kit.joana.ifc.sdg.irlsod;
 
 
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
 import org.jgrapht.graph.DefaultDirectedGraph;
@@ -9,11 +12,13 @@ import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.builder.DirectedGraphBuilder;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
+import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.graph.TransitiveReductionGeneral;
 
 /**
@@ -31,6 +36,7 @@ public class DomTree {
 	private DirectedGraph<VirtualNode, DefaultEdge> tree = new DefaultDirectedGraph<>(DefaultEdge.class);
 	private final SDG sdg;
 	private final MHPAnalysis mhp;
+	private final Set<Pair<VirtualNode, VirtualNode>> set;
 	private final ICDomOracle cdomOracle;
 	private CFG icfg;
 	private boolean isReduced;
@@ -60,6 +66,7 @@ public class DomTree {
 		this.cdomOracle = cdomOracle;
 		this.mhp = mhp;
 		this.isReduced = false;
+		this.set = new HashSet<>();
 		
 		compute();
 
@@ -85,14 +92,22 @@ public class DomTree {
 							VirtualNode cdom = cdomOracle.cdom(n, threadN, m, threadM);
 							VirtualNode vn = new VirtualNode(n, threadN);
 							VirtualNode vm = new VirtualNode(m, threadM);
-							if (!cdom.equals(vn)) tree.addEdge(cdom,new VirtualNode(n, threadN));
-							if (!cdom.equals(vm)) tree.addEdge(cdom,new VirtualNode(m, threadM));
+							addEdge(cdom,vn);
+							addEdge(cdom,vm);
 						}
 					}
 				}
 			}
 		}
-		
+	}
+	
+	private void addEdge(VirtualNode v1, VirtualNode v2) {
+		if (v1.equals(v2)) return;
+		Pair<VirtualNode, VirtualNode> p = Pair.pair(v1, v2);
+		if (!this.set.contains(p)) {
+			this.set.add(p);
+			this.tree.addEdge(v1, v2);
+		}
 	}
 	
 	public DirectedGraph<VirtualNode, DefaultEdge> getTree() {

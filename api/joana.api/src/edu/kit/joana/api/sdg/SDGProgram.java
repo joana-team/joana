@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -29,7 +30,11 @@ import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.ShrikeCTMethod;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.shrikeCT.InvalidClassFileException;
+import com.ibm.wala.shrikeCT.TypeAnnotationsReader.TargetType;
 import com.ibm.wala.types.annotations.Annotation;
+import com.ibm.wala.types.annotations.TypeAnnotation;
+import com.ibm.wala.types.annotations.TypeAnnotation.LocalVarTarget;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
@@ -298,6 +303,33 @@ public class SDGProgram {
 							}
 							parameternumber++;
 						}
+					}
+					
+					try {
+						final Collection<TypeAnnotation> localVarAnnotations = 
+						method.getTypeAnnotationsAtCode(true)
+							.stream()
+							.filter(a -> a.getTargetType() == TargetType.LOCAL_VARIABLE)
+							.collect(Collectors.toList());
+						
+						if (!localVarAnnotations.isEmpty()) {
+							if (methods.isEmpty()) { 
+								methods = ret.getMethods(JavaMethodSignature.fromString(m.getSignature()));
+							}
+							for (TypeAnnotation ta : localVarAnnotations) {
+							final LocalVarTarget localVarTarget = (LocalVarTarget) ta.getTypeAnnotationTarget();
+								for (SDGMethod sdgm : methods) {
+									final SDGLocalVariable localVar = sdgm.getLocalVariable(localVarTarget.getName());
+									ret.annotations.computeIfPresent(localVar, (lv, anns) -> {
+										anns.add(ta.getAnnotation());
+										return anns;
+									});
+								}
+							}
+							parameternumber++;
+						}
+					} catch (InvalidClassFileException e) {
+						// TODO: handle this?!?!
 					}
 				} else {
 					debug.outln("Warning: Parameter Annotation Processing not supported for Methods representet by " + m.getClass());

@@ -161,12 +161,13 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 		this.exception = createNode("_exception_", PDGNode.Kind.FORMAL_OUT, TypeReference.JavaLangException, PDGNode.DEFAULT_NO_LOCAL, PDGNode.DEFAULT_NO_LOCAL);
 		this.params = new PDGNode[method.getNumberOfParameters()];
 		for (int i = 0; i < params.length; i++) {
+			final String pName = " (\"" + this.getMethod().getLocalVariableName(0, i) + "\") ";
 			if (method.isStatic()) {
 				// parameter index 0 is reserved for the this pointer. static method params start at 1.
-				PDGNode p = createNode("param " + (i + 1), PDGNode.Kind.FORMAL_IN, method.getParameterType(i), PDGNode.DEFAULT_NO_LOCAL, PDGNode.DEFAULT_NO_LOCAL);
+				PDGNode p = createNode("param " + (i + 1) + pName, PDGNode.Kind.FORMAL_IN, method.getParameterType(i), PDGNode.DEFAULT_NO_LOCAL, PDGNode.DEFAULT_NO_LOCAL);
 				this.params[i] = p;
 			} else {
-				PDGNode p = createNode((i == 0 ? "this" : "param " + i), PDGNode.Kind.FORMAL_IN,
+				PDGNode p = createNode((i == 0 ? "this" : "param " + i + pName) , PDGNode.Kind.FORMAL_IN,
 						method.getParameterType(i), PDGNode.DEFAULT_NO_LOCAL, PDGNode.DEFAULT_NO_LOCAL);
 				this.params[i] = p;
 			}
@@ -1295,6 +1296,15 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 
 			if (fw.index != null) {
 				node2instr.put(fw.index, instr);
+			}
+		}
+		
+		for (int i = 0; i < params.length; i++) {
+			final Set<String> aliases = visitor.getParameterAliases().get(i);
+			if (aliases != null) {
+				this.params[i].setLocalDefNames(aliases.toArray(new String[aliases.size()]));
+			} else {
+				this.params[i].setLocalDefNames(new String[] { this.getMethod().getLocalVariableName(0, i) });
 			}
 		}
 	}

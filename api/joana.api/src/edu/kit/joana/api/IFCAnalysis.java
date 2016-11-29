@@ -37,6 +37,7 @@ import edu.kit.joana.api.sdg.SDGCall;
 import edu.kit.joana.api.sdg.SDGCallReturnNode;
 import edu.kit.joana.api.sdg.SDGFieldOfParameter;
 import edu.kit.joana.api.sdg.SDGFormalParameter;
+import edu.kit.joana.api.sdg.SDGLocalVariable;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
@@ -815,6 +816,17 @@ public class IFCAnalysis {
 				}
 				if (ann == Source.class) addSourceAnnotation(p, level); 
 				if (ann == Sink.class)   addSinkAnnotation(p, level);
+				return null;
+			}
+			
+			@Override
+			protected Void visitLocalVariable(SDGLocalVariable local, Void data) {
+				if (annotate != AnnotationPolicy.ANNOTATE_USAGES) {
+					throw new IllegalArgumentException("Local Variables may onlye be annotated with annotate == " + 
+					                                        AnnotationPolicy.ANNOTATE_USAGES);
+				}
+				if (ann == Source.class) addSourceAnnotation(local, level); 
+				if (ann == Sink.class)   addSinkAnnotation(local, level);
 				return null;
 			}
 		}, null);

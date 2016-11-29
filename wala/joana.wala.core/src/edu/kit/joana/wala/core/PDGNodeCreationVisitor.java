@@ -43,9 +43,14 @@ import com.ibm.wala.types.TypeReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import com.ibm.wala.analysis.typeInference.TypeInference;
 
+import edu.kit.joana.util.Pair;
 import edu.kit.joana.wala.core.PDGNode.Kind;
 import edu.kit.joana.wala.util.PrettyWalaNames;
 
@@ -67,6 +72,11 @@ public final class PDGNodeCreationVisitor implements IVisitor {
     private boolean showTypeNameInValue = false;
     private final boolean associateLocalNames;
     private TypeInference typeInf = null;       // Only needed for `showTypeNameInValue = true`
+    
+    private final Map<Integer, Set<String>> parameterAliases;
+    private final Map<Integer, String> parameterToName;
+    private final Map<String, Integer> nameToParameter;
+    private final Map<Integer, Integer> varNumberToParameter;
 
 	public PDGNodeCreationVisitor(PDG pdg, IClassHierarchy cha, ParameterFieldFactory params,
 			SymbolTable sym, boolean ignoreStaticFields, IR ir, boolean associateLocalNames) {
@@ -77,6 +87,18 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		this.sym = sym;
 		this.ignoreStaticFields = ignoreStaticFields;
 		this.associateLocalNames = associateLocalNames;
+		this.parameterAliases = new HashMap<>();
+		this.parameterToName = new HashMap<>();
+		this.nameToParameter = new HashMap<>();
+		
+		this.varNumberToParameter = new HashMap<>();
+		
+		for (int p = 0; p < pdg.getMethod().getNumberOfParameters(); p++) {
+			final String name = pdg.getMethod().getLocalVariableName(0, p);
+			this.parameterToName.put(p, name);
+			this.nameToParameter.put(name, p);
+			this.varNumberToParameter.put(ir.getParameter(p), p);
+		}
 	}
 
     public static PDGNodeCreationVisitor makeWithTypeInf(PDG pdg, IClassHierarchy cha, ParameterFieldFactory params,
@@ -121,7 +143,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 
 			return "#(" + cst + ")";
 		} else {
-            if (var <= pdg.getMethod().getNumberOfParameters()) {
+            if (this.varNumberToParameter.containsKey(var)) {
                 if (this.showTypeNameInValue) {
                     // Append the type name to the variables name
                     assert (this.typeInf != null) : "You have to give a TypeInference in order to use showTypeNameInValue";
@@ -135,30 +157,28 @@ public final class PDGNodeCreationVisitor implements IVisitor {
                         }
                     }
                 }
-
-                if (pdg.getMethod().isStatic()) {
-                    return "p" + var + type;
-                } else if (var == 1){
-                    return "this";
-                } else {
-                    return "p" + (var - 1) + type;
-                }
+                
+                final int p = this.varNumberToParameter.get(var);
+                String name = " (\"" + this.parameterToName.get(p) + "\") ";
+                return "p" + p + name + type;
             } else {
-                try {
-                    final int bcIndex = 0;  // TODO: Get the index
-                    String name = pdg.getMethod().getLocalVariableName(bcIndex, var);
-                    if ((name != null) && (! name.isEmpty())) {
-                        return name + "_" + var;
-                    }
-                    return "v" + var + type;
-                } catch (Exception e) {
-                    //System.out.println(e.toString());
-                    return "v" + var + type;
-                }
+                return "v" + var + type;
             }
         }
 	}
 
+	private void recordParameterAliases(String[] localUseNames) {
+		if (localUseNames == null) return;
+		Arrays.stream(localUseNames).filter(this.nameToParameter::containsKey).forEach( pName -> {
+			final Integer p = this.nameToParameter.get(pName);
+			this.parameterAliases.computeIfAbsent(p, (pp) -> new HashSet<String>());
+			this.parameterAliases.computeIfPresent(p, (pp, aliases) -> {
+				for (String alias : localUseNames) aliases.add(alias);
+				return aliases;
+			});
+		});
+	}
+	
 	@Override
 	public void visitGoto(SSAGotoInstruction instruction) {
 		lastNode = pdg.createNode("goto", Kind.NORMAL, PDGNode.DEFAULT_TYPE, PDGNode.DEFAULT_NO_LOCAL, PDGNode.DEFAULT_NO_LOCAL);
@@ -180,6 +200,9 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 			localUseNames2 = ir.getLocalNames(instruction.iindex,  instruction.getIndex());
 			if (localUseNames1 == null) localUseNames1 = PDGNode.DEFAULT_EMPTY_LOCAL;
 			if (localUseNames2 == null) localUseNames2 = PDGNode.DEFAULT_EMPTY_LOCAL;
+			
+			recordParameterAliases(localUseNames1);
+			recordParameterAliases(localUseNames2);
 
 			localUseNames = new String[localUseNames1.length + localUseNames2.length];
 			System.arraycopy(localUseNames1, 0, localUseNames, 0,                     localUseNames1.length);
@@ -210,6 +233,10 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 			localUseNames2 = ir.getLocalNames(instruction.iindex,  instruction.getValue());
 			if (localUseNames1 == null) localUseNames1 = PDGNode.DEFAULT_EMPTY_LOCAL;
 			if (localUseNames2 == null) localUseNames2 = PDGNode.DEFAULT_EMPTY_LOCAL;
+			
+			recordParameterAliases(localUseNames1);
+			recordParameterAliases(localUseNames2);
+			
 			localUseNames = new String[localUseNames1.length + localUseNames2.length];
 			System.arraycopy(localUseNames1, 0, localUseNames, 0,                     localUseNames1.length);
 			System.arraycopy(localUseNames2, 0, localUseNames, localUseNames1.length, localUseNames2.length);
@@ -248,6 +275,10 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 			localUseNames2 = ir.getLocalNames(instr.iindex,  instr.getUse(1));
 			if (localUseNames1 == null) localUseNames1 = PDGNode.DEFAULT_EMPTY_LOCAL;
 			if (localUseNames2 == null) localUseNames2 = PDGNode.DEFAULT_EMPTY_LOCAL;
+			
+			recordParameterAliases(localUseNames1);
+			recordParameterAliases(localUseNames2);
+			
 			localUseNames = new String[localUseNames1.length + localUseNames2.length];
 			System.arraycopy(localUseNames1, 0, localUseNames, 0,                     localUseNames1.length);
 			System.arraycopy(localUseNames2, 0, localUseNames, localUseNames1.length, localUseNames2.length);
@@ -269,6 +300,8 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 			final int lastInstructionOfBB = ir.getBasicBlockForInstruction(instr).getLastInstructionIndex();
 			localDefNames = ir.getLocalNames(lastInstructionOfBB, instr.getDef());
 			localUseNames = ir.getLocalNames(instr.iindex, instr.getUse(0));
+			
+			recordParameterAliases(localUseNames);
 		} else {
 			localDefNames = PDGNode.DEFAULT_NO_LOCAL;
 			localUseNames = PDGNode.DEFAULT_NO_LOCAL;
@@ -287,6 +320,8 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 			final int lastInstructionOfBB = ir.getBasicBlockForInstruction(instr).getLastInstructionIndex();
 			localDefNames = ir.getLocalNames(lastInstructionOfBB, instr.getDef());
 			localUseNames = ir.getLocalNames(instr.iindex, instr.getUse(0));
+			
+			recordParameterAliases(localUseNames);
 		} else {
 			localDefNames = PDGNode.DEFAULT_NO_LOCAL;
 			localUseNames = PDGNode.DEFAULT_NO_LOCAL;
@@ -312,6 +347,10 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 			localUseNames2 = ir.getLocalNames(instr.iindex,  instr.getUse(1));
 			if (localUseNames1 == null) localUseNames1 = PDGNode.DEFAULT_EMPTY_LOCAL;
 			if (localUseNames2 == null) localUseNames2 = PDGNode.DEFAULT_EMPTY_LOCAL;
+			
+			recordParameterAliases(localUseNames1);
+			recordParameterAliases(localUseNames2);
+			
 			localUseNames = new String[localUseNames1.length + localUseNames2.length];
 
 			System.arraycopy(localUseNames1, 0, localUseNames, 0,                     localUseNames1.length);
@@ -334,6 +373,10 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 			localUseNames2 = ir.getLocalNames(instr.iindex,  instr.getUse(1));
 			if (localUseNames1 == null) localUseNames1 = PDGNode.DEFAULT_EMPTY_LOCAL;
 			if (localUseNames2 == null) localUseNames2 = PDGNode.DEFAULT_EMPTY_LOCAL;
+			
+			recordParameterAliases(localUseNames1);
+			recordParameterAliases(localUseNames2);
+			
 			localUseNames = new String[localUseNames1.length + localUseNames2.length];
 			System.arraycopy(localUseNames1, 0, localUseNames, 0,                     localUseNames1.length);
 			System.arraycopy(localUseNames2, 0, localUseNames, localUseNames1.length, localUseNames2.length);
@@ -349,6 +392,9 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		final String[] localUseNames;
 		if (this.associateLocalNames) {
 			localUseNames = ir.getLocalNames(instruction.iindex,  instruction.getUse(0));
+			
+			recordParameterAliases(localUseNames);
+
 		} else {
 			localUseNames = PDGNode.DEFAULT_NO_LOCAL;
 		}
@@ -365,6 +411,9 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 			
 			if (this.associateLocalNames) {
 				localUseNames = ir.getLocalNames(instr.iindex,  instr.getResult());
+				
+				recordParameterAliases(localUseNames);
+				
 			} else {
 				localUseNames = PDGNode.DEFAULT_NO_LOCAL;
 			}
@@ -390,6 +439,9 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 				localUseNames = PDGNode.DEFAULT_NO_LOCAL;
 			} else {
 				localUseNames = ir.getLocalNames(instr.iindex, instr.getRef());
+				
+				recordParameterAliases(localUseNames);
+				
 			}
 		} else {
 			localDefNames = PDGNode.DEFAULT_NO_LOCAL;
@@ -445,6 +497,10 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 				localUseNames2 = ir.getLocalNames(instr.iindex, instr.getRef());
 				if (localUseNames1 == null) localUseNames1 = PDGNode.DEFAULT_EMPTY_LOCAL;
 				if (localUseNames2 == null) localUseNames2 = PDGNode.DEFAULT_EMPTY_LOCAL;
+				
+				recordParameterAliases(localUseNames1);
+				recordParameterAliases(localUseNames2);
+
 				localUseNames = new String[localUseNames1.length + localUseNames2.length];
 				System.arraycopy(localUseNames1, 0, localUseNames, 0,                     localUseNames1.length);
 				System.arraycopy(localUseNames2, 0, localUseNames, localUseNames1.length, localUseNames2.length);
@@ -521,6 +577,9 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 			final String[] localUseNames;
 			if (this.associateLocalNames) {
 				localUseNames = ir.getLocalNames(instr.iindex, val);
+				
+				recordParameterAliases(localUseNames);
+
 			} else {
 				localUseNames = PDGNode.DEFAULT_NO_LOCAL;
 			}
@@ -596,6 +655,8 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 			final int lastInstructionOfBB = ir.getBasicBlockForInstruction(instr).getLastInstructionIndex();
 			localDefNames = ir.getLocalNames(lastInstructionOfBB, instr.getDef());
 			localUseNames = ir.getLocalNames(instr.iindex, instr.getArrayRef());
+			
+			recordParameterAliases(localUseNames);
 		} else {
 			localDefNames = PDGNode.DEFAULT_NO_LOCAL;
 			localUseNames = PDGNode.DEFAULT_NO_LOCAL;
@@ -610,6 +671,8 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		final String[] localUseNames;
 		if (this.associateLocalNames) {
 			localUseNames = ir.getLocalNames(instruction.iindex, instruction.getUse(0));
+			recordParameterAliases(localUseNames);
+
 		} else {
 			localUseNames = PDGNode.DEFAULT_NO_LOCAL;
 		}
@@ -622,6 +685,8 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		final String[] localUseNames;
 		if (this.associateLocalNames) {
 			localUseNames = ir.getLocalNames(instr.iindex, instr.getRef());
+
+			recordParameterAliases(localUseNames);
 		} else {
 			localUseNames = PDGNode.DEFAULT_NO_LOCAL;
 		}
@@ -640,7 +705,8 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 			final int lastInstructionOfBB = ir.getBasicBlockForInstruction(instr).getLastInstructionIndex();
 			localDefNames = ir.getLocalNames(lastInstructionOfBB, instr.getDef());
 			localUseNames = ir.getLocalNames(instr.iindex, instr.getVal());
-
+			
+			recordParameterAliases(localUseNames);
 		} else {
 			localDefNames = PDGNode.DEFAULT_NO_LOCAL;
 			localUseNames = PDGNode.DEFAULT_NO_LOCAL;
@@ -659,6 +725,8 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 			final int lastInstructionOfBB = ir.getBasicBlockForInstruction(instr).getLastInstructionIndex();
 			localDefNames = ir.getLocalNames(lastInstructionOfBB, instr.getDef());
 			localUseNames = ir.getLocalNames(instr.iindex, instr.getRef());
+			
+			recordParameterAliases(localUseNames);
 		} else {
 			localDefNames = PDGNode.DEFAULT_NO_LOCAL;
 			localUseNames = PDGNode.DEFAULT_NO_LOCAL;
@@ -690,6 +758,8 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 			ArrayList<String> localUseNamesMerged = new ArrayList<>(instr.getNumberOfUses() * 2);
 			for (int i = 0; i < instr.getNumberOfUses(); i++) {
 				String[] localUseName = ir.getLocalNames(lastInstructionOfBB, instr.getUse(i));
+				recordParameterAliases(localUseName);
+
 				if (localUseName != null) {
 					Collections.addAll(localUseNamesMerged, localUseName);
 				}
@@ -726,6 +796,10 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		String label = tmpName(instr.getDef()) + " = metadata " + instr.getToken() + "->" + instr.getType();
 
 		lastNode = pdg.createNode(label, Kind.EXPRESSION, instr.getType(), PDGNode.DEFAULT_NO_LOCAL, PDGNode.DEFAULT_NO_LOCAL);
+	}
+
+	public Map<Integer, Set<String>> getParameterAliases() {
+		return parameterAliases;
 	}
 
 }

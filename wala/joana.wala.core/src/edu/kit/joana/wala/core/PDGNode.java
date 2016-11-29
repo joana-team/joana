@@ -284,11 +284,17 @@ public final class PDGNode implements INodeWithNumber {
 		return localDefNames;
 	}
 	
+	
 	// TODO: make copy to prevent mutation?
 	public String[] getLocalUseNames() {
 		return localUseNames;
 	}
 
+	void setLocalDefNames(String[] localDefNames) {
+		this.localDefNames = localDefNames;
+	}
+
+	
 	public PDGNode(int id, int pdgId, String label, Kind kind, TypeReference type, String[] localDefNames, String[] localUseNames) {
     	this.id = id;
     	this.nodeID = id;

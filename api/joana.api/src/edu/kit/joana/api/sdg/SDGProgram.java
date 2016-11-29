@@ -320,6 +320,7 @@ public class SDGProgram {
 							final LocalVarTarget localVarTarget = (LocalVarTarget) ta.getTypeAnnotationTarget();
 								for (SDGMethod sdgm : methods) {
 									final SDGLocalVariable localVar = sdgm.getLocalVariable(localVarTarget.getName());
+									ret.annotations.computeIfAbsent(localVar, lv -> new LinkedList<Annotation>());
 									ret.annotations.computeIfPresent(localVar, (lv, anns) -> {
 										anns.add(ta.getAnnotation());
 										return anns;
@@ -861,13 +862,13 @@ public class SDGProgram {
 			} else if (str.contains("->")) {
 				return getMethodParameters(str);
 			} else if (str.contains(".")) {
-				if (str.contains("(")) {
+				if (str.contains("#")) {
+					return getLocalVariables(str);
+				} else if (str.contains("(")) {
 					return getMethods(str);
 				} else {
 					return getAttributes(str);
 				}
-			} else if (str.contains("#")) {
-				return getLocalVariables(str);
 			} else {
 				return getClasss(str);
 			}
@@ -979,7 +980,7 @@ class SDGClassResolver {
 		Collection<SDGMethod> ms = getMethod(typeName, methodSig);
 		Collection<SDGLocalVariable> ret = new LinkedList<SDGLocalVariable>();
 		for (SDGMethod m : ms) {
-			ret.addAll(m.getLocalVariables());
+			ret.add(m.getLocalVariable(varName));
 		}
 		return ret;
 	}

@@ -304,8 +304,8 @@ public class SDGClassComputation {
 		}
 		
 		for (SDGNode node : sdg.vertexSet()) {
-			if (node.getLocalDefNames() != null) seenLocalDef(node);
-			if (node.getLocalUseNames() != null) seenLocalUse(node);
+			if (node.getLocalDefNames() != null && !(node.getLocalDefNames().length == 0)) seenLocalDef(node);
+			if (node.getLocalUseNames() != null && !(node.getLocalUseNames().length == 0)) seenLocalUse(node);
 		}
 
 		for (JavaType typeName : declNodes.keySet()) {

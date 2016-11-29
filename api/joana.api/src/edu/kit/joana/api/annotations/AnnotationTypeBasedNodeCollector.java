@@ -204,7 +204,7 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 			case SOURCE:
 				return local.getDefs();
 			case SINK:
-				return local.getUses();
+				return local.getDefs();	
 			default:
 				throw new UnsupportedOperationException("not implemented yet!");
 		}

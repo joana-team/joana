@@ -47,6 +47,7 @@ public class SDGClassComputation {
 	// type |--> entry nodes of methods implemented by that type
 	private final Map<JavaType, Set<SDGNode>> seenMethods = new HashMap<JavaType, Set<SDGNode>>();
 	
+	// entryNode --> localVariableName -> (Nodes that use localVariableName, Nodes that define localVariableName)  
 	private final Map<SDGNode, Map<String, Pair<Set<SDGNode>, Set<SDGNode>>>> seenLocalVariables = new HashMap<>();
 
 	public SDGClassComputation(SDG sdg) {

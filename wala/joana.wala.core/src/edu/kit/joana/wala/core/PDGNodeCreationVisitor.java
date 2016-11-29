@@ -160,7 +160,11 @@ public final class PDGNodeCreationVisitor implements IVisitor {
                 
                 final int p = this.varNumberToParameter.get(var);
                 String name = " $" + this.parameterToName.get(p) + " ";
-                return "p" + p + name + type;
+                if (pdg.getMethod().isStatic()) {
+                	return "p" + (p + 1) + name + type;
+                } else {
+                	return "p" + (p    ) + name + type;
+                }
             } else {
                 return "v" + var + type;
             }

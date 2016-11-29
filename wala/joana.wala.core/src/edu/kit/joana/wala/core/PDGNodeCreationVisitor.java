@@ -159,7 +159,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
                 }
                 
                 final int p = this.varNumberToParameter.get(var);
-                String name = " (\"" + this.parameterToName.get(p) + "\") ";
+                String name = " $" + this.parameterToName.get(p) + " ";
                 return "p" + p + name + type;
             } else {
                 return "v" + var + type;

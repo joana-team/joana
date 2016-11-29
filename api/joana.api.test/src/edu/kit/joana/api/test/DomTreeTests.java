@@ -219,6 +219,8 @@ public class DomTreeTests {
 		Dominators<SDGNode, SDGEdge> dom = Dominators.compute(icfg, icfg.getRoot());
 		final DFSIntervalOrder<SDGNode, DomEdge> dio =
 						new DFSIntervalOrder<SDGNode, DomEdge>(dom.getDominationTree());
+		DirectedGraph<ThreadInstance, DefaultEdge> tct =
+				ThreadInformationUtil.buildThreadCreationTree(sdg.getThreadsInfo());
 
 		ThreadModularCDomOracle tmdo = new ThreadModularCDomOracle(sdg);
 		RegionBasedCDomOracle rbdo = 
@@ -234,10 +236,15 @@ public class DomTreeTests {
 			PreciseMHPAnalysis mhp = common.mhp;
 			int tid = m.getNumber();
 			ThreadInstance thread = sdg.getThreadsInfo().getThread(tid);
-			if (!thread.isDynamic() && thread.getThreadContext().contains(d.getNode())) {
-				// the current MHP analysis returns that a fork is always MHP to the thread
-				// started by it, even though it isn't. Thus, we special case it here.
-				return false;
+			while (true) {
+				if (!thread.isDynamic() && thread.getFork() == d.getNode()) {
+					// the current MHP analysis returns that a fork is always MHP to the thread
+					// started by it, even though it isn't. Thus, we special case it here.
+					return false;
+				}
+				if (tct.incomingEdgesOf(thread).isEmpty())
+					break;
+				thread = tct.getEdgeSource(tct.incomingEdgesOf(thread).iterator().next());
 			}
 			return mhp.isParallel(d, m);
 		};
@@ -300,15 +307,7 @@ public class DomTreeTests {
 		testDomTree(common, newRegionBasedCDomOracle,   Result.ACYCLIC);
 		testDomTree(common, newThreadModularCDomOracle, Result.ACYCLIC);
 		testDomTree(common, newClassicCDomOracle      , Result.ACYCLIC);
-		/*
-		 * testGuarantees is currently disabled for this class because it gives false alarms.
-		 * In the isParallel method of testGuarantees, we special case forks
-		 * for non-dynamic threads. But in this case, the thread is marked as dynamic
-		 * but its fork is not. This stems from the fact that in the Setup program,
-		 * the run() method of some threads is called recursively as normal method call
-		 * (no new thread is started).
-		 */
-		//testDomGuarantees(common);
+		testDomGuarantees(common);
 	}
 	
 	@Test

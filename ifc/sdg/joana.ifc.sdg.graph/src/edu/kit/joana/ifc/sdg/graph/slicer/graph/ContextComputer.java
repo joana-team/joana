@@ -232,7 +232,7 @@ public class ContextComputer {
 
 			// initialize worklist with the direct calls of entry
 			for (SDGEdge e : g.incomingEdgesOf(entry)) {
-				if (e.getKind() == SDGEdge.Kind.CALL || e.getKind() == SDGEdge.Kind.FORK) {
+				if (e.getKind() == SDGEdge.Kind.FORK) {
 					SDGNode f = folded.map(e.getSource());
 					LinkedList<SDGNode> p = new LinkedList<SDGNode>();
 					p.addLast(f);

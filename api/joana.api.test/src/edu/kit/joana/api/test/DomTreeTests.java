@@ -269,18 +269,31 @@ public class DomTreeTests {
 			return mhp.isParallel(d, m);
 		};
 
-		for (SDGNode n : icfg.vertexSet()) {
+		SDGNode[] vertices = icfg.vertexSet().toArray(new SDGNode[0]);
+		
+		for (int i = 0; i < vertices.length; i++) {
+			SDGNode n = vertices[i];
 			for (final int threadN : n.getThreadNumbers()) {
 				VirtualNode vn = new VirtualNode(n, threadN);
-				for (final SDGNode m : icfg.vertexSet()) {
+				for (int j = i; j < vertices.length; j++) {
+					SDGNode m = vertices[j];
 					for (final int threadM : m.getThreadNumbers()) {
 						if (common.mhp.isParallel(n, threadN, m, threadM)) {
 							VirtualNode vm = new VirtualNode(m, threadM);
 							
 							VirtualNode vt = tmdo.cdom(n, threadN, m, threadM);
+							VirtualNode vt_s = tmdo.cdom(m, threadM, n, threadN);
 							VirtualNode vr = rbdo.cdom(n, threadN, m, threadM);
+							VirtualNode vr_s = rbdo.cdom(m, threadM, n, threadN);
 							VirtualNode vc = cldo.cdom(n, threadN, m, threadM);
+							VirtualNode vc_s = cldo.cdom(m, threadM, n, threadN);
 							VirtualNode vv = vcdo.cdom(n, threadN, m, threadM);
+							VirtualNode vv_s = vcdo.cdom(m, threadM, n, threadN);
+							
+							assertEquals(vt, vt_s);
+							assertEquals(vr, vr_s);
+							assertEquals(vc, vc_s);
+							assertEquals(vv, vv_s);
 							
 							assertEquals(root, vv);
 							

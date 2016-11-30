@@ -317,14 +317,22 @@ public class SDGProgram {
 								methods = ret.getMethods(JavaMethodSignature.fromString(m.getSignature()));
 							}
 							for (TypeAnnotation ta : localVarAnnotations) {
-							final LocalVarTarget localVarTarget = (LocalVarTarget) ta.getTypeAnnotationTarget();
+								final LocalVarTarget localVarTarget = (LocalVarTarget) ta.getTypeAnnotationTarget();
 								for (SDGMethod sdgm : methods) {
 									final SDGLocalVariable localVar = sdgm.getLocalVariable(localVarTarget.getName());
-									ret.annotations.computeIfAbsent(localVar, lv -> new LinkedList<Annotation>());
-									ret.annotations.computeIfPresent(localVar, (lv, anns) -> {
-										anns.add(ta.getAnnotation());
-										return anns;
-									});
+									if (localVar != null) {
+										ret.annotations.computeIfAbsent(localVar, lv -> new LinkedList<Annotation>());
+										ret.annotations.computeIfPresent(localVar, (lv, anns) -> {
+											anns.add(ta.getAnnotation());
+											return anns;
+										});
+									} else {
+										debug.outln("Warning: Variable "
+										   + localVarTarget + " in "
+										   + JavaMethodSignature.fromString(m.getSignature()) 
+										   + "not found. Did you try to annotate an 'ephemeral' Variable such as 'int x = p' where 'x' is never used in the method?"
+										);
+									}
 								}
 							}
 							parameternumber++;

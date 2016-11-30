@@ -225,7 +225,7 @@ public class ToyTests {
 		SDGSerializer.toPDGFormat(sdg, bOut);
 	}
 	
-	private static void dumpGraphML(SDG sdg, String filename) throws FileNotFoundException {
+	public static void dumpGraphML(SDG sdg, String filename) throws FileNotFoundException {
 		final BufferedOutputStream bOut = new BufferedOutputStream(new FileOutputStream(outputDir + "/" + filename + ".graphml"));
 		final BufferedOutputStream bOutHierachical = new BufferedOutputStream(new FileOutputStream(outputDir + "/" + filename + ".hierarchical.graphml"));
 		try {

@@ -9,12 +9,17 @@ package edu.kit.joana.api.test;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 
@@ -42,6 +47,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
 import edu.kit.joana.ifc.sdg.io.graphml.SDG2GraphML;
 import edu.kit.joana.ifc.sdg.irlsod.ClassicCDomOracle;
@@ -211,17 +217,40 @@ public class DomTreeTests {
 		}
 	}
 	
+	private Map<SDGNode, Set<Integer>> getForkedThreadsMap(ThreadsInformation info) {
+		DirectedGraph<ThreadInstance, DefaultEdge> tct
+					= ThreadInformationUtil.buildThreadCreationTree(info);
+		DFSIntervalOrder<ThreadInstance, DefaultEdge> dioTCT
+					= new DFSIntervalOrder<ThreadInstance, DefaultEdge>(tct);
+		Map<SDGNode, Set<Integer>> result = new HashMap<>();
+		for (ThreadInstance thread : info) {
+			SDGNode fork = thread.getFork();
+			if (thread.isDynamic() || fork == null) {
+				continue;
+			}
+			Set<Integer> forkedThreads = result.get(fork);
+			if (forkedThreads == null) {
+				forkedThreads = new HashSet<>();
+				result.put(fork, forkedThreads);
+			}
+			for (ThreadInstance thread2 : info) {
+				if (dioTCT.isLeq(thread2, thread)) {
+					forkedThreads.add(thread2.getId());
+				}
+			}
+		}
+		return result;
+	}
+	
 	private void testDomGuarantees(Common common) throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		final SDG sdg = common.sdg;
 		final CFG icfg = ICFGBuilder.extractICFG(sdg);
 		GraphModifier.removeCallCallRetEdges(icfg);
-		Dominators<SDGNode, SDGEdge> dom = Dominators.compute(icfg, icfg.getRoot());
-		final DFSIntervalOrder<SDGNode, DomEdge> dio =
-						new DFSIntervalOrder<SDGNode, DomEdge>(dom.getDominationTree());
-		DirectedGraph<ThreadInstance, DefaultEdge> tct =
-				ThreadInformationUtil.buildThreadCreationTree(sdg.getThreadsInfo());
-
+		final Map<SDGNode, Set<Integer>> forkedThreadsMap
+				= getForkedThreadsMap(sdg.getThreadsInfo());
+		final VirtualNode root = new VirtualNode(sdg.getRoot(), 0);
+		
 		ThreadModularCDomOracle tmdo = new ThreadModularCDomOracle(sdg);
 		RegionBasedCDomOracle rbdo = 
 				new RegionBasedCDomOracle(sdg, PreciseMHPAnalysis.analyze(sdg));
@@ -229,22 +258,13 @@ public class DomTreeTests {
 		ClassicCDomOracle cldo = new ClassicCDomOracle(sdg,common.mhp);
 		VeryConservativeCDomOracle vcdo = new VeryConservativeCDomOracle(icfg);
 		
-		BiPredicate<VirtualNode, VirtualNode> isLeq = (v1, v2) ->
-			dio.isLeq(v1.getNode(), v2.getNode());
-		
 		BiPredicate<VirtualNode, VirtualNode> isParallel = (d, m) -> {
 			PreciseMHPAnalysis mhp = common.mhp;
-			int tid = m.getNumber();
-			ThreadInstance thread = sdg.getThreadsInfo().getThread(tid);
-			while (true) {
-				if (!thread.isDynamic() && thread.getFork() == d.getNode()) {
-					// the current MHP analysis returns that a fork is always MHP to the thread
-					// started by it, even though it isn't. Thus, we special case it here.
-					return false;
-				}
-				if (tct.incomingEdgesOf(thread).isEmpty())
-					break;
-				thread = tct.getEdgeSource(tct.incomingEdgesOf(thread).iterator().next());
+			Set<Integer> forkedThreads = forkedThreadsMap.get(d.getNode());
+			if (forkedThreads != null && forkedThreads.contains(m.getNumber())) {
+				// the current MHP analysis returns that a fork is always MHP to the thread
+				// started by it, even though it isn't. Thus, we special case it here.
+				return false;
 			}
 			return mhp.isParallel(d, m);
 		};
@@ -262,22 +282,7 @@ public class DomTreeTests {
 							VirtualNode vc = cldo.cdom(n, threadN, m, threadM);
 							VirtualNode vv = vcdo.cdom(n, threadN, m, threadM);
 							
-							assertTrue(isLeq.test(vt, vv));
-							assertTrue(isLeq.test(vr, vv));
-							assertTrue(isLeq.test(vc, vv));
-							
-							/* dio works on statement level, the CDomOracles on
-							 * virtualNode level. Thus, they can be more precise
-							 * than dio, so we cannot test it here.
-							 */
-							/*assertTrue(dio.isLeq(n, vt));
-							assertTrue(dio.isLeq(m, vt));
-							assertTrue(dio.isLeq(n, vr));
-							assertTrue(dio.isLeq(m, vr));
-							assertTrue(dio.isLeq(n, vc));
-							assertTrue(dio.isLeq(m, vc));
-							assertTrue(dio.isLeq(n, vv));
-							assertTrue(dio.isLeq(m, vv));*/
+							assertEquals(root, vv);
 							
 							assertFalse(isParallel.test(vt,vn));
 							assertFalse(isParallel.test(vt,vm));

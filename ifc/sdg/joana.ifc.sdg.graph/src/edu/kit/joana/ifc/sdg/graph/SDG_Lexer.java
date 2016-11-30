@@ -1,4 +1,4 @@
-// $ANTLR 3.5.2 /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g 2016-11-21 16:35:03
+// $ANTLR 3.5.2 /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g 2016-11-30 16:03:49
 /**
  * This file is part of the Joana IFC project. It is developed at the
  * Programming Paradigms Group of the Karlsruhe Institute of Technology.

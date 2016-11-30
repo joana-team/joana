@@ -77,6 +77,8 @@ import gnu.trove.set.hash.TIntHashSet;
     private String classLoader;
     private TIntSet allocSites;
     private TIntSet aliasDataSrc;
+    private List<String> localDefNames;
+    private List<String> localUseNames;
     private final List<SDGEdgeStub> edges = new LinkedList<SDGEdgeStub>();
     
     private SDGNodeStub(final SDGNode.Kind kind, final int id, SourcePos defSPos, ByteCodePos defBPos) {
@@ -126,7 +128,17 @@ import gnu.trove.set.hash.TIntHashSet;
       if (unresolvedCallTarget != null) {
         n.setUnresolvedCallTarget(unresolvedCallTarget);
       }
+      
+      if (localDefNames != null) {
+        n.setLocalDefNames(localDefNames.toArray(new String[localDefNames.size()]));
+      }
+      
+      if (localUseNames != null) {
+        n.setLocalUseNames(localUseNames.toArray(new String[localUseNames.size()]));
+      }
+      
       return n;
+      
     }
     
     public void createEdges(final SDG sdg) {
@@ -268,6 +280,12 @@ private node_attr[SDGNodeStub node]
   | 'A' al=pos_num_set      { node.allocSites = al; }     // possible allocation sites (node ids of 'new')
   | 'D' ds=pos_num_set      { node.aliasDataSrc = ds; }    // definitve data sources for this value
   | 'U' uct=string          { node.unresolvedCallTarget = uct; } // signature of call target if call target is a native method
+  | 'LD' ldefs=mayEmptyStringList {
+                              node.localDefNames = ldefs;
+                            } // names of local variables defined
+  | 'LU' luses=mayEmptyStringList {
+                              node.localUseNames = ldefs;
+                            } // names of local variables used
   ;
 
 private pos_num_set returns [TIntSet nums = new TIntHashSet();]
@@ -386,6 +404,12 @@ private number returns [int nr]
 
 private string returns [String str]
   : s=STRING { str = s.getText(); str = str.substring(1, str.length() - 1); }
+  ;
+
+private mayEmptyStringList returns [LinkedList<String> ss = new LinkedList<String>();]
+  : 'null'
+  | '[' ']'
+  | '[' s=string { ss.add(s); } (',' s=string { ss.add(s); } )* ']'
   ;
 
 private bool returns [boolean b]

@@ -1,4 +1,4 @@
-// $ANTLR 3.5.2 /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g 2016-06-10 12:55:02
+// $ANTLR 3.5.2 /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g 2016-11-30 16:03:47
 /**
  * This file is part of the Joana IFC project. It is developed at the
  * Programming Paradigms Group of the Karlsruhe Institute of Technology.
@@ -9,6 +9,9 @@
 package edu.kit.joana.ifc.sdg.graph;
 
 import java.util.LinkedList;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
@@ -16,6 +19,9 @@ import gnu.trove.procedure.TIntProcedure;
 
 
 import org.antlr.runtime.*;
+import java.util.Stack;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * This file is part of the Joana IFC project. It is developed at the
@@ -70,7 +76,7 @@ public class SDGThreadInstance_Parser extends Parser {
 	}
 
 	@Override public String[] getTokenNames() { return SDGThreadInstance_Parser.tokenNames; }
-	@Override public String getGrammarFileName() { return "/afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g"; }
+	@Override public String getGrammarFileName() { return "/data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g"; }
 
 
 
@@ -160,7 +166,7 @@ public class SDGThreadInstance_Parser extends Parser {
 
 
 	// $ANTLR start "thread"
-	// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:161:1: thread returns [ThreadInstanceStub ti] : 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= number ';' 'Join' joins= listOrSingleNumber ';' 'Context' con= context ';' 'Dynamic' dyn= bool ';' '}' ;
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:161:1: thread returns [ThreadInstanceStub ti] : 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= number ';' 'Join' joins= listOrSingleNumber ';' 'Context' con= context ';' 'Dynamic' dyn= bool ';' '}' ;
 	public final ThreadInstanceStub thread() throws RecognitionException {
 		ThreadInstanceStub ti = null;
 
@@ -174,8 +180,8 @@ public class SDGThreadInstance_Parser extends Parser {
 		boolean dyn =false;
 
 		try {
-			// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:162:3: ( 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= number ';' 'Join' joins= listOrSingleNumber ';' 'Context' con= context ';' 'Dynamic' dyn= bool ';' '}' )
-			// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:162:5: 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= number ';' 'Join' joins= listOrSingleNumber ';' 'Context' con= context ';' 'Dynamic' dyn= bool ';' '}'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:162:3: ( 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= number ';' 'Join' joins= listOrSingleNumber ';' 'Context' con= context ';' 'Dynamic' dyn= bool ';' '}' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:162:5: 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= number ';' 'Join' joins= listOrSingleNumber ';' 'Context' con= context ';' 'Dynamic' dyn= bool ';' '}'
 			{
 			match(input,16,FOLLOW_16_in_thread71); 
 			pushFollow(FOLLOW_number_in_thread75);
@@ -243,7 +249,7 @@ public class SDGThreadInstance_Parser extends Parser {
 
 
 	// $ANTLR start "listOrSingleNumber"
-	// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:178:9: private listOrSingleNumber returns [TIntList js] : (joins= mayEmptyNumberList |jo= number );
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:178:9: private listOrSingleNumber returns [TIntList js] : (joins= mayEmptyNumberList |jo= number );
 	public final TIntList listOrSingleNumber() throws RecognitionException {
 		TIntList js = null;
 
@@ -252,7 +258,7 @@ public class SDGThreadInstance_Parser extends Parser {
 		int jo =0;
 
 		try {
-			// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:179:3: (joins= mayEmptyNumberList |jo= number )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:179:3: (joins= mayEmptyNumberList |jo= number )
 			int alt1=2;
 			int LA1_0 = input.LA(1);
 			if ( (LA1_0==17||LA1_0==20) ) {
@@ -270,7 +276,7 @@ public class SDGThreadInstance_Parser extends Parser {
 
 			switch (alt1) {
 				case 1 :
-					// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:179:5: joins= mayEmptyNumberList
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:179:5: joins= mayEmptyNumberList
 					{
 					pushFollow(FOLLOW_mayEmptyNumberList_in_listOrSingleNumber207);
 					joins=mayEmptyNumberList();
@@ -280,7 +286,7 @@ public class SDGThreadInstance_Parser extends Parser {
 					}
 					break;
 				case 2 :
-					// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:180:5: jo= number
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:180:5: jo= number
 					{
 					pushFollow(FOLLOW_number_in_listOrSingleNumber217);
 					jo=number();
@@ -310,7 +316,7 @@ public class SDGThreadInstance_Parser extends Parser {
 
 
 	// $ANTLR start "mayEmptyNumberList"
-	// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:187:9: private mayEmptyNumberList returns [TIntList cx = new TIntArrayList();] : ( 'null' | '[' ']' | '[' i= number ( ',' i= number )* ']' );
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:187:9: private mayEmptyNumberList returns [TIntList cx = new TIntArrayList();] : ( 'null' | '[' ']' | '[' i= number ( ',' i= number )* ']' );
 	public final TIntList mayEmptyNumberList() throws RecognitionException {
 		TIntList cx =  new TIntArrayList();;
 
@@ -318,7 +324,7 @@ public class SDGThreadInstance_Parser extends Parser {
 		int i =0;
 
 		try {
-			// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:188:3: ( 'null' | '[' ']' | '[' i= number ( ',' i= number )* ']' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:188:3: ( 'null' | '[' ']' | '[' i= number ( ',' i= number )* ']' )
 			int alt3=3;
 			int LA3_0 = input.LA(1);
 			if ( (LA3_0==20) ) {
@@ -355,20 +361,20 @@ public class SDGThreadInstance_Parser extends Parser {
 
 			switch (alt3) {
 				case 1 :
-					// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:188:5: 'null'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:188:5: 'null'
 					{
 					match(input,20,FOLLOW_20_in_mayEmptyNumberList238); 
 					}
 					break;
 				case 2 :
-					// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:189:5: '[' ']'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:189:5: '[' ']'
 					{
 					match(input,17,FOLLOW_17_in_mayEmptyNumberList244); 
 					match(input,18,FOLLOW_18_in_mayEmptyNumberList246); 
 					}
 					break;
 				case 3 :
-					// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:190:5: '[' i= number ( ',' i= number )* ']'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:190:5: '[' i= number ( ',' i= number )* ']'
 					{
 					match(input,17,FOLLOW_17_in_mayEmptyNumberList252); 
 					pushFollow(FOLLOW_number_in_mayEmptyNumberList256);
@@ -376,7 +382,7 @@ public class SDGThreadInstance_Parser extends Parser {
 					state._fsp--;
 
 					 cx.add(i); 
-					// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:190:33: ( ',' i= number )*
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:190:33: ( ',' i= number )*
 					loop2:
 					while (true) {
 						int alt2=2;
@@ -387,7 +393,7 @@ public class SDGThreadInstance_Parser extends Parser {
 
 						switch (alt2) {
 						case 1 :
-							// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:190:34: ',' i= number
+							// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:190:34: ',' i= number
 							{
 							match(input,7,FOLLOW_7_in_mayEmptyNumberList261); 
 							pushFollow(FOLLOW_number_in_mayEmptyNumberList265);
@@ -423,7 +429,7 @@ public class SDGThreadInstance_Parser extends Parser {
 
 
 	// $ANTLR start "context"
-	// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:193:9: private context returns [TIntList cx = new TIntArrayList();] : ( 'null' | '[' i= mayNegNumber ( ',' i= mayNegNumber )* ']' );
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:193:9: private context returns [TIntList cx = new TIntArrayList();] : ( 'null' | '[' i= mayNegNumber ( ',' i= mayNegNumber )* ']' );
 	public final TIntList context() throws RecognitionException {
 		TIntList cx =  new TIntArrayList();;
 
@@ -431,7 +437,7 @@ public class SDGThreadInstance_Parser extends Parser {
 		int i =0;
 
 		try {
-			// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:194:3: ( 'null' | '[' i= mayNegNumber ( ',' i= mayNegNumber )* ']' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:194:3: ( 'null' | '[' i= mayNegNumber ( ',' i= mayNegNumber )* ']' )
 			int alt5=2;
 			int LA5_0 = input.LA(1);
 			if ( (LA5_0==20) ) {
@@ -449,13 +455,13 @@ public class SDGThreadInstance_Parser extends Parser {
 
 			switch (alt5) {
 				case 1 :
-					// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:194:5: 'null'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:194:5: 'null'
 					{
 					match(input,20,FOLLOW_20_in_context291); 
 					}
 					break;
 				case 2 :
-					// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:195:5: '[' i= mayNegNumber ( ',' i= mayNegNumber )* ']'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:195:5: '[' i= mayNegNumber ( ',' i= mayNegNumber )* ']'
 					{
 					match(input,17,FOLLOW_17_in_context297); 
 					pushFollow(FOLLOW_mayNegNumber_in_context301);
@@ -463,7 +469,7 @@ public class SDGThreadInstance_Parser extends Parser {
 					state._fsp--;
 
 					 cx.add(i); 
-					// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:195:39: ( ',' i= mayNegNumber )*
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:195:39: ( ',' i= mayNegNumber )*
 					loop4:
 					while (true) {
 						int alt4=2;
@@ -474,7 +480,7 @@ public class SDGThreadInstance_Parser extends Parser {
 
 						switch (alt4) {
 						case 1 :
-							// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:195:40: ',' i= mayNegNumber
+							// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:195:40: ',' i= mayNegNumber
 							{
 							match(input,7,FOLLOW_7_in_context306); 
 							pushFollow(FOLLOW_mayNegNumber_in_context310);
@@ -510,7 +516,7 @@ public class SDGThreadInstance_Parser extends Parser {
 
 
 	// $ANTLR start "mayNegNumber"
-	// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:198:9: private mayNegNumber returns [int nr] : ( '-' n= number |n= number );
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:198:9: private mayNegNumber returns [int nr] : ( '-' n= number |n= number );
 	public final int mayNegNumber() throws RecognitionException {
 		int nr = 0;
 
@@ -518,7 +524,7 @@ public class SDGThreadInstance_Parser extends Parser {
 		int n =0;
 
 		try {
-			// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:199:3: ( '-' n= number |n= number )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:199:3: ( '-' n= number |n= number )
 			int alt6=2;
 			int LA6_0 = input.LA(1);
 			if ( (LA6_0==8) ) {
@@ -536,7 +542,7 @@ public class SDGThreadInstance_Parser extends Parser {
 
 			switch (alt6) {
 				case 1 :
-					// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:199:5: '-' n= number
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:199:5: '-' n= number
 					{
 					match(input,8,FOLLOW_8_in_mayNegNumber336); 
 					pushFollow(FOLLOW_number_in_mayNegNumber340);
@@ -547,7 +553,7 @@ public class SDGThreadInstance_Parser extends Parser {
 					}
 					break;
 				case 2 :
-					// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:200:5: n= number
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:200:5: n= number
 					{
 					pushFollow(FOLLOW_number_in_mayNegNumber350);
 					n=number();
@@ -573,7 +579,7 @@ public class SDGThreadInstance_Parser extends Parser {
 
 
 	// $ANTLR start "number"
-	// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:203:9: private number returns [int nr] : n= NUMBER ;
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:203:9: private number returns [int nr] : n= NUMBER ;
 	public final int number() throws RecognitionException {
 		int nr = 0;
 
@@ -581,8 +587,8 @@ public class SDGThreadInstance_Parser extends Parser {
 		Token n=null;
 
 		try {
-			// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:204:3: (n= NUMBER )
-			// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:204:5: n= NUMBER
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:204:3: (n= NUMBER )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:204:5: n= NUMBER
 			{
 			n=(Token)match(input,NUMBER,FOLLOW_NUMBER_in_number373); 
 			 nr = Integer.parseInt(n.getText()); 
@@ -603,7 +609,7 @@ public class SDGThreadInstance_Parser extends Parser {
 
 
 	// $ANTLR start "string"
-	// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:207:9: private string returns [String str] : s= STRING ;
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:207:9: private string returns [String str] : s= STRING ;
 	public final String string() throws RecognitionException {
 		String str = null;
 
@@ -611,8 +617,8 @@ public class SDGThreadInstance_Parser extends Parser {
 		Token s=null;
 
 		try {
-			// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:208:3: (s= STRING )
-			// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:208:5: s= STRING
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:208:3: (s= STRING )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:208:5: s= STRING
 			{
 			s=(Token)match(input,STRING,FOLLOW_STRING_in_string396); 
 			 str = s.getText(); str = str.substring(1, str.length() - 1); 
@@ -633,13 +639,13 @@ public class SDGThreadInstance_Parser extends Parser {
 
 
 	// $ANTLR start "bool"
-	// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:211:9: private bool returns [boolean b] : ( 'true' | 'false' );
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:211:9: private bool returns [boolean b] : ( 'true' | 'false' );
 	public final boolean bool() throws RecognitionException {
 		boolean b = false;
 
 
 		try {
-			// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:212:3: ( 'true' | 'false' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:212:3: ( 'true' | 'false' )
 			int alt7=2;
 			int LA7_0 = input.LA(1);
 			if ( (LA7_0==21) ) {
@@ -657,14 +663,14 @@ public class SDGThreadInstance_Parser extends Parser {
 
 			switch (alt7) {
 				case 1 :
-					// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:212:5: 'true'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:212:5: 'true'
 					{
 					match(input,21,FOLLOW_21_in_bool417); 
 					 b = true; 
 					}
 					break;
 				case 2 :
-					// /afs/info.uni-karlsruhe.de/user/bischof/joana/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:213:5: 'false'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:213:5: 'false'
 					{
 					match(input,19,FOLLOW_19_in_bool426); 
 					 b = false; 

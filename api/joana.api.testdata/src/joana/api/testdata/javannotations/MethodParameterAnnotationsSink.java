@@ -15,7 +15,7 @@ import edu.kit.joana.ui.annotations.Source;
  */
 public class MethodParameterAnnotationsSink {
 	
-	@Sink(level = "high")
+	@Source(level = "high")
 	static int in;
 	
 	

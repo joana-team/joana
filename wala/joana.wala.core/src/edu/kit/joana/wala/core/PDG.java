@@ -161,7 +161,12 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 		this.exception = createNode("_exception_", PDGNode.Kind.FORMAL_OUT, TypeReference.JavaLangException, PDGNode.DEFAULT_NO_LOCAL, PDGNode.DEFAULT_NO_LOCAL);
 		this.params = new PDGNode[method.getNumberOfParameters()];
 		for (int i = 0; i < params.length; i++) {
-			final String pName = " $" + this.getMethod().getLocalVariableName(0, i) + " ";
+			final String pName;
+			if (!this.getMethod().isNative()) {
+				pName = " $" + this.getMethod().getLocalVariableName(0, i) + " ";
+			} else {
+				pName = "";
+			}
 			if (method.isStatic()) {
 				// parameter index 0 is reserved for the this pointer. static method params start at 1.
 				PDGNode p = createNode("param " + (i + 1) + pName, PDGNode.Kind.FORMAL_IN, method.getParameterType(i), PDGNode.DEFAULT_NO_LOCAL, PDGNode.DEFAULT_NO_LOCAL);

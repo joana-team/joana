@@ -16,13 +16,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.function.BiPredicate;
-
 import javax.xml.stream.XMLStreamException;
 
 import org.jgrapht.DirectedGraph;
@@ -38,16 +32,13 @@ import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.test.util.ApiTestException;
 import edu.kit.joana.api.test.util.JoanaPath;
-import edu.kit.joana.graph.dominators.slca.DFSIntervalOrder;
 import edu.kit.joana.ifc.sdg.graph.SDG;
-import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
 import edu.kit.joana.ifc.sdg.io.graphml.SDG2GraphML;
 import edu.kit.joana.ifc.sdg.irlsod.ClassicCDomOracle;
@@ -66,8 +57,6 @@ import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
-import edu.kit.joana.wala.core.graphs.Dominators;
-import edu.kit.joana.wala.core.graphs.Dominators.DomEdge;
 
 /**
  * @author Martin Hecker <martin.hecker@kit.edu>
@@ -217,38 +206,11 @@ public class DomTreeTests {
 		}
 	}
 	
-	private Map<SDGNode, Set<Integer>> getForkedThreadsMap(ThreadsInformation info) {
-		DirectedGraph<ThreadInstance, DefaultEdge> tct
-					= ThreadInformationUtil.buildThreadCreationTree(info);
-		DFSIntervalOrder<ThreadInstance, DefaultEdge> dioTCT
-					= new DFSIntervalOrder<ThreadInstance, DefaultEdge>(tct);
-		Map<SDGNode, Set<Integer>> result = new HashMap<>();
-		for (ThreadInstance thread : info) {
-			SDGNode fork = thread.getFork();
-			if (thread.isDynamic() || fork == null) {
-				continue;
-			}
-			Set<Integer> forkedThreads = result.get(fork);
-			if (forkedThreads == null) {
-				forkedThreads = new HashSet<>();
-				result.put(fork, forkedThreads);
-			}
-			for (ThreadInstance thread2 : info) {
-				if (dioTCT.isLeq(thread2, thread)) {
-					forkedThreads.add(thread2.getId());
-				}
-			}
-		}
-		return result;
-	}
-	
 	private void testDomGuarantees(Common common) throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		final SDG sdg = common.sdg;
 		final CFG icfg = ICFGBuilder.extractICFG(sdg);
 		GraphModifier.removeCallCallRetEdges(icfg);
-		final Map<SDGNode, Set<Integer>> forkedThreadsMap
-				= getForkedThreadsMap(sdg.getThreadsInfo());
 		final VirtualNode root = new VirtualNode(sdg.getRoot(), 0);
 		
 		ThreadModularCDomOracle tmdo = new ThreadModularCDomOracle(sdg);
@@ -257,17 +219,6 @@ public class DomTreeTests {
 		rbdo.buildRegionGraph();
 		ClassicCDomOracle cldo = new ClassicCDomOracle(sdg,common.mhp);
 		VeryConservativeCDomOracle vcdo = new VeryConservativeCDomOracle(icfg);
-		
-		BiPredicate<VirtualNode, VirtualNode> isParallel = (d, m) -> {
-			PreciseMHPAnalysis mhp = common.mhp;
-			Set<Integer> forkedThreads = forkedThreadsMap.get(d.getNode());
-			if (forkedThreads != null && forkedThreads.contains(m.getNumber())) {
-				// the current MHP analysis returns that a fork is always MHP to the thread
-				// started by it, even though it isn't. Thus, we special case it here.
-				return false;
-			}
-			return mhp.isParallel(d, m);
-		};
 
 		SDGNode[] vertices = icfg.vertexSet().toArray(new SDGNode[0]);
 		
@@ -297,14 +248,14 @@ public class DomTreeTests {
 							
 							assertEquals(root, vv);
 							
-							assertFalse(isParallel.test(vt,vn));
-							assertFalse(isParallel.test(vt,vm));
-							assertFalse(isParallel.test(vr,vn));
-							assertFalse(isParallel.test(vr,vm));
-							assertFalse(isParallel.test(vc,vn));
-							assertFalse(isParallel.test(vc,vm));
-							assertFalse(isParallel.test(vv,vn));
-							assertFalse(isParallel.test(vv,vm));
+							assertFalse(common.mhp.isParallel(vt,vn));
+							assertFalse(common.mhp.isParallel(vt,vm));
+							assertFalse(common.mhp.isParallel(vr,vn));
+							assertFalse(common.mhp.isParallel(vr,vm));
+							assertFalse(common.mhp.isParallel(vc,vn));
+							assertFalse(common.mhp.isParallel(vc,vm));
+							assertFalse(common.mhp.isParallel(vv,vn));
+							assertFalse(common.mhp.isParallel(vv,vm));
 						}
 					}
 				}

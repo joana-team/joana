@@ -387,7 +387,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 
         		for (int x = 0; x < tr.size(); x++) {
         			ThreadRegion q = tr.getThreadRegion(x);
-        			if (fork.getNode() == q.getStart() || joinSlice.contains(q.getStart())) {
+        			if (joinSlice.contains(q.getStart())) {
         				inJoinSlice.add(q);
         				inSecondSlice.add(q);
         			} else if (secondSlice.contains(q.getStart())) {

@@ -105,7 +105,7 @@
 		<!-- Second step: do actual compilation -->
 		<javac srcdir="${joana.api.annotations.ignore.base.dir}/src" destdir="${annotations.ignore.classpath}" verbose="no" source="1.8" target="1.8" encoding="utf-8" includeantruntime="false" classpath="${joana.dist.dir}/joana.ui.annotations.jar"/>
 		<javac srcdir="${joana.api.annotations.passon.base.dir}/src" destdir="${annotations.passon.classpath}" verbose="no" source="1.8" target="1.8" encoding="utf-8" includeantruntime="false" classpath="${joana.dist.dir}/joana.ui.annotations.jar"/>
-		<javac srcdir="${joana.api.testdata.base.dir}/src" destdir="${joana.api.testdata.classpath}" verbose="no" source="1.8" target="1.8" encoding="utf-8" includeantruntime="false">
+		<javac srcdir="${joana.api.testdata.base.dir}/src" destdir="${joana.api.testdata.classpath}" verbose="no" source="1.8" target="1.8" encoding="utf-8" includeantruntime="false" debug="true">
 			<classpath>
 				<pathelement location="${joana.dist.dir}/joana.ui.annotations.jar"/>
 				<pathelement location="${annotations.passon.classpath}"/>

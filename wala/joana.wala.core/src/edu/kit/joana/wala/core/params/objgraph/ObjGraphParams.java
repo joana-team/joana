@@ -1171,7 +1171,7 @@ public final class ObjGraphParams {
 			final OrdinalSet<InstanceKey> pts = pa.getMethodParamPTS(n, i);
 			if (pts != null && !pts.isEmpty()) {
 				final PDGNode node = new PDGNode(i, n.getGraphNodeId(), "param " + i, PDGNode.Kind.FORMAL_IN,
-						im.getParameterType(i));
+						im.getParameterType(i), PDGNode.DEFAULT_NO_LOCAL, PDGNode.DEFAULT_NO_LOCAL);
 				node.setBytecodeIndex(BytecodeLocation.ROOT_PARAMETER);
 				node.setBytecodeName(BytecodeLocation.getRootParamName(i));
 				final ModRefRootCandidate rp = ModRefRootCandidate.createRef(node, pts);
@@ -1183,7 +1183,7 @@ public final class ObjGraphParams {
 			final OrdinalSet<InstanceKey> pts = pa.getMethodReturnPTS(n);
 			if (pts != null && !pts.isEmpty()) {
 				final PDGNode node = new PDGNode(-1, n.getGraphNodeId(), "ret", PDGNode.Kind.EXIT,
-						im.getReturnType());
+						im.getReturnType(), PDGNode.DEFAULT_NO_LOCAL, PDGNode.DEFAULT_NO_LOCAL);
 				node.setBytecodeIndex(BytecodeLocation.ROOT_PARAMETER);
 				node.setBytecodeName(BytecodeLocation.RETURN_PARAM);
 				final ModRefRootCandidate rp = ModRefRootCandidate.createRef(node, pts);

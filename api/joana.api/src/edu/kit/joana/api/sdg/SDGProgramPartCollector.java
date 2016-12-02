@@ -61,6 +61,10 @@ public class SDGProgramPartCollector extends
 			phi.acceptVisitor(this, base);
 		}
 		
+		for (SDGLocalVariable var : m.getLocalVariables()) {
+			var.acceptVisitor(this, base);
+		}
+		
 		return null;
 	}
 
@@ -156,6 +160,15 @@ public class SDGProgramPartCollector extends
 	@Override
 	protected Void visitFieldOfParameter(SDGFieldOfParameter fop, Collection<SDGProgramPart> base) {
 		base.add(fop);
+		return null;
+	}
+	
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.api.sdg.SDGProgramPartVisitor#visitLocalVariable(edu.kit.joana.api.sdg.SDGLocalVariable, java.lang.Object)
+	 */
+	@Override
+	protected Void visitLocalVariable(SDGLocalVariable local, Collection<SDGProgramPart> base) {
+		base.add(local);
 		return null;
 	}
 

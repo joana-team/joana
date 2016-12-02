@@ -13,9 +13,15 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.TreeSet;
 
 import edu.kit.joana.ifc.sdg.lattice.impl.EditableLatticeSimple;
 import edu.kit.joana.ifc.sdg.lattice.impl.StaticLatticeBitset;
@@ -521,4 +527,207 @@ public class LatticeUtil {
 	public static <ElementType> boolean isLeq(IStaticLattice<ElementType> l, ElementType l1, ElementType l2) {
 		return l.leastUpperBound(l1, l2).equals(l2);
 	}
+	
+	
+	
+	public static void naiveTopBottomCompletion(IEditableLattice<String> lattice) {
+		Collection<String> tops = lattice.findTopElements(lattice.getElements());
+		Collection<String> bots = lattice.findBottomElements(lattice.getElements());
+		
+		if (tops.size() > 1 ) {
+			if (lattice.getElements().contains("top")) {
+				throw new IllegalArgumentException("Lattice contains element named \"top\" that isn't the top element");
+			}
+			lattice.addElement("top");
+			for (String t : tops) {
+				lattice.setImmediatelyGreater(t, "top");
+			}
+		}
+		
+		if (bots.size() > 1 ) {
+			if (lattice.getElements().contains("bottom")) {
+				throw new IllegalArgumentException("Lattice contains element named \"bottom\" that isn't the bottom element");
+			}
+			lattice.addElement("bottom");
+			for (String t : bots) {
+				lattice.setImmediatelyLower(t, "bottom");
+			}
+		}
+	}
+	
+
+	/**
+	 * An Implementation of the Algorithm presented in
+	 * "Stepwise construction of the Dedekind-MacNeille completion"
+	 * Bernhard Ganter, Sergei O. Kuznetsov
+	 * http://dx.doi.org/10.1007/BFb0054922
+	 * @param preorder the pre-order to be completed
+	 * @return a lattice completing preorder, with newly-named elements "newElement-n" for some numbers n
+	 */
+	public static IEditableLattice<String> dedekindMcNeilleCompletion(IEditableLattice<String> preorder) {
+		class Cut {
+			public Cut(Set<String> a, Set<String> b) {
+				this.a = a;
+				this.b = b;
+			}
+			final Set<String> a;
+			final Set<String> b;
+			
+			@Override
+			public String toString() {
+				return "(" + a + ", " + b + ")";
+			}
+		}
+		
+		class Util {
+			private Set<String> insert(String x, Collection<String> s) {
+				final TreeSet<String> result = new TreeSet<>(s);
+				result.add(x);
+				return result;
+			}
+			private Set<String> intersection(Set<String> a, Collection<String> b) {
+				final TreeSet<String> result = new TreeSet<>(a);
+				result.retainAll(b);
+				return result;
+			}
+
+		}
+		final Util u = new Util();
+		
+		@SuppressWarnings("unchecked")
+		final Set<String> empty = Collections.EMPTY_SET;
+		
+		final TreeSet<String> remaining = new TreeSet<>(preorder.getElements());
+		final EditableLatticeSimple<String> alreadyEncountered = new EditableLatticeSimple<>();
+		
+		
+		List<Cut> l = new LinkedList<>();
+		l.add(new Cut(empty,empty));
+		
+		while (!remaining.isEmpty()) {
+			final String x = remaining.pollLast();
+
+			alreadyEncountered.addElement(x);
+			for (String greater : preorder.getImmediatelyGreater(x)) {
+				if (alreadyEncountered.getElements().contains(greater)) alreadyEncountered.setImmediatelyGreater(x, greater);
+			}
+			for (String lower : preorder.getImmediatelyLower(x)) {
+				if (alreadyEncountered.getElements().contains(lower)) alreadyEncountered.setImmediatelyLower(x, lower);
+			}
+			final Collection<String> s = collectAllLowerElements(x, (ILatticeOperations<String>) alreadyEncountered);
+			assert (s.contains(x));
+			s.remove(x);
+			
+			final Collection<String> t = collectAllGreaterElements(x, (ILatticeOperations<String>) alreadyEncountered);
+			assert (t.contains(x));
+			t.remove(x);
+			alreadyEncountered.removeElement(x);
+			
+			final List<Cut> lnew = new LinkedList<>();
+			
+			lnew.add(new Cut(u.insert(x,s), u.insert(x,t)));
+			for (Cut cut : l) {
+				final Set<String> c = cut.a;
+				final Set<String> d = cut.b;
+				// TODO: optimize
+				if ( s.containsAll(c) && !t.containsAll(d)) lnew.add(new Cut(c, u.insert(x,d)));
+				if (!s.containsAll(c) &&  t.containsAll(d)) lnew.add(new Cut(u.insert(x,c), d));
+				if (!s.containsAll(c) && !t.containsAll(d)) {
+					lnew.add(cut);
+					
+					Set<String> down = new TreeSet<>(alreadyEncountered.getElements());
+					Set<String> dt = u.intersection(d,t);
+					for(String y : dt) {
+						down.retainAll(collectAllLowerElements(y, (ILatticeOperations<String>) alreadyEncountered));
+					}
+					Set<String> up = new TreeSet<>(alreadyEncountered.getElements());
+					Set<String> cs = u.intersection(c,s);
+					for(String y : cs) {
+						up.retainAll(collectAllGreaterElements(y, (ILatticeOperations<String>) alreadyEncountered));
+					}
+
+					if (c.equals(down)) lnew.add(new Cut(u.insert(x,c), dt));
+					if (d.equals(up))   lnew.add(new Cut(cs, u.insert(x,d)));
+				}
+			}
+			l = lnew;
+			
+			alreadyEncountered.addElement(x);
+			for (String greater : preorder.getImmediatelyGreater(x)) {
+				if (alreadyEncountered.getElements().contains(greater)) alreadyEncountered.setImmediatelyGreater(x, greater);
+			}
+			for (String lower : preorder.getImmediatelyLower(x)) {
+				if (alreadyEncountered.getElements().contains(lower)) alreadyEncountered.setImmediatelyLower(x, lower);
+			}
+		}
+
+		IEditableLattice<Cut> cutCompletion = new EditableLatticeSimple<>();
+		for (Cut cut : l) cutCompletion.addElement(cut);
+		for (Cut x : l) {
+			List<Cut> greaterThanX = new LinkedList<>();
+			List<Cut> smallerThanX = new LinkedList<>();
+			for (Cut y : l) {
+				if (!x.equals(y)) {
+					if (y.a.containsAll(x.a))
+						greaterThanX.add(y);
+					if (x.a.containsAll(y.a))
+						smallerThanX.add(y);
+				}
+			}
+			for (Cut y : greaterThanX) {
+				boolean yisMinimal = true;
+
+				// TODO: optimize
+				for (Cut z : greaterThanX) {
+					if ((y.a.containsAll(z.a)) && z!=y)
+						yisMinimal = false;
+				}
+				if (yisMinimal) cutCompletion.setImmediatelyGreater(x, y);
+			}
+
+			for (Cut y : smallerThanX) {
+				boolean yisMaximal = true;
+
+				// TODO: optimize
+				for (Cut z : smallerThanX) {
+					if ((z.a.containsAll(y.a)) && z!=y) yisMaximal = false;
+				}
+				if (yisMaximal) cutCompletion.setImmediatelyLower(x, y);
+			}
+			
+		}
+
+		IEditableLattice<String> completion = new EditableLatticeSimple<String>();
+		Map<Cut,String> reverse = new HashMap<>(l.size());
+		int nextNew = 0;
+		for (Cut cut : l) {
+			boolean isNewElement = true;
+			for (String x : preorder.getElements()) {
+				Collection<String> xembedding = collectAllLowerElements(x, (ILatticeOperations<String>)preorder);
+				if (cut.a.equals(xembedding)) {
+					assert isNewElement;
+					reverse.put(cut, x);
+					completion.addElement(x);
+					isNewElement = false;
+				}
+			}
+			if (isNewElement) {
+				while (preorder.getElements().contains("newElement-" + nextNew)) nextNew++;
+				final String x = "newElement-" + nextNew++;
+				reverse.put(cut, x);
+				completion.addElement(x);
+			}
+		}
+
+		for (Cut x : l) {
+			for (Cut y : cutCompletion.getImmediatelyGreater(x)) {
+				completion.setImmediatelyGreater(reverse.get(x), reverse.get(y));
+			}
+			for (Cut y : cutCompletion.getImmediatelyLower(x)) {
+				completion.setImmediatelyLower(reverse.get(x), reverse.get(y));
+			}
+		}
+		return completion;
+	}
+
 }

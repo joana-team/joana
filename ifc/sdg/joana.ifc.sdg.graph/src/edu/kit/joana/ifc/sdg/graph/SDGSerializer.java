@@ -145,6 +145,32 @@ public class SDGSerializer {
             if (n.getUnresolvedCallTarget() != null) {
                 pw.print("U \"" + n.getUnresolvedCallTarget() + "\";\n");
             }
+            
+            final String[] localDefNames = n.getLocalDefNames();
+            if (localDefNames != null && localDefNames.length > 0) {
+                pw.print("LD [");
+                pw.print("\""  + localDefNames[0] + "\"");
+
+                for (int i = 1; i < localDefNames.length; i++) {
+                	assert (!localDefNames[i].contains("\""));
+                    pw.print(", \"" + localDefNames[i] + "\"");
+                }
+
+                pw.print("];\n");
+            }
+            
+            final String[] localUseNames = n.getLocalUseNames();
+            if (localUseNames != null && localUseNames.length > 0) {
+                pw.print("LU [");
+                pw.print("\""  + localUseNames[0] + "\"");
+
+                for (int i = 1; i < localUseNames.length; i++) {
+                	assert (!localUseNames[i].contains("\""));
+                    pw.print(", \"" + localUseNames[i] + "\"");
+                }
+
+                pw.print("];\n");
+            }
 
             printPDGDependencies(g,n, pw);
             pw.print("}\n");

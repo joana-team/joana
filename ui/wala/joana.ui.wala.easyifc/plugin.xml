@@ -135,5 +135,32 @@
   			textStylePreferenceKey="highlight.text.style" 
   			textStylePreferenceValue="NONE" /> 
   	</extension>
-
+ <extension
+       point="org.eclipse.jdt.ui.classpathContainerPage">
+    <classpathContainerPage
+          class="edu.kit.joana.ui.wala.easyifc.views.AnnotationClassPathContainerPage"
+          id="joana.ui.wala.easyifc.JOANA_ANNOTATIONS"
+          name="JOANA Annotations">
+    </classpathContainerPage>
+ </extension>
+ <extension
+       point="org.eclipse.jdt.core.classpathContainerInitializer">
+    <classpathContainerInitializer
+          class="edu.kit.joana.ui.wala.easyifc.AnnotationClasspathContainerInitializer"
+          id="joana.ui.wala.easyifc.JOANA_ANNOTATIONS">
+    </classpathContainerInitializer>
+ </extension>
+	<extension point="org.eclipse.ui.menus">
+		<menuContribution locationURI="menu:org.eclipse.ui.main.menu">
+			<menu label="Admin">
+				<command commandId="org.eclipse.ui.views.showView"
+				         label="Show Error View"
+				         style="push">
+					<parameter name="org.eclipse.ui.views.showView.viewId"
+					           value="org.eclipse.pde.runtime.LogView">
+					</parameter>
+				</command>
+			</menu>
+		</menuContribution>
+	</extension>
 </plugin>

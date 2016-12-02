@@ -316,7 +316,15 @@ public class JoanaConverter {
 		if (node.getUnresolvedCallTarget() != null) {
 			sn.setUnresolvedCallTarget(node.getUnresolvedCallTarget());
 		}
-
+		
+		if (node.getLocalUseNames() != null) {
+			sn.setLocalUseNames(node.getLocalUseNames());
+		}
+			
+		if (node.getLocalDefNames() != null) {
+			sn.setLocalDefNames(node.getLocalDefNames());
+		}
+		
 		assert sn.getKind() == kind;
 
 		return sn;

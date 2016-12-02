@@ -20,12 +20,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
+
+import javax.xml.stream.XMLStreamException;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.classLoader.IMethod;
+import com.ibm.wala.classLoader.ShrikeCTMethod;
+import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.shrikeCT.InvalidClassFileException;
+import com.ibm.wala.shrikeCT.TypeAnnotationsReader.TargetType;
 import com.ibm.wala.types.annotations.Annotation;
+import com.ibm.wala.types.annotations.TypeAnnotation;
+import com.ibm.wala.types.annotations.TypeAnnotation.LocalVarTarget;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
@@ -39,6 +48,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.chopper.Chopper;
 import edu.kit.joana.ifc.sdg.graph.chopper.NonSameLevelChopper;
+import edu.kit.joana.ifc.sdg.io.graphml.SDG2GraphML;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.mhpoptimization.PruneInterferences;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
@@ -154,7 +164,7 @@ public class SDGProgram {
 	private final AnnotationTypeBasedNodeCollector coll;
 
 	private static Logger debug = Log.getLogger(Log.L_API_DEBUG);
-
+	
 	public SDGProgram(SDG sdg) {
 		this.sdg = sdg;
 		this.ppartParser = new SDGProgramPartParserBC(this);
@@ -269,7 +279,6 @@ public class SDGProgram {
 				}
 
 			}
-
 			for (IMethod m : c.getAllMethods()) {
 				if (m.getAnnotations() != null && !m.getAnnotations().isEmpty()) {
 					final Collection<SDGMethod> methods = ret.getMethods(JavaMethodSignature.fromString(m
@@ -278,6 +287,63 @@ public class SDGProgram {
 						ret.annotations.put(sdgm, m.getAnnotations());
 					debug.outln("Annotated: " + jt + ":::" + m.getName() + " with " + m.getAnnotations());
 				}
+				
+				if (m instanceof ShrikeCTMethod) {
+					ShrikeCTMethod method = (ShrikeCTMethod) m;
+					Collection<SDGMethod> methods = Collections.emptyList();
+
+					int parameternumber = m.isStatic() ? 1 : 0;
+					for(Collection<Annotation> parameter : method.getParameterAnnotations() ) {
+						if (!parameter.isEmpty()) {
+							if (methods.isEmpty()) { 
+								methods = ret.getMethods(JavaMethodSignature.fromString(m.getSignature()));
+							}
+							for (SDGMethod sdgm : methods) {
+								ret.annotations.put(sdgm.getParameter(parameternumber), parameter);
+							}
+							parameternumber++;
+						}
+					}
+					
+					try {
+						final Collection<TypeAnnotation> localVarAnnotations = 
+						method.getTypeAnnotationsAtCode(true)
+							.stream()
+							.filter(a -> a.getTargetType() == TargetType.LOCAL_VARIABLE)
+							.collect(Collectors.toList());
+						
+						if (!localVarAnnotations.isEmpty()) {
+							if (methods.isEmpty()) { 
+								methods = ret.getMethods(JavaMethodSignature.fromString(m.getSignature()));
+							}
+							for (TypeAnnotation ta : localVarAnnotations) {
+								final LocalVarTarget localVarTarget = (LocalVarTarget) ta.getTypeAnnotationTarget();
+								for (SDGMethod sdgm : methods) {
+									final SDGLocalVariable localVar = sdgm.getLocalVariable(localVarTarget.getName());
+									if (localVar != null) {
+										ret.annotations.computeIfAbsent(localVar, lv -> new LinkedList<Annotation>());
+										ret.annotations.computeIfPresent(localVar, (lv, anns) -> {
+											anns.add(ta.getAnnotation());
+											return anns;
+										});
+									} else {
+										debug.outln("Warning: Variable "
+										   + localVarTarget + " in "
+										   + JavaMethodSignature.fromString(m.getSignature()) 
+										   + "not found. Did you try to annotate an 'ephemeral' Variable such as 'int x = p' where 'x' is never used in the method?"
+										);
+									}
+								}
+							}
+							parameternumber++;
+						}
+					} catch (InvalidClassFileException e) {
+						// TODO: handle this?!?!
+					}
+				} else {
+					debug.outln("Warning: Parameter Annotation Processing not supported for Methods representet by " + m.getClass());
+				}
+
 
 			}
 
@@ -388,7 +454,7 @@ public class SDGProgram {
 		build();
 		return classRes.getInstruction(methodSig.getDeclaringType(), methodSig, bcIndex);
 	}
-
+	
 	/**
 	 * Get instructions by label, i.e. the label of the corresponding sdg node. Precisely, all
 	 *
@@ -401,6 +467,12 @@ public class SDGProgram {
 		return classRes.getInstruction(methodSig.getDeclaringType(), methodSig, labelRegEx);
 	}
 
+	
+	public Collection<SDGLocalVariable> getLocalVariables(JavaMethodSignature methodSig, String varName) {
+		build();
+		return classRes.getLocalVariable(methodSig.getDeclaringType(), methodSig, varName);
+	}
+	
 	public Collection<SDGCall> getCallsToMethod(JavaMethodSignature tgt) {
 		Collection<SDGCall> ret = new LinkedList<SDGCall>();
 		build();
@@ -721,6 +793,22 @@ public class SDGProgram {
 			}
 		}
 
+		private Collection<SDGLocalVariable> getLocalVariables(String instr) {
+			if (!instr.contains("#")) {
+				return null;
+			} else {
+				int hashtagIndex = instr.lastIndexOf('#');
+				String methodSrc = instr.substring(0, hashtagIndex);
+				JavaMethodSignature m = JavaMethodSignature.fromString(methodSrc);
+				if (m == null) {
+					return null;
+				} else {
+					String name = instr.substring(hashtagIndex + 1);
+					return program.getLocalVariables(m, name);
+				}
+			}
+		}
+		
 		private Collection<SDGInstruction> getInstructions(String instr) {
 			if (!instr.contains(":")) {
 				return null;
@@ -782,7 +870,9 @@ public class SDGProgram {
 			} else if (str.contains("->")) {
 				return getMethodParameters(str);
 			} else if (str.contains(".")) {
-				if (str.contains("(")) {
+				if (str.contains("#")) {
+					return getLocalVariables(str);
+				} else if (str.contains("(")) {
 					return getMethods(str);
 				} else {
 					return getAttributes(str);
@@ -891,6 +981,15 @@ class SDGClassResolver {
 			ret.addAll(m.getInstructionsWithLabelMatching(labelRegEx));
 		}
 
+		return ret;
+	}
+	
+	public Collection<SDGLocalVariable> getLocalVariable(JavaType typeName, JavaMethodSignature methodSig, String varName) {
+		Collection<SDGMethod> ms = getMethod(typeName, methodSig);
+		Collection<SDGLocalVariable> ret = new LinkedList<SDGLocalVariable>();
+		for (SDGMethod m : ms) {
+			ret.add(m.getLocalVariable(varName));
+		}
 		return ret;
 	}
 

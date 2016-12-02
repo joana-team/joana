@@ -8,6 +8,7 @@
 package edu.kit.joana.api.sdg;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,6 +46,9 @@ public class SDGClassComputation {
 
 	// type |--> entry nodes of methods implemented by that type
 	private final Map<JavaType, Set<SDGNode>> seenMethods = new HashMap<JavaType, Set<SDGNode>>();
+	
+	// entryNode --> localVariableName -> (Nodes that use localVariableName, Nodes that define localVariableName)  
+	private final Map<SDGNode, Map<String, Pair<Set<SDGNode>, Set<SDGNode>>>> seenLocalVariables = new HashMap<>();
 
 	public SDGClassComputation(SDG sdg) {
 		this.sdg = sdg;
@@ -299,13 +303,40 @@ public class SDGClassComputation {
 				}
 			}
 		}
+		
+		for (SDGNode node : sdg.vertexSet()) {
+			if (node.getLocalDefNames() != null && !(node.getLocalDefNames().length == 0)) seenLocalDef(node);
+			if (node.getLocalUseNames() != null && !(node.getLocalUseNames().length == 0)) seenLocalUse(node);
+		}
 
 		for (JavaType typeName : declNodes.keySet()) {
 			result.add(new SDGClass(typeName, declNodes.get(typeName), seenAttributes.get(typeName), seenMethods
-					.get(typeName), sdg, sdgByProc));
+					.get(typeName), sdg, sdgByProc, seenLocalVariables));
 		}
 
 		return result;
+	}
+	
+	private void seenLocalDef(SDGNode node) {
+		final SDGNode entry = sdg.getEntry(node);
+		seenLocalFor(entry);
+		Arrays.stream(node.getLocalDefNames()).forEach( var -> {
+			seenLocalVariables.get(entry).computeIfAbsent(var, v -> Pair.pair(new HashSet<SDGNode>(), new HashSet<SDGNode>()));
+			seenLocalVariables.get(entry).get(var).getSecond().add(node);
+		});
+	}
+	
+	private void seenLocalFor(SDGNode entry) {
+		seenLocalVariables.computeIfAbsent(entry, e -> new HashMap<>());		
+	}
+	
+	private void seenLocalUse(SDGNode node) {
+		final SDGNode entry = sdg.getEntry(node);
+		seenLocalFor(entry);
+		Arrays.stream(node.getLocalUseNames()).forEach( var -> {
+			seenLocalVariables.get(entry).computeIfAbsent(var, v -> Pair.pair(new HashSet<SDGNode>(), new HashSet<SDGNode>()));
+			seenLocalVariables.get(entry).get(var).getFirst().add(node);
+		});
 	}
 
 	private void seenDeclaration(SDGNode declNode) {

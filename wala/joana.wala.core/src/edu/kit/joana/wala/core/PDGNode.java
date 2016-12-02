@@ -20,6 +20,9 @@ public final class PDGNode implements INodeWithNumber {
 
 	public final static TypeReference DEFAULT_TYPE = TypeReference.JavaLangObject;
 	public final static TypeReference DEFAULT_NO_TYPE = TypeReference.Null;
+	
+	public final static String[] DEFAULT_NO_LOCAL = null;
+	public final static String[] DEFAULT_EMPTY_LOCAL = new String[0];
 
 	public static enum Kind {
 		/**
@@ -171,9 +174,20 @@ public final class PDGNode implements INodeWithNumber {
 
     /* signature of call target, if it is a unresolved, e.g. a native method and this node is a call node */
     private String unresolvedCallTarget;
+    
+    /* for nodes defining a value that correspond to a definition of local variables, the names of the corresponding
+     * local variables; 
+     */
+    private String[] localDefNames;
 
+    /* for nodes using a value that correspond to a definition of local variables, the names of the corresponding
+     * local variables; 
+     */
+    private String[] localUseNames;
+
+    
     public PDGNode clone(int newId, int newPdgId) {
-    	PDGNode clone = new PDGNode(newId, newPdgId, label, kind, type);
+    	PDGNode clone = new PDGNode(newId, newPdgId, label, kind, type, localDefNames, localUseNames);
     	clone.setBytecodeIndex(bcIndex);
     	clone.setBytecodeName(bcName);
     	clone.setSourceLocation(source);
@@ -184,7 +198,7 @@ public final class PDGNode implements INodeWithNumber {
 
     // can be used to clone param-in nodes to matching param-out nodes.
     public PDGNode clone(int newId, Kind newKind) {
-    	PDGNode clone = new PDGNode(newId, proc, label, newKind, type);
+    	PDGNode clone = new PDGNode(newId, proc, label, newKind, type, localDefNames, localUseNames);
     	clone.setBytecodeIndex(bcIndex);
     	clone.setBytecodeName(bcName);
     	clone.setSourceLocation(source);
@@ -264,14 +278,32 @@ public final class PDGNode implements INodeWithNumber {
 	public SourceLocation getSourceLocation() {
 		return source;
 	}
+	
+	// TODO: make copy to prevent mutation?
+	public String[] getLocalDefNames() {
+		return localDefNames;
+	}
+	
+	
+	// TODO: make copy to prevent mutation?
+	public String[] getLocalUseNames() {
+		return localUseNames;
+	}
 
-	public PDGNode(int id, int pdgId, String label, Kind kind, TypeReference type) {
+	void setLocalDefNames(String[] localDefNames) {
+		this.localDefNames = localDefNames;
+	}
+
+	
+	public PDGNode(int id, int pdgId, String label, Kind kind, TypeReference type, String[] localDefNames, String[] localUseNames) {
     	this.id = id;
     	this.nodeID = id;
     	this.proc = pdgId;
     	this.label = label;
     	this.kind = kind;
     	this.type = type;
+    	this.localDefNames = localDefNames;
+    	this.localUseNames = localUseNames;
     }
 
 	public void setDebug(String str) {

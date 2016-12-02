@@ -10,8 +10,10 @@ package edu.kit.joana.api.sdg;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -28,6 +30,7 @@ public class SDGMethod implements SDGProgramPart {
 	private List<SDGInstruction> instructions = new ArrayList<SDGInstruction>();
 	private List<SDGCall> calls = new ArrayList<SDGCall>();
 	private List<SDGPhi> phis = new ArrayList<SDGPhi>();
+	private Map<String, SDGLocalVariable> localVariables = new HashMap<>();
 	private final String classLoader;
 	public SDGMethod(JavaMethodSignature sig, String classLoader, boolean isStatic) {
 
@@ -51,7 +54,13 @@ public class SDGMethod implements SDGProgramPart {
 	public String getClassLoader() {
 		return classLoader;
 	}
-
+	
+	void addLocalVariable(SDGLocalVariable var) {
+		if (this.localVariables.containsKey(var.getName())) {
+			throw new IllegalStateException("Local variable " + var.getName() + " already present.");
+		}
+		this.localVariables.put(var.getName(), var);
+	}
 	void addInstruction(SDGInstruction i) {
 		this.instructions.add(i);
 	}
@@ -113,6 +122,14 @@ public class SDGMethod implements SDGProgramPart {
 
 	public List<SDGPhi> getPhis() {
 		return phis;
+	}
+	
+	public Collection<SDGLocalVariable> getLocalVariables() {
+		return localVariables.values();
+	}
+	
+	public SDGLocalVariable getLocalVariable(String name) {
+		return localVariables.get(name);
 	}
 
 	public int getNumberOfInstructions() {

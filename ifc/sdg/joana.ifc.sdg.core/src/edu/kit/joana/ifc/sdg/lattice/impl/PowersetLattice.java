@@ -7,95 +7,131 @@
  */
 package edu.kit.joana.ifc.sdg.lattice.impl;
 
-import java.util.BitSet;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import edu.kit.joana.ifc.sdg.lattice.LatticeValidator;
+import com.google.common.collect.Sets;
 
+import edu.kit.joana.ifc.sdg.lattice.ILatticeOperations;
+import edu.kit.joana.ifc.sdg.lattice.InvalidLatticeException;
+import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
 
-public class PowersetLattice {
-	private static final int LEN = 8;
-	private static final double PROB = .2;
-	static EditableLatticeSimple<String> name = new EditableLatticeSimple<String>();
+/**
+ * @author Martin Hecker <martin.hecket@kit.edu>
+ */
+public class PowersetLattice<ElementType> implements ILatticeOperations<Set<ElementType>> {
 
+	
+	private Set<Set<ElementType>> powerset;
+	
+	private final Set<ElementType> bottom;
+	private final Set<ElementType> top;
+	
 	/**
-	 * @param args
+	 * 
 	 */
-	public static void main(String[] args) {
-		BitSet bs = new BitSet(8);
-		bs.set(0, LEN);
-		Set<BitSet> old = new HashSet<BitSet>();
-		Set<BitSet> all = new HashSet<BitSet>();
-		old.add(bs);
-		Set<BitSet> news = new HashSet<BitSet>();
-		while (!old.isEmpty()) {
-			while (!old.isEmpty()) {
-				Iterator<BitSet> iterator = old.iterator();
-				bs = iterator.next();
-				iterator.remove();
-				for (int i = 0; i < LEN; i++) {
-					BitSet nbs = (BitSet) bs.clone();
-					nbs.clear(i);
-					if (!all.contains(nbs))
-						if (Math.random() <= PROB) {
-							print(nbs, bs);
-							if (!nbs.equals(bs))
-								news.add(nbs);
-						}
-				}
+	public PowersetLattice(Set<ElementType> top) {
+		this.top = new HashSet<>(top);
+		this.bottom = Collections.emptySet();
+	}
+	
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.ifc.sdg.lattice.ILatticeOperations#getImmediatelyGreater(java.lang.Object)
+	 */
+	@Override
+	public Collection<Set<ElementType>> getImmediatelyGreater(Set<ElementType> element) throws NotInLatticeException {
+		if (!top.containsAll(element)) throw new NotInLatticeException("not: " + element + " ⊆ " + top);
+		
+		final Set<ElementType> missing = Sets.difference(top, element);
+		return missing.stream().map(
+			x -> {
+				Set<ElementType> g = new HashSet<>(element);
+				g.add(x);
+				return g;
 			}
-			old = news;
-			all.addAll(news);
-			news = new HashSet<BitSet>();
-		}
-		if (LatticeValidator.validateIncremental(name) == null)
-			save();
-		else {
-			System.out.print('.');
-			main(args);
-		}
+		).collect(Collectors.toCollection(() -> new ArrayList<>(missing.size())));
 	}
-
-	private static void save() {
-		StringBuffer latticeSource = new StringBuffer();
-		String top = name.getTop();
-		Collection<String> worklist = new LinkedHashSet<String>();
-		worklist.add(top);
-
-		while (!worklist.isEmpty()) {
-			Iterator<String> iterator = worklist.iterator();
-			top = iterator.next();
-			iterator.remove();
-			for (String lower : name.getImmediatelyLower(top)) {
-				latticeSource.append(lower).append("<=").append(top).append('\n');
-				worklist.add(lower);
+	
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.ifc.sdg.lattice.ILatticeOperations#getImmediatelyLower(java.lang.Object)
+	 */
+	@Override
+	public Collection<Set<ElementType>> getImmediatelyLower(Set<ElementType> element) throws NotInLatticeException {
+		if (!top.containsAll(element)) throw new NotInLatticeException("not: " + element + " ⊆ " + top);
+		
+		return element.stream().map(
+			x -> {
+				Set<ElementType> g = new HashSet<>(element);
+				g.remove(x);
+				return g;
 			}
+		).collect(Collectors.toCollection(() -> new ArrayList<>(element.size())));
+	}
+	
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.ifc.sdg.lattice.IStaticLattice#getTop()
+	 */
+	@Override
+	public Set<ElementType> getTop() throws InvalidLatticeException {
+		return top;
+	}
+	
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.ifc.sdg.lattice.IStaticLattice#getBottom()
+	 */
+	@Override
+	public Set<ElementType> getBottom() throws InvalidLatticeException {
+		return bottom;
+	}
+	
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.ifc.sdg.lattice.IStaticLattice#getElements()
+	 */
+	@Override
+	public Collection<Set<ElementType>> getElements() {
+		if (powerset == null) {
+			powerset = Sets.powerSet(top);
 		}
+		return powerset;
 	}
-
-	private static void print(BitSet nbs, BitSet bs) {
-		String lower = getName(nbs);
-		String higher = getName(bs);
-		name.addElement(lower);
-		name.addElement(higher);
-		name.setImmediatelyLower(higher, lower);
+	
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.ifc.sdg.lattice.IStaticLattice#greatestLowerBound(java.lang.Object, java.lang.Object)
+	 */
+	@Override
+	public Set<ElementType> greatestLowerBound(Set<ElementType> s, Set<ElementType> t) throws NotInLatticeException {
+		return Sets.intersection(s, t);
 	}
-
-	@SuppressWarnings("unused")
-    private static void print1(BitSet nbs, BitSet bs) {
-		System.out.print(getName(nbs));
-		System.out.print("<=");
-		System.out.println(getName(bs));
+	
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.ifc.sdg.lattice.IStaticLattice#leastUpperBound(java.lang.Object, java.lang.Object)
+	 */
+	@Override
+	public Set<ElementType> leastUpperBound(Set<ElementType> s, Set<ElementType> t) throws NotInLatticeException {
+		return Sets.union(s, t);
 	}
-
-	private static String getName(BitSet nbs) {
-		StringBuilder lower = new StringBuilder(nbs.toString().replaceAll(", ", ""));
-		lower.setCharAt(0, 'x');
-		String lower1 = lower.substring(0, lower.length() - 1);
-		return lower1;
+	
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.ifc.sdg.lattice.ILatticeOperations#collectAllGreaterElements(java.lang.Object)
+	 */
+	@Override
+	public Collection<Set<ElementType>> collectAllGreaterElements(Set<ElementType> s) {
+		final Set<ElementType> missing = Sets.difference(top, s);
+		return Sets.powerSet(missing)
+		           .stream()
+		           .map( t -> Sets.union(s, t))
+		           .collect(Collectors.toList());
+	}
+	
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.ifc.sdg.lattice.IStaticLattice#collectAllLowerElements(java.lang.Object)
+	 */
+	@Override
+	public Collection<Set<ElementType>> collectAllLowerElements(Set<ElementType> s) {
+		return Sets.powerSet(s);
 	}
 }

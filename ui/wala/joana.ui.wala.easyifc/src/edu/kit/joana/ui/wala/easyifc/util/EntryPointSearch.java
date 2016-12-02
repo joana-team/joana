@@ -1,9 +1,14 @@
 package edu.kit.joana.ui.wala.easyifc.util;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IAnnotation;
@@ -32,7 +37,16 @@ import org.eclipse.jdt.internal.core.Annotation;
 import org.eclipse.jdt.internal.core.SourceMethod;
 import org.eclipse.jdt.internal.core.SourceRefElement;
 
+import edu.kit.joana.api.IFCAnalysis;
+import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGConfig;
+import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
+import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
+import edu.kit.joana.ifc.sdg.lattice.LatticeValidator;
+import edu.kit.joana.ifc.sdg.lattice.PrecomputedLattice;
+import edu.kit.joana.ifc.sdg.lattice.impl.EditableLatticeSimple;
+import edu.kit.joana.ifc.sdg.lattice.impl.PowersetLattice;
+import edu.kit.joana.ifc.sdg.lattice.impl.ReversedLattice;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.annotations.EntryPoint;
 import edu.kit.joana.ui.wala.easyifc.model.CheckInformationFlow;
@@ -114,6 +128,8 @@ public class EntryPointSearch {
 		
 		public abstract SDGConfig getSDGConfigFor(CheckIFCConfig cfc);
 		
+		public abstract void annotateSDG(IFCAnalysis analysis);
+		
 		// TODO: possibly cache the AST somehow?!?! or find a method to resolve FULLY-QUALIFIED type-names 
 		// that works with JDT's JavaModel only? 
 		protected CompilationUnit getASTForEntryPoint() {
@@ -125,7 +141,11 @@ public class EntryPointSearch {
 			return (CompilationUnit) parser.createAST(null);
 		}
 
+		public abstract Collection<String> getErrors();
+
 		public abstract boolean isDefaultParameters();
+		
+		public abstract IStaticLattice<String> lattice();
 		
 		protected abstract int priority();
 
@@ -162,16 +182,274 @@ public class EntryPointSearch {
 		public boolean isDefaultParameters() {
 			return true;
 		}
+		
+		@Override
+		public IStaticLattice<String> lattice() {
+			return BuiltinLattices.getBinaryLattice();
+		}
+
+		@Override
+		public Collection<String> getErrors() {
+			return Collections.emptyList();
+		}
+		
+		@Override
+		public void annotateSDG(IFCAnalysis analysis) {
+			analysis.addAllJavaSourceAnnotations(this.lattice());
+		}
 	}
 	
-	public static class AnnotationEntryPointConfiguration extends EntryPointConfiguration {
-		private final IAnnotation annotation;
-		public AnnotationEntryPointConfiguration(IMethod method, IAnnotation annotation) {
+	public static class DefaultAnnotationEntryPointConfiguration extends AnnotationEntryPointConfiguration {
+		private final IStaticLattice<String> lattice = BuiltinLattices.getBinaryLattice();
+		public DefaultAnnotationEntryPointConfiguration(IMethod method, IAnnotation annotation) {
+			super(method, annotation);
+		}
+		@Override
+		public void annotateSDG(IFCAnalysis analysis) {
+			analysis.addAllJavaSourceAnnotations(lattice);
+		}
+		@Override
+		public IStaticLattice<String> lattice() {
+			return lattice;
+		}
+	}
+	
+	public static class InvalidAnnotationEntryPointConfiguration extends AnnotationEntryPointConfiguration {
+		public InvalidAnnotationEntryPointConfiguration(IMethod method, IAnnotation annotation) {
+			super(method, annotation);
+		}
+
+		@Override
+		public void annotateSDG(IFCAnalysis analysis) {
+			throw new UnsupportedOperationException("Invalid EntryPointConfiguration; cannot annotate SDG");
+		}
+
+		@Override
+		public IStaticLattice<String> lattice() {
+			throw new UnsupportedOperationException("Invalid EntryPointConfiguration; no lattice available");
+		}
+		
+	}
+	
+	public static class DatasetsAnnotationEntryPointConfiguration extends AnnotationEntryPointConfiguration {
+		private final PrecomputedLattice<Set<String>> stringEncodedLattice;
+		private final Map<Set<String>, String> fromSet;
+		public DatasetsAnnotationEntryPointConfiguration(IMethod method, IAnnotation annotation) {
+			super(method, annotation);
+			final Set<String> datasets  = new HashSet<>();
+			try {
+				for (IMemberValuePair pair : annotation.getMemberValuePairs()) {
+					if ("datasets".equals(pair.getMemberName())) {
+						if  (pair.getValueKind() != IMemberValuePair.K_STRING) {
+							errors.add("Illegal datasets specification: " + pair.getValue() + "  - use literal Strings instead (e.g.: { \"address\", \"bankingh\" })");
+						}
+						Object[] levels = (Object[]) pair.getValue();
+						for (Object o : levels) {
+							String dataset = (String) o;
+							boolean fresh = datasets.add(dataset);
+							if (!fresh) errors.add("Duplicate dataset: " + dataset);
+						}
+					}
+				}
+				
+				this.stringEncodedLattice = new PrecomputedLattice<Set<String>>(new PowersetLattice<String>(datasets));
+				this.fromSet = this.stringEncodedLattice.getFromOriginalMap();
+				
+			} catch (JavaModelException e) {
+				// Thrown by IAnnotation.getMemberValuePairs()
+				// TODO: better error handling
+				throw new RuntimeException(e);
+			}
+
+		}
+		@Override
+		public void annotateSDG(IFCAnalysis analysis) {
+			analysis.addAllJavaSourceIncludesAnnotations(this.fromSet, this.stringEncodedLattice);
+		}
+		@Override
+		public IStaticLattice<String> lattice() {
+			return stringEncodedLattice;
+		}
+	}
+	
+	public static class AdversariesAnnotationEntryPointConfiguration extends AnnotationEntryPointConfiguration {
+		private final IStaticLattice<String> stringEncodedLattice;
+		private final Map<Set<String>, String> fromSet;
+		
+		public AdversariesAnnotationEntryPointConfiguration(IMethod method, IAnnotation annotation) {
+			super(method, annotation);
+			final Set<String> datasets  = new HashSet<>();
+			try {
+				for (IMemberValuePair pair : annotation.getMemberValuePairs()) {
+					if ("adversaries".equals(pair.getMemberName())) {
+						if  (pair.getValueKind() != IMemberValuePair.K_STRING) {
+							errors.add("Illegal adversaries specification: " + pair.getValue() + "  - use literal Strings instead (e.g.: { \"admin\", \"guest\" })");
+						}
+						Object[] levels = (Object[]) pair.getValue();
+						for (Object o : levels) {
+							String adversary = (String) o;
+							boolean fresh = datasets.add(adversary);
+							if (!fresh) errors.add("Duplicate adversary: " + adversary);
+						}
+					}
+				}
+				final PrecomputedLattice<Set<String>> pre = new PrecomputedLattice<Set<String>>(new PowersetLattice<String>(datasets));
+				this.fromSet = pre.getFromOriginalMap();
+				this.stringEncodedLattice = new ReversedLattice<String>(pre);
+			} catch (JavaModelException e) {
+				// Thrown by IAnnotation.getMemberValuePairs()
+				// TODO: better error handling
+				throw new RuntimeException(e);
+			}
+
+		}
+		@Override
+		public void annotateSDG(IFCAnalysis analysis) {
+			analysis.addAllJavaSourceMayKnowAnnotations(fromSet, stringEncodedLattice);
+		}
+		@Override
+		public IStaticLattice<String> lattice() {
+			return stringEncodedLattice;
+		}
+		
+	}
+	
+	public static class SpecifiedLatticeAnnotationEntryPointConfiguration extends AnnotationEntryPointConfiguration {
+		private final IStaticLattice<String> lattice;
+		public SpecifiedLatticeAnnotationEntryPointConfiguration(IMethod method, IAnnotation annotation) {
+			super(method, annotation);
+			
+			final EditableLatticeSimple<String> specifiedLattice  = new EditableLatticeSimple<String>();
+			
+			try {
+				for (IMemberValuePair pair : annotation.getMemberValuePairs()) {
+					if ("levels".equals(pair.getMemberName())) {
+						if  (pair.getValueKind() != IMemberValuePair.K_STRING) {
+							throw new IllegalArgumentException("Illegal levels specification: " + pair.getValue() + "  - use literal Strings instead (e.g.: { \"low\", \"high\" })");
+						}
+						Object[] levels = (Object[]) pair.getValue();
+						for (Object o : levels) {
+							String level = (String) o;
+							specifiedLattice.addElement(level);
+						}
+					}
+				}
+				for (IMemberValuePair pair : annotation.getMemberValuePairs()) {
+					if ("lattice".equals(pair.getMemberName())) {
+						assert (pair.getValueKind() == IMemberValuePair.K_ANNOTATION);
+						Object[] mayflows = (Object[]) pair.getValue();
+						for (Object o : mayflows) {
+							IAnnotation mayflow = (IAnnotation) o;
+							String from = null;
+							String to = null;
+							for (IMemberValuePair fromto : mayflow.getMemberValuePairs()) {
+								if ("from".equals(fromto.getMemberName())) {
+									if  (fromto.getValueKind() != IMemberValuePair.K_STRING) {
+										errors.add("Illegal from-level : " + pair.getValue() + "  - use literal String instead (e.g.: \"low\")");
+									}
+									from = (String) fromto.getValue();
+								}
+								if ("to".equals(fromto.getMemberName())) {
+									if  (fromto.getValueKind() != IMemberValuePair.K_STRING) {
+										errors.add("Illegal to-level : " + pair.getValue() + "  - use literal String instead (e.g.: \"low\")");
+									}
+									to = (String) fromto.getValue();
+								}
+							}
+							assert (from != null && to != null);
+							if(!specifiedLattice.getElements().contains(from)) {
+								errors.add("Unknown from-level: " + from);
+							}
+							if(!specifiedLattice.getElements().contains(to)) {
+								errors.add("Unknown to-level: " + from);
+							}
+
+							specifiedLattice.setImmediatelyGreater(from, to);
+						}
+					}
+				}
+				final Collection<String> antiSymmetryViolations = LatticeValidator.findAntisymmetryViolations(specifiedLattice);
+				if (antiSymmetryViolations.isEmpty()) {
+					this.lattice = LatticeUtil.dedekindMcNeilleCompletion(specifiedLattice);
+				} else {
+					errors.add("Cycle in user-specified lattice. Elements contained in a cycle: " + antiSymmetryViolations);
+					this.lattice = null;
+				}
+			} catch (JavaModelException e) {
+				// Thrown by IAnnotation.getMemberValuePairs()
+				// TODO: better error handling
+				throw new RuntimeException(e);
+			}
+		}
+		@Override
+		public void annotateSDG(IFCAnalysis analysis) {
+			analysis.addAllJavaSourceAnnotations(lattice);
+		}
+		@Override
+		public IStaticLattice<String> lattice() {
+			return lattice;
+		}
+	}
+	
+	public abstract static class AnnotationEntryPointConfiguration extends EntryPointConfiguration {
+		protected final List<String> errors = new LinkedList<>();
+		protected final IAnnotation annotation;
+
+		
+		private AnnotationEntryPointConfiguration(IMethod method, IAnnotation annotation) {
 			super(method, (annotation instanceof SourceRefElement)? (SourceRefElement) annotation : null,
 			              (method instanceof SourceRefElement)? (SourceRefElement) method : null);
 			assert (annotation instanceof SourceRefElement) == (annotation instanceof Annotation);
 			assert (method instanceof SourceRefElement) == (method instanceof SourceMethod); 
 			this.annotation = annotation;
+		}
+		
+		public static AnnotationEntryPointConfiguration fromAnnotation(IMethod method, IAnnotation annotation) {
+			assert (annotation instanceof SourceRefElement) == (annotation instanceof Annotation);
+			assert (method instanceof SourceRefElement) == (method instanceof SourceMethod); 
+
+			boolean latticeSpecified = false;
+			boolean datasetsSpecified = false;
+			boolean adversariesSpecified = false;
+			
+			try {
+				for (IMemberValuePair pair : annotation.getMemberValuePairs()) {
+					if ("lattice".equals(pair.getMemberName())) {
+						latticeSpecified = ((Object[]) pair.getValue()).length > 0;
+					}
+					if ("datasets".equals(pair.getMemberName())) {
+						datasetsSpecified = ((Object[]) pair.getValue()).length > 0;
+					}
+					if ("adversaries".equals(pair.getMemberName())) {
+						adversariesSpecified = ((Object[]) pair.getValue()).length > 0;
+					}
+				}
+				
+				final int nrOfspecifications =
+						(latticeSpecified    ? 1 :0) + 
+						(datasetsSpecified   ? 1 :0) +
+						(adversariesSpecified? 1 :0);
+				if (nrOfspecifications == 0) {
+					return new DefaultAnnotationEntryPointConfiguration(method, annotation);
+				} else if (nrOfspecifications > 1) {
+					final AnnotationEntryPointConfiguration entryPointConfig = new InvalidAnnotationEntryPointConfiguration(method, annotation);
+					entryPointConfig.errors.add("An EntryPoint specification may at most contain one of: datasets,lattice,levels");
+					return entryPointConfig;
+				} else {
+					if (latticeSpecified) {
+						return new SpecifiedLatticeAnnotationEntryPointConfiguration(method, annotation);
+					} else if (datasetsSpecified) {
+						return new DatasetsAnnotationEntryPointConfiguration(method, annotation);
+					} else {
+						assert (adversariesSpecified);
+						return new AdversariesAnnotationEntryPointConfiguration(method, annotation);
+					}
+				}
+			} catch (JavaModelException e) {
+				// Thrown by IAnnotation.getMemberValuePairs()
+				// TODO: better error handling
+				throw new RuntimeException(e);
+			}
 		}
 		
 		@Override
@@ -190,7 +468,33 @@ public class EntryPointSearch {
 				if (mps != null && mps.length > 0) {
 					final StringBuilder sb = new StringBuilder("configuration: ");
 					for (final IMemberValuePair mp : mps) {
-						sb.append(mp.getMemberName() + "=" + mp.getValue());
+						sb.append(mp.getMemberName() + "=");
+						switch (mp.getMemberName()) {
+							case "datasets": 
+							case "levels":
+							case "adversaries":
+								Object[] levels = (Object[]) mp.getValue();
+								sb.append(Arrays.toString(levels));
+								break;
+							case "lattice":
+								sb.append("{");
+								Object[] flows = (Object[]) mp.getValue();
+								for (Object o : flows) {
+									IAnnotation flow = (IAnnotation) o;
+									sb.append("@MayFlow(");
+									for (IMemberValuePair fromto : flow.getMemberValuePairs()) {
+										sb.append(fromto.getMemberName());
+										sb.append("=");
+										sb.append(fromto.getValue());
+										sb.append(", ");
+									}
+									sb.delete(sb.length() - 2, sb.length());
+									sb.append("), ");
+								}
+								sb.delete(sb.length() - 2, sb.length());
+								break;
+							default: assert (false);
+						}
 						sb.append(", ");
 					}
 					sb.delete(sb.length() - 2, sb.length());
@@ -218,6 +522,11 @@ public class EntryPointSearch {
 			
 			return isDefault;
 		}
+		
+		@Override
+		public Collection<String> getErrors() {
+			return Collections.unmodifiableCollection(this.errors);
+		}
 	}
 	
 	public static Collection<EntryPointConfiguration> findEntryPointsIn(IJavaElement element, IProgressMonitor pm) throws CoreException {
@@ -235,7 +544,7 @@ public class EntryPointSearch {
 		// TODO: If a main Method is annotated, overwrite thats main-Methods default configurations with some (first?)
 		// Annotation Settings
 		for (Map.Entry<IAnnotation, IMethod> e : searchAnnotatedMethods(pm, scope).entrySet()) {
-			result.add(new AnnotationEntryPointConfiguration(e.getValue(),e.getKey()));
+			result.add(AnnotationEntryPointConfiguration.fromAnnotation(e.getValue(),e.getKey()));
 		}
 		
 		return result;

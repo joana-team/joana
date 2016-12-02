@@ -53,8 +53,8 @@ public class ToyTests {
 
 	static final Stubs STUBS = Stubs.JRE_14;
 
-	static final boolean outputPDGFiles = false;
-	static final boolean outputGraphMLFiles = false;
+	static final boolean outputPDGFiles = true;
+	static final boolean outputGraphMLFiles = true;
 	
 	static final String outputDir = "out";
 	
@@ -166,6 +166,7 @@ public class ToyTests {
 			}
 
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			System.out.println(illegal);
 			assertFalse(illegal.isEmpty());
 		}
 
@@ -219,12 +220,12 @@ public class ToyTests {
 		}
 	}
 	
-	private static void dumpSDG(SDG sdg, String filename) throws FileNotFoundException {
+	public static void dumpSDG(SDG sdg, String filename) throws FileNotFoundException {
 		BufferedOutputStream bOut = new BufferedOutputStream(new FileOutputStream(outputDir + "/" + filename));
 		SDGSerializer.toPDGFormat(sdg, bOut);
 	}
 	
-	private static void dumpGraphML(SDG sdg, String filename) throws FileNotFoundException {
+	public static void dumpGraphML(SDG sdg, String filename) throws FileNotFoundException {
 		final BufferedOutputStream bOut = new BufferedOutputStream(new FileOutputStream(outputDir + "/" + filename + ".graphml"));
 		final BufferedOutputStream bOutHierachical = new BufferedOutputStream(new FileOutputStream(outputDir + "/" + filename + ".hierarchical.graphml"));
 		try {
@@ -380,6 +381,18 @@ public class ToyTests {
 	public void testFieldAccess3() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testPreciseEnough(joana.api.testdata.seq.FieldAccess3.class);
+	}
+	
+	@Test
+	public void testConstants1() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testPreciseEnough(joana.api.testdata.seq.Constants1.class);
+	}
+	
+	@Test
+	public void testConstants2() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testTooImprecise(joana.api.testdata.seq.Constants2.class);
 	}
 	
 	// TODO: This should crash when we turn on reflection

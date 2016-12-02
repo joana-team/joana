@@ -11,4 +11,7 @@ package edu.kit.joana.ui.annotations;
  * 
  * @author Martin Hecker <martin.hecker@kit.edu>
  */
-public enum Level { LOW, HIGH };
+public class Level {
+	public final static String LOW="low";
+	public final static String HIGH="high";
+};

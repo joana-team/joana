@@ -1902,6 +1902,13 @@ public class SDGBuilder implements CallGraphFilter {
 		 */
 		public boolean computeAllocationSites = false;
 		public SideEffectDetectorConfig sideEffects = null;
+		
+		
+		/**
+		 * If true, try to determine local Variables associated with value numbers
+		 */
+		public boolean associateLocalNames = true;
+		
 		/**
 		 *  Debugging-Option: Rename variables in the SDG when no name is available.
 		 *

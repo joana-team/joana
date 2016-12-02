@@ -8,6 +8,7 @@
 package edu.kit.joana.ifc.sdg.io.graphml;
 
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -41,6 +42,8 @@ public class SDG2GraphML {
 	private static final String JOANA_NODE_PROC = "nodeProc";
 	private static final String JOANA_NODE_SOURCE = "nodeSource";
 	private static final String JOANA_NODE_KIND = "nodeKind";
+	private static final String JOANA_NODE_LOCALDEF = "nodeLocalDef";
+	private static final String JOANA_NODE_LOCALUSE = "nodeLocalUse";
 	
 	/**
 	 * Constants for names from the GraphML namespace
@@ -120,6 +123,20 @@ public class SDG2GraphML {
 				writer.writeAttribute(GRAPHML_KEY, JOANA_NODE_EC);
 				writer.writeCharacters(Integer.toString(n.getEc()));
 			} writer.writeEndElement();
+			
+			if (n.getLocalDefNames() != null) {
+				writer.writeStartElement(GRAPHML_DATA); {
+					writer.writeAttribute(GRAPHML_KEY, JOANA_NODE_LOCALDEF);
+					writer.writeCharacters(Arrays.toString(n.getLocalDefNames()));
+				} writer.writeEndElement();
+			}
+			
+			if (n.getLocalUseNames() != null) {
+				writer.writeStartElement(GRAPHML_DATA); {
+					writer.writeAttribute(GRAPHML_KEY, JOANA_NODE_LOCALUSE);
+					writer.writeCharacters(Arrays.toString(n.getLocalUseNames()));
+				} writer.writeEndElement();
+			}
 			
 		} writer.writeEndElement();
 	}
@@ -222,6 +239,20 @@ public class SDG2GraphML {
 			writer.writeAttribute(GRAPHML_ATTR_TYPE, GRAPHML_INT);
 		}
 		
+		writer.writeEmptyElement(GRAPHML_KEY); {
+			writer.writeAttribute(GRAPHML_ID, JOANA_NODE_EC);
+			writer.writeAttribute(GRAPHML_FOR, GRAPHML_NODE);
+			writer.writeAttribute(GRAPHML_ATTR_NAME, JOANA_NODE_LOCALDEF);
+			writer.writeAttribute(GRAPHML_ATTR_TYPE, GRAPHML_STRING);
+		}
+		
+		writer.writeEmptyElement(GRAPHML_KEY); {
+			writer.writeAttribute(GRAPHML_ID, JOANA_NODE_EC);
+			writer.writeAttribute(GRAPHML_FOR, GRAPHML_NODE);
+			writer.writeAttribute(GRAPHML_ATTR_NAME, JOANA_NODE_LOCALUSE);
+			writer.writeAttribute(GRAPHML_ATTR_TYPE, GRAPHML_STRING);
+		}
+
 		
 		writer.writeEmptyElement(GRAPHML_KEY); {
 			writer.writeAttribute(GRAPHML_ID, JOANA_EDGE_KIND);

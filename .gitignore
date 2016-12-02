@@ -17,12 +17,15 @@ api/joana.api.test/build/*
 api/joana.api.test/lib
 api/joana.api.testdata/bin
 api/joana.api/bin
+api/joana.api.testdata/bin
+
 checkflow_tmp
 contrib/lib/bin
 CVS
 deprecated/joana.deprecated.jsdg/*.csv
 deprecated/joana.deprecated.jsdg/dist_simple
 deprecated/jSDG/bin
+deprecated/jSDG-GUI/bin
 DeprecatedOldSDG_*.java
 dist/
 example/joana.example.many-small-progs/jSDG/lib
@@ -45,6 +48,7 @@ ui/ifc/wala/joana.ui.ifc.wala.console/bin
 ui/ifc/wala/joana.ui.ifc.wala.console/deploy
 ui/ifc/wala/joana.ui.ifc.wala.console/dist
 ui/wala/joana.ui.wala.easyifc/lib/joana.api.jar
+ui/wala/joana.ui.wala.easyifc/bin
 ui/wala/joana.ui.wala.flowless/bin/
 ui/wala/joana.ui.wala.flowless/lib/checkflow.jar
 ui/wala/joana.ui.wala.flowless/lib/checkflow-old.jar

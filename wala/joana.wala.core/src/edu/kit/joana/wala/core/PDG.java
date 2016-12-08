@@ -162,7 +162,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 		this.params = new PDGNode[method.getNumberOfParameters()];
 		for (int i = 0; i < params.length; i++) {
 			final String pName;
-			if (!this.getMethod().isNative()) {
+			if (!this.getMethod().isNative() && this.getMethod().getLocalVariableName(0, i) != null) {
 				pName = " $" + this.getMethod().getLocalVariableName(0, i) + " ";
 			} else {
 				pName = "";

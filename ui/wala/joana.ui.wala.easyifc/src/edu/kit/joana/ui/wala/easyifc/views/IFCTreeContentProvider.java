@@ -26,6 +26,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 
+import edu.kit.joana.api.SPos;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer;
 import edu.kit.joana.ui.wala.easyifc.util.EasyIFCMarkerAndImageManager;
 import edu.kit.joana.ui.wala.easyifc.util.EasyIFCMarkerAndImageManager.Marker;
@@ -516,7 +517,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		
 		@Override
 		public String toString() {
-			return "caused by secret in '" + trigger.sourceFile + ":" + trigger.startLine + "'";
+			return "caused by secret in '" + trigger.getSourceFile() + ":" + trigger.getStartLine() + "'";
 		}
 		
 	}

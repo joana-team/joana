@@ -34,6 +34,7 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.IFCType;
+import edu.kit.joana.api.SPos;
 import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGMethod;
@@ -57,7 +58,6 @@ import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.IFCResult;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.Reason;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SLeak;
-import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SPos;
 import edu.kit.joana.ui.wala.easyifc.util.EntryPointSearch.EntryPointConfiguration;
 import edu.kit.joana.util.Config;
 import edu.kit.joana.util.Maybe;

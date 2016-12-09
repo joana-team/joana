@@ -23,11 +23,11 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.ui.PlatformUI;
 
+import edu.kit.joana.api.SPos;
 import edu.kit.joana.ui.wala.easyifc.Activator;
 import edu.kit.joana.ui.wala.easyifc.model.FileSourcePositions;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.IFCResult;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SLeak;
-import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SPos;
 import edu.kit.joana.ui.wala.easyifc.model.ProgramSourcePositions;
 import edu.kit.joana.ui.wala.easyifc.util.EasyIFCMarkerAndImageManager;
 import edu.kit.joana.ui.wala.easyifc.util.ProjectUtil;
@@ -89,7 +89,7 @@ public class HighlightIFCResultAction extends Action {
 			final ProgramSourcePositions psp = new ProgramSourcePositions();
 			
 			for (final SPos pos : leak.getChop()) {
-				psp.addSourcePosition(pos.sourceFile, pos.startLine, pos.endLine, pos.startChar, pos.endChar);
+				psp.addSourcePosition(pos.getSourceFile(), pos.getStartLine(), pos.getEndLine(), pos.getStartChar(), pos.getEndChar());
 			}
 			
 			return psp;
@@ -100,7 +100,7 @@ public class HighlightIFCResultAction extends Action {
 
 			for (final SLeak leak : result.getLeaks()) {
 				for (final SPos pos : leak.getChop()) {
-					psp.addSourcePosition(pos.sourceFile, pos.startLine, pos.endLine, pos.startChar, pos.endChar);
+					psp.addSourcePosition(pos.getSourceFile(), pos.getStartLine(), pos.getEndLine(), pos.getStartChar(), pos.getEndChar());
 				}
 			}
 

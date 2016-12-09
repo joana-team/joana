@@ -159,4 +159,25 @@ public class SPos implements Comparable<SPos> {
 		}
 	}
 
+	public String getSourceFile() {
+		return sourceFile;
+	}
+
+	public int getStartChar() {
+		return startChar;
+	}
+
+	public int getEndChar() {
+		return endChar;
+	}
+
+	public int getStartLine() {
+		return startLine;
+	}
+
+	public int getEndLine() {
+		return endLine;
+	}
+	
+
 }

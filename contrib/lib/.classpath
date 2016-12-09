@@ -2,7 +2,6 @@
 <classpath>
 	<classpathentry kind="src" path="res"/>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry exported="true" kind="lib" path="apktool_2.0.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="jgrapht-core-0.9.2.jar" sourcepath="jgrapht-0.9.2.zip"/>
 	<classpathentry exported="true" kind="lib" path="jgrapht-ext-0.9.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="stax-utils.jar" sourcepath="stax-utils-src.zip"/>

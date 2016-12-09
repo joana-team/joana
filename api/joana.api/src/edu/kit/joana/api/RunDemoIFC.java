@@ -7,12 +7,9 @@
  */
 package edu.kit.joana.api;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -287,134 +284,6 @@ public final class RunDemoIFC {
 			return 0;
 		}
 		
-	}
-	
-	public static class SPos implements Comparable<SPos> {
-		private final String sourceFile;
-		private final int startChar;
-		private final int endChar;
-		private final int startLine;
-		private final int endLine;
-		
-		public SPos(final String sourceFile, final int startLine, final int endLine, final int startChar,
-				final int endChar) {
-			this.sourceFile = sourceFile;
-			this.startLine = startLine;
-			this.endLine = endLine;
-			this.startChar = startChar;
-			this.endChar = endChar;
-		}
-		
-		public int hashCode() {
-			return sourceFile.hashCode() + 13 * startLine;
-		}
-		
-		public boolean isAllZero() {
-			return startLine == 0 && endLine == 0 && startChar == 0 && endChar == 0;
-		}
-		
-		public boolean hasCharPos() {
-			return !(startChar == 0 && startChar == endChar);
-		}
-		
-		public boolean isMultipleLines() {
-			return startLine != endLine;
-		}
-		
-		public boolean equals(Object o) {
-			if (o instanceof SPos) {
-				final SPos spos = (SPos) o;
-				return sourceFile.equals(spos.sourceFile) && startLine == spos.startLine && endLine == spos.endLine
-						&& startChar == spos.startChar && endChar == spos.endChar;
-			}
-			
-			return false;
-		}
-
-		@Override
-		public int compareTo(SPos o) {
-			if (sourceFile.compareTo(o.sourceFile) != 0) {
-				return sourceFile.compareTo(o.sourceFile);
-			}
-			
-			if (startLine != o.startLine) {
-				return startLine - o.startLine;
-			}
-			
-			if (endLine != o.endLine) {
-				return endLine - o.endLine;
-			}
-			
-			if (startChar != o.startChar) {
-				return startChar - o.startChar;
-			}
-			
-			if (endChar != o.endChar) {
-				return endChar - o.endChar;
-			}
-			
-			return 0;
-		}
-		
-		public String toString() {
-			if (hasCharPos() && isMultipleLines()) {
-				return sourceFile + ":(" + startLine + "," + startChar + ")-(" + endLine + "," + endChar +")"; 
-			} else if (hasCharPos()) {
-				return sourceFile + ":(" + startLine + "," + startChar + "-" + endChar +")"; 
-			} else if (isMultipleLines()) {
-				return sourceFile + ":" + startLine + "-" + endLine; 
-			} else {
-				return sourceFile + ":" + startLine; 
-			}
-		}
-		
-		public String getSourceCode(final File sourceFile) {
-			final File f = sourceFile;
-			try {
-				String code = "";
-				final BufferedReader read = new BufferedReader(new FileReader(f));
-				for (int i = 0; i < startLine-1; i++) {
-					read.readLine();
-				}
-
-				if (!isMultipleLines()) {
-					final String line = read.readLine();
-					if (hasCharPos()) {
-						code = line.substring(startChar, endChar);
-					} else {
-						code = line;
-					}
-				} else {
-					{
-						final String line = read.readLine();
-						if (hasCharPos()) {
-							code = line.substring(startChar);
-						} else {
-							code = line;
-						}
-					}
-					
-					for (int i = startLine; i < endLine-1; i++) {
-						code += read.readLine();
-					}
-					
-					{
-						final String line = read.readLine();
-						if (hasCharPos()) {
-							code += line.substring(0, endChar);
-						} else {
-							code += line;
-						}
-					}
-				}
-
-				read.close();
-				
-				return code;
-			} catch (IOException e) {}
-			
-			return  "error getting source";
-		}
 	}
 	
 	private static SLeak extractSourceLeaks(final SecurityNode source, final SecurityNode sink, final Reason reason,

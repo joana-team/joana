@@ -16,6 +16,9 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import com.google.common.escape.Escaper;
+import com.google.common.xml.XmlEscapers;
+
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -69,6 +72,8 @@ public class SDG2GraphML {
 	private static final boolean OUTPUT_EDGELABELS=false;
 	private static final String ENCODING = "UTF-8";
 	
+	private static final Escaper xmlEscaper = XmlEscapers.xmlContentEscaper();
+	
 	private static void writeNode(SDGNode n, XMLStreamWriter writer) throws XMLStreamException {
 		writer.writeStartElement(GRAPHML_NODE); {
 			writer.writeAttribute(GRAPHML_ID, Integer.toString(n.getId()));
@@ -94,7 +99,7 @@ public class SDG2GraphML {
 			
 			writer.writeStartElement(GRAPHML_DATA); {
 				writer.writeAttribute(GRAPHML_KEY, JOANA_NODE_LABEL);
-				writer.writeCharacters(n.getLabel());
+				writer.writeCharacters(xmlEscaper.escape(n.getLabel()));
 			} writer.writeEndElement();
 			
 			writer.writeStartElement(GRAPHML_DATA); {

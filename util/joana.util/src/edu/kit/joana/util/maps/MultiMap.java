@@ -48,6 +48,10 @@ public class MultiMap<K, T> {
 	public Set<K> keySet() {
 		return map.keySet();
 	}
+
+	public Set<Map.Entry<K, Set<T>>> entrySet() {
+		return map.entrySet();
+	}
 	/**
 	 * Returns all values associated to the given key. In particular, an empty set is returned, if
 	 * the given key is not contained in this map.

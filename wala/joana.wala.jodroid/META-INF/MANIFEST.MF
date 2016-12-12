@@ -6,7 +6,8 @@ Bundle-Version: 1.0.0.qualifier
 Export-Package: .,
  edu.kit.joana.wala.jodroid,
  edu.kit.joana.wala.jodroid.entrypointsFile
-Require-Bundle: com.ibm.wala.core;bundle-version="1.1.3",
+Require-Bundle: joana.contrib.apktool;bundle-version="1.0.0",
+ com.ibm.wala.core;bundle-version="1.1.3",
  com.ibm.wala.ide;bundle-version="1.1.3",
  com.ibm.wala.shrike;bundle-version="1.3.1",
  com.ibm.wala.dalvik;bundle-version="1.0.0",

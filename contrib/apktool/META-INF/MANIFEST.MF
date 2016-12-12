@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: joana.contrib.apktool
+Bundle-SymbolicName: joana.contrib.apktool
+Bundle-Version: 1.0.0.qualifier
+Bundle-ClassPath: apktool_2.0.0.jar,
+ .
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Export-Package: brut.apktool,
+ brut.common

@@ -255,7 +255,7 @@ public class FullIFCConcurrentTest {
 					"conc.lg.Partition.in");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
-			assertEquals(428, illegal.size());
+			assertEquals(932, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

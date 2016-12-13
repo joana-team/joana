@@ -35,8 +35,8 @@ public class LocalVariableAnnotationsTest {
 			cls,
 			ToyTests.top_sequential,
 			false);
-		ToyTests.dumpSDG(ana.getProgram().getSDG(), cls + ".pdg");
-		ToyTests.dumpGraphML(ana.getProgram().getSDG(), cls + ".pdg");
+		ToyTests.dumpSDG(ana.getProgram().getSDG(), cls.getCanonicalName() + ".pdg");
+		ToyTests.dumpGraphML(ana.getProgram().getSDG(), cls.getCanonicalName() + ".pdg");
 
 		Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 		assertFalse(illegal.isEmpty());

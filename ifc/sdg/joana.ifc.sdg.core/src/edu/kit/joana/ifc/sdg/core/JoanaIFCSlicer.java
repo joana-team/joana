@@ -30,6 +30,7 @@ import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.maps.BinaryMap;
+import edu.kit.joana.util.maps.MultiHashMap;
 import edu.kit.joana.util.maps.MultiMap;
 
 /**
@@ -114,7 +115,7 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 		HashMap<Pathedge, Pathedge> visited = new HashMap<Pathedge, Pathedge>();
 
 		/** actoutPathedges contains pathedges starting at an actout-node */
-		MultiMap<SecurityNode, Pathedge> actoutPathedges = new MultiMap<SecurityNode, Pathedge>();
+		MultiMap<SecurityNode, Pathedge> actoutPathedges = new MultiHashMap<SecurityNode, Pathedge>();
 
 		/** violations contains SimpleViolations representing all found security violations */
 		LinkedList<ClassifiedViolation> violations = new LinkedList<ClassifiedViolation>();

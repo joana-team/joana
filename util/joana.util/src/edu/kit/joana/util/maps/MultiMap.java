@@ -11,7 +11,6 @@
  */
 package edu.kit.joana.util.maps;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -24,11 +23,16 @@ import java.util.Set;
  * @author Martin Mohr 
  *
  **/
-public class MultiMap<K, T> {
+public abstract class MultiMap<K, T> {
 
 
-	private Map<K, Set<T>> map = new HashMap<K, Set<T>>();
+	protected final Map<K, Set<T>> map;
 
+	protected MultiMap() {
+		this.map = createMap();
+	}
+
+	protected abstract Map<K, Set<T>> createMap();
 	/***
 	 * Adds a value to the value set of the given key.
 	 * @param key key to add value for

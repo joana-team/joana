@@ -19,6 +19,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.IncrementalSummaryBackward;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
+import edu.kit.joana.util.maps.MultiHashMap;
 import edu.kit.joana.util.maps.MultiMap;
 
 
@@ -117,7 +118,7 @@ public class DeclassificationSummaryNodes extends IncrementalSummaryBackward {
     }
 
 	private void initWorklist() {
-		pathEdge = new MultiMap<SecurityNode, PathEdge>();
+		pathEdge = new MultiHashMap<SecurityNode, PathEdge>();
     	worklist = new LinkedList<PathEdge>();
     	boolean isIPDG = true;
     	List<SDGEdge> toRemove = new ArrayList<SDGEdge>();

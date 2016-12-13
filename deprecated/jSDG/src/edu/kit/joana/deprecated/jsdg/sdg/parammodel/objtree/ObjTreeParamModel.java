@@ -35,6 +35,7 @@ import edu.kit.joana.deprecated.jsdg.sdg.parammodel.objtree.ParameterNode.Type;
 import edu.kit.joana.deprecated.jsdg.sdg.parammodel.objtree.dataflow.ModRefHeapParams;
 import edu.kit.joana.deprecated.jsdg.sdg.parammodel.objtree.interfacecomp.ObjTreeUnfoldingCriterion;
 import edu.kit.joana.deprecated.jsdg.util.Util;
+import edu.kit.joana.util.maps.MultiHashMap;
 import edu.kit.joana.util.maps.MultiMap;
 
 /**
@@ -131,13 +132,13 @@ public class ObjTreeParamModel implements IParamModel {
 		this.rootFormIn = HashSetFactory.make();
 		this.rootFormOut = HashSetFactory.make();
 
-		this.ikey2actout = new MultiMap<InstanceKey, ActualInOutNode>();
-		this.ikey2formin = new MultiMap<InstanceKey, FormInOutNode>();
-		this.ikey2actin = new MultiMap<InstanceKey, ActualInOutNode>();
-		this.ikey2formout = new MultiMap<InstanceKey, FormInOutNode>();
+		this.ikey2actout = new MultiHashMap<InstanceKey, ActualInOutNode>();
+		this.ikey2formin = new MultiHashMap<InstanceKey, FormInOutNode>();
+		this.ikey2actin = new MultiHashMap<InstanceKey, ActualInOutNode>();
+		this.ikey2formout = new MultiHashMap<InstanceKey, FormInOutNode>();
 
-		this.call2rootActIn = new MultiMap<CallNode, ActualInOutNode>();
-		this.call2rootActOut = new MultiMap<CallNode, ActualInOutNode>();
+		this.call2rootActIn = new MultiHashMap<CallNode, ActualInOutNode>();
+		this.call2rootActOut = new MultiHashMap<CallNode, ActualInOutNode>();
 	}
 
 	private final boolean containsNode(AbstractPDGNode node) {

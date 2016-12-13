@@ -2,6 +2,7 @@
 *.class
 *.dot
 *.dot~
+*.graphml
 *.log
 *.pdg
 *.pdg.opt

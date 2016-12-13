@@ -119,7 +119,6 @@ public class JoinAnalysisIFCMantelTest {
 			 * Currently (Dec 13, 2016), the number of violations is dependent on the compiler used to compile the test code:
 			 * - The eclipse compiler yields 90 violations.
 			 * - The javac compiler yields 96 violations.
-			 * There also seems to be a connection with
 			 * TODO: investigate the deeper reasons for this weird behaviour!
 			 */
 			assertTrue((illegal.size() == 90 || illegal.size() == 96));

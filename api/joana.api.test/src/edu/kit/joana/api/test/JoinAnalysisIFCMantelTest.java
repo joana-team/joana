@@ -121,7 +121,7 @@ public class JoinAnalysisIFCMantelTest {
 			 * - The javac compiler yields 96 violations.
 			 * TODO: investigate the deeper reasons for this weird behaviour!
 			 */
-			assertTrue((illegal.size() == 90 || illegal.size() == 96));
+			assertTrue(illegal.size() == 90);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

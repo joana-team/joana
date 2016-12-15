@@ -111,7 +111,12 @@ public class ThreadModularCDomOracle implements ICDomOracle {
 			threadDIO = new DFSIntervalOrder<SDGNode, DomEdge>(threadDom.getDominationTree());
 			threadsToDIO.put(cAnc.getId(), threadDIO);
 		}
-		cdom = new VirtualNode(lowestNonDynamicCommonDominator(fork1, fork2, threadDom, threadDIO, dyna), cAnc.getId());
+		
+		SDGNode cdomSDGNode = lowestNonDynamicCommonDominator(fork1, fork2, threadDom, threadDIO, dyna);
+		if (cdomSDGNode == null) {
+			cdomSDGNode = cAnc.getEntry();
+		}
+		cdom = new VirtualNode(cdomSDGNode, cAnc.getId());
 		
 		forkCDom.put(new ForksTuple(fork1, fork2, cAnc.getId()), cdom);
 		//forkCDom.put(new ForksTuple(fork2, fork1, cAnc.getId()), cdom);

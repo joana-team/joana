@@ -73,6 +73,8 @@ import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.ui.annotations.AnnotationPolicy;
+import edu.kit.joana.ui.annotations.Level;
+import edu.kit.joana.ui.annotations.PositionDefinition;
 import edu.kit.joana.ui.annotations.Sink;
 import edu.kit.joana.ui.annotations.Source;
 import edu.kit.joana.util.Log;
@@ -573,6 +575,7 @@ public class IFCAnalysis {
 			      TypeName.findOrCreate(JavaType.parseSingleTypeFromString(Sink.class.getCanonicalName()).toBCString(false)));
 
 		final TypeName annotationPolicy = TypeName.findOrCreate(JavaType.parseSingleTypeFromString(AnnotationPolicy.class.getCanonicalName()).toBCString());
+		final TypeName positionDefinition = TypeName.findOrCreate(JavaType.parseSingleTypeFromString(AnnotationPolicy.class.getCanonicalName()).toBCString());
 		final Map<SDGProgramPart,Collection<Annotation>> annotations = program.getJavaSourceAnnotations();
 		
 		for (final Entry<SDGProgramPart,Collection<Annotation>> e : annotations.entrySet()) {
@@ -599,7 +602,17 @@ public class IFCAnalysis {
 						assert (annotationPolicy.equals(TypeName.findOrCreate(enumannotate.enumType)));
 						annotate = AnnotationPolicy.valueOf(enumannotate.enumVal);						
 					}
-
+					
+					final ElementValue positionDefinitionValue = a.getNamedArguments().get("positionDefinition");
+					final PositionDefinition positionDef;
+					if (positionDefinitionValue == null) {
+						positionDef = null;
+					} else {
+						final EnumElementValue enumpositiondefinition = (EnumElementValue) positionDefinitionValue;
+						assert (positionDefinition.equals(TypeName.findOrCreate(enumpositiondefinition.enumType)));
+						positionDef = PositionDefinition.valueOf(enumpositiondefinition.enumVal);
+					}
+					
 					final ElementValue mayKnowValue = a.getNamedArguments().get("mayKnow");
 					final String[] mayKnow;
 					if (mayKnowValue == null) {
@@ -622,6 +635,24 @@ public class IFCAnalysis {
 						for (int i = 0; i < arrayIncludes.vals.length; i++) {
 							includes[i] = arrayIncludes.vals[i].toString();
 						}
+					}
+					
+					final ElementValue lineNumberValue = a.getNamedArguments().get("lineNumber");
+					final Integer lineNumber;
+					if (lineNumberValue == null) {
+						lineNumber = -1;
+					} else {
+						final ConstantElementValue constantvalue = (ConstantElementValue) lineNumberValue;
+						lineNumber = (Integer) constantvalue.val;
+					}
+					
+					final ElementValue columnNumberValue = a.getNamedArguments().get("columnNumber");
+					final Integer columnNumber;
+					if (columnNumberValue == null) {
+						columnNumber = -1;
+					} else {
+						final ConstantElementValue constantvalue = (ConstantElementValue) columnNumberValue;
+						columnNumber = (Integer) constantvalue.val;
 					}
 					
 					sources.put(e.getKey(), new Source() {
@@ -649,6 +680,21 @@ public class IFCAnalysis {
 						public AnnotationPolicy annotate() {
 							return annotate;
 						}
+						
+						@Override
+						public PositionDefinition positionDefinition() {
+							return positionDef;
+						}
+						
+						@Override
+						public int lineNumber() {
+							return lineNumber;
+						}
+						
+						@Override
+						public int columnNumber() {
+							return columnNumber;
+						}
 					});
 				} else if (sink.equals(a.getType())) {
 					final ElementValue levelValue = a.getNamedArguments().get("level");
@@ -670,6 +716,16 @@ public class IFCAnalysis {
 						final EnumElementValue enumannotate = (EnumElementValue) annotateValue;
 						assert (annotationPolicy.equals(TypeName.findOrCreate(enumannotate.enumType)));
 						annotate = AnnotationPolicy.valueOf(enumannotate.enumVal);						
+					}
+					
+					final ElementValue positionDefinitionValue = a.getNamedArguments().get("positionDefinition");
+					final PositionDefinition positionDef;
+					if (positionDefinitionValue == null) {
+						positionDef = null;
+					} else {
+						final EnumElementValue enumpositiondefinition = (EnumElementValue) positionDefinitionValue;
+						assert (positionDefinition.equals(TypeName.findOrCreate(enumpositiondefinition.enumType)));
+						positionDef = PositionDefinition.valueOf(enumpositiondefinition.enumVal);
 					}
 
 					final ElementValue seenByValue = a.getNamedArguments().get("seenBy");
@@ -696,6 +752,24 @@ public class IFCAnalysis {
 						}
 					}
 					
+					final ElementValue lineNumberValue = a.getNamedArguments().get("lineNumber");
+					final Integer lineNumber;
+					if (lineNumberValue == null) {
+						lineNumber = -1;
+					} else {
+						final ConstantElementValue constantvalue = (ConstantElementValue) lineNumberValue;
+						lineNumber = (Integer) constantvalue.val;
+					}
+					
+					final ElementValue columnNumberValue = a.getNamedArguments().get("columnNumber");
+					final Integer columnNumber;
+					if (columnNumberValue == null) {
+						columnNumber = -1;
+					} else {
+						final ConstantElementValue constantvalue = (ConstantElementValue) columnNumberValue;
+						columnNumber = (Integer) constantvalue.val;
+					}
+					
 					sinks.put(e.getKey(), new Sink() {
 						@Override
 						public Class<? extends java.lang.annotation.Annotation> annotationType() {
@@ -720,6 +794,21 @@ public class IFCAnalysis {
 						@Override
 						public AnnotationPolicy annotate() {
 							return annotate;
+						}
+						
+						@Override
+						public PositionDefinition positionDefinition() {
+							return positionDef;
+						}
+						
+						@Override
+						public int lineNumber() {
+							return lineNumber;
+						}
+						
+						@Override
+						public int columnNumber() {
+							return columnNumber;
 						}
 					});
 				}

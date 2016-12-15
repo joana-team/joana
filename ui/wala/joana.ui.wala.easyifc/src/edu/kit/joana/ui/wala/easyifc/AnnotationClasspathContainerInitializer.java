@@ -53,8 +53,13 @@ public class AnnotationClasspathContainerInitializer extends ClasspathContainerI
 
 					@Override
 					public IClasspathEntry[] getClasspathEntries() {
-						return new IClasspathEntry[] { JavaCore.newLibraryEntry(new Path(binPath.getFile()),
-								new Path(srcPath.getFile()), new Path(srcPath.getFile())) };
+						return new IClasspathEntry[] {
+							JavaCore.newLibraryEntry(
+								new Path(binPath.getFile()),
+								new Path(srcPath.getFile()),
+								new Path(srcPath.getFile())
+							),
+						};
 					}
 				}
 			};

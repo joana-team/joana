@@ -27,7 +27,9 @@ Require-Bundle: org.eclipse.ui,
  joana.wala.summary,
  joana.util,
  joana.contrib.lib,
- joana.ui.annotations
+ joana.ui.annotations,
+ org.eclipse.ltk.core.refactoring,
+ org.eclipse.jdt.core.manipulation
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .

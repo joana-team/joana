@@ -163,4 +163,22 @@
 			</menu>
 		</menuContribution>
 	</extension>
+    <extension
+         point="org.eclipse.jdt.ui.cleanUps">
+      <cleanUp
+            id="edu.kit.joana.ui.wala.easyifc.util.AnnotatinSourceCleanup"
+            class="edu.kit.joana.ui.wala.easyifc.util.AnnotatinSourceCleanup">
+      </cleanUp>
+      
+      <cleanUpOptionsInitializer
+            class="edu.kit.joana.ui.wala.easyifc.util.AnnotatinSourceCleanupOptionsInitializer"
+            cleanUpKind="saveAction">
+      </cleanUpOptionsInitializer>
+      
+      <cleanUpConfigurationUI
+            class="edu.kit.joana.ui.wala.easyifc.util.AnnotatinSourceCleanupConfigurationUI"
+            name="%cleanUpConfigurationUI.name"
+            cleanUpKind="saveAction">
+      </cleanUpConfigurationUI>
+   </extension>
 </plugin>

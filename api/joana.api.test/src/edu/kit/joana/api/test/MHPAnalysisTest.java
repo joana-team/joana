@@ -36,6 +36,7 @@ import edu.kit.joana.util.Pair;
 public class MHPAnalysisTest {
 
 	private static final boolean FORCE_REBUILD = true;
+	private static final String outputDir = "out";
 	
 	private static final String TEST_PACKAGE = "joana.api.testdata.conc.";
 	
@@ -620,7 +621,7 @@ public class MHPAnalysisTest {
 
 		public TestData(String mainClass, String sdgFile) {
 			this.mainClass = mainClass;
-			this.sdgFile = sdgFile;
+			this.sdgFile = outputDir + File.separator + sdgFile;
 		}
 
 	}

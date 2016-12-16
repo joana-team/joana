@@ -40,7 +40,7 @@ public class TimeSensSlicingTest {
 		final String sdgFile;
 		TestData(final String mainClass, final String sdgFile) {
 			this.mainClass = mainClass;
-			this.sdgFile = sdgFile;
+			this.sdgFile = outputDir + File.separator + sdgFile;
 		}
 	}
 	
@@ -52,6 +52,7 @@ public class TimeSensSlicingTest {
 	}
 	
 	private static final boolean FORCE_REBUILD = true;
+	private static final String outputDir = "out";
 	
 	@BeforeClass
 	public static void setUp() {

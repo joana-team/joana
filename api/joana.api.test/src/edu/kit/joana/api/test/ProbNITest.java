@@ -58,6 +58,7 @@ public class ProbNITest {
 	
 
 	private static final boolean FORCE_REBUILD = true;
+	private static final String outputDir = "out";
 
 	private static final Map<String, TestData> testData = new HashMap<String, TestData>();
 	
@@ -575,7 +576,7 @@ public class ProbNITest {
 
 		public TestData(String mainClass, String sdgFile) {
 			this.mainClass = mainClass;
-			this.sdgFile = sdgFile;
+			this.sdgFile = outputDir + File.separator + sdgFile;
 		}
 
 	}

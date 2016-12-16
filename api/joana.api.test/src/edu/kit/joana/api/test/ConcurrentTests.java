@@ -33,6 +33,7 @@ import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 public class ConcurrentTests {
 
 	private static final boolean FORCE_REBUILD = true;
+	private static final String outputDir = "out";
 
 	private static final Map<String, TestData> testData = new HashMap<String, TestData>();
 
@@ -204,7 +205,7 @@ public class ConcurrentTests {
 			this.expectedNumberOfThreads = expectedNumberOfThreads;
 			this.expectedNumberOfDynamicThreads = expectedNumberOfDynamicThreads;
 			this.mainClass = mainClass;
-			this.sdgFile = sdgFile;
+			this.sdgFile = outputDir + File.separator + sdgFile;
 			this.ptsPrecToUse = ptsPrecToUse;
 		}
 	}

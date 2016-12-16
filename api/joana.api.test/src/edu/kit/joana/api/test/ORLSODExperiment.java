@@ -207,10 +207,13 @@ public class ORLSODExperiment {
 	}
 
 	static class StandardTestConfig extends TestConfig {
+		private static final String prefix = "out" + File.separator;
+		
 		StandardTestConfig(final String classPath, final Class<?> mainClass, final String shortName,
 				final int expectedNoSources, final int expectedNoSinks, final int expectedNoViolations) {
 			this.progDesc = new ProgDesc(classPath, mainClass);
-			this.outputFiles = new OutputFiles(String.format("%s.dot", shortName), String.format("%s.pdg", shortName));
+			this.outputFiles = new OutputFiles(String.format("%s%s.dot", prefix, shortName),
+												String.format("%s%s.pdg", prefix, shortName));
 			this.expectedNoHighThings = expectedNoSources;
 			this.expectedNoLowThings = expectedNoSinks;
 			this.expectedNoViolations = expectedNoViolations;

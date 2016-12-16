@@ -54,6 +54,13 @@ public class TimeSensSlicingTest {
 	private static final boolean FORCE_REBUILD = true;
 	private static final String outputDir = "out";
 	
+	static {
+		File fOutDir = new File(outputDir);
+		if (!fOutDir.exists()) {
+			fOutDir.mkdir();
+		}
+	}
+	
 	@BeforeClass
 	public static void setUp() {
 		/** test failure will only be visible if assertions are enabled */

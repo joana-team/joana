@@ -42,6 +42,13 @@ public class IFCJoinTest {
 
 	private static final boolean FORCE_REBUILD = true;
 	private static final String outputDir = "out";
+	
+	static {
+		File fOutDir = new File(outputDir);
+		if (!fOutDir.exists()) {
+			fOutDir.mkdir();
+		}
+	}
 
 	private static final Map<String, TestData> testData = new HashMap<String, TestData>();
 

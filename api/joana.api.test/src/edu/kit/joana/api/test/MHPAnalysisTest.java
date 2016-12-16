@@ -38,6 +38,13 @@ public class MHPAnalysisTest {
 	private static final boolean FORCE_REBUILD = true;
 	private static final String outputDir = "out";
 	
+	static {
+		File fOutDir = new File(outputDir);
+		if (!fOutDir.exists()) {
+			fOutDir.mkdir();
+		}
+	}
+	
 	private static final String TEST_PACKAGE = "joana.api.testdata.conc.";
 	
 	private static final String TEST_CLASSNAME = "Ljoana/api/testdata/conc/";

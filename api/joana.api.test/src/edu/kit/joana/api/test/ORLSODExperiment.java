@@ -207,7 +207,15 @@ public class ORLSODExperiment {
 	}
 
 	static class StandardTestConfig extends TestConfig {
-		private static final String prefix = "out" + File.separator;
+		private static final String outputDir = "out";
+		private static final String prefix = outputDir + File.separator;
+		
+		static {
+			File fOutDir = new File(outputDir);
+			if (!fOutDir.exists()) {
+				fOutDir.mkdir();
+			}
+		}
 		
 		StandardTestConfig(final String classPath, final Class<?> mainClass, final String shortName,
 				final int expectedNoSources, final int expectedNoSinks, final int expectedNoViolations) {

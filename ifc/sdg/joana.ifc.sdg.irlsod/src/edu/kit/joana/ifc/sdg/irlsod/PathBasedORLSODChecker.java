@@ -17,10 +17,14 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
+import edu.kit.joana.util.Log;
+import edu.kit.joana.util.Logger;
 
 public class PathBasedORLSODChecker<L> extends OptORLSODChecker<L> {
 
 	private DirectedGraph<SDGNode, DefaultEdge> depGraph;
+	
+	private static Logger debug = Log.getLogger(Log.L_IFC_DEBUG);
 
 	public PathBasedORLSODChecker(final SDG sdg, final IStaticLattice<L> secLattice, final ProbInfComputer probInf) {
 		this(sdg, secLattice, null, probInf);
@@ -55,11 +59,11 @@ public class PathBasedORLSODChecker<L> extends OptORLSODChecker<L> {
 				final List<DefaultEdge> path = DijkstraShortestPath.findPathBetween(depGraph, userEntry1.getKey(),
 						userEntry2.getKey());
 				if (path != null) {
-					System.out.println(path);
+					debug.outln(path);
 					ret.add(new BinaryViolation<SecurityNode, L>(new SecurityNode(userEntry2.getKey()),
 							new SecurityNode(userEntry1.getKey()), userEntry2.getValue()));
 				} else {
-					System.out.println(
+					debug.outln(
 							String.format("%s cannot influence %s.", userEntry1.getKey(), userEntry2.getKey()));
 				}
 			}

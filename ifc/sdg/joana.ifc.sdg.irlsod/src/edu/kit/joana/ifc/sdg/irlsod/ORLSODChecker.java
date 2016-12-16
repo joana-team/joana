@@ -84,7 +84,7 @@ public class ORLSODChecker<L> extends AnnotationMapChecker<L> {
 			final L userLvl = userAnnEntry.getValue();
 			if (!secLattice.isLeq(cl.get(s), userLvl)) {
 				ret.add(new UnaryViolation<SecurityNode, L>(new SecurityNode(s), userLvl, cl.get(s)));
-				System.out.println("Violation at node " + s + ": user-annotated level is " + userLvl
+				debug.outln("Violation at node " + s + ": user-annotated level is " + userLvl
 						+ ", computed level is " + cl.get(s));
 			}
 		}
@@ -108,7 +108,7 @@ public class ORLSODChecker<L> extends AnnotationMapChecker<L> {
 			final L userLvl = userAnnEntry.getValue();
 			if (!secLattice.isLeq(userLvl, cl.get(s))) {
 				ret.add(new UnaryViolation<SecurityNode, L>(new SecurityNode(s), userLvl, cl.get(s)));
-				System.out.println("Violation at node " + s + ": user-annotated level is " + userLvl
+				debug.outln("Violation at node " + s + ": user-annotated level is " + userLvl
 						+ ", computed level is " + cl.get(s));
 			}
 		}

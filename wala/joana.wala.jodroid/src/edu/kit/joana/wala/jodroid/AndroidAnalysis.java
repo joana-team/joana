@@ -94,7 +94,6 @@ public class AndroidAnalysis {
 		final AndroidModel modeller = new AndroidModel(cha, options, cache);
 		lifecycle = modeller.getMethodEncap();
 		final SDGBuilder.SDGBuilderConfig scfg = new SDGBuilder.SDGBuilderConfig();
-		scfg.out = silent?new PrintStream(new ByteArrayOutputStream()):System.out;
 		scfg.scope = scope;
 		scfg.cache = cache;
 		scfg.cha = cha;
@@ -123,6 +122,7 @@ public class AndroidAnalysis {
 				return false;
 			}
 		};
+		scfg.out = silent?new PrintStream(new ByteArrayOutputStream()):System.out;
 		scfg.exceptions = ExceptionAnalysis.INTERPROC;
 		scfg.prunecg = 2;
 		scfg.pruningPolicy = ApplicationLoaderPolicy.INSTANCE;

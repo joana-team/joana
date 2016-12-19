@@ -7,7 +7,6 @@
  */
 package edu.kit.joana.api;
 
-import java.lang.invoke.ConstantCallSite;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -35,7 +34,6 @@ import edu.kit.joana.api.sdg.SDGActualParameter;
 import edu.kit.joana.api.sdg.SDGAttribute;
 import edu.kit.joana.api.sdg.SDGCall;
 import edu.kit.joana.api.sdg.SDGCallReturnNode;
-import edu.kit.joana.api.sdg.SDGFieldOfParameter;
 import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGLocalVariable;
 import edu.kit.joana.api.sdg.SDGMethod;
@@ -75,7 +73,6 @@ import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.ui.annotations.AnnotationPolicy;
-import edu.kit.joana.ui.annotations.Level;
 import edu.kit.joana.ui.annotations.Sink;
 import edu.kit.joana.ui.annotations.Source;
 import edu.kit.joana.util.Log;

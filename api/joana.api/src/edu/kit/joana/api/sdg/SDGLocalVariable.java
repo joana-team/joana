@@ -7,7 +7,6 @@
  */
 package edu.kit.joana.api.sdg;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import edu.kit.joana.ifc.sdg.graph.SDGNode;

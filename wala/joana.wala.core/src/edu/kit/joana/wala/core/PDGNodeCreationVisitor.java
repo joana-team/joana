@@ -9,8 +9,6 @@ package edu.kit.joana.wala.core;
 
 import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
-import com.ibm.wala.model.java.lang.reflect.Array;
-import com.ibm.wala.shrikeBT.IInstruction;
 import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.ISSABasicBlock;
 import com.ibm.wala.ssa.SSAArrayLengthInstruction;
@@ -53,7 +51,6 @@ import java.util.Set;
 
 import com.ibm.wala.analysis.typeInference.TypeInference;
 
-import edu.kit.joana.util.Pair;
 import edu.kit.joana.wala.core.PDGNode.Kind;
 import edu.kit.joana.wala.util.PrettyWalaNames;
 

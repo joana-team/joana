@@ -12,7 +12,6 @@ import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.builder.DirectedGraphBuilder;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
-import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;

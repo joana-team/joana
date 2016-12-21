@@ -175,12 +175,6 @@ public class FullIFCConcurrentTest {
 			// communication appears in network socket layer - this can only be detected if stubs are used that model
 			// network communication. We are now precise enough to not detect flow in java library code.
 			assertTrue(String.format("Expected no violations, found %d", illegal.size()), illegal.isEmpty());
-	
-			// somehow running from ant produces 216 violations, while running
-			// from eclipse results only in 176. Perhaps differences in the included
-			// runtime libraries.
-//			final int size = illegal.size();
-//			assertTrue("unexpected number of violations: " + size, size == 176 || size == 216);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

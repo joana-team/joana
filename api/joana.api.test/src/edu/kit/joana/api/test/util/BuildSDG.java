@@ -1,6 +1,7 @@
 package edu.kit.joana.api.test.util;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -10,6 +11,7 @@ import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
+import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -24,6 +26,34 @@ import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 
 public class BuildSDG {
+
+	private static final Stubs STUBS = Stubs.JRE_14;
+	
+	public static final SDGConfig top_sequential = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, null, STUBS, ExceptionAnalysis.INTERPROC,
+			FieldPropagation.OBJ_GRAPH, PointsToPrecision.OBJECT_SENSITIVE, false, // no
+																					// access
+																					// paths
+			false, // no interference
+			MHPType.NONE);
+	public static final SDGConfig bottom_sequential = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, null, STUBS,
+			ExceptionAnalysis.ALL_NO_ANALYSIS, FieldPropagation.OBJ_GRAPH, PointsToPrecision.TYPE_BASED, false, // no
+																											// access
+																											// paths
+			false, // no interference
+			MHPType.NONE);
+	
+	public static final SDGConfig top_concurrent = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, null, STUBS, ExceptionAnalysis.INTERPROC,
+			FieldPropagation.OBJ_GRAPH, PointsToPrecision.OBJECT_SENSITIVE, false, // no
+																					// access
+																					// paths
+			true, // interference
+			MHPType.PRECISE);
+	public static final SDGConfig bottom_concurrent = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, null, STUBS,
+			ExceptionAnalysis.ALL_NO_ANALYSIS, FieldPropagation.OBJ_GRAPH, PointsToPrecision.TYPE_BASED, false, // no
+																											// access
+																											// paths
+			true, // interference
+			MHPType.SIMPLE);
 
 	private final String classPath;
 	private final String entryMethod;
@@ -103,5 +133,30 @@ public class BuildSDG {
 	
 	public static BuildSDG standardConcSetup(String classPath, String mainClass, String saveAs) {
 		return standardConcSetup(classPath, JavaMethodSignature.mainMethodOfClass(mainClass), saveAs, PointsToPrecision.INSTANCE_BASED);
+	}
+	
+	public static <T> IFCAnalysis build(Class<T> clazz, SDGConfig config, boolean ignore) throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+		final String className = clazz.getCanonicalName();
+		final String classPath;
+		if (ignore) {
+			classPath = JoanaPath.JOANA_API_TEST_DATA_CLASSPATH + File.pathSeparator + JoanaPath.ANNOTATIONS_IGNORE_CLASSPATH;
+		} else {
+			classPath = JoanaPath.JOANA_API_TEST_DATA_CLASSPATH + File.pathSeparator + JoanaPath.ANNOTATIONS_PASSON_CLASSPATH;
+		}
+		config.setClassPath(classPath);
+		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(className);
+		config.setEntryMethod(mainMethod.toBCString());
+
+		SDGProgram prog = SDGProgram.createSDGProgram(config);
+
+		IFCAnalysis ana = new IFCAnalysis(prog);
+		return ana;
+	}
+
+	public static <T> IFCAnalysis buldAndUseJavaAnnotations(Class<T> clazz, SDGConfig config, boolean ignore)
+				throws ApiTestException, ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+			IFCAnalysis ana = build(clazz,config,ignore);
+			ana.addAllJavaSourceAnnotations();
+			return ana;
 	}
 }

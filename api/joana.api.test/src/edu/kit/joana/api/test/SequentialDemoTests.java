@@ -10,14 +10,8 @@ package edu.kit.joana.api.test;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collection;
-
-import javax.xml.stream.XMLStreamException;
 
 import org.junit.Test;
 
@@ -27,21 +21,11 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.IFCType;
-import edu.kit.joana.api.sdg.SDGConfig;
-import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.test.util.ApiTestException;
-import edu.kit.joana.api.test.util.JoanaPath;
+import edu.kit.joana.api.test.util.BuildSDG;
+import edu.kit.joana.api.test.util.DumpTestSDG;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.IViolation;
-import edu.kit.joana.ifc.sdg.graph.SDG;
-import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
-import edu.kit.joana.ifc.sdg.io.graphml.SDG2GraphML;
-import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
-import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
-import edu.kit.joana.util.Stubs;
-import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
-import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
-import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 
 /**
  * Tests for testing the sequential part of the demo test cases
@@ -49,66 +33,21 @@ import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
  * @author Simon Bischof <simon.bischof@kit.edu>
  */
 public class SequentialDemoTests {
-	static final Stubs STUBS = Stubs.JRE_14;
 
 	static final boolean outputPDGFiles = false;
 	static final boolean outputGraphMLFiles = false;
-	static final boolean generateOutputDir = outputPDGFiles || outputGraphMLFiles;
-	
-	static final String outputDir = "out";
-	
-	static final SDGConfig sequentialConfig = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, null, STUBS, ExceptionAnalysis.INTERPROC,
-			FieldPropagation.OBJ_GRAPH, PointsToPrecision.OBJECT_SENSITIVE, false, // no
-																					// access
-																					// paths
-			false, // no interference computation
-			MHPType.NONE);
-
-	static {
-		if (generateOutputDir) {
-			File fOutDir = new File(outputDir);
-			if (!fOutDir.exists()) {
-				fOutDir.mkdir();
-			}
-		}
-	}
-	
-	public static <T> IFCAnalysis build(Class<T> clazz, SDGConfig config, boolean ignore) throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		final String className = clazz.getCanonicalName();
-		final String classPath;
-		if (ignore) {
-			classPath = JoanaPath.JOANA_API_TEST_DATA_CLASSPATH + File.pathSeparator + JoanaPath.ANNOTATIONS_IGNORE_CLASSPATH;
-		} else {
-			classPath = JoanaPath.JOANA_API_TEST_DATA_CLASSPATH + File.pathSeparator + JoanaPath.ANNOTATIONS_PASSON_CLASSPATH;
-		}
-		config.setClassPath(classPath);
-		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(className);
-		config.setEntryMethod(mainMethod.toBCString());
-		SDGProgram prog = SDGProgram.createSDGProgram(config);
-
-		IFCAnalysis ana = new IFCAnalysis(prog);
-		return ana;
-	}
-
-	public static <T> IFCAnalysis buldAndUseJavaAnnotations(Class<T> clazz, SDGConfig config, boolean ignore)
-				throws ApiTestException, ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-			IFCAnalysis ana = build(clazz,config,ignore);
-			ana.addAllJavaSourceAnnotations();
-			return ana;
-	}
-	
 	
 	private static <T> void testSound(Class<T> clazz) throws ClassHierarchyException, ApiTestException,
 	IOException, UnsoundGraphException, CancelException {
 		final String classname = clazz.getCanonicalName();
 		{ // There are leaks, and we're sound and hence report them
-			IFCAnalysis ana = buldAndUseJavaAnnotations(clazz, sequentialConfig, true);
+			IFCAnalysis ana = BuildSDG.buldAndUseJavaAnnotations(clazz, BuildSDG.top_sequential, true);
 
 			if (outputPDGFiles) {
-				dumpSDG(ana.getProgram().getSDG(), classname + ".pdg");
+				DumpTestSDG.dumpSDG(ana.getProgram().getSDG(), classname + ".pdg");
 			}
 			if (outputGraphMLFiles) {
-				dumpGraphML(ana.getProgram().getSDG(), classname + ".pdg");
+				DumpTestSDG.dumpGraphML(ana.getProgram().getSDG(), classname + ".pdg");
 			}
 
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.CLASSICAL_NI);
@@ -120,13 +59,13 @@ public class SequentialDemoTests {
 			IOException, UnsoundGraphException, CancelException {
 		final String classname = clazz.getCanonicalName();
 		{ // There are no leak, and  we're precise enough to find out that there aren't
-			IFCAnalysis ana = buldAndUseJavaAnnotations(clazz, sequentialConfig, true);
+			IFCAnalysis ana = BuildSDG.buldAndUseJavaAnnotations(clazz, BuildSDG.top_sequential, true);
 
 			if (outputPDGFiles) {
-				dumpSDG(ana.getProgram().getSDG(), classname + ".pdg");
+				DumpTestSDG.dumpSDG(ana.getProgram().getSDG(), classname + ".pdg");
 			}
 			if (outputGraphMLFiles) {
-				dumpGraphML(ana.getProgram().getSDG(), classname + ".pdg");
+				DumpTestSDG.dumpGraphML(ana.getProgram().getSDG(), classname + ".pdg");
 			}
 
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.CLASSICAL_NI);
@@ -137,23 +76,6 @@ public class SequentialDemoTests {
 	private static <T> void testTooImprecise(Class<T> clazz) throws ClassHierarchyException, ApiTestException,
 			IOException, UnsoundGraphException, CancelException {
 		testSound(clazz);
-	}
-	
-	private static void dumpSDG(SDG sdg, String filename) throws FileNotFoundException {
-		BufferedOutputStream bOut = new BufferedOutputStream(new FileOutputStream(outputDir + "/" + filename));
-		SDGSerializer.toPDGFormat(sdg, bOut);
-	}
-	
-	private static void dumpGraphML(SDG sdg, String filename) throws FileNotFoundException {
-		final BufferedOutputStream bOut = new BufferedOutputStream(new FileOutputStream(outputDir + "/" + filename + ".graphml"));
-		final BufferedOutputStream bOutHierachical = new BufferedOutputStream(new FileOutputStream(outputDir + "/" + filename + ".hierarchical.graphml"));
-		try {
-			SDG2GraphML.convert(sdg, bOut);
-			SDG2GraphML.convertHierachical(sdg, bOutHierachical);
-		} catch (XMLStreamException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 
 	@Test

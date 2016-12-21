@@ -28,6 +28,8 @@ import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.test.util.ApiTestException;
+import edu.kit.joana.api.test.util.BuildSDG;
+import edu.kit.joana.api.test.util.DumpTestSDG;
 import edu.kit.joana.api.test.util.JoanaPath;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -37,15 +39,10 @@ import edu.kit.joana.ifc.sdg.irlsod.PathBasedORLSODChecker;
 import edu.kit.joana.ifc.sdg.irlsod.PredecessorMethod;
 import edu.kit.joana.ifc.sdg.irlsod.ProbInfComputer;
 import edu.kit.joana.ifc.sdg.irlsod.ThreadModularCDomOracle;
-import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
-import edu.kit.joana.ifc.sdg.util.graph.io.dot.MiscGraph2Dot;
 import edu.kit.joana.ifc.sdg.util.sdg.GraphModifier;
 import edu.kit.joana.ifc.sdg.util.sdg.ReducedCFGBuilder;
 import edu.kit.joana.util.Stubs;
-import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
-import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
-import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import joana.api.testdata.demo.Fig2_3;
 import joana.api.testdata.demo.xrlsod.LateSecretAccess;
 import joana.api.testdata.demo.xrlsod.NoSecret;
@@ -127,21 +124,16 @@ public class ORLSODExperiment {
 			ana.addAllJavaSourceAnnotations();
 			return ana;
 	}
-	static final Stubs STUBS = Stubs.JRE_14;
 	
-	static final SDGConfig standardTestConfig = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, null, STUBS, ExceptionAnalysis.INTERPROC,
-			FieldPropagation.OBJ_GRAPH, PointsToPrecision.OBJECT_SENSITIVE, false, // no
-																					// access
-																					// paths
-			true, // interference
-			MHPType.PRECISE);
+	static final SDGConfig standardTestConfig = BuildSDG.top_concurrent;
+	
 	private static void doConfig(final TestConfig cfg)
 			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException, ApiTestException {
 		final IFCAnalysis ana = buldAndUseJavaAnnotations(cfg.progDesc.mainClass, standardTestConfig);
 		final SDG sdg = ana.getProgram().getSDG();
 		final CFG redCFG = ReducedCFGBuilder.extractReducedCFG(sdg);
 		GraphModifier.removeCallCallRetEdges(redCFG);
-		MiscGraph2Dot.export(redCFG, MiscGraph2Dot.joanaGraphExporter(), cfg.outputFiles.dotFile);
+		DumpTestSDG.dumpDotCFG(redCFG, cfg.outputFiles.dotFile);
 		final Map<SDGNode, String> userAnn = new HashMap<>();
 		ana.getAnnotatedNodes().forEach((k,v) -> userAnn.put(k,v.getAnnotation().getLevel1()));
 
@@ -207,21 +199,10 @@ public class ORLSODExperiment {
 	}
 
 	static class StandardTestConfig extends TestConfig {
-		private static final String outputDir = "out";
-		private static final String prefix = outputDir + File.separator;
-		
-		static {
-			File fOutDir = new File(outputDir);
-			if (!fOutDir.exists()) {
-				fOutDir.mkdir();
-			}
-		}
-		
 		StandardTestConfig(final String classPath, final Class<?> mainClass, final String shortName,
 				final int expectedNoSources, final int expectedNoSinks, final int expectedNoViolations) {
 			this.progDesc = new ProgDesc(classPath, mainClass);
-			this.outputFiles = new OutputFiles(String.format("%s%s.dot", prefix, shortName),
-												String.format("%s%s.pdg", prefix, shortName));
+			this.outputFiles = new OutputFiles(shortName + ".dot", shortName + ".pdg");
 			this.expectedNoHighThings = expectedNoSources;
 			this.expectedNoLowThings = expectedNoSinks;
 			this.expectedNoViolations = expectedNoViolations;

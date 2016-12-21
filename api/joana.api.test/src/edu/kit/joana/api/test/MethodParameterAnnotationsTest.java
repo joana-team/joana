@@ -20,6 +20,8 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.test.util.ApiTestException;
+import edu.kit.joana.api.test.util.BuildSDG;
+import edu.kit.joana.api.test.util.DumpTestSDG;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 
@@ -31,11 +33,11 @@ public class MethodParameterAnnotationsTest {
 
 	public void test(Class<?> cls) throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 	CancelException {
-		IFCAnalysis ana = ToyTests.buldAndUseJavaAnnotations(
+		IFCAnalysis ana = BuildSDG.buldAndUseJavaAnnotations(
 			cls,
-			ToyTests.top_sequential,
+			BuildSDG.top_sequential,
 			false);
-		ToyTests.dumpSDG(ana.getProgram().getSDG(), cls + ".pdg");
+		DumpTestSDG.dumpSDG(ana.getProgram().getSDG(), cls + ".pdg");
 
 		Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 		assertFalse(illegal.isEmpty());

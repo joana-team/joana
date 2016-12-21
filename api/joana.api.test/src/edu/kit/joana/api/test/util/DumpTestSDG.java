@@ -26,7 +26,7 @@ import edu.kit.joana.ifc.sdg.irlsod.DomTree;
 import edu.kit.joana.ifc.sdg.util.graph.io.dot.MiscGraph2Dot;
 
 /**
- * TODO: @author Add your name here.
+ * TODO: Simon Bischof <simon.bischof@kit.edu>
  */
 public class DumpTestSDG {
 	

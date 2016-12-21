@@ -378,12 +378,7 @@ public class ProbNITest {
 		Assert.assertTrue(ana.isLocatable("java.io.PrintStream.println(Ljava/lang/String;)V"));
 	
 		Collection<SDGNode> pubSinks = ana.collectCalls("java.io.PrintStream.println(Ljava/lang/String;)V");
-		Assert.assertNotNull(pubSinks);
-		Assert.assertFalse(pubSinks.isEmpty());
-		for (SDGNode pSink : pubSinks) {
-			SecurityNode spSink = (SecurityNode) pSink;
-			spSink.setRequired(BuiltinLattices.STD_SECLEVEL_LOW);
-		}
+		annotatePublicSinks(sdg, pubSinks);
 		
 		return sdg;
 	}
@@ -397,29 +392,14 @@ public class ProbNITest {
 		Assert.assertTrue(ana.isLocatable("joana.api.testdata.conc.DataConflictRWNoMHP.main([Ljava/lang/String;)V"));
 		
 		Collection<SDGNode> secSources = ana.collectModificationsAndAssignmentsInMethod("joana.api.testdata.conc.DataConflictRWNoMHP.main([Ljava/lang/String;)V", "Ljoana/api/testdata/conc/DataConflictRWNoMHP.x");
-		Assert.assertFalse(secSources.isEmpty());
-		for (SDGNode sSrc : secSources) {
-			SecurityNode ssSrc = (SecurityNode) sSrc;
-			ssSrc.setProvided(BuiltinLattices.STD_SECLEVEL_HIGH);
-			if (DEBUG) debug.outln("Annotated node " + ssSrc + " as high source.");
-		}
+		annotateSecretSources(secSources);
 		
 		Collection<SDGNode> pubSinks = ana.collectCalls("java.io.PrintStream.println(I)V");
-		Assert.assertNotNull(pubSinks);
-		Assert.assertFalse(pubSinks.isEmpty());
-		for (SDGNode pSink : pubSinks) {
-			SecurityNode spSink = (SecurityNode) pSink;
-			spSink.setRequired(BuiltinLattices.STD_SECLEVEL_LOW);
-			if (DEBUG) debug.outln("Annotated node " + spSink + " as low sink.");
-			for (SDGEdge out : sdg.getOutgoingEdgesOfKind(spSink, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
-				SecurityNode npSink = (SecurityNode) out.getTarget();
-				npSink.setRequired(BuiltinLattices.STD_SECLEVEL_LOW);
-			}
-		}
+		annotatePublicSinks(sdg, pubSinks);
 		
 		return sdg;
 	}
-	
+
 	private SDG annotateNoDataConflictRWNoMHP() throws IOException {
 		TestData tData = testData.get("nodataconf-rw-nomhp");
 		SDG sdg = SDG.readFrom(tData.sdgFile, new SecurityNodeFactory());
@@ -429,25 +409,10 @@ public class ProbNITest {
 		Assert.assertTrue(ana.isLocatable("joana.api.testdata.conc.NoDataConflictRWNoMHP.main([Ljava/lang/String;)V"));
 		
 		Collection<SDGNode> secSources = ana.collectModificationsAndAssignmentsInMethod("joana.api.testdata.conc.NoDataConflictRWNoMHP.main([Ljava/lang/String;)V", "Ljoana/api/testdata/conc/NoDataConflictRWNoMHP.x");
-		Assert.assertFalse(secSources.isEmpty());
-		for (SDGNode sSrc : secSources) {
-			SecurityNode ssSrc = (SecurityNode) sSrc;
-			ssSrc.setProvided(BuiltinLattices.STD_SECLEVEL_HIGH);
-			if (DEBUG) debug.outln("Annotated node " + ssSrc + " as high source.");
-		}
+		annotateSecretSources(secSources);
 		
 		Collection<SDGNode> pubSinks = ana.collectCalls("java.io.PrintStream.println(I)V");
-		Assert.assertNotNull(pubSinks);
-		Assert.assertFalse(pubSinks.isEmpty());
-		for (SDGNode pSink : pubSinks) {
-			SecurityNode spSink = (SecurityNode) pSink;
-			spSink.setRequired(BuiltinLattices.STD_SECLEVEL_LOW);
-			if (DEBUG) debug.outln("Annotated node " + spSink + " as low sink.");
-			for (SDGEdge out : sdg.getOutgoingEdgesOfKind(spSink, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
-				SecurityNode npSink = (SecurityNode) out.getTarget();
-				npSink.setRequired(BuiltinLattices.STD_SECLEVEL_LOW);
-			}
-		}
+		annotatePublicSinks(sdg, pubSinks);
 		
 		return sdg;
 	}
@@ -461,25 +426,10 @@ public class ProbNITest {
 		Assert.assertTrue(ana.isLocatable("joana.api.testdata.conc.DataConflictRW$Thread2.run()V"));
 		
 		Collection<SDGNode> secSources = ana.collectModificationsAndAssignmentsInMethod("joana.api.testdata.conc.DataConflictRW$Thread1.run()V", "Ljoana/api/testdata/conc/DataConflictRW.x");
-		Assert.assertFalse(secSources.isEmpty());
-		for (SDGNode sSrc : secSources) {
-			SecurityNode ssSrc = (SecurityNode) sSrc;
-			ssSrc.setProvided(BuiltinLattices.STD_SECLEVEL_HIGH);
-			if (DEBUG) debug.outln("Annotated node " + ssSrc + " as high source.");
-		}
+		annotateSecretSources(secSources);
 		
 		Collection<SDGNode> pubSinks = ana.collectCalls("java.io.PrintStream.println(I)V");
-		Assert.assertNotNull(pubSinks);
-		Assert.assertFalse(pubSinks.isEmpty());
-		for (SDGNode pSink : pubSinks) {
-			SecurityNode spSink = (SecurityNode) pSink;
-			spSink.setRequired(BuiltinLattices.STD_SECLEVEL_LOW);
-			if (DEBUG) debug.outln("Annotated node " + spSink + " as low sink.");
-			for (SDGEdge out : sdg.getOutgoingEdgesOfKind(spSink, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
-				SecurityNode npSink = (SecurityNode) out.getTarget();
-				npSink.setRequired(BuiltinLattices.STD_SECLEVEL_LOW);
-			}
-		}
+		annotatePublicSinks(sdg, pubSinks);
 		
 		return sdg;
 	}
@@ -493,26 +443,10 @@ public class ProbNITest {
 		Assert.assertTrue(ana.isLocatable("joana.api.testdata.conc.OrderConflict$Thread2.run()V"));
 		
 		Collection<SDGNode> secSources = ana.collectModificationsAndAssignmentsInMethod("joana.api.testdata.conc.OrderConflict$Thread1.run()V", "Ljoana/api/testdata/conc/OrderConflict.x");
-		Assert.assertFalse(secSources.isEmpty());
-		for (SDGNode sSrc : secSources) {
-			SecurityNode ssSrc = (SecurityNode) sSrc;
-			ssSrc.setProvided(BuiltinLattices.STD_SECLEVEL_HIGH);
-			if (DEBUG) debug.outln("Annotated node " + ssSrc + " as high source.");
-		}
+		annotateSecretSources(secSources);
 		
 		Collection<SDGNode> pubSinks = ana.collectCalls("java.io.PrintStream.println(Ljava/lang/String;)V");
-		Assert.assertNotNull(pubSinks);
-		Assert.assertFalse(pubSinks.isEmpty());
-		for (SDGNode pSink : pubSinks) {
-			SecurityNode spSink = (SecurityNode) pSink;
-			spSink.setRequired(BuiltinLattices.STD_SECLEVEL_LOW);
-			if (DEBUG) debug.outln("Annotated node " + spSink + " as low sink.");
-			for (SDGEdge out : sdg.getOutgoingEdgesOfKind(spSink, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
-				SecurityNode npSink = (SecurityNode) out.getTarget();
-				npSink.setRequired(BuiltinLattices.STD_SECLEVEL_LOW);
-				if (DEBUG) debug.outln("Annotated node " + npSink + " as low sink.");
-			}
-		}
+		annotatePublicSinks(sdg, pubSinks);
 		
 		return sdg;
 	}
@@ -526,26 +460,10 @@ public class ProbNITest {
 		Assert.assertTrue(ana.isLocatable("joana.api.testdata.conc.NoOrderConflict$Thread2.run()V"));
 		
 		Collection<SDGNode> secSources = ana.collectModificationsAndAssignmentsInMethod("joana.api.testdata.conc.NoOrderConflict$Thread1.run()V", "Ljoana/api/testdata/conc/NoOrderConflict.x");
-		Assert.assertFalse(secSources.isEmpty());
-		for (SDGNode sSrc : secSources) {
-			SecurityNode ssSrc = (SecurityNode) sSrc;
-			ssSrc.setProvided(BuiltinLattices.STD_SECLEVEL_HIGH);
-			if (DEBUG) debug.outln("Annotated node " + ssSrc + " as high source.");
-		}
+		annotateSecretSources(secSources);
 		
 		Collection<SDGNode> pubSinks = ana.collectCalls("java.io.PrintStream.println(Ljava/lang/String;)V");
-		Assert.assertNotNull(pubSinks);
-		Assert.assertFalse(pubSinks.isEmpty());
-		for (SDGNode pSink : pubSinks) {
-			SecurityNode spSink = (SecurityNode) pSink;
-			spSink.setRequired(BuiltinLattices.STD_SECLEVEL_LOW);
-			if (DEBUG) debug.outln("Annotated node " + spSink + " as low sink.");
-			for (SDGEdge out : sdg.getOutgoingEdgesOfKind(spSink, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
-				SecurityNode npSink = (SecurityNode) out.getTarget();
-				npSink.setRequired(BuiltinLattices.STD_SECLEVEL_LOW);
-				if (DEBUG) debug.outln("Annotated node " + npSink + " as low sink.");
-			}
-		}
+		annotatePublicSinks(sdg, pubSinks);
 		
 		return sdg;
 	}
@@ -560,6 +478,22 @@ public class ProbNITest {
 		
 		
 		Collection<SDGNode> pubSinks = ana.collectCalls("java.io.PrintStream.println(Ljava/lang/String;)V");
+		annotatePublicSinks(sdg, pubSinks);
+		
+		return sdg;
+	}
+	
+	private void annotateSecretSources(Collection<SDGNode> secSources) {
+		Assert.assertNotNull(secSources);
+		Assert.assertFalse(secSources.isEmpty());
+		for (SDGNode sSrc : secSources) {
+			SecurityNode ssSrc = (SecurityNode) sSrc;
+			ssSrc.setProvided(BuiltinLattices.STD_SECLEVEL_HIGH);
+			if (DEBUG) debug.outln("Annotated node " + ssSrc + " as high source.");
+		}
+	}
+	
+	private void annotatePublicSinks(SDG sdg, Collection<SDGNode> pubSinks) {
 		Assert.assertNotNull(pubSinks);
 		Assert.assertFalse(pubSinks.isEmpty());
 		for (SDGNode pSink : pubSinks) {
@@ -572,8 +506,6 @@ public class ProbNITest {
 				if (DEBUG) debug.outln("Annotated node " + npSink + " as low sink.");
 			}
 		}
-		
-		return sdg;
 	}
 	
 	private static class TestData {

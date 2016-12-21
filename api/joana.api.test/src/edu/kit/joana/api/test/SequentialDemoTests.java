@@ -37,40 +37,38 @@ public class SequentialDemoTests {
 	static final boolean outputPDGFiles = false;
 	static final boolean outputGraphMLFiles = false;
 	
-	private static <T> void testSound(Class<T> clazz) throws ClassHierarchyException, ApiTestException,
-	IOException, UnsoundGraphException, CancelException {
+	private static IFCAnalysis buildAnnotateDump(Class<?> clazz) throws ClassHierarchyException, ApiTestException,
+			IOException, UnsoundGraphException, CancelException {
+		IFCAnalysis ana = BuildSDG.buldAndUseJavaAnnotations(clazz, BuildSDG.top_sequential, true);
+	
 		final String classname = clazz.getCanonicalName();
-		{ // There are leaks, and we're sound and hence report them
-			IFCAnalysis ana = BuildSDG.buldAndUseJavaAnnotations(clazz, BuildSDG.top_sequential, true);
-
-			if (outputPDGFiles) {
-				DumpTestSDG.dumpSDG(ana.getProgram().getSDG(), classname + ".pdg");
-			}
-			if (outputGraphMLFiles) {
-				DumpTestSDG.dumpGraphML(ana.getProgram().getSDG(), classname + ".pdg");
-			}
-
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.CLASSICAL_NI);
-			assertFalse(illegal.isEmpty());
+		
+		if (outputPDGFiles) {
+			DumpTestSDG.dumpSDG(ana.getProgram().getSDG(), classname + ".pdg");
 		}
+		if (outputGraphMLFiles) {
+			DumpTestSDG.dumpGraphML(ana.getProgram().getSDG(), classname + ".pdg");
+		}
+		
+		return ana;
+	}
+	
+	private static <T> void testSound(Class<T> clazz) throws ClassHierarchyException, ApiTestException,
+			IOException, UnsoundGraphException, CancelException {
+		// There are leaks, and we're sound and hence report them
+		IFCAnalysis ana = buildAnnotateDump(clazz);
+	
+		Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+		assertFalse(illegal.isEmpty());
 	}
 	
 	private static <T> void testPrecise(Class<T> clazz) throws ClassHierarchyException, ApiTestException,
 			IOException, UnsoundGraphException, CancelException {
-		final String classname = clazz.getCanonicalName();
-		{ // There are no leak, and  we're precise enough to find out that there aren't
-			IFCAnalysis ana = BuildSDG.buldAndUseJavaAnnotations(clazz, BuildSDG.top_sequential, true);
-
-			if (outputPDGFiles) {
-				DumpTestSDG.dumpSDG(ana.getProgram().getSDG(), classname + ".pdg");
-			}
-			if (outputGraphMLFiles) {
-				DumpTestSDG.dumpGraphML(ana.getProgram().getSDG(), classname + ".pdg");
-			}
-
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.CLASSICAL_NI);
-			assertTrue(illegal.isEmpty());
-		}
+		// There are no leak, and  we're precise enough to find out that there aren't
+		IFCAnalysis ana = buildAnnotateDump(clazz);
+		
+		Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+		assertTrue(illegal.isEmpty());
 	}
 
 	private static <T> void testTooImprecise(Class<T> clazz) throws ClassHierarchyException, ApiTestException,

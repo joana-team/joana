@@ -92,13 +92,23 @@ public class FullIFCSensitivityTest {
 		return ana;
 	}
 	
+	private static void testLeaksFound(IFCAnalysis ana, int leaks) {
+		Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+		assertFalse(illegal.isEmpty());
+		assertEquals(leaks, illegal.size());
+	}
+	
+	private static void testPrecision(IFCAnalysis ana) {
+		Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+		assertTrue(illegal.isEmpty());
+		assertEquals(0, illegal.size());
+	}
+	
 	@Test
 	public void testFlowSensLeak() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("sensitivity.FlowSensLeak");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(2, illegal.size());
+			testLeaksFound(ana, 2);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -109,9 +119,7 @@ public class FullIFCSensitivityTest {
 	public void testFlowSensValid() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("sensitivity.FlowSensValid");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertTrue(illegal.isEmpty());
-			assertEquals(0, illegal.size());
+			testPrecision(ana);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -122,9 +130,7 @@ public class FullIFCSensitivityTest {
 	public void testFieldSensLeak() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("sensitivity.FieldSensLeak");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertTrue(illegal.size() > 0);
-			assertEquals(2, illegal.size());
+			testLeaksFound(ana, 2);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -135,9 +141,7 @@ public class FullIFCSensitivityTest {
 	public void testFieldSensValid() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("sensitivity.FieldSensValid");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertTrue(illegal.isEmpty());
-			assertEquals(0, illegal.size());
+			testPrecision(ana);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -148,9 +152,7 @@ public class FullIFCSensitivityTest {
 	public void testContextSensLeak() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("sensitivity.ContextSensLeak");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(2, illegal.size());
+			testLeaksFound(ana, 2);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -161,9 +163,7 @@ public class FullIFCSensitivityTest {
 	public void testContextSensValid() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("sensitivity.ContextSensValid");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertTrue(illegal.isEmpty());
-			assertEquals(0, illegal.size());
+			testPrecision(ana);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -174,9 +174,7 @@ public class FullIFCSensitivityTest {
 	public void testObjectSensLeak() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("sensitivity.ObjectSensLeak", PointsToPrecision.OBJECT_SENSITIVE);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(2, illegal.size());
+			testLeaksFound(ana, 2);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -187,9 +185,7 @@ public class FullIFCSensitivityTest {
 	public void testObjectSensValid() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("sensitivity.ObjectSensValid", PointsToPrecision.OBJECT_SENSITIVE);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertTrue(illegal.isEmpty());
-			assertEquals(0, illegal.size());
+			testPrecision(ana);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -200,9 +196,7 @@ public class FullIFCSensitivityTest {
 	public void testObjectSensValidFailOnContextSens() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("sensitivity.ObjectSensValid", PointsToPrecision.INSTANCE_BASED);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(2, illegal.size());
+			testLeaksFound(ana, 2);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -214,9 +208,7 @@ public class FullIFCSensitivityTest {
 		try {
 			IFCAnalysis ana = buildWithThreadsAndAnnotate("sensitivity.TimeSensValid", MHPType.PRECISE);
 			ana.setTimesensitivity(true);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertTrue(illegal.isEmpty());
-			assertEquals(0, illegal.size());
+			testPrecision(ana);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -228,9 +220,7 @@ public class FullIFCSensitivityTest {
 		try {
 			IFCAnalysis ana = buildWithThreadsAndAnnotate("sensitivity.TimeSensLeak", MHPType.PRECISE);
 			ana.setTimesensitivity(true);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(2, illegal.size());
+			testLeaksFound(ana, 2);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -242,9 +232,7 @@ public class FullIFCSensitivityTest {
 		try {
 			IFCAnalysis ana = buildWithThreadsAndAnnotate("sensitivity.LockSensValid", MHPType.PRECISE);
 			ana.setTimesensitivity(true);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty()); // with lock-sensitive IFC, this test will hopefully fail some day
-			assertEquals(2, illegal.size()); 
+			testLeaksFound(ana, 2); // with lock-sensitive IFC, this test will hopefully fail some day
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -255,9 +243,7 @@ public class FullIFCSensitivityTest {
 	public void testKillingDefValid() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("sensitivity.KillingDefValid");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertTrue(illegal.isEmpty());
-			assertEquals(0, illegal.size());
+			testPrecision(ana);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -268,9 +254,7 @@ public class FullIFCSensitivityTest {
 	public void testKillingDefLeak() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("sensitivity.KillingDefLeak");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(2, illegal.size());
+			testLeaksFound(ana, 2);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -279,12 +263,9 @@ public class FullIFCSensitivityTest {
 
 	@Test
 	public void testDynamicDispatchLeak() {
-		IFCAnalysis ana;
 		try {
-			ana = buildAndAnnotate("sensitivity.DynDispLeak", PointsToPrecision.INSTANCE_BASED, DynamicDispatchHandling.PRECISE, false, MHPType.NONE);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(6, illegal.size());
+			IFCAnalysis ana = buildAndAnnotate("sensitivity.DynDispLeak", PointsToPrecision.INSTANCE_BASED, DynamicDispatchHandling.PRECISE, false, MHPType.NONE);
+			testLeaksFound(ana, 6);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -293,12 +274,9 @@ public class FullIFCSensitivityTest {
 
 	@Test
 	public void testDynamicDispatchLeak2() {
-		IFCAnalysis ana;
 		try {
-			ana = buildAndAnnotate("sensitivity.DynDispLeak2", PointsToPrecision.INSTANCE_BASED, DynamicDispatchHandling.PRECISE, false, MHPType.NONE);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(2, illegal.size());
+			IFCAnalysis ana = buildAndAnnotate("sensitivity.DynDispLeak2", PointsToPrecision.INSTANCE_BASED, DynamicDispatchHandling.PRECISE, false, MHPType.NONE);
+			testLeaksFound(ana, 2);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -307,11 +285,9 @@ public class FullIFCSensitivityTest {
 
 	@Test
 	public void testDynamicDispatchValid() {
-		IFCAnalysis ana;
 		try {
-			ana = buildAndAnnotate("sensitivity.DynDispValid", PointsToPrecision.INSTANCE_BASED, DynamicDispatchHandling.PRECISE, false, MHPType.NONE);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertTrue(illegal.isEmpty());
+			IFCAnalysis ana = buildAndAnnotate("sensitivity.DynDispValid", PointsToPrecision.INSTANCE_BASED, DynamicDispatchHandling.PRECISE, false, MHPType.NONE);
+			testPrecision(ana);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -320,12 +296,9 @@ public class FullIFCSensitivityTest {
 
 	@Test
 	public void testDynamicDispatchValidImprecision() {
-		IFCAnalysis ana;
 		try {
-			ana = buildAndAnnotate("sensitivity.DynDispValid", PointsToPrecision.INSTANCE_BASED, DynamicDispatchHandling.SIMPLE, false, MHPType.NONE);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(6, illegal.size());
+			IFCAnalysis ana = buildAndAnnotate("sensitivity.DynDispValid", PointsToPrecision.INSTANCE_BASED, DynamicDispatchHandling.SIMPLE, false, MHPType.NONE);
+			testLeaksFound(ana, 6);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

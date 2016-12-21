@@ -80,15 +80,25 @@ public class FullIFCSequentialTest {
 		return ana;
 	}
 	
+	private static void testLeaksFound(IFCAnalysis ana, int leaks) {
+		Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+		assertFalse(illegal.isEmpty());
+		assertEquals(leaks, illegal.size());
+	}
+	
+	private static void testPrecision(IFCAnalysis ana) {
+		Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+		assertTrue(illegal.isEmpty());
+		assertEquals(0, illegal.size());
+	}
+	
 	@Test
 	public void testPraktomatValid() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("sequential.PraktomatValid",
 					"sequential.PraktomatValid$Submission.matrNr",
 					"sequential.PraktomatValid$Review.failures");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertTrue(illegal.isEmpty());
-			assertEquals(0, illegal.size());
+			testPrecision(ana);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -101,9 +111,7 @@ public class FullIFCSequentialTest {
 			IFCAnalysis ana = buildAndAnnotate("sequential.PraktomatLeak",
 					"sequential.PraktomatLeak$Submission.matrNr",
 					"sequential.PraktomatLeak$Review.failures");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(8, illegal.size());
+			testLeaksFound(ana, 8);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -118,9 +126,7 @@ public class FullIFCSequentialTest {
 					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.ALL_NO_ANALYSIS);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(24, illegal.size());
+			testLeaksFound(ana, 24);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -135,9 +141,7 @@ public class FullIFCSequentialTest {
 					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.INTRAPROC);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(18, illegal.size());
+			testLeaksFound(ana, 18);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -152,9 +156,7 @@ public class FullIFCSequentialTest {
 					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.INTERPROC);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(15, illegal.size());
+			testLeaksFound(ana, 15);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -169,9 +171,7 @@ public class FullIFCSequentialTest {
 					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.IGNORE_ALL);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertTrue(illegal.isEmpty());
-			assertEquals(0, illegal.size());
+			testPrecision(ana);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -186,9 +186,7 @@ public class FullIFCSequentialTest {
 					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.INTRAPROC);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(6, illegal.size());
+			testLeaksFound(ana, 6);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -201,9 +199,7 @@ public class FullIFCSequentialTest {
 			IFCAnalysis ana = buildAndAnnotate("lob.First",
 					"sensitivity.Security.SECRET",
 					"sensitivity.Security.PUBLIC");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(6, illegal.size());
+			testLeaksFound(ana, 6);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -216,9 +212,7 @@ public class FullIFCSequentialTest {
 			IFCAnalysis ana = buildAndAnnotate("term.A",
 					"sensitivity.Security.SECRET",
 					"sensitivity.Security.PUBLIC");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(6, illegal.size());
+			testLeaksFound(ana, 6);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -231,9 +225,7 @@ public class FullIFCSequentialTest {
 			IFCAnalysis ana = buildAndAnnotate("Main",
 					"sensitivity.Security.SECRET",
 					"sensitivity.Security.leak(I)V->p1");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(2, illegal.size());
+			testLeaksFound(ana, 2);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -246,9 +238,7 @@ public class FullIFCSequentialTest {
 			IFCAnalysis ana = buildAndAnnotate("Util",
 					"sensitivity.Security.SECRET",
 					"sensitivity.Security.leak(I)V->p1");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(2, illegal.size());
+			testLeaksFound(ana, 2);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -263,9 +253,7 @@ public class FullIFCSequentialTest {
 					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.ALL_NO_ANALYSIS);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(3, illegal.size());
+			testLeaksFound(ana, 3);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -280,9 +268,7 @@ public class FullIFCSequentialTest {
 					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.INTRAPROC);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(3, illegal.size());
+			testLeaksFound(ana, 3);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -297,9 +283,7 @@ public class FullIFCSequentialTest {
 					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.INTERPROC);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(3, illegal.size());
+			testLeaksFound(ana, 3);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -314,9 +298,7 @@ public class FullIFCSequentialTest {
 					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.IGNORE_ALL);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertTrue(illegal.isEmpty());
-			assertEquals(0, illegal.size());
+			testPrecision(ana);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -331,9 +313,7 @@ public class FullIFCSequentialTest {
 					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.ALL_NO_ANALYSIS);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(6, illegal.size());
+			testLeaksFound(ana, 6);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -348,9 +328,7 @@ public class FullIFCSequentialTest {
 					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.INTRAPROC);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(6, illegal.size());
+			testLeaksFound(ana, 6);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -365,9 +343,7 @@ public class FullIFCSequentialTest {
 					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.INTERPROC);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(6, illegal.size());
+			testLeaksFound(ana, 6);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -382,9 +358,7 @@ public class FullIFCSequentialTest {
 					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.IGNORE_ALL);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertTrue(illegal.isEmpty());
-			assertEquals(0, illegal.size());
+			testPrecision(ana);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -399,9 +373,7 @@ public class FullIFCSequentialTest {
 					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.OBJECT_SENSITIVE,
 					ExceptionAnalysis.INTRAPROC);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(4, illegal.size());
+			testLeaksFound(ana, 4);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -416,9 +388,7 @@ public class FullIFCSequentialTest {
 					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.TYPE_BASED,
 					ExceptionAnalysis.INTRAPROC);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(6, illegal.size());
+			testLeaksFound(ana, 6);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -433,9 +403,7 @@ public class FullIFCSequentialTest {
 					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.OBJECT_SENSITIVE,
 					ExceptionAnalysis.INTRAPROC);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(4, illegal.size());
+			testLeaksFound(ana, 4);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -450,9 +418,7 @@ public class FullIFCSequentialTest {
 					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.TYPE_BASED,
 					ExceptionAnalysis.INTRAPROC);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(6, illegal.size());
+			testLeaksFound(ana, 6);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -467,9 +433,7 @@ public class FullIFCSequentialTest {
 					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.N1_CALL_STACK,
 					ExceptionAnalysis.INTRAPROC);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(4, illegal.size());
+			testLeaksFound(ana, 4);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -484,9 +448,7 @@ public class FullIFCSequentialTest {
 					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.N2_CALL_STACK,
 					ExceptionAnalysis.INTRAPROC);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(4, illegal.size());
+			testLeaksFound(ana, 4);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -499,9 +461,7 @@ public class FullIFCSequentialTest {
 			IFCAnalysis ana = buildAndAnnotate("tests.InputTest",
 					"sensitivity.Security.SECRET",
 					"sensitivity.Security.PUBLIC");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(2, illegal.size());
+			testLeaksFound(ana, 2);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -514,9 +474,7 @@ public class FullIFCSequentialTest {
 			IFCAnalysis ana = buildAndAnnotate("tests.PasswordFileValueBasedLeak",
 					"sensitivity.Security.SECRET",
 					"sensitivity.Security.PUBLIC");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(2, illegal.size());
+			testLeaksFound(ana, 2);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -529,9 +487,7 @@ public class FullIFCSequentialTest {
 			IFCAnalysis ana = buildAndAnnotate("tests.PasswordFileNoLeak",
 					"sensitivity.Security.SECRET",
 					"sensitivity.Security.PUBLIC");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertTrue(illegal.isEmpty());
-			assertEquals(0, illegal.size());
+			testPrecision(ana);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -544,9 +500,7 @@ public class FullIFCSequentialTest {
 			IFCAnalysis ana = buildAndAnnotate("tests.Recursive",
 					"sensitivity.Security.SECRET",
 					"sensitivity.Security.PUBLIC");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(2, illegal.size());
+			testLeaksFound(ana, 2);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -561,9 +515,7 @@ public class FullIFCSequentialTest {
 					"immutable.StringAppend.low",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.IGNORE_ALL);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(2, illegal.size());
+			testLeaksFound(ana, 2);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

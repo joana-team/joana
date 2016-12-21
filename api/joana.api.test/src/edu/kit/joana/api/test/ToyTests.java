@@ -36,6 +36,23 @@ public class ToyTests {
 	
 	static final boolean outputPDGFiles = true;
 	static final boolean outputGraphMLFiles = true;
+	
+	private static IFCAnalysis buildAnnotateDump(Class<?> clazz, boolean ignore) throws ClassHierarchyException, ApiTestException,
+			IOException, UnsoundGraphException, CancelException {
+		IFCAnalysis ana = BuildSDG.buldAndUseJavaAnnotations(clazz, BuildSDG.top_sequential, ignore);
+		
+		final String classname = clazz.getCanonicalName();
+		final String extension = (ignore ? "ignore" : "passon") + ".pdg";
+		
+		if (outputPDGFiles) {
+			DumpTestSDG.dumpSDG(ana.getProgram().getSDG(), classname + extension);
+		}
+		if (outputGraphMLFiles) {
+			DumpTestSDG.dumpGraphML(ana.getProgram().getSDG(), classname + extension);
+		}
+		
+		return ana;
+	}
 		
 	@Deprecated
 	public static <T> IFCAnalysis buildAndAnnotate(Class<T> clazz, SDGConfig config, boolean ignore)
@@ -78,17 +95,8 @@ public class ToyTests {
 
 	private static <T> void testPreciseEnough(Class<T> clazz) throws ClassHierarchyException, ApiTestException,
 			IOException, UnsoundGraphException, CancelException {
-		final String classname = clazz.getCanonicalName();
 		{ // There are leaks if secret is really passed on
-			IFCAnalysis ana = BuildSDG.buldAndUseJavaAnnotations(clazz, BuildSDG.top_sequential, false);
-			
-
-			if (outputPDGFiles) {
-				DumpTestSDG.dumpSDG(ana.getProgram().getSDG(), classname + ".passon.pdg");
-			}
-			if (outputGraphMLFiles) {
-				DumpTestSDG.dumpGraphML(ana.getProgram().getSDG(), classname + ".passon.pdg");
-			}
+			IFCAnalysis ana = buildAnnotateDump(clazz, false);
 
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			System.out.println(illegal);
@@ -96,14 +104,7 @@ public class ToyTests {
 		}
 
 		{ // Otherwise, we're precise enough to find out that there aren't
-			IFCAnalysis ana = BuildSDG.buldAndUseJavaAnnotations(clazz, BuildSDG.top_sequential, true);
-
-			if (outputPDGFiles) {
-				DumpTestSDG.dumpSDG(ana.getProgram().getSDG(), classname + ".ignore.pdg");
-			}
-			if (outputGraphMLFiles) {
-				DumpTestSDG.dumpGraphML(ana.getProgram().getSDG(), classname + ".ignore.pdg");
-			}
+			IFCAnalysis ana = buildAnnotateDump(clazz, true);
 
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertTrue(illegal.isEmpty());
@@ -112,33 +113,15 @@ public class ToyTests {
 
 	private static <T> void testTooImprecise(Class<T> clazz) throws ClassHierarchyException, ApiTestException,
 			IOException, UnsoundGraphException, CancelException {
-		final String classname = clazz.getCanonicalName();
 		{ // There are leaks if secret is really passed on
-			IFCAnalysis ana = BuildSDG.buldAndUseJavaAnnotations(clazz, BuildSDG.top_sequential, false);
-
-			if (outputPDGFiles) {
-				DumpTestSDG.dumpSDG(ana.getProgram().getSDG(), classname + ".passon.pdg");
-			}
-			
-			if (outputGraphMLFiles) {
-				DumpTestSDG.dumpGraphML(ana.getProgram().getSDG(), classname + ".passon.pdg");
-			}
+			IFCAnalysis ana = buildAnnotateDump(clazz, false);
 
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
 		}
 
 		{ // Otherwise there aren't, but the analysis not precise enough to
-			// proof this
-			IFCAnalysis ana = BuildSDG.buldAndUseJavaAnnotations(clazz, BuildSDG.top_sequential, true);
-
-			if (outputPDGFiles) {
-				DumpTestSDG.dumpSDG(ana.getProgram().getSDG(), classname + ".ignore.pdg");
-			}
-
-			if (outputGraphMLFiles) {
-				DumpTestSDG.dumpGraphML(ana.getProgram().getSDG(), classname + ".ignore.pdg");
-			}
+			IFCAnalysis ana = buildAnnotateDump(clazz, true);
 
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());

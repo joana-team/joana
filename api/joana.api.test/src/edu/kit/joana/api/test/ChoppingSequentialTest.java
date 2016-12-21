@@ -20,7 +20,6 @@ import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
-import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.test.util.ApiTestException;
@@ -52,11 +51,11 @@ public class ChoppingSequentialTest {
 		
 		return reps.chop(sources, sinks).equals(nslv.chop(sources, sinks));
 	}
-	public static IFCAnalysis buildAndAnnotate(final String className) throws ApiTestException {
-		return buildAndAnnotate(className, PointsToPrecision.INSTANCE_BASED, ExceptionAnalysis.INTRAPROC);
+	public static SDG build(final String className) throws ApiTestException {
+		return build(className, PointsToPrecision.INSTANCE_BASED, ExceptionAnalysis.INTRAPROC);
 	}
 	
-	public static IFCAnalysis buildAndAnnotate(final String className, final PointsToPrecision pts, final ExceptionAnalysis exc) throws ApiTestException {
+	public static SDG build(final String className, final PointsToPrecision pts, final ExceptionAnalysis exc) throws ApiTestException {
 		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(className);
 		SDGConfig config = new SDGConfig(JoanaPath.JOANA_MANY_SMALL_PROGRAMS_CLASSPATH, mainMethod.toBCString(), Stubs.JRE_14);
 		config.setComputeInterferences(false);
@@ -77,395 +76,205 @@ public class ChoppingSequentialTest {
 			throw new ApiTestException(e);
 		}
 		
-		IFCAnalysis ana = new IFCAnalysis(prog);
-		
-		return ana;
+		return prog.getSDG();
 	}
 	
+	private static void testChopsEqualFor(String className) {
+		testChopsEqualFor(className, PointsToPrecision.INSTANCE_BASED, ExceptionAnalysis.INTRAPROC);
+	}
+	
+	private static void testChopsEqualFor(final String className, final PointsToPrecision pts,
+											final ExceptionAnalysis exc) {
+		try {
+			final SDG sdg = build(className, pts, exc);
+			assertTrue(chopsEqualFor(sdg));
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
 	
 	@Test
 	public void testPraktomatValid() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("sequential.PraktomatValid");
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
+		testChopsEqualFor("sequential.PraktomatValid");
 	}
+	
 	@Test
 	public void testPraktomatLeak() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("sequential.PraktomatLeak");
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
+		testChopsEqualFor("sequential.PraktomatLeak");
 	}
 
 	@Test
 	public void testExceptionOptimizeNoOpt() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionOptimize",
+		testChopsEqualFor("exc.ExceptionOptimize",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.ALL_NO_ANALYSIS);
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
 	}
 
 	@Test
 	public void testExceptionOptimizeIntra() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionOptimize",
+		testChopsEqualFor("exc.ExceptionOptimize",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.INTRAPROC);
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
 	}
 
 	@Test
 	public void testExceptionOptimizeInter() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionOptimize",
+		testChopsEqualFor("exc.ExceptionOptimize",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.INTERPROC);
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
 	}
 
 	@Test
 	public void testExceptionOptimizeIgnoreExc() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionOptimize",
+		testChopsEqualFor("exc.ExceptionOptimize",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.IGNORE_ALL);
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
 	}
 
 	@Test
 	public void testFirst() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("lob.First");
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
+		testChopsEqualFor("lob.First");
 	}
 
 	@Test
 	public void testTermination() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("term.A");
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
+		testChopsEqualFor("term.A");
 	}
 
 	@Test
 	public void testMain() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("Main");
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
+		testChopsEqualFor("Main");
 	}
 
 	@Test
 	public void testUtil() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("Util");
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
+		testChopsEqualFor("Util");
 	}
 
 	@Test
 	public void testExceptionHandlingNoOpt() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionHandling",
+		testChopsEqualFor("exc.ExceptionHandling",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.ALL_NO_ANALYSIS);
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
 	}
 
 	@Test
 	public void testExceptionHandlingIntra() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionHandling",
+		testChopsEqualFor("exc.ExceptionHandling",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.INTRAPROC);
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
 	}
 
 	@Test
 	public void testExceptionHandlingInter() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionHandling",
+		testChopsEqualFor("exc.ExceptionHandling",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.INTERPROC);
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
 	}
 
 	@Test
 	public void testExceptionHandlingIgnore() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionHandling",
+		testChopsEqualFor("exc.ExceptionHandling",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.IGNORE_ALL);
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
 	}
 
 	@Test
 	public void testExceptionTestNoOpt() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionTest",
+		testChopsEqualFor("exc.ExceptionTest",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.ALL_NO_ANALYSIS);
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
 	}
 
 	@Test
 	public void testExceptionTestIntra() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionTest",
+		testChopsEqualFor("exc.ExceptionTest",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.INTRAPROC);
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
 	}
 
 	@Test
 	public void testExceptionTestInter() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionTest",
+		testChopsEqualFor("exc.ExceptionTest",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.INTERPROC);
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
 	}
 
 	@Test
 	public void testExceptionTestIgnore() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionTest",
+		testChopsEqualFor("exc.ExceptionTest",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.IGNORE_ALL);
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
 	}
 
 	@Test
 	public void testHammerObjSens() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("tests.Hammer",
+		testChopsEqualFor("tests.Hammer",
 					PointsToPrecision.OBJECT_SENSITIVE,
 					ExceptionAnalysis.INTRAPROC);
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
 	}
 
 	@Test
 	public void testHammerTypeBased() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("tests.Hammer",
+		testChopsEqualFor("tests.Hammer",
 					PointsToPrecision.TYPE_BASED,
 					ExceptionAnalysis.INTRAPROC);
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
 	}
 
 	@Test
 	public void testHammerDistributedObjSens() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("tests.HammerDistributed",
+		testChopsEqualFor("tests.HammerDistributed",
 					PointsToPrecision.OBJECT_SENSITIVE,
 					ExceptionAnalysis.INTRAPROC);
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
 	}
 
 	@Test
 	public void testHammerDistributedTypeBased() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("tests.HammerDistributed",
+		testChopsEqualFor("tests.HammerDistributed",
 					PointsToPrecision.TYPE_BASED,
 					ExceptionAnalysis.INTRAPROC);
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
 	}
 
 	@Test
 	public void testHammerDistributed1Stack() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("tests.HammerDistributed",
+		testChopsEqualFor("tests.HammerDistributed",
 					PointsToPrecision.N1_CALL_STACK,
 					ExceptionAnalysis.INTRAPROC);
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
 	}
 
 	@Test
 	public void testHammerDistributed2Stack() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("tests.HammerDistributed",
+		testChopsEqualFor("tests.HammerDistributed",
 					PointsToPrecision.N2_CALL_STACK,
 					ExceptionAnalysis.INTRAPROC);
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
 	}
 
 	@Test
 	public void testInputTest() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("tests.InputTest");
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
+		testChopsEqualFor("tests.InputTest");
 	}
 
 	@Test
 	public void testPasswordFileValueBasedLeak() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("tests.PasswordFileValueBasedLeak");
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
+		testChopsEqualFor("tests.PasswordFileValueBasedLeak");
 	}
 
 	@Test
 	public void testPasswordFileNoLeak() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("tests.PasswordFileNoLeak");
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
+		testChopsEqualFor("tests.PasswordFileNoLeak");
 	}
 
 	@Test
 	public void testRecursive() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("tests.Recursive");
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
+		testChopsEqualFor("tests.Recursive");
 	}
 
 	@Test
 	public void testImmutableAndStringBuilder() {
-		try {
-			IFCAnalysis ana = buildAndAnnotate("immutable.StringAppend",
+		testChopsEqualFor("immutable.StringAppend",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.IGNORE_ALL);
-			final SDG sdg = ana.getIFC().getSDG();
-			assertTrue(chopsEqualFor(sdg));
-		} catch (ApiTestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
 	}
 
 }

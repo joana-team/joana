@@ -10,9 +10,6 @@ package edu.kit.joana.ifc.sdg.graph;
  * Created on Feb 25, 2004
  */
 
-import gnu.trove.map.TIntIntMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;

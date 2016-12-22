@@ -84,15 +84,18 @@ public class DomTree {
 				tree.addVertex(new VirtualNode(n, threadN));
 			}
 		}
-		for (ThreadRegion r1 : mhp.getThreadRegions()) {
+		ThreadRegion[] regions = mhp.getThreadRegions().toArray(new ThreadRegion[0]);
+		for (int i = 0; i < regions.length; i++) {
+			ThreadRegion r1 = regions[i];
 			int threadN = r1.getThread();
-			for (ThreadRegion r2 : mhp.getThreadRegions()) {
+			for (int j = i; j < regions.length; j++) {
+				ThreadRegion r2 = regions[j];
 				if (mhp.isParallel(r1,r2)) {
 					int threadM = r2.getThread();
 					for (SDGNode n : r1.getNodes()) {
+						VirtualNode vn = new VirtualNode(n, threadN);
 						for (SDGNode m : r2.getNodes()) {
 							VirtualNode cdom = cdomOracle.cdom(n, threadN, m, threadM);
-							VirtualNode vn = new VirtualNode(n, threadN);
 							VirtualNode vm = new VirtualNode(m, threadM);
 							addEdge(cdom,vn);
 							addEdge(cdom,vm);

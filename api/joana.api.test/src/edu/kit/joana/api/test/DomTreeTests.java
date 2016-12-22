@@ -31,6 +31,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadRegion;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
 import edu.kit.joana.ifc.sdg.irlsod.ClassicCDomOracle;
 import edu.kit.joana.ifc.sdg.irlsod.DomTree;
@@ -149,16 +150,17 @@ public class DomTreeTests {
 		ClassicCDomOracle cldo = new ClassicCDomOracle(sdg,common.mhp);
 		VeryConservativeCDomOracle vcdo = new VeryConservativeCDomOracle(icfg);
 
-		SDGNode[] vertices = icfg.vertexSet().toArray(new SDGNode[0]);
-		
-		for (int i = 0; i < vertices.length; i++) {
-			SDGNode n = vertices[i];
-			for (final int threadN : n.getThreadNumbers()) {
-				VirtualNode vn = new VirtualNode(n, threadN);
-				for (int j = i; j < vertices.length; j++) {
-					SDGNode m = vertices[j];
-					for (final int threadM : m.getThreadNumbers()) {
-						if (common.mhp.isParallel(n, threadN, m, threadM)) {
+		ThreadRegion[] regions = common.mhp.getThreadRegions().toArray(new ThreadRegion[0]);
+		for (int i = 0; i < regions.length; i++) {
+			ThreadRegion r1 = regions[i];
+			int threadN = r1.getThread();
+			for (int j = i; j < regions.length; j++) {
+				ThreadRegion r2 = regions[j];
+				if (common.mhp.isParallel(r1,r2)) {
+					int threadM = r2.getThread();
+					for (SDGNode n : r1.getNodes()) {
+						VirtualNode vn = new VirtualNode(n, threadN);
+						for (SDGNode m : r2.getNodes()) {
 							VirtualNode vm = new VirtualNode(m, threadM);
 							
 							VirtualNode vt = tmdo.cdom(n, threadN, m, threadM);

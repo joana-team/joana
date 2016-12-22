@@ -118,7 +118,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 
 	public boolean isParallel(SDGNode m, int mThread, int region) {
         ThreadRegion mRegion = regions.getThreadRegion(m, mThread);
-        if (mThread == mRegion.getThread() && !isDynamic(mThread)) {
+        if (mThread == regions.getThreadRegion(region).getThread() && !isDynamic(mThread)) {
             return false;
         } else {
             return map.get(mRegion.getID(), region);

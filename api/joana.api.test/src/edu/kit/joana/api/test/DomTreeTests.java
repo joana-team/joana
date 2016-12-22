@@ -89,7 +89,7 @@ public class DomTreeTests {
 		String classname;
 	};
 	
-	private static <T> Common getCommon(Class<T> clazz) throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+	private static Common getCommon(Class<?> clazz) throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
 		final Common result = new Common();
 		result.classname = clazz.getCanonicalName();
 		IFCAnalysis ana = BuildSDG.build(clazz, BuildSDG.top_concurrent, false);
@@ -110,7 +110,7 @@ public class DomTreeTests {
 		return result;
 	}
 	
-	private static <T> void testDomTree(Common common, BiFunction<SDG, PreciseMHPAnalysis, ICDomOracle> newOracle, Result result)
+	private static void testDomTree(Common common, BiFunction<SDG, PreciseMHPAnalysis, ICDomOracle> newOracle, Result result)
 			throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException, CancelException {
 		final ICDomOracle oracle = newOracle.apply(common.sdg,common.mhp);
 		final DomTree tree = new DomTree(common.sdg, oracle , common.mhp);

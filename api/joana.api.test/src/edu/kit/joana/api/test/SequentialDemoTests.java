@@ -53,7 +53,7 @@ public class SequentialDemoTests {
 		return ana;
 	}
 	
-	private static <T> void testSound(Class<T> clazz) throws ClassHierarchyException, ApiTestException,
+	private static void testSound(Class<?> clazz) throws ClassHierarchyException, ApiTestException,
 			IOException, UnsoundGraphException, CancelException {
 		// There are leaks, and we're sound and hence report them
 		IFCAnalysis ana = buildAnnotateDump(clazz);
@@ -62,7 +62,7 @@ public class SequentialDemoTests {
 		assertFalse(illegal.isEmpty());
 	}
 	
-	private static <T> void testPrecise(Class<T> clazz) throws ClassHierarchyException, ApiTestException,
+	private static void testPrecise(Class<?> clazz) throws ClassHierarchyException, ApiTestException,
 			IOException, UnsoundGraphException, CancelException {
 		// There are no leak, and  we're precise enough to find out that there aren't
 		IFCAnalysis ana = buildAnnotateDump(clazz);
@@ -71,7 +71,7 @@ public class SequentialDemoTests {
 		assertTrue(illegal.isEmpty());
 	}
 
-	private static <T> void testTooImprecise(Class<T> clazz) throws ClassHierarchyException, ApiTestException,
+	private static void testTooImprecise(Class<?> clazz) throws ClassHierarchyException, ApiTestException,
 			IOException, UnsoundGraphException, CancelException {
 		testSound(clazz);
 	}

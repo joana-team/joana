@@ -93,7 +93,7 @@ public class ToyTests {
 		return ana;
 	}
 
-	private static <T> void testPreciseEnough(Class<T> clazz) throws ClassHierarchyException, ApiTestException,
+	private static void testPreciseEnough(Class<?> clazz) throws ClassHierarchyException, ApiTestException,
 			IOException, UnsoundGraphException, CancelException {
 		{ // There are leaks if secret is really passed on
 			IFCAnalysis ana = buildAnnotateDump(clazz, false);
@@ -111,7 +111,7 @@ public class ToyTests {
 		}
 	}
 
-	private static <T> void testTooImprecise(Class<T> clazz) throws ClassHierarchyException, ApiTestException,
+	private static void testTooImprecise(Class<?> clazz) throws ClassHierarchyException, ApiTestException,
 			IOException, UnsoundGraphException, CancelException {
 		{ // There are leaks if secret is really passed on
 			IFCAnalysis ana = buildAnnotateDump(clazz, false);

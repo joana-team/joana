@@ -79,9 +79,7 @@ public class AndroidAnalysis {
 			return callGraph;
 		}
 	}
-
-	public SDGBuilder.SDGBuilderConfig makeSDGBuilderConfig(AppSpec appSpec, AnalysisScope scope, CGConsumer consumer, boolean silent, boolean onlyCG) throws ClassHierarchyException, IOException, CancelException {
-		IClassHierarchy cha = ClassHierarchy.make(scope);
+	public SDGBuilder.SDGBuilderConfig makeSDGBuilderConfig(AppSpec appSpec, AnalysisScope scope, IClassHierarchy cha, CGConsumer consumer, boolean silent, boolean onlyCG) throws ClassHierarchyException, IOException, CancelException {
 		AnalysisCache cache = new AnalysisCache(new DexIRFactory());
 		AnalysisOptions options = configureOptions(scope, cha);
 		populateEntryPoints(cha);
@@ -137,6 +135,9 @@ public class AndroidAnalysis {
 		scfg.localKillingDefs = false;
 		scfg.abortAfterCG = onlyCG;
 		return scfg;
+	}
+	public SDGBuilder.SDGBuilderConfig makeSDGBuilderConfig(AppSpec appSpec, AnalysisScope scope, CGConsumer consumer, boolean silent, boolean onlyCG) throws ClassHierarchyException, IOException, CancelException {
+		return makeSDGBuilderConfig(appSpec, scope, ClassHierarchy.make(scope), consumer, silent, onlyCG);
 	}
 
 	public static AnalysisScope makeMinimalScope(AppSpec appSpec, String pathToJDK, String pathToAndroidLib) throws IOException {

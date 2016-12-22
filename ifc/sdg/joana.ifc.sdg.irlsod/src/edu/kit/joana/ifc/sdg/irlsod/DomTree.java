@@ -16,7 +16,8 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadRegion;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.graph.TransitiveReductionGeneral;
 
@@ -34,7 +35,7 @@ public class DomTree {
 	
 	private DirectedGraph<VirtualNode, DefaultEdge> tree = new DefaultDirectedGraph<>(DefaultEdge.class);
 	private final SDG sdg;
-	private final MHPAnalysis mhp;
+	private final PreciseMHPAnalysis mhp;
 	private final Set<Pair<VirtualNode, VirtualNode>> set;
 	private final ICDomOracle cdomOracle;
 	private CFG icfg;
@@ -48,7 +49,7 @@ public class DomTree {
 	 * @param cdomOracle The {@link ICDomOracle} instance.
 	 * @param mhp The "May-Happen-in-Parallel"-analysis. Should match the analysis used by the {@link ICDomOracle} instance, if applicable.
 	 */
-	public DomTree(SDG sdg, ICDomOracle cdomOracle, MHPAnalysis mhp) {
+	public DomTree(SDG sdg, ICDomOracle cdomOracle, PreciseMHPAnalysis mhp) {
 		this(sdg, cdomOracle, mhp, false);
 	}
 	
@@ -60,7 +61,7 @@ public class DomTree {
 	 * @param reduce Shall the relations transitive reduction be computed?
 	 * 
 	 */
-	public DomTree(SDG sdg, ICDomOracle cdomOracle, MHPAnalysis mhp, boolean reduce) {
+	public DomTree(SDG sdg, ICDomOracle cdomOracle, PreciseMHPAnalysis mhp, boolean reduce) {
 		this.sdg = sdg;
 		this.cdomOracle = cdomOracle;
 		this.mhp = mhp;
@@ -83,11 +84,13 @@ public class DomTree {
 				tree.addVertex(new VirtualNode(n, threadN));
 			}
 		}
-		for (SDGNode n : icfg.vertexSet()) {
-			for (final int threadN : n.getThreadNumbers()) {
-				for (final SDGNode m : icfg.vertexSet()) {
-					for (final int threadM : m.getThreadNumbers()) {
-						if (mhp.isParallel(n, threadN, m, threadM)) {
+		for (ThreadRegion r1 : mhp.getThreadRegions()) {
+			int threadN = r1.getThread();
+			for (ThreadRegion r2 : mhp.getThreadRegions()) {
+				if (mhp.isParallel(r1,r2)) {
+					int threadM = r2.getThread();
+					for (SDGNode n : r1.getNodes()) {
+						for (SDGNode m : r2.getNodes()) {
 							VirtualNode cdom = cdomOracle.cdom(n, threadN, m, threadM);
 							VirtualNode vn = new VirtualNode(n, threadN);
 							VirtualNode vm = new VirtualNode(m, threadM);

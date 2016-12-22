@@ -32,6 +32,10 @@ import org.antlr.runtime.ANTLRReaderStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 
+import gnu.trove.map.TIntIntMap;
+import gnu.trove.map.hash.TIntIntHashMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
+
 /**
  * Represents a concurrent system dependence graph (cSDG).
  * It can either be used to create SDGs by hand or to read-in an existing .pdg file.
@@ -61,7 +65,7 @@ public class SDG extends JoanaGraph implements Cloneable {
     public static int UNDEFINED_IINDEX = -1;
 
     private TIntIntMap entry2CGNode = null;
-
+    private TIntIntMap cgNodeToEntry = null;
     /** represents "no ssa instruction index" - returned by {@link #getCGNodeId(SDGNode)} if there is no
      *  call graph node for the given node (for example, if the given node is not an entry node)
      */
@@ -130,7 +134,17 @@ public class SDG extends JoanaGraph implements Cloneable {
     	this.entry2CGNode = entry2CGNode;
     }
 
-    /**
+	private TIntIntMap computeCGNodeToEntryMap(TIntIntMap entry2cgNode) {
+		TIntIntMap ret = new TIntIntHashMap();
+		for (SDGNode n : vertexSet()) {
+			if (n.getKind() == SDGNode.Kind.ENTRY) {
+				ret.put(entry2cgNode.get(n.getId()), n.getId());
+			}
+		}
+		return ret;
+	}
+
+	/**
      *
      * @return  `true' if the SDGNodes in the SDG contain precise source code info.
      */
@@ -519,6 +533,35 @@ public class SDG extends JoanaGraph implements Cloneable {
 		}
 	}
 
+	/**
+	 * Returns the entry node of the procedure dependence graph corresponding to the
+	 * given call graph node. If the information is not available or if the given
+	 * call graph node has no corresponding PDG, {@code null} is returned.
+	 * @param cgNodeId call graph node for which we want to know the corresponding SDG entry node
+	 * @return entry node of the PDG corresponding to the given call graph node, or {@code null}
+	 * if this information is not available or if the call graph node has no corresponding
+	 * SDG entry node
+	 */
+	public SDGNode getSDGNode(int cgNodeId) {
+		if (entry2CGNode != null) {
+			// information is available
+			if (cgNodeToEntry == null) {
+				// have not inverted the map yet...do it first!
+				this.cgNodeToEntry = computeCGNodeToEntryMap(this.entry2CGNode);
+			}
+			// do we have a value for the given id?
+			if (this.cgNodeToEntry.containsKey(cgNodeId)) {
+				// return that value!
+				return getNode(this.cgNodeToEntry.get(cgNodeId));
+			} else {
+				// no value --> return null
+				return null;
+			}
+		} else {
+			// information not available --> return null
+			return null;
+		}
+	}
 
 	/**
 	 * Returns all actual-out nodes connected with the given formal-out node.

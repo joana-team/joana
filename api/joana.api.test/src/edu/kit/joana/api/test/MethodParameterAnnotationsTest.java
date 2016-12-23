@@ -37,7 +37,7 @@ public class MethodParameterAnnotationsTest {
 			cls,
 			BuildSDG.top_sequential,
 			false);
-		DumpTestSDG.dumpSDG(ana.getProgram().getSDG(), cls + ".pdg");
+		DumpTestSDG.dumpSDG(ana.getProgram().getSDG(), cls.getCanonicalName() + ".pdg");
 
 		Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 		assertFalse(illegal.isEmpty());

@@ -413,13 +413,22 @@ public final class ObjGraphParams {
 						// found a call to an init method that needs to be handled.
 						final PDGNode newStmt = searchMatchingNewStatement(pdg, n);
 						final PDGNode imm = pdg.createDummyNode("immutable");
+						PDGEdge toRemove = null;
+						PDGNode succ = null;
 						for (final PDGEdge e : pdg.outgoingEdgesOf(n)) {
 							if (e.kind == PDGEdge.Kind.CONTROL_DEP_EXPR && e.to.getKind() == PDGNode.Kind.ACTUAL_OUT) {
 								pdg.addEdge(e.to, imm, PDGEdge.Kind.DATA_DEP);
+							} else if (e.kind == PDGEdge.Kind.CONTROL_FLOW) {
+								toRemove = e;
+								succ = e.to;
 							}
 						}
 						pdg.addEdge(n, imm, PDGEdge.Kind.CONTROL_DEP_EXPR);
 						pdg.addEdge(imm, newStmt, PDGEdge.Kind.DATA_DEP);
+						
+						pdg.removeEdge(toRemove);
+						pdg.addEdge(n, imm, PDGEdge.Kind.CONTROL_FLOW);
+						pdg.addEdge(imm, succ, PDGEdge.Kind.CONTROL_FLOW);
 					}
 				}
 			}

@@ -279,7 +279,9 @@ public class ISCRBuilder {
 	    				for (SDGEdge e : cfg.getOutgoingEdgesOfKind(next, SDGEdge.Kind.CONTROL_FLOW)) {
 	    					SDGNode target = e.getTarget();
 
-	    					if (target.getKind() == SDGNode.Kind.ACTUAL_OUT) {
+	    					if (target.getKind() == SDGNode.Kind.ACTUAL_OUT ||
+	    							(target.getBytecodeIndex() == -1
+									&& "immutable".equals(target.getLabel()))) {
 	    						wl.add(target);
 	    						ps.add(target);
 	    						remove.add(e);

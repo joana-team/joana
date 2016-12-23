@@ -16,7 +16,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadRegion;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.graph.TransitiveReductionGeneral;
@@ -35,7 +35,7 @@ public class DomTree {
 	
 	private DirectedGraph<VirtualNode, DefaultEdge> tree = new DefaultDirectedGraph<>(DefaultEdge.class);
 	private final SDG sdg;
-	private final PreciseMHPAnalysis mhp;
+	private final MHPAnalysis mhp;
 	private final Set<Pair<VirtualNode, VirtualNode>> set;
 	private final ICDomOracle cdomOracle;
 	private CFG icfg;
@@ -49,7 +49,7 @@ public class DomTree {
 	 * @param cdomOracle The {@link ICDomOracle} instance.
 	 * @param mhp The "May-Happen-in-Parallel"-analysis. Should match the analysis used by the {@link ICDomOracle} instance, if applicable.
 	 */
-	public DomTree(SDG sdg, ICDomOracle cdomOracle, PreciseMHPAnalysis mhp) {
+	public DomTree(SDG sdg, ICDomOracle cdomOracle, MHPAnalysis mhp) {
 		this(sdg, cdomOracle, mhp, false);
 	}
 	
@@ -61,7 +61,7 @@ public class DomTree {
 	 * @param reduce Shall the relations transitive reduction be computed?
 	 * 
 	 */
-	public DomTree(SDG sdg, ICDomOracle cdomOracle, PreciseMHPAnalysis mhp, boolean reduce) {
+	public DomTree(SDG sdg, ICDomOracle cdomOracle, MHPAnalysis mhp, boolean reduce) {
 		this.sdg = sdg;
 		this.cdomOracle = cdomOracle;
 		this.mhp = mhp;

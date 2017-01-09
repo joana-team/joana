@@ -41,14 +41,15 @@ public class ToyTests {
 			IOException, UnsoundGraphException, CancelException {
 		IFCAnalysis ana = BuildSDG.buldAndUseJavaAnnotations(clazz, BuildSDG.top_sequential, ignore);
 		
-		final String classname = clazz.getCanonicalName();
-		final String extension = (ignore ? "ignore" : "passon") + ".pdg";
+		final String filename = clazz.getCanonicalName()
+								+ (ignore ? "ignore" : "passon")
+								+ ".pdg";
 		
 		if (outputPDGFiles) {
-			DumpTestSDG.dumpSDG(ana.getProgram().getSDG(), classname + extension);
+			DumpTestSDG.dumpSDG(ana.getProgram().getSDG(), filename);
 		}
 		if (outputGraphMLFiles) {
-			DumpTestSDG.dumpGraphML(ana.getProgram().getSDG(), classname + extension);
+			DumpTestSDG.dumpGraphML(ana.getProgram().getSDG(), filename);
 		}
 		
 		return ana;
@@ -99,7 +100,7 @@ public class ToyTests {
 			IFCAnalysis ana = buildAnnotateDump(clazz, false);
 
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			System.out.println(illegal);
+			//System.out.println(illegal);
 			assertFalse(illegal.isEmpty());
 		}
 

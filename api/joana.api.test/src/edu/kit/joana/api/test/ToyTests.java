@@ -42,7 +42,7 @@ public class ToyTests {
 		IFCAnalysis ana = BuildSDG.buldAndUseJavaAnnotations(clazz, BuildSDG.top_sequential, ignore);
 		
 		final String filename = clazz.getCanonicalName()
-								+ (ignore ? "ignore" : "passon")
+								+ (ignore ? ".ignore" : ".passon")
 								+ ".pdg";
 		
 		if (outputPDGFiles) {

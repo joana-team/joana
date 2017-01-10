@@ -53,6 +53,7 @@ import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.ifc.sdg.util.JavaType.Format;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
+import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.util.io.IOFactory;
 import edu.kit.joana.wala.core.NullProgressMonitor;
@@ -60,6 +61,7 @@ import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.summary.SummaryComputation;
 import edu.kit.joana.wala.summary.WorkPackage;
 import edu.kit.joana.wala.summary.WorkPackage.EntryPoint;
+import edu.kit.joana.wala.util.PrettyWalaNames;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 
@@ -156,7 +158,7 @@ public class SDGProgram {
 	private final Set<SDGClass> classes = new HashSet<SDGClass>();
 	private final SDG sdg;
 	private SDGProgramPartParserBC ppartParser;
-	private final Map<SDGProgramPart, Collection<Annotation>> annotations = new HashMap<SDGProgramPart, Collection<Annotation>>();
+	private final Map<SDGProgramPart, Collection<Pair<Annotation,String>>> annotations = new HashMap<>();
 	private final AnnotationTypeBasedNodeCollector coll;
 
 	private static Logger debug = Log.getLogger(Log.L_API_DEBUG);
@@ -264,13 +266,18 @@ public class SDGProgram {
 		for (IClass c : builder.getClassHierarchy()) {
 			final String walaClassName = c.getName().toString();
 			final JavaType jt = JavaType.parseSingleTypeFromString(walaClassName, Format.BC);
+			final String sourcefile = PrettyWalaNames.sourceFileName(c.getName()); 
+			
 
 			for (IField f : c.getAllFields()) {
 				final Collection<SDGAttribute> attributes = ret.getAttribute(jt, f.getName().toString());
 				// attributes.isEmpty() if c isn't Part of the CallGraph
 				if (f.getAnnotations() != null && !f.getAnnotations().isEmpty()) {
-					for (SDGAttribute a : attributes)
-						ret.annotations.put(a, f.getAnnotations());
+					for (SDGAttribute attribute : attributes)
+						ret.annotations.put(
+							attribute,
+							f.getAnnotations().stream().map( a -> Pair.pair(a, sourcefile)).collect(Collectors.toList())
+						);
 					debug.outln("Annotated: " + jt + ":::" + f.getName() + " with " + f.getAnnotations());
 				}
 
@@ -279,8 +286,12 @@ public class SDGProgram {
 				if (m.getAnnotations() != null && !m.getAnnotations().isEmpty()) {
 					final Collection<SDGMethod> methods = ret.getMethods(JavaMethodSignature.fromString(m
 							.getSignature()));
-					for (SDGMethod sdgm : methods)
-						ret.annotations.put(sdgm, m.getAnnotations());
+					for (SDGMethod sdgm : methods) {
+						ret.annotations.put(
+							sdgm,
+							m.getAnnotations().stream().map( a -> Pair.pair(a, sourcefile)).collect(Collectors.toList())
+						);
+					}
 					debug.outln("Annotated: " + jt + ":::" + m.getName() + " with " + m.getAnnotations());
 				}
 				
@@ -290,12 +301,14 @@ public class SDGProgram {
 
 					int parameternumber = m.isStatic() ? 1 : 0;
 					for(Collection<Annotation> parameter : method.getParameterAnnotations() ) {
+						final Collection<Pair<Annotation, String>> parameterWithSourcefile =
+							parameter.stream().map( a -> Pair.pair(a, sourcefile)).collect(Collectors.toList());
 						if (!parameter.isEmpty()) {
 							if (methods.isEmpty()) { 
 								methods = ret.getMethods(JavaMethodSignature.fromString(m.getSignature()));
 							}
 							for (SDGMethod sdgm : methods) {
-								ret.annotations.put(sdgm.getParameter(parameternumber), parameter);
+								ret.annotations.put(sdgm.getParameter(parameternumber), parameterWithSourcefile);
 							}
 							parameternumber++;
 						}
@@ -321,9 +334,11 @@ public class SDGProgram {
 									for (SDGMethod sdgm : methods) {
 										final SDGLocalVariable localVar = sdgm.getLocalVariable(varName);
 										if (localVar != null) {
-											ret.annotations.computeIfAbsent(localVar, lv -> new LinkedList<Annotation>());
+											c.getSourceFileName();
+											c.getSource();
+											ret.annotations.computeIfAbsent(localVar, lv -> new LinkedList<Pair<Annotation, String>>());
 											ret.annotations.computeIfPresent(localVar, (lv, anns) -> {
-												anns.add(ta.getAnnotation());
+												anns.add(Pair.pair(ta.getAnnotation(),sourcefile));
 												return anns;
 											});
 										} else {
@@ -427,7 +442,7 @@ public class SDGProgram {
 		return sdg;
 	}
 
-	public Map<SDGProgramPart, Collection<Annotation>> getJavaSourceAnnotations() {
+	public Map<SDGProgramPart, Collection<Pair<Annotation,String>>> getJavaSourceAnnotations() {
 		return annotations;
 	}
 

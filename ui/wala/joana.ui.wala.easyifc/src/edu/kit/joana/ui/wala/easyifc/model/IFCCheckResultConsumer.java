@@ -11,16 +11,26 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.eclipse.jdt.core.IMethod;
 
+import com.google.common.collect.Multimap;
+
 import edu.kit.joana.api.SPos;
+import edu.kit.joana.api.annotations.AnnotationTypeBasedNodeCollector;
+import edu.kit.joana.api.annotations.IFCAnnotation;
+import edu.kit.joana.api.sdg.SDGProgramPart;
+import edu.kit.joana.ui.annotations.Sink;
+import edu.kit.joana.ui.annotations.Source;
 import edu.kit.joana.ui.wala.easyifc.model.IFCResultFilter.LeakType;
 import edu.kit.joana.ui.wala.easyifc.util.EntryPointSearch.EntryPointConfiguration;
+import edu.kit.joana.util.Pair;
 
 public interface IFCCheckResultConsumer {
 
@@ -64,10 +74,14 @@ public interface IFCCheckResultConsumer {
 		private final SortedSet<SLeak> directLeaks = new TreeSet<SLeak>();  
 		private final SortedSet<SLeak> excLeaks = new TreeSet<SLeak>();  
 		private final SortedSet<SLeak> noExcLeaks = new TreeSet<SLeak>();
+		private       Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>> annotations;
+		private       Collection<IFCAnnotation> annotations2;
 		private final IFCResultFilter filter;
+		private final AnnotationTypeBasedNodeCollector collector;
 		
-		public IFCResult(final EntryPointConfiguration mainMethod, final IFCResultFilter filter) {
+		public IFCResult(final EntryPointConfiguration mainMethod, final IFCResultFilter filter, AnnotationTypeBasedNodeCollector collector) {
 			this.mainMethod = mainMethod;
+			this.collector = collector;
 			this.filter = (filter == null ? IFCResultFilter.DEFAULT : filter);
 		}
 		
@@ -124,6 +138,26 @@ public interface IFCCheckResultConsumer {
 		
 		public SortedSet<SLeak> getLeaks() {
 			return Collections.unmodifiableSortedSet(leaks);
+		}
+
+		public Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>> getAnnotations() {
+			return annotations;
+		}
+
+		public void setAnnotations(Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>> annotations) {
+			this.annotations = annotations;
+		}
+		
+		public Collection<IFCAnnotation> getAnnotations2() {
+			return annotations2;
+		}
+
+		public void setAnnotations2(Collection<IFCAnnotation> annotations2) {
+			this.annotations2 = annotations2;
+		}
+
+		public AnnotationTypeBasedNodeCollector getCollector() {
+			return collector;
 		}
 
 	}

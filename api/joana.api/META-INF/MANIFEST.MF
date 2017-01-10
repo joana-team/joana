@@ -5,6 +5,7 @@ Bundle-SymbolicName: joana.api
 Bundle-Version: 1.0.0.qualifier
 Export-Package: edu.kit.joana.api,
  edu.kit.joana.api.annotations;uses:="edu.kit.pp.joana.ifcconsole.sdg",
+ edu.kit.joana.api.annotations.cause,
  edu.kit.joana.api.lattice,
  edu.kit.joana.api.matchers,
  edu.kit.joana.api.sdg

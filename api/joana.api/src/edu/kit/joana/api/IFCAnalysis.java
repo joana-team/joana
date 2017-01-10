@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.ibm.wala.shrikeCT.AnnotationsReader.ArrayElementValue;
 import com.ibm.wala.shrikeCT.AnnotationsReader.ConstantElementValue;
@@ -29,6 +31,10 @@ import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.annotations.IFCAnnotationManager;
 import edu.kit.joana.api.annotations.NodeAnnotationInfo;
+import edu.kit.joana.api.annotations.cause.AnnotationCause;
+import edu.kit.joana.api.annotations.cause.JavaSinkAnnotation;
+import edu.kit.joana.api.annotations.cause.JavaSourceAnnotation;
+import edu.kit.joana.api.annotations.cause.UnknownCause;
 import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGActualParameter;
 import edu.kit.joana.api.sdg.SDGAttribute;
@@ -93,6 +99,9 @@ public class IFCAnalysis {
 	private IFC<String> ifc;
 	private boolean timeSensitiveAnalysis = false;
 	private boolean removeRedundantFlows = false;
+	
+	private Multimap<SDGProgramPart, Pair<Source,String>> sources = null;
+	private Multimap<SDGProgramPart, Pair<Sink,String>> sinks = null;
 
 	public static final IStaticLattice<String> stdLattice = BuiltinLattices.getBinaryLattice();
 
@@ -356,12 +365,12 @@ public class IFCAnalysis {
 		return secLattice;
 	}
 
-	private void addSourceAnnotation(SDGProgramPart toMark, String level, SDGMethod context) {
-		addAnnotation(new IFCAnnotation(AnnotationType.SOURCE, level, toMark, context));
+	private void addSourceAnnotation(SDGProgramPart toMark, String level, SDGMethod context, AnnotationCause cause) {
+		addAnnotation(new IFCAnnotation(AnnotationType.SOURCE, level, toMark, context, cause));
 	}
 
-	private void addSinkAnnotation(SDGProgramPart toMark, String level, SDGMethod context) {
-		addAnnotation(new IFCAnnotation(AnnotationType.SINK, level, toMark, context));
+	private void addSinkAnnotation(SDGProgramPart toMark, String level, SDGMethod context, AnnotationCause cause) {
+		addAnnotation(new IFCAnnotation(AnnotationType.SINK, level, toMark, context, cause));
 	}
 
 	public void addDeclassification(SDGProgramPart toMark, String level1, String level2) {
@@ -369,30 +378,36 @@ public class IFCAnalysis {
 	}
 
 	public void addSourceAnnotation(SDGProgramPart toMark, String level) {
-		addSourceAnnotation(toMark, level, null);
+		addSourceAnnotation(toMark, level, null, UnknownCause.INSTANCE);
 	}
 
 	public void addSinkAnnotation(SDGProgramPart toMark, String level) {
-		addSinkAnnotation(toMark, level, null);
+		addSinkAnnotation(toMark, level, null, UnknownCause.INSTANCE);
 	}
 
 	@Deprecated
-	public void addSourceAnnotationsToCallers(JavaMethodSignature signature, String level) {
+	public void addSourceAnnotationsToCallers(JavaMethodSignature signature, String level, AnnotationCause cause) {
 		final Collection<SDGCall> calls = program.getCallsToMethod(signature);
 		for (final SDGCall call : calls) {
 			final SDGCallReturnNode ret = call.getReturn();
-			addSourceAnnotation(ret, level);
+			addSourceAnnotation(ret, level, null, cause);
 		}
 	}
 	
+	@Deprecated
 	public void addSourceAnnotation(SDGMethod methodToMark, String level, AnnotationPolicy annotationPolicy) {
+		addSourceAnnotation(methodToMark, level, annotationPolicy, UnknownCause.INSTANCE);
+	}
+	
+	public void addSourceAnnotation(SDGMethod methodToMark, String level, AnnotationPolicy annotationPolicy, AnnotationCause cause) {
+	
 		switch (annotationPolicy) {
 			// TODO: AFAICT, relying on the methods Signature to obtain all calls to this method,
 			// different SDGMethod instances of the same Method (with the same signature),
 			// created e.g. due to call-string sensitive points-to analysis,
 			// will get lumped together here again.
-			case ANNOTATE_USAGES: addSourceAnnotationsToCallers(methodToMark.getSignature(), level);	break;
-			case ANNOTATE_CALLEE:  addSourceAnnotation(methodToMark, level); break;
+			case ANNOTATE_USAGES: addSourceAnnotationsToCallers(methodToMark.getSignature(), level, cause);	break;
+			case ANNOTATE_CALLEE:  addSourceAnnotation((SDGProgramPart)methodToMark, level, (SDGMethod) null, cause); break;
 			default: throw new IllegalArgumentException("Unknown AnnotationPolicy: " + annotationPolicy);
 		}
 	}
@@ -409,10 +424,15 @@ public class IFCAnalysis {
 		}
 	}
 	
+	@Deprecated
 	public void addSinkAnnotation(SDGMethod methodToMark, String level, AnnotationPolicy annotationPolicy) {
+		addSinkAnnotation(methodToMark, level, annotationPolicy, UnknownCause.INSTANCE);
+	}
+	
+	public void addSinkAnnotation(SDGMethod methodToMark, String level, AnnotationPolicy annotationPolicy, AnnotationCause cause) {
 		switch (annotationPolicy) {
 			case ANNOTATE_USAGES: addSinkAnnotationsToActualsAtCallsites(methodToMark.getSignature(), level); break;
-			case ANNOTATE_CALLEE:  addSinkAnnotation(methodToMark, level); break;
+			case ANNOTATE_CALLEE:  addSinkAnnotation((SDGProgramPart)methodToMark, level, (SDGMethod) null, cause); break;
 			default: throw new IllegalArgumentException("Unknown AnnotationPolicy: " + annotationPolicy);
 		}
 	}
@@ -431,20 +451,21 @@ public class IFCAnalysis {
 	/**
 	 * If Java Source annotations are available, add corresponding IFC Annotations to the Analysis.
 	 */
-	public void addAllJavaSourceAnnotations() {
-		addAllJavaSourceAnnotations(BuiltinLattices.getBinaryLattice());
+	public Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>> addAllJavaSourceAnnotations() {
+		return addAllJavaSourceAnnotations(BuiltinLattices.getBinaryLattice());
 	}
 	
  	/**
 	 * If Java Source includes/mayInclude annotations are available, add corresponding IFC Annotations to the Analysis.
 	 */
-	public <L> void  addAllJavaSourceIncludesAnnotations(Map<Set<String>,String> fromSet, IStaticLattice<String> stringEncodedLattice) {
-		final Pair<Map<SDGProgramPart, Source>, Map<SDGProgramPart, Sink>> annotations = getJavaSourceAnnotations();
-		final Map<SDGProgramPart, Source> sources = annotations.getFirst();
-		final Map<SDGProgramPart, Sink> sinks  = annotations.getSecond();
+	public Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>> addAllJavaSourceIncludesAnnotations(Map<Set<String>,String> fromSet, IStaticLattice<String> stringEncodedLattice) {
+		final Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>> annotations = getJavaSourceAnnotations();
+		final Multimap<SDGProgramPart, Pair<Source, String>> sources = annotations.getFirst();
+		final Multimap<SDGProgramPart, Pair<Sink, String>> sinks  = annotations.getSecond();
 
-		for (final Entry<SDGProgramPart, Source> e : sources.entrySet()) {
-			final Source source       = e.getValue();
+		for (final Entry<SDGProgramPart, Pair<Source, String>> e : sources.entries()) {
+			final Source source       = e.getValue().getFirst();
+			final String sourceFile   = e.getValue().getSecond();
 			final SDGProgramPart part = e.getKey();
 			
 			if (source.level() != null) {
@@ -463,14 +484,15 @@ public class IFCAnalysis {
 				if (!stringEncodedLattice.getElements().contains(level)) {
 					throw new IllegalArgumentException("Unknown dataset in includes == " + Arrays.toString(includes));
 				}
-				annotatePart(Source.class, part, level, annotate);
+				annotatePart(Source.class, source, part, level, annotate, sourceFile);
 			} catch (NoSuchMethodException nsme) {
 				throw new AssertionError("Default value for invalid annotation attribute requested");
 			}
 		}
 		
-		for (final Entry<SDGProgramPart, Sink> e : sinks.entrySet()) {
-			final Sink sink           = e.getValue();
+		for (final Entry<SDGProgramPart, Pair<Sink, String>> e : sinks.entries()) {
+			final Sink sink           = e.getValue().getFirst();
+			final String sourceFile   = e.getValue().getSecond();
 			final SDGProgramPart part = e.getKey();
 			
 			if (sink.level() != null) {
@@ -489,25 +511,26 @@ public class IFCAnalysis {
 				if (!stringEncodedLattice.getElements().contains(level)) {
 					throw new IllegalArgumentException("Unknown dataset in mayInclude == " + Arrays.toString(mayInclude));
 				}
-				annotatePart(Sink.class, part, level, annotate);
+				annotatePart(Sink.class, sink, part, level, annotate, sourceFile);
 			} catch (NoSuchMethodException nsme) {
 				throw new AssertionError("Default value for invalid annotation attribute requested");
 			}
 		}
-		
+		return annotations;
 	}
 
 	
 	/**
 	 * If Java Source mayKnow/seenBy annotations are available, add corresponding IFC Annotations to the Analysis.
 	 */
-	public <L> void  addAllJavaSourceMayKnowAnnotations(Map<Set<String>,String> fromSet, IStaticLattice<String> stringEncodedLattice) {
-		final Pair<Map<SDGProgramPart, Source>, Map<SDGProgramPart, Sink>> annotations = getJavaSourceAnnotations();
-		final Map<SDGProgramPart, Source> sources = annotations.getFirst();
-		final Map<SDGProgramPart, Sink> sinks  = annotations.getSecond();
+	public Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>> addAllJavaSourceMayKnowAnnotations(Map<Set<String>,String> fromSet, IStaticLattice<String> stringEncodedLattice) {
+		final Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>> annotations = getJavaSourceAnnotations();
+		final Multimap<SDGProgramPart, Pair<Source, String>> sources = annotations.getFirst();
+		final Multimap<SDGProgramPart, Pair<Sink, String>> sinks  = annotations.getSecond();
 
-		for (final Entry<SDGProgramPart, Source> e : sources.entrySet()) {
-			final Source source       = e.getValue();
+		for (final Entry<SDGProgramPart, Pair<Source, String>> e : sources.entries()) {
+			final Source source       = e.getValue().getFirst();
+			final String sourceFile   = e.getValue().getSecond();
 			final SDGProgramPart part = e.getKey();
 			
 			if (source.level() != null) {
@@ -526,14 +549,15 @@ public class IFCAnalysis {
 				if (!stringEncodedLattice.getElements().contains(level)) {
 					throw new IllegalArgumentException("Unknown dataset in mayKnow == " + Arrays.toString(mayKnow));
 				}
-				annotatePart(Source.class, part, level, annotate);
+				annotatePart(Source.class, source, part, level, annotate, sourceFile);
 			} catch (NoSuchMethodException nsme) {
 				throw new AssertionError("Default value for invalid annotation attribute requested");
 			}
 		}
 		
-		for (final Entry<SDGProgramPart, Sink> e : sinks.entrySet()) {
-			final Sink sink           = e.getValue();
+		for (final Entry<SDGProgramPart, Pair<Sink, String>> e : sinks.entries()) {
+			final Sink sink           = e.getValue().getFirst();
+			final String sourceFile   = e.getValue().getSecond();
 			final SDGProgramPart part = e.getKey();
 			
 			if (sink.level() != null) {
@@ -552,21 +576,31 @@ public class IFCAnalysis {
 				if (!stringEncodedLattice.getElements().contains(level)) {
 					throw new IllegalArgumentException("Unknown dataset in mayKnow == " + Arrays.toString(seenBy));
 				}
-				annotatePart(Sink.class, part, level, annotate);
+				annotatePart(Sink.class, sink, part, level, annotate, sourceFile);
 			} catch (NoSuchMethodException nsme) {
 				throw new AssertionError("Default value for invalid annotation attribute requested");
 			}
 		}
-		
+		return annotations;
 	}
 	
+	
 	/**
-	 * If Java Source annotations are available, add corresponding IFC Annotations to the Analysis.
+	 * Return available Source/Sink annotations
 	 */
-	public Pair<Map<SDGProgramPart, Source>,
-	            Map<SDGProgramPart, Sink>> getJavaSourceAnnotations() {
-		final Map<SDGProgramPart, Source> sources = new HashMap<>();
-		final Map<SDGProgramPart, Sink> sinks = new HashMap<>();
+	public Pair<Multimap<SDGProgramPart, Pair<Source,String>>,
+                Multimap<SDGProgramPart, Pair<Sink,String>>> getJavaSourceAnnotations() {
+		if (sources == null || sinks == null) {
+			updateJavaSourceAnnotations();
+		}
+		assert sources != null;
+		assert sinks !=null;
+		return Pair.pair(sources, sinks);
+	}
+
+	private void updateJavaSourceAnnotations() {
+		this.sources = ArrayListMultimap.create();
+		this.sinks  = ArrayListMultimap.create();
 		final TypeReference source = TypeReference.findOrCreate(
 		      ClassLoaderReference.Application,
 		      TypeName.findOrCreate(JavaType.parseSingleTypeFromString(Source.class.getCanonicalName()).toBCString(false)));
@@ -576,10 +610,12 @@ public class IFCAnalysis {
 
 		final TypeName annotationPolicy = TypeName.findOrCreate(JavaType.parseSingleTypeFromString(AnnotationPolicy.class.getCanonicalName()).toBCString());
 		final TypeName positionDefinition = TypeName.findOrCreate(JavaType.parseSingleTypeFromString(AnnotationPolicy.class.getCanonicalName()).toBCString());
-		final Map<SDGProgramPart,Collection<Annotation>> annotations = program.getJavaSourceAnnotations();
+		final Map<SDGProgramPart,Collection<Pair<Annotation,String>>> annotations = program.getJavaSourceAnnotations();
 		
-		for (final Entry<SDGProgramPart,Collection<Annotation>> e : annotations.entrySet()) {
-			for(final Annotation a : e.getValue()) {
+		for (final Entry<SDGProgramPart,Collection<Pair<Annotation,String>>> e : annotations.entrySet()) {
+			for(final Pair<Annotation,String> p : e.getValue()) {
+				final Annotation a = p.getFirst();
+				final String sourceFile = p.getSecond();
 				debug.outln("Processing::: " + a);
 				if (source.equals(a.getType())) {
 					final ElementValue levelValue = a.getNamedArguments().get("level");
@@ -655,7 +691,7 @@ public class IFCAnalysis {
 						columnNumber = (Integer) constantvalue.val;
 					}
 					
-					sources.put(e.getKey(), new Source() {
+					sources.put(e.getKey(), Pair.pair(new Source() {
 						@Override
 						public Class<? extends java.lang.annotation.Annotation> annotationType() {
 							return Source.class;
@@ -695,7 +731,12 @@ public class IFCAnalysis {
 						public int columnNumber() {
 							return columnNumber;
 						}
-					});
+						
+						@Override
+						public String toString() {
+							return "@Source(level = " + level + ", includes = " + Arrays.toString(includes) + ", mayKnow = " + Arrays.toString(mayKnow) + ")";
+						};
+					}, sourceFile));
 				} else if (sink.equals(a.getType())) {
 					final ElementValue levelValue = a.getNamedArguments().get("level");
 					final String level;
@@ -770,7 +811,7 @@ public class IFCAnalysis {
 						columnNumber = (Integer) constantvalue.val;
 					}
 					
-					sinks.put(e.getKey(), new Sink() {
+					sinks.put(e.getKey(), Pair.pair(new Sink() {
 						@Override
 						public Class<? extends java.lang.annotation.Annotation> annotationType() {
 							return Sink.class;
@@ -810,11 +851,15 @@ public class IFCAnalysis {
 						public int columnNumber() {
 							return columnNumber;
 						}
-					});
+						
+						@Override
+						public String toString() {
+							return "@Sink(level = " + level + ", mayInclude = " + Arrays.toString(mayInclude) + ", seenBy = " + Arrays.toString(seenBy) + ")";
+						}
+					}, sourceFile));
 				}
 			}
 		}
-		return Pair.pair(sources, sinks);
 	}
 
 	
@@ -822,13 +867,14 @@ public class IFCAnalysis {
 	/**
 	 * If Java Source annotations are available, add corresponding IFC Annotations to the Analysis.
 	 */
-	public <L> void  addAllJavaSourceAnnotations(IStaticLattice<String> lattice) {
-		final Pair<Map<SDGProgramPart, Source>, Map<SDGProgramPart, Sink>> annotations = getJavaSourceAnnotations();
-		final Map<SDGProgramPart, Source> sources = annotations.getFirst();
-		final Map<SDGProgramPart, Sink> sinks  = annotations.getSecond();
+	public Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>> addAllJavaSourceAnnotations(IStaticLattice<String> lattice) {
+		final Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>> annotations = getJavaSourceAnnotations();
+		final Multimap<SDGProgramPart, Pair<Source, String>> sources = annotations.getFirst();
+		final Multimap<SDGProgramPart, Pair<Sink, String>> sinks  = annotations.getSecond();
 
-		for (final Entry<SDGProgramPart, Source> e : sources.entrySet()) {
-			final Source source       = e.getValue();
+		for (final Entry<SDGProgramPart, Pair<Source, String>> e : sources.entries()) {
+			final Source source       = e.getValue().getFirst();
+			final String sourceFile   = e.getValue().getSecond();
 			final SDGProgramPart part = e.getKey();
 			
 			if (source.mayKnow() != null) {
@@ -843,14 +889,15 @@ public class IFCAnalysis {
 					(source.annotate() == null) ?
 						(AnnotationPolicy) Source.class.getMethod("annotate").getDefaultValue() : source.annotate();
 
-				annotatePart(Source.class, part, level, annotate);
+				annotatePart(Source.class, source, part, level, annotate, sourceFile);
 			} catch (NoSuchMethodException nsme) {
 				throw new AssertionError("Default value for invalid annotation attribute requested");
 			}
 		}
 
-		for (final Entry<SDGProgramPart, Sink> e : sinks.entrySet()) {
-			final Sink sink           = e.getValue();
+		for (final Entry<SDGProgramPart, Pair<Sink, String>> e : sinks.entries()) {
+			final Sink sink           = e.getValue().getFirst();
+			final String sourceFile   = e.getValue().getSecond();
 			final SDGProgramPart part = e.getKey();
 			
 			if (sink.seenBy() != null) {
@@ -865,21 +912,29 @@ public class IFCAnalysis {
 					(sink.annotate() == null) ?
 						(AnnotationPolicy) Sink.class.getMethod("annotate").getDefaultValue() : sink.annotate();
 				
-				annotatePart(Sink.class, part, level, annotate);
+				annotatePart(Sink.class, sink, part, level, annotate, sourceFile);
 			} catch (NoSuchMethodException nsme) {
 				throw new AssertionError("Default value for invalid annotation attribute requested");
 			}
 		}
+		return annotations;
 	}
 	
-	private <C> void annotatePart(Class<?> ann, SDGProgramPart part, String level, AnnotationPolicy annotate) {
+	private <S extends java.lang.annotation.Annotation> void annotatePart(Class<S> ann, S s, SDGProgramPart part, String level, AnnotationPolicy annotate, String sourceFile) {
 		if (ann != Source.class && ann != Sink.class) throw new IllegalArgumentException();
 		
+		final AnnotationCause cause;
+		if (ann == Source.class) {
+			cause = new JavaSourceAnnotation((Source) s, sourceFile);
+		} else {
+			assert (ann == Sink.class);
+			cause = new JavaSinkAnnotation((Sink) s, sourceFile);
+		}
 		part.acceptVisitor(new ThrowingSDGProgramPartVisitor<Void, Void>() {
 			@Override
 			protected Void visitMethod(SDGMethod m, Void data) {
-				if (ann == Source.class) addSourceAnnotation(m, level, annotate);
-				if (ann == Sink.class)   addSinkAnnotation(m, level, annotate);
+				if (ann == Source.class) addSourceAnnotation(m, level, annotate, cause);
+				if (ann == Sink.class)   addSinkAnnotation(m, level, annotate, cause);
 				return null;
 			}
 			
@@ -889,8 +944,8 @@ public class IFCAnalysis {
 					throw new IllegalArgumentException("Fields may onlye be annotated with annotate == " + 
 				                                        AnnotationPolicy.ANNOTATE_USAGES);
 				}
-				if (ann == Source.class) addSourceAnnotation(attribute, level);
-				if (ann == Sink.class)   addSinkAnnotation(attribute, level);
+				if (ann == Source.class) addSourceAnnotation(attribute, level, null, cause);
+				if (ann == Sink.class)   addSinkAnnotation(attribute, level, null, cause);
 				return null;
 			}
 			
@@ -900,8 +955,8 @@ public class IFCAnalysis {
 					throw new IllegalArgumentException("Fields may onlye be annotated with annotate == " + 
 					                                        AnnotationPolicy.ANNOTATE_USAGES);
 				}
-				if (ann == Source.class) addSourceAnnotation(p, level); 
-				if (ann == Sink.class)   addSinkAnnotation(p, level);
+				if (ann == Source.class) addSourceAnnotation(p, level, null, cause); 
+				if (ann == Sink.class)   addSinkAnnotation(p, level, null, cause);
 				return null;
 			}
 			
@@ -911,8 +966,8 @@ public class IFCAnalysis {
 					throw new IllegalArgumentException("Local Variables may onlye be annotated with annotate == " + 
 					                                        AnnotationPolicy.ANNOTATE_USAGES);
 				}
-				if (ann == Source.class) addSourceAnnotation(local, level); 
-				if (ann == Sink.class)   addSinkAnnotation(local, level);
+				if (ann == Source.class) addSourceAnnotation(local, level, null, cause); 
+				if (ann == Sink.class)   addSinkAnnotation(local, level, null, cause);
 				return null;
 			}
 		}, null);

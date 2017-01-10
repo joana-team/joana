@@ -46,7 +46,9 @@ public class EasyIFCMarkerAndImageManager {
 		SECRET_INPUT("joana.ui.easyifc.marker.secret_input", "icons/secret_input_big.png"),
 		PUBLIC_OUTPUT("joana.ui.easyifc.marker.public_output", "icons/public_output_big.png"),
 		CRITICAL_INTERFERENCE("joana.ui.easyifc.marker.critical_interference", "icons/critical_interference_big.png"),
-		INTERFERENCE_TRIGGER("joana.ui.easyifc.marker.interference_trigger", "icons/flow_big.png");
+		INTERFERENCE_TRIGGER("joana.ui.easyifc.marker.interference_trigger", "icons/flow_big.png"),
+		SOURCE("joana.ui.easyifc.marker.source", "icons/source.png"),
+		SINK("joana.ui.easyifc.marker.sink", "icons/source.png");
 		
 		public final String id;
 		
@@ -64,6 +66,8 @@ public class EasyIFCMarkerAndImageManager {
 	public static final String ILLEGAL_FLOW_IMG 			= "icons/illegal_flow_big.png";
 	public static final String ANALYSIS_CONFIG_IMG 			= "icons/analysis_configuration_big.png";
 	public static final String TRIGGER_IMG					= "icons/flow_big.png";
+	public static final String SOURCE_IMG					= "icons/source.png";
+	public static final String SINK_IMG						= "icons/sink.png";
 	
 	public static final String CRITICAL_MARKER = "joana.ui.easyifc.highlight.critical";
 	public static final String IFC_MARKER = "joana.ui.easyifc.marker";
@@ -190,6 +194,54 @@ public class EasyIFCMarkerAndImageManager {
     	sliceMarkers.clear();
     }
 
+    
+    
+	public synchronized void createAnnotationMarkers(final IFile file, final FileSourcePositions f) {
+		try {
+			final TIntObjectMap<LinePos> line2char = countCharsToLine(file);
+
+			for (final SourcePosition spos : f.getPositions()) {
+				if (spos.getFirstLine() == 0 || !line2char.containsKey(spos.getFirstLine())) {
+					continue;
+				}
+
+				for (int line = spos.getFirstLine(); line <= spos.getLastLine(); line++) {
+					try {
+						final LinePos pos = line2char.get(line);
+						final Map<String, Integer> m = new HashMap<String, Integer>();
+
+						int startChar = pos.firstReadableChar;
+						if (spos.getFirstLine() == line && spos.getFirstCol() > 0) {
+							startChar = pos.firstChar + spos.getFirstCol();
+						}
+
+						int endChar = pos.lastReadableChar;
+						if (spos.getLastLine() == line && spos.getLastCol() > 0) {
+							endChar = pos.firstChar + spos.getLastCol();
+							if (endChar > pos.lastChar) {
+								endChar = pos.lastChar;
+							}
+						}
+
+						m.put(IMarker.CHAR_START, startChar);
+						m.put(IMarker.CHAR_END, endChar);
+						m.put(IMarker.LINE_NUMBER, line);
+						m.put(IMarker.PRIORITY, IMarker.PRIORITY_HIGH);
+						m.put(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+
+						final IMarker marker = file.createMarker(CRITICAL_MARKER);
+						marker.setAttributes(m);
+						sliceMarkers.add(marker);
+					} catch (CoreException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+    
 	public synchronized void createChopMarkers(final IFile file, final FileSourcePositions f) {
 		try {
 			final TIntObjectMap<LinePos> line2char = countCharsToLine(file);

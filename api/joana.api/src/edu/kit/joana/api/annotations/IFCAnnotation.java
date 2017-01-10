@@ -7,6 +7,8 @@
  */
 package edu.kit.joana.api.annotations;
 
+import edu.kit.joana.api.annotations.cause.AnnotationCause;
+import edu.kit.joana.api.annotations.cause.UnknownCause;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 
@@ -17,12 +19,13 @@ public class IFCAnnotation {
 	private final String level2;
 	private final SDGProgramPart annotatedPart;
 	private final SDGMethod context;
+	private final AnnotationCause cause;
 
 	public IFCAnnotation(AnnotationType type, String level, SDGProgramPart annotatedPart) {
-		this(type, level, annotatedPart, null);
+		this(type, level, annotatedPart, null, UnknownCause.INSTANCE);
 	}
 
-	public IFCAnnotation(AnnotationType type, String level, SDGProgramPart annotatedPart, SDGMethod context) {
+	public IFCAnnotation(AnnotationType type, String level, SDGProgramPart annotatedPart, SDGMethod context, AnnotationCause cause) {
 		if (type == AnnotationType.DECLASS || type == null || level == null || annotatedPart == null) {
 			throw new IllegalArgumentException();
 		}
@@ -32,6 +35,7 @@ public class IFCAnnotation {
 		this.level2 = null;
 		this.annotatedPart = annotatedPart;
 		this.context = context;
+		this.cause = cause;
 	}
 
 	public IFCAnnotation(String level1, String level2, SDGProgramPart annotatedPart) {
@@ -44,14 +48,16 @@ public class IFCAnnotation {
 		this.level2 = level2;
 		this.annotatedPart = annotatedPart;
 		this.context = null;
+		this.cause = UnknownCause.INSTANCE;
 	}
 	
-	private IFCAnnotation(AnnotationType type, String level1, String level2, SDGProgramPart annotatedPart, SDGMethod context) {
+	private IFCAnnotation(AnnotationType type, String level1, String level2, SDGProgramPart annotatedPart, SDGMethod context, AnnotationCause cause) {
 		this.type = type;
 		this.level1 = level1;
 		this.level2 = level2;
 		this.annotatedPart = annotatedPart;
 		this.context = context;
+		this.cause = cause;
 	}
 	
 	/**
@@ -62,7 +68,7 @@ public class IFCAnnotation {
 	 * annotated program part
 	 */
 	public IFCAnnotation transferTo(SDGProgramPart newPPart) {
-		return new IFCAnnotation(type, level1, level2, newPPart, context);
+		return new IFCAnnotation(type, level1, level2, newPPart, context, cause);
 	}
 
 	public AnnotationType getType() {
@@ -100,6 +106,7 @@ public class IFCAnnotation {
 		result = prime * result
 				+ ((annotatedPart == null) ? 0 : annotatedPart.hashCode());
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
+		// TODO: respect cause?!?!
 		return result;
 	}
 
@@ -130,6 +137,7 @@ public class IFCAnnotation {
 		if (type != other.type) {
 			return false;
 		}
+		// TODO: respect cause?!?!
 		return true;
 	}
 
@@ -140,4 +148,10 @@ public class IFCAnnotation {
 	public String toString() {
 		return getType() + "/" + annotatedPart;
 	}
+
+	public AnnotationCause getCause() {
+		return cause;
+	}
+	
+	
 }

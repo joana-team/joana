@@ -7,18 +7,21 @@
  */
 package edu.kit.joana.ui.wala.easyifc.views;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.internal.core.SourceRefElement;
+import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerSorter;
@@ -26,11 +29,20 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 
+import com.google.common.collect.Multimap;
+
 import edu.kit.joana.api.SPos;
+import edu.kit.joana.api.annotations.AnnotationType;
+import edu.kit.joana.api.annotations.AnnotationTypeBasedNodeCollector;
+import edu.kit.joana.api.annotations.IFCAnnotation;
+import edu.kit.joana.api.sdg.SDGProgramPart;
+import edu.kit.joana.ui.annotations.Sink;
+import edu.kit.joana.ui.annotations.Source;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer;
 import edu.kit.joana.ui.wala.easyifc.util.EasyIFCMarkerAndImageManager;
 import edu.kit.joana.ui.wala.easyifc.util.EasyIFCMarkerAndImageManager.Marker;
 import edu.kit.joana.ui.wala.easyifc.util.EntryPointSearch.EntryPointConfiguration;
+import edu.kit.joana.util.Pair;
 import edu.kit.joana.ui.wala.easyifc.util.SearchHelper;
 
 /**
@@ -140,6 +152,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 	public void consume(final IFCResult res) {
 		final IJavaProject jp = view.getCurrentProject();
 		final IFCInfoNode cur = new IFCInfoNode(root, res, jp); // implicitly added to root
+		final AnnotationsNode annRoot = new AnnotationsNode(cur);
 		if (!res.getEntryPointConfiguration().isDefaultParameters()) {
 			new IFCConfigurationInfoNode(cur, res.getEntryPointConfiguration());
 		}
@@ -155,6 +168,23 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 					new TriggerInfoNode(lnfo, trigger);
 				}
 			}
+		}
+		
+		/*
+		Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>> annotations = res.getAnnotations();
+		final Multimap<SDGProgramPart, Pair<Source, String>> sources = annotations.getFirst();
+		final Multimap<SDGProgramPart, Pair<Sink,   String>> sinks   = annotations.getSecond();
+
+		for (Map.Entry<SDGProgramPart, Pair<Source, String>> e : sources.entries()) {
+			new AnnotationNode<Source>(annRoot, e.getKey().toString(), e.getValue().getFirst());
+		}
+		for (Map.Entry<SDGProgramPart, Pair<Sink, String>> e : sinks.entries()) {
+			new AnnotationNode<Sink>(annRoot, e.getKey().toString(), e.getValue().getFirst());
+		}
+		*/
+		Collection<IFCAnnotation> annotations2 = res.getAnnotations2();
+		for (IFCAnnotation a : annotations2) {
+			new AnnotationNode(annRoot, a.getProgramPart().toString(), a, cur.search, res.getCollector());
 		}
 
 		createSideMarkerByImportance(nodes);
@@ -326,6 +356,105 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 
 	}
 	
+	public static final class AnnotationsNode extends SecondLevelNode {
+		public AnnotationsNode(final IFCInfoNode parent) {
+			super(parent);
+		}
+		
+		@Override
+		public IMarker[] getSideMarker() {
+			return null;
+		}
+
+		@Override
+		public void searchMatchingJavaElement() {
+		}
+
+		@Override
+		public String toString() {
+			return "Source and Sink annotations";
+		}
+
+		@Override
+		SecondLevelNode self() {
+			return this;
+		}
+
+		public Image getImage() {
+			return JavaUI.getSharedImages().getImage(ISharedImages.IMG_OBJ_FILE);
+		}
+		@Override
+		public SourceRefElement getSourceRef() {
+			return null;
+		}
+	}
+	
+	public static final class AnnotationNode extends ThirdLevelNode {
+		private final String element;
+		private final IMarker marker;
+		private final IFCAnnotation a;
+		private final SearchHelper search;
+		private final AnnotationTypeBasedNodeCollector collector;
+		
+		public AnnotationNode(final AnnotationsNode parent, String element, IFCAnnotation a, SearchHelper search, AnnotationTypeBasedNodeCollector collector) {
+			super(parent);
+			if (!(AnnotationType.SINK.equals(a.getType()) || (AnnotationType.SOURCE.equals(a.getType())))) {
+				parent.removeChild(this);
+				throw new IllegalArgumentException(a.toString());
+			}
+			this.element = element;
+			this.a = a;
+			this.search = search;
+			this.collector = collector;
+			
+			if (a.getCause().getSourcePosition() == null) {
+				this.marker = null;
+			} else {
+				this.marker = search.createSideMarker(
+					a.getCause().getSourcePosition(),
+					"Annotation",
+					AnnotationType.SOURCE.equals(a.getType()) ? Marker.SOURCE : Marker.SINK
+				);
+			}
+		}
+		
+		@Override
+		public IMarker[] getSideMarker() {
+			return new IMarker[] { marker };
+		}
+
+		@Override
+		public void searchMatchingJavaElement() {
+		}
+
+		@Override
+		public String toString() {
+			return a + " at " + element;
+		}
+
+		@Override
+		ThirdLevelNode self() {
+			return this;
+		}
+
+		public Image getImage() {
+			return JavaUI.getSharedImages().getImage(ISharedImages.IMG_DEC_FIELD_WARNING);
+		}
+		
+		@Override
+		public SourceRefElement getSourceRef() {
+			return null;
+		}
+
+		public IFCAnnotation getAnnotation() {
+			return a;
+		}
+
+		public AnnotationTypeBasedNodeCollector getCollector() {
+			return collector;
+		}
+	}
+	
 	public static class IFCInfoNode extends TreeNode<IFCInfoNode, SecondLevelNode, RootNode> {
 		private final IFCResult result;
 		private final IJavaProject project;
@@ -418,7 +547,7 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		
 		private NotRunYetNode(final RootNode parent, final EntryPointConfiguration discovered,
 				final IJavaProject project) {
-			super(parent, new IFCResult(discovered, null) {
+			super(parent, new IFCResult(discovered, null, null) {
 				@Override
 				public String toString() {
 					return "has not been analysed, yet.";

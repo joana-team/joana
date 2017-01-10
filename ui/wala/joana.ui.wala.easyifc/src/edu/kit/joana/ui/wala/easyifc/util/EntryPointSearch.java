@@ -37,9 +37,12 @@ import org.eclipse.jdt.internal.core.Annotation;
 import org.eclipse.jdt.internal.core.SourceMethod;
 import org.eclipse.jdt.internal.core.SourceRefElement;
 
+import com.google.common.collect.Multimap;
+
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGConfig;
+import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
 import edu.kit.joana.ifc.sdg.lattice.LatticeValidator;
@@ -49,9 +52,12 @@ import edu.kit.joana.ifc.sdg.lattice.impl.PowersetLattice;
 import edu.kit.joana.ifc.sdg.lattice.impl.ReversedLattice;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.annotations.EntryPoint;
+import edu.kit.joana.ui.annotations.Sink;
+import edu.kit.joana.ui.annotations.Source;
 import edu.kit.joana.ui.wala.easyifc.model.CheckInformationFlow;
 import edu.kit.joana.ui.wala.easyifc.model.CheckInformationFlow.CheckIFCConfig;
 import edu.kit.joana.ui.wala.easyifc.util.AnnotationSearch.AnnotationSearchRequestor;
+import edu.kit.joana.util.Pair;
 
 @SuppressWarnings("restriction")
 public class EntryPointSearch {
@@ -128,7 +134,7 @@ public class EntryPointSearch {
 		
 		public abstract SDGConfig getSDGConfigFor(CheckIFCConfig cfc);
 		
-		public abstract void annotateSDG(IFCAnalysis analysis);
+		public abstract Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>> annotateSDG(IFCAnalysis analysis);
 		
 		// TODO: possibly cache the AST somehow?!?! or find a method to resolve FULLY-QUALIFIED type-names 
 		// that works with JDT's JavaModel only? 
@@ -194,8 +200,8 @@ public class EntryPointSearch {
 		}
 		
 		@Override
-		public void annotateSDG(IFCAnalysis analysis) {
-			analysis.addAllJavaSourceAnnotations(this.lattice());
+		public Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>> annotateSDG(IFCAnalysis analysis) {
+			return analysis.addAllJavaSourceAnnotations(this.lattice());
 		}
 	}
 	
@@ -205,8 +211,8 @@ public class EntryPointSearch {
 			super(method, annotation);
 		}
 		@Override
-		public void annotateSDG(IFCAnalysis analysis) {
-			analysis.addAllJavaSourceAnnotations(lattice);
+		public Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>> annotateSDG(IFCAnalysis analysis) {
+			return analysis.addAllJavaSourceAnnotations(lattice);
 		}
 		@Override
 		public IStaticLattice<String> lattice() {
@@ -220,7 +226,7 @@ public class EntryPointSearch {
 		}
 
 		@Override
-		public void annotateSDG(IFCAnalysis analysis) {
+		public Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>> annotateSDG(IFCAnalysis analysis) {
 			throw new UnsupportedOperationException("Invalid EntryPointConfiguration; cannot annotate SDG");
 		}
 
@@ -263,8 +269,8 @@ public class EntryPointSearch {
 
 		}
 		@Override
-		public void annotateSDG(IFCAnalysis analysis) {
-			analysis.addAllJavaSourceIncludesAnnotations(this.fromSet, this.stringEncodedLattice);
+		public Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>> annotateSDG(IFCAnalysis analysis) {
+			return analysis.addAllJavaSourceIncludesAnnotations(this.fromSet, this.stringEncodedLattice);
 		}
 		@Override
 		public IStaticLattice<String> lattice() {
@@ -304,8 +310,8 @@ public class EntryPointSearch {
 
 		}
 		@Override
-		public void annotateSDG(IFCAnalysis analysis) {
-			analysis.addAllJavaSourceMayKnowAnnotations(fromSet, stringEncodedLattice);
+		public Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>> annotateSDG(IFCAnalysis analysis) {
+			return analysis.addAllJavaSourceMayKnowAnnotations(fromSet, stringEncodedLattice);
 		}
 		@Override
 		public IStaticLattice<String> lattice() {
@@ -382,8 +388,8 @@ public class EntryPointSearch {
 			}
 		}
 		@Override
-		public void annotateSDG(IFCAnalysis analysis) {
-			analysis.addAllJavaSourceAnnotations(lattice);
+		public Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>> annotateSDG(IFCAnalysis analysis) {
+			return analysis.addAllJavaSourceAnnotations(lattice);
 		}
 		@Override
 		public IStaticLattice<String> lattice() {

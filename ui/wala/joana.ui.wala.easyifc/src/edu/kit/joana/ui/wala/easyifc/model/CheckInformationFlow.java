@@ -12,17 +12,21 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import javax.xml.stream.XMLStreamException;
 
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
 import com.ibm.wala.cfg.exc.intra.MethodState;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.pruned.DoNotPrune;
@@ -35,10 +39,13 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.IFCType;
 import edu.kit.joana.api.SPos;
+import edu.kit.joana.api.annotations.IFCAnnotation;
+import edu.kit.joana.api.annotations.cause.UnknownCause;
 import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGProgram;
+import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.conc.DataConflict;
 import edu.kit.joana.ifc.sdg.core.conc.OrderConflict;
@@ -55,12 +62,15 @@ import edu.kit.joana.ifc.sdg.graph.chopper.NonSameLevelChopper;
 import edu.kit.joana.ifc.sdg.io.graphml.SDG2GraphML;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
+import edu.kit.joana.ui.annotations.Sink;
+import edu.kit.joana.ui.annotations.Source;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.IFCResult;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.Reason;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SLeak;
 import edu.kit.joana.ui.wala.easyifc.util.EntryPointSearch.EntryPointConfiguration;
 import edu.kit.joana.util.Config;
 import edu.kit.joana.util.Maybe;
+import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
@@ -187,9 +197,13 @@ public final class CheckInformationFlow {
 	private IFCResult doSequentialIFCanalysis(final SDGConfig config, final SDGProgram prog,
 			final EntryPointConfiguration entryPoint, final IFCResultFilter filter,
 			final IProgressMonitor progress) throws CancelException {
-		final IFCResult result = new IFCResult(entryPoint, filter);
-		//final IStaticLattice<String> lattice = entryPoint.lattice();
-		final Set<SLeak> excLeaks = checkIFC(Reason.EXCEPTION, prog, IFCType.CLASSICAL_NI, annotationMethod, entryPoint);
+		final IFCResult result = new IFCResult(entryPoint, filter, prog.getNodeCollector());
+		//final Pair<Set<SLeak>, Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>>> excResult =
+		//		checkIFC(Reason.EXCEPTION, prog, IFCType.CLASSICAL_NI, annotationMethod, entryPoint);
+		final Pair<Set<SLeak>, Collection<IFCAnnotation>> excResult =
+				checkIFC(Reason.EXCEPTION, prog, IFCType.CLASSICAL_NI, annotationMethod, entryPoint);
+		final Set<SLeak> excLeaks = excResult.getFirst();
+		result.setAnnotations2(excResult.getSecond());
 		final boolean isSecure = excLeaks.isEmpty();
 		printResult(excLeaks.isEmpty(), 0, config);
 		dumpSDGtoFile(prog.getSDG(), "exc", isSecure);
@@ -197,14 +211,24 @@ public final class CheckInformationFlow {
 		if (!isSecure) {
 			config.setExceptionAnalysis(ExceptionAnalysis.IGNORE_ALL);
 			final SDGProgram noExcProg = buildSDG(config);
-			final Set<SLeak> noExcLeaks = checkIFC(Reason.BOTH_FLOW, noExcProg, IFCType.CLASSICAL_NI, annotationMethod, entryPoint);
+			//final Pair<Set<SLeak>, Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>>> noExcResult = 
+			//		checkIFC(Reason.BOTH_FLOW, noExcProg, IFCType.CLASSICAL_NI, annotationMethod, entryPoint);
+			final Pair<Set<SLeak>, Collection<IFCAnnotation>> noExcResult = 
+					checkIFC(Reason.BOTH_FLOW, noExcProg, IFCType.CLASSICAL_NI, annotationMethod, entryPoint);
+			final Set<SLeak> noExcLeaks = noExcResult.getFirst();
+			result.setAnnotations2(noExcResult.getSecond());
 			printResult(noExcLeaks.isEmpty(), 1, config);
 			dumpSDGtoFile(noExcProg.getSDG(), "no_exc", noExcLeaks.isEmpty());
 
 			if (!noExcLeaks.isEmpty()) {
 				// run without control deps
 				stripControlDeps(noExcProg, progress);
-				final Set<SLeak> directLeaks = checkIFC(Reason.DIRECT_FLOW, noExcProg, IFCType.CLASSICAL_NI, annotationMethod, entryPoint);
+				//final Pair<Set<SLeak>, Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>>> directResult =
+				//	checkIFC(Reason.DIRECT_FLOW, noExcProg, IFCType.CLASSICAL_NI, annotationMethod, entryPoint);
+				final Pair<Set<SLeak>, Collection<IFCAnnotation>> directResult =
+					checkIFC(Reason.DIRECT_FLOW, noExcProg, IFCType.CLASSICAL_NI, annotationMethod, entryPoint);
+				final Set<SLeak> directLeaks = directResult.getFirst();
+				result.setAnnotations2(directResult.getSecond());
 				printResult(directLeaks.isEmpty(), 2, config);
 				dumpSDGtoFile(noExcProg.getSDG(), "no_cdeps", directLeaks.isEmpty());
 				
@@ -248,8 +272,13 @@ public final class CheckInformationFlow {
 		final IFCType ifcType = cfc.selectedIFCType;
 		cfc.out.println("using " + ifcType + " algorithm.");
 		
-		final IFCResult result = new IFCResult(entryPoint, filter);
-		final Set<SLeak> threadLeaks = checkIFC(Reason.THREAD_EXCEPTION, prog, ifcType, annotationMethod, entryPoint);
+		final IFCResult result = new IFCResult(entryPoint, filter, prog.getNodeCollector());
+		//final Pair<Set<SLeak>, Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>>> threadResult =
+		//	checkIFC(Reason.THREAD_EXCEPTION, prog, ifcType, annotationMethod, entryPoint);
+		final Pair<Set<SLeak>, Collection<IFCAnnotation>> threadResult =
+				checkIFC(Reason.THREAD_EXCEPTION, prog, ifcType, annotationMethod, entryPoint);
+		final Set<SLeak> threadLeaks = threadResult.getFirst();
+		result.setAnnotations2(threadResult.getSecond());
 		final boolean isSecure = threadLeaks.isEmpty();
 		
 		printResult(threadLeaks.isEmpty(), 0, config);
@@ -258,7 +287,12 @@ public final class CheckInformationFlow {
 		if (!isSecure) {
 			config.setExceptionAnalysis(ExceptionAnalysis.IGNORE_ALL);
 			final SDGProgram noExcProg = buildSDG(config);
-			final Set<SLeak> noExcLeaks = checkIFC(Reason.THREAD, noExcProg, ifcType, annotationMethod, entryPoint);
+			//final Pair<Set<SLeak>, Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>>> noExcResult =
+			//	checkIFC(Reason.THREAD, noExcProg, ifcType, annotationMethod, entryPoint);
+			final Pair<Set<SLeak>, Collection<IFCAnnotation>> noExcResult =
+					checkIFC(Reason.THREAD, noExcProg, ifcType, annotationMethod, entryPoint);
+			final Set<SLeak> noExcLeaks = noExcResult.getFirst();
+			result.setAnnotations2(noExcResult.getSecond());
 			
 			printResult(noExcLeaks.isEmpty(), 1, config);
 			dumpSDGtoFile(noExcProg.getSDG(), "no_exc_thread", noExcLeaks.isEmpty());
@@ -491,15 +525,19 @@ public final class CheckInformationFlow {
 		return sb.toString();
 	}
 	
-	private static Set<SLeak> checkIFC(final Reason reason, final SDGProgram prog, final IFCType type, final AnnotationMethod annotationMethod, final EntryPointConfiguration entryPoint) {
+	//private static Pair<Set<SLeak>, Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>>> checkIFC(final Reason reason, final SDGProgram prog, final IFCType type, final AnnotationMethod annotationMethod, final EntryPointConfiguration entryPoint) {
+	private static Pair<Set<SLeak>, Collection<IFCAnnotation>> checkIFC(final Reason reason, final SDGProgram prog, final IFCType type, final AnnotationMethod annotationMethod, final EntryPointConfiguration entryPoint) {
 		final IFCAnalysis ana = new IFCAnalysis(prog,entryPoint.lattice());
+		Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>> annotations;
 		if (AnnotationMethod.FROM_ANNOTATIONS == annotationMethod) {
-			entryPoint.annotateSDG(ana);
+			annotations = entryPoint.annotateSDG(ana);
 		} else {
-			ana.addSourceAnnotationsToCallers(JavaMethodSignature.fromString(DEFAULT_SECRET_SOURCE), BuiltinLattices.STD_SECLEVEL_HIGH);
+			ana.addSourceAnnotationsToCallers(JavaMethodSignature.fromString(DEFAULT_SECRET_SOURCE), BuiltinLattices.STD_SECLEVEL_HIGH, UnknownCause.INSTANCE);
 			
 			// annotate sinks
 			ana.addSinkAnnotationsToActualsAtCallsites(JavaMethodSignature.fromString(DEFAULT_PUBLIC_OUTPUT), BuiltinLattices.STD_SECLEVEL_LOW);
+			 
+			annotations = Pair.pair(ImmutableMultimap.of() , ImmutableMultimap.of());
 		}
 
 		if (type == IFCType.RLSOD || type == IFCType.LSOD) {
@@ -510,7 +548,7 @@ public final class CheckInformationFlow {
 		
 		final Set<SLeak> sleaks = extractLeaks(ana, leaks, reason);
 		
-		return sleaks;
+		return Pair.pair(sleaks, ana.getAnnotations());
 	}
 
 	private static Set<SLeak> extractLeaks(final IFCAnalysis ana,

@@ -48,6 +48,7 @@ import edu.kit.joana.api.IFCType;
 import edu.kit.joana.ui.wala.easyifc.Activator;
 import edu.kit.joana.ui.wala.easyifc.actions.CollapseNodesAction;
 import edu.kit.joana.ui.wala.easyifc.actions.ExpandNodesAction;
+import edu.kit.joana.ui.wala.easyifc.actions.HighlightAnnotationNodesAction;
 import edu.kit.joana.ui.wala.easyifc.actions.HighlightIFCResultAction;
 import edu.kit.joana.ui.wala.easyifc.actions.IFCAction;
 import edu.kit.joana.ui.wala.easyifc.actions.IFCRunnable;
@@ -55,6 +56,7 @@ import edu.kit.joana.ui.wala.easyifc.actions.SelectIFCTypeAction;
 import edu.kit.joana.ui.wala.easyifc.actions.IFCAction.ProjectConf;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer;
 import edu.kit.joana.ui.wala.easyifc.util.EntryPointSearch.EntryPointConfiguration;
+import edu.kit.joana.ui.wala.easyifc.views.IFCTreeContentProvider.AnnotationNode;
 import edu.kit.joana.ui.wala.easyifc.views.IFCTreeContentProvider.IFCInfoNode;
 import edu.kit.joana.ui.wala.easyifc.views.IFCTreeContentProvider.LeakInfoNode;
 import edu.kit.joana.ui.wala.easyifc.views.IFCTreeContentProvider.NotRunYetNode;
@@ -77,6 +79,7 @@ public class EasyIFCView extends ViewPart {
 	private IFCTreeViewer tree;
 	private IFCAction checkIFCAction;
 	private HighlightIFCResultAction markCriticalAction;
+	private HighlightAnnotationNodesAction markAnnotationAction;
 	private ExpandNodesAction expandNodesAction;
 	private CollapseNodesAction collapseNodesAction;
 	private Action doubleClickAction;
@@ -188,6 +191,8 @@ public class EasyIFCView extends ViewPart {
 		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 		manager.add(runIFCforSelectedEntryPoint);
 		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
+		manager.add(markAnnotationAction);
+		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 		manager.add(expandNodesAction);
 		manager.add(collapseNodesAction);
 		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
@@ -246,6 +251,21 @@ public class EasyIFCView extends ViewPart {
 
 					if (obj instanceof TreeNode) {
 						markCriticalAction.setEnabled(obj instanceof LeakInfoNode || (obj instanceof IFCInfoNode && !(obj instanceof NotRunYetNode)));
+					}
+				}
+			}
+		});
+		
+		markAnnotationAction = new HighlightAnnotationNodesAction(this);
+		markAnnotationAction.setEnabled(false);
+		tree.addSelectionChangedListener(new ISelectionChangedListener() {
+			@Override
+			public void selectionChanged(final SelectionChangedEvent event) {
+				if (event.getSelection() instanceof IStructuredSelection) {
+					final Object obj = ((IStructuredSelection) event.getSelection()).getFirstElement();
+
+					if (obj instanceof TreeNode) {
+						markAnnotationAction.setEnabled(obj instanceof AnnotationNode);
 					}
 				}
 			}

@@ -14,6 +14,7 @@ import java.util.LinkedList;
 import java.util.Map;
 
 import edu.kit.joana.api.IFCAnalysis;
+import edu.kit.joana.api.annotations.cause.AnnotationCause;
 import edu.kit.joana.api.sdg.SDGActualParameter;
 import edu.kit.joana.api.sdg.SDGAttribute;
 import edu.kit.joana.api.sdg.SDGCall;
@@ -77,12 +78,12 @@ public class IFCAnnotationManager {
 		declassAnnotations.clear();
 	}
 
-	public void addSourceAnnotation(SDGProgramPart progPart, String level, SDGMethod context) {
-		addAnnotation(new IFCAnnotation(AnnotationType.SOURCE, level, progPart, context));
+	public void addSourceAnnotation(SDGProgramPart progPart, String level, SDGMethod context, AnnotationCause cause) {
+		addAnnotation(new IFCAnnotation(AnnotationType.SOURCE, level, progPart, context, cause));
 	}
 
-	public void addSinkAnnotation(SDGProgramPart progPart, String level, SDGMethod context) {
-		addAnnotation(new IFCAnnotation(AnnotationType.SINK, level, progPart, context));
+	public void addSinkAnnotation(SDGProgramPart progPart, String level, SDGMethod context, AnnotationCause cause) {
+		addAnnotation(new IFCAnnotation(AnnotationType.SINK, level, progPart, context, cause));
 	}
 
 	public void addDeclassification(SDGProgramPart progPart, String level1, String level2) {

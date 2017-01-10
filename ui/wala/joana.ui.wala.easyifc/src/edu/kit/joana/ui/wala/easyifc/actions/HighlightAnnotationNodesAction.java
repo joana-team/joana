@@ -8,6 +8,7 @@
 package edu.kit.joana.ui.wala.easyifc.actions;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
@@ -80,9 +81,12 @@ public class HighlightAnnotationNodesAction extends Action {
 		private static ProgramSourcePositions buildSourcePositions(final IFCAnnotation annotation, final AnnotationTypeBasedNodeCollector collector) {
 			final ProgramSourcePositions psp = new ProgramSourcePositions();
 			
-			for (SDGNode n : collector.collectNodes(annotation.getProgramPart(), annotation.getType())) {
+			Collection<SDGNode> nodes = collector.collectNodes(annotation.getProgramPart(), annotation.getType()); 
+			for (SDGNode n : nodes) {
 				psp.addSourcePosition(n.getSource(), n.getSr(), n.getEr(), n.getSc(), n.getEc());
 			}
+			// TODO: use logging?!?!
+			System.out.println("SDG nodes for " + annotation + ":\t" + nodes);
 			return psp;
 		}
 		

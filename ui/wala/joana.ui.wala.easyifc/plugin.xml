@@ -174,12 +174,12 @@
             class="edu.kit.joana.ui.wala.easyifc.util.AnnotatinSourceCleanupOptionsInitializer"
             cleanUpKind="saveAction">
       </cleanUpOptionsInitializer>
-      <!--
+      
       <cleanUpConfigurationUI
             class="edu.kit.joana.ui.wala.easyifc.util.AnnotatinSourceCleanupConfigurationUI"
-            name="%cleanUpConfigurationUI.name"
+            name="JOANA Annotation Cleanups"
             cleanUpKind="saveAction">
       </cleanUpConfigurationUI>
-      -->
+      
    </extension>
 </plugin>

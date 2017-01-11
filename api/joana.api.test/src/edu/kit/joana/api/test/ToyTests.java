@@ -241,6 +241,16 @@ public class ToyTests {
 	}
 
 	@Test
+	public void testNonNullFieldParameter() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
+			CancelException {
+		/**
+		 * We are to imprecise at the moment (Dec 2012) to rule out information flow here in the 'ignore' case.
+		 * See NonNullFieldParameter source code for further information
+		 */
+		testTooImprecise(joana.api.testdata.toy.demo.NonNullFieldParameter.class);
+	}
+
+	@Test
 	public void testDeclass1() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
 		testTooImprecise(joana.api.testdata.toy.declass.Declass1.class);

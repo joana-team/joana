@@ -115,11 +115,15 @@ public class IFCAction extends Action implements ISelectionListener {
 				}
 			}
 
+			
 			for (final IPath jarPath : ProjectUtil.findProjectJars(jp)) {
 				final IFile resolvedJarFile = root.getFile(jarPath);
 				final IPath rawJarFile = resolvedJarFile.getRawLocation();
 				if (rawJarFile != null) {
 					pconf.addJar(rawJarFile.toOSString());
+				} else {
+					pconf.addJar(jarPath.toOSString());
+					//System.out.println();
 				}
 			}
 

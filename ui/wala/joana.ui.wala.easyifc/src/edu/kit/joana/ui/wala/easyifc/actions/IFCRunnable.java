@@ -7,6 +7,7 @@
  */
 package edu.kit.joana.ui.wala.easyifc.actions;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
@@ -56,7 +57,7 @@ public class IFCRunnable implements IRunnableWithProgress {
 		try {
 			final String thirdPartyJar;
 			if (conf.getJarDirs().size() > 0) {
-				thirdPartyJar = conf.getJarDirs().get(0);
+				thirdPartyJar = String.join(File.pathSeparator, conf.getJarDirs());
 			} else {
 				thirdPartyJar = null;
 			}

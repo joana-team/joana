@@ -7,6 +7,9 @@
  */
 package joana.api.testdata.seq;
 
+import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.SECRET;
+import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.leak;
+import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.toggle;
 
 /**
  * TODO: @author Add your name here.
@@ -15,72 +18,29 @@ public class StrangeTryCatchFinallyWalaBug {
 
 	public static void main(String[] args) {
 		StrangeTryCatchFinallyWalaBug s = new StrangeTryCatchFinallyWalaBug();
-		s.runWorker(new Worker());
+		s.runWorker();
+		leak(toggle(SECRET));
 	}
 	
-	Runnable getTask() {
-		return null;
-	}
+	Throwable rofl;
 	
-    final void runWorker(Worker w) {
-        Thread wt = Thread.currentThread();
-        Runnable task = w.firstTask;
-        w.firstTask = null;
-        w.unlock(); // allow interrupts
-        boolean completedAbruptly = true;
-        try {
-            while (task != null || (task = getTask()) != null) {
-                w.lock();
-                // If pool is stopping, ensure thread is interrupted;
-                // if not, ensure thread is not interrupted.  This
-                // requires a recheck in second case to deal with
-                // shutdownNow race while clearing interrupt
-
-//                if ((runStateAtLeast(ctl.get(), STOP) ||
-//                     (Thread.interrupted() &&
-//                      runStateAtLeast(ctl.get(), STOP))) &&
-//                    !wt.isInterrupted())
-//                    wt.interrupt();
-                try {
-                    beforeExecute(wt, task);
-                    Throwable thrown = null;
+	void foo() {
+	}
+    final void runWorker() {
+                    Throwable thrown = rofl;
                     try {
-                        task.run();
+                        foo();
                     } catch (RuntimeException x) {
                         thrown = x; throw x;
                     } catch (Error x) {
                         thrown = x; throw x;
                     } catch (Throwable x) {
-                        thrown = x; throw new Error(x);
+                        thrown = x; throw x;
                     } finally {
-                        afterExecute(task, thrown);
+                    	rofl = thrown;
                     }
-                } finally {
-                    task = null;
-                    w.completedTasks++;
-                    w.unlock();
-                }
-            }
-            completedAbruptly = false;
-        } finally {
-            processWorkerExit(w, completedAbruptly);
-        }
-    }
-    
-    void beforeExecute(Thread thread, Runnable task) {
-    }
-    void afterExecute(Runnable task, Throwable thrown) {
-    }
-    void processWorkerExit(Worker w, boolean completedAbruptly) {
     }
 }
 
-class Worker {
-	Runnable firstTask;
-	int completedTasks;
-	void unlock() {
-	}
-	
-	void lock() {
-	}
-}
+class MyError extends Error {};
+class MyRuntimeException extends RuntimeException {};

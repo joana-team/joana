@@ -401,9 +401,15 @@ public class ToyTests {
 		build(joana.api.testdata.toy.test.Reflection.class,bottom_sequential, false);
 	}
 	
-	@Test(expected=IndexOutOfBoundsException.class)
+	@Test
 	public void testStrangeTryCatchFinallyWalaBug() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testTooImprecise(joana.api.testdata.seq.StrangeTryCatchFinallyWalaBug.class);
+		testPreciseEnough(joana.api.testdata.seq.StrangeTryCatchFinallyWalaBug.class);
+	}
+	
+	@Test
+	public void testMartinMohrsStrangeTryCatchFinallyWalaBug() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testPreciseEnough(joana.api.testdata.seq.MartinMohrsStrangeTryCatchFinallyWalaBug.class);
 	}
 }

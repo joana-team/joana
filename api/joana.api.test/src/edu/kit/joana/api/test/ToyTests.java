@@ -408,6 +408,12 @@ public class ToyTests {
 	}
 	
 	@Test
+	public void testStrangeTryCatchFinallyWalaBugComplex() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testPreciseEnough(joana.api.testdata.seq.StrangeTryCatchFinallyWalaBugComplex.class);
+	}
+	
+	@Test
 	public void testMartinMohrsStrangeTryCatchFinallyWalaBug() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testPreciseEnough(joana.api.testdata.seq.MartinMohrsStrangeTryCatchFinallyWalaBug.class);

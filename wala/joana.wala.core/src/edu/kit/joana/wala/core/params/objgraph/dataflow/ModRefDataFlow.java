@@ -66,12 +66,12 @@ public class ModRefDataFlow {
 		final TIntObjectHashMap<ModRefFieldCandidate> pdgnode2modref =
 				new TIntObjectHashMap<ModRefFieldCandidate>();
 
-		for (final PDG pdg : sdg.getAllPDGs()) {
-			MonitorUtil.throwExceptionIfCanceled(progress);
-            if (progress != null) {
-                progress.subTask(pdg.getMethod().toString());
-                progress.worked(progressCtr++);
-            }
+		sdg.getAllPDGs().stream().parallel().forEach(pdg -> {
+//			MonitorUtil.throwExceptionIfCanceled(progress);
+//            if (progress != null) {
+//                progress.subTask(pdg.getMethod().toString());
+//                progress.worked(progressCtr++);
+//            }
 
 			final ModRefControlFlowGraph cfg = ModRefControlFlowGraph.compute(modref, pdg, cg, progress);
 
@@ -82,12 +82,17 @@ public class ModRefDataFlow {
 			final BitVectorFramework<Node, Node> reachDef =	new BitVectorFramework<Node, Node>(cfg, transfer, domain);
 			final BitVectorSolver<Node> solver = new BitVectorSolver<Node>(reachDef);
 
-			solver.solve(progress);
+			try {
+				solver.solve(progress);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 
 			final Map<Node, OrdinalSet<Node>> mayRead = computeLastReachingDefs(solver, domain, provider);
-			final Map<Node, PDGNode> node2pdg = createPDGNodes(cfg, pdg, pdgnode2modref);
+			final Map<Node, PDGNode> node2pdg;
+			node2pdg = createPDGNodes(cfg, pdg, pdgnode2modref);
 			addDataDepEdgesToPDG(node2pdg, mayRead, pdg);
-		}
+		});
 
 		connectFormalAndActualParams(sdg, pdgnode2modref);
 		connectParameterStructure(sdg, pdgnode2modref);
@@ -255,7 +260,7 @@ public class ModRefDataFlow {
 		}
 	}
 
-	private static Map<Node, PDGNode> createPDGNodes(final ModRefControlFlowGraph cfg, final PDG pdg,
+	private static synchronized Map<Node, PDGNode> createPDGNodes(final ModRefControlFlowGraph cfg, final PDG pdg,
 			final TIntObjectHashMap<ModRefFieldCandidate> pdgnode2modref) {
 		final Map<Node, PDGNode> map = new HashMap<Node, PDGNode>();
 

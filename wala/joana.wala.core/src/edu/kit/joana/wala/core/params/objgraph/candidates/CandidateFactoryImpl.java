@@ -755,20 +755,16 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 
 	private final class SingleParamCandImpl extends UniqueParameterCandidate {
 		private final OrdinalSet<InstanceKey> basePts;
-		private final IntSet basePts_sparse;
 		private final ParameterField field;
 		private final OrdinalSet<InstanceKey> fieldPts;
-		private final IntSet fieldPts_sparse;
 		private final OrdinalSet<ParameterField> fields;
 		private final int hash;
 
 		private SingleParamCandImpl(final OrdinalSet<InstanceKey> basePts, final ParameterField field,
 				final OrdinalSet<InstanceKey> fieldPts) {
 			this.basePts = basePts;
-			this.basePts_sparse = this.basePts.makeSparseCopy();
 			this.field = field;
 			this.fieldPts = fieldPts;
-			this.fieldPts_sparse = this.fieldPts.makeSparseCopy();
 			final int id = fieldMapping.getMappedIndex(field);
 			this.fields = new OrdinalSet<ParameterField>(IntSetUtil.make(new int[] {id}), fieldMapping);
 			if (field.isArray() && !field.getElementType().isPrimitiveType()) {
@@ -845,7 +841,8 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			if (obj instanceof SingleParamCandImpl) {
 				final SingleParamCandImpl other = (SingleParamCandImpl) obj;
 
-				return field.equals(other.field) && basePts_sparse.sameValue(other.basePts_sparse) && fieldPts_sparse.sameValue(other.fieldPts_sparse);
+				return field.equals(other.field) && pointsToEquals(basePts, other.basePts)
+						&& pointsToEquals(fieldPts, other.fieldPts);
 			}
 
 			return false;

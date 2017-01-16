@@ -20,6 +20,7 @@ import java.util.TreeSet;
 
 import org.jgrapht.DirectedGraph;
 
+import com.google.common.collect.Sets;
 import com.ibm.wala.cfg.ControlFlowGraph;
 import com.ibm.wala.cfg.exc.ExceptionPruningAnalysis;
 import com.ibm.wala.cfg.exc.InterprocAnalysisResult;
@@ -109,7 +110,9 @@ import edu.kit.joana.wala.util.pointsto.ExtendedAnalysisOptions;
 import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder;
 import edu.kit.joana.wala.util.pointsto.WalaPointsToUtil;
 import gnu.trove.map.TIntIntMap;
+import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntIntHashMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 
@@ -535,6 +538,7 @@ public class SDGBuilder implements CallGraphFilter {
 	private int currentNodeId = 1;
 	private int pdgId = getMainId();
 	private final List<PDG> pdgs = new LinkedList<PDG>();
+	private final TIntObjectMap<PDG> pdgIdToPdg = new TIntObjectHashMap<>();
 	/**
 	 * currently unused - could later be used to append static initializer calls
 	 * to it
@@ -1541,8 +1545,9 @@ public class SDGBuilder implements CallGraphFilter {
 	}
 
 	public Set<PDG> findPossibleTargets(CallGraph cg, PDG caller, PDGNode call) {
-		final Set<PDG> callees = new HashSet<PDG>();
-
+		// We want to avoid calls to org.jgrapht.graph.AbstractGraph.hashCode()
+		final Set<PDG> callees = Sets.newIdentityHashSet();
+		
 		final Node cgCaller = cg.findNode(caller.cgNode);
 		final SSAInstruction instr = caller.getInstruction(call);
 
@@ -1559,8 +1564,9 @@ public class SDGBuilder implements CallGraphFilter {
 		if (call.getKind() != PDGNode.Kind.CALL) {
 			throw new IllegalArgumentException("Not a call node: " + call);
 		}
-
-		Set<PDG> tgts = new HashSet<PDG>();
+		
+		// We want to avoid calls to org.jgrapht.graph.AbstractGraph.hashCode()
+		final Set<PDG> tgts =  Sets.newIdentityHashSet();
 
 		PDG pdgCaller = getPDGforId(call.getPdgId());
 
@@ -1643,14 +1649,8 @@ public class SDGBuilder implements CallGraphFilter {
 		return Collections.unmodifiableList(pdgs);
 	}
 
-	public PDG getPDGforId(int id) {
-		for (PDG pdg : pdgs) {
-			if (pdg.getId() == id) {
-				return pdg;
-			}
-		}
-
-		return null;
+	public final PDG getPDGforId(int id) {
+		return pdgIdToPdg.get(id);
 	}
 
 	/**
@@ -1996,8 +1996,9 @@ public class SDGBuilder implements CallGraphFilter {
 	public PDG createAndAddPDG(final CGNode cgm, final IProgressMonitor progress) throws UnsoundGraphException,
 			CancelException {
 		final PDG pdg = PDG.build(this, Util.methodName(cgm.getMethod()), cgm, pdgId, cfg.ext, cfg.out, progress);
-		pdgId++;
+		pdgIdToPdg.put(pdgId, pdg);
 		pdgs.add(pdg);
+		pdgId++;
 
 		return pdg;
 	}

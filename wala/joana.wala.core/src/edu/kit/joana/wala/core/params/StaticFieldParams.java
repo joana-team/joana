@@ -10,9 +10,13 @@ package edu.kit.joana.wala.core.params;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.ibm.wala.dataflow.graph.BitVectorFramework;
 import com.ibm.wala.dataflow.graph.BitVectorSolver;
 import com.ibm.wala.dataflow.graph.ITransferFunctionProvider;
@@ -228,9 +232,12 @@ public class StaticFieldParams {
 	}
 
 	private Map<PDG, Collection<FieldAccess>> createStaticFieldAccessMap() {
-		Map<PDG, Collection<FieldAccess>> access = new HashMap<PDG, Collection<FieldAccess>>();
+		final List<PDG> allPdgs = sdg.getAllPDGs();
+		// We want to avoid calls to org.jgrapht.graph.AbstractGraph.hashCode()
+		final Map<PDG, Collection<FieldAccess>> access = new IdentityHashMap<>(allPdgs.size());
 
-		for (PDG pdg : sdg.getAllPDGs()) {
+		
+		for (PDG pdg : allPdgs) {
 			Set<FieldAccess> statics = new HashSet<FieldAccess>();
 			access.put(pdg, statics);
 

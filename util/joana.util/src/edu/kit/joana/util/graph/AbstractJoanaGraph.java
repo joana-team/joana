@@ -23,6 +23,9 @@ public class AbstractJoanaGraph<V, E> implements DirectedGraph<V,E> {
 	
 	
 	private final DirectedPseudograph<V,E> delegate;
+	
+	private boolean changed = true;
+	private int hashCode;
 
 	/**
 	 * @param defaultEdgeFactory edge factory to use for e.g. adding new edges
@@ -37,8 +40,12 @@ public class AbstractJoanaGraph<V, E> implements DirectedGraph<V,E> {
 	 */
 	public AbstractJoanaGraph(Class<E> edgeClass) {
 		this.delegate = new DirectedPseudograph<V,E>(edgeClass);
+		changed = true;
 	}
 
+	private void changed() {
+		changed = true;
+	}
 	/**
 	 * @param arg0
 	 * @param arg1
@@ -47,6 +54,7 @@ public class AbstractJoanaGraph<V, E> implements DirectedGraph<V,E> {
 	 * @see org.jgrapht.graph.AbstractBaseGraph#addEdge(java.lang.Object, java.lang.Object, java.lang.Object)
 	 */
 	public boolean addEdge(V arg0, V arg1, E arg2) {
+		changed = true;
 		return delegate.addEdge(arg0, arg1, arg2);
 	}
 
@@ -57,6 +65,7 @@ public class AbstractJoanaGraph<V, E> implements DirectedGraph<V,E> {
 	 * @see org.jgrapht.graph.AbstractBaseGraph#addEdge(java.lang.Object, java.lang.Object)
 	 */
 	public E addEdge(V arg0, V arg1) {
+		changed = true;
 		return delegate.addEdge(arg0, arg1);
 	}
 
@@ -66,6 +75,7 @@ public class AbstractJoanaGraph<V, E> implements DirectedGraph<V,E> {
 	 * @see org.jgrapht.graph.AbstractBaseGraph#addVertex(java.lang.Object)
 	 */
 	public boolean addVertex(V arg0) {
+		changed = true;
 		return delegate.addVertex(arg0);
 	}
 
@@ -168,7 +178,15 @@ public class AbstractJoanaGraph<V, E> implements DirectedGraph<V,E> {
 	 * @see org.jgrapht.graph.AbstractBaseGraph#getEdgeFactory()
 	 */
 	public EdgeFactory<V, E> getEdgeFactory() {
-		return delegate.getEdgeFactory();
+		final EdgeFactory<V, E> edgeFactory = delegate.getEdgeFactory();
+		return new EdgeFactory<V, E>() {
+
+			@Override
+			public E createEdge(V sourceVertex, V targetVertex) {
+				changed();
+				return edgeFactory.createEdge(sourceVertex, targetVertex);
+			}
+		};
 	}
 
 	/**
@@ -203,7 +221,10 @@ public class AbstractJoanaGraph<V, E> implements DirectedGraph<V,E> {
 	 * @see java.lang.Object#hashCode()
 	 */
 	public int hashCode() {
-		return delegate.hashCode();
+		if (changed) {
+			hashCode = delegate.hashCode(); 
+		}
+		return hashCode;
 	}
 
 	/**
@@ -264,6 +285,7 @@ public class AbstractJoanaGraph<V, E> implements DirectedGraph<V,E> {
 	 * @see org.jgrapht.graph.AbstractGraph#removeAllEdges(java.util.Collection)
 	 */
 	public boolean removeAllEdges(Collection<? extends E> arg0) {
+		changed = true;
 		return delegate.removeAllEdges(arg0);
 	}
 
@@ -274,6 +296,7 @@ public class AbstractJoanaGraph<V, E> implements DirectedGraph<V,E> {
 	 * @see org.jgrapht.graph.AbstractGraph#removeAllEdges(java.lang.Object, java.lang.Object)
 	 */
 	public Set<E> removeAllEdges(V arg0, V arg1) {
+		changed = true;
 		return delegate.removeAllEdges(arg0, arg1);
 	}
 
@@ -283,6 +306,7 @@ public class AbstractJoanaGraph<V, E> implements DirectedGraph<V,E> {
 	 * @see org.jgrapht.graph.AbstractGraph#removeAllVertices(java.util.Collection)
 	 */
 	public boolean removeAllVertices(Collection<? extends V> arg0) {
+		changed = true;
 		return delegate.removeAllVertices(arg0);
 	}
 
@@ -292,6 +316,7 @@ public class AbstractJoanaGraph<V, E> implements DirectedGraph<V,E> {
 	 * @see org.jgrapht.graph.AbstractBaseGraph#removeEdge(java.lang.Object)
 	 */
 	public boolean removeEdge(E arg0) {
+		changed = true;
 		return delegate.removeEdge(arg0);
 	}
 
@@ -302,6 +327,7 @@ public class AbstractJoanaGraph<V, E> implements DirectedGraph<V,E> {
 	 * @see org.jgrapht.graph.AbstractBaseGraph#removeEdge(java.lang.Object, java.lang.Object)
 	 */
 	public E removeEdge(V arg0, V arg1) {
+		changed = true;
 		return delegate.removeEdge(arg0, arg1);
 	}
 
@@ -311,6 +337,7 @@ public class AbstractJoanaGraph<V, E> implements DirectedGraph<V,E> {
 	 * @see org.jgrapht.graph.AbstractBaseGraph#removeVertex(java.lang.Object)
 	 */
 	public boolean removeVertex(V arg0) {
+		changed = true;
 		return delegate.removeVertex(arg0);
 	}
 
@@ -328,6 +355,7 @@ public class AbstractJoanaGraph<V, E> implements DirectedGraph<V,E> {
 	 * @see org.jgrapht.graph.AbstractBaseGraph#setEdgeWeight(java.lang.Object, double)
 	 */
 	public void setEdgeWeight(E arg0, double arg1) {
+		changed = true;
 		delegate.setEdgeWeight(arg0, arg1);
 	}
 

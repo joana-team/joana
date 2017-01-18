@@ -55,15 +55,29 @@ public class IFCRunnable implements IRunnableWithProgress {
 		
 		final ProgressMonitorDelegate walaProgress = ProgressMonitorDelegate.createProgressMonitorDelegate(monitor);
 		try {
-			final String thirdPartyJar;
-			if (conf.getJarDirs().size() > 0) {
-				thirdPartyJar = String.join(File.pathSeparator, conf.getJarDirs());
+			
+			final String srcDirs;
+			if (conf.getSrcDirs().size() > 0) {
+				srcDirs = String.join(File.pathSeparator, conf.getSrcDirs());
 			} else {
-				thirdPartyJar = null;
+				srcDirs = null;
+			}
+			final String jarDirs;
+			if (conf.getJarDirs().size() > 0) {
+				jarDirs = String.join(File.pathSeparator, conf.getJarDirs());
+			} else {
+				jarDirs = null;
 			}
 			
-			final CheckIFCConfig cfc = new CheckIFCConfig(conf.getBinDir(), conf.getSrcDirs().get(0),
-					conf.getLibLocation(), thirdPartyJar, conf.getLogOut(), resultConsumer, filter,
+			final String binDirs;
+			if (conf.getBinDirs().size() > 0) {
+				binDirs = String.join(File.pathSeparator, conf.getBinDirs());
+			} else {
+				binDirs = null;
+			}
+			
+			final CheckIFCConfig cfc = new CheckIFCConfig(binDirs, srcDirs,
+					conf.getLibLocation(), jarDirs, conf.getLogOut(), resultConsumer, filter,
 					walaProgress, conf.getSelectedIFCType());
 			final CheckInformationFlow cfl = new CheckInformationFlow(cfc);
 			final IProject project = conf.getProject().getProject();

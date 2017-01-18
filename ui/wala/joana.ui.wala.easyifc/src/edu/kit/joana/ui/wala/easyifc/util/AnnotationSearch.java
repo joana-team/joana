@@ -1,5 +1,6 @@
 package edu.kit.joana.ui.wala.easyifc.util;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import org.eclipse.core.runtime.CoreException;
@@ -9,15 +10,20 @@ import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jdt.core.IAnnotatable;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IWorkingCopy;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
+import org.eclipse.jdt.core.search.SearchDocument;
 import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.core.search.SearchParticipant;
 import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.core.search.SearchRequestor;
 import org.eclipse.jdt.core.search.TypeReferenceMatch;
+import org.eclipse.jdt.internal.core.search.JavaSearchParticipant;
+import org.eclipse.jdt.internal.core.search.matching.MatchLocator.WorkingCopyDocument;
 
 public class AnnotationSearch {
 	
@@ -26,28 +32,49 @@ public class AnnotationSearch {
 	Class<T> annotationTarget,
 	Class<?> annotationType,
 	AnnotationSearchRequestor<T> requestor,
-	IProgressMonitor pm) throws CoreException {
+	IProgressMonitor pm,
+	boolean ignoreWorkingCopies) throws CoreException {
 		if (element == null) throw new IllegalArgumentException();
 
 		final IJavaSearchScope scope = SearchEngine.createJavaSearchScope(new IJavaElement[] {element}, IJavaSearchScope.SOURCES);
-		return findAnnotationsInContainer(annotationTarget, annotationType, requestor, pm, scope);
+		return findAnnotationsInContainer(annotationTarget, annotationType, requestor, pm, scope, ignoreWorkingCopies);
 	}
+	@SuppressWarnings("restriction")
 	public static <T extends IAnnotatable> Map<IAnnotation,T> findAnnotationsInContainer(
 	Class<T> annotationTarget,
 	Class<?> annotationType,
 	AnnotationSearchRequestor<T> requestor,
 	IProgressMonitor pm,
-	IJavaSearchScope scope) throws CoreException {
+	IJavaSearchScope scope,
+	boolean ignoreWorkingCopies) throws CoreException {
 		
 		if (annotationType == null || !annotationType.isAnnotation()) throw new IllegalArgumentException();
 		if (pm == null) pm = new NullProgressMonitor();
 
 		try {
 			pm.beginTask("Finding Java Annotations..", 4);
-			int matchRule = SearchPattern.R_EXACT_MATCH | SearchPattern.R_CASE_SENSITIVE;
-			SearchPattern annotationsPattern = SearchPattern.createPattern(annotationType.getCanonicalName(), IJavaSearchConstants.ANNOTATION_TYPE, IJavaSearchConstants.ANNOTATION_TYPE_REFERENCE, matchRule);
-
-			SearchParticipant[] searchParticipants = new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() };
+			final int matchRule = SearchPattern.R_EXACT_MATCH | SearchPattern.R_CASE_SENSITIVE;
+			final SearchPattern annotationsPattern = SearchPattern.createPattern(annotationType.getCanonicalName(), IJavaSearchConstants.ANNOTATION_TYPE, IJavaSearchConstants.ANNOTATION_TYPE_REFERENCE, matchRule);
+			final SearchParticipant[] searchParticipants;
+			if (ignoreWorkingCopies) {
+				searchParticipants = new SearchParticipant[] { 
+					new JavaSearchParticipant() {
+						public void locateMatches(
+							SearchDocument[] indexMatches,
+							SearchPattern pattern,
+							IJavaSearchScope scope,
+							SearchRequestor requestor,
+							IProgressMonitor monitor) throws CoreException {
+							SearchDocument[] noWorkingCopies = 
+									Arrays.stream(indexMatches).filter(document -> !(document instanceof WorkingCopyDocument)).toArray(SearchDocument[]::new);
+							super.locateMatches(noWorkingCopies, annotationsPattern, scope, requestor, monitor);
+						};
+					}
+					
+				};
+			} else {
+				searchParticipants = new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() }; 
+			};
 			new SearchEngine().search(annotationsPattern, searchParticipants, scope, requestor, new SubProgressMonitor(pm, 2));
 
 		} finally {

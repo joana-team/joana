@@ -23,6 +23,6 @@ public class AnnotationProcessing {
 				return true;
 			}
 		};
-		return AnnotationSearch.findAnnotationsInContainer(IAnnotatable.class, annotationType, requestor, pm, scope);
+		return AnnotationSearch.findAnnotationsInContainer(IAnnotatable.class, annotationType, requestor, pm, scope, true);
 	}
 }

@@ -14,8 +14,11 @@ import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -85,19 +88,18 @@ public class IFCAction extends Action implements ISelectionListener {
 
 		private final IJavaProject jp;
 
-		private final String binDir;
-		private final List<String> srcDirs = new LinkedList<String>();
-		private final List<String> extraJars = new LinkedList<String>();
+		private final Set<String> binDirs = new LinkedHashSet<String>();
+		private final Set<String> srcDirs = new LinkedHashSet<String>();
+		private final Set<String> extraJars = new LinkedHashSet<String>();
 
 		private IFCType selectedIFCType = SelectIFCTypeAction.IFCTYPE_DEFAULT;
 		
-		private ProjectConf(final IJavaProject jp, final String binDir) {
-			if (binDir == null || jp == null) {
+		private ProjectConf(final IJavaProject jp) {
+			if (jp == null) {
 				throw new IllegalArgumentException();
 			}
 
 			this.jp = jp;
-			this.binDir = binDir;
 		}
 
 		public static ProjectConf create(final IJavaProject jp) throws JavaModelException {
@@ -105,7 +107,7 @@ public class IFCAction extends Action implements ISelectionListener {
 			final IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 			final IFile resolvedBinDir = root.getFile(binDir);
 
-			final ProjectConf pconf = new ProjectConf(jp, resolvedBinDir.getRawLocationURI().getRawPath());
+			final ProjectConf pconf = new ProjectConf(jp);
 
 			for (final IPath srcPath : ProjectUtil.findProjectSourcePaths(jp)) {
 				final IFile resolvedSrcDir = root.getFile(srcPath);
@@ -114,16 +116,23 @@ public class IFCAction extends Action implements ISelectionListener {
 					pconf.addSrc(rawSrcDir.toOSString());
 				}
 			}
-
 			
-			for (final IPath jarPath : ProjectUtil.findProjectJars(jp)) {
+			for (final IPath binPath : ProjectUtil.findProjectBinPaths(jp)) {
+				final IFile resolvedSrcDir = root.getFile(binPath);
+				final IPath rawBinDir = resolvedSrcDir.getRawLocation();
+				if (rawBinDir != null) {
+					pconf.addBin(rawBinDir.toOSString());
+				}
+			}
+
+			for (final IPath jarPath : ProjectUtil.findProjectJarsExcludingStandardLibries(jp)) {
+			//for (final IPath jarPath : ProjectUtil.findProjectJars(jp)) {
 				final IFile resolvedJarFile = root.getFile(jarPath);
 				final IPath rawJarFile = resolvedJarFile.getRawLocation();
 				if (rawJarFile != null) {
 					pconf.addJar(rawJarFile.toOSString());
 				} else {
 					pconf.addJar(jarPath.toOSString());
-					//System.out.println();
 				}
 			}
 
@@ -141,6 +150,14 @@ public class IFCAction extends Action implements ISelectionListener {
 
 			srcDirs.add(src);
 		}
+		
+		private void addBin(final String bin) {
+			if (bin == null) {
+				throw new IllegalArgumentException();
+			}
+
+			binDirs.add(bin);
+		}
 
 		private void addJar(final String jar) {
 			if (jar == null) {
@@ -150,16 +167,16 @@ public class IFCAction extends Action implements ISelectionListener {
 			extraJars.add(jar);
 		}
 
-		public String getBinDir() {
-			return binDir;
+		public Set<String> getBinDirs() {
+			return Collections.unmodifiableSet(binDirs);
 		}
 
-		public List<String> getSrcDirs() {
-			return Collections.unmodifiableList(srcDirs);
+		public Set<String> getSrcDirs() {
+			return Collections.unmodifiableSet(srcDirs);
 		}
 
-		public List<String> getJarDirs() {
-			return Collections.unmodifiableList(extraJars);
+		public Set<String> getJarDirs() {
+			return Collections.unmodifiableSet(extraJars);
 		}
 
 		public String getTempDir() throws CoreException {
@@ -201,13 +218,16 @@ public class IFCAction extends Action implements ISelectionListener {
 			for (final String src : srcDirs) {
 				sb.append("\t'" + src + "'\n");
 			}
-
+			
+			sb.append("BIN:\n");
+			for (final String bin : binDirs) {
+				sb.append("\t'" + bin + "'\n");
+			}
+			
 			sb.append("JAR:\n");
 			for (final String jar : extraJars) {
 				sb.append("\t'" + jar + "'\n");
 			}
-
-			sb.append("BIN:\n\t'" + binDir + "'");
 
 			return sb.toString();
 		}

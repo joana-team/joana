@@ -93,7 +93,8 @@ public class AnnotatinSourceCleanup implements ICleanUp {
 				Map<IAnnotation, ASTNode> nodes = new HashMap<>();
 				for (Map.Entry<IAnnotation, IAnnotatable> e : sourcesAndSinks) {
 					final IAnnotation annotation = e.getKey();
-					nodes.put(annotation, NodeFinder.perform(astRoot, annotation.getSourceRange()));
+					final ASTNode node = NodeFinder.perform(astRoot, annotation.getSourceRange());
+					nodes.put(annotation, node);
 				}
 				
 				// TODO: Since changes in the annotation fields may invalidate columnNumbers whenever
@@ -102,7 +103,8 @@ public class AnnotatinSourceCleanup implements ICleanUp {
 				// we're working on an ASTRewrite here, not the AST itself.
 				for (Map.Entry<IAnnotation, IAnnotatable> e : sourcesAndSinks) {
 					final IAnnotation annotation = e.getKey();
-					final Annotation node = (Annotation) nodes.get(annotation);
+					final ASTNode astnode = nodes.get(annotation);
+					final Annotation node = (Annotation) astnode;
 
 					node.accept(new ASTVisitor() {
 						@SuppressWarnings("unchecked")

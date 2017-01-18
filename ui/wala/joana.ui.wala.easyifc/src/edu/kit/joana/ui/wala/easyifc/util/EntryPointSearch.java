@@ -107,7 +107,8 @@ public class EntryPointSearch {
 		          EntryPoint.class,
 		          requestor,
                   pm,
-                  scope);
+                  scope,
+                  false);
 	}
 	
 	public abstract static class EntryPointConfiguration {

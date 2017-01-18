@@ -950,8 +950,7 @@ public final class ObjGraphParams {
 
 	private static Set<ModRefCandidate> findReachable(final ModRefCandidateGraph g,
 			final List<? extends ModRefCandidate> start) {
-		final Set<ModRefCandidate> reachable = new HashSet<ModRefCandidate>();
-		reachable.addAll(start);
+		final Set<ModRefCandidate> reachable = new HashSet<ModRefCandidate>(start);
 		final LinkedList<ModRefCandidate> work = new LinkedList<ModRefCandidate>();
 		work.addAll(start);
 

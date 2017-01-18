@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
@@ -30,6 +31,8 @@ import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
+import com.ibm.wala.util.collections.Iterator2Collection;
+import com.ibm.wala.util.collections.Iterator2List;
 import com.ibm.wala.util.intset.OrdinalSet;
 
 import edu.kit.joana.wala.core.ParameterField;
@@ -49,7 +52,7 @@ import edu.kit.joana.wala.core.params.objgraph.candidates.UniqueParameterCandida
  */
 public class ModRefCandidates implements Iterable<CGNode> {
 
-	private final Map<CGNode, Collection<ModRefFieldCandidate>> all = new HashMap<CGNode, Collection<ModRefFieldCandidate>>();
+	private final Map<CGNode, Collection<ModRefFieldCandidate>> all = new ConcurrentHashMap<CGNode, Collection<ModRefFieldCandidate>>();
 	private final CandidateFactory candFact;
 	private final ParameterFieldFactory paramFact;
 	private final PointerAnalysis<InstanceKey> pa;
@@ -290,15 +293,14 @@ public class ModRefCandidates implements Iterable<CGNode> {
         if (progress != null) {
             progress.beginTask("IntraProc ModRef candidates", cg.getNumberOfNodes());
         }
-
-		for (final CGNode n : cg) {
-			MonitorUtil.throwExceptionIfCanceled(progress);
+        Iterator2Collection.toList(cg.iterator()).stream().parallel().forEach(n -> {
+			//MonitorUtil.throwExceptionIfCanceled(progress);
             if (progress != null) {
-                progressCtr++;
+                //progressCtr++;
                 if (progressCtr % 103 == 0) progress.worked(progressCtr);
             }
 			final IR ir = n.getIR();
-			if (ir == null) { continue; }
+			if (ir == null) { return; }
 
 			final PointsTo pts = new PointsTo() {
 				@Override
@@ -313,10 +315,12 @@ public class ModRefCandidates implements Iterable<CGNode> {
 			};
 
 			final CGNodeCandidates consumer = new CGNodeCandidates(candFact);
-			all.put(n, consumer);
+			synchronized (all) {
+				all.put(n, consumer);
+			}
 			final ModRefSSAVisitor visitor = new ModRefSSAVisitor(consumer, paramFact, pts, cg.getClassHierarchy(), doStaticFields);
 			ir.visitNormalInstructions(visitor);
-		}
+		});
 
         if (progress != null) progress.done();
 	}

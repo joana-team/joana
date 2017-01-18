@@ -51,7 +51,7 @@ public final class ParameterFieldFactory {
 	 * @param field IField
 	 * @return ParamterField
 	 */
-	public ParameterField getObjectField(IField field) {
+	public synchronized ParameterField getObjectField(IField field) {
 		if (field == null) {
 			throw new IllegalArgumentException("Field should not be null.");
 		}
@@ -74,7 +74,7 @@ public final class ParameterFieldFactory {
 	 * @param elemType type of the referenced objects in the array
 	 * @return ParameterField
 	 */
-	public ParameterField getArrayField(final TypeReference elemType) {
+	public synchronized ParameterField getArrayField(final TypeReference elemType) {
 		if (elemType == null) {
 			throw new IllegalArgumentException("Element type should not be null.");
 		}

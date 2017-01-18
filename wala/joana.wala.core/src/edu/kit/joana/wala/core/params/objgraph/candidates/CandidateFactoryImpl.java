@@ -823,7 +823,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			if (otherField.isStatic()) {
 				return field.equals(otherField);
 			} else {
-				return basePts != null && other != null && basePts.containsAny(other) && field.equals(otherField);
+				return basePts != null && other != null && field.equals(otherField) && basePts.containsAny(other);
 			}
 		}
 

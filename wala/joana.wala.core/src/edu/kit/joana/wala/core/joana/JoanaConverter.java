@@ -370,13 +370,18 @@ public class JoanaConverter {
 	}
 
 	private static PDGNode[] getAllNodesSorted(SDGBuilder builder, IProgressMonitor progress) throws CancelException {
-		ArrayList<PDGNode> nodes = new ArrayList<PDGNode>();
+		final long nrOfNodesInPdg = builder.countNodesInPdgs();
+		if (nrOfNodesInPdg > ((long) Integer.MAX_VALUE)) {
+			throw new IllegalStateException();
+		}
+		PDGNode[] copy = new PDGNode[(int)nrOfNodesInPdg];
+		
         int progr = 0;
 		
         for (PDG pdg : builder.getAllPDGs()) {
 			for (PDGNode node : pdg.vertexSet()) {
 				if (node.getPdgId() == pdg.getId()) {
-					nodes.add(node);
+					copy[progr] = node;
                     if (++progr % 107 == 0) {
                         progress.worked(progr);
 				        MonitorUtil.throwExceptionIfCanceled(progress);
@@ -384,9 +389,6 @@ public class JoanaConverter {
 				}
 			}
 		}
-
-		PDGNode[] copy = new PDGNode[nodes.size()];
-		copy = nodes.toArray(copy);
 
         //progress.worked(1);
 		MonitorUtil.throwExceptionIfCanceled(progress);

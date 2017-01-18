@@ -2003,6 +2003,18 @@ public class SDGBuilder implements CallGraphFilter {
 		return pdg;
 	}
 
+	public long countNodesInPdgs() {
+		long count = 0;
+		for (PDG pdg : pdgs) {
+			for (PDGNode node : pdg.vertexSet()) {
+				if (node.getPdgId() == pdg.getId()) {
+					count++;
+				}
+			}
+		}
+		return count;
+	}
+	
 	public long countNodes() {
 		long count = 0;
 

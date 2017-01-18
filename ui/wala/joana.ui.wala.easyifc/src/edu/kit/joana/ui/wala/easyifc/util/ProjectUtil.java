@@ -70,10 +70,25 @@ public final class ProjectUtil {
 	private static void addAll(IClasspathEntry raw, JavaProject project, List<IPath> jars) throws JavaModelException {
 		IClasspathEntry[] resolvedEntries = project.resolveClasspath(new IClasspathEntry[] { raw });
 		for (final IClasspathEntry resolvedEntry : resolvedEntries) {
-			if (resolvedEntry.getEntryKind() != IClasspathEntry.CPE_LIBRARY && resolvedEntry.getEntryKind() != IClasspathEntry.CPE_SOURCE && resolvedEntry.getEntryKind() != IClasspathEntry.CPE_VARIABLE) {
+			if (resolvedEntry.getEntryKind() != IClasspathEntry.CPE_LIBRARY && 
+			    resolvedEntry.getEntryKind() != IClasspathEntry.CPE_PROJECT
+			) {
 				throw new IllegalArgumentException();
 			}
-			jars.add(resolvedEntry.getPath());
+			if (resolvedEntry.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
+				final IWorkspaceRoot workspaceRoot = project.getProject().getWorkspace().getRoot();
+				final IResource resource = workspaceRoot.findMember(resolvedEntry.getPath());
+				final IJavaProject other = JavaCore.create((IProject) resource);
+				final IPath defaultOutputLocation = other.getOutputLocation();
+				for (final IClasspathEntry cp : other.getRawClasspath()) {
+					if (cp.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+						final IPath outputLocation = cp.getOutputLocation(); 
+						jars.add(outputLocation != null ? outputLocation : defaultOutputLocation);							}
+				}
+			
+			} else {
+				jars.add(resolvedEntry.getPath());
+			}
 		}
 	}
 	

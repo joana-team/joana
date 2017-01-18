@@ -289,6 +289,8 @@ public class JavaType {
 
 	public static List<JavaType> parseListOfTypesFromString(String s, Format f) {
 		List<JavaType> ret = new LinkedList<JavaType>();
+		if (s.isEmpty()) return ret;
+		
 		switch (f) {
 		case BC:
 			StringBuilder rest = new StringBuilder(s);

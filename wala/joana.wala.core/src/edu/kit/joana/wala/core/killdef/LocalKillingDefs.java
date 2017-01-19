@@ -102,12 +102,18 @@ public final class LocalKillingDefs {
 
 		int removed = 0;
 
-		for (final PDG pdg : sdg.getAllPDGs()) {
+		sdg.getAllPDGs().parallelStream().forEach(pdg -> {
 			final IR ir = pdg.cgNode.getIR();
 			if (ir != null) {
-				removed += run(sdg, pdg, progress);
+				
+				try {
+					/*removed += */run(sdg, pdg, progress);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
-		}
+		});
 
 		if (INFO_PRINT) {
 			System.out.println(sdg.getMainMethodName() + " - killed " + removed + " edges in total.");

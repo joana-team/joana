@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.StreamSupport;
 
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
@@ -293,7 +294,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
         if (progress != null) {
             progress.beginTask("IntraProc ModRef candidates", cg.getNumberOfNodes());
         }
-        Iterator2Collection.toList(cg.iterator()).stream().parallel().forEach(n -> {
+        StreamSupport.stream(cg.spliterator(), true).forEach(n -> {
 			//MonitorUtil.throwExceptionIfCanceled(progress);
             if (progress != null) {
                 //progressCtr++;
@@ -382,7 +383,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 
 	}
 
-	public ModRefFieldCandidate createRefCandidate(final CGNode cgNode, final SSAInstruction instr) {
+	public synchronized ModRefFieldCandidate createRefCandidate(final CGNode cgNode, final SSAInstruction instr) {
 		single.last = null;
 		singlePts.n = cgNode;
 		instr.visit(singleVisitor);
@@ -392,7 +393,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 		return single.last;
 	}
 
-	public ModRefFieldCandidate createModCandidate(final CGNode cgNode, final SSAInstruction instr) {
+	public synchronized ModRefFieldCandidate createModCandidate(final CGNode cgNode, final SSAInstruction instr) {
 		single.last = null;
 		singlePts.n = cgNode;
 		instr.visit(singleVisitor);

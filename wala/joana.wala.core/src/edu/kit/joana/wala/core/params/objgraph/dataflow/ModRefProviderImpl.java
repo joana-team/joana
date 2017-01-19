@@ -61,15 +61,12 @@ public class ModRefProviderImpl implements ModRefProvider {
 		// this is done by the isMod() isRef() methods of Node. Do not use ModRefCandidate isMod()
 		// isRef() here.
 
-		StreamSupport.stream(cfg.spliterator(), true)
+		StreamSupport.stream(domain.spliterator(), true)
 			.forEach(n->calc(n, cfg, domain));
 	}
 	
 	private void calc(Node n, final ModRefControlFlowGraph cfg,
 						final OrdinalSetMapping<Node> domain) {
-		if (n.isNOP()) {
-			return;
-		}
 		final ModRefFieldCandidate nCand = n.getCandidate();
 
 		final BitVector bvMustMod = new BitVector();
@@ -78,8 +75,7 @@ public class ModRefProviderImpl implements ModRefProvider {
 		final boolean isMod = n.isMod();
 		final boolean isRef = n.isRef();
 
-		for (final Node other : cfg) {
-			if (other.isNOP()) { continue; }
+		for (final Node other : domain) {
 
 			final ModRefFieldCandidate otherCand = other.getCandidate();
 			final int id = domain.getMappedIndex(other);

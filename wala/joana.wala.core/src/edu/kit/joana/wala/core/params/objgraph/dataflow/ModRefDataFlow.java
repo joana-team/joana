@@ -66,7 +66,7 @@ public class ModRefDataFlow {
 		final TIntObjectHashMap<ModRefFieldCandidate> pdgnode2modref =
 				new TIntObjectHashMap<ModRefFieldCandidate>();
 
-		sdg.getAllPDGs().stream().parallel().forEach(pdg -> {
+		sdg.getAllPDGs().parallelStream().forEach(pdg -> {
 //			MonitorUtil.throwExceptionIfCanceled(progress);
 //            if (progress != null) {
 //                progress.subTask(pdg.getMethod().toString());

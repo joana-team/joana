@@ -391,7 +391,7 @@ public class JoanaConverter {
         //progress.worked(1);
 		MonitorUtil.throwExceptionIfCanceled(progress);
 
-        Arrays.sort(copy, new Comparator<PDGNode>() {
+        Arrays.parallelSort(copy, new Comparator<PDGNode>() {
             public int compare(PDGNode o1, PDGNode o2) {
                 return o1.getId() - o2.getId();
             }});

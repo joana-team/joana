@@ -25,6 +25,23 @@ public interface Matcher {
 	 */
 	boolean matches(SDGNode n, SDG sdg);
 
+	/**
+	 * Returns a matcher which matches all nodes which are matched by this matcher and also all nodes
+	 * matched by the given matcher
+	 * @param m2 matcher to combine this matcher with
+	 * @return a matcher which matches all nodes which are matched by this matcher and also all nodes
+	 * matched by the given matcher
+	 */
+	default Matcher andAlso(Matcher m2) {
+		Matcher m1 = this;
+		return new Matcher() {
+			@Override
+			public boolean matches(SDGNode n, SDG sdg) {
+				return m1.matches(n, sdg) || m2.matches(n, sdg);
+			}
+		};
+	}
+
 	public static class Do {
 		public static Set<SDGNode> collect(SDG sdg, Matcher m) {
 			Set<SDGNode> ret = new HashSet<SDGNode>();

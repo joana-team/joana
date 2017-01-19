@@ -22,6 +22,7 @@ import java.util.TreeSet;
 
 import org.jgrapht.DirectedGraph;
 
+import com.google.common.collect.Sets;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.util.CancelException;
@@ -73,7 +74,7 @@ public class AccessPath {
 	}
 
 	private Set<PDG> findReachable(final PDG start) {
-		final Set<PDG> reachable = new HashSet<PDG>();
+		final Set<PDG> reachable = Sets.newIdentityHashSet();//new HashSet<PDG>();
 
 		final CallGraph cg = sdg.getWalaCallGraph();
 		final LinkedList<PDG> todo = new LinkedList<PDG>();

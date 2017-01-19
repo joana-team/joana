@@ -20,6 +20,7 @@ import java.util.TreeSet;
 
 import org.jgrapht.DirectedGraph;
 
+import com.google.common.collect.Sets;
 import com.ibm.wala.cfg.ControlFlowGraph;
 import com.ibm.wala.cfg.exc.ExceptionPruningAnalysis;
 import com.ibm.wala.cfg.exc.InterprocAnalysisResult;
@@ -1541,7 +1542,7 @@ public class SDGBuilder implements CallGraphFilter {
 	}
 
 	public Set<PDG> findPossibleTargets(CallGraph cg, PDG caller, PDGNode call) {
-		final Set<PDG> callees = new HashSet<PDG>();
+		final Set<PDG> callees = Sets.newIdentityHashSet();//new HashSet<PDG>();
 
 		final Node cgCaller = cg.findNode(caller.cgNode);
 		final SSAInstruction instr = caller.getInstruction(call);
@@ -1560,7 +1561,7 @@ public class SDGBuilder implements CallGraphFilter {
 			throw new IllegalArgumentException("Not a call node: " + call);
 		}
 
-		Set<PDG> tgts = new HashSet<PDG>();
+		Set<PDG> tgts = Sets.newIdentityHashSet();//new HashSet<PDG>();
 
 		PDG pdgCaller = getPDGforId(call.getPdgId());
 
@@ -1576,7 +1577,7 @@ public class SDGBuilder implements CallGraphFilter {
 	}
 
 	public Set<PDG> getPossibleCallers(final PDG callee) {
-		final Set<PDG> callers = new HashSet<PDG>();
+		final Set<PDG> callers = Sets.newIdentityHashSet();//new HashSet<PDG>();
 
 		for (final PDG pdg : getAllPDGs()) {
 			if (pdg != callee) {

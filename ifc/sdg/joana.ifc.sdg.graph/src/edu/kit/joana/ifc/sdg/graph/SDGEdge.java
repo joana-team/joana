@@ -174,6 +174,24 @@ public class SDGEdge implements Cloneable {
         }
 
         /**
+         * @return `true' if this kind is an intra-procedural program dependence but no summary edge.
+         */
+        public boolean isIntraPDGEdge() {
+            return this == CONTROL_DEP_UNCOND
+                    || this == CONTROL_DEP_COND
+                    || this == CONTROL_DEP_EXPR
+                    || this == CONTROL_DEP_CALL
+                    || this == JUMP_DEP
+                    || this == DATA_DEP
+                    || this == DATA_HEAP
+                    || this == DATA_ALIAS
+                    || this == DATA_LOOP
+                    || this == DATA_DEP_EXPR_VALUE
+                    || this == DATA_DEP_EXPR_REFERENCE
+                    || this == SYNCHRONIZATION;
+        }
+
+        /**
          * @return `true' if this kind is an intra-procedural edge.
          */
         public boolean isIntraproceduralEdge() {

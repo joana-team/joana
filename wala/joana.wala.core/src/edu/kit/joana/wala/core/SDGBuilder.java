@@ -116,7 +116,8 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 
-public class SDGBuilder implements CallGraphFilter {
+
+public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 
 	private final static Logger debug = Log.getLogger(Log.L_WALA_CORE_DEBUG);
 	private final static boolean IS_DEBUG = debug.isEnabled();
@@ -366,6 +367,7 @@ public class SDGBuilder implements CallGraphFilter {
 		 */
 		IGNORE;
 	};
+	
 
 	public static SDGBuilder onlyCreate(final SDGBuilderConfig cfg) throws CancelException {
 		SDGBuilder builder = new SDGBuilder(cfg);
@@ -412,6 +414,7 @@ public class SDGBuilder implements CallGraphFilter {
 			if (cfg.computeSummary) {
 				pack = createSummaryWorkPackage(cfg.out, builder, sdg, progress);
 			}
+			builder = null;
 		}
 
 		if (cfg.computeSummary) {
@@ -448,6 +451,7 @@ public class SDGBuilder implements CallGraphFilter {
 			if (cfg.computeSummary) {
 				pack = createSummaryWorkPackage(cfg.out, builder, sdg, progress);
 			}
+			builder = null;
 		}
 
 		if (cfg.computeSummary) {
@@ -461,6 +465,33 @@ public class SDGBuilder implements CallGraphFilter {
 		return sdg;
 	}
 
+	
+	public static Pair<SDG, SDGBuildArtifacts> buildAndKeepBuildArtifacts(final SDGBuilderConfig cfg, IProgressMonitor progress)
+			throws UnsoundGraphException, CancelException {
+		SDG sdg = null;
+		WorkPackage pack = null;
+
+		SDGBuilder builder = new SDGBuilder(cfg);
+		builder.run(progress);
+		sdg = convertToJoana(cfg.out, builder, progress);
+
+		if (cfg.computeSummary) {
+			pack = createSummaryWorkPackage(cfg.out, builder, sdg, progress);
+		}
+		
+		builder.purge();
+
+		if (cfg.computeSummary) {
+			if (cfg.accessPath) {
+				computeDataAndAliasSummaryEdges(cfg.out, pack, sdg, progress);
+			} else {
+				computeSummaryEdges(cfg.out, pack, sdg, progress);
+			}
+		}
+
+		return Pair.make(sdg, builder);
+	}
+	
 	public static Pair<SDG, SDGBuilder> buildAndKeepBuilder(final SDGBuilderConfig cfg, IProgressMonitor progress)
 			throws UnsoundGraphException, CancelException {
 		SDG sdg = null;
@@ -534,11 +565,11 @@ public class SDGBuilder implements CallGraphFilter {
 	}
 
 	private APResult apResult = null;
-	private final ParameterFieldFactory params = new ParameterFieldFactory();
+	private ParameterFieldFactory params = new ParameterFieldFactory();
 	private int currentNodeId = 1;
 	private int pdgId = getMainId();
-	private final List<PDG> pdgs = new LinkedList<PDG>();
-	private final TIntObjectMap<PDG> pdgIdToPdg = new TIntObjectHashMap<>();
+	private List<PDG> pdgs = new LinkedList<PDG>();
+	private TIntObjectMap<PDG> pdgIdToPdg = new TIntObjectHashMap<>();
 	/**
 	 * currently unused - could later be used to append static initializer calls
 	 * to it
@@ -779,6 +810,16 @@ public class SDGBuilder implements CallGraphFilter {
 				}
 			}
 		}
+	}
+	
+	private void purge() {
+		//keep: this.nonPrunedCG, this.cg, this.cfg
+		this.apResult = null;
+		this.params = null;
+		this.pdgs = null;
+		this.pdgIdToPdg = null;
+		this.call2alloc = null;
+		this.interprocExceptionResult = null;
 	}
 
 	private void addEntryExitCFEdges() {

@@ -57,6 +57,7 @@ import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.util.io.IOFactory;
 import edu.kit.joana.wala.core.NullProgressMonitor;
+import edu.kit.joana.wala.core.SDGBuildArtifacts;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.summary.SummaryComputation;
 import edu.kit.joana.wala.summary.WorkPackage;
@@ -230,10 +231,10 @@ public class SDGProgram {
 		if (notifier != null) {
 			notifier.sdgStarted();
 		}
-		final com.ibm.wala.util.collections.Pair<SDG, SDGBuilder> p =
-				SDGBuildPreparation.computeAndKeepBuilder(out, makeBuildPreparationConfig(config), monitor);
+		final com.ibm.wala.util.collections.Pair<SDG, SDGBuildArtifacts> p =
+				SDGBuildPreparation.computeAndKeepBuildArtifacts(out, makeBuildPreparationConfig(config), monitor);
 		final SDG sdg = p.fst;
-		final SDGBuilder builder = p.snd;
+		final SDGBuildArtifacts builder = p.snd;
 
 		if (config.computeInterferences()) {
 			PruneInterferences.preprocessAndPruneCSDG(sdg, config.getMhpType());

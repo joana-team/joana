@@ -55,6 +55,7 @@ import edu.kit.joana.util.io.IOFactory;
 import edu.kit.joana.wala.core.CGConsumer;
 import edu.kit.joana.wala.core.ExternalCallCheck;
 import edu.kit.joana.wala.core.NullProgressMonitor;
+import edu.kit.joana.wala.core.SDGBuildArtifacts;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.DynamicDispatchHandling;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
@@ -348,7 +349,18 @@ public final class SDGBuildPreparation {
 
 		return ret;
 	}
+	
+	public static Pair<SDG, SDGBuildArtifacts> computeAndKeepBuildArtifacts(PrintStream out, Config cfg, IProgressMonitor progress) throws UnsoundGraphException, CancelException, IOException, ClassHierarchyException {
+		Pair<Long, SDGBuilder.SDGBuilderConfig> p = prepareBuild(out, cfg, progress);
+		long startTime = p.fst;
+		SDGBuilder.SDGBuilderConfig scfg = p.snd;
+		final Pair<SDG, SDGBuildArtifacts> ret = SDGBuilder.buildAndKeepBuildArtifacts(scfg, progress);
+		postpareBuild(startTime, out);
+//		SDGVerifier.verify(sdg, false, true);
 
+		return ret;
+	}
+	
 	public static SDGBuilder createBuilder(PrintStream out, Config cfg, IProgressMonitor progress) throws UnsoundGraphException, CancelException, ClassHierarchyException, IOException {
 		Pair<Long, SDGBuilder.SDGBuilderConfig> p = prepareBuild(out, cfg, progress);
 		return SDGBuilder.onlyCreate(p.snd);

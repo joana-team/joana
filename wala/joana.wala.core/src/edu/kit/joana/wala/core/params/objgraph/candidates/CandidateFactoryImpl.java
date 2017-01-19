@@ -650,7 +650,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 
 		@Override
 		public boolean isReachableFrom(final ParameterCandidate other) {
-			if (basePts != null && basePts.size() > 0 && !TVL.isTrue(other.isPrimitive())) {
+			if (basePts != null && !(basePts.isEmpty()) && !TVL.isTrue(other.isPrimitive())) {
 				return other.isFieldAliased(basePts);
 			}
 
@@ -801,7 +801,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 
 		@Override
 		public boolean isReachableFrom(final ParameterCandidate other) {
-			if (basePts != null && basePts.size() > 0 && !TVL.isTrue(other.isPrimitive())) {
+			if (basePts != null && !(basePts.isEmpty()) && !TVL.isTrue(other.isPrimitive())) {
 				return other.isFieldAliased(basePts);
 			}
 

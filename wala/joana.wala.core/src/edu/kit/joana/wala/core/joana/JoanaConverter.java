@@ -61,13 +61,13 @@ public class JoanaConverter {
 
         progress.beginTask("Inserting nodes into SDG", allNodes.length);
         progress.subTask("processing " + allNodes.length + " nodes");
-        Map<PDGNode, SDGNode> pdg2sdg = convertNodes(sdg, allNodes, b, progress);
+        convertNodes(sdg, allNodes, b, progress);
         progress.done();
 
         progress.beginTask("Inserting edges into SDG", allNodes.length);
         progress.subTask("processing " + allNodes.length + " nodes");
         for (int i = 0; i < allNodes.length; i++) {
-        	addEdgesForNode(sdg, allNodes[i], pdg2sdg, b);
+        	addEdgesForNode(sdg, allNodes[i], b);
 
         	if (i % 107 == 0) {
                 progress.worked(i);
@@ -81,16 +81,17 @@ public class JoanaConverter {
 		return sdg;
 	}
 
-	private static void addEdgesForNode(SDG sdg, PDGNode node, Map<PDGNode, SDGNode> pdg2sdg, SDGBuilder b) {
+	private static void addEdgesForNode(SDG sdg, PDGNode node, SDGBuilder b) {
 		PDG pdg = b.getPDGforId(node.getPdgId());
-		SDGNode from = pdg2sdg.get(node);
+		SDGNode from = sdg.getNode(node.getId());
 
 		if (!pdg.containsVertex(node)) {
 			throw new IllegalStateException();
 		}
 
 		for (PDGEdge edge : pdg.outgoingEdgesOf(node)) {
-			SDGNode to = pdg2sdg.get(edge.to);
+			SDGNode to = sdg.getNode(edge.to.getId());
+			
 			SDGEdge sdgEdge = createEdge(from, to, edge.kind, edge.getLabel());
 			sdg.addEdge(from, to, sdgEdge);
 		}
@@ -186,23 +187,18 @@ public class JoanaConverter {
 		return edge;
 	}
 
-	private static Map<PDGNode, SDGNode> convertNodes(SDG sdg, PDGNode[] nodes, SDGBuilder b,
+	private static void convertNodes(SDG sdg, PDGNode[] nodes, SDGBuilder b,
 			IProgressMonitor progress) throws CancelException {
-		Map<PDGNode, SDGNode> map = new HashMap<PDGNode, SDGNode>(nodes.length);
-
 		int i = 0;
 		for (PDGNode node : nodes) {
 			SDGNode snode = convertNode(b, node);
 			sdg.addVertex(snode);
-			map.put(node, snode);
 
 			if (i++ % 107 == 0) {
 				progress.worked(i);
 				MonitorUtil.throwExceptionIfCanceled(progress);
 			}
 		}
-
-		return map;
 	}
 
 	private static SDGNode convertNode(SDGBuilder sdg, PDGNode node) {

@@ -182,7 +182,7 @@ public class ConcurrentTests {
 		doTestSDG(key, t, sdg);
 	}
 	
-	public void doTestSDG(String key, TestData t, SDG sdg) throws IOException {
+	public void doTestSDG(String key, TestData t, SDG sdg) {
 		ThreadsInformation tinfo = sdg.getThreadsInfo();
 		int numberOfThreads = 0;
 		int numberOfDynamicThreads = 0;

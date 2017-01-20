@@ -85,7 +85,12 @@ public class SimpleMHPAnalysis implements MHPAnalysis {
         }
 	}
 
-    public boolean isParallel(int thread_1, int thread_2) {
+    public boolean isParallel(ThreadRegion r, ThreadRegion s) {
+    	//region id is the same as thread id here
+    	return isParallel(r.getID(), s.getID());
+    }
+
+    private boolean isParallel(int thread_1, int thread_2) {
     	if (thread_1 == thread_2 && ti.isDynamic(thread_1)) {
             // dynamic thread
             return true;

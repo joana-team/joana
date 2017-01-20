@@ -21,7 +21,6 @@ import edu.kit.joana.ifc.sdg.irlsod.PredecessorMethod;
 import edu.kit.joana.ifc.sdg.irlsod.ThreadModularCDomOracle;
 import edu.kit.joana.ifc.sdg.irlsod.TimingClassificationChecker;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
-import edu.kit.joana.ifc.sdg.util.graph.io.dot.MiscGraph2Dot;
 import edu.kit.joana.ifc.sdg.util.sdg.GraphModifier;
 import edu.kit.joana.ifc.sdg.util.sdg.ReducedCFGBuilder;
 import joana.api.testdata.demo.Fig2_3;
@@ -36,6 +35,7 @@ import joana.api.testdata.demo.xrlsod.ORLSOD5a;
 import joana.api.testdata.demo.xrlsod.ORLSODImprecise;
 import edu.kit.joana.api.test.ORLSODExperiment.StandardTestConfig;
 import edu.kit.joana.api.test.util.ApiTestException;
+import edu.kit.joana.api.test.util.DumpTestSDG;
 import edu.kit.joana.api.test.util.JoanaPath;
 
 public class ORLSODExperimentTiming {
@@ -113,7 +113,7 @@ public class ORLSODExperimentTiming {
 				
 		final CFG redCFG = ReducedCFGBuilder.extractReducedCFG(sdg);
 		GraphModifier.removeCallCallRetEdges(redCFG);
-		MiscGraph2Dot.export(redCFG, MiscGraph2Dot.joanaGraphExporter(), cfg.outputFiles.dotFile);
+		DumpTestSDG.dumpDotCFG(redCFG, cfg.outputFiles.dotFile);
 		final Map<SDGNode, String> userAnn = new HashMap<>();
 		ana.getAnnotatedNodes().forEach((k,v) -> userAnn.put(k,v.getAnnotation().getLevel1()));
 

@@ -41,6 +41,8 @@ public interface MHPAnalysis {
 
     public boolean isParallel(SDGNode m, int mThread, int region);
 
+    public boolean isParallel(ThreadRegion r, ThreadRegion s);
+
     public SDGNode getThreadExit(int thread);
 
     public SDGNode getThreadEntry(int thread);

@@ -17,6 +17,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadRegion;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.graph.TransitiveReductionGeneral;
 
@@ -83,13 +84,18 @@ public class DomTree {
 				tree.addVertex(new VirtualNode(n, threadN));
 			}
 		}
-		for (SDGNode n : icfg.vertexSet()) {
-			for (final int threadN : n.getThreadNumbers()) {
-				for (final SDGNode m : icfg.vertexSet()) {
-					for (final int threadM : m.getThreadNumbers()) {
-						if (mhp.isParallel(n, threadN, m, threadM)) {
+		ThreadRegion[] regions = mhp.getThreadRegions().toArray(new ThreadRegion[0]);
+		for (int i = 0; i < regions.length; i++) {
+			ThreadRegion r1 = regions[i];
+			int threadN = r1.getThread();
+			for (int j = i; j < regions.length; j++) {
+				ThreadRegion r2 = regions[j];
+				if (mhp.isParallel(r1,r2)) {
+					int threadM = r2.getThread();
+					for (SDGNode n : r1.getNodes()) {
+						VirtualNode vn = new VirtualNode(n, threadN);
+						for (SDGNode m : r2.getNodes()) {
 							VirtualNode cdom = cdomOracle.cdom(n, threadN, m, threadM);
-							VirtualNode vn = new VirtualNode(n, threadN);
 							VirtualNode vm = new VirtualNode(m, threadM);
 							addEdge(cdom,vn);
 							addEdge(cdom,vm);

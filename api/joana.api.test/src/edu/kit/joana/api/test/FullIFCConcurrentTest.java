@@ -114,21 +114,23 @@ public class FullIFCConcurrentTest {
 		return prog;
 	}
 	
+	private static void testLeaksFound(IFCAnalysis ana, int leaks) {
+		Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+		assertFalse(illegal.isEmpty());
+		assertEquals(leaks, illegal.size());
+	}
+	
 	@Test
 	public void testAlarmClock() {
 		try {
 			final SDGProgram prog = build("conc.ac.AlarmClock");
 			{
 				final IFCAnalysis ana1 = annotate(prog, "conc.ac.Clock.max", "conc.ac.Client.name");
-				Collection<? extends IViolation<SecurityNode>> illegal = ana1.doIFC();
-				assertFalse(illegal.isEmpty());
-				assertEquals(6, illegal.size());
+				testLeaksFound(ana1, 6);
 			}
 			{
 				final IFCAnalysis ana2 = annotate(prog, "sensitivity.Security.SECRET", "sensitivity.Security.PUBLIC");
-				Collection<? extends IViolation<SecurityNode>> illegal = ana2.doIFC();
-				assertFalse(illegal.isEmpty());
-				assertEquals(3, illegal.size());
+				testLeaksFound(ana2, 3);
 			}
 		} catch (ApiTestException e) {
 			e.printStackTrace();
@@ -142,9 +144,7 @@ public class FullIFCConcurrentTest {
 			IFCAnalysis ana = buildAndAnnotate("conc.bb.ProducerConsumer",
 					"conc.bb.BoundedBuffer.putIn",
 					"conc.bb.BoundedBuffer.takeOut");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(12, illegal.size());
+			testLeaksFound(ana, 12);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -157,9 +157,7 @@ public class FullIFCConcurrentTest {
 			IFCAnalysis ana = buildAndAnnotate("conc.cliser.dt.Main",
 					"conc.cliser.dt.DaytimeUDPClient.message",
 					"conc.cliser.dt.DaytimeIterativeUDPServer.recieved");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(54, illegal.size());
+			testLeaksFound(ana, 54);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -175,12 +173,6 @@ public class FullIFCConcurrentTest {
 			// communication appears in network socket layer - this can only be detected if stubs are used that model
 			// network communication. We are now precise enough to not detect flow in java library code.
 			assertTrue(String.format("Expected no violations, found %d", illegal.size()), illegal.isEmpty());
-	
-			// somehow running from ant produces 216 violations, while running
-			// from eclipse results only in 176. Perhaps differences in the included
-			// runtime libraries.
-//			final int size = illegal.size();
-//			assertTrue("unexpected number of violations: " + size, size == 176 || size == 216);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -193,9 +185,7 @@ public class FullIFCConcurrentTest {
 			IFCAnalysis ana = buildAndAnnotate("conc.daisy.DaisyTest",
 					"conc.daisy.DaisyUserThread.iterations",
 					"conc.daisy.DaisyDir.dirsize");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(1, illegal.size());
+			testLeaksFound(ana, 1);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -208,9 +198,7 @@ public class FullIFCConcurrentTest {
 			IFCAnalysis ana = buildAndAnnotate("conc.dp.DiningPhilosophers",
 					"conc.dp.Philosopher.id",
 					"conc.dp.DiningServer.state");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(48, illegal.size());
+			testLeaksFound(ana, 48);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -223,9 +211,7 @@ public class FullIFCConcurrentTest {
 			IFCAnalysis ana = buildAndAnnotate("conc.ds.DiskSchedulerDriver",
 					"conc.ds.DiskScheduler.position",
 					"conc.ds.DiskReader.active");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(22, illegal.size());
+			testLeaksFound(ana, 22);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -238,9 +224,7 @@ public class FullIFCConcurrentTest {
 			IFCAnalysis ana = buildAndAnnotate("conc.kn.Knapsack5",
 					"conc.kn.Knapsack5$Item.profit",
 					"conc.kn.PriorityRunQueue.numThreadsWaiting");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(57, illegal.size());
+			testLeaksFound(ana, 57);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -253,9 +237,7 @@ public class FullIFCConcurrentTest {
 			IFCAnalysis ana = buildAndAnnotate("conc.lg.LaplaceGrid",
 					"conc.lg.Partition.values",
 					"conc.lg.Partition.in");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(932, illegal.size());
+			testLeaksFound(ana, 932);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -268,9 +250,7 @@ public class FullIFCConcurrentTest {
 			IFCAnalysis ana = buildAndAnnotate("conc.pc.ProbChannel",
 					"conc.pc.ProbChannel.x",
 					"sensitivity.Security.PUBLIC");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(6, illegal.size());
+			testLeaksFound(ana, 6);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -283,9 +263,7 @@ public class FullIFCConcurrentTest {
 			IFCAnalysis ana = buildAndAnnotate("conc.sq.SharedQueue",
 					"conc.sq.SharedQueue.next",
 					"conc.sq.Semaphore.count");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
-			assertFalse(illegal.isEmpty());
-			assertEquals(80, illegal.size());
+			testLeaksFound(ana, 80);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

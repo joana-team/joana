@@ -11,14 +11,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.function.BiFunction;
-import javax.xml.stream.XMLStreamException;
-
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.junit.Test;
@@ -28,19 +22,17 @@ import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
 import edu.kit.joana.api.IFCAnalysis;
-import edu.kit.joana.api.sdg.SDGConfig;
-import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.test.util.ApiTestException;
-import edu.kit.joana.api.test.util.JoanaPath;
+import edu.kit.joana.api.test.util.BuildSDG;
+import edu.kit.joana.api.test.util.DumpTestSDG;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadRegion;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
-import edu.kit.joana.ifc.sdg.io.graphml.SDG2GraphML;
 import edu.kit.joana.ifc.sdg.irlsod.ClassicCDomOracle;
 import edu.kit.joana.ifc.sdg.irlsod.DomTree;
 import edu.kit.joana.ifc.sdg.irlsod.ICDomOracle;
@@ -48,15 +40,8 @@ import edu.kit.joana.ifc.sdg.irlsod.RegionBasedCDomOracle;
 import edu.kit.joana.ifc.sdg.irlsod.RegionClusterBasedCDomOracle;
 import edu.kit.joana.ifc.sdg.irlsod.ThreadModularCDomOracle;
 import edu.kit.joana.ifc.sdg.irlsod.VeryConservativeCDomOracle;
-import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
-import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.graph.ThreadInformationUtil;
-import edu.kit.joana.ifc.sdg.util.graph.io.dot.MiscGraph2Dot;
 import edu.kit.joana.ifc.sdg.util.sdg.GraphModifier;
-import edu.kit.joana.util.Stubs;
-import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
-import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
-import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 
 /**
  * @author Martin Hecker <martin.hecker@kit.edu>
@@ -64,44 +49,10 @@ import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 public class DomTreeTests {
 
 	static enum Result { CYCLIC, ACYCLIC };
-	
-	static final Stubs STUBS = Stubs.JRE_14;
 
 	static final boolean outputPDGFiles = true;
 	static final boolean outputGraphMLFiles = false;
 	static final boolean outputDotFiles = true;
-	
-	static final String outputDir = "out";
-	
-	static final SDGConfig top_concurrent = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, null, STUBS, ExceptionAnalysis.INTERPROC,
-			FieldPropagation.OBJ_GRAPH, PointsToPrecision.OBJECT_SENSITIVE, false, // no
-																					// access
-																					// paths
-			true, // interference
-			MHPType.PRECISE);
-
-	static {
-
-		if (outputPDGFiles || outputGraphMLFiles || outputDotFiles) {
-			File fOutDir = new File(outputDir);
-			if (!fOutDir.exists()) {
-				fOutDir.mkdir();
-			}
-		}
-	}
-	
-	public static <T> IFCAnalysis build(Class<T> clazz, SDGConfig config) throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		final String className = clazz.getCanonicalName();
-		final String classPath;
-		classPath = JoanaPath.JOANA_API_TEST_DATA_CLASSPATH + File.pathSeparator + JoanaPath.ANNOTATIONS_PASSON_CLASSPATH;
-		config.setClassPath(classPath);
-		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(className);
-		config.setEntryMethod(mainMethod.toBCString());
-		SDGProgram prog = SDGProgram.createSDGProgram(config);
-
-		IFCAnalysis ana = new IFCAnalysis(prog);
-		return ana;
-	}
 	
 	private static BiFunction<SDG, PreciseMHPAnalysis, ICDomOracle> newRegionBasedCDomOracle =
 		(sdg,mhp) -> {
@@ -138,47 +89,43 @@ public class DomTreeTests {
 		String classname;
 	};
 	
-	private static <T> Common getCommon(Class<T> clazz) throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+	private static Common getCommon(Class<?> clazz) throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
 		final Common result = new Common();
 		result.classname = clazz.getCanonicalName();
-		IFCAnalysis ana = build(clazz, top_concurrent);
+		IFCAnalysis ana = BuildSDG.build(clazz, BuildSDG.top_concurrent, false);
 		result.sdg = ana.getProgram().getSDG();
 		result.mhp = PreciseMHPAnalysis.analyze(result.sdg);
 		result.tct = ThreadInformationUtil.buildThreadCreationTree(result.sdg.getThreadsInfo());
 
 		if (outputPDGFiles) {
-			dumpSDG(ana.getProgram().getSDG(), result.classname + ".pdg");
+			DumpTestSDG.dumpSDG(ana.getProgram().getSDG(), result.classname + ".pdg");
 		}
 		if (outputGraphMLFiles) {
-			dumpGraphML(ana.getProgram().getSDG(), result.classname + ".pdg");
+			DumpTestSDG.dumpGraphML(ana.getProgram().getSDG(), result.classname + ".pdg");
 		}
 		if (outputDotFiles) {
-			MiscGraph2Dot.export(result.tct, MiscGraph2Dot.tctExporter(), outputDir + "/" + result.classname + ".tct.dot");	
+			DumpTestSDG.dumpDotTCT(result.tct, result.classname + ".tct.dot");	
 		}
 		
 		return result;
 	}
 	
-	private static <T> void testDomTree(Common common, BiFunction<SDG, PreciseMHPAnalysis, ICDomOracle> newOracle, Result result)
+	private static void testDomTree(Common common, BiFunction<SDG, PreciseMHPAnalysis, ICDomOracle> newOracle, Result result)
 			throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException, CancelException {
 		final ICDomOracle oracle = newOracle.apply(common.sdg,common.mhp);
 		final DomTree tree = new DomTree(common.sdg, oracle , common.mhp);
 
 		if (outputDotFiles) {
-			MiscGraph2Dot.export(
-			    tree.getTree(),
-			    MiscGraph2Dot.cdomTreeExporter(),
-			    outputDir + "/" + common.classname + "." + oracle.getClass().getSimpleName() +".cdom.dot"
+			DumpTestSDG.dumpDotCDomTree(tree,
+			    common.classname + "." + oracle.getClass().getSimpleName() +".cdom.dot"
 			);
 		}
 		
 		boolean acyclic = tree.reduce();
 		
 		if (outputDotFiles) {
-			MiscGraph2Dot.export(
-			    tree.getTree(),
-			    MiscGraph2Dot.cdomTreeExporter(),
-			    outputDir + "/" + common.classname + "." + oracle.getClass().getSimpleName() +".cdom.reduced.dot"
+			DumpTestSDG.dumpDotCDomTree(tree,
+			    common.classname + "." + oracle.getClass().getSimpleName() +".cdom.reduced.dot"
 			);
 		}
 		
@@ -186,23 +133,6 @@ public class DomTreeTests {
 		switch (result) {
 			case CYCLIC : assertFalse(acyclic); break;
 			case ACYCLIC: assertTrue( acyclic); break;
-		}
-	}
-	
-	private static void dumpSDG(SDG sdg, String filename) throws FileNotFoundException {
-		BufferedOutputStream bOut = new BufferedOutputStream(new FileOutputStream(outputDir + "/" + filename));
-		SDGSerializer.toPDGFormat(sdg, bOut);
-	}
-	
-	private static void dumpGraphML(SDG sdg, String filename) throws FileNotFoundException {
-		final BufferedOutputStream bOut = new BufferedOutputStream(new FileOutputStream(outputDir + "/" + filename + ".graphml"));
-		final BufferedOutputStream bOutHierachical = new BufferedOutputStream(new FileOutputStream(outputDir + "/" + filename + ".hierarchical.graphml"));
-		try {
-			SDG2GraphML.convert(sdg, bOut);
-			SDG2GraphML.convertHierachical(sdg, bOutHierachical);
-		} catch (XMLStreamException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 	
@@ -220,16 +150,17 @@ public class DomTreeTests {
 		ClassicCDomOracle cldo = new ClassicCDomOracle(sdg,common.mhp);
 		VeryConservativeCDomOracle vcdo = new VeryConservativeCDomOracle(icfg);
 
-		SDGNode[] vertices = icfg.vertexSet().toArray(new SDGNode[0]);
-		
-		for (int i = 0; i < vertices.length; i++) {
-			SDGNode n = vertices[i];
-			for (final int threadN : n.getThreadNumbers()) {
-				VirtualNode vn = new VirtualNode(n, threadN);
-				for (int j = i; j < vertices.length; j++) {
-					SDGNode m = vertices[j];
-					for (final int threadM : m.getThreadNumbers()) {
-						if (common.mhp.isParallel(n, threadN, m, threadM)) {
+		ThreadRegion[] regions = common.mhp.getThreadRegions().toArray(new ThreadRegion[0]);
+		for (int i = 0; i < regions.length; i++) {
+			ThreadRegion r1 = regions[i];
+			int threadN = r1.getThread();
+			for (int j = i; j < regions.length; j++) {
+				ThreadRegion r2 = regions[j];
+				if (common.mhp.isParallel(r1,r2)) {
+					int threadM = r2.getThread();
+					for (SDGNode n : r1.getNodes()) {
+						VirtualNode vn = new VirtualNode(n, threadN);
+						for (SDGNode m : r2.getNodes()) {
 							VirtualNode vm = new VirtualNode(m, threadM);
 							
 							VirtualNode vt = tmdo.cdom(n, threadN, m, threadM);

@@ -10,14 +10,8 @@ package edu.kit.joana.api.test;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collection;
-
-import javax.xml.stream.XMLStreamException;
 
 import org.junit.Test;
 
@@ -27,148 +21,58 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.IFCType;
-import edu.kit.joana.api.sdg.SDGConfig;
-import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.test.util.ApiTestException;
-import edu.kit.joana.api.test.util.JoanaPath;
+import edu.kit.joana.api.test.util.BuildSDG;
+import edu.kit.joana.api.test.util.DumpTestSDG;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.IViolation;
-import edu.kit.joana.ifc.sdg.graph.SDG;
-import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
-import edu.kit.joana.ifc.sdg.io.graphml.SDG2GraphML;
-import edu.kit.joana.ifc.sdg.lattice.IEditableLattice;
-import edu.kit.joana.ifc.sdg.lattice.impl.EditableLatticeSimple;
-import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
-import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
-import edu.kit.joana.util.Stubs;
-import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
-import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
-import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 
 /**
  * @author Martin Hecker <martin.hecker@kit.edu>
  */
 public class XLSODTests {
 
-	static final Stubs STUBS = Stubs.JRE_14;
-
 	static final boolean outputPDGFiles = false;
 	static final boolean outputGraphMLFiles = false;
 	
-	static final String outputDir = "out";
+	private static IFCAnalysis buildAnnotateDump(Class<?> clazz) throws ClassHierarchyException, ApiTestException,
+			IOException, UnsoundGraphException, CancelException {
+		IFCAnalysis ana = BuildSDG.buldAndUseJavaAnnotations(clazz, BuildSDG.top_concurrent, true);
 	
-	static final SDGConfig top_concurrent = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, null, STUBS, ExceptionAnalysis.INTERPROC,
-			FieldPropagation.OBJ_GRAPH, PointsToPrecision.OBJECT_SENSITIVE, false, // no
-																					// access
-																					// paths
-			true, // interference
-			MHPType.PRECISE);
-	static final SDGConfig bottom_concurrent = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, null, STUBS,
-			ExceptionAnalysis.ALL_NO_ANALYSIS, FieldPropagation.OBJ_GRAPH, PointsToPrecision.TYPE_BASED, false, // no
-																											// access
-																											// paths
-			true, // interference
-			MHPType.SIMPLE);
-
-	static final IEditableLattice<SDGConfig> configurations;
-	static {
-		configurations = new EditableLatticeSimple<SDGConfig>();
-		for (SDGConfig c : new SDGConfig[] { top_concurrent, bottom_concurrent }) {
-			configurations.addElement(c);
+		final String classname = clazz.getCanonicalName();
+		
+		if (outputPDGFiles) {
+			DumpTestSDG.dumpSDG(ana.getProgram().getSDG(), classname + ".pdg");
 		}
-		configurations.setImmediatelyGreater(bottom_concurrent, top_concurrent);
-
-		if (outputPDGFiles || outputGraphMLFiles) {
-			File fOutDir = new File(outputDir);
-			if (!fOutDir.exists()) {
-				fOutDir.mkdir();
-			}
+		if (outputGraphMLFiles) {
+			DumpTestSDG.dumpGraphML(ana.getProgram().getSDG(), classname + ".pdg");
 		}
-	}
-	
-	public static <T> IFCAnalysis build(Class<T> clazz, SDGConfig config, boolean ignore) throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		final String className = clazz.getCanonicalName();
-		final String classPath;
-		if (ignore) {
-			classPath = JoanaPath.JOANA_API_TEST_DATA_CLASSPATH + File.pathSeparator + JoanaPath.ANNOTATIONS_IGNORE_CLASSPATH;
-		} else {
-			classPath = JoanaPath.JOANA_API_TEST_DATA_CLASSPATH + File.pathSeparator + JoanaPath.ANNOTATIONS_PASSON_CLASSPATH;
-		}
-		config.setClassPath(classPath);
-		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(className);
-		config.setEntryMethod(mainMethod.toBCString());
-		SDGProgram prog = SDGProgram.createSDGProgram(config);
-
-		IFCAnalysis ana = new IFCAnalysis(prog);
+		
 		return ana;
 	}
-
-	public static <T> IFCAnalysis buldAndUseJavaAnnotations(Class<T> clazz, SDGConfig config, boolean ignore)
-				throws ApiTestException, ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-			IFCAnalysis ana = build(clazz,config,ignore);
-			ana.addAllJavaSourceAnnotations();
-			return ana;
-	}
 	
-	
-	private static <T> void testSound(Class<T> clazz, IFCType ifcType) throws ClassHierarchyException, ApiTestException,
+	private static void testSound(Class<?> clazz, IFCType ifcType) throws ClassHierarchyException, ApiTestException,
 	IOException, UnsoundGraphException, CancelException {
-		final String classname = clazz.getCanonicalName();
-		{ // There are leaks, and we're sound and hence report them
-			IFCAnalysis ana = buldAndUseJavaAnnotations(clazz, top_concurrent, true);
+		// There are leaks, and we're sound and hence report them
+		IFCAnalysis ana = buildAnnotateDump(clazz);
 
-			if (outputPDGFiles) {
-				dumpSDG(ana.getProgram().getSDG(), classname + ".pdg");
-			}
-			if (outputGraphMLFiles) {
-				dumpGraphML(ana.getProgram().getSDG(), classname + ".pdg");
-			}
-
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(ifcType);
-			assertFalse(illegal.isEmpty());
-		}
+		Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(ifcType);
+		assertFalse(illegal.isEmpty());
 	}
 	
-	private static <T> void testPrecise(Class<T> clazz, IFCType ifcType) throws ClassHierarchyException, ApiTestException,
+	private static void testPrecise(Class<?> clazz, IFCType ifcType) throws ClassHierarchyException, ApiTestException,
 			IOException, UnsoundGraphException, CancelException {
-		final String classname = clazz.getCanonicalName();
-		{ // There are no leak, and  we're precise enough to find out that there aren't
-			IFCAnalysis ana = buldAndUseJavaAnnotations(clazz, top_concurrent, true);
+		// There are no leak, and  we're precise enough to find out that there aren't
+		IFCAnalysis ana = buildAnnotateDump(clazz);
 
-			if (outputPDGFiles) {
-				dumpSDG(ana.getProgram().getSDG(), classname + ".pdg");
-			}
-			if (outputGraphMLFiles) {
-				dumpGraphML(ana.getProgram().getSDG(), classname + ".pdg");
-			}
-
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(ifcType);
-			assertTrue(illegal.isEmpty());
-		}
+		Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(ifcType);
+		assertTrue(illegal.isEmpty());
 	}
 
-	private static <T> void testTooImprecise(Class<T> clazz, IFCType ifcType) throws ClassHierarchyException, ApiTestException,
+	private static void testTooImprecise(Class<?> clazz, IFCType ifcType) throws ClassHierarchyException, ApiTestException,
 			IOException, UnsoundGraphException, CancelException {
 		testSound(clazz, ifcType);
 	}
-	
-	private static void dumpSDG(SDG sdg, String filename) throws FileNotFoundException {
-		BufferedOutputStream bOut = new BufferedOutputStream(new FileOutputStream(outputDir + "/" + filename));
-		SDGSerializer.toPDGFormat(sdg, bOut);
-	}
-	
-	private static void dumpGraphML(SDG sdg, String filename) throws FileNotFoundException {
-		final BufferedOutputStream bOut = new BufferedOutputStream(new FileOutputStream(outputDir + "/" + filename + ".graphml"));
-		final BufferedOutputStream bOutHierachical = new BufferedOutputStream(new FileOutputStream(outputDir + "/" + filename + ".hierarchical.graphml"));
-		try {
-			SDG2GraphML.convert(sdg, bOut);
-			SDG2GraphML.convertHierachical(sdg, bOutHierachical);
-		} catch (XMLStreamException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
 
 	@Test
 	public void testDe_uni_trier_infsec_core_Setup() throws ClassHierarchyException, ApiTestException, IOException,

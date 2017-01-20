@@ -134,21 +134,4 @@ public class TimeSensSlicingTest {
 		doTestGoodOldFashioned("thread_hierarchy");
 	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 }

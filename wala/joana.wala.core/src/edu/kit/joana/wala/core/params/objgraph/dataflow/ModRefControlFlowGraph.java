@@ -124,7 +124,7 @@ public class ModRefControlFlowGraph extends SparseNumberedGraph<ModRefControlFlo
 
 	}
 
-	private int currentId = 1;
+	private int currentId = 0;
 
 	private Node entry;
 	private Node exit;

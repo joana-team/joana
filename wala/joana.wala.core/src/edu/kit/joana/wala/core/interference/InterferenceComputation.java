@@ -10,6 +10,7 @@ package edu.kit.joana.wala.core.interference;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -102,7 +103,7 @@ public class InterferenceComputation {
 	 */
 	private final TIntObjectHashMap<IntSet> threadIds;
 
-	private final Map<PDG, MutableIntSet> threadIdsOfPDGs = new HashMap<PDG, MutableIntSet>();
+	private final Map<PDG, MutableIntSet> threadIdsOfPDGs = new IdentityHashMap<PDG, MutableIntSet>();
 
 	/**
 	 * Computes interference dependence for multi-threaded programs

@@ -63,7 +63,7 @@ public class InterferenceEdge {
 		int result = 1;
 		result = prime * result + ((from == null) ? 0 : from.hashCode());
 		result = prime * result + ((kind == null) ? 0 : kind.hashCode());
-		result = prime * result + ((pdgWrite == null) ? 0 : pdgWrite.hashCode());
+		result = prime * result + System.identityHashCode(pdgWrite);
 		result = prime * result + ((to == null) ? 0 : to.hashCode());
 		return result;
 	}
@@ -93,11 +93,7 @@ public class InterferenceEdge {
 		if (kind != other.kind) {
 			return false;
 		}
-		if (pdgWrite == null) {
-			if (other.pdgWrite != null) {
-				return false;
-			}
-		} else if (!pdgWrite.equals(other.pdgWrite)) {
+		if (pdgWrite != other.pdgWrite) {
 			return false;
 		}
 		if (to == null) {

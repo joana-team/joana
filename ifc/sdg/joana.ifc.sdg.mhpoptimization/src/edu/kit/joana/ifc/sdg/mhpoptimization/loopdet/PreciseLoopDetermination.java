@@ -10,6 +10,7 @@ package edu.kit.joana.ifc.sdg.mhpoptimization.loopdet;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
@@ -131,6 +132,7 @@ public class PreciseLoopDetermination extends ModularLoopDetermination {
 	private void saturate(List<Set<SDGNode>> sccs) {
 		
 		LinkedList<SDGNode> worklist = new LinkedList<SDGNode>();
+		Map<SDGNode, Set<SDGNode>> procMap = cfg.sortByProcedures();
 		
 		/**
 		 * first step: initialize
@@ -156,7 +158,7 @@ public class PreciseLoopDetermination extends ModularLoopDetermination {
 				for (SDGEdge e: cfg.outgoingEdgesOf(next)) {
 					if (e.getKind() == SDGEdge.Kind.CALL) {
 						SDGNode eTarget = e.getTarget();
-						for (SDGNode n : cfg.getNodesOfProcedure(eTarget)) {
+						for (SDGNode n : procMap.get(eTarget)) {
 							if (!possibleLoopNodes.contains(n)) {
 								worklist.add(n);
 							}

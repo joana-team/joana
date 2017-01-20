@@ -1588,7 +1588,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 	public Set<PDG> findPossibleTargets(CallGraph cg, PDG caller, PDGNode call) {
 		// We want to avoid calls to org.jgrapht.graph.AbstractGraph.hashCode()
 		final Set<PDG> callees = Sets.newIdentityHashSet();
-		
+
 		final Node cgCaller = cg.findNode(caller.cgNode);
 		final SSAInstruction instr = caller.getInstruction(call);
 
@@ -1623,7 +1623,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 	}
 
 	public Set<PDG> getPossibleCallers(final PDG callee) {
-		final Set<PDG> callers = new HashSet<PDG>();
+		final Set<PDG> callers = Sets.newIdentityHashSet();//new HashSet<PDG>();
 
 		for (final PDG pdg : getAllPDGs()) {
 			if (pdg != callee) {

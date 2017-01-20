@@ -487,16 +487,16 @@ public final class ObjGraphParams {
             }
 
 
-			for (final PDG pdg : sdg.getAllPDGs()) {
-				MonitorUtil.throwExceptionIfCanceled(progress);
+			sdg.getAllPDGs().parallelStream().forEach(pdg -> {
+				//MonitorUtil.throwExceptionIfCanceled(progress);
 				final InterProcCandidateModel pdgModRef = modref.getCandidates(pdg.cgNode);
 
-				if (pdgModRef == null) { progressCtr++; continue; }
+				if (pdgModRef == null) { /*progressCtr++;*/ return; }
 
-                if (progress != null) {
+                /*if (progress != null) {
                     progress.subTask(pdg.getMethod().toString());
                     progress.worked(progressCtr++);
-                }
+                }*/
 
 				final ModRefCandidateGraph mrg = ModRefCandidateGraph.compute(pa, modref, pdg);
 
@@ -591,7 +591,7 @@ public final class ObjGraphParams {
 					debug.outln(" ==>(" + lastNodeCount + " "
 							+ (initialNodeCount > 0 ? ((100 *lastNodeCount) / initialNodeCount) : "--") + "%)");
 				}
-			}
+			});
 		}
 
 		if (isDebug) { debug.outln(""); }

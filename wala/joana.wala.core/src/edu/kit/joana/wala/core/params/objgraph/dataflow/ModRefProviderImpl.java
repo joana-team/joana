@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.StreamSupport;
 
 import com.ibm.wala.util.collections.ObjectArrayMapping;
 import com.ibm.wala.util.intset.BitVector;
@@ -60,49 +61,54 @@ public class ModRefProviderImpl implements ModRefProvider {
 		// this is done by the isMod() isRef() methods of Node. Do not use ModRefCandidate isMod()
 		// isRef() here.
 
-		for (final Node n : cfg) {
-			if (n.isNOP()) { continue; }
+		StreamSupport.stream(domain.spliterator(), true)
+			.forEach(n->calc(n, cfg, domain));
+	}
+	
+	private void calc(Node n, final ModRefControlFlowGraph cfg,
+						final OrdinalSetMapping<Node> domain) {
+		final ModRefFieldCandidate nCand = n.getCandidate();
 
-			final ModRefFieldCandidate nCand = n.getCandidate();
+		final BitVector bvMustMod = new BitVector();
+		final BitVector bvMayMod = new BitVector();
+		final BitVector bvMayRef = new BitVector();
+		final boolean isMod = n.isMod();
+		final boolean isRef = n.isRef();
 
-			final BitVector bvMustMod = new BitVector();
-			final BitVector bvMayMod = new BitVector();
-			final BitVector bvMayRef = new BitVector();
-			final boolean isMod = n.isMod();
-			final boolean isRef = n.isRef();
+		for (final Node other : domain) {
 
-			for (final Node other : cfg) {
-				if (other.isNOP()) { continue; }
+			final ModRefFieldCandidate otherCand = other.getCandidate();
+			final int id = domain.getMappedIndex(other);
 
-				final ModRefFieldCandidate otherCand = other.getCandidate();
-				final int id = domain.getMappedIndex(other);
-
-				if (isMod && other.isRef()) {
-					if (n == other) {
-						bvMayMod.set(id);
-						bvMustMod.set(id);
-					} else if (nCand.isMustAliased(otherCand)) {
-						bvMayMod.set(id);
-						bvMustMod.set(id);
-					} else if (nCand.isMayAliased(otherCand)) {
-						bvMayMod.set(id);
-					}
-				}
-
-				if (isRef && other.isMod()) {
-					if (n == other) {
-						bvMayRef.set(id);
-					} else if (nCand.isMayAliased(otherCand)) {
-						bvMayRef.set(id);
-					}
+			if (isMod && other.isRef()) {
+				if (n == other) {
+					bvMayMod.set(id);
+					bvMustMod.set(id);
+				} else if (nCand.isMustAliased(otherCand)) {
+					bvMayMod.set(id);
+					bvMustMod.set(id);
+				} else if (nCand.isMayAliased(otherCand)) {
+					bvMayMod.set(id);
 				}
 			}
 
-
-			node2mustMod.put(n, new BitVectorIntSet(bvMustMod));
-			node2mayMod.put(n, new BitVectorIntSet(bvMayMod));
-			node2mayRef.put(n, new BitVectorIntSet(bvMayRef));
+			if (isRef && other.isMod()) {
+				if (n == other) {
+					bvMayRef.set(id);
+				} else if (nCand.isMayAliased(otherCand)) {
+					bvMayRef.set(id);
+				}
+			}
 		}
+		
+		putResult(n, bvMustMod, bvMayMod, bvMayRef);
+	}
+	
+	private synchronized void putResult(Node n,
+				BitVector bvMustMod, BitVector bvMayMod,BitVector bvMayRef) {
+		node2mustMod.put(n, new BitVectorIntSet(bvMustMod));
+		node2mayMod.put(n, new BitVectorIntSet(bvMayMod));
+		node2mayRef.put(n, new BitVectorIntSet(bvMayRef));
 	}
 
 	@Override

@@ -66,7 +66,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 	 * @see edu.kit.joana.wala.core.params.objgraph.candidates.CandidateFactory#findOrCreateUnique(com.ibm.wala.util.intset.OrdinalSet, edu.kit.joana.wala.core.ParameterField, com.ibm.wala.util.intset.OrdinalSet)
 	 */
 	@Override
-	public UniqueParameterCandidate findOrCreateUnique(final OrdinalSet<InstanceKey> basePts, final ParameterField field,
+	public synchronized UniqueParameterCandidate findOrCreateUnique(final OrdinalSet<InstanceKey> basePts, final ParameterField field,
 			final OrdinalSet<InstanceKey> fieldPts) {
 		if (field.isArray() && !field.getElementType().isPrimitiveType()) {
 			// special case for object array fields - static types of array fields are always Object, so we need
@@ -101,7 +101,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		return newCand;
 	}
 
-	private UniqueParameterCandidate findOrCreateUniqueObjArray(final OrdinalSet<InstanceKey> basePts,
+	private synchronized UniqueParameterCandidate findOrCreateUniqueObjArray(final OrdinalSet<InstanceKey> basePts,
 			final ParameterField field,	final OrdinalSet<InstanceKey> fieldPts) {
 		final int id = makeObjArrayHash(fieldPts);
 
@@ -136,7 +136,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 	 * @see edu.kit.joana.wala.core.params.objgraph.candidates.CandidateFactory#findOrCreateUniqueMergable(com.ibm.wala.util.strings.Atom)
 	 */
 	@Override
-	public UniqueMergableParameterCandidate findOrCreateUniqueMergable(final Atom id) {
+	public synchronized UniqueMergableParameterCandidate findOrCreateUniqueMergable(final Atom id) {
 		MultipleParamCandImpl c = id2cand.get(id);
 
 		if (c == null) {
@@ -161,7 +161,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 	 * @see edu.kit.joana.wala.core.params.objgraph.candidates.CandidateFactory#createMerge(com.ibm.wala.util.intset.OrdinalSet)
 	 */
 	@Override
-	public ParameterCandidate createMerge(final OrdinalSet<UniqueParameterCandidate> cands) {
+	public synchronized ParameterCandidate createMerge(final OrdinalSet<UniqueParameterCandidate> cands) {
 		final IntSet set = cands.getBackingSet();
 		if (set instanceof BitVectorIntSet) {
 			final BitVectorIntSet bvint = (BitVectorIntSet) set;
@@ -183,7 +183,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 	 * @see edu.kit.joana.wala.core.params.objgraph.candidates.CandidateFactory#findUniqueSet(java.util.Collection)
 	 */
 	@Override
-	public OrdinalSet<UniqueParameterCandidate> findUniqueSet(final Collection<ParameterCandidate> cands) {
+	public synchronized OrdinalSet<UniqueParameterCandidate> findUniqueSet(final Collection<ParameterCandidate> cands) {
 		final MutableIntSet uniq = new BitVectorIntSet();
 		
 		for (final ParameterCandidate c : cands) {

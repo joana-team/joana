@@ -37,6 +37,7 @@ import com.ibm.wala.dalvik.ipa.callgraph.impl.AndroidEntryPoint;
 import com.ibm.wala.dalvik.ipa.callgraph.impl.AndroidEntryPoint.ExecutionOrder;
 import com.ibm.wala.dalvik.ipa.callgraph.impl.DexEntryPoint;
 import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.Intent;
+import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
 import com.ibm.wala.dalvik.util.AndroidSettingFactory;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.types.ClassLoaderReference;
@@ -162,7 +163,7 @@ class WalaObjectFactory extends AndroidSettingFactory {
         }
     }
 
-    public static Intent Intent(final String action, final String resolves) {
+    public static Intent Intent(final AndroidEntryPointManager manager, final String action, final String resolves) {
         Intent.IntentType res;
         { // parse resolves
             try {
@@ -174,32 +175,32 @@ class WalaObjectFactory extends AndroidSettingFactory {
             }
         }
 
-        return Intent(action, res);
+        return Intent(manager, action, res);
     }
 
-    public static Intent Intent(final String action, final Intent.IntentType resolves) {
+    public static Intent Intent(final AndroidEntryPointManager manager, final String action, final Intent.IntentType resolves) {
         final Intent intent;
 
         switch (resolves) {
             case BROADCAST:
-                intent = new UnknownIntent(action);
+                intent = new UnknownIntent(manager, action);
                 break;
             case EXTERNAL_TARGET:
-                intent = new ExternalIntent(action);
+                intent = new ExternalIntent(manager, action);
                 break;
             case IGNORE:
-                intent = new IgnoreIntent(action);
+                intent = new IgnoreIntent(manager, action);
                 break;
             case INTERNAL_TARGET:
-                intent =  new InternalIntent(action);
+                intent =  new InternalIntent(manager, action);
                 break;
             case STANDARD_ACTION:
-                intent = new StandardIntent(action);
+                intent = new StandardIntent(manager, action);
                 break;
             case SYSTEM_SERVICE:
                 throw new UnsupportedOperationException("The IntentType " + resolves + " cannot be handed in this implementation!");
             case UNKNOWN_TARGET:
-                intent = new UnknownIntent(action);
+                intent = new UnknownIntent(manager, action);
                 break;
             default:
                 throw new UnsupportedOperationException("The IntentType " + resolves + " cannot be handed in this implementation!");

@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
+import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.types.ClassLoaderReference;
@@ -29,16 +30,16 @@ public class ListEntryPoints {
 		String classPath = "Facebook_3.5.apk"; // change this to the app of
 													// your choice!
 		
-		
-		List<MethodReference> promisingMethods = collectEntryPoints(classPath, androidLib);
+		AndroidEntryPointManager manager = new AndroidEntryPointManager();
+		List<MethodReference> promisingMethods = collectEntryPoints(manager, classPath, androidLib);
 		System.out.println("You may want to choose one of the following methods as Entry points: ");
 		for (MethodReference prom : promisingMethods) {
 			System.out.println(prom.getSignature());
 		}
 	}
 	
-	public static List<MethodReference> collectEntryPoints(String classPath, String androidLib) throws ClassHierarchyException, IOException {
-		IClassHierarchy cha = JoDroidConstruction.computeCH(classPath, androidLib);
+	public static List<MethodReference> collectEntryPoints(AndroidEntryPointManager manager, String classPath, String androidLib) throws ClassHierarchyException, IOException {
+		IClassHierarchy cha = JoDroidConstruction.computeCH(manager, classPath, androidLib);
 		IClass cApp = resolve(cha, TR_APPLICATION);
 		IClass cAct = resolve(cha, TR_ACTIVITY);
 		if (cApp == null) {

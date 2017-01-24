@@ -42,6 +42,8 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
+
 
 /**
  *  CommandLine Interface to JoDroid.
@@ -278,7 +280,8 @@ public class JoDroidCLI {
         final ExecutionOptions p = evaluateOptions(args); 
         
         try {
-            JoDroidConstruction.dispatch(p);
+            AndroidEntryPointManager manager = new AndroidEntryPointManager();
+            JoDroidConstruction.dispatch(manager, p);
         } catch (SDGConstructionException m) {
             System.out.println("Error: " + m.getCause());
             return;

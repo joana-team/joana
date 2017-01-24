@@ -146,6 +146,11 @@ class Items {
      */
     public static abstract class ParserItem {
         protected Tag self;
+        protected AndroidEntryPointManager manager;
+
+        public ParserItem(AndroidEntryPointManager manager) {
+            this.manager = manager;
+        }
         /**
          *  Set the Tag this ParserItem-Instance is an Handler for.
          *
@@ -345,7 +350,7 @@ class Items {
                     final String of = (String) attributesHistory.get(Attr.OF).peek();
                     final String resolves = (String) attributesHistory.get(Attr.RESOLVES).peek();
 
-                    final Intent target = WalaObjectFactory.Intent(name, resolves);
+                    final Intent target = WalaObjectFactory.Intent(manager, name, resolves);
                     to.add(target);
 
                     current.getHandler().popAttributes();
@@ -357,13 +362,13 @@ class Items {
                 final String name = (String) attributesHistory.get(Attr.NAME).peek();
                 final String of = (String) attributesHistory.get(Attr.OF).peek();
                 final String resolves = (String) attributesHistory.get(Attr.RESOLVES).peek();
-                from = WalaObjectFactory.Intent(name, resolves);
+                from = WalaObjectFactory.Intent(manager, name, resolves);
             }
 
             /** @todo TODO Dont' place directly in aem but use an indirection to be able to disbale
                 Reading in intents */
 
-            final AndroidEntryPointManager aem = AndroidEntryPointManager.MANAGER;
+            final AndroidEntryPointManager aem = this.manager;
             if (to.size() == 0) {
                 aem.registerIntentForce(from);
             } else {

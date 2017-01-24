@@ -81,17 +81,18 @@ public class AndroidAnalysis {
 			return callGraph;
 		}
 	}
+	private final AndroidEntryPointManager manager = new AndroidEntryPointManager();
 	public SDGBuilder.SDGBuilderConfig makeSDGBuilderConfig(AppSpec appSpec, AnalysisScope scope, IClassHierarchy cha, CGConsumer consumer, boolean silent, boolean onlyCG) throws ClassHierarchyException, IOException, CancelException {
 		AnalysisCache cache = new AnalysisCache(new DexIRFactory());
 		AnalysisOptions options = configureOptions(scope, cha);
 		populateEntryPoints(cha);
 		if (appSpec.manifestFile != null) {
-			new AndroidManifestXMLReader(appSpec.manifestFile);
+			new AndroidManifestXMLReader(this.manager, appSpec.manifestFile);
 		}
 		IMethod lifecycle;
-		new AndroidPreFlightChecks(AndroidEntryPointManager.MANAGER, options, cha).all();
-		AndroidEntryPointManager.MANAGER.setModelBehavior(LoopKillAndroidModel.class);
-		final AndroidModel modeller = new AndroidModel(cha, options, cache);
+		new AndroidPreFlightChecks(manager, options, cha).all();
+		manager.setModelBehavior(LoopKillAndroidModel.class);
+		final AndroidModel modeller = new AndroidModel(manager, cha, options, cache);
 		lifecycle = modeller.getMethodEncap();
 		final SDGBuilder.SDGBuilderConfig scfg = new SDGBuilder.SDGBuilderConfig();
 		scfg.scope = scope;
@@ -132,8 +133,8 @@ public class AndroidAnalysis {
 		scfg.computeInterference = false;
 		scfg.computeAllocationSites = false;
 		scfg.cgConsumer = consumer;
-		scfg.additionalContextSelector = new IntentContextSelector(cha);
-		scfg.additionalContextInterpreter = new IntentContextInterpreter(cha, options, cache);
+		scfg.additionalContextSelector = new IntentContextSelector(manager, cha);
+		scfg.additionalContextInterpreter = new IntentContextInterpreter(manager, cha, options, cache);
 		scfg.localKillingDefs = false;
 		scfg.abortAfterCG = onlyCG;
 		return scfg;
@@ -156,9 +157,8 @@ public class AndroidAnalysis {
 	private AnalysisOptions configureOptions(AnalysisScope scope, IClassHierarchy cha) {
 		AnalysisOptions options = new AnalysisOptions(scope, null);
 		options.setReflectionOptions(ReflectionOptions.FULL);
-		AndroidEntryPointManager.reset();
-		AndroidEntryPointManager.MANAGER.setInstantiationBehavior(new DefaultInstantiationBehavior(cha));
-		AndroidEntryPointManager.MANAGER.setDoBootSequence(false);
+		manager.setInstantiationBehavior(new DefaultInstantiationBehavior(cha));
+		manager.setDoBootSequence(false);
 		Util.addDefaultSelectors(options, cha);
 		Util.addDefaultBypassLogic(options, scope, Util.class.getClassLoader(), cha);
 		return options;
@@ -168,19 +168,18 @@ public class AndroidAnalysis {
 		Set<AndroidEntryPointLocator.LocatorFlags> entrypointLocatorFlags = EnumSet.noneOf(AndroidEntryPointLocator.LocatorFlags.class);
 		entrypointLocatorFlags.add(LocatorFlags.INCLUDE_CALLBACKS);
 		entrypointLocatorFlags.add(LocatorFlags.CB_HEURISTIC);
-		final AndroidEntryPointLocator epl = new AndroidEntryPointLocator(entrypointLocatorFlags);
-		AndroidEntryPointManager.ENTRIES = epl.getEntryPoints(cha);
+		final AndroidEntryPointLocator epl = new AndroidEntryPointLocator(manager, entrypointLocatorFlags);
+		this.manager.setEntries(epl.getEntryPoints(cha));
 		for (IClass cl : cha.getImplementors(AndroidAnalysis.JavaLangRunnable)) {
 			if (cl.getClassLoader().getReference().equals(ClassLoaderReference.Application)) {
 				IMethod runMethod = cl.getMethod(AndroidAnalysis.run);
 				if (runMethod != null && !runMethod.getDeclaringClass().getName().toString().startsWith("Landroid/support")) {
 					System.out.println("additional: " + runMethod + ", class: " + cl);
-					AndroidEntryPointManager.ENTRIES.add(new AndroidEntryPoint(ExecutionOrder.MULTIPLE_TIMES_IN_LOOP, runMethod, cha));
+					this.manager.addEntry(new AndroidEntryPoint(ExecutionOrder.MULTIPLE_TIMES_IN_LOOP, runMethod, cha));
 				}
 			}
 		}
-		Collections.sort(AndroidEntryPointManager.ENTRIES, new AndroidEntryPoint.ExecutionOrderComperator());
-		AndroidEntryPointManager.ENTRIES = Collections.unmodifiableList(AndroidEntryPointManager.ENTRIES);
+		this.manager.sortEntries(new AndroidEntryPoint.ExecutionOrderComperator());
 	}
 
 }

@@ -31,23 +31,20 @@
  */
 package edu.kit.joana.wala.jodroid.entrypointsFile;
 
-import edu.kit.joana.wala.jodroid.entrypointsFile.Exceptions.ParserException;
-
-import java.util.Collection;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Map;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.FileOutputStream;
 import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import java.io.IOException;
-import java.io.FileNotFoundException;
-import javax.xml.stream.XMLStreamException;
+import edu.kit.joana.wala.jodroid.entrypointsFile.Exceptions.ParserException;
 /**
  *  Just wraps together everything for writing.
  *

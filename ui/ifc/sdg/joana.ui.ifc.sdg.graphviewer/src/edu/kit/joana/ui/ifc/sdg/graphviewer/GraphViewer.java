@@ -18,12 +18,6 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer;
 
-import edu.kit.joana.ui.ifc.sdg.graphviewer.model.GraphViewerModel;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.AdjustableTranslator;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Translator;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.util.Debug;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.MainFrame;
-
 import java.awt.Font;
 import java.io.File;
 import java.io.InputStream;
@@ -32,6 +26,12 @@ import java.util.Properties;
 import javax.swing.UIDefaults;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+
+import edu.kit.joana.ui.ifc.sdg.graphviewer.model.GraphViewerModel;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.AdjustableTranslator;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Translator;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.util.Debug;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.MainFrame;
 
 /**
  * This is the main class of the programm. It contains the main method that

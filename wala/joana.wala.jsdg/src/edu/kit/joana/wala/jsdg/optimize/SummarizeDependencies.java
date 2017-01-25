@@ -10,7 +10,6 @@ package edu.kit.joana.wala.jsdg.optimize;
 import java.util.Collection;
 import java.util.Set;
 
-
 import com.ibm.wala.classLoader.IMethod;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;

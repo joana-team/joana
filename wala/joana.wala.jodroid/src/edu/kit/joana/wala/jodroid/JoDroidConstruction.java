@@ -31,66 +31,49 @@
  */
 package edu.kit.joana.wala.jodroid;
 
-import com.ibm.wala.ipa.callgraph.AnalysisScope;
-import com.ibm.wala.dalvik.util.AndroidAnalysisScope;
-import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
-import com.ibm.wala.dalvik.util.AndroidManifestXMLReader;
-
-import edu.kit.joana.wala.jodroid.AnalysisPresets;
-import edu.kit.joana.wala.jodroid.AnalysisPresets.Preset;
-
-import com.ibm.wala.ipa.cha.IClassHierarchy;
-import com.ibm.wala.ipa.cha.ClassHierarchy;
-import com.ibm.wala.ipa.cha.ClassHierarchyException;
-
-import com.ibm.wala.classLoader.IMethod;
-
-import com.ibm.wala.dalvik.ipa.callgraph.androidModel.AndroidModel;
-import com.ibm.wala.dalvik.ipa.callgraph.androidModel.stubs.Overrides;
-import com.ibm.wala.dalvik.util.AndroidEntryPointLocator;
-import com.ibm.wala.dalvik.util.AndroidEntryPointLocator.LocatorFlags;
-import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationBehavior;
-import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.LoadedInstantiationBehavior;
-
-import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.Intent;
-import com.ibm.wala.dalvik.ipa.callgraph.androidModel.IntentModel;
-
-import edu.kit.joana.ifc.sdg.graph.SDG;
-import edu.kit.joana.wala.core.SDGBuilder;
-import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
-
-import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
-import com.ibm.wala.util.NullProgressMonitor;
-
-import com.ibm.wala.types.ClassLoaderReference;
-import com.ibm.wala.util.io.FileSuffixes;
-import java.util.jar.JarInputStream;
-import java.util.jar.JarFile;
-import com.ibm.wala.classLoader.JarStreamModule;
-import com.ibm.wala.dalvik.classLoader.DexFileModule;
-import com.ibm.wala.dalvik.dex.util.config.DexAnalysisScopeReader;
-import com.ibm.wala.util.config.AnalysisScopeReader;
-
-// Needed by findMethod:
-import com.ibm.wala.classLoader.IClass;
-import com.ibm.wala.types.TypeReference;
-import com.ibm.wala.types.MethodReference;
-import com.ibm.wala.types.Selector;
-
-import edu.kit.joana.wala.jodroid.entrypointsFile.Writer;
-import edu.kit.joana.wala.jodroid.entrypointsFile.Reader;
-
 import java.io.File;
-import java.net.URI;
 import java.io.FileOutputStream;
-import java.util.jar.JarFile;
 import java.io.IOException;
 import java.io.InputStream;
-import com.ibm.wala.util.CancelException;
-import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
+import java.net.URI;
+import java.util.jar.JarFile;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+// Needed by findMethod:
+import com.ibm.wala.classLoader.IClass;
+import com.ibm.wala.classLoader.IMethod;
+import com.ibm.wala.classLoader.JarStreamModule;
+import com.ibm.wala.dalvik.classLoader.DexFileModule;
+import com.ibm.wala.dalvik.ipa.callgraph.androidModel.AndroidModel;
+import com.ibm.wala.dalvik.ipa.callgraph.androidModel.IntentModel;
+import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationBehavior;
+import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.LoadedInstantiationBehavior;
+import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.Intent;
+import com.ibm.wala.dalvik.util.AndroidEntryPointLocator;
+import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
+import com.ibm.wala.dalvik.util.AndroidManifestXMLReader;
+import com.ibm.wala.ipa.callgraph.AnalysisScope;
+import com.ibm.wala.ipa.cha.ClassHierarchy;
+import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.ipa.cha.IClassHierarchy;
+import com.ibm.wala.types.ClassLoaderReference;
+import com.ibm.wala.types.MethodReference;
+import com.ibm.wala.types.Selector;
+import com.ibm.wala.types.TypeReference;
+import com.ibm.wala.util.CancelException;
+import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
+import com.ibm.wala.util.NullProgressMonitor;
+import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
+import com.ibm.wala.util.io.FileSuffixes;
+
+import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
+import edu.kit.joana.wala.core.SDGBuilder;
+import edu.kit.joana.wala.jodroid.AnalysisPresets.Preset;
+import edu.kit.joana.wala.jodroid.entrypointsFile.Reader;
+import edu.kit.joana.wala.jodroid.entrypointsFile.Writer;
 
 /**
  *  "Main-Routines" of the inner JoDroid.

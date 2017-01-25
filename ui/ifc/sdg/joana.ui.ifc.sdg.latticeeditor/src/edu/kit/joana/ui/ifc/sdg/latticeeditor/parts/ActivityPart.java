@@ -22,7 +22,6 @@ import java.beans.PropertyChangeListener;
 import java.util.List;
 import java.util.Map;
 
-
 import org.eclipse.draw2d.ConnectionAnchor;
 import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.geometry.Rectangle;

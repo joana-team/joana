@@ -12,7 +12,6 @@ import static org.junit.Assert.fail;
 
 import java.io.IOException;
 
-
 import org.junit.Test;
 
 import com.ibm.wala.ipa.cha.ClassHierarchyException;

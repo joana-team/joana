@@ -7,7 +7,7 @@
  */
 package edu.kit.joana.ifc.sdg.graph;
 
-import org.jgrapht.*;
+import org.jgrapht.EdgeFactory;
 
 /**
  * The factory for creating Vertices and Edges in a <tt>DirectedGraphImpl</tt> class.

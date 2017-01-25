@@ -1,11 +1,11 @@
 package rs3.hybrid.eVotingVerif.core;
 
+import rs3.hybrid.functionalities.amt.AMT;
+import rs3.hybrid.functionalities.amt.AMT.AMTError;
 import rs3.hybrid.functionalities.smt.AuthenticatedMessage;
 import rs3.hybrid.functionalities.smt.Receiver;
 import rs3.hybrid.functionalities.smt.SMT;
 import rs3.hybrid.functionalities.smt.SMT.SMTError;
-import rs3.hybrid.functionalities.amt.AMT;
-import rs3.hybrid.functionalities.amt.AMT.AMTError;
 
 public final class Server {
 	private final int numberOfVoters;

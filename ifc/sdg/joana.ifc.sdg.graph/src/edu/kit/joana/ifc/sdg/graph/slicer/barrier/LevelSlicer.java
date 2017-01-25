@@ -7,7 +7,8 @@
  */
 package edu.kit.joana.ifc.sdg.graph.slicer.barrier;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
 
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 

@@ -10,7 +10,6 @@ package edu.kit.joana.deprecated.jsdg.gui;
 import java.util.Collection;
 import java.util.HashSet;
 
-
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IStatus;

@@ -3,7 +3,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.jar.JarFile;

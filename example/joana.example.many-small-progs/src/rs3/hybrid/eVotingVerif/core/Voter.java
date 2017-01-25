@@ -1,7 +1,9 @@
 package rs3.hybrid.eVotingVerif.core;
 
-import rs3.hybrid.functionalities.smt.*;
-import rs3.hybrid.functionalities.smt.SMT.*;
+import rs3.hybrid.functionalities.smt.SMT.ConnectionError;
+import rs3.hybrid.functionalities.smt.SMT.RegistrationError;
+import rs3.hybrid.functionalities.smt.SMT.SMTError;
+import rs3.hybrid.functionalities.smt.Sender;
 
 public final class Voter {
 	private /*@ spec_public @*/ final byte choice;

@@ -7,13 +7,12 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.view.component;
 
+import javax.swing.JRadioButton;
+
 import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.LanguageEvent;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.LanguageListener;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Resource;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Translator;
-
-
-import javax.swing.JRadioButton;
 
 /**
  * Contains only language support specific novelties.

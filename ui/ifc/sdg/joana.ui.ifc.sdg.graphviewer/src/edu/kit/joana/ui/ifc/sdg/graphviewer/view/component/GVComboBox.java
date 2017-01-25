@@ -18,12 +18,6 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.view.component;
 
-import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.LanguageEvent;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.LanguageListener;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Resource;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Translator;
-
-
 import java.awt.Component;
 import java.awt.ComponentOrientation;
 
@@ -31,6 +25,11 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
+
+import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.LanguageEvent;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.LanguageListener;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Resource;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Translator;
 
 /**
  * A component that combines a button or editable field and a drop-down list.

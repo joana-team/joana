@@ -20,9 +20,9 @@ import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.NoMayAliasGraph;
 import edu.kit.joana.wala.flowless.pointsto.MatchPTSWithFlowLess.MatchResult;
 import edu.kit.joana.wala.flowless.spec.FlowLessSimplifier.BasicIFCStmt;
+import edu.kit.joana.wala.flowless.spec.ast.FlowAstVisitor.FlowAstException;
 import edu.kit.joana.wala.flowless.spec.ast.Parameter;
 import edu.kit.joana.wala.flowless.spec.ast.PrimitiveAliasStmt;
-import edu.kit.joana.wala.flowless.spec.ast.FlowAstVisitor.FlowAstException;
 
 /**
  * Annotates a basic alias graph with the information of a basic ifc statement.

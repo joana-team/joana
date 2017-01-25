@@ -7,15 +7,15 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.controller;
 
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.CallGraphView;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
-
 import java.awt.event.ActionEvent;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.jgraph.layout.OrderedTreeLayoutAlgorithm;
+
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.CallGraphView;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
 
 public class OrderedTreeLayoutAction extends AbstractGVAction implements ChangeListener {
 	private static final long serialVersionUID = -431575862619382771L;

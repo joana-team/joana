@@ -10,7 +10,6 @@ package edu.kit.joana.ui.ifc.sdg.compiler.builder;
 import java.util.ArrayList;
 import java.util.Collection;
 
-
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;

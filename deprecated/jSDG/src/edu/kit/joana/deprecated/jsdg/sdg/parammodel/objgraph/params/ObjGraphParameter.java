@@ -9,7 +9,6 @@ package edu.kit.joana.deprecated.jsdg.sdg.parammodel.objgraph.params;
 
 import java.util.Set;
 
-
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;

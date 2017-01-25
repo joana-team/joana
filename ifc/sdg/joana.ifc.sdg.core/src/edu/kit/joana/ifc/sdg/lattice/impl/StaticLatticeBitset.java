@@ -7,6 +7,8 @@
  */
 package edu.kit.joana.ifc.sdg.lattice.impl;
 
+import static java.math.BigInteger.ZERO;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,7 +23,6 @@ import java.util.Set;
 import edu.kit.joana.ifc.sdg.lattice.ILatticeOperations;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
-import static java.math.BigInteger.ZERO;
 
 
 /**

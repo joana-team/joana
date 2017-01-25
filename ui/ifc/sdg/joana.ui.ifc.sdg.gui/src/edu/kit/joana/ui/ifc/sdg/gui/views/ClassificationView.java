@@ -9,7 +9,6 @@ package edu.kit.joana.ui.ifc.sdg.gui.views;
 
 import java.util.Collection;
 
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.ITableLabelProvider;

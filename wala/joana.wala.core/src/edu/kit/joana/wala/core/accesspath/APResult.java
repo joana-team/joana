@@ -7,13 +7,6 @@
  */
 package edu.kit.joana.wala.core.accesspath;
 
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.wala.core.accesspath.APIntraProc.MergeOp;
-import gnu.trove.iterator.TIntIterator;
-import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.set.TIntSet;
-
 import java.util.LinkedList;
 import java.util.Set;
 
@@ -22,6 +15,13 @@ import com.ibm.wala.classLoader.IClassLoader;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.types.TypeReference;
+
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.wala.core.accesspath.APIntraProc.MergeOp;
+import gnu.trove.iterator.TIntIterator;
+import gnu.trove.map.TIntObjectMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
+import gnu.trove.set.TIntSet;
 
 /**
  * Result of the accesspath and merge info computation. Contains info for each PDG in the SDG.

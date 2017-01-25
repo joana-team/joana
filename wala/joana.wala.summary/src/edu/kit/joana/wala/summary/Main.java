@@ -7,6 +7,22 @@
  */
 package edu.kit.joana.wala.summary;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+
+import org.jgrapht.DirectedGraph;
+
+import com.ibm.wala.util.CancelException;
+import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
+
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -19,23 +35,6 @@ import edu.kit.joana.wala.summary.EntryPointCache.StoreEntryPointException;
 import edu.kit.joana.wala.summary.WorkPackage.EntryPoint;
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.list.TIntList;
-
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
-
-import org.jgrapht.DirectedGraph;
-
-import com.ibm.wala.util.CancelException;
-import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 
 /**
  * @author Juergen Graf <graf@kit.edu>

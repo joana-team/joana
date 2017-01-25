@@ -12,9 +12,8 @@
 package edu.kit.joana.ui.ifc.sdg.gui.sdgworks;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Collection;
-
+import java.util.HashMap;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;

@@ -9,7 +9,6 @@ package edu.kit.joana.ui.ifc.sdg.viewer.view;
 
 import java.util.ArrayList;
 
-
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;

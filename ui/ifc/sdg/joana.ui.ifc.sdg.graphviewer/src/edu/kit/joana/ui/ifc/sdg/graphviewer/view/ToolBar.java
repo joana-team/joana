@@ -18,17 +18,19 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.view;
 
-import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.*;
+import java.awt.FlowLayout;
+
+import javax.swing.JToolBar;
+
+import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.AllPredsAction;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.AllSuccsAction;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.OpenAction;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.ZoomInAction;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.ZoomOutAction;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.BundleConstants;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Resource;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVPanel;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVToolBar;
-
-
-
-import java.awt.FlowLayout;
-
-import javax.swing.JToolBar;
 
 /**
  * @author <a href="mailto:wellner@fmi.uni-passau.de">Tobias Wellner </a>

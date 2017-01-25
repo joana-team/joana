@@ -24,8 +24,8 @@ import com.ibm.wala.util.graph.labeled.AbstractNumberedLabeledGraph;
 import com.ibm.wala.util.graph.labeled.NumberedLabeledEdgeManager;
 import com.ibm.wala.util.graph.labeled.SparseNumberedLabeledEdgeManager;
 
-import edu.kit.joana.wala.flowless.pointsto.PtsParameter;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
+import edu.kit.joana.wala.flowless.pointsto.PtsParameter;
 import edu.kit.joana.wala.flowless.pointsto.PtsParameter.RootParameter;
 import edu.kit.joana.wala.util.ParamNum;
 import gnu.trove.map.TIntIntMap;

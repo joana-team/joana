@@ -18,8 +18,13 @@
 
 package conc.daisy;
 
-import java.util.*;
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Hashtable;
+import java.util.Properties;
+import java.util.StringTokenizer;
 
 /**
  * This class provides basic logging utilities.

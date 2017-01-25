@@ -31,15 +31,20 @@
  */
 package edu.kit.joana.wala.jodroid.entrypointsFile;
 
-import edu.kit.joana.wala.jodroid.entrypointsFile.Items.*;
-
 import java.util.Collections;
-import java.util.Set;
 import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.HashMap;
-import java.util.EnumMap;
+import java.util.Map;
+import java.util.Set;
+
+import edu.kit.joana.wala.jodroid.entrypointsFile.Items.BehavioralItem;
+import edu.kit.joana.wala.jodroid.entrypointsFile.Items.EPItem;
+import edu.kit.joana.wala.jodroid.entrypointsFile.Items.FinalItem;
+import edu.kit.joana.wala.jodroid.entrypointsFile.Items.InstantiationItem;
+import edu.kit.joana.wala.jodroid.entrypointsFile.Items.IntentItem;
+import edu.kit.joana.wala.jodroid.entrypointsFile.Items.NoOpItem;
+import edu.kit.joana.wala.jodroid.entrypointsFile.Items.ParserItem;
+import edu.kit.joana.wala.jodroid.entrypointsFile.Items.SectionItem;
 
 
 /**

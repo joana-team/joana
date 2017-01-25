@@ -9,10 +9,10 @@ package edu.kit.joana.ui.ifc.sdg.graphviewer.view;
 
 import javax.swing.JScrollPane;
 
+import org.jgraph.JGraph;
+
 import edu.kit.joana.ui.ifc.sdg.graphviewer.model.Graph;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.model.GraphObserver;
-
-import org.jgraph.JGraph;
 
 public class GraphPaneTab extends JScrollPane implements GraphObserver {
 	private static final long serialVersionUID = 6343682371894913075L;

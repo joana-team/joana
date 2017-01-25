@@ -10,7 +10,6 @@ package edu.kit.joana.deprecated.jsdg.sdg.nodes;
 import java.util.Iterator;
 import java.util.Set;
 
-
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.collections.HashSetFactory;
 

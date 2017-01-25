@@ -18,19 +18,27 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.view.pdg;
 
+import java.awt.Color;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-
+import java.io.InputStream;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Properties;
-import java.util.Enumeration;
-import java.awt.Color;
 
 import javax.swing.BorderFactory;
 import javax.swing.border.BevelBorder;
+
+import org.jgraph.graph.AttributeMap;
+import org.jgraph.graph.CellView;
+import org.jgraph.graph.DefaultCellViewFactory;
+import org.jgraph.graph.DefaultEdge;
+import org.jgraph.graph.DefaultGraphCell;
+import org.jgraph.graph.GraphConstants;
+import org.jgraph.graph.GraphModel;
 
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -43,16 +51,6 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.util.Debug;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.Adjustable;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.VertexAdjustmentsPanel;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVPanel;
-
-import java.io.InputStream;
-
-import org.jgraph.graph.AttributeMap;
-import org.jgraph.graph.CellView;
-import org.jgraph.graph.DefaultCellViewFactory;
-import org.jgraph.graph.DefaultEdge;
-import org.jgraph.graph.DefaultGraphCell;
-import org.jgraph.graph.GraphConstants;
-import org.jgraph.graph.GraphModel;
 
 
 /**

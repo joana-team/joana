@@ -30,8 +30,8 @@ import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.killdef.IFieldsMayMod;
 import edu.kit.joana.wala.core.params.objgraph.ModRefCandidate;
 import edu.kit.joana.wala.core.params.objgraph.ModRefCandidates;
-import edu.kit.joana.wala.core.params.objgraph.ModRefFieldCandidate;
 import edu.kit.joana.wala.core.params.objgraph.ModRefCandidates.InterProcCandidateModel;
+import edu.kit.joana.wala.core.params.objgraph.ModRefFieldCandidate;
 
 /**
  * 

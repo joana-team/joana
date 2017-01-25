@@ -7,7 +7,9 @@
  */
 package joana.api.testdata.toy.rec;
 
-import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.*;
+import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.SECRET;
+import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.leak;
+import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.toggle;
 
 public class MyList {
 	private ListElem head = null;

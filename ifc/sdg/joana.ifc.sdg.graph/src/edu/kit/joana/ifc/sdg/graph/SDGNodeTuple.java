@@ -20,8 +20,6 @@
 
 package edu.kit.joana.ifc.sdg.graph;
 
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
-
 /**
  * This class represents an immutable tuple of SDG nodes.<br>
  *

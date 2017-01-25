@@ -20,8 +20,8 @@ package edu.kit.joana.ui.ifc.sdg.graphviewer.view.pdg;
 
 import org.jgraph.graph.AttributeMap;
 import org.jgraph.graph.CellViewRenderer;
-import org.jgraph.graph.VertexView;
 import org.jgraph.graph.GraphConstants;
+import org.jgraph.graph.VertexView;
 
 import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.AttributeMapAdjustmentsEvent;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.AttributeMapAdjustmentsListener;

@@ -29,8 +29,8 @@ import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGField;
 import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.params.objgraph.ModRefCandidates;
-import edu.kit.joana.wala.core.params.objgraph.ModRefFieldCandidate;
 import edu.kit.joana.wala.core.params.objgraph.ModRefCandidates.InterProcCandidateModel;
+import edu.kit.joana.wala.core.params.objgraph.ModRefFieldCandidate;
 
 /**
  *

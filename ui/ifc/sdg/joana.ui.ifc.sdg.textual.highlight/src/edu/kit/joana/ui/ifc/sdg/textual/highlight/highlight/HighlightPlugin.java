@@ -9,7 +9,6 @@ package edu.kit.joana.ui.ifc.sdg.textual.highlight.highlight;
 
 import java.util.Map;
 
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;

@@ -1,7 +1,7 @@
 package rs3.cloud.functionalities.pkisig;
 
-import rs3.cloud.utils.MessageTools;
 import rs3.cloud.lib.crypto.CryptoLib;
+import rs3.cloud.utils.MessageTools;
 
 public class Verifier {
 	protected byte[] verifKey;

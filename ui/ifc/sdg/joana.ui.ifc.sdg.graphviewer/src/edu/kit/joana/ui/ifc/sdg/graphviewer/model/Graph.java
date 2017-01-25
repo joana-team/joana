@@ -7,14 +7,14 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.model;
 
-import edu.kit.joana.ifc.sdg.graph.SDG;
-import edu.kit.joana.ifc.sdg.graph.SDGEdge;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.EdgeViewSettings;
-
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
+
+import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.EdgeViewSettings;
 
 
 public abstract class Graph {

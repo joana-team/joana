@@ -13,7 +13,6 @@ package edu.kit.joana.ui.ifc.sdg.gui.sdgworks;
 
 import java.util.Collection;
 
-
 import org.eclipse.core.resources.IProject;
 
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;

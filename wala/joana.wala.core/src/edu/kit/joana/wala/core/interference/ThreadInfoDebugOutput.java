@@ -7,16 +7,16 @@
  */
 package edu.kit.joana.wala.core.interference;
 
+import com.ibm.wala.util.intset.IntIterator;
+import com.ibm.wala.util.intset.IntSet;
+import com.ibm.wala.util.intset.IntSetAction;
+
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.util.PrettyWalaNames;
 import gnu.trove.map.hash.TIntObjectHashMap;
-
-import com.ibm.wala.util.intset.IntIterator;
-import com.ibm.wala.util.intset.IntSet;
-import com.ibm.wala.util.intset.IntSetAction;
 
 /**
  * Contains some utility methods concerning output of info messages etc.

@@ -20,12 +20,10 @@ package edu.kit.joana.ui.ifc.sdg.latticeeditor.parts;
 import java.util.List;
 import java.util.Map;
 
-
 import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.graph.CompoundDirectedGraph;
 import org.eclipse.draw2d.graph.Edge;
 import org.eclipse.draw2d.graph.Node;
-
 import org.eclipse.gef.EditPart;
 
 import edu.kit.joana.ui.ifc.sdg.latticeeditor.figures.SequentialActivityFigure;

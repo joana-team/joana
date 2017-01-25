@@ -10,8 +10,6 @@ package edu.kit.joana.wala.flowless.test;
 import java.io.IOException;
 import java.util.List;
 
-import junit.framework.TestCase;
-
 import org.antlr.runtime.ANTLRFileStream;
 import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.runtime.CommonTokenStream;
@@ -22,8 +20,9 @@ import edu.kit.joana.wala.flowless.spec.FlowLessParser;
 import edu.kit.joana.wala.flowless.spec.FlowLessSimplifier;
 import edu.kit.joana.wala.flowless.spec.FlowLessSimplifier.BasicIFCStmt;
 import edu.kit.joana.wala.flowless.spec.ast.AstElement;
-import edu.kit.joana.wala.flowless.spec.ast.IFCStmt;
 import edu.kit.joana.wala.flowless.spec.ast.FlowAstVisitor.FlowAstException;
+import edu.kit.joana.wala.flowless.spec.ast.IFCStmt;
+import junit.framework.TestCase;
 
 public class TestFlowLessParsing extends TestCase {
 

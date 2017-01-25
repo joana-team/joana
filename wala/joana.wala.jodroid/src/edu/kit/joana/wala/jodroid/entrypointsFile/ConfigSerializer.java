@@ -31,26 +31,13 @@
  */
 package edu.kit.joana.wala.jodroid.entrypointsFile;
 
-import edu.kit.joana.wala.core.SDGBuilder.SDGBuilderConfig;
-import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.List;
-import java.util.Set;
-import java.util.HashSet;
-
-import edu.kit.joana.wala.jodroid.entrypointsFile.Serializer;
-import edu.kit.joana.wala.jodroid.entrypointsFile.Serializer.Reflected;
-import java.lang.reflect.Field;
-
-import java.io.FileOutputStream;
 import java.io.ObjectStreamClass;
 import java.io.ObjectStreamField;
-import java.io.Serializable;
-import java.io.ObjectOutput;
-import java.io.IOError;
+import java.lang.reflect.Field;
+
+import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
+
+import edu.kit.joana.wala.core.SDGBuilder.SDGBuilderConfig;
 
 /**
  *  A Serializer specialized for the Config of the AndroidModel.

@@ -9,7 +9,6 @@ package edu.kit.joana.ui.ifc.sdg.viewer.view;
 
 import java.util.regex.Matcher;
 
-
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.ui.javaeditor.EditorUtility;
 import org.eclipse.jface.action.IAction;

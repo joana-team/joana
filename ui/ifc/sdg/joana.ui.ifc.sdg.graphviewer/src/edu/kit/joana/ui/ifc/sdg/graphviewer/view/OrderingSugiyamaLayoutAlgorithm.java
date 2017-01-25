@@ -21,21 +21,20 @@ package edu.kit.joana.ui.ifc.sdg.graphviewer.view;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.Comparator;
-
 
 import org.jgraph.JGraph;
 import org.jgraph.graph.CellView;
+import org.jgraph.graph.DefaultGraphCell;
 import org.jgraph.graph.GraphConstants;
 import org.jgraph.graph.GraphModel;
 import org.jgraph.graph.VertexView;
-import org.jgraph.graph.DefaultGraphCell;
 import org.jgraph.layout.SugiyamaLayoutAlgorithm;
 
 import edu.kit.joana.ifc.sdg.graph.SDGNode;

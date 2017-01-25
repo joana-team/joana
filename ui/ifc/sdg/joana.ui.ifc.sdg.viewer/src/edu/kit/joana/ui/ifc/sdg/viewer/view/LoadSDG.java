@@ -9,7 +9,6 @@ package edu.kit.joana.ui.ifc.sdg.viewer.view;
 
 import java.io.IOException;
 
-
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;

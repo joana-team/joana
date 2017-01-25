@@ -7,15 +7,15 @@
  */
 package edu.kit.joana.wala.summary.jobber;
 
+import java.nio.CharBuffer;
+import java.util.NoSuchElementException;
+import java.util.StringTokenizer;
+
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import gnu.trove.TIntCollection;
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
-
-import java.nio.CharBuffer;
-import java.util.NoSuchElementException;
-import java.util.StringTokenizer;
 
 
 public class JobMessage {

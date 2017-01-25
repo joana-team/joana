@@ -18,13 +18,13 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.view.pdg;
 
-import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.AttributeMapAdjustmentsEvent;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.AttributeMapAdjustmentsListener;
-
 import javax.swing.event.EventListenerList;
 
 import org.jgraph.graph.AttributeMap;
 import org.jgraph.graph.GraphConstants;
+
+import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.AttributeMapAdjustmentsEvent;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.AttributeMapAdjustmentsListener;
 
 /**
  * The attributes are represented by maps of (key, value) pairs, which may be

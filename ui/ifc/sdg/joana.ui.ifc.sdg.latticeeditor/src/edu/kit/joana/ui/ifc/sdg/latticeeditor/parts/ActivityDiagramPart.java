@@ -20,7 +20,6 @@ package edu.kit.joana.ui.ifc.sdg.latticeeditor.parts;
 import java.util.EventObject;
 import java.util.Map;
 
-
 import org.eclipse.draw2d.Figure;
 import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.geometry.Rectangle;

@@ -7,12 +7,6 @@
  */
 package edu.kit.joana.wala.summary;
 
-import edu.kit.joana.ifc.sdg.graph.BitVector;
-import edu.kit.joana.ifc.sdg.graph.SDGEdge;
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import gnu.trove.map.TIntObjectMap;
-import gnu.trove.set.TIntSet;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,12 +14,17 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-
 import org.jgrapht.DirectedGraph;
 
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
+
+import edu.kit.joana.ifc.sdg.graph.BitVector;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import gnu.trove.map.TIntObjectMap;
+import gnu.trove.set.TIntSet;
 
 /**
  * @author Juergen Graf <graf@kit.edu>

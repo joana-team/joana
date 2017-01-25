@@ -7,8 +7,8 @@
  */
 package edu.kit.joana.ifc.sdg.graph.slicer.graph;
 
-import java.util.List;
 import java.util.LinkedList;
+import java.util.List;
 
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 

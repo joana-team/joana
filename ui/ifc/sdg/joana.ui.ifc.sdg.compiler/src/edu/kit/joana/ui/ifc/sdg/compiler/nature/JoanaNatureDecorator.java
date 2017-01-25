@@ -10,7 +10,6 @@ package edu.kit.joana.ui.ifc.sdg.compiler.nature;
 import java.util.ArrayList;
 import java.util.Collection;
 
-
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.resource.ImageDescriptor;

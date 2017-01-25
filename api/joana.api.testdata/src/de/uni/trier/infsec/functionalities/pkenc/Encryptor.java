@@ -1,8 +1,9 @@
 package de.uni.trier.infsec.functionalities.pkenc;
 
-import de.uni.trier.infsec.lib.crypto.CryptoLib;
-import static de.uni.trier.infsec.utils.MessageTools.getZeroMessage;
 import static de.uni.trier.infsec.utils.MessageTools.copyOf;
+import static de.uni.trier.infsec.utils.MessageTools.getZeroMessage;
+
+import de.uni.trier.infsec.lib.crypto.CryptoLib;
 
 /**
  * Ideal functionality for public-key encryption: Encryptor

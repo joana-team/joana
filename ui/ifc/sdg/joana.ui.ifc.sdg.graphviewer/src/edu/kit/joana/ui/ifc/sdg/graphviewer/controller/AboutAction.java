@@ -18,14 +18,13 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.controller;
 
+import java.awt.event.ActionEvent;
+
 import edu.kit.joana.ui.ifc.sdg.graphviewer.GraphViewer;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.BundleConstants;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Resource;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVFrame;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVOptionPane;
-
-
-import java.awt.event.ActionEvent;
 
 /**
  * @author <a href="mailto:wellner@fmi.uni-passau.de">Tobias Wellner </a>

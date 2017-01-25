@@ -7,15 +7,15 @@
  */
 package edu.kit.joana.api.lattice;
 
+import static edu.kit.joana.api.lattice.BuiltinLattices.STD_SECLEVEL_HIGH;
+import static edu.kit.joana.api.lattice.BuiltinLattices.STD_SECLEVEL_LOW;
+
 import java.util.Collection;
 import java.util.Iterator;
 
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.InvalidLatticeException;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
-
-import static edu.kit.joana.api.lattice.BuiltinLattices.STD_SECLEVEL_LOW;
-import static edu.kit.joana.api.lattice.BuiltinLattices.STD_SECLEVEL_HIGH;
 
 /**
  * 

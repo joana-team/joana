@@ -18,6 +18,15 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.view;
 
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.event.ContainerEvent;
+import java.awt.event.ContainerListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
+import javax.swing.ActionMap;
+
 import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.AboutAction;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.AdjustmentsAction;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.AllPredsAction;
@@ -58,15 +67,6 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.util.Debug;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.util.GVUtilities;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVFrame;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.pdg.PDGViewFactory;
-
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.event.ContainerEvent;
-import java.awt.event.ContainerListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-
-import javax.swing.ActionMap;
 
 /**
  * This class constitutes the main frame of the graph viewer.

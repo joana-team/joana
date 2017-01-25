@@ -9,7 +9,6 @@ package edu.kit.joana.ui.ifc.sdg.gui.actions;
 
 import java.util.Collection;
 
-
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.runtime.CoreException;

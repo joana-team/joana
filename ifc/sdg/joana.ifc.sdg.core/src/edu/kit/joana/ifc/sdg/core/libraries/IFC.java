@@ -17,9 +17,9 @@ import java.util.TreeSet;
 
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.conc.Element;
+import edu.kit.joana.ifc.sdg.core.conc.Element.ElementSet;
 import edu.kit.joana.ifc.sdg.core.conc.Rule;
 import edu.kit.joana.ifc.sdg.core.conc.ViolationComparator;
-import edu.kit.joana.ifc.sdg.core.conc.Element.ElementSet;
 import edu.kit.joana.ifc.sdg.core.interfaces.ProgressAnnouncer;
 import edu.kit.joana.ifc.sdg.core.interfaces.ProgressListener;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;

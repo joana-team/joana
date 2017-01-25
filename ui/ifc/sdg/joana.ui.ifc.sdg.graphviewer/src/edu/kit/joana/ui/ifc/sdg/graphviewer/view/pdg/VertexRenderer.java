@@ -13,20 +13,22 @@
 
 package edu.kit.joana.ui.ifc.sdg.graphviewer.view.pdg;
 
-import edu.kit.joana.ui.ifc.sdg.graphviewer.layout.PDGConstants;
-
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.GridLayout;
 import java.util.Map;
+
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JToolTip;
+
 import org.jgraph.JGraph;
 import org.jgraph.graph.CellView;
 import org.jgraph.graph.CellViewRenderer;
 import org.jgraph.graph.GraphConstants;
 import org.jgraph.graph.VertexView;
+
+import edu.kit.joana.ui.ifc.sdg.graphviewer.layout.PDGConstants;
 
 /**
  * This class renders a vertex.

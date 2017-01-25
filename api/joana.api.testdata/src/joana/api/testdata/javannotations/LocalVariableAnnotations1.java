@@ -7,7 +7,9 @@
  */
 package joana.api.testdata.javannotations;
 
-import static edu.kit.joana.ui.annotations.Level.*;
+import static edu.kit.joana.ui.annotations.Level.HIGH;
+import static edu.kit.joana.ui.annotations.Level.LOW;
+
 import edu.kit.joana.ui.annotations.Sink;
 import edu.kit.joana.ui.annotations.Source;
 

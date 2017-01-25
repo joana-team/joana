@@ -18,11 +18,6 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.view.component;
 
-import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.LanguageEvent;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.LanguageListener;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Resource;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Translator;
-
 import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.util.Iterator;
@@ -30,6 +25,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.JTabbedPane;
+
+import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.LanguageEvent;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.LanguageListener;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Resource;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Translator;
 
 /**
  * A component that lets the user switch between a group of components by

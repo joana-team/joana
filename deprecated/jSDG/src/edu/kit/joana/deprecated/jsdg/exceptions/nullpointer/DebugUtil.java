@@ -9,7 +9,6 @@ package edu.kit.joana.deprecated.jsdg.exceptions.nullpointer;
 
 import java.io.File;
 
-
 import com.ibm.wala.cfg.ControlFlowGraph;
 import com.ibm.wala.cfg.IBasicBlock;
 import com.ibm.wala.dataflow.graph.DataflowSolver;

@@ -10,7 +10,6 @@ package edu.kit.joana.wala.core.summary;
 import java.util.Set;
 import java.util.TreeSet;
 
-
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 

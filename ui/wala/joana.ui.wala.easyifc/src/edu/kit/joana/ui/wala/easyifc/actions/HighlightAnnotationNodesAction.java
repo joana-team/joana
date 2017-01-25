@@ -24,21 +24,16 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.ui.PlatformUI;
 
-import edu.kit.joana.api.SPos;
 import edu.kit.joana.api.annotations.AnnotationTypeBasedNodeCollector;
 import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ui.wala.easyifc.Activator;
 import edu.kit.joana.ui.wala.easyifc.model.FileSourcePositions;
-import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.IFCResult;
-import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SLeak;
 import edu.kit.joana.ui.wala.easyifc.model.ProgramSourcePositions;
 import edu.kit.joana.ui.wala.easyifc.util.EasyIFCMarkerAndImageManager;
 import edu.kit.joana.ui.wala.easyifc.util.ProjectUtil;
 import edu.kit.joana.ui.wala.easyifc.views.EasyIFCView;
 import edu.kit.joana.ui.wala.easyifc.views.IFCTreeContentProvider.AnnotationNode;
-import edu.kit.joana.ui.wala.easyifc.views.IFCTreeContentProvider.IFCInfoNode;
-import edu.kit.joana.ui.wala.easyifc.views.IFCTreeContentProvider.LeakInfoNode;
 import edu.kit.joana.ui.wala.easyifc.views.IFCTreeContentProvider.TreeNode;
 
 public class HighlightAnnotationNodesAction extends Action {

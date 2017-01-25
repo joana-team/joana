@@ -7,15 +7,15 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.controller;
 
-import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.BundleConstants;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.CallGraphView;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.HideNodeDialog;
-
 import java.awt.event.ActionEvent;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.BundleConstants;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.CallGraphView;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.HideNodeDialog;
 
 public class HideNodeAction extends AbstractGVAction implements BundleConstants, ChangeListener {
 	private static final long serialVersionUID = -653706055036201073L;

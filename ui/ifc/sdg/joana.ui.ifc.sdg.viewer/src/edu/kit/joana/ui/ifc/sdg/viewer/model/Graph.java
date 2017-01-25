@@ -10,7 +10,6 @@ package edu.kit.joana.ui.ifc.sdg.viewer.model;
 import java.util.Collection;
 import java.util.LinkedList;
 
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.ICompilationUnit;
 

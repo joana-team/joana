@@ -7,7 +7,7 @@
  */
 package edu.kit.joana.api.test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
 
 import java.io.IOException;
 import java.util.Collection;

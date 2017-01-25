@@ -12,8 +12,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import edu.kit.joana.ui.annotations.Level;
-
 /**
  * 
  * @author Martin Hecker <martin.hecker@kit.edu>

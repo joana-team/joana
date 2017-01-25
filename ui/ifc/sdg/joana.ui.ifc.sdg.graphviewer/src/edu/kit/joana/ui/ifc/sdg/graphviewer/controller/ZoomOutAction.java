@@ -18,14 +18,13 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.controller;
 
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
-
 import java.awt.event.ActionEvent;
-
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 import org.jgraph.JGraph;
+
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
 
 /**
  * @author <a href="mailto:wellner@fmi.uni-passau.de">Tobias Wellner </a>

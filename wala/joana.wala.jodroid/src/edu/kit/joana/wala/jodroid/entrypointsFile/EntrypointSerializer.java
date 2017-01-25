@@ -31,36 +31,18 @@
  */
 package edu.kit.joana.wala.jodroid.entrypointsFile;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.dalvik.ipa.callgraph.impl.AndroidEntryPoint;
-import com.ibm.wala.ipa.callgraph.Entrypoint;
 import com.ibm.wala.dalvik.ipa.callgraph.impl.AndroidEntryPoint.IExecutionOrder;
 import com.ibm.wala.dalvik.util.AndroidComponent;
-import com.ibm.wala.classLoader.IMethod;
-
+import com.ibm.wala.ipa.callgraph.Entrypoint;
 import com.ibm.wala.types.TypeName;
 import com.ibm.wala.types.TypeReference;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.List;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-
-import edu.kit.joana.wala.jodroid.entrypointsFile.Serializer;
-import edu.kit.joana.wala.jodroid.entrypointsFile.Serializer.Reflected;
-import java.lang.reflect.Field;
-
-import java.io.FileOutputStream;
-import java.io.ObjectStreamClass;
-import java.io.ObjectStreamField;
-import java.io.Serializable;
-import java.io.ObjectOutput;
-import java.io.IOError;
 
 /**
  *  A Serializer specialized in reading Entrypoints.

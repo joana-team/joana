@@ -7,13 +7,13 @@
  */
 package edu.kit.joana.wala.core;
 
+import com.ibm.wala.types.TypeReference;
+import com.ibm.wala.util.graph.INodeWithNumber;
+
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.wala.util.PrettyWalaNames;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
-
-import com.ibm.wala.types.TypeReference;
-import com.ibm.wala.util.graph.INodeWithNumber;
 
 
 public final class PDGNode implements INodeWithNumber {

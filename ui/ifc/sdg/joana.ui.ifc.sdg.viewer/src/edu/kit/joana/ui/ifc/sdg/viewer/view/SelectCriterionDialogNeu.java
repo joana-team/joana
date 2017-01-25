@@ -9,7 +9,6 @@ package edu.kit.joana.ui.ifc.sdg.viewer.view;
 
 import java.util.ArrayList;
 
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;

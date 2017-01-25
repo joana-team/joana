@@ -7,11 +7,6 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.controller;
 
-import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.BundleConstants;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.util.VertexNode;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.SearchDialog;
-
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -32,6 +27,11 @@ import org.jgraph.graph.DefaultGraphCell;
 import org.jgraph.graph.DefaultGraphModel;
 import org.jgraph.graph.GraphLayoutCache;
 import org.jgraph.graph.GraphModel;
+
+import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.BundleConstants;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.util.VertexNode;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.SearchDialog;
 
 /**
  * marks all successors for a vertex

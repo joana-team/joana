@@ -9,7 +9,6 @@ package edu.kit.joana.ui.ifc.sdg.compiler.builder;
 
 import java.util.List;
 
-
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ElementChangedEvent;
 import org.eclipse.jdt.core.IElementChangedListener;

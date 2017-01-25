@@ -31,29 +31,26 @@
  */
 package edu.kit.joana.wala.jodroid.entrypointsFile;
 
-import edu.kit.joana.wala.jodroid.entrypointsFile.Items.EPFileHandler;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParserFactory;
+
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationBehavior;
 import com.ibm.wala.dalvik.ipa.callgraph.impl.AndroidEntryPoint;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.EnumMap;
-
-import java.io.File;
-import java.io.InputStream;
-import java.io.FileInputStream;
-import org.xml.sax.InputSource;
-import javax.xml.parsers.SAXParserFactory;
-
 import edu.kit.joana.wala.jodroid.entrypointsFile.Exceptions.ParserException;
-import org.xml.sax.SAXException;
-import java.io.IOException;
-import java.io.FileNotFoundException;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.parsers.ParserConfigurationException;
+import edu.kit.joana.wala.jodroid.entrypointsFile.Items.EPFileHandler;
 /**
  *  Just wraps together everything for reading.
  *

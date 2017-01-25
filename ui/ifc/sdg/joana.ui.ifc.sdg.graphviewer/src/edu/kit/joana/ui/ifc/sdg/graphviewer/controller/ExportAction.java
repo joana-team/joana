@@ -13,13 +13,6 @@
 
 package edu.kit.joana.ui.ifc.sdg.graphviewer.controller;
 
-import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Resource;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.Export;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVFileChooser;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVFrame;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVOptionPane;
-
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +21,13 @@ import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
 
 import org.jgraph.JGraph;
+
+import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Resource;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.Export;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVFileChooser;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVFrame;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVOptionPane;
 
 /**
  * This is an action for exporting a PDG as image.

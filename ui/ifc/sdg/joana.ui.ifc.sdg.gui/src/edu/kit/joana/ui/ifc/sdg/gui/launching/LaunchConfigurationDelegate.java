@@ -9,7 +9,6 @@ package edu.kit.joana.ui.ifc.sdg.gui.launching;
 
 import java.io.IOException;
 
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;

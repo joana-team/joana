@@ -7,16 +7,16 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.controller;
 
+import java.awt.event.ActionEvent;
+
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
 import edu.kit.joana.ui.ifc.sdg.graphviewer.model.Graph;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.model.GraphViewerModel;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.model.MethodGraph;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.CallGraphView;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
-
-import java.awt.event.ActionEvent;
-
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 public class CombiAction extends AbstractGVAction implements ChangeListener {
 	private static final long serialVersionUID = 2050067496603903127L;

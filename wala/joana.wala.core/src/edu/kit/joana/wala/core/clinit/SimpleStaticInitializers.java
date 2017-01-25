@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CGNode;
@@ -29,8 +28,8 @@ import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGCallReturn;
 import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
-import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.PDGNode.Kind;
+import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
 import edu.kit.joana.wala.util.NotImplementedException;
 

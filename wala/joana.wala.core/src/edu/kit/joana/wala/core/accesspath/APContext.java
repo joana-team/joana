@@ -7,14 +7,14 @@
  */
 package edu.kit.joana.wala.core.accesspath;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.wala.core.accesspath.APIntraProc.MergeOp;
 import gnu.trove.map.TIntObjectMap;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Represents a single calling context configuration. This class can be asked if certain heap data dependencies are

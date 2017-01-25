@@ -18,16 +18,6 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.view;
 
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.OpenMethodAction;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.AttributeMapAdjustmentsEvent;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.AttributeMapAdjustmentsListener;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.model.Graph;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Translator;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVPopupMenu;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.pdg.PDGAttributeMap;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.pdg.PDGViewFactory;
-
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -35,7 +25,6 @@ import java.util.Hashtable;
 import java.util.List;
 
 import javax.swing.ActionMap;
-
 
 import org.jgraph.JGraph;
 import org.jgraph.graph.BasicMarqueeHandler;
@@ -46,6 +35,16 @@ import org.jgraph.graph.DefaultGraphModel;
 import org.jgraph.graph.GraphLayoutCache;
 import org.jgraph.graph.GraphModel;
 import org.jgraph.layout.JGraphLayoutAlgorithm;
+
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.OpenMethodAction;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.AttributeMapAdjustmentsEvent;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.AttributeMapAdjustmentsListener;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.model.Graph;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Translator;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVPopupMenu;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.pdg.PDGAttributeMap;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.pdg.PDGViewFactory;
 
 /**
  * A JGraph, extended by a popup menu for the nodes and language support.

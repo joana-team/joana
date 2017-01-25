@@ -10,7 +10,6 @@ package edu.kit.joana.ui.ifc.sdg.gui.actions;
 import java.util.LinkedList;
 import java.util.List;
 
-
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRunnable;

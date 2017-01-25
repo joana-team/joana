@@ -2,10 +2,8 @@ package edu.kit.joana.ui.wala.easyifc.util;
 
 import java.util.Map;
 
-import org.eclipse.jdt.internal.corext.fix.CleanUpConstants;
 import org.eclipse.jdt.internal.ui.fix.AbstractCleanUp;
 import org.eclipse.jdt.internal.ui.preferences.cleanup.AbstractCleanUpTabPage;
-import org.eclipse.jdt.internal.ui.preferences.cleanup.CleanUpMessages;
 import org.eclipse.jdt.ui.cleanup.CleanUpOptions;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;

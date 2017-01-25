@@ -10,12 +10,10 @@ package edu.kit.joana.deprecated.jsdg.sdg.parammodel.objtree;
 import java.util.Iterator;
 import java.util.Set;
 
-
 import com.ibm.wala.util.collections.HashSetFactory;
 
 import edu.kit.joana.deprecated.jsdg.sdg.parammodel.IParamSet;
 import edu.kit.joana.deprecated.jsdg.sdg.parammodel.IParameter;
-import edu.kit.joana.wala.util.NotImplementedException;
 
 /**
  * Parameter set of an object tree

@@ -9,6 +9,7 @@ package edu.kit.joana.ifc.sdg.graph.slicer;
 
 import java.util.Collection;
 import java.util.Collections;
+
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;

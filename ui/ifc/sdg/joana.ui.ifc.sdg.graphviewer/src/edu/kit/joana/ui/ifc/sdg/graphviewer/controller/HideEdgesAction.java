@@ -9,13 +9,6 @@ package edu.kit.joana.ui.ifc.sdg.graphviewer.controller;
 
 import java.awt.Color;
 import java.awt.Font;
-
-import edu.kit.joana.ifc.sdg.graph.SDGEdge;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.layout.PDGConstants;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.BundleConstants;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
-
-
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,11 +20,16 @@ import java.util.Properties;
 import javax.swing.JScrollPane;
 
 import org.jgraph.JGraph;
-import org.jgraph.graph.GraphLayoutCache;
 import org.jgraph.graph.DefaultGraphCell;
-import org.jgraph.graph.GraphModel;
 import org.jgraph.graph.DefaultGraphModel;
 import org.jgraph.graph.GraphConstants;
+import org.jgraph.graph.GraphLayoutCache;
+import org.jgraph.graph.GraphModel;
+
+import edu.kit.joana.ifc.sdg.graph.SDGEdge;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.layout.PDGConstants;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.BundleConstants;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
 
 
 public class HideEdgesAction extends AbstractGVAction implements BundleConstants {

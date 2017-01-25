@@ -7,14 +7,14 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.controller;
 
-import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.BundleConstants;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.LookupDialog;
-
 import java.awt.event.ActionEvent;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.BundleConstants;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.LookupDialog;
 
 public class LookupAction extends AbstractGVAction implements BundleConstants, ChangeListener {
 	private static final long serialVersionUID = 612904713808421341L;

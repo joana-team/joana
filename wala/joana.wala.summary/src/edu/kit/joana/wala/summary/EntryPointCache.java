@@ -7,15 +7,15 @@
  */
 package edu.kit.joana.wala.summary;
 
-import edu.kit.joana.wala.summary.WorkPackage.EntryPoint;
-import gnu.trove.map.hash.TIntObjectHashMap;
-
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.text.ParseException;
+
+import edu.kit.joana.wala.summary.WorkPackage.EntryPoint;
+import gnu.trove.map.hash.TIntObjectHashMap;
 
 
 /**

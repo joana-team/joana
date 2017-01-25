@@ -11,15 +11,15 @@
  */
 package edu.kit.joana.ifc.sdg.graph;
 
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
-import gnu.trove.iterator.TIntIterator;
-
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Iterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
+
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
+import gnu.trove.iterator.TIntIterator;
 
 
 /**

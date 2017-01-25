@@ -16,11 +16,11 @@ import org.jgrapht.DirectedGraph;
 
 import edu.kit.joana.ifc.sdg.graph.JoanaGraph;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
-import edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind;
 
 /**
  * @author Martin Mohr

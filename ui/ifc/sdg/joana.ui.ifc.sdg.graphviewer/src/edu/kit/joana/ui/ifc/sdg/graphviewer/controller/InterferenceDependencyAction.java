@@ -7,15 +7,16 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.controller;
 
+import java.awt.event.ActionEvent;
+
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
 import edu.kit.joana.ui.ifc.sdg.graphviewer.model.Graph;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.BundleConstants;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.util.GVUtilities;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.CallGraphView;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
-
-import java.awt.event.ActionEvent;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 public class InterferenceDependencyAction extends AbstractGVAction implements BundleConstants, ChangeListener {
 	private static final long serialVersionUID = -4416383715458486025L;

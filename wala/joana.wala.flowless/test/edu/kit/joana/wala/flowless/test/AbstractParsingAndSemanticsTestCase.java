@@ -13,8 +13,6 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-import junit.framework.TestCase;
-
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
@@ -27,6 +25,7 @@ import edu.kit.joana.wala.flowless.spec.ast.FlowAstVisitor.FlowAstException;
 import edu.kit.joana.wala.flowless.spec.java.LightweightParser;
 import edu.kit.joana.wala.flowless.spec.java.ast.ClassInfo;
 import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
+import junit.framework.TestCase;
 
 public abstract class AbstractParsingAndSemanticsTestCase extends TestCase {
 

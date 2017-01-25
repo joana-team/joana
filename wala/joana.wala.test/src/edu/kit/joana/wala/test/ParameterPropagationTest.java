@@ -14,7 +14,6 @@ import static org.junit.Assert.fail;
 
 import java.io.IOException;
 
-
 import org.junit.Test;
 
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
@@ -24,8 +23,8 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.Main.Config;
+import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 
 public class ParameterPropagationTest {

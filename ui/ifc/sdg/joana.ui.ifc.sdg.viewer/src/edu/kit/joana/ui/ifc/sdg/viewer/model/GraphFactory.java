@@ -14,7 +14,6 @@ package edu.kit.joana.ui.ifc.sdg.viewer.model;
 
 import java.io.IOException;
 
-
 import org.eclipse.jdt.core.ICompilationUnit;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;

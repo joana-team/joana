@@ -18,10 +18,10 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event;
 
+import java.util.EventObject;
+
 import edu.kit.joana.ui.ifc.sdg.graphviewer.model.Graph;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.model.GraphViewerModel;
-
-import java.util.EventObject;
 
 /**
  * @author <a href="mailto:wellner@fmi.uni-passau.de">Tobias Wellner </a>

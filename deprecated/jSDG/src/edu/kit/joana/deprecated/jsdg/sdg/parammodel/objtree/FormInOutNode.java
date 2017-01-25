@@ -10,7 +10,6 @@ package edu.kit.joana.deprecated.jsdg.sdg.parammodel.objtree;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.util.intset.OrdinalSet;
 

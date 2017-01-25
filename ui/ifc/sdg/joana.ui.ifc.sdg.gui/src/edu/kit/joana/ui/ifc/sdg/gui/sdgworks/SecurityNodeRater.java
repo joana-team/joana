@@ -10,7 +10,6 @@ package edu.kit.joana.ui.ifc.sdg.gui.sdgworks;
 import java.util.HashMap;
 import java.util.List;
 
-
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 

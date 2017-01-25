@@ -18,6 +18,13 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.view;
 
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.util.Locale;
+
+import javax.swing.JLabel;
+
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.BundleConstants;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.DefaultTranslator;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Resource;
@@ -25,15 +32,6 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Translator;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVComboBox;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVLabel;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVPanel;
-
-
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-
-import java.util.Locale;
-
-import javax.swing.JLabel;
 
 /**
  * @author <a href="mailto:wellner@fmi.uni-passau.de">Tobias Wellner </a>

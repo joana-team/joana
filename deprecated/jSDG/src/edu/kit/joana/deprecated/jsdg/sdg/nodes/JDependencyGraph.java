@@ -7,14 +7,10 @@
  */
 package edu.kit.joana.deprecated.jsdg.sdg.nodes;
 
-import edu.kit.joana.deprecated.jsdg.util.Util;
-import gnu.trove.map.hash.TIntObjectHashMap;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.CGNode;
@@ -29,6 +25,9 @@ import com.ibm.wala.ssa.SSAMonitorInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
 import com.ibm.wala.ssa.SSAPutInstruction;
 import com.ibm.wala.util.graph.labeled.SlowSparseNumberedLabeledGraph;
+
+import edu.kit.joana.deprecated.jsdg.util.Util;
+import gnu.trove.map.hash.TIntObjectHashMap;
 
 /**
  * Contains all dependency and node creation methods needed for pdg and sdg

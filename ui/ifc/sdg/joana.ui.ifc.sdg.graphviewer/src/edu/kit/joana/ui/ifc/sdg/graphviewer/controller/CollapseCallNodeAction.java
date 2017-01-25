@@ -7,6 +7,13 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.controller;
 
+import java.awt.event.ActionEvent;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.jgraph.JGraph;
+import org.jgraph.graph.DefaultGraphCell;
+
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -14,14 +21,6 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.model.GraphViewerModel;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.model.MethodGraph;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.SearchDialog;
-
-import java.awt.event.ActionEvent;
-import java.util.LinkedList;
-import java.util.List;
-
-
-import org.jgraph.JGraph;
-import org.jgraph.graph.DefaultGraphCell;
 
 public class CollapseCallNodeAction extends AbstractGVAction {
 	private static final long serialVersionUID = 7049061345325288938L;

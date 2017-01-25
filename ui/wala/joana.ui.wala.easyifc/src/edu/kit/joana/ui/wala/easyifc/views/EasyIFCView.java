@@ -9,6 +9,7 @@ package edu.kit.joana.ui.wala.easyifc.views;
 
 
 import java.lang.reflect.InvocationTargetException;
+
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
@@ -51,9 +52,9 @@ import edu.kit.joana.ui.wala.easyifc.actions.ExpandNodesAction;
 import edu.kit.joana.ui.wala.easyifc.actions.HighlightAnnotationNodesAction;
 import edu.kit.joana.ui.wala.easyifc.actions.HighlightIFCResultAction;
 import edu.kit.joana.ui.wala.easyifc.actions.IFCAction;
+import edu.kit.joana.ui.wala.easyifc.actions.IFCAction.ProjectConf;
 import edu.kit.joana.ui.wala.easyifc.actions.IFCRunnable;
 import edu.kit.joana.ui.wala.easyifc.actions.SelectIFCTypeAction;
-import edu.kit.joana.ui.wala.easyifc.actions.IFCAction.ProjectConf;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer;
 import edu.kit.joana.ui.wala.easyifc.util.EntryPointSearch.EntryPointConfiguration;
 import edu.kit.joana.ui.wala.easyifc.views.IFCTreeContentProvider.AnnotationNode;

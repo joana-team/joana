@@ -20,15 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import edu.kit.joana.ifc.sdg.graph.SDGEdge;
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.layout.PDGConstants;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.model.ClonedSDGNode;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.model.MethodGraph;
-
 import javax.swing.BorderFactory;
 import javax.swing.ToolTipManager;
-
 
 import org.jgraph.JGraph;
 import org.jgraph.graph.ConnectionSet;
@@ -40,6 +33,12 @@ import org.jgraph.graph.GraphConstants;
 import org.jgraph.graph.GraphLayoutCache;
 import org.jgraph.graph.GraphModel;
 import org.jgrapht.ext.JGraphModelAdapter;
+
+import edu.kit.joana.ifc.sdg.graph.SDGEdge;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.layout.PDGConstants;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.model.ClonedSDGNode;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.model.MethodGraph;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class MethodGraphView extends JGraph {

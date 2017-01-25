@@ -18,15 +18,14 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.controller;
 
+import java.io.File;
+
+import javax.swing.filechooser.FileFilter;
+
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.BundleConstants;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Resource;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Translator;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.util.GVUtilities;
-
-
-import java.io.File;
-
-import javax.swing.filechooser.FileFilter;
 
 /**
  * @author <a href="mailto:wellner@fmi.uni-passau.de">Tobias Wellner </a>

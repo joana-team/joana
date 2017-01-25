@@ -31,30 +31,19 @@
  */
 package edu.kit.joana.wala.jodroid.entrypointsFile;
 
-import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationBehavior;
-import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationBehavior.InstanceBehavior;
-import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationBehavior.Exactness;
-import com.ibm.wala.util.strings.Atom;
-import com.ibm.wala.types.TypeName;
-import com.ibm.wala.types.MethodReference;
-
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.HashSet;
-
-import edu.kit.joana.wala.jodroid.entrypointsFile.Serializer;
-import edu.kit.joana.wala.jodroid.entrypointsFile.Serializer.Reflected;
-import java.lang.reflect.Field;
-
-import java.io.FileOutputStream;
 import java.io.ObjectStreamClass;
 import java.io.ObjectStreamField;
-import java.io.Serializable;
-import java.io.ObjectOutput;
-import java.io.IOError;
+import java.lang.reflect.Field;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationBehavior;
+import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationBehavior.Exactness;
+import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationBehavior.InstanceBehavior;
+import com.ibm.wala.types.MethodReference;
+import com.ibm.wala.types.TypeName;
+import com.ibm.wala.util.strings.Atom;
 
 /**
  *  A Serializer specialized in reading IInstantiationBehavior-Objects.

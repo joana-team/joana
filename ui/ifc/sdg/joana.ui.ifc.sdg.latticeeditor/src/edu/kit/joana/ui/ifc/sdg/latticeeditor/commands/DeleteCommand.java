@@ -20,7 +20,6 @@ package edu.kit.joana.ui.ifc.sdg.latticeeditor.commands;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import org.eclipse.gef.commands.Command;
 
 import edu.kit.joana.ui.ifc.sdg.latticeeditor.model.Activity;

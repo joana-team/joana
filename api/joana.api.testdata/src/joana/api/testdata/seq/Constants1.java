@@ -8,7 +8,9 @@
 package joana.api.testdata.seq;
 
 
-import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.*;
+import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.SECRET;
+import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.leak;
+import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.toggle;
 
 /**
  * @author Martin Hecker

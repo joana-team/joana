@@ -1,8 +1,8 @@
 package de.uni.trier.infsec.core;
 
+import de.uni.trier.infsec.functionalities.pkenc.Encryptor;
 import de.uni.trier.infsec.lib.network.Network;
 import de.uni.trier.infsec.lib.network.NetworkError;
-import de.uni.trier.infsec.functionalities.pkenc.Encryptor;
 
 public class Client implements Runnable {
 	

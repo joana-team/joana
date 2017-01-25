@@ -1,6 +1,6 @@
 package rs3.hybrid.functionalities.smt;
 
-import rs3.hybrid.environment.*;
+import rs3.hybrid.environment.SMTEnv;
 import rs3.hybrid.functionalities.smt.SMT.ConnectionError;
 import rs3.hybrid.functionalities.smt.SMT.SMTError;
 import rs3.hybrid.utils.MessageTools;

@@ -31,34 +31,27 @@
  */
 package edu.kit.joana.wala.jodroid.entrypointsFile;
 
-import java.io.FileOutputStream;
 import java.io.ObjectStreamClass;
 import java.io.ObjectStreamField;
 import java.io.Serializable;
-import java.io.ObjectOutput;
-import java.io.IOError;
-
 import java.lang.reflect.Field;
-
-import edu.kit.joana.wala.core.SDGBuilder.SDGBuilderConfig;
-import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationBehavior;
-import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
-import com.ibm.wala.util.strings.Atom;
-import com.ibm.wala.types.TypeName;
-import com.ibm.wala.ipa.callgraph.Entrypoint;
-import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.Intent;
-
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.HashSet;
-import java.util.List;
-import java.util.ArrayList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationBehavior;
+import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.Intent;
+import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
+import com.ibm.wala.ipa.callgraph.Entrypoint;
+
+import edu.kit.joana.wala.core.SDGBuilder.SDGBuilderConfig;
 
 /**
  *  Extract the data to write from WALAs structures.

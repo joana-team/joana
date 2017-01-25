@@ -11,10 +11,10 @@
  */
 package edu.kit.joana.ifc.sdg.graph;
 
+import java.util.Comparator;
+
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
-
-import java.util.Comparator;
 
 /**
  * <p>Title: SDGNode</p>

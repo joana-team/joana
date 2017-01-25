@@ -27,8 +27,8 @@ import edu.kit.joana.ui.wala.easyifc.model.CheckInformationFlow;
 import edu.kit.joana.ui.wala.easyifc.model.CheckInformationFlow.CheckIFCConfig;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer;
 import edu.kit.joana.ui.wala.easyifc.model.IFCResultFilter;
-import edu.kit.joana.ui.wala.easyifc.util.ProgressMonitorDelegate;
 import edu.kit.joana.ui.wala.easyifc.util.EntryPointSearch.EntryPointConfiguration;
+import edu.kit.joana.ui.wala.easyifc.util.ProgressMonitorDelegate;
 
 /**
  *

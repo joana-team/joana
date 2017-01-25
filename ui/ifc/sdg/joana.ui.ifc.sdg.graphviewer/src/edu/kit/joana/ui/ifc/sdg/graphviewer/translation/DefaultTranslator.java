@@ -18,14 +18,14 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.translation;
 
-import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.LanguageEvent;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.LanguageListener;
-
 import java.util.Hashtable;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
 import javax.swing.event.EventListenerList;
+
+import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.LanguageEvent;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.LanguageListener;
 
 /**
  * @author <a href="mailto:wellner@fmi.uni-passau.de">Tobias Wellner </a>

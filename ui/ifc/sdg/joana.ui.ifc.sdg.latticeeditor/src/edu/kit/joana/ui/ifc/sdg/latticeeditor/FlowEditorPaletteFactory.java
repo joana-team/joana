@@ -20,7 +20,6 @@ package edu.kit.joana.ui.ifc.sdg.latticeeditor;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import org.eclipse.gef.palette.CombinedTemplateCreationEntry;
 import org.eclipse.gef.palette.ConnectionCreationToolEntry;
 import org.eclipse.gef.palette.MarqueeToolEntry;

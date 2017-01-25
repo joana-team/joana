@@ -8,7 +8,6 @@
 package edu.kit.joana.wala.core.interference;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Iterator;

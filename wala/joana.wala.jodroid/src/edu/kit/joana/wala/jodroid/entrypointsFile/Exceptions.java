@@ -31,11 +31,6 @@
  */
 package edu.kit.joana.wala.jodroid.entrypointsFile;
 
-import java.lang.Throwable;
-import java.lang.Exception;
-import java.lang.RuntimeException;
-
-import java.lang.Class;
 /**
  *  Exceptions that may be thrown by the parser all extend ParserException.
  *

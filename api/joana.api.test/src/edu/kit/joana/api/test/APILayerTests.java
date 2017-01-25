@@ -9,8 +9,6 @@ package edu.kit.joana.api.test;
 
 import java.io.IOException;
 
-import joana.api.testdata.seq.AttributeAsParameter;
-
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -29,6 +27,7 @@ import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
+import joana.api.testdata.seq.AttributeAsParameter;
 
 /**
  * @author Martin Mohr

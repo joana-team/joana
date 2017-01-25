@@ -18,21 +18,19 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.view;
 
-import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.CommandStatusEvent;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.CommandStatusListener;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVLabel;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVPanel;
-
-
 import java.awt.Dimension;
-import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Insets;
-
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
 import javax.swing.BorderFactory;
+
+import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.CommandStatusEvent;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.CommandStatusListener;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVLabel;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVPanel;
 
 /**
  * @author <a href="mailto:wellner@fmi.uni-passau.de">Tobias Wellner </a>

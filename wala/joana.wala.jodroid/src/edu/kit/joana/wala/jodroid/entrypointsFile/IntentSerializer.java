@@ -31,25 +31,10 @@
  */
 package edu.kit.joana.wala.jodroid.entrypointsFile;
 
-import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.Intent;
-
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.List;
 import java.util.Set;
-import java.util.HashSet;
 
-import edu.kit.joana.wala.jodroid.entrypointsFile.Serializer;
-import edu.kit.joana.wala.jodroid.entrypointsFile.Serializer.Reflected;
-import java.lang.reflect.Field;
-
-import java.io.FileOutputStream;
-import java.io.ObjectStreamClass;
-import java.io.ObjectStreamField;
-import java.io.Serializable;
-import java.io.ObjectOutput;
-import java.io.IOError;
+import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.Intent;
 
 /**
  *  A Serializer specialized in reading Entrypoints.

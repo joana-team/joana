@@ -18,16 +18,16 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.model;
 
-import edu.kit.joana.ifc.sdg.graph.SDG;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.GraphViewerModelEvent;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.GraphViewerModelListener;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.util.SDGUtils;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
 import javax.swing.event.EventListenerList;
+
+import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.GraphViewerModelEvent;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.GraphViewerModelListener;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.util.SDGUtils;
 
 
 /**

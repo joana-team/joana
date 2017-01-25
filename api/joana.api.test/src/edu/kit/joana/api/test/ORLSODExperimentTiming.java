@@ -13,6 +13,10 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.lattice.BuiltinLattices;
+import edu.kit.joana.api.test.ORLSODExperiment.StandardTestConfig;
+import edu.kit.joana.api.test.util.ApiTestException;
+import edu.kit.joana.api.test.util.DumpTestSDG;
+import edu.kit.joana.api.test.util.JoanaPath;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
@@ -33,10 +37,6 @@ import joana.api.testdata.demo.xrlsod.ORLSOD3;
 import joana.api.testdata.demo.xrlsod.ORLSOD5Secure;
 import joana.api.testdata.demo.xrlsod.ORLSOD5a;
 import joana.api.testdata.demo.xrlsod.ORLSODImprecise;
-import edu.kit.joana.api.test.ORLSODExperiment.StandardTestConfig;
-import edu.kit.joana.api.test.util.ApiTestException;
-import edu.kit.joana.api.test.util.DumpTestSDG;
-import edu.kit.joana.api.test.util.JoanaPath;
 
 public class ORLSODExperimentTiming {
 

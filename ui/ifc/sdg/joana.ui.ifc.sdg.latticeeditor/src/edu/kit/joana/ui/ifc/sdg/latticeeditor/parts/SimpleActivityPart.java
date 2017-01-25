@@ -19,9 +19,6 @@ package edu.kit.joana.ui.ifc.sdg.latticeeditor.parts;
 
 import java.util.Map;
 
-
-import org.eclipse.jface.viewers.TextCellEditor;
-
 import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.Label;
 import org.eclipse.draw2d.PositionConstants;
@@ -29,6 +26,7 @@ import org.eclipse.draw2d.geometry.Insets;
 import org.eclipse.draw2d.graph.CompoundDirectedGraph;
 import org.eclipse.draw2d.graph.Node;
 import org.eclipse.draw2d.graph.Subgraph;
+import org.eclipse.jface.viewers.TextCellEditor;
 
 import edu.kit.joana.ui.ifc.sdg.latticeeditor.LatticeImages;
 import edu.kit.joana.ui.ifc.sdg.latticeeditor.figures.SimpleActivityLabel;

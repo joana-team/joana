@@ -13,24 +13,18 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Date;
 
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
-import com.ibm.wala.util.NullProgressMonitor;
 import com.ibm.wala.util.WalaException;
 
 import edu.kit.joana.deprecated.jsdg.SDGFactory.Config;
 import edu.kit.joana.deprecated.jsdg.sdg.nodes.JDependencyGraph.PDGFormatException;
-import edu.kit.joana.deprecated.jsdg.util.Debug;
 import edu.kit.joana.deprecated.jsdg.util.Log;
-import edu.kit.joana.deprecated.jsdg.util.Log.LogLevel;
 import edu.kit.joana.ifc.sdg.graph.SDG;
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.SDGVerifier;
-import edu.kit.joana.wala.util.VerboseProgressMonitor;
 import edu.kit.joana.wala.util.WatchDog;
 
 /**

@@ -20,7 +20,6 @@ package edu.kit.joana.ui.ifc.sdg.gui.views;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.gef.DefaultEditDomain;

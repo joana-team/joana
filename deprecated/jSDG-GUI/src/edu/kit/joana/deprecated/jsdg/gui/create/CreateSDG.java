@@ -9,7 +9,6 @@ package edu.kit.joana.deprecated.jsdg.gui.create;
 
 import java.io.IOException;
 
-
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jface.action.IAction;

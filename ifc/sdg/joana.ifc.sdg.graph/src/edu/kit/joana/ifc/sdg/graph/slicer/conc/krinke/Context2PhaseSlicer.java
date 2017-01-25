@@ -8,8 +8,8 @@
 package edu.kit.joana.ifc.sdg.graph.slicer.conc.krinke;
 
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Set;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;

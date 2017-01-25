@@ -1,8 +1,8 @@
 package rs3.cloud.functionalities.pkienc;
 
-import rs3.cloud.utils.MessageTools;
 import rs3.cloud.lib.crypto.CryptoLib;
 import rs3.cloud.lib.crypto.KeyPair;
+import rs3.cloud.utils.MessageTools;
 
 
 /** An object encapsulating the private and public keys of some party. */

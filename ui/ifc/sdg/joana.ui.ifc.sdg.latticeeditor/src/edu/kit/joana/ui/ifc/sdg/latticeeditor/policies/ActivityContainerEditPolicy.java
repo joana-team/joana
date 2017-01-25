@@ -19,7 +19,6 @@ package edu.kit.joana.ui.ifc.sdg.latticeeditor.policies;
 
 import java.util.List;
 
-
 import org.eclipse.gef.EditPart;
 import org.eclipse.gef.commands.Command;
 import org.eclipse.gef.commands.CompoundCommand;

@@ -1,11 +1,9 @@
 package rs3.clientserver.protocol;
 
-import rs3.clientserver.pkenc.Decryptor;
-import rs3.clientserver.pkenc.Encryptor;
-import rs3.clientserver.protocol.Client;
-import rs3.clientserver.protocol.Server;
 import rs3.clientserver.network.Network;
 import rs3.clientserver.network.NetworkError;
+import rs3.clientserver.pkenc.Decryptor;
+import rs3.clientserver.pkenc.Encryptor;
 
 /**
  *  Setup for the simple protocol: it creates the server and then,

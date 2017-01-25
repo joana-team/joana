@@ -7,13 +7,12 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.util;
 
+import java.util.List;
+import java.util.Map;
+
 import org.jgraph.graph.DefaultGraphCell;
 
 import edu.kit.joana.ui.ifc.sdg.graphviewer.layout.PDGConstants;
-
-import java.util.Map;
-import java.util.List;
-import java.lang.Comparable;
 
 /**
  * class to stores information of a single vertex node

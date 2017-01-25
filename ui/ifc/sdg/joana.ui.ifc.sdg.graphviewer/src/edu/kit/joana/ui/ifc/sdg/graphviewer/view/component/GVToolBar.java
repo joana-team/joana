@@ -18,17 +18,16 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.view.component;
 
-import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.LanguageEvent;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.LanguageListener;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Resource;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Translator;
-
-
 import java.awt.ComponentOrientation;
 
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JToolBar;
+
+import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.LanguageEvent;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.event.LanguageListener;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Resource;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Translator;
 
 /**
  * @author <a href="mailto:wellner@fmi.uni-passau.de">Tobias Wellner </a>

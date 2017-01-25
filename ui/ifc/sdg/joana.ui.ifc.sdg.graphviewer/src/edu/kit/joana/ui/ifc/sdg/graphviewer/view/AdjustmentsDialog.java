@@ -18,6 +18,19 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.view;
 
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Vector;
+
+import javax.swing.JScrollPane;
+
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.BundleConstants;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Resource;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVButton;
@@ -25,22 +38,6 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVDialog;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVFrame;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVPanel;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVTabbedPane;
-
-
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-
-import java.util.Iterator;
-import java.util.List;
-import java.util.Vector;
-
-import javax.swing.JScrollPane;
 
 /**
  * A dialog where the user can make adjustments. It contains the tabbed pane

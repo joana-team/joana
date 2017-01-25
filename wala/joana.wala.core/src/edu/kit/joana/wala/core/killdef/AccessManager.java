@@ -7,11 +7,6 @@
  */
 package edu.kit.joana.wala.core.killdef;
 
-import edu.kit.joana.wala.core.ParameterField;
-import edu.kit.joana.wala.core.dataflow.GenReach;
-import edu.kit.joana.wala.core.killdef.Access.RW;
-import gnu.trove.map.hash.TIntObjectHashMap;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,6 +29,11 @@ import com.ibm.wala.util.graph.INodeWithNumber;
 import com.ibm.wala.util.intset.BitVector;
 import com.ibm.wala.util.intset.OrdinalSet;
 import com.ibm.wala.util.intset.OrdinalSetMapping;
+
+import edu.kit.joana.wala.core.ParameterField;
+import edu.kit.joana.wala.core.dataflow.GenReach;
+import edu.kit.joana.wala.core.killdef.Access.RW;
+import gnu.trove.map.hash.TIntObjectHashMap;
 
 /**
  *

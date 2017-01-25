@@ -1,10 +1,10 @@
 package rs3.hybrid.eVotingVerif.core;
 
 import rs3.hybrid.environment.Environment;
+import rs3.hybrid.functionalities.amt.AMT;
 import rs3.hybrid.functionalities.smt.Receiver;
 import rs3.hybrid.functionalities.smt.SMT;
 import rs3.hybrid.functionalities.smt.Sender;
-import rs3.hybrid.functionalities.amt.AMT;
 
 public final class Setup 
 {

@@ -7,7 +7,9 @@
  */
 package joana.api.testdata.toy.declass;
 
-import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.*;
+import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.SECRET_BOOL;
+import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.leak;
+import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.toggle;
 
 class SecretWrapper extends Secret {
 	private Secret wrapped;

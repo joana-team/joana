@@ -2,7 +2,6 @@ package edu.kit.joana.ui.wala.easyifc.actions;
 
 import org.eclipse.jface.action.Action;
 
-
 import edu.kit.joana.ui.wala.easyifc.Activator;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer;
 import edu.kit.joana.ui.wala.easyifc.views.EasyIFCView;

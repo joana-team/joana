@@ -1,7 +1,4 @@
 package edu.kit.joana.graph.dominators.slca;
-import gnu.trove.map.TObjectIntMap;
-import gnu.trove.map.hash.TObjectIntHashMap;
-
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,6 +11,9 @@ import org.jgrapht.event.EdgeTraversalEvent;
 import org.jgrapht.event.TraversalListener;
 import org.jgrapht.event.VertexTraversalEvent;
 import org.jgrapht.traverse.DepthFirstIterator;
+
+import gnu.trove.map.TObjectIntMap;
+import gnu.trove.map.hash.TObjectIntHashMap;
 
 /**
  *

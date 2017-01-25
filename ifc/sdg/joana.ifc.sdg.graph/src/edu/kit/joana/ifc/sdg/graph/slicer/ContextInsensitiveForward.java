@@ -7,7 +7,8 @@
  */
 package edu.kit.joana.ifc.sdg.graph.slicer;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Set;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;

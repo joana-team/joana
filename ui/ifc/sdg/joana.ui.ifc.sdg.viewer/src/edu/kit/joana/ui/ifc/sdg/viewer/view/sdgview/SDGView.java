@@ -17,7 +17,6 @@ package edu.kit.joana.ui.ifc.sdg.viewer.view.sdgview;
 import java.util.ArrayList;
 import java.util.Stack;
 
-
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;

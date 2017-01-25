@@ -9,7 +9,6 @@ package edu.kit.joana.ui.ifc.sdg.viewer.view;
 
 import java.util.ArrayList;
 
-
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;

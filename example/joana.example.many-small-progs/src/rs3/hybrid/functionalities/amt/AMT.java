@@ -1,9 +1,9 @@
 package rs3.hybrid.functionalities.amt;
 
-import rs3.hybrid.utils.MessageTools;
+import rs3.hybrid.environment.AMTEnv;
 import rs3.hybrid.lib.network.NetworkClient;
 import rs3.hybrid.lib.network.NetworkError;
-import rs3.hybrid.environment.AMTEnv;
+import rs3.hybrid.utils.MessageTools;
 
 /**
  * Ideal functionality for AMT (Authenticated Message Transmission).

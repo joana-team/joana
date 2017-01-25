@@ -31,18 +31,18 @@
  */
 package edu.kit.joana.wala.jodroid.entrypointsFile;
 
-import com.ibm.wala.dalvik.ipa.callgraph.impl.AndroidEntryPoint;
-
-import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.LoadedInstantiationBehavior;
-import com.ibm.wala.util.strings.Atom;
-import com.ibm.wala.types.TypeName;
-import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationBehavior.InstanceBehavior;
-import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationBehavior.Exactness;
-import com.ibm.wala.types.MethodReference;
-
-import edu.kit.joana.wala.jodroid.entrypointsFile.Reader.Target;
 import java.util.List;
 import java.util.Map;
+
+import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationBehavior.Exactness;
+import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationBehavior.InstanceBehavior;
+import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.LoadedInstantiationBehavior;
+import com.ibm.wala.dalvik.ipa.callgraph.impl.AndroidEntryPoint;
+import com.ibm.wala.types.MethodReference;
+import com.ibm.wala.types.TypeName;
+import com.ibm.wala.util.strings.Atom;
+
+import edu.kit.joana.wala.jodroid.entrypointsFile.Reader.Target;
 
 class Deserializer {
     final Map<Target, Object> targets;

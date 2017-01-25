@@ -18,8 +18,8 @@ import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 
 import edu.kit.joana.wala.flowless.spec.FlowLessSimpleSemantic.SemanticException;
-import edu.kit.joana.wala.flowless.spec.ast.IFCStmt;
 import edu.kit.joana.wala.flowless.spec.ast.FlowAstVisitor.FlowAstException;
+import edu.kit.joana.wala.flowless.spec.ast.IFCStmt;
 import edu.kit.joana.wala.flowless.spec.java.LightweightParser;
 import edu.kit.joana.wala.flowless.spec.java.ast.ClassInfo;
 import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;

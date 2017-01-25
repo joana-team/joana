@@ -9,7 +9,6 @@ package edu.kit.joana.ui.ifc.sdg.latticeview;
 
 import java.util.ArrayList;
 
-
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;

@@ -7,14 +7,14 @@
  */
 package edu.kit.joana.deprecated.jsdg.sdg.interference;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import gnu.trove.map.hash.TIntObjectHashMap;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
 
 
 public class SynchAnalysis {

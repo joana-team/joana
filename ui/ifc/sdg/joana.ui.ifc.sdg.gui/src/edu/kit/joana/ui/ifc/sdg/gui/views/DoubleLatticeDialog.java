@@ -9,7 +9,6 @@ package edu.kit.joana.ui.ifc.sdg.gui.views;
 
 import java.util.ArrayList;
 
-
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.gef.GraphicalViewer;
 import org.eclipse.gef.editparts.ScalableRootEditPart;

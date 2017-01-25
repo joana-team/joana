@@ -9,7 +9,6 @@ package edu.kit.joana.deprecated.jsdg.sdg.parammodel.objtree.dataflow;
 
 import java.util.Map;
 
-
 import com.ibm.wala.fixpoint.BitVectorVariable;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ssa.SSAArrayReferenceInstruction;

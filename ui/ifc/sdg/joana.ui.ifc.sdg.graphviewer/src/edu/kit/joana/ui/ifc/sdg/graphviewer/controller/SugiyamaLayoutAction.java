@@ -7,15 +7,16 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.controller;
 
-import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.BundleConstants;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.CallGraphView;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
-
 import java.awt.event.ActionEvent;
+
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.jgraph.layout.SugiyamaLayoutAlgorithm;
+
+import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.BundleConstants;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.CallGraphView;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
 
 public class SugiyamaLayoutAction extends AbstractGVAction implements BundleConstants, ChangeListener {
 	private static final long serialVersionUID = -122918493260327223L;

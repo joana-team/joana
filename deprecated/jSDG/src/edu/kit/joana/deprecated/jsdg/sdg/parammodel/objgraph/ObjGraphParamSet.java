@@ -10,7 +10,6 @@ package edu.kit.joana.deprecated.jsdg.sdg.parammodel.objgraph;
 import java.util.Iterator;
 import java.util.Set;
 
-
 import com.ibm.wala.util.collections.HashSetFactory;
 
 import edu.kit.joana.deprecated.jsdg.sdg.parammodel.IParamSet;

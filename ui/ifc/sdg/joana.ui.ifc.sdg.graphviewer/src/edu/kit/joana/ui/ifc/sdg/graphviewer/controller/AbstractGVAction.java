@@ -23,14 +23,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import javax.swing.AbstractAction;
+import javax.swing.KeyStroke;
+
 import edu.kit.joana.ui.ifc.sdg.graphviewer.GraphViewer;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.BundleConstants;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Resource;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.util.GVUtilities;
-
-
-import javax.swing.AbstractAction;
-import javax.swing.KeyStroke;
 
 /**
  * @author <a href="mailto:wellner@fmi.uni-passau.de">Tobias Wellner </a>

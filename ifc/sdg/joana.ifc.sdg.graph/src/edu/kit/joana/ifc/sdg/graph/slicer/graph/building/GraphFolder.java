@@ -7,9 +7,9 @@
  */
 package edu.kit.joana.ifc.sdg.graph.slicer.graph.building;
 
-import java.util.Set;
-import java.util.List;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
 

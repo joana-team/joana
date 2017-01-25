@@ -7,17 +7,17 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.controller;
 
-import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.BundleConstants;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.CallGraphView;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
-
 import java.awt.event.ActionEvent;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import org.jgraph.graph.DefaultGraphCell;
 import org.jgraph.JGraph;
+import org.jgraph.graph.DefaultGraphCell;
+
+import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.BundleConstants;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.CallGraphView;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
 
 /**
  * this class is called if a "all predecessors" action is called

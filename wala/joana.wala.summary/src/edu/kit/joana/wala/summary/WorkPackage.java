@@ -7,6 +7,16 @@
  */
 package edu.kit.joana.wala.summary;
 
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.text.ParseException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Scanner;
+import java.util.Set;
+
+import org.jgrapht.DirectedGraph;
+
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -19,17 +29,6 @@ import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
-
-import java.io.InputStream;
-import java.io.PrintWriter;
-import java.text.ParseException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Scanner;
-import java.util.Set;
-
-
-import org.jgrapht.DirectedGraph;
 
 /**
  * @author Juergen Graf <graf@kit.edu>

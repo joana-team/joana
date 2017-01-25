@@ -9,7 +9,6 @@ package edu.kit.joana.ui.ifc.sdg.viewer.view.analysisview;
 
 import java.util.ArrayList;
 
-
 import org.eclipse.core.resources.IProject;
 
 import edu.kit.joana.ui.ifc.sdg.viewer.model.ChosenAlgorithm;

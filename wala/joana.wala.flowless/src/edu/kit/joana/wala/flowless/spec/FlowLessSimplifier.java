@@ -16,9 +16,12 @@ import java.util.Set;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.wala.flowless.spec.ast.AliasStmt;
+import edu.kit.joana.wala.flowless.spec.ast.AstElement.Type;
 import edu.kit.joana.wala.flowless.spec.ast.BooleanAliasStmt;
+import edu.kit.joana.wala.flowless.spec.ast.BooleanAliasStmt.Operator;
 import edu.kit.joana.wala.flowless.spec.ast.ExplicitFlowStmt;
 import edu.kit.joana.wala.flowless.spec.ast.FlowAstVisitor;
+import edu.kit.joana.wala.flowless.spec.ast.FlowAstVisitor.FlowAstException;
 import edu.kit.joana.wala.flowless.spec.ast.FlowStmt;
 import edu.kit.joana.wala.flowless.spec.ast.IFCStmt;
 import edu.kit.joana.wala.flowless.spec.ast.InferableAliasStmt;
@@ -27,11 +30,8 @@ import edu.kit.joana.wala.flowless.spec.ast.ParameterOptList;
 import edu.kit.joana.wala.flowless.spec.ast.PrimitiveAliasStmt;
 import edu.kit.joana.wala.flowless.spec.ast.PureStmt;
 import edu.kit.joana.wala.flowless.spec.ast.SimpleParameter;
-import edu.kit.joana.wala.flowless.spec.ast.UniqueStmt;
-import edu.kit.joana.wala.flowless.spec.ast.AstElement.Type;
-import edu.kit.joana.wala.flowless.spec.ast.BooleanAliasStmt.Operator;
-import edu.kit.joana.wala.flowless.spec.ast.FlowAstVisitor.FlowAstException;
 import edu.kit.joana.wala.flowless.spec.ast.SimpleParameter.Wildcard;
+import edu.kit.joana.wala.flowless.spec.ast.UniqueStmt;
 
 /**
  *

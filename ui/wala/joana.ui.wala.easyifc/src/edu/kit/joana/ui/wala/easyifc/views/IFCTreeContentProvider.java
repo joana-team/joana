@@ -7,14 +7,12 @@
  */
 package edu.kit.joana.ui.wala.easyifc.views;
 
-import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.jdt.core.IJavaProject;
@@ -29,20 +27,14 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 
-import com.google.common.collect.Multimap;
-
 import edu.kit.joana.api.SPos;
 import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.api.annotations.AnnotationTypeBasedNodeCollector;
 import edu.kit.joana.api.annotations.IFCAnnotation;
-import edu.kit.joana.api.sdg.SDGProgramPart;
-import edu.kit.joana.ui.annotations.Sink;
-import edu.kit.joana.ui.annotations.Source;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer;
 import edu.kit.joana.ui.wala.easyifc.util.EasyIFCMarkerAndImageManager;
 import edu.kit.joana.ui.wala.easyifc.util.EasyIFCMarkerAndImageManager.Marker;
 import edu.kit.joana.ui.wala.easyifc.util.EntryPointSearch.EntryPointConfiguration;
-import edu.kit.joana.util.Pair;
 import edu.kit.joana.ui.wala.easyifc.util.SearchHelper;
 
 /**

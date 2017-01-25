@@ -10,7 +10,6 @@ package edu.kit.joana.deprecated.jsdg.sdg.parammodel.objgraph.params;
 import java.util.Map;
 import java.util.Set;
 
-
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.PointerKey;
 import com.ibm.wala.types.TypeReference;

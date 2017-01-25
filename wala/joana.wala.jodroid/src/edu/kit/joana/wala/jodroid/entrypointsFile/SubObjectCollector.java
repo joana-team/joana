@@ -31,7 +31,6 @@
  */
 package edu.kit.joana.wala.jodroid.entrypointsFile;
 import java.io.ObjectStreamClass;
-
 import java.util.HashSet;
 
 /**

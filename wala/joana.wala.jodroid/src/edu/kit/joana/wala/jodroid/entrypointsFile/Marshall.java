@@ -31,32 +31,31 @@
  */
 package edu.kit.joana.wala.jodroid.entrypointsFile;
 
-import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationBehavior;
-import com.ibm.wala.util.strings.Atom;
-import com.ibm.wala.types.TypeName;
-import com.ibm.wala.types.MethodReference;
-import com.ibm.wala.dalvik.ipa.callgraph.impl.AndroidEntryPoint.IExecutionOrder;
-import com.ibm.wala.dalvik.util.AndroidComponent;
-import com.ibm.wala.classLoader.IMethod;
-import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.Intent;
-
-import edu.kit.joana.wala.jodroid.entrypointsFile.Tags.Tag;
-import edu.kit.joana.wala.jodroid.entrypointsFile.Tags.Attr;
-
-import java.util.Collections;
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Map;
+import java.util.Collections;
 import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 
+import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.stream.XMLStreamException;
+import com.ibm.wala.classLoader.IMethod;
+import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationBehavior;
+import com.ibm.wala.dalvik.ipa.callgraph.impl.AndroidEntryPoint.IExecutionOrder;
+import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.Intent;
+import com.ibm.wala.dalvik.util.AndroidComponent;
+import com.ibm.wala.types.MethodReference;
+import com.ibm.wala.types.TypeName;
+import com.ibm.wala.util.strings.Atom;
+
 import edu.kit.joana.wala.jodroid.entrypointsFile.Exceptions.ParserException;
+import edu.kit.joana.wala.jodroid.entrypointsFile.Tags.Attr;
+import edu.kit.joana.wala.jodroid.entrypointsFile.Tags.Tag;
 /**
  *  Arranges data coming in from the Serializers into a document.
  *

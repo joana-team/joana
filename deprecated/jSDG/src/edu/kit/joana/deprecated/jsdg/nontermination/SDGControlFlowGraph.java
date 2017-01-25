@@ -10,7 +10,6 @@ package edu.kit.joana.deprecated.jsdg.nontermination;
 import java.util.Iterator;
 import java.util.Set;
 
-
 import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.graph.NumberedGraph;
 import com.ibm.wala.util.graph.impl.SlowSparseNumberedGraph;
@@ -18,8 +17,8 @@ import com.ibm.wala.util.graph.impl.SlowSparseNumberedGraph;
 import edu.kit.joana.deprecated.jsdg.sdg.PDG;
 import edu.kit.joana.deprecated.jsdg.sdg.nodes.AbstractPDGNode;
 import edu.kit.joana.deprecated.jsdg.sdg.nodes.EntryNode;
-import edu.kit.joana.deprecated.jsdg.sdg.nodes.NormalNode;
 import edu.kit.joana.deprecated.jsdg.sdg.nodes.JDependencyGraph.EdgeType;
+import edu.kit.joana.deprecated.jsdg.sdg.nodes.NormalNode;
 import edu.kit.joana.deprecated.jsdg.sdg.parammodel.IParameter;
 
 /**

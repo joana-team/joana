@@ -19,7 +19,6 @@ package edu.kit.joana.ui.ifc.sdg.latticeeditor.policies;
 
 
 import org.eclipse.draw2d.Label;
-
 import org.eclipse.gef.commands.Command;
 import org.eclipse.gef.editpolicies.DirectEditPolicy;
 import org.eclipse.gef.requests.DirectEditRequest;

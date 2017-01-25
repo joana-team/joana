@@ -18,6 +18,23 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.view;
 
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Properties;
+
+import javax.swing.BorderFactory;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+
+import org.jgraph.graph.GraphConstants;
+
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.BundleConstants;
@@ -29,27 +46,6 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVColorChooser;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVLabel;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVPanel;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.pdg.PDGAttributeMap;
-
-
-
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import java.util.Enumeration;
-import java.util.Properties;
-import java.util.Hashtable;
-
-import javax.swing.BorderFactory;
-import javax.swing.JLabel;
-import javax.swing.JComboBox;
-
-import org.jgraph.graph.GraphConstants;
 
 
 /**

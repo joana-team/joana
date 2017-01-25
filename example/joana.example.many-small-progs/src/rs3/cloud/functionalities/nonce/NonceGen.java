@@ -1,7 +1,7 @@
 package rs3.cloud.functionalities.nonce;
 
-import rs3.cloud.utils.MessageTools;
 import rs3.cloud.lib.crypto.CryptoLib;
+import rs3.cloud.utils.MessageTools;
 
 /**
  * Ideal functionality for nonce generation. Nonces are supposed to be unuque

@@ -7,6 +7,13 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.controller;
 
+import java.awt.event.ActionEvent;
+import java.util.LinkedList;
+import java.util.List;
+
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -15,13 +22,6 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.model.MethodGraph;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.CallGraphView;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.SearchDialog;
-
-import java.awt.event.ActionEvent;
-import java.util.LinkedList;
-import java.util.List;
-
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 
 public class CollapseAllCallNodesAction extends AbstractGVAction implements ChangeListener {

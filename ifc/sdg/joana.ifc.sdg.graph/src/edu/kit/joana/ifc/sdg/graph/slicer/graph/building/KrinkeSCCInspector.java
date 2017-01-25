@@ -11,7 +11,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-
 import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
 
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;

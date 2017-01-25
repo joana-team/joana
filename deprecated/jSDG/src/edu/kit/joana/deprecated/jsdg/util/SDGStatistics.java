@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-
 import com.ibm.wala.util.collections.HashMapFactory;
 
 import edu.kit.joana.deprecated.jsdg.sdg.PDG;
@@ -33,11 +32,11 @@ import edu.kit.joana.deprecated.jsdg.sdg.nodes.ConstantPhiValueNode;
 import edu.kit.joana.deprecated.jsdg.sdg.nodes.EntryNode;
 import edu.kit.joana.deprecated.jsdg.sdg.nodes.ExpressionNode;
 import edu.kit.joana.deprecated.jsdg.sdg.nodes.IPDGNodeVisitor;
+import edu.kit.joana.deprecated.jsdg.sdg.nodes.JDependencyGraph.EdgeType;
 import edu.kit.joana.deprecated.jsdg.sdg.nodes.NormalNode;
 import edu.kit.joana.deprecated.jsdg.sdg.nodes.PhiValueNode;
 import edu.kit.joana.deprecated.jsdg.sdg.nodes.PredicateNode;
 import edu.kit.joana.deprecated.jsdg.sdg.nodes.SyncNode;
-import edu.kit.joana.deprecated.jsdg.sdg.nodes.JDependencyGraph.EdgeType;
 import edu.kit.joana.deprecated.jsdg.sdg.parammodel.objtree.ActualInOutNode;
 import edu.kit.joana.deprecated.jsdg.sdg.parammodel.objtree.FormInOutNode;
 

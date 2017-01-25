@@ -1,9 +1,9 @@
 package rs3.clientserver.protocol;
 
-import rs3.clientserver.pkenc.Encryptor;
 import rs3.clientserver.network.Network;
 import rs3.clientserver.network.NetworkError;
 // import de.uni.trier.infsec.pkenc.PKEnc;
+import rs3.clientserver.pkenc.Encryptor;
 
 /**
  *  Client of a simple protocol: it encrypts a given message and sends

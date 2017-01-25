@@ -9,7 +9,6 @@ package edu.kit.joana.deprecated.jsdg.wala.objecttree;
 
 import java.util.Set;
 
-
 import com.ibm.wala.classLoader.NewSiteReference;
 import com.ibm.wala.classLoader.ProgramCounter;
 import com.ibm.wala.ipa.callgraph.CGNode;

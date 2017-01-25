@@ -7,16 +7,6 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.view;
 
-import edu.kit.joana.ifc.sdg.graph.SDG;
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.graph.chopper.Chopper;
-import edu.kit.joana.ifc.sdg.graph.chopper.conc.ContextSensitiveThreadChopper;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.BundleConstants;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Resource;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Translator;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVMenu;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVOptionPane;
-
 import java.awt.Color;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -32,12 +22,21 @@ import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-
 import org.jgraph.JGraph;
 import org.jgraph.graph.DefaultGraphCell;
 import org.jgraph.graph.DefaultGraphModel;
 import org.jgraph.graph.GraphLayoutCache;
 import org.jgraph.graph.GraphModel;
+
+import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.ifc.sdg.graph.chopper.Chopper;
+import edu.kit.joana.ifc.sdg.graph.chopper.conc.ContextSensitiveThreadChopper;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.BundleConstants;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Resource;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Translator;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVMenu;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVOptionPane;
 
 public class ChoppingMenu extends GVMenu implements ChangeListener, BundleConstants {
 	/**

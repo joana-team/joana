@@ -16,6 +16,7 @@ package edu.kit.joana.ui.ifc.sdg.graphviewer.layout;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
 import org.jgraph.graph.DefaultPort;
 import org.jgraph.graph.Edge;
 import org.jgraph.graph.GraphConstants;

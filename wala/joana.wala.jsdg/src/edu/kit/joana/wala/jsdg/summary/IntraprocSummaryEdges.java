@@ -13,7 +13,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
-
 import org.jgrapht.graph.SimpleGraph;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;

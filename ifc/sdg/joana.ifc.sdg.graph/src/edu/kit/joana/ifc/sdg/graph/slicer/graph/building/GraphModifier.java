@@ -7,20 +7,20 @@
  */
 package edu.kit.joana.ifc.sdg.graph.slicer.graph.building;
 
-import edu.kit.joana.ifc.sdg.graph.JoanaGraph;
-import edu.kit.joana.ifc.sdg.graph.SDG;
-import edu.kit.joana.ifc.sdg.graph.SDGEdge;
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.graph.SDGNodeTuple;
-import edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
-import gnu.trove.set.hash.TIntHashSet;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+
+import edu.kit.joana.ifc.sdg.graph.JoanaGraph;
+import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.ifc.sdg.graph.SDGNodeTuple;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
+import gnu.trove.set.hash.TIntHashSet;
 
 
 

@@ -9,8 +9,8 @@ package edu.kit.joana.wala.core.interference;
 
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
-import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.PDGEdge.Kind;
+import edu.kit.joana.wala.core.PDGNode;
 
 public class InterferenceEdge {
 

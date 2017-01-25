@@ -9,7 +9,6 @@ package edu.kit.joana.ui.ifc.sdg.latticeeditor.ui;
 
 import java.util.Collection;
 
-
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;

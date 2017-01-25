@@ -10,6 +10,7 @@ package edu.kit.joana.ifc.sdg.mhpoptimization;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -129,7 +130,7 @@ public final class CSDGPreprocessor {
 
 		// now propagate the IDs throughout the graph
 		Set<SDGNode> threadEntries = s.keySet();
-		HashMap<SDGNode, TIntHashSet> ids = new HashMap<SDGNode, TIntHashSet>();
+		HashMap<SDGNode, List<SDGNode>> ids = new HashMap<>();
 
 		// iterate over the thread entries and determine all nodes that are reachable thread locally
 		for (SDGNode entry : threadEntries) {
@@ -137,22 +138,18 @@ public final class CSDGPreprocessor {
 			LinkedList<SDGNode> worklist = new LinkedList<SDGNode>();
 			// already visited nodes
 			HashSet<SDGNode> marked = new HashSet<SDGNode>();
-			// the thread instance IDs of the current thread entry
-			int[] threads = entry.getThreadNumbers();
 
 			// init the worklist
 			worklist.add(entry);
 
 			while (!worklist.isEmpty()) {
 				SDGNode next = worklist.poll();
-				TIntHashSet current = ids.get(next);
+				List<SDGNode> current = ids.get(next);
 				if (current == null) {
-					current = new TIntHashSet();
+					current = new LinkedList<SDGNode>();
 					ids.put(next, current);
 				}
-				for (int t : threads) {
-					current.add(t);
-				}
+				current.add(entry);
 
 				// traverse all intra-thread edges
 				for (SDGEdge e : graph.outgoingEdgesOf(next)) {
@@ -180,20 +177,24 @@ public final class CSDGPreprocessor {
 			}
 		}
 
-		for (Map.Entry<SDGNode, TIntHashSet> p : ids.entrySet()) {
+		HashSet<SDGNode> error = new HashSet<SDGNode>();
+		for (Map.Entry<SDGNode, List<SDGNode>> p : ids.entrySet()) {
 			SDGNode n = p.getKey();
-			TIntHashSet set = p.getValue();
-			int[] ts = new int[set.size()];
-			int i = 0;
-			for (TIntIterator iter = set.iterator(); iter.hasNext(); ) {
-				int t = iter.next();
-				ts[i] = t;
-				i++;
+			List<SDGNode> entryList = p.getValue();
+			if (entryList == null) {
+				continue;
 			}
-			n.setThreadNumbers(ts);
+			if (entryList.size() == 1) {
+				n.setThreadNumbers(entryList.get(0).getThreadNumbers());
+				continue;
+			}
+			TIntHashSet conv = new TIntHashSet();
+			for (SDGNode entry : entryList) {
+				conv.addAll(entry.getThreadNumbers());
+			}
+			n.setThreadNumbers(conv.toArray());
 		}
 
-		HashSet<SDGNode> error = new HashSet<SDGNode>();
 		for (SDGNode n : graph.vertexSet()) {
 			if (n.getThreadNumbers() == null) error.add(n);
 		}

@@ -7,9 +7,9 @@
  */
 package edu.kit.joana.wala.core;
 
+import edu.kit.joana.util.graph.KnowsVertices;
 
-
-public final class PDGEdge {
+public final class PDGEdge implements KnowsVertices<PDGNode>{
 
 	public final PDGNode from;
 	public final PDGNode to;
@@ -126,6 +126,22 @@ public final class PDGEdge {
 
 	public String getLabel() {
 		return label;
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.util.graph.KnowsVertices#getSource()
+	 */
+	@Override
+	public PDGNode getSource() {
+		return from;
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.util.graph.KnowsVertices#getTarget()
+	 */
+	@Override
+	public PDGNode getTarget() {
+		return to;
 	}
 
 }

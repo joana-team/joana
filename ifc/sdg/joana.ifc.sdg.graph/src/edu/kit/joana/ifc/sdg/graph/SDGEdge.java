@@ -17,11 +17,13 @@ import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.Set;
 
+import edu.kit.joana.util.graph.KnowsVertices;
+
 /**
  * An SDGEdge is an edge in our graphs (despite the name not necessarily an edge in an SDG).
  * @author hammer, giffhorn
  */
-public class SDGEdge implements Cloneable {
+public class SDGEdge implements Cloneable, KnowsVertices<SDGNode> {
 
     /**
      * This is probably the most important property if you intend to analyze SDGs.

@@ -28,6 +28,7 @@ import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
+import edu.kit.joana.util.graph.KnowsVertices;
 
 public final class CallGraph extends AbstractJoanaGraph<CallGraph.Node, CallGraph.Edge> {
 
@@ -45,7 +46,7 @@ public final class CallGraph extends AbstractJoanaGraph<CallGraph.Node, CallGrap
 
 	public final static int NO_INDEX = -1;
 
-	public static final class Edge {
+	public static final class Edge implements KnowsVertices<Node> {
 		public final Node from;
 		public final Node to;
 		public final int instrIndex;
@@ -77,6 +78,22 @@ public final class CallGraph extends AbstractJoanaGraph<CallGraph.Node, CallGrap
 		public String toString() {
 //			return from.toString() + (dynamic ? "-" + instrIndex + "->" : "=" + instrIndex + "=>") + to.toString();
 			return "CL";
+		}
+
+		/* (non-Javadoc)
+		 * @see edu.kit.joana.util.graph.KnowsVertices#getSource()
+		 */
+		@Override
+		public Node getSource() {
+			return from;
+		}
+
+		/* (non-Javadoc)
+		 * @see edu.kit.joana.util.graph.KnowsVertices#getTarget()
+		 */
+		@Override
+		public Node getTarget() {
+			return to;
 		}
 	}
 

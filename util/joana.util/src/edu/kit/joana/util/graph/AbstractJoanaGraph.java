@@ -12,14 +12,13 @@ import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
-import org.jgrapht.graph.DirectedPseudograph;
 import org.jgrapht.graph.EdgeSetFactory;
 
 /**
  * This is the base class for all concrete graphs used in the JOANA project.
  * @author Martin Mohr
  */
-public class AbstractJoanaGraph<V, E> implements DirectedGraph<V,E> {
+public class AbstractJoanaGraph<V, E extends KnowsVertices<V>> implements DirectedGraph<V,E> {
 	
 	
 	private final DirectedPseudograph<V,E> delegate;
@@ -349,15 +348,6 @@ public class AbstractJoanaGraph<V, E> implements DirectedGraph<V,E> {
 		delegate.setEdgeSetFactory(arg0);
 	}
 
-	/**
-	 * @param arg0
-	 * @param arg1
-	 * @see org.jgrapht.graph.AbstractBaseGraph#setEdgeWeight(java.lang.Object, double)
-	 */
-	public void setEdgeWeight(E arg0, double arg1) {
-		changed = true;
-		delegate.setEdgeWeight(arg0, arg1);
-	}
 
 	/**
 	 * @return

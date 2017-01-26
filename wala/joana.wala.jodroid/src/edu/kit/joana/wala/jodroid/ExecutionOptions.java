@@ -115,8 +115,9 @@ public class ExecutionOptions {
         }
     }
 
-
-    private URI classPath = null;
+    private URI resultBaseURI = null;
+    private URI dexClassPath = null;
+    private String javaClassPath = null;
     private URI androidLib;
     private URI javaStubs;
     private URI exclusions;
@@ -173,16 +174,19 @@ public class ExecutionOptions {
      *  @param  classPath a .jar, .apk, .dex file or path of the App.
      */
     public void setClassPath(final URI classPath) {
-        if (this.classPath != null) {
+        if (this.dexClassPath != null) {
             System.err.println("Error: ClassPath set twice!");
         }
-        this.classPath = classPath;
+        this.dexClassPath = classPath;
     }
     public URI getClassPath() {
-        assert (this.classPath != null) : "ClassPath is null";
-        return this.classPath;
+        return this.dexClassPath;
     }
 
+    public URI getResultBaseURI() {
+    	if (resultBaseURI == null) return this.getClassPath();
+    	return resultBaseURI;
+    }
     /**
      *  Stubs of the Android-library to use.
      *
@@ -371,7 +375,7 @@ public class ExecutionOptions {
     public URI getSdgFile() {
         if (this.sdgFile == null) {
             try {
-                this.sdgFile = new URI(this.getClassPath().toString() + ".pdg");
+                this.sdgFile = new URI(this.getResultBaseURI() + ".pdg");
             } catch (java.net.URISyntaxException e) {
                 throw new IllegalStateException("Error construction URI for pdg-File", e);
             }
@@ -493,7 +497,7 @@ public class ExecutionOptions {
     public URI getEpFile() {
         if (this.epFile == null) {
             try {
-                this.epFile = new URI(this.getClassPath().toString() + ".ntrP");
+                this.epFile = new URI(this.getResultBaseURI() + ".ntrP");
             } catch (java.net.URISyntaxException e) {
                 throw new IllegalStateException("Error construction URI for ntrP-File", e);
             }
@@ -524,5 +528,17 @@ public class ExecutionOptions {
     public AnalysisPresets.OutputDescription getOutput() {
         return this.output;
     }
+
+	public String getJavaClassPath() {
+		return javaClassPath;
+	}
+
+	public void setJavaClassPath(String javaClassPath) {
+		this.javaClassPath = javaClassPath;
+	}
+
+	public void setResultBaseURI(URI uri) {
+		this.resultBaseURI = uri;
+	}
 }
 

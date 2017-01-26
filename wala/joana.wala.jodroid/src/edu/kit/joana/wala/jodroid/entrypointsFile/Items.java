@@ -127,11 +127,7 @@ class Items {
      */
     public static abstract class ParserItem {
         protected Tag self;
-        protected AndroidEntryPointManager manager;
 
-        public ParserItem(AndroidEntryPointManager manager) {
-            this.manager = manager;
-        }
         /**
          *  Set the Tag this ParserItem-Instance is an Handler for.
          *
@@ -144,8 +140,8 @@ class Items {
             this.self = self;
         }
 
-        public ParserItem() {
-        }
+        //public ParserItem() {
+        //}
 
         /**
          *  Remember attributes to the tag. 
@@ -199,7 +195,7 @@ class Items {
          *  Do this by popping them, but leave self on the stack!
          *  For each Item popped call its popAttributes()!
          */
-        public void leave() {
+        public void leave(AndroidEntryPointManager manager) {
             while (parserStack.peek() != self) {
                 final Set<Tag> allowedSubTags = self.getAllowedSubTags();
                 Tag subTag = parserStack.pop();
@@ -222,11 +218,8 @@ class Items {
      *  Attributes.
      */
     public static class FinalItem extends ParserItem {
-        public FinalItem() {
-            super();
-        }
         @Override
-        public void leave() {
+        public void leave(AndroidEntryPointManager manager) {
             final Set<Tag> subs = self.getAllowedSubTags();
             if (!((subs == null) || subs.isEmpty())) {
                 throw new IllegalArgumentException("FinalItem can not be applied to " + self + " as it contains sub-tags: " + 
@@ -246,9 +239,6 @@ class Items {
      *  It's like FinalItem but may contain sub-tags.
      */
     public static class NoOpItem extends ParserItem {
-        public NoOpItem() {
-            super();
-        }
     }
 
 
@@ -256,9 +246,6 @@ class Items {
      *  Creates objects for its contained EntryPoints.
      */
     public static class SectionItem extends ParserItem {
-        public SectionItem() {
-            super();
-        }
         @Override
         public void enter(Attributes saxAttrs) {
             boolean nameSet = false;
@@ -281,7 +268,7 @@ class Items {
             }
         }
         @Override
-        public void leave() {
+        public void leave(AndroidEntryPointManager manager) {
             final Stack<DexEntryPoint> eps = new Stack<DexEntryPoint>();
             while (parserStack.peek() != self) {
                 final Tag current = parserStack.pop();
@@ -314,7 +301,7 @@ class Items {
 
     public static class IntentItem extends ParserItem {
         @Override
-        public void leave() {
+        public void leave(AndroidEntryPointManager manager) {
             //super.leave();
 
             final List<Intent> to = new ArrayList<Intent>();
@@ -349,7 +336,7 @@ class Items {
             /** @todo TODO Dont' place directly in aem but use an indirection to be able to disbale
                 Reading in intents */
 
-            final AndroidEntryPointManager aem = this.manager;
+            final AndroidEntryPointManager aem = manager;
             if (to.size() == 0) {
                 aem.registerIntentForce(from);
             } else {
@@ -383,7 +370,7 @@ class Items {
             }
         }
         @Override
-        public void leave() {
+        public void leave(AndroidEntryPointManager manager) {
             //super.leave();
 
             final Map<Integer, List<TypeReference>> with = new HashMap<Integer, List<TypeReference>>();
@@ -435,9 +422,6 @@ class Items {
     }
 
     public static class InstantiationItem extends ParserItem {
-        public InstantiationItem() {
-            super();
-        }
         @Override
         public void enter(Attributes saxAttrs) {
             for (Attr relevant : self.getRelevantAttributes()) {
@@ -457,8 +441,8 @@ class Items {
             }
         }
         @Override
-        public void leave() {
-            super.leave();
+        public void leave(AndroidEntryPointManager manager) {
+            super.leave(manager);
        
             try {
                 final InstanceBehavior beh = (InstanceBehavior) attributesHistory.get(Attr.DEFAULT).peek();
@@ -514,8 +498,8 @@ class Items {
             }
         }
         @Override
-        public void leave() {
-            super.leave();
+        public void leave(AndroidEntryPointManager manager) {
+            super.leave(manager);
         
             final Exactness exactness = (Exactness) attributesHistory.get(Attr.EXACTNESS).peek();
             final InstanceBehavior beh = (InstanceBehavior) attributesHistory.get(Attr.OF).peek();
@@ -531,9 +515,11 @@ class Items {
 
     public static class EPFileHandler extends DefaultHandler {
         private int unimportantDepth = 0;
+        private final AndroidEntryPointManager manager;
 
-        public EPFileHandler() {
+        public EPFileHandler(AndroidEntryPointManager manager) {
             super();
+            this.manager = manager;
             parserStack.push(Tag.ROOT);
         }
 
@@ -562,7 +548,7 @@ class Items {
                 final Tag tag = Tag.fromString(qName);
                 final ParserItem handler = tag.getHandler();
                 if (handler != null) {
-                    handler.leave();
+                    handler.leave(manager);
                 }
             }
         }

@@ -47,6 +47,7 @@ import org.xml.sax.SAXException;
 
 import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationBehavior;
 import com.ibm.wala.dalvik.ipa.callgraph.impl.AndroidEntryPoint;
+import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 
 import edu.kit.joana.wala.jodroid.entrypointsFile.Exceptions.ParserException;
@@ -128,11 +129,11 @@ public class Reader {
         return null;
     }
 
-    public void read() throws ParserException {
+    public void read(AndroidEntryPointManager manager) throws ParserException {
         assert(this.input != null) : "Stream of the XML-File is null";
 
         try {
-            final EPFileHandler handler = new EPFileHandler();
+            final EPFileHandler handler = new EPFileHandler(manager);
             final SAXParserFactory factory = SAXParserFactory.newInstance();
             factory.newSAXParser().parse(new InputSource(this.input), handler);
         } catch (ParserConfigurationException e) {

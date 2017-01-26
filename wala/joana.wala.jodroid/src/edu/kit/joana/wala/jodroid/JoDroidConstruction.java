@@ -36,6 +36,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.EnumSet;
 import java.util.jar.JarFile;
 
 import org.slf4j.Logger;
@@ -52,6 +53,7 @@ import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationB
 import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.LoadedInstantiationBehavior;
 import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.Intent;
 import com.ibm.wala.dalvik.util.AndroidEntryPointLocator;
+import com.ibm.wala.dalvik.util.AndroidEntryPointLocator.LocatorFlags;
 import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
 import com.ibm.wala.dalvik.util.AndroidManifestXMLReader;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
@@ -65,6 +67,7 @@ import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.NullProgressMonitor;
+import com.ibm.wala.util.config.AnalysisScopeReader;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 import com.ibm.wala.util.io.FileSuffixes;
 
@@ -260,7 +263,7 @@ public class JoDroidConstruction {
         reader.addTarget(beh);
         reader.addTarget(this.manager.getEntries());
         //reader.addTarget(p.aem.overrideIntents); // TODO: Implement
-        reader.read();
+        reader.read(this.manager);
 
         this.manager.setInstantiationBehavior(beh);
     }
@@ -568,13 +571,13 @@ public class JoDroidConstruction {
         dispatch(manager, ex);
     }
 
-    public static AnalysisScope makeScope(final String classPath, final String androidLib, ExecutionOptions ex) throws IOException {
+    public static AnalysisScope makeScope(final String dexClassPath, final String androidLib, ExecutionOptions ex) throws IOException {
         {
             if (ex == null) {
                 ex = new ExecutionOptions();
             }
-            if (classPath != null) {
-                ex.setClassPath(classPath);
+            if (dexClassPath != null) {
+                ex.setClassPath(dexClassPath);
             }
             if (androidLib != null) {
                 ex.setAndroidLib(androidLib);
@@ -584,7 +587,10 @@ public class JoDroidConstruction {
         final AnalysisScope scope;
         { // generate the scope
             final URI classPathUri = ex.getClassPath();
-            assert (classPathUri != null);
+            final String javaClassPath = ex.getJavaClassPath();
+            if (javaClassPath == null && classPathUri == null) {
+            	throw new IllegalArgumentException();
+            }
             final URI androidStubs = ex.getAndroidLib();
             assert(androidStubs != null);
             final URI javaStubs = ex.getJavaStubs();
@@ -598,7 +604,12 @@ public class JoDroidConstruction {
             scope = AnalysisScope.createJavaAnalysisScope();
             scope.setLoaderImpl(ClassLoaderReference.Primordial, "com.ibm.wala.dalvik.classLoader.WDexClassLoaderImpl");
             scope.setLoaderImpl(ClassLoaderReference.Application, "com.ibm.wala.dalvik.classLoader.WDexClassLoaderImpl");
-            scope.addToScope(ClassLoaderReference.Application, DexFileModule.make(new File(classPathUri)));
+            if (classPathUri != null) {
+            	scope.addToScope(ClassLoaderReference.Application, DexFileModule.make(new File(classPathUri)));
+            }
+            if (javaClassPath != null) {
+            	AnalysisScopeReader.addClassPathToScope(String.join(File.pathSeparator, javaClassPath), scope, scope.getLoader(AnalysisScope.APPLICATION));
+            }
 
             if (FileSuffixes.isRessourceFromJar(javaStubs)) {
                 final InputStream is = javaStubs.toURL().openStream();

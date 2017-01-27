@@ -130,7 +130,7 @@ public final class CSDGPreprocessor {
 
 		// now propagate the IDs throughout the graph
 		Set<SDGNode> threadEntries = s.keySet();
-		HashMap<SDGNode, List<SDGNode>> ids = new HashMap<>();
+		HashMap<SDGNode, Set<SDGNode>> ids = new HashMap<>();
 
 		// iterate over the thread entries and determine all nodes that are reachable thread locally
 		for (SDGNode entry : threadEntries) {
@@ -144,9 +144,9 @@ public final class CSDGPreprocessor {
 
 			while (!worklist.isEmpty()) {
 				SDGNode next = worklist.poll();
-				List<SDGNode> current = ids.get(next);
+				Set<SDGNode> current = ids.get(next);
 				if (current == null) {
-					current = new LinkedList<SDGNode>();
+					current = new HashSet<SDGNode>();
 					ids.put(next, current);
 				}
 				current.add(entry);
@@ -176,25 +176,30 @@ public final class CSDGPreprocessor {
 				}
 			}
 		}
-
-		HashSet<SDGNode> error = new HashSet<SDGNode>();
-		for (Map.Entry<SDGNode, List<SDGNode>> p : ids.entrySet()) {
+		Map<Set<SDGNode>, int[]> tidCache = new HashMap<>();
+		for (Map.Entry<SDGNode, Set<SDGNode>> p : ids.entrySet()) {
 			SDGNode n = p.getKey();
-			List<SDGNode> entryList = p.getValue();
-			if (entryList == null) {
+			Set<SDGNode> entrySet = p.getValue();
+			if (entrySet == null) {
 				continue;
 			}
-			if (entryList.size() == 1) {
-				n.setThreadNumbers(entryList.get(0).getThreadNumbers());
+			if (entrySet.size() == 1) {
+				n.setThreadNumbers(entrySet.iterator().next().getThreadNumbers());
 				continue;
 			}
-			TIntHashSet conv = new TIntHashSet();
-			for (SDGNode entry : entryList) {
-				conv.addAll(entry.getThreadNumbers());
+			int[] cached = tidCache.get(entrySet);
+			if (cached == null) {
+				TIntHashSet conv = new TIntHashSet();
+				for (SDGNode entry : entrySet) {
+					conv.addAll(entry.getThreadNumbers());
+				}
+				cached = conv.toArray();
+				tidCache.put(entrySet, cached);
 			}
-			n.setThreadNumbers(conv.toArray());
+			n.setThreadNumbers(cached);
 		}
 
+		HashSet<SDGNode> error = new HashSet<SDGNode>();
 		for (SDGNode n : graph.vertexSet()) {
 			if (n.getThreadNumbers() == null) error.add(n);
 		}

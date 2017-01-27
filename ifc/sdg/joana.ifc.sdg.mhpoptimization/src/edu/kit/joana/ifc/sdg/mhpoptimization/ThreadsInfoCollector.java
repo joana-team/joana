@@ -44,7 +44,7 @@ public final class ThreadsInfoCollector {
 
 
     private static SDGNode findExitNode(SDGNode node, CFG cfg) {
-    	SDGNode entry = cfg.getEntry(node);
+    	SDGNode entry = node;
     	LinkedList<SDGNode> wl = new LinkedList<SDGNode>();
     	Set<SDGNode> visited = new HashSet<SDGNode>();
         wl.add(entry);

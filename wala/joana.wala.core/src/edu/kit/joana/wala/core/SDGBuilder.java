@@ -408,7 +408,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		/* additional scope so SDGBuilder object can be garbage collected */{
 			SDGBuilder builder = new SDGBuilder(cfg);
 			builder.run(walaCG, pts, progress);
-			sdg = convertToJoana(cfg.out, builder, progress);
+			sdg = convertToJoana(cfg.out, builder, progress, false);
 
 			if (cfg.computeSummary) {
 				pack = createSummaryWorkPackage(cfg.out, builder, sdg, progress);
@@ -445,7 +445,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			SDGBuilder builder = new SDGBuilder(cfg);
 			builder.run(progress);
 			if (cfg.abortAfterCG) return null;
-			sdg = convertToJoana(cfg.out, builder, progress);
+			sdg = convertToJoana(cfg.out, builder, progress, false);
 
 			if (cfg.computeSummary) {
 				pack = createSummaryWorkPackage(cfg.out, builder, sdg, progress);
@@ -472,7 +472,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 
 		SDGBuilder builder = new SDGBuilder(cfg);
 		builder.run(progress);
-		sdg = convertToJoana(cfg.out, builder, progress);
+		sdg = convertToJoana(cfg.out, builder, progress, false);
 
 		if (cfg.computeSummary) {
 			pack = createSummaryWorkPackage(cfg.out, builder, sdg, progress);
@@ -498,7 +498,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 
 		SDGBuilder builder = new SDGBuilder(cfg);
 		builder.run(progress);
-		sdg = convertToJoana(cfg.out, builder, progress);
+		sdg = convertToJoana(cfg.out, builder, progress, true);
 
 		if (cfg.computeSummary) {
 			pack = createSummaryWorkPackage(cfg.out, builder, sdg, progress);
@@ -522,8 +522,12 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 
 	public static SDG convertToJoana(PrintStream out, SDGBuilder builder, IProgressMonitor progress)
 			throws CancelException {
+		return convertToJoana(out, builder, progress, true);
+	}
+	public static SDG convertToJoana(PrintStream out, SDGBuilder builder, IProgressMonitor progress, boolean keepPDGs)
+			throws CancelException {
 		out.print("convert");
-		final SDG sdg = JoanaConverter.convert(builder, progress);
+		final SDG sdg = JoanaConverter.convert(builder, progress, keepPDGs);
 		out.print(".");
 
 		return sdg;

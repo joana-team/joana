@@ -7,8 +7,10 @@
  */
 package edu.kit.joana.wala.core.joana;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Set;
 import java.util.Stack;
 
 import com.ibm.wala.classLoader.IClass;
@@ -40,6 +42,9 @@ public class JoanaConverter {
 	private JoanaConverter() {}
 
 	public static SDG convert(final SDGBuilder b, IProgressMonitor progress) throws CancelException {
+		return convert (b, progress, true);
+	}
+	public static SDG convert(final SDGBuilder b, IProgressMonitor progress, boolean keepPDGs) throws CancelException {
 		final SDG sdg = (b.getEntry() == null
 			? new SDG("multiple-entrypoints.SDG()")
 			: new SDG(PrettyWalaNames.methodName(b.getEntry())));
@@ -63,7 +68,7 @@ public class JoanaConverter {
         progress.beginTask("Inserting edges into SDG", allNodes.length);
         progress.subTask("processing " + allNodes.length + " nodes");
         for (int i = 0; i < allNodes.length; i++) {
-        	addEdgesForNode(sdg, allNodes[i], b);
+        	addEdgesForNode(sdg, allNodes[i], b, keepPDGs);
 
         	if (i % 107 == 0) {
                 progress.worked(i);
@@ -72,12 +77,13 @@ public class JoanaConverter {
         }
         sdg.setNode2Instr(b.getPDGNode2IIndex());
         sdg.setEntryToCGNode(b.getEntryNode2CGNode());
+        
         progress.done();
 
 		return sdg;
 	}
 
-	private static void addEdgesForNode(SDG sdg, PDGNode node, SDGBuilder b) {
+	private static void addEdgesForNode(SDG sdg, PDGNode node, SDGBuilder b, boolean keepEdges) {
 		PDG pdg = b.getPDGforId(node.getPdgId());
 		SDGNode from = sdg.getNode(node.getId());
 
@@ -85,11 +91,17 @@ public class JoanaConverter {
 			throw new IllegalStateException();
 		}
 
-		for (PDGEdge edge : pdg.outgoingEdgesOf(node)) {
+		final Set<PDGEdge> outgoing = pdg.outgoingEdgesOf(node);
+		for (PDGEdge edge : outgoing) {
 			SDGNode to = sdg.getNode(edge.to.getId());
 			
 			SDGEdge sdgEdge = createEdge(from, to, edge.kind, edge.getLabel());
 			sdg.addEdge(from, to, sdgEdge);
+		}
+		if (!keepEdges) {
+			ArrayList<PDGEdge> toRemove = new ArrayList<>(outgoing.size());
+			toRemove.addAll(outgoing);
+			pdg.removeAllEdges(toRemove);
 		}
 	}
 

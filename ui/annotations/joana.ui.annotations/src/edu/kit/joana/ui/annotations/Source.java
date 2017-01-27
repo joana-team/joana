@@ -26,4 +26,5 @@ public @interface Source {
 	PositionDefinition positionDefinition() default PositionDefinition.AUTO;
 	int lineNumber() default -1;
 	int columnNumber() default -1;
+	String id() default Joana.UNKNOWN_ID;
 }

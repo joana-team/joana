@@ -689,6 +689,17 @@ public class IFCAnalysis {
 						columnNumber = (Integer) constantvalue.val;
 					}
 					
+					final ElementValue idValue = a.getNamedArguments().get("id");
+					final String id;
+					if (idValue == null) {
+						id = null;
+					} else {
+						// As per @Sink / @Source Definition: "id" is a constant String 
+						final ConstantElementValue constantvalue = (ConstantElementValue) idValue;
+						// .. of Type String
+						id = (String) constantvalue.val;
+					}
+					
 					sources.put(e.getKey(), Pair.pair(new Source() {
 						@Override
 						public Class<? extends java.lang.annotation.Annotation> annotationType() {
@@ -728,6 +739,11 @@ public class IFCAnalysis {
 						@Override
 						public int columnNumber() {
 							return columnNumber;
+						}
+						
+						@Override
+						public String id() {
+							return id;
 						}
 						
 						@Override
@@ -809,6 +825,17 @@ public class IFCAnalysis {
 						columnNumber = (Integer) constantvalue.val;
 					}
 					
+					final ElementValue idValue = a.getNamedArguments().get("id");
+					final String id;
+					if (idValue == null) {
+						id = null;
+					} else {
+						// As per @Sink / @Source Definition: "id" is a constant String 
+						final ConstantElementValue constantvalue = (ConstantElementValue) idValue;
+						// .. of Type String
+						id = (String) constantvalue.val;
+					}
+					
 					sinks.put(e.getKey(), Pair.pair(new Sink() {
 						@Override
 						public Class<? extends java.lang.annotation.Annotation> annotationType() {
@@ -850,6 +877,10 @@ public class IFCAnalysis {
 							return columnNumber;
 						}
 						
+						@Override
+						public String id() {
+							return id;
+						}
 						@Override
 						public String toString() {
 							return "@Sink(level = " + level + ", mayInclude = " + Arrays.toString(mayInclude) + ", seenBy = " + Arrays.toString(seenBy) + ")";

@@ -16,6 +16,8 @@ public class Joana {
 
 	private Joana() {}
 	
+	public static final String UNKNOWN_ID = "unknown";
+	
 	public static int declassify(final String from, final String to, final int value) {
 		return 0;
 	}

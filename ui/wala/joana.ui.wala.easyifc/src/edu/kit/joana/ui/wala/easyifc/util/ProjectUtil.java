@@ -59,7 +59,7 @@ public final class ProjectUtil {
 	}
 
 	private final static Collection<String> standardLibraryContainersToIgnore = Arrays.asList(
-		new String[] { "org.eclipse.jdt.launching.JRE_CONTAINER" }
+		new String[] { "org.eclipse.jdt.launching.JRE_CONTAINER", "com.android.ide.eclipse.adt.ANDROID_FRAMEWORK" }
 	);
 	
 	@SuppressWarnings("restriction")

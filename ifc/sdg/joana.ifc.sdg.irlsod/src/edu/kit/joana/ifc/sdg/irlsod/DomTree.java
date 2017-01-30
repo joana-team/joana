@@ -4,6 +4,7 @@ package edu.kit.joana.ifc.sdg.irlsod;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
@@ -85,10 +86,10 @@ public class DomTree {
 			}
 		}
 		ThreadRegion[] regions = mhp.getThreadRegions().toArray(new ThreadRegion[0]);
-		for (int i = 0; i < regions.length; i++) {
+		IntStream.range(0, regions.length).parallel().forEach(i -> {
 			ThreadRegion r1 = regions[i];
 			int threadN = r1.getThread();
-			for (int j = i; j < regions.length; j++) {
+			IntStream.range(i, regions.length).parallel().forEach(j -> {
 				ThreadRegion r2 = regions[j];
 				if (mhp.isParallel(r1,r2)) {
 					int threadM = r2.getThread();
@@ -102,16 +103,18 @@ public class DomTree {
 						}
 					}
 				}
-			}
-		}
+			});
+		});
 	}
 	
 	private void addEdge(VirtualNode v1, VirtualNode v2) {
 		if (v1.equals(v2)) return;
 		Pair<VirtualNode, VirtualNode> p = Pair.pair(v1, v2);
-		if (!this.set.contains(p)) {
-			this.set.add(p);
-			this.tree.addEdge(v1, v2);
+		synchronized (this) {
+			if (!this.set.contains(p)) {
+				this.set.add(p);
+				this.tree.addEdge(v1, v2);
+			}
 		}
 	}
 	

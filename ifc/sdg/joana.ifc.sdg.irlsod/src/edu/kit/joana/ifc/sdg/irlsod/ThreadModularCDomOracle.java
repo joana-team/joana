@@ -2,6 +2,7 @@ package edu.kit.joana.ifc.sdg.irlsod;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
@@ -30,7 +31,7 @@ public class ThreadModularCDomOracle implements ICDomOracle {
 	private TIntObjectMap<DynamicityAnalysis> threadsToDyna = new TIntObjectHashMap<>();
 	private TIntObjectMap<Dominators<SDGNode, SDGEdge>> threadsToDom = new TIntObjectHashMap<>();
 	private TIntObjectMap<DFSIntervalOrder<SDGNode, DomEdge>> threadsToDIO = new TIntObjectHashMap<>();
-	private Map<ForksTuple, VirtualNode> forkCDom = new HashMap<>();
+	private Map<ForksTuple, VirtualNode> forkCDom = new ConcurrentHashMap<>();
 
 	private final static class ForksTuple {
 		private final SDGNode fork1;
@@ -91,25 +92,40 @@ public class ThreadModularCDomOracle implements ICDomOracle {
 		}
 		
 		// 3.) find a common dominator of the two forks
-		CFG threadGraph = threadsToCFG.get(cAnc.getId());
-		if (threadGraph == null) {
-			threadGraph = unfoldCFGFor(cAnc.getId());
-			threadsToCFG.put(cAnc.getId(), threadGraph);
+		CFG threadGraph;
+		synchronized (threadsToCFG) {
+			threadGraph = threadsToCFG.get(cAnc.getId());
+			if (threadGraph == null) {
+				threadGraph = unfoldCFGFor(cAnc.getId());
+				threadsToCFG.put(cAnc.getId(), threadGraph);
+			}
 		}
-		DynamicityAnalysis dyna = threadsToDyna.get(cAnc.getId());
-		if (dyna == null) {
-			dyna = new DynamicityAnalysis(sdg, threadGraph);
-			threadsToDyna.put(cAnc.getId(), dyna);
+		
+		DynamicityAnalysis dyna;
+		synchronized (threadsToDyna) {
+			dyna = threadsToDyna.get(cAnc.getId());
+			if (dyna == null) {
+				dyna = new DynamicityAnalysis(sdg, threadGraph);
+				threadsToDyna.put(cAnc.getId(), dyna);
+			}
 		}
-		Dominators<SDGNode, SDGEdge> threadDom = threadsToDom.get(cAnc.getId());
-		if (threadDom == null) {
-			threadDom = Dominators.compute(threadGraph, cAnc.getEntry());
-			threadsToDom.put(cAnc.getId(), threadDom);
+		
+		Dominators<SDGNode, SDGEdge> threadDom;
+		synchronized(threadsToDom) {
+			threadDom = threadsToDom.get(cAnc.getId());
+			if (threadDom == null) {
+				threadDom = Dominators.compute(threadGraph, cAnc.getEntry());
+				threadsToDom.put(cAnc.getId(), threadDom);
+			}
 		}
-		DFSIntervalOrder<SDGNode, DomEdge> threadDIO = threadsToDIO.get(cAnc.getId());
-		if (threadDIO == null) {
-			threadDIO = new DFSIntervalOrder<SDGNode, DomEdge>(threadDom.getDominationTree());
-			threadsToDIO.put(cAnc.getId(), threadDIO);
+		
+		DFSIntervalOrder<SDGNode, DomEdge> threadDIO;
+		synchronized (threadsToDIO) {
+			threadDIO = threadsToDIO.get(cAnc.getId());
+			if (threadDIO == null) {
+				threadDIO = new DFSIntervalOrder<SDGNode, DomEdge>(threadDom.getDominationTree());
+				threadsToDIO.put(cAnc.getId(), threadDIO);
+			}
 		}
 		
 		SDGNode cdomSDGNode = lowestNonDynamicCommonDominator(fork1, fork2, threadDom, threadDIO, dyna);

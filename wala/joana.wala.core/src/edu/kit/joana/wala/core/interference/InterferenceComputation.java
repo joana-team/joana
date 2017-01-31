@@ -162,13 +162,25 @@ public class InterferenceComputation {
 	private final Set<InterferenceEdge> computeInterference(final IProgressMonitor progress) throws CancelException {
 		if (IS_DEBUG) debug.outln("Computing read-write/write-write interference for threads");
 		final Set<InterferenceEdge> ret = new HashSet<InterferenceEdge>();
-		
-		for (final PDG pdg : getPDGs()) {
+		Map<PDG, Set<HeapWrite>> writeMap = new IdentityHashMap<>();
+		Map<PDG, Set<HeapRead>> readMap = new IdentityHashMap<>();
+
+		Collection<PDG> pdgs = getPDGs();
+
+		for (PDG pdg : pdgs) {
 			if (pdg == null) {
 				continue;
 			}
+			writeMap.put(pdg, getHeapWrites(pdg));
+			readMap.put(pdg, getHeapReads(pdg));
+		}
 
-			final Set<HeapWrite> writes = getHeapWrites(pdg);
+		pdgs.parallelStream().forEach(pdg -> {
+			if (pdg == null) {
+				return;
+			}
+
+			final Set<HeapWrite> writes = writeMap.get(pdg);
 
 			if (writes.isEmpty()) {
 				// a pdg without heap access does not interfere with anything
@@ -176,37 +188,41 @@ public class InterferenceComputation {
 				// only appear when there is a aliasing write statement in another
 				// pdg. We skip them here because they will be added later on
 				// while handling the pdg with the interfering write.
-				continue;
+				return;
 			}
 
-			for (final PDG pdgCur : getPDGs()) {
+			pdgs.parallelStream().forEach(pdgCur -> {
 				if (pdgCur == null) {
-					continue;
+					return;
 				}
 
 				if (mayRunInParallelThreads(pdg, pdgCur)) {
-					final Set<HeapRead> readsCur = getHeapReads(pdgCur);
-					final Set<HeapWrite> writesCur = getHeapWrites(pdgCur);
+					final Set<HeapRead> readsCur = readMap.get(pdgCur);
+					final Set<HeapWrite> writesCur = writeMap.get(pdgCur);
 
 					if (readsCur.isEmpty() && writesCur.isEmpty()) {
 						// a pdg without heap access does not interfere with anything
-						continue;
+						return;
 					}
-
-					ret.addAll(computeInterference(writes, readsCur, writesCur));
+					
+					Set<InterferenceEdge> interferenceEdges
+						= computeInterference(writes, readsCur, writesCur);
+					synchronized (ret) {
+						ret.addAll(interferenceEdges);
+					}
 				}
 
-				if (progress.isCanceled()) {
+				/*if (progress.isCanceled()) {
 					throw CancelException.make("Computing interference canceled.");
-				}
-			}
+				}*/
+			});
 
-			if (progress.isCanceled()) {
+			/*if (progress.isCanceled()) {
 				throw CancelException.make("Computing interference canceled.");
-			}
+			}*/
 
 			progress.worked(1);
-		}
+		});
 
 		return ret;
 	}

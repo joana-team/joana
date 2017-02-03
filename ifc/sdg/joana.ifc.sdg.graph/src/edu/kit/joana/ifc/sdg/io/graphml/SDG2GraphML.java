@@ -245,14 +245,14 @@ public class SDG2GraphML {
 		}
 		
 		writer.writeEmptyElement(GRAPHML_KEY); {
-			writer.writeAttribute(GRAPHML_ID, JOANA_NODE_EC);
+			writer.writeAttribute(GRAPHML_ID, JOANA_NODE_LOCALDEF);
 			writer.writeAttribute(GRAPHML_FOR, GRAPHML_NODE);
 			writer.writeAttribute(GRAPHML_ATTR_NAME, JOANA_NODE_LOCALDEF);
 			writer.writeAttribute(GRAPHML_ATTR_TYPE, GRAPHML_STRING);
 		}
 		
 		writer.writeEmptyElement(GRAPHML_KEY); {
-			writer.writeAttribute(GRAPHML_ID, JOANA_NODE_EC);
+			writer.writeAttribute(GRAPHML_ID, JOANA_NODE_LOCALUSE);
 			writer.writeAttribute(GRAPHML_FOR, GRAPHML_NODE);
 			writer.writeAttribute(GRAPHML_ATTR_NAME, JOANA_NODE_LOCALUSE);
 			writer.writeAttribute(GRAPHML_ATTR_TYPE, GRAPHML_STRING);

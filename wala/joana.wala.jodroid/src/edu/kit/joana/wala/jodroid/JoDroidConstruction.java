@@ -36,7 +36,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.jar.JarFile;
 
 import org.slf4j.Logger;
@@ -48,6 +50,7 @@ import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.JarStreamModule;
 import com.ibm.wala.dalvik.classLoader.DexFileModule;
 import com.ibm.wala.dalvik.ipa.callgraph.androidModel.AndroidModel;
+import com.ibm.wala.dalvik.ipa.callgraph.androidModel.AndroidModelSome;
 import com.ibm.wala.dalvik.ipa.callgraph.androidModel.IntentModel;
 import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationBehavior;
 import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.LoadedInstantiationBehavior;
@@ -279,33 +282,9 @@ public class JoDroidConstruction {
         throw new UnsupportedOperationException("Not implemented!");
     }
 
-    /**
-     *  Generate the Android-Livecycle and produce joanas SDG.
-     *
-     *  Before calling this method the AnalysisScope has to be set and the ClassHierarchy created. Entrypoints
-     *  have to be specified.
-     *
-     *  This method will then construct the Livecycle for the android-App and build a SDG.
-     *
-     *  @throws IllegalStateException If cha has not been built before or no entrypoints have been specified
-     *  @return The System-Dependence-Graph for the analyzed application
-     */
-    public SDG buildAndroidSDGAll() throws SDGConstructionException {
-        if (p.scfg.cha == null) {
-            throw new IllegalStateException("The cha has to be constructed before building the SDG");
-        }
-        if (this.manager.getEntries().isEmpty()) {
-            throw new IllegalStateException("Androids entrypoints have to be set before generating the SDG! " + 
-                    "This can be done using the scan-function or by reading a ntrP-File" );
-        }
-        if (p.scfg.scope == null) {
-            throw new IllegalStateException("The scope has to be set before constructing the SDG!");
-        }
-
+    private SDG buildAndroidSDG(AndroidModel modeller) throws SDGConstructionException {
         final IMethod livecycle;
-        final AndroidModel modeller;
         { // Build the model
-            modeller = new AndroidModel(this.manager, p.scfg.cha, p.options, p.scfg.cache);
             try {
                 //livecycle = modeller.getMethod();         // This variant uses FakeRoot-Init
                 livecycle = modeller.getMethodEncap();      // Uses new Instantiator
@@ -329,6 +308,58 @@ public class JoDroidConstruction {
         }
 
         return sdg;
+    	
+    }
+    
+    /**
+     *  Generate the Android-Livecycle and produce joanas SDG.
+     *
+     *  Before calling this method the AnalysisScope has to be set and the ClassHierarchy created. Entrypoints
+     *  have to be specified.
+     *
+     *  This method will then construct the Livecycle for the android-App and build a SDG.
+     *
+     *  @throws IllegalStateException If cha has not been built before or no entrypoints have been specified
+     *  @return The System-Dependence-Graph for the analyzed application
+     */
+    public SDG buildAndroidSDGAll() throws SDGConstructionException {
+        if (p.scfg.cha == null) {
+            throw new IllegalStateException("The cha has to be constructed before building the SDG");
+        }
+        if (this.manager.getEntries().isEmpty()) {
+            throw new IllegalStateException("Androids entrypoints have to be set before generating the SDG! " + 
+                    "This can be done using the scan-function or by reading a ntrP-File" );
+        }
+        if (p.scfg.scope == null) {
+            throw new IllegalStateException("The scope has to be set before constructing the SDG!");
+        }
+        return buildAndroidSDG(new AndroidModel(this.manager, p.scfg.cha, p.options, p.scfg.cache)); 
+    }
+    
+    /**
+     *  Generate the Android-Livecycle and produce joanas SDG.
+     *
+     *  Before calling this method the AnalysisScope has to be set and the ClassHierarchy created. Entrypoints
+     *  have to be specified.
+     *
+     *  This method will then construct the Livecycle for the android-App and build a SDG.
+     *
+     *  @throws IllegalStateException If cha has not been built before or no entrypoints have been specified
+     *  @return The System-Dependence-Graph for the analyzed application
+     */
+    public SDG buildAndroidSDGSome(List<String> intents) throws SDGConstructionException {
+        if (p.scfg.cha == null) {
+            throw new IllegalStateException("The cha has to be constructed before building the SDG");
+        }
+        if (this.manager.getEntries().isEmpty()) {
+            throw new IllegalStateException("Androids entrypoints have to be set before generating the SDG! " + 
+                    "This can be done using the scan-function or by reading a ntrP-File" );
+        }
+        if (p.scfg.scope == null) {
+            throw new IllegalStateException("The scope has to be set before constructing the SDG!");
+        }
+
+        return buildAndroidSDG(new AndroidModelSome(this.manager, p.scfg.cha, p.options, p.scfg.cache, intents));
     }
 
     /**
@@ -458,15 +489,14 @@ public class JoDroidConstruction {
 
         constr.loadAndroidManifest(ex.getManifestFile());
 
-        { // Read in the ntrP-File  TODO
-            final File epFile = new File(ex.getEpFile());   
-            if (epFile.exists()) {  // XXX: This is a bad way to check
-                constr.loadEntryPoints(epFile);
-            }
-        }
+
 
         switch (ex.getScan()) {
-            case OFF:
+            case OFF: // Read in the ntrP-File  TODO
+                final File epFile = new File(ex.getEpFile());
+                if (epFile.exists()) {  // XXX: This is a bad way to check
+                    constr.loadEntryPoints(epFile);
+                }
                 break;
             case NORMAL:
                 constr.scanEntryPoints();
@@ -486,6 +516,10 @@ public class JoDroidConstruction {
             case ALL:
                 sdg = constr.buildAndroidSDGAll();
                 break;
+            case SOME:
+            	final List<String> intentsS = ex.getIntents();
+            	sdg = constr.buildAndroidSDGSome(intentsS);
+            	break;
             case MAIN:
                 ex.setIntent("Landroid/intent/action/MAIN");
                 // no break

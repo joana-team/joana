@@ -41,6 +41,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.List;
 //import java.nio.file.Files;   //  Java 7 :(
 // Replacement for java.nio.file.Files needs
     
@@ -93,6 +94,7 @@ public class ExecutionOptions {
         /** A conservative setting which causes inclusion of all android-components.
          *  This has been the default before */
         ALL("A conservative setting which causes inclusion of all android-components."),
+        SOME("A setting which includes a user-supplied list of intents"),
         /** This causes a model of the target of the MAIN-Intent to be the entrypoint.
          *  Entrypoints detected by Heuristics and for CallBacks will not yet be part
          *  of the model
@@ -126,7 +128,8 @@ public class ExecutionOptions {
     private String manifest = null;
     private ScanMode scan = ScanMode.OFF;
     private BuildMode construct = BuildMode.OFF;
-    private String intent = null;
+    private String intent = null; // for MAIN and INTENT mode;
+    private List<String> intents = null; // for SOME mode;
     private boolean writeEpFile = true;
     private URI epFile;
     private AnalysisPresets.PresetDescription preset = AnalysisPresets.PresetDescription.DEFAULT;
@@ -539,6 +542,14 @@ public class ExecutionOptions {
 
 	public void setResultBaseURI(URI uri) {
 		this.resultBaseURI = uri;
+	}
+
+	public List<String> getIntents() {
+		return intents;
+	}
+
+	public void setIntents(List<String> intents) {
+		this.intents = intents;
 	}
 }
 

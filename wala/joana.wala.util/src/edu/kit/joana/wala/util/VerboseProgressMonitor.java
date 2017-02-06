@@ -8,6 +8,7 @@
 package edu.kit.joana.wala.util;
 
 import java.io.PrintStream;
+import java.time.Instant;
 
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 
@@ -22,6 +23,7 @@ public class VerboseProgressMonitor implements IProgressMonitor {
 	private final PrintStream out;
 	private boolean canceled = false;
 	private boolean isWorking = false;
+	private long beginTime = -1;
 
 	public VerboseProgressMonitor(PrintStream out) {
 		this.out = out;
@@ -31,7 +33,10 @@ public class VerboseProgressMonitor implements IProgressMonitor {
 		if (isWorking) {
 			out.println();
 		}
-		out.print("[Task] " + name);
+		out.print("[Task @ " + Instant.now() + "] " + name);
+		out.flush();
+		beginTime = System.currentTimeMillis();
+		
 		isWorking = true;
 	}
 
@@ -40,11 +45,15 @@ public class VerboseProgressMonitor implements IProgressMonitor {
 			out.print("[Task]");
 		}
 		isWorking = false;
-		out.println(" done.");
+		out.println();
+		out.println(" done [@ " + Instant.now() + ", " + (System.currentTimeMillis() - beginTime) + "ms]");
+		out.flush();
+		beginTime = -1;
 	}
 
 	public void internalWorked(double work) {
 		out.print('.');
+		out.flush();
 	}
 
 	public boolean isCanceled() {
@@ -54,9 +63,12 @@ public class VerboseProgressMonitor implements IProgressMonitor {
 	public void cancel() {
 		if (!canceled) {
 			isWorking = false;
-			out.println(" canceled.");
+			out.println();
+			out.println(" canceled. [@ " + Instant.now() + ", " + (System.currentTimeMillis() - beginTime) + "ms]");
+			out.flush();
 		}
 		canceled = true;
+		beginTime = -1;
 	}
 
 	public void setTaskName(String name) {
@@ -70,10 +82,12 @@ public class VerboseProgressMonitor implements IProgressMonitor {
 		}
 
 		out.print("[SubTask] " + name + " ");
+		out.flush();
 	}
 
 	public void worked(int work) {
 		out.print('.');
+		out.flush();
 	}
 
 	@Override

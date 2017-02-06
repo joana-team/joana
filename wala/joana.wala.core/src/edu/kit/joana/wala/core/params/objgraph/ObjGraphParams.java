@@ -644,8 +644,9 @@ public final class ObjGraphParams {
 				}
 			}
 		}
-		
-		pdgModRef.mergeCandidates(toMerge, FLAG_MERGE_SMUSH_MANY);
+		if (!toMerge.isEmpty()) {
+			pdgModRef.mergeCandidates(toMerge, FLAG_MERGE_SMUSH_MANY);
+		}
 	}
 	
 	private static void cutOffUnreachable(final InterProcCandidateModel pdgModRef, final ModRefCandidateGraph mrg,

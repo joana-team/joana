@@ -304,7 +304,7 @@ public class AnalysisPresets {
         p.scfg.prunecg = Main.DEFAULT_PRUNE_CG;
         //p.scfg.fieldPropagation = FieldPropagation.OBJ_GRAPH;   // Do not use OBJ_TREE: Is outdated
         //p.scfg.fieldPropagation = FieldPropagation.OBJ_GRAPH_SIMPLE_PROPAGATION;
-        p.scfg.fieldPropagation = FieldPropagation.OBJ_GRAPH_NO_FIELD_MERGE;
+        p.scfg.fieldPropagation = FieldPropagation.OBJ_GRAPH;
         p.scfg.computeInterference = false;
 
 

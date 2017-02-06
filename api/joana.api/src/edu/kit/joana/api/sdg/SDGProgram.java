@@ -26,7 +26,9 @@ import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.ShrikeCTMethod;
+import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.shrikeCT.TypeAnnotationsReader.TargetType;
 import com.ibm.wala.types.annotations.Annotation;
@@ -263,8 +265,14 @@ public class SDGProgram {
 			return ret;
 		}
 		
+		ret.fillWithAnnotations(builder.getClassHierarchy());
+		return ret;
+	}
+
+	public void fillWithAnnotations(IClassHierarchy cha) {
 		// TODO: Iterate only over classes present in the call graph
-		for (IClass c : builder.getClassHierarchy()) {
+		final SDGProgram ret = this;
+		for (IClass c : cha) {
 			final String walaClassName = c.getName().toString();
 			final JavaType jt = JavaType.parseSingleTypeFromString(walaClassName, Format.BC);
 			final String sourcefile = PrettyWalaNames.sourceFileName(c.getName()); 
@@ -360,14 +368,10 @@ public class SDGProgram {
 				} else {
 					debug.outln("Warning: Parameter Annotation Processing not supported for Methods representet by " + m.getClass());
 				}
-
-
 			}
-
 		}
-
-		return ret;
 	}
+
 	public static SDGBuilder createSDGBuilder(SDGConfig config) throws ClassHierarchyException, UnsoundGraphException, CancelException, IOException {
 		return SDGBuildPreparation.createBuilder(IOFactory.createUTF8PrintStream(new ByteArrayOutputStream()), makeBuildPreparationConfig(config), NullProgressMonitor.INSTANCE);
 	}

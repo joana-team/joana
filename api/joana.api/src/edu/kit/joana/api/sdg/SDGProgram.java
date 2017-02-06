@@ -271,7 +271,6 @@ public class SDGProgram {
 
 	public void fillWithAnnotations(IClassHierarchy cha) {
 		// TODO: Iterate only over classes present in the call graph
-		final SDGProgram ret = this;
 		for (IClass c : cha) {
 			final String walaClassName = c.getName().toString();
 			final JavaType jt = JavaType.parseSingleTypeFromString(walaClassName, Format.BC);
@@ -279,11 +278,11 @@ public class SDGProgram {
 			
 
 			for (IField f : c.getAllFields()) {
-				final Collection<SDGAttribute> attributes = ret.getAttribute(jt, f.getName().toString());
+				final Collection<SDGAttribute> attributes = this.getAttribute(jt, f.getName().toString());
 				// attributes.isEmpty() if c isn't Part of the CallGraph
 				if (f.getAnnotations() != null && !f.getAnnotations().isEmpty()) {
 					for (SDGAttribute attribute : attributes)
-						ret.annotations.put(
+						this.annotations.put(
 							attribute,
 							f.getAnnotations().stream().map( a -> Pair.pair(a, sourcefile)).collect(Collectors.toList())
 						);
@@ -293,10 +292,10 @@ public class SDGProgram {
 			}
 			for (IMethod m : c.getAllMethods()) {
 				if (m.getAnnotations() != null && !m.getAnnotations().isEmpty()) {
-					final Collection<SDGMethod> methods = ret.getMethods(JavaMethodSignature.fromString(m
+					final Collection<SDGMethod> methods = this.getMethods(JavaMethodSignature.fromString(m
 							.getSignature()));
 					for (SDGMethod sdgm : methods) {
-						ret.annotations.put(
+						this.annotations.put(
 							sdgm,
 							m.getAnnotations().stream().map( a -> Pair.pair(a, sourcefile)).collect(Collectors.toList())
 						);
@@ -314,10 +313,10 @@ public class SDGProgram {
 							parameter.stream().map( a -> Pair.pair(a, sourcefile)).collect(Collectors.toList());
 						if (!parameter.isEmpty()) {
 							if (methods.isEmpty()) { 
-								methods = ret.getMethods(JavaMethodSignature.fromString(m.getSignature()));
+								methods = this.getMethods(JavaMethodSignature.fromString(m.getSignature()));
 							}
 							for (SDGMethod sdgm : methods) {
-								ret.annotations.put(sdgm.getParameter(parameternumber), parameterWithSourcefile);
+								this.annotations.put(sdgm.getParameter(parameternumber), parameterWithSourcefile);
 							}
 							parameternumber++;
 						}
@@ -332,7 +331,7 @@ public class SDGProgram {
 						
 						if (!localVarAnnotations.isEmpty()) {
 							if (methods.isEmpty()) { 
-								methods = ret.getMethods(JavaMethodSignature.fromString(m.getSignature()));
+								methods = this.getMethods(JavaMethodSignature.fromString(m.getSignature()));
 							}
 							for (TypeAnnotation ta : localVarAnnotations) {
 								final LocalVarTarget localVarTarget = (LocalVarTarget) ta.getTypeAnnotationTarget();
@@ -345,8 +344,8 @@ public class SDGProgram {
 										if (localVar != null) {
 											c.getSourceFileName();
 											c.getSource();
-											ret.annotations.computeIfAbsent(localVar, lv -> new LinkedList<Pair<Annotation, String>>());
-											ret.annotations.computeIfPresent(localVar, (lv, anns) -> {
+											this.annotations.computeIfAbsent(localVar, lv -> new LinkedList<Pair<Annotation, String>>());
+											this.annotations.computeIfPresent(localVar, (lv, anns) -> {
 												anns.add(Pair.pair(ta.getAnnotation(),sourcefile));
 												return anns;
 											});

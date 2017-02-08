@@ -339,10 +339,183 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
     @Override public Set<E> edgeSet()
     {
         if (unmodifiableEdgeSet == null) {
-            unmodifiableEdgeSet = Collections.unmodifiableSet(edgeSet);
+            unmodifiableEdgeSet = new EdgeSetView(specifics.vertexMapDirected);
         }
 
         return unmodifiableEdgeSet;
+    }
+    
+    private class EdgeSetView implements Set<E> {
+    	final Map<V, DirectedEdgeContainer<V, E>> vertexMap;
+    	EdgeSetView(Map<V, DirectedEdgeContainer<V, E>> vertexMap) {
+    		this.vertexMap = vertexMap;
+    	}
+
+		/* (non-Javadoc)
+		 * @see java.util.Set#add(java.lang.Object)
+		 */
+		@Override
+		public boolean add(E e) {
+			throw new UnsupportedOperationException();
+		}
+
+		/* (non-Javadoc)
+		 * @see java.util.Set#addAll(java.util.Collection)
+		 */
+		@Override
+		public boolean addAll(Collection<? extends E> c) {
+			throw new UnsupportedOperationException();
+		}
+
+		/* (non-Javadoc)
+		 * @see java.util.Set#clear()
+		 */
+		@Override
+		public void clear() {
+			throw new UnsupportedOperationException();
+			
+		}
+
+		/* (non-Javadoc)
+		 * @see java.util.Set#contains(java.lang.Object)
+		 */
+		@Override
+		public boolean contains(Object o) {
+			if (!(o instanceof KnowsVertices)) {
+				return false;
+			}
+			DirectedEdgeContainer<V, E> vc
+					= vertexMap.get(((KnowsVertices<?>) o).getSource());
+			if (vc == null || vc.outgoing == null) {
+				return false;
+			}
+			return vc.outgoing.contains(o);
+		}
+
+		/* (non-Javadoc)
+		 * @see java.util.Set#containsAll(java.util.Collection)
+		 */
+		@Override
+		public boolean containsAll(Collection<?> c) {
+			for (Object o : c) {
+				if (!contains(o)) {
+					return false;
+				}
+			}
+			return true;
+		}
+
+		/* (non-Javadoc)
+		 * @see java.util.Set#isEmpty()
+		 */
+		@Override
+		public boolean isEmpty() {
+			return size() == 0;
+		}
+
+		/* (non-Javadoc)
+		 * @see java.util.Set#iterator()
+		 */
+		@Override
+		public Iterator<E> iterator() {
+			return new EdgeSetViewIterator() ;
+		}
+
+		/* (non-Javadoc)
+		 * @see java.util.Set#remove(java.lang.Object)
+		 */
+		@Override
+		public boolean remove(Object o) {
+			throw new UnsupportedOperationException();
+		}
+
+		/* (non-Javadoc)
+		 * @see java.util.Set#removeAll(java.util.Collection)
+		 */
+		@Override
+		public boolean removeAll(Collection<?> c) {
+			throw new UnsupportedOperationException();
+		}
+
+		/* (non-Javadoc)
+		 * @see java.util.Set#retainAll(java.util.Collection)
+		 */
+		@Override
+		public boolean retainAll(Collection<?> c) {
+			throw new UnsupportedOperationException();
+		}
+
+		/* (non-Javadoc)
+		 * @see java.util.Set#size()
+		 */
+		@Override
+		public int size() {
+			return vertexMap.values().stream().mapToInt(c->c.outgoing.size()).sum();
+		}
+
+		/* (non-Javadoc)
+		 * @see java.util.Set#toArray()
+		 */
+		@Override
+		public Object[] toArray() {
+			return toList().toArray();
+		}
+
+		/* (non-Javadoc)
+		 * @see java.util.Set#toArray(java.lang.Object[])
+		 */
+		@Override
+		public <T> T[] toArray(T[] a) {
+			return toList().toArray(a);
+		}
+		
+		private List<E> toList() {
+			List<E> tmp = new ArrayList<>();
+			for (E e : this) {
+				tmp.add(e);
+			}
+			return tmp;
+		}
+    	
+		private class EdgeSetViewIterator implements Iterator<E>{
+			Iterator<DirectedEdgeContainer<V, E>> ecIt;
+			Iterator<E> edgeIt;
+			E next;
+			
+			EdgeSetViewIterator() {
+				ecIt = vertexMap.values().iterator();
+				advance();
+			}
+
+			@Override
+			public boolean hasNext() {
+				return next != null;
+			}
+	
+			@Override
+			public E next() {
+				E ret = next;
+				if (edgeIt.hasNext()) {
+					next = edgeIt.next();
+				} else {
+					advance();
+				}
+				return ret;
+			}
+			
+			private void advance() {
+				DirectedEdgeContainer<V, E> vc = null;
+				while (ecIt.hasNext()) {
+					vc = ecIt.next();
+					if (vc != null && vc.outgoing.size() > 0) {
+						edgeIt = vc.outgoing.iterator();
+						next = edgeIt.next();
+						return;
+					}
+				}
+				next = null;
+			}
+		}
     }
 
     /**

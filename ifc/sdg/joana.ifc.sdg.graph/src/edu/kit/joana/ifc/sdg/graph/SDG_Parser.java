@@ -1,4 +1,4 @@
-// $ANTLR 3.5.2 /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g 2016-11-30 16:03:48
+// $ANTLR 3.5.2 SDG_.g 2017-02-10 10:31:50
 /**
  * This file is part of the Joana IFC project. It is developed at the
  * Programming Paradigms Group of the Karlsruhe Institute of Technology.
@@ -9,21 +9,16 @@
 package edu.kit.joana.ifc.sdg.graph;
 
 import java.util.LinkedList;
-import java.util.List;
-
-import org.antlr.runtime.BitSet;
-import org.antlr.runtime.EarlyExitException;
-import org.antlr.runtime.NoViableAltException;
-import org.antlr.runtime.Parser;
-import org.antlr.runtime.RecognitionException;
-import org.antlr.runtime.RecognizerSharedState;
-import org.antlr.runtime.Token;
-import org.antlr.runtime.TokenStream;
-
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
+
+
+import org.antlr.runtime.*;
+import java.util.Stack;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * This file is part of the Joana IFC project. It is developed at the
@@ -185,7 +180,7 @@ public class SDG_Parser extends Parser {
 	}
 
 	@Override public String[] getTokenNames() { return SDG_Parser.tokenNames; }
-	@Override public String getGrammarFileName() { return "/data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g"; }
+	@Override public String getGrammarFileName() { return "SDG_.g"; }
 
 
 	  private SDGNode.NodeFactory nodeFact = new SDGNode.SDGNodeFactory();
@@ -215,8 +210,13 @@ public class SDG_Parser extends Parser {
 
 	  @Override
 	  public void reportError(final RecognitionException e) {
+	    if (e instanceof LexerException || e instanceof ParserException) {
+	      Thrower.sneakyThrow(e);
+	    }
 	    super.reportError(e);
-	    Thrower.sneakyThrow(e);
+	    String hdr = getErrorHeader(e);
+	    String msg = getErrorMessage(e, getTokenNames());
+	    Thrower.sneakyThrow(new ParserException(hdr+' '+msg, e));
 	  }
 
 	  /**
@@ -398,7 +398,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "sdg_file"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:281:1: sdg_file returns [SDG sdg] : head= sdg_header '{' ( 'JComp' )? nl= node_list (ti= thread_info[sdg] )? '}' ;
+	// SDG_.g:288:1: sdg_file returns [SDG sdg] : head= sdg_header '{' ( 'JComp' )? nl= node_list (ti= thread_info[sdg] )? '}' ;
 	public final SDG sdg_file() throws RecognitionException {
 		SDG sdg = null;
 
@@ -408,8 +408,8 @@ public class SDG_Parser extends Parser {
 		ThreadsInformation ti =null;
 
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:282:3: (head= sdg_header '{' ( 'JComp' )? nl= node_list (ti= thread_info[sdg] )? '}' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:282:5: head= sdg_header '{' ( 'JComp' )? nl= node_list (ti= thread_info[sdg] )? '}'
+			// SDG_.g:289:3: (head= sdg_header '{' ( 'JComp' )? nl= node_list (ti= thread_info[sdg] )? '}' )
+			// SDG_.g:289:5: head= sdg_header '{' ( 'JComp' )? nl= node_list (ti= thread_info[sdg] )? '}'
 			{
 			pushFollow(FOLLOW_sdg_header_in_sdg_file73);
 			head=sdg_header();
@@ -417,7 +417,7 @@ public class SDG_Parser extends Parser {
 
 			 sdg = head.createSDG(); 
 			match(input,117,FOLLOW_117_in_sdg_file89); 
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:284:7: ( 'JComp' )?
+			// SDG_.g:291:7: ( 'JComp' )?
 			int alt1=2;
 			int LA1_0 = input.LA(1);
 			if ( (LA1_0==46) ) {
@@ -425,7 +425,7 @@ public class SDG_Parser extends Parser {
 			}
 			switch (alt1) {
 				case 1 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:284:8: 'JComp'
+					// SDG_.g:291:8: 'JComp'
 					{
 					match(input,46,FOLLOW_46_in_sdg_file99); 
 					 sdg.setJoanaCompiler(true); 
@@ -439,7 +439,7 @@ public class SDG_Parser extends Parser {
 			state._fsp--;
 
 			 createNodesAndEdges(sdg, nl); 
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:286:7: (ti= thread_info[sdg] )?
+			// SDG_.g:293:7: (ti= thread_info[sdg] )?
 			int alt2=2;
 			int LA2_0 = input.LA(1);
 			if ( (LA2_0==74) ) {
@@ -447,7 +447,7 @@ public class SDG_Parser extends Parser {
 			}
 			switch (alt2) {
 				case 1 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:286:8: ti= thread_info[sdg]
+					// SDG_.g:293:8: ti= thread_info[sdg]
 					{
 					pushFollow(FOLLOW_thread_info_in_sdg_file150);
 					ti=thread_info(sdg);
@@ -477,7 +477,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "thread_info"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:290:9: private thread_info[SDG sdg] returns [ThreadsInformation tinfo] : (t= thread[sdg] )+ ;
+	// SDG_.g:297:9: private thread_info[SDG sdg] returns [ThreadsInformation tinfo] : (t= thread[sdg] )+ ;
 	public final ThreadsInformation thread_info(SDG sdg) throws RecognitionException {
 		ThreadsInformation tinfo = null;
 
@@ -485,11 +485,11 @@ public class SDG_Parser extends Parser {
 		ThreadInstance t =null;
 
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:291:3: ( (t= thread[sdg] )+ )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:291:5: (t= thread[sdg] )+
+			// SDG_.g:298:3: ( (t= thread[sdg] )+ )
+			// SDG_.g:298:5: (t= thread[sdg] )+
 			{
 			 final LinkedList<ThreadInstance> tis = new LinkedList<ThreadInstance>(); 
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:292:5: (t= thread[sdg] )+
+			// SDG_.g:299:5: (t= thread[sdg] )+
 			int cnt3=0;
 			loop3:
 			while (true) {
@@ -501,7 +501,7 @@ public class SDG_Parser extends Parser {
 
 				switch (alt3) {
 				case 1 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:292:6: t= thread[sdg]
+					// SDG_.g:299:6: t= thread[sdg]
 					{
 					pushFollow(FOLLOW_thread_in_thread_info192);
 					t=thread(sdg);
@@ -537,7 +537,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "thread"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:296:9: private thread[SDG sdg] returns [ThreadInstance ti] : 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= number ';' 'Join' joins= listOrSingleNumber[sdg] ';' 'Context' con= context[sdg] ';' 'Dynamic' dyn= bool ';' '}' ;
+	// SDG_.g:303:9: private thread[SDG sdg] returns [ThreadInstance ti] : 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= number ';' 'Join' joins= listOrSingleNumber[sdg] ';' 'Context' con= context[sdg] ';' 'Dynamic' dyn= bool ';' '}' ;
 	public final ThreadInstance thread(SDG sdg) throws RecognitionException {
 		ThreadInstance ti = null;
 
@@ -551,8 +551,8 @@ public class SDG_Parser extends Parser {
 		boolean dyn =false;
 
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:297:3: ( 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= number ';' 'Join' joins= listOrSingleNumber[sdg] ';' 'Context' con= context[sdg] ';' 'Dynamic' dyn= bool ';' '}' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:297:5: 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= number ';' 'Join' joins= listOrSingleNumber[sdg] ';' 'Context' con= context[sdg] ';' 'Dynamic' dyn= bool ';' '}'
+			// SDG_.g:304:3: ( 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= number ';' 'Join' joins= listOrSingleNumber[sdg] ';' 'Context' con= context[sdg] ';' 'Dynamic' dyn= bool ';' '}' )
+			// SDG_.g:304:5: 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= number ';' 'Join' joins= listOrSingleNumber[sdg] ';' 'Context' con= context[sdg] ';' 'Dynamic' dyn= bool ';' '}'
 			{
 			match(input,74,FOLLOW_74_in_thread224); 
 			pushFollow(FOLLOW_number_in_thread228);
@@ -620,7 +620,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "listOrSingleNumber"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:313:9: private listOrSingleNumber[SDG sdg] returns [LinkedList<SDGNode> js] : (joins= mayEmptyNumberList[sdg] |jo= number );
+	// SDG_.g:320:9: private listOrSingleNumber[SDG sdg] returns [LinkedList<SDGNode> js] : (joins= mayEmptyNumberList[sdg] |jo= number );
 	public final LinkedList<SDGNode> listOrSingleNumber(SDG sdg) throws RecognitionException {
 		LinkedList<SDGNode> js = null;
 
@@ -629,7 +629,7 @@ public class SDG_Parser extends Parser {
 		int jo =0;
 
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:314:3: (joins= mayEmptyNumberList[sdg] |jo= number )
+			// SDG_.g:321:3: (joins= mayEmptyNumberList[sdg] |jo= number )
 			int alt4=2;
 			int LA4_0 = input.LA(1);
 			if ( (LA4_0==80||LA4_0==107) ) {
@@ -647,7 +647,7 @@ public class SDG_Parser extends Parser {
 
 			switch (alt4) {
 				case 1 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:314:5: joins= mayEmptyNumberList[sdg]
+					// SDG_.g:321:5: joins= mayEmptyNumberList[sdg]
 					{
 					pushFollow(FOLLOW_mayEmptyNumberList_in_listOrSingleNumber363);
 					joins=mayEmptyNumberList(sdg);
@@ -657,7 +657,7 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 2 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:315:5: jo= number
+					// SDG_.g:322:5: jo= number
 					{
 					pushFollow(FOLLOW_number_in_listOrSingleNumber374);
 					jo=number();
@@ -686,7 +686,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "mayEmptyNumberList"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:321:9: private mayEmptyNumberList[SDG sdg] returns [LinkedList<SDGNode> js = new LinkedList<SDGNode>();] : ( 'null' | '[' ']' | '[' i= number ( ',' i= number )* ']' );
+	// SDG_.g:328:9: private mayEmptyNumberList[SDG sdg] returns [LinkedList<SDGNode> js = new LinkedList<SDGNode>();] : ( 'null' | '[' ']' | '[' i= number ( ',' i= number )* ']' );
 	public final LinkedList<SDGNode> mayEmptyNumberList(SDG sdg) throws RecognitionException {
 		LinkedList<SDGNode> js =  new LinkedList<SDGNode>();;
 
@@ -694,7 +694,7 @@ public class SDG_Parser extends Parser {
 		int i =0;
 
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:322:3: ( 'null' | '[' ']' | '[' i= number ( ',' i= number )* ']' )
+			// SDG_.g:329:3: ( 'null' | '[' ']' | '[' i= number ( ',' i= number )* ']' )
 			int alt6=3;
 			int LA6_0 = input.LA(1);
 			if ( (LA6_0==107) ) {
@@ -731,20 +731,20 @@ public class SDG_Parser extends Parser {
 
 			switch (alt6) {
 				case 1 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:322:5: 'null'
+					// SDG_.g:329:5: 'null'
 					{
 					match(input,107,FOLLOW_107_in_mayEmptyNumberList396); 
 					}
 					break;
 				case 2 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:323:5: '[' ']'
+					// SDG_.g:330:5: '[' ']'
 					{
 					match(input,80,FOLLOW_80_in_mayEmptyNumberList402); 
 					match(input,81,FOLLOW_81_in_mayEmptyNumberList404); 
 					}
 					break;
 				case 3 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:324:5: '[' i= number ( ',' i= number )* ']'
+					// SDG_.g:331:5: '[' i= number ( ',' i= number )* ']'
 					{
 					match(input,80,FOLLOW_80_in_mayEmptyNumberList410); 
 					pushFollow(FOLLOW_number_in_mayEmptyNumberList414);
@@ -752,7 +752,7 @@ public class SDG_Parser extends Parser {
 					state._fsp--;
 
 					 js.add(sdg.getNode(i)); 
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:324:46: ( ',' i= number )*
+					// SDG_.g:331:46: ( ',' i= number )*
 					loop5:
 					while (true) {
 						int alt5=2;
@@ -763,7 +763,7 @@ public class SDG_Parser extends Parser {
 
 						switch (alt5) {
 						case 1 :
-							// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:324:47: ',' i= number
+							// SDG_.g:331:47: ',' i= number
 							{
 							match(input,7,FOLLOW_7_in_mayEmptyNumberList419); 
 							pushFollow(FOLLOW_number_in_mayEmptyNumberList423);
@@ -799,7 +799,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "mayEmptyStringList"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:327:9: private mayEmptyStringList returns [LinkedList<String> ss = new LinkedList<String>();] : ( 'null' | '[' ']' | '[' s= string ( ',' s= string )* ']' );
+	// SDG_.g:334:9: private mayEmptyStringList returns [LinkedList<String> ss = new LinkedList<String>();] : ( 'null' | '[' ']' | '[' s= string ( ',' s= string )* ']' );
 	public final LinkedList<String> mayEmptyStringList() throws RecognitionException {
 		LinkedList<String> ss =  new LinkedList<String>();;
 
@@ -807,7 +807,7 @@ public class SDG_Parser extends Parser {
 		String s =null;
 
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:328:3: ( 'null' | '[' ']' | '[' s= string ( ',' s= string )* ']' )
+			// SDG_.g:335:3: ( 'null' | '[' ']' | '[' s= string ( ',' s= string )* ']' )
 			int alt8=3;
 			int LA8_0 = input.LA(1);
 			if ( (LA8_0==107) ) {
@@ -844,20 +844,20 @@ public class SDG_Parser extends Parser {
 
 			switch (alt8) {
 				case 1 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:328:5: 'null'
+					// SDG_.g:335:5: 'null'
 					{
 					match(input,107,FOLLOW_107_in_mayEmptyStringList451); 
 					}
 					break;
 				case 2 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:329:5: '[' ']'
+					// SDG_.g:336:5: '[' ']'
 					{
 					match(input,80,FOLLOW_80_in_mayEmptyStringList457); 
 					match(input,81,FOLLOW_81_in_mayEmptyStringList459); 
 					}
 					break;
 				case 3 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:330:5: '[' s= string ( ',' s= string )* ']'
+					// SDG_.g:337:5: '[' s= string ( ',' s= string )* ']'
 					{
 					match(input,80,FOLLOW_80_in_mayEmptyStringList465); 
 					pushFollow(FOLLOW_string_in_mayEmptyStringList469);
@@ -865,7 +865,7 @@ public class SDG_Parser extends Parser {
 					state._fsp--;
 
 					 ss.add(s); 
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:330:33: ( ',' s= string )*
+					// SDG_.g:337:33: ( ',' s= string )*
 					loop7:
 					while (true) {
 						int alt7=2;
@@ -876,7 +876,7 @@ public class SDG_Parser extends Parser {
 
 						switch (alt7) {
 						case 1 :
-							// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:330:34: ',' s= string
+							// SDG_.g:337:34: ',' s= string
 							{
 							match(input,7,FOLLOW_7_in_mayEmptyStringList474); 
 							pushFollow(FOLLOW_string_in_mayEmptyStringList478);
@@ -912,7 +912,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "context"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:333:9: private context[SDG sdg] returns [LinkedList<SDGNode> cx = new LinkedList<SDGNode>();] : ( 'null' | '[' i= mayNegNumber ( ',' i= mayNegNumber )* ']' );
+	// SDG_.g:340:9: private context[SDG sdg] returns [LinkedList<SDGNode> cx = new LinkedList<SDGNode>();] : ( 'null' | '[' i= mayNegNumber ( ',' i= mayNegNumber )* ']' );
 	public final LinkedList<SDGNode> context(SDG sdg) throws RecognitionException {
 		LinkedList<SDGNode> cx =  new LinkedList<SDGNode>();;
 
@@ -920,7 +920,7 @@ public class SDG_Parser extends Parser {
 		int i =0;
 
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:334:3: ( 'null' | '[' i= mayNegNumber ( ',' i= mayNegNumber )* ']' )
+			// SDG_.g:341:3: ( 'null' | '[' i= mayNegNumber ( ',' i= mayNegNumber )* ']' )
 			int alt10=2;
 			int LA10_0 = input.LA(1);
 			if ( (LA10_0==107) ) {
@@ -938,13 +938,13 @@ public class SDG_Parser extends Parser {
 
 			switch (alt10) {
 				case 1 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:334:5: 'null'
+					// SDG_.g:341:5: 'null'
 					{
 					match(input,107,FOLLOW_107_in_context507); 
 					}
 					break;
 				case 2 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:335:5: '[' i= mayNegNumber ( ',' i= mayNegNumber )* ']'
+					// SDG_.g:342:5: '[' i= mayNegNumber ( ',' i= mayNegNumber )* ']'
 					{
 					match(input,80,FOLLOW_80_in_context513); 
 					pushFollow(FOLLOW_mayNegNumber_in_context517);
@@ -952,7 +952,7 @@ public class SDG_Parser extends Parser {
 					state._fsp--;
 
 					 cx.add(sdg.getNode(i)); 
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:335:52: ( ',' i= mayNegNumber )*
+					// SDG_.g:342:52: ( ',' i= mayNegNumber )*
 					loop9:
 					while (true) {
 						int alt9=2;
@@ -963,7 +963,7 @@ public class SDG_Parser extends Parser {
 
 						switch (alt9) {
 						case 1 :
-							// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:335:53: ',' i= mayNegNumber
+							// SDG_.g:342:53: ',' i= mayNegNumber
 							{
 							match(input,7,FOLLOW_7_in_context522); 
 							pushFollow(FOLLOW_mayNegNumber_in_context526);
@@ -999,7 +999,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "sdg_header"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:338:9: private sdg_header returns [SDGHeader header] : 'SDG' ( 'v' n= number )? (na= string )? ;
+	// SDG_.g:345:9: private sdg_header returns [SDGHeader header] : 'SDG' ( 'v' n= number )? (na= string )? ;
 	public final SDGHeader sdg_header() throws RecognitionException {
 		SDGHeader header = null;
 
@@ -1008,12 +1008,12 @@ public class SDG_Parser extends Parser {
 		String na =null;
 
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:339:3: ( 'SDG' ( 'v' n= number )? (na= string )? )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:339:5: 'SDG' ( 'v' n= number )? (na= string )?
+			// SDG_.g:346:3: ( 'SDG' ( 'v' n= number )? (na= string )? )
+			// SDG_.g:346:5: 'SDG' ( 'v' n= number )? (na= string )?
 			{
 			match(input,67,FOLLOW_67_in_sdg_header552); 
 			 int version = SDG.DEFAULT_VERSION; 
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:341:7: ( 'v' n= number )?
+			// SDG_.g:348:7: ( 'v' n= number )?
 			int alt11=2;
 			int LA11_0 = input.LA(1);
 			if ( (LA11_0==116) ) {
@@ -1021,7 +1021,7 @@ public class SDG_Parser extends Parser {
 			}
 			switch (alt11) {
 				case 1 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:341:8: 'v' n= number
+					// SDG_.g:348:8: 'v' n= number
 					{
 					match(input,116,FOLLOW_116_in_sdg_header568); 
 					pushFollow(FOLLOW_number_in_sdg_header572);
@@ -1035,7 +1035,7 @@ public class SDG_Parser extends Parser {
 			}
 
 			 String name = null; 
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:343:7: (na= string )?
+			// SDG_.g:350:7: (na= string )?
 			int alt12=2;
 			int LA12_0 = input.LA(1);
 			if ( (LA12_0==STRING) ) {
@@ -1043,7 +1043,7 @@ public class SDG_Parser extends Parser {
 			}
 			switch (alt12) {
 				case 1 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:343:8: na= string
+					// SDG_.g:350:8: na= string
 					{
 					pushFollow(FOLLOW_string_in_sdg_header593);
 					na=string();
@@ -1073,7 +1073,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "node_list"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:347:9: private node_list returns [List<SDGNodeStub> list = new LinkedList<SDGNodeStub>();] : (n= node )* ;
+	// SDG_.g:354:9: private node_list returns [List<SDGNodeStub> list = new LinkedList<SDGNodeStub>();] : (n= node )* ;
 	public final List<SDGNodeStub> node_list() throws RecognitionException {
 		List<SDGNodeStub> list =  new LinkedList<SDGNodeStub>();;
 
@@ -1081,10 +1081,10 @@ public class SDG_Parser extends Parser {
 		SDGNodeStub n =null;
 
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:348:3: ( (n= node )* )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:348:5: (n= node )*
+			// SDG_.g:355:3: ( (n= node )* )
+			// SDG_.g:355:5: (n= node )*
 			{
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:348:5: (n= node )*
+			// SDG_.g:355:5: (n= node )*
 			loop13:
 			while (true) {
 				int alt13=2;
@@ -1095,7 +1095,7 @@ public class SDG_Parser extends Parser {
 
 				switch (alt13) {
 				case 1 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:348:6: n= node
+					// SDG_.g:355:6: n= node
 					{
 					pushFollow(FOLLOW_node_in_node_list626);
 					n=node();
@@ -1127,7 +1127,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "node"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:351:9: private node returns [SDGNodeStub nstub] : k= node_kind id= mayNegNumber '{' node_attributes[nstub] node_edges[nstub] '}' ;
+	// SDG_.g:358:9: private node returns [SDGNodeStub nstub] : k= node_kind id= mayNegNumber '{' node_attributes[nstub] node_edges[nstub] '}' ;
 	public final SDGNodeStub node() throws RecognitionException {
 		SDGNodeStub nstub = null;
 
@@ -1136,8 +1136,8 @@ public class SDG_Parser extends Parser {
 		int id =0;
 
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:352:3: (k= node_kind id= mayNegNumber '{' node_attributes[nstub] node_edges[nstub] '}' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:352:5: k= node_kind id= mayNegNumber '{' node_attributes[nstub] node_edges[nstub] '}'
+			// SDG_.g:359:3: (k= node_kind id= mayNegNumber '{' node_attributes[nstub] node_edges[nstub] '}' )
+			// SDG_.g:359:5: k= node_kind id= mayNegNumber '{' node_attributes[nstub] node_edges[nstub] '}'
 			{
 			pushFollow(FOLLOW_node_kind_in_node652);
 			k=node_kind();
@@ -1175,13 +1175,13 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "node_kind"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:359:9: private node_kind returns [SDGNode.Kind kind] : ( 'NORM' | 'PRED' | 'EXPR' | 'ENTR' | 'CALL' | 'ACTI' | 'ACTO' | 'FRMI' | 'FRMO' | 'EXIT' | 'SYNC' | 'FOLD' );
+	// SDG_.g:366:9: private node_kind returns [SDGNode.Kind kind] : ( 'NORM' | 'PRED' | 'EXPR' | 'ENTR' | 'CALL' | 'ACTI' | 'ACTO' | 'FRMI' | 'FRMO' | 'EXIT' | 'SYNC' | 'FOLD' );
 	public final SDGNode.Kind node_kind() throws RecognitionException {
 		SDGNode.Kind kind = null;
 
 
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:360:3: ( 'NORM' | 'PRED' | 'EXPR' | 'ENTR' | 'CALL' | 'ACTI' | 'ACTO' | 'FRMI' | 'FRMO' | 'EXIT' | 'SYNC' | 'FOLD' )
+			// SDG_.g:367:3: ( 'NORM' | 'PRED' | 'EXPR' | 'ENTR' | 'CALL' | 'ACTI' | 'ACTO' | 'FRMI' | 'FRMO' | 'EXIT' | 'SYNC' | 'FOLD' )
 			int alt14=12;
 			switch ( input.LA(1) ) {
 			case 55:
@@ -1251,84 +1251,84 @@ public class SDG_Parser extends Parser {
 			}
 			switch (alt14) {
 				case 1 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:360:5: 'NORM'
+					// SDG_.g:367:5: 'NORM'
 					{
 					match(input,55,FOLLOW_55_in_node_kind710); 
 					 kind = SDGNode.Kind.NORMAL; 
 					}
 					break;
 				case 2 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:361:5: 'PRED'
+					// SDG_.g:368:5: 'PRED'
 					{
 					match(input,60,FOLLOW_60_in_node_kind718); 
 					 kind = SDGNode.Kind.PREDICATE; 
 					}
 					break;
 				case 3 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:362:5: 'EXPR'
+					// SDG_.g:369:5: 'EXPR'
 					{
 					match(input,30,FOLLOW_30_in_node_kind726); 
 					 kind = SDGNode.Kind.EXPRESSION; 
 					}
 					break;
 				case 4 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:363:5: 'ENTR'
+					// SDG_.g:370:5: 'ENTR'
 					{
 					match(input,28,FOLLOW_28_in_node_kind734); 
 					 kind = SDGNode.Kind.ENTRY; 
 					}
 					break;
 				case 5 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:364:5: 'CALL'
+					// SDG_.g:371:5: 'CALL'
 					{
 					match(input,16,FOLLOW_16_in_node_kind742); 
 					 kind = SDGNode.Kind.CALL; 
 					}
 					break;
 				case 6 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:365:5: 'ACTI'
+					// SDG_.g:372:5: 'ACTI'
 					{
 					match(input,12,FOLLOW_12_in_node_kind750); 
 					 kind = SDGNode.Kind.ACTUAL_IN; 
 					}
 					break;
 				case 7 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:366:5: 'ACTO'
+					// SDG_.g:373:5: 'ACTO'
 					{
 					match(input,13,FOLLOW_13_in_node_kind758); 
 					 kind = SDGNode.Kind.ACTUAL_OUT; 
 					}
 					break;
 				case 8 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:367:5: 'FRMI'
+					// SDG_.g:374:5: 'FRMI'
 					{
 					match(input,39,FOLLOW_39_in_node_kind766); 
 					 kind = SDGNode.Kind.FORMAL_IN; 
 					}
 					break;
 				case 9 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:368:5: 'FRMO'
+					// SDG_.g:375:5: 'FRMO'
 					{
 					match(input,40,FOLLOW_40_in_node_kind774); 
 					 kind = SDGNode.Kind.FORMAL_OUT; 
 					}
 					break;
 				case 10 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:369:5: 'EXIT'
+					// SDG_.g:376:5: 'EXIT'
 					{
 					match(input,29,FOLLOW_29_in_node_kind782); 
 					 kind = SDGNode.Kind.EXIT; 
 					}
 					break;
 				case 11 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:370:5: 'SYNC'
+					// SDG_.g:377:5: 'SYNC'
 					{
 					match(input,72,FOLLOW_72_in_node_kind790); 
 					 kind = SDGNode.Kind.SYNCHRONIZATION; 
 					}
 					break;
 				case 12 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:371:5: 'FOLD'
+					// SDG_.g:378:5: 'FOLD'
 					{
 					match(input,35,FOLLOW_35_in_node_kind798); 
 					 kind = SDGNode.Kind.FOLDED; 
@@ -1351,13 +1351,13 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "node_attributes"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:374:9: private node_attributes[SDGNodeStub node] : ( node_attr[node] ';' )* ;
+	// SDG_.g:381:9: private node_attributes[SDGNodeStub node] : ( node_attr[node] ';' )* ;
 	public final void node_attributes(SDGNodeStub node) throws RecognitionException {
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:375:3: ( ( node_attr[node] ';' )* )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:375:5: ( node_attr[node] ';' )*
+			// SDG_.g:382:3: ( ( node_attr[node] ';' )* )
+			// SDG_.g:382:5: ( node_attr[node] ';' )*
 			{
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:375:5: ( node_attr[node] ';' )*
+			// SDG_.g:382:5: ( node_attr[node] ';' )*
 			loop15:
 			while (true) {
 				int alt15=2;
@@ -1368,7 +1368,7 @@ public class SDG_Parser extends Parser {
 
 				switch (alt15) {
 				case 1 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:375:6: node_attr[node] ';'
+					// SDG_.g:382:6: node_attr[node] ';'
 					{
 					pushFollow(FOLLOW_node_attr_in_node_attributes817);
 					node_attr(node);
@@ -1399,7 +1399,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "node_attr"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:378:9: private node_attr[SDGNodeStub node] : ( 'S' spos= node_source | 'B' bpos= node_bytecode | 'U' number | 'P' procId= number | 'O' op= node_oper | 'V' val= string | 'T' type= string | 'Z' tn= may_neg_num_set | 'N' | 'C' cl= string | 'A' al= pos_num_set | 'D' ds= pos_num_set | 'U' uct= string | 'LD' ldefs= mayEmptyStringList | 'LU' luses= mayEmptyStringList );
+	// SDG_.g:385:9: private node_attr[SDGNodeStub node] : ( 'S' spos= node_source | 'B' bpos= node_bytecode | 'U' number | 'P' procId= number | 'O' op= node_oper | 'V' val= string | 'T' type= string | 'Z' tn= may_neg_num_set | 'N' | 'C' cl= string | 'A' al= pos_num_set | 'D' ds= pos_num_set | 'U' uct= string | 'LD' ldefs= mayEmptyStringList | 'LU' luses= mayEmptyStringList );
 	public final void node_attr(SDGNodeStub node) throws RecognitionException {
 		SourcePos spos =null;
 		ByteCodePos bpos =null;
@@ -1416,7 +1416,7 @@ public class SDG_Parser extends Parser {
 		LinkedList<String> luses =null;
 
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:379:3: ( 'S' spos= node_source | 'B' bpos= node_bytecode | 'U' number | 'P' procId= number | 'O' op= node_oper | 'V' val= string | 'T' type= string | 'Z' tn= may_neg_num_set | 'N' | 'C' cl= string | 'A' al= pos_num_set | 'D' ds= pos_num_set | 'U' uct= string | 'LD' ldefs= mayEmptyStringList | 'LU' luses= mayEmptyStringList )
+			// SDG_.g:386:3: ( 'S' spos= node_source | 'B' bpos= node_bytecode | 'U' number | 'P' procId= number | 'O' op= node_oper | 'V' val= string | 'T' type= string | 'Z' tn= may_neg_num_set | 'N' | 'C' cl= string | 'A' al= pos_num_set | 'D' ds= pos_num_set | 'U' uct= string | 'LD' ldefs= mayEmptyStringList | 'LU' luses= mayEmptyStringList )
 			int alt16=15;
 			switch ( input.LA(1) ) {
 			case 65:
@@ -1515,7 +1515,7 @@ public class SDG_Parser extends Parser {
 			}
 			switch (alt16) {
 				case 1 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:379:5: 'S' spos= node_source
+					// SDG_.g:386:5: 'S' spos= node_source
 					{
 					match(input,65,FOLLOW_65_in_node_attr838); 
 					pushFollow(FOLLOW_node_source_in_node_attr842);
@@ -1526,7 +1526,7 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 2 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:380:5: 'B' bpos= node_bytecode
+					// SDG_.g:387:5: 'B' bpos= node_bytecode
 					{
 					match(input,14,FOLLOW_14_in_node_attr854); 
 					pushFollow(FOLLOW_node_bytecode_in_node_attr858);
@@ -1537,7 +1537,7 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 3 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:381:5: 'U' number
+					// SDG_.g:388:5: 'U' number
 					{
 					match(input,75,FOLLOW_75_in_node_attr869); 
 					pushFollow(FOLLOW_number_in_node_attr871);
@@ -1547,7 +1547,7 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 4 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:382:5: 'P' procId= number
+					// SDG_.g:389:5: 'P' procId= number
 					{
 					match(input,57,FOLLOW_57_in_node_attr921); 
 					pushFollow(FOLLOW_number_in_node_attr925);
@@ -1558,7 +1558,7 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 5 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:383:5: 'O' op= node_oper
+					// SDG_.g:390:5: 'O' op= node_oper
 					{
 					match(input,56,FOLLOW_56_in_node_attr944); 
 					pushFollow(FOLLOW_node_oper_in_node_attr948);
@@ -1569,7 +1569,7 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 6 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:384:5: 'V' val= string
+					// SDG_.g:391:5: 'V' val= string
 					{
 					match(input,77,FOLLOW_77_in_node_attr976); 
 					pushFollow(FOLLOW_string_in_node_attr980);
@@ -1580,7 +1580,7 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 7 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:385:5: 'T' type= string
+					// SDG_.g:392:5: 'T' type= string
 					{
 					match(input,73,FOLLOW_73_in_node_attr1008); 
 					pushFollow(FOLLOW_string_in_node_attr1012);
@@ -1591,7 +1591,7 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 8 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:386:5: 'Z' tn= may_neg_num_set
+					// SDG_.g:393:5: 'Z' tn= may_neg_num_set
 					{
 					match(input,79,FOLLOW_79_in_node_attr1037); 
 					pushFollow(FOLLOW_may_neg_num_set_in_node_attr1041);
@@ -1602,14 +1602,14 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 9 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:387:5: 'N'
+					// SDG_.g:394:5: 'N'
 					{
 					match(input,53,FOLLOW_53_in_node_attr1055); 
 					 node.nonTerm = true; 
 					}
 					break;
 				case 10 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:388:5: 'C' cl= string
+					// SDG_.g:395:5: 'C' cl= string
 					{
 					match(input,15,FOLLOW_15_in_node_attr1089); 
 					pushFollow(FOLLOW_string_in_node_attr1093);
@@ -1620,7 +1620,7 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 11 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:389:5: 'A' al= pos_num_set
+					// SDG_.g:396:5: 'A' al= pos_num_set
 					{
 					match(input,11,FOLLOW_11_in_node_attr1115); 
 					pushFollow(FOLLOW_pos_num_set_in_node_attr1119);
@@ -1631,7 +1631,7 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 12 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:390:5: 'D' ds= pos_num_set
+					// SDG_.g:397:5: 'D' ds= pos_num_set
 					{
 					match(input,23,FOLLOW_23_in_node_attr1137); 
 					pushFollow(FOLLOW_pos_num_set_in_node_attr1141);
@@ -1642,7 +1642,7 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 13 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:391:5: 'U' uct= string
+					// SDG_.g:398:5: 'U' uct= string
 					{
 					match(input,75,FOLLOW_75_in_node_attr1158); 
 					pushFollow(FOLLOW_string_in_node_attr1162);
@@ -1653,7 +1653,7 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 14 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:392:5: 'LD' ldefs= mayEmptyStringList
+					// SDG_.g:399:5: 'LD' ldefs= mayEmptyStringList
 					{
 					match(input,51,FOLLOW_51_in_node_attr1180); 
 					pushFollow(FOLLOW_mayEmptyStringList_in_node_attr1184);
@@ -1666,7 +1666,7 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 15 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:395:5: 'LU' luses= mayEmptyStringList
+					// SDG_.g:402:5: 'LU' luses= mayEmptyStringList
 					{
 					match(input,52,FOLLOW_52_in_node_attr1193); 
 					pushFollow(FOLLOW_mayEmptyStringList_in_node_attr1197);
@@ -1694,7 +1694,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "pos_num_set"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:399:9: private pos_num_set returns [TIntSet nums = new TIntHashSet();] : n= number ( ',' n2= number )* ;
+	// SDG_.g:406:9: private pos_num_set returns [TIntSet nums = new TIntHashSet();] : n= number ( ',' n2= number )* ;
 	public final TIntSet pos_num_set() throws RecognitionException {
 		TIntSet nums =  new TIntHashSet();;
 
@@ -1703,15 +1703,15 @@ public class SDG_Parser extends Parser {
 		int n2 =0;
 
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:400:3: (n= number ( ',' n2= number )* )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:400:5: n= number ( ',' n2= number )*
+			// SDG_.g:407:3: (n= number ( ',' n2= number )* )
+			// SDG_.g:407:5: n= number ( ',' n2= number )*
 			{
 			pushFollow(FOLLOW_number_in_pos_num_set1218);
 			n=number();
 			state._fsp--;
 
 			 nums.add(n); 
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:400:31: ( ',' n2= number )*
+			// SDG_.g:407:31: ( ',' n2= number )*
 			loop17:
 			while (true) {
 				int alt17=2;
@@ -1722,7 +1722,7 @@ public class SDG_Parser extends Parser {
 
 				switch (alt17) {
 				case 1 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:400:32: ',' n2= number
+					// SDG_.g:407:32: ',' n2= number
 					{
 					match(input,7,FOLLOW_7_in_pos_num_set1223); 
 					pushFollow(FOLLOW_number_in_pos_num_set1227);
@@ -1755,7 +1755,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "may_neg_num_set"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:403:9: private may_neg_num_set returns [TIntSet nums = new TIntHashSet();] : n= mayNegNumber ( ',' n2= mayNegNumber )* ;
+	// SDG_.g:410:9: private may_neg_num_set returns [TIntSet nums = new TIntHashSet();] : n= mayNegNumber ( ',' n2= mayNegNumber )* ;
 	public final TIntSet may_neg_num_set() throws RecognitionException {
 		TIntSet nums =  new TIntHashSet();;
 
@@ -1764,15 +1764,15 @@ public class SDG_Parser extends Parser {
 		int n2 =0;
 
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:404:3: (n= mayNegNumber ( ',' n2= mayNegNumber )* )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:404:5: n= mayNegNumber ( ',' n2= mayNegNumber )*
+			// SDG_.g:411:3: (n= mayNegNumber ( ',' n2= mayNegNumber )* )
+			// SDG_.g:411:5: n= mayNegNumber ( ',' n2= mayNegNumber )*
 			{
 			pushFollow(FOLLOW_mayNegNumber_in_may_neg_num_set1253);
 			n=mayNegNumber();
 			state._fsp--;
 
 			 nums.add(n); 
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:404:37: ( ',' n2= mayNegNumber )*
+			// SDG_.g:411:37: ( ',' n2= mayNegNumber )*
 			loop18:
 			while (true) {
 				int alt18=2;
@@ -1783,7 +1783,7 @@ public class SDG_Parser extends Parser {
 
 				switch (alt18) {
 				case 1 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:404:38: ',' n2= mayNegNumber
+					// SDG_.g:411:38: ',' n2= mayNegNumber
 					{
 					match(input,7,FOLLOW_7_in_may_neg_num_set1258); 
 					pushFollow(FOLLOW_mayNegNumber_in_may_neg_num_set1262);
@@ -1816,7 +1816,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "node_source"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:407:9: private node_source returns [SourcePos spos] : filename= string ':' startRow= number ',' startColumn= number '-' endRow= number ',' endColumn= number ;
+	// SDG_.g:414:9: private node_source returns [SourcePos spos] : filename= string ':' startRow= number ',' startColumn= number '-' endRow= number ',' endColumn= number ;
 	public final SourcePos node_source() throws RecognitionException {
 		SourcePos spos = null;
 
@@ -1828,8 +1828,8 @@ public class SDG_Parser extends Parser {
 		int endColumn =0;
 
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:408:3: (filename= string ':' startRow= number ',' startColumn= number '-' endRow= number ',' endColumn= number )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:408:5: filename= string ':' startRow= number ',' startColumn= number '-' endRow= number ',' endColumn= number
+			// SDG_.g:415:3: (filename= string ':' startRow= number ',' startColumn= number '-' endRow= number ',' endColumn= number )
+			// SDG_.g:415:5: filename= string ':' startRow= number ',' startColumn= number '-' endRow= number ',' endColumn= number
 			{
 			pushFollow(FOLLOW_string_in_node_source1288);
 			filename=string();
@@ -1873,7 +1873,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "node_bytecode"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:412:9: private node_bytecode returns [ByteCodePos bpos] : name= string ':' index= mayNegNumber ;
+	// SDG_.g:419:9: private node_bytecode returns [ByteCodePos bpos] : name= string ':' index= mayNegNumber ;
 	public final ByteCodePos node_bytecode() throws RecognitionException {
 		ByteCodePos bpos = null;
 
@@ -1882,8 +1882,8 @@ public class SDG_Parser extends Parser {
 		int index =0;
 
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:413:3: (name= string ':' index= mayNegNumber )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:413:5: name= string ':' index= mayNegNumber
+			// SDG_.g:420:3: (name= string ':' index= mayNegNumber )
+			// SDG_.g:420:5: name= string ':' index= mayNegNumber
 			{
 			pushFollow(FOLLOW_string_in_node_bytecode1343);
 			name=string();
@@ -1912,13 +1912,13 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "node_oper"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:416:9: private node_oper returns [SDGNode.Operation op] : ( 'empty' | 'intconst' | 'floatconst' | 'charconst' | 'stringconst' | 'functionconst' | 'shortcut' | 'question' | 'binary' | 'unary' | 'derefer' | 'refer' | 'array' | 'select' | 'reference' | 'declaration' | 'modify' | 'modassign' | 'assign' | 'IF' | 'loop' | 'jump' | 'compound' | 'call' | 'entry' | 'exit' | 'form-in' | 'form-ellip' | 'form-out' | 'act-in' | 'act-out' | 'monitor' );
+	// SDG_.g:423:9: private node_oper returns [SDGNode.Operation op] : ( 'empty' | 'intconst' | 'floatconst' | 'charconst' | 'stringconst' | 'functionconst' | 'shortcut' | 'question' | 'binary' | 'unary' | 'derefer' | 'refer' | 'array' | 'select' | 'reference' | 'declaration' | 'modify' | 'modassign' | 'assign' | 'IF' | 'loop' | 'jump' | 'compound' | 'call' | 'entry' | 'exit' | 'form-in' | 'form-ellip' | 'form-out' | 'act-in' | 'act-out' | 'monitor' );
 	public final SDGNode.Operation node_oper() throws RecognitionException {
 		SDGNode.Operation op = null;
 
 
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:417:3: ( 'empty' | 'intconst' | 'floatconst' | 'charconst' | 'stringconst' | 'functionconst' | 'shortcut' | 'question' | 'binary' | 'unary' | 'derefer' | 'refer' | 'array' | 'select' | 'reference' | 'declaration' | 'modify' | 'modassign' | 'assign' | 'IF' | 'loop' | 'jump' | 'compound' | 'call' | 'entry' | 'exit' | 'form-in' | 'form-ellip' | 'form-out' | 'act-in' | 'act-out' | 'monitor' )
+			// SDG_.g:424:3: ( 'empty' | 'intconst' | 'floatconst' | 'charconst' | 'stringconst' | 'functionconst' | 'shortcut' | 'question' | 'binary' | 'unary' | 'derefer' | 'refer' | 'array' | 'select' | 'reference' | 'declaration' | 'modify' | 'modassign' | 'assign' | 'IF' | 'loop' | 'jump' | 'compound' | 'call' | 'entry' | 'exit' | 'form-in' | 'form-ellip' | 'form-out' | 'act-in' | 'act-out' | 'monitor' )
 			int alt19=32;
 			switch ( input.LA(1) ) {
 			case 92:
@@ -2088,224 +2088,224 @@ public class SDG_Parser extends Parser {
 			}
 			switch (alt19) {
 				case 1 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:417:5: 'empty'
+					// SDG_.g:424:5: 'empty'
 					{
 					match(input,92,FOLLOW_92_in_node_oper1370); 
 					 op = SDGNode.Operation.EMPTY; 
 					}
 					break;
 				case 2 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:418:5: 'intconst'
+					// SDG_.g:425:5: 'intconst'
 					{
 					match(input,101,FOLLOW_101_in_node_oper1387); 
 					 op = SDGNode.Operation.INT_CONST; 
 					}
 					break;
 				case 3 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:419:5: 'floatconst'
+					// SDG_.g:426:5: 'floatconst'
 					{
 					match(input,96,FOLLOW_96_in_node_oper1401); 
 					 op = SDGNode.Operation.FLOAT_CONST; 
 					}
 					break;
 				case 4 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:420:5: 'charconst'
+					// SDG_.g:427:5: 'charconst'
 					{
 					match(input,88,FOLLOW_88_in_node_oper1413); 
 					 op = SDGNode.Operation.CHAR_CONST; 
 					}
 					break;
 				case 5 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:421:5: 'stringconst'
+					// SDG_.g:428:5: 'stringconst'
 					{
 					match(input,113,FOLLOW_113_in_node_oper1426); 
 					 op = SDGNode.Operation.STRING_CONST; 
 					}
 					break;
 				case 6 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:422:5: 'functionconst'
+					// SDG_.g:429:5: 'functionconst'
 					{
 					match(input,100,FOLLOW_100_in_node_oper1437); 
 					 op = SDGNode.Operation.FUNCTION_CONST; 
 					}
 					break;
 				case 7 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:423:5: 'shortcut'
+					// SDG_.g:430:5: 'shortcut'
 					{
 					match(input,112,FOLLOW_112_in_node_oper1446); 
 					 op = SDGNode.Operation.SHORTCUT; 
 					}
 					break;
 				case 8 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:424:5: 'question'
+					// SDG_.g:431:5: 'question'
 					{
 					match(input,108,FOLLOW_108_in_node_oper1460); 
 					 op = SDGNode.Operation.QUESTION; 
 					}
 					break;
 				case 9 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:425:5: 'binary'
+					// SDG_.g:432:5: 'binary'
 					{
 					match(input,86,FOLLOW_86_in_node_oper1474); 
 					 op = SDGNode.Operation.BINARY; 
 					}
 					break;
 				case 10 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:426:5: 'unary'
+					// SDG_.g:433:5: 'unary'
 					{
 					match(input,115,FOLLOW_115_in_node_oper1490); 
 					 op = SDGNode.Operation.UNARY; 
 					}
 					break;
 				case 11 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:427:5: 'derefer'
+					// SDG_.g:434:5: 'derefer'
 					{
 					match(input,91,FOLLOW_91_in_node_oper1507); 
 					 op = SDGNode.Operation.DEREFER; 
 					}
 					break;
 				case 12 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:428:5: 'refer'
+					// SDG_.g:435:5: 'refer'
 					{
 					match(input,109,FOLLOW_109_in_node_oper1522); 
 					 op = SDGNode.Operation.REFER; 
 					}
 					break;
 				case 13 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:429:5: 'array'
+					// SDG_.g:436:5: 'array'
 					{
 					match(input,84,FOLLOW_84_in_node_oper1539); 
 					 op = SDGNode.Operation.ARRAY; 
 					}
 					break;
 				case 14 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:430:5: 'select'
+					// SDG_.g:437:5: 'select'
 					{
 					match(input,111,FOLLOW_111_in_node_oper1556); 
 					 op = SDGNode.Operation.SELECT; 
 					}
 					break;
 				case 15 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:431:5: 'reference'
+					// SDG_.g:438:5: 'reference'
 					{
 					match(input,110,FOLLOW_110_in_node_oper1572); 
 					 op = SDGNode.Operation.REFERENCE; 
 					}
 					break;
 				case 16 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:432:5: 'declaration'
+					// SDG_.g:439:5: 'declaration'
 					{
 					match(input,90,FOLLOW_90_in_node_oper1585); 
 					 op = SDGNode.Operation.DECLARATION; 
 					}
 					break;
 				case 17 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:433:5: 'modify'
+					// SDG_.g:440:5: 'modify'
 					{
 					match(input,105,FOLLOW_105_in_node_oper1596); 
 					 op = SDGNode.Operation.MODIFY; 
 					}
 					break;
 				case 18 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:434:5: 'modassign'
+					// SDG_.g:441:5: 'modassign'
 					{
 					match(input,104,FOLLOW_104_in_node_oper1612); 
 					 op = SDGNode.Operation.MODASSIGN; 
 					}
 					break;
 				case 19 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:435:5: 'assign'
+					// SDG_.g:442:5: 'assign'
 					{
 					match(input,85,FOLLOW_85_in_node_oper1625); 
 					 op = SDGNode.Operation.ASSIGN; 
 					}
 					break;
 				case 20 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:436:5: 'IF'
+					// SDG_.g:443:5: 'IF'
 					{
 					match(input,44,FOLLOW_44_in_node_oper1641); 
 					 op = SDGNode.Operation.IF; 
 					}
 					break;
 				case 21 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:437:5: 'loop'
+					// SDG_.g:444:5: 'loop'
 					{
 					match(input,103,FOLLOW_103_in_node_oper1661); 
 					 op = SDGNode.Operation.LOOP; 
 					}
 					break;
 				case 22 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:438:5: 'jump'
+					// SDG_.g:445:5: 'jump'
 					{
 					match(input,102,FOLLOW_102_in_node_oper1679); 
 					 op = SDGNode.Operation.JUMP; 
 					}
 					break;
 				case 23 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:439:5: 'compound'
+					// SDG_.g:446:5: 'compound'
 					{
 					match(input,89,FOLLOW_89_in_node_oper1697); 
 					 op = SDGNode.Operation.COMPOUND; 
 					}
 					break;
 				case 24 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:440:5: 'call'
+					// SDG_.g:447:5: 'call'
 					{
 					match(input,87,FOLLOW_87_in_node_oper1711); 
 					 op = SDGNode.Operation.CALL; 
 					}
 					break;
 				case 25 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:441:5: 'entry'
+					// SDG_.g:448:5: 'entry'
 					{
 					match(input,93,FOLLOW_93_in_node_oper1729); 
 					 op = SDGNode.Operation.ENTRY; 
 					}
 					break;
 				case 26 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:442:5: 'exit'
+					// SDG_.g:449:5: 'exit'
 					{
 					match(input,94,FOLLOW_94_in_node_oper1746); 
 					 op = SDGNode.Operation.EXIT; 
 					}
 					break;
 				case 27 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:443:5: 'form-in'
+					// SDG_.g:450:5: 'form-in'
 					{
 					match(input,98,FOLLOW_98_in_node_oper1764); 
 					 op = SDGNode.Operation.FORMAL_IN; 
 					}
 					break;
 				case 28 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:444:5: 'form-ellip'
+					// SDG_.g:451:5: 'form-ellip'
 					{
 					match(input,97,FOLLOW_97_in_node_oper1779); 
 					 op = SDGNode.Operation.FORMAL_ELLIP; 
 					}
 					break;
 				case 29 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:445:5: 'form-out'
+					// SDG_.g:452:5: 'form-out'
 					{
 					match(input,99,FOLLOW_99_in_node_oper1791); 
 					 op = SDGNode.Operation.FORMAL_OUT; 
 					}
 					break;
 				case 30 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:446:5: 'act-in'
+					// SDG_.g:453:5: 'act-in'
 					{
 					match(input,82,FOLLOW_82_in_node_oper1805); 
 					 op = SDGNode.Operation.ACTUAL_IN; 
 					}
 					break;
 				case 31 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:447:5: 'act-out'
+					// SDG_.g:454:5: 'act-out'
 					{
 					match(input,83,FOLLOW_83_in_node_oper1821); 
 					 op = SDGNode.Operation.ACTUAL_OUT; 
 					}
 					break;
 				case 32 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:448:5: 'monitor'
+					// SDG_.g:455:5: 'monitor'
 					{
 					match(input,106,FOLLOW_106_in_node_oper1836); 
 					 op = SDGNode.Operation.MONITOR; 
@@ -2328,15 +2328,15 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "node_edges"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:451:9: private node_edges[SDGNodeStub node] : (e= edge ';' )* ;
+	// SDG_.g:458:9: private node_edges[SDGNodeStub node] : (e= edge ';' )* ;
 	public final void node_edges(SDGNodeStub node) throws RecognitionException {
 		SDGEdgeStub e =null;
 
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:452:3: ( (e= edge ';' )* )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:452:5: (e= edge ';' )*
+			// SDG_.g:459:3: ( (e= edge ';' )* )
+			// SDG_.g:459:5: (e= edge ';' )*
 			{
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:452:5: (e= edge ';' )*
+			// SDG_.g:459:5: (e= edge ';' )*
 			loop20:
 			while (true) {
 				int alt20=2;
@@ -2347,7 +2347,7 @@ public class SDG_Parser extends Parser {
 
 				switch (alt20) {
 				case 1 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:452:6: e= edge ';'
+					// SDG_.g:459:6: e= edge ';'
 					{
 					pushFollow(FOLLOW_edge_in_node_edges1864);
 					e=edge();
@@ -2379,7 +2379,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "edge"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:455:9: private edge returns [SDGEdgeStub estub] : k= edge_kind nr= number ( ':' label= string )? ;
+	// SDG_.g:462:9: private edge returns [SDGEdgeStub estub] : k= edge_kind nr= number ( ':' label= string )? ;
 	public final SDGEdgeStub edge() throws RecognitionException {
 		SDGEdgeStub estub = null;
 
@@ -2389,8 +2389,8 @@ public class SDG_Parser extends Parser {
 		String label =null;
 
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:456:3: (k= edge_kind nr= number ( ':' label= string )? )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:456:5: k= edge_kind nr= number ( ':' label= string )?
+			// SDG_.g:463:3: (k= edge_kind nr= number ( ':' label= string )? )
+			// SDG_.g:463:5: k= edge_kind nr= number ( ':' label= string )?
 			{
 			pushFollow(FOLLOW_edge_kind_in_edge1891);
 			k=edge_kind();
@@ -2401,7 +2401,7 @@ public class SDG_Parser extends Parser {
 			state._fsp--;
 
 			 estub = new SDGEdgeStub(k, nr); 
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:456:63: ( ':' label= string )?
+			// SDG_.g:463:63: ( ':' label= string )?
 			int alt21=2;
 			int LA21_0 = input.LA(1);
 			if ( (LA21_0==9) ) {
@@ -2409,7 +2409,7 @@ public class SDG_Parser extends Parser {
 			}
 			switch (alt21) {
 				case 1 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:456:64: ':' label= string
+					// SDG_.g:463:64: ':' label= string
 					{
 					match(input,9,FOLLOW_9_in_edge1900); 
 					pushFollow(FOLLOW_string_in_edge1904);
@@ -2439,13 +2439,13 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "edge_kind"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:459:9: private edge_kind returns [SDGEdge.Kind kind] : ( 'DD' | 'DH' | 'DA' | 'CD' | 'CE' | 'UN' | 'CF' | 'NF' | 'RF' | 'CC' | 'CL' | 'PI' | 'PO' | 'SU' | 'SH' | 'SF' | 'PS' | 'FORK' | 'FORK_IN' | 'FORK_OUT' | 'JOIN' | 'ID' | 'IW' | 'SD' | 'HE' | 'FD' | 'FI' | 'RY' | 'JF' | 'SP' | 'VD' | 'RD' | 'JD' );
+	// SDG_.g:466:9: private edge_kind returns [SDGEdge.Kind kind] : ( 'DD' | 'DH' | 'DA' | 'CD' | 'CE' | 'UN' | 'CF' | 'NF' | 'RF' | 'CC' | 'CL' | 'PI' | 'PO' | 'SU' | 'SH' | 'SF' | 'PS' | 'FORK' | 'FORK_IN' | 'FORK_OUT' | 'JOIN' | 'ID' | 'IW' | 'SD' | 'HE' | 'FD' | 'FI' | 'RY' | 'JF' | 'SP' | 'VD' | 'RD' | 'JD' );
 	public final SDGEdge.Kind edge_kind() throws RecognitionException {
 		SDGEdge.Kind kind = null;
 
 
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:461:3: ( 'DD' | 'DH' | 'DA' | 'CD' | 'CE' | 'UN' | 'CF' | 'NF' | 'RF' | 'CC' | 'CL' | 'PI' | 'PO' | 'SU' | 'SH' | 'SF' | 'PS' | 'FORK' | 'FORK_IN' | 'FORK_OUT' | 'JOIN' | 'ID' | 'IW' | 'SD' | 'HE' | 'FD' | 'FI' | 'RY' | 'JF' | 'SP' | 'VD' | 'RD' | 'JD' )
+			// SDG_.g:468:3: ( 'DD' | 'DH' | 'DA' | 'CD' | 'CE' | 'UN' | 'CF' | 'NF' | 'RF' | 'CC' | 'CL' | 'PI' | 'PO' | 'SU' | 'SH' | 'SF' | 'PS' | 'FORK' | 'FORK_IN' | 'FORK_OUT' | 'JOIN' | 'ID' | 'IW' | 'SD' | 'HE' | 'FD' | 'FI' | 'RY' | 'JF' | 'SP' | 'VD' | 'RD' | 'JD' )
 			int alt22=33;
 			switch ( input.LA(1) ) {
 			case 25:
@@ -2620,231 +2620,231 @@ public class SDG_Parser extends Parser {
 			}
 			switch (alt22) {
 				case 1 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:461:5: 'DD'
+					// SDG_.g:468:5: 'DD'
 					{
 					match(input,25,FOLLOW_25_in_edge_kind1929); 
 					 kind = SDGEdge.Kind.DATA_DEP; 
 					}
 					break;
 				case 2 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:462:5: 'DH'
+					// SDG_.g:469:5: 'DH'
 					{
 					match(input,26,FOLLOW_26_in_edge_kind1949); 
 					 kind = SDGEdge.Kind.DATA_HEAP; 
 					}
 					break;
 				case 3 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:463:5: 'DA'
+					// SDG_.g:470:5: 'DA'
 					{
 					match(input,24,FOLLOW_24_in_edge_kind1968); 
 					 kind = SDGEdge.Kind.DATA_ALIAS; 
 					}
 					break;
 				case 4 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:465:5: 'CD'
+					// SDG_.g:472:5: 'CD'
 					{
 					match(input,18,FOLLOW_18_in_edge_kind1987); 
 					 kind = SDGEdge.Kind.CONTROL_DEP_COND; 
 					}
 					break;
 				case 5 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:466:5: 'CE'
+					// SDG_.g:473:5: 'CE'
 					{
 					match(input,19,FOLLOW_19_in_edge_kind1999); 
 					 kind = SDGEdge.Kind.CONTROL_DEP_EXPR; 
 					}
 					break;
 				case 6 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:467:5: 'UN'
+					// SDG_.g:474:5: 'UN'
 					{
 					match(input,76,FOLLOW_76_in_edge_kind2011); 
 					 kind = SDGEdge.Kind.CONTROL_DEP_UNCOND; 
 					}
 					break;
 				case 7 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:469:5: 'CF'
+					// SDG_.g:476:5: 'CF'
 					{
 					match(input,20,FOLLOW_20_in_edge_kind2022); 
 					 kind = SDGEdge.Kind.CONTROL_FLOW; 
 					}
 					break;
 				case 8 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:470:5: 'NF'
+					// SDG_.g:477:5: 'NF'
 					{
 					match(input,54,FOLLOW_54_in_edge_kind2038); 
 					 kind = SDGEdge.Kind.NO_FLOW; 
 					}
 					break;
 				case 9 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:471:5: 'RF'
+					// SDG_.g:478:5: 'RF'
 					{
 					match(input,63,FOLLOW_63_in_edge_kind2059); 
 					 kind = SDGEdge.Kind.RETURN; 
 					}
 					break;
 				case 10 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:473:5: 'CC'
+					// SDG_.g:480:5: 'CC'
 					{
 					match(input,17,FOLLOW_17_in_edge_kind2082); 
 					 kind = SDGEdge.Kind.CONTROL_DEP_CALL; 
 					}
 					break;
 				case 11 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:474:5: 'CL'
+					// SDG_.g:481:5: 'CL'
 					{
 					match(input,21,FOLLOW_21_in_edge_kind2090); 
 					 kind = SDGEdge.Kind.CALL; 
 					}
 					break;
 				case 12 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:475:5: 'PI'
+					// SDG_.g:482:5: 'PI'
 					{
 					match(input,58,FOLLOW_58_in_edge_kind2098); 
 					 kind = SDGEdge.Kind.PARAMETER_IN; 
 					}
 					break;
 				case 13 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:476:5: 'PO'
+					// SDG_.g:483:5: 'PO'
 					{
 					match(input,59,FOLLOW_59_in_edge_kind2106); 
 					 kind = SDGEdge.Kind.PARAMETER_OUT; 
 					}
 					break;
 				case 14 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:478:5: 'SU'
+					// SDG_.g:485:5: 'SU'
 					{
 					match(input,71,FOLLOW_71_in_edge_kind2115); 
 					 kind = SDGEdge.Kind.SUMMARY; 
 					}
 					break;
 				case 15 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:479:5: 'SH'
+					// SDG_.g:486:5: 'SH'
 					{
 					match(input,69,FOLLOW_69_in_edge_kind2123); 
 					 kind = SDGEdge.Kind.SUMMARY_NO_ALIAS; 
 					}
 					break;
 				case 16 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:480:5: 'SF'
+					// SDG_.g:487:5: 'SF'
 					{
 					match(input,68,FOLLOW_68_in_edge_kind2131); 
 					 kind = SDGEdge.Kind.SUMMARY_DATA; 
 					}
 					break;
 				case 17 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:482:5: 'PS'
+					// SDG_.g:489:5: 'PS'
 					{
 					match(input,61,FOLLOW_61_in_edge_kind2140); 
 					 kind = SDGEdge.Kind.PARAMETER_STRUCTURE; 
 					}
 					break;
 				case 18 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:484:5: 'FORK'
+					// SDG_.g:491:5: 'FORK'
 					{
 					match(input,36,FOLLOW_36_in_edge_kind2149); 
 					 kind = SDGEdge.Kind.FORK; 
 					}
 					break;
 				case 19 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:485:5: 'FORK_IN'
+					// SDG_.g:492:5: 'FORK_IN'
 					{
 					match(input,37,FOLLOW_37_in_edge_kind2157); 
 					 kind = SDGEdge.Kind.FORK_IN; 
 					}
 					break;
 				case 20 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:486:5: 'FORK_OUT'
+					// SDG_.g:493:5: 'FORK_OUT'
 					{
 					match(input,38,FOLLOW_38_in_edge_kind2165); 
 					 kind = SDGEdge.Kind.FORK_OUT; 
 					}
 					break;
 				case 21 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:487:5: 'JOIN'
+					// SDG_.g:494:5: 'JOIN'
 					{
 					match(input,49,FOLLOW_49_in_edge_kind2173); 
 					 kind = SDGEdge.Kind.JOIN; 
 					}
 					break;
 				case 22 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:488:5: 'ID'
+					// SDG_.g:495:5: 'ID'
 					{
 					match(input,43,FOLLOW_43_in_edge_kind2181); 
 					 kind = SDGEdge.Kind.INTERFERENCE; 
 					}
 					break;
 				case 23 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:489:5: 'IW'
+					// SDG_.g:496:5: 'IW'
 					{
 					match(input,45,FOLLOW_45_in_edge_kind2189); 
 					 kind = SDGEdge.Kind.INTERFERENCE_WRITE; 
 					}
 					break;
 				case 24 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:490:5: 'SD'
+					// SDG_.g:497:5: 'SD'
 					{
 					match(input,66,FOLLOW_66_in_edge_kind2197); 
 					 kind = SDGEdge.Kind.SYNCHRONIZATION; 
 					}
 					break;
 				case 25 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:492:5: 'HE'
+					// SDG_.g:499:5: 'HE'
 					{
 					match(input,42,FOLLOW_42_in_edge_kind2206); 
 					 kind = SDGEdge.Kind.HELP; 
 					}
 					break;
 				case 26 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:493:5: 'FD'
+					// SDG_.g:500:5: 'FD'
 					{
 					match(input,33,FOLLOW_33_in_edge_kind2214); 
 					 kind = SDGEdge.Kind.FOLDED; 
 					}
 					break;
 				case 27 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:494:5: 'FI'
+					// SDG_.g:501:5: 'FI'
 					{
 					match(input,34,FOLLOW_34_in_edge_kind2222); 
 					 kind = SDGEdge.Kind.FOLD_INCLUDE; 
 					}
 					break;
 				case 28 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:496:5: 'RY'
+					// SDG_.g:503:5: 'RY'
 					{
 					match(input,64,FOLLOW_64_in_edge_kind2231); 
 					 kind = SDGEdge.Kind.READY_DEP; 
 					}
 					break;
 				case 29 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:497:5: 'JF'
+					// SDG_.g:504:5: 'JF'
 					{
 					match(input,48,FOLLOW_48_in_edge_kind2239); 
 					 kind = SDGEdge.Kind.JUMP_FLOW; 
 					}
 					break;
 				case 30 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:498:5: 'SP'
+					// SDG_.g:505:5: 'SP'
 					{
 					match(input,70,FOLLOW_70_in_edge_kind2247); 
 					 kind = SDGEdge.Kind.SUMMARY; 
 					}
 					break;
 				case 31 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:499:5: 'VD'
+					// SDG_.g:506:5: 'VD'
 					{
 					match(input,78,FOLLOW_78_in_edge_kind2255); 
 					 kind = SDGEdge.Kind.DATA_DEP_EXPR_VALUE; 
 					}
 					break;
 				case 32 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:500:5: 'RD'
+					// SDG_.g:507:5: 'RD'
 					{
 					match(input,62,FOLLOW_62_in_edge_kind2263); 
 					 kind = SDGEdge.Kind.DATA_DEP_EXPR_REFERENCE; 
 					}
 					break;
 				case 33 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:501:5: 'JD'
+					// SDG_.g:508:5: 'JD'
 					{
 					match(input,47,FOLLOW_47_in_edge_kind2271); 
 					 kind = SDGEdge.Kind.JUMP_DEP; 
@@ -2867,7 +2867,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "mayNegNumber"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:504:9: private mayNegNumber returns [int nr] : ( '-' n= number |n= number );
+	// SDG_.g:511:9: private mayNegNumber returns [int nr] : ( '-' n= number |n= number );
 	public final int mayNegNumber() throws RecognitionException {
 		int nr = 0;
 
@@ -2875,7 +2875,7 @@ public class SDG_Parser extends Parser {
 		int n =0;
 
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:505:3: ( '-' n= number |n= number )
+			// SDG_.g:512:3: ( '-' n= number |n= number )
 			int alt23=2;
 			int LA23_0 = input.LA(1);
 			if ( (LA23_0==8) ) {
@@ -2893,7 +2893,7 @@ public class SDG_Parser extends Parser {
 
 			switch (alt23) {
 				case 1 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:505:5: '-' n= number
+					// SDG_.g:512:5: '-' n= number
 					{
 					match(input,8,FOLLOW_8_in_mayNegNumber2292); 
 					pushFollow(FOLLOW_number_in_mayNegNumber2296);
@@ -2904,7 +2904,7 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 2 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:506:5: n= number
+					// SDG_.g:513:5: n= number
 					{
 					pushFollow(FOLLOW_number_in_mayNegNumber2306);
 					n=number();
@@ -2930,7 +2930,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "number"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:509:9: private number returns [int nr] : n= NUMBER ;
+	// SDG_.g:516:9: private number returns [int nr] : n= NUMBER ;
 	public final int number() throws RecognitionException {
 		int nr = 0;
 
@@ -2938,8 +2938,8 @@ public class SDG_Parser extends Parser {
 		Token n=null;
 
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:510:3: (n= NUMBER )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:510:5: n= NUMBER
+			// SDG_.g:517:3: (n= NUMBER )
+			// SDG_.g:517:5: n= NUMBER
 			{
 			n=(Token)match(input,NUMBER,FOLLOW_NUMBER_in_number2329); 
 			 nr = Integer.parseInt(n.getText()); 
@@ -2960,7 +2960,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "string"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:513:9: private string returns [String str] : s= STRING ;
+	// SDG_.g:520:9: private string returns [String str] : s= STRING ;
 	public final String string() throws RecognitionException {
 		String str = null;
 
@@ -2968,8 +2968,8 @@ public class SDG_Parser extends Parser {
 		Token s=null;
 
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:514:3: (s= STRING )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:514:5: s= STRING
+			// SDG_.g:521:3: (s= STRING )
+			// SDG_.g:521:5: s= STRING
 			{
 			s=(Token)match(input,STRING,FOLLOW_STRING_in_string2352); 
 			 str = s.getText(); str = str.substring(1, str.length() - 1); 
@@ -2990,13 +2990,13 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "bool"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:517:9: private bool returns [boolean b] : ( 'true' | 'false' );
+	// SDG_.g:524:9: private bool returns [boolean b] : ( 'true' | 'false' );
 	public final boolean bool() throws RecognitionException {
 		boolean b = false;
 
 
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:518:3: ( 'true' | 'false' )
+			// SDG_.g:525:3: ( 'true' | 'false' )
 			int alt24=2;
 			int LA24_0 = input.LA(1);
 			if ( (LA24_0==114) ) {
@@ -3014,14 +3014,14 @@ public class SDG_Parser extends Parser {
 
 			switch (alt24) {
 				case 1 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:518:5: 'true'
+					// SDG_.g:525:5: 'true'
 					{
 					match(input,114,FOLLOW_114_in_bool2373); 
 					 b = true; 
 					}
 					break;
 				case 2 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:519:5: 'false'
+					// SDG_.g:526:5: 'false'
 					{
 					match(input,95,FOLLOW_95_in_bool2382); 
 					 b = false; 

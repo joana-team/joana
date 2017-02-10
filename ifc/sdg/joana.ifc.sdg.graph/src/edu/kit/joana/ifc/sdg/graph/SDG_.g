@@ -56,8 +56,13 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
 
   @Override
   public void reportError(final RecognitionException e) {
+    if (e instanceof LexerException || e instanceof ParserException) {
+      Thrower.sneakyThrow(e);
+    }
     super.reportError(e);
-    Thrower.sneakyThrow(e);
+    String hdr = getErrorHeader(e);
+    String msg = getErrorMessage(e, getTokenNames());
+    Thrower.sneakyThrow(new ParserException(hdr+' '+msg, e));
   }
 
   /**
@@ -252,7 +257,9 @@ package edu.kit.joana.ifc.sdg.graph;
   @Override
   public void reportError(RecognitionException e) {
     super.reportError(e);
-    Thrower.sneakyThrow(e);
+    String hdr = getErrorHeader(e);
+    String msg = getErrorMessage(e, getTokenNames());
+    Thrower.sneakyThrow(new LexerException(hdr+' '+msg, e));
   }
 
   /**

@@ -1612,6 +1612,7 @@ public class IFCConsole {
 		
 		return true;
 	}
+
 	public synchronized boolean loadSDG(String path) {
 
 		SDG sdg;
@@ -1619,7 +1620,11 @@ public class IFCConsole {
 		try {
 			sdg = SDG.readFrom(path, new SecurityNodeFactory());
 		} catch (IOException e) {
-			out.error("I/O error while reading sdg from file " + path);
+			String errorMsg = "I/O error while reading sdg from file " + path;
+			if (e.getMessage() != null) {
+				errorMsg += '\n' + e.getMessage();
+			}
+			out.error(errorMsg);
 			return false;
 		}
 

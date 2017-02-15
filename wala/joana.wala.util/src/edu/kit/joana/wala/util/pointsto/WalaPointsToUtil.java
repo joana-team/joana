@@ -56,6 +56,11 @@ public final class WalaPointsToUtil {
 			return a;
 		}
 	}
+	
+	public static final <T> boolean isSubsetOf(final OrdinalSet<T> a, final OrdinalSet<T> b) {
+		if (a.getMapping()    != b.getMapping()) throw new IllegalArgumentException();
+		return a.getBackingSet().isSubset(b.getBackingSet());
+	}
 
     /**
      *  Asks parent-selector to resolve target; ask child only if not found by parent.

@@ -8,6 +8,7 @@
 package edu.kit.joana.wala.core.params.objgraph;
 
 import java.util.AbstractCollection;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -40,6 +41,7 @@ import edu.kit.joana.wala.core.params.objgraph.ModRefSSAVisitor.PointsTo;
 import edu.kit.joana.wala.core.params.objgraph.candidates.CandidateFactory;
 import edu.kit.joana.wala.core.params.objgraph.candidates.ParameterCandidate;
 import edu.kit.joana.wala.core.params.objgraph.candidates.UniqueParameterCandidate;
+import edu.kit.joana.wala.util.pointsto.WalaPointsToUtil;
 
 /**
  *
@@ -92,16 +94,28 @@ public class ModRefCandidates implements Iterable<CGNode> {
 		/**
 		 * Add and merge a candidate from a called method to the modref of this method. The candidate toAdd is not
 		 * altered.
+		 * If the candidate is already present in this method (either directly, or as part of a merged candidate),
+		 * only the mod/ref status of the already present candidate is altered, but not new candidate is added.
 		 * @param toAdd Candidate from a called method propagated to the modref of this method.
+		 * @return the (possibly new) ModRefFieldCandidate that represents toAdd in this method.
 		 */
-		public void addCandidate(ModRefFieldCandidate toAdd);
+		public ModRefFieldCandidate addCandidate(ModRefFieldCandidate toAdd);
 
 		/**
-		 * Merge all given candidates to a single candidate.
+		 * Merge all given candidates to a single candidate and add the merged node to this method.
+		 * A new merged node is only created if there is not already merged node which all of the to-be-merged nodes are part of. 
 		 * @param toMerge A list of candidates that should be merged.
+		 * @return the ModRefFieldCandidate that represents the merging of toMerge in this method.
 		 */
 		public ModRefFieldCandidate mergeCandidates(Iterable<ModRefFieldCandidate> toMerge, int markWithFlags);
 
+		
+		/**
+		 * Register all given candidates to be merged.
+		 * Any such candidate will, if later added, be added only in form of the merged candidate.
+		 * @param toMerge A list of candidates that should be registered as to-be-merged.
+		 */
+		public ModRefFieldCandidate registerMergeCandidates(Iterable<ModRefFieldCandidate> toMerge, int markWithFlags);
 		/**
 		 * Remove a candidate from this model
 		 * @param toRemove Candidate that should be removed. Must be contained in this model.
@@ -120,6 +134,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 		 * @return <tt>true</tt> if the candidate is contained in this model.
 		 */
 		public boolean contains(ModRefCandidate n);
+		
 	}
 
 	private static class CGNodeCandidates extends AbstractCollection<ModRefFieldCandidate> implements CandidateConsumer,
@@ -131,8 +146,87 @@ public class ModRefCandidates implements Iterable<CGNode> {
 
 		private CGNodeCandidates(final CandidateFactory fact) {
 			this.fact = fact;
+			assert invariant();
 		}
 
+		// a number of invariants holding for CGNodeCandidates.
+		private boolean invariant() {
+			for (ModRefFieldCandidate cand : all) {
+				if (!cands.containsKey(cand.pc)) {
+					return false;
+				}
+			}
+			
+			// Any UniqueParameterCandidate is part of at most one (merged) Candidate.
+			{
+				Set<UniqueParameterCandidate> uniques = new HashSet<>();
+				
+				for (ModRefFieldCandidate modref : all) {
+					ParameterCandidate pc = modref.pc;
+					if (pc.isUnique()) {
+						if (uniques.contains(pc)) {
+							return false;
+						}
+						uniques.add((UniqueParameterCandidate)pc);
+					} else {
+						for (UniqueParameterCandidate up : pc.getUniques()) {
+							if (uniques.contains(up)) {
+								return false;
+							}
+						}
+						for (UniqueParameterCandidate up : pc.getUniques()) {
+							uniques.add(up);
+						}
+					}
+				}
+			}
+			
+			// The map cand is consistent with the ParameterCandidate field of all ModRefFieldCandidates.
+			for (ModRefFieldCandidate cand : all) {
+				final ModRefFieldCandidate cand2 = cands.get(cand.pc);
+				if (cand2 != cand) {
+					return false;
+				}
+			}
+			
+			// Any ParameterCandidate is *directly* mapped to the ModRefFieldCandidate which in which it is currently contained.
+			for (ParameterCandidate pc : cands.keySet()) {
+				ModRefFieldCandidate cand  = cands.get(pc);
+				ModRefFieldCandidate cand2 = cands.get(cand.pc);
+				if (cand != cand2) {
+					return false;
+				}
+			}
+			
+			// TODO: this is now implied by the invariant right before, isn't it?
+			for (ModRefFieldCandidate cand : cands.values()) {
+				final ModRefFieldCandidate cand2 = cands.get(cand.pc);
+				if        ( cand.pc.isUnique() &&  cand2.pc.isUnique()) {
+					if (cand.pc != cand2.pc) {
+						return false;
+					}
+				} else if ( cand.pc.isUnique() && !cand2.pc.isUnique()) {
+					if (!cand2.pc.getUniques().contains((UniqueParameterCandidate)cand.pc)) {
+						return false;
+					}
+				} else if (!cand.pc.isUnique() &&  cand2.pc.isUnique()) {
+					if (!(cand.pc.getUniques().contains((UniqueParameterCandidate)cand2.pc) && cand.pc.getUniques().size() == 1)) {
+						return false;
+					}
+				} else {
+					if (! WalaPointsToUtil.isSubsetOf(cand.pc.getUniques(), cand2.pc.getUniques())) {
+						return false;
+					}
+				}
+			}
+			
+			// Except for merged Candidates that are registered but now yet part of this method, cands.values() and all are the same set.
+			if (!cands.values().containsAll(all)) {
+				return false;
+			}
+
+			return true;
+		}
 		@Override
 		public void addModCandidate(final OrdinalSet<InstanceKey> basePts, final ParameterField field,
 				final OrdinalSet<InstanceKey> pts) {
@@ -140,6 +234,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 
 			if (cands.containsKey(pc)) {
 				final ModRefFieldCandidate mrc = cands.get(pc);
+				all.add(mrc);
 				mrc.setMod();
 			} else {
 				final ModRefFieldCandidate mrc = new ModRefFieldCandidate(true, false, pc);
@@ -149,6 +244,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 				cands.put(pc, mrc);
 				all.add(mrc);
 			}
+			assert invariant();
 		}
 
 		@Override
@@ -158,6 +254,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 
 			if (cands.containsKey(pc)) {
 				final ModRefFieldCandidate mrc = cands.get(pc);
+				all.add(mrc);
 				mrc.setRef();
 			} else {
 				final ModRefFieldCandidate mrc = new ModRefFieldCandidate(false, true, pc);
@@ -167,6 +264,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 				cands.put(pc, mrc);
 				all.add(mrc);
 			}
+			assert invariant();
 		}
 
 		@Override
@@ -182,6 +280,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 				changed |= remove(o);
 			}
 
+			assert invariant();
 			return changed;
 		}
 
@@ -196,6 +295,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 				}
 			}
 
+			assert invariant();
 			return false;
 		}
 
@@ -205,13 +305,18 @@ public class ModRefCandidates implements Iterable<CGNode> {
 		}
 
 		@Override
-		public void addCandidate(final ModRefFieldCandidate toAdd) {
+		public ModRefFieldCandidate addCandidate(final ModRefFieldCandidate toAdd) {
 			final ModRefFieldCandidate mr = cands.get(toAdd.pc);
+			final ModRefFieldCandidate result;
 			if (mr == null) {
 				final ModRefFieldCandidate newC = toAdd.clone();
+				result = newC;
 				cands.put(toAdd.pc, newC);
 				all.add(newC);
 			} else {
+				assert cands.get(mr.pc) == mr;
+				result = mr;
+				all.add(result);
 				if (toAdd.isMod()) {
 					mr.setMod();
 				}
@@ -219,10 +324,14 @@ public class ModRefCandidates implements Iterable<CGNode> {
 					mr.setRef();
 				}
 			}
+			assert invariant();
+			return result;
+			
 		}
 
 		@Override
 		public void removeCandidate(final ModRefFieldCandidate toRemove) {
+			assert invariant();
 			if (!cands.containsKey(toRemove.pc)) {
 				return;
 			}
@@ -240,25 +349,46 @@ public class ModRefCandidates implements Iterable<CGNode> {
 			}
 
 			all.remove(toRemove);
+			assert invariant();
 		}
 
+		/* (non-Javadoc)
+		 * @see edu.kit.joana.wala.core.params.objgraph.ModRefCandidates.InterProcCandidateModel#registerMergeCandidates(java.lang.Iterable, int)
+		 * 
+		 * The purpose of this method is to support
+		 *     ObjGraphParams.simpleReachabilityPropagateWithMerge(),
+		 * in which candidates that belong to a CGNodes to due fixpoint-propagation are to be merged *before* they are
+		 * actually added to this.all.
+		 * Adding to this.all happens later, in
+		 *     ObjGraphParams.adjustInterprocModRef()
+		 */
 		@Override
-		public ModRefFieldCandidate mergeCandidates(final Iterable<ModRefFieldCandidate> toMerge, final int markWithFlags) {
-			final List<ParameterCandidate> pcands = new LinkedList<ParameterCandidate>();
+		public ModRefFieldCandidate registerMergeCandidates(Iterable<ModRefFieldCandidate> toMerge, int markWithFlags) {
+			final List<ParameterCandidate> pcands = new ArrayList<ParameterCandidate>();
 			boolean isMod = false;
 			boolean isRef = false;
 			int flags = ModRefCandidate.FLAG_NOT_SET;
 
 			for (final ModRefFieldCandidate mrc : toMerge) {
-				// they could have been merged before
 				assert cands.containsKey(mrc.pc);
-				//assert mrc.equals(cands.get(mrc.pc));
 
-				isMod |= mrc.isMod();
-				isRef |= mrc.isRef();
-				flags |= mrc.flags;
-				pcands.add(mrc.pc);
-				all.remove(mrc);
+				// It must hold that 
+				//    cands.containsKey(mrc.pc)
+				// , but not necessarily: all.contains(mrc) || cands.values().contains(mrc)).
+				// We take the request to merge mrc to mean that the ModRefFieldCandidate currently representing mrc.pc
+				// (i.e.: cands.get(mrc.pc) is to be merged.
+				
+				ModRefFieldCandidate mrcInCands = cands.get(mrc.pc);
+				assert (mrc.isMod() | mrcInCands.isMod()) == mrcInCands.isMod();
+				assert (mrc.isRef() | mrcInCands.isRef()) == mrcInCands.isRef();
+				assert (mrc.flags   | mrcInCands.flags  ) == mrcInCands.flags;
+				
+				isMod |= mrcInCands.isMod();
+				isRef |= mrcInCands.isRef();
+				flags |= mrcInCands.flags;
+				
+				pcands.add(mrcInCands.pc);
+				all.remove(mrcInCands);
 			}
 
 			final OrdinalSet<UniqueParameterCandidate> pcs = fact.findUniqueSet(pcands);
@@ -267,21 +397,51 @@ public class ModRefCandidates implements Iterable<CGNode> {
 			flags |= markWithFlags;
 			newCand.flags = flags;
 
-			cands.put(mmpc, newCand);
-
-			for (final ParameterCandidate pc : pcands) {
-				cands.put(pc, newCand);
+			final ModRefFieldCandidate oldCand = cands.get(mmpc);
+			ModRefFieldCandidate result;
+			if (oldCand != null) {
+				// In this case, pcands have been merged before, into a ModRefFieldCandidate with ParameterCandidate mmpc
+				// either
+				// a) that ModRefFieldCandidate is still valid, in which case it holds that
+				//      oldCand.equals(newCand)
+				//    
+				// b) that ModRefFieldCandidate has been merged itself after being created (ultimately: into oldCand),
+				//    in which caset holds that  
+				//      oldCand.pc.getUniques is a superset of newCand.pc.getUniques
+				assert oldCand.equals(newCand) || WalaPointsToUtil.isSubsetOf(newCand.pc.getUniques(), oldCand.pc.getUniques());
+				// In either case, we discard newCand.
+				result = oldCand;
+			} else {
+				assert !cands.containsKey(mmpc);
+				cands.put(mmpc, newCand);
+				result = newCand;
 			}
-			all.add(newCand);
 			
-			return newCand;
+			// Establish the invariant that and key in cands *directly* points to the ModRefFieldCandidate that it is currently part of.
+			final ArrayList<ParameterCandidate> candsKeys = new ArrayList<>(cands.size());
+			candsKeys.addAll(cands.keySet());
+			for (final ParameterCandidate pc : candsKeys) {
+				if (pcands.contains(cands.get(pc))) cands.put(pc, result);
+			}
+			
+			assert invariant();
+			return result;
 		}
 
+		@Override
+		public ModRefFieldCandidate mergeCandidates(final Iterable<ModRefFieldCandidate> toMerge, final int markWithFlags) {
+			ModRefFieldCandidate merged = registerMergeCandidates(toMerge, markWithFlags);
+			all.add(merged);
+			
+			assert invariant();
+			return merged;
+		}
+
+		
 		@Override
 		public boolean contains(final ModRefCandidate n) {
 			return all.contains(n);
 		}
-
 	}
 
 	private void run(final CallGraph cg, final IProgressMonitor progress) throws CancelException {

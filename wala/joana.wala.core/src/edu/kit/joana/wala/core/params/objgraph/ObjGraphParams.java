@@ -9,6 +9,7 @@ package edu.kit.joana.wala.core.params.objgraph;
 
 import static edu.kit.joana.wala.util.pointsto.WalaPointsToUtil.unify;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -473,9 +474,18 @@ public final class ObjGraphParams {
 				final InterProcCandidateModel interCands = modref.getCandidates(n);
 
 				for (final ModRefFieldCandidate c : pimod) {
-					interCands.addCandidate(c);
+					// TODO: remove assert
+					ModRefFieldCandidate added = interCands.addCandidate(c);
+					assert added!=null;
 				}
 			}
+		}
+		
+		// merge nodes for cut off cgnodes
+		if (opt.isMergePrunedCallNodes) {
+			if (isDebug) { debug.out("merge pruned call nodes... "); }
+			mergePrunedCallNodes(sdg, cg, interModRef, modref, progress);
+			if (isDebug) { debug.outln("done."); }
 		}
 
 		if (opt.isCutOffUnreachable || opt.isMergeException || opt.isCutOffImmutables || opt.isMergeOneFieldPerParent
@@ -596,12 +606,6 @@ public final class ObjGraphParams {
 
 		if (isDebug) { debug.outln(""); }
 
-		// merge nodes for cut off cgnodes
-		if (opt.isMergePrunedCallNodes) {
-			if (isDebug) { debug.out("merge pruned call nodes... "); }
-			mergePrunedCallNodes(sdg, cg, interModRef, modref, progress);
-			if (isDebug) { debug.outln("done."); }
-		}
 	}
 
 	private static void smushManySameFields(final InterProcCandidateModel pdgModRef, final int threshold,
@@ -796,9 +800,13 @@ public final class ObjGraphParams {
 		final Iterator<ModRefCandidate> it = mrg.getSuccNodes(parent);
 		while (it.hasNext()) {
 			final ModRefFieldCandidate succ = (ModRefFieldCandidate) it.next();
+			assert pdgModRef.contains(succ);
 
 			final OrdinalSet<ParameterField> fields = succ.getFields();
-
+			
+			assert fields.size() > 0;
+			if (fields.size() > 1) continue;
+			
 			for (final ParameterField f : fields) { 
 				Set<ModRefFieldCandidate> fcs = field2cand.get(f);
 				if (fcs == null) {
@@ -810,11 +818,25 @@ public final class ObjGraphParams {
 			}
 		}
 
+		// TODO: remove debug code
+		ArrayList<ModRefFieldCandidate> merged = new ArrayList<>();
 		for (final Entry<ParameterField, Set<ModRefFieldCandidate>> entry : field2cand.entrySet()) {
 			final Set<ModRefFieldCandidate> cands = entry.getValue();
 
 			if (cands.size() > 1) {
+				for (ModRefFieldCandidate c : cands) {
+					if (merged.contains(c)) {
+						assert false;
+					}
+				}
+				for (ModRefFieldCandidate c : cands) {
+					assert pdgModRef.contains(c);
+				}
 				pdgModRef.mergeCandidates(cands, FLAG_MERGE_SAME_FIELD);
+				for (ModRefFieldCandidate c : cands) {
+					assert !pdgModRef.contains(c);
+				}
+				merged.addAll(cands);
 			}
 		}
 	}
@@ -1059,19 +1081,32 @@ public final class ObjGraphParams {
 
 			// merge nodes that are only reachable from pruned method side-effects
 			final InterProcCandidateModel ipcm = mrefs.getCandidates(cgNode);
-			if (!toMergeRef.isEmpty()) {
+			if (toMergeRef.size() > 1) {
 				final OrdinalSet<ModRefFieldCandidate> mRefSet =
-					new OrdinalSet<ModRefFieldCandidate>(toMergeRef, modRefMapping); 
-				final ModRefFieldCandidate mergedRef = ipcm.mergeCandidates(mRefSet, FLAG_MERGE_PRUNED_CALL);
-				modRefMapping.add(mergedRef);
-				allNodes.add(modRefMapping.getMappedIndex(mergedRef));
+					new OrdinalSet<ModRefFieldCandidate>(toMergeRef, modRefMapping);
+				toMergeRef.foreach(new IntSetAction() {
+					@Override
+					public void act(int x) {
+						ipcm.addCandidate(modRefMapping.getMappedObject(x));
+						//allNodes.remove(x);
+					}
+				});
+				// TODO: remove debug code
+				final ModRefFieldCandidate mergedRef = ipcm.registerMergeCandidates(mRefSet, FLAG_MERGE_PRUNED_CALL);
+				assert mergedRef!= null;
 			}
-			if (!toMergeMod.isEmpty()) {
+			if (toMergeMod.size() > 1) {
 				final OrdinalSet<ModRefFieldCandidate> mModSet =
-						new OrdinalSet<ModRefFieldCandidate>(toMergeMod, modRefMapping);
-				final ModRefFieldCandidate mergedMod = ipcm.mergeCandidates(mModSet, FLAG_MERGE_PRUNED_CALL);
-				modRefMapping.add(mergedMod); 
-				allNodes.add(modRefMapping.getMappedIndex(mergedMod));
+					new OrdinalSet<ModRefFieldCandidate>(toMergeMod, modRefMapping);
+				toMergeMod.foreach(new IntSetAction() {
+					@Override
+					public void act(int x) {
+						ipcm.addCandidate(modRefMapping.getMappedObject(x));
+					}
+				});
+				// TODO: remove debug code
+				final ModRefFieldCandidate mergedMod = ipcm.registerMergeCandidates(mModSet, FLAG_MERGE_PRUNED_CALL);
+				assert mergedMod != null;
 			}
 			
 			result.put(cgNode, new OrdinalSet<ModRefFieldCandidate>(allNodes, modRefMapping));
@@ -1381,7 +1416,10 @@ public final class ObjGraphParams {
 			final ReachInfo reach = new ReachInfo(n, initialRoot);
 			final Collection<ModRefFieldCandidate> locals = cg2localfields.get(n);
 			if (locals != null) {
-				reach.unreachable.addAll(locals);
+				for (ModRefFieldCandidate c : locals) {
+					assert !c.pc.isMerged();
+					reach.unreachable.add(c);
+				}
 			}
 			cg2reach.put(n, reach);
 		}
@@ -1476,6 +1514,16 @@ public final class ObjGraphParams {
 
 		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> result = convertResult(cg2reach, simple, mrefs);
 
+		for (Entry<CGNode, OrdinalSet<ModRefFieldCandidate>> entry : result.entrySet()) {
+			final CGNode cgNode = entry.getKey();
+			final OrdinalSet<ModRefFieldCandidate> resultSet = entry.getValue();
+			final OrdinalSet<ModRefFieldCandidate> simpleSet = simple.get(entry.getKey());
+			for (ModRefFieldCandidate c : resultSet) {
+				assert c != null;
+				
+				assert simpleSet.contains(c);
+			}
+		}
         if (progress != null) { progress.done(); }
         
 		return result;

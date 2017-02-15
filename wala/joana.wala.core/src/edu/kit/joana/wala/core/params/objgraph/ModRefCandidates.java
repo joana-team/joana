@@ -140,6 +140,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 	private static class CGNodeCandidates extends AbstractCollection<ModRefFieldCandidate> implements CandidateConsumer,
 		InterProcCandidateModel {
 
+		private static boolean expensiveAssertions = false;
 		private final CandidateFactory fact;
 		private Map<ParameterCandidate, ModRefFieldCandidate> cands = new HashMap<ParameterCandidate, ModRefFieldCandidate>();
 		private Set<ModRefFieldCandidate> all = new HashSet<ModRefFieldCandidate>();
@@ -198,30 +199,8 @@ public class ModRefCandidates implements Iterable<CGNode> {
 				}
 			}
 			
-			// TODO: this is now implied by the invariant right before, isn't it?
-			for (ModRefFieldCandidate cand : cands.values()) {
-				final ModRefFieldCandidate cand2 = cands.get(cand.pc);
-				if        ( cand.pc.isUnique() &&  cand2.pc.isUnique()) {
-					if (cand.pc != cand2.pc) {
-						return false;
-					}
-				} else if ( cand.pc.isUnique() && !cand2.pc.isUnique()) {
-					if (!cand2.pc.getUniques().contains((UniqueParameterCandidate)cand.pc)) {
-						return false;
-					}
-				} else if (!cand.pc.isUnique() &&  cand2.pc.isUnique()) {
-					if (!(cand.pc.getUniques().contains((UniqueParameterCandidate)cand2.pc) && cand.pc.getUniques().size() == 1)) {
-						return false;
-					}
-				} else {
-					if (! WalaPointsToUtil.isSubsetOf(cand.pc.getUniques(), cand2.pc.getUniques())) {
-						return false;
-					}
-				}
-			}
-			
 			// Except for merged Candidates that are registered but now yet part of this method, cands.values() and all are the same set.
-			if (!cands.values().containsAll(all)) {
+			if (expensiveAssertions && !cands.values().containsAll(all)) {
 				return false;
 			}
 
@@ -331,7 +310,6 @@ public class ModRefCandidates implements Iterable<CGNode> {
 
 		@Override
 		public void removeCandidate(final ModRefFieldCandidate toRemove) {
-			assert invariant();
 			if (!cands.containsKey(toRemove.pc)) {
 				return;
 			}

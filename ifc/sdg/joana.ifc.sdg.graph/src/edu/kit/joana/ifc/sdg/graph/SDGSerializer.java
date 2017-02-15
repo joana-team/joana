@@ -165,7 +165,8 @@ public class SDGSerializer {
                 pw.print("\""  + localUseNames[0] + "\"");
 
                 for (int i = 1; i < localUseNames.length; i++) {
-                	assert (!localUseNames[i].contains("\""));
+                	// until wala fixes its local variable name resolution, we have to deal with null names :/
+                	assert (localUseNames[i] == null || !localUseNames[i].contains("\""));
                     pw.print(", \"" + localUseNames[i] + "\"");
                 }
 

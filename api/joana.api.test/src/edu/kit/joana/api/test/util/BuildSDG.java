@@ -1,4 +1,12 @@
+/**
+ * This file is part of the Joana IFC project. It is developed at the
+ * Programming Paradigms Group of the Karlsruhe Institute of Technology.
+ *
+ * For further details on licensing please read the information at
+ * http://joana.ipd.kit.edu or contact the authors.
+ */
 package edu.kit.joana.api.test.util;
+
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -25,29 +33,36 @@ import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 
-public class BuildSDG {
+/**
+ * Utility class to build SDGs for tests.
+ *
+ * @author Simon Bischof <simon.bischof@kit.edu>
+ */
+public final class BuildSDG {
 
 	private static final Stubs STUBS = Stubs.JRE_14;
-	
+
 	public static final SDGConfig top_sequential = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, null, STUBS, ExceptionAnalysis.INTERPROC,
 			FieldPropagation.OBJ_GRAPH, PointsToPrecision.OBJECT_SENSITIVE, false, // no
 																					// access
 																					// paths
 			false, // no interference
 			MHPType.NONE);
+
 	public static final SDGConfig bottom_sequential = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, null, STUBS,
 			ExceptionAnalysis.ALL_NO_ANALYSIS, FieldPropagation.OBJ_GRAPH, PointsToPrecision.TYPE_BASED, false, // no
 																											// access
 																											// paths
 			false, // no interference
 			MHPType.NONE);
-	
+
 	public static final SDGConfig top_concurrent = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, null, STUBS, ExceptionAnalysis.INTERPROC,
 			FieldPropagation.OBJ_GRAPH, PointsToPrecision.OBJECT_SENSITIVE, false, // no
 																					// access
 																					// paths
 			true, // interference
 			MHPType.PRECISE);
+
 	public static final SDGConfig bottom_concurrent = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, null, STUBS,
 			ExceptionAnalysis.ALL_NO_ANALYSIS, FieldPropagation.OBJ_GRAPH, PointsToPrecision.TYPE_BASED, false, // no
 																											// access
@@ -55,86 +70,38 @@ public class BuildSDG {
 			true, // interference
 			MHPType.SIMPLE);
 
-	private final String classPath;
-	private final String entryMethod;
-	private final Stubs stubsPath;
-	private final String fileName;
-	private final boolean computeInterference = true;
-	private final ExceptionAnalysis exceptionAnalysis;
-	private final FieldPropagation fieldPropagation;
-	private final PointsToPrecision ptsPrec;
-	private final MHPType mhpType = MHPType.NONE;
+	private BuildSDG() {
 
-	private SDG sdg = null;
-
-	public BuildSDG(String classPath, String entryMethod, Stubs stubsPath, String fileName) {
-		this(classPath, entryMethod, stubsPath, PointsToPrecision.INSTANCE_BASED, ExceptionAnalysis.IGNORE_ALL, FieldPropagation.OBJ_GRAPH, fileName);
-	}
-
-	public BuildSDG(String classPath, String entryMethod, Stubs stubsPath, PointsToPrecision ptsPrec, ExceptionAnalysis ea, FieldPropagation fp,
-			String fileName) {
-		this.classPath = classPath;
-		this.entryMethod = entryMethod;
-		this.stubsPath = stubsPath;
-		this.ptsPrec = ptsPrec;
-		this.exceptionAnalysis = ea;
-		this.fieldPropagation = fp;
-		this.fileName = fileName;
 	}
 
 	public static void saveSDGProgram(SDG sdg, String path) throws FileNotFoundException {
 		SDGSerializer.toPDGFormat(sdg, new BufferedOutputStream(new FileOutputStream(path)));
 	}
 
-	public void run() {
-		try {
-			sdg = buildSDG();
-			PruneInterferences.preprocessAndPruneCSDG(sdg, MHPType.PRECISE);
-		} catch (ClassHierarchyException e) {
-			throw new RuntimeException(e);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		} catch (UnsoundGraphException e) {
-			throw new RuntimeException(e);
-		} catch (CancelException e) {
-			throw new RuntimeException(e);
-		}
-
-		try {
-			saveSDGProgram(sdg, fileName);
-		} catch (FileNotFoundException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	public SDG getSDG() {
-		if (sdg == null) {
-			run();
-		}
-		return sdg;
-	}
-
-	private SDG buildSDG() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		SDGConfig cfg = new SDGConfig(classPath, entryMethod, stubsPath);
-		cfg.setComputeInterferences(computeInterference);
-		cfg.setExceptionAnalysis(exceptionAnalysis);
-		cfg.setMhpType(mhpType);
-		cfg.setFieldPropagation(fieldPropagation);
+	public static void standardConcBuild(String classPath, JavaMethodSignature entryMethod, String saveAs, PointsToPrecision ptsPrec) {
+		SDGConfig cfg = new SDGConfig(classPath, entryMethod.toBCString(), STUBS);
+		cfg.setComputeInterferences(true);
+		cfg.setExceptionAnalysis(ExceptionAnalysis.IGNORE_ALL);
+		cfg.setMhpType(MHPType.NONE);
+		cfg.setFieldPropagation(FieldPropagation.OBJ_GRAPH);
 		cfg.setPointsToPrecision(ptsPrec);
-		SDGProgram p = SDGProgram.createSDGProgram(cfg, new PrintStream(new ByteArrayOutputStream()),
-				NullProgressMonitor.INSTANCE);
-		return p.getSDG();
+		SDGProgram p;
+		try {
+			p = SDGProgram.createSDGProgram(cfg, new PrintStream(new ByteArrayOutputStream()),
+					NullProgressMonitor.INSTANCE);
+			SDG sdg = p.getSDG();
+			PruneInterferences.preprocessAndPruneCSDG(sdg, MHPType.PRECISE);
+			saveSDGProgram(sdg, saveAs);
+		} catch (ClassHierarchyException | IOException | UnsoundGraphException
+					| CancelException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
-	public static BuildSDG standardConcSetup(String classPath, JavaMethodSignature entryMethod, String saveAs, PointsToPrecision ptsPrec) {
-		return new BuildSDG(classPath, entryMethod.toBCString(), Stubs.JRE_14,
-				ptsPrec, ExceptionAnalysis.IGNORE_ALL, FieldPropagation.OBJ_GRAPH, saveAs);
+	public static void standardConcBuild(String classPath, String mainClass, String saveAs) {
+		standardConcBuild(classPath, JavaMethodSignature.mainMethodOfClass(mainClass), saveAs, PointsToPrecision.INSTANCE_BASED);
 	}
-	
-	public static BuildSDG standardConcSetup(String classPath, String mainClass, String saveAs) {
-		return standardConcSetup(classPath, JavaMethodSignature.mainMethodOfClass(mainClass), saveAs, PointsToPrecision.INSTANCE_BASED);
-	}
-	
+
 	public static <T> IFCAnalysis build(Class<T> clazz, SDGConfig config, boolean ignore) throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
 		final String className = clazz.getCanonicalName();
 		final String classPath;
@@ -149,8 +116,7 @@ public class BuildSDG {
 
 		SDGProgram prog = SDGProgram.createSDGProgram(config);
 
-		IFCAnalysis ana = new IFCAnalysis(prog);
-		return ana;
+		return new IFCAnalysis(prog);
 	}
 
 	public static <T> IFCAnalysis buldAndUseJavaAnnotations(Class<T> clazz, SDGConfig config, boolean ignore)

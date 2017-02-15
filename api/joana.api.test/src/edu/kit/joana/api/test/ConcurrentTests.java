@@ -144,13 +144,11 @@ public class ConcurrentTests {
 	
 	public static void buildOrLoad(TestData td) {
 		if (FORCE_REBUILD) {
-			final BuildSDG b = BuildSDG.standardConcSetup(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, JavaMethodSignature.mainMethodOfClass(td.mainClass), td.sdgFile, td.ptsPrecToUse);
-			b.run();
+			BuildSDG.standardConcBuild(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, JavaMethodSignature.mainMethodOfClass(td.mainClass), td.sdgFile, td.ptsPrecToUse);
 		} else {
 			final File f = new File(td.sdgFile);
 			if (!f.exists() || !f.canRead()) {
-				final BuildSDG b = BuildSDG.standardConcSetup(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, JavaMethodSignature.mainMethodOfClass(td.mainClass), td.sdgFile, td.ptsPrecToUse);
-				b.run();
+				BuildSDG.standardConcBuild(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, JavaMethodSignature.mainMethodOfClass(td.mainClass), td.sdgFile, td.ptsPrecToUse);
 			}
 		}
 	}

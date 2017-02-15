@@ -82,15 +82,13 @@ public class MHPAnalysisTest {
 			Assert.fail("wrong test key: " + key);
 		}
 		if (FORCE_REBUILD) {
-			final BuildSDG b = BuildSDG.standardConcSetup(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, t.mainClass,
+			BuildSDG.standardConcBuild(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, t.mainClass,
 					t.sdgFile);
-			b.run();
 		} else {
 			final File f = new File(t.sdgFile);
 			if (!f.exists() || !f.canRead()) {
-				final BuildSDG b = BuildSDG.standardConcSetup(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH,
+				BuildSDG.standardConcBuild(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH,
 						t.mainClass, t.sdgFile);
-				b.run();
 			}
 		}
 		SDG result = null;

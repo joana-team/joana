@@ -67,13 +67,11 @@ public class TimeSensSlicingTest {
 		TimeSensSlicingTest.class.getClassLoader().setDefaultAssertionStatus(true);
 		for (final TestData td : testData.values()) {
 			if (FORCE_REBUILD) {
-				final BuildSDG b = BuildSDG.standardConcSetup(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, td.mainClass, td.sdgFile);
-				b.run();
+				BuildSDG.standardConcBuild(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, td.mainClass, td.sdgFile);
 			} else {
 				final File f = new File(td.sdgFile);
 				if (!f.exists() || !f.canRead()) {
-					final BuildSDG b = BuildSDG.standardConcSetup(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, td.mainClass, td.sdgFile);
-					b.run();
+					BuildSDG.standardConcBuild(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, td.mainClass, td.sdgFile);
 				}
 			}
 		}

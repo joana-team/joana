@@ -115,7 +115,7 @@ public class JoinAnalysisIFCMantelTest {
 			IFCAnalysis ana = buildAndAnnotateMantel(MHPType.SIMPLE);
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
-			assertTrue(illegal.size() == 90);
+			assertEquals(90, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

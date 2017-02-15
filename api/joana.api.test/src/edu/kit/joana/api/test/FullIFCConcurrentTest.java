@@ -120,13 +120,18 @@ public class FullIFCConcurrentTest {
 		assertEquals(leaks, illegal.size());
 	}
 	
+	private static void testNoLeaksFound(IFCAnalysis ana) {
+		Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+		assertTrue(illegal.isEmpty());
+	}
+	
 	@Test
 	public void testAlarmClock() {
 		try {
 			final SDGProgram prog = build("conc.ac.AlarmClock");
 			{
 				final IFCAnalysis ana1 = annotate(prog, "conc.ac.Clock.max", "conc.ac.Client.name");
-				testLeaksFound(ana1, 6);
+				testLeaksFound(ana1,26);
 			}
 			{
 				final IFCAnalysis ana2 = annotate(prog, "sensitivity.Security.SECRET", "sensitivity.Security.PUBLIC");
@@ -157,7 +162,7 @@ public class FullIFCConcurrentTest {
 			IFCAnalysis ana = buildAndAnnotate("conc.cliser.dt.Main",
 					"conc.cliser.dt.DaytimeUDPClient.message",
 					"conc.cliser.dt.DaytimeIterativeUDPServer.recieved");
-			testLeaksFound(ana, 54);
+			testLeaksFound(ana, 124);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -237,7 +242,7 @@ public class FullIFCConcurrentTest {
 			IFCAnalysis ana = buildAndAnnotate("conc.lg.LaplaceGrid",
 					"conc.lg.Partition.values",
 					"conc.lg.Partition.in");
-			testLeaksFound(ana, 932);
+			testLeaksFound(ana, 1520);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -306,19 +311,19 @@ public class FullIFCConcurrentTest {
 					"tests.ConcPasswordFile.b");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(20, illegal.size());
+			assertEquals(62, illegal.size());
 			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(17, illegal.size());
+			assertEquals(52, illegal.size());
 			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(12, illegal.size());
+			assertEquals(33, illegal.size());
 			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(12, illegal.size());
+			assertEquals(33, illegal.size());
 			illegal = ana.doIFC(IFCType.CLASSICAL_NI);
 			assertFalse(illegal.isEmpty());
-			assertEquals(8, illegal.size());
+			assertEquals(22, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

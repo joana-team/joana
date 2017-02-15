@@ -44,24 +44,19 @@ public abstract class AnnotationMapChecker<L> extends IFC<L> {
 		for (final SDGNode n : sdg.vertexSet()) {
 			if (n instanceof SecurityNode) {
 				final SecurityNode sn = (SecurityNode) n;
-				final String req = sn.getRequired();
-				if (req != null && !req.equals(SecurityNode.UNDEFINED)) {
-					for (final L elem : secLattice.getElements()) {
-						if (req.equals(elem.toString())) {
-							userAnn.put(n, elem);
-						}
-					}
-				}
-				final String prov = sn.getProvided();
-				if (prov != null && !prov.equals(SecurityNode.UNDEFINED)) {
-					for (final L elem : secLattice.getElements()) {
-						if (prov.equals(elem.toString())) {
-							userAnn.put(n, elem);
-						}
-					}
-				}
+				putIntoUserAnn(n, sn.getRequired(), secLattice);
+				putIntoUserAnn(n, sn.getProvided(), secLattice);
 			}
 		}
 	}
 
+	private void putIntoUserAnn(SDGNode n, String lvl, IStaticLattice<L> secLattice) {
+		if (lvl != null && !lvl.equals(SecurityNode.UNDEFINED)) {
+			for (final L elem : secLattice.getElements()) {
+				if (lvl.equals(elem.toString())) {
+					userAnn.put(n, elem);
+				}
+			}
+		}
+	}
 }

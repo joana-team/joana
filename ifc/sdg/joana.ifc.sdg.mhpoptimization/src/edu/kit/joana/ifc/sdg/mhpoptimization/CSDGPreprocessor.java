@@ -10,7 +10,6 @@ package edu.kit.joana.ifc.sdg.mhpoptimization;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -24,7 +23,6 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
 import edu.kit.joana.ifc.sdg.mhpoptimization.ThreadAllocationAnalysis.LoopDetPrec;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
-import gnu.trove.iterator.TIntIterator;
 import gnu.trove.set.hash.TIntHashSet;
 
 

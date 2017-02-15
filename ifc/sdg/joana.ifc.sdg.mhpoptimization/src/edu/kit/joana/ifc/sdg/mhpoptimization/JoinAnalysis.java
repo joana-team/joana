@@ -33,27 +33,27 @@ import edu.kit.joana.util.maps.MapUtils;
  * @author giffhorn
  */
 public class JoinAnalysis {
-	private static Logger info = Log.getLogger(Log.L_MHP_INFO);
-	private static Logger debug = Log.getLogger(Log.L_MHP_DEBUG);
+	private static final Logger info = Log.getLogger(Log.L_MHP_INFO);
+	private static final Logger debug = Log.getLogger(Log.L_MHP_DEBUG);
 	public static final boolean IS_DEBUG = debug.isEnabled();
 
 	/** thread allocation sites */
-	private Collection<SDGNode> allocs;
+	private final Collection<SDGNode> allocs;
 
 	/** maps calls of Thread.join() to possible thread allocation sites */
-	private Map<SDGNode, Set<SDGNode>> callJoin_alloc;
+	private final Map<SDGNode, Set<SDGNode>> callJoin_alloc;
 
 	private Map<SDGNode, Set<SDGNode>> alloc_callJoin; // maps thread
 														// allocations to
 														// calls of
 														// Thread::join
 
-	private Map<SDGNode, Set<SDGNode>> fork_alloc; // maps forks to thread
+	private final Map<SDGNode, Set<SDGNode>> fork_alloc; // maps forks to thread
 													// allocations
 	private Map<SDGNode, Set<SDGNode>> alloc_fork; // maps thread
 													// allocations to forks
-	private SDG ipdg;
-	private ThreadsInformation ti;
+	private final SDG ipdg;
+	private final ThreadsInformation ti;
 
 	public JoinAnalysis(SDG ipdg, ThreadsInformation ti) {
 		this.ipdg = ipdg;

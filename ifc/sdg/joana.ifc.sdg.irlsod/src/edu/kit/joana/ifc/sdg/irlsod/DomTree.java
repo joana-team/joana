@@ -39,7 +39,6 @@ public class DomTree {
 	private final MHPAnalysis mhp;
 	private final Set<Pair<VirtualNode, VirtualNode>> set;
 	private final ICDomOracle cdomOracle;
-	private CFG icfg;
 	private boolean isReduced;
 	private boolean acyclic;
 
@@ -79,7 +78,7 @@ public class DomTree {
 	}
 	
 	private void compute() {
-		this.icfg = ICFGBuilder.extractICFG(sdg);
+		CFG icfg = ICFGBuilder.extractICFG(sdg);
 		for (SDGNode n : icfg.vertexSet()) {
 			for (final int threadN : n.getThreadNumbers()) {
 				tree.addVertex(new VirtualNode(n, threadN));

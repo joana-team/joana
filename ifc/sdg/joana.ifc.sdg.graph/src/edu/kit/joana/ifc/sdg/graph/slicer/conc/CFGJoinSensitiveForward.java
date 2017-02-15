@@ -25,7 +25,7 @@ import gnu.trove.set.hash.TIntHashSet;
  */
 public class CFGJoinSensitiveForward extends CFGForward {
 	private Collection<SDGNode> joins;
-	private CFGForward secondSlicer;
+	private final CFGForward secondSlicer;
 	private Collection<SDGEdge> blockedEdges = new HashSet<SDGEdge>();
 
     /**

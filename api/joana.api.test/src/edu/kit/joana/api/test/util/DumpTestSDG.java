@@ -26,9 +26,9 @@ import edu.kit.joana.ifc.sdg.irlsod.DomTree;
 import edu.kit.joana.ifc.sdg.util.graph.io.dot.MiscGraph2Dot;
 
 /**
- * TODO: Simon Bischof <simon.bischof@kit.edu>
+ * @author Simon Bischof <simon.bischof@kit.edu>
  */
-public class DumpTestSDG {
+public final class DumpTestSDG {
 	
 	private static final String outputDir = "out";
 	private static final String outputDirPrefix = outputDir + File.separator;
@@ -38,6 +38,10 @@ public class DumpTestSDG {
 		if (!fOutDir.exists()) {
 			fOutDir.mkdir();
 		}
+	}
+	
+	private DumpTestSDG() {
+
 	}
 	
 	public static void dumpSDG(SDG sdg, String filename) throws FileNotFoundException {

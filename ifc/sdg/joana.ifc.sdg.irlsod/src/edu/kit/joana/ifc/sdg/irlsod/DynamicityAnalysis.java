@@ -14,22 +14,20 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
-//import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
-//import edu.kit.joana.ifc.sdg.util.sdg.ReducedCFGBuilder;
-//import edu.kit.joana.ifc.sdg.util.sdg.SDGNodePredicate;
 
 public class DynamicityAnalysis {
 
-	@SuppressWarnings("unused")
-	private final SDG sdg;
 	private final CFG threadGraph;
 	private final Set<SDGNode> dynamicNodes = new HashSet<SDGNode>();
 	private Map<SDGNode, Set<SDGNode>> entry2procs;
 
-	public DynamicityAnalysis(final SDG sdg, final CFG threadGraph) {
-		this.sdg = sdg;
+	public DynamicityAnalysis(final CFG threadGraph) {
 		this.threadGraph = threadGraph;
 		computeDynamicNodes();
+	}
+
+	public DynamicityAnalysis(final SDG sdg, final CFG threadGraph) {
+		this(threadGraph);
 	}
 
 	private void computeDynamicNodes() {
@@ -126,15 +124,5 @@ public class DynamicityAnalysis {
 			}
 		}
 		return ret;
-		/*return ReducedCFGBuilder.extractReducedCFG(ret, new SDGNodePredicate() {
-			@Override
-			public boolean isInteresting(final SDGNode node) {
-				return (BytecodeLocation.OBJECT_FIELD != node.getBytecodeIndex())
-						&& (BytecodeLocation.BASE_FIELD != node.getBytecodeIndex())
-						&& (BytecodeLocation.ARRAY_FIELD != node.getBytecodeIndex())
-						&& (BytecodeLocation.ARRAY_INDEX != node.getBytecodeIndex())
-						&& (BytecodeLocation.STATIC_FIELD != node.getBytecodeIndex());
-			}
-		});*/
 	}
 }

@@ -253,7 +253,7 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 	 * Solely used to state some assumptions on the sdg
 	 *
 	 * @param n
-	 * @return true iff any INTERFERENCE_WRITE edge from n to some m is matched by an INTERFERENCE_WRITE edge from m to
+	 * @return true iff all INTERFERENCE_WRITE edges from n to some m are matched by an INTERFERENCE_WRITE edge from m to
 	 *         n.
 	 */
 	private boolean interferenceWriteUndirected(final SDGNode n) {
@@ -262,9 +262,12 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 			for (final SDGEdge e2 : g.getOutgoingEdgesOfKind(e.getTarget(), SDGEdge.Kind.INTERFERENCE_WRITE)) {
 				if (e2.getTarget().equals(n)) {
 					found = true;
+					break;
 				}
 			}
-			return found;
+			if (!found) {
+				return false;
+			}
 		}
 		return true;
 	}

@@ -20,7 +20,6 @@ import edu.kit.joana.wala.core.graphs.Dominators.DomTree;
 public class RegionBasedCDomOracle implements ICDomOracle {
 	private final SDG sdg;
 	private final PreciseMHPAnalysis mhp;
-	private CFG icfg;
 	private DirectedGraph<ThreadRegion, DefaultEdge> regionGraph;
 	private Dominators<ThreadRegion, DefaultEdge> domRegions;
 	private DFSIntervalOrder<ThreadRegion, DomEdge> dioDomRegions;
@@ -32,7 +31,7 @@ public class RegionBasedCDomOracle implements ICDomOracle {
 
 	public void buildRegionGraph() {
 		this.regionGraph = new DefaultDirectedGraph<ThreadRegion, DefaultEdge>(DefaultEdge.class);
-		this.icfg = ICFGBuilder.extractICFG(sdg);
+		CFG icfg = ICFGBuilder.extractICFG(sdg);
 		for (ThreadRegion region : mhp.getThreadRegions()) {
 			regionGraph.addVertex(region);
 		}
@@ -40,16 +39,7 @@ public class RegionBasedCDomOracle implements ICDomOracle {
 			for (final int threadN : n.getThreadNumbers()) {
 				final ThreadRegion trSource = mhp.getThreadRegion(n, threadN);
 				for (final SDGEdge e : icfg.outgoingEdgesOf(n)) {
-					if (!e.getKind().isThreadEdge()) {
-						if (possiblyExecutesIn(e.getTarget(), threadN)) {
-							final ThreadRegion trTarget = mhp.getThreadRegion(e.getTarget(), threadN);
-							if (!trTarget.equals(trSource)) {
-								regionGraph.addVertex(trSource);
-								regionGraph.addVertex(trTarget);
-								regionGraph.addEdge(trSource, trTarget);
-							}
-						}
-					} else {
+					if (e.getKind().isThreadEdge()) {
 						for (final int threadM : e.getTarget().getThreadNumbers()) {
 							if (threadM != threadN) {
 								final ThreadRegion trTarget = mhp.getThreadRegion(e.getTarget(), threadM);
@@ -58,6 +48,15 @@ public class RegionBasedCDomOracle implements ICDomOracle {
 									regionGraph.addVertex(trTarget);
 									regionGraph.addEdge(trSource, trTarget);
 								}
+							}
+						}
+					} else {
+						if (possiblyExecutesIn(e.getTarget(), threadN)) {
+							final ThreadRegion trTarget = mhp.getThreadRegion(e.getTarget(), threadN);
+							if (!trTarget.equals(trSource)) {
+								regionGraph.addVertex(trSource);
+								regionGraph.addVertex(trTarget);
+								regionGraph.addEdge(trSource, trTarget);
 							}
 						}
 					}

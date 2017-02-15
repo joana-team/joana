@@ -1,6 +1,5 @@
 package edu.kit.joana.ifc.sdg.irlsod;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,11 +26,11 @@ public class ThreadModularCDomOracle implements ICDomOracle {
 	private final DirectedGraph<ThreadInstance, DefaultEdge> tct;
 	private final DFSIntervalOrder<ThreadInstance, DefaultEdge> dioTCT;
 	private final CFG icfg;
-	private TIntObjectMap<CFG> threadsToCFG = new TIntObjectHashMap<>();
-	private TIntObjectMap<DynamicityAnalysis> threadsToDyna = new TIntObjectHashMap<>();
-	private TIntObjectMap<Dominators<SDGNode, SDGEdge>> threadsToDom = new TIntObjectHashMap<>();
-	private TIntObjectMap<DFSIntervalOrder<SDGNode, DomEdge>> threadsToDIO = new TIntObjectHashMap<>();
-	private Map<ForksTuple, VirtualNode> forkCDom = new ConcurrentHashMap<>();
+	private final TIntObjectMap<CFG> threadsToCFG = new TIntObjectHashMap<>();
+	private final TIntObjectMap<DynamicityAnalysis> threadsToDyna = new TIntObjectHashMap<>();
+	private final TIntObjectMap<Dominators<SDGNode, SDGEdge>> threadsToDom = new TIntObjectHashMap<>();
+	private final TIntObjectMap<DFSIntervalOrder<SDGNode, DomEdge>> threadsToDIO = new TIntObjectHashMap<>();
+	private final Map<ForksTuple, VirtualNode> forkCDom = new ConcurrentHashMap<>();
 
 	private final static class ForksTuple {
 		private final SDGNode fork1;

@@ -45,6 +45,18 @@ public class NodeAnnotationInfo {
 		return which;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		final StringBuilder sb = new StringBuilder();
+		sb.append(node);
+		sb.append(": ");
+		sb.append(annotation);
+		sb.append("(" + which + ")");
+		return sb.toString();
+	}
 	/*
 	 * (non-Javadoc)
 	 *

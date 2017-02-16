@@ -357,10 +357,28 @@ public class ModRefCandidates implements Iterable<CGNode> {
 				// (i.e.: cands.get(mrc.pc) is to be merged.
 				
 				ModRefFieldCandidate mrcInCands = cands.get(mrc.pc);
+				
+				/* The follwing assertions do, unfortunately, not hold:
 				assert (mrc.isMod() | mrcInCands.isMod()) == mrcInCands.isMod();
 				assert (mrc.isRef() | mrcInCands.isRef()) == mrcInCands.isRef();
 				assert (mrc.flags   | mrcInCands.flags  ) == mrcInCands.flags;
-				
+				*  Consider the following scenario:
+				*  Candidate mrc was created as a clone of some candidate mrc0 when mrc0 was added to 
+				*  some *other* instance of CGNodeCandidates. At this point, e.g., mrc0.isMod == mrc.IsMod == false.
+				*  
+				*  Then, mrc escaped that other instance, (e.g.: via CGNodeCandidates.iterator()), and was added to this
+				*  instance of CGNodeCandidates.
+				*  Later, another instance mrcX with mrcX.pc.equals(mrc.pc) and mrcX.isMod == true was added to 
+				*  the other instance, forcing mrc.isMod to be updated to true.
+				*  
+				*  Then, someone decides that in this instance, mrc ought to be merged with some other candidates.
+				*  Then, for the current representative of mrc.pc in this instance (i.e.: mrcInCands), it possibly
+				*  still holds that mrcInCands.isMod == false, because when mrc was added to this instance, this
+				*  was then the value for mrc.isMod.
+				*  
+				*  TODO: this means that the update of mrc.isMod is only coincidentally reported to this instance of 
+				*  CGNodeCandidates. Is this a general problem?
+				*/
 				isMod |= mrcInCands.isMod();
 				isRef |= mrcInCands.isRef();
 				flags |= mrcInCands.flags;

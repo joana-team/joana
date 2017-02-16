@@ -1077,7 +1077,7 @@ public final class ObjGraphParams {
 				}
 			});
 			
-			final BitVectorIntSet allNodes = new BitVectorIntSet(alsoInPruned);
+			final BitVectorIntSet allNodes = new BitVectorIntSet(reachable);
 
 			// merge nodes that are only reachable from pruned method side-effects
 			final InterProcCandidateModel ipcm = mrefs.getCandidates(cgNode);
@@ -1088,7 +1088,6 @@ public final class ObjGraphParams {
 					@Override
 					public void act(int x) {
 						ipcm.addCandidate(modRefMapping.getMappedObject(x));
-						//allNodes.remove(x);
 					}
 				});
 				// TODO: remove debug code

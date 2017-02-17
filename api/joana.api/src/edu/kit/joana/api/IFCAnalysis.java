@@ -480,7 +480,7 @@ public class IFCAnalysis {
 
 				final String level = fromSet.get(Sets.newHashSet(includes));
 				if (!stringEncodedLattice.getElements().contains(level)) {
-					throw new IllegalArgumentException("Unknown dataset in includes == " + Arrays.toString(includes));
+					throw new IllegalArgumentException("Unknown dataset " + level + " in includes == " + Arrays.toString(includes));
 				}
 				annotatePart(Source.class, source, part, level, annotate, sourceFile);
 			} catch (NoSuchMethodException nsme) {
@@ -507,7 +507,7 @@ public class IFCAnalysis {
 
 				final String level = fromSet.get(Sets.newHashSet(mayInclude));
 				if (!stringEncodedLattice.getElements().contains(level)) {
-					throw new IllegalArgumentException("Unknown dataset in mayInclude == " + Arrays.toString(mayInclude));
+					throw new IllegalArgumentException("Unknown dataset " + level + "in mayInclude == " + Arrays.toString(mayInclude));
 				}
 				annotatePart(Sink.class, sink, part, level, annotate, sourceFile);
 			} catch (NoSuchMethodException nsme) {

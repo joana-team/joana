@@ -24,7 +24,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.CallGraph;
  * @author Dennis Giffhorn
  * @version 1.0
  */
-public class CallGraphBuilder {
+public final class CallGraphBuilder {
 
     /** A utility class. */
     private CallGraphBuilder() {}

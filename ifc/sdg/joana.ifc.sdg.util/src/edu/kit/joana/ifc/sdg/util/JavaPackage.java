@@ -7,11 +7,11 @@
  */
 package edu.kit.joana.ifc.sdg.util;
 
-public class JavaPackage {
+public final class JavaPackage {
 
 	public static final JavaPackage DEFAULT = new JavaPackage("(default package)");
 
-	private String packageName;
+	private final String packageName;
 
 	public JavaPackage(String packageName) {
 		this.packageName = packageName;

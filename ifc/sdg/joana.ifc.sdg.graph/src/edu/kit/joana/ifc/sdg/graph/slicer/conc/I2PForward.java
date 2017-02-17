@@ -67,7 +67,7 @@ public class I2PForward extends Iterative2PhaseSlicer {
 
 
     public static void main(String[] args) throws IOException {
-            edu.kit.joana.ifc.sdg.graph.SDG g = edu.kit.joana.ifc.sdg.graph.SDG.readFrom(args.length > 0 ? args[0] :
+            SDG g = SDG.readFrom(args.length > 0 ? args[0] :
                             "/home/st/hammer/scratch/pdg/javacard.framework.JCMainPurse.pdg");
             SDGNode c = g.getNode(args.length > 1 ? Integer.parseInt(args[1]) : 591);
             Set<SDGNode> s = new java.util.TreeSet<SDGNode>(SDGNode.getIDComparator());

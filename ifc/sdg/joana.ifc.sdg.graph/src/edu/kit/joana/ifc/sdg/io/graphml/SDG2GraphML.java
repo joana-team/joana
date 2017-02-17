@@ -28,7 +28,10 @@ import javanet.staxutils.IndentingXMLStreamWriter;
 /**
  * @author Martin Hecker <martin.hecker@kit.edu>
  */
-public class SDG2GraphML {
+public final class SDG2GraphML {
+
+	private SDG2GraphML() {}
+
 	/**
 	 * Constants for names of JOANA specific node- and edge-attributes
 	 */

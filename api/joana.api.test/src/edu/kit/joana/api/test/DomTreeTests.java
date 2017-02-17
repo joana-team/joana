@@ -10,6 +10,7 @@ package edu.kit.joana.api.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.util.function.BiFunction;
@@ -77,8 +78,7 @@ public class DomTreeTests {
 	
 	private static BiFunction<SDG, PreciseMHPAnalysis, ICDomOracle> newClassicCDomOracle =
 		(sdg,mhp) -> {
-			ClassicCDomOracle oracle = new ClassicCDomOracle(sdg, mhp);
-			return oracle;
+			return new ClassicCDomOracle(sdg, mhp);
 		};
 		
 	private static BiFunction<SDG, PreciseMHPAnalysis, ICDomOracle> newThreadModularCDomOracle =
@@ -135,6 +135,7 @@ public class DomTreeTests {
 		switch (result) {
 			case CYCLIC : assertFalse(acyclic); break;
 			case ACYCLIC: assertTrue( acyclic); break;
+			default: fail("Illegal expected result: " + result);
 		}
 	}
 	

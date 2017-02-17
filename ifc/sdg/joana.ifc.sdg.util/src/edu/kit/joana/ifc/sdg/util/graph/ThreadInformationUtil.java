@@ -22,7 +22,9 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
 /**
  * Some utility methods that deal with Threads and their Creation-Relation 
  */
-public class ThreadInformationUtil {
+public final class ThreadInformationUtil {
+
+	private ThreadInformationUtil() {}
 
 	public static boolean isAncestor(final ThreadInstance ti1, final ThreadInstance ti2) {
 		if (ti1.getThreadContext() == null) {

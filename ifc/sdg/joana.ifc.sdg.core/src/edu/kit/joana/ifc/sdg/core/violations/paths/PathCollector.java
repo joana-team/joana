@@ -29,9 +29,9 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicCon
  */
 public class PathCollector {
 
-	private SDG sdg;
-	private DynamicContextManager man;
-	private Set<SDGEdge.Kind> threadEdges = SDGEdge.Kind.threadEdges();
+	private final SDG sdg;
+	private final DynamicContextManager man;
+	private final Set<SDGEdge.Kind> threadEdges = SDGEdge.Kind.threadEdges();
 
     /**
      * Instantiates a new PathCollector.

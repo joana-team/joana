@@ -41,7 +41,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
  */
 public class Slicer implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
 	private class Visited {
-	    private HashMap<Context, List<States>> markedStates;
+	    private final HashMap<Context, List<States>> markedStates;
 
 	    private Visited() {
 	    	markedStates = new HashMap<Context, List<States>>();
@@ -538,7 +538,7 @@ public class Slicer implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
                     // according to the return-cycle
                     SDGNode call = returnCall(node);
 
-                    if (res.size() == 0 || call != res.getLast()) {
+                    if (res.isEmpty() || call != res.getLast()) {
                         res.addLast(call);
                     }
                 }
@@ -547,7 +547,7 @@ public class Slicer implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
                 SDGNode x = map(node);
 
                 // prohibit redundant piling of Contexts
-                if (res.size() == 0 || x != res.getLast()) {
+                if (res.isEmpty() || x != res.getLast()) {
                     res.addLast(x);
                 }
 
@@ -557,7 +557,7 @@ public class Slicer implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
         }
 
         SDGNode node = foldedIcfg.map(origin.getNode());
-        if (res.size() > 0 && node == res.getLast()) {
+        if (!res.isEmpty() && node == res.getLast()) {
             res.removeLast();
         }
 

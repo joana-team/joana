@@ -33,7 +33,7 @@ import edu.kit.joana.util.Logger;
  */
 public abstract class SummarySlicer implements Slicer {
 
-	private Logger debug = Log.getLogger(Log.L_SDG_GRAPH_DEBUG);
+	private final Logger debug = Log.getLogger(Log.L_SDG_GRAPH_DEBUG);
     protected Set<SDGEdge.Kind> omittedEdges = SDGEdge.Kind.threadEdges();
     protected SDG g;
 

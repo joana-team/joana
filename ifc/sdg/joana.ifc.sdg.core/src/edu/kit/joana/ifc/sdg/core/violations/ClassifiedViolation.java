@@ -30,10 +30,10 @@ import edu.kit.joana.ifc.sdg.core.violations.paths.ViolationPathes;
 public class ClassifiedViolation implements IIllegalFlow<SecurityNode> {
 	public static class Classification {
 		// 0 = highest, MAX_INT = lowest
-		private int severity;
-		private IMetrics.Rating rating;
-		private String description;
-		private String name;
+		private final int severity;
+		private final IMetrics.Rating rating;
+		private final String description;
+		private final String name;
 
 		public Classification(String name, String description, int severity, IMetrics.Rating rating) {
 			this.name = name;
@@ -61,7 +61,7 @@ public class ClassifiedViolation implements IIllegalFlow<SecurityNode> {
 
 	public static class Chop {
 
-		private String name;
+		private final String name;
 		private ViolationPathes violationPathes = new ViolationPathes();
 
 

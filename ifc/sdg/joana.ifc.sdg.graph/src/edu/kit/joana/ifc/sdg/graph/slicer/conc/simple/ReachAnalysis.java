@@ -52,21 +52,13 @@ public class ReachAnalysis {
         }
         
         private boolean containsEntryFor(SDGNode source, SDGNode target, int thread) {
-        	if (!cache.containsKey(source)) {
-        		return false;
-        	} else {
-        		Map<SDGNode, TIntObjectHashMap<Boolean>> sourceCache = cache.get(source);
-        		if (!sourceCache.containsKey(target)) {
-        			return false;
-        		} else {
-        			TIntObjectHashMap<Boolean> tgtCache = sourceCache.get(target);
-        			if (!tgtCache.containsKey(thread)) {
-        				return false;
-        			} else {
-        				return true;
-        			}
-        		}
-        	}
+    		Map<SDGNode, TIntObjectHashMap<Boolean>> sourceCache = cache.get(source);
+    		if (sourceCache == null || !sourceCache.containsKey(target)) {
+    			return false;
+    		}
+
+    		TIntObjectHashMap<Boolean> tgtCache = sourceCache.get(target);
+			return tgtCache.containsKey(thread);
         }
 
         private Boolean get(SDGNode source, SDGNode target, int thread) {
@@ -85,8 +77,8 @@ public class ReachAnalysis {
     }
 
     /** A control flow graph. */
-    private CFG icfg;
-    private Cache cache;
+    private final CFG icfg;
+    private final Cache cache;
 
     /**
      * Creates a new instance of ReachAnalysis

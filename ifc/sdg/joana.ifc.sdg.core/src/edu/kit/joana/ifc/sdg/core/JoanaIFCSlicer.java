@@ -45,12 +45,12 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 	 * @uml.property  name="l"
 	 * @uml.associationEnd  multiplicity="(1 1)"
 	 */
-	IStaticLattice<String> l;
+	private final IStaticLattice<String> l;
 	/**
 	 * @uml.property  name="g"
 	 * @uml.associationEnd  multiplicity="(1 1)"
 	 */
-	SDG g;
+	private final SDG g;
 	/**
 	 * @uml.property  name="sumNodeID"
 	 */
@@ -59,7 +59,7 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 	 * @uml.property  name="coreAlgCount"
 	 */
 	private int coreAlgCount = 0;
-	private ArrayList<ProgressListener> pls = new ArrayList<ProgressListener>();
+	private final ArrayList<ProgressListener> pls = new ArrayList<ProgressListener>();
 	/**
 	 * @uml.property  name="rememberSliceNodes"
 	 */
@@ -70,18 +70,18 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 	 * @uml.property  name="fSummaryEdge"
 	 * @uml.associationEnd  multiplicity="(1 1)"
 	 */
-	BinaryMap<SecurityNode, SecurityNode, Boolean> fSummaryEdge = new BinaryMap<SecurityNode, SecurityNode, Boolean>();
+	private final BinaryMap<SecurityNode, SecurityNode, Boolean> fSummaryEdge = new BinaryMap<SecurityNode, SecurityNode, Boolean>();
 
 	/**
 	 * @uml.property  name="fsecVios"
 	 * @uml.associationEnd  qualifier="vioSummaryNode:edu.kit.joana.ifc.sdg.graph.SecurityNode java.util.Set"
 	 */
-	private HashMap<SecurityNode, Set<SecurityNode>> fsecVios = new HashMap<SecurityNode, Set<SecurityNode>>();
+	private final HashMap<SecurityNode, Set<SecurityNode>> fsecVios = new HashMap<SecurityNode, Set<SecurityNode>>();
 	/**
 	 * @uml.property  name="fdefNodes"
 	 * @uml.associationEnd  qualifier="now:edu.kit.joana.ifc.sdg.graph.SecurityNode java.util.Set"
 	 */
-	private HashMap<SecurityNode, Set<SecurityNode>> fdefNodes = new HashMap<SecurityNode, Set<SecurityNode>>();
+	private final HashMap<SecurityNode, Set<SecurityNode>> fdefNodes = new HashMap<SecurityNode, Set<SecurityNode>>();
 	/**
 	 * @uml.property  name="fCanceled"
 	 */
@@ -451,11 +451,10 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 
 			for (Pathedge pe : actpathedges) {
 				Pathedge currentpe = visited.get(pe);
-				if (currentpe != null) {
-					worklist.addFirst(currentpe);
-				} else {
+				if (currentpe == null) {
 					throw new NullPointerException("NJSecSlicer.readdActOutNodes");
 				}
+				worklist.addFirst(currentpe);
 			}
 		}
 	}
@@ -524,12 +523,10 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 				}
 			}
 			/* Create Summary-Edge in case a freepath exists */
-			if (longer.fp) {
-				if (!summaryEdgeExistsBetween(actualIn, actualOut)) {
-					SDGEdge sumEdge = new SDGEdge(actualIn, actualOut, SDGEdge.Kind.SUMMARY, "njsec");
-					g.addEdge(sumEdge);
-					changed = true;
-				}
+			if (longer.fp && !summaryEdgeExistsBetween(actualIn, actualOut)) {
+				SDGEdge sumEdge = new SDGEdge(actualIn, actualOut, SDGEdge.Kind.SUMMARY, "njsec");
+				g.addEdge(sumEdge);
+				changed = true;
 			}
 		}
 
@@ -628,7 +625,8 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 			case CALL:
 				if (followParamIn) {
 					ret.add((SecurityNode) edge.getSource());
-				} // else don't follow
+				}
+				break; // else don't follow
 			default:
 				//follow
 				if (edge.getKind().isSDGEdge()) {

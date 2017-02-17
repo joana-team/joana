@@ -15,7 +15,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.Slicer;
 
 
 public class SlicingAlgorithm implements Algorithm {
-	private Slicer slicer;
+	private final Slicer slicer;
 
 	public SlicingAlgorithm(Slicer s) {
 		slicer = s;

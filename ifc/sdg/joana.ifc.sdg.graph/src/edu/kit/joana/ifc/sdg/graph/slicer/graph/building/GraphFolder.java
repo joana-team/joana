@@ -26,7 +26,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.FoldedCallGraph;
  * @author Dennis Giffhorn
  * @version 1.0
  */
-public class GraphFolder {
+public final class GraphFolder {
     /** Marks a fold node that folds a recursive call cycle. */
     public static final String FOLDED_CALL = "CALL";
 
@@ -299,6 +299,8 @@ public class GraphFolder {
 
                 case 4: fold.setLabel(FOLDED_LOOP);
                         break;
+                default:
+                		throw new AssertionError("unreachable");
             }
 
             id--;

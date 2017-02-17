@@ -35,12 +35,9 @@ public class ContextGraphBuilder {
     private int nr;
     /** A counter for the procedure ID's. */
     private int proc;
-    /** The currently processed ISCR graph. */
-	private ISCRGraph graph;
 
-	private CFG icfg;
+	private final CFG icfg;
 	private HashMap<DynamicContext, TopologicalNumber> visited;
-	private ContextGraph[] contextGraphs;
 	private HashMap<ContextGraph, TopologicalNumber> roots;
 	private HashMap<ContextGraph, int[]> threads;
 
@@ -61,10 +58,8 @@ public class ContextGraphBuilder {
 		resultMap = new HashMap<SDGNode, TreeSet<TopologicalNumber>>();
 		threads = new HashMap<ContextGraph, int[]>();
 
-		contextGraphs = new ContextGraph[iscrGraphs.length];
 		for (int i = 0; i < iscrGraphs.length; i++) {
-			graph = iscrGraphs[i];
-			contextGraphs[i] = buildContextGraph();
+			buildContextGraph(iscrGraphs[i]);
 		}
 
 		// convert the map and add it to the result
@@ -93,9 +88,9 @@ public class ContextGraphBuilder {
 		return new ContextGraphs(results, result);
 	}
 
-	private ContextGraph buildContextGraph() {
+	private void buildContextGraph(ISCRGraph graph) {
 		debug.outln("	create context graph");
-		ContextGraph cg = createContextGraph();
+		ContextGraph cg = createContextGraph(graph);
 		debug.outln("	enumerate contexts");
 		enumerateContexts(cg);
 		debug.outln("	enumerate procedures");
@@ -103,10 +98,8 @@ public class ContextGraphBuilder {
 		debug.outln("	insert help edges");
 		insertHelpEdges(cg);
 		debug.outln("	create node map");
-		createMap(cg);
+		createMap(graph, cg);
 		debug.outln("	done");
-		
-		return cg;
 	}
 
 	private void insertThreadEdges() {
@@ -175,7 +168,7 @@ public class ContextGraphBuilder {
 		}
 	}
 
-	private ContextGraph createContextGraph() {
+	private ContextGraph createContextGraph(ISCRGraph graph) {
 		visited.clear();
 		HashMap<DynamicContext, DynamicContext> returnSites = new HashMap<DynamicContext, DynamicContext>();
 		visited = new HashMap<DynamicContext, TopologicalNumber>();
@@ -291,7 +284,7 @@ public class ContextGraphBuilder {
 		return cg;
 	}
 
-	private void createMap(ContextGraph cg) {
+	private void createMap(ISCRGraph graph, ContextGraph cg) {
 		// create a map SDGNode -> TopologicalNumbers
 		HashMap<SDGNode, List<TopologicalNumber>> iscrTNr = new HashMap<SDGNode, List<TopologicalNumber>>();
 		HashMap<SDGNode, LinkedList<TopologicalNumber>> sdgTNr = new HashMap<SDGNode, LinkedList<TopologicalNumber>>();

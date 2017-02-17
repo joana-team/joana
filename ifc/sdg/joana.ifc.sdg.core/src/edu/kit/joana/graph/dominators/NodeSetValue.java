@@ -82,7 +82,7 @@ public abstract class NodeSetValue<T> {
 
 		@Override
 		public boolean equals(Object o) {
-			return o != null && o instanceof NotSet;
+			return o instanceof NotSet;
 		}
 
 		@Override
@@ -101,7 +101,7 @@ public abstract class NodeSetValue<T> {
 		}
 	}
 	public static class SetBased<T> extends NodeSetValue<T> {
-		private Set<T> elements;
+		private final Set<T> elements;
 
 		public SetBased(Collection<? extends T> elements) {
 			this.elements = new HashSet<T>(elements);
@@ -140,8 +140,7 @@ public abstract class NodeSetValue<T> {
 		public NodeSetValue<T> clone() {
 			Set<T> elementsCopy = new HashSet<T>();
 			elementsCopy.addAll(elements);
-			SetBased<T> copy = new SetBased<T>(elementsCopy);
-			return copy;
+			return new SetBased<T>(elementsCopy);
 		}
 
 		@Override

@@ -36,9 +36,9 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 
 	private static final Logger debug = Log.getLogger(Log.L_MHP_DEBUG);
 	
-    private ThreadsInformation info;
-    private BitMatrix map;
-    private ThreadRegions regions;
+    private final ThreadsInformation info;
+    private final BitMatrix map;
+    private final ThreadRegions regions;
     private HashMap<Integer, Collection<VirtualNode>> mayExist;
 
     private PreciseMHPAnalysis(ThreadsInformation info, BitMatrix map, ThreadRegions regions) {
@@ -153,12 +153,12 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 
 	@Override
 	public boolean mayExist(int thread, VirtualNode v) {
-		return (mayExist.get(thread).contains(v));
+		return mayExist.get(thread).contains(v);
 	}
 
 	@Override
 	public boolean mayExist(int thread, SDGNode n, int nThread) {
-		return (mayExist.get(thread).contains(new VirtualNode(n, nThread)));
+		return mayExist.get(thread).contains(new VirtualNode(n, nThread));
 	}
 
 
@@ -215,7 +215,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 				return next;
 			} else {
 				for (SDGEdge e : icfg.outgoingEdgesOf(next)) {
-					if ((e.getKind() == Kind.CONTROL_FLOW || e.getKind() == Kind.JUMP_FLOW || e.getKind() == Kind.NO_FLOW)) {
+					if (e.getKind() == Kind.CONTROL_FLOW || e.getKind() == Kind.JUMP_FLOW || e.getKind() == Kind.NO_FLOW) {
 						SDGNode succ = e.getTarget();
 						if (!visited.contains(succ)) {
 							w.add(succ);
@@ -302,13 +302,13 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 
     private static class MHPComputation {
         private BitMatrix map;
-        private CFG icfg;
-        private ThreadsInformation info;
-        private ThreadRegions tr;
+        private final CFG icfg;
+        private final ThreadsInformation info;
+        private final ThreadRegions tr;
         //private HashMap<SDGNode, Set<SDGNode>> joinDominance;
         private LinkedList<DynamicContext> forks;
         private HashMap<DynamicContext, LinkedList<Integer>> indirectForks;
-        private CFGJoinSensitiveForward slicer;
+        private final CFGJoinSensitiveForward slicer;
 
         private MHPComputation (CFG icfg, ThreadsInformation info, ThreadRegions tr) {
             this.icfg = icfg;

@@ -16,8 +16,8 @@ public class DataConflict<T> extends AbstractConflictLeak<T> {
 
 	private final T influenced;
 	
-	private final String untriggeredTemplate = "Data conflict between '%s' and '%s', may influence the behaviour of node %s, which is visible for '%s'";
-	private final String triggeredTemplate = "Data conflict between '%s' and '%s', may reveal something about node '%s' by influencing the behaviour of node '%s', which is visible for '%s'";
+	private static final String untriggeredTemplate = "Data conflict between '%s' and '%s', may influence the behaviour of node %s, which is visible for '%s'";
+	private static final String triggeredTemplate = "Data conflict between '%s' and '%s', may reveal something about node '%s' by influencing the behaviour of node '%s', which is visible for '%s'";
 	
 	public DataConflict(ConflictEdge<T> confEdge, T influenced,
 			String attackerLevel, Maybe<T> trigger) {

@@ -18,7 +18,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
 public class Criterion {
 	private Collection<SDGNode> source;
-	private Collection<SDGNode> target;
+	private final Collection<SDGNode> target;
 	
 
 	Criterion(SDGNode target) {

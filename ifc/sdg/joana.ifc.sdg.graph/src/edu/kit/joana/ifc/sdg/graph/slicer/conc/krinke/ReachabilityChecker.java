@@ -9,6 +9,7 @@ package edu.kit.joana.ifc.sdg.graph.slicer.conc.krinke;
 
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -23,9 +24,9 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.FoldedCFG;
  */
 public class ReachabilityChecker {
     /** Cache for already tested reachabilities. */
-    private ReachabilityCache cache;
+    private final ReachabilityCache cache;
     /** A folded version of the ICFG that is folded with Krinke's two-pass folding algorithm. */
-    private FoldedCFG foldedIcfg;
+    private final FoldedCFG foldedIcfg;
 
     /** Creates a new instance of ReachabilityChecker
      * Needs a ICFG that shall be used for the reaching tests and a folded
@@ -159,11 +160,8 @@ public class ReachabilityChecker {
             return returnPoint;
         }
 
-        for (SDGEdge edge : foldedIcfg.getIncomingEdgesOfKind(returnPoint, SDGEdge.Kind.CONTROL_FLOW)) {
-            return edge.getSource();
-        }
-
-        return null;
+        List<SDGEdge> inc = foldedIcfg.getIncomingEdgesOfKind(returnPoint, SDGEdge.Kind.CONTROL_FLOW);
+        return inc.isEmpty() ? null : inc.get(0).getSource();
     }
 
     /** Tests if one equals two.

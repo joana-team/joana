@@ -104,25 +104,25 @@ public class States implements Cloneable {
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
-		} else if (o == null) {
-			return false;
-		} else if (!(o instanceof States)) {
-			return false;
-		} else {
-			States s = (States) o;
+		}
 
-			if (s.size() != size()) {
+		else if (!(o instanceof States)) {
+			return false;
+		}
+
+		States s = (States) o;
+
+		if (s.size() != size()) {
+			return false;
+		}
+
+		for (int i = 0; i < size(); i++) {
+			if (!s.get(i).equals(get(i))) {
 				return false;
 			}
-
-			for (int i = 0; i < size(); i++) {
-				if (!s.get(i).equals(get(i))) {
-					return false;
-				}
-			}
-
-			return true;
 		}
+
+		return true;
 	}
 
     /** Returns a textual representation of this States.

@@ -91,23 +91,22 @@ public class ContextSensitiveThreadBarrierChopper extends BarrierChopper {
     public Collection<SDGNode> chop(Collection<SDGNode> sourceSet, Collection<SDGNode> sinkSet) {
         Collection<SDGNode> sChop = sc.chop(sourceSet, sinkSet);
 
-        if (!sChop.isEmpty()) {
-            LinkedList<SDGEdge> edges = new LinkedList<SDGEdge>();
-
-            for (SDGEdge i : interference) {
-                if (sChop.contains(i.getSource()) && sChop.contains(i.getTarget())) {
-                    edges.add(i);
-                }
-            }
-
-            Criterion crit = computeCriterion(sourceSet, sinkSet, edges);
-            Collection<SDGNode> chop = chopper.chop(crit.source, crit.sink);
-
-            return chop;
-
-        } else {
+        if (sChop.isEmpty()) {
             return sChop;
         }
+
+        LinkedList<SDGEdge> edges = new LinkedList<SDGEdge>();
+
+        for (SDGEdge i : interference) {
+            if (sChop.contains(i.getSource()) && sChop.contains(i.getTarget())) {
+                edges.add(i);
+            }
+        }
+
+        Criterion crit = computeCriterion(sourceSet, sinkSet, edges);
+        Collection<SDGNode> chop = chopper.chop(crit.source, crit.sink);
+
+        return chop;
     }
 
     private Criterion computeCriterion(Collection<SDGNode> sourceSet,

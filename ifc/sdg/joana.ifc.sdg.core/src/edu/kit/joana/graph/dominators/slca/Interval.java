@@ -1,8 +1,8 @@
 package edu.kit.joana.graph.dominators.slca;
 
 public class Interval {
-	private int l;
-	private int r;
+	private final int l;
+	private final int r;
 	public Interval(int l, int r) {
 		assert l <= l;
 		this.l = l;

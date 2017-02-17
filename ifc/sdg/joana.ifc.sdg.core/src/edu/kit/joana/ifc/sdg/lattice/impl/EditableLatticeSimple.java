@@ -27,9 +27,9 @@ import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
  *            the type of the elements contained in the lattice.
  */
 public class EditableLatticeSimple<ElementType> extends LatticeBase<ElementType> implements IEditableLattice<ElementType> {
-	private List<ElementType> elements = new ArrayList<ElementType>();
-	private Map<ElementType, Collection<ElementType>> lower = new HashMap<ElementType, Collection<ElementType>>();
-	private Map<ElementType, Collection<ElementType>> greater = new HashMap<ElementType, Collection<ElementType>>();
+	private final List<ElementType> elements = new ArrayList<ElementType>();
+	private final Map<ElementType, Collection<ElementType>> lower = new HashMap<ElementType, Collection<ElementType>>();
+	private final Map<ElementType, Collection<ElementType>> greater = new HashMap<ElementType, Collection<ElementType>>();
 
 	/**
 	 * Constructor

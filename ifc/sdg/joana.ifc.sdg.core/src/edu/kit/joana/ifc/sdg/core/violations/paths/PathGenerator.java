@@ -31,7 +31,7 @@ import edu.kit.joana.ifc.sdg.graph.chopper.conc.ContextSensitiveThreadChopper;
  */
 public class PathGenerator implements ProgressAnnouncer {
 
-	private ArrayList<ProgressListener> progressListeners = new ArrayList<ProgressListener>();
+	private final ArrayList<ProgressListener> progressListeners = new ArrayList<ProgressListener>();
 	/**
 	 * @uml.property  name="firstProgressNotify"
 	 */
@@ -39,14 +39,14 @@ public class PathGenerator implements ProgressAnnouncer {
 	/**
 	 * @uml.property  name="progress"
 	 */
-	int progress = 1;
+//	private int progress = 1;
 	/**
 	 * @uml.property  name="maxPathes"
 	 */
-	final int maxPathes = 250;
+//	private static final int maxPathes = 250;
 
-    private ContextSensitiveThreadChopper chopper;
-	private PathCollector pathCollector;
+    private final ContextSensitiveThreadChopper chopper;
+	private final PathCollector pathCollector;
 
 	/**
 	 * Constructs a new VioPathGenerator for SDG g

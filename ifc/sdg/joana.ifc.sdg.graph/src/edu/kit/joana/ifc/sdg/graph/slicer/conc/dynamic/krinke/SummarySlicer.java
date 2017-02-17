@@ -28,7 +28,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 public class SummarySlicer {
     /** The graph to slice. */
     private SDG g;
-    private Set<SDGEdge.Kind> omittedEdges = SDGEdge.Kind.threadEdges();
+    private final Set<SDGEdge.Kind> omittedEdges = SDGEdge.Kind.threadEdges();
 
     /** Creates a new instance of SummarySlicer.
      * @param graph  The graph to slice.

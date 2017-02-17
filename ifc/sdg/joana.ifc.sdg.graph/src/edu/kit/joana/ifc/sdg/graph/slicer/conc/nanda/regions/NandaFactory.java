@@ -9,7 +9,9 @@ package edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.regions;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 
-public class NandaFactory {
+public final class NandaFactory {
+
+	private NandaFactory() {}
 
 	/**
 	 * Creates a Nanda backward slicer with all optimizations.
@@ -18,9 +20,17 @@ public class NandaFactory {
 	 * @return
 	 */
 	public static Nanda createNandaBackward(SDG g) {
-		NandaMode mode = new NandaBackward();
-		Nanda nanda = new Nanda(g, mode);
-		return nanda;
+		return new Nanda(g, new NandaBackward());
+	}
+
+	/**
+	 * Creates a Nanda forward slicer with all optimizations.
+	 *
+	 * @param g
+	 * @return
+	 */
+	public static Nanda createNandaForward(SDG g) {
+		return new Nanda(g, new NandaForward());
 	}
 
 	/**
@@ -31,9 +41,7 @@ public class NandaFactory {
 	 * @return
 	 */
 	public static Nanda createNandaFlatBackward(SDG g) {
-		NandaMode mode = new NandaBackward();
-		NandaFlat nanda = new NandaFlat(g, mode);
-		return nanda;
+		return new NandaFlat(g, new NandaBackward());
 	}
 
 	/**
@@ -44,8 +52,18 @@ public class NandaFactory {
 	 * @return
 	 */
 	public static Nanda createNandaOriginalBackward(SDG g) {
-		NandaMode mode = new NandaBackward();
-		NandaOriginal nanda = new NandaOriginal(g, mode);
-		return nanda;
+		return new NandaOriginal(g, new NandaBackward());
+	}
+
+
+	/**
+	 * Creates a Nanda forward slicer with all optimizations, but imprecise MHP information.
+	 * All threads are assumed to happen in parallel.
+	 *
+	 * @param g
+	 * @return
+	 */
+	public static Nanda createNandaFlatForward(SDG g) {
+		return new NandaFlat(g, new NandaForward());
 	}
 }

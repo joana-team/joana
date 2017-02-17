@@ -22,7 +22,7 @@ public class HotSpotReport implements Report {
 		double size;
 	}
 
-	private Collection<Algorithm> algs;
+	private final Collection<Algorithm> algs;
 	private HashMap<Algorithm, LinkedList<ValueSet>> data;
 	private HashMap<Algorithm, ValueSet> temp;
 	private long failCtr;

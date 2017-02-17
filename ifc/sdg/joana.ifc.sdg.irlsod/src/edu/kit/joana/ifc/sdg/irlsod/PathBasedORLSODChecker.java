@@ -21,8 +21,6 @@ import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 
 public class PathBasedORLSODChecker<L> extends OptORLSODChecker<L> {
-
-	private DirectedGraph<SDGNode, DefaultEdge> depGraph;
 	
 	private static Logger debug = Log.getLogger(Log.L_IFC_DEBUG);
 
@@ -42,7 +40,7 @@ public class PathBasedORLSODChecker<L> extends OptORLSODChecker<L> {
 		final SDG sdg = this.getSDG();
 		final IStaticLattice<L> secLattice = this.getLattice();
 		
-		this.depGraph = new DefaultDirectedGraph<SDGNode, DefaultEdge>(DefaultEdge.class);
+		DirectedGraph<SDGNode, DefaultEdge> depGraph = new DefaultDirectedGraph<SDGNode, DefaultEdge>(DefaultEdge.class);
 		for (final SDGNode n : sdg.vertexSet()) {
 			for (final SDGNode inflN : computeBackwardDeps(n)) {
 				depGraph.addVertex(inflN);
@@ -58,13 +56,13 @@ public class PathBasedORLSODChecker<L> extends OptORLSODChecker<L> {
 				}
 				final List<DefaultEdge> path = DijkstraShortestPath.findPathBetween(depGraph, userEntry1.getKey(),
 						userEntry2.getKey());
-				if (path != null) {
+				if (path == null) {
+					debug.outln(
+							String.format("%s cannot influence %s.", userEntry1.getKey(), userEntry2.getKey()));
+				} else {
 					debug.outln(path);
 					ret.add(new BinaryViolation<SecurityNode, L>(new SecurityNode(userEntry2.getKey()),
 							new SecurityNode(userEntry1.getKey()), userEntry2.getValue()));
-				} else {
-					debug.outln(
-							String.format("%s cannot influence %s.", userEntry1.getKey(), userEntry2.getKey()));
 				}
 			}
 		}

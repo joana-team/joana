@@ -17,7 +17,9 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PForward;
 
 
-public class InterferenceFree {
+public final class InterferenceFree {
+
+	private InterferenceFree() {}
 
 	public static Collection<SDGNode> computeBackward(SDG g) {
 		HashSet<SDGNode> result = new HashSet<SDGNode>();

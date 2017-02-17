@@ -25,7 +25,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.FoldedCFG;
  * @version 1.0
  */
 public class ReachabilityChecker3 {
-    private FoldedCFG foldedIcfg;
+    private final FoldedCFG foldedIcfg;
     long time = 0l;
     long tmp = 0l;
 
@@ -98,11 +98,11 @@ public class ReachabilityChecker3 {
             if (source.get(s) != target.get(t)) {
                 break;
 
-            } else {
-                suff.addFirst(source.get(s));
-                s--;
-                t--;
             }
+            
+            suff.addFirst(source.get(s));
+            s--;
+            t--;
         }
 
         theNode = suff.poll();

@@ -15,7 +15,7 @@ import edu.kit.joana.ifc.sdg.graph.chopper.Chopper;
 
 
 public class ChoppingAlgorithm implements Algorithm {
-	private Chopper chopper;
+	private final Chopper chopper;
 
 	public ChoppingAlgorithm(Chopper s) {
 		chopper = s;

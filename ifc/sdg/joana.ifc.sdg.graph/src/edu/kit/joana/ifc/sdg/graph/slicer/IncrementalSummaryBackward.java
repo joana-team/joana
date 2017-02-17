@@ -52,15 +52,10 @@ public class IncrementalSummaryBackward extends IncrementalSummarySlicer {
     }
 
     protected boolean phase2Edge(SDGEdge edge) {
-        if (!edge.getKind().isSDGEdge()
-                || edge.getKind() == SDGEdge.Kind.PARAMETER_IN
-                || edge.getKind() == SDGEdge.Kind.CALL
-                || omittedEdges.contains(edge.getKind())) {
-
-            return false;
-        }
-
-        return true;
+        return edge.getKind().isSDGEdge()
+                && edge.getKind() != SDGEdge.Kind.PARAMETER_IN
+                && edge.getKind() != SDGEdge.Kind.CALL
+                && !omittedEdges.contains(edge.getKind());
     }
 
     protected boolean summaryFound(SDGNode reached) {

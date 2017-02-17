@@ -25,7 +25,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
  * @version 1.0
  */
 public class ReachabilityCache {
-    private HashMap<Key, Boolean> cache;
+    private final HashMap<Key, Boolean> cache;
 
     /** Creates a new empty ReachabilityCache.
      */
@@ -67,8 +67,8 @@ public class ReachabilityCache {
      * Contains two Contexts, the start and the target of a reachability analysis.
      */
     static class Key {
-        private Context from;
-        private Context to;
+        private final Context from;
+        private final Context to;
 
         /** Creates a new Key for two Contexts.
          * @param f  Context one.
@@ -96,14 +96,14 @@ public class ReachabilityCache {
 		public boolean equals(Object o) {
 			if (this == o) {
 				return true;
-			} else if (o == null) {
-				return false;
-			} else if (!(o instanceof Key)) {
-				return false;
-			} else {
-				Key k = (Key) o;
-				return from.equals(k.from) && to.equals(k.to);
 			}
+
+			else if (!(o instanceof Key)) {
+				return false;
+			}
+
+			Key k = (Key) o;
+			return from.equals(k.from) && to.equals(k.to);
 		}
 
         public int hashCode() {

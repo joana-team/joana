@@ -24,7 +24,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
  * @author Dennis Giffhorn
  * @version 1.0
  */
-public class ICFGBuilder {
+public final class ICFGBuilder {
 
     /** A utility class.
      */
@@ -131,11 +131,11 @@ public class ICFGBuilder {
         HashMap<Integer, SDGEdge> ret = new HashMap<Integer, SDGEdge>();
         for (SDGEdge e : sdg.edgeSet()) {
         	if (e.getKind() == SDGEdge.Kind.RETURN) {
-        		if (ret.get(e.getSource().getProc()) != null
-        				&& ret.get(e.getSource().getProc()).getSource() != e.getSource()) {
-        			System.out.println(e+"  "+ret.get(e.getSource().getProc()));
-        		} else {
+        		if (ret.get(e.getSource().getProc()) == null
+        				|| ret.get(e.getSource().getProc()).getSource() == e.getSource()) {
         			ret.put(e.getSource().getProc(), e);
+        		} else {
+        			System.out.println(e+"  "+ret.get(e.getSource().getProc()));
         		}
         	}
         }
@@ -196,7 +196,7 @@ public class ICFGBuilder {
 
         for (SDGEdge e : sdg.edgeSet()) {
         	if (e.getSource() == e.getTarget()
-        			&& e.getKind() != SDGEdge.Kind.INTERFERENCE_WRITE
+        			&& e.getKind() != SDGEdge.Kind.INTERFERENCE
         			&& e.getKind() != SDGEdge.Kind.INTERFERENCE_WRITE) {
         		System.out.println("\nCircular Dependences!");
         		System.out.println("Terminating the Process...");
@@ -210,16 +210,16 @@ public class ICFGBuilder {
         HashMap<Integer, SDGEdge> ret = new HashMap<Integer, SDGEdge>();
         for (SDGEdge e : sdg.edgeSet()) {
         	if (e.getKind() == SDGEdge.Kind.RETURN) {
-        		if (ret.get(e.getSource().getProc()) != null
-        				&& ret.get(e.getSource().getProc()).getSource() != e.getSource()) {
+        		if (ret.get(e.getSource().getProc()) == null
+        				|| ret.get(e.getSource().getProc()).getSource() == e.getSource()) {
+        			ret.put(e.getSource().getProc(), e);
+        		} else {
             		System.out.println("\nControl Flow Graph is damaged!");
             		System.out.println("Terminating the Process...");
             		try {
     					Thread.sleep(1000);
     				} catch (InterruptedException e1) { }
     				System.exit(1);
-        		} else {
-        			ret.put(e.getSource().getProc(), e);
         		}
         	}
         }

@@ -22,7 +22,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
  *
  */
 public class Path {
-	private Context current;
+	private final Context current;
 	private LinkedHashSet<Context> path = new LinkedHashSet<Context>();
 	private int step = 0;
 

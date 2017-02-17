@@ -24,10 +24,10 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  */
 public class VirtualNode {
     /** The represented node. */
-    private SDGNode node;
+    private final SDGNode node;
 
     /** An ID for differentiating between instances of 'node' - typically a thread or thread regions ID. */
-    private int number;
+    private final int number;
 
     /**
      * Creates a new instance of VirtualNode
@@ -64,14 +64,14 @@ public class VirtualNode {
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
-		} else if (o == null) {
-			return false;
-		} else if (!(o instanceof VirtualNode)) {
-			return false;
-		} else {
-			VirtualNode vn = (VirtualNode) o;
-			return this.node == vn.getNode() && this.number == vn.getNumber();
 		}
+
+		if (!(o instanceof VirtualNode)) {
+			return false;
+		}
+
+		VirtualNode vn = (VirtualNode) o;
+		return this.node == vn.getNode() && this.number == vn.getNumber();
 	}
 
     /**

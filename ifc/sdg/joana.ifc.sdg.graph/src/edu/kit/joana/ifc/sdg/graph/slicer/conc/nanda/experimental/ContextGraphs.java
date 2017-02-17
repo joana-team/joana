@@ -15,8 +15,8 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
 
 public class ContextGraphs {
-	private ContextGraph[] graphs;
-	private ContextGraph whole;
+	private final ContextGraph[] graphs;
+	private final ContextGraph whole;
 
 	ContextGraphs(ContextGraph[] graphs, ContextGraph whole) {
 		this.graphs = graphs;

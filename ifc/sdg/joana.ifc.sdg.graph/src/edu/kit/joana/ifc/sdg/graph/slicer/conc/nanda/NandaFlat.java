@@ -43,13 +43,9 @@ public class NandaFlat extends Nanda {
     protected States update(States s, TopologicalNumber tnt, int thread) {
     	States newStates = s.clone();
 
-        for (int x = 0; x < graph.getNumberOfThreads(); x++) {
-	    	if (x == thread) {
-	    		if (!mhp.isDynamic(x)) {
-	    			// adjust the state of the thread
-	    			newStates.setState(x, tnt);
-	    		}
-	    	}
+    	if (thread < graph.getNumberOfThreads() && !mhp.isDynamic(thread)) {
+    			// adjust the state of the thread
+    			newStates.setState(thread, tnt);
         }
 
         return newStates;

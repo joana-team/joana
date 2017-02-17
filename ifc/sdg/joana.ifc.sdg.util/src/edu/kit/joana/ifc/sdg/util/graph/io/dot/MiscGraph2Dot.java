@@ -29,7 +29,10 @@ import gnu.trove.map.hash.TObjectIntHashMap;
 /**
  * Convenience class which provides the possibility to export a number of different kinds of Graphs to the dot format
  */
-public class MiscGraph2Dot {
+public final class MiscGraph2Dot {
+
+	private MiscGraph2Dot() {}
+
 	public static <V, E> void export(final Graph<V, E> graph, final DOTExporter<V, E> exporter, final String filename)
 			throws FileNotFoundException {
 		final PrintWriter pw = new PrintWriter(filename);
@@ -43,12 +46,12 @@ public class MiscGraph2Dot {
 
 			private int getID(final V vn) {
 				int ret;
-				if (!id.containsKey(vn)) {
+				if (id.containsKey(vn)) {
+					ret = id.get(vn);
+				} else {
 					id.put(vn, maxID);
 					ret = maxID;
 					maxID++;
-				} else {
-					ret = id.get(vn);
 				}
 				return ret;
 			}
@@ -108,12 +111,12 @@ public class MiscGraph2Dot {
 
 			private int getID(final VirtualNode vn) {
 				int ret;
-				if (!id.containsKey(vn)) {
+				if (id.containsKey(vn)) {
+					ret = id.get(vn);
+				} else {
 					id.put(vn, maxID);
 					ret = maxID;
 					maxID++;
-				} else {
-					ret = id.get(vn);
 				}
 				return ret;
 			}
@@ -221,14 +224,14 @@ public class MiscGraph2Dot {
 			private int maxID = 0;
 
 			int getID(final Set<ThreadRegion> x) {
-				if (!id.containsKey(x)) {
-					id.put(x, maxID);
-					final int ret = maxID;
-					maxID++;
-					return ret;
-				} else {
+				if (id.containsKey(x)) {
 					return id.get(x);
 				}
+
+				id.put(x, maxID);
+				final int ret = maxID;
+				maxID++;
+				return ret;
 			}
 
 			@Override

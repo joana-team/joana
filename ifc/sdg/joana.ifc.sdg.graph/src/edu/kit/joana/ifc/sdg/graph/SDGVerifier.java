@@ -11,7 +11,8 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-import edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
 
 /**
@@ -20,7 +21,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind;
  * @author Juergen Graf <graf@kit.edu>
  *
  */
-public class SDGVerifier {
+public final class SDGVerifier {
 
 	private final SDG sdg;
 	private final boolean directConnectedClinits;
@@ -66,7 +67,7 @@ public class SDGVerifier {
 
 		if (directConnectedClinits) {
 			for (SDGNode node : nodes) {
-				if (node.kind == edu.kit.joana.ifc.sdg.graph.SDGNode.Kind.ENTRY && node.getLabel().contains("<clinit>()")) {
+				if (node.kind == SDGNode.Kind.ENTRY && node.getLabel().contains("<clinit>()")) {
 					clinits.add(node.getProc());
 				}
 			}
@@ -91,8 +92,8 @@ public class SDGVerifier {
 
 				String msg = descr(node) + " has self recursive edges: ";
 				for (SDGEdge edge : sdg.getAllEdges(node, node)) {
-					noInterferenceEdge |= edge.kind != Kind.INTERFERENCE
-						&& edge.kind != Kind.INTERFERENCE_WRITE && edge.kind != Kind.SYNCHRONIZATION;
+					noInterferenceEdge |= edge.kind != SDGEdge.Kind.INTERFERENCE
+						&& edge.kind != SDGEdge.Kind.INTERFERENCE_WRITE && edge.kind != SDGEdge.Kind.SYNCHRONIZATION;
 					msg += edge.kind + ", ";
 				}
 
@@ -102,11 +103,11 @@ public class SDGVerifier {
 			}
 
 			if (checkControlFlow && !(isConst(node) || isPHI(node))) {
-				if (node.kind == edu.kit.joana.ifc.sdg.graph.SDGNode.Kind.EXIT) {
+				if (node.kind == SDGNode.Kind.EXIT) {
 					for (SDGEdge out : sdg.outgoingEdgesOf(node)) {
 						SDGNode target = out.getTarget();
-						if (out.getKind() == edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_FLOW) {
-						    if (target.kind == edu.kit.joana.ifc.sdg.graph.SDGNode.Kind.ENTRY) {
+						if (out.getKind() == SDGEdge.Kind.CONTROL_FLOW) {
+						    if (target.kind == SDGNode.Kind.ENTRY) {
 						        error("Bad control flow from exit to entry: " + descr(node));
 						    } else {
 						        error("Exit node " + descr(node) + " is not the last in the control flow of its PDG");
@@ -116,7 +117,7 @@ public class SDGVerifier {
 				} else {
 					boolean hasControlFlow = false;
 					for (SDGEdge out : sdg.outgoingEdgesOf(node)) {
-						hasControlFlow |= out.kind == Kind.CONTROL_FLOW;
+						hasControlFlow |= out.kind == SDGEdge.Kind.CONTROL_FLOW;
 						if (hasControlFlow) {
 							break;
 						}
@@ -128,12 +129,12 @@ public class SDGVerifier {
 				}
 			}
 
-			if (node.kind != edu.kit.joana.ifc.sdg.graph.SDGNode.Kind.ENTRY) {
+			if (node.kind != SDGNode.Kind.ENTRY) {
 				boolean hasControlDep = false;
 				for (SDGEdge out : sdg.incomingEdgesOf(node)) {
-					hasControlDep |= (out.kind == Kind.CONTROL_DEP_COND)
-						|| (out.kind == Kind.CONTROL_DEP_EXPR)
-						|| (out.kind == Kind.CONTROL_DEP_UNCOND);
+					hasControlDep |= (out.kind == SDGEdge.Kind.CONTROL_DEP_COND)
+						|| (out.kind == SDGEdge.Kind.CONTROL_DEP_EXPR)
+						|| (out.kind == SDGEdge.Kind.CONTROL_DEP_UNCOND);
 					if (hasControlDep) {
 						break;
 					}
@@ -147,7 +148,7 @@ public class SDGVerifier {
 					// check for incoming controlflow. all nodes except entry nodes should have an incoming flow
 					boolean hasControlFlow = false;
 					for (SDGEdge out : sdg.incomingEdgesOf(node)) {
-						hasControlFlow |= out.kind == Kind.CONTROL_FLOW;
+						hasControlFlow |= out.kind == SDGEdge.Kind.CONTROL_FLOW;
 						if (hasControlFlow) {
 							break;
 						}
@@ -163,10 +164,10 @@ public class SDGVerifier {
 				// up summary edge computation. The entry node may therefore be control
 				// dependent on a call.
 				for (SDGEdge out : sdg.incomingEdgesOf(node)) {
-					if ((out.kind == Kind.CONTROL_DEP_COND)
-							|| (out.kind == Kind.CONTROL_DEP_EXPR)
-							|| (out.kind == Kind.CONTROL_DEP_UNCOND)) {
-						if (out.getSource().getKind() != edu.kit.joana.ifc.sdg.graph.SDGNode.Kind.CALL) {
+					if ((out.kind == SDGEdge.Kind.CONTROL_DEP_COND)
+							|| (out.kind == SDGEdge.Kind.CONTROL_DEP_EXPR)
+							|| (out.kind == SDGEdge.Kind.CONTROL_DEP_UNCOND)) {
+						if (out.getSource().getKind() != SDGNode.Kind.CALL) {
 							// ignore controldep from calls to entry node
 							error(descr(node) + " is control dependend on: " + descr(out.getSource()));
 						}
@@ -174,15 +175,15 @@ public class SDGVerifier {
 				}
 			}
 
-			if (node.kind == edu.kit.joana.ifc.sdg.graph.SDGNode.Kind.ACTUAL_IN) {
+			if (node.kind == SDGNode.Kind.ACTUAL_IN) {
 				// unresolved (cut off) calls are approximated through summary edges from all act-ins to all act-out
 				// but they do not have a matching form-in - as no method exists.
 				// So we are happy if we find a summary edge or (the normal case) a parameter in edge to the formal-in
 				boolean hasParamIn = false;
 				boolean hasSummary = false;
 				for (SDGEdge out : sdg.outgoingEdgesOf(node)) {
-					hasParamIn |= (out.kind == Kind.PARAMETER_IN || out.kind == Kind.FORK_IN);
-					hasSummary |= out.kind == Kind.SUMMARY;
+					hasParamIn |= (out.kind == SDGEdge.Kind.PARAMETER_IN || out.kind == SDGEdge.Kind.FORK_IN);
+					hasSummary |= out.kind == SDGEdge.Kind.SUMMARY;
 					if (hasParamIn || hasSummary) {
 						break;
 					}
@@ -197,13 +198,13 @@ public class SDGVerifier {
 			}
 
 
-			if (node.kind == edu.kit.joana.ifc.sdg.graph.SDGNode.Kind.FORMAL_OUT && node.getProc() != 0 && !clinits.contains(node.getProc())) {
+			if (node.kind == SDGNode.Kind.FORMAL_OUT && node.getProc() != 0 && !clinits.contains(node.getProc())) {
 				// form-out of the outer-most *Start* method do not have any connections to actual-outs as no callsite exists
 				// when we have direct connected formal-node of the static initializers (old joana style), they do not need
 				// to have a connected act-out node. So we skip them.
 				boolean hasParamOut = false;
 				for (SDGEdge out : sdg.outgoingEdgesOf(node)) {
-					hasParamOut |= (out.kind == Kind.PARAMETER_OUT || out.kind == Kind.FORK_OUT);
+					hasParamOut |= (out.kind == SDGEdge.Kind.PARAMETER_OUT || out.kind == SDGEdge.Kind.FORK_OUT);
 					if (hasParamOut) {
 						break;
 					}
@@ -221,11 +222,11 @@ public class SDGVerifier {
 	}
 
 	public static boolean isPHI(SDGNode node) {
-		return node.kind == edu.kit.joana.ifc.sdg.graph.SDGNode.Kind.EXPRESSION && node.getLabel().contains("PHI ");
+		return node.kind == SDGNode.Kind.EXPRESSION && node.getLabel().contains("PHI ");
 	}
 
 	public static boolean isConst(SDGNode node) {
-		return node.kind == edu.kit.joana.ifc.sdg.graph.SDGNode.Kind.EXPRESSION && node.getLabel().contains("CONST ");
+		return node.kind == SDGNode.Kind.EXPRESSION && node.getLabel().contains("CONST ");
 	}
 
 	private String descr(SDGNode node) {

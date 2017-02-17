@@ -40,8 +40,6 @@ public class SimpleConcurrentSlicer implements Slicer {
 
     /** The dependence graph. */
     private SDG ipdg;
-    /** The according control flow graph. */
-    private CFG icfg;
     /** A modified two-phase-slicer. */
     private Modded2PhaseSlicer twoPhaseSlicer;
     /** A reachability analysis for nodes. */
@@ -62,7 +60,7 @@ public class SimpleConcurrentSlicer implements Slicer {
 
     public void setGraph(SDG g) {
         ipdg = g;
-        icfg = ICFGBuilder.extractICFG(ipdg);
+        CFG icfg = ICFGBuilder.extractICFG(ipdg);
         twoPhaseSlicer = new Modded2PhaseSlicer(ipdg);
         reachAnalysis = new ReachAnalysis(icfg);
         marked = new HashMap<VirtualNode, List<States>>();

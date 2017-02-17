@@ -54,12 +54,12 @@ public class LibraryPruningTest {
 	public void setOutput(final PrintStream out) {
 		this.out = out;
 	}
-	
+
 	public IFCAnalysis buildAndAnnotate(final String className, final String secSrc,
 			final String pubOut) throws ApiTestException {
 		return buildAndAnnotate(className, secSrc, pubOut, PointsToPrecision.INSTANCE_BASED, ExceptionAnalysis.INTRAPROC);
 	}
-	
+
 	public IFCAnalysis buildAndAnnotate(final String className, final String secSrc,
 			final String pubOut, final PointsToPrecision pts, final ExceptionAnalysis exc) throws ApiTestException {
 		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(className);
@@ -85,11 +85,11 @@ public class LibraryPruningTest {
 		//config.setPruningPolicy(DoNotPrune.INSTANCE);
 		config.setStubsPath(Stubs.JRE_15);
 		SDGProgram prog = null;
-		
+	
 		try {
-			prog = (out != null
-				? SDGProgram.createSDGProgram(config, out, NullProgressMonitor.INSTANCE)
-				: SDGProgram.createSDGProgram(config));
+			prog = (out == null
+				? SDGProgram.createSDGProgram(config)
+				: SDGProgram.createSDGProgram(config, out, NullProgressMonitor.INSTANCE));
 		} catch (ClassHierarchyException e) {
 			throw new ApiTestException(e);
 		} catch (IOException e) {
@@ -99,7 +99,7 @@ public class LibraryPruningTest {
 		} catch (CancelException e) {
 			throw new ApiTestException(e);
 		}
-		
+
 		IFCAnalysis ana = new IFCAnalysis(prog);
 		SDGProgramPart secret = ana.getProgramPart(secSrc);
 		assertNotNull(secret);
@@ -110,7 +110,7 @@ public class LibraryPruningTest {
 		
 		return ana;
 	}
-	
+
 	@Test
 	public void testGuiPrune() {
 		try {
@@ -127,7 +127,7 @@ public class LibraryPruningTest {
 			fail(e.getMessage());
 		}
 	}
-	
+
 	// You need to increase stack size  (-Xss16m is enough) and heap size (-Xmx2048m is enough) of the java vm in order
 	// for this test to work. 
 	@Test
@@ -146,5 +146,5 @@ public class LibraryPruningTest {
 			fail(e.getMessage());
 		}
 	}
-	
+
 }

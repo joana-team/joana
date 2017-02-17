@@ -39,7 +39,7 @@ public abstract class IFC<L> implements ProgressListener, ProgressAnnouncer {
 	
 	
 	
-	private ArrayList<ProgressListener> progressListeners = new ArrayList<ProgressListener>();
+	private final ArrayList<ProgressListener> progressListeners = new ArrayList<ProgressListener>();
 
     // der SDG
 	protected SDG g;

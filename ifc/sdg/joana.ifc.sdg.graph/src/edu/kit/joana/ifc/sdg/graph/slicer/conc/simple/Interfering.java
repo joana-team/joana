@@ -21,14 +21,14 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  */
 public class Interfering {
     /** The sink of the interference edge. */
-    private SDGNode sink;
-    private int sinkThread;
+    private final SDGNode sink;
+    private final int sinkThread;
 
     /** The interference edge's source. */
-    private SDGNode source;
+    private final SDGNode source;
 
     /** The thread of 'source'. */
-    private int sourceThread;
+    private final int sourceThread;
 
     /**
      * Creates a new instance of Interfering

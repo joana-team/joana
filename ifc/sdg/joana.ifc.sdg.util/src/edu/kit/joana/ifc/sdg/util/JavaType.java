@@ -74,7 +74,7 @@ public class JavaType {
 				assert !baseType.equals(hrBaseTypes[i]);
 			}
 			if (baseType.contains("/")) {
-				int slIndex = baseType.lastIndexOf("/");
+				int slIndex = baseType.lastIndexOf('/');
 				this.pack = new JavaPackage(baseType.substring(1, slIndex).replaceAll("/", "."));
 			} else {
 				this.pack = JavaPackage.DEFAULT;

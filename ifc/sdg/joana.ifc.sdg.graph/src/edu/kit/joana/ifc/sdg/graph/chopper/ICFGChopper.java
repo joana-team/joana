@@ -207,7 +207,7 @@ public class ICFGChopper {
 	}
 
 
-	private CFG g;
+	private final CFG g;
 	/** A truncated unbound chopper */
 	private TruncatedCFGChopper truncated;
 	/** A CFGChopepr for the necessary same-level chops. */

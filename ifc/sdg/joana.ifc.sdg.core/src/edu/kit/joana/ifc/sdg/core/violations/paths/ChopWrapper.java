@@ -15,7 +15,7 @@ import edu.kit.joana.ifc.sdg.graph.chopper.RepsRosayChopper;
 
 
 public class ChopWrapper {
-    private RepsRosayChopper chopper;
+    private final RepsRosayChopper chopper;
 
     public ChopWrapper(SDG g) {
         chopper = new RepsRosayChopper(g);
@@ -27,7 +27,6 @@ public class ChopWrapper {
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public Collection<SecurityNode> chop (SecurityNode outNode, SecurityNode violation) {
-        Collection coll = chopper.chop(violation, outNode);
-        return coll;
+        return (Collection) chopper.chop(violation, outNode);
     }
 }

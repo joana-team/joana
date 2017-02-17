@@ -41,11 +41,10 @@ public class SecurityNodeTuple {
     public boolean equals(Object o) {
         if (!(o instanceof SecurityNodeTuple)) {
         	return false;
-
-        } else {
-        	SecurityNodeTuple t = (SecurityNodeTuple) o;
-            return (firstNode == t.firstNode && secondNode == t.secondNode);
         }
+        
+    	SecurityNodeTuple t = (SecurityNodeTuple) o;
+        return (firstNode == t.firstNode && secondNode == t.secondNode);
     }
 
     /**

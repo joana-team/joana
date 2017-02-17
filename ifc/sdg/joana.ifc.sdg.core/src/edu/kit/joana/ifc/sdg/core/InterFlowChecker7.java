@@ -239,7 +239,7 @@ public class InterFlowChecker7 extends IFC<String> {
 	 */
 	public static String toText(Collection<ClassifiedViolation> violations) {
 		StringBuffer ret = new StringBuffer();
-		if (violations.size() == 0) {
+		if (violations.isEmpty()) {
 			ret.append("No iflow violations found.");
 		} else {
 			int i = 0;

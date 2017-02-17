@@ -31,9 +31,9 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.GraphModifier;
  *
  */
 public class LibraryIFC implements ProgressAnnouncer {
-    private ArrayList<ProgressListener> pls = new ArrayList<ProgressListener>();
+    private final ArrayList<ProgressListener> pls = new ArrayList<ProgressListener>();
     // der SDG
-    private SDG g;
+    private final SDG g;
     // Deklassifikationen an Summary-Kanten
     private HashMap<SDGEdge, Collection<SDGNode>> summaryDeclass;
 
@@ -189,8 +189,7 @@ public class LibraryIFC implements ProgressAnnouncer {
             }
         }
 
-        PropagationRule dec = new PropagationRule(criterion.getNode(), hooks);
-        return dec;
+        return new PropagationRule(criterion.getNode(), hooks);
     }
 
     /**
@@ -227,8 +226,7 @@ public class LibraryIFC implements ProgressAnnouncer {
             }
         }
 
-        HookInElement he = new HookInElement(reached, d, s);
-        return he;
+        return new HookInElement(reached, d, s);
     }
 
 

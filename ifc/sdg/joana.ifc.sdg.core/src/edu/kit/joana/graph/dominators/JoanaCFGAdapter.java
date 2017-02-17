@@ -15,7 +15,7 @@ import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 
 public class JoanaCFGAdapter implements AbstractCFG<VirtualNode,VirtualEdge>{
 
-	private CFG icfg;
+	private final CFG icfg;
 	private DirectedGraph<VirtualNode, VirtualEdge> underlyingGraph = null;
 
 	public JoanaCFGAdapter(CFG icfg) {
@@ -131,17 +131,7 @@ public class JoanaCFGAdapter implements AbstractCFG<VirtualNode,VirtualEdge>{
 			for (SDGEdge e : icfg.edgeSet()) {
 				SDGNode s = e.getSource();
 				SDGNode t = e.getTarget();
-				if (!e.getKind().isThreadEdge()) {
-					for (int thread : s.getThreadNumbers()) {
-						VirtualNode vs = new VirtualNode(s, thread);
-						if (hasThreadNumber(t, thread)) {
-							VirtualNode vt = new VirtualNode(t, thread);
-							ret.addVertex(vs);
-							ret.addVertex(vt);
-							ret.addEdge(vs, vt, new VirtualEdge(e, thread, thread));
-						}
-					}
-				} else {
+				if (e.getKind().isThreadEdge()) {
 					for (int threadS : s.getThreadNumbers()) {
 						for (int threadT : t.getThreadNumbers()) {
 							if (threadS != threadT) {
@@ -151,6 +141,16 @@ public class JoanaCFGAdapter implements AbstractCFG<VirtualNode,VirtualEdge>{
 								ret.addVertex(vt);
 								ret.addEdge(vs, vt, new VirtualEdge(e, threadS, threadT));
 							}
+						}
+					}
+				} else {
+					for (int thread : s.getThreadNumbers()) {
+						VirtualNode vs = new VirtualNode(s, thread);
+						if (hasThreadNumber(t, thread)) {
+							VirtualNode vt = new VirtualNode(t, thread);
+							ret.addVertex(vs);
+							ret.addVertex(vt);
+							ret.addEdge(vs, vt, new VirtualEdge(e, thread, thread));
 						}
 					}
 				}

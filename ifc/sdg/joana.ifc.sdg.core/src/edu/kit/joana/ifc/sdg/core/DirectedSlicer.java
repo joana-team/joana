@@ -40,8 +40,8 @@ public abstract class DirectedSlicer implements Slicer {
 	 */
 	private static class DirectedSlicerDecorator extends DirectedSlicer {
 		
-		private Slicer slicer;
-		private DirectedSlicer.Direction dir;
+		private final Slicer slicer;
+		private final DirectedSlicer.Direction dir;
 		
 		public DirectedSlicerDecorator(Slicer slicer, DirectedSlicer.Direction dir) {
 			this.slicer = slicer;

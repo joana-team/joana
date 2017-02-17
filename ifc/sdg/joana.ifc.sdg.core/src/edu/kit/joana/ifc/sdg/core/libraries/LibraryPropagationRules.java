@@ -126,9 +126,9 @@ public class LibraryPropagationRules {
     }
 
     // der name der bibliothek
-    private String name;
+    private final String name;
     // fuer jeden FO-knoten der bibliothek gibt es eine propagationsregel
-    private List<PropagationRule> conditions;
+    private final List<PropagationRule> conditions;
 
     /**
      * Initialisierung.

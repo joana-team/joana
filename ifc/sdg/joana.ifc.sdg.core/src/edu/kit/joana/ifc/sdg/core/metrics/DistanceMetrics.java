@@ -17,7 +17,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.barrier.conc.I2PLevelBackward;
 
 
 public class DistanceMetrics implements IMetrics {
-	private I2PLevelBackward slicer;
+	private final I2PLevelBackward slicer;
 
 	public DistanceMetrics() {
 		slicer = new I2PLevelBackward(null);

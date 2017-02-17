@@ -115,30 +115,21 @@ public final class JavaMethodSignature {
 
 	private static boolean isHumanReadable(String methodSig) {
 		Matcher m = pMethodHR.matcher(methodSig);
-		if (!m.matches()) {
-			return false;
-		} else {
-			return true;
+		return m.matches();
 			/** m.group(1) -> return type
 				m.group(2) -> declaring class + method name
 				m.group(3) -> argument types
 			 */
-
-		}
 	}
 
 	private static boolean isBytecode(String methodSig) {
 		Matcher m = pMethodBC.matcher(methodSig);
-		if (!m.matches()) {
-			return false;
-		} else {
-			return true;
+		return m.matches();
 			/**
 			 * m.group(1) -> declaring class + method name
 			 * m.group(2) -> argument types
 			 * m.group(3) -> return type
 			 */
-		}
 	}
 
 	/**

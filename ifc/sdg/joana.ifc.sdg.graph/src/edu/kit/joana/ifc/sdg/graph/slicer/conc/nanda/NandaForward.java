@@ -165,7 +165,7 @@ public class NandaForward implements NandaMode {
         // the hack will work most of the times, but the slices are not guaranteed to be
         // time- and context-sensitive
         // please complain to Juergen Graf (grafj@ipd.uni-karlsruhe.de)
-        if (nrs.size() == 0) {
+        if (nrs.isEmpty()) {
         	for (TopologicalNumber t : reached) {
 	        	if (t.getProcID() == from.getProcID()) {
                     nrs.add(t);

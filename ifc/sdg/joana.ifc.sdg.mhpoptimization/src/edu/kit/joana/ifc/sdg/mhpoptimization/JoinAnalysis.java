@@ -125,12 +125,12 @@ public class JoinAnalysis {
 	private void forkAllocations() {
 		for (SDGNode fork : ti.getAllForks()) {
 			assert fork.getKind() == SDGNode.Kind.CALL;
-			if (fork.getAllocationSites() != null) {
+			if (fork.getAllocationSites() == null) {
+				Log.ERROR.outln("fork site with id " + fork + " contains no allocation site information!\n");
+			} else {
 				info.outln("fork site with id " + fork + " contains allocation site information.\n");
 				Set<SDGNode> allocs = collectSDGNodesFromIds(ipdg, fork.getAllocationSites());
 				fork_alloc.put(fork, allocs);
-			} else {
-				Log.ERROR.outln("fork site with id " + fork + " contains no allocation site information!\n");
 			}
 		}
 

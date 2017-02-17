@@ -22,11 +22,11 @@ import edu.kit.joana.ifc.sdg.core.conc.OrderConflict;
  */
 public class ViolationSeparator<T> implements IViolationVisitor<T> {
 
-	private Collection<IIllegalFlow<T>> iFlows = new LinkedList<IIllegalFlow<T>>();
-	private Collection<DataConflict<T>> dConfs = new LinkedList<DataConflict<T>>();
-	private Collection<OrderConflict<T>> oConfs = new LinkedList<OrderConflict<T>>();
-	private Collection<IUnaryViolation<T,?>> unVios = new LinkedList<IUnaryViolation<T,?>>();
-	private Collection<IBinaryViolation<T,?>> binVios = new LinkedList<IBinaryViolation<T,?>>();
+	private final Collection<IIllegalFlow<T>> iFlows = new LinkedList<IIllegalFlow<T>>();
+	private final Collection<DataConflict<T>> dConfs = new LinkedList<DataConflict<T>>();
+	private final Collection<OrderConflict<T>> oConfs = new LinkedList<OrderConflict<T>>();
+	private final Collection<IUnaryViolation<T,?>> unVios = new LinkedList<IUnaryViolation<T,?>>();
+	private final Collection<IBinaryViolation<T,?>> binVios = new LinkedList<IBinaryViolation<T,?>>();
 	/* (non-Javadoc)
 	 * @see edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor#visitIllegalFlow(edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow)
 	 */

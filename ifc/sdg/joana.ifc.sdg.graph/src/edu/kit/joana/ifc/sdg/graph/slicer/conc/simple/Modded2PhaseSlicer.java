@@ -30,9 +30,9 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
  */
 public class Modded2PhaseSlicer {
     /** The dependence graph. */
-    private SDG ipdg;
-    private HashMap<VirtualNode, Collection<Interfering>> cache;
-    private HashMap<VirtualNode, Collection<SDGNode>> cache2;
+    private final SDG ipdg;
+    private final HashMap<VirtualNode, Collection<Interfering>> cache;
+    private final HashMap<VirtualNode, Collection<SDGNode>> cache2;
 
     /**
      * Creates a new instance of ContextbasedSlicer

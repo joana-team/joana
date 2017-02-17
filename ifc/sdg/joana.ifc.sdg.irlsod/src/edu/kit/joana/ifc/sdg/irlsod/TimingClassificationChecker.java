@@ -337,7 +337,7 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 				// then their relative timing is fixed!
 				// TODO: find out if the situation is the same for
 				// INTERFERENCE_WRITE.
-				assert(interferenceWriteUndirected(n));
+				assert interferenceWriteUndirected(n);
 
 				/*for (final SDGEdge e : g.getIncomingEdgesOfKind(n, SDGEdge.Kind.INTERFERENCE)) {
 					final SDGNode m = e.getSource();

@@ -31,9 +31,9 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.ContextManager;
  * @author  Dennis Giffhorn
  */
 public class Context2PhaseSlicer {
-    private Set<SDGEdge.Kind> threadEdges = SDGEdge.Kind.threadEdges();
-    private ContextManager man;
-    protected SDG sdg;
+    private final Set<SDGEdge.Kind> threadEdges = SDGEdge.Kind.threadEdges();
+    private final ContextManager man;
+    protected final SDG sdg;
 
     /**
      * Creates a new instance of Context2PhaseSlicer

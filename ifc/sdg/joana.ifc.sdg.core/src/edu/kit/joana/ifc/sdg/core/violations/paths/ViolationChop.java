@@ -24,14 +24,14 @@ public class ViolationChop {
 	
 	private final Logger debug = Log.getLogger(Log.L_SDG_INTERFERENCE_DEBUG);
 	
-    private static ViolationChop instance = new ViolationChop();
+    private final static ViolationChop instance = new ViolationChop();
 
     public static ViolationChop getInstance() {
         return instance;
     }
 
 
-    private ChopWrapper chopper = new ChopWrapper(null);
+    private final ChopWrapper chopper = new ChopWrapper(null);
 
 	public List<ClassifiedViolation> addChop(Collection<ClassifiedViolation> violations, SDG g)
 	throws NotInLatticeException {

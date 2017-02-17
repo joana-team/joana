@@ -55,12 +55,12 @@ public class ViolationPathes {
 	 * @param vp ViolationPath to add
 	 */
 	public boolean add(ViolationPath vp) {
-		if (!vpathes.contains(vp)) {
-			vpathes.add(vp);
-			return true;
-		} else {
+		if (vpathes.contains(vp)) {
 			return false;
 		}
+		
+		vpathes.add(vp);
+		return true;
 	}
 
 	public boolean remove(ViolationPath vp) {

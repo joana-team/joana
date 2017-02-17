@@ -474,8 +474,8 @@ public class DynamicContextManager implements ContextManager {
     /* The actual DynamicContextManager */
 
     /** The call graph of the program. */
-    private FoldedCallGraph foldedCall;
-    private ContextComputer conCom;
+    private final FoldedCallGraph foldedCall;
+    private final ContextComputer conCom;
 
     /**
      * Creates a new instance.
@@ -568,16 +568,9 @@ public class DynamicContextManager implements ContextManager {
      * @param con The context.
      */
     protected boolean match(SDGNode callSite, Context con){
-        if (con.isEmpty()) {
-            return true;
-        }
-
-        // chack folded nodes
-        if (foldedCall.map(callSite) == con.top()){
-            return true;
-        }
-
-        return false;
+        return con.isEmpty()
+        			// check folded nodes
+        			|| foldedCall.map(callSite) == con.top();
     }
 
 	public Collection<DynamicContext> getExtendedContextsOf(SDGNode node) {

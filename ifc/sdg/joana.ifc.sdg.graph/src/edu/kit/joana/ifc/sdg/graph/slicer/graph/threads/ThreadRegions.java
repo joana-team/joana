@@ -33,14 +33,14 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 public class ThreadRegions implements Iterable<ThreadRegion> {
 
 	/** the control flow graph used to determine the thread regions */
-	private CFG icfg;
+	private final CFG icfg;
 
 	/** the thread regions of the control flow graph */
-	private List<ThreadRegion> regions;
+	private final List<ThreadRegion> regions;
 
 
 	/** map thread -> (node of thread -> thread region of node) */
-	private TIntObjectHashMap<TIntObjectHashMap<ThreadRegion>> map;
+	private final TIntObjectHashMap<TIntObjectHashMap<ThreadRegion>> map;
 
 	protected ThreadRegions(List<ThreadRegion> regions, CFG icfg, TIntObjectHashMap<TIntObjectHashMap<ThreadRegion>> map) {
 		this.regions = regions;
@@ -158,14 +158,13 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 			 if (next == target) return true;
 
 			 for (SDGEdge edge : icfg.outgoingEdgesOf(next)) {
-				 if (edge.getKind() != SDGEdge.Kind.CALL && edge.getKind() != SDGEdge.Kind.FORK) {
-					 // don't traverse other region start nodes or already visited nodes
+				 if (edge.getKind() == SDGEdge.Kind.CALL || edge.getKind() == SDGEdge.Kind.FORK) {
 					 if (marked.add(edge.getTarget())) {
-						 w1.addFirst(edge.getTarget());
-					 }
-
-				 } else if (marked.add(edge.getTarget())) {
 					 w2.addFirst(edge.getTarget());
+				 }
+			 } else if (marked.add(edge.getTarget())) {
+					 // don't traverse other region start nodes or already visited nodes
+					 w1.addFirst(edge.getTarget());
 				 }
 			 }
 		 }
@@ -259,10 +258,10 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 	 }
 
 	 static class RegionBuilder {
-		 private CFG icfg;
-		 private ThreadsInformation info;
-		 private LinkedList<ThreadRegion> regions;
-		 private TIntObjectHashMap<TIntObjectHashMap<ThreadRegion>> map;
+		 private final CFG icfg;
+		 private final ThreadsInformation info;
+		 private final LinkedList<ThreadRegion> regions;
+		 private final TIntObjectHashMap<TIntObjectHashMap<ThreadRegion>> map;
 		 private int id;
 
 		 private RegionBuilder(CFG icfg, ThreadsInformation info) {
@@ -489,11 +488,11 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 
 							 if (marked.add(reached)) {
 								 // 2-phase slicing
-								 if (edge.getKind() != SDGEdge.Kind.CALL) {
-									 w1.addFirst(reached);
+								 if (edge.getKind() == SDGEdge.Kind.CALL) {
+									 w2.addFirst(reached);
 
 								 } else {
-									 w2.addFirst(reached);
+									 w1.addFirst(reached);
 								 }
 							 }
 						 }

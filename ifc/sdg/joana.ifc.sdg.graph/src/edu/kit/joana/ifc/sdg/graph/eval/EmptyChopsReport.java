@@ -15,7 +15,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
 
 public class EmptyChopsReport implements Report {
-	private Collection<Algorithm> algs;
+	private final Collection<Algorithm> algs;
 	private HashMap<Algorithm, Integer> data;
 	private HashMap<Algorithm, Collection<SDGNode>> temp;
 	private long failCtr;

@@ -109,7 +109,4 @@ public class ProbabilisticNIChecker extends IFC<String> {
 	public long probInit;
 	public long probCheck;
 	public long flowCheck;
-
-	public long dataChannels;
-	public long orderChannels;
 }

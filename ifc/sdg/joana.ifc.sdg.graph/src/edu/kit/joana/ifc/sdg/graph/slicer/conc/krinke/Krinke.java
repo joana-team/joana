@@ -39,8 +39,6 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 public class Krinke implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
 	public static long elems = 0L;
 
-    /** the corresponding interprocedural control flow graph */
-    private CFG icfg;
     /** the folded icfg for reachability checking purpose */
     private FoldedCFG foldedIcfg;
     /** The graph to be sliced. */
@@ -74,10 +72,10 @@ public class Krinke implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
         man = StaticContextManager.create(ipdg);
 
         // build the threaded ICFG
-        icfg = ICFGBuilder.extractICFG(ipdg);
+        CFG icfg = ICFGBuilder.extractICFG(ipdg);
 
         // fold ICFG with Krinke's two-pass folding algorithm
-        foldedIcfg = GraphFolder.twoPassFolding(this.icfg);
+        foldedIcfg = GraphFolder.twoPassFolding(icfg);
 
         // determine the amount of threads in the TIPDG
         int threads = ipdg.getNumberOfThreads();
@@ -244,12 +242,12 @@ public class Krinke implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
                     // according to the return-cycle
                     SDGNode call = returnCall(node);
 
-                    if (res.size() != 0 && call == res.getFirst()) {
+                    if (!res.isEmpty() && call == res.getFirst()) {
                         res.removeFirst();
                     }
                 }
 
-                if (res.size() == 0 || node != res.getFirst()) {
+                if (res.isEmpty() || node != res.getFirst()) {
                     res.addFirst(node);
                 }
 

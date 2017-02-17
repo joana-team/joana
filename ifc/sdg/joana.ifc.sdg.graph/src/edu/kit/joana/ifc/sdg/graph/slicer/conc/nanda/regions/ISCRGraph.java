@@ -26,11 +26,11 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
  * @version 1.0
  */
 public class ISCRGraph {
-	private CFG data;
-    private Map<SDGNode, List<SDGNode>> nodeMap; // maps SDGNode -> ISCR nodes
-    private Map<SDGNode, SDGNode> params;
-    private int id;
-    private SDGNode root;
+	private final CFG data;
+    private final Map<SDGNode, List<SDGNode>> nodeMap; // maps SDGNode -> ISCR nodes
+    private final Map<SDGNode, SDGNode> params;
+    private final int id;
+    private final SDGNode root;
 
     /** Creates a new instance of ISCRGraph.
      * @param data  The raw graph.

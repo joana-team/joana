@@ -23,12 +23,12 @@ public class AnnotatedNode {
     /**
      * The node.
      */
-    private VirtualNode node;
+    private final VirtualNode node;
 
     /**
      * The thread states according to the node.
      */
-    private States states;
+    private final States states;
     /**
      * Creates a new instance of AnnotatedNode
      *
@@ -88,18 +88,17 @@ public class AnnotatedNode {
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
-		} else if (o == null) {
-			return false;
-		} else if (!(o instanceof AnnotatedNode)) {
-			return false;
-		} else {
-			AnnotatedNode a = (AnnotatedNode) o;
-			return a.node.equals(node) && a.states.equals(states);
 		}
+
+		if (!(o instanceof AnnotatedNode)) {
+			return false;
+		}
+
+		AnnotatedNode a = (AnnotatedNode) o;
+		return a.node.equals(node) && a.states.equals(states);
 	}
 
     public int hashCode() {
-    	int hc = 31*node.hashCode() + states.hashCode();
-    	return hc;
+    	return 31*node.hashCode() + states.hashCode();
     }
 }

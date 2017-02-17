@@ -13,7 +13,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 
 public class HashList<T> {
-	private HashMap<T, T> valuesSet = new LinkedHashMap<T, T>();
+	private final HashMap<T, T> valuesSet = new LinkedHashMap<T, T>();
 
 	public void addFirst(T value) {
 		valuesSet.put(value, value);

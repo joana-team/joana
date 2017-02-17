@@ -46,17 +46,12 @@ public class ThreadAllocationAnalysis {
 		ONLY_ONCE, INDEFINITE;
 	}
 
-	private final LoopDetPrec loopDetPrec;
-
 	/** A CFG and its contexts. */
-	private CFG cfg;
-	private DynamicContextManager conMan;
+	private final CFG cfg;
+	private final DynamicContextManager conMan;
 
 	/** used to determine whether a spawn happens in a loop */
 	private LoopDetermination loopDet;
-
-	/** maps thread entries to their possible contexts */
-	private Map<SDGNode, Collection<DynamicContext>> run_thread;
 	
 	/** flattened version of the value set of the map run_thread (i.e. the collection all possible contexts of thread entries) */
 	private Set<DynamicContext> threads;
@@ -75,7 +70,7 @@ public class ThreadAllocationAnalysis {
 		
 		// create the context manager
 		conMan = new DynamicContextManager(cfg);
-		this.loopDetPrec = prec;
+		LoopDetPrec loopDetPrec = prec;
 		if (loopDetPrec == LoopDetPrec.SIMPLE) {
 			this.loopDet = new SimpleLoopDetermination(GraphFolder.foldIntraproceduralSCC(cfg), conMan);
 		} else {
@@ -103,7 +98,7 @@ public class ThreadAllocationAnalysis {
 		debug.outln("run-method entries                : " + runEntries);
 
 		// determine thread contexts
-		run_thread = threadContexts(runEntries);
+		Map<SDGNode, Collection<DynamicContext>> run_thread = threadContexts(runEntries);
 		threads = new HashSet<DynamicContext>();
 		for (Collection<DynamicContext> l : run_thread.values()) {
 			threads.addAll(l);

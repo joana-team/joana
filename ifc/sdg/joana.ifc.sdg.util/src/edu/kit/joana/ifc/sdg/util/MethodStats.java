@@ -20,7 +20,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  * 
  * @author Martin Mohr
  */
-class MethodStats {
+final class MethodStats {
 
 	/** the number of nodes in the represented method */
 	private final int numNodes;

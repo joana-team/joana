@@ -24,9 +24,9 @@ public class State {
 	public static final State NONE = new State();
 
     /** The actual node. */
-    private VirtualNode actualNode;
+    private final VirtualNode actualNode;
     /** The actual context. */
-    private TopologicalNumber topolNr;
+    private final TopologicalNumber topolNr;
 
     /**
      * Creates a new instance of State
@@ -91,24 +91,19 @@ public class State {
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
-		} else if (o == null) {
-			return false;
-		} else if (!(o instanceof State)) {
-			return false;
-		} else {
-			State toCheck = (State) o;
+		}
 
-			if (this == State.NONE && toCheck == State.NONE)
-				return true;
-			if (this == State.NONRESTRICTIVE && toCheck == State.NONRESTRICTIVE)
-				return true;
-
-			if (this.actualNode.equals(toCheck.actualNode) && this.topolNr == toCheck.topolNr) {
-
-				return true;
-			}
-
+		if (!(o instanceof State)) {
 			return false;
 		}
+
+		State toCheck = (State) o;
+
+		if (this == State.NONE && toCheck == State.NONE)
+			return true;
+		if (this == State.NONRESTRICTIVE && toCheck == State.NONRESTRICTIVE)
+			return true;
+
+		return this.actualNode.equals(toCheck.actualNode) && this.topolNr == toCheck.topolNr;
 	}
 }

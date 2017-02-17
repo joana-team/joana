@@ -15,7 +15,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  * Helper class for dot export of JoanaGraphs, which generates labels of dot nodes from kinds and labels of SDG nodes.
  * @author Martin Mohr
  */
-public class SDGNodeNameProvider implements VertexNameProvider<SDGNode> {
+public final class SDGNodeNameProvider implements VertexNameProvider<SDGNode> {
 	
 	private static final SDGNodeNameProvider INSTANCE = new SDGNodeNameProvider();
 	
@@ -24,7 +24,7 @@ public class SDGNodeNameProvider implements VertexNameProvider<SDGNode> {
 	
 	@Override
 	public String getVertexName(SDGNode arg0) {
-		String label = (arg0.getLabel() != null)?arg0.getLabel():arg0.getBytecodeName();
+		String label = (arg0.getLabel() == null)?arg0.getBytecodeName():arg0.getLabel();
 		return "[" + arg0.getId() + "] " + " " + arg0.getKind() + " " + label;
 	}
 	

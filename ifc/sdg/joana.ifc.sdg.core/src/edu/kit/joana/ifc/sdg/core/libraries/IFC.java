@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -40,11 +41,11 @@ import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
  * @author giffhorn
  */
 public class IFC implements ProgressAnnouncer {
-    private ArrayList<ProgressListener> pls = new ArrayList<ProgressListener>();
+    private final ArrayList<ProgressListener> pls = new ArrayList<ProgressListener>();
 
-    private IStaticLattice<String> l;                    // der sicherheitsverband
-    private SDG g;                                     // der SDG
-    private HashMap<SDGEdge, Set<Rule>> summaryDeclass;  // deklassifikationen an den summary-kanten
+    private final IStaticLattice<String> l;                    // der sicherheitsverband
+    private final SDG g;                                     // der SDG
+    private final HashMap<SDGEdge, Set<Rule>> summaryDeclass;  // deklassifikationen an den summary-kanten
 
     /**
      * Initialisiert den IFC-Algorithmus.
@@ -400,17 +401,15 @@ public class IFC implements ProgressAnnouncer {
 
 
     /* TODO: Testtreiber, muessen im echten System ersetzt werden! */
-    private HashMap<Integer, LibraryPropagationRules> preconditions = new HashMap<Integer, LibraryPropagationRules>();
+    private final HashMap<Integer, LibraryPropagationRules> preconditions = new HashMap<Integer, LibraryPropagationRules>();
 
     public void addPrecondition(int proc, LibraryPropagationRules pre) {
         preconditions.put(proc, pre);
     }
 
     private LibraryPropagationRules getLibrary(SecurityNode actOut) {
-        for (SDGEdge po : g.getIncomingEdgesOfKind(actOut, SDGEdge.Kind.PARAMETER_OUT)) {
-            return preconditions.get(po.getSource().getProc());
-        }
-        return null;
+        List<SDGEdge> inc = g.getIncomingEdgesOfKind(actOut, SDGEdge.Kind.PARAMETER_OUT);
+        return inc.isEmpty() ? null : preconditions.get(inc.get(0).getSource().getProc());
     }
 
     private Element mapping(Element actOut) {
@@ -423,8 +422,7 @@ public class IFC implements ProgressAnnouncer {
         HashSet<String> labels = new HashSet<String>();
         labels.addAll(actOut.getLabels());
 
-        Element e = new Element(formOut, actOut.getLevel(), labels);
-        return e;
+        return new Element(formOut, actOut.getLevel(), labels);
     }
 
     private Collection<Element> mapping(Element actOut, Collection<Element> formIns) {

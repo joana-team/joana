@@ -79,7 +79,6 @@ public class ConcurrentViolationChop {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
     public Collection<SecurityNode> chop (SecurityNode outNode, SecurityNode violation) {
-            Collection coll = chopper.chop(violation, outNode);
-            return coll;
+            return (Collection) chopper.chop(violation, outNode);
     }
 }

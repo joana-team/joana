@@ -224,7 +224,7 @@ public abstract class Iterative2PhaseSlicer implements Slicer {
     /* main- method */
 
     public static void main(String[] args) throws IOException {
-        edu.kit.joana.ifc.sdg.graph.SDG g = edu.kit.joana.ifc.sdg.graph.SDG.readFrom("/home/st/hammer/scratch/pdg/tests.ProducerConsumer.pdg");
+        SDG g = SDG.readFrom("/home/st/hammer/scratch/pdg/tests.ProducerConsumer.pdg");
         SDGNode c = g.getNode(180);
         Iterative2PhaseSlicer slicer = new I2PBackward(g);
         Collection<SDGNode> slice = slicer.slice(Collections.singleton(c));

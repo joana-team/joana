@@ -29,6 +29,8 @@ import edu.kit.joana.util.Logger;
  */
 public final class PruneInterferences {
 
+	private PruneInterferences() {}
+
 	private static final Logger debug = Log.getLogger(Log.L_SDG_INTERFERENCE_DEBUG);
 	private static final boolean IS_DEBUG = debug.isEnabled();
 	
@@ -130,7 +132,8 @@ public final class PruneInterferences {
 	private static boolean guaranteedSameThread(SDGEdge e, ThreadsInformation ti) {
 		int[] threadsSrc = e.getSource().getThreadNumbers();
 		int[] threadsTgt = e.getTarget().getThreadNumbers();
-		return (threadsSrc.length == 1 && threadsTgt.length == 1 && threadsSrc[0] == threadsTgt[0] && !ti.getThread(threadsSrc[0]).isDynamic());
+		return threadsSrc.length == 1 && threadsTgt.length == 1 && threadsSrc[0] == threadsTgt[0]
+					&& !ti.getThread(threadsSrc[0]).isDynamic();
 	}
 	
 	/**

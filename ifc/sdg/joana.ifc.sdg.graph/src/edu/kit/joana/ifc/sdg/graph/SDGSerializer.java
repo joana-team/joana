@@ -26,7 +26,7 @@ import gnu.trove.iterator.TIntIterator;
  * @author hammer
  *
  */
-public class SDGSerializer {
+public final class SDGSerializer {
 
     private SDGSerializer() {}
 

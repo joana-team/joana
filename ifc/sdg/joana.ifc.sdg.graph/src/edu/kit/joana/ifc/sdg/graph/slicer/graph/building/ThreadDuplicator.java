@@ -32,7 +32,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  * @deprecated
  */
 @Deprecated
-public class ThreadDuplicator {
+public final class ThreadDuplicator {
     public static HashMap<SDGNode, SDGNode> idMap = new HashMap<SDGNode, SDGNode>();
 
     /** ThreadDuplicator is a utility class.

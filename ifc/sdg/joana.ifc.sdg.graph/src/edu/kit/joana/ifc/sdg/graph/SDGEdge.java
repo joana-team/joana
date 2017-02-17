@@ -359,7 +359,7 @@ public class SDGEdge implements Cloneable, KnowsVertices<SDGNode> {
         }
          catch(CloneNotSupportedException e) {
             // shouldn't happen as we are cloneable
-            throw new InternalError();
+            throw new InternalError(e);
         }
     }
 

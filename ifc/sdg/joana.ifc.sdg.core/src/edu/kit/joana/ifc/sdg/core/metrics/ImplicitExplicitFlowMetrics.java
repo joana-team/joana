@@ -23,7 +23,7 @@ import edu.kit.joana.ifc.sdg.graph.chopper.conc.ContextSensitiveThreadChopper;
 
 
 public class ImplicitExplicitFlowMetrics implements IMetrics {
-	private ComputeMetrics metrics;
+	private final ComputeMetrics metrics;
 
 	public ImplicitExplicitFlowMetrics() {
 		metrics = new ComputeMetrics();
@@ -52,8 +52,8 @@ public class ImplicitExplicitFlowMetrics implements IMetrics {
 	private static class ComputeMetrics {
 		private SDG g;
 		private ContextSensitiveThreadChopper chopper;
-		private Set<SDGEdge.Kind> omittedEdges;
-		private Set<SDGEdge.Kind> stepEdges;
+		private final Set<SDGEdge.Kind> omittedEdges;
+		private final Set<SDGEdge.Kind> stepEdges;
 
 		private ComputeMetrics() {
 			omittedEdges = new HashSet<SDGEdge.Kind>();
@@ -144,9 +144,9 @@ public class ImplicitExplicitFlowMetrics implements IMetrics {
 	    }
 	}
 
-	static class StepResult {
-		Set<SDGNode> stepSlice;
-		Set<SDGNode> nextStep;
+	private static class StepResult {
+		private final Set<SDGNode> stepSlice;
+		private final Set<SDGNode> nextStep;
 
 		StepResult(Set<SDGNode> stepSlice, Set<SDGNode> nextStep) {
 			this.stepSlice = stepSlice;

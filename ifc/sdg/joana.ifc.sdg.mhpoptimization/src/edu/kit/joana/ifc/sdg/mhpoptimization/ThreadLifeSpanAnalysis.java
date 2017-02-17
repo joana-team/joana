@@ -37,13 +37,9 @@ import edu.kit.joana.util.maps.MapUtils;
 public class ThreadLifeSpanAnalysis {
 	
 	/** the cfg extracted from the sdg */
-	private CFG icfg;
+	private final CFG icfg;
 
-	private Map<JavaType, SDGNode> threadClass_runEntry; // maps subclasses of java.lang.threads to the entry nodes of their run method
 	private Map<SDGNode, Set<SDGNode>> alloc_run; // maps thread allocations to thread entries
-	private Map<SDGNode, Set<SDGNode>> callStart_alloc; // maps thread allocations to calls of Thread::start
-	private Map<SDGNode, Set<SDGNode>> callStart_run; // maps calls of Thread::start to thread entries
-	private Map<SDGNode, Set<SDGNode>> run_callStart; // maps thread entries to calls of Thread::start
 
 	/** Creates a new instance of ThreadAllocation
 	 * @param g  A SDG.
@@ -67,7 +63,7 @@ public class ThreadLifeSpanAnalysis {
 
 		// determine all subclasses of java.lang.Thread and their respective run
 		// methods
-		threadClass_runEntry = mapThreadClassToRunEntry();
+		Map<JavaType, SDGNode> threadClass_runEntry = mapThreadClassToRunEntry();
 
 		final Logger debug = Log.getLogger(Log.L_MHP_DEBUG);
 		debug.outln("run-method entries                : " + threadClass_runEntry.values());
@@ -87,11 +83,11 @@ public class ThreadLifeSpanAnalysis {
 		debug.outln("thread allocations -> run-entries : " + alloc_run);
 
 		// compute Thread::start invocations for each thread allocation site
-		callStart_alloc = mapThreadStartToAllocationSites();
+		Map<SDGNode, Set<SDGNode>> callStart_alloc = mapThreadStartToAllocationSites();
 
 		// map calls of Thread::start to thread entries
-		callStart_run = MapUtils.concat(callStart_alloc, alloc_run);
-		run_callStart = MapUtils.invert(callStart_run);
+		Map<SDGNode, Set<SDGNode>> callStart_run = MapUtils.concat(callStart_alloc, alloc_run);
+		Map<SDGNode, Set<SDGNode>> run_callStart = MapUtils.invert(callStart_run);
 
 		debug.outln("Thread::start calls -> thread allocations: " + callStart_alloc);
 		debug.outln("Thread::start calls -> run-entries: " + callStart_run);
@@ -137,18 +133,18 @@ public class ThreadLifeSpanAnalysis {
 		for (SDGNode n : icfg.vertexSet()) {
 			if (n.getOperation() != SDGNode.Operation.DECLARATION) {
 				continue;
-			} else {
-				JavaType nType = JavaType.parseSingleTypeFromString(n.getType(), Format.BC);
-				if (threadClasses.contains(nType)) {
-					Set<SDGNode> allocSites;
-					if (result.containsKey(nType)) {
-						allocSites = result.get(nType);
-					} else {
-						allocSites = new HashSet<SDGNode>();
-						result.put(nType, allocSites);
-					}
-					allocSites.add(n);
+			}
+			
+			JavaType nType = JavaType.parseSingleTypeFromString(n.getType(), Format.BC);
+			if (threadClasses.contains(nType)) {
+				Set<SDGNode> allocSites;
+				if (result.containsKey(nType)) {
+					allocSites = result.get(nType);
+				} else {
+					allocSites = new HashSet<SDGNode>();
+					result.put(nType, allocSites);
 				}
+				allocSites.add(n);
 			}
 		}
 

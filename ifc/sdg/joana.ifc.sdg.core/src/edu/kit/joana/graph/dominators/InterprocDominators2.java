@@ -11,7 +11,7 @@ import java.util.Set;
 
 public class InterprocDominators2<V,E> {
 	protected AbstractCFG<V,E> icfg;
-	private Map<V, NodeSetValue<V>> dom = new HashMap<V, NodeSetValue<V>>();
+	private final Map<V, NodeSetValue<V>> dom = new HashMap<V, NodeSetValue<V>>();
 
 	public InterprocDominators2(AbstractCFG<V,E> icfg) {
 		this.icfg = icfg;

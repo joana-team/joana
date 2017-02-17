@@ -30,8 +30,8 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.ContextManager;
  * @author  Dennis Giffhorn
  */
 public class Context2PhaseSlicer {
-    private SDG sdg;
-    private ContextManager conMan;
+    private final SDG sdg;
+    private final ContextManager conMan;
 
     /**
      * Creates a new instance of Context2PhaseSlicer

@@ -48,6 +48,8 @@ public class FullIFCConcurrentTest {
 
 	static final boolean outputPDGFiles = true;
 	static final String outputDir = "out";
+	private static final String SECRET = "sensitivity.Security.SECRET";
+	private static final String PUBLIC = "sensitivity.Security.PUBLIC";
 	
 	static {
 		if (outputPDGFiles) {
@@ -134,7 +136,7 @@ public class FullIFCConcurrentTest {
 				testLeaksFound(ana1,26);
 			}
 			{
-				final IFCAnalysis ana2 = annotate(prog, "sensitivity.Security.SECRET", "sensitivity.Security.PUBLIC");
+				final IFCAnalysis ana2 = annotate(prog, SECRET, PUBLIC);
 				testLeaksFound(ana2, 3);
 			}
 		} catch (ApiTestException e) {
@@ -254,7 +256,7 @@ public class FullIFCConcurrentTest {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("conc.pc.ProbChannel",
 					"conc.pc.ProbChannel.x",
-					"sensitivity.Security.PUBLIC");
+					PUBLIC);
 			testLeaksFound(ana, 6);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
@@ -280,7 +282,7 @@ public class FullIFCConcurrentTest {
 	public void testProbChannelMulti() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("tests.probch.ProbChannel",
-					"sensitivity.Security.SECRET",
+					SECRET,
 					"tests.probch.ProbChannel$Data.a");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
@@ -334,8 +336,8 @@ public class FullIFCConcurrentTest {
 	public void testIndirectRecursive() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("tests.IndirectRecursiveThreads",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC");
+					SECRET,
+					PUBLIC);
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
 			assertEquals(53, illegal.size());
@@ -361,8 +363,8 @@ public class FullIFCConcurrentTest {
 	public void testProbPasswordFile() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("tests.ProbPasswordFile",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC");
+					SECRET,
+					PUBLIC);
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
 			assertEquals(9, illegal.size());
@@ -388,8 +390,8 @@ public class FullIFCConcurrentTest {
 	public void testRecursiveThread() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("tests.RecursiveThread",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC");
+					SECRET,
+					PUBLIC);
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
 			assertEquals(199, illegal.size());
@@ -415,8 +417,8 @@ public class FullIFCConcurrentTest {
 	public void testSynchronization() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("tests.Synchronization",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC");
+					SECRET,
+					PUBLIC);
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
 			assertEquals(23, illegal.size());
@@ -442,8 +444,8 @@ public class FullIFCConcurrentTest {
 	public void testThreadJoining() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("tests.ThreadJoining",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC");
+					SECRET,
+					PUBLIC);
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
 			assertEquals(12, illegal.size());
@@ -469,8 +471,8 @@ public class FullIFCConcurrentTest {
 	public void testThreadSpawning() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("tests.ThreadSpawning",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC");
+					SECRET,
+					PUBLIC);
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
 			assertEquals(189, illegal.size());
@@ -497,7 +499,7 @@ public class FullIFCConcurrentTest {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("tests.VolpanoSmith98Page3",
 					"tests.VolpanoSmith98Page3.PIN",
-					"sensitivity.Security.PUBLIC");
+					PUBLIC);
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
 			assertEquals(83, illegal.size());

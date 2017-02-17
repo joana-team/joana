@@ -81,7 +81,6 @@ public class LibTester {
     private static IStaticLattice<String> lattice() throws Exception {
         File latticeFile = new File("/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/eclipse/runtime-New_configuration/Tests/diamond.lat");
         IEditableLattice<String> el = LatticeUtil.loadLattice(new FileInputStream(latticeFile));
-        IStaticLattice<String> sl = LatticeUtil.compileBitsetLattice(el);
-        return sl;
+        return LatticeUtil.compileBitsetLattice(el);
     }
 }

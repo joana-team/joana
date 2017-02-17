@@ -67,16 +67,7 @@ public class RegionClusterBasedCDomOracle implements ICDomOracle {
 			for (final int threadN : n.getThreadNumbers()) {
 				final ThreadRegion trSource = mhp.getThreadRegion(n, threadN);
 				for (final SDGEdge e : icfg.outgoingEdgesOf(n)) {
-					if (!e.getKind().isThreadEdge()) {
-						if (possiblyExecutesIn(e.getTarget(), threadN)) {
-							final ThreadRegion trTarget = mhp.getThreadRegion(e.getTarget(), threadN);
-							if (!trTarget.equals(trSource) && differentMHPProperty(trSource, trTarget)) {
-								regionGraph.addVertex(mhpEq.get(trSource));
-								regionGraph.addVertex(mhpEq.get(trTarget));
-								regionGraph.addEdge(mhpEq.get(trSource), mhpEq.get(trTarget));
-							}
-						}
-					} else {
+					if (e.getKind().isThreadEdge()) {
 						for (final int threadM : e.getTarget().getThreadNumbers()) {
 							if (threadM != threadN) {
 								final ThreadRegion trTarget = mhp.getThreadRegion(e.getTarget(), threadM);
@@ -85,6 +76,15 @@ public class RegionClusterBasedCDomOracle implements ICDomOracle {
 									regionGraph.addVertex(mhpEq.get(trTarget));
 									regionGraph.addEdge(mhpEq.get(trSource), mhpEq.get(trTarget));
 								}
+							}
+						}
+					} else {
+						if (possiblyExecutesIn(e.getTarget(), threadN)) {
+							final ThreadRegion trTarget = mhp.getThreadRegion(e.getTarget(), threadN);
+							if (!trTarget.equals(trSource) && differentMHPProperty(trSource, trTarget)) {
+								regionGraph.addVertex(mhpEq.get(trSource));
+								regionGraph.addVertex(mhpEq.get(trTarget));
+								regionGraph.addEdge(mhpEq.get(trSource), mhpEq.get(trTarget));
 							}
 						}
 					}
@@ -139,14 +139,14 @@ public class RegionClusterBasedCDomOracle implements ICDomOracle {
 			for (final SDGNode n : tr.getNodes()) {
 				for (final SDGEdge e : icfg.outgoingEdgesOf(n)) {
 					final Set<VirtualNode> tgts = new HashSet<VirtualNode>();
-					if (!e.getKind().isThreadEdge()) {
-						tgts.add(new VirtualNode(e.getTarget(), tr.getThread()));
-					} else {
+					if (e.getKind().isThreadEdge()) {
 						for (final int thread : e.getTarget().getThreadNumbers()) {
 							if (thread != tr.getThread()) {
 								tgts.add(new VirtualNode(e.getTarget(), tr.getThread()));
 							}
 						}
+					} else {
+						tgts.add(new VirtualNode(e.getTarget(), tr.getThread()));
 					}
 					for (final VirtualNode vtgt : tgts) {
 						final Set<ThreadRegion> vtgtCluster = mhpEq.get(mhp.getThreadRegion(vtgt));

@@ -162,7 +162,7 @@ public class NandaBackward implements NandaMode {
         // FIXME: this hack is necessary because the control flow phi nodes are not part of the control flow
         // the hack will work most of the times, but the slices are not guaranteed to be
         // time- and context-sensitive
-        if (nrs.size() == 0) {
+        if (nrs.isEmpty()) {
         	Log.ERROR.outln("fixme " + this.getClass().getName());
         	for (TopologicalNumber t : reached) {
 	        	if (t.getProcID() == from.getProcID()) {

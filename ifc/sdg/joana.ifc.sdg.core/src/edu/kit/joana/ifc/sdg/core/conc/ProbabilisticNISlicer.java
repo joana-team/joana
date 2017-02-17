@@ -80,11 +80,11 @@ public class ProbabilisticNISlicer implements ConflictScanner {
      */
     private static class SimpleConflicts implements ConflictManager {
         // menge der bisherigen konflikte
-        private HashSet<AbstractConflictLeak<SecurityNode>> conflicts;
-        private Set<DataConflict<SecurityNode>> dataConflicts;
-        private Set<OrderConflict<SecurityNode>> orderConflicts;
+        private final HashSet<AbstractConflictLeak<SecurityNode>> conflicts;
+        private final Set<DataConflict<SecurityNode>> dataConflicts;
+        private final Set<OrderConflict<SecurityNode>> orderConflicts;
         
-        private Map<Pair<SDGNode, SDGNode>, IConflictLeak<SecurityNode>> confMap = new HashMap<Pair<SDGNode, SDGNode>, IConflictLeak<SecurityNode>>();
+        private final Map<Pair<SDGNode, SDGNode>, IConflictLeak<SecurityNode>> confMap = new HashMap<Pair<SDGNode, SDGNode>, IConflictLeak<SecurityNode>>();
         
         /**
          * Initialisierung.
@@ -116,7 +116,13 @@ public class ProbabilisticNISlicer implements ConflictScanner {
         public void updateConflicts(SecurityNode sink, SecurityNode source, SDGEdge edge, String attackerLevel) {
             Pair<SDGNode, SDGNode> confEdge = Pair.pair(edge.getSource(), edge.getTarget());
             Pair<SDGNode, SDGNode> confEdgeRev = Pair.pair(edge.getTarget(), edge.getSource());
-            if (!confMap.containsKey(confEdge) && !confMap.containsKey(confEdgeRev)) {
+            if (confMap.containsKey(confEdge) || confMap.containsKey(confEdgeRev)) {
+                IConflictLeak<SecurityNode> con1 = confMap.get(confEdge);
+                IConflictLeak<SecurityNode> con2 = confMap.get(confEdgeRev);
+                assert con1 == con2 || (con1 == null || con2 == null);
+                IConflictLeak<SecurityNode> con = con1==null?con2:con1;
+                con.addTrigger(source);
+            } else {
                 if (edge.getKind() == SDGEdge.Kind.CONFLICT_DATA) {
                     DataConflict<SecurityNode> dcon  = new DataConflict<SecurityNode>(ConflictEdge.fromSDGEdge(edge), sink, attackerLevel, Maybe.just(source));
                     confMap.put(confEdge, dcon);
@@ -129,12 +135,6 @@ public class ProbabilisticNISlicer implements ConflictScanner {
                     confMap.put(confEdge, ocon);
                     confMap.put(confEdgeRev, ocon);
                 }
-            } else {
-                IConflictLeak<SecurityNode> con1 = confMap.get(confEdge);
-                IConflictLeak<SecurityNode> con2 = confMap.get(confEdgeRev);
-                assert con1 == con2 || (con1 == null || con2 == null);
-                IConflictLeak<SecurityNode> con = con1==null?con2:con1;
-                con.addTrigger(source);
             }
         }
 
@@ -175,9 +175,9 @@ public class ProbabilisticNISlicer implements ConflictScanner {
      * @author giffhorn
      */
     private class ConflictEdgeManager {
-    	private HashMap<SDGNode, Collection<SDGNode>> before = new HashMap<SDGNode, Collection<SDGNode>>();
-    	private List<SDGEdge> dataConflictEdges = new LinkedList<SDGEdge>();
-    	private List<SDGEdge> orderConflictEdges = new LinkedList<SDGEdge>();
+    	private final HashMap<SDGNode, Collection<SDGNode>> before = new HashMap<SDGNode, Collection<SDGNode>>();
+    	private final List<SDGEdge> dataConflictEdges = new LinkedList<SDGEdge>();
+    	private final List<SDGEdge> orderConflictEdges = new LinkedList<SDGEdge>();
 
 
     	/**
@@ -354,14 +354,14 @@ public class ProbabilisticNISlicer implements ConflictScanner {
     }
 
 
-    private ArrayList<ProgressListener> pls = new ArrayList<ProgressListener>();
+    private final ArrayList<ProgressListener> pls = new ArrayList<ProgressListener>();
 
     // der lattice
-    private IStaticLattice<String> l;
+    private final IStaticLattice<String> l;
     // der SDG
-    private SDG g;
+    private final SDG g;
     // eine MHP-analyse
-    private MHPAnalysis mhp;
+    private final MHPAnalysis mhp;
 
     /**
      *  bildet jede ORDER-CONFLICT-Kante auf diejenigen Quellknoten ab, die diese beeinflussen koennten.
@@ -371,7 +371,7 @@ public class ProbabilisticNISlicer implements ConflictScanner {
      *  es wurde explizit null als Wert eingetragen).
      *  Diese Map wird in {@link ConflictEdgeManager#computeOrderConflicts()} befuellt.
      **/
-    private HashMap<SDGEdge, HashSet<SecurityNode>> orderConflicts2Triggers;
+    private final HashMap<SDGEdge, HashSet<SecurityNode>> orderConflicts2Triggers;
 
     /**
      *  bildet jeden Quellknoten, der mindestens eine DATA-CONFLICT-Kante beeinflussen koennte, auf die
@@ -380,17 +380,17 @@ public class ProbabilisticNISlicer implements ConflictScanner {
      *  containsKey()-check unerlaesslich, bevor man auf Werte zugreift.
      *  Diese Map wird in {@link ConflictEdgeManager#computeDataConflicts()} befuellt.
      **/
-    private HashMap<SecurityNode, HashSet<SDGEdge>> triggersToDataConflicts;
+    private final HashMap<SecurityNode, HashSet<SDGEdge>> triggersToDataConflicts;
     // der zu verwendende ConflictManager
-    private ConflictManager conf;
+    private final ConflictManager conf;
     
-    private ConflictEdgeManager confEdgeMan;
+    private final ConflictEdgeManager confEdgeMan;
 
     // quellen und senken werden dazwischengespeichert
-    private Collection<SecurityNode> sources;
-    private Collection<SecurityNode> sinks;
+    private final Collection<SecurityNode> sources;
+    private final Collection<SecurityNode> sinks;
     
-    private boolean timeSens;
+    private final boolean timeSens;
 
     /**
      * Initialisiert die Analyse.

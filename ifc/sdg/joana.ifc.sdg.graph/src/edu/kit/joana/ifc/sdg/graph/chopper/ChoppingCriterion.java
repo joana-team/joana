@@ -21,10 +21,10 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  */
 public class ChoppingCriterion {
 	/** the source of the chop */
-	private Collection<SDGNode> sourceSet;
+	private final Collection<SDGNode> sourceSet;
 
 	/** the target of the chop */
-	private Collection<SDGNode> targetSet;
+	private final Collection<SDGNode> targetSet;
 
 	public ChoppingCriterion() {
 		sourceSet = new HashSet<SDGNode>();

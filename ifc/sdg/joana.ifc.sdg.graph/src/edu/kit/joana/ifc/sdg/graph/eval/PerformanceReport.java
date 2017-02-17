@@ -19,7 +19,7 @@ public class PerformanceReport implements Report {
 		long size;
 	}
 
-	private Collection<Algorithm> algs;
+	private final Collection<Algorithm> algs;
 	private HashMap<Algorithm, ValueSet> data;
 	private HashMap<Algorithm, ValueSet> temp;
 	private long failCtr;

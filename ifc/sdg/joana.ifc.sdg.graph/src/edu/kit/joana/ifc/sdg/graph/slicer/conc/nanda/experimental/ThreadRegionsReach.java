@@ -19,8 +19,8 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.BitMatrix;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadRegion;
 
 
-public class ThreadRegionsReach {
-    private BitMatrix map;
+public final class ThreadRegionsReach {
+    private final BitMatrix map;
 
     private ThreadRegionsReach(BitMatrix map) {
     	this.map = map;

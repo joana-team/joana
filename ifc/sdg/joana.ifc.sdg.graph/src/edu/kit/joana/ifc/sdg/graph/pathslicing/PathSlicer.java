@@ -95,27 +95,25 @@ public class PathSlicer {
 		temp.retainAll(lVar);
 		if (!temp.isEmpty()) {	// 1. Eine der gelesenen Variablen wird geschrieben
 			return true;
-		} else if (!Dominator.postDominator(graph).get(n).contains(old)) { // 2. Der alte Knoten postDominiert nicht den aktuellen
+		}
+		if (!Dominator.postDominator(graph).get(n).contains(old)) { // 2. Der alte Knoten postDominiert nicht den aktuellen
 			return true;
-		} else { // 3. Auf einem alternativen Pfad wird eine entsprechende Variable geschrieben
-			if (!Chopper.testSameLevelSetCriteria(Collections.singleton(n), Collections.singleton(old))) {
-				if (n.getKind() == SDGNode.Kind.CALL && old.getKind() == SDGNode.Kind.ENTRY) {
-					return true;
-				}
-				return false;
+		}
+		// 3. Auf einem alternativen Pfad wird eine entsprechende Variable geschrieben
+		if (!Chopper.testSameLevelSetCriteria(Collections.singleton(n), Collections.singleton(old))) {
+			return n.getKind() == SDGNode.Kind.CALL && old.getKind() == SDGNode.Kind.ENTRY;
+		}
+		Collection<SDGNode> chop = chopper.chop(n, old);
+		chop.removeAll(clearPathNodes(path, n, old));
+		for (SDGNode m : chop) {
+			temp = new HashSet<Integer>(rdr.getDef(m.getId()));
+			for (int i : rdr.getRef(m.getId())) {
+				temp.addAll(rdr.getPto(i));
 			}
-			Collection<SDGNode> chop = chopper.chop(n, old);
-			chop.removeAll(clearPathNodes(path, n, old));
-			for (SDGNode m : chop) {
-				temp = new HashSet<Integer>(rdr.getDef(m.getId()));
-				for (int i : rdr.getRef(m.getId())) {
-					temp.addAll(rdr.getPto(i));
-				}
-				temp.retainAll(lVar);
-				if (!temp.isEmpty()) {
-					System.out.println(3);
-					return true;
-				}
+			temp.retainAll(lVar);
+			if (!temp.isEmpty()) {
+				System.out.println(3);
+				return true;
 			}
 		}
 		return false;

@@ -36,7 +36,7 @@ public class ThreadRegion {
             int hc = 0;
 
             for (SDGNode n : color) {
-                hc += (n.getId() * 31);
+                hc += n.getId() * 31;
             }
 
             return hc;
@@ -73,9 +73,9 @@ public class ThreadRegion {
     private Color key;
 
     /** An ID. */
-    private int id;
-    private int thread;
-    private boolean dynamic;
+    private final int id;
+    private final int thread;
+    private final boolean dynamic;
     private SDGNode start;
 
     public ThreadRegion(int id, Color key, int thread, boolean dynamic) {

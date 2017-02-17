@@ -14,9 +14,9 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
 
 
-public class SimpleMHPAnalysis implements MHPAnalysis {
-	private ThreadsInformation ti;
-	private ThreadRegions regions;
+public final class SimpleMHPAnalysis implements MHPAnalysis {
+	private final ThreadsInformation ti;
+	private final ThreadRegions regions;
 
 	private SimpleMHPAnalysis(ThreadsInformation info, ThreadRegions tr) {
 		ti = info;

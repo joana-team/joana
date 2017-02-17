@@ -29,7 +29,7 @@ import gnu.trove.set.hash.TIntHashSet;
  * @author Dennis Giffhorn
  * @version 1.0
  */
-public class GraphModifier {
+public final class GraphModifier {
 
     /** A utility class. */
     private GraphModifier() { }

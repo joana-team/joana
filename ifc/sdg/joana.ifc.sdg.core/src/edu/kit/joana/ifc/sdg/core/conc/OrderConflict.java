@@ -14,8 +14,8 @@ import edu.kit.joana.util.Maybe;
 
 public class OrderConflict<T> extends AbstractConflictLeak<T> {
 
-	private final String untriggeredTemplate = "Indefinite execution order between '%s' and '%s', visible for '%s'";
-	private final String triggeredTemplate = "Indefinite execution order between '%s' and '%s', visible for '%s', may be influenced by '%s'";
+	private static final String untriggeredTemplate = "Indefinite execution order between '%s' and '%s', visible for '%s'";
+	private static final String triggeredTemplate = "Indefinite execution order between '%s' and '%s', visible for '%s', may be influenced by '%s'";
 	
 	public OrderConflict(ConflictEdge<T> confEdge, String attackerLevel, Maybe<T> trigger) {
 		super(confEdge, attackerLevel, trigger);

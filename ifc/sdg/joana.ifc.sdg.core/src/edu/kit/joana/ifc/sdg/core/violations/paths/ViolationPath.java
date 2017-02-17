@@ -24,8 +24,8 @@ import edu.kit.joana.ifc.sdg.core.SecurityNode;
  *
  */
 public class ViolationPath implements Cloneable {
-	int[] stmtList;
-	LinkedList<SecurityNode> path = new LinkedList<SecurityNode>();
+	private int[] stmtList;
+	private final LinkedList<SecurityNode> path = new LinkedList<SecurityNode>();
 
 	public ViolationPath() {}
 
@@ -100,8 +100,7 @@ public class ViolationPath implements Cloneable {
 	 */
 	@Override
 	public Object clone() {
-		ViolationPath ret = new ViolationPath(path);
-		return ret;
+		return new ViolationPath(path);
 	}
 
 	public Collection<SecurityNode> getAllInvolvedNodes() {

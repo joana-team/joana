@@ -24,9 +24,9 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
  * @see States
  */
 public class SimpleWorklistElement {
-    private SDGNode node;
-    private int thread;
-    private TopologicalNumber tnr;
+    private final SDGNode node;
+    private final int thread;
+    private final TopologicalNumber tnr;
 
     /**
      * Creates a new instance of WorklistElement.
@@ -65,8 +65,7 @@ public class SimpleWorklistElement {
      * Returns the data of this WorklistElement.
      */
     public String toString() {
-        String str = "Node: "+node+"\n"+"Thread: "+thread+"\n"+"TNr: "+tnr;
-        return str;
+        return "Node: "+node+"\n"+"Thread: "+thread+"\n"+"TNr: "+tnr;
     }
 
     public int hashCode() {
@@ -76,13 +75,13 @@ public class SimpleWorklistElement {
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
-		} else if (o == null) {
-			return false;
-		} else if (!(o instanceof SimpleWorklistElement)) {
-			return false;
-		} else {
-			SimpleWorklistElement w = (SimpleWorklistElement) o;
-			return w.node == node && w.thread == thread && w.tnr == tnr;
 		}
+
+		if (!(o instanceof SimpleWorklistElement)) {
+			return false;
+		}
+
+		SimpleWorklistElement w = (SimpleWorklistElement) o;
+		return w.node == node && w.thread == thread && w.tnr == tnr;
 	}
 }

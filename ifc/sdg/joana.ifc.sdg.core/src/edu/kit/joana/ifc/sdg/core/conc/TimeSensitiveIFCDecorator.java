@@ -48,7 +48,7 @@ public class TimeSensitiveIFCDecorator extends IFC<String> {
 	
 	private static class TSFilter extends ViolationFilter<SecurityNode> {
 		
-		private Nanda tsbwSlicer;
+		private final Nanda tsbwSlicer;
 		
 		TSFilter(Nanda tsbwSlicer) {
 			this.tsbwSlicer = tsbwSlicer;

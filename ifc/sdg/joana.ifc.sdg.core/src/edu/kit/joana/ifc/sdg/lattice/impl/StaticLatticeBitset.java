@@ -40,8 +40,7 @@ public class StaticLatticeBitset<ElementType> implements IStaticLattice<ElementT
 
 	private static BigInteger first(final int c, final BigInteger n, final int nlen) {
 		BigInteger i = twoPow(c).subtract(BigInteger.ONE).shiftLeft(nlen - c);
-		BigInteger ret = n.and(i);
-		return ret;
+		return n.and(i);
 	}
 
 	private static int leftMost1(BigInteger i) {
@@ -85,7 +84,7 @@ public class StaticLatticeBitset<ElementType> implements IStaticLattice<ElementT
 	 */
 	public StaticLatticeBitset(Collection<ElementType> elements, ILatticeOperations<ElementType> ops) {
 		assert elements != null;
-		assert elements.size() > 0;
+		assert !elements.isEmpty();
 		assert ops != null;
 
 		this.ops = ops;
@@ -140,7 +139,7 @@ public class StaticLatticeBitset<ElementType> implements IStaticLattice<ElementT
 		EditableLatticeSimple<ElementType> lat = new EditableLatticeSimple<ElementType>(elements);
 		HashMap<ElementType, Integer> layer = new HashMap<ElementType, Integer>();
 		int i = 0;
-		while (queue.size() > 0) {
+		while (!queue.isEmpty()) {
 			List<ElementType> thisLayer = new ArrayList<ElementType>();
 			Collection<ElementType> newElements = new HashSet<ElementType>();
 			for (ElementType e : queue) {

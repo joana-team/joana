@@ -53,32 +53,12 @@ public class DeclassificationSummaryNodes extends IncrementalSummaryBackward {
 
 	    @Override
 		public int hashCode() {
-	    	int hc; //= kind.hashCode();
-//	    	if (label != null) hc = 37 * hc + label.hashCode();
-	    	hc = /*37 * hc + */ getSource().hashCode();
-	        return 37 * hc + getTarget().hashCode();
+	    	return super.hashCode();
 	    }
 
 		@Override
 		public boolean equals(Object o) {
-			if (this == o) {
-				return true;
-			} else if (o == null) {
-				return false;
-			} else if (!(o instanceof PathEdge)) {
-				if (!(o instanceof SDGEdge)) {
-					return false;
-				} else {
-					return super.equals(o);
-				}
-			} else {
-				PathEdge edge = (PathEdge) o;
-
-				// if (kind != edge.kind) return false;
-				if (!getSource().equals(edge.getSource()))
-					return false;
-				return getTarget().equals(edge.getTarget());
-			}
+			return super.equals(o);
 		}
 	}
 

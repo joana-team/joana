@@ -13,10 +13,10 @@ import org.jgrapht.graph.DefaultDirectedGraph;
 public class CustomCFG<V, E> implements AbstractCFG<V, E> {
 
 	private V root;
-	private DirectedGraph<V, E> graph;
-	private Map<E, E> call2ret = new HashMap<E, E>();
-	private Map<E, E> ret2call = new HashMap<E, E>();
-	private Set<E> joins = new HashSet<E>();
+	private final DirectedGraph<V, E> graph;
+	private final Map<E, E> call2ret = new HashMap<E, E>();
+	private final Map<E, E> ret2call = new HashMap<E, E>();
+	private final Set<E> joins = new HashSet<E>();
 
 	public DirectedGraph<V,E> getUnderlyingGraph() {
 		return graph;

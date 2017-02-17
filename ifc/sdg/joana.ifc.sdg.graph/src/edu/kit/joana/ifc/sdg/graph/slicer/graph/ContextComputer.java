@@ -27,9 +27,9 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.GraphFolder;
  * @author giffhorn
  */
 public class ContextComputer {
-	private JoanaGraph g;
-	private CallGraph call;
-	private FoldedCallGraph folded; // a folded call graph
+	private final JoanaGraph g;
+	private final CallGraph call;
+	private final FoldedCallGraph folded; // a folded call graph
 
 	public ContextComputer(JoanaGraph g, CallGraph call, FoldedCallGraph folded) {
 		this.g = g;

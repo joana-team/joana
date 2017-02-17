@@ -33,9 +33,11 @@ import edu.kit.joana.ifc.sdg.lattice.impl.StaticLatticeBitset;
  * a lattice to a immutable but efficient bitset representation.
  *
  */
-public class LatticeUtil {
+public final class LatticeUtil {
 	private static final String TOKEN_LESS = "<=";
 	private static final String TOKEN_COMMENT = "#";
+
+	private LatticeUtil() {}
 
 	/**
 	 * Compiles a given lattice to an immutable but efficient bitset

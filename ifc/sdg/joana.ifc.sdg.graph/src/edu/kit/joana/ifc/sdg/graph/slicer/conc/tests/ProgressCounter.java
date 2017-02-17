@@ -8,7 +8,7 @@
 package edu.kit.joana.ifc.sdg.graph.slicer.conc.tests;
 
 public class ProgressCounter {
-	private int base;
+	private final int base;
 	private int ctr;
 
 	public ProgressCounter(int base) {

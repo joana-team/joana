@@ -9,7 +9,9 @@ package edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 
-public class NandaFactory {
+public final class NandaFactory {
+
+	private NandaFactory() {}
 
 	/**
 	 * Creates a Nanda backward slicer with all optimizations.
@@ -18,9 +20,7 @@ public class NandaFactory {
 	 * @return
 	 */
 	public static Nanda createNandaBackward(SDG g) {
-		NandaMode mode = new NandaBackward();
-		Nanda nanda = new Nanda(g, mode);
-		return nanda;
+		return new Nanda(g, new NandaBackward());
 	}
 
 	/**
@@ -30,9 +30,7 @@ public class NandaFactory {
 	 * @return
 	 */
 	public static Nanda createNandaForward(SDG g) {
-		NandaMode mode = new NandaForward();
-		Nanda nanda = new Nanda(g, mode);
-		return nanda;
+		return new Nanda(g, new NandaForward());
 	}
 
 	/**
@@ -43,9 +41,7 @@ public class NandaFactory {
 	 * @return
 	 */
 	public static Nanda createNandaFlatBackward(SDG g) {
-		NandaMode mode = new NandaBackward();
-		NandaFlat nanda = new NandaFlat(g, mode);
-		return nanda;
+		return new NandaFlat(g, new NandaBackward());
 	}
 
 	/**
@@ -56,9 +52,7 @@ public class NandaFactory {
 	 * @return
 	 */
 	public static Nanda createNandaFlatForward(SDG g) {
-		NandaMode mode = new NandaForward();
-		NandaFlat nanda = new NandaFlat(g, mode);
-		return nanda;
+		return new NandaFlat(g, new NandaForward());
 	}
 
 	/**
@@ -69,8 +63,6 @@ public class NandaFactory {
 	 * @return
 	 */
 	public static Nanda createNandaReachBackward(SDG g) {
-		NandaMode mode = new NandaBackward();
-		NandaReach nanda = new NandaReach(g, mode);
-		return nanda;
+		return new NandaReach(g, new NandaBackward());
 	}
 }

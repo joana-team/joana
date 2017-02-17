@@ -17,8 +17,8 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 
 
-public class ContextGraphs {
-	private ContextGraph[] graphs;
+public final class ContextGraphs {
+	private final ContextGraph[] graphs;
 
 	private ContextGraphs(ContextGraph[] graphs) {
 		this.graphs = graphs;

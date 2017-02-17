@@ -42,11 +42,20 @@ import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
  */
 public class FullIFCSequentialTest {
 
+	private static IFCAnalysis buildAndAnnotate(final String className) throws ApiTestException {
+		return buildAndAnnotate(className, PointsToPrecision.INSTANCE_BASED, ExceptionAnalysis.INTRAPROC);
+	}
+
+	private static IFCAnalysis buildAndAnnotate(String className,
+			PointsToPrecision pts, ExceptionAnalysis exc) throws ApiTestException {
+		return buildAndAnnotate(className, "sensitivity.Security.SECRET", "sensitivity.Security.PUBLIC", pts, exc);
+	}
+
 	public static IFCAnalysis buildAndAnnotate(final String className, final String secSrc,
 			final String pubOut) throws ApiTestException {
 		return buildAndAnnotate(className, secSrc, pubOut, PointsToPrecision.INSTANCE_BASED, ExceptionAnalysis.INTRAPROC);
 	}
-	
+
 	public static IFCAnalysis buildAndAnnotate(final String className, final String secSrc,
 			final String pubOut, final PointsToPrecision pts, final ExceptionAnalysis exc) throws ApiTestException {
 		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(className);
@@ -56,7 +65,7 @@ public class FullIFCSequentialTest {
 		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH);
 		config.setPointsToPrecision(pts);
 		SDGProgram prog = null;
-		
+
 		try {
 			prog = SDGProgram.createSDGProgram(config);
 		} catch (ClassHierarchyException e) {
@@ -68,7 +77,7 @@ public class FullIFCSequentialTest {
 		} catch (CancelException e) {
 			throw new ApiTestException(e);
 		}
-		
+
 		IFCAnalysis ana = new IFCAnalysis(prog);
 		SDGProgramPart secret = ana.getProgramPart(secSrc);
 		assertNotNull(secret);
@@ -76,22 +85,22 @@ public class FullIFCSequentialTest {
 		SDGProgramPart output = ana.getProgramPart(pubOut);
 		assertNotNull(output);
 		ana.addSinkAnnotation(output, BuiltinLattices.STD_SECLEVEL_LOW);
-		
+
 		return ana;
 	}
-	
+
 	private static void testLeaksFound(IFCAnalysis ana, int leaks) {
 		Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 		assertFalse(illegal.isEmpty());
 		assertEquals(leaks, illegal.size());
 	}
-	
+
 	private static void testPrecision(IFCAnalysis ana) {
 		Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 		assertTrue(illegal.isEmpty());
 		assertEquals(0, illegal.size());
 	}
-	
+
 	@Test
 	public void testPraktomatValid() {
 		try {
@@ -122,8 +131,6 @@ public class FullIFCSequentialTest {
 	public void testExceptionOptimizeNoOpt() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionOptimize",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.ALL_NO_ANALYSIS);
 			testLeaksFound(ana, 24);
@@ -137,8 +144,6 @@ public class FullIFCSequentialTest {
 	public void testExceptionOptimizeIntra() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionOptimize",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.INTRAPROC);
 			testLeaksFound(ana, 18);
@@ -152,8 +157,6 @@ public class FullIFCSequentialTest {
 	public void testExceptionOptimizeInter() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionOptimize",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.INTERPROC);
 			testLeaksFound(ana, 15);
@@ -167,8 +170,6 @@ public class FullIFCSequentialTest {
 	public void testExceptionOptimizeIgnoreExc() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionOptimize",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.IGNORE_ALL);
 			testPrecision(ana);
@@ -182,8 +183,6 @@ public class FullIFCSequentialTest {
 	public void testNegativeArraySizeException() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("exc.Exception_NegativeArraySizeLeak",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.INTRAPROC);
 			testLeaksFound(ana, 6);
@@ -196,9 +195,7 @@ public class FullIFCSequentialTest {
 	@Test
 	public void testFirst() {
 		try {
-			IFCAnalysis ana = buildAndAnnotate("lob.First",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC");
+			IFCAnalysis ana = buildAndAnnotate("lob.First");
 			testLeaksFound(ana, 6);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
@@ -209,9 +206,7 @@ public class FullIFCSequentialTest {
 	@Test
 	public void testTermination() {
 		try {
-			IFCAnalysis ana = buildAndAnnotate("term.A",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC");
+			IFCAnalysis ana = buildAndAnnotate("term.A");
 			testLeaksFound(ana, 6);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
@@ -249,8 +244,6 @@ public class FullIFCSequentialTest {
 	public void testExceptionHandlingNoOpt() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionHandling",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.ALL_NO_ANALYSIS);
 			testLeaksFound(ana, 3);
@@ -264,8 +257,6 @@ public class FullIFCSequentialTest {
 	public void testExceptionHandlingIntra() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionHandling",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.INTRAPROC);
 			testLeaksFound(ana, 3);
@@ -279,8 +270,6 @@ public class FullIFCSequentialTest {
 	public void testExceptionHandlingInter() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionHandling",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.INTERPROC);
 			testLeaksFound(ana, 3);
@@ -294,8 +283,6 @@ public class FullIFCSequentialTest {
 	public void testExceptionHandlingIgnore() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionHandling",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.IGNORE_ALL);
 			testPrecision(ana);
@@ -309,8 +296,6 @@ public class FullIFCSequentialTest {
 	public void testExceptionTestNoOpt() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionTest",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.ALL_NO_ANALYSIS);
 			testLeaksFound(ana, 6);
@@ -324,8 +309,6 @@ public class FullIFCSequentialTest {
 	public void testExceptionTestIntra() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionTest",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.INTRAPROC);
 			testLeaksFound(ana, 6);
@@ -339,8 +322,6 @@ public class FullIFCSequentialTest {
 	public void testExceptionTestInter() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionTest",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.INTERPROC);
 			testLeaksFound(ana, 6);
@@ -354,8 +335,6 @@ public class FullIFCSequentialTest {
 	public void testExceptionTestIgnore() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionTest",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.IGNORE_ALL);
 			testPrecision(ana);
@@ -369,8 +348,6 @@ public class FullIFCSequentialTest {
 	public void testHammerObjSens() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("tests.Hammer",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.OBJECT_SENSITIVE,
 					ExceptionAnalysis.INTRAPROC);
 			testLeaksFound(ana, 4);
@@ -384,8 +361,6 @@ public class FullIFCSequentialTest {
 	public void testHammerTypeBased() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("tests.Hammer",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.TYPE_BASED,
 					ExceptionAnalysis.INTRAPROC);
 			testLeaksFound(ana, 6);
@@ -399,8 +374,6 @@ public class FullIFCSequentialTest {
 	public void testHammerDistributedObjSens() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("tests.HammerDistributed",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.OBJECT_SENSITIVE,
 					ExceptionAnalysis.INTRAPROC);
 			testLeaksFound(ana, 4);
@@ -414,8 +387,6 @@ public class FullIFCSequentialTest {
 	public void testHammerDistributedTypeBased() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("tests.HammerDistributed",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.TYPE_BASED,
 					ExceptionAnalysis.INTRAPROC);
 			testLeaksFound(ana, 6);
@@ -429,8 +400,6 @@ public class FullIFCSequentialTest {
 	public void testHammerDistributed1Stack() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("tests.HammerDistributed",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.N1_CALL_STACK,
 					ExceptionAnalysis.INTRAPROC);
 			testLeaksFound(ana, 4);
@@ -444,8 +413,6 @@ public class FullIFCSequentialTest {
 	public void testHammerDistributed2Stack() {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("tests.HammerDistributed",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC",
 					PointsToPrecision.N2_CALL_STACK,
 					ExceptionAnalysis.INTRAPROC);
 			testLeaksFound(ana, 4);
@@ -458,9 +425,7 @@ public class FullIFCSequentialTest {
 	@Test
 	public void testInputTest() {
 		try {
-			IFCAnalysis ana = buildAndAnnotate("tests.InputTest",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC");
+			IFCAnalysis ana = buildAndAnnotate("tests.InputTest");
 			testLeaksFound(ana, 2);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
@@ -471,9 +436,7 @@ public class FullIFCSequentialTest {
 	@Test
 	public void testPasswordFileValueBasedLeak() {
 		try {
-			IFCAnalysis ana = buildAndAnnotate("tests.PasswordFileValueBasedLeak",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC");
+			IFCAnalysis ana = buildAndAnnotate("tests.PasswordFileValueBasedLeak");
 			testLeaksFound(ana, 2);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
@@ -484,9 +447,7 @@ public class FullIFCSequentialTest {
 	@Test
 	public void testPasswordFileNoLeak() {
 		try {
-			IFCAnalysis ana = buildAndAnnotate("tests.PasswordFileNoLeak",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC");
+			IFCAnalysis ana = buildAndAnnotate("tests.PasswordFileNoLeak");
 			testPrecision(ana);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
@@ -497,9 +458,7 @@ public class FullIFCSequentialTest {
 	@Test
 	public void testRecursive() {
 		try {
-			IFCAnalysis ana = buildAndAnnotate("tests.Recursive",
-					"sensitivity.Security.SECRET",
-					"sensitivity.Security.PUBLIC");
+			IFCAnalysis ana = buildAndAnnotate("tests.Recursive");
 			testLeaksFound(ana, 2);
 		} catch (ApiTestException e) {
 			e.printStackTrace();

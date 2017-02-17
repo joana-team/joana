@@ -19,7 +19,7 @@ import edu.kit.joana.util.Pair;
  * Implements functionality to test a graph for required lattice properties.
  *
  */
-public class LatticeValidator {
+public final class LatticeValidator {
 
 	private LatticeValidator() { }
 
@@ -180,17 +180,17 @@ public class LatticeValidator {
 	 *         lattice validation.
 	 */
 	public static <ElementType> LatticeProblemDescription<ElementType> validateIncremental(Collection<ElementType> elements, ILatticeOperations<ElementType> ops) {
-		if(elements.size() == 0)
+		if(elements.isEmpty())
 			return new LatticeProblemDescription<ElementType>("Graph is empty");
 
 		Collection<ElementType> tops = ops.findTopElements(elements);
-		if (tops.size() == 0)
+		if (tops.isEmpty())
 			return new LatticeProblemDescription<ElementType>("Graph does not have a top element");
 		if (tops.size() > 1)
 			return new LatticeProblemDescription<ElementType>("Graph has multiple top elements", tops);
 
 		Collection<ElementType> bottoms = ops.findBottomElements(elements);
-		if (bottoms.size() == 0)
+		if (bottoms.isEmpty())
 			return new LatticeProblemDescription<ElementType>("Graph does not have a bottom element");
 		if (bottoms.size() > 1)
 			return new LatticeProblemDescription<ElementType>("Graph has multiple bottom elements", bottoms);

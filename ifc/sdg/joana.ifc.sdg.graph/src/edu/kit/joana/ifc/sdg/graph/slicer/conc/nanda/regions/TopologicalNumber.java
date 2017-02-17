@@ -39,10 +39,10 @@ public class TopologicalNumber {
     /** The topological number. */
     private int number;
     /** The topological number's thread. */
-    private int thread;
+    private final int thread;
     /** The ID of the enclosing procedure. */
     private int proc;
-    private int hash;
+    private final int hash;
 
     /**
      * Creates a new instance of TopologicalNumber
@@ -86,6 +86,13 @@ public class TopologicalNumber {
      */
     public String toString() {
         return "(" + number + ", " + proc + ", " + thread + ")";
+    }
+
+    public boolean equals(Object o) {
+    	if (!(o instanceof TopologicalNumber)) {
+    		return false;
+    	}
+    	return hash == ((TopologicalNumber) o).hash;
     }
 
     public int hashCode() {

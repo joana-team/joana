@@ -35,7 +35,7 @@ public class Element {
      */
     public static class ElementSet {
         // realisierung durch eine map
-        private HashMap<Element, Collection<String>> map;
+        private final HashMap<Element, Collection<String>> map;
 
         /**
          * Initialisiert die Map.

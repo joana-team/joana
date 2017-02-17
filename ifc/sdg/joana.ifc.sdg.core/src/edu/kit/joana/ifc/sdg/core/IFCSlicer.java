@@ -31,8 +31,8 @@ import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
  */
 public class IFCSlicer {
 
-	IStaticLattice<String> lattice;
-	SDG graph;
+	private final IStaticLattice<String> lattice;
+	private final SDG graph;
 
 	public IFCSlicer(IStaticLattice<String> l, SDG g) {
 		lattice = l;

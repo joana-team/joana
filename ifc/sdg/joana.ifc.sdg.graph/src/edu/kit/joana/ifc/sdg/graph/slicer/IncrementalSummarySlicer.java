@@ -217,7 +217,7 @@ public abstract class IncrementalSummarySlicer implements Slicer {
     /* main- method */
 
     public static void main(String[] args) throws IOException {
-        edu.kit.joana.ifc.sdg.graph.SDG g = edu.kit.joana.ifc.sdg.graph.SDG.readFrom("/Users/hammer/ifMain.Company.pdg");
+        SDG g = SDG.readFrom("/Users/hammer/ifMain.Company.pdg");
 
         SDGNode c = g.getNode(453);
         IncrementalSummarySlicer slicer = new IncrementalSummaryForward(g);

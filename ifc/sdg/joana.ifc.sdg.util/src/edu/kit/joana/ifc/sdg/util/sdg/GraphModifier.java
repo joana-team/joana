@@ -25,10 +25,12 @@ import edu.kit.joana.util.Logger;
 /**
  * @author Martin Mohr
  */
-public class GraphModifier {
-	
+public final class GraphModifier {
+
+	private GraphModifier() {}
+
 	private static final Logger debug = Log.getLogger(Log.L_IFC_DEBUG);
-	
+
 	public static void removeCallCallRetEdges(JoanaGraph cfg) {
 		List<SDGEdge> toRemove = new LinkedList<SDGEdge>();
 		for (SDGEdge e : cfg.edgeSet()) {
@@ -41,7 +43,7 @@ public class GraphModifier {
 		cfg.removeAllEdges(toRemove);
 		removeUnreachable(cfg);
 	}
-	
+
 	public static <V, E> void removeUnreachable(DirectedGraph<V, E> graph, V root) {
 		Set<V> unreachable = new HashSet<V>(graph.vertexSet());
 		LinkedList<V> wl = new LinkedList<V>();

@@ -18,9 +18,9 @@ public class Setup {
 	private static final String[] pdgs = PDGs.javagrande;
 
 	private Algorithm.Kind choice;
-	private List<Algorithm> algs;
-	private List<String> progs;
-	private List<Report> reports;
+	private final List<Algorithm> algs;
+	private final List<String> progs;
+	private final List<Report> reports;
 	private int criteria;
 	private boolean random;
 

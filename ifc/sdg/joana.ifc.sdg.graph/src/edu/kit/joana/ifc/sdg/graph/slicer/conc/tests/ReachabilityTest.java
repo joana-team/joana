@@ -46,22 +46,20 @@ public class ReachabilityTest {
 		}
 	}
 
-    /** the corresponding interprocedural control flow graph */
-    private CFG icfg;
     /** the call graph (contains calls and entries) */
 //    private BipartiteCallGraph call;
     /** the folded icfg for reachability checking purpose */
-    private FoldedCFG foldedIcfg;
+    private final FoldedCFG foldedIcfg;
     /** The graph to be sliced. */
-    private SDG sdg;
+    private final SDG sdg;
     /** The bipartit call graph of 'ipdg'. */
 //    private FoldedBipartiteCallGraph foldedCall;
 
     /** realises the reachability checking algorithm */
-	private ReachabilityChecker1 reachable1;
-    private ReachabilityChecker2 reachable2;
-    private ReachabilityChecker3 reachable3;
-    private DynamicContextManager man;
+	private final ReachabilityChecker1 reachable1;
+    private final ReachabilityChecker2 reachable2;
+    private final ReachabilityChecker3 reachable3;
+    private final DynamicContextManager man;
 
     /**
      * Creates a new instance of ReachabilityTest
@@ -74,7 +72,7 @@ public class ReachabilityTest {
         man = new DynamicContextManager(sdg);
 
         // build the threaded ICFG
-        icfg = ICFGBuilder.extractICFG(sdg);
+        CFG icfg = ICFGBuilder.extractICFG(sdg);
 
         // fold ICFG with Krinke's two-pass folding algorithm
         foldedIcfg = GraphFolder.twoPassFolding(icfg);
@@ -177,7 +175,7 @@ public class ReachabilityTest {
                     // according to the return-cycle
                     SDGNode call = returnCall(node);
 
-                    if (res.size() == 0 || call != res.getLast()) {
+                    if (res.isEmpty() || call != res.getLast()) {
                         res.addLast(call);
                     }
                 }
@@ -186,7 +184,7 @@ public class ReachabilityTest {
                 SDGNode x = map(node);
 
                 // prohibit redundant piling of Contexts
-                if (res.size() == 0 || x != res.getLast()) {
+                if (res.isEmpty() || x != res.getLast()) {
                     res.addLast(x);
                 }
 
@@ -196,7 +194,7 @@ public class ReachabilityTest {
         }
 
         SDGNode node = foldedIcfg.map(origin.getNode());
-        if (res.size() > 0 && node == res.getLast()) {
+        if (!res.isEmpty() && node == res.getLast()) {
             res.removeLast();
         }
 

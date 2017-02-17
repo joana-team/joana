@@ -99,8 +99,8 @@ public class ReduceRedundantFlows extends IFC<String> {
 	private class RedundantFilter extends ViolationFilter<SecurityNode> {
 
 
-		private Collection<SDGNode> sources;
-		private Collection<SDGNode> sinks;
+		private final Collection<SDGNode> sources;
+		private final Collection<SDGNode> sinks;
 
 
 		public RedundantFilter(Collection<SDGNode> sources, Collection<SDGNode> sinks) {

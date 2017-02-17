@@ -31,9 +31,9 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
  * @author  Dennis Giffhorn
  */
 public class SameLevelICFGChopper {
-	private CFG g;
+	private final CFG g;
 	// The employed intra-procedural chopper
-    private CFGChopper intraChopper;
+    private final CFGChopper intraChopper;
 
     /**
      * Constructs a SMC for a given SDG.

@@ -9,13 +9,18 @@ package edu.kit.joana.ifc.sdg.graph.pathslicing;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 
 
-public class PathSlicerFactory {
+public final class PathSlicerFactory {
 
-	public PathSlicer createPathSlicer(String sdgFile, CFG graph) {
+	private PathSlicerFactory() {}
+
+	private static final String[] suffixes = {"_def", "_use", "_mod", "_ref", "_pto"};
+
+	public static PathSlicer createPathSlicer(String sdgFile, CFG graph) {
 		if (!checkSDG(sdgFile)) {
 			throw new IllegalArgumentException("SDG files not correct!");
 		}
@@ -26,33 +31,12 @@ public class PathSlicerFactory {
 		try {
 			rdr = new VariableMapReader(sdgFile);
 		} catch (IOException e) {
-			e.printStackTrace();
-			throw new IllegalArgumentException("Could not create VariableMapReader!");
+			throw new IllegalArgumentException("Could not create VariableMapReader!", e);
 		}
 		return new PathSlicer(rdr, graph);
 	}
 
 	public static boolean checkSDG(String sdgFile) {
-		File f = new File(sdgFile + "_def");
-		if (!f.exists()) {
-			return false;
-		}
-		f = new File(sdgFile + "_use");
-		if (!f.exists()) {
-			return false;
-		}
-		f = new File(sdgFile + "_mod");
-		if (!f.exists()) {
-			return false;
-		}
-		f = new File(sdgFile + "_ref");
-		if (!f.exists()) {
-			return false;
-		}
-		f = new File(sdgFile + "_pto");
-		if (!f.exists()) {
-			return false;
-		}
-		return true;
+		return Arrays.stream(suffixes).allMatch(s -> new File(sdgFile + s).exists());
 	}
 }

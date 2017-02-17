@@ -29,9 +29,9 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
  * @author giffhorn
  */
 public class NTSCD {
-    private CFG icfg;
-    private List<SDGEdge> tmpEdges;
-    private HashMap<SDGNode, HashSet<SDGNode>> allPathRelation;
+    private final CFG icfg;
+    private final List<SDGEdge> tmpEdges;
+    private final HashMap<SDGNode, HashSet<SDGNode>> allPathRelation;
 
     public NTSCD(CFG icfg) {
         this.icfg = icfg;

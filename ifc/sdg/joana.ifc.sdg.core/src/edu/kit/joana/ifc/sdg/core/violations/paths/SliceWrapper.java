@@ -19,8 +19,8 @@ import edu.kit.joana.ifc.sdg.graph.slicer.SummarySlicerForward;
 
 
 public class SliceWrapper {
-    private SummarySlicerBackward sback;
-    private SummarySlicerForward sfor;
+    private final SummarySlicerBackward sback;
+    private final SummarySlicerForward sfor;
 
     public SliceWrapper(SDG g) {
         sback = new SummarySlicerBackward(g);

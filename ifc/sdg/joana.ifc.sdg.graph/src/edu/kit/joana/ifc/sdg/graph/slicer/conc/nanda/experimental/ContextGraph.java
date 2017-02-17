@@ -19,9 +19,9 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
 public class ContextGraph {
 	public static class ContextEdge {
-		private TopologicalNumber source;
-		private TopologicalNumber target;
-		private SDGEdge.Kind kind;
+		private final TopologicalNumber source;
+		private final TopologicalNumber target;
+		private final SDGEdge.Kind kind;
 
 		public ContextEdge(TopologicalNumber s, TopologicalNumber t, SDGEdge.Kind k) {
 			source = s;
@@ -51,8 +51,8 @@ public class ContextGraph {
 	}
 
 	private static class Edges {
-		private Collection<ContextEdge> incEdges;
-		private Collection<ContextEdge> outEdges;
+		private final Collection<ContextEdge> incEdges;
+		private final Collection<ContextEdge> outEdges;
 
 		private Edges() {
 			incEdges = new LinkedList<ContextEdge>();
@@ -68,7 +68,7 @@ public class ContextGraph {
 	}
 
 
-	private HashMap<TopologicalNumber, Edges> edges;
+	private final HashMap<TopologicalNumber, Edges> edges;
 	private HashMap<SDGNode, LinkedList<TopologicalNumber>> map;
 	private HashSet<TopologicalNumber>[] forks; // array of HashSet<TopologicalNumber>
 

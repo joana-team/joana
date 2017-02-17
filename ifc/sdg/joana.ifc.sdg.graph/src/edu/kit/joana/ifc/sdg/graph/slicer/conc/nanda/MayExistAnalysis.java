@@ -19,8 +19,8 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.BitMatrix;
 
 
 public class MayExistAnalysis {
-	private BitMatrix map;
-	private Collection<TopologicalNumber>[] slices;
+	private final BitMatrix map;
+	private final Collection<TopologicalNumber>[] slices;
 
 	public MayExistAnalysis(BitMatrix map, Collection<TopologicalNumber>[] slices) {
 		this.map = map;
@@ -34,12 +34,9 @@ public class MayExistAnalysis {
 		} else if (map.get(thread, nrThread)) {
 			return true;
 
-		} else if (slices[thread].contains(nr) || slices[nrThread].contains(nr)) {
-			return true;
-
-		} else {
-			return false;
 		}
+
+		return slices[thread].contains(nr) || slices[nrThread].contains(nr);
 	}
 
 

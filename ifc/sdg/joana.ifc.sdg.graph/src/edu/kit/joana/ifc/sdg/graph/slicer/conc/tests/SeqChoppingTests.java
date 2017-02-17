@@ -86,7 +86,7 @@ public class SeqChoppingTests {
 
         for (Integer t : threads.keySet()) {
             HashSet<SDGNode> ndoes = threads.get(t);
-            SDGNode[] sorted = ndoes.toArray(new SDGNode[0]);
+            SDGNode[] sorted = ndoes.toArray(new SDGNode[ndoes.size()]);
 
             for (int i = 0, j = sorted.length-1; i < sorted.length && j >= 0; i++, j--) {
                 ChopCrit c = new ChopCrit(sorted[i], sorted[j]);

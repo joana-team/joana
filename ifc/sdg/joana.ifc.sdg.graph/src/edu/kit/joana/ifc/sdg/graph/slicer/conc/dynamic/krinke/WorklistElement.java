@@ -22,9 +22,9 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
  */
 public class WorklistElement implements Cloneable {
     /** The context. */
-    private Context context;
+    private final Context context;
     /** The state tuple. */
-    private States states;
+    private final States states;
 
     /**
      * Creates a new instance of WorklistElement

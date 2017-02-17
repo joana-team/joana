@@ -23,16 +23,13 @@ package edu.kit.joana.ifc.sdg.graph;
 /**
  * This class represents an immutable tuple of SDG nodes.<br>
  *
- * <code>hashCode()</code> and <code>equals()</code> are implemented to
- * ensure the set properties when added into a set.
- *
  * @author Bernd Nuernberger
  */
 public class SDGNodeTuple {
     /** The first component of the tuple. */
-    private SDGNode firstNode;
+    private final SDGNode firstNode;
     /** The second component of the tuple. */
-    private SDGNode secondNode;
+    private final SDGNode secondNode;
 
     /**
      * Constructs a tuple given two nodes.
@@ -54,10 +51,10 @@ public class SDGNodeTuple {
         if (!(o instanceof SDGNodeTuple)) {
         	return false;
 
-        } else {
-        	SDGNodeTuple t = (SDGNodeTuple) o;
-            return (firstNode == t.firstNode && secondNode == t.secondNode);
         }
+        
+    	SDGNodeTuple t = (SDGNodeTuple) o;
+        return firstNode == t.firstNode && secondNode == t.secondNode;
     }
 
     /**
@@ -77,22 +74,6 @@ public class SDGNodeTuple {
     }
 
     /**
-     * Setter for the first component of this tuple.
-     * @param n  The new firstNode.
-     */
-    public void setFirstNode(SDGNode n) {
-        firstNode = n;
-    }
-
-    /**
-     * Setter for the second component of this tuple.
-     * @param n  The new secondNode.
-     */
-    public void setSecondNode(SDGNode n) {
-        secondNode = n;
-    }
-
-    /**
      * Returns a <code>String</code> representation of this tuple.
      * @return String of format (m, n) representing this tuple.
      */
@@ -101,11 +82,7 @@ public class SDGNodeTuple {
     }
 
     /**
-     * Returns the hashcode if this tuple. The lower 16 bits of the hashcode
-     * contain the id of the first component node and the higher 16 bits
-     * contain the id of the second node. If two tuples are equals, its
-     * hashcodes will also match. Visa versa that must not be true if any
-     * contained node has an id greater than 65535.
+     * Returns the hashcode of this tuple.
      * @return The hashcode of this tuple.
      */
     public int hashCode() {

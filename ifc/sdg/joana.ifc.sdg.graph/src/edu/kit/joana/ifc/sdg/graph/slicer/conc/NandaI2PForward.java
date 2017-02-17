@@ -11,7 +11,6 @@ import java.util.Collection;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
-import edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
 
@@ -35,11 +34,11 @@ public class NandaI2PForward extends NandaI2PSlicer {
 		return e.getTarget();
 	}
 
-	public boolean isDescendingEdge(Kind k) {
+	public boolean isDescendingEdge(SDGEdge.Kind k) {
 		return k == SDGEdge.Kind.CALL || k == SDGEdge.Kind.PARAMETER_IN;
 	}
 
-	public boolean isAscendingEdge(Kind k) {
+	public boolean isAscendingEdge(SDGEdge.Kind k) {
 		return k == SDGEdge.Kind.PARAMETER_OUT;
 	}
 }

@@ -154,7 +154,7 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
 
     // Class Invariant: ThreadInstance ID's are consistent with the order in the threads list
     
-    private List<ThreadInstance> threads;
+    private final List<ThreadInstance> threads;
      
     
     /**

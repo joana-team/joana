@@ -23,7 +23,7 @@ import gnu.trove.map.hash.TObjectIntHashMap;
  * @param <E> type of edges
  */
 public class DFSIntervalOrder<V, E> {
-	private DirectedGraph<V, E> graph;
+	private final DirectedGraph<V, E> graph;
 	private Map<V,Interval> dfsInterval;
 	private TObjectIntMap<V> discoverTime;
 	private TObjectIntMap<V> finishTime;
@@ -51,10 +51,10 @@ public class DFSIntervalOrder<V, E> {
 		list = new LinkedList<V>();
 		DepthFirstIterator<V, E> dfsIter;
 		V root = findRoot();
-		if (root != null) {
-			dfsIter = new DepthFirstIterator<V, E>(graph, root);
-		} else {
+		if (root == null) {
 			dfsIter = new DepthFirstIterator<V, E>(graph);
+		} else {
+			dfsIter = new DepthFirstIterator<V, E>(graph, root);
 		}
 
 		dfsIter.addTraversalListener(new TraversalListener<V, E>() {

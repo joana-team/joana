@@ -20,7 +20,7 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.util.Pair;
 
-class GraphStats implements Iterable<Pair<String, MethodStats>> {
+final class GraphStats implements Iterable<Pair<String, MethodStats>> {
 
 	private final SortedMap<String, List<MethodStats>> stats = new TreeMap<String, List<MethodStats>>();
 
@@ -29,11 +29,11 @@ class GraphStats implements Iterable<Pair<String, MethodStats>> {
 
 	private void addMethodStatsFor(String mSig, MethodStats mStats) {
 		List<MethodStats> lsMethodStats;
-		if (!stats.containsKey(mSig)) {
+		if (stats.containsKey(mSig)) {
+			lsMethodStats = stats.get(mSig);
+		} else {
 			lsMethodStats = new LinkedList<MethodStats>();
 			stats.put(mSig, lsMethodStats);
-		} else {
-			lsMethodStats = stats.get(mSig);
 		}
 		lsMethodStats.add(mStats);
 	}
@@ -122,17 +122,17 @@ class GraphStats implements Iterable<Pair<String, MethodStats>> {
 		mSigs.retainAll(gs2.getMethodSignatures());
 		if (!mSigs.isEmpty()) {
 			throw new IllegalArgumentException("Cannot join graph stats with common methods!");
-		} else {
-			GraphStats ret = new GraphStats();
-			for (Pair<String, MethodStats> e : gs1) {
-				ret.addMethodStatsFor(e.getFirst(), e.getSecond());
-			}
-
-			for (Pair<String, MethodStats> e : gs2) {
-				ret.addMethodStatsFor(e.getFirst(), e.getSecond());
-			}
-			return ret;
 		}
+		
+		GraphStats ret = new GraphStats();
+		for (Pair<String, MethodStats> e : gs1) {
+			ret.addMethodStatsFor(e.getFirst(), e.getSecond());
+		}
+
+		for (Pair<String, MethodStats> e : gs2) {
+			ret.addMethodStatsFor(e.getFirst(), e.getSecond());
+		}
+		return ret;
 	}
 
 	public static GraphStats difference(GraphStats gs1, GraphStats gs2) {

@@ -24,9 +24,9 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
  */
 public class KrinkeSCCInspector {
     /** An ICFG whose SCC's shall be determined. */
-    private CFG icfg;
+    private final CFG icfg;
     /** A buffer for temporarily removed edges. */
-    private LinkedList<SDGEdge> buffer;
+    private final LinkedList<SDGEdge> buffer;
 
     /** Creates a new instance of KrinkesSCCInspector.
      *

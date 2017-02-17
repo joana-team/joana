@@ -21,7 +21,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
  */
 public class States implements Cloneable {
     /** The specific states. */
-    private LinkedList<State> states;
+    private final LinkedList<State> states;
 
 
     /**
@@ -98,24 +98,24 @@ public class States implements Cloneable {
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
-		} else if (o == null) {
-			return false;
-		} else if (!(o instanceof States)) {
-			return false;
-		} else {
-			States toCheck = (States) o;
-
-			if (this.size() != toCheck.size())
-				return false;
-
-			for (int i = 0; i < this.size(); i++) {
-				if (!this.get(i).equals(toCheck.get(i))) {
-					return false;
-				}
-			}
-
-			return true;
 		}
+
+		if (!(o instanceof States)) {
+			return false;
+		}
+
+		States toCheck = (States) o;
+
+		if (this.size() != toCheck.size())
+			return false;
+
+		for (int i = 0; i < this.size(); i++) {
+			if (!this.get(i).equals(toCheck.get(i))) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
     /* setter */

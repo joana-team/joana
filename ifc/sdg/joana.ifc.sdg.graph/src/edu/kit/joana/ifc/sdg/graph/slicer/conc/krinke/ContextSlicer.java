@@ -30,9 +30,9 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.ContextManager;
  * @author  Dennis Giffhorn
  */
 public class ContextSlicer {
-    private SDG sdg;
-    private ContextManager man;
-    private Set<SDGEdge.Kind> threadEdges = SDGEdge.Kind.threadEdges();
+    private final SDG sdg;
+    private final ContextManager man;
+    private final Set<SDGEdge.Kind> threadEdges = SDGEdge.Kind.threadEdges();
 
     /** Containing marks for visited vertices. */
     protected HashMap<SDGNode, HashSet<WorklistElement>> map;

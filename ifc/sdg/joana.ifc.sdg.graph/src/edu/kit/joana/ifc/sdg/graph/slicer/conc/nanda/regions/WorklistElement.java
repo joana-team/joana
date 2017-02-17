@@ -24,12 +24,12 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
  */
 public class WorklistElement {
     /** Identifies the node and its thread region. */
-    private VirtualNode node;
+    private final VirtualNode node;
 
-    private TopologicalNumber tnr;
+    private final TopologicalNumber tnr;
 
     /** The state tuple of the node. */
-    private States states;
+    private final States states;
 
     /**
      * Creates a new instance of WorklistElement.
@@ -100,13 +100,13 @@ public class WorklistElement {
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
-		} else if (o == null) {
-			return false;
-		} else if (!(o instanceof WorklistElement)) {
-			return false;
-		} else {
-			WorklistElement w = (WorklistElement) o;
-			return w.node.equals(node) && w.states.equals(states);
 		}
+
+		if (!(o instanceof WorklistElement)) {
+			return false;
+		}
+
+		WorklistElement w = (WorklistElement) o;
+		return w.node.equals(node) && w.states.equals(states);
 	}
 }

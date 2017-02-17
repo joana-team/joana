@@ -108,7 +108,7 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
      * Can return null if no root exists.
      */
     public SDGNode getRoot() {
-    	return root != null ? root : root();
+    	return root == null ? root() : root;
     }
 
     public void setRoot(SDGNode n) {

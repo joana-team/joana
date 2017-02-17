@@ -174,16 +174,16 @@ public class LSODNISlicer implements ConflictScanner {
 		for (SDGEdge inc : g.getIncomingEdgesOfKind(n,
 				SDGEdge.Kind.CONFLICT_DATA)) {
 			// possible probabilistic data channel
-			if (!useOptimization) {
-				conf.addPossiblyUntriggeredDataConflict(inc, e.node,
-						e.node.getLevel());
-			} else {
+			if (useOptimization) {
 				Collection<SecurityNode> secTriggers = collectSecretTriggers(inc,
 						e.node.getLevel());
 				for (SecurityNode secTrigger : secTriggers) {
 					conf.addTriggeredDataConflict(inc, secTrigger, e.node,
 							e.node.getLevel());
 				}
+			} else {
+				conf.addPossiblyUntriggeredDataConflict(inc, e.node,
+						e.node.getLevel());
 			}
 		}
 	}
@@ -201,15 +201,15 @@ public class LSODNISlicer implements ConflictScanner {
 			String refLevel = e.node.getLevel();
 			if (isLowObservable(oConf, refLevel)) {
 				// possible probabilistic order channel
-				if (!useOptimization) {
-					conf.addPossiblyUntriggeredOrderConflict(oConf, refLevel);
-				} else {
+				if (useOptimization) {
 					Collection<SecurityNode> secTriggers = collectSecretTriggers(
 							oConf, refLevel);
 					for (SecurityNode secTrigger : secTriggers) {
 						conf.addTriggeredOrderConflict(oConf, secTrigger,
 								refLevel);
 					}
+				} else {
+					conf.addPossiblyUntriggeredOrderConflict(oConf, refLevel);
 				}
 			}
 		}
@@ -442,10 +442,10 @@ public class LSODNISlicer implements ConflictScanner {
 
 	private static class SimpleConflicts implements ConflictManager {
 		// menge der bisherigen konflikte
-		private LinkedList<AbstractConflictLeak<SecurityNode>> conflicts;
-		private LinkedList<DataConflict<SecurityNode>> dataConflicts;
-		private LinkedList<OrderConflict<SecurityNode>> orderConflicts;
-		private Set<Pair<SecurityNode, SecurityNode>> ocEdges = new HashSet<Pair<SecurityNode, SecurityNode>>();
+		private final LinkedList<AbstractConflictLeak<SecurityNode>> conflicts;
+		private final LinkedList<DataConflict<SecurityNode>> dataConflicts;
+		private final LinkedList<OrderConflict<SecurityNode>> orderConflicts;
+		private final Set<Pair<SecurityNode, SecurityNode>> ocEdges = new HashSet<Pair<SecurityNode, SecurityNode>>();
 
 		/**
 		 * Initialisierung.

@@ -577,14 +577,13 @@ public class Nanda implements Slicer {
     	} else if (toCheck.getTopolNr() == null) {
     		return false;
 
-    	} else if (toCheck.getTopolNr().getThread() != old.getTopolNr().getThread()) {
+    	} else if (toCheck.getTopolNr().getThread() == old.getTopolNr().getThread()) {
+    		// commit a reaching analysis
+    		return mode.restrictiveTest(toCheck, old);
+    	} else {
     		ThreadRegion from = mhp.getThreadRegion(toCheck.getActualNode());
     		ThreadRegion to = mhp.getThreadRegion(old.getActualNode());
     		return reach.reaches(from.getID(), to.getID()); // TODO: hardcoded for backward slice!
-
-    	} else {
-    		// commit a reaching analysis
-    		return mode.restrictiveTest(toCheck, old);
     	}
     }
 
@@ -599,18 +598,16 @@ public class Nanda implements Slicer {
         	 // if the reached thread is dynamic or the state is still the initial one, all contexts are valid
             return mode.getTopologicalNumbers(reached, reachedThread);
 
-        } else if (reachedThread != state.getTopolNr().getThread()) {
-        	ThreadRegion r = mhp.getThreadRegion(state.getActualNode());
-        	if (reach.reaches(reachedRegion, r.getID())) { // TODO: hardcoded for backward slice!
-        		return mode.getTopologicalNumbers(reached, reachedThread);
-
-        	} else {
-        		return emptyIterator;
-        	}
-
-        } else {
+        } else if (reachedThread == state.getTopolNr().getThread()) {
         	// commit a reaching analysis
         	return mode.reachingContexts(reached, reachedThread, state);
         }
+		
+		ThreadRegion r = mhp.getThreadRegion(state.getActualNode());
+    	if (reach.reaches(reachedRegion, r.getID())) { // TODO: hardcoded for backward slice!
+    		return mode.getTopologicalNumbers(reached, reachedThread);
+    	} else {
+    		return emptyIterator;
+    	}
     }
 }

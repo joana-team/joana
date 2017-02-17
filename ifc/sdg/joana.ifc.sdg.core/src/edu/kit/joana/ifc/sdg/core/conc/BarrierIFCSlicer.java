@@ -35,8 +35,8 @@ import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
  */
 public class BarrierIFCSlicer extends IFC<String> implements ProgressAnnouncer {
 	
-    private ArrayList<ProgressListener> pls = new ArrayList<ProgressListener>();
-    private HashMap<SDGEdge, Set<Rule>> summaryDeclass;  // deklassifikationen an den summary-kanten
+    private final ArrayList<ProgressListener> pls = new ArrayList<ProgressListener>();
+    private final HashMap<SDGEdge, Set<Rule>> summaryDeclass;  // deklassifikationen an den summary-kanten
 
     /**
      * Initialisiert den IFC-Algorithmus.
@@ -394,8 +394,7 @@ public class BarrierIFCSlicer extends IFC<String> implements ProgressAnnouncer {
         Collection<String> markedLabels = set.get(reached, oldElement.label);
         if (markedLabels == null || !markedLabels.containsAll(newLabels)) {
             //marked.addAll(newLabels);
-            Element newElement = new Element(reached, oldElement.label, newLabels);
-            return newElement;
+            return new Element(reached, oldElement.label, newLabels);
 
         } else {
         	return null;

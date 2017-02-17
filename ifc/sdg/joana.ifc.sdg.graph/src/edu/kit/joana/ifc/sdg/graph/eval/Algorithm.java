@@ -186,12 +186,12 @@ public interface Algorithm {
 		},
 		GIFFHORN_NANDA_NO_MHP("GNF", Kind.SLICER, true) {
 			public Algorithm instantiate() {
-				return new SlicingAlgorithm(edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.NandaFactory.createNandaFlatBackward(null));
+				return new SlicingAlgorithm(NandaFactory.createNandaFlatBackward(null));
 			}
 		},
 		GIFFHORN_NANDA_REACH("GNR", Kind.SLICER, true) {
 			public Algorithm instantiate() {
-				return new SlicingAlgorithm(edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.NandaFactory.createNandaReachBackward(null));
+				return new SlicingAlgorithm(NandaFactory.createNandaReachBackward(null));
 			}
 		},
 		GIFFHORN_NANDA_THREAD_REGIONS("GNT", Kind.SLICER, true) {

@@ -24,9 +24,9 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
  * @see States
  */
 public class WorklistElement {
-    private SDGNode node;
-    private int thread;
-    private TopologicalNumber tnr;
+    private final SDGNode node;
+    private final int thread;
+    private final TopologicalNumber tnr;
 
     /** The state tuple of the node. */
     private States states;

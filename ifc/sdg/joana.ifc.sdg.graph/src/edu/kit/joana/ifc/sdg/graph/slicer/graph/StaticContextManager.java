@@ -71,17 +71,11 @@ public class StaticContextManager implements ContextManager {
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
-				return false;
-			}
 			if (!(obj instanceof StaticContext)) {
 				return false;
 			}
 			StaticContext other = (StaticContext) obj;
-			if (node != other.node || stack != other.stack) {
-				return false;
-			}
-			return true;
+			return node == other.node && stack == other.stack;
 		}
 
 		public boolean isInCallingProcedure(SDGNode n) {
@@ -183,9 +177,9 @@ public class StaticContextManager implements ContextManager {
 
 	/* the call-string class */
 	static class CallString {
-		private LinkedList<SDGNode> calls;
-		private THashMap<SDGNodeTuple, CallString> asc = new THashMap<SDGNodeTuple, CallString>();  // call edge -> call string
-		private THashMap<SDGNodeTuple, CallString> desc = new THashMap<SDGNodeTuple, CallString>(); // call edge -> call string
+		private final LinkedList<SDGNode> calls;
+		private final THashMap<SDGNodeTuple, CallString> asc;  // call edge -> call string
+		private final THashMap<SDGNodeTuple, CallString> desc; // call edge -> call string
 
 		CallString (LinkedList<SDGNode> stack) {
 			calls = stack;
@@ -208,14 +202,14 @@ public class StaticContextManager implements ContextManager {
 
 
 	private static class ContextCreator {
-		private ContextComputer co;
+		private final ContextComputer co;
 //		private CallGraph c;
-		private SDG g;
-		private FoldedCallGraph fc;
-		private THashSet<DynamicContext> allContexts;
-		private TIntObjectHashMap<TIntObjectHashMap<LinkedList<CallString>>> map;
-		private THashMap<LinkedList<SDGNode>, CallString> unique;
-		private THashMap<DynamicContext, CallString> cons;
+		private final SDG g;
+		private final FoldedCallGraph fc;
+		private final THashSet<DynamicContext> allContexts;
+		private final TIntObjectHashMap<TIntObjectHashMap<LinkedList<CallString>>> map;
+		private final THashMap<LinkedList<SDGNode>, CallString> unique;
+		private final THashMap<DynamicContext, CallString> cons;
 
 		private ContextCreator(SDG g, CallGraph c, FoldedCallGraph fc) {
 			this.g = g;
@@ -320,8 +314,7 @@ public class StaticContextManager implements ContextManager {
 	public static StaticContextManager create(SDG g, CallGraph c, FoldedCallGraph fc) {
 		ContextCreator cc = new ContextCreator(g, c, fc);
 		cc.execute();
-		StaticContextManager cm = new StaticContextManager(fc, cc.map);
-		return cm;
+		return new StaticContextManager(fc, cc.map);
 	}
 
 	public static StaticContextManager create(SDG sdg) {
@@ -334,8 +327,8 @@ public class StaticContextManager implements ContextManager {
 	/* ********************************************* */
 	/* ************ the context manager ************ */
 
-	private FoldedCallGraph foldedCall;
-	private TIntObjectHashMap<TIntObjectHashMap<LinkedList<CallString>>> procsThreadsCallStrings;
+	private final FoldedCallGraph foldedCall;
+	private final TIntObjectHashMap<TIntObjectHashMap<LinkedList<CallString>>> procsThreadsCallStrings;
 
 	private StaticContextManager(FoldedCallGraph fc, TIntObjectHashMap<TIntObjectHashMap<LinkedList<CallString>>> map) {
 		foldedCall = fc;
@@ -408,15 +401,7 @@ public class StaticContextManager implements ContextManager {
     }
 
     private boolean match(SDGNode callSite, Context con){
-        if (con.isEmpty()) {
-            return true;
-        }
-
-        if (foldedCall.map(callSite) == con.top()){
-            return true;
-        }
-
-        return false;
+        return con.isEmpty() || foldedCall.map(callSite) == con.top();
     }
 
 	@Override

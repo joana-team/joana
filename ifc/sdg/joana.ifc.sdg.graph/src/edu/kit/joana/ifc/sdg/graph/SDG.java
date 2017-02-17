@@ -50,8 +50,8 @@ public class SDG extends JoanaGraph implements Cloneable {
 
 	/** Caches the entry nodes of each procedure (maps procedure ID -> entry node).
 	 * Lazily initialized by <code>getEntry</code>. */
-    private TIntObjectHashMap<SDGNode> entryCache = new TIntObjectHashMap<SDGNode>();
-    private TIntObjectHashMap<SDGNode> exitCache = new TIntObjectHashMap<SDGNode>();
+    private final TIntObjectHashMap<SDGNode> entryCache = new TIntObjectHashMap<SDGNode>();
+    private final TIntObjectHashMap<SDGNode> exitCache = new TIntObjectHashMap<SDGNode>();
 
     /** maps sdg nodes to ssa instruction indices */
     private TIntIntMap node2iindex = null;
@@ -59,14 +59,14 @@ public class SDG extends JoanaGraph implements Cloneable {
     /** represents "no ssa instruction index" - returned by {@link #getInstructionIndex(SDGNode)} if there is no
      *  ssa instruction index for the given node
      */
-    public static int UNDEFINED_IINDEX = -1;
+    public static final int UNDEFINED_IINDEX = -1;
 
     private TIntIntMap entry2CGNode = null;
     private TIntIntMap cgNodeToEntry = null;
     /** represents "no ssa instruction index" - returned by {@link #getCGNodeId(SDGNode)} if there is no
      *  call graph node for the given node (for example, if the given node is not an entry node)
      */
-    public static int UNDEFINED_CGNODEID = -1;
+    public static final int UNDEFINED_CGNODEID = -1;
 
 
     private String fileName = null;
@@ -379,7 +379,7 @@ public class SDG extends JoanaGraph implements Cloneable {
 			if (n.getKind() == SDGNode.Kind.CALL) {
 				List<SDGEdge> l = getOutgoingEdgesOfKind(n, SDGEdge.Kind.CONTROL_FLOW);
 //				if (l.size() != 1) throw new RuntimeException(); // irregular SDG
-				if (l.size() == 0) continue;
+				if (l.isEmpty()) continue;
 				result.add(new SDGNodeTuple(n, l.get(0).getTarget()));
 			}
 		}
@@ -540,22 +540,22 @@ public class SDG extends JoanaGraph implements Cloneable {
 	 * SDG entry node
 	 */
 	public SDGNode getSDGNode(int cgNodeId) {
-		if (entry2CGNode != null) {
-			// information is available
-			if (cgNodeToEntry == null) {
-				// have not inverted the map yet...do it first!
-				this.cgNodeToEntry = computeCGNodeToEntryMap(this.entry2CGNode);
-			}
-			// do we have a value for the given id?
-			if (this.cgNodeToEntry.containsKey(cgNodeId)) {
-				// return that value!
-				return getNode(this.cgNodeToEntry.get(cgNodeId));
-			} else {
-				// no value --> return null
-				return null;
-			}
-		} else {
+		if (entry2CGNode == null) {
 			// information not available --> return null
+			return null;
+		}
+
+		// information is available
+		if (cgNodeToEntry == null) {
+			// have not inverted the map yet...do it first!
+			this.cgNodeToEntry = computeCGNodeToEntryMap(this.entry2CGNode);
+		}
+		// do we have a value for the given id?
+		if (this.cgNodeToEntry.containsKey(cgNodeId)) {
+			// return that value!
+			return getNode(this.cgNodeToEntry.get(cgNodeId));
+		} else {
+			// no value --> return null
 			return null;
 		}
 	}
@@ -632,26 +632,18 @@ public class SDG extends JoanaGraph implements Cloneable {
 	 */
 	public Collection<SDGNodeTuple> getAllFormalPairs(SDGNode actIn, SDGNode actOut) {
 		LinkedList<SDGNodeTuple> result = new LinkedList<SDGNodeTuple>();
-		HashMap<Integer, SDGNodeTuple> map = new HashMap<Integer, SDGNodeTuple>();
+		HashMap<Integer, SDGNode> map = new HashMap<Integer, SDGNode>();
 		Collection<SDGNode> fos = getFormalOuts(actOut);
 		Collection<SDGNode> fis = (actIn.getKind() == SDGNode.Kind.CALL ? getPossibleTargets(actIn) : getFormalIns(actIn));
 
 		for (SDGNode fo : fos) {
-			SDGNodeTuple tup = new SDGNodeTuple(null, fo);
-			map.put(fo.getProc(), tup);
+			map.put(fo.getProc(), fo);
 		}
 
 		for (SDGNode fi : fis) {
-			SDGNodeTuple tup = map.get(fi.getProc());
-			if (tup != null) {
-				tup.setFirstNode(fi);
-			}
-		}
-
-		// return only complete pairs
-		for (SDGNodeTuple tup : map.values()) {
-			if (tup.getFirstNode() != null) {
-				result.add(tup);
+			SDGNode fo = map.get(fi.getProc());
+			if (fo != null) {
+				result.add(new SDGNodeTuple(fi, fo));
 			}
 		}
 

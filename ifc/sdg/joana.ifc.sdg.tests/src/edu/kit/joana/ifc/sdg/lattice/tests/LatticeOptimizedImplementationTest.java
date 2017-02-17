@@ -23,8 +23,9 @@ import edu.kit.joana.api.lattice.LowHighLattice;
 
 public class LatticeOptimizedImplementationTest {
 
+	@SafeVarargs
 	private static <T> Set<T> asSet(T... ts) {
-		return new HashSet<T>(Arrays.asList(ts));
+		return new HashSet<T>(Arrays.<T>asList(ts));
 	}
 	
 

@@ -161,7 +161,9 @@ public class ModRefCandidates implements Iterable<CGNode> {
 			{
 				Set<UniqueParameterCandidate> uniques = new HashSet<>();
 				
-				for (ModRefFieldCandidate modref : all) {
+				Set<ModRefFieldCandidate> values = new HashSet<>();
+				values.addAll(cands.values());
+				for (ModRefFieldCandidate modref : values) {
 					ParameterCandidate pc = modref.pc;
 					if (pc.isUnique()) {
 						if (uniques.contains(pc)) {
@@ -180,6 +182,8 @@ public class ModRefCandidates implements Iterable<CGNode> {
 					}
 				}
 			}
+			
+			
 			
 			// The map cand is consistent with the ParameterCandidate field of all ModRefFieldCandidates.
 			for (ModRefFieldCandidate cand : all) {
@@ -309,21 +313,31 @@ public class ModRefCandidates implements Iterable<CGNode> {
 
 		@Override
 		public void removeCandidate(final ModRefFieldCandidate toRemove) {
+			final ModRefFieldCandidate toRemoveInCands = cands.get(toRemove.pc);
+			assert (toRemoveInCands == toRemove) ==  all.contains(toRemove);
+			
+			if (toRemoveInCands != toRemove) {
+				throw new IllegalArgumentException("Trying to remove ModRefFieldCandidate " + toRemove + "that is not present.");
+			}
+			
 			if (!cands.containsKey(toRemove.pc)) {
 				return;
 			}
 
-			cands.remove(toRemove.pc);
-
-			if (!toRemove.pc.isUnique()) {
-				for (final UniqueParameterCandidate up : toRemove.pc.getUniques()) {
-					final ModRefFieldCandidate f = cands.get(up);
-
-					if (toRemove.equals(f)) {
-						cands.remove(up);
-					}
+			
+			// TODO: if performance demands it, instead of checking every cand, start to remove things iteratively
+			// from toRemove.pc.getUniques().
+			
+			final Iterator<Entry<ParameterCandidate, ModRefFieldCandidate>> candsIt = cands.entrySet().iterator();
+			while (candsIt.hasNext()) {
+				final Entry<ParameterCandidate, ModRefFieldCandidate> entry = candsIt.next();
+				final ModRefFieldCandidate cand = entry.getValue();
+				if (cand == toRemove) {
+					candsIt.remove();
 				}
 			}
+			
+			assert !cands.containsKey(toRemove.pc);
 
 			all.remove(toRemove);
 			assert invariant();
@@ -416,7 +430,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 			final ArrayList<ParameterCandidate> candsKeys = new ArrayList<>(cands.size());
 			candsKeys.addAll(cands.keySet());
 			for (final ParameterCandidate pc : candsKeys) {
-				if (pcands.contains(cands.get(pc))) cands.put(pc, result);
+				if (pcands.contains(cands.get(pc).pc)) cands.put(pc, result);
 			}
 			
 			assert invariant();

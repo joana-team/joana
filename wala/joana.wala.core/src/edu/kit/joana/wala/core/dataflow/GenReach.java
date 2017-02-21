@@ -9,6 +9,7 @@ package edu.kit.joana.wala.core.dataflow;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.ibm.wala.dataflow.graph.AbstractMeetOperator;
 import com.ibm.wala.dataflow.graph.BitVectorFramework;
@@ -59,8 +60,13 @@ public class GenReach<T, L> extends BitVectorFramework<T, L> {
   }
 
   private static <T, L> OrdinalSetMapping<L> makeDomain(Map<T, Collection<L>> gen) {
-    MutableMapping<L> result = MutableMapping.make();
-    for (Collection<L> c : gen.values()) {
+    MutableMapping<L> result = MutableMapping.makeIdentityMapping();
+    for (Entry<T, Collection<L>> e : gen.entrySet()) {
+      final T t = e.getKey();
+      final Collection<L> c = e.getValue();
+      
+      assert t != null;
+      
       for (L p : c) {
         result.add(p);
       }

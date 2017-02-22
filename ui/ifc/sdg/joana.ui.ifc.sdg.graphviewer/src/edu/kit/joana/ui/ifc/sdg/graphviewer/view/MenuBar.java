@@ -29,7 +29,7 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.CloseAllAction;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.CollapseAllCallNodesAction;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.CombiAction;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.ControlDependencyAction;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.ControllFlussAction;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.ControlFlowAction;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.DataDependencyAction;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.ExitAction;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.ExportAction;
@@ -101,7 +101,7 @@ public class MenuBar extends JMenuBar implements BundleConstants {
 		viewMenu.add(this.owner.getActions().get(ZoomInAction.class));
 		viewMenu.add(this.owner.getActions().get(ZoomOutAction.class));
 		viewMenu.addSeparator();
-		viewMenu.add(this.owner.getActions().get(ControllFlussAction.class));
+		viewMenu.add(this.owner.getActions().get(ControlFlowAction.class));
 		viewMenu.add(this.owner.getActions().get(ControlDependencyAction.class));
 		viewMenu.add(this.owner.getActions().get(DataDependencyAction.class));
 		viewMenu.add(this.owner.getActions().get(HeapDataDependencyAction.class));

@@ -37,7 +37,7 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.CollapseAllCallNodesActio
 import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.CollapseCallNodeAction;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.CombiAction;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.ControlDependencyAction;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.ControllFlussAction;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.ControlFlowAction;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.DataDependencyAction;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.ExitAction;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.controller.ExportAction;
@@ -233,8 +233,8 @@ public class MainFrame extends GVFrame implements ContainerListener, BundleConst
 		SearchAction search = new SearchAction(searchDialog);
 		actions.put(SearchAction.class, search);
 
-		ControllFlussAction hide = new ControllFlussAction(graphPane);
-		actions.put(ControllFlussAction.class, hide);
+		ControlFlowAction hide = new ControlFlowAction(graphPane);
+		actions.put(ControlFlowAction.class, hide);
 
 		ControlDependencyAction controlDep= new ControlDependencyAction(graphPane);
 		actions.put(ControlDependencyAction.class, controlDep);

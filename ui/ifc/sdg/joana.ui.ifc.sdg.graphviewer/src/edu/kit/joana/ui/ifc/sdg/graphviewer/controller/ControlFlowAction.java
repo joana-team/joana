@@ -10,11 +10,11 @@ package edu.kit.joana.ui.ifc.sdg.graphviewer.controller;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.EdgeViewSettings;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
 
-public class HeapDataDependencyAction extends AbstractEdgeToggleAction {
-	private static final long serialVersionUID = -4416383715458486025L;
+public class ControlFlowAction extends AbstractEdgeToggleAction {
+	private static final long serialVersionUID = -7330872627112676272L;
 
-	public HeapDataDependencyAction(GraphPane pane) {
-		super(pane, "heapDep");
+	public ControlFlowAction(GraphPane pane) {
+		super(pane, "controlFlow");
 	}
 
 	/* (non-Javadoc)
@@ -22,7 +22,7 @@ public class HeapDataDependencyAction extends AbstractEdgeToggleAction {
 	 */
 	@Override
 	protected void setShowRelevantEdges(EdgeViewSettings settings, boolean show) {
-		settings.setShowDH(show);
+		settings.setShowCF(show);
 	}
 
 	/* (non-Javadoc)
@@ -30,7 +30,6 @@ public class HeapDataDependencyAction extends AbstractEdgeToggleAction {
 	 */
 	@Override
 	protected boolean isShowRelevantEdges(EdgeViewSettings settings) {
-		return settings.isShowDH();
+		return settings.isShowCF();
 	}
 }
-

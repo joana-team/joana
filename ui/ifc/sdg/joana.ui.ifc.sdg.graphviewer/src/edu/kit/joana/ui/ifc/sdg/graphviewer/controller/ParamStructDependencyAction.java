@@ -7,72 +7,30 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.controller;
 
-import java.awt.event.ActionEvent;
-
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-
-import edu.kit.joana.ui.ifc.sdg.graphviewer.model.Graph;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.BundleConstants;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.util.GVUtilities;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.view.CallGraphView;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.view.EdgeViewSettings;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
 
-public class ParamStructDependencyAction extends AbstractGVAction implements BundleConstants, ChangeListener {
+public class ParamStructDependencyAction extends AbstractEdgeToggleAction {
 	private static final long serialVersionUID = -4416383715458486025L;
 
-	private final GraphPane graphPane;
-	private boolean showPS = true;
-
 	public ParamStructDependencyAction(GraphPane pane) {
-		super("pstructDep.name", "Checkmark.png", "pstructDep.description", "pstructDep");
-		this.graphPane = pane;
-		graphPane.addChangeListener(this);
-		this.setEnabled(false);
+		super(pane, "pstructDep");
 	}
 
-	public void actionPerformed(ActionEvent e) {
-		showPS = !showPS;
-		setIcon(showPS);
-
-		Graph g = graphPane.getSelectedGraph();
-		g.getEdgeViewSettings().setShowPS(showPS);
-		g.changed();
-
-////			return new CommandStatusEvent(this, CommandStatusEvent.SUCCESS,
-////					new Resource(COMMANDS_BUNDLE, "openMethod.success.status"));
-////		}
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.ui.ifc.sdg.graphviewer.controller.AbstractEdgeToggleAction#setShowRelevantEdges(edu.kit.joana.ui.ifc.sdg.graphviewer.view.EdgeViewSettings, boolean)
+	 */
+	@Override
+	protected void setShowRelevantEdges(EdgeViewSettings settings, boolean show) {
+		settings.setShowPS(show);
 	}
 
-	void setIcon(boolean show_df) {
-		if (show_df) {
-			putValue(SMALL_ICON, GVUtilities.getIcon("Checkmark.png"));
-		} else {
-			putValue(SMALL_ICON, GVUtilities.getIcon("Close.png"));
-		}
-	}
-
-	public void setShowPS(boolean show_ps) {
-		this.showPS = show_ps;
-	}
-
-	public boolean isShowPS() {
-		return showPS;
-	}
-
-	public void stateChanged(ChangeEvent e) {
-		if(this.graphPane.getSelectedIndex() == -1)	{
-			this.setEnabled(false);
-
-		} else if (this.graphPane.getSelectedJGraph() instanceof CallGraphView) {
-			this.setEnabled(false);
-
-		} else {
-			this.setEnabled(true);
-			Graph g = graphPane.getSelectedGraph();
-			showPS = g.getEdgeViewSettings().isShowPS();
-			setIcon(showPS);
-		}
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.ui.ifc.sdg.graphviewer.controller.AbstractEdgeToggleAction#isShowRelevantEdges(edu.kit.joana.ui.ifc.sdg.graphviewer.view.EdgeViewSettings)
+	 */
+	@Override
+	protected boolean isShowRelevantEdges(EdgeViewSettings settings) {
+		return settings.isShowPS();
 	}
 }
 

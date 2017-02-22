@@ -7,7 +7,9 @@
  */
 package edu.kit.joana.wala.core;
 
+import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.types.TypeReference;
+import com.ibm.wala.util.intset.OrdinalSet;
 
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 
@@ -90,11 +92,7 @@ public final class ArrayField extends ParameterField {
 		
 		if (obj instanceof ArrayField) {
 			final ArrayField other = (ArrayField) obj;
-			if (elemType.isPrimitiveType()) {
-				return elemType.equals(other.elemType);
-			} else {
-				return true;
-			}
+			return elemType.equals(other.elemType);
 		}
 
 		return false;

@@ -18,8 +18,11 @@ import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.types.annotations.Annotation;
 import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.intset.MutableMapping;
+import com.ibm.wala.util.intset.OrdinalSet;
 import com.ibm.wala.util.intset.OrdinalSetMapping;
 import com.ibm.wala.util.strings.Atom;
+
+import edu.kit.joana.wala.core.params.objgraph.candidates.ParameterCandidate;
 
 /**
  * Factory for object fields. As Wala treat array fields different from normal
@@ -79,10 +82,34 @@ public final class ParameterFieldFactory {
 			throw new IllegalArgumentException("Element type should not be null.");
 		}
 
-		ArrayField aField = type2field.get(elemType);
+		// Currently, we cannot properly deal with Arrays of elemType other than Object.
+		// We'd either have to break the equals/hashCode contract, or adapt the 
+		//    ParameterCandidate.isMustAliased(ParameterCandidate pc)
+		//    ParameterCandidate.isMayAliased(ParameterCandidate pc)
+		// to properly respect subtyping relation between Array Types. Specifically, we could not any longer 
+		// user OrdinalSet<ParameterCandidate>.containsAny() checks in 
+		//    ParameterCandidate.isReferenceToAnyField(OrdinalSet<ParameterField> otherField)
+		
+		// Instead, we make sure to only creete one canoical ArrayField for Arrays with reference type.
+		// TODO: Currently, we do not even distinguish different dimentionalities, although this could be done in principle,
+		// if only WALA ever provided useful types for, e.g., SSAArrayStoreInstructions.
+		
+		TypeReference canonicalType  = null;
+		if (elemType.isPrimitiveType()) {
+			canonicalType = elemType;
+		} else if (elemType.isArrayType()) {
+			// This is usually not taken, due to WALAs lack of interesting type information
+			canonicalType = elemType.getArrayElementType();
+		} else {
+			assert elemType.isClassType();
+			canonicalType = TypeReference.JavaLangObject;
+		}
+		
+		ArrayField aField = type2field.get(canonicalType);
 		if (aField == null) {
-			aField = new ArrayField(elemType);
+			aField = new ArrayField(canonicalType);
 			type2field.put(elemType, aField);
+			type2field.put(canonicalType, aField);
 			fieldMapping.add(aField);
 		}
 

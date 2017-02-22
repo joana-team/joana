@@ -87,6 +87,9 @@ public class GVMenuItem extends JMenuItem implements LanguageListener {
             case Action.SMALL_ICON:
                 this.setIcon(action == null ? null : (Icon) action.getValue(type));
                 break;
+            case Action.ACCELERATOR_KEY:
+                this.setAccelerator(action == null ? null : (KeyStroke) action.getValue(type));
+                break;
             case Action.ACTION_COMMAND_KEY:
                 this.setActionCommand(action == null ? null : (String) action.getValue(type));
                 break;

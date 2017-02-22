@@ -269,6 +269,12 @@ public class ToyTests {
 	}
 	
 	@Test
+	public void testArrayAlias() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testPreciseEnough(joana.api.testdata.seq.ArrayOverwrite.class);
+	}
+	
+	@Test
 	public void testFieldAccess() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testPreciseEnough(joana.api.testdata.seq.FieldAccess.class);

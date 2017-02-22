@@ -120,7 +120,7 @@ public class FullIFCSequentialTest {
 			IFCAnalysis ana = buildAndAnnotate("sequential.PraktomatLeak",
 					"sequential.PraktomatLeak$Submission.matrNr",
 					"sequential.PraktomatLeak$Review.failures");
-			testLeaksFound(ana, 8);
+			testLeaksFound(ana, 6);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

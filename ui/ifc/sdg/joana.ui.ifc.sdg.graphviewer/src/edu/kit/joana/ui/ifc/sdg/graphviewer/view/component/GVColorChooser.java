@@ -96,7 +96,7 @@ public class GVColorChooser extends JColorChooser implements LanguageListener {
 
     protected class ColorTracker implements ActionListener {
 
-        private GVColorChooser chooser;
+        private final GVColorChooser chooser;
 
         private Color color;
 

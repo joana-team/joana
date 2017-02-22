@@ -115,7 +115,7 @@ public class Barycenter extends CrossReductionStrategy {
         for(int i = 0; i < orderedID.length; i++) {
             add(orderedID[i], a, b, avg);
             add(orderedBary[i], a, b, avg);
-            if(a.size() == 0) {
+            if(a.isEmpty()) {
                 float f = 0f;
                 for(Node n : b) {
                     NodeConstants.setBarycenter(n, avg.getValue() + f);

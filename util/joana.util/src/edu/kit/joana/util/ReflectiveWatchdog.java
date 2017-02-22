@@ -31,8 +31,9 @@ import java.util.Set;
  * @param <T> type of watched object
  */
 public class ReflectiveWatchdog<T> {
-	private T obj;
-	private Set<String> initializedFields;
+	private final T obj;
+	private final Set<String> initializedFields;
+
 	public ReflectiveWatchdog(T obj) {
 		this.obj = obj;
 		this.initializedFields = new HashSet<String>();

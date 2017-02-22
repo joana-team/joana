@@ -19,7 +19,7 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
 
 public class TreeLayoutAction extends AbstractGVAction implements ChangeListener {
 	private static final long serialVersionUID = -8972214187676438233L;
-	private GraphPane graphPane = null;
+	private final GraphPane graphPane;
 
 	public TreeLayoutAction(GraphPane graphPane) {
 		super("treeLayout.name", "treeLayout.description");
@@ -46,9 +46,7 @@ public class TreeLayoutAction extends AbstractGVAction implements ChangeListener
 			this.setEnabled(false);
 			return;
 		}
-		if (!(this.graphPane.getSelectedJGraph()instanceof CallGraphView)) {
-			this.setEnabled(false);
-		} else
-			this.setEnabled(true);
+		boolean enable = this.graphPane.getSelectedJGraph() instanceof CallGraphView;
+		this.setEnabled(enable);
 	}
 }

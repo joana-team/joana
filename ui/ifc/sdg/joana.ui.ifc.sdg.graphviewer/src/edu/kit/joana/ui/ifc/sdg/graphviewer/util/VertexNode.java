@@ -23,12 +23,12 @@ public class VertexNode implements Comparable<VertexNode> {
 	/**
 	 * kind of vertex
 	 */
-	private String kind = null;
+	private final String kind;
 
 	/**
 	 *  vertex id
 	 */
-	private int id = -1;
+	private final int id;
 
 	/**
 	 * vertex label
@@ -39,7 +39,7 @@ public class VertexNode implements Comparable<VertexNode> {
 
 	private List<?> succs = null;
 
-	private DefaultGraphCell cell;
+	private final DefaultGraphCell cell;
 
 	/**
 	 * creates a vertex node

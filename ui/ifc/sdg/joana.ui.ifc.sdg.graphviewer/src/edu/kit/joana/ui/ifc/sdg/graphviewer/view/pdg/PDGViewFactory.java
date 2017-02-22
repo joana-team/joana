@@ -62,7 +62,7 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVPanel;
  *         href="mailto:westerhe@fmi.uni-passau.de">Marieke Westerheide </a>
  * @version 1.1
  */
-public class PDGViewFactory extends DefaultCellViewFactory implements
+public final class PDGViewFactory extends DefaultCellViewFactory implements
         BundleConstants, Adjustable {
 
     // to be able to hand over the current instance of this class
@@ -131,10 +131,8 @@ public class PDGViewFactory extends DefaultCellViewFactory implements
 		// colors.setProperty(types[i].toString(), "#FF33CC");
 		// }
 		// }
-		vertexKey = new edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Resource(VERTICES_BUNDLE,
-				"vertex.label");
-		edgeKey = new edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Resource(VERTICES_BUNDLE,
-				"edge.label");
+		vertexKey = new Resource(VERTICES_BUNDLE, "vertex.label");
+		edgeKey = new Resource(VERTICES_BUNDLE, "edge.label");
 	}
 
 	/**
@@ -268,16 +266,16 @@ public class PDGViewFactory extends DefaultCellViewFactory implements
 			// opened that contains nodes of this type
 			map = new PDGAttributeMap();
 			if (kind != null && colors != null) {
-				if (colors.getProperty(kind.toString()) != null) {
+				if (colors.getProperty(kind.toString()) == null) {
+					Debug
+							.print("should not happen ... PDGViewFactory#getAttributeMap");
+					GraphConstants.setBackground(map, Color.BLUE);
+				} else {
 					// sets the background attribute in the specified map to the
 					// value specified in the file mentioned above or to a
 					// default value if the file contains no value
 					GraphConstants.setBackground(map, Color.decode(colors
 							.getProperty(kind.toString())));
-				} else {
-					Debug
-							.print("should not happen ... PDGViewFactory#getAttributeMap");
-					GraphConstants.setBackground(map, Color.BLUE);
 				}
 				GraphConstants.setForeground(map, Color.BLACK);
 				GraphConstants.setBorder(map, BorderFactory

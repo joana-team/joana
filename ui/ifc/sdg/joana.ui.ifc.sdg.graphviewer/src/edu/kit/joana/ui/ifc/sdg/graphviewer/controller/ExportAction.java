@@ -42,11 +42,11 @@ public class ExportAction extends AbstractGVAction {
     /**
      * the main frame
      */
-    private GVFrame frame;
+    private final GVFrame frame;
     /**
      * the graph pane
      */
-    private GraphPane graphPane;
+    private final GraphPane graphPane;
 
     /**
      * Creates a new instance of ExportAction

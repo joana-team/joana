@@ -28,7 +28,7 @@ public class PDGLayoutAlgorithm extends JGraphLayoutAlgorithm {
     /**
      * the context of the strategy pattern
      */
-    private Context context;
+    private final Context context;
     /**
      * the layout progress
      */

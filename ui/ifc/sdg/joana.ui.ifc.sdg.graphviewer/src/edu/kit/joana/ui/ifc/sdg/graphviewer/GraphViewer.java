@@ -48,7 +48,7 @@ public final class GraphViewer {
 	private static GraphViewer instance = null;
 
 	// a JFrame
-	private MainFrame frame = null;
+	private final MainFrame frame;
 
 	public static final boolean IS_MAC = System.getProperty("mrj.version") != null;
 
@@ -69,7 +69,7 @@ public final class GraphViewer {
 
 
 	// handles local settings
-	private Translator translator = null;
+	private final Translator translator = null;
 
 	// initializes frame with translator, model and command manager, sets look
 	// and feel

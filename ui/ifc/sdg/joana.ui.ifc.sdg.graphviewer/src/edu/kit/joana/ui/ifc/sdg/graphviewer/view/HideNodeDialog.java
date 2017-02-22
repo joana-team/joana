@@ -34,7 +34,6 @@ public class HideNodeDialog extends GVPanel implements BundleConstants, ActionLi
 	protected GVDialog dialog = null;
 	public static final int CANCEL_OPTION = 2;
 	public static final int ERROR_OPTION = -1;
-	private String packageName = null;
 
 	public HideNodeDialog(MainFrame parent) {
 		super(parent.getTranslator());
@@ -72,7 +71,7 @@ public class HideNodeDialog extends GVPanel implements BundleConstants, ActionLi
 	}
 
 	public void actionPerformed(ActionEvent e) {
-		packageName = tfPackegName.getText();
+		String packageName = tfPackegName.getText();
 //		ActionMap actions = this.parent.getActions();
 //		OpenAction openAction = (OpenAction) actions.get(OpenAction.class);
 

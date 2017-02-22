@@ -72,10 +72,10 @@ public class GVPopupMenu extends JPopupMenu implements LanguageListener {
 
     public void setToolTipResource(Resource toolTip) {
         this.toolTip = toolTip;
-        if (this.toolTip != null) {
-            this.setToolTipText(this.translator.getString(toolTip));
-        } else {
+        if (this.toolTip == null) {
             this.setToolTipText(null);
+        } else {
+            this.setToolTipText(this.translator.getString(toolTip));
         }
     }
 

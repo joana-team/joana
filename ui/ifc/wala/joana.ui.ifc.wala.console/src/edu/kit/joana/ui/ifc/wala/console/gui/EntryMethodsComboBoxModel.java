@@ -22,7 +22,7 @@ import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 @SuppressWarnings("rawtypes")
 public class EntryMethodsComboBoxModel implements ComboBoxModel {
 
-	private List<JavaMethodSignature> entries;
+	private final List<JavaMethodSignature> entries;
 	private JavaMethodSignature selected = null;
 	private final Set<ListDataListener> listeners = new HashSet<ListDataListener>();
 	private boolean searchInProgress = false;
@@ -40,7 +40,8 @@ public class EntryMethodsComboBoxModel implements ComboBoxModel {
 	public synchronized Object getElementAt(int arg0) {
 		if (!entries.isEmpty()) {
 			return entries.get(arg0);
-		} else if (searchInProgress) {
+		}
+		if (searchInProgress) {
 			return "searching entry methods... ";
 		} else {
 			return "hit update to search for entries in the current classpath";

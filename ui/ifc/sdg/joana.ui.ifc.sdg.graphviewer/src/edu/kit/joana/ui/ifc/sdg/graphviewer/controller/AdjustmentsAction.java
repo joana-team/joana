@@ -29,7 +29,7 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.view.AdjustmentsDialog;
  */
 public class AdjustmentsAction extends AbstractGVAction implements BundleConstants {
 	private static final long serialVersionUID = -5611806355661341213L;
-	private AdjustmentsDialog adjustmentsDialog = null;
+	private final AdjustmentsDialog adjustmentsDialog;
 
     /**
      * Constructs a new <code>AdjustmentsAction</code> object.

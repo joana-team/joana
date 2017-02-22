@@ -44,10 +44,6 @@ abstract class BuildInput {
 			return false;
 		}
 
-		if (!JavaCore.create(res.getProject()).isOnClasspath(res)) {
-			return false;
-		}
-
-		return true;
+		return JavaCore.create(res.getProject()).isOnClasspath(res);
 	}
 }

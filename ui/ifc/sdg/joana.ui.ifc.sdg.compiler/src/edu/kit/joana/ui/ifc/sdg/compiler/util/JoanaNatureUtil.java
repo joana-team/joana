@@ -23,7 +23,10 @@ import edu.kit.joana.ui.ifc.sdg.compiler.nature.JoanaNature;
  * Utilities for working with the JOANA nature.
  *
  */
-public class JoanaNatureUtil {
+public final class JoanaNatureUtil {
+
+	private JoanaNatureUtil() {}
+
 	/**
 	 * Returns a project's build folder.
 	 *
@@ -88,9 +91,7 @@ public class JoanaNatureUtil {
 	public static boolean isBuildResource(IResource res) {
 		if (!(res instanceof IFile))
 			return false;
-		if (res.getProjectRelativePath().getFileExtension() == null)
-			return false;
-		if (!res.getProjectRelativePath().getFileExtension().equals("java"))
+		if (!"java".equals(res.getProjectRelativePath().getFileExtension()))
 			return false;
 		try {
 			if (!PluginUtil.hasNature(res.getProject(), JoanaNature.ID))
@@ -98,8 +99,6 @@ public class JoanaNatureUtil {
 		} catch (CoreException e) {
 			return false;
 		}
-		if (!JavaCore.create(res.getProject()).isOnClasspath(res))
-			return false;
-		return true;
+		return !JavaCore.create(res.getProject()).isOnClasspath(res);
 	}
 }

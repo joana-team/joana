@@ -24,8 +24,8 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
  */
 public class AllPredsAction extends AbstractGVAction implements BundleConstants, ChangeListener {
 	private static final long serialVersionUID = 4942265703549807306L;
-	private GraphPane graphPane;
-	private PredAction pred;
+	private final GraphPane graphPane;
+	private final PredAction pred;
 
 	/**
 	 * constructor

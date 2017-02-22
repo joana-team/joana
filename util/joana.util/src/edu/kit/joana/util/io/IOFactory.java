@@ -34,8 +34,7 @@ public final class IOFactory {
 	 */
 	public static InputStreamReader createUTF8ISReader(InputStream in) {
 		try {
-			InputStreamReader ret = new InputStreamReader(in, "UTF-8");
-			return ret;
+			return new InputStreamReader(in, "UTF-8");
 		} catch (UnsupportedEncodingException uee) {
 			handleUEE();
 			return null;

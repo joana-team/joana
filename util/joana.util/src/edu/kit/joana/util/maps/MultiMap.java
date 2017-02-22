@@ -40,11 +40,11 @@ public abstract class MultiMap<K, T> {
 	 */
 	public void add(K key, T value) {
 		Set<T> vals;
-		if (!map.containsKey(key)) {
+		if (map.containsKey(key)) {
+			vals = map.get(key);
+		} else {
 			vals = new HashSet<T>();
 			map.put(key, vals);
-		} else {
-			vals = map.get(key);
 		}
 		vals.add(value);
 	}

@@ -35,7 +35,7 @@ public class ZoomInAction extends AbstractGVAction implements PropertyChangeList
 	private static final double ZOOM_FACTOR = 2;
     protected static final Double MAX_SCALE = Double.valueOf(4);
 
-    private GraphPane pane;
+    private final GraphPane pane;
 
     /**
      * Constructs a new <code>ZoomInAction</code> object.

@@ -25,7 +25,6 @@ import edu.kit.joana.util.io.IOFactory;
 
 public class IFCAnnotationReader {
 
-	private BufferedReader in;
 	private static final Pattern annPat = Pattern
 			.compile("(.*?)\\((.*?)\\) - (.*)");
 	private static final Pattern instrPat = Pattern
@@ -34,7 +33,9 @@ public class IFCAnnotationReader {
 			.compile("param (\\d+) of method (.*)");
 	private static final Pattern exitPat = Pattern
 			.compile("exit node of method (.*)");
-	private SDGMethodSelector sel;
+
+	private final BufferedReader in;
+	private final SDGMethodSelector sel;
 
 	public IFCAnnotationReader(SDGMethodSelector sel, InputStream in) {
 		this.in = new BufferedReader(IOFactory.createUTF8ISReader(in));
@@ -61,22 +62,21 @@ public class IFCAnnotationReader {
 			Matcher m = annPat.matcher(line);
 			if (!m.matches()) {
 				throw new InvalidAnnotationFormatException(line);
-			} else {
-				AnnotationType type = AnnotationType.fromString(m.group(1));
-				String[] levels = m.group(2).split("->");
-				SDGProgramPart methodPart;
-				try {
-					methodPart = parseMethodPart(m.group(3));
-				} catch (MethodNotFoundException mnfe) {
-					mnfe.setAnnotation(line);
-					throw mnfe;
-				}
-				assert levels.length == 1 || levels.length == 2;
-				if (levels.length == 1)
-					return new IFCAnnotation(type, levels[0], methodPart);
-				else {
-					return new IFCAnnotation(levels[0], levels[1], methodPart);
-				}
+			}
+			AnnotationType type = AnnotationType.fromString(m.group(1));
+			String[] levels = m.group(2).split("->");
+			SDGProgramPart methodPart;
+			try {
+				methodPart = parseMethodPart(m.group(3));
+			} catch (MethodNotFoundException mnfe) {
+				mnfe.setAnnotation(line);
+				throw mnfe;
+			}
+			assert levels.length == 1 || levels.length == 2;
+			if (levels.length == 1)
+				return new IFCAnnotation(type, levels[0], methodPart);
+			else {
+				return new IFCAnnotation(levels[0], levels[1], methodPart);
 			}
 		}
 	}
@@ -116,15 +116,15 @@ public class IFCAnnotationReader {
 			// maybe it is just a method signature without any extras
 			JavaMethodSignature methSig = JavaMethodSignature
 					.fromString(methodPart);
-			if (methSig != null) {
-				boolean found = sel.searchMethod(methodPart);
-				assert !found || sel.numberOfSearchResults() == 1;
-				if (!found)
-					throw new MethodNotFoundException(methodPart);
-				return sel.getMethod(0);
-			} else {
+			if (methSig == null) {
 				throw new InvalidAnnotationFormatException(methodPart);
 			}
+
+			boolean found = sel.searchMethod(methodPart);
+			assert !found || sel.numberOfSearchResults() == 1;
+			if (!found)
+				throw new MethodNotFoundException(methodPart);
+			return sel.getMethod(0);
 		}
 	}
 }

@@ -22,7 +22,9 @@ package edu.kit.joana.ui.ifc.sdg.graphviewer.util;
  * @author <a href="mailto:wellner@fmi.uni-passau.de">Tobias Wellner </a>
  * @version 1.0
  */
-public class Debug {
+public final class Debug {
+
+	private Debug() {}
 
     public static final boolean DEBUG_STATE = false;
 

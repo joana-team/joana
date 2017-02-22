@@ -41,7 +41,9 @@ import edu.kit.joana.ui.ifc.sdg.compiler.util.PluginUtil;
  * process.
  *
  */
-public class JoanaCompiler {
+public final class JoanaCompiler {
+
+	private JoanaCompiler() {}
 
 	private static void markFile(IFile srcFile, String message, String cmdLine) {
 		// Clear joana build markers
@@ -106,8 +108,7 @@ public class JoanaCompiler {
 			// TODO clean handling of e
 		}
 
-		String[] params = paramList.toArray(new String[paramList.size()]);
-		return params;
+		return paramList.toArray(new String[paramList.size()]);
 	}
 
 	private static boolean build(IFile srcFile) {

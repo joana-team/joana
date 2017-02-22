@@ -23,8 +23,8 @@ import org.eclipse.jface.util.PropertyChangeEvent;
  */
 public class ProjectPreferenceStore extends EventManager implements IPreferenceStore {
 
-	private IProject project;
-	private String namespace;
+	private final IProject project;
+	private final String namespace;
 
 	/**
 	 * Constructor

@@ -18,8 +18,8 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.view.LookupDialog;
 
 public class LookupAction extends AbstractGVAction implements BundleConstants, ChangeListener {
 	private static final long serialVersionUID = 612904713808421341L;
-	private LookupDialog lookupDialog;
-	private GraphPane graphPane;
+	private final LookupDialog lookupDialog;
+	private final GraphPane graphPane;
 
 	public LookupAction(LookupDialog lookupDialog, GraphPane graphPane) {
 		super("lookup.name", "Search.png", "lookup.description", "lookup");
@@ -34,10 +34,7 @@ public class LookupAction extends AbstractGVAction implements BundleConstants, C
 	}
 
 	public void stateChanged(ChangeEvent e) {
-		if (this.graphPane.getSelectedIndex() == -1) {
-			this.setEnabled(false);
-		} else {
-			this.setEnabled(true);
-		}
+		boolean enable = this.graphPane.getSelectedIndex() != -1;
+		this.setEnabled(enable);
 	}
 }

@@ -24,9 +24,9 @@ import edu.kit.joana.ui.ifc.sdg.compiler.util.JoanaNatureUtil;
  *
  */
 class FullProjectBuildInput implements IBuildInput {
-	private Collection<IFile> filesToBuild = new ArrayList<IFile>();
+	private final Collection<IFile> filesToBuild = new ArrayList<IFile>();
 
-	private Collection<IFile> filesToRemove = new ArrayList<IFile>();
+	private final Collection<IFile> filesToRemove = new ArrayList<IFile>();
 
 	public Collection<IFile> getFilesToBuild() {
 		return filesToBuild;

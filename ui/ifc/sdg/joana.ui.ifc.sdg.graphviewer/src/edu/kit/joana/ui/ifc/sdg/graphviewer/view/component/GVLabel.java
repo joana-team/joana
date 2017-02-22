@@ -67,19 +67,19 @@ public class GVLabel extends JLabel implements LanguageListener {
 
     public void setTextResource(Resource text) {
         this.text = text;
-        if (this.text != null) {
-            this.setText(this.translator.getString(text));
-        } else {
+        if (this.text == null) {
             this.setText(null);
+        } else {
+            this.setText(this.translator.getString(text));
         }
     }
 
     public void setToolTipTextResource(Resource toolTip) {
         this.toolTip = toolTip;
-        if (this.toolTip != null) {
-            this.setToolTipText(this.translator.getString(toolTip));
-        } else {
+        if (this.toolTip == null) {
             this.setToolTipText(null);
+        } else {
+            this.setToolTipText(this.translator.getString(toolTip));
         }
     }
 

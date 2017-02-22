@@ -44,7 +44,7 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.util.SDGUtils;
  * @version 1.1
  */
 public class GraphViewerModel {
-	private transient EventListenerList listenersList = new EventListenerList();
+	private final transient EventListenerList listenersList = new EventListenerList();
 
 	public void removeAllGraphs() {
 		GraphViewerModelEvent evt = new GraphViewerModelEvent(this, GraphViewerModelEvent.ALL_GRAPHS_REMOVED, null);

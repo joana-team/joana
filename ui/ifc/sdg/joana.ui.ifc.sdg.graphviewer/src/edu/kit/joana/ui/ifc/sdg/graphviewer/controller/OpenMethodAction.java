@@ -31,7 +31,7 @@ public class OpenMethodAction extends AbstractGVAction {
 	private static final long serialVersionUID = 5977248876910666801L;
 
 	protected int proc = -1;
-    private GraphViewerModel model;
+    private final GraphViewerModel model;
     private Graph g;
 
     /**

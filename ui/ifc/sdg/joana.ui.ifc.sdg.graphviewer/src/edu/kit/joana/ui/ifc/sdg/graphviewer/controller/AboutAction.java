@@ -32,7 +32,7 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVOptionPane;
  */
 public class AboutAction extends AbstractGVAction implements BundleConstants {
 	private static final long serialVersionUID = -6525753514144256022L;
-	private GVOptionPane optionPane;
+	private final GVOptionPane optionPane;
 
     /**
      * Constructs a new <code>AboutAction</code> object.

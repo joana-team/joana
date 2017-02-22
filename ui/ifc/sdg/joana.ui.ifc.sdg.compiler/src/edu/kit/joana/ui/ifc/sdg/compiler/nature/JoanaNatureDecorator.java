@@ -34,7 +34,7 @@ import edu.kit.joana.ui.ifc.sdg.compiler.util.PluginUtil;
  */
 public class JoanaNatureDecorator implements ILightweightLabelDecorator, IJoanaNatureChangeListener {
 
-	private Collection<ILabelProviderListener> listeners = new ArrayList<ILabelProviderListener>();
+	private final Collection<ILabelProviderListener> listeners = new ArrayList<ILabelProviderListener>();
 
 	public void decorate(Object element, IDecoration decoration) {
 		if (element instanceof IJavaProject) {

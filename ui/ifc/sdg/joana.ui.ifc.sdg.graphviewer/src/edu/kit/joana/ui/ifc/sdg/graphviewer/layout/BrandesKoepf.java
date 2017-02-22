@@ -296,14 +296,13 @@ public class BrandesKoepf extends CoordinateAssignmentStrategy {
                         NodeConstants.setBKSink(v, sinkV);
                     }
                     int blockWidth = NodeConstants.getBKBlockWidth(u);
-                    if(sinkV != sinkU) {
+                    if(sinkV == sinkU) {
+                        xv = Math.max(xv, xu + blockWidth + delta);
+                        NodeConstants.setBKXCoord(v, vAlign, hAlign, xv);
+                    } else {
                         int shiftU = NodeConstants.getBKShift(sinkU);
                         shiftU = Math.min(shiftU, xv - xu - blockWidth - delta);
                         NodeConstants.setBKShift(sinkU, shiftU);
-                    }
-                    else {
-                        xv = Math.max(xv, xu + blockWidth + delta);
-                        NodeConstants.setBKXCoord(v, vAlign, hAlign, xv);
                     }
                 }
                 w = NodeConstants.getBKAlign(w);
@@ -448,11 +447,11 @@ public class BrandesKoepf extends CoordinateAssignmentStrategy {
         /**
          * the start point of the edge segment
          */
-        private Node v0;
+        private final Node v0;
         /**
          * the end point of the edge segment
          */
-        private Node v1;
+        private final Node v1;
 
         /**
          * Creates a new edge segment.

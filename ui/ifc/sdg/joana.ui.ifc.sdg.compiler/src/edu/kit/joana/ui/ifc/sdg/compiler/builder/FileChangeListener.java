@@ -31,7 +31,7 @@ import edu.kit.joana.ui.ifc.sdg.compiler.util.PluginUtil;
  */
 public class FileChangeListener implements IResourceChangeListener {
 
-	private IWorkspace workspace = ResourcesPlugin.getWorkspace();
+	private final IWorkspace workspace = ResourcesPlugin.getWorkspace();
 
 	public void resourceChanged(IResourceChangeEvent event) {
 		List<IProject> projects = walk(event.getDelta());

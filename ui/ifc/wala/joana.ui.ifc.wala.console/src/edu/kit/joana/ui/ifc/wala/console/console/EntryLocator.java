@@ -31,7 +31,7 @@ import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 public class EntryLocator {
 
 	/** the list of search results */
-	private List<JavaMethodSignature> possibleEntries = new ArrayList<JavaMethodSignature>();
+	private final List<JavaMethodSignature> possibleEntries = new ArrayList<JavaMethodSignature>();
 
 	/** the entry method which has been selected */
 	private JavaMethodSignature activeEntry;
@@ -81,23 +81,24 @@ public class EntryLocator {
 			out.error("I/O error while searching entry methods!");
 			return false;
 		}
-		if (!newEntries.isEmpty()) {
-			possibleEntries.clear();
-			possibleEntries.addAll(newEntries);
-			Collections.sort(possibleEntries, new Comparator<JavaMethodSignature>() {
 
-				@Override
-				public int compare(JavaMethodSignature arg0,
-						JavaMethodSignature arg1) {
-					return arg0.toHRString().compareTo(arg1.toHRString());
-				}
-
-			});
-			unselectEntry();
-			return true;
-		} else {
+		if (newEntries.isEmpty()) {
 			return false;
 		}
+
+		possibleEntries.clear();
+		possibleEntries.addAll(newEntries);
+		Collections.sort(possibleEntries, new Comparator<JavaMethodSignature>() {
+
+			@Override
+			public int compare(JavaMethodSignature arg0,
+					JavaMethodSignature arg1) {
+				return arg0.toHRString().compareTo(arg1.toHRString());
+			}
+
+		});
+		unselectEntry();
+		return true;
 	}
 
 	/**
@@ -109,12 +110,12 @@ public class EntryLocator {
 	 */
 	public void displayLastEntrySearchResults(IFCConsoleOutput out) {
 		if (!foundPossibleEntries()) {
-			out.logln("No search results.");
-		} else {
 			for (int i = 0; i < possibleEntries.size(); i++) {
 				out.logln("[" + i + "] "
 						+ possibleEntries.get(i).toHRString());
 			}
+		} else {
+			out.logln("No search results.");
 		}
 	}
 

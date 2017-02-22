@@ -21,9 +21,9 @@ import org.eclipse.jface.viewers.Viewer;
  */
 public class MarkerContentProvider implements IStructuredContentProvider {
 
-	private boolean includeSubtypes;
+	private final boolean includeSubtypes;
 
-	private String markerType;
+	private final String markerType;
 
 	public Object[] getElements(Object inputElement) {
 		try {

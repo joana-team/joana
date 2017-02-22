@@ -22,7 +22,7 @@ public class CombiAction extends AbstractGVAction implements ChangeListener {
 	private static final long serialVersionUID = 2050067496603903127L;
 
 	private final GraphViewerModel gvm;
-	private GraphPane graphPane;
+	private final GraphPane graphPane;
 
 	public CombiAction(GraphPane pane, GraphViewerModel gvm) {
 		super("combi.name", "About.png", "combi.description", "combi");

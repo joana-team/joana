@@ -24,7 +24,10 @@ import org.eclipse.core.runtime.NullProgressMonitor;
  * Various general purpose plugin utilities.
  *
  */
-public class PluginUtil {
+public final class PluginUtil {
+
+	private PluginUtil() {}
+
 	/**
 	 * Adds a nature to a project
 	 *

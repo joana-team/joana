@@ -396,7 +396,9 @@ public class GraphPane extends JTabbedPane implements GraphViewerModelListener, 
 						// cell is edge
 						Color color = Color.BLACK;
 
-						if ((cell.getAttributes()).get("kind") != null) {
+						if ((cell.getAttributes()).get("kind") == null) {
+							edgeNull = true;
+						} else {
 							final String key = "" + ((String) (cell.getAttributes()).get("kind"));
 							String colString = colors.getProperty(key + "_COL");
 
@@ -416,8 +418,6 @@ public class GraphPane extends JTabbedPane implements GraphViewerModelListener, 
 								final int colInt = (new Integer(colString)).intValue();
 								color = new Color(colInt);
 							}
-						} else {
-							edgeNull = true;
 						}
 						// store new color in attribute Map for each cell
 						GraphConstants.setLineColor(attributeMap, color);

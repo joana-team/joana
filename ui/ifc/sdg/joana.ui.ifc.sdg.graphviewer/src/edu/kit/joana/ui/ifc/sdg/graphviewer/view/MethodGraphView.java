@@ -41,7 +41,7 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.model.ClonedSDGNode;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.model.MethodGraph;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class MethodGraphView extends JGraph {
+public final class MethodGraphView extends JGraph {
 	private static final long serialVersionUID = -3048446505658986252L;
 	static int ctr = -1;
 

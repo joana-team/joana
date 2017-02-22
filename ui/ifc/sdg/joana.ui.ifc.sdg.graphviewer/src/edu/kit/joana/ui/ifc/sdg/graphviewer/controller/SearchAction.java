@@ -17,7 +17,7 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.view.SearchDialog;
  */
 public class SearchAction extends AbstractGVAction implements BundleConstants {
 	private static final long serialVersionUID = 9163795803048039942L;
-	private SearchDialog searchDialog = null;
+	private final SearchDialog searchDialog;
 
     /**
      * constructor

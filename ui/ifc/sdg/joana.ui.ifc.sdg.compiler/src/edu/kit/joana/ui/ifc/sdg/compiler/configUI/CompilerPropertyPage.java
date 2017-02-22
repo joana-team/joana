@@ -31,8 +31,6 @@ import edu.kit.joana.ui.ifc.sdg.compiler.util.Activator;
 public class CompilerPropertyPage extends CompilerPrefPage implements IWorkbenchPropertyPage {
 
 	private ExtendedBooleanFieldEditor projectSpecific;
-	private Composite container;
-	private Control settings;
 
 	@Override
 	protected void createFieldEditors() {
@@ -45,7 +43,7 @@ public class CompilerPropertyPage extends CompilerPrefPage implements IWorkbench
 
 	@Override
 	protected Control createContents(Composite parent) {
-		container = new Composite(parent, SWT.NONE);
+		Composite container = new Composite(parent, SWT.NONE);
 		GridLayout layout = new GridLayout(1, false);
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
@@ -61,7 +59,7 @@ public class CompilerPropertyPage extends CompilerPrefPage implements IWorkbench
 		Label label = new Label(container, SWT.HORIZONTAL | SWT.SEPARATOR);
 		label.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.FILL_HORIZONTAL));
 
-		settings = super.createContents(container);
+		Control settings = super.createContents(container);
 		settings.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.GRAB_VERTICAL | GridData.FILL_BOTH));
 
 		updateCompilerControls();

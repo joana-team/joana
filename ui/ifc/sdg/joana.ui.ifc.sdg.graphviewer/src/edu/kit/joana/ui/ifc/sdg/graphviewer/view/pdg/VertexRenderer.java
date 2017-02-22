@@ -39,11 +39,11 @@ public class VertexRenderer implements CellViewRenderer {
     /**
      * the panel to draw the vertex
      */
-    private JPanel panel;
+    private final JPanel panel;
     /**
      * the area for the text of the vertex
      */
-    private JTextArea textArea;
+    private final JTextArea textArea;
 
     /** Creates a new instance of VertexRenderer */
     public VertexRenderer() {
@@ -77,10 +77,10 @@ public class VertexRenderer implements CellViewRenderer {
             textArea.setComponentOrientation(graph.getComponentOrientation());
 
             final String label = graph.convertValueToString(view);
-            if (label != null && graph.getEditingCell() != view.getCell()) {
-                textArea.setText(label);
-            } else {
+            if (label == null || graph.getEditingCell() == view.getCell()) {
                 textArea.setText(null);
+            } else {
+                textArea.setText(label);
             }
 
             Map<?, ?> map = view.getAllAttributes();

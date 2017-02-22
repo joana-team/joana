@@ -24,7 +24,7 @@ import edu.kit.joana.ui.ifc.sdg.compiler.util.Activator;
  */
 public class BuildJob extends Job {
 
-	private IProject project;
+	private final IProject project;
 	private boolean done;
 	private boolean cancelled = false;
 	private boolean started = false;

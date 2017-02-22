@@ -19,7 +19,9 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
 
-public class CollapseParameterGraphs {
+public final class CollapseParameterGraphs {
+
+	private CollapseParameterGraphs() {}
 
 	public static MethodGraph collapse(MethodGraph methodSDG) {
 		MethodGraph newMethodSDG = new MethodGraph(methodSDG.getCompleteSDG(), methodSDG.getProcID());

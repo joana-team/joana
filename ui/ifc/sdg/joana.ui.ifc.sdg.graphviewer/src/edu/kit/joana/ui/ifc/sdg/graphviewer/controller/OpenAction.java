@@ -36,8 +36,8 @@ public class OpenAction extends AbstractGVAction implements BundleConstants {
 	private static final long serialVersionUID = -5465148006219276706L;
 	private static GVFileChooser fileChooser = null;
 
-	private GraphViewerModel model;
-    private GVFrame frame = null;
+	private final GraphViewerModel model;
+    private final GVFrame frame;
     private String fileName=null;
 
 

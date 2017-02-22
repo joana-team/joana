@@ -37,7 +37,7 @@ public class IFCConsolePanel extends JPanel {
 	private final JTextField input = new JTextField("");
 	private final JButton enter = new JButton("enter");
 
-	private Stack<String> history = new Stack<String>();
+	private final Stack<String> history = new Stack<String>();
 	private int posInHistory = 0;
 
 	public IFCConsolePanel(IFCConsoleGUI consoleGui) {

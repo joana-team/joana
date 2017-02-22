@@ -48,8 +48,6 @@ public class LookupDialog extends GVPanel implements BundleConstants, ActionList
 	@SuppressWarnings("unused")
 	private int returnValue = ERROR_OPTION;
 	private int id = -1;
-	private GVOptionPane optionPane = null;
-	private GridBagConstraints c = null;
 
 	public LookupDialog(MainFrame parent) {
 		super(parent.getTranslator());
@@ -78,7 +76,7 @@ public class LookupDialog extends GVPanel implements BundleConstants, ActionList
 
 	private void initComponents() {
 		this.setLayout(new GridBagLayout());
-		c = new GridBagConstraints();
+		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;
 
 		GVPanel searchPanelNorth = new GVPanel(this.getTranslator(), new FlowLayout());
@@ -129,20 +127,9 @@ public class LookupDialog extends GVPanel implements BundleConstants, ActionList
 //	    	return new CommandStatusEvent(this, CommandStatusEvent.SUCCESS,
 //	                new Resource(COMMANDS_BUNDLE, "openMethod.success.status"));
 
-		} catch (NumberFormatException e1) {
-			optionPane = new GVOptionPane(this.parent);
-			optionPane.showErrorDialog(new Resource(ACTIONS_BUNDLE,
-					"error_nosuchid.message", " "));
-		} catch (NoSuchElementException e2) {
-			this.optionPane = new GVOptionPane(this.parent);
-			optionPane.showErrorDialog(new Resource(ACTIONS_BUNDLE,
-					"error_nosuchid.message", " "));
-		} catch (ArrayIndexOutOfBoundsException e3) {
-			optionPane = new GVOptionPane(this.parent);
-			optionPane.showErrorDialog(new Resource(ACTIONS_BUNDLE,
-					"error_nosuchid.message", " "));
-		} catch(NullPointerException e4) {
-			optionPane = new GVOptionPane(this.parent);
+		} catch (NumberFormatException | NoSuchElementException |
+				ArrayIndexOutOfBoundsException | NullPointerException ex) {
+			GVOptionPane optionPane = new GVOptionPane(this.parent);
 			optionPane.showErrorDialog(new Resource(ACTIONS_BUNDLE,
 					"error_nosuchid.message", " "));
 		} finally {

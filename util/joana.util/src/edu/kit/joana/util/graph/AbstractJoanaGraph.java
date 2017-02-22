@@ -141,15 +141,15 @@ public class AbstractJoanaGraph<V, E extends KnowsVertices<V>> implements Direct
 	public boolean equals(Object obj) {
 		if (this == obj) {
 			return true;
-		} else if (obj == null) {
-			return false;
-		} else if (!(obj instanceof AbstractJoanaGraph)) {
-			return false;
-		} else {
-		    AbstractJoanaGraph<V,E> other = (AbstractJoanaGraph<V,E>) obj;
-			DirectedPseudograph<V, E> otherDelegate = (DirectedPseudograph<V, E>) other.delegate;
-			return delegate.equals(otherDelegate);
 		}
+
+		if (!(obj instanceof AbstractJoanaGraph)) {
+			return false;
+		}
+
+		AbstractJoanaGraph<V,E> other = (AbstractJoanaGraph<V,E>) obj;
+		DirectedPseudograph<V, E> otherDelegate = (DirectedPseudograph<V, E>) other.delegate;
+		return delegate.equals(otherDelegate);
 	}
 
 	/**

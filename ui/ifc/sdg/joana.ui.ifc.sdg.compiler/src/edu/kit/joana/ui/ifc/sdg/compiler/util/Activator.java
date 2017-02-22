@@ -45,7 +45,7 @@ public class Activator extends AbstractUIPlugin {
 	// The shared instance
 	private static Activator plugin;
 
-	private Collection<IJoanaNatureChangeListener> natureChangeListeners = new ArrayList<IJoanaNatureChangeListener>();
+	private final Collection<IJoanaNatureChangeListener> natureChangeListeners = new ArrayList<IJoanaNatureChangeListener>();
 
 	/**
 	 * Registers a JOANA nature change listener

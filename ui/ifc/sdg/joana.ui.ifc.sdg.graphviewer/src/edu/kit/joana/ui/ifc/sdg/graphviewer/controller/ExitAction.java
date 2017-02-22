@@ -29,7 +29,7 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.model.GraphViewerModel;
 public class ExitAction extends AbstractGVAction {
 	private static final long serialVersionUID = 552566003241035414L;
 
-    private GraphViewerModel model;
+    private final GraphViewerModel model;
 
 	/**
      * Constructs a new <code>ExitAction</code> object.

@@ -136,11 +136,11 @@ public class PredAction extends AbstractGVAction implements BundleConstants {
 					selectItem(p.next().getID(), true);
 				}
 			}
-			//change border settings
-			if(!dialog) {
-				markCells(cell, predList);
-			} else {
+			if(dialog) {
 				dialog = false;
+			} else {
+				//change border settings
+				markCells(cell, predList);
 			}
 		}
 	}

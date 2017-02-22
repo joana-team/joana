@@ -31,6 +31,8 @@ import javax.swing.ImageIcon;
  */
 public final class GVUtilities implements PathConstants {
 
+	private GVUtilities() {}
+
     /**
      * Returns the icon with the specified name.
      * @param iconName the name of the icon
@@ -40,10 +42,10 @@ public final class GVUtilities implements PathConstants {
         ImageIcon icon = null;
         // use this for jar distribution
         URL url = GVUtilities.class.getResource("/" + ICON_PATH + iconName);
-        if (url != null)
-        	icon = new ImageIcon(url);
-        else
+        if (url == null)
         	icon = new ImageIcon(ICON_PATH + iconName);
+        else
+        	icon = new ImageIcon(url);
         return icon;
     }
 

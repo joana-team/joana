@@ -19,7 +19,7 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
 
 public class OrderedTreeLayoutAction extends AbstractGVAction implements ChangeListener {
 	private static final long serialVersionUID = -431575862619382771L;
-	private GraphPane graphPane = null;
+	private final GraphPane graphPane;
 
 	public OrderedTreeLayoutAction(GraphPane graphPane) {
 		super("orderedTreeLayout.name", "orderedTreeLayout.description");
@@ -43,11 +43,9 @@ public class OrderedTreeLayoutAction extends AbstractGVAction implements ChangeL
 	public void stateChanged(ChangeEvent e) {
 		if(this.graphPane.getSelectedIndex()==-1) {
 			this.setEnabled(false);
-			return;
+		} else {
+			boolean enable = this.graphPane.getSelectedJGraph() instanceof CallGraphView;
+			this.setEnabled(enable);
 		}
-		if (!(this.graphPane.getSelectedJGraph() instanceof CallGraphView)) {
-			this.setEnabled(false);
-		} else
-			this.setEnabled(true);
 	}
 }

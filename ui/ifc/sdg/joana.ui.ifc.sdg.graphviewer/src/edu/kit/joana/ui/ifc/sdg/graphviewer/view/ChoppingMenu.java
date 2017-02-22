@@ -43,10 +43,10 @@ public class ChoppingMenu extends GVMenu implements ChangeListener, BundleConsta
 	 *
 	 */
 	private static final long serialVersionUID = 1L;
-	public final String TARGET = "target:";
-	public final String SOURCE = "source:";
-	private MainFrame mainFrame = null;
-	private GraphPane graphPane = null;
+	public static final String TARGET = "target:";
+	public static final String SOURCE = "source:";
+	private final MainFrame mainFrame;
+	private final GraphPane graphPane;
 	private int sourceID = 0;
 	private int targetID = 0;
 
@@ -215,10 +215,8 @@ public class ChoppingMenu extends GVMenu implements ChangeListener, BundleConsta
 			this.setEnabled(false);
 			return;
 		}
-		if (!(this.mainFrame.getGraphPane().getSelectedJGraph() instanceof CallGraphView)) {
-			this.setEnabled(false);
-		} else
-			this.setEnabled(true);
+		boolean enable = this.mainFrame.getGraphPane().getSelectedJGraph() instanceof CallGraphView;
+		this.setEnabled(enable);
 	}
 
 	public int getSourceID() {

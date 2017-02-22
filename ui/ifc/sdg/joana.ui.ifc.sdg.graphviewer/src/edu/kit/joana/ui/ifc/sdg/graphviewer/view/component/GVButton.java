@@ -86,50 +86,54 @@ public class GVButton extends JButton implements LanguageListener {
                 Action.ACTION_COMMAND_KEY, "enabled" };
         for (int i = 0; i < types.length; i++) {
             String type = types[i];
-            if (type.equals(Action.MNEMONIC_KEY)) {
+            
+            switch (type) {
+            case Action.MNEMONIC_KEY:
                 Integer n = (action == null) ? null : (Integer) action
                         .getValue(type);
                 this.setMnemonic(n == null ? '\0' : n.intValue());
-            } else if (type.equals(Action.NAME)) {
-                Boolean hide = (Boolean) this
-                        .getClientProperty("hideActionText");
-                this
-                        .setTextResource(action != null && hide != Boolean.TRUE ? (Resource) action
-                                .getValue(Action.NAME)
-                                : null);
-            } else if (type.equals(Action.SHORT_DESCRIPTION)) {
-                this.setToolTipResource(action != null ? (Resource) action
-                        .getValue(type) : null);
-            } else if (type.equals(Action.SMALL_ICON)) {
-                this.setIcon(action != null ? (Icon) action.getValue(type)
-                        : null);
-            } else if (type.equals(Action.ACTION_COMMAND_KEY)) {
-                this.setActionCommand(action != null ? (String) action
-                        .getValue(type) : null);
-            } else if (type.equals("enabled")) {
-                this.setEnabled(action != null ? action.isEnabled() : true);
+                break;
+            case Action.NAME:
+                Boolean hide = (Boolean) this.getClientProperty("hideActionText");
+                this.setTextResource(action == null || hide == Boolean.TRUE ? null
+                            : (Resource) action.getValue(Action.NAME));
+                break;
+            case Action.SHORT_DESCRIPTION:
+                this.setToolTipResource(action == null ? null : (Resource) action.getValue(type));
+                break;
+            case Action.SMALL_ICON:
+                this.setIcon(action == null ? null : (Icon) action.getValue(type));
+                break;
+            case Action.ACTION_COMMAND_KEY:
+                this.setActionCommand(action == null ? null : (String) action.getValue(type));
+                break;
+            case "enabled":
+                this.setEnabled(action == null || action.isEnabled());
+            	break;
+        	default:
+        		// no-op
             }
         }
     }
 
     public void setTextResource(Resource text) {
         this.text = text;
-        if (this.text != null) {
+        if (this.text == null) {
+            this.setText(null);
+        } else {
             // Sets the button's text.
             this.setText(this.translator.getString(text));
-        } else {
-            this.setText(null);
         }
     }
 
     public void setToolTipResource(Resource toolTip) {
         this.toolTip = toolTip;
-        if (this.toolTip != null) {
+        if (this.toolTip == null) {
+            this.setToolTipText(null);
+        } else {
             // Registers the text to display in a tool tip. The text displays
             // when the cursor lingers over the component.
             this.setToolTipText(this.translator.getString(toolTip));
-        } else {
-            this.setToolTipText(null);
         }
     }
 

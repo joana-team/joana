@@ -64,16 +64,9 @@ public class SearchDialog extends GVPanel implements BundleConstants, ActionList
 	protected GVDialog dialog = null;
 
 	/**
-	 * contains the panel that holds all the GUI elements for a search
-	 */
-	private GVPanel searchPanel = null;
-
-	/**
 	 * this panel contains a representation of the search results
 	 */
 	private GVPanel resultPanel = null;
-
-	private JScrollPane resultScrollPane = null;
 
 	private boolean hidden = true;
 
@@ -87,19 +80,19 @@ public class SearchDialog extends GVPanel implements BundleConstants, ActionList
 
 	//private String hideButtonText = null;
 
-	private String hideText = null;
+	private final String hideText;
 
-	private String showText = null;
+	private final String showText;
 
 	private GVPanel viewportPanel = null;
 
 	private ButtonGroup buttonGroup;
 
-	private final int VERTEX_SEARCH = 0;
+	private static final int VERTEX_SEARCH = 0;
 
-	private final int TEXT_SEARCH = 1;
+	private static final int TEXT_SEARCH = 1;
 
-	private final int REG_EXPR_SEARCH = 2;
+	private static final int REG_EXPR_SEARCH = 2;
 
 	private int resultCount = 0;
 
@@ -115,7 +108,7 @@ public class SearchDialog extends GVPanel implements BundleConstants, ActionList
 
 	public List succList = null;
 
-	private String APPLY = "APPLY";
+	private final String APPLY = "APPLY";
 
 	public DefaultGraphCell currGraphCell = null;
 
@@ -162,7 +155,7 @@ public class SearchDialog extends GVPanel implements BundleConstants, ActionList
 		c.fill = GridBagConstraints.BOTH;
 
 		// main panels
-		searchPanel = new GVPanel(this.getTranslator(), new BorderLayout());
+		GVPanel searchPanel = new GVPanel(this.getTranslator(), new BorderLayout());
 		resultPanel = new GVPanel(this.getTranslator(), new GridLayout(0, 1));
 
 		// initialize north of searchPanel
@@ -227,7 +220,7 @@ public class SearchDialog extends GVPanel implements BundleConstants, ActionList
 
 		// set up scrollable viewport for result panel
 		viewportPanel = new GVPanel(this.getTranslator(), new GridLayout(0, 1));
-		resultScrollPane = new JScrollPane(viewportPanel);
+		JScrollPane resultScrollPane = new JScrollPane(viewportPanel);
 
 		resultScrollPane
 				.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
@@ -420,11 +413,11 @@ public class SearchDialog extends GVPanel implements BundleConstants, ActionList
 	private class ResultItem extends JPanel implements ActionListener {
 		private static final long serialVersionUID = -2704762055215080845L;
 
-		private final String PRED = "PRED"; // button label for pred
+		private static final String PRED = "PRED"; // button label for pred
 
-		private final String SUCC = "SUCC"; // button label for succ
+		private static final String SUCC = "SUCC"; // button label for succ
 
-		private final String NODE = "NODE"; // action comand for node button
+		private static final String NODE = "NODE"; // action comand for node button
 
 		private JPanel predPanel = null; // panel containing preds
 

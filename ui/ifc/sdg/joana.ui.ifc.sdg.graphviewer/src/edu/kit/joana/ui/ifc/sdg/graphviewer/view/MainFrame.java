@@ -86,22 +86,21 @@ public class MainFrame extends GVFrame implements ContainerListener, BundleConst
 	public static final int WIDTH = 800;
 	public static final int HEIGHT = 600;
 
-	private MenuBar menuBar;
-	private GraphPane graphPane;
+	private final GraphPane graphPane;
 	private StatusBar statusBar;
 
 	/**
 	 * a dialog where the user can make adjustments (concerning language and
 	 * colour so far)
 	 */
-	private AdjustmentsDialog adjustmentDialog;
+	private final AdjustmentsDialog adjustmentDialog;
 	/**
 	 * a dialog where the user can search for vertex numbers,text and regular
 	 * expreesions
 	 */
-	private SearchDialog searchDialog;
-	private LookupDialog lookupDialog;
-	private HideNodeDialog hideNodeDialog;
+	private final SearchDialog searchDialog;
+	private final LookupDialog lookupDialog;
+	private final HideNodeDialog hideNodeDialog;
 	/**
 	 * <code>ActionMap</code> provides mappings from Objects (called keys or
 	 * Action names) to Actions. <code>An ActionMap</code> is usually used with
@@ -150,7 +149,7 @@ public class MainFrame extends GVFrame implements ContainerListener, BundleConst
 
 		Debug.print("MainFrame.initComponents()");
 
-		menuBar = new MenuBar(this);
+		MenuBar menuBar = new MenuBar(this);
 		this.setJMenuBar(menuBar);
 
 		this.getContentPane().add(new ToolBar(this), BorderLayout.NORTH);

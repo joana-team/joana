@@ -21,10 +21,10 @@ public class OrderedPair<S extends Comparable<? super S>, T extends Comparable<?
 	@Override
 	public int compareTo(OrderedPair<S, T> o) {
 		int cmpFirst = this.getFirst().compareTo(o.getFirst());
-		if (cmpFirst != 0) {
-			return cmpFirst;
-		} else {
+		if (cmpFirst == 0) {
 			return this.getSecond().compareTo(o.getSecond());
+		} else {
+			return cmpFirst;
 		}
 	}
 	

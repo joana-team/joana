@@ -7,6 +7,8 @@
  */
 package edu.kit.joana.util;
 
+import java.util.Objects;
+
 /**
  * This class provides a typesafe Maybe type, which is known from functional
  * languages such as Haskell. A Maybe value is either 'Nothing' or of the form
@@ -69,27 +71,19 @@ public abstract class Maybe<T> {
 	public boolean equals(Object o) {
 		if (!(o instanceof Maybe)) {
 			return false;
-		} else {
-			Maybe m = (Maybe) o;
-			if (isNothing()) {
-				return m.isNothing();
-			} else {
-				if (m.isNothing()) {
-					return false;
-				} else {
-					// now we know that both this and m are of the form 'Just t'
-					if (extract() == null) {
-						return m.extract() == null; 
-					} else {
-						if (m.extract() == null) {
-							return false;
-						} else {
-							return extract().equals(m.extract());
-						}
-					} 
-				}
-			}
 		}
+
+		Maybe m = (Maybe) o;
+		if (isNothing()) {
+			return m.isNothing();
+		}
+
+		if (m.isNothing()) {
+			return false;
+		}
+
+		// now we know that both this and m are of the form 'Just t'
+		return Objects.equals(extract(), m.extract());
 	}
 
 	@Override

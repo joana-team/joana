@@ -35,7 +35,7 @@ public class ZoomOutAction extends AbstractGVAction implements PropertyChangeLis
 	private static final double ZOOM_FACTOR = 0.5;
     protected static final Double MIN_SCALE = Double.valueOf(0.25);
 
-    private GraphPane pane;
+    private final GraphPane pane;
 
     /**
      * Constructs a new <code>ZoomOutAction</code> object.

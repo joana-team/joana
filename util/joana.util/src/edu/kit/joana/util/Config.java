@@ -62,7 +62,7 @@ public final class Config {
 	}
 
 	public static boolean getBool(final String option, final boolean defaultValue) {
-		return (!isDefined(option) ? defaultValue : getBool(option));
+		return (isDefined(option) ? getBool(option) : defaultValue);
 	}
 
 	public static int getInt(final String option, final int defaultValue) {

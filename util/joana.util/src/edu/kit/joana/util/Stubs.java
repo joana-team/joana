@@ -33,7 +33,7 @@ public enum Stubs {
 
 	private Stubs(final String name, final String fileName) {
 		this.name = name;
-		this.files = (fileName != null ? fileName.split(":") : new String[0]);
+		this.files = (fileName == null ? new String[0] : fileName.split(":"));
 	}
 
 	public String getName() {
@@ -78,14 +78,14 @@ public enum Stubs {
 		if (joanaBaseDir == null) {
 			throw new Error("Cannot locate property 'joana.base.dir'! Please provide a property 'joana.base.dir'"
 				+ " to the jvm or a project.properties in the base dir of your eclipse project!");
-		} else {
-			File fBase = new File(joanaBaseDir + "/contrib/lib/");
-			if (!fBase.exists()) {
-				throw new Error("Invalid location " + joanaBaseDir + " for joana.base.dir!");
-			} else {
-				return fBase.getAbsolutePath();
-			}
 		}
+
+		File fBase = new File(joanaBaseDir + "/contrib/lib/");
+		if (!fBase.exists()) {
+			throw new Error("Invalid location " + joanaBaseDir + " for joana.base.dir!");
+		}
+
+		return fBase.getAbsolutePath();
 	}
 
 	private boolean locateableByClassLoader(final String name) {

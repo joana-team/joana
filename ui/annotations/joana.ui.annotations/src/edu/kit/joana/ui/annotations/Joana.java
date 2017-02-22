@@ -12,7 +12,7 @@ package edu.kit.joana.ui.annotations;
  * 
  * @author Juergen Graf <juergen.graf@gmail.com>
  */
-public class Joana {
+public final class Joana {
 
 	private Joana() {}
 	

@@ -246,7 +246,7 @@ public class IFCConsole {
 	}
 
 	private static class CommandRepository {
-		private SortedMap<String, Command> availCommands = new TreeMap<String, Command>();
+		private final SortedMap<String, Command> availCommands = new TreeMap<String, Command>();
 
 		public void addCommand(Command cmd) {
 			availCommands.put(cmd.getName(), cmd);
@@ -297,7 +297,7 @@ public class IFCConsole {
 	// private PrintStream errOut;
 	// private PrintStream infoOut;
 	//
-	private IFCConsoleOutput out;
+	private final IFCConsoleOutput out;
 
 	private boolean showPrompt = true;
 
@@ -309,20 +309,20 @@ public class IFCConsole {
 	private boolean computeInterference = false;
 	private MHPType mhpType = MHPType.NONE;
 	// private IStaticLattice<String> securityLattice;
-	private Collection<IViolation<SecurityNode>> lastAnalysisResult = new LinkedList<IViolation<SecurityNode>>();
+	private final Collection<IViolation<SecurityNode>> lastAnalysisResult = new LinkedList<IViolation<SecurityNode>>();
 	private TObjectIntMap<IViolation<SDGProgramPart>> groupedIFlows = new TObjectIntHashMap<IViolation<SDGProgramPart>>();
 	private Set<edu.kit.joana.api.sdg.SDGInstruction> lastComputedChop = null;
     private final EntryLocator loc = new EntryLocator();
-	private List<IFCConsoleListener> consoleListeners = new LinkedList<IFCConsoleListener>();
+	private final List<IFCConsoleListener> consoleListeners = new LinkedList<IFCConsoleListener>();
 	private IProgressMonitor monitor = NullProgressMonitor.INSTANCE;
 	private final SDGMethodSelector methodSelector = new SDGMethodSelector(this);
 	private IStaticLattice<String> secLattice = IFCAnalysis.stdLattice;
-	private CommandRepository repo = new CommandRepository();
-	private String outputDirectory = "./";
+	private final CommandRepository repo = new CommandRepository();
+	private final String outputDirectory = "./";
 	private String latticeFile;
 	private Stubs stubsPath = Stubs.JRE_14;
 
-	private List<String> script = new LinkedList<String>();
+	private final List<String> script = new LinkedList<String>();
 
 	public IFCConsole(BufferedReader in, IFCConsoleOutput out) {
 		this.in = in;
@@ -360,14 +360,13 @@ public class IFCConsole {
 				Integer i = parseInteger(args[1]);
 				if (i != null) {
 					return selectEntry(i);
-				} else {
-					JavaMethodSignature sig = JavaMethodSignature.fromString(args[1]);
-					if (sig != null) {
-						return selectEntry(sig);
-					} else {
-						return false;
-					}
 				}
+				JavaMethodSignature sig = JavaMethodSignature.fromString(args[1]);
+				if (sig != null) {
+					return selectEntry(sig);
+				}
+				
+				return false;
 			}
 		};
 	}
@@ -432,12 +431,12 @@ public class IFCConsole {
 				if (!("true".equals(args[1]) || "false".equals(args[1]))) {
 					out.logln("invalid setting: " + args[1]);
 					return false;
-				} else {
-					boolean b = "true".equals(args[1]);
-					setComputeInterferences(b);
-					out.logln("computeInterferences = " + args[1]);
-					return true;
 				}
+				
+				boolean b = "true".equals(args[1]);
+				setComputeInterferences(b);
+				out.logln("computeInterferences = " + args[1]);
+				return true;
 			}
 
 		};
@@ -449,13 +448,13 @@ public class IFCConsole {
 			@Override
 			boolean execute(String[] args) {
 				Stubs stubs = Stubs.fromString(args[1]);
-				if (stubs != null) {
+				if (stubs == null) {
+					out.error("Specified stubs not available!");
+					return false;
+				} else {
 					setStubsPath(stubs);
 					out.logln("stubs = " + stubs);
 					return true;
-				} else {
-					out.error("Specified stubs not available!");
-					return false;
 				}
 
 			}
@@ -729,9 +728,9 @@ public class IFCConsole {
 				Integer i = parseInteger(args[1]);
 				if (i != null) {
 					return selectMethod(i);
-				} else {
-					return false;
 				}
+
+				return false;
 			}
 		};
 	}
@@ -937,26 +936,28 @@ public class IFCConsole {
 		if (methodSelector.lastSearchResultEmpty()) {
 			out.info("Last search result is empty. Cannot select anything from empty list!");
 			return false;
-		} else if (!methodSelector.indexValid(i)) {
+		}
+
+		if (!methodSelector.indexValid(i)) {
 			out.error("Invalid method index!");
 			return false;
-		} else {
-			methodSelector.selectMethod(i);
-			displayActiveMethod();
-			return true;
 		}
+
+		methodSelector.selectMethod(i);
+		displayActiveMethod();
+		return true;
 	}
 
 	public boolean searchMethodsByName(String name) {
 		boolean found;
 		try {
 			found = methodSelector.searchMethodsContainingName(name);
-			if (!found) {
-				out.info("No search results. Last search results remain active.");
-				return false;
-			} else {
+			if (found) {
 				displayLastSearchResults();
 				return true;
+			} else {
+				out.info("No search results. Last search results remain active.");
+				return false;
 			}
 		} catch (PatternSyntaxException e) {
 			out.error("Invalid search pattern: " + e.getMessage());
@@ -967,18 +968,17 @@ public class IFCConsole {
 	public boolean annotateProgramPartAsSrcOrSnk(String programPart, String level, AnnotationType type) {
 		if (inSecurityLattice(level)) {
 			SDGProgramPart toMark = getProgramPartFromSelectorString(programPart, false);
-			if (toMark != null) {
-				IFCAnnotation ann = new IFCAnnotation(type, level, toMark);
-				if (ifcAnalysis.isAnnotationLegal(ann)) {
-					ifcAnalysis.addAnnotation(ann);
-					out.logln(String.format("Annotating '%s' as %s of security level '%s'...", toMark.toString(), type.toString(), level));
-					return true;
-				} else {
-					out.error("Illegal Annotation!");
-					return false;
-				}
+			if (toMark == null) {
+				return false;
+			}
 
+			IFCAnnotation ann = new IFCAnnotation(type, level, toMark);
+			if (ifcAnalysis.isAnnotationLegal(ann)) {
+				ifcAnalysis.addAnnotation(ann);
+				out.logln(String.format("Annotating '%s' as %s of security level '%s'...", toMark.toString(), type.toString(), level));
+				return true;
 			} else {
+				out.error("Illegal Annotation!");
 				return false;
 			}
 		} else {
@@ -988,43 +988,46 @@ public class IFCConsole {
 	}
 
 	public boolean declassifyProgramPart(String programPartDesc, String level1, String level2) {
-		if (inSecurityLattice(level1) && inSecurityLattice(level2) && greaterOrEqual(level1, level2)) {
-			SDGProgramPart toMark = getProgramPartFromSelectorString(programPartDesc, false);
-			if (toMark != null) {
-				IFCAnnotation ann = new IFCAnnotation(level1, level2, toMark);
-				if (ifcAnalysis.isAnnotationLegal(ann)) {
-					ifcAnalysis.addDeclassification(toMark, level1, level2);
-					return true;
-				} else {
-					out.error("Illegal Annotation!");
-					return false;
-				}
-			} else {
-				out.error("Program part with name " + programPartDesc + " not found!");
-				return false;
-			}
+		if (!inSecurityLattice(level1)) {
+			out.error("Level " + level1 + " is not an element of security lattice! Try one of "
+					+ getSecurityLevels());
+			return false;
+		}
+		if (!inSecurityLattice(level2)) {
+			out.error("Level " + level2 + " is not an element of security lattice! Try one of "
+					+ getSecurityLevels());
+			return false;
+		}
+		if (!greaterOrEqual(level1, level2)) {
+			out.error("Level " + level1 + " is not greater than or equal to " + level2 + "!");
+			return false;
+		}
+		
+		SDGProgramPart toMark = getProgramPartFromSelectorString(programPartDesc, false);
+		if (toMark != null) {
+			out.error("Program part with name " + programPartDesc + " not found!");
+			return false;
+		}
+
+		IFCAnnotation ann = new IFCAnnotation(level1, level2, toMark);
+		if (ifcAnalysis.isAnnotationLegal(ann)) {
+			ifcAnalysis.addDeclassification(toMark, level1, level2);
+			return true;
 		} else {
-			if (!inSecurityLattice(level1)) {
-				out.error("Level " + level1 + " is not an element of security lattice! Try one of "
-						+ getSecurityLevels());
-				return false;
-			} else {
-				out.error("Level " + level2 + " is not an element of security lattice! Try one of "
-						+ getSecurityLevels());
-				return false;
-			}
+			out.error("Illegal Annotation!");
+			return false;
 		}
 	}
 
 	public boolean clearAnnotation(String programPartDesc) {
 		SDGProgramPart toClear = getProgramPartFromSelectorString(programPartDesc, true);
-		if (toClear != null) {
-			ifcAnalysis.clearAllAnnotationsOfMethodPart(toClear);
-			return true;
-		} else {
+		if (toClear == null) {
 			out.error("Program part with name " + programPartDesc + " not found!");
 			return false;
 		}
+
+		ifcAnalysis.clearAllAnnotationsOfMethodPart(toClear);
+		return true;
 		// Integer clearIndex;
 		// clearIndex = parseInteger(programPartDesc);//
 		// getMethodPartFromAnnotationIndex(args[1]);
@@ -1080,15 +1083,15 @@ public class IFCConsole {
 		if (!found) {
 			out.info("No entry methods found.");
 			return false;
-		} else {
-			loc.displayLastEntrySearchResults(out);
-			if (loc.getNumberOfFoundEntries() == 1) {
-				selectEntry(0);
-			} else if (loc.getLastSearchResults().contains(oldSelected)) {
-				selectEntry(oldSelected);
-			}
-			return true;
 		}
+
+		loc.displayLastEntrySearchResults(out);
+		if (loc.getNumberOfFoundEntries() == 1) {
+			selectEntry(0);
+		} else if (loc.getLastSearchResults().contains(oldSelected)) {
+			selectEntry(oldSelected);
+		}
+		return true;
 	}
 
 	public void setClasspath(String newClasspath) {
@@ -1176,10 +1179,9 @@ public class IFCConsole {
 			if (!methodSelector.methodSelected()) {
 				out.info("No method selected.");
 				return false;
-			} else {
-				displayMethod(methodSelector.getActiveMethod());
-				return true;
 			}
+			displayMethod(methodSelector.getActiveMethod());
+			return true;
 		}
 	}
 
@@ -1390,7 +1392,7 @@ public class IFCConsole {
 				}
 			}
 		}
-		notify();
+		notifyAll();
 		return success;
 	}
 
@@ -1538,35 +1540,33 @@ public class IFCConsole {
 		if (!loc.entrySelected()) {
 			out.info("No entry method selected. Select entry method first!");
 			return false;
-		} else {
-
-			SDGProgram program;
-
-			try {
-				SDGConfig config = new SDGConfig(classPath, loc.getActiveEntry().toBCString(), stubsPath);
-				config.setComputeInterferences(computeInterference);
-				config.setMhpType(mhpType);
-				config.setExceptionAnalysis(exA);
-				config.setPointsToPrecision(pointsTo);
-				config.setFieldPropagation(FieldPropagation.OBJ_GRAPH_SIMPLE_PROPAGATION);
-				program = SDGProgram.createSDGProgram(config, out.getPrintStream(), monitor);
-			} catch (ClassHierarchyException e) {
-				out.error(e.getMessage());
-				return false;
-			} catch (IOException e) {
-				out.error("\nI/O problem during sdg creation: " + e.getMessage());
-				return false;
-			} catch (CancelException e) {
-				out.error("\nSDG creation cancelled.");
-				return false;
-			} catch (UnsoundGraphException e) {
-				out.error("\nResulting SDG is not sound: " + e.getMessage());
-				return false;
-			}
-
-			setSDGProgram(program);
-			return true;
 		}
+
+		SDGProgram program;
+		try {
+			SDGConfig config = new SDGConfig(classPath, loc.getActiveEntry().toBCString(), stubsPath);
+			config.setComputeInterferences(computeInterference);
+			config.setMhpType(mhpType);
+			config.setExceptionAnalysis(exA);
+			config.setPointsToPrecision(pointsTo);
+			config.setFieldPropagation(FieldPropagation.OBJ_GRAPH_SIMPLE_PROPAGATION);
+			program = SDGProgram.createSDGProgram(config, out.getPrintStream(), monitor);
+		} catch (ClassHierarchyException e) {
+			out.error(e.getMessage());
+			return false;
+		} catch (IOException e) {
+			out.error("\nI/O problem during sdg creation: " + e.getMessage());
+			return false;
+		} catch (CancelException e) {
+			out.error("\nSDG creation cancelled.");
+			return false;
+		} catch (UnsoundGraphException e) {
+			out.error("\nResulting SDG is not sound: " + e.getMessage());
+			return false;
+		}
+
+		setSDGProgram(program);
+		return true;
 	}
 
 	public synchronized boolean saveSDG(String path) {
@@ -1660,8 +1660,9 @@ public class IFCConsole {
 
 			groupedIFlows.clear();
 
-			if (lastAnalysisResult.size() > 0) {
-
+			if (lastAnalysisResult.isEmpty()) {
+				out.logln("No violations found.");
+			} else {
 				groupedIFlows = ifcAnalysis.groupByPPPart(vios);
 				out.logln("done, found " + groupedIFlows.size() + " security violation(s):");
 				Set<String> output = new TreeSet<String>();
@@ -1673,8 +1674,6 @@ public class IFCConsole {
 				for (String s : output) {
 					out.logln(s);
 				}
-			} else {
-				out.logln("No violations found.");
 			}
 			return true;
 		}
@@ -1851,17 +1850,13 @@ public class IFCConsole {
 			}
 		}
 
-		if (!ret) {
-			Answer ans = out
-					.question("At least one of the selected program parts is already annotated. Do you want to overwrite these annotations?");
-			if (ans == Answer.YES) {
-				return true;
-			} else {
-				return false;
-			}
-		} else {
+		if (ret) {
 			return true;
 		}
+		
+		Answer ans = out
+				.question("At least one of the selected program parts is already annotated. Do you want to overwrite these annotations?");
+		return ans == Answer.YES;
 	}
 
 	public boolean canAnnotate(SDGProgramPart part) {

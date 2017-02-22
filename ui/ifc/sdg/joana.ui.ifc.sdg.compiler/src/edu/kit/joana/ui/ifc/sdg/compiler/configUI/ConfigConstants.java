@@ -18,7 +18,10 @@ import edu.kit.joana.ui.ifc.sdg.compiler.util.Activator;
  * persisted settings.
  *
  */
-public class ConfigConstants {
+public final class ConfigConstants {
+
+	private ConfigConstants() {}
+
 	private static final String PREFIX = Activator.PLUGIN_ID;
 
 	private static final String COMPILER_PREFIX = PREFIX + ".compiler";

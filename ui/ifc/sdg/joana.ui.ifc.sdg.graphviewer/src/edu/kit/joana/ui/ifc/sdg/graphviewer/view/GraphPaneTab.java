@@ -18,7 +18,7 @@ public class GraphPaneTab extends JScrollPane implements GraphObserver {
 	private static final long serialVersionUID = 6343682371894913075L;
 
 	private Graph graph;
-	private GraphPane parent;
+	private final GraphPane parent;
 
 	public GraphPaneTab(GraphPane parent, JGraph jgraph, Graph graph) {
 		super(jgraph);

@@ -25,7 +25,7 @@ public class IFCRootNode extends IFCTreeNode {
 	@Override
 	public String toStringPrefix() {
 		final Object obj = getUserObject();
-		return (obj != null ? obj.toString() : "No object set.");
+		return (obj == null ? "No object set." : obj.toString());
 	}
 
 	protected boolean matchesPart(SDGProgramPart part) {

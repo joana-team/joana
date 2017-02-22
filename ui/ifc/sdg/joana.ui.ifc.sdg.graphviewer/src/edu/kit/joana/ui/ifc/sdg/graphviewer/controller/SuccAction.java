@@ -135,11 +135,12 @@ public class SuccAction extends AbstractGVAction implements BundleConstants {
 					selectItem(s.next().getID(), true);
 				}
 			}
-			//change border settings
-			if(!dialog) {
-				markCells(cell, succList);
-			} else {
+			
+			if(dialog) {
 				dialog = false;
+			} else {
+				//change border settings
+				markCells(cell, succList);
 			}
 		}
 	}

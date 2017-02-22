@@ -105,14 +105,14 @@ public final class Log {
 		}
 		
 		final PrintStream outStream = findDefault(name);
-		if (outStream != null) {
-			final Logger l = new DefaultLogger(outStream);
-			NAME2LOG.put(name, l);
-
-			return l;
-		} else {
+		if (outStream == null) {
 			return DEFAULT_DISABLED;
 		}
+		
+		final Logger l = new DefaultLogger(outStream);
+		NAME2LOG.put(name, l);
+
+		return l;
 	}
 
 	private static PrintStream findDefault(final String name) {
@@ -132,15 +132,14 @@ public final class Log {
 	private static PrintStream getStream(final String prop) {
 		if (prop == null) {
 			return System.out;
-		} else if (prop.equals("false")) {
+		} else if ("false".equals(prop)) {
 			return null;
-		} else if (prop.equals("err")) {
+		} else if ("err".equals(prop)) {
 			return System.err;
 		} else if (prop.startsWith("file:")) {
 			final String fileName = prop.substring("file:".length());
 			try {
-				final PrintStream out = new PrintStream(fileName);
-				return out;
+				return new PrintStream(fileName);
 			} catch (SecurityException e) {
 				ERROR.outln(e.getMessage(), e);
 			} catch (FileNotFoundException e) {

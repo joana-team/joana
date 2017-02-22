@@ -29,7 +29,7 @@ public class Level implements Iterable<Node> {
     /**
      * the level number
      */
-    private int level;
+    private final int level;
     /**
      * the nodes in this level
      */

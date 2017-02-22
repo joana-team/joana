@@ -653,11 +653,11 @@ public class IFCConfigPanel extends JPanel {
 					}
 					
 					consoleGui.execBuildSDG(saveSDGPath, exportGraphMLPath);
-					if (saveSDGPath != null) {
-						sdgStatusLabel.setText("current SDG stored in: " + saveSDGPath);
-					} else {
+					if (saveSDGPath == null) {
 						sdgStatusLabel.setText("unsaved SDG with entry method: "
 								+ consoleGui.getEntryMethod().toHRString());
+					} else {
+						sdgStatusLabel.setText("current SDG stored in: " + saveSDGPath);
 					}
 					//consoleGui.pack();
 					// curSDGTextField.setText(console.getSDGFile());

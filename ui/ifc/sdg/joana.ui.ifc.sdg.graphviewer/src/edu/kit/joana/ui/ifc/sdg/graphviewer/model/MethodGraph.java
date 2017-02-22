@@ -37,14 +37,14 @@ public class MethodGraph extends Graph {
 	/**
 	 * the proc ID of this PDG
 	 */
-	private int procID;
+	private final int procID;
 	/**
 	 * the method names of all PDGs
 	 */
 	// private List<String> titles;
 	private String name;
-	private SDG completeSDG;
-	private Hashtable<Integer, String> linkedMethods;
+	private final SDG completeSDG;
+	private final Hashtable<Integer, String> linkedMethods;
 
 	/**
 	 * Creates a new instance of MethodGraph.

@@ -30,7 +30,7 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
 public class CloseAction extends AbstractGVAction {
 	private static final long serialVersionUID = -4784279785259276504L;
 
-	private GraphPane graphPane;
+	private final GraphPane graphPane;
 
     /**
      * Constructs a new <code>CloseAction</code> object.

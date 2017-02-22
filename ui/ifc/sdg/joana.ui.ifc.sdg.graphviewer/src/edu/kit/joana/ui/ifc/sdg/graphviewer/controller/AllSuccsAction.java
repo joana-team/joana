@@ -23,8 +23,8 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
  */
 public class AllSuccsAction extends AbstractGVAction implements BundleConstants, ChangeListener {
 	private static final long serialVersionUID = 7464281738618021474L;
-	private GraphPane graphPane = null;
-	private SuccAction succ = null;
+	private final GraphPane graphPane;
+	private final SuccAction succ;
 	/**
 	 * constructor
 	 * @param graphPane

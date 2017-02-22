@@ -20,8 +20,8 @@ import edu.kit.joana.api.sdg.SDGProgramPart;
 public class ListTreeNode<E extends SDGProgramPart> extends IFCTreeNode {
 
 	private static final long serialVersionUID = -5211579612433666728L;
-	private List<E> list = new ArrayList<E>();
-	private String name;
+	private final List<E> list = new ArrayList<E>();
+	private final String name;
 
 	public ListTreeNode(Collection<E> things, boolean annotatable, String name, Kind kind) {
 		this(things, null, annotatable, name, kind);

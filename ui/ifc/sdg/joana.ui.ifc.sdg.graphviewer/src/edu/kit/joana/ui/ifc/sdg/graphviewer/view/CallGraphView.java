@@ -63,7 +63,7 @@ public class CallGraphView extends JGraph implements AttributeMapAdjustmentsList
 	protected Translator translator = null;
 
 	protected ActionMap actions = null;
-	private Graph call;
+	private final Graph call;
 
 	/**
 	 * Constructs a new <code>PDG</code> object.
@@ -258,7 +258,10 @@ public class CallGraphView extends JGraph implements AttributeMapAdjustmentsList
 		for (int i = 0; i < cells.length; i++) {
 			Object x = cells[i];
 			// choose a vertex not an edge
-			if (!model.isEdge(x)) {
+			if (model.isEdge(x)) {
+				// build list of edges
+				edg.add(cells[i]);
+			} else {
 				if (cell == null) {
 					// //System.out.println("Set as first cell: "
 					// + ((DefaultGraphCell) x).getUserObject());
@@ -273,9 +276,6 @@ public class CallGraphView extends JGraph implements AttributeMapAdjustmentsList
 //							.getTargetVertex(model, t);
 //					System.out.println("->" + target.getUserObject());
 //				}
-			} else {
-				// build list of edges
-				edg.add(cells[i]);
 			}
 		}
 		if (cell != null) {
@@ -312,7 +312,7 @@ public class CallGraphView extends JGraph implements AttributeMapAdjustmentsList
 			if (edge == null) {
 				// //System.out.println("No edge found tracking back");
 				// backtrack, if there is no not visited edge
-				if (!(visPath.size() < 2)) {
+				if (visPath.size() >= 2) {
 					// go back to last path element
 					int last = visPath.size() - 1;
 					visPath.remove(last);
@@ -337,7 +337,14 @@ public class CallGraphView extends JGraph implements AttributeMapAdjustmentsList
 					// //System.out.println("edgetarget: "
 					// + ((DefaultGraphCell) target).getUserObject());
 					// look if vertex is allready visited
-					if (!visVert.contains(target)) {
+					if (visVert.contains(target)) {
+						// //System.out.println("vertex visited before");
+						// remove edge if it should convert to a tree
+						if (tree) {
+							Object[] remove = { edge };
+							model.remove(remove);
+						}
+					} else {
 						// System.out
 						// .println("vertex not visited yet switching to: "
 						// + ((DefaultGraphCell) target)
@@ -345,14 +352,6 @@ public class CallGraphView extends JGraph implements AttributeMapAdjustmentsList
 						cell = target;
 						visVert.add(target);
 						visPath.add(target);
-					} else {
-						// //System.out.println("vertex visited before");
-						// remove edge if it should convert to a tree
-						if (tree) {
-							Object[] remove = { edge };
-							model.remove(remove);
-						}
-
 					}
 				}
 

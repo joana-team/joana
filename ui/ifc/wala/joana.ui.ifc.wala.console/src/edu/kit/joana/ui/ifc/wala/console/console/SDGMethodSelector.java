@@ -27,7 +27,7 @@ public class SDGMethodSelector {
 	// private SDG sdg;
 	private SDGMethod activeMethod = null;
 	private List<SDGMethod> lastMethodSearchResults = new ArrayList<SDGMethod>();
-	private IFCConsole console;
+	private final IFCConsole console;
 
 	public SDGMethodSelector(IFCConsole console) {
 		this.console = console;
@@ -87,22 +87,22 @@ public class SDGMethodSelector {
 				newResults.add(m);
 			}
 		}
-		if (!newResults.isEmpty()) {
-			Collections.sort(newResults, new Comparator<SDGMethod>() {
-
-				@Override
-				public int compare(SDGMethod o1, SDGMethod o2) {
-					return o1.getSignature().getMethodName()
-							.compareTo(o2.getSignature().getMethodName());
-				}
-
-			});
-			lastMethodSearchResults = newResults;
-			unselectMethod();
-
-			return true;
-		} else
+		if (newResults.isEmpty()) {
 			return false;
+		}
+		Collections.sort(newResults, new Comparator<SDGMethod>() {
+
+			@Override
+			public int compare(SDGMethod o1, SDGMethod o2) {
+				return o1.getSignature().getMethodName()
+						.compareTo(o2.getSignature().getMethodName());
+			}
+
+		});
+		lastMethodSearchResults = newResults;
+		unselectMethod();
+
+		return true;
 
 	}
 
@@ -119,8 +119,7 @@ public class SDGMethodSelector {
 	}
 
 	public SDGMethod getMethod(int i) {
-		SDGMethod ret = lastMethodSearchResults.get(i);
-		return ret;
+		return lastMethodSearchResults.get(i);
 	}
 
 	public void unselectMethod() {

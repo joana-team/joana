@@ -10,7 +10,7 @@ package edu.kit.joana.ui.ifc.wala.console.io;
 @SuppressWarnings("serial")
 public class MethodNotFoundException extends Exception {
 
-	private String methodName;
+	private final String methodName;
 	private String annotation;
 
 	public MethodNotFoundException(String methodName) {

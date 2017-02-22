@@ -22,11 +22,11 @@ public class BinaryMap<K1, K2, T> {
 
 	public void put(K1 keyx, K2 keyy, T value) {
 		final Map<K2, T> yMap;
-		if (!mappings.containsKey(keyx)) {
+		if (mappings.containsKey(keyx)) {
+			yMap = mappings.get(keyx);
+		} else {
 			yMap = new HashMap<K2, T>();
 			mappings.put(keyx, yMap);
-		} else {
-			yMap = mappings.get(keyx);
 		}
 		yMap.put(keyy, value);
 	}
@@ -43,19 +43,19 @@ public class BinaryMap<K1, K2, T> {
 	 *         is no such value.
 	 */
 	public T get(K1 keyx, K2 keyy) {
-		if (!containsKey(keyx, keyy)) {
-			return null;
-		} else {
+		if (containsKey(keyx, keyy)) {
 			return mappings.get(keyx).get(keyy);
+		} else {
+			return null;
 		}
 	}
 
 	public boolean containsKey(K1 keyx, K2 keyy) {
 		if (!mappings.containsKey(keyx)) {
-			return false;
-		} else {
 			Map<K2, T> yMap = mappings.get(keyx);
 			return yMap.containsKey(keyy);
+		} else {
+			return false;
 		}
 	}
 

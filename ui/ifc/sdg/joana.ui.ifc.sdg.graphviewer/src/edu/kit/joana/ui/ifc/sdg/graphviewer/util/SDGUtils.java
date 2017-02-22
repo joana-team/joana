@@ -15,24 +15,27 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
 
-public class SDGUtils {
+public final class SDGUtils {
+
+	private SDGUtils() {}
+
 	public static SDG callGraph(SDG sdg) {
 		SDG callGraph;
 		String name = sdg.getName();
-		if (name != null) {
-		// get class name from a String like "my.lib.Class.foo(lib.A, int)"
-		// -> "my.lib.Class"
-		// search last '.' before '('
-		final int posBR = name.indexOf('(');
-		int posPT = 0;
-		for (int curr = 0; curr >= 0 && curr < posBR; ) {
-			posPT = curr;
-			curr = name.indexOf('.', curr + 1);
-		}
-		name = name.substring(0, posPT);
-		callGraph = new SDG(name);
-		} else {
+		if (name == null) {
 			callGraph = new SDG("<unnamed>");
+		} else {
+			// get class name from a String like "my.lib.Class.foo(lib.A, int)"
+			// -> "my.lib.Class"
+			// search last '.' before '('
+			final int posBR = name.indexOf('(');
+			int posPT = 0;
+			for (int curr = 0; curr >= 0 && curr < posBR; ) {
+				posPT = curr;
+				curr = name.indexOf('.', curr + 1);
+			}
+			name = name.substring(0, posPT);
+			callGraph = new SDG(name);
 		}
 		int size = 1;
 

@@ -179,15 +179,15 @@ public final class IFCConsoleGUI extends JFrame implements IFCConsoleListener, I
 		if (console.isQuit(cmdstr)) {
 			info("Close the window to exit this application!");
 		} else {
-		final CMD cmd = console.searchCommand(cmdstr);
-		final String[] args = cmdstr.split("\\s+");
-
-		if (cmd != null) {
-			executeCmd(cmd, args);
-		} else {
-			consolePane.println("> " + cmdstr);
-			consolePane.println("Unknown command '" + args[0] + "'");
-		}
+			final CMD cmd = console.searchCommand(cmdstr);
+			final String[] args = cmdstr.split("\\s+");
+	
+			if (cmd == null) {
+				consolePane.println("> " + cmdstr);
+				consolePane.println("Unknown command '" + args[0] + "'");
+			} else {
+				executeCmd(cmd, args);
+			}
 		}
 	}
 

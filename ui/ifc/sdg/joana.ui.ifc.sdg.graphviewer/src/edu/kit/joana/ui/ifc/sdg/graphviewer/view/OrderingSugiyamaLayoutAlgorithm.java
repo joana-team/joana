@@ -125,7 +125,7 @@ public class OrderingSugiyamaLayoutAlgorithm extends SugiyamaLayoutAlgorithm {
         }
 
         // mark as visited for cycle tests
-        vertexView.getAttributes().put(SUGIYAMA_VISITED, new Boolean(true));
+        vertexView.getAttributes().put(SUGIYAMA_VISITED, true);
 
         // put the current node into the current level
         // get the Level Vector

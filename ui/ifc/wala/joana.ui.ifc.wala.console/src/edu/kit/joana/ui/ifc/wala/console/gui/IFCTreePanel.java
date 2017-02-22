@@ -53,7 +53,7 @@ public class IFCTreePanel extends JPanel {
 	private final IFCTreeModel treeModel;
 	private final JScrollPane treeView;
 
-	private Set<SDGClass> classes = new HashSet<SDGClass>();
+	private final Set<SDGClass> classes = new HashSet<SDGClass>();
 	//private Collection<IFCAnnotation> sources = new LinkedList<IFCAnnotation>();
 	//private Collection<IFCAnnotation> sinks = new LinkedList<IFCAnnotation>();
 	//private Collection<IFCAnnotation> declasses = new LinkedList<IFCAnnotation>();
@@ -115,18 +115,16 @@ public class IFCTreePanel extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Collection<SDGProgramPart> selectedParts = getSelectedMethodParts();
-				if (selectedParts != null) {
-					if (!selectedParts.isEmpty()) {
-						final List<Command> cmds = new LinkedList<Command>();
-						for (SDGProgramPart part : selectedParts) {
-							cmds.add(consoleGui.createCmdClear(part));
-						}
-						consoleGui.executeCmdList(cmds);
-					} else {
-						consoleGui.info("No program parts selected.");
-					}
-				} else {
+				if (selectedParts == null) {
 					consoleGui.error("Selected a not annotatable node.");
+				} else if (selectedParts.isEmpty()) {
+					consoleGui.info("No program parts selected.");
+				} else {
+					final List<Command> cmds = new LinkedList<Command>();
+					for (SDGProgramPart part : selectedParts) {
+						cmds.add(consoleGui.createCmdClear(part));
+					}
+					consoleGui.executeCmdList(cmds);
 				}
 			}
 		});
@@ -256,22 +254,21 @@ public class IFCTreePanel extends JPanel {
 	private Collection<SDGProgramPart> getSelectedMethodParts() {
 		final TreePath[] selections = programTree.getSelectionPaths();
 		Collection<SDGProgramPart> ret = new LinkedList<SDGProgramPart>();
-		if (selections != null) {
-			for (final TreePath tp : selections) {
-
-				IFCTreeNode node = (IFCTreeNode) tp.getLastPathComponent();
-				if (!node.isAnnotateable()) {
-					return null;
-				}
-				if (node.getUserObject() instanceof SDGProgramPart) {
-					SDGProgramPart part = (SDGProgramPart) node.getUserObject();
-					ret.add(part);
-				}
-			}
-			return ret;
-		} else {
+		if (selections == null) {
 			return Collections.emptyList();
 		}
+
+		for (final TreePath tp : selections) {
+			IFCTreeNode node = (IFCTreeNode) tp.getLastPathComponent();
+			if (!node.isAnnotateable()) {
+				return null;
+			}
+			if (node.getUserObject() instanceof SDGProgramPart) {
+				SDGProgramPart part = (SDGProgramPart) node.getUserObject();
+				ret.add(part);
+			}
+		}
+		return ret;
 	}
 
 	public void mute() {
@@ -287,12 +284,12 @@ public class IFCTreePanel extends JPanel {
 		final Collection<SDGClass> newClasses = consoleGui.getClasses();
 
 		if (!classes.equals(newClasses)) {
-			// a change occurred
-			if (!newClasses.isEmpty()) {
+			if (newClasses.isEmpty()) {
+				treeModel.clearMethods();
+			} else {
+				// a change occurred
 				treeModel.updateClasses(newClasses, consoleGui.getSDGFile());
 				treeModel.updateAnnotations(sources, sinks, declasses);
-			} else {
-				treeModel.clearMethods();
 			}
 			classes.clear();
 			classes.addAll(newClasses);
@@ -315,10 +312,10 @@ public class IFCTreePanel extends JPanel {
 	private static class LatticeComparator<C extends Comparable<C>> implements Comparator<C> {
 
 		/** the lattice which provides the initial semi-order */
-		private IStaticLattice<C> l;
+		private final IStaticLattice<C> l;
 
 		/** direction modificator for the lattice part of this comparator - can be positive (does not modify the lattice relation) or negative (reverses the lattice relation) */
-		private int dir;
+		private final int dir;
 
 		/** for usage of normal lattice relation */
 		private static final int ASCENDING = 1;

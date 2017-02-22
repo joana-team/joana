@@ -24,7 +24,7 @@ import edu.kit.joana.ui.ifc.sdg.compiler.util.PluginUtil;
 public class IsJoanaNaturePropertyTester extends PropertyTester {
 
 	public boolean test(Object receiver, String property, Object[] args, Object expectedValue) {
-		if (property.equals("isJoanaProject")) {
+		if ("isJoanaProject".equals(property)) {
 			if (!(receiver instanceof IJavaProject))
 				return false;
 			IJavaProject javaProject = (IJavaProject) receiver;

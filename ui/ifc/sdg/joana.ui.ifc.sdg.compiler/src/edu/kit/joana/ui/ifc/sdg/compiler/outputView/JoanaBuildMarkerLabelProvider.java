@@ -32,8 +32,9 @@ public class JoanaBuildMarkerLabelProvider implements ITableLabelProvider {
 			return marker.getResource().getName();
 		case 1:
 			return marker.getResource().getFullPath().toString();
+		default:
+			return null;
 		}
-		return null;
 	}
 
 	public void addListener(ILabelProviderListener listener) {

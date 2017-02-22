@@ -21,8 +21,8 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.view.MainFrame;
 
 public class HighlightMainAction extends AbstractGVAction implements BundleConstants, ChangeListener {
 	private static final long serialVersionUID = -653706055036201073L;
-	private GraphPane graphPane;
-	private MainFrame parent;
+	private final GraphPane graphPane;
+	private final MainFrame parent;
 
 	public HighlightMainAction(MainFrame parent, GraphPane graphPane) {
 		super("highlightmain.name", "Search.png", "highlightmain.description", "highlightmain");
@@ -49,11 +49,9 @@ public class HighlightMainAction extends AbstractGVAction implements BundleConst
 	public void stateChanged(ChangeEvent e) {
 		if (this.graphPane.getSelectedIndex() == -1) {
 			this.setEnabled(false);
-
-		} else if (!(this.graphPane.getSelectedJGraph() instanceof CallGraphView)) {
-			this.setEnabled(false);
-
-		} else
-			this.setEnabled(true);
+		} else {
+			boolean enable = this.graphPane.getSelectedJGraph() instanceof CallGraphView;
+			this.setEnabled(enable);
+		}
 	}
 }

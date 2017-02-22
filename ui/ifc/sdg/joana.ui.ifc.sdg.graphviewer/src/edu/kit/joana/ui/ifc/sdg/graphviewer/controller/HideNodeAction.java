@@ -19,8 +19,8 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.view.HideNodeDialog;
 
 public class HideNodeAction extends AbstractGVAction implements BundleConstants, ChangeListener {
 	private static final long serialVersionUID = -653706055036201073L;
-	private HideNodeDialog hideNodeDialog = null;
-	private GraphPane graphPane = null;
+	private final HideNodeDialog hideNodeDialog;
+	private final GraphPane graphPane;
 
 	public HideNodeAction(HideNodeDialog hideNodeDialog, GraphPane graphPane) {
 		super("hidenode.name", "Search.png", "hidenode.description", "hidenode");
@@ -37,11 +37,9 @@ public class HideNodeAction extends AbstractGVAction implements BundleConstants,
 	public void stateChanged(ChangeEvent e) {
 		if (this.graphPane.getSelectedIndex() == -1) {
 			this.setEnabled(false);
-
-		} else if (!(this.graphPane.getSelectedJGraph() instanceof CallGraphView)) {
-			this.setEnabled(false);
-
-		} else
-			this.setEnabled(true);
+		} else {
+			boolean enable = this.graphPane.getSelectedJGraph() instanceof CallGraphView;
+			this.setEnabled(enable);
+		}
 	}
 }

@@ -19,7 +19,7 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
 
 public class SpringLayoutAction extends AbstractGVAction implements ChangeListener {
 	private static final long serialVersionUID = 4229933163762242144L;
-	private GraphPane graphPane = null;
+	private final GraphPane graphPane;
 
 	public SpringLayoutAction(GraphPane graphPane) {
 		super("springLayout.name", "springLayout.description");
@@ -44,11 +44,9 @@ public class SpringLayoutAction extends AbstractGVAction implements ChangeListen
 	public void stateChanged(ChangeEvent e) {
 		if(this.graphPane.getSelectedIndex()==-1) {
 			this.setEnabled(false);
-			return;
+		} else {
+			boolean enable = this.graphPane.getSelectedJGraph() instanceof CallGraphView;
+			this.setEnabled(enable);
 		}
-		if (!(this.graphPane.getSelectedJGraph()instanceof CallGraphView)) {
-			this.setEnabled(false);
-		} else
-			this.setEnabled(true);
 	}
 }

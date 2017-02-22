@@ -41,9 +41,9 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.view.component.GVOptionPane;
 
 public class SlicingMenu extends GVMenu implements ChangeListener, BundleConstants {
 	private static final long serialVersionUID = 5431822284677678749L;
-	private MainFrame mainFrame = null;
-	private GraphPane graphPane = null;
-	public final String SOURCE = "criterion:";
+	private final MainFrame mainFrame;
+	private final GraphPane graphPane;
+	public static final String SOURCE = "criterion:";
 	private int sourceID = 0;
 	static SDG graph;
 

@@ -11,7 +11,7 @@ package edu.kit.joana.util;
 /**
  * @author Juergen Graf <graf@kit.edu>
  */
-public class LogUtil {
+public final class LogUtil {
 
 	private LogUtil() {
 		throw new IllegalStateException();
@@ -32,21 +32,21 @@ public class LogUtil {
 
 				if (fType.isPrimitive()) {
 					final String  n = fType.getName();
-					if (n.equals("boolean")) {
+					if ("boolean".equals(n)) {
 						sb.append(f.getBoolean(obj) + "\n");
-					} else if (n.equals("byte")) {
+					} else if ("byte".equals(n)) {
 						sb.append(f.getByte(obj) + "\n");
-					} else if (n.equals("char")) {
+					} else if ("char".equals(n)) {
 						sb.append(f.getChar(obj) + "\n");
-					} else if (n.equals("double")) {
+					} else if ("double".equals(n)) {
 						sb.append(f.getDouble(obj) + "\n");
-					} else if (n.equals("float")) {
+					} else if ("float".equals(n)) {
 						sb.append(f.getFloat(obj) + "\n");
-					} else if (n.equals("int")) {
+					} else if ("int".equals(n)) {
 						sb.append(f.getInt(obj) + "\n");
-					} else if (n.equals("long")) {
+					} else if ("long".equals(n)) {
 						sb.append(f.getLong(obj) + "\n");
-					} else if (n.equals("short")) {
+					} else if ("short".equals(n)) {
 						sb.append(f.getShort(obj) + "\n");
 					} else {
 						throw new IllegalStateException("unknown primitive type: " + fType.getName());

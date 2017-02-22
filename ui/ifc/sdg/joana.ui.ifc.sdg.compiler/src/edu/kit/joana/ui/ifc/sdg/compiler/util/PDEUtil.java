@@ -28,7 +28,9 @@ import org.eclipse.jdt.core.JavaModelException;
  * Various utilities for working with the PDE core plugin
  *
  */
-public class PDEUtil {
+public final class PDEUtil {
+
+	private PDEUtil() {}
 
 	/**
 	 * Returns a list of all Java projects that have a required Java project in

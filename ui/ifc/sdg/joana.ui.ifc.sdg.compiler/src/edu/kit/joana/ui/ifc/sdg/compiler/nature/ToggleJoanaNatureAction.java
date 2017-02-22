@@ -29,7 +29,7 @@ import edu.kit.joana.ui.ifc.sdg.compiler.util.PluginUtil;
  */
 public class ToggleJoanaNatureAction implements IObjectActionDelegate {
 
-	private List<IProject> projects = new ArrayList<IProject>();
+	private final List<IProject> projects = new ArrayList<IProject>();
 
 	/**
 	 * Constructor

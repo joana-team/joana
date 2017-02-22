@@ -20,7 +20,7 @@ import edu.kit.joana.ui.ifc.sdg.graphviewer.view.GraphPane;
 
 public class SugiyamaLayoutAction extends AbstractGVAction implements BundleConstants, ChangeListener {
 	private static final long serialVersionUID = -122918493260327223L;
-	private GraphPane graphPane = null;
+	private final GraphPane graphPane;
 
 	public SugiyamaLayoutAction(GraphPane graphPane) {
 		super("sugiyamaLayout.name", "sugiyamaLayout.description");
@@ -47,9 +47,7 @@ public class SugiyamaLayoutAction extends AbstractGVAction implements BundleCons
 			this.setEnabled(false);
 			return;
 		}
-		if (!(this.graphPane.getSelectedJGraph()instanceof CallGraphView)) {
-			this.setEnabled(false);
-		} else
-			this.setEnabled(true);
+		boolean enable = this.graphPane.getSelectedJGraph() instanceof CallGraphView;
+		this.setEnabled(enable);
 	}
 }

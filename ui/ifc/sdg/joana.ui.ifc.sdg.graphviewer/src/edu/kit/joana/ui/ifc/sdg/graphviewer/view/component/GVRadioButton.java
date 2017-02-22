@@ -45,11 +45,11 @@ public class GVRadioButton extends JRadioButton implements LanguageListener {
 
     public void setTextResource(Resource text) {
         this.text = text;
-        if (this.text != null) {
+        if (this.text == null) {
+            this.setText(null);
+        } else {
             // Sets the button's text.
             this.setText(this.translator.getString(text));
-        } else {
-            this.setText(null);
         }
     }
 

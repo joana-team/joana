@@ -44,7 +44,7 @@ public abstract class Graph {
 
 	private LinkedList<GraphObserver> views;
 	// no control flow and no parameter structure as default view
-	private EdgeViewSettings myb = new EdgeViewSettings(true, false, true,true, false, true);
+	private final EdgeViewSettings myb = new EdgeViewSettings(true, false, true, true, false, true);
 
 
 	public abstract SDG getSDG();

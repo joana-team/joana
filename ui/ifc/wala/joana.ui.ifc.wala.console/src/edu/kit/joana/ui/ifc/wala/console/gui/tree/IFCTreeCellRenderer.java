@@ -54,10 +54,10 @@ class IconProvider {
 		Class<? extends IFCTreeCellRenderer> c = IFCTreeCellRenderer.class;
 		ClassLoader cl = c.getClassLoader();
 		URL uIcon = cl.getResource(path);
-		if (uIcon != null) {
-			ret = new ImageIcon(uIcon);
-		} else {
+		if (uIcon == null) {
 			ret = fallback;
+		} else {
+			ret = new ImageIcon(uIcon);
 		}
 
 		return ret;
@@ -97,7 +97,7 @@ public class IFCTreeCellRenderer extends DefaultTreeCellRenderer {
 
 	private final IFCConsoleGUI consoleGui;
 
-	private IconProvider iconProvider = new IconProvider(this);
+	private final IconProvider iconProvider = new IconProvider(this);
 
 	private final Color defaultColorNotSelected;
 	private final Color defaultColorSelected;
@@ -132,7 +132,10 @@ public class IFCTreeCellRenderer extends DefaultTreeCellRenderer {
 			setClosedIcon(iconProvider.getIcon(node));
 		}
 
-		if (node.getIFCAnnotation() != null) {
+		if (node.getIFCAnnotation() == null) {
+			setBackgroundNonSelectionColor(defaultColorNotSelected);
+			setBackgroundSelectionColor(defaultColorSelected);
+		} else {
 			IFCAnnotation ann = node.getIFCAnnotation();
 			if (ann.getType() == AnnotationType.SOURCE || ann.getType() == AnnotationType.SINK) {
 				if (ann.getLevel1().equals(consoleGui.getLattice().getTop())) {
@@ -148,9 +151,6 @@ public class IFCTreeCellRenderer extends DefaultTreeCellRenderer {
 					setBackgroundSelectionColor(defaultColorSelected);
 				}
 			}
-		} else {
-			setBackgroundNonSelectionColor(defaultColorNotSelected);
-			setBackgroundSelectionColor(defaultColorSelected);
 		}
 
 		return super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf,

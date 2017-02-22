@@ -26,7 +26,10 @@ import edu.kit.joana.ui.ifc.sdg.compiler.util.JoanaNatureUtil;
  * @author Alexander Stockinger
  *
  */
-public class IfcCompiler {
+public final class IfcCompiler {
+
+	private IfcCompiler() {}
+
 	/**
 	 * Returns a <code>File</code> object pointing to the compilation result
 	 * of the IFC compiler for the provided <code>IFile</code>.

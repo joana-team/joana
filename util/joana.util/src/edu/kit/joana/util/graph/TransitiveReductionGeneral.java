@@ -25,7 +25,7 @@ import org.jgrapht.graph.builder.DirectedGraphBuilder;
  * 
  * @author Martin Hecker <martin.hecker@kit.edu>
  */
-public class TransitiveReductionGeneral {
+public final class TransitiveReductionGeneral {
 	/**
 	 * Singleton instance.
 	 */

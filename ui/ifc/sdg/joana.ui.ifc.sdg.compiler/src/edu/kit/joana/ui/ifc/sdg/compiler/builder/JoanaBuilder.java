@@ -60,7 +60,7 @@ public class JoanaBuilder extends IncrementalProjectBuilder {
 		monitor.done();
 	}
 
-	private IWorkbench workbench;
+	private final IWorkbench workbench;
 
 	/**
 	 * Constructor

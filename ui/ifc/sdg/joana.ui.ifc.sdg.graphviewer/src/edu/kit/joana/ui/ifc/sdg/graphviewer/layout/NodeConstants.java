@@ -17,7 +17,9 @@ package edu.kit.joana.ui.ifc.sdg.graphviewer.layout;
  * This class sets and gets the attributes of nodes.
  * @author Siegfried Weber
  */
-public class NodeConstants {
+public final class NodeConstants {
+
+	private NodeConstants() {}
 
     /**
      * key of the node ID

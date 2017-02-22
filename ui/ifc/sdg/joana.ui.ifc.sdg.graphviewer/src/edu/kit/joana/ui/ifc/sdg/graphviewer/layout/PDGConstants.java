@@ -26,7 +26,9 @@ import org.jgraph.graph.Port;
  * This class sets and gets the attributes of JGraph elements.
  * @author Siegfried Weber
  */
-public class PDGConstants extends GraphConstants {
+public final class PDGConstants extends GraphConstants {
+
+	private PDGConstants() {}
 
     /**
      * key for an ID

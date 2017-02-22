@@ -11,8 +11,8 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 
 public class CallGraph extends Graph {
 
-	private SDG call;
-	private SDG complete;
+	private final SDG call;
+	private final SDG complete;
 
 	public CallGraph(SDG call, SDG sdg) {
 		this.call = call;

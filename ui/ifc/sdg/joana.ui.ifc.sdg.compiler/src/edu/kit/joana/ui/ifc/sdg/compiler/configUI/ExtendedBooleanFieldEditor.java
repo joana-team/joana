@@ -69,7 +69,7 @@ public class ExtendedBooleanFieldEditor extends BooleanFieldEditor implements IP
 		auxListener = listener;
 	}
 
-	private Collection<IPropertyChangeListener> listeners = new ArrayList<IPropertyChangeListener>();
+	private final Collection<IPropertyChangeListener> listeners = new ArrayList<IPropertyChangeListener>();
 
 	/**
 	 * Adds a property change listener

@@ -61,10 +61,10 @@ public class GVToolBar extends JToolBar implements LanguageListener {
 
     public void setNameResource(Resource name) {
         this.name = name;
-        if (this.name != null) {
-            this.setName(this.translator.getString(name));
-        } else {
+        if (this.name == null) {
             this.setName(null);
+        } else {
+            this.setName(this.translator.getString(name));
         }
     }
 

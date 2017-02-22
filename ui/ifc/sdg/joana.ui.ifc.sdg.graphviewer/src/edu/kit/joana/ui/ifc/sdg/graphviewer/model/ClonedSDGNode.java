@@ -26,7 +26,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  */
 public class ClonedSDGNode extends SDGNode {
     // die ID des Klonvaters
-    private int clonedID;
+    private final int clonedID;
 
     /**
      * Creates a new instance of ClonedSDGNode

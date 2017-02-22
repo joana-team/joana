@@ -45,23 +45,23 @@ public class Node {
     /**
      * true if it is a vertex
      */
-    private boolean isVertex;
+    private final boolean isVertex;
     /**
      * a list of control dependant neighbors in the upper level
      */
-    private List<Node> upperCDNeighbors;
+    private final List<Node> upperCDNeighbors;
     /**
      * a list of data dependant neighbors in the upper level
      */
-    private List<Node> upperDDNeighbors;
+    private final List<Node> upperDDNeighbors;
     /**
      * a list of control dependant neighbors in the lower level
      */
-    private List<Node> lowerCDNeighbors;
+    private final List<Node> lowerCDNeighbors;
     /**
      * a list of data dependant neighbors in the lower level
      */
-    private List<Node> lowerDDNeighbors;
+    private final List<Node> lowerDDNeighbors;
     /**
      * the x-coordinate of this node
      */
@@ -69,11 +69,11 @@ public class Node {
     /**
      * the JGraph cell
      */
-    private GraphCell cell;
+    private final GraphCell cell;
     /**
      * the attributes of this node
      */
-    private Map<String, Object> attributes;
+    private final Map<String, Object> attributes;
     /**
      * true if this node is a bend point and the edge points down
      */

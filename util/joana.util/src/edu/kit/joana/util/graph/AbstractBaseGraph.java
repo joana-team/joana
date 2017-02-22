@@ -77,7 +77,7 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
 
     private static final String LOOPS_NOT_ALLOWED = "loops not allowed";
 
-    boolean allowingLoops;
+    private final boolean allowingLoops;
 
     private EdgeFactory<V, E> edgeFactory;
     private EdgeSetFactory<V, E> edgeSetFactory;
@@ -85,7 +85,7 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
     private transient Set<E> unmodifiableEdgeSet = null;
     private transient Set<V> unmodifiableVertexSet = null;
     private DirectedSpecifics specifics;
-    private boolean allowingMultipleEdges;
+    private final boolean allowingMultipleEdges;
 
     /**
      * Construct a new graph. The graph can either be directed or undirected,
@@ -305,7 +305,7 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
             return newGraph;
         } catch (CloneNotSupportedException e) {
             e.printStackTrace();
-            throw new RuntimeException();
+            throw new RuntimeException(e);
         }
     }
 
@@ -507,7 +507,7 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
 				DirectedEdgeContainer<V, E> vc = null;
 				while (ecIt.hasNext()) {
 					vc = ecIt.next();
-					if (vc != null && vc.outgoing.size() > 0) {
+					if (vc != null && !vc.outgoing.isEmpty()) {
 						edgeIt = vc.outgoing.iterator();
 						next = edgeIt.next();
 						return;

@@ -49,19 +49,19 @@ public class PDG {
     /**
      * a JGraph component
      */
-    private JGraph jGraph;
+    private final JGraph jGraph;
     /**
      * maps JGraph cells to <CODE>Node</CODE>s
      */
-    private Map<GraphCell, Node> vertexMap;
+    private final Map<GraphCell, Node> vertexMap;
     /**
      * the levels in this PDG
      */
-    private Vector<Level> levels;
+    private final Vector<Level> levels;
     /**
      * maps a node to its neighbors in the same level
      */
-    private Map<Node, SortedSet<Node>> intraLevelNeighbors;
+    private final Map<Node, SortedSet<Node>> intraLevelNeighbors;
     /**
      * number of vertices in the PDG
      */
@@ -221,12 +221,12 @@ public class PDG {
     /**
      * Returns true if the specified edge is a control dependence edge.
      * @param edge an edge
-     * @return true if the specified edge is a conrol dependence edge
+     * @return true if the specified edge is a control dependence edge
      */
     public static boolean isDAGEdge(Edge edge) {
         AttributeMap map = edge.getAttributes();
         String value = PDGConstants.getKind(map);
-        return value.equals("HE") || value.equals("UN") || value.equals("CE");
+        return "HE".equals(value) || "UN".equals(value) || "CE".equals(value);
     }
 
     /**
@@ -280,8 +280,8 @@ public class PDG {
      */
     public SortedSet<Node> getIntraLevelNeighbors(Node source) {
         SortedSet<Node> neighbors = intraLevelNeighbors.get(source);
-        return neighbors != null ? neighbors :
-            new TreeSet<Node>(new IDComparator());
+        return neighbors == null ? new TreeSet<Node>(new IDComparator()) :
+            neighbors;
     }
 
     /**

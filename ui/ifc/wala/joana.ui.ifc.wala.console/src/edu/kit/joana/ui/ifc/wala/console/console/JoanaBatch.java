@@ -24,11 +24,13 @@ import edu.kit.joana.util.io.IOFactory;
  */
 public final class JoanaBatch {
 
+	private JoanaBatch() {}
+
 	public static void main(String[] args) throws IOException {
-		if (args.length != 1) {
-			printUsage();
-		} else {
+		if (args.length == 1) {
 			executeScriptWithStandardOutput(args[0]);
+		} else {
+			printUsage();
 		}
 	}
 

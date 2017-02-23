@@ -74,7 +74,8 @@
 
 	<target name="test" description="run all tests assuming that there is a current joana.api.jar in lib.">
 		<junit fork="true" showoutput="yes" failureproperty="junit.failure" dir="${joana.wala.eval.base.dir}/">
-			<jvmarg value="-Xmx2048m"/>
+			<jvmarg value="-Xmx8192m"/>
+			<jvmarg value="-Xms8192m"/>
 			<jvmarg value="-Xss16m"/>
 			<jvmarg value="${joana.wala.eval.vmargs}"/>
 			<classpath>

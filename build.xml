@@ -39,6 +39,12 @@
 		</ant>
 	</target>
 
+	<target name="joana.wala.eval_build_and_runtests">
+		<ant antfile="${joana.wala.eval.base.dir}/build.xml" target="build_and_test" inheritall="false">
+		<property name="joana.base.dir" location="${joana.base.dir}" />
+		</ant>
+	</target>
+
 	<target name="joana.api_clean">
 		<ant antfile="${joana.api.base.dir}/build.xml" target="clean" inheritall="false" />
 	</target>

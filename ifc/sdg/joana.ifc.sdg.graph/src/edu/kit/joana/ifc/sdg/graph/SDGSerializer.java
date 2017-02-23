@@ -152,7 +152,7 @@ public final class SDGSerializer {
                 pw.print("\""  + localDefNames[0] + "\"");
 
                 for (int i = 1; i < localDefNames.length; i++) {
-                	assert (!localDefNames[i].contains("\""));
+                	assert (localDefNames[i] == null || !localDefNames[i].contains("\""));
                     pw.print(", \"" + localDefNames[i] + "\"");
                 }
 

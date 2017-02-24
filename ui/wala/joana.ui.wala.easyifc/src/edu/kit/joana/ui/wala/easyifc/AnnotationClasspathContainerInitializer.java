@@ -23,6 +23,7 @@ import org.eclipse.jdt.core.JavaCore;
 import org.osgi.framework.Bundle;
 
 public class AnnotationClasspathContainerInitializer extends ClasspathContainerInitializer {
+	private static final String JOANA_ANNOTATIONS_LIBRARY_CONTAINER_ID = "joana.ui.wala.easyifc.JOANA_ANNOTATIONS";
 
 	@Override
 	public void initialize(final IPath containerPath, final IJavaProject project) throws CoreException {
@@ -35,10 +36,10 @@ public class AnnotationClasspathContainerInitializer extends ClasspathContainerI
 			//
 			final IClasspathContainer[] containers = new IClasspathContainer[] {
 				new IClasspathContainer() {
+					final IPath path = new Path(JOANA_ANNOTATIONS_LIBRARY_CONTAINER_ID);
 					@Override
 					public IPath getPath() {
-						// TODO Auto-generated method stub
-						return null;
+						return path;
 					}
 
 					@Override

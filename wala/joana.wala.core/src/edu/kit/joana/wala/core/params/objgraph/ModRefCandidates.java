@@ -135,7 +135,14 @@ public class ModRefCandidates implements Iterable<CGNode> {
 		 * @return <tt>true</tt> if the candidate is contained in this model.
 		 */
 		public boolean contains(ModRefCandidate n);
-		
+
+		/**
+		 * Checks is any modref candidate with the given ParameterCandidate is part of this model
+		 * @param n A ParameterCandidate.
+		 * @return <tt>true</tt> if any candidate with the given ParameterCandidate is part of this model.
+		 */
+		public boolean containsParameterCandidate(ParameterCandidate pc);
+
 	}
 
 	private static class CGNodeCandidates extends AbstractCollection<ModRefFieldCandidate> implements CandidateConsumer,
@@ -275,6 +282,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 
 				if (contains(c)) {
 					removeCandidate((ModRefFieldCandidate) o);
+					assert invariant();
 					return true;
 				}
 			}
@@ -452,6 +460,27 @@ public class ModRefCandidates implements Iterable<CGNode> {
 		@Override
 		public boolean contains(final ModRefCandidate n) {
 			return all.contains(n);
+		}
+
+		/* (non-Javadoc)
+		 * @see edu.kit.joana.wala.core.params.objgraph.ModRefCandidates.InterProcCandidateModel#containsParameterCandidate(edu.kit.joana.wala.core.params.objgraph.candidates.ParameterCandidate)
+		 */
+		@Override
+		public boolean containsParameterCandidate(ParameterCandidate pc) {
+			boolean result = false;
+			final ModRefFieldCandidate cand = cands.get(pc);
+			if (cand != null) {
+				result = all.contains(cand);
+			}
+			assert (result == allContainsAny(pc));
+			return result;
+		}
+		
+		private boolean allContainsAny(ParameterCandidate pc) {
+			for (ModRefFieldCandidate cand : all) {
+				if (cand.pc.equals(pc)) return true;
+			}
+			return false;
 		}
 	}
 

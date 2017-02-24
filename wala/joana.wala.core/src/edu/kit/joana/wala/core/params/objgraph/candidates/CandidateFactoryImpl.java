@@ -767,11 +767,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			this.fieldPts = fieldPts;
 			final int id = fieldMapping.getMappedIndex(field);
 			this.fields = new OrdinalSet<ParameterField>(IntSetUtil.make(new int[] {id}), fieldMapping);
-			if (field.isArray() && !field.getElementType().isPrimitiveType()) {
-				hash = field.hashCode() + 7 * makeObjArrayHash(fieldPts);
-			} else {
-				hash = field.hashCode();
-			}
+			hash = field.hashCode() + 31 * makeObjArrayHash(basePts) + 7 * makeObjArrayHash(fieldPts);
 		}
 
 		@Override
@@ -938,8 +934,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		} else if (pts.isEmpty()) {
 			return -3;
 		} else {
-			final IntIterator it = pts.getBackingSet().intIterator();
-			return it.next();
+			return pts.size();
 		}
 	}
 }

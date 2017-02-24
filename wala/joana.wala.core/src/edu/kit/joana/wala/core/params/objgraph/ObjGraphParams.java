@@ -1045,11 +1045,22 @@ public final class ObjGraphParams {
 			final IntSet alsoInPruned = reachable.intersection(bvInt);
 			final BitVectorIntSet toMergeRef = new BitVectorIntSet();
 			final BitVectorIntSet toMergeMod = new BitVectorIntSet();
+			
+			final InterProcCandidateModel ipcm = mrefs.getCandidates(cgNode);
+
 			// mark all other nodes that are only reachable from non-pruned cg to be merged.
 			reachable.foreachExcluding(alsoInPruned, new IntSetAction() {
 				@Override
 				public void act(final int x) {
 					final ModRefFieldCandidate fc = modRefMapping.getMappedObject(x);
+					
+					// Do not merge nodes with ParameterCandidates that are already present (which are those corresponding to
+					// field accesses in this very method!)
+					// TODO: this check may be somewhat expensive, but is necessary to establish ModRefFieldCandidate.invariant().
+					// Maybe we should reorder merging-due-to-callgraph-prunuing as is done here, and the propgataion 
+					// done in fixpointReachabilityPropagate() after all, to get rid of the complicated register-for-merge protocol ?!?!?
+					if (ipcm.containsParameterCandidate(fc.pc)) return;
+
 					if (fc.isMod()) {
 						toMergeMod.add(x);
 					}
@@ -1063,7 +1074,6 @@ public final class ObjGraphParams {
 			final BitVectorIntSet allNodes = new BitVectorIntSet(reachable);
 
 			// merge nodes that are only reachable from pruned method side-effects
-			final InterProcCandidateModel ipcm = mrefs.getCandidates(cgNode);
 			if (toMergeRef.size() > 1) {
 				final OrdinalSet<ModRefFieldCandidate> mRefSet =
 					new OrdinalSet<ModRefFieldCandidate>(toMergeRef, modRefMapping);

@@ -1803,6 +1803,9 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		return false;
 	}
 
+	public boolean isParallel() {
+		return cfg.doParallel;
+	}
 	public boolean isKeepPhiNodes() {
 		return cfg.keepPhiNodes;
 	}
@@ -2027,6 +2030,11 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		 * the SDG builder stores here the analysis options used to build the call graph
 		 */
 		public AnalysisOptions options;
+		/**
+		 * If this flag is set, the SDG builder will perform several of its tasks
+		 * in multiple threads.
+		 */
+		public boolean doParallel = true;
 	}
 
 	public String getMainMethodName() {

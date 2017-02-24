@@ -26,6 +26,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
@@ -56,6 +57,7 @@ import edu.kit.joana.ui.wala.easyifc.util.EntryPointSearch;
 import edu.kit.joana.ui.wala.easyifc.util.EntryPointSearch.EntryPointConfiguration;
 import edu.kit.joana.ui.wala.easyifc.util.ProjectUtil;
 import edu.kit.joana.ui.wala.easyifc.views.EasyIFCView;
+import edu.kit.joana.util.Pair;
 
 /**
  *
@@ -122,14 +124,17 @@ public class IFCAction extends Action implements ISelectionListener {
 				}
 			}
 
-			for (final IPath jarPath : ProjectUtil.findProjectJarsExcludingStandardLibries(jp)) {
-			//for (final IPath jarPath : ProjectUtil.findProjectJars(jp)) {
-				final IFile resolvedJarFile = root.getFile(jarPath);
-				final IPath rawJarFile = resolvedJarFile.getRawLocation();
-				if (rawJarFile != null) {
-					pconf.addJar(rawJarFile.toOSString());
+			for (final Pair<IPath,Integer> pair : ProjectUtil.findProjectJarsExcludingStandardLibries(jp)) {
+				final IPath classPathEntry = pair.getFirst();
+				final Integer entryKind = pair.getSecond();
+				final IFile resolvedClassPathEntry = root.getFile(classPathEntry);
+				final IPath rawClassPathEntry = resolvedClassPathEntry.getRawLocation();
+				final String rawClassPathEntryAsString = 
+					rawClassPathEntry != null ? rawClassPathEntry.toOSString() : classPathEntry.toOSString();
+				if (entryKind == IClasspathEntry.CPE_SOURCE) {
+					pconf.addBin(rawClassPathEntryAsString);
 				} else {
-					pconf.addJar(jarPath.toOSString());
+					pconf.addJar(rawClassPathEntryAsString);
 				}
 			}
 

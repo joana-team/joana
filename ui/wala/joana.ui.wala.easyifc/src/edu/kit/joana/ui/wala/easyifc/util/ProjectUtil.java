@@ -22,6 +22,8 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaProject;
 
+import edu.kit.joana.util.Pair;
+
 public final class ProjectUtil {
 
 	private ProjectUtil() {}
@@ -63,7 +65,7 @@ public final class ProjectUtil {
 	);
 	
 	@SuppressWarnings("restriction")
-	private static void addAll(IClasspathEntry raw, JavaProject project, List<IPath> jars) throws JavaModelException {
+	private static void addAll(IClasspathEntry raw, JavaProject project, List<Pair<IPath, Integer>> jars) throws JavaModelException {
 		IClasspathEntry[] resolvedEntries = project.resolveClasspath(new IClasspathEntry[] { raw });
 		for (final IClasspathEntry resolvedEntry : resolvedEntries) {
 			if (resolvedEntry.getEntryKind() != IClasspathEntry.CPE_LIBRARY && 
@@ -79,18 +81,25 @@ public final class ProjectUtil {
 				for (final IClasspathEntry cp : other.getRawClasspath()) {
 					if (cp.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
 						final IPath outputLocation = cp.getOutputLocation(); 
-						jars.add(outputLocation != null ? outputLocation : defaultOutputLocation);							}
+						jars.add(Pair.pair(
+							outputLocation != null ? outputLocation : defaultOutputLocation,
+							cp.getEntryKind()
+						));
+					}
 				}
 			
 			} else {
-				jars.add(resolvedEntry.getPath());
+				jars.add(Pair.pair(
+					resolvedEntry.getPath(),
+					resolvedEntry.getEntryKind()
+				));
 			}
 		}
 	}
 	
 	@SuppressWarnings("restriction")
-	public static List<IPath> findProjectJarsExcludingStandardLibries(final IJavaProject jp) {
-		final List<IPath> jars = new LinkedList<IPath>();
+	public static List<Pair<IPath, Integer>> findProjectJarsExcludingStandardLibries(final IJavaProject jp) {
+		final List<Pair<IPath, Integer>> jars = new LinkedList<>();
 		
 		if (! (jp instanceof JavaProject)) return jars;
 		final JavaProject project = (JavaProject) jp;
@@ -115,7 +124,11 @@ public final class ProjectUtil {
 						for (final IClasspathEntry cp : other.getRawClasspath()) {
 							if (cp.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
 								final IPath outputLocation = cp.getOutputLocation(); 
-								jars.add(outputLocation != null ? outputLocation : defaultOutputLocation);							}
+								jars.add(Pair.pair(
+									outputLocation != null ? outputLocation : defaultOutputLocation,
+									cp.getEntryKind()
+								));
+							}
 						}
 						break;
 					case IClasspathEntry.CPE_LIBRARY:

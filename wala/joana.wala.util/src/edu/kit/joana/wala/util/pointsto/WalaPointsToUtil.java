@@ -121,7 +121,7 @@ public final class WalaPointsToUtil {
 			final IClassHierarchy cha, final AnalysisScope scope) {
 
 		Util.addDefaultSelectors(options, cha);
-		Util.addDefaultBypassLogic(options, scope, Util.class.getClassLoader(), cha);
+		Util.addDefaultBypassLogic(options, scope, Contrib.class.getClassLoader(), cha);
 
 		return new BasicRTABuilder(cha, options, cache, null, null);
 	}
@@ -136,7 +136,7 @@ public final class WalaPointsToUtil {
         { // Set the MethodTargetSelector
             MethodTargetSelector oldMethodTargetSelector = options.getMethodTargetSelector();
 	        Util.addDefaultSelectors(options, cha);
-	        Util.addDefaultBypassLogic(options, scope, Util.class.getClassLoader(), cha);
+	        Util.addDefaultBypassLogic(options, scope, Contrib.class.getClassLoader(), cha);
 
             if (oldMethodTargetSelector != null) {
                 options.setSelector(new DelegatingMethodTargetSelector(oldMethodTargetSelector, options.getMethodTargetSelector(), scope));
@@ -159,7 +159,7 @@ public final class WalaPointsToUtil {
         { // Set the MethodTargetSelector
             MethodTargetSelector oldMethodTargetSelector = options.getMethodTargetSelector();
             Util.addDefaultSelectors(options, cha);
-            Util.addDefaultBypassLogic(options, scope, Util.class.getClassLoader(), cha);
+            Util.addDefaultBypassLogic(options, scope, Contrib.class.getClassLoader(), cha);
 
             if (oldMethodTargetSelector != null) {
                 options.setSelector(new DelegatingMethodTargetSelector(oldMethodTargetSelector, options.getMethodTargetSelector(), scope));
@@ -239,7 +239,7 @@ public final class WalaPointsToUtil {
         { // Set the MethodTargetSelector
             MethodTargetSelector oldMethodTargetSelector = options.getMethodTargetSelector();
             Util.addDefaultSelectors(options, cha);
-            Util.addDefaultBypassLogic(options, scope, Util.class.getClassLoader(), cha);
+            Util.addDefaultBypassLogic(options, scope, Contrib.class.getClassLoader(), cha);
 
             if (oldMethodTargetSelector != null) {
                 options.setSelector(new DelegatingMethodTargetSelector(oldMethodTargetSelector, options.getMethodTargetSelector(), scope));

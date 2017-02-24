@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Stream;
 
 import com.ibm.wala.dataflow.graph.BitVectorFramework;
 import com.ibm.wala.dataflow.graph.BitVectorSolver;
@@ -65,7 +66,8 @@ public class ModRefDataFlow {
 		final TIntObjectHashMap<ModRefFieldCandidate> pdgnode2modref =
 				new TIntObjectHashMap<ModRefFieldCandidate>();
 
-		sdg.getAllPDGs().parallelStream().forEach(pdg -> {
+		Stream<PDG> s = sdg.isParallel()?sdg.getAllPDGs().parallelStream():sdg.getAllPDGs().stream();
+		s.forEach(pdg -> {
 //			MonitorUtil.throwExceptionIfCanceled(progress);
 //            if (progress != null) {
 //                progress.subTask(pdg.getMethod().toString());

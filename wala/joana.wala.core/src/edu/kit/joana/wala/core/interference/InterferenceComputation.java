@@ -13,6 +13,7 @@ import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IField;
@@ -174,8 +175,8 @@ public class InterferenceComputation {
 			writeMap.put(pdg, getHeapWrites(pdg));
 			readMap.put(pdg, getHeapReads(pdg));
 		}
-
-		pdgs.parallelStream().forEach(pdg -> {
+		Stream<PDG> s1 = builder.isParallel()?pdgs.parallelStream():pdgs.stream();
+		s1.forEach(pdg -> {
 			if (pdg == null) {
 				return;
 			}
@@ -190,8 +191,8 @@ public class InterferenceComputation {
 				// while handling the pdg with the interfering write.
 				return;
 			}
-
-			pdgs.parallelStream().forEach(pdgCur -> {
+			Stream<PDG> s2 = builder.isParallel()?pdgs.parallelStream():pdgs.stream();
+			s2.forEach(pdgCur -> {
 				if (pdgCur == null) {
 					return;
 				}

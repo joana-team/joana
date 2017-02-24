@@ -60,9 +60,10 @@ public class ModRefCandidates implements Iterable<CGNode> {
 	private final SingleCandidatePointsTo singlePts;
 	private final boolean doStaticFields;
 	public final boolean ignoreExceptions;
+	private final boolean isParallel;
 
 	private ModRefCandidates(final CandidateFactory candFact, final ParameterFieldFactory paramFact,
-			final PointerAnalysis<InstanceKey> pa, final boolean doStaticFields, final boolean ignoreExceptions) {
+			final PointerAnalysis<InstanceKey> pa, final boolean doStaticFields, final boolean ignoreExceptions, boolean isParallel) {
 		this.candFact = candFact;
 		this.paramFact = paramFact;
 		this.pa = pa;
@@ -71,12 +72,13 @@ public class ModRefCandidates implements Iterable<CGNode> {
 		this.doStaticFields = doStaticFields;
 		this.ignoreExceptions = ignoreExceptions;
 		this.singleVisitor = new ModRefSSAVisitor(single, paramFact, singlePts, pa.getClassHierarchy(), doStaticFields);
+		this.isParallel = isParallel;
 	}
 
 	public static ModRefCandidates computeIntracProc(final ParameterFieldFactory paramFact,
 			final CandidateFactory candFact, final CallGraph cg, final PointerAnalysis<InstanceKey> pa,
-			final boolean doStaticFields, final boolean ignoreExceptions, final IProgressMonitor progress) throws CancelException {
-		final ModRefCandidates modref = new ModRefCandidates(candFact, paramFact, pa, doStaticFields, ignoreExceptions);
+			final boolean doStaticFields, final boolean ignoreExceptions, final IProgressMonitor progress, boolean isParallel) throws CancelException {
+		final ModRefCandidates modref = new ModRefCandidates(candFact, paramFact, pa, doStaticFields, ignoreExceptions, isParallel);
 
 		modref.run(cg, progress);
 
@@ -460,7 +462,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
         if (progress != null) {
             progress.beginTask("IntraProc ModRef candidates", cg.getNumberOfNodes());
         }
-        StreamSupport.stream(cg.spliterator(), true).forEach(n -> {
+        StreamSupport.stream(cg.spliterator(), this.isParallel).forEach(n -> {
 			//MonitorUtil.throwExceptionIfCanceled(progress);
             if (progress != null) {
                 //progressCtr++;

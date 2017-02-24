@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import com.ibm.wala.cfg.ControlFlowGraph;
 import com.ibm.wala.cfg.exc.intra.MutableCFG;
@@ -101,8 +102,8 @@ public final class LocalKillingDefs {
 		if (DEBUG_PRINT) System.out.println("\n>>>> local killing definitions");
 
 		int removed = 0;
-
-		sdg.getAllPDGs().parallelStream().forEach(pdg -> {
+		Stream<PDG> s = sdg.isParallel()?sdg.getAllPDGs().parallelStream():sdg.getAllPDGs().stream();
+		s.forEach(pdg -> {
 			final IR ir = pdg.cgNode.getIR();
 			if (ir != null) {
 				

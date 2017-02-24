@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.classLoader.IMethod;
@@ -289,7 +290,7 @@ public final class ObjGraphParams {
         }
 
 		final ModRefCandidates mrefs = ModRefCandidates.computeIntracProc(pfact, candFact, cg,
-				sdg.getPointerAnalysis(), opt.doStaticFields, opt.ignoreExceptions, progress);
+				sdg.getPointerAnalysis(), opt.doStaticFields, opt.ignoreExceptions, progress, sdg.isParallel());
 
 		// create side-effect detector if command line option has been set.
 		if (sdg.cfg.sideEffects == null && SideEffectDetectorConfig.isActivated()) {
@@ -492,9 +493,8 @@ public final class ObjGraphParams {
             if (progress != null) {
                 progress.beginTask("adjustInterprocModRef", sdg.getAllPDGs().size());
             }
-
-
-			sdg.getAllPDGs().parallelStream().forEach(pdg -> {
+			Stream<PDG> s = sdg.isParallel()?sdg.getAllPDGs().parallelStream():sdg.getAllPDGs().stream();
+			s.forEach(pdg -> {
 				//MonitorUtil.throwExceptionIfCanceled(progress);
 				final InterProcCandidateModel pdgModRef = modref.getCandidates(pdg.cgNode);
 

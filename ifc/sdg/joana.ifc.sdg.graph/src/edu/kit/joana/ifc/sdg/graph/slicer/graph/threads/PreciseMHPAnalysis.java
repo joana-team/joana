@@ -26,6 +26,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
+import edu.kit.joana.util.Pair;
 
 
 /**
@@ -39,7 +40,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
     private final ThreadsInformation info;
     private final BitMatrix map;
     private final ThreadRegions regions;
-    private HashMap<Integer, Collection<VirtualNode>> mayExist;
+    private HashMap<Integer, Collection<ThreadRegion>> mayExist;
 
     private PreciseMHPAnalysis(ThreadsInformation info, BitMatrix map, ThreadRegions regions) {
         this.info = info;
@@ -47,7 +48,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         this.regions = regions;
     }
 
-    private void setMayExistMap(HashMap<Integer, Collection<VirtualNode>> mayExist) {
+    private void setMayExistMap(HashMap<Integer, Collection<ThreadRegion>> mayExist) {
     	this.mayExist = mayExist;
     }
 
@@ -153,12 +154,12 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 
 	@Override
 	public boolean mayExist(int thread, VirtualNode v) {
-		return mayExist.get(thread).contains(v);
+		return mayExist.get(thread).stream().anyMatch( s -> s.getThread() == v.getNumber() && s.contains(v.getNode()));
 	}
 
 	@Override
 	public boolean mayExist(int thread, SDGNode n, int nThread) {
-		return mayExist.get(thread).contains(new VirtualNode(n, nThread));
+		return mayExist(thread, new VirtualNode(n, nThread));
 	}
 
 
@@ -246,7 +247,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
     	PreciseMHPAnalysis result = mhp.getMHPMap();
 
     	log.outln("Compute MayExist Map ...");
-        HashMap<Integer, Collection<VirtualNode>> mayExist = computeMayExist(result);
+        HashMap<Integer, Collection<ThreadRegion>> mayExist = computeMayExist(result);
         result.setMayExistMap(mayExist);
     	return result;
     }
@@ -274,22 +275,19 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
     	return remove;
     }
 
-    private static HashMap<Integer, Collection<VirtualNode>> computeMayExist(PreciseMHPAnalysis mhp) {
-    	HashMap<Integer, Collection<VirtualNode>> result = new HashMap<Integer, Collection<VirtualNode>>();
+    private static HashMap<Integer, Collection<ThreadRegion>> computeMayExist(PreciseMHPAnalysis mhp) {
+    	HashMap<Integer, Collection<ThreadRegion>> result = new HashMap<>();
 
-    	// TODO: proof of concept, can be done more efficiently
     	for (ThreadRegion r : mhp.getThreadRegions()) {
     		for (ThreadRegion s : mhp.getThreadRegions()) {
     			if (mhp.isParallel(r, s)) {
-    				Collection<VirtualNode> c = result.get(r.getThread());
+    				Collection<ThreadRegion> c = result.get(r.getThread());
     				if (c == null) {
-    					c = new HashSet<VirtualNode>();
+    					c = new HashSet<>();
     					result.put(r.getThread(), c);
     				}
 
-    				for (SDGNode n : s.getNodes()) {
-    					c.add(new VirtualNode(n, s.getThread()));
-    				}
+    				c.add(s);
     			}
     		}
     	}

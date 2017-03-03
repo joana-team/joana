@@ -342,9 +342,7 @@ public class SDG extends JoanaGraph implements Cloneable {
     public synchronized SDGNode getEntry(SDGNode node) {
     	final SDGNode entry = entryNodes.get(node.getProc());
     	
-    	if (! entry.equals(getEntrySlow(node))) {
-    		throw new AssertionError();
-    	}
+    	assert entry.equals(getEntrySlow(node));
     	
     	return entry;
     }

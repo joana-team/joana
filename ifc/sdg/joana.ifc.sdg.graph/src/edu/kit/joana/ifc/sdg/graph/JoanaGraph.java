@@ -8,11 +8,13 @@
 package edu.kit.joana.ifc.sdg.graph;
 
 import java.util.Collection;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 
 import org.jgrapht.EdgeFactory;
@@ -407,7 +409,7 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
     /**
      * Returns a list containing all nodes that belong to the procedure of the given node.
      */
-    public List<SDGNode> getNodesOfProcedure(SDGNode proc) {
+    private List<SDGNode> getNodesOfProcedureSlow(SDGNode proc) {
         LinkedList<SDGNode> l = new LinkedList<SDGNode>();
 
         for (SDGNode n : vertexSet()) {
@@ -417,6 +419,39 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
         }
 
         return l;
+    }   
+    /**
+     * Returns a list containing all nodes that belong to the procedure of the given node.
+     */
+    public Set<SDGNode> getNodesOfProcedure(final SDGNode node) {
+    	final SDGNode entry = getEntry(node);
+    	final int procedure = node.getProc();
+    	
+    	final Queue<SDGNode> wl = new LinkedList<>();
+    	final Set<SDGNode> found = new HashSet<>();
+    	
+    	wl.offer(entry);
+    	found.add(entry);
+    	
+    	{ 
+    		SDGNode next;
+    		while ((next = wl.poll()) != null) {
+    			for (SDGEdge e : outgoingEdgesOf(next)) {
+    				final SDGNode candidate = e.getTarget();
+    				
+    				if (candidate.getProc() != procedure) continue;
+    				
+    				if (found.add(candidate)) {
+    					wl.offer(candidate);
+    				}
+    			}
+    		}
+    	}
+    	
+    	List<SDGNode> foundSlow;
+    	assert ((foundSlow = getNodesOfProcedureSlow(node)) != null && foundSlow.size() == found.size() && foundSlow.containsAll(found) && found.containsAll(foundSlow));
+    	
+        return found;
     }
 
 

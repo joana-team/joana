@@ -77,7 +77,7 @@ public class RemoveLibraryClinits {
 	}
 
 	private void removeMethod(final SDGNode entry) {
-		final List<SDGNode> proc = sdg.getNodesOfProcedure(entry);
+		final Set<SDGNode> proc = sdg.getNodesOfProcedure(entry);
 
 //		final Collection<SDGNode> calls = sdg.getCallers(entry);
 //

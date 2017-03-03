@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import com.ibm.wala.cfg.exc.intra.MethodState;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
+import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
 import com.ibm.wala.ipa.callgraph.pruned.DoNotPrune;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
@@ -365,18 +366,18 @@ public final class CheckInformationFlow {
 			} catch (FileNotFoundException e) {
 				throw new RuntimeException(e.getMessage());
 			}
-			
-			try {
-				final File f = new File(fileName+".graphml");
-				final FileOutputStream fOut = new FileOutputStream(f);
-				SDG2GraphML.convertHierachical(sdg, fOut);
-				cfc.out.println("writing SDG to " + f.getAbsolutePath());
-				
-			} catch (XMLStreamException e) {
-				throw new RuntimeException(e.getMessage());
-			} catch (FileNotFoundException e) {
-				throw new RuntimeException(e.getMessage());
-			}
+//			
+//			try {
+//				final File f = new File(fileName+".graphml");
+//				final FileOutputStream fOut = new FileOutputStream(f);
+//				SDG2GraphML.convertHierachical(sdg, fOut);
+//				cfc.out.println("writing SDG to " + f.getAbsolutePath());
+//				
+//			} catch (XMLStreamException e) {
+//				throw new RuntimeException(e.getMessage());
+//			} catch (FileNotFoundException e) {
+//				throw new RuntimeException(e.getMessage());
+//			}
 		}
 	}
 	
@@ -399,14 +400,15 @@ public final class CheckInformationFlow {
 	}
 	
 	public static SDGConfig createDefaultConfig(final CheckIFCConfig cfc, final JavaMethodSignature mainMethod) {
-		final SDGConfig config = new SDGConfig(cfc.bin, mainMethod.toBCString(), Stubs.JRE_14);
+		final SDGConfig config = new SDGConfig(cfc.bin, mainMethod.toBCString(), Stubs.JRE_15);
 		//config.setNativesXML(cfc.libDir + "stubs/" + "natives_empty.xml");
 		config.setNativesXML(cfc.libDir + "natives_empty.xml");
 //		cfg.stubs = cfc.libDir + "jSDG-stubs-jre1.4.jar";
 		config.setComputeInterferences(false);
 		config.setExceptionAnalysis(ExceptionAnalysis.INTERPROC);
 		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH);
-		config.setPointsToPrecision(PointsToPrecision.OBJECT_SENSITIVE);
+		//config.setPointsToPrecision(PointsToPrecision.OBJECT_SENSITIVE);
+		config.setPointsToPrecision(PointsToPrecision.INSTANCE_BASED);
 		config.setDefaultExceptionMethodState(new MethodState() {
 			@Override
 			public boolean throwsException(final SSAAbstractInvokeInstruction node) {
@@ -422,8 +424,9 @@ public final class CheckInformationFlow {
 		if (cfc.thirdPartyLib != null) {
 			config.setThirdPartyLibsPath(cfc.thirdPartyLib);
 		}
-		config.setPruningPolicy(DoNotPrune.INSTANCE);
-		System.setProperty(Config.C_OBJGRAPH_MAX_NODES_PER_INTERFACE, "-1");
+		//config.setPruningPolicy(DoNotPrune.INSTANCE);
+		config.setPruningPolicy(ApplicationLoaderPolicy.INSTANCE);
+		//System.setProperty(Config.C_OBJGRAPH_MAX_NODES_PER_INTERFACE, "-1");
 		System.setProperty(Config.C_OBJGRAPH_CUT_OFF_IMMUTABLE, "true");
 		System.setProperty(Config.C_OBJGRAPH_CUT_OFF_UNREACHABLE, "true");
 		

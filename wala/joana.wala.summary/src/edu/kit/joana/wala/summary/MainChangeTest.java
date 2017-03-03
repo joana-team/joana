@@ -354,7 +354,7 @@ public class MainChangeTest {
 	}
 
 	private static LinkedList<SDGEdge> findCandidates(SDGNode entry, SDG sdg) {
-		final List<SDGNode> procNodes = sdg.getNodesOfProcedure(entry);
+		final Set<SDGNode> procNodes = sdg.getNodesOfProcedure(entry);
 
 		final LinkedList<SDGEdge> candidates = new LinkedList<SDGEdge>();
 

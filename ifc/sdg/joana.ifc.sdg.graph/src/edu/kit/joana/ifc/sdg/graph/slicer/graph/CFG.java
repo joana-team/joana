@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import edu.kit.joana.ifc.sdg.graph.JoanaGraph;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -126,7 +127,7 @@ public class CFG extends JoanaGraph {
 
     	// build the CFG's of the single procedures
     	for (SDGNode entry : entries) {
-    		List<SDGNode> procedure = getNodesOfProcedure(entry);
+    		Set<SDGNode> procedure = getNodesOfProcedure(entry);
     		CFG cfg = subgraph(procedure);
     		cfg.setRoot(entry);
     		result.add(cfg);

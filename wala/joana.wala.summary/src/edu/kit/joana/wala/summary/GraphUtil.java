@@ -292,14 +292,14 @@ public class GraphUtil {
 			throw new IllegalArgumentException();
 		}
 
-		List<SDGNode> allNodes = new LinkedList<SDGNode>();
+		Set<SDGNode> allNodes = new HashSet<SDGNode>();
 
 		for (SDGNode entry : current) {
 			if (entry.getKind() != SDGNode.Kind.ENTRY) {
 				throw new IllegalStateException("List may only contain entry nodes.");
 			}
 
-			List<SDGNode> procNodes = sdg.getNodesOfProcedure(entry);
+			Set<SDGNode> procNodes = sdg.getNodesOfProcedure(entry);
 			allNodes.addAll(procNodes);
 		}
 
@@ -317,7 +317,7 @@ public class GraphUtil {
 			throw new IllegalArgumentException();
 		}
 
-		List<SDGNode> procNodes = sdg.getNodesOfProcedure(current);
+		Set<SDGNode> procNodes = sdg.getNodesOfProcedure(current);
 
 		addCalledEntriesAndFormalNodes(sdg, procNodes);
 
@@ -326,7 +326,7 @@ public class GraphUtil {
 		return stripped;
 	}
 
-	private static void addCalledEntriesAndFormalNodes(SDG sdg, List<SDGNode> nodes) {
+	private static void addCalledEntriesAndFormalNodes(SDG sdg, Set<SDGNode> nodes) {
 		List<SDGNode> entriesAndFormals = new LinkedList<SDGNode>();
 
 		for (SDGNode node : nodes) {

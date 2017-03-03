@@ -8,6 +8,8 @@
 package edu.kit.joana.ifc.sdg.graph.slicer.graph;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 import edu.kit.joana.ifc.sdg.graph.JoanaGraph;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -69,6 +71,14 @@ public class CallGraph extends JoanaGraph {
 	 * @param node  The node.
 	 */
 	public SDGNode getEntry(SDGNode node){
+		throw new UnsupportedOperationException();
+	}
+	
+	/* (non-Javadoc)
+	 * @see edu.kit.joana.ifc.sdg.graph.JoanaGraph#getNodesOfProcedure(edu.kit.joana.ifc.sdg.graph.SDGNode)
+	 */
+	@Override
+	public Set<SDGNode> getNodesOfProcedure(SDGNode proc) {
 		throw new UnsupportedOperationException();
 	}
 }

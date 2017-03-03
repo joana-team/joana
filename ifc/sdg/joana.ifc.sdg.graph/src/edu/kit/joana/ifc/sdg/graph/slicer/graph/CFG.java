@@ -108,6 +108,11 @@ public class CFG extends JoanaGraph {
         return entry;
     }
     
+    /** Returns the entry node of the procedure a given node belongs to.
+     * If the entry node is folded, the fold node is returned.
+     *
+     * @param node  The node.
+     */
     public SDGNode getEntry(SDGNode node) {
     	SDGNode entry = entryNodes.get(node.getProc());
     	if (incomingEdgesOf(entry).isEmpty()) {
@@ -120,9 +125,7 @@ public class CFG extends JoanaGraph {
             }
     	}
     	
-    	if (! entry.equals(getEntrySlow(node))) {
-    		throw new AssertionError();
-    	}
+    	assert entry.equals(getEntrySlow(node));
     	
     	return entry;
     }

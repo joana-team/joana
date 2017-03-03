@@ -66,6 +66,8 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
 	/** The root node. */
 	protected SDGNode root;
 	private final TIntObjectHashMap<SDGNode> id2node = new TIntObjectHashMap<SDGNode>();
+	
+	protected final Map<Integer, SDGNode> entryNodes = new HashMap<>();
 
 	/**
 	 * Creates a totally empty JoanaGraph.
@@ -248,6 +250,13 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
 	   boolean isNew = super.addVertex(node);
 	   if (isNew) {
 		   id2node.put(node.getId(), node);
+	   }
+	   
+	   if (node.getKind().equals(SDGNode.Kind.ENTRY)) {
+		   final SDGNode entry = entryNodes.put(node.getProc(), node);
+		   if (entry != null && !entry.equals(node)) {
+			   throw new IllegalArgumentException();
+		   }
 	   }
 
 	   return isNew;

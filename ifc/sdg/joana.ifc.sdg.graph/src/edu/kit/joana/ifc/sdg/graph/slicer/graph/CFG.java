@@ -81,7 +81,7 @@ public class CFG extends JoanaGraph {
      *
      * @param node  The node.
      */
-    public SDGNode getEntry(SDGNode node){
+    private SDGNode getEntrySlow(SDGNode node){
  	   // TODO: find a more efficient implementation
         SDGNode entry = null;
         java.util.Set<SDGNode> set = vertexSet();
@@ -106,6 +106,25 @@ public class CFG extends JoanaGraph {
         }
 
         return entry;
+    }
+    
+    public SDGNode getEntry(SDGNode node) {
+    	SDGNode entry = entryNodes.get(node.getProc());
+    	if (incomingEdgesOf(entry).isEmpty()) {
+            for (SDGEdge e : outgoingEdgesOf(entry)) {
+                if(e.getKind() == SDGEdge.Kind.FOLD_INCLUDE){
+                    // folded node
+                    entry = e.getTarget();
+                    break;
+                }
+            }
+    	}
+    	
+    	if (! entry.equals(getEntrySlow(node))) {
+    		throw new AssertionError();
+    	}
+    	
+    	return entry;
     }
 
     /**

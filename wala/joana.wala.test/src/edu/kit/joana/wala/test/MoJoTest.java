@@ -34,6 +34,7 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
+import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.ExternalCallCheck;
 import edu.kit.joana.wala.core.ExternalCallCheck.MethodListCheck;
 import edu.kit.joana.wala.core.Main;
@@ -89,7 +90,7 @@ public class MoJoTest {
 	public Config createDefaultConfig() {
 		final Config cfg = new Config("mojotest", "<main entry not used>", bin,
 				PointsToPrecision.INSTANCE_BASED, ExceptionAnalysis.INTRAPROC, true, Main.STD_EXCLUSION_REG_EXP,
-				"../jSDG/lib/natives_empty.xml", "../jSDG/lib/jSDG-stubs-jre1.4.jar", ExternalCallCheck.EMPTY, out,
+				"../../contrib/lib/stubs/natives_empty.xml", Stubs.JRE_14.getPaths()[0], ExternalCallCheck.EMPTY, out,
 				FieldPropagation.OBJ_TREE);
 
 		return cfg;
@@ -219,7 +220,7 @@ public class MoJoTest {
 
 		final Config cfg = new Config("runtestaccesspath", "<main entry not used>", "../Test-Modular/dist/mojo-test-program.jar",
 				PointsToPrecision.INSTANCE_BASED, ExceptionAnalysis.INTRAPROC, true, Main.STD_EXCLUSION_REG_EXP,
-				"../jSDG/lib/natives_empty.xml", "../jSDG/lib/jSDG-stubs-jre1.4.jar", mlc, "./out/", FieldPropagation.FLAT);
+				"../../contrib/lib/stubs/natives_empty.xml", Stubs.JRE_14.getPaths()[0], mlc, "./out/", FieldPropagation.FLAT);
 
 		System.out.print("Setting up analysis scope... ");
 

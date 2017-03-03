@@ -10,7 +10,6 @@ package edu.kit.joana.wala.test;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.IOException;
 
@@ -31,14 +30,14 @@ public class ParameterPropagationTest {
 
 
 	public static final String out = "./out/";
+	final static String src = "../joana.wala.testdata/src";
+	final static String bin = "../joana.wala.testdata/bin";
 
 	@Test
-	public void fieldPropagationSimple_Test_entry() {
-		final String src = "../MoJo-TestCode/src";
-		final String bin = "../MoJo-TestCode/bin";
+	public void fieldPropagationSimple_Test_entry() throws ClassHierarchyException, IOException, IllegalArgumentException, CancelException, UnsoundGraphException {
 		final String method = "FieldPropagation.entry()V";
 
-		try {
+		{
 			final MoJoTest mt = MoJoTest.create(src, bin, out);
 			final Config cfg = mt.createDefaultConfig();
 			cfg.name = "simple-prop";
@@ -78,31 +77,14 @@ public class ParameterPropagationTest {
 			}
 
 			assertNotNull("expected actual out parameter i at call to foo, because of imprecision from simple propagation", actOutI);
-		} catch (ClassHierarchyException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		} catch (IOException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		} catch (CancelException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		} catch (UnsoundGraphException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
 		}
 	}
 
 	@Test
-	public void fieldPropagationFixpoint_Test_entry() {
-		final String src = "../MoJo-TestCode/src";
-		final String bin = "../MoJo-TestCode/bin";
+	public void fieldPropagationFixpoint_Test_entry() throws ClassHierarchyException, IOException, IllegalArgumentException, CancelException, UnsoundGraphException {
 		final String method = "FieldPropagation.entry()V";
 
-		try {
+		{
 			final MoJoTest mt = MoJoTest.create(src, bin, out);
 			final Config cfg = mt.createDefaultConfig();
 			cfg.name = "fixpoint-prop";
@@ -142,31 +124,14 @@ public class ParameterPropagationTest {
 			}
 
 			assertNull("expected no actual out parameter i at call to foo, because of precision from fixpoint propagation", actOutI);
-		} catch (ClassHierarchyException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		} catch (IOException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		} catch (CancelException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		} catch (UnsoundGraphException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
 		}
 	}
 
 	@Test
-	public void fieldPropagationAP_Test_entry() {
-		final String src = "../MoJo-TestCode/src";
-		final String bin = "../MoJo-TestCode/bin";
+	public void fieldPropagationAP_Test_entry() throws ClassHierarchyException, IOException, IllegalArgumentException, CancelException, UnsoundGraphException {
 		final String method = "FieldPropagation.entry()V";
 
-		try {
+		{
 			final MoJoTest mt = MoJoTest.create(src, bin, out);
 			final Config cfg = mt.createDefaultConfig();
 			cfg.name = "objtree-ap-prop";
@@ -206,21 +171,6 @@ public class ParameterPropagationTest {
 			}
 
 			assertNull("expected no actual out parameter i at call to foo, because of precision from fixpoint propagation", actOutI);
-		} catch (ClassHierarchyException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		} catch (IOException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		} catch (CancelException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		} catch (UnsoundGraphException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
 		}
 	}
 

@@ -12,6 +12,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -102,7 +103,7 @@ public class AccessPath {
 		}
 
 		final Set<PDG> reachable = findReachable(start);
-		final Map<PDG, APIntraProc> pdg2ap = new HashMap<PDG, APIntraProc>();
+		final Map<PDG, APIntraProc> pdg2ap = new IdentityHashMap<>();
 		for (PDG pdg : reachable) {
 			final APIntraProc aip = APIntraProc.compute(pdg, sdg.cfg);
 			pdg2ap.put(pdg, aip);

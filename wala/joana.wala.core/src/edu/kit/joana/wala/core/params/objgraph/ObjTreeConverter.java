@@ -9,6 +9,7 @@ package edu.kit.joana.wala.core.params.objgraph;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -94,7 +95,7 @@ public final class ObjTreeConverter {
 	}
 	
 	private Map<PDG, Map<PDGNode, Set<PDGNode>>> extractEntrySuccs() {
-		final Map<PDG, Map<PDGNode, Set<PDGNode>>> pdg2succ = new HashMap<PDG, Map<PDGNode, Set<PDGNode>>>();
+		final Map<PDG, Map<PDGNode, Set<PDGNode>>> pdg2succ = new IdentityHashMap<>();
 
 		for (final PDG pdg : sdg.getAllPDGs()) {
 			final Map<PDGNode, Set<PDGNode>> pdgMap = new HashMap<>();
@@ -117,7 +118,7 @@ public final class ObjTreeConverter {
 	}
 	
 	private Map<PDG, Map<PDGNode, Set<PDGNode>>> extractExitPreds() {
-		final Map<PDG, Map<PDGNode, Set<PDGNode>>> pdg2preds = new HashMap<PDG, Map<PDGNode, Set<PDGNode>>>();
+		final Map<PDG, Map<PDGNode, Set<PDGNode>>> pdg2preds = new IdentityHashMap<>();
 		
 		for (final PDG pdg : sdg.getAllPDGs()) {
 			final Map<PDGNode, Set<PDGNode>> pdgMap = new HashMap<>();
@@ -478,7 +479,7 @@ public final class ObjTreeConverter {
 	}
 
 	private Map<PDG, TreeRoots> computeFormalTrees(final IProgressMonitor progress) throws CancelException {
-		final Map<PDG, TreeRoots> trees = new HashMap<PDG, TreeRoots>();
+		final Map<PDG, TreeRoots> trees = new IdentityHashMap<>();
 
 		for (final PDG pdg : sdg.getAllPDGs()) {
 			MonitorUtil.throwExceptionIfCanceled(progress);

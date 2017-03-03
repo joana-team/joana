@@ -220,6 +220,11 @@ public class AbstractJoanaGraph<V, E extends KnowsVertices<V>> implements Direct
 	 * @see java.lang.Object#hashCode()
 	 */
 	public int hashCode() {
+		// TODO: deriving the hashCode might be a bad idea not only because of some performance impact,
+		// but also because, as of now, instances if AbstractJoanaGraph (e.g.: of PDG) *are* used
+		// as keys in HashMaps. This leads to fuck-ups whenever those PDGs are changed.
+		// So we either have to be careful about using, e.g., IdentitiHashMaps in those cases,
+		// or, in the long run, consider using some sort of hashing-by-global-id scheme.
 		if (changed) {
 			hashCode = delegate.hashCode(); 
 		}

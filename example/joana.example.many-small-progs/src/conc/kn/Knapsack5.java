@@ -35,7 +35,7 @@ package conc.kn;
 import java.util.BitSet;
 import java.util.Stack;
 
-class Knapsack5 {
+public class Knapsack5 {
     private static class Item {
         int profit,weight,pos;
         float profitPerWeight;

@@ -78,7 +78,7 @@ public final class BuildSDG {
 		SDGSerializer.toPDGFormat(sdg, new BufferedOutputStream(new FileOutputStream(path)));
 	}
 
-	public static void standardConcBuild(String classPath, JavaMethodSignature entryMethod, String saveAs, PointsToPrecision ptsPrec) {
+	public static SDGProgram standardConcBuild(String classPath, JavaMethodSignature entryMethod, String saveAs, PointsToPrecision ptsPrec) {
 		SDGConfig cfg = new SDGConfig(classPath, entryMethod.toBCString(), STUBS);
 		cfg.setComputeInterferences(true);
 		cfg.setExceptionAnalysis(ExceptionAnalysis.IGNORE_ALL);
@@ -92,6 +92,7 @@ public final class BuildSDG {
 			SDG sdg = p.getSDG();
 			PruneInterferences.preprocessAndPruneCSDG(sdg, MHPType.PRECISE);
 			saveSDGProgram(sdg, saveAs);
+			return p;
 		} catch (ClassHierarchyException | IOException | UnsoundGraphException
 					| CancelException e) {
 			throw new RuntimeException(e);

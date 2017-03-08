@@ -209,6 +209,11 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 					if (ebb.isCatchBlock()) {
 						insts.add(ebb.getCatchInstruction());
 					}
+					
+					for (Iterator<? extends SSAInstruction> it = ebb.iteratePhis(); it.hasNext();) {
+						insts.add(it.next());
+					}
+					
 				}
 				instructions = insts;
 			}
@@ -920,7 +925,11 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 		{
 			// add an edge from entry to unreachable code
 			final Set<PDGNode> unreachEntry = findUnreachableFrom(this, entry);
-
+			
+			if (!unreachEntry.isEmpty()) {
+				throw new IllegalStateException();
+			}
+			
 			if (!unreachEntry.isEmpty()) {
 				final LinkedList<PDGNode> toRemove = new LinkedList<PDGNode>();
 				for (PDGNode n : unreachEntry) {
@@ -941,6 +950,10 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 			// add an edge from non-terminating code to exit
 			final Set<PDGNode> unreachExit = findNotReachingTo(this, exit);
 
+			if (!unreachExit.isEmpty()) {
+				throw new IllegalStateException();
+			}
+			
 			if (!unreachExit.isEmpty()) {
 				final LinkedList<PDGNode> toRemove = new LinkedList<PDGNode>();
 				for (final PDGNode n : unreachExit) {

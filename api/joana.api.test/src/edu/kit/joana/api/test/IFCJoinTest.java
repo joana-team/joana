@@ -91,7 +91,7 @@ public class IFCJoinTest {
 				"joana.api.testdata.conc.Thread0.run()V", "Ljoana/api/testdata/conc/Joining1.f");
 		Assert.assertFalse(coll.isEmpty());
 		Assert.assertTrue(coll.size() == 1);
-		Assert.assertEquals(141, coll.iterator().next().getId());
+		Assert.assertEquals(138, coll.iterator().next().getId());
 		Collection<SDGNode> calls = ana.collectCallsInMethod("joana.api.testdata.conc.Joining1.main([Ljava/lang/String;)V", "java.io.PrintStream.println(I)V");
 		Assert.assertFalse(calls.isEmpty());
 		Assert.assertTrue(calls.size() == 1);
@@ -124,7 +124,7 @@ public class IFCJoinTest {
 		Collection<SDGNode> chop = computeSomeChop(sdg, vio.getSource(), vio.getSink());
 		Assert.assertFalse(chop.isEmpty());
 		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
-		Assert.assertFalse(mhp.isParallel(sdg.getNode(141), sdg.getNode(19)));
+		Assert.assertFalse(mhp.isParallel(sdg.getNode(138), sdg.getNode(19)));
 	}
 	
 	@Test
@@ -147,7 +147,7 @@ public class IFCJoinTest {
 		Assert.assertFalse(calls.isEmpty());
 		Assert.assertTrue(calls.size() == 1);
 		int id2 = calls.iterator().next().getId();
-		Assert.assertEquals(291, id2);
+		Assert.assertEquals(293	, id2);
 		SDGNode call = calls.iterator().next();
 		Collection<SDGNode> actualIns = new LinkedList<SDGNode>();
 		for (SDGEdge e : sdg.getOutgoingEdgesOfKind(call, SDGEdge.Kind.CONTROL_DEP_EXPR)) {

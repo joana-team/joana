@@ -21,6 +21,7 @@ import org.jgrapht.DirectedGraph;
 
 import com.google.common.collect.Sets;
 import com.ibm.wala.cfg.ControlFlowGraph;
+import com.ibm.wala.cfg.IBasicBlock;
 import com.ibm.wala.cfg.exc.ExceptionPruningAnalysis;
 import com.ibm.wala.cfg.exc.InterprocAnalysisResult;
 import com.ibm.wala.cfg.exc.NullPointerAnalysis;
@@ -52,9 +53,11 @@ import com.ibm.wala.ipa.callgraph.pruned.CallGraphPruning;
 import com.ibm.wala.ipa.callgraph.pruned.PrunedCallGraph;
 import com.ibm.wala.ipa.callgraph.pruned.PruningPolicy;
 import com.ibm.wala.ipa.cfg.ExceptionPrunedCFG;
+import com.ibm.wala.ipa.cfg.PrunedCFG;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAInvokeInstruction;
+import com.ibm.wala.ssa.SSAThrowInstruction;
 import com.ibm.wala.ssa.analysis.ExplodedControlFlowGraph;
 import com.ibm.wala.ssa.analysis.IExplodedBasicBlock;
 import com.ibm.wala.types.TypeReference;
@@ -872,6 +875,58 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			break;
 		case IGNORE_ALL: {
 			ecfg = ExceptionPrunedCFG.make(ExplodedControlFlowGraph.make(n.getIR()));
+			final ExplodedControlFlowGraph unpruned = ExplodedControlFlowGraph.make(n.getIR());
+			ecfg = PrunedCFG.make(
+				unpruned,
+				new com.ibm.wala.ipa.cfg.EdgeFilter<IExplodedBasicBlock>() {
+
+					@Override
+					public boolean hasNormalEdge(IExplodedBasicBlock src, IExplodedBasicBlock dst) {
+						return  unpruned.getNormalSuccessors(src).contains(dst);
+					}
+
+					@Override
+					public boolean hasExceptionalEdge(IExplodedBasicBlock src, IExplodedBasicBlock dst) {
+						// If we ignored the control flow of explicit throw instructions, code *after* a "try {} catch {}" may
+						// become unreachable. Example:
+						//
+						// try {
+						//   throw new InterruptedException();
+						// } catch (Exception e) {
+						//   numThreadsLolled = 10;
+						// }
+						// numThreadsCreated = 0;
+						// which translates to:
+						/*
+						         6: new           #27                 // class java/lang/InterruptedException
+						         9: dup
+						        10: invokespecial #29                 // Method java/lang/InterruptedException."<init>":()V
+						        13: athrow
+						        14: astore_2
+						        15: bipush        10
+						        17: putstatic     #16                 // Field numThreadsLolled:I
+						        20: iconst_0
+						        21: putstatic     #12                 // Field numThreadsCreated:I
+						        24: return
+						      Exception table:
+						         from    to  target type
+						             6    14    14   Class java/lang/Exception
+						*/ 
+						// 
+						// Here, the assignment
+						//   numThreadsCreated = 0;
+						// would become unreachable.
+						
+						// The core problem here is that there is no explicit jump from the end of the try-block
+						// to point right after the catch-block.
+						
+						// Our assumption for the code below now is that java compiler only ever omit that jump
+						// for explicit throw statements.
+						return unpruned.getExceptionalSuccessors(src).contains(dst)
+						    && src.getInstruction() instanceof SSAThrowInstruction;
+					}
+				}
+			);
 		}
 			break;
 		}

@@ -8,6 +8,7 @@
 package edu.kit.joana.wala.core;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -186,17 +187,38 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 	private void run(final IR ir, ExternalCallCheck ext, PrintStream out, IProgressMonitor progress) throws UnsoundGraphException, CancelException {
 		if (ir == null || ir.isEmptyIR() || builder.isImmutableStub(method.getDeclaringClass().getReference())) {
 			addDummyConnections();
-			addSourcecodeInfoToNodes(null);
+			addSourcecodeInfoToNodes(false, null);
 		} else {
 			final Logger dumpSSA = Log.getLogger(Log.L_WALA_IR_DUMP);
 			if (dumpSSA.isEnabled()) {
 				dumpSSA.outln(PrettyWalaNames.ir2string(ir));
 			}
-			addNodesForInstructions(ir);
-			addSourcecodeInfoToNodes(ir);
-			addControlFlow(progress, ir);
+			
+			final ControlFlowGraph<SSAInstruction, IExplodedBasicBlock> ecfg = builder.createExceptionAnalyzedCFG(cgNode, progress);
+			final Logger log = Log.getLogger(Log.L_WALA_CFG_DUMP);
+			if (log.isEnabled()) {
+				final String fileName = WriteGraphToDot.sanitizeFileName(method.getSignature() + "-cfg.dot");
+				WriteGraphToDot.writeCfgToDot(ecfg, ir, "CFG of " + fileName, fileName);
+			}
+			final Iterable<SSAInstruction> instructions; {
+				ArrayList<SSAInstruction> insts = new ArrayList<>(ir.getInstructions().length); 
+				for (IExplodedBasicBlock ebb : ecfg) {
+					for (SSAInstruction instruction : ebb) {
+						insts.add(instruction);
+					}
+					if (ebb.isCatchBlock()) {
+						insts.add(ebb.getCatchInstruction());
+					}
+				}
+				instructions = insts;
+			}
+			
+			
+			addNodesForInstructions(ir, instructions.iterator());
+			addSourcecodeInfoToNodes(ir != null, instructions);
+			addControlFlow(progress, ecfg);
 			addControlDependence();
-			addDataFlowSSA(ir);
+			addDataFlowSSA(ir, instructions);
 			removeNopAndPhiNodes();
 			addRootParameterStructure();
 			checkForExternalCalls(ext, out);
@@ -289,7 +311,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 		}
 	}
 
-	private void addDataFlowSSA(IR ir) {
+	private void addDataFlowSSA(IR ir, Iterable<SSAInstruction> instructions) {
 		TIntObjectMap<PDGNode> var2node = new TIntObjectHashMap<PDGNode>();
 
 		// add var defs for formal in nodes
@@ -303,7 +325,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 		}
 
 		// add var defs for act-out nodes of calls and normal expression nodes
-		for (Iterator<SSAInstruction> it = ir.iterateAllInstructions(); it.hasNext();) {
+		for (Iterator<SSAInstruction> it = instructions.iterator(); it.hasNext();) {
 			SSAInstruction instr = it.next();
 			if (instr.hasDef()) {
 				PDGNode node = instr2node.get(instr);
@@ -330,7 +352,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 		}
 
 		// add flow from defs to uses
-		for (Iterator<SSAInstruction> it = ir.iterateAllInstructions(); it.hasNext();) {
+		for (Iterator<SSAInstruction> it = instructions.iterator(); it.hasNext();) {
 			SSAInstruction instr = it.next();
 			if (instr.getNumberOfUses() > 0) {
 				PDGNode node = instr2node.get(instr);
@@ -430,7 +452,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 
 		if (method.getReturnType() != TypeReference.Void) {
 			// add data deps from return instructions to exit node.
-			for (Iterator<SSAInstruction> it = ir.iterateAllInstructions(); it.hasNext();) {
+			for (Iterator<SSAInstruction> it = instructions.iterator(); it.hasNext();) {
 				SSAInstruction instr = it.next();
 				if (instr instanceof SSAReturnInstruction) {
 					PDGNode ret = instr2node.get(instr);
@@ -696,17 +718,9 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 	 * @throws CancelException
 	 * @throws UnsoundGraphException
 	 */
-	private void addControlFlow(final IProgressMonitor progress, final IR ir)
+	private void addControlFlow(final IProgressMonitor progress, final ControlFlowGraph<SSAInstruction, IExplodedBasicBlock> ecfg)
 			throws UnsoundGraphException, CancelException {
-		final ControlFlowGraph<SSAInstruction, IExplodedBasicBlock> ecfg =
-				builder.createExceptionAnalyzedCFG(cgNode, progress);
 		
-		final Logger log = Log.getLogger(Log.L_WALA_CFG_DUMP);
-		if (log.isEnabled()) {
-			final String fileName = WriteGraphToDot.sanitizeFileName(method.getSignature() + "-cfg.dot");
-			WriteGraphToDot.writeCfgToDot(ecfg, ir, "CFG of " + fileName, fileName);
-		}
-
 		final TIntObjectMap<PDGNode[]> bbnum2node = mapBasicBlockToNode(ecfg);
 
 		for (final IExplodedBasicBlock current : ecfg) {
@@ -1053,14 +1067,14 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 	private String defBcName = null;
 	public final int defBcIndex = BytecodeLocation.UNDEFINED_POS_IN_BYTECODE;
 
-	private void addSourcecodeInfoToNodes(IR ir) {
+	private void addSourcecodeInfoToNodes(boolean irAvailable, Iterable<SSAInstruction> instructions) {
 		defSrcLoc = SourceLocation.getLocation(sourceFile, 0, 0, 0, 0);
 		defBcName = method.getSignature();
 
-		if (ir != null && method instanceof IBytecodeMethod) {
+		if (irAvailable && method instanceof IBytecodeMethod) {
 			IBytecodeMethod bcMethod = (IBytecodeMethod) method;
 
-			for (Iterator<SSAInstruction> it = ir.iterateAllInstructions(); it.hasNext();) {
+			for (Iterator<SSAInstruction> it = instructions.iterator(); it.hasNext();) {
 				SSAInstruction instr = it.next();
 				if (instr != null) {
 					PDGNode node = instr2node.get(instr);
@@ -1221,7 +1235,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 		exit.setBytecodeName(BytecodeLocation.RETURN_PARAM);
 	}
 
-	private void addNodesForInstructions(final IR ir) {
+	private void addNodesForInstructions(final IR ir, Iterator<SSAInstruction> instructions) {
         PDGNodeCreationVisitor visitor;
         if (this.builder.cfg.showTypeNameInValue) {
             TypeInference typeInf = TypeInference.make(ir, true /* doPrimitives */); // ==> Unexpected: JavaPrimitiveType
@@ -1237,8 +1251,8 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 				builder.getParameterFieldFactory(), ir.getSymbolTable(), ignoreStaticFields, ir, this.builder.cfg.associateLocalNames);
         }
 
-		for (Iterator<SSAInstruction> it = ir.iterateAllInstructions(); it.hasNext();) {
-			SSAInstruction instr = it.next();
+		for (; instructions.hasNext();) {
+			SSAInstruction instr = instructions.next();
 			instr.visit(visitor);
 			PDGNode node = visitor.lastNode;
 			node2instr.put(node, instr);

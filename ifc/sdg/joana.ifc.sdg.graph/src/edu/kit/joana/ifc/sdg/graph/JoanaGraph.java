@@ -418,7 +418,7 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
     /**
      * Returns a list containing all nodes that belong to the procedure of the given node.
      */
-    private List<SDGNode> getNodesOfProcedureSlow(SDGNode proc) {
+    protected List<SDGNode> getNodesOfProcedureSlow(SDGNode proc) {
         LinkedList<SDGNode> l = new LinkedList<SDGNode>();
 
         for (SDGNode n : vertexSet()) {
@@ -458,7 +458,8 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
     	}
     	
     	List<SDGNode> foundSlow;
-    	assert ((foundSlow = getNodesOfProcedureSlow(node)) != null && foundSlow.size() == found.size() && foundSlow.containsAll(found) && found.containsAll(foundSlow));
+    	Set<SDGNode> foundSlowSet = new HashSet<>();
+    	assert ((foundSlow = getNodesOfProcedureSlow(node)) != null && (foundSlowSet.addAll(foundSlow) || true) && (foundSlowSet.size() == found.size()) && foundSlow.containsAll(found) && found.containsAll(foundSlow));
     	
         return found;
     }

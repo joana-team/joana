@@ -7,8 +7,15 @@
  */
 package edu.kit.joana.ifc.sdg.graph.slicer.graph;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
+import java.util.Set;
+import java.util.stream.Stream;
+
+import com.google.common.collect.Iterables;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -104,5 +111,45 @@ public class FoldedCFG extends CFG implements Folded {
         }
 
         return list;
+    }
+    
+    @Override
+    public Set<SDGNode> getNodesOfProcedure(final SDGNode node) {
+    	final SDGNode entry = getEntry(node);
+    	final int procedure = node.getProc();
+    	
+    	final Queue<SDGNode> wl = new LinkedList<>();
+    	final Set<SDGNode> found = new HashSet<>();
+    	final Set<SDGNode> foldedFound = new HashSet<>();
+    	
+    	wl.offer(entry);
+    	{ 
+    		SDGNode next;
+    		while ((next = wl.poll()) != null) {
+				if (next.getKind() == SDGNode.Kind.FOLDED) {
+					if (foldedFound.add(next)) {
+						for (SDGEdge e : outgoingEdgesOf(next)) {
+							wl.offer(e.getTarget());
+						}
+						for (SDGNode foldedNode : getFoldedNodesOf(next)) {
+							wl.offer(foldedNode);
+						}
+					}
+				} else if (next.getProc() == procedure ) {
+					if (found.add(next)) {
+		    			for (SDGEdge e : outgoingEdgesOf(next)) {
+		    				final SDGNode successor = e.getTarget();
+		    				wl.offer(successor);
+		    			}
+					}
+				}
+    		}
+    	}
+    	
+    	List<SDGNode> foundSlow;
+    	Set<SDGNode> foundSlowSet = new HashSet<>();
+    	assert ((foundSlow = getNodesOfProcedureSlow(node)) != null && (foundSlowSet.addAll(foundSlow) || true) && (foundSlowSet.size() == found.size()) && foundSlow.containsAll(found) && found.containsAll(foundSlow));
+    	
+        return found;
     }
 }

@@ -12,6 +12,7 @@ import sensitivity.Security;
 public class ExceptionHandling {
     static int x;
     static int y = Security.SECRET;
+    static int tmp = 0;
 
     public static void main(String[] args) {
         try {
@@ -27,7 +28,7 @@ public class ExceptionHandling {
     static void foo() throws Exception {
         x = 0;
         if (y > 10) {
-            throw new Exception();
+            tmp = 100/0;
         }
         x = 1;
     }

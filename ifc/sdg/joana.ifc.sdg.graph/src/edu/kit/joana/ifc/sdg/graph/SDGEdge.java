@@ -158,21 +158,7 @@ public class SDGEdge implements Cloneable, KnowsVertices<SDGNode> {
          * @return `true' if this kind is an intra-procedural program dependence.
          */
         public boolean isIntraSDGEdge() {
-            return this == CONTROL_DEP_UNCOND
-                    || this == CONTROL_DEP_COND
-                    || this == CONTROL_DEP_EXPR
-                    || this == CONTROL_DEP_CALL
-                    || this == JUMP_DEP
-                    || this == DATA_DEP
-                    || this == DATA_HEAP
-                    || this == DATA_ALIAS
-                    || this == DATA_LOOP
-                    || this == DATA_DEP_EXPR_VALUE
-                    || this == DATA_DEP_EXPR_REFERENCE
-                    || this == SUMMARY
-                    || this == SUMMARY_DATA
-                    || this == SUMMARY_NO_ALIAS
-                    || this == SYNCHRONIZATION;
+            return intraSDGEdges().contains(this);
         }
 
         /**
@@ -226,6 +212,10 @@ public class SDGEdge implements Cloneable, KnowsVertices<SDGNode> {
             return dataflowEdges;
         }
 
+        public static Set<SDGEdge.Kind> intraSDGEdges() {
+            return intraSDGEdges;
+        }
+
         public static Set<SDGEdge.Kind> threadEdges() {
             return threadEdges;
         }
@@ -245,6 +235,15 @@ public class SDGEdge implements Cloneable, KnowsVertices<SDGNode> {
                 SDGEdge.Kind.PARAMETER_IN, SDGEdge.Kind.PARAMETER_OUT,
                 SDGEdge.Kind.INTERFERENCE, SDGEdge.Kind.FORK, SDGEdge.Kind.FORK_IN,
                 SDGEdge.Kind.FORK_OUT, SDGEdge.Kind.READY_DEP, SDGEdge.Kind.SYNCHRONIZATION);
+
+        private static Set<SDGEdge.Kind> intraSDGEdges =
+        		EnumSet.of(SDGEdge.Kind.CONTROL_DEP_UNCOND,
+                SDGEdge.Kind.CONTROL_DEP_COND, SDGEdge.Kind.CONTROL_DEP_EXPR,
+                SDGEdge.Kind.CONTROL_DEP_CALL, SDGEdge.Kind.JUMP_DEP,
+                SDGEdge.Kind.DATA_DEP, SDGEdge.Kind.DATA_HEAP, SDGEdge.Kind.DATA_ALIAS, SDGEdge.Kind.DATA_LOOP,
+                SDGEdge.Kind.DATA_DEP_EXPR_VALUE, SDGEdge.Kind.DATA_DEP_EXPR_REFERENCE,
+                SDGEdge.Kind.SUMMARY, SDGEdge.Kind.SUMMARY_DATA, SDGEdge.Kind.SUMMARY_NO_ALIAS,
+                SDGEdge.Kind.SYNCHRONIZATION);
 
         private static Set<SDGEdge.Kind> threadEdges =
             	EnumSet.of(SDGEdge.Kind.INTERFERENCE, SDGEdge.Kind.FORK, SDGEdge.Kind.FORK_IN,

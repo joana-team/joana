@@ -571,16 +571,7 @@ public final class GraphModifier {
      * @param entry  An entry node.
      */
     private static SDGNode getExit(SDG sdg, SDGNode entry) {
-        List<SDGEdge> l = sdg.getOutgoingEdgesOfKind(entry, SDGEdge.Kind.CONTROL_FLOW);
-
-        // search for the entry-exit CF edge and return the exit node
-        for (SDGEdge e : l) {
-            if (e.getTarget().getKind() == SDGNode.Kind.EXIT) {
-                return e.getTarget();
-            }
-        }
-
-        return null;
+    	return sdg.getExit(entry);
     }
 
     /** Removes all return edges from a given CFG.

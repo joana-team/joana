@@ -103,12 +103,7 @@ public class CFGJoinSensitiveForward extends CFGForward {
             markedProcs.add(next.getProc());
 
             SDGNode entry = g.getEntry(next);
-            SDGNode exit = null;
-            for (SDGEdge e : g.outgoingEdgesOf(entry)) {
-            	if (e.getTarget().getKind() == SDGNode.Kind.EXIT) {
-            		exit = e.getTarget();
-            	}
-            }
+            SDGNode exit = g.getExit(next);
             
             if (!joins.contains(exit)) {
                 exitList.add(new SDGNodeTuple(exit, exit));

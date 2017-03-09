@@ -347,7 +347,17 @@ public class SDG extends JoanaGraph implements Cloneable {
     	return entry;
     }
 
-    public synchronized SDGNode getExit(SDGNode node){
+    
+    @Override
+    public synchronized SDGNode getExit(SDGNode node) {
+    	final SDGNode exit = exitNodes.get(node.getProc());
+    	
+    	assert exit.equals(getExitSlow(node));
+    	
+    	return exit;
+    }
+    
+    public synchronized SDGNode getExitSlow(SDGNode node){
     	if (exitCache.get(node.getProc()) == null) {
 	        SDGNode entry = getEntry(node);
 

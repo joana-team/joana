@@ -784,7 +784,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 				}
 			}
 
-			if (builder.cfg.exceptions != ExceptionAnalysis.IGNORE_ALL) {
+			{
 				for (final PDGEdge edge : outgoingEdgesOf(node)) {
 					if (edge.kind == PDGEdge.Kind.CONTROL_FLOW_EXC) {
 						final int nextBCindex = getNextBytecodeInstructionIndex(edge.to);
@@ -914,17 +914,26 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 			}
 		}
 
-		addEdge(exception, exit, PDGEdge.Kind.CONTROL_FLOW_EXC);
+		final PDGNode[] exitNodes = bbnum2node.get(ecfg.exit().getNumber());
+		addEdge(exception, exitNodes[0], PDGEdge.Kind.CONTROL_FLOW_EXC);
 		addEdge(entry, exit, PDGEdge.Kind.CONTROL_FLOW);
+		
 
 		if (inDegreeOf(exception) == 0) {
 			addEdge(entry, exception, PDGEdge.Kind.CONTROL_FLOW);
 		}
 
+		
+		
 		// fix control flow for unreachable or non-terminating code
 		{
 			// add an edge from entry to unreachable code
 			final Set<PDGNode> unreachEntry = findUnreachableFrom(this, entry);
+			
+			
+			for (PDGNode exitNode : exitNodes) {
+				unreachEntry.remove(exitNode);
+			}
 			
 			if (!unreachEntry.isEmpty()) {
 				throw new IllegalStateException();
@@ -969,6 +978,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 				}
 			}
 		}
+		
 	}
 
 	private final void changeEdgeTargetTo(final List<PDGEdge> list, final PDGNode to) {

@@ -68,6 +68,7 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
 	private final TIntObjectHashMap<SDGNode> id2node = new TIntObjectHashMap<SDGNode>();
 	
 	protected final Map<Integer, SDGNode> entryNodes = new HashMap<>();
+	protected final Map<Integer, SDGNode> exitNodes = new HashMap<>();
 
 	/**
 	 * Creates a totally empty JoanaGraph.
@@ -255,6 +256,13 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
 	   if (node.getKind().equals(SDGNode.Kind.ENTRY)) {
 		   final SDGNode entry = entryNodes.put(node.getProc(), node);
 		   if (entry != null && !entry.equals(node)) {
+			   throw new IllegalArgumentException();
+		   }
+	   }
+	   
+	   if (node.getKind().equals(SDGNode.Kind.EXIT)) {
+		   final SDGNode exit = exitNodes.put(node.getProc(), node);
+		   if (exit != null && !exit.equals(node)) {
 			   throw new IllegalArgumentException();
 		   }
 	   }
@@ -479,5 +487,12 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
      * @return      The entry node.
      */
     public abstract SDGNode getEntry(SDGNode node);
+    
+    public synchronized SDGNode getExit(SDGNode node) {
+    	final SDGNode exit = exitNodes.get(node.getProc());
+    	
+    	return exit;
+    }
+
 }
 

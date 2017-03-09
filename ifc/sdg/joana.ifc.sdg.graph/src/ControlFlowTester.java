@@ -78,6 +78,10 @@ public class ControlFlowTester {
 	        			break;
 	        		}
         		}
+        		
+        		if (exit != sdg.getExit(n)) {
+        			System.out.println("Exit node is not an unique CONTROL_FLOW successof of entry ");
+        		}
 
         		if (exit == null) {
         			System.out.println(n+" has no exit");

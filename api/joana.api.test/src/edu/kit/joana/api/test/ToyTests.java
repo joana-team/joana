@@ -326,4 +326,10 @@ public class ToyTests {
 			UnsoundGraphException, CancelException {
 		testPreciseEnough(joana.api.testdata.seq.MartinMohrsStrangeTryCatchFinallyWalaBug.class);
 	}
+	
+	@Test
+	public void testWhileTrue() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testPreciseEnough(joana.api.testdata.seq.WhileTrue.class);
+	}
 }

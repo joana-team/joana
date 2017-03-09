@@ -15,12 +15,13 @@ public class ExceptionFallThroughIntDiv {
 	static int numThreadsCreated = 5;
 	static int numThreadsRofled = 4;
 	static int numThreadsLolled = 3;
+	static int numThreadsNaN = 6;
 
 	public static void main(String[] args) {
 		int x = 0;
 		numThreadsRofled = 0;
 		try {
-			throw new InterruptedException();
+			numThreadsNaN = numThreadsCreated / 0;
 		} catch (Exception e) {
 			numThreadsLolled = 10;
 		}

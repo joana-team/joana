@@ -15,13 +15,12 @@ public class ExceptionFallThrough {
 	static int numThreadsCreated = 5;
 	static int numThreadsRofled = 4;
 	static int numThreadsLolled = 3;
-	static int numThreadsNaN = 6;
 
 	public static void main(String[] args) {
 		int x = 0;
 		numThreadsRofled = 0;
 		try {
-			numThreadsNaN = numThreadsCreated / 0;
+			throw new InterruptedException();
 		} catch (Exception e) {
 			numThreadsLolled = 10;
 		}

@@ -75,7 +75,7 @@ public class ISCRTests {
 	@Test
 	public void testExceptionFallThroughIntDiv() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
-		testBuildSuccessfull(conc.kn.shrinked.ExceptionFallThrough.class);
+		testBuildSuccessfull(conc.kn.shrinked.ExceptionFallThroughIntDiv.class);
 	}
 
 	

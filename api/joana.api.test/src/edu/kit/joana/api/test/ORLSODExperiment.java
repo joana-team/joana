@@ -35,6 +35,7 @@ import edu.kit.joana.api.test.util.JoanaPath;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
+import edu.kit.joana.ifc.sdg.irlsod.CDomProbInfComputer;
 import edu.kit.joana.ifc.sdg.irlsod.ORLSODChecker;
 import edu.kit.joana.ifc.sdg.irlsod.PathBasedORLSODChecker;
 import edu.kit.joana.ifc.sdg.irlsod.PredecessorMethod;
@@ -149,7 +150,7 @@ public class ORLSODExperiment {
 		);
 
 		final ThreadModularCDomOracle tmdo = new ThreadModularCDomOracle(sdg);
-		final ProbInfComputer probInf = new ProbInfComputer(sdg, tmdo);
+		final ProbInfComputer probInf = new CDomProbInfComputer(sdg, tmdo);
 		final ORLSODChecker<String> checkerPath = new PathBasedORLSODChecker<String>(sdg,
 				 BuiltinLattices.getBinaryLattice(), userAnn, probInf);
 		final int noViosPath = checkerPath.checkIFlow().size();

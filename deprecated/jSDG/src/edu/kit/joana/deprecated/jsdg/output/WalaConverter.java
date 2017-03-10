@@ -364,19 +364,7 @@ public class WalaConverter {
 	}
 
 	private SDGNode findExit(SDGNode entry) {
-		SDGNode exit = null;
-		// entry must have a direct connection to exit vie control flow
-		// we use this property and search exit only in the direct successors of entry
-		Set<SDGEdge> out = sdg.outgoingEdgesOf(entry);
-
-		for (SDGEdge edge : out) {
-			if (edge.getKind() == edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_FLOW
-					&& edge.getTarget().getKind() == edu.kit.joana.ifc.sdg.graph.SDGNode.Kind.EXIT) {
-				exit = edge.getTarget();
-				break;
-			}
-		}
-
+		final SDGNode exit = sdg.getExit(entry);
 		assert (exit != null) : "No direct control flow from entry to exit: no exit found!";
 
 		return exit;

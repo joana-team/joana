@@ -142,7 +142,7 @@ public final class ReducedCFGBuilder {
 		Collection<SDGEdge> toAdd = new LinkedList<SDGEdge>();
 		for (SDGEdge e : cfg.edgeSet()) {
 			if (e.getSource().getKind() == SDGNode.Kind.ENTRY 
-					&& (e.getTarget().getKind() == SDGNode.Kind.EXIT || e.getTarget().getKind() == SDGNode.Kind.FORMAL_OUT)) {
+					&& e.getTarget().getKind() == SDGNode.Kind.FORMAL_OUT) {
 				toRemove.add(e);
 				toAdd.add(new SDGEdge(e.getSource(), e.getTarget(), SDGEdge.Kind.HELP));
 			}

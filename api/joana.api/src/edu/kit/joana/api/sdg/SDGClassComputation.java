@@ -183,12 +183,7 @@ public class SDGClassComputation {
 	private Set<SDGNode> getRoots(SDGMethodExitNode exit) {
 		Set<SDGNode> ret = new HashSet<SDGNode>();
 		for (SDGNode entry : getEntries(exit.getOwningMethod())) {
-			for (SDGNode n : sdg.getNodesOfProcedure(entry)) {
-				if (n.getKind() == SDGNode.Kind.EXIT) {
-					ret.add(n);
-					break;
-				}
-			}
+			ret.add(sdg.getExit(entry));
 		}
 		return ret;
 	}

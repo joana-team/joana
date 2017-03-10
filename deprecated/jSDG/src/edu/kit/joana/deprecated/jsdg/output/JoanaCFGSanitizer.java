@@ -97,7 +97,8 @@ public class JoanaCFGSanitizer {
 				SDGNode entry = sdg.getEntry(cnst);
 				Set<SDGEdge> toRemove = new HashSet<SDGEdge>();
 				for (SDGEdge edge : sdg.outgoingEdgesOf(entry)) {
-					if (edge.getKind() == edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_FLOW && edge.getTarget().kind != Kind.EXIT) {
+					assert edge.getTarget().kind != Kind.EXIT;
+					if (edge.getKind() == edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_FLOW ) {
 						SDGEdge newEdge = new SDGEdge(cnst, edge.getTarget(), edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_FLOW);
 						sdg.addEdge(newEdge);
 						toRemove.add(edge);

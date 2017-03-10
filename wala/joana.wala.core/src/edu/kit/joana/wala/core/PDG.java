@@ -914,14 +914,9 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 			}
 		}
 
-		final PDGNode[] exitNodes = bbnum2node.get(ecfg.exit().getNumber());
-		addEdge(exception, exitNodes[0], PDGEdge.Kind.CONTROL_FLOW_EXC);
-		addEdge(entry, exit, PDGEdge.Kind.CONTROL_FLOW);
+		final PDGNode[] exitNodes  = bbnum2node.get(ecfg.exit().getNumber());
 		
-
-		if (inDegreeOf(exception) == 0) {
-			addEdge(entry, exception, PDGEdge.Kind.CONTROL_FLOW);
-		}
+		addEdge(exception, exitNodes[0], PDGEdge.Kind.CONTROL_FLOW_EXC);
 
 		
 		

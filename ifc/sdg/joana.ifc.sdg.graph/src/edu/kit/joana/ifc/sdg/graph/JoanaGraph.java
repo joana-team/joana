@@ -256,14 +256,14 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
 	   if (node.getKind().equals(SDGNode.Kind.ENTRY)) {
 		   final SDGNode entry = entryNodes.put(node.getProc(), node);
 		   if (entry != null && !entry.equals(node)) {
-			   throw new IllegalArgumentException();
+			   throw new IllegalStateException();
 		   }
 	   }
 	   
 	   if (node.getKind().equals(SDGNode.Kind.EXIT)) {
 		   final SDGNode exit = exitNodes.put(node.getProc(), node);
 		   if (exit != null && !exit.equals(node)) {
-			   throw new IllegalArgumentException();
+			   throw new IllegalStateException();
 		   }
 	   }
 
@@ -442,6 +442,7 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
      */
     public Set<SDGNode> getNodesOfProcedure(final SDGNode node) {
     	final SDGNode entry = getEntry(node);
+    	final SDGNode exit = getExit(node);
     	final int procedure = node.getProc();
     	
     	final Queue<SDGNode> wl = new LinkedList<>();
@@ -454,6 +455,23 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
     		SDGNode next;
     		while ((next = wl.poll()) != null) {
     			for (SDGEdge e : outgoingEdgesOf(next)) {
+    				final SDGNode candidate = e.getTarget();
+    				
+    				if (candidate.getProc() != procedure) continue;
+    				
+    				if (found.add(candidate)) {
+    					wl.offer(candidate);
+    				}
+    			}
+    		}
+    	}
+    	
+    	wl.offer(exit);
+    	found.add(exit);
+    	{ 
+    		SDGNode next;
+    		while ((next = wl.poll()) != null) {
+    			for (SDGEdge e : incomingEdgesOf(next)) {
     				final SDGNode candidate = e.getTarget();
     				
     				if (candidate.getProc() != procedure) continue;

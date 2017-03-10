@@ -102,12 +102,8 @@ public final class ThreadsInfoCollector {
         // for every ThreadInstance, compute exit
         for (ThreadInstance ti: result) {
             // exit node - does not work for main thread, but we don't need the exit node for main thread
-            for (SDGEdge e : cfg.outgoingEdgesOf(ti.getEntry())) {
-                if (e.getTarget().getKind() == SDGNode.Kind.EXIT) {
-                    ti.setExit(e.getTarget());
+                    ti.setExit(cfg.getExit(ti.getEntry()));
                     break;
-                }
-            }
         }
 
         if (DEBUG) {

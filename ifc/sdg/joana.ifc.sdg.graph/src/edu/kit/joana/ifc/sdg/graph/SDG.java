@@ -352,7 +352,8 @@ public class SDG extends JoanaGraph implements Cloneable {
     public synchronized SDGNode getExit(SDGNode node) {
     	final SDGNode exit = exitNodes.get(node.getProc());
     	
-    	assert exit.equals(getExitSlow(node));
+    	final SDGNode exitSlow;
+    	assert ((exitSlow = getExitSlow(node)) == null) || exit.equals(exitSlow);
     	
     	return exit;
     }
@@ -360,16 +361,15 @@ public class SDG extends JoanaGraph implements Cloneable {
     public synchronized SDGNode getExitSlow(SDGNode node){
     	if (exitCache.get(node.getProc()) == null) {
 	        SDGNode entry = getEntry(node);
-
+	        SDGNode exit = null;
         	for (SDGEdge e : getOutgoingEdgesOfKind(entry, SDGEdge.Kind.CONTROL_FLOW)) {
         		if (e.getTarget().getKind() == SDGNode.Kind.EXIT) {
         			exitCache.put(node.getProc(), e.getTarget());
-        			return e.getTarget();
+        			exit = e.getTarget();
+        			break;
         		}
         	}
-
-	        throw new RuntimeException("no exit for "+node);
-
+        	return exit;
     	} else {
     		return exitCache.get(node.getProc());
     	}
@@ -443,12 +443,13 @@ public class SDG extends JoanaGraph implements Cloneable {
 
 				}
 
-				if (e.getTarget().getKind() == SDGNode.Kind.FORMAL_OUT
-						|| e.getTarget().getKind() == SDGNode.Kind.EXIT) {
+				if (e.getTarget().getKind() == SDGNode.Kind.FORMAL_OUT) {
 					fo.add(e.getTarget());
 				}
 			}
 		}
+		
+		fo.add(getExit(entry));
 
 		return fo;
 	}

@@ -581,8 +581,7 @@ public class ISCRBuilder {
         		}
 
         	} else if (n.getKind() == SDGNode.Kind.FORMAL_OUT) {
-        		for (SDGNode exit : icfg.vertexSet()) {
-        			if (exit.getKind() == SDGNode.Kind.EXIT && exit.getProc() == n.getProc()) {
+        		SDGNode exit = icfg.getExit(n);
         				if (!params.containsKey(n)) {
                 			debug.outln(n);
                 			debug.outln(exit);
@@ -595,9 +594,6 @@ public class ISCRBuilder {
                 			debug.outln(params.get(exit));
                 			throw new RuntimeException();
                 		}
-        				break;
-        			}
-        		}
 
         	} else if (n.getKind() == SDGNode.Kind.FORMAL_IN) {
         		SDGNode entry = icfg.getEntry(n);

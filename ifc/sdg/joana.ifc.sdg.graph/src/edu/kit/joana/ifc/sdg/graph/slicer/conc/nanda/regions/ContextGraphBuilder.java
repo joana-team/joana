@@ -370,7 +370,7 @@ public class ContextGraphBuilder {
 					continue;
 
 				if (source.getKind() == SDGNode.Kind.ENTRY && target.getKind() == SDGNode.Kind.EXIT)
-					continue;
+					assert false;
 
 				for (TopologicalNumber nr : t) {
 					Collection<TopologicalNumber> preds = cg.getPredecessorsPlusNoFlow(nr);

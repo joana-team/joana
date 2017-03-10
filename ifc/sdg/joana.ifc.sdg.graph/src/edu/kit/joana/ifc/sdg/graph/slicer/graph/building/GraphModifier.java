@@ -51,11 +51,8 @@ public final class GraphModifier {
 
                     // don't consider thread calls
                     if (e.getKind() == SDGEdge.Kind.CALL) {
-
-                        for (SDGEdge x : sdg.outgoingEdgesOf(e.getTarget())){
-                            if (x.getKind() == SDGEdge.Kind.CONTROL_FLOW
-                            		&& x.getTarget().getKind() == SDGNode.Kind.EXIT) {
-                                exit = x.getTarget();
+                                final SDGNode entry = e.getTarget();
+                                exit = sdg.getExit(entry);
 
                                 // compute return nodes and add return edges (with 'exit' as source)
                                 for (SDGEdge edge : sdg.outgoingEdgesOf(n)) {
@@ -64,8 +61,6 @@ public final class GraphModifier {
                                         sdg.addEdge(ret);
                                     }
                                 }
-                            }
-                        }
                     }
                 }
             }
@@ -450,7 +445,8 @@ public final class GraphModifier {
                 if (oldOutgoing.size() > 1) {
                     for (SDGEdge oldEdge : oldOutgoing) {
 
-                        if (oldEdge.getTarget().getKind() != SDGNode.Kind.EXIT) {
+                        assert (oldEdge.getTarget().getKind() != SDGNode.Kind.EXIT);
+                        {
                             SDGEdge anchor_next = new SDGEdge(anchor, next, SDGEdge.Kind.CONTROL_FLOW);
                             SDGEdge next_target = new SDGEdge(next, oldEdge.getTarget(), SDGEdge.Kind.CONTROL_FLOW);
 
@@ -468,7 +464,8 @@ public final class GraphModifier {
                     sdg.addEdge(anchor_next);
                     sdg.addEdge(next_target);
 
-                    if (oldEdge.getTarget().getKind() != SDGNode.Kind.EXIT) {
+                    assert (oldEdge.getTarget().getKind() != SDGNode.Kind.EXIT);
+                    {
                         sdg.removeEdge(oldEdge);
                     }
                 }
@@ -515,16 +512,7 @@ public final class GraphModifier {
     private static void inlineExitParameters(SDG sdg, HashSet<SDGNode> cfg, SDGNode entry) {
         LinkedList<SDGNode> worklist = new LinkedList<SDGNode>();
         LinkedList<SDGNode> list = new LinkedList<SDGNode>();
-        SDGEdge entry_exit = null;
-        SDGNode exit = null;
-
-        // find the entry-exit cf edge and the exit node
-        for (SDGEdge e : sdg.getOutgoingEdgesOfKind(entry, SDGEdge.Kind.CONTROL_FLOW)) {
-            if (e.getTarget().getKind() == SDGNode.Kind.EXIT) {
-                entry_exit = e;
-                exit = e.getTarget();
-            }
-        }
+        SDGNode exit = sdg.getExit(entry);
 
         //happens if 'entry' is the root node of the graph (has no corresponding exit node)
         if (exit == null) return;
@@ -557,12 +545,6 @@ public final class GraphModifier {
 
             anchor = next;
         }
-
-        // deflect the entry-exit edge towards the new exit node
-        SDGEdge new_entry_exit = new SDGEdge(entry, anchor, SDGEdge.Kind.CONTROL_FLOW);
-
-        sdg.removeEdge(entry_exit);
-        sdg.addEdge(new_entry_exit);
     }
 
     /** When given an entry node of some procedure p, it returns the exit node of p.

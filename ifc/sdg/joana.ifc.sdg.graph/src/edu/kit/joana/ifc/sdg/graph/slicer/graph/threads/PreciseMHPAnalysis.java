@@ -206,27 +206,12 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 
 	private static SDGNode findExit(CFG icfg, SDGNode entry) {
 		assert entry.kind == SDGNode.Kind.ENTRY;
-		LinkedList<SDGNode> w = new LinkedList<SDGNode>();
-		Set<SDGNode> visited = new HashSet<SDGNode>();
-		w.add(entry);
-		while (!w.isEmpty()) {
-			SDGNode next = w.poll();
-			visited.add(next);
-			if (next.getKind() == SDGNode.Kind.EXIT) {
-				return next;
-			} else {
-				for (SDGEdge e : icfg.outgoingEdgesOf(next)) {
-					if (e.getKind() == Kind.CONTROL_FLOW || e.getKind() == Kind.JUMP_FLOW || e.getKind() == Kind.NO_FLOW) {
-						SDGNode succ = e.getTarget();
-						if (!visited.contains(succ)) {
-							w.add(succ);
-						}
-					}
-				}
-			}
+		final SDGNode exit = icfg.getExit(entry); 
+		if (exit == null) {
+			throw new IllegalStateException("no exit node found in control flow graph of method...");
 		}
-
-		throw new IllegalStateException("no exit node found in control flow graph of method...");
+		
+		return exit;
 	}
 
     /**
@@ -262,6 +247,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
     			if (out.size() > 1) {
     				for (SDGEdge e : out) {
     					if (e.getTarget().getKind() == SDGNode.Kind.EXIT) {
+    						assert false;
     						remove.add(e);
     					}
     				}
@@ -618,7 +604,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         				}
 
         				if (from.getKind() == SDGNode.Kind.ENTRY && n.getKind() == SDGNode.Kind.EXIT) {
-        					continue;
+        					assert false;
         				}
 
         				if (inc.getKind() == SDGEdge.Kind.FORK || inc.getKind() == SDGEdge.Kind.JOIN) {

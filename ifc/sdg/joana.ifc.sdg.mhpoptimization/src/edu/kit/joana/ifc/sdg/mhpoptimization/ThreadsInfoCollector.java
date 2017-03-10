@@ -44,26 +44,13 @@ public final class ThreadsInfoCollector {
 
 
     private static SDGNode findExitNode(SDGNode node, CFG cfg) {
-    	SDGNode entry = node;
-    	LinkedList<SDGNode> wl = new LinkedList<SDGNode>();
-    	Set<SDGNode> visited = new HashSet<SDGNode>();
-        wl.add(entry);
-        while(!wl.isEmpty()) {
-            SDGNode n = wl.poll();
-            visited.add(n);
-            if (n.getKind() == SDGNode.Kind.EXIT) {
-            	return n;
-            } else {
-
-            	for (SDGEdge e : cfg.outgoingEdgesOf(n)) {
-            		if (!visited.contains(e.getTarget()) && e.getKind() == SDGEdge.Kind.CONTROL_FLOW) {
-            			wl.add(e.getTarget());
-            		}
-            	}
-            }
-        }
-
-        throw new IllegalStateException("Visited the following nodes, which not include an exit node: " + visited);
+    	final SDGNode exit = cfg.getExit(node);
+    	if (exit == null) {
+    		throw new IllegalStateException("No exit node for: " + node);
+    	}
+    	
+    	return exit;
+        
     }
 
     /**

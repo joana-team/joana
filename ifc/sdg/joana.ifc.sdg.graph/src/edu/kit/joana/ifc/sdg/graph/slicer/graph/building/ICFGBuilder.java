@@ -144,14 +144,7 @@ public final class ICFGBuilder {
         LinkedList<SDGEdge> fs = new LinkedList<SDGEdge>();
         for (SDGNode n : sdg.vertexSet()) {
         	if (n.getKind() == SDGNode.Kind.ENTRY && n.getId() != 1) {
-    			SDGNode exit = null;
-
-        		for (SDGEdge e : sdg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CONTROL_FLOW)) {
-	        		if (e.getTarget().getKind() == SDGNode.Kind.EXIT) {
-	        			exit = e.getTarget();
-	        			break;
-	        		}
-        		}
+    			SDGNode exit = sdg.getExit(n);
 
         		if (exit == null) {
         			System.out.println(n+" has no exit");
@@ -227,14 +220,7 @@ public final class ICFGBuilder {
         LinkedList<SDGEdge> fs = new LinkedList<SDGEdge>();
         for (SDGNode n : sdg.vertexSet()) {
         	if (n.getKind() == SDGNode.Kind.ENTRY && n.getId() != 1) {
-    			SDGNode exit = null;
-
-        		for (SDGEdge e : sdg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CONTROL_FLOW)) {
-	        		if (e.getTarget().getKind() == SDGNode.Kind.EXIT) {
-	        			exit = e.getTarget();
-	        			break;
-	        		}
-        		}
+    			SDGNode exit = sdg.getExit(n);
 
         		if (exit == null) {
             		System.out.println("\nControl Flow Graph is damaged!");

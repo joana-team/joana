@@ -7,6 +7,9 @@
  */
 package edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda;
 
+import java.io.BufferedOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,6 +22,7 @@ import edu.kit.joana.ifc.sdg.graph.PDGs;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.FoldedCFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.CallGraphBuilder;
@@ -57,6 +61,15 @@ public class ISCRBuilder {
 
         // build the ISCR graphs
         for (int i = 0; i < icfgs.length; i++) {
+        	BufferedOutputStream bOut;
+			try {
+				bOut = new BufferedOutputStream(new FileOutputStream("/tmp/tmp.cfg.pdg"));
+				SDGSerializer.toPDGFormat(tcfg, bOut);
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        	
             iscrs[i] = build(icfgs[i]);
         }
 
@@ -593,8 +606,7 @@ public class ISCRBuilder {
         		}
 
         	} else if (n.getKind() == SDGNode.Kind.FORMAL_OUT) {
-        		for (SDGNode exit : icfg.vertexSet()) {
-        			if (exit.getKind() == SDGNode.Kind.EXIT && exit.getProc() == n.getProc()) {
+        		SDGNode exit = icfg.getExit(n);
         				if (!params.containsKey(n)) {
         					debug.outln(n);
         					debug.outln(exit);
@@ -607,10 +619,6 @@ public class ISCRBuilder {
         					debug.outln(params.get(exit));
                 			throw new RuntimeException();
                 		}
-        				break;
-        			}
-        		}
-
         	} else if (n.getKind() == SDGNode.Kind.FORMAL_IN) {
         		SDGNode entry = icfg.getEntry(n);
 				if (!params.containsKey(n)) {

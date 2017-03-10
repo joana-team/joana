@@ -801,7 +801,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		}
 
 		progress.done();
-		addEntryExitCFEdges();
+		//addEntryExitCFEdges();
 
 		if (cfg.pruneDDEdgesToDanglingExceptionNodes) {
 			pruneDDEdgesToDanglingExceptionNodes();

@@ -317,6 +317,7 @@ public final class SDGBuildPreparation {
 		scfg.cgConsumer = cfg.cgConsumer;
 		scfg.additionalContextSelector = cfg.ctxSelector;
 		scfg.dynDisp = cfg.ddisp;
+		scfg.doParallel = cfg.isParallel;
 		return Pair.make(startTime, scfg);
 	}
 
@@ -414,6 +415,7 @@ public final class SDGBuildPreparation {
 		public CGConsumer cgConsumer = null;
 		public ContextSelector ctxSelector = null;
 		public DynamicDispatchHandling ddisp;
+		public boolean isParallel = true;
 		public Config(String name) {
 			this(name, "<no entry defined>", FieldPropagation.OBJ_GRAPH);
 		}

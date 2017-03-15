@@ -394,6 +394,7 @@ public class SDGProgram {
 		cfg.ddisp = config.getDynamicDispatchHandling();
 		cfg.computeSummaryEdges = config.isComputeSummaryEdges();
 		cfg.computeInterference = config.computeInterferences();
+		cfg.isParallel = config.isParallel();
 		debug.outln(cfg.stubs);
 		return cfg;
 	}

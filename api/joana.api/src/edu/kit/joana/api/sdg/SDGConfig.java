@@ -51,6 +51,7 @@ public class SDGConfig {
 	private boolean computeSummaryEdges = true;
 	private boolean skipSDGProgramPart = false;
 	private ControlDependenceVariant controlDependenceVariant = ControlDependenceVariant.CLASSIC;
+	private boolean isParallel = true;
 	
 	public SDGConfig(String classPath, String entryMethod, Stubs stubsPath) {
 		this(classPath, entryMethod, stubsPath, ExceptionAnalysis.INTERPROC, FieldPropagation.OBJ_GRAPH, PointsToPrecision.INSTANCE_BASED, false, false, MHPType.NONE);
@@ -361,6 +362,14 @@ public class SDGConfig {
 
 	public void setControlDependenceVariant(ControlDependenceVariant controlDependenceVariant) {
 		this.controlDependenceVariant = controlDependenceVariant;
+	}
+
+	public boolean isParallel() {
+		return isParallel;
+	}
+
+	public void setParallel(boolean isParallel) {
+		this.isParallel = isParallel;
 	}
 
 }

@@ -395,6 +395,7 @@ public class SDGProgram {
 		cfg.computeSummaryEdges = config.isComputeSummaryEdges();
 		cfg.computeInterference = config.computeInterferences();
 		cfg.isParallel = config.isParallel();
+		cfg.controlDependenceVariant = config.getControlDependenceVariant();
 		debug.outln(cfg.stubs);
 		return cfg;
 	}

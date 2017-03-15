@@ -58,6 +58,7 @@ import edu.kit.joana.wala.core.ExternalCallCheck;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuildArtifacts;
 import edu.kit.joana.wala.core.SDGBuilder;
+import edu.kit.joana.wala.core.SDGBuilder.ControlDependenceVariant;
 import edu.kit.joana.wala.core.SDGBuilder.DynamicDispatchHandling;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
@@ -318,6 +319,7 @@ public final class SDGBuildPreparation {
 		scfg.additionalContextSelector = cfg.ctxSelector;
 		scfg.dynDisp = cfg.ddisp;
 		scfg.doParallel = cfg.isParallel;
+		scfg.controlDependenceVariant = cfg.controlDependenceVariant;
 		return Pair.make(startTime, scfg);
 	}
 
@@ -416,6 +418,7 @@ public final class SDGBuildPreparation {
 		public ContextSelector ctxSelector = null;
 		public DynamicDispatchHandling ddisp;
 		public boolean isParallel = true;
+		public ControlDependenceVariant controlDependenceVariant = ControlDependenceVariant.CLASSIC;
 		public Config(String name) {
 			this(name, "<no entry defined>", FieldPropagation.OBJ_GRAPH);
 		}

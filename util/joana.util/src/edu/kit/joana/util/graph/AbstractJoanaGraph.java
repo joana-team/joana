@@ -53,8 +53,9 @@ public class AbstractJoanaGraph<V, E extends KnowsVertices<V>> implements Direct
 	 * @see org.jgrapht.graph.AbstractBaseGraph#addEdge(java.lang.Object, java.lang.Object, java.lang.Object)
 	 */
 	public boolean addEdge(V arg0, V arg1, E arg2) {
-		changed = true;
-		return delegate.addEdge(arg0, arg1, arg2);
+		final boolean added = delegate.addEdge(arg0, arg1, arg2);
+		changed |= added;
+		return added;
 	}
 
 	/**
@@ -64,8 +65,9 @@ public class AbstractJoanaGraph<V, E extends KnowsVertices<V>> implements Direct
 	 * @see org.jgrapht.graph.AbstractBaseGraph#addEdge(java.lang.Object, java.lang.Object)
 	 */
 	public E addEdge(V arg0, V arg1) {
-		changed = true;
-		return delegate.addEdge(arg0, arg1);
+		final E newEdge = delegate.addEdge(arg0, arg1);
+		changed |= (newEdge != null);
+		return newEdge;
 	}
 
 	/**

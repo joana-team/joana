@@ -300,7 +300,7 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
             // the right outer class instance
             newGraph.specifics = new DirectedSpecifics();
 
-            Graphs.addGraph(newGraph, this);
+            org.jgrapht.Graphs.addGraph(newGraph, this);
 
             return newGraph;
         } catch (CloneNotSupportedException e) {

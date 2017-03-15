@@ -8,17 +8,19 @@
 package edu.kit.joana.wala.core.graphs;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
-import com.ibm.wala.util.collections.HashMapFactory;
-import com.ibm.wala.util.collections.HashSetFactory;
-import com.ibm.wala.util.graph.Graph;
-import com.ibm.wala.util.graph.NumberedGraph;
-import com.ibm.wala.util.graph.impl.SlowSparseNumberedGraph;
-import com.ibm.wala.util.intset.IntSet;
+import org.jgrapht.DirectedGraph;
+import org.jgrapht.EdgeFactory;
+
+import edu.kit.joana.util.graph.AbstractJoanaGraph;
+import edu.kit.joana.util.graph.Graphs;
+import edu.kit.joana.util.graph.KnowsVertices;
 
 /**
  * Computes the nontermination sensitive control dependence as described by
@@ -28,33 +30,36 @@ import com.ibm.wala.util.intset.IntSet;
  * @author Juergen Graf <graf@kit.edu>
  *
  */
-public class NTSCDGraph<T> extends SlowSparseNumberedGraph<T> {
+public class NTSCDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGraph<V, E> {
 
-	private NTSCDGraph() {}
+	private NTSCDGraph(EdgeFactory<V, E> edgeFactory) {
+		super(edgeFactory);
+	}
 
 	private static final boolean DEBUG = false;
 
-	private static class MaxPaths {
+	private static class MaxPaths<V> {
 
-		public final int n;
-		public final int m;
+		public final V n;
+		public final V m;
 
-		public MaxPaths(int n, int m) {
+		public MaxPaths(V n, V m) {
 			this.n = n;
 			this.m = m;
 		}
 
 		public boolean equals(Object obj) {
 			if (obj instanceof MaxPaths) {
+				@SuppressWarnings("rawtypes")
 				MaxPaths other = (MaxPaths) obj;
-				return n == other.n && m == other.m;
+				return n.equals(other.n) && m.equals(other.m);
 			} else {
 				return false;
 			}
 		}
 
 		public int hashCode() {
-			return n + 2314 * m;
+			return n.hashCode() + 2314 * m.hashCode();
 		}
 
 		public String toString() {
@@ -68,36 +73,36 @@ public class NTSCDGraph<T> extends SlowSparseNumberedGraph<T> {
 	 * the pseudo code in "A New Foundation for Control Dependence and Slicing
 	 * for Modern Program Structures" from Ranganath, Amtoft, Banerjee and Hatcliff
 	 */
-	public static <T> NumberedGraph<T> compute(NumberedGraph<T> cfg, T entry, T exit) {
-		NTSCDGraph<T> cdg = new NTSCDGraph<T>();
-		for (T n : cfg) {
-			cdg.addNode(n);
+	public static <V, E extends KnowsVertices<V>> NTSCDGraph<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory) {
+		NTSCDGraph<V, E> cdg = new NTSCDGraph<>(edgeFactory);
+		for (V n : cfg.vertexSet()) {
+			cdg.addVertex(n);
 		}
 
 		//# (1) Initialize
-		Set<T> condNodes = condNodes(cfg);
- 		Set<T> selfRef = selfRef(cfg);
-		Stack<T> workbag = new Stack<T>();
-		Map<T, Map<T, Set<MaxPaths>>> S = HashMapFactory.make();
+		Set<V> condNodes = condNodes(cfg);
+ 		Set<V> selfRef = selfRef(cfg);
+		Stack<V> workbag = new Stack<>();
+		Map<V, Map<V, Set<MaxPaths<V>>>> S = new HashMap<>();
 		if (DEBUG) {
 			System.out.print("cond nodes: ");
-			for (T n : condNodes) {
-				System.out.print(cfg.getNumber(n) + "; ");
+			for (V n : condNodes) {
+				System.out.print(n + "; ");
 			}
 			System.out.println();
 
 			System.out.print("self ref: ");
-			for (T n : selfRef) {
-				System.out.print(cfg.getNumber(n) + "; ");
+			for (V n : selfRef) {
+				System.out.print(n + "; ");
 			}
 			System.out.println();
 		}
 
-		for (T n : condNodes) {
-			for (Iterator<? extends T> it = cfg.getSuccNodes(n); it.hasNext();) {
-				T m = it.next();
+		for (V n : condNodes) {
+			for (Iterator<? extends E> it = cfg.outgoingEdgesOf(n).iterator(); it.hasNext();) {
+				V m = it.next().getTarget();
 				//Set<IntSet> t_nm = maxPaths(cfg, n, m);
-				MaxPaths t_nm = maxPaths(cfg, n, m);
+				MaxPaths<V> t_nm = maxPaths(cfg, n, m);
 				add(S, m, n, t_nm);
 				merge(workbag, m);
 			}
@@ -105,24 +110,24 @@ public class NTSCDGraph<T> extends SlowSparseNumberedGraph<T> {
 
 		//# (2) calculate all-path reachability
 		while (!workbag.isEmpty()) {
-			final T n = workbag.pop();
+			final V n = workbag.pop();
 			if (condNodes.contains(n)) {
 				//# (2.2) n has >1 succ
-				for (T m : cfg) {
-					Set<MaxPaths> Smn = get(S, m, n);
-					final int Tn = cfg.getSuccNodeCount(n);
+				for (V m : cfg.vertexSet()) {
+					Set<MaxPaths<V>> Smn = get(S, m, n);
+					final int Tn = Graphs.getSuccNodeCount(cfg, n);
 					if (Smn != null && Smn.size() == Tn) {
-						for (T p : condNodes) {
+						for (V p : condNodes) {
 							if (p != n && update(S, n, m, p)) {
 								merge(workbag, m);
 							}
 						}
 					}
 				}
-			} else if (cfg.getSuccNodeCount(n) == 1 && !selfRef.contains(n)) {
+			} else if (Graphs.getSuccNodeCount(cfg, n) == 1 && !selfRef.contains(n)) {
 				//# (2.1) n has exact 1 succ
-				T m = cfg.getSuccNodes(n).next();
-				for (T p : condNodes) {
+				V m = Graphs.getSuccNodes(cfg, n).iterator().next();
+				for (V p : condNodes) {
 					if (update(S, n, m, p)) {
 						merge(workbag, m);
 					}
@@ -131,19 +136,19 @@ public class NTSCDGraph<T> extends SlowSparseNumberedGraph<T> {
 		}
 
 		//# (3) Calculate non-termination sensitive control dependence
-		for (T n : cfg) {
-			for (T m : condNodes) {
+		for (V n : cfg.vertexSet()) {
+			for (V m : condNodes) {
 				if (n == m) {
 					continue;
 				}
 
-				Set<MaxPaths> Snm = get(S, n, m);
-				final int Tm = cfg.getSuccNodeCount(m);
+				Set<MaxPaths<V>> Snm = get(S, n, m);
+				final int Tm = Graphs.getSuccNodeCount(cfg,m);
 
 				if (DEBUG) {
-					System.out.print("S(" + cfg.getNumber(n) + ", " + cfg.getNumber(m) + ") = {");
+					System.out.print("S(" + n + ", " + m + ") = {");
 					if (Snm != null) {
-						for (MaxPaths t_nm : Snm) {
+						for (MaxPaths<V> t_nm : Snm) {
 							System.out.print(t_nm + "; ");
 						}
 					}
@@ -165,11 +170,11 @@ public class NTSCDGraph<T> extends SlowSparseNumberedGraph<T> {
 		}
 	}
 
-	private static <T> boolean update(Map<T, Map<T, Set<MaxPaths>>> S, T n, T m, T p) {
+	private static <T> boolean update(Map<T, Map<T, Set<MaxPaths<T>>>> S, T n, T m, T p) {
 		boolean changed = false;
 
-		Set<MaxPaths> Snp = get(S, n, p);
-		Set<MaxPaths> Smp = get(S, m, p);
+		Set<MaxPaths<T>> Snp = get(S, n, p);
+		Set<MaxPaths<T>> Smp = get(S, m, p);
 
 		if (Snp != null && !Snp.isEmpty() && (Smp == null || !Smp.containsAll(Snp))) {
 			// S[n,p] \ S[m,p] != {}
@@ -180,18 +185,18 @@ public class NTSCDGraph<T> extends SlowSparseNumberedGraph<T> {
 		return changed;
 	}
 
-	private static <T> Set<MaxPaths> get(Map<T, Map<T, Set<MaxPaths>>> S, T a, T b) {
-		Map<T, Set<MaxPaths>> Sn = S.get(a);
+	private static <T> Set<MaxPaths<T>> get(Map<T, Map<T, Set<MaxPaths<T>>>> S, T a, T b) {
+		Map<T, Set<MaxPaths<T>>> Sn = S.get(a);
 		if (Sn != null) {
-			Set<MaxPaths> set = Sn.get(b);
+			Set<MaxPaths<T>> set = Sn.get(b);
 			return set;
 		}
 
 		return null;
 	}
 
-	private static <T> void add(Map<T, Map<T, Set<MaxPaths>>> S, T a, T b, Set<MaxPaths> sets) {
-		for (MaxPaths mp : sets) {
+	private static <T> void add(Map<T, Map<T, Set<MaxPaths<T>>>> S, T a, T b, Set<MaxPaths<T>> sets) {
+		for (MaxPaths<T> mp : sets) {
 			add(S, a, b, mp);
 		}
 	}
@@ -199,26 +204,24 @@ public class NTSCDGraph<T> extends SlowSparseNumberedGraph<T> {
 	/**
 	 * S[a,b] += set;
 	 */
-	private static <T> void add(Map<T, Map<T, Set<MaxPaths>>> S, T a, T b, MaxPaths set) {
-		Map<T, Set<MaxPaths>> Sn = S.get(a);
+	private static <T> void add(Map<T, Map<T, Set<MaxPaths<T>>>> S, T a, T b, MaxPaths<T> set) {
+		Map<T, Set<MaxPaths<T>>> Sn = S.get(a);
 		if (Sn == null) {
-			Sn = HashMapFactory.make();
+			Sn = new HashMap<>();
 			S.put(a, Sn);
 		}
 
-		Set<MaxPaths> mps = Sn.get(b);
+		Set<MaxPaths<T>> mps = Sn.get(b);
 		if (mps == null) {
-			mps = HashSetFactory.make();
+			mps = new HashSet<>();
 			Sn.put(b, mps);
 		}
 
 		mps.add(set);
 	}
 
-	private static <T> MaxPaths maxPaths(final NumberedGraph<T> cfg, T nNode, T mNode) {
-		final int n = cfg.getNumber(nNode);
-		final int m = cfg.getNumber(mNode);
-		return new MaxPaths(n, m);
+	private static <V, E extends KnowsVertices<V>> MaxPaths<V> maxPaths(final DirectedGraph<V,E> cfg, V nNode, V mNode) {
+		return new MaxPaths<V>(nNode, mNode);
 	}
 
 	/**
@@ -286,11 +289,11 @@ public class NTSCDGraph<T> extends SlowSparseNumberedGraph<T> {
 	/**
 	 * Find all nodes in the cfg with more then one successor
 	 */
-	private static <T> Set<T> condNodes(Graph<T> cfg) {
-		Set<T> condNodes = HashSetFactory.make();
+	private static <V, E extends KnowsVertices<V>> Set<V> condNodes(DirectedGraph<V, E> cfg) {
+		Set<V> condNodes = new HashSet<>();
 
-		for (T node : cfg) {
-			if (cfg.getSuccNodeCount(node) > 1) {
+		for (V node : cfg.vertexSet()) {
+			if (Graphs.getSuccNodeCount(cfg, node) > 1) {
 				condNodes.add(node);
 			}
 		}
@@ -301,12 +304,12 @@ public class NTSCDGraph<T> extends SlowSparseNumberedGraph<T> {
 	/**
 	 * Find all self referring nodes in the cfg
 	 */
-	private static <T> Set<T> selfRef(NumberedGraph<T> cfg) {
-		Set<T> selfRef = HashSetFactory.make();
+	private static <V, E extends KnowsVertices<V>> Set<V> selfRef(DirectedGraph<V, E> cfg) {
+		Set<V> selfRef = new HashSet<>();
 
-		for (T node : cfg) {
-			IntSet succ = cfg.getSuccNodeNumbers(node);
-			if (succ != null && succ.contains(cfg.getNumber(node))) {
+		for (V node : cfg.vertexSet()) {
+			Set<V> succ = Graphs.getSuccNodes(cfg, node);
+			if (succ != null && succ.contains(node)) {
 				selfRef.add(node);
 			}
 		}

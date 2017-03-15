@@ -8,11 +8,13 @@
 package edu.kit.joana.wala.core.params;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import com.ibm.wala.dataflow.graph.BitVectorFramework;
 import com.ibm.wala.dataflow.graph.BitVectorSolver;
@@ -230,8 +232,14 @@ public class StaticFieldParams {
 
 	private Map<PDG, Collection<FieldAccess>> createStaticFieldAccessMap() {
 		final List<PDG> allPdgs = sdg.getAllPDGs();
-		// We want to avoid calls to org.jgrapht.graph.AbstractGraph.hashCode()
-		final Map<PDG, Collection<FieldAccess>> access = new IdentityHashMap<>(allPdgs.size());
+		// We want to avoid calls to org.jgrapht.graph.AbstractGraph.hashCode(),
+		// but an IdentityHashMap creates indeterminate PDGNode numbers :(
+		final Map<PDG, Collection<FieldAccess>> access = new TreeMap<>(new Comparator<PDG>() {
+			@Override
+			public int compare(PDG o1, PDG o2) {
+				return Integer.compare(o1.getId(), o2.getId()); 
+			}
+		});
 
 		
 		for (PDG pdg : allPdgs) {

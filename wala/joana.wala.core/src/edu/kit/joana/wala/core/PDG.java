@@ -21,6 +21,7 @@ import java.util.Random;
 import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
+import org.jgrapht.EdgeFactory;
 
 import com.ibm.wala.analysis.typeInference.TypeInference;
 import com.ibm.wala.cfg.ControlFlowGraph;
@@ -62,9 +63,12 @@ import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.ifc.sdg.util.SDGConstants;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
+import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.wala.core.PDGNode.Kind;
+import edu.kit.joana.wala.core.SDGBuilder.ControlDependenceVariant;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.graphs.CDG;
+import edu.kit.joana.wala.core.graphs.NTSCDGraph;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
 import edu.kit.joana.wala.flowless.pointsto.Pts2AliasGraph;
@@ -489,7 +493,17 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 
 	private void addControlDependence() {
 		final DependenceGraph cfg = createCfgWithoutParams();
-		final CDG cdg = CDG.build(cfg, entry, exit);
+		final AbstractJoanaGraph<PDGNode, PDGEdge> cdg;
+		switch (builder.cfg.controlDependenceVariant) {
+			case CLASSIC: cdg = CDG.build(cfg, entry, exit); break;
+			case NTSCD: cdg = NTSCDGraph.compute(cfg, new EdgeFactory<PDGNode,PDGEdge>() {
+				public PDGEdge createEdge(PDGNode from, PDGNode to) {
+					return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
+				};
+			});
+			case NTICD: throw new IllegalArgumentException();
+			default: throw new IllegalArgumentException();
+		}
 
 		for (final PDGNode from : cdg.vertexSet()) {
 			for (final PDGEdge edge : cdg.outgoingEdgesOf(from)) {
@@ -916,7 +930,10 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 
 		final PDGNode[] exitNodes  = bbnum2node.get(ecfg.exit().getNumber());
 		
+		
 		addEdge(exception, exitNodes[0], PDGEdge.Kind.CONTROL_FLOW_EXC);
+		
+		
 
 		
 		

@@ -142,6 +142,9 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 	public final SDGBuilderConfig cfg;
 
 	public LinkedList<Set<ParameterField>> partitions;
+	
+	public static enum ControlDependenceVariant { CLASSIC, NTSCD, NTICD };
+
 
 	public static enum ExceptionAnalysis {
 		/*
@@ -1975,6 +1978,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		public boolean mergeFieldsOfPrunedCalls = true;
 		public PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
 		public DynamicDispatchHandling dynDisp = DynamicDispatchHandling.SIMPLE;
+		public ControlDependenceVariant controlDependenceVariant = ControlDependenceVariant.CLASSIC;
 		public PointsToPrecision pts = PointsToPrecision.INSTANCE_BASED;
 		// only used iff pts is set to CUSTOM. Gets access to hopefully all
 		// information needed to create a call graph builder, consistent

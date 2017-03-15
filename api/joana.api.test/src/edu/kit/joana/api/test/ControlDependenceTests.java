@@ -24,6 +24,7 @@ import edu.kit.joana.api.test.util.ApiTestException;
 import edu.kit.joana.api.test.util.BuildSDG;
 import edu.kit.joana.api.test.util.DumpTestSDG;
 import edu.kit.joana.api.test.util.JoanaPath;
+import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.util.Stubs;
@@ -45,6 +46,7 @@ public class ControlDependenceTests {
 		STUBS
 	); {
 		classic.setControlDependenceVariant(ControlDependenceVariant.CLASSIC);
+		classic.setParallel(false);
 	}
 
 	public static final SDGConfig ntscd = new SDGConfig(
@@ -53,6 +55,7 @@ public class ControlDependenceTests {
 		STUBS
 	); {
 		ntscd.setControlDependenceVariant(ControlDependenceVariant.NTSCD);
+		ntscd.setParallel(false);
 	}
 	
 	private static IFCAnalysis buildAnnotateDump(Class<?> clazz, SDGConfig config) throws ClassHierarchyException, ApiTestException,
@@ -77,20 +80,25 @@ public class ControlDependenceTests {
 		final IFCAnalysis anaClassic = buildAnnotateDump(clazz, classic);
 		final IFCAnalysis anaNTSCD = buildAnnotateDump(clazz, ntscd);
 
-		final CFG cfgClassic = ICFGBuilder.extractICFG(anaClassic.getProgram().getSDG());
-		final CFG cfgCNTSCD = ICFGBuilder.extractICFG(anaNTSCD.getProgram().getSDG());
+		final SDG sdgClassic = anaClassic.getProgram().getSDG();
+		final SDG sdgNTSCD   = anaNTSCD.getProgram().getSDG();
+		assertEquals(sdgClassic, sdgNTSCD);
+		
+		final CFG cfgClassic = ICFGBuilder.extractICFG(sdgClassic);
+		final CFG cfgCNTSCD = ICFGBuilder.extractICFG(sdgNTSCD);
 		assertEquals(cfgClassic, cfgCNTSCD);
 	}
 	
-	private static void testClassicUnbuildable(Class<?> clazz) throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException, CancelException {
+	private void testClassicUnbuildable(Class<?> clazz) throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException, CancelException {
 		try {
 			IFCAnalysis anaClassic = buildAnnotateDump(clazz, classic);
 			assertTrue("should've thrown!!!", false);
 		} catch (IllegalStateException e) {
 			assertTrue("Unexpected exception:" + e.toString(), e.toString().startsWith("java.lang.IllegalStateException: Null node at dfsW="));
 		}
-		IFCAnalysis anaNTSCD = buildAnnotateDump(clazz, ntscd);
+		
 	}
+	
 
 	@Test
 	public void testFlowSens() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,

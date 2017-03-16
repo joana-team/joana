@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Function;
 
 import org.jgrapht.DirectedGraph;
 
@@ -1875,27 +1876,28 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 	private static void debugOutput(PDG pdg) {
 		IMethod im = pdg.getMethod();
 		final String prefix = WriteGraphToDot.sanitizeFileName(im.getName().toString());
+		final Function<PDGNode, String> idProvider = n -> Integer.toString(n.getId());
 		try {
 			WriteGraphToDot.write(pdg, prefix + ".ddg.dot", new EdgeFilter<PDGEdge>() {
 				public boolean accept(PDGEdge edge) {
 					return edge.kind == PDGEdge.Kind.DATA_DEP;
 				}
-			});
+			}, idProvider);
 			WriteGraphToDot.write(pdg, prefix + ".cdg.dot", new EdgeFilter<PDGEdge>() {
 				public boolean accept(PDGEdge edge) {
 					return edge.kind == PDGEdge.Kind.CONTROL_DEP;
 				}
-			});
+			}, idProvider);
 			WriteGraphToDot.write(pdg, prefix + ".cfg.dot", new EdgeFilter<PDGEdge>() {
 				public boolean accept(PDGEdge edge) {
 					return edge.kind == PDGEdge.Kind.CONTROL_FLOW || edge.kind == PDGEdge.Kind.CONTROL_FLOW_EXC;
 				}
-			});
+			}, idProvider);
 			WriteGraphToDot.write(pdg, prefix + ".pdg.dot", new EdgeFilter<PDGEdge>() {
 				public boolean accept(PDGEdge edge) {
 					return edge.kind == PDGEdge.Kind.CONTROL_DEP || edge.kind == PDGEdge.Kind.DATA_DEP;
 				}
-			});
+			}, idProvider);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}

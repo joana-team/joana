@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.Iterator;
+import java.util.function.Function;
 
 import org.jgrapht.DirectedGraph;
 
@@ -79,10 +80,10 @@ public class WriteGraphToDot {
 			}
 		};
 
-    	write(g, fileName, filter);
+    	write(g, fileName, filter, v -> getId(v));
     }
 
-    public static <V, E> void write(DirectedGraph<V, E> g, String fileName, EdgeFilter<E> filter) throws FileNotFoundException {
+    public static <V, E> void write(DirectedGraph<V, E> g, String fileName, EdgeFilter<E> filter, Function<V, String> idProvider) throws FileNotFoundException {
         PrintWriter out = new PrintWriter(fileName);
 
         //System.out.println("Writing '" + fileName + "'");
@@ -94,7 +95,7 @@ public class WriteGraphToDot {
 
         for (V node : g.vertexSet()) {
             out.print("   \"");
-            out.print(getId(node));
+            out.print(idProvider.apply(node));
             out.print("\" ");
             out.print("[label=\"");
             out.print(node.toString());
@@ -110,9 +111,9 @@ public class WriteGraphToDot {
                 V tgt = g.getEdgeTarget(e);
 
                 out.print(" \"");
-                out.print(getId(src));
+                out.print(idProvider.apply((src)));
                 out.print("\" -> \"");
-                out.print(getId(tgt));
+                out.print(idProvider.apply((tgt)));
                 out.print("\" ");
                 out.print("[label=\"");
                 out.print(e.toString());

@@ -36,7 +36,7 @@ public class NTSCDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGrap
 		super(edgeFactory);
 	}
 
-	private static final boolean DEBUG = false;
+	private static boolean DEBUG = false;
 
 	private static class MaxPaths<V> {
 
@@ -72,6 +72,10 @@ public class NTSCDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGrap
 	 * Computes the nontermination sensitive control dependence as described by
 	 * the pseudo code in "A New Foundation for Control Dependence and Slicing
 	 * for Modern Program Structures" from Ranganath, Amtoft, Banerjee and Hatcliff
+	 * 
+	 * From what i can tell, their Algorithm as presented is flawed, as it fails to revisit predicate nodes for which the
+	 * condition "|S[m,n]| = T_n" is established due to change in |S[m,n]| elsewhere.
+	 * We attempt this by putting nodes p on the worklist in appropriate places.
 	 */
 	public static <V, E extends KnowsVertices<V>> NTSCDGraph<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory) {
 		NTSCDGraph<V, E> cdg = new NTSCDGraph<>(edgeFactory);
@@ -116,10 +120,11 @@ public class NTSCDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGrap
 				for (V m : cfg.vertexSet()) {
 					Set<MaxPaths<V>> Smn = get(S, m, n);
 					final int Tn = Graphs.getSuccNodeCount(cfg, n);
-					if (Smn != null && Smn.size() == Tn) {
+					if ((Smn == null && Tn == 0) || (Smn != null && Smn.size() == Tn)) {
 						for (V p : condNodes) {
 							if (p != n && update(S, n, m, p)) {
 								merge(workbag, m);
+								merge(workbag, p);
 							}
 						}
 					}
@@ -130,11 +135,13 @@ public class NTSCDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGrap
 				for (V p : condNodes) {
 					if (update(S, n, m, p)) {
 						merge(workbag, m);
+						merge(workbag, p);
 					}
 				}
 			}
 		}
 
+		
 		//# (3) Calculate non-termination sensitive control dependence
 		for (V n : cfg.vertexSet()) {
 			for (V m : condNodes) {
@@ -160,7 +167,6 @@ public class NTSCDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGrap
 				}
 			}
 		}
-
 		return cdg;
 	}
 
@@ -172,11 +178,14 @@ public class NTSCDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGrap
 
 	private static <T> boolean update(Map<T, Map<T, Set<MaxPaths<T>>>> S, T n, T m, T p) {
 		boolean changed = false;
-
 		Set<MaxPaths<T>> Snp = get(S, n, p);
 		Set<MaxPaths<T>> Smp = get(S, m, p);
 
 		if (Snp != null && !Snp.isEmpty() && (Smp == null || !Smp.containsAll(Snp))) {
+			if (DEBUG) {
+				System.out.println("S[" + m + "," + p + "]   <------ " + "S[" + n + "," + p + "]");
+			}
+
 			// S[n,p] \ S[m,p] != {}
 			add(S, m, p, Snp);
 			changed = true;

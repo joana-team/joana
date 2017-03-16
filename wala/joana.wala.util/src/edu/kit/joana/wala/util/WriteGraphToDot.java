@@ -53,7 +53,8 @@ public class WriteGraphToDot {
 					return (phis.isEmpty() ? "nop-"+bb.getNumber() : "nop-"+bb.getNumber()+ "(" + phis + ")");
 				} else {
 					final String instr = PrettyWalaNames.instr2string(ir, bb.getInstruction(), ir.getControlFlowGraph());
-					return (phis.isEmpty() ? instr : "(" + phis +") " + instr);
+					final String escaped = instr.replace("\"","\\\"");
+					return (phis.isEmpty() ? escaped : "(" + phis +") " + escaped);
 				}
 			}
 		}, title, fileName);

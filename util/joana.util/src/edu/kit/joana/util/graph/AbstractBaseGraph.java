@@ -450,7 +450,8 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
 		 */
 		@Override
 		public int size() {
-			return vertexMap.values().stream().mapToInt(c->c.outgoing.size()).sum();
+			// since the "outgoing" is initialized lazily, c may be null for a vertex w/o outgoing edges/  
+			return vertexMap.values().stream().mapToInt(c-> (c == null) ? 0 : c.outgoing.size()).sum();
 		}
 
 		/* (non-Javadoc)
@@ -475,6 +476,23 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
 				tmp.add(e);
 			}
 			return tmp;
+		}
+		
+		/* (non-Javadoc)
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString() {
+			String comma = "";
+			StringBuilder sb = new StringBuilder();
+			sb.append("[");
+			for (E e : this) {
+				sb.append(comma);
+				sb.append(e);
+				comma = ",";
+			}
+			sb.append("]");
+			return sb.toString();
 		}
     	
 		private class EdgeSetViewIterator implements Iterator<E>{

@@ -340,7 +340,8 @@ public final class PDGNode implements INodeWithNumber {
     }
 
     public int hashCode() {
-    	return System.identityHashCode(id);
+    	// TODO: is this bad w.r.t distribution of nodes in hash buckets?
+    	return id.intValue();
     }
 
     /**

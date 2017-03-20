@@ -166,7 +166,7 @@ public final class CSDGPreprocessor {
 						 * Some debugging showed, that not all nodes are assigned a thread region.
 						 */
 						continue;
-					} else {
+					} else if (e.getKind().isControlFlowEdge()){
 						if (marked.add(e.getTarget())) {
 							worklist.add(e.getTarget());
 						}

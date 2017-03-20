@@ -256,6 +256,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
     		}
     	}
 
+    	assert remove.isEmpty();
     	icfg.removeAllEdges(remove);
 
     	return remove;

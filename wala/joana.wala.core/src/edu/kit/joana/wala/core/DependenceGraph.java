@@ -77,6 +77,11 @@ public class DependenceGraph extends AbstractJoanaGraph<PDGNode, PDGEdge> {
 
 		return edge;
 	}
+	
+	@Override
+	public boolean addVertex(PDGNode arg0) {
+		return super.addVertex(arg0);
+	};
 
 	public String toString() {
 		return "Generic Dependence Graph";

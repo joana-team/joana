@@ -36,9 +36,9 @@ public class NTSCDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGrap
 		super(edgeFactory);
 	}
 
-	private static boolean DEBUG = false;
+	static boolean DEBUG = false;
 
-	private static class MaxPaths<V> {
+	static class MaxPaths<V> {
 
 		public final V n;
 		public final V m;
@@ -170,13 +170,13 @@ public class NTSCDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGrap
 		return cdg;
 	}
 
-	private static <T> void merge(Collection<T> col, T elem) {
+	static <T> void merge(Collection<T> col, T elem) {
 		if (!col.contains(elem)) {
 			col.add(elem);
 		}
 	}
 
-	private static <T> boolean update(Map<T, Map<T, Set<MaxPaths<T>>>> S, T n, T m, T p) {
+	static <T> boolean update(Map<T, Map<T, Set<MaxPaths<T>>>> S, T n, T m, T p) {
 		boolean changed = false;
 		Set<MaxPaths<T>> Snp = get(S, n, p);
 		Set<MaxPaths<T>> Smp = get(S, m, p);
@@ -194,7 +194,7 @@ public class NTSCDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGrap
 		return changed;
 	}
 
-	private static <T> Set<MaxPaths<T>> get(Map<T, Map<T, Set<MaxPaths<T>>>> S, T a, T b) {
+	static <T> Set<MaxPaths<T>> get(Map<T, Map<T, Set<MaxPaths<T>>>> S, T a, T b) {
 		Map<T, Set<MaxPaths<T>>> Sn = S.get(a);
 		if (Sn != null) {
 			Set<MaxPaths<T>> set = Sn.get(b);
@@ -204,7 +204,7 @@ public class NTSCDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGrap
 		return null;
 	}
 
-	private static <T> void add(Map<T, Map<T, Set<MaxPaths<T>>>> S, T a, T b, Set<MaxPaths<T>> sets) {
+	static <T> void add(Map<T, Map<T, Set<MaxPaths<T>>>> S, T a, T b, Set<MaxPaths<T>> sets) {
 		for (MaxPaths<T> mp : sets) {
 			add(S, a, b, mp);
 		}
@@ -213,7 +213,7 @@ public class NTSCDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGrap
 	/**
 	 * S[a,b] += set;
 	 */
-	private static <T> void add(Map<T, Map<T, Set<MaxPaths<T>>>> S, T a, T b, MaxPaths<T> set) {
+	static <T> void add(Map<T, Map<T, Set<MaxPaths<T>>>> S, T a, T b, MaxPaths<T> set) {
 		Map<T, Set<MaxPaths<T>>> Sn = S.get(a);
 		if (Sn == null) {
 			Sn = new HashMap<>();
@@ -229,7 +229,7 @@ public class NTSCDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGrap
 		mps.add(set);
 	}
 
-	private static <V, E extends KnowsVertices<V>> MaxPaths<V> maxPaths(final DirectedGraph<V,E> cfg, V nNode, V mNode) {
+	static <V, E extends KnowsVertices<V>> MaxPaths<V> maxPaths(final DirectedGraph<V,E> cfg, V nNode, V mNode) {
 		return new MaxPaths<V>(nNode, mNode);
 	}
 
@@ -298,7 +298,7 @@ public class NTSCDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGrap
 	/**
 	 * Find all nodes in the cfg with more then one successor
 	 */
-	private static <V, E extends KnowsVertices<V>> Set<V> condNodes(DirectedGraph<V, E> cfg) {
+	static <V, E extends KnowsVertices<V>> Set<V> condNodes(DirectedGraph<V, E> cfg) {
 		Set<V> condNodes = new HashSet<>();
 
 		for (V node : cfg.vertexSet()) {
@@ -313,7 +313,7 @@ public class NTSCDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGrap
 	/**
 	 * Find all self referring nodes in the cfg
 	 */
-	private static <V, E extends KnowsVertices<V>> Set<V> selfRef(DirectedGraph<V, E> cfg) {
+	static <V, E extends KnowsVertices<V>> Set<V> selfRef(DirectedGraph<V, E> cfg) {
 		Set<V> selfRef = new HashSet<>();
 
 		for (V node : cfg.vertexSet()) {

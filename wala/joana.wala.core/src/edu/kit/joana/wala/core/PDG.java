@@ -7,8 +7,10 @@
  */
 package edu.kit.joana.wala.core;
 
+import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -68,6 +70,7 @@ import edu.kit.joana.wala.core.PDGNode.Kind;
 import edu.kit.joana.wala.core.SDGBuilder.ControlDependenceVariant;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.graphs.CDG;
+import edu.kit.joana.wala.core.graphs.NTICDGraph;
 import edu.kit.joana.wala.core.graphs.NTSCDGraph;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
@@ -493,18 +496,45 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 
 	private void addControlDependence() {
 		final DependenceGraph cfg = createCfgWithoutParams();
+		
+    	cfg.addEdge(entry, exit, new PDGEdge(entry, exit, PDGEdge.Kind.CONTROL_FLOW));
+		
 		final AbstractJoanaGraph<PDGNode, PDGEdge> cdg;
 		switch (builder.cfg.controlDependenceVariant) {
 			case CLASSIC: cdg = CDG.build(cfg, entry, exit); break;
-			case NTSCD: cdg = NTSCDGraph.compute(cfg, new EdgeFactory<PDGNode,PDGEdge>() {
-				public PDGEdge createEdge(PDGNode from, PDGNode to) {
-					return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
-				};
-			});
-			case NTICD: throw new IllegalArgumentException();
+			case NTSCD: {
+				cdg = NTSCDGraph.compute(cfg, new EdgeFactory<PDGNode,PDGEdge>() {
+					public PDGEdge createEdge(PDGNode from, PDGNode to) {
+						return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
+					};
+				});
+				cdg.addEdge(entry, exit);
+				break;
+			}
+			case NTICD: {
+				cdg = NTICDGraph.compute(cfg, new EdgeFactory<PDGNode,PDGEdge>() {
+					public PDGEdge createEdge(PDGNode from, PDGNode to) {
+						return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
+					};
+				});
+				cdg.addEdge(entry, exit);
+				break;
+			}
 			default: throw new IllegalArgumentException();
 		}
-
+		
+		final Logger log = Log.getLogger(Log.L_WALA_CFG_DUMP);
+		if (true || log.isEnabled()) {
+			String cdgFileName = WriteGraphToDot.sanitizeFileName(method.getSignature() + "-" + builder.cfg.controlDependenceVariant + "-cdg.dot");
+			String cfgFileName = WriteGraphToDot.sanitizeFileName(method.getSignature() + "-" + builder.cfg.controlDependenceVariant + "-cfg.dot");
+			try {
+				WriteGraphToDot.write(cdg, cdgFileName, e -> true, v -> Integer.toString(v.getId()));
+				WriteGraphToDot.write(cfg, cfgFileName, e -> true, v -> Integer.toString(v.getId()));
+			} catch (FileNotFoundException e) {
+				log.outln(Arrays.toString(e.getStackTrace()));
+			}
+		}
+		
 		for (final PDGNode from : cdg.vertexSet()) {
 			for (final PDGEdge edge : cdg.outgoingEdgesOf(from)) {
 				final PDGNode to = cdg.getEdgeTarget(edge);
@@ -947,6 +977,8 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 				unreachEntry.remove(exitNode);
 			}
 			
+			unreachEntry.remove(exception);
+			
 			if (!unreachEntry.isEmpty()) {
 				throw new IllegalStateException();
 			}
@@ -967,7 +999,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 			}
 		}
 
-		{
+		if (false) {
 			// add an edge from non-terminating code to exit
 			final Set<PDGNode> unreachExit = findNotReachingTo(this, exit);
 

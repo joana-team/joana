@@ -68,7 +68,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PForward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.SimpleMHPAnalysis;
-import edu.kit.joana.ifc.sdg.irlsod.CDomProbInfComputer;
+import edu.kit.joana.ifc.sdg.irlsod.PredProbInfComputer;
 import edu.kit.joana.ifc.sdg.irlsod.OptORLSODChecker;
 import edu.kit.joana.ifc.sdg.irlsod.ProbInfComputer;
 import edu.kit.joana.ifc.sdg.irlsod.ThreadModularCDomOracle;
@@ -172,8 +172,9 @@ public class IFCAnalysis {
 			}
 			mhp = performMHPAnalysis(mhpType);
 			final SDG sdg = this.program.getSDG();
-			final ThreadModularCDomOracle tmdo = new ThreadModularCDomOracle(sdg);
-			final ProbInfComputer probInf = new CDomProbInfComputer(sdg, tmdo);
+//			final ThreadModularCDomOracle tmdo = new ThreadModularCDomOracle(sdg);
+//			final ProbInfComputer probInf = new CDomProbInfComputer(sdg, tmdo);
+			final ProbInfComputer probInf = new PredProbInfComputer(sdg);
 //			this.ifc = new ORLSODChecker<String>(sdg, secLattice, probInf, null);
 			this.ifc = new OptORLSODChecker<String>(sdg, secLattice, probInf);
 //			this.ifc = new PathBasedORLSODChecker<String>(sdg, secLattice, probInf);

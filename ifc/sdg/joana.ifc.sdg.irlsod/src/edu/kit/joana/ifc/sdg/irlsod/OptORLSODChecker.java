@@ -6,10 +6,12 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PBackward;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
@@ -30,6 +32,8 @@ public class OptORLSODChecker<L> extends ORLSODChecker<L> {
 	 * maps each node to the nodes from which the security level of the node can be computed
 	 */
 	private Map<SDGNode, Set<SDGNode>> backwDep;
+	
+	private SDG sdg;
 
 	public OptORLSODChecker(final SDG sdg, final IStaticLattice<L> secLattice, final ProbInfComputer probInf) {
 		this(sdg, secLattice, null, probInf);
@@ -39,6 +43,7 @@ public class OptORLSODChecker<L> extends ORLSODChecker<L> {
 			final ProbInfComputer probInf) {
 		super(sdg, secLattice, userAnn, probInf, null);
 		this.backw = new I2PBackward(sdg);
+		this.sdg = sdg;
 	}
 
 	@Override
@@ -85,10 +90,17 @@ public class OptORLSODChecker<L> extends ORLSODChecker<L> {
 
 	protected Set<SDGNode> computeBackwardDeps(final SDGNode n) {
 		final Set<SDGNode> dep = new HashSet<SDGNode>();
-		dep.addAll(backw.slice(n));
+		dep.addAll(sdgStep(n));
 		dep.addAll(probInf.getProbabilisticInfluencers(n));
 		dep.remove(n);
 		return dep;
+	}
+
+	private Collection<? extends SDGNode> sdgStep(SDGNode n) {
+		return sdg.incomingEdgesOf(n).stream()
+				.filter(e->e.getKind().isSDGEdge())
+				.map(SDGEdge::getSource)
+				.collect(Collectors.toSet());
 	}
 
 }

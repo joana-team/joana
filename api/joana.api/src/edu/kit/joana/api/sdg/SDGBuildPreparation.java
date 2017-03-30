@@ -418,7 +418,7 @@ public final class SDGBuildPreparation {
 		public ContextSelector ctxSelector = null;
 		public DynamicDispatchHandling ddisp;
 		public boolean isParallel = true;
-		public ControlDependenceVariant controlDependenceVariant = ControlDependenceVariant.CLASSIC;
+		public ControlDependenceVariant controlDependenceVariant = SDGBuilder.defaultControlDependenceVariant;
 		public Config(String name) {
 			this(name, "<no entry defined>", FieldPropagation.OBJ_GRAPH);
 		}

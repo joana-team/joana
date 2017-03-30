@@ -144,8 +144,15 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 
 	public LinkedList<Set<ParameterField>> partitions;
 	
-	public static enum ControlDependenceVariant { CLASSIC, NTSCD, NTICD };
-
+	/**
+	 * A number of different control dependence algorithm.
+	 * 
+	 * NTICD_LFP is flawed, do not use it!.
+	 * 
+	 * @author Martin Hecker <martin.hecker@kit.edu>
+	 */
+	public static enum ControlDependenceVariant { CLASSIC, NTSCD, @Deprecated NTICD_LFP, NTICD_GFP };
+	public static final ControlDependenceVariant defaultControlDependenceVariant = ControlDependenceVariant.NTICD_GFP;
 
 	public static enum ExceptionAnalysis {
 		/*
@@ -1980,7 +1987,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		public boolean mergeFieldsOfPrunedCalls = true;
 		public PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
 		public DynamicDispatchHandling dynDisp = DynamicDispatchHandling.SIMPLE;
-		public ControlDependenceVariant controlDependenceVariant = ControlDependenceVariant.CLASSIC;
+		public ControlDependenceVariant controlDependenceVariant = defaultControlDependenceVariant;
 		public PointsToPrecision pts = PointsToPrecision.INSTANCE_BASED;
 		// only used iff pts is set to CUSTOM. Gets access to hopefully all
 		// information needed to create a call graph builder, consistent

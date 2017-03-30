@@ -204,16 +204,18 @@ public class NTSCDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGrap
 		return null;
 	}
 
-	static <T> void add(Map<T, Map<T, Set<MaxPaths<T>>>> S, T a, T b, Set<MaxPaths<T>> sets) {
+	static <T> boolean add(Map<T, Map<T, Set<MaxPaths<T>>>> S, T a, T b, Set<MaxPaths<T>> sets) {
+		boolean changed = false;
 		for (MaxPaths<T> mp : sets) {
-			add(S, a, b, mp);
+			changed |= add(S, a, b, mp);
 		}
+		return changed;
 	}
 
 	/**
 	 * S[a,b] += set;
 	 */
-	static <T> void add(Map<T, Map<T, Set<MaxPaths<T>>>> S, T a, T b, MaxPaths<T> set) {
+	static <T> boolean add(Map<T, Map<T, Set<MaxPaths<T>>>> S, T a, T b, MaxPaths<T> set) {
 		Map<T, Set<MaxPaths<T>>> Sn = S.get(a);
 		if (Sn == null) {
 			Sn = new HashMap<>();
@@ -226,7 +228,7 @@ public class NTSCDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGrap
 			Sn.put(b, mps);
 		}
 
-		mps.add(set);
+		return mps.add(set);
 	}
 
 	static <V, E extends KnowsVertices<V>> MaxPaths<V> maxPaths(final DirectedGraph<V,E> cfg, V nNode, V mNode) {

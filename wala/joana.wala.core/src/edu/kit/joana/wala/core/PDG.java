@@ -71,6 +71,7 @@ import edu.kit.joana.wala.core.SDGBuilder.ControlDependenceVariant;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.graphs.CDG;
 import edu.kit.joana.wala.core.graphs.NTICDGraph;
+import edu.kit.joana.wala.core.graphs.NTICDGraphGreatestFP;
 import edu.kit.joana.wala.core.graphs.NTSCDGraph;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
@@ -511,8 +512,17 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 				cdg.addEdge(entry, exit);
 				break;
 			}
-			case NTICD: {
+			case NTICD_LFP: {
 				cdg = NTICDGraph.compute(cfg, new EdgeFactory<PDGNode,PDGEdge>() {
+					public PDGEdge createEdge(PDGNode from, PDGNode to) {
+						return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
+					};
+				});
+				cdg.addEdge(entry, exit);
+				break;
+			}
+			case NTICD_GFP: {
+				cdg = NTICDGraphGreatestFP.compute(cfg, new EdgeFactory<PDGNode,PDGEdge>() {
 					public PDGEdge createEdge(PDGNode from, PDGNode to) {
 						return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
 					};
@@ -524,7 +534,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 		}
 		
 		final Logger log = Log.getLogger(Log.L_WALA_CFG_DUMP);
-		if (true || log.isEnabled()) {
+		if (log.isEnabled()) {
 			String cdgFileName = WriteGraphToDot.sanitizeFileName(method.getSignature() + "-" + builder.cfg.controlDependenceVariant + "-cdg.dot");
 			String cfgFileName = WriteGraphToDot.sanitizeFileName(method.getSignature() + "-" + builder.cfg.controlDependenceVariant + "-cfg.dot");
 			try {

@@ -7,16 +7,17 @@
  */
 package edu.kit.joana.wala.core.graphs;
 
-import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
+import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
 
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.Graphs;
@@ -25,11 +26,19 @@ import edu.kit.joana.util.graph.KnowsVertices;
 import static edu.kit.joana.wala.core.graphs.NTSCDGraph.*;
 
 /**
- * Computes the nontermination sensitive control dependence as described by
+ * This class is supposded to compute the nontermination insensitive control dependence as described by
  * the pseudo code in "A New Foundation for Control Dependence and Slicing
  * for Modern Program Structures" from Ranganath, Amtoft, Banerjee and Hatcliff
+ * 
+ * This implementation started as a direct implementation of their Algorithm 
+ * in [1], Figure 5. After it turned out to be incorrect, several attempts to fix it,
+ * keeping the lft approach, were tried out, but didnt succeed.
+ * 
+ * [1] Figure 5
+ * 
  *
  * @author Juergen Graf <graf@kit.edu>
+ * @author Martin Hecker <martin.hecker@kit.edu>
  *
  */
 public class NTICDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGraph<V, E> {
@@ -38,7 +47,7 @@ public class NTICDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGrap
 		super(edgeFactory);
 	}
 
-	private static boolean DEBUG = true;
+	private static boolean DEBUG = false;
 
 	/**
 	 * Computes the nontermination sensitive control dependence as described by
@@ -50,12 +59,13 @@ public class NTICDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGrap
 	 * We attempt this by putting nodes p on the worklist in appropriate places.
 	 */
 	public static <V, E extends KnowsVertices<V>> NTICDGraph<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory) {
-		DEBUG = cfg.vertexSet().toString().contains("1|ENTR|joana.api.testdata.toy.rec.MyList.main(java.lang.String[])");
-		NTSCDGraph.DEBUG = DEBUG;
 		NTICDGraph<V, E> cdg = new NTICDGraph<>(edgeFactory);
 		for (V n : cfg.vertexSet()) {
 			cdg.addVertex(n);
 		}
+		
+		
+		
 
 		//# (1) Initialize
 		Set<V> condNodes = condNodes(cfg);
@@ -76,6 +86,21 @@ public class NTICDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGrap
 			System.out.println();
 		}
 
+
+		final Map<V, Set<V>> condsInSccOf = new HashMap<>(); {
+			final KosarajuStrongConnectivityInspector<V, E> sccInspector = new KosarajuStrongConnectivityInspector<>(cfg);
+			
+			for (Set<V> scc : sccInspector.stronglyConnectedSets()) {
+				if (scc.size() > 1) {
+					final Set<V> condsInScc = scc.stream().filter(v -> condNodes.contains(v)).collect(Collectors.toSet());
+					for (V v : condsInScc) {
+						condsInSccOf.put(v,condsInScc);
+					}
+				}
+			}
+		}
+
+		
 		for (V n : condNodes) {
 			for (Iterator<? extends E> it = cfg.outgoingEdgesOf(n).iterator(); it.hasNext();) {
 				V m = it.next().getTarget();
@@ -87,7 +112,10 @@ public class NTICDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGrap
 		}
 
 		//# (2) calculate all-path reachability
+		
+		boolean changed;
 		while (!workbag.isEmpty()) {
+			changed = false;
 			final V n = workbag.pop();
 			if (condNodes.contains(n)) {
 				//# (2.2) n has >1 succ
@@ -99,6 +127,7 @@ public class NTICDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGrap
 							if (p != n && update(S, n, m, p)) {
 								merge(workbag, m);
 								merge(workbag, p);
+								changed = true;
 							}
 						}
 					}
@@ -110,6 +139,7 @@ public class NTICDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGrap
 					if (update(S, n, m, p)) {
 						merge(workbag, m);
 						merge(workbag, p);
+						changed = true;
 					}
 				}
 			}
@@ -123,8 +153,44 @@ public class NTICDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGrap
 					if (update(S, n, m, n)) {
 						merge(workbag, m);
 						merge(workbag, n);
+						changed = true;
 					}
 				}
+			}
+			
+			// NEW RULE. A failed Attempt to fix nticd.
+			// this iteration order is utter horseshit.
+			final Set<V> condsInSccOfN = condsInSccOf.get(n);
+			if (condsInSccOfN != null) {
+				for (V x : Graphs.getSuccNodes(cfg, n)) {
+					for (V z : cfg.vertexSet()) {
+						for (V m : condsInSccOfN) {
+							boolean zIsInevitable = true;
+							final Set<MaxPaths<V>> Szm = get(S, z, m);
+							final Set<MaxPaths<V>> Snm = get(S, n, m);
+	
+							if (Snm == null || Szm == null) continue;
+							
+							for (V m_ : Graphs.getSuccNodes(cfg, m)) {
+								final MaxPaths<V> t_mm_ = maxPaths(cfg, n, m_);
+								if (!(Snm.contains(t_mm_) || Szm.contains(t_mm_))) {
+									zIsInevitable = false;
+									break;
+								}
+							}
+							
+							if (zIsInevitable) {
+								final Set<MaxPaths<V>> t_nx = Collections.singleton(maxPaths(cfg, n, x));
+								changed |= add(S, z, n, t_nx);
+							}
+						}
+					}
+				}
+			}
+			
+			if (changed) {
+				workbag.clear();
+				workbag.addAll(cfg.vertexSet());
 			}
 			
 		}
@@ -155,8 +221,6 @@ public class NTICDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGrap
 				}
 			}
 		}
-		DEBUG = false;
-		NTSCDGraph.DEBUG = false;
 		return cdg;
 	}
 }

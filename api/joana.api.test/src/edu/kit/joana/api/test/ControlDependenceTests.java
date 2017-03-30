@@ -40,6 +40,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.SDGBuilder.ControlDependenceVariant;
+import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 
 /**
  * @author Martin Hecker <martin.hecker@kit.edu>
@@ -50,6 +51,7 @@ public class ControlDependenceTests {
 	static final boolean outputGraphMLFiles = true;
 	
 	private static final Stubs STUBS = Stubs.JRE_14;
+	private static final ExceptionAnalysis exception = ExceptionAnalysis.IGNORE_ALL;
 	
 	public static final SDGConfig classic = new SDGConfig(
 		JoanaPath.JOANA_API_TEST_DATA_CLASSPATH,
@@ -59,6 +61,7 @@ public class ControlDependenceTests {
 		classic.setControlDependenceVariant(ControlDependenceVariant.CLASSIC);
 		classic.setParallel(false);
 		classic.setComputeSummaryEdges(false);
+		classic.setExceptionAnalysis(exception);
 	}
 
 	public static final SDGConfig ntscd = new SDGConfig(
@@ -69,17 +72,32 @@ public class ControlDependenceTests {
 		ntscd.setControlDependenceVariant(ControlDependenceVariant.NTSCD);
 		ntscd.setParallel(false);
 		ntscd.setComputeSummaryEdges(false);
+		ntscd.setExceptionAnalysis(exception);
 	}
 	
-	public static final SDGConfig nticd = new SDGConfig(
-			JoanaPath.JOANA_API_TEST_DATA_CLASSPATH,
-			null,
-			STUBS
-		); {
-			nticd.setControlDependenceVariant(ControlDependenceVariant.NTICD);
-			nticd.setParallel(false);
-			nticd.setComputeSummaryEdges(false);
-		}
+	public static final SDGConfig nticd_lfp = new SDGConfig(
+		JoanaPath.JOANA_API_TEST_DATA_CLASSPATH,
+		null,
+		STUBS
+	); {
+		nticd_lfp.setControlDependenceVariant(ControlDependenceVariant.NTICD_LFP);
+		nticd_lfp.setParallel(false);
+		nticd_lfp.setComputeSummaryEdges(false);
+		nticd_lfp.setExceptionAnalysis(exception);
+	}
+	
+	public static final SDGConfig nticd_gfp = new SDGConfig(
+		JoanaPath.JOANA_API_TEST_DATA_CLASSPATH,
+		null,
+		STUBS
+	); {
+		nticd_gfp.setControlDependenceVariant(ControlDependenceVariant.NTICD_GFP);
+		nticd_gfp.setParallel(false);
+		nticd_gfp.setComputeSummaryEdges(false);
+		nticd_gfp.setExceptionAnalysis(exception);
+	}
+	
+	public static final SDGConfig nticd = nticd_gfp;
 	
 	private static IFCAnalysis buildAnnotateDump(Class<?> clazz, SDGConfig config) throws ClassHierarchyException, ApiTestException,
 			IOException, UnsoundGraphException, CancelException {
@@ -182,7 +200,6 @@ public class ControlDependenceTests {
 	public void testFlowSens() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
 		testCDGSubsetClosure(joana.api.testdata.toy.sensitivity.FlowSens.class, classic, ntscd);
-		testCDGSame(         joana.api.testdata.toy.sensitivity.FlowSens.class, classic, nticd);
 		testCDGSame(         joana.api.testdata.toy.sensitivity.FlowSens.class, classic, nticd);
 	}
 
@@ -410,4 +427,13 @@ public class ControlDependenceTests {
 			UnsoundGraphException, CancelException {
 		testClassicUnbuildable(joana.api.testdata.seq.WhileTrue.class);
 	}
+	
+	@Test
+	public void testDe_uni_trier_infsec_core_Setup() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testCDGSubsetClosure((de.uni.trier.infsec.core.Setup.class), classic, ntscd);
+		testCDGSame(         (de.uni.trier.infsec.core.Setup.class), classic, nticd);
+	}
+	
+	
 }

@@ -17,6 +17,7 @@ import edu.kit.joana.util.JoanaConstants;
 import edu.kit.joana.util.LogUtil;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.CGConsumer;
+import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.ControlDependenceVariant;
 import edu.kit.joana.wala.core.SDGBuilder.DynamicDispatchHandling;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
@@ -50,7 +51,7 @@ public class SDGConfig {
 	private DynamicDispatchHandling ddisp = DynamicDispatchHandling.SIMPLE;
 	private boolean computeSummaryEdges = true;
 	private boolean skipSDGProgramPart = false;
-	private ControlDependenceVariant controlDependenceVariant = ControlDependenceVariant.CLASSIC;
+	private ControlDependenceVariant controlDependenceVariant = SDGBuilder.defaultControlDependenceVariant;
 	private boolean isParallel = true;
 	
 	public SDGConfig(String classPath, String entryMethod, Stubs stubsPath) {

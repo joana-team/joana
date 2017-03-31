@@ -51,7 +51,7 @@ public class ControlDependenceTests {
 	static final boolean outputGraphMLFiles = true;
 	
 	private static final Stubs STUBS = Stubs.JRE_14;
-	private static final ExceptionAnalysis exception = ExceptionAnalysis.IGNORE_ALL;
+	private static final ExceptionAnalysis exception = ExceptionAnalysis.ALL_NO_ANALYSIS;
 	
 	public static final SDGConfig classic = new SDGConfig(
 		JoanaPath.JOANA_API_TEST_DATA_CLASSPATH,
@@ -62,6 +62,17 @@ public class ControlDependenceTests {
 		classic.setParallel(false);
 		classic.setComputeSummaryEdges(false);
 		classic.setExceptionAnalysis(exception);
+	}
+	
+	public static final SDGConfig adaptive = new SDGConfig(
+			JoanaPath.JOANA_API_TEST_DATA_CLASSPATH,
+			null,
+			STUBS
+	); {
+		adaptive.setControlDependenceVariant(ControlDependenceVariant.ADAPTIVE);
+		adaptive.setParallel(false);
+		adaptive.setComputeSummaryEdges(false);
+		adaptive.setExceptionAnalysis(exception);
 	}
 
 	public static final SDGConfig ntscd = new SDGConfig(
@@ -294,9 +305,6 @@ public class ControlDependenceTests {
 		testCDGSame(         (joana.api.testdata.toy.rec.MyList.class), classic, nticd);
 	}
 
-	// we're precise enough for MyList, but not for MyList2 because JOANA thinks
-	// only MyList2.add can throw an exception (see also comments in MyList2.main).
-	// TODO: find out why (maybe because of recursion?)
 	@Test
 	public void testMyList2() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
@@ -314,10 +322,6 @@ public class ControlDependenceTests {
 	@Test
 	public void testDemo1() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
-		/**
-		 * We are to imprecise at the moment (Dec 2012) to rule out information flow here in the 'ignore' case.
-		 * See Demo1 source code for further information
-		 */
 		testCDGSubsetClosure((joana.api.testdata.toy.demo.Demo1.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.toy.demo.Demo1.class), classic, nticd);
 	}
@@ -325,10 +329,6 @@ public class ControlDependenceTests {
 	@Test
 	public void testNonNullFieldParameter() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
-		/**
-		 * We are to imprecise at the moment (Dec 2012) to rule out information flow here in the 'ignore' case.
-		 * See NonNullFieldParameter source code for further information
-		 */
 		testCDGSubsetClosure((joana.api.testdata.toy.demo.NonNullFieldParameter.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.toy.demo.NonNullFieldParameter.class), classic, nticd);
 	}
@@ -426,6 +426,7 @@ public class ControlDependenceTests {
 	public void testWhileTrue() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testClassicUnbuildable(joana.api.testdata.seq.WhileTrue.class);
+		testCDGSame(          (joana.api.testdata.seq.WhileTrue.class), adaptive, nticd);
 	}
 	
 	@Test

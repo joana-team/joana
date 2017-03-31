@@ -24,7 +24,10 @@ import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
+import org.jgrapht.graph.EdgeReversedGraph;
+import org.jgrapht.traverse.DepthFirstIterator;
 
+import com.google.common.collect.Iterators;
 import com.ibm.wala.analysis.typeInference.TypeInference;
 import com.ibm.wala.cfg.ControlFlowGraph;
 import com.ibm.wala.classLoader.IBytecodeMethod;
@@ -528,6 +531,19 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 					};
 				});
 				cdg.addEdge(entry, exit);
+				break;
+			}
+			case ADAPTIVE : {
+				final DepthFirstIterator<PDGNode, PDGEdge> reachingExit = new DepthFirstIterator<PDGNode, PDGEdge>(new EdgeReversedGraph<>(cfg), exit);
+				if (Iterators.size(reachingExit) == cfg.vertexSet().size())  {
+					cdg = CDG.build(cfg, entry, exit); 
+				} else {
+					cdg = NTICDGraphGreatestFP.compute(cfg, new EdgeFactory<PDGNode,PDGEdge>() {
+						public PDGEdge createEdge(PDGNode from, PDGNode to) {
+							return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
+						};
+					});
+				}
 				break;
 			}
 			default: throw new IllegalArgumentException();

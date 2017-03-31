@@ -110,7 +110,10 @@ public class NTICDGraphGreatestFP<V, E extends KnowsVertices<V>> extends Abstrac
 					Set<V> succNodes; 
 					while ((succNodes = Graphs.getSuccNodes(cfg, current)).size() == 1 &&
 					       !seen.contains((next = succNodes.iterator().next()))
-					) { current = next; }
+					) {
+						seen.add(current);
+						current = next;
+					}
 					if (succNodes.size() > 1) {
 						if (!condNodes.contains(current)) throw new IllegalStateException();
 						nextCond.put(m, current);

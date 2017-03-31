@@ -36,8 +36,6 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.IntraproceduralSlicerForward;
 import edu.kit.joana.ifc.sdg.graph.slicer.Slicer;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.SDGBuilder.ControlDependenceVariant;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
@@ -51,7 +49,7 @@ public class ControlDependenceTests {
 	static final boolean outputGraphMLFiles = true;
 	
 	private static final Stubs STUBS = Stubs.JRE_14;
-	private static final ExceptionAnalysis exception = ExceptionAnalysis.ALL_NO_ANALYSIS;
+	private static final ExceptionAnalysis exceptionAnalyses[] = ExceptionAnalysis.values();
 	
 	public static final SDGConfig classic = new SDGConfig(
 		JoanaPath.JOANA_API_TEST_DATA_CLASSPATH,
@@ -61,7 +59,6 @@ public class ControlDependenceTests {
 		classic.setControlDependenceVariant(ControlDependenceVariant.CLASSIC);
 		classic.setParallel(false);
 		classic.setComputeSummaryEdges(false);
-		classic.setExceptionAnalysis(exception);
 	}
 	
 	public static final SDGConfig adaptive = new SDGConfig(
@@ -72,7 +69,6 @@ public class ControlDependenceTests {
 		adaptive.setControlDependenceVariant(ControlDependenceVariant.ADAPTIVE);
 		adaptive.setParallel(false);
 		adaptive.setComputeSummaryEdges(false);
-		adaptive.setExceptionAnalysis(exception);
 	}
 
 	public static final SDGConfig ntscd = new SDGConfig(
@@ -83,7 +79,6 @@ public class ControlDependenceTests {
 		ntscd.setControlDependenceVariant(ControlDependenceVariant.NTSCD);
 		ntscd.setParallel(false);
 		ntscd.setComputeSummaryEdges(false);
-		ntscd.setExceptionAnalysis(exception);
 	}
 	
 	public static final SDGConfig nticd_lfp = new SDGConfig(
@@ -94,7 +89,6 @@ public class ControlDependenceTests {
 		nticd_lfp.setControlDependenceVariant(ControlDependenceVariant.NTICD_LFP);
 		nticd_lfp.setParallel(false);
 		nticd_lfp.setComputeSummaryEdges(false);
-		nticd_lfp.setExceptionAnalysis(exception);
 	}
 	
 	public static final SDGConfig nticd_gfp = new SDGConfig(
@@ -105,7 +99,6 @@ public class ControlDependenceTests {
 		nticd_gfp.setControlDependenceVariant(ControlDependenceVariant.NTICD_GFP);
 		nticd_gfp.setParallel(false);
 		nticd_gfp.setComputeSummaryEdges(false);
-		nticd_gfp.setExceptionAnalysis(exception);
 	}
 	
 	public static final SDGConfig nticd = nticd_gfp;
@@ -129,81 +122,105 @@ public class ControlDependenceTests {
 		
 
 	private static void testCDGSubsetClosure(Class<?> clazz, SDGConfig sub, SDGConfig sup) throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException, CancelException {
-		final IFCAnalysis anaSub = buildAnnotateDump(clazz, sub);
-		final IFCAnalysis anaSup = buildAnnotateDump(clazz, sup);
+		testCDGSubsetClosure(clazz, sub, sup, exceptionAnalyses);
+	}
+	private static void testCDGSubsetClosure(Class<?> clazz, SDGConfig sub, SDGConfig sup, ExceptionAnalysis... eas) throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException, CancelException {
+		for (ExceptionAnalysis ea : eas) {
+			sub.setExceptionAnalysis(ea);
+			sup.setExceptionAnalysis(ea);
 
-		final SDG sdgSub = anaSub.getProgram().getSDG();
-		final SDG sdgSup   = anaSup.getProgram().getSDG();
-		
-		
-		assertEquals(sdgSub.vertexSet(), sdgSup.vertexSet());
-		final Set<SDGEdge> subEdges = sdgSub.edgeSet();
-		final Set<SDGEdge> supEdges = sdgSup.edgeSet();
-		final Set<SDGEdge> missingInSup = Sets.difference(subEdges, supEdges);
-		
-		final Slicer forwardCfgSlicer = new IntraproceduralSlicerForward(sdgSup) {
-			@Override
-			protected boolean isAllowedEdge(SDGEdge e) {
-				final SDGEdge.Kind kind = e.getKind();
-				return (kind == Kind.CONTROL_DEP_COND) && super.isAllowedEdge(e);
-			}
-		};
-		for (SDGEdge missing : missingInSup) {
-			if (missing.getKind() != SDGEdge.Kind.HELP) {
-				assertEquals(SDGEdge.Kind.CONTROL_DEP_COND, missing.getKind());
-				
-				// TODO: optimize runtime
-				final Collection<SDGNode> slice = forwardCfgSlicer.slice(missing.getSource());
-				assertTrue(slice.contains(missing.getTarget()));
+			final IFCAnalysis anaSub = buildAnnotateDump(clazz, sub);
+			final IFCAnalysis anaSup = buildAnnotateDump(clazz, sup);
+	
+			final SDG sdgSub = anaSub.getProgram().getSDG();
+			final SDG sdgSup   = anaSup.getProgram().getSDG();
+			
+			
+			assertEquals(sdgSub.vertexSet(), sdgSup.vertexSet());
+			final Set<SDGEdge> subEdges = sdgSub.edgeSet();
+			final Set<SDGEdge> supEdges = sdgSup.edgeSet();
+			final Set<SDGEdge> missingInSup = Sets.difference(subEdges, supEdges);
+			
+			final Slicer forwardCfgSlicer = new IntraproceduralSlicerForward(sdgSup) {
+				@Override
+				protected boolean isAllowedEdge(SDGEdge e) {
+					final SDGEdge.Kind kind = e.getKind();
+					return (kind == Kind.CONTROL_DEP_COND) && super.isAllowedEdge(e);
+				}
+			};
+			for (SDGEdge missing : missingInSup) {
+				if (missing.getKind() != SDGEdge.Kind.HELP) {
+					assertEquals(SDGEdge.Kind.CONTROL_DEP_COND, missing.getKind());
+					
+					// TODO: optimize runtime
+					final Collection<SDGNode> slice = forwardCfgSlicer.slice(missing.getSource());
+					assertTrue(slice.contains(missing.getTarget()));
+				}
 			}
 		}
 	}
 	
 	private static void testCDGSame(Class<?> clazz, SDGConfig... configs) throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException, CancelException {
-		IFCAnalysis[] anas = new IFCAnalysis[configs.length];
-		for (int i = 0; i < anas.length; i++) {
-			anas[i] = buildAnnotateDump(clazz, configs[i]);
-		}
-		
-		for (int i = 1; i < anas.length; i++) {
-			SDG sdg1 = anas[i-1].getProgram().getSDG();;
-			SDG sdg2 = anas[i  ].getProgram().getSDG();
-			
-			final Set<SDGNode> vertices1 = sdg1.vertexSet();
-			final Set<SDGNode> vertices2 = sdg2.vertexSet();
-			
-			for (SDGNode n : vertices1) {
-				boolean in2 = vertices2.contains(n);
-				if (!in2) {
-					SDGNode nn;
-					for (SDGNode m : vertices2) {
-						if (m.getId() == n.getId()) {
-							nn = m;
-						}
-					}
-					assertTrue(false);
-				}
-			}
-			
-			assertEquals(vertices1, vertices2);
-			final Set<SDGEdge> edges1 = sdg1.edgeSet();
-			final Set<SDGEdge> edges2 = sdg2.edgeSet();
-			final Set<SDGEdge> missingIn1 = Sets.difference(edges2, edges1);
-			final Set<SDGEdge> missingIn2 = Sets.difference(edges1, edges2);
-			
-			assertTrue(missingIn1.isEmpty());
-			assertTrue(missingIn2.isEmpty());
-		}
+		testCDGSame(clazz, exceptionAnalyses, configs);
 	}
 	
-	private void testClassicUnbuildable(Class<?> clazz) throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException, CancelException {
-		try {
-			IFCAnalysis anaClassic = buildAnnotateDump(clazz, classic);
-			assertTrue("should've thrown!!!", false);
-		} catch (IllegalStateException e) {
-			assertTrue("Unexpected exception:" + e.toString(), e.toString().startsWith("java.lang.IllegalStateException: Null node at dfsW="));
+	private static void testCDGSame(Class<?> clazz, ExceptionAnalysis[] eas, SDGConfig... configs) throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException, CancelException {
+		for (ExceptionAnalysis ea : eas) {
+
+			IFCAnalysis[] anas = new IFCAnalysis[configs.length];
+			for (int i = 0; i < anas.length; i++) {
+				configs[i].setExceptionAnalysis(ea);
+				anas[i] = buildAnnotateDump(clazz, configs[i]);
+			}
+			
+			for (int i = 1; i < anas.length; i++) {
+				SDG sdg1 = anas[i-1].getProgram().getSDG();;
+				SDG sdg2 = anas[i  ].getProgram().getSDG();
+				
+				final Set<SDGNode> vertices1 = sdg1.vertexSet();
+				final Set<SDGNode> vertices2 = sdg2.vertexSet();
+				
+				for (SDGNode n : vertices1) {
+					boolean in2 = vertices2.contains(n);
+					if (!in2) {
+						SDGNode nn;
+						for (SDGNode m : vertices2) {
+							if (m.getId() == n.getId()) {
+								nn = m;
+							}
+						}
+						assertTrue(false);
+					}
+				}
+				
+				assertEquals(vertices1, vertices2);
+				final Set<SDGEdge> edges1 = sdg1.edgeSet();
+				final Set<SDGEdge> edges2 = sdg2.edgeSet();
+				final Set<SDGEdge> missingIn1 = Sets.difference(edges2, edges1);
+				final Set<SDGEdge> missingIn2 = Sets.difference(edges1, edges2);
+				
+				assertTrue(missingIn1.isEmpty());
+				assertTrue(missingIn2.isEmpty());
+			}
 		}
-		
+	}
+	private void testUnbuildable(Class<?> clazz, SDGConfig... configs) throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException, CancelException {
+		testUnbuildable(clazz, exceptionAnalyses, configs);
+	}
+	
+	private void testUnbuildable(Class<?> clazz, ExceptionAnalysis[] eas, SDGConfig... configs) throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException, CancelException {
+		for (ExceptionAnalysis ea : eas) {
+			for (SDGConfig config : configs) {
+				config.setExceptionAnalysis(ea);
+				try {
+					@SuppressWarnings("unused")
+					IFCAnalysis anaClassic = buildAnnotateDump(clazz, config);
+					assertTrue("should've thrown!!!", false);
+				} catch (IllegalStateException e) {
+					assertTrue("Unexpected exception:" + e.toString(), e.toString().startsWith("java.lang.IllegalStateException: Null node at dfsW="));
+				}
+			}
+		}
 	}
 	
 
@@ -425,15 +442,22 @@ public class ControlDependenceTests {
 	@Test
 	public void testWhileTrue() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testClassicUnbuildable(joana.api.testdata.seq.WhileTrue.class);
+		testUnbuildable(       joana.api.testdata.seq.WhileTrue.class, classic);
 		testCDGSame(          (joana.api.testdata.seq.WhileTrue.class), adaptive, nticd);
 	}
 	
 	@Test
 	public void testDe_uni_trier_infsec_core_Setup() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testCDGSubsetClosure((de.uni.trier.infsec.core.Setup.class), classic, ntscd);
-		testCDGSame(         (de.uni.trier.infsec.core.Setup.class), classic, nticd);
+		testUnbuildable(     (de.uni.trier.infsec.core.Setup.class),
+			new ExceptionAnalysis[] { ExceptionAnalysis.INTERPROC, ExceptionAnalysis.INTRAPROC },
+			classic
+		);
+		testCDGSame(         (de.uni.trier.infsec.core.Setup.class),
+			new ExceptionAnalysis[] { ExceptionAnalysis.IGNORE_ALL, ExceptionAnalysis.ALL_NO_ANALYSIS  },
+			classic, nticd
+		);
+		testCDGSubsetClosure((de.uni.trier.infsec.core.Setup.class), nticd, ntscd);
 	}
 	
 	

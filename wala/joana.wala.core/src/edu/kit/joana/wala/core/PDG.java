@@ -70,8 +70,6 @@ import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.wala.core.PDGNode.Kind;
-import edu.kit.joana.wala.core.SDGBuilder.ControlDependenceVariant;
-import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.graphs.CDG;
 import edu.kit.joana.wala.core.graphs.NTICDGraph;
 import edu.kit.joana.wala.core.graphs.NTICDGraphGreatestFP;
@@ -674,26 +672,6 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 		return unreachable;
 	}
 
-	private Set<PDGNode> findNotReachingTo(final DirectedGraph<PDGNode, PDGEdge> cfg, final PDGNode exit) {
-		final Set<PDGNode> unreachable = new HashSet<PDGNode>(cfg.vertexSet());
-
-		final LinkedList<PDGNode> todo = new LinkedList<PDGNode>();
-		todo.add(exit);
-
-		while (!todo.isEmpty()) {
-			final PDGNode cur = todo.removeFirst();
-			unreachable.remove(cur);
-
-			for (final PDGEdge in : cfg.incomingEdgesOf(cur)) {
-				if (in.kind.isFlow() && unreachable.contains(in.from)) {
-					todo.add(in.from);
-				}
-			}
-		}
-
-		return unreachable;
-	}
-
 	private DependenceGraph createCfgWithoutParams() {
 		final DependenceGraph cfg = new DependenceGraph();
 		for (final PDGNode node : vertexSet()) {
@@ -984,71 +962,33 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 			}
 		}
 
+		// The chain of "bookkeeping" nodes leading to the excit node.
 		final PDGNode[] exitNodes  = bbnum2node.get(ecfg.exit().getNumber());
-		
 		
 		addEdge(exception, exitNodes[0], PDGEdge.Kind.CONTROL_FLOW_EXC);
 		
 		
-
-		
-		
-		// fix control flow for unreachable or non-terminating code
+		// We no longer "fix" control flow for unreachable , because we do not need to:
 		{
-			// add an edge from entry to unreachable code
+			// we only have nodes forward reachable from entry, ...
 			final Set<PDGNode> unreachEntry = findUnreachableFrom(this, entry);
 			
 			
+			// except for possibly the chain of exitNodes[] leading to exit,...
 			for (PDGNode exitNode : exitNodes) {
 				unreachEntry.remove(exitNode);
 			}
 			
+			// and the exception node
 			unreachEntry.remove(exception);
 			
 			if (!unreachEntry.isEmpty()) {
 				throw new IllegalStateException();
 			}
-			
-			if (!unreachEntry.isEmpty()) {
-				final LinkedList<PDGNode> toRemove = new LinkedList<PDGNode>();
-				for (PDGNode n : unreachEntry) {
-					if (n.getPdgId() != getId()) {
-						toRemove.add(n);
-					}
-				}
-
-				unreachEntry.removeAll(toRemove);
-
-				for (final PDGNode unreach : unreachEntry) {
-					addEdge(entry, unreach, PDGEdge.Kind.CONTROL_FLOW);
-				}
-			}
 		}
 
-		if (false) {
-			// add an edge from non-terminating code to exit
-			final Set<PDGNode> unreachExit = findNotReachingTo(this, exit);
-
-			if (!unreachExit.isEmpty()) {
-				throw new IllegalStateException();
-			}
-			
-			if (!unreachExit.isEmpty()) {
-				final LinkedList<PDGNode> toRemove = new LinkedList<PDGNode>();
-				for (final PDGNode n : unreachExit) {
-					if (n.getPdgId() != getId()) {
-						toRemove.add(n);
-					}
-				}
-
-				unreachExit.removeAll(toRemove);
-
-				for (final PDGNode unreach : unreachExit) {
-					addEdge(unreach, exit, PDGEdge.Kind.CONTROL_FLOW);
-				}
-			}
-		}
-		
+		// We do not need to "fix" control flow for non-terminating code, either, since in those cases, we use
+		// the nticd_gfp control dependence computation.
 	}
 
 	private final void changeEdgeTargetTo(final List<PDGEdge> list, final PDGNode to) {

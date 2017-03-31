@@ -862,7 +862,12 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 
 		switch (cfg.exceptions) {
 		case ALL_NO_ANALYSIS: {
-			ecfg = ExplodedControlFlowGraph.make(n.getIR());
+			// We only call PrunedCFG to obtain a cfg in which unreachable nodes re removed
+			ExplodedControlFlowGraph unpruned = ExplodedControlFlowGraph.make(n.getIR());
+			ecfg = PrunedCFG.make(unpruned, new com.ibm.wala.ipa.cfg.EdgeFilter<IExplodedBasicBlock>() {
+				@Override public boolean hasNormalEdge(IExplodedBasicBlock src, IExplodedBasicBlock dst)      { return true; }
+				@Override public boolean hasExceptionalEdge(IExplodedBasicBlock src, IExplodedBasicBlock dst) { return true; }
+			});
 		}
 			break;
 		case INTRAPROC: {

@@ -32,6 +32,7 @@ public class CFG extends JoanaGraph {
 	public CFG(CFG g) {
 		addAllVertices(g.vertexSet());
 		addAllEdges(g.edgeSet());
+		setRoot(g.getRoot());
 	}
 	
 	/**

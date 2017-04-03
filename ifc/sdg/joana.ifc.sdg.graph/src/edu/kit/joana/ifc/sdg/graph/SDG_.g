@@ -90,19 +90,27 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
   static class SDGHeader {
     private int version;
     private String name;
+    private Integer rootId;
     
-    private SDGHeader(int version, String name) {
+    private SDGHeader(int version, String name, Integer rootId) {
       this.version = version;
       this.name = name;
+      this.rootId = rootId;
     }
     
-    private SDG createSDG() {
+    public SDG createSDG() {
       SDG sdg = (name == null ? new SDG() : new SDG(name));
       return sdg;
     }
     
     public String toString() {
       return "SDG of " + name + " (v" + version + ")";
+    }
+    
+    public void setRoot(SDG sdg) {
+      if (rootId != null) {
+        sdg.setRoot(sdg.getNode(rootId));
+      }
     }
   }
   
@@ -291,7 +299,7 @@ sdg_file returns [SDG sdg]
       ('JComp'              { sdg.setJoanaCompiler(true); } )? 
       nl=node_list          { createNodesAndEdges(sdg, nl); }
       (ti=thread_info[sdg]  { sdg.setThreadsInfo(ti); } )?
-    '}'
+    '}'                     { head.setRoot(sdg); }
   ;
 
 private thread_info[SDG sdg] returns [ThreadsInformation tinfo]
@@ -348,7 +356,9 @@ private sdg_header returns [SDGHeader header]
       ('v' n=number { version = n; })?
     { String name = null; }
       (na=string { name = na; })? 
-    { header = new SDGHeader(version, name); }
+    { Integer rootId = null; }
+      ('root' root=number { rootId = root; })? 
+    { header = new SDGHeader(version, name, rootId); }
   ;
 
 private node_list returns [List<SDGNodeStub> list = new LinkedList<SDGNodeStub>();]

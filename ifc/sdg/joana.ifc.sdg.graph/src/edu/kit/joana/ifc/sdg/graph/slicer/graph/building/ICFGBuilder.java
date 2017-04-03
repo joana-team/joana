@@ -59,6 +59,9 @@ public final class ICFGBuilder {
             }
         }
 
+        // implicit assumption: the root node of sdg, if any,  is a node with adjacent CONTROL_FLOW edges 
+        icfg.setRoot(sdg.getRoot());
+
         return icfg;
     }
     
@@ -91,6 +94,9 @@ public final class ICFGBuilder {
                 icfg.addEdge(e);
             }
         }
+
+        // implicit assumption: the root node of sdg, if any,  is a node with adjacent CONTROL_FLOW edges 
+        icfg.setRoot(sdg.getRoot());
 
         return icfg;
     }

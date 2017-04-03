@@ -222,6 +222,7 @@ public final class ThreadDuplicator {
                 data.addEdge(edgeClone);
             }
         }
+        data.setRoot(graph.getRoot());
         System.out.println(" done");
 
         System.out.println("adding interference edges...");

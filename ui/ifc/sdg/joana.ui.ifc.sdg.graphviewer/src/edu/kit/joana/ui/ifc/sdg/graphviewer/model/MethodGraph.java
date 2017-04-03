@@ -70,6 +70,7 @@ public class MethodGraph extends Graph {
 	private void init(SDG sdg) {
 		method = new SDG();
 		name = "";
+		SDGNode root = null;
 
 		Set<SDGNode> nodes = sdg.vertexSet();
 
@@ -83,6 +84,7 @@ public class MethodGraph extends Graph {
 
 				if (n.getKind().equals(SDGNode.Kind.ENTRY)) {
 					name = n.getLabel().toString();
+					root = n;
 				}
 
 			} else if (n.getKind().equals(SDGNode.Kind.ENTRY)) {
@@ -108,6 +110,7 @@ public class MethodGraph extends Graph {
 				method.addEdge(new UniqueSDGEdge(edge.getSource(), edge.getTarget(), edge.getKind(), edge.getLabel()));
 		}
 
+		method.setRoot(root);
 		method.setName(name);
 		method.setEdgeFactory(UniqueSDGEdge.FACTORY);
 	}

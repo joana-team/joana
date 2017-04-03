@@ -164,6 +164,7 @@ public final class Dominator {
 
 		CFG ret = new CFG();
 		ret.addAllVertices(g.vertexSet());
+		ret.setRoot(g.getRoot());
 		for (SDGNode n : rorder) {
 			for (SDGNode d : dom.get(n)) {
 				if (d == n) {
@@ -228,6 +229,7 @@ public final class Dominator {
 
 		CFG ret = new CFG();
 		ret.addAllVertices(g.vertexSet());
+		ret.setRoot(g.getRoot());
 		for (SDGNode n : rorder) {
 			for (SDGNode d : dom.get(n)) {
 				if (d == n) {

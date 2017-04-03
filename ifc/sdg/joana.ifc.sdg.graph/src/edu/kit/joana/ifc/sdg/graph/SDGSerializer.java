@@ -53,6 +53,10 @@ public final class SDGSerializer {
         if (g.getName() != null) {
             pw.print("\"");pw.print(g.getName());pw.print("\" ");
         }
+        
+        if (g.getRoot() != null) {
+        	pw.print("root " + g.getRoot().getId() + " ");
+        }
 
         pw.print("{\n");
 

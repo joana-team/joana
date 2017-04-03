@@ -59,14 +59,11 @@ public final class ThreadsInfoCollector {
 	 * @return entry node of the main method of the given sdg
 	 */
 	private static SDGNode findMainEntry(CFG g) {
-    	for (SDGNode n : g.vertexSet()) {
-    		if (g.inDegreeOf(n) == 0) {
-    			//assert n.getBytecodeMethod().contains("main([Ljava/lang/String;)V");
-    			return n;
-    		}
-    	}
+		final SDGNode mainEntry = g.getRoot();
 
-    	throw new IllegalStateException();
+		if (mainEntry == null) throw new IllegalStateException();
+		
+		return mainEntry;
     }
 
     /**

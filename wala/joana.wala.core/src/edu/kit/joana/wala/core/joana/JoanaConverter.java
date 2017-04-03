@@ -78,6 +78,9 @@ public class JoanaConverter {
         sdg.setNode2Instr(b.getPDGNode2IIndex());
         sdg.setEntryToCGNode(b.getEntryNode2CGNode());
         
+        final int rootId = b.getPDGforMethod(b.getNonPrunedWalaCallGraph().getFakeRootNode()).entry.getId();
+        sdg.setRoot(sdg.getNode(rootId));
+        
         progress.done();
 
 		return sdg;

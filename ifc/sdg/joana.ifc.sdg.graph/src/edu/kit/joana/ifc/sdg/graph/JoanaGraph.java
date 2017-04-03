@@ -109,29 +109,36 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
 
     /**
      * Returns the root of the graph.
-     * Lazily initializes the root attribute.
      * Can return null if no root exists.
      */
     public SDGNode getRoot() {
-    	return root == null ? root() : root;
+    	return root;
     }
 
     public void setRoot(SDGNode n) {
+    	if (n != null && !this.containsVertex(n)) {
+    		throw new IllegalArgumentException("Cannot mark non-existant node as root");
+    	}
+    	
+    	if (n != null && !(n.getKind() == SDGNode.Kind.ENTRY)) {
+    		throw new IllegalArgumentException("Cannot mark non-entry node as root");
+    	}
     	root = n;
     }
-
+    
     /**
      * Determines the root of the graph and returns it.
      * By convention, the SDGNode with ID = 1 is assumed to be the root.
      * If no such node exists, it returns the first found node with an in-degree of 0.
      * If no such node exists, it returns null.
      */
-    private SDGNode root() {
+    public SDGNode guessRoot() {
+    	SDGNode root;
     	root = getNode(1);
-
-    	if (root == null || this.inDegreeOf(root) > 0) {
+    
+    	if (root == null || this.inDegreeOf(root) > 0 || !(root.getKind() == SDGNode.Kind.ENTRY)) {
     		for (SDGNode n : vertexSet()) {
-    			if (this.inDegreeOf(n) == 0 && !this.isFolded(n)) {
+    			if (this.inDegreeOf(n) == 0 && !this.isFolded(n) && n.getKind() == SDGNode.Kind.ENTRY) {
     				root = n;
     				break;
     			}
@@ -276,6 +283,10 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
 
 	   if (isRemoved) {
 		   id2node.remove(node.getId());
+	   }
+	   
+	   if (node.equals(root)) {
+		   root = null;
 	   }
 
 	   return isRemoved;

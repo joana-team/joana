@@ -61,6 +61,8 @@ public final class GraphFolder {
         for(SDGNode n : vertexes){
             folded_icfg.addVertex(n);
         }
+        
+        folded_icfg.setRoot(icfg.getRoot());
 
         for(SDGEdge e : icfg.edgeSet()){
             folded_icfg.addEdge((SDGEdge) e.clone());
@@ -227,6 +229,7 @@ public final class GraphFolder {
         for (SDGNode n : vertices) {
             slicing_call.addVertex(n);
         }
+        slicing_call.setRoot(g.getRoot());
 
         for (SDGEdge e : g.edgeSet()) {
             if (e.getKind() == SDGEdge.Kind.FORK) {
@@ -280,6 +283,10 @@ public final class GraphFolder {
         LinkedList<SDGEdge> to_add = new LinkedList<SDGEdge>();
         LinkedList<SDGNode> fold_nodes = new LinkedList<SDGNode>();
 
+        // if an scc containing the root is folded, the corresponding fold node foldRoot becomes the root of the folded graph
+        final SDGNode root = graph.getRoot();
+        SDGNode foldRoot = null;
+
         /* iterate all SCCs and fold every SCC with more than one element */
         for(Set<SDGNode> scc : sccs){
             // process only SCCs resulting from recursions
@@ -309,6 +316,11 @@ public final class GraphFolder {
             // for every node of the SCC create a fold-include edge to the fold node//
             for(SDGNode folded : scc){
                 SDGEdge fi = new SDGEdge(folded, fold, SDGEdge.Kind.FOLD_INCLUDE);
+                
+                if (folded.equals(root)) {
+                	if (foldRoot != null) throw new IllegalStateException("Root not in multiple sccs");
+                	foldRoot = fold;
+                }
 
                 // new fold-include edge
                 to_add.addFirst(fi);
@@ -364,6 +376,10 @@ public final class GraphFolder {
             while(!to_add.isEmpty()){
                 // add edges
                 graph.addEdge(to_add.poll());
+            }
+            
+            if (foldRoot != null) {
+            	graph.setRoot(foldRoot);
             }
         }
 
@@ -491,6 +507,7 @@ public final class GraphFolder {
                 index = n.getId() -1;
             }
         }
+        newGraph.setRoot(graph.getRoot());
 
         for (SDGEdge e : graph.edgeSet()) {
             newGraph.addEdge((SDGEdge) e.clone());

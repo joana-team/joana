@@ -49,6 +49,8 @@ public final class CallGraphBuilder {
                 call.addVertex(n);
             }
         }
+        
+        call.setRoot(graph.getRoot());
 
         // adopt call and fork edges
         for(SDGEdge e : graph.edgeSet()){
@@ -91,6 +93,8 @@ public final class CallGraphBuilder {
                 call.addVertex(n);
             }
         }
+        
+        call.setRoot(graph.getRoot());
 
         // construct edges btwn. the entry nodes
         LinkedList<SDGEdge> edges = new LinkedList<SDGEdge>();

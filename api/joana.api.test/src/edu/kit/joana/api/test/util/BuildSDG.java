@@ -85,6 +85,7 @@ public final class BuildSDG {
 		cfg.setMhpType(MHPType.NONE);
 		cfg.setFieldPropagation(FieldPropagation.OBJ_GRAPH);
 		cfg.setPointsToPrecision(ptsPrec);
+		cfg.setParallel(false);
 		SDGProgram p;
 		try {
 			p = SDGProgram.createSDGProgram(cfg, new PrintStream(new ByteArrayOutputStream()),

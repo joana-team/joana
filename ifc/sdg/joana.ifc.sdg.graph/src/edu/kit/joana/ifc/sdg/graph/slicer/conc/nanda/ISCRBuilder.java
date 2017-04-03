@@ -142,6 +142,7 @@ public class ISCRBuilder {
         	// collect and add the nodes and edges
         	wl.add(entry);
         	icfgs[i].addVertex(entry);
+        	icfgs[i].setRoot(entry);
 
         	while (!wl.isEmpty()) {
         		SDGNode n = wl.poll();
@@ -394,6 +395,7 @@ public class ISCRBuilder {
         marked.add(root);
         worklist.add(root);
         clean.addVertex(root);
+        clean.setRoot(root);
 
         while (!worklist.isEmpty()) {
             SDGNode next = worklist.poll();

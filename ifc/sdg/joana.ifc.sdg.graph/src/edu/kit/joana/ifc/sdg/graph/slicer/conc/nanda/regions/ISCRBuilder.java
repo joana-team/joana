@@ -92,6 +92,11 @@ public class ISCRBuilder {
             }
         }
 
+        // guess the roots. For now, i a assume that the generic guessing heuristic from JoanaGraph.guessRoot() is good enough
+        for (int i = 0; i < icfgs.length; i++) {
+            iscrs[i] = build(icfgs[i], i);
+        }
+        
         // build the ISCR graphs
         for (int i = 0; i < icfgs.length; i++) {
             iscrs[i] = build(icfgs[i], i);
@@ -369,6 +374,7 @@ public class ISCRBuilder {
         marked.add(root);
         worklist.add(root);
         clean.addVertex(root);
+        clean.setRoot(root);
 
         while (!worklist.isEmpty()) {
             SDGNode next = worklist.poll();

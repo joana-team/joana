@@ -116,6 +116,7 @@ public class DynamicityAnalysis {
 		final CFG ret = new CFG();
 		Set<SDGNode> procNodes = entry2procs.get(entry);
 		ret.addAllVertices(procNodes);
+		ret.setRoot(entry);
 		for (final SDGNode n : procNodes) {
 			for (final SDGEdge e : threadGraph.outgoingEdgesOf(n)) {
 				if (ret.containsVertex(e.getTarget())) {

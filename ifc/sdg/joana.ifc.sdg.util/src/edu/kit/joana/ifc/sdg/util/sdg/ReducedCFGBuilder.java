@@ -47,6 +47,7 @@ public final class ReducedCFGBuilder {
 
 		cfgRet.addAllVertices(cfgBase.vertexSet());
 		cfgRet.addAllEdges(cfgBase.edgeSet());
+		cfgRet.setRoot(cfgBase.getRoot());
 
 
 		boolean change;

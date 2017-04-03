@@ -1,4 +1,4 @@
-// $ANTLR 3.5.2 SDG_.g 2017-02-10 10:31:50
+// $ANTLR 3.5.2 /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g 2017-04-03 13:54:27
 /**
  * This file is part of the Joana IFC project. It is developed at the
  * Programming Paradigms Group of the Karlsruhe Institute of Technology.
@@ -44,8 +44,8 @@ public class SDG_Parser extends Parser {
 		"'declaration'", "'derefer'", "'empty'", "'entry'", "'exit'", "'false'", 
 		"'floatconst'", "'form-ellip'", "'form-in'", "'form-out'", "'functionconst'", 
 		"'intconst'", "'jump'", "'loop'", "'modassign'", "'modify'", "'monitor'", 
-		"'null'", "'question'", "'refer'", "'reference'", "'select'", "'shortcut'", 
-		"'stringconst'", "'true'", "'unary'", "'v'", "'{'", "'}'"
+		"'null'", "'question'", "'refer'", "'reference'", "'root'", "'select'", 
+		"'shortcut'", "'stringconst'", "'true'", "'unary'", "'v'", "'{'", "'}'"
 	};
 	public static final int EOF=-1;
 	public static final int T__7=7;
@@ -160,6 +160,7 @@ public class SDG_Parser extends Parser {
 	public static final int T__116=116;
 	public static final int T__117=117;
 	public static final int T__118=118;
+	public static final int T__119=119;
 	public static final int NUMBER=4;
 	public static final int STRING=5;
 	public static final int WHITESPACE=6;
@@ -180,7 +181,7 @@ public class SDG_Parser extends Parser {
 	}
 
 	@Override public String[] getTokenNames() { return SDG_Parser.tokenNames; }
-	@Override public String getGrammarFileName() { return "SDG_.g"; }
+	@Override public String getGrammarFileName() { return "/data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g"; }
 
 
 	  private SDGNode.NodeFactory nodeFact = new SDGNode.SDGNodeFactory();
@@ -244,19 +245,27 @@ public class SDG_Parser extends Parser {
 	  static class SDGHeader {
 	    private int version;
 	    private String name;
+	    private Integer rootId;
 	    
-	    private SDGHeader(int version, String name) {
+	    private SDGHeader(int version, String name, Integer rootId) {
 	      this.version = version;
 	      this.name = name;
+	      this.rootId = rootId;
 	    }
 	    
-	    private SDG createSDG() {
+	    public SDG createSDG() {
 	      SDG sdg = (name == null ? new SDG() : new SDG(name));
 	      return sdg;
 	    }
 	    
 	    public String toString() {
 	      return "SDG of " + name + " (v" + version + ")";
+	    }
+	    
+	    public void setRoot(SDG sdg) {
+	      if (rootId != null) {
+	        sdg.setRoot(sdg.getNode(rootId));
+	      }
 	    }
 	  }
 	  
@@ -398,7 +407,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "sdg_file"
-	// SDG_.g:288:1: sdg_file returns [SDG sdg] : head= sdg_header '{' ( 'JComp' )? nl= node_list (ti= thread_info[sdg] )? '}' ;
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:296:1: sdg_file returns [SDG sdg] : head= sdg_header '{' ( 'JComp' )? nl= node_list (ti= thread_info[sdg] )? '}' ;
 	public final SDG sdg_file() throws RecognitionException {
 		SDG sdg = null;
 
@@ -408,16 +417,16 @@ public class SDG_Parser extends Parser {
 		ThreadsInformation ti =null;
 
 		try {
-			// SDG_.g:289:3: (head= sdg_header '{' ( 'JComp' )? nl= node_list (ti= thread_info[sdg] )? '}' )
-			// SDG_.g:289:5: head= sdg_header '{' ( 'JComp' )? nl= node_list (ti= thread_info[sdg] )? '}'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:297:3: (head= sdg_header '{' ( 'JComp' )? nl= node_list (ti= thread_info[sdg] )? '}' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:297:5: head= sdg_header '{' ( 'JComp' )? nl= node_list (ti= thread_info[sdg] )? '}'
 			{
 			pushFollow(FOLLOW_sdg_header_in_sdg_file73);
 			head=sdg_header();
 			state._fsp--;
 
 			 sdg = head.createSDG(); 
-			match(input,117,FOLLOW_117_in_sdg_file89); 
-			// SDG_.g:291:7: ( 'JComp' )?
+			match(input,118,FOLLOW_118_in_sdg_file89); 
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:299:7: ( 'JComp' )?
 			int alt1=2;
 			int LA1_0 = input.LA(1);
 			if ( (LA1_0==46) ) {
@@ -425,7 +434,7 @@ public class SDG_Parser extends Parser {
 			}
 			switch (alt1) {
 				case 1 :
-					// SDG_.g:291:8: 'JComp'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:299:8: 'JComp'
 					{
 					match(input,46,FOLLOW_46_in_sdg_file99); 
 					 sdg.setJoanaCompiler(true); 
@@ -439,7 +448,7 @@ public class SDG_Parser extends Parser {
 			state._fsp--;
 
 			 createNodesAndEdges(sdg, nl); 
-			// SDG_.g:293:7: (ti= thread_info[sdg] )?
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:301:7: (ti= thread_info[sdg] )?
 			int alt2=2;
 			int LA2_0 = input.LA(1);
 			if ( (LA2_0==74) ) {
@@ -447,7 +456,7 @@ public class SDG_Parser extends Parser {
 			}
 			switch (alt2) {
 				case 1 :
-					// SDG_.g:293:8: ti= thread_info[sdg]
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:301:8: ti= thread_info[sdg]
 					{
 					pushFollow(FOLLOW_thread_info_in_sdg_file150);
 					ti=thread_info(sdg);
@@ -459,7 +468,8 @@ public class SDG_Parser extends Parser {
 
 			}
 
-			match(input,118,FOLLOW_118_in_sdg_file163); 
+			match(input,119,FOLLOW_119_in_sdg_file163); 
+			 head.setRoot(sdg); 
 			}
 
 		}
@@ -477,7 +487,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "thread_info"
-	// SDG_.g:297:9: private thread_info[SDG sdg] returns [ThreadsInformation tinfo] : (t= thread[sdg] )+ ;
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:305:9: private thread_info[SDG sdg] returns [ThreadsInformation tinfo] : (t= thread[sdg] )+ ;
 	public final ThreadsInformation thread_info(SDG sdg) throws RecognitionException {
 		ThreadsInformation tinfo = null;
 
@@ -485,11 +495,11 @@ public class SDG_Parser extends Parser {
 		ThreadInstance t =null;
 
 		try {
-			// SDG_.g:298:3: ( (t= thread[sdg] )+ )
-			// SDG_.g:298:5: (t= thread[sdg] )+
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:306:3: ( (t= thread[sdg] )+ )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:306:5: (t= thread[sdg] )+
 			{
 			 final LinkedList<ThreadInstance> tis = new LinkedList<ThreadInstance>(); 
-			// SDG_.g:299:5: (t= thread[sdg] )+
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:307:5: (t= thread[sdg] )+
 			int cnt3=0;
 			loop3:
 			while (true) {
@@ -501,9 +511,9 @@ public class SDG_Parser extends Parser {
 
 				switch (alt3) {
 				case 1 :
-					// SDG_.g:299:6: t= thread[sdg]
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:307:6: t= thread[sdg]
 					{
-					pushFollow(FOLLOW_thread_in_thread_info192);
+					pushFollow(FOLLOW_thread_in_thread_info214);
 					t=thread(sdg);
 					state._fsp--;
 
@@ -537,7 +547,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "thread"
-	// SDG_.g:303:9: private thread[SDG sdg] returns [ThreadInstance ti] : 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= number ';' 'Join' joins= listOrSingleNumber[sdg] ';' 'Context' con= context[sdg] ';' 'Dynamic' dyn= bool ';' '}' ;
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:311:9: private thread[SDG sdg] returns [ThreadInstance ti] : 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= number ';' 'Join' joins= listOrSingleNumber[sdg] ';' 'Context' con= context[sdg] ';' 'Dynamic' dyn= bool ';' '}' ;
 	public final ThreadInstance thread(SDG sdg) throws RecognitionException {
 		ThreadInstance ti = null;
 
@@ -551,52 +561,52 @@ public class SDG_Parser extends Parser {
 		boolean dyn =false;
 
 		try {
-			// SDG_.g:304:3: ( 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= number ';' 'Join' joins= listOrSingleNumber[sdg] ';' 'Context' con= context[sdg] ';' 'Dynamic' dyn= bool ';' '}' )
-			// SDG_.g:304:5: 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= number ';' 'Join' joins= listOrSingleNumber[sdg] ';' 'Context' con= context[sdg] ';' 'Dynamic' dyn= bool ';' '}'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:312:3: ( 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= number ';' 'Join' joins= listOrSingleNumber[sdg] ';' 'Context' con= context[sdg] ';' 'Dynamic' dyn= bool ';' '}' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:312:5: 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= number ';' 'Join' joins= listOrSingleNumber[sdg] ';' 'Context' con= context[sdg] ';' 'Dynamic' dyn= bool ';' '}'
 			{
-			match(input,74,FOLLOW_74_in_thread224); 
-			pushFollow(FOLLOW_number_in_thread228);
+			match(input,74,FOLLOW_74_in_thread246); 
+			pushFollow(FOLLOW_number_in_thread250);
 			id=number();
 			state._fsp--;
 
-			match(input,117,FOLLOW_117_in_thread230); 
-			match(input,31,FOLLOW_31_in_thread238); 
-			pushFollow(FOLLOW_number_in_thread244);
+			match(input,118,FOLLOW_118_in_thread252); 
+			match(input,31,FOLLOW_31_in_thread260); 
+			pushFollow(FOLLOW_number_in_thread266);
 			en=number();
 			state._fsp--;
 
-			match(input,10,FOLLOW_10_in_thread246); 
-			match(input,32,FOLLOW_32_in_thread254); 
-			pushFollow(FOLLOW_number_in_thread261);
+			match(input,10,FOLLOW_10_in_thread268); 
+			match(input,32,FOLLOW_32_in_thread276); 
+			pushFollow(FOLLOW_number_in_thread283);
 			ex=number();
 			state._fsp--;
 
-			match(input,10,FOLLOW_10_in_thread263); 
-			match(input,41,FOLLOW_41_in_thread271); 
-			pushFollow(FOLLOW_number_in_thread278);
+			match(input,10,FOLLOW_10_in_thread285); 
+			match(input,41,FOLLOW_41_in_thread293); 
+			pushFollow(FOLLOW_number_in_thread300);
 			fo=number();
 			state._fsp--;
 
-			match(input,10,FOLLOW_10_in_thread280); 
-			match(input,50,FOLLOW_50_in_thread288); 
-			pushFollow(FOLLOW_listOrSingleNumber_in_thread295);
+			match(input,10,FOLLOW_10_in_thread302); 
+			match(input,50,FOLLOW_50_in_thread310); 
+			pushFollow(FOLLOW_listOrSingleNumber_in_thread317);
 			joins=listOrSingleNumber(sdg);
 			state._fsp--;
 
-			match(input,10,FOLLOW_10_in_thread298); 
-			match(input,22,FOLLOW_22_in_thread306); 
-			pushFollow(FOLLOW_context_in_thread310);
+			match(input,10,FOLLOW_10_in_thread320); 
+			match(input,22,FOLLOW_22_in_thread328); 
+			pushFollow(FOLLOW_context_in_thread332);
 			con=context(sdg);
 			state._fsp--;
 
-			match(input,10,FOLLOW_10_in_thread313); 
-			match(input,27,FOLLOW_27_in_thread321); 
-			pushFollow(FOLLOW_bool_in_thread325);
+			match(input,10,FOLLOW_10_in_thread335); 
+			match(input,27,FOLLOW_27_in_thread343); 
+			pushFollow(FOLLOW_bool_in_thread347);
 			dyn=bool();
 			state._fsp--;
 
-			match(input,10,FOLLOW_10_in_thread327); 
-			match(input,118,FOLLOW_118_in_thread333); 
+			match(input,10,FOLLOW_10_in_thread349); 
+			match(input,119,FOLLOW_119_in_thread355); 
 
 			      final SDGNode entry = sdg.getNode(en);
 			      SDGNode exit = null; if (ex != 0) { exit = sdg.getNode(ex); }
@@ -620,7 +630,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "listOrSingleNumber"
-	// SDG_.g:320:9: private listOrSingleNumber[SDG sdg] returns [LinkedList<SDGNode> js] : (joins= mayEmptyNumberList[sdg] |jo= number );
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:328:9: private listOrSingleNumber[SDG sdg] returns [LinkedList<SDGNode> js] : (joins= mayEmptyNumberList[sdg] |jo= number );
 	public final LinkedList<SDGNode> listOrSingleNumber(SDG sdg) throws RecognitionException {
 		LinkedList<SDGNode> js = null;
 
@@ -629,7 +639,7 @@ public class SDG_Parser extends Parser {
 		int jo =0;
 
 		try {
-			// SDG_.g:321:3: (joins= mayEmptyNumberList[sdg] |jo= number )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:329:3: (joins= mayEmptyNumberList[sdg] |jo= number )
 			int alt4=2;
 			int LA4_0 = input.LA(1);
 			if ( (LA4_0==80||LA4_0==107) ) {
@@ -647,9 +657,9 @@ public class SDG_Parser extends Parser {
 
 			switch (alt4) {
 				case 1 :
-					// SDG_.g:321:5: joins= mayEmptyNumberList[sdg]
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:329:5: joins= mayEmptyNumberList[sdg]
 					{
-					pushFollow(FOLLOW_mayEmptyNumberList_in_listOrSingleNumber363);
+					pushFollow(FOLLOW_mayEmptyNumberList_in_listOrSingleNumber385);
 					joins=mayEmptyNumberList(sdg);
 					state._fsp--;
 
@@ -657,9 +667,9 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 2 :
-					// SDG_.g:322:5: jo= number
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:330:5: jo= number
 					{
-					pushFollow(FOLLOW_number_in_listOrSingleNumber374);
+					pushFollow(FOLLOW_number_in_listOrSingleNumber396);
 					jo=number();
 					state._fsp--;
 
@@ -686,7 +696,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "mayEmptyNumberList"
-	// SDG_.g:328:9: private mayEmptyNumberList[SDG sdg] returns [LinkedList<SDGNode> js = new LinkedList<SDGNode>();] : ( 'null' | '[' ']' | '[' i= number ( ',' i= number )* ']' );
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:336:9: private mayEmptyNumberList[SDG sdg] returns [LinkedList<SDGNode> js = new LinkedList<SDGNode>();] : ( 'null' | '[' ']' | '[' i= number ( ',' i= number )* ']' );
 	public final LinkedList<SDGNode> mayEmptyNumberList(SDG sdg) throws RecognitionException {
 		LinkedList<SDGNode> js =  new LinkedList<SDGNode>();;
 
@@ -694,7 +704,7 @@ public class SDG_Parser extends Parser {
 		int i =0;
 
 		try {
-			// SDG_.g:329:3: ( 'null' | '[' ']' | '[' i= number ( ',' i= number )* ']' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:337:3: ( 'null' | '[' ']' | '[' i= number ( ',' i= number )* ']' )
 			int alt6=3;
 			int LA6_0 = input.LA(1);
 			if ( (LA6_0==107) ) {
@@ -731,28 +741,28 @@ public class SDG_Parser extends Parser {
 
 			switch (alt6) {
 				case 1 :
-					// SDG_.g:329:5: 'null'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:337:5: 'null'
 					{
-					match(input,107,FOLLOW_107_in_mayEmptyNumberList396); 
+					match(input,107,FOLLOW_107_in_mayEmptyNumberList418); 
 					}
 					break;
 				case 2 :
-					// SDG_.g:330:5: '[' ']'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:338:5: '[' ']'
 					{
-					match(input,80,FOLLOW_80_in_mayEmptyNumberList402); 
-					match(input,81,FOLLOW_81_in_mayEmptyNumberList404); 
+					match(input,80,FOLLOW_80_in_mayEmptyNumberList424); 
+					match(input,81,FOLLOW_81_in_mayEmptyNumberList426); 
 					}
 					break;
 				case 3 :
-					// SDG_.g:331:5: '[' i= number ( ',' i= number )* ']'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:339:5: '[' i= number ( ',' i= number )* ']'
 					{
-					match(input,80,FOLLOW_80_in_mayEmptyNumberList410); 
-					pushFollow(FOLLOW_number_in_mayEmptyNumberList414);
+					match(input,80,FOLLOW_80_in_mayEmptyNumberList432); 
+					pushFollow(FOLLOW_number_in_mayEmptyNumberList436);
 					i=number();
 					state._fsp--;
 
 					 js.add(sdg.getNode(i)); 
-					// SDG_.g:331:46: ( ',' i= number )*
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:339:46: ( ',' i= number )*
 					loop5:
 					while (true) {
 						int alt5=2;
@@ -763,10 +773,10 @@ public class SDG_Parser extends Parser {
 
 						switch (alt5) {
 						case 1 :
-							// SDG_.g:331:47: ',' i= number
+							// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:339:47: ',' i= number
 							{
-							match(input,7,FOLLOW_7_in_mayEmptyNumberList419); 
-							pushFollow(FOLLOW_number_in_mayEmptyNumberList423);
+							match(input,7,FOLLOW_7_in_mayEmptyNumberList441); 
+							pushFollow(FOLLOW_number_in_mayEmptyNumberList445);
 							i=number();
 							state._fsp--;
 
@@ -779,7 +789,7 @@ public class SDG_Parser extends Parser {
 						}
 					}
 
-					match(input,81,FOLLOW_81_in_mayEmptyNumberList430); 
+					match(input,81,FOLLOW_81_in_mayEmptyNumberList452); 
 					}
 					break;
 
@@ -799,7 +809,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "mayEmptyStringList"
-	// SDG_.g:334:9: private mayEmptyStringList returns [LinkedList<String> ss = new LinkedList<String>();] : ( 'null' | '[' ']' | '[' s= string ( ',' s= string )* ']' );
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:342:9: private mayEmptyStringList returns [LinkedList<String> ss = new LinkedList<String>();] : ( 'null' | '[' ']' | '[' s= string ( ',' s= string )* ']' );
 	public final LinkedList<String> mayEmptyStringList() throws RecognitionException {
 		LinkedList<String> ss =  new LinkedList<String>();;
 
@@ -807,7 +817,7 @@ public class SDG_Parser extends Parser {
 		String s =null;
 
 		try {
-			// SDG_.g:335:3: ( 'null' | '[' ']' | '[' s= string ( ',' s= string )* ']' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:343:3: ( 'null' | '[' ']' | '[' s= string ( ',' s= string )* ']' )
 			int alt8=3;
 			int LA8_0 = input.LA(1);
 			if ( (LA8_0==107) ) {
@@ -844,28 +854,28 @@ public class SDG_Parser extends Parser {
 
 			switch (alt8) {
 				case 1 :
-					// SDG_.g:335:5: 'null'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:343:5: 'null'
 					{
-					match(input,107,FOLLOW_107_in_mayEmptyStringList451); 
+					match(input,107,FOLLOW_107_in_mayEmptyStringList473); 
 					}
 					break;
 				case 2 :
-					// SDG_.g:336:5: '[' ']'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:344:5: '[' ']'
 					{
-					match(input,80,FOLLOW_80_in_mayEmptyStringList457); 
-					match(input,81,FOLLOW_81_in_mayEmptyStringList459); 
+					match(input,80,FOLLOW_80_in_mayEmptyStringList479); 
+					match(input,81,FOLLOW_81_in_mayEmptyStringList481); 
 					}
 					break;
 				case 3 :
-					// SDG_.g:337:5: '[' s= string ( ',' s= string )* ']'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:345:5: '[' s= string ( ',' s= string )* ']'
 					{
-					match(input,80,FOLLOW_80_in_mayEmptyStringList465); 
-					pushFollow(FOLLOW_string_in_mayEmptyStringList469);
+					match(input,80,FOLLOW_80_in_mayEmptyStringList487); 
+					pushFollow(FOLLOW_string_in_mayEmptyStringList491);
 					s=string();
 					state._fsp--;
 
 					 ss.add(s); 
-					// SDG_.g:337:33: ( ',' s= string )*
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:345:33: ( ',' s= string )*
 					loop7:
 					while (true) {
 						int alt7=2;
@@ -876,10 +886,10 @@ public class SDG_Parser extends Parser {
 
 						switch (alt7) {
 						case 1 :
-							// SDG_.g:337:34: ',' s= string
+							// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:345:34: ',' s= string
 							{
-							match(input,7,FOLLOW_7_in_mayEmptyStringList474); 
-							pushFollow(FOLLOW_string_in_mayEmptyStringList478);
+							match(input,7,FOLLOW_7_in_mayEmptyStringList496); 
+							pushFollow(FOLLOW_string_in_mayEmptyStringList500);
 							s=string();
 							state._fsp--;
 
@@ -892,7 +902,7 @@ public class SDG_Parser extends Parser {
 						}
 					}
 
-					match(input,81,FOLLOW_81_in_mayEmptyStringList485); 
+					match(input,81,FOLLOW_81_in_mayEmptyStringList507); 
 					}
 					break;
 
@@ -912,7 +922,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "context"
-	// SDG_.g:340:9: private context[SDG sdg] returns [LinkedList<SDGNode> cx = new LinkedList<SDGNode>();] : ( 'null' | '[' i= mayNegNumber ( ',' i= mayNegNumber )* ']' );
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:348:9: private context[SDG sdg] returns [LinkedList<SDGNode> cx = new LinkedList<SDGNode>();] : ( 'null' | '[' i= mayNegNumber ( ',' i= mayNegNumber )* ']' );
 	public final LinkedList<SDGNode> context(SDG sdg) throws RecognitionException {
 		LinkedList<SDGNode> cx =  new LinkedList<SDGNode>();;
 
@@ -920,7 +930,7 @@ public class SDG_Parser extends Parser {
 		int i =0;
 
 		try {
-			// SDG_.g:341:3: ( 'null' | '[' i= mayNegNumber ( ',' i= mayNegNumber )* ']' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:349:3: ( 'null' | '[' i= mayNegNumber ( ',' i= mayNegNumber )* ']' )
 			int alt10=2;
 			int LA10_0 = input.LA(1);
 			if ( (LA10_0==107) ) {
@@ -938,21 +948,21 @@ public class SDG_Parser extends Parser {
 
 			switch (alt10) {
 				case 1 :
-					// SDG_.g:341:5: 'null'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:349:5: 'null'
 					{
-					match(input,107,FOLLOW_107_in_context507); 
+					match(input,107,FOLLOW_107_in_context529); 
 					}
 					break;
 				case 2 :
-					// SDG_.g:342:5: '[' i= mayNegNumber ( ',' i= mayNegNumber )* ']'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:350:5: '[' i= mayNegNumber ( ',' i= mayNegNumber )* ']'
 					{
-					match(input,80,FOLLOW_80_in_context513); 
-					pushFollow(FOLLOW_mayNegNumber_in_context517);
+					match(input,80,FOLLOW_80_in_context535); 
+					pushFollow(FOLLOW_mayNegNumber_in_context539);
 					i=mayNegNumber();
 					state._fsp--;
 
 					 cx.add(sdg.getNode(i)); 
-					// SDG_.g:342:52: ( ',' i= mayNegNumber )*
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:350:52: ( ',' i= mayNegNumber )*
 					loop9:
 					while (true) {
 						int alt9=2;
@@ -963,10 +973,10 @@ public class SDG_Parser extends Parser {
 
 						switch (alt9) {
 						case 1 :
-							// SDG_.g:342:53: ',' i= mayNegNumber
+							// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:350:53: ',' i= mayNegNumber
 							{
-							match(input,7,FOLLOW_7_in_context522); 
-							pushFollow(FOLLOW_mayNegNumber_in_context526);
+							match(input,7,FOLLOW_7_in_context544); 
+							pushFollow(FOLLOW_mayNegNumber_in_context548);
 							i=mayNegNumber();
 							state._fsp--;
 
@@ -979,7 +989,7 @@ public class SDG_Parser extends Parser {
 						}
 					}
 
-					match(input,81,FOLLOW_81_in_context533); 
+					match(input,81,FOLLOW_81_in_context555); 
 					}
 					break;
 
@@ -999,32 +1009,33 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "sdg_header"
-	// SDG_.g:345:9: private sdg_header returns [SDGHeader header] : 'SDG' ( 'v' n= number )? (na= string )? ;
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:353:9: private sdg_header returns [SDGHeader header] : 'SDG' ( 'v' n= number )? (na= string )? ( 'root' root= number )? ;
 	public final SDGHeader sdg_header() throws RecognitionException {
 		SDGHeader header = null;
 
 
 		int n =0;
 		String na =null;
+		int root =0;
 
 		try {
-			// SDG_.g:346:3: ( 'SDG' ( 'v' n= number )? (na= string )? )
-			// SDG_.g:346:5: 'SDG' ( 'v' n= number )? (na= string )?
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:354:3: ( 'SDG' ( 'v' n= number )? (na= string )? ( 'root' root= number )? )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:354:5: 'SDG' ( 'v' n= number )? (na= string )? ( 'root' root= number )?
 			{
-			match(input,67,FOLLOW_67_in_sdg_header552); 
+			match(input,67,FOLLOW_67_in_sdg_header574); 
 			 int version = SDG.DEFAULT_VERSION; 
-			// SDG_.g:348:7: ( 'v' n= number )?
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:356:7: ( 'v' n= number )?
 			int alt11=2;
 			int LA11_0 = input.LA(1);
-			if ( (LA11_0==116) ) {
+			if ( (LA11_0==117) ) {
 				alt11=1;
 			}
 			switch (alt11) {
 				case 1 :
-					// SDG_.g:348:8: 'v' n= number
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:356:8: 'v' n= number
 					{
-					match(input,116,FOLLOW_116_in_sdg_header568); 
-					pushFollow(FOLLOW_number_in_sdg_header572);
+					match(input,117,FOLLOW_117_in_sdg_header590); 
+					pushFollow(FOLLOW_number_in_sdg_header594);
 					n=number();
 					state._fsp--;
 
@@ -1035,7 +1046,7 @@ public class SDG_Parser extends Parser {
 			}
 
 			 String name = null; 
-			// SDG_.g:350:7: (na= string )?
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:358:7: (na= string )?
 			int alt12=2;
 			int LA12_0 = input.LA(1);
 			if ( (LA12_0==STRING) ) {
@@ -1043,9 +1054,9 @@ public class SDG_Parser extends Parser {
 			}
 			switch (alt12) {
 				case 1 :
-					// SDG_.g:350:8: na= string
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:358:8: na= string
 					{
-					pushFollow(FOLLOW_string_in_sdg_header593);
+					pushFollow(FOLLOW_string_in_sdg_header615);
 					na=string();
 					state._fsp--;
 
@@ -1055,7 +1066,29 @@ public class SDG_Parser extends Parser {
 
 			}
 
-			 header = new SDGHeader(version, name); 
+			 Integer rootId = null; 
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:360:7: ( 'root' root= number )?
+			int alt13=2;
+			int LA13_0 = input.LA(1);
+			if ( (LA13_0==111) ) {
+				alt13=1;
+			}
+			switch (alt13) {
+				case 1 :
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:360:8: 'root' root= number
+					{
+					match(input,111,FOLLOW_111_in_sdg_header635); 
+					pushFollow(FOLLOW_number_in_sdg_header639);
+					root=number();
+					state._fsp--;
+
+					 rootId = root; 
+					}
+					break;
+
+			}
+
+			 header = new SDGHeader(version, name, rootId); 
 			}
 
 		}
@@ -1073,7 +1106,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "node_list"
-	// SDG_.g:354:9: private node_list returns [List<SDGNodeStub> list = new LinkedList<SDGNodeStub>();] : (n= node )* ;
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:364:9: private node_list returns [List<SDGNodeStub> list = new LinkedList<SDGNodeStub>();] : (n= node )* ;
 	public final List<SDGNodeStub> node_list() throws RecognitionException {
 		List<SDGNodeStub> list =  new LinkedList<SDGNodeStub>();;
 
@@ -1081,23 +1114,23 @@ public class SDG_Parser extends Parser {
 		SDGNodeStub n =null;
 
 		try {
-			// SDG_.g:355:3: ( (n= node )* )
-			// SDG_.g:355:5: (n= node )*
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:365:3: ( (n= node )* )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:365:5: (n= node )*
 			{
-			// SDG_.g:355:5: (n= node )*
-			loop13:
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:365:5: (n= node )*
+			loop14:
 			while (true) {
-				int alt13=2;
-				int LA13_0 = input.LA(1);
-				if ( ((LA13_0 >= 12 && LA13_0 <= 13)||LA13_0==16||(LA13_0 >= 28 && LA13_0 <= 30)||LA13_0==35||(LA13_0 >= 39 && LA13_0 <= 40)||LA13_0==55||LA13_0==60||LA13_0==72) ) {
-					alt13=1;
+				int alt14=2;
+				int LA14_0 = input.LA(1);
+				if ( ((LA14_0 >= 12 && LA14_0 <= 13)||LA14_0==16||(LA14_0 >= 28 && LA14_0 <= 30)||LA14_0==35||(LA14_0 >= 39 && LA14_0 <= 40)||LA14_0==55||LA14_0==60||LA14_0==72) ) {
+					alt14=1;
 				}
 
-				switch (alt13) {
+				switch (alt14) {
 				case 1 :
-					// SDG_.g:355:6: n= node
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:365:6: n= node
 					{
-					pushFollow(FOLLOW_node_in_node_list626);
+					pushFollow(FOLLOW_node_in_node_list672);
 					n=node();
 					state._fsp--;
 
@@ -1106,7 +1139,7 @@ public class SDG_Parser extends Parser {
 					break;
 
 				default :
-					break loop13;
+					break loop14;
 				}
 			}
 
@@ -1127,7 +1160,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "node"
-	// SDG_.g:358:9: private node returns [SDGNodeStub nstub] : k= node_kind id= mayNegNumber '{' node_attributes[nstub] node_edges[nstub] '}' ;
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:368:9: private node returns [SDGNodeStub nstub] : k= node_kind id= mayNegNumber '{' node_attributes[nstub] node_edges[nstub] '}' ;
 	public final SDGNodeStub node() throws RecognitionException {
 		SDGNodeStub nstub = null;
 
@@ -1136,28 +1169,28 @@ public class SDG_Parser extends Parser {
 		int id =0;
 
 		try {
-			// SDG_.g:359:3: (k= node_kind id= mayNegNumber '{' node_attributes[nstub] node_edges[nstub] '}' )
-			// SDG_.g:359:5: k= node_kind id= mayNegNumber '{' node_attributes[nstub] node_edges[nstub] '}'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:369:3: (k= node_kind id= mayNegNumber '{' node_attributes[nstub] node_edges[nstub] '}' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:369:5: k= node_kind id= mayNegNumber '{' node_attributes[nstub] node_edges[nstub] '}'
 			{
-			pushFollow(FOLLOW_node_kind_in_node652);
+			pushFollow(FOLLOW_node_kind_in_node698);
 			k=node_kind();
 			state._fsp--;
 
-			pushFollow(FOLLOW_mayNegNumber_in_node656);
+			pushFollow(FOLLOW_mayNegNumber_in_node702);
 			id=mayNegNumber();
 			state._fsp--;
 
 			 nstub = new SDGNodeStub(k, id, defaultSrcPos, defaultBcPos); 
-			match(input,117,FOLLOW_117_in_node665); 
-			pushFollow(FOLLOW_node_attributes_in_node674);
+			match(input,118,FOLLOW_118_in_node711); 
+			pushFollow(FOLLOW_node_attributes_in_node720);
 			node_attributes(nstub);
 			state._fsp--;
 
-			pushFollow(FOLLOW_node_edges_in_node684);
+			pushFollow(FOLLOW_node_edges_in_node730);
 			node_edges(nstub);
 			state._fsp--;
 
-			match(input,118,FOLLOW_118_in_node691); 
+			match(input,119,FOLLOW_119_in_node737); 
 			}
 
 		}
@@ -1175,162 +1208,162 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "node_kind"
-	// SDG_.g:366:9: private node_kind returns [SDGNode.Kind kind] : ( 'NORM' | 'PRED' | 'EXPR' | 'ENTR' | 'CALL' | 'ACTI' | 'ACTO' | 'FRMI' | 'FRMO' | 'EXIT' | 'SYNC' | 'FOLD' );
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:376:9: private node_kind returns [SDGNode.Kind kind] : ( 'NORM' | 'PRED' | 'EXPR' | 'ENTR' | 'CALL' | 'ACTI' | 'ACTO' | 'FRMI' | 'FRMO' | 'EXIT' | 'SYNC' | 'FOLD' );
 	public final SDGNode.Kind node_kind() throws RecognitionException {
 		SDGNode.Kind kind = null;
 
 
 		try {
-			// SDG_.g:367:3: ( 'NORM' | 'PRED' | 'EXPR' | 'ENTR' | 'CALL' | 'ACTI' | 'ACTO' | 'FRMI' | 'FRMO' | 'EXIT' | 'SYNC' | 'FOLD' )
-			int alt14=12;
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:377:3: ( 'NORM' | 'PRED' | 'EXPR' | 'ENTR' | 'CALL' | 'ACTI' | 'ACTO' | 'FRMI' | 'FRMO' | 'EXIT' | 'SYNC' | 'FOLD' )
+			int alt15=12;
 			switch ( input.LA(1) ) {
 			case 55:
 				{
-				alt14=1;
+				alt15=1;
 				}
 				break;
 			case 60:
 				{
-				alt14=2;
+				alt15=2;
 				}
 				break;
 			case 30:
 				{
-				alt14=3;
+				alt15=3;
 				}
 				break;
 			case 28:
 				{
-				alt14=4;
+				alt15=4;
 				}
 				break;
 			case 16:
 				{
-				alt14=5;
+				alt15=5;
 				}
 				break;
 			case 12:
 				{
-				alt14=6;
+				alt15=6;
 				}
 				break;
 			case 13:
 				{
-				alt14=7;
+				alt15=7;
 				}
 				break;
 			case 39:
 				{
-				alt14=8;
+				alt15=8;
 				}
 				break;
 			case 40:
 				{
-				alt14=9;
+				alt15=9;
 				}
 				break;
 			case 29:
 				{
-				alt14=10;
+				alt15=10;
 				}
 				break;
 			case 72:
 				{
-				alt14=11;
+				alt15=11;
 				}
 				break;
 			case 35:
 				{
-				alt14=12;
+				alt15=12;
 				}
 				break;
 			default:
 				NoViableAltException nvae =
-					new NoViableAltException("", 14, 0, input);
+					new NoViableAltException("", 15, 0, input);
 				throw nvae;
 			}
-			switch (alt14) {
+			switch (alt15) {
 				case 1 :
-					// SDG_.g:367:5: 'NORM'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:377:5: 'NORM'
 					{
-					match(input,55,FOLLOW_55_in_node_kind710); 
+					match(input,55,FOLLOW_55_in_node_kind756); 
 					 kind = SDGNode.Kind.NORMAL; 
 					}
 					break;
 				case 2 :
-					// SDG_.g:368:5: 'PRED'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:378:5: 'PRED'
 					{
-					match(input,60,FOLLOW_60_in_node_kind718); 
+					match(input,60,FOLLOW_60_in_node_kind764); 
 					 kind = SDGNode.Kind.PREDICATE; 
 					}
 					break;
 				case 3 :
-					// SDG_.g:369:5: 'EXPR'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:379:5: 'EXPR'
 					{
-					match(input,30,FOLLOW_30_in_node_kind726); 
+					match(input,30,FOLLOW_30_in_node_kind772); 
 					 kind = SDGNode.Kind.EXPRESSION; 
 					}
 					break;
 				case 4 :
-					// SDG_.g:370:5: 'ENTR'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:380:5: 'ENTR'
 					{
-					match(input,28,FOLLOW_28_in_node_kind734); 
+					match(input,28,FOLLOW_28_in_node_kind780); 
 					 kind = SDGNode.Kind.ENTRY; 
 					}
 					break;
 				case 5 :
-					// SDG_.g:371:5: 'CALL'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:381:5: 'CALL'
 					{
-					match(input,16,FOLLOW_16_in_node_kind742); 
+					match(input,16,FOLLOW_16_in_node_kind788); 
 					 kind = SDGNode.Kind.CALL; 
 					}
 					break;
 				case 6 :
-					// SDG_.g:372:5: 'ACTI'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:382:5: 'ACTI'
 					{
-					match(input,12,FOLLOW_12_in_node_kind750); 
+					match(input,12,FOLLOW_12_in_node_kind796); 
 					 kind = SDGNode.Kind.ACTUAL_IN; 
 					}
 					break;
 				case 7 :
-					// SDG_.g:373:5: 'ACTO'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:383:5: 'ACTO'
 					{
-					match(input,13,FOLLOW_13_in_node_kind758); 
+					match(input,13,FOLLOW_13_in_node_kind804); 
 					 kind = SDGNode.Kind.ACTUAL_OUT; 
 					}
 					break;
 				case 8 :
-					// SDG_.g:374:5: 'FRMI'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:384:5: 'FRMI'
 					{
-					match(input,39,FOLLOW_39_in_node_kind766); 
+					match(input,39,FOLLOW_39_in_node_kind812); 
 					 kind = SDGNode.Kind.FORMAL_IN; 
 					}
 					break;
 				case 9 :
-					// SDG_.g:375:5: 'FRMO'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:385:5: 'FRMO'
 					{
-					match(input,40,FOLLOW_40_in_node_kind774); 
+					match(input,40,FOLLOW_40_in_node_kind820); 
 					 kind = SDGNode.Kind.FORMAL_OUT; 
 					}
 					break;
 				case 10 :
-					// SDG_.g:376:5: 'EXIT'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:386:5: 'EXIT'
 					{
-					match(input,29,FOLLOW_29_in_node_kind782); 
+					match(input,29,FOLLOW_29_in_node_kind828); 
 					 kind = SDGNode.Kind.EXIT; 
 					}
 					break;
 				case 11 :
-					// SDG_.g:377:5: 'SYNC'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:387:5: 'SYNC'
 					{
-					match(input,72,FOLLOW_72_in_node_kind790); 
+					match(input,72,FOLLOW_72_in_node_kind836); 
 					 kind = SDGNode.Kind.SYNCHRONIZATION; 
 					}
 					break;
 				case 12 :
-					// SDG_.g:378:5: 'FOLD'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:388:5: 'FOLD'
 					{
-					match(input,35,FOLLOW_35_in_node_kind798); 
+					match(input,35,FOLLOW_35_in_node_kind844); 
 					 kind = SDGNode.Kind.FOLDED; 
 					}
 					break;
@@ -1351,35 +1384,35 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "node_attributes"
-	// SDG_.g:381:9: private node_attributes[SDGNodeStub node] : ( node_attr[node] ';' )* ;
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:391:9: private node_attributes[SDGNodeStub node] : ( node_attr[node] ';' )* ;
 	public final void node_attributes(SDGNodeStub node) throws RecognitionException {
 		try {
-			// SDG_.g:382:3: ( ( node_attr[node] ';' )* )
-			// SDG_.g:382:5: ( node_attr[node] ';' )*
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:392:3: ( ( node_attr[node] ';' )* )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:392:5: ( node_attr[node] ';' )*
 			{
-			// SDG_.g:382:5: ( node_attr[node] ';' )*
-			loop15:
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:392:5: ( node_attr[node] ';' )*
+			loop16:
 			while (true) {
-				int alt15=2;
-				int LA15_0 = input.LA(1);
-				if ( (LA15_0==11||(LA15_0 >= 14 && LA15_0 <= 15)||LA15_0==23||(LA15_0 >= 51 && LA15_0 <= 53)||(LA15_0 >= 56 && LA15_0 <= 57)||LA15_0==65||LA15_0==73||LA15_0==75||LA15_0==77||LA15_0==79) ) {
-					alt15=1;
+				int alt16=2;
+				int LA16_0 = input.LA(1);
+				if ( (LA16_0==11||(LA16_0 >= 14 && LA16_0 <= 15)||LA16_0==23||(LA16_0 >= 51 && LA16_0 <= 53)||(LA16_0 >= 56 && LA16_0 <= 57)||LA16_0==65||LA16_0==73||LA16_0==75||LA16_0==77||LA16_0==79) ) {
+					alt16=1;
 				}
 
-				switch (alt15) {
+				switch (alt16) {
 				case 1 :
-					// SDG_.g:382:6: node_attr[node] ';'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:392:6: node_attr[node] ';'
 					{
-					pushFollow(FOLLOW_node_attr_in_node_attributes817);
+					pushFollow(FOLLOW_node_attr_in_node_attributes863);
 					node_attr(node);
 					state._fsp--;
 
-					match(input,10,FOLLOW_10_in_node_attributes820); 
+					match(input,10,FOLLOW_10_in_node_attributes866); 
 					}
 					break;
 
 				default :
-					break loop15;
+					break loop16;
 				}
 			}
 
@@ -1399,7 +1432,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "node_attr"
-	// SDG_.g:385:9: private node_attr[SDGNodeStub node] : ( 'S' spos= node_source | 'B' bpos= node_bytecode | 'U' number | 'P' procId= number | 'O' op= node_oper | 'V' val= string | 'T' type= string | 'Z' tn= may_neg_num_set | 'N' | 'C' cl= string | 'A' al= pos_num_set | 'D' ds= pos_num_set | 'U' uct= string | 'LD' ldefs= mayEmptyStringList | 'LU' luses= mayEmptyStringList );
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:395:9: private node_attr[SDGNodeStub node] : ( 'S' spos= node_source | 'B' bpos= node_bytecode | 'U' number | 'P' procId= number | 'O' op= node_oper | 'V' val= string | 'T' type= string | 'Z' tn= may_neg_num_set | 'N' | 'C' cl= string | 'A' al= pos_num_set | 'D' ds= pos_num_set | 'U' uct= string | 'LD' ldefs= mayEmptyStringList | 'LU' luses= mayEmptyStringList );
 	public final void node_attr(SDGNodeStub node) throws RecognitionException {
 		SourcePos spos =null;
 		ByteCodePos bpos =null;
@@ -1416,27 +1449,27 @@ public class SDG_Parser extends Parser {
 		LinkedList<String> luses =null;
 
 		try {
-			// SDG_.g:386:3: ( 'S' spos= node_source | 'B' bpos= node_bytecode | 'U' number | 'P' procId= number | 'O' op= node_oper | 'V' val= string | 'T' type= string | 'Z' tn= may_neg_num_set | 'N' | 'C' cl= string | 'A' al= pos_num_set | 'D' ds= pos_num_set | 'U' uct= string | 'LD' ldefs= mayEmptyStringList | 'LU' luses= mayEmptyStringList )
-			int alt16=15;
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:396:3: ( 'S' spos= node_source | 'B' bpos= node_bytecode | 'U' number | 'P' procId= number | 'O' op= node_oper | 'V' val= string | 'T' type= string | 'Z' tn= may_neg_num_set | 'N' | 'C' cl= string | 'A' al= pos_num_set | 'D' ds= pos_num_set | 'U' uct= string | 'LD' ldefs= mayEmptyStringList | 'LU' luses= mayEmptyStringList )
+			int alt17=15;
 			switch ( input.LA(1) ) {
 			case 65:
 				{
-				alt16=1;
+				alt17=1;
 				}
 				break;
 			case 14:
 				{
-				alt16=2;
+				alt17=2;
 				}
 				break;
 			case 75:
 				{
-				int LA16_3 = input.LA(2);
-				if ( (LA16_3==NUMBER) ) {
-					alt16=3;
+				int LA17_3 = input.LA(2);
+				if ( (LA17_3==NUMBER) ) {
+					alt17=3;
 				}
-				else if ( (LA16_3==STRING) ) {
-					alt16=13;
+				else if ( (LA17_3==STRING) ) {
+					alt17=13;
 				}
 
 				else {
@@ -1444,7 +1477,7 @@ public class SDG_Parser extends Parser {
 					try {
 						input.consume();
 						NoViableAltException nvae =
-							new NoViableAltException("", 16, 3, input);
+							new NoViableAltException("", 17, 3, input);
 						throw nvae;
 					} finally {
 						input.rewind(nvaeMark);
@@ -1455,70 +1488,70 @@ public class SDG_Parser extends Parser {
 				break;
 			case 57:
 				{
-				alt16=4;
+				alt17=4;
 				}
 				break;
 			case 56:
 				{
-				alt16=5;
+				alt17=5;
 				}
 				break;
 			case 77:
 				{
-				alt16=6;
+				alt17=6;
 				}
 				break;
 			case 73:
 				{
-				alt16=7;
+				alt17=7;
 				}
 				break;
 			case 79:
 				{
-				alt16=8;
+				alt17=8;
 				}
 				break;
 			case 53:
 				{
-				alt16=9;
+				alt17=9;
 				}
 				break;
 			case 15:
 				{
-				alt16=10;
+				alt17=10;
 				}
 				break;
 			case 11:
 				{
-				alt16=11;
+				alt17=11;
 				}
 				break;
 			case 23:
 				{
-				alt16=12;
+				alt17=12;
 				}
 				break;
 			case 51:
 				{
-				alt16=14;
+				alt17=14;
 				}
 				break;
 			case 52:
 				{
-				alt16=15;
+				alt17=15;
 				}
 				break;
 			default:
 				NoViableAltException nvae =
-					new NoViableAltException("", 16, 0, input);
+					new NoViableAltException("", 17, 0, input);
 				throw nvae;
 			}
-			switch (alt16) {
+			switch (alt17) {
 				case 1 :
-					// SDG_.g:386:5: 'S' spos= node_source
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:396:5: 'S' spos= node_source
 					{
-					match(input,65,FOLLOW_65_in_node_attr838); 
-					pushFollow(FOLLOW_node_source_in_node_attr842);
+					match(input,65,FOLLOW_65_in_node_attr884); 
+					pushFollow(FOLLOW_node_source_in_node_attr888);
 					spos=node_source();
 					state._fsp--;
 
@@ -1526,10 +1559,10 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 2 :
-					// SDG_.g:387:5: 'B' bpos= node_bytecode
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:397:5: 'B' bpos= node_bytecode
 					{
-					match(input,14,FOLLOW_14_in_node_attr854); 
-					pushFollow(FOLLOW_node_bytecode_in_node_attr858);
+					match(input,14,FOLLOW_14_in_node_attr900); 
+					pushFollow(FOLLOW_node_bytecode_in_node_attr904);
 					bpos=node_bytecode();
 					state._fsp--;
 
@@ -1537,20 +1570,20 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 3 :
-					// SDG_.g:388:5: 'U' number
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:398:5: 'U' number
 					{
-					match(input,75,FOLLOW_75_in_node_attr869); 
-					pushFollow(FOLLOW_number_in_node_attr871);
+					match(input,75,FOLLOW_75_in_node_attr915); 
+					pushFollow(FOLLOW_number_in_node_attr917);
 					number();
 					state._fsp--;
 
 					}
 					break;
 				case 4 :
-					// SDG_.g:389:5: 'P' procId= number
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:399:5: 'P' procId= number
 					{
-					match(input,57,FOLLOW_57_in_node_attr921); 
-					pushFollow(FOLLOW_number_in_node_attr925);
+					match(input,57,FOLLOW_57_in_node_attr967); 
+					pushFollow(FOLLOW_number_in_node_attr971);
 					procId=number();
 					state._fsp--;
 
@@ -1558,10 +1591,10 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 5 :
-					// SDG_.g:390:5: 'O' op= node_oper
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:400:5: 'O' op= node_oper
 					{
-					match(input,56,FOLLOW_56_in_node_attr944); 
-					pushFollow(FOLLOW_node_oper_in_node_attr948);
+					match(input,56,FOLLOW_56_in_node_attr990); 
+					pushFollow(FOLLOW_node_oper_in_node_attr994);
 					op=node_oper();
 					state._fsp--;
 
@@ -1569,10 +1602,10 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 6 :
-					// SDG_.g:391:5: 'V' val= string
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:401:5: 'V' val= string
 					{
-					match(input,77,FOLLOW_77_in_node_attr976); 
-					pushFollow(FOLLOW_string_in_node_attr980);
+					match(input,77,FOLLOW_77_in_node_attr1022); 
+					pushFollow(FOLLOW_string_in_node_attr1026);
 					val=string();
 					state._fsp--;
 
@@ -1580,10 +1613,10 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 7 :
-					// SDG_.g:392:5: 'T' type= string
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:402:5: 'T' type= string
 					{
-					match(input,73,FOLLOW_73_in_node_attr1008); 
-					pushFollow(FOLLOW_string_in_node_attr1012);
+					match(input,73,FOLLOW_73_in_node_attr1054); 
+					pushFollow(FOLLOW_string_in_node_attr1058);
 					type=string();
 					state._fsp--;
 
@@ -1591,10 +1624,10 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 8 :
-					// SDG_.g:393:5: 'Z' tn= may_neg_num_set
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:403:5: 'Z' tn= may_neg_num_set
 					{
-					match(input,79,FOLLOW_79_in_node_attr1037); 
-					pushFollow(FOLLOW_may_neg_num_set_in_node_attr1041);
+					match(input,79,FOLLOW_79_in_node_attr1083); 
+					pushFollow(FOLLOW_may_neg_num_set_in_node_attr1087);
 					tn=may_neg_num_set();
 					state._fsp--;
 
@@ -1602,17 +1635,17 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 9 :
-					// SDG_.g:394:5: 'N'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:404:5: 'N'
 					{
-					match(input,53,FOLLOW_53_in_node_attr1055); 
+					match(input,53,FOLLOW_53_in_node_attr1101); 
 					 node.nonTerm = true; 
 					}
 					break;
 				case 10 :
-					// SDG_.g:395:5: 'C' cl= string
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:405:5: 'C' cl= string
 					{
-					match(input,15,FOLLOW_15_in_node_attr1089); 
-					pushFollow(FOLLOW_string_in_node_attr1093);
+					match(input,15,FOLLOW_15_in_node_attr1135); 
+					pushFollow(FOLLOW_string_in_node_attr1139);
 					cl=string();
 					state._fsp--;
 
@@ -1620,10 +1653,10 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 11 :
-					// SDG_.g:396:5: 'A' al= pos_num_set
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:406:5: 'A' al= pos_num_set
 					{
-					match(input,11,FOLLOW_11_in_node_attr1115); 
-					pushFollow(FOLLOW_pos_num_set_in_node_attr1119);
+					match(input,11,FOLLOW_11_in_node_attr1161); 
+					pushFollow(FOLLOW_pos_num_set_in_node_attr1165);
 					al=pos_num_set();
 					state._fsp--;
 
@@ -1631,10 +1664,10 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 12 :
-					// SDG_.g:397:5: 'D' ds= pos_num_set
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:407:5: 'D' ds= pos_num_set
 					{
-					match(input,23,FOLLOW_23_in_node_attr1137); 
-					pushFollow(FOLLOW_pos_num_set_in_node_attr1141);
+					match(input,23,FOLLOW_23_in_node_attr1183); 
+					pushFollow(FOLLOW_pos_num_set_in_node_attr1187);
 					ds=pos_num_set();
 					state._fsp--;
 
@@ -1642,10 +1675,10 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 13 :
-					// SDG_.g:398:5: 'U' uct= string
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:408:5: 'U' uct= string
 					{
-					match(input,75,FOLLOW_75_in_node_attr1158); 
-					pushFollow(FOLLOW_string_in_node_attr1162);
+					match(input,75,FOLLOW_75_in_node_attr1204); 
+					pushFollow(FOLLOW_string_in_node_attr1208);
 					uct=string();
 					state._fsp--;
 
@@ -1653,10 +1686,10 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 14 :
-					// SDG_.g:399:5: 'LD' ldefs= mayEmptyStringList
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:409:5: 'LD' ldefs= mayEmptyStringList
 					{
-					match(input,51,FOLLOW_51_in_node_attr1180); 
-					pushFollow(FOLLOW_mayEmptyStringList_in_node_attr1184);
+					match(input,51,FOLLOW_51_in_node_attr1226); 
+					pushFollow(FOLLOW_mayEmptyStringList_in_node_attr1230);
 					ldefs=mayEmptyStringList();
 					state._fsp--;
 
@@ -1666,10 +1699,10 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 15 :
-					// SDG_.g:402:5: 'LU' luses= mayEmptyStringList
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:412:5: 'LU' luses= mayEmptyStringList
 					{
-					match(input,52,FOLLOW_52_in_node_attr1193); 
-					pushFollow(FOLLOW_mayEmptyStringList_in_node_attr1197);
+					match(input,52,FOLLOW_52_in_node_attr1239); 
+					pushFollow(FOLLOW_mayEmptyStringList_in_node_attr1243);
 					luses=mayEmptyStringList();
 					state._fsp--;
 
@@ -1694,7 +1727,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "pos_num_set"
-	// SDG_.g:406:9: private pos_num_set returns [TIntSet nums = new TIntHashSet();] : n= number ( ',' n2= number )* ;
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:416:9: private pos_num_set returns [TIntSet nums = new TIntHashSet();] : n= number ( ',' n2= number )* ;
 	public final TIntSet pos_num_set() throws RecognitionException {
 		TIntSet nums =  new TIntHashSet();;
 
@@ -1703,76 +1736,15 @@ public class SDG_Parser extends Parser {
 		int n2 =0;
 
 		try {
-			// SDG_.g:407:3: (n= number ( ',' n2= number )* )
-			// SDG_.g:407:5: n= number ( ',' n2= number )*
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:417:3: (n= number ( ',' n2= number )* )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:417:5: n= number ( ',' n2= number )*
 			{
-			pushFollow(FOLLOW_number_in_pos_num_set1218);
+			pushFollow(FOLLOW_number_in_pos_num_set1264);
 			n=number();
 			state._fsp--;
 
 			 nums.add(n); 
-			// SDG_.g:407:31: ( ',' n2= number )*
-			loop17:
-			while (true) {
-				int alt17=2;
-				int LA17_0 = input.LA(1);
-				if ( (LA17_0==7) ) {
-					alt17=1;
-				}
-
-				switch (alt17) {
-				case 1 :
-					// SDG_.g:407:32: ',' n2= number
-					{
-					match(input,7,FOLLOW_7_in_pos_num_set1223); 
-					pushFollow(FOLLOW_number_in_pos_num_set1227);
-					n2=number();
-					state._fsp--;
-
-					 nums.add(n2); 
-					}
-					break;
-
-				default :
-					break loop17;
-				}
-			}
-
-			}
-
-		}
-		catch (RecognitionException re) {
-			reportError(re);
-			recover(input,re);
-		}
-		finally {
-			// do for sure before leaving
-		}
-		return nums;
-	}
-	// $ANTLR end "pos_num_set"
-
-
-
-	// $ANTLR start "may_neg_num_set"
-	// SDG_.g:410:9: private may_neg_num_set returns [TIntSet nums = new TIntHashSet();] : n= mayNegNumber ( ',' n2= mayNegNumber )* ;
-	public final TIntSet may_neg_num_set() throws RecognitionException {
-		TIntSet nums =  new TIntHashSet();;
-
-
-		int n =0;
-		int n2 =0;
-
-		try {
-			// SDG_.g:411:3: (n= mayNegNumber ( ',' n2= mayNegNumber )* )
-			// SDG_.g:411:5: n= mayNegNumber ( ',' n2= mayNegNumber )*
-			{
-			pushFollow(FOLLOW_mayNegNumber_in_may_neg_num_set1253);
-			n=mayNegNumber();
-			state._fsp--;
-
-			 nums.add(n); 
-			// SDG_.g:411:37: ( ',' n2= mayNegNumber )*
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:417:31: ( ',' n2= number )*
 			loop18:
 			while (true) {
 				int alt18=2;
@@ -1783,11 +1755,11 @@ public class SDG_Parser extends Parser {
 
 				switch (alt18) {
 				case 1 :
-					// SDG_.g:411:38: ',' n2= mayNegNumber
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:417:32: ',' n2= number
 					{
-					match(input,7,FOLLOW_7_in_may_neg_num_set1258); 
-					pushFollow(FOLLOW_mayNegNumber_in_may_neg_num_set1262);
-					n2=mayNegNumber();
+					match(input,7,FOLLOW_7_in_pos_num_set1269); 
+					pushFollow(FOLLOW_number_in_pos_num_set1273);
+					n2=number();
 					state._fsp--;
 
 					 nums.add(n2); 
@@ -1811,12 +1783,73 @@ public class SDG_Parser extends Parser {
 		}
 		return nums;
 	}
+	// $ANTLR end "pos_num_set"
+
+
+
+	// $ANTLR start "may_neg_num_set"
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:420:9: private may_neg_num_set returns [TIntSet nums = new TIntHashSet();] : n= mayNegNumber ( ',' n2= mayNegNumber )* ;
+	public final TIntSet may_neg_num_set() throws RecognitionException {
+		TIntSet nums =  new TIntHashSet();;
+
+
+		int n =0;
+		int n2 =0;
+
+		try {
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:421:3: (n= mayNegNumber ( ',' n2= mayNegNumber )* )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:421:5: n= mayNegNumber ( ',' n2= mayNegNumber )*
+			{
+			pushFollow(FOLLOW_mayNegNumber_in_may_neg_num_set1299);
+			n=mayNegNumber();
+			state._fsp--;
+
+			 nums.add(n); 
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:421:37: ( ',' n2= mayNegNumber )*
+			loop19:
+			while (true) {
+				int alt19=2;
+				int LA19_0 = input.LA(1);
+				if ( (LA19_0==7) ) {
+					alt19=1;
+				}
+
+				switch (alt19) {
+				case 1 :
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:421:38: ',' n2= mayNegNumber
+					{
+					match(input,7,FOLLOW_7_in_may_neg_num_set1304); 
+					pushFollow(FOLLOW_mayNegNumber_in_may_neg_num_set1308);
+					n2=mayNegNumber();
+					state._fsp--;
+
+					 nums.add(n2); 
+					}
+					break;
+
+				default :
+					break loop19;
+				}
+			}
+
+			}
+
+		}
+		catch (RecognitionException re) {
+			reportError(re);
+			recover(input,re);
+		}
+		finally {
+			// do for sure before leaving
+		}
+		return nums;
+	}
 	// $ANTLR end "may_neg_num_set"
 
 
 
 	// $ANTLR start "node_source"
-	// SDG_.g:414:9: private node_source returns [SourcePos spos] : filename= string ':' startRow= number ',' startColumn= number '-' endRow= number ',' endColumn= number ;
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:424:9: private node_source returns [SourcePos spos] : filename= string ':' startRow= number ',' startColumn= number '-' endRow= number ',' endColumn= number ;
 	public final SourcePos node_source() throws RecognitionException {
 		SourcePos spos = null;
 
@@ -1828,30 +1861,30 @@ public class SDG_Parser extends Parser {
 		int endColumn =0;
 
 		try {
-			// SDG_.g:415:3: (filename= string ':' startRow= number ',' startColumn= number '-' endRow= number ',' endColumn= number )
-			// SDG_.g:415:5: filename= string ':' startRow= number ',' startColumn= number '-' endRow= number ',' endColumn= number
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:425:3: (filename= string ':' startRow= number ',' startColumn= number '-' endRow= number ',' endColumn= number )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:425:5: filename= string ':' startRow= number ',' startColumn= number '-' endRow= number ',' endColumn= number
 			{
-			pushFollow(FOLLOW_string_in_node_source1288);
+			pushFollow(FOLLOW_string_in_node_source1334);
 			filename=string();
 			state._fsp--;
 
-			match(input,9,FOLLOW_9_in_node_source1290); 
-			pushFollow(FOLLOW_number_in_node_source1294);
+			match(input,9,FOLLOW_9_in_node_source1336); 
+			pushFollow(FOLLOW_number_in_node_source1340);
 			startRow=number();
 			state._fsp--;
 
-			match(input,7,FOLLOW_7_in_node_source1296); 
-			pushFollow(FOLLOW_number_in_node_source1300);
+			match(input,7,FOLLOW_7_in_node_source1342); 
+			pushFollow(FOLLOW_number_in_node_source1346);
 			startColumn=number();
 			state._fsp--;
 
-			match(input,8,FOLLOW_8_in_node_source1302); 
-			pushFollow(FOLLOW_number_in_node_source1306);
+			match(input,8,FOLLOW_8_in_node_source1348); 
+			pushFollow(FOLLOW_number_in_node_source1352);
 			endRow=number();
 			state._fsp--;
 
-			match(input,7,FOLLOW_7_in_node_source1308); 
-			pushFollow(FOLLOW_number_in_node_source1312);
+			match(input,7,FOLLOW_7_in_node_source1354); 
+			pushFollow(FOLLOW_number_in_node_source1358);
 			endColumn=number();
 			state._fsp--;
 
@@ -1873,7 +1906,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "node_bytecode"
-	// SDG_.g:419:9: private node_bytecode returns [ByteCodePos bpos] : name= string ':' index= mayNegNumber ;
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:429:9: private node_bytecode returns [ByteCodePos bpos] : name= string ':' index= mayNegNumber ;
 	public final ByteCodePos node_bytecode() throws RecognitionException {
 		ByteCodePos bpos = null;
 
@@ -1882,15 +1915,15 @@ public class SDG_Parser extends Parser {
 		int index =0;
 
 		try {
-			// SDG_.g:420:3: (name= string ':' index= mayNegNumber )
-			// SDG_.g:420:5: name= string ':' index= mayNegNumber
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:430:3: (name= string ':' index= mayNegNumber )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:430:5: name= string ':' index= mayNegNumber
 			{
-			pushFollow(FOLLOW_string_in_node_bytecode1343);
+			pushFollow(FOLLOW_string_in_node_bytecode1389);
 			name=string();
 			state._fsp--;
 
-			match(input,9,FOLLOW_9_in_node_bytecode1345); 
-			pushFollow(FOLLOW_mayNegNumber_in_node_bytecode1349);
+			match(input,9,FOLLOW_9_in_node_bytecode1391); 
+			pushFollow(FOLLOW_mayNegNumber_in_node_bytecode1395);
 			index=mayNegNumber();
 			state._fsp--;
 
@@ -1912,402 +1945,402 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "node_oper"
-	// SDG_.g:423:9: private node_oper returns [SDGNode.Operation op] : ( 'empty' | 'intconst' | 'floatconst' | 'charconst' | 'stringconst' | 'functionconst' | 'shortcut' | 'question' | 'binary' | 'unary' | 'derefer' | 'refer' | 'array' | 'select' | 'reference' | 'declaration' | 'modify' | 'modassign' | 'assign' | 'IF' | 'loop' | 'jump' | 'compound' | 'call' | 'entry' | 'exit' | 'form-in' | 'form-ellip' | 'form-out' | 'act-in' | 'act-out' | 'monitor' );
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:433:9: private node_oper returns [SDGNode.Operation op] : ( 'empty' | 'intconst' | 'floatconst' | 'charconst' | 'stringconst' | 'functionconst' | 'shortcut' | 'question' | 'binary' | 'unary' | 'derefer' | 'refer' | 'array' | 'select' | 'reference' | 'declaration' | 'modify' | 'modassign' | 'assign' | 'IF' | 'loop' | 'jump' | 'compound' | 'call' | 'entry' | 'exit' | 'form-in' | 'form-ellip' | 'form-out' | 'act-in' | 'act-out' | 'monitor' );
 	public final SDGNode.Operation node_oper() throws RecognitionException {
 		SDGNode.Operation op = null;
 
 
 		try {
-			// SDG_.g:424:3: ( 'empty' | 'intconst' | 'floatconst' | 'charconst' | 'stringconst' | 'functionconst' | 'shortcut' | 'question' | 'binary' | 'unary' | 'derefer' | 'refer' | 'array' | 'select' | 'reference' | 'declaration' | 'modify' | 'modassign' | 'assign' | 'IF' | 'loop' | 'jump' | 'compound' | 'call' | 'entry' | 'exit' | 'form-in' | 'form-ellip' | 'form-out' | 'act-in' | 'act-out' | 'monitor' )
-			int alt19=32;
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:434:3: ( 'empty' | 'intconst' | 'floatconst' | 'charconst' | 'stringconst' | 'functionconst' | 'shortcut' | 'question' | 'binary' | 'unary' | 'derefer' | 'refer' | 'array' | 'select' | 'reference' | 'declaration' | 'modify' | 'modassign' | 'assign' | 'IF' | 'loop' | 'jump' | 'compound' | 'call' | 'entry' | 'exit' | 'form-in' | 'form-ellip' | 'form-out' | 'act-in' | 'act-out' | 'monitor' )
+			int alt20=32;
 			switch ( input.LA(1) ) {
 			case 92:
 				{
-				alt19=1;
+				alt20=1;
 				}
 				break;
 			case 101:
 				{
-				alt19=2;
+				alt20=2;
 				}
 				break;
 			case 96:
 				{
-				alt19=3;
+				alt20=3;
 				}
 				break;
 			case 88:
 				{
-				alt19=4;
+				alt20=4;
 				}
 				break;
-			case 113:
+			case 114:
 				{
-				alt19=5;
+				alt20=5;
 				}
 				break;
 			case 100:
 				{
-				alt19=6;
+				alt20=6;
 				}
 				break;
-			case 112:
+			case 113:
 				{
-				alt19=7;
+				alt20=7;
 				}
 				break;
 			case 108:
 				{
-				alt19=8;
+				alt20=8;
 				}
 				break;
 			case 86:
 				{
-				alt19=9;
+				alt20=9;
 				}
 				break;
-			case 115:
+			case 116:
 				{
-				alt19=10;
+				alt20=10;
 				}
 				break;
 			case 91:
 				{
-				alt19=11;
+				alt20=11;
 				}
 				break;
 			case 109:
 				{
-				alt19=12;
+				alt20=12;
 				}
 				break;
 			case 84:
 				{
-				alt19=13;
+				alt20=13;
 				}
 				break;
-			case 111:
+			case 112:
 				{
-				alt19=14;
+				alt20=14;
 				}
 				break;
 			case 110:
 				{
-				alt19=15;
+				alt20=15;
 				}
 				break;
 			case 90:
 				{
-				alt19=16;
+				alt20=16;
 				}
 				break;
 			case 105:
 				{
-				alt19=17;
+				alt20=17;
 				}
 				break;
 			case 104:
 				{
-				alt19=18;
+				alt20=18;
 				}
 				break;
 			case 85:
 				{
-				alt19=19;
+				alt20=19;
 				}
 				break;
 			case 44:
 				{
-				alt19=20;
+				alt20=20;
 				}
 				break;
 			case 103:
 				{
-				alt19=21;
+				alt20=21;
 				}
 				break;
 			case 102:
 				{
-				alt19=22;
+				alt20=22;
 				}
 				break;
 			case 89:
 				{
-				alt19=23;
+				alt20=23;
 				}
 				break;
 			case 87:
 				{
-				alt19=24;
+				alt20=24;
 				}
 				break;
 			case 93:
 				{
-				alt19=25;
+				alt20=25;
 				}
 				break;
 			case 94:
 				{
-				alt19=26;
+				alt20=26;
 				}
 				break;
 			case 98:
 				{
-				alt19=27;
+				alt20=27;
 				}
 				break;
 			case 97:
 				{
-				alt19=28;
+				alt20=28;
 				}
 				break;
 			case 99:
 				{
-				alt19=29;
+				alt20=29;
 				}
 				break;
 			case 82:
 				{
-				alt19=30;
+				alt20=30;
 				}
 				break;
 			case 83:
 				{
-				alt19=31;
+				alt20=31;
 				}
 				break;
 			case 106:
 				{
-				alt19=32;
+				alt20=32;
 				}
 				break;
 			default:
 				NoViableAltException nvae =
-					new NoViableAltException("", 19, 0, input);
+					new NoViableAltException("", 20, 0, input);
 				throw nvae;
 			}
-			switch (alt19) {
+			switch (alt20) {
 				case 1 :
-					// SDG_.g:424:5: 'empty'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:434:5: 'empty'
 					{
-					match(input,92,FOLLOW_92_in_node_oper1370); 
+					match(input,92,FOLLOW_92_in_node_oper1416); 
 					 op = SDGNode.Operation.EMPTY; 
 					}
 					break;
 				case 2 :
-					// SDG_.g:425:5: 'intconst'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:435:5: 'intconst'
 					{
-					match(input,101,FOLLOW_101_in_node_oper1387); 
+					match(input,101,FOLLOW_101_in_node_oper1433); 
 					 op = SDGNode.Operation.INT_CONST; 
 					}
 					break;
 				case 3 :
-					// SDG_.g:426:5: 'floatconst'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:436:5: 'floatconst'
 					{
-					match(input,96,FOLLOW_96_in_node_oper1401); 
+					match(input,96,FOLLOW_96_in_node_oper1447); 
 					 op = SDGNode.Operation.FLOAT_CONST; 
 					}
 					break;
 				case 4 :
-					// SDG_.g:427:5: 'charconst'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:437:5: 'charconst'
 					{
-					match(input,88,FOLLOW_88_in_node_oper1413); 
+					match(input,88,FOLLOW_88_in_node_oper1459); 
 					 op = SDGNode.Operation.CHAR_CONST; 
 					}
 					break;
 				case 5 :
-					// SDG_.g:428:5: 'stringconst'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:438:5: 'stringconst'
 					{
-					match(input,113,FOLLOW_113_in_node_oper1426); 
+					match(input,114,FOLLOW_114_in_node_oper1472); 
 					 op = SDGNode.Operation.STRING_CONST; 
 					}
 					break;
 				case 6 :
-					// SDG_.g:429:5: 'functionconst'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:439:5: 'functionconst'
 					{
-					match(input,100,FOLLOW_100_in_node_oper1437); 
+					match(input,100,FOLLOW_100_in_node_oper1483); 
 					 op = SDGNode.Operation.FUNCTION_CONST; 
 					}
 					break;
 				case 7 :
-					// SDG_.g:430:5: 'shortcut'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:440:5: 'shortcut'
 					{
-					match(input,112,FOLLOW_112_in_node_oper1446); 
+					match(input,113,FOLLOW_113_in_node_oper1492); 
 					 op = SDGNode.Operation.SHORTCUT; 
 					}
 					break;
 				case 8 :
-					// SDG_.g:431:5: 'question'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:441:5: 'question'
 					{
-					match(input,108,FOLLOW_108_in_node_oper1460); 
+					match(input,108,FOLLOW_108_in_node_oper1506); 
 					 op = SDGNode.Operation.QUESTION; 
 					}
 					break;
 				case 9 :
-					// SDG_.g:432:5: 'binary'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:442:5: 'binary'
 					{
-					match(input,86,FOLLOW_86_in_node_oper1474); 
+					match(input,86,FOLLOW_86_in_node_oper1520); 
 					 op = SDGNode.Operation.BINARY; 
 					}
 					break;
 				case 10 :
-					// SDG_.g:433:5: 'unary'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:443:5: 'unary'
 					{
-					match(input,115,FOLLOW_115_in_node_oper1490); 
+					match(input,116,FOLLOW_116_in_node_oper1536); 
 					 op = SDGNode.Operation.UNARY; 
 					}
 					break;
 				case 11 :
-					// SDG_.g:434:5: 'derefer'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:444:5: 'derefer'
 					{
-					match(input,91,FOLLOW_91_in_node_oper1507); 
+					match(input,91,FOLLOW_91_in_node_oper1553); 
 					 op = SDGNode.Operation.DEREFER; 
 					}
 					break;
 				case 12 :
-					// SDG_.g:435:5: 'refer'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:445:5: 'refer'
 					{
-					match(input,109,FOLLOW_109_in_node_oper1522); 
+					match(input,109,FOLLOW_109_in_node_oper1568); 
 					 op = SDGNode.Operation.REFER; 
 					}
 					break;
 				case 13 :
-					// SDG_.g:436:5: 'array'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:446:5: 'array'
 					{
-					match(input,84,FOLLOW_84_in_node_oper1539); 
+					match(input,84,FOLLOW_84_in_node_oper1585); 
 					 op = SDGNode.Operation.ARRAY; 
 					}
 					break;
 				case 14 :
-					// SDG_.g:437:5: 'select'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:447:5: 'select'
 					{
-					match(input,111,FOLLOW_111_in_node_oper1556); 
+					match(input,112,FOLLOW_112_in_node_oper1602); 
 					 op = SDGNode.Operation.SELECT; 
 					}
 					break;
 				case 15 :
-					// SDG_.g:438:5: 'reference'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:448:5: 'reference'
 					{
-					match(input,110,FOLLOW_110_in_node_oper1572); 
+					match(input,110,FOLLOW_110_in_node_oper1618); 
 					 op = SDGNode.Operation.REFERENCE; 
 					}
 					break;
 				case 16 :
-					// SDG_.g:439:5: 'declaration'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:449:5: 'declaration'
 					{
-					match(input,90,FOLLOW_90_in_node_oper1585); 
+					match(input,90,FOLLOW_90_in_node_oper1631); 
 					 op = SDGNode.Operation.DECLARATION; 
 					}
 					break;
 				case 17 :
-					// SDG_.g:440:5: 'modify'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:450:5: 'modify'
 					{
-					match(input,105,FOLLOW_105_in_node_oper1596); 
+					match(input,105,FOLLOW_105_in_node_oper1642); 
 					 op = SDGNode.Operation.MODIFY; 
 					}
 					break;
 				case 18 :
-					// SDG_.g:441:5: 'modassign'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:451:5: 'modassign'
 					{
-					match(input,104,FOLLOW_104_in_node_oper1612); 
+					match(input,104,FOLLOW_104_in_node_oper1658); 
 					 op = SDGNode.Operation.MODASSIGN; 
 					}
 					break;
 				case 19 :
-					// SDG_.g:442:5: 'assign'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:452:5: 'assign'
 					{
-					match(input,85,FOLLOW_85_in_node_oper1625); 
+					match(input,85,FOLLOW_85_in_node_oper1671); 
 					 op = SDGNode.Operation.ASSIGN; 
 					}
 					break;
 				case 20 :
-					// SDG_.g:443:5: 'IF'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:453:5: 'IF'
 					{
-					match(input,44,FOLLOW_44_in_node_oper1641); 
+					match(input,44,FOLLOW_44_in_node_oper1687); 
 					 op = SDGNode.Operation.IF; 
 					}
 					break;
 				case 21 :
-					// SDG_.g:444:5: 'loop'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:454:5: 'loop'
 					{
-					match(input,103,FOLLOW_103_in_node_oper1661); 
+					match(input,103,FOLLOW_103_in_node_oper1707); 
 					 op = SDGNode.Operation.LOOP; 
 					}
 					break;
 				case 22 :
-					// SDG_.g:445:5: 'jump'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:455:5: 'jump'
 					{
-					match(input,102,FOLLOW_102_in_node_oper1679); 
+					match(input,102,FOLLOW_102_in_node_oper1725); 
 					 op = SDGNode.Operation.JUMP; 
 					}
 					break;
 				case 23 :
-					// SDG_.g:446:5: 'compound'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:456:5: 'compound'
 					{
-					match(input,89,FOLLOW_89_in_node_oper1697); 
+					match(input,89,FOLLOW_89_in_node_oper1743); 
 					 op = SDGNode.Operation.COMPOUND; 
 					}
 					break;
 				case 24 :
-					// SDG_.g:447:5: 'call'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:457:5: 'call'
 					{
-					match(input,87,FOLLOW_87_in_node_oper1711); 
+					match(input,87,FOLLOW_87_in_node_oper1757); 
 					 op = SDGNode.Operation.CALL; 
 					}
 					break;
 				case 25 :
-					// SDG_.g:448:5: 'entry'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:458:5: 'entry'
 					{
-					match(input,93,FOLLOW_93_in_node_oper1729); 
+					match(input,93,FOLLOW_93_in_node_oper1775); 
 					 op = SDGNode.Operation.ENTRY; 
 					}
 					break;
 				case 26 :
-					// SDG_.g:449:5: 'exit'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:459:5: 'exit'
 					{
-					match(input,94,FOLLOW_94_in_node_oper1746); 
+					match(input,94,FOLLOW_94_in_node_oper1792); 
 					 op = SDGNode.Operation.EXIT; 
 					}
 					break;
 				case 27 :
-					// SDG_.g:450:5: 'form-in'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:460:5: 'form-in'
 					{
-					match(input,98,FOLLOW_98_in_node_oper1764); 
+					match(input,98,FOLLOW_98_in_node_oper1810); 
 					 op = SDGNode.Operation.FORMAL_IN; 
 					}
 					break;
 				case 28 :
-					// SDG_.g:451:5: 'form-ellip'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:461:5: 'form-ellip'
 					{
-					match(input,97,FOLLOW_97_in_node_oper1779); 
+					match(input,97,FOLLOW_97_in_node_oper1825); 
 					 op = SDGNode.Operation.FORMAL_ELLIP; 
 					}
 					break;
 				case 29 :
-					// SDG_.g:452:5: 'form-out'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:462:5: 'form-out'
 					{
-					match(input,99,FOLLOW_99_in_node_oper1791); 
+					match(input,99,FOLLOW_99_in_node_oper1837); 
 					 op = SDGNode.Operation.FORMAL_OUT; 
 					}
 					break;
 				case 30 :
-					// SDG_.g:453:5: 'act-in'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:463:5: 'act-in'
 					{
-					match(input,82,FOLLOW_82_in_node_oper1805); 
+					match(input,82,FOLLOW_82_in_node_oper1851); 
 					 op = SDGNode.Operation.ACTUAL_IN; 
 					}
 					break;
 				case 31 :
-					// SDG_.g:454:5: 'act-out'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:464:5: 'act-out'
 					{
-					match(input,83,FOLLOW_83_in_node_oper1821); 
+					match(input,83,FOLLOW_83_in_node_oper1867); 
 					 op = SDGNode.Operation.ACTUAL_OUT; 
 					}
 					break;
 				case 32 :
-					// SDG_.g:455:5: 'monitor'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:465:5: 'monitor'
 					{
-					match(input,106,FOLLOW_106_in_node_oper1836); 
+					match(input,106,FOLLOW_106_in_node_oper1882); 
 					 op = SDGNode.Operation.MONITOR; 
 					}
 					break;
@@ -2328,38 +2361,38 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "node_edges"
-	// SDG_.g:458:9: private node_edges[SDGNodeStub node] : (e= edge ';' )* ;
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:468:9: private node_edges[SDGNodeStub node] : (e= edge ';' )* ;
 	public final void node_edges(SDGNodeStub node) throws RecognitionException {
 		SDGEdgeStub e =null;
 
 		try {
-			// SDG_.g:459:3: ( (e= edge ';' )* )
-			// SDG_.g:459:5: (e= edge ';' )*
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:469:3: ( (e= edge ';' )* )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:469:5: (e= edge ';' )*
 			{
-			// SDG_.g:459:5: (e= edge ';' )*
-			loop20:
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:469:5: (e= edge ';' )*
+			loop21:
 			while (true) {
-				int alt20=2;
-				int LA20_0 = input.LA(1);
-				if ( ((LA20_0 >= 17 && LA20_0 <= 21)||(LA20_0 >= 24 && LA20_0 <= 26)||(LA20_0 >= 33 && LA20_0 <= 34)||(LA20_0 >= 36 && LA20_0 <= 38)||(LA20_0 >= 42 && LA20_0 <= 43)||LA20_0==45||(LA20_0 >= 47 && LA20_0 <= 49)||LA20_0==54||(LA20_0 >= 58 && LA20_0 <= 59)||(LA20_0 >= 61 && LA20_0 <= 64)||LA20_0==66||(LA20_0 >= 68 && LA20_0 <= 71)||LA20_0==76||LA20_0==78) ) {
-					alt20=1;
+				int alt21=2;
+				int LA21_0 = input.LA(1);
+				if ( ((LA21_0 >= 17 && LA21_0 <= 21)||(LA21_0 >= 24 && LA21_0 <= 26)||(LA21_0 >= 33 && LA21_0 <= 34)||(LA21_0 >= 36 && LA21_0 <= 38)||(LA21_0 >= 42 && LA21_0 <= 43)||LA21_0==45||(LA21_0 >= 47 && LA21_0 <= 49)||LA21_0==54||(LA21_0 >= 58 && LA21_0 <= 59)||(LA21_0 >= 61 && LA21_0 <= 64)||LA21_0==66||(LA21_0 >= 68 && LA21_0 <= 71)||LA21_0==76||LA21_0==78) ) {
+					alt21=1;
 				}
 
-				switch (alt20) {
+				switch (alt21) {
 				case 1 :
-					// SDG_.g:459:6: e= edge ';'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:469:6: e= edge ';'
 					{
-					pushFollow(FOLLOW_edge_in_node_edges1864);
+					pushFollow(FOLLOW_edge_in_node_edges1910);
 					e=edge();
 					state._fsp--;
 
-					match(input,10,FOLLOW_10_in_node_edges1866); 
+					match(input,10,FOLLOW_10_in_node_edges1912); 
 					 node.edges.add(e); 
 					}
 					break;
 
 				default :
-					break loop20;
+					break loop21;
 				}
 			}
 
@@ -2379,7 +2412,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "edge"
-	// SDG_.g:462:9: private edge returns [SDGEdgeStub estub] : k= edge_kind nr= number ( ':' label= string )? ;
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:472:9: private edge returns [SDGEdgeStub estub] : k= edge_kind nr= number ( ':' label= string )? ;
 	public final SDGEdgeStub edge() throws RecognitionException {
 		SDGEdgeStub estub = null;
 
@@ -2389,30 +2422,30 @@ public class SDG_Parser extends Parser {
 		String label =null;
 
 		try {
-			// SDG_.g:463:3: (k= edge_kind nr= number ( ':' label= string )? )
-			// SDG_.g:463:5: k= edge_kind nr= number ( ':' label= string )?
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:473:3: (k= edge_kind nr= number ( ':' label= string )? )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:473:5: k= edge_kind nr= number ( ':' label= string )?
 			{
-			pushFollow(FOLLOW_edge_kind_in_edge1891);
+			pushFollow(FOLLOW_edge_kind_in_edge1937);
 			k=edge_kind();
 			state._fsp--;
 
-			pushFollow(FOLLOW_number_in_edge1895);
+			pushFollow(FOLLOW_number_in_edge1941);
 			nr=number();
 			state._fsp--;
 
 			 estub = new SDGEdgeStub(k, nr); 
-			// SDG_.g:463:63: ( ':' label= string )?
-			int alt21=2;
-			int LA21_0 = input.LA(1);
-			if ( (LA21_0==9) ) {
-				alt21=1;
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:473:63: ( ':' label= string )?
+			int alt22=2;
+			int LA22_0 = input.LA(1);
+			if ( (LA22_0==9) ) {
+				alt22=1;
 			}
-			switch (alt21) {
+			switch (alt22) {
 				case 1 :
-					// SDG_.g:463:64: ':' label= string
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:473:64: ':' label= string
 					{
-					match(input,9,FOLLOW_9_in_edge1900); 
-					pushFollow(FOLLOW_string_in_edge1904);
+					match(input,9,FOLLOW_9_in_edge1946); 
+					pushFollow(FOLLOW_string_in_edge1950);
 					label=string();
 					state._fsp--;
 
@@ -2439,414 +2472,414 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "edge_kind"
-	// SDG_.g:466:9: private edge_kind returns [SDGEdge.Kind kind] : ( 'DD' | 'DH' | 'DA' | 'CD' | 'CE' | 'UN' | 'CF' | 'NF' | 'RF' | 'CC' | 'CL' | 'PI' | 'PO' | 'SU' | 'SH' | 'SF' | 'PS' | 'FORK' | 'FORK_IN' | 'FORK_OUT' | 'JOIN' | 'ID' | 'IW' | 'SD' | 'HE' | 'FD' | 'FI' | 'RY' | 'JF' | 'SP' | 'VD' | 'RD' | 'JD' );
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:476:9: private edge_kind returns [SDGEdge.Kind kind] : ( 'DD' | 'DH' | 'DA' | 'CD' | 'CE' | 'UN' | 'CF' | 'NF' | 'RF' | 'CC' | 'CL' | 'PI' | 'PO' | 'SU' | 'SH' | 'SF' | 'PS' | 'FORK' | 'FORK_IN' | 'FORK_OUT' | 'JOIN' | 'ID' | 'IW' | 'SD' | 'HE' | 'FD' | 'FI' | 'RY' | 'JF' | 'SP' | 'VD' | 'RD' | 'JD' );
 	public final SDGEdge.Kind edge_kind() throws RecognitionException {
 		SDGEdge.Kind kind = null;
 
 
 		try {
-			// SDG_.g:468:3: ( 'DD' | 'DH' | 'DA' | 'CD' | 'CE' | 'UN' | 'CF' | 'NF' | 'RF' | 'CC' | 'CL' | 'PI' | 'PO' | 'SU' | 'SH' | 'SF' | 'PS' | 'FORK' | 'FORK_IN' | 'FORK_OUT' | 'JOIN' | 'ID' | 'IW' | 'SD' | 'HE' | 'FD' | 'FI' | 'RY' | 'JF' | 'SP' | 'VD' | 'RD' | 'JD' )
-			int alt22=33;
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:478:3: ( 'DD' | 'DH' | 'DA' | 'CD' | 'CE' | 'UN' | 'CF' | 'NF' | 'RF' | 'CC' | 'CL' | 'PI' | 'PO' | 'SU' | 'SH' | 'SF' | 'PS' | 'FORK' | 'FORK_IN' | 'FORK_OUT' | 'JOIN' | 'ID' | 'IW' | 'SD' | 'HE' | 'FD' | 'FI' | 'RY' | 'JF' | 'SP' | 'VD' | 'RD' | 'JD' )
+			int alt23=33;
 			switch ( input.LA(1) ) {
 			case 25:
 				{
-				alt22=1;
+				alt23=1;
 				}
 				break;
 			case 26:
 				{
-				alt22=2;
+				alt23=2;
 				}
 				break;
 			case 24:
 				{
-				alt22=3;
+				alt23=3;
 				}
 				break;
 			case 18:
 				{
-				alt22=4;
+				alt23=4;
 				}
 				break;
 			case 19:
 				{
-				alt22=5;
+				alt23=5;
 				}
 				break;
 			case 76:
 				{
-				alt22=6;
+				alt23=6;
 				}
 				break;
 			case 20:
 				{
-				alt22=7;
+				alt23=7;
 				}
 				break;
 			case 54:
 				{
-				alt22=8;
+				alt23=8;
 				}
 				break;
 			case 63:
 				{
-				alt22=9;
+				alt23=9;
 				}
 				break;
 			case 17:
 				{
-				alt22=10;
+				alt23=10;
 				}
 				break;
 			case 21:
 				{
-				alt22=11;
+				alt23=11;
 				}
 				break;
 			case 58:
 				{
-				alt22=12;
+				alt23=12;
 				}
 				break;
 			case 59:
 				{
-				alt22=13;
+				alt23=13;
 				}
 				break;
 			case 71:
 				{
-				alt22=14;
+				alt23=14;
 				}
 				break;
 			case 69:
 				{
-				alt22=15;
+				alt23=15;
 				}
 				break;
 			case 68:
 				{
-				alt22=16;
+				alt23=16;
 				}
 				break;
 			case 61:
 				{
-				alt22=17;
+				alt23=17;
 				}
 				break;
 			case 36:
 				{
-				alt22=18;
+				alt23=18;
 				}
 				break;
 			case 37:
 				{
-				alt22=19;
+				alt23=19;
 				}
 				break;
 			case 38:
 				{
-				alt22=20;
+				alt23=20;
 				}
 				break;
 			case 49:
 				{
-				alt22=21;
+				alt23=21;
 				}
 				break;
 			case 43:
 				{
-				alt22=22;
+				alt23=22;
 				}
 				break;
 			case 45:
 				{
-				alt22=23;
+				alt23=23;
 				}
 				break;
 			case 66:
 				{
-				alt22=24;
+				alt23=24;
 				}
 				break;
 			case 42:
 				{
-				alt22=25;
+				alt23=25;
 				}
 				break;
 			case 33:
 				{
-				alt22=26;
+				alt23=26;
 				}
 				break;
 			case 34:
 				{
-				alt22=27;
+				alt23=27;
 				}
 				break;
 			case 64:
 				{
-				alt22=28;
+				alt23=28;
 				}
 				break;
 			case 48:
 				{
-				alt22=29;
+				alt23=29;
 				}
 				break;
 			case 70:
 				{
-				alt22=30;
+				alt23=30;
 				}
 				break;
 			case 78:
 				{
-				alt22=31;
+				alt23=31;
 				}
 				break;
 			case 62:
 				{
-				alt22=32;
+				alt23=32;
 				}
 				break;
 			case 47:
 				{
-				alt22=33;
+				alt23=33;
 				}
 				break;
 			default:
 				NoViableAltException nvae =
-					new NoViableAltException("", 22, 0, input);
+					new NoViableAltException("", 23, 0, input);
 				throw nvae;
 			}
-			switch (alt22) {
+			switch (alt23) {
 				case 1 :
-					// SDG_.g:468:5: 'DD'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:478:5: 'DD'
 					{
-					match(input,25,FOLLOW_25_in_edge_kind1929); 
+					match(input,25,FOLLOW_25_in_edge_kind1975); 
 					 kind = SDGEdge.Kind.DATA_DEP; 
 					}
 					break;
 				case 2 :
-					// SDG_.g:469:5: 'DH'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:479:5: 'DH'
 					{
-					match(input,26,FOLLOW_26_in_edge_kind1949); 
+					match(input,26,FOLLOW_26_in_edge_kind1995); 
 					 kind = SDGEdge.Kind.DATA_HEAP; 
 					}
 					break;
 				case 3 :
-					// SDG_.g:470:5: 'DA'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:480:5: 'DA'
 					{
-					match(input,24,FOLLOW_24_in_edge_kind1968); 
+					match(input,24,FOLLOW_24_in_edge_kind2014); 
 					 kind = SDGEdge.Kind.DATA_ALIAS; 
 					}
 					break;
 				case 4 :
-					// SDG_.g:472:5: 'CD'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:482:5: 'CD'
 					{
-					match(input,18,FOLLOW_18_in_edge_kind1987); 
+					match(input,18,FOLLOW_18_in_edge_kind2033); 
 					 kind = SDGEdge.Kind.CONTROL_DEP_COND; 
 					}
 					break;
 				case 5 :
-					// SDG_.g:473:5: 'CE'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:483:5: 'CE'
 					{
-					match(input,19,FOLLOW_19_in_edge_kind1999); 
+					match(input,19,FOLLOW_19_in_edge_kind2045); 
 					 kind = SDGEdge.Kind.CONTROL_DEP_EXPR; 
 					}
 					break;
 				case 6 :
-					// SDG_.g:474:5: 'UN'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:484:5: 'UN'
 					{
-					match(input,76,FOLLOW_76_in_edge_kind2011); 
+					match(input,76,FOLLOW_76_in_edge_kind2057); 
 					 kind = SDGEdge.Kind.CONTROL_DEP_UNCOND; 
 					}
 					break;
 				case 7 :
-					// SDG_.g:476:5: 'CF'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:486:5: 'CF'
 					{
-					match(input,20,FOLLOW_20_in_edge_kind2022); 
+					match(input,20,FOLLOW_20_in_edge_kind2068); 
 					 kind = SDGEdge.Kind.CONTROL_FLOW; 
 					}
 					break;
 				case 8 :
-					// SDG_.g:477:5: 'NF'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:487:5: 'NF'
 					{
-					match(input,54,FOLLOW_54_in_edge_kind2038); 
+					match(input,54,FOLLOW_54_in_edge_kind2084); 
 					 kind = SDGEdge.Kind.NO_FLOW; 
 					}
 					break;
 				case 9 :
-					// SDG_.g:478:5: 'RF'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:488:5: 'RF'
 					{
-					match(input,63,FOLLOW_63_in_edge_kind2059); 
+					match(input,63,FOLLOW_63_in_edge_kind2105); 
 					 kind = SDGEdge.Kind.RETURN; 
 					}
 					break;
 				case 10 :
-					// SDG_.g:480:5: 'CC'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:490:5: 'CC'
 					{
-					match(input,17,FOLLOW_17_in_edge_kind2082); 
+					match(input,17,FOLLOW_17_in_edge_kind2128); 
 					 kind = SDGEdge.Kind.CONTROL_DEP_CALL; 
 					}
 					break;
 				case 11 :
-					// SDG_.g:481:5: 'CL'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:491:5: 'CL'
 					{
-					match(input,21,FOLLOW_21_in_edge_kind2090); 
+					match(input,21,FOLLOW_21_in_edge_kind2136); 
 					 kind = SDGEdge.Kind.CALL; 
 					}
 					break;
 				case 12 :
-					// SDG_.g:482:5: 'PI'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:492:5: 'PI'
 					{
-					match(input,58,FOLLOW_58_in_edge_kind2098); 
+					match(input,58,FOLLOW_58_in_edge_kind2144); 
 					 kind = SDGEdge.Kind.PARAMETER_IN; 
 					}
 					break;
 				case 13 :
-					// SDG_.g:483:5: 'PO'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:493:5: 'PO'
 					{
-					match(input,59,FOLLOW_59_in_edge_kind2106); 
+					match(input,59,FOLLOW_59_in_edge_kind2152); 
 					 kind = SDGEdge.Kind.PARAMETER_OUT; 
 					}
 					break;
 				case 14 :
-					// SDG_.g:485:5: 'SU'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:495:5: 'SU'
 					{
-					match(input,71,FOLLOW_71_in_edge_kind2115); 
+					match(input,71,FOLLOW_71_in_edge_kind2161); 
 					 kind = SDGEdge.Kind.SUMMARY; 
 					}
 					break;
 				case 15 :
-					// SDG_.g:486:5: 'SH'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:496:5: 'SH'
 					{
-					match(input,69,FOLLOW_69_in_edge_kind2123); 
+					match(input,69,FOLLOW_69_in_edge_kind2169); 
 					 kind = SDGEdge.Kind.SUMMARY_NO_ALIAS; 
 					}
 					break;
 				case 16 :
-					// SDG_.g:487:5: 'SF'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:497:5: 'SF'
 					{
-					match(input,68,FOLLOW_68_in_edge_kind2131); 
+					match(input,68,FOLLOW_68_in_edge_kind2177); 
 					 kind = SDGEdge.Kind.SUMMARY_DATA; 
 					}
 					break;
 				case 17 :
-					// SDG_.g:489:5: 'PS'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:499:5: 'PS'
 					{
-					match(input,61,FOLLOW_61_in_edge_kind2140); 
+					match(input,61,FOLLOW_61_in_edge_kind2186); 
 					 kind = SDGEdge.Kind.PARAMETER_STRUCTURE; 
 					}
 					break;
 				case 18 :
-					// SDG_.g:491:5: 'FORK'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:501:5: 'FORK'
 					{
-					match(input,36,FOLLOW_36_in_edge_kind2149); 
+					match(input,36,FOLLOW_36_in_edge_kind2195); 
 					 kind = SDGEdge.Kind.FORK; 
 					}
 					break;
 				case 19 :
-					// SDG_.g:492:5: 'FORK_IN'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:502:5: 'FORK_IN'
 					{
-					match(input,37,FOLLOW_37_in_edge_kind2157); 
+					match(input,37,FOLLOW_37_in_edge_kind2203); 
 					 kind = SDGEdge.Kind.FORK_IN; 
 					}
 					break;
 				case 20 :
-					// SDG_.g:493:5: 'FORK_OUT'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:503:5: 'FORK_OUT'
 					{
-					match(input,38,FOLLOW_38_in_edge_kind2165); 
+					match(input,38,FOLLOW_38_in_edge_kind2211); 
 					 kind = SDGEdge.Kind.FORK_OUT; 
 					}
 					break;
 				case 21 :
-					// SDG_.g:494:5: 'JOIN'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:504:5: 'JOIN'
 					{
-					match(input,49,FOLLOW_49_in_edge_kind2173); 
+					match(input,49,FOLLOW_49_in_edge_kind2219); 
 					 kind = SDGEdge.Kind.JOIN; 
 					}
 					break;
 				case 22 :
-					// SDG_.g:495:5: 'ID'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:505:5: 'ID'
 					{
-					match(input,43,FOLLOW_43_in_edge_kind2181); 
+					match(input,43,FOLLOW_43_in_edge_kind2227); 
 					 kind = SDGEdge.Kind.INTERFERENCE; 
 					}
 					break;
 				case 23 :
-					// SDG_.g:496:5: 'IW'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:506:5: 'IW'
 					{
-					match(input,45,FOLLOW_45_in_edge_kind2189); 
+					match(input,45,FOLLOW_45_in_edge_kind2235); 
 					 kind = SDGEdge.Kind.INTERFERENCE_WRITE; 
 					}
 					break;
 				case 24 :
-					// SDG_.g:497:5: 'SD'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:507:5: 'SD'
 					{
-					match(input,66,FOLLOW_66_in_edge_kind2197); 
+					match(input,66,FOLLOW_66_in_edge_kind2243); 
 					 kind = SDGEdge.Kind.SYNCHRONIZATION; 
 					}
 					break;
 				case 25 :
-					// SDG_.g:499:5: 'HE'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:509:5: 'HE'
 					{
-					match(input,42,FOLLOW_42_in_edge_kind2206); 
+					match(input,42,FOLLOW_42_in_edge_kind2252); 
 					 kind = SDGEdge.Kind.HELP; 
 					}
 					break;
 				case 26 :
-					// SDG_.g:500:5: 'FD'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:510:5: 'FD'
 					{
-					match(input,33,FOLLOW_33_in_edge_kind2214); 
+					match(input,33,FOLLOW_33_in_edge_kind2260); 
 					 kind = SDGEdge.Kind.FOLDED; 
 					}
 					break;
 				case 27 :
-					// SDG_.g:501:5: 'FI'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:511:5: 'FI'
 					{
-					match(input,34,FOLLOW_34_in_edge_kind2222); 
+					match(input,34,FOLLOW_34_in_edge_kind2268); 
 					 kind = SDGEdge.Kind.FOLD_INCLUDE; 
 					}
 					break;
 				case 28 :
-					// SDG_.g:503:5: 'RY'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:513:5: 'RY'
 					{
-					match(input,64,FOLLOW_64_in_edge_kind2231); 
+					match(input,64,FOLLOW_64_in_edge_kind2277); 
 					 kind = SDGEdge.Kind.READY_DEP; 
 					}
 					break;
 				case 29 :
-					// SDG_.g:504:5: 'JF'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:514:5: 'JF'
 					{
-					match(input,48,FOLLOW_48_in_edge_kind2239); 
+					match(input,48,FOLLOW_48_in_edge_kind2285); 
 					 kind = SDGEdge.Kind.JUMP_FLOW; 
 					}
 					break;
 				case 30 :
-					// SDG_.g:505:5: 'SP'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:515:5: 'SP'
 					{
-					match(input,70,FOLLOW_70_in_edge_kind2247); 
+					match(input,70,FOLLOW_70_in_edge_kind2293); 
 					 kind = SDGEdge.Kind.SUMMARY; 
 					}
 					break;
 				case 31 :
-					// SDG_.g:506:5: 'VD'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:516:5: 'VD'
 					{
-					match(input,78,FOLLOW_78_in_edge_kind2255); 
+					match(input,78,FOLLOW_78_in_edge_kind2301); 
 					 kind = SDGEdge.Kind.DATA_DEP_EXPR_VALUE; 
 					}
 					break;
 				case 32 :
-					// SDG_.g:507:5: 'RD'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:517:5: 'RD'
 					{
-					match(input,62,FOLLOW_62_in_edge_kind2263); 
+					match(input,62,FOLLOW_62_in_edge_kind2309); 
 					 kind = SDGEdge.Kind.DATA_DEP_EXPR_REFERENCE; 
 					}
 					break;
 				case 33 :
-					// SDG_.g:508:5: 'JD'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:518:5: 'JD'
 					{
-					match(input,47,FOLLOW_47_in_edge_kind2271); 
+					match(input,47,FOLLOW_47_in_edge_kind2317); 
 					 kind = SDGEdge.Kind.JUMP_DEP; 
 					}
 					break;
@@ -2867,7 +2900,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "mayNegNumber"
-	// SDG_.g:511:9: private mayNegNumber returns [int nr] : ( '-' n= number |n= number );
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:521:9: private mayNegNumber returns [int nr] : ( '-' n= number |n= number );
 	public final int mayNegNumber() throws RecognitionException {
 		int nr = 0;
 
@@ -2875,28 +2908,28 @@ public class SDG_Parser extends Parser {
 		int n =0;
 
 		try {
-			// SDG_.g:512:3: ( '-' n= number |n= number )
-			int alt23=2;
-			int LA23_0 = input.LA(1);
-			if ( (LA23_0==8) ) {
-				alt23=1;
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:522:3: ( '-' n= number |n= number )
+			int alt24=2;
+			int LA24_0 = input.LA(1);
+			if ( (LA24_0==8) ) {
+				alt24=1;
 			}
-			else if ( (LA23_0==NUMBER) ) {
-				alt23=2;
+			else if ( (LA24_0==NUMBER) ) {
+				alt24=2;
 			}
 
 			else {
 				NoViableAltException nvae =
-					new NoViableAltException("", 23, 0, input);
+					new NoViableAltException("", 24, 0, input);
 				throw nvae;
 			}
 
-			switch (alt23) {
+			switch (alt24) {
 				case 1 :
-					// SDG_.g:512:5: '-' n= number
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:522:5: '-' n= number
 					{
-					match(input,8,FOLLOW_8_in_mayNegNumber2292); 
-					pushFollow(FOLLOW_number_in_mayNegNumber2296);
+					match(input,8,FOLLOW_8_in_mayNegNumber2338); 
+					pushFollow(FOLLOW_number_in_mayNegNumber2342);
 					n=number();
 					state._fsp--;
 
@@ -2904,9 +2937,9 @@ public class SDG_Parser extends Parser {
 					}
 					break;
 				case 2 :
-					// SDG_.g:513:5: n= number
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:523:5: n= number
 					{
-					pushFollow(FOLLOW_number_in_mayNegNumber2306);
+					pushFollow(FOLLOW_number_in_mayNegNumber2352);
 					n=number();
 					state._fsp--;
 
@@ -2930,7 +2963,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "number"
-	// SDG_.g:516:9: private number returns [int nr] : n= NUMBER ;
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:526:9: private number returns [int nr] : n= NUMBER ;
 	public final int number() throws RecognitionException {
 		int nr = 0;
 
@@ -2938,10 +2971,10 @@ public class SDG_Parser extends Parser {
 		Token n=null;
 
 		try {
-			// SDG_.g:517:3: (n= NUMBER )
-			// SDG_.g:517:5: n= NUMBER
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:527:3: (n= NUMBER )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:527:5: n= NUMBER
 			{
-			n=(Token)match(input,NUMBER,FOLLOW_NUMBER_in_number2329); 
+			n=(Token)match(input,NUMBER,FOLLOW_NUMBER_in_number2375); 
 			 nr = Integer.parseInt(n.getText()); 
 			}
 
@@ -2960,7 +2993,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "string"
-	// SDG_.g:520:9: private string returns [String str] : s= STRING ;
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:530:9: private string returns [String str] : s= STRING ;
 	public final String string() throws RecognitionException {
 		String str = null;
 
@@ -2968,10 +3001,10 @@ public class SDG_Parser extends Parser {
 		Token s=null;
 
 		try {
-			// SDG_.g:521:3: (s= STRING )
-			// SDG_.g:521:5: s= STRING
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:531:3: (s= STRING )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:531:5: s= STRING
 			{
-			s=(Token)match(input,STRING,FOLLOW_STRING_in_string2352); 
+			s=(Token)match(input,STRING,FOLLOW_STRING_in_string2398); 
 			 str = s.getText(); str = str.substring(1, str.length() - 1); 
 			}
 
@@ -2990,40 +3023,40 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "bool"
-	// SDG_.g:524:9: private bool returns [boolean b] : ( 'true' | 'false' );
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:534:9: private bool returns [boolean b] : ( 'true' | 'false' );
 	public final boolean bool() throws RecognitionException {
 		boolean b = false;
 
 
 		try {
-			// SDG_.g:525:3: ( 'true' | 'false' )
-			int alt24=2;
-			int LA24_0 = input.LA(1);
-			if ( (LA24_0==114) ) {
-				alt24=1;
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:535:3: ( 'true' | 'false' )
+			int alt25=2;
+			int LA25_0 = input.LA(1);
+			if ( (LA25_0==115) ) {
+				alt25=1;
 			}
-			else if ( (LA24_0==95) ) {
-				alt24=2;
+			else if ( (LA25_0==95) ) {
+				alt25=2;
 			}
 
 			else {
 				NoViableAltException nvae =
-					new NoViableAltException("", 24, 0, input);
+					new NoViableAltException("", 25, 0, input);
 				throw nvae;
 			}
 
-			switch (alt24) {
+			switch (alt25) {
 				case 1 :
-					// SDG_.g:525:5: 'true'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:535:5: 'true'
 					{
-					match(input,114,FOLLOW_114_in_bool2373); 
+					match(input,115,FOLLOW_115_in_bool2419); 
 					 b = true; 
 					}
 					break;
 				case 2 :
-					// SDG_.g:526:5: 'false'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:536:5: 'false'
 					{
-					match(input,95,FOLLOW_95_in_bool2382); 
+					match(input,95,FOLLOW_95_in_bool2428); 
 					 b = false; 
 					}
 					break;
@@ -3045,207 +3078,209 @@ public class SDG_Parser extends Parser {
 
 
 
-	public static final BitSet FOLLOW_sdg_header_in_sdg_file73 = new BitSet(new long[]{0x0000000000000000L,0x0020000000000000L});
-	public static final BitSet FOLLOW_117_in_sdg_file89 = new BitSet(new long[]{0x1080418870013000L,0x0040000000000500L});
-	public static final BitSet FOLLOW_46_in_sdg_file99 = new BitSet(new long[]{0x1080018870013000L,0x0040000000000500L});
-	public static final BitSet FOLLOW_node_list_in_sdg_file128 = new BitSet(new long[]{0x0000000000000000L,0x0040000000000400L});
-	public static final BitSet FOLLOW_thread_info_in_sdg_file150 = new BitSet(new long[]{0x0000000000000000L,0x0040000000000000L});
-	public static final BitSet FOLLOW_118_in_sdg_file163 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_thread_in_thread_info192 = new BitSet(new long[]{0x0000000000000002L,0x0000000000000400L});
-	public static final BitSet FOLLOW_74_in_thread224 = new BitSet(new long[]{0x0000000000000010L});
-	public static final BitSet FOLLOW_number_in_thread228 = new BitSet(new long[]{0x0000000000000000L,0x0020000000000000L});
-	public static final BitSet FOLLOW_117_in_thread230 = new BitSet(new long[]{0x0000000080000000L});
-	public static final BitSet FOLLOW_31_in_thread238 = new BitSet(new long[]{0x0000000000000010L});
-	public static final BitSet FOLLOW_number_in_thread244 = new BitSet(new long[]{0x0000000000000400L});
-	public static final BitSet FOLLOW_10_in_thread246 = new BitSet(new long[]{0x0000000100000000L});
-	public static final BitSet FOLLOW_32_in_thread254 = new BitSet(new long[]{0x0000000000000010L});
-	public static final BitSet FOLLOW_number_in_thread261 = new BitSet(new long[]{0x0000000000000400L});
-	public static final BitSet FOLLOW_10_in_thread263 = new BitSet(new long[]{0x0000020000000000L});
-	public static final BitSet FOLLOW_41_in_thread271 = new BitSet(new long[]{0x0000000000000010L});
-	public static final BitSet FOLLOW_number_in_thread278 = new BitSet(new long[]{0x0000000000000400L});
-	public static final BitSet FOLLOW_10_in_thread280 = new BitSet(new long[]{0x0004000000000000L});
-	public static final BitSet FOLLOW_50_in_thread288 = new BitSet(new long[]{0x0000000000000010L,0x0000080000010000L});
-	public static final BitSet FOLLOW_listOrSingleNumber_in_thread295 = new BitSet(new long[]{0x0000000000000400L});
-	public static final BitSet FOLLOW_10_in_thread298 = new BitSet(new long[]{0x0000000000400000L});
-	public static final BitSet FOLLOW_22_in_thread306 = new BitSet(new long[]{0x0000000000000000L,0x0000080000010000L});
-	public static final BitSet FOLLOW_context_in_thread310 = new BitSet(new long[]{0x0000000000000400L});
-	public static final BitSet FOLLOW_10_in_thread313 = new BitSet(new long[]{0x0000000008000000L});
-	public static final BitSet FOLLOW_27_in_thread321 = new BitSet(new long[]{0x0000000000000000L,0x0004000080000000L});
-	public static final BitSet FOLLOW_bool_in_thread325 = new BitSet(new long[]{0x0000000000000400L});
-	public static final BitSet FOLLOW_10_in_thread327 = new BitSet(new long[]{0x0000000000000000L,0x0040000000000000L});
-	public static final BitSet FOLLOW_118_in_thread333 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_mayEmptyNumberList_in_listOrSingleNumber363 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_number_in_listOrSingleNumber374 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_107_in_mayEmptyNumberList396 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_80_in_mayEmptyNumberList402 = new BitSet(new long[]{0x0000000000000000L,0x0000000000020000L});
-	public static final BitSet FOLLOW_81_in_mayEmptyNumberList404 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_80_in_mayEmptyNumberList410 = new BitSet(new long[]{0x0000000000000010L});
-	public static final BitSet FOLLOW_number_in_mayEmptyNumberList414 = new BitSet(new long[]{0x0000000000000080L,0x0000000000020000L});
-	public static final BitSet FOLLOW_7_in_mayEmptyNumberList419 = new BitSet(new long[]{0x0000000000000010L});
-	public static final BitSet FOLLOW_number_in_mayEmptyNumberList423 = new BitSet(new long[]{0x0000000000000080L,0x0000000000020000L});
-	public static final BitSet FOLLOW_81_in_mayEmptyNumberList430 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_107_in_mayEmptyStringList451 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_80_in_mayEmptyStringList457 = new BitSet(new long[]{0x0000000000000000L,0x0000000000020000L});
-	public static final BitSet FOLLOW_81_in_mayEmptyStringList459 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_80_in_mayEmptyStringList465 = new BitSet(new long[]{0x0000000000000020L});
-	public static final BitSet FOLLOW_string_in_mayEmptyStringList469 = new BitSet(new long[]{0x0000000000000080L,0x0000000000020000L});
-	public static final BitSet FOLLOW_7_in_mayEmptyStringList474 = new BitSet(new long[]{0x0000000000000020L});
-	public static final BitSet FOLLOW_string_in_mayEmptyStringList478 = new BitSet(new long[]{0x0000000000000080L,0x0000000000020000L});
-	public static final BitSet FOLLOW_81_in_mayEmptyStringList485 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_107_in_context507 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_80_in_context513 = new BitSet(new long[]{0x0000000000000110L});
-	public static final BitSet FOLLOW_mayNegNumber_in_context517 = new BitSet(new long[]{0x0000000000000080L,0x0000000000020000L});
-	public static final BitSet FOLLOW_7_in_context522 = new BitSet(new long[]{0x0000000000000110L});
-	public static final BitSet FOLLOW_mayNegNumber_in_context526 = new BitSet(new long[]{0x0000000000000080L,0x0000000000020000L});
-	public static final BitSet FOLLOW_81_in_context533 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_67_in_sdg_header552 = new BitSet(new long[]{0x0000000000000022L,0x0010000000000000L});
-	public static final BitSet FOLLOW_116_in_sdg_header568 = new BitSet(new long[]{0x0000000000000010L});
-	public static final BitSet FOLLOW_number_in_sdg_header572 = new BitSet(new long[]{0x0000000000000022L});
-	public static final BitSet FOLLOW_string_in_sdg_header593 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_node_in_node_list626 = new BitSet(new long[]{0x1080018870013002L,0x0000000000000100L});
-	public static final BitSet FOLLOW_node_kind_in_node652 = new BitSet(new long[]{0x0000000000000110L});
-	public static final BitSet FOLLOW_mayNegNumber_in_node656 = new BitSet(new long[]{0x0000000000000000L,0x0020000000000000L});
-	public static final BitSet FOLLOW_117_in_node665 = new BitSet(new long[]{0xEF7BAC7607BEC800L,0x004000000000FAF7L});
-	public static final BitSet FOLLOW_node_attributes_in_node674 = new BitSet(new long[]{0xEC43AC76073E0000L,0x00400000000050F5L});
-	public static final BitSet FOLLOW_node_edges_in_node684 = new BitSet(new long[]{0x0000000000000000L,0x0040000000000000L});
-	public static final BitSet FOLLOW_118_in_node691 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_55_in_node_kind710 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_60_in_node_kind718 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_30_in_node_kind726 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_28_in_node_kind734 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_16_in_node_kind742 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_12_in_node_kind750 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_13_in_node_kind758 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_39_in_node_kind766 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_40_in_node_kind774 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_29_in_node_kind782 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_72_in_node_kind790 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_35_in_node_kind798 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_node_attr_in_node_attributes817 = new BitSet(new long[]{0x0000000000000400L});
-	public static final BitSet FOLLOW_10_in_node_attributes820 = new BitSet(new long[]{0x033800000080C802L,0x000000000000AA02L});
-	public static final BitSet FOLLOW_65_in_node_attr838 = new BitSet(new long[]{0x0000000000000020L});
-	public static final BitSet FOLLOW_node_source_in_node_attr842 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_14_in_node_attr854 = new BitSet(new long[]{0x0000000000000020L});
-	public static final BitSet FOLLOW_node_bytecode_in_node_attr858 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_75_in_node_attr869 = new BitSet(new long[]{0x0000000000000010L});
-	public static final BitSet FOLLOW_number_in_node_attr871 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_57_in_node_attr921 = new BitSet(new long[]{0x0000000000000010L});
-	public static final BitSet FOLLOW_number_in_node_attr925 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_56_in_node_attr944 = new BitSet(new long[]{0x0000100000000000L,0x000BF7FF7FFC0000L});
-	public static final BitSet FOLLOW_node_oper_in_node_attr948 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_77_in_node_attr976 = new BitSet(new long[]{0x0000000000000020L});
-	public static final BitSet FOLLOW_string_in_node_attr980 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_73_in_node_attr1008 = new BitSet(new long[]{0x0000000000000020L});
-	public static final BitSet FOLLOW_string_in_node_attr1012 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_79_in_node_attr1037 = new BitSet(new long[]{0x0000000000000110L});
-	public static final BitSet FOLLOW_may_neg_num_set_in_node_attr1041 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_53_in_node_attr1055 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_15_in_node_attr1089 = new BitSet(new long[]{0x0000000000000020L});
-	public static final BitSet FOLLOW_string_in_node_attr1093 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_11_in_node_attr1115 = new BitSet(new long[]{0x0000000000000010L});
-	public static final BitSet FOLLOW_pos_num_set_in_node_attr1119 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_23_in_node_attr1137 = new BitSet(new long[]{0x0000000000000010L});
-	public static final BitSet FOLLOW_pos_num_set_in_node_attr1141 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_75_in_node_attr1158 = new BitSet(new long[]{0x0000000000000020L});
-	public static final BitSet FOLLOW_string_in_node_attr1162 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_51_in_node_attr1180 = new BitSet(new long[]{0x0000000000000000L,0x0000080000010000L});
-	public static final BitSet FOLLOW_mayEmptyStringList_in_node_attr1184 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_52_in_node_attr1193 = new BitSet(new long[]{0x0000000000000000L,0x0000080000010000L});
-	public static final BitSet FOLLOW_mayEmptyStringList_in_node_attr1197 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_number_in_pos_num_set1218 = new BitSet(new long[]{0x0000000000000082L});
-	public static final BitSet FOLLOW_7_in_pos_num_set1223 = new BitSet(new long[]{0x0000000000000010L});
-	public static final BitSet FOLLOW_number_in_pos_num_set1227 = new BitSet(new long[]{0x0000000000000082L});
-	public static final BitSet FOLLOW_mayNegNumber_in_may_neg_num_set1253 = new BitSet(new long[]{0x0000000000000082L});
-	public static final BitSet FOLLOW_7_in_may_neg_num_set1258 = new BitSet(new long[]{0x0000000000000110L});
-	public static final BitSet FOLLOW_mayNegNumber_in_may_neg_num_set1262 = new BitSet(new long[]{0x0000000000000082L});
-	public static final BitSet FOLLOW_string_in_node_source1288 = new BitSet(new long[]{0x0000000000000200L});
-	public static final BitSet FOLLOW_9_in_node_source1290 = new BitSet(new long[]{0x0000000000000010L});
-	public static final BitSet FOLLOW_number_in_node_source1294 = new BitSet(new long[]{0x0000000000000080L});
-	public static final BitSet FOLLOW_7_in_node_source1296 = new BitSet(new long[]{0x0000000000000010L});
-	public static final BitSet FOLLOW_number_in_node_source1300 = new BitSet(new long[]{0x0000000000000100L});
-	public static final BitSet FOLLOW_8_in_node_source1302 = new BitSet(new long[]{0x0000000000000010L});
-	public static final BitSet FOLLOW_number_in_node_source1306 = new BitSet(new long[]{0x0000000000000080L});
-	public static final BitSet FOLLOW_7_in_node_source1308 = new BitSet(new long[]{0x0000000000000010L});
-	public static final BitSet FOLLOW_number_in_node_source1312 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_string_in_node_bytecode1343 = new BitSet(new long[]{0x0000000000000200L});
-	public static final BitSet FOLLOW_9_in_node_bytecode1345 = new BitSet(new long[]{0x0000000000000110L});
-	public static final BitSet FOLLOW_mayNegNumber_in_node_bytecode1349 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_92_in_node_oper1370 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_101_in_node_oper1387 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_96_in_node_oper1401 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_88_in_node_oper1413 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_113_in_node_oper1426 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_100_in_node_oper1437 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_112_in_node_oper1446 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_108_in_node_oper1460 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_86_in_node_oper1474 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_115_in_node_oper1490 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_91_in_node_oper1507 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_109_in_node_oper1522 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_84_in_node_oper1539 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_111_in_node_oper1556 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_110_in_node_oper1572 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_90_in_node_oper1585 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_105_in_node_oper1596 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_104_in_node_oper1612 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_85_in_node_oper1625 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_44_in_node_oper1641 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_103_in_node_oper1661 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_102_in_node_oper1679 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_89_in_node_oper1697 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_87_in_node_oper1711 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_93_in_node_oper1729 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_94_in_node_oper1746 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_98_in_node_oper1764 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_97_in_node_oper1779 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_99_in_node_oper1791 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_82_in_node_oper1805 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_83_in_node_oper1821 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_106_in_node_oper1836 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_edge_in_node_edges1864 = new BitSet(new long[]{0x0000000000000400L});
-	public static final BitSet FOLLOW_10_in_node_edges1866 = new BitSet(new long[]{0xEC43AC76073E0002L,0x00000000000050F5L});
-	public static final BitSet FOLLOW_edge_kind_in_edge1891 = new BitSet(new long[]{0x0000000000000010L});
-	public static final BitSet FOLLOW_number_in_edge1895 = new BitSet(new long[]{0x0000000000000202L});
-	public static final BitSet FOLLOW_9_in_edge1900 = new BitSet(new long[]{0x0000000000000020L});
-	public static final BitSet FOLLOW_string_in_edge1904 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_25_in_edge_kind1929 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_26_in_edge_kind1949 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_24_in_edge_kind1968 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_18_in_edge_kind1987 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_19_in_edge_kind1999 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_76_in_edge_kind2011 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_20_in_edge_kind2022 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_54_in_edge_kind2038 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_63_in_edge_kind2059 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_17_in_edge_kind2082 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_21_in_edge_kind2090 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_58_in_edge_kind2098 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_59_in_edge_kind2106 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_71_in_edge_kind2115 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_69_in_edge_kind2123 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_68_in_edge_kind2131 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_61_in_edge_kind2140 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_36_in_edge_kind2149 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_37_in_edge_kind2157 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_38_in_edge_kind2165 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_49_in_edge_kind2173 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_43_in_edge_kind2181 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_45_in_edge_kind2189 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_66_in_edge_kind2197 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_42_in_edge_kind2206 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_33_in_edge_kind2214 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_34_in_edge_kind2222 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_64_in_edge_kind2231 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_48_in_edge_kind2239 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_70_in_edge_kind2247 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_78_in_edge_kind2255 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_62_in_edge_kind2263 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_47_in_edge_kind2271 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_8_in_mayNegNumber2292 = new BitSet(new long[]{0x0000000000000010L});
-	public static final BitSet FOLLOW_number_in_mayNegNumber2296 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_number_in_mayNegNumber2306 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_NUMBER_in_number2329 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_STRING_in_string2352 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_114_in_bool2373 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_95_in_bool2382 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_sdg_header_in_sdg_file73 = new BitSet(new long[]{0x0000000000000000L,0x0040000000000000L});
+	public static final BitSet FOLLOW_118_in_sdg_file89 = new BitSet(new long[]{0x1080418870013000L,0x0080000000000500L});
+	public static final BitSet FOLLOW_46_in_sdg_file99 = new BitSet(new long[]{0x1080018870013000L,0x0080000000000500L});
+	public static final BitSet FOLLOW_node_list_in_sdg_file128 = new BitSet(new long[]{0x0000000000000000L,0x0080000000000400L});
+	public static final BitSet FOLLOW_thread_info_in_sdg_file150 = new BitSet(new long[]{0x0000000000000000L,0x0080000000000000L});
+	public static final BitSet FOLLOW_119_in_sdg_file163 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_thread_in_thread_info214 = new BitSet(new long[]{0x0000000000000002L,0x0000000000000400L});
+	public static final BitSet FOLLOW_74_in_thread246 = new BitSet(new long[]{0x0000000000000010L});
+	public static final BitSet FOLLOW_number_in_thread250 = new BitSet(new long[]{0x0000000000000000L,0x0040000000000000L});
+	public static final BitSet FOLLOW_118_in_thread252 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_31_in_thread260 = new BitSet(new long[]{0x0000000000000010L});
+	public static final BitSet FOLLOW_number_in_thread266 = new BitSet(new long[]{0x0000000000000400L});
+	public static final BitSet FOLLOW_10_in_thread268 = new BitSet(new long[]{0x0000000100000000L});
+	public static final BitSet FOLLOW_32_in_thread276 = new BitSet(new long[]{0x0000000000000010L});
+	public static final BitSet FOLLOW_number_in_thread283 = new BitSet(new long[]{0x0000000000000400L});
+	public static final BitSet FOLLOW_10_in_thread285 = new BitSet(new long[]{0x0000020000000000L});
+	public static final BitSet FOLLOW_41_in_thread293 = new BitSet(new long[]{0x0000000000000010L});
+	public static final BitSet FOLLOW_number_in_thread300 = new BitSet(new long[]{0x0000000000000400L});
+	public static final BitSet FOLLOW_10_in_thread302 = new BitSet(new long[]{0x0004000000000000L});
+	public static final BitSet FOLLOW_50_in_thread310 = new BitSet(new long[]{0x0000000000000010L,0x0000080000010000L});
+	public static final BitSet FOLLOW_listOrSingleNumber_in_thread317 = new BitSet(new long[]{0x0000000000000400L});
+	public static final BitSet FOLLOW_10_in_thread320 = new BitSet(new long[]{0x0000000000400000L});
+	public static final BitSet FOLLOW_22_in_thread328 = new BitSet(new long[]{0x0000000000000000L,0x0000080000010000L});
+	public static final BitSet FOLLOW_context_in_thread332 = new BitSet(new long[]{0x0000000000000400L});
+	public static final BitSet FOLLOW_10_in_thread335 = new BitSet(new long[]{0x0000000008000000L});
+	public static final BitSet FOLLOW_27_in_thread343 = new BitSet(new long[]{0x0000000000000000L,0x0008000080000000L});
+	public static final BitSet FOLLOW_bool_in_thread347 = new BitSet(new long[]{0x0000000000000400L});
+	public static final BitSet FOLLOW_10_in_thread349 = new BitSet(new long[]{0x0000000000000000L,0x0080000000000000L});
+	public static final BitSet FOLLOW_119_in_thread355 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_mayEmptyNumberList_in_listOrSingleNumber385 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_number_in_listOrSingleNumber396 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_107_in_mayEmptyNumberList418 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_80_in_mayEmptyNumberList424 = new BitSet(new long[]{0x0000000000000000L,0x0000000000020000L});
+	public static final BitSet FOLLOW_81_in_mayEmptyNumberList426 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_80_in_mayEmptyNumberList432 = new BitSet(new long[]{0x0000000000000010L});
+	public static final BitSet FOLLOW_number_in_mayEmptyNumberList436 = new BitSet(new long[]{0x0000000000000080L,0x0000000000020000L});
+	public static final BitSet FOLLOW_7_in_mayEmptyNumberList441 = new BitSet(new long[]{0x0000000000000010L});
+	public static final BitSet FOLLOW_number_in_mayEmptyNumberList445 = new BitSet(new long[]{0x0000000000000080L,0x0000000000020000L});
+	public static final BitSet FOLLOW_81_in_mayEmptyNumberList452 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_107_in_mayEmptyStringList473 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_80_in_mayEmptyStringList479 = new BitSet(new long[]{0x0000000000000000L,0x0000000000020000L});
+	public static final BitSet FOLLOW_81_in_mayEmptyStringList481 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_80_in_mayEmptyStringList487 = new BitSet(new long[]{0x0000000000000020L});
+	public static final BitSet FOLLOW_string_in_mayEmptyStringList491 = new BitSet(new long[]{0x0000000000000080L,0x0000000000020000L});
+	public static final BitSet FOLLOW_7_in_mayEmptyStringList496 = new BitSet(new long[]{0x0000000000000020L});
+	public static final BitSet FOLLOW_string_in_mayEmptyStringList500 = new BitSet(new long[]{0x0000000000000080L,0x0000000000020000L});
+	public static final BitSet FOLLOW_81_in_mayEmptyStringList507 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_107_in_context529 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_80_in_context535 = new BitSet(new long[]{0x0000000000000110L});
+	public static final BitSet FOLLOW_mayNegNumber_in_context539 = new BitSet(new long[]{0x0000000000000080L,0x0000000000020000L});
+	public static final BitSet FOLLOW_7_in_context544 = new BitSet(new long[]{0x0000000000000110L});
+	public static final BitSet FOLLOW_mayNegNumber_in_context548 = new BitSet(new long[]{0x0000000000000080L,0x0000000000020000L});
+	public static final BitSet FOLLOW_81_in_context555 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_67_in_sdg_header574 = new BitSet(new long[]{0x0000000000000022L,0x0020800000000000L});
+	public static final BitSet FOLLOW_117_in_sdg_header590 = new BitSet(new long[]{0x0000000000000010L});
+	public static final BitSet FOLLOW_number_in_sdg_header594 = new BitSet(new long[]{0x0000000000000022L,0x0000800000000000L});
+	public static final BitSet FOLLOW_string_in_sdg_header615 = new BitSet(new long[]{0x0000000000000002L,0x0000800000000000L});
+	public static final BitSet FOLLOW_111_in_sdg_header635 = new BitSet(new long[]{0x0000000000000010L});
+	public static final BitSet FOLLOW_number_in_sdg_header639 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_node_in_node_list672 = new BitSet(new long[]{0x1080018870013002L,0x0000000000000100L});
+	public static final BitSet FOLLOW_node_kind_in_node698 = new BitSet(new long[]{0x0000000000000110L});
+	public static final BitSet FOLLOW_mayNegNumber_in_node702 = new BitSet(new long[]{0x0000000000000000L,0x0040000000000000L});
+	public static final BitSet FOLLOW_118_in_node711 = new BitSet(new long[]{0xEF7BAC7607BEC800L,0x008000000000FAF7L});
+	public static final BitSet FOLLOW_node_attributes_in_node720 = new BitSet(new long[]{0xEC43AC76073E0000L,0x00800000000050F5L});
+	public static final BitSet FOLLOW_node_edges_in_node730 = new BitSet(new long[]{0x0000000000000000L,0x0080000000000000L});
+	public static final BitSet FOLLOW_119_in_node737 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_55_in_node_kind756 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_60_in_node_kind764 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_30_in_node_kind772 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_28_in_node_kind780 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_16_in_node_kind788 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_12_in_node_kind796 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_13_in_node_kind804 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_39_in_node_kind812 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_40_in_node_kind820 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_29_in_node_kind828 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_72_in_node_kind836 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_35_in_node_kind844 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_node_attr_in_node_attributes863 = new BitSet(new long[]{0x0000000000000400L});
+	public static final BitSet FOLLOW_10_in_node_attributes866 = new BitSet(new long[]{0x033800000080C802L,0x000000000000AA02L});
+	public static final BitSet FOLLOW_65_in_node_attr884 = new BitSet(new long[]{0x0000000000000020L});
+	public static final BitSet FOLLOW_node_source_in_node_attr888 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_14_in_node_attr900 = new BitSet(new long[]{0x0000000000000020L});
+	public static final BitSet FOLLOW_node_bytecode_in_node_attr904 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_75_in_node_attr915 = new BitSet(new long[]{0x0000000000000010L});
+	public static final BitSet FOLLOW_number_in_node_attr917 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_57_in_node_attr967 = new BitSet(new long[]{0x0000000000000010L});
+	public static final BitSet FOLLOW_number_in_node_attr971 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_56_in_node_attr990 = new BitSet(new long[]{0x0000100000000000L,0x001777FF7FFC0000L});
+	public static final BitSet FOLLOW_node_oper_in_node_attr994 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_77_in_node_attr1022 = new BitSet(new long[]{0x0000000000000020L});
+	public static final BitSet FOLLOW_string_in_node_attr1026 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_73_in_node_attr1054 = new BitSet(new long[]{0x0000000000000020L});
+	public static final BitSet FOLLOW_string_in_node_attr1058 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_79_in_node_attr1083 = new BitSet(new long[]{0x0000000000000110L});
+	public static final BitSet FOLLOW_may_neg_num_set_in_node_attr1087 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_53_in_node_attr1101 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_15_in_node_attr1135 = new BitSet(new long[]{0x0000000000000020L});
+	public static final BitSet FOLLOW_string_in_node_attr1139 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_11_in_node_attr1161 = new BitSet(new long[]{0x0000000000000010L});
+	public static final BitSet FOLLOW_pos_num_set_in_node_attr1165 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_23_in_node_attr1183 = new BitSet(new long[]{0x0000000000000010L});
+	public static final BitSet FOLLOW_pos_num_set_in_node_attr1187 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_75_in_node_attr1204 = new BitSet(new long[]{0x0000000000000020L});
+	public static final BitSet FOLLOW_string_in_node_attr1208 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_51_in_node_attr1226 = new BitSet(new long[]{0x0000000000000000L,0x0000080000010000L});
+	public static final BitSet FOLLOW_mayEmptyStringList_in_node_attr1230 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_52_in_node_attr1239 = new BitSet(new long[]{0x0000000000000000L,0x0000080000010000L});
+	public static final BitSet FOLLOW_mayEmptyStringList_in_node_attr1243 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_number_in_pos_num_set1264 = new BitSet(new long[]{0x0000000000000082L});
+	public static final BitSet FOLLOW_7_in_pos_num_set1269 = new BitSet(new long[]{0x0000000000000010L});
+	public static final BitSet FOLLOW_number_in_pos_num_set1273 = new BitSet(new long[]{0x0000000000000082L});
+	public static final BitSet FOLLOW_mayNegNumber_in_may_neg_num_set1299 = new BitSet(new long[]{0x0000000000000082L});
+	public static final BitSet FOLLOW_7_in_may_neg_num_set1304 = new BitSet(new long[]{0x0000000000000110L});
+	public static final BitSet FOLLOW_mayNegNumber_in_may_neg_num_set1308 = new BitSet(new long[]{0x0000000000000082L});
+	public static final BitSet FOLLOW_string_in_node_source1334 = new BitSet(new long[]{0x0000000000000200L});
+	public static final BitSet FOLLOW_9_in_node_source1336 = new BitSet(new long[]{0x0000000000000010L});
+	public static final BitSet FOLLOW_number_in_node_source1340 = new BitSet(new long[]{0x0000000000000080L});
+	public static final BitSet FOLLOW_7_in_node_source1342 = new BitSet(new long[]{0x0000000000000010L});
+	public static final BitSet FOLLOW_number_in_node_source1346 = new BitSet(new long[]{0x0000000000000100L});
+	public static final BitSet FOLLOW_8_in_node_source1348 = new BitSet(new long[]{0x0000000000000010L});
+	public static final BitSet FOLLOW_number_in_node_source1352 = new BitSet(new long[]{0x0000000000000080L});
+	public static final BitSet FOLLOW_7_in_node_source1354 = new BitSet(new long[]{0x0000000000000010L});
+	public static final BitSet FOLLOW_number_in_node_source1358 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_string_in_node_bytecode1389 = new BitSet(new long[]{0x0000000000000200L});
+	public static final BitSet FOLLOW_9_in_node_bytecode1391 = new BitSet(new long[]{0x0000000000000110L});
+	public static final BitSet FOLLOW_mayNegNumber_in_node_bytecode1395 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_92_in_node_oper1416 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_101_in_node_oper1433 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_96_in_node_oper1447 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_88_in_node_oper1459 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_114_in_node_oper1472 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_100_in_node_oper1483 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_113_in_node_oper1492 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_108_in_node_oper1506 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_86_in_node_oper1520 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_116_in_node_oper1536 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_91_in_node_oper1553 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_109_in_node_oper1568 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_84_in_node_oper1585 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_112_in_node_oper1602 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_110_in_node_oper1618 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_90_in_node_oper1631 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_105_in_node_oper1642 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_104_in_node_oper1658 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_85_in_node_oper1671 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_44_in_node_oper1687 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_103_in_node_oper1707 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_102_in_node_oper1725 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_89_in_node_oper1743 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_87_in_node_oper1757 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_93_in_node_oper1775 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_94_in_node_oper1792 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_98_in_node_oper1810 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_97_in_node_oper1825 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_99_in_node_oper1837 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_82_in_node_oper1851 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_83_in_node_oper1867 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_106_in_node_oper1882 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_edge_in_node_edges1910 = new BitSet(new long[]{0x0000000000000400L});
+	public static final BitSet FOLLOW_10_in_node_edges1912 = new BitSet(new long[]{0xEC43AC76073E0002L,0x00000000000050F5L});
+	public static final BitSet FOLLOW_edge_kind_in_edge1937 = new BitSet(new long[]{0x0000000000000010L});
+	public static final BitSet FOLLOW_number_in_edge1941 = new BitSet(new long[]{0x0000000000000202L});
+	public static final BitSet FOLLOW_9_in_edge1946 = new BitSet(new long[]{0x0000000000000020L});
+	public static final BitSet FOLLOW_string_in_edge1950 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_25_in_edge_kind1975 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_26_in_edge_kind1995 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_24_in_edge_kind2014 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_18_in_edge_kind2033 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_19_in_edge_kind2045 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_76_in_edge_kind2057 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_20_in_edge_kind2068 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_54_in_edge_kind2084 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_63_in_edge_kind2105 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_17_in_edge_kind2128 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_21_in_edge_kind2136 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_58_in_edge_kind2144 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_59_in_edge_kind2152 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_71_in_edge_kind2161 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_69_in_edge_kind2169 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_68_in_edge_kind2177 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_61_in_edge_kind2186 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_36_in_edge_kind2195 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_37_in_edge_kind2203 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_38_in_edge_kind2211 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_49_in_edge_kind2219 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_43_in_edge_kind2227 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_45_in_edge_kind2235 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_66_in_edge_kind2243 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_42_in_edge_kind2252 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_33_in_edge_kind2260 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_34_in_edge_kind2268 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_64_in_edge_kind2277 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_48_in_edge_kind2285 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_70_in_edge_kind2293 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_78_in_edge_kind2301 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_62_in_edge_kind2309 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_47_in_edge_kind2317 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_8_in_mayNegNumber2338 = new BitSet(new long[]{0x0000000000000010L});
+	public static final BitSet FOLLOW_number_in_mayNegNumber2342 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_number_in_mayNegNumber2352 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_NUMBER_in_number2375 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_STRING_in_string2398 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_115_in_bool2419 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_95_in_bool2428 = new BitSet(new long[]{0x0000000000000002L});
 }

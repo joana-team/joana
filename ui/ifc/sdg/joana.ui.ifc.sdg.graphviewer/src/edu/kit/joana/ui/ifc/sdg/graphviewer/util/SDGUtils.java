@@ -77,6 +77,13 @@ public final class SDGUtils {
 				}
 			}
 		}
+		
+		// We expect sdg to have a root that is an ENTRY node
+		if (sdg.getRoot() == null) {
+			callGraph.setRoot(sdg.guessRoot());
+		} else {
+			callGraph.setRoot(sdg.getRoot());
+		}
 
 		return callGraph;
 	}
@@ -93,6 +100,7 @@ public final class SDGUtils {
 	public static SDG truncatedCallGraph(SDG callGraph, String regexp) {
 		SDG truncatedCallGraph = new SDG(callGraph.getName());
 		SDGNode entry = callGraph.getRoot();
+		truncatedCallGraph.setRoot(entry);
 		LinkedList<SDGNode> wl = new LinkedList<SDGNode>();
 		HashSet<SDGNode> marked = new HashSet<SDGNode>();
 

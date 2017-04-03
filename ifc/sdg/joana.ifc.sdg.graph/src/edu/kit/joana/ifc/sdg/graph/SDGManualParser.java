@@ -20,6 +20,7 @@ import org.antlr.runtime.RecognitionException;
 import edu.kit.joana.ifc.sdg.graph.SDGNode.NodeFactory;
 import edu.kit.joana.ifc.sdg.graph.SDGThreadInstance_Parser.ThreadInstanceStub;
 import edu.kit.joana.ifc.sdg.graph.SDGVertex_Parser.SDGNodeStub;
+import edu.kit.joana.ifc.sdg.graph.SDG_Parser.SDGHeader;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
 import edu.kit.joana.util.Log;
@@ -123,6 +124,8 @@ public class SDGManualParser {
 				+ " edges in " + time + "ms using " + maxMem + "m of " + maxHeapInMegs + "m max heap.");
 		}
 		
+		header.setRoot(sdg);
+		
 		return sdg;
 	}
 	
@@ -177,65 +180,18 @@ public class SDGManualParser {
 		return sbuf;
 	}
 
-	private static SDGHeader parseHeader(final BufferedReader br) throws IOException {
+	private static SDGHeader parseHeader(final BufferedReader br) throws IOException, RecognitionException {
 		final StringBuffer sb = readUntil(br, "{");
 		final String str = sb.toString().trim();
-		final String tok[] = str.split("\\s+");
-		if (tok.length < 2 || !tok[0].equals("SDG")) {
-			error("first 'SDG' token not found.");
-		}
 		
-		int version = -1;
-		String name = null;
-
-		if (tok.length > 2) {
-			try {
-				version = Integer.parseInt(tok[1]);
-			} catch (NumberFormatException nex) {
-			}
-			
-			if (version == -1) {
-				name = tok[1]; 
-			} else if (tok.length > 3) {
-				name = tok[2];
-			}
-		}
+		final ANTLRStringStream stream = new ANTLRStringStream(str);
+		final SDG_Lexer lexer = new SDG_Lexer(stream);
+		final CommonTokenStream cts = new CommonTokenStream(lexer);
+		final SDG_Parser parse = new SDG_Parser(cts);
 		
-		if (version == -1) {
-			version = SDG.DEFAULT_VERSION;
-		}
-		
-		if (name != null) {
-			if (name.startsWith("\"")) {
-				name = name.substring(1);
-			}
-			if (name.endsWith("\"")) {
-				name = name.substring(0, name.length() - 1);
-			}
-		}
-		
-		return new SDGHeader(version, name);
+		return parse.sdg_header();
 	}
 	
-    static class SDGHeader {
-        private int version;
-        private String name;
-        
-        private SDGHeader(int version, String name) {
-        	this.version = version;
-        	this.name = name;
-        }
-        
-        private SDG createSDG() {
-        	SDG sdg = (name == null ? new SDG() : new SDG(name));
-        	return sdg;
-        }
-        
-        public String toString() {
-        	return "SDG of " + name + " (v" + version + ")";
-        }
-    }
-    
     private static void createThreadsInformation(final SDG sdg, final LinkedList<ThreadInstanceStub> stubs) {
     	if (stubs.isEmpty()) {
     		return;

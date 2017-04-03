@@ -41,6 +41,7 @@ public class FoldedCFG extends CFG implements Folded {
         super();
         addAllVertices(g.vertexSet());
         addAllEdges(g.edgeSet());
+        setRoot(g.getRoot());
     }
 
     /** Maps a vertex to its fold vertex and returns the latter.

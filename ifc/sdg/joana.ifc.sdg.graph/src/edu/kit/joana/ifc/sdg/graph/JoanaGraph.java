@@ -260,14 +260,14 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
 		   id2node.put(node.getId(), node);
 	   }
 	   
-	   if (node.getKind().equals(SDGNode.Kind.ENTRY)) {
+	   if (node.getKind().equals(SDGNode.Kind.ENTRY) && !node.isGraphicalClone()) {
 		   final SDGNode entry = entryNodes.put(node.getProc(), node);
 		   if (entry != null && !entry.equals(node)) {
 			   throw new IllegalStateException();
 		   }
 	   }
 	   
-	   if (node.getKind().equals(SDGNode.Kind.EXIT)) {
+	   if (node.getKind().equals(SDGNode.Kind.EXIT) && !node.isGraphicalClone()) {
 		   final SDGNode exit = exitNodes.put(node.getProc(), node);
 		   if (exit != null && !exit.equals(node)) {
 			   throw new IllegalStateException();

@@ -719,4 +719,16 @@ public class SDGNode implements Cloneable {
 
         return false;
     }
+    
+    /**
+     * Returns true iff this node is a "cloned" node of another node already present in the graph.
+     * 
+     * The only sane case where this may occur is for the purpose of displaying one node in two different places in some
+     * rendering of the graph (e.g.: graphviewr defines a sub class CoonledSDGNode of SDGNode for such purposes).
+     * 
+     * @return true iff this node is a "cloned" node of another node already present in the graph. 
+     */
+    public boolean isGraphicalClone() {
+    	return false;
+    }
 }

@@ -49,4 +49,12 @@ public class ClonedSDGNode extends SDGNode {
 	public String toString() {
         return String.valueOf(clonedID);
     }
+    
+    /* (non-Javadoc)
+     * @see edu.kit.joana.ifc.sdg.graph.SDGNode#isGraphicalClone()
+     */
+    @Override
+    public boolean isGraphicalClone() {
+    	return true;
+    }
 }

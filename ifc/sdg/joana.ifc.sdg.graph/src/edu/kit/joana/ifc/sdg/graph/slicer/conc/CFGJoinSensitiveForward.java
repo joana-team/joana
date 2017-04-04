@@ -178,9 +178,6 @@ public class CFGJoinSensitiveForward extends CFGForward {
                     
                     if (s.getKind() == SDGNode.Kind.ENTRY
                 			&& edge.getKind() == SDGEdge.Kind.CONTROL_FLOW) {
-                    	if (t.getKind() == SDGNode.Kind.EXIT) {
-                    		assert false;
-                    	}
                     	if (t.getKind() == SDGNode.Kind.FORMAL_OUT
                     			&& "<exception>".equals(t.getBytecodeName())) {
                     		continue;

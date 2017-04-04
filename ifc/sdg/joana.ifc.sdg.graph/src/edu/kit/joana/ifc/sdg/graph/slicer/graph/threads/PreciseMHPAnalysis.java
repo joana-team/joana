@@ -224,42 +224,15 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 	private static PreciseMHPAnalysis analyze(CFG icfg, ThreadsInformation info) {
 		final Logger log = Log.getLogger(Log.L_MHP_INFO);
         log.outln("Compute Thread Regions ...");
-    	List<SDGEdge> syntheticEdges = removeSyntheticEdges(icfg);
         ThreadRegions tr = ThreadRegions.createPreciseThreadRegions(icfg, info);
 //        if (DEBUG) System.out.println(tr);
         MHPComputation mhp = new MHPComputation(icfg, info, tr);
-    	icfg.addAllEdges(syntheticEdges);
     	PreciseMHPAnalysis result = mhp.getMHPMap();
 
     	log.outln("Compute MayExist Map ...");
         HashMap<Integer, Collection<ThreadRegion>> mayExist = computeMayExist(result);
         result.setMayExistMap(mayExist);
     	return result;
-    }
-
-    public static List<SDGEdge> removeSyntheticEdges(CFG icfg) {
-    	LinkedList<SDGEdge> remove = new LinkedList<SDGEdge>();
-
-    	for (SDGNode n : icfg.vertexSet()) {
-    		if (n.getKind() == SDGNode.Kind.ENTRY) {
-    			List<SDGEdge> out = icfg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CONTROL_FLOW);
-
-    			if (out.size() > 1) {
-    				for (SDGEdge e : out) {
-    					if (e.getTarget().getKind() == SDGNode.Kind.EXIT) {
-    						assert false;
-    						remove.add(e);
-    					}
-    				}
-    			}
-
-    		}
-    	}
-
-    	assert remove.isEmpty();
-    	icfg.removeAllEdges(remove);
-
-    	return remove;
     }
 
     private static HashMap<Integer, Collection<ThreadRegion>> computeMayExist(PreciseMHPAnalysis mhp) {

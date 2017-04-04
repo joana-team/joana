@@ -648,7 +648,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			try {
 				interprocExceptionResult = NullPointerAnalysis.computeInterprocAnalysis(
 						DEFAULT_IGNORE_EXCEPTIONS, nonPrunedCG,	cfg.defaultExceptionMethodState,
-						progress, cfg.pruneDDEdgesToDanglingExceptionNodes);
+						progress, cfg.pruneDDEdgesToDanglingExceptionNodes, false);
 			} catch (WalaException e) {
 				throw new CancelException(e);
 			}
@@ -849,7 +849,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			final IProgressMonitor progress) throws UnsoundGraphException, CancelException {
 		final ExceptionPruningAnalysis<SSAInstruction, IExplodedBasicBlock> npa = NullPointerAnalysis
 				.createIntraproceduralExplodedCFGAnalysis(DEFAULT_IGNORE_EXCEPTIONS, n.getIR(),
-						null, cfg.defaultExceptionMethodState, cfg.pruneDDEdgesToDanglingExceptionNodes);
+						null, cfg.defaultExceptionMethodState, cfg.pruneDDEdgesToDanglingExceptionNodes, false);
 
 		npa.compute(progress);
 
@@ -864,10 +864,14 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		case ALL_NO_ANALYSIS: {
 			// We only call PrunedCFG to obtain a cfg in which unreachable nodes re removed
 			ExplodedControlFlowGraph unpruned = ExplodedControlFlowGraph.make(n.getIR());
-			ecfg = PrunedCFG.make(unpruned, new com.ibm.wala.ipa.cfg.EdgeFilter<IExplodedBasicBlock>() {
-				@Override public boolean hasNormalEdge(IExplodedBasicBlock src, IExplodedBasicBlock dst)      { return true; }
-				@Override public boolean hasExceptionalEdge(IExplodedBasicBlock src, IExplodedBasicBlock dst) { return true; }
-			});
+			ecfg = PrunedCFG.make(
+				unpruned,
+				new com.ibm.wala.ipa.cfg.EdgeFilter<IExplodedBasicBlock>() {
+					@Override public boolean hasNormalEdge(IExplodedBasicBlock src, IExplodedBasicBlock dst)      { return true; }
+					@Override public boolean hasExceptionalEdge(IExplodedBasicBlock src, IExplodedBasicBlock dst) { return true; }
+				},
+				false
+			);
 		}
 			break;
 		case INTRAPROC: {
@@ -890,7 +894,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		}
 			break;
 		case IGNORE_ALL: {
-			ecfg = ExceptionPrunedCFG.make(ExplodedControlFlowGraph.make(n.getIR()));
+			ecfg = ExceptionPrunedCFG.make(ExplodedControlFlowGraph.make(n.getIR()), false);
 			final ExplodedControlFlowGraph unpruned = ExplodedControlFlowGraph.make(n.getIR());
 			ecfg = PrunedCFG.make(
 				unpruned,
@@ -942,6 +946,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 						    && src.getInstruction() instanceof SSAThrowInstruction;
 					}
 				}
+				, false
 			);
 		}
 			break;

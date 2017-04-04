@@ -1369,9 +1369,10 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 			addEdge(prev, p, PDGEdge.Kind.CONTROL_FLOW);
 			prev = p;
 		}
+		addEdge(prev, exit, PDGEdge.Kind.CONTROL_FLOW);
 		addEdge(prev, exception, PDGEdge.Kind.CONTROL_FLOW);
 		addEdge(exception, exit, PDGEdge.Kind.CONTROL_FLOW);
-		addEdge(entry, exit, PDGEdge.Kind.CONTROL_FLOW);
+		
 
 		addEdge(entry, exit, PDGEdge.Kind.CONTROL_DEP_EXPR);
 		addEdge(entry, exception, PDGEdge.Kind.CONTROL_DEP_EXPR);

@@ -61,8 +61,7 @@ public abstract class IntraproceduralSlicer implements Slicer {
      * @return whether the slicer shall traverse the given edge
      */
     protected boolean isAllowedEdge(SDGEdge e) {
-    	return e.getKind().isSDGEdge()
-        		&& e.getKind().isIntraproceduralEdge();
+    	return e.getKind().isIntraSDGEdge();
     }
     
     

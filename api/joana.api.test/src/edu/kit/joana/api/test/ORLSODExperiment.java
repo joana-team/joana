@@ -35,6 +35,7 @@ import edu.kit.joana.api.test.util.JoanaPath;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
+import edu.kit.joana.ifc.sdg.irlsod.PredProbInfComputer;
 import edu.kit.joana.ifc.sdg.irlsod.ORLSODChecker;
 import edu.kit.joana.ifc.sdg.irlsod.PathBasedORLSODChecker;
 import edu.kit.joana.ifc.sdg.irlsod.PredecessorMethod;
@@ -60,16 +61,14 @@ public class ORLSODExperiment {
 		doConfig(new StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, ORLSOD1.class, "orlsod1", 1, 2, 2));
 	}
 
-	// imprecise due to current iRLSOD implementation
 	@Test
 	public void doORLSOD2() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException, ApiTestException{
-		doConfig(new StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, ORLSOD2.class, "orlsod2", 1, 2, 2));
+		doConfig(new StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, ORLSOD2.class, "orlsod2", 1, 2, 0));
 	}
 
-	// imprecise due to current iRLSOD implementation
 	@Test
 	public void doORLSOD3() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException, ApiTestException {
-		doConfig(new StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, ORLSOD3.class, "orlsod3", 1, 3, 2));
+		doConfig(new StandardTestConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, ORLSOD3.class, "orlsod3", 1, 3, 0));
 	}
 
 	@Test
@@ -148,8 +147,9 @@ public class ORLSODExperiment {
 		    userAnn.values().stream().filter(l -> BuiltinLattices.STD_SECLEVEL_LOW.equals(l)).count()
 		);
 
-		final ThreadModularCDomOracle tmdo = new ThreadModularCDomOracle(sdg);
-		final ProbInfComputer probInf = new ProbInfComputer(sdg, tmdo);
+//		final ThreadModularCDomOracle tmdo = new ThreadModularCDomOracle(sdg);
+//		final ProbInfComputer probInf = new CDomProbInfComputer(sdg, tmdo);
+		final ProbInfComputer probInf = new PredProbInfComputer(sdg);
 		final ORLSODChecker<String> checkerPath = new PathBasedORLSODChecker<String>(sdg,
 				 BuiltinLattices.getBinaryLattice(), userAnn, probInf);
 		final int noViosPath = checkerPath.checkIFlow().size();

@@ -833,7 +833,7 @@ public class SDG extends JoanaGraph implements Cloneable {
     		throws IOException {
     	final InputStream in = new FileInputStream(sdgFile);
     	final SDG sdg = readFromAndUseLessHeap(in, nodeFactory);
-
+    	in.close();
     	final int sepIndex = sdgFile.lastIndexOf(File.separator);
     	final String fileName = (sepIndex > 0 ? sdgFile.substring(sepIndex) : sdgFile);
     	sdg.setFileName(fileName);

@@ -1191,7 +1191,6 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		CallGraphBuilder cgb = createCallgraphBuilder(cfg, options);
 		com.ibm.wala.ipa.callgraph.CallGraph callgraph = cgb.makeCallGraph(options, progress);
 
-		System.out.println("call graph has " + callgraph.getNumberOfNodes() + " nodes.");
 		return new CGResult(callgraph, cgb.getPointerAnalysis());
 	}
 

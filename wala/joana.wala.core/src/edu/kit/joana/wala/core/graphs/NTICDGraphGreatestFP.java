@@ -77,6 +77,7 @@ public class NTICDGraphGreatestFP<V, E extends KnowsVertices<V>> extends Abstrac
 
 		final Map<MaxPaths<V>, Set<V>> reachable = new HashMap<>();
 		final Map<V, V>      nextCond  = new HashMap<>();
+		final Map<V, Set<V>> toNextCond = new HashMap<>();
 		// we don't actually need prevConds :/
 		final Map<V, Set<V>> prevConds = new HashMap<>();
 		Map<V, Map<V, Set<MaxPaths<V>>>> S = new HashMap<>();
@@ -114,6 +115,10 @@ public class NTICDGraphGreatestFP<V, E extends KnowsVertices<V>> extends Abstrac
 						seen.add(current);
 						current = next;
 					}
+					
+					seen.add(current);
+					toNextCond.put(m,seen);
+					
 					if (succNodes.size() > 1) {
 						if (!condNodes.contains(current)) throw new IllegalStateException();
 						nextCond.put(m, current);
@@ -150,7 +155,10 @@ public class NTICDGraphGreatestFP<V, E extends KnowsVertices<V>> extends Abstrac
 				for (Iterator<? extends E> it = cfg.outgoingEdgesOf(n).iterator(); it.hasNext();) {
 					V m = it.next().getTarget();
 					MaxPaths<V> t_nm = maxPaths(cfg, n, m);
-					add(Snew, m, n, t_nm);
+					for (V v : toNextCond.get(m)) {
+						add(Snew, v, n, t_nm);
+					}
+					
 				}
 			}
 
@@ -169,12 +177,6 @@ public class NTICDGraphGreatestFP<V, E extends KnowsVertices<V>> extends Abstrac
 							}
 							
 						}
-					}
-				} else if (Graphs.getSuccNodeCount(cfg, n) == 1 && !selfRef.contains(n)) {
-					//# (2.1) n has exact 1 succ
-					V m = Graphs.getSuccNodes(cfg, n).iterator().next();
-					for (V p : condNodes) {
-						update(S, Snew, n, m, p, reachable);
 					}
 				}
 			}
@@ -206,6 +208,7 @@ findSmaller:
 		}
 		
 		//# (3) Calculate non-termination insensitive control dependence
+		//DEBUG = cdg.toString().contains("fakeRootMethod");
 		for (V n : cfg.vertexSet()) {
 			for (V m : condNodes) {
 				if (n == m) {

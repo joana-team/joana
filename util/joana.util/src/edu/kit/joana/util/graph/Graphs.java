@@ -28,5 +28,17 @@ public class Graphs {
 	public static <V, E extends KnowsVertices<V>> int getSuccNodeCount(DirectedGraph<V, E> graph, V node) {
 		return getSuccNodes(graph, node).size();
 	}
+	
+	public static <V, E extends KnowsVertices<V>> Set<V> getPredNodes(DirectedGraph<V, E> graph, V node) {
+		final Set<E> edges = graph.incomingEdgesOf(node);
+		final HashSet<V> predecessors = new HashSet<>(edges.size());
+		for (E e : edges) {
+			predecessors.add(e.getSource());
+		}
+		return predecessors;
+	}
+	public static <V, E extends KnowsVertices<V>> int getPredNodeCount(DirectedGraph<V, E> graph, V node) {
+		return getPredNodes(graph, node).size();
+	}
 
 }

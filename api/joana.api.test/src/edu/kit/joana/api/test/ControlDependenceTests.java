@@ -101,6 +101,16 @@ public class ControlDependenceTests {
 		nticd_gfp.setComputeSummaryEdges(false);
 	}
 	
+	public static final SDGConfig nticd_gfp_worklist = new SDGConfig(
+			JoanaPath.JOANA_API_TEST_DATA_CLASSPATH,
+			null,
+			STUBS
+		); {
+			nticd_gfp_worklist.setControlDependenceVariant(ControlDependenceVariant.NTICD_GFP_WORKLIST_SYMBOLIC);
+			nticd_gfp_worklist.setParallel(false);
+			nticd_gfp_worklist.setComputeSummaryEdges(false);
+		}
+	
 	public static final SDGConfig nticd = nticd_gfp;
 	
 	private static IFCAnalysis buildAnnotateDump(Class<?> clazz, SDGConfig config) throws ClassHierarchyException, ApiTestException,
@@ -228,222 +238,224 @@ public class ControlDependenceTests {
 	public void testFlowSens() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
 		testCDGSubsetClosure(joana.api.testdata.toy.sensitivity.FlowSens.class, classic, ntscd);
-		testCDGSame(         joana.api.testdata.toy.sensitivity.FlowSens.class, classic, nticd);
+		testCDGSame(         joana.api.testdata.toy.sensitivity.FlowSens.class, classic, nticd, nticd_gfp_worklist);
 	}
 
 	@Test
 	public void testAssChain() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.simp.AssChain.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.toy.simp.AssChain.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.toy.simp.AssChain.class), classic, nticd, nticd_gfp_worklist);
 	}
 
 	@Test
 	public void testMicroExample() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.simp.MicroExample.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.toy.simp.MicroExample.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.toy.simp.MicroExample.class), classic, nticd, nticd_gfp_worklist);
 	}
 
 	@Test
 	public void testNested() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.simp.Nested.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.toy.simp.Nested.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.toy.simp.Nested.class), classic, nticd, nticd_gfp_worklist);
 	}
 
 	@Test
 	public void testNestedWithException() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.simp.NestedWithException.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.toy.simp.NestedWithException.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.toy.simp.NestedWithException.class), classic, nticd, nticd_gfp_worklist);
 	}
 
 	@Test
 	public void testSick() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.simp.Sick.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.toy.simp.Sick.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.toy.simp.Sick.class), classic, nticd, nticd_gfp_worklist);
 	}
 
 	@Test
 	public void testSick2() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.simp.Sick2.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.toy.simp.Sick2.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.toy.simp.Sick2.class), classic, nticd, nticd_gfp_worklist);
 	}
 
 	@Test
 	public void testMathRound() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.simp.MathRound.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.toy.simp.MathRound.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.toy.simp.MathRound.class), classic, nticd, nticd_gfp_worklist);
 	}
 
 	@Test
 	public void testControlDep() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.test.ControlDep.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.toy.test.ControlDep.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.toy.test.ControlDep.class), classic, nticd, nticd_gfp_worklist);
 	}
 
 	@Test
 	public void testIndependent() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.test.Independent.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.toy.test.Independent.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.toy.test.Independent.class), classic, nticd, nticd_gfp_worklist);
 	}
 
 	@Test
 	public void testObjSens() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.test.ObjSens.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.toy.test.ObjSens.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.toy.test.ObjSens.class), classic, nticd, nticd_gfp_worklist);
 	}
 
 	@Test
 	public void testSystemCallsTest() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.test.SystemCallsTest.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.toy.test.SystemCallsTest.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.toy.test.SystemCallsTest.class), classic, nticd, nticd_gfp_worklist);
 	}
 
 	@Test
 	public void testVeryImplictFlow() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.test.VeryImplictFlow.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.toy.test.VeryImplictFlow.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.toy.test.VeryImplictFlow.class), classic, nticd, nticd_gfp_worklist);
 	}
 
 	@Test
 	public void testMyList() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.rec.MyList.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.toy.rec.MyList.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.toy.rec.MyList.class), classic, nticd, nticd_gfp_worklist);
 	}
 
 	@Test
 	public void testMyList2() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.rec.MyList2.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.toy.rec.MyList2.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.toy.rec.MyList2.class), classic, nticd, nticd_gfp_worklist);
 	}
 
 	@Test
 	public void testPasswordFile() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.pw.PasswordFile.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.toy.pw.PasswordFile.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.toy.pw.PasswordFile.class), classic, nticd, nticd_gfp_worklist);
 	}
 
 	@Test
 	public void testDemo1() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.demo.Demo1.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.toy.demo.Demo1.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.toy.demo.Demo1.class), classic, nticd, nticd_gfp_worklist);
 	}
 
 	@Test
 	public void testNonNullFieldParameter() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.demo.NonNullFieldParameter.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.toy.demo.NonNullFieldParameter.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.toy.demo.NonNullFieldParameter.class), classic, nticd, nticd_gfp_worklist);
 	}
 
 	@Test
 	public void testDeclass1() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.declass.Declass1.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.toy.declass.Declass1.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.toy.declass.Declass1.class), classic, nticd, nticd_gfp_worklist);
 	}
 
 	@Test
 	public void testExampleLeakage() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.seq.ExampleLeakage.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.seq.ExampleLeakage.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.seq.ExampleLeakage.class), classic, nticd, nticd_gfp_worklist);
 	}
 	
 	@Test
 	public void testArrayAccess() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.seq.ArrayAccess.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.seq.ArrayAccess.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.seq.ArrayAccess.class), classic, nticd, nticd_gfp_worklist);
 	}
 	
 	@Test
 	public void testArrayAlias() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.seq.ArrayOverwrite.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.seq.ArrayOverwrite.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.seq.ArrayOverwrite.class), classic, nticd, nticd_gfp_worklist);
 	}
 	
 	@Test
 	public void testFieldAccess() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.seq.FieldAccess.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.seq.FieldAccess.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.seq.FieldAccess.class), classic, nticd, nticd_gfp_worklist);
 	}
 	@Test
 	public void testFieldAccess2() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.seq.FieldAccess2.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.seq.FieldAccess2.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.seq.FieldAccess2.class), classic, nticd, nticd_gfp_worklist);
 	}
 	
 	@Test
 	public void testFieldAccess3() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.seq.FieldAccess3.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.seq.FieldAccess3.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.seq.FieldAccess3.class), classic, nticd, nticd_gfp_worklist);
 	}
 	
 	@Test
 	public void testConstants1() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.seq.Constants1.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.seq.Constants1.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.seq.Constants1.class), classic, nticd, nticd_gfp_worklist);
 	}
 	
 	@Test
 	public void testConstants2() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.seq.Constants2.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.seq.Constants2.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.seq.Constants2.class), classic, nticd, nticd_gfp_worklist);
 	}
 	
 	// TODO: This should crash when we turn on reflection
 	@Test
 	public void testWalaBugReflection() throws ClassHierarchyException, ApiTestException, IOException,	UnsoundGraphException, CancelException {
-		BuildSDG.build(joana.api.testdata.toy.test.Reflection.class,BuildSDG.bottom_sequential, false);
+		testCDGSubsetClosure((joana.api.testdata.toy.test.Reflection.class), classic, ntscd);
+		testCDGSame(         (joana.api.testdata.toy.test.Reflection.class), classic, nticd, nticd_gfp_worklist);
 	}
 	
 	@Test
 	public void testStrangeTryCatchFinallyWalaBug() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.seq.StrangeTryCatchFinallyWalaBug.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.seq.StrangeTryCatchFinallyWalaBug.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.seq.StrangeTryCatchFinallyWalaBug.class), classic, nticd, nticd_gfp_worklist);
 	}
 	
 	@Test
 	public void testStrangeTryCatchFinallyWalaBugComplex() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.seq.StrangeTryCatchFinallyWalaBugComplex.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.seq.StrangeTryCatchFinallyWalaBugComplex.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.seq.StrangeTryCatchFinallyWalaBugComplex.class), classic, nticd, nticd_gfp_worklist);
 	}
 	
 	@Test
 	public void testMartinMohrsStrangeTryCatchFinallyWalaBug() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.seq.MartinMohrsStrangeTryCatchFinallyWalaBug.class), classic, ntscd);
-		testCDGSame(         (joana.api.testdata.seq.MartinMohrsStrangeTryCatchFinallyWalaBug.class), classic, nticd);
+		testCDGSame(         (joana.api.testdata.seq.MartinMohrsStrangeTryCatchFinallyWalaBug.class), classic, nticd, nticd_gfp_worklist);
 	}
 	
 	@Test
 	public void testWhileTrue() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testUnbuildable(       joana.api.testdata.seq.WhileTrue.class, classic);
-		testCDGSame(          (joana.api.testdata.seq.WhileTrue.class), adaptive, nticd);
+		testCDGSame(          (joana.api.testdata.seq.WhileTrue.class), adaptive, nticd, nticd_gfp_worklist);
+		testCDGSubsetClosure( (joana.api.testdata.seq.WhileTrue.class), nticd, ntscd);
 	}
 	
 	@Test
@@ -455,7 +467,7 @@ public class ControlDependenceTests {
 		);
 		testCDGSame(         (de.uni.trier.infsec.core.Setup.class),
 			new ExceptionAnalysis[] { ExceptionAnalysis.IGNORE_ALL, ExceptionAnalysis.ALL_NO_ANALYSIS  },
-			classic, nticd
+			classic, nticd, nticd_gfp_worklist
 		);
 		testCDGSubsetClosure((de.uni.trier.infsec.core.Setup.class), nticd, ntscd);
 	}

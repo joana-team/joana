@@ -211,6 +211,19 @@ public class NTSCDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGrap
 		}
 		return changed;
 	}
+	
+	/**
+	 * S[a,b] := set;
+	 */
+	static <T> void set(Map<T, Map<T, Set<MaxPaths<T>>>> S, T a, T b, Set<MaxPaths<T>> set) {
+		Map<T, Set<MaxPaths<T>>> Sn = S.get(a);
+		if (Sn == null) {
+			Sn = new HashMap<>();
+			S.put(a, Sn);
+		}
+
+		Sn.put(b, set);
+	}
 
 	/**
 	 * S[a,b] += set;

@@ -7,6 +7,7 @@
  */
 package edu.kit.joana.wala.core.graphs;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -152,19 +153,27 @@ public class NTICDGraphGreatestFPWorklistSymbolic<V, E extends KnowsVertices<V>>
 		}
 		
 		
-		for (V start : cfg.vertexSet()){ // representantOf, prevConds
+		for (V start : cfg.vertexSet()){ // representantOf
+			final Collection<V> sameRepresentant = new LinkedList<>();
 			V m = start;
 			V n = start;
-			V representant = null;
-			if (condNodes.contains(start)) {
-				final Set<V> preds = Graphs.getPredNodes(cfg, start);
-				if (preds.size() != 1) {
-					representant = start;
-				} else {
-					n = preds.iterator().next();
+			V representant = representantOf.get(n);
+			final boolean newRepresentant = representant == null;
+			
+			if (newRepresentant) {
+				if (condNodes.contains(start)) {
+					final Set<V> preds = Graphs.getPredNodes(cfg, start);
+					if (preds.size() != 1) {
+						representant = start;
+						sameRepresentant.add(start);
+					} else {
+						n = preds.iterator().next();
+					}
 				}
 			}
+			
 			while (representant == null) {
+				sameRepresentant.add(m);
 				final Set<V> succs = Graphs.getSuccNodes(cfg,n);
 				if (succs.size() == 1) {
 					final Set<V> preds = Graphs.getPredNodes(cfg,n);
@@ -178,8 +187,12 @@ public class NTICDGraphGreatestFPWorklistSymbolic<V, E extends KnowsVertices<V>>
 					representant = m;
 				}
 			}
-			representantOf.put(start, representant);
-			representants.add(representant);
+			if (newRepresentant) {
+				for (V s : sameRepresentant) {
+					representantOf.put(s, representant);
+				}
+				representants.add(representant);
+			}
 		}
 
 		

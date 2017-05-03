@@ -78,8 +78,6 @@ public class NTICDGraphGreatestFP<V, E extends KnowsVertices<V>> extends Abstrac
 		final Map<MaxPaths<V>, Set<V>> reachable = new HashMap<>();
 		final Map<V, V>      nextCond  = new HashMap<>();
 		final Map<V, Set<V>> toNextCond = new HashMap<>();
-		// we don't actually need prevConds :/
-		final Map<V, Set<V>> prevConds = new HashMap<>();
 		Map<V, Map<V, Set<MaxPaths<V>>>> S = new HashMap<>();
 
 		for (final V n : condNodes) {
@@ -122,17 +120,6 @@ public class NTICDGraphGreatestFP<V, E extends KnowsVertices<V>> extends Abstrac
 					if (succNodes.size() > 1) {
 						if (!condNodes.contains(current)) throw new IllegalStateException();
 						nextCond.put(m, current);
-						
-						prevConds.compute(current, (c, ps) -> {
-							if (ps == null) {
-								final Set<V> prevs = new HashSet<>();
-								prevs.add(n);
-								return prevs;
-							} else {
-								ps.add(n);
-								return ps;
-							}
-						});
 					}
 				}
 				
@@ -189,9 +176,8 @@ findSmaller:
 					final V m = em.getKey();
 					final Set<MaxPaths<V>> Snm = em.getValue();
 					final Set<MaxPaths<V>> Snew_nm = get(Snew, n, m);
-					if (Snew_nm != null && !Snm.containsAll(Snew_nm)) {
-						throw new IllegalStateException();
-					}
+					
+					assert Snew_nm == null || Snm.containsAll(Snew_nm);
 					
 					if ((Snew_nm == null && !Snm.isEmpty()) || (Snew_nm != null && !Snew_nm.containsAll(Snm))) {
 						isSmaller = true;
@@ -228,12 +214,9 @@ findSmaller:
 					System.out.println("}");
 				}
 
+				assert Snm == null || Snm.size() <= Tm;
 				if (Snm != null && Snm.size() > 0 && Snm.size() < Tm) {
 					cdg.addEdge(m, n);
-				} else {
-					if (Snm != null && Snm.size() > Tm) {
-						throw new IllegalStateException();
-					}
 				}
 			}
 		}

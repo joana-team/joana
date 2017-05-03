@@ -60,8 +60,6 @@ public class NTICDGraphGreatestFPWorklistSymbolic<V, E extends KnowsVertices<V>>
 			cdg.addVertex(n);
 		}
 
-		DEBUG = cdg.toString().contains("fakeRootMethod");
-		
 		//# (1) Initialize
 		Set<V> condNodes = condNodes(cfg);
  		Set<V> selfRef = selfRef(cfg);
@@ -88,7 +86,7 @@ public class NTICDGraphGreatestFPWorklistSymbolic<V, E extends KnowsVertices<V>>
 		final Set<V> representants = new HashSet<>();
 		final Map<V, V> representantOf = new HashMap<>();
 		
-		Map<V, Map<V, Set<MaxPaths<V>>>> S = new HashMap<>();
+		final Map<V, Map<V, Set<MaxPaths<V>>>> S = new HashMap<>();
 
 		
 		for (final V p : condNodes) {
@@ -194,9 +192,9 @@ public class NTICDGraphGreatestFPWorklistSymbolic<V, E extends KnowsVertices<V>>
 		for (Entry<MaxPaths<V>, Set<V>> entry : reachable.entrySet()) {
 			final MaxPaths<V> t_px = entry.getKey();
 			final V p = t_px.n; // duh
+			@SuppressWarnings("unused")
 			final V x = t_px.m; // duh
 			final Set<V> reachableFromX = entry.getValue();
-//			add(S, x, p, t_px);
 			for (V m : reachableFromX) {
 				if (representants.contains(m)) {
 					add(S, m, p, t_px);
@@ -237,16 +235,13 @@ public class NTICDGraphGreatestFPWorklistSymbolic<V, E extends KnowsVertices<V>>
 				if (n != null) {
 					final Set<MaxPaths<V>> Smn = get(S, m, n);
 					final int Tn = Graphs.getSuccNodeCount(cfg, n);
-					if (Smn != null && Smn.size() == Tn) {
+					if (Smn.size() == Tn) {
 						smpNew.add(maxPaths(cfg, p, x));
 					}
 					
 				}
 			}
 			if (smp.size() != smpNew.size()) {
-				if (prevConds.get(p) == null) {
-					throw new IllegalStateException();
-				}
 				for (V n : prevConds.get(p)) {
 					workbag.add(Pair.pair(m, n));
 				}
@@ -257,9 +252,7 @@ public class NTICDGraphGreatestFPWorklistSymbolic<V, E extends KnowsVertices<V>>
 		
 		for (V p : condNodes) {
 			for (V m : cfg.vertexSet()) {
-				if (DEBUG && representants.contains(m) && representantOf.get(m) != m) {
-					throw new IllegalStateException();
-				}
+				assert !representants.contains(m) || representantOf.get(m) == m;
 				set(S, m, p, get(S, representantOf.get(m), p));
 			}
 		} 
@@ -272,29 +265,23 @@ public class NTICDGraphGreatestFPWorklistSymbolic<V, E extends KnowsVertices<V>>
 					continue;
 				}
 
-				Set<MaxPaths<V>> Snm = get(S, n, m);
+				final Set<MaxPaths<V>> Snm = get(S, n, m);
 				final int Tm = Graphs.getSuccNodeCount(cfg,m);
 
 				if (DEBUG) {
 					System.out.print("S(" + n + ", " + m + ") = {");
-					if (Snm != null) {
-						for (MaxPaths<V> t_nm : Snm) {
-							System.out.print(t_nm + "; ");
-						}
+					for (MaxPaths<V> t_nm : Snm) {
+						System.out.print(t_nm + "; ");
 					}
 					System.out.println("}");
 				}
 
-				if (Snm != null && Snm.size() > 0 && Snm.size() < Tm) {
+				assert Snm.size() <= Tm;
+				if (Snm.size() > 0 && Snm.size() < Tm) {
 					cdg.addEdge(m, n);
-				} else {
-					if (Snm != null && Snm.size() > Tm) {
-						throw new IllegalStateException();
-					}
 				}
 			}
 		}
-		DEBUG = false;
 		return cdg;
 	}
 }

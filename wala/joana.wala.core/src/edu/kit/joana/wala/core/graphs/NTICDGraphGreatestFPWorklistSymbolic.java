@@ -10,6 +10,7 @@ package edu.kit.joana.wala.core.graphs;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -202,7 +203,7 @@ public class NTICDGraphGreatestFPWorklistSymbolic<V, E extends KnowsVertices<V>>
 			}
 		}
 		
-		final Set<Pair<V, V>> workbag = new HashSet<>();
+		final LinkedHashSet<Pair<V, V>> workbag = new LinkedHashSet<>();
 		for (V p : condNodes) {
 			for (V m : representants) {
 				workbag.add(Pair.pair(m,p));

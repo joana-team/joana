@@ -88,6 +88,8 @@ public class NTICDGraphGreatestFPWorklistSymbolic<V, E extends KnowsVertices<V>>
 		final Set<V> representants = new HashSet<>();
 		final Map<V, V> representantOf = new HashMap<>();
 		
+		final Map<V, Set<V>> succNodesOf = new HashMap<>(condNodes.size());
+		
 		final Map<V, Map<V, Set<MaxPaths<V>>>> S = new HashMap<>();
 
 		
@@ -95,9 +97,13 @@ public class NTICDGraphGreatestFPWorklistSymbolic<V, E extends KnowsVertices<V>>
 			prevConds.put(p, new HashSet<>());
 		}
 		
+		for (final V p : condNodes) {
+			succNodesOf.put(p, Graphs.getSuccNodes(cfg, p));
+		}
+		
+		
 		for (final V n : condNodes) {
-			for (Iterator<? extends E> it = cfg.outgoingEdgesOf(n).iterator(); it.hasNext();) {
-				final V m = it.next().getTarget();
+			for (V m : succNodesOf.get(n)) {
 				MaxPaths<V> t_nm = maxPaths(cfg, n, m);
 			
 				final Set<V> reachableFromTnm = new HashSet<>();
@@ -238,7 +244,7 @@ public class NTICDGraphGreatestFPWorklistSymbolic<V, E extends KnowsVertices<V>>
 			final Set<MaxPaths<V>> smp = get(S, m, p);
 			final Set<MaxPaths<V>> smpNew = new HashSet<>();
 			
-			for (V x : Graphs.getSuccNodes(cfg, p)) {
+			for (V x : succNodesOf.get(p)) {
 				if (toNextCond.get(x).contains(m)) {
 					smpNew.add(maxPaths(cfg, p, x));
 				}
@@ -247,7 +253,7 @@ public class NTICDGraphGreatestFPWorklistSymbolic<V, E extends KnowsVertices<V>>
 				final V n = nextCond.get(x);
 				if (n != null) {
 					final Set<MaxPaths<V>> Smn = get(S, m, n);
-					final int Tn = Graphs.getSuccNodeCount(cfg, n);
+					final int Tn = succNodesOf.get(n).size();
 					if (Smn.size() == Tn) {
 						smpNew.add(maxPaths(cfg, p, x));
 					}
@@ -279,7 +285,7 @@ public class NTICDGraphGreatestFPWorklistSymbolic<V, E extends KnowsVertices<V>>
 				}
 
 				final Set<MaxPaths<V>> Snm = get(S, n, m);
-				final int Tm = Graphs.getSuccNodeCount(cfg,m);
+				final int Tm = succNodesOf.get(m).size();
 
 				if (DEBUG) {
 					System.out.print("S(" + n + ", " + m + ") = {");

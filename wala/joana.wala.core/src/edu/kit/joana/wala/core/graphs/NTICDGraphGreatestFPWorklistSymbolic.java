@@ -229,9 +229,8 @@ public class NTICDGraphGreatestFPWorklistSymbolic<V, E extends KnowsVertices<V>>
 				if (toNextCond.get(x).contains(m)) {
 					smpNew.add(maxPaths(cfg, p, x));
 				}
-			}
-
-			for (V x : Graphs.getSuccNodes(cfg, p)) {
+				
+				
 				final V n = nextCond.get(x);
 				if (n != null) {
 					final Set<MaxPaths<V>> Smn = get(S, m, n);

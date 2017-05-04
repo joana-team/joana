@@ -33,7 +33,11 @@ public class ModRefProviderImpl implements ModRefProvider {
 	private final Map<Node, IntSet> node2mayMod = new HashMap<Node, IntSet>();
 	private final Map<Node, IntSet> node2mayRef = new HashMap<Node, IntSet>();
 
-	private ModRefProviderImpl() {}
+	private ModRefProviderImpl(boolean isParallel) {
+		this.isParallel = isParallel;
+	}
+	
+	private final boolean isParallel;
 
 	public static OrdinalSetMapping<Node> createDomain(final ModRefControlFlowGraph cfg) {
 		final List<Node> list = new LinkedList<ModRefControlFlowGraph.Node>();
@@ -48,8 +52,8 @@ public class ModRefProviderImpl implements ModRefProvider {
 		return new ObjectArrayMapping<ModRefControlFlowGraph.Node>(nodes);
 	}
 
-	public static ModRefProvider createProvider(final ModRefControlFlowGraph cfg, final OrdinalSetMapping<Node> domain) {
-		final ModRefProviderImpl modRef = new ModRefProviderImpl();
+	public static ModRefProvider createProvider(final ModRefControlFlowGraph cfg, final OrdinalSetMapping<Node> domain, final boolean isParallel) {
+		final ModRefProviderImpl modRef = new ModRefProviderImpl(isParallel);
 
 		modRef.run(cfg, domain);
 
@@ -61,7 +65,7 @@ public class ModRefProviderImpl implements ModRefProvider {
 		// this is done by the isMod() isRef() methods of Node. Do not use ModRefCandidate isMod()
 		// isRef() here.
 
-		StreamSupport.stream(domain.spliterator(), true)
+		StreamSupport.stream(domain.spliterator(), this.isParallel)
 			.forEach(n->calc(n, cfg, domain));
 	}
 	

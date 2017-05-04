@@ -546,7 +546,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 				if (Iterators.size(reachingExit) == cfg.vertexSet().size())  {
 					cdg = CDG.build(cfg, entry, exit); 
 				} else {
-					cdg = NTICDGraphGreatestFP.compute(cfg, new EdgeFactory<PDGNode,PDGEdge>() {
+					cdg = NTICDGraphGreatestFPWorklistSymbolic.compute(cfg, new EdgeFactory<PDGNode,PDGEdge>() {
 						public PDGEdge createEdge(PDGNode from, PDGNode to) {
 							return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
 						};

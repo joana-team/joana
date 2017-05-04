@@ -12,9 +12,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 
 import org.junit.Test;
@@ -51,14 +48,18 @@ public class ControlDependenceTests {
 	private static final Stubs STUBS = Stubs.JRE_14;
 	private static final ExceptionAnalysis exceptionAnalyses[] = ExceptionAnalysis.values();
 	
+	private static void setDefaults(SDGConfig config) {
+		config.setParallel(false);
+		config.setComputeSummaryEdges(false);
+	}
+	
 	public static final SDGConfig classic = new SDGConfig(
 		JoanaPath.JOANA_API_TEST_DATA_CLASSPATH,
 		null,
 		STUBS
 	); {
+		setDefaults(classic);
 		classic.setControlDependenceVariant(ControlDependenceVariant.CLASSIC);
-		classic.setParallel(false);
-		classic.setComputeSummaryEdges(false);
 	}
 	
 	public static final SDGConfig adaptive = new SDGConfig(
@@ -66,9 +67,8 @@ public class ControlDependenceTests {
 			null,
 			STUBS
 	); {
+		setDefaults(adaptive);
 		adaptive.setControlDependenceVariant(ControlDependenceVariant.ADAPTIVE);
-		adaptive.setParallel(false);
-		adaptive.setComputeSummaryEdges(false);
 	}
 
 	public static final SDGConfig ntscd = new SDGConfig(
@@ -76,9 +76,8 @@ public class ControlDependenceTests {
 		null,
 		STUBS
 	); {
+		setDefaults(ntscd);
 		ntscd.setControlDependenceVariant(ControlDependenceVariant.NTSCD);
-		ntscd.setParallel(false);
-		ntscd.setComputeSummaryEdges(false);
 	}
 	
 	public static final SDGConfig nticd_lfp = new SDGConfig(
@@ -86,9 +85,8 @@ public class ControlDependenceTests {
 		null,
 		STUBS
 	); {
+		setDefaults(nticd_lfp);
 		nticd_lfp.setControlDependenceVariant(ControlDependenceVariant.NTICD_LFP);
-		nticd_lfp.setParallel(false);
-		nticd_lfp.setComputeSummaryEdges(false);
 	}
 	
 	public static final SDGConfig nticd_gfp = new SDGConfig(
@@ -96,9 +94,8 @@ public class ControlDependenceTests {
 		null,
 		STUBS
 	); {
+		setDefaults(nticd_gfp);
 		nticd_gfp.setControlDependenceVariant(ControlDependenceVariant.NTICD_GFP);
-		nticd_gfp.setParallel(false);
-		nticd_gfp.setComputeSummaryEdges(false);
 	}
 	
 	public static final SDGConfig nticd_gfp_worklist = new SDGConfig(
@@ -106,9 +103,9 @@ public class ControlDependenceTests {
 			null,
 			STUBS
 		); {
+			setDefaults(nticd_gfp_worklist);
 			nticd_gfp_worklist.setControlDependenceVariant(ControlDependenceVariant.NTICD_GFP_WORKLIST_SYMBOLIC);
-			nticd_gfp_worklist.setParallel(false);
-			nticd_gfp_worklist.setComputeSummaryEdges(false);
+
 		}
 	
 	public static final SDGConfig nticd = nticd_gfp;
@@ -190,18 +187,35 @@ public class ControlDependenceTests {
 				final Set<SDGNode> vertices1 = sdg1.vertexSet();
 				final Set<SDGNode> vertices2 = sdg2.vertexSet();
 				
+				// The following 2 blocks are, strictly speaking, unnecessary.
+				// They do, however, help when debugging, especially: when vertices differ due to non-determinism
+				// in the SDG contstruction.
 				for (SDGNode n : vertices1) {
 					boolean in2 = vertices2.contains(n);
 					if (!in2) {
-						SDGNode nn;
+						SDGNode nn = null;
 						for (SDGNode m : vertices2) {
 							if (m.getId() == n.getId()) {
 								nn = m;
 							}
 						}
-						assertTrue(false);
+						assertTrue("!in2: n: " + n + ",  nn:" + (nn == null ? "null" : nn), false);
 					}
 				}
+				
+				for (SDGNode n : vertices2) {
+					boolean in1 = vertices1.contains(n);
+					if (!in1) {
+						SDGNode nn = null;
+						for (SDGNode m : vertices1) {
+							if (m.getId() == n.getId()) {
+								nn = m;
+							}
+						}
+						assertTrue("!in1: n: " + n + ",  nn:" + (nn == null ? "null" : nn), false);
+					}
+				}
+				
 				
 				assertEquals(vertices1, vertices2);
 				final Set<SDGEdge> edges1 = sdg1.edgeSet();
@@ -470,6 +484,13 @@ public class ControlDependenceTests {
 			classic, nticd, nticd_gfp_worklist
 		);
 		testCDGSubsetClosure((de.uni.trier.infsec.core.Setup.class), nticd, ntscd);
+	}
+	
+	@Test
+	public void testJLex() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testCDGSubsetClosure((JLex.Main.class), classic, ntscd);
+		testCDGSame(         (JLex.Main.class), classic, nticd, nticd_gfp_worklist);
 	}
 	
 	

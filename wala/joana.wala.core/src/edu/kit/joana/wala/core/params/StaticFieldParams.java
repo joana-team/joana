@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -153,9 +154,17 @@ public class StaticFieldParams {
 
 		for (final PDG pdg : sdg.getAllPDGs()) {
 			final BitVectorVariable bv = solver.getOut(pdg);
-			final OrdinalSet<FieldAccess> faccs=  new OrdinalSet<FieldAccess>(bv.getValue(), genReach.getLatticeValues());
+			final Iterator<FieldAccess> faccs;
+			// We assume that for non-parallel SDGBuilder, the user cares about determinism of sdg creation.
+			// TODO: this is somewhat of an abuse of sdg.isParallel(). Maybe rename that?
+			if (sdg.isParallel()) {
+				faccs = new OrdinalSet<FieldAccess>(bv.getValue(), genReach.getLatticeValues()).iterator();
+			} else {
+			  faccs = new OrdinalSet<FieldAccess>(bv.getValue(), genReach.getLatticeValues()).iteratorOrdinalSorted();
+			}
 			
-			for (final FieldAccess facc : faccs) {
+			while (faccs.hasNext()) {
+				FieldAccess facc = faccs.next();
 				if (facc.isWrite) {
 					pdg.addStaticWrite(facc.field);
 				} else {

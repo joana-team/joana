@@ -39,9 +39,35 @@ import static edu.kit.joana.wala.core.graphs.NTSCDGraph.set;
  * @author Martin Hecker  <martin.hecker@kit.edu>
  *
  */
-public class NTICDGraphGreatestFPWorklistSymbolic<V, E extends KnowsVertices<V>> extends AbstractJoanaGraph<V, E> {
+public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>> extends AbstractJoanaGraph<V, E> {
 
-	private NTICDGraphGreatestFPWorklistSymbolic(EdgeFactory<V, E> edgeFactory) {
+	private static class WorkbagItem<V> {
+		private V m,n,x;
+
+		public WorkbagItem(V m, V n, V x) {
+			this.m = m; this.n = n; this.x = x;
+		}
+		@Override
+		public boolean equals(Object obj) {
+			@SuppressWarnings("rawtypes")
+			final WorkbagItem that = (WorkbagItem) obj;
+			return this.m == that.m && this.n == that.n && this.x == that.x;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + m.hashCode();
+			result = prime * result + n.hashCode();
+			result = prime * result + x.hashCode();
+			return result;
+		}
+
+		
+	}
+
+	private NTICDGraphLeastFPDualWorklistSymbolic(EdgeFactory<V, E> edgeFactory) {
 		super(edgeFactory);
 	}
 
@@ -56,8 +82,8 @@ public class NTICDGraphGreatestFPWorklistSymbolic<V, E extends KnowsVertices<V>>
 	 * This Algorithm fixes theirs, and is not flawed.
 	 * 
 	 */
-	public static <V , E extends KnowsVertices<V>> NTICDGraphGreatestFPWorklistSymbolic<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory) {
-		NTICDGraphGreatestFPWorklistSymbolic<V, E> cdg = new NTICDGraphGreatestFPWorklistSymbolic<>(edgeFactory);
+	public static <V , E extends KnowsVertices<V>> NTICDGraphLeastFPDualWorklistSymbolic<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory) {
+		NTICDGraphLeastFPDualWorklistSymbolic<V, E> cdg = new NTICDGraphLeastFPDualWorklistSymbolic<>(edgeFactory);
 		for (V n : cfg.vertexSet()) {
 			cdg.addVertex(n);
 		}
@@ -83,7 +109,7 @@ public class NTICDGraphGreatestFPWorklistSymbolic<V, E extends KnowsVertices<V>>
 		final Map<MaxPaths<V>, Set<V>> reachable = new HashMap<>();
 		final Map<V, V>      nextCond  = new HashMap<>();
 		final Map<V, Set<V>> toNextCond = new HashMap<>();
-		final Map<V, Set<V>> prevConds = new HashMap<>();
+		final Map<V, Set<Pair<V,V>>> prevCondsWithSucc = new HashMap<>();
 		
 		final Set<V> representants = new HashSet<>();
 		final Map<V, V> representantOf = new HashMap<>();
@@ -94,7 +120,7 @@ public class NTICDGraphGreatestFPWorklistSymbolic<V, E extends KnowsVertices<V>>
 
 		
 		for (final V p : condNodes) {
-			prevConds.put(p, new HashSet<>());
+			prevCondsWithSucc.put(p, new HashSet<>());
 		}
 		
 		for (final V p : condNodes) {
@@ -143,13 +169,13 @@ public class NTICDGraphGreatestFPWorklistSymbolic<V, E extends KnowsVertices<V>>
 						if (!condNodes.contains(current)) throw new IllegalStateException();
 						nextCond.put(m, current);
 						
-						prevConds.compute(current, (c, ps) -> {
+						prevCondsWithSucc.compute(current, (c, ps) -> {
 							if (ps == null) {
-								final Set<V> prevs = new HashSet<>();
-								prevs.add(n);
+								final Set<Pair<V,V>> prevs = new HashSet<>();
+								prevs.add(Pair.pair(n,m));
 								return prevs;
 							} else {
-								ps.add(n);
+								ps.add(Pair.pair(n,m));
 								return ps;
 							}
 						});
@@ -215,17 +241,21 @@ public class NTICDGraphGreatestFPWorklistSymbolic<V, E extends KnowsVertices<V>>
 			@SuppressWarnings("unused")
 			final V x = t_px.m; // duh
 			final Set<V> reachableFromX = entry.getValue();
-			for (V m : reachableFromX) {
-				if (representants.contains(m)) {
+			for (V m : representants) {
+				if (!reachableFromX.contains(m)) {
 					add(S, m, p, t_px);
 				}
 			}
 		}
 		
-		final LinkedHashSet<Pair<V, V>> workbag = new LinkedHashSet<>();
+		final LinkedHashSet<WorkbagItem<V>> workbag = new LinkedHashSet<>();
 		for (V p : condNodes) {
 			for (V m : representants) {
-				workbag.add(Pair.pair(m,p));
+				if (get(S, m, p).size() > 0) {
+					for (Pair<V,V> nx : prevCondsWithSucc.get(p)) {
+						workbag.add(new WorkbagItem<>(m,nx.getFirst(),nx.getSecond()));
+					}
+				}
 			}
 		}
 		
@@ -234,39 +264,27 @@ public class NTICDGraphGreatestFPWorklistSymbolic<V, E extends KnowsVertices<V>>
 			iterations ++;
 			final V m;
 			final V p;
+			final V x;
 			{
-				final Iterator<Pair<V,V>> iterator = workbag.iterator();
-				final Pair<V,V> next = iterator.next();
+				final Iterator<WorkbagItem<V>> iterator = workbag.iterator();
+				final WorkbagItem<V> next = iterator.next();
 				iterator.remove();
 				
-				m = next.getFirst();
-				p = next.getSecond();
+				m = next.m;
+				p = next.n;
+				x = next.x;
 			}
 			
 			final Set<MaxPaths<V>> smp = get(S, m, p);
-			final Set<MaxPaths<V>> smpNew = new HashSet<>();
 			
-			for (V x : succNodesOf.get(p)) {
-				if (toNextCond.get(x).contains(m)) {
-					smpNew.add(maxPaths(cfg, p, x));
-				}
-				
-				
-				final V n = nextCond.get(x);
-				if (n != null) {
-					final Set<MaxPaths<V>> Smn = get(S, m, n);
-					final int Tn = succNodesOf.get(n).size();
-					if (Smn.size() == Tn) {
-						smpNew.add(maxPaths(cfg, p, x));
-					}
-					
-				}
+			boolean changed = false;
+			if (!toNextCond.get(x).contains(m)) {
+				changed = smp.add(maxPaths(cfg,p,x));
 			}
-			if (smp.size() != smpNew.size()) {
-				for (V n : prevConds.get(p)) {
-					workbag.add(Pair.pair(m, n));
+			if (changed && smp.size() == 1) {
+				for (Pair<V,V> nx_ : prevCondsWithSucc.get(p)) {
+					workbag.add(new WorkbagItem<V>(m, nx_.getFirst(), nx_.getSecond()));
 				}
-				set(S, m, p, smpNew);
 			}
 		}
 		
@@ -279,8 +297,9 @@ public class NTICDGraphGreatestFPWorklistSymbolic<V, E extends KnowsVertices<V>>
 		} 
 		
 		if (DEBUG && iterations > 200000) {
-			System.out.println("Iterations: " + iterations);
+			System.out.println("LFP: Iterations (" + cfg.toString() +  "): " + iterations);
 		}
+		
 		//# (3) Calculate non-termination insensitive control dependence
 		for (V n : cfg.vertexSet()) {
 			for (V m : condNodes) {

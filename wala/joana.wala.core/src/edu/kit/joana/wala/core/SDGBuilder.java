@@ -151,7 +151,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 	 * 
 	 * @author Martin Hecker <martin.hecker@kit.edu>
 	 */
-	public static enum ControlDependenceVariant { CLASSIC, NTSCD, @Deprecated NTICD_LFP, NTICD_GFP, ADAPTIVE, NTICD_GFP_WORKLIST_SYMBOLIC };
+	public static enum ControlDependenceVariant { CLASSIC, NTSCD, @Deprecated NTICD_LFP, NTICD_GFP, ADAPTIVE, NTICD_GFP_WORKLIST_SYMBOLIC, NTICD_LFP_DUAL_WORKLIST };
 	public static final ControlDependenceVariant defaultControlDependenceVariant = ControlDependenceVariant.ADAPTIVE;
 
 	public static enum ExceptionAnalysis {

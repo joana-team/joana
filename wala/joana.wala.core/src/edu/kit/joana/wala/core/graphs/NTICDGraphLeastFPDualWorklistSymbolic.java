@@ -34,7 +34,7 @@ import static edu.kit.joana.wala.core.graphs.NTSCDGraph.add;
 import static edu.kit.joana.wala.core.graphs.NTSCDGraph.get;
 import static edu.kit.joana.wala.core.graphs.NTSCDGraph.set;
 /**
- * Computes the nontermination sensitive control dependence.
+ * Computes nontermination insensitive control dependence.
  * 
  * @author Martin Hecker  <martin.hecker@kit.edu>
  *
@@ -74,12 +74,13 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 	public static boolean DEBUG = false;
 
 	/**
-	 * Computes the nontermination sensitive control dependence.
+	 * Computes nontermination insensitive control dependence.
 	 * The pseudo code in "A New Foundation for Control Dependence and Slicing
 	 * for Modern Program Structures" from Ranganath, Amtoft, Banerjee and Hatcliff
 	 * is flawed.
 	 * 
 	 * This Algorithm fixes theirs, and is not flawed.
+	 * It works by computing the *least* fixed point of the dual f^C of the functional f used in {@link NTICDGraphGreatestFPWorklistSymbolic}.
 	 * 
 	 */
 	public static <V , E extends KnowsVertices<V>> NTICDGraphLeastFPDualWorklistSymbolic<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory) {

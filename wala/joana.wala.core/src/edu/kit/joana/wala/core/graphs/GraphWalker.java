@@ -8,8 +8,6 @@
 package edu.kit.joana.wala.core.graphs;
 
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
@@ -54,8 +52,7 @@ public abstract class GraphWalker<V, E> {
 
         discover(node);
 
-        // copy to prevent concurrent modification exception
-        final List<E> outEdges = new LinkedList<E>(graph.outgoingEdgesOf(node));
+        final Iterable<E> outEdges = newOutEdges(graph.outgoingEdgesOf(node));
         for (final E out : outEdges) {
         	if (traverse(out)) {
 	            final V succ = graph.getEdgeTarget(out);
@@ -67,7 +64,7 @@ public abstract class GraphWalker<V, E> {
 
         finish(node);
     }
-
+    
     /**
      * Change this to specify which edges should be used by the walker.
      * @param edge The edge that may be traversed.
@@ -77,6 +74,18 @@ public abstract class GraphWalker<V, E> {
     	return true;
     }
 
+    /**
+     * Change this to specify how the edges to be traverse by a given walker is to be remembers.
+     * This can be used to, e.g. specify a fixed iteration order of egdes, or,
+     * apparently, to create a new Iterable in case the walker modifies the underlying graph, and hence 
+     * prevent concurrent modification exceptions (though i'm not quite sure this ever makes sense).
+     * @param outEdges
+     * @return
+     */
+    protected Iterable<E> newOutEdges(Set<E> outEdges) {
+    	return outEdges;
+    }
+    
     /**
      * Is called when the node is discovered by the walker.
      * @param node The node that has been discovered.
@@ -107,7 +116,7 @@ public abstract class GraphWalker<V, E> {
 
                 discover(current);
 
-                for (E succEdge : graph.outgoingEdgesOf(current)) {
+                for (E succEdge : newOutEdges(graph.outgoingEdgesOf(current))) {
                 	if (!traverse(succEdge)) {
                 		continue;
                 	}

@@ -9,7 +9,7 @@ package edu.kit.joana.wala.core;
 
 import edu.kit.joana.util.graph.KnowsVertices;
 
-public final class PDGEdge implements KnowsVertices<PDGNode>{
+public final class PDGEdge implements KnowsVertices<PDGNode>, Comparable<PDGEdge> {
 
 	public final PDGNode from;
 	public final PDGNode to;
@@ -105,6 +105,17 @@ public final class PDGEdge implements KnowsVertices<PDGNode>{
 
 	public int hashCode() {
 		return (from.hashCode() ^ (to.hashCode() >> 6)) + kind.hashCode();
+	}
+	
+
+	@Override
+	public final int compareTo(PDGEdge other) {
+		final int compareFrom = from.compareTo(other.from);
+		if (compareFrom != 0) return compareFrom;
+		final int compareTo = to.compareTo(other.to);
+		if (compareTo != 0) return compareTo;
+		
+		return kind.compareTo(other.kind);
 	}
 
 	public String toString() {

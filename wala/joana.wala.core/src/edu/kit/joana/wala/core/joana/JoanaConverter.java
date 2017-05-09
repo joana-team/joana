@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.Stack;
+import java.util.TreeSet;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
@@ -365,6 +366,14 @@ public class JoanaConverter {
 		@Override
 		public void finish(PDGNode node) {
 			parent.pop();
+		}
+
+		/**
+		 * Use a fixed iteration order.
+		 */
+		@Override
+		protected Iterable<PDGEdge> newOutEdges(Set<PDGEdge> outEdges) {
+			return new TreeSet<>(outEdges);
 		}
 
 	}

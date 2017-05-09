@@ -16,7 +16,7 @@ import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 
 
-public final class PDGNode implements INodeWithNumber {
+public final class PDGNode implements INodeWithNumber, Comparable<PDGNode> {
 
 	public final static TypeReference DEFAULT_TYPE = TypeReference.JavaLangObject;
 	public final static TypeReference DEFAULT_NO_TYPE = TypeReference.Null;
@@ -343,6 +343,11 @@ public final class PDGNode implements INodeWithNumber {
     	// TODO: is this bad w.r.t distribution of nodes in hash buckets?
     	return id.intValue();
     }
+    
+    @Override
+    public int compareTo(PDGNode other) {
+    	return id.compareTo(other.id);
+    } 
 
     /**
      * Bytecodename of the type corresponding to this node.

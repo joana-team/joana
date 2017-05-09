@@ -7,6 +7,8 @@
  */
 package edu.kit.joana.wala.core.graphs;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -89,9 +91,14 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 			cdg.addVertex(n);
 		}
 
+		final Instant startAll = Instant.now();
+		final Instant startCondSelfRef = startAll;
 		//# (1) Initialize
 		Set<V> condNodes = condNodes(cfg);
  		Set<V> selfRef = selfRef(cfg);
+ 		final Instant stopCondSelfRef = Instant.now();
+ 		
+		final Instant startSuccNodes = stopCondSelfRef;
 		if (DEBUG) {
 			System.out.print("\n\n\n\n"); 
 			System.out.print("cond nodes: ");
@@ -112,7 +119,7 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 		final Map<V, Set<V>> toNextCond = new HashMap<>();
 		final Map<V, Set<Pair<V,V>>> prevCondsWithSucc = new HashMap<>();
 		
-		final Set<V> representants = new HashSet<>();
+		final Map<V, Set<V>> represents = new HashMap<>();
 		final Map<V, V> representantOf = new HashMap<>();
 		
 		final Map<V, Set<V>> succNodesOf = new HashMap<>(condNodes.size());
@@ -124,11 +131,13 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 			prevCondsWithSucc.put(p, new HashSet<>());
 		}
 		
+		
 		for (final V p : condNodes) {
 			succNodesOf.put(p, Graphs.getSuccNodes(cfg, p));
 		}
+		final Instant stopSuccNodes = Instant.now();
 		
-		
+		final Instant startCompReachableNextCondPrevConds = stopSuccNodes;
 		for (final V n : condNodes) {
 			for (V m : succNodesOf.get(n)) {
 				MaxPaths<V> t_nm = maxPaths(cfg, n, m);
@@ -184,8 +193,9 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 				}
 			}
 		}
+		final Instant stopCompReachableNextCondPrevConds = Instant.now();
 		
-		
+		final Instant startRepresentants = stopCompReachableNextCondPrevConds;
 		for (V start : cfg.vertexSet()){ // representantOf
 			final Collection<V> sameRepresentant = new LinkedList<>();
 			V m = start;
@@ -221,16 +231,25 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 				}
 			}
 			if (newRepresentant) {
+				represents.compute(representant, (r, reps) -> {
+					if (reps == null) {
+						reps = new HashSet<>(sameRepresentant);
+						return reps;
+					} else {
+						reps.addAll(sameRepresentant);
+					}
+					return reps;
+				});
 				for (V s : sameRepresentant) {
 					representantOf.put(s, representant);
 				}
-				representants.add(representant);
 			}
 		}
+		final Instant stopRepresentants = Instant.now();
 
 		
-		
-		for (V m : representants) {
+		final Instant startInitialize = stopRepresentants;
+		for (V m : represents.keySet()) {
 			for (V p : condNodes) {
 				set(S, m, p, new HashSet<>());
 			}
@@ -242,24 +261,32 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 			@SuppressWarnings("unused")
 			final V x = t_px.m; // duh
 			final Set<V> reachableFromX = entry.getValue();
-			for (V m : representants) {
+			for (V m : represents.keySet()) {
 				if (!reachableFromX.contains(m)) {
 					add(S, m, p, t_px);
 				}
 			}
 		}
+		final Instant stopInitialize = Instant.now();
 		
+		final Instant startInitializeWorkbag = stopInitialize;
 		final LinkedHashSet<WorkbagItem<V>> workbag = new LinkedHashSet<>();
-		for (V p : condNodes) {
-			for (V m : representants) {
-				if (get(S, m, p).size() > 0) {
+		
+		for (Entry<V, Map<V, Set<MaxPaths<V>>>> eOuter : S.entrySet()) {
+			final V m = eOuter.getKey();
+			for (Entry<V, Set<MaxPaths<V>>> eInner : eOuter.getValue().entrySet()) {
+				final V p = eInner.getKey();
+				final Set<MaxPaths<V>> smp = eInner.getValue();
+				if (!smp.isEmpty()) {
 					for (Pair<V,V> nx : prevCondsWithSucc.get(p)) {
 						workbag.add(new WorkbagItem<>(m,nx.getFirst(),nx.getSecond()));
 					}
 				}
 			}
 		}
+		final Instant stopInitializeWorkbag = Instant.now();
 		
+		final Instant startIteration = stopInitializeWorkbag;
 		int iterations = 0;
 		while (!workbag.isEmpty()) {
 			iterations ++;
@@ -288,41 +315,122 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 				}
 			}
 		}
+		final Instant stopIteration = Instant.now(); 
 		
+		final Instant startPostprocessing1 = stopIteration;
+		final Instant stopPostprocessing1 = stopIteration;
 		
-		for (V p : condNodes) {
-			for (V m : cfg.vertexSet()) {
-				assert !representants.contains(m) || representantOf.get(m) == m;
-				set(S, m, p, get(S, representantOf.get(m), p));
-			}
-		} 
-		
+		final Instant startPostprocessing2 = stopIteration;
 		if (DEBUG && iterations > 200000) {
 			System.out.println("LFP: Iterations (" + cfg.toString() +  "): " + iterations);
 		}
 		
+		
 		//# (3) Calculate non-termination insensitive control dependence
-		for (V n : cfg.vertexSet()) {
+		for (Entry<V, Set<V>> e : represents.entrySet()) {
 			for (V m : condNodes) {
-				if (n == m) {
-					continue;
-				}
-
-				final Set<MaxPaths<V>> Snm = get(S, n, m);
+				final Set<MaxPaths<V>> Snm = get(S, e.getKey(), m);
 				final int Tm = succNodesOf.get(m).size();
-
-				if (DEBUG) {
-					System.out.print("S(" + n + ", " + m + ") = {");
-					for (MaxPaths<V> t_nm : Snm) {
-						System.out.print(t_nm + "; ");
-					}
-					System.out.println("}");
-				}
-
+				
 				assert Snm.size() <= Tm;
 				if (Snm.size() > 0 && Snm.size() < Tm) {
-					cdg.addEdge(m, n);
+					for (V n : e.getValue()) {
+						if (n == m) {
+							continue;
+						}
+						cdg.addEdge(m, n);
+						if (DEBUG) {
+							System.out.print("S(" + n + ", " + m + ") = {");
+							for (MaxPaths<V> t_nm : Snm) {
+								System.out.print(t_nm + "; ");
+							}
+							System.out.println("}");
+						}
+					}
 				}
+
+			}
+		}
+		final Instant stopPostprocessing2 = Instant.now();
+		
+		final Instant stopAll = stopPostprocessing2;
+		if (DEBUG || true) {
+			final Duration durationCondSelfRef =
+					Duration.between(
+						startCondSelfRef,
+						stopCondSelfRef
+					);
+			final Duration durationCompReachableNextCondPrevConds =
+				Duration.between(
+					startCompReachableNextCondPrevConds,
+					stopCompReachableNextCondPrevConds
+				);
+			final Duration durationSuccNodes =
+					Duration.between(
+						startSuccNodes,
+						stopSuccNodes
+					);
+			final Duration durationInitializeWorkbag =
+					Duration.between(
+						startInitializeWorkbag,
+						stopInitializeWorkbag
+					);
+			final Duration durationRepresentants =
+					Duration.between(
+						startRepresentants,
+						stopRepresentants
+					);
+			final Duration durationInitialize =
+					Duration.between(
+						startInitialize,
+						stopInitialize
+					);
+			final Duration durationIteration =
+					Duration.between(
+						startIteration,
+						stopIteration
+					);
+			
+			final Duration durationPostprocessing1 =
+					Duration.between(
+						startPostprocessing1,
+						stopPostprocessing1
+					);
+			
+			final Duration durationPostprocessing2 =
+					Duration.between(
+						startPostprocessing2,
+						stopPostprocessing2
+					);			
+			final Duration durationTotal =
+					Duration.between(
+						startAll,
+						stopAll
+					);
+			
+			@SuppressWarnings("unchecked")
+			Pair<String,Duration>[] durations =  (Pair<String,Duration>[]) new Pair[] {
+				Pair.pair("SuccNodes", durationSuccNodes),
+				Pair.pair("CondSelf", durationCondSelfRef),
+				Pair.pair("ReachableNextCondPrevCond", durationCompReachableNextCondPrevConds),
+				Pair.pair("Representants", durationRepresentants),
+				Pair.pair("Initial", durationInitialize),
+				Pair.pair("InitializeWorkbag", durationInitializeWorkbag),
+				Pair.pair("Iteration", durationIteration),
+				Pair.pair("Postprocessing", durationPostprocessing1),
+				Pair.pair("Postprocessing", durationPostprocessing2),
+			};
+			
+			final long total = durationTotal.toNanos();
+			if (total >= 10000000) {
+				for (Pair<String,Duration> duration : durations){
+					System.out.print(
+						duration.getFirst() + ":\t"  + 
+	//					duration.getSecond().toNanos() + "ns "+ 
+						(100*duration.getSecond().toNanos())/total + "%\t\t"
+					);
+				}
+				System.out.println("Total:\t" + total + "ns");
 			}
 		}
 		return cdg;

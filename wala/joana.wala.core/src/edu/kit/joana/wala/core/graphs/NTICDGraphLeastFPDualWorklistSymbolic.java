@@ -13,8 +13,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
@@ -22,11 +24,15 @@ import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
+import org.jgrapht.graph.EdgeReversedGraph;
+import org.jgrapht.traverse.DepthFirstIterator;
 
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.Graphs;
 import edu.kit.joana.util.graph.KnowsVertices;
+import edu.kit.joana.wala.core.PDGEdge;
+import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.graphs.NTSCDGraph.MaxPaths;
 
 import static edu.kit.joana.wala.core.graphs.NTSCDGraph.condNodes;
@@ -114,7 +120,7 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 			System.out.println();
 		}
 
-		final Map<MaxPaths<V>, Set<V>> reachable = new HashMap<>();
+		//DEBUG = cdg.toString().contains("1|ENTR|joana.api.testdata.toy.rec.MyList.main(java.lang.String[])");
 		final Map<V, V>      nextCond  = new HashMap<>();
 		final Map<V, Set<V>> toNextCond = new HashMap<>();
 		final Map<V, Set<Pair<V,V>>> prevCondsWithSucc = new HashMap<>();
@@ -137,29 +143,9 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 		}
 		final Instant stopSuccNodes = Instant.now();
 		
-		final Instant startCompReachableNextCondPrevConds = stopSuccNodes;
+		final Instant startCompNextCondPrevConds = stopSuccNodes;
 		for (final V n : condNodes) {
 			for (V m : succNodesOf.get(n)) {
-				MaxPaths<V> t_nm = maxPaths(cfg, n, m);
-			
-				final Set<V> reachableFromTnm = new HashSet<>();
-				reachable.put(t_nm, reachableFromTnm);
-				
-				{ // reachableFromTnm
-					Queue<V> workQueue = new LinkedList<>();
-					workQueue.add(m);
-					
-					V next;
-					while ((next = workQueue.poll()) != null ) {
-						if (reachableFromTnm.add(next)) {
-							for (V succ : Graphs.getSuccNodes(cfg, next)) {
-								workQueue.add(succ);
-							}
-						}
-					}
-				}
-				
-				
 				{ // nextCond, prevConds
 					final Set<V> seen = new HashSet<>();
 					V current = m;
@@ -193,9 +179,9 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 				}
 			}
 		}
-		final Instant stopCompReachableNextCondPrevConds = Instant.now();
+		final Instant stopCompNextCondPrevConds = Instant.now();
 		
-		final Instant startRepresentants = stopCompReachableNextCondPrevConds;
+		final Instant startRepresentants = stopCompNextCondPrevConds;
 		for (V start : cfg.vertexSet()){ // representantOf
 			final Collection<V> sameRepresentant = new LinkedList<>();
 			V m = start;
@@ -255,17 +241,89 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 			}
 		}
 		
-		for (Entry<MaxPaths<V>, Set<V>> entry : reachable.entrySet()) {
-			final MaxPaths<V> t_px = entry.getKey();
-			final V p = t_px.n; // duh
-			@SuppressWarnings("unused")
-			final V x = t_px.m; // duh
-			final Set<V> reachableFromX = entry.getValue();
-			for (V m : represents.keySet()) {
-				if (!reachableFromX.contains(m)) {
-					add(S, m, p, t_px);
+		final Map<Pair<V,V>, Set<V>> workQueue = new LinkedHashMap<>();
+		final Map<Pair<V,V>, Set<V>> rreachable = new HashMap<>();
+		for (final V p : condNodes) {
+			for (V x : succNodesOf.get(p)) {
+				final Set<V> directlyReachableFromX = new HashSet<>(); 
+				for (V m : toNextCond.get(x)) {
+					if (represents.containsKey(m)) {
+						directlyReachableFromX.add(m);
+					}
+				}
+				rreachable.put(Pair.pair(p, x), new HashSet<>(directlyReachableFromX));
+				for (Pair<V,V> ny : prevCondsWithSucc.get(p)) {
+					workQueue.compute(ny,(y,rs) -> {
+						if (rs == null) {
+							rs = new HashSet<>(directlyReachableFromX);
+						} else {
+							rs.addAll(directlyReachableFromX);
+						}
+						return rs;
+					});
 				}
 			}
+		}
+		while (!workQueue.isEmpty()) {
+			final Pair<V,V> px;
+			final V p;
+			final V x;
+			final Set<V> newRs;
+			{
+				final Iterator<Entry<Pair<V,V>, Set<V>>> iterator = workQueue.entrySet().iterator();
+				final Entry<Pair<V,V>, Set<V>> e = iterator.next();
+				iterator.remove();
+				
+				px = e.getKey();
+				p = px.getFirst();
+				x = px.getSecond();
+				newRs = e.getValue();
+			}
+			final List<V> added = new LinkedList<>();
+			final Set<V> rs = rreachable.get(px);
+			for (V m : newRs) {
+				if (rs.add(m)) added.add(m);
+			}
+			if (!added.isEmpty()) {
+				for (Pair<V,V> ny : prevCondsWithSucc.get(p)) {
+					workQueue.compute(ny,(y,yrs) -> {
+						if (yrs == null) {
+							yrs = new HashSet<>(added);
+						} else {
+							yrs.addAll(added);
+						}
+						return yrs;
+					});
+				}
+			}
+		}
+		
+		
+		
+		for (Entry<Pair<V,V>, Set<V>> entry : rreachable.entrySet()) {
+			final Pair<V,V> px = entry.getKey();
+			final V p = px.getFirst(); // duh
+			@SuppressWarnings("unused")
+			final V x = px.getSecond(); // duh
+			final Set<V> reachableFromX = entry.getValue();
+			int xx = 5;
+//			final DepthFirstIterator<V, E> reachableFromXX = new DepthFirstIterator<>(cfg, x);
+//			final Set<V>  reachableFromXXRep = new HashSet<>();
+//			while (reachableFromXX.hasNext()) {
+//				V next = reachableFromXX.next();
+//				if (represents.keySet().contains(next)) {
+//					reachableFromXXRep.add(next);
+//				}
+//			}
+//			if (reachableFromXXRep.size() != reachableFromX.size()) {
+//				throw new IllegalStateException();
+//			}
+			for (V m : represents.keySet()) {
+				if (!reachableFromX.contains(m)) {
+					add(S, m, p, maxPaths(cdg,p,x));
+				}
+			}
+			xx = 7;
 		}
 		final Instant stopInitialize = Instant.now();
 		
@@ -362,8 +420,8 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 					);
 			final Duration durationCompReachableNextCondPrevConds =
 				Duration.between(
-					startCompReachableNextCondPrevConds,
-					stopCompReachableNextCondPrevConds
+					startCompNextCondPrevConds,
+					stopCompNextCondPrevConds
 				);
 			final Duration durationSuccNodes =
 					Duration.between(
@@ -412,7 +470,7 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 			Pair<String,Duration>[] durations =  (Pair<String,Duration>[]) new Pair[] {
 				Pair.pair("SuccNodes", durationSuccNodes),
 				Pair.pair("CondSelf", durationCondSelfRef),
-				Pair.pair("ReachableNextCondPrevCond", durationCompReachableNextCondPrevConds),
+				Pair.pair("NextCondPrevCond", durationCompReachableNextCondPrevConds),
 				Pair.pair("Representants", durationRepresentants),
 				Pair.pair("Initial", durationInitialize),
 				Pair.pair("InitializeWorkbag", durationInitializeWorkbag),
@@ -433,6 +491,7 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 				System.out.println("Total:\t" + total + "ns");
 			}
 		}
+		DEBUG = false;
 		return cdg;
 	}
 }

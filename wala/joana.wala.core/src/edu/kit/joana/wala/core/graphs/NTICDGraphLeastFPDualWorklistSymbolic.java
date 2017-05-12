@@ -10,29 +10,27 @@ package edu.kit.joana.wala.core.graphs;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Queue;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
-import org.jgrapht.graph.EdgeReversedGraph;
-import org.jgrapht.traverse.DepthFirstIterator;
+
+import com.google.common.collect.Ordering;
 
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.Graphs;
 import edu.kit.joana.util.graph.KnowsVertices;
-import edu.kit.joana.wala.core.PDGEdge;
-import edu.kit.joana.wala.core.PDGNode;
+import edu.kit.joana.util.graph.TarjanStrongConnectivityInspector;
 import edu.kit.joana.wala.core.graphs.NTSCDGraph.MaxPaths;
 
 import static edu.kit.joana.wala.core.graphs.NTSCDGraph.condNodes;
@@ -74,6 +72,68 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 
 		
 	}
+	
+	private static class ReachabilityWorkbagItem<V> {
+		private final Pair<V,V> px;
+		private Set<V> rs;
+
+		public ReachabilityWorkbagItem(Pair<V,V> px, Set<V> rs) {
+			this.px = px; this.rs = rs;
+		}
+		@Override
+		public boolean equals(Object obj) {
+			@SuppressWarnings("rawtypes")
+			final ReachabilityWorkbagItem that = (ReachabilityWorkbagItem) obj;
+			return this.px == that.px && this.rs == that.rs;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + System.identityHashCode(px);
+			result = prime * result + System.identityHashCode(rs);
+			return result;
+		}
+	}
+	
+	private static class NumberedReachabilityWorkbagItem<V> {
+		private final Pair<V,V> px;
+		private final Set<V> rs;
+		private final int sccIndex;
+		private final int xIndex;
+		
+		public NumberedReachabilityWorkbagItem(Pair<V,V> px, Set<V> rs, int sccIndex, int xIndex) {
+			this.px = px; this.rs = rs;
+			this.sccIndex = sccIndex;
+			this.xIndex = xIndex;
+		}
+		
+		@Override
+		public boolean equals(Object obj) {
+			@SuppressWarnings("rawtypes")
+			final NumberedReachabilityWorkbagItem that = (NumberedReachabilityWorkbagItem) obj;
+			return this.px == that.px && this.rs == that.rs;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + System.identityHashCode(px);
+			result = prime * result + System.identityHashCode(rs);
+			return result;
+		}
+		
+		/* (non-Javadoc)
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString() {
+			return px.toString() + ": " + rs.toString();
+		}
+	}
+	
 
 	private NTICDGraphLeastFPDualWorklistSymbolic(EdgeFactory<V, E> edgeFactory) {
 		super(edgeFactory);
@@ -240,63 +300,85 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 				set(S, m, p, new HashSet<>());
 			}
 		}
-		
-		final Map<Pair<V,V>, Set<V>> workQueue = new LinkedHashMap<>();
 		final Map<Pair<V,V>, Set<V>> rreachable = new HashMap<>();
+		
+		final TarjanStrongConnectivityInspector<V, E> sccs = new TarjanStrongConnectivityInspector<V, E>(cfg);
+		final Map<V, TarjanStrongConnectivityInspector.VertexNumber<V>> indices = sccs.getVertexToVertexNumber();
+		
+		// order the workQueue by the reverse topological sorting implicit in the Tarjan SCC computation.
+		final Set<NumberedReachabilityWorkbagItem<V>> workQueue = new TreeSet<>(new Comparator<NumberedReachabilityWorkbagItem<V>>() {
+			final Ordering<Object> fallbackOrdering = Ordering.arbitrary();
+			@Override
+			public int compare(NumberedReachabilityWorkbagItem<V> o1, NumberedReachabilityWorkbagItem<V> o2) {
+				final int sccCompare = Integer.compare(o1.sccIndex, o2.sccIndex); 
+				if (sccCompare != 0) return sccCompare;
+				
+				final int xIndexCompare = Integer.compare(o1.xIndex, o2.xIndex);
+				if (xIndexCompare != 0) return -xIndexCompare;
+				
+				final int pxCompare = Integer.compare(System.identityHashCode(o1.px), System.identityHashCode(o2.px)); 
+				if (pxCompare != 0) return pxCompare;
+				
+				final int rsCompare = Integer.compare(System.identityHashCode(o1.rs), System.identityHashCode(o2.rs));
+				if (rsCompare != 0) return rsCompare;
+				
+				return fallbackOrdering.compare(o1.rs, o2.rs);
+			}
+		});
+		
 		for (final V p : condNodes) {
 			for (V x : succNodesOf.get(p)) {
-				final Set<V> directlyReachableFromX = new HashSet<>(); 
+				final Set<V> rs = new HashSet<>(); 
 				for (V m : toNextCond.get(x)) {
 					if (represents.containsKey(m)) {
-						directlyReachableFromX.add(m);
+						rs.add(m);
 					}
 				}
-				rreachable.put(Pair.pair(p, x), new HashSet<>(directlyReachableFromX));
+				rreachable.put(Pair.pair(p, x), rs);
 				for (Pair<V,V> ny : prevCondsWithSucc.get(p)) {
-					workQueue.compute(ny,(y,rs) -> {
-						if (rs == null) {
-							rs = new HashSet<>(directlyReachableFromX);
-						} else {
-							rs.addAll(directlyReachableFromX);
-						}
-						return rs;
-					});
+					final V y = ny.getSecond();
+					final TarjanStrongConnectivityInspector.VertexNumber<V> yNumber = indices.get(y); 
+					final NumberedReachabilityWorkbagItem<V> workBagItem =
+						new NumberedReachabilityWorkbagItem<V>(
+							ny,
+							rs,
+							yNumber.getSccNumber(),
+							yNumber.getNumber()
+						);
+					workQueue.add(workBagItem);
 				}
 			}
 		}
 		while (!workQueue.isEmpty()) {
 			final Pair<V,V> px;
 			final V p;
-			final V x;
 			final Set<V> newRs;
 			{
-				final Iterator<Entry<Pair<V,V>, Set<V>>> iterator = workQueue.entrySet().iterator();
-				final Entry<Pair<V,V>, Set<V>> e = iterator.next();
+				final Iterator<NumberedReachabilityWorkbagItem<V>> iterator = workQueue.iterator();
+				final NumberedReachabilityWorkbagItem<V> e = iterator.next();
 				iterator.remove();
 				
-				px = e.getKey();
+				px = e.px;
 				p = px.getFirst();
-				x = px.getSecond();
-				newRs = e.getValue();
+				newRs = e.rs;
 			}
-			final List<V> added = new LinkedList<>();
 			final Set<V> rs = rreachable.get(px);
-			for (V m : newRs) {
-				if (rs.add(m)) added.add(m);
-			}
-			if (!added.isEmpty()) {
+			if (rs.addAll(newRs)) {
 				for (Pair<V,V> ny : prevCondsWithSucc.get(p)) {
-					workQueue.compute(ny,(y,yrs) -> {
-						if (yrs == null) {
-							yrs = new HashSet<>(added);
-						} else {
-							yrs.addAll(added);
-						}
-						return yrs;
-					});
+					final V y = ny.getSecond();
+					final TarjanStrongConnectivityInspector.VertexNumber<V> yNumber = indices.get(y);
+					final NumberedReachabilityWorkbagItem<V> workBagItem =
+						new NumberedReachabilityWorkbagItem<V>(
+							ny,
+							rs,
+							yNumber.getSccNumber(),
+							yNumber.getNumber()
+						);
+					workQueue.add(workBagItem);
 				}
 			}
 		}
+
 		
 		
 		
@@ -306,24 +388,11 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 			@SuppressWarnings("unused")
 			final V x = px.getSecond(); // duh
 			final Set<V> reachableFromX = entry.getValue();
-			int xx = 5;
-//			final DepthFirstIterator<V, E> reachableFromXX = new DepthFirstIterator<>(cfg, x);
-//			final Set<V>  reachableFromXXRep = new HashSet<>();
-//			while (reachableFromXX.hasNext()) {
-//				V next = reachableFromXX.next();
-//				if (represents.keySet().contains(next)) {
-//					reachableFromXXRep.add(next);
-//				}
-//			}
-//			if (reachableFromXXRep.size() != reachableFromX.size()) {
-//				throw new IllegalStateException();
-//			}
 			for (V m : represents.keySet()) {
 				if (!reachableFromX.contains(m)) {
 					add(S, m, p, maxPaths(cdg,p,x));
 				}
 			}
-			xx = 7;
 		}
 		final Instant stopInitialize = Instant.now();
 		
@@ -491,7 +560,6 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 				System.out.println("Total:\t" + total + "ns");
 			}
 		}
-		DEBUG = false;
 		return cdg;
 	}
 }

@@ -73,30 +73,6 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 		
 	}
 	
-	private static class ReachabilityWorkbagItem<V> {
-		private final Pair<V,V> px;
-		private Set<V> rs;
-
-		public ReachabilityWorkbagItem(Pair<V,V> px, Set<V> rs) {
-			this.px = px; this.rs = rs;
-		}
-		@Override
-		public boolean equals(Object obj) {
-			@SuppressWarnings("rawtypes")
-			final ReachabilityWorkbagItem that = (ReachabilityWorkbagItem) obj;
-			return this.px == that.px && this.rs == that.rs;
-		}
-
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + System.identityHashCode(px);
-			result = prime * result + System.identityHashCode(rs);
-			return result;
-		}
-	}
-	
 	private static class NumberedReachabilityWorkbagItem<V> {
 		private final Pair<V,V> px;
 		private final Set<V> rs;
@@ -186,7 +162,7 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 		final Map<V, Set<Pair<V,V>>> prevCondsWithSucc = new HashMap<>();
 		
 		final Map<V, Set<V>> represents = new HashMap<>();
-		final Map<V, V> representantOf = new HashMap<>();
+		Map<V, V> representantOf = new HashMap<>();
 		
 		final Map<V, Set<V>> succNodesOf = new HashMap<>(condNodes.size());
 		
@@ -291,12 +267,21 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 				}
 			}
 		}
+		representantOf = null;
+		// This set is iterated over repeatedly, so we allocate an array for which this iteration is marginally faster.
+		@SuppressWarnings("unchecked")
+		V[] representants = (V[]) new Object[represents.keySet().size()]; {
+			int i = 0;
+			for (V r : represents.keySet()) {
+				representants[i++] = r;
+			}
+		}
 		final Instant stopRepresentants = Instant.now();
 
 		
 		final Instant startInitialize = stopRepresentants;
-		for (V m : represents.keySet()) {
-			for (V p : condNodes) {
+		for (V p : condNodes) {
+			for (V m : representants) {
 				set(S, m, p, new HashSet<>());
 			}
 		}
@@ -384,11 +369,10 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 		
 		for (Entry<Pair<V,V>, Set<V>> entry : rreachable.entrySet()) {
 			final Pair<V,V> px = entry.getKey();
-			final V p = px.getFirst(); // duh
-			@SuppressWarnings("unused")
-			final V x = px.getSecond(); // duh
+			final V p = px.getFirst();
+			final V x = px.getSecond();
 			final Set<V> reachableFromX = entry.getValue();
-			for (V m : represents.keySet()) {
+			for (V m : representants) {
 				if (!reachableFromX.contains(m)) {
 					add(S, m, p, maxPaths(cdg,p,x));
 				}
@@ -481,7 +465,7 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 		final Instant stopPostprocessing2 = Instant.now();
 		
 		final Instant stopAll = stopPostprocessing2;
-		if (DEBUG || true) {
+		if (DEBUG) {
 			final Duration durationCondSelfRef =
 					Duration.between(
 						startCondSelfRef,

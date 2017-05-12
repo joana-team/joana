@@ -46,3 +46,4 @@ Export-Package: edu.kit.joana.wala.core;
  edu.kit.joana.wala.core.params.objgraph,
  edu.kit.joana.wala.core.params.objgraph.candidates,
  edu.kit.joana.wala.core.summary
+Import-Package: com.google.common.collect

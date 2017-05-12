@@ -25,6 +25,10 @@ import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
 
 import com.google.common.collect.Ordering;
+import com.ibm.wala.util.intset.BitVector;
+import com.ibm.wala.util.intset.BitVectorIntSet;
+import com.ibm.wala.util.intset.IntSet;
+import com.ibm.wala.util.intset.MutableIntSet;
 
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
@@ -75,11 +79,11 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 	
 	private static class NumberedReachabilityWorkbagItem<V> {
 		private final Pair<V,V> px;
-		private final Set<V> rs;
+		private final MutableIntSet rs;
 		private final int sccIndex;
 		private final int xIndex;
 		
-		public NumberedReachabilityWorkbagItem(Pair<V,V> px, Set<V> rs, int sccIndex, int xIndex) {
+		public NumberedReachabilityWorkbagItem(Pair<V,V> px, MutableIntSet rs, int sccIndex, int xIndex) {
 			this.px = px; this.rs = rs;
 			this.sccIndex = sccIndex;
 			this.xIndex = xIndex;
@@ -156,7 +160,6 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 			System.out.println();
 		}
 
-		//DEBUG = cdg.toString().contains("1|ENTR|joana.api.testdata.toy.rec.MyList.main(java.lang.String[])");
 		final Map<V, V>      nextCond  = new HashMap<>();
 		final Map<V, Set<V>> toNextCond = new HashMap<>();
 		final Map<V, Set<Pair<V,V>>> prevCondsWithSucc = new HashMap<>();
@@ -269,10 +272,14 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 		}
 		representantOf = null;
 		// This set is iterated over repeatedly, so we allocate an array for which this iteration is marginally faster.
+		// We also use every representants index in that array to identify representants in the BitSet used during
+		// reachability computation.
+		Map<V, Integer> representantIndexOf = new HashMap<>();
 		@SuppressWarnings("unchecked")
 		V[] representants = (V[]) new Object[represents.keySet().size()]; {
 			int i = 0;
 			for (V r : represents.keySet()) {
+				representantIndexOf.put(r, i);
 				representants[i++] = r;
 			}
 		}
@@ -285,7 +292,7 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 				set(S, m, p, new HashSet<>());
 			}
 		}
-		final Map<Pair<V,V>, Set<V>> rreachable = new HashMap<>();
+		final Map<Pair<V,V>, MutableIntSet> rreachable = new HashMap<>();
 		
 		final TarjanStrongConnectivityInspector<V, E> sccs = new TarjanStrongConnectivityInspector<V, E>(cfg);
 		final Map<V, TarjanStrongConnectivityInspector.VertexNumber<V>> indices = sccs.getVertexToVertexNumber();
@@ -313,16 +320,19 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 		
 		for (final V p : condNodes) {
 			for (V x : succNodesOf.get(p)) {
-				final Set<V> rs = new HashSet<>(); 
+				final BitVector bv = new BitVector(representants.length);
+				 
 				for (V m : toNextCond.get(x)) {
-					if (represents.containsKey(m)) {
-						rs.add(m);
+					final Integer index = representantIndexOf.get(m);
+					if (index != null) {
+						bv.set(index);
 					}
 				}
+				final MutableIntSet rs = new BitVectorIntSet(bv);
 				rreachable.put(Pair.pair(p, x), rs);
 				for (Pair<V,V> ny : prevCondsWithSucc.get(p)) {
 					final V y = ny.getSecond();
-					final TarjanStrongConnectivityInspector.VertexNumber<V> yNumber = indices.get(y); 
+					final TarjanStrongConnectivityInspector.VertexNumber<V> yNumber = indices.get(y);
 					final NumberedReachabilityWorkbagItem<V> workBagItem =
 						new NumberedReachabilityWorkbagItem<V>(
 							ny,
@@ -334,10 +344,11 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 				}
 			}
 		}
+		representantIndexOf = null;
 		while (!workQueue.isEmpty()) {
 			final Pair<V,V> px;
 			final V p;
-			final Set<V> newRs;
+			final IntSet newRs;
 			{
 				final Iterator<NumberedReachabilityWorkbagItem<V>> iterator = workQueue.iterator();
 				final NumberedReachabilityWorkbagItem<V> e = iterator.next();
@@ -347,7 +358,7 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 				p = px.getFirst();
 				newRs = e.rs;
 			}
-			final Set<V> rs = rreachable.get(px);
+			final MutableIntSet rs = rreachable.get(px);
 			if (rs.addAll(newRs)) {
 				for (Pair<V,V> ny : prevCondsWithSucc.get(p)) {
 					final V y = ny.getSecond();
@@ -367,14 +378,14 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 		
 		
 		
-		for (Entry<Pair<V,V>, Set<V>> entry : rreachable.entrySet()) {
+		for (Entry<Pair<V,V>, MutableIntSet> entry : rreachable.entrySet()) {
 			final Pair<V,V> px = entry.getKey();
 			final V p = px.getFirst();
 			final V x = px.getSecond();
-			final Set<V> reachableFromX = entry.getValue();
-			for (V m : representants) {
-				if (!reachableFromX.contains(m)) {
-					add(S, m, p, maxPaths(cdg,p,x));
+			final MutableIntSet reachableFromX = entry.getValue();
+			for (int index = 0 ; index < representants.length; index ++) {
+				if (!reachableFromX.contains(index)) {
+					add(S, representants[index], p, maxPaths(cdg,p,x));
 				}
 			}
 		}

@@ -294,11 +294,6 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 
 		
 		final Instant startInitialize = stopRepresentants;
-		for (V p : condNodes) {
-			for (V m : representants) {
-				set(S, m, p, new HashSet<>());
-			}
-		}
 		final Map<MaxPaths<V>, MutableIntSet> rreachable = new HashMap<>();
 		
 		final TarjanStrongConnectivityInspector<V, E> sccs = new TarjanStrongConnectivityInspector<V, E>(cfg);
@@ -418,10 +413,9 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 			for (Entry<V, Set<MaxPaths<V>>> eInner : eOuter.getValue().entrySet()) {
 				final V p = eInner.getKey();
 				final Set<MaxPaths<V>> smp = eInner.getValue();
-				if (!smp.isEmpty()) {
-					for (MaxPaths<V> nx : prevCondsWithSucc.get(p)) {
-						workbag.add(new WorkbagItem<>(m, nx));
-					}
+				assert !smp.isEmpty();
+				for (MaxPaths<V> nx : prevCondsWithSucc.get(p)) {
+					workbag.add(new WorkbagItem<>(m, nx));
 				}
 			}
 		}
@@ -450,7 +444,18 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 			boolean changed = false;
 			
 			if (!toNextCond.get(x).contains(m)) {
-				final Set<MaxPaths<V>> smp = get(S, m, p);
+				Map<V, Set<MaxPaths<V>>> Sm = S.get(m);
+				if (Sm == null) {
+					Sm = new HashMap<>();
+					S.put(m, Sm);
+				}
+
+				Set<MaxPaths<V>> smp = Sm.get(p);
+				if (smp == null) {
+					smp = new HashSet<>();
+					Sm.put(p, smp);
+				}
+				
 				changed = smp.add(px) && smp.size() == 1;
 			}
 			if (changed) {
@@ -476,8 +481,8 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 				final Set<MaxPaths<V>> Snm = get(S, e.getKey(), m);
 				final int Tm = succNodesOf.get(m).size();
 				
-				assert Snm.size() <= Tm;
-				if (Snm.size() > 0 && Snm.size() < Tm) {
+				assert Snm == null || Snm.size() <= Tm;
+				if (Snm != null && (Snm.size() > 0 && Snm.size() < Tm)) {
 					for (V n : e.getValue()) {
 						if (n == m) {
 							continue;

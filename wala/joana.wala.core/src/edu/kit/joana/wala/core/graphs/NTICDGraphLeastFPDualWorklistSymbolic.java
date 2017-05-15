@@ -9,6 +9,7 @@ package edu.kit.joana.wala.core.graphs;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -52,16 +53,17 @@ import static edu.kit.joana.wala.core.graphs.NTSCDGraph.set;
 public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>> extends AbstractJoanaGraph<V, E> {
 
 	private static class WorkbagItem<V> {
-		private V m,n,x;
+		private V m;
+		private MaxPaths<V> nx;
 
-		public WorkbagItem(V m, V n, V x) {
-			this.m = m; this.n = n; this.x = x;
+		public WorkbagItem(V m, MaxPaths<V> nx) {
+			this.m = m; this.nx = nx;
 		}
 		@Override
 		public boolean equals(Object obj) {
 			@SuppressWarnings("rawtypes")
 			final WorkbagItem that = (WorkbagItem) obj;
-			return this.m == that.m && this.n == that.n && this.x == that.x;
+			return this.m == that.m && this.nx == that.nx;
 		}
 
 		@Override
@@ -69,8 +71,7 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + m.hashCode();
-			result = prime * result + n.hashCode();
-			result = prime * result + x.hashCode();
+			result = prime * result + nx.hashCode();
 			return result;
 		}
 
@@ -78,12 +79,12 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 	}
 	
 	private static class NumberedReachabilityWorkbagItem<V> {
-		private final Pair<V,V> px;
+		private final MaxPaths<V> px;
 		private final MutableIntSet rs;
 		private final int sccIndex;
 		private final int xIndex;
 		
-		public NumberedReachabilityWorkbagItem(Pair<V,V> px, MutableIntSet rs, int sccIndex, int xIndex) {
+		public NumberedReachabilityWorkbagItem(MaxPaths<V> px, MutableIntSet rs, int sccIndex, int xIndex) {
 			this.px = px; this.rs = rs;
 			this.sccIndex = sccIndex;
 			this.xIndex = xIndex;
@@ -162,7 +163,7 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 
 		final Map<V, V>      nextCond  = new HashMap<>();
 		final Map<V, Set<V>> toNextCond = new HashMap<>();
-		final Map<V, Set<Pair<V,V>>> prevCondsWithSucc = new HashMap<>();
+		final Map<V, Collection<MaxPaths<V>>> prevCondsWithSucc = new HashMap<>();
 		
 		final Map<V, Set<V>> represents = new HashMap<>();
 		Map<V, V> representantOf = new HashMap<>();
@@ -201,16 +202,16 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 					toNextCond.put(m,seen);
 					
 					if (succNodes.size() > 1) {
-						if (!condNodes.contains(current)) throw new IllegalStateException();
 						nextCond.put(m, current);
 						
+						final MaxPaths<V> nm = maxPaths(cfg,n,m);
 						prevCondsWithSucc.compute(current, (c, ps) -> {
 							if (ps == null) {
-								final Set<Pair<V,V>> prevs = new HashSet<>();
-								prevs.add(Pair.pair(n,m));
-								return prevs;
+								ps = new HashSet<>();
+								ps.add(nm);
+								return ps;
 							} else {
-								ps.add(Pair.pair(n,m));
+								ps.add(nm);
 								return ps;
 							}
 						});
@@ -218,6 +219,12 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 				}
 			}
 		}
+		// we're done now, so we can extract slightly more efficient arrays from sets.
+		prevCondsWithSucc.replaceAll((m, ps) -> {
+			final ArrayList<MaxPaths<V>> psA = new ArrayList<>(ps.size());
+			psA.addAll(ps);
+			return psA;
+		});
 		final Instant stopCompNextCondPrevConds = Instant.now();
 		
 		final Instant startRepresentants = stopCompNextCondPrevConds;
@@ -292,7 +299,7 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 				set(S, m, p, new HashSet<>());
 			}
 		}
-		final Map<Pair<V,V>, MutableIntSet> rreachable = new HashMap<>();
+		final Map<MaxPaths<V>, MutableIntSet> rreachable = new HashMap<>();
 		
 		final TarjanStrongConnectivityInspector<V, E> sccs = new TarjanStrongConnectivityInspector<V, E>(cfg);
 		final Map<V, TarjanStrongConnectivityInspector.VertexNumber<V>> indices = sccs.getVertexToVertexNumber();
@@ -329,9 +336,22 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 					}
 				}
 				final MutableIntSet rs = new BitVectorIntSet(bv);
-				rreachable.put(Pair.pair(p, x), rs);
-				for (Pair<V,V> ny : prevCondsWithSucc.get(p)) {
-					final V y = ny.getSecond();
+				final MaxPaths<V> px; { // reuse existing MaxPaths instances
+					MaxPaths<V> px0 = maxPaths(cfg, p ,x);
+					final V nextCondX = nextCond.get(x);
+					if (nextCondX != null) {
+						for (MaxPaths<V> px2 : prevCondsWithSucc.get(nextCondX)) {
+							if (px0.equals(px2)) {
+								px0 = px2;
+								break;
+							}
+						}
+					}
+					px = px0;
+				}
+				rreachable.put(px, rs);
+				for (MaxPaths<V> ny : prevCondsWithSucc.get(p)) {
+					final V y = ny.n;
 					final TarjanStrongConnectivityInspector.VertexNumber<V> yNumber = indices.get(y);
 					final NumberedReachabilityWorkbagItem<V> workBagItem =
 						new NumberedReachabilityWorkbagItem<V>(
@@ -346,7 +366,7 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 		}
 		representantIndexOf = null;
 		while (!workQueue.isEmpty()) {
-			final Pair<V,V> px;
+			final MaxPaths<V> px;
 			final V p;
 			final IntSet newRs;
 			{
@@ -355,13 +375,13 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 				iterator.remove();
 				
 				px = e.px;
-				p = px.getFirst();
+				p = px.n;
 				newRs = e.rs;
 			}
 			final MutableIntSet rs = rreachable.get(px);
 			if (rs.addAll(newRs)) {
-				for (Pair<V,V> ny : prevCondsWithSucc.get(p)) {
-					final V y = ny.getSecond();
+				for (MaxPaths<V> ny : prevCondsWithSucc.get(p)) {
+					final V y = ny.m;
 					final TarjanStrongConnectivityInspector.VertexNumber<V> yNumber = indices.get(y);
 					final NumberedReachabilityWorkbagItem<V> workBagItem =
 						new NumberedReachabilityWorkbagItem<V>(
@@ -378,14 +398,13 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 		
 		
 		
-		for (Entry<Pair<V,V>, MutableIntSet> entry : rreachable.entrySet()) {
-			final Pair<V,V> px = entry.getKey();
-			final V p = px.getFirst();
-			final V x = px.getSecond();
+		for (Entry<MaxPaths<V>, MutableIntSet> entry : rreachable.entrySet()) {
+			final MaxPaths<V> px = entry.getKey();
+			final V p = px.n;
 			final MutableIntSet reachableFromX = entry.getValue();
 			for (int index = 0 ; index < representants.length; index ++) {
 				if (!reachableFromX.contains(index)) {
-					add(S, representants[index], p, maxPaths(cdg,p,x));
+					add(S, representants[index], p, px);
 				}
 			}
 		}
@@ -400,8 +419,8 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 				final V p = eInner.getKey();
 				final Set<MaxPaths<V>> smp = eInner.getValue();
 				if (!smp.isEmpty()) {
-					for (Pair<V,V> nx : prevCondsWithSucc.get(p)) {
-						workbag.add(new WorkbagItem<>(m,nx.getFirst(),nx.getSecond()));
+					for (MaxPaths<V> nx : prevCondsWithSucc.get(p)) {
+						workbag.add(new WorkbagItem<>(m, nx));
 					}
 				}
 			}
@@ -415,25 +434,28 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 			final V m;
 			final V p;
 			final V x;
+			final MaxPaths<V> px;
 			{
 				final Iterator<WorkbagItem<V>> iterator = workbag.iterator();
 				final WorkbagItem<V> next = iterator.next();
 				iterator.remove();
 				
 				m = next.m;
-				p = next.n;
-				x = next.x;
+				px = next.nx;
+				p = px.n;
+				x = px.m;
 			}
 			
-			final Set<MaxPaths<V>> smp = get(S, m, p);
 			
 			boolean changed = false;
+			
 			if (!toNextCond.get(x).contains(m)) {
-				changed = smp.add(maxPaths(cfg,p,x));
+				final Set<MaxPaths<V>> smp = get(S, m, p);
+				changed = smp.add(px) && smp.size() == 1;
 			}
-			if (changed && smp.size() == 1) {
-				for (Pair<V,V> nx_ : prevCondsWithSucc.get(p)) {
-					workbag.add(new WorkbagItem<V>(m, nx_.getFirst(), nx_.getSecond()));
+			if (changed) {
+				for (MaxPaths<V> nx_ : prevCondsWithSucc.get(p)) {
+					workbag.add(new WorkbagItem<V>(m, nx_));
 				}
 			}
 		}

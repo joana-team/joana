@@ -259,7 +259,7 @@ public class TarjanStrongConnectivityInspector<V, E> {
 
 		@Override
 		public String toString() {
-			return "{ " + vertex + " ; " + number + " ; " + lowlink + "}";
+			return "{ " + vertex + " ; " + number + " ; " + sccNumber + "}";
 		}
 	}
 }

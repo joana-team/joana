@@ -572,14 +572,16 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 			
 			final long total = durationTotal.toNanos();
 			if (total >= 10000000) {
-				for (Pair<String,Duration> duration : durations){
+				for (Pair<String,Duration> duration : durations) {
 					System.out.print(
 						duration.getFirst() + ":\t"  + 
-	//					duration.getSecond().toNanos() + "ns "+ 
 						(100*duration.getSecond().toNanos())/total + "%\t\t"
 					);
 				}
-				System.out.println("Total:\t" + total + "ns");
+				System.out.print("Total:\t" + total + "ns\t\t");
+				System.out.print("Iterations:\t" + iterations + "\t\t");
+				System.out.print("Size:\t" + cfg.vertexSet().size() + "\t" + representants.length + "\t" + condNodes.size() + "\t" + (representants.length * condNodes.size()) + "\t\t");
+				System.out.println("Name:\t" + cfg.vertexSet().iterator().next().toString());
 			}
 		}
 		return cdg;

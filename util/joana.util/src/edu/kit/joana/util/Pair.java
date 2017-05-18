@@ -54,7 +54,7 @@ public class Pair<S, T> {
 	 * Returns the first component of this pair.
 	 * @return the first component of this pair
 	 */
-	public S getFirst() {
+	public final S getFirst() {
 		return fst;
 	}
 
@@ -62,7 +62,7 @@ public class Pair<S, T> {
 	 * Returns the second component of this pair.
 	 * @return the second component of this pair
 	 */
-	public T getSecond() {
+	public final T getSecond() {
 		return snd;
 	}
 	

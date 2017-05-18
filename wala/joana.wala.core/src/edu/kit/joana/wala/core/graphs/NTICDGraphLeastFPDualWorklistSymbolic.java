@@ -228,6 +228,9 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 		final Instant stopCompNextCondPrevConds = Instant.now();
 		
 		final Instant startRepresentants = stopCompNextCondPrevConds;
+		// TODO: this is quadratic in pathological cases,
+		// since in each iteration we only associate nodes between "start" and "representant"
+		// with "representant", but not those nodes linearly before "start".
 		for (V start : cfg.vertexSet()){ // representantOf
 			final Collection<V> sameRepresentant = new LinkedList<>();
 			V m = start;

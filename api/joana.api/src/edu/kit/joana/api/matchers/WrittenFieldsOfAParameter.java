@@ -12,19 +12,19 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
 /**
- * Matches the field of a method parameter (or return value). Exploits that
- * in JOANA's SDG implementation fields of parameters are connected with
+ * Matches the param-out fields of a method parameter (or return value).
+ * Exploits that in JOANA's SDG implementation fields of parameters are connected with
  * root parameters by control-expression edges.
  *
  * @author Martin Mohr &lt;martin.mohr@kit.edu&gt;
  */
-public class FieldsOfAParameter implements Matcher {
+public class WrittenFieldsOfAParameter implements Matcher {
 	private final AParameter paramMatcher;
 
 	/**
 	 * @param aParameter
 	 */
-	public FieldsOfAParameter(AParameter aParameter) {
+	public WrittenFieldsOfAParameter(AParameter aParameter) {
 		this.paramMatcher = aParameter;
 	}
 
@@ -33,10 +33,14 @@ public class FieldsOfAParameter implements Matcher {
 	 */
 	@Override
 	public boolean matches(SDGNode n, SDG sdg) {
-		for (SDGEdge eInc : sdg.incomingEdgesOf(n)) {
-			if (eInc.getKind() != SDGEdge.Kind.CONTROL_DEP_EXPR) continue;
-			if (paramMatcher.matches(eInc.getSource(), sdg)) return true;
+		if (n.getKind() != SDGNode.Kind.FORMAL_OUT && n.getKind() != SDGNode.Kind.ACTUAL_OUT) {
+			return false;
+		} else {
+			for (SDGEdge eInc : sdg.incomingEdgesOf(n)) {
+				if (eInc.getKind() != SDGEdge.Kind.CONTROL_DEP_EXPR) continue;
+				if (paramMatcher.matches(eInc.getSource(), sdg)) return true;
+			}
+			return false;
 		}
-		return false;
 	}
 }

@@ -38,7 +38,7 @@ public class TheReturnValue implements Matcher {
 		return false;
 	}
 
-	public static TheReturnValue of(EveryCall callMatcher) {
+	public static TheReturnValue of(CallMatcher callMatcher) {
 		return new TheReturnValue(callMatcher, SDGNode.Kind.ACTUAL_OUT);
 	}
 

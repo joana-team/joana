@@ -43,7 +43,7 @@ public class AParameter implements Matcher {
 		return true;
 	}
 
-	public static AParameter of(EveryCall callMatcher, int index) {
+	public static AParameter of(CallMatcher callMatcher, int index) {
 		return new AParameter(callMatcher, index, SDGNode.Kind.ACTUAL_IN);
 	}
 

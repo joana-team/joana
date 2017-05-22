@@ -12,7 +12,7 @@ import java.util.Collection;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
-public class EveryCall extends MethodMatcher {
+public class EveryCall extends CallMatcher {
 
 	public EveryCall(String methodSignature) {
 		super(methodSignature);

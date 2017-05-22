@@ -12,6 +12,10 @@ import java.util.Collection;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
+/**
+ * Matches all call sites of a given method.
+ * @author Martin Mohr &lt;martin.mohr@kit.edu&gt;
+ */
 public class EveryCall extends CallMatcher {
 
 	public EveryCall(String methodSignature) {

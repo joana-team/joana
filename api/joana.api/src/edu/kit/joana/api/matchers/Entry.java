@@ -10,6 +10,10 @@ package edu.kit.joana.api.matchers;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
+/**
+ * Matches the entry of a given method.
+ * @author Martin Mohr &lt;martin.mohr@kit.edu&gt;
+ */
 public class Entry extends MethodMatcher {
 
 	public Entry(String methodSignature) {

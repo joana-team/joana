@@ -48,6 +48,6 @@ public class AParameter implements Matcher {
 	}
 
 	public static AParameter of(Entry entryMatcher, int index) {
-		return new AParameter(entryMatcher, index, SDGNode.Kind.ACTUAL_IN);
+		return new AParameter(entryMatcher, index, SDGNode.Kind.FORMAL_IN);
 	}
 }

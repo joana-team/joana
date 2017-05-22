@@ -43,8 +43,8 @@ public class AParameter implements Matcher {
 		return true;
 	}
 
-	public Matcher includeFields() {
-		return this.andAlso(new FieldsOfAParameter(this));
+	public Matcher includeWrittenFields() {
+		return this.andAlso(new WrittenFieldsOfAParameter(this));
 	}
 
 	public static AParameter of(CallMatcher callMatcher, int index) {

@@ -43,6 +43,10 @@ public class AParameter implements Matcher {
 		return true;
 	}
 
+	public Matcher includeFields() {
+		return this.andAlso(new FieldsOfAParameter(this));
+	}
+
 	public static AParameter of(CallMatcher callMatcher, int index) {
 		return new AParameter(callMatcher, index, SDGNode.Kind.ACTUAL_IN);
 	}

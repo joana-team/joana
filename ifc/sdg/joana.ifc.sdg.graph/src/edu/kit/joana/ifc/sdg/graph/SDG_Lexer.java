@@ -1,4 +1,4 @@
-// $ANTLR 3.5.2 /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g 2017-04-03 13:54:27
+// $ANTLR 3.5.2 /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g 2017-05-26 13:42:18
 /**
  * This file is part of the Joana IFC project. It is developed at the
  * Programming Paradigms Group of the Karlsruhe Institute of Technology.
@@ -131,6 +131,7 @@ public class SDG_Lexer extends Lexer {
 	public static final int T__117=117;
 	public static final int T__118=118;
 	public static final int T__119=119;
+	public static final int T__120=120;
 	public static final int NUMBER=4;
 	public static final int STRING=5;
 	public static final int WHITESPACE=6;
@@ -1246,10 +1247,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__58;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:100:7: ( 'PI' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:100:9: 'PI'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:100:7: ( 'PE' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:100:9: 'PE'
 			{
-			match("PI"); 
+			match("PE"); 
 
 			}
 
@@ -1267,10 +1268,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__59;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:101:7: ( 'PO' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:101:9: 'PO'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:101:7: ( 'PI' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:101:9: 'PI'
 			{
-			match("PO"); 
+			match("PI"); 
 
 			}
 
@@ -1288,10 +1289,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__60;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:102:7: ( 'PRED' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:102:9: 'PRED'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:102:7: ( 'PO' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:102:9: 'PO'
 			{
-			match("PRED"); 
+			match("PO"); 
 
 			}
 
@@ -1309,10 +1310,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__61;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:103:7: ( 'PS' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:103:9: 'PS'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:103:7: ( 'PRED' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:103:9: 'PRED'
 			{
-			match("PS"); 
+			match("PRED"); 
 
 			}
 
@@ -1330,10 +1331,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__62;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:104:7: ( 'RD' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:104:9: 'RD'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:104:7: ( 'PS' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:104:9: 'PS'
 			{
-			match("RD"); 
+			match("PS"); 
 
 			}
 
@@ -1351,10 +1352,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__63;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:105:7: ( 'RF' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:105:9: 'RF'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:105:7: ( 'RD' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:105:9: 'RD'
 			{
-			match("RF"); 
+			match("RD"); 
 
 			}
 
@@ -1372,10 +1373,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__64;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:106:7: ( 'RY' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:106:9: 'RY'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:106:7: ( 'RF' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:106:9: 'RF'
 			{
-			match("RY"); 
+			match("RF"); 
 
 			}
 
@@ -1393,10 +1394,11 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__65;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:107:7: ( 'S' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:107:9: 'S'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:107:7: ( 'RY' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:107:9: 'RY'
 			{
-			match('S'); 
+			match("RY"); 
+
 			}
 
 			state.type = _type;
@@ -1413,11 +1415,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__66;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:108:7: ( 'SD' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:108:9: 'SD'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:108:7: ( 'S' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:108:9: 'S'
 			{
-			match("SD"); 
-
+			match('S'); 
 			}
 
 			state.type = _type;
@@ -1434,10 +1435,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__67;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:109:7: ( 'SDG' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:109:9: 'SDG'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:109:7: ( 'SD' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:109:9: 'SD'
 			{
-			match("SDG"); 
+			match("SD"); 
 
 			}
 
@@ -1455,10 +1456,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__68;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:110:7: ( 'SF' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:110:9: 'SF'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:110:7: ( 'SDG' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:110:9: 'SDG'
 			{
-			match("SF"); 
+			match("SDG"); 
 
 			}
 
@@ -1476,10 +1477,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__69;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:111:7: ( 'SH' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:111:9: 'SH'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:111:7: ( 'SF' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:111:9: 'SF'
 			{
-			match("SH"); 
+			match("SF"); 
 
 			}
 
@@ -1497,10 +1498,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__70;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:112:7: ( 'SP' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:112:9: 'SP'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:112:7: ( 'SH' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:112:9: 'SH'
 			{
-			match("SP"); 
+			match("SH"); 
 
 			}
 
@@ -1518,10 +1519,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__71;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:113:7: ( 'SU' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:113:9: 'SU'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:113:7: ( 'SP' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:113:9: 'SP'
 			{
-			match("SU"); 
+			match("SP"); 
 
 			}
 
@@ -1539,10 +1540,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__72;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:114:7: ( 'SYNC' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:114:9: 'SYNC'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:114:7: ( 'SU' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:114:9: 'SU'
 			{
-			match("SYNC"); 
+			match("SU"); 
 
 			}
 
@@ -1560,10 +1561,11 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__73;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:115:7: ( 'T' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:115:9: 'T'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:115:7: ( 'SYNC' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:115:9: 'SYNC'
 			{
-			match('T'); 
+			match("SYNC"); 
+
 			}
 
 			state.type = _type;
@@ -1580,11 +1582,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__74;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:116:7: ( 'Thread' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:116:9: 'Thread'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:116:7: ( 'T' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:116:9: 'T'
 			{
-			match("Thread"); 
-
+			match('T'); 
 			}
 
 			state.type = _type;
@@ -1601,10 +1602,11 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__75;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:117:7: ( 'U' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:117:9: 'U'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:117:7: ( 'Thread' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:117:9: 'Thread'
 			{
-			match('U'); 
+			match("Thread"); 
+
 			}
 
 			state.type = _type;
@@ -1621,11 +1623,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__76;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:118:7: ( 'UN' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:118:9: 'UN'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:118:7: ( 'U' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:118:9: 'U'
 			{
-			match("UN"); 
-
+			match('U'); 
 			}
 
 			state.type = _type;
@@ -1642,10 +1643,11 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__77;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:119:7: ( 'V' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:119:9: 'V'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:119:7: ( 'UN' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:119:9: 'UN'
 			{
-			match('V'); 
+			match("UN"); 
+
 			}
 
 			state.type = _type;
@@ -1662,11 +1664,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__78;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:120:7: ( 'VD' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:120:9: 'VD'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:120:7: ( 'V' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:120:9: 'V'
 			{
-			match("VD"); 
-
+			match('V'); 
 			}
 
 			state.type = _type;
@@ -1683,10 +1684,11 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__79;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:121:7: ( 'Z' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:121:9: 'Z'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:121:7: ( 'VD' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:121:9: 'VD'
 			{
-			match('Z'); 
+			match("VD"); 
+
 			}
 
 			state.type = _type;
@@ -1703,10 +1705,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__80;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:122:7: ( '[' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:122:9: '['
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:122:7: ( 'Z' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:122:9: 'Z'
 			{
-			match('['); 
+			match('Z'); 
 			}
 
 			state.type = _type;
@@ -1723,10 +1725,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__81;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:123:7: ( ']' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:123:9: ']'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:123:7: ( '[' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:123:9: '['
 			{
-			match(']'); 
+			match('['); 
 			}
 
 			state.type = _type;
@@ -1743,11 +1745,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__82;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:124:7: ( 'act-in' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:124:9: 'act-in'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:124:7: ( ']' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:124:9: ']'
 			{
-			match("act-in"); 
-
+			match(']'); 
 			}
 
 			state.type = _type;
@@ -1764,10 +1765,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__83;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:125:7: ( 'act-out' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:125:9: 'act-out'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:125:7: ( 'act-in' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:125:9: 'act-in'
 			{
-			match("act-out"); 
+			match("act-in"); 
 
 			}
 
@@ -1785,10 +1786,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__84;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:126:7: ( 'array' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:126:9: 'array'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:126:7: ( 'act-out' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:126:9: 'act-out'
 			{
-			match("array"); 
+			match("act-out"); 
 
 			}
 
@@ -1806,10 +1807,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__85;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:127:7: ( 'assign' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:127:9: 'assign'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:127:7: ( 'array' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:127:9: 'array'
 			{
-			match("assign"); 
+			match("array"); 
 
 			}
 
@@ -1827,10 +1828,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__86;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:128:7: ( 'binary' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:128:9: 'binary'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:128:7: ( 'assign' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:128:9: 'assign'
 			{
-			match("binary"); 
+			match("assign"); 
 
 			}
 
@@ -1848,10 +1849,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__87;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:129:7: ( 'call' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:129:9: 'call'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:129:7: ( 'binary' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:129:9: 'binary'
 			{
-			match("call"); 
+			match("binary"); 
 
 			}
 
@@ -1869,10 +1870,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__88;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:130:7: ( 'charconst' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:130:9: 'charconst'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:130:7: ( 'call' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:130:9: 'call'
 			{
-			match("charconst"); 
+			match("call"); 
 
 			}
 
@@ -1890,10 +1891,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__89;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:131:7: ( 'compound' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:131:9: 'compound'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:131:7: ( 'charconst' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:131:9: 'charconst'
 			{
-			match("compound"); 
+			match("charconst"); 
 
 			}
 
@@ -1911,10 +1912,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__90;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:132:7: ( 'declaration' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:132:9: 'declaration'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:132:7: ( 'compound' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:132:9: 'compound'
 			{
-			match("declaration"); 
+			match("compound"); 
 
 			}
 
@@ -1932,10 +1933,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__91;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:133:7: ( 'derefer' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:133:9: 'derefer'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:133:7: ( 'declaration' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:133:9: 'declaration'
 			{
-			match("derefer"); 
+			match("declaration"); 
 
 			}
 
@@ -1953,10 +1954,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__92;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:134:7: ( 'empty' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:134:9: 'empty'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:134:7: ( 'derefer' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:134:9: 'derefer'
 			{
-			match("empty"); 
+			match("derefer"); 
 
 			}
 
@@ -1974,10 +1975,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__93;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:135:7: ( 'entry' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:135:9: 'entry'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:135:7: ( 'empty' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:135:9: 'empty'
 			{
-			match("entry"); 
+			match("empty"); 
 
 			}
 
@@ -1995,10 +1996,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__94;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:136:7: ( 'exit' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:136:9: 'exit'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:136:7: ( 'entry' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:136:9: 'entry'
 			{
-			match("exit"); 
+			match("entry"); 
 
 			}
 
@@ -2016,10 +2017,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__95;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:137:7: ( 'false' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:137:9: 'false'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:137:7: ( 'exit' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:137:9: 'exit'
 			{
-			match("false"); 
+			match("exit"); 
 
 			}
 
@@ -2037,10 +2038,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__96;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:138:7: ( 'floatconst' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:138:9: 'floatconst'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:138:7: ( 'false' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:138:9: 'false'
 			{
-			match("floatconst"); 
+			match("false"); 
 
 			}
 
@@ -2058,10 +2059,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__97;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:139:7: ( 'form-ellip' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:139:9: 'form-ellip'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:139:7: ( 'floatconst' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:139:9: 'floatconst'
 			{
-			match("form-ellip"); 
+			match("floatconst"); 
 
 			}
 
@@ -2079,10 +2080,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__98;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:140:7: ( 'form-in' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:140:9: 'form-in'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:140:7: ( 'form-ellip' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:140:9: 'form-ellip'
 			{
-			match("form-in"); 
+			match("form-ellip"); 
 
 			}
 
@@ -2100,10 +2101,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__99;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:141:7: ( 'form-out' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:141:9: 'form-out'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:141:7: ( 'form-in' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:141:9: 'form-in'
 			{
-			match("form-out"); 
+			match("form-in"); 
 
 			}
 
@@ -2121,10 +2122,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__100;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:142:8: ( 'functionconst' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:142:10: 'functionconst'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:142:8: ( 'form-out' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:142:10: 'form-out'
 			{
-			match("functionconst"); 
+			match("form-out"); 
 
 			}
 
@@ -2142,10 +2143,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__101;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:143:8: ( 'intconst' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:143:10: 'intconst'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:143:8: ( 'functionconst' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:143:10: 'functionconst'
 			{
-			match("intconst"); 
+			match("functionconst"); 
 
 			}
 
@@ -2163,10 +2164,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__102;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:144:8: ( 'jump' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:144:10: 'jump'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:144:8: ( 'intconst' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:144:10: 'intconst'
 			{
-			match("jump"); 
+			match("intconst"); 
 
 			}
 
@@ -2184,10 +2185,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__103;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:145:8: ( 'loop' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:145:10: 'loop'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:145:8: ( 'jump' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:145:10: 'jump'
 			{
-			match("loop"); 
+			match("jump"); 
 
 			}
 
@@ -2205,10 +2206,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__104;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:146:8: ( 'modassign' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:146:10: 'modassign'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:146:8: ( 'loop' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:146:10: 'loop'
 			{
-			match("modassign"); 
+			match("loop"); 
 
 			}
 
@@ -2226,10 +2227,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__105;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:147:8: ( 'modify' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:147:10: 'modify'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:147:8: ( 'modassign' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:147:10: 'modassign'
 			{
-			match("modify"); 
+			match("modassign"); 
 
 			}
 
@@ -2247,10 +2248,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__106;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:148:8: ( 'monitor' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:148:10: 'monitor'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:148:8: ( 'modify' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:148:10: 'modify'
 			{
-			match("monitor"); 
+			match("modify"); 
 
 			}
 
@@ -2268,10 +2269,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__107;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:149:8: ( 'null' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:149:10: 'null'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:149:8: ( 'monitor' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:149:10: 'monitor'
 			{
-			match("null"); 
+			match("monitor"); 
 
 			}
 
@@ -2289,10 +2290,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__108;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:150:8: ( 'question' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:150:10: 'question'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:150:8: ( 'null' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:150:10: 'null'
 			{
-			match("question"); 
+			match("null"); 
 
 			}
 
@@ -2310,10 +2311,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__109;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:151:8: ( 'refer' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:151:10: 'refer'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:151:8: ( 'question' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:151:10: 'question'
 			{
-			match("refer"); 
+			match("question"); 
 
 			}
 
@@ -2331,10 +2332,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__110;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:152:8: ( 'reference' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:152:10: 'reference'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:152:8: ( 'refer' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:152:10: 'refer'
 			{
-			match("reference"); 
+			match("refer"); 
 
 			}
 
@@ -2352,10 +2353,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__111;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:153:8: ( 'root' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:153:10: 'root'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:153:8: ( 'reference' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:153:10: 'reference'
 			{
-			match("root"); 
+			match("reference"); 
 
 			}
 
@@ -2373,10 +2374,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__112;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:154:8: ( 'select' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:154:10: 'select'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:154:8: ( 'root' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:154:10: 'root'
 			{
-			match("select"); 
+			match("root"); 
 
 			}
 
@@ -2394,10 +2395,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__113;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:155:8: ( 'shortcut' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:155:10: 'shortcut'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:155:8: ( 'select' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:155:10: 'select'
 			{
-			match("shortcut"); 
+			match("select"); 
 
 			}
 
@@ -2415,10 +2416,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__114;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:156:8: ( 'stringconst' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:156:10: 'stringconst'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:156:8: ( 'shortcut' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:156:10: 'shortcut'
 			{
-			match("stringconst"); 
+			match("shortcut"); 
 
 			}
 
@@ -2436,10 +2437,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__115;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:157:8: ( 'true' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:157:10: 'true'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:157:8: ( 'stringconst' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:157:10: 'stringconst'
 			{
-			match("true"); 
+			match("stringconst"); 
 
 			}
 
@@ -2457,10 +2458,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__116;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:158:8: ( 'unary' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:158:10: 'unary'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:158:8: ( 'true' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:158:10: 'true'
 			{
-			match("unary"); 
+			match("true"); 
 
 			}
 
@@ -2478,10 +2479,11 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__117;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:159:8: ( 'v' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:159:10: 'v'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:159:8: ( 'unary' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:159:10: 'unary'
 			{
-			match('v'); 
+			match("unary"); 
+
 			}
 
 			state.type = _type;
@@ -2498,10 +2500,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__118;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:160:8: ( '{' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:160:10: '{'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:160:8: ( 'v' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:160:10: 'v'
 			{
-			match('{'); 
+			match('v'); 
 			}
 
 			state.type = _type;
@@ -2518,10 +2520,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = T__119;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:161:8: ( '}' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:161:10: '}'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:161:8: ( '{' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:161:10: '{'
 			{
-			match('}'); 
+			match('{'); 
 			}
 
 			state.type = _type;
@@ -2533,13 +2535,33 @@ public class SDG_Lexer extends Lexer {
 	}
 	// $ANTLR end "T__119"
 
+	// $ANTLR start "T__120"
+	public final void mT__120() throws RecognitionException {
+		try {
+			int _type = T__120;
+			int _channel = DEFAULT_TOKEN_CHANNEL;
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:162:8: ( '}' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:162:10: '}'
+			{
+			match('}'); 
+			}
+
+			state.type = _type;
+			state.channel = _channel;
+		}
+		finally {
+			// do for sure before leaving
+		}
+	}
+	// $ANTLR end "T__120"
+
 	// $ANTLR start "WHITESPACE"
 	public final void mWHITESPACE() throws RecognitionException {
 		try {
 			int _type = WHITESPACE;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:542:3: ( ( ' ' | '\\t' | '\\n' | '\\r' ) )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:542:5: ( ' ' | '\\t' | '\\n' | '\\r' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:543:3: ( ( ' ' | '\\t' | '\\n' | '\\r' ) )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:543:5: ( ' ' | '\\t' | '\\n' | '\\r' )
 			{
 			if ( (input.LA(1) >= '\t' && input.LA(1) <= '\n')||input.LA(1)=='\r'||input.LA(1)==' ' ) {
 				input.consume();
@@ -2566,10 +2588,10 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = NUMBER;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:546:3: ( ( '0' .. '9' )+ )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:546:5: ( '0' .. '9' )+
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:547:3: ( ( '0' .. '9' )+ )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:547:5: ( '0' .. '9' )+
 			{
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:546:5: ( '0' .. '9' )+
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:547:5: ( '0' .. '9' )+
 			int cnt1=0;
 			loop1:
 			while (true) {
@@ -2618,7 +2640,7 @@ public class SDG_Lexer extends Lexer {
 		try {
 			int _type = STRING;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:550:3: ( '<' '\"' ({...}? '\"' |~ ( '\"' ) )* '\"' '>' | ( '\"' (~ '\"' )* '\"' ) )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:551:3: ( '<' '\"' ({...}? '\"' |~ ( '\"' ) )* '\"' '>' | ( '\"' (~ '\"' )* '\"' ) )
 			int alt4=2;
 			int LA4_0 = input.LA(1);
 			if ( (LA4_0=='<') ) {
@@ -2636,11 +2658,11 @@ public class SDG_Lexer extends Lexer {
 
 			switch (alt4) {
 				case 1 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:550:5: '<' '\"' ({...}? '\"' |~ ( '\"' ) )* '\"' '>'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:551:5: '<' '\"' ({...}? '\"' |~ ( '\"' ) )* '\"' '>'
 					{
 					match('<'); 
 					match('\"'); 
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:550:13: ({...}? '\"' |~ ( '\"' ) )*
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:551:13: ({...}? '\"' |~ ( '\"' ) )*
 					loop2:
 					while (true) {
 						int alt2=3;
@@ -2665,7 +2687,7 @@ public class SDG_Lexer extends Lexer {
 
 						switch (alt2) {
 						case 1 :
-							// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:550:15: {...}? '\"'
+							// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:551:15: {...}? '\"'
 							{
 							if ( !(( input.LA(2) != '>' )) ) {
 								throw new FailedPredicateException(input, "STRING", " input.LA(2) != '>' ");
@@ -2674,7 +2696,7 @@ public class SDG_Lexer extends Lexer {
 							}
 							break;
 						case 2 :
-							// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:550:45: ~ ( '\"' )
+							// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:551:45: ~ ( '\"' )
 							{
 							if ( (input.LA(1) >= '\u0000' && input.LA(1) <= '!')||(input.LA(1) >= '#' && input.LA(1) <= '\uFFFF') ) {
 								input.consume();
@@ -2697,13 +2719,13 @@ public class SDG_Lexer extends Lexer {
 					}
 					break;
 				case 2 :
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:551:5: ( '\"' (~ '\"' )* '\"' )
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:552:5: ( '\"' (~ '\"' )* '\"' )
 					{
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:551:5: ( '\"' (~ '\"' )* '\"' )
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:551:6: '\"' (~ '\"' )* '\"'
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:552:5: ( '\"' (~ '\"' )* '\"' )
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:552:6: '\"' (~ '\"' )* '\"'
 					{
 					match('\"'); 
-					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:551:10: (~ '\"' )*
+					// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:552:10: (~ '\"' )*
 					loop3:
 					while (true) {
 						int alt3=2;
@@ -2750,8 +2772,8 @@ public class SDG_Lexer extends Lexer {
 
 	@Override
 	public void mTokens() throws RecognitionException {
-		// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:1:8: ( T__7 | T__8 | T__9 | T__10 | T__11 | T__12 | T__13 | T__14 | T__15 | T__16 | T__17 | T__18 | T__19 | T__20 | T__21 | T__22 | T__23 | T__24 | T__25 | T__26 | T__27 | T__28 | T__29 | T__30 | T__31 | T__32 | T__33 | T__34 | T__35 | T__36 | T__37 | T__38 | T__39 | T__40 | T__41 | T__42 | T__43 | T__44 | T__45 | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | T__62 | T__63 | T__64 | T__65 | T__66 | T__67 | T__68 | T__69 | T__70 | T__71 | T__72 | T__73 | T__74 | T__75 | T__76 | T__77 | T__78 | T__79 | T__80 | T__81 | T__82 | T__83 | T__84 | T__85 | T__86 | T__87 | T__88 | T__89 | T__90 | T__91 | T__92 | T__93 | T__94 | T__95 | T__96 | T__97 | T__98 | T__99 | T__100 | T__101 | T__102 | T__103 | T__104 | T__105 | T__106 | T__107 | T__108 | T__109 | T__110 | T__111 | T__112 | T__113 | T__114 | T__115 | T__116 | T__117 | T__118 | T__119 | WHITESPACE | NUMBER | STRING )
-		int alt5=116;
+		// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:1:8: ( T__7 | T__8 | T__9 | T__10 | T__11 | T__12 | T__13 | T__14 | T__15 | T__16 | T__17 | T__18 | T__19 | T__20 | T__21 | T__22 | T__23 | T__24 | T__25 | T__26 | T__27 | T__28 | T__29 | T__30 | T__31 | T__32 | T__33 | T__34 | T__35 | T__36 | T__37 | T__38 | T__39 | T__40 | T__41 | T__42 | T__43 | T__44 | T__45 | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | T__62 | T__63 | T__64 | T__65 | T__66 | T__67 | T__68 | T__69 | T__70 | T__71 | T__72 | T__73 | T__74 | T__75 | T__76 | T__77 | T__78 | T__79 | T__80 | T__81 | T__82 | T__83 | T__84 | T__85 | T__86 | T__87 | T__88 | T__89 | T__90 | T__91 | T__92 | T__93 | T__94 | T__95 | T__96 | T__97 | T__98 | T__99 | T__100 | T__101 | T__102 | T__103 | T__104 | T__105 | T__106 | T__107 | T__108 | T__109 | T__110 | T__111 | T__112 | T__113 | T__114 | T__115 | T__116 | T__117 | T__118 | T__119 | T__120 | WHITESPACE | NUMBER | STRING )
+		int alt5=117;
 		alt5 = dfa5.predict(input);
 		switch (alt5) {
 			case 1 :
@@ -3546,21 +3568,28 @@ public class SDG_Lexer extends Lexer {
 				}
 				break;
 			case 114 :
-				// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:1:705: WHITESPACE
+				// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:1:705: T__120
+				{
+				mT__120(); 
+
+				}
+				break;
+			case 115 :
+				// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:1:712: WHITESPACE
 				{
 				mWHITESPACE(); 
 
 				}
 				break;
-			case 115 :
-				// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:1:716: NUMBER
+			case 116 :
+				// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:1:723: NUMBER
 				{
 				mNUMBER(); 
 
 				}
 				break;
-			case 116 :
-				// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:1:723: STRING
+			case 117 :
+				// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:1:730: STRING
 				{
 				mSTRING(); 
 
@@ -3573,16 +3602,16 @@ public class SDG_Lexer extends Lexer {
 
 	protected DFA5 dfa5 = new DFA5(this);
 	static final String DFA5_eotS =
-		"\5\uffff\1\61\1\uffff\1\71\1\76\6\uffff\1\124\1\uffff\1\131\1\uffff\1"+
-		"\143\1\145\1\147\1\151\106\uffff\1\u0085\61\uffff\1\u0098\14\uffff\1\u00a3"+
+		"\5\uffff\1\61\1\uffff\1\71\1\76\6\uffff\1\124\1\uffff\1\132\1\uffff\1"+
+		"\144\1\146\1\150\1\152\107\uffff\1\u0086\61\uffff\1\u0099\14\uffff\1\u00a4"+
 		"\7\uffff";
 	static final String DFA5_eofS =
-		"\u00a4\uffff";
+		"\u00a5\uffff";
 	static final String DFA5_minS =
 		"\1\11\4\uffff\1\103\1\uffff\2\101\1\116\1\104\1\uffff\1\104\1\103\1\104"+
-		"\1\106\1\uffff\1\111\2\104\1\150\1\116\1\104\3\uffff\1\143\1\uffff\1\141"+
+		"\1\106\1\uffff\1\105\2\104\1\150\1\116\1\104\3\uffff\1\143\1\uffff\1\141"+
 		"\1\145\1\155\1\141\3\uffff\1\157\2\uffff\2\145\10\uffff\1\124\17\uffff"+
-		"\1\111\4\uffff\1\114\1\115\26\uffff\1\107\14\uffff\1\164\5\uffff\1\143"+
+		"\1\111\4\uffff\1\114\1\115\27\uffff\1\107\14\uffff\1\164\5\uffff\1\143"+
 		"\5\uffff\1\162\1\uffff\1\144\1\146\4\uffff\1\111\3\uffff\1\113\1\111\2"+
 		"\uffff\1\55\2\uffff\1\155\1\141\1\uffff\1\145\2\uffff\1\137\2\uffff\1"+
 		"\151\1\55\2\uffff\1\162\1\111\3\uffff\2\145\7\uffff";
@@ -3590,25 +3619,25 @@ public class SDG_Lexer extends Lexer {
 		"\1\175\4\uffff\1\103\1\uffff\1\157\1\171\1\170\1\157\1\uffff\1\127\1\157"+
 		"\1\125\1\117\1\uffff\1\123\2\131\1\150\1\116\1\104\3\uffff\1\163\1\uffff"+
 		"\1\157\1\145\1\170\1\165\3\uffff\1\157\2\uffff\1\157\1\164\10\uffff\1"+
-		"\124\17\uffff\1\120\4\uffff\1\122\1\115\26\uffff\1\107\14\uffff\1\164"+
+		"\124\17\uffff\1\120\4\uffff\1\122\1\115\27\uffff\1\107\14\uffff\1\164"+
 		"\5\uffff\1\162\5\uffff\1\162\1\uffff\1\156\1\146\4\uffff\1\117\3\uffff"+
 		"\1\113\1\117\2\uffff\1\55\2\uffff\1\155\1\151\1\uffff\1\145\2\uffff\1"+
 		"\137\2\uffff\1\157\1\55\2\uffff\1\162\1\117\3\uffff\1\157\1\145\7\uffff";
 	static final String DFA5_acceptS =
 		"\1\uffff\1\1\1\2\1\3\1\4\1\uffff\1\10\4\uffff\1\44\4\uffff\1\62\6\uffff"+
-		"\1\111\1\112\1\113\1\uffff\1\120\4\uffff\1\137\1\140\1\141\1\uffff\1\145"+
-		"\1\146\2\uffff\1\155\1\156\1\157\1\160\1\161\1\162\1\163\1\164\1\uffff"+
+		"\1\112\1\113\1\114\1\uffff\1\121\4\uffff\1\140\1\141\1\142\1\uffff\1\146"+
+		"\1\147\2\uffff\1\156\1\157\1\160\1\161\1\162\1\163\1\164\1\165\1\uffff"+
 		"\1\5\1\12\1\13\1\14\1\15\1\16\1\17\1\20\1\11\1\22\1\23\1\24\1\25\1\21"+
 		"\1\26\1\uffff\1\31\1\32\1\33\1\34\2\uffff\1\43\1\45\1\46\1\47\1\50\1\51"+
-		"\1\52\1\53\1\54\1\55\1\56\1\60\1\61\1\57\1\64\1\65\1\66\1\67\1\63\1\70"+
-		"\1\71\1\72\1\uffff\1\76\1\77\1\100\1\101\1\102\1\73\1\104\1\103\1\106"+
-		"\1\105\1\110\1\107\1\uffff\1\116\1\117\1\121\1\122\1\123\1\uffff\1\126"+
-		"\1\127\1\130\1\131\1\132\1\uffff\1\136\2\uffff\1\151\1\152\1\153\1\154"+
-		"\1\uffff\1\27\1\30\1\35\2\uffff\1\75\1\74\1\uffff\1\124\1\125\2\uffff"+
-		"\1\144\1\uffff\1\6\1\7\1\uffff\1\41\1\42\2\uffff\1\142\1\143\2\uffff\1"+
-		"\36\1\114\1\115\2\uffff\1\37\1\40\1\133\1\134\1\135\1\150\1\147";
+		"\1\52\1\53\1\54\1\55\1\56\1\60\1\61\1\57\1\64\1\65\1\66\1\67\1\70\1\63"+
+		"\1\71\1\72\1\73\1\uffff\1\77\1\100\1\101\1\102\1\103\1\74\1\105\1\104"+
+		"\1\107\1\106\1\111\1\110\1\uffff\1\117\1\120\1\122\1\123\1\124\1\uffff"+
+		"\1\127\1\130\1\131\1\132\1\133\1\uffff\1\137\2\uffff\1\152\1\153\1\154"+
+		"\1\155\1\uffff\1\27\1\30\1\35\2\uffff\1\76\1\75\1\uffff\1\125\1\126\2"+
+		"\uffff\1\145\1\uffff\1\6\1\7\1\uffff\1\41\1\42\2\uffff\1\143\1\144\2\uffff"+
+		"\1\36\1\115\1\116\2\uffff\1\37\1\40\1\134\1\135\1\136\1\151\1\150";
 	static final String DFA5_specialS =
-		"\u00a4\uffff}>";
+		"\u00a5\uffff}>";
 	static final String[] DFA5_transitionS = {
 			"\2\55\2\uffff\1\55\22\uffff\1\55\1\uffff\1\57\11\uffff\1\1\1\2\2\uffff"+
 			"\12\56\1\3\1\4\1\57\4\uffff\1\5\1\6\1\7\1\10\1\11\1\12\1\uffff\1\13\1"+
@@ -3632,39 +3661,30 @@ public class SDG_Lexer extends Lexer {
 			"\1\120\20\uffff\1\121",
 			"\1\122\10\uffff\1\123",
 			"",
-			"\1\125\5\uffff\1\126\2\uffff\1\127\1\130",
-			"\1\132\1\uffff\1\133\22\uffff\1\134",
-			"\1\135\1\uffff\1\136\1\uffff\1\137\7\uffff\1\140\4\uffff\1\141\3\uffff"+
-			"\1\142",
-			"\1\144",
-			"\1\146",
-			"\1\150",
+			"\1\125\3\uffff\1\126\5\uffff\1\127\2\uffff\1\130\1\131",
+			"\1\133\1\uffff\1\134\22\uffff\1\135",
+			"\1\136\1\uffff\1\137\1\uffff\1\140\7\uffff\1\141\4\uffff\1\142\3\uffff"+
+			"\1\143",
+			"\1\145",
+			"\1\147",
+			"\1\151",
 			"",
 			"",
 			"",
-			"\1\152\16\uffff\1\153\1\154",
+			"\1\153\16\uffff\1\154\1\155",
 			"",
-			"\1\155\6\uffff\1\156\6\uffff\1\157",
-			"\1\160",
-			"\1\161\1\162\11\uffff\1\163",
-			"\1\164\12\uffff\1\165\2\uffff\1\166\5\uffff\1\167",
-			"",
-			"",
-			"",
-			"\1\170",
-			"",
-			"",
-			"\1\171\11\uffff\1\172",
-			"\1\173\2\uffff\1\174\13\uffff\1\175",
+			"\1\156\6\uffff\1\157\6\uffff\1\160",
+			"\1\161",
+			"\1\162\1\163\11\uffff\1\164",
+			"\1\165\12\uffff\1\166\2\uffff\1\167\5\uffff\1\170",
 			"",
 			"",
 			"",
+			"\1\171",
 			"",
 			"",
-			"",
-			"",
-			"",
-			"\1\176",
+			"\1\172\11\uffff\1\173",
+			"\1\174\2\uffff\1\175\13\uffff\1\176",
 			"",
 			"",
 			"",
@@ -3673,20 +3693,7 @@ public class SDG_Lexer extends Lexer {
 			"",
 			"",
 			"",
-			"",
-			"",
-			"",
-			"",
-			"",
-			"",
-			"",
-			"\1\177\6\uffff\1\u0080",
-			"",
-			"",
-			"",
-			"",
-			"\1\u0081\5\uffff\1\u0082",
-			"\1\u0083",
+			"\1\177",
 			"",
 			"",
 			"",
@@ -3702,13 +3709,12 @@ public class SDG_Lexer extends Lexer {
 			"",
 			"",
 			"",
+			"\1\u0080\6\uffff\1\u0081",
 			"",
 			"",
 			"",
 			"",
-			"",
-			"",
-			"",
+			"\1\u0082\5\uffff\1\u0083",
 			"\1\u0084",
 			"",
 			"",
@@ -3722,57 +3728,81 @@ public class SDG_Lexer extends Lexer {
 			"",
 			"",
 			"",
-			"\1\u0086",
 			"",
 			"",
 			"",
 			"",
 			"",
-			"\1\u0087\16\uffff\1\u0088",
 			"",
 			"",
 			"",
 			"",
 			"",
-			"\1\u0089",
 			"",
-			"\1\u008a\11\uffff\1\u008b",
-			"\1\u008c",
+			"\1\u0085",
 			"",
 			"",
 			"",
 			"",
-			"\1\u008d\5\uffff\1\u008e",
 			"",
 			"",
 			"",
-			"\1\u008f",
-			"\1\u0090\5\uffff\1\u0091",
 			"",
 			"",
-			"\1\u0092",
+			"",
+			"",
+			"",
+			"\1\u0087",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"\1\u0088\16\uffff\1\u0089",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"\1\u008a",
+			"",
+			"\1\u008b\11\uffff\1\u008c",
+			"\1\u008d",
+			"",
+			"",
+			"",
+			"",
+			"\1\u008e\5\uffff\1\u008f",
+			"",
+			"",
+			"",
+			"\1\u0090",
+			"\1\u0091\5\uffff\1\u0092",
 			"",
 			"",
 			"\1\u0093",
-			"\1\u0094\7\uffff\1\u0095",
 			"",
-			"\1\u0096",
 			"",
+			"\1\u0094",
+			"\1\u0095\7\uffff\1\u0096",
 			"",
 			"\1\u0097",
 			"",
 			"",
-			"\1\u0099\5\uffff\1\u009a",
-			"\1\u009b",
+			"\1\u0098",
 			"",
 			"",
+			"\1\u009a\5\uffff\1\u009b",
 			"\1\u009c",
-			"\1\u009d\5\uffff\1\u009e",
+			"",
+			"",
+			"\1\u009d",
+			"\1\u009e\5\uffff\1\u009f",
 			"",
 			"",
 			"",
-			"\1\u009f\3\uffff\1\u00a0\5\uffff\1\u00a1",
-			"\1\u00a2",
+			"\1\u00a0\3\uffff\1\u00a1\5\uffff\1\u00a2",
+			"\1\u00a3",
 			"",
 			"",
 			"",
@@ -3813,7 +3843,7 @@ public class SDG_Lexer extends Lexer {
 		}
 		@Override
 		public String getDescription() {
-			return "1:1: Tokens : ( T__7 | T__8 | T__9 | T__10 | T__11 | T__12 | T__13 | T__14 | T__15 | T__16 | T__17 | T__18 | T__19 | T__20 | T__21 | T__22 | T__23 | T__24 | T__25 | T__26 | T__27 | T__28 | T__29 | T__30 | T__31 | T__32 | T__33 | T__34 | T__35 | T__36 | T__37 | T__38 | T__39 | T__40 | T__41 | T__42 | T__43 | T__44 | T__45 | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | T__62 | T__63 | T__64 | T__65 | T__66 | T__67 | T__68 | T__69 | T__70 | T__71 | T__72 | T__73 | T__74 | T__75 | T__76 | T__77 | T__78 | T__79 | T__80 | T__81 | T__82 | T__83 | T__84 | T__85 | T__86 | T__87 | T__88 | T__89 | T__90 | T__91 | T__92 | T__93 | T__94 | T__95 | T__96 | T__97 | T__98 | T__99 | T__100 | T__101 | T__102 | T__103 | T__104 | T__105 | T__106 | T__107 | T__108 | T__109 | T__110 | T__111 | T__112 | T__113 | T__114 | T__115 | T__116 | T__117 | T__118 | T__119 | WHITESPACE | NUMBER | STRING );";
+			return "1:1: Tokens : ( T__7 | T__8 | T__9 | T__10 | T__11 | T__12 | T__13 | T__14 | T__15 | T__16 | T__17 | T__18 | T__19 | T__20 | T__21 | T__22 | T__23 | T__24 | T__25 | T__26 | T__27 | T__28 | T__29 | T__30 | T__31 | T__32 | T__33 | T__34 | T__35 | T__36 | T__37 | T__38 | T__39 | T__40 | T__41 | T__42 | T__43 | T__44 | T__45 | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | T__62 | T__63 | T__64 | T__65 | T__66 | T__67 | T__68 | T__69 | T__70 | T__71 | T__72 | T__73 | T__74 | T__75 | T__76 | T__77 | T__78 | T__79 | T__80 | T__81 | T__82 | T__83 | T__84 | T__85 | T__86 | T__87 | T__88 | T__89 | T__90 | T__91 | T__92 | T__93 | T__94 | T__95 | T__96 | T__97 | T__98 | T__99 | T__100 | T__101 | T__102 | T__103 | T__104 | T__105 | T__106 | T__107 | T__108 | T__109 | T__110 | T__111 | T__112 | T__113 | T__114 | T__115 | T__116 | T__117 | T__118 | T__119 | T__120 | WHITESPACE | NUMBER | STRING );";
 		}
 	}
 

@@ -372,6 +372,7 @@ private edge_kind returns [SDGEdge.Kind kind]
   | 'SF' { kind = SDGEdge.Kind.SUMMARY_DATA; }
 // method interface structure
   | 'PS' { kind = SDGEdge.Kind.PARAMETER_STRUCTURE; }
+  | 'PE' { kind = SDGEdge.Kind.PARAMETER_EQUIVALENCE; }
 // thread/concurrency related edges
   | 'FORK' { kind = SDGEdge.Kind.FORK; }
   | 'FORK_IN' { kind = SDGEdge.Kind.FORK_IN; }

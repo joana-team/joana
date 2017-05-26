@@ -37,7 +37,13 @@ public class SDGEdge implements Cloneable, KnowsVertices<SDGNode> {
         HELP("HE", false),
         /** Used to capture structural interdependencies between parameter nodes a->b <=> b may be reached through a field of a */
         PARAMETER_STRUCTURE("PS", false),
+        /** Used to capture structural equivalance between parameter nodes a->b <=> a represents the same paramater as b.
+         *  This is the case whenever a single parameter is both read and modified in given method.
+         **/
+        PARAMETER_EQUIVALENCE("PE", false),
 
+        
+        
         /* different kinds of control flow edges */
         /** Control flow edge (intra-procedural only). */
         CONTROL_FLOW("CF", false),

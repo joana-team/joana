@@ -15,6 +15,8 @@ PRED=\#FFC125
 # edge colors and pattern
 PS_COL=\#000000
 PS_PAT=0
+PE_COL=\#00E7FF
+PE_PAT=0
 HE_COL=\#FFC125
 HE_PAT=0
 CF_COL=\#0000FF

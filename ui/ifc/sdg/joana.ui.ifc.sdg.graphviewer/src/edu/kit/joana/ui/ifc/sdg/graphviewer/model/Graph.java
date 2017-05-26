@@ -34,7 +34,7 @@ public abstract class Graph {
 															SDGEdge.Kind.SUMMARY_NO_ALIAS,
 															SDGEdge.Kind.SUMMARY_DATA);
 	public static final Set<SDGEdge.Kind> showDH = EnumSet.of(SDGEdge.Kind.DATA_HEAP, SDGEdge.Kind.DATA_ALIAS);
-	public static final Set<SDGEdge.Kind> showPS = EnumSet.of(SDGEdge.Kind.PARAMETER_STRUCTURE);
+	public static final Set<SDGEdge.Kind> showPS = EnumSet.of(SDGEdge.Kind.PARAMETER_STRUCTURE, SDGEdge.Kind.PARAMETER_EQUIVALENCE);
 
 	public static final Set<SDGEdge.Kind> showIF = EnumSet.of(SDGEdge.Kind.INTERFERENCE,
 			SDGEdge.Kind.INTERFERENCE_WRITE,

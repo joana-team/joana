@@ -161,6 +161,10 @@ public class JoanaConverter {
 			sdgKind = SDGEdge.Kind.PARAMETER_STRUCTURE;
 			assert label == null;
 			break;
+		case PARAM_EQUIV:
+			sdgKind = SDGEdge.Kind.PARAMETER_EQUIVALENCE;
+			assert label == null;
+			break;
 		case UTILITY:
 			sdgKind = SDGEdge.Kind.HELP;
 			assert label == null;

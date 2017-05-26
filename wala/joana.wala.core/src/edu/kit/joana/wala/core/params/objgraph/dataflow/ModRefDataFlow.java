@@ -166,6 +166,12 @@ public class ModRefDataFlow {
 				if (fromCand.isPotentialParentOf(toCand)) {
 					pdg.addEdge(from, to, PDGEdge.Kind.PARAM_STRUCT);
 				}
+				
+				if (toCand == fromCand) {
+					assert pdg.outgoingEdgesOf(from).stream().noneMatch( e -> e.kind == PDGEdge.Kind.PARAM_EQUIV);
+					assert toCand.isMod() && toCand.isRef();
+					pdg.addEdge(from, to, PDGEdge.Kind.PARAM_EQUIV);
+				}
 			}
 		}
 	}

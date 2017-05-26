@@ -28,6 +28,7 @@ public final class PDGEdge implements KnowsVertices<PDGNode>, Comparable<PDGEdge
 		CONTROL_FLOW("CF", false, false, true, false), // control flow
 		CONTROL_FLOW_EXC("CFE", false, false, true, false), // control flow through exception
 		PARAM_STRUCT("PS", false, false, false, false), // parameter structure
+		PARAM_EQUIV("PE", false, false, false, false), // parameter equivalence
 		UTILITY("HE", false, false, false, false),		// help/utility edge for layouting in graphviewer
         PARAMETER_IN("PI", true, true, false, false), // parameter input
         PARAMETER_OUT("PO", true, true, false, false), // parameter output

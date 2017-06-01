@@ -20,11 +20,13 @@ import com.ibm.wala.analysis.typeInference.TypeInference;
 import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.ssa.IR;
+import com.ibm.wala.ssa.IR.SSA2LocalMap;
 import com.ibm.wala.ssa.ISSABasicBlock;
 import com.ibm.wala.ssa.SSAArrayLengthInstruction;
 import com.ibm.wala.ssa.SSAArrayLoadInstruction;
 import com.ibm.wala.ssa.SSAArrayStoreInstruction;
 import com.ibm.wala.ssa.SSABinaryOpInstruction;
+import com.ibm.wala.ssa.SSABuilder;
 import com.ibm.wala.ssa.SSACheckCastInstruction;
 import com.ibm.wala.ssa.SSAComparisonInstruction;
 import com.ibm.wala.ssa.SSAConditionalBranchInstruction;
@@ -77,6 +79,8 @@ public final class PDGNodeCreationVisitor implements IVisitor {
     private final Map<Integer, String> parameterToName;
     private final Map<String, Integer> nameToParameter;
     private final Map<Integer, Integer> varNumberToParameter;
+    
+    private final Map<Integer, Set<String>> valueNumberNames;
 
 	public PDGNodeCreationVisitor(PDG pdg, IClassHierarchy cha, ParameterFieldFactory params,
 			SymbolTable sym, boolean ignoreStaticFields, IR ir, boolean associateLocalNames) {
@@ -98,6 +102,18 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 			this.parameterToName.put(p, name);
 			this.nameToParameter.put(name, p);
 			this.varNumberToParameter.put(ir.getParameter(p), p);
+		}
+		
+		if (this.associateLocalNames) {
+			final SSA2LocalMap localMap = ir.getLocalMap();
+			if (localMap != null) {
+				this.valueNumberNames = localMap.getLocalNames();
+			} else {
+				this.valueNumberNames = null;
+			}
+			
+		} else {
+			this.valueNumberNames = null;
 		}
 	}
 
@@ -184,6 +200,31 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 	}
 	
 	private String[] allLocalDefNames(int def) {
+		if (this.valueNumberNames == null) return null;
+		final Set<String> allLocalDefNames = this.valueNumberNames.get(def);
+		final String[] result;
+		if (allLocalDefNames != null) {
+			result = allLocalDefNames.toArray(new String[allLocalDefNames.size()]);
+		} else {
+			result = null;
+		}
+		
+		assert same(result, allLocalDefSlow(def));
+		return result;
+	}
+	
+	private static boolean same(String[] a, String[] b) {
+		if ( ( a == null || a.length == 0) && (b == null || b.length == 0)) return true;
+		if ( a == null || b == null) return false;
+
+		final String[] sortedA = a.clone();
+		Arrays.sort(sortedA);
+		final String[] sortedB = b.clone();
+		Arrays.sort(sortedB);
+		return Arrays.equals(sortedA, sortedB);
+	}
+	
+	private String[] allLocalDefSlow(int def) {
 		Set<String> allLocalDefNames = new HashSet<>();
 		final SSAInstruction[] insts = ir.getInstructions();
 		for (int k = 0; k < insts.length; k++) {

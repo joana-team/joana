@@ -253,12 +253,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		final String[] localDefNames;
 		final String[] localUseNames;
 		if (this.associateLocalNames) {
-			final Integer correspondingStoreIndex = indexAfterStoreFollowing(instruction);
-			if (correspondingStoreIndex != null) {
-				localDefNames = allLocalNames(instruction.getDef());
-			} else {
-				localDefNames = PDGNode.DEFAULT_EMPTY_LOCAL;
-			}
+			localDefNames = allLocalNames(instruction.getDef());
 			
 			String[] localUseNames1, localUseNames2;
 			localUseNames1 = ir.getLocalNames(instruction.iindex,  instruction.getArrayRef());
@@ -314,21 +309,6 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		pdg.addFieldWrite(field, lastNode);
 	}
 
-	private Integer indexAfterStoreFollowing(SSAInstruction instr) {
-		final ISSABasicBlock basicBlock = ir.getBasicBlockForInstruction(instr);
-		if (instr.iindex + 2 <= basicBlock.getLastInstructionIndex()) {
-			// TODO: be more conservative, possibly by inspecting the underlying ShriceCFGs IInstruction array.
-			// Specifically, check that at instr.iindex there is a LocalStore instruction
-			// Sadly, this is not legally accessible from ir!?!?!
-			//
-			// Hypothesis: if instr defines a local variable, the IInstruction corresponding  instr is followed by a 
-			// StoreInstruction at instr.iindex + 1.
-			// Now, the LocalVariableTable (which the Name lookup depends on) records that the corresponding variable
-			// is defined at the instruction following that StoreInstruction, so we look it up at instr.iindex + 1 + 1.
-			return instr.iindex + 2;
-		}
-		return null;
-	}
 	@Override
 	public void visitBinaryOp(SSABinaryOpInstruction instr) {
 		assert instr.getNumberOfUses() == 2;
@@ -345,12 +325,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		final String[] localDefNames;
 		final String[] localUseNames;
 		if (this.associateLocalNames) {
-			final Integer correspondingStoreIndex = indexAfterStoreFollowing(instr);
-			if (correspondingStoreIndex != null) {
-				localDefNames = allLocalNames(instr.getDef());
-			} else {
-				localDefNames = PDGNode.DEFAULT_EMPTY_LOCAL;
-			}
+			localDefNames = allLocalNames(instr.getDef());
 			
 			String[] localUseNames1, localUseNames2;
 			localUseNames1 = ir.getLocalNames(instr.iindex,  instr.getUse(0));
@@ -379,13 +354,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		final String[] localDefNames;
 		final String[] localUseNames;
 		if (this.associateLocalNames) {
-			final Integer correspondingStoreIndex = indexAfterStoreFollowing(instr);
-			if (correspondingStoreIndex != null) {
-				localDefNames = allLocalNames(instr.getDef());
-			} else {
-				localDefNames = PDGNode.DEFAULT_EMPTY_LOCAL;
-			}
-			
+			localDefNames = allLocalNames(instr.getDef());
 			localUseNames = ir.getLocalNames(instr.iindex, instr.getUse(0));
 			
 			recordParameterAliases(localUseNames);
@@ -404,13 +373,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		final String[] localDefNames;
 		final String[] localUseNames;
 		if (this.associateLocalNames) {
-			final Integer correspondingStoreIndex = indexAfterStoreFollowing(instr);
-			if (correspondingStoreIndex != null) {
-				localDefNames = allLocalNames(instr.getDef());
-			} else {
-				localDefNames = PDGNode.DEFAULT_EMPTY_LOCAL;
-			}
-			
+			localDefNames = allLocalNames(instr.getDef());
 			localUseNames = ir.getLocalNames(instr.iindex, instr.getUse(0));
 			
 			recordParameterAliases(localUseNames);
@@ -431,12 +394,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		final String[] localDefNames;
 		final String[] localUseNames;
 		if (this.associateLocalNames) {
-			final Integer correspondingStoreIndex = indexAfterStoreFollowing(instr);
-			if (correspondingStoreIndex != null) {
-				localDefNames = allLocalNames(instr.getDef());
-			} else {
-				localDefNames = PDGNode.DEFAULT_EMPTY_LOCAL;
-			}
+			localDefNames = allLocalNames(instr.getDef());
 			
 			String[] localUseNames1, localUseNames2;
 			localUseNames1 = ir.getLocalNames(instr.iindex,  instr.getUse(0));
@@ -707,12 +665,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		if (instr.getNumberOfReturnValues() == 1) {
 			String[] localDefNames;
 			if (this.associateLocalNames) {
-				final Integer correspondingStoreIndex = indexAfterStoreFollowing(instr);
-				if (correspondingStoreIndex != null) {
-					localDefNames = allLocalNames(instr.getDef());
-				} else {
-					localDefNames = PDGNode.DEFAULT_EMPTY_LOCAL;
-				}
+				localDefNames = allLocalNames(instr.getDef());
 			} else {
 				localDefNames = PDGNode.DEFAULT_NO_LOCAL;
 			}
@@ -736,12 +689,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 
 		final String[] localDefNames;
 		if (this.associateLocalNames) {
-			final Integer correspondingStoreIndex = indexAfterStoreFollowing(instr);
-			if (correspondingStoreIndex != null) {
-				localDefNames = allLocalNames(instr.getDef());
-			} else {
-				localDefNames = PDGNode.DEFAULT_EMPTY_LOCAL;
-			}
+			localDefNames = allLocalNames(instr.getDef());
 		} else {
 			localDefNames = PDGNode.DEFAULT_NO_LOCAL;
 		}
@@ -755,12 +703,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		final String[] localDefNames;
 		final String[] localUseNames;
 		if (this.associateLocalNames) {
-			final Integer correspondingStoreIndex = indexAfterStoreFollowing(instr);
-			if (correspondingStoreIndex != null) {
-				localDefNames = allLocalNames(instr.getDef());
-			} else {
-				localDefNames = PDGNode.DEFAULT_EMPTY_LOCAL;
-			}
+			localDefNames = allLocalNames(instr.getDef());
 			
 			localUseNames = ir.getLocalNames(instr.iindex, instr.getArrayRef());
 			
@@ -810,13 +753,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		final String[] localDefNames;
 		final String[] localUseNames;
 		if (this.associateLocalNames) {
-			final Integer correspondingStoreIndex = indexAfterStoreFollowing(instr);
-			if (correspondingStoreIndex != null) {
-				localDefNames = allLocalNames(instr.getDef());
-			} else {
-				localDefNames = PDGNode.DEFAULT_EMPTY_LOCAL;
-			}
-			
+			localDefNames = allLocalNames(instr.getDef());
 			localUseNames = ir.getLocalNames(instr.iindex, instr.getVal());
 			
 			recordParameterAliases(localUseNames);
@@ -835,12 +772,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		final String[] localDefNames;
 		final String[] localUseNames;
 		if (this.associateLocalNames) {
-			final Integer correspondingStoreIndex = indexAfterStoreFollowing(instr);
-			if (correspondingStoreIndex != null) {
-				localDefNames = allLocalNames(instr.getDef());
-			} else {
-				localDefNames = PDGNode.DEFAULT_EMPTY_LOCAL;
-			}
+			localDefNames = allLocalNames(instr.getDef());
 			localUseNames = ir.getLocalNames(instr.iindex, instr.getRef());
 			
 			recordParameterAliases(localUseNames);
@@ -900,12 +832,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 
 		final String[] localDefNames;
 		if (this.associateLocalNames) {
-			final Integer correspondingStoreIndex = indexAfterStoreFollowing(instr);
-			if (correspondingStoreIndex != null) {
-				localDefNames = allLocalNames(instr.getDef());
-			} else {
-				localDefNames = PDGNode.DEFAULT_EMPTY_LOCAL;
-			}
+			localDefNames = allLocalNames(instr.getDef());
 		} else {
 			localDefNames = PDGNode.DEFAULT_NO_LOCAL;
 		}

@@ -209,19 +209,21 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 			result = null;
 		}
 		
-		assert same(result, allLocalDefSlow(def));
+		assert superset(result, allLocalDefSlow(def));
 		return result;
 	}
 	
-	private static boolean same(String[] a, String[] b) {
+	private static boolean superset(String[] a, String[] b) {
 		if ( ( a == null || a.length == 0) && (b == null || b.length == 0)) return true;
-		if ( a == null || b == null) return false;
+		if ( a == null ) return false;
+		if ( b == null ) return true;
 
-		final String[] sortedA = a.clone();
-		Arrays.sort(sortedA);
-		final String[] sortedB = b.clone();
-		Arrays.sort(sortedB);
-		return Arrays.equals(sortedA, sortedB);
+		final Set<String> setA = new HashSet<>(a.length);
+		final Set<String> setB = new HashSet<>(a.length);
+		Arrays.stream(a).forEach( n -> setA.add(n));
+		Arrays.stream(b).forEach( n -> setB.add(n));
+		
+		return setA.containsAll(setB);
 	}
 	
 	private String[] allLocalDefSlow(int def) {

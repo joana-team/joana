@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,7 +25,6 @@ import com.ibm.wala.ssa.SSAArrayLengthInstruction;
 import com.ibm.wala.ssa.SSAArrayLoadInstruction;
 import com.ibm.wala.ssa.SSAArrayStoreInstruction;
 import com.ibm.wala.ssa.SSABinaryOpInstruction;
-import com.ibm.wala.ssa.SSABuilder;
 import com.ibm.wala.ssa.SSACheckCastInstruction;
 import com.ibm.wala.ssa.SSAComparisonInstruction;
 import com.ibm.wala.ssa.SSAConditionalBranchInstruction;
@@ -199,17 +197,17 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		});
 	}
 	
-	private String[] allLocalDefNames(int def) {
+	private String[] allLocalNames(int def) {
 		if (this.valueNumberNames == null) return null;
-		final Set<String> allLocalDefNames = this.valueNumberNames.get(def);
+		final Set<String> allLocalNames = this.valueNumberNames.get(def);
 		final String[] result;
-		if (allLocalDefNames != null) {
-			result = allLocalDefNames.toArray(new String[allLocalDefNames.size()]);
+		if (allLocalNames != null) {
+			result = allLocalNames.toArray(new String[allLocalNames.size()]);
 		} else {
 			result = null;
 		}
 		
-		assert superset(result, allLocalDefSlow(def));
+		assert superset(result, allLocalNamesSlow(def));
 		return result;
 	}
 	
@@ -226,20 +224,20 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		return setA.containsAll(setB);
 	}
 	
-	private String[] allLocalDefSlow(int def) {
-		Set<String> allLocalDefNames = new HashSet<>();
+	private String[] allLocalNamesSlow(int def) {
+		Set<String> allLocalNames = new HashSet<>();
 		final SSAInstruction[] insts = ir.getInstructions();
 		for (int k = 0; k < insts.length; k++) {
 			String[] localNames = ir.getLocalNames(k, def);
 			if (localNames != null) {
 				for (String local : localNames) {
 					if (local != null ) {
-						allLocalDefNames.add(local);
+						allLocalNames.add(local);
 					}
 				}
 			}
 		}
-		return allLocalDefNames.toArray(new String[allLocalDefNames.size()]);
+		return allLocalNames.toArray(new String[allLocalNames.size()]);
 	}
 	
 	@Override
@@ -257,8 +255,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		if (this.associateLocalNames) {
 			final Integer correspondingStoreIndex = indexAfterStoreFollowing(instruction);
 			if (correspondingStoreIndex != null) {
-				//localDefNames = ir.getLocalNames(correspondingStoreIndex, instruction.getDef());
-				localDefNames = allLocalDefNames(instruction.getDef());
+				localDefNames = allLocalNames(instruction.getDef());
 			} else {
 				localDefNames = PDGNode.DEFAULT_EMPTY_LOCAL;
 			}
@@ -293,9 +290,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		final String[] localDefNames;
 		final String[] localUseNames;
 		if (this.associateLocalNames) {
-			final int lastInstructionOfBB = ir.getBasicBlockForInstruction(instruction).getLastInstructionIndex();
-			//localDefNames  = ir.getLocalNames(lastInstructionOfBB, instruction.getArrayRef());
-			localDefNames = allLocalDefNames(instruction.getArrayRef());
+			localDefNames = allLocalNames(instruction.getArrayRef());
 			
 			String[] localUseNames1, localUseNames2;
 			localUseNames1 = ir.getLocalNames(instruction.iindex,  instruction.getIndex());
@@ -352,8 +347,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		if (this.associateLocalNames) {
 			final Integer correspondingStoreIndex = indexAfterStoreFollowing(instr);
 			if (correspondingStoreIndex != null) {
-				//localDefNames = ir.getLocalNames(correspondingStoreIndex, instr.getDef());
-				localDefNames = allLocalDefNames(instr.getDef());
+				localDefNames = allLocalNames(instr.getDef());
 			} else {
 				localDefNames = PDGNode.DEFAULT_EMPTY_LOCAL;
 			}
@@ -387,8 +381,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		if (this.associateLocalNames) {
 			final Integer correspondingStoreIndex = indexAfterStoreFollowing(instr);
 			if (correspondingStoreIndex != null) {
-				//localDefNames = ir.getLocalNames(correspondingStoreIndex, instr.getDef());
-				localDefNames = allLocalDefNames(instr.getDef());
+				localDefNames = allLocalNames(instr.getDef());
 			} else {
 				localDefNames = PDGNode.DEFAULT_EMPTY_LOCAL;
 			}
@@ -413,8 +406,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		if (this.associateLocalNames) {
 			final Integer correspondingStoreIndex = indexAfterStoreFollowing(instr);
 			if (correspondingStoreIndex != null) {
-				//localDefNames = ir.getLocalNames(correspondingStoreIndex, instr.getDef());
-				localDefNames = allLocalDefNames(instr.getDef());
+				localDefNames = allLocalNames(instr.getDef());
 			} else {
 				localDefNames = PDGNode.DEFAULT_EMPTY_LOCAL;
 			}
@@ -441,8 +433,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		if (this.associateLocalNames) {
 			final Integer correspondingStoreIndex = indexAfterStoreFollowing(instr);
 			if (correspondingStoreIndex != null) {
-				//localDefNames = ir.getLocalNames(correspondingStoreIndex, instr.getDef());
-				localDefNames = allLocalDefNames(instr.getDef());
+				localDefNames = allLocalNames(instr.getDef());
 			} else {
 				localDefNames = PDGNode.DEFAULT_EMPTY_LOCAL;
 			}
@@ -537,13 +528,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		final String[] localDefNames;
 		final String[] localUseNames;
 		if (this.associateLocalNames) {
-			final Integer correspondingStoreIndex = indexAfterStoreFollowing(instr);
-//			if (correspondingStoreIndex != null) {
-//				localDefNames = ir.getLocalNames(correspondingStoreIndex, instr.getDef());
-//			} else {
-//				localDefNames = PDGNode.DEFAULT_EMPTY_LOCAL;
-//			}
-			localDefNames = allLocalDefNames(instr.getDef());
+			localDefNames = allLocalNames(instr.getDef());
 			
 			if (instr.isStatic()) {
 				localUseNames = PDGNode.DEFAULT_NO_LOCAL;
@@ -724,8 +709,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 			if (this.associateLocalNames) {
 				final Integer correspondingStoreIndex = indexAfterStoreFollowing(instr);
 				if (correspondingStoreIndex != null) {
-					//localDefNames = ir.getLocalNames(correspondingStoreIndex, instr.getDef());
-					localDefNames = allLocalDefNames(instr.getDef());
+					localDefNames = allLocalNames(instr.getDef());
 				} else {
 					localDefNames = PDGNode.DEFAULT_EMPTY_LOCAL;
 				}
@@ -754,8 +738,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		if (this.associateLocalNames) {
 			final Integer correspondingStoreIndex = indexAfterStoreFollowing(instr);
 			if (correspondingStoreIndex != null) {
-				//localDefNames = ir.getLocalNames(correspondingStoreIndex, instr.getDef());
-				localDefNames = allLocalDefNames(instr.getDef());
+				localDefNames = allLocalNames(instr.getDef());
 			} else {
 				localDefNames = PDGNode.DEFAULT_EMPTY_LOCAL;
 			}
@@ -774,8 +757,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		if (this.associateLocalNames) {
 			final Integer correspondingStoreIndex = indexAfterStoreFollowing(instr);
 			if (correspondingStoreIndex != null) {
-				//localDefNames = ir.getLocalNames(correspondingStoreIndex, instr.getDef());
-				localDefNames = allLocalDefNames(instr.getDef());
+				localDefNames = allLocalNames(instr.getDef());
 			} else {
 				localDefNames = PDGNode.DEFAULT_EMPTY_LOCAL;
 			}
@@ -830,8 +812,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		if (this.associateLocalNames) {
 			final Integer correspondingStoreIndex = indexAfterStoreFollowing(instr);
 			if (correspondingStoreIndex != null) {
-				//localDefNames = ir.getLocalNames(correspondingStoreIndex, instr.getDef());
-				localDefNames = allLocalDefNames(instr.getDef());
+				localDefNames = allLocalNames(instr.getDef());
 			} else {
 				localDefNames = PDGNode.DEFAULT_EMPTY_LOCAL;
 			}
@@ -856,8 +837,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		if (this.associateLocalNames) {
 			final Integer correspondingStoreIndex = indexAfterStoreFollowing(instr);
 			if (correspondingStoreIndex != null) {
-				//localDefNames = ir.getLocalNames(correspondingStoreIndex, instr.getDef());
-				localDefNames = allLocalDefNames(instr.getDef());
+				localDefNames = allLocalNames(instr.getDef());
 			} else {
 				localDefNames = PDGNode.DEFAULT_EMPTY_LOCAL;
 			}
@@ -890,11 +870,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		final String[] localUseNames;
 		if (this.associateLocalNames) {
 			final int firsInstuctionOfBB  = ir.getBasicBlockForInstruction(instr).getFirstInstructionIndex();
-			//localDefNames = ir.getLocalNames(firsInstuctionOfBB, instr.getDef());
-			localDefNames = allLocalDefNames(instr.getDef());
-			
-
-			
+			localDefNames = allLocalNames(instr.getDef());
 			
 			ArrayList<String> localUseNamesMerged = new ArrayList<>(instr.getNumberOfUses() * 2);
 			for (int i = 0; i < instr.getNumberOfUses(); i++) {
@@ -926,8 +902,7 @@ public final class PDGNodeCreationVisitor implements IVisitor {
 		if (this.associateLocalNames) {
 			final Integer correspondingStoreIndex = indexAfterStoreFollowing(instr);
 			if (correspondingStoreIndex != null) {
-				//localDefNames = ir.getLocalNames(correspondingStoreIndex, instr.getDef());
-				localDefNames = allLocalDefNames(instr.getDef());
+				localDefNames = allLocalNames(instr.getDef());
 			} else {
 				localDefNames = PDGNode.DEFAULT_EMPTY_LOCAL;
 			}

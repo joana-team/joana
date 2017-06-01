@@ -105,7 +105,7 @@ public final class BuildSDG {
 	}
 
 	public static <T> IFCAnalysis build(Class<T> clazz, SDGConfig config, boolean ignore) throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		final String className = clazz.getCanonicalName();
+		final String className = clazz.getName();
 		final String classPath;
 		if (ignore) {
 			classPath = JoanaPath.JOANA_API_TEST_DATA_CLASSPATH + File.pathSeparator + JoanaPath.ANNOTATIONS_IGNORE_CLASSPATH;

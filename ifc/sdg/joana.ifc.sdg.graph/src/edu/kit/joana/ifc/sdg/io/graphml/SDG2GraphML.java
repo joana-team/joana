@@ -17,6 +17,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import com.google.common.escape.Escaper;
+import com.google.common.escape.Escapers;
 import com.google.common.xml.XmlEscapers;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -75,7 +76,38 @@ public final class SDG2GraphML {
 	private static final boolean OUTPUT_EDGELABELS=false;
 	private static final String ENCODING = "UTF-8";
 	
-	private static final Escaper xmlEscaper = XmlEscapers.xmlContentEscaper();
+	
+	/**
+	 * Taken from: {@link XmlEscapers}
+	 */
+	private static final Escaper xmlEscaper; static {
+		final char MIN_ASCII_CONTROL_CHAR = 0x00;
+		final char MAX_ASCII_CONTROL_CHAR = 0x1F;
+		Escapers.Builder builder = Escapers.builder();
+	    // The char values \uFFFE and \uFFFF are explicitly not allowed in XML
+	    // (Unicode code points above \uFFFF are represented via surrogate pairs
+	    // which means they are treated as pairs of safe characters).
+	    builder.setSafeRange(Character.MIN_VALUE, '\uFFFD');
+	    // Unsafe characters are replaced with the Unicode replacement character.
+	    builder.setUnsafeReplacement("\uFFFD");
+
+	    /*
+	     * Except for \n, \t, and \r, all ASCII control characters are replaced with
+	     * the Unicode replacement character.
+	     *
+	     * Implementation note: An alternative to the following would be to make a
+	     * map that simply replaces the allowed ASCII whitespace characters with
+	     * themselves and to set the minimum safe character to 0x20. However this
+	     * would slow down the escaping of simple strings that contain \t, \n, or
+	     * \r.
+	     */
+	    for (char c = MIN_ASCII_CONTROL_CHAR; c <= MAX_ASCII_CONTROL_CHAR; c++) {
+	      if (c != '\t' && c != '\n' && c != '\r') {
+	        builder.addEscape(c, "\uFFFD");
+	      }
+	    }
+	    xmlEscaper = builder.build();
+	}
 	
 	private static void writeNode(SDGNode n, XMLStreamWriter writer) throws XMLStreamException {
 		writer.writeStartElement(GRAPHML_NODE); {

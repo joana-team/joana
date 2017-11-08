@@ -219,6 +219,8 @@ public class ContextGraph {
                     List<TopologicalNumber> calls = getCalls(pre);
 
                     for (TopologicalNumber call : calls) {
+                        // Note that Page 27 (1113) of https://doi.org/10.1145/1186632.1186636             tests "<=" instead of ">=", while
+                        //           Page 76        of https://www.cse.iitb.ac.in/~ramesh/gow-thesis.ps.gz tests ">=", which fits the description in https://doi.org/10.1145/1186632.1186636.
                         if (call.getNumber() >= from.getNumber()) {
                             // skip procedure
                             if (marked.add(call)) {

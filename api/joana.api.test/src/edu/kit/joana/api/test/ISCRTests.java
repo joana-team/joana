@@ -8,8 +8,12 @@
 package edu.kit.joana.api.test;
 
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.zip.GZIPInputStream;
 
+import org.antlr.runtime.RecognitionException;
 import org.junit.Test;
 
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
@@ -21,6 +25,7 @@ import edu.kit.joana.api.test.util.ApiTestException;
 import edu.kit.joana.api.test.util.BuildSDG;
 import edu.kit.joana.api.test.util.JoanaPath;
 import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGManualParser;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.ISCRBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
@@ -77,7 +82,27 @@ public class ISCRTests {
 			CancelException {
 		testBuildSuccessfull(conc.kn.shrinked.ExceptionFallThroughIntDiv.class);
 	}
+	
+	@Test
+	public void testMutualRecursive() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
+			CancelException {
+		testBuildSuccessfull(tests.MutualRecursive.class);
+	}
 
 	
+	private static void testSDGFile(File file) throws IOException, RecognitionException {
+		final SDG sdg = SDGManualParser.parse(
+			new GZIPInputStream(
+				new FileInputStream(file)
+		));
+		final CFG cfg = ICFGBuilder.extractICFG(sdg); 
+		final ISCRBuilder b = new ISCRBuilder();
+		b.buildISCRGraphs(cfg);
+	}
+	
+	@Test
+	public void testHugeCFG() throws IOException, RecognitionException {
+		testSDGFile(new File("../joana.api.testdata/graphs/cfg/huge.cfg.pdg.gz"));
+	}
 	
 }

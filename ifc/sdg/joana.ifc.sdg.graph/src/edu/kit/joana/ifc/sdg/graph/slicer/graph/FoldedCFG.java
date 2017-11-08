@@ -7,6 +7,8 @@
  */
 package edu.kit.joana.ifc.sdg.graph.slicer.graph;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -17,9 +19,11 @@ import java.util.stream.Stream;
 
 import com.google.common.collect.Iterables;
 
+import edu.kit.joana.ifc.sdg.graph.JoanaGraph;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.GraphFolder;
 
 
 
@@ -98,20 +102,21 @@ public class FoldedCFG extends CFG implements Folded {
      * @param fold  The fold vertex.
      * @return  A list with all folded vertices.
      */
-    public List<SDGNode> getFoldedNodesOf(SDGNode fold) {
+    public Collection<SDGNode> getFoldedNodesOf(SDGNode fold) {
         if (fold.getKind() != SDGNode.Kind.FOLDED) {
             return new LinkedList<SDGNode>();
         }
 
-        LinkedList<SDGNode> list = new LinkedList<SDGNode>();
-
-        for (SDGEdge e : incomingEdgesOf(fold)) {
+        final Set<SDGEdge> incoming = incomingEdgesOf(fold);
+        final ArrayList<SDGNode> foldedNodesOf = new ArrayList<>(incoming.size());
+        		
+        for (SDGEdge e : incoming) {
             if (e.getKind() == SDGEdge.Kind.FOLD_INCLUDE) {
-                list.add(list.size(), e.getSource());
+                foldedNodesOf.add(e.getSource());
             }
         }
 
-        return list;
+        return foldedNodesOf;
     }
     
     @Override
@@ -133,6 +138,8 @@ public class FoldedCFG extends CFG implements Folded {
 							wl.offer(e.getTarget());
 						}
 						for (SDGNode foldedNode : getFoldedNodesOf(next)) {
+							assert outgoingEdgesOf(foldedNode).size() == 1;
+							assert outgoingEdgesOf(foldedNode).iterator().next().getKind() == SDGEdge.Kind.FOLD_INCLUDE;
 							wl.offer(foldedNode);
 						}
 					}
@@ -153,4 +160,51 @@ public class FoldedCFG extends CFG implements Folded {
     	
         return found;
     }
+    
+    /**
+     * A variant of {@link JoanaGraph#getNodesOfProcedure(SDGNode)} for multiple nodes.
+     * It offers a massive performance improvement over iterated calls to {@link JoanaGraph#getNodesOfProcedure(SDGNode)}
+     * whenever there are nodes of {@link SDGNode.Kind} that span multiple procedures (see: {@link GraphFolder#twoPassFolding(CFG)}).
+     * 
+     * @param nodes
+     * @return a set containing all nodes that belong to the procedure of any of the given nodes.
+     */
+    public Set<SDGNode> getNodesOfProcedures(final Iterable<SDGNode> nodes) {
+    	final Queue<SDGNode> wl = new LinkedList<>();
+    	final Set<SDGNode> found = new HashSet<>();
+    	final Set<SDGNode> foldedFound = new HashSet<>();
+    	final Set<Integer> procedures = new HashSet<>();
+
+    	for (SDGNode node : nodes) {
+    		final SDGNode entry = getEntry(node);
+    		procedures.add(node.getProc());
+    		wl.offer(entry);
+    	}
+    	{ 
+    		SDGNode next;
+    		while ((next = wl.poll()) != null) {
+    			if (next.getKind() == SDGNode.Kind.FOLDED) {
+    				if (foldedFound.add(next)) {
+    					for (SDGEdge e : outgoingEdgesOf(next)) {
+    						wl.offer(e.getTarget());
+    					}
+    					for (SDGNode foldedNode : getFoldedNodesOf(next)) {
+    						assert outgoingEdgesOf(foldedNode).size() == 1;
+    						assert outgoingEdgesOf(foldedNode).iterator().next().getKind() == SDGEdge.Kind.FOLD_INCLUDE;
+    						wl.offer(foldedNode);
+    					}
+    				}
+    			} else if (procedures.contains(next.getProc())) {
+    				if (found.add(next)) {
+    					for (SDGEdge e : outgoingEdgesOf(next)) {
+    						final SDGNode successor = e.getTarget();
+    						wl.offer(successor);
+    					}
+    				}
+    			}
+    		}
+    	}
+    	return found;
+    }
+
 }

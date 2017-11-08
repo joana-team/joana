@@ -92,11 +92,6 @@ public class ISCRBuilder {
             }
         }
 
-        // guess the roots. For now, i a assume that the generic guessing heuristic from JoanaGraph.guessRoot() is good enough
-        for (int i = 0; i < icfgs.length; i++) {
-            iscrs[i] = build(icfgs[i], i);
-        }
-        
         // build the ISCR graphs
         for (int i = 0; i < icfgs.length; i++) {
             iscrs[i] = build(icfgs[i], i);
@@ -393,7 +388,7 @@ public class ISCRBuilder {
                     SDGNode entry = call.getTarget();
 
                     if (entry.getKind() == SDGNode.Kind.FOLDED) {
-                        List<SDGNode> foldedEntries = graph.getFoldedNodesOf(entry);
+                        Collection<SDGNode> foldedEntries = graph.getFoldedNodesOf(entry);
 
                         for (SDGNode fe : foldedEntries) {
                             if (fe.getKind() != SDGNode.Kind.ENTRY) continue;

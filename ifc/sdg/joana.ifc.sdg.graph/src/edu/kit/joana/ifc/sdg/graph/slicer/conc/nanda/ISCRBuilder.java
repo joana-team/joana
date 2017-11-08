@@ -124,7 +124,7 @@ public class ISCRBuilder {
         return iscrGraph;
     }
 
-    private CFG[] splitTCFG(CFG tcfg) {
+    private static CFG[] splitTCFG(CFG tcfg) {
     	Collection<SDGNode> entries = tcfg.getThreadsInfo().getAllEntries();
 
     	// the ICFGs of this TSCG
@@ -373,6 +373,8 @@ public class ISCRBuilder {
     		while (!worklist.isEmpty()) {
     			SDGNode next = worklist.poll();
     			for (SDGEdge e : entryGraph.outgoingEdgesOf(next)) {
+    				assert e.getKind() == SDGEdge.Kind.CALL;
+    				assert e.getTarget().getKind() == SDGNode.Kind.ENTRY;
     				if (reachable.add(e.getTarget())) {
     					worklist.add(e.getTarget());
     				}
@@ -414,24 +416,24 @@ public class ISCRBuilder {
                     SDGNode entry = call.getTarget();
 
                     if (entry.getKind() == SDGNode.Kind.FOLDED) {
-                        List<SDGNode> foldedEntries = graph.getFoldedNodesOf(entry);
+                    	Collection<SDGNode> foldedEntries = graph.getFoldedNodesOf(entry);
 
                         for (SDGNode fe : foldedEntries) {
                             if (fe.getKind() != SDGNode.Kind.ENTRY) continue;
 
-                            Set<SDGNode> toInsert = allNodes(cache.get(fe), graph);
-
-                            // add the transitively reachable nodes
-                            if (toInsert == null) continue;
+                            Set<SDGNode> toInsert = graph.getNodesOfProcedures(cache.get(fe));
+                            if (!toInsert.equals(allNodes(cache.get(fe), graph))) {
+                            	throw new IllegalStateException();
+                            };
 
                             folded.addAll(toInsert);
                         }
 
                     } else {
-                        Set<SDGNode> toInsert = allNodes(cache.get(entry), graph);
-
-                        // add the transitively reachable nodes
-                        if (toInsert == null) continue;
+                        Set<SDGNode> toInsert = graph.getNodesOfProcedures(cache.get(entry));
+                        if (!toInsert.equals(allNodes(cache.get(entry), graph))) {
+                        	throw new IllegalStateException();
+                        };
 
                         folded.addAll(toInsert);
                     }

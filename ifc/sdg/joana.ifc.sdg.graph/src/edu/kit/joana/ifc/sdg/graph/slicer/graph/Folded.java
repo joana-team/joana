@@ -7,6 +7,7 @@
  */
 package edu.kit.joana.ifc.sdg.graph.slicer.graph;
 
+import java.util.Collection;
 import java.util.List;
 
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -47,5 +48,5 @@ public interface Folded {
      * @param fold  The fold vertex.
      * @return  A list with all folded vertices.
      */
-    public List<SDGNode> getFoldedNodesOf(SDGNode fold);
+    public Collection<SDGNode> getFoldedNodesOf(SDGNode fold);
 }

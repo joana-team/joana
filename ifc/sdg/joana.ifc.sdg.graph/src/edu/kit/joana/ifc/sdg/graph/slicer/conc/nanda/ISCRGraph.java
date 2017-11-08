@@ -172,4 +172,9 @@ public class ISCRGraph {
     	SDGNode n = params.get(node);
     	return (n == null ? node : n);
     }
+    
+    @Deprecated
+    public CFG getData() {
+    	return data;
+    }
 }

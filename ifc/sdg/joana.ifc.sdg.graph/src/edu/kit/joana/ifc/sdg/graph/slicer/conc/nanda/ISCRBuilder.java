@@ -412,19 +412,15 @@ public class ISCRBuilder {
                         for (SDGNode fe : foldedEntries) {
                             if (fe.getKind() != SDGNode.Kind.ENTRY) continue;
 
-                            Set<SDGNode> toInsert = graph.getNodesOfProcedures(cache.get(fe));
-                            if (!toInsert.equals(allNodes(cache.get(fe), graph))) {
-                            	throw new IllegalStateException();
-                            };
+                            final Set<SDGNode> toInsert = graph.getNodesOfProcedures(cache.get(fe));
+                            assert toInsert.equals(allNodes(cache.get(fe), graph));
 
                             folded.addAll(toInsert);
                         }
 
                     } else {
-                        Set<SDGNode> toInsert = graph.getNodesOfProcedures(cache.get(entry));
-                        if (!toInsert.equals(allNodes(cache.get(entry), graph))) {
-                        	throw new IllegalStateException();
-                        };
+                        final Set<SDGNode> toInsert = graph.getNodesOfProcedures(cache.get(entry));
+                        assert toInsert.equals(allNodes(cache.get(entry), graph));
 
                         folded.addAll(toInsert);
                     }

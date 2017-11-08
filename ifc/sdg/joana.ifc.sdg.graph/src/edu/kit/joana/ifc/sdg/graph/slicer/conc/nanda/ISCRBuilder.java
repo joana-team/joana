@@ -61,15 +61,6 @@ public class ISCRBuilder {
 
         // build the ISCR graphs
         for (int i = 0; i < icfgs.length; i++) {
-        	BufferedOutputStream bOut;
-			try {
-				bOut = new BufferedOutputStream(new FileOutputStream("/tmp/tmp.cfg.pdg"));
-				SDGSerializer.toPDGFormat(tcfg, bOut);
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-        	
             iscrs[i] = build(icfgs[i]);
         }
 

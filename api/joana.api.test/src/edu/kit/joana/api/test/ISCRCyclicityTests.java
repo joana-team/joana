@@ -37,7 +37,7 @@ import static org.junit.Assert.assertFalse;
 /**
  * @author Martin Hecker <martin.hecker@kit.edu>
  */
-public class TwoPassFoldingTests {
+public class ISCRCyclicityTests {
 	
 	static final boolean outputPDGFiles = true;
 	static final boolean outputGraphMLFiles = true;
@@ -50,7 +50,7 @@ public class TwoPassFoldingTests {
 		final SDGProgram p = BuildSDG.standardConcBuild(
 				JoanaPath.JOANA_MANY_SMALL_PROGRAMS_CLASSPATH,
 				mainMethod,
-				clazz.getCanonicalName() + ".TwoPassFoldingTests.pdg",
+				clazz.getCanonicalName() + ".ISCRCyclicityTests.pdg",
 				PointsToPrecision.INSTANCE_BASED
 				);
 

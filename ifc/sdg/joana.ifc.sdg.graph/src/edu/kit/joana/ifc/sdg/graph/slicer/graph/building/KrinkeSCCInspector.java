@@ -16,6 +16,7 @@ import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
+import edu.kit.joana.util.graph.UnmodifiableDirectedSubgraph;
 
 /** Uses Krinke's context-sensitive SCC folding method for CFG's.
  *
@@ -42,30 +43,15 @@ public class KrinkeSCCInspector {
      * @return  A list of SCC's without return edges.
      */
     public List<Set<SDGNode>> firstPass() {
-        Object[] edges = icfg.edgeSet().toArray();
-
-        // first, temporarily remove all edges but CF and CALL
-        for (int i = 0; i < edges.length; i++) {
-            SDGEdge e = (SDGEdge) edges[i];
-            if (e.getKind() != SDGEdge.Kind.CONTROL_FLOW
-                    && e.getKind() != SDGEdge.Kind.CALL) {
-
-                buffer.addFirst(e);
-                icfg.removeEdge(e);
-            }
-        }
-
-        // then compute SCCs
-        KosarajuStrongConnectivityInspector<SDGNode, SDGEdge> ksci = new KosarajuStrongConnectivityInspector<SDGNode, SDGEdge>(icfg);
-        List<Set<SDGNode>> erg = ksci.stronglyConnectedSets();
-
-        // put return edges back
-        for (SDGEdge e : buffer) {
-            icfg.addEdge(e);
-        }
-        buffer.clear();
-
-        return erg;
+        final KosarajuStrongConnectivityInspector<SDGNode, SDGEdge> ksci =
+        		new KosarajuStrongConnectivityInspector<SDGNode, SDGEdge>(
+        				new UnmodifiableDirectedSubgraph<SDGNode, SDGEdge>(
+        						icfg,
+        						e -> e.getKind() == SDGEdge.Kind.CONTROL_FLOW || e.getKind() == SDGEdge.Kind.CALL,
+        						true
+        				)
+        		);
+        return ksci.stronglyConnectedSets();
     }
 
     /** Determines all SCC's that doesn't contain call edges.
@@ -73,27 +59,14 @@ public class KrinkeSCCInspector {
      * @return  A list of SCC's without call edges.
      */
     public List<Set<SDGNode>> secondPass() {
-        Object[] edges = icfg.edgeSet().toArray();
-
-        // first, temporarily remove all edges but CF and RT
-        for (int i = 0; i < edges.length; i++) {
-            SDGEdge e = (SDGEdge) edges[i];
-            if (e.getKind() != SDGEdge.Kind.CONTROL_FLOW && e.getKind() != SDGEdge.Kind.RETURN) {
-                buffer.addFirst(e);
-                icfg.removeEdge(e);
-            }
-        }
-
-        // then compute SCCs
-        KosarajuStrongConnectivityInspector<SDGNode, SDGEdge> ksci = new KosarajuStrongConnectivityInspector<SDGNode, SDGEdge>(icfg);
-        List<Set<SDGNode>> erg = ksci.stronglyConnectedSets();
-
-        // put call edges back
-        for (SDGEdge e : buffer) {
-            icfg.addEdge(e);
-        }
-        buffer.clear();
-
-        return erg;
+        final KosarajuStrongConnectivityInspector<SDGNode, SDGEdge> ksci =
+        		new KosarajuStrongConnectivityInspector<SDGNode, SDGEdge>(
+        				new UnmodifiableDirectedSubgraph<SDGNode, SDGEdge>(
+        						icfg,
+        						e -> e.getKind() == SDGEdge.Kind.CONTROL_FLOW || e.getKind() == SDGEdge.Kind.RETURN,
+        						true
+        				)
+        		);
+        return ksci.stronglyConnectedSets();
     }
 }

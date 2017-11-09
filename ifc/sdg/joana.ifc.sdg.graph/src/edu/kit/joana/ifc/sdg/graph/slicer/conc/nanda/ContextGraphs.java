@@ -10,6 +10,7 @@ package edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
@@ -39,7 +40,7 @@ public class ContextGraphs {
 		return whole.getAllForkSites();
 	}
 
-	public LinkedList<TopologicalNumber> getTopologicalNumbersNew(SDGNode node, int thread) {
+	public List<TopologicalNumber> getTopologicalNumbersNew(SDGNode node, int thread) {
 		return graphs[thread].getTopologicalNumbers(node);
 	}
 
@@ -68,9 +69,9 @@ public class ContextGraphs {
 		return graphs[thread].reach(from, to);
 	}
 
-	public LinkedList<TopologicalNumber> realisablePathBackward(SDGNode reached, int reachedThread, TopologicalNumber oldState) {
+	public List<TopologicalNumber> realisablePathBackward(SDGNode reached, int reachedThread, TopologicalNumber oldState) {
 		// determine all contexts of reached which can be reached by state
-		LinkedList<TopologicalNumber> tuples = graphs[reachedThread].getTopologicalNumbers(reached);
+		List<TopologicalNumber> tuples = graphs[reachedThread].getTopologicalNumbers(reached);
 
 		if (oldState == null) {
 			// initial state - all contexts of reached are valid
@@ -88,9 +89,9 @@ public class ContextGraphs {
 
 	}
 
-	public LinkedList<TopologicalNumber> realisablePathForward(SDGNode reached, int reachedThread, TopologicalNumber oldState) {
+	public List<TopologicalNumber> realisablePathForward(SDGNode reached, int reachedThread, TopologicalNumber oldState) {
 		// determine all contexts of reached which can be reached by state
-		LinkedList<TopologicalNumber> tuples = graphs[reachedThread].getTopologicalNumbers(reached);
+		List<TopologicalNumber> tuples = graphs[reachedThread].getTopologicalNumbers(reached);
 
 		if (oldState == null) {
 			// initial state - all contexts of reached are valid

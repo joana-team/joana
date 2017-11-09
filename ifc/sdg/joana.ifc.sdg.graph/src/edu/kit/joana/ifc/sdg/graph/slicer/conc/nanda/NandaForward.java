@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -143,7 +144,7 @@ public class NandaForward implements NandaMode {
      */
 	public Iterator<TopologicalNumber> intraproceduralNeighbours(SDGNode neighbourNode, TopologicalNumber from, int thread) {
 		LinkedList<TopologicalNumber> nrs = new LinkedList<TopologicalNumber>();
-        LinkedList<TopologicalNumber> reached = contextGraphs.getTopologicalNumbersNew(neighbourNode, thread);
+        List<TopologicalNumber> reached = contextGraphs.getTopologicalNumbersNew(neighbourNode, thread);
 
         if (reached == null) {
         	return nrs.iterator();
@@ -180,7 +181,7 @@ public class NandaForward implements NandaMode {
      */
     public Iterator<TopologicalNumber> interproceduralNeighbours(SDGNode neighbourNode, TopologicalNumber from, int thread) {
     	LinkedList<TopologicalNumber> nrs = contextGraphs.getSuccessors(from, thread);
-    	LinkedList<TopologicalNumber> reached = contextGraphs.getTopologicalNumbersNew(neighbourNode, thread);
+    	List<TopologicalNumber> reached = contextGraphs.getTopologicalNumbersNew(neighbourNode, thread);
 
         nrs.add(from); // to account for folded cycles
         nrs.retainAll(reached);

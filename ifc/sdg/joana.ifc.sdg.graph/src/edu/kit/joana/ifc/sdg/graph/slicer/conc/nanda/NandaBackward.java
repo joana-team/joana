@@ -8,9 +8,13 @@
 package edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
+
+import com.google.common.collect.Lists;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -56,7 +60,7 @@ public class NandaBackward implements NandaMode {
 	}
 
     public Iterator<TopologicalNumber> reachingContexts(SDGNode reached, int reachedThread, TopologicalNumber state) {
-    	return contextGraphs.realisablePathBackward(reached, reachedThread, state).descendingIterator();
+    	return Lists.reverse(contextGraphs.realisablePathBackward(reached, reachedThread, state)).iterator();
 	}
 
     /** Initialize the outer worklist .
@@ -138,7 +142,7 @@ public class NandaBackward implements NandaMode {
      */
     public Iterator<TopologicalNumber> intraproceduralNeighbours(SDGNode neighbourNode, TopologicalNumber from, int thread) {
         LinkedList<TopologicalNumber> nrs = new LinkedList<TopologicalNumber>();
-        LinkedList<TopologicalNumber> reached = contextGraphs.getTopologicalNumbersNew(neighbourNode, thread);
+        List<TopologicalNumber> reached = contextGraphs.getTopologicalNumbersNew(neighbourNode, thread);
 
         if (reached == null) {
         	Log.ERROR.outln("failed intraprocedural neighbour check (reach) " + this.getClass().getName());
@@ -147,7 +151,7 @@ public class NandaBackward implements NandaMode {
         
         if (reached.size() == 1) {
         	// a simple optimization
-        	return reached.descendingIterator();
+        	return Lists.reverse(reached).iterator();
 
         }
         
@@ -187,7 +191,7 @@ public class NandaBackward implements NandaMode {
      */
     public Iterator<TopologicalNumber> interproceduralNeighbours(SDGNode neighbourNode, TopologicalNumber from, int thread) {
     	LinkedList<TopologicalNumber> nrs = contextGraphs.getPredecessors(from, thread);
-        LinkedList<TopologicalNumber> reached = contextGraphs.getTopologicalNumbersNew(neighbourNode, thread);
+        List<TopologicalNumber> reached = contextGraphs.getTopologicalNumbersNew(neighbourNode, thread);
         nrs.add(from); // to account for folded cycles
         nrs.retainAll(reached);
 
@@ -196,7 +200,7 @@ public class NandaBackward implements NandaMode {
 
 	@Override
 	public Iterator<TopologicalNumber> getTopologicalNumbers(SDGNode node, int thread) {
-		return contextGraphs.getTopologicalNumbersNew(node, thread).descendingIterator();
+		return Lists.reverse(contextGraphs.getTopologicalNumbersNew(node, thread)).iterator();
 	}
 
 	@Override

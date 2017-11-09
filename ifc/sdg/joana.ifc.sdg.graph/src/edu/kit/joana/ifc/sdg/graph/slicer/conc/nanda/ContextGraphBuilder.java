@@ -10,6 +10,7 @@ package edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda;
 import java.io.BufferedOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -73,13 +74,16 @@ public class ContextGraphBuilder {
 		}
 
 		// convert the map and add it to the result
-		HashMap<SDGNode, LinkedList<TopologicalNumber>> finalMap =
-			new HashMap<SDGNode, LinkedList<TopologicalNumber>>();
+		HashMap<SDGNode, List<TopologicalNumber>> finalMap =
+			new HashMap<SDGNode, List<TopologicalNumber>>();
 
 		for (Map.Entry<SDGNode, TreeSet<TopologicalNumber>> en : resultMap.entrySet()) {
-			LinkedList<TopologicalNumber> l = new LinkedList<TopologicalNumber>();
-			l.addAll(en.getValue());
-			finalMap.put(en.getKey(), l);
+			final SDGNode node                       = en.getKey();
+			final TreeSet<TopologicalNumber> numbers = en.getValue();
+			List<TopologicalNumber> l = new ArrayList<TopologicalNumber>(numbers.size());
+			l.addAll(numbers);
+			l.clear();
+			finalMap.put(node, l);
 		}
 
 		result.setNodeMap(finalMap);
@@ -297,7 +301,7 @@ public class ContextGraphBuilder {
 	private void createMap(ISCRGraph graph, ContextGraph cg) {
 		// create a map SDGNode -> TopologicalNumbers
 		HashMap<SDGNode, List<TopologicalNumber>> iscrTNr = new HashMap<SDGNode, List<TopologicalNumber>>();
-		HashMap<SDGNode, LinkedList<TopologicalNumber>> sdgTNr = new HashMap<SDGNode, LinkedList<TopologicalNumber>>();
+		HashMap<SDGNode, List<TopologicalNumber>> sdgTNr  = new HashMap<SDGNode, List<TopologicalNumber>>();
 
 		// map ISCR nodes to TopologicalNumbers
 		for (Map.Entry<DynamicContext, TopologicalNumber> en : visited.entrySet()) {
@@ -320,7 +324,7 @@ public class ContextGraphBuilder {
 
 			// sort the TopologicalNumbers
 			TreeSet<TopologicalNumber> tmp = new TreeSet<TopologicalNumber>(TopologicalNumber.getComparator());
-			LinkedList<TopologicalNumber> nrs = sdgTNr.get(n);
+			List<TopologicalNumber> nrs = sdgTNr.get(n);
 			if (nrs == null) {
 				nrs = new LinkedList<TopologicalNumber>();
 				sdgTNr.put(n, nrs);

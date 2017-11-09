@@ -70,7 +70,7 @@ public class ContextGraph {
 
 //	private TopologicalNumber root;
 	private final HashMap<TopologicalNumber, Edges> edges;
-	private HashMap<SDGNode, LinkedList<TopologicalNumber>> map;
+	private HashMap<SDGNode, List<TopologicalNumber>> map;
 	private HashSet<TopologicalNumber>[] forks; // array of HashSet<TopologicalNumber>
 
 	public ContextGraph() {
@@ -117,7 +117,7 @@ public class ContextGraph {
 		return edges.get(c).outEdges;
 	}
 
-	public LinkedList<TopologicalNumber> getTopologicalNumbers(SDGNode node) {
+	public List<TopologicalNumber> getTopologicalNumbers(SDGNode node) {
 		return map.get(node);
 	}
 
@@ -133,7 +133,7 @@ public class ContextGraph {
 		return result;
 	}
 
-	void setNodeMap(HashMap<SDGNode, LinkedList<TopologicalNumber>> map) {
+	void setNodeMap(HashMap<SDGNode, List<TopologicalNumber>> map) {
 		this.map = map;
 	}
 

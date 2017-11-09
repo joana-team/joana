@@ -26,8 +26,6 @@ import edu.kit.joana.util.graph.UnmodifiableDirectedSubgraph;
 public class KrinkeSCCInspector {
     /** An ICFG whose SCC's shall be determined. */
     private final CFG icfg;
-    /** A buffer for temporarily removed edges. */
-    private final LinkedList<SDGEdge> buffer;
 
     /** Creates a new instance of KrinkesSCCInspector.
      *
@@ -35,7 +33,6 @@ public class KrinkeSCCInspector {
      */
     public KrinkeSCCInspector(CFG icfg) {
         this.icfg = icfg;
-        this.buffer = new LinkedList<SDGEdge>();
     }
 
     /** Determines all SCC's that doesn't contain return edges.

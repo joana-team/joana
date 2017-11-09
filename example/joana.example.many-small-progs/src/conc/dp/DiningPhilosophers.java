@@ -8,7 +8,7 @@
 package conc.dp;
 
 
-class DiningPhilosophers {
+public class DiningPhilosophers {
     //~ Methods ................................................................
 
     public static void main(String[] args) {

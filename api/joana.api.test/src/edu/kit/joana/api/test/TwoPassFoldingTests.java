@@ -82,6 +82,12 @@ public class TwoPassFoldingTests {
 		testAcyclicISCR(conc.kn.Knapsack5.class);
 	}
 	
+	// FIXME: this program demonstrates that the ISCRGraph we compute is *not* acyclic!!
+	@Test(expected = AssertionError.class)
+	public void testDaisy() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException, CancelException {
+		testAcyclicISCR(conc.daisy.DaisyTest.class);
+	}
+	
 	
 	@Test
 	public void testMutualRecursive() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,

@@ -76,7 +76,7 @@ public class DynamicContextManager implements ContextManager {
 	     */
 	    public DynamicContext(LinkedList<SDGNode> callStack, SDGNode node, int thread) {
 	    	super(node, thread);
-	        this.callStack = callStack;
+	    	this.callStack = callStack;
 	    }
 
 	    /** Creates a clone of a Context object.
@@ -257,13 +257,16 @@ public class DynamicContextManager implements ContextManager {
 	        if (node == vertex) {
 	            return true;
 	        }
-
+	        
+	        return stackContains(vertex);
+	    }
+	    
+	    public boolean stackContains(SDGNode vertex) {
 	        for (SDGNode n : callStack) {
 	            if (n == vertex) {
 	                return true;
 	            }
 	        }
-
 	        return false;
 	    }
 

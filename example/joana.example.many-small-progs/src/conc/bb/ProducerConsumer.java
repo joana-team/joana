@@ -7,7 +7,7 @@
  */
 package conc.bb;
 
-class ProducerConsumer {
+public class ProducerConsumer {
     //~ Methods ................................................................
 
     public static void main(String[] args) {

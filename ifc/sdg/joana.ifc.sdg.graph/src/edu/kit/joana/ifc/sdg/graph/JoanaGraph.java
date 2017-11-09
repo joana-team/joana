@@ -16,9 +16,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import org.jgrapht.EdgeFactory;
 
+import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.ISCRBuilder;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.FoldedCFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import gnu.trove.map.hash.TIntObjectHashMap;
@@ -120,7 +123,13 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
     		throw new IllegalArgumentException("Cannot mark non-existant node as root");
     	}
     	
-    	if (n != null && !(n.getKind() == SDGNode.Kind.ENTRY)) {
+    	// We would like to check
+    	//    incomingEdgesOf(n).stream().anyMatch(e -> e.getKind() == SDGEdge.Kind.FOLD_INCLUDE && e.getSource().getKind() == SDGNode.Kind.ENTRY)
+    	// here as well, but ISCR graphs may consists of FOLD nodes without their corresponding folded nodes, see {@link ISCRBuilder#createReducedICFG(FoldedCFG folded)}
+    	if (n != null && !(
+    			n.getKind() == SDGNode.Kind.ENTRY ||
+    			n.getKind() == SDGNode.Kind.FOLDED 
+    	)) {
     		throw new IllegalArgumentException("Cannot mark non-entry node as root");
     	}
     	root = n;
@@ -354,7 +363,7 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
     public Map<SDGNode, Set<SDGNode>> sortByProcedures() {
     	HashMap<SDGNode, Set<SDGNode>> map = new HashMap<SDGNode, Set<SDGNode>>();
     	TIntObjectHashMap<Set<SDGNode>> aux = new TIntObjectHashMap<Set<SDGNode>>();
-
+    	SDGNode firstFoldedNodeFound = null;
     	for (SDGNode n : vertexSet()) {
     		final int procId = n.getProc();
     		Set<SDGNode> set = aux.get(procId);
@@ -367,6 +376,11 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
     		set.add(n);
 
     		if (n.getKind() == SDGNode.Kind.ENTRY) {
+    			map.put(n, null);
+    		}
+    		
+    		if (n.getKind() == SDGNode.Kind.FOLDED && firstFoldedNodeFound == null) {
+    			firstFoldedNodeFound = n;
     			map.put(n, null);
     		}
     	}
@@ -459,6 +473,7 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
     	final Queue<SDGNode> wl = new LinkedList<>();
     	final Set<SDGNode> found = new HashSet<>();
     	
+    	assert entry != null;
     	wl.offer(entry);
     	found.add(entry);
     	
@@ -477,9 +492,9 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
     		}
     	}
     	
-    	wl.offer(exit);
-    	found.add(exit);
-    	{ 
+    	if (exit != null) {
+	    	wl.offer(exit);
+	    	found.add(exit);
     		SDGNode next;
     		while ((next = wl.poll()) != null) {
     			for (SDGEdge e : incomingEdgesOf(next)) {

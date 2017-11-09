@@ -7,6 +7,9 @@
  */
 package edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda;
 
+import java.io.BufferedOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,14 +18,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
+import javax.xml.stream.XMLStreamException;
+
+import org.jgrapht.ext.GraphMLExporter;
+
+import edu.kit.joana.ifc.sdg.graph.JoanaGraph;
 import edu.kit.joana.ifc.sdg.graph.PDGs;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.ContextGraph.ContextEdge;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
+import edu.kit.joana.ifc.sdg.io.graphml.SDG2GraphML;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 
@@ -187,8 +197,15 @@ public class ContextGraphBuilder {
 
 		HashMap<SDGNode, List<DynamicContext>> tmp = new HashMap<SDGNode, List<DynamicContext>>();
 		while (!wl.isEmpty()) {
-			DynamicContext next = wl.poll();
-			TopologicalNumber nextNr = visited.get(next);
+			final DynamicContext next = wl.poll();
+			
+			// We expect the ISCRGraph graph to be loop free w.r.t recursive calls.
+			// Specifically, we never enter an entry node which is alread on the call stack:
+			if (next.stackContains(next.getNode())) {
+				throw new IllegalArgumentException();
+			}
+			final TopologicalNumber nextNr = visited.get(next);
+			assert nextNr != null;
 
 			List<DynamicContext> lll = tmp.get(next.getNode());
 			if (lll == null) {
@@ -196,13 +213,6 @@ public class ContextGraphBuilder {
 				lll.add(next);
 				tmp.put(next.getNode(), lll);
 			} else {
-				for (DynamicContext d : lll) {
-					if (next.isSuffixOf(d) || d.isSuffixOf(next)) {
-						// rekursion!
-						Log.ERROR.outln(d + "\n subsumes " + next);
-						throw new RuntimeException();
-					}
-				}
 				lll.add(next);
 			}
 
@@ -428,7 +438,10 @@ public class ContextGraphBuilder {
     		if (e.getKind() == SDGEdge.Kind.CALL) {
     			TopologicalNumber call = e.getSource();
     			TopologicalNumber exit = exits.get(e.getTarget().getProcID());
-    			helpEdges.add(new ContextEdge(call, exit, SDGEdge.Kind.HELP));
+    			// there may be no corresponding exit node if it is unreachable (e.g., due to a while(true) loop)
+    			if (exit != null) {
+    				helpEdges.add(new ContextEdge(call, exit, SDGEdge.Kind.HELP));
+    			}
     		}
     	}
 

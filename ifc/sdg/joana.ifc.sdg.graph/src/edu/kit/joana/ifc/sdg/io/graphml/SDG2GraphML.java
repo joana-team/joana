@@ -20,6 +20,7 @@ import com.google.common.escape.Escaper;
 import com.google.common.escape.Escapers;
 import com.google.common.xml.XmlEscapers;
 
+import edu.kit.joana.ifc.sdg.graph.JoanaGraph;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -334,7 +335,7 @@ public final class SDG2GraphML {
 	 * @param out
 	 * @throws XMLStreamException
 	 */
-	public static void convert(SDG sdg, OutputStream out) throws XMLStreamException {
+	public static void convert(JoanaGraph sdg, OutputStream out) throws XMLStreamException {
 		XMLOutputFactory output = XMLOutputFactory.newInstance();
 		XMLStreamWriter writer = new IndentingXMLStreamWriter(output.createXMLStreamWriter(out, ENCODING));
 
@@ -368,7 +369,7 @@ public final class SDG2GraphML {
 	 * @throws XMLStreamException
 	 */
 	
-	public static void convertHierachical(SDG sdg, OutputStream out) throws XMLStreamException {
+	public static void convertHierachical(JoanaGraph sdg, OutputStream out) throws XMLStreamException {
 		XMLOutputFactory output = XMLOutputFactory.newInstance();
 		XMLStreamWriter writer = new IndentingXMLStreamWriter(output.createXMLStreamWriter(out, ENCODING));
 

@@ -80,9 +80,8 @@ public class ContextGraphBuilder {
 		for (Map.Entry<SDGNode, TreeSet<TopologicalNumber>> en : resultMap.entrySet()) {
 			final SDGNode node                       = en.getKey();
 			final TreeSet<TopologicalNumber> numbers = en.getValue();
-			List<TopologicalNumber> l = new ArrayList<TopologicalNumber>(numbers.size());
-			l.addAll(numbers);
-			l.clear();
+			final List<TopologicalNumber> l = new ArrayList<TopologicalNumber>(numbers);
+			numbers.clear();
 			finalMap.put(node, l);
 		}
 

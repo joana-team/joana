@@ -17,6 +17,7 @@ import java.util.Properties;
 public class JoanaPath {
 
 	public static final String JOANA_API_TEST_DATA_CLASSPATH;
+	public static final String JOANA_API_TEST_DATA_GRAPHS;
 	public static final String JOANA_MANY_SMALL_PROGRAMS_CLASSPATH;
 	public static final String ANNOTATIONS_IGNORE_CLASSPATH;
 	public static final String ANNOTATIONS_PASSON_CLASSPATH;
@@ -24,6 +25,7 @@ public class JoanaPath {
 	static {
 		String propFile = loadPropertyOrFallback("classpaths.prop-file", "classpaths.properties");
 		JOANA_API_TEST_DATA_CLASSPATH = tryToLoadProperty("joana.api.testdata.classpath", propFile);
+		JOANA_API_TEST_DATA_GRAPHS = tryToLoadProperty("joana.api.testdata.graphs", propFile);
 		JOANA_MANY_SMALL_PROGRAMS_CLASSPATH = tryToLoadProperty("joana.many.small.programs.classpath", propFile);
 		ANNOTATIONS_IGNORE_CLASSPATH = tryToLoadProperty("annotations.ignore.classpath", propFile);
 		ANNOTATIONS_PASSON_CLASSPATH = tryToLoadProperty("annotations.passon.classpath", propFile);

@@ -175,7 +175,7 @@ public class ContextGraphsTests {
 	
 	@Test
 	public void testHugeCFG() throws IOException, RecognitionException {
-		testSDGFile(new File("../joana.api.testdata/graphs/cfg/huge.cfg.pdg.gz"));
+		testSDGFile(new File(JoanaPath.JOANA_API_TEST_DATA_GRAPHS+"/cfg/huge.cfg.pdg.gz"));
 	}
 	
 }

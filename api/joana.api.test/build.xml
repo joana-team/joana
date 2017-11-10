@@ -76,6 +76,7 @@
 			
 			<sysproperty key="joana.base.dir" value="${joana.base.dir}" />
 			<sysproperty key="joana.api.testdata.classpath" value="${joana.api.testdata.classpath}" />
+			<sysproperty key="joana.api.testdata.graphs" value="${joana.api.testdata.base.dir}/graphs" />
 			<sysproperty key="joana.many.small.programs.classpath" value="${joana.many.small.programs.classpath}" />
 			<sysproperty key="annotations.ignore.classpath" value="${annotations.ignore.classpath}" />
 			<sysproperty key="annotations.passon.classpath" value="${annotations.passon.classpath}" />

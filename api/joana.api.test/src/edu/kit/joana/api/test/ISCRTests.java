@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.zip.GZIPInputStream;
 
 import org.antlr.runtime.RecognitionException;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
@@ -100,7 +101,7 @@ public class ISCRTests {
 		b.buildISCRGraphs(cfg);
 	}
 	
-	@Test
+	@Ignore @Test
 	public void testHugeCFG() throws IOException, RecognitionException {
 		testSDGFile(new File(JoanaPath.JOANA_API_TEST_DATA_GRAPHS+"/cfg/huge.cfg.pdg.gz"));
 	}

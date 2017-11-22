@@ -14,6 +14,10 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.jgrapht.graph.EdgeReversedGraph;
+import org.jgrapht.traverse.DepthFirstIterator;
+
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -23,6 +27,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.ContextGraph.ContextEdge;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.util.Log;
+import edu.kit.joana.util.graph.UnmodifiableDirectedSubgraph;
 
 
 public class NandaBackward implements NandaMode {
@@ -192,6 +197,20 @@ public class NandaBackward implements NandaMode {
     public Iterator<TopologicalNumber> interproceduralNeighbours(SDGNode neighbourNode, TopologicalNumber from, int thread) {
     	LinkedList<TopologicalNumber> nrs = contextGraphs.getPredecessors(from, thread);
         List<TopologicalNumber> reached = contextGraphs.getTopologicalNumbersNew(neighbourNode, thread);
+        assert Iterators.contains(
+        		new DepthFirstIterator<SDGNode, SDGEdge>(
+        				new UnmodifiableDirectedSubgraph<SDGNode, SDGEdge>(
+        						this.graph, e -> e.getKind() == SDGEdge.Kind.CONTROL_FLOW || e.getKind() == SDGEdge.Kind.CALL,
+        						true
+        				),
+        				mhp.getThreadEntry(thread)
+        		),
+        		neighbourNode
+        ) == (reached != null);
+        if (reached == null) {
+        	reached = new LinkedList<TopologicalNumber>();
+        } else {
+        }
         nrs.add(from); // to account for folded cycles
         nrs.retainAll(reached);
 

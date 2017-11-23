@@ -209,8 +209,8 @@ public class NandaBackward implements NandaMode {
         ) == (reached != null);
         if (reached == null) {
         	reached = new LinkedList<TopologicalNumber>();
-        } else {
         }
+        
         nrs.add(from); // to account for folded cycles
         nrs.retainAll(reached);
 

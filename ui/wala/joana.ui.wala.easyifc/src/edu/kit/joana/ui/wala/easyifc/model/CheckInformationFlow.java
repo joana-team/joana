@@ -68,6 +68,7 @@ import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.Reason;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SLeak;
 import edu.kit.joana.ui.wala.easyifc.util.EntryPointSearch.EntryPointConfiguration;
 import edu.kit.joana.util.Config;
+import edu.kit.joana.util.JoanaConstants;
 import edu.kit.joana.util.Maybe;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.Stubs;
@@ -401,13 +402,10 @@ public final class CheckInformationFlow {
 	
 	public static SDGConfig createDefaultConfig(final CheckIFCConfig cfc, final JavaMethodSignature mainMethod) {
 		final SDGConfig config = new SDGConfig(cfc.bin, mainMethod.toBCString(), Stubs.JRE_15);
-		//config.setNativesXML(cfc.libDir + "stubs/" + "natives_empty.xml");
-		config.setNativesXML(cfc.libDir + "natives_empty.xml");
-//		cfg.stubs = cfc.libDir + "jSDG-stubs-jre1.4.jar";
+		config.setNativesXML(cfc.libDir + JoanaConstants.DEFAULT_NATIVES_XML);
 		config.setComputeInterferences(false);
 		config.setExceptionAnalysis(ExceptionAnalysis.INTERPROC);
 		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH);
-		//config.setPointsToPrecision(PointsToPrecision.OBJECT_SENSITIVE);
 		config.setPointsToPrecision(PointsToPrecision.INSTANCE_BASED);
 		config.setDefaultExceptionMethodState(new MethodState() {
 			@Override
@@ -424,7 +422,6 @@ public final class CheckInformationFlow {
 		if (cfc.thirdPartyLib != null) {
 			config.setThirdPartyLibsPath(cfc.thirdPartyLib);
 		}
-		//config.setPruningPolicy(DoNotPrune.INSTANCE);
 		config.setPruningPolicy(ApplicationLoaderPolicy.INSTANCE);
 		//System.setProperty(Config.C_OBJGRAPH_MAX_NODES_PER_INTERFACE, "-1");
 		System.setProperty(Config.C_OBJGRAPH_CUT_OFF_IMMUTABLE, "true");

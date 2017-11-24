@@ -17,7 +17,10 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -69,8 +72,9 @@ public class ContextGraphBuilder {
 		resultMap = new HashMap<SDGNode, TreeSet<TopologicalNumber>>();
 		threads = new HashMap<ContextGraph, int[]>();
 
+		final ContextGraph[] contextGraphs = new ContextGraph[iscrGraphs.length];
 		for (int i = 0; i < iscrGraphs.length; i++) {
-			buildContextGraph(iscrGraphs[i]);
+			contextGraphs[i] = buildContextGraph(iscrGraphs[i]);
 		}
 
 		// convert the map and add it to the result
@@ -90,6 +94,22 @@ public class ContextGraphBuilder {
 		/* insert thread edges */
 		insertThreadEdges();
 
+
+		for (int i = 0; i < iscrGraphs.length; i++) {
+			final SDGNode root = iscrGraphs[i].getRoot();
+			final CFG cfg = iscrGraphs[i].getData();
+			if (iscrGraphs[i].getRoot().getKind() == SDGNode.Kind.FOLDED) {
+				// this is complicated
+				assert true;
+			} else {
+				int[] threadsForI = threads.get(contextGraphs[i]);
+				
+				for (int t : threadsForI) {
+					assert icfg.getThreadsInfo().getThread(t).getEntry().equals(root);
+				}
+			}
+		}
+		
 		/* virtually duplicate the threads */
 		ContextGraph[] results = new ContextGraph[icfg.getNumberOfThreads()];
 		for (Map.Entry<ContextGraph, int[]> en : threads.entrySet()) {
@@ -97,11 +117,14 @@ public class ContextGraphBuilder {
 				results[t] = en.getKey();
 			}
 		}
+		
+
+
 
 		return new ContextGraphs(results, result);
 	}
 
-	private void buildContextGraph(ISCRGraph graph) {
+	private ContextGraph buildContextGraph(ISCRGraph graph) {
 		debug.outln("	create context graph");
 		ContextGraph cg = createContextGraph(graph);
 		debug.outln("	enumerate contexts");
@@ -113,6 +136,7 @@ public class ContextGraphBuilder {
 		debug.outln("	create node map");
 		createMap(graph, cg);
 		debug.outln("	done");
+		return cg;
 	}
 
 	private void insertThreadEdges() {

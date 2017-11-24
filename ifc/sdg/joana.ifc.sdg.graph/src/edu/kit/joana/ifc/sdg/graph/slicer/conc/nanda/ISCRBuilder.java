@@ -52,18 +52,17 @@ public class ISCRBuilder {
     /** Constructs an ISCR Graph from a TCFG.
      *
      * @param icfg  The ICFG.
-     * @return  An array of ISCR graphs, one for each thread.
+     * @return An Map of Entry-Nodes that appear as  entry node of some thread, to their ISCR graph
      */
-    public ISCRGraph[] buildISCRGraphs(CFG tcfg) {
-        // an array for the data of the ISCR graphs to build, one for every thread instance
-        CFG[] icfgs = splitTCFG(tcfg);
-        ISCRGraph[] iscrs = new ISCRGraph[icfgs.length];
+    public Map<SDGNode, ISCRGraph> buildISCRGraphs(CFG tcfg) {
+        final Map<SDGNode, CFG> icfgs = splitTCFG(tcfg);
+        final Map<SDGNode, ISCRGraph> iscrs = new HashMap<>(icfgs.size());
 
-        // build the ISCR graphs
-        for (int i = 0; i < icfgs.length; i++) {
-            iscrs[i] = build(icfgs[i]);
+        for (Map.Entry<SDGNode, CFG> eCfg : icfgs.entrySet()) {
+        	final SDGNode entry = eCfg.getKey();
+        	final CFG icfg = eCfg.getValue();
+        	iscrs.put(entry, build(icfg));
         }
-
         return iscrs;
     }
 
@@ -115,25 +114,23 @@ public class ISCRBuilder {
         return iscrGraph;
     }
 
-    private static CFG[] splitTCFG(CFG tcfg) {
+    private static Map<SDGNode, CFG> splitTCFG(CFG tcfg) {
     	Collection<SDGNode> entries = tcfg.getThreadsInfo().getAllEntries();
 
     	// the ICFGs of this TSCG
-        CFG[] icfgs = new CFG[entries.size()];
-        for (int i = 0; i < icfgs.length; i++) {
-            icfgs[i] = new CFG();
-        }
+        final Map<SDGNode, CFG> icfgs = new HashMap<>(entries.size());
 
         // distribute the nodes and edges to the ICFGs
-        int i = 0;
         for (SDGNode entry : entries) {
+        	final CFG icfg = new CFG();
+        	icfgs.put(entry, icfg);
         	LinkedList<SDGNode> wl = new LinkedList<SDGNode>();
         	HashSet<SDGEdge> visited = new HashSet<SDGEdge>();
 
         	// collect and add the nodes and edges
         	wl.add(entry);
-        	icfgs[i].addVertex(entry);
-        	icfgs[i].setRoot(entry);
+        	icfg.addVertex(entry);
+        	icfg.setRoot(entry);
 
         	while (!wl.isEmpty()) {
         		SDGNode n = wl.poll();
@@ -148,7 +145,7 @@ public class ISCRBuilder {
         			visited.add(edge);
 
         			if (edge.getKind() != SDGEdge.Kind.RETURN) {
-        				if (icfgs[i].addVertex(edge.getTarget())) {
+        				if (icfg.addVertex(edge.getTarget())) {
         					wl.add(edge.getTarget());
         				}
         			}
@@ -156,13 +153,10 @@ public class ISCRBuilder {
         	}
 
         	for (SDGEdge e : visited) {
-        		if (icfgs[i].containsVertex(e.getTarget())) {
-        			icfgs[i].addEdge(e);
+        		if (icfg.containsVertex(e.getTarget())) {
+        			icfg.addEdge(e);
         		}
         	}
-
-        	// increase counter
-        	i++;
         }
 
         return icfgs;

@@ -13,6 +13,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.jgrapht.graph.EdgeReversedGraph;
 import org.jgrapht.traverse.DepthFirstIterator;
@@ -167,12 +169,21 @@ public class NandaBackward implements NandaMode {
                 }
             }
         }
-        
         // FIXME: this hack is necessary because the control flow phi nodes are not part of the control flow
         // the hack will work most of the times, but the slices are not guaranteed to be
         // time- and context-sensitive
+        // It also appears necessary for dependencies that are not control-flow realizable, such as the
+        // DD Edge "immutable"-Nodes of constructor calls to immutable classes, and the corresponding instance ("this")
+        // node, as constructed in 
+        //    edu.kit.joana.wala.core.params.objgraph.ObjGraphParams.connectImmutableInitializersToThisPtr(..)
         if (nrs.isEmpty()) {
-        	Log.ERROR.outln("fixme " + this.getClass().getName());
+        	if (
+        			neighbourNode.getKind() != SDGNode.Kind.NORMAL &&
+        			neighbourNode.getOperation() != SDGNode.Operation.COMPOUND &&
+        			!neighbourNode.toString().equals("immutable")
+        	){
+        		Log.ERROR.outln("fixme " + this.getClass().getName());
+        	}
         	for (TopologicalNumber t : reached) {
 	        	if (t.getProcID() == from.getProcID()) {
                     nrs.add(t);

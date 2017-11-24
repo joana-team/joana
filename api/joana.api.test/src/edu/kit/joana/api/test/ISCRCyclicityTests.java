@@ -9,6 +9,7 @@ package edu.kit.joana.api.test;
 
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -58,9 +59,9 @@ public class ISCRCyclicityTests {
 		final CFG icfg = ICFGBuilder.extractICFG(sdg);
 
 		ISCRBuilder b = new ISCRBuilder();
-		ISCRGraph[] iscrGraphs = b.buildISCRGraphs(icfg);
+		Map<SDGNode, ISCRGraph> iscrGraphs = b.buildISCRGraphs(icfg);
 
-		for (ISCRGraph iscrGraph : iscrGraphs ) {
+		for (ISCRGraph iscrGraph : iscrGraphs.values() ) {
 			@SuppressWarnings("deprecation")
 			final Set<SDGEdge> irrelevantEdges = iscrGraph.getData()
 					.edgeSet()

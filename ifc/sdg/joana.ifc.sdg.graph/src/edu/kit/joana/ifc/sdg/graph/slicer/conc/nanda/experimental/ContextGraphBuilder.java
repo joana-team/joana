@@ -14,6 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
+import java.util.Map.Entry;
 
 import edu.kit.joana.ifc.sdg.graph.PDGs;
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -25,6 +26,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.experimental.ContextGraph.C
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 
@@ -41,7 +43,6 @@ public class ContextGraphBuilder {
 	private final CFG icfg;
 	private HashMap<DynamicContext, TopologicalNumber> visited;
 	private HashMap<ContextGraph, TopologicalNumber> roots;
-	private HashMap<ContextGraph, int[]> threads;
 
 	private ContextGraph result;
 	private HashMap<SDGNode, TreeSet<TopologicalNumber>> resultMap;
@@ -52,16 +53,18 @@ public class ContextGraphBuilder {
 	    this.icfg = icfg;
 	}
 
-	public ContextGraphs buildContextGraphs(ISCRGraph[] iscrGraphs) {
+	public ContextGraphs buildContextGraphs(Map<SDGNode, ISCRGraph> iscrGraphs) {
 		/* build the context graph */
 		visited = new HashMap<DynamicContext, TopologicalNumber>();
 		roots = new HashMap<ContextGraph, TopologicalNumber>();
 		result = new ContextGraph();
 		resultMap = new HashMap<SDGNode, TreeSet<TopologicalNumber>>();
-		threads = new HashMap<ContextGraph, int[]>();
 
-		for (int i = 0; i < iscrGraphs.length; i++) {
-			buildContextGraph(iscrGraphs[i]);
+		final Map<SDGNode, ContextGraph> contextGraphs = new HashMap<>(iscrGraphs.size());
+		for (Entry<SDGNode, ISCRGraph> eISCR : iscrGraphs.entrySet()) {
+			final SDGNode entry       = eISCR.getKey();
+			final ISCRGraph iscrGraph = eISCR.getValue();
+			contextGraphs.put(entry, buildContextGraph(iscrGraph));
 		}
 
 		// convert the map and add it to the result
@@ -81,16 +84,19 @@ public class ContextGraphBuilder {
 
 		/* virtually duplicate the threads */
 		ContextGraph[] results = new ContextGraph[icfg.getNumberOfThreads()];
-		for (Map.Entry<ContextGraph, int[]> en : threads.entrySet()) {
-			for (int t : en.getValue()) {
-				results[t] = en.getKey();
-			}
+		for (int t = 0; t < results.length; t++) {
+			final ThreadInstance threadInstance = icfg.getThreadsInfo().getThread(t);
+			assert threadInstance.getId() == t;
+			
+			final ContextGraph contextGraph = contextGraphs.get(threadInstance.getEntry());
+			assert  contextGraph != null;
+			results[t] = contextGraph;
 		}
 
 		return new ContextGraphs(results, result);
 	}
 
-	private void buildContextGraph(ISCRGraph graph) {
+	private ContextGraph buildContextGraph(ISCRGraph graph) {
 		debug.outln("	create context graph");
 		ContextGraph cg = createContextGraph(graph);
 		debug.outln("	enumerate contexts");
@@ -102,6 +108,7 @@ public class ContextGraphBuilder {
 		debug.outln("	create node map");
 		createMap(graph, cg);
 		debug.outln("	done");
+		return cg;
 	}
 
 	private void insertThreadEdges() {
@@ -182,7 +189,6 @@ public class ContextGraphBuilder {
 		roots.put(cg, rootNr);
 		cg.addContext(rootNr);
 		result.addContext(rootNr);
-		threads.put(cg, root.getThreadNumbers());
 
 		visited.put(c, rootNr);
 		wl.add(c);
@@ -449,7 +455,7 @@ public class ContextGraphBuilder {
 	public static ContextGraphs build(CFG icfg) {
 		/* 1. Build ISCR graphs */
 		ISCRBuilder iscrBuilder = new ISCRBuilder();
-		ISCRGraph[] iscrGraphs = iscrBuilder.buildISCRGraphs(icfg);
+		Map<SDGNode, ISCRGraph> iscrGraphs = iscrBuilder.buildISCRGraphs(icfg);
 
 		/* 2. Build context graphs */
 		ContextGraphBuilder builder = new ContextGraphBuilder(icfg);

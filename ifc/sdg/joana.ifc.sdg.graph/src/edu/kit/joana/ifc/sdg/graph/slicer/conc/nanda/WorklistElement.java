@@ -38,6 +38,7 @@ public class WorklistElement {
      * @param states  The node's state tuple.
      */
     public WorklistElement(SDGNode node, int thread, TopologicalNumber tnr, States states) {
+    	assert node.isInThread(thread);
         this.node = node;
         this.thread = thread;
         this.tnr = tnr;

@@ -10,6 +10,7 @@ package edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda;
 import java.io.BufferedOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.lang.management.ThreadInfo;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -17,6 +18,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -36,6 +38,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.ContextGraph.ContextEdge;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
 import edu.kit.joana.ifc.sdg.io.graphml.SDG2GraphML;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
@@ -53,7 +56,6 @@ public class ContextGraphBuilder {
 	private final CFG icfg;
 	private HashMap<DynamicContext, TopologicalNumber> visited;
 	private HashMap<ContextGraph, TopologicalNumber> roots;
-	private HashMap<ContextGraph, int[]> threads;
 
 	private ContextGraph result;
 	private HashMap<SDGNode, TreeSet<TopologicalNumber>> resultMap;
@@ -64,17 +66,18 @@ public class ContextGraphBuilder {
 	    this.icfg = icfg;
 	}
 
-	public ContextGraphs buildContextGraphs(ISCRGraph[] iscrGraphs) {
+	public ContextGraphs buildContextGraphs(Map<SDGNode, ISCRGraph> iscrGraphs) {
 		/* build the context graph */
 		visited = new HashMap<DynamicContext, TopologicalNumber>();
 		roots = new HashMap<ContextGraph, TopologicalNumber>();
 		result = new ContextGraph();
 		resultMap = new HashMap<SDGNode, TreeSet<TopologicalNumber>>();
-		threads = new HashMap<ContextGraph, int[]>();
 
-		final ContextGraph[] contextGraphs = new ContextGraph[iscrGraphs.length];
-		for (int i = 0; i < iscrGraphs.length; i++) {
-			contextGraphs[i] = buildContextGraph(iscrGraphs[i]);
+		final Map<SDGNode, ContextGraph> contextGraphs = new HashMap<>(iscrGraphs.size());
+		for (Entry<SDGNode, ISCRGraph> eISCR : iscrGraphs.entrySet()) {
+			final SDGNode entry       = eISCR.getKey();
+			final ISCRGraph iscrGraph = eISCR.getValue();
+			contextGraphs.put(entry, buildContextGraph(iscrGraph));
 		}
 
 		// convert the map and add it to the result
@@ -93,33 +96,17 @@ public class ContextGraphBuilder {
 
 		/* insert thread edges */
 		insertThreadEdges();
-
-
-		for (int i = 0; i < iscrGraphs.length; i++) {
-			final SDGNode root = iscrGraphs[i].getRoot();
-			final CFG cfg = iscrGraphs[i].getData();
-			if (iscrGraphs[i].getRoot().getKind() == SDGNode.Kind.FOLDED) {
-				// this is complicated
-				assert true;
-			} else {
-				int[] threadsForI = threads.get(contextGraphs[i]);
-				
-				for (int t : threadsForI) {
-					assert icfg.getThreadsInfo().getThread(t).getEntry().equals(root);
-				}
-			}
-		}
 		
 		/* virtually duplicate the threads */
 		ContextGraph[] results = new ContextGraph[icfg.getNumberOfThreads()];
-		for (Map.Entry<ContextGraph, int[]> en : threads.entrySet()) {
-			for (int t : en.getValue()) {
-				results[t] = en.getKey();
-			}
+		for (int t = 0; t < results.length; t++) {
+			final ThreadInstance threadInstance = icfg.getThreadsInfo().getThread(t);
+			assert threadInstance.getId() == t;
+			
+			final ContextGraph contextGraph = contextGraphs.get(threadInstance.getEntry());
+			assert  contextGraph != null;
+			results[t] = contextGraph;
 		}
-		
-
-
 
 		return new ContextGraphs(results, result);
 	}
@@ -217,7 +204,6 @@ public class ContextGraphBuilder {
 		roots.put(cg, rootNr);
 		cg.addContext(rootNr);
 		result.addContext(rootNr);
-		threads.put(cg, root.getThreadNumbers());
 
 		visited.put(c, rootNr);
 		wl.add(c);
@@ -480,7 +466,7 @@ public class ContextGraphBuilder {
 	public static ContextGraphs build(CFG icfg) {
 		/* 1. Build ISCR graphs */
 		ISCRBuilder iscrBuilder = new ISCRBuilder();
-		ISCRGraph[] iscrGraphs = iscrBuilder.buildISCRGraphs(icfg);
+		Map<SDGNode, ISCRGraph> iscrGraphs = iscrBuilder.buildISCRGraphs(icfg);
 
 		/* 2. Build context graphs */
 		ContextGraphBuilder builder = new ContextGraphBuilder(icfg);

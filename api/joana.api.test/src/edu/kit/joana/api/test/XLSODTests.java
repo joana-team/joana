@@ -555,4 +555,16 @@ public class XLSODTests {
 		testTooImprecise(joana.api.testdata.demo.xrlsod.AlmostTimingCascade4.class, IFCType.RLSOD,         true);
 
 	}
+	
+	@Test
+	public void nullPointerExceptionImpossibleNoFlow() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testPrecise(     joana.api.testdata.demo.NullPointerExceptionImpossibleNoFlow.class, IFCType.LSOD,          false);
+		testPrecise(     joana.api.testdata.demo.NullPointerExceptionImpossibleNoFlow.class, IFCType.RLSOD,         false);
+		testPrecise(     joana.api.testdata.demo.NullPointerExceptionImpossibleNoFlow.class, IFCType.iRLSOD);
+		testPrecise(     joana.api.testdata.demo.NullPointerExceptionImpossibleNoFlow.class, IFCType.timingiRLSOD);
+
+		testPrecise(     joana.api.testdata.demo.NullPointerExceptionImpossibleNoFlow.class, IFCType.LSOD,          true);
+		testPrecise(     joana.api.testdata.demo.NullPointerExceptionImpossibleNoFlow.class, IFCType.RLSOD,         true);
+	}
 }

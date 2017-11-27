@@ -160,6 +160,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 
 		// a number of invariants holding for CGNodeCandidates.
 		private boolean invariant() {
+			if (!expensiveAssertions && cands.size() >= 300) return true;
 			for (ModRefFieldCandidate cand : all) {
 				if (!cands.containsKey(cand.pc)) {
 					return false;

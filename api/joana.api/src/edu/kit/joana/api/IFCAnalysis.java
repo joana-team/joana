@@ -10,6 +10,7 @@ package edu.kit.joana.api;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -65,6 +66,7 @@ import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.core.violations.IllegalFlow;
 import edu.kit.joana.ifc.sdg.core.violations.ViolationMapper;
 import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PBackward;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PForward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
@@ -242,6 +244,21 @@ public class IFCAnalysis {
 		Map<SecurityNode, NodeAnnotationInfo> ret = annManager.getAnnotatedNodes();
 		annManager.unapplyAllAnnotations();
 		return ret;
+	}
+
+	public Map<SDGNode, String> getNodeLevels() {
+		Map<SDGNode, String> result = new HashMap<SDGNode, String>();
+		annManager.applyAllAnnotations();
+		for (SDGNode n : this.program.getSDG().vertexSet()) {
+			SecurityNode sn = (SecurityNode) n;
+			if (sn.getProvided() != null && sn.getRequired() == null) {
+				result.put(sn, sn.getProvided());
+			} else if (sn.getProvided() == null && sn.getRequired() != null) {
+				result.put(sn,  sn.getRequired());
+			}
+		}
+		annManager.unapplyAllAnnotations();
+		return result;
 	}
 	public Collection<IFCAnnotation> getDeclassifications() {
 		return annManager.getDeclassifications();

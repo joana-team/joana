@@ -134,8 +134,7 @@ public class ORLSODExperiment {
 		final CFG redCFG = ReducedCFGBuilder.extractReducedCFG(sdg);
 		GraphModifier.removeCallCallRetEdges(redCFG);
 		DumpTestSDG.dumpDotCFG(redCFG, cfg.outputFiles.dotFile);
-		final Map<SDGNode, String> userAnn = new HashMap<>();
-		ana.getAnnotatedNodes().forEach((k,v) -> userAnn.put(k,v.getAnnotation().getLevel1()));
+		final Map<SDGNode, String> userAnn = ana.getNodeLevels();
 
 		Assert.assertEquals(
 		    cfg.expectedNoHighThings,

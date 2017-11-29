@@ -119,8 +119,8 @@ public class IFCAnnotationApplicator {
 			}
 			case SINK: {
 				String newLevel;
-				if (sNode.getProvided() != null) {
-					newLevel = analysis.getLattice().greatestLowerBound(ann.getLevel1(), sNode.getProvided());
+				if (sNode.getRequired() != null) {
+					newLevel = analysis.getLattice().greatestLowerBound(ann.getLevel1(), sNode.getRequired());
 				} else {
 					newLevel = ann.getLevel1();
 				}

@@ -9,7 +9,9 @@ package edu.kit.joana.api;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -298,46 +300,79 @@ public class IFCAnalysis {
 	
 	public TObjectIntMap<IViolation<SDGProgramPart>> groupByPPPart(Collection<? extends IViolation<SecurityNode>> vios) {
 		annManager.applyAllAnnotations();
-		ViolationMapper<SecurityNode, IViolation<SDGProgramPart>> transl = new ViolationMapper<SecurityNode, IViolation<SDGProgramPart>>() {
+		ViolationMapper<SecurityNode, Set<? extends IViolation<SDGProgramPart>>> transl = new ViolationMapper<SecurityNode, Set<? extends IViolation<SDGProgramPart>>>() {
 
 			@Override
-			protected IIllegalFlow<SDGProgramPart> mapIllegalFlow(IIllegalFlow<SecurityNode> iFlow) {
-				return new IllegalFlow<SDGProgramPart>(annManager.resolve(iFlow.getSource()), annManager.resolve(iFlow.getSink()), iFlow.getAttackerLevel());
+			protected Set<IIllegalFlow<SDGProgramPart>> mapIllegalFlow(IIllegalFlow<SecurityNode> iFlow) {
+				LinkedHashSet<IIllegalFlow<SDGProgramPart>> ret = new LinkedHashSet<>();
+				for (SDGProgramPart ppSource : resolveNode(iFlow.getSource())) {
+					for (SDGProgramPart ppSink : resolveNode(iFlow.getSink())) {
+						ret.add(new IllegalFlow<SDGProgramPart>(ppSource, ppSink, iFlow.getAttackerLevel()));
+					}
+				}
+				return ret;
 			}
 
 			@Override
-			protected DataConflict<SDGProgramPart> mapDataConflict(DataConflict<SecurityNode> dc) {
-				SDGProgramPart ppInfluenced = annManager.resolve(dc.getInfluenced());
-				return new DataConflict<SDGProgramPart>(resolveConflictEdge(dc.getConflictEdge()), ppInfluenced, dc.getAttackerLevel(), resolveTrigger(dc.getTrigger()));
+			protected Set<DataConflict<SDGProgramPart>> mapDataConflict(DataConflict<SecurityNode> dc) {
+				LinkedHashSet<DataConflict<SDGProgramPart>> ret = new LinkedHashSet<>();
+				Maybe<Set<SDGProgramPart>> possibleTriggerSet = resolveTrigger(dc.getTrigger());
+				for (SDGProgramPart ppInfluenced: resolveNode(dc.getInfluenced())) {
+					for (SDGProgramPart src: resolveNode(dc.getConflictEdge().getSource())) {
+						for (SDGProgramPart tgt : resolveNode(dc.getConflictEdge().getTarget())) {
+							if (possibleTriggerSet.isNothing()) {
+								ret.add(new DataConflict<SDGProgramPart>(new ConflictEdge<SDGProgramPart>(src, tgt), ppInfluenced, dc.getAttackerLevel(), Maybe.nothing()));
+							} else {
+								for (SDGProgramPart ppTrigger : possibleTriggerSet.extract()) {
+									ret.add(new DataConflict<SDGProgramPart>(new ConflictEdge<SDGProgramPart>(src, tgt), ppInfluenced, dc.getAttackerLevel(), Maybe.just(ppTrigger)));
+								}
+							}
+						}
+					}
+
+				}
+				return ret;
 			}
-			
-			private Maybe<SDGProgramPart> resolveTrigger(Maybe<SecurityNode> trigger) {
+			//TODO: should this yield Set<Maybe<...>> instead of Maybe<Set<...>>?
+			private Maybe<Set<SDGProgramPart>> resolveTrigger(Maybe<SecurityNode> trigger) {
 				if (trigger.isNothing()) {
-					return Maybe.<SDGProgramPart>nothing();
+					return Maybe.<Set<SDGProgramPart>>nothing();
 				} else {
-					return Maybe.just(annManager.resolve(trigger.extract()));
+					return Maybe.just(resolveNode(trigger.extract()));
 				}
 			}
-			
-			private ConflictEdge<SDGProgramPart> resolveConflictEdge(ConflictEdge<SecurityNode> confEdge) {
-				SDGProgramPart src = annManager.resolve(confEdge.getSource());
-				SDGProgramPart tgt = annManager.resolve(confEdge.getTarget());
-				return new ConflictEdge<SDGProgramPart>(src, tgt);
-			}
 
 			@Override
-			protected OrderConflict<SDGProgramPart> mapOrderConflict(OrderConflict<SecurityNode> oc) {
-				return new OrderConflict<SDGProgramPart>(resolveConflictEdge(oc.getConflictEdge()), oc.getAttackerLevel(), resolveTrigger(oc.getTrigger()));
+			protected Set<OrderConflict<SDGProgramPart>> mapOrderConflict(OrderConflict<SecurityNode> oc) {
+				LinkedHashSet<OrderConflict<SDGProgramPart>> ret = new LinkedHashSet<>();
+				Maybe<Set<SDGProgramPart>> possibleTriggerSet = resolveTrigger(oc.getTrigger());
+				for (SDGProgramPart ppSrc : resolveNode(oc.getConflictEdge().getSource())) {
+					for (SDGProgramPart ppTgt : resolveNode(oc.getConflictEdge().getTarget())) {
+						if (possibleTriggerSet.isNothing()) {
+							ret.add(new OrderConflict<SDGProgramPart>(new ConflictEdge<SDGProgramPart>(ppSrc, ppTgt), oc.getAttackerLevel(), Maybe.nothing()));
+						} else {
+							for (SDGProgramPart triggerPP : possibleTriggerSet.extract()) {
+								ret.add(new OrderConflict<SDGProgramPart>(new ConflictEdge<SDGProgramPart>(ppSrc, ppTgt), oc.getAttackerLevel(), Maybe.just(triggerPP)));
+							}
+						}
+					}
+				}
+				return ret;
 			}
-			
+
+			private Set<SDGProgramPart> resolveNode(SecurityNode node) {
+				return Collections.singleton(annManager.resolve(node));
+			}
 		};
 		final TObjectIntMap<IViolation<SDGProgramPart>> ret = new TObjectIntHashMap<IViolation<SDGProgramPart>>();
 		for (IViolation<SecurityNode> vio : vios) {
-			IViolation<SDGProgramPart> key = transl.mapSingle(vio);
-			if (!ret.containsKey(key)) {
-				ret.put(key, 1);
-			} else {
-				ret.put(key, ret.get(key) + 1);
+			Set<? extends IViolation<SDGProgramPart>> keys = transl.mapSingle(vio);
+			for (IViolation<SDGProgramPart> key : keys) {
+				if (!ret.containsKey(key)) {
+					ret.put(key, 1);
+				} else {
+					ret.put(key, ret.get(key) + 1);
+				}
 			}
 		}
 		annManager.unapplyAllAnnotations();

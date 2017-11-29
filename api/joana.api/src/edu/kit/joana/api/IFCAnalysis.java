@@ -378,7 +378,15 @@ public class IFCAnalysis {
 			}
 
 			private Set<SDGProgramPart> resolveNode(SecurityNode node) {
-				return Collections.singleton(program.findCoveringProgramPart(node));
+				if (annManager.getAnnotatedNodes().get(node) == null) {
+					return Collections.emptySet();
+				} else {
+					LinkedHashSet<SDGProgramPart> result = new LinkedHashSet<SDGProgramPart>();
+					for (NodeAnnotationInfo nai : annManager.getAnnotatedNodes().get(node)) {
+						result.add(nai.getAnnotation().getProgramPart());
+					}
+					return result;
+				}
 			}
 		};
 		final TObjectIntMap<IViolation<SDGProgramPart>> ret = new TObjectIntHashMap<IViolation<SDGProgramPart>>();

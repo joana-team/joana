@@ -86,8 +86,12 @@ public class LocalVariableAnnotationsTest {
 	CancelException {
 		fail(joana.api.testdata.javannotations.LocalVariableAnnotations1.Test4.class);
 	}
-	
-	@Test
+
+	/**
+	 * This should fail with an exception because it results in the attempt to annotate a node both as source and sink without annotating it as declassification explicitly.
+	 * See commit 3fe7f5a20135c5f12d9e2b45a6d4f0cd98572797
+	 */
+	@Test(expected=IllegalStateException.class)
 	public void test22() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 	CancelException {
 		fail(joana.api.testdata.javannotations.LocalVariableAnnotations1.Test22.class);

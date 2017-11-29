@@ -46,8 +46,8 @@ public class LocalVariableAnnotationsTest {
 	}
 	
 	// tests that fail. Some programs, usually those that just pass around constants via several variables,
-	// just cannot be properly annotaed, because both in their IR and their PDGs there are no nodes that 
-	// sensible use and/or def those variables present.
+	// just cannot be properly annotated, because both in their IR and their PDGs there are no nodes that 
+	// sensibly use and/or def those variables present.
 	public void fail(Class<?> cls) throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 	CancelException {
 		IFCAnalysis ana = BuildSDG.buldAndUseJavaAnnotations(

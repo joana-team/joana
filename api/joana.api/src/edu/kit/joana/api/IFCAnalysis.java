@@ -361,7 +361,7 @@ public class IFCAnalysis {
 			}
 
 			private Set<SDGProgramPart> resolveNode(SecurityNode node) {
-				return Collections.singleton(annManager.resolve(node));
+				return Collections.singleton(program.findCoveringProgramPart(node));
 			}
 		};
 		final TObjectIntMap<IViolation<SDGProgramPart>> ret = new TObjectIntHashMap<IViolation<SDGProgramPart>>();

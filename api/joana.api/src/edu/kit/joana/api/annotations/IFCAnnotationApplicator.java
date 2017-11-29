@@ -89,12 +89,12 @@ public class IFCAnnotationApplicator {
 			}
 			if (covPart == null) {
 				debug.outln("Also failed to find a covering program part.");
-				return null;
+				return null; // annPart == null && covPart == null
 			} else {
-				return covPart;
+				return covPart; // annPart == null && covPart != null
 			}
 		} else if (covPart == null) {
-			return annPart;
+			return annPart; // annPart != null && covPart == null
 		} else {
 			// covPart != null && annPart != null
 			SDGProgramPart ret = SDGPPConcretenessEvaluator.max(annPart, covPart);

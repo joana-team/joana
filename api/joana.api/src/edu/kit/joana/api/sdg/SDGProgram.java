@@ -13,8 +13,9 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +27,6 @@ import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.ShrikeCTMethod;
-import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
@@ -158,10 +158,10 @@ public class SDGProgram {
 	private boolean isBuilt = false;
 	private final SDGClassResolver classRes = new SDGClassResolver();
 	private final SDGClassComputation classComp;
-	private final Set<SDGClass> classes = new HashSet<SDGClass>();
+	private final Set<SDGClass> classes = new LinkedHashSet<SDGClass>();
 	private final SDG sdg;
 	private SDGProgramPartParserBC ppartParser;
-	private final Map<SDGProgramPart, Collection<Pair<Annotation,String>>> annotations = new HashMap<>();
+	private final Map<SDGProgramPart, Collection<Pair<Annotation,String>>> annotations = new LinkedHashMap<>();
 	private final AnnotationTypeBasedNodeCollector coll;
 
 	private static Logger debug = Log.getLogger(Log.L_API_DEBUG);
@@ -604,7 +604,7 @@ public class SDGProgram {
 	}
 
 	public Set<SDGProgramPart> collectCoveringCandidates(SDGNode node) {
-		Set<SDGProgramPart> ret = new HashSet<SDGProgramPart>();
+		LinkedHashSet<SDGProgramPart> ret = new LinkedHashSet<SDGProgramPart>();
 		SDGNode entry = sdg.getEntry(node);
 		JavaMethodSignature sig = JavaMethodSignature.fromString(entry.getBytecodeMethod());
 		Collection<SDGMethod> methods = getMethods(sig);
@@ -912,7 +912,7 @@ class SDGClassResolver {
 
 	private static final Logger debug = Log.getLogger(Log.L_API_DEBUG);
 
-	private Set<SDGClass> classes = new HashSet<SDGClass>();
+	private Set<SDGClass> classes = new LinkedHashSet<SDGClass>();
 
 	public SDGClassResolver() {
 

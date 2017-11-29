@@ -57,53 +57,6 @@ public class IFCAnnotationApplicator {
 		}
 	}
 	
-	public Map<SecurityNode, NodeAnnotationInfo> getAnnotatedNodes() {
-		return new HashMap<SecurityNode, NodeAnnotationInfo>(annotatedNodes);
-	}
-
-	/**
-	 * Given an annotated security node, retrieves the program part to which the security node belongs.
-	 * @param sNode node to find out program part for
-	 * @return the program part to which the security node belongs, or {@code null}, if no such program part could be found
-	 */
-	public SDGProgramPart resolve(SecurityNode sNode) {
-		SDGProgramPart annPart = null;
-		SDGProgramPart covPart;
-		if (annotatedNodes.containsKey(sNode)) {
-			NodeAnnotationInfo nai = annotatedNodes.get(sNode);
-			IFCAnnotation ann = nai.getAnnotation();
-			annPart = ann.getProgramPart();
-		}
-		covPart = program.findCoveringProgramPart(sNode);
-		if (annPart == null) {
-			debug.outln("Tried to resolve node " + sNode + " and failed.");
-			debug.outln("Resolvable nodes: " + annotatedNodes.keySet());
-			if (sNode.isInformationSource()) {
-				debug.outln(sNode + " was annotated as source.");
-			} else if (sNode.isInformationSink()) {
-				debug.outln(sNode + " was annotated as sink.");
-			} else if (sNode.isDeclassification()) {
-				debug.outln(sNode + " was annotated as declassification.");
-			} else {
-				debug.outln(sNode + " was not annotated.");
-			}
-			if (covPart == null) {
-				debug.outln("Also failed to find a covering program part.");
-				return null; // annPart == null && covPart == null
-			} else {
-				return covPart; // annPart == null && covPart != null
-			}
-		} else if (covPart == null) {
-			return annPart; // annPart != null && covPart == null
-		} else {
-			// covPart != null && annPart != null
-			SDGProgramPart ret = SDGPPConcretenessEvaluator.max(annPart, covPart);
-			if (ret != null) {
-				return ret;
-			} else {
-				return covPart;
-			}
-		}
 	}
 
 	Collection<SDGNode> getSourceNodes() {

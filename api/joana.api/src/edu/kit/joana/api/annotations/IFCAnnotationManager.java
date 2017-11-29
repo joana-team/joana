@@ -131,10 +131,6 @@ public class IFCAnnotationManager {
 		app.applyAnnotations(getAnnotations());
 	}
 
-	public SDGProgramPart resolve(SecurityNode sNode) {
-		return app.resolve(sNode);
-	}
-
 	public Collection<SDGNode> getSourceNodes() {
 		return app.getSourceNodes();
 	}

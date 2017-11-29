@@ -112,6 +112,7 @@ public class IFCAnnotationApplicator {
 				} else {
 					newLevel = ann.getLevel1();
 				}
+				if (sNode.getRequired() != null) throw new IllegalStateException("Cannot set required level if provided level is already set. Use a declassification!");
 				sNode.setProvided(newLevel);
 				annotationDebug.outln(String.format("Annotated node %s of kind %s as SOURCE of level '%s'", node.toString(), node.getKind(), newLevel));
 				nai = new NodeAnnotationInfo(sNode, ann, NodeAnnotationInfo.PROV);
@@ -124,6 +125,7 @@ public class IFCAnnotationApplicator {
 				} else {
 					newLevel = ann.getLevel1();
 				}
+				if (sNode.getProvided() != null) throw new IllegalStateException("Cannot set provided level if required level is already set. Use a declassification!");
 				sNode.setRequired(newLevel);
 				annotationDebug.outln(String.format("Annotated node %s of kind %s as SINK of level '%s'", node.toString(), node.getKind(), newLevel));
 				nai = new NodeAnnotationInfo(sNode, ann, NodeAnnotationInfo.REQ);

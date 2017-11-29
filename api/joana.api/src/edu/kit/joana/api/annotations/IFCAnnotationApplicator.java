@@ -57,6 +57,10 @@ public class IFCAnnotationApplicator {
 		}
 	}
 
+	public Map<SecurityNode, NodeAnnotationInfo> getAnnotatedNodes() {
+		return new HashMap<SecurityNode, NodeAnnotationInfo>(annotatedNodes);
+	}
+
 	Collection<SDGNode> getSourceNodes() {
 		return getNodes(NodeAnnotationInfo.PROV);
 	}

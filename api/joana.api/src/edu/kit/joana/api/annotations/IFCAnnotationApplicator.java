@@ -56,8 +56,6 @@ public class IFCAnnotationApplicator {
 			}
 		}
 	}
-	
-	}
 
 	Collection<SDGNode> getSourceNodes() {
 		return getNodes(NodeAnnotationInfo.PROV);

@@ -239,9 +239,9 @@ public class IFCAnalysis {
 		return annManager.getSinks();
 	}
 
-	public Map<SecurityNode, NodeAnnotationInfo> getAnnotatedNodes() {
+	public Map<SecurityNode, Set<NodeAnnotationInfo>> getAnnotatedNodes() {
 		annManager.applyAllAnnotations();
-		Map<SecurityNode, NodeAnnotationInfo> ret = annManager.getAnnotatedNodes();
+		Map<SecurityNode, Set<NodeAnnotationInfo>> ret = annManager.getAnnotatedNodes();
 		annManager.unapplyAllAnnotations();
 		return ret;
 	}

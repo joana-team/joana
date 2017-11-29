@@ -9,6 +9,7 @@ package edu.kit.joana.api.annotations;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +33,7 @@ public class IFCAnnotationApplicator {
 
 	private final SDGProgram program;
 	private final IFCAnalysis analysis;
-	private final Map<SecurityNode, NodeAnnotationInfo> annotatedNodes = new HashMap<SecurityNode, NodeAnnotationInfo>();
+	private final Map<SecurityNode, Set<NodeAnnotationInfo>> annotatedNodes = new HashMap<SecurityNode, Set<NodeAnnotationInfo>>();
 
 	public IFCAnnotationApplicator(SDGProgram program, IFCAnalysis analysis) {
 		this.program = program;
@@ -57,8 +58,8 @@ public class IFCAnnotationApplicator {
 		}
 	}
 
-	public Map<SecurityNode, NodeAnnotationInfo> getAnnotatedNodes() {
-		return new HashMap<SecurityNode, NodeAnnotationInfo>(annotatedNodes);
+	public Map<SecurityNode, Set<NodeAnnotationInfo>> getAnnotatedNodes() {
+		return new HashMap<SecurityNode, Set<NodeAnnotationInfo>>(annotatedNodes);
 	}
 
 	Collection<SDGNode> getSourceNodes() {
@@ -71,11 +72,12 @@ public class IFCAnnotationApplicator {
 
 	private Collection<SDGNode> getNodes(String which) {
 		final Collection<SDGNode> ret = new LinkedList<SDGNode>();
-		for (Map.Entry<SecurityNode, NodeAnnotationInfo> e : annotatedNodes.entrySet()) {
+		for (Map.Entry<SecurityNode, Set<NodeAnnotationInfo>> e : annotatedNodes.entrySet()) {
 			SecurityNode sNode = e.getKey();
-			NodeAnnotationInfo nai = e.getValue();
-			if (nai.getWhich().equals(which)) {
-				ret.add(sNode);
+			for (NodeAnnotationInfo nai : e.getValue()) {
+				if (nai.getWhich().equals(which)) {
+					ret.add(sNode);
+				}
 			}
 		}
 		return ret;
@@ -83,11 +85,13 @@ public class IFCAnnotationApplicator {
 
 	public void unapplyAnnotations(Collection<IFCAnnotation> anns) {
 		List<SecurityNode> toDelete = new LinkedList<SecurityNode>();
-		for (NodeAnnotationInfo nai : annotatedNodes.values()) {
-			if (anns.contains(nai.getAnnotation())) {
-				nai.getNode().setRequired(null);
-				nai.getNode().setProvided(null);
-				toDelete.add(nai.getNode());
+		for (Set<NodeAnnotationInfo> nais : annotatedNodes.values()) {
+			for (NodeAnnotationInfo nai : nais) {
+				if (anns.contains(nai.getAnnotation())) {
+					nai.getNode().setRequired(null);
+					nai.getNode().setProvided(null);
+					toDelete.add(nai.getNode());
+				}
 			}
 		}
 
@@ -144,7 +148,12 @@ public class IFCAnnotationApplicator {
 				debug.outln("Annotated node " + nai.getNode() + " as " + nai.getAnnotation().getLevel1() + " "
 					+ nai.getAnnotation().getType());
 			}
-			annotatedNodes.put(sNode, nai);
+			Set<NodeAnnotationInfo> nais = annotatedNodes.get(sNode);
+			if (nais == null) {
+				nais = new LinkedHashSet<NodeAnnotationInfo>();
+				annotatedNodes.put(sNode, nais);
+			}
+			nais.add(nai);
 		}
 	}
 }

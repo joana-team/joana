@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.annotations.cause.AnnotationCause;
@@ -98,7 +99,7 @@ public class IFCAnnotationManager {
 		return ret;
 	}
 
-	public Map<SecurityNode, NodeAnnotationInfo> getAnnotatedNodes() {
+	public Map<SecurityNode, Set<NodeAnnotationInfo>> getAnnotatedNodes() {
 		return app.getAnnotatedNodes();
 	}
 

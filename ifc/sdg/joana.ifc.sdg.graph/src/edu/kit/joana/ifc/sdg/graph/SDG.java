@@ -155,6 +155,9 @@ public class SDG extends JoanaGraph implements Cloneable {
      * @param actual  A call node or an actual-in/out node that belongs to a call site.
      */
     public SDGNode getCallSiteFor(SDGNode actual) {
+        if (actual.getKind() != SDGNode.Kind.CALL && actual.getKind() != SDGNode.Kind.ACTUAL_IN && actual.getKind() != SDGNode.Kind.ACTUAL_OUT) {
+            throw new IllegalArgumentException("Can only determine the call site for an actual or call node!!");
+        }
         if (actual.getKind() == SDGNode.Kind.CALL) {
             return actual; // call nodes belong to their own call site
         } else {

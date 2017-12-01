@@ -165,7 +165,8 @@ public class SDG extends JoanaGraph implements Cloneable {
             // follow control-dependence-expression edges from the source
             // node of 'edge' to the call node
             while(true){
-                // the loop terminates because parameter graphs are acyclic
+                // the loop terminates because control-expression graphs are acyclic and because we
+                // ensured at the beginning of this method that a call node will be reached
                 for(SDGEdge e : incomingEdgesOf(n)){
                     if(e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR){
                         if(e.getSource().getKind() == SDGNode.Kind.CALL){

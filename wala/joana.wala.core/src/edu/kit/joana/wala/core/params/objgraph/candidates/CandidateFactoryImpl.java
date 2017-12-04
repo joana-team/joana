@@ -526,7 +526,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			
 			for (final UniqueParameterCandidate upc : cands) {
 				if (upc.isMayAliased(pc)) {
-					assert pc.isBaseAliased(basePts);
+					assert pc == upc || pc.isBaseAliased(basePts);
 					return true;
 				}
 			}
@@ -539,7 +539,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			boolean result = false;
 			if (pc == this) {
 				result = true;
-			} else if (pc.isBaseAliased(basePts)) {
+			} else if ( (pc instanceof UniqueParameterCandidate && cands.contains((UniqueParameterCandidate)pc)) || pc.isBaseAliased(basePts)) {
 				for (final UniqueParameterCandidate upc : cands) {
 					if (upc.isMayAliased(pc)) {
 						result = true;

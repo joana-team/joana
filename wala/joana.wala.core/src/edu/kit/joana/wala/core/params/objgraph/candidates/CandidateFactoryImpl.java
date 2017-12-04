@@ -390,7 +390,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 
 	private static final class MergeCandImpl extends MergableParameterCandidate {
 
-		private OrdinalSet<UniqueParameterCandidate> cands;
+		private final OrdinalSet<UniqueParameterCandidate> cands;
 		private V isArray;
 		private V isStatic;
 		private V isPrimitive;
@@ -484,15 +484,34 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			return fieldPts != null && other != null && fieldPts.containsAny(other);
 		}
 
-		@Override
-		public boolean isReferenceToField(final OrdinalSet<InstanceKey> other, final ParameterField otherField) {
+		private boolean isReferenceToFieldSlow(final OrdinalSet<InstanceKey> other, final ParameterField otherField) {
 			for (final ParameterCandidate c : cands) {
 				if (c.isReferenceToField(other, otherField)) {
+					assert basePts.containsAny(other);
 					return true;
 				}
 			}
 
 			return false;
+		}
+		
+		@Override
+		public boolean isReferenceToField(final OrdinalSet<InstanceKey> other, final ParameterField otherField) {
+			boolean result = false;
+			// basePts.containsAny(other) is a necessary condition.
+			// Heuristic: try to  avoid iterated c.isReferenceToField(...) for c ∈ cands unless cands is small, anyway. 
+			if (cands.size() < 4 || basePts.containsAny(other)) {
+				for (final ParameterCandidate c : cands) {
+					if (c.isReferenceToField(other, otherField)) {
+							result = true;
+							break;
+					}
+				}
+			} else {
+				result = false;
+			}
+			assert result == isReferenceToFieldSlow(other, otherField);
+			return result;
 		}
 
 		@Override

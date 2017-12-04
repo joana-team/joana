@@ -16,7 +16,7 @@
 	
 	<property name="main.class" value="edu.kit.joana.api.RunSingleFileIFC" />
 
-	<target name="fulljar" depends="compile,spill_out_jars,copy_non_java_files" description="generate the stand-alone jar file">
+	<target name="fulljar" depends="git-head,compile,spill_out_jars,copy_non_java_files" description="generate the stand-alone jar file">
 		<delete file="${joana.dist.dir}/${projectname}.jar" />
 		<jar jarfile="${joana.dist.dir}/${projectname}.jar">
 			<fileset dir="${dest.dir.classes}">
@@ -32,6 +32,14 @@
 				<attribute name="Main-Class" value="${main.class}" />
 			</manifest>
 		</jar>
+  </target>
+
+	<target name="git-head" description="generates a file which contains the git commit id of the current HEAD">
+		<delete file="git-commit"/>
+		<exec executable="/bin/sh" failifexecutionfails="false">
+			<arg value="-c"/>
+			<arg value="git rev-parse HEAD > git-commit"/>
+		</exec>
 	</target>
 
 	<target name="make-source-dist" depends="init,collect_wala_sources,collect_sources,spill_out_jars,copy_non_java_files" description="generate a zip file containing all the source code">
@@ -91,6 +99,7 @@
 
 	<target name="copy_non_java_files">
 		<copy todir="${dest.dir.classes}">
+			<file name="git-commit"/>
 			<filelist dir="${com.ibm.wala.core.base.dir}/dat">
 				<file name="natives.xml" />
 				<file name="natives_no_model.xml" />

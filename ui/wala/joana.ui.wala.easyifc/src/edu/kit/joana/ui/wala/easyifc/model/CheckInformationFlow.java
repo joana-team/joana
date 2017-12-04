@@ -61,6 +61,7 @@ import edu.kit.joana.ifc.sdg.graph.chopper.NonSameLevelChopper;
 import edu.kit.joana.ifc.sdg.io.graphml.SDG2GraphML;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
+import edu.kit.joana.ui.annotations.EntryPointKind;
 import edu.kit.joana.ui.annotations.Sink;
 import edu.kit.joana.ui.annotations.Source;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.IFCResult;
@@ -178,14 +179,41 @@ public final class CheckInformationFlow {
 	public void runCheckIFC(EntryPointConfiguration entryPoint, final IProgressMonitor progress) throws IOException, ClassHierarchyException,
 			IllegalArgumentException, CancelException, UnsoundGraphException {
 		final SDGConfig config = entryPoint.getSDGConfigFor(cfc);
-		final SDGProgram p = buildSDG(config);
+		final EntryPointKind kind = entryPoint.getKind();
 		
-		if (containsThreads(p)) {			
+		SDGProgram p;
+		boolean containsThreads;  
+		switch (kind) {
+			case UNKNOWN: {
+				p = buildSDG(config);
+				containsThreads = containsThreads(p);
+				if (!containsThreads) break;
+			}
+			case CONCURRENT: {
+				p = null;
+				config.setComputeInterferences(true);
+				config.setMhpType(MHPType.PRECISE);
+				p = buildSDG(config);
+				containsThreads = true;
+				break;
+			}
+			case SEQUENTIAL: {
+				p = buildSDG(config);
+				containsThreads = false;
+				break;
+			}
+			
+			default: {
+				assert false;
+				containsThreads = false;
+				p = null;
+			}
+		}
+		
+		assert p != null;
+		if (containsThreads) {			
 			cfc.out.println("checking '" + cfc.bin + "' for concurrent confidentiality.");
-			config.setComputeInterferences(true);
-			config.setMhpType(MHPType.PRECISE);
-			final SDGProgram concProg = buildSDG(config); 
-			final IFCResult result = doThreadIFCanalysis(config, concProg, entryPoint, cfc.filter);
+			final IFCResult result = doThreadIFCanalysis(config, p, entryPoint, cfc.filter);
 			cfc.results.consume(result);
 		} else {
 			cfc.out.println("checking '" + cfc.bin + "' for sequential confidentiality.");

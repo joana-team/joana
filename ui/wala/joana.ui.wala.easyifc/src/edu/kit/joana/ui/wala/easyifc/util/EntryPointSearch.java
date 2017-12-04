@@ -52,6 +52,7 @@ import edu.kit.joana.ifc.sdg.lattice.impl.PowersetLattice;
 import edu.kit.joana.ifc.sdg.lattice.impl.ReversedLattice;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.annotations.EntryPoint;
+import edu.kit.joana.ui.annotations.EntryPointKind;
 import edu.kit.joana.ui.annotations.Sink;
 import edu.kit.joana.ui.annotations.Source;
 import edu.kit.joana.ui.wala.easyifc.model.CheckInformationFlow;
@@ -133,6 +134,8 @@ public class EntryPointSearch {
 			return sourceRef;
 		}
 		
+		public abstract EntryPointKind getKind();
+		
 		public abstract SDGConfig getSDGConfigFor(CheckIFCConfig cfc);
 		
 		public abstract Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>> annotateSDG(IFCAnalysis analysis);
@@ -203,6 +206,11 @@ public class EntryPointSearch {
 		@Override
 		public Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>> annotateSDG(IFCAnalysis analysis) {
 			return analysis.addAllJavaSourceAnnotations(this.lattice());
+		}
+		
+		@Override
+		public EntryPointKind getKind() {
+			return EntryPointKind.UNKNOWN;
 		}
 	}
 	
@@ -401,6 +409,7 @@ public class EntryPointSearch {
 	public abstract static class AnnotationEntryPointConfiguration extends EntryPointConfiguration {
 		protected final List<String> errors = new LinkedList<>();
 		protected final IAnnotation annotation;
+		protected final EntryPointKind kind;
 
 		
 		private AnnotationEntryPointConfiguration(IMethod method, IAnnotation annotation) {
@@ -409,6 +418,34 @@ public class EntryPointSearch {
 			assert (annotation instanceof SourceRefElement) == (annotation instanceof Annotation);
 			assert (method instanceof SourceRefElement) == (method instanceof SourceMethod); 
 			this.annotation = annotation;
+			{
+				EntryPointKind kind = null;
+				try {
+					
+					for (IMemberValuePair pair : annotation.getMemberValuePairs()) {
+						if ("kind".equals(pair.getMemberName())) {
+							assert (pair.getValueKind() == IMemberValuePair.K_SIMPLE_NAME);
+							final String value = (String) pair.getValue();
+							final String[] splits = value.split("\\.");
+							final String unqualifiedValue = splits[splits.length - 1]; 
+								
+							try {
+								kind = EntryPointKind.valueOf(unqualifiedValue);
+							} catch (IllegalArgumentException e) {
+								kind = EntryPointKind.UNKNOWN;
+							}
+						}
+					}
+				} catch (JavaModelException e) {
+					// Thrown by IAnnotation.getMemberValuePairs()
+					// For now: use the latest successfully read "kind" attribute.
+				}
+				if (kind == null) {
+					this.kind = EntryPointKind.UNKNOWN;
+				} else {
+					this.kind = kind;
+				}
+			}
 		}
 		
 		public static AnnotationEntryPointConfiguration fromAnnotation(IMethod method, IAnnotation annotation) {
@@ -466,6 +503,11 @@ public class EntryPointSearch {
 			SDGConfig def = CheckInformationFlow.createDefaultConfig(cfc, mainMethodSignature);
 			// ....
 			return def;
+		}
+		
+		@Override
+		public EntryPointKind getKind() {
+			return this.kind;
 		}
 		
 		@Override

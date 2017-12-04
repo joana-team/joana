@@ -13,4 +13,5 @@ public @interface EntryPoint {
 	MayFlow[] lattice() default { @MayFlow(from=Level.LOW, to=Level.HIGH) };
 	String[] datasets() default {};
 	String[] adversaries() default {};
+	EntryPointKind kind() default EntryPointKind.UNKNOWN;
 }

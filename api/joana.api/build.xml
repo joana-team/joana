@@ -35,10 +35,10 @@
   </target>
 
 	<target name="git-head" description="generates a file which contains the git commit id of the current HEAD">
-		<delete file="git-commit"/>
+		<delete file="${joana.api.base.dir}/git-commit"/>
 		<exec executable="/bin/sh" failifexecutionfails="false">
 			<arg value="-c"/>
-			<arg value="git rev-parse HEAD > git-commit"/>
+			<arg value="git rev-parse HEAD > ${joana.api.base.dir}/git-commit"/>
 		</exec>
 	</target>
 
@@ -98,8 +98,10 @@
 	</target>
 
 	<target name="copy_non_java_files">
-		<copy todir="${dest.dir.classes}">
-			<file name="git-commit"/>
+    <copy todir="${dest.dir.classes}">
+			<filelist dir="${joana.api.base.dir}">
+				<file name="git-commit"/>
+			</filelist>
 			<filelist dir="${com.ibm.wala.core.base.dir}/dat">
 				<file name="natives.xml" />
 				<file name="natives_no_model.xml" />

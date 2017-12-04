@@ -498,9 +498,8 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		@Override
 		public boolean isReferenceToField(final OrdinalSet<InstanceKey> other, final ParameterField otherField) {
 			boolean result = false;
-			// basePts.containsAny(other) is a necessary condition.
-			// Heuristic: try to  avoid iterated c.isReferenceToField(...) for c ∈ cands unless cands is small, anyway. 
-			if (cands.size() < 4 || basePts.containsAny(other)) {
+			// basePts.containsAny(other) is a necessary condition for non-static fields
+			if (otherField.isStatic() || basePts.containsAny(other)) {
 				for (final ParameterCandidate c : cands) {
 					if (c.isReferenceToField(other, otherField)) {
 							result = true;
@@ -519,19 +518,38 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			return cands;
 		}
 
-		@Override
-		public boolean isMayAliased(final ParameterCandidate pc) {
+		
+		private boolean isMayAliasedSlow(final ParameterCandidate pc) {
 			if (pc == this) {
 				return true;
 			}
 			
 			for (final UniqueParameterCandidate upc : cands) {
 				if (upc.isMayAliased(pc)) {
+					assert pc.isBaseAliased(basePts);
 					return true;
 				}
 			}
 
 			return false;
+		}
+		
+		@Override
+		public boolean isMayAliased(final ParameterCandidate pc) {
+			boolean result = false;
+			if (pc == this) {
+				result = true;
+			} else if (pc.isBaseAliased(basePts)) {
+				for (final UniqueParameterCandidate upc : cands) {
+					if (upc.isMayAliased(pc)) {
+						result = true;
+						break;
+					}
+				}
+			}
+
+			assert result == isMayAliasedSlow(pc);
+			return result;
 		}
 
 		@Override

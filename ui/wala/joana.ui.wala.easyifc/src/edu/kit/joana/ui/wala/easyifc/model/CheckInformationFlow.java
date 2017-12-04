@@ -567,7 +567,7 @@ public final class CheckInformationFlow {
 		}
 
 		if (type == IFCType.RLSOD || type == IFCType.LSOD) {
-			ana.setTimesensitivity(true);
+			//ana.setTimesensitivity(true);
 		}
 		final Collection<? extends IViolation<SecurityNode>> leaks = ana.doIFC(type);
 		lastViolations = leaks.size();

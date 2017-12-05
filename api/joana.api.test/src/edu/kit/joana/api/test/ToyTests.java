@@ -28,6 +28,8 @@ import edu.kit.joana.api.test.util.BuildSDG;
 import edu.kit.joana.api.test.util.DumpTestSDG;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.IViolation;
+import joana.api.testdata.toy.sensitivity.Aliasing3;
+import joana.api.testdata.toy.sensitivity.StrongUpdate4;
 
 /**
  * @author Martin Hecker <martin.hecker@kit.edu>
@@ -112,6 +114,23 @@ public class ToyTests {
 		}
 	}
 
+	private static void testPreciseEnough_secure(Class<?> clazz)
+			throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException, CancelException {
+		{ // There are no leaks if secret is really passed on
+			IFCAnalysis ana = buildAnnotateDump(clazz, false);
+
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertTrue(illegal.isEmpty());
+		}
+
+		{ // There are no leaks if secret is really passed on and we're precise enough to find that out
+			IFCAnalysis ana = buildAnnotateDump(clazz, true);
+
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertTrue(illegal.isEmpty());
+		}
+	}
+
 	private static void testTooImprecise(Class<?> clazz) throws ClassHierarchyException, ApiTestException,
 			IOException, UnsoundGraphException, CancelException {
 		{ // There are leaks if secret is really passed on
@@ -141,6 +160,14 @@ public class ToyTests {
 		testPreciseEnough(joana.api.testdata.toy.simp.AssChain.class);
 	}
 
+	@Test
+	public void testAliasing3() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException, CancelException {
+		testPreciseEnough_secure(Aliasing3.class);
+	}
+	@Test
+	public void testStrongUpdate4() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException, CancelException {
+		testPreciseEnough_secure(StrongUpdate4.class);
+	}
 	@Test
 	public void testMicroExample() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {

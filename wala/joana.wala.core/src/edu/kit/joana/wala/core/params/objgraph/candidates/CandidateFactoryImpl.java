@@ -522,8 +522,8 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		private boolean isMayAliasedSlow(final ParameterCandidate pc) {
 			for (final UniqueParameterCandidate upc : cands) {
 				if (upc.isMayAliased(pc)) {
-					assert isStatic != V.UNKNOWN;
-					assert isStatic != V.NO || pc.isBaseAliased(basePts);
+					assert pc.isStatic() != V.UNKNOWN;
+					assert pc.isStatic() != V.NO || pc.isBaseAliased(basePts);
 					return true;
 				}
 			}
@@ -534,8 +534,8 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		@Override
 		public boolean isMayAliased(final ParameterCandidate pc) {
 			boolean result = false;
-			assert isStatic != V.UNKNOWN;
-			if (isStatic != V.NO || pc.isBaseAliased(basePts)) {
+			assert pc.isStatic() != V.UNKNOWN;
+			if (pc.isStatic() != V.NO || pc.isBaseAliased(basePts)) {
 				for (final UniqueParameterCandidate upc : cands) {
 					if (upc.isMayAliased(pc)) {
 						result = true;

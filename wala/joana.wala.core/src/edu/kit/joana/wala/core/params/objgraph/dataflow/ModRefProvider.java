@@ -25,11 +25,6 @@ public interface ModRefProvider {
 	IntSet getMustMod(Node node);
 
 	/**
-	 * This returns a set of all nodes that may be modified by the given node. Thus they are may-aliasing.
-	 */
-	IntSet getMayMod(Node node);
-
-	/**
 	 * This returns a set of all nodes that define values that the given node may read. Thus they are may-aliasing.
 	 */
 	IntSet getMayRef(Node node);

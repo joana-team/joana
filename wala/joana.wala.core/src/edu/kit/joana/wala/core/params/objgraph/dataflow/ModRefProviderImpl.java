@@ -30,7 +30,6 @@ import edu.kit.joana.wala.core.params.objgraph.dataflow.ModRefControlFlowGraph.N
 public class ModRefProviderImpl implements ModRefProvider {
 
 	private final Map<Node, IntSet> node2mustMod = new HashMap<Node, IntSet>();
-	private final Map<Node, IntSet> node2mayMod = new HashMap<Node, IntSet>();
 	private final Map<Node, IntSet> node2mayRef = new HashMap<Node, IntSet>();
 
 	private ModRefProviderImpl(boolean isParallel) {
@@ -74,7 +73,6 @@ public class ModRefProviderImpl implements ModRefProvider {
 		final ModRefFieldCandidate nCand = n.getCandidate();
 
 		final BitVector bvMustMod = new BitVector();
-		final BitVector bvMayMod = new BitVector();
 		final BitVector bvMayRef = new BitVector();
 		final boolean isMod = n.isMod();
 		final boolean isRef = n.isRef();
@@ -86,13 +84,9 @@ public class ModRefProviderImpl implements ModRefProvider {
 
 			if (isMod && other.isRef()) {
 				if (n == other) {
-					bvMayMod.set(id);
 					bvMustMod.set(id);
 				} else if (nCand.isMustAliased(otherCand)) {
-					bvMayMod.set(id);
 					bvMustMod.set(id);
-				} else if (nCand.isMayAliased(otherCand)) {
-					bvMayMod.set(id);
 				}
 			}
 
@@ -105,24 +99,18 @@ public class ModRefProviderImpl implements ModRefProvider {
 			}
 		}
 		
-		putResult(n, bvMustMod, bvMayMod, bvMayRef);
+		putResult(n, bvMustMod, bvMayRef);
 	}
 	
 	private synchronized void putResult(Node n,
-				BitVector bvMustMod, BitVector bvMayMod,BitVector bvMayRef) {
+				BitVector bvMustMod, BitVector bvMayRef) {
 		node2mustMod.put(n, new BitVectorIntSet(bvMustMod));
-		node2mayMod.put(n, new BitVectorIntSet(bvMayMod));
 		node2mayRef.put(n, new BitVectorIntSet(bvMayRef));
 	}
 
 	@Override
 	public IntSet getMustMod(final Node node) {
 		return node2mustMod.get(node);
-	}
-
-	@Override
-	public IntSet getMayMod(final Node node) {
-		return node2mayMod.get(node);
 	}
 
 	@Override

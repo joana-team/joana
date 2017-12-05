@@ -55,7 +55,7 @@ implements ITransferFunctionProvider<ModRefControlFlowGraph.Node, BitVectorVaria
         }
 	}
 
-	public BitVector kill(final Node node) {
+	private BitVector kill(final Node node) {
 		// default assign empty bitvector as no nodes are killed by this statement
 		final IntSet modSet = modRef.getMustMod(node);
 
@@ -68,7 +68,7 @@ implements ITransferFunctionProvider<ModRefControlFlowGraph.Node, BitVectorVaria
 
 	private final static BitVector emptyVector = null;
 
-	public IntSet gen(final Node node) {
+	private IntSet gen(final Node node) {
 		if (domain.hasMappedIndex(node) && node.isMod()) {
 			final int id = domain.getMappedIndex(node);
 			assert (id >= 0) : "No id in mapping for: " + node;

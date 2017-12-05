@@ -348,7 +348,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 
 		@Override
 		public final boolean isMayAliased(final ParameterCandidate pc) {
-			return this == pc || a.isMayAliased(pc) || b.isMayAliased(pc);
+			return a.isMayAliased(pc) || b.isMayAliased(pc);
 		}
 
 		@Override
@@ -487,7 +487,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		private boolean isReferenceToFieldSlow(final OrdinalSet<InstanceKey> other, final ParameterField otherField) {
 			for (final ParameterCandidate c : cands) {
 				if (c.isReferenceToField(other, otherField)) {
-					assert basePts.containsAny(other);
+					assert otherField.isStatic() || basePts.containsAny(other);
 					return true;
 				}
 			}
@@ -520,13 +520,10 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 
 		
 		private boolean isMayAliasedSlow(final ParameterCandidate pc) {
-			if (pc == this) {
-				return true;
-			}
-			
 			for (final UniqueParameterCandidate upc : cands) {
 				if (upc.isMayAliased(pc)) {
-					assert pc == upc || pc.isBaseAliased(basePts);
+					assert isStatic != V.UNKNOWN;
+					assert isStatic != V.NO || pc.isBaseAliased(basePts);
 					return true;
 				}
 			}
@@ -537,9 +534,8 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		@Override
 		public boolean isMayAliased(final ParameterCandidate pc) {
 			boolean result = false;
-			if (pc == this) {
-				result = true;
-			} else if ( (pc instanceof UniqueParameterCandidate && cands.contains((UniqueParameterCandidate)pc)) || pc.isBaseAliased(basePts)) {
+			assert isStatic != V.UNKNOWN;
+			if (isStatic != V.NO || pc.isBaseAliased(basePts)) {
 				for (final UniqueParameterCandidate upc : cands) {
 					if (upc.isMayAliased(pc)) {
 						result = true;
@@ -730,10 +726,6 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 
 		@Override
 		public boolean isMayAliased(final ParameterCandidate pc) {
-			if (pc == this) {
-				return true;
-			}
-			
 			if (pc.isStatic() == V.NO) {
 				final OrdinalSet<ParameterField> otherField = pc.getFields();
 				if (otherField.size() > 1) {
@@ -843,12 +835,12 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 
 		@Override
 		public boolean isBaseAliased(final OrdinalSet<InstanceKey> other) {
-			return basePts == other || (basePts != null && other != null && basePts.containsAny(other));
+			return (basePts != null && other != null && basePts.containsAny(other));
 		}
 
 		@Override
 		public boolean isFieldAliased(final OrdinalSet<InstanceKey> other) {
-			return fieldPts == other || (fieldPts != null && other != null && fieldPts.containsAny(other));
+			return (fieldPts != null && other != null && fieldPts.containsAny(other));
 		}
 
 		@Override
@@ -917,7 +909,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 
 		@Override
 		public boolean isMayAliased(final ParameterCandidate pc) {
-			return this == pc || pc.isReferenceToField(basePts, field);
+			return pc.isReferenceToField(basePts, field);
 		}
 
 		@Override

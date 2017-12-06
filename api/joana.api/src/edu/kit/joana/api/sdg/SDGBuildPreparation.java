@@ -163,6 +163,9 @@ public final class SDGBuildPreparation {
 		}
 	}
 
+	public static Module findJarModule(final String path) throws IOException {
+		return findJarModule(null, path);
+	}
 	/**
 	 * Search file in filesystem. If not found, try to load from classloader (e.g. from inside the jarfile).
 	 */

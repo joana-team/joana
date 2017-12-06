@@ -166,7 +166,7 @@ public final class SDGBuildPreparation {
 	/**
 	 * Search file in filesystem. If not found, try to load from classloader (e.g. from inside the jarfile).
 	 */
-	private static Module findJarModule(final PrintStream out, final String path) throws IOException {
+	public static Module findJarModule(final PrintStream out, final String path) throws IOException {
 		final File f = new File(path);
 		if (f.exists()) {
 			out.print("(from file " + path + ") ");

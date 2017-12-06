@@ -16,6 +16,7 @@ import java.util.stream.StreamSupport;
 import com.ibm.wala.util.collections.ObjectArrayMapping;
 import com.ibm.wala.util.intset.BitVector;
 import com.ibm.wala.util.intset.BitVectorIntSet;
+import com.ibm.wala.util.intset.EmptyIntSet;
 import com.ibm.wala.util.intset.IntIterator;
 import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.intset.OrdinalSetMapping;
@@ -31,7 +32,6 @@ import edu.kit.joana.wala.core.params.objgraph.dataflow.ModRefControlFlowGraph.N
 public class ModRefProviderImpl implements ModRefProvider {
 
 	private final Map<Node, IntSet> node2mustMod = new HashMap<Node, IntSet>();
-	private final Map<Node, IntSet> node2mayRef = new HashMap<Node, IntSet>();
 
 	private ModRefProviderImpl(boolean isParallel) {
 		this.isParallel = isParallel;
@@ -74,9 +74,7 @@ public class ModRefProviderImpl implements ModRefProvider {
 		final ModRefFieldCandidate nCand = n.getCandidate();
 
 		final BitVector bvMustMod = new BitVector();
-		final BitVector bvMayRef = new BitVector();
 		final boolean isMod = n.isMod();
-		final boolean isRef = n.isRef();
 
 		for (final Node other : domain) {
 
@@ -90,23 +88,14 @@ public class ModRefProviderImpl implements ModRefProvider {
 					bvMustMod.set(id);
 				}
 			}
-
-			if (isRef && other.isMod()) {
-				if (n == other) {
-					bvMayRef.set(id);
-				} else if (nCand.isMayAliased(otherCand)) {
-					bvMayRef.set(id);
-				}
-			}
 		}
 		
-		putResult(n, bvMustMod, bvMayRef);
+		putResult(n, bvMustMod);
 	}
 	
 	private synchronized void putResult(Node n,
-				BitVector bvMustMod, BitVector bvMayRef) {
+				BitVector bvMustMod) {
 		node2mustMod.put(n, new BitVectorIntSet(bvMustMod));
-		node2mayRef.put(n, new BitVectorIntSet(bvMayRef));
 	}
 
 	@Override
@@ -117,6 +106,10 @@ public class ModRefProviderImpl implements ModRefProvider {
 	public IntSet getMayRef(final Node n, IntSet inNodes, final OrdinalSetMapping<Node> mapping) {
 		final BitVector bvMayRef = new BitVector();
 		final boolean isRef = n.isRef();
+		
+		if (!isRef) {
+			return new EmptyIntSet();
+		}
 
 		final IntIterator it = inNodes.intIterator();
 		final ModRefFieldCandidate nCand = n.getCandidate();
@@ -124,8 +117,9 @@ public class ModRefProviderImpl implements ModRefProvider {
 		while (it.hasNext()) {
 			final int id = it.next();
 			final Node other = mapping.getMappedObject(id);
-			final ModRefFieldCandidate otherCand = other.getCandidate();
-			if (isRef && other.isMod()) {
+			assert isRef;
+			if (other.isMod()) {
+				final ModRefFieldCandidate otherCand = other.getCandidate();
 				if (n == other) {
 					bvMayRef.set(id);
 				} else if (nCand.isMayAliased(otherCand)) {
@@ -135,7 +129,6 @@ public class ModRefProviderImpl implements ModRefProvider {
 			
 		}
 		final IntSet result = new BitVectorIntSet(bvMayRef);
-		assert node2mayRef.get(n).intersection(inNodes).sameValue(result);
 		return result;
 	}
 

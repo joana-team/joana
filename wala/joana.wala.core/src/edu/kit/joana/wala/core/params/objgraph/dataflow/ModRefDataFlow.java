@@ -446,7 +446,7 @@ public class ModRefDataFlow {
 			boolean isParallel) {
 		final Map<Node, OrdinalSet<Node>> mayRead = Collections.synchronizedMap(new HashMap<Node, OrdinalSet<Node>>());
 
-		StreamSupport.stream(domain.spliterator(), isParallel && false).forEach(n -> {
+		StreamSupport.stream(domain.spliterator(), isParallel).forEach(n -> {
 			final BitVectorVariable in = solver.getIn(n);
 			final IntSet inSet = in.getValue();
 			

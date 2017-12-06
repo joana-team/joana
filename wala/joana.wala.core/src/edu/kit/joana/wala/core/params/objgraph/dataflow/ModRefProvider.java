@@ -8,6 +8,7 @@
 package edu.kit.joana.wala.core.params.objgraph.dataflow;
 
 import com.ibm.wala.util.intset.IntSet;
+import com.ibm.wala.util.intset.OrdinalSetMapping;
 
 import edu.kit.joana.wala.core.params.objgraph.dataflow.ModRefControlFlowGraph.Node;
 
@@ -25,8 +26,8 @@ public interface ModRefProvider {
 	IntSet getMustMod(Node node);
 
 	/**
-	 * This returns a set of all nodes that define values that the given node may read. Thus they are may-aliasing.
+	 * This returns the set of all nodes in inNodes (via: mapping) that define values that the given node may read. Thus they are may-aliasing.
 	 */
-	IntSet getMayRef(Node node);
+	IntSet getMayRef(Node node, IntSet inNodes, final OrdinalSetMapping<Node> mapping);
 
 }

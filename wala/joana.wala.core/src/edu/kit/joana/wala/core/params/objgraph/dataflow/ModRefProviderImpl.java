@@ -16,6 +16,7 @@ import java.util.stream.StreamSupport;
 import com.ibm.wala.util.collections.ObjectArrayMapping;
 import com.ibm.wala.util.intset.BitVector;
 import com.ibm.wala.util.intset.BitVectorIntSet;
+import com.ibm.wala.util.intset.IntIterator;
 import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.intset.OrdinalSetMapping;
 
@@ -113,9 +114,29 @@ public class ModRefProviderImpl implements ModRefProvider {
 		return node2mustMod.get(node);
 	}
 
-	@Override
-	public IntSet getMayRef(final Node node) {
-		return node2mayRef.get(node);
+	public IntSet getMayRef(final Node n, IntSet inNodes, final OrdinalSetMapping<Node> mapping) {
+		final BitVector bvMayRef = new BitVector();
+		final boolean isRef = n.isRef();
+
+		final IntIterator it = inNodes.intIterator();
+		final ModRefFieldCandidate nCand = n.getCandidate();
+		
+		while (it.hasNext()) {
+			final int id = it.next();
+			final Node other = mapping.getMappedObject(id);
+			final ModRefFieldCandidate otherCand = other.getCandidate();
+			if (isRef && other.isMod()) {
+				if (n == other) {
+					bvMayRef.set(id);
+				} else if (nCand.isMayAliased(otherCand)) {
+					bvMayRef.set(id);
+				}
+			}
+			
+		}
+		final IntSet result = new BitVectorIntSet(bvMayRef);
+		assert node2mayRef.get(n).intersection(inNodes).sameValue(result);
+		return result;
 	}
 
 }

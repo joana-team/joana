@@ -7,12 +7,14 @@
  */
 package edu.kit.joana.wala.core.params.objgraph.dataflow;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import com.ibm.wala.dataflow.graph.BitVectorFramework;
 import com.ibm.wala.dataflow.graph.BitVectorSolver;
@@ -89,7 +91,7 @@ public class ModRefDataFlow {
 				e.printStackTrace();
 			}
 
-			final Map<Node, OrdinalSet<Node>> mayRead = computeLastReachingDefs(solver, domain, provider);
+			final Map<Node, OrdinalSet<Node>> mayRead = computeLastReachingDefs(solver, domain, provider, sdg.isParallel());
 			final Map<Node, PDGNode> node2pdg;
 			node2pdg = createPDGNodes(cfg, pdg, pdgnode2modref);
 			addDataDepEdgesToPDG(node2pdg, mayRead, pdg);
@@ -440,23 +442,24 @@ public class ModRefDataFlow {
 	}
 
 	private static Map<Node, OrdinalSet<Node>> computeLastReachingDefs(final BitVectorSolver<Node> solver,
-			final OrdinalSetMapping<Node> domain, final ModRefProvider provider) {
-		final Map<Node, OrdinalSet<Node>> mayRead = new HashMap<Node, OrdinalSet<Node>>();
+			final OrdinalSetMapping<Node> domain, final ModRefProvider provider,
+			boolean isParallel) {
+		final Map<Node, OrdinalSet<Node>> mayRead = Collections.synchronizedMap(new HashMap<Node, OrdinalSet<Node>>());
 
-		for (final Node n : domain) {
+		StreamSupport.stream(domain.spliterator(), isParallel && false).forEach(n -> {
 			final BitVectorVariable in = solver.getIn(n);
 			final IntSet inSet = in.getValue();
-			final IntSet mayRef = provider.getMayRef(n);
-
-			if (inSet == null || mayRef == null) {
+			
+			if (inSet == null) {
 				final OrdinalSet<Node> empty = OrdinalSet.empty();
 				mayRead.put(n, empty);
 			} else {
-				final IntSet reachingDefs = mayRef.intersection(inSet);
+				final IntSet mayRef = provider.getMayRef(n, inSet, domain);
+				final IntSet reachingDefs = mayRef;
 				final OrdinalSet<Node> reachDefSet = new OrdinalSet<ModRefControlFlowGraph.Node>(reachingDefs, domain);
 				mayRead.put(n, reachDefSet);
 			}
-		}
+		});
 
 		return mayRead;
 	}

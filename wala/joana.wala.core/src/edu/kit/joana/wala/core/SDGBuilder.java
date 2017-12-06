@@ -134,7 +134,41 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 	public final static boolean DATA_FLOW_FOR_GET_FROM_FIELD_NODE =
 			Config.getBool(Config.C_SDG_DATAFLOW_FOR_GET_FROM_FIELD, false);
 
+	public final static String STD_EXCLUSION_REG_EXP =
+			"sun\\/awt\\/.*\n"
+			+ "sun\\/swing\\/.*\n"
+			+ "com\\/sun\\/.*\n"
+			+ "sun\\/.*\n"
+			+ "apple\\/awt\\/.*\n"
+			+ "com\\/apple\\/.*\n"
+			+ "org\\/omg\\/.*\n";
 
+		// these classes are modeled without specific fields
+		public final static String[] IMMUTABLE_STUBS = {
+			"Ljava/lang/String",
+			"Ljava/lang/Integer",
+			"Ljava/lang/Long",
+			"Ljava/lang/Character",
+			"Ljava/lang/Object",
+			"Ljava/lang/Throwable",
+			"Ljava/lang/Exception",
+		};
+
+		public final static String[] IMMUTABLE_NO_OUT = {
+			"Ljava/lang/String",
+			"Ljava/lang/Integer",
+			"Ljava/lang/Long",
+			"Ljava/lang/Character",
+		};
+
+		public final static String[] IGNORE_STATIC_FIELDS = {
+			"Ljava/lang/Integer",
+			"Ljava/lang/Object",
+			"Ljava/lang/Long",
+			"Ljava/lang/Character",
+			"Ljava/lang/Throwable",
+			"Ljava/lang/Exception",
+		};
 	public static final TypeReference[] DEFAULT_IGNORE_EXCEPTIONS = {
 	    TypeReference.JavaLangOutOfMemoryError,
 	    TypeReference.JavaLangExceptionInInitializerError

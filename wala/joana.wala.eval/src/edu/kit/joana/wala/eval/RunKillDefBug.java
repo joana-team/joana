@@ -580,9 +580,9 @@ public class RunKillDefBug {
 		scfg.cha = cg.getClassHierarchy();
 		//		      scfg.entry = entryMethod;
 		scfg.ext = ExternalCallCheck.EMPTY;
-		scfg.immutableNoOut = SDGBuildPreparation.IMMUTABLE_NO_OUT;
-		scfg.immutableStubs = SDGBuildPreparation.IMMUTABLE_STUBS;
-		scfg.ignoreStaticFields = SDGBuildPreparation.IGNORE_STATIC_FIELDS;
+		scfg.immutableNoOut = SDGBuilder.IMMUTABLE_NO_OUT;
+		scfg.immutableStubs = SDGBuilder.IMMUTABLE_STUBS;
+		scfg.ignoreStaticFields = SDGBuilder.IGNORE_STATIC_FIELDS;
 		scfg.exceptions = ExceptionAnalysis.INTERPROC;
 		scfg.accessPath = false;
 		scfg.prunecg = Main.DEFAULT_PRUNE_CG;//DO_NOT_PRUNE_CG;    

@@ -79,41 +79,7 @@ public final class SDGBuildPreparation {
 		throw new UnsupportedOperationException();
 	}
 
-	public final static String STD_EXCLUSION_REG_EXP =
-		"sun\\/awt\\/.*\n"
-		+ "sun\\/swing\\/.*\n"
-		+ "com\\/sun\\/.*\n"
-		+ "sun\\/.*\n"
-		+ "apple\\/awt\\/.*\n"
-		+ "com\\/apple\\/.*\n"
-		+ "org\\/omg\\/.*\n";
 
-	// these classes are modeled without specific fields
-	public final static String[] IMMUTABLE_STUBS = {
-		"Ljava/lang/String",
-		"Ljava/lang/Integer",
-		"Ljava/lang/Long",
-		"Ljava/lang/Character",
-		"Ljava/lang/Object",
-		"Ljava/lang/Throwable",
-		"Ljava/lang/Exception",
-	};
-
-	public final static String[] IMMUTABLE_NO_OUT = {
-		"Ljava/lang/String",
-		"Ljava/lang/Integer",
-		"Ljava/lang/Long",
-		"Ljava/lang/Character",
-	};
-
-	public final static String[] IGNORE_STATIC_FIELDS = {
-		"Ljava/lang/Integer",
-		"Ljava/lang/Object",
-		"Ljava/lang/Long",
-		"Ljava/lang/Character",
-		"Ljava/lang/Throwable",
-		"Ljava/lang/Exception",
-	};
 
 	public final static int DEFAULT_PRUNE_CG = 2;
 	public final static int DO_NOT_PRUNE_CG = SDGBuilder.DO_NOT_PRUNE;
@@ -246,7 +212,7 @@ public final class SDGBuildPreparation {
 		for (String stubsPath : Stubs.JRE_14.getPaths()) {
 			scope.addToScope(ClassLoaderReference.Primordial, findJarModule(stubsPath));
 		}
-		scope.setExclusions(new FileOfClasses(new ByteArrayInputStream(SDGBuildPreparation.STD_EXCLUSION_REG_EXP.getBytes())));
+		scope.setExclusions(new FileOfClasses(new ByteArrayInputStream(SDGBuilder.STD_EXCLUSION_REG_EXP.getBytes())));
 		return scope;
 	}
 
@@ -333,9 +299,9 @@ public final class SDGBuildPreparation {
 		scfg.cha = cha;
 		scfg.entry = m;
 		scfg.ext = chk;
-		scfg.immutableNoOut = IMMUTABLE_NO_OUT;
-		scfg.immutableStubs = IMMUTABLE_STUBS;
-		scfg.ignoreStaticFields = IGNORE_STATIC_FIELDS;
+		scfg.immutableNoOut = SDGBuilder.IMMUTABLE_NO_OUT;
+		scfg.immutableStubs = SDGBuilder.IMMUTABLE_STUBS;
+		scfg.ignoreStaticFields = SDGBuilder.IGNORE_STATIC_FIELDS;
 		scfg.exceptions = cfg.exceptions;
 		scfg.defaultExceptionMethodState = cfg.defaultExceptionMethodState;
 		scfg.accessPath = cfg.accessPath;
@@ -462,20 +428,20 @@ public final class SDGBuildPreparation {
 
 		public Config(String name, String entryMethod, FieldPropagation fieldPropagation) {
 			this(name, entryMethod, STD_CLASS_PATH, PointsToPrecision.INSTANCE_BASED, DEFAULT_EXCEPTION_ANALYSIS,
-					DEFAULT_ACCESS_PATH, STD_EXCLUSION_REG_EXP, JoanaConstants.DEFAULT_NATIVES_XML, /* stubs */null,
+					DEFAULT_ACCESS_PATH, SDGBuilder.STD_EXCLUSION_REG_EXP, JoanaConstants.DEFAULT_NATIVES_XML, /* stubs */null,
 					/*ext-call*/null, "./", fieldPropagation);
 		}
 
 		public Config(String name, String entryMethod, String classpath, FieldPropagation fieldPropagation) {
 			this(name, entryMethod, classpath, PointsToPrecision.INSTANCE_BASED, DEFAULT_EXCEPTION_ANALYSIS,
-					DEFAULT_ACCESS_PATH, STD_EXCLUSION_REG_EXP, JoanaConstants.DEFAULT_NATIVES_XML, /* stubs */null,
+					DEFAULT_ACCESS_PATH, SDGBuilder.STD_EXCLUSION_REG_EXP, JoanaConstants.DEFAULT_NATIVES_XML, /* stubs */null,
 					/*ext-call*/null, "./", fieldPropagation);
 		}
 
 		public Config(String name, String entryMethod, String classpath, PointsToPrecision pts,
 				FieldPropagation fieldPropagation) {
 			this(name, entryMethod, classpath, pts, DEFAULT_EXCEPTION_ANALYSIS, DEFAULT_ACCESS_PATH,
-					STD_EXCLUSION_REG_EXP, JoanaConstants.DEFAULT_NATIVES_XML, /* stubs */null, /*ext-call*/null,
+					SDGBuilder.STD_EXCLUSION_REG_EXP, JoanaConstants.DEFAULT_NATIVES_XML, /* stubs */null, /*ext-call*/null,
 					"./", fieldPropagation);
 		}
 

@@ -32,7 +32,7 @@ public class SDGConfig {
 	private String thirdPartyLibsPath;
 	private String entryMethod;
 	private Stubs stubsPath;
-	private String exclusions = SDGBuildPreparation.STD_EXCLUSION_REG_EXP;
+	private String exclusions = SDGBuilder.STD_EXCLUSION_REG_EXP;
 	private ExceptionAnalysis exceptionAnalysis;
 	private boolean ignoreIndirectFlows = false;
 	private MethodState defaultExceptionMethodState = null;

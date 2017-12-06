@@ -54,7 +54,7 @@ public abstract class SDGBuilderConfigurator<C extends SDGBuilderConfigurator<C>
 		return thisActually();
 	}
 	public C configureForJavaBytecode(String mainClass) {
-		rwd.set("entry", WALAUtils.findMethod(cha, mainClass));
+		rwd.set("entry", WALAUtils.findMainMethod(cha, mainClass));
 		rwd.set("additionalContextSelector", null);
 		rwd.set("additionalContextInterpreter", null);
 		rwd.set("cache", new AnalysisCache(new DefaultIRFactory()));

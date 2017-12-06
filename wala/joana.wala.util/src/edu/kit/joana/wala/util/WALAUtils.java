@@ -27,7 +27,7 @@ public final class WALAUtils {
 	 * @return the IMethod which represents the main method of the given class in the given class hierarchy
 	 * @throws RuntimeException if a class with the given name is not found in the given class hierarchy or if such a class is found but does not declare a main method
 	 */
-	public static IMethod findMethod(IClassHierarchy cha, String mainClass) {
+	public static IMethod findMainMethod(IClassHierarchy cha, String mainClass) {
 		IClass cl = cha.lookupClass(TypeReference.findOrCreate(
 				ClassLoaderReference.Application, mainClass));
 		if (cl == null) {

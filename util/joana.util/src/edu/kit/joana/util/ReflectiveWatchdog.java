@@ -56,6 +56,16 @@ public class ReflectiveWatchdog<T> {
 			}
 		}
 	}
+
+	/**
+	 * Leaves the currently uninitialized fields as they are but marks them as initialized.
+	 * Use with care!
+	 */
+	public void leaveRestAsItIs() {
+		for (Field f : obj.getClass().getDeclaredFields()) {
+			this.initializedFields.add(f.getName());
+		}
+	}
 	/**
 	 * Returns the object which was passed in the constructor. Before that, checks that every field has been set.
 	 * @return the object which was passed in the constructor

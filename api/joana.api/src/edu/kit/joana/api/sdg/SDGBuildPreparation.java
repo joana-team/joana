@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.jar.JarFile;
 
 import com.ibm.wala.cfg.exc.intra.MethodState;
+import com.ibm.wala.classLoader.BinaryDirectoryTreeModule;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.JarFileModule;
@@ -52,6 +53,7 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.util.JoanaConstants;
 import edu.kit.joana.util.LogUtil;
+import edu.kit.joana.util.Stubs;
 import edu.kit.joana.util.io.IOFactory;
 import edu.kit.joana.wala.core.CGConsumer;
 import edu.kit.joana.wala.core.ExternalCallCheck;
@@ -214,6 +216,38 @@ public final class SDGBuildPreparation {
 	    	AnalysisScopeReader.addClassPathToScope(cfg.thirdPartyLibPath, scope, extLoader);
 	    }
 	    return scope;
+	}
+
+	/**
+	 * This method constructs a minimal analysis scope with {@link SDGBuildPreparation.STD_EXCLUSION_REG_EXP standard exclusions}
+	 * and JRE1.4 stubs.
+	 * @param appClassPaths application class path - may contain multiple items, separated by ';'
+	 * @return a minimal analysis scope with JRE1.4 stubs
+	 * @throws IOException
+	 */
+	public static AnalysisScope makeMinimalScope(String appClassPaths)
+			throws IOException {
+		AnalysisScope scope = AnalysisScope.createJavaAnalysisScope();
+		String[] appClassPathParts = appClassPaths.split(";");
+		for (int i = 0; i < appClassPathParts.length; i++) {
+			String appClassPath = appClassPathParts[i];
+			ClassLoaderReference loader;
+			if (i == 0) {
+				loader = ClassLoaderReference.Application;
+			} else {
+				loader = ClassLoaderReference.Primordial;
+			}
+			if (!appClassPath.endsWith(".jar")) {
+				scope.addToScope(loader, new BinaryDirectoryTreeModule(new File(appClassPath)));
+			} else {
+				scope.addToScope(loader, findJarModule(appClassPath));
+			}
+		}
+		for (String stubsPath : Stubs.JRE_14.getPaths()) {
+			scope.addToScope(ClassLoaderReference.Primordial, findJarModule(stubsPath));
+		}
+		scope.setExclusions(new FileOfClasses(new ByteArrayInputStream(SDGBuildPreparation.STD_EXCLUSION_REG_EXP.getBytes())));
+		return scope;
 	}
 
 	public static SDG compute(PrintStream out, Config cfg) throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {

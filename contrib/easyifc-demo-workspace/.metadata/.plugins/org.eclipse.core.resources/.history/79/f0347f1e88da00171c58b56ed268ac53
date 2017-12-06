@@ -1,0 +1,37 @@
+package ifc;
+
+import edu.kit.joana.ui.annotations.Sink;
+import edu.kit.joana.ui.annotations.Source;
+import static edu.kit.joana.ui.annotations.Level.*;
+
+public class Main {
+
+	static int x, y;
+	
+	public static void main(String[] argv) throws InterruptedException {
+		A a = new A();
+		a.start();
+		x = input();
+		print(x);
+		new A().start();
+	}
+
+	static class A extends Thread {
+		
+		public void run() {
+			int y = Main.inputPIN();
+			Main.x = y;
+		}
+	
+	}
+	
+	@Source(level = HIGH, lineNumber = 28, columnNumber = 1)
+	public static int inputPIN() { return 42; }
+	
+	@Sink(level = LOW, lineNumber = 31, columnNumber = 1)
+	public static void print(int i) {}
+	
+	@Source(level = LOW, lineNumber = 34, columnNumber = 1)
+	public static int input() { return 13; }
+
+}

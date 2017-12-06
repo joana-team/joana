@@ -1,0 +1,46 @@
+package ifc;
+
+import edu.kit.joana.ui.annotations.Level;
+import edu.kit.joana.ui.annotations.PositionDefinition;
+
+import static edu.kit.joana.ui.annotations.Level.*;
+
+
+import edu.kit.joana.ui.annotations.EntryPoint;
+import edu.kit.joana.ui.annotations.EntryPointKind;
+import edu.kit.joana.ui.annotations.Sink;
+import edu.kit.joana.ui.annotations.Source;
+
+
+public class Main {
+
+	@EntryPoint(datasets = {"important", "unimportant"})
+	public static void nothing2() {
+		return;
+	}
+	
+	public static int x,y;
+	
+	@EntryPoint(kind = EntryPointKind.SEQUENTIAL)
+	public static void main(String[] argv) {
+		
+		@Sink(level = Level.LOW, lineNumber = 27, columnNumber = 2)
+		int z  = 5; 
+		
+		x = inputPIN();
+		if (x < 1234)
+			print(1,0);
+		if (x > 0) 
+			z = 42;
+		y = x;
+		print(y,1);
+		print(z,4);
+	}
+	
+	@Source(level = HIGH, lineNumber = 40, columnNumber = 1)
+	public static int inputPIN() { return 42; }
+	
+	public static void print(int i, @Source(level = LOW, lineNumber = 43, columnNumber = 33) int unimportant) {}
+
+}
+

@@ -1,0 +1,41 @@
+package other;
+import static edu.kit.joana.ui.annotations.Level.LOW;
+
+import edu.kit.joana.ui.annotations.PositionDefinition;
+import edu.kit.joana.ui.annotations.Sink;
+import edu.kit.joana.ui.annotations.Source;
+import ifc.Main;
+
+public class Other {
+	public static void print(int i, @Source(level = LOW, lineNumber = 10, columnNumber = 33) int unimportant) {
+		
+		
+		int a = Main.y;
+		
+		@Source(includes = "important", lineNumber = 15, columnNumber = 2)
+		int x;
+		
+		if (unimportant > 0) {
+			x = a;
+		} else {
+			x = i;
+		}
+		
+		try {
+			throw new NullPointerException();
+		} catch (@Source(lineNumber = 26, columnNumber = 11) Exception e) {
+			
+		}
+			
+ 
+		int lol = x + 4;
+		@Sink(mayInclude = "unimportant", positionDefinition = PositionDefinition.AUTO, lineNumber = 32, columnNumber = 2)
+		int z = lol + 1;
+		z = unimportant;
+		int rofl = z;
+		z = x + 3;
+		System.out.println(z);
+		System.out.println(z);
+		
+	}
+}

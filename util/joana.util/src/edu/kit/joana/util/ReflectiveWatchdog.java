@@ -63,7 +63,9 @@ public class ReflectiveWatchdog<T> {
 	 */
 	public void leaveRestAsItIs() {
 		for (Field f : obj.getClass().getDeclaredFields()) {
-			this.initializedFields.add(f.getName());
+			if (!Modifier.isStatic(f.getModifiers()) && !initializedFields.contains(f.getName())) {
+				this.initializedFields.add(f.getName());
+			}
 		}
 	}
 	/**

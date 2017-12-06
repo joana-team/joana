@@ -169,13 +169,13 @@ public final class SDGBuildPreparation {
 	public static Module findJarModule(final PrintStream out, final String path) throws IOException {
 		final File f = new File(path);
 		if (f.exists()) {
-			out.print("(from file " + path + ") ");
+			if (out != null) out.print("(from file " + path + ") ");
 			return new JarFileModule(new JarFile(f));
 		} else {
 			final URL url = Contrib.class.getClassLoader().getResource(path);
 			final URLConnection con = url.openConnection();
 			final InputStream in = con.getInputStream();
-			out.print("(from jar stream " + path + ") ");
+			if (out != null) out.print("(from jar stream " + path + ") ");
 			return new JarStreamModule(in);
 		}
 	}

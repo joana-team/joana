@@ -318,8 +318,8 @@ public class SDGProgram {
 							for (SDGMethod sdgm : methods) {
 								this.annotations.put(sdgm.getParameter(parameternumber), parameterWithSourcefile);
 							}
-							parameternumber++;
 						}
+						parameternumber++;
 					}
 					
 					try {

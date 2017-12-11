@@ -197,16 +197,10 @@ public final class SDGBuildPreparation {
 		String[] appClassPathParts = appClassPaths.split(";");
 		for (int i = 0; i < appClassPathParts.length; i++) {
 			String appClassPath = appClassPathParts[i];
-			ClassLoaderReference loader;
-			if (i == 0) {
-				loader = ClassLoaderReference.Application;
-			} else {
-				loader = ClassLoaderReference.Primordial;
-			}
 			if (!appClassPath.endsWith(".jar")) {
-				scope.addToScope(loader, new BinaryDirectoryTreeModule(new File(appClassPath)));
+				scope.addToScope(ClassLoaderReference.Application, new BinaryDirectoryTreeModule(new File(appClassPath)));
 			} else {
-				scope.addToScope(loader, findJarModule(appClassPath));
+				scope.addToScope(ClassLoaderReference.Application, findJarModule(appClassPath));
 			}
 		}
 		for (String stubsPath : Stubs.JRE_14.getPaths()) {

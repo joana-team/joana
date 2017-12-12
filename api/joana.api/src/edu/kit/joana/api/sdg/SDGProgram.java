@@ -11,6 +11,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -53,6 +55,8 @@ import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.ifc.sdg.util.JavaType.Format;
+import edu.kit.joana.ui.annotations.Sink;
+import edu.kit.joana.ui.annotations.Source;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.Pair;
@@ -270,6 +274,12 @@ public class SDGProgram {
 	}
 
 	public void fillWithAnnotations(IClassHierarchy cha) {
+		final Collection<String> sourceOrSinkAnnotationName = 
+				Arrays.asList(new Class<?>[] { Source.class, Sink.class })
+				.stream().map( cl -> "L" + cl.getName().replace(".", "/")).collect(Collectors.toList());
+		final Collection<String> entryPointAnnotationName = 
+				Arrays.asList(new Class<?>[] { edu.kit.joana.ui.annotations.EntryPoint.class })
+				.stream().map( cl -> "L" + cl.getName().replace(".", "/")).collect(Collectors.toList());
 		// TODO: Iterate only over classes present in the call graph
 		for (IClass c : cha) {
 			final String walaClassName = c.getName().toString();
@@ -291,16 +301,26 @@ public class SDGProgram {
 
 			}
 			for (IMethod m : c.getAllMethods()) {
-				if (m.getAnnotations() != null && !m.getAnnotations().isEmpty()) {
-					final Collection<SDGMethod> methods = this.getMethods(JavaMethodSignature.fromString(m
-							.getSignature()));
-					for (SDGMethod sdgm : methods) {
-						this.annotations.put(
-							sdgm,
-							m.getAnnotations().stream().map( a -> Pair.pair(a, sourcefile)).collect(Collectors.toList())
-						);
+				
+				if (m.getAnnotations() != null) {
+					Collection<Pair<Annotation, String>> methodWithSourceFile = m.getAnnotations().stream()
+							.filter( a -> sourceOrSinkAnnotationName.contains(a.getType().getName().toString()))
+							.map( a -> Pair.pair(a, sourcefile))
+							.collect(Collectors.toList()
+					);
+					if (!methodWithSourceFile.isEmpty()) {
+						final Set<IMethod> implementors = cha.getPossibleTargets(m.getReference());
+						final Collection<SDGMethod> methods = implementors.stream().flatMap(
+								mImpl -> this.getMethods(JavaMethodSignature.fromString(mImpl.getSignature())).stream()
+						).collect(Collectors.toList());
+						for (SDGMethod sdgm : methods) {
+							this.annotations.put(
+								sdgm,
+								methodWithSourceFile
+							);
+						}
+						debug.outln("Annotated: " + jt + ":::" + m.getName() + " with " + m.getAnnotations());
 					}
-					debug.outln("Annotated: " + jt + ":::" + m.getName() + " with " + m.getAnnotations());
 				}
 				
 				if (m instanceof ShrikeCTMethod) {
@@ -310,10 +330,13 @@ public class SDGProgram {
 					int parameternumber = m.isStatic() ? 1 : 0;
 					for(Collection<Annotation> parameter : method.getParameterAnnotations() ) {
 						final Collection<Pair<Annotation, String>> parameterWithSourcefile =
-							parameter.stream().map( a -> Pair.pair(a, sourcefile)).collect(Collectors.toList());
-						if (!parameter.isEmpty()) {
+							parameter.stream().filter( a -> sourceOrSinkAnnotationName.contains(a.getType().getName().toString())).map( a -> Pair.pair(a, sourcefile)).collect(Collectors.toList());
+						if (!parameterWithSourcefile.isEmpty()) {
 							if (methods.isEmpty()) { 
-								methods = this.getMethods(JavaMethodSignature.fromString(m.getSignature()));
+								final Set<IMethod> implementors = cha.getPossibleTargets(m.getReference());
+								methods = implementors.stream().flatMap(
+										mImpl -> this.getMethods(JavaMethodSignature.fromString(mImpl.getSignature())).stream()
+								).collect(Collectors.toList());
 							}
 							for (SDGMethod sdgm : methods) {
 								this.annotations.put(sdgm.getParameter(parameternumber), parameterWithSourcefile);

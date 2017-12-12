@@ -306,7 +306,7 @@ public class MarkerFactory {
 					map.put(HighlightPlugin.SDG_ID, new Integer(node.getId()));
 					map.put(IMarker.SEVERITY, new Integer(
 							IMarker.SEVERITY_ERROR));
-					MarkerUtilities.createMarker(resource, map, type);
+					MarkerUtilities.createMarker(resource, new HashMap<>(map), type);
 
 				} catch (CoreException e) {
 					e.printStackTrace();
@@ -322,7 +322,7 @@ public class MarkerFactory {
 			map.put(HighlightPlugin.SDG_ID, new Integer(node.getId()));
 			map.put(IMarker.SEVERITY, new Integer(IMarker.SEVERITY_ERROR));
 			try {
-				MarkerUtilities.createMarker(p, map, type);
+				MarkerUtilities.createMarker(p, new HashMap<>(map), type);
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}
@@ -387,7 +387,7 @@ public class MarkerFactory {
 					map.put(HighlightPlugin.SDG_ID, new Integer(node.getId()));
 					map.put(IMarker.SEVERITY, new Integer(
 							IMarker.SEVERITY_ERROR));
-					MarkerUtilities.createMarker(resource, map, type);
+					MarkerUtilities.createMarker(resource, new HashMap<>(map), type);
 
 				} catch (CoreException e) {
 					e.printStackTrace();
@@ -403,7 +403,7 @@ public class MarkerFactory {
 			map.put(HighlightPlugin.SDG_ID, new Integer(node.getId()));
 			map.put(IMarker.SEVERITY, new Integer(IMarker.SEVERITY_ERROR));
 			try {
-				MarkerUtilities.createMarker(p, map, type);
+				MarkerUtilities.createMarker(p, new HashMap<>(map), type);
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}
@@ -634,7 +634,7 @@ public class MarkerFactory {
                     map.put(IMarker.SEVERITY, new Integer(
                             IMarker.SEVERITY_ERROR));
 
-                    MarkerUtilities.createMarker(resource, map, HighlightPlugin.MARKER_ID+"level"+l.getType());
+                    MarkerUtilities.createMarker(resource, new HashMap<>(map), HighlightPlugin.MARKER_ID+"level"+l.getType());
 
                 } catch (CoreException e) {
                     e.printStackTrace();

@@ -542,6 +542,10 @@ public class EntryPointSearch {
 								}
 								sb.delete(sb.length() - 2, sb.length());
 								break;
+							case "kind":
+								final String kind = (String) mp.getValue();
+								sb.append(kind);
+								break;
 							default: assert (false);
 						}
 						sb.append(", ");

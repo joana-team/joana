@@ -26,12 +26,15 @@ import org.eclipse.jdt.ui.JavaElementLabelProvider;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.PlatformUI;
 
+import com.google.common.io.LineReader;
+
 import edu.kit.joana.ui.wala.easyifc.Activator;
 import edu.kit.joana.ui.wala.easyifc.model.FileSourcePositions;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.IFCResult;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SLeak;
 import edu.kit.joana.ui.wala.easyifc.model.SourcePosition;
 import edu.kit.joana.ui.wala.easyifc.util.EntryPointSearch.EntryPointConfiguration;
+import edu.kit.joana.util.Pair;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
@@ -299,13 +302,15 @@ public class EasyIFCMarkerAndImageManager {
 		final TIntObjectMap<LinePos> line2char = new TIntObjectHashMap<LinePos>();
 		final InputStream in = f.getContents();
 		final InputStreamReader reader = new InputStreamReader(in);
-		final BufferedReader br = new BufferedReader(reader);
+		final edu.kit.joana.util.io.LineReader lr = new edu.kit.joana.util.io.LineReader(reader);
 
 		int currentLine = 1;
 		int currentChar = 0;
 
-		while (br.ready()) {
-			final String line = br.readLine();
+		Pair<String, String> lineWithLineEnd;
+		while ((lineWithLineEnd = lr.readLine()) != null) {
+			final String line    = lineWithLineEnd.getFirst();
+			final String lineEnd = lineWithLineEnd.getSecond();
 
 			final LinePos pos = new LinePos();
 			pos.firstChar = currentChar;
@@ -315,11 +320,8 @@ public class EasyIFCMarkerAndImageManager {
 
 			line2char.put(currentLine, pos);
 
-			currentChar += line.length() + 1;
+			currentChar += line.length() + lineEnd.length();
 			currentLine++;
-//			System.out.print("line: " + currentLine + "\tchar: " + currentChar);
-//			System.out.println("\t - " + line);
-//			line2char.put(currentLine, currentChar);
 		}
 
 		return line2char;

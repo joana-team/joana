@@ -59,6 +59,7 @@ import edu.kit.joana.ui.wala.easyifc.model.CheckInformationFlow;
 import edu.kit.joana.ui.wala.easyifc.model.CheckInformationFlow.CheckIFCConfig;
 import edu.kit.joana.ui.wala.easyifc.util.AnnotationSearch.AnnotationSearchRequestor;
 import edu.kit.joana.util.Pair;
+import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 
 @SuppressWarnings("restriction")
 public class EntryPointSearch {
@@ -410,6 +411,7 @@ public class EntryPointSearch {
 		protected final List<String> errors = new LinkedList<>();
 		protected final IAnnotation annotation;
 		protected final EntryPointKind kind;
+		protected final PointsToPrecision pointsToPrecision;
 
 		
 		private AnnotationEntryPointConfiguration(IMethod method, IAnnotation annotation) {
@@ -420,6 +422,7 @@ public class EntryPointSearch {
 			this.annotation = annotation;
 			{
 				EntryPointKind kind = null;
+				PointsToPrecision pointsToPrecision = null;
 				try {
 					
 					for (IMemberValuePair pair : annotation.getMemberValuePairs()) {
@@ -435,6 +438,18 @@ public class EntryPointSearch {
 								kind = EntryPointKind.UNKNOWN;
 							}
 						}
+						if ("pointsToPrecision".equals(pair.getMemberName())) {
+							assert (pair.getValueKind() == IMemberValuePair.K_SIMPLE_NAME);
+							final String value = (String) pair.getValue();
+							final String[] splits = value.split("\\.");
+							final String unqualifiedValue = splits[splits.length - 1]; 
+								
+							try {
+								pointsToPrecision = PointsToPrecision.valueOf(unqualifiedValue);
+							} catch (IllegalArgumentException e) {
+								pointsToPrecision = PointsToPrecision.INSTANCE_BASED;
+							}
+						}
 					}
 				} catch (JavaModelException e) {
 					// Thrown by IAnnotation.getMemberValuePairs()
@@ -444,6 +459,12 @@ public class EntryPointSearch {
 					this.kind = EntryPointKind.UNKNOWN;
 				} else {
 					this.kind = kind;
+				}
+				
+				if (pointsToPrecision == null) {
+					this.pointsToPrecision = PointsToPrecision.INSTANCE_BASED;
+				} else {
+					this.pointsToPrecision = pointsToPrecision;
 				}
 			}
 		}
@@ -501,6 +522,8 @@ public class EntryPointSearch {
 			String s = resolveMethodSignature(this.getEntryPointMethod(), getASTForEntryPoint());
 			JavaMethodSignature mainMethodSignature = JavaMethodSignature.fromString(s);
 			SDGConfig def = CheckInformationFlow.createDefaultConfig(cfc, mainMethodSignature);
+			assert pointsToPrecision != null;
+			def.setPointsToPrecision(pointsToPrecision);
 			// ....
 			return def;
 		}
@@ -545,6 +568,10 @@ public class EntryPointSearch {
 							case "kind":
 								final String kind = (String) mp.getValue();
 								sb.append(kind);
+								break;
+							case "pointsToPrecision":
+								final String pointsToPrecision = (String) mp.getValue();
+								sb.append(pointsToPrecision);
 								break;
 							default: assert (false);
 						}

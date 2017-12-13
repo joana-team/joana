@@ -441,8 +441,16 @@ public class IFCAnalysis {
 		addSourceAnnotation(toMark, level, null, UnknownCause.INSTANCE);
 	}
 
+	public void addSourceAnnotation(SDGProgramPart toMark, String level, AnnotationCause cause) {
+		addSourceAnnotation(toMark, level, null, cause);
+	}
+
 	public void addSinkAnnotation(SDGProgramPart toMark, String level) {
 		addSinkAnnotation(toMark, level, null, UnknownCause.INSTANCE);
+	}
+	
+	public void addSinkAnnotation(SDGProgramPart toMark, String level, AnnotationCause cause) {
+		addSinkAnnotation(toMark, level, null, cause);
 	}
 
 	@Deprecated
@@ -473,13 +481,13 @@ public class IFCAnalysis {
 	}
 	
 	@Deprecated
-	public void addSinkAnnotationsToActualsAtCallsites(JavaMethodSignature signature, String level) {
+	public void addSinkAnnotationsToActualsAtCallsites(JavaMethodSignature signature, String level, AnnotationCause cause) {
 		final Collection<SDGCall> calls = program.getCallsToMethod(signature);
 		for (final SDGCall call : calls) {
 			final Collection<SDGActualParameter> params = call.getActualParameters();
 			for (final SDGActualParameter aIn : params) {
 				//if (aIn.getIndex() != 1) throw new IllegalArgumentException("rofl");
-				addSinkAnnotation(aIn, level);
+				addSinkAnnotation(aIn, level, cause);
 			}
 		}
 	}
@@ -491,7 +499,7 @@ public class IFCAnalysis {
 	
 	public void addSinkAnnotation(SDGMethod methodToMark, String level, AnnotationPolicy annotationPolicy, AnnotationCause cause) {
 		switch (annotationPolicy) {
-			case ANNOTATE_USAGES: addSinkAnnotationsToActualsAtCallsites(methodToMark.getSignature(), level); break;
+			case ANNOTATE_USAGES: addSinkAnnotationsToActualsAtCallsites(methodToMark.getSignature(), level, cause); break;
 			case ANNOTATE_CALLEE:  addSinkAnnotation((SDGProgramPart)methodToMark, level, (SDGMethod) null, cause); break;
 			default: throw new IllegalArgumentException("Unknown AnnotationPolicy: " + annotationPolicy);
 		}

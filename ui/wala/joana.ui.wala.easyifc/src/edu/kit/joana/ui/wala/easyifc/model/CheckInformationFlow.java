@@ -561,7 +561,7 @@ public final class CheckInformationFlow {
 			ana.addSourceAnnotationsToCallers(JavaMethodSignature.fromString(DEFAULT_SECRET_SOURCE), BuiltinLattices.STD_SECLEVEL_HIGH, UnknownCause.INSTANCE);
 			
 			// annotate sinks
-			ana.addSinkAnnotationsToActualsAtCallsites(JavaMethodSignature.fromString(DEFAULT_PUBLIC_OUTPUT), BuiltinLattices.STD_SECLEVEL_LOW);
+			ana.addSinkAnnotationsToActualsAtCallsites(JavaMethodSignature.fromString(DEFAULT_PUBLIC_OUTPUT), BuiltinLattices.STD_SECLEVEL_LOW, UnknownCause.INSTANCE);
 			 
 			annotations = Pair.pair(ImmutableMultimap.of() , ImmutableMultimap.of());
 		}

@@ -94,32 +94,6 @@ public class ObjSensZeroXCFABuilder extends ZeroXCFABuilder {
 		return new ObjSensInstanceKeys((ExtendedAnalysisOptions) options, cha, contextInterpreter, instancePolicy);
 	}
 
-    public static ZeroXCFABuilder make(final IClassHierarchy cha, final ExtendedAnalysisOptions options,
-			final AnalysisCache cache, final ContextSelector appContextSelector,
-			final SSAContextInterpreter appCtxInterp, final int instancePolicy) throws IllegalArgumentException {
-        return make(cha, options, cache, appContextSelector, null, appCtxInterp, instancePolicy);
-    }
-
-	public static ZeroXCFABuilder make(final IClassHierarchy cha, final ExtendedAnalysisOptions options,
-			final IAnalysisCacheView cache, final ContextSelector appContextSelector, final ContextSelector additionalContextSelector,
-			final SSAContextInterpreter appCtxInterp, final int instancePolicy) throws IllegalArgumentException {
-		if (options == null) {
-			throw new IllegalArgumentException("options == null");
-		}
-	   
-		final ObjSensContextSelector objSensSelector = new ObjSensContextSelector(appContextSelector, options.filter);
-        final ContextSelector contextSelector;
-        
-        if (additionalContextSelector != null) {
-            contextSelector = new DelegatingContextSelector(objSensSelector, additionalContextSelector);
-        } else {
-            contextSelector = objSensSelector;
-        }
-
-		return new ObjSensZeroXCFABuilder(cha, options, cache, contextSelector, appCtxInterp, instancePolicy);
-	}
-
-
 	public static SSAPropagationCallGraphBuilder make(AnalysisOptions options, AnalysisCache cache, IClassHierarchy cha,
 			ClassLoader cl, AnalysisScope scope, String[] xmlFiles, byte instancePolicy) throws IllegalArgumentException {
 		throw new NotImplementedException("This cannot be used to create an object sensitive analysis.");

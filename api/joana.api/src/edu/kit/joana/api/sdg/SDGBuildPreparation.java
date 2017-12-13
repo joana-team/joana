@@ -292,7 +292,7 @@ public final class SDGBuildPreparation {
 
 				@Override
 				public boolean resolveReflection() {
-					return false;
+					return true;
 				}
 			};
 		} else {

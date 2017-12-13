@@ -13,6 +13,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.util.Collection;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
@@ -364,5 +365,18 @@ public class ToyTests {
 	public void testControlDependenceDueToDubiousPhiPlacement() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testPreciseEnough(joana.api.testdata.seq.ControlDependenceDueToDubiousPhiPlacement.class);
+	}
+	
+	@Test
+	@Ignore
+	public void testReflectiveConstructorCall() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testPreciseEnough(joana.api.testdata.seq.ReflectiveConstructorCall.class);
+	}
+	
+	@Test
+	public void testReflectiveMethodCall() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testPreciseEnough(joana.api.testdata.seq.ReflectiveMethodCall.class);
 	}
 }

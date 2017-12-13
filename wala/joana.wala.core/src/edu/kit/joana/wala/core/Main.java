@@ -348,7 +348,7 @@ public final class Main {
 
 				@Override
 				public boolean resolveReflection() {
-					return false;
+					return true;
 				}
 			};
 		} else {

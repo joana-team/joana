@@ -33,10 +33,10 @@ public class TestIFCApplicationFreeCS extends TestObjGraphPerformance {
 	public void test_JRE14_FreeCS_PtsInst_Graph_Std() {
 		try {
 			final String currentTestcase = currentMethodName();
-			if (areWeLazy(currentTestcase)) {
-				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
-				return;
-			}
+//			if (areWeLazy(currentTestcase)) {
+//				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+//				return;
+//			}
 
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED,
 					FieldPropagation.OBJ_GRAPH,

@@ -7,6 +7,8 @@
  */
 package edu.kit.joana.wala.util.pointsto;
 
+import com.ibm.wala.analysis.reflection.ReflectionContextInterpreter;
+import com.ibm.wala.analysis.reflection.ReflectionContextSelector;
 import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
@@ -61,6 +63,42 @@ public final class WalaPointsToUtil {
 	public static final <T> boolean isSubsetOf(final OrdinalSet<T> a, final OrdinalSet<T> b) {
 		if (a.getMapping()    != b.getMapping()) throw new IllegalArgumentException();
 		return a.getBackingSet().isSubset(b.getBackingSet());
+	}
+	
+	public static final SSAContextInterpreter newDelegatingSSAContextInterpreterStack(SSAContextInterpreter... cis) {
+		SSAContextInterpreter result = null;
+		for (SSAContextInterpreter ci : cis) {
+			if (result == null) {
+				result = ci;
+			} else if (ci != null) {
+				result = new DelegatingSSAContextInterpreter(result, ci);
+			}
+		}
+		return result;
+	}
+	
+	public static final ContextSelector newUnionContextSelectorStack(ContextSelector... css) {
+		ContextSelector result = null;
+		for (ContextSelector cs : css) {
+			if (result == null) {
+				result = cs;
+			} else if (cs != null) {
+				result = new UnionContextSelector(result, cs);
+			}
+		}
+		return result;
+	}
+	
+	public static final ContextSelector newDelegatingContextSelectorStack(ContextSelector... css) {
+		ContextSelector result = null;
+		for (ContextSelector cs : css) {
+			if (result == null) {
+				result = cs;
+			} else if (cs != null) {
+				result = new DelegatingContextSelector(result, cs);
+			}
+		}
+		return result;
 	}
 
     /**
@@ -167,12 +205,11 @@ public final class WalaPointsToUtil {
             }
         }
 
-        final SSAContextInterpreter contextInterpreter;
-        if (additionalContextInterpreter == null) {
-        	contextInterpreter = new FallbackContextInterpreter(new DefaultSSAInterpreter(options, cache));
-        } else {
-        	contextInterpreter = new DelegatingSSAContextInterpreter(additionalContextInterpreter, new FallbackContextInterpreter(new DefaultSSAInterpreter(options, cache)));
-        }
+        final SSAContextInterpreter contextInterpreter = newDelegatingSSAContextInterpreterStack(
+                ReflectionContextInterpreter.createReflectionContextInterpreter(cha, options, cache),
+                additionalContextInterpreter,
+                new FallbackContextInterpreter(new DefaultSSAInterpreter(options, cache))
+        );
         
         final int instancePolicy =  ZeroXInstanceKeys.ALLOCATIONS |
                                     ZeroXInstanceKeys.CONSTANT_SPECIFIC |
@@ -201,28 +238,30 @@ public final class WalaPointsToUtil {
         }
 
 
-        final SSAContextInterpreter contextInterpreter;
-        if (additionalContextInterpreter == null) {
-        	contextInterpreter = new FallbackContextInterpreter(new DefaultSSAInterpreter(options, cache));
-        } else {
-        	contextInterpreter = new DelegatingSSAContextInterpreter(additionalContextInterpreter, new FallbackContextInterpreter(new DefaultSSAInterpreter(options, cache)));
-        }
+        
+        final SSAContextInterpreter contextInterpreter = newDelegatingSSAContextInterpreterStack(
+                ReflectionContextInterpreter.createReflectionContextInterpreter(cha, options, cache),
+                additionalContextInterpreter,
+                new FallbackContextInterpreter(new DefaultSSAInterpreter(options, cache))
+        );
 
-        final ContextSelector defaultSelector = new DefaultContextSelector(options, cha);
-        final ContextSelector contextSelector;
-        if (additionalContextSelector == null) {
-        	contextSelector = defaultSelector;
-        } else {
-        	contextSelector = new UnionContextSelector(additionalContextSelector, defaultSelector);
-        }
+        final ContextSelector contextSelector = newDelegatingContextSelectorStack(
+                ReflectionContextSelector.createReflectionContextSelector(options),
+                new ObjSensContextSelector(
+                        newUnionContextSelectorStack(
+                                additionalContextSelector,
+                                new DefaultContextSelector(options, cha)
+                        ),
+                        options.filter
+                )
+        );
         
         final int instancePolicy =  ZeroXInstanceKeys.ALLOCATIONS |
                                     ZeroXInstanceKeys.CONSTANT_SPECIFIC |
                                     ZeroXInstanceKeys.SMUSH_MANY |
                                     ZeroXInstanceKeys.SMUSH_THROWABLES;
 
-		return ObjSensZeroXCFABuilder.make(cha, options, cache, defaultSelector, contextSelector, contextInterpreter,
-				instancePolicy);
+        return new ObjSensZeroXCFABuilder(cha, options, cache, contextSelector, contextInterpreter, instancePolicy);
 	}
 
     /**

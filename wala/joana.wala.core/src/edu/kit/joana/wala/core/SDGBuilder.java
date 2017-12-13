@@ -1241,7 +1241,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		}
 		final ExtendedAnalysisOptions options = new ExtendedAnalysisOptions(objSensFilter, scope, entries);
 		if (resolveReflection) {
-			options.setReflectionOptions(ReflectionOptions.NO_STRING_CONSTANTS);
+			options.setReflectionOptions(ReflectionOptions.FULL);
 		} else {
 			options.setReflectionOptions(ReflectionOptions.NONE);
 		}

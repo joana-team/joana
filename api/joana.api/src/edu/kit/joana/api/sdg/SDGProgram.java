@@ -327,7 +327,7 @@ public class SDGProgram {
 					ShrikeCTMethod method = (ShrikeCTMethod) m;
 					Collection<SDGMethod> methods = Collections.emptyList();
 
-					int parameternumber = m.isStatic() ? 1 : 0;
+					int parameternumber = m.isStatic() ? 1 : 1;
 					for(Collection<Annotation> parameter : method.getParameterAnnotations() ) {
 						final Collection<Pair<Annotation, String>> parameterWithSourcefile =
 							parameter.stream().filter( a -> sourceOrSinkAnnotationName.contains(a.getType().getName().toString())).map( a -> Pair.pair(a, sourcefile)).collect(Collectors.toList());

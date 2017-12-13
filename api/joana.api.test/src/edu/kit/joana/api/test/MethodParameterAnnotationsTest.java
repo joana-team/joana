@@ -61,6 +61,18 @@ public class MethodParameterAnnotationsTest {
 	CancelException {
 		test(joana.api.testdata.javannotations.MethodParameterAnnotationsSink2.class);
 	}
+	
+	@Test
+	public void testSourceNonStatic() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
+	CancelException {
+		test(joana.api.testdata.javannotations.MethodParameterAnnotationsNonStatic.class);
+	}
+	
+	@Test
+	public void testSink2NonStatic() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
+	CancelException {
+		test(joana.api.testdata.javannotations.MethodParameterAnnotationsSink2NonStatic.class);
+	}
 
 	
 	public static void main(String[] args)

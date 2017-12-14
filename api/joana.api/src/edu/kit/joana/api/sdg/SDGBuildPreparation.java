@@ -193,6 +193,19 @@ public final class SDGBuildPreparation {
 	 */
 	public static AnalysisScope makeMinimalScope(String appClassPaths)
 			throws IOException {
+		return makeMinimalScope(appClassPaths, Stubs.JRE_14, SDGBuilder.STD_EXCLUSION_REG_EXP);
+	}
+
+	/**
+	 * This method constructs a minimal analysis scope. The user may decide which stubs and exclusions to use
+	 * @param appClassPaths application class path - may contain multiple items, separated by ';'
+	 * @param stubs stubs to use
+	 * @param exclusionsRegexp exclusions to use -- for the expected format, see {@link SDGBuilder.STD_EXCLUSION_REG_EXP}
+	 * @return a minimal analysis scope user chosen stubs and exclusions
+	 * @throws IOException
+	 */
+	public static AnalysisScope makeMinimalScope(String appClassPaths, Stubs stubs, String exclusionsRegexp)
+			throws IOException {
 		AnalysisScope scope = AnalysisScope.createJavaAnalysisScope();
 		String[] appClassPathParts = appClassPaths.split(";");
 		for (int i = 0; i < appClassPathParts.length; i++) {
@@ -203,10 +216,10 @@ public final class SDGBuildPreparation {
 				scope.addToScope(ClassLoaderReference.Application, findJarModule(appClassPath));
 			}
 		}
-		for (String stubsPath : Stubs.JRE_14.getPaths()) {
+		for (String stubsPath : stubs.getPaths()) {
 			scope.addToScope(ClassLoaderReference.Primordial, findJarModule(stubsPath));
 		}
-		scope.setExclusions(new FileOfClasses(new ByteArrayInputStream(SDGBuilder.STD_EXCLUSION_REG_EXP.getBytes())));
+		scope.setExclusions(new FileOfClasses(new ByteArrayInputStream(exclusionsRegexp.getBytes())));
 		return scope;
 	}
 

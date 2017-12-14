@@ -10,7 +10,9 @@ package edu.kit.joana.ui.wala.easyifc.model;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -22,6 +24,7 @@ import edu.kit.joana.api.SPos;
 import edu.kit.joana.api.annotations.AnnotationTypeBasedNodeCollector;
 import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.sdg.SDGProgramPart;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ui.annotations.Sink;
 import edu.kit.joana.ui.annotations.Source;
 import edu.kit.joana.ui.wala.easyifc.model.IFCResultFilter.LeakType;
@@ -174,14 +177,14 @@ public interface IFCCheckResultConsumer {
 		private final SPos source;
 		private final SPos sink;
 		private final Reason reason;
-		private final SortedSet<SPos> chop;
 		private final Set<SPos> trigger = new TreeSet<>();
+		private final SortedMap<SPos, ? extends Set<? extends SDGNode>> chop;
 
-		public SLeak(final SPos source, final SPos sink, final Reason reason, final SortedSet<SPos> chop) {
+		public SLeak(final SPos source, final SPos sink, final Reason reason, final SortedMap<SPos, ? extends Set<? extends SDGNode>> chop) {
 			this(source, sink, reason, chop, null);
 		}
 		
-		public SLeak(final SPos source, final SPos sink, final Reason reason, final SortedSet<SPos> chop, final SPos trigger) {
+		public SLeak(final SPos source, final SPos sink, final Reason reason, final SortedMap<SPos, ? extends Set<? extends SDGNode>> chop, final SPos trigger) {
 			if (trigger != null) {
 				switch (reason) {
 				case THREAD:
@@ -212,8 +215,8 @@ public interface IFCCheckResultConsumer {
 			return !trigger.isEmpty();
 		}
 		
-		public SortedSet<SPos> getChop() {
-			return Collections.unmodifiableSortedSet(chop);
+		public SortedMap<SPos, Set<? extends SDGNode>> getChop() {
+			return Collections.unmodifiableSortedMap(chop);
 		}
 		
 		public SPos getSource() {
@@ -239,7 +242,7 @@ public interface IFCCheckResultConsumer {
 			result = prime * result + reason.hashCode();
 			result = prime * result + sink.hashCode();
 			result = prime * result + source.hashCode();
-			result = prime * result + chop.hashCode();
+			result = prime * result + chop.keySet().hashCode();
 			result = prime * result + ((trigger == null) ? 0 : trigger.hashCode());
 			return result;
 		}
@@ -253,7 +256,7 @@ public interface IFCCheckResultConsumer {
 				return reason == l.reason
 				    && sink.equals(l.sink)
 				    && source.equals(l.source)
-				    && chop.equals(l.chop);
+				    && chop.keySet().equals(l.chop.keySet());
 			}
 			
 			return false;
@@ -344,7 +347,7 @@ public interface IFCCheckResultConsumer {
 			
 			sbuf.append("from '" + source.toString() + "' to '" + sink.toString() + "'\n");
 			
-			for (final SPos pos : chop) {
+			for (final SPos pos : chop.keySet()) {
 				sbuf.append(pos.toString() + "\t");
 				final String code = pos.getSourceCode(srcFile);
 				sbuf.append(code + "\n");

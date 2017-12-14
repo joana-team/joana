@@ -18,7 +18,9 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import javax.xml.stream.XMLStreamException;
@@ -600,15 +602,27 @@ public final class CheckInformationFlow {
 						ssink = one;
 					}
 
-					final SortedSet<SPos> chop = new TreeSet<SPos>();
-					chop.add(ssource);
-					chop.add(ssink);
+					final SortedMap<SPos, Set<SecurityNode>> chop = new TreeMap<>();
+					chop.compute(ssource, (sp, ns) -> {
+						if (ns == null) ns = new HashSet<>(1);
+						ns.add(source);
+						return ns;
+					});
+					chop.compute(ssink, (sp, ns) -> {
+						if (ns == null) ns = new HashSet<>(1);
+						ns.add(sink);
+						return ns;
+					});
 					final Maybe<SecurityNode> mayTrigger = orderConf.getTrigger();
 					final SPos trpos;
 					if (mayTrigger.isJust()) {
 						final SecurityNode trigger = mayTrigger.extract();
 						trpos = new SPos(trigger.getSource(), trigger.getSr(), trigger.getEr(), trigger.getSc(), trigger.getEc());
-						chop.add(trpos);
+						chop.compute(trpos, (sp, ns) -> {
+							if (ns == null) ns = new HashSet<>(1);
+							ns.add(trigger);
+							return ns;
+						});
 					} else {
 						trpos = null;
 					}
@@ -662,15 +676,27 @@ public final class CheckInformationFlow {
 						ssink = one;
 					}
 					
-					final SortedSet<SPos> chop = new TreeSet<SPos>();
-					chop.add(ssource);
-					chop.add(ssink);
+					final SortedMap<SPos, Set<SecurityNode>> chop = new TreeMap<>();
+					chop.compute(ssource, (sp, ns) -> {
+						if (ns == null) ns = new HashSet<>(1);
+						ns.add(source);
+						return ns;
+					});
+					chop.compute(ssink, (sp, ns) -> {
+						if (ns == null) ns = new HashSet<>(1);
+						ns.add(sink);
+						return ns;
+					});
 					final Maybe<SecurityNode> mayTrigger = dataConf.getTrigger();
 					final SPos trpos;
 					if (mayTrigger.isJust()) {
 						final SecurityNode trigger = mayTrigger.extract();
 						trpos = new SPos(trigger.getSource(), trigger.getSr(), trigger.getEr(), trigger.getSc(), trigger.getEc());
-						chop.add(trpos);
+						chop.compute(trpos, (sp, ns) -> {
+							if (ns == null) ns = new HashSet<>(1);
+							ns.add(trigger);
+							return ns;
+						});
 					} else {
 						trpos = null;
 					}
@@ -704,13 +730,17 @@ public final class CheckInformationFlow {
 	
 	private static SLeak extractSourceLeaks(final SecurityNode source, final SecurityNode sink, final Reason reason,
 			final Collection<SDGNode> nodes) {
-		final TreeSet<SPos> positions = new TreeSet<SPos>();
+		final SortedMap<SPos, Set<SDGNode>> positions = new TreeMap<>();
 		
 		for (final SDGNode n : nodes) {
 			if (n.getSource() != null) {
 				final SPos spos = new SPos(n.getSource(), n.getSr(), n.getEr(), n.getSc(), n.getEc());
 				if (!spos.isAllZero()) {
-					positions.add(spos);
+					positions.compute(spos, (sp, ns) -> {
+						if (ns == null) ns = new HashSet<>();
+						ns.add(n);
+						return ns;
+					});
 				}
 			}
 		}
@@ -719,9 +749,17 @@ public final class CheckInformationFlow {
 		final SPos ssink = new SPos(sink.getSource(), sink.getSr(), sink.getEr(), sink.getSc(), sink.getEc());
 
 		if (positions.isEmpty()) {
-			final SortedSet<SPos> chop = new TreeSet<SPos>();
-			chop.add(ssource);
-			chop.add(ssink);
+			final SortedMap<SPos, Set<SecurityNode>> chop = new TreeMap<>();
+			chop.compute(ssource, (sp, ns) -> {
+				if (ns == null) ns = new HashSet<>();
+				ns.add(source);
+				return ns;
+			});
+			chop.compute(ssink, (sp, ns) -> {
+				if (ns == null) ns = new HashSet<>();
+				ns.add(sink);
+				return ns;
+			});
 			final SLeak sleak = new SLeak(ssource, ssink, reason, chop);
 			
 			return sleak;

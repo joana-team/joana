@@ -88,7 +88,7 @@ public class HighlightIFCResultAction extends Action {
 		private static ProgramSourcePositions buildSourcePositions(final SLeak leak) {
 			final ProgramSourcePositions psp = new ProgramSourcePositions();
 			
-			for (final SPos pos : leak.getChop()) {
+			for (final SPos pos : leak.getChop().keySet()) {
 				psp.addSourcePosition(pos.getSourceFile(), pos.getStartLine(), pos.getEndLine(), pos.getStartChar(), pos.getEndChar());
 			}
 			
@@ -99,7 +99,7 @@ public class HighlightIFCResultAction extends Action {
 			final ProgramSourcePositions psp = new ProgramSourcePositions();
 
 			for (final SLeak leak : result.getLeaks()) {
-				for (final SPos pos : leak.getChop()) {
+				for (final SPos pos : leak.getChop().keySet()) {
 					psp.addSourcePosition(pos.getSourceFile(), pos.getStartLine(), pos.getEndLine(), pos.getStartChar(), pos.getEndChar());
 				}
 			}
@@ -114,7 +114,10 @@ public class HighlightIFCResultAction extends Action {
 			
 			if (leaknfo != null) {
 				final SLeak leak = leaknfo.getLeak();
+				// TODO: use logging?!?!
+				System.out.println("SDG nodes for leak " + leak + ":\t" + leak.getChop());
 				pos = buildSourcePositions(leak);
+				
 				jp = leaknfo.getProject();
 			} else if (ifcnfo != null) {
 				final IFCResult result = ifcnfo.getResult();

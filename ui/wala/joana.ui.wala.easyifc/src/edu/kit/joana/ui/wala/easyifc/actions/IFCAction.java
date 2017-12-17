@@ -101,12 +101,18 @@ public class IFCAction extends Action implements ISelectionListener {
 			this.jp = jp;
 		}
 
-		public static ProjectConf create(final IJavaProject jp) throws JavaModelException {
+		public static ProjectConf create(EasyIFCView view) throws JavaModelException {
+			final IJavaProject jp = view.getCurrentProject();
+			
+			final IFCType selectedIFCType = view.getSelectedIFCType();
+			
 			final IPath binDir = jp.getOutputLocation();
 			final IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 			final IFile resolvedBinDir = root.getFile(binDir);
 
 			final ProjectConf pconf = new ProjectConf(jp);
+
+			pconf.setSelectedIFCType(selectedIFCType);
 
 			for (final IPath srcPath : ProjectUtil.findProjectSourcePaths(jp)) {
 				final IFile resolvedSrcDir = root.getFile(srcPath);
@@ -251,9 +257,7 @@ public class IFCAction extends Action implements ISelectionListener {
 		final IJavaProject jp = getCurrentProject();
 		try {
 			resultConsumer.consume(null);
-			final ProjectConf pconf = ProjectConf.create(jp);
-			final IFCType selectedIFCType = view.getSelectedIFCType();
-			pconf.setSelectedIFCType(selectedIFCType);
+			final ProjectConf pconf = ProjectConf.create(view);
 			PlatformUI.getWorkbench().getProgressService().run(true, true, new IRunnableWithProgress() {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {

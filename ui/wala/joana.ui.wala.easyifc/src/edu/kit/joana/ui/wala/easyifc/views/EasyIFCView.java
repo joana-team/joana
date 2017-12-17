@@ -112,7 +112,7 @@ public class EasyIFCView extends ViewPart {
 		@Override
 		public void run() {
 			try {
-				final ProjectConf pconf = ProjectConf.create(view.getCurrentProject());
+				final ProjectConf pconf = ProjectConf.create(view);
 				PlatformUI.getWorkbench().getProgressService().run(true, true, new IRunnableWithProgress() {
 					@Override
 					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {

@@ -298,7 +298,7 @@ public interface IFCCheckResultConsumer {
 			case THREAD:
 			case THREAD_DATA:
 			case THREAD_EXCEPTION:
-				if (trigger != null) {
+				if (hasTrigger()) {
 					info += "caused by '" + trigger.toString() + "' ";
 				}
 				info += "between '" + source.toString() + "' and '" + sink.toString() + "'";

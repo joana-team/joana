@@ -245,6 +245,7 @@ public final class CheckInformationFlow {
 	private IFCResult doSequentialIFCanalysis(final SDGConfig config, final SDGProgram prog,
 			final EntryPointConfiguration entryPoint, final IFCResultFilter filter,
 			final IProgressMonitor progress) throws CancelException {
+		dumpSDGtoFile(prog.getSDG(), "exc");
 		final IFCResult result = new IFCResult(entryPoint, filter, prog.getNodeCollector());
 		//final Pair<Set<SLeak>, Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>>> excResult =
 		//		checkIFC(Reason.EXCEPTION, prog, IFCType.CLASSICAL_NI, annotationMethod, entryPoint);
@@ -254,11 +255,11 @@ public final class CheckInformationFlow {
 		result.setAnnotations2(excResult.getSecond());
 		final boolean isSecure = excLeaks.isEmpty();
 		printResult(excLeaks.isEmpty(), 0, config);
-		dumpSDGtoFile(prog.getSDG(), "exc", isSecure);
 		
 		if (!isSecure) {
 			config.setExceptionAnalysis(ExceptionAnalysis.IGNORE_ALL);
 			final SDGProgram noExcProg = buildSDG(config);
+			dumpSDGtoFile(noExcProg.getSDG(), "no_exc");
 			//final Pair<Set<SLeak>, Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>>> noExcResult = 
 			//		checkIFC(Reason.BOTH_FLOW, noExcProg, IFCType.CLASSICAL_NI, annotationMethod, entryPoint);
 			final Pair<Set<SLeak>, Collection<IFCAnnotation>> noExcResult = 
@@ -266,11 +267,12 @@ public final class CheckInformationFlow {
 			final Set<SLeak> noExcLeaks = noExcResult.getFirst();
 			result.setAnnotations2(noExcResult.getSecond());
 			printResult(noExcLeaks.isEmpty(), 1, config);
-			dumpSDGtoFile(noExcProg.getSDG(), "no_exc", noExcLeaks.isEmpty());
+			
 
 			if (!noExcLeaks.isEmpty()) {
 				// run without control deps
 				stripControlDeps(noExcProg, progress);
+				dumpSDGtoFile(noExcProg.getSDG(), "no_cdeps");
 				//final Pair<Set<SLeak>, Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>>> directResult =
 				//	checkIFC(Reason.DIRECT_FLOW, noExcProg, IFCType.CLASSICAL_NI, annotationMethod, entryPoint);
 				final Pair<Set<SLeak>, Collection<IFCAnnotation>> directResult =
@@ -278,7 +280,7 @@ public final class CheckInformationFlow {
 				final Set<SLeak> directLeaks = directResult.getFirst();
 				result.setAnnotations2(directResult.getSecond());
 				printResult(directLeaks.isEmpty(), 2, config);
-				dumpSDGtoFile(noExcProg.getSDG(), "no_cdeps", directLeaks.isEmpty());
+				
 				
 				noExcLeaks.removeAll(directLeaks);
 				excLeaks.removeAll(directLeaks);
@@ -318,6 +320,7 @@ public final class CheckInformationFlow {
 	private IFCResult doThreadIFCanalysis(final SDGConfig config, final SDGProgram prog,
 			final EntryPointConfiguration entryPoint, final IFCResultFilter filter, final boolean rebuiltWithoutExceptionEdges) {
 		final IFCType ifcType = cfc.selectedIFCType;
+		dumpSDGtoFile(prog.getSDG(), "thread");
 		cfc.out.println("using " + ifcType + " algorithm.");
 		
 		final IFCResult result = new IFCResult(entryPoint, filter, prog.getNodeCollector());
@@ -330,13 +333,14 @@ public final class CheckInformationFlow {
 		final boolean isSecure = threadLeaks.isEmpty();
 		
 		printResult(threadLeaks.isEmpty(), 0, config);
-		dumpSDGtoFile(prog.getSDG(), "thread", isSecure);
+		
 		
 		if (isSecure) {
 			cfc.out.println("No information leaks detected. Program is SECURE.");
 		} else if (rebuiltWithoutExceptionEdges) {
 			config.setExceptionAnalysis(ExceptionAnalysis.IGNORE_ALL);
 			final SDGProgram noExcProg = buildSDG(config);
+			dumpSDGtoFile(noExcProg.getSDG(), "no_exc_thread");
 			//final Pair<Set<SLeak>, Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>>> noExcResult =
 			//	checkIFC(Reason.THREAD, noExcProg, ifcType, annotationMethod, entryPoint);
 			final Pair<Set<SLeak>, Collection<IFCAnnotation>> noExcResult =
@@ -345,7 +349,7 @@ public final class CheckInformationFlow {
 			result.setAnnotations2(noExcResult.getSecond());
 			
 			printResult(noExcLeaks.isEmpty(), 1, config);
-			dumpSDGtoFile(noExcProg.getSDG(), "no_exc_thread", noExcLeaks.isEmpty());
+			
 
 			threadLeaks.removeAll(noExcLeaks);
 			for (final SLeak leak : noExcLeaks) {
@@ -407,9 +411,9 @@ public final class CheckInformationFlow {
 		return WorkPackage.create(sdg, entries, "no_control_deps");
 	}
 	
-	private void dumpSDGtoFile(final SDG sdg, final String suffix, final boolean isSecure) {
+	private void dumpSDGtoFile(final SDG sdg, final String suffix) {
 		if (DUMP_SDG_FILES) {
-			final String fileName = sdg.getName() + "-" + suffix + (isSecure ? "-secure.pdg" : "-illegal.pdg");
+			final String fileName = sdg.getName() + "-" + suffix + ".pdg";
 	
 			try {
 				final File f = new File(fileName);

@@ -7,8 +7,7 @@ import edu.kit.joana.ui.annotations.PointsToPrecision;
 import edu.kit.joana.ui.annotations.Sink;
 import edu.kit.joana.ui.annotations.Source;
 
-@SuppressWarnings("unused")
-public class CopyValue {
+public class Conditionals {
 	static volatile int x, y;
 	final static int secret = 0b1001111111111001000000000000000;
 	final static int runs = 1000000;
@@ -26,10 +25,10 @@ public class CopyValue {
 		}
 	}
 
-	@Source(level = Level.HIGH, lineNumber = 29, columnNumber = 1)
+	@Source(level = Level.HIGH, lineNumber = 28, columnNumber = 1)
 	public static int inputPIN() { return secret; }
 
-	@Sink(level = Level.LOW, lineNumber = 32, columnNumber = 1)
+	@Sink(level = Level.LOW, lineNumber = 31, columnNumber = 1)
 	public static void print(int i) {
 		System.out.print(i);
 	}

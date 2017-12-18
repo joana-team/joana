@@ -25,6 +25,8 @@ import java.util.TreeSet;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.eclipse.jdt.internal.corext.util.CollectionsUtil;
+
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import com.ibm.wala.cfg.exc.intra.MethodState;
@@ -63,6 +65,7 @@ import edu.kit.joana.ifc.sdg.graph.chopper.NonSameLevelChopper;
 import edu.kit.joana.ifc.sdg.io.graphml.SDG2GraphML;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
+import edu.kit.joana.ui.annotations.ChopComputation;
 import edu.kit.joana.ui.annotations.EntryPointKind;
 import edu.kit.joana.ui.annotations.Sink;
 import edu.kit.joana.ui.annotations.Source;
@@ -182,12 +185,15 @@ public final class CheckInformationFlow {
 			IllegalArgumentException, CancelException, UnsoundGraphException {
 		final SDGConfig config = entryPoint.getSDGConfigFor(cfc);
 		final EntryPointKind kind = entryPoint.getKind();
+		final String file = entryPoint.getSdgFile();
 		
 		SDGProgram p;
-		boolean containsThreads;  
+		boolean containsThreads;
+		boolean rebuiltWithoutExceptionEdges;
 		switch (kind) {
 			case UNKNOWN: {
 				p = buildSDG(config);
+				rebuiltWithoutExceptionEdges = true;
 				containsThreads = containsThreads(p);
 				if (!containsThreads) break;
 			}
@@ -196,18 +202,30 @@ public final class CheckInformationFlow {
 				config.setComputeInterferences(true);
 				config.setMhpType(MHPType.PRECISE);
 				p = buildSDG(config);
+				rebuiltWithoutExceptionEdges = true;
 				containsThreads = true;
 				break;
 			}
 			case SEQUENTIAL: {
 				p = buildSDG(config);
 				containsThreads = false;
+				rebuiltWithoutExceptionEdges = true;
+				break;
+			}
+			case FROMFILE: {
+				if (file == null) {
+					throw new IllegalArgumentException("must provide file path when using " + EntryPointKind.FROMFILE);
+				}
+				p = SDGProgram.loadSDG(null);
+				containsThreads = containsThreads(p);
+				rebuiltWithoutExceptionEdges = false;
 				break;
 			}
 			
 			default: {
 				assert false;
 				containsThreads = false;
+				rebuiltWithoutExceptionEdges = false;
 				p = null;
 			}
 		}
@@ -215,7 +233,7 @@ public final class CheckInformationFlow {
 		assert p != null;
 		if (containsThreads) {			
 			cfc.out.println("checking '" + cfc.bin + "' for concurrent confidentiality.");
-			final IFCResult result = doThreadIFCanalysis(config, p, entryPoint, cfc.filter);
+			final IFCResult result = doThreadIFCanalysis(config, p, entryPoint, cfc.filter, rebuiltWithoutExceptionEdges);
 			cfc.results.consume(result);
 		} else {
 			cfc.out.println("checking '" + cfc.bin + "' for sequential confidentiality.");
@@ -298,7 +316,7 @@ public final class CheckInformationFlow {
 	}
 	
 	private IFCResult doThreadIFCanalysis(final SDGConfig config, final SDGProgram prog,
-			final EntryPointConfiguration entryPoint, final IFCResultFilter filter) {
+			final EntryPointConfiguration entryPoint, final IFCResultFilter filter, final boolean rebuiltWithoutExceptionEdges) {
 		final IFCType ifcType = cfc.selectedIFCType;
 		cfc.out.println("using " + ifcType + " algorithm.");
 		
@@ -314,7 +332,9 @@ public final class CheckInformationFlow {
 		printResult(threadLeaks.isEmpty(), 0, config);
 		dumpSDGtoFile(prog.getSDG(), "thread", isSecure);
 		
-		if (!isSecure) {
+		if (isSecure) {
+			cfc.out.println("No information leaks detected. Program is SECURE.");
+		} else if (rebuiltWithoutExceptionEdges) {
 			config.setExceptionAnalysis(ExceptionAnalysis.IGNORE_ALL);
 			final SDGProgram noExcProg = buildSDG(config);
 			//final Pair<Set<SLeak>, Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>>> noExcResult =
@@ -337,7 +357,9 @@ public final class CheckInformationFlow {
 			
 			cfc.out.println("Information leaks detected. Program is NOT SECURE.");
 		} else {
-			cfc.out.println("No information leaks detected. Program is SECURE.");
+			for (final SLeak leak : threadLeaks) {
+				result.addNoExcLeak(leak);
+			}
 		}
 		
 		return result;
@@ -574,13 +596,13 @@ public final class CheckInformationFlow {
 		final Collection<? extends IViolation<SecurityNode>> leaks = ana.doIFC(type);
 		lastViolations = leaks.size();
 		
-		final Set<SLeak> sleaks = extractLeaks(ana, leaks, reason);
+		final Set<SLeak> sleaks = extractLeaks(ana, leaks, reason, entryPoint.getChopComputation());
 		
 		return Pair.pair(sleaks, ana.getAnnotations());
 	}
 
 	private static Set<SLeak> extractLeaks(final IFCAnalysis ana,
-			final Collection<? extends IViolation<SecurityNode>> leaks, final Reason reason) {
+			final Collection<? extends IViolation<SecurityNode>> leaks, final Reason reason, final ChopComputation chopComputation) {
 		final TreeSet<SLeak> sleaks = new TreeSet<SLeak>();
 		for (final IViolation<SecurityNode> leak : leaks) {
 			leak.accept(new IViolationVisitor<SecurityNode>() {
@@ -641,8 +663,15 @@ public final class CheckInformationFlow {
 					final SDG sdg = ana.getProgram().getSDG();
 					final SecurityNode source = iFlow.getSource();
 					final SecurityNode sink = iFlow.getSink();
-					final NonSameLevelChopper chopper = new NonSameLevelChopper(sdg);
-					final Collection<SDGNode> nodes = chopper.chop(source, sink);
+					
+					final Collection<SDGNode> nodes;
+					if (chopComputation == ChopComputation.ALL) {
+						final NonSameLevelChopper chopper = new NonSameLevelChopper(sdg);
+						nodes = chopper.chop(source, sink);
+					} else {
+						assert chopComputation == ChopComputation.NONE;
+						nodes = Collections.emptySet();
+					}
 					
 					final Reason realReason;
 					if (reason == Reason.THREAD) {

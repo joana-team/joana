@@ -10,6 +10,6 @@ package edu.kit.joana.ui.annotations;
 /**
  * @author Martin Hecker <martin.hecker@kit.edu>
  */
-public enum EntryPointKind {
-	UNKNOWN, SEQUENTIAL, CONCURRENT, FROMFILE; 
+public enum ChopComputation {
+	ALL, NONE;
 }

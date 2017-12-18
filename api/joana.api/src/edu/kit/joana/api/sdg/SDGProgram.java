@@ -183,7 +183,7 @@ public class SDGProgram {
 	}
 
 	public static SDGProgram loadSDG(String path) throws IOException {
-		return new SDGProgram(SDG.readFrom(path, new SecurityNode.SecurityNodeFactory()));
+		return new SDGProgram(SDG.readFromAndUseLessHeap(path, new SecurityNode.SecurityNodeFactory()));
 	}
 
 	public static SDGProgram createSDGProgram(String classPath, String entryMethod) {

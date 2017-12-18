@@ -51,6 +51,7 @@ import edu.kit.joana.ifc.sdg.lattice.impl.EditableLatticeSimple;
 import edu.kit.joana.ifc.sdg.lattice.impl.PowersetLattice;
 import edu.kit.joana.ifc.sdg.lattice.impl.ReversedLattice;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
+import edu.kit.joana.ui.annotations.ChopComputation;
 import edu.kit.joana.ui.annotations.EntryPoint;
 import edu.kit.joana.ui.annotations.EntryPointKind;
 import edu.kit.joana.ui.annotations.Sink;
@@ -137,6 +138,10 @@ public class EntryPointSearch {
 		
 		public abstract EntryPointKind getKind();
 		
+		public abstract ChopComputation getChopComputation();
+		
+		public abstract String getSdgFile();
+		
 		public abstract SDGConfig getSDGConfigFor(CheckIFCConfig cfc);
 		
 		public abstract Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>> annotateSDG(IFCAnalysis analysis);
@@ -212,6 +217,16 @@ public class EntryPointSearch {
 		@Override
 		public EntryPointKind getKind() {
 			return EntryPointKind.UNKNOWN;
+		}
+		
+		@Override
+		public ChopComputation getChopComputation() {
+			return ChopComputation.ALL;
+		}
+		
+		@Override
+		public String getSdgFile() {
+			return null;
 		}
 	}
 	
@@ -412,6 +427,8 @@ public class EntryPointSearch {
 		protected final IAnnotation annotation;
 		protected final EntryPointKind kind;
 		protected final PointsToPrecision pointsToPrecision;
+		protected final ChopComputation chopComputation;
+		protected final String file;
 
 		
 		private AnnotationEntryPointConfiguration(IMethod method, IAnnotation annotation) {
@@ -423,6 +440,8 @@ public class EntryPointSearch {
 			{
 				EntryPointKind kind = null;
 				PointsToPrecision pointsToPrecision = null;
+				String file = null;
+				ChopComputation chopComputation = null;
 				try {
 					
 					for (IMemberValuePair pair : annotation.getMemberValuePairs()) {
@@ -450,6 +469,23 @@ public class EntryPointSearch {
 								pointsToPrecision = PointsToPrecision.INSTANCE_BASED;
 							}
 						}
+						if ("chops".equals(pair.getMemberName())) {
+							assert (pair.getValueKind() == IMemberValuePair.K_SIMPLE_NAME);
+							final String value = (String) pair.getValue();
+							final String[] splits = value.split("\\.");
+							final String unqualifiedValue = splits[splits.length - 1]; 
+								
+							try {
+								chopComputation = ChopComputation.valueOf(unqualifiedValue);
+							} catch (IllegalArgumentException e) {
+								chopComputation = ChopComputation.ALL;
+							}
+						}
+						if ("file".equals(pair.getMemberName())) {
+							assert (pair.getValueKind() == IMemberValuePair.K_SIMPLE_NAME);
+							final String value = (String) pair.getValue();
+							file = value;
+						}
 					}
 				} catch (JavaModelException e) {
 					// Thrown by IAnnotation.getMemberValuePairs()
@@ -466,6 +502,14 @@ public class EntryPointSearch {
 				} else {
 					this.pointsToPrecision = pointsToPrecision;
 				}
+				
+				if (chopComputation == null) {
+					this.chopComputation = ChopComputation.ALL;
+				} else {
+					this.chopComputation = chopComputation;
+				}
+				
+				this.file = file;
 			}
 		}
 		
@@ -531,6 +575,16 @@ public class EntryPointSearch {
 		@Override
 		public EntryPointKind getKind() {
 			return this.kind;
+		}
+		
+		@Override
+		public ChopComputation getChopComputation() {
+			return chopComputation;
+		}
+		
+		@Override
+		public String getSdgFile() {
+			return file;
 		}
 		
 		@Override

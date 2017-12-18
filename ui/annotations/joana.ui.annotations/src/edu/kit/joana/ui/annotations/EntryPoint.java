@@ -14,5 +14,8 @@ public @interface EntryPoint {
 	String[] datasets() default {};
 	String[] adversaries() default {};
 	EntryPointKind kind() default EntryPointKind.UNKNOWN;
+	String file();
 	PointsToPrecision pointsToPrecision() default PointsToPrecision.INSTANCE_BASED;
+	ChopComputation chops() default ChopComputation.ALL;
+	
 }

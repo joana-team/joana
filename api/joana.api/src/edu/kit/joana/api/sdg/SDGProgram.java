@@ -397,7 +397,7 @@ public class SDGProgram {
 	public static SDGBuilder createSDGBuilder(SDGConfig config) throws ClassHierarchyException, UnsoundGraphException, CancelException, IOException {
 		return SDGBuildPreparation.createBuilder(IOFactory.createUTF8PrintStream(new ByteArrayOutputStream()), makeBuildPreparationConfig(config), NullProgressMonitor.INSTANCE);
 	}
-	private static SDGBuildPreparation.Config makeBuildPreparationConfig(SDGConfig config) {
+	public static SDGBuildPreparation.Config makeBuildPreparationConfig(SDGConfig config) {
 		JavaMethodSignature mainMethod = JavaMethodSignature.fromString(config.getEntryMethod());// JavaMethodSignature.mainMethodOfClass(config.getMainClass());
 		SDGBuildPreparation.Config cfg = new SDGBuildPreparation.Config(mainMethod.toBCString(), mainMethod.toBCString(), config.getClassPath(),
 				config.getFieldPropagation());

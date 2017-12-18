@@ -267,8 +267,6 @@ public final class SDGBuildPreparation {
 
 		AnalysisCache cache = new AnalysisCache(new DefaultIRFactory());
 
-		out.print("Building system dependence graph... ");
-
 		ExternalCallCheck chk;
 		if (cfg.extern == null) {
 			chk = new ExternalCallCheck() {
@@ -346,6 +344,7 @@ public final class SDGBuildPreparation {
 		Pair<Long, SDGBuilder.SDGBuilderConfig> p = prepareBuild(out, cfg, progress);
 		long startTime = p.fst;
 		SDGBuilder.SDGBuilderConfig scfg = p.snd;
+		out.print("Building system dependence graph... ");
 		final SDG sdg = SDGBuilder.build(scfg, progress);
 		postpareBuild(startTime, out);
 //		SDGVerifier.verify(sdg, false, true);
@@ -357,6 +356,7 @@ public final class SDGBuildPreparation {
 		Pair<Long, SDGBuilder.SDGBuilderConfig> p = prepareBuild(out, cfg, progress);
 		long startTime = p.fst;
 		SDGBuilder.SDGBuilderConfig scfg = p.snd;
+		out.print("Building system dependence graph... ");
 		final Pair<SDG, SDGBuilder> ret = SDGBuilder.buildAndKeepBuilder(scfg, progress);
 		postpareBuild(startTime, out);
 //		SDGVerifier.verify(sdg, false, true);
@@ -368,6 +368,7 @@ public final class SDGBuildPreparation {
 		Pair<Long, SDGBuilder.SDGBuilderConfig> p = prepareBuild(out, cfg, progress);
 		long startTime = p.fst;
 		SDGBuilder.SDGBuilderConfig scfg = p.snd;
+		out.print("Building system dependence graph... ");
 		final Pair<SDG, SDGBuildArtifacts> ret = SDGBuilder.buildAndKeepBuildArtifacts(scfg, progress);
 		postpareBuild(startTime, out);
 //		SDGVerifier.verify(sdg, false, true);

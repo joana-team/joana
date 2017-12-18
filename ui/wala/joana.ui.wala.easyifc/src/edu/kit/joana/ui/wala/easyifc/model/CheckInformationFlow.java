@@ -7,6 +7,7 @@
  */
 package edu.kit.joana.ui.wala.easyifc.model;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -34,6 +35,7 @@ import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
 import com.ibm.wala.ipa.callgraph.pruned.DoNotPrune;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
@@ -45,6 +47,7 @@ import edu.kit.joana.api.SPos;
 import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.annotations.cause.UnknownCause;
 import edu.kit.joana.api.lattice.BuiltinLattices;
+import edu.kit.joana.api.sdg.SDGBuildPreparation;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGProgram;
@@ -78,10 +81,14 @@ import edu.kit.joana.util.JoanaConstants;
 import edu.kit.joana.util.Maybe;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.Stubs;
+import edu.kit.joana.util.io.IOFactory;
 import edu.kit.joana.wala.core.NullProgressMonitor;
+import edu.kit.joana.wala.core.SDGBuildArtifacts;
+import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
+import edu.kit.joana.wala.core.SDGBuilder.SDGBuilderConfig;
 import edu.kit.joana.wala.summary.SummaryComputation;
 import edu.kit.joana.wala.summary.WorkPackage;
 import edu.kit.joana.wala.summary.WorkPackage.EntryPoint;
@@ -216,7 +223,13 @@ public final class CheckInformationFlow {
 				if (file == null) {
 					throw new IllegalArgumentException("must provide file path when using " + EntryPointKind.FROMFILE);
 				}
-				p = SDGProgram.loadSDG(null);
+				p = SDGProgram.loadSDG(file);
+				final IClassHierarchy cha; {
+					final PrintStream out = IOFactory.createUTF8PrintStream(new ByteArrayOutputStream());
+					com.ibm.wala.util.collections.Pair<Long, SDGBuilder.SDGBuilderConfig> pair = SDGBuildPreparation.prepareBuild(out, SDGProgram.makeBuildPreparationConfig(config), NullProgressMonitor.INSTANCE);
+					cha = pair.snd.cha;
+				}
+				p.fillWithAnnotations(cha);
 				containsThreads = containsThreads(p);
 				rebuiltWithoutExceptionEdges = false;
 				break;
@@ -326,8 +339,12 @@ public final class CheckInformationFlow {
 		final IFCResult result = new IFCResult(entryPoint, filter, prog.getNodeCollector());
 		//final Pair<Set<SLeak>, Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>>> threadResult =
 		//	checkIFC(Reason.THREAD_EXCEPTION, prog, ifcType, annotationMethod, entryPoint);
-		final Pair<Set<SLeak>, Collection<IFCAnnotation>> threadResult =
-				checkIFC(Reason.THREAD_EXCEPTION, prog, ifcType, annotationMethod, entryPoint);
+		final Pair<Set<SLeak>, Collection<IFCAnnotation>> threadResult;
+		if (rebuiltWithoutExceptionEdges) {
+			threadResult = checkIFC(Reason.THREAD_EXCEPTION, prog, ifcType, annotationMethod, entryPoint);
+		} else {
+			threadResult = checkIFC(Reason.THREAD,           prog, ifcType, annotationMethod, entryPoint);
+		}
 		final Set<SLeak> threadLeaks = threadResult.getFirst();
 		result.setAnnotations2(threadResult.getSecond());
 		final boolean isSecure = threadLeaks.isEmpty();

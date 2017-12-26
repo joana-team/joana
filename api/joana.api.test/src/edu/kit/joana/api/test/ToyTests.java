@@ -359,4 +359,10 @@ public class ToyTests {
 			UnsoundGraphException, CancelException {
 		testPreciseEnough(joana.api.testdata.seq.WhileTrue.class);
 	}
+	
+	@Test
+	public void testControlDependenceDueToDubiousPhiPlacement() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testTooImprecise(joana.api.testdata.seq.ControlDependenceDueToDubiousPhiPlacement.class);
+	}
 }

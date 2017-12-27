@@ -30,6 +30,7 @@ public class ControlDependenceDueToDubiousPhiPlacement {
 			y = y << 1;
 			ToyTestsDefaultSourcesAndSinks.leak(x);
 		}
+		ToyTestsDefaultSourcesAndSinks.leak(ToyTestsDefaultSourcesAndSinks.toggle(y));
 	}
 
 }

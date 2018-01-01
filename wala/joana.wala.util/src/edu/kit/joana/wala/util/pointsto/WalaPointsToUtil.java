@@ -16,6 +16,7 @@ import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.ContextSelector;
+import com.ibm.wala.ipa.callgraph.IAnalysisCacheView;
 import com.ibm.wala.ipa.callgraph.MethodTargetSelector;
 import com.ibm.wala.ipa.callgraph.impl.DefaultContextSelector;
 import com.ibm.wala.ipa.callgraph.impl.DelegatingContextSelector;
@@ -117,7 +118,7 @@ public final class WalaPointsToUtil {
         }
     }
 
-    public static CallGraphBuilder makeRTA(final AnalysisOptions options, final AnalysisCache cache,
+    public static CallGraphBuilder makeRTA(final AnalysisOptions options, final IAnalysisCacheView cache,
 			final IClassHierarchy cha, final AnalysisScope scope) {
 
 		Util.addDefaultSelectors(options, cha);
@@ -126,7 +127,7 @@ public final class WalaPointsToUtil {
 		return new BasicRTABuilder(cha, options, cache, null, null);
 	}
 
-	public static CallGraphBuilder makeContextFreeType(final AnalysisOptions options, final AnalysisCache cache,
+	public static CallGraphBuilder makeContextFreeType(final AnalysisOptions options, final IAnalysisCacheView cache,
 		      final IClassHierarchy cha, final AnalysisScope scope, final ContextSelector contextSelector,
 		      final SSAContextInterpreter contextInterpreter) {
 	    if (options == null) {
@@ -148,7 +149,7 @@ public final class WalaPointsToUtil {
 	    return ZeroXCFABuilder.make(cha, options, cache, contextSelector, contextInterpreter, instancePolicy);
 	}
 
-	public static CallGraphBuilder makeContextSensSite(final AnalysisOptions options, final AnalysisCache cache,
+	public static CallGraphBuilder makeContextSensSite(final AnalysisOptions options, final IAnalysisCacheView cache,
 		      final IClassHierarchy cha, final AnalysisScope scope, final ContextSelector contextSelector,
 		      final SSAContextInterpreter additionalContextInterpreter) {
 
@@ -181,7 +182,7 @@ public final class WalaPointsToUtil {
 	    return ZeroXCFABuilder.make(cha, options, cache, contextSelector, contextInterpreter, instancePolicy);
 	}
 
-	public static CallGraphBuilder makeObjectSens(final ExtendedAnalysisOptions options, final AnalysisCache cache,
+	public static CallGraphBuilder makeObjectSens(final ExtendedAnalysisOptions options, final IAnalysisCacheView cache,
 		      final IClassHierarchy cha, final AnalysisScope scope, final ContextSelector additionalContextSelector,
 		      final SSAContextInterpreter additionalContextInterpreter) {
 
@@ -228,7 +229,7 @@ public final class WalaPointsToUtil {
      *  @todo TODO  Does not respect SDGBuilderConfig.additinalContextSelector and additionalContextInterpreter
      */
 	public static CallGraphBuilder makeNCallStackSens(final int n, final AnalysisOptions options,
-			final AnalysisCache cache, final IClassHierarchy cha, final AnalysisScope scope,
+			final IAnalysisCacheView cache, final IClassHierarchy cha, final AnalysisScope scope,
 			final ContextSelector additionalContextSelector,
 			final SSAContextInterpreter additionalContextInterpreter) {
 

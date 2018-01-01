@@ -12,6 +12,7 @@ import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
 import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
@@ -151,7 +152,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 		scope.setExclusions(exclusions);
 		final ClassLoaderReference loader = scope.getLoader(AnalysisScope.APPLICATION);
 		AnalysisScopeReader.addClassPathToScope(run.classpath, scope, loader);
-		final ClassHierarchy cha = ClassHierarchy.make(scope);
+		final ClassHierarchy cha = ClassHierarchyFactory.make(scope);
 
 		out.println("done.");
 		

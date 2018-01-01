@@ -23,6 +23,7 @@ import com.ibm.wala.cfg.ControlFlowGraph;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.Language;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
+import com.ibm.wala.ipa.callgraph.AnalysisCacheImpl;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CGNode;
@@ -37,6 +38,7 @@ import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
 import com.ibm.wala.ipa.cfg.EdgeFilter;
 import com.ibm.wala.ipa.cfg.PrunedCFG;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
+import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAOptions;
 import com.ibm.wala.ssa.analysis.ExplodedControlFlowGraph;
@@ -94,9 +96,9 @@ public class ExceptionPruneAnalysis extends ExceptionPrunedCFGAnalysis<SSAInstru
         AnalysisScopeReader.addClassPathToScope(classPath, scope, loader);
 
         // Klassenhierarchie berechnen
-        ClassHierarchy cha = ClassHierarchy.make(scope);
+        ClassHierarchy cha = ClassHierarchyFactory.make(scope);
 
-        AnalysisCache cache = new AnalysisCache();
+        AnalysisCache cache = new AnalysisCacheImpl();
 
         MethodReference mr = StringStuff.makeMethodReference(Language.JAVA, methodSig);
         IMethod m = cha.resolveMethod(mr);
@@ -136,10 +138,10 @@ public class ExceptionPruneAnalysis extends ExceptionPrunedCFGAnalysis<SSAInstru
 
         // Klassenhierarchie berechnen
         System.out.println("Creating class hierarchy...");
-        ClassHierarchy cha = ClassHierarchy.make(scope);
+        ClassHierarchy cha = ClassHierarchyFactory.make(scope);
         System.out.println("Done.");
 
-        AnalysisCache cache = new AnalysisCache();
+        AnalysisCache cache = new AnalysisCacheImpl();
 
         Iterable<Entrypoint> entries = Util.makeMainEntrypoints(scope, cha, "LMainEmulator");
 //        MethodReference mr = StringStuff.makeMethodReference(Language.JAVA, methodSig);

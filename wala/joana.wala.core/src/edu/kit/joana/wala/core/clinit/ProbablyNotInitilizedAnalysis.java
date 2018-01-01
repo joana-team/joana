@@ -20,6 +20,7 @@ import com.ibm.wala.dataflow.IFDS.TabulationResult;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
+import com.ibm.wala.ipa.callgraph.IAnalysisCacheView;
 import com.ibm.wala.ipa.cfg.BasicBlockInContext;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.ssa.analysis.IExplodedBasicBlock;
@@ -44,9 +45,9 @@ public class ProbablyNotInitilizedAnalysis {
 	private final ISupergraph<BasicBlockInContext<IExplodedBasicBlock>, CGNode> sg;
 	private final NotInitializedDomain dom = new NotInitializedDomain();
 
-	public ProbablyNotInitilizedAnalysis(final CallGraph cg, final AnalysisCache cache) {
+	public ProbablyNotInitilizedAnalysis(final CallGraph cg, final IAnalysisCacheView cache) {
 		this.cha = cg.getClassHierarchy();
-		this.sg = ICFGSupergraph.make(cg, cache);
+		this.sg = ICFGSupergraph.make(cg);
 	}
 
 	public TabulationResult<BasicBlockInContext<IExplodedBasicBlock>, CGNode, Pair<CGNode, Integer>> analyze() {

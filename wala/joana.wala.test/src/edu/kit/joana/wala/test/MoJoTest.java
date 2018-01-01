@@ -25,6 +25,7 @@ import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
 import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.config.AnalysisScopeReader;
@@ -248,7 +249,7 @@ public class MoJoTest {
 
 	    System.out.println("done.");
 
-		final ClassHierarchy cha = ClassHierarchy.make(scope);
+		final ClassHierarchy cha = ClassHierarchyFactory.make(scope);
 		mlc.setClassHierarchy(cha);
 
 		System.out.print("Creating MoJo... ");

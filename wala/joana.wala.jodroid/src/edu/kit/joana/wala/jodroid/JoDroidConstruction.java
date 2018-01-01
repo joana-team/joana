@@ -62,6 +62,7 @@ import com.ibm.wala.dalvik.util.AndroidManifestXMLReader;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.types.MethodReference;
@@ -182,14 +183,7 @@ public class JoDroidConstruction {
         }
 
         if (manifest != null) {
-            try {
-                final AndroidManifestXMLReader reader = new AndroidManifestXMLReader(this.manager, manifest);
-            } catch (IOException e) {
-                System.err.println();
-                System.err.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-                System.err.println("Error reading in the Manifest. - Continuing without it!");
-                e.printStackTrace();
-            }
+            final AndroidManifestXMLReader reader = new AndroidManifestXMLReader(this.manager, manifest);
         }
     }
 
@@ -438,7 +432,7 @@ public class JoDroidConstruction {
     public JoDroidConstruction(final AndroidEntryPointManager manager, final AnalysisScope scope, final AnalysisPresets.PresetDescription preset) throws SDGConstructionException {
         try {
             this.manager = manager;
-            final IClassHierarchy cha = ClassHierarchy.make(scope, this.manager.getProgressMonitor());
+            final IClassHierarchy cha = ClassHierarchyFactory.make(scope, this.manager.getProgressMonitor());
             this.p = AnalysisPresets.make(this.manager, preset, scope, cha);
         } catch (ClassHierarchyException e) {
             throw new SDGConstructionException(e);
@@ -474,9 +468,9 @@ public class JoDroidConstruction {
         { // Build cha
             try {
                 if (ex.getOutput() == AnalysisPresets.OutputDescription.QUIET) {
-                    cha = ClassHierarchy.make(scope, new NullProgressMonitor());
+                    cha = ClassHierarchyFactory.make(scope, new NullProgressMonitor());
                 } else {
-                    cha = ClassHierarchy.make(scope, manager.getProgressMonitor());
+                    cha = ClassHierarchyFactory.make(scope, manager.getProgressMonitor());
                 }
             } catch (ClassHierarchyException e) {
                 throw new SDGConstructionException(e);
@@ -679,7 +673,7 @@ public class JoDroidConstruction {
      */
     public static IClassHierarchy computeCH(AndroidEntryPointManager manager, String classPath, String androidLib) throws IOException, ClassHierarchyException {
         final AnalysisScope scope = makeScope(classPath, androidLib, new ExecutionOptions()); 
-        return ClassHierarchy.make(scope, manager.getProgressMonitor());
+        return ClassHierarchyFactory.make(scope, manager.getProgressMonitor());
     }
 
     // public static SDG buildAndroidSDG(IMethod entryMethod) throws SDGConstructionException, IOException

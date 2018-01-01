@@ -20,10 +20,12 @@ import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
+import com.ibm.wala.ipa.callgraph.AnalysisCacheImpl;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.ipa.callgraph.ContextSelector;
+import com.ibm.wala.ipa.callgraph.IAnalysisCacheView;
 import com.ibm.wala.ipa.callgraph.impl.DefaultContextSelector;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
@@ -32,6 +34,7 @@ import com.ibm.wala.ipa.callgraph.propagation.cfa.DefaultSSAInterpreter;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.ZeroXInstanceKeys;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.ssa.IR;
@@ -218,7 +221,7 @@ public class MoJo {
 		assert debug("Running class hierarchy analysis... ");
 
 		AnalysisScope scope = AnalysisScopeReader.makeJavaBinaryAnalysisScope(binPath, null);
-		ClassHierarchy cha = ClassHierarchy.make(scope);
+		ClassHierarchy cha = ClassHierarchyFactory.make(scope);
 
 		assert debug("done. - " + cha.getNumberOfClasses() + " classes found.");
 
@@ -530,9 +533,9 @@ public class MoJo {
 	public static class CallGraphResult {
 		public final CallGraph cg;
 		public final PointerAnalysis<InstanceKey> pts;
-		public final AnalysisCache cache;
+		public final IAnalysisCacheView cache;
 
-		public CallGraphResult(CallGraph cg, PointerAnalysis<InstanceKey> pts, AnalysisCache cache) {
+		public CallGraphResult(CallGraph cg, PointerAnalysis<InstanceKey> pts, IAnalysisCacheView cache) {
 			this.cg = cg;
 			this.cache = cache;
 			this.pts = pts;
@@ -548,7 +551,7 @@ public class MoJo {
 	 * @throws CancelException
 	 */
 	public CallGraphResult computeContextInsensitiveCallGraph(AnalysisOptions options) throws IllegalArgumentException, CancelException {
-		AnalysisCache cache = new AnalysisCache();
+		AnalysisCache cache = new AnalysisCacheImpl();
 		SSAPropagationCallGraphBuilder builder =
 			com.ibm.wala.ipa.callgraph.impl.Util.makeZeroCFABuilder(options, cache, cha, cha.getScope());
 
@@ -568,7 +571,7 @@ public class MoJo {
 	 * @throws CancelException
 	 */
 	public CallGraphResult computeContextSensitiveCallGraph(AnalysisOptions options) throws IllegalArgumentException, CancelException {
-		AnalysisCache cache = new AnalysisCache();
+		AnalysisCache cache = new AnalysisCacheImpl();
 		SSAPropagationCallGraphBuilder builder =
 			com.ibm.wala.ipa.callgraph.impl.Util.makeVanillaZeroOneCFABuilder(options, cache, cha, cha.getScope());
 
@@ -590,7 +593,7 @@ public class MoJo {
 	 */
 	public CallGraphResult computeObjectSensitiveCallGraph(AnalysisOptions options,
 			ObjSensZeroXCFABuilder.MethodFilter filter) throws IllegalArgumentException, CancelException {
-		AnalysisCache cache = new AnalysisCache();
+		AnalysisCache cache = new AnalysisCacheImpl();
 		SSAPropagationCallGraphBuilder builder = makeObjectSens(options, cache, cha, cha.getScope(), filter);
 
 		CallGraph cg = computeCallGraph(options, builder);
@@ -626,7 +629,7 @@ public class MoJo {
 	 * @throws CancelException
 	 */
 	public CallGraphResult computeContextSensitiveWithContainerOptimizationCallGraph(AnalysisOptions options) throws IllegalArgumentException, CancelException {
-		AnalysisCache cache = new AnalysisCache();
+		AnalysisCache cache = new AnalysisCacheImpl();
 		SSAPropagationCallGraphBuilder builder =
 			com.ibm.wala.ipa.callgraph.impl.Util.makeVanillaZeroOneContainerCFABuilder(options, cache, cha, cha.getScope());
 

@@ -8,8 +8,8 @@
 package edu.kit.joana.deprecated.jsdg.util;
 
 import java.util.Iterator;
+import java.util.function.Predicate;
 
-import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.collections.FilterIterator;
 import com.ibm.wala.util.graph.NumberedEdgeManager;
 import com.ibm.wala.util.graph.NumberedGraph;

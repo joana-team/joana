@@ -11,6 +11,7 @@ import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.ContextSelector;
+import com.ibm.wala.ipa.callgraph.IAnalysisCacheView;
 import com.ibm.wala.ipa.callgraph.propagation.SSAContextInterpreter;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 
@@ -30,7 +31,7 @@ public interface CallGraphBuilderFactory {
 	 * @param additionalContextInterpreter
 	 * @return
 	 */
-	CallGraphBuilder createCallGraphBuilder(ExtendedAnalysisOptions options, AnalysisCache cache, IClassHierarchy cha,
+	CallGraphBuilder createCallGraphBuilder(ExtendedAnalysisOptions options, IAnalysisCacheView cache, IClassHierarchy cha,
 			AnalysisScope scope, ContextSelector additionalContextSelector,
 			SSAContextInterpreter additionalContextInterpreter);
 

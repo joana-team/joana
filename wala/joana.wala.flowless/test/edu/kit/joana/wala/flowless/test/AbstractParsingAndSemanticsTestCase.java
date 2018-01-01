@@ -16,6 +16,7 @@ import java.util.List;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
 import com.ibm.wala.util.config.AnalysisScopeReader;
 
 import edu.kit.joana.wala.flowless.spec.FlowLessBuilder;
@@ -69,7 +70,7 @@ public abstract class AbstractParsingAndSemanticsTestCase extends TestCase {
 			FlowLessBuilder.checkForFlowStatements(classes);
 			System.out.print("Running class hierarchy analysis... ");
 			AnalysisScope scope = AnalysisScopeReader.makeJavaBinaryAnalysisScope("bin/", null);
-			cha = ClassHierarchy.make(scope);
+			cha = ClassHierarchyFactory.make(scope);
 			System.out.println("done. - " + cha.getNumberOfClasses() + " classes found.");
 			cache = new CacheCha(projectLocation, cha, classes);
 		} catch (IOException e) {

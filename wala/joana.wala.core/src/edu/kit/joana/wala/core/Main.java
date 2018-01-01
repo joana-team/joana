@@ -27,11 +27,13 @@ import com.ibm.wala.classLoader.JarStreamModule;
 import com.ibm.wala.classLoader.Language;
 import com.ibm.wala.classLoader.Module;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
+import com.ibm.wala.ipa.callgraph.AnalysisCacheImpl;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
 import com.ibm.wala.ipa.callgraph.pruned.PruningPolicy;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.ssa.DefaultIRFactory;
 import com.ibm.wala.ssa.SSAInvokeInstruction;
@@ -189,7 +191,7 @@ public final class Main {
 	public static ClassHierarchy computeClassHierarchy(PrintStream out, Config cfg) throws IOException, ClassHierarchyException {
 		AnalysisScope scope = setUpAnalysisScope(out, cfg);
 	    // Klassenhierarchie berechnen
-		return ClassHierarchy.make(scope);
+		return ClassHierarchyFactory.make(scope);
 	}
 
 
@@ -298,7 +300,7 @@ public final class Main {
 	    out.print("Creating class hierarchy... ");
 
 	    // Klassenhierarchie berechnen
-		ClassHierarchy cha = ClassHierarchy.make(scope);
+		ClassHierarchy cha = ClassHierarchyFactory.make(scope);
 
 
 	    out.println("(" + cha.getNumberOfClasses() + " classes) done.");
@@ -319,7 +321,7 @@ public final class Main {
 
 		out.println("done.");
 
-		AnalysisCache cache = new AnalysisCache(new DefaultIRFactory());
+		AnalysisCache cache = new AnalysisCacheImpl();
 
 		out.print("Building system dependence graph... ");
 

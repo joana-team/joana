@@ -25,6 +25,7 @@ import com.ibm.wala.classLoader.IBytecodeMethod;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.Language;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
+import com.ibm.wala.ipa.callgraph.AnalysisCacheImpl;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CGNode;
@@ -36,6 +37,7 @@ import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
 import com.ibm.wala.ipa.callgraph.propagation.SSAPropagationCallGraphBuilder;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.SSAInstruction;
@@ -760,7 +762,7 @@ public class MergeModules {
 
 	    print("Building class hierarchy... ");
 
-	    final ClassHierarchy cha = ClassHierarchy.make(scope);
+	    final ClassHierarchy cha = ClassHierarchyFactory.make(scope);
 
 		println("done.");
 
@@ -777,7 +779,7 @@ public class MergeModules {
 		entries.add(ep);
 
 		final AnalysisOptions options = new AnalysisOptions(scope, entries);
-		final AnalysisCache cache = new AnalysisCache();
+		final AnalysisCache cache = new AnalysisCacheImpl();
 		final SSAPropagationCallGraphBuilder builder =
 			com.ibm.wala.ipa.callgraph.impl.Util.makeVanillaZeroOneCFABuilder(options, cache, cha, cha.getScope());
 

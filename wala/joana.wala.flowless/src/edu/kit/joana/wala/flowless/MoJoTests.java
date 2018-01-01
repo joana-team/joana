@@ -18,6 +18,7 @@ import java.util.Set;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
+import com.ibm.wala.ipa.callgraph.AnalysisCacheImpl;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CallGraph;
@@ -217,7 +218,7 @@ public class MoJoTests {
 		}
 
 		AnalysisOptions options = EntryUtil.createAnalysisOptionsWithPTS(cha, m, pointsTo, NO_SUBCLASSES);
-		AnalysisCache cache = new AnalysisCache();
+		AnalysisCache cache = new AnalysisCacheImpl();
 		SSAPropagationCallGraphBuilder builder =
 			com.ibm.wala.ipa.callgraph.impl.Util.makeVanillaZeroOneCFABuilder(options, cache, cha, scope);
 

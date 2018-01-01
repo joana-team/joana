@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import com.ibm.wala.cfg.ControlFlowGraph;
 import com.ibm.wala.dataflow.graph.BitVectorOr;
@@ -22,7 +23,6 @@ import com.ibm.wala.ssa.ISSABasicBlock;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
-import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.graph.Acyclic;
@@ -80,7 +80,7 @@ public class NonTerminationSensitive {
 
 		CallGraph cg = sdg.getCallGraph();
 		Graph<CGNode> inverted = GraphInverter.invert(cg);
-		GraphReachability<CGNode,CGNode> reach = new GraphReachability<CGNode,CGNode>(inverted, Predicate.<CGNode>truePred());
+		GraphReachability<CGNode,CGNode> reach = new GraphReachability<CGNode,CGNode>(inverted, x -> true);
 		progress.subTask("Searching potential non-returning calls");
 		reach.solve(progress);
 
@@ -402,7 +402,7 @@ public class NonTerminationSensitive {
 
 	private Set<CGNode> findRecursiveMethods(IProgressMonitor progress) throws CancelException {
 		CallGraph cg = sdg.getCallGraph();
-		GraphReachability<CGNode,CGNode> reach = new GraphReachability<CGNode,CGNode>(cg, Predicate.<CGNode>truePred());
+		GraphReachability<CGNode,CGNode> reach = new GraphReachability<CGNode,CGNode>(cg, x -> true);
 		progress.subTask("Searching recursive methods");
 		reach.solve(progress);
 

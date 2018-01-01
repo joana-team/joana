@@ -41,6 +41,7 @@ import com.ibm.wala.ipa.callgraph.CallGraphBuilderCancelException;
 import com.ibm.wala.ipa.callgraph.Context;
 import com.ibm.wala.ipa.callgraph.ContextSelector;
 import com.ibm.wala.ipa.callgraph.Entrypoint;
+import com.ibm.wala.ipa.callgraph.IAnalysisCacheView;
 import com.ibm.wala.ipa.callgraph.MethodTargetSelector;
 import com.ibm.wala.ipa.callgraph.impl.DelegatingContextSelector;
 import com.ibm.wala.ipa.callgraph.impl.SubtypesEntrypoint;
@@ -2012,7 +2013,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		private static final long serialVersionUID = 237647794827893127L;
 		public transient PrintStream out = System.out;
 		public transient AnalysisScope scope = null;
-		public transient AnalysisCache cache = null;
+		public transient IAnalysisCacheView cache = null;
 		public transient IClassHierarchy cha = null;
 		public String additionalNativeSpec = null; // specify additional XML method summary file for methods for which code is not available - path is relative to class path
 		public IMethod entry = null;

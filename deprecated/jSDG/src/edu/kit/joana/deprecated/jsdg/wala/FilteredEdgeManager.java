@@ -8,11 +8,11 @@
 package edu.kit.joana.deprecated.jsdg.wala;
 
 import java.util.Iterator;
+import java.util.function.Predicate;
 
 import com.ibm.wala.cfg.ControlFlowGraph;
 import com.ibm.wala.cfg.IBasicBlock;
 import com.ibm.wala.ipa.cfg.EdgeFilter;
-import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.collections.FilterIterator;
 import com.ibm.wala.util.collections.Iterator2Collection;
 import com.ibm.wala.util.graph.NumberedEdgeManager;

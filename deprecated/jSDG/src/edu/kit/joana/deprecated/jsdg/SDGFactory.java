@@ -31,6 +31,7 @@ import com.ibm.wala.demandpa.alg.DemandRefinementPointsTo;
 import com.ibm.wala.demandpa.alg.statemachine.StateMachineFactory;
 import com.ibm.wala.demandpa.flowgraph.IFlowLabel;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
+import com.ibm.wala.ipa.callgraph.AnalysisCacheImpl;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CGNode;
@@ -40,6 +41,7 @@ import com.ibm.wala.ipa.callgraph.CallGraphBuilderCancelException;
 import com.ibm.wala.ipa.callgraph.ClassTargetSelector;
 import com.ibm.wala.ipa.callgraph.ContextSelector;
 import com.ibm.wala.ipa.callgraph.Entrypoint;
+import com.ibm.wala.ipa.callgraph.IAnalysisCacheView;
 import com.ibm.wala.ipa.callgraph.MethodTargetSelector;
 import com.ibm.wala.ipa.callgraph.impl.ClassHierarchyClassTargetSelector;
 import com.ibm.wala.ipa.callgraph.impl.ClassHierarchyMethodTargetSelector;
@@ -56,6 +58,7 @@ import com.ibm.wala.ipa.callgraph.pruned.CallGraphPruning;
 import com.ibm.wala.ipa.callgraph.pruned.PrunedCallGraph;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.ipa.slicer.Slicer.ControlDependenceOptions;
 import com.ibm.wala.ipa.slicer.Slicer.DataDependenceOptions;
@@ -748,7 +751,7 @@ public class SDGFactory {
 	    final SSAPropagationCallGraphBuilder builder = makeBuilder(pcfg);
 	    final AnalysisOptions options = builder.getOptions();
 	    final AnalysisScope scope = options.getAnalysisScope();
-	    AnalysisCache cache = builder.getAnalysisCache();
+	    IAnalysisCacheView cache = builder.getAnalysisCache();
 	    final List<Entrypoint> eps = new LinkedList<>();
 	    for (final Entrypoint ep : options.getEntrypoints()) {
 	    	eps.add(ep);
@@ -855,12 +858,12 @@ public class SDGFactory {
 			//AnalysisScopeReader.makeJavaBinaryAnalysisScope(cfg.scopeFile, cfg.classpath, null);
 		progress.done();
 
-		ClassHierarchy cha = ClassHierarchy.make(scope, progress);
+		ClassHierarchy cha = ClassHierarchyFactory.make(scope, progress);
 
 		Iterable<Entrypoint> entrypoints = com.ibm.wala.ipa.callgraph.impl.
 			Util.makeMainEntrypoints(scope, cha, cfg.mainClass);
 		ExtendedAnalysisOptions options = new ExtendedAnalysisOptions(scope, entrypoints);
-	    AnalysisCache cache = new AnalysisCache();
+	    AnalysisCache cache = new AnalysisCacheImpl();
 
 	    progress.subTask(Messages.getString("Analyzer.SubTask_Call_Graph_Builder") + cfg.pointsTo); //$NON-NLS-1$
 		SSAPropagationCallGraphBuilder builder =
@@ -965,12 +968,12 @@ public class SDGFactory {
 		AnalysisScope scope = Util.makeAnalysisScope(cfg, loader);
 			//AnalysisScopeReader.makeJavaBinaryAnalysisScope(cfg.scopeFile, cfg.classpath, null);
 
-		ClassHierarchy cha = ClassHierarchy.make(scope, progress);
+		ClassHierarchy cha = ClassHierarchyFactory.make(scope, progress);
 
 		Iterable<Entrypoint> entrypoints = com.ibm.wala.ipa.callgraph.impl.
 			Util.makeMainEntrypoints(scope, cha, cfg.mainClass);
 		ExtendedAnalysisOptions options = new ExtendedAnalysisOptions(scope, entrypoints);
-	    AnalysisCache cache = new AnalysisCache();
+	    AnalysisCache cache = new AnalysisCacheImpl();
 
 	    progress.subTask(Messages.getString("Analyzer.SubTask_Call_Graph_Builder") + cfg.pointsTo); //$NON-NLS-1$
 		CallGraphBuilder builder =
@@ -1253,12 +1256,12 @@ public class SDGFactory {
 			//AnalysisScopeReader.makeJavaBinaryAnalysisScope(cfg.scopeFile, cfg.classpath, null);
 		progress.done();
 
-		ClassHierarchy cha = ClassHierarchy.make(scope, progress);
+		ClassHierarchy cha = ClassHierarchyFactory.make(scope, progress);
 
 		Iterable<Entrypoint> entrypoints = com.ibm.wala.ipa.callgraph.impl.
 			Util.makeMainEntrypoints(scope, cha, cfg.mainClass);
 		ExtendedAnalysisOptions options = new ExtendedAnalysisOptions(scope, entrypoints);
-	    AnalysisCache cache = new AnalysisCache();
+	    AnalysisCache cache = new AnalysisCacheImpl();
 
 	    progress.subTask(Messages.getString("Analyzer.SubTask_Call_Graph_Builder") + cfg.pointsTo); //$NON-NLS-1$
 		SSAPropagationCallGraphBuilder builder =

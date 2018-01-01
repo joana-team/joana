@@ -11,6 +11,7 @@ import java.io.PrintStream;
 
 import com.ibm.wala.cfg.exc.intra.MethodState;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
+import com.ibm.wala.ipa.callgraph.AnalysisCacheImpl;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.MethodTargetSelector;
 import com.ibm.wala.ipa.callgraph.pruned.PruningPolicy;
@@ -57,7 +58,7 @@ public abstract class SDGBuilderConfigurator<C extends SDGBuilderConfigurator<C>
 		rwd.set("entry", WALAUtils.findMainMethod(cha, mainClass));
 		rwd.set("additionalContextSelector", null);
 		rwd.set("additionalContextInterpreter", null);
-		rwd.set("cache", new AnalysisCache(new DefaultIRFactory()));
+		rwd.set("cache", new AnalysisCacheImpl());
 		return thisActually();
 	}
 	public C setPruningPolicy(PruningPolicy policy, int depth) {

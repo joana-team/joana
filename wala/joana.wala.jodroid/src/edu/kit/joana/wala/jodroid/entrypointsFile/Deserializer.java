@@ -83,10 +83,10 @@ class Deserializer {
                 final LoadedInstantiationBehavior lb = (LoadedInstantiationBehavior) obj;
 
                 if (type != null) {
-                    lb.setBehavior(type, toClass, inCall, "", beh, exactness);
+                    lb.setBehavior(type, beh, exactness);
                     //System.out.println("Setting Behavior of Type " + type + " to " + beh);
                 } else {
-                    lb.setBehavior(pack, toClass, inCall, "", beh, exactness);
+                    lb.setBehavior(pack, beh, exactness);
                     //System.out.println("Setting Behavior of Pack " + pack + " to " + beh);
                 }
             } else {

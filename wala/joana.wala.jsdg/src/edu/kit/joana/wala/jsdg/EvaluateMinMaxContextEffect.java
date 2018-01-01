@@ -21,6 +21,7 @@ import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
+import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.WalaException;
@@ -90,7 +91,7 @@ public class EvaluateMinMaxContextEffect {
 			scope.setExclusions(exclusions);
 		}
 
-		ClassHierarchy cha = ClassHierarchy.make(scope);
+		ClassHierarchy cha = ClassHierarchyFactory.make(scope);
 		MoJo mojo = MoJo.create(cha);
 
 		System.out.println("done.");

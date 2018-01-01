@@ -17,6 +17,7 @@ import com.ibm.wala.dalvik.classLoader.DexIRFactory;
 import com.ibm.wala.dalvik.ipa.callgraph.impl.DexEntryPoint;
 import com.ibm.wala.dalvik.util.AndroidAnalysisScope;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
+import com.ibm.wala.ipa.callgraph.AnalysisCacheImpl;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions.ReflectionOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
@@ -28,6 +29,7 @@ import com.ibm.wala.ipa.callgraph.propagation.SSAPropagationCallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.ZeroXCFABuilder;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.ssa.IRFactory;
 import com.ibm.wala.util.CancelException;
@@ -485,7 +487,7 @@ public class RunKillDefBug {
 		final ClassLoader loader = RunKillDefBug.class.getClassLoader();
 		// als Android.jar benutze ich die Stub-version aus dem SDG mit API level 17 (wobei das level eigentlich egal sein sollte)
 		final AnalysisScope scope = AndroidAnalysisScope.setUpAndroidAnalysisScope(apkFileURI, "", loader, andLibURI);  // no exclusions
-		final IClassHierarchy cha = ClassHierarchy.make(scope);
+		final IClassHierarchy cha = ClassHierarchyFactory.make(scope);
 		final RunKillDefBug runner = new RunKillDefBug();
 		runner.buildGraphs(cha);
 	}
@@ -534,7 +536,7 @@ public class RunKillDefBug {
 	private void buildAndroidCG(final IClassHierarchy cha, Set<IMethod> entryMethodSet) {
 		final ArrayList<IMethod> entryMethods = new ArrayList<IMethod>(entryMethodSet);
 		// callGraph and ptrAnalysis
-		final AnalysisCache cache = new AnalysisCache((IRFactory<IMethod>) new DexIRFactory());
+		final AnalysisCache cache = new AnalysisCacheImpl((IRFactory<IMethod>) new DexIRFactory());
 		final AnalysisOptions options = makeAnalysisOptions(entryMethods, cha);
 		final SSAPropagationCallGraphBuilder cgb =
 				(ZeroXCFABuilder) WalaPointsToUtil.makeContextSensSite(options, cache, cha, cha.getScope());
@@ -576,7 +578,7 @@ public class RunKillDefBug {
 		SDGBuilderConfig scfg = new SDGBuilderConfig();
 		scfg.out = System.out;
 		scfg.scope = cg.getClassHierarchy().getScope();
-		scfg.cache = new AnalysisCache((IRFactory<IMethod>) new DexIRFactory());
+		scfg.cache = new AnalysisCacheImpl((IRFactory<IMethod>) new DexIRFactory());
 		scfg.cha = cg.getClassHierarchy();
 		//		      scfg.entry = entryMethod;
 		scfg.ext = ExternalCallCheck.EMPTY;

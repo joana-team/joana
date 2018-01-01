@@ -19,6 +19,7 @@ import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
+import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.WalaException;
 import com.ibm.wala.util.config.AnalysisScopeReader;
@@ -102,7 +103,7 @@ public class EnumerateAliasConfigurations {
 			scope.setExclusions(exclusions);
 		}
 
-		final ClassHierarchy cha = ClassHierarchy.make(scope);
+		final ClassHierarchy cha = ClassHierarchyFactory.make(scope);
 		final MoJo mojo = MoJo.create(cha);
 
 		System.out.println("done.");

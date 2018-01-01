@@ -28,6 +28,7 @@ import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
 import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
@@ -189,7 +190,7 @@ public final class TestCheckFlowComputation {
 		}
 
 		cfc.out.print("Creating MoJo... (class hierarchy: ");
-		final ClassHierarchy cha = ClassHierarchy.make(cfc.scope);
+		final ClassHierarchy cha = ClassHierarchyFactory.make(cfc.scope);
 		cfg.extern.setClassHierarchy(cha);
 		cfc.out.print(cha.getNumberOfClasses() + " classes) ");
 		final MoJo mojo = MoJo.create(cha, cfg.outputDir);

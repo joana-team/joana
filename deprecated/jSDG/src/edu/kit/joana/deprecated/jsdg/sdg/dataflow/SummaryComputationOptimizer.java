@@ -13,7 +13,6 @@ import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
-import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.graph.GraphReachability;
 import com.ibm.wala.util.intset.OrdinalSet;
@@ -51,7 +50,7 @@ public class SummaryComputationOptimizer {
 
 		CallGraph cg = sdg.getCallGraph();
 
-		GraphReachability<CGNode,CGNode> reach = new GraphReachability<CGNode,CGNode>(cg, Predicate.<CGNode>truePred());
+		GraphReachability<CGNode,CGNode> reach = new GraphReachability<CGNode,CGNode>(cg, x -> true);
 		progress.subTask("Searching recursive methods");
 		reach.solve(progress);
 

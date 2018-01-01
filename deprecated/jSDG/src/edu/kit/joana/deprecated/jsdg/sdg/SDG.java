@@ -19,6 +19,7 @@ import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
+import com.ibm.wala.ipa.callgraph.IAnalysisCacheView;
 import com.ibm.wala.ipa.callgraph.impl.FakeRootClass;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
@@ -220,7 +221,7 @@ public class SDG extends JDependencyGraph {
 		"java.lang.String", "java.lang.Throwable", "java.lang.Integer", "java.lang.FloatingDecimal",
 		"java.lang.FDBigInt", "java.lang.CharacterData", "java.lang.CharacterDataLatin1"};
 
-	public static SDG create(IMethod main, CallGraph cg, AnalysisCache cache, IKey2Origin k2o,
+	public static SDG create(IMethod main, CallGraph cg, IAnalysisCacheView cache, IKey2Origin k2o,
 			IPointerAnalysis pta, SDGFactory.Config cfg, IProgressMonitor progress)
 	throws CancelException, PDGFormatException, WalaException {
 		IParamComputation pComp = Util.getParamComputation(cfg);

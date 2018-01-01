@@ -13,6 +13,7 @@ import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.ContextSelector;
+import com.ibm.wala.ipa.callgraph.IAnalysisCacheView;
 import com.ibm.wala.ipa.callgraph.impl.DelegatingContextSelector;
 import com.ibm.wala.ipa.callgraph.propagation.SSAContextInterpreter;
 import com.ibm.wala.ipa.callgraph.propagation.SSAPropagationCallGraphBuilder;
@@ -81,7 +82,7 @@ public class ObjSensZeroXCFABuilder extends ZeroXCFABuilder {
 		
 	}
 
-	public ObjSensZeroXCFABuilder(final IClassHierarchy cha, final ExtendedAnalysisOptions options, final AnalysisCache cache,
+	public ObjSensZeroXCFABuilder(final IClassHierarchy cha, final ExtendedAnalysisOptions options, final IAnalysisCacheView cache,
 			final ContextSelector objSensSelector, final SSAContextInterpreter appContextInterpreter,
 			final int instancePolicy) {
 		super(cha, options, cache, objSensSelector, appContextInterpreter, instancePolicy);
@@ -100,7 +101,7 @@ public class ObjSensZeroXCFABuilder extends ZeroXCFABuilder {
     }
 
 	public static ZeroXCFABuilder make(final IClassHierarchy cha, final ExtendedAnalysisOptions options,
-			final AnalysisCache cache, final ContextSelector appContextSelector, final ContextSelector additionalContextSelector,
+			final IAnalysisCacheView cache, final ContextSelector appContextSelector, final ContextSelector additionalContextSelector,
 			final SSAContextInterpreter appCtxInterp, final int instancePolicy) throws IllegalArgumentException {
 		if (options == null) {
 			throw new IllegalArgumentException("options == null");

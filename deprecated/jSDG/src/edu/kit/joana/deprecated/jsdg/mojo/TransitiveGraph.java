@@ -10,10 +10,11 @@ package edu.kit.joana.deprecated.jsdg.mojo;
 import java.util.Iterator;
 
 import com.ibm.wala.util.CancelException;
-import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.graph.Graph;
 import com.ibm.wala.util.graph.GraphReachability;
 import com.ibm.wala.util.graph.impl.GraphInverter;
+
+import java.util.function.Predicate;
 
 /**
  * A wrapper that computes the transitive hull of a given graph.

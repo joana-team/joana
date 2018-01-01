@@ -14,12 +14,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
-import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.collections.ObjectArrayMapping;
 import com.ibm.wala.util.graph.Graph;
 import com.ibm.wala.util.graph.GraphReachability;
@@ -180,7 +180,7 @@ public class HeapParams {
 			final OrdinalSetMapping<PDGNode> map) throws CancelException {
 		final Graph<PDGNode> cfg = extractControlFlow(pdg);
 		final Graph<PDGNode> invertcfg = GraphInverter.invert(cfg);
-		final GraphReachability<PDGNode, PDGNode> reach = new GraphReachability<>(invertcfg, Predicate.TRUE);
+		final GraphReachability<PDGNode, PDGNode> reach = new GraphReachability<>(invertcfg, x -> true);
 
 		reach.solve(null);
 

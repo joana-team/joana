@@ -46,7 +46,6 @@ unauthorized user of the system
 - Java >=1.8
 - ant >= 1.9.6
 - Maven >= 3.x
-- a dx.jar (you can get one from an Android SDK)
 
 1. Fetch submodule sources
 
@@ -54,11 +53,6 @@ git submodule init
 git submodule update
 
 2. Setup WALA
-
-- Get a dx.jar from an Android SDK and copy it to appropriate location:
-
-  mkdir -p contrib/wala/com.ibm.wala.dalvik.test/lib
-  cp dx.jar contrib/wala/com.ibm.wala.dalvik.test/lib
 
 - Build WALA
 

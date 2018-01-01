@@ -9,6 +9,7 @@ package edu.kit.joana.wala.core.params;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import com.ibm.wala.analysis.pointers.HeapGraph;
 import com.ibm.wala.classLoader.IField;
@@ -32,7 +33,6 @@ import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
-import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.graph.Graph;
 import com.ibm.wala.util.graph.GraphReachability;
 import com.ibm.wala.util.graph.GraphSlicer;

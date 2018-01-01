@@ -16,9 +16,11 @@ import com.ibm.wala.cfg.exc.NullPointerAnalysis;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
+import com.ibm.wala.ipa.callgraph.AnalysisCacheImpl;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
 import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.ISSABasicBlock;
 import com.ibm.wala.ssa.SSAInstruction;
@@ -125,14 +127,14 @@ public class ExceptionTest {
 		scope.setExclusions(exclusions);
 		final ClassLoaderReference loader = scope.getLoader(AnalysisScope.APPLICATION);
 		AnalysisScopeReader.addClassPathToScope(config.classpath, scope, loader);
-		final ClassHierarchy cha = ClassHierarchy.make(scope);
+		final ClassHierarchy cha = ClassHierarchyFactory.make(scope);
 
 		out.println("done.");
 		
 		out.print("\tcounting instructions... ");
 
 		int methods = 0;
-		final AnalysisCache cache = new AnalysisCache();
+		final AnalysisCache cache = new AnalysisCacheImpl();
 		for (final IClass cls : cha) {
 			if (cls.getClassLoader().getName() == AnalysisScope.APPLICATION) {
 //				out.println(PrettyWalaNames.bcTypeName(cls));

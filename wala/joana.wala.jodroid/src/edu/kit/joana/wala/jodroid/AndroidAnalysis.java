@@ -26,6 +26,7 @@ import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
 import com.ibm.wala.dalvik.util.AndroidManifestXMLReader;
 import com.ibm.wala.dalvik.util.AndroidPreFlightChecks;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
+import com.ibm.wala.ipa.callgraph.AnalysisCacheImpl;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions.ReflectionOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
@@ -37,6 +38,7 @@ import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
 import com.ibm.wala.ipa.callgraph.pruned.ConjunctivePruningPolicy;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.types.ClassLoaderReference;
@@ -82,14 +84,14 @@ public class AndroidAnalysis {
 	}
 	private final AndroidEntryPointManager manager = new AndroidEntryPointManager();
 	public SDGBuilder.SDGBuilderConfig makeSDGBuilderConfig(AppSpec appSpec, AnalysisScope scope, IClassHierarchy cha, CGConsumer consumer, boolean silent, boolean onlyCG) throws ClassHierarchyException, IOException, CancelException {
-		AnalysisCache cache = new AnalysisCache(new DexIRFactory());
+		AnalysisCache cache = new AnalysisCacheImpl(new DexIRFactory());
 		AnalysisOptions options = configureOptions(scope, cha);
 		populateEntryPoints(cha);
 		if (appSpec.manifestFile != null) {
 			new AndroidManifestXMLReader(this.manager, appSpec.manifestFile);
 		}
 		IMethod lifecycle;
-		new AndroidPreFlightChecks(manager, options, cha).all();
+		new AndroidPreFlightChecks(manager, cha).all();
 		manager.setModelBehavior(LoopKillAndroidModel.class);
 		final AndroidModel modeller = new AndroidModel(manager, cha, options, cache);
 		lifecycle = modeller.getMethodEncap();
@@ -139,7 +141,7 @@ public class AndroidAnalysis {
 		return scfg;
 	}
 	public SDGBuilder.SDGBuilderConfig makeSDGBuilderConfig(AppSpec appSpec, AnalysisScope scope, CGConsumer consumer, boolean silent, boolean onlyCG) throws ClassHierarchyException, IOException, CancelException {
-		return makeSDGBuilderConfig(appSpec, scope, ClassHierarchy.make(scope), consumer, silent, onlyCG);
+		return makeSDGBuilderConfig(appSpec, scope, ClassHierarchyFactory.make(scope), consumer, silent, onlyCG);
 	}
 
 	public static AnalysisScope makeMinimalScope(AppSpec appSpec, String pathToJDK, String pathToAndroidLib) throws IOException {

@@ -13,52 +13,49 @@ import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.toggl
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 
 
 /**
  * @author Martin Hecker <martin.hecker@kit.edu>
  */
-public class ReflectiveConstructorCall {
-	interface I {
+public class ReflectiveMethodCall2 {
+	static interface I {
 		public void foo();
+		public void bar();
 	}
 
 	static class AA implements I {
 		private final int x;
-		public AA(Integer x) {
+		AA(Integer x) {
 			this.x = x;
 		}
 		@Override
 		public void foo() {
 			leak(toggle(SECRET));
 		}
-	}
-
-
-	static class BB implements I {
-		private final int y;
-		public BB(Integer y) {
-			this.y = y;
-		}
 		
 		@Override
-		public void foo() {
+		public void bar() {
 		}
 	}
-
 	
 	public static void main(String[] args) throws NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		final boolean unknown = args.length > 0;
 		
 		final Class<? extends I> clazz;
-		clazz = AA.class;
+		clazz = I.class;
 		
-		final Constructor<? extends I> con = clazz.getConstructor(Integer.class);
+		final Method method;
+		if (unknown) { 
+			method = clazz.getMethod("foo", new Class[0]);
+		} else {
+			method = clazz.getMethod("bar", new Class[0]);
+		}
 		
-		I i = con.newInstance(5);
-		
-		i.foo();
+		final I i = new AA(7);
+		method.invoke(i);
 	}
 }
 

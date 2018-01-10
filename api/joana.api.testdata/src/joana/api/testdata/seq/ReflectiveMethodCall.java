@@ -23,6 +23,7 @@ import java.lang.reflect.Method;
 public class ReflectiveMethodCall {
 	static interface I {
 		public void foo();
+		public void bar();
 	}
 
 	static class AA implements I {
@@ -33,6 +34,10 @@ public class ReflectiveMethodCall {
 		@Override
 		public void foo() {
 			leak(toggle(SECRET));
+		}
+		
+		@Override
+		public void bar() {
 		}
 	}
 
@@ -46,6 +51,11 @@ public class ReflectiveMethodCall {
 		@Override
 		public void foo() {
 		}
+		
+		@Override
+		public void bar() {
+			leak(toggle(SECRET));
+		}
 	}
 
 	
@@ -53,17 +63,13 @@ public class ReflectiveMethodCall {
 		final boolean unknown = args.length > 0;
 		
 		final Class<? extends I> clazz;
-		//if (unknown) {
-			clazz = AA.class;
-		//} else {
-//			clazz = BB.class;
-		//}
+		clazz = I.class;
 			
 		
 		final Method method  = clazz.getMethod("foo", new Class[0]);
 		
-		final AA aa = new AA(7);
-		method.invoke(aa);
+		final I i = new AA(7);
+		method.invoke(i);
 	}
 }
 

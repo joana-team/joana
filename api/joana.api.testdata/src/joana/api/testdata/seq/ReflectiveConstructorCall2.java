@@ -19,7 +19,8 @@ import java.lang.reflect.InvocationTargetException;
 /**
  * @author Martin Hecker <martin.hecker@kit.edu>
  */
-public class ReflectiveConstructorCall {
+public class ReflectiveConstructorCall2 {
+	
 	interface I {
 		public void foo();
 	}
@@ -49,10 +50,14 @@ public class ReflectiveConstructorCall {
 
 	
 	public static void main(String[] args) throws NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		final boolean unknown = args.length > 0;
+		final boolean unknown = args.length == 0;
 		
 		final Class<? extends I> clazz;
-		clazz = AA.class;
+		if (unknown) {
+			clazz = AA.class;
+		} else {
+			clazz = BB.class;
+		}
 		
 		final Constructor<? extends I> con = clazz.getConstructor(Integer.class);
 		

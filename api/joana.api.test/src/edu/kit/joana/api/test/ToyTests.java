@@ -13,7 +13,6 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.util.Collection;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
@@ -146,6 +145,17 @@ public class ToyTests {
 
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertFalse(illegal.isEmpty());
+		}
+	}
+	
+	@Deprecated
+	private static void testUnsound(Class<?> clazz) throws ClassHierarchyException, ApiTestException,
+			IOException, UnsoundGraphException, CancelException {
+		{ // Unsound: No leaks are found, even if if secret is really passed on
+			IFCAnalysis ana = buildAnnotateDump(clazz, false);
+
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertTrue(illegal.isEmpty());
 		}
 	}
 
@@ -368,10 +378,15 @@ public class ToyTests {
 	}
 	
 	@Test
-	@Ignore
 	public void testReflectiveConstructorCall() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testPreciseEnough(joana.api.testdata.seq.ReflectiveConstructorCall.class);
+	}
+	
+	@Test
+	public void testReflectiveConstructorCall2() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testUnsound(joana.api.testdata.seq.ReflectiveConstructorCall2.class);
 	}
 	
 	@Test
@@ -379,4 +394,23 @@ public class ToyTests {
 			UnsoundGraphException, CancelException {
 		testPreciseEnough(joana.api.testdata.seq.ReflectiveMethodCall.class);
 	}
+	
+	@Test
+	public void testReflectiveMethodCall2() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testPreciseEnough(joana.api.testdata.seq.ReflectiveMethodCall2.class);
+	}
+	
+	@Test
+	public void testReflectiveMethodCall3() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testPreciseEnough(joana.api.testdata.seq.ReflectiveMethodCall3.class);
+	}
+	
+	@Test
+	public void testReflectiveMethodCall4() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testPreciseEnough(joana.api.testdata.seq.ReflectiveMethodCall4.class);
+	}
+
 }

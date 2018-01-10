@@ -31,6 +31,7 @@ import org.eclipse.jdt.internal.corext.util.CollectionsUtil;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import com.ibm.wala.cfg.exc.intra.MethodState;
+import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
 import com.ibm.wala.ipa.callgraph.pruned.DoNotPrune;
@@ -229,7 +230,9 @@ public final class CheckInformationFlow {
 					com.ibm.wala.util.collections.Pair<Long, SDGBuilder.SDGBuilderConfig> pair = SDGBuildPreparation.prepareBuild(out, SDGProgram.makeBuildPreparationConfig(config), NullProgressMonitor.INSTANCE);
 					cha = pair.snd.cha;
 				}
-				p.fillWithAnnotations(cha);
+				
+				// TODO: find relevant classes, similar to SDGProgram.findClassesRelevantForAnnotation()
+				p.fillWithAnnotations(cha, cha);
 				containsThreads = containsThreads(p);
 				rebuiltWithoutExceptionEdges = false;
 				break;

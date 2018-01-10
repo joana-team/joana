@@ -24,15 +24,24 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.ShrikeCTMethod;
+import com.ibm.wala.ipa.callgraph.CGNode;
+import com.ibm.wala.ipa.callgraph.CallGraph;
+import com.ibm.wala.ipa.callgraph.impl.FakeRootClass;
+import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.shrikeCT.TypeAnnotationsReader.TargetType;
+import com.ibm.wala.ssa.IR;
+import com.ibm.wala.ssa.SSAGetInstruction;
+import com.ibm.wala.ssa.SSAInstruction;
+import com.ibm.wala.ssa.SSAPutInstruction;
 import com.ibm.wala.types.annotations.Annotation;
 import com.ibm.wala.types.annotations.TypeAnnotation;
 import com.ibm.wala.types.annotations.TypeAnnotation.LocalVarTarget;
@@ -269,19 +278,59 @@ public class SDGProgram {
 			return ret;
 		}
 		
-		ret.fillWithAnnotations(builder.getClassHierarchy());
+		
+		final IClassHierarchy ch  = builder.getClassHierarchy();
+		final CallGraph callGraph = builder.getWalaCallGraph(); 
+		ret.fillWithAnnotations(ch, findClassesRelevantForAnnotation(ch, callGraph));
 		return ret;
 	}
+	
+	public static Set<IClass> findClassesRelevantForAnnotation(IClassHierarchy ch, CallGraph callGraph) {
+		final Set<IClass> classes = new HashSet<>();
+		SSAInstruction.Visitor collectReferencedClasses = new SSAInstruction.Visitor() {
+			@Override
+			public void visitGet(SSAGetInstruction instruction) {
+				final IClass cl = ch.lookupClass(instruction.getDeclaredFieldType());
+				if (cl != null && !cl.isArrayClass() ) {
+					classes.add(cl);
+				}
+			}
+			
+			@Override
+			public void visitPut(SSAPutInstruction instruction) {
+				final IClass cl = ch.lookupClass(instruction.getDeclaredFieldType());
+				if (cl != null && !cl.isArrayClass()) {
+					classes.add(cl);
+				}
+			}
+		};
+		
+		// TODO: is this enough in general?!?!?
+		for (CGNode cgnode : callGraph) {
+			final IClass cl = cgnode.getMethod().getDeclaringClass();
+			assert cl != null;
+			
+			if (!(cl instanceof FakeRootClass) && !cl.isArrayClass()) {
+				classes.add(cl);
+			}
+			
+			final IR ir = cgnode.getIR();
+			if (ir != null) {
+				ir.visitNormalInstructions(collectReferencedClasses);
+			}
+		}
+		return classes;
+		
+	}
 
-	public void fillWithAnnotations(IClassHierarchy cha) {
+	public void fillWithAnnotations(IClassHierarchy cha, Iterable<IClass> classes) {
 		final Collection<String> sourceOrSinkAnnotationName = 
 				Arrays.asList(new Class<?>[] { Source.class, Sink.class })
 				.stream().map( cl -> "L" + cl.getName().replace(".", "/")).collect(Collectors.toList());
 		final Collection<String> entryPointAnnotationName = 
 				Arrays.asList(new Class<?>[] { edu.kit.joana.ui.annotations.EntryPoint.class })
 				.stream().map( cl -> "L" + cl.getName().replace(".", "/")).collect(Collectors.toList());
-		// TODO: Iterate only over classes present in the call graph
-		for (IClass c : cha) {
+		for (IClass c : classes) {
 			final String walaClassName = c.getName().toString();
 			final JavaType jt = JavaType.parseSingleTypeFromString(walaClassName, Format.BC);
 			final String sourcefile = PrettyWalaNames.sourceFileName(c.getName()); 

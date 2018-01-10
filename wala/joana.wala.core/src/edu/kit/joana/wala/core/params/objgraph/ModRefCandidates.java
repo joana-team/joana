@@ -366,7 +366,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 		 */
 		@Override
 		public ModRefFieldCandidate registerMergeCandidates(Iterable<ModRefFieldCandidate> toMerge, int markWithFlags) {
-			final List<ParameterCandidate> pcands = new ArrayList<ParameterCandidate>();
+			final Set<ParameterCandidate> pcands = new HashSet<>();
 			boolean isMod = false;
 			boolean isRef = false;
 			int flags = ModRefCandidate.FLAG_NOT_SET;

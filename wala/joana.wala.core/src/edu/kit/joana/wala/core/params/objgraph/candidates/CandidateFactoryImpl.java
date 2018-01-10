@@ -949,11 +949,6 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 	}
 
 	/**
-	 * In wala the static type of every non-primitive array is Object[]. Therefore our generated ParameterField name
-	 * is "[Object]" for every non-primitive array access in the program. As we normally use the ParameterField to
-	 * hash relevant information, we get huge collisions for array accesses. Thus we create a special hash value for
-	 * object array accesses that includes additional information. We use the first element of the points-to set of
-	 * access. As the points-to set is ordered, the first element is deterministic. 
 	 * @param pts points-to set of the array access
 	 * @return id of the first element of the points-to set (or some other fixed number if the set is empty or null)
 	 */
@@ -963,7 +958,16 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		} else if (pts.isEmpty()) {
 			return -3;
 		} else {
-			return pts.size();
+			int sum = 0;
+			// Iteration order is not necessarily the same for two OrdinalSet which are equal:
+			// Compare, e.g., SparseIntSet#intIterator() vs. MutableSharedBitVectorIntSet#intIterator(),
+			// the latter of which will first enumerate all keys from it's private part, and then thos from it's
+			// shared part.
+			// For this reason, we need do combine commutatively (using +).
+			for(InstanceKey key : pts) {
+				sum += key.hashCode();
+			}
+			return sum;
 		}
 	}
 }

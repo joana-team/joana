@@ -224,18 +224,19 @@ public class ModRefCandidates implements Iterable<CGNode> {
 				final OrdinalSet<InstanceKey> pts) {
 			final ParameterCandidate pc = fact.findOrCreateUnique(basePts, field, pts);
 
-			if (cands.containsKey(pc)) {
-				final ModRefFieldCandidate mrc = cands.get(pc);
-				all.add(mrc);
-				mrc.setMod();
-			} else {
-				final ModRefFieldCandidate mrc = new ModRefFieldCandidate(true, false, pc);
-				if (pc.isMerged()) {
-					mrc.flags |= ObjGraphParams.FLAG_MERGE_INITIAL_LIBRARY;
+			cands.compute(pc, (k, mrc) -> {
+				if (mrc != null) {
+					all.add(mrc);
+					mrc.setMod(); // TODO: this is not good: ModRefFieldCandidate#equals() uses this flag
+				} else {
+					mrc = new ModRefFieldCandidate(true, false, pc);
+					if (pc.isMerged()) {
+						mrc.flags |= ObjGraphParams.FLAG_MERGE_INITIAL_LIBRARY;
+					}
+					all.add(mrc);					
 				}
-				cands.put(pc, mrc);
-				all.add(mrc);
-			}
+				return mrc;
+			});
 			assert invariant();
 		}
 
@@ -244,18 +245,20 @@ public class ModRefCandidates implements Iterable<CGNode> {
 				final OrdinalSet<InstanceKey> pts) {
 			final ParameterCandidate pc = fact.findOrCreateUnique(basePts, field, pts);
 
-			if (cands.containsKey(pc)) {
-				final ModRefFieldCandidate mrc = cands.get(pc);
-				all.add(mrc);
-				mrc.setRef();
-			} else {
-				final ModRefFieldCandidate mrc = new ModRefFieldCandidate(false, true, pc);
-				if (pc.isMerged()) {
-					mrc.flags |= ObjGraphParams.FLAG_MERGE_INITIAL_LIBRARY;
+			cands.compute(pc, (k, mrc) -> {
+				if (mrc != null) {
+					all.add(mrc);
+					mrc.setRef(); // TODO: this is not good: ModRefFieldCandidate#equals() uses this flag
+				} else {
+					mrc = new ModRefFieldCandidate(false, true, pc);
+					if (pc.isMerged()) {
+						mrc.flags |= ObjGraphParams.FLAG_MERGE_INITIAL_LIBRARY;
+					}
+					all.add(mrc);					
 				}
-				cands.put(pc, mrc);
-				all.add(mrc);
-			}
+				return mrc;
+			});
+			
 			assert invariant();
 		}
 

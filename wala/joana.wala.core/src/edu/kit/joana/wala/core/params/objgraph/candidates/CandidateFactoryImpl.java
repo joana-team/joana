@@ -49,11 +49,11 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 	private final MergeStrategy merge;
 	private final Map<Atom, MultipleParamCandImpl> id2cand = new HashMap<Atom, MultipleParamCandImpl>();
 	/* Maps parameter field -> set of candidates */
-	private final Map<ParameterField, Set<UniqueParameterCandidate>> cache =
-			new HashMap<ParameterField, Set<UniqueParameterCandidate>>();
+	private final Map<ParameterField, Map<UniqueParameterCandidate, UniqueParameterCandidate>> cache =
+			new HashMap<ParameterField, Map<UniqueParameterCandidate, UniqueParameterCandidate>>();
 	/* special map for object array fields, see documentation of makeObjArrayHash() below for details */
-	private final TIntObjectMap<Set<UniqueParameterCandidate>> cacheObjArray =
-			new TIntObjectHashMap<Set<UniqueParameterCandidate>>();
+	private final TIntObjectMap<Map<UniqueParameterCandidate, UniqueParameterCandidate>> cacheObjArray =
+			new TIntObjectHashMap<Map<UniqueParameterCandidate, UniqueParameterCandidate>>();
 	private final MutableMapping<UniqueParameterCandidate> mapping = MutableMapping.make();
 	private final OrdinalSetMapping<ParameterField> fieldMapping;
 
@@ -74,13 +74,13 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			return findOrCreateUniqueObjArray(basePts, field, fieldPts);
 		}
 
-		Set<UniqueParameterCandidate> candSet = cache.get(field);
-
-		if (candSet == null) {
-			candSet = new HashSet<UniqueParameterCandidate>();
-			cache.put(field, candSet);
-		}
-
+		Map<UniqueParameterCandidate, UniqueParameterCandidate> candSet = cache.compute(field, (k, cSet) -> {
+			if (cSet == null) {
+				cSet = new HashMap<>();
+			}
+			return cSet;
+		});
+		
 		final UniqueParameterCandidate newCand;
 
 		if (merge.doMerge(basePts, field, fieldPts)) {
@@ -89,26 +89,25 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			newCand = new SingleParamCandImpl(basePts, field, fieldPts);
 		}
 
-		for (final UniqueParameterCandidate cand : candSet) {
-			if (cand.equals(newCand)) {
-				return cand;
+		final UniqueParameterCandidate result = candSet.compute(newCand, (k, cand) -> {
+			if (cand == null) {
+				cand = newCand;
+				mapping.add(newCand);
 			}
-		}
-
-		candSet.add(newCand);
-		mapping.add(newCand);
-
-		return newCand;
+			return cand;
+		});
+		
+		return result;
 	}
 
 	private synchronized UniqueParameterCandidate findOrCreateUniqueObjArray(final OrdinalSet<InstanceKey> basePts,
 			final ParameterField field,	final OrdinalSet<InstanceKey> fieldPts) {
 		final int id = makeObjArrayHash(fieldPts);
 
-		Set<UniqueParameterCandidate> candSet = cacheObjArray.get(id);
+		Map<UniqueParameterCandidate, UniqueParameterCandidate> candSet = cacheObjArray.get(id);
 
 		if (candSet == null) {
-			candSet = new HashSet<UniqueParameterCandidate>();
+			candSet = new HashMap<UniqueParameterCandidate, UniqueParameterCandidate>();
 			cacheObjArray.put(id, candSet);
 		}
 
@@ -120,16 +119,15 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			newCand = new SingleParamCandImpl(basePts, field, fieldPts);
 		}
 
-		for (final UniqueParameterCandidate cand : candSet) {
-			if (cand.equals(newCand)) {
-				return cand;
+		final UniqueParameterCandidate result = candSet.compute(newCand, (k, cand) -> {
+			if (cand == null) {
+				cand = newCand;
+				mapping.add(newCand);
 			}
-		}
-
-		candSet.add(newCand);
-		mapping.add(newCand);
-
-		return newCand;
+			return cand;
+		});
+		
+		return result;
 	}
 	
 	/* (non-Javadoc)

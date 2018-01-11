@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -151,7 +152,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 		private static boolean expensiveAssertions = false;
 		private final CandidateFactory fact;
 		private Map<ParameterCandidate, ModRefFieldCandidate> cands = new HashMap<ParameterCandidate, ModRefFieldCandidate>();
-		private Set<ModRefFieldCandidate> all = new HashSet<ModRefFieldCandidate>();
+		private Set<ModRefFieldCandidate> all = new LinkedHashSet<ModRefFieldCandidate>();
 
 		private CGNodeCandidates(final CandidateFactory fact) {
 			this.fact = fact;

@@ -10,6 +10,7 @@ package edu.kit.joana.wala.core.params.objgraph.dataflow;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -241,7 +242,7 @@ public class ModRefControlFlowGraph extends SparseNumberedGraph<ModRefControlFlo
 			final SSAInvokeInstruction invk = (SSAInvokeInstruction) pdg.getInstruction(call);
 			final CallSiteReference site = invk.getCallSite();
 
-			final Set<ModRefFieldCandidate> modRefCands = new HashSet<ModRefFieldCandidate>();
+			final Set<ModRefFieldCandidate> modRefCands = new LinkedHashSet<ModRefFieldCandidate>();
 
 			for (final CGNode tgt : cg.getPossibleTargets(pdg.cgNode, site)) {
 				final InterProcCandidateModel tgtModRef = modref.getCandidates(tgt);

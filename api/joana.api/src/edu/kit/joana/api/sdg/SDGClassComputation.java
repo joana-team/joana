@@ -24,6 +24,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGNode.Kind;
 import edu.kit.joana.ifc.sdg.graph.SDGNode.Operation;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
+import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.ifc.sdg.util.JavaType.Format;
 import edu.kit.joana.util.Log;
@@ -47,9 +48,10 @@ public class SDGClassComputation {
 	// type |--> entry nodes of methods implemented by that type
 	private final Map<JavaType, Set<SDGNode>> seenMethods = new HashMap<JavaType, Set<SDGNode>>();
 	
-	// entryNode --> localVariableName -> (Nodes that use localVariableName, Nodes that define localVariableName)  
-	private final Map<SDGNode, Map<String, Pair<Set<SDGNode>, Set<SDGNode>>>> seenLocalVariables = new HashMap<>();
+	// MethodSignature --> localVariableName -> (Nodes that use localVariableName, Nodes that define localVariableName)  
+	private final Map<JavaMethodSignature, Map<String, Pair<Set<SDGNode>, Set<SDGNode>>>> seenLocalVariables2 = new HashMap<>();
 
+	
 	public SDGClassComputation(SDG sdg) {
 		this.sdg = sdg;
 		compute();
@@ -101,6 +103,22 @@ public class SDGClassComputation {
 	 */
 	public Set<SDGNode> getSinkNodes(SDGAttribute a) {
 		return getSrcSnkNodes(a, AnnotationType.SINK);
+	}
+	
+	public Set<SDGNode> getSourceNodes(SDGLocalVariable x) {
+		final Pair<Set<SDGNode>, Set<SDGNode>> usesDefs =
+			seenLocalVariables2
+				.getOrDefault(x.getOwningMethod().getSignature(), Collections.emptyMap())
+				.get(x.getName());
+		if (usesDefs != null) {
+			return usesDefs.getSecond();
+		} else {
+			return Collections.emptySet();
+		}
+	}
+
+	public Set<SDGNode> getSinkNodes(SDGLocalVariable x) {
+		return getSourceNodes(x);
 	}
 
 	public Set<SDGNode> getSrcSnkNodes(SDGAttribute a, AnnotationType type) {
@@ -306,7 +324,7 @@ public class SDGClassComputation {
 
 		for (JavaType typeName : declNodes.keySet()) {
 			result.add(new SDGClass(typeName, declNodes.get(typeName), seenAttributes.get(typeName), seenMethods
-					.get(typeName), sdg, sdgByProc, seenLocalVariables));
+					.get(typeName), sdg, sdgByProc));
 		}
 
 		return result;
@@ -314,23 +332,26 @@ public class SDGClassComputation {
 	
 	private void seenLocalDef(SDGNode node) {
 		final SDGNode entry = sdg.getEntry(node);
-		seenLocalFor(entry);
+		final JavaMethodSignature methodSignature = JavaMethodSignature.fromString(entry.getBytecodeMethod());
+		seenLocalFor(methodSignature);
 		Arrays.stream(node.getLocalDefNames()).forEach( var -> {
-			seenLocalVariables.get(entry).computeIfAbsent(var, v -> Pair.pair(new HashSet<SDGNode>(), new HashSet<SDGNode>()));
-			seenLocalVariables.get(entry).get(var).getSecond().add(node);
+			seenLocalVariables2.get(methodSignature).computeIfAbsent(var, v -> Pair.pair(new HashSet<SDGNode>(), new HashSet<SDGNode>()));
+			seenLocalVariables2.get(methodSignature).get(var).getSecond().add(node);
+
 		});
 	}
 	
-	private void seenLocalFor(SDGNode entry) {
-		seenLocalVariables.computeIfAbsent(entry, e -> new HashMap<>());		
+	private void seenLocalFor(JavaMethodSignature entry) {
+		seenLocalVariables2.computeIfAbsent(entry, e -> new HashMap<>());		
 	}
 	
 	private void seenLocalUse(SDGNode node) {
 		final SDGNode entry = sdg.getEntry(node);
-		seenLocalFor(entry);
+		final JavaMethodSignature methodSignature = JavaMethodSignature.fromString(entry.getBytecodeMethod());
+		seenLocalFor(methodSignature);
 		Arrays.stream(node.getLocalUseNames()).forEach( var -> {
-			seenLocalVariables.get(entry).computeIfAbsent(var, v -> Pair.pair(new HashSet<SDGNode>(), new HashSet<SDGNode>()));
-			seenLocalVariables.get(entry).get(var).getFirst().add(node);
+			seenLocalVariables2.get(methodSignature).computeIfAbsent(var, v -> Pair.pair(new HashSet<SDGNode>(), new HashSet<SDGNode>()));
+			seenLocalVariables2.get(methodSignature).get(var).getFirst().add(node);
 		});
 	}
 

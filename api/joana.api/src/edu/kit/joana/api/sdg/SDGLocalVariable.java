@@ -7,35 +7,16 @@
  */
 package edu.kit.joana.api.sdg;
 
-import java.util.Set;
-
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
-
 public class SDGLocalVariable implements SDGProgramPart {
 
 	private final SDGMethod owningMethod;
 	private String name;
 	
-	private final Set<SDGNode> uses;
-	private final Set<SDGNode> defs;
-
-	SDGLocalVariable(SDGMethod owner, String name, Set<SDGNode> uses, Set<SDGNode> defs) {
+	SDGLocalVariable(SDGMethod owner, String name) {
 		this.owningMethod = owner;
 		this.name = name;
-		this.uses = uses;
-		this.defs = defs;
 	}
 
-	public Set<SDGNode> getUses() {
-		return uses;
-	}
-
-
-	public Set<SDGNode> getDefs() {
-		return defs;
-	}
-
-	
 	public String getName() {
 		return name;
 	}

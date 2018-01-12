@@ -17,9 +17,7 @@ import java.util.Set;
 
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.sdg.SDGMethod;
-import edu.kit.joana.api.sdg.SDGPPConcretenessEvaluator;
 import edu.kit.joana.api.sdg.SDGProgram;
-import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;

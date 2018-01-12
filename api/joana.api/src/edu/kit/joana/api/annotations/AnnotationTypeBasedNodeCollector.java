@@ -202,9 +202,9 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 	protected Set<SDGNode> visitLocalVariable(SDGLocalVariable local, AnnotationType type) {
 		switch (type) {
 			case SOURCE:
-				return local.getDefs();
+				return pp2NodeTrans.getSourceNodes(local);
 			case SINK:
-				return local.getDefs();	
+				return pp2NodeTrans.getSinkNodes(local);
 			default:
 				throw new UnsupportedOperationException("not implemented yet!");
 		}

@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -34,11 +33,10 @@ public class SDGClass implements SDGProgramPart {
 	private final Set<SDGMethod> methods;
 
 	SDGClass(JavaType typeName, Collection<SDGNode> declNodes, Map<String, Pair<Set<SDGNode>, Set<SDGNode>>> attributeNodes,
-			Set<SDGNode> methodEntryNodes, SDG sdg, TIntObjectHashMap<HashSet<SDGNode>> sdgByProc,
-			Map<SDGNode, Map<String, Pair<Set<SDGNode>, Set<SDGNode>>>> localVariableNodes) {
+			Set<SDGNode> methodEntryNodes, SDG sdg, TIntObjectHashMap<HashSet<SDGNode>> sdgByProc) {
 		this.typeName = typeName;
 		this.attributes = createSDGAttributes(attributeNodes);
-		this.methods = createSDGMethods(methodEntryNodes, sdg, sdgByProc, localVariableNodes);
+		this.methods = createSDGMethods(methodEntryNodes, sdg, sdgByProc);
 	}
 
 	private Set<SDGAttribute> createSDGAttributes(Map<String, Pair<Set<SDGNode>, Set<SDGNode>>> attributeNodes) {
@@ -62,8 +60,7 @@ public class SDGClass implements SDGProgramPart {
 	}
 
 	private Set<SDGMethod> createSDGMethods(Set<SDGNode> methodEntryNodes, SDG sdg,
-			TIntObjectHashMap<HashSet<SDGNode>> sdgByProc,
-			Map<SDGNode, Map<String, Pair<Set<SDGNode>, Set<SDGNode>>>> localVariableNodes) {
+			TIntObjectHashMap<HashSet<SDGNode>> sdgByProc) {
 		Set<SDGMethod> ret = new HashSet<SDGMethod>();
 		if (methodEntryNodes != null) {
 			for (SDGNode entry : methodEntryNodes) {
@@ -88,15 +85,22 @@ public class SDGClass implements SDGProgramPart {
 						m.addPhi(new SDGPhi(m, nInstr));
 					}
 				}
-				final Map<String, Pair<Set<SDGNode>, Set<SDGNode>>> localVariableNodesEntry = localVariableNodes.get(entry);
-				if (localVariableNodesEntry != null) {
-					for (Entry<String, Pair<Set<SDGNode>, Set<SDGNode>>> e : localVariableNodesEntry.entrySet()) {
-						final String localVariable = e.getKey();
-						final Pair<Set<SDGNode>, Set<SDGNode>> p = e.getValue();
-						final Set<SDGNode> uses = p.getFirst();
-						final Set<SDGNode> defs = p.getSecond();
-						m.addLocalVariable(new SDGLocalVariable(m, localVariable, uses, defs));
+				
+				final Set<String> localVariables = new HashSet<>();
+				for (SDGNode node : sdgByProc.get(entry.getProc())) {
+					if (node.getLocalDefNames() != null) {
+						for (String localVariable : node.getLocalDefNames()) {
+							localVariables.add(localVariable);
+						}
 					}
+					if (node.getLocalUseNames() != null) {
+						for (String localVariable : node.getLocalUseNames()) {
+							localVariables.add(localVariable);
+						}
+					}
+				}
+				for (String localVariable : localVariables) {
+					m.addLocalVariable(new SDGLocalVariable(m, localVariable));
 				}
 			}
 		}

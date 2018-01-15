@@ -60,7 +60,7 @@ public class FullIFCSensitivityTest {
 	public static IFCAnalysis buildAndAnnotate(final String className, final PointsToPrecision pts, final DynamicDispatchHandling ddisp,
 			final boolean computeInterference, MHPType mhpType) throws ApiTestException {
 		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(className);
-		SDGConfig config = new SDGConfig(JoanaPath.JOANA_MANY_SMALL_PROGRAMS_CLASSPATH, mainMethod.toBCString(), Stubs.JRE_14);
+		SDGConfig config = new SDGConfig(JoanaPath.JOANA_MANY_SMALL_PROGRAMS_CLASSPATH, mainMethod.toBCString(), Stubs.JRE_15);
 		config.setComputeInterferences(computeInterference);
 		config.setExceptionAnalysis(ExceptionAnalysis.INTRAPROC);
 		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH);

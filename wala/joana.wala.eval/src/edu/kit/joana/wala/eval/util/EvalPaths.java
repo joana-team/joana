@@ -40,6 +40,11 @@ public class EvalPaths {
 	public static final String JRE14_RS3EXAMPLESCP;
 	public static final String JRE14_FREECS;
 	public static final String JRE14_UPM;
+	public static final String JRE15_HSQLDB;
+	public static final String JRE15_BATTLESHIP;
+	public static final String JRE15_RS3EXAMPLESCP;
+	public static final String JRE15_FREECS;
+	public static final String JRE15_UPM;
 
 	static {
 		final String propFile = loadPropertyOrFallback("joana.eval.prop-file", "eval.properties");
@@ -72,6 +77,13 @@ public class EvalPaths {
 			JRE14_RS3EXAMPLESCP = tryToLoadProperty("joana.jre14.rs3examplescp", propFile);
 			JRE14_FREECS = tryToLoadProperty("joana.jre14.freecs", propFile);
 			JRE14_UPM = tryToLoadProperty("joana.jre14.upm", propFile);
+		}
+		{
+			JRE15_HSQLDB = tryToLoadProperty("joana.jre15.hsqldb", propFile);
+			JRE15_BATTLESHIP = tryToLoadProperty("joana.jre15.battleship", propFile);
+			JRE15_RS3EXAMPLESCP = tryToLoadProperty("joana.jre15.rs3examplescp", propFile);
+			JRE15_FREECS = tryToLoadProperty("joana.jre15.freecs", propFile);
+			JRE15_UPM = tryToLoadProperty("joana.jre15.upm", propFile);
 		}
 	}
 	

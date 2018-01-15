@@ -49,7 +49,7 @@ public class TestObjGraphPerformanceJRE14_NoOptExcNoExc extends TestObjGraphPerf
 				return;
 			}
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
-					Stubs.JRE_14, EvalPaths.JRE14_BATTLESHIP, "Main");
+					Stubs.JRE_14_INCOMPLETE, EvalPaths.JRE14_BATTLESHIP, "Main");
 			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
 			assertFalse(sdg.vertexSet().isEmpty());
 			outputStatistics(sdg, cfg, currentTestcase);
@@ -68,7 +68,7 @@ public class TestObjGraphPerformanceJRE14_NoOptExcNoExc extends TestObjGraphPerf
 				return;
 			}
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED, FieldPropagation.OBJ_GRAPH,
-					Stubs.JRE_14, EvalPaths.JRE14_BATTLESHIP, "Main");
+					Stubs.JRE_14_INCOMPLETE, EvalPaths.JRE14_BATTLESHIP, "Main");
 			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
 			assertFalse(sdg.vertexSet().isEmpty());
 			outputStatistics(sdg, cfg, currentTestcase);
@@ -87,7 +87,7 @@ public class TestObjGraphPerformanceJRE14_NoOptExcNoExc extends TestObjGraphPerf
 				return;
 			}
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.OBJECT_SENSITIVE, FieldPropagation.OBJ_GRAPH,
-					Stubs.JRE_14, EvalPaths.JRE14_BATTLESHIP, "Main");
+					Stubs.JRE_14_INCOMPLETE, EvalPaths.JRE14_BATTLESHIP, "Main");
 			final SDG sdg = buildSDG(cfg, NUMBER_OF_RUNS);
 			assertFalse(sdg.vertexSet().isEmpty());
 			outputStatistics(sdg, cfg, currentTestcase);
@@ -96,5 +96,4 @@ public class TestObjGraphPerformanceJRE14_NoOptExcNoExc extends TestObjGraphPerf
 			fail(e.getMessage());
 		}
 	}
-
 }

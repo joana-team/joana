@@ -63,7 +63,7 @@ public class LibraryPruningTest {
 	public IFCAnalysis buildAndAnnotate(final String className, final String secSrc,
 			final String pubOut, final PointsToPrecision pts, final ExceptionAnalysis exc) throws ApiTestException {
 		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(className);
-		SDGConfig config = new SDGConfig(JoanaPath.JOANA_MANY_SMALL_PROGRAMS_CLASSPATH, mainMethod.toBCString(), Stubs.JRE_14);
+		SDGConfig config = new SDGConfig(JoanaPath.JOANA_MANY_SMALL_PROGRAMS_CLASSPATH, mainMethod.toBCString(), Stubs.JRE_15);
 		config.setComputeInterferences(false);
 		config.setExceptionAnalysis(exc);
 		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH);

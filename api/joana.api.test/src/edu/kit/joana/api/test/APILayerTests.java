@@ -43,7 +43,7 @@ public class APILayerTests {
 	 */
 	@Test
 	public void testAttributeAsParameter() throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		SDGConfig config = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, JavaMethodSignature.mainMethodOfClass(AttributeAsParameter.class.getCanonicalName()).toBCString(), Stubs.JRE_14);
+		SDGConfig config = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, JavaMethodSignature.mainMethodOfClass(AttributeAsParameter.class.getCanonicalName()).toBCString(), Stubs.JRE_15);
 		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH);
 		SDGProgram program = SDGProgram.createSDGProgram(config);
 		IFCAnalysis ana = new IFCAnalysis(program);

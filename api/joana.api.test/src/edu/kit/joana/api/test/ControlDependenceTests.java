@@ -45,7 +45,7 @@ public class ControlDependenceTests {
 	static final boolean outputPDGFiles = true;
 	static final boolean outputGraphMLFiles = true;
 	
-	private static final Stubs STUBS = Stubs.JRE_14;
+	private static final Stubs STUBS = Stubs.JRE_15;
 	private static final ExceptionAnalysis exceptionAnalyses[] = ExceptionAnalysis.values();
 	
 	private static void setDefaults(SDGConfig config) {

@@ -40,7 +40,7 @@ import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
  */
 public final class BuildSDG {
 
-	private static final Stubs STUBS = Stubs.JRE_14;
+	private static final Stubs STUBS = Stubs.JRE_15;
 
 	public static final SDGConfig top_sequential = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, null, STUBS, ExceptionAnalysis.INTERPROC,
 			FieldPropagation.OBJ_GRAPH, PointsToPrecision.OBJECT_SENSITIVE, false, // no

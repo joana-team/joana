@@ -66,7 +66,7 @@ public final class RunDemoIFC {
 	private static final String DEFAULT_SECRET_SOURCE = "Main.inputPIN()I";
 	private static final String DEFAULT_PUBLIC_OUTPUT = "Main.print(I)V";
 	private static final String THREAD_START = "java.lang.Thread.start()V";
-	private static final Stubs DEFAULT_STUBS = Stubs.JRE_14;
+	private static final Stubs DEFAULT_STUBS = Stubs.JRE_15;
 	
 	private static final boolean DUMP_SDG_FILES;
 	static {

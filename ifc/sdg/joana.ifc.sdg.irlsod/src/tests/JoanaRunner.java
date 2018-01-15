@@ -80,7 +80,7 @@ public class JoanaRunner {
 	private static AnalysisScope makeMinimalScope(final String appClassPath) throws IOException {
 		final AnalysisScope scope = AnalysisScope.createJavaAnalysisScope();
 		scope.addToScope(ClassLoaderReference.Application, new BinaryDirectoryTreeModule(new File(appClassPath)));
-		final URL url = new File(Stubs.JRE_14.getPaths()[0]).toURI().toURL();
+		final URL url = new File(Stubs.JRE_15.getPaths()[0]).toURI().toURL();
 		final URLConnection con = url.openConnection();
 		final InputStream in = con.getInputStream();
 		scope.addToScope(ClassLoaderReference.Primordial, new JarStreamModule(in));

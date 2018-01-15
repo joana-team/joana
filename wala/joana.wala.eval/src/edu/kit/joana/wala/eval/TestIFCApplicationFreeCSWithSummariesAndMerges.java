@@ -46,7 +46,7 @@ public class TestIFCApplicationFreeCSWithSummariesAndMerges extends TestObjGraph
 			final String currentTestcase = currentMethodName();
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED,
 					FieldPropagation.OBJ_GRAPH,
-					Stubs.JRE_14, EvalPaths.JRE14_FREECS, "freecs.Server");
+					Stubs.JRE_14_INCOMPLETE, EvalPaths.JRE14_FREECS, "freecs.Server");
 			final SDG sdg = buildSDG(cfg, System.out);
 			assertFalse(sdg.vertexSet().isEmpty());
 			outputStatistics(sdg, cfg, currentTestcase);
@@ -57,11 +57,42 @@ public class TestIFCApplicationFreeCSWithSummariesAndMerges extends TestObjGraph
 	}
 
 	@Test
+	public void test_JRE15_FreeCS_PtsInst_Graph_Std_Summary_Merge() {
+		try {
+			final String currentTestcase = currentMethodName();
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED,
+					FieldPropagation.OBJ_GRAPH,
+					Stubs.JRE_15, EvalPaths.JRE15_FREECS, "freecs.Server");
+			final SDG sdg = buildSDG(cfg, System.out);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+	
+	@Test
 	public void test_JRE14_FreeCS_PtsType_Graph_Std_Summary_Merge() {
 		try {
 			final String currentTestcase = currentMethodName();
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
-					Stubs.JRE_14, EvalPaths.JRE14_FREECS, "freecs.Server");
+					Stubs.JRE_14_INCOMPLETE, EvalPaths.JRE14_FREECS, "freecs.Server");
+			final SDG sdg = buildSDG(cfg, System.out);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+	
+	@Test
+	public void test_JRE15_FreeCS_PtsType_Graph_Std_Summary_Merge() {
+		try {
+			final String currentTestcase = currentMethodName();
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
+					Stubs.JRE_15, EvalPaths.JRE15_FREECS, "freecs.Server");
 			final SDG sdg = buildSDG(cfg, System.out);
 			assertFalse(sdg.vertexSet().isEmpty());
 			outputStatistics(sdg, cfg, currentTestcase);
@@ -77,7 +108,23 @@ public class TestIFCApplicationFreeCSWithSummariesAndMerges extends TestObjGraph
 			final String currentTestcase = currentMethodName();
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED,
 					FieldPropagation.OBJ_GRAPH,
-					Stubs.JRE_14, EvalPaths.JRE14_HSQLDB, "org.hsqldb.Server");
+					Stubs.JRE_14_INCOMPLETE, EvalPaths.JRE14_HSQLDB, "org.hsqldb.Server");
+			final SDG sdg = buildSDG(cfg, System.out);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+	
+	@Test
+	public void test_JRE15_HSQLDB_PtsInst_Graph_Std_Summary_Merge() {
+		try {
+			final String currentTestcase = currentMethodName();
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED,
+					FieldPropagation.OBJ_GRAPH,
+					Stubs.JRE_15, EvalPaths.JRE15_HSQLDB, "org.hsqldb.Server");
 			final SDG sdg = buildSDG(cfg, System.out);
 			assertFalse(sdg.vertexSet().isEmpty());
 			outputStatistics(sdg, cfg, currentTestcase);
@@ -92,7 +139,22 @@ public class TestIFCApplicationFreeCSWithSummariesAndMerges extends TestObjGraph
 		try {
 			final String currentTestcase = currentMethodName();
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
-					Stubs.JRE_14, EvalPaths.JRE14_HSQLDB, "org.hsqldb.Server");
+					Stubs.JRE_14_INCOMPLETE, EvalPaths.JRE14_HSQLDB, "org.hsqldb.Server");
+			final SDG sdg = buildSDG(cfg, System.out);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+	
+	@Test
+	public void test_JRE15_HSQLDB_PtsType_Graph_Std_Summary_Merge() {
+		try {
+			final String currentTestcase = currentMethodName();
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
+					Stubs.JRE_15, EvalPaths.JRE15_HSQLDB, "org.hsqldb.Server");
 			final SDG sdg = buildSDG(cfg, System.out);
 			assertFalse(sdg.vertexSet().isEmpty());
 			outputStatistics(sdg, cfg, currentTestcase);

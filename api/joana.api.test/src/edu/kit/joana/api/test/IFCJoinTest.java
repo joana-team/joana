@@ -141,13 +141,13 @@ public class IFCJoinTest {
 		Assert.assertFalse(coll.isEmpty());
 		Assert.assertTrue(coll.size() == 1);
 		int id1 = coll.iterator().next().getId();
-		Assert.assertEquals(206, id1);
+		Assert.assertEquals(200, id1);
 		
 		Collection<SDGNode> calls = ana.collectCallsInMethod("joana.api.testdata.conc.ThreadB.run()V", "java.io.PrintStream.println(I)V");
 		Assert.assertFalse(calls.isEmpty());
 		Assert.assertTrue(calls.size() == 1);
 		int id2 = calls.iterator().next().getId();
-		Assert.assertEquals(293	, id2);
+		Assert.assertEquals(287	, id2);
 		SDGNode call = calls.iterator().next();
 		Collection<SDGNode> actualIns = new LinkedList<SDGNode>();
 		for (SDGEdge e : sdg.getOutgoingEdgesOfKind(call, SDGEdge.Kind.CONTROL_DEP_EXPR)) {

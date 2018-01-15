@@ -320,7 +320,7 @@ public class IFCConsole {
 	private final CommandRepository repo = new CommandRepository();
 	private final String outputDirectory = "./";
 	private String latticeFile;
-	private Stubs stubsPath = Stubs.JRE_14;
+	private Stubs stubsPath = Stubs.JRE_15;
 
 	private final List<String> script = new LinkedList<String>();
 

@@ -33,8 +33,8 @@ public class JoanaUsageExample {
 		/** the entry method is the main method which starts the program you want to analyze */
 		JavaMethodSignature entryMethod = JavaMethodSignature.mainMethodOfClass("main.method.of.SomeClass");
 		
-		/** For multi-threaded programs, it is currently neccessary to use the jdk 1.4 stubs */
-		SDGConfig config = new SDGConfig(classPath, entryMethod.toBCString(), Stubs.JRE_14);
+		/** For multi-threaded programs, it is currently neccessary to use the jdk 1.5 stubs */
+		SDGConfig config = new SDGConfig(classPath, entryMethod.toBCString(), Stubs.JRE_15);
 		
 		/** compute interference edges to model dependencies between threads (set to false if your program does not use threads) */
 		config.setComputeInterferences(true);

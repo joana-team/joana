@@ -91,7 +91,7 @@ public class FullIFCConcurrentTest {
 	
 	public static SDGProgram build(final String className, final PointsToPrecision pts) throws ApiTestException {
 		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(className);
-		SDGConfig config = new SDGConfig(JoanaPath.JOANA_MANY_SMALL_PROGRAMS_CLASSPATH, mainMethod.toBCString(), Stubs.JRE_14);
+		SDGConfig config = new SDGConfig(JoanaPath.JOANA_MANY_SMALL_PROGRAMS_CLASSPATH, mainMethod.toBCString(), Stubs.JRE_15);
 		config.setComputeInterferences(true);
 		config.setExceptionAnalysis(ExceptionAnalysis.INTRAPROC);
 		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH);
@@ -133,7 +133,7 @@ public class FullIFCConcurrentTest {
 			final SDGProgram prog = build("conc.ac.AlarmClock");
 			{
 				final IFCAnalysis ana1 = annotate(prog, "conc.ac.Clock.max", "conc.ac.Client.name");
-				testLeaksFound(ana1, 2);
+				testLeaksFound(ana1, 14);
 			}
 			{
 				final IFCAnalysis ana2 = annotate(prog, SECRET, PUBLIC);
@@ -164,7 +164,7 @@ public class FullIFCConcurrentTest {
 			IFCAnalysis ana = buildAndAnnotate("conc.cliser.dt.Main",
 					"conc.cliser.dt.DaytimeUDPClient.message",
 					"conc.cliser.dt.DaytimeIterativeUDPServer.recieved");
-			testLeaksFound(ana, 26);
+			testLeaksFound(ana, 2);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -244,7 +244,7 @@ public class FullIFCConcurrentTest {
 			IFCAnalysis ana = buildAndAnnotate("conc.lg.LaplaceGrid",
 					"conc.lg.Partition.values",
 					"conc.lg.Partition.in");
-			testLeaksFound(ana, 848);
+			testLeaksFound(ana, 1100);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -286,16 +286,16 @@ public class FullIFCConcurrentTest {
 					"tests.probch.ProbChannel$Data.a");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(34, illegal.size());
+			assertEquals(45, illegal.size());
 			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(31, illegal.size());
+			assertEquals(42, illegal.size());
 			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(10, illegal.size());
+			assertEquals(12, illegal.size());
 			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(8, illegal.size());
+			assertEquals(10, illegal.size());
 			illegal = ana.doIFC(IFCType.CLASSICAL_NI);
 			assertTrue(illegal.isEmpty());
 			assertEquals(0, illegal.size());
@@ -421,19 +421,19 @@ public class FullIFCConcurrentTest {
 					PUBLIC);
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(23, illegal.size());
+			assertEquals(26, illegal.size());
 			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(19, illegal.size());
+			assertEquals(22, illegal.size());
 			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(11, illegal.size());
+			assertEquals(12, illegal.size());
 			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(3, illegal.size());
+			assertEquals(4, illegal.size());
 			illegal = ana.doIFC(IFCType.CLASSICAL_NI);
-			assertTrue(illegal.isEmpty());
-			assertEquals(0, illegal.size());
+			assertFalse(illegal.isEmpty());
+			assertEquals(2, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

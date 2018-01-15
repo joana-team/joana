@@ -48,7 +48,7 @@ public final class RunSingleFileIFC {
 	private static final String DEFAULT_SECRET_SOURCE = "Security.SECRET";
 	private static final String DEFAULT_PUBLIC_OUTPUT = "Security.PUBLIC";//"Security.leak(I)V";
 	private static final String THREAD_START = "java.lang.Thread.start(V)V";
-	private static final Stubs DEFAULT_STUBS = Stubs.JRE_14;
+	private static final Stubs DEFAULT_STUBS = Stubs.JRE_15;
 //			"jSDG-stubs-jre1.4.jar";
 	
 	private static final boolean DUMP_SDG_FILES;

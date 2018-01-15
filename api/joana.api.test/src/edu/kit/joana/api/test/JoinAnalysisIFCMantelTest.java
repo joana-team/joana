@@ -50,7 +50,7 @@ public class JoinAnalysisIFCMantelTest {
 	
 	public static IFCAnalysis buildAndAnnotateMantel(final MHPType mhp) throws ApiTestException {
 		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(MANTEL_CLASS_NAME);
-		SDGConfig config = new SDGConfig(JoanaPath.JOANA_MANY_SMALL_PROGRAMS_CLASSPATH, mainMethod.toBCString(), Stubs.JRE_14);
+		SDGConfig config = new SDGConfig(JoanaPath.JOANA_MANY_SMALL_PROGRAMS_CLASSPATH, mainMethod.toBCString(), Stubs.JRE_15);
 		config.setComputeInterferences(true);
 		config.setExceptionAnalysis(ExceptionAnalysis.INTRAPROC);
 		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH);
@@ -115,7 +115,7 @@ public class JoinAnalysisIFCMantelTest {
 			IFCAnalysis ana = buildAndAnnotateMantel(MHPType.SIMPLE);
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(90, illegal.size());
+			assertEquals(89, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

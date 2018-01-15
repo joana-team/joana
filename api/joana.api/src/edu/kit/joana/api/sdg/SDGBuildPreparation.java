@@ -195,7 +195,7 @@ public final class SDGBuildPreparation {
 	 */
 	public static AnalysisScope makeMinimalScope(String appClassPaths)
 			throws IOException {
-		return makeMinimalScope(appClassPaths, Stubs.JRE_14, SDGBuilder.STD_EXCLUSION_REG_EXP);
+		return makeMinimalScope(appClassPaths, Stubs.JRE_15, SDGBuilder.STD_EXCLUSION_REG_EXP);
 	}
 
 	/**

@@ -22,7 +22,8 @@ import joana.contrib.lib.Contrib;
  * @author Martin Mohr
  */
 public enum Stubs {
-	NO_STUBS("NONE", null), JRE_14("JRE_14", "stubs/jSDG-stubs-jre1.4.jar"), JRE_15("JRE_15", "stubs/jSDG-stubs-jre1.5.jar"),
+	NO_STUBS("NONE", null), JRE_14_INCOMPLETE("JRE_14_INCOMPLETE", "stubs/jSDG-stubs-jre1.4.jar"), JRE_15_INCOMPLETE("JRE_15_INCOMPLETE", "stubs/jSDG-stubs-jre1.5.jar"),
+	JRE_15("JRE_15", "stubs/jdk-1.5-with-stubs.jar"), JRE_16("JRE_16", "stubs/jdk-1.6-with-stubs.jar"), JRE_17("JRE_16", "stubs/jdk-1.6-with-stubs.jar"),
 	JAVACARD("JAVACARD", "stubs/jSDG-stubs-javacard.jar:stubs/api.jar"),
 	J2ME("J2ME", "stubs/jSDG-stubs-j2me2.0.jar:stubs/jsr184.jar:stubs/mmapi.jar");
 

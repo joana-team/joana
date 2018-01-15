@@ -40,7 +40,28 @@ public class TestIFCApplicationFreeCS extends TestObjGraphPerformance {
 
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED,
 					FieldPropagation.OBJ_GRAPH,
-					Stubs.JRE_14, EvalPaths.JRE14_FREECS, "freecs.Server");
+					Stubs.JRE_14_INCOMPLETE, EvalPaths.JRE14_FREECS, "freecs.Server");
+			final SDG sdg = buildSDG(cfg, System.out);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+	
+	@Test
+	public void test_JRE15_FreeCS_PtsInst_Graph_Std() {
+		try {
+			final String currentTestcase = currentMethodName();
+//			if (areWeLazy(currentTestcase)) {
+//				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+//				return;
+//			}
+
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.INSTANCE_BASED,
+					FieldPropagation.OBJ_GRAPH,
+					Stubs.JRE_15, EvalPaths.JRE15_FREECS, "freecs.Server");
 			final SDG sdg = buildSDG(cfg, System.out);
 			assertFalse(sdg.vertexSet().isEmpty());
 			outputStatistics(sdg, cfg, currentTestcase);
@@ -60,7 +81,27 @@ public class TestIFCApplicationFreeCS extends TestObjGraphPerformance {
 			}
 
 			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
-					Stubs.JRE_14, EvalPaths.JRE14_FREECS, "freecs.Server");
+					Stubs.JRE_14_INCOMPLETE, EvalPaths.JRE14_FREECS, "freecs.Server");
+			final SDG sdg = buildSDG(cfg, System.out);
+			assertFalse(sdg.vertexSet().isEmpty());
+			outputStatistics(sdg, cfg, currentTestcase);
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+	
+	@Test
+	public void test_JRE15_FreeCS_PtsType_Graph_Std() {
+		try {
+			final String currentTestcase = currentMethodName();
+			if (areWeLazy(currentTestcase)) {
+				System.out.println("skipping " + currentTestcase + " as pdg and log already exist.");
+				return;
+			}
+
+			final SDGConfig cfg = createConfig(currentTestcase, PointsToPrecision.TYPE_BASED, FieldPropagation.OBJ_GRAPH,
+					Stubs.JRE_15, EvalPaths.JRE15_FREECS, "freecs.Server");
 			final SDG sdg = buildSDG(cfg, System.out);
 			assertFalse(sdg.vertexSet().isEmpty());
 			outputStatistics(sdg, cfg, currentTestcase);

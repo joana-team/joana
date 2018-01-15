@@ -1,0 +1,13 @@
+The sources for the stub jar files are not publicly available.
+
+For JOANA-Team-Members only:
+The stub jars
+  stubs\jSDK-stubs-jre1.4.jar
+  stubs\jSDK-stubs-jre1.5.jar
+can be built from the "master" branch of the "joana-stubs" git repository.
+
+The stub jars
+  stubs\jdk-1.5-with-stubs.jar
+  stubs\jdk-1.6-with-stubs.jar
+  stubs\jdk-1.7-with-stubs.jar
+can be built from the "new-master" branch of the "joana-stubs" git repository (and it's submodules).

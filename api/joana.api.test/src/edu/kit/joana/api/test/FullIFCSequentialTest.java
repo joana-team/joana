@@ -59,7 +59,7 @@ public class FullIFCSequentialTest {
 	public static IFCAnalysis buildAndAnnotate(final String className, final String secSrc,
 			final String pubOut, final PointsToPrecision pts, final ExceptionAnalysis exc) throws ApiTestException {
 		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(className);
-		SDGConfig config = new SDGConfig(JoanaPath.JOANA_MANY_SMALL_PROGRAMS_CLASSPATH, mainMethod.toBCString(), Stubs.JRE_14);
+		SDGConfig config = new SDGConfig(JoanaPath.JOANA_MANY_SMALL_PROGRAMS_CLASSPATH, mainMethod.toBCString(), Stubs.JRE_15);
 		config.setComputeInterferences(false);
 		config.setExceptionAnalysis(exc);
 		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH);
@@ -120,7 +120,7 @@ public class FullIFCSequentialTest {
 			IFCAnalysis ana = buildAndAnnotate("sequential.PraktomatLeak",
 					"sequential.PraktomatLeak$Submission.matrNr",
 					"sequential.PraktomatLeak$Review.failures");
-			testLeaksFound(ana, 6);
+			testLeaksFound(ana, 8);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

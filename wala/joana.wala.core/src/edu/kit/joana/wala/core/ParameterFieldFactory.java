@@ -59,14 +59,13 @@ public final class ParameterFieldFactory {
 			throw new IllegalArgumentException("Field should not be null.");
 		}
 
-		ObjectField ofield = ifield2field.get(field);
-		if (ofield == null) {
-			ofield = new ObjectField(field);
-			ifield2field.put(field, ofield);
-			fieldMapping.add(ofield);
-		}
-
-		return ofield;
+		return ifield2field.compute(field, (k, ofield) -> {
+			if (ofield == null) {
+				ofield = new ObjectField(field);
+				fieldMapping.add(ofield);
+			}
+			return ofield;
+		});
 	}
 
 	/**

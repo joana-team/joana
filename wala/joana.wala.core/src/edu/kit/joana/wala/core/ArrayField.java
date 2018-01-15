@@ -81,7 +81,7 @@ public final class ArrayField extends ParameterField {
 
 	@Override
 	public int hashCode() {
-		return elemType.hashCode() * 23;
+		return (elemType.hashCode() << 1);
 	}
 
 	@Override

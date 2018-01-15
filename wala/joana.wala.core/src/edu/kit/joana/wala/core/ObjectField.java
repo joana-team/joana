@@ -77,7 +77,7 @@ public final class ObjectField extends ParameterField {
 
 	@Override
 	public int hashCode() {
-		return field.hashCode() * 7;
+		return (field.hashCode() << 1) + 1;
 	}
 
 	@Override

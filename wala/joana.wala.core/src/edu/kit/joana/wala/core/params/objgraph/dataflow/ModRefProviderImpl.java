@@ -52,25 +52,24 @@ public class ModRefProviderImpl implements ModRefProvider {
 		return new ObjectArrayMapping<ModRefControlFlowGraph.Node>(nodes);
 	}
 
-	public static ModRefProvider createProvider(final ModRefControlFlowGraph cfg, final OrdinalSetMapping<Node> domain, final boolean isParallel) {
+	public static ModRefProvider createProvider(final OrdinalSetMapping<Node> domain, final boolean isParallel) {
 		final ModRefProviderImpl modRef = new ModRefProviderImpl(isParallel);
 
-		modRef.run(cfg, domain);
+		modRef.run(domain);
 
 		return modRef;
 	}
 
-	private void run(final ModRefControlFlowGraph cfg, final OrdinalSetMapping<Node> domain) {
+	private void run(final OrdinalSetMapping<Node> domain) {
 		// for formal-in/-out nodes mod and ref has to be exchanged
 		// this is done by the isMod() isRef() methods of Node. Do not use ModRefCandidate isMod()
 		// isRef() here.
 
 		StreamSupport.stream(domain.spliterator(), this.isParallel)
-			.forEach(n->calc(n, cfg, domain));
+			.forEach(n->calc(n, domain));
 	}
 	
-	private void calc(Node n, final ModRefControlFlowGraph cfg,
-						final OrdinalSetMapping<Node> domain) {
+	private void calc(Node n, final OrdinalSetMapping<Node> domain) {
 		final ModRefFieldCandidate nCand = n.getCandidate();
 
 		final BitVector bvMustMod = new BitVector();

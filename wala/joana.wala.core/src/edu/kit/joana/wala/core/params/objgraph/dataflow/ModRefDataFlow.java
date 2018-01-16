@@ -79,7 +79,7 @@ public class ModRefDataFlow {
 			final ModRefControlFlowGraph cfg = ModRefControlFlowGraph.compute(modref, pdg, cg, progress);
 
 			final OrdinalSetMapping<Node> domain = ModRefProviderImpl.createDomain(cfg);
-			final ModRefProvider provider = ModRefProviderImpl.createProvider(cfg, domain, sdg.isParallel());
+			final ModRefProvider provider = ModRefProviderImpl.createProvider(domain, sdg.isParallel());
 			final ITransferFunctionProvider<Node, BitVectorVariable> transfer =
 					new ModRefReachingDefTransferFunctions(domain, provider);
 			final BitVectorFramework<Node, Node> reachDef =	new BitVectorFramework<Node, Node>(cfg, transfer, domain);

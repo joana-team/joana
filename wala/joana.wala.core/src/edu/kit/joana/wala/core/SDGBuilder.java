@@ -1139,7 +1139,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		entries.add(ep);
 		final ExtendedAnalysisOptions options = new ExtendedAnalysisOptions(cfg.objSensFilter, cfg.scope, entries);
 		if (cfg.ext.resolveReflection()) {
-			options.setReflectionOptions(ReflectionOptions.NO_STRING_CONSTANTS);
+			options.setReflectionOptions(ReflectionOptions.JOANA);
 		} else {
 			options.setReflectionOptions(ReflectionOptions.NONE);
 		}
@@ -1241,7 +1241,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		}
 		final ExtendedAnalysisOptions options = new ExtendedAnalysisOptions(objSensFilter, scope, entries);
 		if (resolveReflection) {
-			options.setReflectionOptions(ReflectionOptions.FULL);
+			options.setReflectionOptions(ReflectionOptions.JOANA);
 		} else {
 			options.setReflectionOptions(ReflectionOptions.NONE);
 		}

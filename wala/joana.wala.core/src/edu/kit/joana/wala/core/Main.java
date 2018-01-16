@@ -39,6 +39,7 @@ import com.ibm.wala.ssa.DefaultIRFactory;
 import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.types.MethodReference;
+import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.collections.Pair;
@@ -327,6 +328,9 @@ public final class Main {
 
 		ExternalCallCheck chk;
 		if (cfg.extern == null) {
+			final boolean reflectionPossible =
+				    cha.lookupClass(TypeReference.JavaLangReflectMethod) != null
+				 && cha.lookupClass(TypeReference.JavaLangReflectConstructor) != null;
 			chk = new ExternalCallCheck() {
 				@Override
 				public boolean isCallToModule(SSAInvokeInstruction invk) {
@@ -348,7 +352,7 @@ public final class Main {
 
 				@Override
 				public boolean resolveReflection() {
-					return true;
+					return reflectionPossible;
 				}
 			};
 		} else {

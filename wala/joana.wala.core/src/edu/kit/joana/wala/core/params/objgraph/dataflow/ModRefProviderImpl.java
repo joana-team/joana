@@ -132,32 +132,42 @@ public class ModRefProviderImpl implements ModRefProvider {
 	}
 
 	public IntSet getMayRef(final Node n, IntSet inNodes, final OrdinalSetMapping<Node> mapping) {
-		final BitVector bvMayRef = new BitVector();
 		final boolean isRef = n.isRef();
-		
 		if (!isRef) {
 			return new EmptyIntSet();
 		}
+		
+		// in order to prevent BitVector#expand() calls, pessimistically
+		// allocate a bitvector of maximal size
+		final BitVector bvMayRef = new BitVector(mapping.getSize());
 
 		final IntIterator it = inNodes.intIterator();
 		final ModRefFieldCandidate nCand = n.getCandidate();
+		int maxSet = -1;
 		
 		while (it.hasNext()) {
 			final int id = it.next();
+			
 			final Node other = mapping.getMappedObject(id);
 			assert isRef;
 			if (other.isMod()) {
 				final ModRefFieldCandidate otherCand = other.getCandidate();
-				if (n == other) {
+				if (n == other || nCand.isMayAliased(otherCand)) {
+					assert 0 <= id && id < mapping.getSize();
 					bvMayRef.set(id);
-				} else if (nCand.isMayAliased(otherCand)) {
-					bvMayRef.set(id);
+					maxSet = Math.max(maxSet, id);
+					
 				}
 			}
 			
 		}
-		final IntSet result = new BitVectorIntSet(bvMayRef);
-		return result;
+		
+		if (maxSet >= 0) {
+			// implicitly creates a copy just large enough to hold all necessary bits
+			return new BitVectorIntSet(bvMayRef, maxSet);
+		} else {
+			return new EmptyIntSet();
+		}
 	}
 
 }

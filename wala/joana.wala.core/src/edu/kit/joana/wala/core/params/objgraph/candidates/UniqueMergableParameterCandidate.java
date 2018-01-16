@@ -30,5 +30,10 @@ public abstract class UniqueMergableParameterCandidate extends UniqueParameterCa
 	public final boolean isMustAliased(final ParameterCandidate other) {
 		return false;
 	}
+	
+	@Override
+	public final boolean canMustAlias() {
+		return false;
+	}
 
 }

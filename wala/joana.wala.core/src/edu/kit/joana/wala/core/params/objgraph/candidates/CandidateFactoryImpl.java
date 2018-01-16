@@ -246,6 +246,14 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			return false;
 		}
 		
+		/* (non-Javadoc)
+		 * @see edu.kit.joana.wala.core.params.objgraph.candidates.ParameterCandidate#canMustAlias()
+		 */
+		@Override
+		public final boolean canMustAlias() {
+			return false;
+		}
+		
 		public boolean equals(final Object obj) {
 			throw new NotImplementedException();
 		}
@@ -903,6 +911,11 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			}
 
 			return false;
+		}
+		
+		@Override
+		public boolean canMustAlias() {
+			return field.isStatic();
 		}
 
 		@Override

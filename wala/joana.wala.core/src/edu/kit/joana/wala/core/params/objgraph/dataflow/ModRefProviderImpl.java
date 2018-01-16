@@ -69,7 +69,7 @@ public class ModRefProviderImpl implements ModRefProvider {
 			.forEach(n->calc(n, domain));
 	}
 	
-	private void calc(Node n, final OrdinalSetMapping<Node> domain) {
+	private BitVector calcSlow(Node n, final OrdinalSetMapping<Node> domain) {
 		final ModRefFieldCandidate nCand = n.getCandidate();
 
 		final BitVector bvMustMod = new BitVector();
@@ -82,12 +82,41 @@ public class ModRefProviderImpl implements ModRefProvider {
 
 			if (isMod && other.isRef()) {
 				if (n == other) {
-					bvMustMod.set(id);
+					bvMustMod.set(id); // TODO: why is this even sound?
 				} else if (nCand.isMustAliased(otherCand)) {
 					bvMustMod.set(id);
 				}
 			}
 		}
+		
+		return bvMustMod;
+	}
+	
+	private void calc(Node n, final OrdinalSetMapping<Node> domain) {
+		final ModRefFieldCandidate nCand = n.getCandidate();
+
+		final BitVector bvMustMod = new BitVector();
+		final boolean isMod = n.isMod();
+		
+		if (isMod) {
+			if (n.isRef()) {
+				bvMustMod.set(domain.getMappedIndex(n)); // TODO: why is this even sound?
+			}
+			if (nCand.canMustAlias()) {
+				for (final Node other : domain) {
+					if (n != other && other.isRef()) {
+						final ModRefFieldCandidate otherCand = other.getCandidate();
+						if (nCand.isMustAliased(otherCand)) {
+							final int id = domain.getMappedIndex(other);
+							bvMustMod.set(id);
+						}
+					}
+				}
+			}
+			
+		}
+		
+		assert bvMustMod.sameBits(calcSlow(n, domain));
 		
 		putResult(n, bvMustMod);
 	}

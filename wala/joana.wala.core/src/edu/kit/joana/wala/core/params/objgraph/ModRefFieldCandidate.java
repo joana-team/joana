@@ -67,7 +67,14 @@ public final class ModRefFieldCandidate extends ModRefCandidate implements Clone
 	public boolean isBaseAliased(final OrdinalSet<InstanceKey> pts) {
 		return pc.isBaseAliased(pts);
 	}
-
+	
+	/**
+	 * @return false iff for any ModRefFieldCandidate other, this.isMustAliased(other) == false
+	 */
+	public boolean canMustAlias() {
+		return pc.canMustAlias();
+	}
+	
 	public boolean isMustAliased(final ModRefFieldCandidate other) {
 		return pc.isMustAliased(other.pc);
 	}

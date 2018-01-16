@@ -35,6 +35,7 @@ public interface ParameterCandidate {
 	boolean isReferenceToAnyField(OrdinalSet<ParameterField> otherField);
 	OrdinalSet<UniqueParameterCandidate> getUniques();
 	boolean isMustAliased(ParameterCandidate pc);
+	boolean canMustAlias();
 	boolean isMayAliased(ParameterCandidate pc);
 	TypeReference getType();
 	int getBytecodeIndex();

@@ -505,7 +505,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 		public boolean isReferenceToField(final OrdinalSet<InstanceKey> other, final ParameterField otherField) {
 			boolean result = false;
 			// basePts.containsAny(other) is a necessary condition for non-static fields
-			if (otherField.isStatic() || basePts.containsAny(other)) {
+			if (otherField.isStatic() || ( other != null && basePts.containsAny(other))) {
 				for (final ParameterCandidate c : cands) {
 					if (c.isReferenceToField(other, otherField)) {
 							result = true;
@@ -797,7 +797,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 
 		private SingleParamCandImpl(final OrdinalSet<InstanceKey> basePts, final ParameterField field,
 				final OrdinalSet<InstanceKey> fieldPts) {
-			this.basePts = basePts;
+			this.basePts = basePts.isEmpty() ? null : basePts;
 			this.field = field;
 			this.fieldPts = fieldPts;
 			final int id = fieldMapping.getMappedIndex(field);
@@ -822,7 +822,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 
 		@Override
 		public V isRoot() {
-			return (basePts == null || basePts.isEmpty() ? V.YES : V.NO);
+			return (basePts == null ? V.YES : V.NO);
 		}
 
 		@Override
@@ -832,7 +832,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 
 		@Override
 		public boolean isReachableFrom(final ParameterCandidate other) {
-			if (basePts != null && !TVL.isTrue(other.isPrimitive()) && !(basePts.isEmpty())) {
+			if (basePts != null && !TVL.isTrue(other.isPrimitive())) {
 				return other.isFieldAliased(basePts);
 			}
 
@@ -872,7 +872,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 			if (obj instanceof SingleParamCandImpl) {
 				final SingleParamCandImpl other = (SingleParamCandImpl) obj;
 
-				return field.equals(other.field) && pointsToEquals(basePts, other.basePts)
+				return field.equals(other.field) && ((basePts == null) == (other.basePts == null)) && pointsToEquals(basePts, other.basePts)
 						&& pointsToEquals(fieldPts, other.fieldPts);
 			}
 
@@ -955,7 +955,7 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 
 	}
 
-	private final boolean pointsToEquals(final OrdinalSet<InstanceKey> a, final OrdinalSet<InstanceKey> b) {
+	private static final boolean pointsToEquals(final OrdinalSet<InstanceKey> a, final OrdinalSet<InstanceKey> b) {
 		return OrdinalSet.equals(a, b);
 	}
 

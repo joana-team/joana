@@ -1273,8 +1273,9 @@ public final class ObjGraphParams {
 					work.addLast(toCheck);
 				} 
 			}
-			
 			newlyAdded = addedThisTurn;
+			
+			assert (work.size() >= initialSize) == newlyAdded.isEmpty(); // hence: we terminate
 		}
 		
 		final BitVectorIntSet result = new BitVectorIntSet();

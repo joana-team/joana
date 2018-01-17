@@ -224,6 +224,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 		public void addModCandidate(final OrdinalSet<InstanceKey> basePts, final ParameterField field,
 				final OrdinalSet<InstanceKey> pts) {
 			final ParameterCandidate pc = fact.findOrCreateUnique(basePts, field, pts);
+			assert pc.isUnique();
 
 			cands.compute(pc, (k, mrc) -> {
 				if (mrc != null) {
@@ -245,6 +246,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 		public void addRefCandidate(final OrdinalSet<InstanceKey> basePts, final ParameterField field,
 				final OrdinalSet<InstanceKey> pts) {
 			final ParameterCandidate pc = fact.findOrCreateUnique(basePts, field, pts);
+			assert pc.isUnique();
 
 			cands.compute(pc, (k, mrc) -> {
 				if (mrc != null) {
@@ -303,6 +305,9 @@ public class ModRefCandidates implements Iterable<CGNode> {
 
 		@Override
 		public ModRefFieldCandidate addCandidate(final ModRefFieldCandidate toAdd) {
+			if (!toAdd.pc.isUnique()) {
+				throw new IllegalArgumentException("The ModRefFieldCandidate's ParameterCandidate must be unique");
+			}
 			final ModRefFieldCandidate mr = cands.get(toAdd.pc);
 			final ModRefFieldCandidate result;
 			if (mr == null) {

@@ -30,19 +30,15 @@ import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.intset.BitVector;
 import com.ibm.wala.util.intset.BitVectorIntSet;
 import com.ibm.wala.util.intset.EmptyIntSet;
-import com.ibm.wala.util.intset.IntIterator;
 import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.intset.OrdinalSet;
 import com.ibm.wala.util.intset.OrdinalSetMapping;
 
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.util.Pair;
-import edu.kit.joana.wala.core.DependenceGraph;
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.ParameterField;
-import edu.kit.joana.wala.core.ParameterPointsToConsumer;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.params.objgraph.ModRefCandidateGraph;
@@ -82,13 +78,17 @@ public class ModRefDataFlow {
 		final TIntObjectHashMap<ModRefFieldCandidate> pdgnode2modref =
 				new TIntObjectHashMap<ModRefFieldCandidate>();
 
+		// a pre-computation of mayAliasing information. run-time wise, this
+		// does seem to pay off nicely.
+		// TODO: what is the memory-impact of this?
+		// TODO: can we nicely parallelize this?
 		final CandidateFactory candFact = modref.getCandFact();
 		final Map<UniqueParameterCandidate, Set<UniqueParameterCandidate>> mayAliased = new HashMap<>();
 		int toSkip = 0;
 		for (UniqueParameterCandidate u1 : candFact.getUniqueCandidates()) {
 			int skipped = 0;
 			for (UniqueParameterCandidate u2 : candFact.getUniqueCandidates()) {
-				//if (skipped++ < toSkip) continue;
+				if (skipped++ < toSkip) continue;
 				if (u1.isMayAliased(u2)) {
 					mayAliased.compute(u1, (k, aliased) -> {
 						if (aliased == null) {
@@ -97,13 +97,13 @@ public class ModRefDataFlow {
 						aliased.add(u2);
 						return aliased;
 					});
-//					mayAliased.compute(u2, (k, aliased) -> {
-//						if (aliased == null) {
-//							aliased = new HashSet<>();
-//						}
-//						aliased.add(u1);
-//						return aliased;
-//					});
+					mayAliased.compute(u2, (k, aliased) -> {
+						if (aliased == null) {
+							aliased = new HashSet<>();
+						}
+						aliased.add(u1);
+						return aliased;
+					});
 				}
 				
 			}
@@ -142,12 +142,8 @@ public class ModRefDataFlow {
 				uniqueParameterCandidate2Node = pair.getSecond();
 			}
 
-			final Map<Node, OrdinalSet<Node>> mayReadFromInternalReads = computeLastReachingDefsToInternalReads(
-					cfg.internalReads,
-					solver, domain, provider, sdg.isParallel()
-			);
-			final Map<Node, OrdinalSet<Node>> mayReadFromExternalReads = computeLastReachingDefsToExternalReads(
-					cfg.externalReads,
+			final Map<Node, OrdinalSet<Node>> mayRead = computeLastReachingDefs(
+					cfg.getRefs(),
 					mayAliased,
 					uniqueParameterCandidate2Node,
 					solver, domain, provider, sdg.isParallel()
@@ -155,15 +151,15 @@ public class ModRefDataFlow {
 			
 			assert isSameMayRead(
 				computeLastReachingDefsSlow(solver, domain, provider, sdg.isParallel()),
-				mayReadFromInternalReads,
-				mayReadFromExternalReads,
+				mayRead,
 				domain
 			);
 
-			addDataDepEdgesToPDG(node2pdg, mayReadFromInternalReads, pdg);
-			addDataDepEdgesToPDG(node2pdg, mayReadFromExternalReads, pdg);
+			addDataDepEdgesToPDG(node2pdg, mayRead, pdg);
 			
 		});
+		
+		mayAliased.clear();
 
 		connectFormalAndActualParams(sdg, pdgnode2modref);
 		connectParameterStructure(sdg, pdgnode2modref);
@@ -173,19 +169,20 @@ public class ModRefDataFlow {
 	
 	private static boolean isSameMayRead(
 		Map<Node, OrdinalSet<Node>> mayReadSlow,
-		Map<Node, OrdinalSet<Node>> mayReadFromInternalReads,
-		Map<Node, OrdinalSet<Node>> mayReadFromExternalReads,
+		Map<Node, OrdinalSet<Node>> mayRead,
 		OrdinalSetMapping<Node> domain
 	) {
-		if (!mayReadSlow.keySet().containsAll(mayReadFromInternalReads.keySet())) return false;
-		if (!mayReadSlow.keySet().containsAll(mayReadFromExternalReads.keySet())) return false;
+		if (!mayReadSlow.keySet().containsAll(mayRead.keySet())) {
+			return false;
+		}
 		final OrdinalSet<Node> empty = new OrdinalSet<>(EmptyIntSet.instance, domain);
 		for (Entry<Node, OrdinalSet<Node>> e : mayReadSlow.entrySet()) {
 			final Node n = e.getKey();
-			final OrdinalSet<Node> slow         = e.getValue();
-			final OrdinalSet<Node> fromInternal = mayReadFromInternalReads.getOrDefault(n, empty);
-			final OrdinalSet<Node> fromExternal = mayReadFromExternalReads.getOrDefault(n, empty);
-			if (!OrdinalSet.equals(slow, OrdinalSet.unify(fromInternal, fromExternal))) return false;
+			final OrdinalSet<Node> slow   = e.getValue();
+			final OrdinalSet<Node> normal = mayRead.getOrDefault(n, empty);
+			if (!OrdinalSet.equals(slow, normal)) {
+				return false;
+			}
 		}
 		return true;
 	}
@@ -584,46 +581,21 @@ public class ModRefDataFlow {
 		return mayRead;
 	}
 	
-	private static Map<Node, OrdinalSet<Node>> computeLastReachingDefsToInternalReads(
-			final Set<Node> internalReads,
-			final BitVectorSolver<Node> solver,
-			final OrdinalSetMapping<Node> domain, final ModRefProvider provider,
-			boolean isParallel) {
-		final Map<Node, OrdinalSet<Node>> mayRead = Collections.synchronizedMap(new HashMap<Node, OrdinalSet<Node>>());
-
-		StreamSupport.stream(internalReads.spliterator(), isParallel).forEach(n -> {
-			final BitVectorVariable in = solver.getIn(n);
-			final IntSet inSet = in.getValue();
-			
-			if (inSet == null) {
-				final OrdinalSet<Node> empty = OrdinalSet.empty();
-				mayRead.put(n, empty);
-			} else {
-				final IntSet mayRef = provider.getMayRef(n, inSet, domain);
-				final IntSet reachingDefs = mayRef;
-				final OrdinalSet<Node> reachDefSet = new OrdinalSet<ModRefControlFlowGraph.Node>(reachingDefs, domain);
-				mayRead.put(n, reachDefSet);
-			}
-		});
-
-		return mayRead;
-	}
-	
-	private static Map<Node, OrdinalSet<Node>> computeLastReachingDefsToExternalReads(
-			final Set<Node> externalReads,
+	private static Map<Node, OrdinalSet<Node>> computeLastReachingDefs(
+			final Iterable<Node> reads,
 			final Map<UniqueParameterCandidate, Set<UniqueParameterCandidate>> mayAliased,
-			final Map<UniqueParameterCandidate, Set<Node>> uniqueParameterCandidate2PDGNode,
+			final Map<UniqueParameterCandidate, Set<Node>> uniqueParameterCandidate2Node,
 			final BitVectorSolver<Node> solver,
 			final OrdinalSetMapping<Node> domain, final ModRefProvider provider,
 			boolean isParallel) {
 		final Map<Node, OrdinalSet<Node>> mayRead = Collections.synchronizedMap(new HashMap<Node, OrdinalSet<Node>>());
 
-		StreamSupport.stream(externalReads.spliterator(), isParallel).forEach(n -> {
+		StreamSupport.stream(reads.spliterator(), isParallel).forEach(n -> {
 			final BitVectorVariable in = solver.getIn(n);
 			final IntSet inSet = in.getValue();
 
 			if (inSet == null) {
-				final OrdinalSet<Node> empty = OrdinalSet.empty();
+				final OrdinalSet<Node> empty = new OrdinalSet<ModRefControlFlowGraph.Node>(new EmptyIntSet(), domain);
 				mayRead.put(n, empty);
 			} else {
 				final BitVector bvMayRef = new BitVector(domain.getSize());
@@ -635,7 +607,7 @@ public class ModRefDataFlow {
 					final Set<UniqueParameterCandidate> aliased = mayAliased.get(unique);
 					if (aliased == null) continue;
 					for (UniqueParameterCandidate aliasedUnique : aliased ) {
-						final Iterable<Node> otherNodes = uniqueParameterCandidate2PDGNode.get(aliasedUnique);
+						final Iterable<Node> otherNodes = uniqueParameterCandidate2Node.get(aliasedUnique);
 						if (otherNodes == null) continue;
 						for (Node other : otherNodes) {
 							final int id = domain.getMappedIndex(other);

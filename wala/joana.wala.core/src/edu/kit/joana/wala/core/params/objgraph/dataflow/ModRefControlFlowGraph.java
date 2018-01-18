@@ -130,12 +130,10 @@ public class ModRefControlFlowGraph extends SparseNumberedGraph<ModRefControlFlo
 	private Node entry;
 	private Node exit;
 	
-	public final Set<Node> internalReads;
-	public final Set<Node> externalReads;
+	private final Set<Node> refs;
 
 	private ModRefControlFlowGraph() {
-		this.internalReads = new HashSet<>();
-		this.externalReads = new HashSet<>();
+		this.refs = new HashSet<>();
 	}
 
 	public static ModRefControlFlowGraph compute(final ModRefCandidates modref, final PDG pdg, final CallGraph cg,
@@ -153,6 +151,11 @@ public class ModRefControlFlowGraph extends SparseNumberedGraph<ModRefControlFlo
 
 	public Node getExit() {
 		return exit;
+	}
+
+	// TODO: instead of collecting refs in a Set, maybe we can just filter over all nodes?!?!
+	public Iterable<Node> getRefs() {
+		return refs;
 	}
 
 	private Node createNode(final ModRefFieldCandidate cand, final PDGNode node, final Node.Kind kind) {
@@ -194,7 +197,7 @@ public class ModRefControlFlowGraph extends SparseNumberedGraph<ModRefControlFlo
 				final Node n = createNode(refCand, fref.accfield, Node.Kind.READ);
 				pdg2cfg.put(fref.accfield, n);
 				assert n.isRef();
-				internalReads.add(n);
+				refs.add(n);
 			}
 		}
 
@@ -302,7 +305,7 @@ public class ModRefControlFlowGraph extends SparseNumberedGraph<ModRefControlFlo
 		for (final ModRefFieldCandidate c : cands) {
 			final Node next = createNode(c, n.node, kind);
 			assert next.isRef();
-			externalReads.add(next);
+			refs.add(next);
 			
 			addEdge(next, last);
 			last = next;

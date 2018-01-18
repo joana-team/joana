@@ -129,8 +129,14 @@ public class ModRefControlFlowGraph extends SparseNumberedGraph<ModRefControlFlo
 
 	private Node entry;
 	private Node exit;
+	
+	public final Set<Node> internalReads;
+	public final Set<Node> externalReads;
 
-	private ModRefControlFlowGraph() {}
+	private ModRefControlFlowGraph() {
+		this.internalReads = new HashSet<>();
+		this.externalReads = new HashSet<>();
+	}
 
 	public static ModRefControlFlowGraph compute(final ModRefCandidates modref, final PDG pdg, final CallGraph cg,
 			final IProgressMonitor progress) {
@@ -184,8 +190,11 @@ public class ModRefControlFlowGraph extends SparseNumberedGraph<ModRefControlFlo
 			if (!fref.field.isStatic()) {
 				final SSAInstruction instr = pdg.getInstruction(fref.node);
 				final ModRefFieldCandidate refCand = modref.createRefCandidate(pdg.cgNode, instr);
+				
 				final Node n = createNode(refCand, fref.accfield, Node.Kind.READ);
 				pdg2cfg.put(fref.accfield, n);
+				assert n.isRef();
+				internalReads.add(n);
 			}
 		}
 
@@ -193,8 +202,10 @@ public class ModRefControlFlowGraph extends SparseNumberedGraph<ModRefControlFlo
 			if (!fmod.field.isStatic()) {
 				final SSAInstruction instr = pdg.getInstruction(fmod.node);
 				final ModRefFieldCandidate refCand = modref.createModCandidate(pdg.cgNode, instr);
+				
 				final Node n = createNode(refCand, fmod.accfield, Node.Kind.WRITE);
 				pdg2cfg.put(fmod.accfield, n);
+				assert !n.isRef();
 			}
 		}
 
@@ -202,6 +213,7 @@ public class ModRefControlFlowGraph extends SparseNumberedGraph<ModRefControlFlo
 			if (pn.getPdgId() == pdg.getId() && !pdg2cfg.containsKey(pn)) {
 				final Node n = createNOPNode(pn);
 				pdg2cfg.put(pn, n);
+				assert !n.isRef();
 			}
 		}
 
@@ -289,6 +301,9 @@ public class ModRefControlFlowGraph extends SparseNumberedGraph<ModRefControlFlo
 		Node last = n;
 		for (final ModRefFieldCandidate c : cands) {
 			final Node next = createNode(c, n.node, kind);
+			assert next.isRef();
+			externalReads.add(next);
+			
 			addEdge(next, last);
 			last = next;
 		}
@@ -315,6 +330,8 @@ public class ModRefControlFlowGraph extends SparseNumberedGraph<ModRefControlFlo
 		Node last = n;
 		for (final ModRefFieldCandidate c : cands) {
 			final Node next = createNode(c, n.node, kind);
+			assert !next.isRef();
+			
 			addEdge(last, next);
 			last = next;
 		}

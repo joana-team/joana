@@ -540,6 +540,10 @@ public class ModRefCandidates implements Iterable<CGNode> {
 	public Map<CGNode, Collection<ModRefFieldCandidate>> getCandidateMap() {
 		return all;
 	}
+	
+	public CandidateFactory getCandFact() {
+		return candFact;
+	}
 
 	private static final class SingleCandidatePointsTo implements PointsTo {
 

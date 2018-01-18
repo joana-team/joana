@@ -7,12 +7,15 @@
  */
 package edu.kit.joana.wala.core.params.objgraph.dataflow;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -24,20 +27,31 @@ import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
+import com.ibm.wala.util.intset.BitVector;
+import com.ibm.wala.util.intset.BitVectorIntSet;
+import com.ibm.wala.util.intset.EmptyIntSet;
+import com.ibm.wala.util.intset.IntIterator;
 import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.intset.OrdinalSet;
 import com.ibm.wala.util.intset.OrdinalSetMapping;
 
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.util.Pair;
+import edu.kit.joana.wala.core.DependenceGraph;
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.ParameterField;
+import edu.kit.joana.wala.core.ParameterPointsToConsumer;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.params.objgraph.ModRefCandidateGraph;
 import edu.kit.joana.wala.core.params.objgraph.ModRefCandidates;
 import edu.kit.joana.wala.core.params.objgraph.ModRefFieldCandidate;
 import edu.kit.joana.wala.core.params.objgraph.ModRefRootCandidate;
+import edu.kit.joana.wala.core.params.objgraph.candidates.CandidateFactory;
+import edu.kit.joana.wala.core.params.objgraph.candidates.ParameterCandidate;
+import edu.kit.joana.wala.core.params.objgraph.candidates.UniqueParameterCandidate;
 import edu.kit.joana.wala.core.params.objgraph.dataflow.ModRefControlFlowGraph.Node;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
@@ -68,6 +82,35 @@ public class ModRefDataFlow {
 		final TIntObjectHashMap<ModRefFieldCandidate> pdgnode2modref =
 				new TIntObjectHashMap<ModRefFieldCandidate>();
 
+		final CandidateFactory candFact = modref.getCandFact();
+		final Map<UniqueParameterCandidate, Set<UniqueParameterCandidate>> mayAliased = new HashMap<>();
+		int toSkip = 0;
+		for (UniqueParameterCandidate u1 : candFact.getUniqueCandidates()) {
+			int skipped = 0;
+			for (UniqueParameterCandidate u2 : candFact.getUniqueCandidates()) {
+				//if (skipped++ < toSkip) continue;
+				if (u1.isMayAliased(u2)) {
+					mayAliased.compute(u1, (k, aliased) -> {
+						if (aliased == null) {
+							aliased = new HashSet<>();
+						}
+						aliased.add(u2);
+						return aliased;
+					});
+//					mayAliased.compute(u2, (k, aliased) -> {
+//						if (aliased == null) {
+//							aliased = new HashSet<>();
+//						}
+//						aliased.add(u1);
+//						return aliased;
+//					});
+				}
+				
+			}
+			toSkip++;
+		}
+		
+		
 		Stream<PDG> s = sdg.isParallel()?sdg.getAllPDGs().parallelStream():sdg.getAllPDGs().stream();
 		s.forEach(pdg -> {
 //			MonitorUtil.throwExceptionIfCanceled(progress);
@@ -90,11 +133,36 @@ public class ModRefDataFlow {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-
-			final Map<Node, OrdinalSet<Node>> mayRead = computeLastReachingDefs(solver, domain, provider, sdg.isParallel());
+			
 			final Map<Node, PDGNode> node2pdg;
-			node2pdg = createPDGNodes(cfg, pdg, pdgnode2modref);
-			addDataDepEdgesToPDG(node2pdg, mayRead, pdg);
+			final Map<UniqueParameterCandidate, Set<Node>> uniqueParameterCandidate2Node;
+			{
+				final Pair<Map<Node, PDGNode>, Map<UniqueParameterCandidate, Set<Node>>> pair = createPDGNodes(cfg, pdg, pdgnode2modref);
+				node2pdg = pair.getFirst();
+				uniqueParameterCandidate2Node = pair.getSecond();
+			}
+
+			final Map<Node, OrdinalSet<Node>> mayReadFromInternalReads = computeLastReachingDefsToInternalReads(
+					cfg.internalReads,
+					solver, domain, provider, sdg.isParallel()
+			);
+			final Map<Node, OrdinalSet<Node>> mayReadFromExternalReads = computeLastReachingDefsToExternalReads(
+					cfg.externalReads,
+					mayAliased,
+					uniqueParameterCandidate2Node,
+					solver, domain, provider, sdg.isParallel()
+			);
+			
+			assert isSameMayRead(
+				computeLastReachingDefsSlow(solver, domain, provider, sdg.isParallel()),
+				mayReadFromInternalReads,
+				mayReadFromExternalReads,
+				domain
+			);
+
+			addDataDepEdgesToPDG(node2pdg, mayReadFromInternalReads, pdg);
+			addDataDepEdgesToPDG(node2pdg, mayReadFromExternalReads, pdg);
+			
 		});
 
 		connectFormalAndActualParams(sdg, pdgnode2modref);
@@ -102,6 +170,26 @@ public class ModRefDataFlow {
 		if (sdg.cfg.parameterPTSConsumer != null) sdg.cfg.parameterPTSConsumer.commitPDGNode2ModRefMapping(pdgnode2modref);
         if (progress != null) progress.done();
 	}
+	
+	private static boolean isSameMayRead(
+		Map<Node, OrdinalSet<Node>> mayReadSlow,
+		Map<Node, OrdinalSet<Node>> mayReadFromInternalReads,
+		Map<Node, OrdinalSet<Node>> mayReadFromExternalReads,
+		OrdinalSetMapping<Node> domain
+	) {
+		if (!mayReadSlow.keySet().containsAll(mayReadFromInternalReads.keySet())) return false;
+		if (!mayReadSlow.keySet().containsAll(mayReadFromExternalReads.keySet())) return false;
+		final OrdinalSet<Node> empty = new OrdinalSet<>(EmptyIntSet.instance, domain);
+		for (Entry<Node, OrdinalSet<Node>> e : mayReadSlow.entrySet()) {
+			final Node n = e.getKey();
+			final OrdinalSet<Node> slow         = e.getValue();
+			final OrdinalSet<Node> fromInternal = mayReadFromInternalReads.getOrDefault(n, empty);
+			final OrdinalSet<Node> fromExternal = mayReadFromExternalReads.getOrDefault(n, empty);
+			if (!OrdinalSet.equals(slow, OrdinalSet.unify(fromInternal, fromExternal))) return false;
+		}
+		return true;
+	}
+	
 
 	private static void connectParameterStructure(final SDGBuilder sdg,
 			final TIntObjectHashMap<ModRefFieldCandidate> pdgnode2modref) {
@@ -261,7 +349,8 @@ public class ModRefDataFlow {
 		for (final Entry<Node, PDGNode> e : node2pdg.entrySet()) {
 			final OrdinalSet<Node> read = mayRead.get(e.getKey());
 			final PDGNode to = e.getValue();
-
+			
+			if (read == null) continue;
 			for (final Node def : read) {
 				final PDGNode from = node2pdg.get(def);
 				pdg.addEdge(from, to, PDGEdge.Kind.DATA_HEAP);
@@ -269,9 +358,10 @@ public class ModRefDataFlow {
 		}
 	}
 
-	private static synchronized Map<Node, PDGNode> createPDGNodes(final ModRefControlFlowGraph cfg, final PDG pdg,
+	private static synchronized Pair<Map<Node, PDGNode>, Map<UniqueParameterCandidate, Set<Node>>> createPDGNodes(final ModRefControlFlowGraph cfg, final PDG pdg,
 			final TIntObjectHashMap<ModRefFieldCandidate> pdgnode2modref) {
 		final Map<Node, PDGNode> map = new HashMap<Node, PDGNode>();
+		final Collection<Node> toUpdateUniqueParameterCandidate2PDGNode = new LinkedList<>();
 
 		for (final Node n : cfg) {
 			switch (n.getKind()) {
@@ -280,38 +370,68 @@ public class ModRefDataFlow {
 				final PDGNode fIn = createPDGNode(pdg, n.getCandidate(), pdg.entry, PDGNode.Kind.FORMAL_IN, PDGNode.DEFAULT_NO_LOCAL, PDGNode.DEFAULT_NO_LOCAL);
 				map.put(n, fIn);
 				pdgnode2modref.put(fIn.getId(), n.getCandidate());
+
+				assert  n.isMod();
+				toUpdateUniqueParameterCandidate2PDGNode.add(n);
 			} break;
 			case FORMAL_OUT: {
 				// create form-out
 				final PDGNode fOut = createPDGNode(pdg, n.getCandidate(), pdg.entry, PDGNode.Kind.FORMAL_OUT, PDGNode.DEFAULT_NO_LOCAL, PDGNode.DEFAULT_NO_LOCAL);
 				map.put(n, fOut);
 				pdgnode2modref.put(fOut.getId(), n.getCandidate());
+				
+				assert !n.isMod();
 			} break;
 			case ACTUAL_IN: {
 				// create actual-in
 				final PDGNode aIn = createPDGNode(pdg, n.getCandidate(), n.getNode(), PDGNode.Kind.ACTUAL_IN, PDGNode.DEFAULT_NO_LOCAL, PDGNode.DEFAULT_NO_LOCAL);
 				map.put(n, aIn);
 				pdgnode2modref.put(aIn.getId(), n.getCandidate());
+				
+				assert !n.isMod();
 			} break;
 			case ACTUAL_OUT: {
 				// create actual-out
 				final PDGNode aOut = createPDGNode(pdg, n.getCandidate(), n.getNode(), PDGNode.Kind.ACTUAL_OUT, PDGNode.DEFAULT_NO_LOCAL, PDGNode.DEFAULT_NO_LOCAL);
 				map.put(n, aOut);
 				pdgnode2modref.put(aOut.getId(), n.getCandidate());
+				
+				assert n.isMod();
+				toUpdateUniqueParameterCandidate2PDGNode.add(n);
 			} break;
 			case READ: {
 				map.put(n, n.getNode());
+				assert !n.isMod();
 			} break;
 			case WRITE: {
 				map.put(n, n.getNode());
+				assert  n.isMod();
+				toUpdateUniqueParameterCandidate2PDGNode.add(n);
 			} break;
 			default: // nothing to do here
 			}
 		}
 
+		 // at least this size
+		final Map<UniqueParameterCandidate, Set<Node>> uniqueParameterCandidate2PDGNode = new HashMap<>(toUpdateUniqueParameterCandidate2PDGNode.size());
+		for (Node n : toUpdateUniqueParameterCandidate2PDGNode) {
+			final ParameterCandidate pc = n.getCandidate().pc;
+			final Iterable<UniqueParameterCandidate> uniques = pc.isUnique() ? Collections.singleton((UniqueParameterCandidate) pc) : pc.getUniques();
+			for (UniqueParameterCandidate unique : uniques ) {
+				uniqueParameterCandidate2PDGNode.compute(unique, (k, nodes) -> {
+					if (nodes == null) {
+						nodes = new HashSet<>();
+					}
+					nodes.add(n);
+					return nodes;
+				});
+			}
+		}
+
+
 		addControlFlow(cfg, map, pdg);
 
-		return map;
+		return Pair.pair(map, uniqueParameterCandidate2PDGNode);
 	}
 
 	private static void addControlFlow(final ModRefControlFlowGraph cfg, final Map<Node, PDGNode> map, final PDG pdg) {
@@ -441,12 +561,37 @@ public class ModRefDataFlow {
 		return newNode;
 	}
 
-	private static Map<Node, OrdinalSet<Node>> computeLastReachingDefs(final BitVectorSolver<Node> solver,
+	private static Map<Node, OrdinalSet<Node>> computeLastReachingDefsSlow(final BitVectorSolver<Node> solver,
 			final OrdinalSetMapping<Node> domain, final ModRefProvider provider,
 			boolean isParallel) {
 		final Map<Node, OrdinalSet<Node>> mayRead = Collections.synchronizedMap(new HashMap<Node, OrdinalSet<Node>>());
 
 		StreamSupport.stream(domain.spliterator(), isParallel).forEach(n -> {
+			final BitVectorVariable in = solver.getIn(n);
+			final IntSet inSet = in.getValue();
+			
+			if (inSet == null) {
+				final OrdinalSet<Node> empty = new OrdinalSet<>(EmptyIntSet.instance, domain);
+				mayRead.put(n, empty);
+			} else {
+				final IntSet mayRef = provider.getMayRef(n, inSet, domain);
+				final IntSet reachingDefs = mayRef;
+				final OrdinalSet<Node> reachDefSet = new OrdinalSet<ModRefControlFlowGraph.Node>(reachingDefs, domain);
+				mayRead.put(n, reachDefSet);
+			}
+		});
+
+		return mayRead;
+	}
+	
+	private static Map<Node, OrdinalSet<Node>> computeLastReachingDefsToInternalReads(
+			final Set<Node> internalReads,
+			final BitVectorSolver<Node> solver,
+			final OrdinalSetMapping<Node> domain, final ModRefProvider provider,
+			boolean isParallel) {
+		final Map<Node, OrdinalSet<Node>> mayRead = Collections.synchronizedMap(new HashMap<Node, OrdinalSet<Node>>());
+
+		StreamSupport.stream(internalReads.spliterator(), isParallel).forEach(n -> {
 			final BitVectorVariable in = solver.getIn(n);
 			final IntSet inSet = in.getValue();
 			
@@ -458,6 +603,57 @@ public class ModRefDataFlow {
 				final IntSet reachingDefs = mayRef;
 				final OrdinalSet<Node> reachDefSet = new OrdinalSet<ModRefControlFlowGraph.Node>(reachingDefs, domain);
 				mayRead.put(n, reachDefSet);
+			}
+		});
+
+		return mayRead;
+	}
+	
+	private static Map<Node, OrdinalSet<Node>> computeLastReachingDefsToExternalReads(
+			final Set<Node> externalReads,
+			final Map<UniqueParameterCandidate, Set<UniqueParameterCandidate>> mayAliased,
+			final Map<UniqueParameterCandidate, Set<Node>> uniqueParameterCandidate2PDGNode,
+			final BitVectorSolver<Node> solver,
+			final OrdinalSetMapping<Node> domain, final ModRefProvider provider,
+			boolean isParallel) {
+		final Map<Node, OrdinalSet<Node>> mayRead = Collections.synchronizedMap(new HashMap<Node, OrdinalSet<Node>>());
+
+		StreamSupport.stream(externalReads.spliterator(), isParallel).forEach(n -> {
+			final BitVectorVariable in = solver.getIn(n);
+			final IntSet inSet = in.getValue();
+
+			if (inSet == null) {
+				final OrdinalSet<Node> empty = OrdinalSet.empty();
+				mayRead.put(n, empty);
+			} else {
+				final BitVector bvMayRef = new BitVector(domain.getSize());
+				int maxSet = -1;
+				
+				final ModRefFieldCandidate nCand = n.getCandidate();
+				final Iterable<UniqueParameterCandidate> uniques = nCand.pc.isUnique() ? Collections.singleton((UniqueParameterCandidate)nCand.pc) : nCand.pc.getUniques();
+				for (UniqueParameterCandidate unique : uniques) {
+					final Set<UniqueParameterCandidate> aliased = mayAliased.get(unique);
+					if (aliased == null) continue;
+					for (UniqueParameterCandidate aliasedUnique : aliased ) {
+						final Iterable<Node> otherNodes = uniqueParameterCandidate2PDGNode.get(aliasedUnique);
+						if (otherNodes == null) continue;
+						for (Node other : otherNodes) {
+							final int id = domain.getMappedIndex(other);
+							if (inSet.contains(id)) {
+								assert 0 <= id && id < domain.getSize();
+								bvMayRef.set(id);
+								maxSet = Math.max(maxSet, id);
+							}
+						}
+					}
+				}
+				
+				if (maxSet >= 0) {
+					// implicitly creates a copy just large enough to hold all necessary bits
+					mayRead.put(n, new OrdinalSet<ModRefControlFlowGraph.Node>(new BitVectorIntSet(bvMayRef, maxSet), domain));
+				} else {
+					mayRead.put(n, new OrdinalSet<ModRefControlFlowGraph.Node>(new EmptyIntSet(),                     domain));
+				}
 			}
 		});
 

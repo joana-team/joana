@@ -715,6 +715,7 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
         private static final long serialVersionUID = 7494242245729767106L;
         Set<EE> incoming;
         Set<EE> outgoing;
+        // TODO: we might save some memory here, if only we promised really not to change incoming/outgoing :O
         private transient Set<EE> unmodifiableIncoming = null;
         private transient Set<EE> unmodifiableOutgoing = null;
 

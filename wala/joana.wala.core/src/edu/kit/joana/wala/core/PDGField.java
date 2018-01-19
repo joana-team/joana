@@ -9,6 +9,7 @@ package edu.kit.joana.wala.core;
 
 public class PDGField {
 
+	// TODO: maybe this can consistently be derived from node.getKind(), which may save some memory!?!?
 	private final boolean isWrite;
 
 	public final PDGNode node;

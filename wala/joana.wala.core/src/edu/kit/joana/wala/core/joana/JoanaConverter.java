@@ -100,7 +100,7 @@ public class JoanaConverter {
 			SDGNode to = sdg.getNode(edge.to.getId());
 			
 			SDGEdge sdgEdge = createEdge(from, to, edge.kind, edge.getLabel());
-			sdg.addEdge(from, to, sdgEdge);
+			sdg.addEdgeUnsafe(from, to, sdgEdge);
 		}
 		if (!keepEdges) {
 			ArrayList<PDGEdge> toRemove = new ArrayList<>(outgoing.size());

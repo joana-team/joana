@@ -238,6 +238,38 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
 
         return true;
     }
+    
+    /**
+     * @see Graph#addEdge(Object, Object, Object),
+     * except some failure cases may go unnoticed unless running with java assertions enabled
+     */
+    public boolean addEdgeUnsafe(V sourceVertex, V targetVertex, E e)
+    {
+        if (e == null) {
+            throw new NullPointerException();
+        }
+
+        assert assertVertexExist(sourceVertex);
+        assert assertVertexExist(targetVertex);
+
+        if (!allowingMultipleEdges
+            && containsEdge(sourceVertex, targetVertex))
+        {
+            return false;
+        }
+
+        if (!allowingLoops && sourceVertex.equals(targetVertex)) {
+            throw new IllegalArgumentException(LOOPS_NOT_ALLOWED);
+        }
+
+        final boolean added = edgeSet.add(e);
+        
+        if (added) {
+            specifics.addEdgeToTouchingVerticesUnsafe(e);
+        }
+
+        return added;
+    }
 
     /**
      * @see Graph#addVertex(Object)
@@ -857,6 +889,15 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
             getEdgeContainer(source).addOutgoingEdge(e);
             getEdgeContainer(target).addIncomingEdge(e);
         }
+        
+        public void addEdgeToTouchingVerticesUnsafe(E e)
+        {
+            V source = getEdgeSource(e);
+            V target = getEdgeTarget(e);
+
+            getEdgeContainerUnsafe(source).addOutgoingEdge(e);
+            getEdgeContainerUnsafe(target).addIncomingEdge(e);
+        }
 
         /**
          * @see UndirectedGraph#degreeOf(Object)
@@ -946,14 +987,35 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
         {
             assertVertexExist(vertex);
 
-            DirectedEdgeContainer<V, E> ec = vertexMapDirected.get(vertex);
+            return vertexMapDirected.compute(vertex, (v, ec) -> {
 
             if (ec == null) {
                 ec = new DirectedEdgeContainer<V, E>(edgeSetFactory, vertex);
-                vertexMapDirected.put(vertex, ec);
             }
 
             return ec;
+            });
+        }
+        
+        /**
+         * A lazy build of edge container for specified vertex.
+         *
+         * @param vertex a vertex in this graph.
+         *
+         * @return EdgeContainer
+         */
+        private DirectedEdgeContainer<V, E> getEdgeContainerUnsafe(V vertex)
+        {
+            assert assertVertexExist(vertex);
+
+            return vertexMapDirected.compute(vertex, (v, ec) -> {
+
+            if (ec == null) {
+                ec = new DirectedEdgeContainer<V, E>(edgeSetFactory, vertex);
+            }
+
+            return ec;
+            });
         }
     }
 

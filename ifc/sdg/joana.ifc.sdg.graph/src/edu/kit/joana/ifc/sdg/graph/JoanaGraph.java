@@ -318,7 +318,7 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
     * @return `false' if the edge already exists.
     */
   	public boolean addEdge(SDGEdge edge) {
-  		return super.addEdge(edge.getSource(), edge.getTarget(), edge);
+  		return super.addEdgeUnsafe(edge.getSource(), edge.getTarget(), edge);
   	}
 
   	/**

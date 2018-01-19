@@ -73,7 +73,7 @@ public class DependenceGraph extends AbstractJoanaGraph<PDGNode, PDGEdge> {
 
 	public final PDGEdge addEdge(PDGNode from, PDGNode to, PDGEdge.Kind kind) {
 		PDGEdge edge = new PDGEdge(from, to, kind);
-		addEdge(from, to, edge);
+		addEdgeUnsafe(from, to, edge);
 
 		return edge;
 	}

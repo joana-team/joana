@@ -98,16 +98,39 @@ public final class PDGEdge implements KnowsVertices<PDGNode>, Comparable<PDGEdge
 
 		if (obj instanceof PDGEdge) {
 			PDGEdge other = (PDGEdge) obj;
-			return from.equals(other.from) && to.equals(other.to) && kind == other.kind;
+			return kind == other.kind && from.equals(other.from) && to.equals(other.to) ;
 		}
 
 		return false;
 	}
 
-	public int hashCode() {
+
+	@Deprecated
+	private int hashCodeOld() {
 		return (from.hashCode() ^ (to.hashCode() >> 6)) + kind.hashCode();
 	}
 	
+
+	@Deprecated
+	private int hashCodeEclipse() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (from.hashCode());
+		result = prime * result + (kind.hashCode());
+		result = prime * result + (to.hashCode());
+		return result;
+	}
+	
+	@Override
+	public int hashCode() {
+		// This one appears to be slightly (but consistently) better than hashCodeEclipse(),
+		// and much better than hashCodeOld(), when measured in the time spent in, e.g.,
+		// HashMap.add(): 
+		// hashCode():      38725ms
+		// hashCodeOld():   74769ms
+		// hashCodeEclipse: 39605ms
+		return (from.hashCode() ^ (Integer.rotateRight(to.hashCode(), 16))) + kind.hashCode();
+	}
 
 	@Override
 	public final int compareTo(PDGEdge other) {

@@ -145,7 +145,7 @@ public final class PDGNode implements INodeWithNumber, Comparable<PDGNode> {
 	}
 
     /* The ID of the node. Should be unique in the graph. Negative IDs are permitted.*/
-    private final Integer id;
+    private final int id;
 
 	/* The ID of the procedure to which the node belongs.*/
     private final int proc;
@@ -333,7 +333,7 @@ public final class PDGNode implements INodeWithNumber, Comparable<PDGNode> {
 
     	if (obj instanceof PDGNode) {
     		PDGNode other = (PDGNode) obj;
-    		return id.intValue() == other.id.intValue();
+    		return id == other.id;
     	}
 
     	return false;
@@ -341,12 +341,12 @@ public final class PDGNode implements INodeWithNumber, Comparable<PDGNode> {
 
     public int hashCode() {
     	// TODO: is this bad w.r.t distribution of nodes in hash buckets?
-    	return id.intValue();
+    	return id;
     }
     
     @Override
     public int compareTo(PDGNode other) {
-    	return id.compareTo(other.id);
+    	return Integer.compare(id, other.id);
     } 
 
     /**

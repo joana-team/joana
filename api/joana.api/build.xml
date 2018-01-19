@@ -120,6 +120,9 @@
 				<file name="jSDG-stubs-jre1.5.jar" />
 				<file name="jSDG-stubs-javacard.jar" />
 				<file name="jSDG-stubs-j2me2.0.jar" />
+				<file name="jdk-1.5-with-stubs.jar" />
+				<file name="jdk-1.6-with-stubs.jar" />
+				<file name="jdk-1.7-with-stubs.jar" />
 			</filelist>
 		</copy>
 	</target>

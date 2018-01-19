@@ -193,7 +193,8 @@ public class ModRefDataFlow {
 		final PointsToWrapper pa = new PointsToWrapper(sdg.getPointerAnalysis());
 		final boolean ignoreExceptions = sdg.cfg.exceptions == ExceptionAnalysis.IGNORE_ALL;
 
-		for (final PDG pdg : sdg.getAllPDGs()) {
+		final Stream<PDG> s = sdg.isParallel() ? sdg.getAllPDGs().parallelStream() : sdg.getAllPDGs().stream();
+		s.forEach(pdg -> {
 			{
 				final List<PDGNode> formals = new LinkedList<PDGNode>();
 				for (final PDGEdge e : pdg.outgoingEdgesOf(pdg.entry)) {
@@ -224,7 +225,7 @@ public class ModRefDataFlow {
 					ModRefCandidateGraph.findCallRoots(pa, pdg, call, ignoreExceptions);
 				connectParameterStructureRoots(pdg, pdgnode2modref, roots, actuals);
 			}
-		}
+		});
 	}
 
 	private static void	connectParameterStructureRoots(final PDG pdg,

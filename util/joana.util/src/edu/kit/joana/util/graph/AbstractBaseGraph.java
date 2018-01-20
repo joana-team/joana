@@ -50,8 +50,9 @@ import java.util.*;
 
 import org.jgrapht.*;
 import org.jgrapht.graph.AbstractGraph;
-import org.jgrapht.graph.EdgeSetFactory;
 import org.jgrapht.util.*;
+
+import edu.kit.joana.util.collections.ArraySet;
 
 
 
@@ -80,7 +81,6 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
     private final boolean allowingLoops;
 
     private EdgeFactory<V, E> edgeFactory;
-    private EdgeSetFactory<V, E> edgeSetFactory;
     private Set<E> edgeSet;
     private transient Set<E> unmodifiableEdgeSet = null;
     private transient Set<V> unmodifiableVertexSet = null;
@@ -114,7 +114,6 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
 
         specifics = new DirectedSpecifics();
 
-        this.edgeSetFactory = new ArrayListFactory<V, E>();
     }
 
     /**
@@ -163,19 +162,6 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
     @Override public EdgeFactory<V, E> getEdgeFactory()
     {
         return edgeFactory;
-    }
-
-    /**
-     * Set the {@link EdgeSetFactory} to use for this graph. Initially, a graph
-     * is created with a default implementation which always supplies an {@link
-     * java.util.ArrayList} with capacity 1.
-     *
-     * @param edgeSetFactory factory to use for subsequently created edge sets
-     * (this call has no effect on existing edge sets)
-     */
-    public void setEdgeSetFactory(EdgeSetFactory<V, E> edgeSetFactory)
-    {
-        this.edgeSetFactory = edgeSetFactory;
     }
 
     /**
@@ -378,8 +364,8 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
     }
     
     private class EdgeSetView implements Set<E> {
-    	final Map<V, DirectedEdgeContainer<V, E>> vertexMap;
-    	EdgeSetView(Map<V, DirectedEdgeContainer<V, E>> vertexMap) {
+    	final Map<V, ArraySetDirectedEdgeContainer<E>> vertexMap;
+    	EdgeSetView(Map<V, ArraySetDirectedEdgeContainer<E>> vertexMap) {
     		this.vertexMap = vertexMap;
     	}
 
@@ -416,12 +402,13 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
 			if (!(o instanceof KnowsVertices)) {
 				return false;
 			}
-			DirectedEdgeContainer<V, E> vc
+			ArraySetDirectedEdgeContainer<E> vc
 					= vertexMap.get(((KnowsVertices<?>) o).getSource());
 			if (vc == null || vc.outgoing == null) {
 				return false;
 			}
-			return vc.outgoing.contains(o);
+			final ArraySet<E> outgoing = ArraySet.own(vc.outgoing);
+			return outgoing.contains(o);
 		}
 
 		/* (non-Javadoc)
@@ -482,8 +469,8 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
 		 */
 		@Override
 		public int size() {
-			// since the "outgoing" is initialized lazily, c may be null for a vertex w/o outgoing edges/  
-			return vertexMap.values().stream().mapToInt(c-> (c == null) ? 0 : c.outgoing.size()).sum();
+			// since the "outgoing" is initialized lazily, c may be null for a vertex w/o outgoing edges/ 
+			return vertexMap.values().stream().mapToInt(c-> (c == null) ? 0 : ArraySet.own(c.outgoing).size()).sum();
 		}
 
 		/* (non-Javadoc)
@@ -528,7 +515,7 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
 		}
     	
 		private class EdgeSetViewIterator implements Iterator<E>{
-			Iterator<DirectedEdgeContainer<V, E>> ecIt;
+			Iterator<ArraySetDirectedEdgeContainer<E>> ecIt;
 			Iterator<E> edgeIt;
 			E next;
 			
@@ -554,11 +541,12 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
 			}
 			
 			private void advance() {
-				DirectedEdgeContainer<V, E> vc = null;
+				ArraySetDirectedEdgeContainer<E> vc = null;
 				while (ecIt.hasNext()) {
 					vc = ecIt.next();
-					if (vc != null && !vc.outgoing.isEmpty()) {
-						edgeIt = vc.outgoing.iterator();
+					Set<E> outgoing = ArraySet.own(vc.outgoing);
+					if (vc != null && !outgoing.isEmpty()) {
+						edgeIt = outgoing.iterator();
 						next = edgeIt.next();
 						return;
 					}
@@ -637,6 +625,19 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
             return false;
         }
     }
+    
+    /**
+     * @see Graph#removeEdge(Object)
+     */
+    public boolean removeEdgeUnsafe(E e)
+    {
+        if (edgeSet.remove(e)) {
+            specifics.removeEdgeFromTouchingVertices(e);
+            return true;
+        } else {
+            return false;
+        }
+    }
 
     /**
      * @see Graph#removeVertex(Object)
@@ -683,75 +684,68 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
         }
     }
 
-    private static class ArrayListFactory<VV, EE>
-        implements EdgeSetFactory<VV, EE>,
-            Serializable
-    {
-        private static final long serialVersionUID = 5936902837403445985L;
-
-        /**
-         * @see EdgeSetFactory.createEdgeSet
-         */
-        @Override public Set<EE> createEdgeSet(VV vertex)
-        {
-            // NOTE:  use size 1 to keep memory usage under control
-            // for the common case of vertices with low degree
-            return new ArrayUnenforcedSet<EE>(1);
-        }
-    }
-
     /**
      * A container for vertex edges.
      *
-     * <p>In this edge container we use array lists to minimize memory toll.
-     * However, for high-degree vertices we replace the entire edge container
-     * with a direct access subclass (to be implemented).</p>
+     * <p>In this edge container we use arrays to minimize memory toll.
      *
-     * @author Barak Naveh
+     * @author Martin Hecker
      */
-    protected static class DirectedEdgeContainer<VV, EE>
-        implements Serializable
+    protected static final class ArraySetDirectedEdgeContainer<EE>
     {
-        private static final long serialVersionUID = 7494242245729767106L;
-        Set<EE> incoming;
-        Set<EE> outgoing;
-        // TODO: we might save some memory here, if only we promised really not to change incoming/outgoing :O
-        private transient Set<EE> unmodifiableIncoming = null;
-        private transient Set<EE> unmodifiableOutgoing = null;
+        EE[] incoming;
+        EE[] outgoing;
 
-        DirectedEdgeContainer(EdgeSetFactory<VV, EE> edgeSetFactory,
-            VV vertex)
+        ArraySetDirectedEdgeContainer()
         {
-            incoming = edgeSetFactory.createEdgeSet(vertex);
-            outgoing = edgeSetFactory.createEdgeSet(vertex);
+        }
+
+        public final Set<EE> getUnmodifiableIncomingEdges()
+        {
+        	if (incoming == null) return Collections.emptySet();
+            return Collections.unmodifiableSet(ArraySet.own(incoming));
+        }
+
+        public final Set<EE> getUnmodifiableOutgoingEdges()
+        {
+        	if (outgoing == null) return Collections.emptySet();
+            return Collections.unmodifiableSet(ArraySet.own(outgoing));
         }
 
         /**
-         * A lazy build of unmodifiable incoming edge set.
+         * .
          *
-         * @return
+         * @param e
          */
-        public Set<EE> getUnmodifiableIncomingEdges()
+        public final void addIncomingEdge(EE e)
         {
-            if (unmodifiableIncoming == null) {
-                unmodifiableIncoming = Collections.unmodifiableSet(incoming);
+        	final ArraySet<EE> set;
+            if (incoming == null) {
+            	set = new ArraySet<>(Collections.singleton(e));
+            	
+            } else {
+            	set = ArraySet.own(incoming);
+            	set.add(e);
             }
-
-            return unmodifiableIncoming;
+            incoming = set.disown();
         }
 
         /**
-         * A lazy build of unmodifiable outgoing edge set.
+         * .
          *
-         * @return
+         * @param e
          */
-        public Set<EE> getUnmodifiableOutgoingEdges()
+        public final void addOutgoingEdge(EE e)
         {
-            if (unmodifiableOutgoing == null) {
-                unmodifiableOutgoing = Collections.unmodifiableSet(outgoing);
+        	final ArraySet<EE> set;
+            if (outgoing == null) {
+            	set = new ArraySet<>(Collections.singleton(e));
+            	
+            } else {
+            	set = ArraySet.own(outgoing);
+            	set.add(e);
             }
-
-            return unmodifiableOutgoing;
+            outgoing = set.disown();
         }
 
         /**
@@ -759,9 +753,12 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
          *
          * @param e
          */
-        public void addIncomingEdge(EE e)
+        public final void removeIncomingEdge(EE e)
         {
-            incoming.add(e);
+        	if (incoming == null) return;
+        	final ArraySet<EE> set = ArraySet.own(incoming);
+        	set.remove(e);
+            incoming = set.disown();
         }
 
         /**
@@ -769,31 +766,15 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
          *
          * @param e
          */
-        public void addOutgoingEdge(EE e)
+        public final void removeOutgoingEdge(EE e)
         {
-            outgoing.add(e);
-        }
-
-        /**
-         * .
-         *
-         * @param e
-         */
-        public void removeIncomingEdge(EE e)
-        {
-            incoming.remove(e);
-        }
-
-        /**
-         * .
-         *
-         * @param e
-         */
-        public void removeOutgoingEdge(EE e)
-        {
-            outgoing.remove(e);
+        	if (outgoing == null) return;
+        	final ArraySet<EE> set = ArraySet.own(outgoing);
+        	set.remove(e);
+        	outgoing = set.disown();
         }
     }
+    
 
     /**
      * .
@@ -807,14 +788,14 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
         private static final String NOT_IN_DIRECTED_GRAPH =
             "no such operation in a directed graph";
 
-        protected Map<V, DirectedEdgeContainer<V, E>> vertexMapDirected;
+        protected Map<V, ArraySetDirectedEdgeContainer<E>> vertexMapDirected;
 
         public DirectedSpecifics()
         {
-            this(new LinkedHashMap<V, DirectedEdgeContainer<V, E>>());
+            this(new LinkedHashMap<V, ArraySetDirectedEdgeContainer<E>>());
         }
 
-        public DirectedSpecifics(Map<V, DirectedEdgeContainer<V, E>> vertexMap)
+        public DirectedSpecifics(Map<V, ArraySetDirectedEdgeContainer<E>> vertexMap)
         {
             this.vertexMapDirected = vertexMap;
         }
@@ -842,9 +823,10 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
             {
                 edges = new ArrayUnenforcedSet<E>();
 
-                DirectedEdgeContainer<V, E> ec = getEdgeContainer(sourceVertex);
+                ArraySetDirectedEdgeContainer<E> ec = getEdgeContainer(sourceVertex);
 
-                Iterator<E> iter = ec.outgoing.iterator();
+                ArraySet<E> outgoing = ArraySet.own(ec.outgoing);
+                Iterator<E> iter = outgoing.iterator();
 
                 while (iter.hasNext()) {
                     E e = iter.next();
@@ -866,9 +848,10 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
             if (containsVertex(sourceVertex)
                 && containsVertex(targetVertex))
             {
-                DirectedEdgeContainer<V, E> ec = getEdgeContainer(sourceVertex);
+            	ArraySetDirectedEdgeContainer<E> ec = getEdgeContainer(sourceVertex);
 
-                Iterator<E> iter = ec.outgoing.iterator();
+                ArraySet<E> outgoing = ArraySet.own(ec.outgoing);
+                Iterator<E> iter = outgoing.iterator();
 
                 while (iter.hasNext()) {
                     E e = iter.next();
@@ -913,25 +896,12 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
          */
         public Set<E> edgesOf(V vertex)
         {
-            ArrayUnenforcedSet<E> inAndOut =
-                new ArrayUnenforcedSet<E>(getEdgeContainer(vertex).incoming);
-            inAndOut.addAll(getEdgeContainer(vertex).outgoing);
-
-            // we have two copies for each self-loop - remove one of them.
-            if (allowingLoops) {
-                Set<E> loops = getAllEdges(vertex, vertex);
-
-                for (int i = 0; i < inAndOut.size();) {
-                    Object e = inAndOut.get(i);
-
-                    if (loops.contains(e)) {
-                        inAndOut.remove(i);
-                        loops.remove(e); // so we remove it only once
-                    } else {
-                        i++;
-                    }
-                }
-            }
+        	Set<E> incoming = ArraySet.own(getEdgeContainer(vertex).incoming);
+        	Set<E> outgoing = ArraySet.own(getEdgeContainer(vertex).outgoing);
+            Set<E> inAndOut = 
+                new HashSet<E>(incoming.size() + outgoing.size());
+            inAndOut.addAll(incoming);
+            inAndOut.addAll(outgoing);
 
             return Collections.unmodifiableSet(inAndOut);
         }
@@ -941,7 +911,8 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
          */
         public int inDegreeOf(V vertex)
         {
-            return getEdgeContainer(vertex).incoming.size();
+        	ArraySet<E> incoming = ArraySet.own(getEdgeContainer(vertex).incoming);
+            return incoming.size();
         }
 
         /**
@@ -957,7 +928,8 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
          */
         public int outDegreeOf(V vertex)
         {
-            return getEdgeContainer(vertex).outgoing.size();
+        	ArraySet<E> outgoing = ArraySet.own(getEdgeContainer(vertex).outgoing);
+            return outgoing.size();
         }
 
         /**
@@ -977,6 +949,15 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
             getEdgeContainer(target).removeIncomingEdge(e);
         }
 
+        public void removeEdgeFromTouchingVerticesUnsafe(E e)
+        {
+            V source = getEdgeSource(e);
+            V target = getEdgeTarget(e);
+
+            getEdgeContainerUnsafe(source).removeOutgoingEdge(e);
+            getEdgeContainerUnsafe(target).removeIncomingEdge(e);
+        }
+
         /**
          * A lazy build of edge container for specified vertex.
          *
@@ -984,14 +965,14 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
          *
          * @return EdgeContainer
          */
-        private DirectedEdgeContainer<V, E> getEdgeContainer(V vertex)
+        private ArraySetDirectedEdgeContainer<E> getEdgeContainer(V vertex)
         {
             assertVertexExist(vertex);
 
             return vertexMapDirected.compute(vertex, (v, ec) -> {
 
             if (ec == null) {
-                ec = new DirectedEdgeContainer<V, E>(edgeSetFactory, vertex);
+                ec = new ArraySetDirectedEdgeContainer<E>();
             }
 
             return ec;
@@ -1005,14 +986,14 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
          *
          * @return EdgeContainer
          */
-        private DirectedEdgeContainer<V, E> getEdgeContainerUnsafe(V vertex)
+        private ArraySetDirectedEdgeContainer<E> getEdgeContainerUnsafe(V vertex)
         {
             assert assertVertexExist(vertex);
 
             return vertexMapDirected.compute(vertex, (v, ec) -> {
 
             if (ec == null) {
-                ec = new DirectedEdgeContainer<V, E>(edgeSetFactory, vertex);
+                ec = new ArraySetDirectedEdgeContainer<E>();
             }
 
             return ec;

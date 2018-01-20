@@ -45,11 +45,12 @@ public final class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 		}
 	};
 	
-	private E[] elements;
+	private static final Object[] empty = new Object[0];
+	
+	private Object[] elements;
 	
 	public ArraySet(Set<E> other) {
-		@SuppressWarnings("unchecked")
-		final E[] elements = (E[]) other.toArray();
+		final Object[] elements = other.toArray();
 		
 		for (int i = 0; i < elements.length; i++) {
 			if (elements[i] == null) throw new NullPointerException();
@@ -60,11 +61,22 @@ public final class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 		assert invariant();
 	}
 	
+	private ArraySet(Object[] elements) {
+		this.elements = elements;
+		
+		assert invariant();
+	}
+	
+	public static <E> ArraySet<E> own(Object[] elements) {
+		if (elements == null) return new ArraySet<>(empty);
+		return new ArraySet<>(elements);
+	}
+	
 	private boolean invariant() {
 		if (elements == null) return false;
 		int lastHashCode = Integer.MIN_VALUE;
 		for (int i = 0; i < elements.length; i++) {
-			final E element = elements[i];
+			final Object element = elements[i];
 			if (element == null) return false;
 			
 			final int hashcode = elements[i].hashCode();
@@ -109,7 +121,7 @@ public final class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 			if (mid < low) return -insertionPoint - 1; // key not found.
 			assert low <= mid && mid <= high;
 			
-			final E midElement = elements[mid];
+			final Object midElement = elements[mid];
 			assert midElement != null;
 			
 			int midVal = midElement.hashCode();
@@ -168,10 +180,11 @@ public final class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 			}
 
 			@Override
+			@SuppressWarnings("unchecked")
 			public E next() {
 				assert i <= elements.length;
 				if (i == elements.length) throw new NoSuchElementException(); 
-				return elements[i++];
+				return (E) elements[i++];
 			}
 			
 		};
@@ -338,4 +351,10 @@ public final class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 		return;
 	}
 	
+	public E[] disown() {
+		@SuppressWarnings("unchecked")
+		E[] result = (E[]) elements;
+		elements = null;
+		return result;
+	}
 }

@@ -12,7 +12,6 @@ import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
-import org.jgrapht.graph.EdgeSetFactory;
 
 /**
  * This is the base class for all concrete graphs used in the JOANA project.
@@ -336,7 +335,7 @@ public class AbstractJoanaGraph<V, E extends KnowsVertices<V>> implements Direct
 	 */
 	public boolean removeEdge(E arg0) {
 		changed = true;
-		return delegate.removeEdge(arg0);
+		return delegate.removeEdgeUnsafe(arg0);
 	}
 
 	/**
@@ -359,15 +358,6 @@ public class AbstractJoanaGraph<V, E extends KnowsVertices<V>> implements Direct
 		changed = true;
 		return delegate.removeVertex(arg0);
 	}
-
-	/**
-	 * @param arg0
-	 * @see org.jgrapht.graph.AbstractBaseGraph#setEdgeSetFactory(org.jgrapht.graph.EdgeSetFactory)
-	 */
-	public void setEdgeSetFactory(EdgeSetFactory<V, E> arg0) {
-		delegate.setEdgeSetFactory(arg0);
-	}
-
 
 	/**
 	 * @return

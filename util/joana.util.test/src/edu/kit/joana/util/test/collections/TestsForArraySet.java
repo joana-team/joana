@@ -20,7 +20,7 @@ import java.util.Set;
 import edu.kit.joana.util.collections.ArraySet;
 
 /**
- * Generates a test suite covering the {@link edu.kit.joana.util.test.collections.ArraySet} implementation.
+ * Generates a test suite covering the {@link ArraySet} implementation.
  *
  * @author Martin Hecker
  */

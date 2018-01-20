@@ -14,11 +14,29 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.SortedSet;
 
 /**
+ * A Set backed by an Object array. Optimized for size only, with severe consequences for speed.
+ * 
+ * {@link ArraySet#add(Object)      is a O(log(n) + m) lookup, plus a O(n) memory copy}
+ * {@link ArraySet#remove(Object)   is a O(log(n) + m) lookup, plus a O(n) memory copy}
+ * {@link ArraySet#contains(Object) is a O(log(n) + m) lookup}
+ * 
+ * where m is the number of objects with the same {@link Object#hashCode()} as the given object [1].
+ * 
+ * Currently, {@link ArraySet#removeAll(Collection)} is somewhat optimized,
+ * but {@link ArraySet#addAll(Collection) is not yet}.
+ * 
+ * The iteration-order is by the elements {@link Object#hashCode}, but no guarantee is given for
+ * the order of elements with equal {@link Object#hashCode} (hence, we cannot implement {@link SortedSet}.
+ *  
+ * 
+ * [1] assuming O(1 {@link Object#hashCode()} implementations. 
+ * 
  * @author martin.hecker@kit.edu <Martin Hecker>
  */
-public class ArraySet<E> extends AbstractSet<E> implements Set<E>{
+public final class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 	
 	private static final Comparator<Object> COMPARATOR = new Comparator<Object>() {
 		@Override
@@ -26,14 +44,8 @@ public class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 			return Integer.compare(e1.hashCode(), e2.hashCode());
 		}
 	};
-	// static enum GrowthStrategy { MINIMAL, DOUBLE, PLUSHALF };
 	
 	private E[] elements;
-	
-	//private int size;
-	
-	// protected abstract GrowthStrategy getGrowthStrategy();
-
 	
 	public ArraySet(Set<E> other) {
 		@SuppressWarnings("unchecked")
@@ -44,6 +56,26 @@ public class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 		}
 		Arrays.sort(elements, COMPARATOR);
 		this.elements = elements;
+		
+		assert invariant();
+	}
+	
+	private boolean invariant() {
+		if (elements == null) return false;
+		int lastHashCode = Integer.MIN_VALUE;
+		for (int i = 0; i < elements.length; i++) {
+			final E element = elements[i];
+			if (element == null) return false;
+			
+			final int hashcode = elements[i].hashCode();
+			if (hashcode < lastHashCode) return false;
+			
+			// no duplicates
+			for (int j = i - 1; j >= 0 && elements[j].hashCode() == hashcode; j--) {
+				if (element.equals(elements[j])) return false;
+			}
+		}
+		return true;
 	}
 	
 	@Override
@@ -60,7 +92,9 @@ public class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 	/**
 	 * @see Arrays#binarySearch(int[], int)
 	 */
-	// adapted from java.util.ArraysbinarySearch0
+	// Adapted from java.util.ArraysbinarySearch0
+	// This may be called in a state where some elements are null, see, e.g., 
+	// ArraySet#removeAll().
 	private int binarySearch0(int fromIndex, int toIndex, Object element) {
 		final int key = element.hashCode(); 
 		int low = fromIndex;
@@ -68,10 +102,12 @@ public class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 
 		while (low <= high) {
 			int mid = (low + high) >>> 1;
+			assert low <= mid && mid <= high;
 			while (mid >= 0 && elements[mid] == null) mid--;
 			final int insertionPoint = mid + 1;
-			//assert elements[mid] != null;
-			if (mid < low) return -insertionPoint - 1;
+			
+			if (mid < low) return -insertionPoint - 1; // key not found.
+			assert low <= mid && mid <= high;
 			
 			final E midElement = elements[mid];
 			assert midElement != null;
@@ -83,30 +119,34 @@ public class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 			else if (midVal > key)
 				high = mid - 1;
 			else {
+				if (element.equals(midElement)) return mid; // lucky shot
+				
+				// among all elements s.t. key == elements[i].hashCode(),
+				// we have to find the one for which element.equals(elements[i]).
 				boolean found = false;
 				int i;
 				
-				i = mid;
-				while(i < elements.length
+				// lets look right
+				i = mid + 1;
+				while(i <= high
 				 &&  (elements[i] == null || elements[i].hashCode() == key)
-				 //&&  (elements[i].hashCode() == key)
 				 && !(found = element.equals(elements[i]))
 				) { i++; }
 				if (found) return i;
 
-				i = mid;
-				while(i > 0
+				// .. then left
+				i = mid - 1;
+				while(i >= low
 				 &&  (elements[i] == null || elements[i].hashCode() == key)
-				 //&&  (elements[i].hashCode() == key)
 				 && !(found = element.equals(elements[i]))
 				) { i--; }
 				if (found) return i;
 				
 				
-				return -insertionPoint - 1;
+				return -insertionPoint - 1; // key not found. 
 			}
 		}
-		return -(low + 1);  // key not found.
+		return -(low + 1); // key not found.
 	}
 	
 	@Override
@@ -166,13 +206,7 @@ public class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 		
 		final int insert = -index - 1;
 		assert insert >= 0;
-//		final int newSize;
-//		switch (getGrowthStrategy()) {
-//			case MINIMAL:  newSize =             elements.length + 1;                      break;
-//			case DOUBLE:   newSize = Math.max(1, elements.length * 2);                     break;
-//			case PLUSHALF: newSize = Math.max(1, elements.length + (elements.length / 2)); break;
-//			default: throw new IllegalStateException();
-//		}
+		
 		final int newSize = elements.length + 1;
 
 		@SuppressWarnings("unchecked")
@@ -187,17 +221,16 @@ public class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 		
 		this.elements = newElements;
 		
+		assert invariant();
 		return true;
 	}
-	
-   public boolean addAll(Collection<? extends E> c) {
-       boolean modified = false;
-       for (E e : c)
-           if (add(e))
-               modified = true;
-       return modified;
-    }
 
+	@Override
+	public boolean addAll(Collection<? extends E> c) {
+		// TODO this is correct, but very slow. Needs to be optimized. 
+		return super.addAll(c);
+	}
+	
 	@Override
 	public boolean remove(Object o) {
 		if (o == null) throw new NullPointerException();
@@ -213,6 +246,8 @@ public class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 		System.arraycopy(elements,          0, newElements,      0, remove);
 		System.arraycopy(elements, remove + 1, newElements, remove, elements.length - remove - 1  );
 		this.elements = newElements;
+		
+		assert invariant();
 		return true;
 	}
 	
@@ -232,8 +267,12 @@ public class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 		
 		if (removed > 0) {
 			compact(removed);
+			
+			assert invariant();
 			return true;
 		}
+		
+		assert invariant();
 		return false;
 	}
 	
@@ -276,10 +315,15 @@ public class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 				removed++;
 			}
 		}
+		
 		if (removed > 0) {
 			compact(removed);
+			
+			assert invariant();
 			return true;
 		}
+		
+		assert invariant();
 		return false;
 	}
 	
@@ -289,6 +333,9 @@ public class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 		@SuppressWarnings("unchecked")
 		E[] newElements = (E[]) new Object[0];
 		elements = newElements;
+		
+		assert invariant();
+		return;
 	}
 	
 }

@@ -288,7 +288,7 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V extends IntegerIdentifiable
 		// reachability computation.
 		Map<V, Integer> representantIndexOf = new HashMap<>();
 		@SuppressWarnings("unchecked")
-		V[] representants = (V[]) new Object[represents.keySet().size()]; {
+		Object[] representants = new Object[represents.keySet().size()]; {
 			int i = 0;
 			for (V r : represents.keySet()) {
 				representantIndexOf.put(r, i);
@@ -404,7 +404,9 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V extends IntegerIdentifiable
 			final MutableIntSet reachableFromX = entry.getValue();
 			for (int index = 0 ; index < representants.length; index ++) {
 				if (!reachableFromX.contains(index)) {
-					add(S, representants[index], p, px);
+					@SuppressWarnings("unchecked")
+					V rep = (V) representants[index];
+					add(S, rep, p, px);
 				}
 			}
 		}

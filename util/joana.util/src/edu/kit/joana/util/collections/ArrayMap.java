@@ -36,7 +36,9 @@ import java.util.Set;
  * 
  * @author martin.hecker@kit.edu <Martin Hecker>
  */
-public final class ArrayMap<K, V> extends AbstractMap<K, V> implements Map<K, V>{
+public final class ArrayMap<K, V> extends AbstractMap<K, V> implements Map<K, V> {
+	
+	private final static double GROWTH_FACTOR = 1.5;
 	
 	private static Comparator<Entry<?, ?>> ENTRY_COMPARATOR = new Comparator<Entry<?, ?>>() {
 		@Override
@@ -49,12 +51,14 @@ public final class ArrayMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
 	private Object[] values;
 	
 	private int size;
+	private int maxIndex;
 	
 	private boolean compactEnabled;
 	
 	public ArrayMap() {
 		this.compactEnabled = true;
 		this.size = 0;
+		this.maxIndex = -1;
 		this.keys   = new Object[size];
 		this.values = new Object[size];
 	}
@@ -69,6 +73,7 @@ public final class ArrayMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
 		}
 		
 		this.size = entries.length;
+		this.maxIndex = entries.length -1;
 		Arrays.sort(entries, ENTRY_COMPARATOR);
 		this.keys   = new Object[size];
 		this.values = new Object[size];
@@ -100,6 +105,7 @@ public final class ArrayMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
 				predecessorWasNull = true;
 				continue;
 			}
+			assert i <= maxIndex;
 			
 			realSize++;
 			
@@ -193,7 +199,7 @@ public final class ArrayMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
 	public boolean containsKey(Object key) {
 		if (key == null) return false;
 		
-		final int index = binarySearch0(0, keys.length, key);
+		final int index = binarySearch0(0, maxIndex + 1, key);
 		return index >=0;
 	}
 	
@@ -201,7 +207,7 @@ public final class ArrayMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
 	public V get(Object key) {
 		if (key == null) return null;
 		
-		final int index = binarySearch0(0, keys.length, key);
+		final int index = binarySearch0(0, maxIndex + 1, key);
 		if (index >= 0) {
 			assert index < size && size <= values.length;
 			@SuppressWarnings("unchecked")
@@ -216,43 +222,92 @@ public final class ArrayMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
 	@Override
 	public V put(K key, V value) {
 		if (key == null || value == null) throw new NullPointerException();
-		
-		final int index = binarySearch0(0, keys.length, key);
-		if (index >= 0)  {
-			assert keys[index] != null;
-					
-			@SuppressWarnings("unchecked")
-			final V oldValue = (V) values[index];
-			assert values[index] != null;
-			
-			values[index] = value;
-			return oldValue;
-		}
-		
-		final int insert = -index - 1;
-		assert insert >= 0;
-		
 		assert keys.length == values.length;
 		final int length = keys.length;
 		
-		final int newSize = length + 1;
+		{
+			final int index = binarySearch0(0, maxIndex + 1, key);
+			if (index >= 0)  {
+				assert keys[index] != null;
+	
+				@SuppressWarnings("unchecked")
+				final V oldValue = (V) values[index];
+				assert values[index] != null;
+	
+				values[index] = value;
+				return oldValue;
+			}
+	
+			final int insert = -index - 1;
+			assert insert >= 0;
+	
+			if (insert != length && keys[insert] == null) {
+				keys[insert] = key;
+				values[insert] = value;
+				maxIndex = Math.max(maxIndex, insert);
+				size++;
+				
+				assert invariant();
+				return null;
+			}
+	
+			if (insert == length && size < length) { // maybe do not do this if |length - size| is very small?
+				compact(false);
+				assert length == keys.length && length == values.length;
+				assert (keys[size] == null);
+				keys[size] = key;
+				values[size] = value;
+				assert maxIndex == size - 1;
+				maxIndex = size;
+				size++;
+				assert invariant();
+				return null;
+			}
+			
+			if (size == length) { // maybe even do this a little sooner?
+				final int newLength = (int) (GROWTH_FACTOR * (length + 1));
+					
+				Object[] newKeys   = new Object[newLength];
+				Object[] newValues = new Object[newLength];
+				if (insert > 0) {
+					System.arraycopy(keys,   0, newKeys,   0, insert);
+					System.arraycopy(values, 0, newValues, 0, insert);
+				}
+				if (insert < length) {
+					System.arraycopy(keys,   insert, newKeys,   insert + 1, length - insert);
+					System.arraycopy(values, insert, newValues, insert + 1, length - insert);
+				}
+				newKeys[insert] = key;
+				newValues[insert] = value;
 
-		Object[] newKeys   = new Object[newSize];
-		Object[] newValues = new Object[newSize];
-		if (insert > 0) {
-			System.arraycopy(keys,   0, newKeys,   0, insert);
-			System.arraycopy(values, 0, newValues, 0, insert);
+				this.keys   = newKeys;
+				this.values = newValues;
+				maxIndex = maxIndex + 1;
+				size++;
+				
+				assert invariant();
+				return null;
+			}
 		}
-		if (insert < length) {
-			System.arraycopy(keys,   insert, newKeys,   insert + 1, length - insert);
-			System.arraycopy(values, insert, newValues, insert + 1, length - insert);
-		}
-		newKeys[insert] = key;
-		newValues[insert] = value;
 		
-		this.keys   = newKeys;
-		this.values = newValues;
+		assert size < length;
+		compact(false);
+		assert length == keys.length && length == values.length;
+		assert keys[length - 1] == null;
+		final int index = binarySearch0(0, size, key);
+
+		final int insert = -index - 1;
+		assert 0 <= insert && insert < length;
+
+		System.arraycopy(keys,   insert, keys,   insert + 1, length - insert - 1);
+		System.arraycopy(values, insert, values, insert + 1, length - insert - 1);
+		keys[insert] = key;
+		values[insert] = value;
+		assert maxIndex == size - 1;
+		maxIndex = size;
 		size++;
+		
+
 		
 		assert invariant();
 		return null;
@@ -262,7 +317,7 @@ public final class ArrayMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
 	public V remove(Object o) {
 		if (o == null) throw new NullPointerException();
 		
-		final int remove = binarySearch0(0, keys.length, o);
+		final int remove = binarySearch0(0, maxIndex + 1, o);
 		if (remove < 0) return null;
 		
 		assert (remove < keys.length);
@@ -277,16 +332,16 @@ public final class ArrayMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
 		
 		assert invariant();
 		
-		if (compactEnabled) compact();
+		if (compactEnabled) compact(true);
 		return oldValue;
 	}
 	
-	private void compact() {
+	private void compact(boolean shorten) {
 		assert keys.length == values.length;
 		final int length = keys.length;
 		
-		Object[] newKeys  = new Object[size];
-		Object[] newValues = new Object[size];
+		Object[] newKeys   = shorten ? new Object[size] : keys;
+		Object[] newValues = shorten ? new Object[size] : values;
 		
 		int k = 0;
 		int i = 0;
@@ -296,6 +351,7 @@ public final class ArrayMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
 			if (i == length)  {
 				this.keys = newKeys;
 				this.values= newValues;
+				maxIndex = size - 1;
 				assert invariant();
 				return;
 			}
@@ -307,8 +363,8 @@ public final class ArrayMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
 			
 			int blockLength = j - i;
 			assert blockLength > 0;
-			
-			System.arraycopy(keys,   i, newKeys,    k, blockLength);
+			assert k <= i;
+			System.arraycopy(keys,   i, newKeys,    k, blockLength); // TODO: does System.arrayCopy do the smart thing if keys == newKeys, and k == i?!?!?
 			System.arraycopy(values, i, newValues,  k, blockLength);
 			k += blockLength;
 			
@@ -321,6 +377,7 @@ public final class ArrayMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
 		keys   = new Object[0];
 		values = new Object[0];
 		size = 0;
+		this.maxIndex = -1;
 		
 		assert invariant();
 		return;
@@ -382,6 +439,15 @@ public final class ArrayMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
 			@Override
 			public boolean remove(Object o) {
 				return ArrayMap.this.remove(o) != null;
+			}
+			
+			@Override
+			public boolean removeAll(Collection<?> c) {
+				final boolean wasCompactEnabled = compactEnabled; 
+				compactEnabled = false;
+				boolean result = super.removeAll(c);
+				compactEnabled = wasCompactEnabled;
+				return result;
 			}
 
 			@Override

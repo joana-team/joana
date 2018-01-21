@@ -219,6 +219,7 @@ public final class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 		
 		final int insert = -index - 1;
 		assert insert >= 0;
+		assert insert == elements.length || elements[insert] != null;
 		
 		final int newSize = elements.length + 1;
 

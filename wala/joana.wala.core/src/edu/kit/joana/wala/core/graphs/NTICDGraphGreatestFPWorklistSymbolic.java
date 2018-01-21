@@ -24,6 +24,7 @@ import org.jgrapht.EdgeFactory;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.Graphs;
+import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
 import edu.kit.joana.wala.core.graphs.NTSCDGraph.MaxPaths;
 
@@ -39,7 +40,7 @@ import static edu.kit.joana.wala.core.graphs.NTSCDGraph.set;
  * @author Martin Hecker  <martin.hecker@kit.edu>
  *
  */
-public class NTICDGraphGreatestFPWorklistSymbolic<V, E extends KnowsVertices<V>> extends AbstractJoanaGraph<V, E> {
+public class NTICDGraphGreatestFPWorklistSymbolic<V extends IntegerIdentifiable, E extends KnowsVertices<V>> extends AbstractJoanaGraph<V, E> {
 
 	private NTICDGraphGreatestFPWorklistSymbolic(EdgeFactory<V, E> edgeFactory) {
 		super(edgeFactory);
@@ -63,7 +64,7 @@ public class NTICDGraphGreatestFPWorklistSymbolic<V, E extends KnowsVertices<V>>
 	 * for S := gfp(f).
 	 * 
 	 */
-	public static <V , E extends KnowsVertices<V>> NTICDGraphGreatestFPWorklistSymbolic<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory) {
+	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> NTICDGraphGreatestFPWorklistSymbolic<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory) {
 		NTICDGraphGreatestFPWorklistSymbolic<V, E> cdg = new NTICDGraphGreatestFPWorklistSymbolic<>(edgeFactory);
 		for (V n : cfg.vertexSet()) {
 			cdg.addVertex(n);

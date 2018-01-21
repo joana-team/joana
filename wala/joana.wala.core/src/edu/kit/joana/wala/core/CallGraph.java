@@ -28,6 +28,7 @@ import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
+import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
 
 public final class CallGraph extends AbstractJoanaGraph<CallGraph.Node, CallGraph.Edge> {
@@ -97,11 +98,16 @@ public final class CallGraph extends AbstractJoanaGraph<CallGraph.Node, CallGrap
 		}
 	}
 
-	public static final class Node {
+	public static final class Node implements  IntegerIdentifiable {
 		public final CGNode node;
 
 		private Node(CGNode node) {
 			this.node = node;
+		}
+		
+		@Override
+		public int getId() {
+			return node.getGraphNodeId();
 		}
 
 		public boolean equals(Object obj) {

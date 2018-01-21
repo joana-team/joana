@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import edu.kit.joana.ifc.sdg.graph.JoanaGraph;
+import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
 import edu.kit.joana.util.graph.io.dot.AbstractJoanaGraph2Dot;
 
@@ -41,7 +42,7 @@ public final class JoanaGraph2Dot {
 	 * @param joanaGraph graph to export to dot format
 	 * @param fileName name of file to write dotified version of the given graph to
 	 */
-	public static final <V,E extends KnowsVertices<V>> void writeDotToFile(JoanaGraph joanaGraph, String fileName) throws IOException {
+	public static final <V extends IntegerIdentifiable,E extends KnowsVertices<V>> void writeDotToFile(JoanaGraph joanaGraph, String fileName) throws IOException {
 		AbstractJoanaGraph2Dot.writeDotToFile(joanaGraph, SDGNodeIdProvider.getInstance(), SDGNodeNameProvider.getInstance(), SDGEdgeNameProvider.getInstance(), fileName);
 	}
 

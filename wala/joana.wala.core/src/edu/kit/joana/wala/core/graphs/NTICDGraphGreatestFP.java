@@ -20,6 +20,7 @@ import org.jgrapht.EdgeFactory;
 
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.Graphs;
+import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
 import edu.kit.joana.wala.core.graphs.NTSCDGraph.MaxPaths;
 
@@ -34,7 +35,7 @@ import static edu.kit.joana.wala.core.graphs.NTSCDGraph.get;
  * @author Martin Hecker  <martin.hecker@kit.edu>
  *
  */
-public class NTICDGraphGreatestFP<V, E extends KnowsVertices<V>> extends AbstractJoanaGraph<V, E> {
+public class NTICDGraphGreatestFP<V extends IntegerIdentifiable, E extends KnowsVertices<V>> extends AbstractJoanaGraph<V, E> {
 
 	private NTICDGraphGreatestFP(EdgeFactory<V, E> edgeFactory) {
 		super(edgeFactory);
@@ -51,7 +52,7 @@ public class NTICDGraphGreatestFP<V, E extends KnowsVertices<V>> extends Abstrac
 	 * This Algorithm fixes theirs, and is not flawed.
 	 * 
 	 */
-	public static <V , E extends KnowsVertices<V>> NTICDGraphGreatestFP<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory) {
+	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> NTICDGraphGreatestFP<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory) {
 		NTICDGraphGreatestFP<V, E> cdg = new NTICDGraphGreatestFP<>(edgeFactory);
 		for (V n : cfg.vertexSet()) {
 			cdg.addVertex(n);

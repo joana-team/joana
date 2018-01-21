@@ -13,6 +13,7 @@ package edu.kit.joana.ifc.sdg.graph;
 
 import java.util.Comparator;
 
+import edu.kit.joana.util.graph.IntegerIdentifiable;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 
@@ -23,7 +24,7 @@ import gnu.trove.set.hash.TIntHashSet;
  * <p>Organization: University of Passau, Software Systems Chair</p>
  * @author Christian Hammer <hammer@fmi.uni-passau.de>
  */
-public class SDGNode implements Cloneable {
+public class SDGNode implements Cloneable, IntegerIdentifiable {
 
 	/** used for optimizations in (parallel) summary computation */
 	public int tmp;

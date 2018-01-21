@@ -11,12 +11,13 @@ import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.graph.INodeWithNumber;
 
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
+import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.wala.util.PrettyWalaNames;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 
 
-public final class PDGNode implements INodeWithNumber, Comparable<PDGNode> {
+public final class PDGNode implements INodeWithNumber, IntegerIdentifiable, Comparable<PDGNode> {
 
 	public final static TypeReference DEFAULT_TYPE = TypeReference.JavaLangObject;
 	public final static TypeReference DEFAULT_NO_TYPE = TypeReference.Null;

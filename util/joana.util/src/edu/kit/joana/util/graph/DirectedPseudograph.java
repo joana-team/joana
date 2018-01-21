@@ -49,7 +49,7 @@ import org.jgrapht.graph.builder.*;
  * href="http://mathworld.wolfram.com/Pseudograph.html">
  * http://mathworld.wolfram.com/Pseudograph.html</a>.
  */
-public class DirectedPseudograph<V, E extends KnowsVertices<V>>
+public class DirectedPseudograph<V extends IntegerIdentifiable, E extends KnowsVertices<V>>
     extends AbstractBaseGraph<V, E>
     implements DirectedGraph<V, E>
 {
@@ -71,7 +71,7 @@ public class DirectedPseudograph<V, E extends KnowsVertices<V>>
         super(ef, true, true);
     }
 
-    public static <V, E extends KnowsVertices<V>> DirectedGraphBuilderBase<V,
+    public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> DirectedGraphBuilderBase<V,
         E, ? extends DirectedPseudograph<V, E>, ?> builder(
         Class<? extends E> edgeClass)
     {
@@ -79,7 +79,7 @@ public class DirectedPseudograph<V, E extends KnowsVertices<V>>
             new DirectedPseudograph<V, E>(edgeClass));
     }
 
-    public static <V, E extends KnowsVertices<V>> DirectedGraphBuilderBase<V,
+    public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> DirectedGraphBuilderBase<V,
         E, ? extends DirectedPseudograph<V, E>, ?> builder(EdgeFactory<V, E> ef)
     {
         return new DirectedGraphBuilder<V, E, DirectedPseudograph<V, E>>(

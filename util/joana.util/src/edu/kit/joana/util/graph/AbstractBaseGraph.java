@@ -52,7 +52,10 @@ import org.jgrapht.*;
 import org.jgrapht.graph.AbstractGraph;
 import org.jgrapht.util.*;
 
+import com.google.common.collect.Sets;
+
 import edu.kit.joana.util.collections.ArraySet;
+import edu.kit.joana.util.collections.SimpleVector;
 
 
 
@@ -68,7 +71,7 @@ import edu.kit.joana.util.collections.ArraySet;
  * @author Barak Naveh
  * @since Jul 24, 2003
  */
-public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
+public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends KnowsVertices<V>>
     extends AbstractGraph<V, E>
     implements Graph<V, E>,
         Cloneable,
@@ -206,6 +209,10 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
             return false;
         }
 
+        if (sourceVertex != null && !(containsVertex(sourceVertex))) {
+        	containsVertex(sourceVertex);
+        	throw new IllegalStateException();
+        }
         assertVertexExist(sourceVertex);
         assertVertexExist(targetVertex);
 
@@ -789,9 +796,10 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
             "no such operation in a directed graph";
 
         protected Map<V, ArraySetDirectedEdgeContainer<E>> vertexMapDirected;
-
+        
         public DirectedSpecifics()
         {
+            //this(new SimpleVector<>(5, 256));
             this(new LinkedHashMap<V, ArraySetDirectedEdgeContainer<E>>());
         }
 
@@ -802,8 +810,7 @@ public abstract class AbstractBaseGraph<V, E extends KnowsVertices<V>>
 
         public void addVertex(V v)
         {
-            // add with a lazy edge container entry
-            vertexMapDirected.put(v, null);
+            vertexMapDirected.put(v, new ArraySetDirectedEdgeContainer<E>());
         }
 
         public Set<V> getVertexSet()

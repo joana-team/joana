@@ -34,6 +34,7 @@ import com.ibm.wala.util.intset.MutableIntSet;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.Graphs;
+import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
 import edu.kit.joana.util.graph.TarjanStrongConnectivityInspector;
 import edu.kit.joana.wala.core.graphs.NTSCDGraph.MaxPaths;
@@ -50,7 +51,7 @@ import static edu.kit.joana.wala.core.graphs.NTSCDGraph.set;
  * @author Martin Hecker  <martin.hecker@kit.edu>
  *
  */
-public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>> extends AbstractJoanaGraph<V, E> {
+public class NTICDGraphLeastFPDualWorklistSymbolic<V extends IntegerIdentifiable, E extends KnowsVertices<V>> extends AbstractJoanaGraph<V, E> {
 
 	private static class WorkbagItem<V> {
 		private V m;
@@ -132,7 +133,7 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V, E extends KnowsVertices<V>
 	 * It works by computing the *least* fixed point of the dual f^C of the functional f used in {@link NTICDGraphGreatestFPWorklistSymbolic}.
 	 * 
 	 */
-	public static <V , E extends KnowsVertices<V>> NTICDGraphLeastFPDualWorklistSymbolic<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory) {
+	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> NTICDGraphLeastFPDualWorklistSymbolic<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory) {
 		NTICDGraphLeastFPDualWorklistSymbolic<V, E> cdg = new NTICDGraphLeastFPDualWorklistSymbolic<>(edgeFactory);
 		for (V n : cfg.vertexSet()) {
 			cdg.addVertex(n);

@@ -16,6 +16,7 @@ import org.jgrapht.ext.EdgeNameProvider;
 import org.jgrapht.ext.VertexNameProvider;
 
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
+import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
 import edu.kit.joana.util.io.IOFactory;
 
@@ -37,7 +38,7 @@ public final class AbstractJoanaGraph2Dot {
 	 * @param edgeNameProvider used to generate names for each edge in the given graph
 	 * @param out output stream to write the dotified version of the given graph to
 	 */
-	public static final <V,E extends KnowsVertices<V>> void writeDotToOutputStream(AbstractJoanaGraph<V,E> joanaGraph, VertexNameProvider<V> vIdProvider, VertexNameProvider<V> vNameProvider, EdgeNameProvider<E> edgeNameProvider, OutputStream out) {
+	public static final <V extends IntegerIdentifiable, E extends KnowsVertices<V>> void writeDotToOutputStream(AbstractJoanaGraph<V,E> joanaGraph, VertexNameProvider<V> vIdProvider, VertexNameProvider<V> vNameProvider, EdgeNameProvider<E> edgeNameProvider, OutputStream out) {
 		Writer writer = IOFactory.createUTF8OutputStreamWriter(out);
 		DOTExporter<V, E> exporter = new DOTExporter<V, E>(vIdProvider, vNameProvider, edgeNameProvider);
 		exporter.export(writer, joanaGraph);
@@ -53,7 +54,7 @@ public final class AbstractJoanaGraph2Dot {
 	 * @param fileName name of the file in which the graph is to be stored
 	 * @throws IOException if the file exists but is a directory rather than a regular file, does not exist but cannot be created, or cannot be opened for any other reason
 	 */
-	public static final <V,E extends KnowsVertices<V>> void writeDotToFile(AbstractJoanaGraph<V,E> joanaGraph, VertexNameProvider<V> vIdProvider, VertexNameProvider<V> vNameProvider, EdgeNameProvider<E> edgeNameProvider, String fileName) throws IOException {
+	public static final <V extends IntegerIdentifiable,E extends KnowsVertices<V>> void writeDotToFile(AbstractJoanaGraph<V,E> joanaGraph, VertexNameProvider<V> vIdProvider, VertexNameProvider<V> vNameProvider, EdgeNameProvider<E> edgeNameProvider, String fileName) throws IOException {
 		writeDotToOutputStream(joanaGraph, vIdProvider, vNameProvider, edgeNameProvider, new FileOutputStream(fileName));
 	}
 

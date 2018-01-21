@@ -21,6 +21,7 @@ import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
 
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.Graphs;
+import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
 
 import static edu.kit.joana.wala.core.graphs.NTSCDGraph.*;
@@ -41,7 +42,7 @@ import static edu.kit.joana.wala.core.graphs.NTSCDGraph.*;
  * @author Martin Hecker <martin.hecker@kit.edu>
  *
  */
-public class NTICDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGraph<V, E> {
+public class NTICDGraph<V extends IntegerIdentifiable, E extends KnowsVertices<V>> extends AbstractJoanaGraph<V, E> {
 
 	private NTICDGraph(EdgeFactory<V, E> edgeFactory) {
 		super(edgeFactory);
@@ -58,7 +59,7 @@ public class NTICDGraph<V, E extends KnowsVertices<V>> extends AbstractJoanaGrap
 	 * condition "|S[m,n]| = T_n" is established due to change in |S[m,n]| elsewhere.
 	 * We attempt this by putting nodes p on the worklist in appropriate places.
 	 */
-	public static <V, E extends KnowsVertices<V>> NTICDGraph<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory) {
+	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> NTICDGraph<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory) {
 		NTICDGraph<V, E> cdg = new NTICDGraph<>(edgeFactory);
 		for (V n : cfg.vertexSet()) {
 			cdg.addVertex(n);

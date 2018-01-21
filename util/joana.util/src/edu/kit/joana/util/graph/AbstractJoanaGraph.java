@@ -17,7 +17,7 @@ import org.jgrapht.EdgeFactory;
  * This is the base class for all concrete graphs used in the JOANA project.
  * @author Martin Mohr
  */
-public class AbstractJoanaGraph<V, E extends KnowsVertices<V>> implements DirectedGraph<V,E> {
+public class AbstractJoanaGraph<V extends IntegerIdentifiable, E extends KnowsVertices<V>> implements DirectedGraph<V,E> {
 	
 	
 	private final DirectedPseudograph<V,E> delegate;

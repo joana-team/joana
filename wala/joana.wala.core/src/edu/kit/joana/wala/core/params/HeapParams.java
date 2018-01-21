@@ -33,6 +33,7 @@ import com.ibm.wala.util.intset.OrdinalSet;
 import com.ibm.wala.util.intset.OrdinalSetMapping;
 
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
+import edu.kit.joana.util.collections.SimpleVector;
 import edu.kit.joana.wala.core.DependenceGraph;
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
@@ -800,7 +801,7 @@ public class HeapParams {
 	}
 
 	private DependenceGraph createInitialParamDependenceGraph() {
-		DependenceGraph ddg = new DependenceGraph();
+		DependenceGraph ddg = new DependenceGraph(() -> new SimpleVector<>(5, 256)); // TODO: maybe we want a different map here?!?!?
 
 		for (final PDG pdg : sdg.getAllPDGs()) {
 			// compute intraproc fields

@@ -16,6 +16,7 @@ import java.util.Set;
 import edu.kit.joana.ifc.sdg.graph.JoanaGraph;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.util.collections.ArrayMap;
 
 
 /** A CFG.
@@ -30,6 +31,7 @@ public class CFG extends JoanaGraph {
 	 * @param g cfg to copy
 	 */
 	public CFG(CFG g) {
+		this();
 		addAllVertices(g.vertexSet());
 		addAllEdges(g.edgeSet());
 		setRoot(g.getRoot());
@@ -39,7 +41,8 @@ public class CFG extends JoanaGraph {
 	 * Constructs an empty CFG.
 	 */
 	public CFG() {
-		super();
+		// TODO: maybe we want a different Map implementation here?!?!
+		super(() -> new ArrayMap<>());
 	}
 	
     /** Adds an edge to the graph.

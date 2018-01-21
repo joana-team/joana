@@ -7,6 +7,8 @@
  */
 package edu.kit.joana.wala.core.graphs;
 
+import java.util.LinkedHashMap;
+
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.EdgeReversedGraph;
 
@@ -64,7 +66,7 @@ public class CDG extends AbstractJoanaGraph<PDGNode, PDGEdge> {
     private final PDGNode exit;
 
     private CDG(final DirectedGraph<PDGNode, PDGEdge> cfg, PDGNode entry, PDGNode exit) {
-        super(PDG.DEFAULT_EDGE_FACTORY);
+        super(PDG.DEFAULT_EDGE_FACTORY, () -> new LinkedHashMap<>());
         this.cfg = cfg;
         this.entry = entry;
         this.exit = exit;

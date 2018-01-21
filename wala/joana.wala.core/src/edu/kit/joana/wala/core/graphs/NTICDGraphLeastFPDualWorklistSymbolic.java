@@ -32,6 +32,7 @@ import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.intset.MutableIntSet;
 
 import edu.kit.joana.util.Pair;
+import edu.kit.joana.util.collections.ArrayMap;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.Graphs;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
@@ -118,7 +119,7 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V extends IntegerIdentifiable
 	
 
 	private NTICDGraphLeastFPDualWorklistSymbolic(EdgeFactory<V, E> edgeFactory) {
-		super(edgeFactory);
+		super(edgeFactory, () -> new ArrayMap<>());
 	}
 
 	public static boolean DEBUG = false;

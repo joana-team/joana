@@ -14,6 +14,7 @@ import java.util.Set;
 import edu.kit.joana.ifc.sdg.graph.JoanaGraph;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.util.collections.ArrayMap;
 
 
 
@@ -24,6 +25,9 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  */
 public class CallGraph extends JoanaGraph {
 
+	public CallGraph() {
+		super(() -> new ArrayMap<>());
+	}
 	public boolean addEdge(SDGEdge edge) {
 		if (edge.getKind() != SDGEdge.Kind.CALL
 				&& edge.getKind() != SDGEdge.Kind.FORK

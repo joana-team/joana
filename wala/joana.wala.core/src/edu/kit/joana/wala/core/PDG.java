@@ -68,6 +68,7 @@ import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.ifc.sdg.util.SDGConstants;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
+import edu.kit.joana.util.collections.ArrayMap;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.wala.core.PDGNode.Kind;
 import edu.kit.joana.wala.core.graphs.CDG;
@@ -161,6 +162,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 	private final boolean noBasePointerDependency;
 
 	private PDG(final SDGBuilder builder, final String name, final CGNode node, final int pdgId) {
+		super(() -> new ArrayMap<>());
 		this.id = pdgId;
 		this.nodeID = pdgId;
 		this.cgNode = node;
@@ -693,7 +695,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 	}
 
 	private DependenceGraph createCfgWithoutParams() {
-		final DependenceGraph cfg = new DependenceGraph();
+		final DependenceGraph cfg = new DependenceGraph(() -> new ArrayMap<>());
 		for (final PDGNode node : vertexSet()) {
 			cfg.addVertex(node);
 		}

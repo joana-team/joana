@@ -7,8 +7,12 @@
  */
 package edu.kit.joana.wala.core;
 
+import java.util.Map;
+import java.util.function.Supplier;
+
 import org.jgrapht.EdgeFactory;
 
+import edu.kit.joana.util.graph.AbstractBaseGraph.DirectedEdgeContainer;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 
 public class DependenceGraph extends AbstractJoanaGraph<PDGNode, PDGEdge> {
@@ -24,8 +28,8 @@ public class DependenceGraph extends AbstractJoanaGraph<PDGNode, PDGEdge> {
 
 	}
 
-	public DependenceGraph() {
-		super(DEFAULT_EDGE_FACTORY);
+	public DependenceGraph(Supplier<Map<PDGNode,DirectedEdgeContainer<PDGEdge, PDGEdge[]>>> vertexMapConstructor) {
+		super(DEFAULT_EDGE_FACTORY, vertexMapConstructor);
 	}
 
 	public boolean removeEdge(PDGNode from, PDGNode to, PDGEdge.Kind kind) {

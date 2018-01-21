@@ -37,9 +37,11 @@
  */
 package edu.kit.joana.util.graph;
 
+import java.util.Map;
+import java.util.function.Supplier;
+
 import org.jgrapht.*;
 import org.jgrapht.graph.ClassBasedEdgeFactory;
-import org.jgrapht.graph.builder.*;
 
 
 /**
@@ -58,32 +60,17 @@ public class DirectedPseudograph<V extends IntegerIdentifiable, E extends KnowsV
     /**
      * @see AbstractBaseGraph
      */
-    public DirectedPseudograph(Class<? extends E> edgeClass)
+    public DirectedPseudograph(Class<? extends E> edgeClass, Supplier<Map<V,DirectedEdgeContainer<E, E[]>>> vertexMapConstructor)
     {
-        this(new ClassBasedEdgeFactory<V, E>(edgeClass));
+        this(new ClassBasedEdgeFactory<V, E>(edgeClass), vertexMapConstructor);
     }
 
     /**
      * @see AbstractBaseGraph
      */
-    public DirectedPseudograph(EdgeFactory<V, E> ef)
+    public DirectedPseudograph(EdgeFactory<V, E> ef, Supplier<Map<V,DirectedEdgeContainer<E,E[]>>> vertexMapConstructor)
     {
-        super(ef, true, true);
-    }
-
-    public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> DirectedGraphBuilderBase<V,
-        E, ? extends DirectedPseudograph<V, E>, ?> builder(
-        Class<? extends E> edgeClass)
-    {
-        return new DirectedGraphBuilder<V, E, DirectedPseudograph<V, E>>(
-            new DirectedPseudograph<V, E>(edgeClass));
-    }
-
-    public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> DirectedGraphBuilderBase<V,
-        E, ? extends DirectedPseudograph<V, E>, ?> builder(EdgeFactory<V, E> ef)
-    {
-        return new DirectedGraphBuilder<V, E, DirectedPseudograph<V, E>>(
-            new DirectedPseudograph<V, E>(ef));
+        super(ef, true, true, vertexMapConstructor);
     }
 }
 

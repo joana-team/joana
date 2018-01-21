@@ -22,6 +22,7 @@ import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
 
 import edu.kit.joana.util.Pair;
+import edu.kit.joana.util.collections.ArrayMap;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.Graphs;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
@@ -43,7 +44,7 @@ import static edu.kit.joana.wala.core.graphs.NTSCDGraph.set;
 public class NTICDGraphGreatestFPWorklistSymbolic<V extends IntegerIdentifiable, E extends KnowsVertices<V>> extends AbstractJoanaGraph<V, E> {
 
 	private NTICDGraphGreatestFPWorklistSymbolic(EdgeFactory<V, E> edgeFactory) {
-		super(edgeFactory);
+		super(edgeFactory, () -> new ArrayMap<>());
 	}
 
 	public static boolean DEBUG = false;

@@ -18,6 +18,7 @@ import java.util.Stack;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
 
+import edu.kit.joana.util.collections.ArrayMap;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.Graphs;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
@@ -34,7 +35,7 @@ import edu.kit.joana.util.graph.KnowsVertices;
 public class NTSCDGraph<V extends IntegerIdentifiable, E extends KnowsVertices<V>> extends AbstractJoanaGraph<V, E> {
 
 	private NTSCDGraph(EdgeFactory<V, E> edgeFactory) {
-		super(edgeFactory);
+		super(edgeFactory, () -> new ArrayMap<>());
 	}
 
 	static boolean DEBUG = false;

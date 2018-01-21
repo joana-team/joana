@@ -8,10 +8,14 @@
 package edu.kit.joana.util.graph;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
+
+import edu.kit.joana.util.graph.AbstractBaseGraph.DirectedEdgeContainer;
 
 /**
  * This is the base class for all concrete graphs used in the JOANA project.
@@ -29,15 +33,15 @@ public class AbstractJoanaGraph<V extends IntegerIdentifiable, E extends KnowsVe
 	 * @param defaultEdgeFactory edge factory to use for e.g. adding new edges
 	 * @see org.jgrapht.graph.DirectedPseudograph
 	 */
-	public AbstractJoanaGraph(EdgeFactory<V, E> edgeFactory) {
-		this.delegate = new DirectedPseudograph<V,E>(edgeFactory);
+	public AbstractJoanaGraph(EdgeFactory<V, E> edgeFactory, Supplier<Map<V,DirectedEdgeContainer<E, E[]>>> vertexMapConstructor) {
+		this.delegate = new DirectedPseudograph<V,E>(edgeFactory, vertexMapConstructor);
 	}
 
 	/**
 	 * @param class1
 	 */
-	public AbstractJoanaGraph(Class<E> edgeClass) {
-		this.delegate = new DirectedPseudograph<V,E>(edgeClass);
+	public AbstractJoanaGraph(Class<E> edgeClass, Supplier<Map<V,DirectedEdgeContainer<E, E[]>>> vertexMapConstructor) {
+		this.delegate = new DirectedPseudograph<V,E>(edgeClass, vertexMapConstructor);
 		changed = true;
 	}
 

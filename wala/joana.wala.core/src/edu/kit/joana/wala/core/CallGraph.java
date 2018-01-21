@@ -10,6 +10,7 @@ package edu.kit.joana.wala.core;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,8 @@ import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 
+import edu.kit.joana.util.collections.ArrayMap;
+import edu.kit.joana.util.collections.SimpleVector;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
@@ -149,7 +152,8 @@ public final class CallGraph extends AbstractJoanaGraph<CallGraph.Node, CallGrap
 
 	private CallGraph(CallGraphFilter filter, IMethod entry, com.ibm.wala.ipa.callgraph.CallGraph orig,
 			PointerAnalysis<InstanceKey> pts) {
-		super(DEFAULT_EDGE_FACTORY);
+		// TODO: find out why we cannot use, e.g. ArrayMap here for consistently ordered nodes.
+		super(DEFAULT_EDGE_FACTORY, () -> new LinkedHashMap<>());
 		this.filter = filter;
 		this.cg = orig;
 		this.pts = pts;

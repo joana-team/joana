@@ -29,6 +29,8 @@ import org.antlr.runtime.ANTLRReaderStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 
+import edu.kit.joana.util.collections.ArrayMap;
+import edu.kit.joana.util.collections.SimpleVector;
 import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
@@ -75,7 +77,7 @@ public class SDG extends JoanaGraph implements Cloneable {
      * Creates an empty SDG.
      */
     public SDG() {
-        super();
+        super(() -> new SimpleVector<>(5, 256));
         this.joanaCompiler = false;
     }
 
@@ -83,7 +85,7 @@ public class SDG extends JoanaGraph implements Cloneable {
      * Creates an empty SDG with a name.
      */
     public SDG(String name) {
-        super(name);
+        super(name, () -> new SimpleVector<>(5, 256));
         this.joanaCompiler = false;
     }
 

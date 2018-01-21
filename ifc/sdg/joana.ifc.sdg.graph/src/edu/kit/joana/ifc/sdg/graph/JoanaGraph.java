@@ -17,12 +17,14 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import org.jgrapht.EdgeFactory;
 
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.ISCRBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.FoldedCFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
+import edu.kit.joana.util.graph.AbstractBaseGraph.DirectedEdgeContainer;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
@@ -76,15 +78,15 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
 	/**
 	 * Creates a totally empty JoanaGraph.
 	 */
-    public JoanaGraph() {
-        super(SDGEdge.class);
+    public JoanaGraph(Supplier<Map<SDGNode, DirectedEdgeContainer<SDGEdge, SDGEdge[]>>> vertexMapConstructor) {
+        super(SDGEdge.class, vertexMapConstructor);
     }
 
     /**
      * Creates an empty JoanaGraph with a name.
      */
-    public JoanaGraph(String name) {
-        this();
+    public JoanaGraph(String name, Supplier<Map<SDGNode, DirectedEdgeContainer<SDGEdge, SDGEdge[]>>> vertexMapConstructor) {
+        this(vertexMapConstructor);
         this.name = name;
     }
 

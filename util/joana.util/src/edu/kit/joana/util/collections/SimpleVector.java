@@ -1,13 +1,10 @@
-/*******************************************************************************
- * Copyright (c) 2002 - 2006 IBM Corporation.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+/**
+ * This file is part of the Joana IFC project. It is developed at the
+ * Programming Paradigms Group of the Karlsruhe Institute of Technology.
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ * For further details on licensing please read the information at
+ * http://joana.ipd.kit.edu or contact the authors.
+ */
 package edu.kit.joana.util.collections;
 
 import java.util.AbstractCollection;

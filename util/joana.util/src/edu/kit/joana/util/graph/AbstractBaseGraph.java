@@ -54,6 +54,7 @@ import org.jgrapht.util.*;
 
 import com.google.common.collect.Sets;
 
+import edu.kit.joana.util.collections.ArrayMap;
 import edu.kit.joana.util.collections.ArraySet;
 import edu.kit.joana.util.collections.SimpleVector;
 
@@ -800,7 +801,8 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         public DirectedSpecifics()
         {
             //this(new SimpleVector<>(5, 256));
-            this(new LinkedHashMap<V, ArraySetDirectedEdgeContainer<E>>());
+            //this(new LinkedHashMap<V, ArraySetDirectedEdgeContainer<E>>());
+        	this(new ArrayMap<>());
         }
 
         public DirectedSpecifics(Map<V, ArraySetDirectedEdgeContainer<E>> vertexMap)

@@ -104,14 +104,14 @@ public class Serializer {
         }
     }
 
-    public void serialize(Collection object) {
+    public void serialize(Collection<? extends Entrypoint> object) {
         if (object.isEmpty()) {
             logger.warn("Got an empty collection to serialize");
             return;
         }
 
         if (object instanceof List) {
-            final List list = (List) object;
+            final List<? extends Entrypoint> list = (List<? extends Entrypoint>) object;
             final Object first = list.get(0);
 
             if (first instanceof Entrypoint) {
@@ -123,7 +123,7 @@ public class Serializer {
         }
     }
 
-    public void serialize(Map map) { 
+    public void serialize(Map<?, ?> map) { 
         if (map.isEmpty()) {
             logger.warn("Got an empty collection to serialize");
             return;
@@ -197,7 +197,7 @@ public class Serializer {
          *  Shorthand for catchFirst(cls, EMPTY_SET).
          */
         @SuppressWarnings("unchecked")
-        public <U> Reflected<U> catchFirst(final Class cls) {
+        public <U> Reflected<U> catchFirst(final Class<?> cls) {
             return catchFirst(cls, Collections.EMPTY_SET);
         }
 
@@ -217,7 +217,7 @@ public class Serializer {
          *  @return the boxed cls-Instace or null if not found
          *  @todo   check in what situations butNot is defunct.
          */
-        public <U> Reflected<U> catchFirst(final Class cls, final Set<Object> butNot) {
+        public <U> Reflected<U> catchFirst(final Class<?> cls, final Set<Object> butNot) {
             final Object val = getValue();
             if (val == null) {
                 // something was primitive
@@ -231,7 +231,7 @@ public class Serializer {
             } else if (val instanceof Serializable) {
                 final ObjectStreamClass ser = ObjectStreamClass.lookup(val.getClass());
                 final ObjectStreamField[] fields = ser.getFields();
-                final List<Reflected> recurseOn = new ArrayList<Reflected>();
+                final List<Reflected<?>> recurseOn = new ArrayList<Reflected<?>>();
 
                 // breadth first...
                 for (final ObjectStreamField osField: fields) {
@@ -277,7 +277,7 @@ public class Serializer {
                 }
 
                 // Go depth now...
-                for (Reflected refl: recurseOn) {
+                for (Reflected<?> refl: recurseOn) {
                     logger.info("Recursing on " + refl);
                     final Reflected<U> ret = refl.catchFirst(cls, butNot);
                     if (ret != null) {

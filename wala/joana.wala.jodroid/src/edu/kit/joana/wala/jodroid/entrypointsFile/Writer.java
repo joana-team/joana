@@ -44,6 +44,8 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import com.ibm.wala.ipa.callgraph.Entrypoint;
+
 import edu.kit.joana.wala.jodroid.entrypointsFile.Exceptions.ParserException;
 /**
  *  Just wraps together everything for writing.
@@ -67,11 +69,11 @@ public class Writer {
         this.serializer.serialize(obj);
     }
 
-    public void add(Collection obj) {
+    public void add(Collection<? extends Entrypoint> obj) {
         this.serializer.serialize(obj);
     }
 
-    public void add(Map obj) {
+    public void add(Map<?, ?> obj) {
         this.serializer.serialize(obj);
     }
 

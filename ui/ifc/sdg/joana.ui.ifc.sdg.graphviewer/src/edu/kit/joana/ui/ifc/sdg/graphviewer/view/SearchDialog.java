@@ -195,9 +195,9 @@ public class SearchDialog extends GVPanel implements BundleConstants, ActionList
 		GVRadioButton regExprRadioButton = new GVRadioButton(this
 				.getTranslator(), new Resource(SEARCH_DIALOG_BUNDLE,
 				"search.regExpr.label"));
-		vertexNrRadioButton.setActionCommand("" + this.VERTEX_SEARCH);
-		regExprRadioButton.setActionCommand("" + this.REG_EXPR_SEARCH);
-		textRadioButton.setActionCommand("" + this.TEXT_SEARCH);
+		vertexNrRadioButton.setActionCommand("" + SearchDialog.VERTEX_SEARCH);
+		regExprRadioButton.setActionCommand("" + SearchDialog.REG_EXPR_SEARCH);
+		textRadioButton.setActionCommand("" + SearchDialog.TEXT_SEARCH);
 		buttonGroup.add(vertexNrRadioButton);
 		buttonGroup.add(textRadioButton);
 		buttonGroup.add(regExprRadioButton);
@@ -458,8 +458,8 @@ public class SearchDialog extends GVPanel implements BundleConstants, ActionList
 			JButton succButton = new JButton(SUCC);
 			predButton.setBackground(Color.LIGHT_GRAY);
 			succButton.setBackground(Color.LIGHT_GRAY);
-			predButton.setActionCommand(this.PRED);
-			succButton.setActionCommand(this.SUCC);
+			predButton.setActionCommand(ResultItem.PRED);
+			succButton.setActionCommand(ResultItem.SUCC);
 			predButton.addActionListener(this);
 			succButton.addActionListener(this);
 			predPanel.add(predButton);
@@ -467,7 +467,7 @@ public class SearchDialog extends GVPanel implements BundleConstants, ActionList
 			nodeButton = new JButton("" + node.getID());
 			nodeButton.setBackground(Color.RED);
 			nodeButton.addActionListener(this);
-			nodeButton.setActionCommand(this.NODE);
+			nodeButton.setActionCommand(ResultItem.NODE);
 			this.add(nodeButton, BorderLayout.WEST);
 			JGraph graph = graphPane.getSelectedJGraph();
 			graph.addSelectionCell(node.getCell());
@@ -504,7 +504,7 @@ public class SearchDialog extends GVPanel implements BundleConstants, ActionList
 			String command = e.getActionCommand();
 
 			// pred buttton pressed
-			if (command.equals(this.PRED)) {
+			if (command.equals(ResultItem.PRED)) {
 				JButton predButton = ((JButton) e.getSource());
 				// reverse selection state
 				predSelected = !predSelected;
@@ -530,7 +530,7 @@ public class SearchDialog extends GVPanel implements BundleConstants, ActionList
 					selectItem(((VertexNode) p.next()).getID(), predSelected);
 				}
 				// succ button pressed
-			} else if (command.equals(this.SUCC)) {
+			} else if (command.equals(ResultItem.SUCC)) {
 				JButton succButton = ((JButton) e.getSource());
 				// reverse selection state
 				succSelected = !succSelected;
@@ -556,7 +556,7 @@ public class SearchDialog extends GVPanel implements BundleConstants, ActionList
 					selectItem(((VertexNode) s.next()).getID(), succSelected);
 				}
 				// search result node selected
-			} else if (command.equals(this.NODE)) {
+			} else if (command.equals(ResultItem.NODE)) {
 				JButton button = ((JButton) e.getSource());
 				if (button.getBackground().equals(Color.RED)) {
 					button.setBackground(Color.WHITE);

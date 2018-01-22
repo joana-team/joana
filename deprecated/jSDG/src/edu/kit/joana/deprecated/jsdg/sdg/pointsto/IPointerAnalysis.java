@@ -36,7 +36,7 @@ public interface IPointerAnalysis {
 	  /**
 	   * @return a graph view of the pointer analysis solution
 	   */
-	  HeapGraph getHeapGraph();
+	  HeapGraph<InstanceKey> getHeapGraph();
 
 	  /**
 	   * @return an Object that determines how to model abstract locations in the heap.

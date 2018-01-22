@@ -11,6 +11,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 
+@SuppressWarnings("restriction")
 public class AnnotatinSourceCleanupConfigurationUI extends AbstractCleanUpTabPage {
 
 	public static final String ID = "edu.kit.joana.ui.wala.easyifc.util.AnnotatinSourceCleanupConfigurationUI.tabpage";

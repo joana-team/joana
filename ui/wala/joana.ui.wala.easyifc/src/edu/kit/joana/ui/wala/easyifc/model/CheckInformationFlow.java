@@ -20,21 +20,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedMap;
-import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import javax.xml.stream.XMLStreamException;
-
-import org.eclipse.jdt.internal.corext.util.CollectionsUtil;
-
 import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
 import com.ibm.wala.cfg.exc.intra.MethodState;
-import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
-import com.ibm.wala.ipa.callgraph.pruned.DoNotPrune;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
@@ -52,7 +44,6 @@ import edu.kit.joana.api.sdg.SDGBuildPreparation;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGProgram;
-import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.conc.DataConflict;
 import edu.kit.joana.ifc.sdg.core.conc.OrderConflict;
@@ -66,13 +57,10 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.chopper.NonSameLevelChopper;
-import edu.kit.joana.ifc.sdg.io.graphml.SDG2GraphML;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.annotations.ChopComputation;
 import edu.kit.joana.ui.annotations.EntryPointKind;
-import edu.kit.joana.ui.annotations.Sink;
-import edu.kit.joana.ui.annotations.Source;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.IFCResult;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.Reason;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SLeak;
@@ -84,12 +72,10 @@ import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.util.io.IOFactory;
 import edu.kit.joana.wala.core.NullProgressMonitor;
-import edu.kit.joana.wala.core.SDGBuildArtifacts;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
-import edu.kit.joana.wala.core.SDGBuilder.SDGBuilderConfig;
 import edu.kit.joana.wala.summary.SummaryComputation;
 import edu.kit.joana.wala.summary.WorkPackage;
 import edu.kit.joana.wala.summary.WorkPackage.EntryPoint;
@@ -602,16 +588,15 @@ public final class CheckInformationFlow {
 	//private static Pair<Set<SLeak>, Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>>> checkIFC(final Reason reason, final SDGProgram prog, final IFCType type, final AnnotationMethod annotationMethod, final EntryPointConfiguration entryPoint) {
 	private static Pair<Set<SLeak>, Collection<IFCAnnotation>> checkIFC(final Reason reason, final SDGProgram prog, final IFCType type, final AnnotationMethod annotationMethod, final EntryPointConfiguration entryPoint) {
 		final IFCAnalysis ana = new IFCAnalysis(prog,entryPoint.lattice());
-		Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>> annotations;
 		if (AnnotationMethod.FROM_ANNOTATIONS == annotationMethod) {
-			annotations = entryPoint.annotateSDG(ana);
+			entryPoint.annotateSDG(ana);
 		} else {
 			ana.addSourceAnnotationsToCallers(JavaMethodSignature.fromString(DEFAULT_SECRET_SOURCE), BuiltinLattices.STD_SECLEVEL_HIGH, UnknownCause.INSTANCE);
 			
 			// annotate sinks
 			ana.addSinkAnnotationsToActualsAtCallsites(JavaMethodSignature.fromString(DEFAULT_PUBLIC_OUTPUT), BuiltinLattices.STD_SECLEVEL_LOW, UnknownCause.INSTANCE);
 			 
-			annotations = Pair.pair(ImmutableMultimap.of() , ImmutableMultimap.of());
+			Pair.pair(ImmutableMultimap.of() , ImmutableMultimap.of());
 		}
 
 		if (type == IFCType.RLSOD || type == IFCType.LSOD) {

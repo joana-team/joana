@@ -22,7 +22,6 @@ import java.util.function.Predicate;
  * @author Juergen Graf <graf@kit.edu>
  *
  */
-@SuppressWarnings("deprecation")
 public class TransitiveGraph<E> implements Graph<E> {
 
 	private final Graph<E> g;

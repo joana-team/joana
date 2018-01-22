@@ -385,7 +385,6 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 		private final String element;
 		private final IMarker marker;
 		private final IFCAnnotation a;
-		private final SearchHelper search;
 		private final AnnotationTypeBasedNodeCollector collector;
 		
 		public AnnotationNode(final AnnotationsNode parent, String element, IFCAnnotation a, SearchHelper search, AnnotationTypeBasedNodeCollector collector) {
@@ -396,7 +395,6 @@ public class IFCTreeContentProvider implements ITreeContentProvider, IFCCheckRes
 			}
 			this.element = element;
 			this.a = a;
-			this.search = search;
 			this.collector = collector;
 			
 			if (a.getCause().getSourcePosition() == null) {

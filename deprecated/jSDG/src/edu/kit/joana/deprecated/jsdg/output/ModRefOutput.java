@@ -62,7 +62,7 @@ public class ModRefOutput {
         PointerAnalysis<InstanceKey> pta = sdg.getPointerAnalysis();
         AnalysisScope scope = sdg.getAnalysisScope();
 
-        ModRef modRef = ModRef.make();
+        ModRef<InstanceKey> modRef = ModRef.make();
         ExtendedHeapModel eModel = new DelegatingExtendedHeapModel(pta.getHeapModel());
         HeapExclusions hExcl = (scope.getExclusions() == null ? null : new HeapExclusions(scope.getExclusions()));
         for (PDG pdg : sdg.getAllContainedPDGs()) {

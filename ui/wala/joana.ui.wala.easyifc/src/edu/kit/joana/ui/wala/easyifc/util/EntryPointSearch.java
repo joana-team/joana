@@ -150,7 +150,7 @@ public class EntryPointSearch {
 		// that works with JDT's JavaModel only? 
 		protected CompilationUnit getASTForEntryPoint() {
 			ICompilationUnit unit = entryPointMethod.getCompilationUnit();
-			ASTParser parser = ASTParser.newParser(AST.JLS4);
+			ASTParser parser = ASTParser.newParser(AST.JLS8);
 			parser.setKind(ASTParser.K_COMPILATION_UNIT);
 			parser.setSource(unit);
 			parser.setResolveBindings(true);

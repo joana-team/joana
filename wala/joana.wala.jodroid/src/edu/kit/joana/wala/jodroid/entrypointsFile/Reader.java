@@ -48,6 +48,7 @@ import org.xml.sax.SAXException;
 import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationBehavior;
 import com.ibm.wala.dalvik.ipa.callgraph.impl.AndroidEntryPoint;
 import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
+import com.ibm.wala.ipa.callgraph.Entrypoint;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 
 import edu.kit.joana.wala.jodroid.entrypointsFile.Exceptions.ParserException;
@@ -68,18 +69,18 @@ public class Reader {
         ENTRYPOINTS(List.class, AndroidEntryPoint.class),
         INSTANTIATION(IInstantiationBehavior.class, null);
 
-        private final Class type;
-        private final Class subType;
-        private Target(final Class type, final Class subType) {
+        private final Class<?> type;
+        private final Class<?> subType;
+        private Target(final Class<?> type, final Class<?> subType) {
             this.type = type;
             this.subType = subType;
         }
 
-        public Class getType() {
+        public Class<?> getType() {
             return this.type;
         }
     }
-    private Map<Target, Object> targets = new EnumMap<Target, Object>(Target.class);
+    private Map<Target, Object> targets = new EnumMap<>(Target.class);
 
     private final InputStream input;
     
@@ -106,7 +107,7 @@ public class Reader {
         if (of == null) {
             throw new IllegalArgumentException("The parameter \"of\" may not be null");
         }
-        final Class expectedType = of.getType();
+        final Class<?> expectedType = of.getType();
         if (! expectedType.isAssignableFrom(target.getClass())) {
             throw new IllegalArgumentException("The expected type " + expectedType + " is not assignable " +
                     "from the given object " + target.getClass());
@@ -117,7 +118,7 @@ public class Reader {
         targets.put(of, target);
     }
 
-    public void addTarget(final List<? super AndroidEntryPoint> entrypoints) {
+    public void addTarget(final List<? extends Entrypoint> entrypoints) {
         addTarget(entrypoints, Target.ENTRYPOINTS);
     }
 

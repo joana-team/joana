@@ -4,3 +4,4 @@ Bundle-Name: SDG Tests
 Bundle-SymbolicName: joana.ifc.sdg.tests
 Bundle-Version: 1.0.0.qualifier
 Require-Bundle: org.junit
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8

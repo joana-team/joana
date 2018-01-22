@@ -106,9 +106,7 @@ public class IFCAction extends Action implements ISelectionListener {
 			
 			final IFCType selectedIFCType = view.getSelectedIFCType();
 			
-			final IPath binDir = jp.getOutputLocation();
 			final IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-			final IFile resolvedBinDir = root.getFile(binDir);
 
 			final ProjectConf pconf = new ProjectConf(jp);
 

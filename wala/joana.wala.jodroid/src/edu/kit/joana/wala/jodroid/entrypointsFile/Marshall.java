@@ -302,8 +302,8 @@ class Marshall {
         }
     }
 
-    Class currentConfig;
-    void config(Class which, String key, String value, Class type) {
+    Class<?> currentConfig;
+    void config(Class<?> which, String key, String value, Class<?> type) {
         if (currentConfig != which) {
             currentConfig = which;
             final DetachedNode config = new DetachedNode(Tag.CONFIG);

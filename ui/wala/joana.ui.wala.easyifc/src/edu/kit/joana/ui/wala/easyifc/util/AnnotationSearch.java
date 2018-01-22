@@ -24,6 +24,7 @@ import org.eclipse.jdt.core.search.TypeReferenceMatch;
 import org.eclipse.jdt.internal.core.search.JavaSearchParticipant;
 import org.eclipse.jdt.internal.core.search.matching.MatchLocator.WorkingCopyDocument;
 
+@SuppressWarnings("restriction")
 public class AnnotationSearch {
 	
 	public static <T extends IAnnotatable> Map<IAnnotation,T> findAnnotationsInContainer(
@@ -38,7 +39,6 @@ public class AnnotationSearch {
 		final IJavaSearchScope scope = SearchEngine.createJavaSearchScope(new IJavaElement[] {element}, IJavaSearchScope.SOURCES);
 		return findAnnotationsInContainer(annotationTarget, annotationType, requestor, pm, scope, ignoreWorkingCopies);
 	}
-	@SuppressWarnings("restriction")
 	public static <T extends IAnnotatable> Map<IAnnotation,T> findAnnotationsInContainer(
 	Class<T> annotationTarget,
 	Class<?> annotationType,

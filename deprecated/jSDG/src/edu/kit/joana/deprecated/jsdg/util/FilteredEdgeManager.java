@@ -23,7 +23,6 @@ import com.ibm.wala.util.intset.SparseIntSet;
  * @author Juergen Graf <graf@kit.edu>
  *
  */
-@SuppressWarnings("deprecation")
 public class FilteredEdgeManager<T> implements NumberedEdgeManager<T> {
 
 	private static final IntSet EMPTY = new SparseIntSet();

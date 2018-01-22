@@ -395,7 +395,7 @@ public class DotUtil {
 		return result.toString();
 	}
 
-	private static String getPort(Object o, NodeDecorator d) throws WalaException {
+	private static String getPort(Object o, NodeDecorator<?> d) throws WalaException {
 		return "" + System.identityHashCode(o);
 	}
 

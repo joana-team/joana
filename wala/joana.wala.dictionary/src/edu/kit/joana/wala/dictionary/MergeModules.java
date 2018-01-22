@@ -530,7 +530,7 @@ public class MergeModules {
 		for (final CGNode node : matches) {
 			final IR ir = node.getIR();
 			final SSAInstruction[] instructions = ir.getInstructions();
-			final IBytecodeMethod method = (IBytecodeMethod) node.getMethod();
+			final IBytecodeMethod<?> method = (IBytecodeMethod<?>) node.getMethod();
 
 			SSAInvokeInstruction invk = null;
 

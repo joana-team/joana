@@ -101,15 +101,15 @@ public class WalaSDGStatistics implements Serializable {
 		}
 	}
 
-	public void buildStats(SDG sdg) {
+	public void buildStats(SDG<?> sdg) {
 		sdgStat.nodes = sdg.getNumberOfNodes();
 		CallGraph cg = sdg.getCallGraph();
 		for (Iterator<CGNode> it = cg.iterator(); it.hasNext();) {
 			CGNode node = it.next();
-			PDG pdg = sdg.getPDG(node);
+			PDG<?> pdg = sdg.getPDG(node);
 			analyze(pdg);
 		}
-		HeapGraph hg = sdg.getPointerAnalysis().getHeapGraph();
+		HeapGraph<?> hg = sdg.getPointerAnalysis().getHeapGraph();
 		buildStats(hg);
 	}
 
@@ -145,7 +145,7 @@ public class WalaSDGStatistics implements Serializable {
 
 	}
 
-	private void buildStats(HeapGraph hg) {
+	private void buildStats(HeapGraph<?> hg) {
 		heapStat.nodes = hg.getNumberOfNodes();
 		for (Iterator<Object> it = hg.iterator(); it.hasNext();) {
 			Object obj = it.next();
@@ -164,7 +164,7 @@ public class WalaSDGStatistics implements Serializable {
 		}
 	}
 
-	private void analyze(PDG pdg) {
+	private void analyze(PDG<?> pdg) {
 		Stats stat = new Stats(Util.methodName(pdg.getCallGraphNode().getMethod()));
 		pdgStats.add(stat);
 

@@ -465,7 +465,7 @@ public final class ObjGraphParams {
 			final ModRefCandidates modref, final SDGBuilder sdg, final IProgressMonitor progress) throws CancelException {
 		final Logger debug = Log.getLogger(Log.L_OBJGRAPH_DEBUG);
 		final boolean isDebug = debug.isEnabled();
-        int progressCtr = 0;
+        //int progressCtr = 0;
 
 		// add all nodes to the interface
 		for (final CGNode n : cg) {

@@ -120,8 +120,7 @@ public class AlgorithmBrowserNeu extends SelectionDialog {
 		/** Inherited method; returns null.
 		 *
 		 */
-		@SuppressWarnings("rawtypes")
-        public Object getAdapter(Class key) {
+		public <T> T getAdapter(Class<T> key) {
 			return null;
 		}
 

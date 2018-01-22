@@ -872,12 +872,6 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		this.interprocExceptionResult = null;
 	}
 
-	private void addEntryExitCFEdges() {
-		for (PDG pdg : pdgs) {
-			pdg.addEdge(pdg.entry, pdg.exit, PDGEdge.Kind.CONTROL_FLOW);
-		}
-	}
-
 	public ControlFlowGraph<SSAInstruction, IExplodedBasicBlock> createIntraExceptionAnalyzedCFG(final CGNode n,
 			final IProgressMonitor progress) throws UnsoundGraphException, CancelException {
 		final ExceptionPruningAnalysis<SSAInstruction, IExplodedBasicBlock> npa = NullPointerAnalysis

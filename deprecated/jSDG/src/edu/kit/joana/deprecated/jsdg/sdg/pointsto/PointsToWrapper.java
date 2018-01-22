@@ -41,7 +41,7 @@ public class PointsToWrapper implements IPointerAnalysis {
 	}
 
 
-	public HeapGraph getHeapGraph() {
+	public HeapGraph<InstanceKey> getHeapGraph() {
 		return pta.getHeapGraph();
 	}
 

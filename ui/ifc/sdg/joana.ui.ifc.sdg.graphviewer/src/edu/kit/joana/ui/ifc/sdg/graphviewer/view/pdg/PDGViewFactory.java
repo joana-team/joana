@@ -105,7 +105,6 @@ public final class PDGViewFactory extends DefaultCellViewFactory implements
 	 * node appearance (currently merely background colour) and checks the
 	 * SDGNode class for new vertex types.
 	 */
-	@SuppressWarnings("resource")
 	private PDGViewFactory() {
 		// super();
 		colors = new Properties();

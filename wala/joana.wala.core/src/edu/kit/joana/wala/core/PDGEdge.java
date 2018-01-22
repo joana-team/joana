@@ -106,12 +106,14 @@ public final class PDGEdge implements KnowsVertices<PDGNode>, Comparable<PDGEdge
 
 
 	@Deprecated
+	@SuppressWarnings("unused")
 	private int hashCodeOld() {
 		return (from.hashCode() ^ (to.hashCode() >> 6)) + kind.hashCode();
 	}
 	
 
 	@Deprecated
+	@SuppressWarnings("unused")
 	private int hashCodeEclipse() {
 		final int prime = 31;
 		int result = 1;

@@ -117,7 +117,8 @@ public class AnalysisPresets {
             this.options = new AnalysisOptions(scope, null);
         }
 
-        private Preset() {
+        @SuppressWarnings("unused")
+		private Preset() {
             this.scfg = null;
         }
 

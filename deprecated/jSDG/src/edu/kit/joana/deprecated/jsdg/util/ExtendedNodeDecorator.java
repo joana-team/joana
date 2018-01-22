@@ -14,7 +14,7 @@ import com.ibm.wala.viz.NodeDecorator;
  * @author Juergen Graf <graf@kit.edu>
  *
  */
-public interface ExtendedNodeDecorator extends NodeDecorator {
+public interface ExtendedNodeDecorator extends NodeDecorator<Object> {
 
 	public static final ExtendedNodeDecorator DEFAULT = new ExtendedNodeDecorator() {
 		public String getLabel(Object o) {

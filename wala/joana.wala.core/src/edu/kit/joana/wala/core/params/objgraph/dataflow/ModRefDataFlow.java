@@ -69,7 +69,7 @@ public class ModRefDataFlow {
 	private void run(final ModRefCandidates modref, final SDGBuilder sdg, final IProgressMonitor progress)
 			throws CancelException {
 		final CallGraph cg = sdg.getNonPrunedWalaCallGraph();
-        int progressCtr = 0;
+        //int progressCtr = 0;
         if (progress != null) {
             progress.beginTask("ModRef Dataflow", sdg.getAllPDGs().size());
         }

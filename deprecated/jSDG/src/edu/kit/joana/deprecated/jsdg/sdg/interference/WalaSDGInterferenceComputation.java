@@ -170,7 +170,7 @@ public class WalaSDGInterferenceComputation {
 			}
 
 			for (CGNode cgNodeCur : cg) {
-				PDG pdgCur = sdg.getPDG(cgNodeCur);
+				PDG<InstanceKey> pdgCur = sdg.getPDG(cgNodeCur);
 
 				if (mayRunInParallelThreads(pdg, pdgCur)) {
 					Set<HeapRead> readsCur = getHeapReads(pdgCur);

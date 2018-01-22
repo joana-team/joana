@@ -500,6 +500,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 		return null;
 	}
 
+	@SuppressWarnings("deprecation")
 	private void addControlDependence() {
 		final DependenceGraph cfg = createCfgWithoutParams();
 		
@@ -1127,7 +1128,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 		defBcName = method.getSignature();
 
 		if (irAvailable && method instanceof IBytecodeMethod) {
-			IBytecodeMethod bcMethod = (IBytecodeMethod) method;
+			IBytecodeMethod<?> bcMethod = (IBytecodeMethod<?>) method;
 
 			for (Iterator<SSAInstruction> it = instructions.iterator(); it.hasNext();) {
 				SSAInstruction instr = it.next();

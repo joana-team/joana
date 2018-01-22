@@ -25,7 +25,6 @@ import com.ibm.wala.util.intset.MutableIntSet;
  * @author Juergen Graf <graf@kit.edu>
  *
  */
-@SuppressWarnings("deprecation")
 public class FilteredEdgeManager<I, T extends IBasicBlock<I>> implements NumberedEdgeManager<T> {
 	private final ControlFlowGraph<I, T> cfg;
 

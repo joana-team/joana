@@ -407,7 +407,6 @@ class Items {
             }
            
             // Generating a position-less EntryPoint for this...
-            final String pack;
             final MethodReference mRef = (MethodReference) attributesHistory.get(Attr.CALL).peek();
             final DexEntryPoint ep = factory.entrypoint(mRef);
 

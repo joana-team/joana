@@ -111,7 +111,7 @@ public class InterferenceComputation {
 	 */
 	public static void computeInterference(SDG sdg, CallGraph cg, Set<PDG> clinits,
 			MultiMap<IMethod, CGNode> method2cgnode, boolean optimizeThisAccess, boolean useEscapeAnalysis,
-			boolean ignoreClinits, HeapGraph hg, IKey2Origin k2o, IProgressMonitor progress) throws CancelException, WalaException {
+			boolean ignoreClinits, HeapGraph<InstanceKey> hg, IKey2Origin k2o, IProgressMonitor progress) throws CancelException, WalaException {
 		progress.subTask(Messages.getString("SDG.SubTask_Interference_Dep")); //$NON-NLS-1$
 		Log.info("Computing thread interference");
 
@@ -133,7 +133,7 @@ public class InterferenceComputation {
 	private InterferenceComputation(SDG sdg, CallGraph cg, Set<PDG> clinits,
 			MultiMap<IMethod, CGNode> method2cgnode,
 			boolean optimizeThisAccess, boolean useEscapeAnalysis,
-			HeapGraph hg, IKey2Origin k2o) {
+			HeapGraph<InstanceKey> hg, IKey2Origin k2o) {
 		this.sdg = sdg;
 		this.cg = cg;
 		this.k2o = k2o;

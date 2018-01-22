@@ -64,7 +64,7 @@ public class DirectDataFlowComputation {
 
 	private final SDG sdg;
 	private final CallGraph cg;
-	private final HeapGraph hg;
+	private final HeapGraph<InstanceKey> hg;
 	private static final boolean doArrays = true;
 
 	/**
@@ -73,14 +73,14 @@ public class DirectDataFlowComputation {
 	 * @throws CancelException
 	 * @throws WalaException
 	 */
-	public static void compute(SDG sdg, CallGraph cg, HeapGraph hg, IProgressMonitor progress)
+	public static void compute(SDG sdg, CallGraph cg, HeapGraph<InstanceKey> hg, IProgressMonitor progress)
 	throws CancelException, WalaException {
 		DirectDataFlowComputation ddfc = new DirectDataFlowComputation(sdg, cg, hg);
 
 		ddfc.compute(progress);
 	}
 
-	private DirectDataFlowComputation(SDG sdg, CallGraph cg, HeapGraph hg) {
+	private DirectDataFlowComputation(SDG sdg, CallGraph cg, HeapGraph<InstanceKey> hg) {
 		this.sdg = sdg;
 		this.cg = cg;
 		this.hg = hg;

@@ -21,7 +21,6 @@ import com.ibm.wala.util.intset.IntSet;
  * @author Juergen Graf <graf@kit.edu>
  *
  */
-@SuppressWarnings("deprecation")
 public class FilteredNodeManager<T> implements NumberedNodeManager<T> {
 
 	private final NumberedNodeManager<T> delegate;

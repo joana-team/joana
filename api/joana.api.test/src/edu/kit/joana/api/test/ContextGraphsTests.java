@@ -54,6 +54,7 @@ public class ContextGraphsTests {
 		);
 		
 		final SDG sdg = p.getSDG();
+		@SuppressWarnings("unused")
 		final Nanda nanda = new Nanda(sdg, new NandaBackward());
 	}
 
@@ -171,6 +172,7 @@ public class ContextGraphsTests {
 			new GZIPInputStream(
 				new FileInputStream(file)
 		));
+		@SuppressWarnings("unused")
 		final Nanda nanda = new Nanda(sdg, new NandaBackward());
 	}
 	

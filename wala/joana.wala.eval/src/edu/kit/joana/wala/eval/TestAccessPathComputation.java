@@ -635,6 +635,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 		out.println("(" + numComputed + " variants) done.");
 	}
 	
+	@SuppressWarnings("unused")
 	private List<IMethod> findValidMethods(final ClassHierarchy cha) {
 		final List<IMethod> valid = new LinkedList<>();
 		for (final IClass cls : cha) {

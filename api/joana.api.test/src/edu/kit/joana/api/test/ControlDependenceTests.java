@@ -40,6 +40,7 @@ import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 /**
  * @author Martin Hecker <martin.hecker@kit.edu>
  */
+@SuppressWarnings("deprecation")
 public class ControlDependenceTests {
 	
 	static final boolean outputPDGFiles = true;

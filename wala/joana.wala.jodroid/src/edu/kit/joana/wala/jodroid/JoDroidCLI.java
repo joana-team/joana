@@ -55,6 +55,7 @@ import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
  *
  *  @author Tobias Blaschke <code@tobiasblaschke.de>
  */
+@SuppressWarnings("deprecation")
 public class JoDroidCLI {
 	private static final String JODROID_INVOCATION_NAME = "joana.wala.jodroid.jar";
 	private static final String PARAMETERS = "<classpath>";
@@ -76,7 +77,8 @@ public class JoDroidCLI {
     private static ExecutionOptions evaluateOptions(String[] args) {
         CommandLine commandLine;
         final Options options = new Options();
-        final CommandLineParser parser = new GnuParser();
+        @SuppressWarnings("deprecation")
+		final CommandLineParser parser = new GnuParser();
         final ExecutionOptions p = new ExecutionOptions();
 
         //
@@ -86,93 +88,138 @@ public class JoDroidCLI {
         options.addOption( "v", "verbose", false, AnalysisPresets.OutputDescription.VERBOSE.description );
         options.addOption( "q", "quiet", false, AnalysisPresets.OutputDescription.QUIET.description );
         options.addOption( "d", "debug", false, AnalysisPresets.OutputDescription.DEBUG.description );
-        options.addOption(  //"o", "outfile", 
-                OptionBuilder.withLongOpt( "outfile" )
-                .withDescription( "specifies the path to the file in which the resulting SDG is to be written. " +
-                    "It defaults to <classpath>.pdg")
-                .hasArg() //.isRequired() 
-                .withArgName("FILE")
+        OptionBuilder.withLongOpt( "outfile" );
+		OptionBuilder
+		.withDescription( "specifies the path to the file in which the resulting SDG is to be written. " +
+		    "It defaults to <classpath>.pdg");
+		OptionBuilder
+		.hasArg() //.isRequired() 
+;
+		OptionBuilder
+		.withArgName("FILE");
+		options.addOption(  //"o", "outfile", 
+                OptionBuilder
                 .create("o") );
-        options.addOption(  //"e", "entrypoint", 
-                OptionBuilder.withLongOpt( "entrypoint" )
-                .withDescription( 
-                         "specifies the method at which the environment " +
-                        "enters the app under analysis. Note that the name of the method must be fully qualified " +
-                        "and its signature has to be given in bytecode notation. (Or @all)\n" + 
-		                "Examples:\n" +
-		                "    com.foo.bar.AClass.main([Ljava/lang/String;)V\n" +
-		                "    com.foo.bar.AClass.addTwoInts(II)I\n" +
-		                "    com.foo.bar.AClass$AnInnerClass.isTroodles()Z\n"
-                    )
-                .hasArg()
-                .withArgName("SIG")
+        OptionBuilder.withLongOpt( "entrypoint" );
+		OptionBuilder
+		.withDescription( 
+		         "specifies the method at which the environment " +
+		        "enters the app under analysis. Note that the name of the method must be fully qualified " +
+		        "and its signature has to be given in bytecode notation. (Or @all)\n" + 
+		        "Examples:\n" +
+		        "    com.foo.bar.AClass.main([Ljava/lang/String;)V\n" +
+		        "    com.foo.bar.AClass.addTwoInts(II)I\n" +
+		        "    com.foo.bar.AClass$AnInnerClass.isTroodles()Z\n"
+		    );
+		OptionBuilder
+		.hasArg();
+		OptionBuilder
+		.withArgName("SIG");
+		options.addOption(  //"e", "entrypoint", 
+                OptionBuilder
                 .create("e") );
-        options.addOption(  //"a", "analysis",
-                OptionBuilder.withLongOpt( "analysis")
-                .withDescription(
-                    "set the accuracy of the analysis. Possible values are:\n" +
-                    AnalysisPresets.PresetDescription.dumpOptions()
-                    )
-                .hasArg()
-                .withArgName("PRESET")
+        OptionBuilder.withLongOpt( "analysis");
+		OptionBuilder
+		.withDescription(
+		    "set the accuracy of the analysis. Possible values are:\n" +
+		    AnalysisPresets.PresetDescription.dumpOptions()
+		    );
+		OptionBuilder
+		.hasArg();
+		OptionBuilder
+		.withArgName("PRESET");
+		options.addOption(  //"a", "analysis",
+                OptionBuilder
                 .create("a") );
-        options.addOption(  //"s", "scan",
-                OptionBuilder.withLongOpt( "scan" )
-                .withDescription(
-                    "scan for possible entry points. Possible values are:\n" +
-                    ExecutionOptions.ScanMode.dumpOptions()
-                    )
-                .hasArg()
-                .withArgName("SETTING")
+        OptionBuilder.withLongOpt( "scan" );
+		OptionBuilder
+		.withDescription(
+		    "scan for possible entry points. Possible values are:\n" +
+		    ExecutionOptions.ScanMode.dumpOptions()
+		    );
+		OptionBuilder
+		.hasArg();
+		OptionBuilder
+		.withArgName("SETTING");
+		options.addOption(  //"s", "scan",
+                OptionBuilder
                 .create("s") );
-        options.addOption(  //"c", "construct",
-                OptionBuilder.withLongOpt( "construct" )
-                .withDescription(
-                    "construct the SDG. Possible values are:\n" +
-                    ExecutionOptions.BuildMode.dumpOptions()
-                    )
-                .hasArg()
-                .withArgName("SETTING")
+        OptionBuilder.withLongOpt( "construct" );
+		OptionBuilder
+		.withDescription(
+		    "construct the SDG. Possible values are:\n" +
+		    ExecutionOptions.BuildMode.dumpOptions()
+		    );
+		OptionBuilder
+		.hasArg();
+		OptionBuilder
+		.withArgName("SETTING");
+		options.addOption(  //"c", "construct",
+                OptionBuilder
                 .create("c") );
-        options.addOption(  //"f", "ep-file"
-                OptionBuilder.withLongOpt( "ep-file" )
-                .withDescription( "load entry points for file (generate with the '--scan'-option)" )
-                .hasArg()
-                .withArgName("FILE")
+        OptionBuilder.withLongOpt( "ep-file" );
+		OptionBuilder
+		.withDescription( "load entry points for file (generate with the '--scan'-option)" );
+		OptionBuilder
+		.hasArg();
+		OptionBuilder
+		.withArgName("FILE");
+		options.addOption(  //"f", "ep-file"
+                OptionBuilder
                 .create("f") );
-        options.addOption(  //"l", "lib", 
-                OptionBuilder.withLongOpt( "lib" )
-                .withDescription( "specifies the path to the .jar or .dex which contains the android library." )
-                .hasArg()
-                .withArgName("FILE")
+        OptionBuilder.withLongOpt( "lib" );
+		OptionBuilder
+		.withDescription( "specifies the path to the .jar or .dex which contains the android library." );
+		OptionBuilder
+		.hasArg();
+		OptionBuilder
+		.withArgName("FILE");
+		options.addOption(  //"l", "lib", 
+                OptionBuilder
                 .create("l") );
-        options.addOption(  //"L", "lib-java", 
-                OptionBuilder.withLongOpt( "lib-java" )
-                .withDescription( "specifies the path to the .jar which contains the java library." )
-                .hasArg()
-                .withArgName("FILE")
+        OptionBuilder.withLongOpt( "lib-java" );
+		OptionBuilder
+		.withDescription( "specifies the path to the .jar which contains the java library." );
+		OptionBuilder
+		.hasArg();
+		OptionBuilder
+		.withArgName("FILE");
+		options.addOption(  //"L", "lib-java", 
+                OptionBuilder
                 .create("L") );
-        options.addOption(  //"m", "manifest"
-                OptionBuilder.withLongOpt( "manifest" )
-                .withDescription( "Read in the manifest of an Android-Application. This mainly makes sense in a " +
-                        "Context-sensitive analysis to get in hold of the registered Intents. The Manifest has to " +
-                        "be in the extracted (human readable) XML-Format. You can extract it using apktool.")
-                .hasArg()
-                .withArgName("FILE")
+        OptionBuilder.withLongOpt( "manifest" );
+		OptionBuilder
+		.withDescription( "Read in the manifest of an Android-Application. This mainly makes sense in a " +
+		        "Context-sensitive analysis to get in hold of the registered Intents. The Manifest has to " +
+		        "be in the extracted (human readable) XML-Format. You can extract it using apktool.");
+		OptionBuilder
+		.hasArg();
+		OptionBuilder
+		.withArgName("FILE");
+		options.addOption(  //"m", "manifest"
+                OptionBuilder
                 .create("m") );
-         options.addOption(  //"x", "exclusions"
-                OptionBuilder.withLongOpt( "exclusions" )
-                .withDescription( "Read a file containing the classes to exclude from the analysis. " +
-                        "The file contains one RegExp per line and uses '\\/' instead of dots for the " +
-                        "notation")
-                .hasArg()
-                .withArgName("FILE")
+         OptionBuilder.withLongOpt( "exclusions" );
+		OptionBuilder
+		.withDescription( "Read a file containing the classes to exclude from the analysis. " +
+		        "The file contains one RegExp per line and uses '\\/' instead of dots for the " +
+		        "notation");
+		OptionBuilder
+		.hasArg();
+		OptionBuilder
+		.withArgName("FILE");
+		options.addOption(  //"x", "exclusions"
+                OptionBuilder
                 .create("x") );
-          options.addOption(  //"i", "intent"
-                OptionBuilder.withLongOpt( "intent" )
-                .withDescription( "The intent for INTENT-Construction mode.")
-                .hasArg()
-                .withArgName("SIG")
+          OptionBuilder.withLongOpt( "intent" );
+		OptionBuilder
+		.withDescription( "The intent for INTENT-Construction mode.");
+		OptionBuilder
+		.hasArg();
+		OptionBuilder
+		.withArgName("SIG");
+		options.addOption(  //"i", "intent"
+                OptionBuilder
                 .create("i") );
 
          //

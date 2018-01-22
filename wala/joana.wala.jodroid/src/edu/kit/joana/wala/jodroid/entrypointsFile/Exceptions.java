@@ -41,7 +41,8 @@ class Exceptions {
     /**
      *  Generic parser Exception never thrown directly but inherited by the others.
      */
-    public static class ParserException extends RuntimeException {
+    @SuppressWarnings("serial")
+	public static class ParserException extends RuntimeException {
         public ParserException(String message) {
             super(message);
         }
@@ -54,14 +55,15 @@ class Exceptions {
     /**
      *  This Exception will be issued by the WalaObjectFactory.
      */
-    public static class StringUnpackException extends ParserException {
-        public StringUnpackException(String from, Class into) {
+    @SuppressWarnings("serial")
+	public static class StringUnpackException extends ParserException {
+        public StringUnpackException(String from, Class<?> into) {
             super("Error unpacking the String \"" + from + "\" into a " + into);
         }
-        public StringUnpackException(String from, Class into, String message) {
+        public StringUnpackException(String from, Class<?> into, String message) {
             super("Error unpacking the String \"" + from + "\" into a " + into + ": " + message);
         }
-        public StringUnpackException(String from, Class into, Throwable cause) {
+        public StringUnpackException(String from, Class<?> into, Throwable cause) {
             super("Error unpacking the String \"" + from + "\" into a " + into, cause);
         }
     }

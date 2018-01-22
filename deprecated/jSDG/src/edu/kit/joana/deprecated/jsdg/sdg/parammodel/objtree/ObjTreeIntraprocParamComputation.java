@@ -45,7 +45,6 @@ import edu.kit.joana.deprecated.jsdg.util.Util;
  * @author Juergen Graf <graf@kit.edu>
  *
  */
-@SuppressWarnings("deprecation")
 public abstract class ObjTreeIntraprocParamComputation implements IParamComputation {
 
 	protected final ObjTreeUnfoldingCriterion unfold;

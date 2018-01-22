@@ -352,10 +352,12 @@ public class CollectData {
 		//System.out.println();
 	}
 	
+	@SuppressWarnings("unused")
 	private static void printComputationTime(final SDGData d, final String name) {
 		System.out.println(name + "(" + d.model  + "): " + d.computationTime + " - " + (d.summaryStat == SumStatus.OK ? d.summaryTime : d.summaryStat)  + "   " + d.totalTime());
 	}
 	
+	@SuppressWarnings("unused")
 	private static final DataFilter FILTER_ESCAPE = new DataFilter() {
 		@Override
 		public boolean accept(SDGData data) {
@@ -385,6 +387,7 @@ public class CollectData {
 		}
 	};
 	
+	@SuppressWarnings("unused")
 	private static final DataFilter FILTER_ALLEXC = new DataFilter() {
 		@Override
 		public boolean accept(SDGData data) {
@@ -392,6 +395,7 @@ public class CollectData {
 		}
 	};
 	
+	@SuppressWarnings("unused")
 	private static final DataFilter FILTER_IGNOREEXC = new DataFilter() {
 		@Override
 		public boolean accept(SDGData data) {
@@ -399,6 +403,7 @@ public class CollectData {
 		}
 	};
 	
+	@SuppressWarnings("unused")
 	private static final DataFilter FILTER_INTRAEXC = new DataFilter() {
 		@Override
 		public boolean accept(SDGData data) {
@@ -406,6 +411,7 @@ public class CollectData {
 		}
 	};
 	
+	@SuppressWarnings("unused")
 	private static final DataFilter FILTER_INTEREXC = new DataFilter() {
 		@Override
 		public boolean accept(SDGData data) {
@@ -427,6 +433,7 @@ public class CollectData {
 		}
 	};
 	
+	@SuppressWarnings("unused")
 	private static final DataFilter FILTER_NOOPT = new DataFilter() {
 		@Override
 		public boolean accept(SDGData data) {
@@ -434,6 +441,7 @@ public class CollectData {
 		}
 	};
 	
+	@SuppressWarnings("unused")
 	private static final DataFilter FILTER_OPT = new DataFilter() {
 		@Override
 		public boolean accept(SDGData data) {
@@ -441,6 +449,7 @@ public class CollectData {
 		}
 	};
 	
+	@SuppressWarnings("unused")
 	private static final DataFilter FILTER_GRAPH_SIMPLE = new DataFilter() {
 		@Override
 		public boolean accept(SDGData data) {
@@ -455,6 +464,7 @@ public class CollectData {
 		}
 	};
 	
+	@SuppressWarnings("unused")
 	private static final DataFilter FILTER_SUMMARY = new DataFilter() {
 		@Override
 		public boolean accept(SDGData data) {

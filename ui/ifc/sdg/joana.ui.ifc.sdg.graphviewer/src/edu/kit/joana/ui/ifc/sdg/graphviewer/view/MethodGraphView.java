@@ -341,7 +341,6 @@ public final class MethodGraphView extends JGraph {
 	 *
 	 * @return the color properties
 	 */
-	@SuppressWarnings("resource")
 	private static Properties readColors() {
 		Properties colors = new Properties();
 		try {

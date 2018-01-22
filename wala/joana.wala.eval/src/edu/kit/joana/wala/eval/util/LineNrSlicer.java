@@ -245,6 +245,7 @@ public class LineNrSlicer {
 		return nodes;
 	}
 
+	@SuppressWarnings("unused")
 	private final void addActInOutSuccs(SDGNode call, Set<SDGNode> actInOut) {
 		actInOut.add(call);
 		Set<SDGEdge> out = sdg.outgoingEdgesOf(call);

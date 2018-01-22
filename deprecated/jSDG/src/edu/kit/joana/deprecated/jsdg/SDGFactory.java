@@ -533,7 +533,7 @@ public class SDGFactory {
 		edu.kit.joana.ifc.sdg.graph.SDG joanaSdg = null;
 
 		if (cfg.useWalaSdg) {
-			com.ibm.wala.ipa.slicer.SDG walaSDG = computeWalaSDG(cfg, progress);
+			com.ibm.wala.ipa.slicer.SDG<InstanceKey> walaSDG = computeWalaSDG(cfg, progress);
 
 			WalaConverter conf = new WalaConverter(walaSDG, cfg, k2o);
 			joanaSdg = conf.convertToJoanaSDG(progress);
@@ -620,7 +620,7 @@ public class SDGFactory {
 		return sdg;
 	}
 
-	public final com.ibm.wala.ipa.slicer.SDG getWalaSDG(Config cfg, IProgressMonitor progress)
+	public final com.ibm.wala.ipa.slicer.SDG<InstanceKey> getWalaSDG(Config cfg, IProgressMonitor progress)
 	throws IllegalArgumentException, CancelException, PDGFormatException, IOException, WalaException, InvalidClassFileException {
 		initSDGcomputation(cfg);
 
@@ -794,7 +794,7 @@ public class SDGFactory {
 
 		if (Debug.Var.DUMP_HEAP_GRAPH.isSet()) {
 			PointerAnalysis<InstanceKey> pta = builder.getPointerAnalysis();
-			HeapGraph hg = pta.getHeapGraph();
+			HeapGraph<InstanceKey> hg = pta.getHeapGraph();
 			Util.dumpHeapGraph(cfg.mainClass.replace('/','.').substring(1) +
 				"." + cfg.pointsTo, hg, null);
 		}
@@ -844,7 +844,7 @@ public class SDGFactory {
 
 	private IKey2Origin k2o;
 
-	private com.ibm.wala.ipa.slicer.SDG computeWalaSDG(Config cfg, IProgressMonitor progress)
+	private com.ibm.wala.ipa.slicer.SDG<InstanceKey> computeWalaSDG(Config cfg, IProgressMonitor progress)
 	throws ClassHierarchyException, IllegalArgumentException, CancelException, PDGFormatException, IOException, InvalidClassFileException {
 		progress.beginTask(Messages.getString("Analyzer.Task_Prepare_IR"), -1); //$NON-NLS-1$
 
@@ -922,8 +922,8 @@ public class SDGFactory {
 
 		Log.info("Wala SDG using cDeps: " + cOpt + " dDeps: " + dOpt);
 
-		com.ibm.wala.ipa.slicer.SDG sdg =
-			new com.ibm.wala.ipa.slicer.SDG(cg, pta, dOpt, cOpt);
+		com.ibm.wala.ipa.slicer.SDG<InstanceKey> sdg =
+			new com.ibm.wala.ipa.slicer.SDG<>(cg, pta, dOpt, cOpt);
 
 		progress.done();
 

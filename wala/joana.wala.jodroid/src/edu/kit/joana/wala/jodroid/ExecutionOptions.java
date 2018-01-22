@@ -268,6 +268,7 @@ public class ExecutionOptions {
                     while ((read = input.read(bytes)) != -1) {
                         out.write(bytes, 0, read);
                     }
+                    out.close();
                     file.deleteOnExit(); 
                 } catch (IOException e) {
                     throw new IllegalStateException(e);
@@ -330,6 +331,7 @@ public class ExecutionOptions {
                     while ((read = input.read(bytes)) != -1) {
                         out.write(bytes, 0, read);
                     }
+                    out.close();
                     file.deleteOnExit();
                 } catch (IOException e) {
                     throw new IllegalStateException(e);

@@ -233,7 +233,7 @@ public class WalaConverter {
 		for (int fromId : readWrite.keys()) {
 			final Statement from = wSDG.getNode(fromId);
 			final int fromPdgId = cg.getNumber(from.getNode());
-			final PDG fromPdg = wSDG.getPDG(from.getNode());
+			final PDG<?> fromPdg = wSDG.getPDG(from.getNode());
 			final SDGNode fromNode = node(fromPdgId, fromPdg.getNumber(from));
 
 			IntSet toSet = readWrite.get(fromId);
@@ -242,7 +242,7 @@ public class WalaConverter {
 				public void act(int toId) {
 					final Statement to = wSDG.getNode(toId);
 					final int toPdgId = cg.getNumber(to.getNode());
-					final PDG toPdg = wSDG.getPDG(to.getNode());
+					final PDG<?> toPdg = wSDG.getPDG(to.getNode());
 					final SDGNode toNode = node(toPdgId, toPdg.getNumber(to));
 
 					addReadWriteInterference(fromNode, toNode);
@@ -255,7 +255,7 @@ public class WalaConverter {
 		for (int fromId : writeWrite.keys()) {
 			final Statement from = wSDG.getNode(fromId);
 			final int fromPdgId = cg.getNumber(from.getNode());
-			final PDG fromPdg = wSDG.getPDG(from.getNode());
+			final PDG<?> fromPdg = wSDG.getPDG(from.getNode());
 			final SDGNode fromNode = node(fromPdgId, fromPdg.getNumber(from));
 
 			IntSet toSet = writeWrite.get(fromId);
@@ -264,7 +264,7 @@ public class WalaConverter {
 				public void act(int toId) {
 					final Statement to = wSDG.getNode(toId);
 					final int toPdgId = cg.getNumber(to.getNode());
-					final PDG toPdg = wSDG.getPDG(to.getNode());
+					final PDG<?> toPdg = wSDG.getPDG(to.getNode());
 					final SDGNode toNode = node(toPdgId, toPdg.getNumber(to));
 
 					addWriteWriteInterference(fromNode, toNode);
@@ -1254,8 +1254,8 @@ public class WalaConverter {
 		return matchingStm;
 	}
 
-	private void connect(final PDG pdg, final int pdgId, final Set<Statement> actInStats,
-			final Set<Statement> actOutStats, final PDG callee, final int targetId,
+	private void connect(final PDG<?> pdg, final int pdgId, final Set<Statement> actInStats,
+			final Set<Statement> actOutStats, final PDG<?> callee, final int targetId,
 			final Statement[] params, final boolean forkEdges) {
 		final edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind paramIn =
 			(forkEdges ? edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.FORK_IN : edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.PARAMETER_IN);

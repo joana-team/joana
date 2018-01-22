@@ -46,7 +46,6 @@ public class JSDGAntTask extends Task {
 //    private Redirector redirector = new Redirector(this);
 
 
-	@SuppressWarnings("unchecked")
 	public void execute() {
 		log("jSDG Task with " + instances + " parallel instances and heap size of " + heapSize + ".");
 

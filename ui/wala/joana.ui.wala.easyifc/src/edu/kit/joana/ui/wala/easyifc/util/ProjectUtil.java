@@ -24,6 +24,7 @@ import org.eclipse.jdt.internal.core.JavaProject;
 
 import edu.kit.joana.util.Pair;
 
+@SuppressWarnings("restriction") // org.eclipse.jdt..core.IJavaProject does not expose #resolveClasspath  :(
 public final class ProjectUtil {
 
 	private ProjectUtil() {}
@@ -64,7 +65,6 @@ public final class ProjectUtil {
 		new String[] { "org.eclipse.jdt.launching.JRE_CONTAINER", "com.android.ide.eclipse.adt.ANDROID_FRAMEWORK" }
 	);
 	
-	@SuppressWarnings("restriction")
 	private static void addAll(IClasspathEntry raw, JavaProject project, List<Pair<IPath, Integer>> jars) throws JavaModelException {
 		IClasspathEntry[] resolvedEntries = project.resolveClasspath(new IClasspathEntry[] { raw });
 		for (final IClasspathEntry resolvedEntry : resolvedEntries) {
@@ -97,7 +97,6 @@ public final class ProjectUtil {
 		}
 	}
 	
-	@SuppressWarnings("restriction")
 	public static List<Pair<IPath, Integer>> findProjectJarsExcludingStandardLibries(final IJavaProject jp) {
 		final List<Pair<IPath, Integer>> jars = new LinkedList<>();
 		

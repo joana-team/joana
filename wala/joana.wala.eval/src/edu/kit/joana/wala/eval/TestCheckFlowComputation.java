@@ -83,6 +83,7 @@ public final class TestCheckFlowComputation {
 	private static final String STD_OUT_DIR = "./out/eval-cflow/";
 	private static final String EXCLUSION_REG_EXP = "java\\/awt\\/.*\n" + "javax\\/swing\\/.*\n" + "sun\\/awt\\/.*\n"
 			+ "sun\\/swing\\/.*\n" + "com\\/sun\\/.*\n" + "sun\\/.*\n";
+	@SuppressWarnings("unused")
 	private static final String AGGRESSIVE_EXCLUSION_REG_EXP = EXCLUSION_REG_EXP + "java\\/nio\\/.*\n" + "javax\\/.*\n"
 			+ "java\\/util\\/.*\n" + "java\\/security\\/.*\n" + "java\\/beans\\/.*\n" + "org\\/omg\\/.*\n"
 			+ "apple\\/awt\\/.*\n" + "com\\/apple\\/.*\n";

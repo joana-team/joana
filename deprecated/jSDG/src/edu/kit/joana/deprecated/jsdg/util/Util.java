@@ -574,7 +574,7 @@ public final class Util {
 
 	}
 
-	public static void dumpHeapGraph(String name, HeapGraph hg, Object node, IProgressMonitor monitor) {
+	public static void dumpHeapGraph(String name, HeapGraph<?> hg, Object node, IProgressMonitor monitor) {
 		String outputDir = Analyzer.cfg.outputDir;
 		File heapOut = new File(outputDir + "/heap/");
 		if (!heapOut.exists()) {
@@ -597,7 +597,7 @@ public final class Util {
 		}
 	}
 
-	public static void dumpHeapGraph(String name, HeapGraph hg, IProgressMonitor monitor) {
+	public static void dumpHeapGraph(String name, HeapGraph<?> hg, IProgressMonitor monitor) {
 		String outputDir = Analyzer.cfg.outputDir;
 		File heapOut = new File(outputDir + "/heap/");
 		if (!heapOut.exists()) {
@@ -660,7 +660,7 @@ public final class Util {
 		}
 	}
 
-	public static void dumpHeapGraphToFile(final String filename, final HeapGraph hg, final IMethod method) {
+	public static void dumpHeapGraphToFile(final String filename, final HeapGraph<?> hg, final IMethod method) {
 		BitVectorIntSet nodesOk = new BitVectorIntSet();
 		for (Object obj : hg) {
 			if (obj instanceof InstanceKey) {
@@ -816,7 +816,7 @@ public final class Util {
 		}
 	}
 
-	public static void dumpWalaSDG(com.ibm.wala.ipa.slicer.SDG sdg, IMethod method, IProgressMonitor monitor) {
+	public static void dumpWalaSDG(com.ibm.wala.ipa.slicer.SDG<?> sdg, IMethod method, IProgressMonitor monitor) {
 		String outputDir = Analyzer.cfg.outputDir;
 		File cfgOut = new File(outputDir + "/wala/");
 		if (!cfgOut.exists()) {
@@ -837,7 +837,7 @@ public final class Util {
 		}
 	}
 
-	public static void dumpWalaPDG(com.ibm.wala.ipa.slicer.PDG pdg, IMethod method, IProgressMonitor monitor) {
+	public static void dumpWalaPDG(com.ibm.wala.ipa.slicer.PDG<?> pdg, IMethod method, IProgressMonitor monitor) {
 		String outputDir = Analyzer.cfg.outputDir;
 		File cfgOut = new File(outputDir + "/wala/");
 		if (!cfgOut.exists()) {

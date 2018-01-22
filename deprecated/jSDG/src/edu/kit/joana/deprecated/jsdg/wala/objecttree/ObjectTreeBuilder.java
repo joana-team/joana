@@ -42,7 +42,7 @@ import edu.kit.joana.wala.util.MultiTree;
  */
 public class ObjectTreeBuilder {
 
-	private final HeapGraph heap;
+	private final HeapGraph<InstanceKey> heap;
 	private final HeapExclusions excl;
 	private final PointerAnalysis<InstanceKey> pta;
 

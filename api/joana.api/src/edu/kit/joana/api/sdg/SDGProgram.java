@@ -324,9 +324,6 @@ public class SDGProgram {
 		final Collection<String> sourceOrSinkAnnotationName = 
 				Arrays.asList(new Class<?>[] { Source.class, Sink.class })
 				.stream().map( cl -> "L" + cl.getName().replace(".", "/")).collect(Collectors.toList());
-		final Collection<String> entryPointAnnotationName = 
-				Arrays.asList(new Class<?>[] { edu.kit.joana.ui.annotations.EntryPoint.class })
-				.stream().map( cl -> "L" + cl.getName().replace(".", "/")).collect(Collectors.toList());
 		for (IClass c : classes) {
 			final String walaClassName = c.getName().toString();
 			final JavaType jt = JavaType.parseSingleTypeFromString(walaClassName, Format.BC);

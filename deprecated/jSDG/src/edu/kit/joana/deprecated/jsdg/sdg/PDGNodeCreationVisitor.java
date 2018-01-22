@@ -89,7 +89,7 @@ public class PDGNodeCreationVisitor implements IVisitor, AstJavaInstructionVisit
 	private final IntermediatePDG pdg;
 	private final boolean ignoreExceptions;
 	private final Map<AbstractPDGNode, SourceLocation> locations;
-	private final IBytecodeMethod im;
+	private final IBytecodeMethod<?> im;
 
 	public PDGNodeCreationVisitor(IntermediatePDG pdg,
 			Map<AbstractPDGNode, SourceLocation> locations, boolean ignoreExceptions) {
@@ -98,7 +98,7 @@ public class PDGNodeCreationVisitor implements IVisitor, AstJavaInstructionVisit
 		this.ignoreExceptions = ignoreExceptions;
 		IMethod m = pdg.getMethod();
 		if (m instanceof IBytecodeMethod) {
-			this.im = (IBytecodeMethod) m;
+			this.im = (IBytecodeMethod<?>) m;
 		} else if (m instanceof SummarizedMethod) {
 			this.im = null;
 		} else {

@@ -48,7 +48,6 @@ public class SlicingAntTask extends Task {
     private static final String LINE_NR_SLICER_CLASSNAME = "slicing.LineNrSlicer";
 
 
-	@SuppressWarnings("unchecked")
 	public void execute() {
 		log("Slicing Task with " + instances + " parallel instances and heap size of " + heapSize + ".");
 

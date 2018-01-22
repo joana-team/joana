@@ -122,6 +122,7 @@ public class FullIFCConcurrentTest {
 		assertEquals(leaks, illegal.size());
 	}
 	
+	@SuppressWarnings("unused")
 	private static void testNoLeaksFound(IFCAnalysis ana) {
 		Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 		assertTrue(illegal.isEmpty());

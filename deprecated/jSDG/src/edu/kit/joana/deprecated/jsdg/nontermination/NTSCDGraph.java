@@ -28,6 +28,7 @@ import com.ibm.wala.util.intset.IntSet;
  * @author Juergen Graf <graf@kit.edu>
  *
  */
+@SuppressWarnings("serial")
 public class NTSCDGraph<T> extends SlowSparseNumberedGraph<T> {
 
 	private NTSCDGraph() {}

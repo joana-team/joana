@@ -25,6 +25,7 @@ import edu.kit.joana.deprecated.jsdg.sdg.parammodel.IParameter;
  * @author Juergen Graf <graf@kit.edu>
  *
  */
+@SuppressWarnings("serial")
 public class SDGControlFlowGraph extends SlowSparseNumberedGraph<AbstractPDGNode> {
 
 	private SDGControlFlowGraph() {}

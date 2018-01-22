@@ -177,8 +177,7 @@ public class SDGView extends ViewPart implements ISelectionListener, ISelectionC
         public String toString() {
             return getName();
         }
-		@SuppressWarnings("rawtypes")
-		public Object getAdapter(Class key) {
+		public <T> T getAdapter(Class<T> key) {
             return null;
         }
         public abstract String getName();

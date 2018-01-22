@@ -327,6 +327,7 @@ public class HeavySlicer {
 		return !error;
 	}
 	
+	@SuppressWarnings("unused")
 	private static boolean isCounting(final SDGNode node) {
 		switch (node.getKind()) {
 		case CALL:

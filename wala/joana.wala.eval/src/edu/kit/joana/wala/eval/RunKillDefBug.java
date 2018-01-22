@@ -528,6 +528,7 @@ public class RunKillDefBug {
 		SDGSerializer.toPDGFormat(sdg, new FileOutputStream("bug-infinite-killing.pdg"));
 	}
 	
+	@SuppressWarnings("unused")
 	private static void findAndAddMethod(final String methodSig, final Set<IMethod> methods, final IClassHierarchy cha) {
 	}
 	   

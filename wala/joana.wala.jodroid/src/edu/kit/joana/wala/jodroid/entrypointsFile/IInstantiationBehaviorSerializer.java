@@ -69,8 +69,8 @@ public class IInstantiationBehaviorSerializer extends Serializer {
         // Most certainly the data s in a Map...
         for (final ObjectStreamField osField: fields) {
             if ((! osField.isPrimitive()) && ( Map.class.isAssignableFrom(osField.getType()) )) {
-                final Reflected<Map> map = Reflected.reflect(beh, osField).catchFirst(Map.class);
-                final Map possiblyBehaviors = map.unbox();
+                final Reflected<Map<?, ?>> map = Reflected.reflect(beh, osField).catchFirst(Map.class);
+                final Map<?, ?> possiblyBehaviors = map.unbox();
 
                 for (final Object key: possiblyBehaviors.keySet()) {
                     final ObjectStreamClass keySer = ObjectStreamClass.lookup(key.getClass());

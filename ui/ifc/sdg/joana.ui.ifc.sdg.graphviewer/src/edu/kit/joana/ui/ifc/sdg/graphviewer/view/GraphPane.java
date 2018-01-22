@@ -508,7 +508,6 @@ public class GraphPane extends JTabbedPane implements GraphViewerModelListener, 
 		return this.getSize();
 	}
 
-	@SuppressWarnings("resource")
 	private Properties readColors() {
 		final Properties colors = new Properties();
 

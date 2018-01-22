@@ -38,6 +38,7 @@ import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationB
 import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationBehavior.InstanceBehavior;
 import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.LoadedInstantiationBehavior;
 import com.ibm.wala.dalvik.ipa.callgraph.impl.AndroidEntryPoint;
+import com.ibm.wala.ipa.callgraph.Entrypoint;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.TypeName;
 import com.ibm.wala.util.strings.Atom;
@@ -45,16 +46,17 @@ import com.ibm.wala.util.strings.Atom;
 import edu.kit.joana.wala.jodroid.entrypointsFile.Reader.Target;
 
 class Deserializer {
-    final Map<Target, Object> targets;
+    final Map<Target, ?> targets;
 
-    public Deserializer(final Map<Target, Object> targets) {
+    public Deserializer(final Map<Target, ?> targets) {
         this.targets = targets;
     }
 
 
     public void deserialize(AndroidEntryPoint aep) {
         if (targets.containsKey(Target.ENTRYPOINTS)) {
-            final List eps = (List) targets.get(Target.ENTRYPOINTS);
+            @SuppressWarnings("unchecked")
+			final List<Entrypoint> eps = (List<Entrypoint>) targets.get(Target.ENTRYPOINTS);
             eps.add(aep);
         }
     }

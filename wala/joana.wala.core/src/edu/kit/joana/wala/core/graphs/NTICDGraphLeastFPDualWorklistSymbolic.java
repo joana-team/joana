@@ -286,7 +286,6 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V extends IntegerIdentifiable
 		// We also use every representants index in that array to identify representants in the BitSet used during
 		// reachability computation.
 		Map<V, Integer> representantIndexOf = new HashMap<>();
-		@SuppressWarnings("unchecked")
 		Object[] representants = new Object[represents.keySet().size()]; {
 			int i = 0;
 			for (V r : represents.keySet()) {

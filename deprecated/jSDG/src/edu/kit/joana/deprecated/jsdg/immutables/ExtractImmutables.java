@@ -62,7 +62,7 @@ public class ExtractImmutables {
 
 	private final CallGraph cg;
 	private final ClassHierarchy cha;
-	private final HeapGraph hg;
+	private final HeapGraph<InstanceKey> hg;
 	private final PointerAnalysis<InstanceKey> pta;
 	private final Set<IClass> immutables;
 	private final PureVisitor pureVisitor = new PureVisitor();

@@ -206,6 +206,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 		return objParams > 1;
 	}
 	
+	@SuppressWarnings("unused")
 	private static void computeAccessPaths(final Run run, final MoJo mojo, final IMethod im) throws IllegalArgumentException, CancelException, ClassHierarchyException, IOException, UnsoundGraphException {
 		out.print("\t" + PrettyWalaNames.methodName(im) + " ");
 		final Aliasing alias = mojo.computeMinMaxAliasing(im);

@@ -31,9 +31,6 @@ public class SecurityNode extends SDGNode {
     private String required = SecurityNode.UNDEFINED;
     private String provided = SecurityNode.UNDEFINED;
 
-    // for multiple declassifications - a list of String pairs (required, provided) (realized as arrays of length 2)
-    private List<String[]> additionalDeclass;
-
     public SecurityNode(int id, Operation op, String value, int proc,
             String type, String source, int sr, int sc, int er, int ec, String bcName, int bcIndex) {
         super(id, op, value, proc, type, source, sr, sc, er, ec, bcName, bcIndex);
@@ -110,26 +107,6 @@ public class SecurityNode extends SDGNode {
     public void setProvided(String iflow) {
       if (iflow == null) this.provided = SecurityNode.UNDEFINED;
       else this.provided = iflow.intern();
-    }
-
-    /**
-     * for multiple declassifications - a list of String pairs (required, provided) (realized as arrays of length 2)
-     * @return can be null
-     */
-    public List<String[]> getAdditionalDeclass() {
-    	return additionalDeclass;
-    }
-
-    /**
-     * for multiple declassifications - a list of String pairs (required, provided)
-     */
-    public void setAdditionalDeclass(List<String[]> dec) {
-    	for (String[] p : dec) {
-    		if (p.length != 2) {
-    			throw new IllegalArgumentException("Elements of the list of additional declassifications must be arrays of length 2!");
-    		}
-    	}
-    	additionalDeclass = dec;
     }
 
     /**

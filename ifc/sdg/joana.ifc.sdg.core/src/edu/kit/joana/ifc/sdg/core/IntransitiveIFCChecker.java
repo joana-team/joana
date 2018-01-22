@@ -193,16 +193,6 @@ public class IntransitiveIFCChecker extends IFC<String> {
 
 				result.add(d);
 
-			} else if (d.getAdditionalDeclass() != null) {
-				// if we have multiple declassifications here, check them too
-				for (String[] rule : d.getAdditionalDeclass()) {
-					if (l.leastUpperBound(rule[0], from).equals(rule[0])         // d applies to `from'
-							&& l.leastUpperBound(to, rule[1]).equals(to)) {      // d declassifies to `to'
-
-						result.add(d);
-						break; // adding d once suffices
-					}
-				}
 			}
 		}
 

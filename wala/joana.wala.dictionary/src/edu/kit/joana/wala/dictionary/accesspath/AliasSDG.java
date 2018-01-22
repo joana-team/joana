@@ -53,17 +53,17 @@ public class AliasSDG {
 	private final APResult ap;
 	private final Alias mayAlias = new Alias();
 	private final Alias noAlias = new Alias();
-	private WorkPackage workPack;
+	private WorkPackage<SDG> workPack;
 	private final List<SDGEdge> currentlyRemoved = new LinkedList<SDGEdge>();
 
-	private AliasSDG(final SDG sdg, final WorkPackage workPack, final APResult ap) {
+	private AliasSDG(final SDG sdg, final WorkPackage<SDG> workPack, final APResult ap) {
 		this.sdg = sdg;
 		this.ap = ap;
 		this.workPack = workPack;
 	}
 
 	public static AliasSDG create(final SDG sdg, final APResult ap) {
-		final WorkPackage wp = createWorkPack(sdg);
+		final WorkPackage<SDG> wp = createWorkPack(sdg);
 
 		return new AliasSDG(sdg, wp, ap);
 	}
@@ -78,14 +78,14 @@ public class AliasSDG {
 
 	public static AliasSDG readFrom(final String file, final APResult ap) throws IOException {
 		final SDG sdg = SDG.readFrom(file);
-		final WorkPackage wp = createWorkPack(sdg);
+		final WorkPackage<SDG> wp = createWorkPack(sdg);
 
 		return new AliasSDG(sdg, wp, ap);
 	}
 
 	public static AliasSDG readFrom(final Reader reader, final APResult ap) throws IOException {
 		final SDG sdg = SDG.readFrom(reader);
-		final WorkPackage wp = createWorkPack(sdg);
+		final WorkPackage<SDG> wp = createWorkPack(sdg);
 
 		return new AliasSDG(sdg, wp, ap);
 	}
@@ -214,11 +214,11 @@ public class AliasSDG {
 	 * @param sdg The SDG we compute the work package for.
 	 * @return A summary computation work package for the given SDG.
 	 */
-	private static WorkPackage createWorkPack(final SDG sdg) {
+	private static WorkPackage<SDG> createWorkPack(final SDG sdg) {
 		final EntryPoint ep = GraphUtil.extractEntryPoint(sdg, sdg.getRoot());
 		final Set<WorkPackage.EntryPoint> entries =	Collections.singleton(ep);
 		final SummaryProperties sumProp = GraphUtil.createSummaryProperties(sdg);
-		final WorkPackage wp = WorkPackage.create(sdg, entries, sdg.getName() + "-alias-sdg", null,
+		final WorkPackage<SDG> wp = WorkPackage.create(sdg, entries, sdg.getName() + "-alias-sdg", null,
 				sumProp.fullyConnectedIds, sumProp.out2in);
 
 		return wp;

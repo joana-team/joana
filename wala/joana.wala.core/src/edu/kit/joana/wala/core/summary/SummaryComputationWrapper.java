@@ -46,7 +46,7 @@ public final class SummaryComputationWrapper {
 		formOuts.add(pdg.exit.getId());
 		final EntryPoint ep = new EntryPoint(pdg.entry.getId(), formIns, formOuts);
 		entries.add(ep);
-		final WorkPackage pack = WorkPackage.create(sdg, entries, sdg.getName());
+		final WorkPackage<SDG> pack = WorkPackage.create(sdg, entries, sdg.getName());
 		SummaryComputation.computePureDataDep(pack, progress);
 
 		// write back to this sdg

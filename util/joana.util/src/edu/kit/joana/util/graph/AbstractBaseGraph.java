@@ -47,6 +47,7 @@ package edu.kit.joana.util.graph;
 import java.io.*;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import org.jgrapht.*;
@@ -345,6 +346,14 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
     @Override public boolean containsEdge(E e)
     {
         return edgeSet.contains(e);
+    }
+    
+    public boolean containsEdge(V sourceVertex, V targetVertex, Predicate<E> predicate) {
+    	final Set<E> outgoing = specifics.outgoingEdgesOf(sourceVertex);
+    	for (E e : outgoing) {
+    		if (e.getTarget().equals(targetVertex) && predicate.test(e)) return true;
+    	}
+    	return false;
     }
 
     /**

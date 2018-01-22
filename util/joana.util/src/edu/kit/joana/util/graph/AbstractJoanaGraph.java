@@ -10,6 +10,7 @@ package edu.kit.joana.util.graph;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import org.jgrapht.DirectedGraph;
@@ -21,7 +22,7 @@ import edu.kit.joana.util.graph.AbstractBaseGraph.DirectedEdgeContainer;
  * This is the base class for all concrete graphs used in the JOANA project.
  * @author Martin Mohr
  */
-public class AbstractJoanaGraph<V extends IntegerIdentifiable, E extends KnowsVertices<V>> implements DirectedGraph<V,E> {
+public class AbstractJoanaGraph<V extends IntegerIdentifiable, E extends KnowsVertices<V>> implements DirectedGraph<V,E>, EfficientGraph<V, E> {
 	
 	
 	private final DirectedPseudograph<V,E> delegate;
@@ -55,6 +56,7 @@ public class AbstractJoanaGraph<V extends IntegerIdentifiable, E extends KnowsVe
 	 * @return
 	 * @see org.jgrapht.graph.AbstractBaseGraph#addEdge(java.lang.Object, java.lang.Object, java.lang.Object)
 	 */
+	@Override
 	public boolean addEdgeUnsafe(V arg0, V arg1, E arg2) {
 		final boolean added = delegate.addEdgeUnsafe(arg0, arg1, arg2);
 		changed |= added;
@@ -113,6 +115,11 @@ public class AbstractJoanaGraph<V extends IntegerIdentifiable, E extends KnowsVe
 	 */
 	public boolean containsEdge(V arg0, V arg1) {
 		return delegate.containsEdge(arg0, arg1);
+	}
+	
+	@Override
+	public boolean containsEdge(V sourceVertex, V targetVertex, Predicate<E> predicate) {
+		return delegate.containsEdge(sourceVertex, targetVertex, predicate);
 	}
 
 	/**

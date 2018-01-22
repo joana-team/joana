@@ -198,12 +198,12 @@ public class AccessPath {
 		formOuts.add(pdg.exit.getId());
 		EntryPoint ep = new EntryPoint(pdg.entry.getId(), formIns, formOuts);
 		entries.add(ep);
-		WorkPackage pack = WorkPackage.create(sdg, entries, sdg.getName());
+		WorkPackage<SDG> pack = WorkPackage.create(sdg, entries, sdg.getName());
 		SummaryComputation.computeNoAliasDataDep(pack, progress);
 		out.print(".");
 
 		out.print("maxalias");
-		WorkPackage pack2 = WorkPackage.create(sdg, entries, sdg.getName());
+		WorkPackage<SDG> pack2 = WorkPackage.create(sdg, entries, sdg.getName());
 		SummaryComputation.computeFullAliasDataDep(pack2, progress);
 		out.print(".");
 	}

@@ -390,7 +390,7 @@ public class MainChangeTest {
 		cumulatedWorkPackageSetUpTime = 0;
 		long cumulatedPureSummaryTime = 0;
 
-		final WorkPackage pack = createWholeGraphPackage(sdg, changed, fully, out2in ,rememberReached);
+		final WorkPackage<SDG> pack = createWholeGraphPackage(sdg, changed, fully, out2in ,rememberReached);
 
 		// do the work
 		long timeSumStart = System.currentTimeMillis();
@@ -431,7 +431,7 @@ public class MainChangeTest {
 		printTotalSumEdges(sdg, sdg.getName());
 	}
 
-	private static WorkPackage createWholeGraphPackage(SDG sdg, final Set<SDGNode> changed, final TIntSet fully,
+	private static WorkPackage<SDG> createWholeGraphPackage(SDG sdg, final Set<SDGNode> changed, final TIntSet fully,
 			TIntObjectMap<List<SDGNode>> out2in, boolean rememberReached) {
 		final SDGNode root = sdg.getRoot();
 
@@ -482,7 +482,7 @@ public class MainChangeTest {
 		WorkPackage.EntryPoint ep = GraphUtil.extractEntryPoint(sdg, root);
 		Set<WorkPackage.EntryPoint> entryPoints = new HashSet<WorkPackage.EntryPoint>();
 		entryPoints.add(ep);
-		WorkPackage pack = WorkPackage.create(sdg, entryPoints, sdg.getName(), relevant, fully, out2in, rememberReached);
+		WorkPackage<SDG> pack = WorkPackage.create(sdg, entryPoints, sdg.getName(), relevant, fully, out2in, rememberReached);
 
 		return pack;
 	}

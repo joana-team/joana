@@ -100,7 +100,7 @@ public class SumCompWorker extends WorkerClient {
 			log("Creating workpackages.");
 
 			// 4. create workpackage
-			WorkPackage wp = WorkPackage.create(subgraph, entryPoints, msg.getSubgraphFile());
+			WorkPackage<SDG> wp = WorkPackage.create(subgraph, entryPoints, msg.getSubgraphFile());
 
 			log("Running summary computation on " + wp);
 

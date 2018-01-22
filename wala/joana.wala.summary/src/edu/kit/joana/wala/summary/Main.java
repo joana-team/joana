@@ -183,7 +183,7 @@ public class Main {
 			}
 
 			// create work package
-			WorkPackage pack = createWorkPackage(sdg, origFoldedCG, cg, current, cache);
+			WorkPackage<SDG> pack = createWorkPackage(sdg, origFoldedCG, cg, current, cache);
 
 			// do the work
 			long timeSumStart = System.currentTimeMillis();
@@ -303,7 +303,7 @@ public class Main {
 	}
 
 	@SuppressWarnings("unused")
-	private static void writePackToFile(WorkPackage pack) {
+	private static void writePackToFile(WorkPackage<SDG> pack) {
 		final String filename = MAIN_DIR + pack.getName() + SUBGRAPH_PDG_FILE_SUFFIX;
 		debug("\twriting pdg to file " + filename);
 		FileOutputStream fOs = null;
@@ -326,7 +326,7 @@ public class Main {
 		cumulatedWorkPackageSetUpTime = 0;
 		long cumulatedPureSummaryTime = 0;
 
-		final WorkPackage pack = createWholeGraphPackage(sdg);
+		final WorkPackage<SDG> pack = createWholeGraphPackage(sdg);
 
 		// do the work
 		long timeSumStart = System.currentTimeMillis();
@@ -345,7 +345,7 @@ public class Main {
 		printTotalSumEdges(sdg, sdg.getName());
 	}
 
-	private static WorkPackage createWholeGraphPackage(SDG sdg) {
+	private static WorkPackage<SDG> createWholeGraphPackage(SDG sdg) {
 		final SDGNode root = sdg.getRoot();
 
 		if (root.getKind() != SDGNode.Kind.ENTRY) {
@@ -355,17 +355,17 @@ public class Main {
 		WorkPackage.EntryPoint ep = GraphUtil.extractEntryPoint(sdg, root);
 		Set<WorkPackage.EntryPoint> entryPoints = new HashSet<WorkPackage.EntryPoint>();
 		entryPoints.add(ep);
-		WorkPackage pack = WorkPackage.create(sdg, entryPoints, sdg.getName());
+		WorkPackage<SDG> pack = WorkPackage.create(sdg, entryPoints, sdg.getName());
 
 		return pack;
 	}
 
-	private static WorkPackage createWorkPackage(SDG sdg, FoldedCallGraph fcg, CallGraph cg, SDGNode current, EntryPointCache cache) throws LoadEntryPointException {
+	private static WorkPackage<SDG> createWorkPackage(SDG sdg, FoldedCallGraph fcg, CallGraph cg, SDGNode current, EntryPointCache cache) throws LoadEntryPointException {
 		// 1. Create EntryPoints
 		// 2. Create stripped subgraphs with summary edges of previous computations included
 		// 3. Augment subgraph with summary edges of previously computed work packages.
 
-		WorkPackage pack;
+		WorkPackage<SDG> pack;
 
 		final long timeStart = System.currentTimeMillis();
 

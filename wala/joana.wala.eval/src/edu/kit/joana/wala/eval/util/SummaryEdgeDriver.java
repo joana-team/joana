@@ -63,7 +63,7 @@ public abstract class SummaryEdgeDriver {
 				final EntryPoint ep = new EntryPoint(root.getId(), formalIns, formalOuts);
 				entries.add(ep);
 
-				final WorkPackage pack = WorkPackage.create(sdg, entries, sdg.getName() + "-summaryedgedriver");
+				final WorkPackage<SDG> pack = WorkPackage.create(sdg, entries, sdg.getName() + "-summaryedgedriver");
 
 				r.startTime = System.currentTimeMillis();
 				SummaryComputation.compute(pack, progress);

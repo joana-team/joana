@@ -20,6 +20,7 @@ import org.jgrapht.DirectedGraph;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.util.graph.EfficientGraph;
 import gnu.trove.TIntCollection;
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.iterator.TIntObjectIterator;
@@ -34,7 +35,7 @@ import gnu.trove.set.hash.TIntHashSet;
  * @author Juergen Graf <graf@kit.edu>
  *
  */
-public class WorkPackage {
+public class WorkPackage<G extends DirectedGraph<SDGNode, SDGEdge> & EfficientGraph<SDGNode, SDGEdge>> {
 
 	public final static boolean SORT_SUMMARY_EDGES = false;
 
@@ -253,7 +254,7 @@ public class WorkPackage {
 		}
 	}
 
-	private final DirectedGraph<SDGNode, SDGEdge> subgraph;
+	private final G subgraph;
 	private final Set<EntryPoint> entries;
 	private final String name;
 	private final TIntSet relevantProcs;
@@ -262,7 +263,7 @@ public class WorkPackage {
 	private boolean immutable = false;
 	private final boolean rememberReached;
 
-	private WorkPackage(DirectedGraph<SDGNode, SDGEdge> subgraph, Set<EntryPoint> entries, String name,
+	private WorkPackage(G subgraph, Set<EntryPoint> entries, String name,
 			TIntSet relevantProcs, TIntSet fullyConnected, TIntObjectMap<List<SDGNode>> out2in,
 			boolean rememberReached) {
 		this.subgraph = subgraph;
@@ -274,33 +275,33 @@ public class WorkPackage {
 		this.rememberReached = rememberReached;
 	}
 
-	public static WorkPackage create(SDG subgraph, Set<EntryPoint> entryPoints, String name) {
-		WorkPackage pack = new WorkPackage(subgraph, entryPoints, name, null, null, null, false);
+	public static WorkPackage<SDG> create(SDG subgraph, Set<EntryPoint> entryPoints, String name) {
+		WorkPackage<SDG> pack = new WorkPackage<>(subgraph, entryPoints, name, null, null, null, false);
 
 		return pack;
 	}
 
-	public static WorkPackage create(SDG subgraph, Set<EntryPoint> entryPoints, String name, TIntSet relevantProcs) {
-		WorkPackage pack = new WorkPackage(subgraph, entryPoints, name, relevantProcs, null, null, false);
+	public static WorkPackage<SDG> create(SDG subgraph, Set<EntryPoint> entryPoints, String name, TIntSet relevantProcs) {
+		WorkPackage<SDG> pack = new WorkPackage<>(subgraph, entryPoints, name, relevantProcs, null, null, false);
 
 		return pack;
 	}
 
-	public static WorkPackage create(SDG subgraph, Set<EntryPoint> entryPoints, String name,
+	public static WorkPackage<SDG> create(SDG subgraph, Set<EntryPoint> entryPoints, String name,
 			TIntSet relevantProcs, TIntSet fullyConnected, TIntObjectMap<List<SDGNode>> out2in) {
-		WorkPackage pack = new WorkPackage(subgraph, entryPoints, name, relevantProcs, fullyConnected, out2in, false);
+		WorkPackage<SDG> pack = new WorkPackage<>(subgraph, entryPoints, name, relevantProcs, fullyConnected, out2in, false);
 
 		return pack;
 	}
 
-	public static WorkPackage create(SDG subgraph, Set<EntryPoint> entryPoints, String name,
+	public static WorkPackage<SDG> create(SDG subgraph, Set<EntryPoint> entryPoints, String name,
 			TIntSet relevantProcs, TIntSet fullyConnected, TIntObjectMap<List<SDGNode>> out2in,	boolean rememberReached) {
-		WorkPackage pack = new WorkPackage(subgraph, entryPoints, name, relevantProcs, fullyConnected, out2in, rememberReached);
+		WorkPackage<SDG> pack = new WorkPackage<>(subgraph, entryPoints, name, relevantProcs, fullyConnected, out2in, rememberReached);
 
 		return pack;
 	}
 
-	public DirectedGraph<SDGNode, SDGEdge> getGraph() {
+	public G getGraph() {
 		return subgraph;
 	}
 

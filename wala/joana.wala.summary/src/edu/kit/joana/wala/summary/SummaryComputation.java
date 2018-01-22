@@ -21,8 +21,10 @@ import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 
 import edu.kit.joana.ifc.sdg.graph.BitVector;
+import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.util.graph.EfficientGraph;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.set.TIntSet;
 
@@ -30,12 +32,12 @@ import gnu.trove.set.TIntSet;
  * @author Juergen Graf <graf@kit.edu>
  *
  */
-public class SummaryComputation {
+public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & EfficientGraph<SDGNode, SDGEdge>> {
 
 	private final HashSet<Edge> pathEdge;
     private final HashMap<SDGNode, Set<Edge>> aoPaths;
     private final LinkedList<Edge> worklist;
-    private final DirectedGraph<SDGNode, SDGEdge> graph;
+    private final G graph;
     private final TIntSet relevantFormalIns;
     private final TIntSet relevantProcs;
     private final TIntSet fullyConnected;
@@ -45,7 +47,7 @@ public class SummaryComputation {
     private final Set<SDGEdge.Kind> relevantEdges;
     private final String annotate;
 
-	private SummaryComputation(DirectedGraph<SDGNode, SDGEdge> graph, TIntSet relevantFormalIns,
+	private SummaryComputation(G graph, TIntSet relevantFormalIns,
 			TIntSet relevantProcs, TIntSet fullyConnected, TIntObjectMap<List<SDGNode>> out2in,
 			boolean rememberReached, SDGEdge.Kind sumEdgeKind, Set<SDGEdge.Kind> relevantEdges,
 			String annotate) {
@@ -63,7 +65,7 @@ public class SummaryComputation {
         this.annotate = annotate;
 	}
 
-	public static int compute(WorkPackage pack, IProgressMonitor progress) throws CancelException {
+	public static int compute(WorkPackage<SDG> pack, IProgressMonitor progress) throws CancelException {
 		// default summary computation follows control and date dependencies
 		Set<SDGEdge.Kind> relevantEdges = new HashSet<SDGEdge.Kind>();
 		relevantEdges.add(SDGEdge.Kind.DATA_DEP);
@@ -85,7 +87,7 @@ public class SummaryComputation {
 		return compute(pack, SDGEdge.Kind.SUMMARY, relevantEdges, progress);
 	}
 
-	public static int computeAdjustedAliasDep(WorkPackage pack, IProgressMonitor progress) throws CancelException {
+	public static int computeAdjustedAliasDep(WorkPackage<SDG> pack, IProgressMonitor progress) throws CancelException {
 		// default summary computation follows control and date dependencies
 		Set<SDGEdge.Kind> relevantEdges = new HashSet<SDGEdge.Kind>();
 		relevantEdges.add(SDGEdge.Kind.DATA_DEP);
@@ -107,7 +109,7 @@ public class SummaryComputation {
 		return compute(pack, SDGEdge.Kind.SUMMARY_DATA, relevantEdges, progress);
 	}
 
-	public static int computePureDataDep(WorkPackage pack, IProgressMonitor progress) throws CancelException {
+	public static int computePureDataDep(WorkPackage<SDG> pack, IProgressMonitor progress) throws CancelException {
 		// default summary computation follows control and date dependencies
 		Set<SDGEdge.Kind> relevantEdges = new HashSet<SDGEdge.Kind>();
 		relevantEdges.add(SDGEdge.Kind.DATA_DEP);
@@ -127,11 +129,11 @@ public class SummaryComputation {
 		return compute(pack, SDGEdge.Kind.SUMMARY_DATA, relevantEdges, progress);
 	}
 
-	public static int computeFullAliasDataDep(WorkPackage pack, IProgressMonitor progress) throws CancelException {
+	public static int computeFullAliasDataDep(WorkPackage<SDG> pack, IProgressMonitor progress) throws CancelException {
 		return compute(pack, progress);
 	}
 
-	public static int computeNoAliasDataDep(WorkPackage pack, IProgressMonitor progress) throws CancelException {
+	public static int computeNoAliasDataDep(WorkPackage<SDG> pack, IProgressMonitor progress) throws CancelException {
 		Set<SDGEdge.Kind> relevantEdges = new HashSet<SDGEdge.Kind>();
 		relevantEdges.add(SDGEdge.Kind.DATA_DEP);
 		relevantEdges.add(SDGEdge.Kind.DATA_HEAP);
@@ -152,7 +154,7 @@ public class SummaryComputation {
 		return compute(pack, SDGEdge.Kind.SUMMARY_NO_ALIAS, relevantEdges, progress);
 	}
 
-	public static int computeHeapDataDep(WorkPackage pack, IProgressMonitor progress) throws CancelException {
+	public static int computeHeapDataDep(WorkPackage<SDG> pack, IProgressMonitor progress) throws CancelException {
 		// default summary computation follows control and date dependencies
 		Set<SDGEdge.Kind> relevantEdges = new HashSet<SDGEdge.Kind>();
 		relevantEdges.add(SDGEdge.Kind.DATA_DEP);
@@ -174,14 +176,14 @@ public class SummaryComputation {
 		return compute(pack, SDGEdge.Kind.SUMMARY_DATA, relevantEdges, progress);
 	}
 
-	private static int compute(WorkPackage pack, SDGEdge.Kind sumEdgeKind, Set<SDGEdge.Kind> relevantEdges,
+	private static int compute(WorkPackage<SDG> pack, SDGEdge.Kind sumEdgeKind, Set<SDGEdge.Kind> relevantEdges,
 			IProgressMonitor progress) throws CancelException {
 		return compute(pack, sumEdgeKind, relevantEdges, null, progress);
 	}
 
-	private static int compute(WorkPackage pack, SDGEdge.Kind sumEdgeKind, Set<SDGEdge.Kind> relevantEdges,
+	private static int compute(WorkPackage<SDG> pack, SDGEdge.Kind sumEdgeKind, Set<SDGEdge.Kind> relevantEdges,
 			String annotate, IProgressMonitor progress) throws CancelException {
-		SummaryComputation comp = new SummaryComputation(pack.getGraph(), pack.getAllFormalInIds(),
+		SummaryComputation<SDG> comp = new SummaryComputation<SDG>(pack.getGraph(), pack.getAllFormalInIds(),
 				pack.getRelevantProcIds(), pack.getFullyConnected(), pack.getOut2In(),
 				pack.getRememberReached(), sumEdgeKind, relevantEdges, annotate);
 		Collection<SDGEdge> summary = comp.computeSummaryEdges(progress);
@@ -257,13 +259,7 @@ public class SummaryComputation {
                     for (Edge e : aiaoPairs) {
                         if (e.source == null || e.target == null) continue;
 
-                        boolean connectedInPDG = false;
-                        for (SDGEdge eOut : graph.getAllEdges(e.source, e.target)) {
-                            if (eOut.getKind().isSDGEdge()) {
-                                connectedInPDG = true;
-                                break;
-                            }
-                        }
+                        final boolean connectedInPDG = graph.containsEdge(e.source, e.target, eOut -> eOut.getKind().isSDGEdge());
                         if (connectedInPDG) continue; // already connected
 
                         SDGEdge sum;
@@ -273,7 +269,7 @@ public class SummaryComputation {
                         	sum = new SDGEdge(e.source, e.target, sumEdgeKind);
                         }
 
-                        if (graph.addEdge(e.source, e.target, sum)) {
+                        if (graph.addEdgeUnsafe(e.source, e.target, sum)) {
                             actInOutSummaryEdge.add(sum);
 
                             Set<Edge> s = aoPaths.get(e.target);

@@ -451,7 +451,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 	public static SDG build(final SDGBuilderConfig cfg, final com.ibm.wala.ipa.callgraph.CallGraph walaCG,
 			final PointerAnalysis<InstanceKey> pts) throws UnsoundGraphException, CancelException {
 		SDG sdg = null;
-		WorkPackage pack = null;
+		WorkPackage<SDG> pack = null;
 		IProgressMonitor progress = NullProgressMonitor.INSTANCE;
 
 		/* additional scope so SDGBuilder object can be garbage collected */{
@@ -488,7 +488,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 
 	public static SDG build(final SDGBuilderConfig cfg, IProgressMonitor progress) throws UnsoundGraphException, CancelException {
 		SDG sdg = null;
-		WorkPackage pack = null;
+		WorkPackage<SDG> pack = null;
 
 		/* additional scope so SDGBuilder object can be garbage collected */{
 			SDGBuilder builder = new SDGBuilder(cfg);
@@ -517,7 +517,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 	public static Pair<SDG, SDGBuildArtifacts> buildAndKeepBuildArtifacts(final SDGBuilderConfig cfg, IProgressMonitor progress)
 			throws UnsoundGraphException, CancelException {
 		SDG sdg = null;
-		WorkPackage pack = null;
+		WorkPackage<SDG> pack = null;
 
 		SDGBuilder builder = new SDGBuilder(cfg);
 		builder.run(progress);
@@ -543,7 +543,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 	public static Pair<SDG, SDGBuilder> buildAndKeepBuilder(final SDGBuilderConfig cfg, IProgressMonitor progress)
 			throws UnsoundGraphException, CancelException {
 		SDG sdg = null;
-		WorkPackage pack = null;
+		WorkPackage<SDG> pack = null;
 
 		SDGBuilder builder = new SDGBuilder(cfg);
 		builder.run(progress);
@@ -582,7 +582,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		return sdg;
 	}
 
-	private static WorkPackage createSummaryWorkPackage(PrintStream out, SDGBuilder builder, SDG sdg,
+	private static WorkPackage<SDG> createSummaryWorkPackage(PrintStream out, SDGBuilder builder, SDG sdg,
 			IProgressMonitor progress) {
 		out.print("summary");
 		Set<EntryPoint> entries = new TreeSet<EntryPoint>();
@@ -596,19 +596,19 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		formOuts.add(pdg.exit.getId());
 		EntryPoint ep = new EntryPoint(pdg.entry.getId(), formIns, formOuts);
 		entries.add(ep);
-		WorkPackage pack = WorkPackage.create(sdg, entries, sdg.getName());
+		WorkPackage<SDG> pack = WorkPackage.create(sdg, entries, sdg.getName());
 		out.print(".");
 
 		return pack;
 	}
 
-	private static void computeSummaryEdges(PrintStream out, WorkPackage pack, SDG sdg, IProgressMonitor progress)
+	private static void computeSummaryEdges(PrintStream out, WorkPackage<SDG> pack, SDG sdg, IProgressMonitor progress)
 			throws CancelException {
 		SummaryComputation.compute(pack, progress);
 		out.print(".");
 	}
 
-	private static void computeDataAndAliasSummaryEdges(PrintStream out, WorkPackage pack, SDG sdg,
+	private static void computeDataAndAliasSummaryEdges(PrintStream out, WorkPackage<SDG> pack, SDG sdg,
 			IProgressMonitor progress) throws CancelException {
 		SummaryComputation.computeNoAliasDataDep(pack, progress);
 		out.print(".");

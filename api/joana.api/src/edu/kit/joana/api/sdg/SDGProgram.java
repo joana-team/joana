@@ -484,11 +484,11 @@ public class SDGProgram {
 		}
 		sdg.removeAllEdges(toRemove);
 		// rerun summary computation
-		final WorkPackage wp = createSummaryWorkpackage(sdg);
+		final WorkPackage<SDG> wp = createSummaryWorkpackage(sdg);
 		SummaryComputation.computeHeapDataDep(wp, new com.ibm.wala.util.NullProgressMonitor());
 	}
 
-	private static WorkPackage createSummaryWorkpackage(final SDG sdg) {
+	private static WorkPackage<SDG> createSummaryWorkpackage(final SDG sdg) {
 		final Set<EntryPoint> entries = new TreeSet<EntryPoint>();
 		final SDGNode root = sdg.getRoot();
 

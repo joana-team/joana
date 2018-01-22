@@ -12,10 +12,13 @@ import java.util.LinkedList;
 
 import edu.kit.joana.ifc.sdg.core.IFC;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
+import edu.kit.joana.ifc.sdg.core.SlicingBasedIFC;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.core.violations.ViolationTranslator;
 import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PBackward;
+import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PForward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
@@ -77,7 +80,7 @@ public class ProbabilisticNIChecker extends IFC<String> {
 	 */
 	public Collection<? extends IViolation<SecurityNode>> checkIFlow() throws NotInLatticeException {
 		Collection<IViolation<SecurityNode>> ret = new LinkedList<IViolation<SecurityNode>>(); // list to be returned
-		IFC<String> is = new BarrierIFCSlicer(g, l);
+		IFC<String> is = new SlicingBasedIFC(g, l, new I2PForward(g), new I2PBackward(g));
 		
 		if (timeSens) {
 			is = new TimeSensitiveIFCDecorator(is);

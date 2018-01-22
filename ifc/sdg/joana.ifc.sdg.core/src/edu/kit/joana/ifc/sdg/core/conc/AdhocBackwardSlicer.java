@@ -9,9 +9,10 @@ package edu.kit.joana.ifc.sdg.core.conc;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
-import java.util.zip.ZipError;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.Sets;
 
@@ -74,62 +75,78 @@ public class AdhocBackwardSlicer implements Slicer {
 	}
 
 	
-	private static enum State { NULL, ZERO_ONE, TWO, BOTH }; 
+	//private static enum StateKind { NULL, ZERO_ONE, TWO, BOTH };
+	private static class State { }
+	
+	private static final State NULL = new State();
+	private static final State ZERO_ONE = new State();
 
-	private static void visit_0_1_addAll(Collection<SDGNode> criteria) {
+	private State TWO = new State();
+	private State BOTH = new State();
+	private Set<State> oldTWO = new HashSet<>();
+	private Set<State> oldBOTH = new HashSet<>();
+
+	private void visit_0_1_addAll(Collection<SDGNode> criteria) {
 		for (SDGNode c : criteria) {
-			visited_0_1_add (c); 
+			visited_0_1_add(c); 
 		}
 	}
 	
-	private static boolean visited_0_1_add(SDGNode n) {
-		switch (((State) n.customData)) {
-			case TWO:
-				n.customData = State.BOTH;
-				return true;
-			case NULL:
-				n.customData = State.ZERO_ONE;
-				return true;
-			case BOTH:
-			case ZERO_ONE:
-				return false;
-			default:
-				assert false;
-				return false;
-			}
+	private boolean visited_0_1_add(SDGNode n) {
+		State state = (State) n.customData; 
+		if (state == TWO) {
+			n.customData = BOTH;
+			return true;
+		}
+		if (state == NULL) {
+			n.customData = ZERO_ONE;
+			return true;
+		}
+		if (state == BOTH) {
+			return false;
+		}
+		if (state == ZERO_ONE) {
+			return false;
+		}
+		if (oldBOTH.contains(state)) {
+			n.customData = ZERO_ONE;
+			return false;
+		}
+		assert oldTWO.contains(state);
+		n.customData = ZERO_ONE;
+		return true;
 	}
 	
-	private static boolean visited_2_add(SDGNode n) {
-		switch (((State) n.customData)) {
-			case ZERO_ONE:
-				n.customData = State.BOTH;
-				return true;
-			case NULL:
-				n.customData = State.TWO;
-				return true;
-			case BOTH:
-			case TWO:
-				return false;
-			default:
-				assert false;
-				return false;
+	private boolean visited_2_add(SDGNode n) {
+		State state = (State) n.customData; 
+		if (state == ZERO_ONE) {
+			n.customData = BOTH;
+			return true;
 		}
+		if (state == NULL) {
+			n.customData = TWO;
+			return true;
+		}
+		if (state == BOTH) {
+			return false;
+		}
+		if (state == TWO) {
+			return false;
+		}
+		if (oldBOTH.contains(state)) {
+			n.customData = BOTH;
+			return true;
+		}
+		assert oldTWO.contains(state);
+		n.customData = TWO;
+		return true;
 	}
 	
-	private static void visited_2_clear(Collection<SDGNode> criteria) {
-		for (SDGNode n : criteria) {
-			switch (((State) n.customData)) {
-				case BOTH:
-					n.customData = State.ZERO_ONE; break;
-				case TWO:
-					n.customData = State.NULL; break;
-				case NULL:
-				case ZERO_ONE:
-					break;
-				default:
-					assert false;
-			}
-		}
+	private void visited_2_clear() {
+		oldTWO.add(TWO);
+		oldBOTH.add(BOTH);
+		TWO = new State();
+		BOTH = new State();
 	}
 	
 	@Override
@@ -141,7 +158,7 @@ public class AdhocBackwardSlicer implements Slicer {
 		LinkedList<SDGNode> worklist_1 = new LinkedList<SDGNode>();
 		LinkedList<SDGNode> worklist_2 = new LinkedList<SDGNode>();
 		for (SDGNode n : g.vertexSet()) {
-			n.customData = State.NULL;
+			n.customData = NULL;
 		}
 		
 		// SDGNode.equals() seems a bit costly, so we use identityHashMaps here
@@ -166,7 +183,7 @@ public class AdhocBackwardSlicer implements Slicer {
 			if (assertionsEnabled) {
 				visited_2.clear();
 			} {
-				visited_2_clear(g.vertexSet());
+				visited_2_clear();
 			}
 
 			worklist_1.add(worklist_0.poll());
@@ -197,6 +214,8 @@ public class AdhocBackwardSlicer implements Slicer {
 						if (visited_0_1_add(adjacent)) {
 							assert visited_0_1.add(adjacent);
 							worklist_0.add(adjacent);
+						} else {
+							assert visited_0_1.contains(adjacent);
 						}
 
 					} else if (edge.getKind() == SDGEdge.Kind.PARAMETER_OUT) {
@@ -204,6 +223,8 @@ public class AdhocBackwardSlicer implements Slicer {
 						if (visited_2_add(adjacent)) {
 							assert visited_2.add(adjacent);
 							worklist_2.add(adjacent);
+						} else {
+							assert visited_2.contains(adjacent);
 						}
 
 					} else if (edge.getKind().isSDGEdge()) { // note that return
@@ -214,6 +235,8 @@ public class AdhocBackwardSlicer implements Slicer {
 						if (visited_0_1_add(adjacent)) {
 							assert visited_0_1.add(adjacent);
 							worklist_1.add(adjacent);
+						} else {
+							assert visited_0_1.contains(adjacent);
 						}
 					}
 				}
@@ -234,6 +257,8 @@ public class AdhocBackwardSlicer implements Slicer {
 						if (visited_0_1_add(adjacent)) {
 							assert visited_0_1.add(adjacent);
 							worklist_0.add(adjacent);
+						} else {
+							assert visited_0_1.contains(adjacent);
 						}
 
 					} else if (edge.getKind().isSDGEdge() && edge.getKind() != SDGEdge.Kind.CALL
@@ -244,14 +269,19 @@ public class AdhocBackwardSlicer implements Slicer {
 						if (visited_2_add(adjacent)) {
 							assert visited_2.add(adjacent);
 							worklist_2.add(adjacent);
+						} else {
+							assert visited_2.contains(adjacent);
 						}
 					}
 				}
 			}
 		}
 
-		// callers will have to promise not to re-use customData before inspecting this result;
-		final Set<SDGNode> result = Sets.filter(g.vertexSet(), n -> n.customData == State.ZERO_ONE || n.customData == State.BOTH);
+		final Set<SDGNode> result =
+			g.vertexSet()
+			 .stream()
+			 .filter(n -> n.customData == ZERO_ONE || n.customData == BOTH || oldBOTH.contains(n.customData))
+			 .collect(Collectors.toSet());
 		
 		assert visited_0_1.equals(result);
 		return result;

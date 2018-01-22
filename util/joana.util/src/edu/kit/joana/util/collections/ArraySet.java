@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.function.Predicate;
 
 /**
  * A Set backed by an Object array. Optimized for size only, with severe consequences for speed.
@@ -36,7 +37,7 @@ import java.util.SortedSet;
  * 
  * @author martin.hecker@kit.edu <Martin Hecker>
  */
-public final class ArraySet<E> extends AbstractSet<E> implements Set<E>{
+public class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 	
 	private static final Comparator<Object> COMPARATOR = new Comparator<Object>() {
 		@Override
@@ -45,9 +46,9 @@ public final class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 		}
 	};
 	
-	private static final Object[] empty = new Object[0];
+	protected static final Object[] empty = new Object[0];
 	
-	private Object[] elements;
+	protected Object[] elements;
 	
 	public ArraySet(Set<E> other) {
 		final Object[] elements = other.toArray();
@@ -61,7 +62,7 @@ public final class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 		assert invariant();
 	}
 	
-	private ArraySet(Object[] elements) {
+	protected ArraySet(Object[] elements) {
 		this.elements = elements;
 		
 		assert invariant();
@@ -72,7 +73,7 @@ public final class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 		return new ArraySet<>(elements);
 	}
 	
-	private boolean invariant() {
+	protected boolean invariant() {
 		if (elements == null) return false;
 		int lastHashCode = Integer.MIN_VALUE;
 		for (int i = 0; i < elements.length; i++) {
@@ -91,12 +92,12 @@ public final class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 	}
 	
 	@Override
-	public int size() {
+	public final int size() {
 		return elements.length;
 	}
 
 	@Override
-	public boolean isEmpty() {
+	public final boolean isEmpty() {
 		return elements.length == 0;
 	}
 
@@ -107,7 +108,7 @@ public final class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 	// Adapted from java.util.ArraysbinarySearch0
 	// This may be called in a state where some elements are null, see, e.g., 
 	// ArraySet#removeAll().
-	private int binarySearch0(int fromIndex, int toIndex, Object element) {
+	protected int binarySearch0(int fromIndex, int toIndex, Object element) {
 		final int key = element.hashCode(); 
 		int low = fromIndex;
 		int high = toIndex - 1;
@@ -162,7 +163,7 @@ public final class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 	}
 	
 	@Override
-	public boolean contains(Object o) {
+	public final boolean contains(Object o) {
 		if (o == null) return false;
 		
 		final int index = binarySearch0(0, elements.length, o);
@@ -170,7 +171,7 @@ public final class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 	}
 
 	@Override
-	public Iterator<E> iterator() {
+	public final Iterator<E> iterator() {
 		return new Iterator<E>() {
 			int i = 0;
 
@@ -191,14 +192,14 @@ public final class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 	}
 
 	@Override
-	public Object[] toArray() {
+	public final Object[] toArray() {
 		return Arrays.copyOf(elements, elements.length);
 	}
 
 	
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T[] toArray(T[] a) {
+	public final <T> T[] toArray(T[] a) {
 		if (a.length < elements.length) {
 			a = (T[])java.lang.reflect.Array.newInstance(a.getClass().getComponentType(), elements.length);
 		}
@@ -209,153 +210,35 @@ public final class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 		}
 		return a;
 	}
-
+	
 	@Override
 	public boolean add(E e) {
-		if (e == null) throw new NullPointerException();
-		
-		final int index = binarySearch0(0, elements.length, e);
-		if (index >= 0) return false;
-		
-		final int insert = -index - 1;
-		assert insert >= 0;
-		assert insert == elements.length || elements[insert] != null;
-		
-		final int newSize = elements.length + 1;
-
-		@SuppressWarnings("unchecked")
-		E[] newElements = (E[]) new Object[newSize];
-		if (insert > 0) {
-			System.arraycopy(elements,      0, newElements,          0, insert);
-		}
-		if (insert < elements.length) {
-			System.arraycopy(elements, insert, newElements, insert + 1, elements.length - insert);
-		}
-		newElements[insert] = e;
-		
-		this.elements = newElements;
-		
-		assert invariant();
-		return true;
+		throw new UnsupportedOperationException();
 	}
-
+	
 	@Override
 	public boolean addAll(Collection<? extends E> c) {
-		// TODO this is correct, but very slow. Needs to be optimized. 
-		return super.addAll(c);
-	}
+		throw new UnsupportedOperationException();	}
 	
 	@Override
 	public boolean remove(Object o) {
-		if (o == null) throw new NullPointerException();
-		
-		final int remove = binarySearch0(0, elements.length, o);
-		if (remove < 0) return false;
-		
-		assert (remove < elements.length);
-		assert (elements.length > 0);
-		
-		@SuppressWarnings("unchecked")
-		E[] newElements = (E[]) new Object[elements.length - 1];
-		System.arraycopy(elements,          0, newElements,      0, remove);
-		System.arraycopy(elements, remove + 1, newElements, remove, elements.length - remove - 1  );
-		this.elements = newElements;
-		
-		assert invariant();
-		return true;
-	}
+		throw new UnsupportedOperationException();	}
 	
 	@Override
 	public boolean removeAll(Collection<?> c) {
-		int removed = 0;
-		for (Object o : c) {
-			final int remove = binarySearch0(0, elements.length, o);
-			if (remove < 0) continue;
-			
-			assert (remove < elements.length);
-			assert (elements.length > 0);
-			
-			elements[remove] = null;
-			removed++;
-		}
-		
-		if (removed > 0) {
-			compact(removed);
-			
-			assert invariant();
-			return true;
-		}
-		
-		assert invariant();
-		return false;
-	}
-	
-	private void compact(int removed) {
-		@SuppressWarnings("unchecked")
-		E[] newElements = (E[]) new Object[elements.length - removed];
-		
-		int k = 0;
-		int i = 0;
-		
-		while (true) {
-			while (i < elements.length && elements[i] == null) i++;
-			if (i == elements.length)  {
-				this.elements = newElements;
-				return;
-			}
-			assert elements[i] != null;
-			
-			int j = i;
-			while (j < elements.length && elements[j] != null) j++;
-			assert j == elements.length || elements[j] == null;
-			
-			int length = j - i;
-			assert length > 0;
-			
-			System.arraycopy(elements, i, newElements,      k, length);
-			k += length;
-			
-			i = j;
-		}
-	}
+		throw new UnsupportedOperationException();	}
 	
 	@Override
 	public boolean retainAll(Collection<?> c) {
-		int removed = 0;
-		for (int i = 0; i < elements.length; i++) {
-			assert elements[i] != null;
-			if (!c.contains(elements[i])) {
-				elements[i] = null;
-				removed++;
-			}
-		}
-		
-		if (removed > 0) {
-			compact(removed);
-			
-			assert invariant();
-			return true;
-		}
-		
-		assert invariant();
-		return false;
-	}
+		throw new UnsupportedOperationException();	}
 	
-
 	@Override
 	public void clear() {
-		@SuppressWarnings("unchecked")
-		E[] newElements = (E[]) new Object[0];
-		elements = newElements;
-		
-		assert invariant();
-		return;
+		throw new UnsupportedOperationException();
 	}
 	
-	public E[] disown() {
-		@SuppressWarnings("unchecked")
-		E[] result = (E[]) elements;
-		elements = null;
-		return result;
+	@Override
+	public boolean removeIf(Predicate<? super E> filter) {
+		throw new UnsupportedOperationException();
 	}
 }

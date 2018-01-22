@@ -55,6 +55,7 @@ import org.jgrapht.util.*;
 
 
 import edu.kit.joana.util.collections.ArraySet;
+import edu.kit.joana.util.collections.ModifiableArraySet;
 
 
 
@@ -738,13 +739,13 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         public final Set<EE> getUnmodifiableIncomingEdges()
         {
         	if (incoming == null) return Collections.emptySet();
-            return Collections.unmodifiableSet(ArraySet.own(incoming));
+            return ArraySet.own(incoming);
         }
 
         public final Set<EE> getUnmodifiableOutgoingEdges()
         {
         	if (outgoing == null) return Collections.emptySet();
-            return Collections.unmodifiableSet(ArraySet.own(outgoing));
+            return ArraySet.own(outgoing);
         }
 
         /**
@@ -754,12 +755,12 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
          */
         public final void addIncomingEdge(EE e)
         {
-        	final ArraySet<EE> set;
+        	final ModifiableArraySet<EE> set;
             if (incoming == null) {
-            	set = new ArraySet<>(Collections.singleton(e));
+            	set = new ModifiableArraySet<>(Collections.singleton(e));
             	
             } else {
-            	set = ArraySet.own(incoming);
+            	set = ModifiableArraySet.own(incoming);
             	set.add(e);
             }
             incoming = set.disown();
@@ -772,12 +773,12 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
          */
         public final void addOutgoingEdge(EE e)
         {
-        	final ArraySet<EE> set;
+        	final ModifiableArraySet<EE> set;
             if (outgoing == null) {
-            	set = new ArraySet<>(Collections.singleton(e));
+            	set = new ModifiableArraySet<>(Collections.singleton(e));
             	
             } else {
-            	set = ArraySet.own(outgoing);
+            	set = ModifiableArraySet.own(outgoing);
             	set.add(e);
             }
             outgoing = set.disown();
@@ -791,7 +792,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         public final void removeIncomingEdge(EE e)
         {
         	if (incoming == null) return;
-        	final ArraySet<EE> set = ArraySet.own(incoming);
+        	final ModifiableArraySet<EE> set = ModifiableArraySet.own(incoming);
         	set.remove(e);
             incoming = set.disown();
         }
@@ -804,7 +805,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         public final void removeOutgoingEdge(EE e)
         {
         	if (outgoing == null) return;
-        	final ArraySet<EE> set = ArraySet.own(outgoing);
+        	final ModifiableArraySet<EE> set = ModifiableArraySet.own(outgoing);
         	set.remove(e);
         	outgoing = set.disown();
         }

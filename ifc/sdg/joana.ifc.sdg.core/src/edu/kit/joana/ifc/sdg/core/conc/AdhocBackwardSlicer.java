@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Set;
+import java.util.zip.ZipError;
 
 import com.google.common.collect.Sets;
 
@@ -72,17 +73,89 @@ public class AdhocBackwardSlicer implements Slicer {
 		this.g = graph;
 	}
 
+	
+	private static enum State { NULL, ZERO_ONE, TWO, BOTH }; 
+
+	private static void visit_0_1_addAll(Collection<SDGNode> criteria) {
+		for (SDGNode c : criteria) {
+			visited_0_1_add (c); 
+		}
+	}
+	
+	private static boolean visited_0_1_add(SDGNode n) {
+		switch (((State) n.customData)) {
+			case TWO:
+				n.customData = State.BOTH;
+				return true;
+			case NULL:
+				n.customData = State.ZERO_ONE;
+				return true;
+			case BOTH:
+			case ZERO_ONE:
+				return false;
+			default:
+				assert false;
+				return false;
+			}
+	}
+	
+	private static boolean visited_2_add(SDGNode n) {
+		switch (((State) n.customData)) {
+			case ZERO_ONE:
+				n.customData = State.BOTH;
+				return true;
+			case NULL:
+				n.customData = State.TWO;
+				return true;
+			case BOTH:
+			case TWO:
+				return false;
+			default:
+				assert false;
+				return false;
+		}
+	}
+	
+	private static void visited_2_clear(Collection<SDGNode> criteria) {
+		for (SDGNode n : criteria) {
+			switch (((State) n.customData)) {
+				case BOTH:
+					n.customData = State.ZERO_ONE; break;
+				case TWO:
+					n.customData = State.NULL; break;
+				case NULL:
+				case ZERO_ONE:
+					break;
+				default:
+					assert false;
+			}
+		}
+	}
+	
 	@Override
 	public Collection<SDGNode> slice(Collection<SDGNode> criteria) {
+		boolean assertionsEnabled = false;
+		assert assertionsEnabled = true;
+		
 		LinkedList<SDGNode> worklist_0 = new LinkedList<SDGNode>();
 		LinkedList<SDGNode> worklist_1 = new LinkedList<SDGNode>();
 		LinkedList<SDGNode> worklist_2 = new LinkedList<SDGNode>();
+		for (SDGNode n : g.vertexSet()) {
+			n.customData = State.NULL;
+		}
 		
 		// SDGNode.equals() seems a bit costly, so we use identityHashMaps here
 		Set<SDGNode> visited_0_1 = Sets.newIdentityHashSet();
 		Set<SDGNode> visited_2   = Sets.newIdentityHashSet();
+		
 		worklist_0.addAll(criteria);
-		visited_0_1.addAll(criteria);
+		
+		if (assertionsEnabled) {
+			visited_0_1.addAll(criteria);
+		} {
+			visit_0_1_addAll(criteria);
+		}
+		
 		// System.out.println("searching for data channels");
 
 		edgeListener.init();
@@ -90,10 +163,18 @@ public class AdhocBackwardSlicer implements Slicer {
 		// die basis bildet ein iterierter zwei-phasen slice
 		while (!worklist_0.isEmpty()) {
 			// init the next iteration
-			visited_2.clear();
+			if (assertionsEnabled) {
+				visited_2.clear();
+			} {
+				visited_2_clear(g.vertexSet());
+			}
 
 			worklist_1.add(worklist_0.poll());
-			visited_0_1.add(worklist_1.peek());
+			if (assertionsEnabled) {
+				visited_0_1.add(worklist_1.peek());
+			} {
+				visited_0_1_add(worklist_1.peek());
+			}
 
 			// === phase 1 ===
 			// only ascend to calling procedures
@@ -113,13 +194,15 @@ public class AdhocBackwardSlicer implements Slicer {
 						// not taken into account?
 						// I suspect that this is not critical for correctness
 						// but rather for precision...
-						if (visited_0_1.add(adjacent)) {
+						if (visited_0_1_add(adjacent)) {
+							assert visited_0_1.add(adjacent);
 							worklist_0.add(adjacent);
 						}
 
 					} else if (edge.getKind() == SDGEdge.Kind.PARAMETER_OUT) {
 						// descend into called procedure in phase two!
-						if (visited_2.add(adjacent)) {
+						if (visited_2_add(adjacent)) {
+							assert visited_2.add(adjacent);
 							worklist_2.add(adjacent);
 						}
 
@@ -128,7 +211,8 @@ public class AdhocBackwardSlicer implements Slicer {
 																// sdg edges!
 
 						// intra-procedural or ascending edge
-						if (visited_0_1.add(adjacent)) {
+						if (visited_0_1_add(adjacent)) {
+							assert visited_0_1.add(adjacent);
 							worklist_1.add(adjacent);
 						}
 					}
@@ -147,7 +231,8 @@ public class AdhocBackwardSlicer implements Slicer {
 					if (edge.getKind() == SDGEdge.Kind.INTERFERENCE) {
 						// handle interference edges: create new elements for
 						// worklist_0
-						if (visited_0_1.add(adjacent)) {
+						if (visited_0_1_add(adjacent)) {
+							assert visited_0_1.add(adjacent);
 							worklist_0.add(adjacent);
 						}
 
@@ -156,7 +241,8 @@ public class AdhocBackwardSlicer implements Slicer {
 							&& edge.getKind() != SDGEdge.Kind.FORK_IN) {
 
 						// intra-procedural or param-out edge
-						if (visited_2.add(adjacent)) {
+						if (visited_2_add(adjacent)) {
+							assert visited_2.add(adjacent);
 							worklist_2.add(adjacent);
 						}
 					}
@@ -164,7 +250,11 @@ public class AdhocBackwardSlicer implements Slicer {
 			}
 		}
 
-		return visited_0_1;
+		// callers will have to promise not to re-use customData before inspecting this result;
+		final Set<SDGNode> result = Sets.filter(g.vertexSet(), n -> n.customData == State.ZERO_ONE || n.customData == State.BOTH);
+		
+		assert visited_0_1.equals(result);
+		return result;
 
 	}
 

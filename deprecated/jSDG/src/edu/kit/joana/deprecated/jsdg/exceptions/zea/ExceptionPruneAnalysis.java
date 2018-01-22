@@ -111,7 +111,7 @@ public class ExceptionPruneAnalysis extends ExceptionPrunedCFGAnalysis<SSAInstru
         AnalysisOptions options = new AnalysisOptions();
         options.getSSAOptions().setPiNodePolicy(SSAOptions.getAllBuiltInPiNodes());
         options.setEntrypoints(entries);
-        CallGraphBuilder builder = Util.makeZeroOneContainerCFABuilder(options, cache, cha, scope);
+        CallGraphBuilder<InstanceKey> builder = Util.makeZeroOneContainerCFABuilder(options, cache, cha, scope);
         CallGraph cg = builder.makeCallGraph(options, null);
 
         PointerAnalysis<InstanceKey> pta = builder.getPointerAnalysis();
@@ -155,7 +155,7 @@ public class ExceptionPruneAnalysis extends ExceptionPrunedCFGAnalysis<SSAInstru
         AnalysisOptions options = new AnalysisOptions();
         options.getSSAOptions().setPiNodePolicy(SSAOptions.getAllBuiltInPiNodes());
         options.setEntrypoints(entries);
-        CallGraphBuilder builder = Util.makeZeroCFABuilder(options, cache, cha, scope);
+        CallGraphBuilder<InstanceKey> builder = Util.makeZeroCFABuilder(options, cache, cha, scope);
 
         System.out.println("Creating call graph...");
         CallGraph cg = builder.makeCallGraph(options, null);

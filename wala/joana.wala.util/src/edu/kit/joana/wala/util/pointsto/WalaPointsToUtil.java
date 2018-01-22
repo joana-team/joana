@@ -24,6 +24,7 @@ import com.ibm.wala.ipa.callgraph.impl.DefaultContextSelector;
 import com.ibm.wala.ipa.callgraph.impl.DelegatingContextSelector;
 import com.ibm.wala.ipa.callgraph.impl.UnionContextSelector;
 import com.ibm.wala.ipa.callgraph.impl.Util;
+import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.SSAContextInterpreter;
 import com.ibm.wala.ipa.callgraph.propagation.SSAPropagationCallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.DefaultSSAInterpreter;
@@ -156,7 +157,7 @@ public final class WalaPointsToUtil {
         }
     }
 
-    public static CallGraphBuilder makeRTA(final AnalysisOptions options, final IAnalysisCacheView cache,
+    public static CallGraphBuilder<InstanceKey> makeRTA(final AnalysisOptions options, final IAnalysisCacheView cache,
 			final IClassHierarchy cha, final AnalysisScope scope) {
 
 		Util.addDefaultSelectors(options, cha);
@@ -165,7 +166,7 @@ public final class WalaPointsToUtil {
 		return new BasicRTABuilder(cha, options, cache, null, null);
 	}
 
-	public static CallGraphBuilder makeContextFreeType(final AnalysisOptions options, final IAnalysisCacheView cache,
+	public static CallGraphBuilder<InstanceKey> makeContextFreeType(final AnalysisOptions options, final IAnalysisCacheView cache,
 		      final IClassHierarchy cha, final AnalysisScope scope, final ContextSelector contextSelector,
 		      final SSAContextInterpreter contextInterpreter) {
 	    if (options == null) {
@@ -187,7 +188,7 @@ public final class WalaPointsToUtil {
 	    return ZeroXCFABuilder.make(cha, options, cache, contextSelector, contextInterpreter, instancePolicy);
 	}
 
-	public static CallGraphBuilder makeContextSensSite(final AnalysisOptions options, final IAnalysisCacheView cache,
+	public static CallGraphBuilder<InstanceKey> makeContextSensSite(final AnalysisOptions options, final IAnalysisCacheView cache,
 		      final IClassHierarchy cha, final AnalysisScope scope, final ContextSelector contextSelector,
 		      final SSAContextInterpreter additionalContextInterpreter) {
 
@@ -219,7 +220,7 @@ public final class WalaPointsToUtil {
 	    return ZeroXCFABuilder.make(cha, options, cache, contextSelector, contextInterpreter, instancePolicy);
 	}
 
-	public static CallGraphBuilder makeObjectSens(final ExtendedAnalysisOptions options, final IAnalysisCacheView cache,
+	public static CallGraphBuilder<InstanceKey> makeObjectSens(final ExtendedAnalysisOptions options, final IAnalysisCacheView cache,
 		      final IClassHierarchy cha, final AnalysisScope scope, final ContextSelector additionalContextSelector,
 		      final SSAContextInterpreter additionalContextInterpreter) {
 
@@ -267,7 +268,7 @@ public final class WalaPointsToUtil {
     /**
      *  @todo TODO  Does not respect SDGBuilderConfig.additinalContextSelector and additionalContextInterpreter
      */
-	public static CallGraphBuilder makeNCallStackSens(final int n, final AnalysisOptions options,
+	public static CallGraphBuilder<InstanceKey> makeNCallStackSens(final int n, final AnalysisOptions options,
 			final IAnalysisCacheView cache, final IClassHierarchy cha, final AnalysisScope scope,
 			final ContextSelector additionalContextSelector,
 			final SSAContextInterpreter additionalContextInterpreter) {
@@ -314,20 +315,20 @@ public final class WalaPointsToUtil {
     //
     // Old methods follow for compatibility reasons
     //
-	public static CallGraphBuilder makeNCallStackSens(final int n, final AnalysisOptions options,
+	public static CallGraphBuilder<InstanceKey> makeNCallStackSens(final int n, final AnalysisOptions options,
 			final AnalysisCache cache, final IClassHierarchy cha, final AnalysisScope scope) {
         return makeNCallStackSens(n, options, cache, cha, scope, null, null);
     }
 
-	public static CallGraphBuilder makeContextFreeType(final AnalysisOptions options, final AnalysisCache cache,
+	public static CallGraphBuilder<InstanceKey> makeContextFreeType(final AnalysisOptions options, final AnalysisCache cache,
 		      final IClassHierarchy cha, final  AnalysisScope scope) {
         return makeContextFreeType(options, cache, cha, scope, null, null);
     }
-	public static CallGraphBuilder makeContextSensSite(final AnalysisOptions options, final AnalysisCache cache,
+	public static CallGraphBuilder<InstanceKey> makeContextSensSite(final AnalysisOptions options, final AnalysisCache cache,
 		      final IClassHierarchy cha, final AnalysisScope scope) {
         return makeContextSensSite(options, cache, cha, scope, null, null);
     }
-	public static CallGraphBuilder makeObjectSens(final ExtendedAnalysisOptions options, final AnalysisCache cache,
+	public static CallGraphBuilder<InstanceKey> makeObjectSens(final ExtendedAnalysisOptions options, final AnalysisCache cache,
 		      final IClassHierarchy cha, final AnalysisScope scope) {
         return makeObjectSens(options, cache, cha, scope, null, null);
     }

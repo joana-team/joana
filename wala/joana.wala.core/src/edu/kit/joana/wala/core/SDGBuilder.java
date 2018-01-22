@@ -1131,7 +1131,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		}
 	}
 
-	public CallGraphBuilder createCallgraphBuilder(final IProgressMonitor progress) {
+	public CallGraphBuilder<InstanceKey> createCallgraphBuilder(final IProgressMonitor progress) {
 		final List<Entrypoint> entries = new LinkedList<Entrypoint>();
 		final Entrypoint ep = new SubtypesEntrypoint(cfg.entry, cfg.cha);
 		entries.add(ep);
@@ -1145,7 +1145,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			options.setSelector(cfg.methodTargetSelector);
 		}
 
-		CallGraphBuilder cgb = null;
+		CallGraphBuilder<InstanceKey> cgb = null;
 		switch (cfg.pts) {
 		case RTA: // Rapid Type Analysis
 			// Maybe UNSOUND - WALAs implementation looks suspicious.
@@ -1221,7 +1221,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			CallGraphBuilderCancelException {
 		ExtendedAnalysisOptions options = createSingleEntryOptions(cfg);
 
-		CallGraphBuilder cgb = createCallgraphBuilder(cfg, options);
+		CallGraphBuilder<InstanceKey> cgb = createCallgraphBuilder(cfg, options);
 		com.ibm.wala.ipa.callgraph.CallGraph callgraph = cgb.makeCallGraph(options, progress);
 
 		return new CGResult(callgraph, cgb.getPointerAnalysis());
@@ -1248,8 +1248,8 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		}
 		return options;
 	}
-	public static CallGraphBuilder createCallgraphBuilder(SDGBuilderConfig cfg, ExtendedAnalysisOptions options) {
-		CallGraphBuilder cgb = null;
+	public static CallGraphBuilder<InstanceKey> createCallgraphBuilder(SDGBuilderConfig cfg, ExtendedAnalysisOptions options) {
+		CallGraphBuilder<InstanceKey> cgb = null;
 		switch (cfg.pts) {
 		case RTA: // Rapid Type Analysis
 			// Maybe UNSOUND - WALAs implementation looks suspicious.

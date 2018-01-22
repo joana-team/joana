@@ -718,7 +718,7 @@ public class SDGFactory {
 		System.out.println();
 		final Pair<Long, SDGBuilder.SDGBuilderConfig> prep = SDGBuildPreparation.prepareBuild(System.out, cfg, NullProgressMonitor.INSTANCE);
 		final SDGBuilder sdgb = SDGBuilder.onlyCreate(prep.snd);
-		final CallGraphBuilder cgb = sdgb.createCallgraphBuilder(NullProgressMonitor.INSTANCE);
+		final CallGraphBuilder<InstanceKey> cgb = sdgb.createCallgraphBuilder(NullProgressMonitor.INSTANCE);
 		return (SSAPropagationCallGraphBuilder) cgb;
 	}
 	

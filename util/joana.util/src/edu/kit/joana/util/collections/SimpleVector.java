@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.function.BiFunction;
 
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 
@@ -423,11 +424,98 @@ public class SimpleVector<K extends IntegerIdentifiable, V>  extends AbstractMap
 	}
 	
 	
-	// TODO implement this efficiently (and then: possibly implement SimpleVector#put using  SimpleVector#compute);
-	/*
 	@Override
 	public V compute(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
-		return Map.super.compute(key, remappingFunction);
+		if (key == null) throw new NullPointerException();
+		final int id = key.getId();
+		if (id > MAX_SIZE || id < -MAX_SIZE) {
+			throw new IllegalArgumentException("id is too big: " + id);
+		}
+		
+		if (0 <= id) {
+			final int x = id;
+			
+			if (x < rightKeys.length) {
+				@SuppressWarnings("unchecked")
+				K currentKey = (K) rightKeys[x];
+				@SuppressWarnings("unchecked")
+				V oldValue   = (V) rightValues[x];
+				
+				assert (oldValue == null) == (currentKey == null);
+				assert currentKey == null || key.equals(currentKey);
+
+				final V value = remappingFunction.apply(key, oldValue);
+				
+				if (currentKey == null && value != null) {
+					rightKeys[x] = key;
+					size++;
+					rightMaxIndex = Math.max(rightMaxIndex, x);
+				} else if (currentKey != null && value == null){
+					size--;
+					if (rightMaxIndex == x) {
+						int newMaxIndex = x - 1;
+						while (newMaxIndex >= 0 && rightKeys[newMaxIndex] == null) newMaxIndex--;
+						rightMaxIndex = newMaxIndex;
+					}
+				}
+				rightValues[x] = value;
+				
+				return value;
+			} else {
+				final V value = remappingFunction.apply(key, null);
+				if (value != null) {
+					ensureRightCapacity(x);
+					rightKeys[x] = key;
+					rightValues[x] = value;
+					size++;
+					assert Math.max(rightMaxIndex, x) == x;
+					rightMaxIndex = x;
+				}
+				return value;
+			}
+
+		} else {
+			final int y = -id;
+			assert y != 0;
+			
+			if (y < leftKeys.length) {
+				@SuppressWarnings("unchecked")
+				K currentKey = (K) leftKeys[y];
+				@SuppressWarnings("unchecked")
+				V oldValue   = (V) leftValues[y];
+				
+				assert (oldValue == null) == (currentKey == null);
+				assert currentKey == null || key.equals(currentKey);
+				
+				final V value = remappingFunction.apply(key, oldValue);
+				
+				if (currentKey == null && value != null) {
+					leftKeys[y] = key;
+					size++;
+					leftMaxIndex = Math.max(leftMaxIndex, y);
+				} else if (currentKey != null && value == null){
+					size--;
+					if (leftMaxIndex == y) {
+						int newMaxIndex = y - 1;
+						while (newMaxIndex >= 0 && leftKeys[newMaxIndex] == null) newMaxIndex--;
+						leftMaxIndex = newMaxIndex;
+					}
+				}
+				leftValues[y] = value;
+				
+				return value;
+			} else {
+				final V value = remappingFunction.apply(key, null);
+				if (value != null) {
+					ensureRightCapacity(y);
+					leftKeys[y] = key;
+					leftValues[y] = value;
+					size++;
+					assert Math.max(leftMaxIndex, y) == y;
+					leftMaxIndex = y;
+				}
+				return value;
+			}
+		}
 	}
-	*/
 }

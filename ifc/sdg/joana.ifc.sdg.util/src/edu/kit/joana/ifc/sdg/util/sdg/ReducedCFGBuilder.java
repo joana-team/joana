@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import edu.kit.joana.ifc.sdg.graph.JoanaGraph;
+import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
@@ -41,7 +42,7 @@ public final class ReducedCFGBuilder {
 	 * @return the control-flow graph of the given sdg, which only contains nodes considered 'interesting' by the given
 	 * node predicate
 	 */
-	public static CFG extractReducedCFG(JoanaGraph sdg, SDGNodePredicate nodePred) {
+	public static CFG extractReducedCFG(SDG sdg, SDGNodePredicate nodePred) {
 		CFG cfgBase = ICFGBuilder.extractICFG(sdg);
 		CFG cfgRet = new CFG();
 
@@ -70,7 +71,7 @@ public final class ReducedCFGBuilder {
 	 * @param sdg sdg to extract the reduced control-flow graph from
 	 * @return reduced control-flow graph of the given sdg
 	 */
-	public static CFG extractReducedCFG(JoanaGraph sdg) {
+	public static CFG extractReducedCFG(SDG sdg) {
 		return extractReducedCFG(sdg, new DefaultSDGNodePredicate());
 	}
 

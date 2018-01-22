@@ -17,6 +17,7 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
+import edu.kit.joana.util.collections.SimpleVector;
 
 
 /** A utility class for extracting the ICFG from a threaded IPDG.
@@ -36,12 +37,13 @@ public final class ICFGBuilder {
      * @param ipdg  The TIPDG whose ICFG is needed.
      * @return      A new graph, the ICFG.
      */
-    public static CFG extractICFG(JoanaGraph sdg){
+    public static CFG extractICFG(SDG sdg){
 //    	debuggingControlFlowInspector(sdg);
 
         // create new graph and copy all ICFG-related edges and associated
         // vertices into it
-        CFG icfg = new CFG();
+    	// almost all node ids should be positive, here
+        CFG icfg = new CFG(() -> new SimpleVector<>(10, sdg.vertexSet().size()));
         icfg.setThreadsInfo(sdg.getThreadsInfo());
         Set<SDGEdge> edges = sdg.edgeSet();
 
@@ -71,12 +73,12 @@ public final class ICFGBuilder {
      * @param ipdg  The TIPDG whose ICFG is needed.
      * @return      A new graph, the ICFG (including join edges).
      */
-    public static CFG extractICFGIncludingJoins(JoanaGraph sdg){
+    public static CFG extractICFGIncludingJoins(SDG sdg){
 //    	debuggingControlFlowInspector(sdg);
 
         // create new graph and copy all ICFG-related edges and associated
         // vertices into it
-        CFG icfg = new CFG();
+        CFG icfg = new CFG(() -> new SimpleVector<>(10, sdg.vertexSet().size()));
         icfg.setThreadsInfo(sdg.getThreadsInfo());
         Set<SDGEdge> edges = sdg.edgeSet();
 

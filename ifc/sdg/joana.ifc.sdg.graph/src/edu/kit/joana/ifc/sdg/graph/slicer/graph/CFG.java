@@ -11,12 +11,15 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import edu.kit.joana.ifc.sdg.graph.JoanaGraph;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.util.collections.ArrayMap;
+import edu.kit.joana.util.graph.AbstractBaseGraph.DirectedEdgeContainer;
 
 
 /** A CFG.
@@ -44,6 +47,12 @@ public class CFG extends JoanaGraph {
 		// TODO: maybe we want a different Map implementation here?!?!
 		super(() -> new ArrayMap<>());
 	}
+	
+	public CFG(Supplier<Map<SDGNode, DirectedEdgeContainer<SDGEdge, SDGEdge[]>>> vertexMapConstructor) {
+		super(vertexMapConstructor);
+	}
+	
+	
 	
     /** Adds an edge to the graph.
      *

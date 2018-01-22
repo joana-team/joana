@@ -10,8 +10,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.function.Predicate;
-
 import com.ibm.wala.cfg.ControlFlowGraph;
 import com.ibm.wala.dataflow.graph.BitVectorOr;
 import com.ibm.wala.fixedpoint.impl.DefaultFixedPointSolver;

@@ -7,11 +7,9 @@
  */
 package edu.kit.joana.ifc.sdg.mhpoptimization;
 
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
-import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;

@@ -7,10 +7,7 @@
  */
 package edu.kit.joana.wala.core;
 
-import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.types.TypeReference;
-import com.ibm.wala.util.intset.OrdinalSet;
-
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 
 /**

@@ -10,7 +10,6 @@ package edu.kit.joana.ui.wala.easyifc.model;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;

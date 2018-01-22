@@ -18,11 +18,8 @@ import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.types.annotations.Annotation;
 import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.intset.MutableMapping;
-import com.ibm.wala.util.intset.OrdinalSet;
 import com.ibm.wala.util.intset.OrdinalSetMapping;
 import com.ibm.wala.util.strings.Atom;
-
-import edu.kit.joana.wala.core.params.objgraph.candidates.ParameterCandidate;
 
 /**
  * Factory for object fields. As Wala treat array fields different from normal

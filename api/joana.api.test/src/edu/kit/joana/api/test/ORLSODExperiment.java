@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -40,7 +39,6 @@ import edu.kit.joana.ifc.sdg.irlsod.ORLSODChecker;
 import edu.kit.joana.ifc.sdg.irlsod.PathBasedORLSODChecker;
 import edu.kit.joana.ifc.sdg.irlsod.PredecessorMethod;
 import edu.kit.joana.ifc.sdg.irlsod.ProbInfComputer;
-import edu.kit.joana.ifc.sdg.irlsod.ThreadModularCDomOracle;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.sdg.GraphModifier;
 import edu.kit.joana.ifc.sdg.util.sdg.ReducedCFGBuilder;

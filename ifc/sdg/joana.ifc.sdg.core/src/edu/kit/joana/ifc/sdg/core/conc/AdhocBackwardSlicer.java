@@ -9,7 +9,6 @@ package edu.kit.joana.ifc.sdg.core.conc;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 

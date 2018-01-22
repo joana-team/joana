@@ -10,7 +10,6 @@ import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.SECRE
 import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.leak;
 import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.toggle;
 
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 

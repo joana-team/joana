@@ -9,7 +9,6 @@ package edu.kit.joana.wala.jsdg.optimize;
 
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;

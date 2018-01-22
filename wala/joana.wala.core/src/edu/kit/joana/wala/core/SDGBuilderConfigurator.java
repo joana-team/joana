@@ -10,14 +10,11 @@ package edu.kit.joana.wala.core;
 import java.io.PrintStream;
 
 import com.ibm.wala.cfg.exc.intra.MethodState;
-import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisCacheImpl;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.MethodTargetSelector;
 import com.ibm.wala.ipa.callgraph.pruned.PruningPolicy;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
-import com.ibm.wala.ssa.DefaultIRFactory;
-
 import edu.kit.joana.util.ReflectiveWatchdog;
 import edu.kit.joana.wala.core.CGConsumer;
 import edu.kit.joana.wala.core.ExternalCallCheck;

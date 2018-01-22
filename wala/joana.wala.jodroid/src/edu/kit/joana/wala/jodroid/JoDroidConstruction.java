@@ -36,8 +36,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.jar.JarFile;
 
@@ -56,11 +54,9 @@ import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.IInstantiationB
 import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.LoadedInstantiationBehavior;
 import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.Intent;
 import com.ibm.wala.dalvik.util.AndroidEntryPointLocator;
-import com.ibm.wala.dalvik.util.AndroidEntryPointLocator.LocatorFlags;
 import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
 import com.ibm.wala.dalvik.util.AndroidManifestXMLReader;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
-import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
 import com.ibm.wala.ipa.cha.IClassHierarchy;

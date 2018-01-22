@@ -45,7 +45,6 @@ import static edu.kit.joana.wala.core.graphs.NTSCDGraph.selfRef;
 import static edu.kit.joana.wala.core.graphs.NTSCDGraph.maxPaths;
 import static edu.kit.joana.wala.core.graphs.NTSCDGraph.add;
 import static edu.kit.joana.wala.core.graphs.NTSCDGraph.get;
-import static edu.kit.joana.wala.core.graphs.NTSCDGraph.set;
 /**
  * Computes nontermination insensitive control dependence.
  * 

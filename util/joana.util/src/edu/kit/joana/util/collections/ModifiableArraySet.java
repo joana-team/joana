@@ -7,7 +7,6 @@
  */
 package edu.kit.joana.util.collections;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 

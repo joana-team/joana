@@ -1,7 +1,6 @@
 package edu.kit.joana.api.test;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Assert;

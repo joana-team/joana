@@ -45,7 +45,6 @@ import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.IntentContextSelector;
 import com.ibm.wala.dalvik.util.AndroidEntryPointLocator.LocatorFlags;
 import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
 import com.ibm.wala.dalvik.util.AndroidPreFlightChecks;
-import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisCacheImpl;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions.ReflectionOptions;
@@ -72,16 +71,6 @@ import edu.kit.joana.wala.core.SDGBuilder.SDGBuilderConfig;
 import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph;
 import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
-import edu.kit.joana.wala.jodroid.AnalysisPresets.Preset;
-// Basic representations
-// Overall settings
-// Building the class hierarchy..
-// Controll the beahaviour of the android-model
-// Controll the generaton of the call-graph and pointsto anaysis
-// Building the SDG
-// Intermediate Reperesentation stuff
-// Additional helpers
-// Prepare build
 
 /**
  * This class provides presets for the various aspects of the SDG-generation.

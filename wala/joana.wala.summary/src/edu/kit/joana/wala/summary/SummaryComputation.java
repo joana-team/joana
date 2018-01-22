@@ -378,12 +378,13 @@ public class SummaryComputation {
             worklist.add(e);
         }
         if (e.source.getKind() == SDGNode.Kind.ACTUAL_OUT) {
-            Set<Edge> s = aoPaths.get(e.source);
-            if (s == null) {
-                s = new HashSet<Edge>();
-                aoPaths.put(e.source, s);
-            }
-            s.add(e);
+        	aoPaths.compute(e.source, (k, s) -> {
+        		if (s == null) {
+        			s = new HashSet<Edge>();
+        		}
+        		s.add(e);
+        		return s;
+        	});
         }
     }
 
@@ -501,8 +502,15 @@ public class SummaryComputation {
             }
         }
 
-        public int hashCode() {
+        @Deprecated
+        @SuppressWarnings("unused")
+        public int hashCodeOld() {
             return source.getId() | target.getId() << 16;
+        }
+        
+        @Override
+        public int hashCode() {
+        	return (source.hashCode() ^ (Integer.rotateRight(target.hashCode(), 16)));
         }
 
         public String toString() {

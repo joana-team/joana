@@ -845,28 +845,20 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
          */
         public Set<E> getAllEdges(V sourceVertex, V targetVertex)
         {
-            Set<E> edges = null;
-
-            if (containsVertex(sourceVertex)
-                && containsVertex(targetVertex))
-            {
-                edges = new ArrayUnenforcedSet<E>();
-
-                DirectedEdgeContainer<E,E[]> ec = getEdgeContainer(sourceVertex);
-
-                ArraySet<E> outgoing = ArraySet.own(ec.outgoing());
-                Iterator<E> iter = outgoing.iterator();
-
-                while (iter.hasNext()) {
-                    E e = iter.next();
-
-                    if (getEdgeTarget(e).equals(targetVertex)) {
-                        edges.add(e);
-                    }
-                }
+            DirectedEdgeContainer<E,E[]> ec = getEdgeContainer(sourceVertex);
+            if (ec == null) return null;
+            
+            ArraySet<E> outgoing = ArraySet.own(ec.outgoing());
+            final Set<E> edges = new ArrayUnenforcedSet<E>(outgoing.size());
+            
+            for (E e : outgoing) {
+            	if (getEdgeTarget(e).equals(targetVertex)) {
+            		edges.add(e);
+            	}
             }
 
             return edges;
+
         }
 
         /**

@@ -261,6 +261,7 @@ public class SummaryComputation {
                         for (SDGEdge eOut : graph.getAllEdges(e.source, e.target)) {
                             if (eOut.getKind().isSDGEdge()) {
                                 connectedInPDG = true;
+                                break;
                             }
                         }
                         if (connectedInPDG) continue; // already connected

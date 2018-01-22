@@ -10,6 +10,7 @@ package edu.kit.joana.ifc.sdg.core.conc;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 
@@ -35,13 +36,13 @@ public class Element {
      */
     public static class ElementSet {
         // realisierung durch eine map
-        private final HashMap<Element, Collection<String>> map;
+        private final HashMap<Element, Set<String>> map;
 
         /**
          * Initialisiert die Map.
          */
         public ElementSet() {
-            map = new HashMap<Element, Collection<String>>();
+            map = new HashMap<>();
         }
 
         /**
@@ -55,7 +56,7 @@ public class Element {
         public boolean add(Element e) {
             boolean in = false;
             // alle bisherigen levels
-            Collection<String> labels = map.get(e);
+            Set<String> labels = map.get(e);
 
             if (labels == null) {
                 // noch nie besucht, alle level von e merken
@@ -82,7 +83,7 @@ public class Element {
          * @param label  Ein Sicherheitslevel.
          * @return       Eine Menge Sicherheitslevel oder null.
          */
-        public Collection<String> get(SecurityNode n, String label) {
+        public Set<String> get(SecurityNode n, String label) {
             Element e = new Element(n, label);
             return map.get(e);
         }

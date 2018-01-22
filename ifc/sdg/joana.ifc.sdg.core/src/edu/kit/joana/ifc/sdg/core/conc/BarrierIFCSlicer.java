@@ -366,8 +366,7 @@ public class BarrierIFCSlicer extends IFC<String> implements ProgressAnnouncer {
     	// get the node
         SecurityNode reached = (SecurityNode) e.getSource();
         // create new set of labels
-        Set<String> newLabels = new HashSet<String>();
-        newLabels.addAll(oldElement.labels);
+        Set<String> newLabels = new HashSet<String>(oldElement.labels);
 
         // add freshly declassified labels
         if (reached.isDeclassification()
@@ -391,8 +390,8 @@ public class BarrierIFCSlicer extends IFC<String> implements ProgressAnnouncer {
         }
 
         // check if the new element would be redundant
-        Collection<String> markedLabels = set.get(reached, oldElement.label);
-        if (markedLabels == null || !markedLabels.containsAll(newLabels)) {
+        Set<String> markedLabels = set.get(reached, oldElement.label);
+        if (markedLabels == null || (newLabels.size() > markedLabels.size()) || !markedLabels.containsAll(newLabels)) {
             //marked.addAll(newLabels);
             return new Element(reached, oldElement.label, newLabels);
 

@@ -11,6 +11,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Set;
+
+import com.google.common.collect.Sets;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -75,8 +78,10 @@ public class AdhocBackwardSlicer implements Slicer {
 		LinkedList<SDGNode> worklist_0 = new LinkedList<SDGNode>();
 		LinkedList<SDGNode> worklist_1 = new LinkedList<SDGNode>();
 		LinkedList<SDGNode> worklist_2 = new LinkedList<SDGNode>();
-		HashSet<SDGNode> visited_0_1 = new HashSet<SDGNode>();
-		HashSet<SDGNode> visited_2 = new HashSet<SDGNode>();
+		
+		// SDGNode.equals() seems a bit costly, so we use identityHashMaps here
+		Set<SDGNode> visited_0_1 = Sets.newIdentityHashSet();
+		Set<SDGNode> visited_2   = Sets.newIdentityHashSet();
 		worklist_0.addAll(criteria);
 		visited_0_1.addAll(criteria);
 		// System.out.println("searching for data channels");

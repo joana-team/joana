@@ -470,10 +470,11 @@ public class MainChangeTest {
 	        for (SDGNode n : sdg.vertexSet()) {
 	        	if (n.kind == SDGNode.Kind.ACTUAL_IN
 	        			&& (relevant == null || relevant.contains(n.getProc()))) {
-	        		if (n.bv != null) {
-	        			n.bv.clearAll();
+	        		if (n.customData != null) {
+	        			
+	        			((BitVector)n.customData).clearAll();
 	        		} else {
-	        			n.bv = new BitVector(numRelevantNodes + 1);
+	        			n.customData = new BitVector(numRelevantNodes + 1);
 	        		}
 	        	}
 	        }

@@ -28,7 +28,7 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
 
 	/** used for optimizations in (parallel) summary computation */
 	public int tmp;
-	public BitVector bv;
+	public Object customData;
 
 	/** SDGNodes are classified by their kinds.
 	 * If you intend to analyze SDGs, this is probably the most important property of SDGNodes.

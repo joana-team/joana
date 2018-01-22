@@ -291,7 +291,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
 
                 case ACTUAL_IN:
                 	if (rememberReached) {
-                		BitVector bv = next.source.bv;
+                		BitVector bv = (BitVector) next.source.customData;
                 		int id = next.target.tmp;
 
                 		if (bv.contains(id)) {

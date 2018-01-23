@@ -7,6 +7,7 @@
  */
 package edu.kit.joana.ifc.sdg.graph;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
@@ -218,9 +219,9 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
      * @param kind  The demanded kind of edges.
      */
     public List<SDGEdge> getOutgoingEdgesOfKind(SDGNode node, SDGEdge.Kind kind) {
-    	LinkedList<SDGEdge> res = new LinkedList<SDGEdge>();
-
-    	for (SDGEdge e : outgoingEdgesOf(node)) {
+    	Set<SDGEdge> outgoing = outgoingEdgesOfUnsafe(node);
+    	List<SDGEdge> res = new ArrayList<>(outgoing.size());
+    	for (SDGEdge e : outgoing) {
     		if (e.getKind() == kind) {
     			res.add(e);
     		}

@@ -232,7 +232,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
                 	if (fullyConnected != null && fullyConnected.contains(next.source.getId())) {
                 		propagateAllActIns(next.source, next.target);
                 	} else {
-	                    for (SDGEdge e : graph.incomingEdgesOf(next.source)) {
+	                    for (SDGEdge e : graph.incomingEdgesOfUnsafe(next.source)) {
 	                    	final SDGEdge.Kind kind = e.getKind();
 	                        if (kind == sumEdgeKind
 	                        		|| ((kind == SDGEdge.Kind.DATA_DEP || kind == SDGEdge.Kind.DATA_HEAP
@@ -283,7 +283,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
                             }
                         }
                     }
-                    for (SDGEdge e : graph.incomingEdgesOf(next.source)) {
+                    for (SDGEdge e : graph.incomingEdgesOfUnsafe(next.source)) {
                     	final SDGEdge.Kind kind = e.getKind();
                     	if ((kind == SDGEdge.Kind.DATA_DEP || kind == SDGEdge.Kind.DATA_HEAP
                     			|| kind == SDGEdge.Kind.DATA_ALIAS) && relevantEdges.contains(kind)) {
@@ -304,7 +304,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
                 		bv.set(id);
                 	}
 
-                	for (SDGEdge e : graph.incomingEdgesOf(next.source)) {
+                	for (SDGEdge e : graph.incomingEdgesOfUnsafe(next.source)) {
                         if (e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR) {
                             if (e.getSource().getKind() == SDGNode.Kind.CALL) {
                                 propagate(e.getSource(), next.target);
@@ -322,7 +322,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
                 	if (fullyConnected != null && fullyConnected.contains(next.source.getId())) {
                 		propagateAllActIns(next.source, next.target);
                 	} else {
-                    for (SDGEdge e : graph.incomingEdgesOf(next.source)) {
+                    for (SDGEdge e : graph.incomingEdgesOfUnsafe(next.source)) {
                         if (e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR) {
                             if (e.getSource().getKind() == SDGNode.Kind.ENTRY) {
                                 propagate(e.getSource(), next.target);
@@ -346,7 +346,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
                     break;
 
                 default:
-                    for (SDGEdge e : graph.incomingEdgesOf(next.source)) {
+                    for (SDGEdge e : graph.incomingEdgesOfUnsafe(next.source)) {
                         if (relevantEdges.contains(e.getKind())) {
                             propagate(e.getSource(), next.target);
                         }

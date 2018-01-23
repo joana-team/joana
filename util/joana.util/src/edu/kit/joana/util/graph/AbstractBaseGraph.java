@@ -589,6 +589,14 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
     {
         return specifics.incomingEdgesOf(vertex);
     }
+    
+    /**
+     * @see DirectedGraph#incomingEdgesOf(Object)
+     */
+    public Set<E> incomingEdgesOfUnsafe(V vertex)
+    {
+        return specifics.incomingEdgesOfUnsafe(vertex);
+    }
 
     /**
      * @see DirectedGraph#outDegreeOf(Object)
@@ -604,6 +612,14 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
     public Set<E> outgoingEdgesOf(V vertex)
     {
         return specifics.outgoingEdgesOf(vertex);
+    }
+    
+    /**
+     * @see DirectedGraph#outgoingEdgesOf(Object)
+     */
+    public Set<E> outgoingEdgesOfUnsafe(V vertex)
+    {
+        return specifics.outgoingEdgesOfUnsafe(vertex);
     }
 
     /**
@@ -947,6 +963,14 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         {
             return getEdgeContainer(vertex).getUnmodifiableIncomingEdges();
         }
+        
+        /**
+         * @see DirectedGraph#incomingEdgesOf(Object)
+         */
+        public Set<E> incomingEdgesOfUnsafe(V vertex)
+        {
+            return getEdgeContainerUnsafe(vertex).getUnmodifiableIncomingEdges();
+        }
 
         /**
          * @see DirectedGraph#outDegreeOf(Object)
@@ -963,6 +987,14 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         public Set<E> outgoingEdgesOf(V vertex)
         {
             return getEdgeContainer(vertex).getUnmodifiableOutgoingEdges();
+        }
+        
+        /**
+         * @see DirectedGraph#outgoingEdgesOf(Object)
+         */
+        public Set<E> outgoingEdgesOfUnsafe(V vertex)
+        {
+            return getEdgeContainerUnsafe(vertex).getUnmodifiableOutgoingEdges();
         }
 
         public boolean removeEdgeFromTouchingVertices(E e)

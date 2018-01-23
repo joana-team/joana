@@ -198,7 +198,7 @@ public class AdhocBackwardSlicer implements Slicer {
 			while (!worklist_1.isEmpty()) {
 				SDGNode next = worklist_1.poll();
 
-				for (SDGEdge edge : g.incomingEdgesOf(next)) {
+				for (SDGEdge edge : g.incomingEdgesOfUnsafe(next)) {
 					edgeListener.edgeEncountered(edge);
 					SDGNode adjacent = edge.getSource();
 
@@ -247,7 +247,7 @@ public class AdhocBackwardSlicer implements Slicer {
 			while (!worklist_2.isEmpty()) {
 				SDGNode next = worklist_2.poll();
 
-				for (SDGEdge edge : g.incomingEdgesOf(next)) {
+				for (SDGEdge edge : g.incomingEdgesOfUnsafe(next)) {
 					edgeListener.edgeEncountered(edge);
 					SDGNode adjacent = edge.getSource();
 

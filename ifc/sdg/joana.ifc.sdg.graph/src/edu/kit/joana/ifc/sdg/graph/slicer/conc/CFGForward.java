@@ -32,7 +32,7 @@ public class CFGForward extends CFGSlicer {
     }
 
     protected Collection<SDGEdge> edgesToTraverse(SDGNode node) {
-        return this.g.outgoingEdgesOf(node);
+        return this.g.outgoingEdgesOfUnsafe(node);
     }
 
     protected SDGNode reachedNode(SDGEdge edge) {

@@ -69,7 +69,7 @@ public class CFGJoinSensitiveForward extends CFGForward {
 
     protected Collection<SDGEdge> edgesToTraverse(SDGNode node) {
     	Collection<SDGEdge> ret = new LinkedList<SDGEdge>();
-    	for (SDGEdge e : this.g.outgoingEdgesOf(node)) {
+    	for (SDGEdge e : this.g.outgoingEdgesOfUnsafe(node)) {
     		if (blockedEdges.contains(e) || joins.contains(e.getTarget())) {
     			continue;
     		}

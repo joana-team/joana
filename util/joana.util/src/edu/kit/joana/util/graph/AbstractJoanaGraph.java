@@ -273,6 +273,10 @@ public class AbstractJoanaGraph<V extends IntegerIdentifiable, E extends KnowsVe
 	public Set<E> incomingEdgesOf(V arg0) {
 		return delegate.incomingEdgesOf(arg0);
 	}
+	
+	public Set<E> incomingEdgesOfUnsafe(V arg0) {
+		return delegate.incomingEdgesOfUnsafe(arg0);
+	}
 
 	/**
 	 * @return
@@ -306,6 +310,10 @@ public class AbstractJoanaGraph<V extends IntegerIdentifiable, E extends KnowsVe
 	 */
 	public Set<E> outgoingEdgesOf(V arg0) {
 		return delegate.outgoingEdgesOf(arg0);
+	}
+	
+	public Set<E> outgoingEdgesOfUnsafe(V arg0) {
+		return delegate.outgoingEdgesOfUnsafe(arg0);
 	}
 
 	/**

@@ -35,7 +35,7 @@ import gnu.trove.set.TIntSet;
 public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & EfficientGraph<SDGNode, SDGEdge>> {
 
 	private final HashSet<Edge> pathEdge;
-    private final HashMap<SDGNode, Set<Edge>> aoPaths;
+    private final HashMap<SDGNode, Set<SDGNode>> aoPaths;
     private final LinkedList<Edge> worklist;
     private final G graph;
     private final TIntSet relevantFormalIns;
@@ -56,7 +56,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
     	this.relevantProcs = relevantProcs;
     	this.fullyConnected = fullyConnected;
         this.pathEdge = new HashSet<Edge>();
-        this.aoPaths = new HashMap<SDGNode, Set<Edge>>();
+        this.aoPaths = new HashMap<SDGNode, Set<SDGNode>>();
         this.worklist = new LinkedList<Edge>();
         this.out2in = out2in;
         this.rememberReached = rememberReached;
@@ -213,7 +213,9 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
             		continue;
             	}
 
-                pathEdge.add(new Edge(n,n));
+                assert pathEdge.add(new Edge(n,n));
+                // TODO: maybe we can choose some better Set<> implementation here, making use of the fact that
+                // target.customData.contains(source) implies: target.getProc() == source.getProc()
                 n.customData = new HashSet<>();
                 worklist.add(new Edge(n,n));
             }
@@ -273,10 +275,10 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
                         if (graph.addEdgeUnsafe(e.source, e.target, sum)) {
                             actInOutSummaryEdge.add(sum);
 
-                            Set<Edge> s = aoPaths.get(e.target);
+                            Set<SDGNode> s = aoPaths.get(e.target);
                             if (s != null) {
-                                for (Edge f : s) {
-                                    propagate(sum.getSource(), f.target);
+                                for (SDGNode target : s) {
+                                    propagate(sum.getSource(), target);
                                 }
                             }
                         }
@@ -372,34 +374,30 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
 //    		return;
 //    	}
 //
-        final Edge e = new Edge(source, target);
-        if (pathEdge_add(e.source, e.target)) {
+        
+        if (pathEdge_add(source, target)) {
+        	final Edge e = new Edge(source, target);
         	assert pathEdge.add(e);
             worklist.add(e);
         } else {
-        	assert pathEdge.contains(e);
+        	assert pathEdge.contains(new Edge(source, target));
         }
-        if (e.source.getKind() == SDGNode.Kind.ACTUAL_OUT) {
-        	aoPaths.compute(e.source, (k, s) -> {
+        if (source.getKind() == SDGNode.Kind.ACTUAL_OUT) {
+        	aoPaths.compute(source, (k, s) -> {
         		if (s == null) {
-        			s = new HashSet<Edge>();
+        			s = new HashSet<SDGNode>();
         		}
-        		s.add(e);
+        		s.add(target);
         		return s;
         	});
         }
     }
     
     private static boolean pathEdge_add(SDGNode source, SDGNode target) {
+    	assert source.getProc() == target.getProc();
     	@SuppressWarnings("unchecked")
 		final Set<SDGNode> sources = (Set<SDGNode>) target.customData;
     	return sources.add(source);
-    }
-    
-    private static boolean pathEdge_contains(SDGNode source, SDGNode target) {
-   		@SuppressWarnings("unchecked")
-		final Set<SDGNode> sources = (Set<SDGNode>) target.customData;
-   		return sources.contains(source);
     }
 
 //    if (relevantProcs != null) {

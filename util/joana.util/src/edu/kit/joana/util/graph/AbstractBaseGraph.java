@@ -85,7 +85,6 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
     private final boolean allowingLoops;
 
     private EdgeFactory<V, E> edgeFactory;
-    private Set<E> edgeSet;
     private transient Set<E> unmodifiableEdgeSet = null;
     private transient Set<V> unmodifiableVertexSet = null;
     private DirectedSpecifics specifics;
@@ -114,7 +113,6 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             throw new NullPointerException();
         }
 
-        edgeSet = new HashSet<>();
         edgeFactory = ef;
         allowingLoops = allowLoops;
         allowingMultipleEdges = allowMultipleEdges;
@@ -197,7 +195,6 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
 
             return null;
         } else {
-            edgeSet.add(e);
             specifics.addEdgeToTouchingVertices(e);
 
             return e;
@@ -232,7 +229,6 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             throw new IllegalArgumentException(LOOPS_NOT_ALLOWED);
         }
 
-        edgeSet.add(e);
         specifics.addEdgeToTouchingVertices(e);
 
         return true;
@@ -261,13 +257,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             throw new IllegalArgumentException(LOOPS_NOT_ALLOWED);
         }
 
-        final boolean added = edgeSet.add(e);
-        
-        if (added) {
-            specifics.addEdgeToTouchingVerticesUnsafe(e);
-        }
-
-        return added;
+        return specifics.addEdgeToTouchingVerticesUnsafe(e);
     }
 
     /**
@@ -320,8 +310,6 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             AbstractBaseGraph<V, E> newGraph =
                 TypeUtil.uncheckedCast(super.clone(), typeDecl);
 
-            newGraph.edgeSet = new HashSet<>();
-
             newGraph.edgeFactory = this.edgeFactory;
             newGraph.unmodifiableEdgeSet = null;
             newGraph.unmodifiableVertexSet = null;
@@ -345,7 +333,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
      */
     @Override public boolean containsEdge(E e)
     {
-        return edgeSet.contains(e);
+    	return specifics.containsEdge(e);
     }
     
     public boolean containsEdge(V sourceVertex, V targetVertex, Predicate<E> predicate) {
@@ -627,7 +615,6 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
 
         if (e != null) {
             specifics.removeEdgeFromTouchingVertices(e);
-            edgeSet.remove(e);
         }
 
         return e;
@@ -640,8 +627,6 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
     {
         if (containsEdge(e)) {
             specifics.removeEdgeFromTouchingVertices(e);
-            edgeSet.remove(e);
-
             return true;
         } else {
             return false;
@@ -653,12 +638,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
      */
     public boolean removeEdgeUnsafe(E e)
     {
-        if (edgeSet.remove(e)) {
-            specifics.removeEdgeFromTouchingVertices(e);
-            return true;
-        } else {
-            return false;
-        }
+        return specifics.removeEdgeFromTouchingVertices(e);
     }
 
     /**
@@ -710,10 +690,10 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
     public interface DirectedEdgeContainer<EE, Rep> {
         Set<EE> getUnmodifiableIncomingEdges();
         Set<EE> getUnmodifiableOutgoingEdges();
-        void addIncomingEdge(EE e);
-        void addOutgoingEdge(EE e);
-        void removeIncomingEdge(EE e);
-        void removeOutgoingEdge(EE e);
+        boolean addIncomingEdge(EE e);
+        boolean addOutgoingEdge(EE e);
+        boolean removeIncomingEdge(EE e);
+        boolean removeOutgoingEdge(EE e);
         Rep incoming();
         Rep outgoing();
         
@@ -762,17 +742,19 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
          *
          * @param e
          */
-        public final void addIncomingEdge(EE e)
+        public final boolean addIncomingEdge(EE e)
         {
         	final ModifiableArraySet<EE> set;
+        	final boolean added;
             if (incoming == null) {
             	set = new ModifiableArraySet<>(Collections.singleton(e));
-            	
+            	added = true;
             } else {
             	set = ModifiableArraySet.own(incoming);
-            	set.add(e);
+            	added = set.add(e);
             }
             incoming = set.disown();
+            return added;
         }
 
         /**
@@ -780,17 +762,19 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
          *
          * @param e
          */
-        public final void addOutgoingEdge(EE e)
+        public final boolean addOutgoingEdge(EE e)
         {
         	final ModifiableArraySet<EE> set;
+        	final boolean added;
             if (outgoing == null) {
             	set = new ModifiableArraySet<>(Collections.singleton(e));
-            	
+            	added = true;
             } else {
             	set = ModifiableArraySet.own(outgoing);
-            	set.add(e);
+            	added = set.add(e);
             }
             outgoing = set.disown();
+            return added;
         }
 
         /**
@@ -798,12 +782,13 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
          *
          * @param e
          */
-        public final void removeIncomingEdge(EE e)
+        public final boolean removeIncomingEdge(EE e)
         {
-        	if (incoming == null) return;
+        	if (incoming == null) return false;
         	final ModifiableArraySet<EE> set = ModifiableArraySet.own(incoming);
-        	set.remove(e);
+        	final boolean removed = set.remove(e);
             incoming = set.disown();
+            return removed;
         }
 
         /**
@@ -811,12 +796,13 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
          *
          * @param e
          */
-        public final void removeOutgoingEdge(EE e)
+        public final boolean removeOutgoingEdge(EE e)
         {
-        	if (outgoing == null) return;
+        	if (outgoing == null) return false;
         	final ModifiableArraySet<EE> set = ModifiableArraySet.own(outgoing);
-        	set.remove(e);
+        	final boolean removed = set.remove(e);
         	outgoing = set.disown();
+        	return removed;
         }
     }
     
@@ -895,6 +881,11 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
 
             return null;
         }
+        
+        public boolean containsEdge(E edge) {
+            final Set<E> outgoing = ArraySet.own(getEdgeContainerUnsafe(getEdgeSource(edge)).outgoing());
+            return outgoing.contains(edge);
+        }
 
         public void addEdgeToTouchingVertices(E e)
         {
@@ -905,13 +896,16 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             getEdgeContainer(target).addIncomingEdge(e);
         }
         
-        public void addEdgeToTouchingVerticesUnsafe(E e)
+        public boolean addEdgeToTouchingVerticesUnsafe(E e)
         {
             V source = getEdgeSource(e);
             V target = getEdgeTarget(e);
 
-            getEdgeContainerUnsafe(source).addOutgoingEdge(e);
-            getEdgeContainerUnsafe(target).addIncomingEdge(e);
+            final boolean addedInSource = getEdgeContainerUnsafe(source).addOutgoingEdge(e);
+            final boolean addedInTarget = getEdgeContainerUnsafe(target).addIncomingEdge(e);
+            assert addedInSource == addedInTarget;
+            
+            return addedInSource;
         }
 
         /**
@@ -971,13 +965,16 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             return getEdgeContainer(vertex).getUnmodifiableOutgoingEdges();
         }
 
-        public void removeEdgeFromTouchingVertices(E e)
+        public boolean removeEdgeFromTouchingVertices(E e)
         {
             V source = getEdgeSource(e);
             V target = getEdgeTarget(e);
 
-            getEdgeContainer(source).removeOutgoingEdge(e);
-            getEdgeContainer(target).removeIncomingEdge(e);
+            final boolean removedFromSource = getEdgeContainer(source).removeOutgoingEdge(e);
+            final boolean removedFromTarget = getEdgeContainer(target).removeIncomingEdge(e);
+            
+            assert removedFromSource == removedFromTarget;
+            return removedFromSource;
         }
 
         public void removeEdgeFromTouchingVerticesUnsafe(E e)

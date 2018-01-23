@@ -246,14 +246,14 @@ public class SDGProgram {
 		final com.ibm.wala.util.collections.Pair<SDG, SDGBuildArtifacts> p =
 				SDGBuildPreparation.computeAndKeepBuildArtifacts(out, makeBuildPreparationConfig(config), monitor);
 		final SDG sdg = p.fst;
-		final SDGBuildArtifacts builder = p.snd;
+		final SDGBuildArtifacts buildArtifacts = p.snd;
 
 		if (config.computeInterferences()) {
 			PruneInterferences.preprocessAndPruneCSDG(sdg, config.getMhpType());
 		}
 		if (notifier != null) {
 			notifier.sdgFinished();
-			notifier.numberOfCGNodes(builder.getNonPrunedWalaCallGraph().getNumberOfNodes(), builder.getWalaCallGraph().getNumberOfNodes());
+			notifier.numberOfCGNodes(buildArtifacts.getNonPrunedWalaCallGraph().getNumberOfNodes(), buildArtifacts.getWalaCallGraph().getNumberOfNodes());
 		}
 		if (config.getIgnoreIndirectFlows()) {
 			if (notifier != null) {
@@ -276,8 +276,8 @@ public class SDGProgram {
 		}
 		
 		
-		final IClassHierarchy ch  = builder.getClassHierarchy();
-		final CallGraph callGraph = builder.getWalaCallGraph(); 
+		final IClassHierarchy ch  = buildArtifacts.getClassHierarchy();
+		final CallGraph callGraph = buildArtifacts.getWalaCallGraph(); 
 		ret.fillWithAnnotations(ch, findClassesRelevantForAnnotation(ch, callGraph));
 		return ret;
 	}

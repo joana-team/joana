@@ -214,6 +214,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
             	}
 
                 pathEdge.add(new Edge(n,n));
+                n.customData = new HashSet<>();
                 worklist.add(new Edge(n,n));
             }
         }
@@ -236,7 +237,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
 	                        				|| kind == SDGEdge.Kind.DATA_ALIAS) && relevantEdges.contains(kind))
 	                                || (kind == SDGEdge.Kind.CONTROL_DEP_EXPR
 	                                        && e.getSource().getKind() == SDGNode.Kind.CALL)) {
-	                    		propagate(new Edge(e.getSource(), next.target));
+	                    		propagate(e.getSource(), next.target);
 	                        }
 	                    }
                 	}
@@ -275,7 +276,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
                             Set<Edge> s = aoPaths.get(e.target);
                             if (s != null) {
                                 for (Edge f : s) {
-                                    propagate(new Edge(sum.getSource(), f.target));
+                                    propagate(sum.getSource(), f.target);
                                 }
                             }
                         }
@@ -284,7 +285,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
                     	final SDGEdge.Kind kind = e.getKind();
                     	if ((kind == SDGEdge.Kind.DATA_DEP || kind == SDGEdge.Kind.DATA_HEAP
                     			|| kind == SDGEdge.Kind.DATA_ALIAS) && relevantEdges.contains(kind)) {
-                        	propagate(new Edge(e.getSource(), next.target));
+                        	propagate(e.getSource(), next.target);
                         }
                     }
                     break;
@@ -304,11 +305,11 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
                 	for (SDGEdge e : graph.incomingEdgesOf(next.source)) {
                         if (e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR) {
                             if (e.getSource().getKind() == SDGNode.Kind.CALL) {
-                                propagate(new Edge(e.getSource(), next.target));
+                                propagate(e.getSource(), next.target);
                             }
 
                         } else if (relevantEdges.contains(e.getKind())) {
-                            propagate(new Edge(e.getSource(), next.target));
+                            propagate(e.getSource(), next.target);
                         }
                     }
 
@@ -322,11 +323,11 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
                     for (SDGEdge e : graph.incomingEdgesOf(next.source)) {
                         if (e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR) {
                             if (e.getSource().getKind() == SDGNode.Kind.ENTRY) {
-                                propagate(new Edge(e.getSource(), next.target));
+                                propagate(e.getSource(), next.target);
                             }
 
                         } else if (relevantEdges.contains(e.getKind())) {
-                            propagate(new Edge(e.getSource(), next.target));
+                            propagate(e.getSource(), next.target);
                         }
                     }
                 	}
@@ -345,7 +346,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
                 default:
                     for (SDGEdge e : graph.incomingEdgesOf(next.source)) {
                         if (relevantEdges.contains(e.getKind())) {
-                            propagate(new Edge(e.getSource(), next.target));
+                            propagate(e.getSource(), next.target);
                         }
                     }
                     break;
@@ -357,13 +358,13 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
 
     private void propagateAllActIns(SDGNode outNode, SDGNode target) {
     	for (SDGNode inNode : out2in.get(outNode.getId())) {
-    		propagate(new Edge(inNode, target));
+    		propagate(inNode, target);
     	}
     }
 
-    private void propagate(Edge e) {
-        if (relevantProcs != null && !(relevantProcs.contains(e.source.getProc())
-        		&& relevantProcs.contains(e.target.getProc()))) {
+    private void propagate(SDGNode source, SDGNode target) {
+        if (relevantProcs != null && !(relevantProcs.contains(source.getProc())
+        		&& relevantProcs.contains(target.getProc()))) {
             return;
         }
 
@@ -371,8 +372,12 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
 //    		return;
 //    	}
 //
-        if (pathEdge.add(e)) {
+        final Edge e = new Edge(source, target);
+        if (pathEdge_add(e.source, e.target)) {
+        	assert pathEdge.add(e);
             worklist.add(e);
+        } else {
+        	assert pathEdge.contains(e);
         }
         if (e.source.getKind() == SDGNode.Kind.ACTUAL_OUT) {
         	aoPaths.compute(e.source, (k, s) -> {
@@ -383,6 +388,18 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
         		return s;
         	});
         }
+    }
+    
+    private static boolean pathEdge_add(SDGNode source, SDGNode target) {
+    	@SuppressWarnings("unchecked")
+		final Set<SDGNode> sources = (Set<SDGNode>) target.customData;
+    	return sources.add(source);
+    }
+    
+    private static boolean pathEdge_contains(SDGNode source, SDGNode target) {
+   		@SuppressWarnings("unchecked")
+		final Set<SDGNode> sources = (Set<SDGNode>) target.customData;
+   		return sources.contains(source);
     }
 
 //    if (relevantProcs != null) {
@@ -428,7 +445,9 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
 
                 Edge newE = result.get(call);
                 if (newE != null) {
+                	
                     newE.target = ao;
+                    assert newE.target.getProc() == newE.source.getProc();
                     result.put(call, newE);
                 }
             }
@@ -486,6 +505,8 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
         private SDGNode target;
 
         private Edge(SDGNode s, SDGNode t) {
+        	assert t == null || t.getKind() == SDGNode.Kind.FORMAL_OUT || t.getKind() == SDGNode.Kind.EXIT;
+        	assert t == null || s.getProc() == t.getProc();
             source = s;
             target = t;
         }

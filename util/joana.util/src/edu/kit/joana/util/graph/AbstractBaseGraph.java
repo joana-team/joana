@@ -883,7 +883,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         }
         
         public boolean containsEdge(E edge) {
-            final Set<E> outgoing = ArraySet.own(getEdgeContainerUnsafe(getEdgeSource(edge)).outgoing());
+            final Set<E> outgoing = ArraySet.own(getEdgeContainerUnsafe(edge.getSource()).outgoing());
             return outgoing.contains(edge);
         }
 
@@ -898,8 +898,8 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         
         public boolean addEdgeToTouchingVerticesUnsafe(E e)
         {
-            V source = getEdgeSource(e);
-            V target = getEdgeTarget(e);
+            V source = e.getSource();
+            V target = e.getTarget();
 
             final boolean addedInSource = getEdgeContainerUnsafe(source).addOutgoingEdge(e);
             final boolean addedInTarget = getEdgeContainerUnsafe(target).addIncomingEdge(e);
@@ -979,8 +979,8 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
 
         public void removeEdgeFromTouchingVerticesUnsafe(E e)
         {
-            V source = getEdgeSource(e);
-            V target = getEdgeTarget(e);
+            V source = e.getSource();
+            V target = e.getTarget();
 
             getEdgeContainerUnsafe(source).removeOutgoingEdge(e);
             getEdgeContainerUnsafe(target).removeIncomingEdge(e);

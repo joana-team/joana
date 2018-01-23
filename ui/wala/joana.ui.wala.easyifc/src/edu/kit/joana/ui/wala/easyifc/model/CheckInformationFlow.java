@@ -13,6 +13,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -233,26 +234,33 @@ public final class CheckInformationFlow {
 		}
 		
 		assert p != null;
+
 		if (containsThreads) {			
 			cfc.out.println("checking '" + cfc.bin + "' for concurrent confidentiality.");
-			final IFCResult result = doThreadIFCanalysis(config, p, entryPoint, cfc.filter, rebuiltWithoutExceptionEdges);
+			final WeakReference<SDGProgram> pRef = new WeakReference<SDGProgram>(p);
+			p = null;
+			final IFCResult result = doThreadIFCanalysis(config, pRef, entryPoint, cfc.filter, rebuiltWithoutExceptionEdges);
 			cfc.results.consume(result);
 		} else {
 			cfc.out.println("checking '" + cfc.bin + "' for sequential confidentiality.");
-			final IFCResult result = doSequentialIFCanalysis(config, p, entryPoint, cfc.filter, progress);
+			final WeakReference<SDGProgram> pRef = new WeakReference<SDGProgram>(p);
+			p = null;
+			final IFCResult result = doSequentialIFCanalysis(config, pRef, entryPoint, cfc.filter, progress);
 			cfc.results.consume(result);
 		}
 	}
 	
-	private IFCResult doSequentialIFCanalysis(final SDGConfig config, final SDGProgram prog,
+	private IFCResult doSequentialIFCanalysis(final SDGConfig config, final WeakReference<SDGProgram> progRef,
 			final EntryPointConfiguration entryPoint, final IFCResultFilter filter,
 			final IProgressMonitor progress) throws CancelException {
+		SDGProgram prog = progRef.get();
 		dumpSDGtoFile(prog.getSDG(), "exc");
 		final IFCResult result = new IFCResult(entryPoint, filter, prog.getNodeCollector());
 		//final Pair<Set<SLeak>, Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>>> excResult =
 		//		checkIFC(Reason.EXCEPTION, prog, IFCType.CLASSICAL_NI, annotationMethod, entryPoint);
 		final Pair<Set<SLeak>, Collection<IFCAnnotation>> excResult =
 				checkIFC(Reason.EXCEPTION, prog, IFCType.CLASSICAL_NI, annotationMethod, entryPoint);
+		prog = null;
 		final Set<SLeak> excLeaks = excResult.getFirst();
 		result.setAnnotations2(excResult.getSecond());
 		final boolean isSecure = excLeaks.isEmpty();
@@ -319,8 +327,9 @@ public final class CheckInformationFlow {
 		return result;
 	}
 	
-	private IFCResult doThreadIFCanalysis(final SDGConfig config, final SDGProgram prog,
+	private IFCResult doThreadIFCanalysis(final SDGConfig config, final WeakReference<SDGProgram> progRef,
 			final EntryPointConfiguration entryPoint, final IFCResultFilter filter, final boolean rebuiltWithoutExceptionEdges) {
+		SDGProgram prog = progRef.get();
 		final IFCType ifcType = cfc.selectedIFCType;
 		dumpSDGtoFile(prog.getSDG(), "thread");
 		cfc.out.println("using " + ifcType + " algorithm.");
@@ -334,6 +343,7 @@ public final class CheckInformationFlow {
 		} else {
 			threadResult = checkIFC(Reason.THREAD,           prog, ifcType, annotationMethod, entryPoint);
 		}
+		prog = null;
 		final Set<SLeak> threadLeaks = threadResult.getFirst();
 		result.setAnnotations2(threadResult.getSecond());
 		final boolean isSecure = threadLeaks.isEmpty();
@@ -344,6 +354,7 @@ public final class CheckInformationFlow {
 		if (isSecure) {
 			cfc.out.println("No information leaks detected. Program is SECURE.");
 		} else if (rebuiltWithoutExceptionEdges) {
+			
 			config.setExceptionAnalysis(ExceptionAnalysis.IGNORE_ALL);
 			final SDGProgram noExcProg = buildSDG(config);
 			dumpSDGtoFile(noExcProg.getSDG(), "no_exc_thread");

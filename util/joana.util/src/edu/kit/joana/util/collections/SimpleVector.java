@@ -336,44 +336,45 @@ public class SimpleVector<K extends IntegerIdentifiable, V>  extends AbstractMap
 
 	@Override
 	public Set<K> keySet() {
-		return new AbstractSet<K>() {
-			
-			@Override
-			public int size() {
-				return size;
-			}
-
-			@Override
-			public boolean isEmpty() {
-				return size == 0;
-			}
-
-			@Override
-			public boolean contains(Object o) {
-				return containsKey(o);
-			}
-
-			@Override
-			public Iterator<K> iterator() {
-				return new LeftRightIterator<K>(leftKeys, rightKeys);
-			}
-
-			@Override
-			public boolean add(K e) {
-				throw new UnsupportedOperationException();
-			}
-
-			@Override
-			public boolean remove(Object o) {
-				return SimpleVector.this.remove(o) != null;
-			}
-
-			@Override
-			public void clear() {
-				throw new UnsupportedOperationException();
-			}
-		};
+		return KEY_SET;
 	}
+
+	private final Set<K> KEY_SET = new AbstractSet<K>() {
+		@Override
+		public int size() {
+			return size;
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return size == 0;
+		}
+
+		@Override
+		public boolean contains(Object o) {
+			return containsKey(o);
+		}
+
+		@Override
+		public Iterator<K> iterator() {
+			return new LeftRightIterator<K>(leftKeys, rightKeys);
+		}
+
+		@Override
+		public boolean add(K e) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public boolean remove(Object o) {
+			return SimpleVector.this.remove(o) != null;
+		}
+
+		@Override
+		public void clear() {
+			throw new UnsupportedOperationException();
+		}
+	};
 	
 
 	@Override

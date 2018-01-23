@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -67,21 +68,38 @@ public abstract class CFGSlicer {
     	return slice(Collections.singleton(c));
     }
 
+    private static void slice_put(SDGNode n, Phase phase) {
+    	n.customData = phase;
+    }
+    
+    private static Phase slice_get(SDGNode n) {
+    	return (Phase) n.customData;
+    }
+    
     public Collection<SDGNode> slice(Collection<SDGNode> c) {
         HashMap<SDGNode, Phase> slice = new HashMap<SDGNode, Phase>();
         LinkedList<SDGNode> worklist = new LinkedList<SDGNode>();
-        Phase phase1 = phase1();
-        Phase phase2 = phase2();
+        final Phase phase1 = phase1();
+        final Phase phase2 = phase2();
+        
+        boolean assertionEnabled = false;
+        assert (assertionEnabled = true);
 
+        for (SDGNode n : g.vertexSet()) {
+        	slice_put(n, null);
+        }
+        
         worklist.addAll(c);
 
         for (SDGNode v : c) {
-            slice.put(v, phase1);
+            assert slice.put(v, phase1) == null;
+            slice_put(v, phase1);
         }
 
         while (!worklist.isEmpty()) {
             SDGNode next = worklist.poll();
-        	Phase currentPhase = slice.get(next);
+            Phase  currentPhase =  slice_get(next);
+            assert currentPhase == slice.get(next);
 
             for (SDGEdge e : edgesToTraverse(next)) {
             	if (omittedEdges.contains(e.getKind())) continue;
@@ -96,8 +114,8 @@ public abstract class CFGSlicer {
                     continue;
 
         		SDGNode adjacent = reachedNode(e);
-        		Phase status = slice.get(adjacent);
-
+        		Phase  status =  slice_get(adjacent);
+        		assert status == slice.get(adjacent);
         		if (status == null // hasn't been visited before
         				|| (status == phase2 && (currentPhase == phase1 || e.getKind().isThreadEdge()))) {
 
@@ -108,21 +126,40 @@ public abstract class CFGSlicer {
         				// determine how to mark `adjacent'
         				if (currentPhase == phase1 && currentPhase.saveInOtherWorklist(e)) {
         					// standard two-phase slicing: mark adjacent with phase 2
-        					slice.put(adjacent, phase2);
+        					if (assertionEnabled) {
+        						slice.put(adjacent, phase2);
+        					} {
+        						slice_put(adjacent, phase2);
+        					}
 
         				} else if (currentPhase == phase2 && e.getKind().isThreadEdge()) {
         					// we are in phase 2 and about to traverse an interference edge: mark adjacent with phase 1
-        					slice.put(adjacent, phase1);
-
+        					if (assertionEnabled) {
+        						slice.put(adjacent, phase1);
+        					} {
+        						slice_put(adjacent, phase1);
+        					}
         				} else {
         					// mark adjacent with the current phase
-        					slice.put(adjacent, currentPhase);
+        					if (assertionEnabled) {
+        						slice.put(adjacent, currentPhase);
+        					} {
+        						slice_put(adjacent, currentPhase);
+        					}
+        					
         				}
         			}
         		}
             }
         }
-        return slice.keySet();
+		final Set<SDGNode> result =
+				g.vertexSet()
+				 .stream()
+				 .filter(n -> n.customData != null)
+				 .collect(Collectors.toSet());
+		
+		assert slice.keySet().equals(result);
+        return result;
     }
 
     public Collection<SDGNode> subgraphSlice(Collection<SDGNode> c, Collection<SDGNode> sub) {

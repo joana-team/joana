@@ -1364,12 +1364,6 @@ public final class ObjGraphParams {
 				final ModRefFieldCandidate toCheck = work.removeFirst();
 				for (final ModRefRootCandidate root : roots) {
 					if (root.isPotentialParentOf(toCheck)) {
-						// TODO: is there a way to do this check in the same hashmap lookup as compute()?!?!
-						// I don't really think so :/
-						if (!reachable.containsKey(toCheck)) {
-							newlyAdded.add(toCheck);
-						}
-						
 						final int toCheckIndex = map.getMappedIndex(toCheck);
 						// For *deterministic* behavior *identical* to detectReachableSlow(), for
 						// two ModRefFieldCandidate m1, m2 uch that m1.equals(m2),
@@ -1380,7 +1374,10 @@ public final class ObjGraphParams {
 						//   Also, there the workList is always ordered in the order of it's initialization,
 						//   which is in order of increasing indices.
 						reachable.compute(toCheck, (k, canonical) -> {
-							if (canonical == null || toCheckIndex < map.getMappedIndex(canonical)) {
+							if (canonical == null) {
+								newlyAdded.add(toCheck);
+								canonical = toCheck;
+							} else if (toCheckIndex < map.getMappedIndex(canonical)) {
 								canonical = toCheck;
 							}
 							return canonical;
@@ -1399,13 +1396,11 @@ public final class ObjGraphParams {
 			for (ModRefFieldCandidate child : childrenOf.get(candidate)) {
 				final int childIndex = map.getMappedIndex(child);
 				if (candidates.contains(childIndex)) {
-					if (!reachable.containsKey(child)) {
-						newlyAdded.add(child);
-					}
-					
-					// see above
 					reachable.compute(child, (k, canonical) -> {
-						if (canonical == null || childIndex < map.getMappedIndex(canonical)) {
+						if (canonical == null) {
+							newlyAdded.add(child);
+							canonical = child;
+						} else if (childIndex < map.getMappedIndex(canonical)) {
 							canonical = child;
 						}
 						return canonical;

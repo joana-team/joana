@@ -354,6 +354,22 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
                     break;
             }
         }
+        
+        // clear HashSet<SDGNode> at each node
+        for (SDGNode n : (Set<SDGNode>) graph.vertexSet()) {
+            if (n.getKind() == SDGNode.Kind.FORMAL_OUT || n.getKind() == SDGNode.Kind.EXIT) {
+            	if (relevantProcs != null && !relevantProcs.contains(n.getProc())) {
+            		continue;
+            	}
+
+            	if (fullyConnected != null && fullyConnected.contains(n.getId())) {
+            		continue;
+            	}
+
+                assert n.customData instanceof Set;
+                n.customData = null;
+            }
+        }
 
         return formInOutSummaryEdge;
     }

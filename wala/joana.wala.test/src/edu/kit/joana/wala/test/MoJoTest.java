@@ -245,7 +245,7 @@ public class MoJoTest {
 		scope.setExclusions(exclusions);
 
 	    final ClassLoaderReference loader = scope.getLoader(AnalysisScope.APPLICATION);
-	    AnalysisScopeReader.addClassPathToScope(bin, scope, loader);
+	    AnalysisScopeReader.addClassPathToScope(bin, scope, loader, cfg.classpathAddEntriesFromMANIFEST);
 
 	    System.out.println("done.");
 

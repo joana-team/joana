@@ -166,7 +166,7 @@ public class RunTestModular {
 		scope.setExclusions(exclusions);
 
 	    ClassLoaderReference loader = scope.getLoader(AnalysisScope.APPLICATION);
-	    AnalysisScopeReader.addClassPathToScope(binDir, scope, loader);
+	    AnalysisScopeReader.addClassPathToScope(binDir, scope, loader, cfg.classpathAddEntriesFromMANIFEST);
 
 	    System.out.println("done.");
 

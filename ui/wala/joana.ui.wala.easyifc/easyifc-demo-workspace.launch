@@ -11,7 +11,7 @@
 <booleanAttribute key="clearwslog" value="true"/>
 <stringAttribute key="configLocation" value="${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/easyifc-demo-workspace"/>
 <booleanAttribute key="default" value="false"/>
-<stringAttribute key="deselected_workspace_plugins" value="com.ibm.wala.cast.java,com.ibm.wala.dalvik,com.ibm.wala.dalvik.test,com.ibm.wala.ide,joana.api.test,joana.contrib.apktool,joana.deprecated.jsdg,joana.deprecated.jsdg.gui,joana.ui.ifc.sdg.compiler,joana.ui.ifc.sdg.gui,joana.ui.ifc.sdg.latticeeditor,joana.ui.ifc.sdg.textual.highlight,joana.ui.ifc.sdg.threadviewer,joana.ui.ifc.sdg.viewer,joana.ui.ifc.wala.console,joana.ui.ifc.wala.console.tests,joana.ui.wala.flowless,joana.wala.dictionary,joana.wala.eval,joana.wala.jodroid,joana.wala.jsdg,joana.wala.test"/>
+<stringAttribute key="deselected_workspace_plugins" value="com.ibm.wala.cast.java,com.ibm.wala.dalvik,com.ibm.wala.dalvik.test,com.ibm.wala.ide,joana.api.test,joana.contrib.apktool,joana.deprecated.jsdg,joana.deprecated.jsdg.gui,joana.ui.ifc.sdg.compiler,joana.ui.ifc.sdg.latticeeditor,joana.ui.ifc.sdg.textual.highlight,joana.ui.ifc.sdg.threadviewer,joana.ui.ifc.sdg.viewer,joana.ui.ifc.wala.console,joana.ui.ifc.wala.console.tests,joana.ui.wala.flowless,joana.wala.dictionary,joana.wala.eval,joana.wala.jodroid,joana.wala.jsdg,joana.wala.test"/>
 <booleanAttribute key="includeOptional" value="true"/>
 <stringAttribute key="location" value="${project_loc:/joana.ui.wala.easyifc/}../../../../contrib/easyifc-demo-workspace/"/>
 <booleanAttribute key="org.eclipse.debug.ui.ATTR_APPEND_TO_FILE" value="true"/>

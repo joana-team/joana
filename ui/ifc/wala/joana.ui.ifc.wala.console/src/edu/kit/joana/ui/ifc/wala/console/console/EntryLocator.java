@@ -67,7 +67,7 @@ public class EntryLocator {
 	 */
 	public boolean doSearch(String classPath, IFCConsoleOutput out) {
 		final SDGBuildPreparation.Config cfg = new SDGBuildPreparation.Config("Search main <unused>", "<unused>",
-				classPath, FieldPropagation.FLAT);
+				classPath, true, FieldPropagation.FLAT);
 		List<JavaMethodSignature> newEntries = new ArrayList<JavaMethodSignature>();
 		try {
 			List<String> res = SDGBuildPreparation.searchMainMethods(out.getPrintStream(), cfg);

@@ -93,7 +93,7 @@ public class ExceptionPruneAnalysis extends ExceptionPrunedCFGAnalysis<SSAInstru
         scope.setExclusions(exclusions);
 
         ClassLoaderReference loader = scope.getLoader(AnalysisScope.APPLICATION);
-        AnalysisScopeReader.addClassPathToScope(classPath, scope, loader);
+        AnalysisScopeReader.addClassPathToScope(classPath, scope, loader, true);
 
         // Klassenhierarchie berechnen
         ClassHierarchy cha = ClassHierarchyFactory.make(scope);
@@ -131,10 +131,10 @@ public class ExceptionPruneAnalysis extends ExceptionPrunedCFGAnalysis<SSAInstru
         scope.setExclusions(exclusions);
 
         ClassLoaderReference primordial = scope.getLoader(AnalysisScope.PRIMORDIAL);
-        AnalysisScopeReader.addClassPathToScope("test_lib/jSDG-stubs-j2me2.0.jar", scope, primordial);
-        AnalysisScopeReader.addClassPathToScope("test_lib/primordial.jar", scope, primordial);
+        AnalysisScopeReader.addClassPathToScope("test_lib/jSDG-stubs-j2me2.0.jar", scope, primordial, true);
+        AnalysisScopeReader.addClassPathToScope("test_lib/primordial.jar", scope, primordial, true);
         ClassLoaderReference loader = scope.getLoader(AnalysisScope.APPLICATION);
-        AnalysisScopeReader.addClassPathToScope(classPath, scope, loader);
+        AnalysisScopeReader.addClassPathToScope(classPath, scope, loader, true);
 
         // Klassenhierarchie berechnen
         System.out.println("Creating class hierarchy...");

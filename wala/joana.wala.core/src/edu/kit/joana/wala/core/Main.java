@@ -270,7 +270,7 @@ public final class Main {
 		scope.setExclusions(exclusions);
 
 	    ClassLoaderReference loader = scope.getLoader(AnalysisScope.APPLICATION);
-	    AnalysisScopeReader.addClassPathToScope(cfg.classpath, scope, loader);
+	    AnalysisScopeReader.addClassPathToScope(cfg.classpath, scope, loader, cfg.classpathAddEntriesFromMANIFEST);
 
 	    return scope;
 	}
@@ -442,6 +442,7 @@ public final class Main {
 		public String name;
 		public String entryMethod;
 		public String classpath;
+		public boolean classpathAddEntriesFromMANIFEST = true;
 		public String exclusions;
 		public String nativesXML;
 		public String stubs;

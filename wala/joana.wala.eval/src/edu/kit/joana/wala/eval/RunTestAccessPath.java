@@ -126,7 +126,7 @@ public class RunTestAccessPath {
 			scope.setExclusions(exclusions);
 
 		    final ClassLoaderReference loader = scope.getLoader(AnalysisScope.APPLICATION);
-		    AnalysisScopeReader.addClassPathToScope(binDir, scope, loader);
+		    AnalysisScopeReader.addClassPathToScope(binDir, scope, loader, cfg.classpathAddEntriesFromMANIFEST);
 
 		    System.out.println("done.");
 

@@ -210,16 +210,6 @@ public class SDGFactory implements SDGCreationObserver {
 
 		                        toAnnotate.setProvided(allProvided[0]);
 		                        toAnnotate.setRequired(allRequired[0]);
-
-		                        if (allProvided.length > 1) {
-		                        	LinkedList<String[]> dec = new LinkedList<String[]>();
-		                        	for (int x = 0; x < allProvided.length; x++) {
-		                        		String p = allProvided[x];
-		                        		String r = allRequired[x];
-		                        		dec.add(new String[] {r, p});
-		                        	}
-		                        	toAnnotate.setAdditionalDeclass(dec);
-		                        }
 		                    }
 
 		                } catch (CoreException e) {

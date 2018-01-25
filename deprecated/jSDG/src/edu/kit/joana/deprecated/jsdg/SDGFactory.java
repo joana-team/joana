@@ -104,6 +104,7 @@ import edu.kit.joana.deprecated.jsdg.wala.objecttree.IKey2Origin;
 import edu.kit.joana.deprecated.jsdg.wala.objecttree.InstanceAndPointerKeyFactoryAdapter;
 import edu.kit.joana.ifc.sdg.graph.SDGVerifier;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
+import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
@@ -692,20 +693,29 @@ public class SDGFactory {
 		}
 		
 //		ncfg.fieldPropagation =
-		ncfg.nativesXML = cfg.nativesXML;
 //		ncfg.objSensFilter =
 		ncfg.sideEffects = null;
 
-		ncfg.stubs = new String[cfg.scopeData.size()];
-		int index = 0;
-		for (final String sc : cfg.scopeData) {
-			final String stub = sc.substring(sc.lastIndexOf(",") + 1);
-			ncfg.stubs[index] = stub;
-			index++;
+		final List<String> thirdPartyLibsFromScopeData = new LinkedList<>();
+		Stubs stubsFromScopeData = null;
+		{ 
+			// TODO: this is completely untested!!!!
+			for (final String sc : cfg.scopeData) {
+				final String entry = sc.substring(sc.lastIndexOf(",") + 1);
+				boolean isStub = false;
+				for (Stubs stubs : Stubs.values()) {
+					if (entry.equals(stubs)) {
+						stubsFromScopeData = stubs;
+						isStub = true;
+					}
+				}
+				if (!isStub) {
+					thirdPartyLibsFromScopeData.add(entry);
+				}
+			}
 		}
-		//ncfg.stubs = 
-		
-		ncfg.thirdPartyLibPath = null;
+		ncfg.thirdPartyLibPath = thirdPartyLibsFromScopeData.isEmpty() ? null : String.join(File.pathSeparator, thirdPartyLibsFromScopeData);
+		ncfg.stubs = stubsFromScopeData;
 		
 		return ncfg;
 	}
@@ -1044,6 +1054,7 @@ public class SDGFactory {
 			AnalysisScope scope) {
 		SSAPropagationCallGraphBuilder cg = null;
 
+		final ClassLoader myClassLoader = SDGFactory.class.getClassLoader();
 		switch (type) {
 		/*
 		case RTA:
@@ -1051,12 +1062,12 @@ public class SDGFactory {
 				PrettyWalaNames.makeRTABuilder(options, cache, cha, scope);
 			break; */
 		case ZERO_CFA:
-			cg = (SSAPropagationCallGraphBuilder) WalaPointsToUtil.makeContextFreeType(options, cache, cha, scope); 
+			cg = (SSAPropagationCallGraphBuilder) WalaPointsToUtil.makeContextFreeType(options, cache, cha, scope, myClassLoader); 
 //				com.ibm.wala.ipa.callgraph.impl.
 //				Util.makeZeroCFABuilder(options, cache, cha, scope);
 			break;
 		case ZERO_ONE_CFA:
-			cg = (SSAPropagationCallGraphBuilder) WalaPointsToUtil.makeContextSensSite(options, cache, cha, scope); 
+			cg = (SSAPropagationCallGraphBuilder) WalaPointsToUtil.makeContextSensSite(options, cache, cha, scope, myClassLoader); 
 //			
 //			com.ibm.wala.ipa.callgraph.impl.
 //				Util.makeZeroOneCFABuilder(options, cache, cha, scope);
@@ -1066,7 +1077,7 @@ public class SDGFactory {
 				Util.makeVanillaZeroOneCFABuilder(options, cache, cha, scope);
 			break;
 		case OBJ_SENS:
-			cg = (SSAPropagationCallGraphBuilder) WalaPointsToUtil.makeObjectSens(options, cache, cha, scope);
+			cg = (SSAPropagationCallGraphBuilder) WalaPointsToUtil.makeObjectSens(options, cache, cha, scope, myClassLoader);
 			
 			//makeObjSensZeroXCFABuilder(options, cache, cha, scope,
 				//	new ObjSensContextSelector(), new DefaultSSAInterpreter(options, cache));

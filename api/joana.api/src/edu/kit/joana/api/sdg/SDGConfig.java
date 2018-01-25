@@ -32,7 +32,7 @@ public class SDGConfig {
 	private boolean classpathAddEntriesFromMANIFEST;
 	private String thirdPartyLibsPath;
 	private String entryMethod;
-	private Stubs stubsPath;
+	private Stubs stubs;
 	private String exclusions = SDGBuilder.STD_EXCLUSION_REG_EXP;
 	private ExceptionAnalysis exceptionAnalysis;
 	private boolean ignoreIndirectFlows = false;
@@ -44,7 +44,6 @@ public class SDGConfig {
 	private MHPType mhpType = MHPType.NONE;
 	private SideEffectDetectorConfig sideEffects;
 	private ObjSensZeroXCFABuilder.MethodFilter methodFilter;
-	private String nativesXML = JoanaConstants.DEFAULT_NATIVES_XML;
 	private boolean computeAllocationSites = false;
 	private CGConsumer cgConsumer = null;
 	private ContextSelector ctxSelector;
@@ -64,7 +63,7 @@ public class SDGConfig {
 		this.classPath = classPath;
 		this.classpathAddEntriesFromMANIFEST = classpathAddEntriesFromMANIFEST;
 		this.entryMethod = entryMethod;
-		this.stubsPath = stubsPath;
+		this.stubs = stubsPath;
 		this.exceptionAnalysis = exceptionAnalysis;
 		this.fieldPropagation = fieldPropagation;
 		this.pointsToPrecision = pointsToPrecision;
@@ -135,15 +134,15 @@ public class SDGConfig {
 	/**
 	 * @return the stubsPath
 	 */
-	public Stubs getStubsPath() {
-		return stubsPath;
+	public Stubs getStubs() {
+		return stubs;
 	}
 
 	/**
 	 * @param stubsPath the stubsPath to set
 	 */
-	public void setStubsPath(Stubs stubsPath) {
-		this.stubsPath = stubsPath;
+	public void setStubs(Stubs stubs) {
+		this.stubs = stubs;
 	}
 
 	/**
@@ -204,23 +203,6 @@ public class SDGConfig {
 		this.methodFilter = methodFilter;
 	}
 	
-	/**
-	 * Returns the name of the file which WALA will use to resolve calls to native methods.
-	 * @return the name of the file which WALA will use to resolve calls to native methods
-	 */
-	public String getNativesXML() {
-		return this.nativesXML;
-	}
-	
-	/**
-	 * Sets the name of the file WALA will use to resolve calls to native methods. Only call this method if you are absolutely sure
-	 * what you are doing!
-	 * @param nativesXML name of the XML file WALA will use to resolve calls to native methods
-	 */
-	public void setNativesXML(String nativesXML) {
-		this.nativesXML = nativesXML;
-	}
-
 	/**
 	 * @return the mhpType
 	 */

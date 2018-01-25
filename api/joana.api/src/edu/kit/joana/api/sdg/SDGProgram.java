@@ -450,8 +450,7 @@ public class SDGProgram {
 		cfg.pts = config.getPointsToPrecision();
 		cfg.accessPath = config.computeAccessPaths();
 		cfg.sideEffects = config.getSideEffectDetectorConfig();
-		cfg.stubs = config.getStubsPath().getPaths();
-		cfg.nativesXML = config.getNativesXML();
+		cfg.stubs = config.getStubs();
 		cfg.pruningPolicy = config.getPruningPolicy();
 		cfg.exclusions = config.getExclusions();
 		cfg.computeAllocationSites = config.computeAllocationSites();

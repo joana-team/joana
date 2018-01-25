@@ -474,9 +474,8 @@ public final class CheckInformationFlow {
 	}
 	
 	public static SDGConfig createDefaultConfig(final CheckIFCConfig cfc, final JavaMethodSignature mainMethod) {
-		final SDGConfig config = new SDGConfig(cfc.bin, mainMethod.toBCString(), Stubs.JRE_15);
+		final SDGConfig config = new SDGConfig(cfc.bin, mainMethod.toBCString(), Stubs.JRE_15_INCOMPLETE);
 		config.setClasspathAddEntriesFromMANIFEST(false); // we trust eclipse, of course!
-		config.setNativesXML(cfc.libDir + JoanaConstants.DEFAULT_NATIVES_XML);
 		config.setComputeInterferences(false);
 		config.setExceptionAnalysis(ExceptionAnalysis.INTERPROC);
 		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH);

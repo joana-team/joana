@@ -12,10 +12,10 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.List;
-import java.util.jar.JarFile;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
+import com.ibm.wala.classLoader.Module;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
@@ -30,8 +30,10 @@ import com.ibm.wala.util.config.FileOfClasses;
 import com.ibm.wala.util.config.SetOfClasses;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
+import edu.kit.joana.api.sdg.SDGBuildPreparation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
+import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.ExternalCallCheck;
 import edu.kit.joana.wala.core.ExternalCallCheck.MethodListCheck;
 import edu.kit.joana.wala.core.Main;
@@ -100,7 +102,7 @@ public class RunTestAccessPath {
 		final Config cfg = new Config("runtestaccesspath", "<main entry not used>",
 				"../joana.wala.modular.testdata/dist/mojo-test-program.jar", PointsToPrecision.INSTANCE_BASED,
 				ExceptionAnalysis.INTRAPROC, true, Main.STD_EXCLUSION_REG_EXP,
-				"../../contrib/lib/stubs/natives_empty.xml", "../../contrib/lib/stubs/jSDG-stubs-jre1.4.jar", mlc,
+				Stubs.JRE_14_INCOMPLETE, mlc,
 				"./out/", FieldPropagation.OBJ_TREE);
 
 		for (int i = 0; i < MODULE_BIN.length; i++) {
@@ -112,13 +114,18 @@ public class RunTestAccessPath {
 			// Fuegt die normale Java Bibliothek zum Scope hinzu
 			final AnalysisScope scope = AnalysisScopeReader.makePrimordialScope(null);
 
-			if (cfg.nativesXML != null) {
-				com.ibm.wala.ipa.callgraph.impl.Util.setNativeSpec(cfg.nativesXML);
-			}
+			assert cfg.stubs.getNativeSpecFile() != null; 
+			com.ibm.wala.ipa.callgraph.impl.Util.setNativeSpec(cfg.stubs.getNativeSpecFile());
 
 			// if use stubs
-			if (cfg.stubs != null) {
-				scope.addToScope(ClassLoaderReference.Primordial, new JarFile(cfg.stubs));
+			assert cfg.stubs != null;
+			final String[] stubPaths = cfg.stubs.getPaths();
+			if (stubPaths.length > 0) {
+				assert cfg.stubs != Stubs.NO_STUBS;
+				for (final String stub : stubPaths) {
+					final Module stubs = SDGBuildPreparation.findJarModule(stub);
+					scope.addToScope(ClassLoaderReference.Primordial, stubs);
+				}
 			}
 
 			// Nimmt unnoetige Klassen raus

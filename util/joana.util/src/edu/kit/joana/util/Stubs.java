@@ -21,30 +21,48 @@ import joana.contrib.lib.Contrib;
  * 
  * @author Martin Mohr
  */
-public enum Stubs {
-	NO_STUBS("NONE", null), JRE_14_INCOMPLETE("JRE_14_INCOMPLETE", "stubs/jSDG-stubs-jre1.4.jar"), JRE_15_INCOMPLETE("JRE_15_INCOMPLETE", "stubs/jSDG-stubs-jre1.5.jar"),
-	JRE_15("JRE_15", "stubs/jdk-1.5-with-stubs.jar"), JRE_16("JRE_16", "stubs/jdk-1.6-with-stubs.jar"), JRE_17("JRE_17", "stubs/jdk-1.7-with-stubs.jar"),
-	JAVACARD("JAVACARD", "stubs/jSDG-stubs-javacard.jar:stubs/api.jar"),
-	J2ME("J2ME", "stubs/jSDG-stubs-j2me2.0.jar:stubs/jsr184.jar:stubs/mmapi.jar");
 
-	private static final String PROPERTIES = "project.properties";
+public enum Stubs {
+	NO_STUBS         ("NONE",              null,                               JoanaConstants.nativesWala,  Contrib.class.getClassLoader()),
+	JRE_14_INCOMPLETE("JRE_14_INCOMPLETE", "stubs/jSDG-stubs-jre1.4.jar",      JoanaConstants.nativesEmpty, Contrib.class.getClassLoader()),
+	JRE_15_INCOMPLETE("JRE_15_INCOMPLETE", "stubs/jSDG-stubs-jre1.5.jar",      JoanaConstants.nativesEmpty, Contrib.class.getClassLoader()),
+	JRE_15           ("JRE_15",            "stubs/jdk-1.5-with-stubs.jar",     JoanaConstants.nativesEmpty, Contrib.class.getClassLoader()),
+	JRE_16           ("JRE_16",            "stubs/jdk-1.6-with-stubs.jar",     JoanaConstants.nativesEmpty, Contrib.class.getClassLoader()),
+	JRE_17           ("JRE_17",            "stubs/jdk-1.7-with-stubs.jar",     JoanaConstants.nativesEmpty, Contrib.class.getClassLoader()),
+	JAVACARD         ("JAVACARD",          "stubs/jSDG-stubs-javacard.jar"
+	                                    + ":stubs/api.jar",                    JoanaConstants.nativesEmpty, Contrib.class.getClassLoader()),
+	J2ME             ("J2ME",              "stubs/jSDG-stubs-j2me2.0.jar"
+	                                    + ":stubs/jsr184.jar"
+			                            + ":stubs/mmapi.jar",                  JoanaConstants.nativesEmpty, Contrib.class.getClassLoader());
 
 	private final String name;
 	private final String[] files;
+	private final String nativeSpecFile;
+	private final ClassLoader nativeSpecClassLoader;
 
-	private Stubs(final String name, final String fileName) {
+	private Stubs(final String name, final String fileName, final String nativeSpecFile, final ClassLoader nativeSpecClassLoader) {
 		this.name = name;
 		this.files = (fileName == null ? new String[0] : fileName.split(":"));
+		this.nativeSpecFile = nativeSpecFile;
+		this.nativeSpecClassLoader = nativeSpecClassLoader;
 	}
 
 	public String getName() {
 		return name;
 	}
+	
+	public String getNativeSpecFile() {
+		return nativeSpecFile;
+	}
+
+	public ClassLoader getNativeSpecClassLoader() {
+		return nativeSpecClassLoader;
+	}
 
 	public String toString() {
 		return name;
 	}
-
+	
 	public String[] getPaths() {
 		String stubsBaseDir = null;
 		final String[] paths = new String[files.length];
@@ -68,7 +86,7 @@ public enum Stubs {
 		joanaBaseDir = System.getProperty("joana.base.dir");
 		if (joanaBaseDir == null) {
 			try {
-				InputStream propertyStream = new FileInputStream(PROPERTIES);
+				InputStream propertyStream = new FileInputStream(JoanaConstants.PROPERTIES);
 				Properties p = new Properties();
 				p.load(propertyStream);
 				joanaBaseDir = p.getProperty("joana.base.dir");

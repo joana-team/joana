@@ -38,8 +38,6 @@ import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.util.intset.OrdinalSet;
 // Available in a special variant of WALA
 
-import joana.contrib.lib.Contrib;
-
 public final class WalaPointsToUtil {
 
 	private WalaPointsToUtil() {}
@@ -158,17 +156,17 @@ public final class WalaPointsToUtil {
     }
 
     public static CallGraphBuilder<InstanceKey> makeRTA(final AnalysisOptions options, final IAnalysisCacheView cache,
-			final IClassHierarchy cha, final AnalysisScope scope) {
+			final IClassHierarchy cha, final AnalysisScope scope, ClassLoader nativeSpecClassLoader) {
 
 		Util.addDefaultSelectors(options, cha);
-		Util.addDefaultBypassLogic(options, scope, Contrib.class.getClassLoader(), cha);
+		Util.addDefaultBypassLogic(options, scope, nativeSpecClassLoader, cha);
 
 		return new BasicRTABuilder(cha, options, cache, null, null);
 	}
 
 	public static CallGraphBuilder<InstanceKey> makeContextFreeType(final AnalysisOptions options, final IAnalysisCacheView cache,
 		      final IClassHierarchy cha, final AnalysisScope scope, final ContextSelector contextSelector,
-		      final SSAContextInterpreter contextInterpreter) {
+		      final SSAContextInterpreter contextInterpreter, ClassLoader nativeSpecClassLoader) {
 	    if (options == null) {
 	      throw new IllegalArgumentException("options is null");
 	    }
@@ -176,7 +174,7 @@ public final class WalaPointsToUtil {
         { // Set the MethodTargetSelector
             MethodTargetSelector oldMethodTargetSelector = options.getMethodTargetSelector();
 	        Util.addDefaultSelectors(options, cha);
-	        Util.addDefaultBypassLogic(options, scope, Contrib.class.getClassLoader(), cha);
+	        Util.addDefaultBypassLogic(options, scope, nativeSpecClassLoader, cha);
 
             if (oldMethodTargetSelector != null) {
                 options.setSelector(new DelegatingMethodTargetSelector(oldMethodTargetSelector, options.getMethodTargetSelector(), scope));
@@ -190,7 +188,7 @@ public final class WalaPointsToUtil {
 
 	public static CallGraphBuilder<InstanceKey> makeContextSensSite(final AnalysisOptions options, final IAnalysisCacheView cache,
 		      final IClassHierarchy cha, final AnalysisScope scope, final ContextSelector contextSelector,
-		      final SSAContextInterpreter additionalContextInterpreter) {
+		      final SSAContextInterpreter additionalContextInterpreter, ClassLoader nativeSpecClassLoader) {
 
 	    if (options == null) {
 	      throw new IllegalArgumentException("options is null");
@@ -199,7 +197,7 @@ public final class WalaPointsToUtil {
         { // Set the MethodTargetSelector
             MethodTargetSelector oldMethodTargetSelector = options.getMethodTargetSelector();
             Util.addDefaultSelectors(options, cha);
-            Util.addDefaultBypassLogic(options, scope, Contrib.class.getClassLoader(), cha);
+            Util.addDefaultBypassLogic(options, scope, nativeSpecClassLoader, cha);
 
             if (oldMethodTargetSelector != null) {
                 options.setSelector(new DelegatingMethodTargetSelector(oldMethodTargetSelector, options.getMethodTargetSelector(), scope));
@@ -222,7 +220,7 @@ public final class WalaPointsToUtil {
 
 	public static CallGraphBuilder<InstanceKey> makeObjectSens(final ExtendedAnalysisOptions options, final IAnalysisCacheView cache,
 		      final IClassHierarchy cha, final AnalysisScope scope, final ContextSelector additionalContextSelector,
-		      final SSAContextInterpreter additionalContextInterpreter) {
+		      final SSAContextInterpreter additionalContextInterpreter, ClassLoader nativeSpecClassLoader) {
 
 	    if (options == null) {
 	      throw new IllegalArgumentException("options is null");
@@ -231,7 +229,7 @@ public final class WalaPointsToUtil {
         { // Set the MethodTargetSelector
             final MethodTargetSelector oldMethodTargetSelector = options.getMethodTargetSelector();
             Util.addDefaultSelectors(options, cha);
-            Util.addDefaultBypassLogic(options, scope, Contrib.class.getClassLoader(), cha);
+            Util.addDefaultBypassLogic(options, scope, nativeSpecClassLoader, cha);
 
             if (oldMethodTargetSelector != null) {
                 options.setSelector(new DelegatingMethodTargetSelector(oldMethodTargetSelector, options.getMethodTargetSelector(), scope));
@@ -271,7 +269,7 @@ public final class WalaPointsToUtil {
 	public static CallGraphBuilder<InstanceKey> makeNCallStackSens(final int n, final AnalysisOptions options,
 			final IAnalysisCacheView cache, final IClassHierarchy cha, final AnalysisScope scope,
 			final ContextSelector additionalContextSelector,
-			final SSAContextInterpreter additionalContextInterpreter) {
+			final SSAContextInterpreter additionalContextInterpreter, ClassLoader nativeSpecClassLoader) {
 
 	    if (options == null) {
 	      throw new IllegalArgumentException("options is null");
@@ -280,7 +278,7 @@ public final class WalaPointsToUtil {
         { // Set the MethodTargetSelector
             MethodTargetSelector oldMethodTargetSelector = options.getMethodTargetSelector();
             Util.addDefaultSelectors(options, cha);
-            Util.addDefaultBypassLogic(options, scope, Contrib.class.getClassLoader(), cha);
+            Util.addDefaultBypassLogic(options, scope, nativeSpecClassLoader, cha);
 
             if (oldMethodTargetSelector != null) {
                 options.setSelector(new DelegatingMethodTargetSelector(oldMethodTargetSelector, options.getMethodTargetSelector(), scope));
@@ -316,21 +314,21 @@ public final class WalaPointsToUtil {
     // Old methods follow for compatibility reasons
     //
 	public static CallGraphBuilder<InstanceKey> makeNCallStackSens(final int n, final AnalysisOptions options,
-			final AnalysisCache cache, final IClassHierarchy cha, final AnalysisScope scope) {
-        return makeNCallStackSens(n, options, cache, cha, scope, null, null);
+			final AnalysisCache cache, final IClassHierarchy cha, final AnalysisScope scope, ClassLoader nativeSpecClassLoader) {
+        return makeNCallStackSens(n, options, cache, cha, scope, null, null, nativeSpecClassLoader);
     }
 
 	public static CallGraphBuilder<InstanceKey> makeContextFreeType(final AnalysisOptions options, final AnalysisCache cache,
-		      final IClassHierarchy cha, final  AnalysisScope scope) {
-        return makeContextFreeType(options, cache, cha, scope, null, null);
+		      final IClassHierarchy cha, final  AnalysisScope scope, ClassLoader nativeSpecClassLoader) {
+        return makeContextFreeType(options, cache, cha, scope, null, null, nativeSpecClassLoader);
     }
 	public static CallGraphBuilder<InstanceKey> makeContextSensSite(final AnalysisOptions options, final AnalysisCache cache,
-		      final IClassHierarchy cha, final AnalysisScope scope) {
-        return makeContextSensSite(options, cache, cha, scope, null, null);
+		      final IClassHierarchy cha, final AnalysisScope scope, ClassLoader nativeSpecClassLoader) {
+        return makeContextSensSite(options, cache, cha, scope, null, null, nativeSpecClassLoader);
     }
 	public static CallGraphBuilder<InstanceKey> makeObjectSens(final ExtendedAnalysisOptions options, final AnalysisCache cache,
-		      final IClassHierarchy cha, final AnalysisScope scope) {
-        return makeObjectSens(options, cache, cha, scope, null, null);
+		      final IClassHierarchy cha, final AnalysisScope scope, ClassLoader nativeSpecClassLoader) {
+        return makeObjectSens(options, cache, cha, scope, null, null, nativeSpecClassLoader);
     }
 
 }

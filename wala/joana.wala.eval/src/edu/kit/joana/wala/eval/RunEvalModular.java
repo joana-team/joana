@@ -237,6 +237,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 //		}
 
 		final SDGBuilder.SDGBuilderConfig scfg = new SDGBuilder.SDGBuilderConfig();
+		scfg.nativeSpecClassLoader = null; // callgraph has been built, already
 		scfg.out = out;
 		scfg.scope = scope;
 		scfg.cache = cg.cache;

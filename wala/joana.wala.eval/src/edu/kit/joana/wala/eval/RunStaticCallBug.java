@@ -23,6 +23,7 @@ import com.ibm.wala.ipa.callgraph.AnalysisOptions.ReflectionOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.ipa.callgraph.Entrypoint;
+import com.ibm.wala.ipa.callgraph.impl.Util;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
 import com.ibm.wala.ipa.callgraph.propagation.SSAPropagationCallGraphBuilder;
@@ -863,7 +864,7 @@ new String[]{
 		final AnalysisCache cache = new AnalysisCacheImpl((IRFactory<IMethod>) new DexIRFactory());
 		final AnalysisOptions options = makeAnalysisOptions(entryMethods, cha);
 		final SSAPropagationCallGraphBuilder cgb =
-				(ZeroXCFABuilder) WalaPointsToUtil.makeContextSensSite(options, cache, cha, cha.getScope());
+				(ZeroXCFABuilder) WalaPointsToUtil.makeContextSensSite(options, cache, cha, cha.getScope(), Util.class.getClassLoader());
 
 		try {
 			callGraph = cgb.makeCallGraph(options);  
@@ -900,6 +901,7 @@ new String[]{
 		SDG sdg = null;
 	
 		SDGBuilderConfig scfg = new SDGBuilderConfig();
+		scfg.nativeSpecClassLoader = null; // callgraph has been built, already
 		scfg.out = System.out;
 		scfg.scope = cg.getClassHierarchy().getScope();
 		scfg.cache = new AnalysisCacheImpl((IRFactory<IMethod>) new DexIRFactory());

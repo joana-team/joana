@@ -1145,17 +1145,17 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			// Maybe UNSOUND - WALAs implementation looks suspicious.
 			// Its also less precise and slower (blows up dynamic calls) as TYPE (0-CFA).
 			// Its just here for academic purposes.
-			cgb = WalaPointsToUtil.makeRTA(options, cfg.cache, cfg.cha, cfg.scope);
+			cgb = WalaPointsToUtil.makeRTA(options, cfg.cache, cfg.cha, cfg.scope, cfg.nativeSpecClassLoader);
 			break;
 		case TYPE_BASED: // 0-CFA
 			// Fastest option.
 			cgb = WalaPointsToUtil.makeContextFreeType(options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case INSTANCE_BASED: // 0-1-CFA
 			// Best bang for buck
 			cgb = WalaPointsToUtil.makeContextSensSite(options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case N1_OBJECT_SENSITIVE:
 			// Receiver context is limited to 1-level. 
@@ -1167,7 +1167,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 				}
 			};
 			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case OBJECT_SENSITIVE:
 			// Very precise for OO heavy code - best option for really precise analysis.
@@ -1175,7 +1175,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			// Uses n-CFA as fallback for static methods. Customizable: Provide objSensFilter to specify 'n' for fallback
 			// n-CFA and filter for methods where object-sensitivity should be engaged. Default 'n = 1'.
 			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case UNLIMITED_OBJECT_SENSITIVE:
 			// Very precise for OO heavy code, but also very slow.
@@ -1188,22 +1188,22 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 				}
 			};
 			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case N1_CALL_STACK: // 1-CFA
 			// Slower as 0-1-CFA, yet few precision improvements
 			cgb = WalaPointsToUtil.makeNCallStackSens(1, options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case N2_CALL_STACK: // 2-CFA
 			// Slow, but precise
 			cgb = WalaPointsToUtil.makeNCallStackSens(2, options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case N3_CALL_STACK: // 3-CFA
 			// Very slow and little bit more precise. Not much improvement over 2-CFA.
 			cgb = WalaPointsToUtil.makeNCallStackSens(3, options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case CUSTOM:
 			cgb = cfg.customCGBFactory.createCallGraphBuilder(options, cfg.cache, cfg.cha, cfg.scope, cfg.additionalContextSelector, cfg.additionalContextInterpreter);
@@ -1249,17 +1249,17 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			// Maybe UNSOUND - WALAs implementation looks suspicious.
 			// Its also less precise and slower (blows up dynamic calls) as TYPE (0-CFA).
 			// Its just here for academic purposes.
-			cgb = WalaPointsToUtil.makeRTA(options, cfg.cache, cfg.cha, cfg.scope);
+			cgb = WalaPointsToUtil.makeRTA(options, cfg.cache, cfg.cha, cfg.scope, cfg.nativeSpecClassLoader);
 			break;
 		case TYPE_BASED: // 0-CFA
 			// Fastest option.
 			cgb = WalaPointsToUtil.makeContextFreeType(options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case INSTANCE_BASED: // 0-1-CFA
 			// Best bang for buck
 			cgb = WalaPointsToUtil.makeContextSensSite(options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case N1_OBJECT_SENSITIVE:
 			// Receiver context is limited to 1-level. 
@@ -1271,7 +1271,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 				}
 			};
 			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case OBJECT_SENSITIVE:
 			// Very precise for OO heavy code - best option for really precise analysis.
@@ -1279,7 +1279,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			// Uses n-CFA as fallback for static methods. Customizable: Provide objSensFilter to specify 'n' for fallback
 			// n-CFA and filter for methods where object-sensitivity should be engaged. Default 'n = 1'.
 			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case UNLIMITED_OBJECT_SENSITIVE:
 			// Very precise for OO heavy code, but also very slow.
@@ -1292,22 +1292,22 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 				}
 			};
 			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case N1_CALL_STACK: // 1-CFA
 			// Slower as 0-1-CFA, yet few precision improvements
 			cgb = WalaPointsToUtil.makeNCallStackSens(1, options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case N2_CALL_STACK: // 2-CFA
 			// Slow, but precise
 			cgb = WalaPointsToUtil.makeNCallStackSens(2, options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case N3_CALL_STACK: // 3-CFA
 			// Very slow and little bit more precise. Not much improvement over 2-CFA.
 			cgb = WalaPointsToUtil.makeNCallStackSens(3, options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case CUSTOM:
 			cgb = cfg.customCGBFactory.createCallGraphBuilder(options, cfg.cache, cfg.cha, cfg.scope, cfg.additionalContextSelector, cfg.additionalContextInterpreter);
@@ -2003,6 +2003,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 	 */
 	public static class SDGBuilderConfig implements java.io.Serializable {
 		private static final long serialVersionUID = 237647794827893127L;
+		public ClassLoader nativeSpecClassLoader;
 		public transient PrintStream out = System.out;
 		public transient AnalysisScope scope = null;
 		public transient IAnalysisCacheView cache = null;
@@ -2139,6 +2140,10 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		 * in multiple threads.
 		 */
 		public boolean doParallel = true;
+		
+		public SDGBuilderConfig() {
+		}
+
 	}
 
 	public String getMainMethodName() {

@@ -63,6 +63,7 @@ public abstract class SDGBuilderConfigurator<C extends SDGBuilderConfigurator<C>
 		rwd.set("prunecg", depth);
 		return thisActually();
 	}
+	
 	public C standardImmutableSettings() {
 		return setImmutableNoOut(SDGBuilder.IMMUTABLE_NO_OUT)
 		      .setImmutableStubs(SDGBuilder.IMMUTABLE_STUBS)
@@ -239,6 +240,12 @@ public abstract class SDGBuilderConfigurator<C extends SDGBuilderConfigurator<C>
 		rwd.set("doParallel", setting);
 		return thisActually();
 	}
+	public C setNnativeSpecClassLoader(ClassLoader nativeSpecClassLoader) {
+		rwd.set("nativeSpecClassLoader", nativeSpecClassLoader);
+		return thisActually();
+	}
+	
+	
 	public <D extends SDGBuilderConfigurator<D>> D switchTo(D target) {
 		target.rwd = rwd;
 		return target.thisActually();

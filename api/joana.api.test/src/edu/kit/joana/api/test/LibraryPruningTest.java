@@ -83,7 +83,7 @@ public class LibraryPruningTest {
 //				+ "javax\\/.*\n"
 		);
 		//config.setPruningPolicy(DoNotPrune.INSTANCE);
-		config.setStubsPath(Stubs.JRE_15);
+		config.setStubs(Stubs.JRE_15);
 		SDGProgram prog = null;
 	
 		try {

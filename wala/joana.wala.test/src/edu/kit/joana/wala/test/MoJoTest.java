@@ -18,9 +18,9 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.List;
-import java.util.jar.JarFile;
 
 import com.ibm.wala.classLoader.IMethod;
+import com.ibm.wala.classLoader.Module;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
@@ -33,6 +33,7 @@ import com.ibm.wala.util.config.FileOfClasses;
 import com.ibm.wala.util.config.SetOfClasses;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
+import edu.kit.joana.api.sdg.SDGBuildPreparation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.util.Stubs;
@@ -91,7 +92,7 @@ public class MoJoTest {
 	public Config createDefaultConfig() {
 		final Config cfg = new Config("mojotest", "<main entry not used>", bin,
 				PointsToPrecision.INSTANCE_BASED, ExceptionAnalysis.INTRAPROC, true, Main.STD_EXCLUSION_REG_EXP,
-				"../../contrib/lib/stubs/natives_empty.xml", Stubs.JRE_15.getPaths()[0], ExternalCallCheck.EMPTY, out,
+				Stubs.JRE_15_INCOMPLETE, ExternalCallCheck.EMPTY, out,
 				FieldPropagation.OBJ_TREE);
 
 		return cfg;
@@ -221,23 +222,25 @@ public class MoJoTest {
 
 		final Config cfg = new Config("runtestaccesspath", "<main entry not used>", "../Test-Modular/dist/mojo-test-program.jar",
 				PointsToPrecision.INSTANCE_BASED, ExceptionAnalysis.INTRAPROC, true, Main.STD_EXCLUSION_REG_EXP,
-				"../../contrib/lib/stubs/natives_empty.xml", Stubs.JRE_15.getPaths()[0], mlc, "./out/", FieldPropagation.FLAT);
+				Stubs.JRE_15_INCOMPLETE, mlc, "./out/", FieldPropagation.FLAT);
 
 		System.out.print("Setting up analysis scope... ");
 
 		// Fuegt die normale Java Bibliothek zum Scope hinzu
 		final AnalysisScope scope = AnalysisScopeReader.makePrimordialScope(null);
 
-		if (cfg.nativesXML != null) {
-			com.ibm.wala.ipa.callgraph.impl.Util.setNativeSpec(cfg.nativesXML);
-		}
-
-		File f = new File(cfg.stubs);
-		System.out.println(f.getAbsolutePath());
+		assert cfg.stubs.getNativeSpecFile() != null; 
+		com.ibm.wala.ipa.callgraph.impl.Util.setNativeSpec(cfg.stubs.getNativeSpecFile());
 
 		// if use stubs
-		if (cfg.stubs != null) {
-			scope.addToScope(ClassLoaderReference.Primordial, new JarFile(cfg.stubs));
+		assert cfg.stubs != null;
+		final String[] stubPaths = cfg.stubs.getPaths();
+		if (stubPaths.length > 0) {
+			assert cfg.stubs != Stubs.NO_STUBS;
+			for (final String stub : stubPaths) {
+				final Module stubs = SDGBuildPreparation.findJarModule(stub);
+				scope.addToScope(ClassLoaderReference.Primordial, stubs);
+			}
 		}
 
 		// Nimmt unnoetige Klassen raus

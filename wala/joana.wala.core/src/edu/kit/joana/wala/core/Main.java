@@ -52,6 +52,7 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.util.JoanaConstants;
 import edu.kit.joana.util.LogUtil;
+import edu.kit.joana.util.Stubs;
 import edu.kit.joana.util.io.IOFactory;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
@@ -250,16 +251,21 @@ public final class Main {
 		// Fuegt die normale Java Bibliothek zum Scope hinzu
 
 		// deactivates WALA synthetic methods if cfg.nativesXML != null
-		com.ibm.wala.ipa.callgraph.impl.Util.setNativeSpec(cfg.nativesXML);
+		com.ibm.wala.ipa.callgraph.impl.Util.setNativeSpec(cfg.stubs.getNativeSpecFile());
 
 		AnalysisScope scope;
 		// if use stubs
-		if (cfg.stubs != null) {
+		assert cfg.stubs != null;
+		final String[] stubPaths = cfg.stubs.getPaths();
+		if (stubPaths.length > 0) {
+			assert cfg.stubs != Stubs.NO_STUBS;
 			scope = AnalysisScope.createJavaAnalysisScope();
-			final Module stubs = findJarModule(out, cfg.stubs);
-			scope.addToScope(ClassLoaderReference.Primordial, stubs);
-
+			for (final String stub : stubPaths) {
+				final Module stubs = findJarModule(out, stub);
+				scope.addToScope(ClassLoaderReference.Primordial, stubs);
+			}
 		} else {
+			assert cfg.stubs == Stubs.NO_STUBS;
 			scope = AnalysisScopeReader.makePrimordialScope(null);
 		}
 
@@ -359,6 +365,7 @@ public final class Main {
 		}
 
 		final SDGBuilder.SDGBuilderConfig scfg = new SDGBuilder.SDGBuilderConfig();
+		scfg.nativeSpecClassLoader = cfg.stubs.getNativeSpecClassLoader();
 		scfg.out = out;
 		scfg.scope = scope;
 		scfg.cache = cache;
@@ -444,8 +451,7 @@ public final class Main {
 		public String classpath;
 		public boolean classpathAddEntriesFromMANIFEST = true;
 		public String exclusions;
-		public String nativesXML;
-		public String stubs;
+		public Stubs stubs;
 		public String outputDir;
 		public ExternalCallCheck extern;
 		public PointsToPrecision pts;
@@ -465,38 +471,38 @@ public final class Main {
 
 		public Config(String name, String entryMethod, FieldPropagation fieldPropagation) {
 			this(name, entryMethod, STD_CLASS_PATH, PointsToPrecision.INSTANCE_BASED, DEFAULT_EXCEPTION_ANALYSIS,
-					DEFAULT_ACCESS_PATH, STD_EXCLUSION_REG_EXP, JoanaConstants.DEFAULT_NATIVES_XML, /* stubs */null,
+					DEFAULT_ACCESS_PATH, STD_EXCLUSION_REG_EXP, Stubs.NO_STUBS,
 					/*ext-call*/null, "./", fieldPropagation);
 		}
 
 		public Config(String name, String entryMethod, String classpath, FieldPropagation fieldPropagation) {
 			this(name, entryMethod, classpath, PointsToPrecision.INSTANCE_BASED, DEFAULT_EXCEPTION_ANALYSIS,
-					DEFAULT_ACCESS_PATH, STD_EXCLUSION_REG_EXP, JoanaConstants.DEFAULT_NATIVES_XML, /* stubs */null,
+					DEFAULT_ACCESS_PATH, STD_EXCLUSION_REG_EXP, Stubs.NO_STUBS,
 					/*ext-call*/null, "./", fieldPropagation);
 		}
 
 		public Config(String name, String entryMethod, String classpath, PointsToPrecision pts,
 				FieldPropagation fieldPropagation) {
 			this(name, entryMethod, classpath, pts, DEFAULT_EXCEPTION_ANALYSIS, DEFAULT_ACCESS_PATH,
-					STD_EXCLUSION_REG_EXP, JoanaConstants.DEFAULT_NATIVES_XML, /* stubs */null, /*ext-call*/null,
+					STD_EXCLUSION_REG_EXP, Stubs.NO_STUBS, /*ext-call*/null,
 					"./", fieldPropagation);
 		}
 
 		public Config(String name, String entryMethod, String classpath, String exclusions,
 				FieldPropagation fieldPropagation) {
 			this(name, entryMethod, classpath, PointsToPrecision.INSTANCE_BASED, DEFAULT_EXCEPTION_ANALYSIS,
-					DEFAULT_ACCESS_PATH, exclusions, JoanaConstants.DEFAULT_NATIVES_XML, /* stubs */null,
+					DEFAULT_ACCESS_PATH, exclusions, Stubs.NO_STUBS,
 					/*ext-call*/null, "./", fieldPropagation);
 		}
 
 		public Config(String name, String entryMethod, String classpath, PointsToPrecision pts, String exclusions,
 				FieldPropagation fieldPropagation) {
 			this(name, entryMethod, classpath, pts, DEFAULT_EXCEPTION_ANALYSIS, DEFAULT_ACCESS_PATH, exclusions,
-					JoanaConstants.DEFAULT_NATIVES_XML, /* stubs */null, /*ext-call*/null, "./", fieldPropagation);
+					Stubs.NO_STUBS, /*ext-call*/null, "./", fieldPropagation);
 		}
 
 		public Config(String name, String entryMethod, String classpath, PointsToPrecision pts,
-				ExceptionAnalysis exceptions, boolean accessPath, String exclusions, String nativesXML, String stubs,
+				ExceptionAnalysis exceptions, boolean accessPath, String exclusions, Stubs stubs,
 				ExternalCallCheck extern, String outputDir,	FieldPropagation fieldPropagation) {
 			this.name = name;
 			this.pts = pts;
@@ -505,7 +511,6 @@ public final class Main {
 			this.classpath = classpath;
 			this.entryMethod = entryMethod;
 			this.exclusions = exclusions;
-			this.nativesXML = nativesXML;
 			this.stubs = stubs;
 			this.extern = extern;
 

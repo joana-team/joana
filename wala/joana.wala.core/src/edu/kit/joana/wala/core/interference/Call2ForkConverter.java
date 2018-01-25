@@ -39,9 +39,9 @@ public class Call2ForkConverter {
 	private static class RemovalTask {
 		private final PDG pdgToModify;
 		private final PDGNode nodeToRemove;
-		private final Set<PDG> possibleTargets;
+		private final Collection<PDG> possibleTargets;
 
-		RemovalTask(PDG pdgToModify, PDGNode nodeToRemove, Set<PDG> possibleTargets) {
+		RemovalTask(PDG pdgToModify, PDGNode nodeToRemove, Collection<PDG> possibleTargets) {
 			assert pdgToModify != null;
 			assert nodeToRemove != null;
 			assert nodeToRemove.getBytecodeIndex() == BytecodeLocation.CALL_RET;

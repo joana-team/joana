@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Set;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.common.collect.Sets;
@@ -485,12 +486,16 @@ public class ControlDependenceTests {
 	public void testDe_uni_trier_infsec_core_Setup() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testUnbuildable(     (de.uni.trier.infsec.core.Setup.class),
-			new ExceptionAnalysis[] { ExceptionAnalysis.INTERPROC, ExceptionAnalysis.INTRAPROC },
+			new ExceptionAnalysis[] { ExceptionAnalysis.IGNORE_ALL },
 			classic
 		);
 		testCDGSame(         (de.uni.trier.infsec.core.Setup.class),
-			new ExceptionAnalysis[] { ExceptionAnalysis.IGNORE_ALL, ExceptionAnalysis.ALL_NO_ANALYSIS  },
-			classic, nticd, nticd_gfp_worklist
+			new ExceptionAnalysis[] { ExceptionAnalysis.IGNORE_ALL },
+			adaptive,          nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist
+		);
+		testCDGSame(         (de.uni.trier.infsec.core.Setup.class),
+			new ExceptionAnalysis[] { ExceptionAnalysis.INTERPROC, ExceptionAnalysis.INTRAPROC, ExceptionAnalysis.ALL_NO_ANALYSIS },
+			adaptive, classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist
 		);
 		testCDGSubsetClosure((de.uni.trier.infsec.core.Setup.class), nticd, ntscd);
 	}

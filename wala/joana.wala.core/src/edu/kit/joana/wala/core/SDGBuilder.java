@@ -9,8 +9,10 @@ package edu.kit.joana.wala.core;
 
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -1706,13 +1708,13 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		return callees;
 	}
 
-	public Set<PDG> getPossibleTargets(PDGNode call) {
+	public Collection<PDG> getPossibleTargets(PDGNode call) {
 		if (call.getKind() != PDGNode.Kind.CALL) {
 			throw new IllegalArgumentException("Not a call node: " + call);
 		}
 		
 		// We want to avoid calls to org.jgrapht.graph.AbstractGraph.hashCode()
-		final Set<PDG> tgts =  Sets.newIdentityHashSet();
+		final Set<PDG> tgts = Sets.newIdentityHashSet();
 
 		PDG pdgCaller = getPDGforId(call.getPdgId());
 
@@ -1724,7 +1726,16 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			}
 		}
 
-		return tgts;
+		// we want deterministic SDGs!!!
+		List<PDG> result = new ArrayList<>(tgts.size());
+		result.addAll(tgts);
+		Collections.sort(result, new Comparator<PDG>() {
+			@Override
+			public int compare(PDG o1, PDG o2) {
+				return Integer.compare(o1.getId(), o2.getId());
+			}
+		});
+		return result;
 	}
 
 	public Set<PDG> getPossibleCallers(final PDG callee) {
@@ -1859,7 +1870,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 
 		for (PDG pdg : pdgs) {
 			for (PDGNode call : pdg.getCalls()) {
-				Set<PDG> tgts = getPossibleTargets(call);
+				Collection<PDG> tgts = getPossibleTargets(call);
 				for (PDG target : tgts) {
 					cgPDG.addEdge(pdg, target);
 				}

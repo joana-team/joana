@@ -67,7 +67,6 @@ import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.Reason;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SLeak;
 import edu.kit.joana.ui.wala.easyifc.util.EntryPointSearch.EntryPointConfiguration;
 import edu.kit.joana.util.Config;
-import edu.kit.joana.util.JoanaConstants;
 import edu.kit.joana.util.Maybe;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.Stubs;
@@ -211,7 +210,7 @@ public final class CheckInformationFlow {
 				if (file == null) {
 					throw new IllegalArgumentException("must provide file path when using " + EntryPointKind.FROMFILE);
 				}
-				p = SDGProgram.loadSDG(file);
+				p = SDGProgram.loadSDG(file, MHPType.PRECISE);
 				final IClassHierarchy cha; {
 					final PrintStream out = IOFactory.createUTF8PrintStream(new ByteArrayOutputStream());
 					com.ibm.wala.util.collections.Pair<Long, SDGBuilder.SDGBuilderConfig> pair = SDGBuildPreparation.prepareBuild(out, SDGProgram.makeBuildPreparationConfig(config), NullProgressMonitor.INSTANCE);

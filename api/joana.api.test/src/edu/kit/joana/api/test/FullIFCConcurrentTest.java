@@ -61,13 +61,13 @@ public class FullIFCConcurrentTest {
 	}
 	
 	public static IFCAnalysis buildAndAnnotate(final String className, final String secSrc,
-			final String pubOut) throws ApiTestException {
-		return buildAndAnnotate(className, secSrc, pubOut, PointsToPrecision.INSTANCE_BASED);
+			final String pubOut, MHPType mhpType) throws ApiTestException {
+		return buildAndAnnotate(className, secSrc, pubOut, PointsToPrecision.INSTANCE_BASED, mhpType);
 	}
 	
 	public static IFCAnalysis buildAndAnnotate(final String className, final String secSrc,
-			final String pubOut, final PointsToPrecision pts) throws ApiTestException {
-		final SDGProgram prog = build(className, pts);
+			final String pubOut, final PointsToPrecision pts, MHPType mhpType) throws ApiTestException {
+		final SDGProgram prog = build(className, pts, mhpType);
 		final IFCAnalysis ana = annotate(prog, secSrc, pubOut);
 		
 		return ana;
@@ -85,14 +85,15 @@ public class FullIFCConcurrentTest {
 		return ana;
 	}
 	
-	public static SDGProgram build(final String className) throws ApiTestException {
-		return build(className, PointsToPrecision.INSTANCE_BASED);
+	public static SDGProgram build(final String className, MHPType mhpType) throws ApiTestException {
+		return build(className, PointsToPrecision.INSTANCE_BASED, mhpType);
 	}
 	
-	public static SDGProgram build(final String className, final PointsToPrecision pts) throws ApiTestException {
+	public static SDGProgram build(final String className, final PointsToPrecision pts, MHPType mhpType) throws ApiTestException {
 		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(className);
 		SDGConfig config = new SDGConfig(JoanaPath.JOANA_MANY_SMALL_PROGRAMS_CLASSPATH, mainMethod.toBCString(), Stubs.JRE_15);
 		config.setComputeInterferences(true);
+		config.setMhpType(mhpType);
 		config.setExceptionAnalysis(ExceptionAnalysis.INTRAPROC);
 		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH);
 		config.setPointsToPrecision(pts);
@@ -131,7 +132,7 @@ public class FullIFCConcurrentTest {
 	@Test
 	public void testAlarmClock() {
 		try {
-			final SDGProgram prog = build("conc.ac.AlarmClock");
+			final SDGProgram prog = build("conc.ac.AlarmClock", MHPType.PRECISE);
 			{
 				final IFCAnalysis ana1 = annotate(prog, "conc.ac.Clock.max", "conc.ac.Client.name");
 				testLeaksFound(ana1, 14);
@@ -151,7 +152,9 @@ public class FullIFCConcurrentTest {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("conc.bb.ProducerConsumer",
 					"conc.bb.BoundedBuffer.putIn",
-					"conc.bb.BoundedBuffer.takeOut");
+					"conc.bb.BoundedBuffer.takeOut",
+					MHPType.PRECISE
+			);
 			testLeaksFound(ana, 12);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
@@ -164,7 +167,9 @@ public class FullIFCConcurrentTest {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("conc.cliser.dt.Main",
 					"conc.cliser.dt.DaytimeUDPClient.message",
-					"conc.cliser.dt.DaytimeIterativeUDPServer.recieved");
+					"conc.cliser.dt.DaytimeIterativeUDPServer.recieved",
+					MHPType.PRECISE
+			);
 			testLeaksFound(ana, 2);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
@@ -175,7 +180,7 @@ public class FullIFCConcurrentTest {
 	@Test
 	public void testKnockKnock() {
 		try {
-			SDGProgram p = build("conc.cliser.kk.Main", PointsToPrecision.UNLIMITED_OBJECT_SENSITIVE);
+			SDGProgram p = build("conc.cliser.kk.Main", PointsToPrecision.UNLIMITED_OBJECT_SENSITIVE, MHPType.PRECISE);
 			IFCAnalysis ana = annotate(p, "conc.cliser.kk.KnockKnockThread.message", "conc.cliser.kk.KnockKnockTCPClient.received1");
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			// communication appears in network socket layer - this can only be detected if stubs are used that model
@@ -192,7 +197,9 @@ public class FullIFCConcurrentTest {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("conc.daisy.DaisyTest",
 					"conc.daisy.DaisyUserThread.iterations",
-					"conc.daisy.DaisyDir.dirsize");
+					"conc.daisy.DaisyDir.dirsize",
+					MHPType.PRECISE
+			);
 			testLeaksFound(ana, 1);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
@@ -205,7 +212,9 @@ public class FullIFCConcurrentTest {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("conc.dp.DiningPhilosophers",
 					"conc.dp.Philosopher.id",
-					"conc.dp.DiningServer.state");
+					"conc.dp.DiningServer.state",
+					MHPType.PRECISE
+			);
 			testLeaksFound(ana, 48);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
@@ -218,7 +227,9 @@ public class FullIFCConcurrentTest {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("conc.ds.DiskSchedulerDriver",
 					"conc.ds.DiskScheduler.position",
-					"conc.ds.DiskReader.active");
+					"conc.ds.DiskReader.active",
+					MHPType.PRECISE
+		);
 			testLeaksFound(ana, 22);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
@@ -231,7 +242,9 @@ public class FullIFCConcurrentTest {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("conc.kn.Knapsack5",
 					"conc.kn.Knapsack5$Item.profit",
-					"conc.kn.PriorityRunQueue.numThreadsWaiting");
+					"conc.kn.PriorityRunQueue.numThreadsWaiting",
+					MHPType.PRECISE
+			);
 			testLeaksFound(ana, 57);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
@@ -244,7 +257,9 @@ public class FullIFCConcurrentTest {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("conc.lg.LaplaceGrid",
 					"conc.lg.Partition.values",
-					"conc.lg.Partition.in");
+					"conc.lg.Partition.in",
+					MHPType.PRECISE
+			);
 			testLeaksFound(ana, 1100);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
@@ -257,7 +272,9 @@ public class FullIFCConcurrentTest {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("conc.pc.ProbChannel",
 					"conc.pc.ProbChannel.x",
-					PUBLIC);
+					PUBLIC,
+					MHPType.PRECISE
+			);
 			testLeaksFound(ana, 6);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
@@ -270,7 +287,9 @@ public class FullIFCConcurrentTest {
 		try {
 			IFCAnalysis ana = buildAndAnnotate("conc.sq.SharedQueue",
 					"conc.sq.SharedQueue.next",
-					"conc.sq.Semaphore.count");
+					"conc.sq.Semaphore.count",
+					MHPType.PRECISE
+			);
 			testLeaksFound(ana, 80);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
@@ -282,24 +301,47 @@ public class FullIFCConcurrentTest {
 	@Test
 	public void testProbChannelMulti() {
 		try {
-			IFCAnalysis ana = buildAndAnnotate("tests.probch.ProbChannel",
-					SECRET,
-					"tests.probch.ProbChannel$Data.a");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(112, illegal.size());
-			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(35, illegal.size());
-			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(64, illegal.size());
-			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(14, illegal.size());
-			illegal = ana.doIFC(IFCType.CLASSICAL_NI);
-			assertTrue(illegal.isEmpty());
-			assertEquals(0, illegal.size());
+			/* MHPType.SIMPLE */ {
+				final IFCAnalysis ana = buildAndAnnotate("tests.probch.ProbChannel",
+						SECRET,
+						"tests.probch.ProbChannel$Data.a",
+						MHPType.SIMPLE
+				);
+				Collection<? extends IViolation<SecurityNode>> illegal;
+
+				illegal = ana.doIFC(IFCType.LSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(112, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.RLSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(64, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+				assertTrue(illegal.isEmpty());
+				assertEquals(0, illegal.size());
+
+			}
+			/* MHPType.PRECISE */ {
+				final IFCAnalysis ana = buildAndAnnotate("tests.probch.ProbChannel",
+						SECRET,
+						"tests.probch.ProbChannel$Data.a",
+						MHPType.PRECISE
+				);
+				Collection<? extends IViolation<SecurityNode>> illegal;
+				
+				illegal = ana.doIFC(IFCType.LSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(35, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.RLSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(14, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+				assertTrue(illegal.isEmpty());
+				assertEquals(0, illegal.size());
+			}
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -309,24 +351,47 @@ public class FullIFCConcurrentTest {
 	@Test
 	public void testConcPasswordFile() {
 		try {
-			IFCAnalysis ana = buildAndAnnotate("tests.ConcPasswordFile",
-					"tests.ConcPasswordFile.passwords",
-					"tests.ConcPasswordFile.b");
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(14, illegal.size());
-			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(12, illegal.size());
-			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(9, illegal.size());
-			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(9, illegal.size());
-			illegal = ana.doIFC(IFCType.CLASSICAL_NI);
-			assertFalse(illegal.isEmpty());
-			assertEquals(6, illegal.size());
+			/* MHPType.SIMPLE */ {
+				IFCAnalysis ana = buildAndAnnotate("tests.ConcPasswordFile",
+						"tests.ConcPasswordFile.passwords",
+						"tests.ConcPasswordFile.b",
+						MHPType.SIMPLE
+				);
+				Collection<? extends IViolation<SecurityNode>> illegal;
+				
+				illegal = ana.doIFC(IFCType.LSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(14, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.RLSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(9, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+				assertFalse(illegal.isEmpty());
+				assertEquals(6, illegal.size());
+			}
+			
+			/* MHPType.PRECISE */ {
+				IFCAnalysis ana = buildAndAnnotate("tests.ConcPasswordFile",
+						"tests.ConcPasswordFile.passwords",
+						"tests.ConcPasswordFile.b",
+						MHPType.PRECISE
+				);
+				Collection<? extends IViolation<SecurityNode>> illegal;
+				
+				illegal = ana.doIFC(IFCType.LSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(12, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.RLSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(9, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+				assertFalse(illegal.isEmpty());
+				assertEquals(6, illegal.size());
+			}
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -336,24 +401,46 @@ public class FullIFCConcurrentTest {
 	@Test
 	public void testIndirectRecursive() {
 		try {
-			IFCAnalysis ana = buildAndAnnotate("tests.IndirectRecursiveThreads",
-					SECRET,
-					PUBLIC);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(55, illegal.size());
-			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(47, illegal.size());
-			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(23, illegal.size());
-			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(17, illegal.size());
-			illegal = ana.doIFC(IFCType.CLASSICAL_NI);
-			assertFalse(illegal.isEmpty());
-			assertEquals(6, illegal.size());
+			/* MHPType.SIMPLE */ {
+				IFCAnalysis ana = buildAndAnnotate("tests.IndirectRecursiveThreads",
+						SECRET,
+						PUBLIC,
+						MHPType.SIMPLE
+				);
+				Collection<? extends IViolation<SecurityNode>> illegal;
+				
+				illegal = ana.doIFC(IFCType.LSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(55, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.RLSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(23, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+				assertFalse(illegal.isEmpty());
+				assertEquals(6, illegal.size());
+			}
+			/* MHPType.PRECISE */ {
+				IFCAnalysis ana = buildAndAnnotate("tests.IndirectRecursiveThreads",
+						SECRET,
+						PUBLIC,
+						MHPType.PRECISE
+				);
+				Collection<? extends IViolation<SecurityNode>> illegal;
+	
+				illegal = ana.doIFC(IFCType.LSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(47, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.RLSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(17, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+				assertFalse(illegal.isEmpty());
+				assertEquals(6, illegal.size());
+			}
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -363,24 +450,47 @@ public class FullIFCConcurrentTest {
 	@Test
 	public void testProbPasswordFile() {
 		try {
-			IFCAnalysis ana = buildAndAnnotate("tests.ProbPasswordFile",
-					SECRET,
-					PUBLIC);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(9, illegal.size());
-			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(6, illegal.size());
-			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(4, illegal.size());
-			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(2, illegal.size());
-			illegal = ana.doIFC(IFCType.CLASSICAL_NI);
-			assertTrue(illegal.isEmpty());
-			assertEquals(0, illegal.size());
+			/* MHPType.SIMPLE */ {
+				IFCAnalysis ana = buildAndAnnotate("tests.ProbPasswordFile",
+						SECRET,
+						PUBLIC,
+						MHPType.SIMPLE
+				);
+				Collection<? extends IViolation<SecurityNode>> illegal;
+
+				illegal = ana.doIFC(IFCType.LSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(9, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.RLSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(4, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+				assertTrue(illegal.isEmpty());
+				assertEquals(0, illegal.size());
+			}
+
+			/* MHPType.PRECISE */ {
+				IFCAnalysis ana = buildAndAnnotate("tests.ProbPasswordFile",
+						SECRET,
+						PUBLIC,
+						MHPType.PRECISE
+				);
+				Collection<? extends IViolation<SecurityNode>> illegal;
+				
+				illegal = ana.doIFC(IFCType.LSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(6, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.RLSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(2, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+				assertTrue(illegal.isEmpty());
+				assertEquals(0, illegal.size());
+			}
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -390,23 +500,45 @@ public class FullIFCConcurrentTest {
 	@Test
 	public void testRecursiveThread() {
 		try {
-			IFCAnalysis ana = buildAndAnnotate("tests.RecursiveThread",
-					SECRET,
-					PUBLIC);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(52, illegal.size());
-			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(42, illegal.size());
-			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(14, illegal.size());
-			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(9, illegal.size());
-			illegal = ana.doIFC(IFCType.CLASSICAL_NI);
-			assertTrue(illegal.isEmpty());
+			/* MHPType.SIMPLE */ {
+				IFCAnalysis ana = buildAndAnnotate("tests.RecursiveThread",
+						SECRET,
+						PUBLIC,
+						MHPType.SIMPLE
+				);
+				Collection<? extends IViolation<SecurityNode>> illegal;
+				
+				illegal = ana.doIFC(IFCType.LSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(52, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.RLSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(14, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+				assertTrue(illegal.isEmpty());
+			}
+			
+			/* MHPType.PRECISE */ {
+				IFCAnalysis ana = buildAndAnnotate("tests.RecursiveThread",
+						SECRET,
+						PUBLIC,
+						MHPType.PRECISE
+				);
+				Collection<? extends IViolation<SecurityNode>> illegal;
+
+				illegal = ana.doIFC(IFCType.LSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(42, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.RLSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(9, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+				assertTrue(illegal.isEmpty());
+			}
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -416,24 +548,47 @@ public class FullIFCConcurrentTest {
 	@Test
 	public void testSynchronization() {
 		try {
-			IFCAnalysis ana = buildAndAnnotate("tests.Synchronization",
-					SECRET,
-					PUBLIC);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(26, illegal.size());
-			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(22, illegal.size());
-			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(12, illegal.size());
-			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(4, illegal.size());
-			illegal = ana.doIFC(IFCType.CLASSICAL_NI);
-			assertFalse(illegal.isEmpty());
-			assertEquals(2, illegal.size());
+			/* MHPType.SIMPLE */ {
+				IFCAnalysis ana = buildAndAnnotate("tests.Synchronization",
+						SECRET,
+						PUBLIC,
+						MHPType.SIMPLE
+				);
+				Collection<? extends IViolation<SecurityNode>> illegal;
+				
+				illegal = ana.doIFC(IFCType.LSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(26, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.RLSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(12, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+				assertFalse(illegal.isEmpty());
+				assertEquals(2, illegal.size());
+			}
+			
+			/* MHPType.PRECISE */ {
+				IFCAnalysis ana = buildAndAnnotate("tests.Synchronization",
+						SECRET,
+						PUBLIC,
+						MHPType.PRECISE
+				);
+				Collection<? extends IViolation<SecurityNode>> illegal;
+				
+				illegal = ana.doIFC(IFCType.LSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(22, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.RLSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(4, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+				assertFalse(illegal.isEmpty());
+				assertEquals(2, illegal.size());
+			}
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -443,24 +598,47 @@ public class FullIFCConcurrentTest {
 	@Test
 	public void testThreadJoining() {
 		try {
-			IFCAnalysis ana = buildAndAnnotate("tests.ThreadJoining",
-					SECRET,
-					PUBLIC);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(4, illegal.size());
-			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(4, illegal.size());
-			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(4, illegal.size());
-			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(4, illegal.size());
-			illegal = ana.doIFC(IFCType.CLASSICAL_NI);
-			assertFalse(illegal.isEmpty());
-			assertEquals(4, illegal.size());
+			/* MHPType.SIMPLE */ {
+				IFCAnalysis ana = buildAndAnnotate("tests.ThreadJoining",
+						SECRET,
+						PUBLIC,
+						MHPType.SIMPLE
+				);
+				Collection<? extends IViolation<SecurityNode>> illegal;
+				
+				illegal = ana.doIFC(IFCType.LSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(4, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.RLSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(4, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+				assertFalse(illegal.isEmpty());
+				assertEquals(4, illegal.size());
+			}
+			
+			/* MHPType.PRECISE */ {
+				IFCAnalysis ana = buildAndAnnotate("tests.ThreadJoining",
+						SECRET,
+						PUBLIC,
+						MHPType.PRECISE
+				);
+				Collection<? extends IViolation<SecurityNode>> illegal;
+			
+				illegal = ana.doIFC(IFCType.LSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(4, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.RLSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(4, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+				assertFalse(illegal.isEmpty());
+				assertEquals(4, illegal.size());
+			}
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -470,24 +648,47 @@ public class FullIFCConcurrentTest {
 	@Test
 	public void testThreadSpawning() {
 		try {
-			IFCAnalysis ana = buildAndAnnotate("tests.ThreadSpawning",
-					SECRET,
-					PUBLIC);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(199, illegal.size());
-			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(187, illegal.size());
-			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(19, illegal.size());
-			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(18, illegal.size());
-			illegal = ana.doIFC(IFCType.CLASSICAL_NI);
-			assertTrue(illegal.isEmpty());
-			assertEquals(0, illegal.size());
+			/* MHPType.SIMPLE */ {
+				IFCAnalysis ana = buildAndAnnotate("tests.ThreadSpawning",
+						SECRET,
+						PUBLIC,
+						MHPType.SIMPLE
+				);
+				Collection<? extends IViolation<SecurityNode>> illegal;
+				
+				illegal = ana.doIFC(IFCType.LSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(199, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.RLSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(19, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+				assertTrue(illegal.isEmpty());
+				assertEquals(0, illegal.size());
+			}
+			
+			/* MHPType.PRECISE */ {
+				IFCAnalysis ana = buildAndAnnotate("tests.ThreadSpawning",
+						SECRET,
+						PUBLIC,
+						MHPType.PRECISE
+				);
+				Collection<? extends IViolation<SecurityNode>> illegal;
+			
+				illegal = ana.doIFC(IFCType.LSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(187, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.RLSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(18, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+				assertTrue(illegal.isEmpty());
+				assertEquals(0, illegal.size());
+			}
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -497,24 +698,47 @@ public class FullIFCConcurrentTest {
 	@Test
 	public void testVolpanoSmith98Page3() {
 		try {
-			IFCAnalysis ana = buildAndAnnotate("tests.VolpanoSmith98Page3",
-					"tests.VolpanoSmith98Page3.PIN",
-					PUBLIC);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(83, illegal.size());
-			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(77, illegal.size());
-			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(21, illegal.size());
-			illegal = ana.doIFC(IFCType.RLSOD, MHPType.PRECISE);
-			assertFalse(illegal.isEmpty());
-			assertEquals(7, illegal.size());
-			illegal = ana.doIFC(IFCType.CLASSICAL_NI);
-			assertTrue(illegal.isEmpty());
-			assertEquals(0, illegal.size());
+			/* MHPType.SIMPLE */ {
+				IFCAnalysis ana = buildAndAnnotate("tests.VolpanoSmith98Page3",
+						"tests.VolpanoSmith98Page3.PIN",
+						PUBLIC,
+						MHPType.SIMPLE
+				);
+				Collection<? extends IViolation<SecurityNode>> illegal;
+				
+				illegal = ana.doIFC(IFCType.LSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(83, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.RLSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(21, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+				assertTrue(illegal.isEmpty());
+				assertEquals(0, illegal.size());
+			}
+			
+			/* MHPType.PRECISE */ {
+				IFCAnalysis ana = buildAndAnnotate("tests.VolpanoSmith98Page3",
+						"tests.VolpanoSmith98Page3.PIN",
+						PUBLIC,
+						MHPType.PRECISE
+				);
+				Collection<? extends IViolation<SecurityNode>> illegal;
+				
+				illegal = ana.doIFC(IFCType.LSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(77, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.RLSOD);
+				assertFalse(illegal.isEmpty());
+				assertEquals(7, illegal.size());
+				
+				illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+				assertTrue(illegal.isEmpty());
+				assertEquals(0, illegal.size());
+			}
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

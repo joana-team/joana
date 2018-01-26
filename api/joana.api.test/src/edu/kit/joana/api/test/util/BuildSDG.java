@@ -25,7 +25,6 @@ import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
-import edu.kit.joana.ifc.sdg.mhpoptimization.PruneInterferences;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.NullProgressMonitor;
@@ -81,8 +80,8 @@ public final class BuildSDG {
 	public static SDGProgram standardConcBuild(String classPath, JavaMethodSignature entryMethod, String saveAs, PointsToPrecision ptsPrec) {
 		SDGConfig cfg = new SDGConfig(classPath, entryMethod.toBCString(), STUBS);
 		cfg.setComputeInterferences(true);
+		cfg.setMhpType(MHPType.PRECISE);
 		cfg.setExceptionAnalysis(ExceptionAnalysis.IGNORE_ALL);
-		cfg.setMhpType(MHPType.NONE);
 		cfg.setFieldPropagation(FieldPropagation.OBJ_GRAPH);
 		cfg.setPointsToPrecision(ptsPrec);
 		cfg.setParallel(false);
@@ -91,7 +90,6 @@ public final class BuildSDG {
 			p = SDGProgram.createSDGProgram(cfg, new PrintStream(new ByteArrayOutputStream()),
 					NullProgressMonitor.INSTANCE);
 			SDG sdg = p.getSDG();
-			PruneInterferences.preprocessAndPruneCSDG(sdg, MHPType.PRECISE);
 			saveSDGProgram(sdg, saveAs);
 			return p;
 		} catch (ClassHierarchyException | IOException | UnsoundGraphException

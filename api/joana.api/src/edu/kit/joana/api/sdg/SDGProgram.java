@@ -55,6 +55,8 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.chopper.Chopper;
 import edu.kit.joana.ifc.sdg.graph.chopper.NonSameLevelChopper;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
+import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.mhpoptimization.PruneInterferences;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
@@ -170,14 +172,16 @@ public class SDGProgram {
 	private final SDGClassComputation classComp;
 	private final Set<SDGClass> classes = new LinkedHashSet<SDGClass>();
 	private final SDG sdg;
+	private final MHPAnalysis mhpAnalysis;
 	private SDGProgramPartParserBC ppartParser;
 	private final Map<SDGProgramPart, Collection<Pair<Annotation,String>>> annotations = new LinkedHashMap<>();
 	private final AnnotationTypeBasedNodeCollector coll;
 
 	private static Logger debug = Log.getLogger(Log.L_API_DEBUG);
 	
-	public SDGProgram(SDG sdg) {
+	public SDGProgram(SDG sdg, MHPAnalysis mhpAnalysis) {
 		this.sdg = sdg;
+		this.mhpAnalysis = mhpAnalysis;
 		this.ppartParser = new SDGProgramPartParserBC(this);
 		this.classComp = new SDGClassComputation(sdg);
 		this.coll = new AnnotationTypeBasedNodeCollector(sdg, this.classComp);
@@ -188,8 +192,11 @@ public class SDGProgram {
 		return coll;
 	}
 
-	public static SDGProgram loadSDG(String path) throws IOException {
-		return new SDGProgram(SDG.readFromAndUseLessHeap(path, new SecurityNode.SecurityNodeFactory()));
+	public static SDGProgram loadSDG(String path, MHPType mhpType) throws IOException {
+		final SDG sdg = SDG.readFromAndUseLessHeap(path, new SecurityNode.SecurityNodeFactory());
+		final MHPAnalysis mhpAnalysis = mhpType.getMhpAnalysisConstructor().apply(sdg);
+		PruneInterferences.pruneInterferences(sdg, mhpAnalysis);
+		return new SDGProgram(sdg, mhpAnalysis);
 	}
 
 	public static SDGProgram createSDGProgram(String classPath, String entryMethod) {
@@ -203,6 +210,7 @@ public class SDGProgram {
 	public static SDGProgram createSDGProgram(String classPath, String entryMethod, boolean computeInterference,
 			MHPType mhpType) {
 		try {
+			// TODO: do not ever create with stubs == null!
 			return createSDGProgram(classPath, entryMethod, null, computeInterference, mhpType,
 					IOFactory.createUTF8PrintStream(new ByteArrayOutputStream()), NullProgressMonitor.INSTANCE);
 		} catch (ClassHierarchyException e) {
@@ -249,8 +257,16 @@ public class SDGProgram {
 		final SDGBuildArtifacts buildArtifacts = p.snd;
 
 		if (config.computeInterferences()) {
-			PruneInterferences.preprocessAndPruneCSDG(sdg, config.getMhpType());
+			CSDGPreprocessor.preprocessSDG(sdg);
 		}
+		
+		final MHPAnalysis mhpAnalysis = config.getMhpType().getMhpAnalysisConstructor().apply(sdg);
+		assert (mhpAnalysis == null) == (config.getMhpType() == MHPType.NONE);
+		
+		if (config.computeInterferences()) {
+			PruneInterferences.preprocessAndPruneCSDG(sdg, mhpAnalysis);
+		}
+		
 		if (notifier != null) {
 			notifier.sdgFinished();
 			notifier.numberOfCGNodes(buildArtifacts.getNonPrunedWalaCallGraph().getNumberOfNodes(), buildArtifacts.getWalaCallGraph().getNumberOfNodes());
@@ -269,7 +285,7 @@ public class SDGProgram {
 			SDGSerializer.toPDGFormat(sdg, sdgFileOut);
 			sdgFileOut.flush();
 		}
-		final SDGProgram ret = new SDGProgram(sdg);
+		final SDGProgram ret = new SDGProgram(sdg, mhpAnalysis);
 		
 		if (config.isSkipSDGProgramPart()) {
 			return ret;
@@ -512,6 +528,11 @@ public class SDGProgram {
 	public SDG getSDG() {
 		return sdg;
 	}
+
+	public MHPAnalysis getMhpAnalysis() {
+		return mhpAnalysis;
+	}
+	
 
 	public Map<SDGProgramPart, Collection<Pair<Annotation,String>>> getJavaSourceAnnotations() {
 		return annotations;

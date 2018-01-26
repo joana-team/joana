@@ -16,7 +16,7 @@
 	
 	<property name="main.class" value="edu.kit.joana.wala.jodroid.JoDroidCLI" />
 
-	<target name="fulljar" depends="compile,spill_out_jars,copy_non_java_files" description="generate the stand-alone jar file">
+	<target name="fulljar" depends="git-head,compile,spill_out_jars,copy_non_java_files" description="generate the stand-alone jar file">
 		<delete file="${joana.dist.dir}/${projectname}.jar" />
 		<jar jarfile="${joana.dist.dir}/${projectname}.jar">
 			<fileset dir="${dest.dir.classes}">
@@ -33,6 +33,15 @@
 			</manifest>
 		</jar>
 	</target>
+
+	<target name="git-head" description="generates a file which contains the git commit id of the current HEAD">
+		<delete file="${joana.wala.jodroid.base.dir}/git-commit"/>
+		<exec executable="/bin/sh" failifexecutionfails="false">
+			<arg value="-c"/>
+			<arg value="git rev-parse HEAD > ${joana.wala.jodroid.base.dir}/git-commit"/>
+		</exec>
+	</target>
+
 
 	<target name="compile" depends="init,collect_wala_sources,collect_sources">
 		<path id="lib.path.ref">
@@ -80,6 +89,9 @@
 
 	<target name="copy_non_java_files">
 		<copy todir="${dest.dir.classes}">
+			<filelist dir="${joana.wala.jodroid.base.dir}">
+				<file name="git-commit"/>
+			</filelist>
 			<filelist dir="${com.ibm.wala.core.base.dir}/dat">
 				<file name="natives.xml" />
 				<file name="natives_no_model.xml" />

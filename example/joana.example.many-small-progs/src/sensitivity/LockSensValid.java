@@ -16,7 +16,7 @@ public class LockSensValid {
 
 	public static class T extends Thread {
 		
-		public int y = Security.PUBLIC;
+		public static int y = Security.PUBLIC;
 		
 		public void run() {
 			synchronized (LockSensValid.l) {

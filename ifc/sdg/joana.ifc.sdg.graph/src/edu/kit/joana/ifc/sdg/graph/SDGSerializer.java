@@ -14,7 +14,10 @@ package edu.kit.joana.ifc.sdg.graph;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -191,7 +194,10 @@ public final class SDGSerializer {
     }
 
     private static void printPDGDependencies(JoanaGraph g, SDGNode n, PrintWriter pw) {
-        for (SDGEdge e : g.outgoingEdgesOf(n)) {
+        final Set<SDGEdge> outgoing = g.outgoingEdgesOf(n);
+        final SDGEdge[] outgoingSorted = g.outgoingEdgesOf(n).toArray(new SDGEdge[outgoing.size()]);
+        Arrays.sort(outgoingSorted, SDGEdge.getComparator());
+        for (SDGEdge e : outgoingSorted) {
             SDGNode node = e.getTarget();
             String kind = e.getKind().toString();
             pw.print(kind + " " + node.getId());

@@ -196,7 +196,18 @@ public final class SDGSerializer {
     private static void printPDGDependencies(JoanaGraph g, SDGNode n, PrintWriter pw) {
         final Set<SDGEdge> outgoing = g.outgoingEdgesOf(n);
         final SDGEdge[] outgoingSorted = g.outgoingEdgesOf(n).toArray(new SDGEdge[outgoing.size()]);
-        Arrays.sort(outgoingSorted, SDGEdge.getComparator());
+        // final Comparator<SDGEdge> comparator = SDGEdge.getComparator() <- this doesnt work
+        final Comparator<SDGEdge> comparator = new Comparator<SDGEdge>() {
+            @Override
+            public int compare(SDGEdge o1, SDGEdge o2) {
+                final int byKind = o1.getKind().compareTo(o2.getKind());
+                if (byKind != 0) return byKind;
+                
+                final int byTarget = Integer.compare(o1.getTarget().getId(), o2.getTarget().getId());
+                return byTarget;
+            }
+        };
+        Arrays.sort(outgoingSorted, comparator);
         for (SDGEdge e : outgoingSorted) {
             SDGNode node = e.getTarget();
             String kind = e.getKind().toString();

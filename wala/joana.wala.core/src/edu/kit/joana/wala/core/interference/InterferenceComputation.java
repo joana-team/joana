@@ -441,6 +441,12 @@ public class InterferenceComputation {
 		return hreads;
 	}
 
+	
+	// This used to be an filtering optimization during InterferenceComputation#getHeapWrites(),
+	// which sadly causes problems (in, e.g., FullIFCSensitivityTest#fullTimeSenseLeak()).
+	// Since i cannot see how this can reasonably fixed, i removed this optimization from
+	// InterferenceComputation#getHeapWrites().
+	@SuppressWarnings("unused")
 	private final boolean mayBeEscaping(final PDG pdg, final SSAPutInstruction set) {
 		if (!set.isStatic() && escape != null) {
 			final OrdinalSet<InstanceKey> pt = pts.getPointsToSet(pdg.cgNode, set.getRef());
@@ -462,10 +468,6 @@ public class InterferenceComputation {
 				final SSAPutInstruction putInstr = (SSAPutInstruction)i;
 
 				if (optimizeThisAccess && isThisPointerAccessInConstructor(pdg.getMethod(), putInstr)) {
-					continue;
-				}
-
-				if (!mayBeEscaping(pdg, putInstr)) {
 					continue;
 				}
 

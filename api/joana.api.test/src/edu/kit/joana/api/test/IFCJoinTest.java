@@ -91,7 +91,7 @@ public class IFCJoinTest {
 				"joana.api.testdata.conc.Thread0.run()V", "Ljoana/api/testdata/conc/Joining1.f");
 		Assert.assertFalse(coll.isEmpty());
 		Assert.assertTrue(coll.size() == 1);
-		Assert.assertEquals(240, coll.iterator().next().getId());
+		Assert.assertEquals(239, coll.iterator().next().getId());
 		Collection<SDGNode> calls = ana.collectCallsInMethod("joana.api.testdata.conc.Joining1.main([Ljava/lang/String;)V", "java.io.PrintStream.println(I)V");
 		Assert.assertFalse(calls.isEmpty());
 		Assert.assertTrue(calls.size() == 1);
@@ -141,13 +141,13 @@ public class IFCJoinTest {
 		Assert.assertFalse(coll.isEmpty());
 		Assert.assertTrue(coll.size() == 1);
 		int id1 = coll.iterator().next().getId();
-		Assert.assertEquals(284, id1);
+		Assert.assertEquals(273, id1);
 		
 		Collection<SDGNode> calls = ana.collectCallsInMethod("joana.api.testdata.conc.ThreadB.run()V", "java.io.PrintStream.println(I)V");
 		Assert.assertFalse(calls.isEmpty());
 		Assert.assertTrue(calls.size() == 1);
 		int id2 = calls.iterator().next().getId();
-		Assert.assertEquals(371	, id2);
+		Assert.assertEquals(360	, id2);
 		SDGNode call = calls.iterator().next();
 		Collection<SDGNode> actualIns = new LinkedList<SDGNode>();
 		for (SDGEdge e : sdg.getOutgoingEdgesOfKind(call, SDGEdge.Kind.CONTROL_DEP_EXPR)) {

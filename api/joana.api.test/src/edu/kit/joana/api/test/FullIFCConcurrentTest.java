@@ -311,15 +311,15 @@ public class FullIFCConcurrentTest {
 
 				illegal = ana.doIFC(IFCType.LSOD);
 				assertFalse(illegal.isEmpty());
-				assertEquals(121, illegal.size());
+				assertEquals(115, illegal.size());
 				
 				illegal = ana.doIFC(IFCType.RLSOD);
 				assertFalse(illegal.isEmpty());
-				assertEquals(68, illegal.size());
+				assertEquals(64, illegal.size());
 				
 				illegal = ana.doIFC(IFCType.timingiRLSOD);
 				assertFalse(illegal.isEmpty());
-				assertEquals(73, illegal.size());
+				assertEquals(69, illegal.size());
 				
 				illegal = ana.doIFC(IFCType.CLASSICAL_NI);
 				assertTrue(illegal.isEmpty());
@@ -336,15 +336,15 @@ public class FullIFCConcurrentTest {
 				
 				illegal = ana.doIFC(IFCType.LSOD);
 				assertFalse(illegal.isEmpty());
-				assertEquals(44, illegal.size());
+				assertEquals(39, illegal.size());
 				
 				illegal = ana.doIFC(IFCType.RLSOD);
 				assertFalse(illegal.isEmpty());
-				assertEquals(16, illegal.size());
+				assertEquals(13, illegal.size());
 				
 				illegal = ana.doIFC(IFCType.timingiRLSOD);
 				assertFalse(illegal.isEmpty());
-				assertEquals(25, illegal.size());
+				assertEquals(21, illegal.size());
 				
 				illegal = ana.doIFC(IFCType.CLASSICAL_NI);
 				assertTrue(illegal.isEmpty());

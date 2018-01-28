@@ -39,6 +39,7 @@ import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
+import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 
 /**
  * @author Juergen Graf <graf@kit.edu>
@@ -55,6 +56,7 @@ public class JoinAnalysisIFCMantelTest {
 		config.setExceptionAnalysis(ExceptionAnalysis.INTRAPROC);
 		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH);
 		config.setMhpType(mhp);
+		config.setPointsToPrecision(PointsToPrecision.OBJECT_SENSITIVE);
 		
 		SDGProgram prog = null;
 		
@@ -115,7 +117,7 @@ public class JoinAnalysisIFCMantelTest {
 			IFCAnalysis ana = buildAndAnnotateMantel(MHPType.SIMPLE);
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.RLSOD);
 			assertFalse(illegal.isEmpty());
-			assertEquals(89, illegal.size());
+			assertEquals(108, illegal.size());
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -126,7 +128,7 @@ public class JoinAnalysisIFCMantelTest {
 	public void testMantelWithPreciseAnalysis() {
 		try {
 			IFCAnalysis ana = buildAndAnnotateMantel(MHPType.PRECISE);
-			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.RLSOD);
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.timingiRLSOD);
 			assertEquals(0, illegal.size());
 			assertTrue(illegal.isEmpty());
 		} catch (ApiTestException e) {

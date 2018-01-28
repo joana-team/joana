@@ -340,7 +340,6 @@ public class ConfigurationMainTab extends AbstractJoanaTab {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	public void performApply(ILaunchConfigurationWorkingCopy configuration) {
 		configuration.setAttribute(ConfigurationAttributes.PROJECT_NAME, this.projectText.getText());
 		configuration.setAttribute(ConfigurationAttributes.MAIN_CLASS_NAME, this.classText.getText());

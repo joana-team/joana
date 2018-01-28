@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Set;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.common.collect.Sets;

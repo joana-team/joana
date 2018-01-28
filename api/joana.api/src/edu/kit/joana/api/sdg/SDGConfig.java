@@ -13,7 +13,6 @@ import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
 import com.ibm.wala.ipa.callgraph.pruned.PruningPolicy;
 
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
-import edu.kit.joana.util.JoanaConstants;
 import edu.kit.joana.util.LogUtil;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.CGConsumer;

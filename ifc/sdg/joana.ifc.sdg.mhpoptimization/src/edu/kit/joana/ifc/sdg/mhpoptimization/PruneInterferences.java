@@ -7,7 +7,6 @@
  */
 package edu.kit.joana.ifc.sdg.mhpoptimization;
 
-import java.util.Collection;
 import java.util.LinkedList;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -15,8 +14,6 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.CFGForward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.SimpleMHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;

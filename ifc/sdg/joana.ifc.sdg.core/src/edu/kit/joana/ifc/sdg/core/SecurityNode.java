@@ -7,8 +7,6 @@
  */
 package edu.kit.joana.ifc.sdg.core;
 
-import java.util.List;
-
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
 

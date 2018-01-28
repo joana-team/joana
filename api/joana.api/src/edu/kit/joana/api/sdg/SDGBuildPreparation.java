@@ -47,7 +47,6 @@ import com.ibm.wala.util.strings.StringStuff;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
-import edu.kit.joana.util.JoanaConstants;
 import edu.kit.joana.util.LogUtil;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.util.io.IOFactory;

@@ -11,21 +11,15 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.jar.JarFile;
 
 import com.ibm.wala.cfg.exc.intra.MethodState;
 import com.ibm.wala.classLoader.BinaryDirectoryTreeModule;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
-import com.ibm.wala.classLoader.JarFileModule;
-import com.ibm.wala.classLoader.JarStreamModule;
 import com.ibm.wala.classLoader.Language;
 import com.ibm.wala.classLoader.Module;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
@@ -71,9 +65,9 @@ import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
 import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
 import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
+import edu.kit.joana.wala.util.WALAUtils;
 import edu.kit.joana.wala.util.WriteGraphToDot;
 import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder;
-import joana.contrib.lib.Contrib;
 
 public final class SDGBuildPreparation {
 
@@ -133,26 +127,6 @@ public final class SDGBuildPreparation {
 		}
 	}
 
-	public static Module findJarModule(final String path) throws IOException {
-		return findJarModule(null, path);
-	}
-	/**
-	 * Search file in filesystem. If not found, try to load from classloader (e.g. from inside the jarfile).
-	 */
-	public static Module findJarModule(final PrintStream out, final String path) throws IOException {
-		final File f = new File(path);
-		if (f.exists()) {
-			if (out != null) out.print("(from file " + path + ") ");
-			return new JarFileModule(new JarFile(f));
-		} else {
-			final URL url = Contrib.class.getClassLoader().getResource(path);
-			final URLConnection con = url.openConnection();
-			final InputStream in = con.getInputStream();
-			if (out != null) out.print("(from jar stream " + path + ") ");
-			return new JarStreamModule(in);
-		}
-	}
-
 	public static AnalysisScope setUpAnalysisScope(final PrintStream out, final Config cfg) throws IOException {
 		// Fuegt die normale Java Bibliothek zum Scope hinzu
 
@@ -167,7 +141,7 @@ public final class SDGBuildPreparation {
 			assert cfg.stubs != Stubs.NO_STUBS;
 			scope = AnalysisScope.createJavaAnalysisScope();
 			for (final String stub : stubPaths) {
-				final Module stubs = findJarModule(out, stub);
+				final Module stubs = WALAUtils.findJarModule(out, stub);
 				scope.addToScope(ClassLoaderReference.Primordial, stubs);
 			}
 		} else {
@@ -219,11 +193,11 @@ public final class SDGBuildPreparation {
 			if (!appClassPath.endsWith(".jar")) {
 				scope.addToScope(ClassLoaderReference.Application, new BinaryDirectoryTreeModule(new File(appClassPath)));
 			} else {
-				scope.addToScope(ClassLoaderReference.Application, findJarModule(appClassPath));
+				scope.addToScope(ClassLoaderReference.Application, WALAUtils.findJarModule(appClassPath));
 			}
 		}
 		for (String stubsPath : stubs.getPaths()) {
-			scope.addToScope(ClassLoaderReference.Primordial, findJarModule(stubsPath));
+			scope.addToScope(ClassLoaderReference.Primordial, WALAUtils.findJarModule(stubsPath));
 		}
 		scope.setExclusions(new FileOfClasses(new ByteArrayInputStream(exclusionsRegexp.getBytes())));
 		return scope;

@@ -30,7 +30,6 @@ import com.ibm.wala.util.config.FileOfClasses;
 import com.ibm.wala.util.config.SetOfClasses;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
-import edu.kit.joana.api.sdg.SDGBuildPreparation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -71,6 +70,7 @@ import edu.kit.joana.wala.flowless.spec.ast.Parameter;
 import edu.kit.joana.wala.flowless.spec.ast.PrimitiveAliasStmt;
 import edu.kit.joana.wala.flowless.spec.java.ast.ClassInfo;
 import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
+import edu.kit.joana.wala.util.WALAUtils;
 
 public final class TestCheckFlowComputation {
 
@@ -948,7 +948,7 @@ public final class TestCheckFlowComputation {
 		if (stubPaths.length > 0) {
 			assert cfg.stubs != Stubs.NO_STUBS;
 			for (final String stub : stubPaths) {
-				final Module stubs = SDGBuildPreparation.findJarModule(stub);
+				final Module stubs = WALAUtils.findJarModule(stub);
 				scope.addToScope(ClassLoaderReference.Primordial, stubs);
 			}
 		}

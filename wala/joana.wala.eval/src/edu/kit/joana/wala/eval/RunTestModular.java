@@ -36,7 +36,6 @@ import com.ibm.wala.util.config.FileOfClasses;
 import com.ibm.wala.util.config.SetOfClasses;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
-import edu.kit.joana.api.sdg.SDGBuildPreparation;
 import edu.kit.joana.deprecated.jsdg.output.JoanaStyleSDG;
 import edu.kit.joana.deprecated.jsdg.sdg.dataflow.SummaryEdgeComputation;
 import edu.kit.joana.deprecated.jsdg.sdg.nodes.JDependencyGraph.PDGFormatException;
@@ -80,6 +79,7 @@ import edu.kit.joana.wala.jsdg.optimize.StaticFieldMerge;
 import edu.kit.joana.wala.jsdg.optimize.SummarizeDependencies;
 import edu.kit.joana.wala.jsdg.summary.IntraprocSummaryEdges;
 import edu.kit.joana.wala.jsdg.summary.IntraprocSummaryEdges.SummaryGraph;
+import edu.kit.joana.wala.util.WALAUtils;
 
 
 public class RunTestModular {
@@ -163,7 +163,7 @@ public class RunTestModular {
 		if (stubPaths.length > 0) {
 			assert cfg.stubs != Stubs.NO_STUBS;
 			for (final String stub : stubPaths) {
-				final Module stubs = SDGBuildPreparation.findJarModule(stub);
+				final Module stubs = WALAUtils.findJarModule(stub);
 				scope.addToScope(ClassLoaderReference.Primordial, stubs);
 			}
 		}

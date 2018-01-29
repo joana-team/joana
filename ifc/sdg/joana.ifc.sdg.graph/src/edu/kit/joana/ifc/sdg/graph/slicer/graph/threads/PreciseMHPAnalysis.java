@@ -13,7 +13,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
+
+import com.ibm.wala.util.intset.IntIterator;
+import com.ibm.wala.util.intset.IntSet;
+import com.ibm.wala.util.intset.MutableSparseIntSet;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -265,7 +270,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         private final ThreadRegions tr;
         //private HashMap<SDGNode, Set<SDGNode>> joinDominance;
         private LinkedList<DynamicContext> forks;
-        private HashMap<DynamicContext, LinkedList<Integer>> indirectForks;
+        private HashMap<DynamicContext, IntSet> indirectForks;
         private final CFGJoinSensitiveForward slicer;
 
         private MHPComputation (CFG icfg, ThreadsInformation info, ThreadRegions tr) {
@@ -300,13 +305,13 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         	return result;
         }
 
-		private HashMap<DynamicContext, LinkedList<Integer>> collectIndirectForks() {
-        	HashMap<DynamicContext, LinkedList<Integer>> result = new HashMap<DynamicContext, LinkedList<Integer>>();
+		private HashMap<DynamicContext, IntSet> collectIndirectForks() {
+        	HashMap<DynamicContext, IntSet> result = new HashMap<>();
 
         	for (DynamicContext fork : forks) {
         		if (fork == null) continue;
 
-        		LinkedList<Integer> l = new LinkedList<Integer>();
+        		MutableSparseIntSet l = MutableSparseIntSet.makeEmpty();
 
             	for (DynamicContext other : forks) {
             		if (other == null) continue;
@@ -354,7 +359,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         		}
 
         		// determine parallelism induced by fork
-        		LinkedList<Integer> spawnedThreads = indirectForks.get(fork);
+        		IntSet spawnedThreads = indirectForks.get(fork);
 
         		for (int i = 0; i < tr.size(); i++) {
             		ThreadRegion p = tr.getThreadRegion(i);
@@ -381,9 +386,11 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         		debug.out(thread + ", ");
         		if (info.isDynamic(thread)) {
         			Collection<ThreadRegion> regs = new ArrayList<ThreadRegion>();
-        			for (DynamicContext fork : indirectForks.keySet()) {
+        			for (Entry<DynamicContext, IntSet> entry : indirectForks.entrySet()) {
+        				final DynamicContext fork = entry.getKey();
         				if (fork.getThread() != thread) continue;
-        				for (int other_thread : indirectForks.get(fork)) {
+        				for (IntIterator it = entry.getValue().intIterator(); it.hasNext();) {
+        					final int other_thread = it.next(); 
         					regs.addAll(tr.getThreadRegionSet(other_thread));
         				}
         			}

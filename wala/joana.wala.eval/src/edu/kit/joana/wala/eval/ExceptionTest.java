@@ -126,7 +126,7 @@ public class ExceptionTest {
 		final SetOfClasses exclusions = new FileOfClasses(new ByteArrayInputStream(config.exclusions.getBytes()));
 		scope.setExclusions(exclusions);
 		final ClassLoaderReference loader = scope.getLoader(AnalysisScope.APPLICATION);
-		AnalysisScopeReader.addClassPathToScope(config.classpath, scope, loader, true);
+		AnalysisScopeReader.addClassPathToScope(config.classpath, scope, loader);
 		final ClassHierarchy cha = ClassHierarchyFactory.make(scope);
 
 		out.println("done.");

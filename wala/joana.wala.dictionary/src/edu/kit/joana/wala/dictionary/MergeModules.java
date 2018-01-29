@@ -751,11 +751,11 @@ public class MergeModules {
 		scope.setExclusions(exclusions);
 
 	    final ClassLoaderReference loader = scope.getLoader(AnalysisScope.APPLICATION);
-	    AnalysisScopeReader.addClassPathToScope(mainModule.classpath, scope, loader, true);
+	    AnalysisScopeReader.addClassPathToScope(mainModule.classpath, scope, loader);
 
     	final ClassLoaderReference loaderExt = scope.getLoader(AnalysisScope.EXTENSION);
 	    for (final ModuleCFG mcfg : otherModules) {
-		    AnalysisScopeReader.addClassPathToScope(mcfg.classpath, scope, loaderExt, true);
+		    AnalysisScopeReader.addClassPathToScope(mcfg.classpath, scope, loaderExt);
 	    }
 
 	    println("done.");

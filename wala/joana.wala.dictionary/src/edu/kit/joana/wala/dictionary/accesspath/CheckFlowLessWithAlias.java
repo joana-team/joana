@@ -1184,7 +1184,7 @@ public final class CheckFlowLessWithAlias {
 		scope.setExclusions(exclusions);
 
 	    final ClassLoaderReference loader = scope.getLoader(AnalysisScope.APPLICATION);
-	    AnalysisScopeReader.addClassPathToScope(cfg.classpath, scope, loader, true);
+	    AnalysisScopeReader.addClassPathToScope(cfg.classpath, scope, loader);
 
 	    return scope;
 	}

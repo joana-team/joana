@@ -44,7 +44,9 @@ public class VolpanoSmith98Page3 {
 
 	static class Gamma extends Thread {
 		public void run() {
-			while (mask != 0) {System.out.println("mask: "+mask);
+			final StringBuilder toMessage = new StringBuilder();
+			final String message = toMessage.append("mask:").append(mask).toString();
+			while (mask != 0) {System.out.println(message);
 				maintrigger = 0;
 
 				if ((PIN & mask) == 0) {

@@ -770,11 +770,11 @@ public class FullIFCConcurrentTest {
 				
 				illegal = ana.doIFC(IFCType.LSOD);
 				assertFalse(illegal.isEmpty());
-				assertEquals(76, illegal.size());
+				assertEquals(97, illegal.size());
 				
 				illegal = ana.doIFC(IFCType.RLSOD);
 				assertFalse(illegal.isEmpty());
-				assertEquals(24, illegal.size());
+				assertEquals(31, illegal.size());
 				
 				illegal = ana.doIFC(IFCType.timingiRLSOD);
 				assertFalse(illegal.isEmpty());
@@ -795,7 +795,7 @@ public class FullIFCConcurrentTest {
 				
 				illegal = ana.doIFC(IFCType.LSOD);
 				assertFalse(illegal.isEmpty());
-				assertEquals(50, illegal.size());
+				assertEquals(60, illegal.size());
 				
 				illegal = ana.doIFC(IFCType.RLSOD);
 				assertFalse(illegal.isEmpty());

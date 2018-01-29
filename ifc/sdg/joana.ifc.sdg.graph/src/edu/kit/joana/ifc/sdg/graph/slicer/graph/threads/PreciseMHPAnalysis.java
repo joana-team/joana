@@ -43,11 +43,11 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 	private static final Logger debug = Log.getLogger(Log.L_MHP_DEBUG);
 	
     private final ThreadsInformation info;
-    private final BitMatrix map;
+    private final SymmetricBitMatrix map;
     private final ThreadRegions regions;
     private HashMap<Integer, Collection<ThreadRegion>> mayExist;
 
-    private PreciseMHPAnalysis(ThreadsInformation info, BitMatrix map, ThreadRegions regions) {
+    private PreciseMHPAnalysis(ThreadsInformation info, SymmetricBitMatrix map, ThreadRegions regions) {
         this.info = info;
         this.map = map;
         this.regions = regions;
@@ -264,7 +264,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
     /* MHP Computation */
 
     private static class MHPComputation {
-        private BitMatrix map;
+        private SymmetricBitMatrix map;
         private final CFG icfg;
         private final ThreadsInformation info;
         private final ThreadRegions tr;
@@ -327,8 +327,8 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         	return result;
         }
 
-        private BitMatrix computeParallelism() {
-        	BitMatrix result = new BitMatrix(tr.size());
+        private SymmetricBitMatrix computeParallelism() {
+        	SymmetricBitMatrix result = new SymmetricBitMatrix(tr.size());
 
     		// process parallelism induced by forks
         	debug.outln("parallelism through forks");
@@ -370,12 +370,14 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
             					&& !info.getThread(fork.getThread()).isDynamic()) {
 	            		for (ThreadRegion q : inJoinSlice) {
 	            			result.set(p.getID(), q.getID());
-	            			result.set(q.getID(), p.getID());
+	            			assert
+	            			result.get(q.getID(), p.getID());
 	            		}
             		} else {
 	            		for (ThreadRegion q : inSecondSlice) {
 	            			result.set(p.getID(), q.getID());
-	            			result.set(q.getID(), p.getID());
+	            			assert
+	            			result.get(q.getID(), p.getID());
 	            		}
             		}
             	}
@@ -397,7 +399,8 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         			for (ThreadRegion p : regs) {
         				for (ThreadRegion q : regs) {
         					result.set(p.getID(), q.getID());
-        					result.set(q.getID(), p.getID());
+        					assert
+        					result.get(q.getID(), p.getID());
         				}
         			}
         		}

@@ -38,18 +38,19 @@ package edu.kit.joana.ifc.sdg.graph.slicer.graph.threads;
  *
  * @author srowen@google.com (Sean Owen)
  */
-//TODO: replace uses of BitMatrix with SummetricBitMatrix wherever appropriate
-public final class BitMatrix {
+public final class SymmetricBitMatrix {
 
     private final int dimension;
     private final int[] bits;
 
-    public BitMatrix(int dimension) {
+    public SymmetricBitMatrix(int dimension) {
         if (dimension < 1) {
             throw new IllegalArgumentException("dimension must be at least 1");
         }
         this.dimension = dimension;
-        long numBits = ((long)dimension) * ((long)dimension);
+        final long n = (long) dimension;
+        assert (n * (n + 1)) % 2 == 0;
+        final long numBits = (n * (n + 1)) / 2; 
         long arraySize = numBits >> 5; // one int per 32 bits
         if ((numBits & 0x1F) != 0) { // plus one more if there are leftovers
             arraySize++;
@@ -67,7 +68,10 @@ public final class BitMatrix {
      * @return value of given bit in matrix
      */
     public boolean get(int i, int j) {
-        long offset = ((long)i) + ((long)dimension) * ((long)j);
+        long m = (long) ((i <= j) ? i : j);
+        long n = (long) ((i <= j) ? j : i);
+        assert (n * (n + 1)) % 2 == 0;
+        long offset = m + (n * (n + 1))/2;
         int index = (int) (offset >> 5);
         return ((bits[index] >>> (offset & 0x1F)) & 0x01) != 0;
     }
@@ -79,7 +83,10 @@ public final class BitMatrix {
      * @param j column offset
      */
     public void set(int i, int j) {
-        long offset = ((long)i) + ((long)dimension) * ((long)j);
+        long m = (long) ((i <= j) ? i : j);
+        long n = (long) ((i <= j) ? j : i);
+        assert (n * (n + 1)) % 2 == 0;
+        long offset = m + (n * (n + 1))/2;
         int index = (int) (offset >> 5);
         bits[index] |= 1 << (offset & 0x1F);
     }
@@ -91,54 +98,12 @@ public final class BitMatrix {
      * @param j column offset
      */
     public void clear(int i, int j) {
-        long offset = ((long)i) + ((long)dimension) * ((long)j);
+        long m = (long) ((i <= j) ? i : j);
+        long n = (long) ((i <= j) ? j : i);
+        assert (n * (n + 1)) % 2 == 0;
+        long offset = m + (n * (n + 1))/2;
         int index = (int) (offset >> 5);
         bits[index] &= ~(1 << (offset & 0x1F));
-    }
-
-    /**
-     * <p>Sets a square region of the bit matrix to true.</p>
-     *
-     * @param topI row offset of region's top-left corner (inclusive)
-     * @param leftJ column offset of region's top-left corner (inclusive)
-     * @param height height of region
-     * @param width width of region
-     */
-    public void setRegion(int topI, int leftJ, int height, int width) {
-        if (topI < 0 || leftJ < 0) {
-            throw new IllegalArgumentException("topI and leftJ must be nonnegative");
-        }
-        if (height < 1 || width < 1) {
-            throw new IllegalArgumentException("height and width must be at least 1");
-        }
-        int maxJ = leftJ + width;
-        int maxI = topI + height;
-        if (maxI > dimension || maxJ > dimension) {
-            throw new IllegalArgumentException(
-                    "topI + height and leftJ + width must be <= matrix dimension");
-        }
-        for (int j = leftJ; j < maxJ; j++) {
-            long jOffset = dimension * j;
-            for (int i = topI; i < maxI; i++) {
-                long offset = i + jOffset;
-                int index = (int) (offset >> 5);
-                bits[index] |= 1 << (offset & 0x1F);
-            }
-        }
-    }
-
-    /**
-     * @return row/column dimension of this matrix
-     */
-    public int getDimension() {
-        return dimension;
-    }
-
-    /**
-     * @return array of ints holding internal representation of this matrix's bits
-     */
-    public int[] getBits() {
-        return bits;
     }
 
     public String toString() {
@@ -150,13 +115,5 @@ public final class BitMatrix {
             result.append('\n');
         }
         return result.toString();
-    }
-
-    public static void main(String[] args) {
-    	BitMatrix m = new BitMatrix(4);
-    	m.set(1, 1);
-    	System.out.println(m);
-    	m.set(1, 1);
-    	System.out.println(m);
     }
 }

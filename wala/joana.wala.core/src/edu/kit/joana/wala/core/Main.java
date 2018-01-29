@@ -270,7 +270,7 @@ public final class Main {
 		scope.setExclusions(exclusions);
 
 	    ClassLoaderReference loader = scope.getLoader(AnalysisScope.APPLICATION);
-	    AnalysisScopeReader.addClassPathToScope(cfg.classpath, scope, loader);
+	    AnalysisScopeReader.addClassPathToScope(cfg.classpath, scope, loader, true);
 
 	    return scope;
 	}

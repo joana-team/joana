@@ -178,10 +178,10 @@ public final class SDGBuildPreparation {
 		scope.setExclusions(exclusions);
 
 	    ClassLoaderReference loader = scope.getLoader(AnalysisScope.APPLICATION);
-	    AnalysisScopeReader.addClassPathToScope(cfg.classpath, scope, loader);
+	    AnalysisScopeReader.addClassPathToScope(cfg.classpath, scope, loader, true);
 	    if (cfg.thirdPartyLibPath != null) {
 	    	ClassLoaderReference extLoader = scope.getLoader(AnalysisScope.EXTENSION);
-	    	AnalysisScopeReader.addClassPathToScope(cfg.thirdPartyLibPath, scope, extLoader);
+	    	AnalysisScopeReader.addClassPathToScope(cfg.thirdPartyLibPath, scope, extLoader, true);
 	    }
 	    return scope;
 	}

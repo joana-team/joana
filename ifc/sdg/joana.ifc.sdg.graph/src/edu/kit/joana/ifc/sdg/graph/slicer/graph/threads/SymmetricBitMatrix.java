@@ -22,6 +22,8 @@
  */
 package edu.kit.joana.ifc.sdg.graph.slicer.graph.threads;
 
+import com.ibm.wala.util.intset.IntIterator;
+
 /**
  * <p>Represents a square matrix of bits. In function arguments below, i is the row position
  * and j the column position of a bit. The top left bit corresponds to i = 0 and j = 0.</p>
@@ -115,5 +117,61 @@ public final class SymmetricBitMatrix {
             result.append('\n');
         }
         return result.toString();
+    }
+    
+    // TODO: presumably, the array accesses in this iteration scheme can be strength-reduced
+    public IntIterator onCol(int j) {
+        return new IntIterator() {
+            int n = j;
+            int m = 0;
+            boolean inColMode = m < n;
+
+            @Override
+            public int next() {
+            	findNext();
+            	return (inColMode) ? m++ : n++;
+            }
+
+            @Override
+            public boolean hasNext() {
+            	return findNext();
+            }
+            
+            boolean findNext() {
+            	boolean found = false;
+            	while (inColMode && m < n         && !(found = get(m, n))) m++;
+            	if (found) return found;
+            	inColMode = false;
+            	while (n < dimension && !(found = get(m, n))) {
+            		n++;
+            	}
+            	return found;
+            }
+        };
+    }
+    
+    // TODO: presumably, the array accesses in this iteration scheme can be strength-reduced
+    public IntIterator onColAsymemtric(int j) {
+        return new IntIterator() {
+            int n = j;
+            int m = 0;
+
+            @Override
+            public int next() {
+            	findNext();
+            	return m++;
+            }
+
+            @Override
+            public boolean hasNext() {
+            	return findNext();
+            }
+            
+            boolean findNext() {
+            	boolean found = false;
+            	while (m <= n         && !(found = get(m, n))) m++;
+            	return found;
+            }
+        };
     }
 }

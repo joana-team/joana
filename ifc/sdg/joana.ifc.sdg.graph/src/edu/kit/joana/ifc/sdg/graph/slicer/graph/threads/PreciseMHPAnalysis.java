@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -138,6 +139,80 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
             return map.get(r.getID(), s.getID());
         }
     }
+    
+    
+    private class ColIterator implements Iterator<ThreadRegion> {
+    	private final IntIterator it;
+        final boolean isDynamic;
+        final int     rThread;
+        
+        ThreadRegion next = null;
+
+        private ColIterator(IntIterator it, boolean isDynamic, int rThread) {
+            this.it = it;
+            this.isDynamic = isDynamic;
+            this.rThread = rThread;
+        }
+
+        private void findNext() {
+            while (next == null && it.hasNext()) {
+                final int sId = it.next();
+                final ThreadRegion s = regions.getThreadRegion(sId);
+                if (!isDynamic && rThread == s.getThread()) {
+                    next = null;
+                } else {
+                    next = s;
+                }
+            }
+        }
+
+        @Override
+        public boolean hasNext() {
+        	findNext();
+        	return next != null;
+        }
+        @Override
+        public ThreadRegion next() {
+        	findNext();
+        	final ThreadRegion result = next;
+        	next = null;
+        	return result;
+        }
+    };
+
+    /**
+     * @param r
+     * @return all ThreadRegion s such that {@link PreciseMHPAnalysis#isParallel(r, s)}
+     */
+    public Iterable<ThreadRegion> parallelTo(ThreadRegion r) {
+        final boolean isDynamic = isDynamic(r.getThread());
+        final int     rThread = r.getThread();
+        final IntIterator it = map.onCol(r.getID());
+
+        return new Iterable<ThreadRegion>() {
+            @Override
+            public Iterator<ThreadRegion> iterator() {
+                return new ColIterator(it, isDynamic, rThread);
+            }
+        }; 
+    }
+    
+    /**
+     * @param r
+     * @return all ThreadRegion s such that s.getID() <= r.getID() && {@link PreciseMHPAnalysis#isParallel(r, s)}
+     */
+    public Iterable<ThreadRegion> parallelToAsymmetric(ThreadRegion r) {
+        final boolean isDynamic = isDynamic(r.getThread());
+        final int     rThread   = r.getThread();
+        final IntIterator it = map.onColAsymemtric(r.getID());
+
+        return new Iterable<ThreadRegion>() {
+            @Override
+            public Iterator<ThreadRegion> iterator() {
+                return new ColIterator(it, isDynamic, rThread);
+            }
+        }; 
+    }
 
 
     public String toString() {
@@ -240,7 +315,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
     	return result;
     }
 
-    private static HashMap<Integer, Collection<ThreadRegion>> computeMayExist(PreciseMHPAnalysis mhp) {
+    private static HashMap<Integer, Collection<ThreadRegion>> computeMayExistSlow(PreciseMHPAnalysis mhp) {
     	HashMap<Integer, Collection<ThreadRegion>> result = new HashMap<>();
 
     	for (ThreadRegion r : mhp.getThreadRegions()) {
@@ -257,6 +332,34 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
     		}
     	}
 
+    	return result;
+    }
+	
+    private static HashMap<Integer, Collection<ThreadRegion>> computeMayExist(PreciseMHPAnalysis mhp) {
+    	HashMap<Integer, Collection<ThreadRegion>> result = new HashMap<>();
+
+    	for (ThreadRegion r : mhp.getThreadRegions()) {
+    		for (ThreadRegion s : mhp.parallelToAsymmetric(r)) {
+    			result.compute(r.getThread(), (k, c) -> {
+        			if (c == null) {
+        				c = new HashSet<>();
+        			}
+       				c.add(s);
+       				
+       				return c;
+    			});
+    			result.compute(s.getThread(), (k, c) -> {
+        			if (c == null) {
+        				c = new HashSet<>();
+        			}
+       				c.add(r);
+       				
+       				return c;
+    			});
+    		}
+    	}
+
+    	assert result.equals(computeMayExistSlow(mhp));
     	return result;
     }
 

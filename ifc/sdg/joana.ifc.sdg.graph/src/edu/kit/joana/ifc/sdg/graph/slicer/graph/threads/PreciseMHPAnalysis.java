@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -34,6 +35,8 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.Pair;
+import edu.kit.joana.util.collections.SimpleVector;
+import edu.kit.joana.util.collections.SimpleVectorBase;
 
 
 /**
@@ -47,7 +50,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
     private final ThreadsInformation info;
     private final SymmetricBitMatrix map;
     private final ThreadRegions regions;
-    private HashMap<Integer, Collection<ThreadRegion>> mayExist;
+    private Map<Integer, Collection<ThreadRegion>> mayExist;
 
     private PreciseMHPAnalysis(ThreadsInformation info, SymmetricBitMatrix map, ThreadRegions regions) {
         this.info = info;
@@ -55,7 +58,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         this.regions = regions;
     }
 
-    private void setMayExistMap(HashMap<Integer, Collection<ThreadRegion>> mayExist) {
+    private void setMayExistMap(Map<Integer, Collection<ThreadRegion>> mayExist) {
     	this.mayExist = mayExist;
     }
 
@@ -311,12 +314,12 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
     	PreciseMHPAnalysis result = mhp.getMHPMap();
 
     	log.outln("Compute MayExist Map ...");
-        HashMap<Integer, Collection<ThreadRegion>> mayExist = computeMayExist(result);
+        Map<Integer, Collection<ThreadRegion>> mayExist = computeMayExist(result);
         result.setMayExistMap(mayExist);
     	return result;
     }
 
-    private static HashMap<Integer, Collection<ThreadRegion>> computeMayExistSlow(PreciseMHPAnalysis mhp) {
+    private static Map<Integer, Collection<ThreadRegion>> computeMayExistSlow(PreciseMHPAnalysis mhp) {
     	HashMap<Integer, Collection<ThreadRegion>> result = new HashMap<>();
 
     	for (ThreadRegion r : mhp.getThreadRegions()) {
@@ -336,8 +339,13 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
     	return result;
     }
 	
-    private static HashMap<Integer, Collection<ThreadRegion>> computeMayExist(PreciseMHPAnalysis mhp) {
-    	HashMap<Integer, Collection<ThreadRegion>> result = new HashMap<>();
+    private static Map<Integer, Collection<ThreadRegion>> computeMayExist(PreciseMHPAnalysis mhp) {
+    	Map<Integer, Collection<ThreadRegion>> result = new SimpleVectorBase<Integer, Collection<ThreadRegion>>(0, mhp.getThreadRegions().size()) {
+    		@Override
+    		protected int getId(Integer k) {
+    			return k;
+    		}
+		};
 
     	for (ThreadRegion r : mhp.getThreadRegions()) {
     		for (ThreadRegion s : mhp.parallelToAsymmetric(r)) {

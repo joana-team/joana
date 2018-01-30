@@ -16,8 +16,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.RandomAccess;
 import java.util.Set;
 
+import com.google.common.collect.Lists;
 import com.ibm.wala.util.intset.IntIterator;
 import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.intset.MutableSparseIntSet;
@@ -539,13 +541,16 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 				final DynamicContext fork = entry.getKey();
 				final int thread = fork.getThread();
         		if (info.isDynamic(thread)) {
-        			Collection<ThreadRegion> regs = new ArrayList<ThreadRegion>();
+        			ArrayList<ThreadRegion> regs = new ArrayList<ThreadRegion>();
        				for (IntIterator it = entry.getValue().intIterator(); it.hasNext();) {
        					final int other_thread = it.next(); 
        					regs.addAll(tr.getThreadRegionSet(other_thread));
        				}
+       				int toSet = regs.size();
         			for (ThreadRegion p : regs) {
-        				for (ThreadRegion q : regs) {
+        				int set = 0;
+        				assert regs instanceof RandomAccess;
+        				for (ThreadRegion q : Lists.reverse(regs)) {
         					result     .set(p.getID(), q.getID());
         					assert
         					result     .get(q.getID(), p.getID());
@@ -554,7 +559,10 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 	        					assert
 	        					resultLoops.get(q.getID(), p.getID());
         					}
+        					set++;
+        					if (set > toSet) break;
         				}
+        				toSet--;
         			}
         		}
         	}

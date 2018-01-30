@@ -41,6 +41,7 @@ import edu.kit.joana.api.sdg.ThrowingSDGProgramPartVisitor;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.util.Pair;
 
 /**
@@ -288,7 +289,7 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 			visited.add(next);
 			TypeName paramName = TypeName.findOrCreate(next.getType());
 			/** annotate root parameters if their type is either primitive (non-void!) or they have no fields (like e.g. types assumed to be immutable) */
-			if (paramName.isPrimitiveType() && !TypeReference.VoidName.equals(paramName) || !hasFields(next)) {
+			if (BytecodeLocation.ROOT_PARAMETER == next.getBytecodeIndex() && ((paramName.isPrimitiveType() && !TypeReference.VoidName.equals(paramName)) || !hasFields(next))) {
 				base.add(next);
 			} else if (isParameterNodeOfKind(next, type)) {
 				base.add(next);

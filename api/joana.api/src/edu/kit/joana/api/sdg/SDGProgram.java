@@ -264,7 +264,7 @@ public class SDGProgram {
 		assert (mhpAnalysis == null) == (config.getMhpType() == MHPType.NONE);
 		
 		if (config.computeInterferences()) {
-			PruneInterferences.preprocessAndPruneCSDG(sdg, mhpAnalysis);
+			PruneInterferences.pruneInterferences(sdg, mhpAnalysis);
 		}
 		
 		if (notifier != null) {

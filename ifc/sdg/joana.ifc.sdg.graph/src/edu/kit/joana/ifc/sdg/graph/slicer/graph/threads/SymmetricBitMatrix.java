@@ -154,19 +154,16 @@ public final class SymmetricBitMatrix {
         };
     }
     
-    // TODO: presumably, the array accesses in this iteration scheme can be strength-reduced
     public IntIterator onColAsymemtric(int j) {
         return new IntIterator() {
             final int n = j;
-            int m = 0;
-            long offset0 = m + (n * (n + 1))/2;
+            final long offset0 = (n * (n + 1))/2;
             long offset = offset0;
 
             @Override
             public int next() {
             	findNext();
-            	offset++;
-            	return m++;
+            	return (int) ((offset++) - offset0);
             }
 
             @Override
@@ -175,16 +172,8 @@ public final class SymmetricBitMatrix {
             }
             
             boolean findNext() {
-            	boolean found = false;
-            	long next = nextSetBit(offset);
-            	while (m <= n         && !(found = get(m, n))) {
-            		m++;
-            		offset++;
-            	}
-            	assert found == !(next == -1 || next > offset0 + n);
-            	if (found) {
-            		assert offset == next;
-            	}
+            	offset = nextSetBit(offset);
+            	final boolean found = !(offset == -1 || offset > offset0 + n); 
             	return found;
             }
         };

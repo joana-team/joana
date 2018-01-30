@@ -30,6 +30,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.Pair;
@@ -438,6 +439,8 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         	for (DynamicContext fork : forks) {
         		debug.out(".");
         		if (fork == null) continue;
+        		
+        		final ThreadInstance forkInstance = info.getThread(fork.getThread());
 
         		LinkedList<SDGNode> succ = new LinkedList<SDGNode>();
 
@@ -445,7 +448,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         			succ.add(e.getTarget());
         		}
 
-        		slicer.setJoins(info.getThread(fork.getThread()).getJoins());
+        		slicer.setJoins(forkInstance.getJoins());
         		Collection<SDGNode> joinSlice = slicer.slice(succ);
         		Collection<SDGNode> secondSlice = slicer.secondSlice(succ);
         		LinkedList<ThreadRegion> inJoinSlice = new LinkedList<ThreadRegion>();
@@ -470,7 +473,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
             		if (!spawnedThreads.contains(p.getThread())) continue;
 
             		if (p.getThread() == fork.getThread()
-            					&& !info.getThread(fork.getThread()).isDynamic()) {
+            					&& !forkInstance.isDynamic()) {
 	            		for (ThreadRegion q : inJoinSlice) {
 	            			result.set(p.getID(), q.getID());
 	            			assert
@@ -485,29 +488,70 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
             		}
             	}
         	}
+        	
+        	boolean assertionsEnabled = false;
+        	assert (assertionsEnabled = true);
+        	
+        	SymmetricBitMatrix resultLoopsSlow = null;
+        	if (assertionsEnabled) {
+        		resultLoopsSlow = new SymmetricBitMatrix(tr.size());
+	        	// process parallelism induced by thread spawning inside loops
+	        	debug.outln("\nparallelism through loops");
+	        	for (int thread = 0; thread < info.getNumberOfThreads(); thread++) {
+	        		debug.out(thread + ", ");
+	        		if (info.isDynamic(thread)) {
+	        			Collection<ThreadRegion> regs = new ArrayList<ThreadRegion>();
+	        			for (Entry<DynamicContext, IntSet> entry : indirectForks.entrySet()) {
+	        				final DynamicContext fork = entry.getKey();
+	        				if (fork.getThread() != thread) continue;
+	        				for (IntIterator it = entry.getValue().intIterator(); it.hasNext();) {
+	        					final int other_thread = it.next(); 
+	        					regs.addAll(tr.getThreadRegionSet(other_thread));
+	        				}
+	        			}
+	        			for (ThreadRegion p : regs) {
+	        				for (ThreadRegion q : regs) {
+	        					resultLoopsSlow.set(p.getID(), q.getID());
+	        					assert
+	        					resultLoopsSlow.get(q.getID(), p.getID());
+	        				}
+	        			}
+	        		}
+	        	}
+        	}
+        	SymmetricBitMatrix resultLoops = null;
+        	if (assertionsEnabled) {
+        		resultLoops = new SymmetricBitMatrix(tr.size());
+        	}
         	// process parallelism induced by thread spawning inside loops
         	debug.outln("\nparallelism through loops");
-        	for (int thread = 0; thread < info.getNumberOfThreads(); thread++) {
-        		debug.out(thread + ", ");
+			for (Entry<DynamicContext, IntSet> entry : indirectForks.entrySet()) {
+				final DynamicContext fork = entry.getKey();
+				final int thread = fork.getThread();
         		if (info.isDynamic(thread)) {
         			Collection<ThreadRegion> regs = new ArrayList<ThreadRegion>();
-        			for (Entry<DynamicContext, IntSet> entry : indirectForks.entrySet()) {
-        				final DynamicContext fork = entry.getKey();
-        				if (fork.getThread() != thread) continue;
-        				for (IntIterator it = entry.getValue().intIterator(); it.hasNext();) {
-        					final int other_thread = it.next(); 
-        					regs.addAll(tr.getThreadRegionSet(other_thread));
-        				}
-        			}
+       				for (IntIterator it = entry.getValue().intIterator(); it.hasNext();) {
+       					final int other_thread = it.next(); 
+       					regs.addAll(tr.getThreadRegionSet(other_thread));
+       				}
         			for (ThreadRegion p : regs) {
         				for (ThreadRegion q : regs) {
-        					result.set(p.getID(), q.getID());
+        					result     .set(p.getID(), q.getID());
         					assert
-        					result.get(q.getID(), p.getID());
+        					result     .get(q.getID(), p.getID());
+        					if (assertionsEnabled) {
+	        					resultLoops.set(p.getID(), q.getID());
+	        					assert
+	        					resultLoops.get(q.getID(), p.getID());
+        					}
         				}
         			}
         		}
         	}
+        	
+        	assert SymmetricBitMatrix.equals(resultLoops, resultLoopsSlow);
+        	
+        	
         	// refine parallelism by inspecting joins
         	/*debug.outln("\ninspecting joins");
         	int ctr = 0;

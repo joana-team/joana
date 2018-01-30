@@ -44,6 +44,10 @@ public final class SymmetricBitMatrix {
 
     private final int dimension;
     private final int[] bits;
+    
+    protected final static int LOW_MASK = 0x1f;
+    protected final static int BITS_PER_UNIT = 32;
+    protected final static int LOG_BITS_PER_UNIT = 5;
 
     public SymmetricBitMatrix(int dimension) {
         if (dimension < 1) {
@@ -53,8 +57,8 @@ public final class SymmetricBitMatrix {
         final long n = (long) dimension;
         assert (n * (n + 1)) % 2 == 0;
         final long numBits = (n * (n + 1)) / 2; 
-        long arraySize = numBits >> 5; // one int per 32 bits
-        if ((numBits & 0x1F) != 0) { // plus one more if there are leftovers
+        long arraySize = numBits >> LOG_BITS_PER_UNIT; // one int per 32 bits
+        if ((numBits & LOW_MASK) != 0) { // plus one more if there are leftovers
             arraySize++;
         }
         assert arraySize > 0;
@@ -74,8 +78,8 @@ public final class SymmetricBitMatrix {
         long n = (long) ((i <= j) ? j : i);
         assert (n * (n + 1)) % 2 == 0;
         long offset = m + (n * (n + 1))/2;
-        int index = (int) (offset >> 5);
-        return ((bits[index] >>> (offset & 0x1F)) & 0x01) != 0;
+        int index = (int) (offset >> LOG_BITS_PER_UNIT);
+        return ((bits[index] >>> (offset & LOW_MASK)) & 0x01) != 0;
     }
 
     /**
@@ -89,8 +93,8 @@ public final class SymmetricBitMatrix {
         long n = (long) ((i <= j) ? j : i);
         assert (n * (n + 1)) % 2 == 0;
         long offset = m + (n * (n + 1))/2;
-        int index = (int) (offset >> 5);
-        bits[index] |= 1 << (offset & 0x1F);
+        int index = (int) (offset >> LOG_BITS_PER_UNIT);
+        bits[index] |= 1 << (offset & LOW_MASK);
     }
 
     /**
@@ -104,8 +108,8 @@ public final class SymmetricBitMatrix {
         long n = (long) ((i <= j) ? j : i);
         assert (n * (n + 1)) % 2 == 0;
         long offset = m + (n * (n + 1))/2;
-        int index = (int) (offset >> 5);
-        bits[index] &= ~(1 << (offset & 0x1F));
+        int index = (int) (offset >> LOG_BITS_PER_UNIT);
+        bits[index] &= ~(1 << (offset & LOW_MASK));
     }
 
     public String toString() {
@@ -153,12 +157,15 @@ public final class SymmetricBitMatrix {
     // TODO: presumably, the array accesses in this iteration scheme can be strength-reduced
     public IntIterator onColAsymemtric(int j) {
         return new IntIterator() {
-            int n = j;
+            final int n = j;
             int m = 0;
+            long offset0 = m + (n * (n + 1))/2;
+            long offset = offset0;
 
             @Override
             public int next() {
             	findNext();
+            	offset++;
             	return m++;
             }
 
@@ -169,9 +176,49 @@ public final class SymmetricBitMatrix {
             
             boolean findNext() {
             	boolean found = false;
-            	while (m <= n         && !(found = get(m, n))) m++;
+            	long next = nextSetBit(offset);
+            	while (m <= n         && !(found = get(m, n))) {
+            		m++;
+            		offset++;
+            	}
+            	assert found == !(next == -1 || next > offset0 + n);
+            	if (found) {
+            		assert offset == next;
+            	}
             	return found;
             }
         };
     }
+    
+    // taken from com.ibm.wala.util.intset.BitVectorBase
+    public long nextSetBit(long start) {
+        if (start < 0) {
+          throw new IllegalArgumentException("illegal start: " + start);
+        }
+        int word = (int) (start >> LOG_BITS_PER_UNIT);
+        if (word >= bits.length) {
+          return -1;
+        }
+        int shift = (int) (start & LOW_MASK);
+        int w = bits[word] >> shift;
+        if (w != 0) {
+          return start + Long.numberOfTrailingZeros(w);
+        }
+        start = (start + BITS_PER_UNIT) & ~LOW_MASK;
+        word++;
+        while (word < bits.length) {
+          if (bits[word] != 0) {
+            return start + Long.numberOfTrailingZeros(bits[word]);
+          } else {
+            start += BITS_PER_UNIT;
+          }
+
+          word++;
+        }
+
+        return -1;
+      }
+    
+    
+    
 }

@@ -423,8 +423,87 @@ public abstract class SimpleVectorBase<K, V>  extends AbstractMap<K, V> implemen
 
 	@Override
 	public Set<Entry<K, V>> entrySet() {
-		throw new UnsupportedOperationException();
+		return ENTRY_SET;
 	}
+
+	private final Set<Entry<K, V>> ENTRY_SET = new AbstractSet<Entry<K, V>>() {
+		@Override
+		public int size() {
+			return size;
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return size == 0;
+		}
+
+		@Override
+		public boolean contains(Object o) {
+			return containsKey(o);
+		}
+
+		@Override
+		public Iterator<Entry<K, V>> iterator() {
+			return new Iterator<Map.Entry<K,V>>() {
+				final Iterator<K> keyIterator = new LeftRightIterator<K>(leftKeys, rightKeys);
+
+				@Override
+				public boolean hasNext() {
+					return keyIterator.hasNext();
+				}
+
+				@Override
+				public Entry<K, V> next() {
+					final K key = keyIterator.next();
+					final int id = getId(key);
+					return new Entry<K,V>() {
+						public K getKey() {
+							return key;
+						};
+						
+						@Override
+						public V getValue() {
+							if (id >= 0) {
+								final int x = id;
+								@SuppressWarnings("unchecked")
+								final V value = (V) rightValues[x]; 
+								return value;
+							} else {
+								final int y = -id;
+								assert y != 0;
+								@SuppressWarnings("unchecked")
+								final V value = (V) leftValues[y]; 
+								return value;
+							}
+							
+						}
+						
+						@Override
+						public V setValue(V value) {
+							throw new UnsupportedOperationException();
+						}
+					};
+				}
+				
+			};
+					
+		}
+
+		@Override
+		public boolean add(Entry<K, V> e) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public boolean remove(Object o) {
+			return SimpleVectorBase.this.remove(o) != null;
+		}
+
+		@Override
+		public void clear() {
+			throw new UnsupportedOperationException();
+		}
+	};
 	
 	
 	@Override

@@ -401,7 +401,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         	//joinDominance = computeJoinDominance();
         	debug.outln("compute parallelism");//("Indirect Forks:\n"+indirectForks);
         	map = computeParallelism();
-
+        	
             return new PreciseMHPAnalysis(info, map, tr);
         }
 
@@ -472,27 +472,29 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         			}
         		}
 
+        		 
         		// determine parallelism induced by fork
         		IntSet spawnedThreads = indirectForks.get(fork);
 
-        		for (int i = 0; i < tr.size(); i++) {
-            		ThreadRegion p = tr.getThreadRegion(i);
-
-            		if (!spawnedThreads.contains(p.getThread())) continue;
-
-            		if (p.getThread() == fork.getThread()
-            					&& !forkInstance.isDynamic()) {
-	            		for (ThreadRegion q : inJoinSlice) {
-	            			result.set(p.getID(), q.getID());
-	            			assert
-	            			result.get(q.getID(), p.getID());
-	            		}
+        		for (IntIterator it = spawnedThreads.intIterator(); it.hasNext();) {
+        			final int pThread = it.next();
+            		if (pThread == fork.getThread() && !forkInstance.isDynamic()) {
+            			for (ThreadRegion p : tr.getThreadRegionSet(pThread)) {
+            				assert p.getThread() == pThread;
+		            		for (ThreadRegion q : inJoinSlice) {
+		            			result.set(p.getID(), q.getID());
+		            			assert
+		            			result.get(q.getID(), p.getID());
+		            		}
+            			}
             		} else {
-	            		for (ThreadRegion q : inSecondSlice) {
-	            			result.set(p.getID(), q.getID());
-	            			assert
-	            			result.get(q.getID(), p.getID());
-	            		}
+            			for (ThreadRegion p : tr.getThreadRegionSet(pThread)) {
+		            		for (ThreadRegion q : inSecondSlice) {
+		            			result.set(p.getID(), q.getID());
+		            			assert
+		            			result.get(q.getID(), p.getID());
+		            		}
+            			}
             		}
             	}
         	}

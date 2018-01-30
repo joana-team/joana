@@ -22,6 +22,8 @@
  */
 package edu.kit.joana.ifc.sdg.graph.slicer.graph.threads;
 
+import java.util.Arrays;
+
 import com.ibm.wala.util.intset.IntIterator;
 
 /**
@@ -44,10 +46,9 @@ public final class SymmetricBitMatrix {
 
     private final int dimension;
     private final int[] bits;
-    
-    protected final static int LOW_MASK = 0x1f;
-    protected final static int BITS_PER_UNIT = 32;
-    protected final static int LOG_BITS_PER_UNIT = 5;
+    protected final static long LOW_MASK = 0x1f;
+    protected final static long BITS_PER_UNIT = 32;
+    protected final static long LOG_BITS_PER_UNIT = 5;
 
     public SymmetricBitMatrix(int dimension) {
         if (dimension < 1) {
@@ -156,7 +157,7 @@ public final class SymmetricBitMatrix {
     
     public IntIterator onColAsymemtric(int j) {
         return new IntIterator() {
-            final int n = j;
+            final long n = j;
             final long offset0 = (n * (n + 1))/2;
             long offset = offset0;
 
@@ -197,7 +198,7 @@ public final class SymmetricBitMatrix {
         word++;
         while (word < bits.length) {
           if (bits[word] != 0) {
-            return start + Long.numberOfTrailingZeros(bits[word]);
+            return start + (long)Long.numberOfTrailingZeros(bits[word]);
           } else {
             start += BITS_PER_UNIT;
           }
@@ -208,6 +209,17 @@ public final class SymmetricBitMatrix {
         return -1;
       }
     
-    
-    
+    public static boolean equals(SymmetricBitMatrix a, SymmetricBitMatrix b) {
+    	if (a.dimension != b.dimension) return false;
+    	return Arrays.equals(a.bits, b.bits);
+    }
+
+    public static void main(String[] args) {
+		SymmetricBitMatrix m = new SymmetricBitMatrix(100000);
+		m.set(99998, 99999);
+		for (IntIterator it = m.onColAsymemtric(99999); it.hasNext(); ) {
+			System.out.println(it.next());
+		}
+		System.out.println("hello");
+	}
 }

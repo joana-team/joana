@@ -312,7 +312,7 @@ private thread[SDG sdg] returns [ThreadInstance ti]
   : 'Thread' id=number '{'
       'Entry'   en=number ';'
       'Exit'    ex=number ';'
-      'Fork'    fo=number ';'
+      'Fork'    fo=mayNegNumber ';'
       'Join'    joins=listOrSingleNumber[sdg] ';'
       'Context' con=context[sdg] ';'
       'Dynamic' dyn=bool ';'

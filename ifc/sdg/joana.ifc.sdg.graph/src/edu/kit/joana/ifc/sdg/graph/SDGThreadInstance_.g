@@ -162,7 +162,7 @@ thread returns [ThreadInstanceStub ti]
   : 'Thread' id=number '{'
       'Entry'   en=number ';'
       'Exit'    ex=number ';'
-      'Fork'    fo=number ';'
+      'Fork'    fo=mayNegNumber ';'
       'Join'    joins=listOrSingleNumber ';'
       'Context' con=context ';'
       'Dynamic' dyn=bool ';'

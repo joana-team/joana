@@ -1,4 +1,4 @@
-// $ANTLR 3.5.2 /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g 2016-11-30 16:03:47
+// $ANTLR 3.5.2 /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g 2018-01-31 14:57:17
 /**
  * This file is part of the Joana IFC project. It is developed at the
  * Programming Paradigms Group of the Karlsruhe Institute of Technology.
@@ -9,19 +9,19 @@
 package edu.kit.joana.ifc.sdg.graph;
 
 import java.util.LinkedList;
-
-import org.antlr.runtime.BitSet;
-import org.antlr.runtime.NoViableAltException;
-import org.antlr.runtime.Parser;
-import org.antlr.runtime.RecognitionException;
-import org.antlr.runtime.RecognizerSharedState;
-import org.antlr.runtime.Token;
-import org.antlr.runtime.TokenStream;
-
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.procedure.TIntProcedure;
+
+
+import org.antlr.runtime.*;
+import java.util.Stack;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * This file is part of the Joana IFC project. It is developed at the
@@ -166,7 +166,7 @@ public class SDGThreadInstance_Parser extends Parser {
 
 
 	// $ANTLR start "thread"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:161:1: thread returns [ThreadInstanceStub ti] : 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= number ';' 'Join' joins= listOrSingleNumber ';' 'Context' con= context ';' 'Dynamic' dyn= bool ';' '}' ;
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:161:1: thread returns [ThreadInstanceStub ti] : 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= mayNegNumber ';' 'Join' joins= listOrSingleNumber ';' 'Context' con= context ';' 'Dynamic' dyn= bool ';' '}' ;
 	public final ThreadInstanceStub thread() throws RecognitionException {
 		ThreadInstanceStub ti = null;
 
@@ -180,8 +180,8 @@ public class SDGThreadInstance_Parser extends Parser {
 		boolean dyn =false;
 
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:162:3: ( 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= number ';' 'Join' joins= listOrSingleNumber ';' 'Context' con= context ';' 'Dynamic' dyn= bool ';' '}' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:162:5: 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= number ';' 'Join' joins= listOrSingleNumber ';' 'Context' con= context ';' 'Dynamic' dyn= bool ';' '}'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:162:3: ( 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= mayNegNumber ';' 'Join' joins= listOrSingleNumber ';' 'Context' con= context ';' 'Dynamic' dyn= bool ';' '}' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g:162:5: 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= mayNegNumber ';' 'Join' joins= listOrSingleNumber ';' 'Context' con= context ';' 'Dynamic' dyn= bool ';' '}'
 			{
 			match(input,16,FOLLOW_16_in_thread71); 
 			pushFollow(FOLLOW_number_in_thread75);
@@ -202,8 +202,8 @@ public class SDGThreadInstance_Parser extends Parser {
 
 			match(input,9,FOLLOW_9_in_thread110); 
 			match(input,14,FOLLOW_14_in_thread118); 
-			pushFollow(FOLLOW_number_in_thread125);
-			fo=number();
+			pushFollow(FOLLOW_mayNegNumber_in_thread125);
+			fo=mayNegNumber();
 			state._fsp--;
 
 			match(input,9,FOLLOW_9_in_thread127); 
@@ -703,8 +703,8 @@ public class SDGThreadInstance_Parser extends Parser {
 	public static final BitSet FOLLOW_13_in_thread101 = new BitSet(new long[]{0x0000000000000010L});
 	public static final BitSet FOLLOW_number_in_thread108 = new BitSet(new long[]{0x0000000000000200L});
 	public static final BitSet FOLLOW_9_in_thread110 = new BitSet(new long[]{0x0000000000004000L});
-	public static final BitSet FOLLOW_14_in_thread118 = new BitSet(new long[]{0x0000000000000010L});
-	public static final BitSet FOLLOW_number_in_thread125 = new BitSet(new long[]{0x0000000000000200L});
+	public static final BitSet FOLLOW_14_in_thread118 = new BitSet(new long[]{0x0000000000000110L});
+	public static final BitSet FOLLOW_mayNegNumber_in_thread125 = new BitSet(new long[]{0x0000000000000200L});
 	public static final BitSet FOLLOW_9_in_thread127 = new BitSet(new long[]{0x0000000000008000L});
 	public static final BitSet FOLLOW_15_in_thread135 = new BitSet(new long[]{0x0000000000120010L});
 	public static final BitSet FOLLOW_listOrSingleNumber_in_thread142 = new BitSet(new long[]{0x0000000000000200L});

@@ -1,4 +1,4 @@
-// $ANTLR 3.5.2 /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g 2017-05-26 13:42:18
+// $ANTLR 3.5.2 /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g 2018-01-31 15:00:50
 /**
  * This file is part of the Joana IFC project. It is developed at the
  * Programming Paradigms Group of the Karlsruhe Institute of Technology.
@@ -549,7 +549,7 @@ public class SDG_Parser extends Parser {
 
 
 	// $ANTLR start "thread"
-	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:311:9: private thread[SDG sdg] returns [ThreadInstance ti] : 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= number ';' 'Join' joins= listOrSingleNumber[sdg] ';' 'Context' con= context[sdg] ';' 'Dynamic' dyn= bool ';' '}' ;
+	// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:311:9: private thread[SDG sdg] returns [ThreadInstance ti] : 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= mayNegNumber ';' 'Join' joins= listOrSingleNumber[sdg] ';' 'Context' con= context[sdg] ';' 'Dynamic' dyn= bool ';' '}' ;
 	public final ThreadInstance thread(SDG sdg) throws RecognitionException {
 		ThreadInstance ti = null;
 
@@ -563,8 +563,8 @@ public class SDG_Parser extends Parser {
 		boolean dyn =false;
 
 		try {
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:312:3: ( 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= number ';' 'Join' joins= listOrSingleNumber[sdg] ';' 'Context' con= context[sdg] ';' 'Dynamic' dyn= bool ';' '}' )
-			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:312:5: 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= number ';' 'Join' joins= listOrSingleNumber[sdg] ';' 'Context' con= context[sdg] ';' 'Dynamic' dyn= bool ';' '}'
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:312:3: ( 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= mayNegNumber ';' 'Join' joins= listOrSingleNumber[sdg] ';' 'Context' con= context[sdg] ';' 'Dynamic' dyn= bool ';' '}' )
+			// /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDG_.g:312:5: 'Thread' id= number '{' 'Entry' en= number ';' 'Exit' ex= number ';' 'Fork' fo= mayNegNumber ';' 'Join' joins= listOrSingleNumber[sdg] ';' 'Context' con= context[sdg] ';' 'Dynamic' dyn= bool ';' '}'
 			{
 			match(input,75,FOLLOW_75_in_thread246); 
 			pushFollow(FOLLOW_number_in_thread250);
@@ -585,8 +585,8 @@ public class SDG_Parser extends Parser {
 
 			match(input,10,FOLLOW_10_in_thread285); 
 			match(input,41,FOLLOW_41_in_thread293); 
-			pushFollow(FOLLOW_number_in_thread300);
-			fo=number();
+			pushFollow(FOLLOW_mayNegNumber_in_thread300);
+			fo=mayNegNumber();
 			state._fsp--;
 
 			match(input,10,FOLLOW_10_in_thread302); 
@@ -3108,8 +3108,8 @@ public class SDG_Parser extends Parser {
 	public static final BitSet FOLLOW_32_in_thread276 = new BitSet(new long[]{0x0000000000000010L});
 	public static final BitSet FOLLOW_number_in_thread283 = new BitSet(new long[]{0x0000000000000400L});
 	public static final BitSet FOLLOW_10_in_thread285 = new BitSet(new long[]{0x0000020000000000L});
-	public static final BitSet FOLLOW_41_in_thread293 = new BitSet(new long[]{0x0000000000000010L});
-	public static final BitSet FOLLOW_number_in_thread300 = new BitSet(new long[]{0x0000000000000400L});
+	public static final BitSet FOLLOW_41_in_thread293 = new BitSet(new long[]{0x0000000000000110L});
+	public static final BitSet FOLLOW_mayNegNumber_in_thread300 = new BitSet(new long[]{0x0000000000000400L});
 	public static final BitSet FOLLOW_10_in_thread302 = new BitSet(new long[]{0x0004000000000000L});
 	public static final BitSet FOLLOW_50_in_thread310 = new BitSet(new long[]{0x0000000000000010L,0x0000100000020000L});
 	public static final BitSet FOLLOW_listOrSingleNumber_in_thread317 = new BitSet(new long[]{0x0000000000000400L});

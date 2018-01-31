@@ -34,6 +34,8 @@ import edu.kit.joana.api.test.util.BuildSDG;
 import edu.kit.joana.api.test.util.JoanaPath;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.IViolation;
+import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.util.Stubs;
@@ -814,5 +816,29 @@ public class FullIFCConcurrentTest {
 			fail(e.getMessage());
 		}
 	}
-
+	
+	@Test
+	public void testLoopedFork() {
+		// Demonstrates that currently, fork-nodes of threads may be wrong:
+		try {
+			/* MHPType.PRECISE */ {
+				IFCAnalysis ana = buildAndAnnotate("tests.LoopedFork",
+						SECRET,
+						PUBLIC,
+						MHPType.PRECISE
+				);
+				Collection<? extends IViolation<SecurityNode>> illegal;
+				
+				illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+				assertTrue(illegal.isEmpty());
+				
+				final SDG sdg = ana.getProgram().getSDG();
+				final SDGNode fork = sdg.getThreadsInfo().getThread(1).getFork();
+				assertEquals("tests.LoopedFork.main([Ljava/lang/String;)V", fork.getBytecodeName()); // The actual fork is from "tests.LoopedFork.foo()V" !!!
+			}
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
 }

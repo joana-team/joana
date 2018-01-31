@@ -24,7 +24,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNodeTuple;
  */
 public abstract class Context {
 	protected SDGNode node;
-	protected int thread;
+	protected final int thread;
 
 	Context(SDGNode n, int t) {
 		node = n;
@@ -92,9 +92,5 @@ public abstract class Context {
 
 	public void setNode(SDGNode newNode) {
 		node = newNode;
-	}
-
-	public void setThread(int t) {
-		thread = t;
 	}
 }

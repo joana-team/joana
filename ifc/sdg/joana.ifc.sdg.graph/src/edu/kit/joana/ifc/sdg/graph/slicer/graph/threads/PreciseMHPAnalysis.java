@@ -50,13 +50,13 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 	private static final Logger debug = Log.getLogger(Log.L_MHP_DEBUG);
 	
     private final ThreadsInformation info;
-    private final SymmetricBitMatrix map;
+    private final SymmetricBitMatrix threadRegionMap;
     private final ThreadRegions regions;
     private Map<Integer, Collection<ThreadRegion>> mayExist;
 
     private PreciseMHPAnalysis(ThreadsInformation info, SymmetricBitMatrix map, ThreadRegions regions) {
         this.info = info;
-        this.map = map;
+        this.threadRegionMap = map;
         this.regions = regions;
     }
 
@@ -115,7 +115,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         } else {
             ThreadRegion mRegion = regions.getThreadRegion(m, mThread);
             ThreadRegion nRegion = regions.getThreadRegion(n, nThread);
-            return map.get(mRegion.getID(), nRegion.getID());
+            return threadRegionMap.get(mRegion.getID(), nRegion.getID());
         }
     }
 
@@ -125,7 +125,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         } else {
             ThreadRegion mRegion = regions.getThreadRegion(m);
             ThreadRegion nRegion = regions.getThreadRegion(n);
-            return map.get(mRegion.getID(), nRegion.getID());
+            return threadRegionMap.get(mRegion.getID(), nRegion.getID());
         }
     }
 
@@ -134,7 +134,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         if (mThread == regions.getThreadRegion(region).getThread() && !isDynamic(mThread)) {
             return false;
         } else {
-            return map.get(mRegion.getID(), region);
+            return threadRegionMap.get(mRegion.getID(), region);
         }
 	}
 
@@ -142,7 +142,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         if (!isDynamic(r.getThread()) && s.getThread() == r.getThread()) {
             return false;
         } else {
-            return map.get(r.getID(), s.getID());
+            return threadRegionMap.get(r.getID(), s.getID());
         }
     }
     
@@ -193,7 +193,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
     public Iterable<ThreadRegion> parallelTo(ThreadRegion r) {
         final boolean isDynamic = isDynamic(r.getThread());
         final int     rThread = r.getThread();
-        final IntIterator it = map.onCol(r.getID());
+        final IntIterator it = threadRegionMap.onCol(r.getID());
 
         return new Iterable<ThreadRegion>() {
             @Override
@@ -210,7 +210,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
     public Iterable<ThreadRegion> parallelToAsymmetric(ThreadRegion r) {
         final boolean isDynamic = isDynamic(r.getThread());
         final int     rThread   = r.getThread();
-        final IntIterator it = map.onColAsymemtric(r.getID());
+        final IntIterator it = threadRegionMap.onColAsymemtric(r.getID());
 
         return new Iterable<ThreadRegion>() {
             @Override
@@ -223,7 +223,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 
     public String toString() {
 //        return "Map size: " + map.getDimension();
-        return map.toString();
+        return threadRegionMap.toString();
     }
 
     public SDGNode getThreadExit(int thread) {
@@ -378,7 +378,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
     /* MHP Computation */
 
     private static class MHPComputation {
-        private SymmetricBitMatrix map;
+        private SymmetricBitMatrix threadRegionMap;
         private final CFG icfg;
         private final ThreadsInformation info;
         private final ThreadRegions tr;
@@ -402,9 +402,10 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         	//debug.outln("compute join dominance");//("Indirect Forks:\n"+indirectForks);
         	//joinDominance = computeJoinDominance();
         	debug.outln("compute parallelism");//("Indirect Forks:\n"+indirectForks);
-        	map = computeParallelism();
+        	threadRegionMap = computeThreadRegionParallelism();
+        	computeThreadParallelism(threadRegionMap);
         	
-            return new PreciseMHPAnalysis(info, map, tr);
+            return new PreciseMHPAnalysis(info, threadRegionMap, tr);
         }
 
         private LinkedList<DynamicContext> collectForks() {
@@ -441,7 +442,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         	return result;
         }
 
-        private SymmetricBitMatrix computeParallelism() {
+        private SymmetricBitMatrix computeThreadRegionParallelism() {
         	SymmetricBitMatrix result = new SymmetricBitMatrix(tr.size());
 
     		// process parallelism induced by forks
@@ -500,7 +501,10 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
             		}
             	}
         	}
-        	
+        	return result;
+        }
+        
+        private void computeThreadParallelism(SymmetricBitMatrix result) {
         	boolean assertionsEnabled = false;
         	assert (assertionsEnabled = true);
         	
@@ -570,6 +574,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         	assert SymmetricBitMatrix.equals(resultLoops, resultLoopsSlow);
         	
         	
+        	
         	// refine parallelism by inspecting joins
         	/*debug.outln("\ninspecting joins");
         	int ctr = 0;
@@ -595,7 +600,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         	debug.outln("parallelism removed by join-analysis: " + ctr);*/
         	debug.outln("done");
 
-        	return result;
+
         }
 
         /* TODO: this is a proof-of-concept implementation.

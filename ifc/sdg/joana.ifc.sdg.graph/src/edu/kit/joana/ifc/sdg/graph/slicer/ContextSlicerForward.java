@@ -9,10 +9,15 @@ package edu.kit.joana.ifc.sdg.graph.slicer;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.function.Function;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.ContextManager;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.StaticContextManager.StaticContext;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
 
@@ -22,16 +27,26 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  *
  * @author  Dennis Giffhorn
  */
-public class ContextSlicerForward extends ContextSlicer {
+public class ContextSlicerForward<C extends Context> extends ContextSlicer<C> {
 	/* ***************** */
 	/* the ContextSlicer */
 
-    public ContextSlicerForward(SDG graph, boolean staticContexts) {
-    	super(graph, staticContexts);
-    }
-
-    public ContextSlicerForward(SDG graph, Set<SDGEdge.Kind> omit, boolean staticContexts) {
-    	super(graph, omit, staticContexts);
+	public static ContextSlicerForward<StaticContext> newStaticContextSlicerForward(SDG graph) {
+		return new ContextSlicerForward<StaticContext>(graph, ContextSlicer.newStaticManager);
+	}
+	
+	public static ContextSlicerForward<DynamicContext> newDynamicContextSlicerForward(SDG graph) {
+		return new ContextSlicerForward<DynamicContext>(graph, ContextSlicer.newDynamicManager);
+	}
+	public static ContextSlicerForward<? extends Context> newContextSlicerForward(SDG graph, boolean staticContexts) {
+		if (staticContexts) {
+			return newStaticContextSlicerForward(graph);
+		} else {
+			return newDynamicContextSlicerForward(graph);
+		}
+	}
+    private  ContextSlicerForward(SDG graph, Function<SDG, ContextManager<C>> newManager) {
+    	super(graph, newManager);
     }
 
 	protected boolean isAscendingEdge(Kind k) {

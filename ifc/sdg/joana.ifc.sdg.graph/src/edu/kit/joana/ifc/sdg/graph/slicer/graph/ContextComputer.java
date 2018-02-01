@@ -90,8 +90,8 @@ public class ContextComputer {
 	 * @return        A collection with the found contexts or an empty set.
 	 * @see           Context
 	 */
-	public Collection<Context> getAllContextsOf(SDGNode node) {
-		HashSet<Context> cs = new HashSet<Context>();
+	public Collection<DynamicContext> getAllContextsOf(SDGNode node) {
+		HashSet<DynamicContext> cs = new HashSet<>();
 
 		for (int thread : node.getThreadNumbers()) {
 			cs.addAll(allPossibleContextsForNode(node, thread));
@@ -127,9 +127,9 @@ public class ContextComputer {
 	 * @return        A collection with the found contexts or an empty set.
 	 * @see           DynamicContext
 	 */
-	public Collection<Context> getContextsOf(SDGNode node, int thread) {
+	public Collection<DynamicContext> getContextsOf(SDGNode node, int thread) {
 		Set<LinkedList<SDGNode>> temp = buildContextsFor(node, thread);
-		HashSet<Context> cs = new HashSet<Context>();
+		HashSet<DynamicContext> cs = new HashSet<>();
 
 		for (LinkedList<SDGNode> tmp : temp) {
 			cs.add(new DynamicContext(tmp, node, thread));

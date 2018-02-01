@@ -133,7 +133,7 @@ public interface Algorithm {
 		},
 		CONTEXT_SLICER("CS", Kind.SLICER, false) {
 			public Algorithm instantiate() {
-				return new SlicingAlgorithm(new ContextSlicerBackward(null, true));
+				return new SlicingAlgorithm(ContextSlicerBackward.newContextSlicerBackward(null, true));
 			}
 		},
 		IPDG_SLICER("IPDG", Kind.SLICER, false) {

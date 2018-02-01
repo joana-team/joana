@@ -27,12 +27,10 @@ import edu.kit.joana.util.Pair;
  *
  * @author  Dennis Giffhorn
  */
-public class DynamicContextManager implements ContextManager {
+public class DynamicContextManager implements ContextManager<DynamicContextManager.DynamicContext> {
 	public static class DynamicContext extends Context {
 	    /** A list, simulating a stack containing the context. */
-	    private final LinkedList<SDGNode> callStack;
-	    
-	    //private final SDGNode fork;
+	    protected final LinkedList<SDGNode> callStack;
 
 	    /** Creates a new instance of Context, to be used as special constant.
 	     * Initialises attribut 'context' with an empty list.
@@ -40,7 +38,6 @@ public class DynamicContextManager implements ContextManager {
 	    private DynamicContext() {
 	        super(null, 0);
 	        this.callStack = new LinkedList<SDGNode>();
-	        //this.fork = null;
 	    }
 	    
 	    public static DynamicContext newSpecialConstant() {
@@ -56,16 +53,6 @@ public class DynamicContextManager implements ContextManager {
 	        this.callStack = new LinkedList<SDGNode>();
 	    }
 
-	    /** Creates a new instance of Context.
-	     * Uses the given context and vertex.
-	     *
-	     * @param context  The context.
-	     * @param node  The unmapped vertex on top of the context.
-	     */
-	    public DynamicContext(LinkedList<SDGNode> callStack, SDGNode node) {
-	    	super(node, node.getThreadNumbers()[0]);
-	        this.callStack = callStack;
-	    }
 
 	    /** Creates a new instance of Context with the given vertex as sole element.
 	     *
@@ -389,9 +376,9 @@ public class DynamicContextManager implements ContextManager {
 	     * @param next The current context.
 	     * @return The context of pre.
 	     */
-	    public Context level(SDGNode reachedNode) {
+	    public DynamicContext level(SDGNode reachedNode) {
 	        // set 'pre' as new node of context
-	        Context newContext = copyWithNewNode(reachedNode);
+	    	DynamicContext newContext = copyWithNewNode(reachedNode);
 
 	        return newContext;
 	    }
@@ -403,9 +390,9 @@ public class DynamicContextManager implements ContextManager {
 	     * @param newNode The reached node.
 	     * @return The new context.
 	     */
-	    public Context ascend(SDGNode reachedNode, SDGNodeTuple callSite){
+	    public DynamicContext ascend(SDGNode reachedNode, SDGNodeTuple callSite){
 	        // set the given node as the new context node
-	        Context up = copyWithNewNode(reachedNode);
+	    	DynamicContext up = copyWithNewNode(reachedNode);
 
 	        // pop the topmost call site from the context
 	        up.pop();
@@ -421,11 +408,44 @@ public class DynamicContextManager implements ContextManager {
 	     * @param call  The new call site.
 	     * @return  The context for 'node'.
 	     */
-	    public Context descend(SDGNode reachedNode, SDGNodeTuple callSite){
-	        Context down = copyWithNewNode(reachedNode);
+	    public DynamicContext descend(SDGNode reachedNode, SDGNodeTuple callSite){
+	    	DynamicContext down = copyWithNewNode(reachedNode);
 	        down.push(callSite.getFirstNode());
 	        return down;
 	    }
+	}
+	
+	public static class ForkedDynamicContext extends DynamicContext {
+		
+		private final SDGNode fork;
+		
+	    /** 
+	     * @param fork The node this dynamic context is forked from.
+	     * @see DynamicContext#DynamicContext(LinkedList, SDGNode, int)
+	     */
+	    public ForkedDynamicContext(LinkedList<SDGNode> callStack, SDGNode node, int thread, SDGNode fork) {
+	    	super(callStack, node, thread);
+	    	if (fork == null || fork.getKind() != SDGNode.Kind.CALL) throw new IllegalArgumentException();
+	    	this.fork = fork;
+	    }
+		
+	    @SuppressWarnings("unchecked")
+	    public ForkedDynamicContext copy() {
+	    	ForkedDynamicContext clone = new ForkedDynamicContext((LinkedList<SDGNode>) callStack.clone(), node, thread, fork);
+
+	        return clone;
+	    }
+	    
+	    @SuppressWarnings("unchecked")
+	    public DynamicContext copyWithNewNode(SDGNode newNode) {
+	        DynamicContext clone = new ForkedDynamicContext((LinkedList<SDGNode>) callStack.clone(), node, thread, fork);
+
+	        return clone;
+	    }
+	    
+		public SDGNode getFork() {
+			return fork;
+		}
 	}
 
     /** A comparator for DynamicContexts.
@@ -518,7 +538,7 @@ public class DynamicContextManager implements ContextManager {
      * @param next The current context.
      * @return The context of pre.
      */
-    public Context level(SDGNode reachedNode, Context oldContext) {
+    public DynamicContext level(SDGNode reachedNode, DynamicContext oldContext) {
         return oldContext.level(reachedNode);
     }
 
@@ -531,10 +551,10 @@ public class DynamicContextManager implements ContextManager {
      * @param next The current context.
      * @return The contexts of the reached node - can be null, 1 or 2 (recursive calls)
      */
-    public Context[] ascend(SDGNode reachedNode, SDGNodeTuple callSite, Context oldContext){
+    public DynamicContext[] ascend(SDGNode reachedNode, SDGNodeTuple callSite, DynamicContext oldContext){
         // the call site of the calling procedure
         SDGNode call = callSite.getFirstNode();
-        Context[] res = {null, null};
+        DynamicContext[] res = {null, null};
 
         // top of context and call site are matching : traverse edge
         if (match(call, oldContext)){
@@ -559,11 +579,11 @@ public class DynamicContextManager implements ContextManager {
      * @param next The current context.
      * @return The resulting context.
      */
-    public Context descend(SDGNode reachedNode, SDGNodeTuple callSite, Context oldContext) {
+    public DynamicContext descend(SDGNode reachedNode, SDGNodeTuple callSite, DynamicContext oldContext) {
         // the call site calling the procedure to descend into
         SDGNode call = callSite.getFirstNode();
         SDGNode mapped = foldedCall.map(call);
-        Context newContext = null;
+        DynamicContext newContext = null;
 
         // if the corresponding call site is recursive,
         // clone context and set 'pre' as new node
@@ -600,12 +620,12 @@ public class DynamicContextManager implements ContextManager {
 	}
 
 	@Override
-	public Collection<Context> getAllContextsOf(SDGNode node) {
+	public Collection<DynamicContext> getAllContextsOf(SDGNode node) {
 		return conCom.getAllContextsOf(node);
 	}
 
 	@Override
-	public Collection<Context> getContextsOf(SDGNode node, int thread) {
+	public Collection<DynamicContext> getContextsOf(SDGNode node, int thread) {
 		return conCom.getContextsOf(node, thread);
 	}
 

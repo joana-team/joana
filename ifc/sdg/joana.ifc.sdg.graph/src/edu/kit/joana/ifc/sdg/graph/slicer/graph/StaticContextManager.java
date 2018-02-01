@@ -26,7 +26,7 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.set.hash.THashSet;
 
 
-public class StaticContextManager implements ContextManager {
+public class StaticContextManager implements ContextManager<StaticContextManager.StaticContext> {
 
 	/* the context class */
 	public static class StaticContext extends Context {
@@ -137,22 +137,22 @@ public class StaticContextManager implements ContextManager {
 			throw new UnsupportedOperationException();
 		}
 
-		public Context level(SDGNode reachedNode) {
-	    	Context newContext = this.copyWithNewNode(reachedNode);
+		public StaticContext level(SDGNode reachedNode) {
+			StaticContext newContext = this.copyWithNewNode(reachedNode);
 	    	return newContext;
 	    }
 
-		public Context descend(SDGNode reachedNode, SDGNodeTuple callSite) {
+		public StaticContext descend(SDGNode reachedNode, SDGNodeTuple callSite) {
 	        CallString called = this.stack.desc.get(callSite);
-	        Context down = new StaticContext(reachedNode, called, thread);
+	        StaticContext down = new StaticContext(reachedNode, called, thread);
 	        return down;
         }
 
-		public Context ascend(SDGNode reachedNode, SDGNodeTuple callSite) {
+		public StaticContext ascend(SDGNode reachedNode, SDGNodeTuple callSite) {
         	CallString caller = stack.asc.get(callSite);
         	if (caller != null) {
         		// if caller == null, the reached procedure has no other calling context
-	            Context up = new StaticContext(reachedNode, caller, thread);
+        		StaticContext up = new StaticContext(reachedNode, caller, thread);
 //		            verify(up);
 	            return up;
         	}
@@ -340,8 +340,8 @@ public class StaticContextManager implements ContextManager {
 
 	/* public methods */
 
-	public Collection<Context> getAllContextsOf(SDGNode node) {
-		THashSet<Context> result = new THashSet<Context>();
+	public Collection<StaticContext> getAllContextsOf(SDGNode node) {
+		THashSet<StaticContext> result = new THashSet<>();
 
 		for (int thread : node.getThreadNumbers()) {
 			result.addAll(getContextsOf(node, thread));
@@ -350,23 +350,23 @@ public class StaticContextManager implements ContextManager {
 		return result;
 	}
 
-	public Collection<Context> getContextsOf(SDGNode node, int thread) {
-		THashSet<Context> result = new THashSet<Context>();
+	public Collection<StaticContext> getContextsOf(SDGNode node, int thread) {
+		THashSet<StaticContext> result = new THashSet<>();
 		LinkedList<CallString> l = procsThreadsCallStrings.get(node.getProc()).get(thread);
 
 		for (CallString s : l) {
-			Context newContext = new StaticContext(node, s, thread);
+			StaticContext newContext = new StaticContext(node, s, thread);
 			result.add(newContext);
 		}
 
 		return result;
 	}
 
-    public Context level(SDGNode reachedNode, Context oldContext) {
+    public StaticContext level(SDGNode reachedNode, StaticContext oldContext) {
     	return oldContext.level(reachedNode);
     }
 
-    public Context descend(SDGNode reachedNode, SDGNodeTuple callSite, Context oldContext) {
+    public StaticContext descend(SDGNode reachedNode, SDGNodeTuple callSite, StaticContext oldContext) {
         // if the corresponding call site is recursive,
         // clone context and set `oldContext' as new node
         // else compute new context by going into procedure
@@ -380,8 +380,8 @@ public class StaticContextManager implements ContextManager {
         }
     }
 
-    public Context[] ascend(SDGNode reachedNode, SDGNodeTuple callSite, Context oldContext) {
-        Context[] res = {null, null};
+    public StaticContext[] ascend(SDGNode reachedNode, SDGNodeTuple callSite, StaticContext oldContext) {
+    	StaticContext[] res = {null, null};
         //System.out.println("Ascending to: "+callSite);
         //System.out.println(": "+pre);
 

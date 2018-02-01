@@ -9,11 +9,16 @@ package edu.kit.joana.ifc.sdg.graph.slicer;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.function.Function;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.ContextManager;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.StaticContextManager.StaticContext;
 
 
 /** Offers two context-based sequential slicing algorithms.
@@ -22,17 +27,29 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  *
  * @author  Dennis Giffhorn
  */
-public class ContextSlicerBackward extends ContextSlicer {
+public class ContextSlicerBackward<C extends Context> extends ContextSlicer<C> {
 
 	/* ***************** */
 	/* the ContextSlicer */
 
-    public ContextSlicerBackward(SDG graph, boolean staticContexts) {
-    	super(graph, staticContexts);
-    }
-
-    public ContextSlicerBackward(SDG graph, Set<SDGEdge.Kind> omit, boolean staticContexts) {
-    	super(graph, omit, staticContexts);
+	
+	public static ContextSlicerBackward<StaticContext> newStaticContextSlicerBackward(SDG graph) {
+		return new ContextSlicerBackward<StaticContext>(graph, ContextSlicer.newStaticManager);
+	}
+	
+	public static ContextSlicerBackward<DynamicContext> newDynamicContextSlicerBackward(SDG graph) {
+		return new ContextSlicerBackward<DynamicContext>(graph, ContextSlicer.newDynamicManager);
+	}
+	public static ContextSlicerBackward<? extends Context> newContextSlicerBackward(SDG graph, boolean staticContexts) {
+		if (staticContexts) {
+			return newStaticContextSlicerBackward(graph);
+		} else {
+			return newDynamicContextSlicerBackward(graph);
+		}
+	}
+	
+    private  ContextSlicerBackward(SDG graph, Function<SDG, ContextManager<C>> newManager) {
+    	super(graph, newManager);
     }
 
 	protected boolean isAscendingEdge(Kind k) {

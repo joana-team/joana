@@ -14,6 +14,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.ContextSlicerBackward;
 import edu.kit.joana.ifc.sdg.graph.slicer.ContextSlicerForward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.StaticContextManager.StaticContext;
 
 
 /**
@@ -30,9 +31,9 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
  */
 public class ContextBasedChopper extends Chopper {
 	/** A backward slicer that returns contexts instead of nodes. */
-	private ContextSlicerBackward back;
+	private ContextSlicerBackward<StaticContext> back;
 	/** A forward slicer that returns contexts instead of nodes. */
-	private ContextSlicerForward forw;
+	private ContextSlicerForward<StaticContext> forw;
 
 	/**
 	 * Creates a new ContextBasedChopper.
@@ -47,8 +48,8 @@ public class ContextBasedChopper extends Chopper {
      * Triggered by {@link Chopper#setGraph(SDG)}.
      */
 	protected void onSetGraph() {
-        back = new ContextSlicerBackward(sdg, true);
-        forw = new ContextSlicerForward(sdg, true);
+        back = ContextSlicerBackward.newStaticContextSlicerBackward(sdg);
+        forw = ContextSlicerForward.newStaticContextSlicerForward(sdg);
 	}
 
 	/**
@@ -57,7 +58,7 @@ public class ContextBasedChopper extends Chopper {
 	 * @param targetSet   The sink of the chop.
 	 */
     public Collection<SDGNode> chop(Collection<SDGNode> sourceSet, Collection<SDGNode> targetSet) {
-    	Collection<Context> slice = back.contextSliceNodes(targetSet);
+    	Collection<StaticContext> slice = back.contextSliceNodes(targetSet);
     	Collection<SDGNode> chop = forw.contextSubgraphSlice(sourceSet, slice);
     	return chop;
     }

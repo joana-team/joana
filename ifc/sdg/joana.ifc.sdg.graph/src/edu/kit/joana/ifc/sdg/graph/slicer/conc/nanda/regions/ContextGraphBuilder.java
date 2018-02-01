@@ -106,8 +106,7 @@ public class ContextGraphBuilder {
 
 			for (SDGEdge e : graph.outgoingEdgesOf(next.getNode())) {
 				if (e.getKind() == SDGEdge.Kind.CONTROL_FLOW) {
-					DynamicContext succ = next.copy();
-					succ.setNode(e.getTarget());
+					DynamicContext succ = next.copyWithNewNode(e.getTarget());
 
 					TopologicalNumber succNr = visited[graph.getID()].get(succ);
 					if (succNr == null) {
@@ -120,9 +119,8 @@ public class ContextGraphBuilder {
 					cg.addEdge(new ContextEdge(nextNr, succNr, SDGEdge.Kind.CONTROL_FLOW));
 
 				} else if (e.getKind() == SDGEdge.Kind.CALL) {
-					DynamicContext succ = next.copy();
+					DynamicContext succ = next.copyWithNewNode(e.getTarget());
 					succ.push(next.getNode());
-					succ.setNode(e.getTarget());
 
 					TopologicalNumber succNr = visited[graph.getID()].get(succ);
 					if (succNr == null) {
@@ -135,8 +133,7 @@ public class ContextGraphBuilder {
 					cg.addEdge(new ContextEdge(nextNr, succNr, SDGEdge.Kind.CALL));
 
 				} else if (e.getKind() == SDGEdge.Kind.NO_FLOW) {
-					DynamicContext succ = next.copy();
-					succ.setNode(e.getTarget());
+					DynamicContext succ = next.copyWithNewNode(e.getTarget());
 
 					TopologicalNumber succNr = visited[graph.getID()].get(succ);
 					if (succNr == null) {
@@ -159,9 +156,8 @@ public class ContextGraphBuilder {
 		for (DynamicContext retSite : returnSites.keySet()) {
 			for (SDGEdge e : graph.incomingEdgesOf(retSite.getNode())) {
 				if (e.getKind() == SDGEdge.Kind.RETURN) {
-					DynamicContext pred = retSite.copy();
+					DynamicContext pred = retSite.copyWithNewNode(e.getSource());
 					pred.push(returnSites.get(retSite).getNode());
-					pred.setNode(e.getSource());
 
 					TopologicalNumber predNr = visited[graph.getID()].get(pred);
 					TopologicalNumber retNr = visited[graph.getID()].get(retSite);

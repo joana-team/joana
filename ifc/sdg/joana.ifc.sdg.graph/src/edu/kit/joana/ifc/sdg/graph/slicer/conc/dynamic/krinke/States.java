@@ -19,8 +19,8 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicCon
  * @author  Dennis Giffhorn
  */
 public class States implements Cloneable {
-	public static final Context NONRESTRICTIVE = new DynamicContext();
-	public static final Context NONE = new DynamicContext();
+	public static final Context NONRESTRICTIVE = DynamicContext.newSpecialConstant();
+	public static final Context NONE = DynamicContext.newSpecialConstant();
 
     /** The state-representing Contexts. */
     private Context[] states;

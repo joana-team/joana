@@ -180,9 +180,7 @@ public class ReachabilityChecker {
      * @param target  The traversed edge's target.
      */
     private DynamicContext step(DynamicContext old, SDGNode target) {
-    	DynamicContext c = old.copy();
-
-        c.setNode(target);
+    	DynamicContext c = old.copyWithNewNode(target);
 
         return c;
     }
@@ -195,10 +193,9 @@ public class ReachabilityChecker {
      * @param target  The traversed edge's target.
      */
     private DynamicContext down(DynamicContext old, SDGNode target) {
-    	DynamicContext c = old.copy();
+    	DynamicContext c = old.copyWithNewNode(target);
 
-        c.push(c.getNode());
-        c.setNode(target);
+        c.push(old.getNode());
 
         return c;
     }
@@ -212,10 +209,9 @@ public class ReachabilityChecker {
      * @param target  The traversed edge's target.
      */
     private DynamicContext up(DynamicContext old, SDGNode target) {
-    	DynamicContext c = old.copy();
+    	DynamicContext c = old.copyWithNewNode(target);
 
         c.pop();
-        c.setNode(target);
 
         return c;
     }

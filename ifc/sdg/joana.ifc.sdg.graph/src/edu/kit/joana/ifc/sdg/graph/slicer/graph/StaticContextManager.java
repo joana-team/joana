@@ -42,12 +42,15 @@ public class StaticContextManager implements ContextManager {
 		private StaticContext(SDGNode n, CallString s) {
 			super(n, n.getThreadNumbers()[0]);
 			if (s == null) throw new RuntimeException("null call string for node "+n+" in proc "+n.getProc());
-			node = n;
 			stack = s;
 		}
 
 		public StaticContext copy() {
 			return new StaticContext(node, stack, thread);
+		}
+		
+		public StaticContext copyWithNewNode(SDGNode newNode) {
+			return new StaticContext(newNode, stack, thread);
 		}
 
 		
@@ -135,8 +138,7 @@ public class StaticContextManager implements ContextManager {
 		}
 
 		public Context level(SDGNode reachedNode) {
-	    	Context newContext = this.copy();
-	    	newContext.node = reachedNode;
+	    	Context newContext = this.copyWithNewNode(reachedNode);
 	    	return newContext;
 	    }
 

@@ -23,7 +23,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNodeTuple;
  * @see DynamicContext,StaticContext
  */
 public abstract class Context {
-	protected SDGNode node;
+	protected final SDGNode node;
 	protected final int thread;
 
 	Context(SDGNode n, int t) {
@@ -89,8 +89,4 @@ public abstract class Context {
     public abstract Context descend(SDGNode reachedNode, SDGNodeTuple callSite);
 
     public abstract Context ascend(SDGNode reachedNode, SDGNodeTuple callSite);
-
-	public void setNode(SDGNode newNode) {
-		node = newNode;
-	}
 }

@@ -29,14 +29,21 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.GraphFolder;
 public class DynamicContextManager implements ContextManager {
 	public static class DynamicContext extends Context {
 	    /** A list, simulating a stack containing the context. */
-	    private LinkedList<SDGNode> callStack;
+	    private final LinkedList<SDGNode> callStack;
+	    
+	    //private final SDGNode fork;
 
-	    /** Creates a new instance of Context.
+	    /** Creates a new instance of Context, to be used as special constant.
 	     * Initialises attribut 'context' with an empty list.
 	     */
-	    public DynamicContext() {
-	    	super(null, 0);
+	    private DynamicContext() {
+	        super(null, 0);
 	        this.callStack = new LinkedList<SDGNode>();
+	        //this.fork = null;
+	    }
+	    
+	    public static DynamicContext newSpecialConstant() {
+	    	return new DynamicContext();
 	    }
 
 	    /** Creates a new instance of Context with the given vertex as sole element.
@@ -88,6 +95,22 @@ public class DynamicContextManager implements ContextManager {
 	    @SuppressWarnings("unchecked")
 	    public DynamicContext copy() {
 	        DynamicContext clone = new DynamicContext((LinkedList<SDGNode>) callStack.clone(), node, thread);
+
+	        return clone;
+	    }
+	    
+	    /** Creates a clone of a Context object.
+	     * It clones the list of the attribute 'context', but not the vertices in it
+	     * Thus their references keep the same.
+	     * 
+	     * The clone's node is set to newNode
+	     *
+	     * @param newNode The node of the clone
+	     * @return  A clone of the calling Context instance.
+	     */
+	    @SuppressWarnings("unchecked")
+	    public DynamicContext copyWithNewNode(SDGNode newNode) {
+	        DynamicContext clone = new DynamicContext((LinkedList<SDGNode>) callStack.clone(), newNode, thread);
 
 	        return clone;
 	    }
@@ -366,10 +389,8 @@ public class DynamicContextManager implements ContextManager {
 	     * @return The context of pre.
 	     */
 	    public Context level(SDGNode reachedNode) {
-	        Context newContext = copy();
-
 	        // set 'pre' as new node of context
-	        newContext.setNode(reachedNode);
+	        Context newContext = copyWithNewNode(reachedNode);
 
 	        return newContext;
 	    }
@@ -382,13 +403,11 @@ public class DynamicContextManager implements ContextManager {
 	     * @return The new context.
 	     */
 	    public Context ascend(SDGNode reachedNode, SDGNodeTuple callSite){
-	        Context up = copy();
+	        // set the given node as the new context node
+	        Context up = copyWithNewNode(reachedNode);
 
 	        // pop the topmost call site from the context
 	        up.pop();
-
-	        // set the given node as the new context node
-	        up.setNode(reachedNode);
 
 	        return up;
 	    }
@@ -402,9 +421,8 @@ public class DynamicContextManager implements ContextManager {
 	     * @return  The context for 'node'.
 	     */
 	    public Context descend(SDGNode reachedNode, SDGNodeTuple callSite){
-	        Context down = copy();
+	        Context down = copyWithNewNode(reachedNode);
 	        down.push(callSite.getFirstNode());
-	        down.setNode(reachedNode);
 	        return down;
 	    }
 	}

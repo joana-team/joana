@@ -40,18 +40,16 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
     public static class ThreadInstance {
         private final int id;
         private final SDGNode entry;
-        private SDGNode exit = null;
+        private final SDGNode exit;
         private final SDGNode fork;
-        private Collection<SDGNode> join;
+        private final Collection<SDGNode> join;
         private final LinkedList<SDGNode> threadContext;
-        private boolean dynamic;
+        private final boolean dynamic;
 
-//        public ThreadInstance() { }
-
-        public ThreadInstance(int id, SDGNode en, SDGNode fo, LinkedList<SDGNode> tc) {
-            this(id, en, null, fo, new LinkedList<SDGNode>(), tc, false);
+        public ThreadInstance(int id, SDGNode en, SDGNode ex, SDGNode fo,             LinkedList<SDGNode> tc, boolean dyn) {
+            this(id, en, ex, fo, new LinkedList<SDGNode>(), tc, dyn);
         }
-
+        
         public ThreadInstance(int id, SDGNode en, SDGNode ex, SDGNode fo, SDGNode jo, LinkedList<SDGNode> tc, boolean dyn) {
         	this(id, en, ex, fo, new LinkedList<SDGNode>(), tc, dyn);
             if (jo != null)
@@ -98,13 +96,6 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
 			return exit;
 		}
 
-		public void setExit(SDGNode exit) {
-			if (this.exit != null) {
-				throw new IllegalStateException("The 'exit' field of ThreadInstance is supposed to be set only once!");
-			}
-			this.exit = exit;
-		}
-
 		public SDGNode getFork() {
 			return fork;
 		}
@@ -119,11 +110,8 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
 		}
 
 		public void setJoin(SDGNode join) {
+			assert join != null;
 			this.join.add(join);
-			/*if (this.join != null) {
-				throw new IllegalStateException("The 'join' field of ThreadInstance is supposed to be set only once!");
-			}
-			this.join = join;*/
 		}
 
 		public LinkedList<SDGNode> getThreadContext() {
@@ -132,10 +120,6 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
 
 		public boolean isDynamic() {
 			return dynamic;
-		}
-
-		public void setDynamic(boolean dynamic) {
-			this.dynamic = dynamic;
 		}
 
 		@Override

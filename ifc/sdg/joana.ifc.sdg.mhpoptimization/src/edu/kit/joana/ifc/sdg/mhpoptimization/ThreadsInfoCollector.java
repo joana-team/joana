@@ -70,12 +70,13 @@ public final class ThreadsInfoCollector {
     public static ThreadsInformation createThreadsInformation(ThreadAllocationAnalysis ta, CFG cfg) {
         LinkedList<ThreadInstance> result = new LinkedList<ThreadInstance>();
 
-        // create a ThreadInstance for the main thread
-        ThreadInstance main = new ThreadInstance(0, findMainEntry(cfg), null, new LinkedList<SDGNode>());
-
-        main.setDynamic(false);
-
-        main.setExit(findExitNode(main.getEntry(), cfg));
+        
+        // create a ThreadInstance for the main thread {
+        final ThreadInstance main; {
+            final SDGNode entry = findMainEntry(cfg);
+            final SDGNode exit  = findExitNode(entry, cfg);
+            main = new ThreadInstance(0, entry, exit, null, new LinkedList<SDGNode>(), false);
+        }
 
         result.add(main);
 
@@ -94,17 +95,13 @@ public final class ThreadsInfoCollector {
         	debug.outln("    fork: "+thread.getCallStack().peek());
         	debug.outln("    context: "+thread.getCallStack());
 
-            ThreadInstance ti =
-            	new ThreadInstance(id, thread.getNode(), thread.getCallStack().peek(), thread.getCallStack());
-            ti.setExit(findExitNode(ti.getEntry(), cfg));
-
             // distinguish between dynamic and not dynamic threads
-            if(ta.getThreadAmount().get(thread) == SpawnNumber.INDEFINITE) {
-                ti.setDynamic(true);
-
-            } else {
-            	ti.setDynamic(false);
-            }
+            final boolean dynamic = ta.getThreadAmount().get(thread) == SpawnNumber.INDEFINITE;
+            
+            final SDGNode entry = thread.getNode();
+            final SDGNode exit  = findExitNode(entry, cfg);
+            ThreadInstance ti =
+            	new ThreadInstance(id, entry, exit, thread.getCallStack().peek(), thread.getCallStack(), dynamic);
 
             result.add(ti);
             id++;

@@ -819,7 +819,7 @@ public class FullIFCConcurrentTest {
 	
 	@Test
 	public void testLoopedFork() {
-		// Demonstrates that currently, fork-nodes of threads may be wrong:
+		// Demonstrates that even in this example, the thread is forked from java.lang.Thread.start()V
 		try {
 			/* MHPType.PRECISE */ {
 				IFCAnalysis ana = buildAndAnnotate("tests.LoopedFork",
@@ -834,7 +834,7 @@ public class FullIFCConcurrentTest {
 				
 				final SDG sdg = ana.getProgram().getSDG();
 				final SDGNode fork = sdg.getThreadsInfo().getThread(1).getFork();
-				assertEquals("tests.LoopedFork.main([Ljava/lang/String;)V", fork.getBytecodeName()); // The actual fork is from "tests.LoopedFork.foo()V" !!!
+				assertEquals("java.lang.Thread.start()V", fork.getBytecodeName());
 			}
 		} catch (ApiTestException e) {
 			e.printStackTrace();
@@ -844,7 +844,7 @@ public class FullIFCConcurrentTest {
 	
 	@Test()
 	public void testLoopedFork2() {
-		// Demonstrates that currently, fork-nodes of threads may be folded nodes
+		// Demonstrates that at least in this example, fork-nodes can no longer be FOLD nodes
 		try {
 			/* MHPType.PRECISE */ {
 				IFCAnalysis ana = buildAndAnnotate("tests.LoopedFork2",
@@ -859,13 +859,8 @@ public class FullIFCConcurrentTest {
 				
 				final SDG sdg = ana.getProgram().getSDG();
 				final SDGNode fork = sdg.getThreadsInfo().getThread(2).getFork();
-				assertEquals(SDGNode.Kind.FOLDED, fork.getKind());
+				assertEquals(SDGNode.Kind.CALL, fork.getKind());
 			}
-		} catch (AssertionError ae) {
-			// if this is run with -ea, we don't reacht the assertEquals() above, since a regular assert is thrown before
-			final StackTraceElement[] trace = ae.getStackTrace();
-			assertTrue(trace[0].toString().startsWith("edu.kit.joana.ifc.sdg.mhpoptimization.JoinAnalysis.forkAllocations"));
-			trace.toString();
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

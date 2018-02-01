@@ -104,7 +104,7 @@ public final class ThreadsInfoCollector {
             final SDGNode entry = thread.getNode();
             final SDGNode exit  = findExitNode(entry, cfg);
             ThreadInstance ti =
-            	new ThreadInstance(id, entry, exit, thread.getCallStack().peek(), thread.getCallStack(), dynamic);
+            	new ThreadInstance(id, entry, exit, forkNode, thread.getCallStack(), dynamic);
 
             result.add(ti);
             id++;

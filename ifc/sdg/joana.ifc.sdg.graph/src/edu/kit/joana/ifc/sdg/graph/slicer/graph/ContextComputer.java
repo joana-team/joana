@@ -240,7 +240,8 @@ public class ContextComputer {
 					LinkedList<SDGNode> p = new LinkedList<SDGNode>();
 					p.addLast(f);
 
-					worklist.add(Pair.pair(f, p));
+					assert e.getSource().getKind() == SDGNode.Kind.CALL;
+					worklist.add(Pair.pair(e.getSource(), p));
 				}
 			}
 

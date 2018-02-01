@@ -54,7 +54,6 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
             if (fo == null && id != MAIN_THREAD_ID) throw new IllegalArgumentException();
             if (en.getKind() != SDGNode.Kind.ENTRY) throw new IllegalArgumentException();
             if (ex.getKind() != SDGNode.Kind.EXIT) throw new IllegalArgumentException();
-            if (fo != null && fo.getKind() != SDGNode.Kind.CALL) throw new IllegalArgumentException();
             this.id = id;
             this.entry = en;
             this.exit = ex;

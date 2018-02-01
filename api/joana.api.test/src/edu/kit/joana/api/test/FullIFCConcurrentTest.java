@@ -841,4 +841,34 @@ public class FullIFCConcurrentTest {
 			fail(e.getMessage());
 		}
 	}
+	
+	@Test()
+	public void testLoopedFork2() {
+		// Demonstrates that currently, fork-nodes of threads may be folded nodes
+		try {
+			/* MHPType.PRECISE */ {
+				IFCAnalysis ana = buildAndAnnotate("tests.LoopedFork2",
+						SECRET,
+						PUBLIC,
+						MHPType.PRECISE
+				);
+				Collection<? extends IViolation<SecurityNode>> illegal;
+				
+				illegal = ana.doIFC(IFCType.CLASSICAL_NI);
+				assertTrue(illegal.isEmpty());
+				
+				final SDG sdg = ana.getProgram().getSDG();
+				final SDGNode fork = sdg.getThreadsInfo().getThread(2).getFork();
+				assertEquals(SDGNode.Kind.FOLDED, fork.getKind());
+			}
+		} catch (AssertionError ae) {
+			// if this is run with -ea, we don't reacht the assertEquals() above, since a regular assert is thrown before
+			final StackTraceElement[] trace = ae.getStackTrace();
+			assertTrue(trace[0].toString().startsWith("edu.kit.joana.ifc.sdg.mhpoptimization.JoinAnalysis.forkAllocations"));
+			trace.toString();
+		} catch (ApiTestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
 }

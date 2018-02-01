@@ -38,6 +38,8 @@ public final class GraphFolder {
 
     /** Marks a fold node that folds an intraprocedural cycle. */
     public static final String FOLDED_LOOP = "LOOP";
+    
+    public static final int PROC_ID_FOR_FOLDED_LOOPS = -1;
 
     /** A utility class. */
     private GraphFolder() { }
@@ -292,7 +294,7 @@ public final class GraphFolder {
             // process only SCCs resulting from recursions
             // create new fold node
             int type = foldType(scc, graph);
-            SDGNode fold = new SDGNode(SDGNode.Kind.FOLDED, id, -1);
+            SDGNode fold = new SDGNode(SDGNode.Kind.FOLDED, id, PROC_ID_FOR_FOLDED_LOOPS);
 
             switch (type) {
                 case 1: fold.setLabel(FOLDED_CALL);

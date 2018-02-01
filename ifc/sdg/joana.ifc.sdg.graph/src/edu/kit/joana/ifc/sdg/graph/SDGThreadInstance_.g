@@ -26,9 +26,12 @@ import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.GraphFolder;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.procedure.TIntProcedure;
+import java.util.HashMap;
+import java.util.Map;
 }
 
 @members {
@@ -92,6 +95,10 @@ import gnu.trove.procedure.TIntProcedure;
       return new ThreadInstance(id, tentry, texit, tfork, tjoins, tcontext, dynamic);
     }
 
+      // this is a bit ugly, but i cannot see any harm of sharing foldNodes even if once is to load severel .pdg
+      // files during one session.
+    private static final Map<Integer, SDGNode> foldNodes = new HashMap<>();
+
     private static LinkedList<SDGNode> findNodes(final SDG sdg, final TIntList ctx) {
       final LinkedList<SDGNode> nodes = new LinkedList<SDGNode>();
       
@@ -101,7 +108,16 @@ import gnu.trove.procedure.TIntProcedure;
         public boolean execute(final int id) {
           final SDGNode n = findNode(sdg, id);
           if (n != null) {
+            assert id >= 0;
             nodes.add(n);
+          } else if (id < 0 && id != ThreadInstanceStub.UNDEF_NODE) {
+            // this was a fold node in the (folded) callgraph during DynamicContext enumeration
+            nodes.add(foldNodes.compute(id, (k, foldNode) -> {
+              if (foldNode == null) {
+                foldNode = new SDGNode(SDGNode.Kind.FOLDED, id, GraphFolder.PROC_ID_FOR_FOLDED_LOOPS);
+              }
+              return foldNode;
+            }));
           }
           
           return true;

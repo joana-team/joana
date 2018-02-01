@@ -102,7 +102,7 @@ public class PathCollector {
                     // It can be recognised by having the only formal-out vertex with an outgoing param-in edge
                     // which is also the only 'entry point' during an intra-thread backward slice.
                     if (pre.getKind() == SDGNode.Kind.FORMAL_OUT) {
-                        Collection<DynamicContext> cons = man.getAllContextsOf(pre);
+                        Collection<? extends DynamicContext> cons = man.getAllContextsOf(pre);
 
                         // compute new thread states
                         for (DynamicContext con : cons) {

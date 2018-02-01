@@ -620,7 +620,7 @@ public class DynamicContextManager implements ContextManager<DynamicContextManag
 	}
 
 	@Override
-	public Collection<DynamicContext> getAllContextsOf(SDGNode node) {
+	public Collection<? extends DynamicContext> getAllContextsOf(SDGNode node) {
 		return conCom.getAllContextsOf(node);
 	}
 

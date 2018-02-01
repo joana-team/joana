@@ -57,7 +57,7 @@ public class ContextComputer {
 	 * @see           DynamicContext
 	 */
 	public Set<DynamicContext> allPossibleContextsForNode(SDGNode node) {
-		HashSet<DynamicContext> cs = new HashSet<DynamicContext>();
+		HashSet<DynamicContext> cs = new HashSet<>();
 
 		for (int thread : node.getThreadNumbers()) {
 			cs.addAll(allPossibleContextsForNode(node, thread));
@@ -75,7 +75,7 @@ public class ContextComputer {
 	 */
 	public Set<DynamicContext> allPossibleContextsForNode(SDGNode node, int thread) {
 		Set<LinkedList<SDGNode>> temp = buildContextsFor(node, thread);
-		HashSet<DynamicContext> cs = new HashSet<DynamicContext>();
+		HashSet<DynamicContext> cs = new HashSet<>();
 
 		for (LinkedList<SDGNode> tmp : temp) {
 			cs.add(new DynamicContext(tmp, node, thread));

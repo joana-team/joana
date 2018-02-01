@@ -24,7 +24,7 @@ public interface ContextManager<C extends Context> {
 	 * @param node  The given node.
 	 * @return      A set of contexts.
 	 */
-	Collection<C> getAllContextsOf(SDGNode node);
+	Collection<? extends C> getAllContextsOf(SDGNode node);
 
 	/** Retrieves all contexts of the given node inside the given thread.
 	 *

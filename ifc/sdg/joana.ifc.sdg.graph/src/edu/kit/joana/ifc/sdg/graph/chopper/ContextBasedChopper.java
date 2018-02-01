@@ -58,7 +58,7 @@ public class ContextBasedChopper extends Chopper {
 	 * @param targetSet   The sink of the chop.
 	 */
     public Collection<SDGNode> chop(Collection<SDGNode> sourceSet, Collection<SDGNode> targetSet) {
-    	Collection<StaticContext> slice = back.contextSliceNodes(targetSet);
+    	Collection<? extends StaticContext> slice = back.contextSliceNodes(targetSet);
     	Collection<SDGNode> chop = forw.contextSubgraphSlice(sourceSet, slice);
     	return chop;
     }

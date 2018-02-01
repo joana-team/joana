@@ -201,7 +201,7 @@ public abstract class ContextSlicer<C extends Context> implements Slicer {
     }
 
 
-    public Collection<C> contextSliceNodes(Collection<SDGNode> criterion) {
+    public Collection<? extends C> contextSliceNodes(Collection<SDGNode> criterion) {
     	HashSet<C> s = new HashSet<>();
     	for (SDGNode n : criterion) {
     		s.addAll(conMan.getAllContextsOf(n));
@@ -209,11 +209,11 @@ public abstract class ContextSlicer<C extends Context> implements Slicer {
     	return contextSlice(s);
     }
 
-    public Collection<C> contextSlice(SDGNode criterion) {
+    public Collection<? extends C> contextSlice(SDGNode criterion) {
     	return contextSlice(conMan.getAllContextsOf(criterion));
     }
 
-    public Collection<C> contextSlice(C criterion) {
+    public Collection<? extends C> contextSlice(C criterion) {
     	return contextSlice(Collections.singleton(criterion));
     }
 
@@ -223,7 +223,7 @@ public abstract class ContextSlicer<C extends Context> implements Slicer {
      * @param criterion  The slicing criterion
      * @return The slice, as a collection of Contexts.
      */
-    public Collection<C> contextSlice(Collection<C> criterion){
+    public Collection<? extends C> contextSlice(Collection<? extends C> criterion){
     	HashSet<C> slice = new HashSet<>();
         LinkedList<C> worklist_1 = new LinkedList<>();
         LinkedList<C> worklist_2 = new LinkedList<>();
@@ -496,7 +496,7 @@ public abstract class ContextSlicer<C extends Context> implements Slicer {
      * @param criterion  The slicing criterion
      * @return The slice, as a collection of Contexts.
      */
-    public Collection<C> subgraphContextSlice(Collection<C> criterion, Collection<SDGNode> subgraph){
+    public Collection<C> subgraphContextSlice(Collection<? extends C> criterion, Collection<SDGNode> subgraph){
     	HashSet<C> slice = new HashSet<>();
         LinkedList<C> worklist_1 = new LinkedList<>();
         LinkedList<C> worklist_2 = new LinkedList<>();
@@ -628,7 +628,7 @@ public abstract class ContextSlicer<C extends Context> implements Slicer {
      * @param criterion  The slicing criterion
      * @return The slice, as a collection of SDGNodes.
      */
-    public Collection<SDGNode> contextSubgraphSlice(Collection<SDGNode> criterion, Collection<C> subgraph){
+    public Collection<SDGNode> contextSubgraphSlice(Collection<SDGNode> criterion, Collection<? extends C> subgraph){
     	HashSet<SDGNode> slice = new HashSet<SDGNode>();
     	HashSet<C> visited = new HashSet<>();
         LinkedList<C> worklist_1 = new LinkedList<>();
@@ -771,7 +771,7 @@ public abstract class ContextSlicer<C extends Context> implements Slicer {
      * @param criterion  The slicing criterion
      * @return The slice, as a collection of Contexts.
      */
-    public Collection<C> contextSubgraphContextSlice(Collection<C> criterion, Collection<C> subgraph){
+    public Collection<C> contextSubgraphContextSlice(Collection<? extends C> criterion, Collection<C> subgraph){
     	HashSet<C> slice = new HashSet<>();
         LinkedList<C> worklist_1 = new LinkedList<>();
         LinkedList<C> worklist_2 = new LinkedList<>();

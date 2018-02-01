@@ -19,6 +19,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.CallGraphBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.GraphFolder;
+import edu.kit.joana.util.Pair;
 
 
 /** The ContextComputer computes contexts for given nodes.
@@ -106,12 +107,14 @@ public class ContextComputer {
 	 * @return        A collection with the found contexts or an empty set.
 	 * @see           Context
 	 */
-	public Collection<DynamicContext> getExtendedContextsOf(SDGNode node) {
-		Set<LinkedList<SDGNode>> temp = buildExtendedContextsFor(node);
-		HashSet<DynamicContext> cs = new HashSet<DynamicContext>();
+	public Collection<Pair<SDGNode,DynamicContext>> getExtendedContextsOf(SDGNode node) {
+		Set<Pair<SDGNode, LinkedList<SDGNode>>> pairs = buildExtendedContextsFor(node);
+		HashSet<Pair<SDGNode,DynamicContext>> cs = new HashSet<>();
 
-		for (LinkedList<SDGNode> tmp : temp) {
-			cs.add(new DynamicContext(tmp, node, -1));
+		for (Pair<SDGNode,LinkedList<SDGNode>> pair : pairs) {
+			final SDGNode forkNode = pair.getFirst();
+			final LinkedList<SDGNode> tmp = pair.getSecond();
+			cs.add(Pair.pair(forkNode, new DynamicContext(tmp, node, -1)));
 		}
 
 		return cs;
@@ -206,16 +209,17 @@ public class ContextComputer {
 
 	/** Traverses the call graph backwards to its root, starting at a given node.
 	 * All visited call and entry sites are are packed into a stack.
-	 * The stacks of every possible path root -> node are built and returned in a list.
+	 * The stacks of every possible path root -> node are built and returned in a list, together with
+	 * the threads fork node.
 	 *
 	 * @param node    The node.
 	 * @param root    The root of the thread to handle.
 	 * @param thread  The thread's ID.
 	 */
 	@SuppressWarnings("unchecked")
-	private Set<LinkedList<SDGNode>> buildExtendedContextsFor(SDGNode node) {
+	private Set<Pair<SDGNode, LinkedList<SDGNode>>> buildExtendedContextsFor(SDGNode node) {
 		// the result list
-		HashSet<LinkedList<SDGNode>> result = new HashSet<LinkedList<SDGNode>>();
+		HashSet<Pair<SDGNode, LinkedList<SDGNode>>> result = new HashSet<>();
 
 		// 1. Find corresponding entry node of 'node'
 		SDGNode entry = g.getEntry(node);
@@ -225,10 +229,9 @@ public class ContextComputer {
 		// 2. build all possible contexts
 		if (entry == null) {
 			LinkedList<SDGNode> trivial = new LinkedList<SDGNode>();
-			result.add(trivial);
-
+			result.add(Pair.pair(null, trivial));
 		} else {
-			LinkedList<LinkedList<SDGNode>> worklist = new LinkedList<LinkedList<SDGNode>>();
+			LinkedList<Pair<SDGNode, LinkedList<SDGNode>>> worklist = new LinkedList<>();
 
 			// initialize worklist with the direct calls of entry
 			for (SDGEdge e : g.incomingEdgesOf(entry)) {
@@ -237,17 +240,19 @@ public class ContextComputer {
 					LinkedList<SDGNode> p = new LinkedList<SDGNode>();
 					p.addLast(f);
 
-					worklist.add(p);
+					worklist.add(Pair.pair(f, p));
 				}
 			}
 
 			while(!worklist.isEmpty()){
-				LinkedList<SDGNode> next = worklist.poll();
+				final Pair<SDGNode, LinkedList<SDGNode>> nextPair = worklist.poll();
+				final SDGNode forkNode = nextPair.getFirst();
+				final LinkedList<SDGNode> next = nextPair.getSecond();
 				Set<SDGEdge> incEdges = folded.incomingEdgesOf(next.getLast());
 
 				if (incEdges.isEmpty()) {
 					// we've reached an end - context found
-					result.add(next);
+					result.add(nextPair);
 
 				} else {
 					// traverse incoming edges of next.n
@@ -258,7 +263,7 @@ public class ContextComputer {
 							if (!next.contains(source)) {
 								LinkedList<SDGNode> p = (LinkedList<SDGNode>) next.clone();
 								p.addLast(source);
-								worklist.add(p);
+								worklist.add(Pair.pair(forkNode, p));
 							}
 						}
 					}

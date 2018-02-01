@@ -18,6 +18,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
 import edu.kit.joana.ifc.sdg.mhpoptimization.ThreadAllocationAnalysis.SpawnNumber;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
+import edu.kit.joana.util.Pair;
 
 
 /**
@@ -86,13 +87,15 @@ public final class ThreadsInfoCollector {
         debug.outln("    context: " + main.getThreadContext());
 
         // a thread is identified by its calling context
-        Set<DynamicContext> threads = ta.getThreads();
+        Set<Pair<SDGNode, DynamicContext>> threads = ta.getThreads();
         int id = 1;
 
         // determine the thread instances
-        for (DynamicContext thread : threads) {
+        for (Pair<SDGNode, DynamicContext> pair : threads) {
+        	DynamicContext thread = pair.getSecond();
+        	SDGNode forkNode = pair.getFirst();
         	debug.outln("entry: "+thread.getNode());
-        	debug.outln("    fork: "+thread.getCallStack().peek());
+        	debug.outln("    fork: "+ forkNode);
         	debug.outln("    context: "+thread.getCallStack());
 
             // distinguish between dynamic and not dynamic threads

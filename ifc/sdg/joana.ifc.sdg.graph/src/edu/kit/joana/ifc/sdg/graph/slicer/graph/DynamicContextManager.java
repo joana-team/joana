@@ -20,6 +20,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGNodeTuple;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.CallGraphBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.GraphFolder;
+import edu.kit.joana.util.Pair;
 
 
 /**
@@ -594,7 +595,7 @@ public class DynamicContextManager implements ContextManager {
         			|| foldedCall.map(callSite) == con.top();
     }
 
-	public Collection<DynamicContext> getExtendedContextsOf(SDGNode node) {
+	public Collection<Pair<SDGNode, DynamicContext>> getExtendedContextsOf(SDGNode node) {
 		return conCom.getExtendedContextsOf(node);
 	}
 

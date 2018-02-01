@@ -28,6 +28,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicCon
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.FoldedCFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.GraphFolder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
+import edu.kit.joana.util.Pair;
 
 
 /** Implements a thread allocation analysis.
@@ -45,8 +46,8 @@ public class ThreadAllocation {
     private FoldedCFG folded;
     private DynamicContextManager conMan;
 
-    private HashMap<SDGNode, Collection<DynamicContext>> run_thread;
-    private HashSet<DynamicContext> threads; // maps thread allocations to thread entries
+    private HashMap<SDGNode, Collection<Pair<SDGNode, DynamicContext>>> run_thread;
+    private HashSet<Pair<SDGNode, DynamicContext>> threads; // maps thread allocations to thread entries
     private HashMap<DynamicContext, Integer> thread_amount; // maps thread allocations to number of invocations
 
     /** Creates a new instance of ThreadAllocation
@@ -60,7 +61,7 @@ public class ThreadAllocation {
         conMan = new DynamicContextManager(sdg);
     }
 
-    public Set<DynamicContext> getThreads() {
+    public Set<Pair<SDGNode, DynamicContext>> getThreads() {
     	return Collections.unmodifiableSet(threads);
     }
 
@@ -78,8 +79,8 @@ public class ThreadAllocation {
 
         // determine thread contexts
         run_thread = threadContexts(runEntries);
-        threads = new HashSet<DynamicContext>();
-        for (Collection<DynamicContext> l : run_thread.values()) {
+        threads = new HashSet<Pair<SDGNode, DynamicContext>>();
+        for (Collection<Pair<SDGNode, DynamicContext>> l : run_thread.values()) {
         	threads.addAll(l);
         }
 
@@ -98,11 +99,13 @@ public class ThreadAllocation {
     private HashMap<DynamicContext, List<DynamicContext>> invocationStructure() {
     	HashMap<DynamicContext, List<DynamicContext>> result = new HashMap<DynamicContext, List<DynamicContext>>();
 
-    	for (DynamicContext c : threads) {
+    	for (Pair<SDGNode, DynamicContext> pc : threads) {
+    		DynamicContext c = pc.getSecond();
     		DynamicContext invokedBy = null;
     		int diff = c.size();
 
-    		for (DynamicContext d : threads) {
+    		for (Pair<SDGNode, DynamicContext> pd : threads) {
+    			DynamicContext d = pd.getSecond();
     			if (c == d) continue;
     			if (d.isSuffixOf(c) && diff > (c.size() - d.size())) {
     				invokedBy = d;
@@ -140,11 +143,11 @@ public class ThreadAllocation {
         return result;
     }
 
-    private HashMap<SDGNode, Collection<DynamicContext>> threadContexts(List<SDGNode> runEntries) {
-    	HashMap<SDGNode, Collection<DynamicContext>> tc = new HashMap<SDGNode, Collection<DynamicContext>>();
+    private HashMap<SDGNode, Collection<Pair<SDGNode, DynamicContext>>> threadContexts(List<SDGNode> runEntries) {
+    	HashMap<SDGNode, Collection<Pair<SDGNode, DynamicContext>>> tc = new HashMap<>();
 
     	for (SDGNode run : runEntries) {
-    		Collection<DynamicContext> cons = conMan.getExtendedContextsOf(run);
+    		Collection<Pair<SDGNode, DynamicContext>> cons = conMan.getExtendedContextsOf(run);
     		tc.put(run, cons);
     	}
 
@@ -156,7 +159,8 @@ public class ThreadAllocation {
     	List<DynamicContext> remainingThreads = new LinkedList<DynamicContext>();
 
     	// search for recursive calls in the contexts
-    	for (DynamicContext thread : threads) {
+    	for (Pair<SDGNode, DynamicContext> pair : threads) {
+    		DynamicContext thread = pair.getSecond();
     		boolean recursive = false;
 
     		for (SDGNode n : thread.getCallStack()) {
@@ -182,18 +186,20 @@ public class ThreadAllocation {
     	}
 
     	// handle recursive thread generation
-    	LinkedList<DynamicContext> recursiveThreads = new LinkedList<DynamicContext>();
-    	LinkedList<DynamicContext> refinedThreads = new LinkedList<DynamicContext>();
-    	for (DynamicContext thread : threads) {
+    	LinkedList<Pair<SDGNode, DynamicContext>> recursiveThreads = new LinkedList<>();
+    	LinkedList<Pair<SDGNode, DynamicContext>> refinedThreads = new LinkedList<>();
+    	for (Pair<SDGNode, DynamicContext> pair : threads) {
+    		SDGNode forkNode = pair.getFirst();
+    		DynamicContext thread = pair.getSecond();
 			if (thread.top().getId() < 0) {
 				// this thread recursively invokes itself (directly or indirectly)
-				recursiveThreads.add(thread);
+				recursiveThreads.add(pair);
 
 				DynamicContext rootOfTheRecursion = thread.copy();
 				rootOfTheRecursion.pop();
 				result.put(rootOfTheRecursion, -1);
 				result.remove(thread);
-				refinedThreads.add(rootOfTheRecursion);
+				refinedThreads.add(Pair.pair(forkNode, rootOfTheRecursion));
 			}
     	}
     	threads.removeAll(recursiveThreads);

@@ -22,6 +22,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.GraphFolder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
+import edu.kit.joana.util.Pair;
 
 
 /**
@@ -79,11 +80,12 @@ public final class ThreadsInfoCollector {
 
 
         // a thread is identified by its calling context
-        Set<DynamicContext> threads = ta.getThreads();
+        Set<Pair<SDGNode, DynamicContext>> threads = ta.getThreads();
         int id = 1;
 
         // determine the thread instances
-        for (DynamicContext thread : threads) {
+        for (Pair<SDGNode, DynamicContext> pair : threads) {
+        	DynamicContext thread = pair.getSecond();
             if (DEBUG) System.out.println("entry: "+thread.getNode());
             if (DEBUG) System.out.println("    fork: "+thread.getCallStack().peek());
             if (DEBUG) System.out.println("    context: "+thread.getCallStack());

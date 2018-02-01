@@ -22,10 +22,8 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  * For every thread it contains information about, this informations consist of<p>
  * <ul>
  * <li> the entry node </li>
- * <li> the exit node ('null' for the main thread) </li>
- * <li> the fork node ('null' for the main thread) </li>
- * <li> the thread allocation node ('null' for the main thread) </li>
- * <li> the thread invocation node ('null' for the main thread) </li>
+ * <li> the exit node </li>
+ * <li> the fork node ('null' for the main thread, which has, by convention, the id 0) </li>
  * <li> the join nodes (maybe empty) </li>
  * <li> the thread context (empty list for the main thread) </li>
  * <li> whether this thread is dynamic </li>
@@ -38,6 +36,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  */
 public final class ThreadsInformation implements Iterable<ThreadsInformation.ThreadInstance> {
     public static class ThreadInstance {
+    	public static final int MAIN_THREAD_ID = 0;
         private final int id;
         private final SDGNode entry;
         private final SDGNode exit;
@@ -50,14 +49,10 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
             this(id, en, ex, fo, new LinkedList<SDGNode>(), tc, dyn);
         }
         
-        public ThreadInstance(int id, SDGNode en, SDGNode ex, SDGNode fo, SDGNode jo, LinkedList<SDGNode> tc, boolean dyn) {
-        	this(id, en, ex, fo, new LinkedList<SDGNode>(), tc, dyn);
-            if (jo != null)
-            	this.join.add(jo);
-        }
-        
         public ThreadInstance(int id, SDGNode en, SDGNode ex, SDGNode fo, Collection<SDGNode> jo, LinkedList<SDGNode> tc, boolean dyn) {
-        	this.id = id;
+            if (en == null || jo == null || tc == null || ex == null) throw new IllegalArgumentException();
+            if (fo == null && id != MAIN_THREAD_ID) throw new IllegalArgumentException();
+            this.id = id;
             this.entry = en;
             this.exit = ex;
             this.fork = fo;
@@ -69,16 +64,14 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
         public String toString() {
             StringBuilder b = new StringBuilder();
             b.append("Thread ").append(getId()).append(" {\n");
-            if (getEntry() == null) b.append("Entry ").append("0").append(";\n");
-            else b.append("Entry ").append(getEntry()).append(";\n");
-            if (getExit() == null) b.append("Exit ").append("0").append(";\n");
-            else b.append("Exit ").append(getExit()).append(";\n");
+            b.append("Entry ").append(getEntry()).append(";\n");
+            b.append("Exit ").append(getExit()).append(";\n");
             if (getFork() == null) b.append("Fork ").append("0").append(";\n");
             else b.append("Fork ").append(getFork()).append(";\n");
             if (join.isEmpty()) b.append("Join ").append("0").append(";\n");
             else if (join.size() == 1) b.append("Join ").append(join.iterator().next()).append(";\n");
             else b.append("Join ").append(join).append(";\n");
-            if (getThreadContext() == null || getThreadContext().isEmpty()) b.append("Context null;\n");
+            if (getThreadContext().isEmpty()) b.append("Context null;\n");
             else b.append("Context ").append(getThreadContext()).append(";\n");
             b.append("Dynamic ").append(dynamic).append(";\n}\n");
             return b.toString();

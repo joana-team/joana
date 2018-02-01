@@ -71,7 +71,7 @@ public final class ThreadsInfoCollector {
             	if (isExit) exit = n;
             }
             assert exit == cfg.getExit(entry);
-            main = new ThreadInstance(0, entry, exit, null, new LinkedList<SDGNode>(), false);
+            main = new ThreadInstance(ThreadInstance.MAIN_THREAD_ID, entry, exit, null, new LinkedList<SDGNode>(), false);
         }
         
         result.add(main);

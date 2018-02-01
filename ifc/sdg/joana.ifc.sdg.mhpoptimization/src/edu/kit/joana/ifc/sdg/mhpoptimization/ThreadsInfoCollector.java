@@ -75,7 +75,7 @@ public final class ThreadsInfoCollector {
         final ThreadInstance main; {
             final SDGNode entry = findMainEntry(cfg);
             final SDGNode exit  = findExitNode(entry, cfg);
-            main = new ThreadInstance(0, entry, exit, null, new LinkedList<SDGNode>(), false);
+            main = new ThreadInstance(ThreadInstance.MAIN_THREAD_ID, entry, exit, null, new LinkedList<SDGNode>(), false);
         }
 
         result.add(main);

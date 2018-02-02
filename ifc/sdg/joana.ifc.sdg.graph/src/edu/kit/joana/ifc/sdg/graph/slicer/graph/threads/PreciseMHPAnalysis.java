@@ -625,37 +625,44 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
             			spawnedThreadRegionsJoinSlice.add(p.getID());
             		}
             	}
+            	
+            	assert spawnedThreadRegionsSecondSlice.intersection(spawnedThreadRegionsJoinSlice).isEmpty();
+
 
             	// TODO: don't compute secondSlice if we're not gonna need it
             	slicer.setJoins(forkInstance.getJoins());
             	Collection<SDGNode> joinSlice = slicer.slice(succ);
             	Collection<SDGNode> secondSlice = slicer.secondSlice(succ);
-            	LinkedList<ThreadRegion> inJoinSlice = new LinkedList<ThreadRegion>();
-            	LinkedList<ThreadRegion> inSecondSlice = new LinkedList<ThreadRegion>();
+            	LinkedList<ThreadRegion> inBothSlices = new LinkedList<>();
+            	LinkedList<ThreadRegion> inSecondSliceOnly = new LinkedList<>();
 
             	for (int x = 0; x < tr.size(); x++) {
             		ThreadRegion q = tr.getThreadRegion(x);
             		if (joinSlice.contains(q.getStart())) {
-            			inJoinSlice.add(q);
-            			inSecondSlice.add(q);
+            			inBothSlices.add(q);
             		} else if (secondSlice.contains(q.getStart())) {
-            			inSecondSlice.add(q);
+            			inSecondSliceOnly.add(q);
             		}
             	}
-            	// TODO: use this fact!
-            	assert inSecondSlice.containsAll(inJoinSlice);
+            	
 
             	for (IntIterator it = spawnedThreadRegionsSecondSlice.intIterator(); it.hasNext();) {
             		final int p = it.next();
-            		for (ThreadRegion q : inSecondSlice) {
+            		for (ThreadRegion q : inSecondSliceOnly) {
+            			result.set(p, q.getID());
+            			assert
+            			result.get(q.getID(), p);
+            		}
+            		for (ThreadRegion q : inBothSlices) {
             			result.set(p, q.getID());
             			assert
             			result.get(q.getID(), p);
             		}
             	}
+            	
             	for (IntIterator it = spawnedThreadRegionsJoinSlice.intIterator(); it.hasNext();) {
             		final int p = it.next();
-            		for (ThreadRegion q : inJoinSlice) {
+            		for (ThreadRegion q : inBothSlices) {
             			result.set(p, q.getID());
             			assert
             			result.get(q.getID(), p);

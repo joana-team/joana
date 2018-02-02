@@ -10,9 +10,11 @@ package edu.kit.joana.ifc.sdg.graph.slicer.conc;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Set;
 
 import com.ibm.wala.util.collections.FilterIterator;
@@ -258,9 +260,13 @@ public class CFGJoinSensitiveForward extends CFGForward {
         }
 
         // unblock some summary edges
-        HashSet<SDGNodeTuple> markedEdges = new HashSet<SDGNodeTuple>();
+        Map<SDGNode, Set<SDGNodeTuple>> markedEdges = new HashMap<>();
         worklist.addAll(exitList);
-        markedEdges.addAll(worklist);
+        for (SDGNodeTuple exit : exitList) {
+        	Set<SDGNodeTuple> singleton = new HashSet<>();
+        	singleton.add(exit);
+        	markedEdges.put(exit.getFirstNode(), singleton);
+        }
 
         while (!worklist.isEmpty()) {
         	SDGNodeTuple next = worklist.poll();
@@ -279,19 +285,30 @@ public class CFGJoinSensitiveForward extends CFGForward {
                             deact.remove(unblock);
                             LinkedList<SDGNodeTuple> l = new LinkedList<SDGNodeTuple>();
 
-                            for (SDGNodeTuple np : markedEdges) {
-                                if (np.getFirstNode() == unblock.getTarget()
-                            			&& !joins.contains(unblock.getSource())) {
-                                	SDGNodeTuple p = new SDGNodeTuple(unblock.getSource(), np.getSecondNode());
-
-                                    if (!markedEdges.contains(p)) {
-                                        l.add(p);
-                                    }
-                                }
+                            Set<SDGNodeTuple> markedEdgesCandidates = markedEdges.get(unblock.getTarget());
+                            if (markedEdgesCandidates != null) {
+	                            for (SDGNodeTuple np : markedEdgesCandidates) {
+	                                assert np.getFirstNode() == unblock.getTarget();
+	                                if (!joins.contains(unblock.getSource())) {
+	                                	SDGNodeTuple p = new SDGNodeTuple(unblock.getSource(), np.getSecondNode());
+	
+	                                	Set<SDGNodeTuple> markedEdgesP = markedEdges.get(p.getFirstNode());
+	                                	if (markedEdgesP == null || !markedEdgesP.contains(p)) {
+	                                        l.add(p);
+	                                    }
+	                                }
+	                            }
                             }
 
                             for (SDGNodeTuple np : l) {
-                                markedEdges.add(np);
+                                markedEdges.compute(np.getFirstNode(), (k, marked) -> {
+                                	if (marked == null) {
+                                		marked = new HashSet<>();
+                                	}
+                                	marked.add(np);
+                                	
+                                	return marked;
+                                });
                                 worklist.add(np);
                             }
                         }
@@ -321,8 +338,15 @@ public class CFGJoinSensitiveForward extends CFGForward {
 
                     SDGNodeTuple np = new SDGNodeTuple(s, next.getSecondNode());
 
-                    if (!joins.contains(s) && !markedEdges.contains(np)) {
-                        markedEdges.add(np);
+                    if (!joins.contains(s) && (markedEdges.get(np.getFirstNode()) == null || !markedEdges.get(np.getFirstNode()).contains(np))) {
+                        markedEdges.compute(np.getFirstNode(), (k, marked) -> {
+                        	if (marked == null) {
+                        		marked = new HashSet<>();
+                        	}
+                        	marked.add(np);
+                        	
+                        	return marked;
+                        });
                         worklist.add(np);
                     }
                 }
@@ -336,9 +360,16 @@ public class CFGJoinSensitiveForward extends CFGForward {
 
                     if (!joins.contains(su.getSource())
                             && !deact.contains(su)
-                            && !markedEdges.contains(np)) {
+                            && (markedEdges.get(np.getFirstNode()) == null || !markedEdges.get(np.getFirstNode()).contains(np))) {
 
-                        markedEdges.add(np);
+                        markedEdges.compute(np.getFirstNode(), (k, marked) -> {
+                        	if (marked == null) {
+                        		marked = new HashSet<>();
+                        	}
+                        	marked.add(np);
+                        	
+                        	return marked;
+                        });
                         worklist.add(np);
                     }
                 }

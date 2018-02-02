@@ -20,8 +20,11 @@ import java.util.RandomAccess;
 import java.util.Set;
 
 import com.google.common.collect.Lists;
+import com.ibm.wala.util.intset.BitVectorIntSet;
+import com.ibm.wala.util.intset.EmptyIntSet;
 import com.ibm.wala.util.intset.IntIterator;
 import com.ibm.wala.util.intset.IntSet;
+import com.ibm.wala.util.intset.MutableIntSet;
 import com.ibm.wala.util.intset.MutableSparseIntSet;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -442,7 +445,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         	return result;
         }
 
-        private SymmetricBitMatrix computeThreadRegionParallelism() {
+        private SymmetricBitMatrix computeThreadRegionParallelismSlow() {
         	SymmetricBitMatrix result = new SymmetricBitMatrix(tr.size());
 
     		// process parallelism induced by forks
@@ -503,6 +506,162 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         	}
         	return result;
         }
+        
+        private SymmetricBitMatrix computeThreadRegionParallelism() {
+            SymmetricBitMatrix result = new SymmetricBitMatrix(tr.size());
+
+            boolean assertionsEnabled = false;
+            assert (assertionsEnabled = true);
+
+            if (assertionsEnabled) {
+            	for (ThreadInstance ti1 : info) {
+            		for(ThreadInstance ti2 : info) {
+            			if (ti1.getFork() != null && ti1.getFork().equals(ti2.getFork())) {
+            				assert (ti1.getJoins().equals(ti2.getJoins())); 
+            			}
+            		}
+            	}
+            	
+            	for (DynamicContext fork1 : forks) {
+            		if (fork1 == null) continue;
+            		for (DynamicContext fork2 : forks) {
+                		if (fork2 == null) continue;
+                		if (fork1.getThread() == fork2.getThread()) {
+                			assert fork1.getNode() == fork2.getNode();
+                		}
+            		}
+            	}
+            }
+            
+            final Map<SDGNode, ThreadInstance> representantOfForkNode = new HashMap<>();
+            final Map<SDGNode, Boolean>        representsSomeDynamic = new HashMap<>();
+            final Map<SDGNode, MutableIntSet>  representedThreads = new HashMap<>();
+
+            for (ThreadInstance ti : info) {
+            	if (ti.getFork() == null) {
+            		assert ti.getId() == ThreadInstance.MAIN_THREAD_ID;
+            	} else {
+            		assert !ti.getFork().equals(info.getThread(ThreadInstance.MAIN_THREAD_ID).getEntry());
+            		representantOfForkNode.put(ti.getFork(), ti);
+            		representsSomeDynamic.compute(ti.getFork(), (k, someDynamic) -> {
+            			if (someDynamic == null) {
+            				someDynamic = ti.isDynamic();
+            			}
+            			someDynamic |= ti.isDynamic();
+            			return someDynamic;
+            		});
+            		representedThreads.compute(ti.getFork(), (k, represented) -> {
+            			if (represented == null) {
+            				represented = new BitVectorIntSet();
+            			}
+            			represented.add(ti.getId());
+            			return represented;
+            		});
+            	}
+            }
+            	
+            
+    		// process parallelism induced by forks
+            debug.outln("parallelism through forks");
+            for (Entry<SDGNode, ThreadInstance> forkEntry : representantOfForkNode.entrySet()) {
+            	debug.out(".");
+
+            	final ThreadInstance forkInstance = forkEntry.getValue();
+            	final SDGNode forkNode = forkEntry.getKey();
+            	final boolean someDynamic = representsSomeDynamic.get(forkNode);
+            	final IntSet represented = representedThreads.get(forkNode);
+
+            	LinkedList<SDGNode> succ = new LinkedList<SDGNode>();
+
+            	for (SDGEdge e : icfg.getOutgoingEdgesOfKind(forkNode, SDGEdge.Kind.CONTROL_FLOW)) {
+            		succ.add(e.getTarget());
+            	}
+
+
+            	final IntSet spawnedThreadsSecondSlice;
+            	final IntSet spawnedThreadsJoinSlice;
+            	{
+            		IntSet spawnedThreadsSecondSliceTemp = EmptyIntSet.instance;
+            		IntSet spawnedThreadsJoinSliceTemp = EmptyIntSet.instance;
+            		// TODO: smarter enumeration. We should be able to simply create one "root" DynamicContext here
+            		for (DynamicContext fork : forks) {
+            			if (fork == null) continue;
+            			if (fork.getNode().equals(forkNode)) {
+            				final IntSet indirectForked = indirectForks.get(fork);
+            				if (someDynamic || represented.size() > 1 || !represented.sameValue(indirectForked)) {
+            					spawnedThreadsSecondSliceTemp = spawnedThreadsSecondSliceTemp.union(indirectForked);
+            				} else {
+            					spawnedThreadsJoinSliceTemp   = spawnedThreadsJoinSliceTemp.union(  indirectForked);
+            				}
+            			}
+            		}
+            		spawnedThreadsSecondSlice = spawnedThreadsSecondSliceTemp;
+            		spawnedThreadsJoinSlice   = spawnedThreadsJoinSliceTemp;
+            	}
+
+
+            	MutableIntSet spawnedThreadRegionsSecondSlice = new BitVectorIntSet();
+            	for (IntIterator it = spawnedThreadsSecondSlice.intIterator(); it.hasNext();) {
+            		final int pThreadId = it.next();
+            		for (ThreadRegion p : tr.getThreadRegionSet(pThreadId)) {
+            			spawnedThreadRegionsSecondSlice.add(p.getID());
+            		}
+            	}
+
+            	MutableIntSet spawnedThreadRegionsJoinSlice = new BitVectorIntSet();
+            	for (IntIterator it = spawnedThreadsJoinSlice.intIterator(); it.hasNext();) {
+            		final int pThreadId = it.next();
+            		for (ThreadRegion p : tr.getThreadRegionSet(pThreadId)) {
+            			spawnedThreadRegionsJoinSlice.add(p.getID());
+            		}
+            	}
+
+            	// TODO: don't compute secondSlice if we're not gonna need it
+            	slicer.setJoins(forkInstance.getJoins());
+            	Collection<SDGNode> joinSlice = slicer.slice(succ);
+            	Collection<SDGNode> secondSlice = slicer.secondSlice(succ);
+            	LinkedList<ThreadRegion> inJoinSlice = new LinkedList<ThreadRegion>();
+            	LinkedList<ThreadRegion> inSecondSlice = new LinkedList<ThreadRegion>();
+
+            	for (int x = 0; x < tr.size(); x++) {
+            		ThreadRegion q = tr.getThreadRegion(x);
+            		if (joinSlice.contains(q.getStart())) {
+            			inJoinSlice.add(q);
+            			inSecondSlice.add(q);
+            		} else if (secondSlice.contains(q.getStart())) {
+            			inSecondSlice.add(q);
+            		}
+            	}
+            	// TODO: use this fact!
+            	assert inSecondSlice.containsAll(inJoinSlice);
+
+            	for (IntIterator it = spawnedThreadRegionsSecondSlice.intIterator(); it.hasNext();) {
+            		final int p = it.next();
+            		for (ThreadRegion q : inSecondSlice) {
+            			result.set(p, q.getID());
+            			assert
+            			result.get(q.getID(), p);
+            		}
+            	}
+            	for (IntIterator it = spawnedThreadRegionsJoinSlice.intIterator(); it.hasNext();) {
+            		final int p = it.next();
+            		for (ThreadRegion q : inJoinSlice) {
+            			result.set(p, q.getID());
+            			assert
+            			result.get(q.getID(), p);
+            		}
+            	}
+            }
+
+            if (assertionsEnabled) {
+            	SymmetricBitMatrix resultSlow = computeThreadRegionParallelismSlow();
+            	assert SymmetricBitMatrix.equals(result, resultSlow);
+            }
+
+            return result;
+        }
+        
+        
         
         private void computeThreadParallelism(SymmetricBitMatrix result) {
         	boolean assertionsEnabled = false;

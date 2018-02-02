@@ -588,8 +588,18 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
             			if (fork == null) continue;
             			if (fork.getNode().equals(forkNode)) {
             				final IntSet indirectForked = indirectForks.get(fork);
-            				if (someDynamic || represented.size() > 1 || !represented.sameValue(indirectForked)) {
+            				if (someDynamic || represented.size() > 1) {
             					spawnedThreadsSecondSliceTemp = spawnedThreadsSecondSliceTemp.union(indirectForked);
+            				} else if ( !represented.sameValue(indirectForked)) {
+            					assert represented.size() == 1;
+            					assert represented.contains(forkInstance.getId());
+            					assert !forkInstance.isDynamic();
+            					
+            					spawnedThreadsJoinSliceTemp   = spawnedThreadsJoinSliceTemp.union(represented);
+            					
+            					final MutableIntSet withoutForkInstance = new BitVectorIntSet(indirectForked);
+            					withoutForkInstance.remove(forkInstance.getId());
+            					spawnedThreadsSecondSliceTemp = spawnedThreadsSecondSliceTemp.union(withoutForkInstance);
             				} else {
             					spawnedThreadsJoinSliceTemp   = spawnedThreadsJoinSliceTemp.union(  indirectForked);
             				}

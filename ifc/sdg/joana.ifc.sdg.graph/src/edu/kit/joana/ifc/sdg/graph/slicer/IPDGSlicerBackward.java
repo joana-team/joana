@@ -9,10 +9,15 @@ package edu.kit.joana.ifc.sdg.graph.slicer;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.function.Function;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.ContextManager;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.StaticContextManager.StaticContext;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
 
@@ -22,24 +27,29 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  *
  * @author  Dennis Giffhorn
  */
-public class IPDGSlicerBackward extends IPDGSlicer {
+public class IPDGSlicerBackward<C extends Context> extends IPDGSlicer<C> {
 	/* ************** */
 	/* the IPDGSlicer */
-
-    /**
-     * Instantiates a new ContextSlicer.
-     * @param The SDG to slice.
-     * @param The call graph of the program.
-     * @param The thread regions of the program.
-     */
-    public IPDGSlicerBackward(SDG graph, boolean staticContexts) {
-        super(graph, staticContexts);
+	
+	public static IPDGSlicerBackward<StaticContext> newStaticIPDGSlicerBackward(SDG graph) {
+		return new IPDGSlicerBackward<StaticContext>(graph, IPDGSlicer.newStaticManager);
+	}
+	
+	public static IPDGSlicerBackward<DynamicContext> newDynamicIPDGSlicerBackward(SDG graph) {
+		return new IPDGSlicerBackward<DynamicContext>(graph, IPDGSlicer.newDynamicManager);
+	}
+	public static IPDGSlicerBackward<? extends Context> newIPDGSlicerBackward(SDG graph, boolean staticContexts) {
+		if (staticContexts) {
+			return newStaticIPDGSlicerBackward(graph);
+		} else {
+			return newDynamicIPDGSlicerBackward(graph);
+		}
+	}
+	
+    private  IPDGSlicerBackward(SDG graph, Function<SDG, ContextManager<C>> newManager) {
+    	super(graph, newManager);
     }
-
-    public IPDGSlicerBackward(SDG graph, Set<SDGEdge.Kind> omit, boolean staticContexts) {
-    	super(graph, omit, staticContexts);
-    }
-
+    
 	protected SDGNode getAdjacentNode(SDGEdge e) {
 		return e.getSource();
 	}

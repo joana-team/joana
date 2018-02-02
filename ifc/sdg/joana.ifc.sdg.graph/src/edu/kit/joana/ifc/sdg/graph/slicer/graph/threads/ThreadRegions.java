@@ -47,19 +47,19 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 	 *    thread -> (thread Regions)
 	 *  from thread its to the threads regions of the control flow graph
 	 */
-	private final SimpleVector<LinkedList<ThreadRegion>> thread2regions;
+	private final SimpleVector<List<ThreadRegion>> thread2regions;
 
 
 	/** map thread -> (node of thread -> thread region of node) */
 	private final TIntObjectHashMap<TIntObjectHashMap<ThreadRegion>> map;
 
-	protected ThreadRegions(SimpleVector<LinkedList<ThreadRegion>> thread2regions, CFG icfg, TIntObjectHashMap<TIntObjectHashMap<ThreadRegion>> map) {
+	protected ThreadRegions(SimpleVector<List<ThreadRegion>> thread2regions, CFG icfg, TIntObjectHashMap<TIntObjectHashMap<ThreadRegion>> map) {
 		this.thread2regions = thread2regions;
 		this.icfg = icfg;
 		this.map = map;
 		this.regions = new ArrayList<>(); // TODO: pre-calc exact size
 		int id = 0;
-		for (LinkedList<ThreadRegion> regionsFoCurrentThread : thread2regions) {
+		for (List<ThreadRegion> regionsFoCurrentThread : thread2regions) {
 			for (ThreadRegion region : regionsFoCurrentThread) {
 				assert region.getID() == id;
 				regions.add(region);
@@ -67,6 +67,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 			}
 			
 		}
+		regions.trimToSize();
 		verify();
 	}
 
@@ -262,7 +263,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 
 	 public static ThreadRegions allThreadsParallel(CFG icfg, ThreadsInformation info) {
 		 /** map thread -> (thread Regions) */
-		 final SimpleVector<LinkedList<ThreadRegion>> regions = new SimpleVector<>();
+		 final SimpleVector<List<ThreadRegion>> regions = new SimpleVector<>();
 
 		 TIntObjectHashMap<TIntObjectHashMap<ThreadRegion>> map= new TIntObjectHashMap<TIntObjectHashMap<ThreadRegion>>();
 
@@ -296,7 +297,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 		 private final CFG icfg;
 		 private final ThreadsInformation info;
 		 /** map thread -> (thread Regions) */
-		 private final SimpleVector<LinkedList<ThreadRegion>> regions;
+		 private final SimpleVector<List<ThreadRegion>> regions;
 		 
 		 /** map thread -> (node of thread -> thread region of node) */ 
 		 private final TIntObjectHashMap<TIntObjectHashMap<ThreadRegion>> map;
@@ -497,8 +498,8 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 		  * @param thread thread for which the regions are to be determined
 		  * @return all thread regions belonging to the given thread
 		  */
-		 private LinkedList<ThreadRegion> computeRegions(HashSet<SDGNode> startNodes, int thread) {
-			 LinkedList<ThreadRegion> result = new LinkedList<ThreadRegion>();
+		 private List<ThreadRegion> computeRegions(HashSet<SDGNode> startNodes, int thread) {
+			 ArrayList<ThreadRegion> result = new ArrayList<>();
 
 			 for (SDGNode startNode : startNodes) {
 				 LinkedList<SDGNode> w1 = new LinkedList<SDGNode>();
@@ -561,7 +562,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 				 // marked contains the nodes of the thread region
 				 ThreadRegion tr = new ThreadRegion(id, startNode, thread, info.isDynamic(thread));
 				 tr.setNodes(marked);
-				 result.addLast(tr);
+				 result.add(tr);
 
 				 TIntObjectHashMap<ThreadRegion> mappy = map.get(thread);
 				 if (mappy == null) {
@@ -575,6 +576,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 				 id++;
 			 }
 
+			 result.trimToSize();
 			 return result;
 		 }
 	 }

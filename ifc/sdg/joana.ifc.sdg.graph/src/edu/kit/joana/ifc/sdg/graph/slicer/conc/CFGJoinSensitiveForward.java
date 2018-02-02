@@ -87,7 +87,7 @@ public class CFGJoinSensitiveForward extends CFGForward {
 	}
 
 	/* code copied from GraphModifier.blockSummaryEdges and adapted for CFGs */
-    private Collection<SDGEdge> blockCFGSummaryEdges() {
+    private Collection<SDGEdge> blockCFGSummaryEdgesSlow() {
         // initialisation
         HashSet<SDGEdge> deact = new HashSet<SDGEdge>();
         HashSet<SDGNodeTuple> exitList = new HashSet<SDGNodeTuple>();
@@ -111,6 +111,7 @@ public class CFGJoinSensitiveForward extends CFGForward {
 
             for (SDGEdge call : g.incomingEdgesOf(entry)) {
                 SDGNode callSite = call.getSource();
+                assert callSite.getKind() == SDGNode.Kind.CALL;
                 for (SDGEdge e : g.getOutgoingEdgesOfKind(callSite, SDGEdge.Kind.CONTROL_FLOW)) {
                 	if ("CALL_RET".equals(e.getTarget().getLabel())) {
                 		deact.add(e);
@@ -210,6 +211,134 @@ public class CFGJoinSensitiveForward extends CFGForward {
             }
         }
 
+        return deact;
+    }
+    
+	/* code copied from GraphModifier.blockSummaryEdges and adapted for CFGs */
+    private Collection<SDGEdge> blockCFGSummaryEdges() {
+        // initialisation
+        HashSet<SDGEdge> deact = new HashSet<SDGEdge>();
+        HashSet<SDGNodeTuple> exitList = new HashSet<SDGNodeTuple>();
+        LinkedList<SDGNodeTuple> worklist = new LinkedList<SDGNodeTuple>();
+        TIntHashSet markedProcs = new TIntHashSet();
+
+        // block _all_ reachable summary edges
+        for (SDGNode next : g.vertexSet()) {
+            if (markedProcs.contains(next.getProc())) {
+                continue;
+            }
+            
+            markedProcs.add(next.getProc());
+
+            SDGNode entry = g.getEntry(next);
+            SDGNode exit = g.getExit(next);
+            
+            if (!joins.contains(exit)) {
+                exitList.add(new SDGNodeTuple(exit, exit));
+            }
+
+            for (SDGEdge call : g.incomingEdgesOf(entry)) {
+                SDGNode callSite = call.getSource();
+                assert callSite.getKind() == SDGNode.Kind.CALL;
+                for (SDGEdge e : g.getOutgoingEdgesOfKind(callSite, SDGEdge.Kind.CONTROL_FLOW)) {
+                	if ("CALL_RET".equals(e.getTarget().getLabel())) {
+                		assert e.getKind() == SDGEdge.Kind.CONTROL_FLOW;
+                		assert e.getLabel() == null;
+                		deact.add(e);
+                	}
+                }
+            }
+        }
+
+        // unblock some summary edges
+        HashSet<SDGNodeTuple> markedEdges = new HashSet<SDGNodeTuple>();
+        worklist.addAll(exitList);
+        markedEdges.addAll(worklist);
+
+        while (!worklist.isEmpty()) {
+        	SDGNodeTuple next = worklist.poll();
+
+            if (next.getFirstNode().getKind() == SDGNode.Kind.ENTRY) {
+                for (SDGEdge pi : g.getIncomingEdgesOfKind(next.getFirstNode(), SDGEdge.Kind.CALL)) {
+                    for (SDGEdge po : g.getOutgoingEdgesOfKind(next.getSecondNode(), SDGEdge.Kind.RETURN)) {
+                        SDGEdge unblock = null;
+
+                        final SDGEdge su = new SDGEdge(pi.getSource(), po.getTarget(), SDGEdge.Kind.CONTROL_FLOW); 
+                        if (deact.contains(su)) {
+                        	unblock = su;
+                        }
+
+                        if (unblock != null) {
+                            deact.remove(unblock);
+                            LinkedList<SDGNodeTuple> l = new LinkedList<SDGNodeTuple>();
+
+                            for (SDGNodeTuple np : markedEdges) {
+                                if (np.getFirstNode() == unblock.getTarget()
+                            			&& !joins.contains(unblock.getSource())) {
+                                	SDGNodeTuple p = new SDGNodeTuple(unblock.getSource(), np.getSecondNode());
+
+                                    if (!markedEdges.contains(p)) {
+                                        l.add(p);
+                                    }
+                                }
+                            }
+
+                            for (SDGNodeTuple np : l) {
+                                markedEdges.add(np);
+                                worklist.add(np);
+                            }
+                        }
+                    }
+                }
+
+            } else{
+                for (SDGEdge edge : g.incomingEdgesOf(next.getFirstNode())) {
+                    if (edge.getKind() != SDGEdge.Kind.CONTROL_FLOW) {
+                        continue;
+                    }
+                    
+                    SDGNode s = edge.getSource();
+                    SDGNode t = edge.getTarget();
+                    
+                    if (s.getKind() == SDGNode.Kind.CALL && "CALL_RET".equals(t.getLabel())) {
+                    	continue;
+                    }
+                    
+                    if (s.getKind() == SDGNode.Kind.ENTRY
+                			&& edge.getKind() == SDGEdge.Kind.CONTROL_FLOW) {
+                    	if (t.getKind() == SDGNode.Kind.FORMAL_OUT
+                    			&& "<exception>".equals(t.getBytecodeName())) {
+                    		continue;
+                    	}
+                    }
+
+                    SDGNodeTuple np = new SDGNodeTuple(s, next.getSecondNode());
+
+                    if (!joins.contains(s) && !markedEdges.contains(np)) {
+                        markedEdges.add(np);
+                        worklist.add(np);
+                    }
+                }
+
+                for (SDGEdge su : g.incomingEdgesOf(next.getFirstNode())) {
+                	if (su.getSource().getKind() != SDGNode.Kind.CALL
+                			|| su.getKind() != SDGEdge.Kind.CONTROL_FLOW) {
+                		continue;
+                	}
+                	SDGNodeTuple np = new SDGNodeTuple(su.getSource(), next.getSecondNode());
+
+                    if (!joins.contains(su.getSource())
+                            && !deact.contains(su)
+                            && !markedEdges.contains(np)) {
+
+                        markedEdges.add(np);
+                        worklist.add(np);
+                    }
+                }
+            }
+        }
+
+        assert deact.equals(blockCFGSummaryEdgesSlow());
         return deact;
     }
 }

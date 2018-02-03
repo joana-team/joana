@@ -37,7 +37,7 @@ public abstract class CFGSlicer {
     protected CFG g;
     private Set<SDGEdge.Kind> omittedEdges = new HashSet<SDGEdge.Kind>();
 
-    protected abstract Collection<SDGEdge> edgesToTraverse(SDGNode node);
+    protected abstract Iterable<SDGEdge> edgesToTraverse(SDGNode node);
 
     protected abstract SDGNode reachedNode(SDGEdge edge);
 

@@ -7,10 +7,15 @@
  */
 package edu.kit.joana.ifc.sdg.graph.slicer.conc;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Set;
+
+import com.ibm.wala.util.collections.FilterIterator;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -67,15 +72,17 @@ public class CFGJoinSensitiveForward extends CFGForward {
         secondSlicer = new CFGForward(g);
     }
 
-    protected Collection<SDGEdge> edgesToTraverse(SDGNode node) {
-    	Collection<SDGEdge> ret = new LinkedList<SDGEdge>();
-    	for (SDGEdge e : this.g.outgoingEdgesOfUnsafe(node)) {
-    		if (blockedEdges.contains(e) || joins.contains(e.getTarget())) {
-    			continue;
-    		}
-    		ret.add(e);
-    	}
-    	return ret;
+    protected Iterable<SDGEdge> edgesToTraverse(SDGNode node) {
+    	final Set<SDGEdge> outgoing = this.g.outgoingEdgesOfUnsafe(node);
+    	return new Iterable<SDGEdge>() {
+			@Override
+			public Iterator<SDGEdge> iterator() {
+				return new FilterIterator<>(
+						outgoing.iterator(),
+						e -> !blockedEdges.contains(e) && !joins.contains(e.getTarget())
+				);
+			}
+		};
     }
     
 	public Collection<SDGNode> secondSlice(SDGNode c) {

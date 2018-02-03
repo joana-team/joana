@@ -31,7 +31,7 @@ public class CFGForward extends CFGSlicer {
         super(g);
     }
 
-    protected Collection<SDGEdge> edgesToTraverse(SDGNode node) {
+    protected Iterable<SDGEdge> edgesToTraverse(SDGNode node) {
         return this.g.outgoingEdgesOfUnsafe(node);
     }
 

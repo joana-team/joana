@@ -9,6 +9,7 @@ package edu.kit.joana.ifc.sdg.graph.slicer.graph.threads;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -629,10 +630,14 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
             	assert spawnedThreadRegionsSecondSlice.intersection(spawnedThreadRegionsJoinSlice).isEmpty();
 
 
-            	// TODO: don't compute secondSlice if we're not gonna need it
             	slicer.setJoins(forkInstance.getJoins());
-            	Collection<SDGNode> joinSlice = slicer.slice(succ);
-            	Collection<SDGNode> secondSlice = slicer.secondSlice(succ);
+            	final Collection<SDGNode> joinSlice = slicer.slice(succ);
+            	final Collection<SDGNode> secondSlice;
+            	if (spawnedThreadRegionsSecondSlice.isEmpty()) {
+            		secondSlice = Collections.emptySet();
+            	} else {
+            		secondSlice = slicer.secondSlice(succ);
+            	}
             	LinkedList<ThreadRegion> inBothSlices = new LinkedList<>();
             	LinkedList<ThreadRegion> inSecondSliceOnly = new LinkedList<>();
 

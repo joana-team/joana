@@ -15,6 +15,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ import com.ibm.wala.util.intset.IntIterator;
 import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.intset.MutableIntSet;
 import com.ibm.wala.util.intset.MutableSparseIntSet;
+import com.ibm.wala.util.intset.SparseIntSet;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -57,11 +59,11 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 	private static final Logger debug = Log.getLogger(Log.L_MHP_DEBUG);
 	
     private final ThreadsInformation info;
-    private final SymmetricBitMatrix<ThreadRegion> threadRegionMap;
+    private final IBitMatrix<ThreadRegion> threadRegionMap;
     private final ThreadRegions regions;
     private Map<Integer, Collection<ThreadRegion>> mayExist;
 
-    private PreciseMHPAnalysis(ThreadsInformation info, SymmetricBitMatrix<ThreadRegion> map, ThreadRegions regions) {
+    private PreciseMHPAnalysis(ThreadsInformation info, IBitMatrix<ThreadRegion> map, ThreadRegions regions) {
         this.info = info;
         this.threadRegionMap = map;
         this.regions = regions;
@@ -210,24 +212,6 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         }; 
     }
     
-    /**
-     * @param r
-     * @return all ThreadRegion s such that s.getID() <= r.getID() && {@link PreciseMHPAnalysis#isParallel(r, s)}
-     */
-    public Iterable<ThreadRegion> parallelToAsymmetric(ThreadRegion r) {
-        final boolean isDynamic = isDynamic(r.getThread());
-        final int     rThread   = r.getThread();
-        final IntIterator it = threadRegionMap.onColAsymemtric(r.getID());
-
-        return new Iterable<ThreadRegion>() {
-            @Override
-            public Iterator<ThreadRegion> iterator() {
-                return new ColIterator(it, isDynamic, rThread);
-            }
-        }; 
-    }
-
-
     public String toString() {
 //        return "Map size: " + map.getDimension();
         return threadRegionMap.toString();
@@ -357,7 +341,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 		};
 
     	for (ThreadRegion r : mhp.getThreadRegions()) {
-    		for (ThreadRegion s : mhp.parallelToAsymmetric(r)) {
+    		for (ThreadRegion s : mhp.parallelTo(r)) {
     			result.compute(r.getThread(), (k, c) -> {
         			if (c == null) {
         				c = new HashSet<>();
@@ -385,7 +369,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
     /* MHP Computation */
 
     private static class MHPComputation {
-        private SymmetricBitMatrix<ThreadRegion> threadRegionMap;
+        private IBitMatrix<ThreadRegion> threadRegionMap;
         private final CFG icfg;
         private final ThreadsInformation info;
         private final ThreadRegions tr;
@@ -409,23 +393,43 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         	//debug.outln("compute join dominance");//("Indirect Forks:\n"+indirectForks);
         	//joinDominance = computeJoinDominance();
         	debug.outln("compute parallelism");//("Indirect Forks:\n"+indirectForks);
-        	threadRegionMap = computeThreadRegionParallelism();
-        	assert isFunctionOfStartNodeAndDymanicityOnly(threadRegionMap);
         	
-        	StartNodeBitMatrix threadRegionMapForStartNodes = null;
-        	assert IBitMatrix.equals(threadRegionMap, (threadRegionMapForStartNodes = computeThreadRegionParallelismForStartNodes()));
+        	
+        	if (tr.size() <= 100) {
+        		final SymmetricBitMatrix<ThreadRegion> threadRegionMap;
+        		threadRegionMap = computeThreadRegionParallelism();
+        		assert isFunctionOfStartNodeAndDymanicityOnly(threadRegionMap);
+        	
+        		StartNodeBitMatrix threadRegionMapForStartNodes = null;
+        		assert IBitMatrix.equals(threadRegionMap, (threadRegionMapForStartNodes = computeThreadRegionParallelismForStartNodes()));
+
+        		computeThreadParallelism(threadRegionMap);
+        		assert isFunctionOfStartNodeAndDymanicityOnly(threadRegionMap);
+        	
+        		assert computeThreadParallelismForStartNodes(threadRegionMapForStartNodes);
+        		assert IBitMatrix.equals(threadRegionMap, threadRegionMapForStartNodes);
+        		
+        		this.threadRegionMap = threadRegionMap;
+        	} else {
+        		final StartNodeBitMatrix threadRegionMapForStartNodes;
+        		threadRegionMapForStartNodes = computeThreadRegionParallelismForStartNodes();
+        	
+        		SymmetricBitMatrix<ThreadRegion> threadRegionMap = null;
+        		assert IBitMatrix.equals(threadRegionMapForStartNodes, (threadRegionMap = computeThreadRegionParallelism()));
 
 
-        	computeThreadParallelism(threadRegionMap);
-        	assert isFunctionOfStartNodeAndDymanicityOnly(threadRegionMap);
+        		computeThreadParallelismForStartNodes(threadRegionMapForStartNodes);
         	
-        	assert computeThreadParallelismForStartNodes(threadRegionMapForStartNodes);
-        	assert IBitMatrix.equals(threadRegionMap, threadRegionMapForStartNodes);
+        		assert computeThreadParallelism(threadRegionMap);
+        		assert IBitMatrix.equals(threadRegionMap, threadRegionMapForStartNodes);
+        		this.threadRegionMap = threadRegionMapForStartNodes;
+        	}
+        	
         	
             return new PreciseMHPAnalysis(info, threadRegionMap, tr);
         }
         
-        private boolean isFunctionOfStartNodeAndDymanicityOnly(SymmetricBitMatrix<ThreadRegion> threadRegionMap) {
+        private boolean isFunctionOfStartNodeAndDymanicityOnly(IBitMatrix<ThreadRegion> threadRegionMap) {
         	Map<Pair<SDGNode, Boolean>, Set<ThreadRegion>> start2Regions = new HashMap<>();
         	for (ThreadRegion r : tr) {
         		start2Regions.compute(Pair.pair(r.getStart(), r.isDynamic()), (k, regions) -> {
@@ -787,7 +791,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
             	}
             }
             
-            final Set<Pair<SDGNode, Boolean>> startNodes = new HashSet<>();
+            final Set<Pair<SDGNode, Boolean>> startNodes = new LinkedHashSet<>();
             for (ThreadRegion r : tr) {
             	startNodes.add(Pair.pair(r.getStart(), r.isDynamic()));
             }
@@ -799,6 +803,23 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
             for (Pair<SDGNode, Boolean> startNode : startNodes) {
             	startNodesToNumber.put(startNode, i++);
             }
+            
+            final Map<Integer, MutableIntSet> numberToRegions = new HashMap<>(); // TODO: make this something array like
+            for (ThreadRegion r : tr) {
+            	numberToRegions.compute(
+            		startNodesToNumber.get(Pair.pair(r.getStart(), r.isDynamic())),
+            		(k, regions) -> {
+            			if (regions == null) {
+            				regions = MutableSparseIntSet.makeEmpty();
+            			}
+            			regions.add(r.getID());
+            			
+            			return regions;
+            		}
+            	);
+            }
+
+            
     		// process parallelism induced by forks
             debug.outln("parallelism through forks");
             for (Entry<SDGNode, ThreadInstance> forkEntry : representantOfForkNode.entrySet()) {
@@ -910,11 +931,11 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
             	}
             }
 
-            return new StartNodeBitMatrix(startNodesMatrix, startNodesToNumber, tr);
+            return new StartNodeBitMatrix(startNodesMatrix, startNodesToNumber, numberToRegions, tr);
         }
 
         
-        private void computeThreadParallelism(SymmetricBitMatrix<ThreadRegion> result) {
+        private boolean computeThreadParallelism(IMutableBitMatrix<ThreadRegion> result) {
         	boolean assertionsEnabled = false;
         	assert (assertionsEnabled = true);
         	
@@ -1009,8 +1030,8 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         	}
         	debug.outln("parallelism removed by join-analysis: " + ctr);*/
         	debug.outln("done");
-
-
+        	
+        	return true;
         }
         
         

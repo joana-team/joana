@@ -9,6 +9,8 @@ package edu.kit.joana.ifc.sdg.graph.slicer.graph.threads;
 
 import java.util.Arrays;
 
+import com.ibm.wala.util.intset.IntIterator;
+
 /**
  * TODO: @author Add your name here.
  */
@@ -22,6 +24,8 @@ public interface IBitMatrix<T> {
 	boolean get(int i, int j);
 	
 	int getDimension();
+	
+	public IntIterator onCol(int j);
 	
     public static <T> boolean equals(IBitMatrix<T> a, IBitMatrix<T> b) {
     	if (a.getDimension() != b.getDimension()) return false;

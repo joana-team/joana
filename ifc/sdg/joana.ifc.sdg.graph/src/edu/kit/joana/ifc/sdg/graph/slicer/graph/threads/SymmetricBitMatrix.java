@@ -42,7 +42,7 @@ import com.ibm.wala.util.intset.IntIterator;
  *
  * @author srowen@google.com (Sean Owen)
  */
-public final class SymmetricBitMatrix<T> implements IBitMatrix<T> {
+public final class SymmetricBitMatrix<T> implements ISymmetricBitMatrix<T>, IMutableBitMatrix<T> {
 
     private final int dimension;
     private final int[] bits;

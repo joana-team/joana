@@ -58,6 +58,7 @@ public class MHPAnalysisTest {
 		addTestCase("nodataconf-rw-nomhp", "joana.api.testdata.conc.NoDataConflictRWNoMHP");
 		addTestCase("sequential-spawn", "joana.api.testdata.conc.SequentialSpawn");
 		addTestCase("branched-spawn", "joana.api.testdata.conc.BranchedSpawn");
+		addTestCase("branched-spawn-two-threads", "joana.api.testdata.conc.BranchedSpawnTwoThreads");
 		addTestCase("both-branches-spawn", "joana.api.testdata.conc.BothBranchesSpawn");
 		addTestCase("dynamic-spawn", "joana.api.testdata.conc.DynamicSpawn");
 		addTestCase("more-recursive-spawn", "joana.api.testdata.conc.MoreRecursiveSpawn");
@@ -214,6 +215,16 @@ public class MHPAnalysisTest {
 		checkPrecision(mhp, p2, p3);
 		checkSoundness(mhp, p2, p4);
 		checkSoundness(mhp, p3, p4);
+	}
+	
+	@Test
+	public void testBranchedSpawnTwoThreads() {
+		SDG sdg = buildOrLoad("branched-spawn-two-threads");
+		SDGAnalyzer ana = new SDGAnalyzer(sdg);
+		SDGNode p2 = getStringPrintInMethod(ana, "BranchedSpawnTwoThreads$Thread2.run()V");
+		SDGNode p3 = getStringPrintInMethod(ana, "BranchedSpawnTwoThreads$Thread3.run()V");
+		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
+		checkPrecision(mhp, p2, p3);
 	}
 	
 	@Test

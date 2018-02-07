@@ -42,7 +42,7 @@ import com.ibm.wala.util.intset.IntIterator;
  *
  * @author srowen@google.com (Sean Owen)
  */
-public final class SymmetricBitMatrix implements IBitMatrix {
+public final class SymmetricBitMatrix<T> implements IBitMatrix<T> {
 
     private final int dimension;
     private final int[] bits;
@@ -208,7 +208,7 @@ public final class SymmetricBitMatrix implements IBitMatrix {
         return -1;
       }
     
-    public static boolean equals(SymmetricBitMatrix a, SymmetricBitMatrix b) {
+    public static <T >boolean equals(SymmetricBitMatrix<T> a, SymmetricBitMatrix<T> b) {
     	if (a.dimension != b.dimension) return false;
     	return Arrays.equals(a.bits, b.bits);
     }
@@ -219,7 +219,7 @@ public final class SymmetricBitMatrix implements IBitMatrix {
     }
 
     public static void main(String[] args) {
-		SymmetricBitMatrix m = new SymmetricBitMatrix(100000);
+		SymmetricBitMatrix<Object> m = new SymmetricBitMatrix<>(100000);
 		m.set(99998, 99999);
 		for (IntIterator it = m.onColAsymemtric(99999); it.hasNext(); ) {
 			System.out.println(it.next());

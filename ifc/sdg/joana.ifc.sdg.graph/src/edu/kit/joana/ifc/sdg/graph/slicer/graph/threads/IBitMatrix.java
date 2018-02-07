@@ -12,7 +12,7 @@ import java.util.Arrays;
 /**
  * TODO: @author Add your name here.
  */
-public interface IBitMatrix {
+public interface IBitMatrix<T> {
 
 	/**
 	 * @param i row offset
@@ -23,7 +23,7 @@ public interface IBitMatrix {
 	
 	int getDimension();
 	
-    public static boolean equals(IBitMatrix a, IBitMatrix b) {
+    public static <T> boolean equals(IBitMatrix<T> a, IBitMatrix<T> b) {
     	if (a.getDimension() != b.getDimension()) return false;
     	for (int i = 0; i < a.getDimension(); i++) {
     		for (int j = 0; j < a.getDimension(); j++) {
@@ -35,7 +35,7 @@ public interface IBitMatrix {
     	return true;
     }
     
-    public static boolean leq(IBitMatrix a, IBitMatrix b) {
+    public static <T> boolean leq(IBitMatrix<T> a, IBitMatrix<T> b) {
     	if (a.getDimension() != b.getDimension()) return false;
     	for (int i = 0; i < a.getDimension(); i++) {
     		for (int j = 0; j < a.getDimension(); j++) {

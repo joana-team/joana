@@ -57,11 +57,11 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 	private static final Logger debug = Log.getLogger(Log.L_MHP_DEBUG);
 	
     private final ThreadsInformation info;
-    private final SymmetricBitMatrix threadRegionMap;
+    private final SymmetricBitMatrix<ThreadRegion> threadRegionMap;
     private final ThreadRegions regions;
     private Map<Integer, Collection<ThreadRegion>> mayExist;
 
-    private PreciseMHPAnalysis(ThreadsInformation info, SymmetricBitMatrix map, ThreadRegions regions) {
+    private PreciseMHPAnalysis(ThreadsInformation info, SymmetricBitMatrix<ThreadRegion> map, ThreadRegions regions) {
         this.info = info;
         this.threadRegionMap = map;
         this.regions = regions;
@@ -385,7 +385,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
     /* MHP Computation */
 
     private static class MHPComputation {
-        private SymmetricBitMatrix threadRegionMap;
+        private SymmetricBitMatrix<ThreadRegion> threadRegionMap;
         private final CFG icfg;
         private final ThreadsInformation info;
         private final ThreadRegions tr;
@@ -425,7 +425,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
             return new PreciseMHPAnalysis(info, threadRegionMap, tr);
         }
         
-        private boolean isFunctionOfStartNodeAndDymanicityOnly(SymmetricBitMatrix threadRegionMap) {
+        private boolean isFunctionOfStartNodeAndDymanicityOnly(SymmetricBitMatrix<ThreadRegion> threadRegionMap) {
         	Map<Pair<SDGNode, Boolean>, Set<ThreadRegion>> start2Regions = new HashMap<>();
         	for (ThreadRegion r : tr) {
         		start2Regions.compute(Pair.pair(r.getStart(), r.isDynamic()), (k, regions) -> {
@@ -496,8 +496,8 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         	return result;
         }
 
-        private SymmetricBitMatrix computeThreadRegionParallelismSlow() {
-        	SymmetricBitMatrix result = new SymmetricBitMatrix(tr.size());
+        private SymmetricBitMatrix<ThreadRegion> computeThreadRegionParallelismSlow() {
+        	SymmetricBitMatrix<ThreadRegion> result = new SymmetricBitMatrix<>(tr.size());
 
     		// process parallelism induced by forks
         	debug.outln("parallelism through forks");
@@ -558,8 +558,8 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         	return result;
         }
         
-        private SymmetricBitMatrix computeThreadRegionParallelism() {
-            SymmetricBitMatrix result = new SymmetricBitMatrix(tr.size());
+        private SymmetricBitMatrix<ThreadRegion> computeThreadRegionParallelism() {
+            SymmetricBitMatrix<ThreadRegion> result = new SymmetricBitMatrix<>(tr.size());
 
             boolean assertionsEnabled = false;
             assert (assertionsEnabled = true);
@@ -726,7 +726,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
             }
 
             if (assertionsEnabled) {
-            	SymmetricBitMatrix resultSlow = computeThreadRegionParallelismSlow();
+            	SymmetricBitMatrix<ThreadRegion> resultSlow = computeThreadRegionParallelismSlow();
             	assert SymmetricBitMatrix.equals(result, resultSlow);
             }
 
@@ -792,7 +792,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
             	startNodes.add(Pair.pair(r.getStart(), r.isDynamic()));
             }
 
-            final SymmetricBitMatrix startNodesMatrix = new SymmetricBitMatrix(startNodes.size());
+            final SymmetricBitMatrix<Pair<SDGNode, Boolean>> startNodesMatrix = new SymmetricBitMatrix<>(startNodes.size());
 
             final Map<Pair<SDGNode, Boolean>, Integer> startNodesToNumber = new HashMap<>();
             int i = 0;
@@ -914,13 +914,13 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         }
 
         
-        private void computeThreadParallelism(SymmetricBitMatrix result) {
+        private void computeThreadParallelism(SymmetricBitMatrix<ThreadRegion> result) {
         	boolean assertionsEnabled = false;
         	assert (assertionsEnabled = true);
         	
-        	SymmetricBitMatrix resultLoopsSlow = null;
+        	SymmetricBitMatrix<ThreadRegion> resultLoopsSlow = null;
         	if (assertionsEnabled) {
-        		resultLoopsSlow = new SymmetricBitMatrix(tr.size());
+        		resultLoopsSlow = new SymmetricBitMatrix<ThreadRegion>(tr.size());
 	        	// process parallelism induced by thread spawning inside loops
 	        	debug.outln("\nparallelism through loops");
 	        	for (int thread = 0; thread < info.getNumberOfThreads(); thread++) {
@@ -945,9 +945,9 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 	        		}
 	        	}
         	}
-        	SymmetricBitMatrix resultLoops = null;
+        	SymmetricBitMatrix<ThreadRegion> resultLoops = null;
         	if (assertionsEnabled) {
-        		resultLoops = new SymmetricBitMatrix(tr.size());
+        		resultLoops = new SymmetricBitMatrix<ThreadRegion>(tr.size());
         	}
         	// process parallelism induced by thread spawning inside loops
         	debug.outln("\nparallelism through loops");
@@ -1015,7 +1015,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         
         
         private boolean computeThreadParallelismForStartNodes(StartNodeBitMatrix result) {
-        	final SymmetricBitMatrix startNodesMatrix = result.getStartNodesMatrix();
+        	final SymmetricBitMatrix<Pair<SDGNode, Boolean>> startNodesMatrix = result.getStartNodesMatrix();
         	final Map<Pair<SDGNode, Boolean>, Integer> startNodesToNumber = result.getStartNodesToNumber();
         	// process parallelism induced by thread spawning inside loops
         	debug.outln("\nparallelism through loops");

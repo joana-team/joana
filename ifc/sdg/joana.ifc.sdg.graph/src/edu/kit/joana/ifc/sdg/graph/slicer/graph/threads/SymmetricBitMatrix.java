@@ -42,7 +42,7 @@ import com.ibm.wala.util.intset.IntIterator;
  *
  * @author srowen@google.com (Sean Owen)
  */
-public final class SymmetricBitMatrix {
+public final class SymmetricBitMatrix implements IBitMatrix {
 
     private final int dimension;
     private final int[] bits;
@@ -69,12 +69,11 @@ public final class SymmetricBitMatrix {
         bits = new int[(int)arraySize];
     }
 
-    /**
-     * @param i row offset
-     * @param j column offset
-     * @return value of given bit in matrix
-     */
-    public boolean get(int i, int j) {
+    /* (non-Javadoc)
+	 * @see edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.IBitMatrix#get(int, int)
+	 */
+    @Override
+	public boolean get(int i, int j) {
         long m = (long) ((i <= j) ? i : j);
         long n = (long) ((i <= j) ? j : i);
         assert (n * (n + 1)) % 2 == 0;
@@ -212,6 +211,11 @@ public final class SymmetricBitMatrix {
     public static boolean equals(SymmetricBitMatrix a, SymmetricBitMatrix b) {
     	if (a.dimension != b.dimension) return false;
     	return Arrays.equals(a.bits, b.bits);
+    }
+    
+    @Override
+    public int getDimension() {
+    	return dimension;
     }
 
     public static void main(String[] args) {

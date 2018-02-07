@@ -229,8 +229,21 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         return info.isDynamic(thread);
     }
 
+    
+    public void computeMayExist() {
+		if (mayExist == null) {
+			this.mayExist = computeMayExist(this);
+			assert mayExist != null;
+		}
+    }
 	@Override
 	public boolean mayExist(int thread, VirtualNode v) {
+		if (mayExist == null)  {
+			throw new IllegalStateException(
+				"PreciseMHPAnalysis::mayExist may only be called after" +
+				"PreciseMHPAnalysis::computeMayExist has been called!"
+			);
+		}
 		return mayExist.get(thread).stream().anyMatch( s -> s.getThread() == v.getNumber() && s.contains(v.getNode()));
 	}
 
@@ -306,9 +319,6 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         MHPComputation mhp = new MHPComputation(icfg, info, tr);
     	PreciseMHPAnalysis result = mhp.getMHPMap();
 
-    	log.outln("Compute MayExist Map ...");
-        Map<Integer, Collection<ThreadRegion>> mayExist = computeMayExist(result);
-        result.setMayExistMap(mayExist);
     	return result;
     }
 

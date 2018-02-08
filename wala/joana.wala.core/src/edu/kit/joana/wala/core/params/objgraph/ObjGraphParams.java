@@ -19,7 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.classLoader.IMethod;
@@ -982,8 +984,8 @@ public final class ObjGraphParams {
 	}
 	
 	private Map<ModRefFieldCandidate, Collection<ModRefFieldCandidate>> computeChildrenOf(OrdinalSetMapping<ModRefFieldCandidate> modRefMapping) {
-		final Map<ModRefFieldCandidate, Collection<ModRefFieldCandidate>> childrenOf = new HashMap<>(modRefMapping.getSize());
-		for (ModRefFieldCandidate candidate : modRefMapping) {
+		final Map<ModRefFieldCandidate, Collection<ModRefFieldCandidate>> childrenOf = new ConcurrentHashMap<>(modRefMapping.getSize());
+		StreamSupport.stream(modRefMapping.spliterator(), true).forEach(candidate -> {
 			final Collection<ModRefFieldCandidate> children = new LinkedList<>();
 			for (ModRefFieldCandidate other : modRefMapping) {
 				if (candidate.isPotentialParentOf(other)) {
@@ -991,7 +993,7 @@ public final class ObjGraphParams {
 				}
 			}
 			childrenOf.put(candidate, new ArrayList<>(children));
-		}
+		});
 		return childrenOf;
 	}
 	

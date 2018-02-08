@@ -57,6 +57,7 @@ import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.util.Config;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
+import edu.kit.joana.util.Reference;
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
@@ -1032,12 +1033,12 @@ public final class ObjGraphParams {
 		}
 		
 		MonitorUtil.throwExceptionIfCanceled(progress);
-        int progressCtr = 0;
+		Reference<Integer> progressCtr = new Reference<>(0);
         if (progress != null) {
             progress.beginTask("simpleReachabilityPropagateMerge", nonPrunedCG.getNumberOfNodes());
         }
         
-		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> result = HashMapFactory.make();
+		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> result = new ConcurrentHashMap<>();
 		// check for pruned calls which nodes are at the border.
         final Set<CGNode> borderNodes = findBorderNodes(nonPrunedCG, prunedCG);
         // Make a bitvector of all candidates that exist in the pruned version
@@ -1047,18 +1048,18 @@ public final class ObjGraphParams {
 			bvInt.addAll(bv.getValue());
 		}
         
-		for (final CGNode cgNode : nonPrunedCG) {
+		StreamSupport.stream(nonPrunedCG.spliterator(), true).forEach( cgNode -> {
 			// skip results for methods that are not in the pruned cg or not called directly from a
 			// method in the pruned cg.
 			if (!prunedCG.containsNode(cgNode) && !borderNodes.contains(cgNode)) {
-				continue;
+				return;
 			}
 			
 			final BitVectorVariable bv = solver.getOut(cgNode);
 			final IntSet nonPrunedInt = bv.getValue();
 			if (nonPrunedInt.isEmpty()) {
 				result.put(cgNode, new OrdinalSet<ModRefFieldCandidate>(nonPrunedInt, modRefMapping));
-				continue;
+				return;
 			}
 			
 			// detect unreachable
@@ -1124,9 +1125,9 @@ public final class ObjGraphParams {
 			
 			result.put(cgNode, new OrdinalSet<ModRefFieldCandidate>(allNodes, modRefMapping));
 
-			MonitorUtil.throwExceptionIfCanceled(progress);
-            if (progress != null && progressCtr++ % 103 == 0) { progress.worked(progressCtr); }
-		}
+            if (progress != null && progressCtr.apply( c -> c++) % 103 == 0) { progress.worked(progressCtr.get()); }
+		});
+		MonitorUtil.throwExceptionIfCanceled(progress); // TODO: find a nice way  to move this up into the parallel lambdas again
 
         if (progress != null) { progress.done(); }
         
@@ -1156,29 +1157,28 @@ public final class ObjGraphParams {
 			childrenOf = null;
 		}
 
-		
 		MonitorUtil.throwExceptionIfCanceled(progress);
-		int progressCtr = 0;
+		Reference<Integer> progressCtr = new Reference<>(0);
         if (progress != null) {
             progress.beginTask("simpleReachabilityPropagateNoMerge", nonPrunedCG.getNumberOfNodes());
         }
 
-		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> result = HashMapFactory.make();
+		final Map<CGNode, OrdinalSet<ModRefFieldCandidate>> result = new ConcurrentHashMap<>();
         // check for pruned calls which nodes are at the border.
         final Set<CGNode> borderNodes = findBorderNodes(nonPrunedCG, prunedCG);
         
-		for (final CGNode cgNode : nonPrunedCG) {
+		StreamSupport.stream(nonPrunedCG.spliterator(), true).forEach( cgNode -> {
 			// skip results for methods that are not in the pruned cg or not called directly from a
 			// method in the pruned cg.
 			if (!prunedCG.containsNode(cgNode) && !borderNodes.contains(cgNode)) {
-				continue;
+				return;
 			}
 			
 			final BitVectorVariable bv = solver.getOut(cgNode);
 			final IntSet nonPrunedInt = bv.getValue();
 			if (nonPrunedInt.isEmpty()) {
 				result.put(cgNode, new OrdinalSet<ModRefFieldCandidate>(nonPrunedInt, modRefMapping));
-				continue;
+				return;
 			}
 			
 			// detect unreachable
@@ -1188,10 +1188,9 @@ public final class ObjGraphParams {
 
 			final BitVectorIntSet allNodes = new BitVectorIntSet(reachable);
 			result.put(cgNode, new OrdinalSet<ModRefFieldCandidate>(allNodes, modRefMapping));
-
-			MonitorUtil.throwExceptionIfCanceled(progress);
-            if (progress != null && progressCtr++ % 103 == 0) { progress.worked(progressCtr); }
-		}
+            if (progress != null && progressCtr.apply( c -> c++) % 103 == 0) { progress.worked(progressCtr.get()); }
+		});
+		MonitorUtil.throwExceptionIfCanceled(progress); // TODO: find a nice way  to move this up into the parallel lambdas again
 
         if (progress != null) { progress.done(); }
         

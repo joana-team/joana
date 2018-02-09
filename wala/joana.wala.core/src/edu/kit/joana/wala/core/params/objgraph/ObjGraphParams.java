@@ -1368,20 +1368,12 @@ public final class ObjGraphParams {
 		}
 		
 		final Map<ModRefFieldCandidate, ModRefFieldCandidate> reachable = new HashMap<>();
-		final LinkedList<ModRefFieldCandidate> work = new LinkedList<ModRefFieldCandidate>();
+		// add reachable from roots
+		LinkedList<ModRefFieldCandidate> newlyAdded = new LinkedList<ModRefFieldCandidate>();
 		candidates.foreach(new IntSetAction() {
 			@Override
 			public void act(final int x) {
-				work.add(map.getMappedObject(x));
-			}
-		});
-		
-		// add reachable from roots
-		LinkedList<ModRefFieldCandidate> newlyAdded = new LinkedList<ModRefFieldCandidate>();
-		{
-			final int initialSize = work.size();
-			for (int i = 0; i < initialSize; i++) {
-				final ModRefFieldCandidate toCheck = work.removeFirst();
+				final ModRefFieldCandidate toCheck = map.getMappedObject(x);
 				for (final ModRefRootCandidate root : roots) {
 					if (root.isPotentialParentOf(toCheck)) {
 						final int toCheckIndex = map.getMappedIndex(toCheck);
@@ -1405,10 +1397,8 @@ public final class ObjGraphParams {
 						break;
 					}
 				}
-				// add to check later
-				work.addLast(toCheck);
 			}
-		}
+		});
 		
 		while (!newlyAdded.isEmpty()) {
 			final ModRefCandidate candidate = newlyAdded.removeFirst();

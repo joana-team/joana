@@ -213,7 +213,10 @@ public abstract class ModRefRootCandidate extends ModRefCandidate {
 
 	@Override
 	public boolean isPotentialParentOf(final ModRefFieldCandidate other) {
-		return isPrimitive() != V.YES && pts != null && other.isBaseAliased(pts);
+		final boolean result = isPrimitive() != V.YES && pts != null && other.isBaseAliased(pts);
+		assert !result || other.pc.isBaseAliased(pts);
+		assert !result || other.pc.getBasePointsTo().containsAny(pts);
+		return result;
 	}
 
 	@Override

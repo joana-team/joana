@@ -29,7 +29,7 @@
 		</jar>
 	</target>
 
-	<target name="compile" depends="init,collect_sources">
+	<target name="compile" depends="init,collect_sources, collect_wala_sources">
 		<path id="lib.path.ref">
 			<fileset dir="${joana.contrib.base.dir}" includes="*.jar" />
 			<pathelement path="${dest.dir.classes}" />
@@ -61,6 +61,14 @@
 		<mkdir dir="${dest.dir}" />
 		<mkdir dir="${dest.dir.sources}" />
 		<mkdir dir="${dest.dir.classes}" />
+	</target>
+
+	<target name="collect_wala_sources">
+		<copy todir="${dest.dir.sources}">
+			<fileset dir="${com.ibm.wala.util.base.dir}/src">
+				<filename name="**/*.java" />
+            </fileset>
+   		</copy>
 	</target>
 
 	<target name="collect_sources">

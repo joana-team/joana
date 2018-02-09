@@ -72,6 +72,7 @@ import edu.kit.joana.wala.core.params.objgraph.candidates.CandidateFactory;
 import edu.kit.joana.wala.core.params.objgraph.candidates.CandidateFactoryImpl;
 import edu.kit.joana.wala.core.params.objgraph.candidates.MergeByPartition;
 import edu.kit.joana.wala.core.params.objgraph.candidates.MergeStrategy;
+import edu.kit.joana.wala.core.params.objgraph.candidates.UniqueParameterCandidate;
 import edu.kit.joana.wala.core.params.objgraph.dataflow.ModRefDataFlow;
 import edu.kit.joana.wala.core.params.objgraph.dataflow.PointsToWrapper;
 import edu.kit.joana.wala.util.PrettyWalaNames;
@@ -498,6 +499,24 @@ public final class ObjGraphParams {
             if (progress != null) {
                 progress.beginTask("adjustInterprocModRef", sdg.getAllPDGs().size());
             }
+            
+            
+    		final CandidateFactory candFact = modref.getCandFact();
+    		final Map<UniqueParameterCandidate, Set<UniqueParameterCandidate>> isReachableFrom = new HashMap<>();
+    		for (UniqueParameterCandidate u1 : candFact.getUniqueCandidates()) {
+    			for (UniqueParameterCandidate u2 : candFact.getUniqueCandidates()) {
+    				if (u1.isReachableFrom(u2)) {
+    					isReachableFrom.compute(u2, (k, reachable) -> {
+    						if (reachable == null) {
+    							reachable = new HashSet<>();
+    						}
+    						reachable.add(u1);
+    						return reachable;
+    					});
+    				}
+    			}
+    		}
+
 			Stream<PDG> s = sdg.isParallel()?sdg.getAllPDGs().parallelStream():sdg.getAllPDGs().stream();
 			s.forEach(pdg -> {
 				//MonitorUtil.throwExceptionIfCanceled(progress);
@@ -510,7 +529,7 @@ public final class ObjGraphParams {
                     progress.worked(progressCtr++);
                 }*/
 
-				final ModRefCandidateGraph mrg = ModRefCandidateGraph.compute(pa, modref, pdg);
+				final ModRefCandidateGraph mrg = ModRefCandidateGraph.compute(pa, modref, pdg, isReachableFrom);
 
 				final int initialNodeCount = pdgModRef.size();
 				int lastNodeCount = initialNodeCount; 

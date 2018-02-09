@@ -142,6 +142,13 @@ public class ModRefCandidates implements Iterable<CGNode> {
 		 * @return <tt>true</tt> if any candidate with the given ParameterCandidate is part of this model.
 		 */
 		public boolean containsParameterCandidate(ParameterCandidate pc);
+		
+		/**
+		 * If part of this model, returns the modref candidate which the given UniqueParameterCandidate is contained in.
+		 * @param unique A UniqueParameterCandidate.
+		 * @return the modref candidate which the given UniqueParameterCandidate is contained in, or null if no such modref candidate exists in the model.
+		 */
+		public ModRefFieldCandidate getParameterCandidate(UniqueParameterCandidate unique);
 
 	}
 
@@ -483,6 +490,18 @@ public class ModRefCandidates implements Iterable<CGNode> {
 			}
 			assert (result == allContainsAny(pc));
 			return result;
+		}
+		
+		
+		@Override
+		public ModRefFieldCandidate getParameterCandidate(UniqueParameterCandidate unique) {
+			final ModRefFieldCandidate cand = cands.get(unique);
+			if (cand != null) {
+				if (all.contains(cand)) {
+					return cand;
+				}
+			}
+			return null;
 		}
 		
 		private boolean allContainsAny(ParameterCandidate pc) {

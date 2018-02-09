@@ -58,6 +58,15 @@ public final class ModRefFieldCandidate extends ModRefCandidate implements Clone
 	public V isPrimitive() {
 		return pc.isPrimitive();
 	}
+	
+	public Iterable<UniqueParameterCandidate> getUniques() {
+		if (pc.isUnique()) {
+			return Collections.singleton((UniqueParameterCandidate) pc);
+		} else {
+			return pc.getUniques();
+		}
+		
+	}
 
 	@Override
 	public boolean isPotentialParentOf(final ModRefFieldCandidate other) {
@@ -77,7 +86,9 @@ public final class ModRefFieldCandidate extends ModRefCandidate implements Clone
 			for (UniqueParameterCandidate unique : (pc.isUnique() ? Collections.singleton((UniqueParameterCandidate)pc) : pc.getUniques())) {
 				final OrdinalSet<InstanceKey> basePts   = uniqueOther.getBasePointsTo();
 				final OrdinalSet<InstanceKey> fieldsPts = unique.getFieldPointsTo();
-				if (basePts != null && fieldsPts != null && basePts.containsAny(fieldsPts)) {
+				final boolean isReachableFrom = uniqueOther.isReachableFrom(unique);
+				assert !isReachableFrom || (basePts != null && fieldsPts != null && basePts.containsAny(fieldsPts));
+				if (isReachableFrom) {
 					return true;
 				}
 			}

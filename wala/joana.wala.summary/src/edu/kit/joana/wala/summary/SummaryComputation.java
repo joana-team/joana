@@ -204,7 +204,6 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
 
 
     private Collection<SDGEdge> computeSummaryEdges(IProgressMonitor progress) throws CancelException {
-    	HashSet<SDGEdge> actInOutSummaryEdge = new HashSet<SDGEdge>();
     	HashSet<SDGEdge> formInOutSummaryEdge = new HashSet<SDGEdge>();
 
     	Map<Integer, Set<SDGNode>> proc2nodes = new HashMap<>();
@@ -295,8 +294,6 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
                         }
 
                         if (graph.addEdgeUnsafe(e.source, e.target, sum)) {
-                            actInOutSummaryEdge.add(sum);
-
                             Set<SDGNode> s = aoPaths.get(e.target);
                             if (s != null) {
                                 for (SDGNode target : s) {

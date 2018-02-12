@@ -451,11 +451,12 @@ public class ModRefCandidates implements Iterable<CGNode> {
 			}
 			
 			// Establish the invariant that and key in cands *directly* points to the ModRefFieldCandidate that it is currently part of.
-			final ArrayList<ParameterCandidate> candsKeys = new ArrayList<>(cands.size());
-			candsKeys.addAll(cands.keySet());
-			for (final ParameterCandidate pc : candsKeys) {
-				if (pcands.contains(cands.get(pc).pc)) cands.put(pc, result);
-			}
+			cands.replaceAll((pc, oldValue) -> {
+				if (pcands.contains(oldValue.pc)) {
+					return result;
+				}
+				return oldValue;
+			});
 			
 			assert invariant();
 			return result;

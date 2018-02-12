@@ -55,12 +55,15 @@ public final class ArrayMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
 	
 	private boolean compactEnabled;
 	
+	private boolean isCompact;
+	
 	public ArrayMap() {
 		this.compactEnabled = true;
 		this.size = 0;
 		this.maxIndex = -1;
 		this.keys   = new Object[size];
 		this.values = new Object[size];
+		this.isCompact = true;
 	}
 	
 	public ArrayMap(Map<K, V> other) {
@@ -82,10 +85,17 @@ public final class ArrayMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
 			this.keys[i]   = e.getKey();
 			this.values[i] = e.getValue();
 		}
+		this.isCompact = true;
 		
 		assert invariant();
 	}
 	
+	private boolean isCompact() {
+		for (int i = 0; i < size; i++) {
+			if (keys[i] == null) return false;
+		}
+		return true;
+	}
 	private boolean invariant() {
 		
 		if (keys == null) return false;
@@ -93,6 +103,14 @@ public final class ArrayMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
 		
 		if (keys.length != values.length) return false;
 		final int length = keys.length;
+		
+		if (isCompact && !isCompact()) {
+			return false;
+		}
+		
+		if (maxIndex >= length) {
+			return false;
+		}
 		
 		int lastHashCode = Integer.MIN_VALUE;
 		int realSize = 0;
@@ -285,6 +303,8 @@ public final class ArrayMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
 				maxIndex = maxIndex + 1;
 				size++;
 				
+				isCompact = true;
+				
 				assert invariant();
 				return null;
 			}
@@ -326,8 +346,17 @@ public final class ArrayMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
 		@SuppressWarnings("unchecked")
 		V oldValue = (V) values[remove];
 		
+		assert keys[remove] != null;
+		assert values[remove] != null;
+		
 		keys[remove] = null;
 		values[remove] = null;
+		
+		if (remove == (size - 1)) {
+			maxIndex--;
+		} else {
+			isCompact = false;
+		}
 		size--;
 		
 		assert invariant();
@@ -337,14 +366,31 @@ public final class ArrayMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
 	}
 	
 	private void compact(boolean shorten) {
+		
 		assert keys.length == values.length;
 		final int length = keys.length;
 		
-		Object[] newKeys   = shorten ? new Object[size] : keys;
-		Object[] newValues = shorten ? new Object[size] : values;
+
+		if (isCompact) {
+			if (shorten) {
+				Object[] newKeys   = shorten ? new Object[size] : keys;
+				Object[] newValues = shorten ? new Object[size] : values;
+				
+				System.arraycopy(keys,   0, newKeys,    0, size);
+				System.arraycopy(values, 0, newValues,  0, size);
+				
+				keys   = newKeys;
+				values = newValues; 
+			}
+			return;
+		}
 		
 		int k = 0;
 		int i = 0;
+		
+		Object[] newKeys   = shorten ? new Object[size] : keys;
+		Object[] newValues = shorten ? new Object[size] : values;
+
 		
 		while (true) {
 			while (i < length && keys[i] == null) i++;
@@ -352,6 +398,7 @@ public final class ArrayMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
 				this.keys = newKeys;
 				this.values= newValues;
 				maxIndex = size - 1;
+				isCompact = true;
 				assert invariant();
 				return;
 			}
@@ -377,6 +424,7 @@ public final class ArrayMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
 		keys   = new Object[0];
 		values = new Object[0];
 		size = 0;
+		isCompact = true;
 		this.maxIndex = -1;
 		
 		assert invariant();

@@ -11,6 +11,7 @@ import static edu.kit.joana.wala.util.pointsto.WalaPointsToUtil.unify;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1017,6 +1018,33 @@ public final class ObjGraphParams {
 		return childrenOf;
 	}
 	
+	private Map<ModRefFieldCandidate, ? extends List<Integer>> computeEquivalences(OrdinalSetMapping<ModRefFieldCandidate> modRefMapping) {
+		final Map<ModRefFieldCandidate, ArrayList<Integer>> equivalences = new HashMap<>(modRefMapping.getSize());
+		for (ModRefFieldCandidate candidate : modRefMapping) {
+			final int index = modRefMapping.getMappedIndex(candidate);
+			equivalences.compute(candidate, (k, equivalent) -> {
+				if (equivalent == null) {
+					equivalent = new ArrayList<>();
+				}
+				equivalent.add(index);
+				
+				return equivalent;
+			});
+		}
+		for (ArrayList<Integer> equivalent : equivalences.values()) {
+			equivalent.trimToSize();
+			// TODO: instead of sorting, extend OrdinalSetMapping interface to provide a sortetIterator;
+			equivalent.sort(new Comparator<Integer>() {
+				@Override
+				public int compare(Integer o1, Integer o2) {
+					return Integer.compare(o1, o2);
+				}
+			});
+		}
+
+		return equivalences;
+	}
+	
 	private Map<CGNode, OrdinalSet<ModRefFieldCandidate>> simpleReachabilityPropagateWithMerge(
 			final CallGraph nonPrunedCG, final CallGraph prunedCG, final ModRefCandidates mrefs,
 			final PointsToWrapper pa, final IProgressMonitor progress) throws CancelException {
@@ -1045,10 +1073,13 @@ public final class ObjGraphParams {
 		}
 		
 		final Map<ModRefFieldCandidate, Collection<ModRefFieldCandidate>> childrenOf;
+		final Map<ModRefFieldCandidate, ? extends List<Integer>> equivalences;
 		if (opt.isUseAdvancedInterprocPropagation && opt.isCutOffUnreachable) {
 			childrenOf = computeChildrenOf(modRefMapping);
+			equivalences = computeEquivalences(modRefMapping);
 		} else {
 			childrenOf = null;
+			equivalences = null;
 		}
 		
 		MonitorUtil.throwExceptionIfCanceled(progress);
@@ -1083,7 +1114,7 @@ public final class ObjGraphParams {
 			
 			// detect unreachable
 			final IntSet reachable = (opt.isUseAdvancedInterprocPropagation && opt.isCutOffUnreachable
-					? detectReachable(cgNode, nonPrunedInt, modRefMapping, pa, childrenOf)
+					? detectReachable(cgNode, nonPrunedInt, modRefMapping, pa, childrenOf, equivalences)
 					: nonPrunedInt);
 
 			// leave only nodes in the set that we are not going to merge
@@ -1170,10 +1201,13 @@ public final class ObjGraphParams {
 		}
 		
 		final Map<ModRefFieldCandidate, Collection<ModRefFieldCandidate>> childrenOf;
+		final Map<ModRefFieldCandidate, ? extends List<Integer>> equivalences;
 		if (opt.isUseAdvancedInterprocPropagation && opt.isCutOffUnreachable) {
 			childrenOf = computeChildrenOf(modRefMapping);
+			equivalences = computeEquivalences(modRefMapping);
 		} else {
 			childrenOf = null;
+			equivalences = null;
 		}
 
 		MonitorUtil.throwExceptionIfCanceled(progress);
@@ -1202,7 +1236,7 @@ public final class ObjGraphParams {
 			
 			// detect unreachable
 			final IntSet reachable = (opt.isUseAdvancedInterprocPropagation && opt.isCutOffUnreachable
-					? detectReachable(cgNode, nonPrunedInt, modRefMapping, pa, childrenOf)
+					? detectReachable(cgNode, nonPrunedInt, modRefMapping, pa, childrenOf, equivalences)
 					: nonPrunedInt);
 
 			final BitVectorIntSet allNodes = new BitVectorIntSet(reachable);
@@ -1336,10 +1370,27 @@ public final class ObjGraphParams {
 		return result;
 	}
 	
+	private static final boolean isCanonical(
+			int candidate,
+			List<Integer> equivalent,
+			IntSet candidates,
+			final OrdinalSetMapping<ModRefFieldCandidate> map) {
+		for (int other : equivalent) {
+			if (other != candidate && candidates.contains(other)) {
+				return false;
+			}
+			if (other == candidate) {
+				return true;
+			}
+		}
+		assert false;
+		return true;
+	}
 
 	private static IntSet detectReachable(final CGNode n, final IntSet candidates,
 			final OrdinalSetMapping<ModRefFieldCandidate> map, final PointsToWrapper pa,
-			final Map<ModRefFieldCandidate, Collection<ModRefFieldCandidate>> childrenOf) {
+			final Map<ModRefFieldCandidate, Collection<ModRefFieldCandidate>> childrenOf,
+			Map<ModRefFieldCandidate, ? extends List<Integer>> equivalences) {
 		
 		final Set<ModRefRootCandidate> roots = new HashSet<ModRefRootCandidate>();
 		final IMethod im = n.getMethod();
@@ -1367,33 +1418,30 @@ public final class ObjGraphParams {
 			}
 		}
 		
-		final Map<ModRefFieldCandidate, ModRefFieldCandidate> reachable = new HashMap<>();
+		//final Map<ModRefFieldCandidate, ModRefFieldCandidate> reachable = new HashMap<>();
+		final BitVectorIntSet result = new BitVectorIntSet();
 		// add reachable from roots
 		LinkedList<ModRefFieldCandidate> newlyAdded = new LinkedList<ModRefFieldCandidate>();
 		candidates.foreach(new IntSetAction() {
 			@Override
-			public void act(final int x) {
-				final ModRefFieldCandidate toCheck = map.getMappedObject(x);
+			public void act(final int toCheckIndex) {
+				final ModRefFieldCandidate toCheck = map.getMappedObject(toCheckIndex);
+				// For *deterministic* behavior *identical* to detectReachableSlow(), for
+				// two ModRefFieldCandidate m1, m2 uch that m1.equals(m2),
+				// we alywas carry the one with the smaller index in the mapping map.
+				// This is correct since in detectReachableSlow():
+				//   at each "layer" of the iteration, for two ModRefFieldCandidate m1, m2 
+				//   such that m1.equals(m2), either, both or none of the two are added.
+				//   Also, there the workList is always ordered in the order of it's initialization,
+				//   which is in order of increasing indices.
+				if (!isCanonical(toCheckIndex, equivalences.get(toCheck), candidates, map)) {
+					return;
+				}
 				for (final ModRefRootCandidate root : roots) {
 					if (root.isPotentialParentOf(toCheck)) {
-						final int toCheckIndex = map.getMappedIndex(toCheck);
-						// For *deterministic* behavior *identical* to detectReachableSlow(), for
-						// two ModRefFieldCandidate m1, m2 uch that m1.equals(m2),
-						// we alywas carry the one with the smaller index in the mapping map.
-						// This is correct since in detectReachableSlow():
-						//   at each "layer" of the iteration, for two ModRefFieldCandidate m1, m2 
-						//   such that m1.equals(m2), either, both or none of the two are added.
-						//   Also, there the workList is always ordered in the order of it's initialization,
-						//   which is in order of increasing indices.
-						reachable.compute(toCheck, (k, canonical) -> {
-							if (canonical == null) {
-								newlyAdded.add(toCheck);
-								canonical = toCheck;
-							} else if (toCheckIndex < map.getMappedIndex(canonical)) {
-								canonical = toCheck;
-							}
-							return canonical;
-						});
+						if (result.add(toCheckIndex)) {
+							newlyAdded.add(toCheck);
+						}
 						break;
 					}
 				}
@@ -1405,28 +1453,17 @@ public final class ObjGraphParams {
 
 			for (ModRefFieldCandidate child : childrenOf.get(candidate)) {
 				final int childIndex = map.getMappedIndex(child);
-				if (candidates.contains(childIndex)) {
-					reachable.compute(child, (k, canonical) -> {
-						if (canonical == null) {
-							newlyAdded.add(child);
-							canonical = child;
-						} else if (childIndex < map.getMappedIndex(canonical)) {
-							canonical = child;
-						}
-						return canonical;
-					});
+				if (candidates.contains(childIndex) && isCanonical(childIndex, equivalences.get(child), candidates, map)) {
+					if (result.add(childIndex)) {
+						newlyAdded.add(child);
+					}
 				}
 			}
 		}
 		
-		final BitVectorIntSet result = new BitVectorIntSet();
-		for (final ModRefFieldCandidate fc : reachable.values()) {
-			final int id = map.getMappedIndex(fc);
-			result.add(id);
-		}
 
-		assert            sameAsDetectReachableSlow(new HashSet<>(reachable.values()), n, candidates, map, pa) : "IntSet ==";
-		assert result.sameValue(detectReachableSlow(n, candidates, map, pa))                                   : "Set.equals()";
+		assert            sameAsDetectReachableSlow(result, n, candidates, map, pa) : "Set.equals()";
+		assert result.sameValue(detectReachableSlow(n, candidates, map, pa))        : "IntSet ==";
 		
 		// TODO: we could probably make this whole procedure nicer, if we didn't insist on being "IntSet ==" 
 		// with detectReachableSlow(). It should be enough to be both deterministic,
@@ -1434,10 +1471,11 @@ public final class ObjGraphParams {
 		return result;
 	}
 	
-	private static boolean sameAsDetectReachableSlow(final Set<ModRefFieldCandidate> reachable, final CGNode n, final IntSet candidates,
+	private static boolean sameAsDetectReachableSlow(final IntSet reached, final CGNode n, final IntSet candidates,
 			final OrdinalSetMapping<ModRefFieldCandidate> map, final PointsToWrapper pa) {
+		final OrdinalSet<ModRefFieldCandidate> result     = new OrdinalSet<>(reached, map);
 		final OrdinalSet<ModRefFieldCandidate> resultSlow = new OrdinalSet<>(detectReachableSlow(n, candidates, map, pa), map);
-		if (!OrdinalSet.toCollection(resultSlow).equals(reachable)) {
+		if (!OrdinalSet.toCollection(resultSlow).equals(OrdinalSet.toCollection(result))) {
 			return false;
 		} else {
 			return true;

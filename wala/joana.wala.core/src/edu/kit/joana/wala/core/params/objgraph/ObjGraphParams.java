@@ -10,6 +10,7 @@ package edu.kit.joana.wala.core.params.objgraph;
 import static edu.kit.joana.wala.util.pointsto.WalaPointsToUtil.unify;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -1018,7 +1019,7 @@ public final class ObjGraphParams {
 		return childrenOf;
 	}
 	
-	private Map<ModRefFieldCandidate, ? extends List<Integer>> computeEquivalences(OrdinalSetMapping<ModRefFieldCandidate> modRefMapping) {
+	private Map<ModRefFieldCandidate, int[]> computeEquivalences(OrdinalSetMapping<ModRefFieldCandidate> modRefMapping) {
 		final Map<ModRefFieldCandidate, ArrayList<Integer>> equivalences = new HashMap<>(modRefMapping.getSize());
 		for (ModRefFieldCandidate candidate : modRefMapping) {
 			final int index = modRefMapping.getMappedIndex(candidate);
@@ -1031,18 +1032,21 @@ public final class ObjGraphParams {
 				return equivalent;
 			});
 		}
-		for (ArrayList<Integer> equivalent : equivalences.values()) {
-			equivalent.trimToSize();
+		final Map<ModRefFieldCandidate, int[]> result = new HashMap<>(equivalences.size());
+		for (Entry<ModRefFieldCandidate, ArrayList<Integer>> equivalentEntry : equivalences.entrySet()) {
+			final ModRefFieldCandidate candidate = equivalentEntry.getKey();
+			final ArrayList<Integer> equivalent = equivalentEntry.getValue();
+			
+			final int[] equivalentArray = new int[equivalent.size()];
+			for (int i = 0; i < equivalentArray.length; i++) {
+				equivalentArray[i] = equivalent.get(i);
+			}
 			// TODO: instead of sorting, extend OrdinalSetMapping interface to provide a sortetIterator;
-			equivalent.sort(new Comparator<Integer>() {
-				@Override
-				public int compare(Integer o1, Integer o2) {
-					return Integer.compare(o1, o2);
-				}
-			});
+			Arrays.sort(equivalentArray);
+			result.put(candidate, equivalentArray);
 		}
 
-		return equivalences;
+		return result;
 	}
 	
 	private Map<CGNode, OrdinalSet<ModRefFieldCandidate>> simpleReachabilityPropagateWithMerge(
@@ -1073,7 +1077,7 @@ public final class ObjGraphParams {
 		}
 		
 		final Map<ModRefFieldCandidate, Collection<ModRefFieldCandidate>> childrenOf;
-		final Map<ModRefFieldCandidate, ? extends List<Integer>> equivalences;
+		final Map<ModRefFieldCandidate, int[]> equivalences;
 		if (opt.isUseAdvancedInterprocPropagation && opt.isCutOffUnreachable) {
 			childrenOf = computeChildrenOf(modRefMapping);
 			equivalences = computeEquivalences(modRefMapping);
@@ -1201,7 +1205,7 @@ public final class ObjGraphParams {
 		}
 		
 		final Map<ModRefFieldCandidate, Collection<ModRefFieldCandidate>> childrenOf;
-		final Map<ModRefFieldCandidate, ? extends List<Integer>> equivalences;
+		final Map<ModRefFieldCandidate, int[]> equivalences;
 		if (opt.isUseAdvancedInterprocPropagation && opt.isCutOffUnreachable) {
 			childrenOf = computeChildrenOf(modRefMapping);
 			equivalences = computeEquivalences(modRefMapping);
@@ -1372,7 +1376,7 @@ public final class ObjGraphParams {
 	
 	private static final boolean isCanonical(
 			int candidate,
-			List<Integer> equivalent,
+			int[] equivalent,
 			IntSet candidates,
 			final OrdinalSetMapping<ModRefFieldCandidate> map) {
 		for (int other : equivalent) {
@@ -1390,7 +1394,7 @@ public final class ObjGraphParams {
 	private static IntSet detectReachable(final CGNode n, final IntSet candidates,
 			final OrdinalSetMapping<ModRefFieldCandidate> map, final PointsToWrapper pa,
 			final Map<ModRefFieldCandidate, Collection<ModRefFieldCandidate>> childrenOf,
-			Map<ModRefFieldCandidate, ? extends List<Integer>> equivalences) {
+			Map<ModRefFieldCandidate, int[]> equivalences) {
 		
 		final Set<ModRefRootCandidate> roots = new HashSet<ModRefRootCandidate>();
 		final IMethod im = n.getMethod();

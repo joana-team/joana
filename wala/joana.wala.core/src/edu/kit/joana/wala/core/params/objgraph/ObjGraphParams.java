@@ -1286,9 +1286,7 @@ public final class ObjGraphParams {
         return borderNodes;
 	}
 	
-	private static IntSet detectReachableSlow(final CGNode n, final IntSet candidates,
-			final OrdinalSetMapping<ModRefFieldCandidate> map, final PointsToWrapper pa) {
-		
+	private static Set<ModRefRootCandidate> findRoots(final CGNode n, final PointsToWrapper pa) {
 		final Set<ModRefRootCandidate> roots = new HashSet<ModRefRootCandidate>();
 		final IMethod im = n.getMethod();
 		for (int i = 0; i < im.getNumberOfParameters(); i++) {
@@ -1315,6 +1313,12 @@ public final class ObjGraphParams {
 			}
 		}
 		
+		return roots;
+	}
+		
+	private static IntSet detectReachableSlow(final CGNode n, final IntSet candidates,
+				final OrdinalSetMapping<ModRefFieldCandidate> map, final PointsToWrapper pa) {
+		final Set<ModRefRootCandidate> roots = findRoots(n, pa);
 		final Set<ModRefFieldCandidate> reachable = new HashSet<ModRefFieldCandidate>();
 		final LinkedList<ModRefFieldCandidate> work = new LinkedList<ModRefFieldCandidate>();
 		for (IntIterator candIt = candidates.intIteratorSorted(); candIt.hasNext(); ) {
@@ -1398,31 +1402,7 @@ public final class ObjGraphParams {
 			final Map<ModRefFieldCandidate, Collection<ModRefFieldCandidate>> childrenOf,
 			int[][] equivalences) {
 		
-		final Set<ModRefRootCandidate> roots = new HashSet<ModRefRootCandidate>();
-		final IMethod im = n.getMethod();
-		for (int i = 0; i < im.getNumberOfParameters(); i++) {
-			final OrdinalSet<InstanceKey> pts = pa.getMethodParamPTS(n, i);
-			if (pts != null && !pts.isEmpty()) {
-				final PDGNode node = new PDGNode(i, n.getGraphNodeId(), "param " + i, PDGNode.Kind.FORMAL_IN,
-						im.getParameterType(i), PDGNode.DEFAULT_NO_LOCAL, PDGNode.DEFAULT_NO_LOCAL);
-				node.setBytecodeIndex(BytecodeLocation.ROOT_PARAMETER);
-				node.setBytecodeName(BytecodeLocation.getRootParamName(i));
-				final ModRefRootCandidate rp = ModRefRootCandidate.createRef(node, pts);
-				roots.add(rp);
-			}
-		}
-		
-		if (im.getReturnType().isReferenceType()) {
-			final OrdinalSet<InstanceKey> pts = pa.getMethodReturnPTS(n);
-			if (pts != null && !pts.isEmpty()) {
-				final PDGNode node = new PDGNode(-1, n.getGraphNodeId(), "ret", PDGNode.Kind.EXIT,
-						im.getReturnType(), PDGNode.DEFAULT_NO_LOCAL, PDGNode.DEFAULT_NO_LOCAL);
-				node.setBytecodeIndex(BytecodeLocation.ROOT_PARAMETER);
-				node.setBytecodeName(BytecodeLocation.RETURN_PARAM);
-				final ModRefRootCandidate rp = ModRefRootCandidate.createRef(node, pts);
-				roots.add(rp);
-			}
-		}
+		final Set<ModRefRootCandidate> roots = findRoots(n, pa);
 		
 		//final Map<ModRefFieldCandidate, ModRefFieldCandidate> reachable = new HashMap<>();
 		final BitVectorIntSet result = new BitVectorIntSet();

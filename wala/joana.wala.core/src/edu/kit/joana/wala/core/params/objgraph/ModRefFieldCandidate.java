@@ -117,7 +117,8 @@ public final class ModRefFieldCandidate extends ModRefCandidate implements Clone
 
 	@Override
 	public int hashCode() {
-		return pc.hashCode() * 13;
+		// TODO: change this if we should ever use HashMaps that contain both ModRefFieldCandidates and ParameterCandidates
+		return pc.hashCode();
 	}
 
 	@Override

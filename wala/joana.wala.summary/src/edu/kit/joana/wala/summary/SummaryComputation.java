@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
@@ -24,6 +25,7 @@ import edu.kit.joana.ifc.sdg.graph.BitVector;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.util.collections.SimpleVector;
 import edu.kit.joana.util.graph.EfficientGraph;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.set.TIntSet;
@@ -46,6 +48,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
     private final SDGEdge.Kind sumEdgeKind;
     private final Set<SDGEdge.Kind> relevantEdges;
     private final String annotate;
+    private final Map<SDGNode, Integer> nodeId2ProcLocalNodeId;
 
 	private SummaryComputation(G graph, TIntSet relevantFormalIns,
 			TIntSet relevantProcs, TIntSet fullyConnected, TIntObjectMap<List<SDGNode>> out2in,
@@ -63,6 +66,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
         this.sumEdgeKind = sumEdgeKind;
         this.relevantEdges = relevantEdges;
         this.annotate = annotate;
+        this.nodeId2ProcLocalNodeId = new SimpleVector<>(0, graph.vertexSet().size());
 	}
 
 	public static int compute(WorkPackage<SDG> pack, IProgressMonitor progress) throws CancelException {
@@ -203,6 +207,24 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
     	HashSet<SDGEdge> actInOutSummaryEdge = new HashSet<SDGEdge>();
     	HashSet<SDGEdge> formInOutSummaryEdge = new HashSet<SDGEdge>();
 
+    	Map<Integer, Set<SDGNode>> proc2nodes = new HashMap<>();
+        for (SDGNode n : (Set<SDGNode>) graph.vertexSet()) {
+            proc2nodes.compute(n.getProc(), (k, nodes) -> {
+            	if (nodes == null) {
+            		nodes = new HashSet<>();
+            	}
+            	nodes.add(n);
+            	return nodes;
+            });
+        }
+        
+        for (Set<SDGNode> nodes : proc2nodes.values()) {
+        	int procLocalNodeId = 0;
+        	for (SDGNode n : nodes) {
+        		nodeId2ProcLocalNodeId.put(n, procLocalNodeId++);
+        	}
+        }
+        
         for (SDGNode n : (Set<SDGNode>) graph.vertexSet()) {
             if (n.getKind() == SDGNode.Kind.FORMAL_OUT || n.getKind() == SDGNode.Kind.EXIT) {
             	if (relevantProcs != null && !relevantProcs.contains(n.getProc())) {
@@ -214,12 +236,12 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
             	}
 
                 assert pathEdge.add(new Edge(n,n));
-                // TODO: maybe we can choose some better Set<> implementation here, making use of the fact that
-                // target.customData.contains(source) implies: target.getProc() == source.getProc()
-                n.customData = new HashSet<>();
+                n.customData = new BitVector(proc2nodes.get(n.getProc()).size());
                 worklist.add(new Edge(n,n));
             }
         }
+        
+        proc2nodes = null;
 
         while (!worklist.isEmpty()) {
         	MonitorUtil.throwExceptionIfCanceled(progress);
@@ -366,7 +388,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
             		continue;
             	}
 
-                assert n.customData instanceof Set;
+                assert n.customData instanceof BitVector;
                 n.customData = null;
             }
         }
@@ -409,11 +431,13 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
         }
     }
     
-    private static boolean pathEdge_add(SDGNode source, SDGNode target) {
+    private boolean pathEdge_add(SDGNode source, SDGNode target) {
     	assert source.getProc() == target.getProc();
-    	@SuppressWarnings("unchecked")
-		final Set<SDGNode> sources = (Set<SDGNode>) target.customData;
-    	return sources.add(source);
+		final BitVector sources = (BitVector) target.customData;
+    	final int procLocalSourceId = nodeId2ProcLocalNodeId.get(source);
+    	boolean isNew = !sources.get(procLocalSourceId);
+    	sources.set(procLocalSourceId);
+    	return isNew;
     }
 
 //    if (relevantProcs != null) {

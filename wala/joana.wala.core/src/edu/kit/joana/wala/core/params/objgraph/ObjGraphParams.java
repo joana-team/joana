@@ -1382,11 +1382,11 @@ public final class ObjGraphParams {
 			int[] equivalent,
 			IntSet candidates) {
 		for (int other : equivalent) {
-			if (other != candidate && candidates.contains(other)) {
-				return false;
-			}
 			if (other == candidate) {
 				return true;
+			}
+			if (candidates.contains(other)) {
+				return false;
 			}
 		}
 		assert false;

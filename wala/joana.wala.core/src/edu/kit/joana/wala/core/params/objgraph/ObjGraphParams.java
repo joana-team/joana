@@ -1380,8 +1380,7 @@ public final class ObjGraphParams {
 	private static final boolean isCanonical(
 			int candidate,
 			int[] equivalent,
-			IntSet candidates,
-			final OrdinalSetMapping<ModRefFieldCandidate> map) {
+			IntSet candidates) {
 		for (int other : equivalent) {
 			if (other != candidate && candidates.contains(other)) {
 				return false;
@@ -1440,7 +1439,7 @@ public final class ObjGraphParams {
 				//   such that m1.equals(m2), either, both or none of the two are added.
 				//   Also, there the workList is always ordered in the order of it's initialization,
 				//   which is in order of increasing indices.
-				if (!isCanonical(toCheckIndex, equivalences[toCheckIndex], candidates, map)) {
+				if (!isCanonical(toCheckIndex, equivalences[toCheckIndex], candidates)) {
 					return;
 				}
 				final ModRefFieldCandidate toCheck = map.getMappedObject(toCheckIndex);
@@ -1460,7 +1459,7 @@ public final class ObjGraphParams {
 
 			for (ModRefFieldCandidate child : childrenOf.get(candidate)) {
 				final int childIndex = map.getMappedIndex(child);
-				if (candidates.contains(childIndex) && isCanonical(childIndex, equivalences[childIndex], candidates, map)) {
+				if (candidates.contains(childIndex) && isCanonical(childIndex, equivalences[childIndex], candidates)) {
 					if (result.add(childIndex)) {
 						newlyAdded.add(child);
 					}

@@ -346,9 +346,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 				throw new IllegalArgumentException("Trying to remove ModRefFieldCandidate " + toRemove + "that is not present.");
 			}
 			
-			if (!cands.containsKey(toRemove.pc)) {
-				return;
-			}
+			assert cands.containsKey(toRemove.pc);
 
 			
 			// TODO: if performance demands it, instead of checking every cand, start to remove things iteratively

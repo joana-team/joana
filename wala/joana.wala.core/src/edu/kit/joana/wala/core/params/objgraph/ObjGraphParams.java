@@ -12,7 +12,6 @@ import static edu.kit.joana.wala.util.pointsto.WalaPointsToUtil.unify;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -40,7 +39,6 @@ import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
-import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.graph.Graph;
 import com.ibm.wala.util.graph.impl.GraphInverter;
 import com.ibm.wala.util.graph.traverse.DFS;
@@ -1019,7 +1017,11 @@ public final class ObjGraphParams {
 		return childrenOf;
 	}
 	
-	private Map<ModRefFieldCandidate, int[]> computeEquivalences(OrdinalSetMapping<ModRefFieldCandidate> modRefMapping) {
+	/**
+	 * 
+	 * @return an array result s.t. forall i ∈ modRefMapping. result[i] = [ j ∈ modRefMapping | modRefMapping.getMappedObject(i).equals(modRefMapping.getMappedObject(j) ]
+	 */
+	private int[][] computeEquivalences(OrdinalSetMapping<ModRefFieldCandidate> modRefMapping) {
 		final Map<ModRefFieldCandidate, ArrayList<Integer>> equivalences = new HashMap<>(modRefMapping.getSize());
 		for (ModRefFieldCandidate candidate : modRefMapping) {
 			final int index = modRefMapping.getMappedIndex(candidate);
@@ -1032,9 +1034,8 @@ public final class ObjGraphParams {
 				return equivalent;
 			});
 		}
-		final Map<ModRefFieldCandidate, int[]> result = new HashMap<>(equivalences.size());
+		final int[][] result = new int[modRefMapping.getMaximumIndex() + 1][];
 		for (Entry<ModRefFieldCandidate, ArrayList<Integer>> equivalentEntry : equivalences.entrySet()) {
-			final ModRefFieldCandidate candidate = equivalentEntry.getKey();
 			final ArrayList<Integer> equivalent = equivalentEntry.getValue();
 			
 			final int[] equivalentArray = new int[equivalent.size()];
@@ -1043,7 +1044,9 @@ public final class ObjGraphParams {
 			}
 			// TODO: instead of sorting, extend OrdinalSetMapping interface to provide a sortetIterator;
 			Arrays.sort(equivalentArray);
-			result.put(candidate, equivalentArray);
+			for (int index : equivalentArray) {
+				result[index] = equivalentArray;
+			}
 		}
 
 		return result;
@@ -1077,7 +1080,7 @@ public final class ObjGraphParams {
 		}
 		
 		final Map<ModRefFieldCandidate, Collection<ModRefFieldCandidate>> childrenOf;
-		final Map<ModRefFieldCandidate, int[]> equivalences;
+		final int[][] equivalences;
 		if (opt.isUseAdvancedInterprocPropagation && opt.isCutOffUnreachable) {
 			childrenOf = computeChildrenOf(modRefMapping);
 			equivalences = computeEquivalences(modRefMapping);
@@ -1205,7 +1208,7 @@ public final class ObjGraphParams {
 		}
 		
 		final Map<ModRefFieldCandidate, Collection<ModRefFieldCandidate>> childrenOf;
-		final Map<ModRefFieldCandidate, int[]> equivalences;
+		final int[][] equivalences;
 		if (opt.isUseAdvancedInterprocPropagation && opt.isCutOffUnreachable) {
 			childrenOf = computeChildrenOf(modRefMapping);
 			equivalences = computeEquivalences(modRefMapping);
@@ -1394,7 +1397,7 @@ public final class ObjGraphParams {
 	private static IntSet detectReachable(final CGNode n, final IntSet candidates,
 			final OrdinalSetMapping<ModRefFieldCandidate> map, final PointsToWrapper pa,
 			final Map<ModRefFieldCandidate, Collection<ModRefFieldCandidate>> childrenOf,
-			Map<ModRefFieldCandidate, int[]> equivalences) {
+			int[][] equivalences) {
 		
 		final Set<ModRefRootCandidate> roots = new HashSet<ModRefRootCandidate>();
 		final IMethod im = n.getMethod();
@@ -1429,7 +1432,6 @@ public final class ObjGraphParams {
 		candidates.foreach(new IntSetAction() {
 			@Override
 			public void act(final int toCheckIndex) {
-				final ModRefFieldCandidate toCheck = map.getMappedObject(toCheckIndex);
 				// For *deterministic* behavior *identical* to detectReachableSlow(), for
 				// two ModRefFieldCandidate m1, m2 uch that m1.equals(m2),
 				// we alywas carry the one with the smaller index in the mapping map.
@@ -1438,9 +1440,10 @@ public final class ObjGraphParams {
 				//   such that m1.equals(m2), either, both or none of the two are added.
 				//   Also, there the workList is always ordered in the order of it's initialization,
 				//   which is in order of increasing indices.
-				if (!isCanonical(toCheckIndex, equivalences.get(toCheck), candidates, map)) {
+				if (!isCanonical(toCheckIndex, equivalences[toCheckIndex], candidates, map)) {
 					return;
 				}
+				final ModRefFieldCandidate toCheck = map.getMappedObject(toCheckIndex);
 				for (final ModRefRootCandidate root : roots) {
 					if (root.isPotentialParentOf(toCheck)) {
 						if (result.add(toCheckIndex)) {
@@ -1457,7 +1460,7 @@ public final class ObjGraphParams {
 
 			for (ModRefFieldCandidate child : childrenOf.get(candidate)) {
 				final int childIndex = map.getMappedIndex(child);
-				if (candidates.contains(childIndex) && isCanonical(childIndex, equivalences.get(child), candidates, map)) {
+				if (candidates.contains(childIndex) && isCanonical(childIndex, equivalences[childIndex], candidates, map)) {
 					if (result.add(childIndex)) {
 						newlyAdded.add(child);
 					}

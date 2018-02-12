@@ -9,9 +9,11 @@ package edu.kit.joana.wala.core.params.objgraph;
 
 import static edu.kit.joana.wala.util.pointsto.WalaPointsToUtil.unify;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -39,12 +41,12 @@ import edu.kit.joana.wala.core.params.objgraph.dataflow.PointsToWrapper;
 public class ModRefCandidateGraph implements Graph<ModRefCandidate> {
 
 	private final InterProcCandidateModel modref;
-	private final List<ModRefRootCandidate> roots;
+	private final LinkedHashSet<ModRefRootCandidate> roots;
 	private final OrdinalSet<InstanceKey> rootsPts;
 	
 	private final Map<UniqueParameterCandidate, Set<UniqueParameterCandidate>> isReachableFrom;
 
-	private ModRefCandidateGraph(final InterProcCandidateModel modref, final List<ModRefRootCandidate> roots,
+	private ModRefCandidateGraph(final InterProcCandidateModel modref, final LinkedHashSet<ModRefRootCandidate> roots,
 			final OrdinalSet<InstanceKey> rootsPts,
 			final Map<UniqueParameterCandidate, Set<UniqueParameterCandidate>> isReachableFrom) {
 		if (modref == null) {
@@ -65,7 +67,7 @@ public class ModRefCandidateGraph implements Graph<ModRefCandidate> {
 			final PDG pdg,
 			final Map<UniqueParameterCandidate, Set<UniqueParameterCandidate>> isReachableFrom) {
 		final InterProcCandidateModel pdgModRef = modref.getCandidates(pdg.cgNode);
-		final List<ModRefRootCandidate> roots = findMethodRoots(pa, pdg, modref.ignoreExceptions);
+		final LinkedHashSet<ModRefRootCandidate> roots = new LinkedHashSet<>(findMethodRoots(pa, pdg, modref.ignoreExceptions));
 		final OrdinalSet<InstanceKey> rootsPts = findMethodRootPts(pa, pdg, modref.ignoreExceptions);
 
 		final ModRefCandidateGraph g = new ModRefCandidateGraph(pdgModRef, roots, rootsPts, isReachableFrom);
@@ -73,8 +75,8 @@ public class ModRefCandidateGraph implements Graph<ModRefCandidate> {
 		return g;
 	}
 
-	public List<ModRefRootCandidate> getRoots() {
-		return Collections.unmodifiableList(roots);
+	public Collection<ModRefRootCandidate> getRoots() {
+		return Collections.unmodifiableSet(roots);
 	}
 	
 	public OrdinalSet<InstanceKey> getRootsPts() {

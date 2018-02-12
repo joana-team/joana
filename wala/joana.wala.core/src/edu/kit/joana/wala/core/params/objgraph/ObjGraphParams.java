@@ -675,7 +675,7 @@ public final class ObjGraphParams {
 	}
 	
 	private static void cutOffUnreachable(final InterProcCandidateModel pdgModRef, final ModRefCandidateGraph mrg,
-			final List<? extends ModRefCandidate> start) {
+			final Collection<? extends ModRefCandidate> start) {
 		final Set<ModRefCandidate> reachable = findReachable(mrg, start);
 		final List<ModRefFieldCandidate> toRemove = new LinkedList<ModRefFieldCandidate>();
 		for (final ModRefFieldCandidate c : pdgModRef) {
@@ -979,7 +979,7 @@ public final class ObjGraphParams {
 	}
 
 	private static Set<ModRefCandidate> findReachable(final ModRefCandidateGraph g,
-			final List<? extends ModRefCandidate> start) {
+			final Collection<? extends ModRefCandidate> start) {
 		final Set<ModRefCandidate> reachable = new HashSet<ModRefCandidate>(start);
 		final LinkedList<ModRefCandidate> work = new LinkedList<ModRefCandidate>();
 		work.addAll(start);

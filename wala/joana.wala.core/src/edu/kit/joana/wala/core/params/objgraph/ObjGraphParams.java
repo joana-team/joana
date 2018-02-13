@@ -58,6 +58,7 @@ import edu.kit.joana.util.Config;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.Reference;
+import edu.kit.joana.util.collections.ArrayMap;
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
@@ -1381,20 +1382,20 @@ public final class ObjGraphParams {
 		return result;
 	}
 	
-	private static final boolean isCanonical(
+	private static final int getCanonical(
 			int candidate,
 			int[] equivalent,
 			IntSet candidates) {
 		for (int other : equivalent) {
 			if (other == candidate) {
-				return true;
+				return other;
 			}
 			if (candidates.contains(other)) {
-				return false;
+				return other;
 			}
 		}
 		assert false;
-		return true;
+		return -1;
 	}
 
 	private static IntSet detectReachable(final CGNode n, final IntSet candidates,
@@ -1407,7 +1408,8 @@ public final class ObjGraphParams {
 		//final Map<ModRefFieldCandidate, ModRefFieldCandidate> reachable = new HashMap<>();
 		final BitVectorIntSet result = new BitVectorIntSet();
 		// add reachable from roots
-		LinkedList<ModRefFieldCandidate> newlyAdded = new LinkedList<ModRefFieldCandidate>();
+		final LinkedList<ModRefFieldCandidate> newlyAdded = new LinkedList<ModRefFieldCandidate>();
+		final ArrayMap<Integer, Integer> canonicalOf = new ArrayMap<>();
 		candidates.foreach(new IntSetAction() {
 			@Override
 			public void act(final int toCheckIndex) {
@@ -1419,7 +1421,9 @@ public final class ObjGraphParams {
 				//   such that m1.equals(m2), either, both or none of the two are added.
 				//   Also, there the workList is always ordered in the order of it's initialization,
 				//   which is in order of increasing indices.
-				if (!isCanonical(toCheckIndex, equivalences[toCheckIndex], candidates)) {
+				final int canonical = getCanonical(toCheckIndex, equivalences[toCheckIndex], candidates);
+				canonicalOf.put(toCheckIndex, canonical);
+				if (toCheckIndex != canonical) {
 					return;
 				}
 				final ModRefFieldCandidate toCheck = map.getMappedObject(toCheckIndex);
@@ -1439,8 +1443,10 @@ public final class ObjGraphParams {
 
 			for (ModRefFieldCandidate child : childrenOf.get(candidate)) {
 				final int childIndex = map.getMappedIndex(child);
-				if (candidates.contains(childIndex) && isCanonical(childIndex, equivalences[childIndex], candidates)) {
-					if (result.add(childIndex)) {
+				final Integer canonicalChildIndex = canonicalOf.get(childIndex);
+				if (canonicalChildIndex != null) {
+					assert candidates.contains(canonicalChildIndex);
+					if (result.add(canonicalChildIndex)) {
 						newlyAdded.add(child);
 					}
 				}

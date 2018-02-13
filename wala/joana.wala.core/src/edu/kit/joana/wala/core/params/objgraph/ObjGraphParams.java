@@ -59,6 +59,7 @@ import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.Reference;
 import edu.kit.joana.util.collections.ArrayMap;
+import edu.kit.joana.util.collections.SimpleVectorBase;
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
@@ -1183,7 +1184,7 @@ public final class ObjGraphParams {
 			
 			result.put(cgNode, new OrdinalSet<ModRefFieldCandidate>(allNodes, modRefMapping));
 
-            if (progress != null && progressCtr.apply( c -> c++) % 103 == 0) { progress.worked(progressCtr.get()); }
+            if (progress != null && progressCtr.apply( c -> ++c ) % 103 == 0) { progress.worked(progressCtr.get()); }
 		});
 		MonitorUtil.throwExceptionIfCanceled(progress); // TODO: find a nice way  to move this up into the parallel lambdas again
 
@@ -1249,7 +1250,7 @@ public final class ObjGraphParams {
 
 			final BitVectorIntSet allNodes = new BitVectorIntSet(reachable);
 			result.put(cgNode, new OrdinalSet<ModRefFieldCandidate>(allNodes, modRefMapping));
-            if (progress != null && progressCtr.apply( c -> c++) % 103 == 0) { progress.worked(progressCtr.get()); }
+            if (progress != null && progressCtr.apply( c -> ++c ) % 103 == 0) { progress.worked(progressCtr.get()); }
 		});
 		MonitorUtil.throwExceptionIfCanceled(progress); // TODO: find a nice way  to move this up into the parallel lambdas again
 
@@ -1409,7 +1410,22 @@ public final class ObjGraphParams {
 		final BitVectorIntSet result = new BitVectorIntSet();
 		// add reachable from roots
 		final LinkedList<ModRefFieldCandidate> newlyAdded = new LinkedList<ModRefFieldCandidate>();
-		final ArrayMap<Integer, Integer> canonicalOf = new ArrayMap<>();
+		final int[] index2localIndex = new int[candidates.max() + 1];
+		final int NO_SUCH_INDEX = -1;
+		for (int i = 0; i < index2localIndex.length; i++) {
+			index2localIndex[i] = NO_SUCH_INDEX;
+		}
+		
+		final SimpleVectorBase<Integer, Integer> canonicalOf = new SimpleVectorBase<Integer, Integer>(0, candidates.size()) {
+			@Override
+			protected int getId(Integer k) {
+				if (!(0 <= k && k < index2localIndex.length)) {
+					return NO_SUCH_INDEX;
+				}
+				return index2localIndex[k];
+			}
+		};
+		final Reference<Integer> localIndex = new Reference<Integer>(NO_SUCH_INDEX + 1);
 		candidates.foreach(new IntSetAction() {
 			@Override
 			public void act(final int toCheckIndex) {
@@ -1422,6 +1438,8 @@ public final class ObjGraphParams {
 				//   Also, there the workList is always ordered in the order of it's initialization,
 				//   which is in order of increasing indices.
 				final int canonical = getCanonical(toCheckIndex, equivalences[toCheckIndex], candidates);
+				index2localIndex[toCheckIndex] = localIndex.get();
+				localIndex.apply( index -> ++index );
 				canonicalOf.put(toCheckIndex, canonical);
 				if (toCheckIndex != canonical) {
 					return;

@@ -601,6 +601,21 @@ public class SDG extends JoanaGraph implements Cloneable {
 	}
 
 	/**
+	 * Returns all act-outs of the given actual-in node's call site.
+	 * @param actIn given actual-in node
+	 * @return all act-outs of the given actual-in node's call site.
+	 */
+	public Set<SDGNode> getAllActualOutsForCallSiteOf(SDGNode actIn) {
+		Set<SDGNode> result = new HashSet<SDGNode>();
+		SDGNode call = getCallSiteFor(actIn);
+		for (SDGEdge eOut: outgoingEdgesOf(call)) {
+			if (eOut.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR && eOut.getTarget().getKind() == SDGNode.Kind.ACTUAL_OUT) {
+				result.add(eOut.getTarget());
+			}
+		}
+		return result;
+	}
+	/**
 	 * Returns the actual-out node connected with the given formal-out node in the call site specified by the given call node.
 	 *
 	 * @return `null' if the the call- and formal-out node are unrelated.
@@ -631,6 +646,21 @@ public class SDG extends JoanaGraph implements Cloneable {
 		return ret;
 	}
 
+	/**
+	 * Returns all act-ins of the given actual-out node's call site.
+	 * @param actOut given actual-out node
+	 * @return all act-ins of the given actual-out node's call site.
+	 */
+	public Set<SDGNode> getAllActualInsForCallSiteOf(SDGNode actOut) {
+		Set<SDGNode> result = new HashSet<SDGNode>();
+		SDGNode call = getCallSiteFor(actOut);
+		for (SDGEdge eOut: outgoingEdgesOf(call)) {
+			if (eOut.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR && eOut.getTarget().getKind() == SDGNode.Kind.ACTUAL_IN) {
+				result.add(eOut.getTarget());
+			}
+		}
+		return result;
+	}
 	/**
 	 * Returns the actual-in node connected with the given formal-in node in the call site specified by the given call node.
 	 *

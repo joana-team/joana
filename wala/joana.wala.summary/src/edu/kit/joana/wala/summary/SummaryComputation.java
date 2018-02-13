@@ -468,7 +468,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
             }
         }
 
-        for (SDGEdge po : graph.incomingEdgesOfUnsafe(e.target)) {
+        for (SDGEdge po : graph.outgoingEdgesOfUnsafe(e.target)) {
             if (po.getKind() == SDGEdge.Kind.PARAMETER_OUT) {
                 SDGNode ao = po.getTarget();
 

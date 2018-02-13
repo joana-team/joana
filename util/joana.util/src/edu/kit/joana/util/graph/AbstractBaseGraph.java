@@ -1092,15 +1092,8 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         private DirectedEdgeContainer<E, E[]> getEdgeContainerUnsafe(V vertex)
         {
             assert assertVertexExist(vertex);
-
-            return vertexMapDirected.compute(vertex, (v, ec) -> {
-
-            if (ec == null) {
-                ec = new ArraySetDirectedEdgeContainer<E>();
-            }
-
-            return ec;
-            });
+            
+            return vertexMapDirected.get(vertex);
         }
     }
 

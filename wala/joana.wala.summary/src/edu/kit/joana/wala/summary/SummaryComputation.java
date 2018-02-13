@@ -25,6 +25,8 @@ import edu.kit.joana.ifc.sdg.graph.BitVector;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.util.collections.Intrusable;
+import edu.kit.joana.util.collections.IntrusiveList;
 import edu.kit.joana.util.collections.SimpleVector;
 import edu.kit.joana.util.graph.EfficientGraph;
 import edu.kit.joana.wala.summary.MainChangeTest.RememberReachedBitVector;
@@ -39,7 +41,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
 
 	private final HashSet<Edge> pathEdge;
     private final HashMap<SDGNode, Set<SDGNode>> aoPaths;
-    private final LinkedList<Edge> worklist;
+    private final IntrusiveList<Edge> worklist;
     private final G graph;
     private final TIntSet relevantFormalIns;
     private final TIntSet relevantProcs;
@@ -61,7 +63,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
     	this.fullyConnected = fullyConnected;
         this.pathEdge = new HashSet<Edge>();
         this.aoPaths = new HashMap<SDGNode, Set<SDGNode>>();
-        this.worklist = new LinkedList<Edge>();
+        this.worklist = new IntrusiveList<>();
         this.out2in = out2in;
         this.rememberReached = rememberReached;
         this.sumEdgeKind = sumEdgeKind;
@@ -543,9 +545,11 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
     }
 
 
-    private static class Edge {
+    private static class Edge implements Intrusable<Edge> {
         private SDGNode source;
         private SDGNode target;
+        
+        private Edge next;
 
         private Edge(SDGNode s, SDGNode t) {
         	assert t == null || t.getKind() == SDGNode.Kind.FORMAL_OUT || t.getKind() == SDGNode.Kind.EXIT;
@@ -553,6 +557,17 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
             source = s;
             target = t;
         }
+        
+        @Override
+        public void setNext(Edge next) {
+        	this.next = next;
+        }
+        
+        @Override
+        public Edge getNext() {
+        	return next;
+        }
+        
 
         public boolean equals(Object o) {
             if (o instanceof Edge) {

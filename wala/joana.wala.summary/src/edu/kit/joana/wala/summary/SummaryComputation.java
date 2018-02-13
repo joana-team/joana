@@ -27,6 +27,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.util.collections.SimpleVector;
 import edu.kit.joana.util.graph.EfficientGraph;
+import edu.kit.joana.wala.summary.MainChangeTest.RememberReachedBitVector;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.set.TIntSet;
 
@@ -202,6 +203,12 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
 		return summary.size();
 	}
 
+	@SuppressWarnings("serial")
+	private static class PathEdgeReachedNodesBitvector extends BitVector {
+		PathEdgeReachedNodesBitvector(int nbits) {
+			super(nbits);
+		}
+	}
 
     private Collection<SDGEdge> computeSummaryEdges(IProgressMonitor progress) throws CancelException {
     	HashSet<SDGEdge> formInOutSummaryEdge = new HashSet<SDGEdge>();
@@ -235,7 +242,8 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
             	}
 
                 assert pathEdge.add(new Edge(n,n));
-                n.customData = new BitVector(proc2nodes.get(n.getProc()).size());
+                assert n.customData == null || (!(n.customData instanceof RememberReachedBitVector));
+                n.customData = new PathEdgeReachedNodesBitvector(proc2nodes.get(n.getProc()).size());
                 worklist.add(new Edge(n,n));
             }
         }
@@ -313,7 +321,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
 
                 case ACTUAL_IN:
                 	if (rememberReached) {
-                		BitVector bv = (BitVector) next.source.customData;
+                		BitVector bv = (RememberReachedBitVector) next.source.customData;
                 		int id = next.target.tmp;
 
                 		if (bv.contains(id)) {
@@ -430,7 +438,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
     
     private boolean pathEdge_add(SDGNode source, SDGNode target) {
     	assert source.getProc() == target.getProc();
-		final BitVector sources = (BitVector) target.customData;
+		final PathEdgeReachedNodesBitvector sources = (PathEdgeReachedNodesBitvector) target.customData;
     	final int procLocalSourceId = nodeId2ProcLocalNodeId.get(source);
     	boolean isNew = !sources.get(procLocalSourceId);
     	sources.set(procLocalSourceId);

@@ -451,7 +451,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
     private Collection<Edge> aiaoPairs(Edge e) {
         HashMap<SDGNode, Edge> result = new HashMap<SDGNode, Edge>();
 
-        for (SDGEdge pi : graph.incomingEdgesOf(e.source)) {
+        for (SDGEdge pi : graph.incomingEdgesOfUnsafe(e.source)) {
             if (pi.getKind() == SDGEdge.Kind.PARAMETER_IN) {
                 SDGNode ai = pi.getSource();
 
@@ -468,7 +468,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
             }
         }
 
-        for (SDGEdge po : graph.outgoingEdgesOf(e.target)) {
+        for (SDGEdge po : graph.incomingEdgesOfUnsafe(e.target)) {
             if (po.getKind() == SDGEdge.Kind.PARAMETER_OUT) {
                 SDGNode ao = po.getTarget();
 
@@ -497,7 +497,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
             SDGNode n = node;
 
             while (true){
-                Set<SDGEdge> edges = graph.incomingEdgesOf(n);
+                Set<SDGEdge> edges = graph.incomingEdgesOfUnsafe(n);
 
                 // follow control-dependence-expression edges from the source
                 // node of 'edge' to the call node
@@ -516,7 +516,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
             SDGNode n = node;
 
             while(true){
-                Set<SDGEdge> edges = graph.incomingEdgesOf(n);
+                Set<SDGEdge> edges = graph.incomingEdgesOfUnsafe(n);
                 // follow control-dependence-expression
                 // edges from 'node' to the call node
                 for(SDGEdge e : edges){

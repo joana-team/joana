@@ -17,8 +17,6 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.BiFunction;
 
-import edu.kit.joana.util.graph.IntegerIdentifiable;
-
 /**
  * A {@link Map} implementation for {@link IntegerIdentifiable} keys.
  * 
@@ -75,10 +73,9 @@ public abstract class SimpleVectorBase<K, V>  extends AbstractMap<K, V> implemen
 	@Override
 	@SuppressWarnings("unchecked")
 	public V get(Object o) {
-		if (! (o instanceof IntegerIdentifiable)) return null;
-		final IntegerIdentifiable key = (IntegerIdentifiable) o;
-		
-		final int x = key.getId();
+		if (o == null) throw new NullPointerException();
+		final int x = getId((K)o);
+
 		if (0 <= x && x <= rightMaxIndex) {
 			assert o.equals(rightKeys[x]);
 			return (V) rightValues[x];
@@ -95,10 +92,10 @@ public abstract class SimpleVectorBase<K, V>  extends AbstractMap<K, V> implemen
 	
 	@Override
 	public boolean containsKey(Object o) {
-		if (!(o instanceof IntegerIdentifiable)) return false;
-		final IntegerIdentifiable i = (IntegerIdentifiable) o;
-		
-		final int x = i.getId();
+		if (o == null) throw new NullPointerException();
+		@SuppressWarnings("unchecked")
+		final int x = getId((K)o);
+
 		if (0 <= x && x <= rightMaxIndex && rightKeys[x] != null) {
 			assert o.equals(rightKeys[x]);
 			return true;
@@ -172,9 +169,8 @@ public abstract class SimpleVectorBase<K, V>  extends AbstractMap<K, V> implemen
 	@Override
 	public V remove(Object o) {
 		if (o == null) throw new NullPointerException();
-		if (!(o instanceof IntegerIdentifiable)) return null;
-		final IntegerIdentifiable i = (IntegerIdentifiable) o;
-		final int x =  i.getId();
+		@SuppressWarnings("unchecked")
+		final int x = getId((K)o);
 		final int y = -x;
 		
 		if (0 <= x && x <= rightMaxIndex) {

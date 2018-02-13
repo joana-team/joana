@@ -218,6 +218,10 @@ public abstract class ModRefRootCandidate extends ModRefCandidate {
 		assert !result || other.pc.getBasePointsTo().containsAny(pts);
 		return result;
 	}
+	
+	protected OrdinalSet<InstanceKey> getPts() {
+		return pts;
+	}
 
 	@Override
 	public String toString() {

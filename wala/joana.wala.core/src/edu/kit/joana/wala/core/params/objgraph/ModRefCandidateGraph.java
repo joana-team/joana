@@ -11,6 +11,7 @@ import static edu.kit.joana.wala.util.pointsto.WalaPointsToUtil.unify;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -30,6 +31,8 @@ import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGField;
 import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.params.objgraph.ModRefCandidates.InterProcCandidateModel;
+import edu.kit.joana.wala.core.params.objgraph.TVL.V;
+import edu.kit.joana.wala.core.params.objgraph.candidates.ParameterCandidate;
 import edu.kit.joana.wala.core.params.objgraph.candidates.UniqueParameterCandidate;
 import edu.kit.joana.wala.core.params.objgraph.dataflow.PointsToWrapper;
 
@@ -45,10 +48,12 @@ public class ModRefCandidateGraph implements Graph<ModRefCandidate> {
 	private final OrdinalSet<InstanceKey> rootsPts;
 	
 	private final Map<UniqueParameterCandidate, Set<UniqueParameterCandidate>> isReachableFrom;
+	private final Map<ModRefRootCandidate, Set<UniqueParameterCandidate>> isReachableFromRoot;
 
 	private ModRefCandidateGraph(final InterProcCandidateModel modref, final LinkedHashSet<ModRefRootCandidate> roots,
 			final OrdinalSet<InstanceKey> rootsPts,
-			final Map<UniqueParameterCandidate, Set<UniqueParameterCandidate>> isReachableFrom) {
+			final Map<UniqueParameterCandidate, Set<UniqueParameterCandidate>> isReachableFrom,
+			final Map<ModRefRootCandidate, Set<UniqueParameterCandidate>> isReachableFromRoot) {
 		if (modref == null) {
 			throw new IllegalArgumentException();
 		} else if (roots == null) {
@@ -59,6 +64,7 @@ public class ModRefCandidateGraph implements Graph<ModRefCandidate> {
 		this.roots = roots;
 		this.rootsPts = rootsPts;
 		this.isReachableFrom = isReachableFrom;
+		this.isReachableFromRoot = isReachableFromRoot;
 	}
 
 	public static ModRefCandidateGraph compute(
@@ -69,8 +75,9 @@ public class ModRefCandidateGraph implements Graph<ModRefCandidate> {
 		final InterProcCandidateModel pdgModRef = modref.getCandidates(pdg.cgNode);
 		final LinkedHashSet<ModRefRootCandidate> roots = new LinkedHashSet<>(findMethodRoots(pa, pdg, modref.ignoreExceptions));
 		final OrdinalSet<InstanceKey> rootsPts = findMethodRootPts(pa, pdg, modref.ignoreExceptions);
+		final Map<ModRefRootCandidate, Set<UniqueParameterCandidate>> isReachableFromRoot = findReachableFromRoot(roots, pdgModRef);
 
-		final ModRefCandidateGraph g = new ModRefCandidateGraph(pdgModRef, roots, rootsPts, isReachableFrom);
+		final ModRefCandidateGraph g = new ModRefCandidateGraph(pdgModRef, roots, rootsPts, isReachableFrom, isReachableFromRoot);
 
 		return g;
 	}
@@ -81,6 +88,36 @@ public class ModRefCandidateGraph implements Graph<ModRefCandidate> {
 	
 	public OrdinalSet<InstanceKey> getRootsPts() {
 		return rootsPts;
+	}
+	
+	private static Map<ModRefRootCandidate, Set<UniqueParameterCandidate>> findReachableFromRoot(
+			LinkedHashSet<ModRefRootCandidate> roots,
+			InterProcCandidateModel pdgModRef) {
+		final Map<ModRefRootCandidate, Set<UniqueParameterCandidate>> result = new HashMap<>();
+		
+		for (ModRefRootCandidate root : roots) {
+			final OrdinalSet<InstanceKey> pts = root.getPts(); 
+			if (root.isPrimitive() == V.YES || pts == null) {
+				continue;
+			}
+			final Set<UniqueParameterCandidate> reachableFromRoot = new HashSet<>();
+			for (ModRefFieldCandidate candidate : pdgModRef) {
+				final ParameterCandidate pc = candidate.pc;
+				if (pc.isUnique()) {
+					if (pc.isBaseAliased(pts)) {
+						reachableFromRoot.add((UniqueParameterCandidate)pc);
+					}
+				} else {
+					for (UniqueParameterCandidate unique : pc.getUniques()) {
+						if (unique.isBaseAliased(pts)) {
+							reachableFromRoot.add(unique);
+						}
+					}
+				}
+			}
+			result.put(root, reachableFromRoot);
+		}
+		return result;
 	}
 
 	public static OrdinalSet<InstanceKey> findMethodRootPts(final PointsToWrapper pa, final PDG pdg,
@@ -528,16 +565,34 @@ public class ModRefCandidateGraph implements Graph<ModRefCandidate> {
 		}
 		return successors;
 	};
+	
+	private Set<ModRefCandidate> getSuccNodeSet(final ModRefRootCandidate nRoot) {
+		final Set<ModRefCandidate> successors = new HashSet<>();
+		
+		for (UniqueParameterCandidate fcUnique : isReachableFromRoot.getOrDefault(nRoot, Collections.emptySet())) {
+			final ModRefFieldCandidate fc = modref.getParameterCandidate(fcUnique);
+			
+			if (fc != null) {
+				assert (Iterators.contains(fc.getUniques().iterator(), fcUnique));
+				assert nRoot.isPotentialParentOf(fc);
+				successors.add(fc);
+			}
+		}
+		return successors;
+	};
 
 	@Override
 	public Iterator<ModRefCandidate> getSuccNodes(final ModRefCandidate n) {
 		if (!n.getType().isPrimitiveType()) {
-			if (n instanceof ModRefRootCandidate) {
-				return getSuccNodesSlow(n);
+			final Set<ModRefCandidate> successors;
+			if (n instanceof ModRefFieldCandidate) {
+				final ModRefFieldCandidate nField = (ModRefFieldCandidate) n;
+				successors = getSuccNodeSet(nField);
+			} else {
+				assert n instanceof ModRefRootCandidate;
+				final ModRefRootCandidate nRoot = (ModRefRootCandidate) n;
+				successors = getSuccNodeSet(nRoot);
 			}
-			
-			final ModRefFieldCandidate nField = (ModRefFieldCandidate) n;
-			final Set<ModRefCandidate> successors = getSuccNodeSet(nField);
 			
 			boolean assertionsEnabled = false;
 			assert (assertionsEnabled = true);

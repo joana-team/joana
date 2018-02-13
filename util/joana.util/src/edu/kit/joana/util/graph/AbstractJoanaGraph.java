@@ -294,6 +294,16 @@ public class AbstractJoanaGraph<V extends IntegerIdentifiable, E extends KnowsVe
 		return delegate.isAllowingMultipleEdges();
 	}
 
+	@Override
+	public void removeIncomingEdgesOf(V vertex) {
+		delegate.removeIncomingEdgesOf(vertex);
+	}
+
+	@Override
+	public void removeOutgoingEdgesOf(V vertex) {
+		delegate.removeOutgoingEdgesOf(vertex);
+	}
+
 	/**
 	 * @param arg0
 	 * @return

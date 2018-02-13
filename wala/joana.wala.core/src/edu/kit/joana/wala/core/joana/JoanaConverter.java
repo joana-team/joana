@@ -103,9 +103,7 @@ public class JoanaConverter {
 			sdg.addEdgeUnsafe(from, to, sdgEdge);
 		}
 		if (!keepEdges) {
-			ArrayList<PDGEdge> toRemove = new ArrayList<>(outgoing.size());
-			toRemove.addAll(outgoing);
-			pdg.removeAllEdges(toRemove);
+			pdg.removeOutgoingEdgesOf(node);
 		}
 	}
 

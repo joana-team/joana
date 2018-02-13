@@ -20,4 +20,6 @@ public interface EfficientGraph<V, E> extends Graph<V, E> {
 	boolean containsEdge(V sourceVertex, V targetVertex, Predicate<E> predicate);
 	Set<E> outgoingEdgesOfUnsafe(V vertex);
 	Set<E> incomingEdgesOfUnsafe(V vertex);
+	void removeIncomingEdgesOf(V vertex);
+	void removeOutgoingEdgesOf(V vertex);
 }

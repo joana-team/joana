@@ -597,6 +597,14 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
     {
         return specifics.incomingEdgesOfUnsafe(vertex);
     }
+    
+    public void removeIncomingEdgesOf(V vertex) {
+    	specifics.removeIncomingEdgesOf(vertex);
+    }
+    
+    public void removeOutgoingEdgesOf(V vertex) {
+    	specifics.removeOutgoingEdgesOf(vertex);
+    }
 
     /**
      * @see DirectedGraph#outDegreeOf(Object)
@@ -710,6 +718,8 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         boolean addOutgoingEdge(EE e);
         boolean removeIncomingEdge(EE e);
         boolean removeOutgoingEdge(EE e);
+        void removeIncomingEdges();
+        void removeOutgoingEdges();
         Rep incoming();
         Rep outgoing();
         
@@ -819,6 +829,16 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         	final boolean removed = set.remove(e);
         	outgoing = set.disown();
         	return removed;
+        }
+        
+        @Override
+        public void removeIncomingEdges() {
+        	incoming = null;
+        }
+        
+        @Override
+        public void removeOutgoingEdges() {
+        	outgoing = null;
         }
     }
     
@@ -972,6 +992,26 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             return getEdgeContainerUnsafe(vertex).getUnmodifiableIncomingEdges();
         }
 
+        public void removeIncomingEdgesOf(V vertex)
+        {
+        	final Set<E> incoming = getEdgeContainer(vertex).getUnmodifiableIncomingEdges();
+        	for (E e : incoming) {
+        		final boolean removedFromSource = getEdgeContainer(e.getSource()).removeOutgoingEdge(e);
+        		assert removedFromSource;
+        	}
+        	getEdgeContainer(vertex).removeIncomingEdges();
+        }
+        
+        public void removeOutgoingEdgesOf(V vertex)
+        {
+        	final Set<E> outgoing = getEdgeContainer(vertex).getUnmodifiableOutgoingEdges();
+        	for (E e : outgoing) {
+        		final boolean removedFromTarget = getEdgeContainer(e.getTarget()).removeIncomingEdge(e);
+        		assert removedFromTarget;
+        	}
+        	getEdgeContainer(vertex).removeOutgoingEdges();
+        }
+        
         /**
          * @see DirectedGraph#outDegreeOf(Object)
          */
@@ -980,6 +1020,9 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         	ArraySet<E> outgoing = ArraySet.own(getEdgeContainer(vertex).outgoing());
             return outgoing.size();
         }
+
+
+
 
         /**
          * @see DirectedGraph#outgoingEdgesOf(Object)

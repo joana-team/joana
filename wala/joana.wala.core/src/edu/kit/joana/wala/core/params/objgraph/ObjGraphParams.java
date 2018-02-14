@@ -502,7 +502,7 @@ public final class ObjGraphParams {
             
             
     		final CandidateFactory candFact = modref.getCandFact();
-    		final Map<UniqueParameterCandidate, Set<UniqueParameterCandidate>> isReachableFrom = new HashMap<>();
+    		final Map<UniqueParameterCandidate, Collection<UniqueParameterCandidate>> isReachableFrom = new HashMap<>();
     		for (UniqueParameterCandidate u1 : candFact.getUniqueCandidates()) {
     			for (UniqueParameterCandidate u2 : candFact.getUniqueCandidates()) {
     				if (u1.isReachableFrom(u2)) {
@@ -516,6 +516,12 @@ public final class ObjGraphParams {
     				}
     			}
     		}
+    		
+    		isReachableFrom.replaceAll((u, reachable) -> {
+    			final ArrayList<UniqueParameterCandidate> reachableArray = new ArrayList<>(reachable);
+    			reachableArray.trimToSize();
+    			return reachableArray;
+    		});
 
 			Stream<PDG> s = sdg.isParallel()?sdg.getAllPDGs().parallelStream():sdg.getAllPDGs().stream();
 			s.forEach(pdg -> {

@@ -47,12 +47,12 @@ public class ModRefCandidateGraph implements Graph<ModRefCandidate> {
 	private final LinkedHashSet<ModRefRootCandidate> roots;
 	private final OrdinalSet<InstanceKey> rootsPts;
 	
-	private final Map<UniqueParameterCandidate, Set<UniqueParameterCandidate>> isReachableFrom;
+	private final Map<UniqueParameterCandidate, ? extends Iterable<UniqueParameterCandidate>> isReachableFrom;
 	private final Map<ModRefRootCandidate, Set<UniqueParameterCandidate>> isReachableFromRoot;
 
 	private ModRefCandidateGraph(final InterProcCandidateModel modref, final LinkedHashSet<ModRefRootCandidate> roots,
 			final OrdinalSet<InstanceKey> rootsPts,
-			final Map<UniqueParameterCandidate, Set<UniqueParameterCandidate>> isReachableFrom,
+			final Map<UniqueParameterCandidate, ? extends Iterable<UniqueParameterCandidate>> isReachableFrom,
 			final Map<ModRefRootCandidate, Set<UniqueParameterCandidate>> isReachableFromRoot) {
 		if (modref == null) {
 			throw new IllegalArgumentException();
@@ -71,7 +71,7 @@ public class ModRefCandidateGraph implements Graph<ModRefCandidate> {
 			final PointsToWrapper pa,
 			final ModRefCandidates modref,
 			final PDG pdg,
-			final Map<UniqueParameterCandidate, Set<UniqueParameterCandidate>> isReachableFrom) {
+			final Map<UniqueParameterCandidate, ? extends Iterable<UniqueParameterCandidate>> isReachableFrom) {
 		final InterProcCandidateModel pdgModRef = modref.getCandidates(pdg.cgNode);
 		final LinkedHashSet<ModRefRootCandidate> roots = new LinkedHashSet<>(findMethodRoots(pa, pdg, modref.ignoreExceptions));
 		final OrdinalSet<InstanceKey> rootsPts = findMethodRootPts(pa, pdg, modref.ignoreExceptions);
@@ -551,7 +551,13 @@ public class ModRefCandidateGraph implements Graph<ModRefCandidate> {
 		final Set<ModRefCandidate> successors = new HashSet<>();
 		
 		for (UniqueParameterCandidate nUnique : nField.getUniques()) {
-			for (UniqueParameterCandidate fcUnique : isReachableFrom.getOrDefault(nUnique, Collections.emptySet())) {
+			final Iterable<UniqueParameterCandidate> reachable = isReachableFrom.get(nUnique);
+			
+			if (reachable == null) {
+				continue;
+			}
+			
+			for (UniqueParameterCandidate fcUnique : reachable) {
 				final ModRefFieldCandidate fc = modref.getParameterCandidate(fcUnique);
 				
 				if (fc != null) {

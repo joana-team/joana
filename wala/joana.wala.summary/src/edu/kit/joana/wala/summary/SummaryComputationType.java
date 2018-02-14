@@ -14,6 +14,7 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 
 public enum SummaryComputationType {
 	JOANA_CLASSIC(new SummaryComputer()),
+	JOANA_CLASSIC_SCC(new SummaryComputer3()),
 	SIMON_SCC(new SummaryComputer2()),
 	@Deprecated
 	SIMON_PARALLEL_SCC(new AlwaysParallel(new SummaryComputer2()));

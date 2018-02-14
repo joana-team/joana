@@ -77,6 +77,7 @@ import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.summary.SummaryComputation;
+import edu.kit.joana.wala.summary.SummaryComputationType;
 import edu.kit.joana.wala.summary.WorkPackage;
 import edu.kit.joana.wala.summary.WorkPackage.EntryPoint;
 import gnu.trove.set.TIntSet;
@@ -479,6 +480,7 @@ public final class CheckInformationFlow {
 		config.setExceptionAnalysis(ExceptionAnalysis.INTERPROC);
 		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH);
 		config.setPointsToPrecision(PointsToPrecision.INSTANCE_BASED);
+		config.setSummaryComputationType(SummaryComputationType.JOANA_CLASSIC_SCC);
 		config.setDefaultExceptionMethodState(new MethodState() {
 			@Override
 			public boolean throwsException(final SSAAbstractInvokeInstruction node) {

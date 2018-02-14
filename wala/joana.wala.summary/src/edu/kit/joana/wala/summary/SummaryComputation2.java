@@ -312,7 +312,7 @@ public class SummaryComputation2 {
 				", E: "+pack.getGraph().edgeSet().size());
 		
 		final HashSet<SDGEdge> formInOutSummaryEdge = new HashSet<>();
-		if (!parallel) {
+		if (parallel) {
 			SCCScheduler scheduler = new SCCScheduler(sccGraph, progress, summary, comp, formInOutSummaryEdge);
 			scheduler.start();
 		} else {

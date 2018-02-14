@@ -253,7 +253,7 @@ public class SummaryComputation2 {
 		}
 	}
 static int se=0,sp=0;
-	public static int compute(WorkPackage<SDG> pack, IProgressMonitor progress) throws CancelException {
+	public static int compute(WorkPackage<SDG> pack, IProgressMonitor progress, boolean parallel) throws CancelException {
 		
 		Set<SDGEdge.Kind> relevantEdges = new HashSet<SDGEdge.Kind>();
 		relevantEdges.add(SDGEdge.Kind.DATA_DEP);
@@ -294,7 +294,7 @@ static int se=0,sp=0;
 		int i = 1;
 		System.out.println("V: "+pack.getGraph().vertexSet().size()+
 				", E: "+pack.getGraph().edgeSet().size());
-		if (true) {
+		if (!parallel) {
 			SCCScheduler scheduler = new SCCScheduler(sccGraph, progress, summary, comp);
 			scheduler.start();
 		} else {
@@ -367,8 +367,8 @@ static int se=0,sp=0;
 		return compute(pack, SDGEdge.Kind.SUMMARY_DATA, relevantEdges, progress);
 	}*/
 
-	public static int computeFullAliasDataDep(WorkPackage<SDG> pack, IProgressMonitor progress) throws CancelException {
-		return compute(pack, progress);
+	public static int computeFullAliasDataDep(WorkPackage<SDG> pack, IProgressMonitor progress, boolean parallel) throws CancelException {
+		return compute(pack, progress, parallel);
 	}
 
 	/*public static int computeNoAliasDataDep(WorkPackage pack, IProgressMonitor progress) throws CancelException {

@@ -10,7 +10,6 @@ package edu.kit.joana.wala.summary;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -193,16 +192,16 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
 		SummaryComputation<SDG> comp = new SummaryComputation<SDG>(pack.getGraph(), pack.getAllFormalInIds(),
 				pack.getRelevantProcIds(), pack.getFullyConnected(), pack.getOut2In(),
 				pack.getRememberReached(), sumEdgeKind, relevantEdges, annotate);
-		Collection<SDGEdge> summary = comp.computeSummaryEdges(progress);
+		Collection<SDGEdge> formInOutSummaryEdge = comp.computeSummaryEdges(progress);
 
-		for (SDGEdge edge : summary) {
+		for (SDGEdge edge : formInOutSummaryEdge) {
 			pack.addSummaryDep(edge.getSource().getId(), edge.getTarget().getId());
 		}
 
 		// set work package to immutable and sort summary edges
 		pack.workIsDone();
 
-		return summary.size();
+		return formInOutSummaryEdge.size();
 	}
 
 	@SuppressWarnings("serial")

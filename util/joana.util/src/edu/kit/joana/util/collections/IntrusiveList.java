@@ -48,7 +48,7 @@ public class IntrusiveList<T extends Intrusable<T>> extends AbstractList<T>  { /
 		if (current == null) {
 			throw new IndexOutOfBoundsException();
 		}
-		return null;
+		return current;
 	}
 
 	@Override

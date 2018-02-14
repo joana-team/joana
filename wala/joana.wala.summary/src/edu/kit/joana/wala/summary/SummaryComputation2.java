@@ -12,7 +12,6 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.IntraproceduralSlicerBackward;
-import edu.kit.joana.util.Pair;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.set.TIntSet;
@@ -112,7 +111,7 @@ public class SummaryComputation2 {
     	return ret;
     }
 
-	private static DirectedGraph<SDGNode, DefaultEdge> extractReversedCallGraph(WorkPackage pack) {
+	private static DirectedGraph<SDGNode, DefaultEdge> extractReversedCallGraph(WorkPackage<SDG> pack) {
 		SDG graph = (SDG) pack.getGraph();
 		Map<SDGNode, Set<SDGNode>> entry2procs = graph.sortByProcedures();
 		final DirectedGraph<SDGNode, DefaultEdge> ret = new DefaultDirectedGraph<SDGNode, DefaultEdge>(
@@ -254,7 +253,7 @@ public class SummaryComputation2 {
 		}
 	}
 static int se=0,sp=0;
-	public static int compute(WorkPackage pack, IProgressMonitor progress) throws CancelException {
+	public static int compute(WorkPackage<SDG> pack, IProgressMonitor progress) throws CancelException {
 		
 		Set<SDGEdge.Kind> relevantEdges = new HashSet<SDGEdge.Kind>();
 		relevantEdges.add(SDGEdge.Kind.DATA_DEP);
@@ -368,7 +367,7 @@ static int se=0,sp=0;
 		return compute(pack, SDGEdge.Kind.SUMMARY_DATA, relevantEdges, progress);
 	}*/
 
-	public static int computeFullAliasDataDep(WorkPackage pack, IProgressMonitor progress) throws CancelException {
+	public static int computeFullAliasDataDep(WorkPackage<SDG> pack, IProgressMonitor progress) throws CancelException {
 		return compute(pack, progress);
 	}
 
@@ -725,7 +724,7 @@ static int se=0,sp=0;
 
                 case ACTUAL_IN:
                 	if (rememberReached) {
-                		BitVector bv = next.source.bv;
+                		BitVector bv = (BitVector) next.source.customData;
                 		int id = next.target.tmp;
 
                 		if (bv.contains(id)) {

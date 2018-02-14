@@ -250,8 +250,9 @@ public class SummaryComputation2 {
 			}
 		}
 	}
-static int se=0,sp=0;
-	public static int compute(WorkPackage<SDG> pack, IProgressMonitor progress, boolean parallel) throws CancelException {
+	
+	static int se=0,sp=0;
+	public static int compute(WorkPackage<SDG> pack, boolean parallel, IProgressMonitor progress) throws CancelException {
 		
 		Set<SDGEdge.Kind> relevantEdges = new HashSet<SDGEdge.Kind>();
 		relevantEdges.add(SDGEdge.Kind.DATA_DEP);
@@ -270,6 +271,16 @@ static int se=0,sp=0;
 		relevantEdges.add(SDGEdge.Kind.SUMMARY_NO_ALIAS);
 		relevantEdges.add(SDGEdge.Kind.SYNCHRONIZATION);
 		
+		return compute(pack, SDGEdge.Kind.SUMMARY, relevantEdges, parallel, progress);
+	}
+		
+	public static int compute(
+			WorkPackage<SDG> pack,
+			SDGEdge.Kind sumEdgeKind,
+			Set<SDGEdge.Kind> relevantEdges,
+			boolean parallel,
+			String annotate,
+			IProgressMonitor progress) throws CancelException {
 		for (SDGNode v : pack.getGraph().vertexSet()) {
 			pack.getGraph().incomingEdgesOf(v);
 			pack.getGraph().outgoingEdgesOf(v);
@@ -284,7 +295,7 @@ static int se=0,sp=0;
 		
 		SummaryComputation2 comp = new SummaryComputation2((SDG) pack.getGraph(), pack.getAllFormalInIds(),
 				pack.getRelevantProcIds(), pack.getFullyConnected(), pack.getOut2In(),
-				pack.getRememberReached(), SDGEdge.Kind.SUMMARY, relevantEdges, null);
+				pack.getRememberReached(), sumEdgeKind, relevantEdges, annotate);
 		System.out.println("Summary graph computation: "+(System.currentTimeMillis()-t));
 		t = System.currentTimeMillis();
 		se=0;sp=0;
@@ -323,7 +334,7 @@ static int se=0,sp=0;
 	}
 
 
-	/*public static int computeAdjustedAliasDep(WorkPackage pack, IProgressMonitor progress) throws CancelException {
+	public static int computeAdjustedAliasDep(WorkPackage<SDG> pack, boolean parallel, IProgressMonitor progress) throws CancelException {
 		// default summary computation follows control and date dependencies
 		Set<SDGEdge.Kind> relevantEdges = new HashSet<SDGEdge.Kind>();
 		relevantEdges.add(SDGEdge.Kind.DATA_DEP);
@@ -342,10 +353,10 @@ static int se=0,sp=0;
 		relevantEdges.add(SDGEdge.Kind.SUMMARY_NO_ALIAS);
 		relevantEdges.add(SDGEdge.Kind.SYNCHRONIZATION);
 
-		return compute(pack, SDGEdge.Kind.SUMMARY_DATA, relevantEdges, progress);
-	}*/
+		return compute(pack, SDGEdge.Kind.SUMMARY_DATA, relevantEdges, parallel, progress);
+	}
 
-	/*public static int computePureDataDep(WorkPackage pack, IProgressMonitor progress) throws CancelException {
+	public static int computePureDataDep(WorkPackage<SDG> pack, boolean parallel, IProgressMonitor progress) throws CancelException {
 		// default summary computation follows control and date dependencies
 		Set<SDGEdge.Kind> relevantEdges = new HashSet<SDGEdge.Kind>();
 		relevantEdges.add(SDGEdge.Kind.DATA_DEP);
@@ -362,14 +373,14 @@ static int se=0,sp=0;
 		relevantEdges.add(SDGEdge.Kind.SUMMARY_DATA);
 //		relevantEdges.add(SDGEdge.Kind.SYNCHRONIZATION);
 
-		return compute(pack, SDGEdge.Kind.SUMMARY_DATA, relevantEdges, progress);
-	}*/
-
-	public static int computeFullAliasDataDep(WorkPackage<SDG> pack, IProgressMonitor progress, boolean parallel) throws CancelException {
-		return compute(pack, progress, parallel);
+		return compute(pack, SDGEdge.Kind.SUMMARY_DATA, relevantEdges, parallel, progress);
 	}
 
-	/*public static int computeNoAliasDataDep(WorkPackage pack, IProgressMonitor progress) throws CancelException {
+	public static int computeFullAliasDataDep(WorkPackage<SDG> pack, boolean parallel, IProgressMonitor progress) throws CancelException {
+		return compute(pack, parallel, progress);
+	}
+
+	public static int computeNoAliasDataDep(WorkPackage<SDG> pack, boolean parallel, IProgressMonitor progress) throws CancelException {
 		Set<SDGEdge.Kind> relevantEdges = new HashSet<SDGEdge.Kind>();
 		relevantEdges.add(SDGEdge.Kind.DATA_DEP);
 		relevantEdges.add(SDGEdge.Kind.DATA_HEAP);
@@ -387,10 +398,10 @@ static int se=0,sp=0;
 		relevantEdges.add(SDGEdge.Kind.SUMMARY_NO_ALIAS);
 		relevantEdges.add(SDGEdge.Kind.SYNCHRONIZATION);
 
-		return compute(pack, SDGEdge.Kind.SUMMARY_NO_ALIAS, relevantEdges, progress);
-	}*/
+		return compute(pack, SDGEdge.Kind.SUMMARY_NO_ALIAS, relevantEdges, parallel, progress);
+	}
 
-	/*public static int computeHeapDataDep(WorkPackage pack, IProgressMonitor progress) throws CancelException {
+	public static int computeHeapDataDep(WorkPackage<SDG> pack, boolean parallel, IProgressMonitor progress) throws CancelException {
 		// default summary computation follows control and date dependencies
 		Set<SDGEdge.Kind> relevantEdges = new HashSet<SDGEdge.Kind>();
 		relevantEdges.add(SDGEdge.Kind.DATA_DEP);
@@ -409,13 +420,13 @@ static int se=0,sp=0;
 //		relevantEdges.add(SDGEdge.Kind.SUMMARY_NO_ALIAS);
 //		relevantEdges.add(SDGEdge.Kind.SYNCHRONIZATION);
 
-		return compute(pack, SDGEdge.Kind.SUMMARY_DATA, relevantEdges, progress);
-	}*/
+		return compute(pack, SDGEdge.Kind.SUMMARY_DATA, relevantEdges, parallel, progress);
+	}
 
-	/*private static int compute(WorkPackage pack, SDGEdge.Kind sumEdgeKind, Set<SDGEdge.Kind> relevantEdges,
-			IProgressMonitor progress) throws CancelException {
-		return compute(pack, sumEdgeKind, relevantEdges, null, progress);
-	}*/
+	private static int compute(WorkPackage<SDG> pack, SDGEdge.Kind sumEdgeKind, Set<SDGEdge.Kind> relevantEdges,
+			boolean parallel, IProgressMonitor progress) throws CancelException {
+		return compute(pack, sumEdgeKind, relevantEdges, parallel, null, progress);
+	}
 
 	/*private static int compute(WorkPackage pack, SDGEdge.Kind sumEdgeKind, Set<SDGEdge.Kind> relevantEdges,
 			String annotate, IProgressMonitor progress) throws CancelException {

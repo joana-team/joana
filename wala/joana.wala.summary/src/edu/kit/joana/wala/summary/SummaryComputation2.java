@@ -7,11 +7,12 @@
  */
 package edu.kit.joana.wala.summary;
 
+import edu.kit.joana.ifc.sdg.graph.BitVector;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.IntraproceduralSlicerBackward;
-import gnu.trove.map.TIntObjectMap;
+import edu.kit.joana.wala.summary.MainChangeTest.RememberReachedBitVector;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.set.TIntSet;
 
@@ -45,15 +46,13 @@ public class SummaryComputation2 {
     private final TIntSet relevantFormalIns;
     private final TIntSet relevantProcs;
     private final TIntSet fullyConnected;
-    private final TIntObjectMap<List<SDGNode>> out2in;
     private final boolean rememberReached;
     private final SDGEdge.Kind sumEdgeKind;
-    private final Set<SDGEdge.Kind> relevantEdges;
     private final String annotate;
     private final IntraproceduralSlicerBackward slicer;
 
 	private SummaryComputation2(SDG graph, TIntSet relevantFormalIns,
-			TIntSet relevantProcs, TIntSet fullyConnected, TIntObjectMap<List<SDGNode>> out2in,
+			TIntSet relevantProcs, TIntSet fullyConnected,
 			boolean rememberReached, SDGEdge.Kind sumEdgeKind, Set<SDGEdge.Kind> relevantEdges,
 			String annotate) {
     	this.graph = graph;
@@ -62,12 +61,16 @@ public class SummaryComputation2 {
     	this.relevantFormalIns = relevantFormalIns;
     	this.relevantProcs = relevantProcs;
     	this.fullyConnected = fullyConnected;
-        this.out2in = out2in;
         this.rememberReached = rememberReached;
         this.sumEdgeKind = sumEdgeKind;
-        this.relevantEdges = relevantEdges;
         this.annotate = annotate;
-		this.slicer = new IntraproceduralSlicerBackward(graph);
+		this.slicer = new IntraproceduralSlicerBackward(graph) {
+			protected boolean isAllowedEdge(SDGEdge e) {
+				boolean result = relevantEdges.contains(e.getKind());
+				assert !result || e.getKind().isIntraSDGEdge();
+				return result;
+			}
+		};
 	}
 	
 
@@ -162,15 +165,17 @@ public class SummaryComputation2 {
 		IProgressMonitor progress;
 		Collection<SDGEdge> summary;
 		SummaryComputation2 comp;
+		Set<SDGEdge> formInOutSummaryEdge;
 		int i = 1;
 		
 		public SCCScheduler(DirectedGraph<Set<SDGNode>, DefaultEdge> sccGraph, IProgressMonitor progress,
-				Collection<SDGEdge> summary, SummaryComputation2 comp) {
+				Collection<SDGEdge> summary, SummaryComputation2 comp, Set<SDGEdge> formInOutSummaryEdge) {
 			this.sccGraph = sccGraph;
 			this.countdown = new CountDownLatch(sccGraph.vertexSet().size());
 			this.progress = progress;
 			this.summary = summary;
 			this.comp = comp;
+			this.formInOutSummaryEdge = formInOutSummaryEdge;
 		}
 
 		void start() {
@@ -179,7 +184,7 @@ public class SummaryComputation2 {
 					if (sccGraph.inDegreeOf(scc) == 0) {
 						System.out.println("SCC "+i);
 						i++;
-						new SumCompThread(scc).start();
+						new SumCompThread(scc, formInOutSummaryEdge).start();
 					}
 				}
 			}
@@ -207,7 +212,7 @@ public class SummaryComputation2 {
 						}
 						System.out.print("SCC "+i);
 						i++;
-						new SumCompThread(succ).start();
+						new SumCompThread(succ, formInOutSummaryEdge).start();
 					}
 				}
 				countdown.countDown();
@@ -224,8 +229,10 @@ public class SummaryComputation2 {
 		
 		class SumCompThread extends Thread {
 			Set<SDGNode> scc;
-			SumCompThread(Set<SDGNode> scc) {
+			final Set<SDGEdge> formInOutSummaryEdge;
+			SumCompThread(Set<SDGNode> scc, Set<SDGEdge> formInOutSummaryEdge) {
 				this.scc = scc;
+				this.formInOutSummaryEdge = formInOutSummaryEdge;
 			}
 			
 			void setSCC(Set<SDGNode> scc) {
@@ -237,14 +244,14 @@ public class SummaryComputation2 {
 				if (scc.size() > 1) {
 					System.out.println(" with size "+scc.size() + ", se: "+se+", sp: "+sp);
 					try {
-						comp.computeSCCSummaryEdges(summary, scc, progress);
+						comp.computeSCCSummaryEdges(summary, scc, formInOutSummaryEdge, progress);
 					} catch (CancelException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				} else {
 					System.out.println(" , se: "+se+", sp: "+sp);
-					comp.computeMethodSummaryEdges(summary, scc.iterator().next(), progress);
+					comp.computeMethodSummaryEdges(summary, scc.iterator().next(), formInOutSummaryEdge, progress);
 				}
 				callback(scc, this);
 			}
@@ -294,7 +301,7 @@ public class SummaryComputation2 {
 				= new TopologicalOrderIterator<Set<SDGNode>, DefaultEdge>(sccGraph);
 		
 		SummaryComputation2 comp = new SummaryComputation2((SDG) pack.getGraph(), pack.getAllFormalInIds(),
-				pack.getRelevantProcIds(), pack.getFullyConnected(), pack.getOut2In(),
+				pack.getRelevantProcIds(), pack.getFullyConnected(),
 				pack.getRememberReached(), sumEdgeKind, relevantEdges, annotate);
 		System.out.println("Summary graph computation: "+(System.currentTimeMillis()-t));
 		t = System.currentTimeMillis();
@@ -303,32 +310,34 @@ public class SummaryComputation2 {
 		int i = 1;
 		System.out.println("V: "+pack.getGraph().vertexSet().size()+
 				", E: "+pack.getGraph().edgeSet().size());
+		
+		final HashSet<SDGEdge> formInOutSummaryEdge = new HashSet<>();
 		if (!parallel) {
-			SCCScheduler scheduler = new SCCScheduler(sccGraph, progress, summary, comp);
+			SCCScheduler scheduler = new SCCScheduler(sccGraph, progress, summary, comp, formInOutSummaryEdge);
 			scheduler.start();
 		} else {
 			while (topIter.hasNext()) {
 				Set<SDGNode> entries = topIter.next();
 				if (entries.size() > 1) {
 					System.out.println("SCC "+i+" with size "+entries.size() + ", se: "+se+", sp: "+sp);
-					comp.computeSCCSummaryEdges(summary, entries, progress);
+					comp.computeSCCSummaryEdges(summary, entries, formInOutSummaryEdge, progress);
 				} else {
 					System.out.println("SCC "+i + ", se: "+se+", sp: "+sp);
-					comp.computeMethodSummaryEdges(summary, entries.iterator().next(), progress);
+					comp.computeMethodSummaryEdges(summary, entries.iterator().next(), formInOutSummaryEdge, progress);
 				}
 				i++;
 			}
 		}
 		System.out.println("Summary computation: "+(System.currentTimeMillis()-t));
 
-		for (SDGEdge edge : summary) {
+		for (SDGEdge edge : formInOutSummaryEdge) {
 			pack.addSummaryDep(edge.getSource().getId(), edge.getTarget().getId());
 		}
 
 		// set work package to immutable and sort summary edges
 		pack.workIsDone();
 
-		return summary.size();
+		return formInOutSummaryEdge.size();
 
 		//return compute(pack, SDGEdge.Kind.SUMMARY, relevantEdges, progress);
 	}
@@ -446,11 +455,23 @@ public class SummaryComputation2 {
 	}*/
 
 
-	private void computeMethodSummaryEdges(Collection<SDGEdge> summary, SDGNode entry, IProgressMonitor progress) {
+	private void computeMethodSummaryEdges(Collection<SDGEdge> summary, SDGNode entry, Set<SDGEdge> formInOutSummaryEdge, IProgressMonitor progress) {
         for (SDGNode n : entry2outs.get(entry)) {
 			Collection<SDGNode> slice = slicer.slice(n);
 			for (SDGNode f : slice) {
 				if (f.getKind() == SDGNode.Kind.FORMAL_IN) {
+                    if (relevantFormalIns.contains(f.getId())) {
+                        SDGEdge fInOut;
+                        if (annotate != null && !annotate.isEmpty()) {
+                        	fInOut = new SDGEdge(f, n, sumEdgeKind, annotate);
+                        } else {
+                        	fInOut = new SDGEdge(f, n, sumEdgeKind);
+                        }
+
+                        synchronized(formInOutSummaryEdge) {
+                        	formInOutSummaryEdge.add(fInOut);
+                        }
+                    }
                     Collection<Edge> aiaoPairs = aiaoPairs(new Edge(f, n));
                     sp++;
                     for (Edge e : aiaoPairs) {
@@ -481,12 +502,22 @@ public class SummaryComputation2 {
                         }
                     }
 				}
+				if (rememberReached && f.getKind() == SDGNode.Kind.ACTUAL_IN) {
+                		BitVector bv = (RememberReachedBitVector) f.customData;
+                		int id = n.tmp;
+
+                		if (bv.contains(id)) {
+                			continue;
+                		}
+
+                		bv.set(id);
+               	}
 			}
 		}
 	}
 	
-	private Collection<SDGEdge> computeSCCSummaryEdges(Collection<SDGEdge> summary,
-    		Set<SDGNode> entries, IProgressMonitor progress) throws CancelException {
+	private void computeSCCSummaryEdges(Collection<SDGEdge> summary,
+    		Set<SDGNode> entries, Set<SDGEdge> formInOutSummaryEdge, IProgressMonitor progress) throws CancelException {
 		LinkedList<SDGNode> sliceWorklist = new LinkedList<>();
 		Map<SDGNode, Set<SDGNode>> sliceMap = new HashMap<>();
 		Map<SDGNode, Set<SDGNode>> actualOutSleep = new HashMap<>();
@@ -528,6 +559,16 @@ public class SummaryComputation2 {
 							actualInVisited.put(f,visitedSet);
 						}
 						visitedSet.addAll(foSet);
+						if (rememberReached && f.getKind() == SDGNode.Kind.ACTUAL_IN) {
+							BitVector bv = (RememberReachedBitVector) f.customData;
+							int id = n.tmp;
+
+							if (bv.contains(id)) {
+								continue;
+							}
+
+							bv.set(id);
+						}
 						break;
 					case ACTUAL_OUT:
 						Set<SDGNode> sleepSet = actualOutSleep.get(f);
@@ -538,6 +579,18 @@ public class SummaryComputation2 {
 						sleepSet.addAll(foSet);
 						break;
 					case FORMAL_IN:
+	                    if (relevantFormalIns.contains(f.getId())) {
+	                        SDGEdge fInOut;
+	                        if (annotate != null && !annotate.isEmpty()) {
+	                        	fInOut = new SDGEdge(f, n, sumEdgeKind, annotate);
+	                        } else {
+	                        	fInOut = new SDGEdge(f, n, sumEdgeKind);
+	                        }
+
+	                        synchronized(formInOutSummaryEdge) {
+	                        	formInOutSummaryEdge.add(fInOut);
+	                        }
+	                    }
 						Set<SDGNode> visitedFI = formalInVisited.get(f);
 						if (visitedFI == null) {
 							visitedFI = new HashSet<>();
@@ -607,7 +660,6 @@ public class SummaryComputation2 {
 			}
         }
         System.out.println("Z: "+z);
-		return summary;
 	}
 
 

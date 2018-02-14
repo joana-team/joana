@@ -595,7 +595,6 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
                 	
                     newE.target = ao;
                     assert newE.target.getProc() == newE.source.getProc();
-                    result.put(call, newE);
                 }
             }
         }

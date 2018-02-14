@@ -474,6 +474,7 @@ public class SDGProgram {
 		cfg.ctxSelector = config.getContextSelector();
 		cfg.ddisp = config.getDynamicDispatchHandling();
 		cfg.computeSummaryEdges = config.isComputeSummaryEdges();
+		cfg.summaryComputationType = config.getSummaryComputationType();
 		cfg.computeInterference = config.computeInterferences();
 		cfg.isParallel = config.isParallel();
 		cfg.controlDependenceVariant = config.getControlDependenceVariant();

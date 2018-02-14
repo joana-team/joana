@@ -51,6 +51,7 @@ import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
 import edu.kit.joana.wala.core.graphs.Dominators;
+import edu.kit.joana.wala.summary.SummaryComputationType;
 
 public class JoanaRunner {
 
@@ -115,6 +116,7 @@ public class JoanaRunner {
 		scfg.fieldPropagation = FieldPropagation.OBJ_GRAPH_NO_MERGE_AT_ALL;
 		scfg.debugManyGraphsDotOutput = false;
 		scfg.computeInterference = true;
+		scfg.summaryComputationType = SummaryComputationType.JOANA_CLASSIC;
 		scfg.computeAllocationSites = true;
 		scfg.cgConsumer = null;
 		scfg.additionalContextSelector = null;

@@ -23,6 +23,7 @@ import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig;
+import edu.kit.joana.wala.summary.SummaryComputationType;
 import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder;
 
 public class SDGConfig {
@@ -49,6 +50,7 @@ public class SDGConfig {
 	private ConstructionNotifier notifier = null;
 	private DynamicDispatchHandling ddisp = DynamicDispatchHandling.SIMPLE;
 	private boolean computeSummaryEdges = true;
+	private SummaryComputationType summaryComputationType = SummaryComputationType.JOANA_CLASSIC;
 	private boolean skipSDGProgramPart = false;
 	private ControlDependenceVariant controlDependenceVariant = SDGBuilder.defaultControlDependenceVariant;
 	private boolean isParallel = true;
@@ -77,6 +79,14 @@ public class SDGConfig {
 	
 	public boolean isComputeSummaryEdges() {
 		return this.computeSummaryEdges;
+	}
+	
+	public void setSummaryComputationType(SummaryComputationType summaryComputationType) {
+		this.summaryComputationType = summaryComputationType;
+	}
+	
+	public SummaryComputationType getSummaryComputationType() {
+		return summaryComputationType;
 	}
 
 	public void setSkipSDGProgramPart(final boolean value) {

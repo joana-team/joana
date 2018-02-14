@@ -57,6 +57,7 @@ import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph;
 import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
 import edu.kit.joana.wala.jodroid.io.AppSpec;
+import edu.kit.joana.wala.summary.SummaryComputationType;
 
 public class AndroidAnalysis {
 	public final static String STD_EXCLUSION_REG_EXP =
@@ -137,6 +138,7 @@ public class AndroidAnalysis {
 		scfg.additionalContextInterpreter = new IntentContextInterpreter(manager, cha, options, cache);
 		scfg.localKillingDefs = false;
 		scfg.abortAfterCG = onlyCG;
+		scfg.summaryComputationType = SummaryComputationType.JOANA_CLASSIC;
 		return scfg;
 	}
 	public SDGBuilder.SDGBuilderConfig makeSDGBuilderConfig(AppSpec appSpec, AnalysisScope scope, CGConsumer consumer, boolean silent, boolean onlyCG) throws ClassHierarchyException, IOException, CancelException {

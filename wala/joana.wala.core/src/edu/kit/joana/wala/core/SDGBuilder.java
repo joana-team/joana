@@ -2090,6 +2090,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		public boolean debugStaticInitializers = false;
 		public boolean computeInterference = true;
 		public boolean computeSummary = true;
+		public SummaryComputationType summaryComputationType = SummaryComputationType.JOANA_CLASSIC;
 		/*
 		 * If this flag is set, pdg nodes for all call sites of virtual methods contain
 		 * the possible allocation sites of the this-pointer (the ids of PDG nodes of the

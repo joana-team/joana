@@ -60,6 +60,7 @@ import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
 import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
 import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
+import edu.kit.joana.wala.summary.SummaryComputationType;
 import edu.kit.joana.wala.util.WriteGraphToDot;
 import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder;
 
@@ -387,6 +388,7 @@ public final class Main {
 		scfg.fieldPropagation = cfg.fieldPropagation;
 		scfg.debugManyGraphsDotOutput = cfg.debugManyGraphsDotOutput;
 		scfg.computeInterference = computeInterference;
+		scfg.summaryComputationType  = cfg.summaryComputationType;
 
 		return Pair.make(startTime, scfg);
 	}
@@ -463,6 +465,7 @@ public final class Main {
 		public FieldPropagation fieldPropagation;
 		public SideEffectDetectorConfig sideEffects = null;
 		public PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
+		public SummaryComputationType summaryComputationType = SummaryComputationType.JOANA_CLASSIC;
 
 		public Config(String name) {
 			this(name, "<no entry defined>", FieldPropagation.OBJ_GRAPH);

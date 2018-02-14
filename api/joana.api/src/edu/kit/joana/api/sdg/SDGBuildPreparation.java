@@ -64,6 +64,7 @@ import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
 import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
 import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
+import edu.kit.joana.wala.summary.SummaryComputationType;
 import edu.kit.joana.wala.util.WALAUtils;
 import edu.kit.joana.wala.util.WriteGraphToDot;
 import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder;
@@ -305,6 +306,7 @@ public final class SDGBuildPreparation {
 		scfg.debugManyGraphsDotOutput = cfg.debugManyGraphsDotOutput;
 		scfg.computeInterference = cfg.computeInterference;
 		scfg.computeSummary = cfg.computeSummaryEdges;
+		scfg.summaryComputationType = cfg.summaryComputationType;
 		scfg.computeAllocationSites = cfg.computeAllocationSites;
 		scfg.cgConsumer = cfg.cgConsumer;
 		scfg.additionalContextSelector = cfg.ctxSelector;
@@ -403,6 +405,7 @@ public final class SDGBuildPreparation {
 		public boolean accessPath;
 		public boolean computeInterference = false;
 		public boolean computeSummaryEdges = true;
+		public SummaryComputationType summaryComputationType = SummaryComputationType.JOANA_CLASSIC;
 		public boolean debugManyGraphsDotOutput = false;
 		public FieldPropagation fieldPropagation;
 		public SideEffectDetectorConfig sideEffects = null;

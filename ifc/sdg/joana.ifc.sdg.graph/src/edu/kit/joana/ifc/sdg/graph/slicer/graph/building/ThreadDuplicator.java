@@ -217,7 +217,7 @@ public final class ThreadDuplicator {
 
                 if (sink == null || source == null) continue;
 
-                SDGEdge edgeClone = new SDGEdge(source, sink, edge.getKind());
+                SDGEdge edgeClone =  edge.getKind().newEdge(source, sink);
 
                 data.addEdge(edgeClone);
             }
@@ -246,7 +246,7 @@ public final class ThreadDuplicator {
 
             for (SDGNode so : sources) {
                 for (SDGNode si : sinks) {
-                    SDGEdge edge = new SDGEdge(so, si, inter.getKind());
+                    SDGEdge edge = inter.getKind().newEdge(so, si);
 
                     data.addEdge(edge);
                     m++;

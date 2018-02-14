@@ -195,7 +195,7 @@ public class CSDGPreprocessor {
 
         for (SDGNode n : set) {
             if (n != root && n.getProc() == root.getProc() && sdg.getIncomingEdgesOfKind(n, SDGEdge.Kind.CONTROL_FLOW).isEmpty()){
-                sdg.addEdge(new SDGEdge(root, n, SDGEdge.Kind.CONTROL_FLOW));
+                sdg.addEdge(SDGEdge.Kind.CONTROL_FLOW.newEdge(root, n));
                 // print to stderr to embarrass the sdg creator
                 System.err.println("fix cfg: " + root.getLabel() + " to " + n.getLabel());
             }
@@ -339,7 +339,7 @@ public class CSDGPreprocessor {
             if (i.getJoin() != null) {
                 SDGNode source = i.getExit();
                 SDGNode target = i.getJoin();
-                SDGEdge e = new SDGEdge(source, target, SDGEdge.Kind.JOIN);
+                SDGEdge e = SDGEdge.Kind.JOIN.newEdge(source, target);
                 graph.addEdge(e);
             }
         }

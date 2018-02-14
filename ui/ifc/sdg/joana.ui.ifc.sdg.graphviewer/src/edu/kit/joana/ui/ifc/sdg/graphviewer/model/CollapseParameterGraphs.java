@@ -163,7 +163,7 @@ public final class CollapseParameterGraphs {
 				if (e.getKind() != SDGEdge.Kind.CONTROL_DEP_EXPR) {
 					// deflect edge
 					toRemove.add(e);
-					toAdd.add(new SDGEdge(anchor, e.getTarget(), e.getKind()));
+					toAdd.add(e.getKind().newEdge(anchor, e.getTarget()));
 				}
 			}
 
@@ -171,7 +171,7 @@ public final class CollapseParameterGraphs {
 				if (e.getKind() != SDGEdge.Kind.CONTROL_DEP_EXPR) {
 					// deflect edge
 					toRemove.add(e);
-					toAdd.add(new SDGEdge(e.getSource(), anchor, e.getKind()));
+					toAdd.add(e.getKind().newEdge(e.getSource(), anchor));
 				}
 			}
 		}
@@ -181,7 +181,7 @@ public final class CollapseParameterGraphs {
 		methodSdg.removeAllEdges(treeEdges);
 
 		// add edge from call to anchor
-		toAdd.add(new SDGEdge(root, anchor, SDGEdge.Kind.CONTROL_DEP_EXPR));
+		toAdd.add( SDGEdge.Kind.CONTROL_DEP_EXPR.newEdge(root, anchor));
 
 		// add edges
 		methodSdg.addAllEdges(toAdd);

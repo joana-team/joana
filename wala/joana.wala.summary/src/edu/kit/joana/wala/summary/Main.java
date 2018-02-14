@@ -560,7 +560,7 @@ public class Main {
 				assert (formalOut.getKind() == SDGNode.Kind.FORMAL_OUT);
 
 				// will lead to direct summary edges at all callsites.
-				SDGEdge ddEdge = new SDGEdge(formalIn, formalOut, SDGEdge.Kind.DATA_DEP);
+				SDGEdge ddEdge =  SDGEdge.Kind.DATA_DEP.newEdge(formalIn, formalOut);
 				toAdjust.addEdge(ddEdge);
 				newEdges++;
 			}
@@ -608,7 +608,7 @@ public class Main {
 //					throw new IllegalStateException("No matching actualOut found.");
 				}
 
-				SDGEdge sumEdge = new SDGEdge(actualIn, actualOut, SDGEdge.Kind.SUMMARY);
+				SDGEdge sumEdge =  SDGEdge.Kind.SUMMARY.newEdge(actualIn, actualOut);
 				toAdjust.addEdge(actualIn, actualOut, sumEdge);
 				newEdges++;
 			}

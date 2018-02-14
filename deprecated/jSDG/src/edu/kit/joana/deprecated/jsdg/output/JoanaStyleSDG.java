@@ -698,90 +698,90 @@ public final class JoanaStyleSDG {
             for (EdgeType type : edges) {
                 switch(type) {
                 case CD_TRUE:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_COND));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_COND.newEdge(source, target));
                     break;
                 case CD_FALSE:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_COND));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_COND.newEdge(source, target));
                     break;
                 case CD_EX:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_UNCOND));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_UNCOND.newEdge(source, target));
                     break; //TODO this break has not been here before -> this seemed to be broken, but it has to be checked
                 case CF: // Control flow - add only if addControlFLow is set
                     if (addControlFlow) {
-                        g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_FLOW));
+                        g.addEdge( edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_FLOW.newEdge(source, target));
                     }
                     break;
                 case CL:
                 	if (toInline != null && toInline.contains(source)) {
-                		g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_UNCOND));
+                		g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_UNCOND.newEdge(source, target));
                 		if (addControlFlow) {
-                    		g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_FLOW));
+                    		g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_FLOW.newEdge(source, target));
                 		}
                 	} else {
-                		g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CALL));
+                		g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CALL.newEdge(source, target));
                 	}
                     break;
                 case SU:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.SUMMARY));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.SUMMARY.newEdge(source, target));
                     break;
                 case DD:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_DEP));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_DEP.newEdge(source, target));
                     break;
                 case DH:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_HEAP));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_HEAP.newEdge(source, target));
                     break;
                 case CE:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_EXPR));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_EXPR.newEdge(source, target));
                     break;
                 case HE:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.HELP));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.HELP.newEdge(source, target));
                     break;
                 case UN:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_UNCOND));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_UNCOND.newEdge(source, target));
                     break;
                 case VD:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_DEP_EXPR_VALUE));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_DEP_EXPR_VALUE.newEdge(source, target));
                     break;
                 case PS:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.PARAMETER_STRUCTURE));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.PARAMETER_STRUCTURE.newEdge(source, target));
                     break;
                 case PI:
                 	if (toInline != null && toInline.contains(source)) {
-                		g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_DEP));
+                		g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_DEP.newEdge(source, target));
                 	} else {
-                		g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.PARAMETER_IN));
+                		g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.PARAMETER_IN.newEdge(source, target));
                 	}
                     break;
                 case PO:
                 	if (toInline != null && toInline.contains(target)) {
-                		g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_DEP));
+                		g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_DEP.newEdge(source, target));
                 	} else {
-                		g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.PARAMETER_OUT));
+                		g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.PARAMETER_OUT.newEdge(source, target));
                 	}
                     break;
                 case RD:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_DEP_EXPR_REFERENCE));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_DEP_EXPR_REFERENCE.newEdge(source, target));
                     break;
                 case CC:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_CALL));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_CALL.newEdge(source, target));
                     break;
                 case ID:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.INTERFERENCE));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.INTERFERENCE.newEdge(source, target));
                     break;
                 case IW:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.INTERFERENCE_WRITE));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.INTERFERENCE_WRITE.newEdge(source, target));
                     break;
                 case FORK:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.FORK));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.FORK.newEdge(source, target));
                     break;
                 case FORK_IN:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.FORK_IN));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.FORK_IN.newEdge(source, target));
                     break;
                 case FORK_OUT: // create interference edge
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.INTERFERENCE));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.INTERFERENCE.newEdge(source, target));
                     break;
                 case NTSCD:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.NTSCD));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.NTSCD.newEdge(source, target));
                     break;
                 default:
                     throw new RuntimeException("unknown edge type: "+type);

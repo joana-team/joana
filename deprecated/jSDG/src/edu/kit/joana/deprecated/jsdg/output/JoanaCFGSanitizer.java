@@ -99,13 +99,13 @@ public class JoanaCFGSanitizer {
 				for (SDGEdge edge : sdg.outgoingEdgesOf(entry)) {
 					assert edge.getTarget().kind != Kind.EXIT;
 					if (edge.getKind() == edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_FLOW ) {
-						SDGEdge newEdge = new SDGEdge(cnst, edge.getTarget(), edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_FLOW);
+						SDGEdge newEdge = edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_FLOW.newEdge(cnst, edge.getTarget());
 						sdg.addEdge(newEdge);
 						toRemove.add(edge);
 					}
 				}
 				sdg.removeAllEdges(toRemove);
-				SDGEdge edge = new SDGEdge(entry, cnst, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_FLOW);
+				SDGEdge edge = edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_FLOW.newEdge(entry, cnst);
 				sdg.addEdge(edge);
 			}
 			println("done.");
@@ -134,7 +134,7 @@ public class JoanaCFGSanitizer {
 						if ((outEdge.getKind() == edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_DEP || outEdge.getKind() == edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_HEAP
 								|| outEdge.getKind() == edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_ALIAS)
 								&& inEdge.getSource() != outEdge.getTarget()) {
-							SDGEdge newEdge = new SDGEdge(inEdge.getSource(), outEdge.getTarget(), inEdge.getKind());
+							SDGEdge newEdge = inEdge.getKind().newEdge(inEdge.getSource(), outEdge.getTarget());
 							sdg.addEdge(newEdge);
 						}
 					}

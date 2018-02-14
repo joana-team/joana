@@ -92,15 +92,15 @@ public class Sequentialize {
 
 			} else if (e.getKind() == SDGEdge.Kind.FORK) {
 				remove.add(e);
-				add.add(new SDGEdge(e.getSource(), e.getTarget(), SDGEdge.Kind.CALL));
+				add.add( SDGEdge.Kind.CALL.newEdge(e.getSource(), e.getTarget()));
 
 			} else if (e.getKind() == SDGEdge.Kind.FORK_IN) {
 				remove.add(e);
-				add.add(new SDGEdge(e.getSource(), e.getTarget(), SDGEdge.Kind.PARAMETER_IN));
+				add.add( SDGEdge.Kind.PARAMETER_IN.newEdge(e.getSource(), e.getTarget()));
 
 			} else if (e.getKind() == SDGEdge.Kind.FORK_OUT) {
 				remove.add(e);
-				add.add(new SDGEdge(e.getSource(), e.getTarget(), SDGEdge.Kind.PARAMETER_OUT));
+				add.add( SDGEdge.Kind.PARAMETER_OUT.newEdge(e.getSource(), e.getTarget()));
 			}
 		}
 

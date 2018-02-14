@@ -214,7 +214,7 @@ public final class CSDGPreprocessor {
 			if (i.getJoin() != null) {
 				SDGNode source = i.getExit();
 				SDGNode target = i.getJoin();
-				SDGEdge e = new SDGEdge(source, target, SDGEdge.Kind.JOIN);
+				SDGEdge e =  SDGEdge.Kind.JOIN.newEdge(source, target);
 				graph.addEdge(e);
 			}
 		}

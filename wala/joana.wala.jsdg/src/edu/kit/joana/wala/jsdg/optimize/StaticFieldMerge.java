@@ -155,14 +155,14 @@ public class StaticFieldMerge {
 		sdg.removeAllVertices(nodes);
 
 		sdg.addVertex(merge);
-		sdg.addEdge(new SDGEdge(entry, merge, SDGEdge.Kind.PARAMETER_STRUCTURE));
-		sdg.addEdge(new SDGEdge(entry, merge, SDGEdge.Kind.CONTROL_DEP_EXPR));
+		sdg.addEdge( SDGEdge.Kind.PARAMETER_STRUCTURE.newEdge(entry, merge));
+		sdg.addEdge( SDGEdge.Kind.CONTROL_DEP_EXPR.newEdge(entry, merge));
 
 		for (final SDGEdge e : out) {
 			if (e.getLabel() != null) {
 				sdg.addEdge(new LabeledSDGEdge(merge, e.getTarget(), e.getKind(), e.getLabel()));
 			} else {
-				sdg.addEdge(new SDGEdge(merge, e.getTarget(), e.getKind()));
+				sdg.addEdge(e.getKind().newEdge(merge, e.getTarget()));
 			}
 		}
 
@@ -170,7 +170,7 @@ public class StaticFieldMerge {
 			if (e.getLabel() != null) {
 				sdg.addEdge(new LabeledSDGEdge(e.getSource(), merge, e.getKind(), e.getLabel()));
 			} else {
-				sdg.addEdge(new SDGEdge(e.getSource(), merge, e.getKind()));
+				sdg.addEdge(e.getKind().newEdge(e.getSource(), merge));
 			}
 		}
 	}

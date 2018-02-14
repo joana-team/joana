@@ -170,7 +170,7 @@ public final class Dominator {
 				if (d == n) {
 					continue;
 				}
-				SDGEdge e = new SDGEdge(d, n, SDGEdge.Kind.CONTROL_FLOW);
+				SDGEdge e =  SDGEdge.Kind.CONTROL_FLOW.newEdge(d, n);
 				ret.addEdge(d, n, e);
 			}
 			for (SDGNode d : dom.get(n)) { //Nicht direkte Kannten entfernen
@@ -235,7 +235,7 @@ public final class Dominator {
 				if (d == n) {
 					continue;
 				}
-				SDGEdge e = new SDGEdge(d, n, SDGEdge.Kind.CONTROL_FLOW);
+				SDGEdge e =  SDGEdge.Kind.CONTROL_FLOW.newEdge(d, n);
 				ret.addEdge(d, n, e);
 			}
 			for (SDGNode d : dom.get(n)) { //Nicht direkte Kannten entfernen

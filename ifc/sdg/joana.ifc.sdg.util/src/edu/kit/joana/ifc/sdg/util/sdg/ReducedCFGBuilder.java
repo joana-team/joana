@@ -87,8 +87,7 @@ public final class ReducedCFGBuilder {
 		for (SDGEdge eIncoming : cfg.getIncomingEdgesOfKind(toRemove, SDGEdge.Kind.CONTROL_FLOW)) {
 			for (SDGEdge eOutgoing : cfg
 					.getOutgoingEdgesOfKind(toRemove, SDGEdge.Kind.CONTROL_FLOW)) {
-				edgesToAdd.add(new SDGEdge(eIncoming.getSource(), eOutgoing.getTarget(),
-						SDGEdge.Kind.CONTROL_FLOW));
+				edgesToAdd.add( SDGEdge.Kind.CONTROL_FLOW.newEdge(eIncoming.getSource(), eOutgoing.getTarget()));
 				edgesToRemove.add(eIncoming);
 				edgesToRemove.add(eOutgoing);
 			}
@@ -145,7 +144,7 @@ public final class ReducedCFGBuilder {
 			if (e.getSource().getKind() == SDGNode.Kind.ENTRY 
 					&& e.getTarget().getKind() == SDGNode.Kind.FORMAL_OUT) {
 				toRemove.add(e);
-				toAdd.add(new SDGEdge(e.getSource(), e.getTarget(), SDGEdge.Kind.HELP));
+				toAdd.add( SDGEdge.Kind.HELP.newEdge(e.getSource(), e.getTarget()));
 			}
 		}
 		

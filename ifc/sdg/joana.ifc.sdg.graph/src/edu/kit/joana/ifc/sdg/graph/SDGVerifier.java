@@ -92,9 +92,9 @@ public final class SDGVerifier {
 
 				String msg = descr(node) + " has self recursive edges: ";
 				for (SDGEdge edge : sdg.getAllEdges(node, node)) {
-					noInterferenceEdge |= edge.kind != SDGEdge.Kind.INTERFERENCE
-						&& edge.kind != SDGEdge.Kind.INTERFERENCE_WRITE && edge.kind != SDGEdge.Kind.SYNCHRONIZATION;
-					msg += edge.kind + ", ";
+					noInterferenceEdge |= edge.getKind() != SDGEdge.Kind.INTERFERENCE
+						&& edge.getKind() != SDGEdge.Kind.INTERFERENCE_WRITE && edge.getKind() != SDGEdge.Kind.SYNCHRONIZATION;
+					msg += edge.getKind() + ", ";
 				}
 
 				if (noInterferenceEdge) {
@@ -117,7 +117,7 @@ public final class SDGVerifier {
 				} else {
 					boolean hasControlFlow = false;
 					for (SDGEdge out : sdg.outgoingEdgesOf(node)) {
-						hasControlFlow |= out.kind == SDGEdge.Kind.CONTROL_FLOW;
+						hasControlFlow |= out.getKind() == SDGEdge.Kind.CONTROL_FLOW;
 						if (hasControlFlow) {
 							break;
 						}
@@ -132,9 +132,9 @@ public final class SDGVerifier {
 			if (node.kind != SDGNode.Kind.ENTRY) {
 				boolean hasControlDep = false;
 				for (SDGEdge out : sdg.incomingEdgesOf(node)) {
-					hasControlDep |= (out.kind == SDGEdge.Kind.CONTROL_DEP_COND)
-						|| (out.kind == SDGEdge.Kind.CONTROL_DEP_EXPR)
-						|| (out.kind == SDGEdge.Kind.CONTROL_DEP_UNCOND);
+					hasControlDep |= (out.getKind() == SDGEdge.Kind.CONTROL_DEP_COND)
+						|| (out.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR)
+						|| (out.getKind() == SDGEdge.Kind.CONTROL_DEP_UNCOND);
 					if (hasControlDep) {
 						break;
 					}
@@ -148,7 +148,7 @@ public final class SDGVerifier {
 					// check for incoming controlflow. all nodes except entry nodes should have an incoming flow
 					boolean hasControlFlow = false;
 					for (SDGEdge out : sdg.incomingEdgesOf(node)) {
-						hasControlFlow |= out.kind == SDGEdge.Kind.CONTROL_FLOW;
+						hasControlFlow |= out.getKind() == SDGEdge.Kind.CONTROL_FLOW;
 						if (hasControlFlow) {
 							break;
 						}
@@ -164,9 +164,9 @@ public final class SDGVerifier {
 				// up summary edge computation. The entry node may therefore be control
 				// dependent on a call.
 				for (SDGEdge out : sdg.incomingEdgesOf(node)) {
-					if ((out.kind == SDGEdge.Kind.CONTROL_DEP_COND)
-							|| (out.kind == SDGEdge.Kind.CONTROL_DEP_EXPR)
-							|| (out.kind == SDGEdge.Kind.CONTROL_DEP_UNCOND)) {
+					if ((out.getKind() == SDGEdge.Kind.CONTROL_DEP_COND)
+							|| (out.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR)
+							|| (out.getKind() == SDGEdge.Kind.CONTROL_DEP_UNCOND)) {
 						if (out.getSource().getKind() != SDGNode.Kind.CALL) {
 							// ignore controldep from calls to entry node
 							error(descr(node) + " is control dependend on: " + descr(out.getSource()));
@@ -182,8 +182,8 @@ public final class SDGVerifier {
 				boolean hasParamIn = false;
 				boolean hasSummary = false;
 				for (SDGEdge out : sdg.outgoingEdgesOf(node)) {
-					hasParamIn |= (out.kind == SDGEdge.Kind.PARAMETER_IN || out.kind == SDGEdge.Kind.FORK_IN);
-					hasSummary |= out.kind == SDGEdge.Kind.SUMMARY;
+					hasParamIn |= (out.getKind() == SDGEdge.Kind.PARAMETER_IN || out.getKind() == SDGEdge.Kind.FORK_IN);
+					hasSummary |= out.getKind() == SDGEdge.Kind.SUMMARY;
 					if (hasParamIn || hasSummary) {
 						break;
 					}
@@ -204,7 +204,7 @@ public final class SDGVerifier {
 				// to have a connected act-out node. So we skip them.
 				boolean hasParamOut = false;
 				for (SDGEdge out : sdg.outgoingEdgesOf(node)) {
-					hasParamOut |= (out.kind == SDGEdge.Kind.PARAMETER_OUT || out.kind == SDGEdge.Kind.FORK_OUT);
+					hasParamOut |= (out.getKind() == SDGEdge.Kind.PARAMETER_OUT || out.getKind() == SDGEdge.Kind.FORK_OUT);
 					if (hasParamOut) {
 						break;
 					}

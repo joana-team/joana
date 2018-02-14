@@ -18,6 +18,6 @@ import org.jgrapht.EdgeFactory;
 public class SDGFactory implements EdgeFactory<SDGNode, SDGEdge> {
 
     public SDGEdge createEdge( SDGNode v1, SDGNode v2 ) {
-        return new SDGEdge( v1, v2, SDGEdge.Kind.HELP);
+        return  SDGEdge.Kind.HELP.newEdge( v1, v2);
     }
 }

@@ -281,9 +281,9 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
                 	if (relevantFormalIns.contains(next.source.getId())) {
 	                	SDGEdge fInOut;
 	                	if (annotate != null && !annotate.isEmpty()) {
-	                		fInOut = new LabeledSDGEdge(next.source, next.target, sumEdgeKind, annotate);
+	                		fInOut =  new LabeledSDGEdge(next.source, next.target, sumEdgeKind, annotate);
 	                	} else {
-	                		fInOut = new SDGEdge       (next.source, next.target, sumEdgeKind);
+	                		fInOut = sumEdgeKind.newEdge(next.source, next.target);
 	                	}
 
 	                	formInOutSummaryEdge.add(fInOut);
@@ -298,9 +298,9 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
 
                         SDGEdge sum;
                         if (annotate != null && !annotate.isEmpty()) {
-                        	sum = new LabeledSDGEdge(e.source, e.target, sumEdgeKind, annotate);
+                        	sum =  new LabeledSDGEdge(e.source, e.target, sumEdgeKind, annotate);
                         } else {
-                        	sum = new SDGEdge       (e.source, e.target, sumEdgeKind);
+                        	sum = sumEdgeKind.newEdge(e.source, e.target);
                         }
 
                         if (graph.addEdgeUnsafe(e.source, e.target, sum)) {

@@ -199,7 +199,7 @@ public class MergeModules {
 		final SDGNode entry = findEntryNode(sum, im);
 
 		final SDGNode sdgEntry = findOrCreateNode(entry);
-		sdg.addEdge(call, sdgEntry, new SDGEdge(call, sdgEntry, SDGEdge.Kind.CALL));
+		sdg.addEdge(call, sdgEntry,  SDGEdge.Kind.CALL.newEdge(call, sdgEntry));
 
 		for (final SDGNode fIn : sum.getFormalInsOfProcedure(entry)) {
 			switch (fIn.getBytecodeIndex()) {
@@ -270,7 +270,7 @@ public class MergeModules {
 				final int sumToId = edge.getTarget().getId();
 				if (oldid2node.contains(sumToId)) {
 					final SDGNode sdgTo = oldid2node.get(sumToId);
-					sdg.addEdge(sdgNode, sdgTo, new SDGEdge(sdgNode, sdgTo, edge.getKind()));
+					sdg.addEdge(sdgNode, sdgTo, edge.getKind().newEdge(sdgNode, sdgTo));
 				}
 			}
 		}
@@ -346,9 +346,9 @@ public class MergeModules {
 		final boolean isIn = form.getKind() == SDGNode.Kind.FORMAL_IN;
 		final SDGNode sdgForm = findOrCreateNode(form);
 		if (isIn) {
-			sdg.addEdge(act, sdgForm, new SDGEdge(act, sdgForm, SDGEdge.Kind.PARAMETER_IN));
+			sdg.addEdge(act, sdgForm,  SDGEdge.Kind.PARAMETER_IN.newEdge(act, sdgForm));
 		} else {
-			sdg.addEdge(sdgForm, act, new SDGEdge(sdgForm, act, SDGEdge.Kind.PARAMETER_OUT));
+			sdg.addEdge(sdgForm, act,  SDGEdge.Kind.PARAMETER_OUT.newEdge(sdgForm, act));
 		}
 
 		for (final SDGEdge outEdge : callee.outgoingEdgesOf(form)) {
@@ -392,8 +392,8 @@ public class MergeModules {
 			actChild.tmp = formChild.getId();
 			actChild.setId(getNextNodeID());
 			sdg.addVertex(actChild);
-			sdg.addEdge(actParent, actChild, new SDGEdge(actParent, actChild, SDGEdge.Kind.PARAMETER_STRUCTURE));
-			sdg.addEdge(callNode, actChild, new SDGEdge(callNode, actChild, SDGEdge.Kind.CONTROL_DEP_EXPR));
+			sdg.addEdge(actParent, actChild,  SDGEdge.Kind.PARAMETER_STRUCTURE.newEdge(actParent, actChild));
+			sdg.addEdge(callNode, actChild,  SDGEdge.Kind.CONTROL_DEP_EXPR.newEdge(callNode, actChild));
 		}
 
 		return actChild;

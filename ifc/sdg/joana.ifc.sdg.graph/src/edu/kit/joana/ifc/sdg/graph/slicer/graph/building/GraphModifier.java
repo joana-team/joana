@@ -57,7 +57,7 @@ public final class GraphModifier {
                                 // compute return nodes and add return edges (with 'exit' as source)
                                 for (SDGEdge edge : sdg.outgoingEdgesOf(n)) {
                                     if (edge.getKind() == SDGEdge.Kind.CONTROL_FLOW) {
-                                        SDGEdge ret =  new SDGEdge(exit, edge.getTarget(), SDGEdge.Kind.RETURN);
+                                        SDGEdge ret =   SDGEdge.Kind.RETURN.newEdge(exit, edge.getTarget());
                                         sdg.addEdge(ret);
                                     }
                                 }
@@ -100,7 +100,7 @@ public final class GraphModifier {
 
             for (SDGEdge e : icfg.outgoingEdgesOf(call)) {
                 if (SDGEdge.Kind.CALL != e.getKind()) {
-                    SDGEdge deflect = new SDGEdge(join, e.getTarget(), e.getKind());
+                    SDGEdge deflect = e.getKind().newEdge(join, e.getTarget());
                     add.addFirst(deflect);
                     remove.addFirst(e);
                 }
@@ -117,7 +117,7 @@ public final class GraphModifier {
             }
 
             // add edge btwn. call and join
-            SDGEdge edge = new SDGEdge(call, join, SDGEdge.Kind.CONTROL_FLOW);
+            SDGEdge edge =  SDGEdge.Kind.CONTROL_FLOW.newEdge(call, join);
             icfg.addEdge(edge);
 
             idStart++;
@@ -223,13 +223,13 @@ public final class GraphModifier {
                 idStart++;
 
                 // add new CF edge between call and dummy
-                add.add(new SDGEdge(n, dummy, SDGEdge.Kind.CONTROL_FLOW));
+                add.add( SDGEdge.Kind.CONTROL_FLOW.newEdge(n, dummy));
 
                 // deflect edges at dummy return sites
                 // change the source of outgoing CF edges of call sites to the corresponding return site
                 for (SDGEdge cf : icfg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CONTROL_FLOW)) {
 
-                    add.add(new SDGEdge(dummy, cf.getTarget(), SDGEdge.Kind.CONTROL_FLOW));
+                    add.add( SDGEdge.Kind.CONTROL_FLOW.newEdge(dummy, cf.getTarget()));
                     remove.add(cf);
                 }
 
@@ -381,8 +381,8 @@ public final class GraphModifier {
             if (cfg.add(next)) {
                 // deflect the CF edges
                 for (SDGEdge oldEdge : oldOutgoing) {
-                    SDGEdge anchor_next = new SDGEdge(anchor, next, SDGEdge.Kind.CONTROL_FLOW);
-                    SDGEdge next_target = new SDGEdge(next, oldEdge.getTarget(), SDGEdge.Kind.CONTROL_FLOW);
+                    SDGEdge anchor_next =  SDGEdge.Kind.CONTROL_FLOW.newEdge(anchor, next);
+                    SDGEdge next_target =  SDGEdge.Kind.CONTROL_FLOW.newEdge(next, oldEdge.getTarget());
 
                     sdg.addEdge(anchor_next);
                     sdg.addEdge(next_target);
@@ -408,8 +408,8 @@ public final class GraphModifier {
             if (cfg.add(next)) {
                  // deflect the CF edges: put 'next' between 'anchor' and its old predecessors
                 for (SDGEdge oldEdge : oldIncoming) {
-                    SDGEdge source_next = new SDGEdge(oldEdge.getSource(), next, SDGEdge.Kind.CONTROL_FLOW);
-                    SDGEdge next_anchor = new SDGEdge(next, anchor, SDGEdge.Kind.CONTROL_FLOW);
+                    SDGEdge source_next =  SDGEdge.Kind.CONTROL_FLOW.newEdge(oldEdge.getSource(), next);
+                    SDGEdge next_anchor =  SDGEdge.Kind.CONTROL_FLOW.newEdge(next, anchor);
 
                     sdg.addEdge(source_next);
                     sdg.addEdge(next_anchor);
@@ -447,8 +447,8 @@ public final class GraphModifier {
 
                         assert (oldEdge.getTarget().getKind() != SDGNode.Kind.EXIT);
                         {
-                            SDGEdge anchor_next = new SDGEdge(anchor, next, SDGEdge.Kind.CONTROL_FLOW);
-                            SDGEdge next_target = new SDGEdge(next, oldEdge.getTarget(), SDGEdge.Kind.CONTROL_FLOW);
+                            SDGEdge anchor_next =  SDGEdge.Kind.CONTROL_FLOW.newEdge(anchor, next);
+                            SDGEdge next_target =  SDGEdge.Kind.CONTROL_FLOW.newEdge(next, oldEdge.getTarget());
 
                             sdg.addEdge(anchor_next);
                             sdg.addEdge(next_target);
@@ -458,8 +458,8 @@ public final class GraphModifier {
 
                 } else {
                     SDGEdge oldEdge = oldOutgoing.get(0);
-                    SDGEdge anchor_next = new SDGEdge(anchor, next, SDGEdge.Kind.CONTROL_FLOW);
-                    SDGEdge next_target = new SDGEdge(next, oldEdge.getTarget(), SDGEdge.Kind.CONTROL_FLOW);
+                    SDGEdge anchor_next =  SDGEdge.Kind.CONTROL_FLOW.newEdge(anchor, next);
+                    SDGEdge next_target =  SDGEdge.Kind.CONTROL_FLOW.newEdge(next, oldEdge.getTarget());
 
                     sdg.addEdge(anchor_next);
                     sdg.addEdge(next_target);
@@ -489,8 +489,8 @@ public final class GraphModifier {
                 // insert 'next' between 'anchor' and its predecesors
                 for (SDGEdge oldEdge : oldIncoming) {
                     if (oldEdge.getSource().getKind() != SDGNode.Kind.ENTRY) {
-                        SDGEdge source_next = new SDGEdge(oldEdge.getSource(), next, SDGEdge.Kind.CONTROL_FLOW);
-                        SDGEdge next_anchor = new SDGEdge(next, anchor, SDGEdge.Kind.CONTROL_FLOW);
+                        SDGEdge source_next =  SDGEdge.Kind.CONTROL_FLOW.newEdge(oldEdge.getSource(), next);
+                        SDGEdge next_anchor =  SDGEdge.Kind.CONTROL_FLOW.newEdge(next, anchor);
 
                         sdg.addEdge(source_next);
                         sdg.addEdge(next_anchor);
@@ -538,7 +538,7 @@ public final class GraphModifier {
         for (SDGNode next : list) {
             if (cfg.add(next)) {
                 // put next behind the last inserted node
-                SDGEdge anchor_next = new SDGEdge(anchor, next, SDGEdge.Kind.CONTROL_FLOW);
+                SDGEdge anchor_next =  SDGEdge.Kind.CONTROL_FLOW.newEdge(anchor, next);
 
                 sdg.addEdge(anchor_next);
             }
@@ -651,17 +651,17 @@ public final class GraphModifier {
         // substitute
         for (SDGEdge e : toSubstitute) {
             if (e.getKind() == SDGEdge.Kind.CALL) {
-                SDGEdge f = new SDGEdge(e.getSource(), e.getTarget(), SDGEdge.Kind.FORK);
+                SDGEdge f =  SDGEdge.Kind.FORK.newEdge(e.getSource(), e.getTarget());
 
                 l.add(f);
 
             } else if (e.getKind() == SDGEdge.Kind.PARAMETER_IN) {
-                SDGEdge f = new SDGEdge(e.getSource(), e.getTarget(), SDGEdge.Kind.FORK_IN);
+                SDGEdge f =  SDGEdge.Kind.FORK_IN.newEdge(e.getSource(), e.getTarget());
 
                 l.add(f);
 
             } else if (e.getKind() == SDGEdge.Kind.PARAMETER_OUT) {
-                SDGEdge f = new SDGEdge(e.getSource(), e.getTarget(), SDGEdge.Kind.FORK_OUT);
+                SDGEdge f =  SDGEdge.Kind.FORK_OUT.newEdge(e.getSource(), e.getTarget());
 
                 l.add(f);
             }

@@ -14,12 +14,14 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind;
  */
 public class LabeledSDGEdge extends SDGEdge {
 	private final String label;
+	private final Kind kind;
 	
 	/**
 	 * Creates an SDGEdge of kind `kind' from source to sink and labels it with `label'.
 	 */
 	public LabeledSDGEdge(SDGNode source, SDGNode sink, Kind kind, String label) {
-		super(source, sink, kind);
+		super(source, sink);
+		this.kind = kind;
 		this.label = label;
 	}
 
@@ -31,6 +33,11 @@ public class LabeledSDGEdge extends SDGEdge {
 	@Override
 	public boolean hasLabel() {
 		return label != null;
+	}
+	
+	@Override
+	public Kind getKind() {
+		return kind;
 	}
 
 	@Override
@@ -46,7 +53,7 @@ public class LabeledSDGEdge extends SDGEdge {
         }
         SDGEdge edge = (SDGEdge) o;
 
-        if (kind != edge.kind) return false;
+        if (kind != edge.getKind()) return false;
         if ((label == null) != (edge.getLabel() == null)) return false;
         if ((label != null) && !label.equals(edge.getLabel())) return false;
         if (!getSource().equals(edge.getSource())) return false;

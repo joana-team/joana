@@ -284,7 +284,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 					assert entryOfCalled.kind == SDGNode.Kind.ENTRY;
 					SDGNode exitOfCalled = findExit(icfg, entryOfCalled);
 					for (SDGNode iSucc : intraSucc) {
-						SDGEdge retEdge = new SDGEdge(exitOfCalled, iSucc, SDGEdge.Kind.RETURN);
+						SDGEdge retEdge =  SDGEdge.Kind.RETURN.newEdge(exitOfCalled, iSucc);
 						retEdges.add(retEdge);
 					}
 				}

@@ -257,7 +257,7 @@ public class SumCompManagerWithSeperatePackager extends ManagerClient {
 //					throw new IllegalStateException("No matching actualOut found.");
 				}
 
-				SDGEdge sumEdge = new SDGEdge(actualIn, actualOut, SDGEdge.Kind.SUMMARY);
+				SDGEdge sumEdge =  SDGEdge.Kind.SUMMARY.newEdge(actualIn, actualOut);
 				toAdjust.addEdge(actualIn, actualOut, sumEdge);
 				newEdges++;
 			}

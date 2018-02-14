@@ -200,7 +200,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
         final SDGNode to = sdg.getNode(e.to);
         final SDGEdge edge = (e.label != null 
           ? new LabeledSDGEdge(from, to, e.kind, e.label)
-          : new SDGEdge(from, to, e.kind));
+          :  e.kind.newEdge(from, to));
         
         sdg.addEdge(edge);
       }

@@ -164,7 +164,7 @@ public class DeclassificationSummaryNodes extends IncrementalSummaryBackward {
 
 					SDGEdge sum;
 					if (freePath(currentPathEdge)) {
-						sum = new SDGEdge(ai, ao, SDGEdge.Kind.SUMMARY);
+						sum = SDGEdge.Kind.SUMMARY.newEdge(ai, ao);
 					} else {
 						sum = new LabeledSDGEdge(ai, ao, SDGEdge.Kind.SUMMARY, currentPathEdge.getLabel());
 					}

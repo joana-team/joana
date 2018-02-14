@@ -136,7 +136,7 @@ public class IntraproceduralChopper extends Chopper {
         }
         for (SDGEdge e : l) {
         	g.removeEdge(e);
-        	if (e.getKind() == SDGEdge.Kind.FORK) g.addEdge(new SDGEdge(e.getSource(), e.getTarget(), SDGEdge.Kind.CALL));
+        	if (e.getKind() == SDGEdge.Kind.FORK) g.addEdge( SDGEdge.Kind.CALL.newEdge(e.getSource(), e.getTarget()));
         }
 
         IntraproceduralChopper chopper = new IntraproceduralChopper(g);

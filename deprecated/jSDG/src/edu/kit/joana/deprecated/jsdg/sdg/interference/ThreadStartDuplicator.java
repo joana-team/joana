@@ -414,7 +414,7 @@ public class ThreadStartDuplicator {
                 if (e.getKind().isIntraproceduralEdge()) {
                     SDGNode sourceClone = original_clone.get(e.getSource());
                     SDGNode targetClone = original_clone.get(e.getTarget());
-                    sdg.addEdge(new SDGEdge(sourceClone, targetClone, e.getKind()));
+                    sdg.addEdge(e.getKind().newEdge(sourceClone, targetClone));
 
                 } else {
                     boolean add = true;
@@ -450,7 +450,7 @@ public class ThreadStartDuplicator {
                         }
                     }
 
-                    if (add) sdg.addEdge(new SDGEdge(sourceClone, targetClone, e.getKind()));
+                    if (add) sdg.addEdge(e.getKind().newEdge(sourceClone, targetClone));
                 }
             }
         }

@@ -208,7 +208,7 @@ public class ISCRBuilder {
     						remove.add(e);
 
     					} else if (n != next) {
-    						add.add(new SDGEdge(source, n, SDGEdge.Kind.CONTROL_FLOW));
+    						add.add( SDGEdge.Kind.CONTROL_FLOW.newEdge(source, n));
     					}
     				}
     			}
@@ -235,7 +235,7 @@ public class ISCRBuilder {
     						remove.add(e);
 
     					} else if (n != next) {
-    						add.add(new SDGEdge(source, n, SDGEdge.Kind.CONTROL_FLOW));
+    						add.add( SDGEdge.Kind.CONTROL_FLOW.newEdge(source, n));
     					}
     				}
     			}
@@ -277,7 +277,7 @@ public class ISCRBuilder {
 	    						remove.add(e);
 
 	    					} else {
-	    						add.add(new SDGEdge(retSite, target, SDGEdge.Kind.CONTROL_FLOW));
+	    						add.add( SDGEdge.Kind.CONTROL_FLOW.newEdge(retSite, target));
 	    					}
 	    				}
 	    			}
@@ -309,7 +309,7 @@ public class ISCRBuilder {
     						remove.add(e);
 
     					} else {
-    						add.add(new SDGEdge(n, target, SDGEdge.Kind.CONTROL_FLOW));
+    						add.add( SDGEdge.Kind.CONTROL_FLOW.newEdge(n, target));
     					}
     				}
     			}
@@ -440,7 +440,7 @@ public class ISCRBuilder {
                 }
 
                 // add the edge to the CFG
-                clean.addEdge(new SDGEdge(next, m, edge.getKind()));
+                clean.addEdge(edge.getKind().newEdge(next, m));
             }
         }
 
@@ -449,7 +449,7 @@ public class ISCRBuilder {
         	if (clean.containsVertex(e.getSource()) && clean.containsVertex(e.getTarget())
         			&& e.getTarget().getKind() != SDGNode.Kind.FOLDED) {
 
-        		 clean.addEdge(new SDGEdge(e.getSource(), e.getTarget(), e.getKind()));
+        		 clean.addEdge(e.getKind().newEdge(e.getSource(), e.getTarget()));
         	}
         }
 
@@ -459,7 +459,7 @@ public class ISCRBuilder {
         for (SDGEdge e : clean.edgeSet()) {
         	if (e.getSource().getKind() == SDGNode.Kind.CALL && e.getKind() == SDGEdge.Kind.CONTROL_FLOW) {
         		remove.add(e);
-        		add.add(new SDGEdge(e.getSource(), e.getTarget(), SDGEdge.Kind.NO_FLOW));
+        		add.add( SDGEdge.Kind.NO_FLOW.newEdge(e.getSource(), e.getTarget()));
         	}
         }
         clean.removeAllEdges(remove);

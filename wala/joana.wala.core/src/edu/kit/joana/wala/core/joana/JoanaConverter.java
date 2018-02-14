@@ -197,7 +197,7 @@ public class JoanaConverter {
 
 		assert sdgKind != null;
 
-		SDGEdge edge = (label == null ? new SDGEdge(from, to, sdgKind) : new LabeledSDGEdge(from, to, sdgKind, label));
+		SDGEdge edge = (label == null ? sdgKind.newEdge(from, to) : new LabeledSDGEdge(from, to, sdgKind, label));
 
 		return edge;
 	}

@@ -366,7 +366,7 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 				annSummaryNode.setProvided(annOutClass);
 				fdefNodes.put(annSummaryNode, defNodes);
 				g.addVertex(annSummaryNode);
-				SDGEdge annEdge = new SDGEdge(annSummaryNode, actualOut, SDGEdge.Kind.SUMMARY);
+				SDGEdge annEdge = SDGEdge.Kind.SUMMARY.newEdge(annSummaryNode, actualOut);
 				g.addEdge(annEdge);
 				changed = true;
 			/* else update the old */
@@ -413,7 +413,7 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 				vioSummaryNode.setProvided(l.getTop());
 				fsecVios.put(vioSummaryNode, secVios);
 				g.addVertex(vioSummaryNode);
-				SDGEdge secVioEdge = new SDGEdge(vioSummaryNode, actualOut, SDGEdge.Kind.SUMMARY);
+				SDGEdge secVioEdge = SDGEdge.Kind.SUMMARY.newEdge(vioSummaryNode, actualOut);
 				g.addEdge(secVioEdge);
 				changed = true;
 				if (debug.isEnabled()) {
@@ -504,10 +504,10 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 					summaryNode.setProvided(maxOut);
 					g.addVertex(summaryNode);
 
-					SDGEdge sumEdge1 = new SDGEdge(actualIn, summaryNode, SDGEdge.Kind.SUMMARY);
+					SDGEdge sumEdge1 =  SDGEdge.Kind.SUMMARY.newEdge(actualIn, summaryNode);
 					g.addEdge(sumEdge1);
 
-					SDGEdge sumEdge2 = new SDGEdge(summaryNode, actualOut, SDGEdge.Kind.SUMMARY);
+					SDGEdge sumEdge2 = SDGEdge.Kind.SUMMARY.newEdge(summaryNode, actualOut);
 					g.addEdge(sumEdge2);
 					changed = true;
 

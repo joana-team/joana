@@ -128,7 +128,7 @@ public class SynchAnalysis {
 	private void createSynchDependence() {
 		for (SDGNode entry : mEntryToEnclosedNodes.keySet()) {
 			for (SDGNode n : mEntryToEnclosedNodes.get(entry)) {
-				sdg.addEdge(new SDGEdge(entry, n, SDGEdge.Kind.SYNCHRONIZATION));
+				sdg.addEdge( SDGEdge.Kind.SYNCHRONIZATION.newEdge(entry, n));
 			}
 		}
 	}

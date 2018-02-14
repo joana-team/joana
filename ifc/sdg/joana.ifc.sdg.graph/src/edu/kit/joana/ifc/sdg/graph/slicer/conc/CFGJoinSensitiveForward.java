@@ -270,7 +270,7 @@ public class CFGJoinSensitiveForward extends CFGForward {
                     for (SDGEdge po : g.getOutgoingEdgesOfKind(next.getSecondNode(), SDGEdge.Kind.RETURN)) {
                         SDGEdge unblock = null;
 
-                        final SDGEdge su = new SDGEdge(pi.getSource(), po.getTarget(), SDGEdge.Kind.CONTROL_FLOW); 
+                        final SDGEdge su =  SDGEdge.Kind.CONTROL_FLOW.newEdge(pi.getSource(), po.getTarget()); 
                         if (deact.contains(su)) {
                         	unblock = su;
                         }

@@ -74,7 +74,7 @@ public abstract class IncrementalSummarySlicer implements Slicer {
     	});
     	for (SDGNode n : c) {
     		if (isTransitiveStart(n)) {
-    			SDGEdge e = new SDGEdge(n, n, KIND);
+    			SDGEdge e =  KIND.newEdge(n, n);
 				worklistDown.add(e);
 				pathEdge.add(e);
     		} else {
@@ -94,7 +94,7 @@ public abstract class IncrementalSummarySlicer implements Slicer {
 
     				if (!slice.contains(v)) {
     					if (downwardsEdge(e)) {
-    						addPathEdge(v, new SDGEdge(v, v, KIND));
+    						addPathEdge(v,  KIND.newEdge(v, v));
 
     					} else {
     						worklist.add(v);
@@ -121,7 +121,7 @@ public abstract class IncrementalSummarySlicer implements Slicer {
 
     					// follow descending edges for the slice
     					// but start a new path for summary edges
-    					SDGEdge ee = new SDGEdge(v, downwardsEdge(e) ? v : w, KIND);
+    					SDGEdge ee =  KIND.newEdge(v, downwardsEdge(e) ? v : w);
     					addPathEdge(v, ee);
     				}
     			}
@@ -155,20 +155,20 @@ public abstract class IncrementalSummarySlicer implements Slicer {
 
 				if (root == root(ao)) {
 
-					SDGEdge sum = new SDGEdge(ai, ao, SDGEdge.Kind.SUMMARY);
+					SDGEdge sum =  SDGEdge.Kind.SUMMARY.newEdge(ai, ao);
 					graph.addEdge(sum);
 					// swap ai and ao iff forward
 					ao = startedNode(sum);
 					ai = reachedNode(sum);
 
-					SortedSet<SDGEdge> toCheck = pathEdge.tailSet(new SDGEdge(ao, ao, KIND));
+					SortedSet<SDGEdge> toCheck = pathEdge.tailSet( KIND.newEdge(ao, ao));
 					if (!toCheck.first().getSource().equals(ao) && slice.contains(ao) && !slice.contains(ai)) {
 						// corresponding actual-out node is in slice but not in pathedge
 						// => phase 1
 						worklist.add(ai);
-					} else for (SDGEdge path : new LinkedList<SDGEdge>(toCheck.headSet(new SDGEdge(
-							ao = graph.getNode(ao.getId() + 1), ao, KIND)))) { // XXX hack
-						SDGEdge ne = new SDGEdge(ai, path.getTarget(), KIND);
+					} else for (SDGEdge path : new LinkedList<SDGEdge>(toCheck.headSet( KIND.newEdge(
+							ao = graph.getNode(ao.getId() + 1), ao)))) { // XXX hack
+						SDGEdge ne =  KIND.newEdge(ai, path.getTarget());
 						addPathEdge(ai, ne);
 					}
 					break; // corresponding parameter pair done

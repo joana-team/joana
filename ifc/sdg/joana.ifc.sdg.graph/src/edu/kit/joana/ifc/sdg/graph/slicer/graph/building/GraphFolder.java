@@ -317,7 +317,7 @@ public final class GraphFolder {
 
             // for every node of the SCC create a fold-include edge to the fold node//
             for(SDGNode folded : scc){
-                SDGEdge fi = new SDGEdge(folded, fold, SDGEdge.Kind.FOLD_INCLUDE);
+                SDGEdge fi =  SDGEdge.Kind.FOLD_INCLUDE.newEdge(folded, fold);
                 
                 if (folded.equals(root)) {
                 	if (foldRoot != null) throw new IllegalStateException("Root not in multiple sccs");
@@ -331,7 +331,7 @@ public final class GraphFolder {
                 for(SDGEdge e : graph.outgoingEdgesOf(folded)){
                     if(!scc.contains(e.getTarget())){
                         // deflect edge
-                        SDGEdge deflect = new SDGEdge(fold, e.getTarget(), e.getKind());
+                        SDGEdge deflect = e.getKind().newEdge(fold, e.getTarget());
                         if (!exists(deflect, to_add)) {
                             to_add.addFirst(deflect);
                         }
@@ -346,13 +346,13 @@ public final class GraphFolder {
                 for(SDGEdge e : graph.incomingEdgesOf(folded)){
                     if(!scc.contains(e.getSource())){
                         if (e.getKind() == SDGEdge.Kind.FOLD_INCLUDE) {
-                            SDGEdge deflect = new SDGEdge(e.getSource(), fold, SDGEdge.Kind.FOLD_INCLUDE);
+                            SDGEdge deflect =  SDGEdge.Kind.FOLD_INCLUDE.newEdge(e.getSource(), fold);
                              if (!exists(deflect, to_add)) {
                                 to_add.addFirst(deflect);
                             }
                         } else{
                             // deflect edge
-                            SDGEdge deflect = new SDGEdge(e.getSource(), fold, e.getKind());
+                            SDGEdge deflect = e.getKind().newEdge(e.getSource(), fold);
                             if (!exists(deflect, to_add)) {
                                 to_add.addFirst(deflect);
                             }

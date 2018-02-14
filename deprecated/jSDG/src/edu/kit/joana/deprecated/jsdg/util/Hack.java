@@ -136,7 +136,7 @@ public class Hack {
             if (!ecfe) {
                 Log.warn("(1) missing control flow: "+entry+" --> "+exit
                    		+ " " + entry.getLabel() + "->" + exit.getLabel() + " in " + sdg.getEntry(entry).getLabel());
-                sdg.addEdge(new SDGEdge(entry, exit, SDGEdge.Kind.CONTROL_FLOW));
+                sdg.addEdge(SDGEdge.Kind.CONTROL_FLOW.newEdge(entry, exit));
             }
 
             for (SDGNode e : l) {
@@ -154,7 +154,7 @@ public class Hack {
                 if (!ecffo) {
                     Log.warn("(2) missing control flow: "+e+" --> "+exit
                     		+ " " + e.getLabel() + "->" + exit.getLabel() + " in " + sdg.getEntry(e).getLabel());
-                    sdg.addEdge(new SDGEdge(entry, e, SDGEdge.Kind.CONTROL_FLOW));
+                    sdg.addEdge(SDGEdge.Kind.CONTROL_FLOW.newEdge(entry, e));
                 }
 
                 boolean focffe = false;
@@ -166,7 +166,7 @@ public class Hack {
                 if (!focffe) {
                     Log.warn("(3) missing control flow: "+e+" --> "+exit
                     		+ " " + e.getLabel() + "->" + exit.getLabel() + " in " + sdg.getEntry(e).getLabel());
-                    sdg.addEdge(new SDGEdge(e, exit, SDGEdge.Kind.CONTROL_FLOW));
+                    sdg.addEdge(SDGEdge.Kind.CONTROL_FLOW.newEdge(e, exit));
                 }
             }
         }
@@ -291,7 +291,7 @@ public class Hack {
             if (exit != null) {
                 Log.warn("(4) missing control flow: "+n+" --> "+exit
                 		+ " " + n.getLabel() + "->" + exit.getLabel() + " in " + sdg.getEntry(n).getLabel());
-                sdg.addEdge(new SDGEdge(n, exit, SDGEdge.Kind.CONTROL_FLOW));
+                sdg.addEdge(SDGEdge.Kind.CONTROL_FLOW.newEdge(n, exit));
             }
         }
     }
@@ -333,7 +333,7 @@ public class Hack {
                 Log.info("(5) missing control flow: "+ e +" --> "+n
                 		+ " " + e.getLabel() + "->" + n.getLabel() + " in " + g.getEntry(e).getLabel()
                 		+ " [" + e.getKind() + " > "+ n.getKind() + "]");
-                fix.add(new SDGEdge(entry.get(n.getProc()), n, SDGEdge.Kind.CONTROL_FLOW));
+                fix.add(SDGEdge.Kind.CONTROL_FLOW.newEdge(entry.get(n.getProc()), n));
             }
         }
 
@@ -352,7 +352,7 @@ public class Hack {
             	SDGNode tmp = exit.get(n.getProc());
                 Log.warn("(6) missing control flow: "+n+" --> "+ tmp
                 		+ " " + n.getLabel() + "->" + tmp.getLabel() + " in " + g.getEntry(n).getLabel());
-                fix.add(new SDGEdge(n, exit.get(n.getProc()), SDGEdge.Kind.CONTROL_FLOW));
+                fix.add(SDGEdge.Kind.CONTROL_FLOW.newEdge(n, exit.get(n.getProc())));
             }
         }
 

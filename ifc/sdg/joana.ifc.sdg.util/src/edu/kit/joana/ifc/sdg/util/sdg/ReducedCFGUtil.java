@@ -33,7 +33,7 @@ public final class ReducedCFGUtil {
 		List<SDGEdge> toAdd = new LinkedList<SDGEdge>();
 		for (SDGEdge e : redICFG.edgeSet()) {
 			if (e.getKind() == SDGEdge.Kind.CONTROL_FLOW) {
-				toAdd.add(new SDGEdge(e.getSource(), e.getTarget(), SDGEdge.Kind.HELP));
+				toAdd.add( SDGEdge.Kind.HELP.newEdge(e.getSource(), e.getTarget()));
 			}
 		}
 		redICFG.addAllEdges(toAdd);

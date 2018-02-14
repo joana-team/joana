@@ -1516,7 +1516,7 @@ public class WalaConverter {
 
 	private boolean addEdge(final SDGNode from, final SDGNode to,
 			final edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind kind) {
-		final SDGEdge edge = new SDGEdge(from, to, kind);
+		final SDGEdge edge = kind.newEdge(from, to);
 
 		assert (!(from == to && kind != edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.INTERFERENCE	&& kind != edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.INTERFERENCE_WRITE))
 			: "Added self refering dependency that is not an inteference dep: " + from.getId() + "(" + from.getLabel() + ") "

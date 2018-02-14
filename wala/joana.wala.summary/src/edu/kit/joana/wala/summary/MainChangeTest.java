@@ -361,7 +361,7 @@ public class MainChangeTest {
 		for (SDGNode from : procNodes) {
 			for (SDGNode to : procNodes) {
 				if (from != to && nodesNotConnected(from, to, sdg)) {
-					final SDGEdge cand = new SDGEdge(from, to, SDGEdge.Kind.DATA_DEP);
+					final SDGEdge cand =  SDGEdge.Kind.DATA_DEP.newEdge(from, to);
 					candidates.add(cand);
 				}
 			}

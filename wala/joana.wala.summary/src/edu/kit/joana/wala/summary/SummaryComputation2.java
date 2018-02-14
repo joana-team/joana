@@ -788,3 +788,40 @@ public class SummaryComputation2 {
 
 }
 
+
+class SummaryComputer2 implements ISummaryComputer {
+	@Override
+	public int compute(WorkPackage<SDG> pack, boolean parallel, IProgressMonitor progress) throws CancelException {
+		return SummaryComputation2.compute(pack, parallel, progress);
+	}
+
+	@Override
+	public int computeAdjustedAliasDep(WorkPackage<SDG> pack, boolean parallel, IProgressMonitor progress)
+			throws CancelException {
+		return SummaryComputation2.computeAdjustedAliasDep(pack, parallel, progress);
+	}
+
+	@Override
+	public int computePureDataDep(WorkPackage<SDG> pack, boolean parallel, IProgressMonitor progress)
+			throws CancelException {
+		return SummaryComputation2.computePureDataDep(pack, parallel, progress);
+	}
+
+	@Override
+	public int computeFullAliasDataDep(WorkPackage<SDG> pack, boolean parallel, IProgressMonitor progress)
+			throws CancelException {
+		return SummaryComputation2.computeFullAliasDataDep(pack, parallel, progress);
+	}
+
+	@Override
+	public int computeNoAliasDataDep(WorkPackage<SDG> pack, boolean parallel, IProgressMonitor progress)
+			throws CancelException {
+		return SummaryComputation2.computeNoAliasDataDep(pack, parallel, progress);
+	}
+
+	@Override
+	public int computeHeapDataDep(WorkPackage<SDG> pack, boolean parallel, IProgressMonitor progress)
+			throws CancelException {
+		return SummaryComputation2.computeHeapDataDep(pack, parallel, progress);
+	}
+}

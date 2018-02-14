@@ -104,7 +104,9 @@ import edu.kit.joana.wala.core.params.objgraph.ModRefCandidates;
 import edu.kit.joana.wala.core.params.objgraph.ObjGraphParams;
 import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig;
 import edu.kit.joana.wala.flowless.util.Util;
+import edu.kit.joana.wala.summary.ISummaryComputer;
 import edu.kit.joana.wala.summary.SummaryComputation;
+import edu.kit.joana.wala.summary.SummaryComputationType;
 import edu.kit.joana.wala.summary.WorkPackage;
 import edu.kit.joana.wala.summary.WorkPackage.EntryPoint;
 import edu.kit.joana.wala.util.EdgeFilter;
@@ -465,11 +467,13 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			builder = null;
 		}
 
+		final ISummaryComputer summaryComputer = SummaryComputationType.JOANA_CLASSIC.getSummaryComputer();
+
 		if (cfg.computeSummary) {
 			if (cfg.accessPath) {
-				computeDataAndAliasSummaryEdges(cfg.out, pack, sdg, progress);
+				computeDataAndAliasSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress);
 			} else {
-				computeSummaryEdges(cfg.out, pack, sdg, progress);
+				computeSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress);
 			}
 		}
 
@@ -501,12 +505,14 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			}
 			builder = null;
 		}
+		
+		final ISummaryComputer summaryComputer = SummaryComputationType.JOANA_CLASSIC.getSummaryComputer();
 
 		if (cfg.computeSummary) {
 			if (cfg.accessPath) {
-				computeDataAndAliasSummaryEdges(cfg.out, pack, sdg, progress);
+				computeDataAndAliasSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress);
 			} else {
-				computeSummaryEdges(cfg.out, pack, sdg, progress);
+				computeSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress);
 			}
 		}
 
@@ -529,11 +535,13 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		
 		builder.purge();
 
+		final ISummaryComputer summaryComputer = SummaryComputationType.JOANA_CLASSIC.getSummaryComputer();
+		
 		if (cfg.computeSummary) {
 			if (cfg.accessPath) {
-				computeDataAndAliasSummaryEdges(cfg.out, pack, sdg, progress);
+				computeDataAndAliasSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress);
 			} else {
-				computeSummaryEdges(cfg.out, pack, sdg, progress);
+				computeSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress);
 			}
 		}
 
@@ -553,11 +561,13 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			pack = createSummaryWorkPackage(cfg.out, builder, sdg, progress);
 		}
 
+		final ISummaryComputer summaryComputer = SummaryComputationType.JOANA_CLASSIC.getSummaryComputer();
+
 		if (cfg.computeSummary) {
 			if (cfg.accessPath) {
-				computeDataAndAliasSummaryEdges(cfg.out, pack, sdg, progress);
+				computeDataAndAliasSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress);
 			} else {
-				computeSummaryEdges(cfg.out, pack, sdg, progress);
+				computeSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress);
 			}
 		}
 
@@ -602,17 +612,17 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		return pack;
 	}
 
-	private static void computeSummaryEdges(PrintStream out, WorkPackage<SDG> pack, SDG sdg, IProgressMonitor progress)
-			throws CancelException {
-		SummaryComputation.compute(pack, progress);
+	private static void computeSummaryEdges(PrintStream out, ISummaryComputer summaryComputer,
+			WorkPackage<SDG> pack, boolean isParallel, IProgressMonitor progress) throws CancelException {
+		summaryComputer.compute(pack, isParallel, progress);
 		out.print(".");
 	}
 
-	private static void computeDataAndAliasSummaryEdges(PrintStream out, WorkPackage<SDG> pack, SDG sdg,
-			IProgressMonitor progress) throws CancelException {
-		SummaryComputation.computeNoAliasDataDep(pack, progress);
+	private static void computeDataAndAliasSummaryEdges(PrintStream out, ISummaryComputer summaryComputer,
+			WorkPackage<SDG> pack, boolean isParallel, IProgressMonitor progress) throws CancelException {
+		summaryComputer.computeNoAliasDataDep(pack, isParallel, progress);
 		out.print(".");
-		SummaryComputation.computeFullAliasDataDep(pack, progress);
+		summaryComputer.computeFullAliasDataDep(pack, isParallel, progress);
 		out.print(".");
 	}
 

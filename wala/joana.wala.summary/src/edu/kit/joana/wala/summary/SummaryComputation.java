@@ -594,3 +594,40 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
     }
 
 }
+
+class SummaryComputer implements ISummaryComputer {
+	@Override
+	public int compute(WorkPackage<SDG> pack, boolean parallel, IProgressMonitor progress) throws CancelException {
+		return SummaryComputation.compute(pack, progress);
+	}
+
+	@Override
+	public int computeAdjustedAliasDep(WorkPackage<SDG> pack, boolean parallel, IProgressMonitor progress)
+			throws CancelException {
+		return SummaryComputation.computeAdjustedAliasDep(pack, progress);
+	}
+
+	@Override
+	public int computePureDataDep(WorkPackage<SDG> pack, boolean parallel, IProgressMonitor progress)
+			throws CancelException {
+		return SummaryComputation.computePureDataDep(pack, progress);
+	}
+
+	@Override
+	public int computeFullAliasDataDep(WorkPackage<SDG> pack, boolean parallel, IProgressMonitor progress)
+			throws CancelException {
+		return SummaryComputation.computeFullAliasDataDep(pack, progress);
+	}
+
+	@Override
+	public int computeNoAliasDataDep(WorkPackage<SDG> pack, boolean parallel, IProgressMonitor progress)
+			throws CancelException {
+		return SummaryComputation.computeNoAliasDataDep(pack, progress);
+	}
+
+	@Override
+	public int computeHeapDataDep(WorkPackage<SDG> pack, boolean parallel, IProgressMonitor progress)
+			throws CancelException {
+		return SummaryComputation.computeHeapDataDep(pack, progress);
+	}
+}

@@ -467,7 +467,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			builder = null;
 		}
 
-		final ISummaryComputer summaryComputer = SummaryComputationType.JOANA_CLASSIC.getSummaryComputer();
+		final ISummaryComputer summaryComputer = cfg.summaryComputationType.getSummaryComputer();
 
 		if (cfg.computeSummary) {
 			if (cfg.accessPath) {
@@ -506,7 +506,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			builder = null;
 		}
 		
-		final ISummaryComputer summaryComputer = SummaryComputationType.JOANA_CLASSIC.getSummaryComputer();
+		final ISummaryComputer summaryComputer = cfg.summaryComputationType.getSummaryComputer();
 
 		if (cfg.computeSummary) {
 			if (cfg.accessPath) {
@@ -534,8 +534,8 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		}
 		
 		builder.purge();
-
-		final ISummaryComputer summaryComputer = SummaryComputationType.JOANA_CLASSIC.getSummaryComputer();
+		
+		final ISummaryComputer summaryComputer = cfg.summaryComputationType.getSummaryComputer();
 		
 		if (cfg.computeSummary) {
 			if (cfg.accessPath) {
@@ -561,7 +561,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			pack = createSummaryWorkPackage(cfg.out, builder, sdg, progress);
 		}
 
-		final ISummaryComputer summaryComputer = SummaryComputationType.JOANA_CLASSIC.getSummaryComputer();
+		final ISummaryComputer summaryComputer = cfg.summaryComputationType.getSummaryComputer();
 
 		if (cfg.computeSummary) {
 			if (cfg.accessPath) {

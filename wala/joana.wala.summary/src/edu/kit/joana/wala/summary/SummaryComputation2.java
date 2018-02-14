@@ -8,6 +8,7 @@
 package edu.kit.joana.wala.summary;
 
 import edu.kit.joana.ifc.sdg.graph.BitVector;
+import edu.kit.joana.ifc.sdg.graph.LabeledSDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -463,9 +464,9 @@ public class SummaryComputation2 {
                     if (relevantFormalIns.contains(f.getId())) {
                         SDGEdge fInOut;
                         if (annotate != null && !annotate.isEmpty()) {
-                        	fInOut = new SDGEdge(f, n, sumEdgeKind, annotate);
+                        	fInOut = new LabeledSDGEdge(f, n, sumEdgeKind, annotate);
                         } else {
-                        	fInOut = new SDGEdge(f, n, sumEdgeKind);
+                        	fInOut = new SDGEdge       (f, n, sumEdgeKind);
                         }
 
                         synchronized(formInOutSummaryEdge) {
@@ -491,9 +492,9 @@ public class SummaryComputation2 {
 
                         SDGEdge sum;
                         if (annotate != null && !annotate.isEmpty()) {
-                        	sum = new SDGEdge(e.source, e.target, sumEdgeKind, annotate);
+                        	sum = new LabeledSDGEdge(e.source, e.target, sumEdgeKind, annotate);
                         } else {
-                        	sum = new SDGEdge(e.source, e.target, sumEdgeKind);
+                        	sum = new SDGEdge       (e.source, e.target, sumEdgeKind);
                         }
                         se++;
                         synchronized (graph) {
@@ -582,9 +583,9 @@ public class SummaryComputation2 {
 	                    if (relevantFormalIns.contains(f.getId())) {
 	                        SDGEdge fInOut;
 	                        if (annotate != null && !annotate.isEmpty()) {
-	                        	fInOut = new SDGEdge(f, n, sumEdgeKind, annotate);
+	                        	fInOut = new LabeledSDGEdge(f, n, sumEdgeKind, annotate);
 	                        } else {
-	                        	fInOut = new SDGEdge(f, n, sumEdgeKind);
+	                        	fInOut = new SDGEdge       (f, n, sumEdgeKind);
 	                        }
 
 	                        synchronized(formInOutSummaryEdge) {
@@ -620,9 +621,9 @@ public class SummaryComputation2 {
 			
 			                    SDGEdge sum;
 			                    if (annotate != null && !annotate.isEmpty()) {
-			                    	sum = new SDGEdge(e.source, e.target, sumEdgeKind, annotate);
+			                    	sum = new LabeledSDGEdge(e.source, e.target, sumEdgeKind, annotate);
 			                    } else {
-			                    	sum = new SDGEdge(e.source, e.target, sumEdgeKind);
+			                    	sum = new SDGEdge       (e.source, e.target, sumEdgeKind);
 			                    }
 			                    se++;
 			                    synchronized (graph) {

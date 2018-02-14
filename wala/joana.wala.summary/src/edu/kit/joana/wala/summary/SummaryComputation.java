@@ -21,6 +21,7 @@ import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 
 import edu.kit.joana.ifc.sdg.graph.BitVector;
+import edu.kit.joana.ifc.sdg.graph.LabeledSDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -280,9 +281,9 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
                 	if (relevantFormalIns.contains(next.source.getId())) {
 	                	SDGEdge fInOut;
 	                	if (annotate != null && !annotate.isEmpty()) {
-	                		fInOut = new SDGEdge(next.source, next.target, sumEdgeKind, annotate);
+	                		fInOut = new LabeledSDGEdge(next.source, next.target, sumEdgeKind, annotate);
 	                	} else {
-	                		fInOut = new SDGEdge(next.source, next.target, sumEdgeKind);
+	                		fInOut = new SDGEdge       (next.source, next.target, sumEdgeKind);
 	                	}
 
 	                	formInOutSummaryEdge.add(fInOut);
@@ -297,9 +298,9 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
 
                         SDGEdge sum;
                         if (annotate != null && !annotate.isEmpty()) {
-                        	sum = new SDGEdge(e.source, e.target, sumEdgeKind, annotate);
+                        	sum = new LabeledSDGEdge(e.source, e.target, sumEdgeKind, annotate);
                         } else {
-                        	sum = new SDGEdge(e.source, e.target, sumEdgeKind);
+                        	sum = new SDGEdge       (e.source, e.target, sumEdgeKind);
                         }
 
                         if (graph.addEdgeUnsafe(e.source, e.target, sum)) {

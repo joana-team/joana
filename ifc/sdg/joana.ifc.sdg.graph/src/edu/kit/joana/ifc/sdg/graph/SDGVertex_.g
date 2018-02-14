@@ -147,7 +147,7 @@ import gnu.trove.set.hash.TIntHashSet;
       for (final SDGEdgeStub e : edges) {
         final SDGNode to = sdg.getNode(e.to);
         final SDGEdge edge = (e.label != null 
-          ? new SDGEdge(from, to, e.kind, e.label)
+          ? new LabeledSDGEdge(from, to, e.kind, e.label)
           : new SDGEdge(from, to, e.kind));
         
         sdg.addEdge(edge);

@@ -22,6 +22,7 @@ import java.util.Set;
 import edu.kit.joana.ifc.sdg.core.interfaces.ProgressAnnouncer;
 import edu.kit.joana.ifc.sdg.core.interfaces.ProgressListener;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
+import edu.kit.joana.ifc.sdg.graph.LabeledSDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -524,7 +525,7 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 			}
 			/* Create Summary-Edge in case a freepath exists */
 			if (longer.fp && !summaryEdgeExistsBetween(actualIn, actualOut)) {
-				SDGEdge sumEdge = new SDGEdge(actualIn, actualOut, SDGEdge.Kind.SUMMARY, "njsec");
+				SDGEdge sumEdge = new LabeledSDGEdge(actualIn, actualOut, SDGEdge.Kind.SUMMARY, "njsec");
 				g.addEdge(sumEdge);
 				changed = true;
 			}

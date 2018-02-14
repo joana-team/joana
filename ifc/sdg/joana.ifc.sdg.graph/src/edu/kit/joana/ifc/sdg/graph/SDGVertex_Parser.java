@@ -1,4 +1,4 @@
-// $ANTLR 3.5.2 /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGVertex_.g 2017-05-26 13:42:43
+// $ANTLR 3.5.2 /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGVertex_.g 2018-02-14 22:01:38
 /**
  * This file is part of the Joana IFC project. It is developed at the
  * Programming Paradigms Group of the Karlsruhe Institute of Technology.
@@ -291,7 +291,7 @@ public class SDGVertex_Parser extends Parser {
 	      for (final SDGEdgeStub e : edges) {
 	        final SDGNode to = sdg.getNode(e.to);
 	        final SDGEdge edge = (e.label != null 
-	          ? new SDGEdge(from, to, e.kind, e.label)
+	          ? new LabeledSDGEdge(from, to, e.kind, e.label)
 	          : new SDGEdge(from, to, e.kind));
 	        
 	        sdg.addEdge(edge);

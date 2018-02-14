@@ -306,7 +306,6 @@ public class SDGEdge implements Cloneable, KnowsVertices<SDGNode> {
     protected SDGNode m_target;
 
     Kind kind;  // the kind of the edge
-    private String label;  // the label of the edge
 
     /**
      * Constructor for DefaultEdge.
@@ -401,14 +400,6 @@ public class SDGEdge implements Cloneable, KnowsVertices<SDGNode> {
     }
 
     /**
-     * Creates an SDGEdge of kind `kind' from source to sink and labels it with `label'.
-     */
-    public SDGEdge(SDGNode source, SDGNode sink, Kind kind, String label) {
-        this(source, sink, kind);
-        this.label = label;
-    }
-
-    /**
      * @return Returns the kind of the edge.
      */
     public SDGEdge.Kind getKind() {
@@ -419,24 +410,21 @@ public class SDGEdge implements Cloneable, KnowsVertices<SDGNode> {
      * @return `true' if the edge is labelled.
      */
     public boolean hasLabel() {
-        return label != null;
+        return false;
     }
 
     /**
      * @return Returns the label of the edge. Can be null.
      */
     public String getLabel() {
-        return label;
+        return null;
     }
 
     /**
      * @return A textual representation of the edge.
      */
     public String toString() {
-//        return label;
-        return new String(getSource() + " -" + getKind() + "-" +
-        		(label == null ? "" : label) + "> " + getTarget());
-        //return ""+getKind();
+        return new String(getSource() + " -" + getKind() + "-" + "> " + getTarget());
     }
 
     /**
@@ -453,9 +441,7 @@ public class SDGEdge implements Cloneable, KnowsVertices<SDGNode> {
         SDGEdge edge = (SDGEdge) o;
 
         if (kind != edge.kind) return false;
-        boolean labeled = label != null;
-        if (labeled == (edge.label == null)) return false;
-        if (labeled && !label.equals(edge.label)) return false;
+        if (edge.getLabel() != null) return false;
         if (!getSource().equals(edge.getSource())) return false;
         return getTarget().equals(edge.getTarget());
     }

@@ -13,6 +13,7 @@ import java.util.LinkedList;
 import java.util.Set;
 
 import edu.kit.joana.deprecated.jsdg.wala.BytecodeLocation;
+import edu.kit.joana.ifc.sdg.graph.LabeledSDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -158,11 +159,19 @@ public class StaticFieldMerge {
 		sdg.addEdge(new SDGEdge(entry, merge, SDGEdge.Kind.CONTROL_DEP_EXPR));
 
 		for (final SDGEdge e : out) {
-			sdg.addEdge(new SDGEdge(merge, e.getTarget(), e.getKind(), e.getLabel()));
+			if (e.getLabel() != null) {
+				sdg.addEdge(new LabeledSDGEdge(merge, e.getTarget(), e.getKind(), e.getLabel()));
+			} else {
+				sdg.addEdge(new SDGEdge(merge, e.getTarget(), e.getKind()));
+			}
 		}
 
 		for (final SDGEdge e : in) {
-			sdg.addEdge(new SDGEdge(e.getSource(), merge, e.getKind(), e.getLabel()));
+			if (e.getLabel() != null) {
+				sdg.addEdge(new LabeledSDGEdge(e.getSource(), merge, e.getKind(), e.getLabel()));
+			} else {
+				sdg.addEdge(new SDGEdge(e.getSource(), merge, e.getKind()));
+			}
 		}
 	}
 }

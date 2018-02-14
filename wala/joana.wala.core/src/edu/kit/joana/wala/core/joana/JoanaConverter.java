@@ -21,6 +21,7 @@ import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
+import edu.kit.joana.ifc.sdg.graph.LabeledSDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -196,7 +197,7 @@ public class JoanaConverter {
 
 		assert sdgKind != null;
 
-		SDGEdge edge = (label == null ? new SDGEdge(from, to, sdgKind) : new SDGEdge(from, to, sdgKind, label));
+		SDGEdge edge = (label == null ? new SDGEdge(from, to, sdgKind) : new LabeledSDGEdge(from, to, sdgKind, label));
 
 		return edge;
 	}

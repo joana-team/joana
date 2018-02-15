@@ -609,8 +609,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
         return result.values();
     }
 
-
-    public SDGNode getCallSiteFor(SDGNode node){
+    private SDGNode getCallSiteForSlow(SDGNode node){
         if (node.getKind() == SDGNode.Kind.ACTUAL_IN) {
             SDGNode n = node;
 
@@ -649,6 +648,22 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             }
 
         }
+        return null;
+    }
+    
+    private SDGNode getCallSiteFor(SDGNode node){
+    	assert node.getKind() == SDGNode.Kind.ACTUAL_IN || node.getKind() == SDGNode.Kind.ACTUAL_OUT;
+
+    	final Set<SDGEdge> edges = graph.incomingEdgesOfUnsafe(node);
+
+    	for(SDGEdge e : edges){
+    		if(e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR){
+    			assert e.getSource().getKind() == SDGNode.Kind.CALL; 
+    			assert e.getSource().equals(getCallSiteForSlow(node));
+    			return e.getSource();
+    		}
+    	}
+        assert getCallSiteForSlow(node) == null;
         return null;
     }
 

@@ -7,7 +7,6 @@
  */
 package edu.kit.joana.wala.core.joana;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Set;
@@ -27,12 +26,12 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGNode.Kind;
 import edu.kit.joana.ifc.sdg.graph.SDGNode.Operation;
+import edu.kit.joana.util.SourceLocation;
 import edu.kit.joana.wala.core.DependenceGraph;
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.SDGBuilder;
-import edu.kit.joana.wala.core.SourceLocation;
 import edu.kit.joana.wala.core.graphs.GraphWalker;
 import edu.kit.joana.wala.util.PrettyWalaNames;
 import gnu.trove.set.TIntSet;
@@ -313,7 +312,7 @@ public class JoanaConverter {
 		}
 		
 		SDGNode sn = new SecurityNode(node.getId(), op, node.getLabel(), node.getPdgId(), node.getType(),
-				sloc.getSourceFile(), sloc.getStartRow(), sloc.getStartColumn(), sloc.getEndRow(), sloc.getEndColumn(),
+				sloc,
 				node.getBytecodeName(), node.getBytecodeIndex(),
 				node.getLocalDefNames(), node.getLocalUseNames(),
 				node.getUnresolvedCallTarget(), allocNodes, clsLoader);

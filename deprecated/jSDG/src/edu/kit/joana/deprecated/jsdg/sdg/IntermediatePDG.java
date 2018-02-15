@@ -67,7 +67,7 @@ import edu.kit.joana.deprecated.jsdg.util.Log;
 import edu.kit.joana.deprecated.jsdg.util.Log.LogLevel;
 import edu.kit.joana.deprecated.jsdg.util.Util;
 import edu.kit.joana.deprecated.jsdg.wala.BytecodeLocation;
-import edu.kit.joana.deprecated.jsdg.wala.SourceLocation;
+import edu.kit.joana.util.SourceLocation;
 
 /**
  * Contains most of the intraprocedural pdg creation except the tricky part

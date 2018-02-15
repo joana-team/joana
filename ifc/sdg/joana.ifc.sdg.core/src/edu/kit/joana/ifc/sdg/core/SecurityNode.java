@@ -8,6 +8,7 @@
 package edu.kit.joana.ifc.sdg.core;
 
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.util.SourceLocation;
 
 
 /**
@@ -30,29 +31,29 @@ public class SecurityNode extends SDGNode {
     private String provided = SecurityNode.UNDEFINED;
 
     public SecurityNode(int id, Operation op, String value, int proc,
-            String type, String source, int sr, int sc, int er, int ec, String bcName, int bcIndex,
+            String type, SourceLocation sourceLocation, String bcName, int bcIndex,
             String[] localDefNames, String[] localUseNames,
             String unresolvedCallTarget,
             int[] allocationSites,
             String clsLoader) {
-        super(id, op, value, proc, type, source, sr, sc, er, ec, bcName, bcIndex, localDefNames, localUseNames, unresolvedCallTarget, allocationSites, clsLoader);
+        super(id, op, value, proc, type, sourceLocation, bcName, bcIndex, localDefNames, localUseNames, unresolvedCallTarget, allocationSites, clsLoader);
     }
 
     public SecurityNode(int kind, int id, Operation op, String value, int proc,
-            String type, String source, int sr, int sc, int er, int ec, String bcName, int bcIndex,
+            String type, SourceLocation sourceLocation, String bcName, int bcIndex,
             String[] localDefNames, String[] localUseNames,
             String unresolvedCallTarget,
             int[] allocationSites,
             String clsLoader) {
-        super(op.getKind(kind), id, op, value, proc, type, source, sr, sc, er, ec, bcName, bcIndex, localDefNames, localUseNames, unresolvedCallTarget, allocationSites, clsLoader);
+        super(op.getKind(kind), id, op, value, proc, type, sourceLocation, bcName, bcIndex, localDefNames, localUseNames, unresolvedCallTarget, allocationSites, clsLoader);
     }
 
     public SecurityNode(SDGNode n) {
-    	super(n.getId(), n.getOperation(), n.getLabel(), n.getProc(), n.getType(), n.getSource(), n.getSr(), n.getSc(), n.getEr(), n.getEc(), n.getBytecodeName(), n.getBytecodeIndex(), n.getLocalDefNames(), n.getLocalUseNames(), n.getUnresolvedCallTarget(), n.getAllocationSites(), n.getClassLoader());
+    	super(n.getId(), n.getOperation(), n.getLabel(), n.getProc(), n.getType(), n.getSourceLocation(), n.getBytecodeName(), n.getBytecodeIndex(), n.getLocalDefNames(), n.getLocalUseNames(), n.getUnresolvedCallTarget(), n.getAllocationSites(), n.getClassLoader());
     }
 
     public SecurityNode clone() {
-        SecurityNode ret = new SecurityNode(0, getId(), operation, getLabel(), getProc(), getType(), getSource(), getSr(), getSc(), getEr(), getEc(), getBytecodeName(), getBytecodeIndex(), getLocalDefNames(), getLocalUseNames(), getUnresolvedCallTarget(), getAllocationSites(), getClassLoader());
+        SecurityNode ret = new SecurityNode(0, getId(), operation, getLabel(), getProc(), getType(), getSourceLocation(), getBytecodeName(), getBytecodeIndex(), getLocalDefNames(), getLocalUseNames(), getUnresolvedCallTarget(), getAllocationSites(), getClassLoader());
         ret.setRequired(getRequired());
         ret.setProvided(getProvided());
         return ret;
@@ -174,14 +175,14 @@ public class SecurityNode extends SDGNode {
     	 * @see edu.kit.joana.ifc.sdg.graph.SDGNode.NodeFactory#createNode(edu.kit.joana.ifc.sdg.graph.SDGNode.Operation, int, int, java.lang.String, int, java.lang.String, java.lang.String, int, int, int, int, java.lang.String, int)
     	 */
         public SDGNode createNode(Operation op, int kind, int id, String value, int proc,
-                String type, String source, int sr, int sc, int er, int ec,
+                String type, SourceLocation sourceLocation,
                 String bcName, int bcIndex,
                 String[] localDefNames, String[] localUseNames,
                 String unresolvedCallTarget,
                 int[] allocationSites,
                 String clsLoader) {
             return new SecurityNode(kind, id, op, value, proc, type,
-                    source, sr, sc, er, ec, bcName, bcIndex, localDefNames, localUseNames, unresolvedCallTarget, allocationSites, clsLoader);
+                    sourceLocation, bcName, bcIndex, localDefNames, localUseNames, unresolvedCallTarget, allocationSites, clsLoader);
         }
     }
 }

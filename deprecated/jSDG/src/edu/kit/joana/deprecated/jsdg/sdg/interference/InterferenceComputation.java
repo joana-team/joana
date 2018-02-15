@@ -58,9 +58,9 @@ import edu.kit.joana.deprecated.jsdg.sdg.pointsto.PointsToWrapper;
 import edu.kit.joana.deprecated.jsdg.util.Debug;
 import edu.kit.joana.deprecated.jsdg.util.Log;
 import edu.kit.joana.deprecated.jsdg.util.Util;
-import edu.kit.joana.deprecated.jsdg.wala.SourceLocation;
 import edu.kit.joana.deprecated.jsdg.wala.objecttree.IKey2Origin;
 import edu.kit.joana.deprecated.jsdg.wala.objecttree.IKey2Origin.InstanceKeyOrigin;
+import edu.kit.joana.util.SourceLocation;
 import edu.kit.joana.util.maps.MultiMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 

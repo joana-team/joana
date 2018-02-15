@@ -26,6 +26,7 @@ import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
+import edu.kit.joana.util.SourceLocation;
 }
 
 @members {
@@ -50,8 +51,8 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
 
   // Stores always the last position specified by a previous node. This is used
   // for sane error recovery, when no position is defined for a node:
-  // We assume that its position may be somewhat equal to its pred node. 
-  private static SourcePos defaultSrcPos = new SourcePos("undefined", 0, 0, 0, 0);
+  // We assume that its position may be somewhat equal to its pred node.
+  private static SourceLocation defaultSrcPos = SourceLocation.UNKNOWN; 
   private static ByteCodePos defaultBcPos = new ByteCodePos("<undefined>", -1);
 
   @Override
@@ -118,7 +119,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
   
     private final SDGNode.Kind kind;
     private final int id;
-    private SourcePos spos;
+    private SourceLocation spos;
     private ByteCodePos bpos;
     private int procId;
     private SDGNode.Operation op;
@@ -134,7 +135,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
     private List<String> localUseNames;
     private final List<SDGEdgeStub> edges = new LinkedList<SDGEdgeStub>();
     
-    private SDGNodeStub(final SDGNode.Kind kind, final int id, SourcePos defSPos, ByteCodePos defBPos) {
+    private SDGNodeStub(final SDGNode.Kind kind, final int id, SourceLocation defSPos, ByteCodePos defBPos) {
       this.kind = kind;
       this.id = id;
       this.spos = defSPos;
@@ -185,8 +186,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
           localUseNames = null;
         }
         
-        final SDGNode n = nf.createNode(op, kindId, id, val, procId, type, spos.filename,
-              spos.startRow, spos.startColumn, spos.endRow, spos.endColumn, bpos.name, bpos.index,
+        final SDGNode n = nf.createNode(op, kindId, id, val, procId, type, spos, bpos.name, bpos.index,
               localDefNames, localUseNames, unresolvedCallTarget, allocSites, classLoader);
 
         if (nonTerm) {
@@ -212,24 +212,6 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
         
         sdg.addEdge(edge);
       }
-    }
-  }
-  
-  static final class SourcePos {
-  
-    private final String filename;
-    private final int startRow;
-    private final int startColumn;
-    private final int endRow;
-    private final int endColumn;
-  
-    private SourcePos(final String filename, final int startRow, final int startColumn,
-        final int endRow, final int endColumn) {
-        this.filename = filename;
-        this.startRow = startRow;
-        this.startColumn = startColumn;
-        this.endRow = endRow;
-        this.endColumn = endColumn;
     }
   }
   
@@ -429,9 +411,9 @@ private may_neg_num_set returns [TIntSet nums = new TIntHashSet();]
   : n=mayNegNumber { nums.add(n); } (',' n2=mayNegNumber { nums.add(n2); } )*
   ;
 
-private node_source returns [SourcePos spos]
+private node_source returns [SourceLocation spos]
   : filename=string ':' startRow=number ',' startColumn=number '-' endRow=number ',' endColumn=number
-      { spos = new SourcePos(filename, startRow, startColumn, endRow, endColumn); }
+      { spos = spos = SourceLocation.getLocation(filename, startRow, startColumn, endRow, endColumn); }
   ;
   
 private node_bytecode returns [ByteCodePos bpos]

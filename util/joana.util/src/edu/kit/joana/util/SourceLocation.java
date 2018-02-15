@@ -5,12 +5,13 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-package edu.kit.joana.wala.core;
+package edu.kit.joana.util;
 
 
 
 public class SourceLocation {
 
+	public static final SourceLocation UNKNOWN = new SourceLocation(null, 0, 0, 0, 0);
 	/**
 	 * Filename of the class. e.g. "mypackage/subpackage/MyClass.java"
 	 */

@@ -68,6 +68,7 @@ import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.ifc.sdg.util.SDGConstants;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
+import edu.kit.joana.util.SourceLocation;
 import edu.kit.joana.util.collections.ArrayMap;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.wala.core.PDGNode.Kind;

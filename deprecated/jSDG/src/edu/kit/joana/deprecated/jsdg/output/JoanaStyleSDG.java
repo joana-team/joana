@@ -48,9 +48,9 @@ import edu.kit.joana.deprecated.jsdg.sdg.nodes.SyncNode;
 import edu.kit.joana.deprecated.jsdg.util.Log;
 import edu.kit.joana.deprecated.jsdg.util.Util;
 import edu.kit.joana.deprecated.jsdg.wala.BytecodeLocation;
-import edu.kit.joana.deprecated.jsdg.wala.SourceLocation;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGNode.Operation;
+import edu.kit.joana.util.SourceLocation;
 import edu.kit.joana.wala.util.VerboseProgressMonitor;
 
 /**
@@ -401,11 +401,7 @@ public final class JoanaStyleSDG {
 
             SourceLocation sloc = sdg.getLocation(node);
             if (sloc != null) {
-                t.source = sloc.getSourceFile();
-                t.sr = sloc.getStartRow();
-                t.sc = sloc.getStartColumn();
-                t.er = sloc.getEndRow();
-                t.ec = sloc.getEndColumn();
+                t.sourceLocation = sloc;
             } else if (node.isParameterNode()) {
 				AbstractParameterNode param = (AbstractParameterNode) node;
 				final int id = node.getPdgId();
@@ -471,7 +467,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex, null, null, null, null, null);
+                    type, t.sourceLocation, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             g.addVertex(n);
             nodeMap.put(node, n);
@@ -487,7 +483,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex, null, null, null, null, null);
+                    type, t.sourceLocation, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             if (mayNotTerminate != null && mayNotTerminate.contains(node)) {
             	n.setMayBeNonTerminating(true);
@@ -538,7 +534,7 @@ public final class JoanaStyleSDG {
             
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex, null, null, null, null, clsLoader);
+                    type, t.sourceLocation, t.bcMethod, t.bcIndex, null, null, null, null, clsLoader);
             n.setThreadNumbers(threadNumbers);
 
             final PDG pdg = sdg.getPdgForId(node.getPdgId());
@@ -568,7 +564,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex, null, null, null, null, null);
+                    type, t.sourceLocation, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             g.addVertex(n);
             nodeMap.put(node, n);
@@ -584,7 +580,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex, null, null, null, null, null);
+                    type, t.sourceLocation, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             g.addVertex(n);
             nodeMap.put(node, n);
@@ -600,7 +596,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex, null, null, null, null, null);
+                    type, t.sourceLocation, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             g.addVertex(n);
             nodeMap.put(node, n);
@@ -616,7 +612,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex, null, null, null, null, null);
+                    type, t.sourceLocation, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             g.addVertex(n);
             nodeMap.put(node, n);
@@ -632,7 +628,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex, null, null, null, null, null);
+                    type, t.sourceLocation, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             g.addVertex(n);
             nodeMap.put(node, n);
@@ -648,7 +644,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex, null, null, null, null, null);
+                    type, t.sourceLocation, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             g.addVertex(n);
             nodeMap.put(node, n);
@@ -664,7 +660,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex, null, null, null, null, null);
+                    type, t.sourceLocation, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             g.addVertex(n);
             nodeMap.put(node, n);
@@ -672,11 +668,7 @@ public final class JoanaStyleSDG {
     }
 
 	private static class Tuple {
-	    String source = null;
-        int sr = 0;
-        int sc = 0;
-        int er = 0;
-        int ec = 0;
+		SourceLocation sourceLocation;
 
         String bcMethod = null;
         int bcIndex = -1;

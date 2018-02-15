@@ -13,6 +13,7 @@ package edu.kit.joana.ifc.sdg.graph;
 
 import java.util.Comparator;
 
+import edu.kit.joana.util.SourceLocation;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
@@ -209,17 +210,17 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
         }
 
         public SDGNode createNode(int id, String value, int proc, String type,
-                String source, int sr, int sc, int er, int ec, String bcName, int bcIndex, String[] localDefNames, String[] localUseNames,
+        		SourceLocation sourceLocation, String bcName, int bcIndex, String[] localDefNames, String[] localUseNames,
                 String unresolvedCallTarget,
                 int[] allocationSites,
                 String clsLoader) {
-            return new SDGNode(id, this, value, proc, type, source, sr, sc, er, ec, bcName, bcIndex, localDefNames, localUseNames, unresolvedCallTarget, allocationSites, clsLoader);
+            return new SDGNode(id, this, value, proc, type, sourceLocation, bcName, bcIndex, localDefNames, localUseNames, unresolvedCallTarget, allocationSites, clsLoader);
         }
     }
 
     public static abstract class NodeFactory {
     	public abstract SDGNode createNode(Operation op, int kind, int id, String value, int proc, String type,
-              String source, int sr, int sc, int er, int ec, String bcMethod, int bcIndex,
+              SourceLocation sourceLocation, String bcMethod, int bcIndex,
               String[] localDefNames, String[] localUseNames,
               String unresolvedCallTarget,
               int[] allocationSites,
@@ -228,13 +229,13 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
 
 	public static final class SDGNodeFactory extends NodeFactory {
 		public SDGNode createNode(Operation op, int kind, int id, String value, int proc,
-				String type, String source, int sr, int sc, int er, int ec, String bcMethod, int bcIndex,
+				String type, SourceLocation sourceLocation, String bcMethod, int bcIndex,
 				String[] localDefNames, String[] localUseNames,
 				String unresolvedCallTarget,
 				int[] allocationSites,
 				String clsLoader) {
 			return new SDGNode(op.getKind(kind), id, op, value, proc, type,
-					source, sr, sc, er, ec, bcMethod, bcIndex, localDefNames, localUseNames, unresolvedCallTarget, allocationSites, clsLoader);
+					sourceLocation, bcMethod, bcIndex, localDefNames, localUseNames, unresolvedCallTarget, allocationSites, clsLoader);
 		}
 	}
 
@@ -266,7 +267,7 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
     private final int id;
 
     /* The source file of the source code represented by this node.*/
-    private final String source;
+    private final SourceLocation sourceLocation;
 
     /* The ID of the procedure to which the node belongs.*/
     private final int proc;
@@ -284,15 +285,6 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
     private final String bcName;
     /* index of the bytecode instruction or one of the special ids < 0 (BytecodeLoaction.*) this node belongs to */
     private final int bcIndex;
-
-    /*
-     * A node stores the dimensions of the source code area over which it ranges.
-     * `sr' is the index of the first line.
-     * `sc' is the index of the first column.
-     * `er' is the index of the last line.
-     * `ec' is the index of the last column.
-     */
-    private final int sr, sc, er, ec;
 
     /* The kind of this node.*/
     public final Kind kind;
@@ -324,20 +316,19 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
     private final String[] localUseNames;
 
     public SDGNode(int id, Operation op, String label, int proc,
-            String type, String source, int sr, int sc, int er, int ec, String bcName, int bcIndex,
+            String type, SourceLocation sourceLocation, String bcName, int bcIndex,
             String[] localDefNames, String[] localUseNames,
             String unresolvedCallTarget,
             int[] allocationSites,
             String clsLoader) {
+        if (sourceLocation == null) {
+        	throw new IllegalArgumentException("Use SourceLocation.UNKNOWN instead");
+        }
         this.kind = op.kind[0];
         this.id = id;
         this.operation = op;
         this.label = label;
-        this.source = source;
-        this.sr = sr;
-        this.sc = sc;
-        this.er = er;
-        this.ec = ec;
+        this.sourceLocation = sourceLocation;
         this.proc = proc;
         this.type = type;
         this.bcName = bcName;
@@ -350,12 +341,12 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
     }
 
     protected SDGNode(Kind kind, int id, Operation op, String label, int proc,
-            String type, String source, int sr, int sc, int er, int ec, String bcMethod, int bcIndex,
+            String type, SourceLocation sourceLocation, String bcMethod, int bcIndex,
             String[] localDefNames, String[] localUseNames,
             String unresolvedCallTarget,
             int[] allocationSites,
             String clsLoader) {
-        this(id, op, label, proc, type, source, sr, sc, er, ec, bcMethod, bcIndex, localDefNames, localUseNames, unresolvedCallTarget, allocationSites, clsLoader);
+        this(id, op, label, proc, type, sourceLocation, bcMethod, bcIndex, localDefNames, localUseNames, unresolvedCallTarget, allocationSites, clsLoader);
         assert op.kind[0] == kind;
         assert this.kind == kind;
     }
@@ -374,11 +365,7 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
         this.proc = proc;
         this.label = label;
         
-        this.source = null;
-        this.sr = -1;
-        this.sc = -1;
-        this.er = -1;
-        this.ec = -1;
+        this.sourceLocation = SourceLocation.UNKNOWN;
         this.type = null;
         this.bcName = null;
         this.bcIndex = -1;
@@ -426,7 +413,7 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
     		localUseNames = null;
     	}
     	
-    	SDGNode ret = new SDGNode(newKind, id, newOp, label, proc, type, source, sr, sc, er, ec, bcName, bcIndex, localDefNames, localUseNames, unresolvedCallTarget, allocationSites, clsLoader);
+    	SDGNode ret = new SDGNode(newKind, id, newOp, label, proc, type, sourceLocation, bcName, bcIndex, localDefNames, localUseNames, unresolvedCallTarget, allocationSites, clsLoader);
 
     	return ret;
     }
@@ -558,7 +545,7 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
      * @return  The index or -1, if this is a synthetic node.
      */
     public int getEr() {
-        return er;
+        return sourceLocation.getEndRow();
     }
 
     /**
@@ -566,7 +553,7 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
      * @return  The index or -1, if this is a synthetic node.
      */
     public int getEc() {
-        return ec;
+        return sourceLocation.getEndColumn();
     }
 
     /**
@@ -574,7 +561,7 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
      * @return  The index or -1, if this is a synthetic node.
      */
     public int getSc() {
-        return sc;
+        return sourceLocation.getStartColumn();
     }
 
     /**
@@ -582,7 +569,7 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
      * @return  The index or -1, if this is a synthetic node.
      */
     public int getSr() {
-        return sr;
+        return sourceLocation.getStartRow();
     }
 
     public final int getBytecodeIndex() {
@@ -629,8 +616,15 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
      * @return The source file of this node.
      */
     public String getSource() {
-        return source;
+        return sourceLocation.getSourceFile();
     }
+    
+    /**
+	 * @return the sourceLocation
+	 */
+	public SourceLocation getSourceLocation() {
+		return sourceLocation;
+	}
 
     /**
      * @return The type of this node.
@@ -667,15 +661,11 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
             if (!this.operation.equals(node.getOperation())) return false;
             if (this.label != null && !this.label.equals(node.getLabel())) return false;
             if (this.label == null && node.getLabel() != null) return false;
-            if (this.sr != node.getSr()) return false;
-            if (this.sc != node.getSc()) return false;
-            if (this.er != node.getEr()) return false;
-            if (this.ec != node.getEc()) return false;
             if (this.proc != node.getProc()) return false;
             if (this.type != null && !this.type.equals(node.getType())) return false;
             if (this.type == null && node.getType() != null) return false;
-            if (this.source != null && !this.source.equals(node.getSource())) return false;
-            if (this.source == null && node.getSource() != null) return false;
+            if (this.sourceLocation != null && !this.sourceLocation.equals(node.getSourceLocation())) return false;
+            if (this.sourceLocation == null && node.getSourceLocation() != null) return false;
 
             return true;
         }

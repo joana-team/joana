@@ -11,6 +11,7 @@ import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.graph.INodeWithNumber;
 
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
+import edu.kit.joana.util.SourceLocation;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.wala.util.PrettyWalaNames;
 import gnu.trove.set.TIntSet;

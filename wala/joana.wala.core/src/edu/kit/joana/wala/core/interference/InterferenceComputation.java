@@ -51,6 +51,7 @@ import com.ibm.wala.util.intset.SparseIntSet;
 
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
+import edu.kit.joana.util.SourceLocation;
 import edu.kit.joana.wala.core.EscapeAnalysis;
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGField;
@@ -59,7 +60,6 @@ import edu.kit.joana.wala.core.PDGNode.Kind;
 import edu.kit.joana.wala.core.ParameterField;
 import edu.kit.joana.wala.core.ParameterFieldFactory;
 import edu.kit.joana.wala.core.SDGBuilder;
-import edu.kit.joana.wala.core.SourceLocation;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
 

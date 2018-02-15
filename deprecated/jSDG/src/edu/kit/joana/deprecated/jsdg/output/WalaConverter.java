@@ -67,12 +67,12 @@ import edu.kit.joana.deprecated.jsdg.sdg.interference.WalaSDGInterferenceComputa
 import edu.kit.joana.deprecated.jsdg.util.Log;
 import edu.kit.joana.deprecated.jsdg.util.Util;
 import edu.kit.joana.deprecated.jsdg.wala.BytecodeLocation;
-import edu.kit.joana.deprecated.jsdg.wala.SourceLocation;
 import edu.kit.joana.deprecated.jsdg.wala.objecttree.IKey2Origin;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGNode.Operation;
 import edu.kit.joana.ifc.sdg.graph.SDGVerifier;
+import edu.kit.joana.util.SourceLocation;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
 /**
@@ -149,11 +149,9 @@ public class WalaConverter {
 			final int bcIndex = (bcLoc == null ? -1 : bcLoc.bcIndex);
 			final String type = "";
 			if (pos == null) {
-				node = new SDGNode(id, op, label, pdgId, type, null, 0, 0, 0, 0, bcMethod, bcIndex, null, null, null, null, clsLoader);
+				node = new SDGNode(id, op, label, pdgId, type, edu.kit.joana.util.SourceLocation.UNKNOWN, bcMethod, bcIndex, null, null, null, null, clsLoader);
 			} else {
-				node = new SDGNode(id, op, label, pdgId, type, pos.getSourceFile(),
-						pos.getStartRow(), pos.getStartColumn(),
-						pos.getEndRow(), pos.getEndColumn(), bcMethod, bcIndex,
+				node = new SDGNode(id, op, label, pdgId, type, pos, bcMethod, bcIndex,
 						null, null, null, null, clsLoader);
 			}
 

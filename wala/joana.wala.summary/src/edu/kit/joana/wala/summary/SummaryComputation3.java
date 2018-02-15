@@ -273,7 +273,8 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
 	}
 
     private Collection<SDGEdge> computeSummaryEdges(IProgressMonitor progress) throws CancelException {
-    	
+    	boolean assertionsEnabled = false;
+    	assert (assertionsEnabled = true);
     	
     	HashSet<SDGEdge> formInOutSummaryEdge = new HashSet<SDGEdge>();
 
@@ -374,17 +375,20 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             		for (Edge e : aiaoPairs) {
             			if (e.source == null || e.target == null) continue;
 
-            			final boolean connectedInPDG = graph.containsEdge(e.source, e.target, eOut -> eOut.getKind().isSDGEdge());
-            			if (connectedInPDG) continue; // already connected
-
             			SDGEdge sum;
             			if (annotate != null && !annotate.isEmpty()) {
             				sum =  new LabeledSDGEdge(e.source, e.target, sumEdgeKind, annotate);
             			} else {
             				sum = sumEdgeKind.newEdge(e.source, e.target);
             			}
-
+            			
+            			boolean connectedInPDG = false;
+            			if (assertionsEnabled) {
+            				connectedInPDG = graph.containsEdge(e.source, e.target, eOut -> eOut.getKind().isSDGEdge());
+            			}
+            			
             			if (graph.addEdgeUnsafe(e.source, e.target, sum)) {
+            				assert !connectedInPDG;
             				Set<SDGNode> s = aoPaths.get(e.target);
             				if (s != null) {
             					assert !s.isEmpty();
@@ -396,6 +400,8 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             						propagate(workListInCaller, sum.getSource(), target);
             					}
             				}
+            			} else {
+            				assert connectedInPDG;
             			}
             		}
             		for (SDGEdge e : graph.incomingEdgesOfUnsafe(next.source)) {

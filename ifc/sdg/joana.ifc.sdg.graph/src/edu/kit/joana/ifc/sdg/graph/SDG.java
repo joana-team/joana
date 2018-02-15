@@ -29,6 +29,7 @@ import org.antlr.runtime.ANTLRReaderStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 
+import edu.kit.joana.util.SourceLocation;
 import edu.kit.joana.util.collections.ArrayMap;
 import edu.kit.joana.util.collections.SimpleVector;
 import gnu.trove.map.TIntIntMap;
@@ -896,6 +897,8 @@ public class SDG extends JoanaGraph implements Cloneable {
 			sdg = parser.sdg_file();
 		} catch (RecognitionException e) {
 			throw new IOException(e);
+		} finally {
+			SourceLocation.clearSourceLocationPool();
 		}
 	
 		final int sepIndex = sdgFile.lastIndexOf(File.separator);
@@ -924,7 +927,9 @@ public class SDG extends JoanaGraph implements Cloneable {
     		sdg = parser.sdg_file();
     	} catch (RecognitionException e) {
     		throw new IOException(e);
-    	}
+    	} finally {
+			SourceLocation.clearSourceLocationPool();
+		}
 
     	final int sepIndex = sdgFile.lastIndexOf(File.separator);
     	String fileName = (sepIndex > 0 ? sdgFile.substring(sepIndex) : sdgFile);
@@ -950,7 +955,9 @@ public class SDG extends JoanaGraph implements Cloneable {
     		sdg = parser.sdg_file();
     	} catch (RecognitionException e) {
     		throw new IOException(e);
-    	}
+    	} finally {
+			SourceLocation.clearSourceLocationPool();
+		}
 
     	// no filename can be set here. -> Set to null initially.
 

@@ -25,6 +25,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
+import edu.kit.joana.util.SourceLocation;
 
 /**
  * Due to excessive memory consumption of the "whole SDG" ANTLR parser, we are forced to parse parts of the
@@ -57,8 +58,15 @@ public class SDGManualParser {
 		if (nodeFact != null) {
 			parser.setNodeFactory(nodeFact);
 		}
-		
-		return parser.run(in);
+
+		SDG result;
+		try {
+			result = parser.run(in);
+		} finally {
+			SourceLocation.clearSourceLocationPool();
+		}
+		return result;
+	
 	}
 	
 	public SDG run(final InputStream in) throws IOException, RecognitionException {

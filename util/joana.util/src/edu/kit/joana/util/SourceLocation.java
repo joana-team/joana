@@ -7,7 +7,8 @@
  */
 package edu.kit.joana.util;
 
-
+import java.util.HashMap;
+import java.util.Map;
 
 public class SourceLocation {
 
@@ -20,6 +21,12 @@ public class SourceLocation {
 	private final int startChar;
 	private final int endLine;
 	private final int endChar;
+	
+	private static final Map<SourceLocation, SourceLocation> sourceLocationPool  = new HashMap<>();
+	public static void clearSourceLocationPool() {
+		sourceLocationPool.clear();
+		sourceLocationPool.put(UNKNOWN, UNKNOWN);
+	}
 
 	private SourceLocation(String sourceFileName, int startLine, int startChar, int endLine, int endChar) {
 		if (startLine < 0 || startChar < 0 || endLine < 0 || endChar < 0) {
@@ -36,7 +43,14 @@ public class SourceLocation {
 	}
 
 	public static SourceLocation getLocation(String sourceFileName, int startLine, int startChar, int endLine, int endChar) {
-		return new SourceLocation(sourceFileName, startLine, startChar, endLine, endChar);
+		final SourceLocation sourceLocation = new SourceLocation(sourceFileName, startLine, startChar, endLine, endChar);
+		final SourceLocation pooled = sourceLocationPool.get(sourceLocation);
+		if (pooled != null) {
+			return pooled;
+		} else {
+			sourceLocationPool.put(sourceLocation, sourceLocation);
+			return sourceLocation;
+		}
 	}
 
 	public String toString() {
@@ -73,4 +87,42 @@ public class SourceLocation {
     public int getEndColumn() {
         return endChar;
     }
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + endChar;
+		result = prime * result + endLine;
+		result = prime * result + ((sourceFileName == null) ? 0 : sourceFileName.hashCode());
+		result = prime * result + startChar;
+		result = prime * result + startLine;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		SourceLocation other = (SourceLocation) obj;
+		if (endChar != other.endChar)
+			return false;
+		if (endLine != other.endLine)
+			return false;
+		if (sourceFileName == null) {
+			if (other.sourceFileName != null)
+				return false;
+		} else if (!sourceFileName.equals(other.sourceFileName))
+			return false;
+		if (startChar != other.startChar)
+			return false;
+		if (startLine != other.startLine)
+			return false;
+		return true;
+	}
+    
 }

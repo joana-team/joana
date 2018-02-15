@@ -81,6 +81,7 @@ import edu.kit.joana.util.Config;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.LogUtil;
 import edu.kit.joana.util.Logger;
+import edu.kit.joana.util.SourceLocation;
 import edu.kit.joana.wala.core.CallGraph.CallGraphFilter;
 import edu.kit.joana.wala.core.CallGraph.Edge;
 import edu.kit.joana.wala.core.CallGraph.Node;
@@ -735,6 +736,8 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			}
 		}
 		progress.done();
+		
+		SourceLocation.clearSourceLocationPool();
 
 		cfg.out.print("calls");
 		progress.beginTask("interproc: connect call sites", pdgs.size());

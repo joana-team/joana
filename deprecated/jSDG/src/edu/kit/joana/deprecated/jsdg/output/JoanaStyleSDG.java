@@ -485,10 +485,6 @@ public final class JoanaStyleSDG {
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
                     type, t.sourceLocation, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
-            if (mayNotTerminate != null && mayNotTerminate.contains(node)) {
-            	n.setMayBeNonTerminating(true);
-            }
-
             g.addVertex(n);
             nodeMap.put(node, n);
         }

@@ -182,10 +182,6 @@ import edu.kit.joana.util.SourceLocation;
         final SDGNode n = nf.createNode(op, kindId, id, val, procId, type, spos, bpos.name, bpos.index,
               localDefNames, localUseNames, unresolvedCallTarget, allocSites, classLoader);
 
-        if (nonTerm) {
-          n.setMayBeNonTerminating(true);
-        }
-
         if (aliasDataSrc != null) {
           n.setAliasDataSources(aliasDataSrc);
         }

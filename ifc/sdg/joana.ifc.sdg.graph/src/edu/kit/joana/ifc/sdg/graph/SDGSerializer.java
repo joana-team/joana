@@ -131,10 +131,6 @@ public final class SDGSerializer {
                 pw.print(";\n");
             }
 
-            if (n.mayBeNonTerminating()) {
-            	pw.print("N;\n");
-            }
-
             if (n.getAliasDataSources() != null) {
             	pw.print("D ");
             	final TIntIterator it = n.getAliasDataSources().iterator();

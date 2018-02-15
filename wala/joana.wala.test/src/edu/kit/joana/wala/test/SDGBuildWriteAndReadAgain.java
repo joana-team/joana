@@ -53,7 +53,6 @@ public class SDGBuildWriteAndReadAgain {
 			assertArrayEquals("Error on node id " + n1.getId(), n1.getThreadNumbers(), n2.getThreadNumbers());
 			assertEquals("Error on node id " + n1.getId(), n1.getType(), n2.getType());
 			assertEquals("Error on node id " + n1.getId(), n1.isParameter(), n2.isParameter());
-			assertEquals("Error on node id " + n1.getId(), n1.mayBeNonTerminating(), n2.mayBeNonTerminating());
 
 			assertEquals(sdg1.outDegreeOf(n1), sdg2.outDegreeOf(n2));
 			for (final SDGEdge e1 : sdg1.outgoingEdgesOf(n1)) {

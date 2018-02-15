@@ -507,28 +507,6 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
  * END alias data source stuff
  */
 
-/*
- * BEGIN termination sensitive interprocedural control-dependencies
- */
-
-    /* For the computation of interprocedural non-termination sensitive SDGs, we have
-     * to mark certain instructions (mostly calls) as potentially non-terminating.
-     * So we know, when this.nonTerm == true, all instructions after this may never
-     * be executed -> termination sensitive control dependencies. */
-    private boolean nonTerm = false;
-
-    public boolean mayBeNonTerminating() {
-    	return nonTerm;
-    }
-
-    public void setMayBeNonTerminating(final boolean nonTerm) {
-    	this.nonTerm = nonTerm;
-    }
-
-/*
- * END termination sensitive interprocedural control-dependencies
- */
-
     public String getClassLoader() {
     	return this.clsLoader;
     }

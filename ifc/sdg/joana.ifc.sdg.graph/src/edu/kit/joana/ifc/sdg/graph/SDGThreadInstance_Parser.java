@@ -1,4 +1,4 @@
-// $ANTLR 3.5.2 /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g 2018-02-01 19:45:34
+// $ANTLR 3.5.2 /data1/hecker/gits/joana/ifc/sdg/joana.ifc.sdg.graph/src/edu/kit/joana/ifc/sdg/graph/SDGThreadInstance_.g 2018-02-15 14:41:16
 /**
  * This file is part of the Joana IFC project. It is developed at the
  * Programming Paradigms Group of the Karlsruhe Institute of Technology.
@@ -161,7 +161,7 @@ public class SDGThreadInstance_Parser extends Parser {
 	            // this was a fold node in the (folded) callgraph during DynamicContext enumeration
 	            nodes.add(foldNodes.compute(id, (k, foldNode) -> {
 	              if (foldNode == null) {
-	                foldNode = new SDGNode(SDGNode.Kind.FOLDED, id, GraphFolder.PROC_ID_FOR_FOLDED_LOOPS);
+	                foldNode = new SDGNode(SDGNode.Kind.FOLDED, id, GraphFolder.PROC_ID_FOR_FOLDED_LOOPS, null);
 	              }
 	              return foldNode;
 	            }));

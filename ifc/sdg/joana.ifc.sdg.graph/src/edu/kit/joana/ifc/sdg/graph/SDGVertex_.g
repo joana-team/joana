@@ -100,46 +100,53 @@ import gnu.trove.set.hash.TIntHashSet;
       return 0;
     }
   
-    public SDGNode createNode(final SDGNode.NodeFactory nf) {
-      final int kindId = findKindId(op, kind);
-      final SDGNode n = nf.createNode(op, kindId, id, val, procId, type, spos.filename,
-        spos.startRow, spos.startColumn, spos.endRow, spos.endColumn, bpos.name, bpos.index);
+      public SDGNode createNode(final SDGNode.NodeFactory nf) {
+        final int kindId = findKindId(op, kind);
 
-      if (threadNums != null) {
-        n.setThreadNumbers(threadNums.toArray());
-      }
+        final int[] threadNums;
+        if (this.threadNums != null) {
+          threadNums = this.threadNums.toArray();
+        } else {
+        threadNums = null;
+        }
+        
+        final int[] allocSites;
+        if (this.allocSites != null) {
+          allocSites = this.allocSites.toArray();
+        } else {
+          allocSites = null;
+        }
+        
+        
+        final String[] localDefNames;
+        if (this.localDefNames != null) {
+          localDefNames = this.localDefNames.toArray(new String[this.localDefNames.size()]);
+        } else {
+          localDefNames = null;
+        }
+        
+        final String[] localUseNames;
+        if (this.localUseNames != null) {
+          localUseNames = this.localUseNames.toArray(new String[this.localUseNames.size()]);
+        } else {
+          localUseNames = null;
+        }
+        
+        final SDGNode n = nf.createNode(op, kindId, id, val, procId, type, spos.filename,
+              spos.startRow, spos.startColumn, spos.endRow, spos.endColumn, bpos.name, bpos.index,
+              localDefNames, localUseNames, unresolvedCallTarget, allocSites, classLoader);
 
-      if (nonTerm) {
-        n.setMayBeNonTerminating(true);
-      }
+        if (nonTerm) {
+          n.setMayBeNonTerminating(true);
+        }
 
-      if (classLoader != null) {
-        n.setClassLoader(classLoader);
+        if (aliasDataSrc != null) {
+          n.setAliasDataSources(aliasDataSrc);
+        }
+
+        return n;
+        
       }
-      
-      if (allocSites != null) {
-        n.setAllocationSites(allocSites.toArray());
-      }
-      
-      if (aliasDataSrc != null) {
-        n.setAliasDataSources(aliasDataSrc);
-      }
-      
-      if (unresolvedCallTarget != null) {
-        n.setUnresolvedCallTarget(unresolvedCallTarget);
-      }
-      
-      if (localDefNames != null) {
-        n.setLocalDefNames(localDefNames.toArray(new String[localDefNames.size()]));
-      }
-      
-      if (localUseNames != null) {
-        n.setLocalUseNames(localUseNames.toArray(new String[localUseNames.size()]));
-      }
-      
-      return n;
-      
-    }
     
     public void createEdges(final SDG sdg) {
       final SDGNode from = sdg.getNode(id);

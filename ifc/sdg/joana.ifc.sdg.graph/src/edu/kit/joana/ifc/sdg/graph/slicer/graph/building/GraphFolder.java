@@ -294,23 +294,24 @@ public final class GraphFolder {
             // process only SCCs resulting from recursions
             // create new fold node
             int type = foldType(scc, graph);
-            SDGNode fold = new SDGNode(SDGNode.Kind.FOLDED, id, PROC_ID_FOR_FOLDED_LOOPS);
-
+            final String label;
             switch (type) {
-                case 1: fold.setLabel(FOLDED_CALL);
-                        break;
+            case 1: label = FOLDED_CALL;
+                    break;
 
-                case 2: fold.setLabel(FOLDED_RETURN);
-                        break;
+            case 2: label = FOLDED_RETURN;
+                    break;
 
-                case 3: fold.setLabel(FOLDED_BOTH);
-                        break;
+            case 3: label = FOLDED_BOTH;
+                    break;
 
-                case 4: fold.setLabel(FOLDED_LOOP);
-                        break;
-                default:
-                		throw new AssertionError("unreachable");
+            case 4: label = FOLDED_LOOP;
+                    break;
+            default:
+                throw new AssertionError("unreachable");
             }
+            SDGNode fold = new SDGNode(SDGNode.Kind.FOLDED, id, PROC_ID_FOR_FOLDED_LOOPS, label);
+
 
             id--;
             fold_nodes.addFirst(fold);

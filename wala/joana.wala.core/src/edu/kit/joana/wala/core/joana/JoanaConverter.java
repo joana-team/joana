@@ -298,10 +298,7 @@ public class JoanaConverter {
 		}
 		SourceLocation sloc = node.getSourceLocation();
 
-		SDGNode sn = new SecurityNode(node.getId(), op, node.getLabel(), node.getPdgId(), node.getType(),
-				sloc.getSourceFile(), sloc.getStartRow(), sloc.getStartColumn(), sloc.getEndRow(), sloc.getEndColumn(),
-				node.getBytecodeName(), node.getBytecodeIndex());
-
+		String clsLoader = null;
 		if (node.getKind() == PDGNode.Kind.ENTRY) {
 			PDG pdg = sdg.getPDGforId(node.getPdgId());
 			IMethod im = pdg.getMethod();
@@ -310,31 +307,21 @@ public class JoanaConverter {
 				IClass cls = im.getDeclaringClass();
 
 				if (cls != null) {
-					String clsLoader = cls.getClassLoader().toString();
-					sn.setClassLoader(clsLoader);
+					clsLoader = cls.getClassLoader().toString();
 				}
 			}
 		}
-
-		if (allocNodes != null) {
-			sn.setAllocationSites(allocNodes);
-		}
-
+		
+		SDGNode sn = new SecurityNode(node.getId(), op, node.getLabel(), node.getPdgId(), node.getType(),
+				sloc.getSourceFile(), sloc.getStartRow(), sloc.getStartColumn(), sloc.getEndRow(), sloc.getEndColumn(),
+				node.getBytecodeName(), node.getBytecodeIndex(),
+				node.getLocalDefNames(), node.getLocalUseNames(),
+				node.getUnresolvedCallTarget(), allocNodes, clsLoader);
+		
 		if (node.getAliasDataSources() != null) {
 			sn.setAliasDataSources(node.getAliasDataSources());
 		}
 
-		if (node.getUnresolvedCallTarget() != null) {
-			sn.setUnresolvedCallTarget(node.getUnresolvedCallTarget());
-		}
-		
-		if (node.getLocalUseNames() != null) {
-			sn.setLocalUseNames(node.getLocalUseNames());
-		}
-			
-		if (node.getLocalDefNames() != null) {
-			sn.setLocalDefNames(node.getLocalDefNames());
-		}
 		
 		assert sn.getKind() == kind;
 

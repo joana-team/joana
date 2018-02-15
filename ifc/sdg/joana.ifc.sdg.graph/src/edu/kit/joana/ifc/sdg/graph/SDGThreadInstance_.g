@@ -114,7 +114,7 @@ import java.util.Map;
             // this was a fold node in the (folded) callgraph during DynamicContext enumeration
             nodes.add(foldNodes.compute(id, (k, foldNode) -> {
               if (foldNode == null) {
-                foldNode = new SDGNode(SDGNode.Kind.FOLDED, id, GraphFolder.PROC_ID_FOR_FOLDED_LOOPS);
+                foldNode = new SDGNode(SDGNode.Kind.FOLDED, id, GraphFolder.PROC_ID_FOR_FOLDED_LOOPS, null);
               }
               return foldNode;
             }));

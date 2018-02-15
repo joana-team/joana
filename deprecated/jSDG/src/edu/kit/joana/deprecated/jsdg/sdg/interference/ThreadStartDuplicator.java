@@ -394,9 +394,7 @@ public class ThreadStartDuplicator {
             HashMap<SDGNode, SDGNode> original_clone = new HashMap<SDGNode, SDGNode>();
 
             for (SDGNode m : startNodes) {
-                SDGNode mClone = m.clone();
-                mClone.setId(lastID);
-                mClone.setProc(lastProc);
+                SDGNode mClone = m.clone(lastID, lastProc);
                 lastID++;
                 s.add(mClone);
                 original_clone.put(m, mClone);

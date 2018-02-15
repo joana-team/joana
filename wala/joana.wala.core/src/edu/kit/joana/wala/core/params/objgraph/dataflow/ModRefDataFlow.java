@@ -542,12 +542,12 @@ public class ModRefDataFlow {
 
 	private static PDGNode createPDGNode(final PDG pdg, final ModRefFieldCandidate c, final PDGNode parent,
 			final PDGNode.Kind kind, final String[] localDefNames, final String[] localUseNames) {
-		final String label = c.toString();
+		final String label = c.toString().intern();
 		final TypeReference type = c.getType();
 		final PDGNode newNode = pdg.createNode(label, kind, type, localDefNames, localUseNames);
 		newNode.setSourceLocation(parent.getSourceLocation());
 		newNode.setBytecodeIndex(c.getBytecodeIndex());
-		newNode.setBytecodeName(c.getBytecodeName());
+		newNode.setBytecodeName(c.getBytecodeName().intern());
 		final OrdinalSet<ParameterField> fields = c.getFields();
 		if (fields.size() == 1) {
 			newNode.setParameterField(fields.iterator().next());

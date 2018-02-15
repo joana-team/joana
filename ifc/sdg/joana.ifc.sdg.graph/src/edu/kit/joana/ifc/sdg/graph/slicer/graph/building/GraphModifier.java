@@ -91,7 +91,7 @@ public final class GraphModifier {
 
         // add new nodes
         for (SDGNode call : joinCalls) {
-            SDGNode join = new SDGNode(SDGNode.Kind.JOIN, idStart, call.getProc());
+            SDGNode join = new SDGNode(SDGNode.Kind.JOIN, idStart, call.getProc(), null);
             icfg.addVertex(join);
 
             // deflect edges
@@ -218,7 +218,7 @@ public final class GraphModifier {
             if (n.getKind() == SDGNode.Kind.CALL && !icfg.isFork(n)) {
 
                 // ..add dummy return sites - needed later
-                SDGNode dummy = new SDGNode(SDGNode.Kind.NORMAL, idStart, n.getProc());
+                SDGNode dummy = new SDGNode(SDGNode.Kind.NORMAL, idStart, n.getProc(), null);
 
                 idStart++;
 
@@ -830,38 +830,4 @@ public final class GraphModifier {
 
         return barrier;
     }
-
-    public static void annotateRowNumbers(SDG g) {
-		LinkedList<SDGNode> worklist = new LinkedList<SDGNode>();
-		Set<SDGNode> donelist = new HashSet<SDGNode>();
-		LinkedList<SDGNode> findlist = new LinkedList<SDGNode>();
-
-		findlist.add(g.getRoot()); //Entry+Call Knoten finden
-		while (!findlist.isEmpty()) {
-			for (SDGEdge e : g.outgoingEdgesOf(findlist.remove())) {
-				SDGNode node = e.getTarget();
-				if (donelist.add(node)) {
-					if (node.getKind() == SDGNode.Kind.CALL || node.getKind() == SDGNode.Kind.ENTRY) {
-						worklist.add(node);
-					}
-					findlist.add(node);
-				}
-			}
-		}
-		donelist.clear();
-
-		while (!worklist.isEmpty()) {
-			List<SDGEdge> edges = g.getOutgoingEdgesOfKind(worklist.remove(), Kind.CONTROL_DEP_EXPR);
-			for (SDGEdge e : edges) {
-				SDGNode node = e.getTarget();
-				if (node.getSr() <= 0) {
-					System.out.println(node.getId());
-					node.setLine(e.getSource().getSr(), e.getSource().getEr());
-				}
-				if (donelist.add(node)) {
-					worklist.add(node);
-				}
-			}
-		}
-	}
 }

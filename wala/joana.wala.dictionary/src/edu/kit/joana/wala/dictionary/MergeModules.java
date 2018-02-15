@@ -327,9 +327,8 @@ public class MergeModules {
 		}
 
 
-		final SDGNode copy = node.clone();
+		final SDGNode copy = node.clone(getNextNodeID(), node.getProc());
 		copy.tmp = node.getId();
-		copy.setId(getNextNodeID());
 		oldid2node.put(node.getId(), copy);
 		sdg.addVertex(copy);
 
@@ -386,11 +385,10 @@ public class MergeModules {
 
 		if (actChild == null) {
 			// create child
-			actChild = formChild.clone();
-			actChild.kind = (isIn ? SDGNode.Kind.ACTUAL_IN : SDGNode.Kind.ACTUAL_OUT);
-			actChild.operation = (isIn ? SDGNode.Operation.ACTUAL_IN : SDGNode.Operation.ACTUAL_OUT);
+			SDGNode.Kind kind = (isIn ? SDGNode.Kind.ACTUAL_IN : SDGNode.Kind.ACTUAL_OUT);
+			SDGNode.Operation operation = (isIn ? SDGNode.Operation.ACTUAL_IN : SDGNode.Operation.ACTUAL_OUT);
+			actChild = formChild.clone(getNextNodeID(), formChild.getProc(), kind, operation);
 			actChild.tmp = formChild.getId();
-			actChild.setId(getNextNodeID());
 			sdg.addVertex(actChild);
 			sdg.addEdge(actParent, actChild,  SDGEdge.Kind.PARAMETER_STRUCTURE.newEdge(actParent, actChild));
 			sdg.addEdge(callNode, actChild,  SDGEdge.Kind.CONTROL_DEP_EXPR.newEdge(callNode, actChild));

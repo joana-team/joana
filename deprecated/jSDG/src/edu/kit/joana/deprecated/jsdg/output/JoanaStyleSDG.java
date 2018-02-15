@@ -471,7 +471,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex);
+                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             g.addVertex(n);
             nodeMap.put(node, n);
@@ -487,7 +487,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex);
+                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             if (mayNotTerminate != null && mayNotTerminate.contains(node)) {
             	n.setMayBeNonTerminating(true);
@@ -505,10 +505,9 @@ public final class JoanaStyleSDG {
 
             Operation op = edu.kit.joana.ifc.sdg.graph.SDGNode.Operation.ENTRY;
 
-            Tuple t = sourceInfo(node);
-            edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex);
 
+            String clsLoader = null;
+            int[] threadNumbers = null;
             // print thread ids
             if (node.getPdgId() != sdg.getId()) {
                 PDG pdg = sdg.getPdgForId(node.getPdgId());
@@ -523,7 +522,7 @@ public final class JoanaStyleSDG {
                     index++;
                 }
 
-                n.setThreadNumbers(array);
+                threadNumbers = array;
 
 				// set class loader info
 				IMethod im = pdg.getMethod();
@@ -532,11 +531,15 @@ public final class JoanaStyleSDG {
 					IClass cls = im.getDeclaringClass();
 
 					if (cls != null) {
-						final String clsLoader = cls.getClassLoader().toString();
-						n.setClassLoader(clsLoader);
+						clsLoader = cls.getClassLoader().toString();
 					}
 				}
             }
+            
+            Tuple t = sourceInfo(node);
+            edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
+                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex, null, null, null, null, clsLoader);
+            n.setThreadNumbers(threadNumbers);
 
             final PDG pdg = sdg.getPdgForId(node.getPdgId());
             if (pdg != null && pdg.getCallGraphNode() != null) {
@@ -565,7 +568,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex);
+                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             g.addVertex(n);
             nodeMap.put(node, n);
@@ -581,7 +584,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex);
+                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             g.addVertex(n);
             nodeMap.put(node, n);
@@ -597,7 +600,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex);
+                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             g.addVertex(n);
             nodeMap.put(node, n);
@@ -613,7 +616,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex);
+                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             g.addVertex(n);
             nodeMap.put(node, n);
@@ -629,7 +632,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex);
+                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             g.addVertex(n);
             nodeMap.put(node, n);
@@ -645,7 +648,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex);
+                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             g.addVertex(n);
             nodeMap.put(node, n);
@@ -661,7 +664,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex);
+                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             g.addVertex(n);
             nodeMap.put(node, n);

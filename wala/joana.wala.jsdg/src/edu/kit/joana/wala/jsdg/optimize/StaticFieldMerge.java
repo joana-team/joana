@@ -95,7 +95,7 @@ public class StaticFieldMerge {
 		if (reachabe.size() > 0) {
 			final SDGNode first = reachabe.iterator().next();
 			final SDGNode dummy = new SDGNode(first.getId(), first.operation, "[dummy]", first.getProc(), "[dummy]", first.getSource(), first.getSr(),
-					first.getSc(), first.getEr(), first.getEc(), first.getBytecodeName(), BytecodeLocation.STATIC_FIELD);
+					first.getSc(), first.getEr(), first.getEc(), first.getBytecodeName(), BytecodeLocation.STATIC_FIELD, null, null, null, null, null);
 			mergeNodes(entry, reachabe, dummy);
 		}
 	}

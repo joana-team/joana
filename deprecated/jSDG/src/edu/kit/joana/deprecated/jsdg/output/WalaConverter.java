@@ -140,7 +140,8 @@ public class WalaConverter {
 
 	private SDGNode createNodeAsNeeded(final int id, final Operation op,
 			final String label, final int pdgId, final SourceLocation pos,
-			final BytecodeLocation bcLoc) {
+			final BytecodeLocation bcLoc,
+			String clsLoader) {
 		SDGNode node = sdgNodes.get(id);
 		if (node == null) {
 			//TODO create meaningful type - seems to be unused in joana code.. -> remove?
@@ -148,11 +149,12 @@ public class WalaConverter {
 			final int bcIndex = (bcLoc == null ? -1 : bcLoc.bcIndex);
 			final String type = "";
 			if (pos == null) {
-				node = new SDGNode(id, op, label, pdgId, type, null, 0, 0, 0, 0, bcMethod, bcIndex);
+				node = new SDGNode(id, op, label, pdgId, type, null, 0, 0, 0, 0, bcMethod, bcIndex, null, null, null, null, clsLoader);
 			} else {
 				node = new SDGNode(id, op, label, pdgId, type, pos.getSourceFile(),
 						pos.getStartRow(), pos.getStartColumn(),
-						pos.getEndRow(), pos.getEndColumn(), bcMethod, bcIndex);
+						pos.getEndRow(), pos.getEndColumn(), bcMethod, bcIndex,
+						null, null, null, null, clsLoader);
 			}
 
 			sdgNodes.put(id, node);
@@ -528,7 +530,7 @@ public class WalaConverter {
 			}
 		}
 
-		final SDGNode sdgNode = createNodeAsNeeded(id(pdgId, id), op(next), label(next), pdgId, loc, bcLoc);
+		final SDGNode sdgNode = createNodeAsNeeded(id(pdgId, id), op(next), label(next), pdgId, loc, bcLoc, null);
 		sdg.addVertex(sdgNode);
 
 		return sdgNode;
@@ -567,26 +569,28 @@ public class WalaConverter {
 
 		BytecodeLocation bcLocEntryExit = new BytecodeLocation(imethod.getSignature(), -1);
 
-		final SDGNode pdgEntry = createNodeAsNeeded(id(pdgId, idEntry),
-				Operation.ENTRY, methodName, pdgId, locEntryExit, bcLocEntryExit);
-
 		// set class loader info
+		String clsLoader = null;
 		IMethod im = pdg.getCallGraphNode().getMethod();
 		if (im != null) {
 			IClass cls = im.getDeclaringClass();
 
 			if (cls != null) {
-				final String clsLoader = cls.getClassLoader().toString();
-				pdgEntry.setClassLoader(clsLoader);
+				clsLoader = cls.getClassLoader().toString();
 			}
 		}
+		
+		final SDGNode pdgEntry = createNodeAsNeeded(id(pdgId, idEntry),
+				Operation.ENTRY, methodName, pdgId, locEntryExit, bcLocEntryExit, clsLoader);
+
+
 
 		sdg.addVertex(pdgEntry);
 		id2entry.put(pdgId, pdgEntry);
 
 		final int idExit = pdg.getNumber(exit);
 		final SDGNode pdgExit = createNodeAsNeeded(id(pdgId, idExit),
-				Operation.EXIT, methodName, pdgId, locEntryExit, bcLocEntryExit);
+				Operation.EXIT, methodName, pdgId, locEntryExit, bcLocEntryExit, null);
 		sdg.addVertex(pdgExit);
 		addControlDepExpr(pdgEntry, pdgExit);
 

@@ -30,21 +30,29 @@ public class SecurityNode extends SDGNode {
     private String provided = SecurityNode.UNDEFINED;
 
     public SecurityNode(int id, Operation op, String value, int proc,
-            String type, String source, int sr, int sc, int er, int ec, String bcName, int bcIndex) {
-        super(id, op, value, proc, type, source, sr, sc, er, ec, bcName, bcIndex);
+            String type, String source, int sr, int sc, int er, int ec, String bcName, int bcIndex,
+            String[] localDefNames, String[] localUseNames,
+            String unresolvedCallTarget,
+            int[] allocationSites,
+            String clsLoader) {
+        super(id, op, value, proc, type, source, sr, sc, er, ec, bcName, bcIndex, localDefNames, localUseNames, unresolvedCallTarget, allocationSites, clsLoader);
     }
 
     public SecurityNode(int kind, int id, Operation op, String value, int proc,
-            String type, String source, int sr, int sc, int er, int ec, String bcName, int bcIndex) {
-        super(op.getKind(kind), id, op, value, proc, type, source, sr, sc, er, ec, bcName, bcIndex);
+            String type, String source, int sr, int sc, int er, int ec, String bcName, int bcIndex,
+            String[] localDefNames, String[] localUseNames,
+            String unresolvedCallTarget,
+            int[] allocationSites,
+            String clsLoader) {
+        super(op.getKind(kind), id, op, value, proc, type, source, sr, sc, er, ec, bcName, bcIndex, localDefNames, localUseNames, unresolvedCallTarget, allocationSites, clsLoader);
     }
 
     public SecurityNode(SDGNode n) {
-    	super(n.getId(), n.getOperation(), n.getLabel(), n.getProc(), n.getType(), n.getSource(), n.getSr(), n.getSc(), n.getEr(), n.getEc(), n.getBytecodeName(), n.getBytecodeIndex());
+    	super(n.getId(), n.getOperation(), n.getLabel(), n.getProc(), n.getType(), n.getSource(), n.getSr(), n.getSc(), n.getEr(), n.getEc(), n.getBytecodeName(), n.getBytecodeIndex(), n.getLocalDefNames(), n.getLocalUseNames(), n.getUnresolvedCallTarget(), n.getAllocationSites(), n.getClassLoader());
     }
 
     public SecurityNode clone() {
-        SecurityNode ret = new SecurityNode(0, getId(), operation, getLabel(), getProc(), getType(), getSource(), getSr(), getSc(), getEr(), getEc(), getBytecodeName(), getBytecodeIndex());
+        SecurityNode ret = new SecurityNode(0, getId(), operation, getLabel(), getProc(), getType(), getSource(), getSr(), getSc(), getEr(), getEc(), getBytecodeName(), getBytecodeIndex(), getLocalDefNames(), getLocalUseNames(), getUnresolvedCallTarget(), getAllocationSites(), getClassLoader());
         ret.setRequired(getRequired());
         ret.setProvided(getProvided());
         return ret;
@@ -167,9 +175,13 @@ public class SecurityNode extends SDGNode {
     	 */
         public SDGNode createNode(Operation op, int kind, int id, String value, int proc,
                 String type, String source, int sr, int sc, int er, int ec,
-                String bcName, int bcIndex) {
+                String bcName, int bcIndex,
+                String[] localDefNames, String[] localUseNames,
+                String unresolvedCallTarget,
+                int[] allocationSites,
+                String clsLoader) {
             return new SecurityNode(kind, id, op, value, proc, type,
-                    source, sr, sc, er, ec, bcName, bcIndex);
+                    source, sr, sc, er, ec, bcName, bcIndex, localDefNames, localUseNames, unresolvedCallTarget, allocationSites, clsLoader);
         }
     }
 }

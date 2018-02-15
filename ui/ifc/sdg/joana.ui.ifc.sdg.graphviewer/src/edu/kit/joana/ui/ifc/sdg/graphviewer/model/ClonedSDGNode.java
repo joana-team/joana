@@ -38,7 +38,9 @@ public class ClonedSDGNode extends SDGNode {
         super(node.getKind(), ID, node.getOperation(), node.getLabel(),
                 node.getProc(), node.getType(), node.getSource(),
                 node.getSr(), node.getSc(), node.getEr(), node.getEc(),
-                node.getBytecodeName(), node.getBytecodeIndex());
+                node.getBytecodeName(), node.getBytecodeIndex(),
+                node.getLocalDefNames(), node.getLocalUseNames(),
+                node.getUnresolvedCallTarget(), node.getAllocationSites(), node.getClassLoader());
 
         // die ID von node lokal merken
         clonedID = node.getId();

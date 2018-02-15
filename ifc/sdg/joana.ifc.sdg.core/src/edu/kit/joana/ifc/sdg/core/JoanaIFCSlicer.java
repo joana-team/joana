@@ -362,7 +362,7 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 			/* ...If none exists, create a new one */
 			if (annSummaryNode == null) {
 				annSummaryNode = new SecurityNode(sumNodeID--,SecurityNode.Operation.SUMMARY,
-						"summary", -1, "", actualOut.getSource(), -1, -1, -1, -1, actualOut.getBytecodeName(), -1);
+						"summary", -1, "", actualOut.getSource(), -1, -1, -1, -1, actualOut.getBytecodeName(), -1, null, null, null, null, null);
 				annSummaryNode.setProvided(annOutClass);
 				fdefNodes.put(annSummaryNode, defNodes);
 				g.addVertex(annSummaryNode);
@@ -409,7 +409,7 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 			/* ...If none exists, create a new one */
 			if (vioSummaryNode == null) {
 				vioSummaryNode = new SecurityNode(sumNodeID--,SecurityNode.Operation.SUMMARY, "summary", -1, "",
-						actualOut.getSource(), -1, -1, -1, -1, actualOut.getBytecodeName(), -1);
+						actualOut.getSource(), -1, -1, -1, -1, actualOut.getBytecodeName(), -1, null, null, null, null, null);
 				vioSummaryNode.setProvided(l.getTop());
 				fsecVios.put(vioSummaryNode, secVios);
 				g.addVertex(vioSummaryNode);
@@ -499,7 +499,7 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 				/* ...If none exists, create a new one */
 				if (summaryNode == null) {
 					summaryNode = new SecurityNode(sumNodeID--,SecurityNode.Operation.SUMMARY, "summary", -1, "",
-							actualOut.getSource(), -1, -1, -1, -1, actualOut.getBytecodeName(), -1);
+							actualOut.getSource(), -1, -1, -1, -1, actualOut.getBytecodeName(), -1, null, null, null, null, null);
 					summaryNode.setRequired(maxIn);
 					summaryNode.setProvided(maxOut);
 					g.addVertex(summaryNode);

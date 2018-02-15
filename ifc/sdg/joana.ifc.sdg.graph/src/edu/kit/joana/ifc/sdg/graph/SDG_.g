@@ -157,13 +157,6 @@ import edu.kit.joana.util.SourceLocation;
       public SDGNode createNode(final SDGNode.NodeFactory nf) {
         final int kindId = findKindId(op, kind);
 
-        final int[] threadNums;
-        if (this.threadNums != null) {
-          threadNums = this.threadNums.toArray();
-        } else {
-        threadNums = null;
-        }
-        
         final int[] allocSites;
         if (this.allocSites != null) {
           allocSites = this.allocSites.toArray();
@@ -195,6 +188,10 @@ import edu.kit.joana.util.SourceLocation;
 
         if (aliasDataSrc != null) {
           n.setAliasDataSources(aliasDataSrc);
+        }
+
+        if (threadNums != null) {
+          n.setThreadNumbers(this.threadNums.toArray());
         }
 
         return n;

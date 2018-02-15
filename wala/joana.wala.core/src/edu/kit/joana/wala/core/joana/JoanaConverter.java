@@ -311,7 +311,7 @@ public class JoanaConverter {
 			}
 		}
 		
-		SDGNode sn = new SecurityNode(node.getId(), op, node.getLabel(), node.getPdgId(), node.getType().intern(),
+		SDGNode sn = new SecurityNode(node.getId(), op, node.getLabel(), node.getPdgId(), node.getType(),
 				sloc,
 				node.getBytecodeName(), node.getBytecodeIndex(),
 				node.getLocalDefNames(), node.getLocalUseNames(),

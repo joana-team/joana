@@ -327,17 +327,17 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
         this.kind = op.kind[0];
         this.id = id;
         this.operation = op;
-        this.label = label;
+        this.label = label == null ? null : label.intern();
         this.sourceLocation = sourceLocation;
         this.proc = proc;
-        this.type = type;
-        this.bcName = bcName;
+        this.type = type == null ? null : type.intern();
+        this.bcName = bcName == null ? null : bcName.intern();
         this.bcIndex = bcIndex;
         this.localDefNames = localDefNames;
         this.localUseNames = localUseNames;
-        this.unresolvedCallTarget = unresolvedCallTarget;
+        this.unresolvedCallTarget = unresolvedCallTarget == null ? null : unresolvedCallTarget.intern();
         this.allocationSites = allocationSites;
-        this.clsLoader = clsLoader;
+        this.clsLoader = clsLoader == null ? null : clsLoader.intern();
     }
 
     protected SDGNode(Kind kind, int id, Operation op, String label, int proc,
@@ -363,7 +363,7 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
         this.operation = Operation.EMPTY;
         this.id = id;
         this.proc = proc;
-        this.label = label;
+        this.label = label == null ? null : label.intern();
         
         this.sourceLocation = SourceLocation.UNKNOWN;
         this.type = null;

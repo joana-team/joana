@@ -48,7 +48,6 @@ import gnu.trove.set.TIntSet;
 public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & EfficientGraph<SDGNode, SDGEdge>> {
 
 	private final HashSet<Edge> pathEdge;
-    private final HashMap<SDGNode, Set<SDGNode>> aoPaths;
     private final Set<Integer> procedureWorkSet;
     private final Map<Integer, IntrusiveList<Edge>> worklists;
     private final G graph;
@@ -61,6 +60,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
     private final Set<SDGEdge.Kind> relevantEdges;
     private final String annotate;
     private final Map<SDGNode, Integer> nodeId2ProcLocalNodeId;
+    private final Map<Integer, Map<Integer, SDGNode>> procLocalNodeId2Node;
     
     private IntrusiveList<Edge> current; 
 
@@ -73,8 +73,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
     	this.relevantProcs = relevantProcs;
     	this.fullyConnected = fullyConnected;
         this.pathEdge = new HashSet<Edge>();
-        this.aoPaths = new HashMap<SDGNode, Set<SDGNode>>();
-        
+        int maxProcNumber = -1;
         {
             final DirectedGraph<Integer, DefaultEdge> callGraph = extractCallGraph(graph);
             final TarjanStrongConnectivityInspector<Integer, DefaultEdge> sccs = new TarjanStrongConnectivityInspector<>(callGraph);
@@ -86,6 +85,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             	}
             };
             for (Entry<Integer, TarjanStrongConnectivityInspector.VertexNumber<Integer>> entry : indices.entrySet()) {
+            	maxProcNumber = Math.max(maxProcNumber, entry.getKey());
                 indexNumberOf.put(entry.getKey(), entry.getValue().getSccNumber());
             }
             
@@ -112,6 +112,12 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
         this.relevantEdges = relevantEdges;
         this.annotate = annotate;
         this.nodeId2ProcLocalNodeId = new SimpleVector<>(0, graph.vertexSet().size());
+        this.procLocalNodeId2Node = new SimpleVectorBase<Integer, Map<Integer, SDGNode>>(0, maxProcNumber) {
+        	@Override
+        	protected int getId(Integer procNumber) {
+        		return procNumber;
+        	}
+		};
 	}
 
 	public static int compute(WorkPackage<SDG> pack, IProgressMonitor progress) throws CancelException {
@@ -254,6 +260,13 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
 		}
 	}
 	
+	@SuppressWarnings("serial")
+	private static class AoPathsNodesBitvector extends BitVector {
+		AoPathsNodesBitvector(int nbits) {
+			super(nbits);
+		}
+	}
+	
 	
 	private DirectedGraph<Integer, DefaultEdge> extractCallGraph(G graph) {
 		final DirectedGraph<Integer, DefaultEdge> ret = new DefaultDirectedGraph<>(DefaultEdge.class);
@@ -289,10 +302,21 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             });
         }
         
-        for (Set<SDGNode> nodes : proc2nodes.values()) {
+        for (Entry<Integer, Set<SDGNode>> entry : proc2nodes.entrySet()) {
+        	final int procedure = entry.getKey();
+        	final Set<SDGNode> nodes = entry.getValue();
+        	final Map<Integer, SDGNode> procLocal2Node = new SimpleVectorBase<Integer, SDGNode>(0, nodes.size()) {
+        		@Override
+        		protected int getId(Integer k) {
+        			return k;
+        		}
+			};
+			procLocalNodeId2Node.put(procedure, procLocal2Node);
         	int procLocalNodeId = 0;
         	for (SDGNode n : nodes) {
-        		nodeId2ProcLocalNodeId.put(n, procLocalNodeId++);
+        		nodeId2ProcLocalNodeId.put(n, procLocalNodeId);
+        		procLocal2Node.put(procLocalNodeId, n);
+        		procLocalNodeId++;
         	}
         }
         
@@ -317,6 +341,11 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
                 	return workList;
                 });
                 procedureWorkSet.add(n.getProc());
+            }
+            
+            if (n.getKind() == SDGNode.Kind.ACTUAL_OUT) {
+                assert n.customData == null || (!(n.customData instanceof RememberReachedBitVector));
+                n.customData = new AoPathsNodesBitvector(proc2nodes.get(n.getProc()).size());
             }
         }
         
@@ -389,14 +418,16 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             			
             			if (graph.addEdgeUnsafe(e.source, e.target, sum)) {
             				assert !connectedInPDG;
-            				Set<SDGNode> s = aoPaths.get(e.target);
-            				if (s != null) {
-            					assert !s.isEmpty();
+            				final AoPathsNodesBitvector aoPaths = (AoPathsNodesBitvector) e.target.customData;
+            				if (!aoPaths.isZero()) {
             					final int caller = sum.getSource().getProc();
             					procedureWorkSet.add(caller);
             					final IntrusiveList<Edge> workListInCaller = worklists.get(caller);
+            		            final Map<Integer, SDGNode> procLocal2Node = procLocalNodeId2Node.get(caller);
             					
-            					for (SDGNode target : s) {
+            					int procLocalId = - 1; 
+            					while ((procLocalId = aoPaths.nextSetBit(procLocalId + 1)) != -1) {
+            						SDGNode target = procLocal2Node.get(procLocalId);
             						propagate(workListInCaller, sum.getSource(), target);
             					}
             				}
@@ -490,7 +521,12 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             		continue;
             	}
 
-                assert n.customData instanceof BitVector;
+                assert n.customData instanceof PathEdgeReachedNodesBitvector;
+                n.customData = null;
+            }
+            
+            if (n.getKind() == SDGNode.Kind.ACTUAL_OUT) {
+                assert n.customData instanceof AoPathsNodesBitvector;
                 n.customData = null;
             }
         }
@@ -537,13 +573,11 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
         	assert pathEdge.contains(new Edge(source, target));
         }
         if (source.getKind() == SDGNode.Kind.ACTUAL_OUT) {
-        	aoPaths.compute(source, (k, s) -> {
-        		if (s == null) {
-        			s = new HashSet<SDGNode>();
-        		}
-        		s.add(target);
-        		return s;
-        	});
+        	assert source.customData == null || source.customData instanceof AoPathsNodesBitvector;
+        	final AoPathsNodesBitvector aoPaths = (AoPathsNodesBitvector) source.customData;
+        	final int procLocalTargetId = nodeId2ProcLocalNodeId.get(target);
+
+        	aoPaths.set(procLocalTargetId);
         }
     }
     

@@ -46,13 +46,16 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 		this.regions = regions;
 		this.icfg = icfg;
 		this.map = map;
-		verify();
+		assert verify();
 	}
 
-	private void verify() {
+	private boolean verify() {
 		for (ThreadRegion tr : regions) {
-			tr.verify();
+			if (!tr.verify()) {
+				return false;
+			}
 		}
+		return true;
 	}
 
 	/* (non-Javadoc)

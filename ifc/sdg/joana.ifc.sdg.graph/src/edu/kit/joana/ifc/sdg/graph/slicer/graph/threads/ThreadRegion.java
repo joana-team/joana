@@ -204,11 +204,13 @@ public class ThreadRegion {
         return dynamic;
     }
 
-    public void verify() {
-    	for (SDGNode n : nodes) {
-    		if (!n.isInThread(thread)) {
-    			System.out.println(n+" does not belong to this thread");
-    		}
-    	}
+    public boolean verify() {
+        for (SDGNode n : nodes) {
+            if (!n.isInThread(thread)) {
+                System.out.println(n+" does not belong to this thread");
+                return false;
+            }
+        }
+        return true;
     }
 }

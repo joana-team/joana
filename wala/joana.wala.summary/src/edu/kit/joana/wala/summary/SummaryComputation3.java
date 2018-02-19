@@ -61,7 +61,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
     private final Set<SDGEdge.Kind> relevantEdges;
     private final String annotate;
     private final Map<SDGNode, Integer> nodeId2ProcLocalNodeId;
-    private final Map<Integer, Map<Integer, SDGNode>> procLocalNodeId2Node;
+    private final Map<Integer, SDGNode[]> procLocalNodeId2Node;
     private final List<Set<Integer>> procSccs;
     private final Map<Integer, Integer> indexNumberOf;
     
@@ -119,7 +119,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
         this.relevantEdges = relevantEdges;
         this.annotate = annotate;
         this.nodeId2ProcLocalNodeId = new SimpleVector<>(0, graph.vertexSet().size());
-        this.procLocalNodeId2Node = new SimpleVectorBase<Integer, Map<Integer, SDGNode>>(0, maxProcNumber) {
+        this.procLocalNodeId2Node = new SimpleVectorBase<Integer, SDGNode[]>(0, maxProcNumber) {
         	@Override
         	protected int getId(Integer procNumber) {
         		return procNumber;
@@ -312,17 +312,12 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
         for (Entry<Integer, Set<SDGNode>> entry : proc2nodes.entrySet()) {
         	final int procedure = entry.getKey();
         	final Set<SDGNode> nodes = entry.getValue();
-        	final Map<Integer, SDGNode> procLocal2Node = new SimpleVectorBase<Integer, SDGNode>(0, nodes.size()) {
-        		@Override
-        		protected int getId(Integer k) {
-        			return k;
-        		}
-			};
+        	final SDGNode[] procLocal2Node = new SDGNode[nodes.size()];
 			procLocalNodeId2Node.put(procedure, procLocal2Node);
         	int procLocalNodeId = 0;
         	for (SDGNode n : nodes) {
         		nodeId2ProcLocalNodeId.put(n, procLocalNodeId);
-        		procLocal2Node.put(procLocalNodeId, n);
+        		procLocal2Node[procLocalNodeId] =  n;
         		procLocalNodeId++;
         	}
         }
@@ -430,11 +425,11 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             					final int caller = sum.getSource().getProc();
             					procedureWorkSet.add(caller);
             					final IntrusiveList<Edge> workListInCaller = worklists.get(caller);
-            		            final Map<Integer, SDGNode> procLocal2Node = procLocalNodeId2Node.get(caller);
+            		            final SDGNode[] procLocal2Node = procLocalNodeId2Node.get(caller);
             					
             					int procLocalId = - 1; 
             					while ((procLocalId = aoPaths.nextSetBit(procLocalId + 1)) != -1) {
-            						SDGNode target = procLocal2Node.get(procLocalId);
+            						SDGNode target = procLocal2Node[procLocalId];
             						propagate(workListInCaller, sum.getSource(), target);
             					}
             				}
@@ -526,7 +521,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             // clear HashSet<SDGNode> at each node whenever we leave a scc
             if (leftScc) {
                 for (Integer inSameScc : procSccs.get(indexNumberOf.get(procedure))) {
-                	for (SDGNode n : procLocalNodeId2Node.get(inSameScc).values()) {
+                	for (SDGNode n : procLocalNodeId2Node.get(inSameScc)) {
                 		if (n.getKind() == SDGNode.Kind.FORMAL_OUT || n.getKind() == SDGNode.Kind.EXIT) {
                 			if (relevantProcs != null && !relevantProcs.contains(n.getProc())) {
                 				continue;

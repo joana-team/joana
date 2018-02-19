@@ -15,6 +15,7 @@ package edu.kit.joana.ifc.sdg.graph;
 
 import java.util.Comparator;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiFunction;
 
@@ -35,111 +36,123 @@ public abstract class SDGEdge implements Cloneable, KnowsVertices<SDGNode> {
      */
     public enum Kind {
         /** Is used for layouting SDGs in GUIs.*/
-        HELP("HE", false, (source, target) -> new SDGEdgeHELP(source, target), 31),
+        HELP("HE", false, (source, target) -> new SDGEdgeHELP(source, target), 63),
         /** Used to capture structural interdependencies between parameter nodes a->b <=> b may be reached through a field of a */
-        PARAMETER_STRUCTURE("PS", false, (source, target) -> new SDGEdgePARAMETER_STRUCTURE(source, target), 30),
+        PARAMETER_STRUCTURE("PS", false, (source, target) -> new SDGEdgePARAMETER_STRUCTURE(source, target), 61),
         /** Used to capture structural equivalance between parameter nodes a->b <=> a represents the same paramater as b.
          *  This is the case whenever a single parameter is both read and modified in given method.
          **/
-        PARAMETER_EQUIVALENCE("PE", false, (source, target) -> new SDGEdgePARAMETER_EQUIVALENCE(source, target), 31),
+        PARAMETER_EQUIVALENCE("PE", false, (source, target) -> new SDGEdgePARAMETER_EQUIVALENCE(source, target), 62),
 
         
         
         /* different kinds of control flow edges */
         /** Control flow edge (intra-procedural only). */
-        CONTROL_FLOW("CF", false, (source, target) -> new SDGEdgeCONTROL_FLOW(source, target), 2),
+        CONTROL_FLOW("CF", false, (source, target) -> new SDGEdgeCONTROL_FLOW(source, target), 29),
         /** No-flow edge, a sort of unrealizable control flow edge. */
-        NO_FLOW("NF", false, (source, target) -> new SDGEdgeNO_FLOW(source, target), 2),
+        NO_FLOW("NF", false, (source, target) -> new SDGEdgeNO_FLOW(source, target), 28),
         /** Jump flow edge, used for gotos and the like. */
-        JUMP_FLOW("JF", false, (source, target) -> new SDGEdgeJUMP_FLOW(source, target), 2), // I've never encountered one of those in 6 years
+        JUMP_FLOW("JF", false, (source, target) -> new SDGEdgeJUMP_FLOW(source, target), 27), // I've never encountered one of those in 6 years
         /** Return edge. */
-        RETURN("RF", false, (source, target) -> new SDGEdgeRETURN(source, target), 2),
+        RETURN("RF", false, (source, target) -> new SDGEdgeRETURN(source, target), 26),
 
         /* different kinds of control dependences */
         /** Unconditional control dependence edge */
-        CONTROL_DEP_UNCOND("UN", true, (source, target) -> new SDGEdgeCONTROL_DEP_UNCOND(source, target), 3),
+        CONTROL_DEP_UNCOND("UN", true, (source, target) -> new SDGEdgeCONTROL_DEP_UNCOND(source, target), 42),
         /** Conditional control dependence edge, used for control dependences caused by conditional structures. */
-        CONTROL_DEP_COND("CD", true, (source, target) -> new SDGEdgeCONTROL_DEP_COND(source, target), 3),
+        CONTROL_DEP_COND("CD", true, (source, target) -> new SDGEdgeCONTROL_DEP_COND(source, target), 41),
         /** Intra-expression control dependence edges. Used for parameter trees / graphs. */
         CONTROL_DEP_EXPR("CE", true, (source, target) -> new SDGEdgeCONTROL_DEP_EXPR(source, target), 0),
         /** Control dependences induced by procedure calls. */
-        CONTROL_DEP_CALL("CC", true, (source, target) -> new SDGEdgeCONTROL_DEP_CALL(source, target), 3),
+        CONTROL_DEP_CALL("CC", true, (source, target) -> new SDGEdgeCONTROL_DEP_CALL(source, target), 40),
         /** Control dependences induced by jumps. */
-        JUMP_DEP("JD", true, (source, target) -> new SDGEdgeJUMP_DEP(source, target), 3),
+        JUMP_DEP("JD", true, (source, target) -> new SDGEdgeJUMP_DEP(source, target), 39),
         /** Weak control dependence as defined by Ranganath et al. */
-        NTSCD("NTSCD", false, (source, target) -> new SDGEdgeNTSCD(source, target), 3),
+        NTSCD("NTSCD", false, (source, target) -> new SDGEdgeNTSCD(source, target), 38),
         /** Synchronization dependence, a kind of control dependence between nodes in a synchronized block and the head of the block. */
-        SYNCHRONIZATION("SD", true, (source, target) -> new SDGEdgeSYNCHRONIZATION(source, target), 3),
+        SYNCHRONIZATION("SD", true, (source, target) -> new SDGEdgeSYNCHRONIZATION(source, target), 37),
 
         /* different kinds of data dependences */
         /** `Standard' data dependence. */
-        DATA_DEP("DD", true, (source, target) -> new SDGEdgeDATA_DEP(source, target), 3),
+        DATA_DEP("DD", true, (source, target) -> new SDGEdgeDATA_DEP(source, target), 36),
         /** data dependence through values on the heap. */
-        DATA_HEAP("DH", true, (source, target) -> new SDGEdgeDATA_HEAP(source, target), 3),
+        DATA_HEAP("DH", true, (source, target) -> new SDGEdgeDATA_HEAP(source, target), 35),
         /** data dependence through values on the heap. */
-        DATA_ALIAS("DA", true, (source, target) -> new SDGEdgeDATA_ALIAS(source, target), 3),
+        DATA_ALIAS("DA", true, (source, target) -> new SDGEdgeDATA_ALIAS(source, target), 34),
         /** Loop-carried data dependence. Currently not distinguished from standard data dependence. */
-        DATA_LOOP("DL", true, (source, target) -> new SDGEdgeDATA_LOOP(source, target), 3),
+        DATA_LOOP("DL", true, (source, target) -> new SDGEdgeDATA_LOOP(source, target), 33),
         /** Data dependence between tokens of the same expression.
          * Used for fine-grained SDGs for the purpose of creating path conditions. */
-        DATA_DEP_EXPR_VALUE("VD", true, (source, target) -> new SDGEdgeDATA_DEP_EXPR_VALUE(source, target), 3),
+        DATA_DEP_EXPR_VALUE("VD", true, (source, target) -> new SDGEdgeDATA_DEP_EXPR_VALUE(source, target), 32),
         /** Data dependence between tokens that reference the same object.
          * Used for fine-grained SDGs for the purpose of creating path conditions. */
-        DATA_DEP_EXPR_REFERENCE("RD", true, (source, target) -> new SDGEdgeDATA_DEP_EXPR_REFERENCE(source, target), 3),
+        DATA_DEP_EXPR_REFERENCE("RD", true, (source, target) -> new SDGEdgeDATA_DEP_EXPR_REFERENCE(source, target), 31),
 
         /* interprocedural edges */
         /** Summary edge - full summary includes control deps, data deps, heap data deps and heap data deps with aliasing. */
-        SUMMARY("SU", true, (source, target) -> new SDGEdgeSUMMARY(source, target), 5),
+        SUMMARY("SU", true, (source, target) -> new SDGEdgeSUMMARY(source, target), 58),
         /** Summary edge - includes  control deps, data deps and heap data deps, but no aliasing related data deps. */
-        SUMMARY_NO_ALIAS("SH", true, (source, target) -> new SDGEdgeSUMMARY_NO_ALIAS(source, target), 5),
+        SUMMARY_NO_ALIAS("SH", true, (source, target) -> new SDGEdgeSUMMARY_NO_ALIAS(source, target), 57),
         /** Another summary edge - includes only data deps and heap data deps only without aliasing. No control deps and no aliasing */
-        SUMMARY_DATA("SF", true, (source, target) -> new SDGEdgeSUMMARY_DATA(source, target), 5),
+        SUMMARY_DATA("SF", true, (source, target) -> new SDGEdgeSUMMARY_DATA(source, target), 56),
         /** Call edge. */
-        CALL("CL", true, (source, target) -> new SDGEdgeCALL(source, target), 5),
+        CALL("CL", true, (source, target) -> new SDGEdgeCALL(source, target), 55),
         /** Parameter-in edge. */
-        PARAMETER_IN("PI", true, (source, target) -> new SDGEdgePARAMETER_IN(source, target), 5),
+        PARAMETER_IN("PI", true, (source, target) -> new SDGEdgePARAMETER_IN(source, target), 54),
         /** Parameter-out edge. */
-        PARAMETER_OUT("PO", true, (source, target) -> new SDGEdgePARAMETER_OUT(source, target), 5),
+        PARAMETER_OUT("PO", true, (source, target) -> new SDGEdgePARAMETER_OUT(source, target), 53),
 
         /* dependences caused by threads */
         /** Interference dependence. */
-        INTERFERENCE("ID", true, (source, target) -> new SDGEdgeINTERFERENCE(source, target), 2),
+        INTERFERENCE("ID", true, (source, target) -> new SDGEdgeINTERFERENCE(source, target), 25),
         /** Interference-write dependence, happens between two conflicting writes to the same shared variable.
           Not a program dependence in the classic sense. */
-        INTERFERENCE_WRITE("IW", false, (source, target) -> new SDGEdgeINTERFERENCE_WRITE(source, target), 2),
+        INTERFERENCE_WRITE("IW", false, (source, target) -> new SDGEdgeINTERFERENCE_WRITE(source, target), 24),
         /** Ready dependence, caused by operations that can block other threads (e.g. between wait and notify).
          Currently not used, because we do not need to be termination-sensitive. */
-        READY_DEP("RY", true, (source, target) -> new SDGEdgeREADY_DEP(source, target), 2),
+        READY_DEP("RY", true, (source, target) -> new SDGEdgeREADY_DEP(source, target), 23),
 
         /** Fork edge. */
-        FORK("FORK", true, (source, target) -> new SDGEdgeFORK(source, target), 2),
+        FORK("FORK", true, (source, target) -> new SDGEdgeFORK(source, target), 22),
         /** Parameter-in edge for fork sites. */
-        FORK_IN("FORK_IN", true, (source, target) -> new SDGEdgeFORK_IN(source, target), 2),
+        FORK_IN("FORK_IN", true, (source, target) -> new SDGEdgeFORK_IN(source, target), 21),
         /** Parameter-Out edge for fork sites. */
-        FORK_OUT("FORK_OUT", true, (source, target) -> new SDGEdgeFORK_OUT(source, target), 2),
+        FORK_OUT("FORK_OUT", true, (source, target) -> new SDGEdgeFORK_OUT(source, target), 20),
         /** Join edge */
-        JOIN("JOIN", false, (source, target) -> new SDGEdgeJOIN(source, target), 2),
+        JOIN("JOIN", false, (source, target) -> new SDGEdgeJOIN(source, target), 19),
         /** Parameter-Out edge for join sites. */
-        JOIN_OUT("JOIN_OUT", true, (source, target) -> new SDGEdgeJOIN_OUT(source, target), 2),
+        JOIN_OUT("JOIN_OUT", true, (source, target) -> new SDGEdgeJOIN_OUT(source, target), 18),
 
         /* CONFLICTS: Nondeterministic execution order between two nodes. Used for IFC. */
         /** A conflict between a read and a write of the same shared variable. */
-        CONFLICT_DATA("CONFLICT_DATA", false, (source, target) -> new SDGEdgeCONFLICT_DATA(source, target), 4),
+        CONFLICT_DATA("CONFLICT_DATA", false, (source, target) -> new SDGEdgeCONFLICT_DATA(source, target), 46),
         /** A conflict between two output events. */
-        CONFLICT_ORDER("CONFLICT_ORDER", false, (source, target) -> new SDGEdgeCONFLICT_ORDER(source, target), 4),
+        CONFLICT_ORDER("CONFLICT_ORDER", false, (source, target) -> new SDGEdgeCONFLICT_ORDER(source, target), 45),
 
         /* edges used for graph folding */
         /** A folded edge subsumes a set of edges having the same source and target. */
-        FOLDED("FD", true, (source, target) -> new SDGEdgeFOLDED(source, target), 1),
+        FOLDED("FD", true, (source, target) -> new SDGEdgeFOLDED(source, target), 15),
         /** An edge connecting a folded node with its fold node. */
-        FOLD_INCLUDE("FI", false, (source, target) -> new SDGEdgeFOLD_INCLUDE(source, target), 1);
+        FOLD_INCLUDE("FI", false, (source, target) -> new SDGEdgeFOLD_INCLUDE(source, target), 14);
 
 
-        static final int PRIORITY_BITS = 5;
+        static final int PRIORITY_BITS = 6;
         static final int  PRIORITY_HASH_PART_MASK = (Integer.MIN_VALUE) | ((2 << Kind.PRIORITY_BITS) - 1) << (31 - Kind.PRIORITY_BITS);
         static final int REMAINING_HASH_PART_MASK = ~PRIORITY_HASH_PART_MASK;
 
     	
+        static {
+        	final Set<Integer> priorities = new HashSet<>();
+        	for (Kind kind : Kind.values()) {
+        		final boolean added = priorities.add(kind.getPriority());
+        		if (!added) {
+        			kind = null;
+        		}
+        		assert added;
+        	}
+        	assert priorities.size() == Kind.values().length;
+        	
+        }
         private final String value;
         private final boolean isSDG; // signals kinds that represent a program dependence.
         private final int priority; // priority for edges of this kind.
@@ -430,7 +443,7 @@ public abstract class SDGEdge implements Cloneable, KnowsVertices<SDGNode> {
             throw new IllegalArgumentException("no such vertex");
         }
     }
-
+    
     /**
      * @return Returns the kind of the edge.
      */
@@ -486,8 +499,7 @@ public abstract class SDGEdge implements Cloneable, KnowsVertices<SDGNode> {
     	assert (priorityPart & Kind.PRIORITY_HASH_PART_MASK) == priorityPart;
     	assert (priorityPart & Kind.REMAINING_HASH_PART_MASK) == 0;
     	
-    	int hc = getKind().hashCode();
-    	hc = 37 * hc + getSource().hashCode();
+    	int hc = getSource().hashCode();
     	hc = 37 * hc + getTarget().hashCode(); 
         return (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
     }

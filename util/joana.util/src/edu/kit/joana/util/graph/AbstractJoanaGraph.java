@@ -387,6 +387,11 @@ public class AbstractJoanaGraph<V extends IntegerIdentifiable, E extends KnowsVe
 		changed = true;
 		return delegate.removeVertex(arg0);
 	}
+	
+	@Override
+	public void trimToSize() {
+		delegate.trimToSize();
+	}
 
 	/**
 	 * @return

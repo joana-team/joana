@@ -65,6 +65,9 @@ public class SDGManualParser {
 		} finally {
 			SourceLocation.clearSourceLocationPool();
 		}
+		
+		result.trimToSize();
+		
 		return result;
 	
 	}

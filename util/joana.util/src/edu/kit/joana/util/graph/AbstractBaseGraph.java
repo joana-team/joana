@@ -57,6 +57,7 @@ import org.jgrapht.util.*;
 
 import edu.kit.joana.util.collections.ArraySet;
 import edu.kit.joana.util.collections.ModifiableArraySet;
+import edu.kit.joana.util.collections.SimpleVectorBase;
 
 
 
@@ -697,6 +698,11 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
 
         return unmodifiableVertexSet;
     }
+    
+    public void trimToSize() {
+    	specifics.trimToSize();
+    	
+    }
 
     /**
      * @see Graph#getEdgeWeight(Object)
@@ -1094,6 +1100,15 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             assert assertVertexExist(vertex);
             
             return vertexMapDirected.get(vertex);
+        }
+        
+        public void trimToSize() {
+        	// TODO: this is a hack, obviously
+        	if (vertexMapDirected instanceof SimpleVectorBase) {
+        		@SuppressWarnings("rawtypes")
+        		SimpleVectorBase vector = (SimpleVectorBase) vertexMapDirected;
+        		vector.trimToSize();
+        	}
         }
     }
 

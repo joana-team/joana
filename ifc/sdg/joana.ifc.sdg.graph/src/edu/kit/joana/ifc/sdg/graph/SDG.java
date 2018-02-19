@@ -900,6 +900,8 @@ public class SDG extends JoanaGraph implements Cloneable {
 		} finally {
 			SourceLocation.clearSourceLocationPool();
 		}
+		
+		sdg.trimToSize();
 	
 		final int sepIndex = sdgFile.lastIndexOf(File.separator);
 		String fileName = (sepIndex > 0 ? sdgFile.substring(sepIndex) : sdgFile);
@@ -930,6 +932,8 @@ public class SDG extends JoanaGraph implements Cloneable {
     	} finally {
 			SourceLocation.clearSourceLocationPool();
 		}
+    	
+    	sdg.trimToSize();
 
     	final int sepIndex = sdgFile.lastIndexOf(File.separator);
     	String fileName = (sepIndex > 0 ? sdgFile.substring(sepIndex) : sdgFile);
@@ -958,6 +962,8 @@ public class SDG extends JoanaGraph implements Cloneable {
     	} finally {
 			SourceLocation.clearSourceLocationPool();
 		}
+    	
+    	sdg.trimToSize();
 
     	// no filename can be set here. -> Set to null initially.
 

@@ -82,6 +82,8 @@ public class JoanaConverter {
         final int rootId = b.getPDGforMethod(b.getNonPrunedWalaCallGraph().getFakeRootNode()).entry.getId();
         sdg.setRoot(sdg.getNode(rootId));
         
+        sdg.trimToSize();
+        
         progress.done();
 
 		return sdg;

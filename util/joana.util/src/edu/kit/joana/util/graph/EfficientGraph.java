@@ -22,4 +22,5 @@ public interface EfficientGraph<V, E> extends Graph<V, E> {
 	Set<E> incomingEdgesOfUnsafe(V vertex);
 	void removeIncomingEdgesOf(V vertex);
 	void removeOutgoingEdgesOf(V vertex);
+	void trimToSize();
 }

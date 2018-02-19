@@ -514,6 +514,17 @@ class SDGEdgeHELP extends SDGEdge {
 	public final Kind getKind() {
 		return Kind.HELP;
 	}
+	
+	private final static int priorityPart = SDGEdge.Kind.HELP.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
+	}
 }
 
 
@@ -526,6 +537,17 @@ class SDGEdgePARAMETER_STRUCTURE extends SDGEdge {
 	public final Kind getKind() {
 		return Kind.PARAMETER_STRUCTURE;
 	}
+	
+	private final static int priorityPart = SDGEdge.Kind.PARAMETER_STRUCTURE.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
+	}
 }
 class SDGEdgePARAMETER_EQUIVALENCE extends SDGEdge {
 	public SDGEdgePARAMETER_EQUIVALENCE(SDGNode source, SDGNode target) {
@@ -535,6 +557,17 @@ class SDGEdgePARAMETER_EQUIVALENCE extends SDGEdge {
 	@Override
 	public final Kind getKind() {
 		return Kind.PARAMETER_EQUIVALENCE;
+	}
+	
+	private final static int priorityPart = SDGEdge.Kind.PARAMETER_EQUIVALENCE.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
 	}
 }
 class SDGEdgeCONTROL_FLOW extends SDGEdge {
@@ -546,6 +579,17 @@ class SDGEdgeCONTROL_FLOW extends SDGEdge {
 	public final Kind getKind() {
 		return Kind.CONTROL_FLOW;
 	}
+	
+	private final static int priorityPart = SDGEdge.Kind.CONTROL_FLOW.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
+	}
 }
 class SDGEdgeNO_FLOW extends SDGEdge {
 	public SDGEdgeNO_FLOW(SDGNode source, SDGNode target) {
@@ -555,6 +599,17 @@ class SDGEdgeNO_FLOW extends SDGEdge {
 	@Override
 	public final Kind getKind() {
 		return Kind.NO_FLOW;
+	}
+	
+	private final static int priorityPart = SDGEdge.Kind.NO_FLOW.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
 	}
 }
 class SDGEdgeJUMP_FLOW extends SDGEdge {
@@ -566,6 +621,17 @@ class SDGEdgeJUMP_FLOW extends SDGEdge {
 	public final Kind getKind() {
 		return Kind.JUMP_FLOW;
 	}
+	
+	private final static int priorityPart = SDGEdge.Kind.JUMP_FLOW.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
+	}
 }
 class SDGEdgeRETURN extends SDGEdge {
 	public SDGEdgeRETURN(SDGNode source, SDGNode target) {
@@ -575,6 +641,17 @@ class SDGEdgeRETURN extends SDGEdge {
 	@Override
 	public final Kind getKind() {
 		return Kind.RETURN;
+	}
+	
+	private final static int priorityPart = SDGEdge.Kind.RETURN.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
 	}
 }
 class SDGEdgeCONTROL_DEP_UNCOND extends SDGEdge {
@@ -586,6 +663,17 @@ class SDGEdgeCONTROL_DEP_UNCOND extends SDGEdge {
 	public final Kind getKind() {
 		return Kind.CONTROL_DEP_UNCOND;
 	}
+	
+	private final static int priorityPart = SDGEdge.Kind.CONTROL_DEP_UNCOND.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
+	}
 }
 class SDGEdgeCONTROL_DEP_COND extends SDGEdge {
 	public SDGEdgeCONTROL_DEP_COND(SDGNode source, SDGNode target) {
@@ -595,6 +683,17 @@ class SDGEdgeCONTROL_DEP_COND extends SDGEdge {
 	@Override
 	public final Kind getKind() {
 		return Kind.CONTROL_DEP_COND;
+	}
+	
+	private final static int priorityPart = SDGEdge.Kind.CONTROL_DEP_COND.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
 	}
 }
 class SDGEdgeCONTROL_DEP_EXPR extends SDGEdge {
@@ -606,6 +705,17 @@ class SDGEdgeCONTROL_DEP_EXPR extends SDGEdge {
 	public final Kind getKind() {
 		return Kind.CONTROL_DEP_EXPR;
 	}
+	
+	private final static int priorityPart = SDGEdge.Kind.CONTROL_DEP_EXPR.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
+	}
 }
 class SDGEdgeCONTROL_DEP_CALL extends SDGEdge {
 	public SDGEdgeCONTROL_DEP_CALL(SDGNode source, SDGNode target) {
@@ -615,6 +725,17 @@ class SDGEdgeCONTROL_DEP_CALL extends SDGEdge {
 	@Override
 	public final Kind getKind() {
 		return Kind.CONTROL_DEP_CALL;
+	}
+	
+	private final static int priorityPart = SDGEdge.Kind.CONTROL_DEP_CALL.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
 	}
 }
 class SDGEdgeJUMP_DEP extends SDGEdge {
@@ -626,6 +747,17 @@ class SDGEdgeJUMP_DEP extends SDGEdge {
 	public final Kind getKind() {
 		return Kind.JUMP_DEP;
 	}
+	
+	private final static int priorityPart = SDGEdge.Kind.JUMP_DEP.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
+	}
 }
 class SDGEdgeNTSCD extends SDGEdge {
 	public SDGEdgeNTSCD(SDGNode source, SDGNode target) {
@@ -636,6 +768,17 @@ class SDGEdgeNTSCD extends SDGEdge {
 	public final Kind getKind() {
 		return Kind.NTSCD;
 	}
+	
+	private final static int priorityPart = SDGEdge.Kind.NTSCD.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
+	}
 }
 class SDGEdgeSYNCHRONIZATION extends SDGEdge {
 	public SDGEdgeSYNCHRONIZATION(SDGNode source, SDGNode target) {
@@ -645,6 +788,17 @@ class SDGEdgeSYNCHRONIZATION extends SDGEdge {
 	@Override
 	public final Kind getKind() {
 		return Kind.SYNCHRONIZATION;
+	}
+	
+	private final static int priorityPart = SDGEdge.Kind.SYNCHRONIZATION.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
 	}
 }
 
@@ -657,6 +811,17 @@ class SDGEdgeDATA_DEP extends SDGEdge {
 	public final Kind getKind() {
 		return Kind.DATA_DEP;
 	}
+	
+	private final static int priorityPart = SDGEdge.Kind.DATA_DEP.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
+	}
 }
 class SDGEdgeDATA_HEAP extends SDGEdge {
 	public SDGEdgeDATA_HEAP(SDGNode source, SDGNode target) {
@@ -666,6 +831,17 @@ class SDGEdgeDATA_HEAP extends SDGEdge {
 	@Override
 	public final Kind getKind() {
 		return Kind.DATA_HEAP;
+	}
+	
+	private final static int priorityPart = SDGEdge.Kind.DATA_HEAP.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
 	}
 }
 class SDGEdgeDATA_ALIAS extends SDGEdge {
@@ -677,6 +853,17 @@ class SDGEdgeDATA_ALIAS extends SDGEdge {
 	public final Kind getKind() {
 		return Kind.DATA_ALIAS;
 	}
+	
+	private final static int priorityPart = SDGEdge.Kind.DATA_ALIAS.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
+	}
 }
 class SDGEdgeDATA_LOOP extends SDGEdge {
 	public SDGEdgeDATA_LOOP(SDGNode source, SDGNode target) {
@@ -686,6 +873,17 @@ class SDGEdgeDATA_LOOP extends SDGEdge {
 	@Override
 	public final Kind getKind() {
 		return Kind.DATA_LOOP;
+	}
+	
+	private final static int priorityPart = SDGEdge.Kind.DATA_LOOP.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
 	}
 }
 class SDGEdgeDATA_DEP_EXPR_VALUE extends SDGEdge {
@@ -697,6 +895,17 @@ class SDGEdgeDATA_DEP_EXPR_VALUE extends SDGEdge {
 	public final Kind getKind() {
 		return Kind.DATA_DEP_EXPR_VALUE;
 	}
+	
+	private final static int priorityPart = SDGEdge.Kind.DATA_DEP_EXPR_VALUE.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
+	}
 }
 class SDGEdgeDATA_DEP_EXPR_REFERENCE extends SDGEdge {
 	public SDGEdgeDATA_DEP_EXPR_REFERENCE(SDGNode source, SDGNode target) {
@@ -706,6 +915,17 @@ class SDGEdgeDATA_DEP_EXPR_REFERENCE extends SDGEdge {
 	@Override
 	public final Kind getKind() {
 		return Kind.DATA_DEP_EXPR_REFERENCE;
+	}
+	
+	private final static int priorityPart = SDGEdge.Kind.DATA_DEP_EXPR_REFERENCE.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
 	}
 }
 
@@ -718,6 +938,17 @@ class SDGEdgeSUMMARY extends SDGEdge {
 	public final Kind getKind() {
 		return Kind.SUMMARY;
 	}
+	
+	private final static int priorityPart = SDGEdge.Kind.SUMMARY.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
+	}
 }
 class SDGEdgeSUMMARY_NO_ALIAS extends SDGEdge {
 	public SDGEdgeSUMMARY_NO_ALIAS(SDGNode source, SDGNode target) {
@@ -727,6 +958,17 @@ class SDGEdgeSUMMARY_NO_ALIAS extends SDGEdge {
 	@Override
 	public final Kind getKind() {
 		return Kind.SUMMARY_NO_ALIAS;
+	}
+	
+	private final static int priorityPart = SDGEdge.Kind.SUMMARY_NO_ALIAS.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
 	}
 }
 class SDGEdgeSUMMARY_DATA extends SDGEdge {
@@ -738,6 +980,17 @@ class SDGEdgeSUMMARY_DATA extends SDGEdge {
 	public final Kind getKind() {
 		return Kind.SUMMARY_DATA;
 	}
+	
+	private final static int priorityPart = SDGEdge.Kind.SUMMARY_DATA.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
+	}
 }
 class SDGEdgeCALL extends SDGEdge {
 	public SDGEdgeCALL(SDGNode source, SDGNode target) {
@@ -747,6 +1000,17 @@ class SDGEdgeCALL extends SDGEdge {
 	@Override
 	public final Kind getKind() {
 		return Kind.CALL;
+	}
+	
+	private final static int priorityPart = SDGEdge.Kind.CALL.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
 	}
 }
 class SDGEdgePARAMETER_IN extends SDGEdge {
@@ -758,6 +1022,17 @@ class SDGEdgePARAMETER_IN extends SDGEdge {
 	public final Kind getKind() {
 		return Kind.PARAMETER_IN;
 	}
+	
+	private final static int priorityPart = SDGEdge.Kind.PARAMETER_IN.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
+	}
 }
 class SDGEdgePARAMETER_OUT extends SDGEdge {
 	public SDGEdgePARAMETER_OUT(SDGNode source, SDGNode target) {
@@ -767,6 +1042,17 @@ class SDGEdgePARAMETER_OUT extends SDGEdge {
 	@Override
 	public final Kind getKind() {
 		return Kind.PARAMETER_OUT;
+	}
+	
+	private final static int priorityPart = SDGEdge.Kind.PARAMETER_OUT.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
 	}
 }
 
@@ -779,6 +1065,17 @@ class SDGEdgeINTERFERENCE extends SDGEdge {
 	public final Kind getKind() {
 		return Kind.INTERFERENCE;
 	}
+	
+	private final static int priorityPart = SDGEdge.Kind.INTERFERENCE.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
+	}
 }
 class SDGEdgeINTERFERENCE_WRITE extends SDGEdge {
 	public SDGEdgeINTERFERENCE_WRITE(SDGNode source, SDGNode target) {
@@ -789,6 +1086,17 @@ class SDGEdgeINTERFERENCE_WRITE extends SDGEdge {
 	public final Kind getKind() {
 		return Kind.INTERFERENCE_WRITE;
 	}
+	
+	private final static int priorityPart = SDGEdge.Kind.INTERFERENCE_WRITE.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
+	}
 }
 class SDGEdgeREADY_DEP extends SDGEdge {
 	public SDGEdgeREADY_DEP(SDGNode source, SDGNode target) {
@@ -798,6 +1106,17 @@ class SDGEdgeREADY_DEP extends SDGEdge {
 	@Override
 	public final Kind getKind() {
 		return Kind.READY_DEP;
+	}
+	
+	private final static int priorityPart = SDGEdge.Kind.READY_DEP.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
 	}
 }
 
@@ -810,6 +1129,17 @@ class SDGEdgeFORK extends SDGEdge {
 	public final Kind getKind() {
 		return Kind.FORK;
 	}
+	
+	private final static int priorityPart = SDGEdge.Kind.FORK.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
+	}
 }
 class SDGEdgeFORK_IN extends SDGEdge {
 	public SDGEdgeFORK_IN(SDGNode source, SDGNode target) {
@@ -819,6 +1149,17 @@ class SDGEdgeFORK_IN extends SDGEdge {
 	@Override
 	public final Kind getKind() {
 		return Kind.FORK_IN;
+	}
+	
+	private final static int priorityPart = SDGEdge.Kind.FORK_IN.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
 	}
 }
 class SDGEdgeFORK_OUT extends SDGEdge {
@@ -830,6 +1171,17 @@ class SDGEdgeFORK_OUT extends SDGEdge {
 	public final Kind getKind() {
 		return Kind.FORK_OUT;
 	}
+	
+	private final static int priorityPart = SDGEdge.Kind.FORK_OUT.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
+	}
 }
 class SDGEdgeJOIN extends SDGEdge {
 	public SDGEdgeJOIN(SDGNode source, SDGNode target) {
@@ -840,6 +1192,17 @@ class SDGEdgeJOIN extends SDGEdge {
 	public final Kind getKind() {
 		return Kind.JOIN;
 	}
+	
+	private final static int priorityPart = SDGEdge.Kind.JOIN.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
+	}
 }
 class SDGEdgeJOIN_OUT extends SDGEdge {
 	public SDGEdgeJOIN_OUT(SDGNode source, SDGNode target) {
@@ -849,6 +1212,17 @@ class SDGEdgeJOIN_OUT extends SDGEdge {
 	@Override
 	public final Kind getKind() {
 		return Kind.JOIN_OUT;
+	}
+	
+	private final static int priorityPart = SDGEdge.Kind.JOIN_OUT.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
 	}
 }
 
@@ -861,6 +1235,17 @@ class SDGEdgeCONFLICT_DATA extends SDGEdge {
 	public final Kind getKind() {
 		return Kind.CONFLICT_DATA;
 	}
+	
+	private final static int priorityPart = SDGEdge.Kind.CONFLICT_DATA.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
+	}
 }
 class SDGEdgeCONFLICT_ORDER extends SDGEdge {
 	public SDGEdgeCONFLICT_ORDER(SDGNode source, SDGNode target) {
@@ -870,6 +1255,17 @@ class SDGEdgeCONFLICT_ORDER extends SDGEdge {
 	@Override
 	public final Kind getKind() {
 		return Kind.CONFLICT_ORDER;
+	}
+	
+	private final static int priorityPart = SDGEdge.Kind.CONFLICT_ORDER.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
 	}
 }
 class SDGEdgeFOLDED extends SDGEdge {
@@ -881,6 +1277,17 @@ class SDGEdgeFOLDED extends SDGEdge {
 	public final Kind getKind() {
 		return Kind.FOLDED;
 	}
+	
+	private final static int priorityPart = SDGEdge.Kind.FOLDED.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
+	}
 }
 class SDGEdgeFOLD_INCLUDE extends SDGEdge {
 	public SDGEdgeFOLD_INCLUDE(SDGNode source, SDGNode target) {
@@ -890,6 +1297,18 @@ class SDGEdgeFOLD_INCLUDE extends SDGEdge {
 	@Override
 	public final Kind getKind() {
 		return Kind.FOLD_INCLUDE;
+	}
+	
+	private final static int priorityPart = SDGEdge.Kind.FOLD_INCLUDE.getPriorityPart();
+
+	@Override
+	public int hashCode() {
+		int hc = m_source.hashCode();
+		hc = 37 * hc + m_target.hashCode();
+
+		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
+		assert hc == super.hashCode();
+		return hc;
 	}
 }
 

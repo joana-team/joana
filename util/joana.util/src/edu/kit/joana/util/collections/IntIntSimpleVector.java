@@ -18,68 +18,57 @@ import java.util.Set;
 import java.util.function.BiFunction;
 
 /**
- * A {@link Map} implementation for {@link IntegerIdentifiable} keys.
+ * A {@link Map} implementation for {@link Integer} keys and values.
  * 
  * This backed by a array, directly accessed by {@link IntegerIdentifiable#getId()},
  * hence this only makes sense for keys that are densely aligned around 0, i.e.: 
  * almost all keys have and id that contained in an interval [-leftMaxIndex, rightMaxIndex] for
  * some leftMaxIndex, rightMaxIndex >=0.
  * 
- * Also, this Map violates the {@link Map} contract whenever there exists keys k1, k2 s.t. 
- * k1.getId() == k2.getId(), but not: k1.equals(k2).
  */
-public abstract class SimpleVectorBase<K, V>  extends AbstractMap<K, V> implements Map<K, V> {
+public class IntIntSimpleVector extends AbstractMap<Integer, Integer> implements Map<Integer, Integer> {
 
+	public static final int NULL = Integer.MIN_VALUE;
 	private final static int MAX_SIZE = Integer.MAX_VALUE / 4;
 
 	private final static double GROWTH_FACTOR = 1.5;
 
-	protected Object[] rightKeys;
-	protected Object[] rightValues;
+	protected int[] rightValues;
 	
-	protected Object[] leftKeys;
-	protected Object[] leftValues;
+	protected int[] leftValues;
 
 	protected int rightMaxIndex;
 	protected int leftMaxIndex;
 	
 	protected int size;
 
-	public SimpleVectorBase(int initialLeftCapacity, int initialRightCapacity) {
+	public IntIntSimpleVector(int initialLeftCapacity, int initialRightCapacity) {
 		if (initialLeftCapacity < 0  || initialLeftCapacity  > MAX_SIZE) throw new IllegalArgumentException(); 
 		if (initialRightCapacity < 0 || initialRightCapacity > MAX_SIZE) throw new IllegalArgumentException();
 
 		this.rightMaxIndex = -1;
 		this.leftMaxIndex  = -1;
 		this.size = 0;
-		this.rightKeys   = new Object[initialRightCapacity];
-		this.rightValues = new Object[initialRightCapacity];
-		this.leftKeys    = new Object[initialLeftCapacity];
-		this.leftValues  = new Object[initialLeftCapacity];
+		this.rightValues = new int[initialRightCapacity];
+		this.leftValues  = new int[initialLeftCapacity];
+		for (int i = 0; i < leftValues.length; i++) {
+			leftValues[i] = NULL;
+		}
+		for (int i = 0; i < rightValues.length; i++) {
+			rightValues[i] = NULL;
+		}
 	}
 	
 	public void trimToSize() {
 		{
-			Object[] oldRightKeys = rightKeys;
-			rightKeys = new Object[rightMaxIndex + 1];
-			System.arraycopy(oldRightKeys, 0, rightKeys, 0, rightKeys.length);
-			oldRightKeys = null;
-		}
-		{
-			Object[] oldLeftKeys = leftKeys;
-			leftKeys = new Object[leftMaxIndex + 1];
-			System.arraycopy(oldLeftKeys, 0, leftKeys, 0, leftKeys.length);
-			oldLeftKeys = null;
-		}
-		{
-			Object[] oldRightValues = rightValues;
-			rightValues = new Object[rightMaxIndex + 1];
+			int[] oldRightValues = rightValues;
+			rightValues = new int[rightMaxIndex + 1];
 			System.arraycopy(oldRightValues, 0, rightValues, 0, rightValues.length);
 			oldRightValues = null;
 		}
 		{
-			Object[] oldLeftValues = leftValues;
-			leftValues = new Object[leftMaxIndex + 1];
+			int[] oldLeftValues = leftValues;
+			leftValues = new int[leftMaxIndex + 1];
 			System.arraycopy(oldLeftValues, 0, leftValues, 0, leftValues.length);
 			oldLeftValues = null;
 		}
@@ -95,24 +84,20 @@ public abstract class SimpleVectorBase<K, V>  extends AbstractMap<K, V> implemen
 		return size == 0;
 	}
 	
-	protected abstract int getId(K k);
-
 	@Override
-	@SuppressWarnings("unchecked")
-	public V get(Object o) {
+	public Integer get(Object o) {
 		if (o == null) throw new NullPointerException();
-		final int x = getId((K)o);
+		if (!(o instanceof Integer)) return null;
+		final int x = (int) o;
 
 		if (0 <= x && x <= rightMaxIndex) {
-			assert o.equals(rightKeys[x]);
-			return (V) rightValues[x];
+			return rightValues[x];
 		}
 		
 		final int y = -x;
 		assert y != 0;
 		if (0 <= y && y <= leftMaxIndex) {
-			assert o.equals(leftKeys[y]);
-			return (V) leftValues[y];
+			return leftValues[y];
 		}
 		return null;
 	}
@@ -120,17 +105,15 @@ public abstract class SimpleVectorBase<K, V>  extends AbstractMap<K, V> implemen
 	@Override
 	public boolean containsKey(Object o) {
 		if (o == null) throw new NullPointerException();
-		@SuppressWarnings("unchecked")
-		final int x = getId((K)o);
+		if (!(o instanceof Integer)) return false;
+		final int x = (int) o;
 
-		if (0 <= x && x <= rightMaxIndex && rightKeys[x] != null) {
-			assert o.equals(rightKeys[x]);
+		if (0 <= x && x <= rightMaxIndex && rightValues[x] != NULL) {
 			return true;
 		}
 		
 		final int y = -x;
-		if (0 <= y && y <= leftMaxIndex  && leftKeys[y] != null) {
-			assert o.equals(leftKeys[y]);
+		if (0 <= y && y <= leftMaxIndex  && leftValues[y] != NULL) {
 			return true;
 		}
 		
@@ -138,9 +121,9 @@ public abstract class SimpleVectorBase<K, V>  extends AbstractMap<K, V> implemen
 	}
 
 	@Override
-	public V put(K key, V value) {
-		if (key == null || value == null) throw new NullPointerException();
-		final int id = getId(key);
+	public Integer put(Integer key, Integer value) {
+		if (key == null || value == null || value == NULL) throw new NullPointerException();
+		final int id = key;
 		if (id > MAX_SIZE || id < -MAX_SIZE) {
 			throw new IllegalArgumentException("id is too big: " + id);
 		}
@@ -148,95 +131,68 @@ public abstract class SimpleVectorBase<K, V>  extends AbstractMap<K, V> implemen
 		if (0 <= id) {
 			final int x = id;
 			ensureRightCapacity(x);
-	
-			@SuppressWarnings("unchecked")
-			K currentKey = (K) rightKeys[x];
-			@SuppressWarnings("unchecked")
-			V oldValue   = (V) rightValues[x];
+
+			int oldValue   = rightValues[x];
 			
-			assert (oldValue == null) == (currentKey == null);
 			
-			if (currentKey == null) {
-				rightKeys[x] = key; 
+			if (oldValue == NULL) {
 				size++;
 				rightMaxIndex = Math.max(rightMaxIndex, x);
-			} else {
-				assert key.equals(currentKey);
 			}
 			rightValues[x] = value;
 			
-			return oldValue;
+			return oldValue == NULL ? null : oldValue;
 		} else {
 			final int y = -id;
 			assert y != 0;
 			
 			ensureLeftCapacity(y);
 			
-			@SuppressWarnings("unchecked")
-			K currentKey = (K) leftKeys[y];
-			@SuppressWarnings("unchecked")
-			V oldValue   = (V) leftValues[y];
+			int oldValue   = leftValues[y];
 			
-			assert (oldValue == null) == (currentKey == null);
-			
-			if (currentKey == null) {
-				leftKeys[y] = key; 
+			if (oldValue == NULL) {
 				size++;
 				leftMaxIndex = Math.max(leftMaxIndex, y);
-			} else {
-				assert key.equals(currentKey);
 			}
 
 			leftValues[y] = value;
 			
-			return oldValue;
+			return oldValue == NULL ? null : oldValue;
 		}
 	}
 
 	@Override
-	public V remove(Object o) {
+	public Integer remove(Object o) {
 		if (o == null) throw new NullPointerException();
-		@SuppressWarnings("unchecked")
-		final int x = getId((K)o);
+		if (!(o instanceof Integer)) return null;
+		final int x = (int) o;
 		final int y = -x;
 		
 		if (0 <= x && x <= rightMaxIndex) {
-			@SuppressWarnings("unchecked")
-			K currentKey = (K) rightKeys[x];
-			@SuppressWarnings("unchecked")
-			V oldValue   = (V) rightValues[x];
+			int oldValue   = rightValues[x];
 			
-			assert (oldValue == null) == (currentKey == null);
-			
-			rightValues[x] = null;
-			rightKeys[x] = null;
+			rightValues[x] = NULL;
 
-			if (currentKey != null) {
+			if (oldValue != NULL) {
 				size--;
 				if (rightMaxIndex == x) {
 					int newMaxIndex = x - 1;
-					while (newMaxIndex >= 0 && rightKeys[newMaxIndex] == null) newMaxIndex--;
+					while (newMaxIndex >= 0 && rightValues[newMaxIndex] == NULL) newMaxIndex--;
 					rightMaxIndex = newMaxIndex;
 				}
 			}
 
 			return oldValue;
 		} else if (0 <= y && y <= leftMaxIndex) {
-			@SuppressWarnings("unchecked")
-			K currentKey = (K) leftKeys[y];
-			@SuppressWarnings("unchecked")
-			V oldValue   = (V) leftValues[y];
+			int oldValue   = leftValues[y];
 			
-			assert (oldValue == null) == (currentKey == null);
-			
-			leftValues[y] = null;
-			leftKeys[y] = null;
+			leftValues[y] = NULL;
 
-			if (currentKey != null) {
+			if (oldValue != NULL) {
 				size--;
 				if (leftMaxIndex == y) {
 					int newMaxIndex = y - 1;
-					while (newMaxIndex >= 0 && leftKeys[newMaxIndex] == null) newMaxIndex--;
+					while (newMaxIndex >= 0 && leftValues[newMaxIndex] == NULL) newMaxIndex--;
 					leftMaxIndex = newMaxIndex;
 				}
 			}
@@ -249,17 +205,17 @@ public abstract class SimpleVectorBase<K, V>  extends AbstractMap<K, V> implemen
 
 	@Override
 	public void clear() {
-		rightKeys = new Object[1];
-		rightValues = new Object[1];
-		leftKeys = new Object[1];
-		leftValues = new Object[1];
+		rightValues = new int[1];
+		leftValues = new int[1];
+		rightValues[0] = NULL;
+		leftValues[0] = NULL;
 		size = 0;
 		rightMaxIndex = -1;
 		leftMaxIndex = -1;
 	}
 
 	@Override
-	public void putAll(Map<? extends K, ? extends V> m) {
+	public void putAll(Map<? extends Integer, ? extends Integer> m) {
 		throw new UnsupportedOperationException();
 	}
 	
@@ -273,20 +229,16 @@ public abstract class SimpleVectorBase<K, V>  extends AbstractMap<K, V> implemen
 	 * make sure we can store to a particular index
 	 */
 	private void ensureRightCapacity(int capacity) {
-		assert rightKeys.length == rightValues.length;
-		final int length = rightKeys.length;
+		final int length = rightValues.length;
 		if (capacity >= length) {
 			final int newLength = 1 + (int) (GROWTH_FACTOR * capacity);
-			{
-				Object[] oldKeys = rightKeys;
-				rightKeys = new Object[newLength];
-				System.arraycopy(oldKeys, 0, rightKeys, 0, length);
-				oldKeys = null;
-			}
 			{			
-				Object[] oldValues = rightValues;
-				rightValues = new Object[newLength];
+				int[] oldValues = rightValues;
+				rightValues = new int[newLength];
 				System.arraycopy(oldValues, 0, rightValues, 0, length);
+				for (int i = length; i < newLength; i ++) {
+					rightValues[i] = NULL;
+				}
 				oldValues = null;
 			}
 		}
@@ -296,36 +248,32 @@ public abstract class SimpleVectorBase<K, V>  extends AbstractMap<K, V> implemen
 	 * make sure we can store to a particular index
 	 */
 	private void ensureLeftCapacity(int capacity) {
-		assert leftKeys.length == leftValues.length;
-		final int length = leftKeys.length;
+		final int length = leftValues.length;
 		if (capacity >= length) {
 			final int newLength = 1 + (int) (GROWTH_FACTOR * capacity);
-			{
-				Object[] oldKeys = leftKeys;
-				leftKeys = new Object[newLength];
-				System.arraycopy(oldKeys, 0, leftKeys, 0, length);
-				oldKeys = null;
-			}
 			{			
-				Object[] oldValues = leftValues;
-				leftValues = new Object[newLength];
+				int[] oldValues = leftValues;
+				leftValues = new int[newLength];
 				System.arraycopy(oldValues, 0, leftValues, 0, length);
+				for (int i = length; i < newLength; i ++) {
+					leftValues[i] = NULL;
+				}
 				oldValues = null;
 			}
 		}
 	}
 
 	
-	class LeftRightIterator<T> implements Iterator<T> {
+	abstract class LeftRightIterator implements Iterator<Integer> {
 		private int x = 0;
 		private int y = 0;
 		
-		private final Object[] left;
-		private final Object[] right;
+		private final int[] left;
+		private final int[] right;
 		
-		LeftRightIterator(Object[] left, Object[] right) {
-			assert left  == leftKeys  || left  == leftValues;
-			assert right == rightKeys || right == rightValues;
+		LeftRightIterator(int[] left, int[] right) {
+			assert left  == leftValues;
+			assert right == rightValues;
 			this.left = left;
 			this.right = right;
 		}
@@ -336,35 +284,38 @@ public abstract class SimpleVectorBase<K, V>  extends AbstractMap<K, V> implemen
 		}
 
 		@Override
-		@SuppressWarnings("unchecked")
-		public T next() {
+		public Integer next() {
 			if (y <= leftMaxIndex) {
-				assert y < leftKeys.length;
-				while (left[y] == null) {
+				assert y < left.length;
+				while (left[y] == NULL) {
 					y++;
-					assert y < leftKeys.length;
+					assert y < leftValues.length;
 				}
-				return (T) left[y++];
+				//return left[y++];
+				return what(left, y++);
 			}
 			if (x <= rightMaxIndex) {
 				assert x < right.length;
-				while (right[x] == null) {
+				while (right[x] == NULL) {
 					x++;
 					assert x < right.length;
 				}
-				return (T) right[x++];
+				//return right[x++];
+				return what(right, x++);
 			}
 
 			throw new NoSuchElementException();
 		}
+		
+		abstract int what(int[] array, int index);
 	}
 
 	@Override
-	public Set<K> keySet() {
+	public Set<Integer> keySet() {
 		return KEY_SET;
 	}
 
-	private final Set<K> KEY_SET = new AbstractSet<K>() {
+	private final Set<Integer> KEY_SET = new AbstractSet<Integer>() {
 		@Override
 		public int size() {
 			return size;
@@ -381,18 +332,22 @@ public abstract class SimpleVectorBase<K, V>  extends AbstractMap<K, V> implemen
 		}
 
 		@Override
-		public Iterator<K> iterator() {
-			return new LeftRightIterator<K>(leftKeys, rightKeys);
+		public Iterator<Integer> iterator() {
+			return new LeftRightIterator(leftValues, rightValues) {
+				int what(int[] array, int index) {
+					return index;
+				}
+			};
 		}
 
 		@Override
-		public boolean add(K e) {
+		public boolean add(Integer e) {
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
 		public boolean remove(Object o) {
-			return SimpleVectorBase.this.remove(o) != null;
+			return IntIntSimpleVector.this.remove(o) != null;
 		}
 
 		@Override
@@ -403,8 +358,8 @@ public abstract class SimpleVectorBase<K, V>  extends AbstractMap<K, V> implemen
 	
 
 	@Override
-	public Collection<V> values() {
-		return new AbstractCollection<V>() {
+	public Collection<Integer> values() {
+		return new AbstractCollection<Integer>() {
 
 			@Override
 			public int size() {
@@ -422,12 +377,17 @@ public abstract class SimpleVectorBase<K, V>  extends AbstractMap<K, V> implemen
 			}
 
 			@Override
-			public Iterator<V> iterator() {
-				return new LeftRightIterator<V>(leftValues, rightValues);
+			public Iterator<Integer> iterator() {
+				return new LeftRightIterator(leftValues, rightValues) {
+					@Override
+					int what(int[] array, int index) {
+						return array[index];
+					}
+				};
 			}
 
 			@Override
-			public boolean add(V e) {
+			public boolean add(Integer e) {
 				throw new UnsupportedOperationException();
 			}
 
@@ -445,11 +405,11 @@ public abstract class SimpleVectorBase<K, V>  extends AbstractMap<K, V> implemen
 	}
 
 	@Override
-	public Set<Entry<K, V>> entrySet() {
+	public Set<Entry<Integer, Integer>> entrySet() {
 		return ENTRY_SET;
 	}
 
-	private final Set<Entry<K, V>> ENTRY_SET = new AbstractSet<Entry<K, V>>() {
+	private final Set<Entry<Integer, Integer>> ENTRY_SET = new AbstractSet<Entry<Integer, Integer>>() {
 		@Override
 		public int size() {
 			return size;
@@ -466,9 +426,13 @@ public abstract class SimpleVectorBase<K, V>  extends AbstractMap<K, V> implemen
 		}
 
 		@Override
-		public Iterator<Entry<K, V>> iterator() {
-			return new Iterator<Map.Entry<K,V>>() {
-				final Iterator<K> keyIterator = new LeftRightIterator<K>(leftKeys, rightKeys);
+		public Iterator<Entry<Integer, Integer>> iterator() {
+			return new Iterator<Map.Entry<Integer,Integer>>() {
+				final Iterator<Integer> keyIterator = new LeftRightIterator(leftValues, rightValues) {
+					int what(int[] array, int index) {
+						return index;
+					};
+				};
 
 				@Override
 				public boolean hasNext() {
@@ -476,33 +440,31 @@ public abstract class SimpleVectorBase<K, V>  extends AbstractMap<K, V> implemen
 				}
 
 				@Override
-				public Entry<K, V> next() {
-					final K key = keyIterator.next();
-					final int id = getId(key);
-					return new Entry<K,V>() {
-						public K getKey() {
+				public Entry<Integer, Integer> next() {
+					final Integer key = keyIterator.next();
+					final int id = key;
+					return new Entry<Integer, Integer>() {
+						public Integer getKey() {
 							return key;
 						};
 						
 						@Override
-						public V getValue() {
+						public Integer getValue() {
 							if (id >= 0) {
 								final int x = id;
-								@SuppressWarnings("unchecked")
-								final V value = (V) rightValues[x]; 
+								final int value = rightValues[x]; 
 								return value;
 							} else {
 								final int y = -id;
 								assert y != 0;
-								@SuppressWarnings("unchecked")
-								final V value = (V) leftValues[y]; 
+								final int value = leftValues[y]; 
 								return value;
 							}
 							
 						}
 						
 						@Override
-						public V setValue(V value) {
+						public Integer setValue(Integer value) {
 							throw new UnsupportedOperationException();
 						}
 					};
@@ -513,13 +475,13 @@ public abstract class SimpleVectorBase<K, V>  extends AbstractMap<K, V> implemen
 		}
 
 		@Override
-		public boolean add(Entry<K, V> e) {
+		public boolean add(Entry<Integer, Integer> e) {
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
 		public boolean remove(Object o) {
-			return SimpleVectorBase.this.remove(o) != null;
+			return IntIntSimpleVector.this.remove(o) != null;
 		}
 
 		@Override
@@ -530,9 +492,9 @@ public abstract class SimpleVectorBase<K, V>  extends AbstractMap<K, V> implemen
 	
 	
 	@Override
-	public V compute(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+	public Integer compute(Integer key, BiFunction<? super Integer, ? super Integer, ? extends Integer> remappingFunction) {
 		if (key == null) throw new NullPointerException();
-		final int id = getId(key);
+		final int id = (int) key;
 		if (id > MAX_SIZE || id < -MAX_SIZE) {
 			throw new IllegalArgumentException("id is too big: " + id);
 		}
@@ -540,26 +502,19 @@ public abstract class SimpleVectorBase<K, V>  extends AbstractMap<K, V> implemen
 		if (0 <= id) {
 			final int x = id;
 			
-			if (x < rightKeys.length) {
-				@SuppressWarnings("unchecked")
-				K currentKey = (K) rightKeys[x];
-				@SuppressWarnings("unchecked")
-				V oldValue   = (V) rightValues[x];
+			if (x < rightValues.length) {
+				int oldValue   = rightValues[x];
 				
-				assert (oldValue == null) == (currentKey == null);
-				assert currentKey == null || key.equals(currentKey);
-
-				final V value = remappingFunction.apply(key, oldValue);
+				final Integer value = remappingFunction.apply(key, oldValue);
 				
-				if (currentKey == null && value != null) {
-					rightKeys[x] = key;
+				if (oldValue == NULL && value != NULL && value != null) {
 					size++;
 					rightMaxIndex = Math.max(rightMaxIndex, x);
-				} else if (currentKey != null && value == null){
+				} else if (oldValue != NULL && (value == null || value == NULL)){
 					size--;
 					if (rightMaxIndex == x) {
 						int newMaxIndex = x - 1;
-						while (newMaxIndex >= 0 && rightKeys[newMaxIndex] == null) newMaxIndex--;
+						while (newMaxIndex >= 0 && rightValues[newMaxIndex] == NULL) newMaxIndex--;
 						rightMaxIndex = newMaxIndex;
 					}
 				}
@@ -567,10 +522,9 @@ public abstract class SimpleVectorBase<K, V>  extends AbstractMap<K, V> implemen
 				
 				return value;
 			} else {
-				final V value = remappingFunction.apply(key, null);
-				if (value != null) {
+				final Integer value = remappingFunction.apply(key, null);
+				if (value != null && value != NULL) {
 					ensureRightCapacity(x);
-					rightKeys[x] = key;
 					rightValues[x] = value;
 					size++;
 					assert Math.max(rightMaxIndex, x) == x;
@@ -583,26 +537,19 @@ public abstract class SimpleVectorBase<K, V>  extends AbstractMap<K, V> implemen
 			final int y = -id;
 			assert y != 0;
 			
-			if (y < leftKeys.length) {
-				@SuppressWarnings("unchecked")
-				K currentKey = (K) leftKeys[y];
-				@SuppressWarnings("unchecked")
-				V oldValue   = (V) leftValues[y];
+			if (y < leftValues.length) {
+				Integer oldValue   = leftValues[y];
 				
-				assert (oldValue == null) == (currentKey == null);
-				assert currentKey == null || key.equals(currentKey);
+				final Integer value = remappingFunction.apply(key, oldValue);
 				
-				final V value = remappingFunction.apply(key, oldValue);
-				
-				if (currentKey == null && value != null) {
-					leftKeys[y] = key;
+				if (oldValue == NULL && value != null && value != NULL) {
 					size++;
 					leftMaxIndex = Math.max(leftMaxIndex, y);
-				} else if (currentKey != null && value == null){
+				} else if (oldValue != null && (value == null || value == NULL)){
 					size--;
 					if (leftMaxIndex == y) {
 						int newMaxIndex = y - 1;
-						while (newMaxIndex >= 0 && leftKeys[newMaxIndex] == null) newMaxIndex--;
+						while (newMaxIndex >= 0 && leftValues[newMaxIndex] == NULL) newMaxIndex--;
 						leftMaxIndex = newMaxIndex;
 					}
 				}
@@ -610,10 +557,9 @@ public abstract class SimpleVectorBase<K, V>  extends AbstractMap<K, V> implemen
 				
 				return value;
 			} else {
-				final V value = remappingFunction.apply(key, null);
-				if (value != null) {
+				final Integer value = remappingFunction.apply(key, null);
+				if (value != null && value != NULL) {
 					ensureRightCapacity(y);
-					leftKeys[y] = key;
 					leftValues[y] = value;
 					size++;
 					assert Math.max(leftMaxIndex, y) == y;

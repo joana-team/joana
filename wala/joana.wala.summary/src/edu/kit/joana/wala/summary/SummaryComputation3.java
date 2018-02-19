@@ -32,9 +32,9 @@ import edu.kit.joana.ifc.sdg.graph.LabeledSDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.util.collections.IntIntSimpleVector;
 import edu.kit.joana.util.collections.Intrusable;
 import edu.kit.joana.util.collections.IntrusiveList;
-import edu.kit.joana.util.collections.SimpleVector;
 import edu.kit.joana.util.collections.SimpleVectorBase;
 import edu.kit.joana.util.graph.EfficientGraph;
 import edu.kit.joana.util.graph.TarjanStrongConnectivityInspector;
@@ -60,7 +60,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
     private final SDGEdge.Kind sumEdgeKind;
     private final Set<SDGEdge.Kind> relevantEdges;
     private final String annotate;
-    private final Map<SDGNode, Integer> nodeId2ProcLocalNodeId;
+    private final Map<Integer, Integer> nodeId2ProcLocalNodeId;
     private final Map<Integer, SDGNode[]> procLocalNodeId2Node;
     private final List<Set<Integer>> procSccs;
     private final Map<Integer, Integer> indexNumberOf;
@@ -118,7 +118,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
         this.sumEdgeKind = sumEdgeKind;
         this.relevantEdges = relevantEdges;
         this.annotate = annotate;
-        this.nodeId2ProcLocalNodeId = new SimpleVector<>(0, graph.vertexSet().size());
+        this.nodeId2ProcLocalNodeId = new IntIntSimpleVector(0, graph.vertexSet().size());
         this.procLocalNodeId2Node = new SimpleVectorBase<Integer, SDGNode[]>(0, maxProcNumber) {
         	@Override
         	protected int getId(Integer procNumber) {
@@ -316,7 +316,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
 			procLocalNodeId2Node.put(procedure, procLocal2Node);
         	int procLocalNodeId = 0;
         	for (SDGNode n : nodes) {
-        		nodeId2ProcLocalNodeId.put(n, procLocalNodeId);
+        		nodeId2ProcLocalNodeId.put(n.getId(), procLocalNodeId);
         		procLocal2Node[procLocalNodeId] =  n;
         		procLocalNodeId++;
         	}
@@ -591,7 +591,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
         if (source.getKind() == SDGNode.Kind.ACTUAL_OUT) {
         	assert source.customData == null || source.customData instanceof AoPathsNodesBitvector;
         	final AoPathsNodesBitvector aoPaths = (AoPathsNodesBitvector) source.customData;
-        	final int procLocalTargetId = nodeId2ProcLocalNodeId.get(target);
+        	final int procLocalTargetId = nodeId2ProcLocalNodeId.get(target.getId());
 
         	aoPaths.set(procLocalTargetId);
         }
@@ -600,7 +600,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
     private boolean pathEdge_add(SDGNode source, SDGNode target) {
     	assert source.getProc() == target.getProc();
 		final PathEdgeReachedNodesBitvector sources = (PathEdgeReachedNodesBitvector) target.customData;
-    	final int procLocalSourceId = nodeId2ProcLocalNodeId.get(source);
+    	final int procLocalSourceId = nodeId2ProcLocalNodeId.get(source.getId());
     	boolean isNew = !sources.get(procLocalSourceId);
     	sources.set(procLocalSourceId);
     	return isNew;

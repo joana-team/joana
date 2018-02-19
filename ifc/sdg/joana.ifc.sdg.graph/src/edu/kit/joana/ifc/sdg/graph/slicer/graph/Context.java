@@ -22,7 +22,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNodeTuple;
  * @version 1.0
  * @see DynamicContext,StaticContext
  */
-public abstract class Context {
+public abstract class Context<C> {
 	protected final SDGNode node;
 	protected final int thread;
 
@@ -40,7 +40,7 @@ public abstract class Context {
 
 	public abstract LinkedList<SDGNode> getCallStack();
 
-	public abstract Context copy();
+	public abstract C copy();
 
 	public abstract int size();
 
@@ -54,7 +54,7 @@ public abstract class Context {
 		return thread;
 	}
 
-	public boolean isCallStringPrefixOf(Context c) {
+	public boolean isCallStringPrefixOf(Context<C> c) {
 		LinkedList<SDGNode> s = getCallStack();
 		LinkedList<SDGNode> cs = c.getCallStack();
 		if (s.size() <= cs.size()) {
@@ -84,9 +84,9 @@ public abstract class Context {
 
 	public abstract SDGNode top();
 
-    public abstract Context level(SDGNode reachedNode);
+    public abstract C level(SDGNode reachedNode);
 
-    public abstract Context descend(SDGNode reachedNode, SDGNodeTuple callSite);
+    public abstract C descend(SDGNode reachedNode, SDGNodeTuple callSite);
 
-    public abstract Context ascend(SDGNode reachedNode, SDGNodeTuple callSite);
+    public abstract C ascend(SDGNode reachedNode, SDGNodeTuple callSite);
 }

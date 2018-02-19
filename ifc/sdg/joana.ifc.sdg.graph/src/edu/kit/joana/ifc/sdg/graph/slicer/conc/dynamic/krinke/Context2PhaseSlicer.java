@@ -17,6 +17,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGNodeTuple;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.ContextManager;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
 
 
 /**
@@ -31,14 +32,14 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.ContextManager;
  */
 public class Context2PhaseSlicer {
     private final SDG sdg;
-    private final ContextManager conMan;
+    private final ContextManager<DynamicContext> conMan;
 
     /**
      * Creates a new instance of Context2PhaseSlicer
      *
      * @param g The SDG to slice.
      */
-    public Context2PhaseSlicer(SDG g, ContextManager cm) {
+    public Context2PhaseSlicer(SDG g, ContextManager<DynamicContext> cm) {
         sdg = g;
         conMan = cm;
     }
@@ -55,10 +56,10 @@ public class Context2PhaseSlicer {
 
         // sets for the marking of visited nodes and contexts
         HashSet<SDGNode> markedNodes = new HashSet<SDGNode>();
-        HashSet<Context> markedContexts = new HashSet<Context>();
+        HashSet<DynamicContext> markedContexts = new HashSet<>();
 
         // two worklists
-        LinkedList<Context> worklist1 = new LinkedList<Context>();
+        LinkedList<DynamicContext> worklist1 = new LinkedList<>();
         LinkedList<SDGNode> worklist2 = new LinkedList<SDGNode>();
 
         // initialize the first worklist
@@ -71,7 +72,7 @@ public class Context2PhaseSlicer {
         // phase 1
         while (!worklist1.isEmpty()) {
             // retrieve the next node and add it to the slice
-            Context next = worklist1.poll();
+        	DynamicContext next = worklist1.poll();
             int thread = next.getThread();
             slice.add(next.getNode());
 
@@ -88,10 +89,10 @@ public class Context2PhaseSlicer {
                     // our graph representation has a special case for class initializer methods
                     if (reached.getKind() == SDGNode.Kind.FORMAL_OUT) {
                         // retrieve the contexts of the class initializer
-                        Collection<Context> newContexts = conMan.getContextsOf(reached, 0);
+                        Collection<? extends DynamicContext> newContexts = conMan.getContextsOf(reached, 0);
 
                         // add the contexts
-                        for (Context newContext : newContexts) {
+                        for (DynamicContext newContext : newContexts) {
                             if (markedContexts.add(newContext)) {
                                 worklist1.add(newContext);
                             }
@@ -101,10 +102,10 @@ public class Context2PhaseSlicer {
                         // ascend to the calling method
                         if (reached.isInThread(thread)) {
                             SDGNodeTuple callSite = sdg.getCallEntryFor(e);
-                            Context[] cons = conMan.ascend(reached, callSite ,next);
+                            DynamicContext[] cons = conMan.ascend(reached, callSite ,next);
 
                             // add the contexts to the worklist
-                            for (Context c : cons) {
+                            for (DynamicContext c : cons) {
                                 if (c != null && markedContexts.add(c)) {
                                     worklist1.add(c);
                                 }
@@ -119,7 +120,7 @@ public class Context2PhaseSlicer {
 
                 } else {
                     // intra-procedural traversal
-                    Context newContext = conMan.level(reached, next);
+                	DynamicContext newContext = conMan.level(reached, next);
 
                     // add the found context
                     if (markedContexts.add(newContext)) {

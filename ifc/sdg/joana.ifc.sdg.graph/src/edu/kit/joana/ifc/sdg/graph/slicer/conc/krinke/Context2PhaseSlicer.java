@@ -30,9 +30,9 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.ContextManager;
  *
  * @author  Dennis Giffhorn
  */
-public class Context2PhaseSlicer {
+public class Context2PhaseSlicer<C extends Context<C>> {
     private final Set<SDGEdge.Kind> threadEdges = SDGEdge.Kind.threadEdges();
-    private final ContextManager man;
+    private final ContextManager<C> man;
     protected final SDG sdg;
 
     /**
@@ -40,7 +40,7 @@ public class Context2PhaseSlicer {
      *
      * @param g The SDG to slice.
      */
-    public Context2PhaseSlicer(SDG g, ContextManager m) {
+    public Context2PhaseSlicer(SDG g, ContextManager<C> m) {
         sdg = g;
         man = m;
     }
@@ -52,16 +52,16 @@ public class Context2PhaseSlicer {
      * @param criteria A set of contexts to slice.
      * @return The slice as a sorted set of nodes.
      */
-    public Collection<SDGNode> slice(Collection<Context> criteria, HashSet<SDGNode> slice) {
+    public Collection<SDGNode> slice(Collection<C> criteria, HashSet<SDGNode> slice) {
         // the sorted set for the result
         HashSet<SDGNode> interfering = new HashSet<SDGNode>();
 
         // sets for marking visited nodes and contexts
         HashSet<SDGNode> markedNodes = new HashSet<SDGNode>();
-        HashSet<Context> markedContexts = new HashSet<Context>();
+        HashSet<C> markedContexts = new HashSet<>();
 
         // two worklists
-        LinkedList<Context> worklist1 = new LinkedList<Context>();
+        LinkedList<C> worklist1 = new LinkedList<>();
         LinkedList<SDGNode> worklist2 = new LinkedList<SDGNode>();
 
         // initialize the first worklist
@@ -71,7 +71,7 @@ public class Context2PhaseSlicer {
         // phase 1
         while (!worklist1.isEmpty()) {
             // retrieve the next node and add it to the slice
-            Context next = worklist1.poll();
+            C next = worklist1.poll();
             slice.add(next.getNode());
 
             // now check all incoming edges
@@ -84,10 +84,10 @@ public class Context2PhaseSlicer {
                     // our graph representation has a special case for class initializer methods
                     if (e.getKind() == SDGEdge.Kind.PARAMETER_IN && e.getSource().getKind() == SDGNode.Kind.FORMAL_OUT) {
                         // retrieve the contexts of the class initializer
-                        Collection<Context> newContexts = man.getAllContextsOf(reached);
+                        Collection<? extends C> newContexts = man.getAllContextsOf(reached);
 
                         // add the contexts
-                        for (Context newContext : newContexts) {
+                        for (C newContext : newContexts) {
                             if (!markedContexts.contains(newContext)) {
                                 worklist1.add(newContext);
                                 markedContexts.add(newContext);
@@ -97,10 +97,10 @@ public class Context2PhaseSlicer {
                     } else {
                         // ascend to the calling method
                     	SDGNodeTuple callSite = sdg.getCallEntryFor(e);
-                        Context[] cons = man.ascend(reached, callSite ,next);
+                        C[] cons = man.ascend(reached, callSite ,next);
 
                         // add the contexts to the worklist
-                        for (Context c : cons) {
+                        for (C c : cons) {
                             if (c != null && !markedContexts.contains(c)) {
                                 worklist1.add(c);
                                 markedContexts.add(c);
@@ -118,7 +118,7 @@ public class Context2PhaseSlicer {
 
                 } else if(e.getKind().isSDGEdge()) {
                     // only traverse dependence edges, but do not leave the thread
-                    Context newContext = man.level(reached, next);
+                    C newContext = man.level(reached, next);
 
                     // add the found context
                     if (!markedContexts.contains(newContext)) {

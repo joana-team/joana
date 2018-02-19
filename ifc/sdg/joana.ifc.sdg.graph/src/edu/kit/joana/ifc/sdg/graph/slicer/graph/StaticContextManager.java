@@ -29,7 +29,7 @@ import gnu.trove.set.hash.THashSet;
 public class StaticContextManager implements ContextManager<StaticContextManager.StaticContext> {
 
 	/* the context class */
-	public static class StaticContext extends Context {
+	public static class StaticContext extends Context<StaticContext> {
 
 		protected CallString stack;
 
@@ -402,7 +402,7 @@ public class StaticContextManager implements ContextManager<StaticContextManager
         return res;
     }
 
-    private boolean match(SDGNode callSite, Context con){
+    private boolean match(SDGNode callSite, StaticContext con){
         return con.isEmpty() || foldedCall.map(callSite) == con.top();
     }
 

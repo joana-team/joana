@@ -19,11 +19,11 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicCon
  * @author  Dennis Giffhorn
  */
 public class States implements Cloneable {
-	public static final Context NONRESTRICTIVE = DynamicContext.newSpecialConstant();
-	public static final Context NONE = DynamicContext.newSpecialConstant();
+	public static final DynamicContext NONRESTRICTIVE = DynamicContext.newSpecialConstant();
+	public static final DynamicContext NONE = DynamicContext.newSpecialConstant();
 
     /** The state-representing Contexts. */
-    private Context[] states;
+    private DynamicContext[] states;
 
     /**
      * Creates a new instance of States
@@ -31,7 +31,7 @@ public class States implements Cloneable {
      * @param size  The size of the state tuple.
      */
     public States(int size) {
-        states = new Context[size];
+        states = new DynamicContext[size];
 
         for (int i = 0; i < states.length; i++) {
             states[i] = NONE;
@@ -51,7 +51,7 @@ public class States implements Cloneable {
         		clone.set(i, states[i]);
 
         	} else {
-        		Context cl = states[i].copy();
+        		DynamicContext cl = states[i].copy();
         		clone.set(i, cl);
         	}
         }
@@ -64,7 +64,7 @@ public class States implements Cloneable {
      *
      * @param pos  The position.
      */
-    public Context state(int pos) {
+    public DynamicContext state(int pos) {
         return states[pos];
     }
 
@@ -74,7 +74,7 @@ public class States implements Cloneable {
      * @param pos      The position to change.
      * @param context  The new value.
      */
-    public void set(int pos, Context newState) {
+    public void set(int pos, DynamicContext newState) {
         states[pos] = newState;
     }
 
@@ -137,7 +137,7 @@ public class States implements Cloneable {
     public int hashCode() {
     	int hc = 1;
 
-    	for (Context c : states) {
+    	for (DynamicContext c : states) {
     		if (c == NONE)  hc = 31*hc + 1;
     		else if (c == NONRESTRICTIVE)  hc = 31*hc + 2;
     		else hc = 31*hc + c.hashCode();

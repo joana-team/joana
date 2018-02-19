@@ -52,7 +52,7 @@ public class ThreadAllocationAnalysis {
 	private final DynamicContextManager conMan;
 
 	/** used to determine whether a spawn happens in a loop */
-	private LoopDetermination loopDet;
+	private LoopDetermination<DynamicContext> loopDet;
 	
 	/** flattened version of the value set of the map run_thread (i.e. the collection all possible contexts of thread entries) */
 	private Set<Pair<SDGNode, DynamicContext>> threads;
@@ -73,9 +73,9 @@ public class ThreadAllocationAnalysis {
 		conMan = new DynamicContextManager(cfg);
 		LoopDetPrec loopDetPrec = prec;
 		if (loopDetPrec == LoopDetPrec.SIMPLE) {
-			this.loopDet = new SimpleLoopDetermination(GraphFolder.foldIntraproceduralSCC(cfg), conMan);
+			this.loopDet = new SimpleLoopDetermination<>(GraphFolder.foldIntraproceduralSCC(cfg), conMan);
 		} else {
-			this.loopDet = new PreciseLoopDetermination(cfg);
+			this.loopDet = new PreciseLoopDetermination<>(cfg);
 		}
 		
 	}

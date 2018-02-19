@@ -28,7 +28,7 @@ import edu.kit.joana.util.Pair;
  * @author  Dennis Giffhorn
  */
 public class DynamicContextManager implements ContextManager<DynamicContextManager.DynamicContext> {
-	public static class DynamicContext extends Context {
+	public static class DynamicContext extends Context<DynamicContext> {
 	    /** A list, simulating a stack containing the context. */
 	    protected final LinkedList<SDGNode> callStack;
 
@@ -609,7 +609,7 @@ public class DynamicContextManager implements ContextManager<DynamicContextManag
      * @param callSite  The call site.
      * @param con The context.
      */
-    protected boolean match(SDGNode callSite, Context con){
+    protected boolean match(SDGNode callSite, DynamicContext con){
         return con.isEmpty()
         			// check folded nodes
         			|| foldedCall.map(callSite) == con.top();

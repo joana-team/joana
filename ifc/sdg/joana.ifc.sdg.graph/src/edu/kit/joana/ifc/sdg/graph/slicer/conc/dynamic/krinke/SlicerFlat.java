@@ -9,6 +9,7 @@ package edu.kit.joana.ifc.sdg.graph.slicer.conc.dynamic.krinke;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
 
 /**
  *
@@ -21,7 +22,7 @@ public class SlicerFlat extends Slicer implements edu.kit.joana.ifc.sdg.graph.sl
         super(graph);
     }
 
-    protected States update(States s, Context c) {
+    protected States update(States s, DynamicContext c) {
     	States newStates = s.clone();
     	int thread = c.getThread();
 

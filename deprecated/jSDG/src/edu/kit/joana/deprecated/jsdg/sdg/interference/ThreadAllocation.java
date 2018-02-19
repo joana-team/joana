@@ -22,7 +22,6 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGNodeTuple;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.FoldedCFG;
@@ -209,13 +208,13 @@ public class ThreadAllocation {
     }
 
     private boolean isInALoop(DynamicContext thread) {
-    	LinkedList<Context> w = new LinkedList<Context>();
-		HashSet<Context> visited = new HashSet<Context>();
+    	LinkedList<DynamicContext> w = new LinkedList<>();
+		HashSet<DynamicContext> visited = new HashSet<>();
 		w.add(thread);
 		visited.add(thread);
 
 		while(!w.isEmpty()) {
-			Context next = w.poll();
+			DynamicContext next = w.poll();
 			SDGNode node = folded.map(next.getNode());
 
 			if (node.getId() < 0) { // loop: return true
@@ -226,7 +225,7 @@ public class ThreadAllocation {
 				SDGNode source = e.getSource();
 
 				if (e.getKind() == SDGEdge.Kind.CONTROL_FLOW) {
-			        Context newContext = next.level(source);
+					DynamicContext newContext = next.level(source);
 
 					if (visited.add(newContext)) {
 						w.add(newContext);
@@ -235,7 +234,7 @@ public class ThreadAllocation {
 				} else if (e.getKind() == SDGEdge.Kind.CALL || e.getKind() == SDGEdge.Kind.FORK) {
 					// the call site calling the procedure to descend into
 			        SDGNode mapped = conMan.map(source);
-			        Context newContext = null;
+			        DynamicContext newContext = null;
 
 			        // if the corresponding call site is recursive,
 			        // clone context and set 'source' as new node

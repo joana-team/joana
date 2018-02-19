@@ -17,15 +17,15 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
  *
  * @author  Dennis Giffhorn
  */
-public class WorklistElement implements Cloneable {
-    private final Context context;
-    private final States states;
+public class WorklistElement<C extends Context<C>> implements Cloneable {
+    private final C context;
+    private final States<C> states;
 
     /** Creates a new instance of WorklistElement
      * @param con  The Context.
      * @param states  The thread execution states.
      */
-    public WorklistElement(Context con, States states) {
+    public WorklistElement(C con, States<C> states) {
     	if (con == null) throw new NullPointerException();
         context = con;
         this.states = states;
@@ -34,14 +34,14 @@ public class WorklistElement implements Cloneable {
     /** Clones this WorklistElement.
      * @return  A deep-copy of this WorklistElement.
      */
-    public WorklistElement clone() {
-        return new WorklistElement(context.copy(), states.clone());
+    public WorklistElement<C> clone() {
+        return new WorklistElement<C>(context.copy(), states.clone());
     }
 
     /** Returns the Context of the WorklistElement.
      * @return  The Context of the WorklistElement.
      */
-    public Context getContext() {
+    public C getContext() {
         return context;
     }
 
@@ -55,7 +55,7 @@ public class WorklistElement implements Cloneable {
     /** Returns the States of this WorklistElement.
      * @return  A clone of the States.
      */
-    public States getStates() {
+    public States<C> getStates() {
         return states.clone();
     }
 
@@ -70,7 +70,7 @@ public class WorklistElement implements Cloneable {
      * @param thread  The thread.
      * @param c  The new State.
      */
-    public void setState(int thread, Context c) {
+    public void setState(int thread, C c) {
         states.set(thread, c);
     }
 
@@ -81,7 +81,8 @@ public class WorklistElement implements Cloneable {
      * @param elem  The WorklistElement to compare with.
      */
     public boolean equals(Object o) {
-    	WorklistElement elem = (WorklistElement) o;
+    	@SuppressWarnings("unchecked")
+		WorklistElement<C> elem = (WorklistElement<C>) o;
 
         if (elem == null || context.size() != elem.getContext().size() ||
                 elem.getThread() != this.getThread()) {

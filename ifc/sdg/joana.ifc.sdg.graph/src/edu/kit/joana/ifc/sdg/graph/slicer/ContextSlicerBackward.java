@@ -27,7 +27,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.StaticContextManager.StaticConte
  *
  * @author  Dennis Giffhorn
  */
-public class ContextSlicerBackward<C extends Context> extends ContextSlicer<C> {
+public class ContextSlicerBackward<C extends Context<C>> extends ContextSlicer<C> {
 
 	/* ***************** */
 	/* the ContextSlicer */
@@ -40,7 +40,7 @@ public class ContextSlicerBackward<C extends Context> extends ContextSlicer<C> {
 	public static ContextSlicerBackward<DynamicContext> newDynamicContextSlicerBackward(SDG graph) {
 		return new ContextSlicerBackward<DynamicContext>(graph, ContextSlicer.newDynamicManager);
 	}
-	public static ContextSlicerBackward<? extends Context> newContextSlicerBackward(SDG graph, boolean staticContexts) {
+	public static ContextSlicerBackward<? extends Context<?>> newContextSlicerBackward(SDG graph, boolean staticContexts) {
 		if (staticContexts) {
 			return newStaticContextSlicerBackward(graph);
 		} else {

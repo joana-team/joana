@@ -13,6 +13,7 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.ContextManager;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.StaticContextManager.StaticContext;
 
 /**
  * A two-phase slice that gets a context as slicing criterion and
@@ -35,7 +36,7 @@ public class C2PBackward extends Context2PhaseSlicer {
         super(g);
     }
 
-    public C2PBackward(SDG g, ContextManager m) {
+    public C2PBackward(SDG g, ContextManager<StaticContext> m) {
         super(g,m);
     }
 

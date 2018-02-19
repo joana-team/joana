@@ -32,7 +32,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.StaticContextManager.StaticConte
  *
  * @author  Dennis Giffhorn
  */
-public abstract class IPDGSlicer<C extends Context> implements Slicer {
+public abstract class IPDGSlicer<C extends Context<C>> implements Slicer {
     protected Set<SDGEdge.Kind> omittedEdges = SDGEdge.Kind.threadEdges();
     protected SDG sdg;
     protected boolean staticCM;

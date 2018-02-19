@@ -21,7 +21,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
  * @author giffhorn
  *
  */
-public class Path<C extends Context> {
+public class Path<C extends Context<C>> {
 	private final C current;
 	private LinkedHashSet<C> path = new LinkedHashSet<>();
 	private int step = 0;
@@ -57,7 +57,7 @@ public class Path<C extends Context> {
 		step++;
 	}
 
-	public boolean contains(Context con) {
+	public boolean contains(C con) {
 		return path.contains(con);
 	}
 
@@ -72,7 +72,7 @@ public class Path<C extends Context> {
 	public ViolationPath convert() {
 		ViolationPath v = new ViolationPath();
 
-		for (Context c : path.toArray(new Context[]{})) {
+		for (C c : path) {
 			v.addFirst( (SecurityNode) c.getNode());
 		}
 
@@ -84,7 +84,7 @@ public class Path<C extends Context> {
 		Iterator<C> i = path.iterator();
 
 		while(i.hasNext()) {
-			Context c = i.next();
+			C c = i.next();
 			b.append(c.getNode().getId()+" <- ");
 		}
 

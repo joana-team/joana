@@ -27,7 +27,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  *
  * @author  Dennis Giffhorn
  */
-public class IPDGSlicerBackward<C extends Context> extends IPDGSlicer<C> {
+public class IPDGSlicerBackward<C extends Context<C>> extends IPDGSlicer<C> {
 	/* ************** */
 	/* the IPDGSlicer */
 	
@@ -38,7 +38,7 @@ public class IPDGSlicerBackward<C extends Context> extends IPDGSlicer<C> {
 	public static IPDGSlicerBackward<DynamicContext> newDynamicIPDGSlicerBackward(SDG graph) {
 		return new IPDGSlicerBackward<DynamicContext>(graph, IPDGSlicer.newDynamicManager);
 	}
-	public static IPDGSlicerBackward<? extends Context> newIPDGSlicerBackward(SDG graph, boolean staticContexts) {
+	public static IPDGSlicerBackward<? extends Context<?>> newIPDGSlicerBackward(SDG graph, boolean staticContexts) {
 		if (staticContexts) {
 			return newStaticIPDGSlicerBackward(graph);
 		} else {

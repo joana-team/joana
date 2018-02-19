@@ -27,7 +27,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  *
  * @author  Dennis Giffhorn
  */
-public class ContextSlicerForward<C extends Context> extends ContextSlicer<C> {
+public class ContextSlicerForward<C extends Context<C>> extends ContextSlicer<C> {
 	/* ***************** */
 	/* the ContextSlicer */
 
@@ -38,7 +38,7 @@ public class ContextSlicerForward<C extends Context> extends ContextSlicer<C> {
 	public static ContextSlicerForward<DynamicContext> newDynamicContextSlicerForward(SDG graph) {
 		return new ContextSlicerForward<DynamicContext>(graph, ContextSlicer.newDynamicManager);
 	}
-	public static ContextSlicerForward<? extends Context> newContextSlicerForward(SDG graph, boolean staticContexts) {
+	public static ContextSlicerForward<? extends Context<?>> newContextSlicerForward(SDG graph, boolean staticContexts) {
 		if (staticContexts) {
 			return newStaticContextSlicerForward(graph);
 		} else {

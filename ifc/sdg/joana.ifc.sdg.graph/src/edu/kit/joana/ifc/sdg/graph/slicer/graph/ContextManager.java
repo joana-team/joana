@@ -11,13 +11,14 @@ import java.util.Collection;
 
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGNodeTuple;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.StaticContextManager.StaticContext;
 
 
 /** An interface for ContextManagers.
  *
  * @author giffhorn
  */
-public interface ContextManager<C extends Context> {
+public interface ContextManager<C extends Context<C>> {
 
 	/** Retrieves all contexts of the given node.
 	 *

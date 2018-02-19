@@ -102,6 +102,19 @@ public class IntIntSimpleVector extends AbstractMap<Integer, Integer> implements
 		return null;
 	}
 	
+	public int getInt(int x) {
+		if (0 <= x && x <= rightMaxIndex) {
+			return rightValues[x];
+		}
+		
+		final int y = -x;
+		assert y != 0;
+		if (0 <= y && y <= leftMaxIndex) {
+			return leftValues[y];
+		}
+		return NULL;
+	}
+	
 	@Override
 	public boolean containsKey(Object o) {
 		if (o == null) throw new NullPointerException();

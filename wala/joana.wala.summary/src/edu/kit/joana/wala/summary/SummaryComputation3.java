@@ -60,10 +60,10 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
     private final SDGEdge.Kind sumEdgeKind;
     private final Set<SDGEdge.Kind> relevantEdges;
     private final String annotate;
-    private final Map<Integer, Integer> nodeId2ProcLocalNodeId;
-    private final Map<Integer, SDGNode[]> procLocalNodeId2Node;
+    private final IntIntSimpleVector nodeId2ProcLocalNodeId;
+    private final SimpleVectorBase<Integer, SDGNode[]> procLocalNodeId2Node;
     private final List<Set<Integer>> procSccs;
-    private final Map<Integer, Integer> indexNumberOf;
+    private final IntIntSimpleVector indexNumberOf;
     
     private IntrusiveList<Edge> current; 
 
@@ -85,21 +85,17 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             assert procSccs instanceof RandomAccess;
             
             final Map<Integer, TarjanStrongConnectivityInspector.VertexNumber<Integer>> indices = sccInspector.getVertexToVertexNumber();
-            this.indexNumberOf = new SimpleVectorBase<Integer, Integer>(0, 1) {
-            	@Override
-            	protected int getId(Integer k) {
-            		return k;
-            	}
-            };
+            this.indexNumberOf = new IntIntSimpleVector(0, 1);
             for (Entry<Integer, TarjanStrongConnectivityInspector.VertexNumber<Integer>> entry : indices.entrySet()) {
             	maxProcNumber = Math.max(maxProcNumber, entry.getKey());
                 indexNumberOf.put(entry.getKey(), entry.getValue().getSccNumber());
             }
+            indexNumberOf.trimToSize();
             
             this.procedureWorkSet = new TreeSet<>(new Comparator<Integer>() {
             	@Override
             	public int compare(Integer o1, Integer o2) {
-            		final int sccCompare = Integer.compare(indexNumberOf.get(o1), indexNumberOf.get(o2));
+            		final int sccCompare = Integer.compare(indexNumberOf.getInt(o1), indexNumberOf.getInt(o2));
     				if (sccCompare != 0) return sccCompare;
     				
     				return Integer.compare(o1, o2);
@@ -322,6 +318,9 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
         	}
         }
         
+        procLocalNodeId2Node.trimToSize();
+        nodeId2ProcLocalNodeId.trimToSize();
+        
         for (SDGNode n : (Set<SDGNode>) graph.vertexSet()) {
             if (n.getKind() == SDGNode.Kind.FORMAL_OUT || n.getKind() == SDGNode.Kind.EXIT) {
             	if (relevantProcs != null && !relevantProcs.contains(n.getProc())) {
@@ -511,7 +510,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             
             // TODO: somehow update this implicitly when creating summary edges
             boolean leftScc = true;
-            for (Integer inSameScc : procSccs.get(indexNumberOf.get(procedure))) {
+            for (Integer inSameScc : procSccs.get(indexNumberOf.getInt(procedure))) {
             	if (procedureWorkSet.contains(inSameScc)) {
             		leftScc = false;
             		break;
@@ -520,7 +519,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
 
             // clear HashSet<SDGNode> at each node whenever we leave a scc
             if (leftScc) {
-                for (Integer inSameScc : procSccs.get(indexNumberOf.get(procedure))) {
+                for (Integer inSameScc : procSccs.get(indexNumberOf.getInt(procedure))) {
                 	for (SDGNode n : procLocalNodeId2Node.get(inSameScc)) {
                 		if (n.getKind() == SDGNode.Kind.FORMAL_OUT || n.getKind() == SDGNode.Kind.EXIT) {
                 			if (relevantProcs != null && !relevantProcs.contains(n.getProc())) {
@@ -591,7 +590,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
         if (source.getKind() == SDGNode.Kind.ACTUAL_OUT) {
         	assert source.customData == null || source.customData instanceof AoPathsNodesBitvector;
         	final AoPathsNodesBitvector aoPaths = (AoPathsNodesBitvector) source.customData;
-        	final int procLocalTargetId = nodeId2ProcLocalNodeId.get(target.getId());
+        	final int procLocalTargetId = nodeId2ProcLocalNodeId.getInt(target.getId());
 
         	aoPaths.set(procLocalTargetId);
         }
@@ -600,7 +599,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
     private boolean pathEdge_add(SDGNode source, SDGNode target) {
     	assert source.getProc() == target.getProc();
 		final PathEdgeReachedNodesBitvector sources = (PathEdgeReachedNodesBitvector) target.customData;
-    	final int procLocalSourceId = nodeId2ProcLocalNodeId.get(source.getId());
+    	final int procLocalSourceId = nodeId2ProcLocalNodeId.getInt(source.getId());
     	boolean isNew = !sources.get(procLocalSourceId);
     	sources.set(procLocalSourceId);
     	return isNew;

@@ -489,6 +489,7 @@ public abstract class SDGEdge implements Cloneable, KnowsVertices<SDGNode> {
         return getTarget().equals(edge.getTarget());
     }
 
+    protected static final int ROT_BITS = 16 - Kind.PRIORITY_BITS;
     
     /**
      * Returns a hash code consistent with Java's equals/hashCode directive.
@@ -499,8 +500,7 @@ public abstract class SDGEdge implements Cloneable, KnowsVertices<SDGNode> {
     	assert (priorityPart & Kind.PRIORITY_HASH_PART_MASK) == priorityPart;
     	assert (priorityPart & Kind.REMAINING_HASH_PART_MASK) == 0;
     	
-    	int hc = getSource().hashCode();
-    	hc = 37 * hc + getTarget().hashCode(); 
+    	int hc = getSource().hashCode() ^ (Integer.rotateLeft(getTarget().hashCode(), ROT_BITS));
         return (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
     }
 }
@@ -519,8 +519,7 @@ class SDGEdgeHELP extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -542,8 +541,7 @@ class SDGEdgePARAMETER_STRUCTURE extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -563,8 +561,7 @@ class SDGEdgePARAMETER_EQUIVALENCE extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -584,8 +581,7 @@ class SDGEdgeCONTROL_FLOW extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -605,8 +601,7 @@ class SDGEdgeNO_FLOW extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -626,8 +621,7 @@ class SDGEdgeJUMP_FLOW extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -647,8 +641,7 @@ class SDGEdgeRETURN extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -668,8 +661,7 @@ class SDGEdgeCONTROL_DEP_UNCOND extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -689,8 +681,7 @@ class SDGEdgeCONTROL_DEP_COND extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -710,8 +701,7 @@ class SDGEdgeCONTROL_DEP_EXPR extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -731,8 +721,7 @@ class SDGEdgeCONTROL_DEP_CALL extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -752,8 +741,7 @@ class SDGEdgeJUMP_DEP extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -773,8 +761,7 @@ class SDGEdgeNTSCD extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -794,8 +781,7 @@ class SDGEdgeSYNCHRONIZATION extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -816,8 +802,7 @@ class SDGEdgeDATA_DEP extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -837,8 +822,7 @@ class SDGEdgeDATA_HEAP extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -858,8 +842,7 @@ class SDGEdgeDATA_ALIAS extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -879,8 +862,7 @@ class SDGEdgeDATA_LOOP extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -900,8 +882,7 @@ class SDGEdgeDATA_DEP_EXPR_VALUE extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -921,8 +902,7 @@ class SDGEdgeDATA_DEP_EXPR_REFERENCE extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -943,8 +923,7 @@ class SDGEdgeSUMMARY extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -964,8 +943,7 @@ class SDGEdgeSUMMARY_NO_ALIAS extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -985,8 +963,7 @@ class SDGEdgeSUMMARY_DATA extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -1006,8 +983,7 @@ class SDGEdgeCALL extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -1027,8 +1003,7 @@ class SDGEdgePARAMETER_IN extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -1048,8 +1023,7 @@ class SDGEdgePARAMETER_OUT extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -1070,8 +1044,7 @@ class SDGEdgeINTERFERENCE extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -1091,8 +1064,7 @@ class SDGEdgeINTERFERENCE_WRITE extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -1112,8 +1084,7 @@ class SDGEdgeREADY_DEP extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -1134,8 +1105,7 @@ class SDGEdgeFORK extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -1155,8 +1125,7 @@ class SDGEdgeFORK_IN extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -1176,8 +1145,7 @@ class SDGEdgeFORK_OUT extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -1197,8 +1165,7 @@ class SDGEdgeJOIN extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -1218,8 +1185,7 @@ class SDGEdgeJOIN_OUT extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -1240,8 +1206,7 @@ class SDGEdgeCONFLICT_DATA extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -1261,8 +1226,7 @@ class SDGEdgeCONFLICT_ORDER extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -1282,8 +1246,7 @@ class SDGEdgeFOLDED extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();
 		return hc;
@@ -1303,8 +1266,7 @@ class SDGEdgeFOLD_INCLUDE extends SDGEdge {
 
 	@Override
 	public int hashCode() {
-		int hc = m_source.hashCode();
-		hc = 37 * hc + m_target.hashCode();
+		int hc = m_source.hashCode() ^ (Integer.rotateLeft(m_target.hashCode(), ROT_BITS));
 
 		hc = (hc & Kind.REMAINING_HASH_PART_MASK) | priorityPart;
 		assert hc == super.hashCode();

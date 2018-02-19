@@ -138,7 +138,7 @@ public class AndroidAnalysis {
 		scfg.additionalContextInterpreter = new IntentContextInterpreter(manager, cha, options, cache);
 		scfg.localKillingDefs = false;
 		scfg.abortAfterCG = onlyCG;
-		scfg.summaryComputationType = SummaryComputationType.JOANA_CLASSIC;
+		scfg.summaryComputationType = SummaryComputationType.DEFAULT;
 		return scfg;
 	}
 	public SDGBuilder.SDGBuilderConfig makeSDGBuilderConfig(AppSpec appSpec, AnalysisScope scope, CGConsumer consumer, boolean silent, boolean onlyCG) throws ClassHierarchyException, IOException, CancelException {

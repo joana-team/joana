@@ -465,7 +465,7 @@ public final class Main {
 		public FieldPropagation fieldPropagation;
 		public SideEffectDetectorConfig sideEffects = null;
 		public PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
-		public SummaryComputationType summaryComputationType = SummaryComputationType.JOANA_CLASSIC;
+		public SummaryComputationType summaryComputationType = SummaryComputationType.DEFAULT;
 
 		public Config(String name) {
 			this(name, "<no entry defined>", FieldPropagation.OBJ_GRAPH);

@@ -116,7 +116,7 @@ public class JoanaRunner {
 		scfg.fieldPropagation = FieldPropagation.OBJ_GRAPH_NO_MERGE_AT_ALL;
 		scfg.debugManyGraphsDotOutput = false;
 		scfg.computeInterference = true;
-		scfg.summaryComputationType = SummaryComputationType.JOANA_CLASSIC;
+		scfg.summaryComputationType = SummaryComputationType.DEFAULT;
 		scfg.computeAllocationSites = true;
 		scfg.cgConsumer = null;
 		scfg.additionalContextSelector = null;

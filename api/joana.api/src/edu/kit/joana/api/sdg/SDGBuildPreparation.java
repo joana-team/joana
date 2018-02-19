@@ -405,7 +405,7 @@ public final class SDGBuildPreparation {
 		public boolean accessPath;
 		public boolean computeInterference = false;
 		public boolean computeSummaryEdges = true;
-		public SummaryComputationType summaryComputationType = SummaryComputationType.JOANA_CLASSIC;
+		public SummaryComputationType summaryComputationType = SummaryComputationType.DEFAULT;
 		public boolean debugManyGraphsDotOutput = false;
 		public FieldPropagation fieldPropagation;
 		public SideEffectDetectorConfig sideEffects = null;

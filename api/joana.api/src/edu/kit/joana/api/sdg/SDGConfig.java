@@ -50,7 +50,7 @@ public class SDGConfig {
 	private ConstructionNotifier notifier = null;
 	private DynamicDispatchHandling ddisp = DynamicDispatchHandling.SIMPLE;
 	private boolean computeSummaryEdges = true;
-	private SummaryComputationType summaryComputationType = SummaryComputationType.JOANA_CLASSIC;
+	private SummaryComputationType summaryComputationType = SummaryComputationType.DEFAULT;
 	private boolean skipSDGProgramPart = false;
 	private ControlDependenceVariant controlDependenceVariant = SDGBuilder.defaultControlDependenceVariant;
 	private boolean isParallel = true;

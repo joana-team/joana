@@ -19,6 +19,8 @@ public enum SummaryComputationType {
 	@Deprecated
 	SIMON_PARALLEL_SCC(new AlwaysParallel(new SummaryComputer2()));
 	
+	
+	public static final SummaryComputationType DEFAULT = JOANA_CLASSIC_SCC;
 	private final ISummaryComputer summaryComputer;
 	
 	private SummaryComputationType(ISummaryComputer summaryComputer) {

@@ -106,7 +106,6 @@ import edu.kit.joana.wala.core.params.objgraph.ObjGraphParams;
 import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig;
 import edu.kit.joana.wala.flowless.util.Util;
 import edu.kit.joana.wala.summary.ISummaryComputer;
-import edu.kit.joana.wala.summary.SummaryComputation;
 import edu.kit.joana.wala.summary.SummaryComputationType;
 import edu.kit.joana.wala.summary.WorkPackage;
 import edu.kit.joana.wala.summary.WorkPackage.EntryPoint;
@@ -2093,7 +2092,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		public boolean debugStaticInitializers = false;
 		public boolean computeInterference = true;
 		public boolean computeSummary = true;
-		public SummaryComputationType summaryComputationType = SummaryComputationType.JOANA_CLASSIC;
+		public SummaryComputationType summaryComputationType = SummaryComputationType.DEFAULT;
 		/*
 		 * If this flag is set, pdg nodes for all call sites of virtual methods contain
 		 * the possible allocation sites of the this-pointer (the ids of PDG nodes of the

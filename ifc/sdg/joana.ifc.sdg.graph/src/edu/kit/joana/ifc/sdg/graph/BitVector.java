@@ -86,6 +86,27 @@ public class BitVector extends BitVectorBase<BitVector> {
       e.printStackTrace();
     }
   }
+  
+  /**
+   * Sets a bit.
+   * 
+   * @param bit the bit to be set
+   * @return true iff the BitVector was changed;
+   */
+  public final boolean setWithResult(int bit) {
+    int shiftBits = bit & LOW_MASK;
+    int subscript = subscript(bit);
+    if (subscript >= bits.length) {
+      expand(bit);
+    }
+
+    int oldVal = bits[subscript];
+    int newVal = oldVal | (1 << shiftBits);
+    boolean changed = oldVal != newVal;
+    bits[subscript] = newVal;
+    return changed;
+  }
+
 
   /**
    * Clears a bit.

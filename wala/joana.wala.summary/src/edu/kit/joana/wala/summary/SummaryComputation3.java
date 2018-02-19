@@ -600,9 +600,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
     	assert source.getProc() == target.getProc();
 		final PathEdgeReachedNodesBitvector sources = (PathEdgeReachedNodesBitvector) target.customData;
     	final int procLocalSourceId = nodeId2ProcLocalNodeId.getInt(source.getId());
-    	boolean isNew = !sources.get(procLocalSourceId);
-    	sources.set(procLocalSourceId);
-    	return isNew;
+    	return sources.setWithResult(procLocalSourceId);
     }
 
 //    if (relevantProcs != null) {

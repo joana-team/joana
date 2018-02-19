@@ -69,10 +69,6 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         this.regions = regions;
     }
 
-    private void setMayExistMap(Map<Integer, Collection<ThreadRegion>> mayExist) {
-    	this.mayExist = mayExist;
-    }
-
     public ThreadRegions getTR() {
     	return regions;
     }

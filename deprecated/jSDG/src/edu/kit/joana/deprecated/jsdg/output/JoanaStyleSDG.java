@@ -27,7 +27,6 @@ import com.ibm.wala.util.intset.IntIterator;
 import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.intset.IntSetAction;
 
-import edu.kit.joana.deprecated.jsdg.nontermination.NonTerminationSensitive;
 import edu.kit.joana.deprecated.jsdg.sdg.PDG;
 import edu.kit.joana.deprecated.jsdg.sdg.SDG;
 import edu.kit.joana.deprecated.jsdg.sdg.dataflow.SummaryComputationOptimizer;
@@ -385,14 +384,11 @@ public final class JoanaStyleSDG {
 	private static class NodeConverterVisitor implements IPDGNodeVisitor {
         private final edu.kit.joana.ifc.sdg.graph.SDG g;
         private final SDG sdg;
-        private final Set<CallNode> mayNotTerminate;
         private final Set<AbstractPDGNode> toInline;
 
-        public NodeConverterVisitor(edu.kit.joana.ifc.sdg.graph.SDG g, SDG sdg, Set<CallNode> mayNotTerminate,
-        		Set<AbstractPDGNode> toInline) {
+        public NodeConverterVisitor(edu.kit.joana.ifc.sdg.graph.SDG g, SDG sdg, Set<AbstractPDGNode> toInline) {
             this.g = g;
             this.sdg = sdg;
-            this.mayNotTerminate = mayNotTerminate;
             this.toInline = toInline;
         }
 
@@ -1007,14 +1003,6 @@ public final class JoanaStyleSDG {
 	throws CancelException {
 	    edu.kit.joana.ifc.sdg.graph.SDG g = new edu.kit.joana.ifc.sdg.graph.SDG();
 
-	    Set<CallNode> mayNotTerminate = null;
-
-	    if (nonTermination) {
-	    	progress.beginTask("Compute interprocedural nontermination sensitive control dependencies", -1);
-	    	mayNotTerminate = NonTerminationSensitive.run(sdg, progress);
-	    	progress.done();
-	    }
-
         progress.beginTask("Creating Joana-style SDG", -1);
 
         progress.subTask("Sorting all nodes by their id");
@@ -1055,7 +1043,7 @@ public final class JoanaStyleSDG {
         g.setName(Util.methodName(sdg.getMain()));
 
         // add nodes
-        IPDGNodeVisitor visitor = new NodeConverterVisitor(g, sdg, mayNotTerminate, inlinePDGNode);
+        IPDGNodeVisitor visitor = new NodeConverterVisitor(g, sdg, inlinePDGNode);
         boolean console = (progress instanceof VerboseProgressMonitor);
 
         PDG curPDG = null;

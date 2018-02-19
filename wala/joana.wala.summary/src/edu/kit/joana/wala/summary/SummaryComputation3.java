@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.RandomAccess;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
@@ -61,6 +62,8 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
     private final String annotate;
     private final Map<SDGNode, Integer> nodeId2ProcLocalNodeId;
     private final Map<Integer, Map<Integer, SDGNode>> procLocalNodeId2Node;
+    private final List<Set<Integer>> procSccs;
+    private final Map<Integer, Integer> indexNumberOf;
     
     private IntrusiveList<Edge> current; 
 
@@ -76,9 +79,13 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
         int maxProcNumber = -1;
         {
             final DirectedGraph<Integer, DefaultEdge> callGraph = extractCallGraph(graph);
-            final TarjanStrongConnectivityInspector<Integer, DefaultEdge> sccs = new TarjanStrongConnectivityInspector<>(callGraph);
-            final Map<Integer, TarjanStrongConnectivityInspector.VertexNumber<Integer>> indices = sccs.getVertexToVertexNumber();
-            final Map<Integer, Integer> indexNumberOf = new SimpleVectorBase<Integer, Integer>(0, 1) {
+            final TarjanStrongConnectivityInspector<Integer, DefaultEdge> sccInspector = new TarjanStrongConnectivityInspector<>(callGraph);
+            
+            this.procSccs = sccInspector.stronglyConnectedSets();
+            assert procSccs instanceof RandomAccess;
+            
+            final Map<Integer, TarjanStrongConnectivityInspector.VertexNumber<Integer>> indices = sccInspector.getVertexToVertexNumber();
+            this.indexNumberOf = new SimpleVectorBase<Integer, Integer>(0, 1) {
             	@Override
             	protected int getId(Integer k) {
             		return k;
@@ -507,28 +514,42 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             	}
             }
             
-            assert workListsConsistent();
-        }
-        
-        // clear HashSet<SDGNode> at each node
-        for (SDGNode n : (Set<SDGNode>) graph.vertexSet()) {
-            if (n.getKind() == SDGNode.Kind.FORMAL_OUT || n.getKind() == SDGNode.Kind.EXIT) {
-            	if (relevantProcs != null && !relevantProcs.contains(n.getProc())) {
-            		continue;
+            // TODO: somehow update this implicitly when creating summary edges
+            boolean leftScc = true;
+            for (Integer inSameScc : procSccs.get(indexNumberOf.get(procedure))) {
+            	if (procedureWorkSet.contains(inSameScc)) {
+            		leftScc = false;
+            		break;
             	}
+            }
 
-            	if (fullyConnected != null && fullyConnected.contains(n.getId())) {
-            		continue;
-            	}
+            // clear HashSet<SDGNode> at each node whenever we leave a scc
+            if (leftScc) {
+                for (Integer inSameScc : procSccs.get(indexNumberOf.get(procedure))) {
+                	for (SDGNode n : procLocalNodeId2Node.get(inSameScc).values()) {
+                		if (n.getKind() == SDGNode.Kind.FORMAL_OUT || n.getKind() == SDGNode.Kind.EXIT) {
+                			if (relevantProcs != null && !relevantProcs.contains(n.getProc())) {
+                				continue;
+                			}
 
-                assert n.customData instanceof PathEdgeReachedNodesBitvector;
-                n.customData = null;
+                			if (fullyConnected != null && fullyConnected.contains(n.getId())) {
+                				continue;
+                			}
+
+                			assert n.customData instanceof PathEdgeReachedNodesBitvector;
+                			n.customData = null;
+                		}
+
+                		if (n.getKind() == SDGNode.Kind.ACTUAL_OUT) {
+                			assert n.customData instanceof AoPathsNodesBitvector;
+                			n.customData = null;
+                		}
+                	}
+                	procLocalNodeId2Node.remove(inSameScc);
+                }
             }
             
-            if (n.getKind() == SDGNode.Kind.ACTUAL_OUT) {
-                assert n.customData instanceof AoPathsNodesBitvector;
-                n.customData = null;
-            }
+            assert workListsConsistent();
         }
 
         return formInOutSummaryEdge;

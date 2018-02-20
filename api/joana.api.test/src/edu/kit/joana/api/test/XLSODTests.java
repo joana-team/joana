@@ -567,4 +567,22 @@ public class XLSODTests {
 		testPrecise(     joana.api.testdata.demo.NullPointerExceptionImpossibleNoFlow.class, IFCType.LSOD,          true);
 		testPrecise(     joana.api.testdata.demo.NullPointerExceptionImpossibleNoFlow.class, IFCType.RLSOD,         true);
 	}
+
+	@Test
+	public void testMHPSources() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		/* In LSOD checking, we say an order conflict at a source/sink is low-observable
+		 * if someone with the level of that node can observe both operations of the conflict.
+		 * This criterion includes a High/High conflict, but this conflict is not low-observable.
+		 * So we need to think of another criterion for observability,
+		 * which has to work for arbitrary lattices.
+		 */
+		testTooImprecise(joana.api.testdata.demo.MHPSources.class, IFCType.LSOD,          false);
+		testPrecise(     joana.api.testdata.demo.MHPSources.class, IFCType.RLSOD,         false);
+		testPrecise(     joana.api.testdata.demo.MHPSources.class, IFCType.iRLSOD);
+		testPrecise(     joana.api.testdata.demo.MHPSources.class, IFCType.timingiRLSOD);
+
+		testTooImprecise(joana.api.testdata.demo.MHPSources.class, IFCType.LSOD,          true);
+		testPrecise(     joana.api.testdata.demo.MHPSources.class, IFCType.RLSOD,         true);
+	}
 }

@@ -114,7 +114,7 @@ public class StaticFieldMerge {
 		while (!work.isEmpty()) {
 			final SDGNode n = work.removeFirst();
 
-			for (SDGEdge edge : sdg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.PARAMETER_STRUCTURE)) {
+			for (SDGEdge edge : sdg.getOutgoingEdgesOfKindUnsafe(n, SDGEdge.Kind.PARAMETER_STRUCTURE)) {
 				final SDGNode tgt = edge.getTarget();
 				if (!filtered.contains(tgt)) {
 					filtered.add(tgt);

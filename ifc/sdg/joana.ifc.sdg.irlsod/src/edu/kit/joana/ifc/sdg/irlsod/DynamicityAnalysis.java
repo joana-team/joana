@@ -102,7 +102,7 @@ public class DynamicityAnalysis {
 			ret.addVertex(entryAndProc.getKey());
 			for (final SDGNode n : entryAndProc.getValue()) {
 				if (n.getKind() == SDGNode.Kind.CALL) {
-					for (final SDGEdge callEdge : threadGraph.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CALL)) {
+					for (final SDGEdge callEdge : threadGraph.getOutgoingEdgesOfKindUnsafe(n, SDGEdge.Kind.CALL)) {
 						ret.addVertex(callEdge.getTarget());
 						ret.addEdge(entryAndProc.getKey(), threadGraph.getEntry(callEdge.getTarget()));
 					}

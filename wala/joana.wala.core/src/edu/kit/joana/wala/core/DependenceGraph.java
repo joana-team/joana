@@ -29,7 +29,7 @@ public class DependenceGraph extends AbstractJoanaGraph<PDGNode, PDGEdge> {
 	}
 
 	public DependenceGraph(Supplier<Map<PDGNode,DirectedEdgeContainer<PDGEdge, PDGEdge[]>>> vertexMapConstructor) {
-		super(DEFAULT_EDGE_FACTORY, vertexMapConstructor);
+		super(DEFAULT_EDGE_FACTORY, vertexMapConstructor, PDGEdge.class);
 	}
 
 	public boolean removeEdge(PDGNode from, PDGNode to, PDGEdge.Kind kind) {

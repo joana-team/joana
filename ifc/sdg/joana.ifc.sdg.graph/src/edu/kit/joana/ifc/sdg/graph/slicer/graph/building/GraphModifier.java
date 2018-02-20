@@ -227,7 +227,7 @@ public final class GraphModifier {
 
                 // deflect edges at dummy return sites
                 // change the source of outgoing CF edges of call sites to the corresponding return site
-                for (SDGEdge cf : icfg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CONTROL_FLOW)) {
+                for (SDGEdge cf : icfg.getOutgoingEdgesOfKindUnsafe(n, SDGEdge.Kind.CONTROL_FLOW)) {
 
                     add.add( SDGEdge.Kind.CONTROL_FLOW.newEdge(dummy, cf.getTarget()));
                     remove.add(cf);
@@ -328,7 +328,7 @@ public final class GraphModifier {
             SDGNode next = worklist.poll();
 
             // traverse the parameter node trees down to the leaves
-            for (SDGEdge edge : sdg.getOutgoingEdgesOfKind(next, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
+            for (SDGEdge edge : sdg.getOutgoingEdgesOfKindUnsafe(next, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
                 SDGNode target = edge.getTarget();
 
                 // save the reached node in the suiting list
@@ -375,7 +375,7 @@ public final class GraphModifier {
         // insert actual-out nodes
         for (SDGNode next : aOut) {
             // the outgoing CF edges of the last inserted node
-            List<SDGEdge> oldOutgoing = sdg.getOutgoingEdgesOfKind(anchor, SDGEdge.Kind.CONTROL_FLOW);
+            List<SDGEdge> oldOutgoing = sdg.getOutgoingEdgesOfKindUnsafe(anchor, SDGEdge.Kind.CONTROL_FLOW);
 
             // if 'next' was not inserted yet, insert it
             if (cfg.add(next)) {
@@ -438,7 +438,7 @@ public final class GraphModifier {
         // insert formal-in nodes
         for (SDGNode next : fIn) {
             // the outgoing CF edges of the last inserted node
-            List<SDGEdge> oldOutgoing = sdg.getOutgoingEdgesOfKind(anchor, SDGEdge.Kind.CONTROL_FLOW);
+            List<SDGEdge> oldOutgoing = sdg.getOutgoingEdgesOfKindUnsafe(anchor, SDGEdge.Kind.CONTROL_FLOW);
 
             if (cfg.add(next)) {
                 // put 'next' between the last inserted node and its successors
@@ -524,7 +524,7 @@ public final class GraphModifier {
         while (!worklist.isEmpty()) {
             SDGNode next = worklist.poll();
 
-            for (SDGEdge edge : sdg.getOutgoingEdgesOfKind(next, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
+            for (SDGEdge edge : sdg.getOutgoingEdgesOfKindUnsafe(next, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
                 SDGNode target = edge.getTarget();
 
                 list.addLast(target);
@@ -720,7 +720,7 @@ public final class GraphModifier {
 
             if (next.getFirstNode().getKind() == SDGNode.Kind.FORMAL_IN) {
                 for (SDGEdge pi : sdg.getIncomingEdgesOfKind(next.getFirstNode(), SDGEdge.Kind.PARAMETER_IN)) {
-                    for (SDGEdge po : sdg.getOutgoingEdgesOfKind(next.getSecondNode(), SDGEdge.Kind.PARAMETER_OUT)) {
+                    for (SDGEdge po : sdg.getOutgoingEdgesOfKindUnsafe(next.getSecondNode(), SDGEdge.Kind.PARAMETER_OUT)) {
                         SDGEdge unblock = null;
 
                         for (SDGEdge su : deact) {

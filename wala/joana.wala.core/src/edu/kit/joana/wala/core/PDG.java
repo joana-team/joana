@@ -515,7 +515,9 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 					public PDGEdge createEdge(PDGNode from, PDGNode to) {
 						return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
 					};
-				});
+				},
+				PDGEdge.class
+				);
 				cdg.addEdge(entry, exit);
 				break;
 			}
@@ -524,7 +526,9 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 					public PDGEdge createEdge(PDGNode from, PDGNode to) {
 						return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
 					};
-				});
+				},
+				PDGEdge.class
+				);
 				cdg.addEdge(entry, exit);
 				break;
 			}
@@ -533,7 +537,9 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 					public PDGEdge createEdge(PDGNode from, PDGNode to) {
 						return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
 					};
-				});
+				},
+				PDGEdge.class
+				);
 				cdg.addEdge(entry, exit);
 				break;
 			}
@@ -542,7 +548,8 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 					public PDGEdge createEdge(PDGNode from, PDGNode to) {
 						return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
 					};
-				});
+				},
+				PDGEdge.class);
 				cdg.addEdge(entry, exit);
 				break;
 			}
@@ -551,7 +558,9 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 					public PDGEdge createEdge(PDGNode from, PDGNode to) {
 						return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
 					};
-				});
+				},
+				PDGEdge.class
+				);
 				cdg.addEdge(entry, exit);
 				break;
 			}
@@ -564,7 +573,9 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 						public PDGEdge createEdge(PDGNode from, PDGNode to) {
 							return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
 						};
-					});
+					},
+					PDGEdge.class
+					);
 				}
 				break;
 			}

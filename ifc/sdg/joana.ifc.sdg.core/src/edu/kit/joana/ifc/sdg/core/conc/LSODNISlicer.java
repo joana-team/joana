@@ -194,7 +194,7 @@ public class LSODNISlicer implements ConflictScanner {
 		// low-observable, add a violation
 		List<SDGEdge> oConfs = g.getIncomingEdgesOfKind(n,
 				SDGEdge.Kind.CONFLICT_ORDER);
-		oConfs.addAll(g.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CONFLICT_ORDER));
+		oConfs.addAll(g.getOutgoingEdgesOfKindUnsafe(n, SDGEdge.Kind.CONFLICT_ORDER));
 		for (SDGEdge oConf : oConfs) {
 			// check whether order-conflict is low-observable (with respect to
 			// the level of the current element)

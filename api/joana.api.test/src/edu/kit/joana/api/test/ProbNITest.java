@@ -498,7 +498,7 @@ public class ProbNITest {
 			SecurityNode spSink = (SecurityNode) pSink;
 			spSink.setRequired(BuiltinLattices.STD_SECLEVEL_LOW);
 			if (DEBUG) debug.outln("Annotated node " + spSink + " as low sink.");
-			for (SDGEdge out : sdg.getOutgoingEdgesOfKind(spSink, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
+			for (SDGEdge out : sdg.getOutgoingEdgesOfKindUnsafe(spSink, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
 				SecurityNode npSink = (SecurityNode) out.getTarget();
 				npSink.setRequired(BuiltinLattices.STD_SECLEVEL_LOW);
 				if (DEBUG) debug.outln("Annotated node " + npSink + " as low sink.");

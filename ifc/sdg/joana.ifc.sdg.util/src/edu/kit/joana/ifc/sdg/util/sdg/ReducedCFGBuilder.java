@@ -86,7 +86,7 @@ public final class ReducedCFGBuilder {
 		final List<SDGEdge> edgesToRemove = new LinkedList<SDGEdge>();
 		for (SDGEdge eIncoming : cfg.getIncomingEdgesOfKind(toRemove, SDGEdge.Kind.CONTROL_FLOW)) {
 			for (SDGEdge eOutgoing : cfg
-					.getOutgoingEdgesOfKind(toRemove, SDGEdge.Kind.CONTROL_FLOW)) {
+					.getOutgoingEdgesOfKindUnsafe(toRemove, SDGEdge.Kind.CONTROL_FLOW)) {
 				edgesToAdd.add( SDGEdge.Kind.CONTROL_FLOW.newEdge(eIncoming.getSource(), eOutgoing.getTarget()));
 				edgesToRemove.add(eIncoming);
 				edgesToRemove.add(eOutgoing);

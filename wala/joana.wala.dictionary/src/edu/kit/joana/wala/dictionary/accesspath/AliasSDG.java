@@ -348,7 +348,7 @@ public class AliasSDG {
 			final int curId = work.removeFirst();
 			final SDGNode cur = sdg.getNode(curId);
 			
-			for (final SDGEdge e : sdg.getOutgoingEdgesOfKind(cur, SDGEdge.Kind.PARAMETER_STRUCTURE)) {
+			for (final SDGEdge e : sdg.getOutgoingEdgesOfKindUnsafe(cur, SDGEdge.Kind.PARAMETER_STRUCTURE)) {
 				if (isInputParam(e.getTarget())) {
 					final int nextId = e.getTarget().getId();
 					if (!reach.contains(nextId)) {

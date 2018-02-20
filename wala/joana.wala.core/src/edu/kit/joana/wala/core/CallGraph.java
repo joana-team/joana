@@ -151,7 +151,7 @@ public final class CallGraph extends AbstractJoanaGraph<CallGraph.Node, CallGrap
 	private CallGraph(CallGraphFilter filter, IMethod entry, com.ibm.wala.ipa.callgraph.CallGraph orig,
 			PointerAnalysis<InstanceKey> pts) {
 		// TODO: find out why we cannot use, e.g. ArrayMap here for consistently ordered nodes.
-		super(DEFAULT_EDGE_FACTORY, () -> new LinkedHashMap<>());
+		super(DEFAULT_EDGE_FACTORY, () -> new LinkedHashMap<>(), Edge.class);
 		this.filter = filter;
 		this.cg = orig;
 		this.pts = pts;

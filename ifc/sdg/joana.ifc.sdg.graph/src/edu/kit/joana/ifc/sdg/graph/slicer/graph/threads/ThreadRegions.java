@@ -375,7 +375,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 			 Collection<SDGNode> forks = info.getAllForks();
 
 			 for (SDGNode fork : forks) {
-				 for (SDGEdge e: icfg.getOutgoingEdgesOfKind(fork, SDGEdge.Kind.CONTROL_FLOW)) {
+				 for (SDGEdge e: icfg.getOutgoingEdgesOfKindUnsafe(fork, SDGEdge.Kind.CONTROL_FLOW)) {
 					 if (e.getTarget().isInThread(thread)) {
 						 init.add(e.getTarget());
 					 }

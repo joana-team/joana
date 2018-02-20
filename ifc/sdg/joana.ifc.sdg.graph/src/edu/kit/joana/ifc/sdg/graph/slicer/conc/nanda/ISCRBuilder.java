@@ -266,7 +266,7 @@ public class ISCRBuilder {
     	// remove act-outs and form-ins
     	for (SDGNode n : cfg.vertexSet()) {
     		if (n.getKind() == SDGNode.Kind.CALL) {
-    			for (SDGEdge ex : cfg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CONTROL_FLOW)) {
+    			for (SDGEdge ex : cfg.getOutgoingEdgesOfKindUnsafe(n, SDGEdge.Kind.CONTROL_FLOW)) {
     				SDGNode retSite = ex.getTarget();// return site
 	    			LinkedList<SDGNode> ps = new LinkedList<SDGNode>();
 	    			LinkedList<SDGNode> wl = new LinkedList<SDGNode>();
@@ -275,7 +275,7 @@ public class ISCRBuilder {
 	    			while (!wl.isEmpty()) {
 	    				SDGNode next = wl.poll();
 
-	    				for (SDGEdge e : cfg.getOutgoingEdgesOfKind(next, SDGEdge.Kind.CONTROL_FLOW)) {
+	    				for (SDGEdge e : cfg.getOutgoingEdgesOfKindUnsafe(next, SDGEdge.Kind.CONTROL_FLOW)) {
 	    					SDGNode target = e.getTarget();
 
 	    					if (target.getKind() == SDGNode.Kind.ACTUAL_OUT ||
@@ -309,7 +309,7 @@ public class ISCRBuilder {
     			while (!wl.isEmpty()) {
     				SDGNode next = wl.poll();
 
-    				for (SDGEdge e : cfg.getOutgoingEdgesOfKind(next, SDGEdge.Kind.CONTROL_FLOW)) {
+    				for (SDGEdge e : cfg.getOutgoingEdgesOfKindUnsafe(next, SDGEdge.Kind.CONTROL_FLOW)) {
     					SDGNode target = e.getTarget();
 
     					if (target.getKind() == SDGNode.Kind.FORMAL_IN) {
@@ -397,7 +397,7 @@ public class ISCRBuilder {
                 folded.addAll(graph.getFoldedNodesOf(next));
 
                 // store the transitively called procedures (if this is a folded procedure call)
-                for (SDGEdge call : graph.getOutgoingEdgesOfKind(next, SDGEdge.Kind.CALL)) {
+                for (SDGEdge call : graph.getOutgoingEdgesOfKindUnsafe(next, SDGEdge.Kind.CALL)) {
                     SDGNode entry = call.getTarget();
 
                     if (entry.getKind() == SDGNode.Kind.FOLDED) {
@@ -685,7 +685,7 @@ public class ISCRBuilder {
     		// regular edge ?
     		SDGEdge.Kind kind = (e.getKind() == SDGEdge.Kind.NO_FLOW ? SDGEdge.Kind.CONTROL_FLOW : e.getKind());
     		boolean ok = false;
-        	for (SDGEdge f : folded.getOutgoingEdgesOfKind(e.getSource(), kind)) {
+        	for (SDGEdge f : folded.getOutgoingEdgesOfKindUnsafe(e.getSource(), kind)) {
         		if (f.getTarget() == e.getTarget()) {
         			ok = true;
         			break;
@@ -747,7 +747,7 @@ public class ISCRBuilder {
 
     		if (reduced.containsVertex(e.getSource()) && reduced.containsVertex(e.getTarget())) {
         		boolean ok = false;
-    			for (SDGEdge f : reduced.getOutgoingEdgesOfKind(e.getSource(), e.getKind())) {
+    			for (SDGEdge f : reduced.getOutgoingEdgesOfKindUnsafe(e.getSource(), e.getKind())) {
             		if (f.getTarget() == e.getTarget()) {
             			ok = true;
             			break;
@@ -768,7 +768,7 @@ public class ISCRBuilder {
 						break;
 					}
 
-					for (SDGEdge f : reduced.getOutgoingEdgesOfKind(e.getSource(), e.getKind())) {
+					for (SDGEdge f : reduced.getOutgoingEdgesOfKindUnsafe(e.getSource(), e.getKind())) {
 						if (f.getTarget() == target) {
 							ok = true;
 							break label;
@@ -792,7 +792,7 @@ public class ISCRBuilder {
 						break;
 					}
 
-					for (SDGEdge f : reduced.getOutgoingEdgesOfKind(source, e.getKind())) {
+					for (SDGEdge f : reduced.getOutgoingEdgesOfKindUnsafe(source, e.getKind())) {
 						if (f.getTarget() == e.getTarget()) {
 							ok = true;
 							break label;
@@ -816,7 +816,7 @@ public class ISCRBuilder {
     						break label;
     					}
 
-    					for (SDGEdge f : reduced.getOutgoingEdgesOfKind(source, e.getKind())) {
+    					for (SDGEdge f : reduced.getOutgoingEdgesOfKindUnsafe(source, e.getKind())) {
     						if (f.getTarget() == target) {
     							ok = true;
     							break label;

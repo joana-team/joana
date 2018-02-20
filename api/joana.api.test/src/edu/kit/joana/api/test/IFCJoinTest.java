@@ -98,7 +98,7 @@ public class IFCJoinTest {
 		Assert.assertTrue(calls.iterator().next().getId() == 21);
 		SDGNode call = calls.iterator().next();
 		Collection<SDGNode> actualIns = new LinkedList<SDGNode>();
-		for (SDGEdge e : sdg.getOutgoingEdgesOfKind(call, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
+		for (SDGEdge e : sdg.getOutgoingEdgesOfKindUnsafe(call, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
 			if (e.getTarget().getKind() == SDGNode.Kind.ACTUAL_IN) {
 				actualIns.add(e.getTarget());
 			}
@@ -150,7 +150,7 @@ public class IFCJoinTest {
 		Assert.assertEquals(360	, id2);
 		SDGNode call = calls.iterator().next();
 		Collection<SDGNode> actualIns = new LinkedList<SDGNode>();
-		for (SDGEdge e : sdg.getOutgoingEdgesOfKind(call, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
+		for (SDGEdge e : sdg.getOutgoingEdgesOfKindUnsafe(call, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
 			if (e.getTarget().getKind() == SDGNode.Kind.ACTUAL_IN) {
 				actualIns.add(e.getTarget());
 			}

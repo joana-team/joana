@@ -34,15 +34,15 @@ public class AbstractJoanaGraph<V extends IntegerIdentifiable, E extends KnowsVe
 	 * @param defaultEdgeFactory edge factory to use for e.g. adding new edges
 	 * @see org.jgrapht.graph.DirectedPseudograph
 	 */
-	public AbstractJoanaGraph(EdgeFactory<V, E> edgeFactory, Supplier<Map<V,DirectedEdgeContainer<E, E[]>>> vertexMapConstructor) {
-		this.delegate = new DirectedPseudograph<V,E>(edgeFactory, vertexMapConstructor);
+	public AbstractJoanaGraph(EdgeFactory<V, E> edgeFactory, Supplier<Map<V,DirectedEdgeContainer<E, E[]>>> vertexMapConstructor, Class<E> classE) {
+		this.delegate = new DirectedPseudograph<V,E>(edgeFactory, vertexMapConstructor, classE);
 	}
 
 	/**
 	 * @param class1
 	 */
-	public AbstractJoanaGraph(Class<E> edgeClass, Supplier<Map<V,DirectedEdgeContainer<E, E[]>>> vertexMapConstructor) {
-		this.delegate = new DirectedPseudograph<V,E>(edgeClass, vertexMapConstructor);
+	public AbstractJoanaGraph(Class<E> edgeClass, Supplier<Map<V,DirectedEdgeContainer<E, E[]>>> vertexMapConstructor, Class<E> classE) {
+		this.delegate = new DirectedPseudograph<V,E>(edgeClass, vertexMapConstructor, classE);
 		changed = true;
 	}
 
@@ -274,7 +274,7 @@ public class AbstractJoanaGraph<V extends IntegerIdentifiable, E extends KnowsVe
 		return delegate.incomingEdgesOf(arg0);
 	}
 	
-	public Set<E> incomingEdgesOfUnsafe(V arg0) {
+	public E[] incomingEdgesOfUnsafe(V arg0) {
 		return delegate.incomingEdgesOfUnsafe(arg0);
 	}
 
@@ -322,7 +322,7 @@ public class AbstractJoanaGraph<V extends IntegerIdentifiable, E extends KnowsVe
 		return delegate.outgoingEdgesOf(arg0);
 	}
 	
-	public Set<E> outgoingEdgesOfUnsafe(V arg0) {
+	public E[] outgoingEdgesOfUnsafe(V arg0) {
 		return delegate.outgoingEdgesOfUnsafe(arg0);
 	}
 

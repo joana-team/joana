@@ -581,7 +581,7 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 	 * @return
 	 */
 	private SecurityNode getSummaryNodeBetween(SecurityNode actualIn, SecurityNode actualOut) {
-		for (SDGEdge edge : g.getOutgoingEdgesOfKind(actualIn, SDGEdge.Kind.SUMMARY)) {
+		for (SDGEdge edge : g.getOutgoingEdgesOfKindUnsafe(actualIn, SDGEdge.Kind.SUMMARY)) {
 			SecurityNode target = (SecurityNode) edge.getTarget();
 			if (target.getKind() == SecurityNode.Kind.SUMMARY) {
 				return target;

@@ -122,7 +122,7 @@ public class SummaryComputation2 {
 			ret.addVertex(entryAndProc.getKey());
 			for (final SDGNode n : entryAndProc.getValue()) {
 				if (n.getKind() == SDGNode.Kind.CALL) {
-					for (final SDGEdge callEdge : graph.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CALL)) {
+					for (final SDGEdge callEdge : graph.getOutgoingEdgesOfKindUnsafe(n, SDGEdge.Kind.CALL)) {
 						ret.addVertex(callEdge.getTarget());
 						ret.addEdge(graph.getEntry(callEdge.getTarget()), entryAndProc.getKey());
 					}

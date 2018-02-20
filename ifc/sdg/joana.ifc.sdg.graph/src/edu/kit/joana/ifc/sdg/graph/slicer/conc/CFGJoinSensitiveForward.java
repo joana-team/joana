@@ -22,6 +22,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGNodeTuple;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
+import edu.kit.joana.util.collections.ArraySet;
 import gnu.trove.set.hash.TIntHashSet;
 
 /**
@@ -73,7 +74,7 @@ public class CFGJoinSensitiveForward extends CFGForward {
     }
 
     protected Iterable<SDGEdge> edgesToTraverse(SDGNode node) {
-    	final Set<SDGEdge> outgoing = this.g.outgoingEdgesOfUnsafe(node);
+    	final Set<SDGEdge> outgoing = ArraySet.own(this.g.outgoingEdgesOfUnsafe(node));
     	return new Iterable<SDGEdge>() {
 			@Override
 			public Iterator<SDGEdge> iterator() {
@@ -119,7 +120,7 @@ public class CFGJoinSensitiveForward extends CFGForward {
             for (SDGEdge call : g.incomingEdgesOf(entry)) {
                 SDGNode callSite = call.getSource();
                 assert callSite.getKind() == SDGNode.Kind.CALL;
-                for (SDGEdge e : g.getOutgoingEdgesOfKind(callSite, SDGEdge.Kind.CONTROL_FLOW)) {
+                for (SDGEdge e : g.getOutgoingEdgesOfKindUnsafe(callSite, SDGEdge.Kind.CONTROL_FLOW)) {
                 	if ("CALL_RET".equals(e.getTarget().getLabel())) {
                 		deact.add(e);
                 	}
@@ -137,7 +138,7 @@ public class CFGJoinSensitiveForward extends CFGForward {
 
             if (next.getFirstNode().getKind() == SDGNode.Kind.ENTRY) {
                 for (SDGEdge pi : g.getIncomingEdgesOfKind(next.getFirstNode(), SDGEdge.Kind.CALL)) {
-                    for (SDGEdge po : g.getOutgoingEdgesOfKind(next.getSecondNode(), SDGEdge.Kind.RETURN)) {
+                    for (SDGEdge po : g.getOutgoingEdgesOfKindUnsafe(next.getSecondNode(), SDGEdge.Kind.RETURN)) {
                         SDGEdge unblock = null;
 
                         for (SDGEdge su : deact) {
@@ -247,7 +248,7 @@ public class CFGJoinSensitiveForward extends CFGForward {
             for (SDGEdge call : g.incomingEdgesOf(entry)) {
                 SDGNode callSite = call.getSource();
                 assert callSite.getKind() == SDGNode.Kind.CALL;
-                for (SDGEdge e : g.getOutgoingEdgesOfKind(callSite, SDGEdge.Kind.CONTROL_FLOW)) {
+                for (SDGEdge e : g.getOutgoingEdgesOfKindUnsafe(callSite, SDGEdge.Kind.CONTROL_FLOW)) {
                 	if ("CALL_RET".equals(e.getTarget().getLabel())) {
                 		assert e.getKind() == SDGEdge.Kind.CONTROL_FLOW;
                 		assert e.getLabel() == null;
@@ -267,7 +268,7 @@ public class CFGJoinSensitiveForward extends CFGForward {
 
             if (next.getFirstNode().getKind() == SDGNode.Kind.ENTRY) {
                 for (SDGEdge pi : g.getIncomingEdgesOfKind(next.getFirstNode(), SDGEdge.Kind.CALL)) {
-                    for (SDGEdge po : g.getOutgoingEdgesOfKind(next.getSecondNode(), SDGEdge.Kind.RETURN)) {
+                    for (SDGEdge po : g.getOutgoingEdgesOfKindUnsafe(next.getSecondNode(), SDGEdge.Kind.RETURN)) {
                         SDGEdge unblock = null;
 
                         final SDGEdge su =  SDGEdge.Kind.CONTROL_FLOW.newEdge(pi.getSource(), po.getTarget()); 

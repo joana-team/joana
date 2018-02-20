@@ -157,7 +157,7 @@ public class DeclassificationSummaryNodes extends IncrementalSummaryBackward {
 			SDGNode ai = pi.getSource();
 
 			SDGNode root = root(ai);
-			for (SDGEdge po : graph.getOutgoingEdgesOfKind(startedNode(currentPathEdge), SDGEdge.Kind.PARAMETER_OUT)) {
+			for (SDGEdge po : graph.getOutgoingEdgesOfKindUnsafe(startedNode(currentPathEdge), SDGEdge.Kind.PARAMETER_OUT)) {
 				SDGNode ao = po.getTarget();
 
 				if (root == root(ao)) {

@@ -80,7 +80,7 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
 	 * Creates a totally empty JoanaGraph.
 	 */
     public JoanaGraph(Supplier<Map<SDGNode, DirectedEdgeContainer<SDGEdge, SDGEdge[]>>> vertexMapConstructor) {
-        super(SDGEdge.class, vertexMapConstructor);
+        super(SDGEdge.class, vertexMapConstructor, SDGEdge.class);
     }
 
     /**
@@ -218,8 +218,34 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
      * @param node  The vertex whose edges are needed.
      * @param kind  The demanded kind of edges.
      */
+    public List<SDGEdge> getOutgoingEdgesOfKindUnsafe(SDGNode node, SDGEdge.Kind kind) {
+    	int lastPriority = -1;
+    	boolean kindReached = false;
+    	SDGEdge[] outgoing = outgoingEdgesOfUnsafe(node);
+    	List<SDGEdge> res = new ArrayList<>(outgoing.length);
+    	for (SDGEdge e : outgoing) {
+    		assert e.getKind().getPriority() >= lastPriority;
+    		assert (lastPriority = e.getKind().getPriority()) >= 0;
+    		
+    		boolean isKind = e.getKind() == kind; 
+    		if (isKind) {
+    			res.add(e);
+    			kindReached = true;
+    		}
+    		if (!isKind && kindReached) break;
+    	}
+
+    	return res;
+    }
+    
+    /**
+     * Returns a list with all outgoing edges of a given kind of a given vertex.
+     *
+     * @param node  The vertex whose edges are needed.
+     * @param kind  The demanded kind of edges.
+     */
     public List<SDGEdge> getOutgoingEdgesOfKind(SDGNode node, SDGEdge.Kind kind) {
-    	Set<SDGEdge> outgoing = outgoingEdgesOfUnsafe(node);
+    	Set<SDGEdge> outgoing = outgoingEdgesOf(node);
     	List<SDGEdge> res = new ArrayList<>(outgoing.size());
     	for (SDGEdge e : outgoing) {
     		if (e.getKind() == kind) {

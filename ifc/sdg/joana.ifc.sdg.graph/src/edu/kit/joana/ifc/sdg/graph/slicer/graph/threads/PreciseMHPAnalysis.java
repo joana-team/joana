@@ -271,11 +271,11 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 		for (SDGNode node : icfg.vertexSet()) {
 			if (node.getKind() == SDGNode.Kind.CALL) {
 				Set<SDGNode> intraSucc = new HashSet<SDGNode>();
-				for (SDGEdge intraEdge : icfg.getOutgoingEdgesOfKind(node, SDGEdge.Kind.CONTROL_FLOW)) {
+				for (SDGEdge intraEdge : icfg.getOutgoingEdgesOfKindUnsafe(node, SDGEdge.Kind.CONTROL_FLOW)) {
 					intraSucc.add(intraEdge.getTarget());
 				}
 
-				for (SDGEdge callEdge : icfg.getOutgoingEdgesOfKind(node, SDGEdge.Kind.CALL)) {
+				for (SDGEdge callEdge : icfg.getOutgoingEdgesOfKindUnsafe(node, SDGEdge.Kind.CALL)) {
 					SDGNode entryOfCalled = callEdge.getTarget();
 					assert entryOfCalled.kind == SDGNode.Kind.ENTRY;
 					SDGNode exitOfCalled = findExit(icfg, entryOfCalled);
@@ -519,7 +519,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 
         		LinkedList<SDGNode> succ = new LinkedList<SDGNode>();
 
-        		for (SDGEdge e : icfg.getOutgoingEdgesOfKind(fork.getNode(), SDGEdge.Kind.CONTROL_FLOW)) {
+        		for (SDGEdge e : icfg.getOutgoingEdgesOfKindUnsafe(fork.getNode(), SDGEdge.Kind.CONTROL_FLOW)) {
         			succ.add(e.getTarget());
         		}
 
@@ -634,7 +634,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 
             	LinkedList<SDGNode> succ = new LinkedList<SDGNode>();
 
-            	for (SDGEdge e : icfg.getOutgoingEdgesOfKind(forkNode, SDGEdge.Kind.CONTROL_FLOW)) {
+            	for (SDGEdge e : icfg.getOutgoingEdgesOfKindUnsafe(forkNode, SDGEdge.Kind.CONTROL_FLOW)) {
             		succ.add(e.getTarget());
             	}
 
@@ -838,7 +838,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 
             	LinkedList<SDGNode> succ = new LinkedList<SDGNode>();
 
-            	for (SDGEdge e : icfg.getOutgoingEdgesOfKind(forkNode, SDGEdge.Kind.CONTROL_FLOW)) {
+            	for (SDGEdge e : icfg.getOutgoingEdgesOfKindUnsafe(forkNode, SDGEdge.Kind.CONTROL_FLOW)) {
             		succ.add(e.getTarget());
             	}
 

@@ -293,7 +293,7 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 			} else if (isParameterNodeOfKind(next, type)) {
 				base.add(next);
 			}
-			for (SDGEdge e : sdg.getOutgoingEdgesOfKind(next, SDGEdge.Kind.PARAMETER_STRUCTURE)) {
+			for (SDGEdge e : sdg.getOutgoingEdgesOfKindUnsafe(next, SDGEdge.Kind.PARAMETER_STRUCTURE)) {
 				SDGNode succNode = e.getTarget();
 				if (!visited.contains(succNode)) {
 					toDo.add(succNode);
@@ -304,7 +304,7 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 	}
 
 	private boolean hasFields(SDGNode param) {
-		return !sdg.getOutgoingEdgesOfKind(param, SDGEdge.Kind.PARAMETER_STRUCTURE).isEmpty();
+		return !sdg.getOutgoingEdgesOfKindUnsafe(param, SDGEdge.Kind.PARAMETER_STRUCTURE).isEmpty();
 	}
 
 	private boolean isParameterNodeOfKind(SDGNode param, AnnotationType type) {

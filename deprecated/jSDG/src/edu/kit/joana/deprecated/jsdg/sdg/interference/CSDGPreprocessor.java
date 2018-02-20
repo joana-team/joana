@@ -207,7 +207,7 @@ public class CSDGPreprocessor {
 
         List<SDGNodeTuple> callSites = sdg.getAllCallSites();
         for (SDGNodeTuple cs : callSites) {
-        	List<SDGEdge> calls = sdg.getOutgoingEdgesOfKind(cs.getFirstNode(), SDGEdge.Kind.CALL);
+        	List<SDGEdge> calls = sdg.getOutgoingEdgesOfKindUnsafe(cs.getFirstNode(), SDGEdge.Kind.CALL);
         	List<SDGEdge> returns = sdg.getIncomingEdgesOfKind(cs.getSecondNode(), SDGEdge.Kind.RETURN);
         	if (calls.size() != returns.size()) {
         		System.out.println(calls);

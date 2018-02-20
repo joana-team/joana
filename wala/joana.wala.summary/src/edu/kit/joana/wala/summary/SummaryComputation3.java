@@ -661,11 +661,9 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             SDGNode n = node;
 
             while (true){
-                Set<SDGEdge> edges = graph.incomingEdgesOfUnsafe(n);
-
                 // follow control-dependence-expression edges from the source
                 // node of 'edge' to the call node
-                for(SDGEdge e : edges){
+                for(SDGEdge e : graph.incomingEdgesOfUnsafe(n)){
                     if(e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR){
                         if(e.getSource().getKind() == SDGNode.Kind.CALL){
                             return e.getSource();
@@ -680,10 +678,9 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             SDGNode n = node;
 
             while(true){
-                Set<SDGEdge> edges = graph.incomingEdgesOfUnsafe(n);
                 // follow control-dependence-expression
                 // edges from 'node' to the call node
-                for(SDGEdge e : edges){
+                for(SDGEdge e : graph.incomingEdgesOfUnsafe(n)){
                     if(e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR){
                         if(e.getSource().getKind() == SDGNode.Kind.CALL){
                             return e.getSource();
@@ -701,9 +698,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
     private SDGNode getCallSiteFor(SDGNode node){
     	assert node.getKind() == SDGNode.Kind.ACTUAL_IN || node.getKind() == SDGNode.Kind.ACTUAL_OUT;
 
-    	final Set<SDGEdge> edges = graph.incomingEdgesOfUnsafe(node);
-
-    	for(SDGEdge e : edges){
+    	for(SDGEdge e : graph.incomingEdgesOfUnsafe(node)){
     		if(e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR){
     			assert e.getSource().getKind() == SDGNode.Kind.CALL; 
     			assert e.getSource().equals(getCallSiteForSlow(node));

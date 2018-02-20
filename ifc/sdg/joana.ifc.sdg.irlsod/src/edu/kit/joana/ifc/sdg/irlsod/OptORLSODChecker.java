@@ -13,15 +13,11 @@ import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PBackward;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
 import edu.kit.joana.util.maps.MapUtils;
 
 public class OptORLSODChecker<L> extends ORLSODChecker<L> {
-
-	/** a backward slicer needed for the dependency computation */
-	private final I2PBackward backw;
 
 	/**
 	 * maps each node to all the nodes which must be updated when the security level of the node has changed
@@ -42,7 +38,6 @@ public class OptORLSODChecker<L> extends ORLSODChecker<L> {
 	public OptORLSODChecker(final SDG sdg, final IStaticLattice<L> secLattice, final Map<SDGNode, L> userAnn,
 			final ProbInfComputer probInf) {
 		super(sdg, secLattice, userAnn, probInf, null);
-		this.backw = new I2PBackward(sdg);
 		this.sdg = sdg;
 	}
 
@@ -69,7 +64,7 @@ public class OptORLSODChecker<L> extends ORLSODChecker<L> {
 			for (final SDGNode depNext : forwDep.get(next)) {
 				final L oldLevel = cl.get(depNext);
 				L newLevel = secLattice.leastUpperBound(oldLevel, level);
-				if (!newLevel.equals(oldLevel) && !worklist.contains(depNext)) {
+				if (!newLevel.equals(oldLevel)) {
 					worklist.add(depNext);
 					cl.put(depNext, newLevel);
 				}

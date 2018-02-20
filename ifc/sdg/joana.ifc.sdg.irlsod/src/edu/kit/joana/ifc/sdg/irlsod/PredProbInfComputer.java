@@ -16,6 +16,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadRegion;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
@@ -32,12 +33,44 @@ import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 public class PredProbInfComputer extends ProbInfComputer {
 
 	private final CFG icfg;
-	private final PreciseMHPAnalysis mhp;
+	private final MHPAnalysis mhp;
+	private final boolean[] influencedRegion;
 
+	/**
+	 * Constructs a PredProbInfComputer instance with the given SDG
+	 * and a precise MHP analysis. The SDG needs to be preprocessed.
+	 * @param sdg preprocessed SDG
+	 */
 	public PredProbInfComputer(final SDG sdg) {
+		this(sdg, PreciseMHPAnalysis.analyze(sdg));
+	}
+
+	/**
+	 * Constructs a PredProbInfComputer instance with the given SDG
+	 * and given MHP analysis.
+	 * @param sdg SDG
+	 * @param mhp MHP analysis
+	 */
+	public PredProbInfComputer(final SDG sdg, MHPAnalysis mhp) {
 		this.icfg = ICFGBuilder.extractICFG(sdg);
-		CSDGPreprocessor.preprocessSDG(sdg);
-		this.mhp = PreciseMHPAnalysis.analyze(sdg);
+		if (sdg.getThreadsInfo() == null) {
+			CSDGPreprocessor.preprocessSDG(sdg);
+		}
+		this.mhp = mhp;
+		this.influencedRegion = new boolean[mhp.getTR().size()];
+		calculateInfluencedRegions();
+	}
+
+	private void calculateInfluencedRegions() {
+		Collection<ThreadRegion> regions = mhp.getThreadRegions();
+		for (final ThreadRegion trN : regions) {
+			influencedRegion[trN.getID()] = false;
+			for (ThreadRegion trM : regions) {
+				if (mhp.isParallel(trN, trM) && !trM.getNodes().isEmpty()) {
+					influencedRegion[trN.getID()] = true;
+				}
+			}
+		}
 	}
 
 	protected Collection<? extends SDGNode> computeProbabilisticInfluencers(final SDGNode n) {
@@ -51,10 +84,8 @@ public class PredProbInfComputer extends ProbInfComputer {
 	private boolean influenced(SDGNode n) {
 		for (final int threadN : n.getThreadNumbers()) {
 			ThreadRegion trN = mhp.getThreadRegion(n, threadN);
-			for (ThreadRegion trM : mhp.getThreadRegions()) {
-				if (mhp.isParallel(trN, trM) && !trM.getNodes().isEmpty()) {
-					return true;
-				}
+			if (influencedRegion[trN.getID()]) {
+				return true;
 			}
 		}
 		return false;

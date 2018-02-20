@@ -28,6 +28,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.Slicer;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.CFGForward;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.CFGSlicer;
+import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PBackward;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.Nanda;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.NandaBackward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
@@ -533,13 +534,20 @@ public class ProbabilisticNISlicer implements ConflictScanner {
         DataConflictCollector confCollector = new DataConflictCollector();
         Slicer slicer;
         if (this.timeSens) {
-        	slicer = new Nanda(g, new NandaBackward(), confCollector);
+            slicer = new Nanda(g, new NandaBackward(), confCollector);
         } else {
-        	slicer = new AdhocBackwardSlicer(g, confCollector);
+            slicer = new I2PBackward(g);
         }
-        slicer.slice(element.node);
-    	List<SDGEdge> dataConflicts = confCollector.getDataConflicts();
-    	
+
+        Collection<SDGNode> slice = slicer.slice(element.node);
+        List<SDGEdge> dataConflicts = new LinkedList<>();
+
+        for (SDGNode n : slice) {
+            for (SDGEdge e : g.getIncomingEdgesOfKind(n, SDGEdge.Kind.CONFLICT_DATA)) {
+                dataConflicts.add(e);
+            }
+        }
+
         /**
          * All data conflicts, which possibly could influence the given element have been computed.
          * Now, check if one of these data conflicts is influenced by a secret (relative to the security

@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.sdgtools.SDGTools;
@@ -23,6 +24,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.Slicer;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.CFGForward;
+import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PBackward;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.Nanda;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.NandaBackward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
@@ -159,14 +161,14 @@ public class LSODNISlicer implements ConflictScanner {
 		if (this.timeSens) {
 			slicer = new Nanda(g, new NandaBackward(), confCollector);
 		} else {
-			slicer = new AdhocBackwardSlicer(g, confCollector);
+			slicer = new I2PBackward(g);
 		}
 		Collection<SDGNode> s = slicer.slice(e.node);
 
 		for (SDGNode n : s) {
 			collectPossibleDataChannels(e, (SecurityNode) n);
-			collectPossibleOrderChannels(e, (SecurityNode) n);
 		}
+		collectPossibleOrderChannels(e);
 	}
 
 	private void collectPossibleDataChannels(Element e, SecurityNode n) {
@@ -188,18 +190,23 @@ public class LSODNISlicer implements ConflictScanner {
 		}
 	}
 
-	private void collectPossibleOrderChannels(Element e, SecurityNode n) {
-		// if n has an incoming or outgoing order conflict edge and the conflict
-		// is
-		// low-observable, add a violation
-		List<SDGEdge> oConfs = g.getIncomingEdgesOfKind(n,
-				SDGEdge.Kind.CONFLICT_ORDER);
-		oConfs.addAll(g.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CONFLICT_ORDER));
+	private void collectPossibleOrderChannels(Element e) {
+		SecurityNode n = e.node;
+		String refLevel = n.getLevel();
+		checkOrderConflictEdges(g.getIncomingEdgesOfKind(n, SDGEdge.Kind.CONFLICT_ORDER),
+								SDGEdge::getSource, refLevel);
+		checkOrderConflictEdges(g.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CONFLICT_ORDER),
+								SDGEdge::getTarget, refLevel);
+	}
+
+	private void checkOrderConflictEdges(Collection<SDGEdge> oConfs, Function<SDGEdge, SDGNode> endpoint,
+			String refLevel) {
 		for (SDGEdge oConf : oConfs) {
 			// check whether order-conflict is low-observable (with respect to
 			// the level of the current element)
-			String refLevel = e.node.getLevel();
-			if (isLowObservable(oConf, refLevel)) {
+			// the element itself is always observable with respect to itself, so no need to check it
+			// TODO: current implementation (imprecisely) marks High/High conflicts as low-observable
+			if (isLowObservable((SecurityNode) endpoint.apply(oConf), refLevel)) {
 				// possible probabilistic order channel
 				if (useOptimization) {
 					Collection<SecurityNode> secTriggers = collectSecretTriggers(
@@ -237,30 +244,21 @@ public class LSODNISlicer implements ConflictScanner {
 	}
 
 	/**
-	 * Returns whether the given order conflict edge is low-observable with
-	 * respect to the given reference level. This is the case, if both nodes
-	 * participating in the conflict have a level which is lower than or equal
-	 * to the given reference level.
+	 * Returns whether the given node is low-observable with respect to the given reference level.
+	 * This is the case, if it has a level which is lower than or equal to the given reference level.
 	 * 
-	 * @param e
-	 *            conflict edge to be checked for low-observability
+	 * @param n
+	 *            node to be checked for low-observability
 	 * @param refLevel
 	 *            reference level providing the least upper bound for
 	 *            observability
-	 * @return {@code true} if both nodes participating in the conflict have a
-	 *         level which is lower than or equal to the given reference level
-	 *         (i.e. both execution orders are observable by an attacker which
+	 * @return {@code true} if the node has a level which is lower than or equal to
+	 *         the given reference level (it is observable by an attacker which
 	 *         has the given level), {@code false} otherwise
 	 */
-	private boolean isLowObservable(SDGEdge e, String refLevel) {
-		SecurityNode s1 = (SecurityNode) e.getSource();
-		SecurityNode s2 = (SecurityNode) e.getTarget();
-		String levelS1 = s1.getLevel();
-		String levelS2 = s2.getLevel();
-		return levelS1 != null && levelS2 != null
-				&& l.isLeq(levelS1, refLevel)
-				&& l.isLeq(levelS2, refLevel);
-
+	private boolean isLowObservable(SecurityNode n, String refLevel) {
+		String levelS1 = n.getLevel();
+		return levelS1 != null && l.isLeq(levelS1, refLevel);
 	}
 
 	/**

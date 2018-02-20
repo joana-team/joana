@@ -178,7 +178,7 @@ public class IFCAnalysis {
 			final SDG sdg = this.program.getSDG();
 //			final ThreadModularCDomOracle tmdo = new ThreadModularCDomOracle(sdg);
 //			final ProbInfComputer probInf = new CDomProbInfComputer(sdg, tmdo);
-			final ProbInfComputer probInf = new PredProbInfComputer(sdg);
+			final ProbInfComputer probInf = new PredProbInfComputer(sdg, mhp);
 //			this.ifc = new ORLSODChecker<String>(sdg, secLattice, probInf, null);
 			this.ifc = new OptORLSODChecker<String>(sdg, secLattice, probInf);
 //			this.ifc = new PathBasedORLSODChecker<String>(sdg, secLattice, probInf);

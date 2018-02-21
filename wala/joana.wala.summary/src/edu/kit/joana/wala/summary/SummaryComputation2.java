@@ -635,7 +635,6 @@ public class SummaryComputation2 {
 			                    	continue;
 			                    }
 								Set<SDGNode> newFOSet = new HashSet<>(sleepSet);
-								sleepSet.clear();
 								visitedSet = actualInVisited.get(f);
 								if (visitedSet == null) {
 									visitedSet = new HashSet<>();

@@ -350,15 +350,13 @@ public class SummaryComputationTests {
 	@Test
 	public void testDe_uni_trier_infsec_core_Setup() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testSDGSame(         (de.uni.trier.infsec.core.Setup.class), classic, classicScc);
-		testSDGSame(         (de.uni.trier.infsec.core.Setup.class), simonScc, simonParallelScc); // TODO: find out what's going on, here
+		testSDGSame(         (de.uni.trier.infsec.core.Setup.class), all);
 	}
 	
 	@Test
 	public void testJLex() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testSDGSame(         (JLex.Main.class), classic, classicScc);
-		testSDGSame(         (JLex.Main.class), simonScc, simonParallelScc); // TODO: find out what's going on, here
+		testSDGSame(         (JLex.Main.class), all);
 		
 	}
 }

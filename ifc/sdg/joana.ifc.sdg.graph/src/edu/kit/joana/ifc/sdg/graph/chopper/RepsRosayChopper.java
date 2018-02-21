@@ -142,7 +142,7 @@ public class RepsRosayChopper extends Chopper {
             			remove.add(x);
 
             			if (x.getKind() == SDGNode.Kind.ACTUAL_IN) {
-            				for (SDGEdge e : sdg.getOutgoingEdgesOfKind(x, SDGEdge.Kind.SUMMARY)) {
+            				for (SDGEdge e : sdg.getOutgoingEdgesOfKindUnsafe(x, SDGEdge.Kind.SUMMARY)) {
             					if (bActOut.get(fo).contains(e.getTarget())) {
             						for (SDGNodeTuple fifo : sdg.getAllFormalPairs(x, e.getTarget())) {
 	            						if (fifo != null) {

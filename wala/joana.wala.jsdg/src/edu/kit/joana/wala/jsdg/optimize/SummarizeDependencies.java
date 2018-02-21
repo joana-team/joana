@@ -60,7 +60,7 @@ public class SummarizeDependencies {
 		for (final SummaryEdge sum : sg.edgeSet()) {
 			final SDGNode from = sg.getEdgeSource(sum);
 			final SDGNode to = sg.getEdgeTarget(sum);
-			sdg.addEdge(from, to, new SDGEdge(from, to, SDGEdge.Kind.DATA_DEP));
+			sdg.addEdge(from, to,  SDGEdge.Kind.DATA_DEP.newEdge(from, to));
 		}
 	}
 

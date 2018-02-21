@@ -70,13 +70,13 @@ public class CollapseCallNodeAction extends AbstractGVAction {
 		for (SDGNode n : collapse) {
 			for (SDGEdge e : newSDG.incomingEdgesOf(n)) {
 				if (e.getSource() != call) {
-					newSDG.addEdge(new SDGEdge(e.getSource(), call, e.getKind()));
+					newSDG.addEdge(e.getKind().newEdge(e.getSource(), call));
 				}
 				remove.add(e);
 			}
 			for (SDGEdge e : newSDG.outgoingEdgesOf(n)) {
 				if (e.getTarget() != call) {
-					newSDG.addEdge(new SDGEdge(call, e.getTarget(), e.getKind()));
+					newSDG.addEdge(e.getKind().newEdge(call, e.getTarget()));
 				}
 				remove.add(e);
 			}

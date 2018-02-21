@@ -16,12 +16,6 @@ import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.toggl
  */
 public class MathRound {
 	public static void main(String[] args) {
-		/*
-		 * i should not depend on the value of secret
-		 * if toggle ignores its argument.
-		 * However, JOANA assumes that Math.round can throw an exception,
-		 * and so assumes that the execution of leak(...) depends on SECRET.
-		 */
 		int i = toggle(Math.round(SECRET));
 		leak(i);
 	}

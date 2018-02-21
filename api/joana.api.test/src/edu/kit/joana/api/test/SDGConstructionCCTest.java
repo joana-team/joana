@@ -33,7 +33,7 @@ public class SDGConstructionCCTest {
 	
 	private void buildTest(String className) throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
 		JavaMethodSignature mainMethod = JavaMethodSignature.mainMethodOfClass(className);
-		final SDGConfig config = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, mainMethod.toBCString(), Stubs.NO_STUBS,
+		final SDGConfig config = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, true, mainMethod.toBCString(), Stubs.NO_STUBS,
 				ExceptionAnalysis.ALL_NO_ANALYSIS, FieldPropagation.OBJ_GRAPH, PointsToPrecision.TYPE_BASED, false, false, MHPType.NONE);
 		SDGProgram.createSDGProgram(config);
 	}

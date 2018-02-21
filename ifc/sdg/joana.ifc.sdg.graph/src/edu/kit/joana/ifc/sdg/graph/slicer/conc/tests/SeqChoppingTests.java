@@ -268,7 +268,7 @@ public class SeqChoppingTests {
         g.removeAllEdges(replace);
 
         for (SDGEdge e : replace) {
-            SDGEdge f = new SDGEdge(e.getSource(), e.getTarget(), SDGEdge.Kind.CALL);
+            SDGEdge f =  SDGEdge.Kind.CALL.newEdge(e.getSource(), e.getTarget());
             g.addEdge(f);
         }
     }

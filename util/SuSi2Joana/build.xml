@@ -84,18 +84,15 @@
 	<target name="copy_non_java_files" depends="versionid">
 		<copy todir="${dest.dir.classes}">
 			<filelist dir="${com.ibm.wala.core.base.dir}/dat">
-				<file name="natives.xml" />
-				<file name="natives_no_model.xml" />
 				<file name="primordial.txt" />
 			</filelist>
 			<filelist dir="${com.ibm.wala.core.base.dir}/lib">
 				<file name="primordial.jar.model" />
 			</filelist>
-			<filelist dir="${joana.contrib.base.dir}/stubs">
-				<file name="natives_empty.xml" />
-			</filelist>
 			<filelist dir="${joana.contrib.base.dir}/res">
-			    <file name="logback.xml" />
+				<file name="logback.xml" />
+				<file name="natives.xml" />
+				<file name="natives_empty.xml" />
 			</filelist>
 			<filelist dir="${edu.kit.joana.SuSi2Joana.base.dir}">
 				<file name="versionid.properties" />

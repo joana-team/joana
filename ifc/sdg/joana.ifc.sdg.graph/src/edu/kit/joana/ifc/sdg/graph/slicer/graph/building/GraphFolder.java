@@ -38,6 +38,8 @@ public final class GraphFolder {
 
     /** Marks a fold node that folds an intraprocedural cycle. */
     public static final String FOLDED_LOOP = "LOOP";
+    
+    public static final int PROC_ID_FOR_FOLDED_LOOPS = -1;
 
     /** A utility class. */
     private GraphFolder() { }
@@ -292,30 +294,31 @@ public final class GraphFolder {
             // process only SCCs resulting from recursions
             // create new fold node
             int type = foldType(scc, graph);
-            SDGNode fold = new SDGNode(SDGNode.Kind.FOLDED, id, -1);
-
+            final String label;
             switch (type) {
-                case 1: fold.setLabel(FOLDED_CALL);
-                        break;
+            case 1: label = FOLDED_CALL;
+                    break;
 
-                case 2: fold.setLabel(FOLDED_RETURN);
-                        break;
+            case 2: label = FOLDED_RETURN;
+                    break;
 
-                case 3: fold.setLabel(FOLDED_BOTH);
-                        break;
+            case 3: label = FOLDED_BOTH;
+                    break;
 
-                case 4: fold.setLabel(FOLDED_LOOP);
-                        break;
-                default:
-                		throw new AssertionError("unreachable");
+            case 4: label = FOLDED_LOOP;
+                    break;
+            default:
+                throw new AssertionError("unreachable");
             }
+            SDGNode fold = new SDGNode(SDGNode.Kind.FOLDED, id, PROC_ID_FOR_FOLDED_LOOPS, label);
+
 
             id--;
             fold_nodes.addFirst(fold);
 
             // for every node of the SCC create a fold-include edge to the fold node//
             for(SDGNode folded : scc){
-                SDGEdge fi = new SDGEdge(folded, fold, SDGEdge.Kind.FOLD_INCLUDE);
+                SDGEdge fi =  SDGEdge.Kind.FOLD_INCLUDE.newEdge(folded, fold);
                 
                 if (folded.equals(root)) {
                 	if (foldRoot != null) throw new IllegalStateException("Root not in multiple sccs");
@@ -329,7 +332,7 @@ public final class GraphFolder {
                 for(SDGEdge e : graph.outgoingEdgesOf(folded)){
                     if(!scc.contains(e.getTarget())){
                         // deflect edge
-                        SDGEdge deflect = new SDGEdge(fold, e.getTarget(), e.getKind());
+                        SDGEdge deflect = e.getKind().newEdge(fold, e.getTarget());
                         if (!exists(deflect, to_add)) {
                             to_add.addFirst(deflect);
                         }
@@ -344,13 +347,13 @@ public final class GraphFolder {
                 for(SDGEdge e : graph.incomingEdgesOf(folded)){
                     if(!scc.contains(e.getSource())){
                         if (e.getKind() == SDGEdge.Kind.FOLD_INCLUDE) {
-                            SDGEdge deflect = new SDGEdge(e.getSource(), fold, SDGEdge.Kind.FOLD_INCLUDE);
+                            SDGEdge deflect =  SDGEdge.Kind.FOLD_INCLUDE.newEdge(e.getSource(), fold);
                              if (!exists(deflect, to_add)) {
                                 to_add.addFirst(deflect);
                             }
                         } else{
                             // deflect edge
-                            SDGEdge deflect = new SDGEdge(e.getSource(), fold, e.getKind());
+                            SDGEdge deflect = e.getKind().newEdge(e.getSource(), fold);
                             if (!exists(deflect, to_add)) {
                                 to_add.addFirst(deflect);
                             }

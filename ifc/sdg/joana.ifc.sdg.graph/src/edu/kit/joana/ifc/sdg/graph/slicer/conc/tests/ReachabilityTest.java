@@ -130,7 +130,7 @@ public class ReachabilityTest {
 
         ProgressCounter ctr = new ProgressCounter(1);
         for (SDGNode node : nodes) {
-        	for (Context c : man.getContextsOf(node, 0)) {
+        	for (DynamicContext c : man.getContextsOf(node, 0)) {
 	        	DynamicContext mapped = map(c);
 	        	cons.add(mapped);
         	}
@@ -156,7 +156,7 @@ public class ReachabilityTest {
 		return result;
     }
 
-    protected DynamicContext map(Context origin) {
+    protected DynamicContext map(DynamicContext origin) {
         // list for building the context that maps to Context 'con'
         LinkedList<SDGNode> res = new LinkedList<SDGNode>();
 

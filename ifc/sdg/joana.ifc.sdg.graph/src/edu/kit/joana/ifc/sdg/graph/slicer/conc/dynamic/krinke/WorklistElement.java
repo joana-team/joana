@@ -9,6 +9,7 @@ package edu.kit.joana.ifc.sdg.graph.slicer.conc.dynamic.krinke;
 
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
 
 
 /**
@@ -22,7 +23,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
  */
 public class WorklistElement implements Cloneable {
     /** The context. */
-    private final Context context;
+    private final DynamicContext context;
     /** The state tuple. */
     private final States states;
 
@@ -32,7 +33,7 @@ public class WorklistElement implements Cloneable {
      * @param con     A context.
      * @param states  A state tuple.
      */
-    public WorklistElement(Context con, States states) {
+    public WorklistElement(DynamicContext con, States states) {
     	if (con == null) throw new NullPointerException();
         context = con;
         this.states = states;
@@ -51,7 +52,7 @@ public class WorklistElement implements Cloneable {
     /**
      * @return The Context.
      */
-    public Context getContext() {
+    public DynamicContext getContext() {
         return context;
     }
 
@@ -82,7 +83,7 @@ public class WorklistElement implements Cloneable {
      * @param pos  The position in the state tuple to set.
      * @param c    The new context for that position.
      */
-    public void setState(int pos, Context c) {
+    public void setState(int pos, DynamicContext c) {
         states.set(pos, c);
     }
 
@@ -94,7 +95,7 @@ public class WorklistElement implements Cloneable {
      * @param elem  The WorklistElement to compare with.
      */
     public boolean equals(Object o) {
-    	WorklistElement elem = (WorklistElement) o;
+		WorklistElement elem = (WorklistElement) o;
 
         if (elem == null || elem.getThread() != this.getThread()) {
             return false;

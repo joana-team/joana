@@ -55,7 +55,7 @@ public final class CallGraphBuilder {
         // adopt call and fork edges
         for(SDGEdge e : graph.edgeSet()){
             if(e.getKind() == SDGEdge.Kind.CALL || e.getKind() == SDGEdge.Kind.FORK){
-                call.addEdge(new SDGEdge(e.getSource(), e.getTarget(), e.getKind()));
+                call.addEdge(e.getKind().newEdge(e.getSource(), e.getTarget()));
             }
         }
 
@@ -67,7 +67,7 @@ public final class CallGraphBuilder {
                 for(SDGNode target : s){
                     if(target.getKind() == SDGNode.Kind.CALL && target.getProc() == n.getProc()){
                         // 'target' is call node in 'n's procedure
-                        call.addEdge(new SDGEdge(n, target, SDGEdge.Kind.CONTROL_FLOW));
+                        call.addEdge( SDGEdge.Kind.CONTROL_FLOW.newEdge(n, target));
                     }
                 }
             }
@@ -110,7 +110,7 @@ public final class CallGraphBuilder {
                         if (entry.getProc() == callingProc) {
 
                             // construct call edge and add it to edges list
-                            SDGEdge callEdge = new SDGEdge(entry, n, e.getKind());
+                            SDGEdge callEdge = e.getKind().newEdge(entry, n);
                             edges.addFirst(callEdge);
                         }
                     }
@@ -157,7 +157,7 @@ public final class CallGraphBuilder {
                     for (SDGNode c : calls) {
                         if (c.getProc() == callingProc) {
                             // construct call edge and add it to edges list
-                            SDGEdge callEdge = new SDGEdge(n, c, e.getKind());
+                            SDGEdge callEdge = e.getKind().newEdge(n, c);
                             edges.addFirst(callEdge);
                         }
                     }
@@ -175,7 +175,7 @@ public final class CallGraphBuilder {
 //        call.addRoot(root);
 //        for (SDGNode c : calls) {
 //        	if (c.getProc() == root.getProc() && c != root) {
-//        		SDGEdge callEdge = new SDGEdge(root, c, SDGEdge.Kind.CALL);
+//        		SDGEdge callEdge =  SDGEdge.Kind.CALL.newEdge(root, c);
 //        		call.addEdge(callEdge);
 //        	}
 //        }

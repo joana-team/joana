@@ -68,6 +68,7 @@ import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.ifc.sdg.util.SDGConstants;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
+import edu.kit.joana.util.SourceLocation;
 import edu.kit.joana.util.collections.ArrayMap;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.wala.core.PDGNode.Kind;
@@ -514,7 +515,9 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 					public PDGEdge createEdge(PDGNode from, PDGNode to) {
 						return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
 					};
-				});
+				},
+				PDGEdge.class
+				);
 				cdg.addEdge(entry, exit);
 				break;
 			}
@@ -523,7 +526,9 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 					public PDGEdge createEdge(PDGNode from, PDGNode to) {
 						return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
 					};
-				});
+				},
+				PDGEdge.class
+				);
 				cdg.addEdge(entry, exit);
 				break;
 			}
@@ -532,7 +537,9 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 					public PDGEdge createEdge(PDGNode from, PDGNode to) {
 						return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
 					};
-				});
+				},
+				PDGEdge.class
+				);
 				cdg.addEdge(entry, exit);
 				break;
 			}
@@ -541,7 +548,8 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 					public PDGEdge createEdge(PDGNode from, PDGNode to) {
 						return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
 					};
-				});
+				},
+				PDGEdge.class);
 				cdg.addEdge(entry, exit);
 				break;
 			}
@@ -550,7 +558,9 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 					public PDGEdge createEdge(PDGNode from, PDGNode to) {
 						return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
 					};
-				});
+				},
+				PDGEdge.class
+				);
 				cdg.addEdge(entry, exit);
 				break;
 			}
@@ -563,7 +573,9 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 						public PDGEdge createEdge(PDGNode from, PDGNode to) {
 							return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
 						};
-					});
+					},
+					PDGEdge.class
+					);
 				}
 				break;
 			}
@@ -2021,10 +2033,6 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 		List<PDGNode> cfeSuccs = new LinkedList<PDGNode>();
 		List<PDGEdge> toRemove = new LinkedList<PDGEdge>();
 		for (PDGEdge edge : outgoingEdgesOf(refPoint)) {
-			if (refPoint == entry && (edge.to == exception || edge.to == exit)) {
-				continue;
-			}
-
 			if (edge.kind == PDGEdge.Kind.CONTROL_FLOW) {
 				cfSuccs.add(edge.to);
 				toRemove.add(edge);

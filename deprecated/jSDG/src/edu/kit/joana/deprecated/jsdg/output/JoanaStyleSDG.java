@@ -27,7 +27,6 @@ import com.ibm.wala.util.intset.IntIterator;
 import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.intset.IntSetAction;
 
-import edu.kit.joana.deprecated.jsdg.nontermination.NonTerminationSensitive;
 import edu.kit.joana.deprecated.jsdg.sdg.PDG;
 import edu.kit.joana.deprecated.jsdg.sdg.SDG;
 import edu.kit.joana.deprecated.jsdg.sdg.dataflow.SummaryComputationOptimizer;
@@ -48,9 +47,9 @@ import edu.kit.joana.deprecated.jsdg.sdg.nodes.SyncNode;
 import edu.kit.joana.deprecated.jsdg.util.Log;
 import edu.kit.joana.deprecated.jsdg.util.Util;
 import edu.kit.joana.deprecated.jsdg.wala.BytecodeLocation;
-import edu.kit.joana.deprecated.jsdg.wala.SourceLocation;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGNode.Operation;
+import edu.kit.joana.util.SourceLocation;
 import edu.kit.joana.wala.util.VerboseProgressMonitor;
 
 /**
@@ -385,14 +384,11 @@ public final class JoanaStyleSDG {
 	private static class NodeConverterVisitor implements IPDGNodeVisitor {
         private final edu.kit.joana.ifc.sdg.graph.SDG g;
         private final SDG sdg;
-        private final Set<CallNode> mayNotTerminate;
         private final Set<AbstractPDGNode> toInline;
 
-        public NodeConverterVisitor(edu.kit.joana.ifc.sdg.graph.SDG g, SDG sdg, Set<CallNode> mayNotTerminate,
-        		Set<AbstractPDGNode> toInline) {
+        public NodeConverterVisitor(edu.kit.joana.ifc.sdg.graph.SDG g, SDG sdg, Set<AbstractPDGNode> toInline) {
             this.g = g;
             this.sdg = sdg;
-            this.mayNotTerminate = mayNotTerminate;
             this.toInline = toInline;
         }
 
@@ -401,11 +397,7 @@ public final class JoanaStyleSDG {
 
             SourceLocation sloc = sdg.getLocation(node);
             if (sloc != null) {
-                t.source = sloc.getSourceFile();
-                t.sr = sloc.getStartRow();
-                t.sc = sloc.getStartColumn();
-                t.er = sloc.getEndRow();
-                t.ec = sloc.getEndColumn();
+                t.sourceLocation = sloc;
             } else if (node.isParameterNode()) {
 				AbstractParameterNode param = (AbstractParameterNode) node;
 				final int id = node.getPdgId();
@@ -471,7 +463,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex);
+                    type, t.sourceLocation, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             g.addVertex(n);
             nodeMap.put(node, n);
@@ -487,11 +479,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex);
-
-            if (mayNotTerminate != null && mayNotTerminate.contains(node)) {
-            	n.setMayBeNonTerminating(true);
-            }
+                    type, t.sourceLocation, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             g.addVertex(n);
             nodeMap.put(node, n);
@@ -505,10 +493,9 @@ public final class JoanaStyleSDG {
 
             Operation op = edu.kit.joana.ifc.sdg.graph.SDGNode.Operation.ENTRY;
 
-            Tuple t = sourceInfo(node);
-            edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex);
 
+            String clsLoader = null;
+            int[] threadNumbers = null;
             // print thread ids
             if (node.getPdgId() != sdg.getId()) {
                 PDG pdg = sdg.getPdgForId(node.getPdgId());
@@ -523,7 +510,7 @@ public final class JoanaStyleSDG {
                     index++;
                 }
 
-                n.setThreadNumbers(array);
+                threadNumbers = array;
 
 				// set class loader info
 				IMethod im = pdg.getMethod();
@@ -532,11 +519,15 @@ public final class JoanaStyleSDG {
 					IClass cls = im.getDeclaringClass();
 
 					if (cls != null) {
-						final String clsLoader = cls.getClassLoader().toString();
-						n.setClassLoader(clsLoader);
+						clsLoader = cls.getClassLoader().toString();
 					}
 				}
             }
+            
+            Tuple t = sourceInfo(node);
+            edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
+                    type, t.sourceLocation, t.bcMethod, t.bcIndex, null, null, null, null, clsLoader);
+            n.setThreadNumbers(threadNumbers);
 
             final PDG pdg = sdg.getPdgForId(node.getPdgId());
             if (pdg != null && pdg.getCallGraphNode() != null) {
@@ -565,7 +556,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex);
+                    type, t.sourceLocation, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             g.addVertex(n);
             nodeMap.put(node, n);
@@ -581,7 +572,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex);
+                    type, t.sourceLocation, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             g.addVertex(n);
             nodeMap.put(node, n);
@@ -597,7 +588,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex);
+                    type, t.sourceLocation, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             g.addVertex(n);
             nodeMap.put(node, n);
@@ -613,7 +604,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex);
+                    type, t.sourceLocation, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             g.addVertex(n);
             nodeMap.put(node, n);
@@ -629,7 +620,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex);
+                    type, t.sourceLocation, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             g.addVertex(n);
             nodeMap.put(node, n);
@@ -645,7 +636,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex);
+                    type, t.sourceLocation, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             g.addVertex(n);
             nodeMap.put(node, n);
@@ -661,7 +652,7 @@ public final class JoanaStyleSDG {
 
             Tuple t = sourceInfo(node);
             edu.kit.joana.ifc.sdg.graph.SDGNode n = new edu.kit.joana.ifc.sdg.graph.SDGNode(id, op, value, proc,
-                    type, t.source, t.sr, t.sc, t.er, t.ec, t.bcMethod, t.bcIndex);
+                    type, t.sourceLocation, t.bcMethod, t.bcIndex, null, null, null, null, null);
 
             g.addVertex(n);
             nodeMap.put(node, n);
@@ -669,11 +660,7 @@ public final class JoanaStyleSDG {
     }
 
 	private static class Tuple {
-	    String source = null;
-        int sr = 0;
-        int sc = 0;
-        int er = 0;
-        int ec = 0;
+		SourceLocation sourceLocation;
 
         String bcMethod = null;
         int bcIndex = -1;
@@ -698,90 +685,90 @@ public final class JoanaStyleSDG {
             for (EdgeType type : edges) {
                 switch(type) {
                 case CD_TRUE:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_COND));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_COND.newEdge(source, target));
                     break;
                 case CD_FALSE:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_COND));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_COND.newEdge(source, target));
                     break;
                 case CD_EX:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_UNCOND));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_UNCOND.newEdge(source, target));
                     break; //TODO this break has not been here before -> this seemed to be broken, but it has to be checked
                 case CF: // Control flow - add only if addControlFLow is set
                     if (addControlFlow) {
-                        g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_FLOW));
+                        g.addEdge( edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_FLOW.newEdge(source, target));
                     }
                     break;
                 case CL:
                 	if (toInline != null && toInline.contains(source)) {
-                		g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_UNCOND));
+                		g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_UNCOND.newEdge(source, target));
                 		if (addControlFlow) {
-                    		g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_FLOW));
+                    		g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_FLOW.newEdge(source, target));
                 		}
                 	} else {
-                		g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CALL));
+                		g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CALL.newEdge(source, target));
                 	}
                     break;
                 case SU:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.SUMMARY));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.SUMMARY.newEdge(source, target));
                     break;
                 case DD:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_DEP));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_DEP.newEdge(source, target));
                     break;
                 case DH:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_HEAP));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_HEAP.newEdge(source, target));
                     break;
                 case CE:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_EXPR));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_EXPR.newEdge(source, target));
                     break;
                 case HE:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.HELP));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.HELP.newEdge(source, target));
                     break;
                 case UN:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_UNCOND));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_UNCOND.newEdge(source, target));
                     break;
                 case VD:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_DEP_EXPR_VALUE));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_DEP_EXPR_VALUE.newEdge(source, target));
                     break;
                 case PS:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.PARAMETER_STRUCTURE));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.PARAMETER_STRUCTURE.newEdge(source, target));
                     break;
                 case PI:
                 	if (toInline != null && toInline.contains(source)) {
-                		g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_DEP));
+                		g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_DEP.newEdge(source, target));
                 	} else {
-                		g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.PARAMETER_IN));
+                		g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.PARAMETER_IN.newEdge(source, target));
                 	}
                     break;
                 case PO:
                 	if (toInline != null && toInline.contains(target)) {
-                		g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_DEP));
+                		g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_DEP.newEdge(source, target));
                 	} else {
-                		g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.PARAMETER_OUT));
+                		g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.PARAMETER_OUT.newEdge(source, target));
                 	}
                     break;
                 case RD:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_DEP_EXPR_REFERENCE));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.DATA_DEP_EXPR_REFERENCE.newEdge(source, target));
                     break;
                 case CC:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_CALL));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.CONTROL_DEP_CALL.newEdge(source, target));
                     break;
                 case ID:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.INTERFERENCE));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.INTERFERENCE.newEdge(source, target));
                     break;
                 case IW:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.INTERFERENCE_WRITE));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.INTERFERENCE_WRITE.newEdge(source, target));
                     break;
                 case FORK:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.FORK));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.FORK.newEdge(source, target));
                     break;
                 case FORK_IN:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.FORK_IN));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.FORK_IN.newEdge(source, target));
                     break;
                 case FORK_OUT: // create interference edge
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.INTERFERENCE));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.INTERFERENCE.newEdge(source, target));
                     break;
                 case NTSCD:
-                    g.addEdge(new edu.kit.joana.ifc.sdg.graph.SDGEdge(source, target, edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.NTSCD));
+                    g.addEdge(edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind.NTSCD.newEdge(source, target));
                     break;
                 default:
                     throw new RuntimeException("unknown edge type: "+type);
@@ -1016,14 +1003,6 @@ public final class JoanaStyleSDG {
 	throws CancelException {
 	    edu.kit.joana.ifc.sdg.graph.SDG g = new edu.kit.joana.ifc.sdg.graph.SDG();
 
-	    Set<CallNode> mayNotTerminate = null;
-
-	    if (nonTermination) {
-	    	progress.beginTask("Compute interprocedural nontermination sensitive control dependencies", -1);
-	    	mayNotTerminate = NonTerminationSensitive.run(sdg, progress);
-	    	progress.done();
-	    }
-
         progress.beginTask("Creating Joana-style SDG", -1);
 
         progress.subTask("Sorting all nodes by their id");
@@ -1064,7 +1043,7 @@ public final class JoanaStyleSDG {
         g.setName(Util.methodName(sdg.getMain()));
 
         // add nodes
-        IPDGNodeVisitor visitor = new NodeConverterVisitor(g, sdg, mayNotTerminate, inlinePDGNode);
+        IPDGNodeVisitor visitor = new NodeConverterVisitor(g, sdg, inlinePDGNode);
         boolean console = (progress instanceof VerboseProgressMonitor);
 
         PDG curPDG = null;

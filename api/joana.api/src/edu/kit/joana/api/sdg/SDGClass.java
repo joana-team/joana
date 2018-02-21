@@ -111,7 +111,7 @@ public class SDGClass implements SDGProgramPart {
 		SDGCall newCall = new SDGCall(owner, n.getBytecodeIndex(), n.getLabel(), n.getType(), n.getOperation().toString());
 
 		// add actual parameters
-		for (SDGEdge e : sdg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
+		for (SDGEdge e : sdg.getOutgoingEdgesOfKindUnsafe(n, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
 			SDGNode node = e.getTarget();
 			if (node.getKind() == SDGNode.Kind.ACTUAL_IN || node.getKind() == SDGNode.Kind.ACTUAL_OUT) {
 				newCall.addActualParameter(node);
@@ -119,7 +119,7 @@ public class SDGClass implements SDGProgramPart {
 		}
 
 		// add possible call targets
-		List<SDGEdge> callEdges = sdg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CALL);
+		List<SDGEdge> callEdges = sdg.getOutgoingEdgesOfKindUnsafe(n, SDGEdge.Kind.CALL);
 		if (callEdges.isEmpty() && n.getUnresolvedCallTarget() != null) {
 			newCall.addPossibleCallTarget(JavaMethodSignature.fromString(n.getUnresolvedCallTarget()));
 		} else {

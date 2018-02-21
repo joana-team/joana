@@ -27,7 +27,7 @@ public class IntraproceduralDataSlicerBackward extends IntraproceduralSlicerBack
 	 */
 	@Override
 	protected boolean isAllowedEdge(SDGEdge e) {
-		return super.isAllowedEdge(e) && SDGEdge.Kind.dataflowEdges().contains(e);
+		return super.isAllowedEdge(e) && SDGEdge.Kind.dataflowEdges().contains(e.getKind());
 	}
 
 	

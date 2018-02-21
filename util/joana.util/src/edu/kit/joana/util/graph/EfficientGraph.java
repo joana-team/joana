@@ -7,7 +7,6 @@
  */
 package edu.kit.joana.util.graph;
 
-import java.util.Set;
 import java.util.function.Predicate;
 
 import org.jgrapht.Graph;
@@ -18,6 +17,9 @@ import org.jgrapht.Graph;
 public interface EfficientGraph<V, E> extends Graph<V, E> {
 	boolean addEdgeUnsafe(V sourceVertex, V targetVertex, E e);
 	boolean containsEdge(V sourceVertex, V targetVertex, Predicate<E> predicate);
-	Set<E> outgoingEdgesOfUnsafe(V vertex);
-	Set<E> incomingEdgesOfUnsafe(V vertex);
+	E[] outgoingEdgesOfUnsafe(V vertex);
+	E[] incomingEdgesOfUnsafe(V vertex);
+	void removeIncomingEdgesOf(V vertex);
+	void removeOutgoingEdgesOf(V vertex);
+	void trimToSize();
 }

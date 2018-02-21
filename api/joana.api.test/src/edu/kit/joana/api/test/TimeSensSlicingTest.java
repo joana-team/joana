@@ -29,6 +29,7 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.Nanda;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.NandaForward;
+import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 
 /**
  * @author Martin Mohr
@@ -89,7 +90,7 @@ public class TimeSensSlicingTest {
 			Assert.fail("wrong test key: " + key);
 		}
 		
-		SDGProgram p = SDGProgram.loadSDG(t.sdgFile);
+		SDGProgram p = SDGProgram.loadSDG(t.sdgFile, MHPType.PRECISE);
 		IFCAnalysis ifcAnalysis = new IFCAnalysis(p);
 		ifcAnalysis.setLattice(BuiltinLattices.getBinaryLattice());
 		ifcAnalysis.setTimesensitivity(true);

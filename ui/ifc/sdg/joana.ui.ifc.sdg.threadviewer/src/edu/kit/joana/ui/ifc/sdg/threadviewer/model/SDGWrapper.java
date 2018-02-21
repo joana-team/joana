@@ -929,7 +929,7 @@ public class SDGWrapper {
 			// Loop through each node
 			for (SDGNode source : region.getNodes()) {
 				// Loop through each relevant edge
-				for (SDGEdge edge : sdg.getOutgoingEdgesOfKind(source, SDGEdge.Kind.CONTROL_FLOW)) {
+				for (SDGEdge edge : sdg.getOutgoingEdgesOfKindUnsafe(source, SDGEdge.Kind.CONTROL_FLOW)) {
 					SDGNode target = edge.getTarget();
 
 					// Add all target regions except the start region
@@ -945,7 +945,7 @@ public class SDGWrapper {
 				memoryNextRegions.put(region, regions);
 
 				// Loop through interprocedural edges (call and return edges)
-				for (SDGEdge edge : sdg.getOutgoingEdgesOfKind(source, SDGEdge.Kind.CALL)) {
+				for (SDGEdge edge : sdg.getOutgoingEdgesOfKindUnsafe(source, SDGEdge.Kind.CALL)) {
 					SDGNode target = edge.getTarget();
 
 					// Add all target regions except the start region
@@ -958,7 +958,7 @@ public class SDGWrapper {
 				}
 
 				// Loop through return edges
-				for (SDGEdge edge : sdg.getOutgoingEdgesOfKind(source, SDGEdge.Kind.RETURN)) {
+				for (SDGEdge edge : sdg.getOutgoingEdgesOfKindUnsafe(source, SDGEdge.Kind.RETURN)) {
 					SDGNode target = edge.getTarget();
 
 					// Add all target regions except the start region

@@ -116,8 +116,8 @@ public final class ICFGBuilder {
         }
     	System.out.println("***** OUT EDGES *****");
         for (SDGNode n : sdg.vertexSet()) {
-        	List<SDGEdge> l = sdg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CONTROL_FLOW);
-        	l.addAll(sdg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.RETURN));
+        	List<SDGEdge> l = sdg.getOutgoingEdgesOfKindUnsafe(n, SDGEdge.Kind.CONTROL_FLOW);
+        	l.addAll(sdg.getOutgoingEdgesOfKindUnsafe(n, SDGEdge.Kind.RETURN));
 
         	if (l.isEmpty() && n.getKind() != SDGNode.Kind.EXIT) {
         		System.out.println(n+" "+n.getKind());
@@ -157,9 +157,9 @@ public final class ICFGBuilder {
         		if (exit == null) {
         			System.out.println(n+" has no exit");
 
-        		} else if (!sdg.getOutgoingEdgesOfKind(exit, SDGEdge.Kind.CONTROL_FLOW).isEmpty()) {
+        		} else if (!sdg.getOutgoingEdgesOfKindUnsafe(exit, SDGEdge.Kind.CONTROL_FLOW).isEmpty()) {
         			System.out.println(exit+" is not an exit");
-        			fs.addAll(sdg.getOutgoingEdgesOfKind(exit, SDGEdge.Kind.CONTROL_FLOW));
+        			fs.addAll(sdg.getOutgoingEdgesOfKindUnsafe(exit, SDGEdge.Kind.CONTROL_FLOW));
         		}
         	}
         }
@@ -182,8 +182,8 @@ public final class ICFGBuilder {
         }
 
         for (SDGNode n : sdg.vertexSet()) {
-        	List<SDGEdge> l = sdg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CONTROL_FLOW);
-        	l.addAll(sdg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.RETURN));
+        	List<SDGEdge> l = sdg.getOutgoingEdgesOfKindUnsafe(n, SDGEdge.Kind.CONTROL_FLOW);
+        	l.addAll(sdg.getOutgoingEdgesOfKindUnsafe(n, SDGEdge.Kind.RETURN));
 
         	if (l.isEmpty() && n.getKind() != SDGNode.Kind.EXIT) {
         		System.out.println("\nControl Flow Graph is damaged!");
@@ -238,14 +238,14 @@ public final class ICFGBuilder {
     				} catch (InterruptedException e1) { }
     				System.exit(1);
 
-        		} else if (!sdg.getOutgoingEdgesOfKind(exit, SDGEdge.Kind.CONTROL_FLOW).isEmpty()) {
+        		} else if (!sdg.getOutgoingEdgesOfKindUnsafe(exit, SDGEdge.Kind.CONTROL_FLOW).isEmpty()) {
             		System.out.println("\nControl Flow Graph is damaged!");
             		System.out.println("Terminating the Process...");
             		try {
     					Thread.sleep(1000);
     				} catch (InterruptedException e1) { }
     				System.exit(1);
-        			fs.addAll(sdg.getOutgoingEdgesOfKind(exit, SDGEdge.Kind.CONTROL_FLOW));
+        			fs.addAll(sdg.getOutgoingEdgesOfKindUnsafe(exit, SDGEdge.Kind.CONTROL_FLOW));
         		}
         	}
         }

@@ -7,6 +7,25 @@
  */
 package edu.kit.joana.ifc.sdg.mhpoptimization;
 
+import java.util.function.Function;
+
+import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.SimpleMHPAnalysis;
+
 public enum MHPType {
-	NONE, SIMPLE, PRECISE;
+	NONE(sdg -> null),
+	SIMPLE(sdg -> SimpleMHPAnalysis.analyze(sdg)),
+	PRECISE(sdg -> PreciseMHPAnalysis.analyze(sdg));
+	
+	private final Function<SDG, MHPAnalysis> mhpAnalysisConstructor;
+	
+	private MHPType(Function<SDG, MHPAnalysis> mhpAnalysisConstructor) {
+		this.mhpAnalysisConstructor = mhpAnalysisConstructor;
+	}
+	
+	public Function<SDG, MHPAnalysis> getMhpAnalysisConstructor() {
+		return mhpAnalysisConstructor;
+	}
 }

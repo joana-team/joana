@@ -38,8 +38,8 @@ import static edu.kit.joana.wala.core.graphs.NTSCDGraph.get;
  */
 public class NTICDGraphGreatestFP<V extends IntegerIdentifiable, E extends KnowsVertices<V>> extends AbstractJoanaGraph<V, E> {
 
-	private NTICDGraphGreatestFP(EdgeFactory<V, E> edgeFactory) {
-		super(edgeFactory, () -> new ArrayMap<>());
+	private NTICDGraphGreatestFP(EdgeFactory<V, E> edgeFactory, Class<E> classE) {
+		super(edgeFactory, () -> new ArrayMap<>(), classE);
 	}
 
 	public static boolean DEBUG = false;
@@ -53,8 +53,8 @@ public class NTICDGraphGreatestFP<V extends IntegerIdentifiable, E extends Knows
 	 * This Algorithm fixes theirs, and is not flawed.
 	 * 
 	 */
-	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> NTICDGraphGreatestFP<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory) {
-		NTICDGraphGreatestFP<V, E> cdg = new NTICDGraphGreatestFP<>(edgeFactory);
+	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> NTICDGraphGreatestFP<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory, Class<E> classE) {
+		NTICDGraphGreatestFP<V, E> cdg = new NTICDGraphGreatestFP<>(edgeFactory, classE);
 		for (V n : cfg.vertexSet()) {
 			cdg.addVertex(n);
 		}

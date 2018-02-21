@@ -18,10 +18,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.jar.JarFile;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
+import com.ibm.wala.classLoader.Module;
 import com.ibm.wala.demandpa.alg.DemandRefinementPointsTo;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
@@ -52,6 +52,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode.Kind;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
+import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.ExternalCallCheck.MethodListCheck;
 import edu.kit.joana.wala.core.Main;
 import edu.kit.joana.wala.core.Main.Config;
@@ -78,6 +79,7 @@ import edu.kit.joana.wala.jsdg.optimize.StaticFieldMerge;
 import edu.kit.joana.wala.jsdg.optimize.SummarizeDependencies;
 import edu.kit.joana.wala.jsdg.summary.IntraprocSummaryEdges;
 import edu.kit.joana.wala.jsdg.summary.IntraprocSummaryEdges.SummaryGraph;
+import edu.kit.joana.wala.util.WALAUtils;
 
 
 public class RunTestModular {
@@ -116,7 +118,7 @@ public class RunTestModular {
 		Config cfg = new Config("program", "program.Program.main([Ljava/lang/String;)V",
 				"../joana.wala.modular.testdata/dist/mojo-test-program.jar",
 				PointsToPrecision.INSTANCE_BASED, ExceptionAnalysis.INTRAPROC, false, Main.STD_EXCLUSION_REG_EXP,
-				"../../contrib/lib/stubs/natives_empty.xml", "../../contrib/lib/stubs/jSDG-stubs-jre1.4.jar", mlc,
+				Stubs.JRE_14_INCOMPLETE, mlc,
 				"./out/", FieldPropagation.FLAT);
 
 		Main.run(System.out, cfg);
@@ -152,13 +154,18 @@ public class RunTestModular {
 		// Fuegt die normale Java Bibliothek zum Scope hinzu
 		AnalysisScope scope = AnalysisScopeReader.makePrimordialScope(null);
 
-		if (cfg.nativesXML != null) {
-			com.ibm.wala.ipa.callgraph.impl.Util.setNativeSpec(cfg.nativesXML);
-		}
+		assert cfg.stubs.getNativeSpecFile() != null; 
+		com.ibm.wala.ipa.callgraph.impl.Util.setNativeSpec(cfg.stubs.getNativeSpecFile());
 
 		// if use stubs
-		if (cfg.stubs != null) {
-			scope.addToScope(ClassLoaderReference.Primordial, new JarFile(cfg.stubs));
+		assert cfg.stubs != null;
+		final String[] stubPaths = cfg.stubs.getPaths();
+		if (stubPaths.length > 0) {
+			assert cfg.stubs != Stubs.NO_STUBS;
+			for (final String stub : stubPaths) {
+				final Module stubs = WALAUtils.findJarModule(stub);
+				scope.addToScope(ClassLoaderReference.Primordial, stubs);
+			}
 		}
 
 		// Nimmt unnoetige Klassen raus
@@ -166,7 +173,7 @@ public class RunTestModular {
 		scope.setExclusions(exclusions);
 
 	    ClassLoaderReference loader = scope.getLoader(AnalysisScope.APPLICATION);
-	    AnalysisScopeReader.addClassPathToScope(binDir, scope, loader);
+	    AnalysisScopeReader.addClassPathToScope(binDir, scope, loader, cfg.classpathAddEntriesFromMANIFEST);
 
 	    System.out.println("done.");
 
@@ -266,7 +273,7 @@ public class RunTestModular {
 		while (!work.isEmpty()) {
 			final SDGNode n = work.removeFirst();
 
-			for (SDGEdge edge : sdg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.PARAMETER_STRUCTURE)) {
+			for (SDGEdge edge : sdg.getOutgoingEdgesOfKindUnsafe(n, SDGEdge.Kind.PARAMETER_STRUCTURE)) {
 				final SDGNode tgt = edge.getTarget();
 				if (!filtered.contains(tgt)) {
 					filtered.add(tgt);

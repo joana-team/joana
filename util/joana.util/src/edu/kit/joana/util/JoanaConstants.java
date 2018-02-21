@@ -12,6 +12,7 @@ package edu.kit.joana.util;
  * @author Martin Mohr
  */
 public class JoanaConstants {
-	
-	public static final String DEFAULT_NATIVES_XML = "natives_no_model.xml";
+	public static final String PROPERTIES = "project.properties";
+	public static final String nativesEmpty = "natives_empty.xml";
+	public static final String nativesWala  = "natives.xml";
 }

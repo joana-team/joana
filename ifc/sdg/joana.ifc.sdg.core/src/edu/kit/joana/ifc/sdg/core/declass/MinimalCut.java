@@ -73,7 +73,7 @@ public final class MinimalCut {
 				}
 
 				int[] i = {1, 0, 0};
-				SDGEdge ne = new SDGEdge(n, nn, Kind.HELP);
+				SDGEdge ne =  Kind.HELP.newEdge(n, nn);
 				fluss.put(ne, i);
 			}
 		}
@@ -90,7 +90,7 @@ public final class MinimalCut {
 			for (SDGEdge e : path) {
 				fluss.get(e)[0] = fluss.get(e)[0] - min;
 				fluss.get(e)[1] = fluss.get(e)[1] + min;
-				SDGEdge ne = new SDGEdge(e.getTarget(), e.getSource(), e.getKind());
+				SDGEdge ne =  e.getKind().newEdge(e.getTarget(), e.getSource());
 				g.addEdge(ne);
 				int[] i = {min, 0, 0};
 				fluss.put(ne, i);

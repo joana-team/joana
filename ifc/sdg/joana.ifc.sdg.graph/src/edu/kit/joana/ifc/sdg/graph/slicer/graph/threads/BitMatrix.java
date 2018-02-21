@@ -38,6 +38,7 @@ package edu.kit.joana.ifc.sdg.graph.slicer.graph.threads;
  *
  * @author srowen@google.com (Sean Owen)
  */
+//TODO: replace uses of BitMatrix with SummetricBitMatrix wherever appropriate
 public final class BitMatrix {
 
     private final int dimension;
@@ -48,12 +49,16 @@ public final class BitMatrix {
             throw new IllegalArgumentException("dimension must be at least 1");
         }
         this.dimension = dimension;
-        int numBits = dimension * dimension;
-        int arraySize = numBits >> 5; // one int per 32 bits
+        long numBits = ((long)dimension) * ((long)dimension);
+        long arraySize = numBits >> 5; // one int per 32 bits
         if ((numBits & 0x1F) != 0) { // plus one more if there are leftovers
             arraySize++;
         }
-        bits = new int[arraySize];
+        assert arraySize > 0;
+        if ((int) arraySize > Integer.MAX_VALUE) {
+        	throw new IllegalArgumentException("dimension is too large");
+        }
+        bits = new int[(int)arraySize];
     }
 
     /**
@@ -62,8 +67,9 @@ public final class BitMatrix {
      * @return value of given bit in matrix
      */
     public boolean get(int i, int j) {
-        int offset = i + dimension * j;
-        return ((bits[offset >> 5] >>> (offset & 0x1F)) & 0x01) != 0;
+        long offset = ((long)i) + ((long)dimension) * ((long)j);
+        int index = (int) (offset >> 5);
+        return ((bits[index] >>> (offset & 0x1F)) & 0x01) != 0;
     }
 
     /**
@@ -73,8 +79,9 @@ public final class BitMatrix {
      * @param j column offset
      */
     public void set(int i, int j) {
-        int offset = i + dimension * j;
-        bits[offset >> 5] |= 1 << (offset & 0x1F);
+        long offset = ((long)i) + ((long)dimension) * ((long)j);
+        int index = (int) (offset >> 5);
+        bits[index] |= 1 << (offset & 0x1F);
     }
 
     /**
@@ -84,8 +91,9 @@ public final class BitMatrix {
      * @param j column offset
      */
     public void clear(int i, int j) {
-        int offset = i + dimension * j;
-        bits[offset >> 5] &= ~(1 << (offset & 0x1F));
+        long offset = ((long)i) + ((long)dimension) * ((long)j);
+        int index = (int) (offset >> 5);
+        bits[index] &= ~(1 << (offset & 0x1F));
     }
 
     /**
@@ -110,10 +118,11 @@ public final class BitMatrix {
                     "topI + height and leftJ + width must be <= matrix dimension");
         }
         for (int j = leftJ; j < maxJ; j++) {
-            int jOffset = dimension * j;
+            long jOffset = dimension * j;
             for (int i = topI; i < maxI; i++) {
-                int offset = i + jOffset;
-                bits[offset >> 5] |= 1 << (offset & 0x1F);
+                long offset = i + jOffset;
+                int index = (int) (offset >> 5);
+                bits[index] |= 1 << (offset & 0x1F);
             }
         }
     }

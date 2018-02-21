@@ -8,7 +8,6 @@
 package edu.kit.joana.wala.core.params.objgraph;
 
 import java.util.AbstractCollection;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -142,6 +141,13 @@ public class ModRefCandidates implements Iterable<CGNode> {
 		 * @return <tt>true</tt> if any candidate with the given ParameterCandidate is part of this model.
 		 */
 		public boolean containsParameterCandidate(ParameterCandidate pc);
+		
+		/**
+		 * If part of this model, returns the modref candidate which the given UniqueParameterCandidate is contained in.
+		 * @param unique A UniqueParameterCandidate.
+		 * @return the modref candidate which the given UniqueParameterCandidate is contained in, or null if no such modref candidate exists in the model.
+		 */
+		public ModRefFieldCandidate getParameterCandidate(UniqueParameterCandidate unique);
 
 	}
 
@@ -339,9 +345,7 @@ public class ModRefCandidates implements Iterable<CGNode> {
 				throw new IllegalArgumentException("Trying to remove ModRefFieldCandidate " + toRemove + "that is not present.");
 			}
 			
-			if (!cands.containsKey(toRemove.pc)) {
-				return;
-			}
+			assert cands.containsKey(toRemove.pc);
 
 			
 			// TODO: if performance demands it, instead of checking every cand, start to remove things iteratively
@@ -446,11 +450,12 @@ public class ModRefCandidates implements Iterable<CGNode> {
 			}
 			
 			// Establish the invariant that and key in cands *directly* points to the ModRefFieldCandidate that it is currently part of.
-			final ArrayList<ParameterCandidate> candsKeys = new ArrayList<>(cands.size());
-			candsKeys.addAll(cands.keySet());
-			for (final ParameterCandidate pc : candsKeys) {
-				if (pcands.contains(cands.get(pc).pc)) cands.put(pc, result);
-			}
+			cands.replaceAll((pc, oldValue) -> {
+				if (pcands.contains(oldValue.pc)) {
+					return result;
+				}
+				return oldValue;
+			});
 			
 			assert invariant();
 			return result;
@@ -483,6 +488,18 @@ public class ModRefCandidates implements Iterable<CGNode> {
 			}
 			assert (result == allContainsAny(pc));
 			return result;
+		}
+		
+		
+		@Override
+		public ModRefFieldCandidate getParameterCandidate(UniqueParameterCandidate unique) {
+			final ModRefFieldCandidate cand = cands.get(unique);
+			if (cand != null) {
+				if (all.contains(cand)) {
+					return cand;
+				}
+			}
+			return null;
 		}
 		
 		private boolean allContainsAny(ParameterCandidate pc) {

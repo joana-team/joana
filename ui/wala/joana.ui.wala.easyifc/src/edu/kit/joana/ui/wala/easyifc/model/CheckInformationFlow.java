@@ -67,7 +67,6 @@ import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.Reason;
 import edu.kit.joana.ui.wala.easyifc.model.IFCCheckResultConsumer.SLeak;
 import edu.kit.joana.ui.wala.easyifc.util.EntryPointSearch.EntryPointConfiguration;
 import edu.kit.joana.util.Config;
-import edu.kit.joana.util.JoanaConstants;
 import edu.kit.joana.util.Maybe;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.Stubs;
@@ -78,6 +77,7 @@ import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.summary.SummaryComputation;
+import edu.kit.joana.wala.summary.SummaryComputationType;
 import edu.kit.joana.wala.summary.WorkPackage;
 import edu.kit.joana.wala.summary.WorkPackage.EntryPoint;
 import gnu.trove.set.TIntSet;
@@ -211,7 +211,7 @@ public final class CheckInformationFlow {
 				if (file == null) {
 					throw new IllegalArgumentException("must provide file path when using " + EntryPointKind.FROMFILE);
 				}
-				p = SDGProgram.loadSDG(file);
+				p = SDGProgram.loadSDG(file, MHPType.PRECISE);
 				final IClassHierarchy cha; {
 					final PrintStream out = IOFactory.createUTF8PrintStream(new ByteArrayOutputStream());
 					com.ibm.wala.util.collections.Pair<Long, SDGBuilder.SDGBuilderConfig> pair = SDGBuildPreparation.prepareBuild(out, SDGProgram.makeBuildPreparationConfig(config), NullProgressMonitor.INSTANCE);
@@ -474,12 +474,13 @@ public final class CheckInformationFlow {
 	}
 	
 	public static SDGConfig createDefaultConfig(final CheckIFCConfig cfc, final JavaMethodSignature mainMethod) {
-		final SDGConfig config = new SDGConfig(cfc.bin, mainMethod.toBCString(), Stubs.JRE_15);
-		config.setNativesXML(cfc.libDir + JoanaConstants.DEFAULT_NATIVES_XML);
+		final SDGConfig config = new SDGConfig(cfc.bin, mainMethod.toBCString(), Stubs.JRE_15_INCOMPLETE);
+		config.setClasspathAddEntriesFromMANIFEST(false); // we trust eclipse, of course!
 		config.setComputeInterferences(false);
 		config.setExceptionAnalysis(ExceptionAnalysis.INTERPROC);
 		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH);
 		config.setPointsToPrecision(PointsToPrecision.INSTANCE_BASED);
+		config.setSummaryComputationType(SummaryComputationType.JOANA_CLASSIC_SCC);
 		config.setDefaultExceptionMethodState(new MethodState() {
 			@Override
 			public boolean throwsException(final SSAAbstractInvokeInstruction node) {

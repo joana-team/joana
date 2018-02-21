@@ -39,7 +39,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
  * 
  * @author Martin Mohr
  */
-public class PreciseLoopDetermination extends ModularLoopDetermination {
+public class PreciseLoopDetermination<C extends Context<C>> extends ModularLoopDetermination<C> {
 
 	/** the control-flow graph to analyze */
 	private final CFG cfg;
@@ -63,7 +63,7 @@ public class PreciseLoopDetermination extends ModularLoopDetermination {
 	 * @see edu.kit.joana.ifc.sdg.mhpoptimization.LoopDetermination#isInALoop(edu.kit.joana.ifc.sdg.graph.slicer.graph.Context)
 	 */
 	@Override
-	public boolean isInALoop(Context c) {
+	public boolean isInALoop(C c) {
 		for (SDGNode n : c.getCallStack()) {
 			if (isInALoop(n)) {
 				return true;

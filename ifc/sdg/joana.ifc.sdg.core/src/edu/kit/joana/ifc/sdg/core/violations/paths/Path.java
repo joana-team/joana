@@ -21,17 +21,17 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
  * @author giffhorn
  *
  */
-public class Path {
-	private final Context current;
-	private LinkedHashSet<Context> path = new LinkedHashSet<Context>();
+public class Path<C extends Context<C>> {
+	private final C current;
+	private LinkedHashSet<C> path = new LinkedHashSet<>();
 	private int step = 0;
 
-	public Path(Context c) {
+	public Path(C c) {
 		path.add(c);
 		current = c;
 	}
 
-	private Path(Context c, LinkedHashSet<Context> p, int s) {
+	private Path(C c, LinkedHashSet<C> p, int s) {
 		path = p;
 		current = c;
 		step = s;
@@ -41,7 +41,7 @@ public class Path {
 		return current.getNode();
 	}
 
-	public Context getCurrent() {
+	public C getCurrent() {
 		return current;
 	}
 
@@ -57,22 +57,22 @@ public class Path {
 		step++;
 	}
 
-	public boolean contains(Context con) {
+	public boolean contains(C con) {
 		return path.contains(con);
 	}
 
 	@SuppressWarnings("unchecked")
-	public Path prepend(Context con) {
+	public Path<C> prepend(C con) {
 		if (con == null) throw new NullPointerException();
-		LinkedHashSet<Context> l = (LinkedHashSet<Context>) path.clone();
+		LinkedHashSet<C> l = (LinkedHashSet<C>) path.clone();
 		l.add(con);
-		return new Path(con, l, step);
+		return new Path<C>(con, l, step);
 	}
 
 	public ViolationPath convert() {
 		ViolationPath v = new ViolationPath();
 
-		for (Context c : path.toArray(new Context[]{})) {
+		for (C c : path) {
 			v.addFirst( (SecurityNode) c.getNode());
 		}
 
@@ -81,10 +81,10 @@ public class Path {
 
 	public String toString() {
 		StringBuilder b = new StringBuilder();
-		Iterator<Context> i = path.iterator();
+		Iterator<C> i = path.iterator();
 
 		while(i.hasNext()) {
-			Context c = i.next();
+			C c = i.next();
 			b.append(c.getNode().getId()+" <- ");
 		}
 

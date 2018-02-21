@@ -36,7 +36,7 @@ public class IFCJob extends Job {
 
     private CoreException ex;
 
-    public IFCJob(String str, IProject p, SDG sdg, IStaticLattice<String> l, IFC ifc) {
+    public IFCJob(String str, IProject p, SDG sdg, IStaticLattice<String> l, IFC<String> ifc) {
         super(str);
         setUser(true);
         this.p = p;

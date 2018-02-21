@@ -18,6 +18,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.Slicer;
 import edu.kit.joana.ifc.sdg.graph.slicer.SummarySlicerBackward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.ContextManager;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.StaticContextManager.StaticContext;
 
 
 public class ContextSlicingTests {
@@ -72,16 +73,16 @@ public class ContextSlicingTests {
             size[0] += slices[0].size();
 
             // context slicer 1
-            ContextManager man = two.getMan();
-            Collection<Context> cons = man.getAllContextsOf(crit);
-            Context con = cons.iterator().next();
+            ContextManager<StaticContext> man = two.getMan();
+            Collection<? extends StaticContext> cons = man.getAllContextsOf(crit);
+            StaticContext con = cons.iterator().next();
             tmp = System.currentTimeMillis();
             slices[1] = two.contextSlice(Collections.singleton(con));
             time[1] += System.currentTimeMillis() - tmp;
             size[1] += slices[1].size();
 
             // context slicer 2
-            for (Iterator<Context> iter = cons.iterator();iter.hasNext();) {
+            for (Iterator<? extends StaticContext> iter = cons.iterator();iter.hasNext();) {
             	con = iter.next();
             }
             tmp = System.currentTimeMillis();

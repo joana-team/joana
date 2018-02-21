@@ -53,7 +53,7 @@ public abstract class EveryAccess implements Matcher {
 			for (SDGEdge eIn : sdg.getIncomingEdgesOfKind(n, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
 				toDo.push(eIn.getSource());
 			}
-			for (SDGEdge eOut : sdg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
+			for (SDGEdge eOut : sdg.getOutgoingEdgesOfKindUnsafe(n, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
 				toDo.push(eOut.getTarget());
 			}
 		}

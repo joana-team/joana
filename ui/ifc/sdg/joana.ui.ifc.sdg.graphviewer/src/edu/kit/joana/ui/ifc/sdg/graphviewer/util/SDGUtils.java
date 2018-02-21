@@ -71,8 +71,7 @@ public final class SDGUtils {
 					// but the entry node of the call node's method
 					if (targetVertex.getKind() == SDGNode.Kind.ENTRY) {
 						int proc = currentVertex.getProc();
-						callGraph.addEdge(new SDGEdge(entries[proc],
-								targetVertex, SDGEdge.Kind.CALL));
+						callGraph.addEdge( SDGEdge.Kind.CALL.newEdge(entries[proc], targetVertex));
 					}
 				}
 			}

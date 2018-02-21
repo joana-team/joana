@@ -133,17 +133,17 @@ public interface Algorithm {
 		},
 		CONTEXT_SLICER("CS", Kind.SLICER, false) {
 			public Algorithm instantiate() {
-				return new SlicingAlgorithm(new ContextSlicerBackward(null, true));
+				return new SlicingAlgorithm(ContextSlicerBackward.newContextSlicerBackward(null, true));
 			}
 		},
 		IPDG_SLICER("IPDG", Kind.SLICER, false) {
 			public Algorithm instantiate() {
-				return new SlicingAlgorithm(new IPDGSlicerBackward(null, true));
+				return new SlicingAlgorithm(IPDGSlicerBackward.newIPDGSlicerBackward(null, true));
 			}
 		},
 		IDYN_SLICER("IDYN", Kind.SLICER, false) {
 			public Algorithm instantiate() {
-				return new SlicingAlgorithm(new IPDGSlicerBackward(null, false));
+				return new SlicingAlgorithm(IPDGSlicerBackward.newIPDGSlicerBackward(null, false));
 			}
 		},
 

@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
+import java.util.function.Function;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -20,7 +21,9 @@ import edu.kit.joana.ifc.sdg.graph.SDGNodeTuple;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.ContextManager;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.StaticContextManager;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.StaticContextManager.StaticContext;
 
 
 /** Offers two context-based sequential slicing algorithms.
@@ -29,14 +32,17 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.StaticContextManager;
  *
  * @author  Dennis Giffhorn
  */
-public abstract class ContextSlicer implements Slicer {
+public abstract class ContextSlicer<C extends Context<C>> implements Slicer {
     protected Set<SDGEdge.Kind> omittedEdges = SDGEdge.Kind.threadEdges();
     protected SDG sdg;
-    protected boolean staticCM;
-    protected ContextManager conMan;
+    protected ContextManager<C> conMan;
+    protected final Function<SDG, ContextManager<C>> newManager;
+    
+    protected static final Function<SDG, ContextManager<DynamicContext>> newDynamicManager = (sdg -> new DynamicContextManager(sdg));
+    protected static final Function<SDG, ContextManager<StaticContext>>  newStaticManager  = (sdg -> StaticContextManager.create(sdg));
 
-    public ContextSlicer(SDG graph, boolean staticContexts) {
-        staticCM = staticContexts;
+    protected ContextSlicer(SDG graph, Function<SDG, ContextManager<C>> newManager) {
+        this.newManager = newManager;
         omittedEdges = SDGEdge.Kind.threadEdges(); // we have to traverse summary edges, because it is the only way to
                                                    // deal with method stubs
 
@@ -45,9 +51,9 @@ public abstract class ContextSlicer implements Slicer {
         }
     }
 
-    public ContextSlicer(SDG graph, Set<SDGEdge.Kind> omit, boolean staticContexts) {
+    protected ContextSlicer(SDG graph, Set<SDGEdge.Kind> omit, Function<SDG, ContextManager<C>> newManager) {
     	omittedEdges = omit;
-        staticCM = staticContexts;
+    	this.newManager = newManager;
 
         if (graph != null) {
         	setGraph(graph);
@@ -65,12 +71,7 @@ public abstract class ContextSlicer implements Slicer {
     public void setGraph(SDG graph) {
         sdg = graph;
 
-        if (staticCM) {
-        	conMan = StaticContextManager.create(sdg);
-
-        } else {
-        	conMan = new DynamicContextManager(sdg);
-        }
+        conMan = newManager.apply(sdg);
     }
 
     public Collection<SDGNode> slice(SDGNode criterion) {
@@ -85,9 +86,9 @@ public abstract class ContextSlicer implements Slicer {
      */
     public Collection<SDGNode> slice(Collection<SDGNode> criterion){
     	HashSet<SDGNode> slice = new HashSet<SDGNode>();
-    	HashSet<Context> visited = new HashSet<Context>();
-        LinkedList<Context> worklist_1 = new LinkedList<Context>();
-        LinkedList<Context> worklist_2 = new LinkedList<Context>();
+    	HashSet<C> visited = new HashSet<>();
+        LinkedList<C> worklist_1 = new LinkedList<>();
+        LinkedList<C> worklist_2 = new LinkedList<>();
 
         // init worklist
         for (SDGNode c : criterion) {
@@ -97,7 +98,7 @@ public abstract class ContextSlicer implements Slicer {
         // slice
         while(!worklist_1.isEmpty()) {
             // next element, put it in the slice
-            Context next = worklist_1.poll();
+            C next = worklist_1.poll();
             slice.add(next.getNode());
 
             // handle all incoming edges of 'next'
@@ -115,10 +116,10 @@ public abstract class ContextSlicer implements Slicer {
                     // The class initialiser method is a special case due to the structure of the given SDG graphs.
                     // It can be recognised by having the only formal-out vertex with an outgoing param-in edge
                     // which is also the only 'entry point' during an intrathreadural backward slice.
-                    Collection<Context> newContexts = conMan.getContextsOf(n, 0);
+                    Collection<C> newContexts = conMan.getContextsOf(n, 0);
 
                     // update the worklist
-                    for (Context con : newContexts) {
+                    for (C con : newContexts) {
                     	if (visited.add(con)) {
                     		worklist_1.add(con);
                        	}
@@ -128,9 +129,9 @@ public abstract class ContextSlicer implements Slicer {
                     // go to the calling procedure
                 	if (n.isInThread(next.getThread()) && next.isInCallingProcedure(n)) {
                         SDGNodeTuple callSite = sdg.getCallEntryFor(e);
-                        Context[] newContexts = conMan.ascend(n, callSite, next);
+                        C[] newContexts = conMan.ascend(n, callSite, next);
 
-                        for (Context con : newContexts) {
+                        for (C con : newContexts) {
                         	if (con != null && visited.add(con)) {
                         		worklist_1.add(con);
                         	}
@@ -140,7 +141,7 @@ public abstract class ContextSlicer implements Slicer {
                 } else if (isDescendingEdge(e.getKind())) {
                     // go to the called procedure
                     SDGNodeTuple callSite = sdg.getCallEntryFor(e);
-                    Context con = conMan.descend(n, callSite, next);
+                    C con = conMan.descend(n, callSite, next);
 
                     if (visited.add(con)) {
                 		worklist_2.add(con);
@@ -148,7 +149,7 @@ public abstract class ContextSlicer implements Slicer {
 
                 } else {
                     // intra-procedural traversal
-                    Context con = conMan.level(n, next);
+                    C con = conMan.level(n, next);
 
                     if (visited.add(con)) {
                 		worklist_1.add(con);
@@ -160,7 +161,7 @@ public abstract class ContextSlicer implements Slicer {
         // slice
         while(!worklist_2.isEmpty()) {
             // next element, put it in the slice
-            Context next = worklist_2.poll();
+            C next = worklist_2.poll();
             slice.add(next.getNode());
 
             // handle all incoming edges of 'next'
@@ -178,7 +179,7 @@ public abstract class ContextSlicer implements Slicer {
                 } else if (isDescendingEdge(e.getKind())) {
                     // go to the called procedure
                     SDGNodeTuple callSite = sdg.getCallEntryFor(e);
-                    Context con = conMan.descend(n, callSite, next);
+                    C con = conMan.descend(n, callSite, next);
 
                     if (visited.add(con)) {
                 		worklist_2.add(con);
@@ -186,7 +187,7 @@ public abstract class ContextSlicer implements Slicer {
 
                 } else {
                     // intra-procedural traversal
-                    Context con = conMan.level(n, next);
+                    C con = conMan.level(n, next);
 
                     if (visited.add(con)) {
                 		worklist_2.add(con);
@@ -200,19 +201,19 @@ public abstract class ContextSlicer implements Slicer {
     }
 
 
-    public Collection<Context> contextSliceNodes(Collection<SDGNode> criterion) {
-    	HashSet<Context> s = new HashSet<Context>();
+    public Collection<? extends C> contextSliceNodes(Collection<SDGNode> criterion) {
+    	HashSet<C> s = new HashSet<>();
     	for (SDGNode n : criterion) {
     		s.addAll(conMan.getAllContextsOf(n));
     	}
     	return contextSlice(s);
     }
 
-    public Collection<Context> contextSlice(SDGNode criterion) {
+    public Collection<? extends C> contextSlice(SDGNode criterion) {
     	return contextSlice(conMan.getAllContextsOf(criterion));
     }
 
-    public Collection<Context> contextSlice(Context criterion) {
+    public Collection<? extends C> contextSlice(C criterion) {
     	return contextSlice(Collections.singleton(criterion));
     }
 
@@ -222,13 +223,13 @@ public abstract class ContextSlicer implements Slicer {
      * @param criterion  The slicing criterion
      * @return The slice, as a collection of Contexts.
      */
-    public Collection<Context> contextSlice(Collection<Context> criterion){
-    	HashSet<Context> slice = new HashSet<Context>();
-        LinkedList<Context> worklist_1 = new LinkedList<Context>();
-        LinkedList<Context> worklist_2 = new LinkedList<Context>();
+    public Collection<? extends C> contextSlice(Collection<? extends C> criterion){
+    	HashSet<C> slice = new HashSet<>();
+        LinkedList<C> worklist_1 = new LinkedList<>();
+        LinkedList<C> worklist_2 = new LinkedList<>();
 
         // init worklist
-        for (Context c : criterion) {
+        for (C c : criterion) {
         	if (slice.add(c)) {
                 worklist_1.add(c);
         	}
@@ -237,7 +238,7 @@ public abstract class ContextSlicer implements Slicer {
         // slice
         while(!worklist_1.isEmpty()) {
             // next element, put it in the slice
-            Context next = worklist_1.poll();
+            C next = worklist_1.poll();
 
             // handle all incoming edges of 'next'
             for(SDGEdge e : getEdges(next.getNode())) {
@@ -254,10 +255,10 @@ public abstract class ContextSlicer implements Slicer {
                     // The class initialiser method is a special case due to the structure of the given SDG graphs.
                     // It can be recognised by having the only formal-out vertex with an outgoing param-in edge
                     // which is also the only 'entry point' during an intrathreadural backward slice.
-                    Collection<Context> newContexts = conMan.getContextsOf(n, 0);
+                    Collection<C> newContexts = conMan.getContextsOf(n, 0);
 
                     // update the worklist
-                    for (Context con : newContexts) {
+                    for (C con : newContexts) {
                     	if (slice.add(con)) {
                     		worklist_1.add(con);
                        	}
@@ -267,9 +268,9 @@ public abstract class ContextSlicer implements Slicer {
                     // go to the calling procedure
                 	if (n.isInThread(next.getThread()) && next.isInCallingProcedure(n)) {
                         SDGNodeTuple callSite = sdg.getCallEntryFor(e);
-                        Context[] newContexts = conMan.ascend(n, callSite, next);
+                        C[] newContexts = conMan.ascend(n, callSite, next);
 
-                        for (Context con : newContexts) {
+                        for (C con : newContexts) {
                         	if (con != null && slice.add(con)) {
                         		worklist_1.add(con);
                         	}
@@ -279,7 +280,7 @@ public abstract class ContextSlicer implements Slicer {
                 } else if (isDescendingEdge(e.getKind())) {
                     // go to the called procedure
                     SDGNodeTuple callSite = sdg.getCallEntryFor(e);
-                    Context con = conMan.descend(n, callSite, next);
+                    C con = conMan.descend(n, callSite, next);
 
                     if (slice.add(con)) {
                 		worklist_2.add(con);
@@ -287,7 +288,7 @@ public abstract class ContextSlicer implements Slicer {
 
                 } else {
                     // intra-procedural traversal
-                    Context con = conMan.level(n, next);
+                    C con = conMan.level(n, next);
 
                     if (slice.add(con)) {
                 		worklist_1.add(con);
@@ -299,7 +300,7 @@ public abstract class ContextSlicer implements Slicer {
         // slice
         while(!worklist_2.isEmpty()) {
             // next element, put it in the slice
-            Context next = worklist_2.poll();
+            C next = worklist_2.poll();
 
             // handle all incoming edges of 'next'
             for(SDGEdge e : getEdges(next.getNode())){
@@ -316,7 +317,7 @@ public abstract class ContextSlicer implements Slicer {
                 } else if (isDescendingEdge(e.getKind())) {
                     // go to the called procedure
                     SDGNodeTuple callSite = sdg.getCallEntryFor(e);
-                    Context con = conMan.descend(n, callSite, next);
+                    C con = conMan.descend(n, callSite, next);
 
                     if (slice.add(con)) {
                 		worklist_2.add(con);
@@ -324,7 +325,7 @@ public abstract class ContextSlicer implements Slicer {
 
                 } else {
                     // intra-procedural traversal
-                    Context con = conMan.level(n, next);
+                    C con = conMan.level(n, next);
 
                     if (slice.add(con)) {
                 		worklist_2.add(con);
@@ -352,9 +353,9 @@ public abstract class ContextSlicer implements Slicer {
      */
     public Collection<SDGNode> subgraphSlice(Collection<SDGNode> criterion, Collection<SDGNode> subgraph){
     	HashSet<SDGNode> slice = new HashSet<SDGNode>();
-    	HashSet<Context> visited = new HashSet<Context>();
-        LinkedList<Context> worklist_1 = new LinkedList<Context>();
-        LinkedList<Context> worklist_2 = new LinkedList<Context>();
+    	HashSet<C> visited = new HashSet<>();
+        LinkedList<C> worklist_1 = new LinkedList<>();
+        LinkedList<C> worklist_2 = new LinkedList<>();
 
         // init worklist
         for (SDGNode c : criterion) {
@@ -366,7 +367,7 @@ public abstract class ContextSlicer implements Slicer {
         // slice
         while(!worklist_1.isEmpty()) {
             // next element, put it in the slice
-            Context next = worklist_1.poll();
+            C next = worklist_1.poll();
             slice.add(next.getNode());
 
             // handle all incoming edges of 'next'
@@ -386,10 +387,10 @@ public abstract class ContextSlicer implements Slicer {
                     // The class initialiser method is a special case due to the structure of the given SDG graphs.
                     // It can be recognised by having the only formal-out vertex with an outgoing param-in edge
                     // which is also the only 'entry point' during an intrathreadural backward slice.
-                    Collection<Context> newContexts = conMan.getContextsOf(n, 0);
+                    Collection<C> newContexts = conMan.getContextsOf(n, 0);
 
                     // update the worklist
-                    for (Context con : newContexts) {
+                    for (C con : newContexts) {
                     	if (visited.add(con)) {
                     		worklist_1.add(con);
                        	}
@@ -399,9 +400,9 @@ public abstract class ContextSlicer implements Slicer {
                     // go to the calling procedure
                 	if (n.isInThread(next.getThread()) && next.isInCallingProcedure(n)) {
                         SDGNodeTuple callSite = sdg.getCallEntryFor(e);
-                        Context[] newContexts = conMan.ascend(n, callSite, next);
+                        C[] newContexts = conMan.ascend(n, callSite, next);
 
-                        for (Context con : newContexts) {
+                        for (C con : newContexts) {
                         	if (con != null && visited.add(con)) {
                         		worklist_1.add(con);
                         	}
@@ -411,7 +412,7 @@ public abstract class ContextSlicer implements Slicer {
                 } else if (isDescendingEdge(e.getKind())) {
                     // go to the called procedure
                     SDGNodeTuple callSite = sdg.getCallEntryFor(e);
-                    Context con = conMan.descend(n, callSite, next);
+                    C con = conMan.descend(n, callSite, next);
 
                     if (visited.add(con)) {
                 		worklist_2.add(con);
@@ -419,7 +420,7 @@ public abstract class ContextSlicer implements Slicer {
 
                 } else {
                     // intra-procedural traversal
-                    Context con = conMan.level(n, next);
+                    C con = conMan.level(n, next);
 
                     if (visited.add(con)) {
                 		worklist_1.add(con);
@@ -431,7 +432,7 @@ public abstract class ContextSlicer implements Slicer {
         // slice
         while(!worklist_2.isEmpty()) {
             // next element, put it in the slice
-            Context next = worklist_2.poll();
+            C next = worklist_2.poll();
             slice.add(next.getNode());
 
             // handle all incoming edges of 'next'
@@ -451,7 +452,7 @@ public abstract class ContextSlicer implements Slicer {
                 } else if (isDescendingEdge(e.getKind())) {
                     // go to the called procedure
                     SDGNodeTuple callSite = sdg.getCallEntryFor(e);
-                    Context con = conMan.descend(n, callSite, next);
+                    C con = conMan.descend(n, callSite, next);
 
                     if (visited.add(con)) {
                 		worklist_2.add(con);
@@ -459,7 +460,7 @@ public abstract class ContextSlicer implements Slicer {
 
                 } else {
                     // intra-procedural traversal
-                    Context con = conMan.level(n, next);
+                    C con = conMan.level(n, next);
 
                     if (visited.add(con)) {
                 		worklist_2.add(con);
@@ -473,19 +474,19 @@ public abstract class ContextSlicer implements Slicer {
     }
 
 
-    public Collection<Context> subgraphContextSliceNodes(Collection<SDGNode> criterion, Collection<SDGNode> subgraph) {
-    	HashSet<Context> s = new HashSet<Context>();
+    public Collection<C> subgraphContextSliceNodes(Collection<SDGNode> criterion, Collection<SDGNode> subgraph) {
+    	HashSet<C> s = new HashSet<>();
     	for (SDGNode n : criterion) {
     		s.addAll(conMan.getAllContextsOf(n));
     	}
     	return subgraphContextSlice(s, subgraph);
     }
 
-    public Collection<Context> subgraphContextSlice(SDGNode criterion, Collection<SDGNode> subgraph) {
+    public Collection<C> subgraphContextSlice(SDGNode criterion, Collection<SDGNode> subgraph) {
     	return subgraphContextSlice(conMan.getAllContextsOf(criterion), subgraph);
     }
 
-    public Collection<Context> subgraphContexSlice(Context criterion, Collection<SDGNode> subgraph) {
+    public Collection<C> subgraphContexSlice(C criterion, Collection<SDGNode> subgraph) {
     	return subgraphContextSlice(Collections.singleton(criterion), subgraph);
     }
 
@@ -495,13 +496,13 @@ public abstract class ContextSlicer implements Slicer {
      * @param criterion  The slicing criterion
      * @return The slice, as a collection of Contexts.
      */
-    public Collection<Context> subgraphContextSlice(Collection<Context> criterion, Collection<SDGNode> subgraph){
-    	HashSet<Context> slice = new HashSet<Context>();
-        LinkedList<Context> worklist_1 = new LinkedList<Context>();
-        LinkedList<Context> worklist_2 = new LinkedList<Context>();
+    public Collection<C> subgraphContextSlice(Collection<? extends C> criterion, Collection<SDGNode> subgraph){
+    	HashSet<C> slice = new HashSet<>();
+        LinkedList<C> worklist_1 = new LinkedList<>();
+        LinkedList<C> worklist_2 = new LinkedList<>();
 
         // init worklist
-        for (Context c : criterion) {
+        for (C c : criterion) {
         	if (subgraph.contains(c.getNode()) && slice.add(c)) {
                 worklist_1.add(c);
         	}
@@ -510,7 +511,7 @@ public abstract class ContextSlicer implements Slicer {
         // slice
         while(!worklist_1.isEmpty()) {
             // next element, put it in the slice
-            Context next = worklist_1.poll();
+            C next = worklist_1.poll();
 
             // handle all incoming edges of 'next'
             for(SDGEdge e : getEdges(next.getNode())) {
@@ -529,10 +530,10 @@ public abstract class ContextSlicer implements Slicer {
                     // The class initialiser method is a special case due to the structure of the given SDG graphs.
                     // It can be recognised by having the only formal-out vertex with an outgoing param-in edge
                     // which is also the only 'entry point' during an intrathreadural backward slice.
-                    Collection<Context> newContexts = conMan.getContextsOf(n, 0);
+                    Collection<C> newContexts = conMan.getContextsOf(n, 0);
 
                     // update the worklist
-                    for (Context con : newContexts) {
+                    for (C con : newContexts) {
                     	if (slice.add(con)) {
                     		worklist_1.add(con);
                        	}
@@ -542,9 +543,9 @@ public abstract class ContextSlicer implements Slicer {
                     // go to the calling procedure
                 	if (n.isInThread(next.getThread()) && next.isInCallingProcedure(n)) {
                         SDGNodeTuple callSite = sdg.getCallEntryFor(e);
-                        Context[] newContexts = conMan.ascend(n, callSite, next);
+                        C[] newContexts = conMan.ascend(n, callSite, next);
 
-                        for (Context con : newContexts) {
+                        for (C con : newContexts) {
                         	if (con != null && slice.add(con)) {
                         		worklist_1.add(con);
                         	}
@@ -554,7 +555,7 @@ public abstract class ContextSlicer implements Slicer {
                 } else if (isDescendingEdge(e.getKind())) {
                     // go to the called procedure
                     SDGNodeTuple callSite = sdg.getCallEntryFor(e);
-                    Context con = conMan.descend(n, callSite, next);
+                    C con = conMan.descend(n, callSite, next);
 
                     if (slice.add(con)) {
                 		worklist_2.add(con);
@@ -562,7 +563,7 @@ public abstract class ContextSlicer implements Slicer {
 
                 } else {
                     // intra-procedural traversal
-                    Context con = conMan.level(n, next);
+                    C con = conMan.level(n, next);
 
                     if (slice.add(con)) {
                 		worklist_1.add(con);
@@ -574,7 +575,7 @@ public abstract class ContextSlicer implements Slicer {
         // slice
         while(!worklist_2.isEmpty()) {
             // next element, put it in the slice
-            Context next = worklist_2.poll();
+            C next = worklist_2.poll();
 
             // handle all incoming edges of 'next'
             for(SDGEdge e : getEdges(next.getNode())){
@@ -593,7 +594,7 @@ public abstract class ContextSlicer implements Slicer {
                 } else if (isDescendingEdge(e.getKind())) {
                     // go to the called procedure
                     SDGNodeTuple callSite = sdg.getCallEntryFor(e);
-                    Context con = conMan.descend(n, callSite, next);
+                    C con = conMan.descend(n, callSite, next);
 
                     if (slice.add(con)) {
                 		worklist_2.add(con);
@@ -601,7 +602,7 @@ public abstract class ContextSlicer implements Slicer {
 
                 } else {
                     // intra-procedural traversal
-                    Context con = conMan.level(n, next);
+                    C con = conMan.level(n, next);
 
                     if (slice.add(con)) {
                 		worklist_2.add(con);
@@ -617,7 +618,7 @@ public abstract class ContextSlicer implements Slicer {
 
     /* subgraph slicing for context-subgraph */
 
-    public Collection<SDGNode> contextSubgraphSlice(SDGNode criterion, Collection<Context> subgraph) {
+    public Collection<SDGNode> contextSubgraphSlice(SDGNode criterion, Collection<C> subgraph) {
     	return contextSubgraphSlice(Collections.singleton(criterion), subgraph);
     }
 
@@ -627,15 +628,15 @@ public abstract class ContextSlicer implements Slicer {
      * @param criterion  The slicing criterion
      * @return The slice, as a collection of SDGNodes.
      */
-    public Collection<SDGNode> contextSubgraphSlice(Collection<SDGNode> criterion, Collection<Context> subgraph){
+    public Collection<SDGNode> contextSubgraphSlice(Collection<SDGNode> criterion, Collection<? extends C> subgraph){
     	HashSet<SDGNode> slice = new HashSet<SDGNode>();
-    	HashSet<Context> visited = new HashSet<Context>();
-        LinkedList<Context> worklist_1 = new LinkedList<Context>();
-        LinkedList<Context> worklist_2 = new LinkedList<Context>();
+    	HashSet<C> visited = new HashSet<>();
+        LinkedList<C> worklist_1 = new LinkedList<>();
+        LinkedList<C> worklist_2 = new LinkedList<>();
 
         // init worklist
         for (SDGNode c : criterion) {
-        	for (Context con : conMan.getAllContextsOf(c)) {
+        	for (C con : conMan.getAllContextsOf(c)) {
 	        	if (subgraph.contains(con)) {
 	        		worklist_1.add(con);
 	        	}
@@ -645,7 +646,7 @@ public abstract class ContextSlicer implements Slicer {
         // slice
         while(!worklist_1.isEmpty()) {
             // next element, put it in the slice
-            Context next = worklist_1.poll();
+            C next = worklist_1.poll();
             slice.add(next.getNode());
 
             // handle all incoming edges of 'next'
@@ -663,10 +664,10 @@ public abstract class ContextSlicer implements Slicer {
                     // The class initialiser method is a special case due to the structure of the given SDG graphs.
                     // It can be recognised by having the only formal-out vertex with an outgoing param-in edge
                     // which is also the only 'entry point' during an intrathreadural backward slice.
-                    Collection<Context> newContexts = conMan.getContextsOf(n, 0);
+                    Collection<C> newContexts = conMan.getContextsOf(n, 0);
 
                     // update the worklist
-                    for (Context con : newContexts) {
+                    for (C con : newContexts) {
                     	if (subgraph.contains(con) && visited.add(con)) {
                     		worklist_1.add(con);
                        	}
@@ -676,9 +677,9 @@ public abstract class ContextSlicer implements Slicer {
                     // go to the calling procedure
                 	if (n.isInThread(next.getThread()) && next.isInCallingProcedure(n)) {
                         SDGNodeTuple callSite = sdg.getCallEntryFor(e);
-                        Context[] newContexts = conMan.ascend(n, callSite, next);
+                        C[] newContexts = conMan.ascend(n, callSite, next);
 
-                        for (Context con : newContexts) {
+                        for (C con : newContexts) {
                         	if (con != null && subgraph.contains(con) && visited.add(con)) {
                         		worklist_1.add(con);
                         	}
@@ -688,7 +689,7 @@ public abstract class ContextSlicer implements Slicer {
                 } else if (isDescendingEdge(e.getKind())) {
                     // go to the called procedure
                     SDGNodeTuple callSite = sdg.getCallEntryFor(e);
-                    Context con = conMan.descend(n, callSite, next);
+                    C con = conMan.descend(n, callSite, next);
 
                     if (subgraph.contains(con) && visited.add(con)) {
                 		worklist_2.add(con);
@@ -696,7 +697,7 @@ public abstract class ContextSlicer implements Slicer {
 
                 } else {
                     // intra-procedural traversal
-                    Context con = conMan.level(n, next);
+                    C con = conMan.level(n, next);
 
                     if (subgraph.contains(con) && visited.add(con)) {
                 		worklist_1.add(con);
@@ -708,7 +709,7 @@ public abstract class ContextSlicer implements Slicer {
         // slice
         while(!worklist_2.isEmpty()) {
             // next element, put it in the slice
-            Context next = worklist_2.poll();
+            C next = worklist_2.poll();
             slice.add(next.getNode());
 
             // handle all incoming edges of 'next'
@@ -726,7 +727,7 @@ public abstract class ContextSlicer implements Slicer {
                 } else if (isDescendingEdge(e.getKind())) {
                     // go to the called procedure
                     SDGNodeTuple callSite = sdg.getCallEntryFor(e);
-                    Context con = conMan.descend(n, callSite, next);
+                    C con = conMan.descend(n, callSite, next);
 
                     if (subgraph.contains(con) && visited.add(con)) {
                 		worklist_2.add(con);
@@ -734,7 +735,7 @@ public abstract class ContextSlicer implements Slicer {
 
                 } else {
                     // intra-procedural traversal
-                    Context con = conMan.level(n, next);
+                    C con = conMan.level(n, next);
 
                     if (subgraph.contains(con) && visited.add(con)) {
                 		worklist_2.add(con);
@@ -748,19 +749,19 @@ public abstract class ContextSlicer implements Slicer {
     }
 
 
-    public Collection<Context> contextSubgraphContextSliceNodes(Collection<SDGNode> criterion, Collection<Context> subgraph) {
-    	HashSet<Context> s = new HashSet<Context>();
+    public Collection<C> contextSubgraphContextSliceNodes(Collection<SDGNode> criterion, Collection<C> subgraph) {
+    	HashSet<C> s = new HashSet<>();
     	for (SDGNode n : criterion) {
     		s.addAll(conMan.getAllContextsOf(n));
     	}
     	return contextSubgraphContextSlice(s, subgraph);
     }
 
-    public Collection<Context> contextSubgraphContextSlice(SDGNode criterion, Collection<Context> subgraph) {
+    public Collection<C> contextSubgraphContextSlice(SDGNode criterion, Collection<C> subgraph) {
     	return contextSubgraphContextSlice(conMan.getAllContextsOf(criterion), subgraph);
     }
 
-    public Collection<Context> contextSubgraphContextSlice(Context criterion, Collection<Context> subgraph) {
+    public Collection<C> contextSubgraphContextSlice(C criterion, Collection<C> subgraph) {
     	return contextSubgraphContextSlice(Collections.singleton(criterion), subgraph);
     }
 
@@ -770,13 +771,13 @@ public abstract class ContextSlicer implements Slicer {
      * @param criterion  The slicing criterion
      * @return The slice, as a collection of Contexts.
      */
-    public Collection<Context> contextSubgraphContextSlice(Collection<Context> criterion, Collection<Context> subgraph){
-    	HashSet<Context> slice = new HashSet<Context>();
-        LinkedList<Context> worklist_1 = new LinkedList<Context>();
-        LinkedList<Context> worklist_2 = new LinkedList<Context>();
+    public Collection<C> contextSubgraphContextSlice(Collection<? extends C> criterion, Collection<C> subgraph){
+    	HashSet<C> slice = new HashSet<>();
+        LinkedList<C> worklist_1 = new LinkedList<>();
+        LinkedList<C> worklist_2 = new LinkedList<>();
 
         // init worklist
-        for (Context c : criterion) {
+        for (C c : criterion) {
         	if (subgraph.contains(c) && slice.add(c)) {
                 worklist_1.add(c);
         	}
@@ -785,7 +786,7 @@ public abstract class ContextSlicer implements Slicer {
         // slice
         while(!worklist_1.isEmpty()) {
             // next element, put it in the slice
-            Context next = worklist_1.poll();
+            C next = worklist_1.poll();
 
             // handle all incoming edges of 'next'
             for(SDGEdge e : getEdges(next.getNode())) {
@@ -802,10 +803,10 @@ public abstract class ContextSlicer implements Slicer {
                     // The class initialiser method is a special case due to the structure of the given SDG graphs.
                     // It can be recognised by having the only formal-out vertex with an outgoing param-in edge
                     // which is also the only 'entry point' during an intrathreadural backward slice.
-                    Collection<Context> newContexts = conMan.getContextsOf(n, 0);
+                    Collection<C> newContexts = conMan.getContextsOf(n, 0);
 
                     // update the worklist
-                    for (Context con : newContexts) {
+                    for (C con : newContexts) {
                     	if (subgraph.contains(con) && slice.add(con)) {
                     		worklist_1.add(con);
                        	}
@@ -815,9 +816,9 @@ public abstract class ContextSlicer implements Slicer {
                     // go to the calling procedure
                 	if (n.isInThread(next.getThread()) && next.isInCallingProcedure(n)) {
                         SDGNodeTuple callSite = sdg.getCallEntryFor(e);
-                        Context[] newContexts = conMan.ascend(n, callSite, next);
+                        C[] newContexts = conMan.ascend(n, callSite, next);
 
-                        for (Context con : newContexts) {
+                        for (C con : newContexts) {
                         	if (con != null && subgraph.contains(con) && slice.add(con)) {
                         		worklist_1.add(con);
                         	}
@@ -827,7 +828,7 @@ public abstract class ContextSlicer implements Slicer {
                 } else if (isDescendingEdge(e.getKind())) {
                     // go to the called procedure
                     SDGNodeTuple callSite = sdg.getCallEntryFor(e);
-                    Context con = conMan.descend(n, callSite, next);
+                    C con = conMan.descend(n, callSite, next);
 
                     if (subgraph.contains(con) && slice.add(con)) {
                 		worklist_2.add(con);
@@ -835,7 +836,7 @@ public abstract class ContextSlicer implements Slicer {
 
                 } else {
                     // intra-procedural traversal
-                    Context con = conMan.level(n, next);
+                    C con = conMan.level(n, next);
 
                     if (subgraph.contains(con) && slice.add(con)) {
                 		worklist_1.add(con);
@@ -847,7 +848,7 @@ public abstract class ContextSlicer implements Slicer {
         // slice
         while(!worklist_2.isEmpty()) {
             // next element, put it in the slice
-            Context next = worklist_2.poll();
+            C next = worklist_2.poll();
 
             // handle all incoming edges of 'next'
             for(SDGEdge e : getEdges(next.getNode())){
@@ -864,7 +865,7 @@ public abstract class ContextSlicer implements Slicer {
                 } else if (isDescendingEdge(e.getKind())) {
                     // go to the called procedure
                     SDGNodeTuple callSite = sdg.getCallEntryFor(e);
-                    Context con = conMan.descend(n, callSite, next);
+                    C con = conMan.descend(n, callSite, next);
 
                     if (subgraph.contains(con) && slice.add(con)) {
                 		worklist_2.add(con);
@@ -872,7 +873,7 @@ public abstract class ContextSlicer implements Slicer {
 
                 } else {
                     // intra-procedural traversal
-                    Context con = conMan.level(n, next);
+                    C con = conMan.level(n, next);
 
                     if (subgraph.contains(con) && slice.add(con)) {
                 		worklist_2.add(con);

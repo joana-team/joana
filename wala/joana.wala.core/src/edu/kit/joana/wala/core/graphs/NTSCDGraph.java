@@ -34,8 +34,8 @@ import edu.kit.joana.util.graph.KnowsVertices;
  */
 public class NTSCDGraph<V extends IntegerIdentifiable, E extends KnowsVertices<V>> extends AbstractJoanaGraph<V, E> {
 
-	private NTSCDGraph(EdgeFactory<V, E> edgeFactory) {
-		super(edgeFactory, () -> new ArrayMap<>());
+	private NTSCDGraph(EdgeFactory<V, E> edgeFactory, Class<E> classE) {
+		super(edgeFactory, () -> new ArrayMap<>(), classE);
 	}
 
 	static boolean DEBUG = false;
@@ -79,8 +79,8 @@ public class NTSCDGraph<V extends IntegerIdentifiable, E extends KnowsVertices<V
 	 * condition "|S[m,n]| = T_n" is established due to change in |S[m,n]| elsewhere.
 	 * We attempt this by putting nodes p on the worklist in appropriate places.
 	 */
-	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> NTSCDGraph<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory) {
-		NTSCDGraph<V, E> cdg = new NTSCDGraph<>(edgeFactory);
+	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> NTSCDGraph<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory, Class<E> classE) {
+		NTSCDGraph<V, E> cdg = new NTSCDGraph<>(edgeFactory, classE);
 		for (V n : cfg.vertexSet()) {
 			cdg.addVertex(n);
 		}

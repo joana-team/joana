@@ -24,7 +24,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.FoldedCFG;
  */
 public class ReachabilityChecker {
     /** Cache for already tested reachabilities. */
-    private final ReachabilityCache cache;
+    private final ReachabilityCache<DynamicContext> cache;
     /** A folded version of the ICFG that is folded with Krinke's two-pass folding algorithm. */
     private final FoldedCFG foldedIcfg;
 
@@ -36,13 +36,13 @@ public class ReachabilityChecker {
      * @param folded_icfg  A folded version of the ICFG.
      */
     public ReachabilityChecker(FoldedCFG foldedIcfg) {
-        this.cache = new ReachabilityCache();
+        this.cache = new ReachabilityCache<>();
         this.foldedIcfg = foldedIcfg;
     }
 
     /** Grants access to the cache for inheriting classes.
      */
-    protected ReachabilityCache getCache() {
+    protected ReachabilityCache<DynamicContext> getCache() {
         return cache;
     }
 
@@ -180,9 +180,7 @@ public class ReachabilityChecker {
      * @param target  The traversed edge's target.
      */
     private DynamicContext step(DynamicContext old, SDGNode target) {
-    	DynamicContext c = old.copy();
-
-        c.setNode(target);
+    	DynamicContext c = old.copyWithNewNode(target);
 
         return c;
     }
@@ -195,10 +193,9 @@ public class ReachabilityChecker {
      * @param target  The traversed edge's target.
      */
     private DynamicContext down(DynamicContext old, SDGNode target) {
-    	DynamicContext c = old.copy();
+    	DynamicContext c = old.copyWithNewNode(target);
 
-        c.push(c.getNode());
-        c.setNode(target);
+        c.push(old.getNode());
 
         return c;
     }
@@ -212,10 +209,9 @@ public class ReachabilityChecker {
      * @param target  The traversed edge's target.
      */
     private DynamicContext up(DynamicContext old, SDGNode target) {
-    	DynamicContext c = old.copy();
+    	DynamicContext c = old.copyWithNewNode(target);
 
         c.pop();
-        c.setNode(target);
 
         return c;
     }

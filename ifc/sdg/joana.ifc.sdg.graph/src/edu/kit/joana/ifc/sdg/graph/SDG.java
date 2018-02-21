@@ -29,6 +29,8 @@ import org.antlr.runtime.ANTLRReaderStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 
+import edu.kit.joana.util.SourceLocation;
+import edu.kit.joana.util.collections.ArrayMap;
 import edu.kit.joana.util.collections.SimpleVector;
 import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.hash.TIntIntHashMap;
@@ -264,7 +266,7 @@ public class SDG extends JoanaGraph implements Cloneable {
     	while(!wl.isEmpty()) {
     		SDGNode next = wl.poll();
 
-    		for (SDGEdge e : getOutgoingEdgesOfKind(next, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
+    		for (SDGEdge e : getOutgoingEdgesOfKindUnsafe(next, SDGEdge.Kind.CONTROL_DEP_EXPR)) {
     			if (result.add(e.getTarget())) {
     				wl.add(e.getTarget());
     			}
@@ -367,7 +369,7 @@ public class SDG extends JoanaGraph implements Cloneable {
     	if (exitCache.get(node.getProc()) == null) {
 	        SDGNode entry = getEntry(node);
 	        SDGNode exit = null;
-        	for (SDGEdge e : getOutgoingEdgesOfKind(entry, SDGEdge.Kind.CONTROL_FLOW)) {
+        	for (SDGEdge e : getOutgoingEdgesOfKindUnsafe(entry, SDGEdge.Kind.CONTROL_FLOW)) {
         		if (e.getTarget().getKind() == SDGNode.Kind.EXIT) {
         			exitCache.put(node.getProc(), e.getTarget());
         			exit = e.getTarget();
@@ -400,7 +402,7 @@ public class SDG extends JoanaGraph implements Cloneable {
 
 		for (SDGNode n : vertexSet()) {
 			if (n.getKind() == SDGNode.Kind.CALL) {
-				List<SDGEdge> l = getOutgoingEdgesOfKind(n, SDGEdge.Kind.CONTROL_FLOW);
+				List<SDGEdge> l = getOutgoingEdgesOfKindUnsafe(n, SDGEdge.Kind.CONTROL_FLOW);
 //				if (l.size() != 1) throw new RuntimeException(); // irregular SDG
 				if (l.isEmpty()) continue;
 				result.add(new SDGNodeTuple(n, l.get(0).getTarget()));
@@ -925,7 +927,11 @@ public class SDG extends JoanaGraph implements Cloneable {
 			sdg = parser.sdg_file();
 		} catch (RecognitionException e) {
 			throw new IOException(e);
+		} finally {
+			SourceLocation.clearSourceLocationPool();
 		}
+		
+		sdg.trimToSize();
 	
 		final int sepIndex = sdgFile.lastIndexOf(File.separator);
 		String fileName = (sepIndex > 0 ? sdgFile.substring(sepIndex) : sdgFile);
@@ -953,7 +959,11 @@ public class SDG extends JoanaGraph implements Cloneable {
     		sdg = parser.sdg_file();
     	} catch (RecognitionException e) {
     		throw new IOException(e);
-    	}
+    	} finally {
+			SourceLocation.clearSourceLocationPool();
+		}
+    	
+    	sdg.trimToSize();
 
     	final int sepIndex = sdgFile.lastIndexOf(File.separator);
     	String fileName = (sepIndex > 0 ? sdgFile.substring(sepIndex) : sdgFile);
@@ -979,7 +989,11 @@ public class SDG extends JoanaGraph implements Cloneable {
     		sdg = parser.sdg_file();
     	} catch (RecognitionException e) {
     		throw new IOException(e);
-    	}
+    	} finally {
+			SourceLocation.clearSourceLocationPool();
+		}
+    	
+    	sdg.trimToSize();
 
     	// no filename can be set here. -> Set to null initially.
 

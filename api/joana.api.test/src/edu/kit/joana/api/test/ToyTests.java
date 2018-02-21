@@ -209,12 +209,10 @@ public class ToyTests {
 		testPreciseEnough(joana.api.testdata.toy.simp.Sick2.class);
 	}
 
-	// we're not precise enough here because JOANA thinks Math.round can throw an exception.
-	// TODO: find out why
 	@Test
 	public void testMathRound() throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException,
 			CancelException {
-		testTooImprecise(joana.api.testdata.toy.simp.MathRound.class);
+		testPreciseEnough(joana.api.testdata.toy.simp.MathRound.class);
 	}
 
 	@Test

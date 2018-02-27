@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.sdgtools.SDGTools;
@@ -192,21 +191,25 @@ public class LSODNISlicer implements ConflictScanner {
 
 	private void collectPossibleOrderChannels(Element e) {
 		SecurityNode n = e.node;
-		String refLevel = n.getLevel();
-		checkOrderConflictEdges(g.getIncomingEdgesOfKind(n, SDGEdge.Kind.CONFLICT_ORDER),
-								SDGEdge::getSource, refLevel);
-		checkOrderConflictEdges(g.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CONFLICT_ORDER),
-								SDGEdge::getTarget, refLevel);
-	}
-
-	private void checkOrderConflictEdges(Collection<SDGEdge> oConfs, Function<SDGEdge, SDGNode> endpoint,
-			String refLevel) {
+		// if n has an incoming or outgoing order conflict edge and the conflict
+		// is low-observable, add a violation
+		List<SDGEdge> oConfs = g.getIncomingEdgesOfKind(n,
+				SDGEdge.Kind.CONFLICT_ORDER);
+		oConfs.addAll(g.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CONFLICT_ORDER));
 		for (SDGEdge oConf : oConfs) {
-			// check whether order-conflict is low-observable (with respect to
-			// the level of the current element)
-			// the element itself is always observable with respect to itself, so no need to check it
-			// TODO: current implementation (imprecisely) marks High/High conflicts as low-observable
-			if (isLowObservable((SecurityNode) endpoint.apply(oConf), refLevel)) {
+			// Calculate lowest level which can observe the conflict:
+			// This is the least upper bounds of both levels since both conflicting parts must be seen.
+			// Note that CONFLICT_ORDER edges only exist between annotated nodes,
+			// so we do not have to check for null here.
+			String refLevel = l.leastUpperBound(((SecurityNode) oConf.getSource()).getLevel(),
+			                                    ((SecurityNode) oConf.getTarget()).getLevel());
+			// Of refLevel is HIGH, the conflict can only be seen by a HIGH attacker,
+			// and a HIGH attacker can already see every input, so the conflict does not cause a leak.
+			// In contrast, assume refLevel is not HIGH (i.e. lower).
+			// There might be a HIGH source that influences the conflict.
+			// Since a attacker of refLevel can see the conflict, he can learn something about HIGH input.
+			// This would be a leak, since refLevel is lower than HIGH.
+			if (!refLevel.equals(l.getTop())) {
 				// possible probabilistic order channel
 				if (useOptimization) {
 					Collection<SecurityNode> secTriggers = collectSecretTriggers(
@@ -241,24 +244,6 @@ public class LSODNISlicer implements ConflictScanner {
 		}
 
 		return ret;
-	}
-
-	/**
-	 * Returns whether the given node is low-observable with respect to the given reference level.
-	 * This is the case, if it has a level which is lower than or equal to the given reference level.
-	 * 
-	 * @param n
-	 *            node to be checked for low-observability
-	 * @param refLevel
-	 *            reference level providing the least upper bound for
-	 *            observability
-	 * @return {@code true} if the node has a level which is lower than or equal to
-	 *         the given reference level (it is observable by an attacker which
-	 *         has the given level), {@code false} otherwise
-	 */
-	private boolean isLowObservable(SecurityNode n, String refLevel) {
-		String levelS1 = n.getLevel();
-		return levelS1 != null && l.isLeq(levelS1, refLevel);
 	}
 
 	/**

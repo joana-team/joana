@@ -21,11 +21,15 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.IFCType;
+import edu.kit.joana.api.lattice.LowHighLattice;
 import edu.kit.joana.api.test.util.ApiTestException;
 import edu.kit.joana.api.test.util.BuildSDG;
 import edu.kit.joana.api.test.util.DumpTestSDG;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.IViolation;
+import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
+import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
+import edu.kit.joana.ifc.sdg.lattice.WrongLatticeDefinitionException;
 
 /**
  * @author Martin Hecker <martin.hecker@kit.edu>
@@ -35,9 +39,9 @@ public class XLSODTests {
 	static final boolean outputPDGFiles = false;
 	static final boolean outputGraphMLFiles = false;
 	
-	private static IFCAnalysis buildAnnotateDump(Class<?> clazz, boolean timeSensitivity) throws ClassHierarchyException, ApiTestException,
+	private static IFCAnalysis buildAnnotateDump(Class<?> clazz, boolean timeSensitivity, IStaticLattice<String> l) throws ClassHierarchyException, ApiTestException,
 			IOException, UnsoundGraphException, CancelException {
-		IFCAnalysis ana = BuildSDG.buldAndUseJavaAnnotations(clazz, BuildSDG.top_concurrent, true);
+		IFCAnalysis ana = BuildSDG.buldAndUseJavaAnnotations(clazz, BuildSDG.top_concurrent, true, l);
 		ana.setTimesensitivity(timeSensitivity);
 	
 		final String classname = clazz.getCanonicalName();
@@ -51,31 +55,54 @@ public class XLSODTests {
 		
 		return ana;
 	}
-	
+
 	private static void testSound(Class<?> clazz, IFCType ifcType) throws ClassHierarchyException, ApiTestException,
 	IOException, UnsoundGraphException, CancelException {
-		assertTrue(ifcType == IFCType.timingiRLSOD || ifcType == IFCType.iRLSOD);
-		testSound(clazz, ifcType, false);
+		testSound(clazz, ifcType, LowHighLattice.INSTANCE);
 	}
+
 	private static void testSound(Class<?> clazz, IFCType ifcType, boolean timeSensitivity) throws ClassHierarchyException, ApiTestException,
 	IOException, UnsoundGraphException, CancelException {
 		// There are leaks, and we're sound and hence report them
-		IFCAnalysis ana = buildAnnotateDump(clazz, timeSensitivity);
+		testSound(clazz, ifcType, timeSensitivity, LowHighLattice.INSTANCE);
+	}
+
+	private static void testSound(Class<?> clazz, IFCType ifcType, IStaticLattice<String> l) throws ClassHierarchyException, ApiTestException,
+	IOException, UnsoundGraphException, CancelException {
+		assertTrue(ifcType == IFCType.timingiRLSOD || ifcType == IFCType.iRLSOD);
+		testSound(clazz, ifcType, false, l);
+	}
+
+	private static void testSound(Class<?> clazz, IFCType ifcType, boolean timeSensitivity, IStaticLattice<String> l) throws ClassHierarchyException, ApiTestException,
+	IOException, UnsoundGraphException, CancelException {
+		// There are leaks, and we're sound and hence report them
+		IFCAnalysis ana = buildAnnotateDump(clazz, timeSensitivity, l);
 
 		Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(ifcType);
 		assertFalse(illegal.isEmpty());
 	}
-	
+
 	private static void testPrecise(Class<?> clazz, IFCType ifcType) throws ClassHierarchyException, ApiTestException,
 			IOException, UnsoundGraphException, CancelException {
-		assertTrue(ifcType == IFCType.timingiRLSOD || ifcType == IFCType.iRLSOD);
-		testPrecise(clazz, ifcType, false);
+		testPrecise(clazz, ifcType, LowHighLattice.INSTANCE);
 	}
 
 	private static void testPrecise(Class<?> clazz, IFCType ifcType, boolean timeSensitivity) throws ClassHierarchyException, ApiTestException,
 			IOException, UnsoundGraphException, CancelException {
 		// There are no leak, and  we're precise enough to find out that there aren't
-		IFCAnalysis ana = buildAnnotateDump(clazz, timeSensitivity);
+		testPrecise(clazz, ifcType, timeSensitivity, LowHighLattice.INSTANCE);
+	}
+
+	private static void testPrecise(Class<?> clazz, IFCType ifcType, IStaticLattice<String> l) throws ClassHierarchyException, ApiTestException,
+			IOException, UnsoundGraphException, CancelException {
+		assertTrue(ifcType == IFCType.timingiRLSOD || ifcType == IFCType.iRLSOD);
+		testPrecise(clazz, ifcType, false, l);
+	}
+
+	private static void testPrecise(Class<?> clazz, IFCType ifcType, boolean timeSensitivity, IStaticLattice<String> l) throws ClassHierarchyException, ApiTestException,
+			IOException, UnsoundGraphException, CancelException {
+		// There are no leak, and  we're precise enough to find out that there aren't
+		IFCAnalysis ana = buildAnnotateDump(clazz, timeSensitivity, l);
 
 		Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(ifcType);
 		assertTrue(illegal.isEmpty());
@@ -83,16 +110,25 @@ public class XLSODTests {
 
 	private static void testTooImprecise(Class<?> clazz, IFCType ifcType) throws ClassHierarchyException, ApiTestException,
 			IOException, UnsoundGraphException, CancelException {
-		assertTrue(ifcType == IFCType.timingiRLSOD || ifcType == IFCType.iRLSOD);
-		testTooImprecise(clazz, ifcType, false);
+		testTooImprecise(clazz, ifcType, LowHighLattice.INSTANCE);
 	}
-	
 
 	private static void testTooImprecise(Class<?> clazz, IFCType ifcType, boolean timeSensitivity) throws ClassHierarchyException, ApiTestException,
 			IOException, UnsoundGraphException, CancelException {
+		testTooImprecise(clazz, ifcType, timeSensitivity, LowHighLattice.INSTANCE);
+	}
+
+	private static void testTooImprecise(Class<?> clazz, IFCType ifcType, IStaticLattice<String> l) throws ClassHierarchyException, ApiTestException,
+			IOException, UnsoundGraphException, CancelException {
+		assertTrue(ifcType == IFCType.timingiRLSOD || ifcType == IFCType.iRLSOD);
+		testTooImprecise(clazz, ifcType, false, l);
+	}
+
+	private static void testTooImprecise(Class<?> clazz, IFCType ifcType, boolean timeSensitivity, IStaticLattice<String> l) throws ClassHierarchyException, ApiTestException,
+			IOException, UnsoundGraphException, CancelException {
 		testSound(clazz, ifcType, timeSensitivity);
 	}
-	
+
 
 	@Test
 	public void testDe_uni_trier_infsec_core_Setup() throws ClassHierarchyException, ApiTestException, IOException,
@@ -188,12 +224,12 @@ public class XLSODTests {
 	@Test
 	public void testProbabilisticSmall() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testTooImprecise(joana.api.testdata.demo.Prob_Small.class, IFCType.LSOD,          false);
+		testPrecise(     joana.api.testdata.demo.Prob_Small.class, IFCType.LSOD,          false);
 		testPrecise(     joana.api.testdata.demo.Prob_Small.class, IFCType.RLSOD,         false);
 		testPrecise(     joana.api.testdata.demo.Prob_Small.class, IFCType.iRLSOD);
 		testPrecise(     joana.api.testdata.demo.Prob_Small.class, IFCType.timingiRLSOD);
 		
-		testTooImprecise(joana.api.testdata.demo.Prob_Small.class, IFCType.LSOD,          true);
+		testPrecise(     joana.api.testdata.demo.Prob_Small.class, IFCType.LSOD,          true);
 		testPrecise(     joana.api.testdata.demo.Prob_Small.class, IFCType.RLSOD,         true);
 
 	}
@@ -462,18 +498,18 @@ public class XLSODTests {
 	@Test
 	public void testORLSODImprecise() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testTooImprecise(joana.api.testdata.demo.xrlsod.ORLSODImprecise.class, IFCType.LSOD,          false);
+		testPrecise(     joana.api.testdata.demo.xrlsod.ORLSODImprecise.class, IFCType.LSOD,          false);
 		testPrecise     (joana.api.testdata.demo.xrlsod.ORLSODImprecise.class, IFCType.RLSOD,         false);
 		testTooImprecise(joana.api.testdata.demo.xrlsod.ORLSODImprecise.class, IFCType.iRLSOD);
-		// This kind of "embarassing" regression (wrt. RLSOD) is due classification of
+		// This kind of "embarassing" regression (wrt. LSOD and RLSOD) is due classification of
 		// H2 = H; as high, and the fact that the iRLSOD check does not differentiate between
 		// the security level of the value read/written at some such a program point, and it's effect on
 		// the "timing" it has on subsequent points
 		
 		testPrecise(     joana.api.testdata.demo.xrlsod.ORLSODImprecise.class, IFCType.timingiRLSOD);
 
-		testTooImprecise(joana.api.testdata.demo.xrlsod.ORLSODImprecise.class, IFCType.LSOD,          true);
-		testPrecise     (joana.api.testdata.demo.xrlsod.ORLSODImprecise.class, IFCType.RLSOD,         true);
+		testPrecise(     joana.api.testdata.demo.xrlsod.ORLSODImprecise.class, IFCType.LSOD,          true);
+		testPrecise(     joana.api.testdata.demo.xrlsod.ORLSODImprecise.class, IFCType.RLSOD,         true);
 
 	}
 	
@@ -571,18 +607,34 @@ public class XLSODTests {
 	@Test
 	public void testMHPSources() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		/* In LSOD checking, we say an order conflict at a source/sink is low-observable
-		 * if someone with the level of that node can observe both operations of the conflict.
-		 * This criterion includes a High/High conflict, but this conflict is not low-observable.
-		 * So we need to think of another criterion for observability,
-		 * which has to work for arbitrary lattices.
-		 */
-		testTooImprecise(joana.api.testdata.demo.MHPSources.class, IFCType.LSOD,          false);
+		testPrecise(     joana.api.testdata.demo.MHPSources.class, IFCType.LSOD,          false);
 		testPrecise(     joana.api.testdata.demo.MHPSources.class, IFCType.RLSOD,         false);
 		testPrecise(     joana.api.testdata.demo.MHPSources.class, IFCType.iRLSOD);
 		testPrecise(     joana.api.testdata.demo.MHPSources.class, IFCType.timingiRLSOD);
 
-		testTooImprecise(joana.api.testdata.demo.MHPSources.class, IFCType.LSOD,          true);
+		testPrecise(     joana.api.testdata.demo.MHPSources.class, IFCType.LSOD,          true);
 		testPrecise(     joana.api.testdata.demo.MHPSources.class, IFCType.RLSOD,         true);
+	}
+
+	@Test
+	public void testConflictOtherLattice() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException, WrongLatticeDefinitionException {
+		IStaticLattice<String> l = LatticeUtil.compileBitsetLattice(
+			LatticeUtil.loadLattice(
+				"L <= A\n" +
+				"L <= B\n" +
+				"A <= C\n" +
+				"B <= C\n" +
+				"C <= H\n"
+			)
+		);
+
+		testSound(joana.api.testdata.demo.ConflictOtherLattice.class, IFCType.LSOD,          false, l);
+		testSound(joana.api.testdata.demo.ConflictOtherLattice.class, IFCType.RLSOD,         false, l);
+		testSound(joana.api.testdata.demo.ConflictOtherLattice.class, IFCType.iRLSOD, l);
+		testSound(joana.api.testdata.demo.ConflictOtherLattice.class, IFCType.timingiRLSOD, l);
+
+		testSound(joana.api.testdata.demo.ConflictOtherLattice.class, IFCType.LSOD,          true, l);
+		testSound(joana.api.testdata.demo.ConflictOtherLattice.class, IFCType.RLSOD,         true, l);
 	}
 }

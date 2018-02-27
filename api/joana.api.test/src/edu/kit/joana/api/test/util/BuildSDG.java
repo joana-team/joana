@@ -24,6 +24,7 @@ import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
+import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.mhpoptimization.PruneInterferences;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
@@ -125,6 +126,14 @@ public final class BuildSDG {
 				throws ApiTestException, ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
 			IFCAnalysis ana = build(clazz,config,ignore);
 			ana.addAllJavaSourceAnnotations();
+			return ana;
+	}
+
+	public static <T> IFCAnalysis buldAndUseJavaAnnotations(Class<T> clazz, SDGConfig config, boolean ignore, IStaticLattice<String> l)
+				throws ApiTestException, ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+			IFCAnalysis ana = build(clazz,config,ignore);
+			ana.setLattice(l);
+			ana.addAllJavaSourceAnnotations(l);
 			return ana;
 	}
 }

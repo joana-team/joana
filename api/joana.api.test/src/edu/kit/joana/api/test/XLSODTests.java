@@ -617,6 +617,18 @@ public class XLSODTests {
 	}
 
 	@Test
+	public void testHighDataConflict() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testTooImprecise(joana.api.testdata.demo.HighDataConflict.class, IFCType.LSOD,          false);
+		testPrecise(     joana.api.testdata.demo.HighDataConflict.class, IFCType.RLSOD,         false);
+		testPrecise(     joana.api.testdata.demo.HighDataConflict.class, IFCType.iRLSOD);
+		testPrecise(     joana.api.testdata.demo.HighDataConflict.class, IFCType.timingiRLSOD);
+
+		testTooImprecise(joana.api.testdata.demo.HighDataConflict.class, IFCType.LSOD,          true);
+		testPrecise(     joana.api.testdata.demo.HighDataConflict.class, IFCType.RLSOD,         true);
+	}
+
+	@Test
 	public void testConflictInCalledMethod1() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testSound(     joana.api.testdata.demo.ConflictInCalledMethod1.class, IFCType.LSOD,          false);

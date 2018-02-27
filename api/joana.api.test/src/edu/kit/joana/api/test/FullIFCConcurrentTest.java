@@ -134,7 +134,7 @@ public class FullIFCConcurrentTest {
 			final SDGProgram prog = build("conc.ac.AlarmClock");
 			{
 				final IFCAnalysis ana1 = annotate(prog, "conc.ac.Clock.max", "conc.ac.Client.name");
-				testLeaksFound(ana1, 14);
+				testLeaksFound(ana1, 28);
 			}
 			{
 				final IFCAnalysis ana2 = annotate(prog, SECRET, PUBLIC);
@@ -152,7 +152,7 @@ public class FullIFCConcurrentTest {
 			IFCAnalysis ana = buildAndAnnotate("conc.bb.ProducerConsumer",
 					"conc.bb.BoundedBuffer.putIn",
 					"conc.bb.BoundedBuffer.takeOut");
-			testLeaksFound(ana, 12);
+			testLeaksFound(ana, 16);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -193,7 +193,7 @@ public class FullIFCConcurrentTest {
 			IFCAnalysis ana = buildAndAnnotate("conc.daisy.DaisyTest",
 					"conc.daisy.DaisyUserThread.iterations",
 					"conc.daisy.DaisyDir.dirsize");
-			testLeaksFound(ana, 1);
+			testLeaksFound(ana, 2);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -206,7 +206,7 @@ public class FullIFCConcurrentTest {
 			IFCAnalysis ana = buildAndAnnotate("conc.dp.DiningPhilosophers",
 					"conc.dp.Philosopher.id",
 					"conc.dp.DiningServer.state");
-			testLeaksFound(ana, 48);
+			testLeaksFound(ana, 96);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -219,7 +219,7 @@ public class FullIFCConcurrentTest {
 			IFCAnalysis ana = buildAndAnnotate("conc.ds.DiskSchedulerDriver",
 					"conc.ds.DiskScheduler.position",
 					"conc.ds.DiskReader.active");
-			testLeaksFound(ana, 22);
+			testLeaksFound(ana, 24);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -232,7 +232,7 @@ public class FullIFCConcurrentTest {
 			IFCAnalysis ana = buildAndAnnotate("conc.kn.Knapsack5",
 					"conc.kn.Knapsack5$Item.profit",
 					"conc.kn.PriorityRunQueue.numThreadsWaiting");
-			testLeaksFound(ana, 57);
+			testLeaksFound(ana, 60);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -395,10 +395,10 @@ public class FullIFCConcurrentTest {
 					PUBLIC);
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC(IFCType.LSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(201, illegal.size());
+			assertEquals(211, illegal.size());
 			illegal = ana.doIFC(IFCType.LSOD, MHPType.PRECISE);
 			assertFalse(illegal.isEmpty());
-			assertEquals(198, illegal.size());
+			assertEquals(208, illegal.size());
 			illegal = ana.doIFC(IFCType.RLSOD, MHPType.SIMPLE);
 			assertFalse(illegal.isEmpty());
 			assertEquals(41, illegal.size());

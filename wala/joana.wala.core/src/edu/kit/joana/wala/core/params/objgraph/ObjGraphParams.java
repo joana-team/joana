@@ -264,7 +264,7 @@ public final class ObjGraphParams {
 		sdg.cfg.out.print("(if");
 
 		// step 1 create candidates
-		final CallGraph cg = stripCallsFromThreadStartToRun(sdg.getNonPrunedWalaCallGraph());
+		final CallGraph cg = sdg.getNonPrunedWalaCallGraph();
 		final ParameterFieldFactory pfact = sdg.getParameterFieldFactory();
 		final OrdinalSetMapping<ParameterField> fieldMapping = pfact.getMapping();
 

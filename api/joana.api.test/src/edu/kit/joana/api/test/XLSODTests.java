@@ -617,6 +617,42 @@ public class XLSODTests {
 	}
 
 	@Test
+	public void testConflictInCalledMethod1() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testSound(     joana.api.testdata.demo.ConflictInCalledMethod1.class, IFCType.LSOD,          false);
+		testSound(     joana.api.testdata.demo.ConflictInCalledMethod1.class, IFCType.RLSOD,         false);
+		testSound(     joana.api.testdata.demo.ConflictInCalledMethod1.class, IFCType.iRLSOD);
+		testSound(     joana.api.testdata.demo.ConflictInCalledMethod1.class, IFCType.timingiRLSOD);
+
+		testSound(     joana.api.testdata.demo.ConflictInCalledMethod1.class, IFCType.LSOD,          true);
+		testSound(     joana.api.testdata.demo.ConflictInCalledMethod1.class, IFCType.RLSOD,         true);
+	}
+
+	@Test
+	public void testConflictInCalledMethod2() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testSound(     joana.api.testdata.demo.ConflictInCalledMethod2.class, IFCType.LSOD,          false);
+		testSound(     joana.api.testdata.demo.ConflictInCalledMethod2.class, IFCType.RLSOD,         false);
+		testSound(     joana.api.testdata.demo.ConflictInCalledMethod2.class, IFCType.iRLSOD);
+		testSound(     joana.api.testdata.demo.ConflictInCalledMethod2.class, IFCType.timingiRLSOD);
+
+		testSound(     joana.api.testdata.demo.ConflictInCalledMethod2.class, IFCType.LSOD,          true);
+		testSound(     joana.api.testdata.demo.ConflictInCalledMethod2.class, IFCType.RLSOD,         true);
+	}
+
+	@Test
+	public void testThreadStartNoDependencyBug() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testSound(     joana.api.testdata.demo.ThreadStartNoDependencyBug.class, IFCType.LSOD,          false);
+		testSound(     joana.api.testdata.demo.ThreadStartNoDependencyBug.class, IFCType.RLSOD,         false);
+		testSound(     joana.api.testdata.demo.ThreadStartNoDependencyBug.class, IFCType.iRLSOD);
+		testSound(     joana.api.testdata.demo.ThreadStartNoDependencyBug.class, IFCType.timingiRLSOD);
+
+		testSound(     joana.api.testdata.demo.ThreadStartNoDependencyBug.class, IFCType.LSOD,          true);
+		testSound(     joana.api.testdata.demo.ThreadStartNoDependencyBug.class, IFCType.RLSOD,         true);
+	}
+
+	@Test
 	public void testConflictOtherLattice() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException, WrongLatticeDefinitionException {
 		IStaticLattice<String> l = LatticeUtil.compileBitsetLattice(

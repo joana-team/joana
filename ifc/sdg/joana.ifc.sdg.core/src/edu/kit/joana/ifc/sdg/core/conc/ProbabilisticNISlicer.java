@@ -232,7 +232,7 @@ public class ProbabilisticNISlicer implements ConflictScanner {
                     	if (!refined.isEmpty()) {
     	                	SDGEdge edge = new SDGEdge(m, n, SDGEdge.Kind.CONFLICT_ORDER);
     	                	orderConflictEdges.add(edge);
-    	                    orderConflicts2Triggers.put(edge, triggers);
+    	                    orderConflicts2Triggers.put(edge, refined);
 //    	                    System.out.println("ORDER CONFLICT: "+m+" <-> "+n);
                     	}
                     }
@@ -549,7 +549,7 @@ public class ProbabilisticNISlicer implements ConflictScanner {
         }
 
         /**
-         * All data conflicts, which possibly could influence the given element have been computed.
+         * All data conflicts which possibly could influence the given element have been computed.
          * Now, check if one of these data conflicts is influenced by a secret (relative to the security
          * level of the given element) source.
          */

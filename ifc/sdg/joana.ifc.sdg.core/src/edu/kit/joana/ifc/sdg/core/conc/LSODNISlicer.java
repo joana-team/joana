@@ -155,6 +155,11 @@ public class LSODNISlicer implements ConflictScanner {
 	}
 
 	private void scanForConflicts(Element e) {
+		// HIGH nodes can only be seen by a HIGH attacker,
+		// and a HIGH attacker can already see every input
+		if (e.node.getLevel().equals(l.getTop())) {
+			return;
+		}
 		DataConflictCollector confCollector = new DataConflictCollector();
 		Slicer slicer;
 		if (this.timeSens) {
@@ -203,7 +208,7 @@ public class LSODNISlicer implements ConflictScanner {
 			// so we do not have to check for null here.
 			String refLevel = l.leastUpperBound(((SecurityNode) oConf.getSource()).getLevel(),
 			                                    ((SecurityNode) oConf.getTarget()).getLevel());
-			// Of refLevel is HIGH, the conflict can only be seen by a HIGH attacker,
+			// If refLevel is HIGH, the conflict can only be seen by a HIGH attacker,
 			// and a HIGH attacker can already see every input, so the conflict does not cause a leak.
 			// In contrast, assume refLevel is not HIGH (i.e. lower).
 			// There might be a HIGH source that influences the conflict.

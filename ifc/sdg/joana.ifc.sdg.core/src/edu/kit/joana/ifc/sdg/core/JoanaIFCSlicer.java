@@ -22,6 +22,7 @@ import java.util.Set;
 import edu.kit.joana.ifc.sdg.core.interfaces.ProgressAnnouncer;
 import edu.kit.joana.ifc.sdg.core.interfaces.ProgressListener;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
+import edu.kit.joana.ifc.sdg.graph.LabeledSDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -361,11 +362,11 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 			/* ...If none exists, create a new one */
 			if (annSummaryNode == null) {
 				annSummaryNode = new SecurityNode(sumNodeID--,SecurityNode.Operation.SUMMARY,
-						"summary", -1, "", actualOut.getSource(), -1, -1, -1, -1, actualOut.getBytecodeName(), -1);
+						"summary", -1, "", actualOut.getSourceLocation(), actualOut.getBytecodeName(), -1, null, null, null, null, null);
 				annSummaryNode.setProvided(annOutClass);
 				fdefNodes.put(annSummaryNode, defNodes);
 				g.addVertex(annSummaryNode);
-				SDGEdge annEdge = new SDGEdge(annSummaryNode, actualOut, SDGEdge.Kind.SUMMARY);
+				SDGEdge annEdge = SDGEdge.Kind.SUMMARY.newEdge(annSummaryNode, actualOut);
 				g.addEdge(annEdge);
 				changed = true;
 			/* else update the old */
@@ -408,11 +409,11 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 			/* ...If none exists, create a new one */
 			if (vioSummaryNode == null) {
 				vioSummaryNode = new SecurityNode(sumNodeID--,SecurityNode.Operation.SUMMARY, "summary", -1, "",
-						actualOut.getSource(), -1, -1, -1, -1, actualOut.getBytecodeName(), -1);
+						actualOut.getSourceLocation(), actualOut.getBytecodeName(), -1, null, null, null, null, null);
 				vioSummaryNode.setProvided(l.getTop());
 				fsecVios.put(vioSummaryNode, secVios);
 				g.addVertex(vioSummaryNode);
-				SDGEdge secVioEdge = new SDGEdge(vioSummaryNode, actualOut, SDGEdge.Kind.SUMMARY);
+				SDGEdge secVioEdge = SDGEdge.Kind.SUMMARY.newEdge(vioSummaryNode, actualOut);
 				g.addEdge(secVioEdge);
 				changed = true;
 				if (debug.isEnabled()) {
@@ -498,15 +499,15 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 				/* ...If none exists, create a new one */
 				if (summaryNode == null) {
 					summaryNode = new SecurityNode(sumNodeID--,SecurityNode.Operation.SUMMARY, "summary", -1, "",
-							actualOut.getSource(), -1, -1, -1, -1, actualOut.getBytecodeName(), -1);
+							actualOut.getSourceLocation(), actualOut.getBytecodeName(), -1, null, null, null, null, null);
 					summaryNode.setRequired(maxIn);
 					summaryNode.setProvided(maxOut);
 					g.addVertex(summaryNode);
 
-					SDGEdge sumEdge1 = new SDGEdge(actualIn, summaryNode, SDGEdge.Kind.SUMMARY);
+					SDGEdge sumEdge1 =  SDGEdge.Kind.SUMMARY.newEdge(actualIn, summaryNode);
 					g.addEdge(sumEdge1);
 
-					SDGEdge sumEdge2 = new SDGEdge(summaryNode, actualOut, SDGEdge.Kind.SUMMARY);
+					SDGEdge sumEdge2 = SDGEdge.Kind.SUMMARY.newEdge(summaryNode, actualOut);
 					g.addEdge(sumEdge2);
 					changed = true;
 
@@ -524,7 +525,7 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 			}
 			/* Create Summary-Edge in case a freepath exists */
 			if (longer.fp && !summaryEdgeExistsBetween(actualIn, actualOut)) {
-				SDGEdge sumEdge = new SDGEdge(actualIn, actualOut, SDGEdge.Kind.SUMMARY, "njsec");
+				SDGEdge sumEdge = new LabeledSDGEdge(actualIn, actualOut, SDGEdge.Kind.SUMMARY, "njsec");
 				g.addEdge(sumEdge);
 				changed = true;
 			}
@@ -580,7 +581,7 @@ public class JoanaIFCSlicer implements ProgressAnnouncer {
 	 * @return
 	 */
 	private SecurityNode getSummaryNodeBetween(SecurityNode actualIn, SecurityNode actualOut) {
-		for (SDGEdge edge : g.getOutgoingEdgesOfKind(actualIn, SDGEdge.Kind.SUMMARY)) {
+		for (SDGEdge edge : g.getOutgoingEdgesOfKindUnsafe(actualIn, SDGEdge.Kind.SUMMARY)) {
 			SecurityNode target = (SecurityNode) edge.getTarget();
 			if (target.getKind() == SecurityNode.Kind.SUMMARY) {
 				return target;

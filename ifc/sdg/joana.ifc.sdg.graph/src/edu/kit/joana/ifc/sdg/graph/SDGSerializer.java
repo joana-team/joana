@@ -14,7 +14,10 @@ package edu.kit.joana.ifc.sdg.graph;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -128,10 +131,6 @@ public final class SDGSerializer {
                 pw.print(";\n");
             }
 
-            if (n.mayBeNonTerminating()) {
-            	pw.print("N;\n");
-            }
-
             if (n.getAliasDataSources() != null) {
             	pw.print("D ");
             	final TIntIterator it = n.getAliasDataSources().iterator();
@@ -191,7 +190,21 @@ public final class SDGSerializer {
     }
 
     private static void printPDGDependencies(JoanaGraph g, SDGNode n, PrintWriter pw) {
-        for (SDGEdge e : g.outgoingEdgesOf(n)) {
+        final Set<SDGEdge> outgoing = g.outgoingEdgesOf(n);
+        final SDGEdge[] outgoingSorted = g.outgoingEdgesOf(n).toArray(new SDGEdge[outgoing.size()]);
+        // final Comparator<SDGEdge> comparator = SDGEdge.getComparator() <- this doesnt work
+        final Comparator<SDGEdge> comparator = new Comparator<SDGEdge>() {
+            @Override
+            public int compare(SDGEdge o1, SDGEdge o2) {
+                final int byKind = o1.getKind().compareTo(o2.getKind());
+                if (byKind != 0) return byKind;
+                
+                final int byTarget = Integer.compare(o1.getTarget().getId(), o2.getTarget().getId());
+                return byTarget;
+            }
+        };
+        Arrays.sort(outgoingSorted, comparator);
+        for (SDGEdge e : outgoingSorted) {
             SDGNode node = e.getTarget();
             String kind = e.getKind().toString();
             pw.print(kind + " " + node.getId());

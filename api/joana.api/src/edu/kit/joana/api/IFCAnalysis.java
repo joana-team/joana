@@ -70,8 +70,6 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PBackward;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PForward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.SimpleMHPAnalysis;
 import edu.kit.joana.ifc.sdg.irlsod.PredProbInfComputer;
 import edu.kit.joana.ifc.sdg.irlsod.OptORLSODChecker;
 import edu.kit.joana.ifc.sdg.irlsod.ProbInfComputer;
@@ -79,7 +77,6 @@ import edu.kit.joana.ifc.sdg.irlsod.ThreadModularCDomOracle;
 import edu.kit.joana.ifc.sdg.irlsod.TimingClassificationChecker;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
-import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.ui.annotations.AnnotationPolicy;
@@ -116,7 +113,7 @@ public class IFCAnalysis {
 		}
 		setProgram(program);
 		setLattice(secLattice);
-		setIFCType(IFCType.CLASSICAL_NI, null);
+		setIFCType(IFCType.CLASSICAL_NI);
 	}
 
 	public IFCAnalysis(SDGProgram program) {
@@ -136,9 +133,26 @@ public class IFCAnalysis {
 		}
 	}
 
-	private void setIFCType(IFCType ifcType, MHPType mhpType) {
+	private void setIFCType(IFCType ifcType) {
 		this.ifcType = ifcType;
-		MHPAnalysis mhp;
+		final MHPAnalysis mhp = program.getMhpAnalysis();
+		switch (this.ifcType) {
+		case CLASSICAL_NI: break;
+		case LSOD:
+		case RLSOD:
+		case iRLSOD:
+		case timingiRLSOD:
+			if (mhp == null) {
+				throw new IllegalStateException("Cannot run " + ifcType + "for SDGProram without available MHPAnalysis");
+			}
+			if (this.program.getSDG().getThreadsInfo() == null) {
+				CSDGPreprocessor.preprocessSDG(this.program.getSDG());
+			}
+			break;
+		default:
+			throw new IllegalStateException("unhandled ifc type: " + ifcType + "!");
+		}
+
 		switch (this.ifcType) {
 		case CLASSICAL_NI:
 			this.ifc = new SlicingBasedIFC(this.program.getSDG(), secLattice, new I2PForward(this.program.getSDG()), new I2PBackward(this.program.getSDG()));
@@ -153,28 +167,16 @@ public class IFCAnalysis {
 			}
 			break;
 		case LSOD:
-			if (this.program.getSDG().getThreadsInfo() == null) {
-				CSDGPreprocessor.preprocessSDG(this.program.getSDG());
-			}
-			mhp = performMHPAnalysis(mhpType);
 			ConflictScanner lsodScanner = LSODNISlicer.simpleCheck(this.program.getSDG(), secLattice, mhp,
 			this.timeSensitiveAnalysis);
 			this.ifc = new ProbabilisticNIChecker(this.program.getSDG(), secLattice, lsodScanner,
 					mhp, this.timeSensitiveAnalysis);
 			break;
 		case RLSOD:
-			if (this.program.getSDG().getThreadsInfo() == null) {
-				CSDGPreprocessor.preprocessSDG(this.program.getSDG());
-			}
-			mhp = performMHPAnalysis(mhpType);
 			this.ifc = new ProbabilisticNIChecker(this.program.getSDG(), secLattice, mhp,
 					this.timeSensitiveAnalysis);
 			break;
 		case iRLSOD: {
-			if (this.program.getSDG().getThreadsInfo() == null) {
-				CSDGPreprocessor.preprocessSDG(this.program.getSDG());
-			}
-			mhp = performMHPAnalysis(mhpType);
 			final SDG sdg = this.program.getSDG();
 //			final ThreadModularCDomOracle tmdo = new ThreadModularCDomOracle(sdg);
 //			final ProbInfComputer probInf = new CDomProbInfComputer(sdg, tmdo);
@@ -186,10 +188,6 @@ public class IFCAnalysis {
 			break;
 		}
 		case timingiRLSOD: {
-			if (this.program.getSDG().getThreadsInfo() == null) {
-				CSDGPreprocessor.preprocessSDG(this.program.getSDG());
-			}
-			mhp = performMHPAnalysis(mhpType);
 			final SDG sdg = this.program.getSDG();
 			final ThreadModularCDomOracle tmdo = new ThreadModularCDomOracle(sdg);
 			this.ifc = new TimingClassificationChecker<String>(sdg, secLattice, mhp, tmdo);
@@ -197,14 +195,6 @@ public class IFCAnalysis {
 		}
 		default:
 			throw new IllegalStateException("unhandled ifc type: " + ifcType + "!");
-		}
-	}
-
-	private MHPAnalysis performMHPAnalysis(MHPType mhpType) {
-		if (mhpType == MHPType.SIMPLE) {
-			return SimpleMHPAnalysis.analyze(this.program.getSDG());
-		} else {
-			return PreciseMHPAnalysis.analyze(this.program.getSDG());
 		}
 	}
 
@@ -282,15 +272,6 @@ public class IFCAnalysis {
 	}
 
 	/**
-	 * Do IFC analysis of the specified type and uses precise mhp analysis.
-	 * @param ifcType type of IFC analysis to perform
-	 * @return collection of security violations reported by the specified ifc analysis
-	 */
-	public Collection<? extends IViolation<SecurityNode>> doIFC(IFCType ifcType) {
-		return doIFC(ifcType, MHPType.PRECISE);
-	}
-
-	/**
 	 * Do IFC analysis of the specified type and use the specified MHP analysis precision, if relevant.
 	 * Note that mhpType is assumed to be not {@code null}, if ifcType is {@link IFCType#LSOD} or {@link IFCType#RLSOD}. If ifcType is
 	 * {@link IFCType#CLASSICAL_NI}, then mhpType is ignored and thus also allowed to be {@code null}.
@@ -298,10 +279,10 @@ public class IFCAnalysis {
 	 * @param mhpType precision of the MHP analysis to use - must be non-null if ifcType is {@link IFCType#LSOD} or {@link IFCType#RLSOD}; may be {@code null} otherwise
 	 * @return collection of security violations reported by the specified ifc analysis
 	 */
-	public Collection<? extends IViolation<SecurityNode>> doIFC(IFCType ifcType, MHPType mhpType) {
+	public Collection<? extends IViolation<SecurityNode>> doIFC(IFCType ifcType) {
 		assert ifc != null && ifc.getSDG() != null && ifc.getLattice() != null;
 		annManager.applyAllAnnotations();
-		setIFCType(ifcType, mhpType);
+		setIFCType(ifcType);
 		long time = 0L;
 		time = System.currentTimeMillis();
 		Collection<? extends IViolation<SecurityNode>> vios = ifc.checkIFlow();

@@ -15,6 +15,7 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.chopper.TruncatedNonSameLevelChopper;
 import edu.kit.joana.ifc.sdg.graph.slicer.Slicer;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
 
 
 /** This class realises Krinke's optimised algorithm for threaded interprocedural slicing.
@@ -27,7 +28,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.Slicer;
 @Deprecated
 public class OptimizedKrinke extends Krinke implements Slicer {
     /** An intrathreadual summary slicer. */
-    private Context2PhaseSlicer contextSlicer;
+    private Context2PhaseSlicer<DynamicContext> contextSlicer;
     /** A truncated non-same-level chopper. */
     private TruncatedNonSameLevelChopper truncated;
 
@@ -56,7 +57,7 @@ public class OptimizedKrinke extends Krinke implements Slicer {
      */
     private void init(SDG graph) {
         // the used 2-phase slicer
-        contextSlicer = new Context2PhaseSlicer(graph, this.man);
+        contextSlicer = new Context2PhaseSlicer<>(graph, this.man);
 
         // a truncated non-same-level chopper
         truncated = new TruncatedNonSameLevelChopper(graph);
@@ -70,7 +71,7 @@ public class OptimizedKrinke extends Krinke implements Slicer {
      * @param slice  Containing the computed slice.
      * @return  A set of WorklistElements, representing Contexts with incoming inter-threadual edges.
      */
-    protected Collection<WorklistElement> threadSlice(WorklistElement next, HashSet<SDGNode> slice) {
+    protected Collection<WorklistElement<DynamicContext>> threadSlice(WorklistElement<DynamicContext> next, HashSet<SDGNode> slice) {
         // perform a 2-phase slice
         Collection<SDGNode> interferingNodes = contextSlicer.slice(Collections.singleton(next.getContext()), slice);
 
@@ -79,7 +80,7 @@ public class OptimizedKrinke extends Krinke implements Slicer {
         Collection<SDGNode> chop = truncated.chop(interferingNodes, crit);
 
         // compute explicitly context-sensitive slice on chop result
-        Collection<WorklistElement> withInterference = slicer.subGraphSlice(next, chop);
+        Collection<WorklistElement<DynamicContext>> withInterference = slicer.subGraphSlice(next, chop);
 
         return withInterference;
     }

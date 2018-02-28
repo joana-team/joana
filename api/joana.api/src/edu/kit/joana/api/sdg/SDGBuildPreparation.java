@@ -11,21 +11,15 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.jar.JarFile;
 
 import com.ibm.wala.cfg.exc.intra.MethodState;
 import com.ibm.wala.classLoader.BinaryDirectoryTreeModule;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
-import com.ibm.wala.classLoader.JarFileModule;
-import com.ibm.wala.classLoader.JarStreamModule;
 import com.ibm.wala.classLoader.Language;
 import com.ibm.wala.classLoader.Module;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
@@ -53,7 +47,6 @@ import com.ibm.wala.util.strings.StringStuff;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
-import edu.kit.joana.util.JoanaConstants;
 import edu.kit.joana.util.LogUtil;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.util.io.IOFactory;
@@ -71,9 +64,10 @@ import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
 import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
 import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
+import edu.kit.joana.wala.summary.SummaryComputationType;
+import edu.kit.joana.wala.util.WALAUtils;
 import edu.kit.joana.wala.util.WriteGraphToDot;
 import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder;
-import joana.contrib.lib.Contrib;
 
 public final class SDGBuildPreparation {
 
@@ -133,41 +127,25 @@ public final class SDGBuildPreparation {
 		}
 	}
 
-	public static Module findJarModule(final String path) throws IOException {
-		return findJarModule(null, path);
-	}
-	/**
-	 * Search file in filesystem. If not found, try to load from classloader (e.g. from inside the jarfile).
-	 */
-	public static Module findJarModule(final PrintStream out, final String path) throws IOException {
-		final File f = new File(path);
-		if (f.exists()) {
-			if (out != null) out.print("(from file " + path + ") ");
-			return new JarFileModule(new JarFile(f));
-		} else {
-			final URL url = Contrib.class.getClassLoader().getResource(path);
-			final URLConnection con = url.openConnection();
-			final InputStream in = con.getInputStream();
-			if (out != null) out.print("(from jar stream " + path + ") ");
-			return new JarStreamModule(in);
-		}
-	}
-
 	public static AnalysisScope setUpAnalysisScope(final PrintStream out, final Config cfg) throws IOException {
 		// Fuegt die normale Java Bibliothek zum Scope hinzu
 
 		// deactivates WALA synthetic methods if cfg.nativesXML != null
-		com.ibm.wala.ipa.callgraph.impl.Util.setNativeSpec(cfg.nativesXML);
+		com.ibm.wala.ipa.callgraph.impl.Util.setNativeSpec(cfg.stubs.getNativeSpecFile());
 
 		AnalysisScope scope;
 		// if use stubs
-		if (cfg.stubs != null && cfg.stubs.length > 0) {
+		assert cfg.stubs != null;
+		final String[] stubPaths = cfg.stubs.getPaths();
+		if (stubPaths.length > 0) {
+			assert cfg.stubs != Stubs.NO_STUBS;
 			scope = AnalysisScope.createJavaAnalysisScope();
-			for (final String stub : cfg.stubs) {
-				final Module stubs = findJarModule(out, stub);
+			for (final String stub : stubPaths) {
+				final Module stubs = WALAUtils.findJarModule(out, stub);
 				scope.addToScope(ClassLoaderReference.Primordial, stubs);
 			}
 		} else {
+			assert cfg.stubs == Stubs.NO_STUBS;
 			scope = AnalysisScopeReader.makePrimordialScope(null);
 		}
 
@@ -178,10 +156,10 @@ public final class SDGBuildPreparation {
 		scope.setExclusions(exclusions);
 
 	    ClassLoaderReference loader = scope.getLoader(AnalysisScope.APPLICATION);
-	    AnalysisScopeReader.addClassPathToScope(cfg.classpath, scope, loader);
+	    AnalysisScopeReader.addClassPathToScope(cfg.classpath, scope, loader, cfg.classpathAddEntriesFromMANIFEST);
 	    if (cfg.thirdPartyLibPath != null) {
 	    	ClassLoaderReference extLoader = scope.getLoader(AnalysisScope.EXTENSION);
-	    	AnalysisScopeReader.addClassPathToScope(cfg.thirdPartyLibPath, scope, extLoader);
+	    	AnalysisScopeReader.addClassPathToScope(cfg.thirdPartyLibPath, scope, extLoader, cfg.classpathAddEntriesFromMANIFEST);
 	    }
 	    return scope;
 	}
@@ -215,11 +193,11 @@ public final class SDGBuildPreparation {
 			if (!appClassPath.endsWith(".jar")) {
 				scope.addToScope(ClassLoaderReference.Application, new BinaryDirectoryTreeModule(new File(appClassPath)));
 			} else {
-				scope.addToScope(ClassLoaderReference.Application, findJarModule(appClassPath));
+				scope.addToScope(ClassLoaderReference.Application, WALAUtils.findJarModule(appClassPath));
 			}
 		}
 		for (String stubsPath : stubs.getPaths()) {
-			scope.addToScope(ClassLoaderReference.Primordial, findJarModule(stubsPath));
+			scope.addToScope(ClassLoaderReference.Primordial, WALAUtils.findJarModule(stubsPath));
 		}
 		scope.setExclusions(new FileOfClasses(new ByteArrayInputStream(exclusionsRegexp.getBytes())));
 		return scope;
@@ -303,6 +281,7 @@ public final class SDGBuildPreparation {
 		}
 
 		final SDGBuilder.SDGBuilderConfig scfg = new SDGBuilder.SDGBuilderConfig();
+		scfg.nativeSpecClassLoader = cfg.stubs.getNativeSpecClassLoader();
 		scfg.out = out;
 		scfg.scope = scope;
 		scfg.cache = cache;
@@ -327,6 +306,7 @@ public final class SDGBuildPreparation {
 		scfg.debugManyGraphsDotOutput = cfg.debugManyGraphsDotOutput;
 		scfg.computeInterference = cfg.computeInterference;
 		scfg.computeSummary = cfg.computeSummaryEdges;
+		scfg.summaryComputationType = cfg.summaryComputationType;
 		scfg.computeAllocationSites = cfg.computeAllocationSites;
 		scfg.cgConsumer = cfg.cgConsumer;
 		scfg.additionalContextSelector = cfg.ctxSelector;
@@ -410,10 +390,10 @@ public final class SDGBuildPreparation {
 		public String name;
 		public String entryMethod;
 		public String classpath;
+		public boolean classpathAddEntriesFromMANIFEST = true;
 		public String thirdPartyLibPath;
 		public String exclusions;
-		public String nativesXML;
-		public String[] stubs;
+		public Stubs stubs; 
 		public String outputDir;
 		public ExternalCallCheck extern;
 		public PointsToPrecision pts;
@@ -425,6 +405,7 @@ public final class SDGBuildPreparation {
 		public boolean accessPath;
 		public boolean computeInterference = false;
 		public boolean computeSummaryEdges = true;
+		public SummaryComputationType summaryComputationType = SummaryComputationType.DEFAULT;
 		public boolean debugManyGraphsDotOutput = false;
 		public FieldPropagation fieldPropagation;
 		public SideEffectDetectorConfig sideEffects = null;
@@ -440,48 +421,48 @@ public final class SDGBuildPreparation {
 		}
 
 		public Config(String name, String entryMethod, FieldPropagation fieldPropagation) {
-			this(name, entryMethod, STD_CLASS_PATH, PointsToPrecision.INSTANCE_BASED, DEFAULT_EXCEPTION_ANALYSIS,
-					DEFAULT_ACCESS_PATH, SDGBuilder.STD_EXCLUSION_REG_EXP, JoanaConstants.DEFAULT_NATIVES_XML, /* stubs */null,
+			this(name, entryMethod, STD_CLASS_PATH, true, PointsToPrecision.INSTANCE_BASED, DEFAULT_EXCEPTION_ANALYSIS,
+					DEFAULT_ACCESS_PATH, SDGBuilder.STD_EXCLUSION_REG_EXP, Stubs.NO_STUBS,
 					/*ext-call*/null, "./", fieldPropagation);
 		}
 
-		public Config(String name, String entryMethod, String classpath, FieldPropagation fieldPropagation) {
-			this(name, entryMethod, classpath, PointsToPrecision.INSTANCE_BASED, DEFAULT_EXCEPTION_ANALYSIS,
-					DEFAULT_ACCESS_PATH, SDGBuilder.STD_EXCLUSION_REG_EXP, JoanaConstants.DEFAULT_NATIVES_XML, /* stubs */null,
+		public Config(String name, String entryMethod, String classpath, boolean classpathAddEntriesFromMANIFEST, FieldPropagation fieldPropagation) {
+			this(name, entryMethod, classpath, classpathAddEntriesFromMANIFEST, PointsToPrecision.INSTANCE_BASED, DEFAULT_EXCEPTION_ANALYSIS,
+					DEFAULT_ACCESS_PATH, SDGBuilder.STD_EXCLUSION_REG_EXP, Stubs.NO_STUBS,
 					/*ext-call*/null, "./", fieldPropagation);
 		}
 
-		public Config(String name, String entryMethod, String classpath, PointsToPrecision pts,
+		public Config(String name, String entryMethod, String classpath, boolean classpathAddEntriesFromMANIFEST, PointsToPrecision pts,
 				FieldPropagation fieldPropagation) {
-			this(name, entryMethod, classpath, pts, DEFAULT_EXCEPTION_ANALYSIS, DEFAULT_ACCESS_PATH,
-					SDGBuilder.STD_EXCLUSION_REG_EXP, JoanaConstants.DEFAULT_NATIVES_XML, /* stubs */null, /*ext-call*/null,
+			this(name, entryMethod, classpath, classpathAddEntriesFromMANIFEST, pts, DEFAULT_EXCEPTION_ANALYSIS, DEFAULT_ACCESS_PATH,
+					SDGBuilder.STD_EXCLUSION_REG_EXP, Stubs.NO_STUBS, /*ext-call*/null,
 					"./", fieldPropagation);
 		}
 
-		public Config(String name, String entryMethod, String classpath, String exclusions,
+		public Config(String name, String entryMethod, String classpath, boolean classpathAddEntriesFromMANIFEST, String exclusions,
 				FieldPropagation fieldPropagation) {
-			this(name, entryMethod, classpath, PointsToPrecision.INSTANCE_BASED, DEFAULT_EXCEPTION_ANALYSIS,
-					DEFAULT_ACCESS_PATH, exclusions, JoanaConstants.DEFAULT_NATIVES_XML, /* stubs */null,
+			this(name, entryMethod, classpath, classpathAddEntriesFromMANIFEST, PointsToPrecision.INSTANCE_BASED, DEFAULT_EXCEPTION_ANALYSIS,
+					DEFAULT_ACCESS_PATH, exclusions, Stubs.NO_STUBS,
 					/*ext-call*/null, "./", fieldPropagation);
 		}
 
-		public Config(String name, String entryMethod, String classpath, PointsToPrecision pts, String exclusions,
+		public Config(String name, String entryMethod, String classpath, boolean classpathAddEntriesFromMANIFEST, PointsToPrecision pts, String exclusions,
 				FieldPropagation fieldPropagation) {
-			this(name, entryMethod, classpath, pts, DEFAULT_EXCEPTION_ANALYSIS, DEFAULT_ACCESS_PATH, exclusions,
-					JoanaConstants.DEFAULT_NATIVES_XML, /* stubs */null, /*ext-call*/null, "./", fieldPropagation);
+			this(name, entryMethod, classpath, classpathAddEntriesFromMANIFEST, pts, DEFAULT_EXCEPTION_ANALYSIS, DEFAULT_ACCESS_PATH, exclusions,
+					Stubs.NO_STUBS, /*ext-call*/null, "./", fieldPropagation);
 		}
 
-		public Config(String name, String entryMethod, String classpath, PointsToPrecision pts,
-				ExceptionAnalysis exceptions, boolean accessPath, String exclusions, String nativesXML, String[] stubs,
+		public Config(String name, String entryMethod, String classpath, boolean classpathAddEntriesFromMANIFEST, PointsToPrecision pts,
+				ExceptionAnalysis exceptions, boolean accessPath, String exclusions, Stubs stubs,
 				ExternalCallCheck extern, String outputDir,	FieldPropagation fieldPropagation) {
 			this.name = name;
 			this.pts = pts;
 			this.exceptions = exceptions;
 			this.accessPath = accessPath;
 			this.classpath = classpath;
+			this.classpathAddEntriesFromMANIFEST = classpathAddEntriesFromMANIFEST;
 			this.entryMethod = entryMethod;
 			this.exclusions = exclusions;
-			this.nativesXML = nativesXML;
 			this.stubs = stubs;
 			this.extern = extern;
 

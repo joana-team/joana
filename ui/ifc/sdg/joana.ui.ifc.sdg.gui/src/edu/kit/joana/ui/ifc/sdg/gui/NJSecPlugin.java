@@ -214,7 +214,6 @@ public class NJSecPlugin extends AbstractUIPlugin {
 		return getWorkbench().getActiveWorkbenchWindow().getActivePage();
 	}
 
-	@SuppressWarnings("unchecked")
 	public List<String> getMarker(IProject project)
 	throws CoreException {
 		return getStandardLaunchConfiguration(project).

@@ -15,7 +15,6 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGNodeTuple;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
 
@@ -44,11 +43,11 @@ public class PathCollector {
         man = new DynamicContextManager(sdg);
     }
 
-    public Collection<Path> collect(SDGNode from, SDGNode to, Collection<SDGNode> subGraph, int steps) {
-    	Context criterion = new DynamicContext(to);
-    	criteria.add(new Path(criterion));
+    public Collection<Path<DynamicContext>> collect(SDGNode from, SDGNode to, Collection<SDGNode> subGraph, int steps) {
+    	DynamicContext criterion = new DynamicContext(to);
+    	criteria.add(new Path<>(criterion));
 
-    	Collection<Path> result = collectIteratively(from, subGraph, steps);
+    	Collection<Path<DynamicContext>> result = collectIteratively(from, subGraph, steps);
 
     	while (result.isEmpty()) {
     		steps++;
@@ -58,14 +57,14 @@ public class PathCollector {
     	return result;
     }
 
-    LinkedList<Path> criteria= new LinkedList<Path>();
+    LinkedList<Path<DynamicContext>> criteria= new LinkedList<>();
 
     /**
      *
      */
-    private Collection<Path> collectIteratively(SDGNode from, Collection<SDGNode> subGraph, int steps) {
-    	LinkedList<Path> paths = new LinkedList<Path>();
-    	LinkedList<Path> worklist = new LinkedList<Path>();
+    private Collection<Path<DynamicContext>> collectIteratively(SDGNode from, Collection<SDGNode> subGraph, int steps) {
+    	LinkedList<Path<DynamicContext>> paths = new LinkedList<>();
+    	LinkedList<Path<DynamicContext>> worklist = new LinkedList<>();
 
         // init worklist
         worklist.addAll(criteria);
@@ -73,7 +72,7 @@ public class PathCollector {
 
         while(!worklist.isEmpty()){
             // next element, put it in the slice
-            Path path = worklist.poll();
+            Path<DynamicContext> path = worklist.poll();
 
             if (path.getStep() > (steps)) {
             	criteria.add(path);
@@ -103,12 +102,12 @@ public class PathCollector {
                     // It can be recognised by having the only formal-out vertex with an outgoing param-in edge
                     // which is also the only 'entry point' during an intra-thread backward slice.
                     if (pre.getKind() == SDGNode.Kind.FORMAL_OUT) {
-                        Collection<Context> cons = man.getAllContextsOf(pre);
+                        Collection<? extends DynamicContext> cons = man.getAllContextsOf(pre);
 
                         // compute new thread states
-                        for (Context con : cons) {
+                        for (DynamicContext con : cons) {
                         	if (!path.contains(con)) {
-                            	Path extendedPath = path.prepend(con);
+                            	Path<DynamicContext> extendedPath = path.prepend(con);
                             	worklist.add(extendedPath);
                             }
                         }
@@ -123,11 +122,11 @@ public class PathCollector {
                             // a common call or parameter-in edge
                             // go to the calling procedure
                         	SDGNodeTuple callSite = sdg.getCallEntryFor(e);
-                            Context[] cons = man.ascend(pre, callSite, path.getCurrent());
+                        	DynamicContext[] cons = man.ascend(pre, callSite, path.getCurrent());
 
-                            for (Context con : cons) {
+                            for (DynamicContext con : cons) {
                             	if (con != null && !path.contains(con)) {
-                                	Path extendedPath = path.prepend(con);
+                                	Path<DynamicContext> extendedPath = path.prepend(con);
 
                                 	if (e.getKind() == SDGEdge.Kind.CALL) {
                                 		extendedPath.incStep();
@@ -142,18 +141,18 @@ public class PathCollector {
                 } else if (e.getKind() == SDGEdge.Kind.PARAMETER_OUT) {
                     // go to the called procedure
                 	SDGNodeTuple callSite = sdg.getCallEntryFor(e);
-                    Context con = man.descend(pre, callSite, path.getCurrent());
+                	DynamicContext con = man.descend(pre, callSite, path.getCurrent());
 
                     if (!path.contains(con)) {
-                    	Path extendedPath = path.prepend(con);
+                    	Path<DynamicContext> extendedPath = path.prepend(con);
                     	worklist.add(extendedPath);
                     }
 
                 } else if (threadEdges.contains(e.getKind())) {
-                	Context con = new DynamicContext(pre);
+                	DynamicContext con = new DynamicContext(pre);
 
                 	if (!path.contains(con)) {
-                    	Path extendedPath = path.prepend(con);
+                    	Path<DynamicContext> extendedPath = path.prepend(con);
 
                     	if (e.getKind() == SDGEdge.Kind.FORK) {
                     		extendedPath.incStep();
@@ -168,10 +167,10 @@ public class PathCollector {
 
                 } else {
                     // intraprocedural traversion
-                    Context con = man.level(pre, path.getCurrent());
+                	DynamicContext con = man.level(pre, path.getCurrent());
 
                     if (!path.contains(con)) {
-                    	Path extendedPath = path.prepend(con);
+                    	Path<DynamicContext> extendedPath = path.prepend(con);
 
 //                    	if (e.getKind() == SDGEdge.Kind.CONTROL_DEP_UNCOND
 //                    			|| e.getKind() == SDGEdge.Kind.CONTROL_DEP_COND

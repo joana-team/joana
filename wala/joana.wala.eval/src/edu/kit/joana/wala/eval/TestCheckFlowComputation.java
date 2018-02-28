@@ -3,17 +3,12 @@ package edu.kit.joana.wala.eval;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.jar.JarFile;
-import java.util.jar.JarInputStream;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -21,8 +16,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.ibm.wala.classLoader.IMethod;
-import com.ibm.wala.classLoader.JarFileModule;
-import com.ibm.wala.classLoader.JarStreamModule;
 import com.ibm.wala.classLoader.Module;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
@@ -42,6 +35,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.slicer.SummarySlicerBackward;
+import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.ExternalCallCheck;
 import edu.kit.joana.wala.core.Main;
 import edu.kit.joana.wala.core.Main.Config;
@@ -76,6 +70,7 @@ import edu.kit.joana.wala.flowless.spec.ast.Parameter;
 import edu.kit.joana.wala.flowless.spec.ast.PrimitiveAliasStmt;
 import edu.kit.joana.wala.flowless.spec.java.ast.ClassInfo;
 import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
+import edu.kit.joana.wala.util.WALAUtils;
 
 public final class TestCheckFlowComputation {
 
@@ -172,8 +167,7 @@ public final class TestCheckFlowComputation {
 		cfg.exceptions = ExceptionAnalysis.INTRAPROC;
 		cfg.accessPath = true;
 		cfg.exclusions = Main.STD_EXCLUSION_REG_EXP;
-		cfg.nativesXML = cfc.libDir + "natives_empty.xml";
-		cfg.stubs = cfc.libDir + "jSDG-stubs-jre1.4.jar";
+		cfg.stubs = Stubs.JRE_14_INCOMPLETE;
 		cfg.extern = ExternalCallCheck.EMPTY;
 		cfg.outputDir = cfc.tmpDir;
 		cfg.fieldPropagation = FieldPropagation.OBJ_TREE;
@@ -945,13 +939,18 @@ public final class TestCheckFlowComputation {
 	private static AnalysisScope createAnalysisScope(final Config cfg) throws IOException {
 		final AnalysisScope scope = AnalysisScopeReader.makePrimordialScope(null);
 
-		if (cfg.nativesXML != null) {
-			com.ibm.wala.ipa.callgraph.impl.Util.setNativeSpec(cfg.nativesXML);
-		}
+		assert cfg.stubs.getNativeSpecFile() != null; 
+		com.ibm.wala.ipa.callgraph.impl.Util.setNativeSpec(cfg.stubs.getNativeSpecFile());
 
 		// if use stubs
-		if (cfg.stubs != null) {
-			scope.addToScope(ClassLoaderReference.Primordial, findJarModule(cfg.stubs));
+		assert cfg.stubs != null;
+		final String[] stubPaths = cfg.stubs.getPaths();
+		if (stubPaths.length > 0) {
+			assert cfg.stubs != Stubs.NO_STUBS;
+			for (final String stub : stubPaths) {
+				final Module stubs = WALAUtils.findJarModule(stub);
+				scope.addToScope(ClassLoaderReference.Primordial, stubs);
+			}
 		}
 
 		// Nimmt unnoetige Klassen raus
@@ -959,31 +958,9 @@ public final class TestCheckFlowComputation {
 		scope.setExclusions(exclusions);
 
 	    final ClassLoaderReference loader = scope.getLoader(AnalysisScope.APPLICATION);
-	    AnalysisScopeReader.addClassPathToScope(cfg.classpath, scope, loader);
+	    AnalysisScopeReader.addClassPathToScope(cfg.classpath, scope, loader, cfg.classpathAddEntriesFromMANIFEST);
 
 	    return scope;
-	}
-
-	/**
-	 * Search file in filesystem. If not found, try to load from classloader (e.g. from inside the jarfile).
-	 */
-	private static Module findJarModule(final String path) throws IOException {
-		final File f = new File(path);
-		if (f.exists()) {
-			return new JarFileModule(new JarFile(f));
-		} else {
-			final URL url = CheckFlowLessWithAlias.class.getClassLoader().getResource(path);
-			if (url != null) {
-				final URLConnection con = url.openConnection();
-				final InputStream in = con.getInputStream();
-				return new JarStreamModule(new JarInputStream(in));
-			} else {
-				// special fall-back for eclipse plug-in
-				final URL url2 = new URL("platform:/plugin/joana.contrib.lib/stubs" + path);
-				final InputStream in = url2.openConnection().getInputStream();
-				return new JarStreamModule(in);
-			}
-		}
 	}
 
 	private static class SDGResult {

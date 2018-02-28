@@ -8,12 +8,30 @@
 package edu.kit.joana.ifc.sdg.graph.slicer.graph.threads;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.RandomAccess;
 import java.util.Set;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.ibm.wala.util.intset.BitVectorIntSet;
+import com.ibm.wala.util.intset.EmptyIntSet;
+import com.ibm.wala.util.intset.IntIterator;
+import com.ibm.wala.util.intset.IntSet;
+import com.ibm.wala.util.intset.MutableIntSet;
+import com.ibm.wala.util.intset.MutableSparseIntSet;
+import com.ibm.wala.util.intset.SparseIntSet;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -24,9 +42,12 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.Pair;
+import edu.kit.joana.util.collections.SimpleVector;
+import edu.kit.joana.util.collections.SimpleVectorBase;
 
 
 /**
@@ -38,18 +59,14 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 	private static final Logger debug = Log.getLogger(Log.L_MHP_DEBUG);
 	
     private final ThreadsInformation info;
-    private final BitMatrix map;
+    private final IBitMatrix<ThreadRegion> threadRegionMap;
     private final ThreadRegions regions;
-    private HashMap<Integer, Collection<ThreadRegion>> mayExist;
+    private Map<Integer, Collection<ThreadRegion>> mayExist;
 
-    private PreciseMHPAnalysis(ThreadsInformation info, BitMatrix map, ThreadRegions regions) {
+    private PreciseMHPAnalysis(ThreadsInformation info, IBitMatrix<ThreadRegion> map, ThreadRegions regions) {
         this.info = info;
-        this.map = map;
+        this.threadRegionMap = map;
         this.regions = regions;
-    }
-
-    private void setMayExistMap(HashMap<Integer, Collection<ThreadRegion>> mayExist) {
-    	this.mayExist = mayExist;
     }
 
     public ThreadRegions getTR() {
@@ -103,7 +120,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         } else {
             ThreadRegion mRegion = regions.getThreadRegion(m, mThread);
             ThreadRegion nRegion = regions.getThreadRegion(n, nThread);
-            return map.get(mRegion.getID(), nRegion.getID());
+            return threadRegionMap.get(mRegion.getID(), nRegion.getID());
         }
     }
 
@@ -113,7 +130,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         } else {
             ThreadRegion mRegion = regions.getThreadRegion(m);
             ThreadRegion nRegion = regions.getThreadRegion(n);
-            return map.get(mRegion.getID(), nRegion.getID());
+            return threadRegionMap.get(mRegion.getID(), nRegion.getID());
         }
     }
 
@@ -122,7 +139,7 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         if (mThread == regions.getThreadRegion(region).getThread() && !isDynamic(mThread)) {
             return false;
         } else {
-            return map.get(mRegion.getID(), region);
+            return threadRegionMap.get(mRegion.getID(), region);
         }
 	}
 
@@ -130,14 +147,70 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         if (!isDynamic(r.getThread()) && s.getThread() == r.getThread()) {
             return false;
         } else {
-            return map.get(r.getID(), s.getID());
+            return threadRegionMap.get(r.getID(), s.getID());
         }
     }
+    
+    
+    private class ColIterator implements Iterator<ThreadRegion> {
+    	private final IntIterator it;
+        final boolean isDynamic;
+        final int     rThread;
+        
+        ThreadRegion next = null;
 
+        private ColIterator(IntIterator it, boolean isDynamic, int rThread) {
+            this.it = it;
+            this.isDynamic = isDynamic;
+            this.rThread = rThread;
+        }
 
+        private void findNext() {
+            while (next == null && it.hasNext()) {
+                final int sId = it.next();
+                final ThreadRegion s = regions.getThreadRegion(sId);
+                if (!isDynamic && rThread == s.getThread()) {
+                    next = null;
+                } else {
+                    next = s;
+                }
+            }
+        }
+
+        @Override
+        public boolean hasNext() {
+        	findNext();
+        	return next != null;
+        }
+        @Override
+        public ThreadRegion next() {
+        	findNext();
+        	final ThreadRegion result = next;
+        	next = null;
+        	return result;
+        }
+    };
+
+    /**
+     * @param r
+     * @return all ThreadRegion s such that {@link PreciseMHPAnalysis#isParallel(r, s)}
+     */
+    public Iterable<ThreadRegion> parallelTo(ThreadRegion r) {
+        final boolean isDynamic = isDynamic(r.getThread());
+        final int     rThread = r.getThread();
+        final IntIterator it = threadRegionMap.onCol(r.getID());
+
+        return new Iterable<ThreadRegion>() {
+            @Override
+            public Iterator<ThreadRegion> iterator() {
+                return new ColIterator(it, isDynamic, rThread);
+            }
+        }; 
+    }
+    
     public String toString() {
 //        return "Map size: " + map.getDimension();
-        return map.toString();
+        return threadRegionMap.toString();
     }
 
     public SDGNode getThreadExit(int thread) {
@@ -152,8 +225,21 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         return info.isDynamic(thread);
     }
 
+    
+    public void computeMayExist() {
+		if (mayExist == null) {
+			this.mayExist = computeMayExist(this);
+			assert mayExist != null;
+		}
+    }
 	@Override
 	public boolean mayExist(int thread, VirtualNode v) {
+		if (mayExist == null)  {
+			throw new IllegalStateException(
+				"PreciseMHPAnalysis::mayExist may only be called after" +
+				"PreciseMHPAnalysis::computeMayExist has been called!"
+			);
+		}
 		return mayExist.get(thread).stream().anyMatch( s -> s.getThread() == v.getNumber() && s.contains(v.getNode()));
 	}
 
@@ -185,16 +271,16 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 		for (SDGNode node : icfg.vertexSet()) {
 			if (node.getKind() == SDGNode.Kind.CALL) {
 				Set<SDGNode> intraSucc = new HashSet<SDGNode>();
-				for (SDGEdge intraEdge : icfg.getOutgoingEdgesOfKind(node, SDGEdge.Kind.CONTROL_FLOW)) {
+				for (SDGEdge intraEdge : icfg.getOutgoingEdgesOfKindUnsafe(node, SDGEdge.Kind.CONTROL_FLOW)) {
 					intraSucc.add(intraEdge.getTarget());
 				}
 
-				for (SDGEdge callEdge : icfg.getOutgoingEdgesOfKind(node, SDGEdge.Kind.CALL)) {
+				for (SDGEdge callEdge : icfg.getOutgoingEdgesOfKindUnsafe(node, SDGEdge.Kind.CALL)) {
 					SDGNode entryOfCalled = callEdge.getTarget();
 					assert entryOfCalled.kind == SDGNode.Kind.ENTRY;
 					SDGNode exitOfCalled = findExit(icfg, entryOfCalled);
 					for (SDGNode iSucc : intraSucc) {
-						SDGEdge retEdge = new SDGEdge(exitOfCalled, iSucc, SDGEdge.Kind.RETURN);
+						SDGEdge retEdge =  SDGEdge.Kind.RETURN.newEdge(exitOfCalled, iSucc);
 						retEdges.add(retEdge);
 					}
 				}
@@ -229,13 +315,10 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         MHPComputation mhp = new MHPComputation(icfg, info, tr);
     	PreciseMHPAnalysis result = mhp.getMHPMap();
 
-    	log.outln("Compute MayExist Map ...");
-        HashMap<Integer, Collection<ThreadRegion>> mayExist = computeMayExist(result);
-        result.setMayExistMap(mayExist);
     	return result;
     }
 
-    private static HashMap<Integer, Collection<ThreadRegion>> computeMayExist(PreciseMHPAnalysis mhp) {
+    private static Map<Integer, Collection<ThreadRegion>> computeMayExistSlow(PreciseMHPAnalysis mhp) {
     	HashMap<Integer, Collection<ThreadRegion>> result = new HashMap<>();
 
     	for (ThreadRegion r : mhp.getThreadRegions()) {
@@ -254,18 +337,51 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 
     	return result;
     }
+	
+    private static Map<Integer, Collection<ThreadRegion>> computeMayExist(PreciseMHPAnalysis mhp) {
+    	Map<Integer, Collection<ThreadRegion>> result = new SimpleVectorBase<Integer, Collection<ThreadRegion>>(0, mhp.getThreadRegions().size()) {
+    		@Override
+    		protected int getId(Integer k) {
+    			return k;
+    		}
+		};
+
+    	for (ThreadRegion r : mhp.getThreadRegions()) {
+    		for (ThreadRegion s : mhp.parallelTo(r)) {
+    			result.compute(r.getThread(), (k, c) -> {
+        			if (c == null) {
+        				c = new HashSet<>();
+        			}
+       				c.add(s);
+       				
+       				return c;
+    			});
+    			result.compute(s.getThread(), (k, c) -> {
+        			if (c == null) {
+        				c = new HashSet<>();
+        			}
+       				c.add(r);
+       				
+       				return c;
+    			});
+    		}
+    	}
+
+    	assert result.equals(computeMayExistSlow(mhp));
+    	return result;
+    }
 
 
     /* MHP Computation */
 
     private static class MHPComputation {
-        private BitMatrix map;
+        private IBitMatrix<ThreadRegion> threadRegionMap;
         private final CFG icfg;
         private final ThreadsInformation info;
         private final ThreadRegions tr;
         //private HashMap<SDGNode, Set<SDGNode>> joinDominance;
         private LinkedList<DynamicContext> forks;
-        private HashMap<DynamicContext, LinkedList<Integer>> indirectForks;
+        private HashMap<DynamicContext, IntSet> indirectForks;
         private final CFGJoinSensitiveForward slicer;
 
         private MHPComputation (CFG icfg, ThreadsInformation info, ThreadRegions tr) {
@@ -283,9 +399,77 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         	//debug.outln("compute join dominance");//("Indirect Forks:\n"+indirectForks);
         	//joinDominance = computeJoinDominance();
         	debug.outln("compute parallelism");//("Indirect Forks:\n"+indirectForks);
-        	map = computeParallelism();
+        	
+        	
+        	if (tr.size() <= 100) {
+        		final SymmetricBitMatrix<ThreadRegion> threadRegionMap;
+        		threadRegionMap = computeThreadRegionParallelism();
+        		assert isFunctionOfStartNodeAndDymanicityOnly(threadRegionMap);
+        	
+        		StartNodeBitMatrix threadRegionMapForStartNodes = null;
+        		assert IBitMatrix.equals(threadRegionMap, (threadRegionMapForStartNodes = computeThreadRegionParallelismForStartNodes()));
 
-            return new PreciseMHPAnalysis(info, map, tr);
+        		computeThreadParallelism(threadRegionMap);
+        		assert isFunctionOfStartNodeAndDymanicityOnly(threadRegionMap);
+        	
+        		assert computeThreadParallelismForStartNodes(threadRegionMapForStartNodes);
+        		assert IBitMatrix.equals(threadRegionMap, threadRegionMapForStartNodes);
+        		
+        		this.threadRegionMap = threadRegionMap;
+        	} else {
+        		final StartNodeBitMatrix threadRegionMapForStartNodes;
+        		threadRegionMapForStartNodes = computeThreadRegionParallelismForStartNodes();
+        	
+        		SymmetricBitMatrix<ThreadRegion> threadRegionMap = null;
+        		assert IBitMatrix.equals(threadRegionMapForStartNodes, (threadRegionMap = computeThreadRegionParallelism()));
+
+
+        		computeThreadParallelismForStartNodes(threadRegionMapForStartNodes);
+        	
+        		assert computeThreadParallelism(threadRegionMap);
+        		assert IBitMatrix.equals(threadRegionMap, threadRegionMapForStartNodes);
+        		this.threadRegionMap = threadRegionMapForStartNodes;
+        	}
+        	
+        	
+            return new PreciseMHPAnalysis(info, threadRegionMap, tr);
+        }
+        
+        private boolean isFunctionOfStartNodeAndDymanicityOnly(IBitMatrix<ThreadRegion> threadRegionMap) {
+        	Map<Pair<SDGNode, Boolean>, Set<ThreadRegion>> start2Regions = new HashMap<>();
+        	for (ThreadRegion r : tr) {
+        		start2Regions.compute(Pair.pair(r.getStart(), r.isDynamic()), (k, regions) -> {
+        			if (regions == null) {
+        				regions = new HashSet<>();
+        			}
+        			regions.add(r);
+        			
+        			return regions;
+        		});
+        	}
+        	
+        	for (Entry<Pair<SDGNode, Boolean>, Set<ThreadRegion>> entryR : start2Regions.entrySet()) {
+        		final Set<ThreadRegion> regionsR = entryR.getValue();
+        		
+            	for (Entry<Pair<SDGNode, Boolean>, Set<ThreadRegion>> entryS : start2Regions.entrySet()) {
+            		final Set<ThreadRegion> regionsS = entryS.getValue();
+            		
+            		final ThreadRegion r  = regionsR.iterator().next();
+            		final ThreadRegion s  = regionsS.iterator().next();
+            		
+            		final boolean mhp = threadRegionMap.get(r.getID(), s.getID());
+            		
+            		for (ThreadRegion rr : regionsR) {
+            			for (ThreadRegion ss : regionsS) {
+            				if (threadRegionMap.get(rr.getID(), ss.getID()) != mhp) {
+            					return false;
+            				}
+            			}
+            		}
+        		}
+        	}
+        	
+        	return true;
         }
 
         private LinkedList<DynamicContext> collectForks() {
@@ -300,13 +484,13 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         	return result;
         }
 
-		private HashMap<DynamicContext, LinkedList<Integer>> collectIndirectForks() {
-        	HashMap<DynamicContext, LinkedList<Integer>> result = new HashMap<DynamicContext, LinkedList<Integer>>();
+		private HashMap<DynamicContext, IntSet> collectIndirectForks() {
+        	HashMap<DynamicContext, IntSet> result = new HashMap<>();
 
         	for (DynamicContext fork : forks) {
         		if (fork == null) continue;
 
-        		LinkedList<Integer> l = new LinkedList<Integer>();
+        		MutableSparseIntSet l = MutableSparseIntSet.makeEmpty();
 
             	for (DynamicContext other : forks) {
             		if (other == null) continue;
@@ -322,22 +506,24 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         	return result;
         }
 
-        private BitMatrix computeParallelism() {
-        	BitMatrix result = new BitMatrix(tr.size());
+        private SymmetricBitMatrix<ThreadRegion> computeThreadRegionParallelismSlow() {
+        	SymmetricBitMatrix<ThreadRegion> result = new SymmetricBitMatrix<>(tr.size());
 
     		// process parallelism induced by forks
         	debug.outln("parallelism through forks");
         	for (DynamicContext fork : forks) {
         		debug.out(".");
         		if (fork == null) continue;
+        		
+        		final ThreadInstance forkInstance = info.getThread(fork.getThread());
 
         		LinkedList<SDGNode> succ = new LinkedList<SDGNode>();
 
-        		for (SDGEdge e : icfg.getOutgoingEdgesOfKind(fork.getNode(), SDGEdge.Kind.CONTROL_FLOW)) {
+        		for (SDGEdge e : icfg.getOutgoingEdgesOfKindUnsafe(fork.getNode(), SDGEdge.Kind.CONTROL_FLOW)) {
         			succ.add(e.getTarget());
         		}
 
-        		slicer.setJoins(info.getThread(fork.getThread()).getJoins());
+        		slicer.setJoins(forkInstance.getJoins());
         		Collection<SDGNode> joinSlice = slicer.slice(succ);
         		Collection<SDGNode> secondSlice = slicer.secondSlice(succ);
         		LinkedList<ThreadRegion> inJoinSlice = new LinkedList<ThreadRegion>();
@@ -353,48 +539,479 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         			}
         		}
 
+        		 
         		// determine parallelism induced by fork
-        		LinkedList<Integer> spawnedThreads = indirectForks.get(fork);
+        		IntSet spawnedThreads = indirectForks.get(fork);
 
-        		for (int i = 0; i < tr.size(); i++) {
-            		ThreadRegion p = tr.getThreadRegion(i);
-
-            		if (!spawnedThreads.contains(p.getThread())) continue;
-
-            		if (p.getThread() == fork.getThread()
-            					&& !info.getThread(fork.getThread()).isDynamic()) {
-	            		for (ThreadRegion q : inJoinSlice) {
-	            			result.set(p.getID(), q.getID());
-	            			result.set(q.getID(), p.getID());
-	            		}
+        		for (IntIterator it = spawnedThreads.intIterator(); it.hasNext();) {
+        			final int pThread = it.next();
+            		if (pThread == fork.getThread() && !forkInstance.isDynamic()) {
+            			for (ThreadRegion p : tr.getThreadRegionSet(pThread)) {
+            				assert p.getThread() == pThread;
+		            		for (ThreadRegion q : inJoinSlice) {
+		            			result.set(p.getID(), q.getID());
+		            			assert
+		            			result.get(q.getID(), p.getID());
+		            		}
+            			}
             		} else {
-	            		for (ThreadRegion q : inSecondSlice) {
-	            			result.set(p.getID(), q.getID());
-	            			result.set(q.getID(), p.getID());
-	            		}
+            			for (ThreadRegion p : tr.getThreadRegionSet(pThread)) {
+		            		for (ThreadRegion q : inSecondSlice) {
+		            			result.set(p.getID(), q.getID());
+		            			assert
+		            			result.get(q.getID(), p.getID());
+		            		}
+            			}
             		}
             	}
         	}
+        	return result;
+        }
+        
+        private SymmetricBitMatrix<ThreadRegion> computeThreadRegionParallelism() {
+            SymmetricBitMatrix<ThreadRegion> result = new SymmetricBitMatrix<>(tr.size());
+
+            boolean assertionsEnabled = false;
+            assert (assertionsEnabled = true);
+
+            if (assertionsEnabled) {
+            	for (ThreadInstance ti1 : info) {
+            		for(ThreadInstance ti2 : info) {
+            			if (ti1.getFork() != null && ti1.getFork().equals(ti2.getFork())) {
+            				assert (ti1.getJoins().equals(ti2.getJoins())); 
+            			}
+            		}
+            	}
+            	
+            	for (DynamicContext fork1 : forks) {
+            		if (fork1 == null) continue;
+            		for (DynamicContext fork2 : forks) {
+                		if (fork2 == null) continue;
+                		if (fork1.getThread() == fork2.getThread()) {
+                			assert fork1.getNode() == fork2.getNode();
+                		}
+            		}
+            	}
+            }
+            
+            final Map<SDGNode, ThreadInstance> representantOfForkNode = new HashMap<>();
+            final Map<SDGNode, Boolean>        representsSomeDynamic = new HashMap<>();
+            final Map<SDGNode, MutableIntSet>  representedThreads = new HashMap<>();
+
+            for (ThreadInstance ti : info) {
+            	if (ti.getFork() == null) {
+            		assert ti.getId() == ThreadInstance.MAIN_THREAD_ID;
+            	} else {
+            		assert !ti.getFork().equals(info.getThread(ThreadInstance.MAIN_THREAD_ID).getEntry());
+            		representantOfForkNode.put(ti.getFork(), ti);
+            		representsSomeDynamic.compute(ti.getFork(), (k, someDynamic) -> {
+            			if (someDynamic == null) {
+            				someDynamic = ti.isDynamic();
+            			}
+            			someDynamic |= ti.isDynamic();
+            			return someDynamic;
+            		});
+            		representedThreads.compute(ti.getFork(), (k, represented) -> {
+            			if (represented == null) {
+            				represented = new BitVectorIntSet();
+            			}
+            			represented.add(ti.getId());
+            			return represented;
+            		});
+            	}
+            }
+            	
+            
+    		// process parallelism induced by forks
+            debug.outln("parallelism through forks");
+            for (Entry<SDGNode, ThreadInstance> forkEntry : representantOfForkNode.entrySet()) {
+            	debug.out(".");
+
+            	final ThreadInstance forkInstance = forkEntry.getValue();
+            	final SDGNode forkNode = forkEntry.getKey();
+            	final boolean someDynamic = representsSomeDynamic.get(forkNode);
+            	final IntSet represented = representedThreads.get(forkNode);
+
+            	LinkedList<SDGNode> succ = new LinkedList<SDGNode>();
+
+            	for (SDGEdge e : icfg.getOutgoingEdgesOfKindUnsafe(forkNode, SDGEdge.Kind.CONTROL_FLOW)) {
+            		succ.add(e.getTarget());
+            	}
+
+
+            	final IntSet spawnedThreadsSecondSlice;
+            	final IntSet spawnedThreadsJoinSlice;
+            	{
+            		IntSet spawnedThreadsSecondSliceTemp = EmptyIntSet.instance;
+            		IntSet spawnedThreadsJoinSliceTemp = EmptyIntSet.instance;
+            		// TODO: smarter enumeration. We should be able to simply create one "root" DynamicContext here
+            		for (DynamicContext fork : forks) {
+            			if (fork == null) continue;
+            			if (fork.getNode().equals(forkNode)) {
+            				final IntSet indirectForked = indirectForks.get(fork);
+            				if (someDynamic || represented.size() > 1) {
+            					spawnedThreadsSecondSliceTemp = spawnedThreadsSecondSliceTemp.union(indirectForked);
+            				} else if ( !represented.sameValue(indirectForked)) {
+            					assert represented.size() == 1;
+            					assert represented.contains(forkInstance.getId());
+            					assert !forkInstance.isDynamic();
+            					
+            					spawnedThreadsJoinSliceTemp   = spawnedThreadsJoinSliceTemp.union(represented);
+            					
+            					final MutableIntSet withoutForkInstance = new BitVectorIntSet(indirectForked);
+            					withoutForkInstance.remove(forkInstance.getId());
+            					spawnedThreadsSecondSliceTemp = spawnedThreadsSecondSliceTemp.union(withoutForkInstance);
+            				} else {
+            					spawnedThreadsJoinSliceTemp   = spawnedThreadsJoinSliceTemp.union(  indirectForked);
+            				}
+            			}
+            		}
+            		spawnedThreadsSecondSlice = spawnedThreadsSecondSliceTemp;
+            		spawnedThreadsJoinSlice   = spawnedThreadsJoinSliceTemp;
+            	}
+
+
+            	MutableIntSet spawnedThreadRegionsSecondSlice = new BitVectorIntSet();
+            	for (IntIterator it = spawnedThreadsSecondSlice.intIterator(); it.hasNext();) {
+            		final int pThreadId = it.next();
+            		for (ThreadRegion p : tr.getThreadRegionSet(pThreadId)) {
+            			spawnedThreadRegionsSecondSlice.add(p.getID());
+            		}
+            	}
+
+            	MutableIntSet spawnedThreadRegionsJoinSlice = new BitVectorIntSet();
+            	for (IntIterator it = spawnedThreadsJoinSlice.intIterator(); it.hasNext();) {
+            		final int pThreadId = it.next();
+            		for (ThreadRegion p : tr.getThreadRegionSet(pThreadId)) {
+            			spawnedThreadRegionsJoinSlice.add(p.getID());
+            		}
+            	}
+            	
+            	assert spawnedThreadRegionsSecondSlice.intersection(spawnedThreadRegionsJoinSlice).isEmpty();
+
+
+            	slicer.setJoins(forkInstance.getJoins());
+            	final Collection<SDGNode> joinSlice = slicer.slice(succ);
+            	final Collection<SDGNode> secondSlice;
+            	if (spawnedThreadRegionsSecondSlice.isEmpty()) {
+            		secondSlice = Collections.emptySet();
+            	} else {
+            		secondSlice = slicer.secondSlice(succ);
+            	}
+            	LinkedList<ThreadRegion> inBothSlices = new LinkedList<>();
+            	LinkedList<ThreadRegion> inSecondSliceOnly = new LinkedList<>();
+
+            	for (int x = 0; x < tr.size(); x++) {
+            		ThreadRegion q = tr.getThreadRegion(x);
+            		if (joinSlice.contains(q.getStart())) {
+            			inBothSlices.add(q);
+            		} else if (secondSlice.contains(q.getStart())) {
+            			inSecondSliceOnly.add(q);
+            		}
+            	}
+            	
+
+            	for (IntIterator it = spawnedThreadRegionsSecondSlice.intIterator(); it.hasNext();) {
+            		final int p = it.next();
+            		for (ThreadRegion q : inSecondSliceOnly) {
+            			result.set(p, q.getID());
+            			assert
+            			result.get(q.getID(), p);
+            		}
+            		for (ThreadRegion q : inBothSlices) {
+            			result.set(p, q.getID());
+            			assert
+            			result.get(q.getID(), p);
+            		}
+            	}
+            	
+            	for (IntIterator it = spawnedThreadRegionsJoinSlice.intIterator(); it.hasNext();) {
+            		final int p = it.next();
+            		for (ThreadRegion q : inBothSlices) {
+            			result.set(p, q.getID());
+            			assert
+            			result.get(q.getID(), p);
+            		}
+            	}
+            }
+
+            if (assertionsEnabled) {
+            	SymmetricBitMatrix<ThreadRegion> resultSlow = computeThreadRegionParallelismSlow();
+            	assert SymmetricBitMatrix.equals(result, resultSlow);
+            }
+
+            return result;
+        }
+        
+        
+        private StartNodeBitMatrix computeThreadRegionParallelismForStartNodes() {
+
+            boolean assertionsEnabled = false;
+            assert (assertionsEnabled = true);
+
+            if (assertionsEnabled) {
+            	for (ThreadInstance ti1 : info) {
+            		for(ThreadInstance ti2 : info) {
+            			if (ti1.getFork() != null && ti1.getFork().equals(ti2.getFork())) {
+            				assert (ti1.getJoins().equals(ti2.getJoins())); 
+            			}
+            		}
+            	}
+            	
+            	for (DynamicContext fork1 : forks) {
+            		if (fork1 == null) continue;
+            		for (DynamicContext fork2 : forks) {
+                		if (fork2 == null) continue;
+                		if (fork1.getThread() == fork2.getThread()) {
+                			assert fork1.getNode() == fork2.getNode();
+                		}
+            		}
+            	}
+            }
+            
+            final Map<SDGNode, ThreadInstance> representantOfForkNode = new HashMap<>();
+            final Map<SDGNode, Boolean>        representsSomeDynamic = new HashMap<>();
+            final Map<SDGNode, MutableIntSet>  representedThreads = new HashMap<>();
+            
+
+            for (ThreadInstance ti : info) {
+            	if (ti.getFork() == null) {
+            		assert ti.getId() == ThreadInstance.MAIN_THREAD_ID;
+            	} else {
+            		assert !ti.getFork().equals(info.getThread(ThreadInstance.MAIN_THREAD_ID).getEntry());
+            		representantOfForkNode.put(ti.getFork(), ti);
+            		representsSomeDynamic.compute(ti.getFork(), (k, someDynamic) -> {
+            			if (someDynamic == null) {
+            				someDynamic = ti.isDynamic();
+            			}
+            			someDynamic |= ti.isDynamic();
+            			return someDynamic;
+            		});
+            		representedThreads.compute(ti.getFork(), (k, represented) -> {
+            			if (represented == null) {
+            				represented = new BitVectorIntSet();
+            			}
+            			represented.add(ti.getId());
+            			return represented;
+            		});
+            	}
+            }
+            
+            final Set<Pair<SDGNode, Boolean>> startNodes = new LinkedHashSet<>();
+            for (ThreadRegion r : tr) {
+            	startNodes.add(Pair.pair(r.getStart(), r.isDynamic()));
+            }
+
+            final SymmetricBitMatrix<Pair<SDGNode, Boolean>> startNodesMatrix = new SymmetricBitMatrix<>(startNodes.size());
+
+            final Map<Pair<SDGNode, Boolean>, Integer> startNodesToNumber = new HashMap<>();
+            int i = 0;
+            for (Pair<SDGNode, Boolean> startNode : startNodes) {
+            	startNodesToNumber.put(startNode, i++);
+            }
+            
+            final Map<Integer, MutableIntSet> numberToRegions = new HashMap<>(); // TODO: make this something array like
+            for (ThreadRegion r : tr) {
+            	numberToRegions.compute(
+            		startNodesToNumber.get(Pair.pair(r.getStart(), r.isDynamic())),
+            		(k, regions) -> {
+            			if (regions == null) {
+            				regions = MutableSparseIntSet.makeEmpty();
+            			}
+            			regions.add(r.getID());
+            			
+            			return regions;
+            		}
+            	);
+            }
+
+            
+    		// process parallelism induced by forks
+            debug.outln("parallelism through forks");
+            for (Entry<SDGNode, ThreadInstance> forkEntry : representantOfForkNode.entrySet()) {
+            	debug.out(".");
+
+            	final ThreadInstance forkInstance = forkEntry.getValue();
+            	final SDGNode forkNode = forkEntry.getKey();
+            	final boolean someDynamic = representsSomeDynamic.get(forkNode);
+            	final IntSet represented = representedThreads.get(forkNode);
+
+            	LinkedList<SDGNode> succ = new LinkedList<SDGNode>();
+
+            	for (SDGEdge e : icfg.getOutgoingEdgesOfKindUnsafe(forkNode, SDGEdge.Kind.CONTROL_FLOW)) {
+            		succ.add(e.getTarget());
+            	}
+
+
+            	final IntSet spawnedThreadsSecondSlice;
+            	final IntSet spawnedThreadsJoinSlice;
+            	{
+            		IntSet spawnedThreadsSecondSliceTemp = EmptyIntSet.instance;
+            		IntSet spawnedThreadsJoinSliceTemp = EmptyIntSet.instance;
+            		// TODO: smarter enumeration. We should be able to simply create one "root" DynamicContext here
+            		for (DynamicContext fork : forks) {
+            			if (fork == null) continue;
+            			if (fork.getNode().equals(forkNode)) {
+            				final IntSet indirectForked = indirectForks.get(fork);
+            				if (someDynamic || represented.size() > 1) {
+            					spawnedThreadsSecondSliceTemp = spawnedThreadsSecondSliceTemp.union(indirectForked);
+            				} else if ( !represented.sameValue(indirectForked)) {
+            					assert represented.size() == 1;
+            					assert represented.contains(forkInstance.getId());
+            					assert !forkInstance.isDynamic();
+            					
+            					spawnedThreadsJoinSliceTemp   = spawnedThreadsJoinSliceTemp.union(represented);
+            					
+            					final MutableIntSet withoutForkInstance = new BitVectorIntSet(indirectForked);
+            					withoutForkInstance.remove(forkInstance.getId());
+            					spawnedThreadsSecondSliceTemp = spawnedThreadsSecondSliceTemp.union(withoutForkInstance);
+            				} else {
+            					spawnedThreadsJoinSliceTemp   = spawnedThreadsJoinSliceTemp.union(  indirectForked);
+            				}
+            			}
+            		}
+            		spawnedThreadsSecondSlice = spawnedThreadsSecondSliceTemp;
+            		spawnedThreadsJoinSlice   = spawnedThreadsJoinSliceTemp;
+            	}
+
+
+            	Set<Pair<SDGNode, Boolean>> spawnedThreadRegionsSecondSlice = new HashSet<>();
+            	for (IntIterator it = spawnedThreadsSecondSlice.intIterator(); it.hasNext();) {
+            		final int pThreadId = it.next();
+            		for (ThreadRegion p : tr.getThreadRegionSet(pThreadId)) {
+            			spawnedThreadRegionsSecondSlice.add(Pair.pair(p.getStart(), p.isDynamic()));
+            		}
+            	}
+
+            	Set<Pair<SDGNode, Boolean>> spawnedThreadRegionsJoinSlice = new HashSet<>();
+            	for (IntIterator it = spawnedThreadsJoinSlice.intIterator(); it.hasNext();) {
+            		final int pThreadId = it.next();
+            		for (ThreadRegion p : tr.getThreadRegionSet(pThreadId)) {
+            			spawnedThreadRegionsJoinSlice.add(Pair.pair(p.getStart(), p.isDynamic()));
+            		}
+            	}
+            	
+            	assert Sets.intersection(spawnedThreadRegionsSecondSlice, spawnedThreadRegionsJoinSlice).isEmpty();
+
+
+            	slicer.setJoins(forkInstance.getJoins());
+            	final Collection<SDGNode> joinSlice = slicer.slice(succ);
+            	final Collection<SDGNode> secondSlice;
+            	if (spawnedThreadRegionsSecondSlice.isEmpty()) {
+            		secondSlice = Collections.emptySet();
+            	} else {
+            		secondSlice = slicer.secondSlice(succ);
+            	}
+            	Set<Pair<SDGNode, Boolean>> inBothSlices      = new HashSet<>();
+            	Set<Pair<SDGNode, Boolean>> inSecondSliceOnly = new HashSet<>();
+
+            	for (int x = 0; x < tr.size(); x++) {
+            		ThreadRegion q = tr.getThreadRegion(x);
+            		if (joinSlice.contains(q.getStart())) {
+            			inBothSlices.add(Pair.pair(q.getStart(), q.isDynamic()));
+            		} else if (secondSlice.contains(q.getStart())) {
+            			inSecondSliceOnly.add(Pair.pair(q.getStart(), q.isDynamic()));
+            		}
+            	}
+            	
+
+            	for (Pair<SDGNode, Boolean> p : spawnedThreadRegionsSecondSlice) {
+            		for (Pair<SDGNode, Boolean> q : inSecondSliceOnly) {
+            			startNodesMatrix.set(startNodesToNumber.get(p), startNodesToNumber.get(q));
+            			assert
+            			startNodesMatrix.get(startNodesToNumber.get(q), startNodesToNumber.get(p));
+            		}
+            		for (Pair<SDGNode, Boolean> q : inBothSlices) {
+            			startNodesMatrix.set(startNodesToNumber.get(p), startNodesToNumber.get(q));
+            			assert
+            			startNodesMatrix.get(startNodesToNumber.get(q), startNodesToNumber.get(p));
+            		}
+            	}
+            	
+            	for (Pair<SDGNode, Boolean> p : spawnedThreadRegionsJoinSlice) {
+            		for (Pair<SDGNode, Boolean> q : inBothSlices) {
+            			startNodesMatrix.set(startNodesToNumber.get(p), startNodesToNumber.get(q));
+            			assert
+            			startNodesMatrix.get(startNodesToNumber.get(q), startNodesToNumber.get(p));
+            		}
+            	}
+            }
+
+            return new StartNodeBitMatrix(startNodesMatrix, startNodesToNumber, numberToRegions, tr);
+        }
+
+        
+        private boolean computeThreadParallelism(IMutableBitMatrix<ThreadRegion> result) {
+        	boolean assertionsEnabled = false;
+        	assert (assertionsEnabled = true);
+        	
+        	SymmetricBitMatrix<ThreadRegion> resultLoopsSlow = null;
+        	if (assertionsEnabled) {
+        		resultLoopsSlow = new SymmetricBitMatrix<ThreadRegion>(tr.size());
+	        	// process parallelism induced by thread spawning inside loops
+	        	debug.outln("\nparallelism through loops");
+	        	for (int thread = 0; thread < info.getNumberOfThreads(); thread++) {
+	        		debug.out(thread + ", ");
+	        		if (info.isDynamic(thread)) {
+	        			Collection<ThreadRegion> regs = new ArrayList<ThreadRegion>();
+	        			for (Entry<DynamicContext, IntSet> entry : indirectForks.entrySet()) {
+	        				final DynamicContext fork = entry.getKey();
+	        				if (fork.getThread() != thread) continue;
+	        				for (IntIterator it = entry.getValue().intIterator(); it.hasNext();) {
+	        					final int other_thread = it.next(); 
+	        					regs.addAll(tr.getThreadRegionSet(other_thread));
+	        				}
+	        			}
+	        			for (ThreadRegion p : regs) {
+	        				for (ThreadRegion q : regs) {
+	        					resultLoopsSlow.set(p.getID(), q.getID());
+	        					assert
+	        					resultLoopsSlow.get(q.getID(), p.getID());
+	        				}
+	        			}
+	        		}
+	        	}
+        	}
+        	SymmetricBitMatrix<ThreadRegion> resultLoops = null;
+        	if (assertionsEnabled) {
+        		resultLoops = new SymmetricBitMatrix<ThreadRegion>(tr.size());
+        	}
         	// process parallelism induced by thread spawning inside loops
         	debug.outln("\nparallelism through loops");
-        	for (int thread = 0; thread < info.getNumberOfThreads(); thread++) {
-        		debug.out(thread + ", ");
+			for (Entry<DynamicContext, IntSet> entry : indirectForks.entrySet()) {
+				final DynamicContext fork = entry.getKey();
+				final int thread = fork.getThread();
         		if (info.isDynamic(thread)) {
-        			Collection<ThreadRegion> regs = new ArrayList<ThreadRegion>();
-        			for (DynamicContext fork : indirectForks.keySet()) {
-        				if (fork.getThread() != thread) continue;
-        				for (int other_thread : indirectForks.get(fork)) {
-        					regs.addAll(tr.getThreadRegionSet(other_thread));
-        				}
-        			}
+        			ArrayList<ThreadRegion> regs = new ArrayList<ThreadRegion>();
+       				for (IntIterator it = entry.getValue().intIterator(); it.hasNext();) {
+       					final int other_thread = it.next(); 
+       					regs.addAll(tr.getThreadRegionSet(other_thread));
+       				}
+       				int toSet = regs.size();
         			for (ThreadRegion p : regs) {
-        				for (ThreadRegion q : regs) {
-        					result.set(p.getID(), q.getID());
-        					result.set(q.getID(), p.getID());
+        				int set = 0;
+        				assert regs instanceof RandomAccess;
+        				for (ThreadRegion q : Lists.reverse(regs)) {
+        					result     .set(p.getID(), q.getID());
+        					assert
+        					result     .get(q.getID(), p.getID());
+        					if (assertionsEnabled) {
+	        					resultLoops.set(p.getID(), q.getID());
+	        					assert
+	        					resultLoops.get(q.getID(), p.getID());
+        					}
+        					set++;
+        					if (set > toSet) break;
         				}
+        				toSet--;
         			}
         		}
         	}
+        	
+        	assert SymmetricBitMatrix.equals(resultLoops, resultLoopsSlow);
+        	
+        	
+        	
         	// refine parallelism by inspecting joins
         	/*debug.outln("\ninspecting joins");
         	int ctr = 0;
@@ -419,9 +1036,50 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
         	}
         	debug.outln("parallelism removed by join-analysis: " + ctr);*/
         	debug.outln("done");
-
-        	return result;
+        	
+        	return true;
         }
+        
+        
+        private boolean computeThreadParallelismForStartNodes(StartNodeBitMatrix result) {
+        	final SymmetricBitMatrix<Pair<SDGNode, Boolean>> startNodesMatrix = result.getStartNodesMatrix();
+        	final Map<Pair<SDGNode, Boolean>, Integer> startNodesToNumber = result.getStartNodesToNumber();
+        	// process parallelism induced by thread spawning inside loops
+        	debug.outln("\nparallelism through loops");
+			for (Entry<DynamicContext, IntSet> entry : indirectForks.entrySet()) {
+				final DynamicContext fork = entry.getKey();
+				final int thread = fork.getThread();
+        		if (info.isDynamic(thread)) {
+        			final Set<SDGNode> regs = new HashSet<>();
+       				for (IntIterator it = entry.getValue().intIterator(); it.hasNext();) {
+       					final int other_thread = it.next();
+       					for (ThreadRegion other_region : tr.getThreadRegionSet(other_thread)) {
+       						assert other_region.isDynamic();
+       						regs.add(other_region.getStart());
+       					}
+       				}
+       				final ArrayList<SDGNode> regsArray = new ArrayList<>(regs.size());
+       				regsArray.addAll(regs);
+       				int toSet = regsArray.size();
+        			for (SDGNode p : regsArray) {
+        				int set = 0;
+        				assert regsArray instanceof RandomAccess;
+        				for (SDGNode q : Lists.reverse(regsArray)) {
+        					startNodesMatrix.set(startNodesToNumber.get(Pair.pair(p, true)), startNodesToNumber.get(Pair.pair(q, true)));
+        					assert
+        					startNodesMatrix.get(startNodesToNumber.get(Pair.pair(q, true)), startNodesToNumber.get(Pair.pair(p, true)));
+        					set++;
+        					if (set > toSet) break;
+        				}
+        				toSet--;
+        			}
+        		}
+        	}
+        	
+        	debug.outln("done");
+        	return true;
+        }
+
 
         /* TODO: this is a proof-of-concept implementation.
          * Refine it some day with an interprocedural dominator tree.

@@ -20,6 +20,7 @@ import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.chopper.conc.ContextSensitiveThreadChopper;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
 
 
 /**
@@ -71,9 +72,9 @@ public class PathGenerator implements ProgressAnnouncer {
 	public ViolationPathes computePaths(ClassifiedViolation v) {
 		ViolationPathes vioPaths = new ViolationPathes();
 		Collection<SDGNode> chop = chopper.chop(v.getSource(), v.getSink());
-		Collection<Path> rawPaths = pathCollector.collect(v.getSource(), v.getSink(), chop, v.getHighestSeverity());
+		Collection<Path<DynamicContext>> rawPaths = pathCollector.collect(v.getSource(), v.getSink(), chop, v.getHighestSeverity());
 
-		for (Path p : rawPaths) {
+		for (Path<DynamicContext> p : rawPaths) {
 			vioPaths.add(p.convert());
 		}
 

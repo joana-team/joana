@@ -45,7 +45,7 @@
 package edu.kit.joana.util.graph;
 
 import java.io.*;
-
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -57,6 +57,7 @@ import org.jgrapht.util.*;
 
 import edu.kit.joana.util.collections.ArraySet;
 import edu.kit.joana.util.collections.ModifiableArraySet;
+import edu.kit.joana.util.collections.SimpleVectorBase;
 
 
 
@@ -90,6 +91,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
     private DirectedSpecifics specifics;
     private final boolean allowingMultipleEdges;
     private final Supplier<Map<V,DirectedEdgeContainer<E,E[]>>> vertexMapConstructor;
+    private final Class<E> classE;
 
     /**
      * Construct a new graph. The graph can either be directed or undirected,
@@ -106,7 +108,8 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         EdgeFactory<V, E> ef,
         boolean allowMultipleEdges,
         boolean allowLoops,
-        Supplier<Map<V,DirectedEdgeContainer<E,E[]>>> vertexMapConst
+        Supplier<Map<V,DirectedEdgeContainer<E,E[]>>> vertexMapConst,
+        Class<E> clazzE
         )
     {
         if (ef == null) {
@@ -117,6 +120,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         allowingLoops = allowLoops;
         allowingMultipleEdges = allowMultipleEdges;
         vertexMapConstructor = vertexMapConst;
+        classE  = clazzE;
 
         Map<V, DirectedEdgeContainer<E,E[]>> vertexMap = vertexMapConstructor.get();
         specifics = new DirectedSpecifics(vertexMap);
@@ -593,9 +597,17 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
     /**
      * @see DirectedGraph#incomingEdgesOf(Object)
      */
-    public Set<E> incomingEdgesOfUnsafe(V vertex)
+    public E[] incomingEdgesOfUnsafe(V vertex)
     {
         return specifics.incomingEdgesOfUnsafe(vertex);
+    }
+    
+    public void removeIncomingEdgesOf(V vertex) {
+    	specifics.removeIncomingEdgesOf(vertex);
+    }
+    
+    public void removeOutgoingEdgesOf(V vertex) {
+    	specifics.removeOutgoingEdgesOf(vertex);
     }
 
     /**
@@ -617,7 +629,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
     /**
      * @see DirectedGraph#outgoingEdgesOf(Object)
      */
-    public Set<E> outgoingEdgesOfUnsafe(V vertex)
+    public E[] outgoingEdgesOfUnsafe(V vertex)
     {
         return specifics.outgoingEdgesOfUnsafe(vertex);
     }
@@ -689,6 +701,11 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
 
         return unmodifiableVertexSet;
     }
+    
+    public void trimToSize() {
+    	specifics.trimToSize();
+    	
+    }
 
     /**
      * @see Graph#getEdgeWeight(Object)
@@ -704,16 +721,21 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
 
     
     public interface DirectedEdgeContainer<EE, Rep> {
+        EE[] getIncomingEdgesUnsafe();
+        EE[] getOutoingEdgesUnsafe();
         Set<EE> getUnmodifiableIncomingEdges();
         Set<EE> getUnmodifiableOutgoingEdges();
         boolean addIncomingEdge(EE e);
         boolean addOutgoingEdge(EE e);
         boolean removeIncomingEdge(EE e);
         boolean removeOutgoingEdge(EE e);
+        void removeIncomingEdges();
+        void removeOutgoingEdges();
         Rep incoming();
         Rep outgoing();
         
     }
+    
     /**
      * A container for vertex edges.
      *
@@ -721,13 +743,16 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
      *
      * @author Martin Hecker
      */
-    protected static final class ArraySetDirectedEdgeContainer<EE> implements DirectedEdgeContainer<EE, EE[]>
+    protected static final class ArraySetDirectedEdgeContainer<V, EE extends KnowsVertices<V>> implements DirectedEdgeContainer<EE, EE[]>
     {
         EE[] incoming;
         EE[] outgoing;
 
-        ArraySetDirectedEdgeContainer()
+        @SuppressWarnings("unchecked")
+		ArraySetDirectedEdgeContainer(Class<EE> clazz)
         {
+        	incoming = (EE[]) Array.newInstance(clazz, 0);
+        	outgoing = (EE[]) Array.newInstance(clazz, 0);
         }
         
         @Override
@@ -743,14 +768,24 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
 
         public final Set<EE> getUnmodifiableIncomingEdges()
         {
-        	if (incoming == null) return Collections.emptySet();
+        	assert incoming != null;
             return ArraySet.own(incoming);
         }
 
         public final Set<EE> getUnmodifiableOutgoingEdges()
         {
-        	if (outgoing == null) return Collections.emptySet();
+        	assert outgoing != null;
             return ArraySet.own(outgoing);
+        }
+        
+        @Override
+        public EE[] getIncomingEdgesUnsafe() {
+        	return incoming;
+        }
+        
+        @Override
+        public EE[] getOutoingEdgesUnsafe() {
+        	return outgoing;
         }
 
         /**
@@ -758,18 +793,18 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
          *
          * @param e
          */
-        public final boolean addIncomingEdge(EE e)
+        @SuppressWarnings("unchecked")
+		public final boolean addIncomingEdge(EE e)
         {
         	final ModifiableArraySet<EE> set;
         	final boolean added;
-            if (incoming == null) {
-            	set = new ModifiableArraySet<>(Collections.singleton(e));
-            	added = true;
-            } else {
-            	set = ModifiableArraySet.own(incoming);
-            	added = set.add(e);
-            }
+        	
+        	assert incoming != null;
+        	
+           	set = ModifiableArraySet.own(incoming, (Class<EE>) incoming.getClass().getComponentType());
+           	added = set.add(e);
             incoming = set.disown();
+            
             return added;
         }
 
@@ -778,18 +813,15 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
          *
          * @param e
          */
-        public final boolean addOutgoingEdge(EE e)
+		public final boolean addOutgoingEdge(EE e)
         {
-        	final ModifiableArraySet<EE> set;
-        	final boolean added;
-            if (outgoing == null) {
-            	set = new ModifiableArraySet<>(Collections.singleton(e));
-            	added = true;
-            } else {
-            	set = ModifiableArraySet.own(outgoing);
-            	added = set.add(e);
-            }
-            outgoing = set.disown();
+        	assert outgoing != null;
+        	
+        	@SuppressWarnings("unchecked")
+        	final ModifiableArraySet<EE> set = ModifiableArraySet.own(outgoing, (Class<EE>) outgoing.getClass().getComponentType());
+        	final boolean added = set.add(e);
+           	outgoing = set.disown();
+            
             return added;
         }
 
@@ -800,8 +832,11 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
          */
         public final boolean removeIncomingEdge(EE e)
         {
-        	if (incoming == null) return false;
-        	final ModifiableArraySet<EE> set = ModifiableArraySet.own(incoming);
+        	assert incoming != null;
+        	
+        	@SuppressWarnings("unchecked")
+			final ModifiableArraySet<EE> set = ModifiableArraySet.own(incoming, (Class<EE>) incoming.getClass().getComponentType());
+        	
         	final boolean removed = set.remove(e);
             incoming = set.disown();
             return removed;
@@ -814,11 +849,26 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
          */
         public final boolean removeOutgoingEdge(EE e)
         {
-        	if (outgoing == null) return false;
-        	final ModifiableArraySet<EE> set = ModifiableArraySet.own(outgoing);
+        	assert outgoing != null;
+        	
+        	@SuppressWarnings("unchecked")
+			final ModifiableArraySet<EE> set = ModifiableArraySet.own(outgoing, (Class<EE>) outgoing.getClass().getComponentType());
+        	
         	final boolean removed = set.remove(e);
-        	outgoing = set.disown();
-        	return removed;
+            outgoing = set.disown();
+            return removed;
+        }
+        
+        @SuppressWarnings("unchecked")
+		@Override
+        public void removeIncomingEdges() {
+        	incoming = (EE[]) Array.newInstance(incoming.getClass().getComponentType(), 0);
+        }
+        
+        @SuppressWarnings("unchecked")
+		@Override
+        public void removeOutgoingEdges() {
+        	outgoing = (EE[]) Array.newInstance(outgoing.getClass().getComponentType(), 0);
         }
     }
     
@@ -844,7 +894,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
 
         public void addVertex(V v)
         {
-            vertexMapDirected.put(v, new ArraySetDirectedEdgeContainer<E>());
+            vertexMapDirected.put(v, new ArraySetDirectedEdgeContainer<V, E>(classE));
         }
 
         public Set<V> getVertexSet()
@@ -967,11 +1017,31 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         /**
          * @see DirectedGraph#incomingEdgesOf(Object)
          */
-        public Set<E> incomingEdgesOfUnsafe(V vertex)
+        public E[] incomingEdgesOfUnsafe(V vertex)
         {
-            return getEdgeContainerUnsafe(vertex).getUnmodifiableIncomingEdges();
+        	return getEdgeContainerUnsafe(vertex).getIncomingEdgesUnsafe();
         }
 
+        public void removeIncomingEdgesOf(V vertex)
+        {
+        	final Set<E> incoming = getEdgeContainer(vertex).getUnmodifiableIncomingEdges();
+        	for (E e : incoming) {
+        		final boolean removedFromSource = getEdgeContainer(e.getSource()).removeOutgoingEdge(e);
+        		assert removedFromSource;
+        	}
+        	getEdgeContainer(vertex).removeIncomingEdges();
+        }
+        
+        public void removeOutgoingEdgesOf(V vertex)
+        {
+        	final Set<E> outgoing = getEdgeContainer(vertex).getUnmodifiableOutgoingEdges();
+        	for (E e : outgoing) {
+        		final boolean removedFromTarget = getEdgeContainer(e.getTarget()).removeIncomingEdge(e);
+        		assert removedFromTarget;
+        	}
+        	getEdgeContainer(vertex).removeOutgoingEdges();
+        }
+        
         /**
          * @see DirectedGraph#outDegreeOf(Object)
          */
@@ -980,6 +1050,9 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         	ArraySet<E> outgoing = ArraySet.own(getEdgeContainer(vertex).outgoing());
             return outgoing.size();
         }
+
+
+
 
         /**
          * @see DirectedGraph#outgoingEdgesOf(Object)
@@ -992,9 +1065,9 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         /**
          * @see DirectedGraph#outgoingEdgesOf(Object)
          */
-        public Set<E> outgoingEdgesOfUnsafe(V vertex)
+        public E[] outgoingEdgesOfUnsafe(V vertex)
         {
-            return getEdgeContainerUnsafe(vertex).getUnmodifiableOutgoingEdges();
+            return getEdgeContainerUnsafe(vertex).getOutoingEdgesUnsafe();
         }
 
         public boolean removeEdgeFromTouchingVertices(E e)
@@ -1032,7 +1105,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             return vertexMapDirected.compute(vertex, (v, ec) -> {
 
             if (ec == null) {
-                ec = new ArraySetDirectedEdgeContainer<E>();
+                ec = new ArraySetDirectedEdgeContainer<V, E>(classE);
             }
 
             return ec;
@@ -1049,15 +1122,17 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         private DirectedEdgeContainer<E, E[]> getEdgeContainerUnsafe(V vertex)
         {
             assert assertVertexExist(vertex);
-
-            return vertexMapDirected.compute(vertex, (v, ec) -> {
-
-            if (ec == null) {
-                ec = new ArraySetDirectedEdgeContainer<E>();
-            }
-
-            return ec;
-            });
+            
+            return vertexMapDirected.get(vertex);
+        }
+        
+        public void trimToSize() {
+        	// TODO: this is a hack, obviously
+        	if (vertexMapDirected instanceof SimpleVectorBase) {
+        		@SuppressWarnings("rawtypes")
+        		SimpleVectorBase vector = (SimpleVectorBase) vertexMapDirected;
+        		vector.trimToSize();
+        	}
         }
     }
 

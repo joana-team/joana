@@ -45,8 +45,8 @@ import static edu.kit.joana.wala.core.graphs.NTSCDGraph.*;
  */
 public class NTICDGraph<V extends IntegerIdentifiable, E extends KnowsVertices<V>> extends AbstractJoanaGraph<V, E> {
 
-	private NTICDGraph(EdgeFactory<V, E> edgeFactory) {
-		super(edgeFactory, () -> new ArrayMap<>());
+	private NTICDGraph(EdgeFactory<V, E> edgeFactory, Class<E> classE) {
+		super(edgeFactory, () -> new ArrayMap<>(), classE);
 	}
 
 	private static boolean DEBUG = false;
@@ -60,8 +60,8 @@ public class NTICDGraph<V extends IntegerIdentifiable, E extends KnowsVertices<V
 	 * condition "|S[m,n]| = T_n" is established due to change in |S[m,n]| elsewhere.
 	 * We attempt this by putting nodes p on the worklist in appropriate places.
 	 */
-	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> NTICDGraph<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory) {
-		NTICDGraph<V, E> cdg = new NTICDGraph<>(edgeFactory);
+	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> NTICDGraph<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory, Class<E> classE) {
+		NTICDGraph<V, E> cdg = new NTICDGraph<>(edgeFactory, classE);
 		for (V n : cfg.vertexSet()) {
 			cdg.addVertex(n);
 		}

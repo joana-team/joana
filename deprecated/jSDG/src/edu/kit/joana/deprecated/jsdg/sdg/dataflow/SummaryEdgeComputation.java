@@ -109,7 +109,7 @@ public class SummaryEdgeComputation {
                     for (Edge e : aiaoPairs) {
                         if (e.source == null || e.target == null) continue;
 
-                        SDGEdge sum = new SDGEdge(e.source, e.target, SDGEdge.Kind.SUMMARY);
+                        SDGEdge sum = SDGEdge.Kind.SUMMARY.newEdge(e.source, e.target);
                         if (g.addEdge(sum)) {
                             summaryEdge.add(sum);
 

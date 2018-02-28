@@ -15,6 +15,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
+import edu.kit.joana.util.collections.ArraySet;
 
 
 /**
@@ -31,8 +32,8 @@ public class CFGForward extends CFGSlicer {
         super(g);
     }
 
-    protected Collection<SDGEdge> edgesToTraverse(SDGNode node) {
-        return this.g.outgoingEdgesOfUnsafe(node);
+    protected Iterable<SDGEdge> edgesToTraverse(SDGNode node) {
+        return ArraySet.own(this.g.outgoingEdgesOfUnsafe(node));
     }
 
     protected SDGNode reachedNode(SDGEdge edge) {

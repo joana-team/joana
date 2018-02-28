@@ -22,6 +22,7 @@ import edu.kit.joana.ifc.sdg.graph.chopper.TruncatedNonSameLevelChopper;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.ContextManager;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.FoldedCFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.StaticContextManager;
@@ -41,10 +42,10 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
  */
 public class Slicer implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
 	private class Visited {
-	    private final HashMap<Context, List<States>> markedStates;
+	    private final HashMap<DynamicContext, List<States>> markedStates;
 
 	    private Visited() {
-	    	markedStates = new HashMap<Context, List<States>>();
+	    	markedStates = new HashMap<DynamicContext, List<States>>();
 	    }
 
 	    private void add(WorklistElement w) {
@@ -117,7 +118,7 @@ public class Slicer implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
     protected SDG sdg;
     /** The folded ICFG. */
     protected FoldedCFG foldedIcfg;
-    protected ContextManager conMan;
+    protected ContextManager<DynamicContext> conMan;
 
     /** A reachability checker for control flow graphs. */
     protected ReachabilityChecker reachable;
@@ -134,7 +135,7 @@ public class Slicer implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
 
     protected MHPAnalysis mhp;
 
-    protected LinkedList<Context> empty = new LinkedList<Context>();
+    protected LinkedList<DynamicContext> empty = new LinkedList<>();
     protected Visited visited;
 
 
@@ -180,7 +181,7 @@ public class Slicer implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
     public void setGraph(SDG graph) {
         // init context-using 2-phase slicer
         sdg = graph;
-        conMan = StaticContextManager.create(sdg);
+        conMan = new DynamicContextManager(graph);
 
         // build the threaded ICFG
         icfg = ICFGBuilder.extractICFG(sdg);
@@ -237,7 +238,7 @@ public class Slicer implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
 
         // the three worklists
         LinkedList<WorklistElement> w = initialWorklist(criteria);
-        LinkedList<WorklistElement> w0 = new LinkedList<WorklistElement>();
+        LinkedList<WorklistElement> w0 = new LinkedList<>();
 
         for(WorklistElement o : w){
             visited.add(o);
@@ -247,7 +248,7 @@ public class Slicer implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
     	threadLocalSlice(w, slice, w0, restrict);
 
         while (!w0.isEmpty()) {
-        	LinkedList<WorklistElement> next = new LinkedList<WorklistElement>();
+        	LinkedList<WorklistElement> next = new LinkedList<>();
         	WorklistElement elem = w0.poll();
         	next.add(elem);
         	for (WorklistElement we : w0) {
@@ -274,15 +275,15 @@ public class Slicer implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
 
     private void threadLocalSlice(Collection<WorklistElement> elem, Collection<SDGNode> slice,
     							  LinkedList<WorklistElement> wNext, Collection<SDGNode> restrict) {
-        LinkedList<WorklistElement> w1 = new LinkedList<WorklistElement>();
-        LinkedList<WorklistElement> w2 = new LinkedList<WorklistElement>();
+        LinkedList<WorklistElement> w1 = new LinkedList<>();
+        LinkedList<WorklistElement> w2 = new LinkedList<>();
 
         w1.addAll(elem);
 
     	while (!w1.isEmpty()) {
 			// process the next element
 			WorklistElement next = w1.poll();
-			Context context = next.getContext();
+			DynamicContext context = next.getContext();
 			States states = next.getStates();
 			int thread = next.getThread();
 			slice.add(next.getNode());
@@ -298,10 +299,10 @@ public class Slicer implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
 						// make sure we in fact change threads
 						if (t != thread || mhp.isDynamic(thread)) {
 							// get all valid context for 'source'
-							Collection<Context> valid = reachingContexts(source, t, next);
+							Collection<DynamicContext> valid = reachingContexts(source, t, next);
 
 							// create new worklist elements
-							for (Context con : valid) {
+							for (DynamicContext con : valid) {
 								States newStates = update(states, con);
 								WorklistElement we =  new WorklistElement(con, newStates);
 								if (!visited.isRedundant(we)) {
@@ -321,10 +322,10 @@ public class Slicer implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
     					// Class initializer methods have a special integration into our SDGs.
     					// Their formal-out vertices have outgoing param-in edge, which connect them with
     					// the rest of the SDG.
-    					Collection<Context> newContexts = conMan.getAllContextsOf(source);
+    					Collection<? extends DynamicContext> newContexts = conMan.getAllContextsOf(source);
 
     					// update the worklist
-    					for (Context con : newContexts) {
+    					for (DynamicContext con : newContexts) {
     						States newStates = update(states, con);
     						WorklistElement we =  new WorklistElement(con, newStates);
     						if (!visited.isRedundant(we)) {
@@ -338,9 +339,9 @@ public class Slicer implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
     					// go to the calling procedure
     					if (source.isInThread(thread) && context.isInCallingProcedure(source)) {
     						SDGNodeTuple callSite = sdg.getCallEntryFor(e);
-    						Context[] newContexts = conMan.ascend(source, callSite, context);
+    						DynamicContext[] newContexts = conMan.ascend(source, callSite, context);
 
-    						for (Context con : newContexts) {
+    						for (DynamicContext con : newContexts) {
     							if (con != null) {
     								States newStates = update(states, con);
     								WorklistElement we =  new WorklistElement(con, newStates);
@@ -355,7 +356,7 @@ public class Slicer implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
     				} else if (e.getKind() == SDGEdge.Kind.PARAMETER_OUT) {
     					// go to the called procedure
     					SDGNodeTuple callSite = sdg.getCallEntryFor(e);
-    					Context con = conMan.descend(source, callSite, context);
+    					DynamicContext con = conMan.descend(source, callSite, context);
     					States newStates = update(states, con);
     					WorklistElement we =  new WorklistElement(con, newStates);
     					if (!visited.isRedundant(we)) {
@@ -365,7 +366,7 @@ public class Slicer implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
 
     				} else {
     					// intra-procedural traversal
-    					Context con = conMan.level(source, context);
+    					DynamicContext con = conMan.level(source, context);
     					States newStates = update(states, con);
     					WorklistElement we =  new WorklistElement(con, newStates);
     					if (!visited.isRedundant(we)) {
@@ -381,7 +382,7 @@ public class Slicer implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
 		while(!w2.isEmpty()) {
 			// process the next element
 			WorklistElement next = w2.poll();
-			Context context = next.getContext();
+			DynamicContext context = next.getContext();
 			States states = next.getStates();
 			int thread = next.getThread();
 			slice.add(next.getNode());
@@ -397,10 +398,10 @@ public class Slicer implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
 						// make sure we in fact change threads
 						if (t != thread || mhp.isDynamic(thread)) {
 							// get all valid context for 'source'
-							Collection<Context> valid = reachingContexts(source, t, next);
+							Collection<DynamicContext> valid = reachingContexts(source, t, next);
 
 							// create new worklist elements
-							for (Context con : valid) {
+							for (DynamicContext con : valid) {
 								States newStates = update(states, con);
 								WorklistElement we =  new WorklistElement(con, newStates);
 								if (!visited.isRedundant(we)) {
@@ -420,7 +421,7 @@ public class Slicer implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
     				} else if (e.getKind() == SDGEdge.Kind.PARAMETER_OUT) {
     					// go to the called procedure
     					SDGNodeTuple callSite = sdg.getCallEntryFor(e);
-    					Context con = conMan.descend(source, callSite, context);
+    					DynamicContext con = conMan.descend(source, callSite, context);
     					States newStates = update(states, con);
     					WorklistElement we =  new WorklistElement(con, newStates);
     					if (!visited.isRedundant(we)) {
@@ -430,7 +431,7 @@ public class Slicer implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
 
     				} else {
     					// intra-procedural traversal
-    					Context con = conMan.level(source, context);
+    					DynamicContext con = conMan.level(source, context);
     					States newStates = update(states, con);
     					WorklistElement we =  new WorklistElement(con, newStates);
     					if (!visited.isRedundant(we)) {
@@ -453,9 +454,9 @@ public class Slicer implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
      * @param w             The worklist element representing the point where the old thread is left.
      *                      It contains the state tuple for the reaching analysis.
      */
-    private Collection<Context> reachingContexts(SDGNode source, int thread, WorklistElement w) {
-        Collection<Context> reached = new LinkedList<Context>();
-        Context target = w.getStates().state(thread);
+    private Collection<DynamicContext> reachingContexts(SDGNode source, int thread, WorklistElement w) {
+        Collection<DynamicContext> reached = new LinkedList<>();
+        DynamicContext target = w.getStates().state(thread);
 
         if (target == States.NONRESTRICTIVE || !TIME_TRAVELS) {
             // if the thread was not visited yet, all contexts are valid
@@ -466,10 +467,10 @@ public class Slicer implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
 
         } else {
             // retrieve all possible contexts for source in its thread
-            Collection<Context> contextList = conMan.getContextsOf(source, thread);
+            Collection<? extends DynamicContext> contextList = conMan.getContextsOf(source, thread);
 
             // return every context of source that reaches target
-            for (Context s : contextList) {
+            for (DynamicContext s : contextList) {
                 // if reachable, add context to reached list
                 if (reaches(s, target)) {
                     reached.add(s);
@@ -489,15 +490,15 @@ public class Slicer implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
      * @return  A LinkedList, maybe empty.
      */
     private LinkedList<WorklistElement> initialWorklist(Collection<SDGNode> criteria) {
-        LinkedList<WorklistElement> s = new LinkedList<WorklistElement>();
+        LinkedList<WorklistElement> s = new LinkedList<>();
 
         for (SDGNode node : criteria) {
             int[] threads = node.getThreadNumbers();
 
             for (int thread : threads) {
-                Collection<Context> contexts = conMan.getContextsOf(node, thread);
+                Collection<? extends DynamicContext> contexts = conMan.getContextsOf(node, thread);
 
-                for (Context con : contexts) {
+                for (DynamicContext con : contexts) {
                     States newStates = update(new States(sdg.getNumberOfThreads()), con);
                     WorklistElement w = new WorklistElement(con, newStates);
                     if (!visited.isRedundant(w)) {
@@ -519,7 +520,7 @@ public class Slicer implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
      * @param foldedIcfg  The CFG
      * @return  A CFG-Context.
      */
-    private DynamicContext map(Context origin) {
+    private DynamicContext map(DynamicContext origin) {
         // list for building the context that maps to Context 'con'
         LinkedList<SDGNode> res = new LinkedList<SDGNode>();
 
@@ -608,14 +609,14 @@ public class Slicer implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
         return callFold;
     }
 
-    private boolean reaches(Context start, Context target) {
+    private boolean reaches(DynamicContext start, DynamicContext target) {
 	    // map the target to the folded ICFG
 	    DynamicContext mappedTarget = map(target);
 	    DynamicContext mappedStart = map(start);
     	return reachable.reaches(mappedStart, mappedTarget);
     }
 
-    protected States update(States s, Context c) {
+    protected States update(States s, DynamicContext c) {
     	States newStates = s.clone();
     	int thread = c.getThread();
 

@@ -22,6 +22,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.GraphFolder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
+import edu.kit.joana.util.Pair;
 
 
 /**
@@ -52,58 +53,54 @@ public final class ThreadsInfoCollector {
         LinkedList<ThreadInstance> result = new LinkedList<ThreadInstance>();
 
         // create a ThreadInstance for the main thread
-        ThreadInstance main = new ThreadInstance(0, cfg.getRoot(), null, new LinkedList<SDGNode>());
-        main.setDynamic(false);
+        final ThreadInstance main; {
+            final SDGNode entry = cfg.getRoot();
+            SDGNode exit = null;
+            LinkedList<SDGNode> wl = new LinkedList<SDGNode>();
+            wl.add(entry);
+            while(!wl.isEmpty()) {
+            	SDGNode n = wl.poll();
+            	boolean isExit = true;
+
+            	for (SDGEdge e : cfg.outgoingEdgesOf(n)) {
+            		if (e.getKind() == SDGEdge.Kind.CONTROL_FLOW) {
+            			isExit = false;
+            			wl.add(e.getTarget());
+            		}
+            	}
+
+            	if (isExit) exit = n;
+            }
+            assert exit == cfg.getExit(entry);
+            main = new ThreadInstance(ThreadInstance.MAIN_THREAD_ID, entry, exit, null, new LinkedList<SDGNode>(), false);
+        }
+        
         result.add(main);
 
-        LinkedList<SDGNode> wl = new LinkedList<SDGNode>();
-        wl.add(main.getEntry());
-        while(!wl.isEmpty()) {
-            SDGNode n = wl.poll();
-            boolean exit = true;
-
-            for (SDGEdge e : cfg.outgoingEdgesOf(n)) {
-                if (e.getKind() == SDGEdge.Kind.CONTROL_FLOW) {
-                    exit = false;
-                    wl.add(e.getTarget());
-                }
-            }
-
-            if (exit) main.setExit(n);
-        }
 
 
         // a thread is identified by its calling context
-        Set<DynamicContext> threads = ta.getThreads();
+        Set<Pair<SDGNode, DynamicContext>> threads = ta.getThreads();
         int id = 1;
 
         // determine the thread instances
-        for (DynamicContext thread : threads) {
+        for (Pair<SDGNode, DynamicContext> pair : threads) {
+        	DynamicContext thread = pair.getSecond();
             if (DEBUG) System.out.println("entry: "+thread.getNode());
             if (DEBUG) System.out.println("    fork: "+thread.getCallStack().peek());
             if (DEBUG) System.out.println("    context: "+thread.getCallStack());
 
-            ThreadInstance ti =
-            	new ThreadInstance(id, thread.getNode(), thread.getCallStack().peek(), thread.getCallStack());
-
             // distinguish between dynamic and not dynamic threads
-            if(ta.getThreadAmount().get(thread) == -1) {
-                ti.setDynamic(true);
+            final boolean dynamic = ta.getThreadAmount().get(thread) == -1; 
 
-            } else {
-            	ti.setDynamic(false);
-            }
+            final SDGNode entry = thread.getNode();
+            // exit node - does not work for main thread, but we don't need the exit node for main thread
+            final SDGNode exit  = cfg.getExit(entry);
+            ThreadInstance ti =
+            	new ThreadInstance(id, entry, exit, thread.getCallStack().peek(), thread.getCallStack(), dynamic);
 
             result.add(ti);
             id++;
-        }
-
-
-        // for every ThreadInstance, compute exit
-        for (ThreadInstance ti: result) {
-            // exit node - does not work for main thread, but we don't need the exit node for main thread
-                    ti.setExit(cfg.getExit(ti.getEntry()));
-                    break;
         }
 
         if (DEBUG) {

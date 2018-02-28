@@ -632,7 +632,7 @@ public class JoDroidConstruction {
             	scope.addToScope(ClassLoaderReference.Application, DexFileModule.make(new File(classPathUri)));
             }
             if (javaClassPath != null) {
-            	AnalysisScopeReader.addClassPathToScope(String.join(File.pathSeparator, javaClassPath), scope, scope.getLoader(AnalysisScope.APPLICATION));
+            	AnalysisScopeReader.addClassPathToScope(String.join(File.pathSeparator, javaClassPath), scope, scope.getLoader(AnalysisScope.APPLICATION), true);
             }
 
             if (FileSuffixes.isRessourceFromJar(javaStubs)) {

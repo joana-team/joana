@@ -16,29 +16,25 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicCon
  *
  * @author  Dennis Giffhorn
  */
-public class States implements Cloneable {
+public class States<C extends Context<C>> implements Cloneable {
     // the execution states
-    private Context[] states;
+    private C[] states;
 
     /** Creates a new instance of States.
      * @param  TAmount of threads.
      */
-    public States(int size) {
-        states = new Context[size];
-
-        for (int i = 0; i< size; i++) {
-            states[i] = new DynamicContext(null, i);
-        }
+    public States(C[] initial) {
+        states = initial;
     }
 
     /** Clones these States.
      * @return  A deep-copy of this States.
      */
-    public States clone() {
-        States clone = new States(states.length);
+    public States<C> clone() {
+        States<C> clone = new States<>(states.clone());
 
         for (int i = 0; i < states.length; i++) {
-        	Context cl = states[i].copy();
+        	C cl = states[i].copy();
 
             clone.set(i, cl);
         }
@@ -54,8 +50,8 @@ public class States implements Cloneable {
      * @param context  The new execution state.
      * @return  The updated execution states.
      */
-    public States modifyStates(int thread, DynamicContext context) {
-        States clone = clone();
+    public States<C> modifyStates(int thread, C context) {
+        States<C> clone = clone();
 
         clone.set(thread, context);
 
@@ -66,7 +62,7 @@ public class States implements Cloneable {
      * @param thread  The thread.
      * @return  Its execution state.
      */
-    public Context state(int thread) {
+    public C state(int thread) {
         return states[thread];
     }
 
@@ -75,7 +71,7 @@ public class States implements Cloneable {
      * @param thread  The thread.
      * @param context  The new execution state.
      */
-    public void set(int thread, Context newState) {
+    public void set(int thread, C newState) {
         states[thread] = newState;
     }
 
@@ -90,7 +86,7 @@ public class States implements Cloneable {
      * @param thread  The thread.
      * @return  Its execution state.
      */
-    public Context get(int thread) {
+    public C get(int thread) {
         return states[thread];
     }
 
@@ -110,7 +106,8 @@ public class States implements Cloneable {
 			return false;
 		}
 
-		States s = (States) o;
+		@SuppressWarnings("unchecked")
+		States<C> s = (States<C>) o;
 
 		if (s.size() != size()) {
 			return false;
@@ -141,7 +138,7 @@ public class States implements Cloneable {
     public int hashCode() {
     	int hc = 1;
 
-    	for (Context c : states) {
+    	for (Context<C> c : states) {
             hc = 31*hc +(c==null ? 0 : c.hashCode());
         }
 

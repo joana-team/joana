@@ -13,6 +13,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import edu.kit.joana.ifc.sdg.graph.LabeledSDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge.Kind;
@@ -42,23 +43,14 @@ public class DeclassificationSummaryNodes extends IncrementalSummaryBackward {
 	MultiMap<SecurityNode,PathEdge> pathEdge;
 	LinkedList<PathEdge> worklist;
 
-	private static class PathEdge extends SDGEdge {
+	private static class PathEdge extends LabeledSDGEdge {
+
 		public PathEdge(SDGNode source, SDGNode sink) {
-			super(source, sink, KIND);
+			super(source, sink, KIND, null);
 		}
 
 		public PathEdge(SDGNode source, SDGNode sink, Kind kind, String label) {
 			super(source, sink, kind, label);
-		}
-
-	    @Override
-		public int hashCode() {
-	    	return super.hashCode();
-	    }
-
-		@Override
-		public boolean equals(Object o) {
-			return super.equals(o);
 		}
 	}
 
@@ -165,16 +157,16 @@ public class DeclassificationSummaryNodes extends IncrementalSummaryBackward {
 			SDGNode ai = pi.getSource();
 
 			SDGNode root = root(ai);
-			for (SDGEdge po : graph.getOutgoingEdgesOfKind(startedNode(currentPathEdge), SDGEdge.Kind.PARAMETER_OUT)) {
+			for (SDGEdge po : graph.getOutgoingEdgesOfKindUnsafe(startedNode(currentPathEdge), SDGEdge.Kind.PARAMETER_OUT)) {
 				SDGNode ao = po.getTarget();
 
 				if (root == root(ao)) {
 
 					SDGEdge sum;
 					if (freePath(currentPathEdge)) {
-						sum = new SDGEdge(ai, ao, SDGEdge.Kind.SUMMARY);
+						sum = SDGEdge.Kind.SUMMARY.newEdge(ai, ao);
 					} else {
-						sum = new SDGEdge(ai, ao, SDGEdge.Kind.SUMMARY, currentPathEdge.getLabel());
+						sum = new LabeledSDGEdge(ai, ao, SDGEdge.Kind.SUMMARY, currentPathEdge.getLabel());
 					}
 					for (SDGEdge edge : graph.getAllEdges(ai, ao)) {
 						if (edge.getKind() == Kind.SUMMARY) {

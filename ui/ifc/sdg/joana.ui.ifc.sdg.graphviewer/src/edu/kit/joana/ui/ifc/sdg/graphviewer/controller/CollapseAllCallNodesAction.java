@@ -71,13 +71,13 @@ public class CollapseAllCallNodesAction extends AbstractGVAction implements Chan
 			for (SDGNode col : collapse) {
 				for (SDGEdge e : newSDG.incomingEdgesOf(col)) {
 					if (e.getSource() != call) {
-						newSDG.addEdge(new SDGEdge(e.getSource(), call, e.getKind()));
+						newSDG.addEdge(e.getKind().newEdge(e.getSource(), call));
 					}
 					remove.add(e);
 				}
 				for (SDGEdge e : newSDG.outgoingEdgesOf(col)) {
 					if (e.getTarget() != call) {
-						newSDG.addEdge(new SDGEdge(call, e.getTarget(), e.getKind()));
+						newSDG.addEdge(e.getKind().newEdge(call, e.getTarget()));
 					}
 					remove.add(e);
 				}

@@ -24,13 +24,13 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
  * @author Dennis Giffhorn
  * @version 1.0
  */
-public class ReachabilityCache {
-    private final HashMap<Key, Boolean> cache;
+public class ReachabilityCache<C extends Context<C>> {
+    private final HashMap<Key<C>, Boolean> cache;
 
     /** Creates a new empty ReachabilityCache.
      */
     public ReachabilityCache(){
-        cache = new HashMap<Key, Boolean>();
+        cache = new HashMap<Key<C>, Boolean>();
     }
 
     /** Adds a reachability computation's result to the cache.
@@ -39,8 +39,8 @@ public class ReachabilityCache {
      * @param to  The target context in the computation.
      * @param result   Its result.
      */
-    public void add(Context from, Context to, boolean result){
-        cache.put(new Key(from, to), result);
+    public void add(C from, C to, boolean result){
+        cache.put(new Key<C>(from, to), result);
     }
 
     /** Checks whether the cache contains a reachability result for a given pair of contexts.
@@ -48,8 +48,8 @@ public class ReachabilityCache {
      * @param from  The source context in the computation.
      * @param to  The target context in the computation.
      */
-    public boolean contains(Context from, Context to){
-        return cache.containsKey(new Key(from, to));
+    public boolean contains(C from, C to){
+        return cache.containsKey(new Key<C>(from, to));
     }
 
     /** Returns the cached result of a certain reachability computation.
@@ -57,8 +57,8 @@ public class ReachabilityCache {
      * @param from  The source context in the computation.
      * @param to  The target context in the computation.
      */
-    public boolean isReaching(Context from, Context to) {
-        return cache.get(new Key(from, to));
+    public boolean isReaching(C from, C to) {
+        return cache.get(new Key<C>(from, to));
     }
 
 
@@ -66,15 +66,15 @@ public class ReachabilityCache {
     /** A Key for the used HashMap.
      * Contains two Contexts, the start and the target of a reachability analysis.
      */
-    static class Key {
-        private final Context from;
-        private final Context to;
+    static class Key<C> {
+        private final C from;
+        private final C to;
 
         /** Creates a new Key for two Contexts.
          * @param f  Context one.
          * @param t  Context two.
          */
-        Key(Context f, Context t) {
+        Key(C f, C t) {
             from = f;
             to = t;
         }
@@ -82,14 +82,14 @@ public class ReachabilityCache {
         /** Returns the start Context.
          * @return  A Context.
          */
-        Context from() {
+        C from() {
             return from;
         }
 
         /** Returns the target Context.
          * @return  A Context.
          */
-        Context to() {
+        C to() {
             return to;
         }
 
@@ -102,7 +102,8 @@ public class ReachabilityCache {
 				return false;
 			}
 
-			Key k = (Key) o;
+			@SuppressWarnings("unchecked")
+			Key<C> k = (Key<C>) o;
 			return from.equals(k.from) && to.equals(k.to);
 		}
 

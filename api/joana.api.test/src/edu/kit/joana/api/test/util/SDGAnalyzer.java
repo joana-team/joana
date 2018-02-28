@@ -146,7 +146,7 @@ public class SDGAnalyzer {
 
 	private boolean refersTo(Collection<SDGNode> nodes, SDGNode n,
 			String fieldName) {
-		for (SDGEdge e : sdg.getOutgoingEdgesOfKind(n,
+		for (SDGEdge e : sdg.getOutgoingEdgesOfKindUnsafe(n,
 				SDGEdge.Kind.CONTROL_DEP_EXPR)) {
 			SDGNode np = e.getTarget();
 			if (nodes.contains(np)) {

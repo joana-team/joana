@@ -257,9 +257,9 @@ public class TimingClassificationChecker<L> extends AnnotationMapChecker<L> {
 	 *         n.
 	 */
 	private boolean interferenceWriteUndirected(final SDGNode n) {
-		for (final SDGEdge e : g.getOutgoingEdgesOfKind(n, SDGEdge.Kind.INTERFERENCE_WRITE)) {
+		for (final SDGEdge e : g.getOutgoingEdgesOfKindUnsafe(n, SDGEdge.Kind.INTERFERENCE_WRITE)) {
 			boolean found = false;
-			for (final SDGEdge e2 : g.getOutgoingEdgesOfKind(e.getTarget(), SDGEdge.Kind.INTERFERENCE_WRITE)) {
+			for (final SDGEdge e2 : g.getOutgoingEdgesOfKindUnsafe(e.getTarget(), SDGEdge.Kind.INTERFERENCE_WRITE)) {
 				if (e2.getTarget().equals(n)) {
 					found = true;
 					break;

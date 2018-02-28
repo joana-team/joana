@@ -230,7 +230,7 @@ public class ProbabilisticNISlicer implements ConflictScanner {
                     	// wenn refined leer ist, ist der konflikt harmlos (es gibt keine geheimen trigger, also
                     	// verraet die Ausfuehrungsreihenfolge nichts, was nicht verraten werden soll)
                     	if (!refined.isEmpty()) {
-    	                	SDGEdge edge = new SDGEdge(m, n, SDGEdge.Kind.CONFLICT_ORDER);
+    	                	SDGEdge edge = SDGEdge.Kind.CONFLICT_ORDER.newEdge(m, n);
     	                	orderConflictEdges.add(edge);
     	                    orderConflicts2Triggers.put(edge, refined);
 //    	                    System.out.println("ORDER CONFLICT: "+m+" <-> "+n);
@@ -251,7 +251,7 @@ public class ProbabilisticNISlicer implements ConflictScanner {
                 	// teste, ob er harmlos ist
                 	HashSet<SecurityNode> triggers = trigger((SecurityNode)edge.getSource(), (SecurityNode)edge.getTarget());
                 	if (!triggers.isEmpty()) {
-                    	SDGEdge e = new SDGEdge(edge.getSource(), edge.getTarget(), SDGEdge.Kind.CONFLICT_DATA);
+                    	SDGEdge e = SDGEdge.Kind.CONFLICT_DATA.newEdge(edge.getSource(), edge.getTarget());
                         dataConflictEdges.add(e);
 
 
@@ -271,8 +271,8 @@ public class ProbabilisticNISlicer implements ConflictScanner {
                 	HashSet<SecurityNode> triggers = trigger((SecurityNode)edge.getSource(), (SecurityNode)edge.getTarget());
                 	if (!triggers.isEmpty()) {
                         // bidirected conflict
-                    	SDGEdge e = new SDGEdge(edge.getSource(), edge.getTarget(), SDGEdge.Kind.CONFLICT_DATA);
-                    	SDGEdge f = new SDGEdge(edge.getTarget(), edge.getSource(), SDGEdge.Kind.CONFLICT_DATA);
+                    	SDGEdge e = SDGEdge.Kind.CONFLICT_DATA.newEdge(edge.getSource(), edge.getTarget());
+                    	SDGEdge f = SDGEdge.Kind.CONFLICT_DATA.newEdge(edge.getTarget(), edge.getSource());
                     	dataConflictEdges.add(e);
                     	dataConflictEdges.add(f);
 

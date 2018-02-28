@@ -13,7 +13,6 @@ import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
 import com.ibm.wala.ipa.callgraph.pruned.PruningPolicy;
 
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
-import edu.kit.joana.util.JoanaConstants;
 import edu.kit.joana.util.LogUtil;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.CGConsumer;
@@ -24,14 +23,16 @@ import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig;
+import edu.kit.joana.wala.summary.SummaryComputationType;
 import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder;
 
 public class SDGConfig {
 	private PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
 	private String classPath;
+	private boolean classpathAddEntriesFromMANIFEST;
 	private String thirdPartyLibsPath;
 	private String entryMethod;
-	private Stubs stubsPath;
+	private Stubs stubs;
 	private String exclusions = SDGBuilder.STD_EXCLUSION_REG_EXP;
 	private ExceptionAnalysis exceptionAnalysis;
 	private boolean ignoreIndirectFlows = false;
@@ -43,26 +44,27 @@ public class SDGConfig {
 	private MHPType mhpType = MHPType.NONE;
 	private SideEffectDetectorConfig sideEffects;
 	private ObjSensZeroXCFABuilder.MethodFilter methodFilter;
-	private String nativesXML = JoanaConstants.DEFAULT_NATIVES_XML;
 	private boolean computeAllocationSites = false;
 	private CGConsumer cgConsumer = null;
 	private ContextSelector ctxSelector;
 	private ConstructionNotifier notifier = null;
 	private DynamicDispatchHandling ddisp = DynamicDispatchHandling.SIMPLE;
 	private boolean computeSummaryEdges = true;
+	private SummaryComputationType summaryComputationType = SummaryComputationType.DEFAULT;
 	private boolean skipSDGProgramPart = false;
 	private ControlDependenceVariant controlDependenceVariant = SDGBuilder.defaultControlDependenceVariant;
 	private boolean isParallel = true;
 	
 	public SDGConfig(String classPath, String entryMethod, Stubs stubsPath) {
-		this(classPath, entryMethod, stubsPath, ExceptionAnalysis.INTERPROC, FieldPropagation.OBJ_GRAPH, PointsToPrecision.INSTANCE_BASED, false, false, MHPType.NONE);
+		this(classPath, true, entryMethod, stubsPath, ExceptionAnalysis.INTERPROC, FieldPropagation.OBJ_GRAPH, PointsToPrecision.INSTANCE_BASED, false, false, MHPType.NONE);
 	}
 
-	public SDGConfig(String classPath, String entryMethod, Stubs stubsPath, ExceptionAnalysis exceptionAnalysis, FieldPropagation fieldPropagation,
+	public SDGConfig(String classPath, boolean classpathAddEntriesFromMANIFEST, String entryMethod, Stubs stubsPath, ExceptionAnalysis exceptionAnalysis, FieldPropagation fieldPropagation,
 			PointsToPrecision pointsToPrecision, boolean computeAccessPaths, boolean computeInterferences, MHPType mhpType) {
 		this.classPath = classPath;
+		this.classpathAddEntriesFromMANIFEST = classpathAddEntriesFromMANIFEST;
 		this.entryMethod = entryMethod;
-		this.stubsPath = stubsPath;
+		this.stubs = stubsPath;
 		this.exceptionAnalysis = exceptionAnalysis;
 		this.fieldPropagation = fieldPropagation;
 		this.pointsToPrecision = pointsToPrecision;
@@ -77,6 +79,14 @@ public class SDGConfig {
 	
 	public boolean isComputeSummaryEdges() {
 		return this.computeSummaryEdges;
+	}
+	
+	public void setSummaryComputationType(SummaryComputationType summaryComputationType) {
+		this.summaryComputationType = summaryComputationType;
+	}
+	
+	public SummaryComputationType getSummaryComputationType() {
+		return summaryComputationType;
 	}
 
 	public void setSkipSDGProgramPart(final boolean value) {
@@ -93,13 +103,28 @@ public class SDGConfig {
 	public String getClassPath() {
 		return classPath;
 	}
-
+	
 	/**
 	 * @param classPath the classPath to set
 	 */
 	public void setClassPath(String classPath) {
 		this.classPath = classPath;
 	}
+	
+	/**
+	 * @return whether "Class-Path:" entries in MANIFEST.MF files shall be recursively added to the classPath 
+	 */
+	public boolean getClasspathAddEntriesFromMANIFEST() {
+		return classpathAddEntriesFromMANIFEST;
+	}
+	
+	/**
+	 * @param classpathAddEntriesFromMANIFEST whether "Class-Path:" entries in MANIFEST.MF files shall be recursively added to the classPath
+	 */
+	public void setClasspathAddEntriesFromMANIFEST(boolean classpathAddEntriesFromMANIFEST) {
+		this.classpathAddEntriesFromMANIFEST = classpathAddEntriesFromMANIFEST;
+	}
+
 
 	/**
 	 * @return the entry method
@@ -118,15 +143,15 @@ public class SDGConfig {
 	/**
 	 * @return the stubsPath
 	 */
-	public Stubs getStubsPath() {
-		return stubsPath;
+	public Stubs getStubs() {
+		return stubs;
 	}
 
 	/**
 	 * @param stubsPath the stubsPath to set
 	 */
-	public void setStubsPath(Stubs stubsPath) {
-		this.stubsPath = stubsPath;
+	public void setStubs(Stubs stubs) {
+		this.stubs = stubs;
 	}
 
 	/**
@@ -187,23 +212,6 @@ public class SDGConfig {
 		this.methodFilter = methodFilter;
 	}
 	
-	/**
-	 * Returns the name of the file which WALA will use to resolve calls to native methods.
-	 * @return the name of the file which WALA will use to resolve calls to native methods
-	 */
-	public String getNativesXML() {
-		return this.nativesXML;
-	}
-	
-	/**
-	 * Sets the name of the file WALA will use to resolve calls to native methods. Only call this method if you are absolutely sure
-	 * what you are doing!
-	 * @param nativesXML name of the XML file WALA will use to resolve calls to native methods
-	 */
-	public void setNativesXML(String nativesXML) {
-		this.nativesXML = nativesXML;
-	}
-
 	/**
 	 * @return the mhpType
 	 */

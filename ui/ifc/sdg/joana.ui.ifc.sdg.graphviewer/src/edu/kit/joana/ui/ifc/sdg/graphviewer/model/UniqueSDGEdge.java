@@ -9,19 +9,20 @@ package edu.kit.joana.ui.ifc.sdg.graphviewer.model;
 
 import org.jgrapht.EdgeFactory;
 
+import edu.kit.joana.ifc.sdg.graph.LabeledSDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 
 
-public class UniqueSDGEdge extends SDGEdge {
+public class UniqueSDGEdge extends LabeledSDGEdge {
 	public static final UniqueSDGEdgeFactory FACTORY = new UniqueSDGEdgeFactory();
 
 	public UniqueSDGEdge(SDGNode source, SDGNode sink) {
-        super(source, sink, SDGEdge.Kind.HELP);
+        super(source, sink, SDGEdge.Kind.HELP, null);
     }
 
 	public UniqueSDGEdge(SDGNode source, SDGNode sink, Kind kind) {
-        super(source, sink, kind);
+        super(source, sink, kind, null);
     }
 
 	public UniqueSDGEdge(SDGNode source, SDGNode sink, Kind kind, String label) {

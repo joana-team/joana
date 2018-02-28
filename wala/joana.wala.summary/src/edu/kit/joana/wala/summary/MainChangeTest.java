@@ -361,7 +361,7 @@ public class MainChangeTest {
 		for (SDGNode from : procNodes) {
 			for (SDGNode to : procNodes) {
 				if (from != to && nodesNotConnected(from, to, sdg)) {
-					final SDGEdge cand = new SDGEdge(from, to, SDGEdge.Kind.DATA_DEP);
+					final SDGEdge cand =  SDGEdge.Kind.DATA_DEP.newEdge(from, to);
 					candidates.add(cand);
 				}
 			}
@@ -431,6 +431,12 @@ public class MainChangeTest {
 		printTotalSumEdges(sdg, sdg.getName());
 	}
 
+	@SuppressWarnings("serial")
+	static class RememberReachedBitVector extends BitVector {
+		RememberReachedBitVector(int nsize) {
+			super(nsize);
+		}
+	}
 	private static WorkPackage<SDG> createWholeGraphPackage(SDG sdg, final Set<SDGNode> changed, final TIntSet fully,
 			TIntObjectMap<List<SDGNode>> out2in, boolean rememberReached) {
 		final SDGNode root = sdg.getRoot();
@@ -474,7 +480,7 @@ public class MainChangeTest {
 	        			
 	        			((BitVector)n.customData).clearAll();
 	        		} else {
-	        			n.customData = new BitVector(numRelevantNodes + 1);
+	        			n.customData = new RememberReachedBitVector(numRelevantNodes + 1);
 	        		}
 	        	}
 	        }

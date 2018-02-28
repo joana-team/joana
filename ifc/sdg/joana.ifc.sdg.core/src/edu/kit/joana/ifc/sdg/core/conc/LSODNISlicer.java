@@ -200,7 +200,7 @@ public class LSODNISlicer implements ConflictScanner {
 		// is low-observable, add a violation
 		List<SDGEdge> oConfs = g.getIncomingEdgesOfKind(n,
 				SDGEdge.Kind.CONFLICT_ORDER);
-		oConfs.addAll(g.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CONFLICT_ORDER));
+		oConfs.addAll(g.getOutgoingEdgesOfKindUnsafe(n, SDGEdge.Kind.CONFLICT_ORDER));
 		for (SDGEdge oConf : oConfs) {
 			// Calculate lowest level which can observe the conflict:
 			// This is the least upper bounds of both levels since both conflicting parts must be seen.
@@ -328,8 +328,7 @@ public class LSODNISlicer implements ConflictScanner {
 			for (SecurityNode m : annotatedNodes) {
 				for (SecurityNode n : annotatedNodes) {
 					if (mhp.isParallel(m, n)) {
-						SDGEdge edge = new SDGEdge(m, n,
-								SDGEdge.Kind.CONFLICT_ORDER);
+						SDGEdge edge = SDGEdge.Kind.CONFLICT_ORDER.newEdge(m, n);
 						orderConflictEdges.add(edge);
 					}
 				}
@@ -347,15 +346,12 @@ public class LSODNISlicer implements ConflictScanner {
 			// suche nach interferenzen -> potentielle data-konflikte
 			for (SDGEdge edge : g.edgeSet()) {
 				if (edge.getKind() == SDGEdge.Kind.INTERFERENCE) {
-					SDGEdge e = new SDGEdge(edge.getSource(), edge.getTarget(),
-							SDGEdge.Kind.CONFLICT_DATA);
+					SDGEdge e = SDGEdge.Kind.CONFLICT_DATA.newEdge(edge.getSource(), edge.getTarget());
 					dataConflictEdges.add(e);
 				} else if (edge.getKind() == SDGEdge.Kind.INTERFERENCE_WRITE) {
 					// bidirected conflict
-					SDGEdge e = new SDGEdge(edge.getSource(), edge.getTarget(),
-							SDGEdge.Kind.CONFLICT_DATA);
-					SDGEdge f = new SDGEdge(edge.getTarget(), edge.getSource(),
-							SDGEdge.Kind.CONFLICT_DATA);
+					SDGEdge e = SDGEdge.Kind.CONFLICT_DATA.newEdge(edge.getSource(), edge.getTarget());
+					SDGEdge f = SDGEdge.Kind.CONFLICT_DATA.newEdge(edge.getTarget(), edge.getSource());
 					dataConflictEdges.add(e);
 					dataConflictEdges.add(f);
 				}

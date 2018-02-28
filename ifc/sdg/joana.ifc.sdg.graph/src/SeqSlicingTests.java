@@ -76,17 +76,17 @@ public class SeqSlicingTests {
         algs = algs / 10;
 
         if (algs % 2 != 0) {
-        	array.addLast(new ContextSlicerBackward(g, true));
+        	array.addLast(ContextSlicerBackward.newContextSlicerBackward(g, true));
         }
         algs = algs / 10;
 
         if (algs % 2 != 0) {
-        	array.addLast(new IPDGSlicerBackward(g, false));
+        	array.addLast(IPDGSlicerBackward.newIPDGSlicerBackward(g, false));
         }
         algs = algs / 10;
 
         if (algs % 2 != 0) {
-        	array.addLast(new IPDGSlicerBackward(g, true));
+        	array.addLast(IPDGSlicerBackward.newIPDGSlicerBackward(g, true));
         }
 
         System.out.println(file);

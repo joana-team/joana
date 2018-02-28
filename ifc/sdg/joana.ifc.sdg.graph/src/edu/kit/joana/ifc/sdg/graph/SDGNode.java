@@ -13,6 +13,7 @@ package edu.kit.joana.ifc.sdg.graph;
 
 import java.util.Comparator;
 
+import edu.kit.joana.util.SourceLocation;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
@@ -209,21 +210,32 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
         }
 
         public SDGNode createNode(int id, String value, int proc, String type,
-                String source, int sr, int sc, int er, int ec, String bcName, int bcIndex, String[] localDefNames, String[] localUseNames) {
-            return new SDGNode(id, this, value, proc, type, source, sr, sc, er, ec, bcName, bcIndex);
+        		SourceLocation sourceLocation, String bcName, int bcIndex, String[] localDefNames, String[] localUseNames,
+                String unresolvedCallTarget,
+                int[] allocationSites,
+                String clsLoader) {
+            return new SDGNode(id, this, value, proc, type, sourceLocation, bcName, bcIndex, localDefNames, localUseNames, unresolvedCallTarget, allocationSites, clsLoader);
         }
     }
 
     public static abstract class NodeFactory {
     	public abstract SDGNode createNode(Operation op, int kind, int id, String value, int proc, String type,
-              String source, int sr, int sc, int er, int ec, String bcMethod, int bcIndex);
+              SourceLocation sourceLocation, String bcMethod, int bcIndex,
+              String[] localDefNames, String[] localUseNames,
+              String unresolvedCallTarget,
+              int[] allocationSites,
+              String clsLoader);
     }
 
 	public static final class SDGNodeFactory extends NodeFactory {
 		public SDGNode createNode(Operation op, int kind, int id, String value, int proc,
-				String type, String source, int sr, int sc, int er, int ec, String bcMethod, int bcIndex) {
+				String type, SourceLocation sourceLocation, String bcMethod, int bcIndex,
+				String[] localDefNames, String[] localUseNames,
+				String unresolvedCallTarget,
+				int[] allocationSites,
+				String clsLoader) {
 			return new SDGNode(op.getKind(kind), id, op, value, proc, type,
-					source, sr, sc, er, ec, bcMethod, bcIndex);
+					sourceLocation, bcMethod, bcIndex, localDefNames, localUseNames, unresolvedCallTarget, allocationSites, clsLoader);
 		}
 	}
 
@@ -252,39 +264,30 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
     /* *** The node internals start here. *** */
 
     /* The ID of the node. Should be unique in the graph. Negative IDs are permitted.*/
-    private int id;
+    private final int id;
 
     /* The source file of the source code represented by this node.*/
-    private String source;
+    private final SourceLocation sourceLocation;
 
     /* The ID of the procedure to which the node belongs.*/
-    private int proc;
+    private final int proc;
 
     /* Classifies nodes by means of their bytecode operation. */
-    public Operation operation;
+    public final Operation operation;
 
     /* The bytecode of this node.*/
-    private String value;
+    private final String label;
 
     /* The type of this node.*/
-    private String type;
+    private final String type;
 
     /* Name of the bytecode method or parameter this node belongs to */
     private final String bcName;
     /* index of the bytecode instruction or one of the special ids < 0 (BytecodeLoaction.*) this node belongs to */
     private final int bcIndex;
 
-    /*
-     * A node stores the dimensions of the source code area over which it ranges.
-     * `sr' is the index of the first line.
-     * `sc' is the index of the first column.
-     * `er' is the index of the last line.
-     * `ec' is the index of the last column.
-     */
-    private int sr, sc, er, ec;
-
     /* The kind of this node.*/
-    public Kind kind;
+    public final Kind kind;
 
     /* The IDs of the threads to which the node belongs.
        Is never null if the node stems from a generated SDG.
@@ -295,45 +298,57 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
     /* Used when interference computation is toggled. For nodes that call Thread.start we store
        the nodes that are potential allocation sites (declaration nodes) upon which start() is
        called. So we can compute which run() method is called. */
-    private int[] allocationSites;
+    private final int[] allocationSites;
 
-    private String clsLoader;
+    private final String clsLoader;
 
     /* used for call nodes where there is no pdg for the call target */
-    private String unresolvedCallTarget;
+    private final String unresolvedCallTarget;
     
     /* for nodes defining a value that correspond to a definition of local variables, the names of the corresponding
      * local variables; 
      */
-    private String[] localDefNames;
+    private final String[] localDefNames;
 
     /* for nodes using a value that correspond to a definition of local variables, the names of the corresponding
      * local variables; 
      */
-    private String[] localUseNames;
+    private final String[] localUseNames;
 
-    public SDGNode(int id, Operation op, String value, int proc,
-            String type, String source, int sr, int sc, int er, int ec, String bcName, int bcIndex) {
+    public SDGNode(int id, Operation op, String label, int proc,
+            String type, SourceLocation sourceLocation, String bcName, int bcIndex,
+            String[] localDefNames, String[] localUseNames,
+            String unresolvedCallTarget,
+            int[] allocationSites,
+            String clsLoader) {
+        if (sourceLocation == null) {
+        	throw new IllegalArgumentException("Use SourceLocation.UNKNOWN instead");
+        }
         this.kind = op.kind[0];
         this.id = id;
         this.operation = op;
-        this.value = value;
-        this.source = source;
-        this.sr = sr;
-        this.sc = sc;
-        this.er = er;
-        this.ec = ec;
+        this.label = label == null ? null : label.intern();
+        this.sourceLocation = sourceLocation;
         this.proc = proc;
-        this.type = type;
-        this.bcName = bcName;
+        this.type = type == null ? null : type.intern();
+        this.bcName = bcName == null ? null : bcName.intern();
         this.bcIndex = bcIndex;
+        this.localDefNames = localDefNames;
+        this.localUseNames = localUseNames;
+        this.unresolvedCallTarget = unresolvedCallTarget == null ? null : unresolvedCallTarget.intern();
+        this.allocationSites = allocationSites;
+        this.clsLoader = clsLoader == null ? null : clsLoader.intern();
     }
 
-    protected SDGNode(Kind kind, int id, Operation op, String value, int proc,
-            String type, String source, int sr, int sc, int er, int ec, String bcMethod, int bcIndex) {
-        this(id, op, value, proc, type, source, sr, sc, er, ec, bcMethod, bcIndex);
+    protected SDGNode(Kind kind, int id, Operation op, String label, int proc,
+            String type, SourceLocation sourceLocation, String bcMethod, int bcIndex,
+            String[] localDefNames, String[] localUseNames,
+            String unresolvedCallTarget,
+            int[] allocationSites,
+            String clsLoader) {
+        this(id, op, label, proc, type, sourceLocation, bcMethod, bcIndex, localDefNames, localUseNames, unresolvedCallTarget, allocationSites, clsLoader);
         assert op.kind[0] == kind;
-        this.kind = kind;
+        assert this.kind == kind;
     }
 
     /**
@@ -343,49 +358,66 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
      * @param id    The node's ID.
      * @param proc  The procedure ID.
      */
-    public SDGNode(Kind kind, int id, int proc){
+    public SDGNode(Kind kind, int id, int proc, String label){
         this.kind = kind;
         this.operation = Operation.EMPTY;
         this.id = id;
         this.proc = proc;
-        this.sr = -1;
-        this.sc = -1;
-        this.er = -1;
-        this.ec = -1;
-        this.bcIndex = -1;
+        this.label = label == null ? null : label.intern();
+        
+        this.sourceLocation = SourceLocation.UNKNOWN;
+        this.type = null;
         this.bcName = null;
+        this.bcIndex = -1;
+        this.localDefNames = null;
+        this.localUseNames = null;
+        this.unresolvedCallTarget = null;
+        this.allocationSites = null;
+        this.clsLoader = null;
+    }
+
+
+    /**
+     * Returns a _shallow_ copy of the node.
+     */
+    public SDGNode clone() {
+      return clone(this.getId(), this.getProc());	
+    }
+    
+    public SDGNode clone(int newId, int newProc) {
+    	return clone(newId, newProc, getKind(), getOperation());
     }
 
     /**
      * Returns a _shallow_ copy of the node.
-     * Be careful if you intend to modify the operation attribute!
-     * (noone is doing that for the time being, so a shallow copy is perfectly OK)
      */
-    public SDGNode clone() {
-    	SDGNode ret = new SDGNode(kind, id, operation, value, proc, type, source, sr, sc, er, ec, bcName, bcIndex);
-    	if (allocationSites != null) {
-    		ret.setAllocationSites(allocationSites.clone());
+    public SDGNode clone(int newId, int newProc, Kind newKind, Operation newOp) {
+    	final int[] allocationSites;
+    	if (this.allocationSites != null) {
+    		allocationSites = this.allocationSites.clone();
+    	} else {
+    		allocationSites = null;
     	}
 
-    	if (localDefNames != null) {
-    		ret.setLocalDefNames(localDefNames.clone());
+    	final String[] localDefNames;
+    	if (this.localDefNames != null) {
+    		localDefNames  = this.localDefNames.clone();
+    	} else {
+    		localDefNames = null;
     	}
 
-    	if (localUseNames != null) {
-    		ret.setLocalDefNames(localUseNames.clone());
+    	final String[] localUseNames;
+    	if (this.localUseNames != null) {
+    		localUseNames  = this.localUseNames.clone();
+    	} else {
+    		localUseNames = null;
     	}
     	
+    	SDGNode ret = new SDGNode(newKind, id, newOp, label, proc, type, sourceLocation, bcName, bcIndex, localDefNames, localUseNames, unresolvedCallTarget, allocationSites, clsLoader);
+
     	return ret;
     }
 
-    
-    /**
-     * Sets the names of local variables defined at this nodes.
-     * @param localDefNames The names of local variables defined at this nodes.
-     */
-    public void setLocalDefNames(String[] localDefNames) {
-       this.localDefNames = localDefNames;
-    }
     
     /**
      * @return The names of local variables defined at this nodes.
@@ -394,13 +426,6 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
        return this.localDefNames;
     }
     
-    /**
-     * Sets the names of local variables used at this nodes.
-     * @param localUseNames The names of local variables used at this nodes.
-     */
-    public void setLocalUseNames(String[] localUseNames) {
-       this.localUseNames = localUseNames;
-    }
     
     /**
      * @return The names of local variables used at this nodes.
@@ -409,13 +434,6 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
        return this.localUseNames;
     }
     
-    /**
-     * Sets the thread numbers of the node to the given array.
-     * @param tn  The new thread numbers.
-     */
-    public void setAllocationSites(int[] sites) {
-       this.allocationSites = sites;
-    }
 
     /**
      * If available, this method returns the ids of the nodes, at which the object, on
@@ -489,32 +507,6 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
  * END alias data source stuff
  */
 
-/*
- * BEGIN termination sensitive interprocedural control-dependencies
- */
-
-    /* For the computation of interprocedural non-termination sensitive SDGs, we have
-     * to mark certain instructions (mostly calls) as potentially non-terminating.
-     * So we know, when this.nonTerm == true, all instructions after this may never
-     * be executed -> termination sensitive control dependencies. */
-    private boolean nonTerm = false;
-
-    public boolean mayBeNonTerminating() {
-    	return nonTerm;
-    }
-
-    public void setMayBeNonTerminating(final boolean nonTerm) {
-    	this.nonTerm = nonTerm;
-    }
-
-/*
- * END termination sensitive interprocedural control-dependencies
- */
-
-    public void setClassLoader(final String clsLoader) {
-    	this.clsLoader = clsLoader;
-    }
-
     public String getClassLoader() {
     	return this.clsLoader;
     }
@@ -523,20 +515,7 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
      * Returns the label.
      */
     public String getLabel() {
-        return value;
-    }
-
-    /**
-     * Sets the label to the given String.
-     * @param arg0  A String, should not be null.
-     */
-    public void setLabel(String arg0) {
-        value = arg0;
-    }
-
-    public void setLine(int start, int end) {
-    	sr = start;
-    	er = end;
+        return label;
     }
 
     /**
@@ -544,7 +523,7 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
      * @return  The index or -1, if this is a synthetic node.
      */
     public int getEr() {
-        return er;
+        return sourceLocation.getEndRow();
     }
 
     /**
@@ -552,7 +531,7 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
      * @return  The index or -1, if this is a synthetic node.
      */
     public int getEc() {
-        return ec;
+        return sourceLocation.getEndColumn();
     }
 
     /**
@@ -560,7 +539,7 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
      * @return  The index or -1, if this is a synthetic node.
      */
     public int getSc() {
-        return sc;
+        return sourceLocation.getStartColumn();
     }
 
     /**
@@ -568,7 +547,7 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
      * @return  The index or -1, if this is a synthetic node.
      */
     public int getSr() {
-        return sr;
+        return sourceLocation.getStartRow();
     }
 
     public final int getBytecodeIndex() {
@@ -581,17 +560,6 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
 
     public final String getBytecodeMethod() {
     	return bcName;
-    }
-
-    /**
-     * A setter for the node ID.
-     * A node ID should be unique in the graph. Negative IDs are possible and are currently
-     * used for folded nodes.
-     *
-     * @param i  The ID, should be unique in the graph.
-     */
-    public void setId(int i) {
-        id = i;
     }
 
     /**
@@ -623,27 +591,18 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
     }
 
     /**
-     * A setter for the procedure ID of the node.
-     * If a node does not belong to a procedure, e.g. in case it is
-     * a folded node that spans over several procedures, use -1.
-     */
-    public void setProc(int p) {
-        proc = p;
-    }
-
-    /**
      * @return The source file of this node.
      */
     public String getSource() {
-        return source;
+        return sourceLocation.getSourceFile();
     }
-
+    
     /**
-     * Sets the source file of this node.
-     */
-    public void setSource(String s) {
-    	source = s;
-    }
+	 * @return the sourceLocation
+	 */
+	public SourceLocation getSourceLocation() {
+		return sourceLocation;
+	}
 
     /**
      * @return The type of this node.
@@ -654,10 +613,6 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
 
     public String getUnresolvedCallTarget() {
         return unresolvedCallTarget;
-    }
-
-    public void setUnresolvedCallTarget(String unresolvedCallTarget) {
-        this.unresolvedCallTarget = unresolvedCallTarget;
     }
 
     /**
@@ -682,17 +637,13 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
 
             if (this.id != node.getId()) return false;
             if (!this.operation.equals(node.getOperation())) return false;
-            if (this.value != null && !this.value.equals(node.getLabel())) return false;
-            if (this.value == null && node.getLabel() != null) return false;
-            if (this.sr != node.getSr()) return false;
-            if (this.sc != node.getSc()) return false;
-            if (this.er != node.getEr()) return false;
-            if (this.ec != node.getEc()) return false;
+            if (this.label != null && !this.label.equals(node.getLabel())) return false;
+            if (this.label == null && node.getLabel() != null) return false;
             if (this.proc != node.getProc()) return false;
             if (this.type != null && !this.type.equals(node.getType())) return false;
             if (this.type == null && node.getType() != null) return false;
-            if (this.source != null && !this.source.equals(node.getSource())) return false;
-            if (this.source == null && node.getSource() != null) return false;
+            if (this.sourceLocation != null && !this.sourceLocation.equals(node.getSourceLocation())) return false;
+            if (this.sourceLocation == null && node.getSourceLocation() != null) return false;
 
             return true;
         }

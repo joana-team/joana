@@ -22,10 +22,8 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  * For every thread it contains information about, this informations consist of<p>
  * <ul>
  * <li> the entry node </li>
- * <li> the exit node ('null' for the main thread) </li>
- * <li> the fork node ('null' for the main thread) </li>
- * <li> the thread allocation node ('null' for the main thread) </li>
- * <li> the thread invocation node ('null' for the main thread) </li>
+ * <li> the exit node </li>
+ * <li> the fork node ('null' for the main thread, which has, by convention, the id 0) </li>
  * <li> the join nodes (maybe empty) </li>
  * <li> the thread context (empty list for the main thread) </li>
  * <li> whether this thread is dynamic </li>
@@ -38,28 +36,30 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  */
 public final class ThreadsInformation implements Iterable<ThreadsInformation.ThreadInstance> {
     public static class ThreadInstance {
+    	public static final int MAIN_THREAD_ID = 0;
         private final int id;
         private final SDGNode entry;
-        private SDGNode exit = null;
+        private final SDGNode exit;
         private final SDGNode fork;
-        private Collection<SDGNode> join;
+        private final Collection<SDGNode> join;
         private final LinkedList<SDGNode> threadContext;
-        private boolean dynamic;
+        private final boolean dynamic;
 
-//        public ThreadInstance() { }
-
-        public ThreadInstance(int id, SDGNode en, SDGNode fo, LinkedList<SDGNode> tc) {
-            this(id, en, null, fo, new LinkedList<SDGNode>(), tc, false);
-        }
-
-        public ThreadInstance(int id, SDGNode en, SDGNode ex, SDGNode fo, SDGNode jo, LinkedList<SDGNode> tc, boolean dyn) {
-        	this(id, en, ex, fo, new LinkedList<SDGNode>(), tc, dyn);
-            if (jo != null)
-            	this.join.add(jo);
+        public ThreadInstance(int id, SDGNode en, SDGNode ex, SDGNode fo,             LinkedList<SDGNode> tc, boolean dyn) {
+            this(id, en, ex, fo, new LinkedList<SDGNode>(), tc, dyn);
         }
         
         public ThreadInstance(int id, SDGNode en, SDGNode ex, SDGNode fo, Collection<SDGNode> jo, LinkedList<SDGNode> tc, boolean dyn) {
-        	this.id = id;
+            if (en == null || jo == null || tc == null || ex == null) throw new IllegalArgumentException();
+            if (fo == null && id != MAIN_THREAD_ID) throw new IllegalArgumentException();
+            if (en.getKind() != SDGNode.Kind.ENTRY) throw new IllegalArgumentException();
+            if (ex.getKind() != SDGNode.Kind.EXIT) throw new IllegalArgumentException();
+            if (fo != null && fo.getKind() != SDGNode.Kind.CALL) throw new IllegalArgumentException();
+            
+            // This requirement is currently met, but should not really be depended upon (for we might one day want to create SDGs in different settings?!?!) 
+            if (fo != null && !("java.lang.Thread.start()V".equals(fo.getBytecodeName()))) throw new IllegalArgumentException(); 
+            
+            this.id = id;
             this.entry = en;
             this.exit = ex;
             this.fork = fo;
@@ -71,16 +71,14 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
         public String toString() {
             StringBuilder b = new StringBuilder();
             b.append("Thread ").append(getId()).append(" {\n");
-            if (getEntry() == null) b.append("Entry ").append("0").append(";\n");
-            else b.append("Entry ").append(getEntry()).append(";\n");
-            if (getExit() == null) b.append("Exit ").append("0").append(";\n");
-            else b.append("Exit ").append(getExit()).append(";\n");
+            b.append("Entry ").append(getEntry()).append(";\n");
+            b.append("Exit ").append(getExit()).append(";\n");
             if (getFork() == null) b.append("Fork ").append("0").append(";\n");
             else b.append("Fork ").append(getFork()).append(";\n");
             if (join.isEmpty()) b.append("Join ").append("0").append(";\n");
             else if (join.size() == 1) b.append("Join ").append(join.iterator().next()).append(";\n");
             else b.append("Join ").append(join).append(";\n");
-            if (getThreadContext() == null || getThreadContext().isEmpty()) b.append("Context null;\n");
+            if (getThreadContext().isEmpty()) b.append("Context null;\n");
             else b.append("Context ").append(getThreadContext()).append(";\n");
             b.append("Dynamic ").append(dynamic).append(";\n}\n");
             return b.toString();
@@ -98,13 +96,6 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
 			return exit;
 		}
 
-		public void setExit(SDGNode exit) {
-			if (this.exit != null) {
-				throw new IllegalStateException("The 'exit' field of ThreadInstance is supposed to be set only once!");
-			}
-			this.exit = exit;
-		}
-
 		public SDGNode getFork() {
 			return fork;
 		}
@@ -119,11 +110,8 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
 		}
 
 		public void setJoin(SDGNode join) {
+			assert join != null;
 			this.join.add(join);
-			/*if (this.join != null) {
-				throw new IllegalStateException("The 'join' field of ThreadInstance is supposed to be set only once!");
-			}
-			this.join = join;*/
 		}
 
 		public LinkedList<SDGNode> getThreadContext() {
@@ -132,10 +120,6 @@ public final class ThreadsInformation implements Iterable<ThreadsInformation.Thr
 
 		public boolean isDynamic() {
 			return dynamic;
-		}
-
-		public void setDynamic(boolean dynamic) {
-			this.dynamic = dynamic;
 		}
 
 		@Override

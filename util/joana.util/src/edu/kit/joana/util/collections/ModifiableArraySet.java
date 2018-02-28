@@ -7,6 +7,7 @@
  */
 package edu.kit.joana.util.collections;
 
+import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Set;
 
@@ -16,16 +17,27 @@ import java.util.Set;
  */
 public final class ModifiableArraySet<E> extends ArraySet<E> {
 
-	private ModifiableArraySet(Object[] elements) {
+	private final Class<? super E> clazz;
+	
+	private ModifiableArraySet(Object[] elements, Class<? super E> clazz) {
 		super(elements);
-	}
-	public ModifiableArraySet(Set<E> other) {
-		super(other);
+		this.clazz = clazz;
 	}
 	
-	public static <E> ModifiableArraySet<E> own(Object[] elements) {
-		if (elements == null) return new ModifiableArraySet<>(empty);
-		return new ModifiableArraySet<>(elements);
+	@SuppressWarnings("unchecked")
+	public ModifiableArraySet(E element, Class<? super E> clazz) {
+		super((E[])Array.newInstance(clazz, 1));
+		this.elements[0] = element;
+		this.clazz = clazz;
+	}
+	public ModifiableArraySet(Set<E> other, Class<? super E> clazz) {
+		super(other);
+		this.clazz = clazz;
+	}
+	
+	public static <E> ModifiableArraySet<E> own(Object[] elements, Class<? super E> clazz) {
+		if (elements == null) return new ModifiableArraySet<>(empty, clazz);
+		return new ModifiableArraySet<>(elements, clazz);
 	}
 	
 	@Override
@@ -42,7 +54,7 @@ public final class ModifiableArraySet<E> extends ArraySet<E> {
 		final int newSize = elements.length + 1;
 
 		@SuppressWarnings("unchecked")
-		E[] newElements = (E[]) new Object[newSize];
+		E[] newElements = (E[]) Array.newInstance(clazz, newSize);
 		if (insert > 0) {
 			System.arraycopy(elements,      0, newElements,          0, insert);
 		}
@@ -74,7 +86,7 @@ public final class ModifiableArraySet<E> extends ArraySet<E> {
 		assert (elements.length > 0);
 		
 		@SuppressWarnings("unchecked")
-		E[] newElements = (E[]) new Object[elements.length - 1];
+		E[] newElements = (E[]) Array.newInstance(clazz, elements.length - 1);
 		System.arraycopy(elements,          0, newElements,      0, remove);
 		System.arraycopy(elements, remove + 1, newElements, remove, elements.length - remove - 1  );
 		this.elements = newElements;

@@ -190,7 +190,7 @@ public class NTSCD {
                         HashSet<SDGNode> paths = allPathRelation.get(e.getTarget());
 
                         if (paths == null || !paths.contains(m)) {
-                            SDGEdge ntscd = new SDGEdge(n, m, SDGEdge.Kind.NTSCD);
+                            SDGEdge ntscd =  SDGEdge.Kind.NTSCD.newEdge(n, m);
 
                             newEdges.add(ntscd);
                         }
@@ -232,7 +232,7 @@ public class NTSCD {
 
         for (SDGEdge e : icfg.edgeSet()) {
             if (e.getKind() == SDGEdge.Kind.NTSCD) {
-                g.addEdge(new SDGEdge(e.getSource(), e.getTarget(), SDGEdge.Kind.DATA_DEP));
+                g.addEdge( SDGEdge.Kind.DATA_DEP.newEdge(e.getSource(), e.getTarget()));
             }
         }
 

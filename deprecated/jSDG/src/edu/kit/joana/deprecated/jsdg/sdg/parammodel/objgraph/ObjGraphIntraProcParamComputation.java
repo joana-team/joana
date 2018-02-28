@@ -46,7 +46,7 @@ import edu.kit.joana.deprecated.jsdg.sdg.parammodel.objgraph.params.FormNode;
 import edu.kit.joana.deprecated.jsdg.sdg.parammodel.objgraph.params.ObjGraphHeapParameterFactory;
 import edu.kit.joana.deprecated.jsdg.sdg.parammodel.objgraph.params.ObjGraphParameter;
 import edu.kit.joana.deprecated.jsdg.util.Log;
-import edu.kit.joana.deprecated.jsdg.wala.SourceLocation;
+import edu.kit.joana.util.SourceLocation;
 
 /**
  * Intraprocedural part of the object graph parameter model.

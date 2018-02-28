@@ -208,7 +208,7 @@ public class ISCRBuilder {
     						remove.add(e);
 
     					} else if (n != next) {
-    						add.add(new SDGEdge(source, n, SDGEdge.Kind.CONTROL_FLOW));
+    						add.add( SDGEdge.Kind.CONTROL_FLOW.newEdge(source, n));
     					}
     				}
     			}
@@ -235,7 +235,7 @@ public class ISCRBuilder {
     						remove.add(e);
 
     					} else if (n != next) {
-    						add.add(new SDGEdge(source, n, SDGEdge.Kind.CONTROL_FLOW));
+    						add.add( SDGEdge.Kind.CONTROL_FLOW.newEdge(source, n));
     					}
     				}
     			}
@@ -259,7 +259,7 @@ public class ISCRBuilder {
     	// remove act-outs and form-ins
     	for (SDGNode n : cfg.vertexSet()) {
     		if (n.getKind() == SDGNode.Kind.CALL) {
-    			for (SDGEdge ex : cfg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.CONTROL_FLOW)) {
+    			for (SDGEdge ex : cfg.getOutgoingEdgesOfKindUnsafe(n, SDGEdge.Kind.CONTROL_FLOW)) {
     				SDGNode retSite = ex.getTarget();// return site
 	    			LinkedList<SDGNode> ps = new LinkedList<SDGNode>();
 	    			LinkedList<SDGNode> wl = new LinkedList<SDGNode>();
@@ -268,7 +268,7 @@ public class ISCRBuilder {
 	    			while (!wl.isEmpty()) {
 	    				SDGNode next = wl.poll();
 
-	    				for (SDGEdge e : cfg.getOutgoingEdgesOfKind(next, SDGEdge.Kind.CONTROL_FLOW)) {
+	    				for (SDGEdge e : cfg.getOutgoingEdgesOfKindUnsafe(next, SDGEdge.Kind.CONTROL_FLOW)) {
 	    					SDGNode target = e.getTarget();
 
 	    					if (target.getKind() == SDGNode.Kind.ACTUAL_OUT) {
@@ -277,7 +277,7 @@ public class ISCRBuilder {
 	    						remove.add(e);
 
 	    					} else {
-	    						add.add(new SDGEdge(retSite, target, SDGEdge.Kind.CONTROL_FLOW));
+	    						add.add( SDGEdge.Kind.CONTROL_FLOW.newEdge(retSite, target));
 	    					}
 	    				}
 	    			}
@@ -300,7 +300,7 @@ public class ISCRBuilder {
     			while (!wl.isEmpty()) {
     				SDGNode next = wl.poll();
 
-    				for (SDGEdge e : cfg.getOutgoingEdgesOfKind(next, SDGEdge.Kind.CONTROL_FLOW)) {
+    				for (SDGEdge e : cfg.getOutgoingEdgesOfKindUnsafe(next, SDGEdge.Kind.CONTROL_FLOW)) {
     					SDGNode target = e.getTarget();
 
     					if (target.getKind() == SDGNode.Kind.FORMAL_IN) {
@@ -309,7 +309,7 @@ public class ISCRBuilder {
     						remove.add(e);
 
     					} else {
-    						add.add(new SDGEdge(n, target, SDGEdge.Kind.CONTROL_FLOW));
+    						add.add( SDGEdge.Kind.CONTROL_FLOW.newEdge(n, target));
     					}
     				}
     			}
@@ -384,7 +384,7 @@ public class ISCRBuilder {
                 folded.addAll(graph.getFoldedNodesOf(next));
 
                 // store the transitively called procedures (if this is a folded procedure call)
-                for (SDGEdge call : graph.getOutgoingEdgesOfKind(next, SDGEdge.Kind.CALL)) {
+                for (SDGEdge call : graph.getOutgoingEdgesOfKindUnsafe(next, SDGEdge.Kind.CALL)) {
                     SDGNode entry = call.getTarget();
 
                     if (entry.getKind() == SDGNode.Kind.FOLDED) {
@@ -440,7 +440,7 @@ public class ISCRBuilder {
                 }
 
                 // add the edge to the CFG
-                clean.addEdge(new SDGEdge(next, m, edge.getKind()));
+                clean.addEdge(edge.getKind().newEdge(next, m));
             }
         }
 
@@ -449,7 +449,7 @@ public class ISCRBuilder {
         	if (clean.containsVertex(e.getSource()) && clean.containsVertex(e.getTarget())
         			&& e.getTarget().getKind() != SDGNode.Kind.FOLDED) {
 
-        		 clean.addEdge(new SDGEdge(e.getSource(), e.getTarget(), e.getKind()));
+        		 clean.addEdge(e.getKind().newEdge(e.getSource(), e.getTarget()));
         	}
         }
 
@@ -459,7 +459,7 @@ public class ISCRBuilder {
         for (SDGEdge e : clean.edgeSet()) {
         	if (e.getSource().getKind() == SDGNode.Kind.CALL && e.getKind() == SDGEdge.Kind.CONTROL_FLOW) {
         		remove.add(e);
-        		add.add(new SDGEdge(e.getSource(), e.getTarget(), SDGEdge.Kind.NO_FLOW));
+        		add.add( SDGEdge.Kind.NO_FLOW.newEdge(e.getSource(), e.getTarget()));
         	}
         }
         clean.removeAllEdges(remove);
@@ -677,7 +677,7 @@ public class ISCRBuilder {
     		// regular edge ?
     		SDGEdge.Kind kind = (e.getKind() == SDGEdge.Kind.NO_FLOW ? SDGEdge.Kind.CONTROL_FLOW : e.getKind());
     		boolean ok = false;
-        	for (SDGEdge f : folded.getOutgoingEdgesOfKind(e.getSource(), kind)) {
+        	for (SDGEdge f : folded.getOutgoingEdgesOfKindUnsafe(e.getSource(), kind)) {
         		if (f.getTarget() == e.getTarget()) {
         			ok = true;
         			break;
@@ -739,7 +739,7 @@ public class ISCRBuilder {
 
     		if (reduced.containsVertex(e.getSource()) && reduced.containsVertex(e.getTarget())) {
         		boolean ok = false;
-    			for (SDGEdge f : reduced.getOutgoingEdgesOfKind(e.getSource(), e.getKind())) {
+    			for (SDGEdge f : reduced.getOutgoingEdgesOfKindUnsafe(e.getSource(), e.getKind())) {
             		if (f.getTarget() == e.getTarget()) {
             			ok = true;
             			break;
@@ -760,7 +760,7 @@ public class ISCRBuilder {
 						break;
 					}
 
-					for (SDGEdge f : reduced.getOutgoingEdgesOfKind(e.getSource(), e.getKind())) {
+					for (SDGEdge f : reduced.getOutgoingEdgesOfKindUnsafe(e.getSource(), e.getKind())) {
 						if (f.getTarget() == target) {
 							ok = true;
 							break label;
@@ -784,7 +784,7 @@ public class ISCRBuilder {
 						break;
 					}
 
-					for (SDGEdge f : reduced.getOutgoingEdgesOfKind(source, e.getKind())) {
+					for (SDGEdge f : reduced.getOutgoingEdgesOfKindUnsafe(source, e.getKind())) {
 						if (f.getTarget() == e.getTarget()) {
 							ok = true;
 							break label;
@@ -808,7 +808,7 @@ public class ISCRBuilder {
     						break label;
     					}
 
-    					for (SDGEdge f : reduced.getOutgoingEdgesOfKind(source, e.getKind())) {
+    					for (SDGEdge f : reduced.getOutgoingEdgesOfKindUnsafe(source, e.getKind())) {
     						if (f.getTarget() == target) {
     							ok = true;
     							break label;

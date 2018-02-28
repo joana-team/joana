@@ -66,7 +66,7 @@ public class CDG extends AbstractJoanaGraph<PDGNode, PDGEdge> {
     private final PDGNode exit;
 
     private CDG(final DirectedGraph<PDGNode, PDGEdge> cfg, PDGNode entry, PDGNode exit) {
-        super(PDG.DEFAULT_EDGE_FACTORY, () -> new LinkedHashMap<>());
+        super(PDG.DEFAULT_EDGE_FACTORY, () -> new LinkedHashMap<>(), PDGEdge.class);
         this.cfg = cfg;
         this.entry = entry;
         this.exit = exit;

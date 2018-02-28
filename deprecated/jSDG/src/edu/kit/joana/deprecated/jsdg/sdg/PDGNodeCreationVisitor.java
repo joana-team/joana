@@ -75,7 +75,7 @@ import edu.kit.joana.deprecated.jsdg.sdg.nodes.PredicateNode;
 import edu.kit.joana.deprecated.jsdg.sdg.nodes.SyncNode;
 import edu.kit.joana.deprecated.jsdg.util.Log;
 import edu.kit.joana.deprecated.jsdg.util.Util;
-import edu.kit.joana.deprecated.jsdg.wala.SourceLocation;
+import edu.kit.joana.util.SourceLocation;
 import edu.kit.joana.wala.util.NotImplementedException;
 
 /**

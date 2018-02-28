@@ -51,6 +51,7 @@ import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
 import edu.kit.joana.wala.core.graphs.Dominators;
+import edu.kit.joana.wala.summary.SummaryComputationType;
 
 public class JoanaRunner {
 
@@ -62,6 +63,7 @@ public class JoanaRunner {
 	public static final String MAIN_CLASS = "Lorlsod/ORLSOD2";
 	public static final String PDG_FILE = "orlsod2.pdg";
 
+	public static final Stubs STUBS = Stubs.JRE_15_INCOMPLETE;
 	private static IMethod findMethod(final IClassHierarchy cha, final String mainClass) {
 		final IClass cl = cha.lookupClass(TypeReference.findOrCreate(ClassLoaderReference.Application, mainClass));
 		if (cl == null) {
@@ -77,7 +79,7 @@ public class JoanaRunner {
 	private static AnalysisScope makeMinimalScope(final String appClassPath) throws IOException {
 		final AnalysisScope scope = AnalysisScope.createJavaAnalysisScope();
 		scope.addToScope(ClassLoaderReference.Application, new BinaryDirectoryTreeModule(new File(appClassPath)));
-		final URL url = new File(Stubs.JRE_15.getPaths()[0]).toURI().toURL();
+		final URL url = new File(STUBS.getPaths()[0]).toURI().toURL();
 		final URLConnection con = url.openConnection();
 		final InputStream in = con.getInputStream();
 		scope.addToScope(ClassLoaderReference.Primordial, new JarStreamModule(in));
@@ -91,6 +93,7 @@ public class JoanaRunner {
 	public static SDG buildSDG(final String classPath, final String mainClass)
 			throws IOException, ClassHierarchyException, UnsoundGraphException, CancelException {
 		final SDGBuilder.SDGBuilderConfig scfg = new SDGBuilder.SDGBuilderConfig();
+		scfg.nativeSpecClassLoader = STUBS.getNativeSpecClassLoader();
 		scfg.out = System.out;
 		scfg.scope = makeMinimalScope(classPath);
 		scfg.cache = new AnalysisCacheImpl();
@@ -113,6 +116,7 @@ public class JoanaRunner {
 		scfg.fieldPropagation = FieldPropagation.OBJ_GRAPH_NO_MERGE_AT_ALL;
 		scfg.debugManyGraphsDotOutput = false;
 		scfg.computeInterference = true;
+		scfg.summaryComputationType = SummaryComputationType.DEFAULT;
 		scfg.computeAllocationSites = true;
 		scfg.cgConsumer = null;
 		scfg.additionalContextSelector = null;

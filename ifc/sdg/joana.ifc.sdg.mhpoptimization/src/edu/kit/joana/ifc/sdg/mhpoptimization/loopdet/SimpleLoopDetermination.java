@@ -24,7 +24,7 @@ import edu.kit.joana.ifc.sdg.mhpoptimization.ThreadAllocationAnalysis;
  * This analysis has been moved out of {@link ThreadAllocationAnalysis}, so that it can be replaced by a more precise analysis with the option of going back, if there are bugs.
  * @author  Dennis Giffhorn, Martin Mohr
  */
-public class SimpleLoopDetermination implements LoopDetermination {
+public class SimpleLoopDetermination<C extends Context<C>> implements LoopDetermination<C> {
 	
 	private final FoldedCFG folded;
 	private final DynamicContextManager conMan;
@@ -35,14 +35,14 @@ public class SimpleLoopDetermination implements LoopDetermination {
 	}
 	
 	
-	public boolean isInALoop(Context thread) {
-    	LinkedList<Context> w = new LinkedList<Context>();
-		HashSet<Context> visited = new HashSet<Context>();
+	public boolean isInALoop(C thread) {
+    	LinkedList<C> w = new LinkedList<>();
+		HashSet<C> visited = new HashSet<>();
 		w.add(thread);
 		visited.add(thread);
 
 		while(!w.isEmpty()) {
-			Context next = w.poll();
+			C next = w.poll();
 			SDGNode node = folded.map(next.getNode());
 
 			if (node.getId() < 0) { // loop: return true
@@ -53,7 +53,7 @@ public class SimpleLoopDetermination implements LoopDetermination {
 				SDGNode source = e.getSource();
 
 				if (e.getKind() == SDGEdge.Kind.CONTROL_FLOW) {
-			        Context newContext = next.level(source);
+			        C newContext = next.level(source);
 
 					if (visited.add(newContext)) {
 						w.add(newContext);
@@ -62,7 +62,7 @@ public class SimpleLoopDetermination implements LoopDetermination {
 				} else if (e.getKind() == SDGEdge.Kind.CALL || e.getKind() == SDGEdge.Kind.FORK) {
 					// the call site calling the procedure to descend into
 			        SDGNode mapped = conMan.map(source);
-			        Context newContext = null;
+			        C newContext = null;
 
 			        // if the corresponding call site is recursive,
 			        // clone context and set 'source' as new node

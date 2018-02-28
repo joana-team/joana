@@ -13,7 +13,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
  * Classes implementing this interface provide a mechanism for determining all contexts in a program, which may be executed in a loop.
  * @author Martin Mohr
  */
-public interface LoopDetermination {
+public interface LoopDetermination<C extends Context<C>> {
 
 	/**
 	 * Returns whether the given context may be contained in a loop.
@@ -21,6 +21,6 @@ public interface LoopDetermination {
 	 * @return {@code true} if the given context may be contained in a loop,
 	 * {@code false} otherwise.
 	 */
-	public abstract boolean isInALoop(Context c);
+	public abstract boolean isInALoop(C c);
 
 }

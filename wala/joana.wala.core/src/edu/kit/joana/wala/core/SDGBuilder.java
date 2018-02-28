@@ -9,8 +9,10 @@ package edu.kit.joana.wala.core;
 
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -79,6 +81,7 @@ import edu.kit.joana.util.Config;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.LogUtil;
 import edu.kit.joana.util.Logger;
+import edu.kit.joana.util.SourceLocation;
 import edu.kit.joana.wala.core.CallGraph.CallGraphFilter;
 import edu.kit.joana.wala.core.CallGraph.Edge;
 import edu.kit.joana.wala.core.CallGraph.Node;
@@ -102,7 +105,8 @@ import edu.kit.joana.wala.core.params.objgraph.ModRefCandidates;
 import edu.kit.joana.wala.core.params.objgraph.ObjGraphParams;
 import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig;
 import edu.kit.joana.wala.flowless.util.Util;
-import edu.kit.joana.wala.summary.SummaryComputation;
+import edu.kit.joana.wala.summary.ISummaryComputer;
+import edu.kit.joana.wala.summary.SummaryComputationType;
 import edu.kit.joana.wala.summary.WorkPackage;
 import edu.kit.joana.wala.summary.WorkPackage.EntryPoint;
 import edu.kit.joana.wala.util.EdgeFilter;
@@ -463,11 +467,13 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			builder = null;
 		}
 
+		final ISummaryComputer summaryComputer = cfg.summaryComputationType.getSummaryComputer();
+
 		if (cfg.computeSummary) {
 			if (cfg.accessPath) {
-				computeDataAndAliasSummaryEdges(cfg.out, pack, sdg, progress);
+				computeDataAndAliasSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress);
 			} else {
-				computeSummaryEdges(cfg.out, pack, sdg, progress);
+				computeSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress);
 			}
 		}
 
@@ -499,12 +505,14 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			}
 			builder = null;
 		}
+		
+		final ISummaryComputer summaryComputer = cfg.summaryComputationType.getSummaryComputer();
 
 		if (cfg.computeSummary) {
 			if (cfg.accessPath) {
-				computeDataAndAliasSummaryEdges(cfg.out, pack, sdg, progress);
+				computeDataAndAliasSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress);
 			} else {
-				computeSummaryEdges(cfg.out, pack, sdg, progress);
+				computeSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress);
 			}
 		}
 
@@ -526,12 +534,14 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		}
 		
 		builder.purge();
-
+		
+		final ISummaryComputer summaryComputer = cfg.summaryComputationType.getSummaryComputer();
+		
 		if (cfg.computeSummary) {
 			if (cfg.accessPath) {
-				computeDataAndAliasSummaryEdges(cfg.out, pack, sdg, progress);
+				computeDataAndAliasSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress);
 			} else {
-				computeSummaryEdges(cfg.out, pack, sdg, progress);
+				computeSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress);
 			}
 		}
 
@@ -551,11 +561,13 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			pack = createSummaryWorkPackage(cfg.out, builder, sdg, progress);
 		}
 
+		final ISummaryComputer summaryComputer = cfg.summaryComputationType.getSummaryComputer();
+
 		if (cfg.computeSummary) {
 			if (cfg.accessPath) {
-				computeDataAndAliasSummaryEdges(cfg.out, pack, sdg, progress);
+				computeDataAndAliasSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress);
 			} else {
-				computeSummaryEdges(cfg.out, pack, sdg, progress);
+				computeSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress);
 			}
 		}
 
@@ -600,17 +612,17 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		return pack;
 	}
 
-	private static void computeSummaryEdges(PrintStream out, WorkPackage<SDG> pack, SDG sdg, IProgressMonitor progress)
-			throws CancelException {
-		SummaryComputation.compute(pack, progress);
+	private static void computeSummaryEdges(PrintStream out, ISummaryComputer summaryComputer,
+			WorkPackage<SDG> pack, boolean isParallel, IProgressMonitor progress) throws CancelException {
+		summaryComputer.compute(pack, isParallel, progress);
 		out.print(".");
 	}
 
-	private static void computeDataAndAliasSummaryEdges(PrintStream out, WorkPackage<SDG> pack, SDG sdg,
-			IProgressMonitor progress) throws CancelException {
-		SummaryComputation.computeNoAliasDataDep(pack, progress);
+	private static void computeDataAndAliasSummaryEdges(PrintStream out, ISummaryComputer summaryComputer,
+			WorkPackage<SDG> pack, boolean isParallel, IProgressMonitor progress) throws CancelException {
+		summaryComputer.computeNoAliasDataDep(pack, isParallel, progress);
 		out.print(".");
-		SummaryComputation.computeFullAliasDataDep(pack, progress);
+		summaryComputer.computeFullAliasDataDep(pack, isParallel, progress);
 		out.print(".");
 	}
 
@@ -723,6 +735,8 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			}
 		}
 		progress.done();
+		
+		SourceLocation.clearSourceLocationPool();
 
 		cfg.out.print("calls");
 		progress.beginTask("interproc: connect call sites", pdgs.size());
@@ -1145,17 +1159,17 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			// Maybe UNSOUND - WALAs implementation looks suspicious.
 			// Its also less precise and slower (blows up dynamic calls) as TYPE (0-CFA).
 			// Its just here for academic purposes.
-			cgb = WalaPointsToUtil.makeRTA(options, cfg.cache, cfg.cha, cfg.scope);
+			cgb = WalaPointsToUtil.makeRTA(options, cfg.cache, cfg.cha, cfg.scope, cfg.nativeSpecClassLoader);
 			break;
 		case TYPE_BASED: // 0-CFA
 			// Fastest option.
 			cgb = WalaPointsToUtil.makeContextFreeType(options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case INSTANCE_BASED: // 0-1-CFA
 			// Best bang for buck
 			cgb = WalaPointsToUtil.makeContextSensSite(options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case N1_OBJECT_SENSITIVE:
 			// Receiver context is limited to 1-level. 
@@ -1167,7 +1181,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 				}
 			};
 			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case OBJECT_SENSITIVE:
 			// Very precise for OO heavy code - best option for really precise analysis.
@@ -1175,7 +1189,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			// Uses n-CFA as fallback for static methods. Customizable: Provide objSensFilter to specify 'n' for fallback
 			// n-CFA and filter for methods where object-sensitivity should be engaged. Default 'n = 1'.
 			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case UNLIMITED_OBJECT_SENSITIVE:
 			// Very precise for OO heavy code, but also very slow.
@@ -1188,22 +1202,22 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 				}
 			};
 			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case N1_CALL_STACK: // 1-CFA
 			// Slower as 0-1-CFA, yet few precision improvements
 			cgb = WalaPointsToUtil.makeNCallStackSens(1, options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case N2_CALL_STACK: // 2-CFA
 			// Slow, but precise
 			cgb = WalaPointsToUtil.makeNCallStackSens(2, options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case N3_CALL_STACK: // 3-CFA
 			// Very slow and little bit more precise. Not much improvement over 2-CFA.
 			cgb = WalaPointsToUtil.makeNCallStackSens(3, options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case CUSTOM:
 			cgb = cfg.customCGBFactory.createCallGraphBuilder(options, cfg.cache, cfg.cha, cfg.scope, cfg.additionalContextSelector, cfg.additionalContextInterpreter);
@@ -1249,17 +1263,17 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			// Maybe UNSOUND - WALAs implementation looks suspicious.
 			// Its also less precise and slower (blows up dynamic calls) as TYPE (0-CFA).
 			// Its just here for academic purposes.
-			cgb = WalaPointsToUtil.makeRTA(options, cfg.cache, cfg.cha, cfg.scope);
+			cgb = WalaPointsToUtil.makeRTA(options, cfg.cache, cfg.cha, cfg.scope, cfg.nativeSpecClassLoader);
 			break;
 		case TYPE_BASED: // 0-CFA
 			// Fastest option.
 			cgb = WalaPointsToUtil.makeContextFreeType(options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case INSTANCE_BASED: // 0-1-CFA
 			// Best bang for buck
 			cgb = WalaPointsToUtil.makeContextSensSite(options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case N1_OBJECT_SENSITIVE:
 			// Receiver context is limited to 1-level. 
@@ -1271,7 +1285,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 				}
 			};
 			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case OBJECT_SENSITIVE:
 			// Very precise for OO heavy code - best option for really precise analysis.
@@ -1279,7 +1293,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			// Uses n-CFA as fallback for static methods. Customizable: Provide objSensFilter to specify 'n' for fallback
 			// n-CFA and filter for methods where object-sensitivity should be engaged. Default 'n = 1'.
 			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case UNLIMITED_OBJECT_SENSITIVE:
 			// Very precise for OO heavy code, but also very slow.
@@ -1292,22 +1306,22 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 				}
 			};
 			cgb = WalaPointsToUtil.makeObjectSens(options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case N1_CALL_STACK: // 1-CFA
 			// Slower as 0-1-CFA, yet few precision improvements
 			cgb = WalaPointsToUtil.makeNCallStackSens(1, options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case N2_CALL_STACK: // 2-CFA
 			// Slow, but precise
 			cgb = WalaPointsToUtil.makeNCallStackSens(2, options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case N3_CALL_STACK: // 3-CFA
 			// Very slow and little bit more precise. Not much improvement over 2-CFA.
 			cgb = WalaPointsToUtil.makeNCallStackSens(3, options, cfg.cache, cfg.cha, cfg.scope,
-					cfg.additionalContextSelector, cfg.additionalContextInterpreter);
+					cfg.additionalContextSelector, cfg.additionalContextInterpreter, cfg.nativeSpecClassLoader);
 			break;
 		case CUSTOM:
 			cgb = cfg.customCGBFactory.createCallGraphBuilder(options, cfg.cache, cfg.cha, cfg.scope, cfg.additionalContextSelector, cfg.additionalContextInterpreter);
@@ -1706,13 +1720,13 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		return callees;
 	}
 
-	public Set<PDG> getPossibleTargets(PDGNode call) {
+	public Collection<PDG> getPossibleTargets(PDGNode call) {
 		if (call.getKind() != PDGNode.Kind.CALL) {
 			throw new IllegalArgumentException("Not a call node: " + call);
 		}
 		
 		// We want to avoid calls to org.jgrapht.graph.AbstractGraph.hashCode()
-		final Set<PDG> tgts =  Sets.newIdentityHashSet();
+		final Set<PDG> tgts = Sets.newIdentityHashSet();
 
 		PDG pdgCaller = getPDGforId(call.getPdgId());
 
@@ -1724,7 +1738,16 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			}
 		}
 
-		return tgts;
+		// we want deterministic SDGs!!!
+		List<PDG> result = new ArrayList<>(tgts.size());
+		result.addAll(tgts);
+		Collections.sort(result, new Comparator<PDG>() {
+			@Override
+			public int compare(PDG o1, PDG o2) {
+				return Integer.compare(o1.getId(), o2.getId());
+			}
+		});
+		return result;
 	}
 
 	public Set<PDG> getPossibleCallers(final PDG callee) {
@@ -1859,7 +1882,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 
 		for (PDG pdg : pdgs) {
 			for (PDGNode call : pdg.getCalls()) {
-				Set<PDG> tgts = getPossibleTargets(call);
+				Collection<PDG> tgts = getPossibleTargets(call);
 				for (PDG target : tgts) {
 					cgPDG.addEdge(pdg, target);
 				}
@@ -2003,6 +2026,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 	 */
 	public static class SDGBuilderConfig implements java.io.Serializable {
 		private static final long serialVersionUID = 237647794827893127L;
+		public ClassLoader nativeSpecClassLoader;
 		public transient PrintStream out = System.out;
 		public transient AnalysisScope scope = null;
 		public transient IAnalysisCacheView cache = null;
@@ -2068,6 +2092,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		public boolean debugStaticInitializers = false;
 		public boolean computeInterference = true;
 		public boolean computeSummary = true;
+		public SummaryComputationType summaryComputationType = SummaryComputationType.DEFAULT;
 		/*
 		 * If this flag is set, pdg nodes for all call sites of virtual methods contain
 		 * the possible allocation sites of the this-pointer (the ids of PDG nodes of the
@@ -2139,6 +2164,10 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		 * in multiple threads.
 		 */
 		public boolean doParallel = true;
+		
+		public SDGBuilderConfig() {
+		}
+
 	}
 
 	public String getMainMethodName() {

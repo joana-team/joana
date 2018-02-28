@@ -151,7 +151,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 		final SetOfClasses exclusions = new FileOfClasses(new ByteArrayInputStream(run.exclusions.getBytes()));
 		scope.setExclusions(exclusions);
 		final ClassLoaderReference loader = scope.getLoader(AnalysisScope.APPLICATION);
-		AnalysisScopeReader.addClassPathToScope(run.classpath, scope, loader);
+		AnalysisScopeReader.addClassPathToScope(run.classpath, scope, loader, true);
 		final ClassHierarchy cha = ClassHierarchyFactory.make(scope);
 
 		out.println("done.");
@@ -237,6 +237,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Arguments should 
 //		}
 
 		final SDGBuilder.SDGBuilderConfig scfg = new SDGBuilder.SDGBuilderConfig();
+		scfg.nativeSpecClassLoader = null; // callgraph has been built, already
 		scfg.out = out;
 		scfg.scope = scope;
 		scfg.cache = cg.cache;

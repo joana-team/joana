@@ -394,9 +394,7 @@ public class ThreadStartDuplicator {
             HashMap<SDGNode, SDGNode> original_clone = new HashMap<SDGNode, SDGNode>();
 
             for (SDGNode m : startNodes) {
-                SDGNode mClone = m.clone();
-                mClone.setId(lastID);
-                mClone.setProc(lastProc);
+                SDGNode mClone = m.clone(lastID, lastProc);
                 lastID++;
                 s.add(mClone);
                 original_clone.put(m, mClone);
@@ -414,7 +412,7 @@ public class ThreadStartDuplicator {
                 if (e.getKind().isIntraproceduralEdge()) {
                     SDGNode sourceClone = original_clone.get(e.getSource());
                     SDGNode targetClone = original_clone.get(e.getTarget());
-                    sdg.addEdge(new SDGEdge(sourceClone, targetClone, e.getKind()));
+                    sdg.addEdge(e.getKind().newEdge(sourceClone, targetClone));
 
                 } else {
                     boolean add = true;
@@ -450,7 +448,7 @@ public class ThreadStartDuplicator {
                         }
                     }
 
-                    if (add) sdg.addEdge(new SDGEdge(sourceClone, targetClone, e.getKind()));
+                    if (add) sdg.addEdge(e.getKind().newEdge(sourceClone, targetClone));
                 }
             }
         }

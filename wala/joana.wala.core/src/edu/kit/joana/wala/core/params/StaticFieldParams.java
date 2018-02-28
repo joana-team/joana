@@ -176,7 +176,7 @@ public class StaticFieldParams {
 		// propagate new formal-in/-out nodes to callsites
 		for (final PDG pdg : sdg.getAllPDGs()) {
 			for (final PDGNode call : pdg.getCalls()) {
-				final Set<PDG> tgts = sdg.getPossibleTargets(call);
+				final Collection<PDG> tgts = sdg.getPossibleTargets(call);
 				for (final PDG target : tgts) {
 					// get new interproc reads
 					for (final PDGField read : target.staticReads) {

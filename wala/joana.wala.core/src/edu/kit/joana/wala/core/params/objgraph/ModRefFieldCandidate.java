@@ -7,6 +7,8 @@
  */
 package edu.kit.joana.wala.core.params.objgraph;
 
+import java.util.Collections;
+
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.intset.OrdinalSet;
@@ -14,6 +16,7 @@ import com.ibm.wala.util.intset.OrdinalSet;
 import edu.kit.joana.wala.core.ParameterField;
 import edu.kit.joana.wala.core.params.objgraph.TVL.V;
 import edu.kit.joana.wala.core.params.objgraph.candidates.ParameterCandidate;
+import edu.kit.joana.wala.core.params.objgraph.candidates.UniqueParameterCandidate;
 
 /**
  *
@@ -55,13 +58,42 @@ public final class ModRefFieldCandidate extends ModRefCandidate implements Clone
 	public V isPrimitive() {
 		return pc.isPrimitive();
 	}
+	
+	public Iterable<UniqueParameterCandidate> getUniques() {
+		if (pc.isUnique()) {
+			return Collections.singleton((UniqueParameterCandidate) pc);
+		} else {
+			return pc.getUniques();
+		}
+		
+	}
 
 	@Override
 	public boolean isPotentialParentOf(final ModRefFieldCandidate other) {
+		final boolean result = other.pc.isReachableFrom(pc);
+		assert !result || pc.isFieldAliased(other.pc.getBasePointsTo());
+		assert !result || pc.getFieldPointsTo().containsAny(other.pc.getBasePointsTo());
+		assert !result || other.pc.getBasePointsTo().containsAny(pc.getFieldPointsTo());
+		assert !result || isPotentialParentOfViaUniques(other);
 		return other.pc.isReachableFrom(pc);
 		// it is not safe to propagate only fields reachable through referenced values
 		// also written fields may be parents of visible side effects
 //		return isRef() && other.pc.isReachableFrom(pc);
+	}
+	
+	private boolean isPotentialParentOfViaUniques(final ModRefFieldCandidate other) {
+		for (UniqueParameterCandidate uniqueOther : (other.pc.isUnique() ? Collections.singleton((UniqueParameterCandidate) other.pc) : other.pc.getUniques())) {
+			for (UniqueParameterCandidate unique : (pc.isUnique() ? Collections.singleton((UniqueParameterCandidate)pc) : pc.getUniques())) {
+				final OrdinalSet<InstanceKey> basePts   = uniqueOther.getBasePointsTo();
+				final OrdinalSet<InstanceKey> fieldsPts = unique.getFieldPointsTo();
+				final boolean isReachableFrom = uniqueOther.isReachableFrom(unique);
+				assert !isReachableFrom || (basePts != null && fieldsPts != null && basePts.containsAny(fieldsPts));
+				if (isReachableFrom) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	public boolean isBaseAliased(final OrdinalSet<InstanceKey> pts) {
@@ -85,7 +117,8 @@ public final class ModRefFieldCandidate extends ModRefCandidate implements Clone
 
 	@Override
 	public int hashCode() {
-		return pc.hashCode() * 13;
+		// TODO: change this if we should ever use HashMaps that contain both ModRefFieldCandidates and ParameterCandidates
+		return pc.hashCode();
 	}
 
 	@Override

@@ -248,7 +248,6 @@ public class AnnotationView extends ViewPart implements NJSecMarkerListener, Act
 	 * This is a callback that will allow us
 	 * to create the viewer and initialize it.
 	 */
-	@SuppressWarnings("unchecked")
 	public void createPartControl(Composite parent) {
 		viewer = new TableViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION); //SWT.MULTI |
 		TableColumn c0 = new TableColumn(viewer.getTable(), SWT.LEFT, 0);

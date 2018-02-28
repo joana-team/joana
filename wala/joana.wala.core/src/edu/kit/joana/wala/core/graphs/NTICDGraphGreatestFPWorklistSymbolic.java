@@ -43,8 +43,8 @@ import static edu.kit.joana.wala.core.graphs.NTSCDGraph.set;
  */
 public class NTICDGraphGreatestFPWorklistSymbolic<V extends IntegerIdentifiable, E extends KnowsVertices<V>> extends AbstractJoanaGraph<V, E> {
 
-	private NTICDGraphGreatestFPWorklistSymbolic(EdgeFactory<V, E> edgeFactory) {
-		super(edgeFactory, () -> new ArrayMap<>());
+	private NTICDGraphGreatestFPWorklistSymbolic(EdgeFactory<V, E> edgeFactory, Class<E> classE) {
+		super(edgeFactory, () -> new ArrayMap<>(), classE);
 	}
 
 	public static boolean DEBUG = false;
@@ -65,8 +65,8 @@ public class NTICDGraphGreatestFPWorklistSymbolic<V extends IntegerIdentifiable,
 	 * for S := gfp(f).
 	 * 
 	 */
-	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> NTICDGraphGreatestFPWorklistSymbolic<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory) {
-		NTICDGraphGreatestFPWorklistSymbolic<V, E> cdg = new NTICDGraphGreatestFPWorklistSymbolic<>(edgeFactory);
+	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> NTICDGraphGreatestFPWorklistSymbolic<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory, Class<E> classE) {
+		NTICDGraphGreatestFPWorklistSymbolic<V, E> cdg = new NTICDGraphGreatestFPWorklistSymbolic<>(edgeFactory, classE);
 		for (V n : cfg.vertexSet()) {
 			cdg.addVertex(n);
 		}

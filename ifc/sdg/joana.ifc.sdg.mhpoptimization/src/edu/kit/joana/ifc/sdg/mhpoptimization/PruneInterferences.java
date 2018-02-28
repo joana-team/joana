@@ -14,8 +14,6 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.CFGForward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.PreciseMHPAnalysis;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.SimpleMHPAnalysis;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
@@ -35,42 +33,14 @@ public final class PruneInterferences {
 	private static final boolean IS_DEBUG = debug.isEnabled();
 	
 	/**
-	 * Convenience method for {@link #pruneInterferences(SDG, MHPAnalysis)}, which runs the required MHPAnalysis
-	 * and uses this MHPAnalysis for the actual pruning. The given SDG is expected to be {@link CSDGPreprocessor#preprocessSDG(SDG)
-	 *  preprocessed} since the used MHP algorithms require {@link ThreadsInformation information about the threads} to be available.<br>
-	 * The parameter 'mhpType' determines the algorithm, with which the MHP information is obtained. If 'mhpType' is
-	 * SIMPLE, then {@link SimpleMHPAnalysis} is used, if it is PRECISE, then {@link PreciseMHPAnalysis} is used. If it
-	 * is NONE, then this method returns immediately without analyzing or pruning anything.<br>
-	 * @param g SDG to prune interference edges from - must have been {@link CSDGPreprocessor#preprocessSDG(SDG) preprocessed}
-	 * @param mhpType determines which MHP algorithm is used (see method comment)
-	 */
-	public static final void prunePreprocessedCSDG(SDG g, MHPType mhpType) {
-		MHPAnalysis mhpAnalysis;
-		switch (mhpType) {
-		case NONE:
-			return;
-		case SIMPLE:
-			mhpAnalysis = SimpleMHPAnalysis.analyze(g);
-			break;
-		case PRECISE:
-			mhpAnalysis = PreciseMHPAnalysis.analyze(g);
-			break;
-		default:
-			throw new IllegalStateException("unhandled case: " + mhpType);
-		}
-		
-		pruneInterferences(g, mhpAnalysis);
-	}
-	
-	/**
 	 * Convenience method for {@link #prunePreprocessedCSDG(SDG, MHPType)}. It ensures that the SDG has been preprocessed, so that
 	 * the required thread information is available. 
 	 * @param g SDG to prune interference edges from
 	 * @param mhpType determines which MHP algorithm is used (see {@link #prunePreprocessedCSDG(SDG, MHPType)}
 	 */
-	public static final void preprocessAndPruneCSDG(SDG g, MHPType mhpType) {
+	public static final void preprocessAndPruneCSDG(SDG g, MHPAnalysis mhpAnalysis) {
 		CSDGPreprocessor.preprocessSDG(g);
-		prunePreprocessedCSDG(g, mhpType);
+		pruneInterferences(g, mhpAnalysis);
 	}
 	
 	
@@ -82,6 +52,7 @@ public final class PruneInterferences {
 	 * @param mhp mhp analysis result of given SDG which is to be taken as a basis for the pruning
 	 */
 	public static final void pruneInterferences(SDG graph, MHPAnalysis mhp) {
+		if (mhp == null) return;
 		LinkedList<SDGEdge> remove = new LinkedList<SDGEdge>();
 		int all = 0;
 		int x = 0;
@@ -118,6 +89,8 @@ public final class PruneInterferences {
 		}
 	
 		if (IS_DEBUG) debug.outln("	" + x + " of " + all + " edges removed");
+		
+		return;
 	}
 	
 	/**

@@ -60,17 +60,17 @@ public class DirectedPseudograph<V extends IntegerIdentifiable, E extends KnowsV
     /**
      * @see AbstractBaseGraph
      */
-    public DirectedPseudograph(Class<? extends E> edgeClass, Supplier<Map<V,DirectedEdgeContainer<E, E[]>>> vertexMapConstructor)
+    public DirectedPseudograph(Class<? extends E> edgeClass, Supplier<Map<V,DirectedEdgeContainer<E, E[]>>> vertexMapConstructor, Class<E> classE)
     {
-        this(new ClassBasedEdgeFactory<V, E>(edgeClass), vertexMapConstructor);
+        this(new ClassBasedEdgeFactory<V, E>(edgeClass), vertexMapConstructor, classE);
     }
 
     /**
      * @see AbstractBaseGraph
      */
-    public DirectedPseudograph(EdgeFactory<V, E> ef, Supplier<Map<V,DirectedEdgeContainer<E,E[]>>> vertexMapConstructor)
+    public DirectedPseudograph(EdgeFactory<V, E> ef, Supplier<Map<V,DirectedEdgeContainer<E,E[]>>> vertexMapConstructor, Class<E> classE)
     {
-        super(ef, true, true, vertexMapConstructor);
+        super(ef, true, true, vertexMapConstructor, classE);
     }
 }
 

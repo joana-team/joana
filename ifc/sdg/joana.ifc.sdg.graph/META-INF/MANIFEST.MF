@@ -54,4 +54,5 @@ Export-Package: edu.kit.joana.ifc.sdg.graph;
 Bundle-Vendor: Karlsruhe Institute of Technology, Programming Paradigms Group
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: joana.contrib.lib;bundle-version="1.0.0",
- joana.util;bundle-version="1.0.0"
+ joana.util;bundle-version="1.0.0",
+ com.ibm.wala.util;bundle-version="1.4.4"

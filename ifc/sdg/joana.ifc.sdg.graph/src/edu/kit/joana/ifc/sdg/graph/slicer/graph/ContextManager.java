@@ -11,20 +11,21 @@ import java.util.Collection;
 
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGNodeTuple;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.StaticContextManager.StaticContext;
 
 
 /** An interface for ContextManagers.
  *
  * @author giffhorn
  */
-public interface ContextManager {
+public interface ContextManager<C extends Context<C>> {
 
 	/** Retrieves all contexts of the given node.
 	 *
 	 * @param node  The given node.
 	 * @return      A set of contexts.
 	 */
-	Collection<Context> getAllContextsOf(SDGNode node);
+	Collection<? extends C> getAllContextsOf(SDGNode node);
 
 	/** Retrieves all contexts of the given node inside the given thread.
 	 *
@@ -32,7 +33,7 @@ public interface ContextManager {
 	 * @param thread  The given thread.
 	 * @return        A set of contexts.
 	 */
-	Collection<Context> getContextsOf(SDGNode node, int thread);
+	Collection<C> getContextsOf(SDGNode node, int thread);
 
 	/** Traverses intra-procedurally from `oldContext' to `reachedNode',
 	 * builds the according Context of `reachedNode' and returns it.
@@ -41,7 +42,7 @@ public interface ContextManager {
 	 * @param oldContext   The Context from which reachedNode is reached.
 	 * @return             The Context of reachedNode.
 	 */
-    Context level(SDGNode reachedNode, Context oldContext);
+    C level(SDGNode reachedNode, C oldContext);
 
     /** Enters a called procedure at call site `call site', coming from `oldContext'
      * and going to `reachedNode'. Returns the resulting Context of `reachedNode'.
@@ -51,7 +52,7 @@ public interface ContextManager {
      * @param oldContext   The Context from which reachedNode is reached.
      * @return             The Context of reachedNode.
      */
-    Context descend(SDGNode reachedNode, SDGNodeTuple callSite, Context oldContext);
+    C descend(SDGNode reachedNode, SDGNodeTuple callSite, C oldContext);
 
     /** Leaves a procedure towards the calling procedure specified by call site `callSite'.
      * Traverses from `oldContext' to `reachedNode' and returns the resulting Context of `reachedNode'
@@ -61,7 +62,7 @@ public interface ContextManager {
      * @param oldContext   The Context from which reachedNode is reached.
      * @return             The Context of reachedNode.
      */
-    Context[] ascend(SDGNode reachedNode, SDGNodeTuple callSite, Context oldContext);
+    C[] ascend(SDGNode reachedNode, SDGNodeTuple callSite, C oldContext);
 
     /** Unmaps a fold node to any of its folded nodes.
      * If the given node is not a fold node, it is returned itself.

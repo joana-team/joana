@@ -13,6 +13,7 @@ import java.util.LinkedList;
 import java.util.Set;
 
 import edu.kit.joana.deprecated.jsdg.wala.BytecodeLocation;
+import edu.kit.joana.ifc.sdg.graph.LabeledSDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -93,8 +94,8 @@ public class StaticFieldMerge {
 
 		if (reachabe.size() > 0) {
 			final SDGNode first = reachabe.iterator().next();
-			final SDGNode dummy = new SDGNode(first.getId(), first.operation, "[dummy]", first.getProc(), "[dummy]", first.getSource(), first.getSr(),
-					first.getSc(), first.getEr(), first.getEc(), first.getBytecodeName(), BytecodeLocation.STATIC_FIELD);
+			final SDGNode dummy = new SDGNode(first.getId(), first.operation, "[dummy]", first.getProc(), "[dummy]", first.getSourceLocation(),
+					first.getBytecodeName(), BytecodeLocation.STATIC_FIELD, null, null, null, null, null);
 			mergeNodes(entry, reachabe, dummy);
 		}
 	}
@@ -113,7 +114,7 @@ public class StaticFieldMerge {
 		while (!work.isEmpty()) {
 			final SDGNode n = work.removeFirst();
 
-			for (SDGEdge edge : sdg.getOutgoingEdgesOfKind(n, SDGEdge.Kind.PARAMETER_STRUCTURE)) {
+			for (SDGEdge edge : sdg.getOutgoingEdgesOfKindUnsafe(n, SDGEdge.Kind.PARAMETER_STRUCTURE)) {
 				final SDGNode tgt = edge.getTarget();
 				if (!filtered.contains(tgt)) {
 					filtered.add(tgt);
@@ -154,15 +155,23 @@ public class StaticFieldMerge {
 		sdg.removeAllVertices(nodes);
 
 		sdg.addVertex(merge);
-		sdg.addEdge(new SDGEdge(entry, merge, SDGEdge.Kind.PARAMETER_STRUCTURE));
-		sdg.addEdge(new SDGEdge(entry, merge, SDGEdge.Kind.CONTROL_DEP_EXPR));
+		sdg.addEdge( SDGEdge.Kind.PARAMETER_STRUCTURE.newEdge(entry, merge));
+		sdg.addEdge( SDGEdge.Kind.CONTROL_DEP_EXPR.newEdge(entry, merge));
 
 		for (final SDGEdge e : out) {
-			sdg.addEdge(new SDGEdge(merge, e.getTarget(), e.getKind(), e.getLabel()));
+			if (e.getLabel() != null) {
+				sdg.addEdge(new LabeledSDGEdge(merge, e.getTarget(), e.getKind(), e.getLabel()));
+			} else {
+				sdg.addEdge(e.getKind().newEdge(merge, e.getTarget()));
+			}
 		}
 
 		for (final SDGEdge e : in) {
-			sdg.addEdge(new SDGEdge(e.getSource(), merge, e.getKind(), e.getLabel()));
+			if (e.getLabel() != null) {
+				sdg.addEdge(new LabeledSDGEdge(e.getSource(), merge, e.getKind(), e.getLabel()));
+			} else {
+				sdg.addEdge(e.getKind().newEdge(e.getSource(), merge));
+			}
 		}
 	}
 }

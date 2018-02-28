@@ -117,8 +117,8 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V extends IntegerIdentifiable
 	}
 	
 
-	private NTICDGraphLeastFPDualWorklistSymbolic(EdgeFactory<V, E> edgeFactory) {
-		super(edgeFactory, () -> new ArrayMap<>());
+	private NTICDGraphLeastFPDualWorklistSymbolic(EdgeFactory<V, E> edgeFactory, Class<E> classE) {
+		super(edgeFactory, () -> new ArrayMap<>(), classE);
 	}
 
 	public static boolean DEBUG = false;
@@ -133,8 +133,8 @@ public class NTICDGraphLeastFPDualWorklistSymbolic<V extends IntegerIdentifiable
 	 * It works by computing the *least* fixed point of the dual f^C of the functional f used in {@link NTICDGraphGreatestFPWorklistSymbolic}.
 	 * 
 	 */
-	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> NTICDGraphLeastFPDualWorklistSymbolic<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory) {
-		NTICDGraphLeastFPDualWorklistSymbolic<V, E> cdg = new NTICDGraphLeastFPDualWorklistSymbolic<>(edgeFactory);
+	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> NTICDGraphLeastFPDualWorklistSymbolic<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory, Class<E> classE) {
+		NTICDGraphLeastFPDualWorklistSymbolic<V, E> cdg = new NTICDGraphLeastFPDualWorklistSymbolic<>(edgeFactory, classE);
 		for (V n : cfg.vertexSet()) {
 			cdg.addVertex(n);
 		}

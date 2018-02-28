@@ -15,13 +15,13 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
  * one of the nodes of its call stack is in a loop.
  * @author Martin Mohr
  */
-public abstract class ModularLoopDetermination implements LoopDetermination {
+public abstract class ModularLoopDetermination<C extends Context<C>> implements LoopDetermination<C> {
 
 	/* (non-Javadoc)
 	 * @see edu.kit.joana.ifc.sdg.mhpoptimization.LoopDetermination#isInALoop(edu.kit.joana.ifc.sdg.graph.slicer.graph.Context)
 	 */
 	@Override
-	public boolean isInALoop(Context c) {
+	public boolean isInALoop(C c) {
 		for (SDGNode n : c.getCallStack()) {
 			if (isInALoop(n)) {
 				return true;

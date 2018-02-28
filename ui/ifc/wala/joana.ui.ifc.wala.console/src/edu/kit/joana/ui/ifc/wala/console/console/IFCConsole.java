@@ -52,6 +52,7 @@ import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.io.graphml.SDG2GraphML;
 import edu.kit.joana.ifc.sdg.lattice.IEditableLattice;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
@@ -544,7 +545,7 @@ public class IFCConsole {
 		return new Command(CMD.LOAD_SDG) {
 			@Override
 			boolean execute(String[] args) {
-				return loadSDG(args[1]);
+				return loadSDG(args[1], getMHPType());
 			}
 		};
 	}
@@ -1207,8 +1208,8 @@ public class IFCConsole {
 		}
 	}
 
-	private void setSDG(SDG newSDG) {
-		setSDGProgram(new SDGProgram(newSDG));
+	private void setSDG(SDG newSDG, MHPAnalysis mhp) {
+		setSDGProgram(new SDGProgram(newSDG, mhp));
 	}
 
 	public void displayCurrentConfig() {
@@ -1613,12 +1614,15 @@ public class IFCConsole {
 		return true;
 	}
 
-	public synchronized boolean loadSDG(String path) {
+	public synchronized boolean loadSDG(String path, MHPType mhpType) {
 
 		SDG sdg;
+		MHPAnalysis mhp;
 
 		try {
 			sdg = SDG.readFrom(path, new SecurityNodeFactory());
+			mhp = mhpType.getMhpAnalysisConstructor().apply(sdg);
+			
 		} catch (IOException e) {
 			String errorMsg = "I/O error while reading sdg from file " + path;
 			if (e.getMessage() != null) {
@@ -1628,7 +1632,7 @@ public class IFCConsole {
 			return false;
 		}
 
-		setSDG(sdg);
+		setSDG(sdg, mhp);
 		// sdgFile = path;
 		return true;
 	}

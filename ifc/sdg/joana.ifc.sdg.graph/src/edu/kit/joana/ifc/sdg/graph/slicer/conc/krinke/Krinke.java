@@ -19,6 +19,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.Context;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.ContextManager;
+import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.DynamicContextManager.DynamicContext;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.FoldedCFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.StaticContextManager;
@@ -43,15 +44,15 @@ public class Krinke implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
     private FoldedCFG foldedIcfg;
     /** The graph to be sliced. */
     private SDG ipdg;
-    protected ContextManager man;
+    protected ContextManager<DynamicContext> man;
 
     /** realises the reachability checking algorithm */
     private ReachabilityChecker reachable;
     /** the initial states of the threads */
-    private States states;
+    private States<DynamicContext> states;
 
     /** The intrathreadual slicer. */
-    public ContextSlicer slicer;
+    public ContextSlicer<DynamicContext> slicer;
 
     public Krinke() { }
 
@@ -69,7 +70,7 @@ public class Krinke implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
     public void setGraph(SDG graph) {
         ipdg = graph;
 
-        man = StaticContextManager.create(ipdg);
+        man = new DynamicContextManager(graph);
 
         // build the threaded ICFG
         CFG icfg = ICFGBuilder.extractICFG(ipdg);
@@ -84,7 +85,7 @@ public class Krinke implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
         states = this.initialStateTuple(threads);
 
         // init the intrathredual slicer
-        slicer = new ContextSlicer(ipdg, man);
+        slicer = new ContextSlicer<DynamicContext>(ipdg, man);
 
         // init the valid-path checker
         this.reachable = new ReachabilityChecker(foldedIcfg);
@@ -102,28 +103,28 @@ public class Krinke implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
      */
     public Collection<SDGNode> slice(Collection<SDGNode> criteria) {
         HashSet<SDGNode> slice = new HashSet<SDGNode>();
-        HashSet<WorklistElement> mark = new HashSet<WorklistElement>();
+        HashSet<WorklistElement<DynamicContext>> mark = new HashSet<>();
 
         // initialize worklist and mark structure
-        LinkedList<WorklistElement> worklist = initialWorklist(criteria);
+        LinkedList<WorklistElement<DynamicContext>> worklist = initialWorklist(criteria);
 
-        for(WorklistElement o : worklist){elems++;
+        for(WorklistElement<DynamicContext> o : worklist){elems++;
             mark.add(o);
         }
 
         // slicing..
         while(!worklist.isEmpty()){
-            WorklistElement next = worklist.poll();
+            WorklistElement<DynamicContext> next = worklist.poll();
             SDGNode add = next.getContext().getNode();
 
             // add top node of sliced context
             slice.add(add);
 
             // slice for context in element 'next'
-            Collection<WorklistElement> with_interference = threadSlice(next, slice);
+            Collection<WorklistElement<DynamicContext>> with_interference = threadSlice(next, slice);
 
             // processing interference edges
-            for(WorklistElement w : with_interference){
+            for(WorklistElement<DynamicContext> w : with_interference){
                 SDGNode n = w.getNode();
 
                 for(SDGEdge e : ipdg.incomingEdgesOf(n)){
@@ -142,11 +143,11 @@ public class Krinke implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
                             // only process real thread changes
                             if (thread != w.getThread()) {
                                 // get all context for 'source'
-                                LinkedList<Context> contextList = new LinkedList<Context>();
+                                LinkedList<DynamicContext> contextList = new LinkedList<>();
 
                                 contextList.addAll(man.getContextsOf(source, thread));
 
-                                LinkedList<Context> reached = new LinkedList<Context>();
+                                LinkedList<DynamicContext> reached = new LinkedList<>();
 
                                 if (w.getStates().get(thread).isEmpty()) {
                                     reached = contextList;
@@ -154,7 +155,7 @@ public class Krinke implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
                                 } else {
                                     DynamicContext target = map(w.getStates().get(thread));
 
-                                    for (Context s : contextList) {
+                                    for (DynamicContext s : contextList) {
                                         DynamicContext start = map(s);
 
                                         if (reachable.reaches(start, target)) {
@@ -165,16 +166,16 @@ public class Krinke implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
 
                                 // update worklist
                                 if (!reached.isEmpty()){
-                                    for(Context context : reached){
+                                    for(DynamicContext context : reached){
                                         // build new worklist elements
-                                        States new_states = w.getStates().clone();
+                                        States<DynamicContext> new_states = w.getStates().clone();
 
                                         // thread states update
                                         new_states.set(w.getThread(), w.getContext());
 
                                         // new worklist element
-                                        WorklistElement newW =
-                                                new WorklistElement(context, new_states);
+                                        WorklistElement<DynamicContext> newW =
+                                                new WorklistElement<>(context, new_states);
 
                                         if(!mark.contains(newW)){
                                             mark.add(newW);
@@ -192,7 +193,7 @@ public class Krinke implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
         return slice;
     }
 
-    protected Collection<WorklistElement> threadSlice(WorklistElement next, HashSet<SDGNode> slice) {
+    protected Collection<WorklistElement<DynamicContext>> threadSlice(WorklistElement<DynamicContext> next, HashSet<SDGNode> slice) {
     	return slicer.slice(next, slice);
     }
 
@@ -205,7 +206,7 @@ public class Krinke implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
      * @param origin  The SDG-Context.
      * @return  A CFG-Context.
      */
-    private DynamicContext map(Context origin) {
+    private DynamicContext map(DynamicContext origin) {
         // list for building the context that maps to Context 'con'
         LinkedList<SDGNode> res = new LinkedList<SDGNode>();
 
@@ -313,12 +314,13 @@ public class Krinke implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
      * @return
      *               The initial state tuple.
      */
-    private States initialStateTuple(int width) {
-        States init = new States(width +1);
-
+    private States<DynamicContext> initialStateTuple(int width) {
+    	DynamicContext[] states = new DynamicContext[width + 1];
         for (int i = 0; i <= width; i++) {
-            init.set(i, new DynamicContext(null, i));
+            states[i] = new DynamicContext(null, i);
         }
+
+        States<DynamicContext> init = new States<>(states);
 
         return init;
     }
@@ -331,30 +333,30 @@ public class Krinke implements edu.kit.joana.ifc.sdg.graph.slicer.Slicer {
      * @param node  The starting criterion.
      * @return  A LinkedList, maybe empty.
      */
-    protected LinkedList<WorklistElement> initialWorklist(Collection<SDGNode> criteria) {
-        LinkedList<WorklistElement> s = new LinkedList<WorklistElement>();
+    protected LinkedList<WorklistElement<DynamicContext>> initialWorklist(Collection<SDGNode> criteria) {
+        LinkedList<WorklistElement<DynamicContext>> s = new LinkedList<>();
 
         for (SDGNode node : criteria) {
             // test whether criterion is valid
             int[] threads = node.getThreadNumbers();
 
             for (int thread : threads) {
-                List<Context> contexts = new LinkedList<Context>();
+                List<DynamicContext> contexts = new LinkedList<>();
                 contexts.addAll(man.getContextsOf(node, thread));
 
                 // construct all initial ThreadedWorklistElement objects
-                for (Context con : contexts) {
-                    States states_copy = states.clone();
+                for (DynamicContext con : contexts) {
+                    States<DynamicContext> states_copy = states.clone();
 
-                    s.add(new WorklistElement(con, states_copy));elems++;
+                    s.add(new WorklistElement<DynamicContext>(con, states_copy));elems++;
                 }
 
                 // for start node and first call node
                 if (contexts.isEmpty()) {
-                    States states_copy = states.clone();
-                    Context con = new DynamicContext(node, 0);
+                    States<DynamicContext> states_copy = states.clone();
+                    DynamicContext con = new DynamicContext(node, 0);
 
-                    s.add(new WorklistElement(con, states_copy));elems++;
+                    s.add(new WorklistElement<DynamicContext>(con, states_copy));elems++;
                 }
             }
         }

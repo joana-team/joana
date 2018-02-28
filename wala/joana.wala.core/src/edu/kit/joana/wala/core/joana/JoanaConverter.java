@@ -7,7 +7,6 @@
  */
 package edu.kit.joana.wala.core.joana;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Set;
@@ -21,17 +20,18 @@ import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
+import edu.kit.joana.ifc.sdg.graph.LabeledSDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGNode.Kind;
 import edu.kit.joana.ifc.sdg.graph.SDGNode.Operation;
+import edu.kit.joana.util.SourceLocation;
 import edu.kit.joana.wala.core.DependenceGraph;
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.SDGBuilder;
-import edu.kit.joana.wala.core.SourceLocation;
 import edu.kit.joana.wala.core.graphs.GraphWalker;
 import edu.kit.joana.wala.util.PrettyWalaNames;
 import gnu.trove.set.TIntSet;
@@ -82,6 +82,8 @@ public class JoanaConverter {
         final int rootId = b.getPDGforMethod(b.getNonPrunedWalaCallGraph().getFakeRootNode()).entry.getId();
         sdg.setRoot(sdg.getNode(rootId));
         
+        sdg.trimToSize();
+        
         progress.done();
 
 		return sdg;
@@ -103,9 +105,7 @@ public class JoanaConverter {
 			sdg.addEdgeUnsafe(from, to, sdgEdge);
 		}
 		if (!keepEdges) {
-			ArrayList<PDGEdge> toRemove = new ArrayList<>(outgoing.size());
-			toRemove.addAll(outgoing);
-			pdg.removeAllEdges(toRemove);
+			pdg.removeOutgoingEdgesOf(node);
 		}
 	}
 
@@ -198,7 +198,7 @@ public class JoanaConverter {
 
 		assert sdgKind != null;
 
-		SDGEdge edge = (label == null ? new SDGEdge(from, to, sdgKind) : new SDGEdge(from, to, sdgKind, label));
+		SDGEdge edge = (label == null ? sdgKind.newEdge(from, to) : new LabeledSDGEdge(from, to, sdgKind, label));
 
 		return edge;
 	}
@@ -299,10 +299,7 @@ public class JoanaConverter {
 		}
 		SourceLocation sloc = node.getSourceLocation();
 
-		SDGNode sn = new SecurityNode(node.getId(), op, node.getLabel(), node.getPdgId(), node.getType(),
-				sloc.getSourceFile(), sloc.getStartRow(), sloc.getStartColumn(), sloc.getEndRow(), sloc.getEndColumn(),
-				node.getBytecodeName(), node.getBytecodeIndex());
-
+		String clsLoader = null;
 		if (node.getKind() == PDGNode.Kind.ENTRY) {
 			PDG pdg = sdg.getPDGforId(node.getPdgId());
 			IMethod im = pdg.getMethod();
@@ -311,31 +308,21 @@ public class JoanaConverter {
 				IClass cls = im.getDeclaringClass();
 
 				if (cls != null) {
-					String clsLoader = cls.getClassLoader().toString();
-					sn.setClassLoader(clsLoader);
+					clsLoader = cls.getClassLoader().toString();
 				}
 			}
 		}
-
-		if (allocNodes != null) {
-			sn.setAllocationSites(allocNodes);
-		}
-
+		
+		SDGNode sn = new SecurityNode(node.getId(), op, node.getLabel(), node.getPdgId(), node.getType(),
+				sloc,
+				node.getBytecodeName(), node.getBytecodeIndex(),
+				node.getLocalDefNames(), node.getLocalUseNames(),
+				node.getUnresolvedCallTarget(), allocNodes, clsLoader);
+		
 		if (node.getAliasDataSources() != null) {
 			sn.setAliasDataSources(node.getAliasDataSources());
 		}
 
-		if (node.getUnresolvedCallTarget() != null) {
-			sn.setUnresolvedCallTarget(node.getUnresolvedCallTarget());
-		}
-		
-		if (node.getLocalUseNames() != null) {
-			sn.setLocalUseNames(node.getLocalUseNames());
-		}
-			
-		if (node.getLocalDefNames() != null) {
-			sn.setLocalDefNames(node.getLocalDefNames());
-		}
 		
 		assert sn.getKind() == kind;
 

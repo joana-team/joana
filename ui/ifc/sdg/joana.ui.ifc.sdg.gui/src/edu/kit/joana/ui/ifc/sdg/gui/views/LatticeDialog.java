@@ -279,7 +279,7 @@ public class LatticeDialog extends SelectionDialog implements IEditorPart {
 
 	}
 
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Object getAdapter(Class adapter) {
 		return null;
 	}

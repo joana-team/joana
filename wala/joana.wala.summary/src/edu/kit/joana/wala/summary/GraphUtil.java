@@ -254,7 +254,7 @@ public class GraphUtil {
 
                 	SDGNode entry = graph.getEntry(callNode);
 
-                	SDGEdge callEdge = new SDGEdge(entry, n, e.getKind());
+                	SDGEdge callEdge = e.getKind().newEdge(entry, n);
                 	edges.addFirst(callEdge);
                 }
             }
@@ -399,7 +399,7 @@ public class GraphUtil {
 				assert (formalOut.getKind() == SDGNode.Kind.FORMAL_OUT);
 
 				// will lead to direct summary edges at all callsites.
-				SDGEdge ddEdge = new SDGEdge(formalIn, formalOut, SDGEdge.Kind.DATA_DEP);
+				SDGEdge ddEdge =  SDGEdge.Kind.DATA_DEP.newEdge(formalIn, formalOut);
 				sdg.addEdge(ddEdge);
 				newEdges++;
 			}

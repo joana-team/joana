@@ -725,12 +725,12 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         EE[] getOutoingEdgesUnsafe();
         Set<EE> getUnmodifiableIncomingEdges();
         Set<EE> getUnmodifiableOutgoingEdges();
-        boolean addIncomingEdge(EE e);
-        boolean addOutgoingEdge(EE e);
-        boolean removeIncomingEdge(EE e);
-        boolean removeOutgoingEdge(EE e);
-        void removeIncomingEdges();
-        void removeOutgoingEdges();
+        boolean addIncomingEdge(Class<EE> clazz, EE e);
+        boolean addOutgoingEdge(Class<EE> clazz, EE e);
+        boolean removeIncomingEdge(Class<EE> clazz, EE e);
+        boolean removeOutgoingEdge(Class<EE> clazz, EE e);
+        void removeIncomingEdges(Class<EE> clazz);
+        void removeOutgoingEdges(Class<EE> clazz);
         Rep incoming();
         Rep outgoing();
         
@@ -793,15 +793,14 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
          *
          * @param e
          */
-        @SuppressWarnings("unchecked")
-		public final boolean addIncomingEdge(EE e)
+		public final boolean addIncomingEdge(Class<EE> clazz, EE e)
         {
         	final ModifiableArraySet<EE> set;
         	final boolean added;
         	
         	assert incoming != null;
         	
-           	set = ModifiableArraySet.own(incoming, (Class<EE>) incoming.getClass().getComponentType());
+           	set = ModifiableArraySet.own(incoming, clazz);
            	added = set.add(e);
             incoming = set.disown();
             
@@ -813,12 +812,11 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
          *
          * @param e
          */
-		public final boolean addOutgoingEdge(EE e)
+		public final boolean addOutgoingEdge(Class<EE> clazz, EE e)
         {
         	assert outgoing != null;
         	
-        	@SuppressWarnings("unchecked")
-        	final ModifiableArraySet<EE> set = ModifiableArraySet.own(outgoing, (Class<EE>) outgoing.getClass().getComponentType());
+        	final ModifiableArraySet<EE> set = ModifiableArraySet.own(outgoing, clazz);
         	final boolean added = set.add(e);
            	outgoing = set.disown();
             
@@ -830,12 +828,11 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
          *
          * @param e
          */
-        public final boolean removeIncomingEdge(EE e)
+        public final boolean removeIncomingEdge(Class<EE> clazz, EE e)
         {
         	assert incoming != null;
         	
-        	@SuppressWarnings("unchecked")
-			final ModifiableArraySet<EE> set = ModifiableArraySet.own(incoming, (Class<EE>) incoming.getClass().getComponentType());
+			final ModifiableArraySet<EE> set = ModifiableArraySet.own(incoming, clazz);
         	
         	final boolean removed = set.remove(e);
             incoming = set.disown();
@@ -847,12 +844,11 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
          *
          * @param e
          */
-        public final boolean removeOutgoingEdge(EE e)
+        public final boolean removeOutgoingEdge(Class<EE> clazz, EE e)
         {
         	assert outgoing != null;
         	
-        	@SuppressWarnings("unchecked")
-			final ModifiableArraySet<EE> set = ModifiableArraySet.own(outgoing, (Class<EE>) outgoing.getClass().getComponentType());
+			final ModifiableArraySet<EE> set = ModifiableArraySet.own(outgoing, clazz);
         	
         	final boolean removed = set.remove(e);
             outgoing = set.disown();
@@ -861,14 +857,14 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         
         @SuppressWarnings("unchecked")
 		@Override
-        public void removeIncomingEdges() {
-        	incoming = (EE[]) Array.newInstance(incoming.getClass().getComponentType(), 0);
+        public void removeIncomingEdges(Class<EE> clazz) {
+        	incoming = (EE[]) Array.newInstance(clazz, 0);
         }
         
         @SuppressWarnings("unchecked")
 		@Override
-        public void removeOutgoingEdges() {
-        	outgoing = (EE[]) Array.newInstance(outgoing.getClass().getComponentType(), 0);
+        public void removeOutgoingEdges(Class<EE> clazz) {
+        	outgoing = (EE[]) Array.newInstance(clazz, 0);
         }
     }
     
@@ -958,8 +954,8 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             V source = getEdgeSource(e);
             V target = getEdgeTarget(e);
 
-            getEdgeContainer(source).addOutgoingEdge(e);
-            getEdgeContainer(target).addIncomingEdge(e);
+            getEdgeContainer(source).addOutgoingEdge(classE, e);
+            getEdgeContainer(target).addIncomingEdge(classE, e);
         }
         
         public boolean addEdgeToTouchingVerticesUnsafe(E e)
@@ -967,12 +963,12 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             V source = e.getSource();
             V target = e.getTarget();
 
-            final boolean addedInTarget = getEdgeContainerUnsafe(target).addIncomingEdge(e);
+            final boolean addedInTarget = getEdgeContainerUnsafe(target).addIncomingEdge(classE, e);
             if (addedInTarget) {
-                final boolean addedInSource = getEdgeContainerUnsafe(source).addOutgoingEdge(e);
+                final boolean addedInSource = getEdgeContainerUnsafe(source).addOutgoingEdge(classE, e);
                 assert addedInSource;
             } else {
-                assert !getEdgeContainerUnsafe(source).addOutgoingEdge(e);
+                assert !getEdgeContainerUnsafe(source).addOutgoingEdge(classE, e);
             }
             
             return addedInTarget;
@@ -1030,20 +1026,20 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         {
         	final Set<E> incoming = getEdgeContainer(vertex).getUnmodifiableIncomingEdges();
         	for (E e : incoming) {
-        		final boolean removedFromSource = getEdgeContainer(e.getSource()).removeOutgoingEdge(e);
+        		final boolean removedFromSource = getEdgeContainer(e.getSource()).removeOutgoingEdge(classE, e);
         		assert removedFromSource;
         	}
-        	getEdgeContainer(vertex).removeIncomingEdges();
+        	getEdgeContainer(vertex).removeIncomingEdges(classE);
         }
         
         public void removeOutgoingEdgesOf(V vertex)
         {
         	final Set<E> outgoing = getEdgeContainer(vertex).getUnmodifiableOutgoingEdges();
         	for (E e : outgoing) {
-        		final boolean removedFromTarget = getEdgeContainer(e.getTarget()).removeIncomingEdge(e);
+        		final boolean removedFromTarget = getEdgeContainer(e.getTarget()).removeIncomingEdge(classE, e);
         		assert removedFromTarget;
         	}
-        	getEdgeContainer(vertex).removeOutgoingEdges();
+        	getEdgeContainer(vertex).removeOutgoingEdges(classE);
         }
         
         /**
@@ -1079,8 +1075,8 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             V source = getEdgeSource(e);
             V target = getEdgeTarget(e);
 
-            final boolean removedFromSource = getEdgeContainer(source).removeOutgoingEdge(e);
-            final boolean removedFromTarget = getEdgeContainer(target).removeIncomingEdge(e);
+            final boolean removedFromSource = getEdgeContainer(source).removeOutgoingEdge(classE, e);
+            final boolean removedFromTarget = getEdgeContainer(target).removeIncomingEdge(classE, e);
             
             assert removedFromSource == removedFromTarget;
             return removedFromSource;
@@ -1091,8 +1087,8 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             V source = e.getSource();
             V target = e.getTarget();
 
-            getEdgeContainerUnsafe(source).removeOutgoingEdge(e);
-            getEdgeContainerUnsafe(target).removeIncomingEdge(e);
+            getEdgeContainerUnsafe(source).removeOutgoingEdge(classE, e);
+            getEdgeContainerUnsafe(target).removeIncomingEdge(classE, e);
         }
 
         /**

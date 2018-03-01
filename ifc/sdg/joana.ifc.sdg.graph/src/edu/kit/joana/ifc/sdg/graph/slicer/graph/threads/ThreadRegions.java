@@ -574,8 +574,6 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 				 
 				 PREVIOUSLY_MARKED = new HashSet<>();
 
-				 MARKED = new Color();
-				 
 				 for (SDGNode node : init) {
 					 LinkedList<SDGNode> w1 = new LinkedList<SDGNode>();
 					 LinkedList<SDGNode> w2 = new LinkedList<SDGNode>();

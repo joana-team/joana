@@ -389,7 +389,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 		  * @param thread
 		  * @return
 		  */
-		 private HashSet<SDGNode> computeStartNodes(int thread) {
+		 private HashSet<SDGNode> computeStartNodesSlow(int thread) {
 			 // initial start nodes
 			 HashSet<SDGNode> init = new HashSet<SDGNode>();
 			 init.add(info.getThreadEntry(thread));
@@ -511,7 +511,159 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 			 return result;
 		 }
 
+		 /**
+		  * Computes the start nodes of the thread regions of the given thread. A thread region either starts at
+		  * a fork site or at a join site or at a point, where to thread regions meet. So, the algorithm first
+		  * adds all fork and join sites of the given thread and then successively finds nodes which are reachable
+		  * from at least to distinct start nodes. Since each start node represents a different thread region, these
+		  * nodes are points where two distinct thread regions meet, so they are added to the set of start regions. Since
+		  * new start nodes could be discovered after a new start node was added, this operation has to be iterated until
+		  * a fixpoint is reached.
+		  * @param thread
+		  * @return
+		  */
+		 private static class Color {}
+		 
+		 private HashSet<SDGNode> computeStartNodes(int thread) {
+			 final Color INIT = new Color();
+			 final Color BOTH = new Color();
+			       Color PREVIOUSLY_MARKED = new Color();
+			 
 
+			 // initial start nodes
+			 HashSet<SDGNode> result = new HashSet<SDGNode>();
+			 
+			 result.add(info.getThreadEntry(thread));
+			 
+			 Collection<SDGNode> forks = info.getAllForks();
+			 for (SDGNode fork : forks) {
+				 for (SDGEdge e: icfg.getOutgoingEdgesOfKindUnsafe(fork, SDGEdge.Kind.CONTROL_FLOW)) {
+					 if (e.getTarget().isInThread(thread)) {
+						 result.add(e.getTarget());
+					 }
+				 }
+			 }
+
+			 Collection<SDGNode> joins = info.getAllJoins();
+
+			 for (SDGNode join : joins) {
+				 if (join.isInThread(thread)) {
+					 result.add(join);
+				 }
+			 }
+
+			 /**
+			  * successively add new nodes to the result set, which are reached by at least two start nodes,
+			  * until the result set does not change anymore
+			  */
+			 boolean newInit;
+			 do {
+				 newInit = false;
+				 
+				 SDGNode[] init = result.toArray(new SDGNode[result.size()]);
+				 
+				 for (SDGNode n : init) {
+					 n.customData = INIT;
+				 }
+				 
+				 PREVIOUSLY_MARKED = new Color();
+
+				 for (SDGNode node : init) {
+					 LinkedList<SDGNode> w1 = new LinkedList<SDGNode>();
+					 LinkedList<SDGNode> w2 = new LinkedList<SDGNode>();
+					 HashSet<SDGNode> marked = new HashSet<SDGNode>();
+
+					 w1.add(node);
+					 marked.add(node);
+
+					 while (!w1.isEmpty()) {
+						 SDGNode next = w1.poll();
+
+						 for (SDGEdge edge : icfg.outgoingEdgesOf(next)) {
+							 if (edge.getKind() == SDGEdge.Kind.FORK
+									 || (edge.getKind() == SDGEdge.Kind.RETURN && !edge.getTarget().isInThread(thread))) {
+								 // don't leave the thread
+								 continue;
+
+							 } else {
+								 SDGNode reached = edge.getTarget();
+								 if (!reached.isInThread(thread)) throw new RuntimeException("Error at edge "+edge);
+
+								 // don't cross thread region borders
+								 if (reached.customData == INIT || reached.customData == BOTH) continue;
+
+								 /**
+								  * the reached node is reached from two different nodes in the current start set
+								  * ---> another start point of a region for the current thread has been found
+								  */
+								 if (reached.customData == PREVIOUSLY_MARKED) {
+									 newInit |= result.add(reached);
+									 continue;
+								 }
+
+								 if (marked.add(reached)) {
+									 // 2-phase slicing
+									 if (edge.getKind() != SDGEdge.Kind.CALL) {
+										 w1.addFirst(reached);
+
+									 } else {
+										 w2.addFirst(reached);
+									 }
+								 }
+							 }
+						 }
+					 }
+
+					 while (!w2.isEmpty()) {
+						 SDGNode next = w2.poll();
+
+						 for (SDGEdge edge : icfg.outgoingEdgesOf(next)) {
+							 if (edge.getKind() == SDGEdge.Kind.FORK
+									 || edge.getKind() == SDGEdge.Kind.RETURN) {
+								 // don't leave the thread, don't leave procedures
+								 continue;
+
+							 } else {
+								 SDGNode reached = edge.getTarget();
+								 if (!reached.isInThread(thread)) throw new RuntimeException("Error at edge "+edge);
+
+								 // don't cross thread region borders
+								 if (reached.customData == INIT || reached.customData == BOTH) continue;
+
+								 /**
+								  * the reached node is reached from two different nodes in the current start set
+								  * ---> another start point of a region for the current thread has been found
+								  */
+								 if (reached.customData == PREVIOUSLY_MARKED) {
+									 newInit |= result.add(reached);
+									 continue;
+								 }
+
+								 if (marked.add(reached)) {
+									 w2.addFirst(reached);
+								 }
+							 }
+						 }
+					 }
+
+					 for (SDGNode n : marked) {
+						 if (n.customData == INIT) {
+							 n.customData = BOTH;
+						 } else {
+							 n.customData = PREVIOUSLY_MARKED;
+						 }
+					 }
+
+				 }
+
+			 } while (newInit);
+			 
+			 assert result.equals(computeStartNodesSlow(thread));
+			 
+			 return result;
+		 }
+		 
+		 
 		 /**
 		  * Computes the thread regions of the given thread. For each given start node, a context-sensitive, intra-thread
 		  * forward slice in the control-flow graph is performed. All nodes belonging to such a slice form a thread region.

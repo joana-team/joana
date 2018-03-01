@@ -967,11 +967,15 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             V source = e.getSource();
             V target = e.getTarget();
 
-            final boolean addedInSource = getEdgeContainerUnsafe(source).addOutgoingEdge(e);
             final boolean addedInTarget = getEdgeContainerUnsafe(target).addIncomingEdge(e);
-            assert addedInSource == addedInTarget;
+            if (addedInTarget) {
+                final boolean addedInSource = getEdgeContainerUnsafe(source).addOutgoingEdge(e);
+                assert addedInSource;
+            } else {
+                assert !getEdgeContainerUnsafe(source).addOutgoingEdge(e);
+            }
             
-            return addedInSource;
+            return addedInTarget;
         }
 
         /**

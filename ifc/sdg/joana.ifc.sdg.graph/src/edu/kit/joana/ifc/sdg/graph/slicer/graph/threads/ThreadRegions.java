@@ -584,7 +584,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 					 while (!w1.isEmpty()) {
 						 SDGNode next = w1.poll();
 
-						 for (SDGEdge edge : icfg.outgoingEdgesOf(next)) {
+						 for (SDGEdge edge : icfg.outgoingEdgesOfUnsafe(next)) {
 							 if (edge.getKind() == SDGEdge.Kind.FORK
 									 || (edge.getKind() == SDGEdge.Kind.RETURN && !edge.getTarget().isInThread(thread))) {
 								 // don't leave the thread
@@ -622,7 +622,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 					 while (!w2.isEmpty()) {
 						 SDGNode next = w2.poll();
 
-						 for (SDGEdge edge : icfg.outgoingEdgesOf(next)) {
+						 for (SDGEdge edge : icfg.outgoingEdgesOfUnsafe(next)) {
 							 if (edge.getKind() == SDGEdge.Kind.FORK
 									 || edge.getKind() == SDGEdge.Kind.RETURN) {
 								 // don't leave the thread, don't leave procedures

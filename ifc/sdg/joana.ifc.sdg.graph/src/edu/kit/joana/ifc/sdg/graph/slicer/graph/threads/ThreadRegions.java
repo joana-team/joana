@@ -28,6 +28,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.Threa
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.collections.ArrayMap;
+import edu.kit.joana.util.collections.ArraySet;
 import edu.kit.joana.util.collections.ModifiableArraySet;
 import gnu.trove.iterator.TIntObjectIterator;
 import gnu.trove.map.hash.TIntObjectHashMap;
@@ -748,10 +749,9 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 				 }
 
 				 // marked contains the nodes of the thread region
-				 ThreadRegion tr = new ThreadRegion(id, startNode, thread, info.isDynamic(thread), mappy.keySet());
+				 ThreadRegion tr = new ThreadRegion(id, startNode, thread, info.isDynamic(thread), new ArraySet<>(marked));
 				 result.add(tr);
 
-				 // we can fill mappy after initializing tr with it's keySet because ((ArrayMap)mappy).keySet() returns a view of its keys.
 				 for (SDGNode n : marked) {
 					 mappy.put(n, tr);
 				 }

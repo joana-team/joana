@@ -25,6 +25,11 @@ public final class ModifiableArraySet<E> extends ArraySet<E> {
 	}
 	
 	@SuppressWarnings("unchecked")
+	public ModifiableArraySet(Class<? super E> clazz) {
+		super((E[])Array.newInstance(clazz, 0));
+		this.clazz = clazz;
+	}
+	@SuppressWarnings("unchecked")
 	public ModifiableArraySet(E element, Class<? super E> clazz) {
 		super((E[])Array.newInstance(clazz, 1));
 		this.elements[0] = element;

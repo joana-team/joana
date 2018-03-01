@@ -365,6 +365,10 @@ public final class ArrayMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
 		return oldValue;
 	}
 	
+	public void trimToSize() {
+		compact(true);
+	}
+	
 	private void compact(boolean shorten) {
 		
 		assert keys.length == values.length;

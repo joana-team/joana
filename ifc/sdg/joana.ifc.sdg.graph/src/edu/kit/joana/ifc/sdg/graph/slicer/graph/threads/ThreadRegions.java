@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.ibm.wala.util.collections.SimpleVector;
@@ -26,6 +27,8 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
+import edu.kit.joana.util.collections.ArrayMap;
+import edu.kit.joana.util.collections.ModifiableArraySet;
 import gnu.trove.iterator.TIntObjectIterator;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
@@ -55,9 +58,9 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 	}
 
 	private static class PreciseThreadNodeRegionMap implements ThreadNodeRegionMap {
-		private TIntObjectHashMap<TIntObjectHashMap<ThreadRegion>> map;
+		private TIntObjectHashMap<Map<SDGNode, ThreadRegion>> map;
 
-		private PreciseThreadNodeRegionMap(TIntObjectHashMap<TIntObjectHashMap<ThreadRegion>> map) {
+		private PreciseThreadNodeRegionMap(TIntObjectHashMap<Map<SDGNode, ThreadRegion>> map) {
 			this.map = map;
 		}
 
@@ -66,7 +69,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 		 */
 		@Override
 		public ThreadRegion getRegion(int thread, SDGNode node) {
-			return map.get(thread).get(node.getId());
+			return map.get(thread).get(node);
 		}
 	}
 
@@ -297,7 +300,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 
 		 for (ThreadInstance ti : info) {
 			 //    		System.out.println(ti);
-			 ThreadRegion r = new ThreadRegion(ti.getId(), ti.getEntry(), ti.getId(), ti.isDynamic(), null);
+			 ThreadRegion r = new ThreadRegion(ti.getId(), ti.getEntry(), ti.getId(), ti.isDynamic(), new ModifiableArraySet<SDGNode>(SDGNode.class));
 			 LinkedList<ThreadRegion> singleton = new LinkedList<>();
 			 singleton.add(r);
 			 regions.set(ti.getId(), singleton);
@@ -321,14 +324,14 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 		 private final SimpleVector<List<ThreadRegion>> regions;
 		 
 		 /** map thread -> (node of thread -> thread region of node) */ 
-		 private final TIntObjectHashMap<TIntObjectHashMap<ThreadRegion>> map;
+		 private final TIntObjectHashMap<Map<SDGNode, ThreadRegion>> map;
 		 private int id;
 
 		 private RegionBuilder(CFG icfg, ThreadsInformation info) {
 			 this.icfg = icfg;
 			 this.info = info;
 			 regions = new SimpleVector<>();
-			 map = new TIntObjectHashMap<TIntObjectHashMap<ThreadRegion>>();
+			 map = new TIntObjectHashMap<>();
 			 id = 0;
 		 }
 
@@ -675,7 +678,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 			 List<ThreadRegion> result = new ArrayList<>(startNodes.size());
 			 
 			 assert !map.contains(thread);
-			 final TIntObjectHashMap<ThreadRegion> mappy = new TIntObjectHashMap<ThreadRegion>();
+			 final ArrayMap<SDGNode, ThreadRegion> mappy = new ArrayMap<>();
 			 map.put(thread, mappy);
 
 
@@ -740,15 +743,18 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 				 }
 
 				 // marked contains the nodes of the thread region
-				 ThreadRegion tr = new ThreadRegion(id, startNode, thread, info.isDynamic(thread), marked);
+				 ThreadRegion tr = new ThreadRegion(id, startNode, thread, info.isDynamic(thread), mappy.keySet());
 				 result.add(tr);
 
+				 // we can fill mappy after initializing tr with it's keySet because ((ArrayMap)mappy).keySet() returns a view of its keys.
 				 for (SDGNode n : marked) {
-					 mappy.put(n.getId(), tr);
+					 mappy.put(n, tr);
 				 }
 				 id++;
 			 }
-
+			 
+			 mappy.trimToSize();
+			 
 			 assert result.size() == startNodes.size();
 			 return result;
 		 }

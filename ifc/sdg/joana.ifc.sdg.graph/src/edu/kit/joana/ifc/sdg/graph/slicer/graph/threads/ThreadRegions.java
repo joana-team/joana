@@ -532,7 +532,8 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 		 private HashSet<SDGNode> computeStartNodes(int thread) {
 			 final Color INIT = new Color();
 			 final Color BOTH = new Color();
-			       Color PREVIOUSLY_MARKED = new Color();
+			       Color MARKED = new Color();
+			       Set<Color> PREVIOUSLY_MARKED;
 			 
 
 			 // initial start nodes
@@ -571,15 +572,17 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 					 n.customData = INIT;
 				 }
 				 
-				 PREVIOUSLY_MARKED = new Color();
+				 PREVIOUSLY_MARKED = new HashSet<>();
 
+				 MARKED = new Color();
+				 
 				 for (SDGNode node : init) {
 					 LinkedList<SDGNode> w1 = new LinkedList<SDGNode>();
 					 LinkedList<SDGNode> w2 = new LinkedList<SDGNode>();
-					 HashSet<SDGNode> marked = new HashSet<SDGNode>();
+					 MARKED = new Color();
+					 
 
 					 w1.add(node);
-					 marked.add(node);
 
 					 while (!w1.isEmpty()) {
 						 SDGNode next = w1.poll();
@@ -601,12 +604,13 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 								  * the reached node is reached from two different nodes in the current start set
 								  * ---> another start point of a region for the current thread has been found
 								  */
-								 if (reached.customData == PREVIOUSLY_MARKED) {
+								 if (PREVIOUSLY_MARKED.contains(reached.customData)) {
 									 newInit |= result.add(reached);
 									 continue;
 								 }
 
-								 if (marked.add(reached)) {
+								 if (reached.customData != MARKED) {
+									 reached.customData = MARKED;
 									 // 2-phase slicing
 									 if (edge.getKind() != SDGEdge.Kind.CALL) {
 										 w1.addFirst(reached);
@@ -639,25 +643,20 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 								  * the reached node is reached from two different nodes in the current start set
 								  * ---> another start point of a region for the current thread has been found
 								  */
-								 if (reached.customData == PREVIOUSLY_MARKED) {
+								 if (PREVIOUSLY_MARKED.contains(reached.customData)) {
 									 newInit |= result.add(reached);
 									 continue;
 								 }
 
-								 if (marked.add(reached)) {
+								 if (reached.customData != MARKED) {
+									 reached.customData = MARKED;
 									 w2.addFirst(reached);
 								 }
 							 }
 						 }
 					 }
 
-					 for (SDGNode n : marked) {
-						 if (n.customData == INIT) {
-							 n.customData = BOTH;
-						 } else {
-							 n.customData = PREVIOUSLY_MARKED;
-						 }
-					 }
+					 PREVIOUSLY_MARKED.add(MARKED);
 
 				 }
 

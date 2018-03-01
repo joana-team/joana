@@ -592,7 +592,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 
 							 } else {
 								 SDGNode reached = edge.getTarget();
-								 if (!reached.isInThread(thread)) throw new RuntimeException("Error at edge "+edge);
+								 assert reached.isInThread(thread); // otherwise, we would've left the thread
 
 								 // don't cross thread region borders
 								 if (reached.customData == INIT || reached.customData == BOTH) continue;
@@ -630,7 +630,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 
 							 } else {
 								 SDGNode reached = edge.getTarget();
-								 if (!reached.isInThread(thread)) throw new RuntimeException("Error at edge "+edge);
+								 assert reached.isInThread(thread); // otherwise, we would've left the thread
 
 								 // don't cross thread region borders
 								 if (reached.customData == INIT || reached.customData == BOTH) continue;

@@ -673,6 +673,13 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 		  */
 		 private List<ThreadRegion> computeRegions(HashSet<SDGNode> startNodes, int thread) {
 			 ArrayList<ThreadRegion> result = new ArrayList<>();
+			 
+			 assert !map.contains(thread);
+			 final TIntObjectHashMap<ThreadRegion> mappy = new TIntObjectHashMap<ThreadRegion>();
+			 map.put(thread, mappy);
+
+
+
 
 			 for (SDGNode startNode : startNodes) {
 				 LinkedList<SDGNode> w1 = new LinkedList<SDGNode>();
@@ -736,12 +743,6 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 				 ThreadRegion tr = new ThreadRegion(id, startNode, thread, info.isDynamic(thread));
 				 tr.setNodes(marked);
 				 result.add(tr);
-
-				 TIntObjectHashMap<ThreadRegion> mappy = map.get(thread);
-				 if (mappy == null) {
-					 mappy = new TIntObjectHashMap<ThreadRegion>();
-					 map.put(thread, mappy);
-				 }
 
 				 for (SDGNode n : marked) {
 					 mappy.put(n.getId(), tr);

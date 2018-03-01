@@ -7,6 +7,7 @@
  */
 package edu.kit.joana.ifc.sdg.mhpoptimization;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -192,6 +193,7 @@ public final class CSDGPreprocessor {
 					conv.addAll(entry.getThreadNumbers());
 				}
 				cached = conv.toArray();
+				Arrays.sort(cached);
 				tidCache.put(entrySet, cached);
 			}
 			n.setThreadNumbers(cached);

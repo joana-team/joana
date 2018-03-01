@@ -11,9 +11,11 @@
  */
 package edu.kit.joana.ifc.sdg.graph;
 
+import java.lang.reflect.Array;
 import java.util.Comparator;
 
 import edu.kit.joana.util.SourceLocation;
+import edu.kit.joana.util.collections.Arrays;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
@@ -457,6 +459,7 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
      * @param tn  The new thread numbers.
      */
     public void setThreadNumbers(int[] tn) {
+       if (!Arrays.isSorted(tn)) throw new IllegalArgumentException();
        threadNumbers = tn;
     }
 
@@ -664,12 +667,9 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
      */
     public boolean isInThread(int t) {
         if (threadNumbers == null) return false;
+        assert Arrays.isSorted(threadNumbers);
 
-        for (int i : threadNumbers) {
-            if (i == t) return true;
-        }
-
-        return false;
+        return java.util.Arrays.binarySearch(threadNumbers, t) >= 0;
     }
     
     /**

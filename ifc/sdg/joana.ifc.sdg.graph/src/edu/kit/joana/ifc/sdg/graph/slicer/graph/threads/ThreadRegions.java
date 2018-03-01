@@ -681,8 +681,11 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 			 final ArrayMap<SDGNode, ThreadRegion> mappy = new ArrayMap<>();
 			 map.put(thread, mappy);
 
+			 final Color START = new Color();
 
-
+			 for (SDGNode startNode : startNodes) {
+				 startNode.customData = START;
+			 }
 
 			 for (SDGNode startNode : startNodes) {
 				 LinkedList<SDGNode> w1 = new LinkedList<SDGNode>();
@@ -703,10 +706,11 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 
 						 } else {
 							 SDGNode reached = edge.getTarget();
-							 if (!reached.isInThread(thread)) throw new RuntimeException("Error at edge "+edge);
+							 assert reached.isInThread(thread); // otherwise, we would've left the thread
 
 							 // don't cross thread region borders
-							 if (startNodes.contains(reached)) continue;
+							 assert (reached.customData == START) == startNodes.contains(reached); 
+							 if (reached.customData == START) continue;
 
 							 if (marked.add(reached)) {
 								 // 2-phase slicing
@@ -729,10 +733,11 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 								 && edge.getKind() != SDGEdge.Kind.RETURN) {
 							 // don't leave the thread, don't leave procedures
 							 SDGNode reached = edge.getTarget();
-							 if (!reached.isInThread(thread)) throw new RuntimeException("Error at edge "+edge);
+							 assert reached.isInThread(thread); // otherwise, we would've left the thread
 
 							 // don't cross thread region borders
-							 if (startNodes.contains(reached)) continue;
+							 assert (reached.customData == START) == startNodes.contains(reached);
+							 if (reached.customData == START) continue;
 
 							 if (!marked.contains(reached)) {
 								 marked.add(reached);

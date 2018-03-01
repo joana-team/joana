@@ -22,6 +22,7 @@ options {
 package edu.kit.joana.ifc.sdg.graph;
 
 import java.util.LinkedList;
+import java.util.Arrays;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
@@ -187,7 +188,9 @@ import edu.kit.joana.util.SourceLocation;
         }
 
         if (threadNums != null) {
-          n.setThreadNumbers(this.threadNums.toArray());
+          int[] threadNumArray = this.threadNums.toArray();
+          Arrays.sort(threadNumArray);
+          n.setThreadNumbers(threadNumArray);
         }
 
         return n;

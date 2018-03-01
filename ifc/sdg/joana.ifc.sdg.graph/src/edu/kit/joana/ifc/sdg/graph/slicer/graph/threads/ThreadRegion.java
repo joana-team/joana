@@ -76,27 +76,12 @@ public class ThreadRegion {
     private final int id;
     private final int thread;
     private final boolean dynamic;
-    private SDGNode start;
+    private final SDGNode start;
 
-    public ThreadRegion(int id, Color key, int thread, boolean dynamic) {
+    public ThreadRegion(int id, SDGNode start, int thread, boolean dynamic, Collection<SDGNode> nodes) {
         this.id = id;
         this.thread = thread;
-        this.nodes = new HashSet<SDGNode>();
-        this.key = key;
-        this.dynamic = dynamic;
-    }
-
-    public ThreadRegion(int id, int thread, boolean dynamic) {
-        this.id = id;
-        this.thread = thread;
-        this.nodes = new HashSet<SDGNode>();
-        this.dynamic = dynamic;
-    }
-
-    public ThreadRegion(int id, SDGNode start, int thread, boolean dynamic) {
-        this.id = id;
-        this.thread = thread;
-        this.nodes = new HashSet<SDGNode>();
+        this.nodes = nodes;
         this.start = start;
         this.dynamic = dynamic;
     }
@@ -113,11 +98,8 @@ public class ThreadRegion {
      * Returns the list of the covered nodes.
      */
     public Collection<SDGNode> getNodes() {
+    	if (!knowsNodes()) throw new UnsupportedOperationException();
         return nodes;
-    }
-
-    public void setNodes(Collection<SDGNode> nodes) {
-        this.nodes = nodes;
     }
 
     /**
@@ -133,6 +115,10 @@ public class ThreadRegion {
     public int getThread() {
         return thread;
     }
+    
+    public boolean knowsNodes() {
+    	return nodes != null;
+    }
 
     /**
      * Checks whether this ThreadRegion covers a given node.
@@ -140,19 +126,9 @@ public class ThreadRegion {
      * @param node  The node to check.
      */
     public boolean contains(SDGNode node) {
+        if (!knowsNodes()) throw new UnsupportedOperationException();
         return nodes.contains(node);
     }
-
-    /**
-     * Adds the given node to the covered nodes list.
-     * Doesn't check whether the node is already in.
-     *
-     * @param node  The node to add.
-     */
-    public void add(SDGNode node) {
-        nodes.add(node);
-    }
-
 
     /**
      * Prints the region's attributes.
@@ -167,8 +143,8 @@ public class ThreadRegion {
         str += "Dynamic: ";
         str += dynamic+"\n";
         str += "Size: ";
-        str += nodes.size()+"\n";
-        str += nodes+"\n";
+        str += nodes == null ? "UNKNOWN\n" : nodes.size()+"\n";
+        str += nodes == null ? "\n"        : nodes+"\n";
 
         return str;
     }
@@ -189,6 +165,7 @@ public class ThreadRegion {
     }
 
     public boolean consistsOf(Collection<SDGNode> nodes) {
+    	if (!knowsNodes()) throw new UnsupportedOperationException();
         if (nodes.size() != this.nodes.size()) return false;
 
         for (SDGNode n : nodes) {
@@ -205,6 +182,7 @@ public class ThreadRegion {
     }
 
     public boolean verify() {
+    	if (!knowsNodes()) return true;
         for (SDGNode n : nodes) {
             if (!n.isInThread(thread)) {
                 System.out.println(n+" does not belong to this thread");

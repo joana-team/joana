@@ -297,7 +297,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 
 		 for (ThreadInstance ti : info) {
 			 //    		System.out.println(ti);
-			 ThreadRegion r = new ThreadRegion(ti.getId(), ti.getEntry(), ti.getId(), ti.isDynamic());
+			 ThreadRegion r = new ThreadRegion(ti.getId(), ti.getEntry(), ti.getId(), ti.isDynamic(), null);
 			 LinkedList<ThreadRegion> singleton = new LinkedList<>();
 			 singleton.add(r);
 			 regions.set(ti.getId(), singleton);
@@ -740,8 +740,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 				 }
 
 				 // marked contains the nodes of the thread region
-				 ThreadRegion tr = new ThreadRegion(id, startNode, thread, info.isDynamic(thread));
-				 tr.setNodes(marked);
+				 ThreadRegion tr = new ThreadRegion(id, startNode, thread, info.isDynamic(thread), marked);
 				 result.add(tr);
 
 				 for (SDGNode n : marked) {

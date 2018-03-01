@@ -9,6 +9,7 @@ package edu.kit.joana.ifc.sdg.graph.slicer.graph.threads;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -678,9 +679,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 		 private List<ThreadRegion> computeRegions(HashSet<SDGNode> startNodes, int thread) {
 			 List<ThreadRegion> result = new ArrayList<>(startNodes.size());
 			 
-			 assert !map.contains(thread);
-			 final ArrayMap<SDGNode, ThreadRegion> mappy = new ArrayMap<>();
-			 map.put(thread, mappy);
+			 final Map<SDGNode, ThreadRegion> mappy = new HashMap<>();
 
 			 final Color START = new Color();
 
@@ -758,7 +757,8 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 				 id++;
 			 }
 			 
-			 mappy.trimToSize();
+			 assert !map.contains(thread);
+			 map.put(thread, new ArrayMap<>(mappy));
 			 
 			 assert result.size() == startNodes.size();
 			 return result;

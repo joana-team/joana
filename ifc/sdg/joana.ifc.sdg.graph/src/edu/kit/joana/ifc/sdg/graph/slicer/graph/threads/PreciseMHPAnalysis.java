@@ -1050,24 +1050,24 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 				final DynamicContext fork = entry.getKey();
 				final int thread = fork.getThread();
         		if (info.isDynamic(thread)) {
-        			final Set<SDGNode> regs = new HashSet<>();
+        			final Set<Integer> regs = new HashSet<>();
        				for (IntIterator it = entry.getValue().intIterator(); it.hasNext();) {
        					final int other_thread = it.next();
        					for (ThreadRegion other_region : tr.getThreadRegionSet(other_thread)) {
        						assert other_region.isDynamic();
-       						regs.add(other_region.getStart());
+       						regs.add(startNodesToNumber.get(Pair.pair(other_region.getStart(), true)));
        					}
        				}
-       				final ArrayList<SDGNode> regsArray = new ArrayList<>(regs.size());
+       				final ArrayList<Integer> regsArray = new ArrayList<>(regs.size());
        				regsArray.addAll(regs);
        				int toSet = regsArray.size();
-        			for (SDGNode p : regsArray) {
+        			for (Integer p : regsArray) {
         				int set = 0;
         				assert regsArray instanceof RandomAccess;
-        				for (SDGNode q : Lists.reverse(regsArray)) {
-        					startNodesMatrix.set(startNodesToNumber.get(Pair.pair(p, true)), startNodesToNumber.get(Pair.pair(q, true)));
+        				for (Integer q : Lists.reverse(regsArray)) {
+        					startNodesMatrix.set(p, q);
         					assert
-        					startNodesMatrix.get(startNodesToNumber.get(Pair.pair(q, true)), startNodesToNumber.get(Pair.pair(p, true)));
+        					startNodesMatrix.get(q, p);
         					set++;
         					if (set > toSet) break;
         				}

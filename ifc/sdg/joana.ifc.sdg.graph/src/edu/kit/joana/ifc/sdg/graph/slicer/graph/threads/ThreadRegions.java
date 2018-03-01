@@ -672,7 +672,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 		  * @return all thread regions belonging to the given thread
 		  */
 		 private List<ThreadRegion> computeRegions(HashSet<SDGNode> startNodes, int thread) {
-			 ArrayList<ThreadRegion> result = new ArrayList<>();
+			 List<ThreadRegion> result = new ArrayList<>(startNodes.size());
 			 
 			 assert !map.contains(thread);
 			 final TIntObjectHashMap<ThreadRegion> mappy = new TIntObjectHashMap<ThreadRegion>();
@@ -749,7 +749,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 				 id++;
 			 }
 
-			 result.trimToSize();
+			 assert result.size() == startNodes.size();
 			 return result;
 		 }
 	 }

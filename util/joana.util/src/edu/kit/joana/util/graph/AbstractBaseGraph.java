@@ -180,15 +180,15 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         assert assertVertexExist(sourceVertex);
         assert assertVertexExist(targetVertex);
 
-        final V target = e.getTarget();
+        assert sourceVertex == e.getSource();
+        assert targetVertex == e.getTarget();
 
-        final boolean addedInTarget = vertexMap.get(target).addIncomingEdge(classE, e);
+        final boolean addedInTarget = vertexMap.get(targetVertex).addIncomingEdge(classE, e);
         if (addedInTarget) {
-            final V source = e.getSource();
-            final boolean addedInSource = vertexMap.get(source).addOutgoingEdge(classE, e);
+            final boolean addedInSource = vertexMap.get(sourceVertex).addOutgoingEdge(classE, e);
             assert addedInSource;
         } else {
-            assert !vertexMap.get(e.getSource()).addOutgoingEdge(classE, e);
+            assert !vertexMap.get(sourceVertex).addOutgoingEdge(classE, e);
         }
         
         return addedInTarget;

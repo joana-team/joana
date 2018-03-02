@@ -104,14 +104,14 @@ public abstract class SimpleVectorBase<K, V>  extends AbstractMap<K, V> implemen
 		final int x = getId((K)o);
 
 		if (0 <= x && x <= rightMaxIndex) {
-			assert o.equals(rightKeys[x]);
+			assert (rightKeys[x] == null && rightValues[x] == null) || o.equals(rightKeys[x]);
 			return (V) rightValues[x];
 		}
 		
 		final int y = -x;
 		assert y != 0;
 		if (0 <= y && y <= leftMaxIndex) {
-			assert o.equals(leftKeys[y]);
+			assert (leftKeys[y] == null && leftValues[y] == null) || o.equals(leftKeys[y]);
 			return (V) leftValues[y];
 		}
 		return null;

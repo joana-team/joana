@@ -619,8 +619,6 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
 
     
     public interface DirectedEdgeContainer<EE, Rep> {
-        EE[] getIncomingEdgesUnsafe();
-        EE[] getOutoingEdgesUnsafe();
         Set<EE> getUnmodifiableIncomingEdges();
         Set<EE> getUnmodifiableOutgoingEdges();
         boolean addIncomingEdge(Class<EE> clazz, EE e);
@@ -676,15 +674,6 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             return ArraySet.own(outgoing);
         }
         
-        @Override
-        public EE[] getIncomingEdgesUnsafe() {
-        	return incoming;
-        }
-        
-        @Override
-        public EE[] getOutoingEdgesUnsafe() {
-        	return outgoing;
-        }
 
         /**
          * .
@@ -817,7 +806,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         }
         
         public boolean containsEdge(E edge) {
-            final Set<E> outgoing = ArraySet.own(getEdgeContainerUnsafe(edge.getSource()).outgoing());
+            final Set<E> outgoing = ArraySet.own(vertexMap.get(edge.getSource()).outgoing());
             return outgoing.contains(edge);
         }
 
@@ -835,12 +824,12 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             V source = e.getSource();
             V target = e.getTarget();
 
-            final boolean addedInTarget = getEdgeContainerUnsafe(target).addIncomingEdge(classE, e);
+            final boolean addedInTarget = vertexMap.get(target).addIncomingEdge(classE, e);
             if (addedInTarget) {
-                final boolean addedInSource = getEdgeContainerUnsafe(source).addOutgoingEdge(classE, e);
+                final boolean addedInSource = vertexMap.get(source).addOutgoingEdge(classE, e);
                 assert addedInSource;
             } else {
-                assert !getEdgeContainerUnsafe(source).addOutgoingEdge(classE, e);
+                assert !vertexMap.get(source).addOutgoingEdge(classE, e);
             }
             
             return addedInTarget;
@@ -891,7 +880,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
          */
         public E[] incomingEdgesOfUnsafe(V vertex)
         {
-        	return getEdgeContainerUnsafe(vertex).getIncomingEdgesUnsafe();
+        	return vertexMap.get(vertex).incoming();
         }
 
         public void removeIncomingEdgesOf(V vertex)
@@ -939,7 +928,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
          */
         public E[] outgoingEdgesOfUnsafe(V vertex)
         {
-            return getEdgeContainerUnsafe(vertex).getOutoingEdgesUnsafe();
+            return vertexMap.get(vertex).outgoing();
         }
 
         public boolean removeEdgeFromTouchingVertices(E e)
@@ -959,8 +948,8 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             V source = e.getSource();
             V target = e.getTarget();
 
-            getEdgeContainerUnsafe(source).removeOutgoingEdge(classE, e);
-            getEdgeContainerUnsafe(target).removeIncomingEdge(classE, e);
+            vertexMap.get(source).removeOutgoingEdge(classE, e);
+            vertexMap.get(target).removeIncomingEdge(classE, e);
         }
 
         /**
@@ -984,19 +973,6 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             });
         }
         
-        /**
-         * A lazy build of edge container for specified vertex.
-         *
-         * @param vertex a vertex in this graph.
-         *
-         * @return EdgeContainer
-         */
-        private DirectedEdgeContainer<E, E[]> getEdgeContainerUnsafe(V vertex)
-        {
-            assert assertVertexExist(vertex);
-            
-            return vertexMap.get(vertex);
-        }
         
         public void trimToSize() {
         	// TODO: this is a hack, obviously

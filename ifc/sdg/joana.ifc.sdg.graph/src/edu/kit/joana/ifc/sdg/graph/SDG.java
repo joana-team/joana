@@ -46,6 +46,8 @@ import gnu.trove.map.hash.TIntObjectHashMap;
  */
 public class SDG extends JoanaGraph implements Cloneable {
    
+	private static final long serialVersionUID = -4724356840088243978L;
+
     public static final int DEFAULT_VERSION = 1;
     
     /** Indicates if the SDG contains precise source code info. */

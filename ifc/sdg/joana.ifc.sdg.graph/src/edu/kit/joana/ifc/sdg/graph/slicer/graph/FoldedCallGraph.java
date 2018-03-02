@@ -24,6 +24,8 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
  */
 public class FoldedCallGraph extends CallGraph implements Folded {
 
+	private static final long serialVersionUID = 8680490922622461057L;
+
 	/** Creates a new instance of BipartiteCallGraph from a given IPDG.
      *
      * @param graph  The IPDG whose folded bipartite call graph is needed.

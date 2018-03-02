@@ -53,7 +53,6 @@ import org.jgrapht.graph.ClassBasedEdgeFactory;
  */
 public class DirectedPseudograph<V extends IntegerIdentifiable, E extends KnowsVertices<V>>
     extends AbstractBaseGraph<V, E>
-    implements DirectedGraph<V, E>
 {
     private static final long serialVersionUID = -8300409752893486415L;
 
@@ -70,7 +69,7 @@ public class DirectedPseudograph<V extends IntegerIdentifiable, E extends KnowsV
      */
     public DirectedPseudograph(EdgeFactory<V, E> ef, Supplier<Map<V,DirectedEdgeContainer<E,E[]>>> vertexMapConstructor, Class<E> classE)
     {
-        super(ef, true, true, vertexMapConstructor, classE);
+        super(ef, vertexMapConstructor, classE);
     }
 }
 

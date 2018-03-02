@@ -75,7 +75,9 @@ import edu.kit.joana.util.collections.SimpleVectorBase;
  */
 public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends KnowsVertices<V>>
     extends AbstractGraph<V, E>
-    implements Graph<V, E>,
+    implements
+        EfficientGraph<V, E>,
+        DirectedGraph<V, E>,
         Cloneable,
         Serializable
 {
@@ -87,6 +89,10 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
     private Map<V, DirectedEdgeContainer<E,E[]>> vertexMap;
     private final Supplier<Map<V,DirectedEdgeContainer<E,E[]>>> vertexMapConstructor;
     private final Class<E> classE;
+    
+	private boolean changed = true;
+	private int hashCode;
+
 
     /**
      * Construct a new graph. The graph can either be directed or undirected,
@@ -101,8 +107,6 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
      */
     protected <T> AbstractBaseGraph(
         EdgeFactory<V, E> ef,
-        boolean allowMultipleEdges,
-        boolean allowLoops,
         Supplier<Map<V,DirectedEdgeContainer<E,E[]>>> vertexMapConst,
         Class<E> clazzE
         )
@@ -117,6 +121,8 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
 
         vertexMap = vertexMapConstructor.get();
     }
+    
+
 
     /**
      * @see Graph#getEdgeFactory()
@@ -141,6 +147,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             return null;
         } else {
             addEdgeToTouchingVertices(e);
+            changed = true;
             
             return e;
         }
@@ -165,6 +172,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         assertVertexExist(targetVertex);
 
         addEdgeToTouchingVertices(e);
+        changed = true;
 
         return true;
     }
@@ -185,6 +193,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
 
         final boolean addedInTarget = vertexMap.get(targetVertex).addIncomingEdge(classE, e);
         if (addedInTarget) {
+            changed = true;
             final boolean addedInSource = vertexMap.get(sourceVertex).addOutgoingEdge(classE, e);
             assert addedInSource;
         } else {
@@ -205,6 +214,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             return false;
         } else {
             vertexMap.put(v, new ArraySetDirectedEdgeContainer<V, E>(classE));
+            changed = true;
 
             return true;
         }
@@ -254,6 +264,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             newGraph.vertexMap = vertexMapConstructor.get();
 
             org.jgrapht.Graphs.addGraph(newGraph, this);
+            newGraph.changed = true;
 
             return newGraph;
         } catch (CloneNotSupportedException e) {
@@ -493,6 +504,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
 
         if (e != null) {
             removeEdgeFromTouchingVertices(e);
+            changed = true;
         }
 
         return e;
@@ -505,6 +517,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
     {
         if (containsEdge(e)) {
             removeEdgeFromTouchingVertices(e);
+            changed = true;
             return true;
         } else {
             return false;
@@ -532,6 +545,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             removeAllEdges(new ArrayList<E>(touchingEdgesList));
 
             vertexMap.remove(v); // remove the vertex itself
+            changed = true;
 
             return true;
         } else {
@@ -710,6 +724,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         /**
          * @see Graph#getAllEdges(Object, Object)
          */
+        @Override
         public Set<E> getAllEdges(V sourceVertex, V targetVertex)
         {
             DirectedEdgeContainer<E,E[]> ec = getEdgeContainer(sourceVertex);
@@ -731,6 +746,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         /**
          * @see Graph#getEdge(Object, Object)
          */
+        @Override
         public E getEdge(V sourceVertex, V targetVertex)
         {
             if (containsVertex(sourceVertex)
@@ -753,12 +769,13 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             return null;
         }
         
+        @Override
         public boolean containsEdge(E edge) {
             final Set<E> outgoing = ArraySet.own(vertexMap.get(edge.getSource()).outgoing());
             return outgoing.contains(edge);
         }
 
-        public void addEdgeToTouchingVertices(E e)
+        private void addEdgeToTouchingVertices(E e)
         {
             V source = getEdgeSource(e);
             V target = getEdgeTarget(e);
@@ -778,6 +795,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         /**
          * @see Graph#edgesOf(Object)
          */
+        @Override
         public Set<E> edgesOf(V vertex)
         {
         	Set<E> incoming = ArraySet.own(getEdgeContainer(vertex).incoming());
@@ -821,6 +839,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         	for (E e : incoming) {
         		final boolean removedFromSource = getEdgeContainer(e.getSource()).removeOutgoingEdge(classE, e);
         		assert removedFromSource;
+        		changed = true;
         	}
         	getEdgeContainer(vertex).removeIncomingEdges(classE);
         }
@@ -831,6 +850,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         	for (E e : outgoing) {
         		final boolean removedFromTarget = getEdgeContainer(e.getTarget()).removeIncomingEdge(classE, e);
         		assert removedFromTarget;
+        		changed = true;
         	}
         	getEdgeContainer(vertex).removeOutgoingEdges(classE);
         }
@@ -863,7 +883,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             return vertexMap.get(vertex).outgoing();
         }
 
-        public boolean removeEdgeFromTouchingVertices(E e)
+        private boolean removeEdgeFromTouchingVertices(E e)
         {
             V source = getEdgeSource(e);
             V target = getEdgeTarget(e);
@@ -872,16 +892,8 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             final boolean removedFromTarget = getEdgeContainer(target).removeIncomingEdge(classE, e);
             
             assert removedFromSource == removedFromTarget;
+            changed |= removedFromSource;
             return removedFromSource;
-        }
-
-        public void removeEdgeFromTouchingVerticesUnsafe(E e)
-        {
-            V source = e.getSource();
-            V target = e.getTarget();
-
-            vertexMap.get(source).removeOutgoingEdge(classE, e);
-            vertexMap.get(target).removeIncomingEdge(classE, e);
         }
 
         /**
@@ -913,6 +925,19 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         		SimpleVectorBase vector = (SimpleVectorBase) vertexMap;
         		vector.trimToSize();
         	}
+        }
+        
+        @Override
+        public int hashCode() {
+            // TODO: deriving the hashCode might be a bad idea not only because of some performance impact,
+            // but also because, as of now, instances if AbstractBaseGraph (e.g.: of PDG) *are* used
+            // as keys in HashMaps. This leads to fuck-ups whenever those PDGs are changed.
+            // So we either have to be careful about using, e.g., IdentitiHashMaps in those cases,
+            // or, in the long run, consider using some sort of hashing-by-global-id scheme.
+            if (changed) {
+                hashCode = super.hashCode(); 
+            }
+            return hashCode;
         }
 
 }

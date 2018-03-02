@@ -25,6 +25,8 @@ import edu.kit.joana.util.collections.ArrayMap;
  */
 public class CallGraph extends JoanaGraph {
 
+	private static final long serialVersionUID = -7579987302813908960L;
+
 	public CallGraph() {
 		super(() -> new ArrayMap<>());
 	}

@@ -29,6 +29,8 @@ import edu.kit.joana.util.graph.AbstractBaseGraph.DirectedEdgeContainer;
  */
 public class CFG extends JoanaGraph {
 	
+	private static final long serialVersionUID = -2359630877247373264L;
+
 	/**
 	 * copy constructor - creates a CFG object, which shares all the nodes and edges with the given CFG.
 	 * @param g cfg to copy

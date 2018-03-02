@@ -37,6 +37,8 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.GraphFolder;
  */
 public class FoldedCFG extends CFG implements Folded {
 
+	private static final long serialVersionUID = -6952211981630088823L;
+
     /** Creates a new instance of CallGraph from a given IPDG.
      *
      * @param graph  The IPDG.

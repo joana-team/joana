@@ -62,6 +62,8 @@ import gnu.trove.map.hash.TIntObjectHashMap;
  */
 public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
 
+	private static final long serialVersionUID = 6276368734994930506L;
+	
 	/** The name of the graph. */
 	protected String name;
 	/** Stores the nodes and edges. Managed by the underlying JGraphT library.

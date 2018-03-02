@@ -88,7 +88,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
     private EdgeFactory<V, E> edgeFactory;
     private transient Set<E> unmodifiableEdgeSet = null;
     private transient Set<V> unmodifiableVertexSet = null;
-    private DirectedSpecifics specifics;
+    private Map<V, DirectedEdgeContainer<E,E[]>> vertexMap;
     private final boolean allowingMultipleEdges;
     private final Supplier<Map<V,DirectedEdgeContainer<E,E[]>>> vertexMapConstructor;
     private final Class<E> classE;
@@ -122,17 +122,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         vertexMapConstructor = vertexMapConst;
         classE  = clazzE;
 
-        Map<V, DirectedEdgeContainer<E,E[]>> vertexMap = vertexMapConstructor.get();
-        specifics = new DirectedSpecifics(vertexMap);
-
-    }
-
-    /**
-     * @see Graph#getAllEdges(Object, Object)
-     */
-    @Override public Set<E> getAllEdges(V sourceVertex, V targetVertex)
-    {
-        return specifics.getAllEdges(sourceVertex, targetVertex);
+        vertexMap = vertexMapConstructor.get();
     }
 
     /**
@@ -157,14 +147,6 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
     public boolean isAllowingMultipleEdges()
     {
         return allowingMultipleEdges;
-    }
-
-    /**
-     * @see Graph#getEdge(Object, Object)
-     */
-    @Override public E getEdge(V sourceVertex, V targetVertex)
-    {
-        return specifics.getEdge(sourceVertex, targetVertex);
     }
 
     /**
@@ -199,8 +181,8 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
 
             return null;
         } else {
-            specifics.addEdgeToTouchingVertices(e);
-
+            addEdgeToTouchingVertices(e);
+            
             return e;
         }
     }
@@ -233,7 +215,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             throw new IllegalArgumentException(LOOPS_NOT_ALLOWED);
         }
 
-        specifics.addEdgeToTouchingVertices(e);
+        addEdgeToTouchingVertices(e);
 
         return true;
     }
@@ -261,7 +243,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             throw new IllegalArgumentException(LOOPS_NOT_ALLOWED);
         }
 
-        return specifics.addEdgeToTouchingVerticesUnsafe(e);
+        return addEdgeToTouchingVerticesUnsafe(e);
     }
 
     /**
@@ -274,7 +256,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         } else if (containsVertex(v)) {
             return false;
         } else {
-            specifics.addVertex(v);
+            vertexMap.put(v, new ArraySetDirectedEdgeContainer<V, E>(classE));
 
             return true;
         }
@@ -321,7 +303,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             // NOTE:  it's important for this to happen in an object
             // method so that the new inner class instance gets associated with
             // the right outer class instance
-            newGraph.specifics = new DirectedSpecifics(vertexMapConstructor.get());
+            newGraph.vertexMap = vertexMapConstructor.get();
 
             org.jgrapht.Graphs.addGraph(newGraph, this);
 
@@ -332,16 +314,8 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         }
     }
 
-    /**
-     * @see Graph#containsEdge(Object)
-     */
-    @Override public boolean containsEdge(E e)
-    {
-    	return specifics.containsEdge(e);
-    }
-    
     public boolean containsEdge(V sourceVertex, V targetVertex, Predicate<E> predicate) {
-    	final Set<E> outgoing = specifics.outgoingEdgesOf(sourceVertex);
+    	final Set<E> outgoing = outgoingEdgesOf(sourceVertex);
     	for (E e : outgoing) {
     		if (e.getTarget().equals(targetVertex) && predicate.test(e)) return true;
     	}
@@ -353,15 +327,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
      */
     @Override public boolean containsVertex(V v)
     {
-        return specifics.getVertexSet().contains(v);
-    }
-
-    /**
-     * @see UndirectedGraph#degreeOf(Object)
-     */
-    public int degreeOf(V vertex)
-    {
-        return specifics.degreeOf(vertex);
+        return vertexMap.containsKey(v);
     }
 
     /**
@@ -370,7 +336,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
     @Override public Set<E> edgeSet()
     {
         if (unmodifiableEdgeSet == null) {
-            unmodifiableEdgeSet = new EdgeSetView(specifics.vertexMapDirected);
+            unmodifiableEdgeSet = new EdgeSetView(vertexMap);
         }
 
         return unmodifiableEdgeSet;
@@ -571,70 +537,6 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
     }
 
     /**
-     * @see Graph#edgesOf(Object)
-     */
-    @Override public Set<E> edgesOf(V vertex)
-    {
-        return specifics.edgesOf(vertex);
-    }
-
-    /**
-     * @see DirectedGraph#inDegreeOf(Object)
-     */
-    public int inDegreeOf(V vertex)
-    {
-        return specifics.inDegreeOf(vertex);
-    }
-
-    /**
-     * @see DirectedGraph#incomingEdgesOf(Object)
-     */
-    public Set<E> incomingEdgesOf(V vertex)
-    {
-        return specifics.incomingEdgesOf(vertex);
-    }
-    
-    /**
-     * @see DirectedGraph#incomingEdgesOf(Object)
-     */
-    public E[] incomingEdgesOfUnsafe(V vertex)
-    {
-        return specifics.incomingEdgesOfUnsafe(vertex);
-    }
-    
-    public void removeIncomingEdgesOf(V vertex) {
-    	specifics.removeIncomingEdgesOf(vertex);
-    }
-    
-    public void removeOutgoingEdgesOf(V vertex) {
-    	specifics.removeOutgoingEdgesOf(vertex);
-    }
-
-    /**
-     * @see DirectedGraph#outDegreeOf(Object)
-     */
-    public int outDegreeOf(V vertex)
-    {
-        return specifics.outDegreeOf(vertex);
-    }
-
-    /**
-     * @see DirectedGraph#outgoingEdgesOf(Object)
-     */
-    public Set<E> outgoingEdgesOf(V vertex)
-    {
-        return specifics.outgoingEdgesOf(vertex);
-    }
-    
-    /**
-     * @see DirectedGraph#outgoingEdgesOf(Object)
-     */
-    public E[] outgoingEdgesOfUnsafe(V vertex)
-    {
-        return specifics.outgoingEdgesOfUnsafe(vertex);
-    }
-
-    /**
      * @see Graph#removeEdge(Object, Object)
      */
     @Override public E removeEdge(V sourceVertex, V targetVertex)
@@ -642,7 +544,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         E e = getEdge(sourceVertex, targetVertex);
 
         if (e != null) {
-            specifics.removeEdgeFromTouchingVertices(e);
+            removeEdgeFromTouchingVertices(e);
         }
 
         return e;
@@ -654,19 +556,19 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
     @Override public boolean removeEdge(E e)
     {
         if (containsEdge(e)) {
-            specifics.removeEdgeFromTouchingVertices(e);
+            removeEdgeFromTouchingVertices(e);
             return true;
         } else {
             return false;
         }
     }
-    
+
     /**
      * @see Graph#removeEdge(Object)
      */
     public boolean removeEdgeUnsafe(E e)
     {
-        return specifics.removeEdgeFromTouchingVertices(e);
+        return removeEdgeFromTouchingVertices(e);
     }
 
     /**
@@ -681,7 +583,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             // ConcurrentModificationException
             removeAllEdges(new ArrayList<E>(touchingEdgesList));
 
-            specifics.getVertexSet().remove(v); // remove the vertex itself
+            vertexMap.remove(v); // remove the vertex itself
 
             return true;
         } else {
@@ -696,16 +598,12 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
     {
         if (unmodifiableVertexSet == null) {
             unmodifiableVertexSet =
-                Collections.unmodifiableSet(specifics.getVertexSet());
+                Collections.unmodifiableSet(vertexMap.keySet());
         }
 
         return unmodifiableVertexSet;
     }
     
-    public void trimToSize() {
-    	specifics.trimToSize();
-    	
-    }
 
     /**
      * @see Graph#getEdgeWeight(Object)
@@ -869,34 +767,8 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
     }
     
 
-    /**
-     * .
-     *
-     * @author Barak Naveh
-     */
-    protected class DirectedSpecifics
-        implements Serializable
-    {
-        private static final long serialVersionUID = 8971725103718958232L;
         private static final String NOT_IN_DIRECTED_GRAPH =
             "no such operation in a directed graph";
-
-        protected Map<V, DirectedEdgeContainer<E,E[]>> vertexMapDirected;
-        
-        public DirectedSpecifics(Map<V, DirectedEdgeContainer<E,E[]>> vertexMap)
-        {
-            this.vertexMapDirected = vertexMap;
-        }
-
-        public void addVertex(V v)
-        {
-            vertexMapDirected.put(v, new ArraySetDirectedEdgeContainer<V, E>(classE));
-        }
-
-        public Set<V> getVertexSet()
-        {
-            return vertexMapDirected.keySet();
-        }
 
         /**
          * @see Graph#getAllEdges(Object, Object)
@@ -1102,7 +974,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         {
             assertVertexExist(vertex);
 
-            return vertexMapDirected.compute(vertex, (v, ec) -> {
+            return vertexMap.compute(vertex, (v, ec) -> {
 
             if (ec == null) {
                 ec = new ArraySetDirectedEdgeContainer<V, E>(classE);
@@ -1123,18 +995,17 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         {
             assert assertVertexExist(vertex);
             
-            return vertexMapDirected.get(vertex);
+            return vertexMap.get(vertex);
         }
         
         public void trimToSize() {
         	// TODO: this is a hack, obviously
-        	if (vertexMapDirected instanceof SimpleVectorBase) {
+        	if (vertexMap instanceof SimpleVectorBase) {
         		@SuppressWarnings("rawtypes")
-        		SimpleVectorBase vector = (SimpleVectorBase) vertexMapDirected;
+        		SimpleVectorBase vector = (SimpleVectorBase) vertexMap;
         		vector.trimToSize();
         	}
         }
-    }
 
 }
 

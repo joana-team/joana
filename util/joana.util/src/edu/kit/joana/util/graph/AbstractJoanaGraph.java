@@ -278,22 +278,6 @@ public class AbstractJoanaGraph<V extends IntegerIdentifiable, E extends KnowsVe
 		return delegate.incomingEdgesOfUnsafe(arg0);
 	}
 
-	/**
-	 * @return
-	 * @see org.jgrapht.graph.AbstractBaseGraph#isAllowingLoops()
-	 */
-	public boolean isAllowingLoops() {
-		return delegate.isAllowingLoops();
-	}
-
-	/**
-	 * @return
-	 * @see org.jgrapht.graph.AbstractBaseGraph#isAllowingMultipleEdges()
-	 */
-	public boolean isAllowingMultipleEdges() {
-		return delegate.isAllowingMultipleEdges();
-	}
-
 	@Override
 	public void removeIncomingEdgesOf(V vertex) {
 		delegate.removeIncomingEdgesOf(vertex);

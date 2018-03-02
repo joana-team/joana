@@ -81,15 +81,10 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
 {
     private static final long serialVersionUID = -1263088497616142427L;
 
-    private static final String LOOPS_NOT_ALLOWED = "loops not allowed";
-
-    private final boolean allowingLoops;
-
     private EdgeFactory<V, E> edgeFactory;
     private transient Set<E> unmodifiableEdgeSet = null;
     private transient Set<V> unmodifiableVertexSet = null;
     private Map<V, DirectedEdgeContainer<E,E[]>> vertexMap;
-    private final boolean allowingMultipleEdges;
     private final Supplier<Map<V,DirectedEdgeContainer<E,E[]>>> vertexMapConstructor;
     private final Class<E> classE;
 
@@ -117,36 +112,10 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         }
 
         edgeFactory = ef;
-        allowingLoops = allowLoops;
-        allowingMultipleEdges = allowMultipleEdges;
         vertexMapConstructor = vertexMapConst;
         classE  = clazzE;
 
         vertexMap = vertexMapConstructor.get();
-    }
-
-    /**
-     * Returns <code>true</code> if and only if self-loops are allowed in this
-     * graph. A self loop is an edge that its source and target vertices are the
-     * same.
-     *
-     * @return <code>true</code> if and only if graph loops are allowed.
-     */
-    public boolean isAllowingLoops()
-    {
-        return allowingLoops;
-    }
-
-    /**
-     * Returns <code>true</code> if and only if multiple edges are allowed in
-     * this graph. The meaning of multiple edges is that there can be many edges
-     * going from vertex v1 to vertex v2.
-     *
-     * @return <code>true</code> if and only if multiple edges are allowed.
-     */
-    public boolean isAllowingMultipleEdges()
-    {
-        return allowingMultipleEdges;
     }
 
     /**
@@ -164,16 +133,6 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
     {
         assertVertexExist(sourceVertex);
         assertVertexExist(targetVertex);
-
-        if (!allowingMultipleEdges
-            && containsEdge(sourceVertex, targetVertex))
-        {
-            return null;
-        }
-
-        if (!allowingLoops && sourceVertex.equals(targetVertex)) {
-            throw new IllegalArgumentException(LOOPS_NOT_ALLOWED);
-        }
 
         E e = edgeFactory.createEdge(sourceVertex, targetVertex);
 
@@ -205,16 +164,6 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         assertVertexExist(sourceVertex);
         assertVertexExist(targetVertex);
 
-        if (!allowingMultipleEdges
-            && containsEdge(sourceVertex, targetVertex))
-        {
-            return false;
-        }
-
-        if (!allowingLoops && sourceVertex.equals(targetVertex)) {
-            throw new IllegalArgumentException(LOOPS_NOT_ALLOWED);
-        }
-
         addEdgeToTouchingVertices(e);
 
         return true;
@@ -226,24 +175,23 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
      */
     public boolean addEdgeUnsafe(V sourceVertex, V targetVertex, E e)
     {
-        if (e == null) {
-            throw new NullPointerException();
-        }
+    	assert e != null;
 
         assert assertVertexExist(sourceVertex);
         assert assertVertexExist(targetVertex);
 
-        if (!allowingMultipleEdges
-            && containsEdge(sourceVertex, targetVertex))
-        {
-            return false;
-        }
+        final V target = e.getTarget();
 
-        if (!allowingLoops && sourceVertex.equals(targetVertex)) {
-            throw new IllegalArgumentException(LOOPS_NOT_ALLOWED);
+        final boolean addedInTarget = vertexMap.get(target).addIncomingEdge(classE, e);
+        if (addedInTarget) {
+            final V source = e.getSource();
+            final boolean addedInSource = vertexMap.get(source).addOutgoingEdge(classE, e);
+            assert addedInSource;
+        } else {
+            assert !vertexMap.get(e.getSource()).addOutgoingEdge(classE, e);
         }
-
-        return addEdgeToTouchingVerticesUnsafe(e);
+        
+        return addedInTarget;
     }
 
     /**
@@ -817,22 +765,6 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
 
             getEdgeContainer(source).addOutgoingEdge(classE, e);
             getEdgeContainer(target).addIncomingEdge(classE, e);
-        }
-        
-        public boolean addEdgeToTouchingVerticesUnsafe(E e)
-        {
-            V source = e.getSource();
-            V target = e.getTarget();
-
-            final boolean addedInTarget = vertexMap.get(target).addIncomingEdge(classE, e);
-            if (addedInTarget) {
-                final boolean addedInSource = vertexMap.get(source).addOutgoingEdge(classE, e);
-                assert addedInSource;
-            } else {
-                assert !vertexMap.get(source).addOutgoingEdge(classE, e);
-            }
-            
-            return addedInTarget;
         }
 
         /**

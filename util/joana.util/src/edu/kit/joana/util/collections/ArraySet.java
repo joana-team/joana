@@ -39,7 +39,7 @@ import java.util.function.Predicate;
  */
 public class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 	
-	private static final Comparator<Object> COMPARATOR = new Comparator<Object>() {
+	public static final Comparator<Object> COMPARATOR = new Comparator<Object>() {
 		@Override
 		public int compare(Object e1, Object e2) {
 			return Integer.compare(e1.hashCode(), e2.hashCode());
@@ -74,18 +74,26 @@ public class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 	}
 	
 	protected boolean invariant() {
-		if (elements == null) return false;
+		if (elements == null) {
+			return false;
+		}
 		int lastHashCode = Integer.MIN_VALUE;
 		for (int i = 0; i < elements.length; i++) {
 			final Object element = elements[i];
-			if (element == null) return false;
+			if (element == null) {
+				return false;
+			}
 			
 			final int hashcode = elements[i].hashCode();
-			if (hashcode < lastHashCode) return false;
+			if (hashcode < lastHashCode) {
+				return false;
+			}
 			
 			// no duplicates
 			for (int j = i - 1; j >= 0 && elements[j].hashCode() == hashcode; j--) {
-				if (element.equals(elements[j])) return false;
+				if (element.equals(elements[j])) {
+					return false;
+				}
 			}
 		}
 		return true;

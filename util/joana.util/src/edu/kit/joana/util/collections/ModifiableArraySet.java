@@ -76,8 +76,73 @@ public final class ModifiableArraySet<E> extends ArraySet<E> {
 
 	@Override
 	public final boolean addAll(Collection<? extends E> c) {
-		// TODO this is correct, but very slow. Needs to be optimized. 
-		return super.addAll(c);
+		if (c.isEmpty()) return false;
+		
+		if (c instanceof ArraySet<?>) {
+			final Object[] otherElements = ((ArraySet<?>)c).elements;
+			
+			assert otherElements.length > 0;
+			
+			@SuppressWarnings("unchecked")
+			final E[] temp = (E[]) Array.newInstance(clazz, elements.length + otherElements.length);
+			
+			int i = 0;
+			int j = 0;
+			
+			int nextIndex = 0;
+			
+			boolean changed = false;
+			
+			while (j < otherElements.length) {
+				@SuppressWarnings("unchecked")
+				final E other = (E) otherElements[j];
+				final int otherHashCode = other.hashCode();
+				
+				int i0 = i;
+				while (i < elements.length && elements[i].hashCode() < otherHashCode) { i++; }
+				final int strideLength = i - i0;
+				System.arraycopy(elements, i0, temp, nextIndex, strideLength);
+				nextIndex += strideLength;
+				
+				boolean found = false;
+				int ii = i;
+				while (ii < elements.length && elements[ii].hashCode() == otherHashCode) {
+					if (other.equals(elements[ii])) {
+						found = true;
+						break;
+					}
+					ii++;
+				}
+				
+				if (!found) {
+					changed = true;
+					temp[nextIndex++] = other;
+				}
+				
+				j++;
+			}
+			final int remaining = elements.length - i;
+			System.arraycopy(elements, i, temp, nextIndex, remaining);
+			
+			final int total = nextIndex + remaining;
+			
+			assert total <= temp.length;
+			if (total == temp.length) {
+				this.elements = temp;
+			} else {
+				@SuppressWarnings("unchecked")
+				E[] elements = (E[]) Array.newInstance(clazz, total);
+				System.arraycopy(temp, 0, elements, 0, total);
+				this.elements = elements; 
+
+			}
+			
+			assert invariant();
+			return changed;
+		} else {
+			return super.addAll(c);
+		}
+		
 	}
 	
 	@Override

@@ -7,6 +7,7 @@
  */
 package edu.kit.joana.wala.summary;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -32,6 +33,7 @@ import edu.kit.joana.ifc.sdg.graph.LabeledSDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.util.collections.ArraySet;
 import edu.kit.joana.util.collections.IntIntSimpleVector;
 import edu.kit.joana.util.collections.Intrusable;
 import edu.kit.joana.util.collections.IntrusiveList;
@@ -263,12 +265,29 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
 		}
 	}
 	
+	private static class ActualOutInformation {
+		final AoPathsNodesBitvector aoPaths;
+		final IncomingSummaryEdgesFromBitVector incomingSummaryEdgesFrom;
+		
+		public ActualOutInformation(AoPathsNodesBitvector aoPaths, IncomingSummaryEdgesFromBitVector incomingSummaryEdgesFrom) {
+			this.aoPaths = aoPaths;
+			this.incomingSummaryEdgesFrom = incomingSummaryEdgesFrom;
+		}
+	}
 	@SuppressWarnings("serial")
 	private static class AoPathsNodesBitvector extends BitVector {
 		AoPathsNodesBitvector(int nbits) {
 			super(nbits);
 		}
 	}
+	
+	@SuppressWarnings("serial")
+	private static class IncomingSummaryEdgesFromBitVector extends BitVector {
+		IncomingSummaryEdgesFromBitVector(int nbits) {
+			super(nbits);
+		}
+	}
+
 	
 	
 	private DirectedGraph<Integer, DefaultEdge> extractCallGraph(G graph) {
@@ -345,8 +364,11 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             }
             
             if (n.getKind() == SDGNode.Kind.ACTUAL_OUT) {
-                assert n.customData == null || (!(n.customData instanceof RememberReachedBitVector));
-                n.customData = new AoPathsNodesBitvector(proc2nodes.get(n.getProc()).size());
+                assert n.customData == null || (!(n.customData instanceof ActualOutInformation));
+                n.customData = new ActualOutInformation(
+                		new AoPathsNodesBitvector(proc2nodes.get(n.getProc()).size()),
+                		new IncomingSummaryEdgesFromBitVector(proc2nodes.get(n.getProc()).size())
+                );
             }
         }
         
@@ -364,6 +386,9 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             }
             final IntrusiveList<Edge> worklist = worklists.get(procedure);
             current = worklist;
+
+            final SDGNode[] procLocal2Node = procLocalNodeId2Node.get(procedure);
+
             while (!worklist.isEmpty()) {
             	MonitorUtil.throwExceptionIfCanceled(progress);
 
@@ -385,6 +410,15 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             					propagate(worklist, e.getSource(), next.target);
             				}
             			}
+            			final ActualOutInformation aoInformation = (ActualOutInformation) next.source.customData;
+            			final IncomingSummaryEdgesFromBitVector incomingSummaryEdgesFrom = aoInformation.incomingSummaryEdgesFrom;
+            			
+            			int procLocalId = - 1;
+            			while ((procLocalId = incomingSummaryEdgesFrom.nextSetBit(procLocalId + 1)) != -1) {
+            				SDGNode summarySource = procLocal2Node[procLocalId];
+            				propagate(worklist, summarySource, next.target);
+            			}
+
             		}
             		break;
 
@@ -407,35 +441,32 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
 
             			final SDGNode source = e.source;
             			final SDGNode target = e.target;
-            			SDGEdge sum;
-            			if (annotate != null && !annotate.isEmpty()) {
-            				sum =  new LabeledSDGEdge(source, target, sumEdgeKind, annotate);
-            			} else {
-            				sum = sumEdgeKind.newEdge(source, target);
-            			}
             			
             			boolean connectedInPDG = false;
             			if (assertionsEnabled) {
             				connectedInPDG = graph.containsEdge(source, target, eOut -> eOut.getKind().isSDGEdge());
             			}
-            			
-            			if (graph.addEdgeUnsafe(source, target, sum)) {
+
+
+            			final int procLocalIdOfSource = nodeId2ProcLocalNodeId.getInt(source.getId());
+            			final ActualOutInformation aoInformation = (ActualOutInformation) target.customData;
+
+            			if (aoInformation.incomingSummaryEdgesFrom.setWithResult((procLocalIdOfSource))) {
             				assert !connectedInPDG;
-            				final AoPathsNodesBitvector aoPaths = (AoPathsNodesBitvector) target.customData;
+            				final AoPathsNodesBitvector aoPaths = aoInformation.aoPaths;
+            				
             				if (!aoPaths.isZero()) {
             					final int caller = source.getProc();
             					procedureWorkSet.add(caller);
             					final IntrusiveList<Edge> workListInCaller = worklists.get(caller);
-            		            final SDGNode[] procLocal2Node = procLocalNodeId2Node.get(caller);
+            		            final SDGNode[] callerLocal2Node = procLocalNodeId2Node.get(caller);
             					
             					int procLocalId = - 1; 
             					while ((procLocalId = aoPaths.nextSetBit(procLocalId + 1)) != -1) {
-            						SDGNode aoPathTarget = procLocal2Node[procLocalId];
+            						SDGNode aoPathTarget = callerLocal2Node[procLocalId];
             						propagate(workListInCaller, source, aoPathTarget);
             					}
             				}
-            			} else {
-            				assert connectedInPDG;
             			}
             		}
             		for (SDGEdge e : graph.incomingEdgesOfUnsafe(next.source)) {
@@ -469,6 +500,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             				propagate(worklist, e.getSource(), next.target);
             			}
             		}
+
 
             		break;
 
@@ -522,7 +554,8 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             // clear HashSet<SDGNode> at each node whenever we leave a scc
             if (leftScc) {
                 for (Integer inSameScc : procSccs.get(indexNumberOf.getInt(procedure))) {
-                	for (SDGNode n : procLocalNodeId2Node.get(inSameScc)) {
+                	final SDGNode[] inSameSccLocal2Node = procLocalNodeId2Node.get(inSameScc);
+                	for (SDGNode n : inSameSccLocal2Node) {
                 		if (n.getKind() == SDGNode.Kind.FORMAL_OUT || n.getKind() == SDGNode.Kind.EXIT) {
                 			if (relevantProcs != null && !relevantProcs.contains(n.getProc())) {
                 				continue;
@@ -537,7 +570,35 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
                 		}
 
                 		if (n.getKind() == SDGNode.Kind.ACTUAL_OUT) {
-                			assert n.customData instanceof AoPathsNodesBitvector;
+                			final ActualOutInformation aoInformation = (ActualOutInformation) n.customData;
+                			final IncomingSummaryEdgesFromBitVector incomingSummaryEdgesFrom = aoInformation.incomingSummaryEdgesFrom;
+                			
+                			final int nrOfSummaryEdges = incomingSummaryEdgesFrom.populationCount();
+                			final SDGEdge[] summaryEdges = new SDGEdge[nrOfSummaryEdges];
+                			
+                			int i = 0;
+                			int procLocalId = - 1;
+                			while ((procLocalId = incomingSummaryEdgesFrom.nextSetBit(procLocalId + 1)) != -1) {
+                				
+                				final SDGNode source = inSameSccLocal2Node[procLocalId];
+
+                				final SDGEdge sum;
+                				if (annotate != null && !annotate.isEmpty()) {
+                					sum =  new LabeledSDGEdge(source, n, sumEdgeKind, annotate);
+                				} else {
+                					sum = sumEdgeKind.newEdge(source, n);
+                				}
+
+                				summaryEdges[i] = sum;
+                				i++;
+                			}
+
+                			Arrays.sort(summaryEdges, ArraySet.COMPARATOR);
+
+                			final ArraySet<SDGEdge> summaryEdgesSet = ArraySet.own(summaryEdges);
+
+                			graph.addIncomingEdgesAt(n, summaryEdgesSet);
+
                 			n.customData = null;
                 		}
                 	}
@@ -587,8 +648,8 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             worklist.add(e);
             assert procedureWorkSet.contains(source.getProc()) || worklist == current;
             if (source.getKind() == SDGNode.Kind.ACTUAL_OUT) {
-            	assert source.customData == null || source.customData instanceof AoPathsNodesBitvector;
-            	final AoPathsNodesBitvector aoPaths = (AoPathsNodesBitvector) source.customData;
+            	final ActualOutInformation aoInformation = (ActualOutInformation) source.customData;
+            	final AoPathsNodesBitvector aoPaths = aoInformation.aoPaths;
             	final int procLocalTargetId = nodeId2ProcLocalNodeId.getInt(target.getId());
 
             	aoPaths.set(procLocalTargetId);

@@ -202,6 +202,16 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         
         return addedInTarget;
     }
+    
+    @Override
+    public void addIncomingEdgesAt(V targetVertex, Set<E> edges) {
+    	assert assertVertexExist(targetVertex);
+    	
+    	vertexMap.get(targetVertex).addIncomingEdges(classE, edges);
+    	for (E e : edges) {
+    		vertexMap.get(e.getSource()).addOutgoingEdge(classE, e);
+    	}
+    }
 
     /**
      * @see Graph#addVertex(Object)
@@ -584,6 +594,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         Set<EE> getUnmodifiableIncomingEdges();
         Set<EE> getUnmodifiableOutgoingEdges();
         boolean addIncomingEdge(Class<EE> clazz, EE e);
+        void    addIncomingEdges(Class<EE> clazz, Set<EE> edges);
         boolean addOutgoingEdge(Class<EE> clazz, EE e);
         boolean removeIncomingEdge(Class<EE> clazz, EE e);
         boolean removeOutgoingEdge(Class<EE> clazz, EE e);
@@ -671,6 +682,14 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             
             return added;
         }
+
+		@Override
+		public void addIncomingEdges(Class<EE> clazz, Set<EE> edges) {
+			assert outgoing != null;
+			final ModifiableArraySet<EE> set = ModifiableArraySet.own(outgoing, clazz);
+			set.addAll(edges);
+			outgoing = set.disown();
+		}
 
         /**
          * .

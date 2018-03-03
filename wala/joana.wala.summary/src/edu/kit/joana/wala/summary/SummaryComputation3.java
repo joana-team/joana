@@ -435,12 +435,14 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             			formInOutSummaryEdge.add(fInOut);
             		}
 
-            		Collection<Edge> aiaoPairs = aiaoPairs(next);
-            		for (Edge e : aiaoPairs) {
-            			if (e.source == null || e.target == null) continue;
+            		final Collection<AcutalInActualOutPair> aiaoPairs = aiaoPairs(next);
+            		for (AcutalInActualOutPair e : aiaoPairs) {
 
-            			final SDGNode source = e.source;
-            			final SDGNode target = e.target;
+            			final SDGNode source = e.getActualIn();
+            			final SDGNode target = e.getActualOut();
+            			
+            			assert source != null;
+            			if (target == null) continue;
             			
             			boolean connectedInPDG = false;
             			if (assertionsEnabled) {
@@ -677,8 +679,8 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
 
 
 
-    private Collection<Edge> aiaoPairs(Edge e) {
-        HashMap<SDGNode, Edge> result = new HashMap<SDGNode, Edge>();
+    private Collection<AcutalInActualOutPair> aiaoPairs(Edge e) {
+        HashMap<SDGNode, AcutalInActualOutPair> result = new HashMap<>();
 
         for (SDGEdge pi : graph.incomingEdgesOfUnsafe(e.source)) {
             if (pi.getKind() == SDGEdge.Kind.PARAMETER_IN) {
@@ -692,7 +694,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
                 SDGNode call = getCallSiteFor(ai);
 
                 if(call != null) {
-                    result.put(call, new Edge(ai, null));
+                    result.put(call, new AcutalInActualOutPair(ai));
                 }
             }
         }
@@ -707,11 +709,9 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
 
                 SDGNode call = getCallSiteFor(ao);
 
-                Edge newE = result.get(call);
+                final AcutalInActualOutPair newE = result.get(call);
                 if (newE != null) {
-                	
-                    newE.target = ao;
-                    assert newE.target.getProc() == newE.source.getProc();
+                	newE.setActualOut(ao);
                 }
             }
         }
@@ -772,7 +772,6 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
         return null;
     }
 
-
     private static class Edge implements Intrusable<Edge> {
         private SDGNode source;
         private SDGNode target;
@@ -780,8 +779,8 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
         private Edge next;
 
         private Edge(SDGNode s, SDGNode t) {
-        	assert t == null || t.getKind() == SDGNode.Kind.FORMAL_OUT || t.getKind() == SDGNode.Kind.EXIT;
-        	assert t == null || s.getProc() == t.getProc();
+        	assert t.getKind() == SDGNode.Kind.FORMAL_OUT || t.getKind() == SDGNode.Kind.EXIT;
+        	assert s.getProc() == t.getProc();
             source = s;
             target = t;
         }
@@ -821,7 +820,30 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             return source.getId()+" -> "+target.getId();
         }
     }
+}
 
+class AcutalInActualOutPair {
+	private final SDGNode actualIn;
+	private SDGNode actualOut;
+
+	AcutalInActualOutPair(SDGNode ai) {
+		assert ai.getKind() == SDGNode.Kind.ACTUAL_IN;
+		actualIn = ai;
+	}
+
+	final void setActualOut(SDGNode ao) {
+		assert ao.getKind() == SDGNode.Kind.ACTUAL_OUT;
+		assert ao.getProc() == actualIn.getProc();
+		actualOut = ao;
+	}
+
+	public SDGNode getActualIn() {
+		return actualIn;
+	}
+
+	public SDGNode getActualOut() {
+		return actualOut;
+	}
 }
 
 class SummaryComputer3 implements ISummaryComputer {

@@ -289,13 +289,6 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
 		}
 	}
 
-	@SuppressWarnings("serial")
-	private static class OutgoingSummaryEdgesIntoBitVector extends BitVector {
-		OutgoingSummaryEdgesIntoBitVector(int nbits) {
-			super(nbits);
-		}
-	}
-	
 	private static class ActualInInformation {
 		private final SDGEdge[] summaryEdges;
 		int next;
@@ -390,8 +383,8 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             }
             
             if (n.getKind() == SDGNode.Kind.ACTUAL_IN) {
-                assert n.customData == null || (!(n.customData instanceof OutgoingSummaryEdgesIntoBitVector));
-                n.customData = new OutgoingSummaryEdgesIntoBitVector(proc2nodes.get(n.getProc()).size());
+                assert n.customData == null || (!(n.customData instanceof Integer));
+                n.customData = 0;
             }
         }
         
@@ -479,11 +472,8 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             			if (aoInformation.incomingSummaryEdgesFrom.setWithResult((procLocalIdOfSource))) {
             				assert !connectedInPDG;
             				
-            				final OutgoingSummaryEdgesIntoBitVector outgoingSummaryEdgesInto = (OutgoingSummaryEdgesIntoBitVector) source.customData;
-            				final int procLocalIdOfTarget = nodeId2ProcLocalNodeId.getInt(target.getId());
-            				
-            				final boolean addedInSource = outgoingSummaryEdgesInto.setWithResult(procLocalIdOfTarget);
-            				assert addedInSource;
+            				final Integer nrOfoutgoingSummaryEdgesInto = (Integer) source.customData;
+            				source.customData = nrOfoutgoingSummaryEdgesInto + 1;
             				
             				final AoPathsNodesBitvector aoPaths = aoInformation.aoPaths;
             				
@@ -589,8 +579,8 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
                 	final SDGNode[] inSameSccLocal2Node = procLocalNodeId2Node.get(inSameScc);
                 	for (SDGNode n : inSameSccLocal2Node) {
                 		if (n.getKind() == SDGNode.Kind.ACTUAL_IN) {
-                			final OutgoingSummaryEdgesIntoBitVector outgoingSummaryEdgesInto = (OutgoingSummaryEdgesIntoBitVector) n.customData;
-                			n.customData = new ActualInInformation(new SDGEdge[outgoingSummaryEdgesInto.populationCount()]);
+                			final Integer nrOfoutgoingSummaryEdges = (Integer) n.customData;
+                			n.customData = new ActualInInformation(new SDGEdge[nrOfoutgoingSummaryEdges]);
                 			// will be filled in the upcoming loop by the corresponding ACTUAL_OUTs
                 		}
                 	}

@@ -586,15 +586,15 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
         	assert pathEdge.add(e);
             worklist.add(e);
             assert procedureWorkSet.contains(source.getProc()) || worklist == current;
+            if (source.getKind() == SDGNode.Kind.ACTUAL_OUT) {
+            	assert source.customData == null || source.customData instanceof AoPathsNodesBitvector;
+            	final AoPathsNodesBitvector aoPaths = (AoPathsNodesBitvector) source.customData;
+            	final int procLocalTargetId = nodeId2ProcLocalNodeId.getInt(target.getId());
+
+            	aoPaths.set(procLocalTargetId);
+            }
         } else {
         	assert pathEdge.contains(new Edge(source, target));
-        }
-        if (source.getKind() == SDGNode.Kind.ACTUAL_OUT) {
-        	assert source.customData == null || source.customData instanceof AoPathsNodesBitvector;
-        	final AoPathsNodesBitvector aoPaths = (AoPathsNodesBitvector) source.customData;
-        	final int procLocalTargetId = nodeId2ProcLocalNodeId.getInt(target.getId());
-
-        	aoPaths.set(procLocalTargetId);
         }
     }
     

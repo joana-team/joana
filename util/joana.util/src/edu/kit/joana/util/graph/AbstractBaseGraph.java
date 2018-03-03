@@ -204,13 +204,17 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
     }
     
     @Override
-    public void addIncomingEdgesAt(V targetVertex, Set<E> edges) {
+    public void addIncomingEdgesAtUNSAFE(V targetVertex, Set<E> edges) {
     	assert assertVertexExist(targetVertex);
     	
     	vertexMap.get(targetVertex).addIncomingEdges(classE, edges);
-    	for (E e : edges) {
-    		vertexMap.get(e.getSource()).addOutgoingEdge(classE, e);
-    	}
+    }
+
+    @Override
+    public void addOutgoingEdgesAtUNSAFE(V sourceVertex, Set<E> edges) {
+    	assert assertVertexExist(sourceVertex);
+    	
+    	vertexMap.get(sourceVertex).addOutgoingEdges(classE, edges);
     }
 
     /**
@@ -595,6 +599,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         Set<EE> getUnmodifiableOutgoingEdges();
         boolean addIncomingEdge(Class<EE> clazz, EE e);
         void    addIncomingEdges(Class<EE> clazz, Set<EE> edges);
+        void    addOutgoingEdges(Class<EE> clazz, Set<EE> edges);
         boolean addOutgoingEdge(Class<EE> clazz, EE e);
         boolean removeIncomingEdge(Class<EE> clazz, EE e);
         boolean removeOutgoingEdge(Class<EE> clazz, EE e);
@@ -685,6 +690,14 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
 
 		@Override
 		public void addIncomingEdges(Class<EE> clazz, Set<EE> edges) {
+			assert incoming != null;
+			final ModifiableArraySet<EE> set = ModifiableArraySet.own(incoming, clazz);
+			set.addAll(edges);
+			incoming = set.disown();
+		}
+		
+		@Override
+		public void addOutgoingEdges(Class<EE> clazz, Set<EE> edges) {
 			assert outgoing != null;
 			final ModifiableArraySet<EE> set = ModifiableArraySet.own(outgoing, clazz);
 			set.addAll(edges);

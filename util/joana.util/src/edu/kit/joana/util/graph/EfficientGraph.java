@@ -16,7 +16,30 @@ import org.jgrapht.Graph;
  *  @author Martin Hecker <martin.hecker@kit.edu>
  */
 public interface EfficientGraph<V, E> extends Graph<V, E> {
-	void addIncomingEdgesAt(V targetVertex, Set<E> edges);
+	/**
+	 * Adds edges to targetVertex. All edges must have target targetVertex.
+	 * 
+	 * THIS WILL NOT REGISTER THESE EDGES AT THEIR CORRESPONDING SOURCE VERTICES.
+	 * 
+	 * CALLS TO THIS METHOD MUST BE ACCOMPANIED BY CORRESPDONDING CALLS TO {@link EfficientGraph#addIncomingEdgesAtUNSAFE(Object, Set)}
+	 * 
+	 * @param targetVertex
+	 * @param edges
+	 */
+	void addOutgoingEdgesAtUNSAFE(V sourceVertex, Set<E> edges);
+	
+	/**
+	 * Adds edges to sourceVertex. All edges must have source sourceVertex.
+	 * 
+	 * THIS WILL NOT REGISTER THESE EDGES AT THEIR CORRESPONDING TARGET VERTICES.
+	 * 
+	 * CALLS TO THIS METHOD MUST BE ACCOMPANIED BY CORRESPDONDING CALLS TO {@link EfficientGraph#addOutgoingEdgesAtUNSAFE(Object, Set)}
+	 * 
+	 * @param sourceVertex
+	 * @param edges
+	 */
+	void addIncomingEdgesAtUNSAFE(V targetVertex, Set<E> edges);
+	
 	boolean addEdgeUnsafe(V sourceVertex, V targetVertex, E e);
 	boolean containsEdge(V sourceVertex, V targetVertex, Predicate<E> predicate);
 	E[] outgoingEdgesOfUnsafe(V vertex);

@@ -405,31 +405,33 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             		for (Edge e : aiaoPairs) {
             			if (e.source == null || e.target == null) continue;
 
+            			final SDGNode source = e.source;
+            			final SDGNode target = e.target;
             			SDGEdge sum;
             			if (annotate != null && !annotate.isEmpty()) {
-            				sum =  new LabeledSDGEdge(e.source, e.target, sumEdgeKind, annotate);
+            				sum =  new LabeledSDGEdge(source, target, sumEdgeKind, annotate);
             			} else {
-            				sum = sumEdgeKind.newEdge(e.source, e.target);
+            				sum = sumEdgeKind.newEdge(source, target);
             			}
             			
             			boolean connectedInPDG = false;
             			if (assertionsEnabled) {
-            				connectedInPDG = graph.containsEdge(e.source, e.target, eOut -> eOut.getKind().isSDGEdge());
+            				connectedInPDG = graph.containsEdge(source, target, eOut -> eOut.getKind().isSDGEdge());
             			}
             			
-            			if (graph.addEdgeUnsafe(e.source, e.target, sum)) {
+            			if (graph.addEdgeUnsafe(source, target, sum)) {
             				assert !connectedInPDG;
-            				final AoPathsNodesBitvector aoPaths = (AoPathsNodesBitvector) e.target.customData;
+            				final AoPathsNodesBitvector aoPaths = (AoPathsNodesBitvector) target.customData;
             				if (!aoPaths.isZero()) {
-            					final int caller = sum.getSource().getProc();
+            					final int caller = source.getProc();
             					procedureWorkSet.add(caller);
             					final IntrusiveList<Edge> workListInCaller = worklists.get(caller);
             		            final SDGNode[] procLocal2Node = procLocalNodeId2Node.get(caller);
             					
             					int procLocalId = - 1; 
             					while ((procLocalId = aoPaths.nextSetBit(procLocalId + 1)) != -1) {
-            						SDGNode target = procLocal2Node[procLocalId];
-            						propagate(workListInCaller, sum.getSource(), target);
+            						SDGNode aoPathTarget = procLocal2Node[procLocalId];
+            						propagate(workListInCaller, source, aoPathTarget);
             					}
             				}
             			} else {

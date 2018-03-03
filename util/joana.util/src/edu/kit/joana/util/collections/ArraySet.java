@@ -116,47 +116,115 @@ public class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 		while (low <= high) {
 			int mid = (low + high) >>> 1;
 			assert low <= mid && mid <= high;
-			while (mid >= 0 && elements[mid] == null) mid--;
+			Object midCandidate = null;
+			{
+				while (mid >= 0 && (midCandidate = elements[mid]) == null) mid--;
+			}
 			final int insertionPoint = mid + 1;
 			
 			if (mid < low) return -insertionPoint - 1; // key not found.
 			assert low <= mid && mid <= high;
 			
-			final Object midElement = elements[mid];
+			final Object midElement = midCandidate;
 			assert midElement != null;
 			
-			int midVal = midElement.hashCode();
+			final int midVal = midElement.hashCode();
 			
-			if (midVal < key)
+			if (midVal < key) {
 				low = mid + 1;
-			else if (midVal > key)
+			} else if (midVal > key) {
 				high = mid - 1;
-			else {
+			} else {
 				if (element.equals(midElement)) return mid; // lucky shot
 				
 				// among all elements s.t. key == elements[i].hashCode(),
 				// we have to find the one for which element.equals(elements[i]).
 				boolean found = false;
 				int i;
+				Object elementAtI;
 				
 				// lets look right
 				i = mid + 1;
-				while(i <= high
-				 &&  (elements[i] == null || elements[i].hashCode() == key)
-				 && !(found = element.equals(elements[i]))
+				while(
+				    (i <= high)
+				 && (    (elementAtI = elements[i]) == null
+				      || (elementAtI.hashCode() == key)
+				    )
+				 && (!(found = element.equals(elementAtI)))
 				) { i++; }
 				if (found) return i;
-
+				
 				// .. then left
 				i = mid - 1;
-				while(i >= low
-				 &&  (elements[i] == null || elements[i].hashCode() == key)
-				 && !(found = element.equals(elements[i]))
+				while(
+				    (i >= low)
+				 && (    (elementAtI = elements[i]) == null
+				      || (elementAtI.hashCode() == key)
+				    )
+				 && (!(found = element.equals(elementAtI)))
 				) { i--; }
 				if (found) return i;
 				
-				
 				return -insertionPoint - 1; // key not found. 
+			}
+		}
+		return -(low + 1); // key not found.
+	}
+	
+	protected int binarySearch(int fromIndex, int toIndex, Object element) {
+		final int key = element.hashCode(); 
+		int low = fromIndex;
+		int high = toIndex - 1;
+
+		while (low <= high) {
+			final int mid = (low + high) >>> 1;
+			assert low <= mid && mid <= high;
+			
+			
+			if (mid < low) {
+				final int insertionPoint = mid + 1;
+				return -insertionPoint - 1; // key not found.
+			}
+			assert low <= mid && mid <= high;
+			
+			final Object midElement = elements[mid];
+			assert midElement != null;
+			
+			final int midVal = midElement.hashCode();
+			
+			if (midVal < key) {
+				low = mid + 1;
+			} else if (midVal == key) {
+				if (element.equals(midElement)) return mid; // lucky shot
+				
+				// among all elements s.t. key == elements[i].hashCode(),
+				// we have to find the one for which element.equals(elements[i]).
+				boolean found = false;
+				int i;
+				Object elementAtI;
+				
+				// lets look right
+				i = mid + 1;
+				while(
+				    (i <= high)
+				 && ((elementAtI = elements[i]).hashCode() == key)
+				 && (!(found = element.equals(elementAtI)))
+				) { i++; }
+				if (found) return i;
+				
+				// .. then left
+				i = mid - 1;
+				while(
+				    (i >= low)
+				 && ((elementAtI = elements[i]).hashCode() == key)
+				 && (!(found = element.equals(elementAtI)))
+				) { i--; }
+				if (found) return i;
+				
+				final int insertionPoint = mid + 1;
+				return -insertionPoint - 1; // key not found. 
+			} else {
+				high = mid - 1;
 			}
 		}
 		return -(low + 1); // key not found.
@@ -166,7 +234,7 @@ public class ArraySet<E> extends AbstractSet<E> implements Set<E>{
 	public final boolean contains(Object o) {
 		if (o == null) return false;
 		
-		final int index = binarySearch0(0, elements.length, o);
+		final int index = binarySearch(0, elements.length, o);
 		return index >=0;
 	}
 

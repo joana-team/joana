@@ -49,7 +49,7 @@ public final class ModifiableArraySet<E> extends ArraySet<E> {
 	public final boolean add(E e) {
 		if (e == null) throw new NullPointerException();
 		
-		final int index = binarySearch0(0, elements.length, e);
+		final int index = binarySearch(0, elements.length, e);
 		if (index >= 0) return false;
 		
 		final int insert = -index - 1;
@@ -84,7 +84,7 @@ public final class ModifiableArraySet<E> extends ArraySet<E> {
 	public final boolean remove(Object o) {
 		if (o == null) throw new NullPointerException();
 		
-		final int remove = binarySearch0(0, elements.length, o);
+		final int remove = binarySearch(0, elements.length, o);
 		if (remove < 0) return false;
 		
 		assert (remove < elements.length);

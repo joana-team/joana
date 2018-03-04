@@ -208,6 +208,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
     	assert assertVertexExist(targetVertex);
     	
     	vertexMap.get(targetVertex).addIncomingEdges(classE, edges);
+    	changed = true;
     }
 
     @Override
@@ -215,6 +216,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
     	assert assertVertexExist(sourceVertex);
     	
     	vertexMap.get(sourceVertex).addOutgoingEdges(classE, edges);
+    	changed = true;
     }
 
     /**

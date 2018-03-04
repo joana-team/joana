@@ -7,9 +7,8 @@
  */
 package edu.kit.joana.util.collections;
 
-import java.util.AbstractList;
+import java.util.AbstractCollection;
 import java.util.Iterator;
-import java.util.ListIterator;
 
 /**
  * 
@@ -18,29 +17,24 @@ import java.util.ListIterator;
  * @author Martin Hecker <martin.hecker@kit.edu>
  */
 
-public class IntrusiveList<T extends Intrusable<T>> extends AbstractList<T>  { //TODO: support more operations
-	private int size;
+public class IntrusiveList<T extends Intrusable<T>> extends AbstractCollection<T>  { //TODO: support more operations
 	private T head;
 	
 	public IntrusiveList() {
-		this.size = 0;
 		this.head = null;
 	}
 	
 	public T poll() {
-		assert (size > 0) == (head != null);
 		if (head == null) {
 			return null;
 		}
 		
 		T first = head;
 		head = head.getNext();
-		size--;
 		first.setNext(null);
 		return first;
 	}
 	
-	@Override
 	public T get(int index) {
 		T current = head;
 		while (index > 0 && current != null) {
@@ -55,13 +49,12 @@ public class IntrusiveList<T extends Intrusable<T>> extends AbstractList<T>  { /
 
 	@Override
 	public int size() {
-		return size;
+		throw new UnsupportedOperationException();
 	}
 	
 	@Override
 	public boolean isEmpty() {
-		assert size >= 0;
-		return size == 0;
+		return head == null;
 	}
 	
 	@Override
@@ -84,22 +77,10 @@ public class IntrusiveList<T extends Intrusable<T>> extends AbstractList<T>  { /
 	}
 	
 	@Override
-	public ListIterator<T> listIterator() {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public ListIterator<T> listIterator(int i) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
 	public boolean add(T e) {
-		if (e.getNext() != null) throw new IllegalArgumentException();
+		assert e.getNext() == null;
 		e.setNext(head);
 		head = e;
-		size++;
 		return true;
 	}
-
 }

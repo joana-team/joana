@@ -748,6 +748,10 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
                 if(call != null) {
                     result.put(call, new AcutalInActualOutPair(ai));
                 }
+            } else {
+                // due to priority, SDGEdge.Kind.PARAMETER_IN *always* come first
+                assert pi.getKind().getPriority() > SDGEdge.Kind.PARAMETER_IN.getPriority();
+                break;
             }
         }
 
@@ -765,6 +769,10 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
                 if (newE != null) {
                 	newE.setActualOut(ao);
                 }
+            } else {
+                // due to priority, SDGEdge.Kind.PARAMETER_OUT *always* come first
+                assert po.getKind().getPriority() > SDGEdge.Kind.PARAMETER_OUT.getPriority();
+                break;
             }
         }
 

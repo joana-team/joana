@@ -62,7 +62,7 @@ public abstract class SDGEdge implements Cloneable, KnowsVertices<SDGNode> {
         /** Conditional control dependence edge, used for control dependences caused by conditional structures. */
         CONTROL_DEP_COND("CD", true, (source, target) -> new SDGEdgeCONTROL_DEP_COND(source, target), 41),
         /** Intra-expression control dependence edges. Used for parameter trees / graphs. */
-        CONTROL_DEP_EXPR("CE", true, (source, target) -> new SDGEdgeCONTROL_DEP_EXPR(source, target), 2),
+        CONTROL_DEP_EXPR("CE", true, (source, target) -> new SDGEdgeCONTROL_DEP_EXPR(source, target), 0),
         /** Control dependences induced by procedure calls. */
         CONTROL_DEP_CALL("CC", true, (source, target) -> new SDGEdgeCONTROL_DEP_CALL(source, target), 40),
         /** Control dependences induced by jumps. */
@@ -98,9 +98,9 @@ public abstract class SDGEdge implements Cloneable, KnowsVertices<SDGNode> {
         /** Call edge. */
         CALL("CL", true, (source, target) -> new SDGEdgeCALL(source, target), 55),
         /** Parameter-in edge. */
-        PARAMETER_IN("PI", true, (source, target) -> new SDGEdgePARAMETER_IN(source, target), 0),
+        PARAMETER_IN("PI", true, (source, target) -> new SDGEdgePARAMETER_IN(source, target), 54),
         /** Parameter-out edge. */
-        PARAMETER_OUT("PO", true, (source, target) -> new SDGEdgePARAMETER_OUT(source, target), 1),
+        PARAMETER_OUT("PO", true, (source, target) -> new SDGEdgePARAMETER_OUT(source, target), 53),
 
         /* dependences caused by threads */
         /** Interference dependence. */

@@ -18,6 +18,7 @@ import junit.framework.TestSuite;
 import java.util.Set;
 
 import edu.kit.joana.util.collections.ArraySet;
+import edu.kit.joana.util.collections.ModifiableArraySet;
 
 /**
  * Generates a test suite covering the {@link ArraySet} implementation.
@@ -32,7 +33,7 @@ public class TestsForArraySet {
 	}
 
 	public Test allTests() {
-		TestSuite suite = new TestSuite("edu.kit.joana.util.collections.ArraySet");
+		TestSuite suite = new TestSuite("edu.kit.joana.util.collections.ModifiableArraySet");
 		suite.addTest(testsForArraySet());
 		return suite;
 	}
@@ -41,10 +42,10 @@ public class TestsForArraySet {
 		return SetTestSuiteBuilder
 				.using(new TestStringSetGenerator() {
 					@Override public Set<String> create(String[] elements) {
-						return new ArraySet<String>(MinimalSet.of(elements));
+						return new ModifiableArraySet<>(MinimalSet.of(elements), String.class);
 					}
 				})
-				.named("ArraySet")
+				.named("ModifiableArraySet")
 				.withFeatures(
 						CollectionFeature.SUPPORTS_ADD,
 						CollectionFeature.SUPPORTS_REMOVE,

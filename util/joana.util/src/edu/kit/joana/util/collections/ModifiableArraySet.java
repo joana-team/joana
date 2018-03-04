@@ -140,9 +140,14 @@ public final class ModifiableArraySet<E> extends ArraySet<E> {
 			assert invariant();
 			return changed;
 		} else {
-			return super.addAll(c);
+			boolean modified = false;
+			for (E e : c) {
+				if (add(e)) {
+					modified = true;
+				}
+			}
+			return modified;
 		}
-		
 	}
 	
 	@Override

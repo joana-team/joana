@@ -360,10 +360,29 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
 					= vertexMap.get(((KnowsVertices<?>) o).getSource());
 			
 			if (vc == null || vc.outgoing() == null) {
+				assert !containsByTarget(o);
 				return false;
 			}
 			final ArraySet<E> outgoing = ArraySet.own(vc.outgoing());
-			return outgoing.contains(o);
+			
+			final boolean result = outgoing.contains(o);
+			assert result == containsByTarget(o);
+			
+			return result;
+		}
+		
+		private boolean containsByTarget(Object o) {
+			if (!(o instanceof KnowsVertices)) {
+				return false;
+			}
+			DirectedEdgeContainer<E, E[]> vc
+					= vertexMap.get(((KnowsVertices<?>) o).getTarget());
+			
+			if (vc == null || vc.outgoing() == null) {
+				return false;
+			}
+			final ArraySet<E> incoming = ArraySet.own(vc.incoming());
+			return incoming.contains(o);
 		}
 
 		/* (non-Javadoc)

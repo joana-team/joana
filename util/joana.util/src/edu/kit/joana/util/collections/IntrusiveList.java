@@ -8,6 +8,8 @@
 package edu.kit.joana.util.collections;
 
 import java.util.AbstractList;
+import java.util.Iterator;
+import java.util.ListIterator;
 
 /**
  * 
@@ -42,7 +44,7 @@ public class IntrusiveList<T extends Intrusable<T>> extends AbstractList<T>  { /
 	public T get(int index) {
 		T current = head;
 		while (index > 0 && current != null) {
-			current = head.getNext();
+			current = current.getNext();
 			index--;
 		}
 		if (current == null) {
@@ -62,6 +64,35 @@ public class IntrusiveList<T extends Intrusable<T>> extends AbstractList<T>  { /
 		return size == 0;
 	}
 	
+	@Override
+	public Iterator<T> iterator() {
+		return new Iterator<T>() {
+			T current = head;
+			
+			@Override
+			public boolean hasNext() {
+				return current != null;
+			}
+			
+			@Override
+			public T next() {
+				final T result = current;
+				current = current.getNext();
+				return result;
+			}
+		};
+	}
+	
+	@Override
+	public ListIterator<T> listIterator() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public ListIterator<T> listIterator(int i) {
+		throw new UnsupportedOperationException();
+	}
+
 	@Override
 	public boolean add(T e) {
 		if (e.getNext() != null) throw new IllegalArgumentException();

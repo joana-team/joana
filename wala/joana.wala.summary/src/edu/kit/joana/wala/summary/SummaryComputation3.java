@@ -65,6 +65,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
     private final IntIntSimpleVector nodeId2ProcLocalNodeId;
     private final SimpleVectorBase<Integer, SDGNode[]> procLocalNodeId2Node;
     private final List<Set<Integer>> procSccs;
+    private int numberOfCallNodes;
     private final IntIntSimpleVector indexNumberOf;
     
     private IntrusiveList<Edge> current; 
@@ -350,7 +351,9 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
         
         procLocalNodeId2Node.trimToSize();
         nodeId2ProcLocalNodeId.trimToSize();
-        
+
+        int callNodeId = 0;
+
         for (SDGNode n : (Set<SDGNode>) graph.vertexSet()) {
             if (n.getKind() == SDGNode.Kind.FORMAL_OUT || n.getKind() == SDGNode.Kind.EXIT) {
             	if (relevantProcs != null && !relevantProcs.contains(n.getProc())) {
@@ -386,7 +389,14 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
                 assert n.customData == null || (!(n.customData instanceof Integer));
                 n.customData = 0;
             }
+            
+            if (n.getKind() == SDGNode.Kind.CALL) {
+                assert n.customData == null || (!(n.customData instanceof Integer));
+                n.customData = callNodeId++;
+            }
         }
+        
+        numberOfCallNodes = callNodeId;
         
         proc2nodes = null;
         
@@ -730,10 +740,13 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
 
 
     private Collection<AcutalInActualOutPair> aiaoPairs(Edge e) {
-        final HashMap<SDGNode, AcutalInActualOutPair> result = new HashMap<>();
+        final IntrusiveList<AcutalInActualOutPair> result = new IntrusiveList<>();
+        final AcutalInActualOutPair[] atCallNode = new AcutalInActualOutPair[numberOfCallNodes];
+        
         assert e.source.getKind() == SDGNode.Kind.FORMAL_IN;
         assert e.target.getKind() == SDGNode.Kind.FORMAL_OUT || e.target.getKind() == SDGNode.Kind.EXIT;
 
+        
         for (SDGEdge pi : graph.incomingEdgesOfUnsafe(e.source)) {
             if (pi.getKind() == SDGEdge.Kind.PARAMETER_IN) {
                 final SDGNode ai = pi.getSource();
@@ -746,7 +759,10 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
                 SDGNode call = getCallSiteFor(ai);
 
                 if(call != null) {
-                    result.put(call, new AcutalInActualOutPair(ai));
+                	final Integer callNodeId = (Integer) call.customData;
+                	final AcutalInActualOutPair pair = new AcutalInActualOutPair(ai);  
+                	atCallNode[callNodeId] = pair;
+                	result.add(pair);
                 }
             } else {
                 // due to priority, SDGEdge.Kind.PARAMETER_IN *always* come first
@@ -763,9 +779,10 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
 //            		continue;
 //                }
 
-                SDGNode call = getCallSiteFor(ao);
+                final SDGNode call = getCallSiteFor(ao);
+                final Integer callNodeId = (Integer) call.customData;
 
-                final AcutalInActualOutPair newE = result.get(call);
+                final AcutalInActualOutPair newE = atCallNode[callNodeId];
                 if (newE != null) {
                 	newE.setActualOut(ao);
                 }
@@ -776,7 +793,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             }
         }
 
-        return result.values();
+        return result;
     }
 
     private SDGNode getCallSiteForSlow(SDGNode node){
@@ -882,14 +899,27 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
     }
 }
 
-class AcutalInActualOutPair {
+class AcutalInActualOutPair implements Intrusable<AcutalInActualOutPair> {
 	private final SDGNode actualIn;
 	private SDGNode actualOut;
+	
+	private AcutalInActualOutPair next;
 
 	AcutalInActualOutPair(SDGNode ai) {
 		assert ai.getKind() == SDGNode.Kind.ACTUAL_IN;
 		actualIn = ai;
 	}
+	
+    @Override
+    public void setNext(AcutalInActualOutPair next) {
+    	this.next = next;
+    }
+    
+    @Override
+    public AcutalInActualOutPair getNext() {
+    	return next;
+    }
+    
 
 	final void setActualOut(SDGNode ao) {
 		assert ao.getKind() == SDGNode.Kind.ACTUAL_OUT;
@@ -903,6 +933,11 @@ class AcutalInActualOutPair {
 
 	public SDGNode getActualOut() {
 		return actualOut;
+	}
+	
+	@Override
+	public String toString() {
+		return "(" + actualIn + ", " + actualOut + ")";
 	}
 }
 

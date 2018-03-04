@@ -351,7 +351,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 					 if (!map.containsKey(threadId)) {
 						 threadsWithoutRegions.add(threadId);
 						 nodeDangling = true;
-					 } else if (!map.get(threadId).containsKey(node.getId())) {
+					 } else if (!map.get(threadId).containsKey(node)) {
 						 nodeDangling = true;
 					 }
 				 }

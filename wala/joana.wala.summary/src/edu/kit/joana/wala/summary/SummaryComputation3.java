@@ -730,11 +730,13 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
 
 
     private Collection<AcutalInActualOutPair> aiaoPairs(Edge e) {
-        HashMap<SDGNode, AcutalInActualOutPair> result = new HashMap<>();
+        final HashMap<SDGNode, AcutalInActualOutPair> result = new HashMap<>();
+        assert e.source.getKind() == SDGNode.Kind.FORMAL_IN;
+        assert e.target.getKind() == SDGNode.Kind.FORMAL_OUT || e.target.getKind() == SDGNode.Kind.EXIT;
 
         for (SDGEdge pi : graph.incomingEdgesOfUnsafe(e.source)) {
             if (pi.getKind() == SDGEdge.Kind.PARAMETER_IN) {
-                SDGNode ai = pi.getSource();
+                final SDGNode ai = pi.getSource();
 
 //                if (relevantProcs != null && !relevantProcs.contains(ai.getProc())) {
 //            		continue;
@@ -751,7 +753,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
 
         for (SDGEdge po : graph.outgoingEdgesOfUnsafe(e.target)) {
             if (po.getKind() == SDGEdge.Kind.PARAMETER_OUT) {
-                SDGNode ao = po.getTarget();
+                final SDGNode ao = po.getTarget();
 
 //                if (relevantProcs != null && !relevantProcs.contains(ao.getProc())) {
 //            		continue;

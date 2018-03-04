@@ -88,7 +88,7 @@ public class MethodGraph extends Graph {
 				}
 
 			} else if (n.getKind().equals(SDGNode.Kind.ENTRY)) {
-				linkedMethods.put(n.getProc(), n.getLabel().toString());
+				linkedMethods.put(n.getProc(), n.getLabel() == null ? "UNKNOWN:" + n.getId() : n.getLabel().toString());
 			}
 		}
 

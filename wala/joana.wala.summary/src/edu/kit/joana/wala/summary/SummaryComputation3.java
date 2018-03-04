@@ -65,7 +65,6 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
     private final IntIntSimpleVector nodeId2ProcLocalNodeId;
     private final SimpleVectorBase<Integer, SDGNode[]> procLocalNodeId2Node;
     private final List<Set<Integer>> procSccs;
-    private int numberOfCallNodes;
     private final IntIntSimpleVector indexNumberOf;
     
     private IntrusiveList<Edge> current; 
@@ -352,8 +351,6 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
         procLocalNodeId2Node.trimToSize();
         nodeId2ProcLocalNodeId.trimToSize();
 
-        int callNodeId = 0;
-
         for (SDGNode n : (Set<SDGNode>) graph.vertexSet()) {
             if (n.getKind() == SDGNode.Kind.FORMAL_OUT || n.getKind() == SDGNode.Kind.EXIT) {
             	if (relevantProcs != null && !relevantProcs.contains(n.getProc())) {
@@ -391,12 +388,9 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             }
             
             if (n.getKind() == SDGNode.Kind.CALL) {
-                assert n.customData == null || (!(n.customData instanceof Integer));
-                n.customData = callNodeId++;
+                n.customData = null;
             }
         }
-        
-        numberOfCallNodes = callNodeId;
         
         proc2nodes = null;
         
@@ -741,7 +735,6 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
 
     private Collection<AcutalInActualOutPair> aiaoPairs(Edge e) {
         final IntrusiveList<AcutalInActualOutPair> result = new IntrusiveList<>();
-        final AcutalInActualOutPair[] atCallNode = new AcutalInActualOutPair[numberOfCallNodes];
         
         assert e.source.getKind() == SDGNode.Kind.FORMAL_IN;
         assert e.target.getKind() == SDGNode.Kind.FORMAL_OUT || e.target.getKind() == SDGNode.Kind.EXIT;
@@ -756,12 +749,11 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
 //                }
 
 
-                SDGNode call = getCallSiteFor(ai);
+                final SDGNode call = getCallSiteFor(ai);
 
                 if(call != null) {
-                	final Integer callNodeId = (Integer) call.customData;
-                	final AcutalInActualOutPair pair = new AcutalInActualOutPair(ai);  
-                	atCallNode[callNodeId] = pair;
+                	final AcutalInActualOutPair pair = new AcutalInActualOutPair(ai);
+                	call.customData = pair;
                 	result.add(pair);
                 }
             } else {
@@ -780,9 +772,8 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
 //                }
 
                 final SDGNode call = getCallSiteFor(ao);
-                final Integer callNodeId = (Integer) call.customData;
 
-                final AcutalInActualOutPair newE = atCallNode[callNodeId];
+                final AcutalInActualOutPair newE = (AcutalInActualOutPair) call.customData;
                 if (newE != null) {
                 	newE.setActualOut(ao);
                 }

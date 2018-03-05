@@ -27,6 +27,7 @@ import org.jgrapht.graph.DefaultEdge;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
+import com.ibm.wala.util.intset.IntIterator;
 
 import edu.kit.joana.ifc.sdg.graph.BitVector;
 import edu.kit.joana.ifc.sdg.graph.LabeledSDGEdge;
@@ -433,8 +434,8 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             			final ActualOutInformation aoInformation = (ActualOutInformation) next.source.customData;
             			final IncomingSummaryEdgesFromBitVector incomingSummaryEdgesFrom = aoInformation.incomingSummaryEdgesFrom;
             			
-            			int procLocalId = - 1;
-            			while ((procLocalId = incomingSummaryEdgesFrom.nextSetBit(procLocalId + 1)) != -1) {
+            			for (IntIterator it = incomingSummaryEdgesFrom.intIterator(); it.hasNext(); ) {
+            				final int procLocalId = it.next();
             				SDGNode summarySource = procLocal2Node[procLocalId];
             				propagate(worklist, summarySource, next.target);
             			}
@@ -485,10 +486,11 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             					final int caller = source.getProc();
             					procedureWorkSet.add(caller);
             					final IntrusiveList<Edge> workListInCaller = worklists.get(caller);
-            		            final SDGNode[] callerLocal2Node = procLocalNodeId2Node.get(caller);
-            					
-            					int procLocalId = - 1; 
-            					while ((procLocalId = aoPaths.nextSetBit(procLocalId + 1)) != -1) {
+            					final SDGNode[] callerLocal2Node = procLocalNodeId2Node.get(caller);
+
+            					for (IntIterator it = aoPaths.intIterator(); it.hasNext(); ) {
+            						final int procLocalId = it.next();
+
             						SDGNode aoPathTarget = callerLocal2Node[procLocalId];
             						propagate(workListInCaller, source, aoPathTarget);
             					}
@@ -611,9 +613,8 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
                 			final SDGEdge[] summaryEdges = new SDGEdge[nrOfSummaryEdges];
                 			
                 			int i = 0;
-                			int procLocalId = - 1;
-                			while ((procLocalId = incomingSummaryEdgesFrom.nextSetBit(procLocalId + 1)) != -1) {
-                				
+                			for (IntIterator it = incomingSummaryEdgesFrom.intIterator(); it.hasNext(); ) {
+                				final int procLocalId = it.next();
                 				final SDGNode source = inSameSccLocal2Node[procLocalId];
 
                 				final SDGEdge sum;

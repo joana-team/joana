@@ -19,6 +19,8 @@ package edu.kit.joana.ifc.sdg.graph;
 
 import java.io.Serializable;
 
+import com.ibm.wala.util.intset.IntIterator;
+
 /**
  * Abstract base class for implementations of bitvectors
  */
@@ -209,6 +211,42 @@ abstract public class BitVectorBase<T extends BitVectorBase> implements Cloneabl
 
 		return -1;
 	}
+	
+	/**
+	 * via: https://lemire.me/blog/2018/02/21/iterating-over-set-bits-quickly/
+	 * @return
+	 */
+	public IntIterator intIterator() {
+		assert bits.length > 0;
+		return new IntIterator() {
+			int k = 0;
+			int bitset = bits[k];
+			
+			@Override
+			public int next() {
+				assert bitset != 0;
+				int bs = bitset;
+				final int t = Integer.lowestOneBit(bs);
+				final int r = Integer.numberOfTrailingZeros(bs);
+				final int result = (k << LOG_BITS_PER_UNIT) + r;
+				bitset ^= t;
+				return result;
+			}
+			
+			@Override
+			public boolean hasNext() {
+				if (bitset != 0) return true;
+				while (++k < bits.length) {
+					int bitset = bits[k];
+					if (bitset != 0) {
+						this.bitset = bitset;
+						return true;
+					}
+				}
+				return false;
+			}
+		};
+	}
 
 	/**
 	 * Copies the values of the bits in the specified set into this set.
@@ -228,5 +266,24 @@ abstract public class BitVectorBase<T extends BitVectorBase> implements Cloneabl
 			bits[i] = set.bits[i];
 			i--;
 		}
+	}
+	
+	public static void main(String[] args) {
+		BitVector bv = new BitVector();
+		bv.set(0);
+		bv.set(3);
+		bv.set(5);
+		bv.set(31);
+		bv.set(64);
+		bv.set(18932);
+		bv.set(53223);
+		
+		IntIterator it = bv.intIterator();
+		while (it.hasNext()) {
+			int next = it.next();
+			System.out.println(next);
+		}
+		
+		
 	}
 }

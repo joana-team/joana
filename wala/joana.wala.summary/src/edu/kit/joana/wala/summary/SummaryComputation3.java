@@ -68,6 +68,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
     private final SimpleVectorBase<Integer, SDGNode[]> procLocalNodeId2Node;
     private final List<Set<Integer>> procSccs;
     private final IntIntSimpleVector indexNumberOf;
+    private final long relevantEdgesMask;
     
     private IntrusiveList<Edge> current; 
 
@@ -124,9 +125,23 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
         	protected int getId(Integer procNumber) {
         		return procNumber;
         	}
-		};
+        };
+        
+        long relevantEdgesMask = 0;
+        for (SDGEdge.Kind relevant : relevantEdges) {
+        	assert 0 <= relevant.getPriority() && relevant.getPriority() < 64;
+        	relevantEdgesMask |= ((long) 1 << ((long)relevant.getPriority()));
+        }
+        this.relevantEdgesMask = relevantEdgesMask;
 	}
 
+	private boolean relevantEdges_contains(SDGEdge.Kind kind) {
+		// TODO: find out whether just using EnumSet<> for relevantEdges is good enough
+		final boolean result = ((long) 1 << ((long)kind.getPriority()) & relevantEdgesMask) != 0;
+		assert result == relevantEdges.contains(kind);
+		return result;
+	}
+	
 	public static int compute(WorkPackage<SDG> pack, IProgressMonitor progress) throws CancelException {
 		// default summary computation follows control and date dependencies
 		Set<SDGEdge.Kind> relevantEdges = new HashSet<SDGEdge.Kind>();
@@ -426,7 +441,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             				final SDGEdge.Kind kind = e.getKind();
             				if (kind == sumEdgeKind
             						|| ((kind == SDGEdge.Kind.DATA_DEP || kind == SDGEdge.Kind.DATA_HEAP
-            						|| kind == SDGEdge.Kind.DATA_ALIAS) && relevantEdges.contains(kind))
+            						|| kind == SDGEdge.Kind.DATA_ALIAS) && relevantEdges_contains(kind))
             						|| (kind == SDGEdge.Kind.CONTROL_DEP_EXPR
             						&& e.getSource().getKind() == SDGNode.Kind.CALL)) {
             					propagate(worklist, e.getSource(), next.target);
@@ -501,7 +516,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             		for (SDGEdge e : graph.incomingEdgesOfUnsafe(next.source)) {
             			final SDGEdge.Kind kind = e.getKind();
             			if ((kind == SDGEdge.Kind.DATA_DEP || kind == SDGEdge.Kind.DATA_HEAP
-            					|| kind == SDGEdge.Kind.DATA_ALIAS) && relevantEdges.contains(kind)) {
+            					|| kind == SDGEdge.Kind.DATA_ALIAS) && relevantEdges_contains(kind)) {
             				propagate(worklist, e.getSource(), next.target);
             			}
             		}
@@ -525,7 +540,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             					propagate(worklist, e.getSource(), next.target);
             				}
 
-            			} else if (relevantEdges.contains(e.getKind())) {
+            			} else if (relevantEdges_contains(e.getKind())) {
             				propagate(worklist, e.getSource(), next.target);
             			}
             		}
@@ -544,7 +559,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             						propagate(worklist, e.getSource(), next.target);
             					}
 
-            				} else if (relevantEdges.contains(e.getKind())) {
+            				} else if (relevantEdges_contains(e.getKind())) {
             					propagate(worklist, e.getSource(), next.target);
             				}
             			}
@@ -563,7 +578,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
 
             	default:
             		for (SDGEdge e : graph.incomingEdgesOfUnsafe(next.source)) {
-            			if (relevantEdges.contains(e.getKind())) {
+            			if (relevantEdges_contains(e.getKind())) {
             				propagate(worklist, e.getSource(), next.target);
             			}
             		}

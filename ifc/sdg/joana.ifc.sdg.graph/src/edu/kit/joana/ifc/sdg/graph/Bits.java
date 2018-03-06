@@ -82,4 +82,8 @@ public class Bits {
   public static int populationCount(int value) {
     return Integer.bitCount(value);
   }
+  
+  public static int populationCount(long value) {
+	    return Long.bitCount(value);
+	  }
 }

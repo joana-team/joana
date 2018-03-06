@@ -30,6 +30,7 @@ import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.intset.IntIterator;
 
 import edu.kit.joana.ifc.sdg.graph.BitVector;
+import edu.kit.joana.ifc.sdg.graph.BitVector64;
 import edu.kit.joana.ifc.sdg.graph.LabeledSDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -260,7 +261,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
 	}
 
 	@SuppressWarnings("serial")
-	private static class PathEdgeReachedNodesBitvector extends BitVector {
+	private static class PathEdgeReachedNodesBitvector extends BitVector64 {
 		PathEdgeReachedNodesBitvector(int nbits) {
 			super(nbits);
 		}
@@ -277,14 +278,14 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
 	}
 
 	@SuppressWarnings("serial")
-	private static class AoPathsNodesBitvector extends BitVector {
+	private static class AoPathsNodesBitvector extends BitVector64 {
 		AoPathsNodesBitvector(int nbits) {
 			super(nbits);
 		}
 	}
 	
 	@SuppressWarnings("serial")
-	private static class IncomingSummaryEdgesFromBitVector extends BitVector {
+	private static class IncomingSummaryEdgesFromBitVector extends BitVector64 {
 		IncomingSummaryEdgesFromBitVector(int nbits) {
 			super(nbits);
 		}

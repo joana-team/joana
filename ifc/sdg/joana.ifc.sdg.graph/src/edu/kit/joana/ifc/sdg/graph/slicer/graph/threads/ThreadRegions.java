@@ -9,6 +9,7 @@ package edu.kit.joana.ifc.sdg.graph.slicer.graph.threads;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
 import com.ibm.wala.util.collections.SimpleVector;
 
 import edu.kit.joana.ifc.sdg.graph.SDG;
@@ -28,6 +30,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation.ThreadInstance;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
+import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.collections.ArrayMap;
 import edu.kit.joana.util.collections.ArraySet;
 import edu.kit.joana.util.collections.ModifiableArraySet;
@@ -327,6 +330,16 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 		 
 		 /** map thread -> (node of thread -> thread region of node) */ 
 		 private final TIntObjectHashMap<Map<SDGNode, ThreadRegion>> map;
+		 
+		 /** map (node -> thread region of node) */ 
+		 private final Map<SDGNode, GlobalThreadRegion> globalMap;
+		 
+		 /** map (thread start-node -> thread-region-start-node -> Set <thread-region-start-node> ) */ 
+		 private final Map<SDGNode, Map<SDGNode, Set<SDGNode>>> globalDirectSuccessorStartNodesForThread;
+		 
+		 /** map (thread-region-start-node -> Set <thread-region-start-node> ) */ 
+		 private final Map<SDGNode, Set<SDGNode>> globalDirectSuccessorStartNodes;
+
 		 private int id;
 
 		 private RegionBuilder(CFG icfg, ThreadsInformation info) {
@@ -334,12 +347,132 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 			 this.info = info;
 			 regions = new SimpleVector<>();
 			 map = new TIntObjectHashMap<>();
+			 globalMap = new edu.kit.joana.util.collections.SimpleVector<>(10, icfg.lastId());
+			 globalDirectSuccessorStartNodesForThread = new HashMap<>();
+			 globalDirectSuccessorStartNodes = new HashMap<>();
 			 id = 0;
 		 }
 
 		 public ThreadRegions computeRegions() {
+			 computeStartNodesGlobal();
+			 computeRegionsGlobal(computeStartNodesGlobal());
 			 for (int thread = 0; thread < info.getNumberOfThreads(); thread++) {
 				 computeRegions(thread);
+			 }
+			 
+			 for (int thread = 0; thread < info.getNumberOfThreads(); thread++) {
+				 Set<SDGNode> startNodes = initialStartNodes(thread);
+
+				 Color MARKED = new Color();
+				 final Color INIT = new Color();
+				 Set<Color> PREVIOUSLY_MARKED;
+
+				 boolean newInit;
+				 do {
+					 newInit = false;
+					 
+					 SDGNode[] init = startNodes.toArray(new SDGNode[startNodes.size()]);
+					 
+					 for (SDGNode n : init) {
+						 n.customData = INIT;
+					 }
+					 
+					 PREVIOUSLY_MARKED = new HashSet<>();
+
+					 
+					 for (SDGNode node : init) {
+						 //final Map<SDGNode, Set<SDGNode>> globalDirectSuccessorStartNodes = globalDirectSuccessorStartNodesForThread.get(node);
+						 Set<SDGNode> markedStart = new HashSet<>();
+						 markedStart.add(node);
+						 LinkedList<SDGNode> workList = new LinkedList<>();
+						 workList.add(node);
+						 
+						 MARKED = new Color();
+						 
+						 while (!workList.isEmpty()) {
+							 final SDGNode next = workList.poll();
+							 
+							 Set<SDGNode> successors = globalDirectSuccessorStartNodes.get(next);
+							 
+							 if (successors == null) continue;
+							 
+							 for (SDGNode reached : successors) {
+								 if (!reached.isInThread(thread)) continue;
+								 if (reached.customData == INIT) continue;
+
+								 if (PREVIOUSLY_MARKED.contains(reached.customData)) {
+									 newInit |= startNodes.add(reached);
+									 continue;
+								 }
+								 if (reached.customData != MARKED) {
+									 reached.customData = MARKED;
+									 workList.add(reached);
+								 }
+							 }
+						 }
+							 
+						 PREVIOUSLY_MARKED.add(MARKED);
+					 }
+
+				 } while (newInit);
+				 
+				 
+				 if (!(startNodes.size() == regions.get(thread).size())) {
+					 throw new AssertionError();
+				 }
+				 assert startNodes.size() == regions.get(thread).size();
+				 
+				 final Set<SDGNode> inThreadViaGlobalThreadRegions = new HashSet<>();
+				 
+				 final ThreadInstance threadInstance = info.getThread(thread);
+				 //final Map<SDGNode, Set<SDGNode>> globalDirectSuccessorStartNodes = globalDirectSuccessorStartNodesForThread.get(threadInstance.getEntry());
+
+				 
+				 for (SDGNode startNode : startNodes) {
+					 Set<SDGNode> startNodesInSameRegion = new HashSet<>();
+					 startNodesInSameRegion.add(startNode);
+					 LinkedList<SDGNode> workList = new LinkedList<>();
+					 workList.add(startNode);
+					 while (!workList.isEmpty()) {
+						 SDGNode next = workList.poll();
+						 final Set<SDGNode> directSuccessors =  globalDirectSuccessorStartNodes.get(next);
+						 if (directSuccessors == null) continue;
+						 for (SDGNode successor : directSuccessors) {
+							 if (successor.isInThread(thread) && !startNodes.contains(successor) && startNodesInSameRegion.add(successor)) {
+								 workList.add(successor);
+							 }
+						 }
+					 }
+					 
+					 for (SDGNode startNodeInSameRegion : startNodesInSameRegion) {
+						 final GlobalThreadRegion globalThreadRegion = globalMap.get(startNodeInSameRegion);
+							 
+						 
+						 assert globalThreadRegion.getStart() == startNodeInSameRegion;
+						 if (!(Collections.disjoint(globalThreadRegion.getNodes(), inThreadViaGlobalThreadRegions))) {
+							 throw new AssertionError();
+						 }
+						 assert Collections.disjoint(globalThreadRegion.getNodes(), inThreadViaGlobalThreadRegions);
+						 
+						 inThreadViaGlobalThreadRegions.addAll(globalThreadRegion.getNodes());
+					 }
+					 
+				 }
+				 
+				 Set<SDGNode> inThreadViaThreadRegion = new HashSet<>();
+				 for (ThreadRegion region : regions.get(thread)) {
+					 assert Collections.disjoint(region.getNodes(), inThreadViaThreadRegion);
+					 if (!(Collections.disjoint(region.getNodes(), inThreadViaThreadRegion))) {
+						 throw new AssertionError();
+					 }
+					 inThreadViaThreadRegion.addAll(region.getNodes());
+				 }
+				 
+				 if (!(inThreadViaGlobalThreadRegions.containsAll(inThreadViaThreadRegion))) {
+					 throw new AssertionError();
+				 }
+				 assert inThreadViaGlobalThreadRegions.containsAll(inThreadViaThreadRegion);
+				 
 			 }
 
 			 // collect nodes without a thread region
@@ -351,7 +484,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 					 if (!map.containsKey(threadId)) {
 						 threadsWithoutRegions.add(threadId);
 						 nodeDangling = true;
-					 } else if (!map.get(threadId).containsKey(node)) {
+					 } else if (!map.get(threadId).containsKey(node.getId())) {
 						 nodeDangling = true;
 					 }
 				 }
@@ -529,13 +662,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 		  */
 		 private static class Color {}
 		 
-		 private HashSet<SDGNode> computeStartNodes(int thread) {
-			 final Color INIT = new Color();
-			 final Color BOTH = new Color();
-			       Color MARKED = new Color();
-			       Set<Color> PREVIOUSLY_MARKED;
-			 
-
+		 private HashSet<SDGNode> initialStartNodes(int thread) {
 			 // initial start nodes
 			 HashSet<SDGNode> result = new HashSet<SDGNode>();
 			 
@@ -557,6 +684,17 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 					 result.add(join);
 				 }
 			 }
+			 
+			 return result;
+		 }
+		 
+		 private HashSet<SDGNode> computeStartNodes(int thread) {
+			 final Color INIT = new Color();
+			 final Color BOTH = new Color();
+			       Color MARKED = new Color();
+			       Set<Color> PREVIOUSLY_MARKED;
+			 
+			HashSet<SDGNode> result = initialStartNodes(thread);
 
 			 /**
 			  * successively add new nodes to the result set, which are reached by at least two start nodes,
@@ -665,7 +803,124 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 			 return result;
 		 }
 		 
-		 
+		 private HashSet<SDGNode> computeStartNodesGlobal() {
+			 final Color INIT = new Color();
+			 final Color BOTH = new Color();
+			       Color MARKED = new Color();
+			       Set<Color> PREVIOUSLY_MARKED;
+			 
+
+			 // initial start nodes
+			 HashSet<SDGNode> result = new HashSet<SDGNode>();
+			 
+			 result.addAll(info.getAllEntries());
+			 
+			 Collection<SDGNode> forks = info.getAllForks();
+			 for (SDGNode fork : forks) {
+				 for (SDGEdge e: icfg.getOutgoingEdgesOfKindUnsafe(fork, SDGEdge.Kind.CONTROL_FLOW)) {
+					result.add(e.getTarget());
+				 }
+			 }
+
+			 Collection<SDGNode> joins = info.getAllJoins();
+
+			 for (SDGNode join : joins) {
+				 result.add(join);
+			 }
+
+			 /**
+			  * successively add new nodes to the result set, which are reached by at least two start nodes,
+			  * until the result set does not change anymore
+			  */
+			 boolean newInit;
+			 do {
+				 newInit = false;
+				 
+				 SDGNode[] init = result.toArray(new SDGNode[result.size()]);
+				 
+				 for (SDGNode n : init) {
+					 n.customData = INIT;
+				 }
+				 
+				 PREVIOUSLY_MARKED = new HashSet<>();
+
+				 for (SDGNode node : init) {
+					 LinkedList<SDGNode> w1 = new LinkedList<SDGNode>();
+					 LinkedList<SDGNode> w2 = new LinkedList<SDGNode>();
+					 MARKED = new Color();
+					 
+
+					 w1.add(node);
+
+					 while (!w1.isEmpty()) {
+						 SDGNode next = w1.poll();
+
+						 for (SDGEdge edge : icfg.outgoingEdgesOfUnsafe(next)) {
+							 SDGNode reached = edge.getTarget();
+
+							 assert (edge.getKind() != SDGEdge.Kind.FORK || (reached.customData == INIT || reached.customData == BOTH));
+
+							 // don't cross thread region borders
+							 if (reached.customData == INIT || reached.customData == BOTH) continue;
+
+							 /**
+							  * the reached node is reached from two different nodes in the current start set
+							  * ---> another start point of a region for the current thread has been found
+							  */
+							 if (PREVIOUSLY_MARKED.contains(reached.customData)) {
+								 newInit |= result.add(reached);
+								 continue;
+							 }
+
+							 if (reached.customData != MARKED) {
+								 reached.customData = MARKED;
+								 // 2-phase slicing
+								 if (edge.getKind() != SDGEdge.Kind.CALL) {
+									 w1.addFirst(reached);
+
+								 } else {
+									 w2.addFirst(reached);
+								 }
+							 }
+						 }
+					 }
+
+					 while (!w2.isEmpty()) {
+						 SDGNode next = w2.poll();
+
+						 for (SDGEdge edge : icfg.outgoingEdgesOfUnsafe(next)) {
+							 if (edge.getKind() == SDGEdge.Kind.RETURN) continue;
+							 
+							 SDGNode reached = edge.getTarget();
+							 assert (edge.getKind() != SDGEdge.Kind.FORK || (reached.customData == INIT || reached.customData == BOTH));
+
+							 // don't cross thread region borders
+							 if (reached.customData == INIT || reached.customData == BOTH) continue;
+
+							 /**
+							  * the reached node is reached from two different nodes in the current start set
+							  * ---> another start point of a region for the current thread has been found
+							  */
+							 if (PREVIOUSLY_MARKED.contains(reached.customData)) {
+								 newInit |= result.add(reached);
+								 continue;
+							 }
+
+							 if (reached.customData != MARKED) {
+								 reached.customData = MARKED;
+								 w2.addFirst(reached);
+							 }
+						 }
+					 }
+
+					 PREVIOUSLY_MARKED.add(MARKED);
+
+				 }
+
+			 } while (newInit);
+			 
+			 return result;
+		 }
 		 /**
 		  * Computes the thread regions of the given thread. For each given start node, a context-sensitive, intra-thread
 		  * forward slice in the control-flow graph is performed. All nodes belonging to such a slice form a thread region.
@@ -760,7 +1015,163 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 			 assert result.size() == startNodes.size();
 			 return result;
 		 }
+		 
+		 
+		 
+		 private class RegionsGlobalWorkListElement {
+			 final SDGNode next;
+			 final SDGNode lastStartNode;
+			 final boolean inInitialStartNodesRegion;
+			 RegionsGlobalWorkListElement(SDGNode next, SDGNode lastStartNode, boolean inInitialStartNodesRegion) {
+				 this.next = next;
+				 this.lastStartNode = lastStartNode;
+				 this.inInitialStartNodesRegion = inInitialStartNodesRegion;
+			 }
+		 }
+		 /**
+		  * Computes the thread regions of the given thread. For each given start node, a context-sensitive, intra-thread
+		  * forward slice in the control-flow graph is performed. All nodes belonging to such a slice form a thread region.
+		  * @param startNodes start nodes to compute thread regions from
+		  * @param thread thread for which the regions are to be determined
+		  * @return all thread regions belonging to the given thread
+		  */
+		 private List<GlobalThreadRegion> computeRegionsGlobal(HashSet<SDGNode> startNodes) {
+			 List<GlobalThreadRegion> result = new ArrayList<>(startNodes.size());
+			 
+			 final Color START = new Color();
+
+			 for (SDGNode startNode : startNodes) {
+				 startNode.customData = START;
+			 }
+
+			 for (SDGNode startNode : startNodes) {
+				 //final Map<SDGNode, Set<SDGNode>> globalDirectSuccessorStartNodes = new HashMap<>();
+				 //globalDirectSuccessorStartNodesForThread.put(startNode, globalDirectSuccessorStartNodes); 
+				 LinkedList<RegionsGlobalWorkListElement> w1 = new LinkedList<>();
+				 LinkedList<RegionsGlobalWorkListElement> w2 = new LinkedList<>();
+				 HashSet<SDGNode> inRegion = new HashSet<>();
+				 HashSet<Pair<SDGNode, SDGNode>> behindRegion = new HashSet<>();
+
+				 w1.add(new RegionsGlobalWorkListElement(startNode, startNode, true));
+				 inRegion.add(startNode);
+
+				 while (!w1.isEmpty()) {
+					 final RegionsGlobalWorkListElement element = w1.poll();
+					 final SDGNode next = element.next;
+					 final boolean nextInRegion = element.inInitialStartNodesRegion;
+					 final SDGNode lastStartNode = element.lastStartNode;
+
+					 for (SDGEdge edge : icfg.outgoingEdgesOfUnsafe(next)) {
+						 final SDGNode reached = edge.getTarget();
+
+						 assert (edge.getKind() != SDGEdge.Kind.FORK || reached.customData == START);
+
+						 // handle thread region borders
+						 assert (reached.customData == START) == startNodes.contains(reached); 
+						 if (reached.customData == START) {
+							 globalDirectSuccessorStartNodes.compute(lastStartNode, (k, successors) -> {
+								 if (successors == null) {
+									 successors = new HashSet<>();
+								 }
+								 successors.add(reached);
+								 
+								 return successors;
+							 });
+
+//							 final Pair<SDGNode, SDGNode> reachedWithLastStartNode = Pair.pair(reached, reached);
+//							 if (!inRegion.contains(reached) && behindRegion.add(reachedWithLastStartNode)) {
+//								 // 2-phase slicing
+//								 if (edge.getKind() == SDGEdge.Kind.CALL) {
+//									 w2.addFirst(new RegionsGlobalWorkListElement(reached, reached, false));
+//
+//								 } else {
+//									 w1.addFirst(new RegionsGlobalWorkListElement(reached, reached, false));
+//								 }
+//							 }
+						 } else {
+							 if (nextInRegion) {
+								 if (inRegion.add(reached)) {
+									 if (edge.getKind() == SDGEdge.Kind.CALL) {
+										 w2.addFirst(new RegionsGlobalWorkListElement(reached, lastStartNode, nextInRegion));
+		
+									 } else {
+										 w1.addFirst(new RegionsGlobalWorkListElement(reached, lastStartNode, nextInRegion));
+									 }
+								 }
+							 } else {
+//								 final Pair<SDGNode, SDGNode> reachedWithLastStartNode = Pair.pair(reached, lastStartNode);
+//								 if (behindRegion.add(reachedWithLastStartNode)) {
+//									 if (edge.getKind() == SDGEdge.Kind.CALL) {
+//										 w2.addFirst(new RegionsGlobalWorkListElement(reached, lastStartNode, nextInRegion));
+//		
+//									 } else {
+//										 w1.addFirst(new RegionsGlobalWorkListElement(reached, lastStartNode, nextInRegion));
+//									 }
+//								 }
+							 }
+						 }
+					 }
+				 }
+
+				 while (!w2.isEmpty()) {
+					 final RegionsGlobalWorkListElement element = w2.poll();
+					 final SDGNode next = element.next;
+					 final boolean nextInRegion = element.inInitialStartNodesRegion;
+					 final SDGNode lastStartNode = element.lastStartNode;
+
+					 for (SDGEdge edge : icfg.outgoingEdgesOfUnsafe(next)) {
+						 if (edge.getKind() == SDGEdge.Kind.RETURN) continue;
+						 SDGNode reached = edge.getTarget();
+						 
+						 assert (edge.getKind() != SDGEdge.Kind.FORK || reached.customData == START);
+
+						 // handle thread region borders
+						 assert (reached.customData == START) == startNodes.contains(reached);
+						 if (reached.customData == START) {
+							 globalDirectSuccessorStartNodes.compute(lastStartNode, (k, successors) -> {
+								 if (successors == null) {
+									 successors = new HashSet<>();
+								 }
+								 successors.add(reached);
+								 
+								 return successors;
+							 });
+							 
+//							 final Pair<SDGNode, SDGNode> reachedWithLastStartNode = Pair.pair(reached, reached);
+//							 if (!inRegion.contains(reached) && behindRegion.add(reachedWithLastStartNode)) {
+//								 w2.addFirst(new RegionsGlobalWorkListElement(reached, reached, false));
+//							 }
+						 } else {
+							 if (nextInRegion) {
+								 if (inRegion.add(reached)) {
+									 w2.addFirst(new RegionsGlobalWorkListElement(reached, lastStartNode, nextInRegion));
+								 }
+							 } else {
+//								 final Pair<SDGNode, SDGNode> reachedWithLastStartNode = Pair.pair(reached, lastStartNode);
+//								 if (behindRegion.add(reachedWithLastStartNode)) {
+//									 w2.addFirst(new RegionsGlobalWorkListElement(reached, lastStartNode, nextInRegion));
+//								 }
+							 }
+						 }
+					 }
+				 }
+
+				 // marked contains the nodes of the thread region
+				 GlobalThreadRegion tr = new GlobalThreadRegion(startNode, new ArraySet<>(inRegion));
+				 result.add(tr);
+
+				 for (SDGNode n : inRegion) {
+					 assert !globalMap.containsKey(n);
+					 globalMap.put(n, tr);
+				 }
+			 }
+			 
+			 assert result.size() == startNodes.size();
+			 return result;
+		 }
 	 }
+
+
 
 	 /* DEBUG */
 	 public static void main(String[] args) throws Exception {

@@ -17,6 +17,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import com.google.common.collect.Sets;
 import com.ibm.wala.util.collections.SimpleVector;
@@ -417,10 +418,20 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 				 } while (newInit);
 				 
 				 
-				 if (!(startNodes.size() == regions.get(thread).size())) {
+				 final Set<SDGNode> regionsStartNodes = new HashSet<>(regions.get(thread).size());
+				 for (ThreadRegion r : regions.get(thread)) {
+					 boolean changed = regionsStartNodes.add(r.getStart());
+					 if (!changed) {
+						 throw new AssertionError();
+					 }
+				 }
+				 if (!startNodes.equals(regionsStartNodes)) {
+					 Set<SDGNode> globalStartNodess = new TreeSet<>(SDGNode.getIDComparator());
+					 globalStartNodess.addAll(startNodes);
+					 Set<SDGNode> regionStartNodess = new TreeSet<>(SDGNode.getIDComparator());
+					 regionStartNodess.addAll(regionsStartNodes);
 					 throw new AssertionError();
 				 }
-				 assert startNodes.size() == regions.get(thread).size();
 				 
 				 final Set<SDGNode> inThreadViaGlobalThreadRegions = new HashSet<>();
 				 
@@ -449,10 +460,10 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 							 
 						 
 						 assert globalThreadRegion.getStart() == startNodeInSameRegion;
-						 if (!(Collections.disjoint(globalThreadRegion.getNodes(), inThreadViaGlobalThreadRegions))) {
+						 
+						 if (!(Collections.disjoint(inThreadViaGlobalThreadRegions, globalThreadRegion.getNodes()))) {
 							 throw new AssertionError();
 						 }
-						 assert Collections.disjoint(globalThreadRegion.getNodes(), inThreadViaGlobalThreadRegions);
 						 
 						 inThreadViaGlobalThreadRegions.addAll(globalThreadRegion.getNodes());
 					 }
@@ -461,8 +472,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 				 
 				 Set<SDGNode> inThreadViaThreadRegion = new HashSet<>();
 				 for (ThreadRegion region : regions.get(thread)) {
-					 assert Collections.disjoint(region.getNodes(), inThreadViaThreadRegion);
-					 if (!(Collections.disjoint(region.getNodes(), inThreadViaThreadRegion))) {
+					 if (!(Collections.disjoint(inThreadViaThreadRegion, region.getNodes()))) {
 						 throw new AssertionError();
 					 }
 					 inThreadViaThreadRegion.addAll(region.getNodes());
@@ -471,8 +481,6 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 				 if (!(inThreadViaGlobalThreadRegions.containsAll(inThreadViaThreadRegion))) {
 					 throw new AssertionError();
 				 }
-				 assert inThreadViaGlobalThreadRegions.containsAll(inThreadViaThreadRegion);
-				 
 			 }
 
 			 // collect nodes without a thread region

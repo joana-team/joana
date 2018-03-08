@@ -856,7 +856,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 
 					 final Map<SDGNode, ThreadRegion> regionsStartNodes = new HashMap<>();
 					 for (ThreadRegion region : regions) {
-						 assert slowRegionsStartNodes.put(region.getStart(), region) == null;
+						 assert regionsStartNodes.put(region.getStart(), region) == null;
 					 }
 
 					 assert slowRegionsStartNodes.keySet().equals(regionsStartNodes.keySet());

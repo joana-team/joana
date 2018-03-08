@@ -905,6 +905,24 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 			 return new ThreadRegions(regions, icfg, new PreciseThreadNodeRegionMap(map));
 		 }
 		 
+		 static class StartNodesSet<T> extends HashSet<T> {
+			@Override
+			public boolean add(T e) {
+				return super.add(e);
+			}
+		 }
+		 static class PREVIOUSLY_MARKED_Set<T> extends HashSet<T> {
+				@Override
+				public boolean add(T e) {
+					return super.add(e);
+				}
+		 }
+		 static class StartNodesInSameRegionSet <T> extends HashSet<T> {
+				@Override
+				public boolean add(T e) {
+					return super.add(e);
+				}
+		 }
 		 private List<ThreadRegion> computeRegions(int thread) {
 			 final Set<SDGNode> startNodes = initialStartNodes(thread);
 			 
@@ -923,7 +941,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 					 n.customData = INIT;
 				 }
 
-				 final Set<Color> PREVIOUSLY_MARKED = new HashSet<>();
+				 final Set<Color> PREVIOUSLY_MARKED = new PREVIOUSLY_MARKED_Set<>();
 
 
 				 for (SDGNode node : init) {
@@ -977,7 +995,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 
 			 final List<ThreadRegion> result = new ArrayList<>(startNodes.size());
 			 for (SDGNode startNode : startNodes) {
-				 final Set<SDGNode> startNodesInSameRegion = new HashSet<>();
+				 final Set<SDGNode> startNodesInSameRegion = new StartNodesInSameRegionSet<>();
 				 startNodesInSameRegion.add(startNode);
 				 
 				 final LinkedList<SDGNode> workList = new LinkedList<>();
@@ -1054,7 +1072,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 		 
 		 private HashSet<SDGNode> initialStartNodes(int thread) {
 			 // initial start nodes
-			 HashSet<SDGNode> result = new HashSet<SDGNode>();
+			 HashSet<SDGNode> result = new StartNodesSet<SDGNode>();
 			 
 			 result.add(info.getThreadEntry(thread));
 			 

@@ -305,7 +305,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 		 return tr;
 	 }
 	 
-	 public static ThreadRegions createPreciseThreadRegionsUNSAFEFAST(CFG icfg, ThreadsInformation info) {
+	 public static ThreadRegions createPreciseThreadRegionsUNSAFE(CFG icfg, ThreadsInformation info) {
 		 //        System.out.println("    computing regions...");
 		 GlobalRegionBuilder builder = new GlobalRegionBuilder(icfg, info, false);
 		 ThreadRegions tr = builder.computeRegions();

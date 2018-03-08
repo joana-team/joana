@@ -17,6 +17,7 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.SimpleMHPAnalysis;
 public enum MHPType {
 	NONE(sdg -> null),
 	SIMPLE(sdg -> SimpleMHPAnalysis.analyze(sdg)),
+	PRECISE_UNSAFE(sdg -> PreciseMHPAnalysis.analyzeUNSAFE(sdg)),
 	PRECISE(sdg -> PreciseMHPAnalysis.analyze(sdg));
 	
 	private final Function<SDG, MHPAnalysis> mhpAnalysisConstructor;

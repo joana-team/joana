@@ -1432,19 +1432,4 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 			 return result;
 		 }
 	 }
-
-
-	 /* DEBUG */
-	 public static void main(String[] args) throws Exception {
-		 String str = "/afs/info.uni-karlsruhe.de/user/giffhorn/Desktop/eclipse/runtime-New_configuration/Tests/jSDG/";
-		 str += "conc.TimeTravel.pdg";
-		 //    	str += "conc.Testi.pdg";
-		 //    	str += "conc.ac.AlarmClock.pdg";
-
-
-		 SDG g = SDG.readFrom(str);
-		 //      ThreadRegionsNew tr = ThreadRegionsNew.allThreadsParallel(g);
-		 ThreadRegions tr = ThreadRegions.createPreciseThreadRegions(g);
-		 System.out.println(tr);
-	 }
 }

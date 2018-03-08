@@ -25,6 +25,8 @@ import com.ibm.wala.util.collections.SimpleVector;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.ifc.sdg.graph.slicer.Slicer;
+import edu.kit.joana.ifc.sdg.graph.slicer.conc.CFGSlicer;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.VirtualNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
@@ -34,6 +36,7 @@ import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.collections.ArrayMap;
 import edu.kit.joana.util.collections.ArraySet;
+import edu.kit.joana.util.collections.Arrays;
 import edu.kit.joana.util.collections.ModifiableArraySet;
 import gnu.trove.iterator.TIntObjectIterator;
 import gnu.trove.map.hash.TIntObjectHashMap;
@@ -338,7 +341,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 		 /** map (thread start-node -> thread-region-start-node -> Set <thread-region-start-node> ) */ 
 		 private final Map<SDGNode, Map<SDGNode, Set<SDGNode>>> globalDirectSuccessorStartNodesForThread;
 		 
-		 /** map (thread-region-start-node -> Set <thread-region-start-node> ) */ 
+		 /** map (                     thread-region-start-node -> Set <thread-region-start-node> ) */ 
 		 private final Map<SDGNode, Set<SDGNode>> globalDirectSuccessorStartNodes;
 
 		 private int id;
@@ -478,7 +481,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 					 inThreadViaThreadRegion.addAll(region.getNodes());
 				 }
 				 
-				 if (!(inThreadViaGlobalThreadRegions.containsAll(inThreadViaThreadRegion))) {
+				 if (!(inThreadViaGlobalThreadRegions.equals(inThreadViaThreadRegion))) {
 					 throw new AssertionError();
 				 }
 			 }
@@ -811,6 +814,20 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 			 return result;
 		 }
 		 
+		 private static void putAllThreads(Map<SDGNode, ModifiableArraySet<Integer>> threadsOf, SDGNode node) {
+			 threadsOf.compute(node, (k, threads) -> {
+				 if (threads == null) {
+					 threads = new ModifiableArraySet<>(Integer.class);
+				 }
+
+				 for (int thread : node.getThreadNumbers()) {
+					 threads.add(thread);
+				 }
+
+				 return threads;
+			 });
+		 }
+		 
 		 private HashSet<SDGNode> computeStartNodesGlobal() {
 			 final Color INIT = new Color();
 			 final Color BOTH = new Color();
@@ -821,12 +838,15 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 			 // initial start nodes
 			 HashSet<SDGNode> result = new HashSet<SDGNode>();
 			 
+			 Map<SDGNode, ModifiableArraySet<Integer>> threadsOf = new HashMap<>();
+			 
 			 result.addAll(info.getAllEntries());
 			 
 			 Collection<SDGNode> forks = info.getAllForks();
 			 for (SDGNode fork : forks) {
 				 for (SDGEdge e: icfg.getOutgoingEdgesOfKindUnsafe(fork, SDGEdge.Kind.CONTROL_FLOW)) {
 					result.add(e.getTarget());
+					putAllThreads(threadsOf, e.getTarget());
 				 }
 			 }
 
@@ -834,6 +854,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 
 			 for (SDGNode join : joins) {
 				 result.add(join);
+				 putAllThreads(threadsOf, join);
 			 }
 
 			 /**
@@ -850,12 +871,15 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 					 n.customData = INIT;
 				 }
 				 
+				 
 				 PREVIOUSLY_MARKED = new HashSet<>();
 
 				 for (SDGNode node : init) {
 					 LinkedList<SDGNode> w1 = new LinkedList<SDGNode>();
 					 LinkedList<SDGNode> w2 = new LinkedList<SDGNode>();
 					 MARKED = new Color();
+					 
+					 final Set<Integer> threadsOfNode = threadsOf.get(node);
 					 
 
 					 w1.add(node);
@@ -870,13 +894,28 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 
 							 // don't cross thread region borders
 							 if (reached.customData == INIT || reached.customData == BOTH) continue;
-
+							 
+							 // don't leave threads
+							 if (edge.getKind() == SDGEdge.Kind.RETURN) {
+								 final int[] threadNumberReached = reached.getThreadNumbers();
+								 boolean containsAny = false;
+								 for (int i = 0; i < threadNumberReached.length; i++) {
+									 if (threadsOfNode.contains(threadNumberReached[i])) {
+										 containsAny = true;
+										 break;
+									 }
+								 }
+								 if (!containsAny) continue;
+							 }
 							 /**
 							  * the reached node is reached from two different nodes in the current start set
 							  * ---> another start point of a region for the current thread has been found
 							  */
 							 if (PREVIOUSLY_MARKED.contains(reached.customData)) {
 								 newInit |= result.add(reached);
+								 if (newInit) {
+										putAllThreads(threadsOf, reached);
+								 }
 								 continue;
 							 }
 
@@ -911,6 +950,19 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 							  */
 							 if (PREVIOUSLY_MARKED.contains(reached.customData)) {
 								 newInit |= result.add(reached);
+								 if (newInit) {
+									 threadsOf.compute(reached, (k, threads) -> {
+										 if (threads == null) {
+											 threads = new ModifiableArraySet<>(Integer.class);
+										 }
+
+										 for (int thread : reached.getThreadNumbers()) {
+											 threads.add(thread);
+										 }
+
+										 return threads;
+									 });
+								 }
 								 continue;
 							 }
 
@@ -929,6 +981,9 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 			 
 			 return result;
 		 }
+		 
+		 
+		 
 		 /**
 		  * Computes the thread regions of the given thread. For each given start node, a context-sensitive, intra-thread
 		  * forward slice in the control-flow graph is performed. All nodes belonging to such a slice form a thread region.
@@ -1046,6 +1101,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 		 private List<GlobalThreadRegion> computeRegionsGlobal(HashSet<SDGNode> startNodes) {
 			 List<GlobalThreadRegion> result = new ArrayList<>(startNodes.size());
 			 
+			 
 			 final Color START = new Color();
 
 			 for (SDGNode startNode : startNodes) {
@@ -1062,6 +1118,11 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 
 				 w1.add(new RegionsGlobalWorkListElement(startNode, startNode, true));
 				 inRegion.add(startNode);
+				 
+				 final Set<Integer> threadsOfStartNode = new ModifiableArraySet<>(Integer.class);
+				 for (int thread : startNode.getThreadNumbers()) {
+					 threadsOfStartNode.add(thread);
+				 }
 
 				 while (!w1.isEmpty()) {
 					 final RegionsGlobalWorkListElement element = w1.poll();
@@ -1073,6 +1134,19 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 						 final SDGNode reached = edge.getTarget();
 
 						 assert (edge.getKind() != SDGEdge.Kind.FORK || reached.customData == START);
+						 
+						 // don't leave threads
+						 if (edge.getKind() == SDGEdge.Kind.RETURN) {
+							 final int[] threadNumberReached = reached.getThreadNumbers();
+							 boolean containsAny = false;
+							 for (int i = 0; i < threadNumberReached.length; i++) {
+								 if (threadsOfStartNode.contains(threadNumberReached[i])) {
+									 containsAny = true;
+									 break;
+								 }
+							 }
+							 if (!containsAny) continue;
+						 }
 
 						 // handle thread region borders
 						 assert (reached.customData == START) == startNodes.contains(reached); 

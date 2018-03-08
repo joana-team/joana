@@ -483,8 +483,8 @@ public class SDGWrapper {
 	 * @return			True if the given region is in source code
 	 */
 	public boolean isInSourceCode(ThreadRegion region) {
-		Collection<SDGNode> nodes = region.getNodes();
-		Iterator<SDGNode> iterNodes = nodes.iterator();
+		Collection<? extends SDGNode> nodes = region.getNodes();
+		Iterator<?extends SDGNode> iterNodes = nodes.iterator();
 		boolean isInSourceCode = false;
 
 		// A region is available in source code if one of its nodes is

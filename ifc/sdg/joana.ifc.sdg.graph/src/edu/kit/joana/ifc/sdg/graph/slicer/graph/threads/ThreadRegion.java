@@ -69,7 +69,7 @@ public class ThreadRegion {
     }
 
     /** A list of the nodes this ThreadRegion covers. */
-    private Collection<SDGNode> nodes;
+    private Collection<? extends SDGNode> nodes;
     private Color key;
 
     /** An ID. */
@@ -78,7 +78,7 @@ public class ThreadRegion {
     private final boolean dynamic;
     private final SDGNode start;
 
-    public ThreadRegion(int id, SDGNode start, int thread, boolean dynamic, Collection<SDGNode> nodes) {
+    public ThreadRegion(int id, SDGNode start, int thread, boolean dynamic, Collection<? extends SDGNode> nodes) {
         this.id = id;
         this.thread = thread;
         this.nodes = nodes;
@@ -97,7 +97,7 @@ public class ThreadRegion {
     /**
      * Returns the list of the covered nodes.
      */
-    public Collection<SDGNode> getNodes() {
+    public Collection<? extends SDGNode> getNodes() {
     	if (!knowsNodes()) throw new UnsupportedOperationException();
         return nodes;
     }

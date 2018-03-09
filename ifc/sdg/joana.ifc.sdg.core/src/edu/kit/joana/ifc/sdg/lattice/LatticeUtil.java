@@ -393,11 +393,11 @@ public final class LatticeUtil {
 			for (String lower : preorder.getImmediatelyLower(x)) {
 				if (alreadyEncountered.getElements().contains(lower)) alreadyEncountered.setImmediatelyLower(x, lower);
 			}
-			final Collection<String> s = collectAllLowerElements(x, (ILatticeOperations<String>) alreadyEncountered);
+			final Collection<String> s = alreadyEncountered.collectAllLowerElements(x);
 			assert (s.contains(x));
 			s.remove(x);
 			
-			final Collection<String> t = collectAllGreaterElements(x, (ILatticeOperations<String>) alreadyEncountered);
+			final Collection<String> t = alreadyEncountered.collectAllGreaterElements(x);
 			assert (t.contains(x));
 			t.remove(x);
 			alreadyEncountered.removeElement(x);
@@ -417,12 +417,12 @@ public final class LatticeUtil {
 					Set<String> down = new TreeSet<>(alreadyEncountered.getElements());
 					Set<String> dt = u.intersection(d,t);
 					for(String y : dt) {
-						down.retainAll(collectAllLowerElements(y, (ILatticeOperations<String>) alreadyEncountered));
+						down.retainAll(alreadyEncountered.collectAllLowerElements(y));
 					}
 					Set<String> up = new TreeSet<>(alreadyEncountered.getElements());
 					Set<String> cs = u.intersection(c,s);
 					for(String y : cs) {
-						up.retainAll(collectAllGreaterElements(y, (ILatticeOperations<String>) alreadyEncountered));
+						up.retainAll(alreadyEncountered.collectAllGreaterElements(y));
 					}
 
 					if (c.equals(down)) lnew.add(new Cut(u.insert(x,c), dt));
@@ -482,7 +482,7 @@ public final class LatticeUtil {
 		for (Cut cut : l) {
 			boolean isNewElement = true;
 			for (String x : preorder.getElements()) {
-				Collection<String> xembedding = collectAllLowerElements(x, (ILatticeOperations<String>)preorder);
+				Collection<String> xembedding = preorder.collectAllLowerElements(x);
 				if (cut.a.equals(xembedding)) {
 					assert isNewElement;
 					reverse.put(cut, x);

@@ -139,17 +139,6 @@ public final class LatticeUtil {
 	}
 
 	/**
-	 * @see ILatticeOperations#collectAllGreaterElements(Object)
-	 * 
-	 * @deprecated use {@link ILatticeOperations#collectAllGreaterElements(Object)} instead
-	 * 
-	 */
-	@Deprecated
-	public static <ElementType> Collection<ElementType> collectAllGreaterElements(ElementType s, ILatticeOperations<ElementType> ops) {
-    	return ops.collectAllGreaterElements(s);
-	}
-
-	/**
      * @see IStaticLattice#collectAllGreaterElements(Object)
      *
 	 * @deprecated use {@link IStaticLattice#collectAllGreaterElements(Object)} instead
@@ -197,16 +186,6 @@ public final class LatticeUtil {
 		seen[currentIndex] = true;
 		for (ElementType child : ops.getImmediatelyLower(current))
 			markReachableDown(elements, child, seen, ops);
-	}
-
-	/**
-	 * @see ILatticeOperations#collectAllLowerElements(Object)
-	 * 
-	 * @deprecated use {@link ILatticeOperations#collectAllLowerElements(Object)} instead
-	 */
-	@Deprecated
-	public static <ElementType> Collection<ElementType> collectAllLowerElements(ElementType s, ILatticeOperations<ElementType> ops) {
-		return ops.collectAllLowerElements(s);
 	}
 
 	/**

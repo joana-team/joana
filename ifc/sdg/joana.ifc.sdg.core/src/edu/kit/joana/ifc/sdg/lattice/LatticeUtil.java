@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -140,37 +139,14 @@ public final class LatticeUtil {
 	}
 
 	/**
-	 * Transitive greater elements of a given lattice element.
-	 *
-	 * @param <ElementType>
-	 *            the type of the elements contained in the lattice.
-	 * @param s
-	 *            the element for which to collect all greater elements.
-	 * @param ops
-	 *            a <code>ILatticeOperations</code> object providing the
-	 *            basic lattice operations.
-	 * @return all transitive greater elements of <code>s</code>
+	 * @see ILatticeOperations#collectAllGreaterElements(Object)
 	 * 
-	 * @deprecated use {@link ILatticeOperations#collectAllGreaterElements(Object)} instead, which may have an optimized implementation
+	 * @deprecated use {@link ILatticeOperations#collectAllGreaterElements(Object)} instead
 	 * 
 	 */
 	@Deprecated
 	public static <ElementType> Collection<ElementType> collectAllGreaterElements(ElementType s, ILatticeOperations<ElementType> ops) {
-		Collection<ElementType> greaterElements = new HashSet<ElementType>();
-		greaterElements.add(s);
-		boolean changed = false;
-		do {
-			changed = false;
-			Collection<ElementType> toAdd = new ArrayList<ElementType>();
-			for (ElementType e : greaterElements)
-				for (ElementType p : ops.getImmediatelyGreater(e))
-					if (!greaterElements.contains(p)) {
-						toAdd.add(p);
-						changed = true;
-					}
-			greaterElements.addAll(toAdd);
-		} while (changed);
-		return greaterElements;
+    	return ops.collectAllGreaterElements(s);
 	}
 
 	/**
@@ -184,43 +160,17 @@ public final class LatticeUtil {
 	}
 
 	/**
-	 * Does a bottom-up sweep of the graph and returns all elements not
-	 * reachable from the unique bottom. This function requires the graph to
-	 * have a unique bottom element.
-	 *
-	 * @param <ElementType>
-	 *            the type of the elements contained in the graph.
-	 * @param inElements
-	 *            the elements of the graph.
-	 * @param ops
-	 *            a <code>ILatticeOperations</code> object providing the
-	 *            basic lattice operations.
-	 * @return all elements that could not be reached during the bottom-up
-	 *         sweep, or <code>null</code> if all elements could be reached.
-	 * @throws InvalidLatticeException
-	 *             if the graph does not have a unique bottom element
+	 * @see ILatticeOperations#findUnreachableFromBottom(Collection)
 	 * 
-	 * @deprecated use {@link ILatticeOperations#findUnreachableFromBottom(Collection)} instead, which may have an optimized implementation
+	 * @deprecated use {@link ILatticeOperations#findUnreachableFromBottom(Collection)} instead
 	 * 
 	 */
 	@Deprecated
 	public static <ElementType> Collection<ElementType> findUnreachableFromBottom(Collection<ElementType> inElements, ILatticeOperations<ElementType> ops) throws InvalidLatticeException {
-		ArrayList<ElementType> elements = new ArrayList<ElementType>(inElements);
-		boolean seen[] = new boolean[elements.size()];
-		Collection<ElementType> bottoms = findBottomElements(elements, ops);
-		if (bottoms.size() != 1)
-			throw new InvalidLatticeException("Graph does not have a unique bottom");
-		markReachableUp(elements, bottoms.iterator().next(), seen, ops);
-		ArrayList<ElementType> ret = new ArrayList<ElementType>();
-		for (int i = 0; i < seen.length; i++)
-			if (!seen[i])
-				ret.add(elements.get(i));
-		if (ret.isEmpty())
-			return null;
-		return ret;
+    	return ops.findUnreachableFromBottom(inElements);
 	}
 
-	private static <ElementType> void markReachableUp(ArrayList<ElementType> elements, ElementType current, boolean seen[], ILatticeOperations<ElementType> ops) {
+	public static <ElementType> void markReachableUp(ArrayList<ElementType> elements, ElementType current, boolean seen[], ILatticeOperations<ElementType> ops) {
 		int currentIndex = elements.indexOf(current);
 		if (seen[currentIndex])
 			return;
@@ -230,43 +180,17 @@ public final class LatticeUtil {
 	}
 
 	/**
-	 * Does a top-down sweep of the graph and returns all elements not reachable
-	 * from the unique top. This function requires the graph to have a unique
-	 * top element.
-	 *
-	 * @param <ElementType>
-	 *            the type of the elements contained in the graph.
-	 * @param inElements
-	 *            the elements of the graph.
-	 * @param ops
-	 *            a <code>ILatticeOperations</code> object providing the
-	 *            basic lattice operations.
-	 * @return all elements that could not be reached during the top-down sweep,
-	 *         or <code>null</code> if all elements could be reached.
-	 * @throws InvalidLatticeException
-	 *             if the graph does not have a unique top element
+	 * @see ILatticeOperations#findUnreachableFromTop(Collection)
 	 * 
-	 * @deprecated use {@link ILatticeOperations#findUnreachableFromTop(Collection)} instead, which may have an optimized implementation
+	 * @deprecated use {@link ILatticeOperations#findUnreachableFromTop(Collection)} instead
 	 * 
 	 */
 	@Deprecated
 	public static <ElementType> Collection<ElementType> findUnreachableFromTop(Collection<ElementType> inElements, ILatticeOperations<ElementType> ops) throws InvalidLatticeException {
-		ArrayList<ElementType> elements = new ArrayList<ElementType>(inElements);
-		boolean seen[] = new boolean[elements.size()];
-		Collection<ElementType> tops = findTopElements(elements, ops);
-		if (tops.size() != 1)
-			throw new InvalidLatticeException("Graph does not have a unique top");
-		markReachableDown(elements, tops.iterator().next(), seen, ops);
-		ArrayList<ElementType> ret = new ArrayList<ElementType>();
-		for (int i = 0; i < seen.length; i++)
-			if (!seen[i])
-				ret.add(elements.get(i));
-		if(ret.isEmpty())
-			return null;
-		return ret;
+		return ops.findUnreachableFromTop(inElements);
 	}
 
-	private static <ElementType> void markReachableDown(ArrayList<ElementType> elements, ElementType current, boolean seen[], ILatticeOperations<ElementType> ops) {
+	public static <ElementType> void markReachableDown(ArrayList<ElementType> elements, ElementType current, boolean seen[], ILatticeOperations<ElementType> ops) {
 		int currentIndex = elements.indexOf(current);
 		if (seen[currentIndex])
 			return;
@@ -276,78 +200,28 @@ public final class LatticeUtil {
 	}
 
 	/**
-	 * Transitive lower elements of a given lattice element.
-	 *
-	 * @param <ElementType>
-	 *            the type of the elements contained in the lattice.
-	 * @param s
-	 *            the element for which to collect all lower elements.
-	 * @param ops
-	 *            a <code>ILatticeOperations</code> object providing the
-	 *            basic lattice operations.
-	 * @return all transitive lower elements of <code>s</code>
+	 * @see ILatticeOperations#collectAllLowerElements(Object)
 	 * 
-	 * @deprecated use {@link ILatticeOperations#collectAllLowerElements(Object))} instead, which may have an optimized implementation
+	 * @deprecated use {@link ILatticeOperations#collectAllLowerElements(Object)} instead
 	 */
 	@Deprecated
 	public static <ElementType> Collection<ElementType> collectAllLowerElements(ElementType s, ILatticeOperations<ElementType> ops) {
-		Collection<ElementType> lowerElements = new HashSet<ElementType>();
-		lowerElements.add(s);
-		boolean changed = false;
-		do {
-			changed = false;
-			Collection<ElementType> toAdd = new ArrayList<ElementType>();
-			for (ElementType e : lowerElements)
-				for (ElementType p : ops.getImmediatelyLower(e))
-					if (!lowerElements.contains(p)) {
-						toAdd.add(p);
-						changed = true;
-					}
-			lowerElements.addAll(toAdd);
-		} while (changed);
-		return lowerElements;
+		return ops.collectAllLowerElements(s);
 	}
 
 	/**
-	 * Finds all least uppper bounds (lub) for two given elements.
-	 *
-	 * @param <ElementType>
-	 *            the type of the elements contained in the graph.
-	 * @param s
-	 *            the first parameter for the lub operation.
-	 * @param t
-	 *            the second parameter for the lub operation.
-	 * @param ops
-	 *            a <code>ILatticeOperations</code> object providing the
-	 *            basic lattice operations.
-	 * @return all least upper bounds of the elements <code>s</code> and
-	 *         <code>t</code>
+	 * @see ILatticeOperations#leastUpperBounds(Object, Object)
 	 * 
-	 * @deprecated use {@link ILatticeOperations#leastUpperBounds(Object, Object)} instead, which may have an optimized implementation
+	 * @deprecated use {@link ILatticeOperations#leastUpperBounds(Object, Object)} instead
 	 */
 	@Deprecated
 	public static <ElementType> Collection<ElementType> leastUpperBounds(ElementType s, ElementType t, ILatticeOperations<ElementType> ops) {
-		assert s != null;
-		assert t != null;
 		assert ops != null;
 
-		// GBs = {x in elements | x >= s}
-		Collection<ElementType> gbs = collectAllGreaterElements(s, ops);
-
-		// GBt = {x in elements | x >= t}
-		Collection<ElementType> gbt = collectAllGreaterElements(t, ops);
-
-		// CGB = GBs intersect GBt
-		List<ElementType> cgb = new ArrayList<ElementType>();
-		for (ElementType a : gbs)
-			if (gbt.contains(a))
-				cgb.add(a);
-
-		// return min(CLB)
-		return min(cgb, ops);
+		return ops.leastUpperBounds(s, t);
 	}
 
-	private static <ElementType> Collection<ElementType> min(Collection<ElementType> elements, ILatticeOperations<ElementType> ops) {
+	public static <ElementType> Collection<ElementType> min(Collection<ElementType> elements, ILatticeOperations<ElementType> ops) {
 		Collection<ElementType> ret = new ArrayList<ElementType>();
 		Elements: for (ElementType e : elements) {
 			for (ElementType g : ops.getImmediatelyLower(e)) {
@@ -360,45 +234,18 @@ public final class LatticeUtil {
 	}
 
 	/**
-	 * Finds all greatest lower bounds (glb) for two given elements.
-	 *
-	 * @param <ElementType>
-	 *            the type of the elements contained in the graph.
-	 * @param s
-	 *            the first parameter for the glb operation.
-	 * @param t
-	 *            the second parameter for the glb operation.
-	 * @param ops
-	 *            a <code>ILatticeOperations</code> object providing the
-	 *            basic lattice operations.
-	 * @return all greatest lower bounds of the elements <code>s</code> and
-	 *         <code>t</code>
+	 * @see ILatticeOperations#greatestLowerBounds(Object, Object)
 	 * 
-	 * @deprecated use {@link ILatticeOperations#greatestLowerBounds(Object, Object)} instead, which may have an optimized implementation
+	 * @deprecated use {@link ILatticeOperations#greatestLowerBounds(Object, Object)} instead
 	 */
 	@Deprecated
 	public static <ElementType> Collection<ElementType> greatestLowerBounds(ElementType s, ElementType t, ILatticeOperations<ElementType> ops) {
-		assert s != null;
-		assert t != null;
 		assert ops != null;
 
-		// LBs = {x in elements | x <= s}
-		Collection<ElementType> lbs = collectAllLowerElements(s, ops);
-
-		// LBt = {x in elements | x <= t}
-		Collection<ElementType> lbt = collectAllLowerElements(t, ops);
-
-		// CLB = LBs intersect LBt
-		List<ElementType> clb = new ArrayList<ElementType>();
-		for (ElementType a : lbs)
-			if (lbt.contains(a))
-				clb.add(a);
-
-		// return max(CLB)
-		return max(clb, ops);
+		return ops.greatestLowerBounds(s, t);
 	}
 
-	private static <ElementType> Collection<ElementType> max(Collection<ElementType> elements, ILatticeOperations<ElementType> ops) {
+	public static <ElementType> Collection<ElementType> max(Collection<ElementType> elements, ILatticeOperations<ElementType> ops) {
 		Collection<ElementType> ret = new ArrayList<ElementType>();
 		Elements: for (ElementType e : elements) {
 			for (ElementType g : ops.getImmediatelyGreater(e)) {
@@ -411,55 +258,23 @@ public final class LatticeUtil {
 	}
 
 	/**
-	 * Finds all elements that do not have a predecessor.
-	 *
-	 * @param <ElementType>
-	 *            the type of the elements in the graph.
-	 * @param inElements
-	 *            the elements of the graph.
-	 * @param ops
-	 *            a <code>ILatticeOperations</code> object providing the
-	 *            basic lattice operations.
-	 * @return all elements in <code>inElements</code> that do not have a
-	 *         predecessor.
+	 * @see ILatticeOperations#findTopElements(Collection)
 	 * 
-	 * @deprecated use {@link ILatticeOperations#findTopElements(Collection)} instead, which may have an optimized implementation
+	 * @deprecated use {@link ILatticeOperations#findTopElements(Collection)} instead
 	 */
 	@Deprecated
 	public static <ElementType> Collection<ElementType> findTopElements(Collection<ElementType> inElements, ILatticeOperations<ElementType> ops) {
-		Collection<ElementType> tops = new ArrayList<ElementType>();
-
-		for (ElementType e : inElements) {
-			if (ops.getImmediatelyGreater(e).size() == 0)
-				tops.add(e);
-		}
-		return tops;
+		return ops.findTopElements(inElements);
 	}
 
 	/**
-	 * Finds all elements that do not have a successor.
-	 *
-	 * @param <ElementType>
-	 *            the type of the elements in the graph.
-	 * @param inElements
-	 *            the elements of the graph.
-	 * @param ops
-	 *            a <code>ILatticeOperations</code> object providing the
-	 *            basic lattice operations.
-	 * @return all elements in <code>inElements</code> that do not have a
-	 *         successor.
+	 * @see ILatticeOperations#findBottomElements(Collection)
 	 * 
-	 * @deprecated use {@link ILatticeOperations#findBottomElements(Collection)} instead, which may have an optimized implementation
+	 * @deprecated use {@link ILatticeOperations#findBottomElements(Collection)} instead
 	 */
 	@Deprecated
 	public static <ElementType> Collection<ElementType> findBottomElements(Collection<ElementType> inElements, ILatticeOperations<ElementType> ops) {
-		Collection<ElementType> bottoms = new ArrayList<ElementType>();
-
-		for (ElementType e : inElements) {
-			if (ops.getImmediatelyLower(e).size() == 0)
-				bottoms.add(e);
-		}
-		return bottoms;
+		return ops.findBottomElements(inElements);
 	}
 
 	/**

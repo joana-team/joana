@@ -963,10 +963,9 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 					 n.customData = INIT;
 				 }
 
-				 // we know this will ultimately have size() == init.length.
-				 final Set<Color> PREVIOUSLY_MARKED = Sets.newHashSetWithExpectedSize(init.length);
+				 final Color[] PREVIOUSLY_MARKED = new Color[init.length];
 
-
+				 int nextColorId = 0;
 				 for (SDGNode node : init) {
 					 final Map<SDGNode, Set<SDGNode>> globalDirectSuccessorStartNodes;
 					 if (threadSepcificSuccessors) {
@@ -977,7 +976,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 					 final LinkedList<SDGNode> workList = new LinkedList<>();
 					 workList.add(node);
 
-					 MARKED = new Color();
+					 MARKED = new Color(nextColorId++);
 
 					 while (!workList.isEmpty()) {
 						 final SDGNode next = workList.poll();
@@ -990,9 +989,14 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 							 if (!reached.isInThread(thread)) continue;
 							 if (reached.customData == INIT) continue;
 
-							 if (PREVIOUSLY_MARKED.contains(reached.customData)) {
-								 newInit |= startNodes.add(reached);
-								 continue;
+							 if (reached.customData instanceof Color) {
+								 final Color reachedColor = (Color) reached.customData;
+								 final int reachedColorId = reachedColor.id;
+								  
+								 if (0 <= reachedColorId && reachedColorId < PREVIOUSLY_MARKED.length && PREVIOUSLY_MARKED[reachedColor.id] == reachedColor) {
+									 newInit |= startNodes.add(reached);
+									 continue;
+								 }
 							 }
 							 if (reached.customData != MARKED) {
 								 reached.customData = MARKED;
@@ -1001,7 +1005,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 						 }
 					 }
 					 
-					 PREVIOUSLY_MARKED.add(MARKED);
+					 PREVIOUSLY_MARKED[MARKED.id] = MARKED;
 				 }
 
 			 } while (newInit);
@@ -1094,7 +1098,15 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 		  * @param thread
 		  * @return
 		  */
-		 private static class Color {}
+		 private static class Color {
+			final int id ;
+			public Color() {
+				this.id = -1;
+			}
+			public Color(int id) {
+				this.id = id;
+			}
+		 }
 		 
 		 private HashSet<SDGNode> initialStartNodes(int thread) {
 			 // initial start nodes
@@ -1333,7 +1345,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 						 if (reached.customData == START) {
 							 globalDirectSuccessorStartNodes.compute(lastStartNode, (k, successors) -> {
 								 if (successors == null) {
-									 successors = new HashSet<>();
+									 successors = new ModifiableArraySet<>(SDGNode.class);
 								 }
 								 successors.add(reached);
 								 

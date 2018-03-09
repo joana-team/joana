@@ -83,6 +83,24 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 			return map.get(thread).get(node);
 		}
 	}
+	
+	private static class PreciseThreadNodeRegionFromGlobalMap implements ThreadNodeRegionMap {
+		 /** map (node -> global-thread-region of node) */ 
+		 private final Map<SDGNode, GlobalThreadRegion> globalMap;
+		 
+		 /** map thread -> (global-thread-region -> thread-region)) */
+		 private final SimpleVector<Map<GlobalThreadRegion, ThreadRegion>> global2regionMap;
+
+		private PreciseThreadNodeRegionFromGlobalMap(Map<SDGNode, GlobalThreadRegion> globalMap, SimpleVector<Map<GlobalThreadRegion, ThreadRegion>> global2regionMap) {
+			this.globalMap = globalMap;
+			this.global2regionMap = global2regionMap;
+		}
+
+		@Override
+		public ThreadRegion getRegion(int thread, SDGNode node) {
+			return global2regionMap.get(thread).get(globalMap.get(node));
+		}
+	}
 
 	private static class SimpleThreadNodeRegionMap implements ThreadNodeRegionMap {
 		private SimpleVector<List<ThreadRegion>> regions;
@@ -796,11 +814,12 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 		 /** map thread -> (thread Regions) */
 		 private final SimpleVector<List<ThreadRegion>> regions;
 		 
-		 /** map thread -> (node of thread -> thread region of node) */ 
-		 private final TIntObjectHashMap<Map<SDGNode, ThreadRegion>> map;
 		 
-		 /** map (node -> thread region of node) */ 
+		 /** map (node -> global-thread-region of node) */ 
 		 private final Map<SDGNode, GlobalThreadRegion> globalMap;
+		 
+		 /** map thread -> (global-thread-region -> thread-region)) */
+		 private final SimpleVector<Map<GlobalThreadRegion, ThreadRegion>> global2regionMap;
 		 
 		 /** map (thread start-node -> thread-region-start-node -> Set <thread-region-start-node> ) */ 
 		 private final Map<SDGNode, Map<SDGNode, Set<SDGNode>>> globalDirectSuccessorStartNodesForThread;
@@ -816,7 +835,6 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 			 this.icfg = icfg;
 			 this.info = info;
 			 regions = new SimpleVector<>();
-			 map = new TIntObjectHashMap<>();
 			 globalMap = new edu.kit.joana.util.collections.SimpleVector<>(10, icfg.lastId());
 			 if (threadSepcificSuccessors) {
 				 globalDirectSuccessorStartNodesForThread = new HashMap<>();
@@ -827,6 +845,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 			 }
 			 id = 0;
 			 this.threadSepcificSuccessors = threadSepcificSuccessors;
+			 this.global2regionMap = new SimpleVector<>();
 		 }
 
 		 ThreadRegions computeRegions() {
@@ -881,28 +900,37 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 			 List<SDGNode> nodesWithoutRegions = new LinkedList<SDGNode>();
 			 Set<Integer> threadsWithoutRegions = new HashSet<Integer>();
 			 for (SDGNode node : icfg.vertexSet()) {
+				 final GlobalThreadRegion globalRegion = globalMap.get(node);
 				 boolean nodeDangling = false;
-				 for (int threadId : node.getThreadNumbers()) {
-					 if (!map.containsKey(threadId)) {
-						 threadsWithoutRegions.add(threadId);
+				 if ((globalRegion == null && node.getThreadNumbers().length > 0)) {
+					 nodeDangling = true;
+				 }
+				 if (globalRegion != null && !globalRegion.contains(node)) {
+					 nodeDangling = true;
+				 }
+				 for (int thread : node.getThreadNumbers()) {
+					 final Map<GlobalThreadRegion, ThreadRegion> global2region = global2regionMap.get(thread);
+					 if (global2region == null) {
+						 threadsWithoutRegions.add(thread);
 						 nodeDangling = true;
-					 } else if (!map.get(threadId).containsKey(node)) {
-						 nodeDangling = true;
+					 } else {
+						 if (!global2region.containsKey(globalRegion)) {
+							 nodeDangling = true;
+						 }
 					 }
 				 }
-
 				 if (nodeDangling) {
 					 nodesWithoutRegions.add(node);
 				 }
-
-
 			 }
+			 
+
 
 			 final Logger debug = Log.getLogger(Log.L_MHP_DEBUG);
 			 debug.outln("threads without regions: " + threadsWithoutRegions);
 			 debug.outln("nodes without thread regions: " + nodesWithoutRegions);
 
-			 return new ThreadRegions(regions, icfg, new PreciseThreadNodeRegionMap(map));
+			 return new ThreadRegions(regions, icfg, new PreciseThreadNodeRegionFromGlobalMap(globalMap, global2regionMap));
 		 }
 		 
 		 static class StartNodesSet<T> extends HashSet<T> {
@@ -926,7 +954,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 		 private List<ThreadRegion> computeRegions(int thread) {
 			 final Set<SDGNode> startNodes = initialStartNodes(thread);
 			 
-			 final Map<SDGNode, ThreadRegion> mappy = new HashMap<>();
+			 final Map<GlobalThreadRegion, ThreadRegion> mappy = new HashMap<>();
 
 			 Color MARKED = new Color();
 			 final Color INIT = new Color();
@@ -1041,15 +1069,18 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 				 final Collection<? extends SDGNode> allNodesView = edu.kit.joana.util.collections.Collections.concatDisjunctCollections(allNodes);
 				 final ThreadRegion tr = new ThreadRegion(id, startNode, thread, info.isDynamic(thread), allNodesView);
 				 result.add(tr);
-
-				 for (SDGNode n : allNodesView) {
-					 mappy.put(n, tr);
+				 
+				 for (SDGNode startNodeInSameRegion : startNodesInSameRegion) {
+					 final GlobalThreadRegion globalRegionInSameRegion = globalMap.get(startNodeInSameRegion);
+					 assert globalRegionInSameRegion.getStart() == startNodeInSameRegion;
+					 
+					 mappy.put(globalRegionInSameRegion, tr); 
 				 }
 				 id++;
 			 }
 			 
-			 assert !map.contains(thread);
-			 map.put(thread, new ArrayMap<>(mappy));
+			 assert global2regionMap.get(thread) == null;
+			 global2regionMap.set(thread, new ArrayMap<>(mappy));
 			 
 			 assert result.size() == startNodes.size();
 			 

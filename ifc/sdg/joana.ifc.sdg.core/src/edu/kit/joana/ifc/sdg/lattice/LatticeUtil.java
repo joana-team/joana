@@ -174,32 +174,13 @@ public final class LatticeUtil {
 	}
 
 	/**
-	 * Transitive greater elements of a given lattice element.
-	 *
-	 * @param <ElementType>
-	 *            the type of the elements contained in the lattice.
-	 * @param s
-	 *            the element for which to collect all greater elements.
-	 * @param lat lattice which provides the partial order
-	 *
-	 * @return all transitive greater elements of <code>s</code>
-	 * 
-	 * @deprecated use {@link IStaticLattice#collectAllGreaterElements(Object)} instead, which may have an optimized implementation
-	 * 
+     * @see IStaticLattice#collectAllGreaterElements(Object)
+     *
+	 * @deprecated use {@link IStaticLattice#collectAllGreaterElements(Object)} instead
 	 */
 	@Deprecated
 	public static <ElementType> Collection<ElementType> collectAllGreaterElements(ElementType s, IStaticLattice<ElementType> lat) {
-		Collection<ElementType> greaterElements = new HashSet<ElementType>();
-
-		for (ElementType e : lat.getElements()) {
-
-			if (lat.greatestLowerBound(s, e).equals(s)) {
-				// inf(s,e) = s ==> s <= e
-				greaterElements.add(e);
-			}
-		}
-
-		return greaterElements;
+    	return lat.collectAllGreaterElements(s);
 	}
 
 	/**
@@ -482,52 +463,33 @@ public final class LatticeUtil {
 	}
 
 	/**
-	 * @deprecated use {@link IStaticLattice#isLeq(Object, Object)} instead, which may have an optimized implementation
+	 * @see IStaticLattice#collectNoninterferingElements(Object)
+	 *
+	 * @deprecated use {@link IStaticLattice#collectNoninterferingElements(Object)} instead
 	 */
 	@Deprecated
 	public static <ElementType> Collection<ElementType> collectNoninterferingElements(ElementType s, IStaticLattice<ElementType> lat) {
-		Collection<ElementType> noninterferingElements = new HashSet<ElementType>();
-
-		for (ElementType e : lat.getElements()) {
-			if (!lat.leastUpperBound(s, e).equals(s)) {
-				noninterferingElements.add(e);
-			}
-		}
-
-		return noninterferingElements;
+    	return lat.collectNoninterferingElements(s);
 	}
 
 	/**
-	 * @deprecated use {@link IStaticLattice#isLeq(Object, Object)} instead, which may have an optimized implementation
+	 * @see IStaticLattice#collectAllLowerElements(Object)
+	 *
+	 * @deprecated use {@link IStaticLattice#collectAllLowerElements(Object)} instead
 	 */
 	@Deprecated
 	public static <ElementType> Collection<ElementType> collectAllLowerElements(ElementType s, IStaticLattice<ElementType> lat) {
-		Collection<ElementType> lowerElements = new HashSet<ElementType>();
-
-		for (ElementType e : lat.getElements()) {
-			if (lat.leastUpperBound(s, e).equals(s)) {
-				lowerElements.add(e);
-			}
-		}
-
-		return lowerElements;
+    	return lat.collectAllLowerElements(s);
 	}
 
 	/**
-	 * Given a lattice l and two elements l1 and l2 or l's carrier set, returns whether l1
-	 * is lower than or equal to l2. Note that l1 and l2 really have to be elements of l's carrier
-	 * set, otherwise the correct functionality of this method cannot be guaranteed.
-	 * @param l the lattice in which the "is-lower-than-or-equal-to" relation is to be determined
-	 * @param l1 an element of the given lattice
-	 * @param l2 another element of the given lattice
-	 * @return {@code true} if the first given element is lower than or equal to the second given
-	 * element.
-	 * 
-	 * @deprecated use {@link IStaticLattice#isLeq(Object, Object)} instead, which may have an optimized implementation
+	 * @see IStaticLattice#isLeq(Object, Object)
+	 *
+	 * @deprecated use {@link IStaticLattice#isLeq(Object, Object)} instead
 	 */
 	@Deprecated
 	public static <ElementType> boolean isLeq(IStaticLattice<ElementType> l, ElementType l1, ElementType l2) {
-		return l.leastUpperBound(l1, l2).equals(l2);
+		return l.isLeq(l1, l2);
 	}
 	
 	

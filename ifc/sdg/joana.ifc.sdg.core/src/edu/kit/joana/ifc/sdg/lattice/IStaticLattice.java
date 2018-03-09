@@ -8,6 +8,7 @@
 package edu.kit.joana.ifc.sdg.lattice;
 
 import java.util.Collection;
+import java.util.HashSet;
 
 /**
  * Basic operations available on a immutable lattices.
@@ -72,37 +73,82 @@ public interface IStaticLattice<ElementType> {
      * @return all element contained in the lattice.
      */
     public Collection<ElementType> getElements();
-    
+
     /**
-     * @see LatticeUtil#collectAllGreaterElements(Object, IStaticLattice)
+     * Transitive greater elements of a given lattice element.
+	 *
+	 * @param s
+	 *            the element for which to collect all greater elements.
+	 *
+	 * @return all transitive greater elements of <code>s</code>
      */
-    @SuppressWarnings("deprecation")
 	default public Collection<ElementType> collectAllGreaterElements(ElementType s) {
-    	return LatticeUtil.collectAllGreaterElements(s, this);
-    }
-    
-    /**
-     * @see LatticeUtil#collectAllGreaterElements(Object, IStaticLattice)
-     */
-    @SuppressWarnings("deprecation")
-	default public Collection<ElementType> collectAllLowerElements(ElementType s) {
-    	return LatticeUtil.collectAllLowerElements(s, this);
+		Collection<ElementType> greaterElements = new HashSet<ElementType>();
+
+		for (ElementType e : getElements()) {
+
+			if (greatestLowerBound(s, e).equals(s)) {
+				// inf(s,e) = s ==> s <= e
+				greaterElements.add(e);
+			}
+		}
+
+		return greaterElements;
     }
 
     /**
-     * @see LatticeUtil#collectNoninterferingElements(Object, IStaticLattice)
+     * Transitive lower elements of a given lattice element.
+	 *
+	 * @param s
+	 *            the element for which to collect all lower elements.
+	 *
+	 * @return all transitive lower elements of <code>s</code>
      */
-    @SuppressWarnings("deprecation")
-	default public Collection<ElementType> collectNoninterferingElements(ElementType s) {
-    	return LatticeUtil.collectNoninterferingElements(s,this);
+	default public Collection<ElementType> collectAllLowerElements(ElementType s) {
+		Collection<ElementType> lowerElements = new HashSet<ElementType>();
+
+		for (ElementType e : getElements()) {
+			if (leastUpperBound(s, e).equals(s)) {
+				lowerElements.add(e);
+			}
+		}
+
+		return lowerElements;
     }
-    
+
+	/**
+     * Collects all elements that must not interfere with a given lattice element,
+     * i.e. are the elements for which an attacker of the given level must not learn anything.
+     * These are exactly the elements that are greater than or incomparable to the given element.
+	 *
+	 * @param s
+	 *            the element for which to collect all non-interfering elements.
+	 *
+	 * @return all non-interfering of <code>s</code>
+     */
+	default public Collection<ElementType> collectNoninterferingElements(ElementType s) {
+		Collection<ElementType> noninterferingElements = new HashSet<ElementType>();
+
+		for (ElementType e : getElements()) {
+			if (!leastUpperBound(s, e).equals(s)) {
+				noninterferingElements.add(e);
+			}
+		}
+
+		return noninterferingElements;
+    }
+
     /**
-     * @see LatticeUtil#isLeq(IStaticLattice, Object, Object)
+	 * Given a lattice l and two elements l1 and l2 or l's carrier set, returns whether l1
+	 * is lower than or equal to l2. Note that l1 and l2 really have to be elements of l's carrier
+	 * set, otherwise the correct functionality of this method cannot be guaranteed.
+	 * @param l1 an element of the given lattice
+	 * @param l2 another element of the given lattice
+	 * @return {@code true} if the first given element is lower than or equal to the second given
+	 * element.
 	 */
-    @SuppressWarnings("deprecation")
 	default public boolean isLeq(ElementType l1, ElementType l2) {
-		return LatticeUtil.isLeq(this, l1, l2);
+		return leastUpperBound(l1, l2).equals(l2);
 	}
 
 }

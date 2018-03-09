@@ -38,19 +38,27 @@ public final class LatticeUtil {
 
 	private LatticeUtil() {}
 
-	/**
-	 * Compiles a given lattice to an immutable but efficient bitset
-	 * representation.
-	 *
-	 * @param <ElementType>
-	 *            the type of the elements contained in the lattice.
-	 * @param lattice
-	 *            the lattice.
-	 * @return an immutable but efficient bitset representation of
-	 *         <code>lattice</code>.
-	 */
-	public static <ElementType> IStaticLattice<ElementType> compileBitsetLattice(IEditableLattice<ElementType> lattice) {
-		return new StaticLatticeBitset<ElementType>(lattice.getElements(), lattice);
+	private static void parseLatticeDefinitionLine(String line, IEditableLattice<String> lattice) throws WrongLatticeDefinitionException {
+		if (line.startsWith(TOKEN_COMMENT))
+			return;
+		if (line.length() <= 0)
+			return;
+		if (line.indexOf(TOKEN_LESS) >= 0) {
+			int leindex = line.indexOf(TOKEN_LESS);
+			String lower = line.substring(0, leindex).trim();
+			String higher = line.substring(leindex + 2).trim();
+			if (!lattice.getElements().contains(lower))
+				lattice.addElement(lower);
+			if (!lattice.getElements().contains(higher))
+				lattice.addElement(higher);
+			lattice.setImmediatelyGreater(lower, higher);
+		} else {
+			//throw new WrongLatticeDefinitionException("Invalid line format");
+			//Einzelne Elemente zulassen.
+			String elem = line.trim();
+			if (!lattice.getElements().contains(elem))
+				lattice.addElement(elem);
+		}
 	}
 
 	/**
@@ -95,29 +103,19 @@ public final class LatticeUtil {
 		return lattice;
 	}
 
-	private static void parseLatticeDefinitionLine(String line, IEditableLattice<String> lattice) throws WrongLatticeDefinitionException {
-		if (line.startsWith(TOKEN_COMMENT))
-			return;
-		if (line.length() <= 0)
-			return;
-		if (line.indexOf(TOKEN_LESS) >= 0) {
-			int leindex = line.indexOf(TOKEN_LESS);
-			String lower = line.substring(0, leindex).trim();
-			String higher = line.substring(leindex + 2).trim();
-			if (!lattice.getElements().contains(lower))
-				lattice.addElement(lower);
-			if (!lattice.getElements().contains(higher))
-				lattice.addElement(higher);
-			lattice.setImmediatelyGreater(lower, higher);
-		} else {
-			//throw new WrongLatticeDefinitionException("Invalid line format");
-			//Einzelne Elemente zulassen.
-			String elem = line.trim();
-			if (!lattice.getElements().contains(elem))
-				lattice.addElement(elem);
-		}
-
-
+	/**
+	 * Compiles a given lattice to an immutable but efficient bitset
+	 * representation.
+	 *
+	 * @param <ElementType>
+	 *            the type of the elements contained in the lattice.
+	 * @param lattice
+	 *            the lattice.
+	 * @return an immutable but efficient bitset representation of
+	 *         <code>lattice</code>.
+	 */
+	public static <ElementType> IStaticLattice<ElementType> compileBitsetLattice(IEditableLattice<ElementType> lattice) {
+		return new StaticLatticeBitset<ElementType>(lattice.getElements(), lattice);
 	}
 
 	/**
@@ -149,23 +147,23 @@ public final class LatticeUtil {
 	}
 
 	/**
-	 * @see ILatticeOperations#findUnreachableFromBottom(Collection)
-	 * 
-	 * @deprecated use {@link ILatticeOperations#findUnreachableFromBottom(Collection)} instead
-	 * 
+	 * @see IStaticLattice#collectAllLowerElements(Object)
+	 *
+	 * @deprecated use {@link IStaticLattice#collectAllLowerElements(Object)} instead
 	 */
 	@Deprecated
-	public static <ElementType> Collection<ElementType> findUnreachableFromBottom(Collection<ElementType> inElements, ILatticeOperations<ElementType> ops) throws InvalidLatticeException {
-    	return ops.findUnreachableFromBottom(inElements);
+	public static <ElementType> Collection<ElementType> collectAllLowerElements(ElementType s, IStaticLattice<ElementType> lat) {
+    	return lat.collectAllLowerElements(s);
 	}
 
-	public static <ElementType> void markReachableUp(ArrayList<ElementType> elements, ElementType current, boolean seen[], ILatticeOperations<ElementType> ops) {
-		int currentIndex = elements.indexOf(current);
-		if (seen[currentIndex])
-			return;
-		seen[currentIndex] = true;
-		for (ElementType parent : ops.getImmediatelyGreater(current))
-			markReachableUp(elements, parent, seen, ops);
+	/**
+	 * @see IStaticLattice#collectNoninterferingElements(Object)
+	 *
+	 * @deprecated use {@link IStaticLattice#collectNoninterferingElements(Object)} instead
+	 */
+	@Deprecated
+	public static <ElementType> Collection<ElementType> collectNoninterferingElements(ElementType s, IStaticLattice<ElementType> lat) {
+    	return lat.collectNoninterferingElements(s);
 	}
 
 	/**
@@ -186,6 +184,26 @@ public final class LatticeUtil {
 		seen[currentIndex] = true;
 		for (ElementType child : ops.getImmediatelyLower(current))
 			markReachableDown(elements, child, seen, ops);
+	}
+
+	/**
+	 * @see ILatticeOperations#findUnreachableFromBottom(Collection)
+	 * 
+	 * @deprecated use {@link ILatticeOperations#findUnreachableFromBottom(Collection)} instead
+	 * 
+	 */
+	@Deprecated
+	public static <ElementType> Collection<ElementType> findUnreachableFromBottom(Collection<ElementType> inElements, ILatticeOperations<ElementType> ops) throws InvalidLatticeException {
+    	return ops.findUnreachableFromBottom(inElements);
+	}
+
+	public static <ElementType> void markReachableUp(ArrayList<ElementType> elements, ElementType current, boolean seen[], ILatticeOperations<ElementType> ops) {
+		int currentIndex = elements.indexOf(current);
+		if (seen[currentIndex])
+			return;
+		seen[currentIndex] = true;
+		for (ElementType parent : ops.getImmediatelyGreater(current))
+			markReachableUp(elements, parent, seen, ops);
 	}
 
 	/**
@@ -254,26 +272,6 @@ public final class LatticeUtil {
 	@Deprecated
 	public static <ElementType> Collection<ElementType> findBottomElements(Collection<ElementType> inElements, ILatticeOperations<ElementType> ops) {
 		return ops.findBottomElements(inElements);
-	}
-
-	/**
-	 * @see IStaticLattice#collectNoninterferingElements(Object)
-	 *
-	 * @deprecated use {@link IStaticLattice#collectNoninterferingElements(Object)} instead
-	 */
-	@Deprecated
-	public static <ElementType> Collection<ElementType> collectNoninterferingElements(ElementType s, IStaticLattice<ElementType> lat) {
-    	return lat.collectNoninterferingElements(s);
-	}
-
-	/**
-	 * @see IStaticLattice#collectAllLowerElements(Object)
-	 *
-	 * @deprecated use {@link IStaticLattice#collectAllLowerElements(Object)} instead
-	 */
-	@Deprecated
-	public static <ElementType> Collection<ElementType> collectAllLowerElements(ElementType s, IStaticLattice<ElementType> lat) {
-    	return lat.collectAllLowerElements(s);
 	}
 
 	/**

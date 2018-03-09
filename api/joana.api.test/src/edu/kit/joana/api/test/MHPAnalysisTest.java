@@ -145,18 +145,20 @@ public class MHPAnalysisTest {
 		SDGAnalyzer ana = new SDGAnalyzer(sdg);
 		SDGNode p1 = getStringPrintInMethod(ana, "DataConflictRWBenign$Thread1.run()V");
 		SDGNode p2 = getStringPrintInMethod(ana, "DataConflictRWBenign$Thread2.run()V");
-		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
-		checkSoundness(mhp, p1, p2);
+		for (MHPAnalysis mhp : new MHPAnalysis[] { PreciseMHPAnalysis.analyze(sdg), PreciseMHPAnalysis.analyzeUNSAFE(sdg) }) {
+			checkSoundness(mhp, p1, p2);
+		}
 	}
-	
+
 	@Test
 	public void testDataConflictRW() {
 		SDG sdg = buildOrLoad("dataconf-rw");
 		SDGAnalyzer ana = new SDGAnalyzer(sdg);
 		SDGNode n = getAssignmentInMethod(ana, "DataConflictRW$Thread1.run()V", "DataConflictRW.x");
 		SDGNode p = getIntPrintInMethod(ana, "DataConflictRW$Thread2.run()V");
-		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
-		checkPrecision(mhp, n, p);
+		for (MHPAnalysis mhp : new MHPAnalysis[] { PreciseMHPAnalysis.analyze(sdg), PreciseMHPAnalysis.analyzeUNSAFE(sdg) }) {
+			checkPrecision(mhp, n, p);
+		}
 	}
 	
 	@Test
@@ -166,8 +168,9 @@ public class MHPAnalysisTest {
 		SDGNode n = getAssignmentInMethod(ana, "DataConflictRWNoMHP.main([Ljava/lang/String;)V",
 											"DataConflictRWNoMHP.x");
 		SDGNode p = getIntPrintInMethod(ana, "DataConflictRWNoMHP$Thread2.run()V");
-		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
-		checkPrecision(mhp, n, p);
+		for (MHPAnalysis mhp : new MHPAnalysis[] { PreciseMHPAnalysis.analyze(sdg), PreciseMHPAnalysis.analyzeUNSAFE(sdg) }) {
+			checkPrecision(mhp, n, p);
+		}
 	}
 	
 	@Test
@@ -177,8 +180,9 @@ public class MHPAnalysisTest {
 		SDGNode p = getIntPrintInMethod(ana, "NoDataConflictRWNoMHP$Thread2.run()V");
 		SDGNode n = getAssignmentInMethod(ana, "NoDataConflictRWNoMHP.main([Ljava/lang/String;)V",
 											"NoDataConflictRWNoMHP.x");
-		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
-		checkPrecision(mhp, n, p);
+		for (MHPAnalysis mhp : new MHPAnalysis[] { PreciseMHPAnalysis.analyze(sdg), PreciseMHPAnalysis.analyzeUNSAFE(sdg) }) {
+			checkPrecision(mhp, n, p);
+		}
 	}
 	
 	@Test
@@ -191,13 +195,14 @@ public class MHPAnalysisTest {
 		SDGNode p2 = getStringPrintInMethod(ana, "SequentialSpawn$Thread2.run()V");
 		SDGNode my = getAssignmentInMethod(ana, "SequentialSpawn.main([Ljava/lang/String;)V",
 												"SequentialSpawn.y");
-		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
-		checkPrecision(mhp, mx, p1);
-		checkPrecision(mhp, mx, p2);
-		checkPrecision(mhp, mx, my);
-		checkSoundness(mhp, p1, p2);
-		checkPrecision(mhp, p1, my);
-		checkSoundness(mhp, p2, my);
+		for (MHPAnalysis mhp : new MHPAnalysis[] { PreciseMHPAnalysis.analyze(sdg), PreciseMHPAnalysis.analyzeUNSAFE(sdg) }) {
+			checkPrecision(mhp, mx, p1);
+			checkPrecision(mhp, mx, p2);
+			checkPrecision(mhp, mx, my);
+			checkSoundness(mhp, p1, p2);
+			checkPrecision(mhp, p1, my);
+			checkSoundness(mhp, p2, my);
+		}
 	}
 	
 	@Test
@@ -208,13 +213,14 @@ public class MHPAnalysisTest {
 		SDGNode p2 = getStringPrintInMethod(ana, "BranchedSpawn$Thread2.run()V");
 		SDGNode p3 = getStringPrintInMethod(ana, "BranchedSpawn$Thread3.run()V");
 		SDGNode p4 = getStringPrintInMethod(ana, "BranchedSpawn$Thread4.run()V");
-		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
-		checkSoundness(mhp, p1, p2);
-		checkPrecision(mhp, p1, p3);
-		checkSoundness(mhp, p1, p4);
-		checkPrecision(mhp, p2, p3);
-		checkSoundness(mhp, p2, p4);
-		checkSoundness(mhp, p3, p4);
+		for (MHPAnalysis mhp : new MHPAnalysis[] { PreciseMHPAnalysis.analyze(sdg), PreciseMHPAnalysis.analyzeUNSAFE(sdg) }) {
+			checkSoundness(mhp, p1, p2);
+			checkPrecision(mhp, p1, p3);
+			checkSoundness(mhp, p1, p4);
+			checkPrecision(mhp, p2, p3);
+			checkSoundness(mhp, p2, p4);
+			checkSoundness(mhp, p3, p4);
+		}
 	}
 	
 	@Test
@@ -223,8 +229,9 @@ public class MHPAnalysisTest {
 		SDGAnalyzer ana = new SDGAnalyzer(sdg);
 		SDGNode p2 = getStringPrintInMethod(ana, "BranchedSpawnTwoThreads$Thread2.run()V");
 		SDGNode p3 = getStringPrintInMethod(ana, "BranchedSpawnTwoThreads$Thread3.run()V");
-		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
-		checkPrecision(mhp, p2, p3);
+		for (MHPAnalysis mhp : new MHPAnalysis[] { PreciseMHPAnalysis.analyze(sdg), PreciseMHPAnalysis.analyzeUNSAFE(sdg) }) {
+			checkPrecision(mhp, p2, p3);
+		}
 	}
 	
 	@Test
@@ -237,28 +244,29 @@ public class MHPAnalysisTest {
 		SDGNode p3 = getStringPrintInMethod(ana, "BothBranchesSpawn$Thread3.run()V");
 		SDGNode p4 = getStringPrintInMethod(ana, "BothBranchesSpawn$Thread4.run()V");
 		SDGNode pi = getIntPrintInMethod(ana, "BothBranchesSpawn.main([Ljava/lang/String;)V");
-		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
-		checkPrecision(mhp, p1, p1);
-		checkSoundness(mhp, p1, p2);
-		checkSoundness(mhp, p1, ps);
-		checkSoundness(mhp, p1, p3);
-		checkSoundness(mhp, p1, p4);
-		checkSoundness(mhp, p1, pi);
-		checkPrecision(mhp, p2, p2);
-		checkTooImprecise(mhp, p2, ps);
-		checkTooImprecise(mhp, p2, p3);
-		checkTooImprecise(mhp, p2, p4);
-		checkTooImprecise(mhp, p2, pi);
-		checkPrecision(mhp, ps, ps);
-		checkPrecision(mhp, ps, p3);
-		checkPrecision(mhp, ps, p4);
-		checkPrecision(mhp, ps, pi);
-		checkPrecision(mhp, p3, p3);
-		checkPrecision(mhp, p3, p4);
-		checkPrecision(mhp, p3, pi);
-		checkPrecision(mhp, p4, p4);
-		checkSoundness(mhp, p4, pi);
-		checkPrecision(mhp, pi, pi);
+		for (MHPAnalysis mhp : new MHPAnalysis[] { PreciseMHPAnalysis.analyze(sdg), PreciseMHPAnalysis.analyzeUNSAFE(sdg) }) {
+			checkPrecision(mhp, p1, p1);
+			checkSoundness(mhp, p1, p2);
+			checkSoundness(mhp, p1, ps);
+			checkSoundness(mhp, p1, p3);
+			checkSoundness(mhp, p1, p4);
+			checkSoundness(mhp, p1, pi);
+			checkPrecision(mhp, p2, p2);
+			checkTooImprecise(mhp, p2, ps);
+			checkTooImprecise(mhp, p2, p3);
+			checkTooImprecise(mhp, p2, p4);
+			checkTooImprecise(mhp, p2, pi);
+			checkPrecision(mhp, ps, ps);
+			checkPrecision(mhp, ps, p3);
+			checkPrecision(mhp, ps, p4);
+			checkPrecision(mhp, ps, pi);
+			checkPrecision(mhp, p3, p3);
+			checkPrecision(mhp, p3, p4);
+			checkPrecision(mhp, p3, pi);
+			checkPrecision(mhp, p4, p4);
+			checkSoundness(mhp, p4, pi);
+			checkPrecision(mhp, pi, pi);
+		}
 	}
 	
 	@Test
@@ -269,17 +277,18 @@ public class MHPAnalysisTest {
 		SDGNode p2 = getStringPrintInMethod(ana, "DynamicSpawn$Thread2.run()V");
 		SDGNode p3 = getStringPrintInMethod(ana, "DynamicSpawn$Thread3.run()V");
 		SDGNode p4 = getStringPrintInMethod(ana, "DynamicSpawn$Thread4.run()V");
-		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
-		checkSoundness(mhp, p1, p1);
-		checkSoundness(mhp, p1, p2);
-		checkSoundness(mhp, p1, p3);
-		checkSoundness(mhp, p1, p4);
-		checkSoundness(mhp, p2, p2);
-		checkPrecision(mhp, p2, p3);
-		checkPrecision(mhp, p2, p4);
-		checkSoundness(mhp, p3, p3);
-		checkSoundness(mhp, p3, p4);
-		checkSoundness(mhp, p4, p4);
+		for (MHPAnalysis mhp : new MHPAnalysis[] { PreciseMHPAnalysis.analyze(sdg), PreciseMHPAnalysis.analyzeUNSAFE(sdg) }) {
+			checkSoundness(mhp, p1, p1);
+			checkSoundness(mhp, p1, p2);
+			checkSoundness(mhp, p1, p3);
+			checkSoundness(mhp, p1, p4);
+			checkSoundness(mhp, p2, p2);
+			checkPrecision(mhp, p2, p3);
+			checkPrecision(mhp, p2, p4);
+			checkSoundness(mhp, p3, p3);
+			checkSoundness(mhp, p3, p4);
+			checkSoundness(mhp, p4, p4);
+		}
 	}
 	
 	@Test
@@ -315,28 +324,29 @@ public class MHPAnalysisTest {
 		SDGNode p3 = pair3.getFirst();
 		SDGNode p3a = pair3.getSecond();
 		SDGNode p4 = getStringPrintInMethod(ana, "MoreRecursiveSpawn$Thread4.run()V");
-		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
-		checkSoundness(mhp, p1, p1);
-		checkSoundness(mhp, p1, p2);
-		checkSoundness(mhp, p1, p2a);
-		checkSoundness(mhp, p1, p3);
-		checkSoundness(mhp, p1, p3a);
-		checkSoundness(mhp, p1, p4);
-		checkPrecision(mhp, p2, p2);
-		checkSoundness(mhp, p2, p2a);
-		checkPrecision(mhp, p2, p3);
-		checkPrecision(mhp, p2, p3a);
-		checkPrecision(mhp, p2, p4);
-		checkSoundness(mhp, p2a, p2a);
-		checkPrecision(mhp, p2a, p3);
-		checkPrecision(mhp, p2a, p3a);
-		checkPrecision(mhp, p2a, p4);
-		checkPrecision(mhp, p3, p3);
-		checkSoundness(mhp, p3, p3a);
-		checkSoundness(mhp, p3, p4);
-		checkSoundness(mhp, p3a, p3a);
-		checkSoundness(mhp, p3a, p4);
-		checkSoundness(mhp, p4, p4);
+		for (MHPAnalysis mhp : new MHPAnalysis[] { PreciseMHPAnalysis.analyze(sdg), PreciseMHPAnalysis.analyzeUNSAFE(sdg) }) {
+			checkSoundness(mhp, p1, p1);
+			checkSoundness(mhp, p1, p2);
+			checkSoundness(mhp, p1, p2a);
+			checkSoundness(mhp, p1, p3);
+			checkSoundness(mhp, p1, p3a);
+			checkSoundness(mhp, p1, p4);
+			checkPrecision(mhp, p2, p2);
+			checkSoundness(mhp, p2, p2a);
+			checkPrecision(mhp, p2, p3);
+			checkPrecision(mhp, p2, p3a);
+			checkPrecision(mhp, p2, p4);
+			checkSoundness(mhp, p2a, p2a);
+			checkPrecision(mhp, p2a, p3);
+			checkPrecision(mhp, p2a, p3a);
+			checkPrecision(mhp, p2a, p4);
+			checkPrecision(mhp, p3, p3);
+			checkSoundness(mhp, p3, p3a);
+			checkSoundness(mhp, p3, p4);
+			checkSoundness(mhp, p3a, p3a);
+			checkSoundness(mhp, p3a, p4);
+			checkSoundness(mhp, p4, p4);
+		}
 	}
 	
 	@Test
@@ -379,201 +389,210 @@ public class MHPAnalysisTest {
 	public void testMutualRecursiveSpawn() {
 		SDG sdg = buildOrLoad("mutual-recursive-spawn");
 		SDGAnalyzer ana = new SDGAnalyzer(sdg);
-		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
+		for (MHPAnalysis mhp : new MHPAnalysis[] { PreciseMHPAnalysis.analyze(sdg), PreciseMHPAnalysis.analyzeUNSAFE(sdg) }) {
 		
-		Pair<SDGNode,SDGNode> pair1 = getPrintsInRecursiveMethod(sdg, ana, "MutualRecursiveSpawn$Thread1a.run()V");
-		SDGNode p1 = pair1.getFirst();
-		SDGNode p1a = pair1.getSecond();
-		SDGNode p1b = getStringPrintInMethod(ana, "MutualRecursiveSpawn$Thread1b.run()V");
-		checkPrecision(mhp, p1, p1);
-		checkPrecision(mhp, p1, p1a);
-		checkPrecision(mhp, p1, p1b);
-		checkTooImprecise(mhp, p1a, p1a);
-		checkTooImprecise(mhp, p1a, p1b);
-		checkTooImprecise(mhp, p1b, p1b);
+			Pair<SDGNode,SDGNode> pair1 = getPrintsInRecursiveMethod(sdg, ana, "MutualRecursiveSpawn$Thread1a.run()V");
+			SDGNode p1 = pair1.getFirst();
+			SDGNode p1a = pair1.getSecond();
+			SDGNode p1b = getStringPrintInMethod(ana, "MutualRecursiveSpawn$Thread1b.run()V");
+			checkPrecision(mhp, p1, p1);
+			checkPrecision(mhp, p1, p1a);
+			checkPrecision(mhp, p1, p1b);
+			checkTooImprecise(mhp, p1a, p1a);
+			checkTooImprecise(mhp, p1a, p1b);
+			checkTooImprecise(mhp, p1b, p1b);
 
-		Pair<SDGNode,SDGNode> pair2 = getPrintsInRecursiveMethod(sdg, ana, "MutualRecursiveSpawn$Thread2a.run()V");
-		SDGNode p2 = pair2.getFirst();
-		SDGNode p2a = pair2.getSecond();
-		SDGNode p2b = getStringPrintInMethod(ana, "MutualRecursiveSpawn$Thread2b.run()V");
-		checkPrecision(mhp, p2, p2);
-		checkPrecision(mhp, p2, p2a);
-		checkPrecision(mhp, p2, p2b);
-		checkTooImprecise(mhp, p2a, p2a);
-		checkSoundness(mhp, p2a, p2b);
-		checkSoundness(mhp, p2b, p2b);
-		
-		Pair<SDGNode,SDGNode> pair3 = getPrintsInRecursiveMethod(sdg, ana, "MutualRecursiveSpawn$Thread3a.run()V");
-		SDGNode p3 = pair3.getFirst();
-		SDGNode p3a = pair3.getSecond();
-		SDGNode p3b = getStringPrintInMethod(ana, "MutualRecursiveSpawn$Thread3b.run()V");
-		checkPrecision(mhp, p3, p3);
-		checkSoundness(mhp, p3, p3a);
-		checkSoundness(mhp, p3, p3b);
-		checkSoundness(mhp, p3a, p3a);
-		checkSoundness(mhp, p3a, p3b);
-		checkTooImprecise(mhp, p3b, p3b);
-		
-		Pair<SDGNode,SDGNode> pair4 = getPrintsInRecursiveMethod(sdg, ana, "MutualRecursiveSpawn$Thread4a.run()V");
-		SDGNode p4 = pair4.getFirst();
-		SDGNode p4a = pair4.getSecond();
-		SDGNode p4b = getStringPrintInMethod(ana, "MutualRecursiveSpawn$Thread4b.run()V");
-		checkPrecision(mhp, p4, p4);
-		checkSoundness(mhp, p4, p4a);
-		checkSoundness(mhp, p4, p4b);
-		checkSoundness(mhp, p4a, p4a);
-		checkSoundness(mhp, p4a, p4b);
-		checkSoundness(mhp, p4b, p4b);
+			Pair<SDGNode,SDGNode> pair2 = getPrintsInRecursiveMethod(sdg, ana, "MutualRecursiveSpawn$Thread2a.run()V");
+			SDGNode p2 = pair2.getFirst();
+			SDGNode p2a = pair2.getSecond();
+			SDGNode p2b = getStringPrintInMethod(ana, "MutualRecursiveSpawn$Thread2b.run()V");
+			checkPrecision(mhp, p2, p2);
+			checkPrecision(mhp, p2, p2a);
+			checkPrecision(mhp, p2, p2b);
+			checkTooImprecise(mhp, p2a, p2a);
+			checkSoundness(mhp, p2a, p2b);
+			checkSoundness(mhp, p2b, p2b);
+
+			Pair<SDGNode,SDGNode> pair3 = getPrintsInRecursiveMethod(sdg, ana, "MutualRecursiveSpawn$Thread3a.run()V");
+			SDGNode p3 = pair3.getFirst();
+			SDGNode p3a = pair3.getSecond();
+			SDGNode p3b = getStringPrintInMethod(ana, "MutualRecursiveSpawn$Thread3b.run()V");
+			checkPrecision(mhp, p3, p3);
+			checkSoundness(mhp, p3, p3a);
+			checkSoundness(mhp, p3, p3b);
+			checkSoundness(mhp, p3a, p3a);
+			checkSoundness(mhp, p3a, p3b);
+			checkTooImprecise(mhp, p3b, p3b);
+
+			Pair<SDGNode,SDGNode> pair4 = getPrintsInRecursiveMethod(sdg, ana, "MutualRecursiveSpawn$Thread4a.run()V");
+			SDGNode p4 = pair4.getFirst();
+			SDGNode p4a = pair4.getSecond();
+			SDGNode p4b = getStringPrintInMethod(ana, "MutualRecursiveSpawn$Thread4b.run()V");
+			checkPrecision(mhp, p4, p4);
+			checkSoundness(mhp, p4, p4a);
+			checkSoundness(mhp, p4, p4b);
+			checkSoundness(mhp, p4a, p4a);
+			checkSoundness(mhp, p4a, p4b);
+			checkSoundness(mhp, p4b, p4b);
+		}
 	}
 	
 	@Test
 	public void testInterprocJoin() {
 		SDG sdg = buildOrLoad("interproc-join");
 		SDGAnalyzer ana = new SDGAnalyzer(sdg);
-		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
-		
-		//subtest 1
-		SDGNode p1 = getStringPrintInMethod(ana, "InterprocJoin$Thread1.run()V");
-		SDGNode pz = getPrintInMethod(ana, "InterprocJoin.main([Ljava/lang/String;)V", "Z");
-		checkSoundness(mhp, p1, pz);
+		for (MHPAnalysis mhp : new MHPAnalysis[] { PreciseMHPAnalysis.analyze(sdg), PreciseMHPAnalysis.analyzeUNSAFE(sdg) }) {
 
-		//subtest 2
-		SDGNode p2 = getStringPrintInMethod(ana, "InterprocJoin$Thread2.run()V");
-		SDGNode pi = getIntPrintInMethod(ana, "InterprocJoin.main([Ljava/lang/String;)V");
-		checkSoundness(mhp, p2, pi);
+			//subtest 1
+			SDGNode p1 = getStringPrintInMethod(ana, "InterprocJoin$Thread1.run()V");
+			SDGNode pz = getPrintInMethod(ana, "InterprocJoin.main([Ljava/lang/String;)V", "Z");
+			checkSoundness(mhp, p1, pz);
 
-		//subtest 3
-		SDGNode p3 = getStringPrintInMethod(ana, "InterprocJoin$Thread3.run()V");
-		SDGNode ps = getStringPrintInMethod(ana, "InterprocJoin.main([Ljava/lang/String;)V");
-		checkPrecision(mhp, p3, ps);
+			//subtest 2
+			SDGNode p2 = getStringPrintInMethod(ana, "InterprocJoin$Thread2.run()V");
+			SDGNode pi = getIntPrintInMethod(ana, "InterprocJoin.main([Ljava/lang/String;)V");
+			checkSoundness(mhp, p2, pi);
+
+			//subtest 3
+			SDGNode p3 = getStringPrintInMethod(ana, "InterprocJoin$Thread3.run()V");
+			SDGNode ps = getStringPrintInMethod(ana, "InterprocJoin.main([Ljava/lang/String;)V");
+			checkPrecision(mhp, p3, ps);
+		}
 	}
 	
 	@Test
 	public void testInterthreadJoin() {
 		SDG sdg = buildOrLoad("interthread-join");
 		SDGAnalyzer ana = new SDGAnalyzer(sdg);
-		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
-		
-		SDGNode p1a = getStringPrintInMethod(ana, "InterthreadJoin$Thread1a.run()V");
-		SDGNode p1b = getStringPrintInMethod(ana, "InterthreadJoin$Thread1b.run()V");
-		SDGNode p1c = getStringPrintInMethod(ana, "InterthreadJoin$Thread1c.run()V");
-		checkPrecision(mhp, p1a, p1b);
-		checkSoundness(mhp, p1a, p1c);
-		checkSoundness(mhp, p1b, p1c);
+		for (MHPAnalysis mhp : new MHPAnalysis[] { PreciseMHPAnalysis.analyze(sdg), PreciseMHPAnalysis.analyzeUNSAFE(sdg) }) {
 
-		SDGNode p2a = getStringPrintInMethod(ana, "InterthreadJoin$Thread2a.run()V");
-		SDGNode p2b = getStringPrintInMethod(ana, "InterthreadJoin$Thread2b.run()V");
-		checkSoundness(mhp, p2a, p2b);
+			SDGNode p1a = getStringPrintInMethod(ana, "InterthreadJoin$Thread1a.run()V");
+			SDGNode p1b = getStringPrintInMethod(ana, "InterthreadJoin$Thread1b.run()V");
+			SDGNode p1c = getStringPrintInMethod(ana, "InterthreadJoin$Thread1c.run()V");
+			checkPrecision(mhp, p1a, p1b);
+			checkSoundness(mhp, p1a, p1c);
+			checkSoundness(mhp, p1b, p1c);
+
+			SDGNode p2a = getStringPrintInMethod(ana, "InterthreadJoin$Thread2a.run()V");
+			SDGNode p2b = getStringPrintInMethod(ana, "InterthreadJoin$Thread2b.run()V");
+			checkSoundness(mhp, p2a, p2b);
+		}
 	}
 	
 	@Test
 	public void testForkJoin() {
 		SDG sdg = buildOrLoad("fork-join");
 		SDGAnalyzer ana = new SDGAnalyzer(sdg);
-		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
-		SDGNode p1 = getStringPrintInMethod(ana, "ForkJoin$Thread1.run()V");
-		SDGNode p2 = getStringPrintInMethod(ana, "ForkJoin$Thread2.run()V");
-		SDGNode ps = getStringPrintInMethod(ana, "ForkJoin.main([Ljava/lang/String;)V");
-		checkPrecision(mhp, p1, p1);
-		checkSoundness(mhp, p1, p2);
-		checkSoundness(mhp, p1, ps);
-		checkSoundness(mhp, p2, p2);
-		checkSoundness(mhp, p2, ps);
-		checkPrecision(mhp, ps, ps);
+		for (MHPAnalysis mhp : new MHPAnalysis[] { PreciseMHPAnalysis.analyze(sdg), PreciseMHPAnalysis.analyzeUNSAFE(sdg) }) {
+			SDGNode p1 = getStringPrintInMethod(ana, "ForkJoin$Thread1.run()V");
+			SDGNode p2 = getStringPrintInMethod(ana, "ForkJoin$Thread2.run()V");
+			SDGNode ps = getStringPrintInMethod(ana, "ForkJoin.main([Ljava/lang/String;)V");
+			checkPrecision(mhp, p1, p1);
+			checkSoundness(mhp, p1, p2);
+			checkSoundness(mhp, p1, ps);
+			checkSoundness(mhp, p2, p2);
+			checkSoundness(mhp, p2, ps);
+			checkPrecision(mhp, ps, ps);
+		}
 	}
 	
 	@Test
 	public void testForkJoinChain() {
 		SDG sdg = buildOrLoad("fork-join-chain");
 		SDGAnalyzer ana = new SDGAnalyzer(sdg);
-		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
-		SDGNode p1 = getStringPrintInMethod(ana, "ForkJoinChain$Thread1.run()V");
-		SDGNode p2 = getStringPrintInMethod(ana, "ForkJoinChain$Thread2.run()V");
-		SDGNode p3 = getStringPrintInMethod(ana, "ForkJoinChain$Thread3.run()V");
-		SDGNode ps = getStringPrintInMethod(ana, "ForkJoinChain.main([Ljava/lang/String;)V");
-		
-		checkPrecision(mhp, p1, p2);
-		checkTooImprecise(mhp, p1, p3);
-		checkPrecision(mhp, p1, ps);
+		for (MHPAnalysis mhp : new MHPAnalysis[] { PreciseMHPAnalysis.analyze(sdg), PreciseMHPAnalysis.analyzeUNSAFE(sdg) }) {
+			SDGNode p1 = getStringPrintInMethod(ana, "ForkJoinChain$Thread1.run()V");
+			SDGNode p2 = getStringPrintInMethod(ana, "ForkJoinChain$Thread2.run()V");
+			SDGNode p3 = getStringPrintInMethod(ana, "ForkJoinChain$Thread3.run()V");
+			SDGNode ps = getStringPrintInMethod(ana, "ForkJoinChain.main([Ljava/lang/String;)V");
 
-		checkPrecision(mhp, p2, p3);
-		checkTooImprecise(mhp, p2, ps);
+			checkPrecision(mhp, p1, p2);
+			checkTooImprecise(mhp, p1, p3);
+			checkPrecision(mhp, p1, ps);
 
-		checkTooImprecise(mhp, p3, ps);
+			checkPrecision(mhp, p2, p3);
+			checkTooImprecise(mhp, p2, ps);
+
+			checkTooImprecise(mhp, p3, ps);
+		}
 	}
 	
 	@Test
 	public void testIndirectSpawnJoin() {
 		SDG sdg = buildOrLoad("indirect-spawn-join");
 		SDGAnalyzer ana = new SDGAnalyzer(sdg);
-		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
-		SDGNode p2 = getStringPrintInMethod(ana, "IndirectSpawnJoin$Thread2.run()V");
-		SDGNode p4 = getStringPrintInMethod(ana, "IndirectSpawnJoin$Thread4.run()V");
-		SDGNode p6 = getStringPrintInMethod(ana, "IndirectSpawnJoin$Thread4.run()V");
-		SDGNode ps = getStringPrintInMethod(ana, "IndirectSpawnJoin.main([Ljava/lang/String;)V");
-		
-		checkTooImprecise(mhp, p2, ps);
-		checkSoundness(mhp, p4, ps);
-		checkSoundness(mhp, p6, ps);
+		for (MHPAnalysis mhp : new MHPAnalysis[] { PreciseMHPAnalysis.analyze(sdg), PreciseMHPAnalysis.analyzeUNSAFE(sdg) }) {
+			SDGNode p2 = getStringPrintInMethod(ana, "IndirectSpawnJoin$Thread2.run()V");
+			SDGNode p4 = getStringPrintInMethod(ana, "IndirectSpawnJoin$Thread4.run()V");
+			SDGNode p6 = getStringPrintInMethod(ana, "IndirectSpawnJoin$Thread4.run()V");
+			SDGNode ps = getStringPrintInMethod(ana, "IndirectSpawnJoin.main([Ljava/lang/String;)V");
+
+			checkTooImprecise(mhp, p2, ps);
+			checkSoundness(mhp, p4, ps);
+			checkSoundness(mhp, p6, ps);
+		}
 	}
 	
 	@Test
 	public void testOtherThreadJoins() {
 		SDG sdg = buildOrLoad("other-thread-joins");
 		SDGAnalyzer ana = new SDGAnalyzer(sdg);
-		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
-		SDGNode p1 = getStringPrintInMethod(ana, "OtherThreadJoins$Thread1.run()V");
-		SDGNode p2 = getStringPrintInMethod(ana, "OtherThreadJoins$Thread2.run()V");
-		SDGNode p3 = getStringPrintInMethod(ana, "OtherThreadJoins$Thread3.run()V");
-		SDGNode p4 = getStringPrintInMethod(ana, "OtherThreadJoins$Thread4.run()V");
-		SDGNode p6 = getStringPrintInMethod(ana, "OtherThreadJoins$Thread6.run()V");
-		SDGNode ps = getStringPrintInMethod(ana, "OtherThreadJoins.main([Ljava/lang/String;)V");
-		
-		checkSoundness(mhp, p1, p2);
-		checkPrecision(mhp, p3, p4);
-		checkTooImprecise(mhp, p6, ps);
+		for (MHPAnalysis mhp : new MHPAnalysis[] { PreciseMHPAnalysis.analyze(sdg), PreciseMHPAnalysis.analyzeUNSAFE(sdg) }) {
+			SDGNode p1 = getStringPrintInMethod(ana, "OtherThreadJoins$Thread1.run()V");
+			SDGNode p2 = getStringPrintInMethod(ana, "OtherThreadJoins$Thread2.run()V");
+			SDGNode p3 = getStringPrintInMethod(ana, "OtherThreadJoins$Thread3.run()V");
+			SDGNode p4 = getStringPrintInMethod(ana, "OtherThreadJoins$Thread4.run()V");
+			SDGNode p6 = getStringPrintInMethod(ana, "OtherThreadJoins$Thread6.run()V");
+			SDGNode ps = getStringPrintInMethod(ana, "OtherThreadJoins.main([Ljava/lang/String;)V");
+
+			checkSoundness(mhp, p1, p2);
+			checkPrecision(mhp, p3, p4);
+			checkTooImprecise(mhp, p6, ps);
+		}
 	}
 	
 	@Test
 	public void testOtherThreadJoinsIndirect() {
 		SDG sdg = buildOrLoad("other-thread-joins-indirect");
 		SDGAnalyzer ana = new SDGAnalyzer(sdg);
-		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
-		SDGNode p1 = getStringPrintInMethod(ana, "OtherThreadJoinsIndirect$Thread1.run()V");
-		SDGNode p3 = getStringPrintInMethod(ana, "OtherThreadJoinsIndirect$Thread3.run()V");
-		
-		checkSoundness(mhp, p1, p3);
+		for (MHPAnalysis mhp : new MHPAnalysis[] { PreciseMHPAnalysis.analyze(sdg), PreciseMHPAnalysis.analyzeUNSAFE(sdg) }) {
+			SDGNode p1 = getStringPrintInMethod(ana, "OtherThreadJoinsIndirect$Thread1.run()V");
+			SDGNode p3 = getStringPrintInMethod(ana, "OtherThreadJoinsIndirect$Thread3.run()V");
+
+			checkSoundness(mhp, p1, p3);
+		}
 	}
 	
 	@Test
 	public void testAliasedJoin() {
 		SDG sdg = buildOrLoad("aliased-join");
 		SDGAnalyzer ana = new SDGAnalyzer(sdg);
-		MHPAnalysis mhp = PreciseMHPAnalysis.analyze(sdg);
-		SDGNode p1 = getStringPrintInMethod(ana, "AliasedJoin$Thread1.run()V");
-		SDGNode p2 = getStringPrintInMethod(ana, "AliasedJoin$Thread2.run()V");
-		SDGNode ps = getStringPrintInMethod(ana, "AliasedJoin.main([Ljava/lang/String;)V");
-		SDGNode pi = getIntPrintInMethod(ana, "AliasedJoin.main([Ljava/lang/String;)V");
-		
-		checkSoundness(mhp, p1, p2);
-		checkSoundness(mhp, p1, ps);
-		checkSoundness(mhp, p2, ps);
-		checkPrecision(mhp, p1, pi);
-		checkSoundness(mhp, p2, pi);
-		checkPrecision(mhp, ps, pi);
-		
-		checkSoundness(mhp, p2, p1);
-		checkSoundness(mhp, ps, p1);
-		checkSoundness(mhp, ps, p2);
-		checkPrecision(mhp, pi, p1);
-		checkSoundness(mhp, pi, p2);
-		checkPrecision(mhp, pi, ps);
+		for (MHPAnalysis mhp : new MHPAnalysis[] { PreciseMHPAnalysis.analyze(sdg), PreciseMHPAnalysis.analyzeUNSAFE(sdg) }) {
+			SDGNode p1 = getStringPrintInMethod(ana, "AliasedJoin$Thread1.run()V");
+			SDGNode p2 = getStringPrintInMethod(ana, "AliasedJoin$Thread2.run()V");
+			SDGNode ps = getStringPrintInMethod(ana, "AliasedJoin.main([Ljava/lang/String;)V");
+			SDGNode pi = getIntPrintInMethod(ana, "AliasedJoin.main([Ljava/lang/String;)V");
 
-		
-		checkPrecision(mhp, p1, p1);
-		checkPrecision(mhp, p2, p2);
-		checkPrecision(mhp, ps, ps);
-		checkPrecision(mhp, pi, pi);
+			checkSoundness(mhp, p1, p2);
+			checkSoundness(mhp, p1, ps);
+			checkSoundness(mhp, p2, ps);
+			checkPrecision(mhp, p1, pi);
+			checkSoundness(mhp, p2, pi);
+			checkPrecision(mhp, ps, pi);
+
+			checkSoundness(mhp, p2, p1);
+			checkSoundness(mhp, ps, p1);
+			checkSoundness(mhp, ps, p2);
+			checkPrecision(mhp, pi, p1);
+			checkSoundness(mhp, pi, p2);
+			checkPrecision(mhp, pi, ps);
+
+
+			checkPrecision(mhp, p1, p1);
+			checkPrecision(mhp, p2, p2);
+			checkPrecision(mhp, ps, ps);
+			checkPrecision(mhp, pi, pi);
+		}
 	}
 
 	private SDGNode getIntPrintInMethod(SDGAnalyzer ana, String shortName) {

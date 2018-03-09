@@ -195,7 +195,7 @@ public final class CheckInformationFlow {
 			case CONCURRENT: {
 				p = null;
 				config.setComputeInterferences(true);
-				config.setMhpType(MHPType.PRECISE);
+				config.setMhpType(MHPType.PRECISE_UNSAFE);
 				p = buildSDG(config);
 				rebuiltWithoutExceptionEdges = true;
 				containsThreads = true;
@@ -211,7 +211,7 @@ public final class CheckInformationFlow {
 				if (file == null) {
 					throw new IllegalArgumentException("must provide file path when using " + EntryPointKind.FROMFILE);
 				}
-				p = SDGProgram.loadSDG(file, MHPType.PRECISE);
+				p = SDGProgram.loadSDG(file, MHPType.PRECISE_UNSAFE);
 				final IClassHierarchy cha; {
 					final PrintStream out = IOFactory.createUTF8PrintStream(new ByteArrayOutputStream());
 					com.ibm.wala.util.collections.Pair<Long, SDGBuilder.SDGBuilderConfig> pair = SDGBuildPreparation.prepareBuild(out, SDGProgram.makeBuildPreparationConfig(config), NullProgressMonitor.INSTANCE);
@@ -588,6 +588,9 @@ public final class CheckInformationFlow {
 				break;
 			case PRECISE:
 				sb.append("precise analysis");
+				break;
+			case PRECISE_UNSAFE:
+				sb.append("precise analysis (optimized implementation)");
 				break;
 			}
 		}

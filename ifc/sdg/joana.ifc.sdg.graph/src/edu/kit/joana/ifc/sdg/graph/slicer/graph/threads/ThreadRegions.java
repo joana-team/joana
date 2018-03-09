@@ -1097,20 +1097,6 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 		 }
 		 
 		 
-		 private static void putAllThreads(Map<SDGNode, ModifiableArraySet<Integer>> threadsOf, SDGNode node) {
-			 threadsOf.compute(node, (k, threads) -> {
-				 if (threads == null) {
-					 threads = new ModifiableArraySet<>(Integer.class);
-				 }
-
-				 for (int thread : node.getThreadNumbers()) {
-					 threads.add(thread);
-				 }
-
-				 return threads;
-			 });
-		 }
-		 
 		 private HashSet<SDGNode> computeStartNodesGlobal() {
 			 final Color INIT = new Color();
 			 final Color BOTH = new Color();
@@ -1121,15 +1107,12 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 			 // initial start nodes
 			 HashSet<SDGNode> result = new HashSet<SDGNode>();
 			 
-			 Map<SDGNode, ModifiableArraySet<Integer>> threadsOf = new HashMap<>();
-			 
 			 result.addAll(info.getAllEntries());
 			 
 			 Collection<SDGNode> forks = info.getAllForks();
 			 for (SDGNode fork : forks) {
 				 for (SDGEdge e: icfg.getOutgoingEdgesOfKindUnsafe(fork, SDGEdge.Kind.CONTROL_FLOW)) {
 					result.add(e.getTarget());
-					putAllThreads(threadsOf, e.getTarget());
 				 }
 			 }
 
@@ -1137,7 +1120,6 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 
 			 for (SDGNode join : joins) {
 				 result.add(join);
-				 putAllThreads(threadsOf, join);
 			 }
 
 			 /**
@@ -1162,7 +1144,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 					 LinkedList<SDGNode> w2 = new LinkedList<SDGNode>();
 					 MARKED = new Color();
 					 
-					 final Set<Integer> threadsOfNode = threadsOf.get(node);
+					 final int[] threadsOfNode = node.getThreadNumbers();
 					 
 
 					 w1.add(node);
@@ -1181,14 +1163,8 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 							 // don't leave threads
 							 if (edge.getKind() == SDGEdge.Kind.RETURN) {
 								 final int[] threadNumberReached = reached.getThreadNumbers();
-								 boolean containsAny = false;
-								 for (int i = 0; i < threadNumberReached.length; i++) {
-									 if (threadsOfNode.contains(threadNumberReached[i])) {
-										 containsAny = true;
-										 break;
-									 }
-								 }
-								 if (!containsAny) continue;
+								 boolean disjoint = Arrays.sortedDisjoint(threadsOfNode, threadNumberReached);
+								 if (disjoint) continue;
 							 }
 							 /**
 							  * the reached node is reached from two different nodes in the current start set
@@ -1196,9 +1172,6 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 							  */
 							 if (PREVIOUSLY_MARKED.contains(reached.customData)) {
 								 newInit |= result.add(reached);
-								 if (newInit) {
-										putAllThreads(threadsOf, reached);
-								 }
 								 continue;
 							 }
 
@@ -1233,19 +1206,6 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 							  */
 							 if (PREVIOUSLY_MARKED.contains(reached.customData)) {
 								 newInit |= result.add(reached);
-								 if (newInit) {
-									 threadsOf.compute(reached, (k, threads) -> {
-										 if (threads == null) {
-											 threads = new ModifiableArraySet<>(Integer.class);
-										 }
-
-										 for (int thread : reached.getThreadNumbers()) {
-											 threads.add(thread);
-										 }
-
-										 return threads;
-									 });
-								 }
 								 continue;
 							 }
 

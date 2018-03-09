@@ -383,30 +383,37 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 			 }
 
 
+			 boolean assertionsEnabled = false;
+			 assert (assertionsEnabled = true);
+			 
 			 // collect nodes without a thread region
-			 List<SDGNode> nodesWithoutRegions = new LinkedList<SDGNode>();
-			 Set<Integer> threadsWithoutRegions = new HashSet<Integer>();
-			 for (SDGNode node : icfg.vertexSet()) {
-				 boolean nodeDangling = false;
-				 for (int threadId : node.getThreadNumbers()) {
-					 if (!map.containsKey(threadId)) {
-						 threadsWithoutRegions.add(threadId);
-						 nodeDangling = true;
-					 } else if (!map.get(threadId).containsKey(node)) {
-						 nodeDangling = true;
+			 if (assertionsEnabled) {
+				 List<SDGNode> nodesWithoutRegions = new LinkedList<SDGNode>();
+				 Set<Integer> threadsWithoutRegions = new HashSet<Integer>();
+				 for (SDGNode node : icfg.vertexSet()) {
+					 boolean nodeDangling = false;
+					 for (int threadId : node.getThreadNumbers()) {
+						 if (!map.containsKey(threadId)) {
+							 threadsWithoutRegions.add(threadId);
+							 nodeDangling = true;
+						 } else if (!map.get(threadId).containsKey(node)) {
+							 nodeDangling = true;
+						 }
 					 }
+	
+					 if (nodeDangling) {
+						 nodesWithoutRegions.add(node);
+					 }
+	
+	
 				 }
-
-				 if (nodeDangling) {
-					 nodesWithoutRegions.add(node);
-				 }
-
-
+	
+				 final Logger debug = Log.getLogger(Log.L_MHP_DEBUG);
+				 debug.outln("threads without regions: " + threadsWithoutRegions);
+				 debug.outln("nodes without thread regions: " + nodesWithoutRegions);
+				 assert threadsWithoutRegions.isEmpty();
+				 assert nodesWithoutRegions.isEmpty();
 			 }
-
-			 final Logger debug = Log.getLogger(Log.L_MHP_DEBUG);
-			 debug.outln("threads without regions: " + threadsWithoutRegions);
-			 debug.outln("nodes without thread regions: " + nodesWithoutRegions);
 
 			 return new ThreadRegions(regions, icfg, new PreciseThreadNodeRegionMap(map));
 		 }
@@ -897,38 +904,43 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 			 }
 
 			 // collect nodes without a thread region
-			 List<SDGNode> nodesWithoutRegions = new LinkedList<SDGNode>();
-			 Set<Integer> threadsWithoutRegions = new HashSet<Integer>();
-			 for (SDGNode node : icfg.vertexSet()) {
-				 final GlobalThreadRegion globalRegion = globalMap.get(node);
-				 boolean nodeDangling = false;
-				 if ((globalRegion == null && node.getThreadNumbers().length > 0)) {
-					 nodeDangling = true;
-				 }
-				 if (globalRegion != null && !globalRegion.contains(node)) {
-					 nodeDangling = true;
-				 }
-				 for (int thread : node.getThreadNumbers()) {
-					 final Map<GlobalThreadRegion, ThreadRegion> global2region = global2regionMap.get(thread);
-					 if (global2region == null) {
-						 threadsWithoutRegions.add(thread);
+			 if (assertionsEnabled) {
+				 List<SDGNode> nodesWithoutRegions = new LinkedList<SDGNode>();
+				 Set<Integer> threadsWithoutRegions = new HashSet<Integer>();
+				 for (SDGNode node : icfg.vertexSet()) {
+					 final GlobalThreadRegion globalRegion = globalMap.get(node);
+					 boolean nodeDangling = false;
+					 if ((globalRegion == null && node.getThreadNumbers().length > 0)) {
 						 nodeDangling = true;
-					 } else {
-						 if (!global2region.containsKey(globalRegion)) {
+					 }
+					 if (globalRegion != null && !globalRegion.contains(node)) {
+						 nodeDangling = true;
+					 }
+					 for (int thread : node.getThreadNumbers()) {
+						 final Map<GlobalThreadRegion, ThreadRegion> global2region = global2regionMap.get(thread);
+						 if (global2region == null) {
+							 threadsWithoutRegions.add(thread);
 							 nodeDangling = true;
+						 } else {
+							 if (!global2region.containsKey(globalRegion)) {
+								 nodeDangling = true;
+							 }
 						 }
 					 }
+					 if (nodeDangling) {
+						 nodesWithoutRegions.add(node);
+					 }
 				 }
-				 if (nodeDangling) {
-					 nodesWithoutRegions.add(node);
-				 }
+				 
+	
+	
+				 final Logger debug = Log.getLogger(Log.L_MHP_DEBUG);
+				 debug.outln("threads without regions: " + threadsWithoutRegions);
+				 debug.outln("nodes without thread regions: " + nodesWithoutRegions);
+				 
+				 assert threadsWithoutRegions.isEmpty();
+				 assert nodesWithoutRegions.isEmpty();
 			 }
-			 
-
-
-			 final Logger debug = Log.getLogger(Log.L_MHP_DEBUG);
-			 debug.outln("threads without regions: " + threadsWithoutRegions);
-			 debug.outln("nodes without thread regions: " + nodesWithoutRegions);
 
 			 return new ThreadRegions(regions, icfg, new PreciseThreadNodeRegionFromGlobalMap(globalMap, global2regionMap));
 		 }

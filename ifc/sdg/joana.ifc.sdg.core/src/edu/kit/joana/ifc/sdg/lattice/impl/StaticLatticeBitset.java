@@ -45,12 +45,7 @@ public class StaticLatticeBitset<ElementType> implements IStaticLattice<ElementT
 
 	private static int leftMost1(BigInteger i) {
 		assert i.bitCount() > 0;
-		int index = 0;
-		for (int c = 0; c < i.bitCount(); index++) {
-			if (i.testBit(index))
-				c++;
-		}
-		return index - 1;
+		return i.bitLength()-1;
 	}
 
 	private static int secondLeftMost1(BigInteger i) {

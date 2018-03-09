@@ -395,8 +395,17 @@ public class StaticLatticeBitset<ElementType> implements IStaticLattice<ElementT
 			for (ElementType n : layers.get(layerNo)) {
 				// If layer_no = 1 then n.code = 0
 				if (layerNo == 1) {
-					code.put(n, ZERO);
-					codeLen.put(n, 0);
+					if (MAX_LAYER == 1) {
+						// Special case for the two element ("low/high") lattice:
+						// With the algorithm in the paper, both elements would be assigned the code ZERO.
+						code.put(n, BigInteger.ONE);
+						// return is not necessary since in this case, nothing further will happen here;
+						// added for clarity
+						return;
+					} else {
+						code.put(n, ZERO);
+						codeLen.put(n, 0);
+					}
 				} else {
 					ElementType child = child(n);
 					if (getChildCount(n) == 1 && isPure(child)) {

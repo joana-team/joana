@@ -43,7 +43,7 @@ unauthorized user of the system
 
 0. Requirements
 
-- a recent Linux (e.g. Ubuntu) or a recent MacOS (Windows 10 is only tested occasionally)
+- a recent Linux (e.g. Ubuntu) or a recent MacOS (Windows is only tested occasionally)
 - Java == 1.8
 - ant >= 1.9.6
 - Maven >= 3.x

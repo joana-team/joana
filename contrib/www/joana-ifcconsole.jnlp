@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jnlp spec="1.0+" codebase="http://pp.ipd.kit.edu/~joana/webstart/" href="joana-ifcconsole.jnlp">
+<jnlp spec="1.0+" codebase="https://pp.ipd.kit.edu/~joana/webstart/" href="joana-ifcconsole.jnlp">
 	<information>
 		<title>Joana IFC Console</title>
 		<description>Simple interactive IFC analysis tool</description>
 		<vendor>KIT, Programming Paradigms Group - IPD Snelting</vendor>
-		<homepage href="http://pp.ipd.kit.edu/" />
+		<homepage href="https://pp.ipd.kit.edu/" />
 		<icon href="icons/joana-ifcconsole.png" />
 		<shortcut online="false">
 			<desktop />

@@ -240,7 +240,7 @@ public abstract class SDGBuilderConfigurator<C extends SDGBuilderConfigurator<C>
 		rwd.set("doParallel", setting);
 		return thisActually();
 	}
-	public C setNnativeSpecClassLoader(ClassLoader nativeSpecClassLoader) {
+	public C setNativeSpecClassLoader(ClassLoader nativeSpecClassLoader) {
 		rwd.set("nativeSpecClassLoader", nativeSpecClassLoader);
 		return thisActually();
 	}

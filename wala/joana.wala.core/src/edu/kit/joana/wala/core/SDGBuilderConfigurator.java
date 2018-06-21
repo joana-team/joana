@@ -8,6 +8,7 @@
 package edu.kit.joana.wala.core;
 
 import java.io.PrintStream;
+import java.util.Set;
 
 import com.ibm.wala.cfg.exc.intra.MethodState;
 import com.ibm.wala.ipa.callgraph.AnalysisCacheImpl;
@@ -28,6 +29,7 @@ import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import edu.kit.joana.wala.core.SDGBuilder.SDGBuilderConfig;
 import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
 import edu.kit.joana.wala.core.params.objgraph.SideEffectDetector;
+import edu.kit.joana.wala.summary.SummaryComputationType;
 import edu.kit.joana.wala.util.WALAUtils;
 import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder;
 
@@ -178,6 +180,10 @@ public abstract class SDGBuilderConfigurator<C extends SDGBuilderConfigurator<C>
 	}
 	public C setComputeSummary(boolean setting) {
 		rwd.set("computeSummary", setting);
+		return thisActually();
+	}
+	public C setSummaryComputationType(SummaryComputationType sumType) {
+		rwd.set("summaryComputationType", sumType);
 		return thisActually();
 	}
 	public C setAbortAfterCG(boolean setting) {

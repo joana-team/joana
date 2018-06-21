@@ -68,6 +68,19 @@ public class ReflectiveWatchdog<T> {
 			}
 		}
 	}
+
+	/**
+	 * @return the fields which are still unset at this point.
+	 */
+	public Set<String> getUnsetFields() {
+		Set<String> ret = new HashSet<>();
+		for (Field f : obj.getClass().getDeclaredFields()) {
+			if (!Modifier.isStatic(f.getModifiers()) && !initializedFields.contains(f.getName())) {
+				ret.add(f.getName());
+			}
+		}
+		return ret;
+	}
 	/**
 	 * Returns the object which was passed in the constructor. Before that, checks that every field has been set.
 	 * @return the object which was passed in the constructor

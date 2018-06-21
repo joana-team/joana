@@ -284,6 +284,10 @@ public abstract class SDGBuilderConfigurator<C extends SDGBuilderConfigurator<C>
 		rwd.leaveRestAsItIs();
 		return thisActually();
 	}
+
+	public Set<String> getUnsetFields() {
+		return rwd.getUnsetFields();
+	}
 	public SDGBuilder.SDGBuilderConfig getResult() {
 		return rwd.getResult();
 	}

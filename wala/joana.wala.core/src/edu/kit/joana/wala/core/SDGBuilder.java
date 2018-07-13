@@ -1227,7 +1227,14 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 	
 	public CGResult buildCallgraph(final IProgressMonitor progress) throws IllegalArgumentException,
 			CallGraphBuilderCancelException {
-		ExtendedAnalysisOptions options = createSingleEntryOptions(cfg);
+		
+		ExtendedAnalysisOptions options = null;
+		if (cfg.entries != null && cfg.entries.size() == 1) {
+			options = createSingleEntryOptions(cfg);
+		} else {
+			options = createMultipleEntryOptions(cfg.scope, cfg.cha, cfg.objSensFilter, cfg.ext!=null?cfg.ext.resolveReflection():false, cfg.methodTargetSelector, cfg.entries);
+		}
+		
 
 		CallGraphBuilder<InstanceKey> cgb = createCallgraphBuilder(cfg, options);
 		com.ibm.wala.ipa.callgraph.CallGraph callgraph = cgb.makeCallGraph(options, progress);
@@ -2033,6 +2040,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		public transient IClassHierarchy cha = null;
 		public String additionalNativeSpec = null; // specify additional XML method summary file for methods for which code is not available - path is relative to class path
 		public IMethod entry = null;
+		public List<IMethod> entries = null;
 		public ExternalCallCheck ext = null;
 		public String[] immutableNoOut = Main.IMMUTABLE_NO_OUT;
 		public String[] immutableStubs = Main.IMMUTABLE_STUBS;

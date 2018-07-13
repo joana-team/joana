@@ -84,6 +84,7 @@ public class SDGProgram {
 
 	/**
 	 * Special object which provides information about where a given code piece stems from
+	 * 
 	 * @author Martin Mohr
 	 */
 	public static class ClassLoader {
@@ -106,7 +107,9 @@ public class SDGProgram {
 
 		/**
 		 * Extracts the class loader from the given entry node. Does not work if the given node is not an entry node.
-		 * @param entry entry node to extract class loader from
+		 * 
+		 * @param entry
+		 *            entry node to extract class loader from
 		 * @return class loader value from the given entry node
 		 */
 		public static ClassLoader fromSDGNode(SDGNode entry) {
@@ -119,18 +122,20 @@ public class SDGProgram {
 				return new ClassLoader(clsLoader);
 			}
 		}
-		
+
 		public static ClassLoader fromString(String clsLoader) {
 			if (clsLoader.equals("Application")) {
 				return APPLICATION;
-			} else if (clsLoader.equals("Primordial")){
+			} else if (clsLoader.equals("Primordial")) {
 				return PRIMORDIAL;
 			} else {
 				return new ClassLoader(clsLoader);
 			}
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
+		 * 
 		 * @see java.lang.Object#hashCode()
 		 */
 		@Override
@@ -141,7 +146,9 @@ public class SDGProgram {
 			return result;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
+		 * 
 		 * @see java.lang.Object#equals(java.lang.Object)
 		 */
 		@Override
@@ -174,11 +181,11 @@ public class SDGProgram {
 	private final SDG sdg;
 	private final MHPAnalysis mhpAnalysis;
 	private SDGProgramPartParserBC ppartParser;
-	private final Map<SDGProgramPart, Collection<Pair<Annotation,String>>> annotations = new LinkedHashMap<>();
+	private final Map<SDGProgramPart, Collection<Pair<Annotation, String>>> annotations = new LinkedHashMap<>();
 	private final AnnotationTypeBasedNodeCollector coll;
 
 	private static Logger debug = Log.getLogger(Log.L_API_DEBUG);
-	
+
 	public SDGProgram(SDG sdg, MHPAnalysis mhpAnalysis) {
 		this.sdg = sdg;
 		this.mhpAnalysis = mhpAnalysis;
@@ -238,38 +245,40 @@ public class SDGProgram {
 		return createSDGProgram(config, IOFactory.createUTF8PrintStream(new ByteArrayOutputStream()),
 				NullProgressMonitor.INSTANCE);
 	}
-	
+
 	public static SDGProgram createSDGProgram(SDGConfig config, PrintStream out, IProgressMonitor monitor)
 			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
 		return createSDGProgram(config, out, monitor, null);
 	}
 
-	public static SDGProgram createSDGProgram(SDGConfig config, PrintStream out, IProgressMonitor monitor, OutputStream sdgFileOut)
-			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+	public static SDGProgram createSDGProgram(SDGConfig config, PrintStream out, IProgressMonitor monitor,
+			OutputStream sdgFileOut) throws ClassHierarchyException, IOException, UnsoundGraphException,
+			CancelException {
 		monitor.beginTask("build SDG", 20);
 		ConstructionNotifier notifier = config.getNotifier();
 		if (notifier != null) {
 			notifier.sdgStarted();
 		}
-		final com.ibm.wala.util.collections.Pair<SDG, SDGBuildArtifacts> p =
-				SDGBuildPreparation.computeAndKeepBuildArtifacts(out, makeBuildPreparationConfig(config), monitor);
+		final com.ibm.wala.util.collections.Pair<SDG, SDGBuildArtifacts> p = SDGBuildPreparation
+				.computeAndKeepBuildArtifacts(out, makeBuildPreparationConfig(config), monitor);
 		final SDG sdg = p.fst;
 		final SDGBuildArtifacts buildArtifacts = p.snd;
 
 		if (config.computeInterferences()) {
 			CSDGPreprocessor.preprocessSDG(sdg);
 		}
-		
+
 		final MHPAnalysis mhpAnalysis = config.getMhpType().getMhpAnalysisConstructor().apply(sdg);
 		assert (mhpAnalysis == null) == (config.getMhpType() == MHPType.NONE);
-		
+
 		if (config.computeInterferences()) {
 			PruneInterferences.pruneInterferences(sdg, mhpAnalysis);
 		}
-		
+
 		if (notifier != null) {
 			notifier.sdgFinished();
-			notifier.numberOfCGNodes(buildArtifacts.getNonPrunedWalaCallGraph().getNumberOfNodes(), buildArtifacts.getWalaCallGraph().getNumberOfNodes());
+			notifier.numberOfCGNodes(buildArtifacts.getNonPrunedWalaCallGraph().getNumberOfNodes(), buildArtifacts
+					.getWalaCallGraph().getNumberOfNodes());
 		}
 		if (config.getIgnoreIndirectFlows()) {
 			if (notifier != null) {
@@ -279,36 +288,35 @@ public class SDGProgram {
 			if (notifier != null) {
 				notifier.stripControlDepsFinished();
 			}
-			
+
 		}
 		if (sdgFileOut != null) {
 			SDGSerializer.toPDGFormat(sdg, sdgFileOut);
 			sdgFileOut.flush();
 		}
 		final SDGProgram ret = new SDGProgram(sdg, mhpAnalysis);
-		
+
 		if (config.isSkipSDGProgramPart()) {
 			return ret;
 		}
-		
-		
-		final IClassHierarchy ch  = buildArtifacts.getClassHierarchy();
-		final CallGraph callGraph = buildArtifacts.getWalaCallGraph(); 
+
+		final IClassHierarchy ch = buildArtifacts.getClassHierarchy();
+		final CallGraph callGraph = buildArtifacts.getWalaCallGraph();
 		ret.fillWithAnnotations(ch, findClassesRelevantForAnnotation(ch, callGraph));
 		return ret;
 	}
-	
+
 	public static Set<IClass> findClassesRelevantForAnnotation(IClassHierarchy ch, CallGraph callGraph) {
 		final Set<IClass> classes = new HashSet<>();
 		SSAInstruction.Visitor collectReferencedClasses = new SSAInstruction.Visitor() {
 			@Override
 			public void visitGet(SSAGetInstruction instruction) {
 				final IClass cl = ch.lookupClass(instruction.getDeclaredFieldType());
-				if (cl != null && !cl.isArrayClass() ) {
+				if (cl != null && !cl.isArrayClass()) {
 					classes.add(cl);
 				}
 			}
-			
+
 			@Override
 			public void visitPut(SSAPutInstruction instruction) {
 				final IClass cl = ch.lookupClass(instruction.getDeclaredFieldType());
@@ -317,85 +325,83 @@ public class SDGProgram {
 				}
 			}
 		};
-		
+
 		// TODO: is this enough in general?!?!?
 		for (CGNode cgnode : callGraph) {
 			final IClass cl = cgnode.getMethod().getDeclaringClass();
 			assert cl != null;
-			
+
 			if (!(cl instanceof FakeRootClass) && !cl.isArrayClass()) {
 				classes.add(cl);
 			}
-			
+
 			final IR ir = cgnode.getIR();
 			if (ir != null) {
 				ir.visitNormalInstructions(collectReferencedClasses);
 			}
 		}
 		return classes;
-		
+
 	}
 
 	public void fillWithAnnotations(IClassHierarchy cha, Iterable<IClass> classes) {
-		final Collection<String> sourceOrSinkAnnotationName = 
-				Arrays.asList(new Class<?>[] { Source.class, Sink.class })
-				.stream().map( cl -> "L" + cl.getName().replace(".", "/")).collect(Collectors.toList());
+		final Collection<String> sourceOrSinkAnnotationName = Arrays
+				.asList(new Class<?>[] { Source.class, Sink.class }).stream()
+				.map(cl -> "L" + cl.getName().replace(".", "/")).collect(Collectors.toList());
 		for (IClass c : classes) {
 			final String walaClassName = c.getName().toString();
 			final JavaType jt = JavaType.parseSingleTypeFromString(walaClassName, Format.BC);
-			final String sourcefile = PrettyWalaNames.sourceFileName(c.getName()); 
-			
+			final String sourcefile = PrettyWalaNames.sourceFileName(c.getName());
 
 			for (IField f : c.getAllFields()) {
 				final Collection<SDGAttribute> attributes = this.getAttribute(jt, f.getName().toString());
 				// attributes.isEmpty() if c isn't Part of the CallGraph
 				if (f.getAnnotations() != null && !f.getAnnotations().isEmpty()) {
 					for (SDGAttribute attribute : attributes)
-						this.annotations.put(
-							attribute,
-							f.getAnnotations().stream().map( a -> Pair.pair(a, sourcefile)).collect(Collectors.toList())
-						);
+						this.annotations.put(attribute, f.getAnnotations().stream().map(a -> Pair.pair(a, sourcefile))
+								.collect(Collectors.toList()));
 					debug.outln("Annotated: " + jt + ":::" + f.getName() + " with " + f.getAnnotations());
 				}
 
 			}
 			for (IMethod m : c.getAllMethods()) {
-				
+
 				if (m.getAnnotations() != null) {
 					Collection<Pair<Annotation, String>> methodWithSourceFile = m.getAnnotations().stream()
-							.filter( a -> sourceOrSinkAnnotationName.contains(a.getType().getName().toString()))
-							.map( a -> Pair.pair(a, sourcefile))
-							.collect(Collectors.toList()
-					);
+							.filter(a -> sourceOrSinkAnnotationName.contains(a.getType().getName().toString()))
+							.map(a -> Pair.pair(a, sourcefile)).collect(Collectors.toList());
 					if (!methodWithSourceFile.isEmpty()) {
 						final Set<IMethod> implementors = cha.getPossibleTargets(m.getReference());
-						final Collection<SDGMethod> methods = implementors.stream().flatMap(
-								mImpl -> this.getMethods(JavaMethodSignature.fromString(mImpl.getSignature())).stream()
-						).collect(Collectors.toList());
+						final Collection<SDGMethod> methods = implementors
+								.stream()
+								.flatMap(
+										mImpl -> this.getMethods(JavaMethodSignature.fromString(mImpl.getSignature()))
+												.stream()).collect(Collectors.toList());
 						for (SDGMethod sdgm : methods) {
-							this.annotations.put(
-								sdgm,
-								methodWithSourceFile
-							);
+							this.annotations.put(sdgm, methodWithSourceFile);
 						}
 						debug.outln("Annotated: " + jt + ":::" + m.getName() + " with " + m.getAnnotations());
 					}
 				}
-				
+
 				if (m instanceof ShrikeCTMethod) {
 					ShrikeCTMethod method = (ShrikeCTMethod) m;
 					Collection<SDGMethod> methods = Collections.emptyList();
 
 					int parameternumber = m.isStatic() ? 1 : 1;
-					for(Collection<Annotation> parameter : method.getParameterAnnotations() ) {
-						final Collection<Pair<Annotation, String>> parameterWithSourcefile =
-							parameter.stream().filter( a -> sourceOrSinkAnnotationName.contains(a.getType().getName().toString())).map( a -> Pair.pair(a, sourcefile)).collect(Collectors.toList());
+					for (Collection<Annotation> parameter : method.getParameterAnnotations()) {
+						final Collection<Pair<Annotation, String>> parameterWithSourcefile = parameter.stream()
+								.filter(a -> sourceOrSinkAnnotationName.contains(a.getType().getName().toString()))
+								.map(a -> Pair.pair(a, sourcefile)).collect(Collectors.toList());
 						if (!parameterWithSourcefile.isEmpty()) {
-							if (methods.isEmpty()) { 
+							if (methods.isEmpty()) {
 								final Set<IMethod> implementors = cha.getPossibleTargets(m.getReference());
-								methods = implementors.stream().flatMap(
-										mImpl -> this.getMethods(JavaMethodSignature.fromString(mImpl.getSignature())).stream()
-								).collect(Collectors.toList());
+								methods = implementors
+										.stream()
+										.flatMap(
+												mImpl -> this.getMethods(
+														JavaMethodSignature.fromString(mImpl.getSignature())).stream())
+										.collect(Collectors.toList());
 							}
 							for (SDGMethod sdgm : methods) {
 								this.annotations.put(sdgm.getParameter(parameternumber), parameterWithSourcefile);
@@ -403,16 +409,14 @@ public class SDGProgram {
 						}
 						parameternumber++;
 					}
-					
+
 					try {
-						final Collection<TypeAnnotation> localVarAnnotations = 
-						method.getTypeAnnotationsAtCode(true)
-							.stream()
-							.filter(a -> a.getTargetType() == TargetType.LOCAL_VARIABLE)
-							.collect(Collectors.toList());
-						
+						final Collection<TypeAnnotation> localVarAnnotations = method.getTypeAnnotationsAtCode(true)
+								.stream().filter(a -> a.getTargetType() == TargetType.LOCAL_VARIABLE)
+								.collect(Collectors.toList());
+
 						if (!localVarAnnotations.isEmpty()) {
-							if (methods.isEmpty()) { 
+							if (methods.isEmpty()) {
 								methods = this.getMethods(JavaMethodSignature.fromString(m.getSignature()));
 							}
 							for (TypeAnnotation ta : localVarAnnotations) {
@@ -426,17 +430,18 @@ public class SDGProgram {
 										if (localVar != null) {
 											c.getSourceFileName();
 											c.getSource();
-											this.annotations.computeIfAbsent(localVar, lv -> new LinkedList<Pair<Annotation, String>>());
+											this.annotations.computeIfAbsent(localVar,
+													lv -> new LinkedList<Pair<Annotation, String>>());
 											this.annotations.computeIfPresent(localVar, (lv, anns) -> {
-												anns.add(Pair.pair(ta.getAnnotation(),sourcefile));
+												anns.add(Pair.pair(ta.getAnnotation(), sourcefile));
 												return anns;
 											});
 										} else {
 											debug.outln("Warning: Variable "
-											   + localVarTarget + " in "
-											   + JavaMethodSignature.fromString(m.getSignature()) 
-											   + "not found. Did you try to annotate an 'ephemeral' Variable such as 'int x = p' where 'x' is never used in the method?"
-											);
+													+ localVarTarget
+													+ " in "
+													+ JavaMethodSignature.fromString(m.getSignature())
+													+ "not found. Did you try to annotate an 'ephemeral' Variable such as 'int x = p' where 'x' is never used in the method?");
 										}
 									}
 								}
@@ -447,19 +452,26 @@ public class SDGProgram {
 						// TODO: handle this?!?!
 					}
 				} else {
-					debug.outln("Warning: Parameter Annotation Processing not supported for Methods representet by " + m.getClass());
+					debug.outln("Warning: Parameter Annotation Processing not supported for Methods representet by "
+							+ m.getClass());
 				}
 			}
 		}
 	}
 
-	public static SDGBuilder createSDGBuilder(SDGConfig config) throws ClassHierarchyException, UnsoundGraphException, CancelException, IOException {
-		return SDGBuildPreparation.createBuilder(IOFactory.createUTF8PrintStream(new ByteArrayOutputStream()), makeBuildPreparationConfig(config), NullProgressMonitor.INSTANCE);
+	public static SDGBuilder createSDGBuilder(SDGConfig config) throws ClassHierarchyException, UnsoundGraphException,
+			CancelException, IOException {
+		return SDGBuildPreparation.createBuilder(IOFactory.createUTF8PrintStream(new ByteArrayOutputStream()),
+				makeBuildPreparationConfig(config), NullProgressMonitor.INSTANCE);
 	}
+
 	public static SDGBuildPreparation.Config makeBuildPreparationConfig(SDGConfig config) {
-		JavaMethodSignature mainMethod = JavaMethodSignature.fromString(config.getEntryMethod());// JavaMethodSignature.mainMethodOfClass(config.getMainClass());
-		SDGBuildPreparation.Config cfg = new SDGBuildPreparation.Config(mainMethod.toBCString(), mainMethod.toBCString(), config.getClassPath(), config.getClasspathAddEntriesFromMANIFEST(),
-				config.getFieldPropagation());
+		JavaMethodSignature mainMethod = config.getEntryMethod() != null ? JavaMethodSignature.fromString(config
+				.getEntryMethod()) : null;// JavaMethodSignature.mainMethodOfClass(config.getMainClass());
+		String mainMethodBc = mainMethod != null ? mainMethod.toBCString() : null;
+		SDGBuildPreparation.Config cfg = new SDGBuildPreparation.Config(mainMethodBc, mainMethodBc,
+				config.getClassPath(), config.getClasspathAddEntriesFromMANIFEST(), config.getFieldPropagation());
+		cfg.entryMethods = config.getEntryMethods();
 		cfg.thirdPartyLibPath = config.getThirdPartyLibsPath();
 		cfg.exceptions = config.getExceptionAnalysis();
 		cfg.defaultExceptionMethodState = config.getDefaultExceptionMethodState();
@@ -481,6 +493,7 @@ public class SDGProgram {
 		debug.outln(cfg.stubs);
 		return cfg;
 	}
+
 	public static void throwAwayControlDeps(SDG sdg) throws CancelException {
 		final List<SDGEdge> toRemove = new LinkedList<SDGEdge>();
 		for (final SDGEdge e : sdg.edgeSet()) {
@@ -533,9 +546,8 @@ public class SDGProgram {
 	public MHPAnalysis getMhpAnalysis() {
 		return mhpAnalysis;
 	}
-	
 
-	public Map<SDGProgramPart, Collection<Pair<Annotation,String>>> getJavaSourceAnnotations() {
+	public Map<SDGProgramPart, Collection<Pair<Annotation, String>>> getJavaSourceAnnotations() {
 		return annotations;
 	}
 
@@ -563,12 +575,14 @@ public class SDGProgram {
 		build();
 		return classRes.getInstruction(methodSig.getDeclaringType(), methodSig, bcIndex);
 	}
-	
+
 	/**
 	 * Get instructions by label, i.e. the label of the corresponding sdg node. Precisely, all
 	 *
-	 * @param methodSig method in which to search
-	 * @param labelRegEx label to look for
+	 * @param methodSig
+	 *            method in which to search
+	 * @param labelRegEx
+	 *            label to look for
 	 * @return instructions for which the label matches the given regex
 	 */
 	public Collection<SDGInstruction> getInstruction(JavaMethodSignature methodSig, String labelRegEx) {
@@ -576,12 +590,11 @@ public class SDGProgram {
 		return classRes.getInstruction(methodSig.getDeclaringType(), methodSig, labelRegEx);
 	}
 
-	
 	public Collection<SDGLocalVariable> getLocalVariables(JavaMethodSignature methodSig, String varName) {
 		build();
 		return classRes.getLocalVariable(methodSig.getDeclaringType(), methodSig, varName);
 	}
-	
+
 	public Collection<SDGCall> getCallsToMethod(JavaMethodSignature tgt) {
 		Collection<SDGCall> ret = new LinkedList<SDGCall>();
 		build();
@@ -603,9 +616,10 @@ public class SDGProgram {
 
 	/**
 	 * Returns whether the given instruction is contained in the application's code
-	 * @param i an instruction from this program
-	 * @return {@code true}, if the given instruction is contained in the application's code,
-	 * {@code false} otherwise
+	 * 
+	 * @param i
+	 *            an instruction from this program
+	 * @return {@code true}, if the given instruction is contained in the application's code, {@code false} otherwise
 	 */
 	public boolean isInApplicationCode(SDGInstruction i) {
 		return getClassLoader(i) == ClassLoader.APPLICATION;
@@ -613,9 +627,10 @@ public class SDGProgram {
 
 	/**
 	 * Returns whether the given method is contained in the application's code
-	 * @param m a method from this program
-	 * @return {@code true}, if the given method is contained in the application's code,
-	 * {@code false} otherwise
+	 * 
+	 * @param m
+	 *            a method from this program
+	 * @return {@code true}, if the given method is contained in the application's code, {@code false} otherwise
 	 */
 	public boolean isInApplicationCode(SDGMethod m) {
 		return getClassLoader(m) == ClassLoader.APPLICATION;
@@ -623,9 +638,10 @@ public class SDGProgram {
 
 	/**
 	 * Returns whether the given instruction is contained in standard library code
-	 * @param i an instruction from this program
-	 * @return {@code true}, if the given instruction is contained in standard library code,
-	 * {@code false} otherwise
+	 * 
+	 * @param i
+	 *            an instruction from this program
+	 * @return {@code true}, if the given instruction is contained in standard library code, {@code false} otherwise
 	 */
 	public boolean isInPrimordialCode(SDGInstruction i) {
 		return getClassLoader(i) == ClassLoader.PRIMORDIAL;
@@ -633,9 +649,10 @@ public class SDGProgram {
 
 	/**
 	 * Returns whether the given method is contained in standard library code
-	 * @param m a method from this program
-	 * @return {@code true}, if the given method is contained in standard library code,
-	 * {@code false} otherwise
+	 * 
+	 * @param m
+	 *            a method from this program
+	 * @return {@code true}, if the given method is contained in standard library code, {@code false} otherwise
 	 */
 	public boolean isInPrimordialCode(SDGMethod m) {
 		return getClassLoader(m) == ClassLoader.PRIMORDIAL;
@@ -667,14 +684,17 @@ public class SDGProgram {
 	}
 
 	/**
-	 * Tries to find a covering program part for the given SDG node. Currently, the following types of nodes are supported:
+	 * Tries to find a covering program part for the given SDG node. Currently, the following types of nodes are
+	 * supported:
 	 * <ul>
 	 * <li>nodes of kind ENTRY, FORMAL_IN, FORMAL_OUT, EXIT</li>
 	 * <li>nodes of kind ACTUAL_IN, ACTUAL_OUT</li>
 	 * <li>other nodes with non-negative bytecode index</li>
 	 * </ul>
 	 * For all other types of nodes, {@code null} is returned.
-	 * @param node node for which a covering program part shall be found
+	 * 
+	 * @param node
+	 *            node for which a covering program part shall be found
 	 * @return covering program part for the given node, or {@code null} if the node is not supported (see above)
 	 */
 	public SDGProgramPart findCoveringProgramPart(SDGNode node) {
@@ -733,7 +753,8 @@ public class SDGProgram {
 				for (SDGMethod m : methods) {
 					SDGInstruction i = m.getInstructionWithBCIndex(callBCIndex);
 					if (!(i instanceof SDGCall)) {
-						throw new IllegalStateException(String.format("instruction should be a call instruction: (%s):%d", m.getSignature(), callBCIndex));
+						throw new IllegalStateException(String.format(
+								"instruction should be a call instruction: (%s):%d", m.getSignature(), callBCIndex));
 					}
 					SDGCall call = (SDGCall) m.getInstructionWithBCIndex(callBCIndex);
 					if (rootParam.getBytecodeName().equals(BytecodeLocation.RETURN_PARAM)) {
@@ -767,20 +788,25 @@ public class SDGProgram {
 	}
 
 	public boolean covers(SDGProgramPart ppart, SDGNode node) {
-		return coll.collectNodes(ppart, AnnotationType.SOURCE).contains(node) || coll.collectNodes(ppart, AnnotationType.SINK).contains(node);
+		return coll.collectNodes(ppart, AnnotationType.SOURCE).contains(node)
+				|| coll.collectNodes(ppart, AnnotationType.SINK).contains(node);
 	}
 
 	/**
-	 * Given a source and a sink instructions, computes a chop of these two program parts and collects all instructions which are on the way.
-	 * This works only for sequential programs
-	 * @param source source instruction
-	 * @param sink sink instruction
+	 * Given a source and a sink instructions, computes a chop of these two program parts and collects all instructions
+	 * which are on the way. This works only for sequential programs
+	 * 
+	 * @param source
+	 *            source instruction
+	 * @param sink
+	 *            sink instruction
 	 * @return instructions through which information may flow from source to sink
 	 */
 	public Set<SDGInstruction> computeInstructionChop(SDGProgramPart source, SDGProgramPart sink) {
 		Chopper chopper = new NonSameLevelChopper(this.sdg);
 		AnnotationTypeBasedNodeCollector c = new AnnotationTypeBasedNodeCollector(this.sdg);
-		Collection<SDGNode> chop = chopper.chop(c.collectNodes(source, AnnotationType.SOURCE), c.collectNodes(sink, AnnotationType.SINK));
+		Collection<SDGNode> chop = chopper.chop(c.collectNodes(source, AnnotationType.SOURCE),
+				c.collectNodes(sink, AnnotationType.SINK));
 		Set<SDGInstruction> ret = new HashSet<SDGInstruction>();
 		for (SDGNode n : chop) {
 			SDGMethod m = getMethod(this.sdg.getEntry(n).getBytecodeMethod());
@@ -826,25 +852,18 @@ public class SDGProgram {
 	}
 
 	/**
-	 * Parser for the different parts of the program represented by an sdg. The
-	 * strings accepted by this parser have to use a bytecode notation of types
-	 * and a point-separated notation of attributes and methods. So, the type
-	 * java.lang.System is represented by the string "Ljava/lang/System;". If a
-	 * type is part of the name of an attribute or a method, then a
-	 * point-notation has to be used, so the attribute out of the type
-	 * java.lang.System is denoted by java.lang.System.out. Methods are
-	 * represented by their signatures, which are written (with the exception of
-	 * the class part of the name) in bytecode notation. So the println() method
-	 * of the type java.io.PrintStream is written as
-	 * java.io.PrintStream.println(Ljava/lang/String;)V. Parameters in methods
-	 * are represented by an arrow and subsequently p<number> (starting at 0),
-	 * so for example java.lang.System.out.println(Ljava/lang/String;)V->p1 gets
-	 * the first real parameter, ->p0 gets the this-pointer-parameter. The exit
-	 * of a method is represented by the method signature followed by "->exit".
-	 * Individual instructions inside the method are represented by the method
-	 * signature followed by ":<number>" where <number> denotes the bytecode
-	 * index of the instruction. This index has to be taken from the sdg
-	 * representing the program from which the instruction is to be taken.
+	 * Parser for the different parts of the program represented by an sdg. The strings accepted by this parser have to
+	 * use a bytecode notation of types and a point-separated notation of attributes and methods. So, the type
+	 * java.lang.System is represented by the string "Ljava/lang/System;". If a type is part of the name of an attribute
+	 * or a method, then a point-notation has to be used, so the attribute out of the type java.lang.System is denoted
+	 * by java.lang.System.out. Methods are represented by their signatures, which are written (with the exception of
+	 * the class part of the name) in bytecode notation. So the println() method of the type java.io.PrintStream is
+	 * written as java.io.PrintStream.println(Ljava/lang/String;)V. Parameters in methods are represented by an arrow
+	 * and subsequently p<number> (starting at 0), so for example java.lang.System.out.println(Ljava/lang/String;)V->p1
+	 * gets the first real parameter, ->p0 gets the this-pointer-parameter. The exit of a method is represented by the
+	 * method signature followed by "->exit". Individual instructions inside the method are represented by the method
+	 * signature followed by ":<number>" where <number> denotes the bytecode index of the instruction. This index has to
+	 * be taken from the sdg representing the program from which the instruction is to be taken.
 	 *
 	 * @author Martin Mohr
 	 *
@@ -917,7 +936,7 @@ public class SDGProgram {
 				}
 			}
 		}
-		
+
 		private Collection<SDGInstruction> getInstructions(String instr) {
 			if (!instr.contains(":")) {
 				return null;
@@ -1062,7 +1081,8 @@ class SDGClassResolver {
 		return ret;
 	}
 
-	public Collection<SDGFormalParameter> getMethodParameter(JavaType typeName, JavaMethodSignature methodSig, int paramNo) {
+	public Collection<SDGFormalParameter> getMethodParameter(JavaType typeName, JavaMethodSignature methodSig,
+			int paramNo) {
 		Collection<SDGMethod> ms = getMethod(typeName, methodSig);
 		Collection<SDGFormalParameter> ret = new LinkedList<SDGFormalParameter>();
 		for (SDGMethod m : ms) {
@@ -1092,8 +1112,9 @@ class SDGClassResolver {
 
 		return ret;
 	}
-	
-	public Collection<SDGLocalVariable> getLocalVariable(JavaType typeName, JavaMethodSignature methodSig, String varName) {
+
+	public Collection<SDGLocalVariable> getLocalVariable(JavaType typeName, JavaMethodSignature methodSig,
+			String varName) {
 		Collection<SDGMethod> ms = getMethod(typeName, methodSig);
 		Collection<SDGLocalVariable> ret = new LinkedList<SDGLocalVariable>();
 		for (SDGMethod m : ms) {

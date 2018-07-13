@@ -23,14 +23,14 @@ public final class LatticeValidator {
 
 	private LatticeValidator() { }
 
-//	public static <ElementType> Collection<ElementType> findAntisymmetryViolations(ILatticeOperations<ElementType> ops) {
-//		return (Collection<ElementType>) ops.getElements()
-//		          .stream()
-//		          .flatMap(e -> ops.getImmediatelyGreater(e).stream().map(e2 -> Pair.pair(e, e2)))
-//		          .filter(p -> ops.collectAllGreaterElements(p.getSecond()).contains(((Pair) p).getFirst()))
-//		          .map(Pair::getFirst)
-//		          .collect(Collectors.toList());
-//	}
+	public static <ElementType> Collection<ElementType> findAntisymmetryViolations(ILatticeOperations<ElementType> ops) {
+		return ops.getElements()
+		          .stream()
+		          .flatMap(e -> ops.getImmediatelyGreater(e).stream().map(e2 -> Pair.pair(e, e2)))
+		          .filter(p -> ops.collectAllGreaterElements(p.getSecond()).contains(p.getFirst()))
+		          .map(Pair::getFirst)
+		          .collect(Collectors.toList());
+	}
 	
 	public static <ElementType> Collection<Pair<ElementType,ElementType>> findLowerGreaterMissing(ILatticeOperations<ElementType> ops) {
 		List<Pair<ElementType,ElementType>> violations = new LinkedList<>();

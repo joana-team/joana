@@ -99,7 +99,7 @@ public enum Stubs {
 				+ " to the jvm or a project.properties in the base dir of your eclipse project!");
 		}
 
-		File fBase = new File(joanaBaseDir); //+ "/contrib/lib/");
+		File fBase = new File(joanaBaseDir + "/contrib/lib/");
 		if (!fBase.exists()) {
 			throw new Error("Invalid location " + joanaBaseDir + " for joana.base.dir!");
 		}

@@ -7,6 +7,8 @@
  */
 package edu.kit.joana.api.sdg;
 
+import java.util.List;
+
 import com.ibm.wala.cfg.exc.intra.MethodState;
 import com.ibm.wala.ipa.callgraph.ContextSelector;
 import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
@@ -32,6 +34,7 @@ public class SDGConfig {
 	private boolean classpathAddEntriesFromMANIFEST;
 	private String thirdPartyLibsPath;
 	private String entryMethod;
+	private List<String> entryMethods;
 	private Stubs stubs;
 	private String exclusions = SDGBuilder.STD_EXCLUSION_REG_EXP;
 	private ExceptionAnalysis exceptionAnalysis;
@@ -58,6 +61,8 @@ public class SDGConfig {
 	public SDGConfig(String classPath, String entryMethod, Stubs stubsPath) {
 		this(classPath, true, entryMethod, stubsPath, ExceptionAnalysis.INTERPROC, FieldPropagation.OBJ_GRAPH, PointsToPrecision.INSTANCE_BASED, false, false, MHPType.NONE);
 	}
+	
+	public SDGConfig() {}
 
 	public SDGConfig(String classPath, boolean classpathAddEntriesFromMANIFEST, String entryMethod, Stubs stubsPath, ExceptionAnalysis exceptionAnalysis, FieldPropagation fieldPropagation,
 			PointsToPrecision pointsToPrecision, boolean computeAccessPaths, boolean computeInterferences, MHPType mhpType) {
@@ -379,6 +384,20 @@ public class SDGConfig {
 
 	public void setParallel(boolean isParallel) {
 		this.isParallel = isParallel;
+	}
+
+	/**
+	 * @return the entryMethods
+	 */
+	public List<String> getEntryMethods() {
+		return entryMethods;
+	}
+
+	/**
+	 * @param entryMethods the entryMethods to set
+	 */
+	public void setEntryMethods(List<String> entryMethods) {
+		this.entryMethods = entryMethods;
 	}
 
 }

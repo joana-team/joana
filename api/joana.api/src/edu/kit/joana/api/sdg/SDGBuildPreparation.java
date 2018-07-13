@@ -13,6 +13,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -232,16 +233,11 @@ public final class SDGBuildPreparation {
 	    	cfg.extern.setClassHierarchy(cha);
 	    }
 
-	    out.print("Setting up entrypoint " + cfg.entryMethod + "... ");
-
-
-	    // Methode in der Klassenhierarchie suchen
-		final MethodReference mr = StringStuff.makeMethodReference(Language.JAVA, cfg.entryMethod);
-		
-		IMethod m = cha.resolveMethod(mr);
-		if (m == null) {
-			fail("could not resolve " + mr);
+		if (cfg.extern != null) {
+			cfg.extern.setClassHierarchy(cha);
 		}
+		IMethod m = null;
+		List<IMethod> ms = prepareEntryMethods(out, cfg, cha);
 
 		out.println("done.");
 
@@ -287,6 +283,7 @@ public final class SDGBuildPreparation {
 		scfg.cache = cache;
 		scfg.cha = cha;
 		scfg.entry = m;
+		scfg.entries = ms;
 		scfg.ext = chk;
 		scfg.immutableNoOut = SDGBuilder.IMMUTABLE_NO_OUT;
 		scfg.immutableStubs = SDGBuilder.IMMUTABLE_STUBS;
@@ -314,6 +311,26 @@ public final class SDGBuildPreparation {
 		scfg.doParallel = cfg.isParallel;
 		scfg.controlDependenceVariant = cfg.controlDependenceVariant;
 		return Pair.make(startTime, scfg);
+	}
+
+	private static List<IMethod> prepareEntryMethods(PrintStream out, Config cfg, ClassHierarchy cha) {
+		List<IMethod> ms = null;
+		if (cfg.entryMethods != null && cfg.entryMethods.size() > 0) {
+			ms = new ArrayList<IMethod>();
+			for (String entryMethod : cfg.entryMethods) {
+				out.print("Setting up entrypoint " + entryMethod + "... ");
+
+				// Methode in der Klassenhierarchie suchen
+				final MethodReference mr = StringStuff.makeMethodReference(Language.JAVA, entryMethod);
+
+				IMethod meth = cha.resolveMethod(mr);
+				if (meth == null) {
+					fail("could not resolve " + mr);
+				}
+				ms.add(meth);
+			}
+		}
+		return ms;
 	}
 
 	private static void postpareBuild(long startTime, PrintStream out) {
@@ -389,6 +406,7 @@ public final class SDGBuildPreparation {
 	public static class Config {
 		public String name;
 		public String entryMethod;
+		public List<String> entryMethods;
 		public String classpath;
 		public boolean classpathAddEntriesFromMANIFEST = true;
 		public String thirdPartyLibPath;
@@ -481,5 +499,5 @@ public final class SDGBuildPreparation {
 		}
 	}
 
-
+	
 }

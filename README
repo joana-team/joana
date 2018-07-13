@@ -81,7 +81,7 @@ ant" section for details.
 For Eclipse you will need the following setup in order to compile and run
 Joana:
 
-Eclipse >= 3.7 
+Eclipse >= 3.8 
     Download classic package, as it contains already plug-in-development
     stuff. Do not forget to set an API Baseline!
 

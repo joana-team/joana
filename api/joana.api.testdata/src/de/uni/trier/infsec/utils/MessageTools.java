@@ -7,7 +7,11 @@ public class MessageTools {
 		if (message==null) return null;
 		byte[] copy = new byte[message.length];
 		for (int i = 0; i < message.length; i++) {
-			copy[i] = message[i];
+			try {
+				copy[i] = message[i];
+			} catch (Exception e) {
+				// cannot happen
+			}
 		}
 		return copy;
 	}

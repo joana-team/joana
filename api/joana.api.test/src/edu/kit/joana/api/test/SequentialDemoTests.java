@@ -119,6 +119,12 @@ public class SequentialDemoTests {
 	}
 
 	@Test
+	public void testExceptionInConstructor() throws ClassHierarchyException, ApiTestException, IOException,
+											UnsoundGraphException, CancelException{
+		testSound(       joana.api.testdata.demo.ExceptionInConstructor.class);
+	}
+
+	@Test
 	public void testExcTest() throws ClassHierarchyException, ApiTestException, IOException,
 											UnsoundGraphException, CancelException{
 		testSound(       joana.api.testdata.demo.ExcTest.class);

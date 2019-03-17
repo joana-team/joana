@@ -10,7 +10,7 @@ package edu.kit.joana.ui.ifc.sdg.threadviewer.controller;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-
+import java.util.Set;
 
 import org.eclipse.core.internal.resources.File;
 import org.eclipse.core.resources.IFile;
@@ -1030,7 +1030,7 @@ public class Controller {
 
 	/* Open files according to the given object */
 	private void openFiles(Object obj) {
-		Collection<SDGNode> nodes = new HashSet<SDGNode>();;
+		final Collection<? extends SDGNode> nodes;
 
 		// Collect all nodes of the given object
 		if (obj instanceof ThreadInstance) {
@@ -1055,20 +1055,26 @@ public class Controller {
 				node = ((ViewInterferedNode) obj).getItem();
 			}
 
-			nodes.add(node);
-			nodes.addAll(sdgWrapper.getInterferedNodes(node));
+			final Set<SDGNode> nnodes = new HashSet<>();
+			nnodes.add(node);
+			nnodes.addAll(sdgWrapper.getInterferedNodes(node));
+			nodes = nnodes;
 		} else if (obj instanceof EntityConnectionData) {
 			EntityConnectionData connection = (EntityConnectionData) obj;
 			Object tmpSource = connection.source;
 			Object tmpTarget = connection.dest;
+			
+			final Set<SDGNode> nnodes = new HashSet<>();
 
 			if (tmpSource instanceof ThreadRegion && tmpTarget instanceof ThreadRegion) {
 				ThreadRegion source = (ThreadRegion) tmpSource;
 				ThreadRegion target = (ThreadRegion) tmpTarget;
 
-				nodes.addAll(source.getNodes());
-				nodes.addAll(target.getNodes());
+				nnodes.addAll(source.getNodes());
+				nnodes.addAll(target.getNodes());
 			}
+			
+			nodes = nnodes;
 		} else {
 			// Given object is invalid
 			return;
@@ -1137,7 +1143,7 @@ public class Controller {
 				this.updateStatusBar("Thread region is not in source code.");
 				return;
 			} else {
-				Collection<SDGNode> nodes = region.getNodes();
+				Collection<? extends SDGNode> nodes = region.getNodes();
 				nodeToSet = this.getValidNode(nodes);
 			}
 		} else if (obj instanceof SDGNode) {
@@ -1186,8 +1192,8 @@ public class Controller {
 		}
 	}
 
-	private SDGNode getValidNode(Collection<SDGNode> nodes) {
-		Iterator<SDGNode> iterNodes = nodes.iterator();
+	private SDGNode getValidNode(Collection<? extends SDGNode> nodes) {
+		Iterator<? extends SDGNode> iterNodes = nodes.iterator();
 		SDGNode validNode = null;
 		boolean found = false;
 

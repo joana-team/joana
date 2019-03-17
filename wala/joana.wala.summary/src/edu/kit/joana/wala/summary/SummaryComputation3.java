@@ -69,6 +69,8 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
     private final List<Set<Integer>> procSccs;
     private final IntIntSimpleVector indexNumberOf;
     private final long relevantEdgesMask;
+    private final long relevantEdgesAtActualOutMask;
+    private final boolean assertionsEnabled;
     
     private IntrusiveList<Edge> current; 
 
@@ -133,12 +135,33 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
         	relevantEdgesMask |= ((long) 1 << ((long)relevant.getPriority()));
         }
         this.relevantEdgesMask = relevantEdgesMask;
+        this.relevantEdgesAtActualOutMask = 
+              ( ((long) 1 << ((long)sumEdgeKind.getPriority()))
+              | ((long) 1 << ((long)SDGEdge.Kind.DATA_DEP.getPriority()))
+              | ((long) 1 << ((long)SDGEdge.Kind.DATA_HEAP.getPriority()))
+              | ((long) 1 << ((long)SDGEdge.Kind.DATA_ALIAS.getPriority()))
+              )
+              & relevantEdgesMask
+              | ((long) 1 << ((long)SDGEdge.Kind.CONTROL_DEP_EXPR.getPriority()));
+        boolean assertionsEnabled = false;
+        assert (assertionsEnabled = true);
+        this.assertionsEnabled = assertionsEnabled;
 	}
 
 	private boolean relevantEdges_contains(SDGEdge.Kind kind) {
 		// TODO: find out whether just using EnumSet<> for relevantEdges is good enough
 		final boolean result = ((long) 1 << ((long)kind.getPriority()) & relevantEdgesMask) != 0;
 		assert result == relevantEdges.contains(kind);
+		return result;
+	}
+	
+	private boolean relevantEdgesAtActualOut_contains(SDGEdge.Kind kind) {
+		final boolean result = ((long) 1 << ((long)kind.getPriority()) & relevantEdgesAtActualOutMask) != 0;
+		assert result == (kind == sumEdgeKind
+				|| ((kind == SDGEdge.Kind.DATA_DEP || kind == SDGEdge.Kind.DATA_HEAP
+				|| kind == SDGEdge.Kind.DATA_ALIAS) && relevantEdges_contains(kind))
+				|| (kind == SDGEdge.Kind.CONTROL_DEP_EXPR)); 
+				relevantEdges.contains(kind);
 		return result;
 	}
 	
@@ -336,9 +359,6 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
 	}
 
     private Collection<SDGEdge> computeSummaryEdges(IProgressMonitor progress) throws CancelException {
-    	boolean assertionsEnabled = false;
-    	assert (assertionsEnabled = true);
-    	
     	HashSet<SDGEdge> formInOutSummaryEdge = new HashSet<SDGEdge>();
 
     	Map<Integer, Set<SDGNode>> proc2nodes = new HashMap<>();
@@ -427,10 +447,8 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             final SDGNode[] procLocal2Node = procLocalNodeId2Node.get(procedure);
 
             while (!worklist.isEmpty()) {
-            	MonitorUtil.throwExceptionIfCanceled(progress);
-
-            	Edge next = worklist.poll();
-            	SDGNode.Kind k = next.source.getKind();
+            	final Edge next = worklist.poll();
+            	final SDGNode.Kind k = next.source.getKind();
 
             	switch(k) {
             	case ACTUAL_OUT:
@@ -439,11 +457,8 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             		} else {
             			for (SDGEdge e : graph.incomingEdgesOfUnsafe(next.source)) {
             				final SDGEdge.Kind kind = e.getKind();
-            				if (kind == sumEdgeKind
-            						|| ((kind == SDGEdge.Kind.DATA_DEP || kind == SDGEdge.Kind.DATA_HEAP
-            						|| kind == SDGEdge.Kind.DATA_ALIAS) && relevantEdges_contains(kind))
-            						|| (kind == SDGEdge.Kind.CONTROL_DEP_EXPR
-            						&& e.getSource().getKind() == SDGNode.Kind.CALL)) {
+            				assert kind != SDGEdge.Kind.CONTROL_DEP_EXPR || e.getSource().getKind() == SDGNode.Kind.CALL;
+            				if (relevantEdgesAtActualOut_contains(kind)) {
             					propagate(worklist, e.getSource(), next.target);
             				}
             			}
@@ -513,12 +528,11 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             				}
             			}
             		}
-            		for (SDGEdge e : graph.incomingEdgesOfUnsafe(next.source)) {
-            			final SDGEdge.Kind kind = e.getKind();
-            			if ((kind == SDGEdge.Kind.DATA_DEP || kind == SDGEdge.Kind.DATA_HEAP
-            					|| kind == SDGEdge.Kind.DATA_ALIAS) && relevantEdges_contains(kind)) {
-            				propagate(worklist, e.getSource(), next.target);
-            			}
+            		if (assertionsEnabled) {
+	            		for (SDGEdge e : graph.incomingEdgesOfUnsafe(next.source)) {
+	            			final SDGEdge.Kind kind = e.getKind();
+	            			assert !((kind == SDGEdge.Kind.DATA_DEP || kind == SDGEdge.Kind.DATA_HEAP || kind == SDGEdge.Kind.DATA_ALIAS) && relevantEdges_contains(kind));
+	            		}
             		}
             		break;
 
@@ -535,17 +549,11 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             		}
 
             		for (SDGEdge e : graph.incomingEdgesOfUnsafe(next.source)) {
-            			if (e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR) {
-            				if (e.getSource().getKind() == SDGNode.Kind.CALL) {
-            					propagate(worklist, e.getSource(), next.target);
-            				}
-
-            			} else if (relevantEdges_contains(e.getKind())) {
+            			assert e.getKind() != SDGEdge.Kind.CONTROL_DEP_EXPR || e.getSource().getKind() == SDGNode.Kind.CALL;
+            			if (relevantEdges_contains(e.getKind()) || e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR) {
             				propagate(worklist, e.getSource(), next.target);
             			}
             		}
-
-
             		break;
 
             	case FORMAL_OUT:
@@ -564,16 +572,6 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             				}
             			}
             		}
-            		//                    for (SDGEdge e : graph.incomingEdgesOf(next.source)) {
-            		//                        if (e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR) {
-            		//                            if (e.getSource().getKind() == SDGNode.Kind.ENTRY) {
-            		//                                propagate(new Edge(e.getSource(), next.target));
-            		//                            }
-            		//
-            		//                        } else if (e.getKind().isIntraSDGEdge()) {
-            		//                            propagate(new Edge(e.getSource(), next.target));
-            		//                        }
-            		//                    }
             		break;
 
             	default:
@@ -761,18 +759,12 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             if (pi.getKind() == SDGEdge.Kind.PARAMETER_IN) {
                 final SDGNode ai = pi.getSource();
 
-//                if (relevantProcs != null && !relevantProcs.contains(ai.getProc())) {
-//            		continue;
-//                }
-
-
                 final SDGNode call = getCallSiteFor(ai);
+                assert call != null;
 
-                if(call != null) {
-                	final AcutalInActualOutPair pair = new AcutalInActualOutPair(ai);
-                	call.customData = pair;
-                	result.add(pair);
-                }
+                final AcutalInActualOutPair pair = new AcutalInActualOutPair(ai);
+                call.customData = pair;
+                result.add(pair);
             }
         }
 
@@ -780,16 +772,14 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             if (po.getKind() == SDGEdge.Kind.PARAMETER_OUT) {
                 final SDGNode ao = po.getTarget();
 
-//                if (relevantProcs != null && !relevantProcs.contains(ao.getProc())) {
-//            		continue;
-//                }
-
                 final SDGNode call = getCallSiteFor(ao);
+                assert call != null;
 
                 final AcutalInActualOutPair newE = (AcutalInActualOutPair) call.customData;
-                if (newE != null) {
-                	newE.setActualOut(ao);
-                }
+                assert newE != null;
+                
+               	newE.setActualOut(ao);
+               	call.customData = null;
             }
         }
 
@@ -838,15 +828,12 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
     private SDGNode getCallSiteFor(SDGNode node){
     	assert node.getKind() == SDGNode.Kind.ACTUAL_IN || node.getKind() == SDGNode.Kind.ACTUAL_OUT;
 
-    	for(SDGEdge e : graph.incomingEdgesOfUnsafe(node)){
-    		if(e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR){
-    			assert e.getSource().getKind() == SDGNode.Kind.CALL; 
-    			assert e.getSource().equals(getCallSiteForSlow(node));
-    			return e.getSource();
-    		}
-    	}
-        assert getCallSiteForSlow(node) == null;
-        return null;
+    	final SDGEdge e = graph.incomingEdgesOfUnsafe(node)[0];
+    	assert e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR;
+    	assert e.getSource().getKind() == SDGNode.Kind.CALL; 
+    	assert e.getSource().equals(getCallSiteForSlow(node));
+    	
+    	return e.getSource();
     }
 
     private static class Edge implements Intrusable<Edge> {

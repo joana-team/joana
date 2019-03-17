@@ -320,6 +320,9 @@ public final class RunSingleFileIFC {
 			case PRECISE:
 				sb.append("precise analysis");
 				break;
+			case PRECISE_UNSAFE:
+				sb.append("precise analysis (optimized implementation)");
+				break;
 			}
 		}
 		

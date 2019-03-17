@@ -431,7 +431,13 @@ public final class ObjGraphParams {
 							}
 						}
 						pdg.addEdge(n, imm, PDGEdge.Kind.CONTROL_DEP_EXPR);
-						pdg.addEdge(imm, newStmt, PDGEdge.Kind.DATA_DEP);
+						
+						// for calls to initializers of immutable super classes, we cannot find a corresponding newStatement in this PDG
+						// TODO: do we need to deal with this otherwise?
+						assert newStmt.getKind() == PDGNode.Kind.NEW || newStmt.getKind() == PDGNode.Kind.FORMAL_IN;
+						if (newStmt.getKind() == PDGNode.Kind.NEW) {
+							pdg.addEdge(imm, newStmt, PDGEdge.Kind.DATA_DEP);
+						}
 						
 						pdg.removeEdge(toRemove);
 						pdg.addEdge(n, imm, PDGEdge.Kind.CONTROL_FLOW);

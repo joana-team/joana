@@ -247,7 +247,7 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
 	 */
     private static class IDComparator implements Comparator<SDGNode> {
         public int compare(SDGNode n1, SDGNode n2) {
-            return n1.getId() -n2.getId();
+            return Integer.compare(n1.getId(), n2.getId());
         }
     }
 

@@ -264,6 +264,14 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 
         return tr;
     }
+    
+    public static PreciseMHPAnalysis analyzeUNSAFE(SDG sdg) {
+        ThreadsInformation info = sdg.getThreadsInfo();
+        CFG icfg = ICFGBuilder.extractICFG(sdg);
+        PreciseMHPAnalysis tr = analyzeUNSAFE(icfg, info);
+
+        return tr;
+    }
 
     @SuppressWarnings("unused")
 	private static void addReturnEdges(CFG icfg) {
@@ -311,6 +319,17 @@ public class PreciseMHPAnalysis implements MHPAnalysis {
 		final Logger log = Log.getLogger(Log.L_MHP_INFO);
         log.outln("Compute Thread Regions ...");
         ThreadRegions tr = ThreadRegions.createPreciseThreadRegions(icfg, info);
+//        if (DEBUG) System.out.println(tr);
+        MHPComputation mhp = new MHPComputation(icfg, info, tr);
+    	PreciseMHPAnalysis result = mhp.getMHPMap();
+
+    	return result;
+    }
+	
+	private static PreciseMHPAnalysis analyzeUNSAFE(CFG icfg, ThreadsInformation info) {
+		final Logger log = Log.getLogger(Log.L_MHP_INFO);
+        log.outln("Compute Thread Regions ...");
+        ThreadRegions tr = ThreadRegions.createPreciseThreadRegionsUNSAFE(icfg, info);
 //        if (DEBUG) System.out.println(tr);
         MHPComputation mhp = new MHPComputation(icfg, info, tr);
     	PreciseMHPAnalysis result = mhp.getMHPMap();

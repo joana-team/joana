@@ -722,7 +722,7 @@ public class ThreadViewer extends ViewPart implements IZoomableWorkbenchPart {
 	 *  Highlights the given region in the Editor View.
 	 */
 	public void highlightRegion(ThreadRegion region, int lvl) {
-		Collection<SDGNode> nodes = region.getNodes();
+		Collection<? extends SDGNode> nodes = region.getNodes();
 
 		// Highlight nodes and set cursor
 		this.highlight(nodes, lvl);
@@ -742,7 +742,7 @@ public class ThreadViewer extends ViewPart implements IZoomableWorkbenchPart {
 	/**
 	 * Highlights the given nodes in the Editor View
 	 */
-	public void highlight(Collection<SDGNode> nodes, int lvl) {
+	public void highlight(Collection<? extends SDGNode> nodes, int lvl) {
 		IProject project = SDGWrapper.getInstance().getProject();
 
 		if (project != null) {
@@ -775,7 +775,7 @@ public class ThreadViewer extends ViewPart implements IZoomableWorkbenchPart {
 
 		for (ThreadRegion region : regionCandidates) {
 			for (SDGNode node : region.getNodes()) {
-				Iterator<SDGNode> iterMainNodes = mainRegion.getNodes().iterator();
+				Iterator<? extends SDGNode> iterMainNodes = mainRegion.getNodes().iterator();
 
 				boolean isOutside = true;
 				while (iterMainNodes.hasNext() && isOutside) {

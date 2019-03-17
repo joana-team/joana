@@ -78,6 +78,7 @@ import edu.kit.joana.wala.core.graphs.NTICDGraphGreatestFP;
 import edu.kit.joana.wala.core.graphs.NTICDGraphGreatestFPWorklistSymbolic;
 import edu.kit.joana.wala.core.graphs.NTICDGraphLeastFPDualWorklistSymbolic;
 import edu.kit.joana.wala.core.graphs.NTSCDGraph;
+import edu.kit.joana.wala.core.graphs.SinkpathPostDominators;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
 import edu.kit.joana.wala.flowless.pointsto.Pts2AliasGraph;
@@ -544,6 +545,14 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 				break;
 			}
 			case NTICD_GFP_WORKLIST_SYMBOLIC: {
+				final DirectedGraph<SinkpathPostDominators.Node<PDGNode>, SinkpathPostDominators.ISinkdomEdge> isinkdom = SinkpathPostDominators.compute(cfg);
+				final String isinkdomFileName = WriteGraphToDot.sanitizeFileName(method.getSignature() + "-" + builder.cfg.controlDependenceVariant + "-isinkdom.dot");
+				try {
+					WriteGraphToDot.write(isinkdom, isinkdomFileName, e -> true, v -> Integer.toString(v.getV().getId()));
+				} catch (FileNotFoundException e) {
+					//log.outln(Arrays.toString(e.getStackTrace()));
+				}
+
 				cdg = NTICDGraphGreatestFPWorklistSymbolic.compute(cfg, new EdgeFactory<PDGNode,PDGEdge>() {
 					public PDGEdge createEdge(PDGNode from, PDGNode to) {
 						return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);

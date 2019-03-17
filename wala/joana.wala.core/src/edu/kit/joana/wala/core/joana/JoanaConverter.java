@@ -340,7 +340,7 @@ public class JoanaConverter {
 		}
 
 		@Override
-		public boolean traverse(PDGEdge edge) {
+		public boolean traverse(PDGNode node, PDGEdge edge) {
 			return edge.kind.isControl();
 		}
 

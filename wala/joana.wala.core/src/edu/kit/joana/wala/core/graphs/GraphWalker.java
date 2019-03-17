@@ -54,7 +54,7 @@ public abstract class GraphWalker<V, E> {
 
         final Iterable<E> outEdges = newOutEdges(graph.outgoingEdgesOf(node));
         for (final E out : outEdges) {
-        	if (traverse(out)) {
+        	if (traverse(node, out)) {
 	            final V succ = graph.getEdgeTarget(out);
 	            if (!visited.contains(succ)) {
 	                dfs(succ, visited);
@@ -70,7 +70,7 @@ public abstract class GraphWalker<V, E> {
      * @param edge The edge that may be traversed.
      * @return true if the provided edge should be traversed.
      */
-    public boolean traverse(E edge) {
+    public boolean traverse(V node, E edge) {
     	return true;
     }
 
@@ -117,7 +117,7 @@ public abstract class GraphWalker<V, E> {
                 discover(current);
 
                 for (E succEdge : newOutEdges(graph.outgoingEdgesOf(current))) {
-                	if (!traverse(succEdge)) {
+                	if (!traverse(current, succEdge)) {
                 		continue;
                 	}
 

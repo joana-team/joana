@@ -545,7 +545,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 				break;
 			}
 			case NTICD_GFP_WORKLIST_SYMBOLIC: {
-				final DirectedGraph<SinkpathPostDominators.Node<PDGNode>, SinkpathPostDominators.ISinkdomEdge> isinkdom = SinkpathPostDominators.compute(cfg);
+				final DirectedGraph<SinkpathPostDominators.Node<PDGNode>, SinkpathPostDominators.ISinkdomEdge<SinkpathPostDominators.Node<PDGNode>>> isinkdom = SinkpathPostDominators.compute(cfg);
 				final String isinkdomFileName = WriteGraphToDot.sanitizeFileName(method.getSignature() + "-" + builder.cfg.controlDependenceVariant + "-isinkdom.dot");
 				try {
 					WriteGraphToDot.write(isinkdom, isinkdomFileName, e -> true, v -> Integer.toString(v.getV().getId()));

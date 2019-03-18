@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.jgrapht.DirectedGraph;
+import org.jgrapht.EdgeFactory;
 import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
 import org.jgrapht.graph.EdgeReversedGraph;
 import org.jgrapht.graph.SimpleDirectedGraph;
@@ -30,10 +31,27 @@ import edu.kit.joana.util.graph.LeastCommonAncestor;
  * TODO: @author Add your name here.
  */
 public class SinkpathPostDominators {
-	public static class ISinkdomEdge {
+	public static class ISinkdomEdge<V> implements KnowsVertices<V> {
+		private V source;
+		private V target;
+		public ISinkdomEdge(V source, V target) {
+			this.source = source;
+			this.target = target;
+		}
+		
 		@Override
 		public String toString() {
 			return "ISINKDOM";
+		}
+		
+		@Override
+		public V getSource() {
+			return source;
+		}
+		
+		@Override
+		public V getTarget() {
+			return target;
 		}
 	};
 
@@ -69,10 +87,14 @@ public class SinkpathPostDominators {
 		public String toString() {
 			return v.toString();
 		}
+		
+		public Node<V> getRepresentant() {
+			return representant;
+		}
 	}
 	
-	private static <V> void processed(DirectedGraph<Node<V>, ISinkdomEdge> result, Node<V> x) {
-		final GraphWalker<Node<V>, ISinkdomEdge> rdfs = new GraphWalker<Node<V>, ISinkdomEdge>(new EdgeReversedGraph<>(result)) {
+	private static <V> void processed(DirectedGraph<Node<V>, ISinkdomEdge<Node<V>>> result, Node<V> x) {
+		final GraphWalker<Node<V>, ISinkdomEdge<Node<V>>> rdfs = new GraphWalker<Node<V>, ISinkdomEdge<Node<V>>>(new EdgeReversedGraph<>(result)) {
 			@Override
 			public void discover(Node<V> node) {}
 
@@ -82,22 +104,27 @@ public class SinkpathPostDominators {
 			}
 			
 			@Override
-			public boolean traverse(Node<V> node, ISinkdomEdge edge) {
+			public boolean traverse(Node<V> node, ISinkdomEdge<Node<V>> edge) {
 				return !node.processed;
 			}
 		};
 		rdfs.traverseDFS(x);
 	}
 	
-	private static <V> void newEdge (DirectedGraph<Node<V>, ISinkdomEdge> result, Node<V> x, Node<V> z) {
+	private static <V> void newEdge (DirectedGraph<Node<V>, ISinkdomEdge<Node<V>>> result, Node<V> x, Node<V> z) {
 		result.addEdge(x, z);
 		x.next = z;
 	}
 	
-	public static <V, E extends KnowsVertices<V>> DirectedGraph<Node<V>, ISinkdomEdge> compute(DirectedGraph<V, E> graph) {
+	public static <V, E extends KnowsVertices<V>> DirectedGraph<Node<V>, ISinkdomEdge<Node<V>>> compute(DirectedGraph<V, E> graph) {
 		
 		final Map<V, Node<V>> vToNode = new HashMap<>();
-		final SimpleDirectedGraph<Node<V>, ISinkdomEdge> result = new SimpleDirectedGraph<>(ISinkdomEdge.class);
+		final SimpleDirectedGraph<Node<V>, ISinkdomEdge<Node<V>>> result = new SimpleDirectedGraph<>(new EdgeFactory<Node<V>, ISinkdomEdge<Node<V>>>() {
+			@Override
+			public ISinkdomEdge<Node<V>> createEdge(Node<V> sourceVertex, Node<V> targetVertex) {
+				return new ISinkdomEdge<>(sourceVertex, targetVertex); 
+			}
+		});
 		
 		for (V v : graph.vertexSet()) {
 			final Node<V> n = new Node<V>(v);
@@ -185,7 +212,6 @@ public class SinkpathPostDominators {
 			}
 		}
 		{
-			@SuppressWarnings("unchecked")
 			final Set<Node<V>> workset = new HashSet<>();
 			for (Node<V> n : vToNode.values()) {
 				if (n.next != null && n.isRelevant) workset.add(n);
@@ -202,7 +228,7 @@ public class SinkpathPostDominators {
 				final Node<V> z = a == null ? null : a.representant;
 				assert x.next != null || z == null;
 				if (z != null && z != x.next) {
-					final GraphWalker<Node<V>, ISinkdomEdge> rdfs = new GraphWalker<Node<V>, ISinkdomEdge>(new EdgeReversedGraph<>(result)) {
+					final GraphWalker<Node<V>, ISinkdomEdge<Node<V>>> rdfs = new GraphWalker<Node<V>, ISinkdomEdge<Node<V>>>(new EdgeReversedGraph<>(result)) {
 						@Override
 						public void discover(Node<V> node) {}
 
@@ -217,7 +243,7 @@ public class SinkpathPostDominators {
 						}
 						
 						@Override
-						public boolean traverse(Node<V> node, ISinkdomEdge edge) {
+						public boolean traverse(Node<V> node, ISinkdomEdge<Node<V>> edge) {
 							return true;
 						}
 					};

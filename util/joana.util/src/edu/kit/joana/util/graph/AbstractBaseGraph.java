@@ -235,6 +235,20 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             return true;
         }
     }
+    
+    /**
+     * @see Graph#addVertex(Object),
+     * except some failure cases may go unnoticed
+     */
+    @Override
+    public void addVertexUnsafe(V v) {
+        if (v == null) {
+            throw new NullPointerException();
+        } else {
+            vertexMap.put(v, new ArraySetDirectedEdgeContainer<V, E>(classE));
+            changed = true;
+        }
+    }
 
     /**
      * @see Graph#getEdgeSource(Object)

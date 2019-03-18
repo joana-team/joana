@@ -58,18 +58,19 @@ public final class ArrayMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
 	private boolean isCompact;
 	
 	public ArrayMap() {
+		this(0);
+	}
+	
+	public ArrayMap(int capacity) {
 		this.compactEnabled = true;
 		this.size = 0;
 		this.maxIndex = -1;
-		this.keys   = new Object[size];
-		this.values = new Object[size];
+		this.keys   = new Object[capacity];
+		this.values = new Object[capacity];
 		this.isCompact = true;
 	}
 	
-	public ArrayMap(Map<K, V> other) {
-		@SuppressWarnings("unchecked")
-		final Entry<K, V>[] entries = (Entry<K, V>[]) other.entrySet().toArray(new Entry<?, ?>[0]);
-		
+	public ArrayMap(Entry<K, V>[] entries) {
 		for (Entry<K, V> entry : entries) {
 			assert entry.getKey() != null;
 			if (entry.getValue() == null) throw new NullPointerException();
@@ -89,6 +90,12 @@ public final class ArrayMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
 		
 		assert invariant();
 	}
+	
+	@SuppressWarnings("unchecked")
+	public ArrayMap(Map<K, V> other) {
+		this((Entry<K, V>[]) other.entrySet().toArray(new Entry<?, ?>[0]));
+	}
+
 	
 	private boolean isCompact() {
 		for (int i = 0; i < size; i++) {

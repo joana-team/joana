@@ -40,6 +40,7 @@ public interface EfficientGraph<V, E> extends Graph<V, E> {
 	 */
 	void addIncomingEdgesAtUNSAFE(V targetVertex, Set<E> edges);
 	
+	void addVertexUnsafe(V vertex);
 	boolean addEdgeUnsafe(V sourceVertex, V targetVertex, E e);
 	boolean containsEdge(V sourceVertex, V targetVertex, Predicate<E> predicate);
 	E[] outgoingEdgesOfUnsafe(V vertex);

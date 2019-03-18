@@ -7,6 +7,7 @@
  */
 package edu.kit.joana.wala.core.graphs;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -21,9 +22,9 @@ import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
 import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
 import org.jgrapht.graph.EdgeReversedGraph;
-import org.jgrapht.graph.SimpleDirectedGraph;
 
-import edu.kit.joana.util.graph.Graphs;
+import edu.kit.joana.util.graph.AbstractJoanaGraph;
+import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
 import edu.kit.joana.util.graph.LeastCommonAncestor;
 
@@ -55,7 +56,7 @@ public class SinkpathPostDominators {
 		}
 	};
 
-	public static class Node<V> implements LeastCommonAncestor.PseudoTreeNode<Node<V>> {
+	public static class Node<V extends IntegerIdentifiable> implements LeastCommonAncestor.PseudoTreeNode<Node<V>>, IntegerIdentifiable {
 		private final V v;
 		
 		private boolean processed;
@@ -63,7 +64,9 @@ public class SinkpathPostDominators {
 		private boolean isRelevant;
 		
 		private Node<V> next;
-		private Node<V> representant; 
+		private Node<V> representant;
+		
+		private List<Node<V>> successors;
 		
 		public Node(V v) {
 			this.v = v;
@@ -91,9 +94,13 @@ public class SinkpathPostDominators {
 		public Node<V> getRepresentant() {
 			return representant;
 		}
+		@Override
+		public int getId() {
+			return v.getId();
+		}
 	}
 	
-	private static <V> void processed(DirectedGraph<Node<V>, ISinkdomEdge<Node<V>>> result, Node<V> x) {
+	private static <V extends IntegerIdentifiable> void processed(DirectedGraph<Node<V>, ISinkdomEdge<Node<V>>> result, Node<V> x) {
 		final GraphWalker<Node<V>, ISinkdomEdge<Node<V>>> rdfs = new GraphWalker<Node<V>, ISinkdomEdge<Node<V>>>(new EdgeReversedGraph<>(result)) {
 			@Override
 			public void discover(Node<V> node) {}
@@ -111,26 +118,36 @@ public class SinkpathPostDominators {
 		rdfs.traverseDFS(x);
 	}
 	
-	private static <V> void newEdge (DirectedGraph<Node<V>, ISinkdomEdge<Node<V>>> result, Node<V> x, Node<V> z) {
-		if (x.next != null) result.removeEdge(x, x.next);
-		if (z != null) result.addEdge(x, z);
+	private static <V extends IntegerIdentifiable> void newEdge(AbstractJoanaGraph<Node<V>, ISinkdomEdge<Node<V>>> result, Node<V> x, Node<V> z) {
+		if (x.next != null) result.removeOutgoingEdgesOf(x);
+		if (z != null) result.addEdgeUnsafe(x, z, new ISinkdomEdge<SinkpathPostDominators.Node<V>>(x, z));
 		x.next = z;
 	}
 	
-	public static <V, E extends KnowsVertices<V>> DirectedGraph<Node<V>, ISinkdomEdge<Node<V>>> compute(DirectedGraph<V, E> graph) {
+	@SuppressWarnings("serial")
+	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> DirectedGraph<Node<V>, ISinkdomEdge<Node<V>>> compute(DirectedGraph<V, E> graph) {
 		
 		final Map<V, Node<V>> vToNode = new HashMap<>();
-		final SimpleDirectedGraph<Node<V>, ISinkdomEdge<Node<V>>> result = new SimpleDirectedGraph<>(new EdgeFactory<Node<V>, ISinkdomEdge<Node<V>>>() {
-			@Override
-			public ISinkdomEdge<Node<V>> createEdge(Node<V> sourceVertex, Node<V> targetVertex) {
-				return new ISinkdomEdge<>(sourceVertex, targetVertex); 
-			}
-		});
+		final AbstractJoanaGraph<Node<V>, ISinkdomEdge<Node<V>>> result; {
+			final ISinkdomEdge<Node<V>> dummy = new ISinkdomEdge<SinkpathPostDominators.Node<V>>(null, null);
+			@SuppressWarnings("unchecked")
+			final Class<ISinkdomEdge<Node<V>>> clazz = (Class<ISinkdomEdge<Node<V>>>) dummy.getClass();
+			result = new AbstractJoanaGraph<Node<V>, ISinkdomEdge<Node<V>>>(
+				new EdgeFactory<Node<V>, ISinkdomEdge<Node<V>>>() {
+					@Override
+					public ISinkdomEdge<Node<V>> createEdge(Node<V> sourceVertex, Node<V> targetVertex) {
+						return new ISinkdomEdge<>(sourceVertex, targetVertex); 
+					}
+				},
+				() -> new HashMap<>(graph.vertexSet().size()),
+				clazz
+			) {	};
+		}
 		
 		for (V v : graph.vertexSet()) {
 			final Node<V> n = new Node<V>(v);
 			vToNode.put(v, n);
-			result.addVertex(n);
+			result.addVertexUnsafe(n);
 		}
 		
 		final KosarajuStrongConnectivityInspector<V, E> sccInspector = new KosarajuStrongConnectivityInspector<V, E>(graph);
@@ -171,11 +188,11 @@ public class SinkpathPostDominators {
 			final V v = entry.getKey();
 			final Node<V> x = entry.getValue();
 			if (!x.isSinkNode) {
-				Set<V> successors = Graphs.getSuccNodes(graph, v);
-				switch (successors.size()) {
+				final Set<E> successorEs = graph.outgoingEdgesOf(v);
+				switch (successorEs.size()) {
 					case 0: break;
 					case 1: {
-						final Node<V> z = vToNode.get(successors.iterator().next());
+						final Node<V> z = vToNode.get(successorEs.iterator().next().getTarget());
 						if (z != x) {
 							newEdge(result, x, z.representant);
 							if (z.processed) processed(result, x); // TODO: pdf fixen
@@ -184,6 +201,11 @@ public class SinkpathPostDominators {
 					}
 					default: {
 						x.isRelevant = true;
+						final ArrayList<Node<V>> successors = new ArrayList<>(successorEs.size());
+						for (E e : successorEs) {
+							successors.add(vToNode.get(e.getTarget()));
+						}
+						x.successors = successors;
 						workqueue.add(x);
 					}
 				}
@@ -195,8 +217,8 @@ public class SinkpathPostDominators {
 			while (!workqueue.isEmpty()) {
 				final Node<V> x = workqueue.removeFirst();
 				assert x.next == null && !x.processed;
-				final Set<V> successors = Graphs.getSuccNodes(graph, x.v);
-				final List<Node<V>> ys = successors.stream().map(vToNode::get).filter(y -> y.processed).collect(Collectors.toList());
+				final List<Node<V>> successors = x.successors;
+				final List<Node<V>> ys = successors.stream().filter(y -> y.processed).collect(Collectors.toList());
 				final Node<V> z;
 				if (ys.isEmpty()) {
 					z = null;
@@ -224,8 +246,8 @@ public class SinkpathPostDominators {
 					x = it.next();
 					it.remove();
 				}
-				final Set<V> successors = Graphs.getSuccNodes(graph, x.v);
-				final Node<V> a = LeastCommonAncestor.lca(successors.stream().map(vToNode::get).collect(Collectors.toList()));
+				final List<Node<V>> successors = x.successors;
+				final Node<V> a = LeastCommonAncestor.lca(successors);
 				final Node<V> z = a == null ? null : a.representant;
 				assert x.next != null || z == null;
 				if (z != x.next) {
@@ -235,7 +257,8 @@ public class SinkpathPostDominators {
 
 						@Override
 						public void finish(Node<V> node) {
-							for (V vn : Graphs.getPredNodes(graph, node.v)) {
+							for (E e : graph.incomingEdgesOf(node.v) ) {
+								final V vn = e.getSource();
 								final Node<V> n = vToNode.get(vn);
 								if (n.isRelevant) {
 									workset.add(n);

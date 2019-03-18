@@ -29,10 +29,11 @@ import edu.kit.joana.wala.core.graphs.SinkpathPostDominators.Node;
  * @author Martin Hecker  <martin.hecker@kit.edu>
  *
  */
+@SuppressWarnings("serial")
 public class NTICDGraphPostdominanceFrontiers<V extends IntegerIdentifiable, E extends KnowsVertices<V>> extends AbstractJoanaGraph<V, E> {
 
-	private NTICDGraphPostdominanceFrontiers(EdgeFactory<V, E> edgeFactory, Class<E> classE) {
-		super(edgeFactory, () -> new ArrayMap<>(), classE);
+	private NTICDGraphPostdominanceFrontiers(EdgeFactory<V, E> edgeFactory, Class<E> classE, int size) {
+		super(edgeFactory, () -> new ArrayMap<>(size), classE);
 	}
 
 	public static boolean DEBUG = false;
@@ -41,9 +42,9 @@ public class NTICDGraphPostdominanceFrontiers<V extends IntegerIdentifiable, E e
 	 * Computes nontermination sensitive control dependence.
 	 */
 	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> NTICDGraphPostdominanceFrontiers<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory, Class<E> classE) {
-		NTICDGraphPostdominanceFrontiers<V, E> cdg = new NTICDGraphPostdominanceFrontiers<>(edgeFactory, classE);
+		final NTICDGraphPostdominanceFrontiers<V, E> cdg = new NTICDGraphPostdominanceFrontiers<>(edgeFactory, classE, cfg.vertexSet().size());
 		for (V n : cfg.vertexSet()) {
-			cdg.addVertex(n);
+			cdg.addVertexUnsafe(n);
 		}
 
 		final DirectedGraph<Node<V>, SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdom = SinkpathPostDominators.compute(cfg);
@@ -87,7 +88,7 @@ public class NTICDGraphPostdominanceFrontiers<V extends IntegerIdentifiable, E e
 			}
 			for (Node<V> x : scc) {
 				for (V y : localAndUps) {
-					if (y != x.getV()) cdg.addEdge(y, x.getV());
+					if (y != x.getV()) cdg.addEdgeUnsafe(y, x.getV(), edgeFactory.createEdge(y, x.getV()));
 				}
 			}
 			

@@ -112,7 +112,8 @@ public class SinkpathPostDominators {
 	}
 	
 	private static <V> void newEdge (DirectedGraph<Node<V>, ISinkdomEdge<Node<V>>> result, Node<V> x, Node<V> z) {
-		result.addEdge(x, z);
+		if (x.next != null) result.removeEdge(x, x.next);
+		if (z != null) result.addEdge(x, z);
 		x.next = z;
 	}
 	
@@ -176,7 +177,7 @@ public class SinkpathPostDominators {
 					case 1: {
 						final Node<V> z = vToNode.get(successors.iterator().next());
 						if (z != x) {
-							newEdge(result, x, z);
+							newEdge(result, x, z.representant);
 							if (z.processed) processed(result, x); // TODO: pdf fixen
 						}
 						break;
@@ -204,7 +205,7 @@ public class SinkpathPostDominators {
 					z = a == null ? ys.get(0) : a;
 				}
 				if (z != null) {
-					newEdge(result, x, z);
+					newEdge(result, x, z.representant);
 					processed(result, x);
 				} else {
 					workqueue.addLast(x);
@@ -227,7 +228,7 @@ public class SinkpathPostDominators {
 				final Node<V> a = LeastCommonAncestor.lca(successors.stream().map(vToNode::get).collect(Collectors.toList()));
 				final Node<V> z = a == null ? null : a.representant;
 				assert x.next != null || z == null;
-				if (z != null && z != x.next) {
+				if (z != x.next) {
 					final GraphWalker<Node<V>, ISinkdomEdge<Node<V>>> rdfs = new GraphWalker<Node<V>, ISinkdomEdge<Node<V>>>(new EdgeReversedGraph<>(result)) {
 						@Override
 						public void discover(Node<V> node) {}

@@ -32,11 +32,11 @@ public final class LeastCommonAncestor {
 	}
 	
 	public static <T extends PseudoTreeNode<T>> T lca(T n, T m) {
-		final Set<T> pin = new HashSet<>();
+		Set<T> pin = new HashSet<>();
 		pin.add(n);
 		
-		final Set<T> pim = new HashSet<>();
-		pin.add(n);
+		Set<T> pim = new HashSet<>();
+		pim.add(m);
 		
 		while (true) {
 			if (pin.contains(m)) return m;
@@ -44,17 +44,21 @@ public final class LeastCommonAncestor {
 			final T nn = n.getNext();
 			if (nn == null) return lin(n, pin, m, pim);
 			
-			if (pin.contains(n)) return lin(n, pin, m, pim);
+			if (pin.contains(nn)) return lin(n, pin, m, pim);
 			
 			pin.add(nn);
 			n = m;
 			m = nn;
+			
+			final Set<T> tmp = pim;
+			pim = pin;
+			pin = tmp;
 		}
 	}
 	
 	private static <T extends PseudoTreeNode<T>> T lin(final T n, final Set<T> pin, T m, Set<T> pim) {
 		while (true) {
-			final T mm = n.getNext();
+			final T mm = m.getNext();
 			if (mm == null) return null;
 			if (pin.contains(mm)) return mm;
 			if (pim.contains(mm)) return null;

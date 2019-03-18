@@ -7,6 +7,7 @@
  */
 package edu.kit.joana.wala.core.graphs;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -51,24 +52,31 @@ public class NTICDGraphPostdominanceFrontiers<V extends IntegerIdentifiable, E e
 		
 		for (Set<Node<V>> scc : sccs.stronglyConnectedSets()) {
 			final Node<V> representant = scc.iterator().next().getRepresentant();
+			final Set<V> sccV; {
+				final IntegerIdentifiable[] sccA = new  IntegerIdentifiable[scc.size()];
+				int i = 0;
+				for (Node<V> x : scc) {
+					sccA[i++] = x.getV();
+				}
+				Arrays.sort(sccA, ArraySet.COMPARATOR);
+				sccV = ArraySet.own(sccA);
+			}
 			
-			// final Set<SinkpathPostDominators.Node<V>> sccImmediatesV = Graphs.getPredNodes(isinkdom, representant);
-			
-			Set<ISinkdomEdge<Node<V>>> incoming = isinkdom.incomingEdgesOf(representant);
+			final Set<ISinkdomEdge<Node<V>>> incoming = isinkdom.incomingEdgesOf(representant);
 			final Set<V> sccImmediates; {
-				@SuppressWarnings("unchecked")
-				final V[] sccImmediatesA = (V[]) new Object[incoming.size()];
+				final IntegerIdentifiable[] sccImmediatesA = new IntegerIdentifiable[incoming.size()];
 				int i = 0;
 				for (ISinkdomEdge<Node<V>> e : incoming) {
 					sccImmediatesA[i++] = e.getSource().getV();
 				}
+				Arrays.sort(sccImmediatesA, ArraySet.COMPARATOR);
 				sccImmediates = ArraySet.own(sccImmediatesA);
 			}
 			final Set<V> localAndUps = new HashSet<>();
 			for (Node<V> x : scc) {
 				for (E e : cfg.incomingEdgesOf(x.getV())) {
 					final V y = e.getSource();
-					if (!sccImmediates.contains(y)) localAndUps.add(y);
+					if (!sccImmediates.contains(y) && !sccV.contains(y)) localAndUps.add(y);
 				}
 				for (V z : sccImmediates) {
 					for (E e : cdg.incomingEdgesOf(z)) {
@@ -79,7 +87,7 @@ public class NTICDGraphPostdominanceFrontiers<V extends IntegerIdentifiable, E e
 			}
 			for (Node<V> x : scc) {
 				for (V y : localAndUps) {
-					cdg.addEdge(y, x.getV());
+					if (y != x.getV()) cdg.addEdge(y, x.getV());
 				}
 			}
 			

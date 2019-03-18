@@ -77,6 +77,7 @@ import edu.kit.joana.wala.core.graphs.NTICDGraph;
 import edu.kit.joana.wala.core.graphs.NTICDGraphGreatestFP;
 import edu.kit.joana.wala.core.graphs.NTICDGraphGreatestFPWorklistSymbolic;
 import edu.kit.joana.wala.core.graphs.NTICDGraphLeastFPDualWorklistSymbolic;
+import edu.kit.joana.wala.core.graphs.NTICDGraphPostdominanceFrontiers;
 import edu.kit.joana.wala.core.graphs.NTSCDGraph;
 import edu.kit.joana.wala.core.graphs.SinkpathPostDominators;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph;
@@ -545,14 +546,6 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 				break;
 			}
 			case NTICD_GFP_WORKLIST_SYMBOLIC: {
-				final DirectedGraph<SinkpathPostDominators.Node<PDGNode>, SinkpathPostDominators.ISinkdomEdge<SinkpathPostDominators.Node<PDGNode>>> isinkdom = SinkpathPostDominators.compute(cfg);
-				final String isinkdomFileName = WriteGraphToDot.sanitizeFileName(method.getSignature() + "-" + builder.cfg.controlDependenceVariant + "-isinkdom.dot");
-				try {
-					WriteGraphToDot.write(isinkdom, isinkdomFileName, e -> true, v -> Integer.toString(v.getV().getId()));
-				} catch (FileNotFoundException e) {
-					//log.outln(Arrays.toString(e.getStackTrace()));
-				}
-
 				cdg = NTICDGraphGreatestFPWorklistSymbolic.compute(cfg, new EdgeFactory<PDGNode,PDGEdge>() {
 					public PDGEdge createEdge(PDGNode from, PDGNode to) {
 						return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
@@ -570,6 +563,25 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 				},
 				PDGEdge.class
 				);
+				cdg.addEdge(entry, exit);
+				break;
+			}
+			case NTICD_ISINKDOM: {
+				final String isinkdomFileName = WriteGraphToDot.sanitizeFileName(method.getSignature() + "-" + builder.cfg.controlDependenceVariant + "-isinkdom.dot");
+				final DirectedGraph<SinkpathPostDominators.Node<PDGNode>, SinkpathPostDominators.ISinkdomEdge<SinkpathPostDominators.Node<PDGNode>>> isinkdom = SinkpathPostDominators.compute(cfg);
+				
+				try {
+					WriteGraphToDot.write(isinkdom, isinkdomFileName, e -> true, v -> Integer.toString(v.getV().getId()));
+				} catch (FileNotFoundException e) {
+					//log.outln(Arrays.toString(e.getStackTrace()));
+				}
+
+				cdg = NTICDGraphPostdominanceFrontiers.compute(cfg, new EdgeFactory<PDGNode,PDGEdge>() {
+					public PDGEdge createEdge(PDGNode from, PDGNode to) {
+						return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
+					};
+				},
+				PDGEdge.class);
 				cdg.addEdge(entry, exit);
 				break;
 			}

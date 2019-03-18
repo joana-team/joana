@@ -567,15 +567,6 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 				break;
 			}
 			case NTICD_ISINKDOM: {
-				final String isinkdomFileName = WriteGraphToDot.sanitizeFileName(method.getSignature() + "-" + builder.cfg.controlDependenceVariant + "-isinkdom.dot");
-				final DirectedGraph<SinkpathPostDominators.Node<PDGNode>, SinkpathPostDominators.ISinkdomEdge<SinkpathPostDominators.Node<PDGNode>>> isinkdom = SinkpathPostDominators.compute(cfg);
-				
-				try {
-					WriteGraphToDot.write(isinkdom, isinkdomFileName, e -> true, v -> Integer.toString(v.getV().getId()));
-				} catch (FileNotFoundException e) {
-					//log.outln(Arrays.toString(e.getStackTrace()));
-				}
-
 				cdg = NTICDGraphPostdominanceFrontiers.compute(cfg, new EdgeFactory<PDGNode,PDGEdge>() {
 					public PDGEdge createEdge(PDGNode from, PDGNode to) {
 						return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);

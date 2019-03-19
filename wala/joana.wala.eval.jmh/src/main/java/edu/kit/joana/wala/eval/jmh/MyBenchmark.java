@@ -110,8 +110,6 @@ public class MyBenchmark {
 	            addVertex(node);
 	        }
 
-	        addEdge(entry, exit);
-
 	        for (final Node node : cfg.vertexSet()) {
 	            for (final Node domFrontier : frontiers.getDominanceFrontier(node)) {
 	                if (node != domFrontier) {

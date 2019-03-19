@@ -1,0 +1,10 @@
+
+1. Create up-to-date $JOANA/dist/joana.wala.core.jar by running
+     ant joana.wala.core
+   from the $JOANA/ directory
+2. run
+     mvn clean install
+   from this directory
+3. run the benchmarks, either from eclipse (Run as -> Java Application), or by running
+     java -cp '../../dist/joana.wala.core.jar:target/benchmarks.jar' org.openjdk.jmh.Main
+   from this directory

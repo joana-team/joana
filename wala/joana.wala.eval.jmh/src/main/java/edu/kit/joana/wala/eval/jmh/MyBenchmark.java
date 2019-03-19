@@ -32,7 +32,6 @@
 package edu.kit.joana.wala.eval.jmh;
 
 import java.io.FileNotFoundException;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -48,6 +47,7 @@ import org.jgrapht.graph.EdgeReversedGraph;
 import org.jgrapht.graph.SimpleDirectedGraph;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
@@ -68,6 +68,7 @@ import edu.kit.joana.wala.core.graphs.DominanceFrontiers;
 import edu.kit.joana.wala.core.graphs.NTICDGraphPostdominanceFrontiers;
 import edu.kit.joana.wala.util.WriteGraphToDot;
 
+@Fork(2)
 public class MyBenchmark {
 	
 	@SuppressWarnings("serial")

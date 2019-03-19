@@ -897,7 +897,9 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
          */
         public E[] incomingEdgesOfUnsafe(V vertex)
         {
-        	return vertexMap.get(vertex).incoming();
+        	final DirectedEdgeContainer<E, E[]> container = vertexMap.get(vertex);
+        	if (container == null) return null;
+        	return container.incoming();
         }
 
         public void removeIncomingEdgesOf(V vertex)
@@ -947,7 +949,9 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
          */
         public E[] outgoingEdgesOfUnsafe(V vertex)
         {
-            return vertexMap.get(vertex).outgoing();
+        	final DirectedEdgeContainer<E, E[]> container = vertexMap.get(vertex);
+        	if (container == null) return null;
+            return container.outgoing();
         }
 
         private boolean removeEdgeFromTouchingVertices(E e)

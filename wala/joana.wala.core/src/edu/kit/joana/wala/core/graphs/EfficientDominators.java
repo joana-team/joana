@@ -414,13 +414,8 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
         private static final long serialVersionUID = 514793894028572698L;
 
         public V eval(final V node) {
-            if (!containsVertex(node)) {
-                // a node can only be root, if it has no been added.
-                return node;
-            }
-
-            final Set<ForestEdge<V>> in = incomingEdgesOf(node);
-            if (in.size() == 0) {
+            final ForestEdge<V>[] in = incomingEdgesOfUnsafe(node);
+            if (in == null || in.length == 0) {
                 // node is root
                 return node;
             } else {

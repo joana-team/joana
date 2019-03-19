@@ -33,7 +33,6 @@ package edu.kit.joana.wala.eval.jmh;
 
 import java.io.FileNotFoundException;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -51,6 +50,7 @@ import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
@@ -68,7 +68,7 @@ import edu.kit.joana.wala.core.graphs.DominanceFrontiers;
 import edu.kit.joana.wala.core.graphs.NTICDGraphPostdominanceFrontiers;
 import edu.kit.joana.wala.util.WriteGraphToDot;
 
-@Fork(2)
+@Fork(1)
 public class MyBenchmark {
 	
 	@SuppressWarnings("serial")
@@ -236,11 +236,10 @@ public class MyBenchmark {
 	}
 	
 	public abstract static class RandomGraphs<G> {
-		public final int maxSize = 10000;
-		public final int stride = 100;
 		public final int seed = 42;
 		
-		public final List<G> randomGraphs = new LinkedList<>();
+		public G randomGraph;
+		
 		public final EdgeFactory<Node, Edge> edgeFactory = new EdgeFactory<Node, Edge>() {
 			@Override
 			public Edge createEdge(Node sourceVertex, Node targetVertex) {
@@ -271,79 +270,92 @@ public class MyBenchmark {
 	}
 	@State(Scope.Benchmark)
 	public static class RandomGraphsArbitrary extends RandomGraphs<DirectedGraph<Node, Edge>> {
+		@Param({"4000", "8000", "12000", "16000", "20000", "24000", "28000", "32000", "36000", "40000"})
+		public int n;
+		
 		@Setup(Level.Trial)
 		public void doSetup() {
-			Random random = new Random(seed);
-			for (int n = 0; n < maxSize; n+=stride) {
-				final RandomGraphGenerator<Node, Edge> generator = new RandomGraphGenerator<>(n, nrEdges(n), random.nextLong());
-				final DirectedGraph<Node, Edge> graph = new SimpleDirectedGraph<>(edgeFactory);
-				generator.generateGraph(graph, vertexFactory, null);
-				
-				randomGraphs.add(graph);
-				dumpGraph(n, graph);
-			}
+			final Random random = new Random(seed + n);
+			final RandomGraphGenerator<Node, Edge> generator = new RandomGraphGenerator<>(n, nrEdges(n), random.nextLong());
+			final DirectedGraph<Node, Edge> graph = new SimpleDirectedGraph<>(edgeFactory);
+			generator.generateGraph(graph, vertexFactory, null);
+			
+			randomGraph = graph;
+			dumpGraph(n, graph);
 		}
 	}
 	
 	@State(Scope.Benchmark)
 	public static class RandomGraphsWithUniqueExitNode extends RandomGraphs<EntryExitGraph> {
+		@Param({"4000", "8000", "12000", "16000", "20000", "24000", "28000", "32000", "36000", "40000"})
+		public int n;
+
 		@Setup(Level.Trial)
 		public void doSetup() {
-			Random random = new Random(seed);
-			for (int n = 0; n < maxSize; n+=stride) {
-				final RandomGraphGenerator<Node, Edge> generator = new RandomGraphGenerator<>(n, nrEdges(n), random.nextLong());
-				final EntryExitGraph graph = new EntryExitGraph(edgeFactory);
-				generator.generateGraph(graph, vertexFactory, null);
-				
-				addEntryExit(graph, vertexFactory);
-				
-				randomGraphs.add(graph);
-				dumpGraph(n, graph);
-			}
+			final Random random = new Random(n + seed);
+			final RandomGraphGenerator<Node, Edge> generator = new RandomGraphGenerator<>(n, nrEdges(n), random.nextLong());
+			final EntryExitGraph graph = new EntryExitGraph(edgeFactory);
+			generator.generateGraph(graph, vertexFactory, null);
+			
+			addEntryExit(graph, vertexFactory);
+			
+			randomGraph = graph;
+			dumpGraph(n, graph);
 		}
 	}
 	
 	@Benchmark
-	@Warmup(iterations = 2)
-	@Measurement(iterations = 1)
+	@Warmup(iterations = 1, time = 5)
+	@Measurement(iterations = 1, time = 5)
 	@BenchmarkMode(Mode.AverageTime)
 	public void testRandom(RandomGraphsArbitrary randomGraphs, Blackhole blackhole) {
-		for (DirectedGraph<Node, Edge> graph : randomGraphs.randomGraphs) {
-			blackhole.consume(NTICDGraphPostdominanceFrontiers.compute(graph, randomGraphs.edgeFactory, Edge.class));
-		}
+		final DirectedGraph<Node, Edge> graph = randomGraphs.randomGraph;
+		blackhole.consume(NTICDGraphPostdominanceFrontiers.compute(graph, randomGraphs.edgeFactory, Edge.class));
 	}
 	
 	@Benchmark
-	@Warmup(iterations = 2)
-	@Measurement(iterations = 1)
+	@Warmup(iterations = 1, time = 5)
+	@Measurement(iterations = 1, time = 5)
 	@BenchmarkMode(Mode.AverageTime)
 	public void testClassicCDGForRandomWithUniqueExitNode(RandomGraphsWithUniqueExitNode randomGraphs, Blackhole blackhole) {
-		for (EntryExitGraph graph : randomGraphs.randomGraphs) {
-			blackhole.consume(CDG.build(graph, graph.entry, graph.exit, randomGraphs.edgeFactory));
-		}
+		final EntryExitGraph graph = randomGraphs.randomGraph;
+		blackhole.consume(CDG.build(graph, graph.entry, graph.exit, randomGraphs.edgeFactory));
 	}
 	
 	@Benchmark
-	@Warmup(iterations = 2)
-	@Measurement(iterations = 1)
+	@Warmup(iterations = 1, time = 5)
+	@Measurement(iterations = 1, time = 5)
 	@BenchmarkMode(Mode.AverageTime)
 	public void testNTICDGraphPostdominanceFrontiersForRandomWithUniqueExitNode(RandomGraphsWithUniqueExitNode randomGraphs, Blackhole blackhole) {
-		for (EntryExitGraph graph : randomGraphs.randomGraphs) {
-			blackhole.consume(NTICDGraphPostdominanceFrontiers.compute(graph, randomGraphs.edgeFactory, Edge.class));
-		}
+		final EntryExitGraph graph = randomGraphs.randomGraph;
+		blackhole.consume(NTICDGraphPostdominanceFrontiers.compute(graph, randomGraphs.edgeFactory, Edge.class));
 	}
 	
 
-	public static void mmain(String[] args) throws RunnerException {
+	public static void mainDebug(String[] args) throws RunnerException {
 		final Blackhole blackhole = new Blackhole("Today's password is swordfish. I understand instantiating Blackholes directly is dangerous.");
 		final RandomGraphsWithUniqueExitNode randomGraphs = new RandomGraphsWithUniqueExitNode();
 		randomGraphs.doSetup();
 		new MyBenchmark().testClassicCDGForRandomWithUniqueExitNode(                      randomGraphs, blackhole);
 		new MyBenchmark().testNTICDGraphPostdominanceFrontiersForRandomWithUniqueExitNode(randomGraphs, blackhole);
 	}
+	
+	//public static void mainPrintParam(String[] args) {
+	public static void main(String[] args) {
+		final int nr     = 10;
+		final int stride = 4000; 
+		boolean isFirst = true;
+		System.out.print("@Param({");
+		for (int i = 1; i <= nr; i++) {
+			if (!isFirst) System.out.print(", ");
+			isFirst = false;
+			System.out.print("\""+(i*stride)+"\"");
+		}
+		System.out.println("})");
+	}
 
 	
-	public static void main(String[] args) throws RunnerException {
+	public static void mainManual(String[] args) throws RunnerException {
 		Options opt = new OptionsBuilder()
 			.include(MyBenchmark.class.getSimpleName())
 			.forks(1)

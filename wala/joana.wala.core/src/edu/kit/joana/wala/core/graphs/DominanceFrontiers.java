@@ -15,7 +15,8 @@ import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
 
-import edu.kit.joana.wala.core.graphs.Dominators.DomEdge;
+import edu.kit.joana.util.graph.IntegerIdentifiable;
+import edu.kit.joana.wala.core.graphs.EfficientDominators.DomEdge;
 
 /**
  * This class computes the dominance frontiers for each node in a flow graph.
@@ -30,10 +31,10 @@ import edu.kit.joana.wala.core.graphs.Dominators.DomEdge;
  * @author Juergen Graf <juergen.graf@gmail.com>
  *
  */
-public class DominanceFrontiers<V, E> {
+public class DominanceFrontiers<V extends IntegerIdentifiable, E> {
 
-    public static <V, E> DominanceFrontiers<V, E> compute(final DirectedGraph<V, E> graph, final V entry) {
-        final Dominators<V, E> dom = Dominators.compute(graph, entry);
+    public static <V extends IntegerIdentifiable, E> DominanceFrontiers<V, E> compute(final DirectedGraph<V, E> graph, final V entry) {
+        final EfficientDominators<V, E> dom = EfficientDominators.compute(graph, entry);
         final DominanceFrontiers<V, E> df = new DominanceFrontiers<V, E>(graph, entry, dom);
 
         df.analyze();
@@ -43,10 +44,10 @@ public class DominanceFrontiers<V, E> {
 
     private final DirectedGraph<V, E> flowGraph;
     private final V entry;
-    private final Dominators<V, E> dom;
+    private final EfficientDominators<V, E> dom;
     private final Map<V, Set<V>> frontiers = new HashMap<V, Set<V>>();
 
-    private DominanceFrontiers(final DirectedGraph<V, E> graph, final V entry, final Dominators<V, E> dom) {
+    private DominanceFrontiers(final DirectedGraph<V, E> graph, final V entry, final EfficientDominators<V, E> dom) {
         this.flowGraph = graph;
         this.entry = entry;
         this.dom = dom;
@@ -58,7 +59,7 @@ public class DominanceFrontiers<V, E> {
     }
 
     private void analyze() {
-        DomFrontWalker<DomEdge> walker = new DomFrontWalker<DomEdge>(dom.getDominationTree());
+        DomFrontWalker<DomEdge<V>> walker = new DomFrontWalker<DomEdge<V>>(dom.getDominationTree());
         walker.traverseDFS(entry);
     }
 

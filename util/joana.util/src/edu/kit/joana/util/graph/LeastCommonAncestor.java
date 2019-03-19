@@ -19,6 +19,8 @@ public final class LeastCommonAncestor {
 	
 	public static interface PseudoTreeNode<T> {
 		T getNext();
+		boolean onPath(Object o);
+		void addToPath(Object o);
 	}
 	
 	public static <T extends PseudoTreeNode<T>> T lca(Iterable<T> ts) {
@@ -32,37 +34,67 @@ public final class LeastCommonAncestor {
 	}
 	
 	public static <T extends PseudoTreeNode<T>> T lca(T n, T m) {
+		if (n == m) return n;
+		
+		Object pathN = new Object();
+		Object pathM = new Object();
+		
 		Set<T> pin = new HashSet<>();
-		pin.add(n);
+		assert pin.add(n);
+		n.addToPath(pathN);
 		
 		Set<T> pim = new HashSet<>();
-		pim.add(m);
+		assert pim.add(m);
+		m.addToPath(pathM);
 		
 		while (true) {
-			if (pin.contains(m)) return m;
+			assert (pin.contains(m) == m.onPath(pathN));
+			assert (!m.onPath(pathN));
 			
 			final T nn = n.getNext();
-			if (nn == null) return lin(n, pin, m, pim);
+			if (nn == null) return lin(pathN, pathM, n, pin, m, pim);
 			
-			if (pin.contains(nn)) return lin(n, pin, m, pim);
+			assert (pin.contains(nn) == nn.onPath(pathN));
+			if (nn.onPath(pathN)) return lin(pathN, pathM, n, pin, m, pim);
 			
-			pin.add(nn);
+			assert (pim.contains(nn) == nn.onPath(pathM));
+			if (nn.onPath(pathM)) return nn;
+			
+			assert pin.add(nn);
+			nn.addToPath(pathN);
 			n = m;
 			m = nn;
 			
-			final Set<T> tmp = pim;
-			pim = pin;
-			pin = tmp;
+			{
+				final Set<T> tmp = pim;
+				pim = pin;
+				pin = tmp;
+			}
+			
+			{
+				final Object tmp = pathM;
+				pathM = pathN;
+				pathN = tmp;
+			}
+			
+			
 		}
 	}
 	
-	private static <T extends PseudoTreeNode<T>> T lin(final T n, final Set<T> pin, T m, Set<T> pim) {
+	private static <T extends PseudoTreeNode<T>> T lin(final Object pathN, final Object pathM, final T n, final Set<T> pin, T m, Set<T> pim) {
 		while (true) {
 			final T mm = m.getNext();
 			if (mm == null) return null;
-			if (pin.contains(mm)) return mm;
-			if (pim.contains(mm)) return null;
-			pim.add(mm);
+			
+			assert (pin.contains(mm) == mm.onPath(pathN));
+			if (mm.onPath(pathN)) return mm;
+			
+			assert (pim.contains(mm) == mm.onPath(pathM)); 
+			if (mm.onPath(pathM)) return null;
+			
+			assert pim.add(mm);
+			mm.addToPath(pathM);
+			
 			m = mm;
 		}
 	}

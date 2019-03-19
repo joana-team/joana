@@ -66,6 +66,7 @@ public class SinkpathPostDominators {
 		
 		private Node<V> next;
 		private Node<V> representant;
+		private Object inPathOf;
 		
 		private List<Node<V>> successors;
 		
@@ -99,6 +100,16 @@ public class SinkpathPostDominators {
 		@Override
 		public int getId() {
 			return v.getId();
+		}
+		
+		@Override
+		public void addToPath(Object o) {
+			inPathOf = o;
+		}
+		
+		@Override
+		public boolean onPath(Object o) {
+			return inPathOf == o;
 		}
 	}
 	

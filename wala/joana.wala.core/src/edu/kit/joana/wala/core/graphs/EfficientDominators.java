@@ -18,6 +18,7 @@ import java.util.Set;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
 
+import edu.kit.joana.util.collections.SimpleVector;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
@@ -83,21 +84,19 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
         return dom;
     }
 
+    final Map<V, Node<V>> v2node;
+
     private final DirectedGraph<V, E> graph;
     private final V start;
+    private Node<V> startNode;
     
     @SuppressWarnings("unchecked")
     private EfficientDominators(DirectedGraph<V, E> graph, V start) {
         this.graph = graph;
         this.start = start;
         this.dfsnum2node = (Node<V>[]) new Node[graph.vertexSet().size()];
+        this.v2node = new HashMap<>(graph.vertexSet().size());
     }
-
-    /**
-     *  Stores the parent node of each node during dfs computation. Nodes are identified
-     *  by their dfs number.
-     */
-    private final Map<V, V> idom = new HashMap<V, V>();;
 
     /**
      * Contains the mapping from dfs number to node
@@ -105,27 +104,31 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
     private final Node<V>[] dfsnum2node;
 
     public V getIDom(V node) {
-        return idom.get(node);
+    	final Node<V> idom = v2node.get(node).getIdom();
+    	assert (idom == null) == (node == start);
+        return idom == null ? null : idom.getV();
     }
 
-    private Map<V, BitSet> idom2domiated;
+    private Map<Node<V>, BitSet> idom2domiated;
 
     private final Iterable<V> emptyIterable = new DFSNumNodeIterable(new BitSet());
 
-    public Iterable<V> getNodesWithIDom(V node) {
+    public Iterable<V> getNodesWithIDom(V v) {
+    	final Node<V> node = v2node.get(v);
         if (idom2domiated == null) {
             // build datastructure on demand
-            idom2domiated = new HashMap<V, BitSet>();
+            idom2domiated = new SimpleVector<Node<V>, BitSet>(0, graph.vertexSet().size());
 
             // start from 1 - omit the root node at 0
             for (int i = 1; i < dfsnum2node.length; i++) {
                 final Node<V> curr = dfsnum2node[i];
-                final V idominator = idom.get(curr.getV());
+                final Node<V> idominator = curr.getIdom();
                 BitSet dominates = idom2domiated.get(idominator);
                 if (dominates == null) {
                     dominates = new BitSet();
                     idom2domiated.put(idominator, dominates);
                 }
+                assert i == curr.getDfsnum();
                 dominates.set(i);
             }
         }
@@ -258,7 +261,7 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
 
             // step 2
             for (final E predEdge : graph.incomingEdgesOf(w.getV())) {
-                final Node<V> v = walker.v2node.get(graph.getEdgeSource(predEdge));
+                final Node<V> v = v2node.get(graph.getEdgeSource(predEdge));
                 assert v != null;
                 // u = EVAL(v)
                 final Node<V> u = forest.eval(v);
@@ -301,9 +304,9 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
                 final int semiU = u.getSemi().getDfsnum();
                 final int semiV = v.getSemi().getDfsnum(); 
                 if (semiU < semiV) {
-                    idom.put(v.getV(), u.getV());
+                	v.setIdom(u);
                 } else {
-                    idom.put(v.getV(), parentW.getV());
+                	v.setIdom(parentW);
                 }
             }
 
@@ -315,22 +318,22 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
             // w := vertex(i)
             final Node<V> w = dfsnum2node[i];
             // if dom(w) != vertex(semi(w)) then dom(w) := dom(dom(w))
-            final V domW = idom.get(w.getV());
+            final Node<V> domW = w.getIdom();
             assert domW != null;
-            final V semiW = w.getSemi().getV();
+            final Node<V> semiW = w.getSemi();
+            assert (domW == semiW) == (domW.getV() == semiW.getV());
             if (domW != semiW) {
-                final V domdomW = idom.get(domW);
+                final Node<V> domdomW = domW.getIdom();
                 assert (domdomW != null);
-                idom.put(w.getV(), domdomW);
+                w.setIdom(domdomW);
             }
         }
 
         // dom(r) : = 0
-        idom.put(start, null);
+        startNode.setIdom(null);
     }
 
     private final class DomDFSNumWalker extends GraphWalker<V, E> {
-        final Map<V, Node<V>> v2node = new HashMap<>(graph.vertexSet().size());
         /*
          * Remembers the dfsnumber of the predecessor in the dfs traversal.
          */
@@ -345,6 +348,10 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
         public void discover(V current) {
             final Node<V> currentNode = new Node<V>(current, dfsnum);
             v2node.put(current, currentNode);
+            
+            if (current == start) {
+            	startNode = currentNode;
+            }
             // changes value of Dominators.dfnum2node - side effect...
             dfsnum2node[dfsnum] = currentNode;
             currentNode.setSemi(currentNode);
@@ -395,23 +402,21 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
     }
     
 	static class Node<V> implements IntegerIdentifiable {
-		//private static int nextId = 0;
-		
 		private final V v;
 		private final int dfsnum;
 		
-        /*
-         * This variable has 2 usages depending on the state of the computation:
-         * 1. It contains mapping from node to dfsnum after the first step
-         * 2. It contains the semidominator of a node later on
-         */
+		/*
+		 * This variable has 2 usages depending on the state of the computation: 1. It contains mapping from node to
+		 * dfsnum after the first step 2. It contains the semidominator of a node later on
+		 */
 		private Node<V> semi;
 		
-        /*
-         * Stores the parent node of each node during dfs computation. Nodes are identified
-         * by their dfs number.
-         */
+		/*
+		 * Stores the parent node of each node during dfs computation. Nodes are identified by their dfs number.
+		 */
 		private int parent;
+		
+		private Node<V> idom;
 		
 		public Node(V v, int dfsnum) {
 			this.v = v;
@@ -436,6 +441,14 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
 		
 		public void setParent(int parent) {
 			this.parent = parent;
+		}
+		
+		public void setIdom(Node<V> idom) {
+			this.idom = idom;
+		}
+		
+		public Node<V> getIdom() {
+			return idom;
 		}
 		
 		@Override

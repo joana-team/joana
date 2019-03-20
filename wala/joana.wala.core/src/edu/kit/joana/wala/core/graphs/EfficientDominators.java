@@ -11,7 +11,6 @@ import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -22,10 +21,7 @@ import org.jgrapht.EdgeFactory;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
-import edu.kit.joana.util.graph.LeastCommonAncestor;
-import edu.kit.joana.wala.core.graphs.SinkpathPostDominators.Node;
 import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.map.hash.TObjectIntHashMap;
 import gnu.trove.stack.TIntStack;
 import gnu.trove.stack.array.TIntArrayStack;
 
@@ -90,15 +86,11 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
     private final DirectedGraph<V, E> graph;
     private final V start;
     
-    private boolean assertionsEnabled;
-
     @SuppressWarnings("unchecked")
     private EfficientDominators(DirectedGraph<V, E> graph, V start) {
         this.graph = graph;
         this.start = start;
         this.dfsnum2node = (Node<V>[]) new Node[graph.vertexSet().size()];
-        this.assertionsEnabled = false;
-        assert (this.assertionsEnabled = true);
     }
 
     /**
@@ -251,7 +243,7 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
         walker.traverseDFS(start);
         // walker.semi now contains mapping from node to dfs number (reverse mapping of dfsnum2node)
 
-        final Forest<V> forest = new Forest<V>(walker.semi);
+        final Forest<V> forest = new Forest<V>();
         // Maps a semidominator to a set of nodes it semidominates. Identified by dfsnum.
         final TIntObjectHashMap<BitSet> bucket = new TIntObjectHashMap<BitSet>();
 
@@ -273,18 +265,14 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
 
                 // if semi(u) < semi(w) then semi(w) := semi(u)
                 final Node<V> semiW = w.getSemi();
-                assert (semiW.getId() == walker.semi.get(w.getV()));
                 final Node<V> semiU = u.getSemi();
-                assert (semiU.getId() == walker.semi.get(u.getV()));
-                if (semiU.getId() < semiW.getId()) {
+                if (semiU.getDfsnum() < semiW.getDfsnum()) {
                     w.setSemi(semiU);
-                    if (assertionsEnabled) walker.semi.put(w.getV(), semiU.getId());
                 }
             }
 
             // add w to bucket(vertex(semi(w)))
-            final int semiW = w.getSemi().getId();
-            assert semiW == walker.semi.get(w.getV());
+            final int semiW = w.getSemi().getDfsnum();
             BitSet bs = bucket.get(semiW);
             if (bs == null) {
                 bs = new BitSet(dfsnum2node.length);
@@ -294,7 +282,6 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
 
             // LINK(parent(w), w)
             final int parentNum = w.getParent();
-            assert parentNum == walker.parent.get(w.getV());
             final Node<V> parentW = dfsnum2node[parentNum];
             forest.link(parentW, w);
 
@@ -311,10 +298,8 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
                 // u := EVAL(v)
                 final Node<V> u = forest.eval(v);
                 // dom(v) := if semi(u) < semi(v) then u else parent(w)
-                final int semiU = u.getSemi().getId();
-                assert semiU == walker.semi.get(u.getV());
-                final int semiV = v.getSemi().getId(); 
-                assert semiV == walker.semi.get(v.getV());
+                final int semiU = u.getSemi().getDfsnum();
+                final int semiV = v.getSemi().getDfsnum(); 
                 if (semiU < semiV) {
                     idom.put(v.getV(), u.getV());
                 } else {
@@ -333,7 +318,6 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
             final V domW = idom.get(w.getV());
             assert domW != null;
             final V semiW = w.getSemi().getV();
-            assert (semiW == dfsnum2node[walker.semi.get(w.getV())].getV());
             if (domW != semiW) {
                 final V domdomW = idom.get(domW);
                 assert (domdomW != null);
@@ -347,17 +331,6 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
 
     private final class DomDFSNumWalker extends GraphWalker<V, E> {
         final Map<V, Node<V>> v2node = new HashMap<>(graph.vertexSet().size());
-        /*
-         * This variable has 2 usages depending on the state of the computation:
-         * 1. It contains mapping from node to dfsnum after the first step
-         * 2. It contains the semidominator of a node later on
-         */
-        final TObjectIntHashMap<V> semi = new TObjectIntHashMap<V>();
-        /*
-         * Stores the parent node of each node during dfs computation. Nodes are identified
-         * by their dfs number.
-         */
-        final TObjectIntHashMap<V> parent = new TObjectIntHashMap<V>();
         /*
          * Remembers the dfsnumber of the predecessor in the dfs traversal.
          */
@@ -374,15 +347,12 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
             v2node.put(current, currentNode);
             // changes value of Dominators.dfnum2node - side effect...
             dfsnum2node[dfsnum] = currentNode;
-            if (assertionsEnabled) semi.put(current, dfsnum);
             currentNode.setSemi(currentNode);
             
             if (pred.size() > 0) {
                 final int parentDFSnum = pred.peek();
-                if (assertionsEnabled) parent.put(current, parentDFSnum);
                 currentNode.setParent(parentDFSnum);
             } else {
-            	if (assertionsEnabled) parent.put(current, -1);
                 currentNode.setParent(-1);
             }
 
@@ -428,14 +398,24 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
 		//private static int nextId = 0;
 		
 		private final V v;
-		private final int id;
+		private final int dfsnum;
 		
+        /*
+         * This variable has 2 usages depending on the state of the computation:
+         * 1. It contains mapping from node to dfsnum after the first step
+         * 2. It contains the semidominator of a node later on
+         */
 		private Node<V> semi;
+		
+        /*
+         * Stores the parent node of each node during dfs computation. Nodes are identified
+         * by their dfs number.
+         */
 		private int parent;
 		
-		public Node(V v, int id) {
+		public Node(V v, int dfsnum) {
 			this.v = v;
-			this.id = id;
+			this.dfsnum = dfsnum;
 		}
 		
 		public V getV() {
@@ -465,19 +445,19 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
 		
 		@Override
 		public int getId() {
-			return id;
+			return dfsnum;
+		}
+		public int getDfsnum() {
+			return dfsnum;
 		}
 	}
 
 
     private static final class Forest<V> extends AbstractJoanaGraph<Node<V>, ForestEdge<Node<V>>> {
 
-        private final TObjectIntHashMap<V> semi;
-
         @SuppressWarnings("unchecked")
-		public Forest(TObjectIntHashMap<V> semi) {
+		public Forest() {
             super(new ForestEdgeFactory<Node<V>>(), () -> new HashMap<>(), (Class<ForestEdge<Node<V>>>) new ForestEdge<Node<V>>(null, null).getClass());
-            this.semi = semi;
         }
         
         private static final long serialVersionUID = 514793894028572698L;
@@ -488,8 +468,7 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
                 // node is root
                 return node;
             } else {
-                assert (semi.get(node.getV()) == node.getSemi().getId());
-                return minSemiOnPathToRoot(node, node, node.getSemi().getId());
+                return minSemiOnPathToRoot(node, node, node.getSemi().getDfsnum());
             }
         }
 
@@ -503,8 +482,7 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
                     ForestEdge<Node<V>> predEdge = in[0];
                     Node<V> pred = predEdge.getSource();
                     
-                    int nodeSemi = node.getSemi().getId();
-                    assert (nodeSemi == semi.get(node.getV()));
+                    int nodeSemi = node.getSemi().getDfsnum();
 
                     if (nodeSemi < currentSemi) {
                         Node<V> oldNode = node;

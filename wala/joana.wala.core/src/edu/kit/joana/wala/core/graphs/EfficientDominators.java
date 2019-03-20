@@ -420,6 +420,8 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
 		
 		private Node<V> idom;
 		
+		private Node<V> link;
+		
 		// Maps a semidominator to a set of nodes it semidominates. Identified by dfsnum.
 		private BitSet bucket;
 		
@@ -454,6 +456,14 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
 		
 		public Node<V> getIdom() {
 			return idom;
+		}
+		
+		public void setLink(Node<V> link) {
+			this.link = link;
+		}
+		
+		public Node<V> getLink() {
+			return link;
 		}
 		
 		@Override
@@ -502,11 +512,13 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
             while(true) {
                 final ForestEdge<Node<V>>[] in = incomingEdgesOfUnsafe(node);
                 final int preds = in.length;
+                assert (preds == 0) == (node.getLink() == null);
                 if (preds == 0) {
                     return currentMin;
                 } else if (preds == 1) {
                     final ForestEdge<Node<V>> predEdge = in[0];
                     final Node<V> pred = predEdge.getSource();
+                    assert (pred == node.getLink());
                     
                     final int nodeSemi = node.getSemi().getDfsnum();
 
@@ -525,6 +537,8 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
         }
 
         public void link(final Node<V> v, final Node<V> w) {
+        	assert (w.getLink() == null);
+        	w.setLink(v);
             addVertex(v);
             addVertex(w);
             addEdgeUnsafe(v, w, this.getEdgeFactory().createEdge(v, w));

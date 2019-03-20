@@ -89,12 +89,16 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
 
     private final DirectedGraph<V, E> graph;
     private final V start;
+    
+    private boolean assertionsEnabled;
 
     @SuppressWarnings("unchecked")
     private EfficientDominators(DirectedGraph<V, E> graph, V start) {
         this.graph = graph;
         this.start = start;
         this.dfsnum2node = (Node<V>[]) new Node[graph.vertexSet().size()];
+        this.assertionsEnabled = false;
+        assert (this.assertionsEnabled = true);
     }
 
     /**
@@ -274,7 +278,7 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
                 assert (semiU.getId() == walker.semi.get(u.getV()));
                 if (semiU.getId() < semiW.getId()) {
                     w.setSemi(semiU);
-                    walker.semi.put(w.getV(), semiU.getId());
+                    if (assertionsEnabled) walker.semi.put(w.getV(), semiU.getId());
                 }
             }
 
@@ -289,7 +293,8 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
             bs.set(dfsW);
 
             // LINK(parent(w), w)
-            final int parentNum = walker.parent.get(w.getV());
+            final int parentNum = w.getParent();
+            assert parentNum == walker.parent.get(w.getV());
             final Node<V> parentW = dfsnum2node[parentNum];
             forest.link(parentW, w);
 
@@ -369,15 +374,15 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
             v2node.put(current, currentNode);
             // changes value of Dominators.dfnum2node - side effect...
             dfsnum2node[dfsnum] = currentNode;
-            semi.put(current, dfsnum);
+            if (assertionsEnabled) semi.put(current, dfsnum);
             currentNode.setSemi(currentNode);
             
             if (pred.size() > 0) {
                 final int parentDFSnum = pred.peek();
-                parent.put(current, parentDFSnum);
+                if (assertionsEnabled) parent.put(current, parentDFSnum);
                 currentNode.setParent(parentDFSnum);
             } else {
-                parent.put(current, -1);
+            	if (assertionsEnabled) parent.put(current, -1);
                 currentNode.setParent(-1);
             }
 
@@ -484,7 +489,7 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
                 return node;
             } else {
                 assert (semi.get(node.getV()) == node.getSemi().getId());
-                return minSemiOnPathToRoot(node, node, semi.get(node.getV()));
+                return minSemiOnPathToRoot(node, node, node.getSemi().getId());
             }
         }
 

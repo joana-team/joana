@@ -124,7 +124,7 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
             // start from 1 - omit the root node at 0
             for (int i = 1; i < dfsnum2node.length; i++) {
                 final Node<V> curr = dfsnum2node[i];
-                final V idominator = idom.get(curr);
+                final V idominator = idom.get(curr.getV());
                 BitSet dominates = idom2domiated.get(idominator);
                 if (dominates == null) {
                     dominates = new BitSet();
@@ -288,7 +288,7 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
             bs.set(dfsW);
 
             // LINK(parent(w), w)
-            final int parentNum = walker.parent.get(w);
+            final int parentNum = walker.parent.get(w.getV());
             final Node<V> parentW = dfsnum2node[parentNum];
             forest.link(parentW, w);
 
@@ -305,8 +305,10 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
                 // u := EVAL(v)
                 final Node<V> u = forest.eval(v);
                 // dom(v) := if semi(u) < semi(v) then u else parent(w)
-                final int semiU = walker.semi.get(u.getV());
-                final int semiV = walker.semi.get(v.getV());
+                final int semiU = u.getSemi().getId();
+                assert semiU == walker.semi.get(u.getV());
+                final int semiV = v.getSemi().getId(); 
+                assert semiV == walker.semi.get(v.getV());
                 if (semiU < semiV) {
                     idom.put(v.getV(), u.getV());
                 } else {
@@ -323,14 +325,12 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
             final Node<V> w = dfsnum2node[i];
             // if dom(w) != vertex(semi(w)) then dom(w) := dom(dom(w))
             final V domW = idom.get(w.getV());
+            assert domW != null;
             final V semiW = w.getSemi().getV();
             assert (semiW == dfsnum2node[walker.semi.get(w.getV())].getV());
-//            assert (domW != semiW) || ((domW == null && semiW == null) || (domW.getId() == semiW.getId()));
-//            assert (domW == semiW) || ((domW == null && semiW != null) || (domW != null && semiW == null) || (domW.getId() != semiW.getId()));
-//            assert (domW == semiW) == (domW.getId() != semiW.getId());
             if (domW != semiW) {
                 final V domdomW = idom.get(domW);
-                //assert (domdomW != null);
+                assert (domdomW != null);
                 idom.put(w.getV(), domdomW);
             }
         }

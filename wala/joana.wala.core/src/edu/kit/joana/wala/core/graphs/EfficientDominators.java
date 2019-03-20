@@ -246,7 +246,7 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
         walker.traverseDFS(start);
         // walker.semi now contains mapping from node to dfs number (reverse mapping of dfsnum2node)
 
-        final Forest<V> forest = new Forest<V>();
+        final Forest<V> forest = new Forest<V>(graph.vertexSet().size());
         // Maps a semidominator to a set of nodes it semidominates. Identified by dfsnum.
         final TIntObjectHashMap<BitSet> bucket = new TIntObjectHashMap<BitSet>();
 
@@ -469,8 +469,8 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
     private static final class Forest<V> extends AbstractJoanaGraph<Node<V>, ForestEdge<Node<V>>> {
 
         @SuppressWarnings("unchecked")
-		public Forest() {
-            super(new ForestEdgeFactory<Node<V>>(), () -> new HashMap<>(), (Class<ForestEdge<Node<V>>>) new ForestEdge<Node<V>>(null, null).getClass());
+		public Forest(int size) {
+            super(new ForestEdgeFactory<Node<V>>(), () -> new SimpleVector<>(0, size), (Class<ForestEdge<Node<V>>>) new ForestEdge<Node<V>>(null, null).getClass());
         }
         
         private static final long serialVersionUID = 514793894028572698L;
@@ -487,18 +487,18 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
 
         private Node<V> minSemiOnPathToRoot(Node<V> node, Node<V> currentMin, int currentSemi) {
             while(true) {
-                ForestEdge<Node<V>>[] in = incomingEdgesOfUnsafe(node);
-                int preds = in.length;
+                final ForestEdge<Node<V>>[] in = incomingEdgesOfUnsafe(node);
+                final int preds = in.length;
                 if (preds == 0) {
                     return currentMin;
                 } else if (preds == 1) {
-                    ForestEdge<Node<V>> predEdge = in[0];
-                    Node<V> pred = predEdge.getSource();
+                    final ForestEdge<Node<V>> predEdge = in[0];
+                    final Node<V> pred = predEdge.getSource();
                     
-                    int nodeSemi = node.getSemi().getDfsnum();
+                    final int nodeSemi = node.getSemi().getDfsnum();
 
                     if (nodeSemi < currentSemi) {
-                        Node<V> oldNode = node;
+                        final Node<V> oldNode = node;
                         node = pred;
                         currentMin = oldNode;
                         currentSemi = nodeSemi;

@@ -33,17 +33,20 @@ public final class LeastCommonAncestor {
 		return t;
 	}
 	
+	@SuppressWarnings("null")
 	public static <T extends PseudoTreeNode<T>> T lca(T n, T m) {
 		if (n == m) return n;
 		
 		Object pathN = new Object();
 		Object pathM = new Object();
 		
-		Set<T> pin = new HashSet<>();
+		Set<T> pin = null;
+		assert (pin = new HashSet<>()) != null;
 		assert pin.add(n);
 		n.addToPath(pathN);
 		
-		Set<T> pim = new HashSet<>();
+		Set<T> pim = null;
+		assert (pim = new HashSet<>()) != null;
 		assert pim.add(m);
 		m.addToPath(pathM);
 		

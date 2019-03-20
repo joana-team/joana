@@ -22,7 +22,6 @@ import edu.kit.joana.util.collections.SimpleVector;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
-import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.stack.TIntStack;
 import gnu.trove.stack.array.TIntArrayStack;
 
@@ -246,8 +245,6 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
         walker.traverseDFS(start);
         // walker.semi now contains mapping from node to dfs number (reverse mapping of dfsnum2node)
 
-        final Forest<V> forest = new Forest<V>(graph.vertexSet().size());
-        
         // for  all nodes except the root node (at index 0) we compute the dominator
         for (int dfsW = dfsnum2node.length - 1; dfsW > 0; dfsW--) {
             final Node<V> w = dfsnum2node[dfsW];
@@ -262,7 +259,7 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
                 final Node<V> v = v2node.get(graph.getEdgeSource(predEdge));
                 assert v != null;
                 // u = EVAL(v)
-                final Node<V> u = forest.eval(v);
+                final Node<V> u = Forest.eval(v);
 
                 // if semi(u) < semi(w) then semi(w) := semi(u)
                 final Node<V> semiW = w.getSemi();
@@ -283,7 +280,7 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
 
             // LINK(parent(w), w)
             final Node<V> parentW = w.getParent();
-            forest.link(parentW, w);
+            Forest.link(parentW, w);
 
             // step 3
             // for each v in bucket(parent(w)) do
@@ -296,7 +293,7 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
                 // delete v from bucket(parent(w))
                 dominated.clear(i);
                 // u := EVAL(v)
-                final Node<V> u = forest.eval(v);
+                final Node<V> u = Forest.eval(v);
                 // dom(v) := if semi(u) < semi(v) then u else parent(w)
                 final int semiU = u.getSemi().getDfsnum();
                 final int semiV = v.getSemi().getDfsnum(); 
@@ -376,33 +373,6 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
     }
 
 
-    private static final class ForestEdge<V> implements KnowsVertices<V>{
-    	private final V source;
-    	private final V target;
-		public ForestEdge(V source, V target) {
-			this.source = source;
-			this.target = target;
-		}
-		
-		@Override
-		public V getSource() {
-			return source;
-		}
-		
-		@Override
-		public V getTarget() {
-			return target;
-		}
-    }
-
-    private static final class ForestEdgeFactory<V> implements EdgeFactory<V, ForestEdge<V>> {
-
-        public ForestEdge<V> createEdge(V sourceVertex, V targetVertex) {
-            return new ForestEdge<V>(sourceVertex, targetVertex);
-        }
-
-    }
-    
 	static class Node<V> implements IntegerIdentifiable {
 		private final V v;
 		private final int dfsnum;
@@ -489,36 +459,22 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
 	}
 
 
-    private static final class Forest<V> extends AbstractJoanaGraph<Node<V>, ForestEdge<Node<V>>> {
+    private static final class Forest {
 
-        @SuppressWarnings("unchecked")
-		public Forest(int size) {
-            super(new ForestEdgeFactory<Node<V>>(), () -> new SimpleVector<>(0, size), (Class<ForestEdge<Node<V>>>) new ForestEdge<Node<V>>(null, null).getClass());
-        }
-        
-        private static final long serialVersionUID = 514793894028572698L;
-
-        public Node<V> eval(final Node<V> node) {
-            final ForestEdge<Node<V>>[] in = incomingEdgesOfUnsafe(node);
-            if (in == null || in.length == 0) {
-                // node is root
+        public static <V> Node<V> eval(final Node<V> node) {
+            if (node.getLink() == null) {
                 return node;
             } else {
                 return minSemiOnPathToRoot(node, node, node.getSemi().getDfsnum());
             }
         }
 
-        private Node<V> minSemiOnPathToRoot(Node<V> node, Node<V> currentMin, int currentSemi) {
+        private static <V> Node<V> minSemiOnPathToRoot(Node<V> node, Node<V> currentMin, int currentSemi) {
             while(true) {
-                final ForestEdge<Node<V>>[] in = incomingEdgesOfUnsafe(node);
-                final int preds = in.length;
-                assert (preds == 0) == (node.getLink() == null);
-                if (preds == 0) {
+                if (node.getLink() == null) {
                     return currentMin;
-                } else if (preds == 1) {
-                    final ForestEdge<Node<V>> predEdge = in[0];
-                    final Node<V> pred = predEdge.getSource();
-                    assert (pred == node.getLink());
+                } else {
+                    final Node<V> pred = node.getLink();
                     
                     final int nodeSemi = node.getSemi().getDfsnum();
 
@@ -530,18 +486,15 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
                     } else {
                         node = pred;
                     }
-                } else {
-                    throw new IllegalStateException("Not a tree: " + preds + " preds of " + node);
                 }
             }
         }
 
-        public void link(final Node<V> v, final Node<V> w) {
-        	assert (w.getLink() == null);
-        	w.setLink(v);
-            addVertex(v);
-            addVertex(w);
-            addEdgeUnsafe(v, w, this.getEdgeFactory().createEdge(v, w));
+        public static <V> void link(final Node<V> v, final Node<V> w) {
+            if (w.getLink() != null) {
+                throw new IllegalStateException("Not a tree: " + w.getLink() + ", " + v + "links of " + w);
+            }
+            w.setLink(v);
         }
 
     }

@@ -68,6 +68,7 @@ import gnu.trove.stack.array.TIntArrayStack;
  * </pre>
  *
  * @author Juergen Graf <juergen.graf@gmail.com>
+ * @author Martin Hecker <martin.hecker@kit.edu> (simplification, and performance enhancements)
  *
  * @param <V> Type of the nodes in the flowgraph
  * @param <E> Type of the edges in the flowgraph

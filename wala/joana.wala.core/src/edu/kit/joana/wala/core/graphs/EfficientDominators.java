@@ -11,6 +11,7 @@ import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -21,6 +22,8 @@ import org.jgrapht.EdgeFactory;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
+import edu.kit.joana.util.graph.LeastCommonAncestor;
+import edu.kit.joana.wala.core.graphs.SinkpathPostDominators.Node;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import gnu.trove.stack.TIntStack;
@@ -91,7 +94,7 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
     private EfficientDominators(DirectedGraph<V, E> graph, V start) {
         this.graph = graph;
         this.start = start;
-        this.dfsnum2node = (V[]) new IntegerIdentifiable[graph.vertexSet().size()];
+        this.dfsnum2node = (Node<V>[]) new Node[graph.vertexSet().size()];
     }
 
     /**
@@ -103,7 +106,7 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
     /**
      * Contains the mapping from dfs number to node
      */
-    private final V[] dfsnum2node;
+    private final Node<V>[] dfsnum2node;
 
     public V getIDom(V node) {
         return idom.get(node);
@@ -120,7 +123,7 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
 
             // start from 1 - omit the root node at 0
             for (int i = 1; i < dfsnum2node.length; i++) {
-                final V curr = dfsnum2node[i];
+                final Node<V> curr = dfsnum2node[i];
                 final V idominator = idom.get(curr);
                 BitSet dominates = idom2domiated.get(idominator);
                 if (dominates == null) {
@@ -227,7 +230,7 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
 
                     index++;
 
-                    return dfsnum2node[index - 1];
+                    return dfsnum2node[index - 1].getV();
                 }
 
                 public void remove() {
@@ -250,7 +253,7 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
 
         // for  all nodes except the root node (at index 0) we compute the dominator
         for (int dfsW = dfsnum2node.length - 1; dfsW > 0; dfsW--) {
-            final V w = dfsnum2node[dfsW];
+            final Node<V> w = dfsnum2node[dfsW];
 
             if (w == null) {
                 throw new IllegalStateException("Null node at dfsW=" + dfsW + " of a total of " + dfsnum2node.length
@@ -258,31 +261,35 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
             }
 
             // step 2
-            for (final E predEdge : graph.incomingEdgesOf(w)) {
-                final V v = graph.getEdgeSource(predEdge);
+            for (final E predEdge : graph.incomingEdgesOf(w.getV())) {
+                final Node<V> v = walker.v2node.get(graph.getEdgeSource(predEdge));
                 // u = EVAL(v)
-                final V u = forest.eval(v);
+                final Node<V> u = forest.eval(v);
 
                 // if semi(u) < semi(w) then semi(w) := semi(u)
-                final int semiW = walker.semi.get(w);
-                final int semiU = walker.semi.get(u);
-                if (semiU < semiW) {
-                    walker.semi.put(w, semiU);
+                final Node<V> semiW = w.getSemi();
+                assert (semiW.getId() == walker.semi.get(w.getV()));
+                final Node<V> semiU = u.getSemi();
+                assert (semiU.getId() == walker.semi.get(u.getV()));
+                if (semiU.getId() < semiW.getId()) {
+                    w.setSeti(semiU);
+                    walker.semi.put(w.getV(), semiU.getId());
                 }
             }
 
             // add w to bucket(vertex(semi(w)))
-            final int semiW = walker.semi.get(w);
-            BitSet bs = bucket.get(semiW);
+            final Node<V> semiW = w.getSemi();
+            assert (semiW.getId() == walker.semi.get(w.getV()));
+            BitSet bs = bucket.get(semiW.getId());
             if (bs == null) {
                 bs = new BitSet(dfsnum2node.length);
-                bucket.put(semiW, bs);
+                bucket.put(semiW.getId(), bs);
             }
             bs.set(dfsW);
 
             // LINK(parent(w), w)
             final int parentNum = walker.parent.get(w);
-            final V parentW = dfsnum2node[parentNum];
+            final Node<V> parentW = dfsnum2node[parentNum];
             forest.link(parentW, w);
 
             // step 3
@@ -292,18 +299,18 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
                 continue;
             }
             for (int i = dominated.nextSetBit(0); i >= 0; i = dominated.nextSetBit(i + 1)) {
-                final V v = dfsnum2node[i];
+                final Node<V> v = dfsnum2node[i];
                 // delete v from bucket(parent(w))
                 dominated.clear(i);
                 // u := EVAL(v)
-                final V u = forest.eval(v);
+                final Node<V> u = forest.eval(v);
                 // dom(v) := if semi(u) < semi(v) then u else parent(w)
-                final int semiU = walker.semi.get(u);
-                final int semiV = walker.semi.get(v);
+                final int semiU = walker.semi.get(u.getV());
+                final int semiV = walker.semi.get(v.getV());
                 if (semiU < semiV) {
-                    idom.put(v, u);
+                    idom.put(v.getV(), u.getV());
                 } else {
-                    idom.put(v, parentW);
+                    idom.put(v.getV(), parentW.getV());
                 }
             }
 
@@ -313,13 +320,18 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
         // for i := 2 to n do  -> note that our dfs numbers start at 0 not 1
         for (int i = 1; i < dfsnum2node.length; i++) {
             // w := vertex(i)
-            final V w = dfsnum2node[i];
+            final Node<V> w = dfsnum2node[i];
             // if dom(w) != vertex(semi(w)) then dom(w) := dom(dom(w))
-            final V domW = idom.get(w);
-            final V semiW = dfsnum2node[walker.semi.get(w)];
+            final V domW = idom.get(w.getV());
+            final V semiW = w.getSemi().getV();
+            assert (semiW == dfsnum2node[walker.semi.get(w.getV())].getV());
+//            assert (domW != semiW) || ((domW == null && semiW == null) || (domW.getId() == semiW.getId()));
+//            assert (domW == semiW) || ((domW == null && semiW != null) || (domW != null && semiW == null) || (domW.getId() != semiW.getId()));
+//            assert (domW == semiW) == (domW.getId() != semiW.getId());
             if (domW != semiW) {
                 final V domdomW = idom.get(domW);
-                idom.put(w, domdomW);
+                //assert (domdomW != null);
+                idom.put(w.getV(), domdomW);
             }
         }
 
@@ -328,7 +340,7 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
     }
 
     private final class DomDFSNumWalker extends GraphWalker<V, E> {
-
+        final Map<V, Node<V>> v2node = new HashMap<>(graph.vertexSet().size());
         /*
          * This variable has 2 usages depending on the state of the computation:
          * 1. It contains mapping from node to dfsnum after the first step
@@ -352,15 +364,20 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
 
         @Override
         public void discover(V current) {
+            final Node<V> currentNode = new Node<V>(current, dfsnum);
+            v2node.put(current, currentNode);
             // changes value of Dominators.dfnum2node - side effect...
-            dfsnum2node[dfsnum] = current;
+            dfsnum2node[dfsnum] = currentNode;
             semi.put(current, dfsnum);
-
+            currentNode.setSeti(currentNode);
+            
             if (pred.size() > 0) {
                 final int parentDFSnum = pred.peek();
                 parent.put(current, parentDFSnum);
+                currentNode.setParent(parentDFSnum);
             } else {
                 parent.put(current, -1);
+                currentNode.setParent(-1);
             }
 
             pred.push(dfsnum);
@@ -400,42 +417,90 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
         }
 
     }
+    
+	static class Node<V> implements IntegerIdentifiable {
+		//private static int nextId = 0;
+		
+		private final V v;
+		private final int id;
+		
+		private Node<V> semi;
+		private int parent;
+		
+		public Node(V v, int id) {
+			this.v = v;
+			this.id = id;
+		}
+		
+		public V getV() {
+			return v;
+		}
+		
+		public Node<V> getSemi() {
+			return semi;
+		}
+		
+		public void setSeti(Node<V>  semi) {
+			this.semi = semi;
+		}
+		
+		public int getParent() {
+			return parent;
+		}
+		
+		public void setParent(int parent) {
+			this.parent = parent;
+		}
+		
+		@Override
+		public String toString() {
+			return v.toString();
+		}
+		
+		@Override
+		public int getId() {
+			return id;
+		}
+	}
 
-    private static final class Forest<V extends IntegerIdentifiable> extends AbstractJoanaGraph<V, ForestEdge<V>> {
+
+    private static final class Forest<V> extends AbstractJoanaGraph<Node<V>, ForestEdge<Node<V>>> {
 
         private final TObjectIntHashMap<V> semi;
 
         @SuppressWarnings("unchecked")
 		public Forest(TObjectIntHashMap<V> semi) {
-            super(new ForestEdgeFactory<V>(), () -> new HashMap<>(), (Class<ForestEdge<V>>) new ForestEdge<V>(null, null).getClass());
+            super(new ForestEdgeFactory<Node<V>>(), () -> new HashMap<>(), (Class<ForestEdge<Node<V>>>) new ForestEdge<Node<V>>(null, null).getClass());
             this.semi = semi;
         }
         
         private static final long serialVersionUID = 514793894028572698L;
 
-        public V eval(final V node) {
-            final ForestEdge<V>[] in = incomingEdgesOfUnsafe(node);
+        public Node<V> eval(final Node<V> node) {
+            final ForestEdge<Node<V>>[] in = incomingEdgesOfUnsafe(node);
             if (in == null || in.length == 0) {
                 // node is root
                 return node;
             } else {
+                assert (semi.get(node.getV()) == node.getSemi().getId());
                 return minSemiOnPathToRoot(node, node, semi.get(node));
             }
         }
 
-        private V minSemiOnPathToRoot(V node, V currentMin, int currentSemi) {
+        private Node<V> minSemiOnPathToRoot(Node<V> node, Node<V> currentMin, int currentSemi) {
             while(true) {
-                ForestEdge<V>[] in = incomingEdgesOfUnsafe(node);
+                ForestEdge<Node<V>>[] in = incomingEdgesOfUnsafe(node);
                 int preds = in.length;
                 if (preds == 0) {
                     return currentMin;
                 } else if (preds == 1) {
-                    ForestEdge<V> predEdge = in[0];
-                    V pred = predEdge.getSource();
-                    int nodeSemi = semi.get(node);
+                    ForestEdge<Node<V>> predEdge = in[0];
+                    Node<V> pred = predEdge.getSource();
+                    assert (node.getSemi().getId() == semi.get(node.getV()));
+                    int nodeSemi = node.getSemi().getId();
 
                     if (nodeSemi < currentSemi) {
-                        V oldNode = node;
+                        Node<V> oldNode = node;
                         node = pred;
                         currentMin = oldNode;
                         currentSemi = nodeSemi;
@@ -448,7 +513,7 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
             }
         }
 
-        public void link(final V v, final V w) {
+        public void link(final Node<V> v, final Node<V> w) {
             addVertex(v);
             addVertex(w);
             addEdgeUnsafe(v, w, this.getEdgeFactory().createEdge(v, w));

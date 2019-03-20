@@ -304,7 +304,7 @@ public class MyBenchmark {
 		}
 	}
 	
-	@Benchmark
+	//@Benchmark
 	@Warmup(iterations = 1, time = 5)
 	@Measurement(iterations = 1, time = 5)
 	@BenchmarkMode(Mode.AverageTime)
@@ -322,7 +322,7 @@ public class MyBenchmark {
 		blackhole.consume(CDG.build(graph, graph.entry, graph.exit, randomGraphs.edgeFactory));
 	}
 	
-	@Benchmark
+	//@Benchmark
 	@Warmup(iterations = 1, time = 5)
 	@Measurement(iterations = 1, time = 5)
 	@BenchmarkMode(Mode.AverageTime)

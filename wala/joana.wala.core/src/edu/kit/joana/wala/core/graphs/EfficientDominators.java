@@ -247,9 +247,7 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
         // walker.semi now contains mapping from node to dfs number (reverse mapping of dfsnum2node)
 
         final Forest<V> forest = new Forest<V>(graph.vertexSet().size());
-        // Maps a semidominator to a set of nodes it semidominates. Identified by dfsnum.
-        final TIntObjectHashMap<BitSet> bucket = new TIntObjectHashMap<BitSet>();
-
+        
         // for  all nodes except the root node (at index 0) we compute the dominator
         for (int dfsW = dfsnum2node.length - 1; dfsW > 0; dfsW--) {
             final Node<V> w = dfsnum2node[dfsW];
@@ -275,11 +273,11 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
             }
 
             // add w to bucket(vertex(semi(w)))
-            final int semiW = w.getSemi().getDfsnum();
-            BitSet bs = bucket.get(semiW);
+            final Node<V> semiW = w.getSemi();
+            BitSet bs = semiW.getBucket();
             if (bs == null) {
                 bs = new BitSet(dfsnum2node.length);
-                bucket.put(semiW, bs);
+                semiW.setBucket(bs);
             }
             bs.set(dfsW);
 
@@ -289,7 +287,7 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
 
             // step 3
             // for each v in bucket(parent(w)) do
-            final BitSet dominated = bucket.get(parentW.getDfsnum());
+            final BitSet dominated = parentW.getBucket();
             if (dominated == null) {
                 continue;
             }
@@ -330,6 +328,10 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
 
         // dom(r) : = 0
         startNode.setIdom(null);
+        
+        for (Node<V> node : dfsnum2node) {
+        	node.setBucket(null);
+        }
     }
 
     private final class DomDFSNumWalker extends GraphWalker<V, E> {
@@ -418,6 +420,9 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
 		
 		private Node<V> idom;
 		
+		// Maps a semidominator to a set of nodes it semidominates. Identified by dfsnum.
+		private BitSet bucket;
+		
 		public Node(V v, int dfsnum) {
 			this.v = v;
 			this.dfsnum = dfsnum;
@@ -462,6 +467,14 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
 		}
 		public int getDfsnum() {
 			return dfsnum;
+		}
+		
+		public void setBucket(BitSet bucket) {
+			this.bucket = bucket;
+		}
+		
+		public BitSet getBucket() {
+			return bucket;
 		}
 	}
 

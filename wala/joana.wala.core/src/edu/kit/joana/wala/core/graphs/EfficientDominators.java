@@ -284,13 +284,12 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
             bs.set(dfsW);
 
             // LINK(parent(w), w)
-            final int parentNum = w.getParent();
-            final Node<V> parentW = dfsnum2node[parentNum];
+            final Node<V> parentW = w.getParent();
             forest.link(parentW, w);
 
             // step 3
             // for each v in bucket(parent(w)) do
-            final BitSet dominated = bucket.get(parentNum);
+            final BitSet dominated = bucket.get(parentW.getDfsnum());
             if (dominated == null) {
                 continue;
             }
@@ -358,9 +357,10 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
             
             if (pred.size() > 0) {
                 final int parentDFSnum = pred.peek();
-                currentNode.setParent(parentDFSnum);
+                assert parentDFSnum < dfsnum;
+                currentNode.setParent(dfsnum2node[parentDFSnum]);
             } else {
-                currentNode.setParent(-1);
+                currentNode.setParent(null);
             }
 
             pred.push(dfsnum);
@@ -414,7 +414,7 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
 		/*
 		 * Stores the parent node of each node during dfs computation. Nodes are identified by their dfs number.
 		 */
-		private int parent;
+		private Node<V> parent;
 		
 		private Node<V> idom;
 		
@@ -435,11 +435,11 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
 			this.semi = semi;
 		}
 		
-		public int getParent() {
+		public Node<V> getParent() {
 			return parent;
 		}
 		
-		public void setParent(int parent) {
+		public void setParent(Node<V> parent) {
 			this.parent = parent;
 		}
 		

@@ -259,7 +259,7 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
                 final Node<V> v = v2node.get(graph.getEdgeSource(predEdge));
                 assert v != null;
                 // u = EVAL(v)
-                final Node<V> u = Forest.eval(v);
+                final Node<V> u = eval(v);
 
                 // if semi(u) < semi(w) then semi(w) := semi(u)
                 final Node<V> semiW = w.getSemi();
@@ -280,7 +280,7 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
 
             // LINK(parent(w), w)
             final Node<V> parentW = w.getParent();
-            Forest.link(parentW, w);
+            link(parentW, w);
 
             // step 3
             // for each v in bucket(parent(w)) do
@@ -293,7 +293,7 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
                 // delete v from bucket(parent(w))
                 dominated.clear(i);
                 // u := EVAL(v)
-                final Node<V> u = Forest.eval(v);
+                final Node<V> u = eval(v);
                 // dom(v) := if semi(u) < semi(v) then u else parent(w)
                 final int semiU = u.getSemi().getDfsnum();
                 final int semiV = v.getSemi().getDfsnum(); 
@@ -459,45 +459,41 @@ public class EfficientDominators<V extends IntegerIdentifiable, E> {
 	}
 
 
-    private static final class Forest {
+	private static <V> Node<V> eval(final Node<V> node) {
+		if (node.getLink() == null) {
+			return node;
+		} else {
+			return minSemiOnPathToRoot(node, node, node.getSemi().getDfsnum());
+		}
+	}
 
-        public static <V> Node<V> eval(final Node<V> node) {
-            if (node.getLink() == null) {
-                return node;
-            } else {
-                return minSemiOnPathToRoot(node, node, node.getSemi().getDfsnum());
-            }
-        }
+	private static <V> Node<V> minSemiOnPathToRoot(Node<V> node, Node<V> currentMin, int currentSemi) {
+		while (true) {
+			if (node.getLink() == null) {
+				return currentMin;
+			} else {
+				final Node<V> pred = node.getLink();
 
-        private static <V> Node<V> minSemiOnPathToRoot(Node<V> node, Node<V> currentMin, int currentSemi) {
-            while(true) {
-                if (node.getLink() == null) {
-                    return currentMin;
-                } else {
-                    final Node<V> pred = node.getLink();
-                    
-                    final int nodeSemi = node.getSemi().getDfsnum();
+				final int nodeSemi = node.getSemi().getDfsnum();
 
-                    if (nodeSemi < currentSemi) {
-                        final Node<V> oldNode = node;
-                        node = pred;
-                        currentMin = oldNode;
-                        currentSemi = nodeSemi;
-                    } else {
-                        node = pred;
-                    }
-                }
-            }
-        }
+				if (nodeSemi < currentSemi) {
+					final Node<V> oldNode = node;
+					node = pred;
+					currentMin = oldNode;
+					currentSemi = nodeSemi;
+				} else {
+					node = pred;
+				}
+			}
+		}
+	}
 
-        public static <V> void link(final Node<V> v, final Node<V> w) {
-            if (w.getLink() != null) {
-                throw new IllegalStateException("Not a tree: " + w.getLink() + ", " + v + "links of " + w);
-            }
-            w.setLink(v);
-        }
-
-    }
+	public static <V> void link(final Node<V> v, final Node<V> w) {
+		if (w.getLink() != null) {
+			throw new IllegalStateException("Not a tree: " + w.getLink() + ", " + v + "links of " + w);
+		}
+		w.setLink(v);
+	}
 
     public final boolean assertConsistence() {
         DomTree<V> domTree = getDominationTree();

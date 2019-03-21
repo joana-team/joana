@@ -85,7 +85,7 @@ public final class ModifiableNotTightArraySet<K> extends NotTightArraySet<K> {
 			
 			int maxIndex = maxIndex();
 			if (maxIndex + 1 == length) { // maybe even do this a little sooner?
-				final int newLength = (int) (GROWTH_FACTOR * (length + 1));
+				final int newLength = (int) (GROWTH_FACTOR * (length + 3));
 				
 				@SuppressWarnings("unchecked")
 				K[] newKeys   = (K[])  Array.newInstance(clazz, newLength);

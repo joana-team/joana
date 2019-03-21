@@ -10,12 +10,10 @@ package edu.kit.joana.util.collections;
 import java.lang.reflect.Array;
 import java.util.Set;
 
-import javax.imageio.metadata.IIOInvalidTreeException;
-
 /**
  * TODO: @author Add your name here.
  */
-public final class ModifiableNotTightArraySet<K> extends NotTightArraySet<K> {
+public final class ModifiableNotTightArraySet<K> extends NotTightArraySet<K> implements Disowning<K>{
 	
 	private final static double GROWTH_FACTOR = 1.5;
 	

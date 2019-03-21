@@ -15,7 +15,7 @@ import java.util.Set;
  * Martin Hecker <martin.hecker@kit.edu>
  * 
  */
-public final class ModifiableArraySet<E> extends ArraySet<E> {
+public final class ModifiableArraySet<E> extends ArraySet<E> implements Disowning<E> {
 
 	private final Class<? super E> clazz;
 	

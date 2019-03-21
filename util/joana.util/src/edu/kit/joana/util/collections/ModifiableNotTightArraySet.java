@@ -107,7 +107,7 @@ public final class ModifiableNotTightArraySet<K> extends NotTightArraySet<K> {
 
 		assert 0 <= insert && insert < keys.length;
 
-		System.arraycopy(keys,   insert, keys,   insert + 1, length - insert - 1);
+		if (insert <= maxIndex) System.arraycopy(keys,   insert, keys,   insert + 1, length - insert - 1);
 		keys[insert] = key;
 		incSize();
 		

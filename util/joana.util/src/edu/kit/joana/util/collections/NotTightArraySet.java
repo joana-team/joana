@@ -45,16 +45,17 @@ public class NotTightArraySet<K> extends AbstractSet<K> implements Set<K> {
 	};
 	
 	protected static final Object[] empty = new Object[0];
+	protected static final int SIZE_UNKNOWN = -2;
 	
 	
 	protected Object[] keys;
 	
 	protected int size;
-	protected int maxIndex;
+//	protected int maxIndex;
 	
 	protected boolean compactEnabled;
 	
-	protected boolean isCompact;
+//	protected boolean isCompact;
 	
 	public NotTightArraySet() {
 		this(0);
@@ -63,9 +64,9 @@ public class NotTightArraySet<K> extends AbstractSet<K> implements Set<K> {
 	public NotTightArraySet(int capacity) {
 		this.compactEnabled = true;
 		this.size = 0;
-		this.maxIndex = -1;
+//		this.maxIndex = -1;
 		this.keys   = new Object[capacity];
-		this.isCompact = true;
+//		this.isCompact = true;
 	}
 
 	/*
@@ -86,6 +87,7 @@ public class NotTightArraySet<K> extends AbstractSet<K> implements Set<K> {
 	}
 	*/
 	protected NotTightArraySet(K[] entries) {
+		this.size = SIZE_UNKNOWN;
 		this.keys   = entries;
 		{
 //			boolean isCompact = true;
@@ -102,22 +104,20 @@ public class NotTightArraySet<K> extends AbstractSet<K> implements Set<K> {
 //			}
 //			this.size = size;
 //			this.isCompact = isCompact;
-			boolean isCompact = true;
-			int size = entries.length;
-			int maxIndex;
-			for (maxIndex = entries.length - 1; maxIndex >= 0 && this.keys[maxIndex] == null; maxIndex--);
-			size = maxIndex + 1;			
-			for (int i = maxIndex - 1; i >= 0; i--) {
-				if (this.keys[i] == null) {
-					size--;
-					isCompact = false;
-				}
-			}
-			this.maxIndex = maxIndex;
-			this.size = size;
-			this.isCompact = isCompact;
-			
-
+//			boolean isCompact = true;
+//			int size = entries.length;
+//			int maxIndex;
+//			for (maxIndex = entries.length - 1; maxIndex >= 0 && this.keys[maxIndex] == null; maxIndex--);
+//			size = maxIndex + 1;			
+//			for (int i = maxIndex - 1; i >= 0; i--) {
+//				if (this.keys[i] == null) {
+//					size--;
+//					isCompact = false;
+//				}
+//			}
+//			this.maxIndex = maxIndex;
+//			this.size = size;
+//			this.isCompact = isCompact;
 		}
 		assert invariant();
 		
@@ -125,37 +125,49 @@ public class NotTightArraySet<K> extends AbstractSet<K> implements Set<K> {
 	
 	public NotTightArraySet(Set<K> other) {
 		this.size = other.size();
-		this.maxIndex = size - 1;
-		this.keys = new Object[size];
+//		this.maxIndex = size - 1;
+		this.keys = new Object[other.size()];
 
 		int i = 0;
 		for (K k : other) {
 			assert k != null;
 			keys[i] = k; 
 		}
-		this.isCompact = true;
+//		this.isCompact = true;
+	}
+	
+	protected int maxIndex() {
+		int maxIndex;
+		for (maxIndex = keys.length - 1; maxIndex >= 0 && this.keys[maxIndex] == null; maxIndex--);
+		return maxIndex;
 	}
 
-	
-	private boolean isCompact() {
-		for (int i = 0; i < size; i++) {
-			if (keys[i] == null) return false;
+	protected void count() {
+		if (size != SIZE_UNKNOWN) return;
+		int size = 0;
+		for (int i = 0; i < keys.length; i++) {
+			if (keys[i] != null) size++;
 		}
-		return true;
+		this.size = size;
 	}
+	
+//	private boolean isCompact() {
+//		boolean nullFound = false;
+//		for (int i = 0; i < keys.length; i++) {
+//			if (keys[i] == null) {
+//				nullFound = true;
+//			} else {
+//				if (nullFound) return false;
+//			}
+//		}
+//		return true;
+//	}
 	protected boolean invariant() {
 		
 		if (keys == null) return false;
 		
 		final int length = keys.length;
 		
-		if (isCompact && !isCompact()) {
-			return false;
-		}
-		
-		if (maxIndex >= length) {
-			return false;
-		}
 		
 		int lastHashCode = Integer.MIN_VALUE;
 		int realSize = 0;
@@ -166,7 +178,6 @@ public class NotTightArraySet<K> extends AbstractSet<K> implements Set<K> {
 				predecessorWasNull = true;
 				continue;
 			}
-			assert i <= maxIndex;
 			
 			realSize++;
 			
@@ -184,17 +195,19 @@ public class NotTightArraySet<K> extends AbstractSet<K> implements Set<K> {
 			predecessorWasNull = false;
 			lastHashCode = hashCode;
 		}
-		if (realSize != size) return false;
+		if (size != SIZE_UNKNOWN && size != realSize) return false;
 		return true;
 	}
 	
 	@Override
 	public int size() {
+		count();
 		return size;
 	}
 
 	@Override
 	public boolean isEmpty() {
+		count();
 		return size == 0;
 	}
 
@@ -220,7 +233,7 @@ public class NotTightArraySet<K> extends AbstractSet<K> implements Set<K> {
 			
 			
 			if (mid < low || mid > high) {
-				final int insertionPoint = midCandidate + 1;
+				final int insertionPoint = midCandidate;
 				return -insertionPoint - 1; // key not found.
 			}
 			final int insertionPoint = mid + 1;
@@ -270,7 +283,7 @@ public class NotTightArraySet<K> extends AbstractSet<K> implements Set<K> {
 	public boolean contains(Object key) {
 		if (key == null) return false;
 		
-		final int index = binarySearch0(0, maxIndex + 1, key);
+		final int index = binarySearch0(0, keys.length, key);
 		return index >=0;
 	}
 	

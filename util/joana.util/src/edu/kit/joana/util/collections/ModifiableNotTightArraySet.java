@@ -35,14 +35,22 @@ public final class ModifiableNotTightArraySet<K> extends NotTightArraySet<K> {
 		super(other);
 		this.clazz = clazz;
 	}
+	
+	protected void incSize() {
+		if (size != SIZE_UNKNOWN) size++;
+	}
 
+	protected void decSize() {
+		if (size != SIZE_UNKNOWN) size--;
+	}
+
+	
 	@Override
 	public boolean add(K key) {
 		if (key == null) throw new NullPointerException();
 		final int length = keys.length;
 		
-		{
-			final int index = binarySearch0(0, maxIndex + 1, key);
+			final int index = binarySearch0(0, keys.length, key);
 			if (index >= 0)  {
 				@SuppressWarnings("unchecked")
 				final K oldKey = (K) keys[index];
@@ -57,26 +65,26 @@ public final class ModifiableNotTightArraySet<K> extends NotTightArraySet<K> {
 	
 			if (insert != length && keys[insert] == null) {
 				keys[insert] = key;
-				maxIndex = Math.max(maxIndex, insert);
-				size++;
 				
 				assert invariant();
 				return true;
 			}
 	
-			if (insert == length && size < length) { // maybe do not do this if |length - size| is very small?
-				compact(false);
-				assert length == keys.length;
-				assert (keys[size] == null);
-				keys[size] = key;
-				assert maxIndex == size - 1;
-				maxIndex = size;
-				size++;
-				assert invariant();
-				return true;
-			}
 			
-			if (size == length) { // maybe even do this a little sooner?
+//			if (insert == length && size < length) { // maybe do not do this if |length - size| is very small?
+//				compact(false);
+//				assert length == keys.length;
+//				assert (keys[size] == null);
+//				keys[size] = key;
+//				assert maxIndex == size - 1;
+//				maxIndex = size;
+//				size++;
+//				assert invariant();
+//				return true;
+//			}
+			
+			int maxIndex = maxIndex();
+			if (maxIndex + 1 == length) { // maybe even do this a little sooner?
 				final int newLength = (int) (GROWTH_FACTOR * (length + 1));
 				
 				@SuppressWarnings("unchecked")
@@ -90,30 +98,18 @@ public final class ModifiableNotTightArraySet<K> extends NotTightArraySet<K> {
 				newKeys[insert] = key;
 
 				this.keys   = newKeys;
-				maxIndex = maxIndex + 1;
-				size++;
-				
-				isCompact = true;
+				incSize();
 				
 				assert invariant();
 				return true;
 			}
-		}
 		
-		assert size < length;
-		compact(false);
-		assert length == keys.length;
-		assert keys[length - 1] == null;
-		final int index = binarySearch0(0, size, key);
 
-		final int insert = -index - 1;
-		assert 0 <= insert && insert < length;
+		assert 0 <= insert && insert < keys.length;
 
 		System.arraycopy(keys,   insert, keys,   insert + 1, length - insert - 1);
 		keys[insert] = key;
-		assert maxIndex == size - 1;
-		maxIndex = size;
-		size++;
+		incSize();
 		
 
 		
@@ -126,7 +122,7 @@ public final class ModifiableNotTightArraySet<K> extends NotTightArraySet<K> {
 		assert invariant();
 		if (o == null) throw new NullPointerException();
 		
-		final int remove = binarySearch0(0, maxIndex + 1, o);
+		final int remove = binarySearch0(0, keys.length, o);
 		if (remove < 0) return false;
 		
 		assert (remove < keys.length);
@@ -136,103 +132,18 @@ public final class ModifiableNotTightArraySet<K> extends NotTightArraySet<K> {
 		
 		keys[remove] = null;
 		
-		if (remove == maxIndex) {
-			maxIndex--;
-			for (int i = maxIndex; i > 0 && keys[i] == null; i--) {
-				maxIndex--;
-			}
-		} else {
-			isCompact = false;
-		}
-		size--;
+		decSize();
 		
 		assert invariant();
 		
-		if (compactEnabled) compact(true);
 		return true;
 	}
 	
-	public void trimToSize() {
-		compact(true);
-	}
-	
-	private void compact(boolean shorten) {
-		assert invariant();
-		final int length = keys.length;
-		
-
-		if (isCompact) {
-			if (shorten) {
-				Object[] newKeys   = shorten ? new Object[size] : keys;
-				
-				System.arraycopy(keys,   0, newKeys,    0, size);
-				
-				keys   = newKeys;
-			}
-			return;
-		}
-		
-		
-		Object[] newKeys   = shorten ? new Object[size] : keys;
-		
-		/*
-		int k = 0;
-		int i = 0;
-
-		while (true) {
-			while (i < length && keys[i] == null) i++;
-			if (i == length)  {
-				this.keys = newKeys;
-				maxIndex = size - 1;
-				isCompact = true;
-				assert invariant();
-				return;
-			}
-			assert keys[i] != null;
-			
-			int j = i;
-			while (j < length && keys[j] != null) j++;
-			assert j == length || keys[j] == null;
-			
-			int blockLength = j - i;
-			assert blockLength > 0;
-			assert k <= i;
-			System.arraycopy(keys,   i, newKeys,    k, blockLength); // TODO: does System.arrayCopy do the smart thing if keys == newKeys, and k == i?!?!?
-			k += blockLength;
-			
-			i = j;
-		}
-		*/
-		int i = 0;
-		int j = 0;
-		Object k = null;
-		while (i < length) {
-			while (i < length && (k = keys[i++]) != null) {
-				newKeys[j++] = k;
-			}
-			while (i < length && (k = keys[i]) == null) i++; 
-		}
-		
-		maxIndex = j-1;
-		if (keys == newKeys) {
-			for (; j < length; j++) {
-				keys[j] = null;
-			}
-		}
-		this.keys = newKeys;
-		
-		isCompact = true;
-		assert invariant();
-
-	}
 	
 	@Override
 	public void clear() {
 		keys   = new Object[0];
 		size = 0;
-		isCompact = true;
-		this.maxIndex = -1;
-		
 		assert invariant();
 		return;
 	}

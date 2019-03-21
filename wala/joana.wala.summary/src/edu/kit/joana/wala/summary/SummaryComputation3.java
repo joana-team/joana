@@ -456,6 +456,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             			propagateAllActIns(worklist, next.source, next.target);
             		} else {
             			for (SDGEdge e : graph.incomingEdgesOfUnsafe(next.source)) {
+            				if (e == null) continue;
             				final SDGEdge.Kind kind = e.getKind();
             				assert kind != SDGEdge.Kind.CONTROL_DEP_EXPR || e.getSource().getKind() == SDGNode.Kind.CALL;
             				if (relevantEdgesAtActualOut_contains(kind)) {
@@ -530,6 +531,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             		}
             		if (assertionsEnabled) {
 	            		for (SDGEdge e : graph.incomingEdgesOfUnsafe(next.source)) {
+	            			if (e == null) continue;
 	            			final SDGEdge.Kind kind = e.getKind();
 	            			assert !((kind == SDGEdge.Kind.DATA_DEP || kind == SDGEdge.Kind.DATA_HEAP || kind == SDGEdge.Kind.DATA_ALIAS) && relevantEdges_contains(kind));
 	            		}
@@ -549,6 +551,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             		}
 
             		for (SDGEdge e : graph.incomingEdgesOfUnsafe(next.source)) {
+            			if (e == null) continue;
             			assert e.getKind() != SDGEdge.Kind.CONTROL_DEP_EXPR || e.getSource().getKind() == SDGNode.Kind.CALL;
             			if (relevantEdges_contains(e.getKind()) || e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR) {
             				propagate(worklist, e.getSource(), next.target);
@@ -562,6 +565,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             			propagateAllActIns(worklist, next.source, next.target);
             		} else {
             			for (SDGEdge e : graph.incomingEdgesOfUnsafe(next.source)) {
+            				if (e == null) continue;
             				if (e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR) {
             					if (e.getSource().getKind() == SDGNode.Kind.ENTRY) {
             						propagate(worklist, e.getSource(), next.target);
@@ -576,6 +580,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
 
             	default:
             		for (SDGEdge e : graph.incomingEdgesOfUnsafe(next.source)) {
+            			if (e == null) continue;
             			if (relevantEdges_contains(e.getKind())) {
             				propagate(worklist, e.getSource(), next.target);
             			}
@@ -756,6 +761,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
 
         
         for (SDGEdge pi : graph.incomingEdgesOfUnsafe(e.source)) {
+        	if (pi == null) continue;
             if (pi.getKind() == SDGEdge.Kind.PARAMETER_IN) {
                 final SDGNode ai = pi.getSource();
 
@@ -769,6 +775,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
         }
 
         for (SDGEdge po : graph.outgoingEdgesOfUnsafe(e.target)) {
+        	if (po == null) continue;
             if (po.getKind() == SDGEdge.Kind.PARAMETER_OUT) {
                 final SDGNode ao = po.getTarget();
 
@@ -794,6 +801,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
                 // follow control-dependence-expression edges from the source
                 // node of 'edge' to the call node
                 for(SDGEdge e : graph.incomingEdgesOfUnsafe(n)){
+                	if (e == null) continue;
                     if(e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR){
                         if(e.getSource().getKind() == SDGNode.Kind.CALL){
                             return e.getSource();
@@ -828,7 +836,9 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
     private SDGNode getCallSiteFor(SDGNode node){
     	assert node.getKind() == SDGNode.Kind.ACTUAL_IN || node.getKind() == SDGNode.Kind.ACTUAL_OUT;
 
-    	final SDGEdge e = graph.incomingEdgesOfUnsafe(node)[0];
+    	final SDGEdge[] es = graph.incomingEdgesOfUnsafe(node);
+    	int i = 0; while (es[i] == null) i++;
+    	final SDGEdge e = es[i]; 
     	assert e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR;
     	assert e.getSource().getKind() == SDGNode.Kind.CALL; 
     	assert e.getSource().equals(getCallSiteForSlow(node));

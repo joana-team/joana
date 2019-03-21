@@ -61,6 +61,7 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
+import edu.kit.joana.util.collections.SimpleVector;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
@@ -68,13 +69,13 @@ import edu.kit.joana.wala.core.graphs.DominanceFrontiers;
 import edu.kit.joana.wala.core.graphs.NTICDGraphPostdominanceFrontiers;
 import edu.kit.joana.wala.util.WriteGraphToDot;
 
-@Fork(1)
+@Fork(value = 1, jvmArgsAppend = "-Xss128m")
 public class MyBenchmark {
 	
 	@SuppressWarnings("serial")
-	public static class EntryExitGraph extends SimpleDirectedGraph<Node, Edge> {
-		public EntryExitGraph(EdgeFactory<Node, Edge> edgeFactory) {
-			super(edgeFactory);
+	public static class EntryExitGraph extends AbstractJoanaGraph<Node, Edge> {
+		public EntryExitGraph(EdgeFactory<Node, Edge> edgeFactory, int n) {
+			super(edgeFactory, () -> new SimpleVector<>(0, n), Edge.class);
 		}
 		public Node entry;
 		public Node exit;
@@ -96,7 +97,7 @@ public class MyBenchmark {
 	    private final Node exit;
 
 	    private CDG(final DirectedGraph<Node, Edge> cfg, Node entry, Node exit, EdgeFactory<Node, Edge> edgeFactory) {
-	        super(edgeFactory, () -> new LinkedHashMap<>(), Edge.class);
+	        super(edgeFactory, () -> new LinkedHashMap<>(cfg.vertexSet().size()), Edge.class);
 	        this.cfg = cfg;
 	        this.entry = entry;
 	        this.exit = exit;
@@ -270,14 +271,15 @@ public class MyBenchmark {
 	}
 	@State(Scope.Benchmark)
 	public static class RandomGraphsArbitrary extends RandomGraphs<DirectedGraph<Node, Edge>> {
-		@Param({"4000", "8000", "12000", "16000", "20000", "24000", "28000", "32000", "36000", "40000"})
+		@Param({"400000", "8000", "12000", "16000", "20000", "24000", "28000", "32000", "36000", "40000"})
 		public int n;
 		
 		@Setup(Level.Trial)
 		public void doSetup() {
 			final Random random = new Random(seed + n);
 			final RandomGraphGenerator<Node, Edge> generator = new RandomGraphGenerator<>(n, nrEdges(n), random.nextLong());
-			final DirectedGraph<Node, Edge> graph = new SimpleDirectedGraph<>(edgeFactory);
+			@SuppressWarnings("serial")
+			final DirectedGraph<Node, Edge> graph = new AbstractJoanaGraph<Node, Edge>(edgeFactory, () -> new SimpleVector<>(0, n), Edge.class) {};
 			generator.generateGraph(graph, vertexFactory, null);
 			
 			randomGraph = graph;
@@ -287,14 +289,14 @@ public class MyBenchmark {
 	
 	@State(Scope.Benchmark)
 	public static class RandomGraphsWithUniqueExitNode extends RandomGraphs<EntryExitGraph> {
-		@Param({"4000", "8000", "12000", "16000", "20000", "24000", "28000", "32000", "36000", "40000"})
+		@Param({"400000", "8000", "12000", "16000", "20000", "24000", "28000", "32000", "36000", "40000"})
 		public int n;
 
 		@Setup(Level.Trial)
 		public void doSetup() {
 			final Random random = new Random(n + seed);
 			final RandomGraphGenerator<Node, Edge> generator = new RandomGraphGenerator<>(n, nrEdges(n), random.nextLong());
-			final EntryExitGraph graph = new EntryExitGraph(edgeFactory);
+			final EntryExitGraph graph = new EntryExitGraph(edgeFactory, n + 2);
 			generator.generateGraph(graph, vertexFactory, null);
 			
 			addEntryExit(graph, vertexFactory);
@@ -313,7 +315,7 @@ public class MyBenchmark {
 		blackhole.consume(NTICDGraphPostdominanceFrontiers.compute(graph, randomGraphs.edgeFactory, Edge.class));
 	}
 	
-	@Benchmark
+	//@Benchmark
 	@Warmup(iterations = 1, time = 5)
 	@Measurement(iterations = 1, time = 5)
 	@BenchmarkMode(Mode.AverageTime)
@@ -322,7 +324,7 @@ public class MyBenchmark {
 		blackhole.consume(CDG.build(graph, graph.entry, graph.exit, randomGraphs.edgeFactory));
 	}
 	
-	//@Benchmark
+	@Benchmark
 	@Warmup(iterations = 1, time = 5)
 	@Measurement(iterations = 1, time = 5)
 	@BenchmarkMode(Mode.AverageTime)

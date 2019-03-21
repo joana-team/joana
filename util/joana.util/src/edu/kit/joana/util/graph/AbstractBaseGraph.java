@@ -55,8 +55,10 @@ import org.jgrapht.graph.AbstractGraph;
 import org.jgrapht.util.*;
 
 
-import edu.kit.joana.util.collections.ArraySet;
+//import edu.kit.joana.util.collections.ArraySet;
 import edu.kit.joana.util.collections.ModifiableArraySet;
+import edu.kit.joana.util.collections.ModifiableNotTightArraySet;
+import edu.kit.joana.util.collections.NotTightArraySet;
 import edu.kit.joana.util.collections.SimpleVectorBase;
 
 
@@ -229,7 +231,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         } else if (containsVertex(v)) {
             return false;
         } else {
-            vertexMap.put(v, new ArraySetDirectedEdgeContainer<V, E>(classE));
+            vertexMap.put(v, new NotTightArraySetDirectedEdgeContainer<V, E>(classE));
             changed = true;
 
             return true;
@@ -245,7 +247,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         if (v == null) {
             throw new NullPointerException();
         } else {
-            vertexMap.put(v, new ArraySetDirectedEdgeContainer<V, E>(classE));
+            vertexMap.put(v, new NotTightArraySetDirectedEdgeContainer<V, E>(classE));
             changed = true;
         }
     }
@@ -377,7 +379,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
 				assert !containsByTarget(o);
 				return false;
 			}
-			final ArraySet<E> outgoing = ArraySet.own(vc.outgoing());
+			final NotTightArraySet<E> outgoing = NotTightArraySet.own(vc.outgoing());
 			
 			final boolean result = outgoing.contains(o);
 			assert result == containsByTarget(o);
@@ -395,7 +397,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
 			if (vc == null || vc.outgoing() == null) {
 				return false;
 			}
-			final ArraySet<E> incoming = ArraySet.own(vc.incoming());
+			final NotTightArraySet<E> incoming = NotTightArraySet.own(vc.incoming());
 			return incoming.contains(o);
 		}
 
@@ -458,7 +460,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
 		@Override
 		public int size() {
 			// since the "outgoing" is initialized lazily, c may be null for a vertex w/o outgoing edges/ 
-			return vertexMap.values().stream().mapToInt(c-> (c == null) ? 0 : ArraySet.own(c.outgoing()).size()).sum();
+			return vertexMap.values().stream().mapToInt(c-> (c == null) ? 0 : NotTightArraySet.own(c.outgoing()).size()).sum();
 		}
 
 		/* (non-Javadoc)
@@ -532,7 +534,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
 				DirectedEdgeContainer<E, E[]> vc = null;
 				while (ecIt.hasNext()) {
 					vc = ecIt.next();
-					Set<E> outgoing = ArraySet.own(vc.outgoing());
+					Set<E> outgoing = NotTightArraySet.own(vc.outgoing());
 					if (vc != null && !outgoing.isEmpty()) {
 						edgeIt = outgoing.iterator();
 						next = edgeIt.next();
@@ -678,13 +680,13 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         public final Set<EE> getUnmodifiableIncomingEdges()
         {
         	assert incoming != null;
-            return ArraySet.own(incoming);
+            return NotTightArraySet.own(incoming);
         }
 
         public final Set<EE> getUnmodifiableOutgoingEdges()
         {
         	assert outgoing != null;
-            return ArraySet.own(outgoing);
+            return NotTightArraySet.own(outgoing);
         }
         
 
@@ -784,6 +786,146 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         }
     }
     
+    /**
+     * A container for vertex edges.
+     *
+     * <p>In this edge container we use arrays to minimize memory toll.
+     *
+     * @author Martin Hecker
+     */
+    protected static final class NotTightArraySetDirectedEdgeContainer<V, EE extends KnowsVertices<V>> implements DirectedEdgeContainer<EE, EE[]>
+    {
+        EE[] incoming;
+        EE[] outgoing;
+
+        @SuppressWarnings("unchecked")
+		NotTightArraySetDirectedEdgeContainer(Class<EE> clazz)
+        {
+        	incoming = (EE[]) Array.newInstance(clazz, 0);
+        	outgoing = (EE[]) Array.newInstance(clazz, 0);
+        }
+        
+        @Override
+        public EE[] incoming() {
+        	return incoming;
+        }
+        
+        @Override
+        public EE[] outgoing() {
+        	return outgoing;
+        }
+        
+
+        public final Set<EE> getUnmodifiableIncomingEdges()
+        {
+        	assert incoming != null;
+            return NotTightArraySet.own(incoming);
+        }
+
+        public final Set<EE> getUnmodifiableOutgoingEdges()
+        {
+        	assert outgoing != null;
+            return NotTightArraySet.own(outgoing);
+        }
+        
+
+        /**
+         * .
+         *
+         * @param e
+         */
+		public final boolean addIncomingEdge(Class<EE> clazz, EE e)
+        {
+        	final NotTightArraySet<EE> set;
+        	final boolean added;
+        	
+        	assert incoming != null;
+        	
+           	set = ModifiableNotTightArraySet.own(incoming, clazz);
+           	added = set.add(e);
+            incoming = set.disown();
+            
+            return added;
+        }
+
+        /**
+         * .
+         *
+         * @param e
+         */
+		public final boolean addOutgoingEdge(Class<EE> clazz, EE e)
+        {
+        	assert outgoing != null;
+        	
+        	final NotTightArraySet<EE> set = ModifiableNotTightArraySet.own(outgoing, clazz);
+        	final boolean added = set.add(e);
+           	outgoing = set.disown();
+            
+            return added;
+        }
+
+		@Override
+		public void addIncomingEdges(Class<EE> clazz, Set<EE> edges) {
+			assert incoming != null;
+			final NotTightArraySet<EE> set = ModifiableNotTightArraySet.own(incoming, clazz);
+			set.addAll(edges);
+			incoming = set.disown();
+		}
+		
+		@Override
+		public void addOutgoingEdges(Class<EE> clazz, Set<EE> edges) {
+			assert outgoing != null;
+			final NotTightArraySet<EE> set = ModifiableNotTightArraySet.own(outgoing, clazz);
+			set.addAll(edges);
+			outgoing = set.disown();
+		}
+
+        /**
+         * .
+         *
+         * @param e
+         */
+        public final boolean removeIncomingEdge(Class<EE> clazz, EE e)
+        {
+        	assert incoming != null;
+        	
+			final NotTightArraySet<EE> set = ModifiableNotTightArraySet.own(incoming, clazz);
+        	
+        	final boolean removed = set.remove(e);
+            incoming = set.disown();
+            return removed;
+        }
+
+        /**
+         * .
+         *
+         * @param e
+         */
+        public final boolean removeOutgoingEdge(Class<EE> clazz, EE e)
+        {
+        	assert outgoing != null;
+        	
+			final NotTightArraySet<EE> set = ModifiableNotTightArraySet.own(outgoing, clazz);
+        	
+        	final boolean removed = set.remove(e);
+            outgoing = set.disown();
+            return removed;
+        }
+        
+        @SuppressWarnings("unchecked")
+		@Override
+        public void removeIncomingEdges(Class<EE> clazz) {
+        	incoming = (EE[]) Array.newInstance(clazz, 0);
+        }
+        
+        @SuppressWarnings("unchecked")
+		@Override
+        public void removeOutgoingEdges(Class<EE> clazz) {
+        	outgoing = (EE[]) Array.newInstance(clazz, 0);
+        }
+    }
+
+    
 
         private static final String NOT_IN_DIRECTED_GRAPH =
             "no such operation in a directed graph";
@@ -797,7 +939,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             DirectedEdgeContainer<E,E[]> ec = getEdgeContainer(sourceVertex);
             if (ec == null) return null;
             
-            ArraySet<E> outgoing = ArraySet.own(ec.outgoing());
+            NotTightArraySet<E> outgoing = NotTightArraySet.own(ec.outgoing());
             final Set<E> edges = new ArrayUnenforcedSet<E>(outgoing.size());
             
             for (E e : outgoing) {
@@ -821,7 +963,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             {
             	DirectedEdgeContainer<E, E[]> ec = getEdgeContainer(sourceVertex);
 
-                ArraySet<E> outgoing = ArraySet.own(ec.outgoing());
+            	NotTightArraySet<E> outgoing = NotTightArraySet.own(ec.outgoing());
                 Iterator<E> iter = outgoing.iterator();
 
                 while (iter.hasNext()) {
@@ -838,7 +980,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         
         @Override
         public boolean containsEdge(E edge) {
-            final Set<E> outgoing = ArraySet.own(vertexMap.get(edge.getSource()).outgoing());
+            final Set<E> outgoing = NotTightArraySet.own(vertexMap.get(edge.getSource()).outgoing());
             return outgoing.contains(edge);
         }
 
@@ -865,8 +1007,8 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         @Override
         public Set<E> edgesOf(V vertex)
         {
-        	Set<E> incoming = ArraySet.own(getEdgeContainer(vertex).incoming());
-        	Set<E> outgoing = ArraySet.own(getEdgeContainer(vertex).outgoing());
+        	Set<E> incoming = NotTightArraySet.own(getEdgeContainer(vertex).incoming());
+        	Set<E> outgoing = NotTightArraySet.own(getEdgeContainer(vertex).outgoing());
             Set<E> inAndOut = 
                 new HashSet<E>(incoming.size() + outgoing.size());
             inAndOut.addAll(incoming);
@@ -880,7 +1022,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
          */
         public int inDegreeOf(V vertex)
         {
-        	ArraySet<E> incoming = ArraySet.own(getEdgeContainer(vertex).incoming());
+        	NotTightArraySet<E> incoming = NotTightArraySet.own(getEdgeContainer(vertex).incoming());
             return incoming.size();
         }
 
@@ -929,7 +1071,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
          */
         public int outDegreeOf(V vertex)
         {
-        	ArraySet<E> outgoing = ArraySet.own(getEdgeContainer(vertex).outgoing());
+        	NotTightArraySet<E> outgoing = NotTightArraySet.own(getEdgeContainer(vertex).outgoing());
             return outgoing.size();
         }
 
@@ -981,7 +1123,7 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             return vertexMap.compute(vertex, (v, ec) -> {
 
             if (ec == null) {
-                ec = new ArraySetDirectedEdgeContainer<V, E>(classE);
+                ec = new NotTightArraySetDirectedEdgeContainer<V, E>(classE);
             }
 
             return ec;

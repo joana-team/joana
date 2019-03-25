@@ -15,6 +15,7 @@ import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
 
+import edu.kit.joana.util.graph.GraphWalker;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.wala.core.graphs.EfficientDominators.DomEdge;
 

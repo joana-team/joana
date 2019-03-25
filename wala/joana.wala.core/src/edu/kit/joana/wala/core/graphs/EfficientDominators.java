@@ -20,6 +20,7 @@ import org.jgrapht.EdgeFactory;
 
 import edu.kit.joana.util.collections.SimpleVector;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
+import edu.kit.joana.util.graph.GraphWalker;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
 import gnu.trove.stack.TIntStack;

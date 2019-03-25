@@ -27,12 +27,12 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGNode.Kind;
 import edu.kit.joana.ifc.sdg.graph.SDGNode.Operation;
 import edu.kit.joana.util.SourceLocation;
+import edu.kit.joana.util.graph.GraphWalker;
 import edu.kit.joana.wala.core.DependenceGraph;
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGEdge;
 import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.SDGBuilder;
-import edu.kit.joana.wala.core.graphs.GraphWalker;
 import edu.kit.joana.wala.util.PrettyWalaNames;
 import gnu.trove.set.TIntSet;
 

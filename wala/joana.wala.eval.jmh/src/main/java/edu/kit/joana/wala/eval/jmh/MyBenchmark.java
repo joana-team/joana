@@ -66,6 +66,7 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import edu.kit.joana.util.collections.SimpleVector;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.DeleteSuccessorNodes;
+import edu.kit.joana.util.graph.DeleteSuccessorNodesAndToFromOnly;
 import edu.kit.joana.util.graph.DeleteSuccessorNodesAndToOnly;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
@@ -143,7 +144,7 @@ public class MyBenchmark {
 	public static class WeakControlClosure {
 		public static Set<Node> viaNTICD(DirectedGraph<Node, Edge> graph, Set<Node> ms) {
 			//final DirectedGraph<Node, Edge> gMS = new DeleteSuccessorNodes<>(graph, ms, Edge.class);
-			final DirectedGraph<Node, Edge> gMS = new DeleteSuccessorNodesAndToOnly<>(graph, ms, Edge.class);
+			final DirectedGraph<Node, Edge> gMS = new DeleteSuccessorNodesAndToFromOnly<>(graph, ms, Edge.class);
 			
 			final NTICDGraphPostdominanceFrontiers<Node, Edge> nticdMS = NTICDGraphPostdominanceFrontiers.compute(gMS, edgeFactory, Edge.class);
 			final Set<Node> result = new HashSet<>(ms); {

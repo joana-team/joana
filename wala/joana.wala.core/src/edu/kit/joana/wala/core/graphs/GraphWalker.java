@@ -47,22 +47,33 @@ public abstract class GraphWalker<V, E> {
         }
     }
 
-    private void dfs(final V node, final Set<V> visited) {
-        visited.add(node);
-
-        discover(node);
-
-        final Iterable<E> outEdges = newOutEdges(graph.outgoingEdgesOf(node));
-        for (final E out : outEdges) {
-        	if (traverse(node, out)) {
-	            final V succ = graph.getEdgeTarget(out);
-	            if (!visited.contains(succ)) {
-	                dfs(succ, visited);
-	            }
-        	}
+    public final void traverseDFS(final Set<V> starts) {
+        if (NO_RECURSION) {
+            throw new IllegalStateException();
+        } else {
+            Set<V> visited = new HashSet<V>();
+            for (V start : starts) {
+            	dfs(start, visited);
+            }
         }
+    }
 
-        finish(node);
+    
+    private void dfs(final V node, final Set<V> visited) {
+        if (visited.add(node)) {
+	
+	        discover(node);
+	
+	        final Iterable<E> outEdges = newOutEdges(graph.outgoingEdgesOf(node));
+	        for (final E out : outEdges) {
+	        	if (traverse(node, out)) {
+		            final V succ = graph.getEdgeTarget(out);
+		            dfs(succ, visited);
+	        	}
+	        }
+	
+	        finish(node);
+        }
     }
     
     /**

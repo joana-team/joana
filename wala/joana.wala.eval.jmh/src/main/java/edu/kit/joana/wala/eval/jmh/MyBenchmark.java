@@ -63,10 +63,10 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
-import edu.kit.joana.ifc.sdg.graph.slicer.Slicer;
 import edu.kit.joana.util.collections.SimpleVector;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.DeleteSuccessorNodes;
+import edu.kit.joana.util.graph.DeleteSuccessorNodesAndToOnly;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
 import edu.kit.joana.util.graph.LadderGraphGenerator;
@@ -132,7 +132,7 @@ public class MyBenchmark {
 	
 	public static class ClassicPostdominance {
 
-		public static DomTree<Node> ClassicPostdominance(EntryExitGraph cfg, Node entry, Node exit) {
+		public static DomTree<Node> classicPostdominance(EntryExitGraph cfg, Node entry, Node exit) {
 			final DirectedGraph<Node, Edge> reversedCfg = new EdgeReversedGraph<Node, Edge>(cfg);
 			final EfficientDominators<Node, Edge> dom = EfficientDominators.compute(reversedCfg, exit);
 
@@ -142,28 +142,57 @@ public class MyBenchmark {
 	
 	public static class WeakControlClosure {
 		public static Set<Node> viaNTICD(DirectedGraph<Node, Edge> graph, Set<Node> ms) {
-			final DirectedGraph<Node, Edge> gMS = new DeleteSuccessorNodes<>(graph, ms, Edge.class);
+			//final DirectedGraph<Node, Edge> gMS = new DeleteSuccessorNodes<>(graph, ms, Edge.class);
+			final DirectedGraph<Node, Edge> gMS = new DeleteSuccessorNodesAndToOnly<>(graph, ms, Edge.class);
 			
 			final NTICDGraphPostdominanceFrontiers<Node, Edge> nticdMS = NTICDGraphPostdominanceFrontiers.compute(gMS, edgeFactory, Edge.class);
-			final Set<Node> newNodes = new HashSet<>(ms);
-			final Set<Node> result = new HashSet<>(ms);
-			while (!newNodes.isEmpty()) {
-				final Node m; {
-					final Iterator<Node> it = newNodes.iterator();
-					m = it.next();
-					it.remove();
-				}
+			final Set<Node> result = new HashSet<>(ms); {
 				
-				for (Edge e : nticdMS.incomingEdgesOfUnsafe(m)) {
-					if (e == null) continue;
-					Node n = e.source;
-					if (result.add(n)) {
-						boolean isNew = newNodes.add(n);
-						assert isNew;
+				final Set<Node> newNodes = new HashSet<>(ms);
+				
+				while (!newNodes.isEmpty()) {
+					final Node m; {
+						final Iterator<Node> it = newNodes.iterator();
+						m = it.next();
+						it.remove();
+					}
+					
+					for (Edge e : nticdMS.incomingEdgesOfUnsafe(m)) {
+						if (e == null) continue;
+						Node n = e.source;
+						if (result.add(n)) {
+							boolean isNew = newNodes.add(n);
+							assert isNew;
+						}
 					}
 				}
 			}
-			
+
+			final DirectedGraph<Node, Edge> gMS2 = new DeleteSuccessorNodes<>(graph, ms, Edge.class);
+			final NTICDGraphPostdominanceFrontiers<Node, Edge> nticdMS2 = NTICDGraphPostdominanceFrontiers.compute(gMS2, edgeFactory, Edge.class);
+			final Set<Node> result2 = new HashSet<>(ms); {
+				
+				final Set<Node> newNodes = new HashSet<>(ms);
+				
+				while (!newNodes.isEmpty()) {
+					final Node m; {
+						final Iterator<Node> it = newNodes.iterator();
+						m = it.next();
+						it.remove();
+					}
+					
+					for (Edge e : nticdMS2.incomingEdgesOfUnsafe(m)) {
+						if (e == null) continue;
+						Node n = e.source;
+						if (result2.add(n)) {
+							boolean isNew = newNodes.add(n);
+							assert isNew;
+						}
+					}
+				}
+			}
+
+			if (! result.equals(result2)) throw new IllegalStateException();
 			return result;
 		}
 	}
@@ -343,7 +372,9 @@ public class MyBenchmark {
 	public static class RandomGraphsArbitraryWithNodeSet extends RandomGraphs<DirectedGraph<Node, Edge>> {
 		//@Param({"400000", "8000", "12000", "16000", "20000", "24000", "28000", "32000", "36000", "40000"})
 		//@Param({"8000", "12000", "16000", "40000"})
-		@Param({"100"})
+		//@Param({"140"})
+		//@Param({"10", "20", "30", "40", "50", "60", "80", "100"})
+		@Param({"12", "22", "32", "42", "52", "62", "82", "102"})
 		public int n;
 		
 		private Set<Node> ms;
@@ -360,7 +391,7 @@ public class MyBenchmark {
 			
 			
 			final ArrayList<Node> nodes = new ArrayList<>(graph.vertexSet());
-			int sizeMs = 1 + random.nextInt(1);
+			int sizeMs = 1 + random.nextInt(5);
 			final HashSet<Node> ms = new HashSet<>(sizeMs);
 			for (int i = 0; i < sizeMs; i++) {
 				int id = Math.abs(random.nextInt()) % n;
@@ -438,9 +469,9 @@ public class MyBenchmark {
 	public void testWeakControlClosureViaNTICD(RandomGraphsArbitraryWithNodeSet randomGraphs, Blackhole blackhole) {
 		final DirectedGraph<Node, Edge> graph = randomGraphs.graph;
 		final Set<Node> ms = randomGraphs.ms;
-		System.out.print(graph.vertexSet().size() + ", " + ms.size() + ", " + ms);
+		//System.out.print(graph.vertexSet().size() + ", " + ms.size() + ", " + ms);
 		final Set<Node> result = WeakControlClosure.viaNTICD(graph, randomGraphs.ms);
-		System.out.println(", " + result.size() + ", " + result);
+		//System.out.println(", " + result.size() + ", " + result);
 		blackhole.consume(result);
 	}
 	
@@ -505,7 +536,7 @@ public class MyBenchmark {
 	@BenchmarkMode(Mode.AverageTime)
 	public void testClassicPostdominanceFrontiersGForForEntryExitLadder(EntryExitLadderGraph ladderGraphs, Blackhole blackhole) {
 		final EntryExitGraph graph = ladderGraphs.graph;
-		blackhole.consume(ClassicPostdominance.ClassicPostdominance(graph, graph.entry, graph.exit));
+		blackhole.consume(ClassicPostdominance.classicPostdominance(graph, graph.entry, graph.exit));
 	}
 	
 	public static void mainDebug(String[] args) throws RunnerException {

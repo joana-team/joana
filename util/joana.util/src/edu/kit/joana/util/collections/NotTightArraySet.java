@@ -184,9 +184,6 @@ public class NotTightArraySet<K> extends AbstractSet<K> implements Set<K> {
 			final int hashCode = key.hashCode();
 			if (hashCode < lastHashCode) return false;
 			
-			// keys with same hashCode are stored continuously
-			if (predecessorWasNull && hashCode == lastHashCode) return false;
-			
 			// no duplicates
 			for (int j = i - 1; j >= 0 && keys[j] != null && keys[j].hashCode() == hashCode; j--) {
 				if (key.equals(keys[j])) return false;
@@ -233,7 +230,7 @@ public class NotTightArraySet<K> extends AbstractSet<K> implements Set<K> {
 			
 			
 			if (mid < low || mid > high) {
-				final int insertionPoint = midCandidate;
+				final int insertionPoint = low;
 				return -insertionPoint - 1; // key not found.
 			}
 			final int insertionPoint = mid + 1;

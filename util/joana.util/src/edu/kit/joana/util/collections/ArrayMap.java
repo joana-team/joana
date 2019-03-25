@@ -15,7 +15,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
 
 /**
@@ -449,33 +448,6 @@ public final class ArrayMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
 
 	
 	
-	class ArrayIterator<T> implements Iterator<T> {
-		private final Object[] array;
-		private int i;
-		
-		public ArrayIterator(Object[] array) {
-			this.array = array;
-			this.i = 0;
-		}
-		private void findNext() {
-			while (i < array.length && array[i] == null) i++;
-			assert (i <= array.length);
-		}
-		@Override
-		public boolean hasNext() {
-			findNext();
-			return i < array.length;
-		}
-
-		@Override
-		@SuppressWarnings("unchecked")
-		public T next() {
-			findNext();
-			if (i == array.length) throw new NoSuchElementException();
-			return (T) array[i++];
-		}
-	}
-
 	@Override
 	public Set<K> keySet() {
 		return new AbstractSet<K>() {

@@ -8,7 +8,9 @@
 package edu.kit.joana.util.collections;
 
 import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Set;
+import java.util.Map.Entry;
 
 /**
  * TODO: @author Add your name here.
@@ -29,9 +31,12 @@ public final class ModifiableNotTightArraySet<K> extends NotTightArraySet<K> imp
 		this.clazz = clazz;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public ModifiableNotTightArraySet(Set<K> other, Class<? super K> clazz) {
-		super(other);
 		this.clazz = clazz;
+		this.size = other.size();
+		this.keys = other.toArray((K[])Array.newInstance(clazz, size));
+		Arrays.sort(keys, ENTRY_COMPARATOR);
 	}
 	
 	protected void incSize() {

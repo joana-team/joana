@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.Map.Entry;
 
 /**
  * A Set backed by an Object array. Optimized for size only, with severe consequences for speed.
@@ -34,7 +35,7 @@ import java.util.Set;
  */
 public class NotTightArraySet<K> extends AbstractSet<K> implements Set<K> {
 	
-	private static  Comparator<Object> ENTRY_COMPARATOR = new Comparator<Object>() {
+	protected static  Comparator<Object> ENTRY_COMPARATOR = new Comparator<Object>() {
 		@Override
 		public int compare(Object e1, Object e2) {
 			if (e1 == null) return -1;
@@ -120,19 +121,6 @@ public class NotTightArraySet<K> extends AbstractSet<K> implements Set<K> {
 		}
 		assert invariant();
 		
-	}
-	
-	public NotTightArraySet(Set<K> other) {
-		this.size = other.size();
-//		this.maxIndex = size - 1;
-		this.keys = new Object[other.size()];
-
-		int i = 0;
-		for (K k : other) {
-			assert k != null;
-			keys[i] = k; 
-		}
-//		this.isCompact = true;
 	}
 	
 	protected int maxIndex() {

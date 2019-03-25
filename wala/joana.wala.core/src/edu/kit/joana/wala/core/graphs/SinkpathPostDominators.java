@@ -57,7 +57,7 @@ public class SinkpathPostDominators {
 		}
 	};
 
-	public static class Node<V extends IntegerIdentifiable> implements LeastCommonAncestor.PseudoTreeNode<Node<V>>, IntegerIdentifiable {
+	public static final class Node<V extends IntegerIdentifiable> implements LeastCommonAncestor.PseudoTreeNode<Node<V>>, IntegerIdentifiable {
 		private final V v;
 		
 		private boolean processed;
@@ -82,12 +82,12 @@ public class SinkpathPostDominators {
 		}
 		
 		@Override
-		public Node<V> getNext() {
+		public final Node<V> getNext() {
 			return next;
 		}
 		
 
-		public V getV() {
+		public final V getV() {
 			return v;
 		}
 		@Override
@@ -95,21 +95,21 @@ public class SinkpathPostDominators {
 			return v.toString();
 		}
 		
-		public Node<V> getRepresentant() {
+		public final Node<V> getRepresentant() {
 			return representant;
 		}
 		@Override
-		public int getId() {
+		public final int getId() {
 			return v.getId();
 		}
 		
 		@Override
-		public void addToPath(Object o) {
+		public final void addToPath(Object o) {
 			inPathOf = o;
 		}
 		
 		@Override
-		public boolean onPath(Object o) {
+		public final boolean onPath(Object o) {
 			return inPathOf == o;
 		}
 	}

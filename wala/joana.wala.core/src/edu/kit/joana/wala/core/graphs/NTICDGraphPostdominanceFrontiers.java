@@ -8,6 +8,7 @@
 package edu.kit.joana.wala.core.graphs;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -15,7 +16,6 @@ import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
 import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
 
-import edu.kit.joana.util.collections.ArrayMap;
 import edu.kit.joana.util.collections.ArraySet;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
@@ -33,7 +33,7 @@ import edu.kit.joana.wala.core.graphs.SinkpathPostDominators.Node;
 public class NTICDGraphPostdominanceFrontiers<V extends IntegerIdentifiable, E extends KnowsVertices<V>> extends AbstractJoanaGraph<V, E> {
 
 	private NTICDGraphPostdominanceFrontiers(EdgeFactory<V, E> edgeFactory, Class<E> classE, int size) {
-		super(edgeFactory, () -> new ArrayMap<>(size), classE);
+		super(edgeFactory, () -> new HashMap<>(size), classE);
 	}
 
 	public static boolean DEBUG = false;

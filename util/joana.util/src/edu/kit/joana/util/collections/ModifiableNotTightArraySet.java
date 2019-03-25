@@ -86,8 +86,7 @@ public final class ModifiableNotTightArraySet<K> extends NotTightArraySet<K> imp
 //				return true;
 //			}
 			
-			int maxIndex = maxIndex();
-			if (maxIndex + 1 == length) { // maybe even do this a little sooner?
+			if (length == 0 || keys[length -1] != null) { // maybe even do this a little sooner?
 				final int newLength = (int) (GROWTH_FACTOR * (length + 3));
 				
 				@SuppressWarnings("unchecked")
@@ -110,7 +109,7 @@ public final class ModifiableNotTightArraySet<K> extends NotTightArraySet<K> imp
 
 		assert 0 <= insert && insert < keys.length;
 
-		if (insert <= maxIndex) System.arraycopy(keys,   insert, keys,   insert + 1, length - insert - 1);
+		System.arraycopy(keys,   insert, keys,   insert + 1, length - insert - 1);
 		keys[insert] = key;
 		incSize();
 		

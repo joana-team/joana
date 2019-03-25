@@ -32,6 +32,9 @@
 package edu.kit.joana.wala.eval.jmh;
 
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Random;
@@ -60,8 +63,10 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
+import edu.kit.joana.ifc.sdg.graph.slicer.Slicer;
 import edu.kit.joana.util.collections.SimpleVector;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
+import edu.kit.joana.util.graph.DeleteSuccessorNodes;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
 import edu.kit.joana.util.graph.LadderGraphGenerator;
@@ -132,6 +137,34 @@ public class MyBenchmark {
 			final EfficientDominators<Node, Edge> dom = EfficientDominators.compute(reversedCfg, exit);
 
 			return dom.getDominationTree();
+		}
+	}
+	
+	public static class WeakControlClosure {
+		public static Set<Node> viaNTICD(DirectedGraph<Node, Edge> graph, Set<Node> ms) {
+			final DirectedGraph<Node, Edge> gMS = new DeleteSuccessorNodes<>(graph, ms, Edge.class);
+			
+			final NTICDGraphPostdominanceFrontiers<Node, Edge> nticdMS = NTICDGraphPostdominanceFrontiers.compute(gMS, edgeFactory, Edge.class);
+			final Set<Node> newNodes = new HashSet<>(ms);
+			final Set<Node> result = new HashSet<>(ms);
+			while (!newNodes.isEmpty()) {
+				final Node m; {
+					final Iterator<Node> it = newNodes.iterator();
+					m = it.next();
+					it.remove();
+				}
+				
+				for (Edge e : nticdMS.incomingEdgesOfUnsafe(m)) {
+					if (e == null) continue;
+					Node n = e.source;
+					if (result.add(n)) {
+						boolean isNew = newNodes.add(n);
+						assert isNew;
+					}
+				}
+			}
+			
+			return result;
 		}
 	}
 	
@@ -249,15 +282,17 @@ public class MyBenchmark {
 		
 	}
 	
+	public static final EdgeFactory<Node, Edge> edgeFactory = new EdgeFactory<Node, Edge>() {
+		@Override
+		public Edge createEdge(Node sourceVertex, Node targetVertex) {
+			return new Edge(sourceVertex, targetVertex);
+		}
+	};
+
+	
 	public abstract static class Graphs<G> {
 		public G graph;
 		
-		public final EdgeFactory<Node, Edge> edgeFactory = new EdgeFactory<Node, Edge>() {
-			@Override
-			public Edge createEdge(Node sourceVertex, Node targetVertex) {
-				return new Edge(sourceVertex, targetVertex);
-			}
-		};
 		
 		public final VertexFactory<Node> vertexFactory = new VertexFactory<MyBenchmark.Node>() {
 			private int id = 0;
@@ -268,7 +303,7 @@ public class MyBenchmark {
 		};
 		
 		public void dumpGraph(int n, DirectedGraph<Node, Edge> graph) {
-			final String cfgFileName = WriteGraphToDot.sanitizeFileName(this.getClass().getSimpleName()+"-" + n + "-cfg.dot");
+			final String cfgFileName = WriteGraphToDot.sanitizeFileName(this.getClass().getSimpleName()+"-" + graph.getClass().getName() + "-" + n + "-cfg.dot");
 			try {
 				WriteGraphToDot.write(graph, cfgFileName, e -> true, v -> Integer.toString(v.getId()));
 			} catch (FileNotFoundException e) {
@@ -282,17 +317,8 @@ public class MyBenchmark {
 		public final int seed = 42;
 		
 		public final int nrEdges(int nrNodes) {
-			return (int)(((double)nrNodes) * 1.5);
+			return (int)(((double)nrNodes) * 1.3);
 		}
-		
-		public void dumpGraph(int n, DirectedGraph<Node, Edge> graph) {
-			final String cfgFileName = WriteGraphToDot.sanitizeFileName(this.getClass().getSimpleName()+"-" + n + "-cfg.dot");
-			try {
-				WriteGraphToDot.write(graph, cfgFileName, e -> true, v -> Integer.toString(v.getId()));
-			} catch (FileNotFoundException e) {
-			}
-		}
-
 	}
 	
 	@State(Scope.Benchmark)
@@ -310,6 +336,37 @@ public class MyBenchmark {
 			
 			this.graph = graph;
 			dumpGraph(n, graph);
+		}
+	}
+	
+	@State(Scope.Benchmark)
+	public static class RandomGraphsArbitraryWithNodeSet extends RandomGraphs<DirectedGraph<Node, Edge>> {
+		//@Param({"400000", "8000", "12000", "16000", "20000", "24000", "28000", "32000", "36000", "40000"})
+		//@Param({"8000", "12000", "16000", "40000"})
+		@Param({"100"})
+		public int n;
+		
+		private Set<Node> ms;
+		@Setup(Level.Trial)
+		public void doSetup() {
+			final Random random = new Random(seed + n);
+			final RandomGraphGenerator<Node, Edge> generator = new RandomGraphGenerator<>(n, nrEdges(n), random.nextLong());
+			@SuppressWarnings("serial")
+			final DirectedGraph<Node, Edge> graph = new AbstractJoanaGraph<Node, Edge>(edgeFactory, () -> new SimpleVector<>(0, n), Edge.class) {};
+			generator.generateGraph(graph, vertexFactory, null);
+			
+			this.graph = graph;
+			dumpGraph(n, graph);
+			
+			
+			final ArrayList<Node> nodes = new ArrayList<>(graph.vertexSet());
+			int sizeMs = 1 + random.nextInt(1);
+			final HashSet<Node> ms = new HashSet<>(sizeMs);
+			for (int i = 0; i < sizeMs; i++) {
+				int id = Math.abs(random.nextInt()) % n;
+				ms.add(nodes.get(id));
+			}
+			this.ms = ms;
 		}
 	}
 	
@@ -374,6 +431,18 @@ public class MyBenchmark {
 		}
 	}
 
+	@Benchmark
+	@Warmup(iterations = 1, time = 5)
+	@Measurement(iterations = 1, time = 5)
+	@BenchmarkMode(Mode.AverageTime)
+	public void testWeakControlClosureViaNTICD(RandomGraphsArbitraryWithNodeSet randomGraphs, Blackhole blackhole) {
+		final DirectedGraph<Node, Edge> graph = randomGraphs.graph;
+		final Set<Node> ms = randomGraphs.ms;
+		System.out.print(graph.vertexSet().size() + ", " + ms.size() + ", " + ms);
+		final Set<Node> result = WeakControlClosure.viaNTICD(graph, randomGraphs.ms);
+		System.out.println(", " + result.size() + ", " + result);
+		blackhole.consume(result);
+	}
 	
 	//@Benchmark
 	@Warmup(iterations = 1, time = 5)
@@ -381,7 +450,7 @@ public class MyBenchmark {
 	@BenchmarkMode(Mode.AverageTime)
 	public void testRandom(RandomGraphsArbitrary randomGraphs, Blackhole blackhole) {
 		final DirectedGraph<Node, Edge> graph = randomGraphs.graph;
-		blackhole.consume(NTICDGraphPostdominanceFrontiers.compute(graph, randomGraphs.edgeFactory, Edge.class));
+		blackhole.consume(NTICDGraphPostdominanceFrontiers.compute(graph, edgeFactory, Edge.class));
 	}
 	
 	//@Benchmark
@@ -390,7 +459,7 @@ public class MyBenchmark {
 	@BenchmarkMode(Mode.AverageTime)
 	public void testClassicCDGForRandomWithUniqueExitNode(RandomGraphsWithUniqueExitNode randomGraphs, Blackhole blackhole) {
 		final EntryExitGraph graph = randomGraphs.graph;
-		blackhole.consume(CDG.build(graph, graph.entry, graph.exit, randomGraphs.edgeFactory));
+		blackhole.consume(CDG.build(graph, graph.entry, graph.exit, edgeFactory));
 	}
 	
 	//@Benchmark
@@ -399,7 +468,7 @@ public class MyBenchmark {
 	@BenchmarkMode(Mode.AverageTime)
 	public void testNTICDGraphPostdominanceFrontiersForRandomWithUniqueExitNode(RandomGraphsWithUniqueExitNode randomGraphs, Blackhole blackhole) {
 		final EntryExitGraph graph = randomGraphs.graph;
-		blackhole.consume(NTICDGraphPostdominanceFrontiers.compute(graph, randomGraphs.edgeFactory, Edge.class));
+		blackhole.consume(NTICDGraphPostdominanceFrontiers.compute(graph, edgeFactory, Edge.class));
 	}
 	
 
@@ -409,7 +478,7 @@ public class MyBenchmark {
 	@BenchmarkMode(Mode.AverageTime)
 	public void testNTICDGraphPostdominanceFrontiersForEntryExitLadder(EntryExitLadderGraph ladderGraphs, Blackhole blackhole) {
 		final DirectedGraph<Node, Edge> graph = ladderGraphs.graph;
-		blackhole.consume(NTICDGraphPostdominanceFrontiers.compute(graph, ladderGraphs.edgeFactory, Edge.class));
+		blackhole.consume(NTICDGraphPostdominanceFrontiers.compute(graph, edgeFactory, Edge.class));
 	}
 	
 	//@Benchmark
@@ -418,10 +487,10 @@ public class MyBenchmark {
 	@BenchmarkMode(Mode.AverageTime)
 	public void testNClassicCDGForForEntryExitLadder(EntryExitLadderGraph ladderGraphs, Blackhole blackhole) {
 		final EntryExitGraph graph = ladderGraphs.graph;
-		blackhole.consume(CDG.build(graph, graph.entry, graph.exit, ladderGraphs.edgeFactory));
+		blackhole.consume(CDG.build(graph, graph.entry, graph.exit, edgeFactory));
 	}
 	
-	@Benchmark
+	//@Benchmark
 	@Warmup(iterations = 1, time = 5)
 	@Measurement(iterations = 1, time = 5)
 	@BenchmarkMode(Mode.AverageTime)
@@ -430,7 +499,7 @@ public class MyBenchmark {
 		blackhole.consume(SinkpathPostDominators.compute(graph));
 	}
 	
-	@Benchmark
+	//@Benchmark
 	@Warmup(iterations = 1, time = 5)
 	@Measurement(iterations = 1, time = 5)
 	@BenchmarkMode(Mode.AverageTime)

@@ -640,6 +640,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 						 SDGNode next = w1.poll();
 
 						 for (SDGEdge edge : icfg.outgoingEdgesOfUnsafe(next)) {
+							 if (edge == null) continue;
 							 if (edge.getKind() == SDGEdge.Kind.FORK
 									 || (edge.getKind() == SDGEdge.Kind.RETURN && !edge.getTarget().isInThread(thread))) {
 								 // don't leave the thread
@@ -679,6 +680,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 						 SDGNode next = w2.poll();
 
 						 for (SDGEdge edge : icfg.outgoingEdgesOfUnsafe(next)) {
+							 if (edge == null) continue;
 							 if (edge.getKind() == SDGEdge.Kind.FORK
 									 || edge.getKind() == SDGEdge.Kind.RETURN) {
 								 // don't leave the thread, don't leave procedures
@@ -749,6 +751,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 					 SDGNode next = w1.poll();
 
 					 for (SDGEdge edge : icfg.outgoingEdgesOfUnsafe(next)) {
+						 if (edge == null) continue;
 						 if (edge.getKind() == SDGEdge.Kind.FORK
 								 || (edge.getKind() == SDGEdge.Kind.RETURN && !edge.getTarget().isInThread(thread))) {
 							 // don't leave the thread
@@ -779,6 +782,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 					 SDGNode next = w2.poll();
 
 					 for (SDGEdge edge : icfg.outgoingEdgesOfUnsafe(next)) {
+						 if (edge == null) continue;
 						 if (edge.getKind() != SDGEdge.Kind.FORK
 								 && edge.getKind() != SDGEdge.Kind.RETURN) {
 							 // don't leave the thread, don't leave procedures
@@ -1191,6 +1195,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 						 SDGNode next = w1.poll();
 
 						 for (SDGEdge edge : icfg.outgoingEdgesOfUnsafe(next)) {
+							 if (edge == null) continue;
 							 SDGNode reached = edge.getTarget();
 
 							 assert (edge.getKind() != SDGEdge.Kind.FORK || (reached.customData == INIT || reached.customData == BOTH));
@@ -1230,6 +1235,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 						 SDGNode next = w2.poll();
 
 						 for (SDGEdge edge : icfg.outgoingEdgesOfUnsafe(next)) {
+							 if (edge == null) continue;
 							 if (edge.getKind() == SDGEdge.Kind.RETURN) continue;
 							 
 							 SDGNode reached = edge.getTarget();
@@ -1323,6 +1329,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 					 final SDGNode lastStartNode = element.lastStartNode;
 
 					 for (SDGEdge edge : icfg.outgoingEdgesOfUnsafe(next)) {
+						 if (edge == null) continue;
 						 final SDGNode reached = edge.getTarget();
 
 						 assert (edge.getKind() != SDGEdge.Kind.FORK || reached.customData == START);
@@ -1396,6 +1403,7 @@ public class ThreadRegions implements Iterable<ThreadRegion> {
 					 final SDGNode lastStartNode = element.lastStartNode;
 
 					 for (SDGEdge edge : icfg.outgoingEdgesOfUnsafe(next)) {
+						 if (edge == null) continue;
 						 if (edge.getKind() == SDGEdge.Kind.RETURN) continue;
 						 SDGNode reached = edge.getTarget();
 						 

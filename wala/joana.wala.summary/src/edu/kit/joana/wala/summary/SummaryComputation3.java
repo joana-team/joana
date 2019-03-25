@@ -819,6 +819,7 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
                 // follow control-dependence-expression
                 // edges from 'node' to the call node
                 for(SDGEdge e : graph.incomingEdgesOfUnsafe(n)){
+                    if (e == null) continue;
                     if(e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR){
                         if(e.getSource().getKind() == SDGNode.Kind.CALL){
                             return e.getSource();

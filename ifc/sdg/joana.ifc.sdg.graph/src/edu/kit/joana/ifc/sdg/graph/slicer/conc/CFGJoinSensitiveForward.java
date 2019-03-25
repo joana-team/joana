@@ -22,7 +22,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGNodeTuple;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
-import edu.kit.joana.util.collections.ArraySet;
+import edu.kit.joana.util.collections.NotTightArraySet;
 import gnu.trove.set.hash.TIntHashSet;
 
 /**
@@ -74,7 +74,7 @@ public class CFGJoinSensitiveForward extends CFGForward {
     }
 
     protected Iterable<SDGEdge> edgesToTraverse(SDGNode node) {
-    	final Set<SDGEdge> outgoing = ArraySet.own(this.g.outgoingEdgesOfUnsafe(node));
+    	final Set<SDGEdge> outgoing = NotTightArraySet.own(this.g.outgoingEdgesOfUnsafe(node));
     	return new Iterable<SDGEdge>() {
 			@Override
 			public Iterator<SDGEdge> iterator() {

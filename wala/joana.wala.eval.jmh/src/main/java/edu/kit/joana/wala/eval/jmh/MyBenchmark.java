@@ -43,7 +43,6 @@ import org.jgrapht.VertexFactory;
 import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
 import org.jgrapht.generate.RandomGraphGenerator;
 import org.jgrapht.graph.EdgeReversedGraph;
-import org.jgrapht.graph.SimpleDirectedGraph;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -65,8 +64,12 @@ import edu.kit.joana.util.collections.SimpleVector;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
+import edu.kit.joana.util.graph.LadderGraphGenerator;
 import edu.kit.joana.wala.core.graphs.DominanceFrontiers;
+import edu.kit.joana.wala.core.graphs.EfficientDominators;
 import edu.kit.joana.wala.core.graphs.NTICDGraphPostdominanceFrontiers;
+import edu.kit.joana.wala.core.graphs.SinkpathPostDominators;
+import edu.kit.joana.wala.core.graphs.EfficientDominators.DomTree;
 import edu.kit.joana.wala.util.WriteGraphToDot;
 
 @Fork(value = 1, jvmArgsAppend = "-Xss128m")
@@ -120,6 +123,16 @@ public class MyBenchmark {
 	            }
 	        }
 	    }
+	}
+	
+	public static class ClassicPostdominance {
+
+		public static DomTree<Node> ClassicPostdominance(EntryExitGraph cfg, Node entry, Node exit) {
+			final DirectedGraph<Node, Edge> reversedCfg = new EdgeReversedGraph<Node, Edge>(cfg);
+			final EfficientDominators<Node, Edge> dom = EfficientDominators.compute(reversedCfg, exit);
+
+			return dom.getDominationTree();
+		}
 	}
 	
 
@@ -236,10 +249,8 @@ public class MyBenchmark {
 		
 	}
 	
-	public abstract static class RandomGraphs<G> {
-		public final int seed = 42;
-		
-		public G randomGraph;
+	public abstract static class Graphs<G> {
+		public G graph;
 		
 		public final EdgeFactory<Node, Edge> edgeFactory = new EdgeFactory<Node, Edge>() {
 			@Override
@@ -256,6 +267,20 @@ public class MyBenchmark {
 			}
 		};
 		
+		public void dumpGraph(int n, DirectedGraph<Node, Edge> graph) {
+			final String cfgFileName = WriteGraphToDot.sanitizeFileName(this.getClass().getSimpleName()+"-" + n + "-cfg.dot");
+			try {
+				WriteGraphToDot.write(graph, cfgFileName, e -> true, v -> Integer.toString(v.getId()));
+			} catch (FileNotFoundException e) {
+			}
+		}
+
+	}
+
+	
+	public abstract static class RandomGraphs<G> extends Graphs<G> {
+		public final int seed = 42;
+		
 		public final int nrEdges(int nrNodes) {
 			return (int)(((double)nrNodes) * 1.5);
 		}
@@ -269,6 +294,7 @@ public class MyBenchmark {
 		}
 
 	}
+	
 	@State(Scope.Benchmark)
 	public static class RandomGraphsArbitrary extends RandomGraphs<DirectedGraph<Node, Edge>> {
 		@Param({"400000", "8000", "12000", "16000", "20000", "24000", "28000", "32000", "36000", "40000"})
@@ -282,7 +308,7 @@ public class MyBenchmark {
 			final DirectedGraph<Node, Edge> graph = new AbstractJoanaGraph<Node, Edge>(edgeFactory, () -> new SimpleVector<>(0, n), Edge.class) {};
 			generator.generateGraph(graph, vertexFactory, null);
 			
-			randomGraph = graph;
+			this.graph = graph;
 			dumpGraph(n, graph);
 		}
 	}
@@ -301,17 +327,60 @@ public class MyBenchmark {
 			
 			addEntryExit(graph, vertexFactory);
 			
-			randomGraph = graph;
+			this.graph = graph;
 			dumpGraph(n, graph);
 		}
 	}
+	
+	@State(Scope.Benchmark)
+	public static class EntryExitLadderGraph extends Graphs<EntryExitGraph> {
+		//@Param({"8000", "12000", "16000", "20000", "24000", "28000", "32000", "36000", "40000"})
+		//@Param({"10", "100", "1000", "5000"})
+		//@Param({"5000", "10000", "15000"})
+		@Param({"5000", "10000", "15000", "20000", "25000", "30000"})
+		public int n;
+		
+		@Setup(Level.Trial)
+		public void doSetup() {
+			final LadderGraphGenerator<Node, Edge> generator = new LadderGraphGenerator<>(n);
+			final EntryExitGraph graph = new EntryExitGraph(edgeFactory, 2*n + 2 + 1);
+			generator.generateGraph(graph, vertexFactory, null);
+			graph.addEdge(generator.getExit1(), generator.getExit2());
+			
+			graph.entry = generator.getEntry();
+			graph.exit  = generator.getExit2();
+			this.graph = graph;
+			dumpGraph(n, graph);
+		}
+	}
+
+	@State(Scope.Benchmark)
+	public static class FullLadderGraph extends Graphs<DirectedGraph<Node, Edge>> {
+		//@Param({"8000", "12000", "16000", "20000", "24000", "28000", "32000", "36000", "40000"})
+		@Param({"0", "1", "2", "10", "20"})
+		public int n;
+		
+		@Setup(Level.Trial)
+		public void doSetup() {
+			final LadderGraphGenerator<Node, Edge> generator = new LadderGraphGenerator<>(n);
+			@SuppressWarnings("serial")
+			final DirectedGraph<Node, Edge> graph = new AbstractJoanaGraph<Node, Edge>(edgeFactory, () -> new SimpleVector<>(0, 2*n + 2 + 1), Edge.class) {};
+			generator.generateGraph(graph, vertexFactory, null);
+			graph.addEdge(generator.getExit1(), generator.getEntry());
+			graph.addEdge(generator.getExit2(), generator.getEntry());
+			
+			this.graph = graph;
+			dumpGraph(n, graph);
+		}
+	}
+
 	
 	//@Benchmark
 	@Warmup(iterations = 1, time = 5)
 	@Measurement(iterations = 1, time = 5)
 	@BenchmarkMode(Mode.AverageTime)
 	public void testRandom(RandomGraphsArbitrary randomGraphs, Blackhole blackhole) {
-		final DirectedGraph<Node, Edge> graph = randomGraphs.randomGraph;
+		final DirectedGraph<Node, Edge> graph = randomGraphs.graph;
 		blackhole.consume(NTICDGraphPostdominanceFrontiers.compute(graph, randomGraphs.edgeFactory, Edge.class));
 	}
 	
@@ -320,20 +389,56 @@ public class MyBenchmark {
 	@Measurement(iterations = 1, time = 5)
 	@BenchmarkMode(Mode.AverageTime)
 	public void testClassicCDGForRandomWithUniqueExitNode(RandomGraphsWithUniqueExitNode randomGraphs, Blackhole blackhole) {
-		final EntryExitGraph graph = randomGraphs.randomGraph;
+		final EntryExitGraph graph = randomGraphs.graph;
 		blackhole.consume(CDG.build(graph, graph.entry, graph.exit, randomGraphs.edgeFactory));
+	}
+	
+	//@Benchmark
+	@Warmup(iterations = 1, time = 5)
+	@Measurement(iterations = 1, time = 5)
+	@BenchmarkMode(Mode.AverageTime)
+	public void testNTICDGraphPostdominanceFrontiersForRandomWithUniqueExitNode(RandomGraphsWithUniqueExitNode randomGraphs, Blackhole blackhole) {
+		final EntryExitGraph graph = randomGraphs.graph;
+		blackhole.consume(NTICDGraphPostdominanceFrontiers.compute(graph, randomGraphs.edgeFactory, Edge.class));
+	}
+	
+
+	//@Benchmark
+	@Warmup(iterations = 1, time = 5)
+	@Measurement(iterations = 1, time = 5)
+	@BenchmarkMode(Mode.AverageTime)
+	public void testNTICDGraphPostdominanceFrontiersForEntryExitLadder(EntryExitLadderGraph ladderGraphs, Blackhole blackhole) {
+		final DirectedGraph<Node, Edge> graph = ladderGraphs.graph;
+		blackhole.consume(NTICDGraphPostdominanceFrontiers.compute(graph, ladderGraphs.edgeFactory, Edge.class));
+	}
+	
+	//@Benchmark
+	@Warmup(iterations = 1, time = 5)
+	@Measurement(iterations = 1, time = 5)
+	@BenchmarkMode(Mode.AverageTime)
+	public void testNClassicCDGForForEntryExitLadder(EntryExitLadderGraph ladderGraphs, Blackhole blackhole) {
+		final EntryExitGraph graph = ladderGraphs.graph;
+		blackhole.consume(CDG.build(graph, graph.entry, graph.exit, ladderGraphs.edgeFactory));
 	}
 	
 	@Benchmark
 	@Warmup(iterations = 1, time = 5)
 	@Measurement(iterations = 1, time = 5)
 	@BenchmarkMode(Mode.AverageTime)
-	public void testNTICDGraphPostdominanceFrontiersForRandomWithUniqueExitNode(RandomGraphsWithUniqueExitNode randomGraphs, Blackhole blackhole) {
-		final EntryExitGraph graph = randomGraphs.randomGraph;
-		blackhole.consume(NTICDGraphPostdominanceFrontiers.compute(graph, randomGraphs.edgeFactory, Edge.class));
+	public void testSinkPostdominanceFrontiersForEntryExitLadder(EntryExitLadderGraph ladderGraphs, Blackhole blackhole) {
+		final DirectedGraph<Node, Edge> graph = ladderGraphs.graph;
+		blackhole.consume(SinkpathPostDominators.compute(graph));
 	}
 	
-
+	@Benchmark
+	@Warmup(iterations = 1, time = 5)
+	@Measurement(iterations = 1, time = 5)
+	@BenchmarkMode(Mode.AverageTime)
+	public void testClassicPostdominanceFrontiersGForForEntryExitLadder(EntryExitLadderGraph ladderGraphs, Blackhole blackhole) {
+		final EntryExitGraph graph = ladderGraphs.graph;
+		blackhole.consume(ClassicPostdominance.ClassicPostdominance(graph, graph.entry, graph.exit));
+	}
+	
 	public static void mainDebug(String[] args) throws RunnerException {
 		final Blackhole blackhole = new Blackhole("Today's password is swordfish. I understand instantiating Blackholes directly is dangerous.");
 		final RandomGraphsWithUniqueExitNode randomGraphs = new RandomGraphsWithUniqueExitNode();

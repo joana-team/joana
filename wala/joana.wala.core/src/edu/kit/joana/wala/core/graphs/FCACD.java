@@ -22,8 +22,33 @@ import edu.kit.joana.util.graph.KnowsVertices;
 /**
  * @author Martin Hecker <martin.hecker@kit.edu>
  */
-public class FCACD {
+public class FCACD<V, E extends KnowsVertices<V>> {
 	
+	static class Node<V> {
+		final V v;
+		Node<V> obs;
+		boolean inW;
+		
+		public Node(V v) {
+			this.v = v;
+		}
+
+	}
+	
+	private final Map<V, Node<V>> v2node;
+	private final DirectedGraph<V,E> graph;
+	
+	private FCACD(DirectedGraph<V,E> graph) {
+		this.graph = graph;
+		this.v2node = new HashMap<>(graph.vertexSet().size());
+		for (V v : graph.vertexSet()) {
+			final Node<V> node = new Node<>(v);
+			v2node.put(v, node);
+		}
+			
+		
+		// TODO Auto-generated constructor stub
+	}
 	/*
 	confirm :: Map Node [Node] -> Map Node Node -> Node -> Node -> Bool
 	confirm sucs obs u u_obs =
@@ -36,7 +61,7 @@ public class FCACD {
 	            | otherwise                                       = loop succ' result
 	          where (v, succ') = Set.deleteFindMin succ
 */	
-	private static <V,E extends KnowsVertices<V>> boolean  confirm(DirectedGraph<V,E> graph, Map<V, V> obs, V u, V uObs) {
+	private boolean  confirm(Map<V, V> obs, V u, V uObs) {
 		for (E e : graph.outgoingEdgesOf(u)) {
 			final V v = e.getTarget();
 			final V obsV = obs.get(v);
@@ -79,7 +104,7 @@ propagate pres sucs w obs0 u v =
         isCond _   = True
 	 */
 
-	private static <V,E extends KnowsVertices<V>> Set<V> propagate(DirectedGraph<V,E> graph, Set<V> w, Map<V, V> obs, V u, V v) {
+	private  Set<V> propagate(Set<V> w, Map<V, V> obs, V u, V v) {
 		final Set<V> worklist = new HashSet<>();
 		worklist.add(u);
 		
@@ -130,7 +155,7 @@ main g v' =
                 (candidates, obs') =  propagate pres sucs w obs u u
                 new_nodes = Set.filter (\v ->  confirm sucs obs' v u) candidates	 */
 	
-	private static <V,E extends KnowsVertices<V>> Pair<Set<V>, Map<V,V>> main(DirectedGraph<V,E> graph, Set<V> vv) {
+	private Pair<Set<V>, Map<V,V>> main(Set<V> vv) {
 		final Set<V> w = new HashSet<>(vv);
 		final Map<V,V> obs = new HashMap<>(graph.vertexSet().size());
 		for (V v : vv) {
@@ -144,9 +169,9 @@ main g v' =
 				it.remove();
 			}
 			final Set<V> delta = new HashSet<>();
-			final Set<V> c = propagate(graph, w, obs,u, u);
+			final Set<V> c = propagate(w, obs,u, u);
 			for (V v : c) {
-				if (confirm(graph, obs, v, u)) {
+				if (confirm(obs, v, u)) {
 					delta.add(v);
 				}
 			}
@@ -160,11 +185,13 @@ main g v' =
 	}
 	
 	public static <V,E extends KnowsVertices<V>> Set<V> wd(DirectedGraph<V,E> graph, Set<V> vv) {
-		return main(graph, vv).getFirst();
+		final FCACD<V, E> fcacd = new FCACD<>(graph);
+		return fcacd.main(vv).getFirst();
 	}
 	
 	public static <V,E extends KnowsVertices<V>> Set<V> wcc(DirectedGraph<V,E> graph, Set<V> vv) {
-		final Set<V> w = main(graph, vv).getFirst();
+		final FCACD<V, E> fcacd = new FCACD<>(graph);
+		final Set<V> w = fcacd.main(vv).getFirst();
 		
 		final GraphWalker<V, E> dfs = new GraphWalker<V, E>(graph) {
 			@Override

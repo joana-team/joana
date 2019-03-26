@@ -76,7 +76,7 @@ import edu.kit.joana.wala.core.graphs.EfficientDominators;
 import edu.kit.joana.wala.core.graphs.NTICDGraphPostdominanceFrontiers;
 import edu.kit.joana.wala.core.graphs.SinkpathPostDominators;
 import edu.kit.joana.wala.core.graphs.EfficientDominators.DomTree;
-import edu.kit.joana.wala.core.graphs.WCCSlice;
+import edu.kit.joana.wala.core.graphs.FCACD;
 import edu.kit.joana.wala.util.WriteGraphToDot;
 
 @Fork(value = 1, jvmArgsAppend = "-Xss128m")
@@ -183,7 +183,7 @@ public class MyBenchmark {
 			}
 
 
-			final Set<Node> result2 = WCCSlice.wcc(graph, ms); 
+			final Set<Node> result2 = FCACD.wcc(graph, ms); 
 			
 			if (!result.equals(result2)) {
 				System.out.println("ms: " + ms + ",\t\twccNTICD: " + result + ",\t\twcc: " + result2);

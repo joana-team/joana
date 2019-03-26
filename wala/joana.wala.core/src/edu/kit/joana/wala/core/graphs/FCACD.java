@@ -22,7 +22,7 @@ import edu.kit.joana.util.graph.KnowsVertices;
 /**
  * @author Martin Hecker <martin.hecker@kit.edu>
  */
-public class WCCSlice {
+public class FCACD {
 	
 	/*
 	confirm :: Map Node [Node] -> Map Node Node -> Node -> Node -> Bool

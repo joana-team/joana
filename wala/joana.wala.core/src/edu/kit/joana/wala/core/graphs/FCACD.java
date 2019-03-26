@@ -31,6 +31,8 @@ public class FCACD<V, E extends KnowsVertices<V>> {
 		
 		public Node(V v) {
 			this.v = v;
+			this.inW = false;
+			this.obs = null;
 		}
 
 	}
@@ -61,10 +63,10 @@ public class FCACD<V, E extends KnowsVertices<V>> {
 	            | otherwise                                       = loop succ' result
 	          where (v, succ') = Set.deleteFindMin succ
 */	
-	private boolean  confirm(Map<V, V> obs, V u, V uObs) {
-		for (E e : graph.outgoingEdgesOf(u)) {
-			final V v = e.getTarget();
-			final V obsV = obs.get(v);
+	private boolean  confirm(Map<Node<V>, Node<V>> obs, Node<V> u, Node<V> uObs) {
+		for (E e : graph.outgoingEdgesOf(u.v)) {
+			final Node<V> v = v2node.get(e.getTarget());
+			final Node<V> obsV = obs.get(v);
 			if (obsV != null && obsV != uObs) return true;
 		}
 		return false;
@@ -104,26 +106,26 @@ propagate pres sucs w obs0 u v =
         isCond _   = True
 	 */
 
-	private  Set<V> propagate(Set<V> w, Map<V, V> obs, V u, V v) {
-		final Set<V> worklist = new HashSet<>();
+	private  Set<Node<V>> propagate(Set<Node<V>> w, Map<Node<V>, Node<V>> obs, Node<V> u, Node<V> v) {
+		final Set<Node<V>> worklist = new HashSet<>();
 		worklist.add(u);
 		
-		final Set<V> candidates = new HashSet<>();
+		final Set<Node<V>> candidates = new HashSet<>();
 		while (!worklist.isEmpty()) {
-			final V n; {
-				Iterator<V> it = worklist.iterator();
+			final Node<V> n; {
+				Iterator<Node<V>> it = worklist.iterator();
 				n = it.next();
 				it.remove();
 			}
-			for (E e : graph.incomingEdgesOf(n)) {
-				final V u0 = e.getSource();
+			for (E e : graph.incomingEdgesOf(n.v)) {
+				final Node<V> u0 = v2node.get(e.getSource());
 				if (!w.contains(u0)) {
-					final V obsU0 = obs.get(u0);
+					final Node<V> obsU0 = obs.get(u0);
 					if (obsU0 != null) {
 						if (v != obsU0) {
 							obs.put(u0, v);
 							worklist.add(u0);
-							if (graph.outgoingEdgesOf(u0).size() > 1) {
+							if (graph.outgoingEdgesOf(u0.v).size() > 1) {
 								candidates.add(u0);
 							}
 						}
@@ -155,33 +157,46 @@ main g v' =
                 (candidates, obs') =  propagate pres sucs w obs u u
                 new_nodes = Set.filter (\v ->  confirm sucs obs' v u) candidates	 */
 	
-	private Pair<Set<V>, Map<V,V>> main(Set<V> vv) {
-		final Set<V> w = new HashSet<>(vv);
-		final Map<V,V> obs = new HashMap<>(graph.vertexSet().size());
+	private Pair<Set<V>, Map<Node<V>,Node<V>>> main(Set<V> vv) {
+		final Set<Node<V>> w = new HashSet<>(vv.size());
+		final Map<Node<V>,Node<V>> obs = new HashMap<>(graph.vertexSet().size());
+		final Set<Node<V>> worklist = new HashSet<>(vv.size());
 		for (V v : vv) {
-			obs.put(v, v);
+			final Node<V> nodeV = v2node.get(v);
+			
+			w.add(nodeV);
+			nodeV.inW = true;
+			
+			obs.put(nodeV, nodeV);
+			nodeV.obs = nodeV;
+			
+			worklist.add(nodeV);
 		}
-		final Set<V> worklist = new HashSet<>(vv);
+		
 		while (!worklist.isEmpty()) {
-			final V u; {
-				Iterator<V> it = worklist.iterator();
+			final Node<V> u; {
+				Iterator<Node<V>> it = worklist.iterator();
 				u = it.next();
 				it.remove();
 			}
-			final Set<V> delta = new HashSet<>();
-			final Set<V> c = propagate(w, obs,u, u);
-			for (V v : c) {
+			final Set<Node<V>> delta = new HashSet<>();
+			final Set<Node<V>> c = propagate(w, obs,u, u);
+			for (Node<V> v : c) {
 				if (confirm(obs, v, u)) {
 					delta.add(v);
 				}
 			}
 			w.addAll(delta);
-			for (V v : delta) {
+			for (Node<V> v : delta) {
 				obs.put(v, v);
 			}
 			worklist.addAll(delta);
-		}		
-		return Pair.pair(w, obs);
+		}
+		final Set<V> result = new HashSet<>(w.size());
+		for (Node<V> v : w) {
+			result.add(v.v);
+		}
+		return Pair.pair(result, obs);
 	}
 	
 	public static <V,E extends KnowsVertices<V>> Set<V> wd(DirectedGraph<V,E> graph, Set<V> vv) {

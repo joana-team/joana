@@ -69,7 +69,7 @@ public class SinkpathPostDominators {
 		private Node<V> representant;
 		private Object inPathOf;
 		
-		private List<Node<V>> successors;
+		private Node<V>[] successors;
 		
 		public Node(V v) {
 			this.v = v;
@@ -203,7 +203,8 @@ public class SinkpathPostDominators {
 			final Node<V> x = entry.getValue();
 			if (!x.isSinkNode) {
 				final Set<E> successorEs = graph.outgoingEdgesOf(v);
-				switch (successorEs.size()) {
+				final int successorEsSize = successorEs.size();
+				switch (successorEsSize) {
 					case 0: break;
 					case 1: {
 						final Node<V> z = vToNode.get(successorEs.iterator().next().getTarget());
@@ -215,9 +216,11 @@ public class SinkpathPostDominators {
 					}
 					default: {
 						x.isRelevant = true;
-						final ArrayList<Node<V>> successors = new ArrayList<>(successorEs.size());
+						@SuppressWarnings("unchecked")
+						final Node<V>[] successors = (Node<V>[]) new Node<?>[successorEsSize];
+						int i = 0;
 						for (E e : successorEs) {
-							successors.add(vToNode.get(e.getTarget()));
+							successors[i++] =  vToNode.get(e.getTarget());
 						}
 						x.successors = successors;
 						workqueue.add(x);
@@ -226,13 +229,17 @@ public class SinkpathPostDominators {
 			}
 		}
 		
+		final Set<Node<V>> workset = new HashSet<>(workqueue);
 		
 		{
 			while (!workqueue.isEmpty()) {
 				final Node<V> x = workqueue.removeFirst();
 				assert x.next == null && !x.processed;
-				final List<Node<V>> successors = x.successors;
-				final List<Node<V>> ys = successors.stream().filter(y -> y.processed).collect(Collectors.toList());
+				final Node<V>[] successors = x.successors;
+				final List<Node<V>> ys = new ArrayList<>(successors.length);
+				for (Node<V> y : successors) {
+					if (y.processed) ys.add(y);
+				}
 				final Node<V> z;
 				if (ys.isEmpty()) {
 					z = null;
@@ -249,18 +256,13 @@ public class SinkpathPostDominators {
 			}
 		}
 		{
-			final Set<Node<V>> workset = new HashSet<>();
-			for (Node<V> n : vToNode.values()) {
-				if (n.next != null && n.isRelevant) workset.add(n);
-			}
-			
 			while (!workset.isEmpty()) {
 				final Node<V> x; {
 					final Iterator<Node<V>> it = workset.iterator();
 					x = it.next();
 					it.remove();
 				}
-				final List<Node<V>> successors = x.successors;
+				final Node<V>[] successors = x.successors;
 				final Node<V> a = LeastCommonAncestor.lca(successors);
 				final Node<V> z = a == null ? null : a.representant;
 				assert x.next != null || z == null;
@@ -359,7 +361,8 @@ public class SinkpathPostDominators {
 			final Node<V> x = entry.getValue();
 			if (!x.isSinkNode) {
 				final Set<E> successorEs = graph.outgoingEdgesOf(v);
-				switch (successorEs.size()) {
+				final int successorEsSize = successorEs.size();
+				switch (successorEsSize) {
 					case 0: break;
 					case 1: {
 						final Node<V> z = vToNode.get(successorEs.iterator().next().getTarget());
@@ -371,9 +374,11 @@ public class SinkpathPostDominators {
 					}
 					default: {
 						x.isRelevant = true;
-						final ArrayList<Node<V>> successors = new ArrayList<>(successorEs.size());
+						@SuppressWarnings("unchecked")
+						final Node<V>[] successors = (Node<V>[]) new Node<?>[successorEsSize];
+						int i = 0;
 						for (E e : successorEs) {
-							successors.add(vToNode.get(e.getTarget()));
+							successors[i++] =  vToNode.get(e.getTarget());
 						}
 						x.successors = successors;
 						workqueue.add(x);
@@ -387,8 +392,11 @@ public class SinkpathPostDominators {
 			while (!workqueue.isEmpty()) {
 				final Node<V> x = workqueue.removeFirst();
 				assert x.next == null && !x.processed;
-				final List<Node<V>> successors = x.successors;
-				final List<Node<V>> ys = successors.stream().filter(y -> y.processed).collect(Collectors.toList());
+				final Node<V>[] successors = x.successors;
+				final List<Node<V>> ys = new ArrayList<>(successors.length);
+				for (Node<V> y : successors) {
+					if (y.processed) ys.add(y);
+				}
 				final Node<V> z;
 				if (ys.isEmpty()) {
 					z = null;
@@ -422,7 +430,7 @@ public class SinkpathPostDominators {
 				changed = false;
 				for (int i = 0; i < workLeft.size(); i++) {
 					final Node<V> x =  workLeft.get(i);
-					final List<Node<V>> successors = x.successors;
+					final Node<V>[] successors = x.successors;
 					final Node<V> a = LeastCommonAncestor.lca(successors);
 					final Node<V> z = a == null ? null : a.representant;
 					assert x.next != null || z == null;

@@ -33,6 +33,17 @@ public final class LeastCommonAncestor {
 		return t;
 	}
 	
+	public static <T extends PseudoTreeNode<T>> T lca(T[] ts) {
+		if (ts.length == 0) throw new IllegalArgumentException();
+		
+		T t =  ts[0];
+		int i = 1;
+		while (i < ts.length && t != null) {
+			t = lca(t, ts[i++]);
+		}
+		return t;
+	}
+	
 	@SuppressWarnings("null")
 	public static <T extends PseudoTreeNode<T>> T lca(T n, T m) {
 		if (n == m) return n;

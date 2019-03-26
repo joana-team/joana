@@ -32,6 +32,8 @@ public class FCACD<V, E extends KnowsVertices<V>> {
 		boolean inW;
 		Object candidate;
 		
+		Object propagateWorklist;
+		
 		public Node(V v) {
 			this.v = v;
 			this.inW = false;
@@ -112,17 +114,18 @@ propagate pres sucs w obs0 u v =
 	 */
 
 	private  List<Node<V>> propagate(Set<Node<V>> w, Map<Node<V>, Node<V>> obs, Node<V> u, Node<V> v) {
-		final Set<Node<V>> worklist = new HashSet<>();
+		final LinkedList<Node<V>> worklist = new LinkedList<>();
+		final Object WORKLIST = new Object();
 		worklist.add(u);
+		u.propagateWorklist = WORKLIST;
 		
 		final List<Node<V>> candidates = new LinkedList<>();
 		final Object CANDIDATE = new Object();
 		while (!worklist.isEmpty()) {
-			final Node<V> n; {
-				Iterator<Node<V>> it = worklist.iterator();
-				n = it.next();
-				it.remove();
-			}
+			final Node<V> n = worklist.poll();
+			assert n.propagateWorklist == WORKLIST;
+			
+			n.propagateWorklist = null;
 			for (E e : graph.incomingEdgesOf(n.v)) {
 				final Node<V> u0 = v2node.get(e.getSource());
 				assert u0.inW == w.contains(u0);
@@ -134,7 +137,12 @@ propagate pres sucs w obs0 u v =
 							obs.put(u0, v);
 							u0.obs = v;
 							
-							worklist.add(u0);
+							assert (u0.propagateWorklist == WORKLIST) == (worklist.contains(u0));
+							if (u0.propagateWorklist != WORKLIST) {
+								worklist.add(u0);
+								u0.propagateWorklist = WORKLIST;
+							}
+							
 							if (graph.outgoingEdgesOf(u0.v).size() > 1) {
 								assert (u0.candidate == CANDIDATE) == candidates.contains(u0);
 								if (u0.candidate != CANDIDATE) {
@@ -147,7 +155,12 @@ propagate pres sucs w obs0 u v =
 					} else {
 						obs.put(u0, v);
 						u0.obs = v;
-						worklist.add(u0);
+						
+						assert (u0.propagateWorklist == WORKLIST) == (worklist.contains(u0));
+						if (u0.propagateWorklist != WORKLIST) {
+							worklist.add(u0);
+							u0.propagateWorklist = WORKLIST;
+						}
 					}
 				}
 			}

@@ -10,6 +10,8 @@ package edu.kit.joana.wala.core.graphs;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -109,11 +111,11 @@ propagate pres sucs w obs0 u v =
         isCond _   = True
 	 */
 
-	private  Set<Node<V>> propagate(Set<Node<V>> w, Map<Node<V>, Node<V>> obs, Node<V> u, Node<V> v) {
+	private  List<Node<V>> propagate(Set<Node<V>> w, Map<Node<V>, Node<V>> obs, Node<V> u, Node<V> v) {
 		final Set<Node<V>> worklist = new HashSet<>();
 		worklist.add(u);
 		
-		final Set<Node<V>> candidates = new HashSet<>();
+		final List<Node<V>> candidates = new LinkedList<>();
 		final Object CANDIDATE = new Object();
 		while (!worklist.isEmpty()) {
 			final Node<V> n; {
@@ -135,8 +137,11 @@ propagate pres sucs w obs0 u v =
 							worklist.add(u0);
 							if (graph.outgoingEdgesOf(u0.v).size() > 1) {
 								assert (u0.candidate == CANDIDATE) == candidates.contains(u0);
-								candidates.add(u0);
-								u0.candidate = CANDIDATE;
+								if (u0.candidate != CANDIDATE) {
+									candidates.add(u0);
+									u0.candidate = CANDIDATE;
+								}
+								
 							}
 						}
 					} else {
@@ -191,7 +196,7 @@ main g v' =
 				it.remove();
 			}
 			final Set<Node<V>> delta = new HashSet<>();
-			final Set<Node<V>> c = propagate(w, obs,u, u);
+			final List<Node<V>> c = propagate(w, obs,u, u);
 			for (Node<V> v : c) {
 				if (confirm(obs, v, u)) {
 					delta.add(v);

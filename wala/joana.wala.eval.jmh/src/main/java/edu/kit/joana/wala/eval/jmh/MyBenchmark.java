@@ -76,6 +76,7 @@ import edu.kit.joana.util.graph.LadderGraphGenerator;
 import edu.kit.joana.wala.core.graphs.DominanceFrontiers;
 import edu.kit.joana.wala.core.graphs.EfficientDominators;
 import edu.kit.joana.wala.core.graphs.NTICDGraphPostdominanceFrontiers;
+import edu.kit.joana.wala.core.graphs.SinkdomControlSlices;
 import edu.kit.joana.wala.core.graphs.SinkpathPostDominators;
 import edu.kit.joana.wala.core.graphs.EfficientDominators.DomTree;
 import edu.kit.joana.wala.core.graphs.FCACD;
@@ -148,6 +149,11 @@ public class MyBenchmark {
 	public static class WeakControlClosure {
 		public static Set<Node> viaNTICD(DirectedGraph<Node, Edge> graph, Set<Node> ms) {
 			final Set<Node> result = NTICDControlSlices.wcc(graph, ms, Edge.class, edgeFactory);
+			return result;
+		}
+		
+		public static Set<Node> viaISINKDOM(DirectedGraph<Node, Edge> graph, Set<Node> ms) {
+			final Set<Node> result = SinkdomControlSlices.wcc(graph, ms, Edge.class, edgeFactory);
 			return result;
 		}
 		
@@ -533,7 +539,7 @@ public class MyBenchmark {
 		}
 	}
 	
-	@Benchmark
+	//@Benchmark
 	@Warmup(iterations = 1, time = 3)
 	@Measurement(iterations = 1, time = 3)
 	@OutputTimeUnit(TimeUnit.MILLISECONDS)
@@ -545,7 +551,7 @@ public class MyBenchmark {
 		}
 	}
 	
-	@Benchmark
+	//@Benchmark
 	@Warmup(iterations = 1, time = 3)
 	@Measurement(iterations = 1, time = 3)
 	@OutputTimeUnit(TimeUnit.MILLISECONDS)
@@ -553,6 +559,18 @@ public class MyBenchmark {
 	public void testFullWeakControlClosureViaFCACD(FCACDLIkeGraphs randomGraphs, Blackhole blackhole) {
 		for (int i = 0; i < randomGraphs.getNrOfGraphs(); i++) {
 			final Set<Node> result = WeakControlClosure.viaFCACD(randomGraphs.graphs.get(i), randomGraphs.mss.get(i));
+			blackhole.consume(result);
+		}
+	}
+	
+	@Benchmark
+	@Warmup(iterations = 1, time = 3)
+	@Measurement(iterations = 1, time = 3)
+	@OutputTimeUnit(TimeUnit.MILLISECONDS)
+	@BenchmarkMode(Mode.AverageTime)
+	public void testFullWeakControlClosureViaISINKDOM(FCACDLIkeGraphs randomGraphs, Blackhole blackhole) {
+		for (int i = 0; i < randomGraphs.getNrOfGraphs(); i++) {
+			final Set<Node> result = WeakControlClosure.viaISINKDOM(randomGraphs.graphs.get(i), randomGraphs.mss.get(i));
 			blackhole.consume(result);
 		}
 	}

@@ -1,0 +1,51 @@
+/**
+ * This file is part of the Joana IFC project. It is developed at the
+ * Programming Paradigms Group of the Karlsruhe Institute of Technology.
+ *
+ * For further details on licensing please read the information at
+ * http://joana.ipd.kit.edu or contact the authors.
+ */
+package edu.kit.joana.wala.core.graphs;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import org.jgrapht.DirectedGraph;
+import org.jgrapht.EdgeFactory;
+
+import edu.kit.joana.util.graph.DeleteSuccessorNodesAndToFromOnly;
+import edu.kit.joana.util.graph.DeleteSuccessorNodesAndToOnly;
+import edu.kit.joana.util.graph.IntegerIdentifiable;
+import edu.kit.joana.util.graph.KnowsVertices;
+import edu.kit.joana.wala.core.graphs.SinkpathPostDominators.Node;
+
+/**
+ * @author Martin Hecker <martin.hecker@kit.edu>
+ */
+public class SinkdomControlSlices {
+	
+	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> Set<V> wd(DirectedGraph<V,E> graph, Set<V> ms, Class<E> classE, EdgeFactory<V, E> edgeFactory) {
+		final DirectedGraph<V, E> gMS = new DeleteSuccessorNodesAndToOnly<>(graph, ms, classE);
+		
+		final DirectedGraph<Node<V>, SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdom = SinkpathPostDominators.compute(gMS);
+		final Set<V> result = new HashSet<>(ms); {
+			for (Node<V> n : isinkdom.vertexSet()) {
+				if (n.getNext() == null) result.add(n.getV());
+			}
+		}
+		return result;
+	}
+	
+	public static <V extends IntegerIdentifiable ,E extends KnowsVertices<V>> Set<V> wcc(DirectedGraph<V,E> graph, Set<V> ms, Class<E> classE, EdgeFactory<V, E> edgeFactory) {
+		final DirectedGraph<V, E> gMS = new DeleteSuccessorNodesAndToFromOnly<>(graph, ms, classE);
+		
+		final DirectedGraph<Node<V>, SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdom = SinkpathPostDominators.compute(gMS);
+		final Set<V> result = new HashSet<>(ms); {
+			for (Node<V> n : isinkdom.vertexSet()) {
+				if (n.getNext() == null) result.add(n.getV());
+			}
+		}
+		return result;
+	}
+
+}

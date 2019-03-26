@@ -27,6 +27,7 @@ import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
 import edu.kit.joana.wala.core.graphs.FCACD;
 import edu.kit.joana.wala.core.graphs.NTICDControlSlices;
+import edu.kit.joana.wala.core.graphs.SinkdomControlSlices;
 
 /**
  * @author Martin Hecker <martin.hecker@kit.edu>
@@ -86,8 +87,10 @@ public class ControlSlicesTestsRandomized {
 			
 			final Set<Node> resultFCACD = FCACD.wcc(graph, ms);
 			final Set<Node> resultNTICD = NTICDControlSlices.wcc(graph, ms, Edge.class, edgeFactory);
+			final Set<Node> resultISINKDOM = SinkdomControlSlices.wcc(graph, ms, Edge.class, edgeFactory);
 			
 			assertEquals(resultFCACD, resultNTICD);
+			assertEquals(resultFCACD, resultISINKDOM);
 		}
 	}
 	
@@ -101,8 +104,10 @@ public class ControlSlicesTestsRandomized {
 			
 			final Set<Node> resultFCACD = FCACD.wd(graph, ms);
 			final Set<Node> resultNTICD = NTICDControlSlices.wd(graph, ms, Edge.class, edgeFactory);
+			final Set<Node> resultISINKDOM = SinkdomControlSlices.wd(graph, ms, Edge.class, edgeFactory);
 			
 			assertEquals(resultFCACD, resultNTICD);
+			assertEquals(resultFCACD, resultISINKDOM);
 		}
 	}
 

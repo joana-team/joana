@@ -10,7 +10,6 @@ package edu.kit.joana.wala.core.graphs;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +45,7 @@ public class FCACD<V, E extends KnowsVertices<V>> {
 	
 	private final Map<V, Node<V>> v2node;
 	private final DirectedGraph<V,E> graph;
+	private final boolean assertionsEnabled;
 	
 	private FCACD(DirectedGraph<V,E> graph) {
 		this.graph = graph;
@@ -54,6 +54,10 @@ public class FCACD<V, E extends KnowsVertices<V>> {
 			final Node<V> node = new Node<>(v);
 			v2node.put(v, node);
 		}
+		
+		boolean assertionsEnabled = false;
+		assert (assertionsEnabled = true);
+		this.assertionsEnabled = assertionsEnabled;
 			
 		
 		// TODO Auto-generated constructor stub
@@ -75,7 +79,7 @@ public class FCACD<V, E extends KnowsVertices<V>> {
 			final Node<V> v = v2node.get(e.getTarget());
 			
 			assert v.obs == obs.get(v);
-			final Node<V> obsV = obs.get(v);
+			final Node<V> obsV = v.obs;
 			if (obsV != null && obsV != uObs) return true;
 		}
 		return false;
@@ -131,12 +135,12 @@ propagate pres sucs w obs0 u v =
 			for (E e : graph.incomingEdgesOf(n.v)) {
 				final Node<V> u0 = v2node.get(e.getSource());
 				assert u0.inW == w.contains(u0.v);
-				if (!w.contains(u0.v)) {
+				if (!u0.inW) {
 					assert u0.obs == obs.get(u0);
-					final Node<V> obsU0 = obs.get(u0);
+					final Node<V> obsU0 = u0.obs;
 					if (obsU0 != null) {
 						if (v != obsU0) {
-							obs.put(u0, v);
+							if (assertionsEnabled) obs.put(u0, v);
 							u0.obs = v;
 							
 							assert (u0.propagateWorklist == WORKLIST) == (worklist.contains(u0));
@@ -155,7 +159,7 @@ propagate pres sucs w obs0 u v =
 							}
 						}
 					} else {
-						obs.put(u0, v);
+						if (assertionsEnabled) obs.put(u0, v);
 						u0.obs = v;
 						
 						assert (u0.propagateWorklist == WORKLIST) == (worklist.contains(u0));
@@ -199,7 +203,7 @@ main g v' =
 			w.add(v);
 			nodeV.inW = true;
 			
-			obs.put(nodeV, nodeV);
+			if (assertionsEnabled) obs.put(nodeV, nodeV);
 			nodeV.obs = nodeV;
 			
 			worklist.add(nodeV);
@@ -228,7 +232,7 @@ main g v' =
 				}
 			}
 			for (Node<V> v : delta) {
-				obs.put(v, v);
+				if (assertionsEnabled) obs.put(v, v);
 				v.obs = v;
 			}
 		}

@@ -146,13 +146,11 @@ public class MyBenchmark {
 	public static class WeakControlClosure {
 		public static Set<Node> viaNTICD(DirectedGraph<Node, Edge> graph, Set<Node> ms) {
 			final Set<Node> result = NTICDControlSlices.wcc(graph, ms, Edge.class, edgeFactory);
-
-			final Set<Node> result2 = FCACD.wcc(graph, ms); 
-			
-			if (!result.equals(result2)) {
-				System.out.println("ms: " + ms + ",\t\twccNTICD: " + result + ",\t\twcc: " + result2);
-				throw new IllegalStateException();
-			}
+			return result;
+		}
+		
+		public static Set<Node> viaFCACD(DirectedGraph<Node, Edge> graph, Set<Node> ms) {
+			final Set<Node> result = FCACD.wcc(graph, ms);
 			return result;
 		}
 	}
@@ -331,11 +329,7 @@ public class MyBenchmark {
 	@State(Scope.Benchmark)
 	public static class RandomGraphsArbitraryWithNodeSet extends RandomGraphs<DirectedGraph<Node, Edge>> {
 		//@Param({"400000", "8000", "12000", "16000", "20000", "24000", "28000", "32000", "36000", "40000"})
-		//@Param({"8000", "12000", "16000", "40000"})
-		//@Param({"140"})
-		//@Param({"10", "20", "30", "40", "50", "60", "80", "100"})
-		@Param({"12", "22", "32", "42", "52", "62", "82", "102"})
-		//@Param({"62"})
+		@Param({"320000", "360000", "400000"})
 		public int n;
 		
 		private Set<Node> ms;
@@ -352,7 +346,7 @@ public class MyBenchmark {
 			
 			
 			final ArrayList<Node> nodes = new ArrayList<>(graph.vertexSet());
-			int sizeMs = 1 + random.nextInt(5);
+			int sizeMs = 5;
 			final HashSet<Node> ms = new HashSet<>(sizeMs);
 			for (int i = 0; i < sizeMs; i++) {
 				int id = Math.abs(random.nextInt()) % n;
@@ -424,15 +418,20 @@ public class MyBenchmark {
 	}
 
 	@Benchmark
-	@Warmup(iterations = 1, time = 5)
-	@Measurement(iterations = 1, time = 5)
+	@Warmup(iterations = 1)
+	@Measurement(iterations = 1)
 	@BenchmarkMode(Mode.AverageTime)
 	public void testWeakControlClosureViaNTICD(RandomGraphsArbitraryWithNodeSet randomGraphs, Blackhole blackhole) {
-		final DirectedGraph<Node, Edge> graph = randomGraphs.graph;
-		final Set<Node> ms = randomGraphs.ms;
-		//System.out.print(graph.vertexSet().size() + ", " + ms.size() + ", " + ms);
-		final Set<Node> result = WeakControlClosure.viaNTICD(graph, randomGraphs.ms);
-		//System.out.println(", " + result.size() + ", " + result);
+		final Set<Node> result = WeakControlClosure.viaNTICD(randomGraphs.graph, randomGraphs.ms);
+		blackhole.consume(result);
+	}
+	
+	@Benchmark
+	@Warmup(iterations = 1)
+	@Measurement(iterations = 1)
+	@BenchmarkMode(Mode.AverageTime)
+	public void testWeakControlClosureViaFCACD(RandomGraphsArbitraryWithNodeSet randomGraphs, Blackhole blackhole) {
+		final Set<Node> result = WeakControlClosure.viaFCACD(randomGraphs.graph, randomGraphs.ms);
 		blackhole.consume(result);
 	}
 	

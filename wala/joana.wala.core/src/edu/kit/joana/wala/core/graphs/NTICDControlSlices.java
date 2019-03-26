@@ -7,7 +7,6 @@
  */
 package edu.kit.joana.wala.core.graphs;
 
-import java.io.FileNotFoundException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -16,6 +15,7 @@ import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
 
 import edu.kit.joana.util.graph.DeleteSuccessorNodesAndToFromOnly;
+import edu.kit.joana.util.graph.DeleteSuccessorNodesAndToOnly;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
 
@@ -24,8 +24,33 @@ import edu.kit.joana.util.graph.KnowsVertices;
  */
 public class NTICDControlSlices {
 	
-	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> Set<V> wd(DirectedGraph<V,E> graph, Set<V> vv) {
-		return null;
+	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> Set<V> wd(DirectedGraph<V,E> graph, Set<V> ms, Class<E> classE, EdgeFactory<V, E> edgeFactory) {
+		final DirectedGraph<V, E> gMS = new DeleteSuccessorNodesAndToOnly<>(graph, ms, classE);
+		
+		final NTICDGraphPostdominanceFrontiers<V, E> nticdMS = NTICDGraphPostdominanceFrontiers.compute(gMS, edgeFactory, classE);
+
+		final Set<V> result = new HashSet<>(ms); {
+			
+			final Set<V> newNodes = new HashSet<>(ms);
+			
+			while (!newNodes.isEmpty()) {
+				final V m; {
+					final Iterator<V> it = newNodes.iterator();
+					m = it.next();
+					it.remove();
+				}
+				
+				for (E e : nticdMS.incomingEdgesOfUnsafe(m)) {
+					if (e == null) continue;
+					V n = e.getSource();
+					if (result.add(n)) {
+						boolean isNew = newNodes.add(n);
+						assert isNew;
+					}
+				}
+			}
+		}
+		return result;
 	}
 	
 	public static <V extends IntegerIdentifiable ,E extends KnowsVertices<V>> Set<V> wcc(DirectedGraph<V,E> graph, Set<V> ms, Class<E> classE, EdgeFactory<V, E> edgeFactory) {

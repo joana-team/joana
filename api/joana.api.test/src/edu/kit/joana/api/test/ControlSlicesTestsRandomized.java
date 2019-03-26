@@ -20,6 +20,7 @@ import org.jgrapht.VertexFactory;
 import org.jgrapht.generate.RandomGraphGenerator;
 import org.junit.Test;
 
+import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.collections.SimpleVector;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
@@ -36,42 +37,52 @@ public class ControlSlicesTestsRandomized {
 	static final int maxSize = 400;
 	static final int nrOfTests = 10000;
 	
-	public final int maxNrOfEdges(int nrNodes) {
+	public static final int maxNrOfEdges(int nrNodes) {
 		return (int)(((double)nrNodes) * 3);
 	}
+	
+	private static Pair<Set<Node>, DirectedGraph<Node, Edge>> forRandom(Random random) {
+		final int n = Math.max(random.nextInt(maxSize)        , 1);
+		final int m = Math.min(random.nextInt(maxNrOfEdges(n)), n * n);
+		
+		@SuppressWarnings("serial")
+		final DirectedGraph<Node, Edge> graph = new AbstractJoanaGraph<Node, Edge>(edgeFactory, () -> new SimpleVector<>(0, n), Edge.class) {};
+		{
+			final RandomGraphGenerator<Node, Edge> generator = new RandomGraphGenerator<>(n, m, random.nextLong());
+			
+			final VertexFactory<Node> vertexFactory = new VertexFactory<Node>() {
+				private int id = 0;
+				@Override
+				public Node createVertex() {
+					return new Node(id++);
+				}
+			};
+		
+			generator.generateGraph(graph, vertexFactory, null);
+		}
+		
+		final HashSet<Node> ms; {
+			final ArrayList<Node> nodes = new ArrayList<>(graph.vertexSet());
+			int sizeMs = 1 + random.nextInt(5);
+			ms = new HashSet<>(sizeMs);
+			
+			for (int i = 0; i < sizeMs; i++) {
+				int id = Math.abs(random.nextInt()) % n;
+				ms.add(nodes.get(id));
+			}
+		}
+		
+		return Pair.pair(ms, graph);
+		
+	}
+	
 	@Test
-	public void test() {
+	public void testWCC() {
 		final Random random = new Random(seed);
 		for (int t = 0; t < nrOfTests; t++) {
-			final int n = Math.max(random.nextInt(maxSize)        , 1);
-			final int m = Math.min(random.nextInt(maxNrOfEdges(n)), n * n);
-			
-			@SuppressWarnings("serial")
-			final DirectedGraph<Node, Edge> graph = new AbstractJoanaGraph<Node, Edge>(edgeFactory, () -> new SimpleVector<>(0, n), Edge.class) {};
-			{
-				final RandomGraphGenerator<Node, Edge> generator = new RandomGraphGenerator<>(n, m, random.nextLong());
-				
-				final VertexFactory<Node> vertexFactory = new VertexFactory<Node>() {
-					private int id = 0;
-					@Override
-					public Node createVertex() {
-						return new Node(id++);
-					}
-				};
-			
-				generator.generateGraph(graph, vertexFactory, null);
-			}
-			
-			final HashSet<Node> ms; {
-				final ArrayList<Node> nodes = new ArrayList<>(graph.vertexSet());
-				int sizeMs = 1 + random.nextInt(5);
-				ms = new HashSet<>(sizeMs);
-				
-				for (int i = 0; i < sizeMs; i++) {
-					int id = Math.abs(random.nextInt()) % n;
-					ms.add(nodes.get(id));
-				}
-			}
+			final Pair<Set<Node>, DirectedGraph<Node, Edge>> p = forRandom(random);
+			final DirectedGraph<Node, Edge> graph = p.getSecond();
+			final Set<Node> ms = p.getFirst();
 			
 			final Set<Node> resultFCACD = FCACD.wcc(graph, ms);
 			final Set<Node> resultNTICD = NTICDControlSlices.wcc(graph, ms, Edge.class, edgeFactory);
@@ -80,6 +91,20 @@ public class ControlSlicesTestsRandomized {
 		}
 	}
 	
+	@Test
+	public void testWD() {
+		final Random random = new Random(seed);
+		for (int t = 0; t < nrOfTests; t++) {
+			final Pair<Set<Node>, DirectedGraph<Node, Edge>> p = forRandom(random);
+			final DirectedGraph<Node, Edge> graph = p.getSecond();
+			final Set<Node> ms = p.getFirst();
+			
+			final Set<Node> resultFCACD = FCACD.wd(graph, ms);
+			final Set<Node> resultNTICD = NTICDControlSlices.wd(graph, ms, Edge.class, edgeFactory);
+			
+			assertEquals(resultFCACD, resultNTICD);
+		}
+	}
 
 	
 	public static final class Node implements IntegerIdentifiable {

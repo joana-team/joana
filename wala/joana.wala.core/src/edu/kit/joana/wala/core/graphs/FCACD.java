@@ -33,6 +33,7 @@ public class FCACD<V, E extends KnowsVertices<V>> {
 		Object candidate;
 		
 		Object propagateWorklist;
+		Object mainWorklist;
 		
 		public Node(V v) {
 			this.v = v;
@@ -189,7 +190,8 @@ main g v' =
 	private Pair<Set<V>, Map<Node<V>,Node<V>>> main(Set<V> vv) {
 		final Set<Node<V>> w = new HashSet<>(vv.size());
 		final Map<Node<V>,Node<V>> obs = new HashMap<>(graph.vertexSet().size());
-		final Set<Node<V>> worklist = new HashSet<>(vv.size());
+		final LinkedList<Node<V>> worklist = new LinkedList<>();
+		final Object WORKLIST = new Object();
 		for (V v : vv) {
 			final Node<V> nodeV = v2node.get(v);
 			
@@ -200,20 +202,25 @@ main g v' =
 			nodeV.obs = nodeV;
 			
 			worklist.add(nodeV);
+			nodeV.mainWorklist = WORKLIST;
 		}
 		
 		while (!worklist.isEmpty()) {
-			final Node<V> u; {
-				Iterator<Node<V>> it = worklist.iterator();
-				u = it.next();
-				it.remove();
-			}
+			final Node<V> u = worklist.poll();
+			assert u.mainWorklist == WORKLIST;
+			u.mainWorklist = null;
+			
 			final Set<Node<V>> delta = new HashSet<>();
 			final List<Node<V>> c = propagate(w, obs,u, u);
 			for (Node<V> v : c) {
 				if (confirm(obs, v, u)) {
 					delta.add(v);
 					v.inW = true;
+					assert (v.mainWorklist == WORKLIST) == (worklist.contains(v));
+					if (v.mainWorklist != WORKLIST) {
+						worklist.add(v);
+						v.mainWorklist = WORKLIST;
+					}
 				}
 			}
 			w.addAll(delta);
@@ -221,7 +228,6 @@ main g v' =
 				obs.put(v, v);
 				v.obs = v;
 			}
-			worklist.addAll(delta);
 		}
 		final Set<V> result = new HashSet<>(w.size());
 		for (Node<V> v : w) {

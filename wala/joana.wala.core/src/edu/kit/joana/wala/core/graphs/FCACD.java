@@ -28,6 +28,7 @@ public class FCACD<V, E extends KnowsVertices<V>> {
 		final V v;
 		Node<V> obs;
 		boolean inW;
+		Object candidate;
 		
 		public Node(V v) {
 			this.v = v;
@@ -66,6 +67,8 @@ public class FCACD<V, E extends KnowsVertices<V>> {
 	private boolean  confirm(Map<Node<V>, Node<V>> obs, Node<V> u, Node<V> uObs) {
 		for (E e : graph.outgoingEdgesOf(u.v)) {
 			final Node<V> v = v2node.get(e.getTarget());
+			
+			assert v.obs == obs.get(v);
 			final Node<V> obsV = obs.get(v);
 			if (obsV != null && obsV != uObs) return true;
 		}
@@ -111,6 +114,7 @@ propagate pres sucs w obs0 u v =
 		worklist.add(u);
 		
 		final Set<Node<V>> candidates = new HashSet<>();
+		final Object CANDIDATE = new Object();
 		while (!worklist.isEmpty()) {
 			final Node<V> n; {
 				Iterator<Node<V>> it = worklist.iterator();
@@ -119,18 +123,25 @@ propagate pres sucs w obs0 u v =
 			}
 			for (E e : graph.incomingEdgesOf(n.v)) {
 				final Node<V> u0 = v2node.get(e.getSource());
+				assert u0.inW == w.contains(u0);
 				if (!w.contains(u0)) {
+					assert u0.obs == obs.get(u0);
 					final Node<V> obsU0 = obs.get(u0);
 					if (obsU0 != null) {
 						if (v != obsU0) {
 							obs.put(u0, v);
+							u0.obs = v;
+							
 							worklist.add(u0);
 							if (graph.outgoingEdgesOf(u0.v).size() > 1) {
+								assert (u0.candidate == CANDIDATE) == candidates.contains(u0);
 								candidates.add(u0);
+								u0.candidate = CANDIDATE;
 							}
 						}
 					} else {
 						obs.put(u0, v);
+						u0.obs = v;
 						worklist.add(u0);
 					}
 				}
@@ -184,11 +195,13 @@ main g v' =
 			for (Node<V> v : c) {
 				if (confirm(obs, v, u)) {
 					delta.add(v);
+					v.inW = true;
 				}
 			}
 			w.addAll(delta);
 			for (Node<V> v : delta) {
 				obs.put(v, v);
+				v.obs = v;
 			}
 			worklist.addAll(delta);
 		}

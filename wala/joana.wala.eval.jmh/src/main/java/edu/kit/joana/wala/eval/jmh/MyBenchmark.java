@@ -281,13 +281,15 @@ public class MyBenchmark {
 		public G graph;
 		
 		
-		public final VertexFactory<Node> vertexFactory = new VertexFactory<MyBenchmark.Node>() {
-			private int id = 0;
-			@Override
-			public Node createVertex() {
-				return new Node(id++);
-			}
-		};
+		public final VertexFactory<Node> newVertexFactory() {
+			return new VertexFactory<MyBenchmark.Node>() {
+				private int id = 0;
+				@Override
+				public Node createVertex() {
+					return new Node(id++);
+				}
+			};
+		}
 		
 		public void dumpGraph(int n, DirectedGraph<Node, Edge> graph) {
 			final String cfgFileName = WriteGraphToDot.sanitizeFileName(this.getClass().getSimpleName()+"-" + graph.getClass().getName() + "-" + n + "-cfg.dot");
@@ -319,7 +321,7 @@ public class MyBenchmark {
 			final RandomGraphGenerator<Node, Edge> generator = new RandomGraphGenerator<>(n, nrEdges(n), random.nextLong());
 			@SuppressWarnings("serial")
 			final DirectedGraph<Node, Edge> graph = new AbstractJoanaGraph<Node, Edge>(edgeFactory, () -> new SimpleVector<>(0, n), Edge.class) {};
-			generator.generateGraph(graph, vertexFactory, null);
+			generator.generateGraph(graph, newVertexFactory(), null);
 			
 			this.graph = graph;
 			dumpGraph(n, graph);
@@ -329,7 +331,7 @@ public class MyBenchmark {
 	@State(Scope.Benchmark)
 	public static class RandomGraphsArbitraryWithNodeSet extends RandomGraphs<DirectedGraph<Node, Edge>> {
 		//@Param({"400000", "8000", "12000", "16000", "20000", "24000", "28000", "32000", "36000", "40000"})
-		@Param({"320000", "360000", "400000"})
+		@Param({"200000", "240000", "280000", "320000", "360000", "400000"})
 		public int n;
 		
 		private Set<Node> ms;
@@ -339,7 +341,7 @@ public class MyBenchmark {
 			final RandomGraphGenerator<Node, Edge> generator = new RandomGraphGenerator<>(n, nrEdges(n), random.nextLong());
 			@SuppressWarnings("serial")
 			final DirectedGraph<Node, Edge> graph = new AbstractJoanaGraph<Node, Edge>(edgeFactory, () -> new SimpleVector<>(0, n), Edge.class) {};
-			generator.generateGraph(graph, vertexFactory, null);
+			generator.generateGraph(graph, newVertexFactory(), null);
 			
 			this.graph = graph;
 			dumpGraph(n, graph);
@@ -357,6 +359,36 @@ public class MyBenchmark {
 	}
 	
 	@State(Scope.Benchmark)
+	public static class FCACDLIkeGraphs extends RandomGraphs<DirectedGraph<Node, Edge>> {
+		@Param({"200000", "240000", "280000", "320000", "360000", "400000"})
+		public int n;
+		
+		private Set<Node> ms;
+		@Setup(Level.Trial)
+		public void doSetup() {
+			final Random random = new Random(seed + n);
+			final RandomGraphGenerator<Node, Edge> generator = new RandomGraphGenerator<>(n, nrEdges(n), random.nextLong());
+			@SuppressWarnings("serial")
+			final DirectedGraph<Node, Edge> graph = new AbstractJoanaGraph<Node, Edge>(edgeFactory, () -> new SimpleVector<>(0, n), Edge.class) {};
+			generator.generateGraph(graph, newVertexFactory(), null);
+			
+			this.graph = graph;
+			dumpGraph(n, graph);
+			
+			
+			final ArrayList<Node> nodes = new ArrayList<>(graph.vertexSet());
+			int sizeMs = 5;
+			final HashSet<Node> ms = new HashSet<>(sizeMs);
+			for (int i = 0; i < sizeMs; i++) {
+				int id = Math.abs(random.nextInt()) % n;
+				ms.add(nodes.get(id));
+			}
+			this.ms = ms;
+		}
+	}
+
+	
+	@State(Scope.Benchmark)
 	public static class RandomGraphsWithUniqueExitNode extends RandomGraphs<EntryExitGraph> {
 		@Param({"400000", "8000", "12000", "16000", "20000", "24000", "28000", "32000", "36000", "40000"})
 		public int n;
@@ -366,6 +398,7 @@ public class MyBenchmark {
 			final Random random = new Random(n + seed);
 			final RandomGraphGenerator<Node, Edge> generator = new RandomGraphGenerator<>(n, nrEdges(n), random.nextLong());
 			final EntryExitGraph graph = new EntryExitGraph(edgeFactory, n + 2);
+			final VertexFactory<Node> vertexFactory = newVertexFactory();
 			generator.generateGraph(graph, vertexFactory, null);
 			
 			addEntryExit(graph, vertexFactory);
@@ -387,7 +420,7 @@ public class MyBenchmark {
 		public void doSetup() {
 			final LadderGraphGenerator<Node, Edge> generator = new LadderGraphGenerator<>(n);
 			final EntryExitGraph graph = new EntryExitGraph(edgeFactory, 2*n + 2 + 1);
-			generator.generateGraph(graph, vertexFactory, null);
+			generator.generateGraph(graph, newVertexFactory(), null);
 			graph.addEdge(generator.getExit1(), generator.getExit2());
 			
 			graph.entry = generator.getEntry();
@@ -408,7 +441,7 @@ public class MyBenchmark {
 			final LadderGraphGenerator<Node, Edge> generator = new LadderGraphGenerator<>(n);
 			@SuppressWarnings("serial")
 			final DirectedGraph<Node, Edge> graph = new AbstractJoanaGraph<Node, Edge>(edgeFactory, () -> new SimpleVector<>(0, 2*n + 2 + 1), Edge.class) {};
-			generator.generateGraph(graph, vertexFactory, null);
+			generator.generateGraph(graph, newVertexFactory(), null);
 			graph.addEdge(generator.getExit1(), generator.getEntry());
 			graph.addEdge(generator.getExit2(), generator.getEntry());
 			

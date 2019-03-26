@@ -42,6 +42,16 @@ public class DeleteSuccessorNodesAndToOnly<V, E> extends UnmodifiableGraph<V, E>
 	}
 	
 	@Override
+	public boolean containsVertex(V v) {
+		return toMs.contains(v);
+	}
+	
+	@Override
+	public Set<V> vertexSet() {
+		return Collections.unmodifiableSet(toMs);
+	}
+	
+	@Override
 	public boolean containsEdge(E e) {
 		final V source = graph.getEdgeSource(e);
 		final V target = graph.getEdgeSource(e);
@@ -92,7 +102,7 @@ public class DeleteSuccessorNodesAndToOnly<V, E> extends UnmodifiableGraph<V, E>
 		if (!toMs.contains(vertex)) return Collections.emptySet();
 		final Set<E> inc = super.incomingEdgesOf(vertex);
 		final ModifiableNotTightArraySet<E> result = new ModifiableNotTightArraySet<>(inc, classE);
-		result.removeIf(e -> ms.contains(graph.getEdgeSource(e)));
+		result.removeIf(e -> ms.contains(graph.getEdgeSource(e)) || !toMs.contains(graph.getEdgeSource(e)));
 		return result;
 	}
 	
@@ -113,7 +123,7 @@ public class DeleteSuccessorNodesAndToOnly<V, E> extends UnmodifiableGraph<V, E>
 		final Set<E> out = super.outgoingEdgesOf(vertex);
 		final ModifiableNotTightArraySet<E> result = new ModifiableNotTightArraySet<>(out, classE);
 		result.removeIf(e -> !toMs.contains(graph.getEdgeTarget(e)));
-		return super.outgoingEdgesOf(vertex);
+		return result;
 	}
 	
 	@Override

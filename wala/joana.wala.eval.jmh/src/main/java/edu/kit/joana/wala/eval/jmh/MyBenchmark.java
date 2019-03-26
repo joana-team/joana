@@ -278,7 +278,7 @@ public class MyBenchmark {
 
 	
 	public abstract static class Graphs<G> {
-		public ArrayList<G> graph;
+		public ArrayList<G> graphs;
 		
 		public abstract int getNrOfGraphs();
 		
@@ -325,14 +325,14 @@ public class MyBenchmark {
 		@Setup(Level.Trial)
 		public void doSetup() {
 			final Random random = new Random(seed + n);
-			this.graph = new ArrayList<>();
+			this.graphs = new ArrayList<>();
 			for (int i = 0; i < getNrOfGraphs(); i++) {
 				final RandomGraphGenerator<Node, Edge> generator = new RandomGraphGenerator<>(n, nrEdges(n), random.nextLong());
 				@SuppressWarnings("serial")
 				final DirectedGraph<Node, Edge> graph = new AbstractJoanaGraph<Node, Edge>(edgeFactory, () -> new SimpleVector<>(0, n), Edge.class) {};
 				generator.generateGraph(graph, newVertexFactory(), null);
 				
-				this.graph.add(graph);
+				this.graphs.add(graph);
 				dumpGraph(n, i, graph);
 			}
 			
@@ -350,12 +350,12 @@ public class MyBenchmark {
 			return 1;
 		}
 		
-		private ArrayList<Set<Node>> ms;
+		private ArrayList<Set<Node>> mss;
 		@Setup(Level.Trial)
 		public void doSetup() {
 			final Random random = new Random(seed + n);
-			this.graph = new ArrayList<>();
-			this.ms = new ArrayList<>();
+			this.graphs = new ArrayList<>();
+			this.mss = new ArrayList<>();
 			for (int i = 0; i < getNrOfGraphs(); i++) {
 
 				final RandomGraphGenerator<Node, Edge> generator = new RandomGraphGenerator<>(n, nrEdges(n), random.nextLong());
@@ -363,7 +363,7 @@ public class MyBenchmark {
 				final DirectedGraph<Node, Edge> graph = new AbstractJoanaGraph<Node, Edge>(edgeFactory, () -> new SimpleVector<>(0, n), Edge.class) {};
 				generator.generateGraph(graph, newVertexFactory(), null);
 				
-				this.graph.add(graph);
+				this.graphs.add(graph);
 				dumpGraph(n, i, graph);
 				
 				
@@ -374,7 +374,7 @@ public class MyBenchmark {
 					int id = Math.abs(random.nextInt()) % n;
 					ms.add(nodes.get(id));
 				}
-				this.ms.add(ms);
+				this.mss.add(ms);
 			}
 		}
 	}
@@ -389,14 +389,14 @@ public class MyBenchmark {
 			return 1;
 		}
 		
-		private ArrayList<Set<Node>> ms;
+		private ArrayList<Set<Node>> mss;
 		
 		
 		@Setup(Level.Trial)
 		public void doSetup() {
 			final Random random = new Random(seed + n);
-			this.graph = new ArrayList<>();
-			this.ms = new ArrayList<>();
+			this.graphs = new ArrayList<>();
+			this.mss = new ArrayList<>();
 			
 			for (int i = 0; i < getNrOfGraphs(); i++) {
 				final RandomGraphGenerator<Node, Edge> generator = new RandomGraphGenerator<>(n, nrEdges(n), random.nextLong());
@@ -404,7 +404,7 @@ public class MyBenchmark {
 				final DirectedGraph<Node, Edge> graph = new AbstractJoanaGraph<Node, Edge>(edgeFactory, () -> new SimpleVector<>(0, n), Edge.class) {};
 				generator.generateGraph(graph, newVertexFactory(), null);
 				
-				this.graph.add(graph);
+				this.graphs.add(graph);
 				dumpGraph(n, i, graph);
 				
 				
@@ -415,7 +415,7 @@ public class MyBenchmark {
 					int id = Math.abs(random.nextInt()) % n;
 					ms.add(nodes.get(id));
 				}
-				this.ms.add(ms);
+				this.mss.add(ms);
 			}
 		}
 	}
@@ -434,7 +434,7 @@ public class MyBenchmark {
 		@Setup(Level.Trial)
 		public void doSetup() {
 			final Random random = new Random(n + seed);
-			this.graph = new ArrayList<>();
+			this.graphs = new ArrayList<>();
 			
 			for (int i = 0; i < getNrOfGraphs(); i++) {
 				final RandomGraphGenerator<Node, Edge> generator = new RandomGraphGenerator<>(n, nrEdges(n), random.nextLong());
@@ -444,7 +444,7 @@ public class MyBenchmark {
 				
 				addEntryExit(graph, vertexFactory);
 				
-				this.graph.add(graph);
+				this.graphs.add(graph);
 				dumpGraph(n, i, graph);
 			}
 		}
@@ -465,7 +465,7 @@ public class MyBenchmark {
 		
 		@Setup(Level.Trial)
 		public void doSetup() {
-			this.graph = new ArrayList<>();
+			this.graphs = new ArrayList<>();
 			for (int i = 0; i < getNrOfGraphs(); i++) {
 				final LadderGraphGenerator<Node, Edge> generator = new LadderGraphGenerator<>(n);
 				final EntryExitGraph graph = new EntryExitGraph(edgeFactory, 2*n + 2 + 1);
@@ -474,7 +474,7 @@ public class MyBenchmark {
 				
 				graph.entry = generator.getEntry();
 				graph.exit  = generator.getExit2();
-				this.graph.add(graph);
+				this.graphs.add(graph);
 				dumpGraph(n, i, graph);
 			}
 		}
@@ -493,7 +493,7 @@ public class MyBenchmark {
 		
 		@Setup(Level.Trial)
 		public void doSetup() {
-			this.graph = new ArrayList<>();
+			this.graphs = new ArrayList<>();
 			for (int i = 0; i < getNrOfGraphs(); i++) {
 				final LadderGraphGenerator<Node, Edge> generator = new LadderGraphGenerator<>(n);
 				@SuppressWarnings("serial")
@@ -502,7 +502,7 @@ public class MyBenchmark {
 				graph.addEdge(generator.getExit1(), generator.getEntry());
 				graph.addEdge(generator.getExit2(), generator.getEntry());
 				
-				this.graph.add(graph);
+				this.graphs.add(graph);
 				dumpGraph(n, i, graph);
 			}
 		}
@@ -514,7 +514,7 @@ public class MyBenchmark {
 	@BenchmarkMode(Mode.AverageTime)
 	public void testWeakControlClosureViaNTICD(RandomGraphsArbitraryWithNodeSet randomGraphs, Blackhole blackhole) {
 		for (int i = 0; i < randomGraphs.getNrOfGraphs(); i++) {
-			final Set<Node> result = WeakControlClosure.viaNTICD(randomGraphs.graph.get(i), randomGraphs.ms.get(i));
+			final Set<Node> result = WeakControlClosure.viaNTICD(randomGraphs.graphs.get(i), randomGraphs.mss.get(i));
 			blackhole.consume(result);
 		}
 	}
@@ -525,7 +525,7 @@ public class MyBenchmark {
 	@BenchmarkMode(Mode.AverageTime)
 	public void testWeakControlClosureViaFCACD(RandomGraphsArbitraryWithNodeSet randomGraphs, Blackhole blackhole) {
 		for (int i = 0; i < randomGraphs.getNrOfGraphs(); i++) {
-			final Set<Node> result = WeakControlClosure.viaFCACD(randomGraphs.graph.get(i), randomGraphs.ms.get(i));
+			final Set<Node> result = WeakControlClosure.viaFCACD(randomGraphs.graphs.get(i), randomGraphs.mss.get(i));
 			blackhole.consume(result);
 		}
 	}
@@ -536,7 +536,7 @@ public class MyBenchmark {
 	@BenchmarkMode(Mode.AverageTime)
 	public void testRandom(RandomGraphsArbitrary randomGraphs, Blackhole blackhole) {
 		for (int i = 0; i < randomGraphs.getNrOfGraphs(); i++) {
-			final DirectedGraph<Node, Edge> graph = randomGraphs.graph.get(i);
+			final DirectedGraph<Node, Edge> graph = randomGraphs.graphs.get(i);
 			blackhole.consume(NTICDGraphPostdominanceFrontiers.compute(graph, edgeFactory, Edge.class));
 		}
 	}
@@ -547,7 +547,7 @@ public class MyBenchmark {
 	@BenchmarkMode(Mode.AverageTime)
 	public void testClassicCDGForRandomWithUniqueExitNode(RandomGraphsWithUniqueExitNode randomGraphs, Blackhole blackhole) {
 		for (int i = 0; i < randomGraphs.getNrOfGraphs(); i++) {
-			final EntryExitGraph graph = randomGraphs.graph.get(i);
+			final EntryExitGraph graph = randomGraphs.graphs.get(i);
 			blackhole.consume(CDG.build(graph, graph.entry, graph.exit, edgeFactory));
 		}
 	}
@@ -558,7 +558,7 @@ public class MyBenchmark {
 	@BenchmarkMode(Mode.AverageTime)
 	public void testNTICDGraphPostdominanceFrontiersForRandomWithUniqueExitNode(RandomGraphsWithUniqueExitNode randomGraphs, Blackhole blackhole) {
 		for (int i = 0; i < randomGraphs.getNrOfGraphs(); i++) {
-			final EntryExitGraph graph = randomGraphs.graph.get(i);
+			final EntryExitGraph graph = randomGraphs.graphs.get(i);
 			blackhole.consume(NTICDGraphPostdominanceFrontiers.compute(graph, edgeFactory, Edge.class));
 		}
 	}
@@ -570,7 +570,7 @@ public class MyBenchmark {
 	@BenchmarkMode(Mode.AverageTime)
 	public void testNTICDGraphPostdominanceFrontiersForEntryExitLadder(EntryExitLadderGraph ladderGraphs, Blackhole blackhole) {
 		for (int i = 0; i < ladderGraphs.getNrOfGraphs(); i++) {
-			final DirectedGraph<Node, Edge> graph = ladderGraphs.graph.get(i);
+			final DirectedGraph<Node, Edge> graph = ladderGraphs.graphs.get(i);
 			blackhole.consume(NTICDGraphPostdominanceFrontiers.compute(graph, edgeFactory, Edge.class));
 		}
 	}
@@ -581,7 +581,7 @@ public class MyBenchmark {
 	@BenchmarkMode(Mode.AverageTime)
 	public void testNClassicCDGForForEntryExitLadder(EntryExitLadderGraph ladderGraphs, Blackhole blackhole) {
 		for (int i = 0; i < ladderGraphs.getNrOfGraphs(); i++) {
-			final EntryExitGraph graph = ladderGraphs.graph.get(i);
+			final EntryExitGraph graph = ladderGraphs.graphs.get(i);
 			blackhole.consume(CDG.build(graph, graph.entry, graph.exit, edgeFactory));
 		}
 	}
@@ -592,7 +592,7 @@ public class MyBenchmark {
 	@BenchmarkMode(Mode.AverageTime)
 	public void testSinkPostdominanceFrontiersForEntryExitLadder(EntryExitLadderGraph ladderGraphs, Blackhole blackhole) {
 		for (int i = 0; i < ladderGraphs.getNrOfGraphs(); i++) {
-			final DirectedGraph<Node, Edge> graph = ladderGraphs.graph.get(i);
+			final DirectedGraph<Node, Edge> graph = ladderGraphs.graphs.get(i);
 			blackhole.consume(SinkpathPostDominators.compute(graph));
 		}
 	}
@@ -603,7 +603,7 @@ public class MyBenchmark {
 	@BenchmarkMode(Mode.AverageTime)
 	public void testClassicPostdominanceFrontiersGForForEntryExitLadder(EntryExitLadderGraph ladderGraphs, Blackhole blackhole) {
 		for (int i = 0; i < ladderGraphs.getNrOfGraphs(); i++) {
-			final EntryExitGraph graph = ladderGraphs.graph.get(i);
+			final EntryExitGraph graph = ladderGraphs.graphs.get(i);
 			blackhole.consume(ClassicPostdominance.classicPostdominance(graph, graph.entry, graph.exit));
 		}
 	}
@@ -614,7 +614,7 @@ public class MyBenchmark {
 		final RandomGraphsArbitraryWithNodeSet randomGraphs = new RandomGraphsArbitraryWithNodeSet();
 		randomGraphs.n = 62;
 		randomGraphs.doSetup();
-		System.out.println(randomGraphs.ms);
+		System.out.println(randomGraphs.mss);
 		new MyBenchmark().testWeakControlClosureViaNTICD(                                 randomGraphs, blackhole);
 		//new MyBenchmark().testClassicCDGForRandomWithUniqueExitNode(                      randomGraphs, blackhole);
 		//new MyBenchmark().testNTICDGraphPostdominanceFrontiersForRandomWithUniqueExitNode(randomGraphs, blackhole);

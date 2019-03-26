@@ -115,7 +115,7 @@ propagate pres sucs w obs0 u v =
         isCond _   = True
 	 */
 
-	private  List<Node<V>> propagate(Set<Node<V>> w, Map<Node<V>, Node<V>> obs, Node<V> u, Node<V> v) {
+	private  List<Node<V>> propagate(Set<V> w, Map<Node<V>, Node<V>> obs, Node<V> u, Node<V> v) {
 		final LinkedList<Node<V>> worklist = new LinkedList<>();
 		final Object WORKLIST = new Object();
 		worklist.add(u);
@@ -130,8 +130,8 @@ propagate pres sucs w obs0 u v =
 			n.propagateWorklist = null;
 			for (E e : graph.incomingEdgesOf(n.v)) {
 				final Node<V> u0 = v2node.get(e.getSource());
-				assert u0.inW == w.contains(u0);
-				if (!w.contains(u0)) {
+				assert u0.inW == w.contains(u0.v);
+				if (!w.contains(u0.v)) {
 					assert u0.obs == obs.get(u0);
 					final Node<V> obsU0 = obs.get(u0);
 					if (obsU0 != null) {
@@ -189,14 +189,14 @@ main g v' =
                 new_nodes = Set.filter (\v ->  confirm sucs obs' v u) candidates	 */
 	
 	private Pair<Set<V>, Map<Node<V>,Node<V>>> main(Set<V> vv) {
-		final Set<Node<V>> w = new HashSet<>(vv.size());
+		final Set<V> w = new HashSet<>(vv.size());
 		final Map<Node<V>,Node<V>> obs = new HashMap<>(graph.vertexSet().size());
 		final LinkedList<Node<V>> worklist = new LinkedList<>();
 		final Object WORKLIST = new Object();
 		for (V v : vv) {
 			final Node<V> nodeV = v2node.get(v);
 			
-			w.add(nodeV);
+			w.add(v);
 			nodeV.inW = true;
 			
 			obs.put(nodeV, nodeV);
@@ -218,7 +218,7 @@ main g v' =
 				if (confirm(obs, v, u)) {
 					delta.add(v);
 					
-					w.add(v);
+					w.add(v.v);
 					v.inW = true;
 					assert (v.mainWorklist == WORKLIST) == (worklist.contains(v));
 					if (v.mainWorklist != WORKLIST) {
@@ -232,12 +232,7 @@ main g v' =
 				v.obs = v;
 			}
 		}
-		final Set<V> result = new HashSet<>(w.size());
-		for (Node<V> v : w) {
-			assert v.inW;
-			result.add(v.v);
-		}
-		return Pair.pair(result, obs);
+		return Pair.pair(w, obs);
 	}
 	
 	public static <V,E extends KnowsVertices<V>> Set<V> wd(DirectedGraph<V,E> graph, Set<V> vv) {

@@ -9,6 +9,7 @@ package edu.kit.joana.util.collections;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.Map.Entry;
 
@@ -150,6 +151,17 @@ public final class ModifiableNotTightArraySet<K> extends NotTightArraySet<K> imp
 		return;
 	}
 
+	@Override
+	public Iterator<K> iterator() {
+		final ModifiableNotTightArraySet<K> self = this;
+		return new ModifiableArrayIterator<K>(keys) {
+			@Override
+			void decSize() {
+				self.decSize();
+			}
+			
+		};
+	}
 	
 	
 	@SuppressWarnings("unchecked")

@@ -11,11 +11,11 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 class ArrayIterator<T> implements Iterator<T> {
-	private static final int NONE = -1;
+	protected static final int NONE = -1;
 	
-	private final Object[] array;
+	protected final Object[] array;
 	private int i;
-	private int last;
+	protected int last;
 	
 	public ArrayIterator(Object[] array) {
 		this.array = array;
@@ -39,11 +39,5 @@ class ArrayIterator<T> implements Iterator<T> {
 		if (i == array.length) throw new NoSuchElementException();
 		last = i;
 		return (T) array[i++];
-	}
-	
-	@Override
-	public void remove() {
-		if (last == NONE) throw new IllegalStateException();
-		array[last] = null;
 	}
 }

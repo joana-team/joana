@@ -7,6 +7,7 @@
  */
 package edu.kit.joana.wala.core.graphs;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -210,11 +211,14 @@ main g v' =
 			assert u.mainWorklist == WORKLIST;
 			u.mainWorklist = null;
 			
-			final Set<Node<V>> delta = new HashSet<>();
+			
 			final List<Node<V>> c = propagate(w, obs,u, u);
+			final List<Node<V>> delta = new ArrayList<>(c.size());
 			for (Node<V> v : c) {
 				if (confirm(obs, v, u)) {
 					delta.add(v);
+					
+					w.add(v);
 					v.inW = true;
 					assert (v.mainWorklist == WORKLIST) == (worklist.contains(v));
 					if (v.mainWorklist != WORKLIST) {
@@ -223,7 +227,6 @@ main g v' =
 					}
 				}
 			}
-			w.addAll(delta);
 			for (Node<V> v : delta) {
 				obs.put(v, v);
 				v.obs = v;
@@ -231,6 +234,7 @@ main g v' =
 		}
 		final Set<V> result = new HashSet<>(w.size());
 		for (Node<V> v : w) {
+			assert v.inW;
 			result.add(v.v);
 		}
 		return Pair.pair(result, obs);

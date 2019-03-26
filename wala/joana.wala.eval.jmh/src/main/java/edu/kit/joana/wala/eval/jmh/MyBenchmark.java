@@ -77,6 +77,7 @@ import edu.kit.joana.wala.core.graphs.NTICDGraphPostdominanceFrontiers;
 import edu.kit.joana.wala.core.graphs.SinkpathPostDominators;
 import edu.kit.joana.wala.core.graphs.EfficientDominators.DomTree;
 import edu.kit.joana.wala.core.graphs.FCACD;
+import edu.kit.joana.wala.core.graphs.NTICDControlSlices;
 import edu.kit.joana.wala.util.WriteGraphToDot;
 
 @Fork(value = 1, jvmArgsAppend = "-Xss128m")
@@ -144,44 +145,7 @@ public class MyBenchmark {
 	
 	public static class WeakControlClosure {
 		public static Set<Node> viaNTICD(DirectedGraph<Node, Edge> graph, Set<Node> ms) {
-			// System.out.println("ms: " + ms);
-			final DirectedGraph<Node, Edge> gMS = new DeleteSuccessorNodesAndToFromOnly<>(graph, ms, Edge.class);
-			
-			final String gMSFileName = WriteGraphToDot.sanitizeFileName(WeakControlClosure.class.getSimpleName()+"-gMS-" + graph.vertexSet().size() + "-cfg.dot");
-			try {
-				WriteGraphToDot.write(gMS, gMSFileName, e -> true, v -> Integer.toString(v.getId()));
-			} catch (FileNotFoundException e) {
-			}
-			
-			final NTICDGraphPostdominanceFrontiers<Node, Edge> nticdMS = NTICDGraphPostdominanceFrontiers.compute(gMS, edgeFactory, Edge.class);
-			final String nticdMSFileName = WriteGraphToDot.sanitizeFileName(WeakControlClosure.class.getSimpleName()+"-gMS-" + graph.vertexSet().size() + "-nticd.dot");
-			try {
-				WriteGraphToDot.write(nticdMS, nticdMSFileName, e -> true, v -> Integer.toString(v.getId()));
-			} catch (FileNotFoundException e) {
-			}
-
-			final Set<Node> result = new HashSet<>(ms); {
-				
-				final Set<Node> newNodes = new HashSet<>(ms);
-				
-				while (!newNodes.isEmpty()) {
-					final Node m; {
-						final Iterator<Node> it = newNodes.iterator();
-						m = it.next();
-						it.remove();
-					}
-					
-					for (Edge e : nticdMS.incomingEdgesOfUnsafe(m)) {
-						if (e == null) continue;
-						Node n = e.source;
-						if (result.add(n)) {
-							boolean isNew = newNodes.add(n);
-							assert isNew;
-						}
-					}
-				}
-			}
-
+			final Set<Node> result = NTICDControlSlices.wcc(graph, ms, Edge.class, edgeFactory);
 
 			final Set<Node> result2 = FCACD.wcc(graph, ms); 
 			

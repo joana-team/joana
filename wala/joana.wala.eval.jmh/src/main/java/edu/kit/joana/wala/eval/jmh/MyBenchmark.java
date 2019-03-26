@@ -76,6 +76,7 @@ import edu.kit.joana.wala.core.graphs.EfficientDominators;
 import edu.kit.joana.wala.core.graphs.NTICDGraphPostdominanceFrontiers;
 import edu.kit.joana.wala.core.graphs.SinkpathPostDominators;
 import edu.kit.joana.wala.core.graphs.EfficientDominators.DomTree;
+import edu.kit.joana.wala.core.graphs.WCCSlice;
 import edu.kit.joana.wala.util.WriteGraphToDot;
 
 @Fork(value = 1, jvmArgsAppend = "-Xss128m")
@@ -143,10 +144,22 @@ public class MyBenchmark {
 	
 	public static class WeakControlClosure {
 		public static Set<Node> viaNTICD(DirectedGraph<Node, Edge> graph, Set<Node> ms) {
-			//final DirectedGraph<Node, Edge> gMS = new DeleteSuccessorNodes<>(graph, ms, Edge.class);
+			// System.out.println("ms: " + ms);
 			final DirectedGraph<Node, Edge> gMS = new DeleteSuccessorNodesAndToFromOnly<>(graph, ms, Edge.class);
 			
+			final String gMSFileName = WriteGraphToDot.sanitizeFileName(WeakControlClosure.class.getSimpleName()+"-gMS-" + graph.vertexSet().size() + "-cfg.dot");
+			try {
+				WriteGraphToDot.write(gMS, gMSFileName, e -> true, v -> Integer.toString(v.getId()));
+			} catch (FileNotFoundException e) {
+			}
+			
 			final NTICDGraphPostdominanceFrontiers<Node, Edge> nticdMS = NTICDGraphPostdominanceFrontiers.compute(gMS, edgeFactory, Edge.class);
+			final String nticdMSFileName = WriteGraphToDot.sanitizeFileName(WeakControlClosure.class.getSimpleName()+"-gMS-" + graph.vertexSet().size() + "-nticd.dot");
+			try {
+				WriteGraphToDot.write(nticdMS, nticdMSFileName, e -> true, v -> Integer.toString(v.getId()));
+			} catch (FileNotFoundException e) {
+			}
+
 			final Set<Node> result = new HashSet<>(ms); {
 				
 				final Set<Node> newNodes = new HashSet<>(ms);
@@ -169,31 +182,13 @@ public class MyBenchmark {
 				}
 			}
 
-			final DirectedGraph<Node, Edge> gMS2 = new DeleteSuccessorNodes<>(graph, ms, Edge.class);
-			final NTICDGraphPostdominanceFrontiers<Node, Edge> nticdMS2 = NTICDGraphPostdominanceFrontiers.compute(gMS2, edgeFactory, Edge.class);
-			final Set<Node> result2 = new HashSet<>(ms); {
-				
-				final Set<Node> newNodes = new HashSet<>(ms);
-				
-				while (!newNodes.isEmpty()) {
-					final Node m; {
-						final Iterator<Node> it = newNodes.iterator();
-						m = it.next();
-						it.remove();
-					}
-					
-					for (Edge e : nticdMS2.incomingEdgesOfUnsafe(m)) {
-						if (e == null) continue;
-						Node n = e.source;
-						if (result2.add(n)) {
-							boolean isNew = newNodes.add(n);
-							assert isNew;
-						}
-					}
-				}
-			}
 
-			if (! result.equals(result2)) throw new IllegalStateException();
+			final Set<Node> result2 = WCCSlice.wcc(graph, ms); 
+			
+			if (!result.equals(result2)) {
+				System.out.println("ms: " + ms + ",\t\twccNTICD: " + result + ",\t\twcc: " + result2);
+				throw new IllegalStateException();
+			}
 			return result;
 		}
 	}
@@ -376,6 +371,7 @@ public class MyBenchmark {
 		//@Param({"140"})
 		//@Param({"10", "20", "30", "40", "50", "60", "80", "100"})
 		@Param({"12", "22", "32", "42", "52", "62", "82", "102"})
+		//@Param({"62"})
 		public int n;
 		
 		private Set<Node> ms;
@@ -540,16 +536,20 @@ public class MyBenchmark {
 		blackhole.consume(ClassicPostdominance.classicPostdominance(graph, graph.entry, graph.exit));
 	}
 	
-	public static void mainDebug(String[] args) throws RunnerException {
+	//public static void mainDebug(String[] args) throws RunnerException {
+	public static void main(String[] args) throws RunnerException {
 		final Blackhole blackhole = new Blackhole("Today's password is swordfish. I understand instantiating Blackholes directly is dangerous.");
-		final RandomGraphsWithUniqueExitNode randomGraphs = new RandomGraphsWithUniqueExitNode();
+		final RandomGraphsArbitraryWithNodeSet randomGraphs = new RandomGraphsArbitraryWithNodeSet();
+		randomGraphs.n = 62;
 		randomGraphs.doSetup();
-		new MyBenchmark().testClassicCDGForRandomWithUniqueExitNode(                      randomGraphs, blackhole);
-		new MyBenchmark().testNTICDGraphPostdominanceFrontiersForRandomWithUniqueExitNode(randomGraphs, blackhole);
+		System.out.println(randomGraphs.ms);
+		new MyBenchmark().testWeakControlClosureViaNTICD(                                 randomGraphs, blackhole);
+		//new MyBenchmark().testClassicCDGForRandomWithUniqueExitNode(                      randomGraphs, blackhole);
+		//new MyBenchmark().testNTICDGraphPostdominanceFrontiersForRandomWithUniqueExitNode(randomGraphs, blackhole);
 	}
 	
-	//public static void mainPrintParam(String[] args) {
-	public static void main(String[] args) {
+	public static void mainPrintParam(String[] args) {
+	//public static void main(String[] args) {
 		final int nr     = 10;
 		final int stride = 4000; 
 		boolean isFirst = true;

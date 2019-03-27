@@ -47,7 +47,7 @@ public abstract class GraphWalker<V, E> {
         }
     }
 
-    public final Set<V> traverseDFS(final Set<V> starts) {
+    public final Set<V> traverseDFS(final Iterable<V> starts) {
         if (NO_RECURSION) {
             throw new IllegalStateException();
         } else {

@@ -648,8 +648,8 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         boolean addOutgoingEdge(Function<EE[], Disowning<EE>> asProvider, EE e);
         boolean removeIncomingEdge(Function<EE[], Disowning<EE>> asProvider, EE e);
         boolean removeOutgoingEdge(Function<EE[], Disowning<EE>> asProvider, EE e);
-        void removeIncomingEdges(Class<EE> clazz);
-        void removeOutgoingEdges(Class<EE> clazz);
+        void removeIncomingEdges(Function<EE[], Disowning<EE>> asProvider);
+        void removeOutgoingEdges(Function<EE[], Disowning<EE>> asProvider);
         Rep incoming();
         Rep outgoing();
         
@@ -775,14 +775,17 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         
         @SuppressWarnings("unchecked")
 		@Override
-        public void removeIncomingEdges(Class<EE> clazz) {
-        	incoming = (EE[]) Array.newInstance(clazz, 0);
+        public void removeIncomingEdges(Function<EE[], Disowning<EE>> asProvider) {
+        	final Disowning<EE> set = asProvider.apply(incoming);
+        	set.clear();
+        	incoming = set.disown();
         }
         
-        @SuppressWarnings("unchecked")
 		@Override
-        public void removeOutgoingEdges(Class<EE> clazz) {
-        	outgoing = (EE[]) Array.newInstance(clazz, 0);
+        public void removeOutgoingEdges(Function<EE[], Disowning<EE>> asProvider) {
+        	final Disowning<EE> set = asProvider.apply(outgoing);
+        	set.clear();
+        	outgoing = set.disown();
         }
     }
     
@@ -914,18 +917,19 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
         		assert removedFromSource;
         		changed = true;
         	}
-        	getEdgeContainer(vertex).removeIncomingEdges(classE);
+        	getEdgeContainer(vertex).removeIncomingEdges(arraySetProvider);
         }
         
         public void removeOutgoingEdgesOf(V vertex)
         {
-        	final Set<E> outgoing = getEdgeContainer(vertex).getUnmodifiableOutgoingEdges(arraySetProvider);
+        	final DirectedEdgeContainer<E, E[]> container = getEdgeContainer(vertex);
+        	final Set<E> outgoing = container.getUnmodifiableOutgoingEdges(arraySetProvider);
         	for (E e : outgoing) {
         		final boolean removedFromTarget = getEdgeContainer(e.getTarget()).removeIncomingEdge(arraySetProvider, e);
         		assert removedFromTarget;
         		changed = true;
         	}
-        	getEdgeContainer(vertex).removeOutgoingEdges(classE);
+        	container.removeOutgoingEdges(arraySetProvider);
         }
         
         /**

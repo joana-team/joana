@@ -8,9 +8,12 @@
 package edu.kit.joana.util.graph;
 
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.jgrapht.EdgeFactory;
+
+import edu.kit.joana.util.collections.Disowning;
 
 
 /**
@@ -23,6 +26,10 @@ public abstract class AbstractJoanaGraph<V extends IntegerIdentifiable, E extend
 
 	public AbstractJoanaGraph(EdgeFactory<V, E> edgeFactory, Supplier<Map<V,DirectedEdgeContainer<E, E[]>>> vertexMapConstructor, Class<E> classE) {
 		super(edgeFactory, vertexMapConstructor, classE);
+	}
+	
+	public AbstractJoanaGraph(EdgeFactory<V, E> edgeFactory, Supplier<Map<V,DirectedEdgeContainer<E, E[]>>> vertexMapConstructor, Function<E[], Disowning<E>> asProvider, Class<E> classE) {
+		super(edgeFactory, vertexMapConstructor, asProvider, classE);
 	}
 
 	public AbstractJoanaGraph(Class<E> edgeClass, Supplier<Map<V,DirectedEdgeContainer<E, E[]>>> vertexMapConstructor, Class<E> classE) {

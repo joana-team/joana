@@ -250,7 +250,7 @@ public final class ModifiableArraySet<E> extends ArraySet<E> implements Disownin
 	@Override
 	public final void clear() {
 		@SuppressWarnings("unchecked")
-		E[] newElements = (E[]) new Object[0];
+		E[] newElements = (E[]) Array.newInstance(clazz, 0);
 		elements = newElements;
 		
 		assert invariant();

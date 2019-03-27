@@ -88,7 +88,7 @@ public final class ModifiableNotTightArraySet<K> extends NotTightArraySet<K> imp
 //			}
 			
 			if (length == 0 || keys[length -1] != null) { // maybe even do this a little sooner?
-				final int newLength = (int) (GROWTH_FACTOR * (length + 3));
+				final int newLength = (int) (GROWTH_FACTOR * (length + 1));
 				
 				@SuppressWarnings("unchecked")
 				K[] newKeys   = (K[])  Array.newInstance(clazz, newLength);
@@ -145,7 +145,9 @@ public final class ModifiableNotTightArraySet<K> extends NotTightArraySet<K> imp
 	
 	@Override
 	public void clear() {
-		keys   = new Object[0];
+		@SuppressWarnings("unchecked")
+		K[] newKeys = (K[])  Array.newInstance(clazz, 1); 
+		keys = newKeys;
 		size = 0;
 		assert invariant();
 		return;

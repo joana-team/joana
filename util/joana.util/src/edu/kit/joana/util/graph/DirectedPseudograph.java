@@ -38,10 +38,13 @@
 package edu.kit.joana.util.graph;
 
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.jgrapht.*;
 import org.jgrapht.graph.ClassBasedEdgeFactory;
+
+import edu.kit.joana.util.collections.Disowning;
 
 
 /**
@@ -71,6 +74,15 @@ public class DirectedPseudograph<V extends IntegerIdentifiable, E extends KnowsV
     {
         super(ef, vertexMapConstructor, classE);
     }
+    
+    /**
+     * @see AbstractBaseGraph
+     */
+    public DirectedPseudograph(EdgeFactory<V, E> ef, Supplier<Map<V,DirectedEdgeContainer<E,E[]>>> vertexMapConstructor, Function<E[], Disowning<E>> asProvider, Class<E> classE)
+    {
+        super(ef, vertexMapConstructor, asProvider, classE);
+    }
+    
 }
 
 // End DirectedPseudograph.java

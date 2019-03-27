@@ -23,14 +23,17 @@ public final class LeastCommonAncestor {
 		void addToPath(Object o);
 	}
 	
-	public static <T extends PseudoTreeNode<T>> T lca(Iterable<T> ts) {
-		final Iterator<T> it = ts.iterator();
-		if (!ts.iterator().hasNext()) throw new IllegalArgumentException();
+	public static <T extends PseudoTreeNode<T>> T lca(Iterator<T> it) {
+		if (!it.hasNext()) throw new IllegalArgumentException();
 		T t =  it.next();
 		while (it.hasNext() && t != null) {
 			t = lca(t, it.next());
 		}
 		return t;
+	}
+	
+	public static <T extends PseudoTreeNode<T>> T lca(Iterable<T> ts) {
+		return lca(ts.iterator());
 	}
 	
 	public static <T extends PseudoTreeNode<T>> T lca(T[] ts) {
@@ -40,6 +43,13 @@ public final class LeastCommonAncestor {
 		int i = 1;
 		while (i < ts.length && t != null) {
 			t = lca(t, ts[i++]);
+		}
+		return t;
+	}
+	
+	public static <T extends PseudoTreeNode<T>> T lca(T t, Iterator<T> it) {
+		while (it.hasNext() && t != null) {
+			t = lca(t, it.next());
 		}
 		return t;
 	}

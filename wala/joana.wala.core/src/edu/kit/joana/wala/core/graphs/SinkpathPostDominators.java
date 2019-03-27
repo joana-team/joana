@@ -7,7 +7,9 @@
  */
 package edu.kit.joana.wala.core.graphs;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -23,11 +25,14 @@ import org.jgrapht.EdgeFactory;
 import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
 import org.jgrapht.graph.EdgeReversedGraph;
 
+import edu.kit.joana.util.collections.ModifiableArraySet;
+import edu.kit.joana.util.collections.ModifiableNotTightArraySet;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.GraphWalker;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
 import edu.kit.joana.util.graph.LeastCommonAncestor;
+import edu.kit.joana.wala.util.WriteGraphToDot;
 
 /**
  * TODO: @author Add your name here.
@@ -64,6 +69,7 @@ public class SinkpathPostDominators {
 		private boolean isSinkNode;
 		private boolean isRelevant;
 		private boolean changed;
+		private boolean inWorkset;
 		
 		private Node<V> next;
 		private Node<V> representant;
@@ -77,6 +83,7 @@ public class SinkpathPostDominators {
 			this.isSinkNode = false;
 			this.isRelevant = false;
 			this.changed = false;
+			this.inWorkset = false;
 			
 			this.representant = this;
 		}
@@ -154,6 +161,7 @@ public class SinkpathPostDominators {
 					}
 				},
 				() -> new HashMap<>(graph.vertexSet().size()),
+				(ISinkdomEdge<Node<V>>[] es) ->  ModifiableNotTightArraySet.own(es, clazz),
 				clazz
 			) {	};
 		}
@@ -166,8 +174,9 @@ public class SinkpathPostDominators {
 		
 		final KosarajuStrongConnectivityInspector<V, E> sccInspector = new KosarajuStrongConnectivityInspector<V, E>(graph);
 		final List<Set<V>> sccs = sccInspector.stronglyConnectedSets();
-		
+
 		//final HashSet<Node<V>> relevant = new HashSet<>();
+		final List<V> representants = new LinkedList<>();
 		for (Set<V> scc : sccs) {
 			final boolean isSink = ! scc.stream().anyMatch(
 				v -> graph.outgoingEdgesOf(v).stream().anyMatch(
@@ -193,15 +202,30 @@ public class SinkpathPostDominators {
 				}
 				if (last != first) newEdge(result, last, first); // TODO: pdf fixen
 				processed(result, last);
+				representants.add(first.v);
 			}
 		}
 		
+		
+		final LinkedList<V> rdfsOrder = new LinkedList<>(); {
+			final GraphWalker<V, E> rdfs = new GraphWalker<V,E>(new EdgeReversedGraph<>(graph)) {
+				@Override
+				public void discover(V node) {}
+	
+				@Override
+				public void finish(V node) {
+					rdfsOrder.addFirst(node);
+				}
+				
+			};
+			rdfs.traverseDFS(representants);
+		}
+		
 		final LinkedList<Node<V>> workqueue = new LinkedList<>();
-
-		for (Entry<V, Node<V>> entry : vToNode.entrySet()) {
-			final V v = entry.getKey();
-			final Node<V> x = entry.getValue();
-			if (!x.isSinkNode) {
+		final LinkedList<Node<V>> workset   = new LinkedList<>();
+		{
+			for (V v : rdfsOrder) {
+				final Node<V> x = vToNode.get(v);
 				final Set<E> successorEs = graph.outgoingEdgesOf(v);
 				final int successorEsSize = successorEs.size();
 				switch (successorEsSize) {
@@ -223,14 +247,14 @@ public class SinkpathPostDominators {
 							successors[i++] =  vToNode.get(e.getTarget());
 						}
 						x.successors = successors;
-						workqueue.add(x);
+						workqueue.addLast(x);
+						workset.addLast(x);
+						x.inWorkset = true;
 					}
 				}
 			}
 		}
-		
-		final Set<Node<V>> workset = new HashSet<>(workqueue);
-		
+
 		{
 			while (!workqueue.isEmpty()) {
 				final Node<V> x = workqueue.removeFirst();
@@ -255,16 +279,40 @@ public class SinkpathPostDominators {
 				}
 			}
 		}
+		int i = 0;
 		{
 			while (!workset.isEmpty()) {
-				final Node<V> x; {
-					final Iterator<Node<V>> it = workset.iterator();
-					x = it.next();
-					it.remove();
+				final Node<V> x = workset.poll();
+				if (!x.inWorkset) {
+					throw new IllegalStateException();
 				}
+				assert x.inWorkset;
+				x.inWorkset = false;
+				
 				final Node<V>[] successors = x.successors;
 				final Node<V> a = LeastCommonAncestor.lca(successors);
 				final Node<V> z = a == null ? null : a.representant;
+				if (x.getId() == 42 && (Arrays.toString(x.successors).equals("[191, 103, 161, 33]") || Arrays.toString(x.successors).equals("[191, 161, 33, 103]")) ) {
+					System.out.println(x);
+					System.out.println(Arrays.toString(x.successors));
+					System.out.println(x.next);
+					System.out.println(z);
+					System.out.println();
+					final String sinkdomFileName = WriteGraphToDot.sanitizeFileName(SinkpathPostDominators.class.getSimpleName() + "-" + i + "-isinkdom.dot");
+					try {
+						WriteGraphToDot.write(result, sinkdomFileName, e -> true, v -> Integer.toString(v.getId()));
+					} catch (FileNotFoundException e) {
+					}
+					i++;
+
+				}
+				if (!(x.next != null || z == null)) {
+					System.out.println(x);
+					System.out.println(Arrays.toString(x.successors));
+					System.out.println(x.next);
+					System.out.println(z);
+					throw new IllegalStateException();
+				};
 				assert x.next != null || z == null;
 				if (z != x.next) {
 					final GraphWalker<Node<V>, ISinkdomEdge<Node<V>>> rdfs = new GraphWalker<Node<V>, ISinkdomEdge<Node<V>>>(new EdgeReversedGraph<>(result)) {
@@ -276,8 +324,13 @@ public class SinkpathPostDominators {
 							for (E e : graph.incomingEdgesOf(node.v) ) {
 								final V vn = e.getSource();
 								final Node<V> n = vToNode.get(vn);
-								if (n.isRelevant) {
+								if (!((!n.isRelevant) || (n.inWorkset == workset.contains(n)))) {
+									throw new IllegalStateException();
+								};
+								assert (!n.isRelevant) || (n.inWorkset == workset.contains(n));
+								if (n.isRelevant && !n.inWorkset) {
 									workset.add(n);
+									n.inWorkset = true;
 								}
 							}
 						}

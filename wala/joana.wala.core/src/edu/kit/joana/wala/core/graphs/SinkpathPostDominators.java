@@ -79,6 +79,9 @@ public class SinkpathPostDominators {
 		
 		private Node<V>[] successors;
 		
+		private static final int UNDEFINED = -1;
+		private int dfsNumber;
+		
 		public Node(V v) {
 			this.v = v;
 			this.processed = false;
@@ -88,6 +91,8 @@ public class SinkpathPostDominators {
 			this.inWorkset = false;
 			
 			this.representant = this;
+			
+			this.dfsNumber = UNDEFINED;
 		}
 		
 		@Override
@@ -226,12 +231,15 @@ public class SinkpathPostDominators {
 		final LinkedList<Node<V>> workqueue = new LinkedList<>();
 		final TreeSet<Node<V>> workset   = new TreeSet<>(new Comparator<Node<V>>() {
 			public int compare(SinkpathPostDominators.Node<V> o1, SinkpathPostDominators.Node<V> o2) {
-				return Integer.compare(o1.getId(), o2.getId());
+				assert (o1.dfsNumber == o2.dfsNumber) == (o1 == o2);
+				return Integer.compare(o2.dfsNumber, o1.dfsNumber);
 			};
 		});
+		int dfsNumber = 0;
 		{
 			for (V v : rdfsOrder) {
 				final Node<V> x = vToNode.get(v);
+				x.dfsNumber = dfsNumber++;
 				final Set<E> successorEs = graph.outgoingEdgesOf(v);
 				final int successorEsSize = successorEs.size();
 				switch (successorEsSize) {

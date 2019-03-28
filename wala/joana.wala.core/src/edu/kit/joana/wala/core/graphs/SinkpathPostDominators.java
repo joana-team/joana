@@ -10,6 +10,7 @@ package edu.kit.joana.wala.core.graphs;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.jgrapht.DirectedGraph;
@@ -222,7 +224,11 @@ public class SinkpathPostDominators {
 		}
 		
 		final LinkedList<Node<V>> workqueue = new LinkedList<>();
-		final LinkedList<Node<V>> workset   = new LinkedList<>();
+		final TreeSet<Node<V>> workset   = new TreeSet<>(new Comparator<Node<V>>() {
+			public int compare(SinkpathPostDominators.Node<V> o1, SinkpathPostDominators.Node<V> o2) {
+				return Integer.compare(o1.getId(), o2.getId());
+			};
+		});
 		{
 			for (V v : rdfsOrder) {
 				final Node<V> x = vToNode.get(v);
@@ -248,7 +254,7 @@ public class SinkpathPostDominators {
 						}
 						x.successors = successors;
 						workqueue.addLast(x);
-						workset.addLast(x);
+						workset.add(x);
 						x.inWorkset = true;
 					}
 				}
@@ -279,40 +285,16 @@ public class SinkpathPostDominators {
 				}
 			}
 		}
-		int i = 0;
+
 		{
 			while (!workset.isEmpty()) {
-				final Node<V> x = workset.poll();
-				if (!x.inWorkset) {
-					throw new IllegalStateException();
-				}
+				final Node<V> x = workset.pollFirst();
 				assert x.inWorkset;
 				x.inWorkset = false;
 				
 				final Node<V>[] successors = x.successors;
 				final Node<V> a = LeastCommonAncestor.lca(successors);
 				final Node<V> z = a == null ? null : a.representant;
-				if (x.getId() == 42 && (Arrays.toString(x.successors).equals("[191, 103, 161, 33]") || Arrays.toString(x.successors).equals("[191, 161, 33, 103]")) ) {
-					System.out.println(x);
-					System.out.println(Arrays.toString(x.successors));
-					System.out.println(x.next);
-					System.out.println(z);
-					System.out.println();
-					final String sinkdomFileName = WriteGraphToDot.sanitizeFileName(SinkpathPostDominators.class.getSimpleName() + "-" + i + "-isinkdom.dot");
-					try {
-						WriteGraphToDot.write(result, sinkdomFileName, e -> true, v -> Integer.toString(v.getId()));
-					} catch (FileNotFoundException e) {
-					}
-					i++;
-
-				}
-				if (!(x.next != null || z == null)) {
-					System.out.println(x);
-					System.out.println(Arrays.toString(x.successors));
-					System.out.println(x.next);
-					System.out.println(z);
-					throw new IllegalStateException();
-				};
 				assert x.next != null || z == null;
 				if (z != x.next) {
 					final GraphWalker<Node<V>, ISinkdomEdge<Node<V>>> rdfs = new GraphWalker<Node<V>, ISinkdomEdge<Node<V>>>(new EdgeReversedGraph<>(result)) {
@@ -324,9 +306,6 @@ public class SinkpathPostDominators {
 							for (E e : graph.incomingEdgesOf(node.v) ) {
 								final V vn = e.getSource();
 								final Node<V> n = vToNode.get(vn);
-								if (!((!n.isRelevant) || (n.inWorkset == workset.contains(n)))) {
-									throw new IllegalStateException();
-								};
 								assert (!n.isRelevant) || (n.inWorkset == workset.contains(n));
 								if (n.isRelevant && !n.inWorkset) {
 									workset.add(n);

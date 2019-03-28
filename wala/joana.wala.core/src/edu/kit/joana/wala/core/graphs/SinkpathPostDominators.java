@@ -236,10 +236,10 @@ public class SinkpathPostDominators {
 			};
 		});
 		int dfsNumber = 0;
-		{
-			for (V v : rdfsOrder) {
-				final Node<V> x = vToNode.get(v);
-				x.dfsNumber = dfsNumber++;
+		for (V v : rdfsOrder) {
+			final Node<V> x = vToNode.get(v);
+			x.dfsNumber = dfsNumber++;
+			if (!x.isSinkNode) {
 				final Set<E> successorEs = graph.outgoingEdgesOf(v);
 				final int successorEsSize = successorEs.size();
 				switch (successorEsSize) {

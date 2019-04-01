@@ -7,9 +7,7 @@
  */
 package edu.kit.joana.wala.core.graphs;
 
-import java.io.FileNotFoundException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -24,7 +22,6 @@ import edu.kit.joana.util.graph.DeleteSuccessorNodesAndToFromOnly;
 import edu.kit.joana.util.graph.DeleteSuccessorNodesAndToOnly;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
-import edu.kit.joana.wala.util.WriteGraphToDot;
 
 /**
  * @author Martin Hecker <martin.hecker@kit.edu>
@@ -119,12 +116,6 @@ public class NTICDControlSlices {
 	}
 
 	public static <V extends IntegerIdentifiable ,E extends KnowsVertices<V>> Set<V> nticdMyWod(DirectedGraph<V,E> graph, Set<V> ms, Class<E> classE, EdgeFactory<V, E> edgeFactory) {
-		final String cfgFileName = WriteGraphToDot.sanitizeFileName(NTICDControlSlices.class.getSimpleName() + "-nticdMyWod-cfg.dot");
-		try {
-			WriteGraphToDot.write(graph, cfgFileName, e -> true, v -> Integer.toString(v.getId()));
-		} catch (FileNotFoundException e) {
-		}
-
 		final NTICDGraphPostdominanceFrontiers<V, E> nticd = NTICDGraphPostdominanceFrontiers.compute(graph, edgeFactory, classE);
 		final Map<V, Map<V, Set<V>>> mywod = NTICDMyWod.compute(graph, edgeFactory, classE);
 		

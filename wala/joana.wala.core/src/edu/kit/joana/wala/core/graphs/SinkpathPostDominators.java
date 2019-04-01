@@ -7,20 +7,15 @@
  */
 package edu.kit.joana.wala.core.graphs;
 
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
@@ -28,14 +23,12 @@ import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
 import org.jgrapht.graph.EdgeReversedGraph;
 
 import edu.kit.joana.util.Pair;
-import edu.kit.joana.util.collections.ModifiableArraySet;
 import edu.kit.joana.util.collections.ModifiableNotTightArraySet;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.GraphWalker;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
 import edu.kit.joana.util.graph.LeastCommonAncestor;
-import edu.kit.joana.wala.util.WriteGraphToDot;
 
 /**
  * TODO: @author Add your name here.
@@ -182,7 +175,6 @@ public class SinkpathPostDominators {
 		x.next = z;
 	}
 	
-	@SuppressWarnings("serial")
 	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> DirectedGraph<Node<V>, ISinkdomEdge<Node<V>>> compute(DirectedGraph<V, E> graph) {
 		return computeWithNodeMap(graph).getFirst();
 	}

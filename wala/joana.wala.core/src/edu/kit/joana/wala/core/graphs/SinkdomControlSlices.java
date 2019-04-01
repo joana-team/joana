@@ -7,7 +7,6 @@
  */
 package edu.kit.joana.wala.core.graphs;
 
-import java.io.FileNotFoundException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,7 +21,6 @@ import edu.kit.joana.util.graph.GraphWalker;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
 import edu.kit.joana.wala.core.graphs.SinkpathPostDominators.Node;
-import edu.kit.joana.wala.util.WriteGraphToDot;
 
 /**
  * @author Martin Hecker <martin.hecker@kit.edu>
@@ -43,11 +41,6 @@ public class SinkdomControlSlices {
 	
 	public static <V extends IntegerIdentifiable ,E extends KnowsVertices<V>> Set<V> wcc(DirectedGraph<V,E> graph, Set<V> ms, Class<E> classE, EdgeFactory<V, E> edgeFactory) {
 		final DirectedGraph<V, E> gMS = new DeleteSuccessorNodesAndToFromOnly<>(graph, ms, classE);
-		final String cfgFileName = WriteGraphToDot.sanitizeFileName(SinkdomControlSlices.class.getSimpleName() + "-wcc-cfg.dot");
-		try {
-			WriteGraphToDot.write(gMS, cfgFileName, e -> true, v -> Integer.toString(v.getId()));
-		} catch (FileNotFoundException e) {
-		}
 
 		final DirectedGraph<Node<V>, SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdom = SinkpathPostDominators.compute(gMS);
 		final Set<V> result = new HashSet<>(ms); {
@@ -60,11 +53,6 @@ public class SinkdomControlSlices {
 	
 	public static <V extends IntegerIdentifiable ,E extends KnowsVertices<V>> Set<V> nticdMyWod(DirectedGraph<V,E> graph, Set<V> ms, Class<E> classE, EdgeFactory<V, E> edgeFactory) {
 		final DirectedGraph<V, E> gMS = new DeleteSuccessorNodes<>(graph, ms, classE);
-		final String cfgFileName = WriteGraphToDot.sanitizeFileName(SinkdomControlSlices.class.getSimpleName() + "-nticdMyWod-cfg.dot");
-		try {
-			WriteGraphToDot.write(gMS, cfgFileName, e -> true, v -> Integer.toString(v.getId()));
-		} catch (FileNotFoundException e) {
-		}
 
 		final DirectedGraph<Node<V>, SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdom = SinkpathPostDominators.compute(gMS);
 		

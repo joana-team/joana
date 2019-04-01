@@ -7,7 +7,6 @@
  */
 package edu.kit.joana.wala.core.graphs;
 
-import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -21,7 +20,6 @@ import java.util.TreeSet;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
-import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
 
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
@@ -31,7 +29,6 @@ import edu.kit.joana.util.graph.KnowsVertices;
 import edu.kit.joana.util.graph.ToFromOnly;
 import edu.kit.joana.wala.core.graphs.SinkpathPostDominators.ISinkdomEdge;
 import edu.kit.joana.wala.core.graphs.SinkpathPostDominators.Node;
-import edu.kit.joana.wala.util.WriteGraphToDot;
 
 /**
  * Computes nontermination insensitive order dependence.
@@ -46,7 +43,6 @@ public class NTICDMyWod {
 		final Map<V, Map<V, Set<V>>> result = new HashMap<>();
 		
 		final DirectedGraph<Node<V>, SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdom = SinkpathPostDominators.compute(cfg);
-		final KosarajuStrongConnectivityInspector<Node<V>, ISinkdomEdge<Node<V>>> sccs = new KosarajuStrongConnectivityInspector<>(isinkdom);
 		
 		final Map<Node<V>, Set<V>> entryNodesFor = new HashMap<>(); {
 			for (Node<V> n : isinkdom.vertexSet()) {
@@ -103,22 +99,10 @@ public class NTICDMyWod {
 			@SuppressWarnings("unchecked")
 			final Node<V>[] zeroSuccessors = (Node<V>[]) new Node<?>[0];
 			
-			final String gMFileName = WriteGraphToDot.sanitizeFileName(NTICDMyWod.class.getSimpleName()+"-gM-cfg.dot");
-			try {
-				WriteGraphToDot.write(gM, gMFileName, e -> true, v -> Integer.toString(v.getId()));
-			} catch (FileNotFoundException e) {
-			}
-
-			
 			for (LinkedList<V> vpath : paths) {
 
 				V m2v = vpath.poll();
 				final DirectedGraph<V, E> gm2 = new DeleteSuccessorNodes<V, E>(gM, Collections.singleton(m2v), classE);
-				final String gm2FileName = WriteGraphToDot.sanitizeFileName(NTICDMyWod.class.getSimpleName()+"-gm2-" + m2v.toString() +"-cfg.dot");
-				try {
-					WriteGraphToDot.write(gm2, gm2FileName, e -> true, v -> Integer.toString(v.getId()));
-				} catch (FileNotFoundException e) {
-				}
 
 				
 				final Pair<AbstractJoanaGraph<Node<V>, ISinkdomEdge<Node<V>>>, Map<V, Node<V>>> pair = SinkpathPostDominators.computeWithNodeMap(gm2);
@@ -130,7 +114,7 @@ public class NTICDMyWod {
 
 				
 				final NTICDGraphPostdominanceFrontiers<V, E> dfM2 = NTICDGraphPostdominanceFrontiers.compute(gm2, edgeFactory, classE, isinkdomM);
-				process(m2v, dfM2, result);
+				process(sinkNodes, m2v, dfM2, result);
 				
 				
 				{ // restore successors for m2
@@ -154,7 +138,6 @@ public class NTICDMyWod {
 					final Node<V> m2SucNode = vToNode.get(m2Suc);
 					final DirectedGraph<V, E> gm2Suc = new DeleteSuccessorNodes<V, E>(gM, Collections.singleton(m2Suc), classE);
 					
-					
 					final Node<V>[] m2SucNodeSuccessors =  m2SucNode.getSuccessors();
 					final boolean m2IsRelevant = m2SucNode.isRelevant();
 
@@ -167,7 +150,7 @@ public class NTICDMyWod {
 							if (n.equals(m2Suc)) continue;
 							SinkpathPostDominators.newEdge(isinkdomM, vToNode.get(n), m2SucNode);
 						}
-						if (gM.outgoingEdgesOf(m2v).size() > 1) {
+						if (gM.incomingEdgesOf(m2Suc).size() > 1) {
 							final TreeSet<Node<V>> workset = new TreeSet<Node<V>>(new Comparator<Node<V>>() {
 								@Override
 								public int compare(Node<V> o1, Node<V> o2) {
@@ -196,7 +179,7 @@ public class NTICDMyWod {
 							SinkpathPostDominators.sinkDown(gm2Suc, vToNode, workset, isinkdomM);
 						}
 						final NTICDGraphPostdominanceFrontiers<V, E> dfM2Suc = NTICDGraphPostdominanceFrontiers.compute(gm2Suc, edgeFactory, classE, isinkdomM);
-						process(m2Suc, dfM2Suc, result);
+						process(sinkNodes, m2Suc, dfM2Suc, result);
 
 					}
 					m2SucNode.setSuccessors(m2SucNodeSuccessors);
@@ -212,10 +195,14 @@ public class NTICDMyWod {
 		return result;
 	}
 	
-	private static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> void process(V m2, NTICDGraphPostdominanceFrontiers<V, E> dfM2, final Map<V, Map<V, Set<V>>> result) {
+	private static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> void process(Set<V> sinkNodes, V m2, NTICDGraphPostdominanceFrontiers<V, E> dfM2, final Map<V, Map<V, Set<V>>> result) {
+		assert sinkNodes.contains(m2);
 		for (E e : dfM2.edgeSet()) {
 			final V n  = e.getSource();
-			final V m1 = e.getTarget(); 
+			final V m1 = e.getTarget();
+			assert !m1.equals(m2);
+			if (n.equals(m1)) continue;
+			if (!sinkNodes.contains(m1)) continue;
 			result.compute(m1, (mm1, map) -> {
 				if (map == null) map = new HashMap<>();
 				map.compute(m2, (mm2, set) -> {

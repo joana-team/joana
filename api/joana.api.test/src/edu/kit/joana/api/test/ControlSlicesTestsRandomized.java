@@ -86,10 +86,10 @@ public class ControlSlicesTestsRandomized {
 			final Set<Node> ms = p.getFirst();
 			
 			final Set<Node> resultFCACD = FCACD.wcc(graph, ms);
-			//final Set<Node> resultNTICD = NTICDControlSlices.wcc(graph, ms, Edge.class, edgeFactory);
+			final Set<Node> resultNTICD = NTICDControlSlices.wcc(graph, ms, Edge.class, edgeFactory);
 			final Set<Node> resultISINKDOM = SinkdomControlSlices.wcc(graph, ms, Edge.class, edgeFactory);
 			
-			//assertEquals(resultFCACD, resultNTICD);
+			assertEquals(resultFCACD, resultNTICD);
 			assertEquals(resultFCACD, resultISINKDOM);
 		}
 	}
@@ -108,6 +108,24 @@ public class ControlSlicesTestsRandomized {
 			
 			assertEquals(resultFCACD, resultNTICD);
 			assertEquals(resultFCACD, resultISINKDOM);
+		}
+	}
+	
+	@Test
+	public void testNticdMyWod() {
+		final Random random = new Random(seed);
+		for (int t = 0; t < nrOfTests; t++) {
+			final Pair<Set<Node>, DirectedGraph<Node, Edge>> p = forRandom(random);
+			final DirectedGraph<Node, Edge> graph = p.getSecond();
+			final Set<Node> ms = p.getFirst();
+			
+			
+			final Set<Node> resultNTICD = NTICDControlSlices.nticdMyWodViaNticd(graph, ms, Edge.class, edgeFactory);
+			final Set<Node> resultMYWOD = NTICDControlSlices.nticdMyWod(graph, ms, Edge.class, edgeFactory);
+			final Set<Node> resultISINKDOM = SinkdomControlSlices.nticdMyWod(graph, ms, Edge.class, edgeFactory);
+			
+			assertEquals(resultNTICD, resultISINKDOM);
+			assertEquals(resultNTICD, resultMYWOD);
 		}
 	}
 

@@ -7,17 +7,24 @@
  */
 package edu.kit.joana.wala.core.graphs;
 
+import java.io.FileNotFoundException;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Map;
 import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
 
+import edu.kit.joana.util.graph.DeleteSuccessorNodes;
 import edu.kit.joana.util.graph.DeleteSuccessorNodesAndToFromOnly;
 import edu.kit.joana.util.graph.DeleteSuccessorNodesAndToOnly;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
+import edu.kit.joana.wala.util.WriteGraphToDot;
 
 /**
  * @author Martin Hecker <martin.hecker@kit.edu>
@@ -72,6 +79,90 @@ public class NTICDControlSlices {
 				for (E e : nticdMS.incomingEdgesOfUnsafe(m)) {
 					if (e == null) continue;
 					V n = e.getSource();
+					if (result.add(n)) {
+						boolean isNew = newNodes.add(n);
+						assert isNew;
+					}
+				}
+			}
+		}
+		return result;
+	}
+	
+	public static <V extends IntegerIdentifiable ,E extends KnowsVertices<V>> Set<V> nticdMyWodViaNticd(DirectedGraph<V,E> graph, Set<V> ms, Class<E> classE, EdgeFactory<V, E> edgeFactory) {
+		final DirectedGraph<V, E> gMS = new DeleteSuccessorNodes<>(graph, ms, classE);
+		
+		final NTICDGraphPostdominanceFrontiers<V, E> nticdMS = NTICDGraphPostdominanceFrontiers.compute(gMS, edgeFactory, classE);
+
+		final Set<V> result = new HashSet<>(ms); {
+			
+			final Set<V> newNodes = new HashSet<>(ms);
+			
+			while (!newNodes.isEmpty()) {
+				final V m; {
+					final Iterator<V> it = newNodes.iterator();
+					m = it.next();
+					it.remove();
+				}
+				
+				for (E e : nticdMS.incomingEdgesOfUnsafe(m)) {
+					if (e == null) continue;
+					V n = e.getSource();
+					if (result.add(n)) {
+						boolean isNew = newNodes.add(n);
+						assert isNew;
+					}
+				}
+			}
+		}
+		return result;
+	}
+
+	public static <V extends IntegerIdentifiable ,E extends KnowsVertices<V>> Set<V> nticdMyWod(DirectedGraph<V,E> graph, Set<V> ms, Class<E> classE, EdgeFactory<V, E> edgeFactory) {
+		final String cfgFileName = WriteGraphToDot.sanitizeFileName(NTICDControlSlices.class.getSimpleName() + "-nticdMyWod-cfg.dot");
+		try {
+			WriteGraphToDot.write(graph, cfgFileName, e -> true, v -> Integer.toString(v.getId()));
+		} catch (FileNotFoundException e) {
+		}
+
+		final NTICDGraphPostdominanceFrontiers<V, E> nticd = NTICDGraphPostdominanceFrontiers.compute(graph, edgeFactory, classE);
+		final Map<V, Map<V, Set<V>>> mywod = NTICDMyWod.compute(graph, edgeFactory, classE);
+		
+		//final Map<V, Set<V>> primed = new HashMap<>();
+		
+		final Set<V> result = new HashSet<>(ms); {
+			
+			final Set<V> newNodes = new HashSet<>(ms);
+			
+			while (!newNodes.isEmpty()) {
+				final V m; {
+					final Iterator<V> it = newNodes.iterator();
+					m = it.next();
+					it.remove();
+				}
+				
+				for (E e : nticd.incomingEdgesOfUnsafe(m)) {
+					if (e == null) continue;
+					V n = e.getSource();
+					if (result.add(n)) {
+						boolean isNew = newNodes.add(n);
+						assert isNew;
+					}
+				}
+				
+				final LinkedList<V> toAdd = new LinkedList<>();
+				final Map<V, Set<V>> asM1 = mywod.getOrDefault(m, Collections.emptyMap());
+				for (V m2 : result) {
+					for (V n : asM1.getOrDefault(m2, Collections.emptySet())) {
+						toAdd.add(n);
+					}
+				}
+				for (V m1 : result) {
+					for (V n : mywod.getOrDefault(m1, Collections.emptyMap()).getOrDefault(m, Collections.emptySet())) {
+						toAdd.add(n);
+					}
+				}
+				for (V n : toAdd) {
 					if (result.add(n)) {
 						boolean isNew = newNodes.add(n);
 						assert isNew;

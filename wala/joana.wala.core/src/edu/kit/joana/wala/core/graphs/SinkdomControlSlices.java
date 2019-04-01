@@ -13,9 +13,12 @@ import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
+import org.jgrapht.graph.EdgeReversedGraph;
 
+import edu.kit.joana.util.graph.DeleteSuccessorNodes;
 import edu.kit.joana.util.graph.DeleteSuccessorNodesAndToFromOnly;
 import edu.kit.joana.util.graph.DeleteSuccessorNodesAndToOnly;
+import edu.kit.joana.util.graph.GraphWalker;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
 import edu.kit.joana.wala.core.graphs.SinkpathPostDominators.Node;
@@ -50,6 +53,33 @@ public class SinkdomControlSlices {
 		final Set<V> result = new HashSet<>(ms); {
 			for (Node<V> n : isinkdom.vertexSet()) {
 				if (n.getNext() == null) result.add(n.getV());
+			}
+		}
+		return result;
+	}
+	
+	public static <V extends IntegerIdentifiable ,E extends KnowsVertices<V>> Set<V> nticdMyWod(DirectedGraph<V,E> graph, Set<V> ms, Class<E> classE, EdgeFactory<V, E> edgeFactory) {
+		final DirectedGraph<V, E> gMS = new DeleteSuccessorNodes<>(graph, ms, classE);
+		final String cfgFileName = WriteGraphToDot.sanitizeFileName(SinkdomControlSlices.class.getSimpleName() + "-nticdMyWod-cfg.dot");
+		try {
+			WriteGraphToDot.write(gMS, cfgFileName, e -> true, v -> Integer.toString(v.getId()));
+		} catch (FileNotFoundException e) {
+		}
+
+		final DirectedGraph<Node<V>, SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdom = SinkpathPostDominators.compute(gMS);
+		
+		final GraphWalker<V, E> rdfs = new GraphWalker<V, E>(new EdgeReversedGraph<>(graph)) {
+			@Override
+			public void discover(V node) { }
+
+			@Override
+			public void finish(V node) {}
+		};
+		final Set<V> toMs = rdfs.traverseDFS(ms);
+		
+		final Set<V> result = new HashSet<>(ms); {
+			for (Node<V> n : isinkdom.vertexSet()) {
+				if (n.getNext() == null && toMs.contains(n.getV())) result.add(n.getV());
 			}
 		}
 		return result;

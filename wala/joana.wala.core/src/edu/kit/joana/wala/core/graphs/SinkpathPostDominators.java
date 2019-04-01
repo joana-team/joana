@@ -27,6 +27,7 @@ import org.jgrapht.EdgeFactory;
 import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
 import org.jgrapht.graph.EdgeReversedGraph;
 
+import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.collections.ModifiableArraySet;
 import edu.kit.joana.util.collections.ModifiableNotTightArraySet;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
@@ -100,10 +101,35 @@ public class SinkpathPostDominators {
 			return next;
 		}
 		
+		public Node<V>[] getSuccessors() {
+			return successors;
+		}
+		
+		public void setSuccessors(Node<V>[] successors) {
+			this.successors = successors;
+		}
+		
+		public boolean isRelevant() {
+			return isRelevant;
+		}
+		
+		public void setRelevant(boolean isRelevant) {
+			this.isRelevant = isRelevant;
+		}
+		
 
 		public final V getV() {
 			return v;
 		}
+		
+		public boolean isSinkNode() {
+			return isSinkNode;
+		}
+		
+		public void setSinkNode(boolean isSinkNode) {
+			this.isSinkNode = isSinkNode;
+		}
+		
 		@Override
 		public String toString() {
 			return v.toString();
@@ -126,6 +152,10 @@ public class SinkpathPostDominators {
 		public final boolean onPath(Object o) {
 			return inPathOf == o;
 		}
+		
+		public void setInWorkset(boolean inWorkset) {
+			this.inWorkset = inWorkset;
+		}
 	}
 	
 	private static <V extends IntegerIdentifiable> void processed(DirectedGraph<Node<V>, ISinkdomEdge<Node<V>>> result, Node<V> x) {
@@ -146,7 +176,7 @@ public class SinkpathPostDominators {
 		rdfs.traverseDFS(x);
 	}
 	
-	private static <V extends IntegerIdentifiable> void newEdge(AbstractJoanaGraph<Node<V>, ISinkdomEdge<Node<V>>> result, Node<V> x, Node<V> z) {
+	static <V extends IntegerIdentifiable> void newEdge(AbstractJoanaGraph<Node<V>, ISinkdomEdge<Node<V>>> result, Node<V> x, Node<V> z) {
 		if (x.next != null) result.removeOutgoingEdgesOf(x);
 		if (z != null) result.addEdgeUnsafe(x, z, new ISinkdomEdge<SinkpathPostDominators.Node<V>>(x, z));
 		x.next = z;
@@ -154,6 +184,11 @@ public class SinkpathPostDominators {
 	
 	@SuppressWarnings("serial")
 	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> DirectedGraph<Node<V>, ISinkdomEdge<Node<V>>> compute(DirectedGraph<V, E> graph) {
+		return computeWithNodeMap(graph).getFirst();
+	}
+
+	@SuppressWarnings("serial")
+	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> Pair<AbstractJoanaGraph<Node<V>, ISinkdomEdge<Node<V>>> , Map<V, Node<V>>> computeWithNodeMap(DirectedGraph<V, E> graph) {
 		
 		final Map<V, Node<V>> vToNode = new HashMap<>();
 		final AbstractJoanaGraph<Node<V>, ISinkdomEdge<Node<V>>> result; {
@@ -294,10 +329,10 @@ public class SinkpathPostDominators {
 			}
 		}
 		
-		return sinkDown(graph, vToNode, workset, result);
+		return Pair.pair(sinkDown(graph, vToNode, workset, result), vToNode);
 	}
 
-	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> DirectedGraph<Node<V>, ISinkdomEdge<Node<V>>> sinkDown(DirectedGraph<V, E> graph, Map<V, Node<V>> vToNode, TreeSet<Node<V>> workset, AbstractJoanaGraph<Node<V>, ISinkdomEdge<Node<V>>> result) {
+	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> AbstractJoanaGraph<Node<V>, ISinkdomEdge<Node<V>>> sinkDown(DirectedGraph<V, E> graph, Map<V, Node<V>> vToNode, TreeSet<Node<V>> workset, AbstractJoanaGraph<Node<V>, ISinkdomEdge<Node<V>>> result) {
 		{
 			while (!workset.isEmpty()) {
 				final Node<V> x = workset.pollFirst();

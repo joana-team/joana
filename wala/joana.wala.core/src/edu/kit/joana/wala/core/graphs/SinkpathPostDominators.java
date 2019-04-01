@@ -293,7 +293,11 @@ public class SinkpathPostDominators {
 				}
 			}
 		}
+		
+		return sinkDown(graph, vToNode, workset, result);
+	}
 
+	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> DirectedGraph<Node<V>, ISinkdomEdge<Node<V>>> sinkDown(DirectedGraph<V, E> graph, Map<V, Node<V>> vToNode, TreeSet<Node<V>> workset, AbstractJoanaGraph<Node<V>, ISinkdomEdge<Node<V>>> result) {
 		{
 			while (!workset.isEmpty()) {
 				final Node<V> x = workset.pollFirst();

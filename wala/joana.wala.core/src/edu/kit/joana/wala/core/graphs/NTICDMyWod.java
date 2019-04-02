@@ -38,6 +38,10 @@ import edu.kit.joana.wala.core.graphs.SinkpathPostDominators.Node;
  */
 public class NTICDMyWod {
 
+	/**
+	 * 
+	 * @return a map m s.t.  n ∈ m.get(m2).get(m1)   ⇔   n  →mywod (m1,m2)     (i.e.: roles of m1,m2 are reversed from what you expected!)
+	 */
 	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> Map<V, Map<V, Set<V>>> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory, Class<E> classE) {
 		
 		
@@ -211,22 +215,22 @@ public class NTICDMyWod {
 	
 	private static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> void process(Set<V> sinkNodes, V m2, NTICDGraphPostdominanceFrontiers<V, E> dfM2, final Map<V, Map<V, Set<V>>> result) {
 		assert sinkNodes.contains(m2);
+		assert !result.containsKey(m2);
+		
+		final Map<V, Set<V>> m2map = new HashMap<>(sinkNodes.size());
 		for (E e : dfM2.edgeSet()) {
 			final V n  = e.getSource();
 			final V m1 = e.getTarget();
 			assert !m1.equals(m2);
 			if (n.equals(m1)) continue;
 			if (!sinkNodes.contains(m1)) continue;
-			result.compute(m1, (mm1, map) -> {
-				if (map == null) map = new HashMap<>(sinkNodes.size());
-				map.compute(m2, (mm2, set) -> {
-					if (set == null) set = new HashSet<>();
-					set.add(n);
-					return set;
-				});
-				return map;
+			m2map.compute(m1, (mm1, set) -> {
+				if (set == null) set = new HashSet<>();
+				set.add(n);
+				return set;
 			});
 		}
+		result.put(m2, m2map);
 	}
 	
 	private static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> void from(DirectedGraph<V, E> gM, List<LinkedList<V>> paths, Set<V> m, V n) {

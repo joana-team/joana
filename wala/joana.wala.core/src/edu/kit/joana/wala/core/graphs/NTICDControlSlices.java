@@ -119,8 +119,6 @@ public class NTICDControlSlices {
 		final NTICDGraphPostdominanceFrontiers<V, E> nticd = NTICDGraphPostdominanceFrontiers.compute(graph, edgeFactory, classE);
 		final Map<V, Map<V, Set<V>>> mywod = NTICDMyWod.compute(graph, edgeFactory, classE);
 		
-		//final Map<V, Set<V>> primed = new HashMap<>();
-		
 		final Set<V> result = new HashSet<>(ms); {
 			
 			final Set<V> newNodes = new HashSet<>(ms);
@@ -142,14 +140,14 @@ public class NTICDControlSlices {
 				}
 				
 				final LinkedList<V> toAdd = new LinkedList<>();
-				final Map<V, Set<V>> asM1 = mywod.getOrDefault(m, Collections.emptyMap());
-				for (V m2 : result) {
-					for (V n : asM1.getOrDefault(m2, Collections.emptySet())) {
+				final Map<V, Set<V>> asM2 = mywod.getOrDefault(m, Collections.emptyMap());
+				for (V m1 : result) {
+					for (V n : asM2.getOrDefault(m1, Collections.emptySet())) {
 						toAdd.add(n);
 					}
 				}
-				for (V m1 : result) {
-					for (V n : mywod.getOrDefault(m1, Collections.emptyMap()).getOrDefault(m, Collections.emptySet())) {
+				for (V m2 : result) {
+					for (V n : mywod.getOrDefault(m2, Collections.emptyMap()).getOrDefault(m, Collections.emptySet())) {
 						toAdd.add(n);
 					}
 				}

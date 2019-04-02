@@ -33,13 +33,16 @@ package edu.kit.joana.wala.eval.jmh;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
@@ -47,6 +50,8 @@ import org.jgrapht.VertexFactory;
 import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
 import org.jgrapht.generate.RandomGraphGenerator;
 import org.jgrapht.graph.EdgeReversedGraph;
+import org.openjdk.jmh.annotations.AuxCounters;
+import org.openjdk.jmh.annotations.AuxCounters.Type;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -67,15 +72,14 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import edu.kit.joana.util.collections.SimpleVector;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
-import edu.kit.joana.util.graph.DeleteSuccessorNodes;
-import edu.kit.joana.util.graph.DeleteSuccessorNodesAndToFromOnly;
-import edu.kit.joana.util.graph.DeleteSuccessorNodesAndToOnly;
+import edu.kit.joana.util.graph.GraphWalker;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
 import edu.kit.joana.util.graph.LadderGraphGenerator;
 import edu.kit.joana.wala.core.graphs.DominanceFrontiers;
 import edu.kit.joana.wala.core.graphs.EfficientDominators;
 import edu.kit.joana.wala.core.graphs.NTICDGraphPostdominanceFrontiers;
+import edu.kit.joana.wala.core.graphs.NTICDMyWod;
 import edu.kit.joana.wala.core.graphs.SinkdomControlSlices;
 import edu.kit.joana.wala.core.graphs.SinkpathPostDominators;
 import edu.kit.joana.wala.core.graphs.EfficientDominators.DomTree;
@@ -163,6 +167,12 @@ public class MyBenchmark {
 		}
 	}
 	
+	public static class NticdMyWod {
+		public static Set<Node> viaMYWOD(DirectedGraph<Node, Edge> graph, Set<Node> ms) {
+			final Set<Node> result = NTICDControlSlices.nticdMyWod(graph, ms, Edge.class, edgeFactory);
+			return result;
+		}
+	}
 
 	public static final class Node implements IntegerIdentifiable {
 		private int id;
@@ -277,6 +287,43 @@ public class MyBenchmark {
 		
 	}
 	
+	static void addBackEdgesToExitNodes(DirectedGraph<Node, Edge> graph) {
+		final int maxDepth = 100;
+		final Random r = new Random(42);
+		final List<Node> exitNodes = graph.vertexSet().stream().filter(n -> graph.outgoingEdgesOf(n).isEmpty() || (graph.outgoingEdgesOf(n).size() == 1 && graph.outgoingEdgesOf(n).stream().anyMatch(e -> e.target == n))).collect(Collectors.toList());
+		for (Node n : exitNodes) {
+			final GraphWalker<Node, Edge> rdfs = new GraphWalker<Node, Edge>(new EdgeReversedGraph<>(graph)) {
+				int depth = 0;
+				
+				@Override
+				public void discover(Node node) { depth++;}
+
+				@Override
+				public void finish(Node node) { depth--;}
+				
+				@Override
+				public boolean traverse(Node node, Edge edge) {
+					return depth <= maxDepth;
+				}
+			};
+			final Set<Node> toN = rdfs.traverseDFS(Collections.singleton(n));
+			if (toN.size() > 1) toN.remove(n);
+			final List<Node> candidates = new ArrayList<>(rdfs.traverseDFS(Collections.singleton(n)));
+			candidates.sort(new Comparator<Node>() {
+				@Override
+				public int compare(Node o1, Node o2) {
+					return Integer.compare(o1.id, o2.id);
+				}
+			});
+			final Node m = candidates.get(r.nextInt(toN.size()));
+			@SuppressWarnings("unused")
+			final Edge e = graph.addEdge(n, m);
+			//System.out.print(e + "  ");
+			
+		}
+		//System.out.println();
+	}
+	
 	public static final EdgeFactory<Node, Edge> edgeFactory = new EdgeFactory<Node, Edge>() {
 		@Override
 		public Edge createEdge(Node sourceVertex, Node targetVertex) {
@@ -310,6 +357,17 @@ public class MyBenchmark {
 			}
 		}
 
+	}
+	
+	@AuxCounters(Type.EVENTS)
+	@State(Scope.Thread)
+	public static class Size {
+		public int size;
+		
+		@Setup(Level.Iteration)
+		public void clean() {
+			size = 0;
+		}
 	}
 
 	
@@ -471,6 +529,42 @@ public class MyBenchmark {
 	}
 	
 	@State(Scope.Benchmark)
+	public static class RandomGraphsArbitraryNoExitNodes extends RandomGraphs<DirectedGraph<Node, Edge>> {
+		@Param({"100", "200", "300", "400", "500", "600", "700", "800", "900", "1000", "1100", "1200", "1300", "1400", "1500", "1600", "1700", "1800", "1900", "2000"})
+		//@Param({"100", "800", "1600", "2400", "3200", "4000"})
+		public int n;
+		
+		@Override
+		public int nrEdges(int nrNodes) {
+			return (int)(((double)nrNodes) * 2);
+		}
+		
+		@Override
+		public int getNrOfGraphs() {
+			return 1;
+		}
+		
+		@Setup(Level.Trial)
+		public void doSetup() {
+			final Random random = new Random(seed + n);
+			this.graphs = new ArrayList<>();
+			for (int i = 0; i < getNrOfGraphs(); i++) {
+				final RandomGraphGenerator<Node, Edge> generator = new RandomGraphGenerator<>(n, nrEdges(n), random.nextLong());
+				@SuppressWarnings("serial")
+				final DirectedGraph<Node, Edge> graph = new AbstractJoanaGraph<Node, Edge>(edgeFactory, () -> new SimpleVector<>(0, n), Edge.class) {};
+				generator.generateGraph(graph, newVertexFactory(), null);
+				
+				addBackEdgesToExitNodes(graph);
+				
+				this.graphs.add(graph);
+				dumpGraph(n, i, graph);
+			}
+			
+		}
+	}
+
+	
+	@State(Scope.Benchmark)
 	public static class EntryExitLadderGraph extends Graphs<EntryExitGraph> {
 		//@Param({"8000", "12000", "16000", "20000", "24000", "28000", "32000", "36000", "40000"})
 		//@Param({"10", "100", "1000", "5000"})
@@ -549,6 +643,34 @@ public class MyBenchmark {
 			blackhole.consume(result);
 		}
 	}
+
+	
+	
+	@Benchmark
+	@Warmup(iterations = 1, time = 3)
+	@Measurement(iterations = 1, time = 3)
+	@BenchmarkMode(Mode.AverageTime)
+	public void countMyWodSize(RandomGraphsArbitraryNoExitNodes randomGraphs, Size size, Blackhole blackhole) {
+		for (int i = 0; i < randomGraphs.getNrOfGraphs(); i++) {
+			final Map<Node, Map<Node, Set<Node>>> mywod = NTICDMyWod.compute(randomGraphs.graphs.get(i), edgeFactory, Edge.class);
+			blackhole.consume(mywod);
+			if (size.size == 0) {
+				int sizeMyWod = mywod.values().stream().map(m2 -> m2.values().stream().map(ns -> ns.size()).reduce(0, Integer::sum)).reduce(0, Integer::sum);
+				size.size = sizeMyWod;
+			}
+		}
+	}
+
+//	@Benchmark
+//	@Warmup(iterations = 1, time = 3)
+//	@Measurement(iterations = 1, time = 3)
+//	@BenchmarkMode(Mode.AverageTime)
+//	public void testNticdMyWodSliceViaMyWod(RandomGraphsArbitraryNoExitNodes randomGraphs, Blackhole blackhole) {
+//		for (int i = 0; i < randomGraphs.getNrOfGraphs(); i++) {
+//			final Map<Node, Map<Node, Set<Node>>> mywod = NTICDMyWod.compute(randomGraphs.graphs.get(i), edgeFactory, Edge.class);
+//			blackhole.consume(mywod);
+//		}
+//	}
 	
 	//@Benchmark
 	@Warmup(iterations = 1, time = 3)
@@ -562,7 +684,7 @@ public class MyBenchmark {
 		}
 	}
 	
-	@Benchmark
+	//@Benchmark
 	@Warmup(iterations = 1, time = 3)
 	@Measurement(iterations = 1, time = 3)
 	@OutputTimeUnit(TimeUnit.MILLISECONDS)
@@ -574,7 +696,7 @@ public class MyBenchmark {
 		}
 	}
 	
-	@Benchmark
+	//@Benchmark
 	@Warmup(iterations = 1, time = 3)
 	@Measurement(iterations = 1, time = 3)
 	@OutputTimeUnit(TimeUnit.MILLISECONDS)

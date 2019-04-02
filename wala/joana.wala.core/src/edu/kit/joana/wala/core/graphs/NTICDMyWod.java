@@ -43,38 +43,13 @@ public class NTICDMyWod {
 		
 		final DirectedGraph<Node<V>, SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdom = SinkpathPostDominators.compute(cfg);
 		
-		final Map<Node<V>, Set<V>> entryNodesFor = new HashMap<>(); {
-			for (Node<V> n : isinkdom.vertexSet()) {
-				final Node<V> next = n.getNext();
-				if (next != null && next.isSinkNode()) {
-					entryNodesFor.compute(next.getRepresentant(), (rep, entryNodes) -> {
-						if (entryNodes == null) entryNodes = new HashSet<>();
-						entryNodes.add(n.getV());
-						return entryNodes;
-					});
-				}
-			}
-		}
+		final Map<Node<V>, Set<V>> entryNodesFor = entryNodesFor(isinkdom);
 		
-		int resultSize = 0;
-		
-		final Map<Node<V>, Set<V>> sinkNodesFor = new HashMap<>(); {
-			for (Node<V> n : isinkdom.vertexSet()) {
-				if (n.isSinkNode() && n.getRepresentant() == n && n.getNext() != null) {
-					final Set<V> sinkNodes = new HashSet<>();
-					sinkNodes.add(n.getV());
-					
-					Node<V> current = n;
-					do {
-						sinkNodes.add(current.getV());
-						current = current.getNext();
-						
-					} while (current != n);
-					
-					sinkNodesFor.put(n, sinkNodes);
-					resultSize += sinkNodes.size();
-				}
-			}
+		final Map<Node<V>, Set<V>> sinkNodesFor;
+		final Integer resultSize; { 
+			final Pair<Map<Node<V>, Set<V>>, Integer> p = sinkNodesFor(isinkdom);
+			sinkNodesFor = p.getFirst();
+			resultSize = p.getSecond();
 		}
 		
 		final Map<V, Map<V, Set<V>>> result = new HashMap<>(resultSize);
@@ -198,6 +173,45 @@ public class NTICDMyWod {
 			}
 		}
 		return result;
+	}
+
+	private static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> Map<Node<V>, Set<V>> entryNodesFor(DirectedGraph<Node<V>, SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdom) {
+		final Map<Node<V>, Set<V>> entryNodesFor = new HashMap<>(); {
+			for (Node<V> n : isinkdom.vertexSet()) {
+				final Node<V> next = n.getNext();
+				if (next != null && next.isSinkNode()) {
+					entryNodesFor.compute(next.getRepresentant(), (rep, entryNodes) -> {
+						if (entryNodes == null) entryNodes = new HashSet<>();
+						entryNodes.add(n.getV());
+						return entryNodes;
+					});
+				}
+			}
+		}
+		return entryNodesFor;
+	}
+
+	private static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> Pair<Map<Node<V>, Set<V>>, Integer> sinkNodesFor(DirectedGraph<Node<V>, SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdom) {
+		int resultSize = 0;
+		final Map<Node<V>, Set<V>> sinkNodesFor = new HashMap<>(); {
+			for (Node<V> n : isinkdom.vertexSet()) {
+				if (n.isSinkNode() && n.getRepresentant() == n && n.getNext() != null) {
+					final Set<V> sinkNodes = new HashSet<>();
+					sinkNodes.add(n.getV());
+					
+					Node<V> current = n;
+					do {
+						sinkNodes.add(current.getV());
+						current = current.getNext();
+						
+					} while (current != n);
+					
+					sinkNodesFor.put(n, sinkNodes);
+					resultSize += sinkNodes.size();
+				}
+			}
+		}
+		return Pair.pair(sinkNodesFor, resultSize);
 	}
 	
 	private static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> void process(Set<V> sinkNodes, V m2, NTICDGraphPostdominanceFrontiers<V, E> dfM2, final Map<V, Map<V, Set<V>>> result) {

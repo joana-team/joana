@@ -7,10 +7,13 @@
  */
 package edu.kit.joana.wala.core.graphs;
 
+import java.util.Iterator;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
@@ -51,6 +54,29 @@ public class NTICDGraphPostdominanceFrontiers<V extends IntegerIdentifiable, E e
 		for (V n : cfg.vertexSet()) {
 			cdg.addVertexUnsafe(n);
 		}
+		compute(
+			cfg,
+			isinkdom,
+			(y,x) -> { cdg.addEdgeUnsafe(y, x.getV(), edgeFactory.createEdge(y, x.getV()));},
+			(z) -> new Iterable<V>() { // TODO: refactor this, or reuse some existing MapIterator
+				final Set<E> es = cdg.incomingEdgesOf(z);
+				final Iterator<E> it = es.iterator();
+				public Iterator<V> iterator() {
+					return new Iterator<V>() {
+						public boolean hasNext() {
+							return it.hasNext();
+						}
+						public V next() {
+							return it.next().getSource();
+						}
+					};
+				}
+			}
+		);
+		return cdg;
+	}
+	
+	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> void compute(DirectedGraph<V, E> cfg, DirectedGraph<Node<V>,SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdom, BiConsumer<V, Node<V>> addDf, Function<V, Iterable<V>> dfOf) {
 
 		final KosarajuStrongConnectivityInspector<Node<V>, ISinkdomEdge<Node<V>>> sccs = new KosarajuStrongConnectivityInspector<>(isinkdom);
 		
@@ -83,19 +109,17 @@ public class NTICDGraphPostdominanceFrontiers<V extends IntegerIdentifiable, E e
 					if (!sccImmediates.contains(y) && !sccV.contains(y)) localAndUps.add(y);
 				}
 				for (V z : sccImmediates) {
-					for (E e : cdg.incomingEdgesOf(z)) {
-						final V y = e.getSource();
+					for (V y : dfOf.apply(z)) {
 						if (!sccImmediates.contains(y)) localAndUps.add(y);
 					}
 				}
 			}
 			for (Node<V> x : scc) {
 				for (V y : localAndUps) {
-					if (y != x.getV()) cdg.addEdgeUnsafe(y, x.getV(), edgeFactory.createEdge(y, x.getV()));
+					if (y != x.getV()) addDf.accept(y, x);
 				}
 			}
 			
 		}
-		return cdg;
 	}
 }

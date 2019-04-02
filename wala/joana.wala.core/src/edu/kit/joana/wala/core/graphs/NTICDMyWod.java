@@ -15,6 +15,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -84,9 +86,7 @@ public class NTICDMyWod {
 				}
 
 				
-				final NTICDGraphPostdominanceFrontiers<V, E> dfM2 = NTICDGraphPostdominanceFrontiers.compute(gm2, edgeFactory, classE, isinkdomM);
-				process(sinkNodes, m2v, dfM2, result);
-				
+				process(sinkNodes, m2v, result, isinkdomM, gm2);
 				
 				{ // restore successors for m2
 					final Node<V> m2 = vToNode.get(m2v); 
@@ -137,8 +137,7 @@ public class NTICDMyWod {
 							}
 							SinkpathPostDominators.sinkDown(gm2Suc, vToNode, workset, isinkdomM);
 						}
-						final NTICDGraphPostdominanceFrontiers<V, E> dfM2Suc = NTICDGraphPostdominanceFrontiers.compute(gm2Suc, edgeFactory, classE, isinkdomM);
-						process(sinkNodes, m2Suc, dfM2Suc, result);
+						process(sinkNodes, m2Suc, result, isinkdomM, gm2Suc);
 
 					}
 					m2SucNode.setSuccessors(m2SucNodeSuccessors);
@@ -212,25 +211,32 @@ public class NTICDMyWod {
 		return paths;
 	}
 
-	
-	private static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> void process(Set<V> sinkNodes, V m2, NTICDGraphPostdominanceFrontiers<V, E> dfM2, final Map<V, Map<V, Set<V>>> result) {
+	private static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> void process(Set<V> sinkNodes, V m2, final Map<V, Map<V, Set<V>>> result, AbstractJoanaGraph<Node<V>, SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdomM, DirectedGraph<V, E> gm2) {
 		assert sinkNodes.contains(m2);
 		assert !result.containsKey(m2);
 		
 		final Map<V, Set<V>> m2map = new HashMap<>(sinkNodes.size());
-		for (E e : dfM2.edgeSet()) {
-			final V n  = e.getSource();
-			final V m1 = e.getTarget();
+		
+		NTICDGraphPostdominanceFrontiers.compute(gm2, isinkdomM, addDf(m2map, m2), dfOf(m2map, m2));
+
+		result.put(m2, m2map);
+	}
+	
+	private static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> Function<V, Iterable<V>> dfOf(final Map<V, Set<V>> m2map, V m2) {
+		return (z -> m2map.getOrDefault(z, Collections.emptySet()));
+	}
+	
+	private static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> BiConsumer<V, Node<V>> addDf(final Map<V, Set<V>> m2map, V m2) {
+		return (n,m1) -> {
 			assert !m1.equals(m2);
-			if (n.equals(m1)) continue;
-			if (!sinkNodes.contains(m1)) continue;
-			m2map.compute(m1, (mm1, set) -> {
+			if (n.equals(m1)) return;
+
+			m2map.compute(m1.getV(), (mm1, set) -> {
 				if (set == null) set = new HashSet<>();
 				set.add(n);
 				return set;
 			});
-		}
-		result.put(m2, m2map);
+		};
 	}
 	
 	private static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> void from(DirectedGraph<V, E> gM, List<LinkedList<V>> paths, Set<V> m, V n) {

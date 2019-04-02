@@ -143,18 +143,6 @@ public class NTICDMyWod {
 									workset.add(x);
 									x.setInWorkset(true);
 								}
-//								final Node<V>[] successors = x.getSuccessors();
-//								final int successorEsSize = successors.length;
-//								switch (successorEsSize) {
-//									case 0: 
-//									case 1:
-//										x.setRelevant(false);
-//										break;
-//									default: {
-//										x.setRelevant(true);
-//										workset.add(x);
-//									}
-//								}
 							}
 							SinkpathPostDominators.sinkDown(gm2Suc, vToNode, workset, isinkdomM);
 						}

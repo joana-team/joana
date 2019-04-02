@@ -40,7 +40,6 @@ public class NTICDMyWod {
 
 	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> Map<V, Map<V, Set<V>>> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory, Class<E> classE) {
 		
-		final Map<V, Map<V, Set<V>>> result = new HashMap<>();
 		
 		final DirectedGraph<Node<V>, SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdom = SinkpathPostDominators.compute(cfg);
 		
@@ -57,6 +56,8 @@ public class NTICDMyWod {
 			}
 		}
 		
+		int resultSize = 0;
+		
 		final Map<Node<V>, Set<V>> sinkNodesFor = new HashMap<>(); {
 			for (Node<V> n : isinkdom.vertexSet()) {
 				if (n.isSinkNode() && n.getRepresentant() == n && n.getNext() != null) {
@@ -71,9 +72,13 @@ public class NTICDMyWod {
 					} while (current != n);
 					
 					sinkNodesFor.put(n, sinkNodes);
+					resultSize += sinkNodes.size();
 				}
 			}
 		}
+		
+		final Map<V, Map<V, Set<V>>> result = new HashMap<>(resultSize);
+
 		
 		for (Entry<Node<V>, Set<V>> representantAndSinkNodes : sinkNodesFor.entrySet()) {
 			final Node<V> representant = representantAndSinkNodes.getKey();
@@ -204,7 +209,7 @@ public class NTICDMyWod {
 			if (n.equals(m1)) continue;
 			if (!sinkNodes.contains(m1)) continue;
 			result.compute(m1, (mm1, map) -> {
-				if (map == null) map = new HashMap<>();
+				if (map == null) map = new HashMap<>(sinkNodes.size());
 				map.compute(m2, (mm2, set) -> {
 					if (set == null) set = new HashSet<>();
 					set.add(n);

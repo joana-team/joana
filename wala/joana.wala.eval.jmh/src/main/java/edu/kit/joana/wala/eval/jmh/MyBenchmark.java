@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -190,7 +191,7 @@ public class MyBenchmark {
 		}
 	}
 	
-	public static final class Edge implements KnowsVertices<Node> {
+	public static final class Edge implements KnowsVertices<Node>, Comparable<Edge> {
 		private Node source;
 		private Node target;
 		
@@ -205,6 +206,14 @@ public class MyBenchmark {
 		@Override
 		public Node getTarget() {
 			return target;
+		}
+		
+		@Override
+		public int compareTo(Edge o) {
+			int compareSource = Integer.compare(this.getSource().getId(), o.getSource().getId());
+			if (compareSource != 0) return compareSource;
+			int compareTarget = Integer.compare(this.getTarget().getId(), o.getTarget().getId());
+			return compareTarget;
 		}
 		@Override
 		public int hashCode() {
@@ -304,6 +313,11 @@ public class MyBenchmark {
 				@Override
 				public boolean traverse(Node node, Edge edge) {
 					return depth <= maxDepth;
+				}
+				
+				@Override
+				protected Iterable<Edge> newOutEdges(Set<Edge> outEdges) {
+					return new TreeSet<>(outEdges);
 				}
 			};
 			final Set<Node> toN = rdfs.traverseDFS(Collections.singleton(n));

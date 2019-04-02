@@ -61,20 +61,7 @@ public class NTICDMyWod {
 			final Set<V> entryNodes = entryNodesFor.get(representant);
 			final DirectedGraph<V, E> gM = new ToFromOnly<V, E>(cfg, entryNodes, sinkNodes, classE);
 			
-			final List<LinkedList<V>> paths = new LinkedList<>();
-			final Set<V> m = new HashSet<>(gM.vertexSet());
-			for (V v : gM.vertexSet()) {
-				if (!m.contains(v)) continue;
-				if (!sinkNodes.contains(v)) continue;
-				if (gM.incomingEdgesOf(v).size() > 1) {
-					from(gM, paths, m, v);
-				}
-			}
-			for (V v : gM.vertexSet()) {
-				if (!m.contains(v)) continue;
-				if (!sinkNodes.contains(v)) continue;
-				from(gM, paths, m, v);
-			}
+			final List<LinkedList<V>> paths = simpleHeuristic(gM, sinkNodes);
 			
 			@SuppressWarnings("unchecked")
 			final Node<V>[] zeroSuccessors = (Node<V>[]) new Node<?>[0];
@@ -201,6 +188,26 @@ public class NTICDMyWod {
 		}
 		return Pair.pair(sinkNodesFor, resultSize);
 	}
+	
+	private static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> List<LinkedList<V>> simpleHeuristic(DirectedGraph<V, E> gM, Set<V> sinkNodes) {
+		final List<LinkedList<V>> paths = new LinkedList<>();
+		final Set<V> m = new HashSet<>(gM.vertexSet());
+		for (V v : gM.vertexSet()) {
+			if (!m.contains(v)) continue;
+			if (!sinkNodes.contains(v)) continue;
+			if (gM.incomingEdgesOf(v).size() > 1) {
+				from(gM, paths, m, v);
+			}
+		}
+		for (V v : gM.vertexSet()) {
+			if (!m.contains(v)) continue;
+			if (!sinkNodes.contains(v)) continue;
+			from(gM, paths, m, v);
+		}
+		
+		return paths;
+	}
+
 	
 	private static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> void process(Set<V> sinkNodes, V m2, NTICDGraphPostdominanceFrontiers<V, E> dfM2, final Map<V, Map<V, Set<V>>> result) {
 		assert sinkNodes.contains(m2);

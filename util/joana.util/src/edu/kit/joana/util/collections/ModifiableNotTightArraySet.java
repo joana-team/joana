@@ -37,7 +37,7 @@ public final class ModifiableNotTightArraySet<K> extends NotTightArraySet<K> imp
 		this.clazz = clazz;
 		this.size = other.size();
 		this.keys = other.toArray((K[])Array.newInstance(clazz, size));
-		Arrays.sort(keys, ENTRY_COMPARATOR);
+		Arrays.sort(keys, COMPARATOR);
 	}
 	
 	protected void incSize() {

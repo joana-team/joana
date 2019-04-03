@@ -35,7 +35,7 @@ import java.util.Map.Entry;
  */
 public class NotTightArraySet<K> extends AbstractSet<K> implements Set<K> {
 	
-	protected static  Comparator<Object> ENTRY_COMPARATOR = new Comparator<Object>() {
+	public static final Comparator<Object> COMPARATOR = new Comparator<Object>() {
 		@Override
 		public int compare(Object e1, Object e2) {
 			if (e1 == null) return -1;

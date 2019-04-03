@@ -45,11 +45,11 @@ public class NTICDGraphPostdominanceFrontiers<V extends IntegerIdentifiable, E e
 	 * Computes nontermination sensitive control dependence.
 	 */
 	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> NTICDGraphPostdominanceFrontiers<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory, Class<E> classE) {
-		final DirectedGraph<Node<V>, SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdom = SinkpathPostDominators.compute(cfg);
+		final AbstractJoanaGraph<Node<V>, SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdom = SinkpathPostDominators.compute(cfg);
 		return compute(cfg, edgeFactory, classE, isinkdom);
 	}
 	
-	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> NTICDGraphPostdominanceFrontiers<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory, Class<E> classE, DirectedGraph<Node<V>, SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdom) {
+	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> NTICDGraphPostdominanceFrontiers<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory, Class<E> classE, AbstractJoanaGraph<Node<V>, SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdom) {
 		final NTICDGraphPostdominanceFrontiers<V, E> cdg = new NTICDGraphPostdominanceFrontiers<>(edgeFactory, classE, cfg.vertexSet().size());
 		for (V n : cfg.vertexSet()) {
 			cdg.addVertexUnsafe(n);
@@ -76,7 +76,7 @@ public class NTICDGraphPostdominanceFrontiers<V extends IntegerIdentifiable, E e
 		return cdg;
 	}
 	
-	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> void compute(DirectedGraph<V, E> cfg, DirectedGraph<Node<V>,SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdom, BiConsumer<V, Node<V>> addDf, Function<V, Iterable<V>> dfOf) {
+	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> void compute(DirectedGraph<V, E> cfg, AbstractJoanaGraph<Node<V>,SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdom, BiConsumer<V, Node<V>> addDf, Function<V, Iterable<V>> dfOf) {
 
 		final KosarajuStrongConnectivityInspector<Node<V>, ISinkdomEdge<Node<V>>> sccs = new KosarajuStrongConnectivityInspector<>(isinkdom);
 		

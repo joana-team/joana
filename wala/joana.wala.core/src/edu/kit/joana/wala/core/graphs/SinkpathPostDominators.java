@@ -175,7 +175,7 @@ public class SinkpathPostDominators {
 		x.next = z;
 	}
 	
-	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> DirectedGraph<Node<V>, ISinkdomEdge<Node<V>>> compute(DirectedGraph<V, E> graph) {
+	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> AbstractJoanaGraph<Node<V>, ISinkdomEdge<Node<V>>> compute(DirectedGraph<V, E> graph) {
 		return computeWithNodeMap(graph).getFirst();
 	}
 

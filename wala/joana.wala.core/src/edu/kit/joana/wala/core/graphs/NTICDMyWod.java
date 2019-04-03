@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -78,7 +79,27 @@ public class NTICDMyWod {
 				final DirectedGraph<V, E> gm2 = new DeleteSuccessorNodes<V, E>(gM, Collections.singleton(m2v), classE);
 
 				
-				final Pair<AbstractJoanaGraph<Node<V>, ISinkdomEdge<Node<V>>>, Map<V, Node<V>>> pair = SinkpathPostDominators.computeWithNodeMap(gm2);
+				final Pair<AbstractJoanaGraph<Node<V>, ISinkdomEdge<Node<V>>>, Map<V, Node<V>>> pair =
+					SinkpathPostDominators.computeWithNodeMap(
+						gm2,
+						new Iterable<Set<V>>() {
+							public Iterator<Set<V>> iterator() {
+								final Iterator<V> it = gm2.vertexSet().iterator();
+								return new Iterator<Set<V>>() { // TODO: use common iteratorMap or sth.
+									@Override
+									public boolean hasNext() {
+										return it.hasNext();
+									}
+									
+									@Override
+									public Set<V> next() {
+										final V v = it.next();
+										return Collections.singleton(v);
+									}
+								};
+							}
+						}
+				);
 				final AbstractJoanaGraph<Node<V>, SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdomM = pair.getFirst();
 				final Map<V, Node<V>> vToNode = pair.getSecond();
 				for (Node<V> x : isinkdomM.vertexSet()) {

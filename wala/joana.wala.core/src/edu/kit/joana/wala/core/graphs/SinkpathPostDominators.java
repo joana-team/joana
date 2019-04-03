@@ -178,9 +178,15 @@ public class SinkpathPostDominators {
 	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> AbstractJoanaGraph<Node<V>, ISinkdomEdge<Node<V>>> compute(DirectedGraph<V, E> graph) {
 		return computeWithNodeMap(graph).getFirst();
 	}
-
-	@SuppressWarnings("serial")
+	
 	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> Pair<AbstractJoanaGraph<Node<V>, ISinkdomEdge<Node<V>>> , Map<V, Node<V>>> computeWithNodeMap(DirectedGraph<V, E> graph) {
+		final KosarajuStrongConnectivityInspector<V, E> sccInspector = new KosarajuStrongConnectivityInspector<V, E>(graph);
+		final List<Set<V>> sccs = sccInspector.stronglyConnectedSets();
+		return computeWithNodeMap(graph, sccs);
+	}
+	
+	@SuppressWarnings("serial")
+	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> Pair<AbstractJoanaGraph<Node<V>, ISinkdomEdge<Node<V>>> , Map<V, Node<V>>> computeWithNodeMap(DirectedGraph<V, E> graph, Iterable<Set<V>> sccs) {
 		
 		final Map<V, Node<V>> vToNode = new HashMap<>();
 		final AbstractJoanaGraph<Node<V>, ISinkdomEdge<Node<V>>> result; {
@@ -205,9 +211,6 @@ public class SinkpathPostDominators {
 			vToNode.put(v, n);
 			result.addVertexUnsafe(n);
 		}
-		
-		final KosarajuStrongConnectivityInspector<V, E> sccInspector = new KosarajuStrongConnectivityInspector<V, E>(graph);
-		final List<Set<V>> sccs = sccInspector.stronglyConnectedSets();
 
 		//final HashSet<Node<V>> relevant = new HashSet<>();
 		final List<V> representants = new LinkedList<>();

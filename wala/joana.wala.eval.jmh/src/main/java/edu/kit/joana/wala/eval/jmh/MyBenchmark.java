@@ -84,6 +84,8 @@ import edu.kit.joana.wala.core.graphs.NTICDMyWod;
 import edu.kit.joana.wala.core.graphs.SinkdomControlSlices;
 import edu.kit.joana.wala.core.graphs.SinkpathPostDominators;
 import edu.kit.joana.wala.core.graphs.EfficientDominators.DomTree;
+import edu.kit.joana.wala.core.graphs.SinkpathPostDominators.ISinkdomEdge;
+import edu.kit.joana.wala.core.graphs.SinkpathPostDominators.Node;
 import edu.kit.joana.wala.core.graphs.FCACD;
 import edu.kit.joana.wala.core.graphs.NTICDControlSlices;
 import edu.kit.joana.wala.util.WriteGraphToDot;
@@ -322,14 +324,14 @@ public class MyBenchmark {
 			};
 			final Set<Node> toN = rdfs.traverseDFS(Collections.singleton(n));
 			if (toN.size() > 1) toN.remove(n);
-			final List<Node> candidates = new ArrayList<>(rdfs.traverseDFS(Collections.singleton(n)));
+			final List<Node> candidates = new ArrayList<>(toN);
 			candidates.sort(new Comparator<Node>() {
 				@Override
 				public int compare(Node o1, Node o2) {
 					return Integer.compare(o1.id, o2.id);
 				}
 			});
-			final Node m = candidates.get(r.nextInt(toN.size()));
+			final Node m = candidates.get(r.nextInt(candidates.size()));
 			@SuppressWarnings("unused")
 			final Edge e = graph.addEdge(n, m);
 			//System.out.print(e + "  ");
@@ -367,6 +369,12 @@ public class MyBenchmark {
 			final String cfgFileName = WriteGraphToDot.sanitizeFileName(this.getClass().getSimpleName()+"-" + graph.getClass().getName() + "-" + n + "-" + i +"-cfg.dot");
 			try {
 				WriteGraphToDot.write(graph, cfgFileName, e -> true, v -> Integer.toString(v.getId()));
+			} catch (FileNotFoundException e) {
+			}
+			final DirectedGraph<SinkpathPostDominators.Node<Node>, ISinkdomEdge<SinkpathPostDominators.Node<Node>>> isinkdom = SinkpathPostDominators.compute(graph);
+			final String isinkdomFileName = WriteGraphToDot.sanitizeFileName(this.getClass().getSimpleName()+"-" + graph.getClass().getName() + "-" + n + "-" + i +"-isinkdom.dot");
+			try {
+				WriteGraphToDot.write(isinkdom, isinkdomFileName, e -> true, v -> Integer.toString(v.getId()));
 			} catch (FileNotFoundException e) {
 			}
 		}
@@ -546,15 +554,16 @@ public class MyBenchmark {
 	public static class RandomGraphsArbitraryNoExitNodes extends RandomGraphs<DirectedGraph<Node, Edge>> {
 		//@Param({"100", "200", "300", "400", "500", "600", "700", "800", "900", "1000", "1100", "1200", "1300", "1400", "1500", "1600", "1700", "1800", "1900", "2000"})
 		//@Param({"50", "100", "150", "200", "250", "300", "350", "400", "450", "500", "550", "600", "650", "700", "750", "800", "850", "900", "950", "1000", "1050", "1100", "1150", "1200", "1250", "1300", "1350", "1400", "1450", "1500", "1550", "1600", "1650", "1700", "1750", "1800", "1850", "1900", "1950", "2000"})
-		@Param({"50", "100", "150", "200", "250", "300", "350", "400", "450", "500", "550", "600", "650", "700", "750", "800", "850", "900", "950", "1000", "1050", "1100", "1150", "1200", "1250", "1300", "1350", "1400", "1450", "1500", "1550", "1600", "1650", "1700", "1750", "1800", "1850", "1900", "1950", "2000", "2050", "2100", "2150", "2200", "2250", "2300", "2350", "2400", "2450", "2500", "2550", "2600", "2650", "2700", "2750", "2800", "2850", "2900", "2950", "3000"})
+		//@Param({"50", "100", "150", "200", "250", "300", "350", "400", "450", "500", "550", "600", "650", "700", "750", "800", "850", "900", "950", "1000", "1050", "1100", "1150", "1200", "1250", "1300", "1350", "1400", "1450", "1500", "1550", "1600", "1650", "1700", "1750", "1800", "1850", "1900", "1950", "2000", "2050", "2100", "2150", "2200", "2250", "2300", "2350", "2400", "2450", "2500", "2550", "2600", "2650", "2700", "2750", "2800", "2850", "2900", "2950", "3000"})
 		//@Param({"2000"})
-
+		//@Param({"50", "100", "150", "200", "250", "300", "350", "400", "450", "500", "550", "600", "650", "700", "750", "800", "850", "900", "950", "1000", "1050", "1100", "1150", "1200", "1250", "1300", "1350", "1400", "1450", "1500", "1550", "1600", "1650", "1700", "1750", "1800", "1850", "1900", "1950", "2000", "2050", "2100", "2150", "2200", "2250", "2300", "2350", "2400", "2450", "2500", "2550", "2600", "2650", "2700", "2750", "2800", "2850", "2900", "2950", "3000", "3050", "3100", "3150", "3200", "3250", "3300", "3350", "3400", "3450", "3500", "3550", "3600", "3650", "3700", "3750", "3800", "3850", "3900", "3950", "4000", "4050", "4100", "4150", "4200", "4250", "4300", "4350", "4400", "4450", "4500", "4550", "4600", "4650", "4700", "4750", "4800", "4850", "4900", "4950", "5000"})
+		@Param({"30", "60", "90", "120", "150", "180", "210", "240", "270", "300", "330", "360", "390", "420", "450", "480", "510", "540", "570", "600", "630", "660", "690", "720", "750", "780", "810", "840", "870", "900", "930", "960", "990", "1020", "1050", "1080", "1110", "1140", "1170", "1200", "1230", "1260", "1290", "1320", "1350", "1380", "1410", "1440", "1470", "1500", "1530", "1560", "1590", "1620", "1650", "1680", "1710", "1740", "1770", "1800", "1830", "1860", "1890", "1920", "1950", "1980", "2010", "2040", "2070", "2100", "2130", "2160", "2190", "2220", "2250", "2280", "2310", "2340", "2370", "2400", "2430", "2460", "2490", "2520", "2550", "2580", "2610", "2640", "2670", "2700", "2730", "2760", "2790", "2820", "2850", "2880", "2910", "2940", "2970", "3000"})
 		//@Param({"100", "800", "1600", "2400", "3200", "4000"})
 		public int n;
 		
 		@Override
 		public int nrEdges(int nrNodes) {
-			return (int)(((double)nrNodes) * 2);
+			return (int)(((double)nrNodes) * 1.5);
 		}
 		
 		@Override
@@ -818,8 +827,8 @@ public class MyBenchmark {
 	
 	//public static void mainPrintParam(String[] args) {
 	public static void main(String[] args) {
-		final int nr     = 60;
-		final int stride = 50; 
+		final int nr     = 100;
+		final int stride = 30; 
 		boolean isFirst = true;
 		System.out.print("@Param({");
 		for (int i = 1; i <= nr; i++) {

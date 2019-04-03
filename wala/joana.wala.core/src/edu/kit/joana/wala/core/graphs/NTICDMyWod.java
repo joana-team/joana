@@ -23,6 +23,8 @@ import java.util.TreeSet;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
+import org.jgrapht.graph.EdgeReversedGraph;
+import org.jgrapht.traverse.TopologicalOrderIterator;
 
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
@@ -107,7 +109,7 @@ public class NTICDMyWod {
 				}
 
 				
-				process(sinkNodes, m2v, result, isinkdomM, gm2);
+				process(sinkNodes, m2v, result, isinkdomM, gm2, topologicalOrder(isinkdomM));
 				
 				{ // restore successors for m2
 					final Node<V> m2 = vToNode.get(m2v); 
@@ -158,7 +160,7 @@ public class NTICDMyWod {
 							}
 							SinkpathPostDominators.sinkDown(gm2Suc, vToNode, workset, isinkdomM);
 						}
-						process(sinkNodes, m2Suc, result, isinkdomM, gm2Suc);
+						process(sinkNodes, m2Suc, result, isinkdomM, gm2Suc, topologicalOrder(isinkdomM));
 
 					}
 					m2SucNode.setSuccessors(m2SucNodeSuccessors);
@@ -232,13 +234,13 @@ public class NTICDMyWod {
 		return paths;
 	}
 
-	private static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> void process(Set<V> sinkNodes, V m2, final Map<V, Map<V, Set<V>>> result, AbstractJoanaGraph<Node<V>, SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdomM, DirectedGraph<V, E> gm2) {
+	private static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> void process(Set<V> sinkNodes, V m2, final Map<V, Map<V, Set<V>>> result, AbstractJoanaGraph<Node<V>, SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdomM, DirectedGraph<V, E> gm2, Iterable<Set<Node<V>>> topologicalOrder) {
 		assert sinkNodes.contains(m2);
 		assert !result.containsKey(m2);
 		
 		final Map<V, Set<V>> m2map = new HashMap<>(sinkNodes.size());
 		
-		NTICDGraphPostdominanceFrontiers.compute(gm2, isinkdomM, addDf(m2map, m2), dfOf(m2map, m2));
+		NTICDGraphPostdominanceFrontiers.compute(gm2, isinkdomM, addDf(m2map, m2), dfOf(m2map, m2), topologicalOrder);
 
 		result.put(m2, m2map);
 	}
@@ -287,4 +289,27 @@ public class NTICDMyWod {
 		}
 		paths.add(path);
 	}
+	
+	private static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> Iterable<Set<Node<V>>> topologicalOrder(AbstractJoanaGraph<Node<V>, SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdom) {
+		return new Iterable<Set<Node<V>>>() { // TODO: use common IteratorMap or something
+			public Iterator<Set<Node<V>>> iterator() {
+				final Iterator<Node<V>> it = new TopologicalOrderIterator<>(isinkdom);
+				return new Iterator<Set<Node<V>>>() {
+					
+					@Override
+					public boolean hasNext() {
+						return it.hasNext();
+					}
+					@Override
+					public Set<Node<V>> next() {
+						return Collections.singleton(it.next());
+					}
+				};
+				//
+			}
+			
+		};
+	}
+	
+	
 }

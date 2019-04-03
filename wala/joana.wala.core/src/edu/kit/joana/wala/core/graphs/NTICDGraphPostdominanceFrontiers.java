@@ -54,6 +54,7 @@ public class NTICDGraphPostdominanceFrontiers<V extends IntegerIdentifiable, E e
 		for (V n : cfg.vertexSet()) {
 			cdg.addVertexUnsafe(n);
 		}
+		final KosarajuStrongConnectivityInspector<Node<V>, ISinkdomEdge<Node<V>>> sccs = new KosarajuStrongConnectivityInspector<>(isinkdom);
 		compute(
 			cfg,
 			isinkdom,
@@ -71,16 +72,14 @@ public class NTICDGraphPostdominanceFrontiers<V extends IntegerIdentifiable, E e
 						}
 					};
 				}
-			}
+			},
+			sccs.stronglyConnectedSets()
 		);
 		return cdg;
 	}
 	
-	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> void compute(DirectedGraph<V, E> cfg, AbstractJoanaGraph<Node<V>,SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdom, BiConsumer<V, Node<V>> addDf, Function<V, Iterable<V>> dfOf) {
-
-		final KosarajuStrongConnectivityInspector<Node<V>, ISinkdomEdge<Node<V>>> sccs = new KosarajuStrongConnectivityInspector<>(isinkdom);
-		
-		for (Set<Node<V>> scc : sccs.stronglyConnectedSets()) {
+	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> void compute(DirectedGraph<V, E> cfg, AbstractJoanaGraph<Node<V>,SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdom, BiConsumer<V, Node<V>> addDf, Function<V, Iterable<V>> dfOf, Iterable<Set<Node<V>>> sccs) {
+		for (Set<Node<V>> scc : sccs) {
 			final Node<V> representant = scc.iterator().next().getRepresentant();
 			final Set<V> sccV; {
 				final IntegerIdentifiable[] sccA = new  IntegerIdentifiable[scc.size()];

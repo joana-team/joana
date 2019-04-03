@@ -54,6 +54,11 @@ public final class ModifiableNotTightArraySet<K> extends NotTightArraySet<K> imp
 		if (key == null) throw new NullPointerException();
 		final int length = keys.length;
 		
+		if (length == 1 && keys[0] == null) {
+			keys[0] = key;
+			return true;
+		}
+		
 			final int index = binarySearch0(0, keys.length, key);
 			if (index >= 0)  {
 				@SuppressWarnings("unchecked")

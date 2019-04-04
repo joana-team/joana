@@ -24,6 +24,7 @@ import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
+import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
 import org.jgrapht.graph.EdgeReversedGraph;
 import org.jgrapht.traverse.DepthFirstIterator;
 
@@ -120,6 +121,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 	private final Map<PDGNode, List<PDGField>> call2staticOut = new HashMap<PDGNode, List<PDGField>>();
 
 
+	public static final String DUMMY_LABEL = "dummy";
 	public static final String NOP_LABEL = "nop";
 	/** maps each call nodes to its actual out nodes. Does not include accessed static or object fields.
 	 * for java this is either a single entry containing the exception act-out for void methods,
@@ -581,13 +583,29 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 				if (Iterators.size(reachingExit) == cfg.vertexSet().size())  {
 					cdg = CDG.build(cfg, entry, exit); 
 				} else {
-					cdg = NTICDGraphGreatestFPWorklistSymbolic.compute(cfg, new EdgeFactory<PDGNode,PDGEdge>() {
+					cdg = NTICDGraphPostdominanceFrontiers.compute(cfg, new EdgeFactory<PDGNode,PDGEdge>() {
 						public PDGEdge createEdge(PDGNode from, PDGNode to) {
 							return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
 						};
 					},
 					PDGEdge.class
 					);
+					
+					final DependenceGraph cfgS = createSinkRepresentativeVariant(cfg);
+					final AbstractJoanaGraph<PDGNode, PDGEdge> cdgS = NTICDGraphPostdominanceFrontiers.compute(cfgS, new EdgeFactory<PDGNode,PDGEdge>() {
+						public PDGEdge createEdge(PDGNode from, PDGNode to) {
+							return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
+						};
+					},
+					PDGEdge.class
+					);
+
+					for (PDGEdge e : cdgS.edgeSet()) {
+						assert (e.getTarget().getLabel() == DUMMY_LABEL) == (!cdg.containsVertex(e.getTarget()));
+						if (e.getTarget().getLabel() != DUMMY_LABEL) {
+							cdg.addEdge(e.getSource(), e.getTarget(), e);
+						}
+					}
 				}
 				break;
 			}
@@ -611,6 +629,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 				final PDGNode to = cdg.getEdgeTarget(edge);
 				// do not add control dep to exception formal out. there is already a
 				// connection through data dependence from ret _exception_ field
+				// TODO: this is not always the case! For example, for call nodes in infinite loops
 				if (!(from.getKind() == PDGNode.Kind.CALL && to == exception)) {
 					addEdge(from, to, (from == entry && to == exit ? PDGEdge.Kind.CONTROL_DEP_EXPR : PDGEdge.Kind.CONTROL_DEP));
 				}
@@ -717,6 +736,45 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 		}
 
 		return unreachable;
+	}
+	
+	private DependenceGraph createSinkRepresentativeVariant(DependenceGraph cfg) {
+		final DependenceGraph result = new DependenceGraph(() -> new ArrayMap<>());
+		for (final PDGNode node : cfg.vertexSet()) {
+			result.addVertex(node);
+		}
+		
+		final KosarajuStrongConnectivityInspector<PDGNode, PDGEdge> sccInspector = new KosarajuStrongConnectivityInspector<>(cfg);
+		final Map<PDGNode, PDGNode> freshForRepresentant = new HashMap<>();
+		for (Set<PDGNode> scc : sccInspector.stronglyConnectedSets()) {
+			final boolean isNontrivialSink = scc.size() > 1 && !scc.stream().anyMatch(
+				v -> cfg.outgoingEdgesOf(v).stream().anyMatch(
+					e -> !scc.contains(cfg.getEdgeTarget(e))
+				)
+			);
+			if (isNontrivialSink) {
+				final PDGNode representant = scc.iterator().next();
+				final PDGNode fresh = createDummyNode(DUMMY_LABEL); { // this is awkward
+					freshForRepresentant.put(representant, fresh);
+					cfg.addVertex(fresh);
+					result.addVertex(fresh);
+					this.removeVertex(fresh);
+				}
+			}
+		}
+
+		for (PDGEdge e : cfg.edgeSet()) {
+			final PDGNode n = e.getSource();
+			final PDGNode m = e.getTarget();
+			final PDGNode fresh = freshForRepresentant.get(m);
+			if (fresh == null) {
+				result.addEdgeUnsafe(n, m, e);
+			} else if (!n.equals(m)) {
+				result.addEdge(n, fresh, PDGEdge.Kind.CONTROL_FLOW);
+			}
+		}
+		
+		return result;
 	}
 
 	private DependenceGraph createCfgWithoutParams() {

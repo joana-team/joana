@@ -179,7 +179,11 @@ public class ControlDependenceTests {
 					
 					// TODO: optimize runtime
 					final Collection<SDGNode> slice = forwardCfgSlicer.slice(missing.getSource());
-					assertTrue(slice.contains(missing.getTarget()));
+					final boolean pathMissingDueTopecificallyExcludedEdgeDuringPDGCreation =
+						   (missing.getTarget().getKind() == SDGNode.Kind.FORMAL_OUT)
+						&& ("_exception_".equals(missing.getTarget().getLabel()))
+						&& (slice.stream().anyMatch(n -> n.getKind() == SDGNode.Kind.CALL));
+					assertTrue(pathMissingDueTopecificallyExcludedEdgeDuringPDGCreation || slice.contains(missing.getTarget()));
 				}
 			}
 		}
@@ -486,8 +490,19 @@ public class ControlDependenceTests {
 	public void testWhileTrue() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testUnbuildable(       joana.api.testdata.seq.WhileTrue.class, classic);
-		testCDGSame(          (joana.api.testdata.seq.WhileTrue.class), adaptive, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(          (joana.api.testdata.seq.WhileTrue.class),           nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
 		testCDGSubsetClosure( (joana.api.testdata.seq.WhileTrue.class), nticd, ntscd);
+	}
+	
+	@Test
+	public void testWhileTrueLeakInLoop() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testUnbuildable(     (joana.api.testdata.seq.WhileTrueLeakInLoop.class),
+				new ExceptionAnalysis[] { ExceptionAnalysis.IGNORE_ALL, ExceptionAnalysis.INTERPROC}, // TODO: find out why it can be build for the other analyses.
+				classic
+			);
+		testCDGSame(          (joana.api.testdata.seq.WhileTrueLeakInLoop.class),           nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSubsetClosure( (joana.api.testdata.seq.WhileTrueLeakInLoop.class), nticd, ntscd);
 	}
 	
 	@Test
@@ -499,7 +514,7 @@ public class ControlDependenceTests {
 		);
 		testCDGSame(         (de.uni.trier.infsec.core.Setup.class),
 			new ExceptionAnalysis[] { ExceptionAnalysis.IGNORE_ALL },
-			adaptive,          nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom
+			                   nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom
 		);
 		testCDGSame(         (de.uni.trier.infsec.core.Setup.class),
 			new ExceptionAnalysis[] { ExceptionAnalysis.INTERPROC, ExceptionAnalysis.INTRAPROC, ExceptionAnalysis.ALL_NO_ANALYSIS },

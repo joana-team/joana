@@ -370,6 +370,12 @@ public class ToyTests {
 	}
 	
 	@Test
+	public void testWhileTrueLeakInLoop() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testPreciseEnough(joana.api.testdata.seq.WhileTrueLeakInLoop.class);
+	}
+	
+	@Test
 	public void testControlDependenceDueToDubiousPhiPlacement() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testPreciseEnough(joana.api.testdata.seq.ControlDependenceDueToDubiousPhiPlacement.class);

@@ -45,8 +45,8 @@ public class NTICDGraphPostdominanceFrontiers<V extends IntegerIdentifiable, E e
 	 * Computes nontermination sensitive control dependence.
 	 */
 	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> NTICDGraphPostdominanceFrontiers<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory, Class<E> classE) {
-		final AbstractJoanaGraph<Node<V>, SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdom = SinkpathPostDominators.compute(cfg);
-		return compute(cfg, edgeFactory, classE, isinkdom);
+		final SinkpathPostDominators<V, E> isinkdom = SinkpathPostDominators.compute(cfg);
+		return compute(cfg, edgeFactory, classE, isinkdom.getResult());
 	}
 	
 	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> NTICDGraphPostdominanceFrontiers<V, E> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory, Class<E> classE, AbstractJoanaGraph<Node<V>, SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdom) {

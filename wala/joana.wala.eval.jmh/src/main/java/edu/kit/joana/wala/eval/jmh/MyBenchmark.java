@@ -368,7 +368,7 @@ public class MyBenchmark {
 				WriteGraphToDot.write(graph, cfgFileName, e -> true, v -> Integer.toString(v.getId()));
 			} catch (FileNotFoundException e) {
 			}
-			final DirectedGraph<SinkpathPostDominators.Node<Node>, ISinkdomEdge<SinkpathPostDominators.Node<Node>>> isinkdom = SinkpathPostDominators.compute(graph);
+			final DirectedGraph<SinkpathPostDominators.Node<Node>, ISinkdomEdge<SinkpathPostDominators.Node<Node>>> isinkdom = SinkpathPostDominators.compute(graph).getResult();
 			final String isinkdomFileName = WriteGraphToDot.sanitizeFileName(this.getClass().getSimpleName()+"-" + graph.getClass().getName() + "-" + n + "-" + i +"-isinkdom.dot");
 			try {
 				WriteGraphToDot.write(isinkdom, isinkdomFileName, e -> true, v -> Integer.toString(v.getId()));

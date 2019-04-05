@@ -31,7 +31,6 @@ import edu.kit.joana.util.graph.DeleteSuccessorNodes;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
 import edu.kit.joana.util.graph.ToFromOnly;
-import edu.kit.joana.wala.core.graphs.SinkpathPostDominators.ISinkdomEdge;
 import edu.kit.joana.wala.core.graphs.SinkpathPostDominators.Node;
 
 /**
@@ -49,7 +48,7 @@ public class NTICDMyWod {
 	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> Map<V, Map<V, Set<V>>> compute(DirectedGraph<V, E> cfg, EdgeFactory<V, E> edgeFactory, Class<E> classE) {
 		
 		
-		final DirectedGraph<Node<V>, SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdom = SinkpathPostDominators.compute(cfg);
+		final SinkpathPostDominators<V, E> isinkdom = SinkpathPostDominators.compute(cfg);
 		
 		final Map<Node<V>, Set<V>> entryNodesFor = entryNodesFor(isinkdom);
 		
@@ -80,8 +79,8 @@ public class NTICDMyWod {
 				final DirectedGraph<V, E> gm2 = new DeleteSuccessorNodes<V, E>(gM, Collections.singleton(m2v), classE);
 
 				
-				final Pair<AbstractJoanaGraph<Node<V>, ISinkdomEdge<Node<V>>>, Map<V, Node<V>>> pair =
-					SinkpathPostDominators.computeWithNodeMap(
+				final SinkpathPostDominators<V, E> isinkdomM =
+					SinkpathPostDominators.compute(
 						gm2,
 						new Iterable<Set<V>>() {
 							public Iterator<Set<V>> iterator() {
@@ -101,14 +100,13 @@ public class NTICDMyWod {
 							}
 						}
 				);
-				final AbstractJoanaGraph<Node<V>, SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdomM = pair.getFirst();
-				final Map<V, Node<V>> vToNode = pair.getSecond();
-				for (Node<V> x : isinkdomM.vertexSet()) {
+				final Map<V, Node<V>> vToNode = isinkdomM.getvToNode();
+				for (Node<V> x : isinkdomM.getResult().vertexSet()) {
 					assert x == vToNode.get(m2v) ||  !x.isSinkNode();
 				}
 
 				
-				process(sinkNodes, m2v, result, isinkdomM, gm2, topologicalOrder(isinkdomM));
+				process(sinkNodes, m2v, result, isinkdomM.getResult(), gm2, topologicalOrder(isinkdomM.getResult()));
 				
 				{ // restore successors for m2
 					final Node<V> m2 = vToNode.get(m2v); 
@@ -137,11 +135,11 @@ public class NTICDMyWod {
 					m2SucNode.setSinkNode(true);
 					m2SucNode.setRelevant(false);
 					m2SucNode.setSuccessors(zeroSuccessors); {
-						SinkpathPostDominators.newEdge(isinkdomM, m2SucNode, null);
+						isinkdomM.newEdge(m2SucNode, null);
 						for (E e : gM.incomingEdgesOf(m2Suc)) {
 							final V n = e.getSource();
 							if (n.equals(m2Suc)) continue;
-							SinkpathPostDominators.newEdge(isinkdomM, vToNode.get(n), m2SucNode);
+							isinkdomM.newEdge(vToNode.get(n), m2SucNode);
 						}
 						if (gM.incomingEdgesOf(m2Suc).size() > 1) {
 							final TreeSet<Node<V>> workset = new TreeSet<Node<V>>(new Comparator<Node<V>>() {
@@ -150,16 +148,16 @@ public class NTICDMyWod {
 									return Integer.compare(o1.getId(), o2.getId());
 								}
 							});
-							for (Node<V> x : isinkdomM.vertexSet()) {
+							for (Node<V> x : isinkdomM.getResult().vertexSet()) {
 								assert x == m2SucNode ||  !x.isSinkNode();
 								if (x.isRelevant()) {
 									workset.add(x);
 									x.setInWorkset(true);
 								}
 							}
-							SinkpathPostDominators.sinkDown(gm2Suc, vToNode, workset, isinkdomM);
+							isinkdomM.sinkDown(gm2Suc, workset);
 						}
-						process(sinkNodes, m2Suc, result, isinkdomM, gm2Suc, topologicalOrder(isinkdomM));
+						process(sinkNodes, m2Suc, result, isinkdomM.getResult(), gm2Suc, topologicalOrder(isinkdomM.getResult()));
 
 					}
 					m2SucNode.setSuccessors(m2SucNodeSuccessors);
@@ -175,9 +173,9 @@ public class NTICDMyWod {
 		return result;
 	}
 
-	private static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> Map<Node<V>, Set<V>> entryNodesFor(DirectedGraph<Node<V>, SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdom) {
+	private static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> Map<Node<V>, Set<V>> entryNodesFor(SinkpathPostDominators<V, E> isinkdom) {
 		final Map<Node<V>, Set<V>> entryNodesFor = new HashMap<>(); {
-			for (Node<V> n : isinkdom.vertexSet()) {
+			for (Node<V> n : isinkdom.getResult().vertexSet()) {
 				final Node<V> next = n.getNext();
 				if (next != null && next.isSinkNode()) {
 					entryNodesFor.compute(next.getRepresentant(), (rep, entryNodes) -> {
@@ -191,10 +189,10 @@ public class NTICDMyWod {
 		return entryNodesFor;
 	}
 
-	private static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> Pair<Map<Node<V>, Set<V>>, Integer> sinkNodesFor(DirectedGraph<Node<V>, SinkpathPostDominators.ISinkdomEdge<Node<V>>> isinkdom) {
+	private static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> Pair<Map<Node<V>, Set<V>>, Integer> sinkNodesFor(SinkpathPostDominators<V, E> isinkdom) {
 		int resultSize = 0;
 		final Map<Node<V>, Set<V>> sinkNodesFor = new HashMap<>(); {
-			for (Node<V> n : isinkdom.vertexSet()) {
+			for (Node<V> n : isinkdom.getResult().vertexSet()) {
 				if (n.isSinkNode() && n.getRepresentant() == n && n.getNext() != null) {
 					final Set<V> sinkNodes = new HashSet<>();
 					sinkNodes.add(n.getV());

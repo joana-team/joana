@@ -498,11 +498,19 @@ public class ControlDependenceTests {
 	public void testWhileTrueLeakInLoop() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testUnbuildable(     (joana.api.testdata.seq.WhileTrueLeakInLoop.class),
-				new ExceptionAnalysis[] { ExceptionAnalysis.IGNORE_ALL, ExceptionAnalysis.INTERPROC}, // TODO: find out why it can be build for the other analyses.
+				new ExceptionAnalysis[] { ExceptionAnalysis.IGNORE_ALL, ExceptionAnalysis.INTERPROC},
 				classic
 			);
 		testCDGSame(          (joana.api.testdata.seq.WhileTrueLeakInLoop.class),           nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
 		testCDGSubsetClosure( (joana.api.testdata.seq.WhileTrueLeakInLoop.class), nticd, ntscd);
+	}
+	
+	@Test
+	public void testWhileTrueLeakInLoopNoMethodCall() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testUnbuildable(      (joana.api.testdata.seq.WhileTrueLeakInLoopNoMethodCall.class), classic);
+		testCDGSame(          (joana.api.testdata.seq.WhileTrueLeakInLoopNoMethodCall.class),           nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSubsetClosure( (joana.api.testdata.seq.WhileTrueLeakInLoopNoMethodCall.class), nticd, ntscd);
 	}
 	
 	@Test

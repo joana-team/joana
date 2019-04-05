@@ -80,7 +80,6 @@ import edu.kit.joana.wala.core.graphs.NTICDGraphGreatestFPWorklistSymbolic;
 import edu.kit.joana.wala.core.graphs.NTICDGraphLeastFPDualWorklistSymbolic;
 import edu.kit.joana.wala.core.graphs.NTICDGraphPostdominanceFrontiers;
 import edu.kit.joana.wala.core.graphs.NTSCDGraph;
-import edu.kit.joana.wala.core.graphs.SinkpathPostDominators;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
 import edu.kit.joana.wala.flowless.pointsto.Pts2AliasGraph;
@@ -90,6 +89,7 @@ import edu.kit.joana.wala.util.WriteGraphToDot;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
+@SuppressWarnings("serial")
 public final class PDG extends DependenceGraph implements INodeWithNumber {
 
 	public static PDG build(SDGBuilder builder, String name, CGNode node, int id,

@@ -41,6 +41,7 @@ import static edu.kit.joana.wala.core.graphs.NTSCDGraph.set;
  * @author Martin Hecker  <martin.hecker@kit.edu>
  *
  */
+@SuppressWarnings("serial")
 public class NTICDGraphGreatestFPWorklistSymbolic<V extends IntegerIdentifiable, E extends KnowsVertices<V>> extends AbstractJoanaGraph<V, E> {
 
 	private NTICDGraphGreatestFPWorklistSymbolic(EdgeFactory<V, E> edgeFactory, Class<E> classE) {

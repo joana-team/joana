@@ -23,7 +23,6 @@ import java.util.TreeSet;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
-import org.jgrapht.graph.EdgeReversedGraph;
 import org.jgrapht.traverse.TopologicalOrderIterator;
 
 import edu.kit.joana.util.Pair;

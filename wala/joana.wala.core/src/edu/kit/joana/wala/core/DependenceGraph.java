@@ -12,9 +12,9 @@ import java.util.function.Supplier;
 
 import org.jgrapht.EdgeFactory;
 
-import edu.kit.joana.util.graph.AbstractBaseGraph.DirectedEdgeContainer;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 
+@SuppressWarnings("serial")
 public class DependenceGraph extends AbstractJoanaGraph<PDGNode, PDGEdge> {
 
 	public static final EdgeFactory<PDGNode, PDGEdge> DEFAULT_EDGE_FACTORY = new PDGEdgeFactory();

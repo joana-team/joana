@@ -32,6 +32,7 @@ import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
 
+@SuppressWarnings("serial")
 public final class CallGraph extends AbstractJoanaGraph<CallGraph.Node, CallGraph.Edge> {
 
 	private final static EdgeFactory<Node, Edge> DEFAULT_EDGE_FACTORY = new CGEdgeFactory();

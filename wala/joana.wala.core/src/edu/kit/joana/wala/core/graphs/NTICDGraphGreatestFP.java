@@ -36,6 +36,7 @@ import static edu.kit.joana.wala.core.graphs.NTSCDGraph.get;
  * @author Martin Hecker  <martin.hecker@kit.edu>
  *
  */
+@SuppressWarnings("serial")
 public class NTICDGraphGreatestFP<V extends IntegerIdentifiable, E extends KnowsVertices<V>> extends AbstractJoanaGraph<V, E> {
 
 	private NTICDGraphGreatestFP(EdgeFactory<V, E> edgeFactory, Class<E> classE) {

@@ -7,13 +7,11 @@
  */
 package edu.kit.joana.util.collections;
 
-import java.lang.reflect.Array;
 import java.util.AbstractSet;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.Map.Entry;
 
 /**
  * A Set backed by an Object array. Optimized for size only, with severe consequences for speed.
@@ -138,17 +136,6 @@ public class NotTightArraySet<K> extends AbstractSet<K> implements Set<K> {
 		this.size = size;
 	}
 	
-//	private boolean isCompact() {
-//		boolean nullFound = false;
-//		for (int i = 0; i < keys.length; i++) {
-//			if (keys[i] == null) {
-//				nullFound = true;
-//			} else {
-//				if (nullFound) return false;
-//			}
-//		}
-//		return true;
-//	}
 	protected boolean invariant() {
 		
 		if (keys == null) return false;
@@ -158,13 +145,9 @@ public class NotTightArraySet<K> extends AbstractSet<K> implements Set<K> {
 		
 		int lastHashCode = Integer.MIN_VALUE;
 		int realSize = 0;
-		boolean predecessorWasNull = false;
 		for (int i = 0; i < length; i++) {
 			final Object key = keys[i];
-			if (key == null) {
-				predecessorWasNull = true;
-				continue;
-			}
+			if (key == null) continue;
 			
 			realSize++;
 			
@@ -176,7 +159,6 @@ public class NotTightArraySet<K> extends AbstractSet<K> implements Set<K> {
 				if (key.equals(keys[j])) return false;
 			}
 			
-			predecessorWasNull = false;
 			lastHashCode = hashCode;
 		}
 		if (size != SIZE_UNKNOWN && size != realSize) return false;

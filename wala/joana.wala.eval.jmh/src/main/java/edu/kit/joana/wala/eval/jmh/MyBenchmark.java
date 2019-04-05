@@ -85,7 +85,6 @@ import edu.kit.joana.wala.core.graphs.SinkdomControlSlices;
 import edu.kit.joana.wala.core.graphs.SinkpathPostDominators;
 import edu.kit.joana.wala.core.graphs.EfficientDominators.DomTree;
 import edu.kit.joana.wala.core.graphs.SinkpathPostDominators.ISinkdomEdge;
-import edu.kit.joana.wala.core.graphs.SinkpathPostDominators.Node;
 import edu.kit.joana.wala.core.graphs.FCACD;
 import edu.kit.joana.wala.core.graphs.NTICDControlSlices;
 import edu.kit.joana.wala.util.WriteGraphToDot;
@@ -106,7 +105,7 @@ public class MyBenchmark {
 	public static class CDG extends AbstractJoanaGraph<Node, Edge> {
 
 	    public static CDG build(EntryExitGraph cfg, Node entry, Node exit, EdgeFactory<Node, Edge> edgeFactory) {
-	        final CDG cdg = new CDG(cfg, entry, exit, edgeFactory);
+	        final CDG cdg = new CDG(cfg, exit, edgeFactory);
 
 	        cdg.build();
 
@@ -114,13 +113,11 @@ public class MyBenchmark {
 	    }
 
 	    private final DirectedGraph<Node, Edge> cfg;
-	    private final Node entry;
 	    private final Node exit;
 
-	    private CDG(final DirectedGraph<Node, Edge> cfg, Node entry, Node exit, EdgeFactory<Node, Edge> edgeFactory) {
+	    private CDG(final DirectedGraph<Node, Edge> cfg, Node exit, EdgeFactory<Node, Edge> edgeFactory) {
 	        super(edgeFactory, () -> new LinkedHashMap<>(cfg.vertexSet().size()), Edge.class);
 	        this.cfg = cfg;
-	        this.entry = entry;
 	        this.exit = exit;
 	    }
 

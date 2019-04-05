@@ -773,7 +773,6 @@ public abstract class AbstractBaseGraph<V extends IntegerIdentifiable, E extends
             return removed;
         }
         
-        @SuppressWarnings("unchecked")
 		@Override
         public void removeIncomingEdges(Function<EE[], Disowning<EE>> asProvider) {
         	final Disowning<EE> set = asProvider.apply(incoming);

@@ -31,7 +31,7 @@ import edu.kit.joana.util.graph.KnowsVertices;
 import edu.kit.joana.util.graph.LeastCommonAncestor;
 
 /**
- * TODO: @author Add your name here.
+ * @author Martin Hecker <martin.hecker@kit.edu>
  */
 public class SinkpathPostDominators {
 	public static class ISinkdomEdge<V> implements KnowsVertices<V> {
@@ -212,7 +212,6 @@ public class SinkpathPostDominators {
 			result.addVertexUnsafe(n);
 		}
 
-		//final HashSet<Node<V>> relevant = new HashSet<>();
 		final List<V> representants = new LinkedList<>();
 		for (Set<V> scc : sccs) {
 			final boolean isSink = ! scc.stream().anyMatch(
@@ -237,7 +236,7 @@ public class SinkpathPostDominators {
 					n.representant = first;
 					n.isSinkNode = true;
 				}
-				if (last != first) newEdge(result, last, first); // TODO: pdf fixen
+				if (last != first) newEdge(result, last, first);
 				processed(result, last);
 				representants.add(first.v);
 			}
@@ -278,7 +277,7 @@ public class SinkpathPostDominators {
 						final Node<V> z = vToNode.get(successorEs.iterator().next().getTarget());
 						if (z != x) {
 							newEdge(result, x, z.representant);
-							if (z.processed) processed(result, x); // TODO: pdf fixen
+							if (z.processed) processed(result, x);
 						}
 						break;
 					}
@@ -423,7 +422,7 @@ public class SinkpathPostDominators {
 					n.representant = first;
 					n.isSinkNode = true;
 				}
-				if (last != first) newEdge(result, last, first); // TODO: pdf fixen
+				if (last != first) newEdge(result, last, first);
 				processed(result, last);
 			}
 		}
@@ -442,7 +441,7 @@ public class SinkpathPostDominators {
 						final Node<V> z = vToNode.get(successorEs.iterator().next().getTarget());
 						if (z != x) {
 							newEdge(result, x, z.representant);
-							if (z.processed) processed(result, x); // TODO: pdf fixen
+							if (z.processed) processed(result, x);
 						}
 						break;
 					}

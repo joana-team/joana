@@ -6,5 +6,5 @@
      mvn clean install
    from this directory
 3. run the benchmarks, either from eclipse (Run as -> Java Application), or by running
-     java -cp '../../dist/joana.wala.core.jar:target/benchmarks.jar' org.openjdk.jmh.Main
+     java -cp '../../dist/joana.api.jar:target/benchmarks.jar' org.openjdk.jmh.Main
    from this directory

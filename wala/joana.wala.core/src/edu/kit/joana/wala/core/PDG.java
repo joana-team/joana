@@ -777,7 +777,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 		return result;
 	}
 
-	private DependenceGraph createCfgWithoutParams() {
+	public DependenceGraph createCfgWithoutParams() {
 		final DependenceGraph cfg = new DependenceGraph(() -> new ArrayMap<>());
 		for (final PDGNode node : vertexSet()) {
 			cfg.addVertex(node);

@@ -670,7 +670,7 @@ public class MyBenchmark {
 
 	
 	
-	@Benchmark
+	//@Benchmark
 	@Warmup(iterations = 1, time = 3)
 	@Measurement(iterations = 1, time = 3)
 	@BenchmarkMode(Mode.AverageTime)

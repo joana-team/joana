@@ -16,3 +16,16 @@ mywodTIME-3000-x1-20n-maxdepth100-taurec.csv : mywod.csv
 
 
 
+javanitcd.csv :
+	mvn clean install && java -cp '../../dist/joana.api.jar:target/benchmarks.jar' org.openjdk.jmh.Main testProcedureCFGNTICD -rf csv -rff javanitcd.csv
+
+javanitcd.oneentryperline.csv : javanitcd.csv Makefile
+	cat javanitcd.csv | dos2unix | tail -n +2 | sed -e '$!N;$!N;s/\n/,/g' | awk '{gsub(/\"/,"")};1' > javanitcd.oneentryperline.csv
+
+
+javanitcd-icfg.csv :
+	mvn clean install && java -cp '../../dist/joana.api.jar:target/benchmarks.jar' org.openjdk.jmh.Main testWholeProgramCFGNTICD -rf csv -rff javanitcd-icfg.csv
+
+javanitcd-icfg.oneentryperline.csv : javanitcd-icfg.csv Makefile
+	cat javanitcd-icfg.csv | dos2unix | tail -n +2 | sed -e '$!N;$!N;s/\n/,/g' | awk '{gsub(/\"/,"")};1' > javanitcd-icfg.oneentryperline.csv
+

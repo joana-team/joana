@@ -116,6 +116,12 @@ public class JavaBenchmark {
 	public static final String HSQLDB = "../../example/joana.example.jars/hsqldb/HSQLDB.jar";
 	public static final String JAVAGRANDE = "../../example/joana.example.jars/javagrande/benchmarks.jar";
 	public static final String FREECS = "../../example/joana.example.jars/freecs/freecs.jar";
+	//public static final String JEDIT = "../../example/joana.example.jars/jedit/jedit.jar";
+	//public static final String UPM = "../../example/joana.example.jars/upm/upm.jar";
+	public static final String CSSToXSLFO = "../../example/joana.example.jars/css2xslfo.jar";
+	public static final String SABLECC = "../../example/joana.example.jars/sablecc-3.7.jar";
+	public static final String DRMIPS = "../../example/joana.example.jars/drmips/lib/DrMIPSSimulator.jar" + File.pathSeparator + "../../example/joana.example.jars/drmips/DrMIPS.jar";
+	
 	
 	private static final Stubs STUBS = Stubs.JRE_15;
 	
@@ -133,6 +139,11 @@ public class JavaBenchmark {
 			JAVAGRANDE + File.pathSeparator +
 			FREECS + File.pathSeparator +
 			HSQLDB + File.pathSeparator +
+			// JEDIT + File.pathSeparator +
+			// UPM + File.pathSeparator +
+			CSSToXSLFO + File.pathSeparator +
+			SABLECC + File.pathSeparator +
+			DRMIPS + File.pathSeparator +
 			JOANA_MANY_SMALL_PROGS_CLASSPATH,
 			null,
 			STUBS
@@ -351,9 +362,8 @@ public class JavaBenchmark {
 	@State(Scope.Benchmark)
 	public static class JavaWholeProgramGraph extends Graphs<SDGNode, SDGEdge> {
 		//@Param({"JLex.Main", "de.uni.trier.infsec.core.Setup", "joana.api.testdata.seq.WhileTrueLeakInLoopNoMethodCall"})
-		//@Param({"freecs.Server", "org.hsqldb.Server"})
-		//@Param({"org.hsqldb.Server"})
-		@Param({"JLex.Main", "freecs.Server", "org.hsqldb.Server", "tests.HammerDistributed", "joana.api.testdata.toy.sensitivity.FlowSens", "joana.api.testdata.toy.rec.MyList", "joana.api.testdata.toy.rec.MyList2", "def.JGFBarrierBench", "de.uni.trier.infsec.core.Setup", "joana.api.testdata.seq.WhileTrueLeakInLoopNoMethodCall"})
+		//@Param({"com.od.upm.gui.MainWindow", "org.gjt.sp.jedit.jEdit"})
+		@Param({"org.sablecc.sablecc.SableCC", "brunonova.drmips.pc.DrMIPS", "be.re.css.CSSToXSLFO", "JLex.Main", "freecs.Server", "org.hsqldb.Server", "tests.HammerDistributed", "joana.api.testdata.toy.sensitivity.FlowSens", "joana.api.testdata.toy.rec.MyList", "joana.api.testdata.toy.rec.MyList2", "def.JGFBarrierBench", "de.uni.trier.infsec.core.Setup", "joana.api.testdata.seq.WhileTrueLeakInLoopNoMethodCall"})
 		String className;
 
 		

@@ -121,6 +121,7 @@ public class JavaBenchmark {
 	public static final String CSSToXSLFO = "../../example/joana.example.jars/css2xslfo.jar";
 	public static final String SABLECC = "../../example/joana.example.jars/sablecc-3.7.jar";
 	public static final String DRMIPS = "../../example/joana.example.jars/drmips/lib/DrMIPSSimulator.jar" + File.pathSeparator + "../../example/joana.example.jars/drmips/DrMIPS.jar";
+	public static final String ALTER_SEQUENCE_ALIGNMENT = "../../example/joana.example.jars/alter-1.3.3.jar";
 	
 	
 	private static final Stubs STUBS = Stubs.JRE_15;
@@ -144,6 +145,7 @@ public class JavaBenchmark {
 			CSSToXSLFO + File.pathSeparator +
 			SABLECC + File.pathSeparator +
 			DRMIPS + File.pathSeparator +
+			ALTER_SEQUENCE_ALIGNMENT + File.pathSeparator +
 			JOANA_MANY_SMALL_PROGS_CLASSPATH,
 			null,
 			STUBS
@@ -363,7 +365,7 @@ public class JavaBenchmark {
 	public static class JavaWholeProgramGraph extends Graphs<SDGNode, SDGEdge> {
 		//@Param({"JLex.Main", "de.uni.trier.infsec.core.Setup", "joana.api.testdata.seq.WhileTrueLeakInLoopNoMethodCall"})
 		//@Param({"com.od.upm.gui.MainWindow", "org.gjt.sp.jedit.jEdit"})
-		@Param({"org.sablecc.sablecc.SableCC", "brunonova.drmips.pc.DrMIPS", "be.re.css.CSSToXSLFO", "JLex.Main", "freecs.Server", "org.hsqldb.Server", "tests.HammerDistributed", "joana.api.testdata.toy.sensitivity.FlowSens", "joana.api.testdata.toy.rec.MyList", "joana.api.testdata.toy.rec.MyList2", "def.JGFBarrierBench", "de.uni.trier.infsec.core.Setup", "joana.api.testdata.seq.WhileTrueLeakInLoopNoMethodCall"})
+		@Param({"cmdLine.Convert", "org.sablecc.sablecc.SableCC", "brunonova.drmips.pc.DrMIPS", "be.re.css.CSSToXSLFO", "JLex.Main", "freecs.Server", "org.hsqldb.Server", "tests.HammerDistributed", "def.JGFBarrierBench", "de.uni.trier.infsec.core.Setup"})
 		String className;
 
 		

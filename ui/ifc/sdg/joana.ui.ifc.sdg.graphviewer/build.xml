@@ -22,7 +22,8 @@
 			jar="${joana.dist.dir}/${projectname}.jar"
 			alias="${keystore.alias}"
 			storepass="${keystore.pass}"
-			keystore="${keystore.file}"
+			keystore="${keystore.file}" 
+                        storetype="${keystore.type}"
 		/>
 		<mkdir dir="${deploy.dir}/webstart-jars" />
 		<copy todir="${deploy.dir}/webstart-jars" verbose="true">

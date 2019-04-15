@@ -305,6 +305,7 @@ public final class SDGBuildPreparation {
 		scfg.fieldPropagation = cfg.fieldPropagation;
 		scfg.debugManyGraphsDotOutput = cfg.debugManyGraphsDotOutput;
 		scfg.computeInterference = cfg.computeInterference;
+		scfg.localKillingDefs = cfg.localKillingDefs;
 		scfg.computeSummary = cfg.computeSummaryEdges;
 		scfg.summaryComputationType = cfg.summaryComputationType;
 		scfg.computeAllocationSites = cfg.computeAllocationSites;
@@ -404,6 +405,7 @@ public final class SDGBuildPreparation {
 		public MethodState defaultExceptionMethodState = null;
 		public boolean accessPath;
 		public boolean computeInterference = false;
+		public boolean localKillingDefs = true;
 		public boolean computeSummaryEdges = true;
 		public SummaryComputationType summaryComputationType = SummaryComputationType.DEFAULT;
 		public boolean debugManyGraphsDotOutput = false;

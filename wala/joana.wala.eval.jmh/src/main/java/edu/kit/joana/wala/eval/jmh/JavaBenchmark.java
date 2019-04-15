@@ -93,6 +93,7 @@ import edu.kit.joana.wala.core.PDGNode;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.ControlDependenceVariant;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
+import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.graphs.EfficientDominators;
 import edu.kit.joana.wala.core.graphs.NTICDGraphPostdominanceFrontiers;
 import edu.kit.joana.wala.core.graphs.SinkdomControlSlices;
@@ -112,15 +113,17 @@ public class JavaBenchmark {
 	public static final String JOANA_API_TEST_DATA_CLASSPATH = "../../api/joana.api.testdata/bin";
 	public static final String JOANA_MANY_SMALL_PROGS_CLASSPATH = "../../example/joana.example.many-small-progs/bin";
 	public static final String ANNOTATIONS_PASSON_CLASSPATH = "../../api/joana.api.annotations.passon/bin";
-	//public static final String HSQLDB = "../../example/joana.example.jars/hsqldb/HSQLDB.jar";
+	public static final String HSQLDB = "../../example/joana.example.jars/hsqldb/HSQLDB.jar";
 	public static final String JAVAGRANDE = "../../example/joana.example.jars/javagrande/benchmarks.jar";
-	//public static final String FREECS = "../../example/joana.example.jars/freecs/freecs.jar";
+	public static final String FREECS = "../../example/joana.example.jars/freecs/freecs.jar";
 	
 	private static final Stubs STUBS = Stubs.JRE_15;
 	
 	private static void setDefaults(SDGConfig config) {
 		config.setParallel(false);
 		config.setComputeSummaryEdges(false);
+		config.setFieldPropagation(FieldPropagation.NONE);
+		config.setLocalKillingDefs(false);
 	}
 
 	
@@ -128,12 +131,12 @@ public class JavaBenchmark {
 			JOANA_API_TEST_DATA_CLASSPATH + File.pathSeparator +
 			ANNOTATIONS_PASSON_CLASSPATH + File.pathSeparator + 
 			JAVAGRANDE + File.pathSeparator +
-			//FREECS + File.pathSeparator +
-			// HSQLDB + File.pathSeparator +
+			FREECS + File.pathSeparator +
+			HSQLDB + File.pathSeparator +
 			JOANA_MANY_SMALL_PROGS_CLASSPATH,
 			null,
 			STUBS
-		); {
+		); static {
 			setDefaults(nticd_isinkdom);
 			nticd_isinkdom.setControlDependenceVariant(ControlDependenceVariant.NTICD_ISINKDOM);
 			nticd_isinkdom.setExceptionAnalysis(ExceptionAnalysis.IGNORE_ALL);
@@ -349,7 +352,8 @@ public class JavaBenchmark {
 	public static class JavaWholeProgramGraph extends Graphs<SDGNode, SDGEdge> {
 		//@Param({"JLex.Main", "de.uni.trier.infsec.core.Setup", "joana.api.testdata.seq.WhileTrueLeakInLoopNoMethodCall"})
 		//@Param({"freecs.Server", "org.hsqldb.Server"})
-		@Param({"tests.HammerDistributed", "joana.api.testdata.toy.sensitivity.FlowSens", "joana.api.testdata.toy.rec.MyList", "joana.api.testdata.toy.rec.MyList2", "def.JGFBarrierBench", "de.uni.trier.infsec.core.Setup", "joana.api.testdata.seq.WhileTrueLeakInLoopNoMethodCall"})
+		//@Param({"org.hsqldb.Server"})
+		@Param({"JLex.Main", "freecs.Server", "org.hsqldb.Server", "tests.HammerDistributed", "joana.api.testdata.toy.sensitivity.FlowSens", "joana.api.testdata.toy.rec.MyList", "joana.api.testdata.toy.rec.MyList2", "def.JGFBarrierBench", "de.uni.trier.infsec.core.Setup", "joana.api.testdata.seq.WhileTrueLeakInLoopNoMethodCall"})
 		String className;
 
 		
@@ -403,6 +407,13 @@ public class JavaBenchmark {
 	}
 
 
+	//public static void main(String[] args) throws ClassHierarchyException, UnsoundGraphException, CancelException, IOException {
+	public static void mainDebug(String[] args) throws ClassHierarchyException, UnsoundGraphException, CancelException, IOException {
+		final JavaWholeProgramGraph javaGraph = new JavaWholeProgramGraph();
+		javaGraph.className = "org.hsqldb.Server";
+		javaGraph.doSetup();
+	}
+	
 	
 	public static void mainManual(String[] args) throws RunnerException {
 		Options opt = new OptionsBuilder()

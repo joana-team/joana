@@ -444,11 +444,17 @@ public final class CandidateFactoryImpl implements CandidateFactory {
 				return true;
 			} else if (o instanceof MergeCandImpl) {
 				final MergeCandImpl other = (MergeCandImpl) o;
-				return OrdinalSet.equals(basePts, other.basePts) && OrdinalSet.equals(fieldPts, other.fieldPts)
-						&& OrdinalSet.equals(cands, other.cands);
+				return equals(basePts, other.basePts) && equals(fieldPts, other.fieldPts)
+						&& equals(cands, other.cands);
 			}
 			
 			return false;
+		}
+		
+		private static <T> boolean equals(OrdinalSet<T> a, OrdinalSet<T> b) {
+			if (a == null) return (b == null || b.isEmpty());
+			if (b == null) return (             a.isEmpty());
+			return OrdinalSet.equals(a, b);
 		}
 		
 		@Override

@@ -122,6 +122,8 @@ public class JavaBenchmark {
 	public static final String SABLECC = "../../example/joana.example.jars/sablecc-3.7.jar";
 	public static final String DRMIPS = "../../example/joana.example.jars/drmips/lib/DrMIPSSimulator.jar" + File.pathSeparator + "../../example/joana.example.jars/drmips/DrMIPS.jar";
 	public static final String ALTER_SEQUENCE_ALIGNMENT = "../../example/joana.example.jars/alter-1.3.3.jar";
+	public static final String JAVACC = "../../example/joana.example.jars/javacc-5.0.jar";
+	public static final String JFLEX = "../../example/joana.example.jars/jflex-1.6.1.jar";
 	
 	
 	private static final Stubs STUBS = Stubs.JRE_15;
@@ -146,6 +148,8 @@ public class JavaBenchmark {
 			SABLECC + File.pathSeparator +
 			DRMIPS + File.pathSeparator +
 			ALTER_SEQUENCE_ALIGNMENT + File.pathSeparator +
+			JAVACC + File.pathSeparator +
+			JFLEX + File.pathSeparator +
 			JOANA_MANY_SMALL_PROGS_CLASSPATH,
 			null,
 			STUBS
@@ -365,7 +369,7 @@ public class JavaBenchmark {
 	public static class JavaWholeProgramGraph extends Graphs<SDGNode, SDGEdge> {
 		//@Param({"JLex.Main", "de.uni.trier.infsec.core.Setup", "joana.api.testdata.seq.WhileTrueLeakInLoopNoMethodCall"})
 		//@Param({"com.od.upm.gui.MainWindow", "org.gjt.sp.jedit.jEdit"})
-		@Param({"cmdLine.Convert", "org.sablecc.sablecc.SableCC", "brunonova.drmips.pc.DrMIPS", "be.re.css.CSSToXSLFO", "JLex.Main", "freecs.Server", "org.hsqldb.Server", "tests.HammerDistributed", "def.JGFBarrierBench", "de.uni.trier.infsec.core.Setup"})
+		@Param({"jflex.Main", "javacc", "cmdLine.Convert", "org.sablecc.sablecc.SableCC", "brunonova.drmips.pc.DrMIPS", "be.re.css.CSSToXSLFO", "JLex.Main", "freecs.Server", "org.hsqldb.Server", "tests.HammerDistributed", "def.JGFBarrierBench", "de.uni.trier.infsec.core.Setup"})
 		String className;
 
 		

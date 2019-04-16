@@ -410,6 +410,11 @@ public class MyBenchmark {
 			return 1;
 		}
 		
+		@Override
+		public int nrEdges(int nrNodes) {
+			return (int)(((double)nrNodes) * 2);
+		}
+		
 		@Setup(Level.Trial)
 		public void doSetup() {
 			final Random random = new Random(seed + n);

@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -77,13 +76,10 @@ import edu.kit.joana.util.graph.GraphWalker;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
 import edu.kit.joana.util.graph.LadderGraphGenerator;
-import edu.kit.joana.wala.core.graphs.DominanceFrontiers;
-import edu.kit.joana.wala.core.graphs.EfficientDominators;
 import edu.kit.joana.wala.core.graphs.NTICDGraphPostdominanceFrontiers;
 import edu.kit.joana.wala.core.graphs.NTICDMyWod;
 import edu.kit.joana.wala.core.graphs.SinkdomControlSlices;
 import edu.kit.joana.wala.core.graphs.SinkpathPostDominators;
-import edu.kit.joana.wala.core.graphs.EfficientDominators.DomTree;
 import edu.kit.joana.wala.core.graphs.SinkpathPostDominators.ISinkdomEdge;
 import edu.kit.joana.wala.core.graphs.FCACD;
 import edu.kit.joana.wala.core.graphs.NTICDControlSlices;
@@ -101,54 +97,6 @@ public class MyBenchmark {
 		public Node exit;
 	}
 	
-	@SuppressWarnings("serial")
-	public static class CDG extends AbstractJoanaGraph<Node, Edge> {
-
-	    public static CDG build(EntryExitGraph cfg, Node entry, Node exit, EdgeFactory<Node, Edge> edgeFactory) {
-	        final CDG cdg = new CDG(cfg, exit, edgeFactory);
-
-	        cdg.build();
-
-	        return cdg;
-	    }
-
-	    private final DirectedGraph<Node, Edge> cfg;
-	    private final Node exit;
-
-	    private CDG(final DirectedGraph<Node, Edge> cfg, Node exit, EdgeFactory<Node, Edge> edgeFactory) {
-	        super(edgeFactory, () -> new LinkedHashMap<>(cfg.vertexSet().size()), Edge.class);
-	        this.cfg = cfg;
-	        this.exit = exit;
-	    }
-
-	    private void build() {
-	        final DirectedGraph<Node, Edge> reversedCfg = new EdgeReversedGraph<Node, Edge>(cfg);
-	        final DominanceFrontiers<Node, Edge> frontiers = DominanceFrontiers.compute(reversedCfg, exit);
-
-	        for (final Node node : cfg.vertexSet()) {
-	            addVertex(node);
-	        }
-
-	        for (final Node node : cfg.vertexSet()) {
-	            for (final Node domFrontier : frontiers.getDominanceFrontier(node)) {
-	                if (node != domFrontier) {
-	                    // no self dependencies
-	                    addEdge(domFrontier, node);
-	                }
-	            }
-	        }
-	    }
-	}
-	
-	public static class ClassicPostdominance {
-
-		public static DomTree<Node> classicPostdominance(EntryExitGraph cfg, Node entry, Node exit) {
-			final DirectedGraph<Node, Edge> reversedCfg = new EdgeReversedGraph<Node, Edge>(cfg);
-			final EfficientDominators<Node, Edge> dom = EfficientDominators.compute(reversedCfg, exit);
-
-			return dom.getDominationTree();
-		}
-	}
 	
 	public static class WeakControlClosure {
 		public static Set<Node> viaNTICD(DirectedGraph<Node, Edge> graph, Set<Node> ms) {
@@ -753,17 +701,6 @@ public class MyBenchmark {
 	@Warmup(iterations = 1, time = 5)
 	@Measurement(iterations = 1, time = 5)
 	@BenchmarkMode(Mode.AverageTime)
-	public void testClassicCDGForRandomWithUniqueExitNode(RandomGraphsWithUniqueExitNode randomGraphs, Blackhole blackhole) {
-		for (int i = 0; i < randomGraphs.getNrOfGraphs(); i++) {
-			final EntryExitGraph graph = randomGraphs.graphs.get(i);
-			blackhole.consume(CDG.build(graph, graph.entry, graph.exit, edgeFactory));
-		}
-	}
-	
-	//@Benchmark
-	@Warmup(iterations = 1, time = 5)
-	@Measurement(iterations = 1, time = 5)
-	@BenchmarkMode(Mode.AverageTime)
 	public void testNTICDGraphPostdominanceFrontiersForRandomWithUniqueExitNode(RandomGraphsWithUniqueExitNode randomGraphs, Blackhole blackhole) {
 		for (int i = 0; i < randomGraphs.getNrOfGraphs(); i++) {
 			final EntryExitGraph graph = randomGraphs.graphs.get(i);
@@ -787,32 +724,10 @@ public class MyBenchmark {
 	@Warmup(iterations = 1, time = 5)
 	@Measurement(iterations = 1, time = 5)
 	@BenchmarkMode(Mode.AverageTime)
-	public void testNClassicCDGForForEntryExitLadder(EntryExitLadderGraph ladderGraphs, Blackhole blackhole) {
-		for (int i = 0; i < ladderGraphs.getNrOfGraphs(); i++) {
-			final EntryExitGraph graph = ladderGraphs.graphs.get(i);
-			blackhole.consume(CDG.build(graph, graph.entry, graph.exit, edgeFactory));
-		}
-	}
-	
-	//@Benchmark
-	@Warmup(iterations = 1, time = 5)
-	@Measurement(iterations = 1, time = 5)
-	@BenchmarkMode(Mode.AverageTime)
 	public void testSinkPostdominanceFrontiersForEntryExitLadder(EntryExitLadderGraph ladderGraphs, Blackhole blackhole) {
 		for (int i = 0; i < ladderGraphs.getNrOfGraphs(); i++) {
 			final DirectedGraph<Node, Edge> graph = ladderGraphs.graphs.get(i);
 			blackhole.consume(SinkpathPostDominators.compute(graph));
-		}
-	}
-	
-	//@Benchmark
-	@Warmup(iterations = 1, time = 5)
-	@Measurement(iterations = 1, time = 5)
-	@BenchmarkMode(Mode.AverageTime)
-	public void testClassicPostdominanceFrontiersGForForEntryExitLadder(EntryExitLadderGraph ladderGraphs, Blackhole blackhole) {
-		for (int i = 0; i < ladderGraphs.getNrOfGraphs(); i++) {
-			final EntryExitGraph graph = ladderGraphs.graphs.get(i);
-			blackhole.consume(ClassicPostdominance.classicPostdominance(graph, graph.entry, graph.exit));
 		}
 	}
 	
@@ -824,8 +739,6 @@ public class MyBenchmark {
 		randomGraphs.doSetup();
 		System.out.println(randomGraphs.mss);
 		new MyBenchmark().testWeakControlClosureViaNTICD(                                 randomGraphs, blackhole);
-		//new MyBenchmark().testClassicCDGForRandomWithUniqueExitNode(                      randomGraphs, blackhole);
-		//new MyBenchmark().testNTICDGraphPostdominanceFrontiersForRandomWithUniqueExitNode(randomGraphs, blackhole);
 	}
 	
 	//public static void mainPrintParam(String[] args) {

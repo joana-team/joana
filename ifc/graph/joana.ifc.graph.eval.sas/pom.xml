@@ -57,6 +57,11 @@ THE POSSIBILITY OF SUCH DAMAGE.
             <version>${jmh.version}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.jgrapht</groupId>
+            <artifactId>jgrapht-core</artifactId>
+            <version>0.9.2</version>
+        </dependency>
 <!--         <dependency> -->
 <!-- 		    <groupId>org.jgrapht</groupId> -->
 <!-- 		    <artifactId>jgrapht</artifactId> -->
@@ -64,13 +69,13 @@ THE POSSIBILITY OF SUCH DAMAGE.
 <!-- 		    <scope>system</scope> -->
 <!-- 		    <systemPath>${project.basedir}/../../contrib/lib/jgrapht-core-0.9.2.jar</systemPath> -->
 <!-- 		</dependency> -->
-        <dependency>
-		    <groupId>edu.kit.joana</groupId>
-		    <artifactId>api</artifactId>
-		    <version>1.0</version>
-		    <scope>system</scope>
-		    <systemPath>${project.basedir}/../../dist/joana.api.jar</systemPath>
-		</dependency>
+<!--         <dependency> -->
+<!-- 		    <groupId>edu.kit.joana</groupId> -->
+<!-- 		    <artifactId>api</artifactId> -->
+<!-- 		    <version>1.0</version> -->
+<!-- 		    <scope>system</scope> -->
+<!-- 		    <systemPath>${project.basedir}/../../../dist/joana.api.jar</systemPath> -->
+<!-- 		</dependency> -->
     </dependencies>
 
     <properties>

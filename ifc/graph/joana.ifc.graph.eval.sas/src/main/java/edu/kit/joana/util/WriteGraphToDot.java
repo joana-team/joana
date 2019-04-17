@@ -5,7 +5,7 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-package edu.kit.joana.wala.util;
+package edu.kit.joana.util;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;

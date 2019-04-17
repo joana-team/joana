@@ -70,6 +70,7 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
+import edu.kit.joana.util.WriteGraphToDot;
 import edu.kit.joana.util.collections.SimpleVector;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.GraphWalker;
@@ -83,7 +84,6 @@ import edu.kit.joana.wala.core.graphs.SinkpathPostDominators;
 import edu.kit.joana.wala.core.graphs.SinkpathPostDominators.ISinkdomEdge;
 import edu.kit.joana.wala.core.graphs.FCACD;
 import edu.kit.joana.wala.core.graphs.NTICDControlSlices;
-import edu.kit.joana.wala.util.WriteGraphToDot;
 
 @Fork(value = 1, jvmArgsAppend = "-Xss128m")
 public class SASBenchmarks {

@@ -39,7 +39,7 @@ import edu.kit.joana.wala.core.graphs.SinkpathPostDominators.Node;
  * @author Martin Hecker  <martin.hecker@kit.edu>
  *
  */
-public class NTICDMyWod {
+public class NTIOD {
 
 	/**
 	 * 

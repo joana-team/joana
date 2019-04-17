@@ -120,8 +120,8 @@ public class ControlSlicesRandomizedTests {
 			final Set<Node> ms = p.getFirst();
 			
 			
-			final Set<Node> resultNTICD = NTICDControlSlices.nticdMyWodViaNticd(graph, ms, Edge.class, edgeFactory);
-			final Set<Node> resultMYWOD = NTICDControlSlices.nticdMyWod(graph, ms, Edge.class, edgeFactory);
+			final Set<Node> resultNTICD = NTICDControlSlices.nticdNtiodViaNticd(graph, ms, Edge.class, edgeFactory);
+			final Set<Node> resultMYWOD = NTICDControlSlices.nticdNtiod(graph, ms, Edge.class, edgeFactory);
 			final Set<Node> resultISINKDOM = SinkdomControlSlices.nticdMyWod(graph, ms, Edge.class, edgeFactory);
 			
 			assertEquals(resultNTICD, resultISINKDOM);

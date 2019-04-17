@@ -187,9 +187,9 @@ public class JavaBenchmark {
 		}
 	}
 	
-	public static class NticdMyWod {
-		public static Set<PDGNode> viaMYWOD(DirectedGraph<PDGNode, PDGEdge> graph, Set<PDGNode> ms) {
-			final Set<PDGNode> result = NTICDControlSlices.nticdMyWod(graph, ms, PDGEdge.class, edgeFactory);
+	public static class NticdNtiod {
+		public static Set<PDGNode> viaNTIOD(DirectedGraph<PDGNode, PDGEdge> graph, Set<PDGNode> ms) {
+			final Set<PDGNode> result = NTICDControlSlices.nticdNtiod(graph, ms, PDGEdge.class, edgeFactory);
 			return result;
 		}
 	}

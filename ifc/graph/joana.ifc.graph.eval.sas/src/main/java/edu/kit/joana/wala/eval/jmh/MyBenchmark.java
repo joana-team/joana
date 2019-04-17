@@ -77,7 +77,7 @@ import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
 import edu.kit.joana.util.graph.LadderGraphGenerator;
 import edu.kit.joana.wala.core.graphs.NTICDGraphPostdominanceFrontiers;
-import edu.kit.joana.wala.core.graphs.NTICDMyWod;
+import edu.kit.joana.wala.core.graphs.NTIOD;
 import edu.kit.joana.wala.core.graphs.SinkdomControlSlices;
 import edu.kit.joana.wala.core.graphs.SinkpathPostDominators;
 import edu.kit.joana.wala.core.graphs.SinkpathPostDominators.ISinkdomEdge;
@@ -116,8 +116,8 @@ public class MyBenchmark {
 	}
 	
 	public static class NticdNtiod {
-		public static Set<Node> viaMYWOD(DirectedGraph<Node, Edge> graph, Set<Node> ms) {
-			final Set<Node> result = NTICDControlSlices.nticdMyWod(graph, ms, Edge.class, edgeFactory);
+		public static Set<Node> viaNTIOD(DirectedGraph<Node, Edge> graph, Set<Node> ms) {
+			final Set<Node> result = NTICDControlSlices.nticdNtiod(graph, ms, Edge.class, edgeFactory);
 			return result;
 		}
 	}
@@ -619,13 +619,13 @@ public class MyBenchmark {
 	@Warmup(iterations = 1, time = 3)
 	@Measurement(iterations = 1, time = 3)
 	@BenchmarkMode(Mode.AverageTime)
-	public void countMyWodSize(RandomGraphsArbitraryNoExitNodes randomGraphs, Size size, Blackhole blackhole) {
+	public void countNTIODSize(RandomGraphsArbitraryNoExitNodes randomGraphs, Size size, Blackhole blackhole) {
 		for (int i = 0; i < randomGraphs.getNrOfGraphs(); i++) {
-			final Map<Node, Map<Node, Set<Node>>> mywod = NTICDMyWod.compute(randomGraphs.graphs.get(i), edgeFactory, Edge.class);
-			blackhole.consume(mywod);
+			final Map<Node, Map<Node, Set<Node>>> ntiod = NTIOD.compute(randomGraphs.graphs.get(i), edgeFactory, Edge.class);
+			blackhole.consume(ntiod);
 			if (size.size == 0) {
-				int sizeMyWod = mywod.values().stream().map(m2 -> m2.values().stream().map(ns -> ns.size()).reduce(0, Integer::sum)).reduce(0, Integer::sum);
-				size.size = sizeMyWod;
+				int sizeNTIOD = ntiod.values().stream().map(m2 -> m2.values().stream().map(ns -> ns.size()).reduce(0, Integer::sum)).reduce(0, Integer::sum);
+				size.size = sizeNTIOD;
 			}
 		}
 	}

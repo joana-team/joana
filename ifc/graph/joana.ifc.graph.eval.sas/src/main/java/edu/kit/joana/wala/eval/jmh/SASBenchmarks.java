@@ -527,6 +527,11 @@ public class SASBenchmarks {
 				final DirectedGraph<Node, Edge> graph = new AbstractJoanaGraph<Node, Edge>(edgeFactory, () -> new SimpleVector<>(0, n), Edge.class) {};
 				generator.generateGraph(graph, newVertexFactory(), null);
 				
+				// Graphs generated with the JGraphT RandomGraphGenerator tend rarely have non-trivial control-sinks,
+				// hence ntiod is often empty.
+				// In order to obtain a reasonable number of samples with non-empty ntiod, we artifically
+				// connect some trivial sink nodes n (i.e: nodes m with no successor, other than possibly itself)
+				// to some cfg node m for which already   m -->* n in the graph, by adding an edge n --> m.
 				addBackEdgesToExitNodes(graph);
 				
 				this.graphs.add(graph);

@@ -41,8 +41,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
     <name>JOANA Benachmarks for SAS 2019</name>
 
     <!--
-       This is the demo/sample template build script for building Java benchmarks with JMH.
-       Edit as needed.
+       Derived from the demo/sample template build script for building Java benchmarks with JMH.
     -->
 
     <dependencies>
@@ -62,20 +61,12 @@ THE POSSIBILITY OF SUCH DAMAGE.
             <artifactId>jgrapht-core</artifactId>
             <version>0.9.2</version>
         </dependency>
-<!--         <dependency> -->
-<!-- 		    <groupId>org.jgrapht</groupId> -->
-<!-- 		    <artifactId>jgrapht</artifactId> -->
-<!-- 		    <version>0.9.2</version> -->
-<!-- 		    <scope>system</scope> -->
-<!-- 		    <systemPath>${project.basedir}/../../contrib/lib/jgrapht-core-0.9.2.jar</systemPath> -->
-<!-- 		</dependency> -->
-<!--         <dependency> -->
-<!-- 		    <groupId>edu.kit.joana</groupId> -->
-<!-- 		    <artifactId>api</artifactId> -->
-<!-- 		    <version>1.0</version> -->
-<!-- 		    <scope>system</scope> -->
-<!-- 		    <systemPath>${project.basedir}/../../../dist/joana.api.jar</systemPath> -->
-<!-- 		</dependency> -->
+            <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <properties>
@@ -144,29 +135,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
                     </execution>
                 </executions>
             </plugin>
-<!--             <plugin> -->
-<!--     <groupId>org.codehaus.mojo</groupId> -->
-<!--     <artifactId>exec-maven-plugin</artifactId> -->
-<!--     <executions> -->
-<!--         <execution> -->
-<!--             <id>run-benchmarks</id> -->
-<!--             <phase>integration-test</phase> -->
-<!--             <goals> -->
-<!--                 <goal>exec</goal> -->
-<!--             </goals> -->
-<!--             <configuration> -->
-<!--                 <classpathScope>test</classpathScope> -->
-<!--                 <executable>java</executable> -->
-<!--                 <arguments> -->
-<!--                     <argument>-classpath</argument> -->
-<!--                     <classpath /> -->
-<!--                     <argument>org.openjdk.jmh.Main</argument> -->
-<!--                     <argument>.*</argument> -->
-<!--                 </arguments> -->
-<!--             </configuration> -->
-<!--         </execution> -->
-<!--     </executions> -->
-<!-- </plugin> -->
         </plugins>
         <pluginManagement>
             <plugins>
@@ -205,6 +173,11 @@ THE POSSIBILITY OF SUCH DAMAGE.
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>2.17</version>
+                      <configuration>
+                          <includes>
+                            <include>**/*Tests.java</include>
+                          </includes>
+                      </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>

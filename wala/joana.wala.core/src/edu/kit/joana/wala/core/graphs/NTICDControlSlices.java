@@ -27,7 +27,16 @@ import edu.kit.joana.util.graph.KnowsVertices;
  * @author Martin Hecker <martin.hecker@kit.edu>
  */
 public class NTICDControlSlices {
-	
+
+	/**
+	 * Computes the weakly deciding nodes, by computing nticd for a modification of graph
+	 * 
+	 * @param graph The control flow graph
+	 * @param ms the slicing criterion -- a set of nodes in graph
+	 * @param classE {@link Class} of E 
+	 * @param edgeFactory a factory for E
+	 * @return the set of weakly deciding nodes for ms
+	 */
 	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> Set<V> wd(DirectedGraph<V,E> graph, Set<V> ms, Class<E> classE, EdgeFactory<V, E> edgeFactory) {
 		final DirectedGraph<V, E> gMS = new DeleteSuccessorNodesAndToOnly<>(graph, ms, classE);
 		
@@ -86,6 +95,15 @@ public class NTICDControlSlices {
 		return result;
 	}
 	
+	/**
+	 * Computes the (nticd ⨃ ntiod)-backward slice, by computing nticd for a modification of graph
+	 * 
+	 * @param graph The control flow graph
+	 * @param ms the slicing criterion -- a set of nodes in graph
+	 * @param classE {@link Class} of E 
+	 * @param edgeFactory a factory for E
+	 * @return (nticd ⨃ ntiod)(ms)
+	 */
 	public static <V extends IntegerIdentifiable ,E extends KnowsVertices<V>> Set<V> nticdNtiodViaNticd(DirectedGraph<V,E> graph, Set<V> ms, Class<E> classE, EdgeFactory<V, E> edgeFactory) {
 		final DirectedGraph<V, E> gMS = new DeleteSuccessorNodes<>(graph, ms, classE);
 		
@@ -115,9 +133,18 @@ public class NTICDControlSlices {
 		return result;
 	}
 
+	/**
+	 * Computes the (nticd ⨃ ntiod)-backward slice, by computing nticd and ntiod for graph
+	 * 
+	 * @param graph The control flow graph
+	 * @param ms the slicing criterion -- a set of nodes in graph
+	 * @param classE {@link Class} of E 
+	 * @param edgeFactory a factory for E
+	 * @return (nticd ⨃ ntiod)(ms)
+	 */
 	public static <V extends IntegerIdentifiable ,E extends KnowsVertices<V>> Set<V> nticdNtiod(DirectedGraph<V,E> graph, Set<V> ms, Class<E> classE, EdgeFactory<V, E> edgeFactory) {
 		final NTICDGraphPostdominanceFrontiers<V, E> nticd = NTICDGraphPostdominanceFrontiers.compute(graph, edgeFactory, classE);
-		final Map<V, Map<V, Set<V>>> mywod = NTIOD.compute(graph, edgeFactory, classE);
+		final Map<V, Map<V, Set<V>>> ntiod = NTIOD.compute(graph, edgeFactory, classE);
 		
 		final Set<V> result = new HashSet<>(ms); {
 			
@@ -140,14 +167,14 @@ public class NTICDControlSlices {
 				}
 				
 				final LinkedList<V> toAdd = new LinkedList<>();
-				final Map<V, Set<V>> asM2 = mywod.getOrDefault(m, Collections.emptyMap());
+				final Map<V, Set<V>> asM2 = ntiod.getOrDefault(m, Collections.emptyMap());
 				for (V m1 : result) {
 					for (V n : asM2.getOrDefault(m1, Collections.emptySet())) {
 						toAdd.add(n);
 					}
 				}
 				for (V m2 : result) {
-					for (V n : mywod.getOrDefault(m2, Collections.emptyMap()).getOrDefault(m, Collections.emptySet())) {
+					for (V n : ntiod.getOrDefault(m2, Collections.emptyMap()).getOrDefault(m, Collections.emptySet())) {
 						toAdd.add(n);
 					}
 				}

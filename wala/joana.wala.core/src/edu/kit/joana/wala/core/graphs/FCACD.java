@@ -192,11 +192,25 @@ public class FCACD<V, E extends KnowsVertices<V>> {
 		return Pair.pair(w, obs);
 	}
 	
+	/**
+	 * Computes the weakly deciding nodes.
+	 * 
+	 * @param graph The control flow graph
+	 * @param vv a set of nodes in graph
+	 * @return the set of weakly deciding nodes for vv
+	 */
 	public static <V,E extends KnowsVertices<V>> Set<V> wd(DirectedGraph<V,E> graph, Set<V> vv) {
 		final FCACD<V, E> fcacd = new FCACD<>(graph);
 		return fcacd.main(vv).getFirst();
 	}
 	
+	/**
+	 * Computes the weakly control closure.
+	 * 
+	 * @param graph The control flow graph
+	 * @param vv a set of nodes in graph
+	 * @return the weakly control closure of vv
+	 */
 	public static <V,E extends KnowsVertices<V>> Set<V> wcc(DirectedGraph<V,E> graph, Set<V> vv) {
 		final FCACD<V, E> fcacd = new FCACD<>(graph);
 		final Set<V> w = fcacd.main(vv).getFirst();

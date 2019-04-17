@@ -1,14 +1,14 @@
 .PHONY: all
 
-all: mywodSIZE-3000-x1-20n-maxdepth100-taurec.csv mywodTIME-3000-x1-20n-maxdepth100-taurec.csv randomnticd.oneentryperline.csv
+all: ntiodSIZE-3000-x1-15n-maxdepth100-taurec.csv ntiodTIME-3000-x1-15n-maxdepth100-taurec.csv randomnticd.oneentryperline.csv
 
-mywod.csv :
+ntiod.csv :
 	mvn clean install -DskipTests && java -cp 'target/benchmarks.jar' org.openjdk.jmh.Main countNTIODSize -rf csv -rff $@
 
-mywodSIZE-3000-x1-20n-maxdepth100-taurec.csv : mywod.csv
+ntiodSIZE-3000-x1-15n-maxdepth100-taurec.csv : ntiod.csv
 	cat $< | grep ":size" | awk '{gsub(/\"/,"")};1' > $@
 
-mywodTIME-3000-x1-20n-maxdepth100-taurec.csv : mywod.csv
+ntiodTIME-3000-x1-15n-maxdepth100-taurec.csv : ntiod.csv
 	cat $< | grep -v ":size" | grep -v "Unit" | awk '{gsub(/\"/,"")};1' > $@
 
 

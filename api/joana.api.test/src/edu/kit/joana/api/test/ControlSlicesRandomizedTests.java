@@ -32,7 +32,7 @@ import edu.kit.joana.wala.core.graphs.SinkdomControlSlices;
 /**
  * @author Martin Hecker <martin.hecker@kit.edu>
  */
-public class ControlSlicesTestsRandomized {
+public class ControlSlicesRandomizedTests {
 
 	static final int seed = 48;
 	static final int maxSize = 400;

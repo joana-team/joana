@@ -22,10 +22,29 @@ import edu.kit.joana.util.graph.GraphWalker;
 import edu.kit.joana.util.graph.KnowsVertices;
 
 /**
+ * An implementation of the weak-control-closure algorithm from [1].
+ * I somewhat follows the reference WHY3 implementation provided in [2],
+ * but used efficient representations whenever profiling revealed it to be beneficial.
+ *   
+ * [1] Léchenet JC., Kosmatov N., Le Gall P. (2018) Fast Computation of Arbitrary Control Dependencies,
+ *     https://doi.org/10.1007/978-3-319-89363-1_12
+ * [2] http://perso.ecp.fr/~lechenetjc/control/download.html
+ * 
  * @author Martin Hecker <martin.hecker@kit.edu>
  */
 public class FCACD<V, E extends KnowsVertices<V>> {
 	
+	/**
+	 * Efficient representation of 
+	 * * the map "obs",
+	 * * the set "w", and
+	 * * membership in the worklists in proceure "main" and "propagate".
+	 * 
+	 * Wrapping V in Node<V> is benficial overall, but does not completly avoid HashMap/Set lookups,
+	 * because i still sometimes need to obtain the wrapped Node<V> from a V by lookup in FCACD.v2Node
+	 * 
+	 * @author Martin Hecker <martin.hecker@kit.edu>
+	 */
 	static class Node<V> {
 		final V v;
 		Node<V> obs;
@@ -58,22 +77,8 @@ public class FCACD<V, E extends KnowsVertices<V>> {
 		boolean assertionsEnabled = false;
 		assert (assertionsEnabled = true);
 		this.assertionsEnabled = assertionsEnabled;
-			
-		
-		// TODO Auto-generated constructor stub
 	}
-	/*
-	confirm :: Map Node [Node] -> Map Node Node -> Node -> Node -> Bool
-	confirm sucs obs u u_obs =
-	    let result0 = False in
-	    let succ0 = Set.fromList $ sucs ! u in
-	    loop succ0 result0
-	  where loop succ result
-	            | Set.null succ                                   = result
-	            | Map.member v obs   ∧   (not $ u_obs == obs ! v) = loop succ' True
-	            | otherwise                                       = loop succ' result
-	          where (v, succ') = Set.deleteFindMin succ
-*/	
+	
 	private boolean  confirm(Map<Node<V>, Node<V>> obs, Node<V> u, Node<V> uObs) {
 		for (E e : graph.outgoingEdgesOf(u.v)) {
 			final Node<V> v = v2node.get(e.getTarget());
@@ -84,40 +89,6 @@ public class FCACD<V, E extends KnowsVertices<V>> {
 		}
 		return false;
 	}
-	
-	/*
-propagate :: Map Node (Set Node) -> Map Node [Node] -> Set Node -> Map Node Node -> Node -> Node -> (Set Node, Map Node Node)
-propagate pres sucs w obs0 u v = 
-    let worklist0   = Set.fromList [u]
-        candidates0 = Set.empty
-        result = loop obs0 worklist0 candidates0
-    in -- traceShow (w, obs0, "++++", u, v, "*****", result) $
-       result
-  where loop obs worklist candidates
-            | Set.null worklist = (candidates, obs)
-            | otherwise         = let (obs'', worklist'', candidates'') = loop2 pred_todo0 obs worklist' candidates
-                                  in loop obs'' worklist'' candidates''
-          where (n, worklist') = Set.deleteFindMin worklist
-                pred_todo0 = pres ! n
-                
-                loop2 pred_todo obs worklist candidates
-                    | Set.null pred_todo = (obs, worklist, candidates)
-                    | not $ u0 ∈  w      = let (obs', worklist', candidates') = 
-                                                 if Map.member u0 obs then
-                                                   if not $ (obs ! u0) == v then
-                                                     (Map.insert u0 v obs, Set.insert u0 worklist, if isCond $ sucs ! u0 then Set.insert u0 candidates      else candidates)
-                                                   else
-                                                     (                obs,               worklist,                                                               candidates)
-                                                 else
-                                                     (Map.insert u0 v obs, Set.insert u0 worklist,                                                               candidates)
-                                           in -- traceShow (u0, Map.lookup u0 obs, candidates') $
-                                              loop2 pred_todo' obs' worklist' candidates'
-                    | otherwise          =    loop2 pred_todo' obs  worklist  candidates
-                  where (u0, pred_todo') = Set.deleteFindMin pred_todo
-        isCond []  = False
-        isCond [_] = False
-        isCond _   = True
-	 */
 
 	private  List<Node<V>> propagate(Set<V> w, Map<Node<V>, Node<V>> obs, Node<V> u, Node<V> v) {
 		final LinkedList<Node<V>> worklist = new LinkedList<>();
@@ -173,24 +144,6 @@ propagate pres sucs w obs0 u v =
 		}
 		return candidates;
 	}
-	
-	/*
-main :: Graph gr => gr a b -> Set Node -> (Set Node, Map Node Node)
-main g v' = 
-      let w0 = v'
-          obs0 = Map.fromList [ (n,n) | n <- Set.toList v' ]
-          worklist0 = v'
-      in loop w0 obs0 worklist0
-  where pres = Map.fromList [ (n, Set.fromList $ pre g n) | n <- nodes g]
-        sucs = Map.fromList [ (n,                suc g n) | n <- nodes g]
-        loop w obs worklist
-            | Set.null worklist = -- traceShow (w, obs, worklist) $
-                                  (w, obs)
-            | otherwise         = -- traceShow (w, obs, worklist, "*****", u, candidates, new_nodes, obs') $
-                                  loop (w ∪ new_nodes)   (Map.union (Map.fromSet id new_nodes) obs')   (worklist' ∪ new_nodes)
-          where (u, worklist') = Set.deleteFindMin worklist
-                (candidates, obs') =  propagate pres sucs w obs u u
-                new_nodes = Set.filter (\v ->  confirm sucs obs' v u) candidates	 */
 	
 	private Pair<Set<V>, Map<Node<V>,Node<V>>> main(Set<V> vv) {
 		final Set<V> w = new HashSet<>(vv.size());

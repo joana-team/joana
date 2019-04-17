@@ -23,8 +23,8 @@ import edu.kit.joana.util.graph.KnowsVertices;
 
 /**
  * An implementation of the weak-control-closure algorithm from [1].
- * I somewhat follows the reference WHY3 implementation provided in [2],
- * but used efficient representations whenever profiling revealed it to be beneficial.
+ * It follows the reference WHY3 implementation provided in [2],
+ * but uses efficient representations whenever profiling revealed that to be beneficial.
  *   
  * [1] Léchenet JC., Kosmatov N., Le Gall P. (2018) Fast Computation of Arbitrary Control Dependencies,
  *     https://doi.org/10.1007/978-3-319-89363-1_12
@@ -40,7 +40,7 @@ public class FCACD<V, E extends KnowsVertices<V>> {
 	 * * the set "w", and
 	 * * membership in the worklists in proceure "main" and "propagate".
 	 * 
-	 * Wrapping V in Node<V> is benficial overall, but does not completly avoid HashMap/Set lookups,
+	 * Wrapping V in Node<V> is beneficial overall, but does not completly avoid HashMap/Set lookups,
 	 * because i still sometimes need to obtain the wrapped Node<V> from a V by lookup in FCACD.v2Node
 	 * 
 	 * @author Martin Hecker <martin.hecker@kit.edu>

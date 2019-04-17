@@ -86,7 +86,7 @@ import edu.kit.joana.wala.core.graphs.NTICDControlSlices;
 import edu.kit.joana.wala.util.WriteGraphToDot;
 
 @Fork(value = 1, jvmArgsAppend = "-Xss128m")
-public class MyBenchmark {
+public class SASBenchmarks {
 	
 	@SuppressWarnings("serial")
 	public static class EntryExitGraph extends AbstractJoanaGraph<Node, Edge> {
@@ -298,7 +298,7 @@ public class MyBenchmark {
 		public abstract int getNrOfGraphs();
 		
 		public final VertexFactory<Node> newVertexFactory() {
-			return new VertexFactory<MyBenchmark.Node>() {
+			return new VertexFactory<SASBenchmarks.Node>() {
 				private int id = 0;
 				@Override
 				public Node createVertex() {
@@ -718,7 +718,7 @@ public class MyBenchmark {
 		randomGraphs.n = 62;
 		randomGraphs.doSetup();
 		System.out.println(randomGraphs.mss);
-		new MyBenchmark().testWeakControlClosureViaNTICD(                                 randomGraphs, blackhole);
+		new SASBenchmarks().testWeakControlClosureViaNTICD(                                 randomGraphs, blackhole);
 	}
 	
 	//public static void mainPrintParam(String[] args) {
@@ -738,7 +738,7 @@ public class MyBenchmark {
 	public static void mainManual(String[] args) throws RunnerException {
 	//public static void main(String[] args) throws RunnerException {		
 		Options opt = new OptionsBuilder()
-			.include(MyBenchmark.class.getSimpleName())
+			.include(SASBenchmarks.class.getSimpleName())
 			.forks(1)
 			.build();
 		new Runner(opt).run();

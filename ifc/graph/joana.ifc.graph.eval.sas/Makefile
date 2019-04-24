@@ -1,6 +1,6 @@
 .PHONY: all
 
-all: ntiodSIZE-3000-x1-15n-maxdepth100-taurec.csv ntiodTIME-3000-x1-15n-maxdepth100-taurec.csv randomnticd.oneentryperline.csv
+all: ntiodSIZE-3000-x1-15n-maxdepth100-taurec.csv ntiodTIME-3000-x1-15n-maxdepth100-taurec.csv randomnticd.oneentryperline.csv wccISINKDOM-65000-x100-20n-taurec.csv wccFCACD-65000-x100-20n-taurec.csv wccISINKDOM-250000-x100-20n-taurec wccFCACD-250000-x100-20n-taurec
 
 ntiod.csv :
 	mvn clean install -DskipTests && java -cp 'target/benchmarks.jar' org.openjdk.jmh.Main countNTIODSize -rf csv -rff $@
@@ -17,6 +17,25 @@ randomnticd.csv :
 
 randomnticd.oneentryperline.csv : randomnticd.csv
 	cat $< | dos2unix | tail -n +2 |                                awk '{gsub(/\"/,"")};1' > $@
+
+
+
+
+wccISINKDOM-65000-x100-20n-taurec.csv : 
+	mvn clean install -DskipTests && java -cp 'target/benchmarks.jar' org.openjdk.jmh.Main testFullWeakControlClosureViaISINKDOMSmall -rf csv -rff $@
+
+	
+wccFCACD-65000-x100-20n-taurec.csv :
+	mvn clean install -DskipTests && java -cp 'target/benchmarks.jar' org.openjdk.jmh.Main testFullWeakControlClosureViaFCACDSmall -rf csv -rff $@
+
+
+wccISINKDOM-250000-x100-20n-taurec :
+	mvn clean install -DskipTests && java -cp 'target/benchmarks.jar' org.openjdk.jmh.Main testFullWeakControlClosureViaISINKDOMBig -rf csv -rff $@
+
+
+wccFCACD-250000-x100-20n-taurec :
+	mvn clean install -DskipTests && java -cp 'target/benchmarks.jar' org.openjdk.jmh.Main testFullWeakControlClosureViaFCACDBig -rf csv -rff $@
+
 
 
 JAVAFILES = $(shell find src -name '*.java')

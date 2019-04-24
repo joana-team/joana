@@ -421,12 +421,10 @@ public class SASBenchmarks {
 	}
 	
 	@State(Scope.Benchmark)
-	public static class FCACDLIkeGraphs extends RandomGraphs<DirectedGraph<Node, Edge>> {
-		@Param({"500", "1000", "1500", "2000", "2500", "3000", "3500", "4000", "4500", "5000", "5500", "6000", "6500", "7000", "7500", "8000", "8500", "9000", "9500", "10000", "10500", "11000", "11500", "12000", "12500", "13000", "13500", "14000", "14500", "15000", "15500", "16000", "16500", "17000", "17500", "18000", "18500", "19000", "19500", "20000", "20500", "21000", "21500", "22000", "22500", "23000", "23500", "24000", "24500", "25000", "25500", "26000", "26500", "27000", "27500", "28000", "28500", "29000", "29500", "30000", "30500", "31000", "31500", "32000", "32500", "33000", "33500", "34000", "34500", "35000", "35500", "36000", "36500", "37000", "37500", "38000", "38500", "39000", "39500", "40000", "40500", "41000", "41500", "42000", "42500", "43000", "43500", "44000", "44500", "45000", "45500", "46000", "46500", "47000", "47500", "48000", "48500", "49000", "49500", "50000", "50500", "51000", "51500", "52000", "52500", "53000", "53500", "54000", "54500", "55000", "55500", "56000", "56500", "57000", "57500", "58000", "58500", "59000", "59500", "60000", "60500", "61000", "61500", "62000", "62500", "63000", "63500", "64000", "64500", "65000"})
-		public int n;
+	public abstract static class FCACDLIkeGraphs extends RandomGraphs<DirectedGraph<Node, Edge>> {
+		ArrayList<Set<Node>> mss;
 		
-		
-		private ArrayList<Set<Node>> mss;
+		abstract int getN();
 		
 		@Override
 		public int getNrOfGraphs() {
@@ -440,33 +438,52 @@ public class SASBenchmarks {
 		
 		@Setup(Level.Trial)
 		public void doSetup() {
-			final Random random = new Random(seed + n);
+			final Random random = new Random(seed + getN());
 			this.graphs = new ArrayList<>();
 			this.mss = new ArrayList<>();
 			
 			for (int i = 0; i < getNrOfGraphs(); i++) {
-				final RandomGraphGenerator<Node, Edge> generator = new RandomGraphGenerator<>(n, nrEdges(n), random.nextLong());
+				final RandomGraphGenerator<Node, Edge> generator = new RandomGraphGenerator<>(getN(), nrEdges(getN()), random.nextLong());
 				@SuppressWarnings("serial")
-				final DirectedGraph<Node, Edge> graph = new AbstractJoanaGraph<Node, Edge>(edgeFactory, () -> new SimpleVector<>(0, n), Edge.class) {};
+				final DirectedGraph<Node, Edge> graph = new AbstractJoanaGraph<Node, Edge>(edgeFactory, () -> new SimpleVector<>(0, getN()), Edge.class) {};
 				generator.generateGraph(graph, newVertexFactory(), null);
 				
 				this.graphs.add(graph);
-				dumpGraph(n, i, graph);
+				dumpGraph(getN(), i, graph);
 				
 				
 				final ArrayList<Node> nodes = new ArrayList<>(graph.vertexSet());
 				int sizeMs = 3;
 				final HashSet<Node> ms = new HashSet<>(sizeMs);
 				for (int j = 0; j < sizeMs; j++) {
-					int id = Math.abs(random.nextInt()) % n;
+					int id = Math.abs(random.nextInt()) % getN();
 					ms.add(nodes.get(id));
 				}
 				this.mss.add(ms);
 			}
 		}
 	}
-
 	
+	public static class FCACDLIkeGraphsSmall extends FCACDLIkeGraphs {
+		@Param({"500", "1000", "1500", "2000", "2500", "3000", "3500", "4000", "4500", "5000", "5500", "6000", "6500", "7000", "7500", "8000", "8500", "9000", "9500", "10000", "10500", "11000", "11500", "12000", "12500", "13000", "13500", "14000", "14500", "15000", "15500", "16000", "16500", "17000", "17500", "18000", "18500", "19000", "19500", "20000", "20500", "21000", "21500", "22000", "22500", "23000", "23500", "24000", "24500", "25000", "25500", "26000", "26500", "27000", "27500", "28000", "28500", "29000", "29500", "30000", "30500", "31000", "31500", "32000", "32500", "33000", "33500", "34000", "34500", "35000", "35500", "36000", "36500", "37000", "37500", "38000", "38500", "39000", "39500", "40000", "40500", "41000", "41500", "42000", "42500", "43000", "43500", "44000", "44500", "45000", "45500", "46000", "46500", "47000", "47500", "48000", "48500", "49000", "49500", "50000", "50500", "51000", "51500", "52000", "52500", "53000", "53500", "54000", "54500", "55000", "55500", "56000", "56500", "57000", "57500", "58000", "58500", "59000", "59500", "60000", "60500", "61000", "61500", "62000", "62500", "63000", "63500", "64000", "64500", "65000"})
+		public int n;
+		
+		@Override
+		int getN() {
+			return n;
+		}
+	}
+	
+	public static class FCACDLIkeGraphsBig extends FCACDLIkeGraphs {
+		@Param({"5000", "10000", "15000", "20000", "25000", "30000", "35000", "40000", "45000", "50000", "55000", "60000", "65000", "70000", "75000", "80000", "85000", "90000", "95000", "100000", "105000", "110000", "115000", "120000", "125000", "130000", "135000", "140000", "145000", "150000", "155000", "160000", "165000", "170000", "175000", "180000", "185000", "190000", "195000", "200000", "205000", "210000", "215000", "220000", "225000", "230000", "235000", "240000", "245000", "250000"})
+		public int n;
+		
+		@Override
+		int getN() {
+			return n;
+		}
+	}
+
 	@State(Scope.Benchmark)
 	public static class RandomGraphsWithUniqueExitNode extends RandomGraphs<EntryExitGraph> {
 		@Param({"400000", "8000", "12000", "16000", "20000", "24000", "28000", "32000", "36000", "40000"})
@@ -640,7 +657,7 @@ public class SASBenchmarks {
 	@Measurement(iterations = 1, time = 3)
 	@OutputTimeUnit(TimeUnit.MILLISECONDS)
 	@BenchmarkMode(Mode.AverageTime)
-	public void testFullWeakControlClosureViaNTICD(FCACDLIkeGraphs randomGraphs, Blackhole blackhole) {
+	public void testFullWeakControlClosureViaNTICDSmall(FCACDLIkeGraphsSmall randomGraphs, Blackhole blackhole) {
 		for (int i = 0; i < randomGraphs.getNrOfGraphs(); i++) {
 			final Set<Node> result = WeakControlClosure.viaNTICD(randomGraphs.graphs.get(i), randomGraphs.mss.get(i));
 			blackhole.consume(result);
@@ -652,7 +669,7 @@ public class SASBenchmarks {
 	@Measurement(iterations = 1, time = 3)
 	@OutputTimeUnit(TimeUnit.MILLISECONDS)
 	@BenchmarkMode(Mode.AverageTime)
-	public void testFullWeakControlClosureViaFCACD(FCACDLIkeGraphs randomGraphs, Blackhole blackhole) {
+	public void testFullWeakControlClosureViaFCACDSmall(FCACDLIkeGraphsSmall randomGraphs, Blackhole blackhole) {
 		for (int i = 0; i < randomGraphs.getNrOfGraphs(); i++) {
 			final Set<Node> result = WeakControlClosure.viaFCACD(randomGraphs.graphs.get(i), randomGraphs.mss.get(i));
 			blackhole.consume(result);
@@ -664,7 +681,31 @@ public class SASBenchmarks {
 	@Measurement(iterations = 1, time = 3)
 	@OutputTimeUnit(TimeUnit.MILLISECONDS)
 	@BenchmarkMode(Mode.AverageTime)
-	public void testFullWeakControlClosureViaISINKDOM(FCACDLIkeGraphs randomGraphs, Blackhole blackhole) {
+	public void testFullWeakControlClosureViaFCACDBig(FCACDLIkeGraphsBig randomGraphs, Blackhole blackhole) {
+		for (int i = 0; i < randomGraphs.getNrOfGraphs(); i++) {
+			final Set<Node> result = WeakControlClosure.viaFCACD(randomGraphs.graphs.get(i), randomGraphs.mss.get(i));
+			blackhole.consume(result);
+		}
+	}
+	
+	@Benchmark
+	@Warmup(iterations = 1, time = 3)
+	@Measurement(iterations = 1, time = 3)
+	@OutputTimeUnit(TimeUnit.MILLISECONDS)
+	@BenchmarkMode(Mode.AverageTime)
+	public void testFullWeakControlClosureViaISINKDOMSmall(FCACDLIkeGraphsSmall randomGraphs, Blackhole blackhole) {
+		for (int i = 0; i < randomGraphs.getNrOfGraphs(); i++) {
+			final Set<Node> result = WeakControlClosure.viaISINKDOM(randomGraphs.graphs.get(i), randomGraphs.mss.get(i));
+			blackhole.consume(result);
+		}
+	}
+	
+	@Benchmark
+	@Warmup(iterations = 1, time = 3)
+	@Measurement(iterations = 1, time = 3)
+	@OutputTimeUnit(TimeUnit.MILLISECONDS)
+	@BenchmarkMode(Mode.AverageTime)
+	public void testFullWeakControlClosureViaISINKDOMBig(FCACDLIkeGraphsBig randomGraphs, Blackhole blackhole) {
 		for (int i = 0; i < randomGraphs.getNrOfGraphs(); i++) {
 			final Set<Node> result = WeakControlClosure.viaISINKDOM(randomGraphs.graphs.get(i), randomGraphs.mss.get(i));
 			blackhole.consume(result);

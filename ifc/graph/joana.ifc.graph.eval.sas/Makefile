@@ -19,4 +19,8 @@ randomnticd.oneentryperline.csv : randomnticd.csv
 	cat $< | dos2unix | tail -n +2 |                                awk '{gsub(/\"/,"")};1' > $@
 
 
-
+JAVAFILES = $(shell find src -name '*.java')
+MISCFILES = README Makefile pom.xml .project .classpath $(shell find .settings)
+ 
+sas-artifact-joana.tar.gz : $(MISCFILES) $(JAVAFILES)
+	rm -f $@ ; tar hczf $@ $^ $(MISCFILES) $(JAVAFILES)

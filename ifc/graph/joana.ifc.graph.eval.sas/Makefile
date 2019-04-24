@@ -20,20 +20,24 @@ randomnticd.oneentryperline.csv : randomnticd.csv
 
 
 
+%.csv : %.raw
+	cat $< | dos2unix | tail -n +2 |                                awk '{gsub(/\"/,"")};1' > $@
 
-wccISINKDOM-65000-x100-20n-taurec.csv : 
+ 
+
+wccISINKDOM-65000-x100-20n-taurec.raw : 
 	mvn clean install -DskipTests && java -cp 'target/benchmarks.jar' org.openjdk.jmh.Main testFullWeakControlClosureViaISINKDOMSmall -rf csv -rff $@
 
 	
-wccFCACD-65000-x100-20n-taurec.csv :
+wccFCACD-65000-x100-20n-taurec.raw :
 	mvn clean install -DskipTests && java -cp 'target/benchmarks.jar' org.openjdk.jmh.Main testFullWeakControlClosureViaFCACDSmall -rf csv -rff $@
 
 
-wccISINKDOM-250000-x100-20n-taurec :
+wccISINKDOM-250000-x100-20n-taurec.raw :
 	mvn clean install -DskipTests && java -cp 'target/benchmarks.jar' org.openjdk.jmh.Main testFullWeakControlClosureViaISINKDOMBig -rf csv -rff $@
 
 
-wccFCACD-250000-x100-20n-taurec :
+wccFCACD-250000-x100-20n-taurec.raw :
 	mvn clean install -DskipTests && java -cp 'target/benchmarks.jar' org.openjdk.jmh.Main testFullWeakControlClosureViaFCACDBig -rf csv -rff $@
 
 

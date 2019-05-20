@@ -1,0 +1,3 @@
+Tests for the nildumu project.
+
+These tests use JUnit5. The test programs are found in the `prog` folder, being annotated with the annotations from the `annotations` folders and tested by the `SimpleRunnerTests`  class.

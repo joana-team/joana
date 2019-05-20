@@ -14,6 +14,7 @@ In case you want to contact us, we are:
 Martin Mohr <martin.mohr@kit.edu>
 Martin Hecker <martin.hecker@kit.edu>
 Simon Bischof <simon.bischof@kit.edu>
+Johannes Bechberger <johannes.bechberger@kit.edu>
 
 Joana is based on previous work and research done by Jens Krinke,
 Christian Hammer, Dennis Giffhorn and many students at the University of
@@ -223,6 +224,8 @@ joana
 +-- ifc
 |   |
 |   +-- sdg _______ IFC algorithms working purely on the SDG.
+|   |   |
+|   |   +-- qifc __ Quantitative information flow analyses
 |   |
 |   +-- wala ______ IFC algorithms using WALA and SDG.
 |

@@ -32,6 +32,7 @@ import edu.kit.joana.util.graph.KnowsVertices;
  * @author Juergen Graf <graf@kit.edu>
  *
  */
+@SuppressWarnings("serial")
 public class NTSCDGraph<V extends IntegerIdentifiable, E extends KnowsVertices<V>> extends AbstractJoanaGraph<V, E> {
 
 	private NTSCDGraph(EdgeFactory<V, E> edgeFactory, Class<E> classE) {

@@ -24,6 +24,7 @@ import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
+import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
 import org.jgrapht.graph.EdgeReversedGraph;
 import org.jgrapht.traverse.DepthFirstIterator;
 
@@ -77,6 +78,7 @@ import edu.kit.joana.wala.core.graphs.NTICDGraph;
 import edu.kit.joana.wala.core.graphs.NTICDGraphGreatestFP;
 import edu.kit.joana.wala.core.graphs.NTICDGraphGreatestFPWorklistSymbolic;
 import edu.kit.joana.wala.core.graphs.NTICDGraphLeastFPDualWorklistSymbolic;
+import edu.kit.joana.wala.core.graphs.NTICDGraphPostdominanceFrontiers;
 import edu.kit.joana.wala.core.graphs.NTSCDGraph;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
@@ -87,6 +89,7 @@ import edu.kit.joana.wala.util.WriteGraphToDot;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
+@SuppressWarnings("serial")
 public final class PDG extends DependenceGraph implements INodeWithNumber {
 
 	public static PDG build(SDGBuilder builder, String name, CGNode node, int id,
@@ -118,6 +121,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 	private final Map<PDGNode, List<PDGField>> call2staticOut = new HashMap<PDGNode, List<PDGField>>();
 
 
+	public static final String DUMMY_LABEL = "dummy";
 	public static final String NOP_LABEL = "nop";
 	/** maps each call nodes to its actual out nodes. Does not include accessed static or object fields.
 	 * for java this is either a single entry containing the exception act-out for void methods,
@@ -564,18 +568,44 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 				cdg.addEdge(entry, exit);
 				break;
 			}
+			case NTICD_ISINKDOM: {
+				cdg = NTICDGraphPostdominanceFrontiers.compute(cfg, new EdgeFactory<PDGNode,PDGEdge>() {
+					public PDGEdge createEdge(PDGNode from, PDGNode to) {
+						return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
+					};
+				},
+				PDGEdge.class);
+				cdg.addEdge(entry, exit);
+				break;
+			}
 			case ADAPTIVE : {
 				final DepthFirstIterator<PDGNode, PDGEdge> reachingExit = new DepthFirstIterator<PDGNode, PDGEdge>(new EdgeReversedGraph<>(cfg), exit);
 				if (Iterators.size(reachingExit) == cfg.vertexSet().size())  {
 					cdg = CDG.build(cfg, entry, exit); 
 				} else {
-					cdg = NTICDGraphGreatestFPWorklistSymbolic.compute(cfg, new EdgeFactory<PDGNode,PDGEdge>() {
+					cdg = NTICDGraphPostdominanceFrontiers.compute(cfg, new EdgeFactory<PDGNode,PDGEdge>() {
 						public PDGEdge createEdge(PDGNode from, PDGNode to) {
 							return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
 						};
 					},
 					PDGEdge.class
 					);
+					
+					final DependenceGraph cfgS = createSinkRepresentativeVariant(cfg);
+					final AbstractJoanaGraph<PDGNode, PDGEdge> cdgS = NTICDGraphPostdominanceFrontiers.compute(cfgS, new EdgeFactory<PDGNode,PDGEdge>() {
+						public PDGEdge createEdge(PDGNode from, PDGNode to) {
+							return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
+						};
+					},
+					PDGEdge.class
+					);
+
+					for (PDGEdge e : cdgS.edgeSet()) {
+						assert (e.getTarget().getLabel() == DUMMY_LABEL) == (!cdg.containsVertex(e.getTarget()));
+						if (e.getTarget().getLabel() != DUMMY_LABEL) {
+							cdg.addEdge(e.getSource(), e.getTarget(), e);
+						}
+					}
 				}
 				break;
 			}
@@ -599,6 +629,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 				final PDGNode to = cdg.getEdgeTarget(edge);
 				// do not add control dep to exception formal out. there is already a
 				// connection through data dependence from ret _exception_ field
+				// TODO: this is not always the case! For example, for call nodes in infinite loops
 				if (!(from.getKind() == PDGNode.Kind.CALL && to == exception)) {
 					addEdge(from, to, (from == entry && to == exit ? PDGEdge.Kind.CONTROL_DEP_EXPR : PDGEdge.Kind.CONTROL_DEP));
 				}
@@ -706,8 +737,47 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 
 		return unreachable;
 	}
+	
+	private DependenceGraph createSinkRepresentativeVariant(DependenceGraph cfg) {
+		final DependenceGraph result = new DependenceGraph(() -> new ArrayMap<>());
+		for (final PDGNode node : cfg.vertexSet()) {
+			result.addVertex(node);
+		}
+		
+		final KosarajuStrongConnectivityInspector<PDGNode, PDGEdge> sccInspector = new KosarajuStrongConnectivityInspector<>(cfg);
+		final Map<PDGNode, PDGNode> freshForRepresentant = new HashMap<>();
+		for (Set<PDGNode> scc : sccInspector.stronglyConnectedSets()) {
+			final boolean isNontrivialSink = scc.size() > 1 && !scc.stream().anyMatch(
+				v -> cfg.outgoingEdgesOf(v).stream().anyMatch(
+					e -> !scc.contains(cfg.getEdgeTarget(e))
+				)
+			);
+			if (isNontrivialSink) {
+				final PDGNode representant = scc.iterator().next();
+				final PDGNode fresh = createDummyNode(DUMMY_LABEL); { // this is awkward
+					freshForRepresentant.put(representant, fresh);
+					cfg.addVertex(fresh);
+					result.addVertex(fresh);
+					this.removeVertex(fresh);
+				}
+			}
+		}
 
-	private DependenceGraph createCfgWithoutParams() {
+		for (PDGEdge e : cfg.edgeSet()) {
+			final PDGNode n = e.getSource();
+			final PDGNode m = e.getTarget();
+			final PDGNode fresh = freshForRepresentant.get(m);
+			if (fresh == null) {
+				result.addEdgeUnsafe(n, m, e);
+			} else if (!n.equals(m)) {
+				result.addEdge(n, fresh, PDGEdge.Kind.CONTROL_FLOW);
+			}
+		}
+		
+		return result;
+	}
+
+	public DependenceGraph createCfgWithoutParams() {
 		final DependenceGraph cfg = new DependenceGraph(() -> new ArrayMap<>());
 		for (final PDGNode node : vertexSet()) {
 			cfg.addVertex(node);

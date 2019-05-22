@@ -19,6 +19,7 @@ import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
 import org.jgrapht.graph.SimpleDirectedGraph;
 
+import edu.kit.joana.util.graph.GraphWalker;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import gnu.trove.stack.TIntStack;
@@ -384,23 +385,28 @@ public class Dominators<V, E> {
             }
         }
 
-        private V minSemiOnPathToRoot(final V node, final V currentMin, final int currentSemi) {
-            final Set<ForestEdge> in = incomingEdgesOf(node);
-            final int preds = in.size();
-            if (preds == 0) {
-                return currentMin;
-            } else if (preds == 1) {
-                final ForestEdge predEdge = in.iterator().next();
-                final V pred = getEdgeSource(predEdge);
-                final int nodeSemi = semi.get(node);
+        private V minSemiOnPathToRoot(V node, V currentMin, int currentSemi) {
+            while(true) {
+                Set<ForestEdge> in = incomingEdgesOf(node);
+                int preds = in.size();
+                if (preds == 0) {
+                    return currentMin;
+                } else if (preds == 1) {
+                    ForestEdge predEdge = in.iterator().next();
+                    V pred = getEdgeSource(predEdge);
+                    int nodeSemi = semi.get(node);
 
-                if (nodeSemi < currentSemi) {
-                    return minSemiOnPathToRoot(pred, node, nodeSemi);
+                    if (nodeSemi < currentSemi) {
+                        V oldNode = node;
+                        node = pred;
+                        currentMin = oldNode;
+                        currentSemi = nodeSemi;
+                    } else {
+                        node = pred;
+                    }
                 } else {
-                    return minSemiOnPathToRoot(pred, currentMin, currentSemi);
+                    throw new IllegalStateException("Not a tree: " + preds + " preds of " + node);
                 }
-            } else {
-                throw new IllegalStateException("Not a tree: " + preds + " preds of " + node);
             }
         }
 

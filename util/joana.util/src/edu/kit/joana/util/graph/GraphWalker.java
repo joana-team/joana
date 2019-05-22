@@ -5,7 +5,7 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-package edu.kit.joana.wala.core.graphs;
+package edu.kit.joana.util.graph;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -47,22 +47,34 @@ public abstract class GraphWalker<V, E> {
         }
     }
 
-    private void dfs(final V node, final Set<V> visited) {
-        visited.add(node);
-
-        discover(node);
-
-        final Iterable<E> outEdges = newOutEdges(graph.outgoingEdgesOf(node));
-        for (final E out : outEdges) {
-        	if (traverse(out)) {
-	            final V succ = graph.getEdgeTarget(out);
-	            if (!visited.contains(succ)) {
-	                dfs(succ, visited);
-	            }
-        	}
+    public final Set<V> traverseDFS(final Iterable<V> starts) {
+        if (NO_RECURSION) {
+            throw new IllegalStateException();
+        } else {
+            Set<V> visited = new HashSet<V>();
+            for (V start : starts) {
+            	dfs(start, visited);
+            }
+            return visited;
         }
+    }
 
-        finish(node);
+    
+    private void dfs(final V node, final Set<V> visited) {
+        if (visited.add(node)) {
+	
+	        discover(node);
+	
+	        final Iterable<E> outEdges = newOutEdges(graph.outgoingEdgesOf(node));
+	        for (final E out : outEdges) {
+	        	if (traverse(node, out)) {
+		            final V succ = graph.getEdgeTarget(out);
+		            dfs(succ, visited);
+	        	}
+	        }
+	
+	        finish(node);
+        }
     }
     
     /**
@@ -70,7 +82,7 @@ public abstract class GraphWalker<V, E> {
      * @param edge The edge that may be traversed.
      * @return true if the provided edge should be traversed.
      */
-    public boolean traverse(E edge) {
+    public boolean traverse(V node, E edge) {
     	return true;
     }
 
@@ -117,7 +129,7 @@ public abstract class GraphWalker<V, E> {
                 discover(current);
 
                 for (E succEdge : newOutEdges(graph.outgoingEdgesOf(current))) {
-                	if (!traverse(succEdge)) {
+                	if (!traverse(current, succEdge)) {
                 		continue;
                 	}
 

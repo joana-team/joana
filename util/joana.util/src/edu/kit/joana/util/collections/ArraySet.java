@@ -37,7 +37,7 @@ import java.util.function.Predicate;
  * 
  * @author martin.hecker@kit.edu <Martin Hecker>
  */
-public class ArraySet<E> extends AbstractSet<E> implements Set<E>{
+public class ArraySet<E> extends AbstractSet<E> implements Set<E> {
 	
 	public static final Comparator<Object> COMPARATOR = new Comparator<Object>() {
 		@Override

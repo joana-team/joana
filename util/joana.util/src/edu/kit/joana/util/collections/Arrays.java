@@ -64,5 +64,13 @@ public class Arrays {
 		
 		return Collections.disjoint(sa, sb);
 	}
+	
+	public static int elemCount(Object[] os) {
+		int count = 0;
+		for (int i = 0; i < os.length; i++) {
+			if (os[i] != null) count++; 
+		}
+		return count;
+	}
 
 }

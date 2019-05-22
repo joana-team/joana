@@ -1,0 +1,9 @@
+1.   run
+       mvn clean install
+     from this directory
+2.  manually run the benchmarks or by running
+      java -cp 'target/benchmarks.jar' org.openjdk.jmh.Main
+    from this directory, or just
+2'. type
+      make
+    to create csv files with the benchmark results

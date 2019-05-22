@@ -40,6 +40,7 @@ public class SDGConfig {
 	private FieldPropagation fieldPropagation;
 	private PointsToPrecision pointsToPrecision;
 	private boolean computeAccessPaths;
+	private boolean localKillingDefs = true;
 	private boolean computeInterferences;
 	private MHPType mhpType = MHPType.NONE;
 	private SideEffectDetectorConfig sideEffects;
@@ -238,6 +239,20 @@ public class SDGConfig {
 	 */
 	public void setComputeInterferences(boolean computeInterferences) {
 		this.computeInterferences = computeInterferences;
+	}
+	
+	/**
+	 * @return the localKillingDefs
+	 */
+	public boolean localKillingDefs() {
+		return localKillingDefs;
+	}
+	
+	/**
+	 * @param localKillingDefs the localKillingDefs to set
+	 */
+	public void setLocalKillingDefs(boolean localKillingDefs) {
+		this.localKillingDefs = localKillingDefs;
 	}
 
 	/**

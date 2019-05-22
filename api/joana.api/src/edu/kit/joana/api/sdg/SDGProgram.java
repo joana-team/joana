@@ -476,6 +476,7 @@ public class SDGProgram {
 		cfg.computeSummaryEdges = config.isComputeSummaryEdges();
 		cfg.summaryComputationType = config.getSummaryComputationType();
 		cfg.computeInterference = config.computeInterferences();
+		cfg.localKillingDefs = config.localKillingDefs();
 		cfg.isParallel = config.isParallel();
 		cfg.controlDependenceVariant = config.getControlDependenceVariant();
 		debug.outln(cfg.stubs);

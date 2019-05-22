@@ -104,6 +104,7 @@ import edu.kit.joana.wala.core.params.StaticFieldParams;
 import edu.kit.joana.wala.core.params.objgraph.ModRefCandidates;
 import edu.kit.joana.wala.core.params.objgraph.ObjGraphParams;
 import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig;
+import edu.kit.joana.wala.core.params.objgraph.ObjGraphParams.Options;
 import edu.kit.joana.wala.flowless.util.Util;
 import edu.kit.joana.wala.summary.ISummaryComputer;
 import edu.kit.joana.wala.summary.SummaryComputationType;
@@ -188,7 +189,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 	 * 
 	 * @author Martin Hecker <martin.hecker@kit.edu>
 	 */
-	public static enum ControlDependenceVariant { CLASSIC, NTSCD, @Deprecated NTICD_LFP, NTICD_GFP, ADAPTIVE, NTICD_GFP_WORKLIST_SYMBOLIC, NTICD_LFP_DUAL_WORKLIST };
+	public static enum ControlDependenceVariant { CLASSIC, NTSCD, @Deprecated NTICD_LFP, NTICD_GFP, ADAPTIVE, NTICD_GFP_WORKLIST_SYMBOLIC, NTICD_LFP_DUAL_WORKLIST, NTICD_ISINKDOM };
 	public static final ControlDependenceVariant defaultControlDependenceVariant = ControlDependenceVariant.ADAPTIVE;
 
 	public static enum ExceptionAnalysis {
@@ -319,6 +320,10 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 
 	public static enum FieldPropagation {
 		/*
+		 * No heap parameter fields at all. UNSOUND.
+		 */
+		NONE(false, "none - no heap parameter fields at all. UNSOUND."),
+		/*
 		 * Very imprecise side-effect computation. Merges all effects/heap locations reachable through a methods
 		 * parameter to a single node.
 		 * Slow (could be optimized through caching) and imprecise. Do not use unless for academic evaluation purposes.
@@ -382,6 +387,10 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		 * Special variant of object-tree for access paths. 
 		 */
 		OBJ_TREE_AP(false, "object-tree - old tree-based propagation for access paths (internal use only)"),
+		/*
+		 * Skips as many steps as possible. UNSOUND. 
+		 */
+		OBJ_GRAPH_SKIP(false, "object-graph - skip as many processing steps as possible. UNSOUND"),
 		/*
 		 * A special variant of the object tree algorithm that allows multiple nodes for a single field. A little bit
 		 * more precise and even slower. Again kept around for evaluation purposes.
@@ -1391,8 +1400,26 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 
 	private void addDataFlowForHeapFields(IProgressMonitor progress) throws CancelException {
 		switch (cfg.fieldPropagation) {
+		case NONE:
+			break;
 		case FLAT: {
 			FlatHeapParams.compute(this, progress);
+		}
+			break;
+		case OBJ_GRAPH_SKIP: {
+			final ObjGraphParams.Options opt = new ObjGraphParams.Options();
+			opt.isCutOffUnreachable = false;
+			opt.isMergeException = false;
+			opt.isCutOffImmutables = false;
+			opt.isMergeOneFieldPerParent = false;
+			opt.isMergePrunedCallNodes = true;
+			opt.isMergeDuringCutoffImmutables = true;
+			opt.isUseAdvancedInterprocPropagation = true;
+			opt.maxNodesPerInterface = ObjGraphParams.Options.UNLIMITED_NODES_PER_INTERFACE;
+			opt.convertToObjTree = false;
+			opt.doStaticFields = false;
+			opt.ignoreExceptions = cfg.exceptions == ExceptionAnalysis.IGNORE_ALL;
+			ObjGraphParams.compute(this, opt, progress);
 		}
 			break;
 		case OBJ_GRAPH: {

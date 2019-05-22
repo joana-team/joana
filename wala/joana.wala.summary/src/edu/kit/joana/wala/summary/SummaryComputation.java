@@ -264,6 +264,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
                 		propagateAllActIns(next.source, next.target);
                 	} else {
 	                    for (SDGEdge e : graph.incomingEdgesOfUnsafe(next.source)) {
+	                    	if (e == null) continue;
 	                    	final SDGEdge.Kind kind = e.getKind();
 	                        if (kind == sumEdgeKind
 	                        		|| ((kind == SDGEdge.Kind.DATA_DEP || kind == SDGEdge.Kind.DATA_HEAP
@@ -313,6 +314,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
                         }
                     }
                     for (SDGEdge e : graph.incomingEdgesOfUnsafe(next.source)) {
+                    	if (e == null) continue;
                     	final SDGEdge.Kind kind = e.getKind();
                     	if ((kind == SDGEdge.Kind.DATA_DEP || kind == SDGEdge.Kind.DATA_HEAP
                     			|| kind == SDGEdge.Kind.DATA_ALIAS) && relevantEdges.contains(kind)) {
@@ -334,6 +336,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
                 	}
 
                 	for (SDGEdge e : graph.incomingEdgesOfUnsafe(next.source)) {
+                		if (e == null) continue;
                         if (e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR) {
                             if (e.getSource().getKind() == SDGNode.Kind.CALL) {
                                 propagate(e.getSource(), next.target);
@@ -352,6 +355,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
                 		propagateAllActIns(next.source, next.target);
                 	} else {
                     for (SDGEdge e : graph.incomingEdgesOfUnsafe(next.source)) {
+                    	if (e == null) continue;
                         if (e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR) {
                             if (e.getSource().getKind() == SDGNode.Kind.ENTRY) {
                                 propagate(e.getSource(), next.target);
@@ -376,6 +380,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
 
                 default:
                     for (SDGEdge e : graph.incomingEdgesOfUnsafe(next.source)) {
+                    	if (e == null) continue;
                         if (relevantEdges.contains(e.getKind())) {
                             propagate(e.getSource(), next.target);
                         }
@@ -462,6 +467,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
         HashMap<SDGNode, Edge> result = new HashMap<SDGNode, Edge>();
 
         for (SDGEdge pi : graph.incomingEdgesOfUnsafe(e.source)) {
+        	if (pi == null) continue;
             if (pi.getKind() == SDGEdge.Kind.PARAMETER_IN) {
                 SDGNode ai = pi.getSource();
 
@@ -479,6 +485,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
         }
 
         for (SDGEdge po : graph.outgoingEdgesOfUnsafe(e.target)) {
+        	if (po == null) continue;
             if (po.getKind() == SDGEdge.Kind.PARAMETER_OUT) {
                 SDGNode ao = po.getTarget();
 
@@ -510,6 +517,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
                 // follow control-dependence-expression edges from the source
                 // node of 'edge' to the call node
                 for(SDGEdge e : graph.incomingEdgesOfUnsafe(n)){
+                	if (e == null) continue;
                     if(e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR){
                         if(e.getSource().getKind() == SDGNode.Kind.CALL){
                             return e.getSource();
@@ -527,6 +535,7 @@ public class SummaryComputation< G extends DirectedGraph<SDGNode, SDGEdge> & Eff
                 // follow control-dependence-expression
                 // edges from 'node' to the call node
                 for(SDGEdge e : graph.incomingEdgesOfUnsafe(n)) {
+                	if (e == null) continue;
                     if(e.getKind() == SDGEdge.Kind.CONTROL_DEP_EXPR){
                         if(e.getSource().getKind() == SDGNode.Kind.CALL){
                             return e.getSource();

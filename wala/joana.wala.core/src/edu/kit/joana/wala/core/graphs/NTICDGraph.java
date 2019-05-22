@@ -43,6 +43,7 @@ import static edu.kit.joana.wala.core.graphs.NTSCDGraph.*;
  * @author Martin Hecker <martin.hecker@kit.edu>
  *
  */
+@SuppressWarnings("serial")
 public class NTICDGraph<V extends IntegerIdentifiable, E extends KnowsVertices<V>> extends AbstractJoanaGraph<V, E> {
 
 	private NTICDGraph(EdgeFactory<V, E> edgeFactory, Class<E> classE) {

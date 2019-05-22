@@ -51,6 +51,7 @@ import edu.kit.joana.wala.core.PDGNode;
  * @author Juergen Graf <juergen.graf@gmail.com>
  *
  */
+@SuppressWarnings("serial")
 public class CDG extends AbstractJoanaGraph<PDGNode, PDGEdge> {
 
     public static CDG build(DirectedGraph<PDGNode, PDGEdge> cfg, PDGNode entry, PDGNode exit) {

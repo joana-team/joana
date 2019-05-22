@@ -377,6 +377,7 @@ public final class Main {
 		scfg.ignoreStaticFields = IGNORE_STATIC_FIELDS;
 		scfg.exceptions = cfg.exceptions;
 		scfg.accessPath = cfg.accessPath;
+		scfg.localKillingDefs = cfg.localKillingDefs;
 		scfg.sideEffects = cfg.sideEffects;
 		scfg.prunecg = DEFAULT_PRUNE_CG;
 		scfg.pruningPolicy = cfg.pruningPolicy;
@@ -461,6 +462,7 @@ public final class Main {
 		public ObjSensZeroXCFABuilder.MethodFilter objSensFilter = null;
 		public ExceptionAnalysis exceptions;
 		public boolean accessPath;
+		public boolean localKillingDefs = true;
 		public boolean debugManyGraphsDotOutput = false;
 		public FieldPropagation fieldPropagation;
 		public SideEffectDetectorConfig sideEffects = null;

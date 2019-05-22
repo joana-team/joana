@@ -226,6 +226,7 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
     	SDGEdge[] outgoing = outgoingEdgesOfUnsafe(node);
     	List<SDGEdge> res = new ArrayList<>(outgoing.length);
     	for (SDGEdge e : outgoing) {
+    		if (e == null) continue;
     		assert e.getKind().getPriority() >= lastPriority;
     		assert (lastPriority = e.getKind().getPriority()) >= 0;
     		
@@ -250,6 +251,7 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
     	Set<SDGEdge> outgoing = outgoingEdgesOf(node);
     	List<SDGEdge> res = new ArrayList<>(outgoing.size());
     	for (SDGEdge e : outgoing) {
+    		if (e == null) continue;
     		if (e.getKind() == kind) {
     			res.add(e);
     		}

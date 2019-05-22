@@ -343,8 +343,8 @@ public class Program {
 		// the entry for each node is cleared between checking and evaluating a node
 		// the map contains at the beginning for each node all its data dependencies
 		Map<SDGNode, Set<SDGNode>> nodesWithNewEvaluationPerNode = 
-				topOrder.stream().collect(Collectors.toMap(n -> n, 
-						n -> new HashSet<>(getDataDependenciesWC(n).collect(Collectors.toSet()))));
+				topOrder.stream().collect(Collectors.<SDGNode, SDGNode, Set<SDGNode>>toMap(n -> n, 
+						n -> new HashSet<SDGNode>(getDataDependenciesWC(n).collect(Collectors.toSet()))));
 		
 		Set<SDGNode> nodesEvaluatedOnce = new HashSet<>();
 		

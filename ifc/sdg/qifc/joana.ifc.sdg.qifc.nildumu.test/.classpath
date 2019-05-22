@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="src" path="example"/>
 	<classpathentry kind="src" path="/joana.ifc.sdg.graph"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/joana.util"/>
@@ -37,5 +36,7 @@
 	<classpathentry kind="lib" path="/joana.contrib.lib/jgrapht-core-0.9.2.jar" sourcepath="/joana.contrib.lib/jgrapht-0.9.2.zip"/>
 	<classpathentry kind="lib" path="/joana.contrib.lib/jgrapht-ext-0.9.2.jar"/>
 	<classpathentry kind="lib" path="/joana.contrib.lib/graphviz-java-0.6.0.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.ifc.sdg.qifc.nildumu"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/5"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

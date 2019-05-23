@@ -56,48 +56,22 @@ public class SinkpathPostDominators<V  extends IntegerIdentifiable, E extends Kn
 		}
 	};
 
-	public static final class Node<V extends IntegerIdentifiable> implements LeastCommonAncestor.PseudoTreeNode<Node<V>>, IntegerIdentifiable {
-		private final V v;
+	public static final class Node<V extends IntegerIdentifiable> extends AbstractPseudoTreeNode<V, Node<V>> {
 		
 		private boolean processed;
 		private boolean isSinkNode;
 		private boolean isRelevant;
-		private boolean changed;
-		private boolean inWorkset;
 		
-		private Node<V> next;
 		private Node<V> representant;
-		private Object inPathOf;
 		
-		private Node<V>[] successors;
-		
-		private static final int UNDEFINED = -1;
-		private int dfsNumber;
 		
 		public Node(V v) {
-			this.v = v;
+			super(v);
 			this.processed = false;
 			this.isSinkNode = false;
 			this.isRelevant = false;
-			this.changed = false;
-			this.inWorkset = false;
 			
 			this.representant = this;
-			
-			this.dfsNumber = UNDEFINED;
-		}
-		
-		@Override
-		public final Node<V> getNext() {
-			return next;
-		}
-		
-		public Node<V>[] getSuccessors() {
-			return successors;
-		}
-		
-		public void setSuccessors(Node<V>[] successors) {
-			this.successors = successors;
 		}
 		
 		public boolean isRelevant() {
@@ -108,11 +82,6 @@ public class SinkpathPostDominators<V  extends IntegerIdentifiable, E extends Kn
 			this.isRelevant = isRelevant;
 		}
 		
-
-		public final V getV() {
-			return v;
-		}
-		
 		public boolean isSinkNode() {
 			return isSinkNode;
 		}
@@ -121,27 +90,9 @@ public class SinkpathPostDominators<V  extends IntegerIdentifiable, E extends Kn
 			this.isSinkNode = isSinkNode;
 		}
 		
-		@Override
-		public String toString() {
-			return v.toString();
-		}
 		
 		public final Node<V> getRepresentant() {
 			return representant;
-		}
-		@Override
-		public final int getId() {
-			return v.getId();
-		}
-		
-		@Override
-		public final void addToPath(Object o) {
-			inPathOf = o;
-		}
-		
-		@Override
-		public final boolean onPath(Object o) {
-			return inPathOf == o;
 		}
 		
 		public void setInWorkset(boolean inWorkset) {

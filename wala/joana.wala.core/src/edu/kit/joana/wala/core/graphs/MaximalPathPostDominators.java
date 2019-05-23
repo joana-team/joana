@@ -35,27 +35,9 @@ import edu.kit.joana.wala.core.graphs.SinkpathPostDominators.Node;
  * @author Martin Hecker <martin.hecker@kit.edu>
  */
 public class MaximalPathPostDominators<V  extends IntegerIdentifiable, E extends KnowsVertices<V>> {
-	public static class IMaximalDomEdge<V> implements KnowsVertices<V> {
-		private V source;
-		private V target;
+	public static class IMaximalDomEdge<V> extends DomEdge<V> {
 		public IMaximalDomEdge(V source, V target) {
-			this.source = source;
-			this.target = target;
-		}
-		
-		@Override
-		public String toString() {
-			return "ISINKDOM";
-		}
-		
-		@Override
-		public V getSource() {
-			return source;
-		}
-		
-		@Override
-		public V getTarget() {
-			return target;
+			super(source, target);
 		}
 	};
 

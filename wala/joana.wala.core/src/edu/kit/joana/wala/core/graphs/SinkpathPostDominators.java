@@ -32,27 +32,9 @@ import edu.kit.joana.util.graph.LeastCommonAncestor;
  * @author Martin Hecker <martin.hecker@kit.edu>
  */
 public class SinkpathPostDominators<V  extends IntegerIdentifiable, E extends KnowsVertices<V>> {
-	public static class ISinkdomEdge<V> implements KnowsVertices<V> {
-		private V source;
-		private V target;
+	public static class ISinkdomEdge<V> extends DomEdge<V> {
 		public ISinkdomEdge(V source, V target) {
-			this.source = source;
-			this.target = target;
-		}
-		
-		@Override
-		public String toString() {
-			return "ISINKDOM";
-		}
-		
-		@Override
-		public V getSource() {
-			return source;
-		}
-		
-		@Override
-		public V getTarget() {
-			return target;
+			super(source, target);
 		}
 	};
 

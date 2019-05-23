@@ -80,6 +80,7 @@ import edu.kit.joana.wala.core.graphs.NTICDGraphGreatestFPWorklistSymbolic;
 import edu.kit.joana.wala.core.graphs.NTICDGraphLeastFPDualWorklistSymbolic;
 import edu.kit.joana.wala.core.graphs.NTICDGraphPostdominanceFrontiers;
 import edu.kit.joana.wala.core.graphs.NTSCDGraph;
+import edu.kit.joana.wala.core.graphs.NTSCDGraphPostdominanceFrontiers;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
 import edu.kit.joana.wala.flowless.pointsto.Pts2AliasGraph;
@@ -522,6 +523,16 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 				},
 				PDGEdge.class
 				);
+				cdg.addEdge(entry, exit);
+				break;
+			}
+			case NTSCD_IMAXDOM: {
+				cdg = NTSCDGraphPostdominanceFrontiers.compute(cfg, new EdgeFactory<PDGNode,PDGEdge>() {
+					public PDGEdge createEdge(PDGNode from, PDGNode to) {
+						return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
+					};
+				},
+				PDGEdge.class);
 				cdg.addEdge(entry, exit);
 				break;
 			}

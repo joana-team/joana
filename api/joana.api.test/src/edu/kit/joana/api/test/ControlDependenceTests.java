@@ -81,6 +81,16 @@ public class ControlDependenceTests {
 		ntscd.setControlDependenceVariant(ControlDependenceVariant.NTSCD);
 	}
 	
+	public static final SDGConfig ntscd_imaxdom = new SDGConfig(
+			JoanaPath.JOANA_API_TEST_DATA_CLASSPATH,
+			null,
+			STUBS
+		); {
+			setDefaults(ntscd_imaxdom);
+			ntscd_imaxdom.setControlDependenceVariant(ControlDependenceVariant.NTSCD_IMAXDOM);
+		}
+
+	
 	public static final SDGConfig nticd_lfp = new SDGConfig(
 		JoanaPath.JOANA_API_TEST_DATA_CLASSPATH,
 		null,
@@ -275,6 +285,7 @@ public class ControlDependenceTests {
 			CancelException {
 		testCDGSubsetClosure(joana.api.testdata.toy.sensitivity.FlowSens.class, classic, ntscd);
 		testCDGSame(         joana.api.testdata.toy.sensitivity.FlowSens.class, classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         joana.api.testdata.toy.sensitivity.FlowSens.class, ntscd, ntscd_imaxdom);
 	}
 
 	@Test
@@ -282,6 +293,7 @@ public class ControlDependenceTests {
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.simp.AssChain.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.toy.simp.AssChain.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.toy.simp.AssChain.class), ntscd, ntscd_imaxdom);
 	}
 
 	@Test
@@ -289,6 +301,7 @@ public class ControlDependenceTests {
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.simp.MicroExample.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.toy.simp.MicroExample.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.toy.simp.MicroExample.class), ntscd, ntscd_imaxdom);
 	}
 
 	@Test
@@ -296,6 +309,7 @@ public class ControlDependenceTests {
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.simp.Nested.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.toy.simp.Nested.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.toy.simp.Nested.class), ntscd, ntscd_imaxdom);
 	}
 
 	@Test
@@ -303,6 +317,7 @@ public class ControlDependenceTests {
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.simp.NestedWithException.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.toy.simp.NestedWithException.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.toy.simp.NestedWithException.class), ntscd, ntscd_imaxdom);
 	}
 
 	@Test
@@ -310,6 +325,7 @@ public class ControlDependenceTests {
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.simp.Sick.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.toy.simp.Sick.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.toy.simp.Sick.class), ntscd, ntscd_imaxdom);
 	}
 
 	@Test
@@ -317,6 +333,7 @@ public class ControlDependenceTests {
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.simp.Sick2.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.toy.simp.Sick2.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.toy.simp.Sick2.class), ntscd, ntscd_imaxdom);
 	}
 
 	@Test
@@ -324,6 +341,7 @@ public class ControlDependenceTests {
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.simp.MathRound.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.toy.simp.MathRound.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.toy.simp.MathRound.class), ntscd, ntscd_imaxdom);
 	}
 
 	@Test
@@ -331,6 +349,7 @@ public class ControlDependenceTests {
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.test.ControlDep.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.toy.test.ControlDep.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.toy.test.ControlDep.class), ntscd, ntscd_imaxdom);
 	}
 
 	@Test
@@ -338,6 +357,7 @@ public class ControlDependenceTests {
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.test.Independent.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.toy.test.Independent.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.toy.test.Independent.class), ntscd, ntscd_imaxdom);
 	}
 
 	@Test
@@ -345,6 +365,7 @@ public class ControlDependenceTests {
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.test.ObjSens.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.toy.test.ObjSens.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.toy.test.ObjSens.class), ntscd, ntscd_imaxdom);
 	}
 
 	@Test
@@ -352,6 +373,7 @@ public class ControlDependenceTests {
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.test.SystemCallsTest.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.toy.test.SystemCallsTest.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.toy.test.SystemCallsTest.class), ntscd, ntscd_imaxdom);
 	}
 
 	@Test
@@ -359,6 +381,7 @@ public class ControlDependenceTests {
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.test.VeryImplictFlow.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.toy.test.VeryImplictFlow.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.toy.test.VeryImplictFlow.class), ntscd, ntscd_imaxdom);
 	}
 
 	@Test
@@ -366,6 +389,7 @@ public class ControlDependenceTests {
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.rec.MyList.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.toy.rec.MyList.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.toy.rec.MyList.class), ntscd, ntscd_imaxdom);
 	}
 
 	@Test
@@ -373,6 +397,7 @@ public class ControlDependenceTests {
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.rec.MyList2.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.toy.rec.MyList2.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.toy.rec.MyList2.class), ntscd, ntscd_imaxdom);
 	}
 
 	@Test
@@ -380,6 +405,7 @@ public class ControlDependenceTests {
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.pw.PasswordFile.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.toy.pw.PasswordFile.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.toy.pw.PasswordFile.class), ntscd, ntscd_imaxdom);
 	}
 
 	@Test
@@ -387,6 +413,7 @@ public class ControlDependenceTests {
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.demo.Demo1.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.toy.demo.Demo1.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.toy.demo.Demo1.class), ntscd, ntscd_imaxdom);
 	}
 
 	@Test
@@ -394,6 +421,7 @@ public class ControlDependenceTests {
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.demo.NonNullFieldParameter.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.toy.demo.NonNullFieldParameter.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.toy.demo.NonNullFieldParameter.class), ntscd, ntscd_imaxdom);
 	}
 
 	@Test
@@ -401,6 +429,7 @@ public class ControlDependenceTests {
 			CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.declass.Declass1.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.toy.declass.Declass1.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.toy.declass.Declass1.class), ntscd, ntscd_imaxdom);
 	}
 
 	@Test
@@ -408,6 +437,7 @@ public class ControlDependenceTests {
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.seq.ExampleLeakage.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.seq.ExampleLeakage.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.seq.ExampleLeakage.class), ntscd, ntscd_imaxdom);
 	}
 	
 	@Test
@@ -415,6 +445,7 @@ public class ControlDependenceTests {
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.seq.ArrayAccess.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.seq.ArrayAccess.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.seq.ArrayAccess.class), ntscd, ntscd_imaxdom);
 	}
 	
 	@Test
@@ -422,6 +453,7 @@ public class ControlDependenceTests {
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.seq.ArrayOverwrite.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.seq.ArrayOverwrite.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.seq.ArrayOverwrite.class), ntscd, ntscd_imaxdom);
 	}
 	
 	@Test
@@ -429,12 +461,15 @@ public class ControlDependenceTests {
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.seq.FieldAccess.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.seq.FieldAccess.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.seq.FieldAccess.class), ntscd, ntscd_imaxdom);
 	}
+	
 	@Test
 	public void testFieldAccess2() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.seq.FieldAccess2.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.seq.FieldAccess2.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.seq.FieldAccess2.class), ntscd, ntscd_imaxdom);
 	}
 	
 	@Test
@@ -442,6 +477,7 @@ public class ControlDependenceTests {
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.seq.FieldAccess3.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.seq.FieldAccess3.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.seq.FieldAccess3.class), ntscd, ntscd_imaxdom);
 	}
 	
 	@Test
@@ -449,6 +485,7 @@ public class ControlDependenceTests {
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.seq.Constants1.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.seq.Constants1.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.seq.Constants1.class), ntscd, ntscd_imaxdom);
 	}
 	
 	@Test
@@ -456,6 +493,7 @@ public class ControlDependenceTests {
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.seq.Constants2.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.seq.Constants2.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.seq.Constants2.class), ntscd, ntscd_imaxdom);
 	}
 	
 	// TODO: This should crash when we turn on reflection
@@ -463,6 +501,7 @@ public class ControlDependenceTests {
 	public void testWalaBugReflection() throws ClassHierarchyException, ApiTestException, IOException,	UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.toy.test.Reflection.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.toy.test.Reflection.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.toy.test.Reflection.class), ntscd, ntscd_imaxdom);
 	}
 	
 	@Test
@@ -470,6 +509,7 @@ public class ControlDependenceTests {
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.seq.StrangeTryCatchFinallyWalaBug.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.seq.StrangeTryCatchFinallyWalaBug.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.seq.StrangeTryCatchFinallyWalaBug.class), ntscd, ntscd_imaxdom);
 	}
 	
 	@Test
@@ -477,6 +517,7 @@ public class ControlDependenceTests {
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.seq.StrangeTryCatchFinallyWalaBugComplex.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.seq.StrangeTryCatchFinallyWalaBugComplex.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.seq.StrangeTryCatchFinallyWalaBugComplex.class), ntscd, ntscd_imaxdom);
 	}
 	
 	@Test
@@ -484,6 +525,7 @@ public class ControlDependenceTests {
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((joana.api.testdata.seq.MartinMohrsStrangeTryCatchFinallyWalaBug.class), classic, ntscd);
 		testCDGSame(         (joana.api.testdata.seq.MartinMohrsStrangeTryCatchFinallyWalaBug.class), classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (joana.api.testdata.seq.MartinMohrsStrangeTryCatchFinallyWalaBug.class), ntscd, ntscd_imaxdom);
 	}
 	
 	@Test
@@ -492,6 +534,7 @@ public class ControlDependenceTests {
 		testUnbuildable(       joana.api.testdata.seq.WhileTrue.class, classic);
 		testCDGSame(          (joana.api.testdata.seq.WhileTrue.class),           nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
 		testCDGSubsetClosure( (joana.api.testdata.seq.WhileTrue.class), nticd, ntscd);
+		testCDGSame(          (joana.api.testdata.seq.WhileTrue.class), ntscd, ntscd_imaxdom);
 	}
 	
 	@Test
@@ -503,6 +546,7 @@ public class ControlDependenceTests {
 			);
 		testCDGSame(          (joana.api.testdata.seq.WhileTrueLeakInLoop.class),           nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
 		testCDGSubsetClosure( (joana.api.testdata.seq.WhileTrueLeakInLoop.class), nticd, ntscd);
+		testCDGSame(          (joana.api.testdata.seq.WhileTrueLeakInLoop.class), ntscd, ntscd_imaxdom);
 	}
 	
 	@Test
@@ -511,6 +555,7 @@ public class ControlDependenceTests {
 		testUnbuildable(      (joana.api.testdata.seq.WhileTrueLeakInLoopNoMethodCall.class), classic);
 		testCDGSame(          (joana.api.testdata.seq.WhileTrueLeakInLoopNoMethodCall.class),           nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
 		testCDGSubsetClosure( (joana.api.testdata.seq.WhileTrueLeakInLoopNoMethodCall.class), nticd, ntscd);
+		testCDGSame(          (joana.api.testdata.seq.WhileTrueLeakInLoopNoMethodCall.class), ntscd, ntscd_imaxdom);
 	}
 	
 	@Test
@@ -529,6 +574,7 @@ public class ControlDependenceTests {
 			adaptive, classic, nticd, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom
 		);
 		testCDGSubsetClosure((de.uni.trier.infsec.core.Setup.class), nticd, ntscd);
+		testCDGSame(         (de.uni.trier.infsec.core.Setup.class), ntscd, ntscd_imaxdom);
 	}
 	
 	@Test
@@ -536,6 +582,7 @@ public class ControlDependenceTests {
 			UnsoundGraphException, CancelException {
 		testCDGSubsetClosure((JLex.Main.class), classic, ntscd);
 		testCDGSame(         (JLex.Main.class), classic, nticd_gfp_worklist, nticd_lfp_dual_worklist, nticd_isinkdom);
+		testCDGSame(         (JLex.Main.class), ntscd, ntscd_imaxdom);
 	}
 	
 	

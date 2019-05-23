@@ -7,19 +7,14 @@
  */
 package edu.kit.joana.wala.core.graphs;
 
-import java.util.Iterator;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
-import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
 
-import edu.kit.joana.util.collections.ArraySet;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
@@ -38,10 +33,6 @@ public class NTICDGraphPostdominanceFrontiers<V extends IntegerIdentifiable, E e
 	private NTICDGraphPostdominanceFrontiers(EdgeFactory<V, E> edgeFactory, Class<E> classE, int size) {
 		super(edgeFactory, () -> new HashMap<>(size), classE);
 	}
-
-	public static boolean DEBUG = false;
-	
-	
 
 	/**
 	 * Computes nontermination sensitive control dependence.

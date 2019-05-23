@@ -101,6 +101,7 @@ import edu.kit.joana.wala.core.graphs.SinkpathPostDominators;
 import edu.kit.joana.wala.core.graphs.EfficientDominators.DomTree;
 import edu.kit.joana.wala.core.graphs.SinkpathPostDominators.ISinkdomEdge;
 import edu.kit.joana.wala.core.graphs.FCACD;
+import edu.kit.joana.wala.core.graphs.GeneralizedPostdominanceFrontiers;
 import edu.kit.joana.wala.core.graphs.NTICDControlSlices;
 import edu.kit.joana.wala.util.WriteGraphToDot;
 
@@ -359,7 +360,7 @@ public class JavaBenchmark {
 		for (DirectedGraph<PDGNode, PDGEdge> cfg : javaGraphs.graphs) {
 			size.size = cfg.vertexSet().size(); 
 			size.uniqueExitNode = javaGraphs.hasUniqueExitNode.get(i++) ? 1 : 0; 
-			final NTICDGraphPostdominanceFrontiers<PDGNode, PDGEdge> result = NTICDGraphPostdominanceFrontiers.compute(cfg, edgeFactory, PDGEdge.class);
+			final GeneralizedPostdominanceFrontiers<PDGNode, PDGEdge> result = NTICDGraphPostdominanceFrontiers.compute(cfg, edgeFactory, PDGEdge.class);
 			blackhole.consume(result);
 		}
 	}
@@ -401,7 +402,7 @@ public class JavaBenchmark {
 		if (javaGraphs.graphs.size() != 1) throw new IllegalArgumentException();
 		for (DirectedGraph<SDGNode, SDGEdge> cfg : javaGraphs.graphs) {
 			size.size = cfg.vertexSet().size(); 
-			final NTICDGraphPostdominanceFrontiers<SDGNode, SDGEdge> result = NTICDGraphPostdominanceFrontiers.compute(cfg, sdgEdgeFactory, SDGEdge.class);
+			final GeneralizedPostdominanceFrontiers<SDGNode, SDGEdge> result = NTICDGraphPostdominanceFrontiers.compute(cfg, sdgEdgeFactory, SDGEdge.class);
 			blackhole.consume(result);
 		}
 	}

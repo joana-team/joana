@@ -40,7 +40,7 @@ public class NTSCDControlSlices {
 	public static <V extends IntegerIdentifiable, E extends KnowsVertices<V>> Set<V> wd(DirectedGraph<V,E> graph, Set<V> ms, Class<E> classE, EdgeFactory<V, E> edgeFactory) {
 		final DirectedGraph<V, E> gMS = new DeleteSuccessorNodesAndToOnly<>(graph, ms, classE);
 		
-		final NTICDGraphPostdominanceFrontiers<V, E> nticdMS = NTICDGraphPostdominanceFrontiers.compute(gMS, edgeFactory, classE);
+		final GeneralizedPostdominanceFrontiers<V, E> nticdMS = NTICDGraphPostdominanceFrontiers.compute(gMS, edgeFactory, classE);
 
 		final Set<V> result = new HashSet<>(ms); {
 			
@@ -69,7 +69,7 @@ public class NTSCDControlSlices {
 	public static <V extends IntegerIdentifiable ,E extends KnowsVertices<V>> Set<V> wcc(DirectedGraph<V,E> graph, Set<V> ms, Class<E> classE, EdgeFactory<V, E> edgeFactory) {
 		final DirectedGraph<V, E> gMS = new DeleteSuccessorNodesAndToFromOnly<>(graph, ms, classE);
 		
-		final NTICDGraphPostdominanceFrontiers<V, E> nticdMS = NTICDGraphPostdominanceFrontiers.compute(gMS, edgeFactory, classE);
+		final GeneralizedPostdominanceFrontiers<V, E> nticdMS = NTICDGraphPostdominanceFrontiers.compute(gMS, edgeFactory, classE);
 
 		final Set<V> result = new HashSet<>(ms); {
 			
@@ -107,7 +107,7 @@ public class NTSCDControlSlices {
 	public static <V extends IntegerIdentifiable ,E extends KnowsVertices<V>> Set<V> nticdNtiodViaNticd(DirectedGraph<V,E> graph, Set<V> ms, Class<E> classE, EdgeFactory<V, E> edgeFactory) {
 		final DirectedGraph<V, E> gMS = new DeleteSuccessorNodes<>(graph, ms, classE);
 		
-		final NTICDGraphPostdominanceFrontiers<V, E> nticdMS = NTICDGraphPostdominanceFrontiers.compute(gMS, edgeFactory, classE);
+		final GeneralizedPostdominanceFrontiers<V, E> nticdMS = NTICDGraphPostdominanceFrontiers.compute(gMS, edgeFactory, classE);
 
 		final Set<V> result = new HashSet<>(ms); {
 			
@@ -143,7 +143,7 @@ public class NTSCDControlSlices {
 	 * @return (nticd ⨃ ntiod)(ms)
 	 */
 	public static <V extends IntegerIdentifiable ,E extends KnowsVertices<V>> Set<V> nticdNtiod(DirectedGraph<V,E> graph, Set<V> ms, Class<E> classE, EdgeFactory<V, E> edgeFactory) {
-		final NTICDGraphPostdominanceFrontiers<V, E> nticd = NTICDGraphPostdominanceFrontiers.compute(graph, edgeFactory, classE);
+		final GeneralizedPostdominanceFrontiers<V, E> nticd = NTICDGraphPostdominanceFrontiers.compute(graph, edgeFactory, classE);
 		final Map<V, Map<V, Set<V>>> ntiod = NTIOD.compute(graph, edgeFactory, classE);
 		
 		final Set<V> result = new HashSet<>(ms); {
@@ -199,7 +199,7 @@ public class NTSCDControlSlices {
 	 * @return (nticd)(ms)
 	 */
 	public static <V extends IntegerIdentifiable ,E extends KnowsVertices<V>> Set<V> nticd(DirectedGraph<V,E> graph, Set<V> ms, Class<E> classE, EdgeFactory<V, E> edgeFactory) {
-		final NTICDGraphPostdominanceFrontiers<V, E> nticd = NTICDGraphPostdominanceFrontiers.compute(graph, edgeFactory, classE);
+		final GeneralizedPostdominanceFrontiers<V, E> nticd = NTICDGraphPostdominanceFrontiers.compute(graph, edgeFactory, classE);
 
 		final Set<V> result = new HashSet<>(ms); {
 			

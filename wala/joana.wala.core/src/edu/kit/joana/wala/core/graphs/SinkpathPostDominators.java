@@ -60,7 +60,6 @@ public class SinkpathPostDominators<V  extends IntegerIdentifiable, E extends Kn
 		
 		private boolean processed;
 		private boolean isSinkNode;
-		private boolean isRelevant;
 		
 		private Node<V> representant;
 		
@@ -69,17 +68,8 @@ public class SinkpathPostDominators<V  extends IntegerIdentifiable, E extends Kn
 			super(v);
 			this.processed = false;
 			this.isSinkNode = false;
-			this.isRelevant = false;
 			
 			this.representant = this;
-		}
-		
-		public boolean isRelevant() {
-			return isRelevant;
-		}
-		
-		public void setRelevant(boolean isRelevant) {
-			this.isRelevant = isRelevant;
 		}
 		
 		public boolean isSinkNode() {

@@ -188,5 +188,41 @@ public class NTSCDControlSlices {
 		}
 		return result;
 	}
+	
+	/**
+	 * Computes the (nticd ⨃ ntiod)-backward slice, by computing nticd.
+	 * 
+	 * @param graph The control flow graph
+	 * @param ms the slicing criterion -- a set of nodes in graph
+	 * @param classE {@link Class} of E 
+	 * @param edgeFactory a factory for E
+	 * @return (nticd)(ms)
+	 */
+	public static <V extends IntegerIdentifiable ,E extends KnowsVertices<V>> Set<V> nticd(DirectedGraph<V,E> graph, Set<V> ms, Class<E> classE, EdgeFactory<V, E> edgeFactory) {
+		final NTICDGraphPostdominanceFrontiers<V, E> nticd = NTICDGraphPostdominanceFrontiers.compute(graph, edgeFactory, classE);
+
+		final Set<V> result = new HashSet<>(ms); {
+			
+			final Set<V> newNodes = new HashSet<>(ms);
+			
+			while (!newNodes.isEmpty()) {
+				final V m; {
+					final Iterator<V> it = newNodes.iterator();
+					m = it.next();
+					it.remove();
+				}
+				
+				for (E e : nticd.incomingEdgesOfUnsafe(m)) {
+					if (e == null) continue;
+					V n = e.getSource();
+					if (result.add(n)) {
+						boolean isNew = newNodes.add(n);
+						assert isNew;
+					}
+				}
+			}
+		}
+		return result;
+	}
 
 }

@@ -18,6 +18,8 @@ public abstract class AbstractPseudoTreeNode<V extends IntegerIdentifiable, S> i
 
 	boolean changed;
 	boolean inWorkset;
+	boolean isRelevant;
+
 	
 	S next;
 	Object inPathOf;
@@ -33,11 +35,11 @@ public abstract class AbstractPseudoTreeNode<V extends IntegerIdentifiable, S> i
 
 		this.changed = false;
 		this.inWorkset = false;
+		this.isRelevant = false;
 		
 		this.dfsNumber = UNDEFINED;
 
 	}
-	
 	
 	public final V getV() {
 		return v;
@@ -75,6 +77,13 @@ public abstract class AbstractPseudoTreeNode<V extends IntegerIdentifiable, S> i
 		return inPathOf == o;
 	}
 
+	public boolean isRelevant() {
+		return isRelevant;
+	}
+	
+	public void setRelevant(boolean isRelevant) {
+		this.isRelevant = isRelevant;
+	}
 
 
 }

@@ -14,9 +14,13 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
+
+import com.google.common.base.Functions;
 
 import edu.kit.joana.util.collections.ArrayMap;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
@@ -89,6 +93,7 @@ public class NTSCDGraph<V extends IntegerIdentifiable, E extends KnowsVertices<V
 		//# (1) Initialize
 		Set<V> condNodes = condNodes(cfg);
  		Set<V> selfRef = selfRef(cfg);
+ 		Map<V, Integer> succNodeCount = succNodeCount(cfg);
 		Stack<V> workbag = new Stack<>();
 		Map<V, Map<V, Set<MaxPaths<V>>>> S = new HashMap<>();
 		if (DEBUG) {
@@ -122,8 +127,8 @@ public class NTSCDGraph<V extends IntegerIdentifiable, E extends KnowsVertices<V
 				//# (2.2) n has >1 succ
 				for (V m : cfg.vertexSet()) {
 					Set<MaxPaths<V>> Smn = get(S, m, n);
-					final int Tn = Graphs.getSuccNodeCount(cfg, n);
-					if ((Smn == null && Tn == 0) || (Smn != null && Smn.size() == Tn)) {
+					final int Tn = succNodeCount.get(n);
+					if ((Smn != null && Smn.size() == Tn)) {
 						for (V p : condNodes) {
 							if (p != n && update(S, n, m, p)) {
 								merge(workbag, m);
@@ -132,7 +137,7 @@ public class NTSCDGraph<V extends IntegerIdentifiable, E extends KnowsVertices<V
 						}
 					}
 				}
-			} else if (Graphs.getSuccNodeCount(cfg, n) == 1 && !selfRef.contains(n)) {
+			} else if (succNodeCount.get(n) == 1 && !selfRef.contains(n)) {
 				//# (2.1) n has exact 1 succ
 				V m = Graphs.getSuccNodes(cfg, n).iterator().next();
 				for (V p : condNodes) {
@@ -153,7 +158,7 @@ public class NTSCDGraph<V extends IntegerIdentifiable, E extends KnowsVertices<V
 				}
 
 				Set<MaxPaths<V>> Snm = get(S, n, m);
-				final int Tm = Graphs.getSuccNodeCount(cfg,m);
+				final int Tm = succNodeCount.get(m);
 
 				if (DEBUG) {
 					System.out.print("S(" + n + ", " + m + ") = {");
@@ -166,7 +171,7 @@ public class NTSCDGraph<V extends IntegerIdentifiable, E extends KnowsVertices<V
 				}
 
 				if (Snm != null && Snm.size() > 0 && Snm.size() < Tm) {
-					cdg.addEdge(m, n);
+					cdg.addEdgeUnsafe(m, n, edgeFactory.createEdge(m, n));
 				}
 			}
 		}
@@ -342,6 +347,10 @@ public class NTSCDGraph<V extends IntegerIdentifiable, E extends KnowsVertices<V
 		}
 
 		return selfRef;
+	}
+	
+	static <V, E extends KnowsVertices<V>> Map<V, Integer> succNodeCount(DirectedGraph<V, E> cfg) {
+		return cfg.vertexSet().stream().collect(Collectors.<V, V, Integer>toMap(n -> n, n -> Graphs.getSuccNodeCount(cfg, n)));
 	}
 
 }

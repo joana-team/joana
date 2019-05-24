@@ -26,7 +26,7 @@ import edu.kit.joana.util.graph.KnowsVertices;
 /**
  * @author Martin Hecker <martin.hecker@kit.edu>
  */
-public class NTICDControlSlices {
+public class NTSCDControlSlices {
 
 	/**
 	 * Computes the weakly deciding nodes, by computing nticd for a modification of graph
@@ -190,7 +190,7 @@ public class NTICDControlSlices {
 	}
 	
 	/**
-	 * Computes the (nticd)-backward slice, by computing nticd.
+	 * Computes the (nticd ⨃ ntiod)-backward slice, by computing nticd.
 	 * 
 	 * @param graph The control flow graph
 	 * @param ms the slicing criterion -- a set of nodes in graph
@@ -224,6 +224,5 @@ public class NTICDControlSlices {
 		}
 		return result;
 	}
-
 
 }

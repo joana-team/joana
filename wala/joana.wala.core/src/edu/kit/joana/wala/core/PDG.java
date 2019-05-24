@@ -19,8 +19,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import java.util.Random;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.EdgeFactory;
@@ -80,6 +82,7 @@ import edu.kit.joana.wala.core.graphs.NTICDGraphGreatestFPWorklistSymbolic;
 import edu.kit.joana.wala.core.graphs.NTICDGraphLeastFPDualWorklistSymbolic;
 import edu.kit.joana.wala.core.graphs.NTICDGraphPostdominanceFrontiers;
 import edu.kit.joana.wala.core.graphs.NTSCDGraph;
+import edu.kit.joana.wala.core.graphs.NTSCDGraphPostdominanceFrontiers;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
 import edu.kit.joana.wala.flowless.pointsto.Pts2AliasGraph;
@@ -525,6 +528,16 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 				cdg.addEdge(entry, exit);
 				break;
 			}
+			case NTSCD_IMAXDOM: {
+				cdg = NTSCDGraphPostdominanceFrontiers.compute(cfg, new EdgeFactory<PDGNode,PDGEdge>() {
+					public PDGEdge createEdge(PDGNode from, PDGNode to) {
+						return new PDGEdge(from, to, PDGEdge.Kind.CONTROL_DEP);
+					};
+				},
+				PDGEdge.class);
+				cdg.addEdge(entry, exit);
+				break;
+			}
 			case NTICD_LFP: {
 				cdg = NTICDGraph.compute(cfg, new EdgeFactory<PDGNode,PDGEdge>() {
 					public PDGEdge createEdge(PDGNode from, PDGNode to) {
@@ -697,12 +710,23 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 		// if (foo) { bar = true } else { bar = false }
 		// print(bar);
 		// results in a phi(#true, #false) that has no control of data dependence to foo. which is wrong.
-		for (final PDGNode n : cdg.vertexSet()) {
-			if (n.getKind() == PDGNode.Kind.PHI) {
+		// TODO: this may be unnecessarili imprecise, for two reasons:
+		//   i) these control-dependencies are probably unnecessary if in a φ-node  x = φ(x_1, x_2,...),
+		//      all x_i are values (v_(k_i)) (as opposes to constants #true or similiar), since then we already have
+		//      data-dependencies.
+		//  ii) in a situation of nested ifs, it may introduce bogus dependencies, see: ToyTests.hava / BooleanPhiDueToComplexIf.java.
+		// Still, in order to remain sound, and in order to avoid a fixed-point iteration, we need to process the phi
+		// nodes in order (by node id, which --- for any two phi nodes that correspond to the same "moral" join -- corresponds
+		// to CFG order).
+		final TreeSet<PDGNode> phis = cdg.vertexSet().stream().filter( n -> n.getKind() == PDGNode.Kind.PHI).collect(Collectors.toCollection(TreeSet::new));
+		for (final PDGNode n : phis) {
+			assert (n.getKind() == PDGNode.Kind.PHI); {
 				Set<PDGNode> cdPreds = new HashSet<PDGNode>();
 
 				for (final PDGEdge e : incomingEdgesOf(n)) {
 					if (e.kind == PDGEdge.Kind.CONTROL_FLOW) {
+						// all phi-predecessors of this node have already been processed
+						assert (e.from.getKind() != PDGNode.Kind.PHI) || e.from.getId() < n.getId();
 						for (final PDGEdge ePred : incomingEdgesOf(e.from)) {
 							if (ePred.kind == PDGEdge.Kind.CONTROL_DEP) {
 								cdPreds.add(ePred.from);

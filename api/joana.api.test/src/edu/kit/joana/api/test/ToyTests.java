@@ -116,14 +116,14 @@ public class ToyTests {
 
 	private static void testPreciseEnough_secure(Class<?> clazz)
 			throws ClassHierarchyException, ApiTestException, IOException, UnsoundGraphException, CancelException {
-		{ // There are no leaks if secret is really passed on
+		{ // There are no leaks if even secret is really passed on
 			IFCAnalysis ana = buildAnnotateDump(clazz, false);
 
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
 			assertTrue(illegal.isEmpty());
 		}
 
-		{ // There are no leaks if secret is really passed on and we're precise enough to find that out
+		{ // There are still no leaks if secret is not passed on, and we're precise enough to find that out
 			IFCAnalysis ana = buildAnnotateDump(clazz, true);
 
 			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
@@ -147,6 +147,17 @@ public class ToyTests {
 			assertFalse(illegal.isEmpty());
 		}
 	}
+
+	private static void testTooImprecise_secure(Class<?> clazz) throws ClassHierarchyException, ApiTestException,
+			IOException, UnsoundGraphException, CancelException {
+		{ // The analysis finds leaks if a value really passed on, even though in this test case, the value does *not* depend on the secret.
+			IFCAnalysis ana = buildAnnotateDump(clazz, false);
+		
+			Collection<? extends IViolation<SecurityNode>> illegal = ana.doIFC();
+			assertFalse(illegal.isEmpty());
+		}
+	}
+
 	
 	@Deprecated
 	private static void testUnsound(Class<?> clazz) throws ClassHierarchyException, ApiTestException,
@@ -325,6 +336,18 @@ public class ToyTests {
 	public void testFieldAccess3() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
 		testPreciseEnough(joana.api.testdata.seq.FieldAccess3.class);
+	}
+	
+	@Test
+	public void testBooleanPhiDueToSimpleIf() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testPreciseEnough_secure(joana.api.testdata.seq.BooleanPhiDueToSimpleIf.class);
+	}
+	
+	@Test
+	public void testBooleanPhiDueToComplexIf() throws ClassHierarchyException, ApiTestException, IOException,
+			UnsoundGraphException, CancelException {
+		testTooImprecise_secure(joana.api.testdata.seq.BooleanPhiDueToComplexIf.class);
 	}
 	
 	@Test

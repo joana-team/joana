@@ -1,6 +1,6 @@
 
-1. Create up-to-date $JOANA/dist/joana.wala.core.jar by running
-     ant joana.wala.core
+1. Create up-to-date $JOANA/dist/joana.api.jar by running
+     ant joana.api
    from the $JOANA/ directory
 2. run
      mvn clean install

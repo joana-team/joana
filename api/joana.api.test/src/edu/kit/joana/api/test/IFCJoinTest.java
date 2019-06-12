@@ -147,7 +147,7 @@ public class IFCJoinTest {
 		Assert.assertFalse(calls.isEmpty());
 		Assert.assertTrue(calls.size() == 1);
 		int id2 = calls.iterator().next().getId();
-		Assert.assertEquals(360	, id2);
+		Assert.assertEquals(361	, id2);
 		SDGNode call = calls.iterator().next();
 		Collection<SDGNode> actualIns = new LinkedList<SDGNode>();
 		for (SDGEdge e : sdg.getOutgoingEdgesOfKindUnsafe(call, SDGEdge.Kind.CONTROL_DEP_EXPR)) {

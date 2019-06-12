@@ -146,7 +146,7 @@ public class FullIFCSequentialTest {
 			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionOptimize",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.INTRAPROC);
-			testLeaksFound(ana, 18);
+			testLeaksFound(ana, 15);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -159,7 +159,7 @@ public class FullIFCSequentialTest {
 			IFCAnalysis ana = buildAndAnnotate("exc.ExceptionOptimize",
 					PointsToPrecision.INSTANCE_BASED,
 					ExceptionAnalysis.INTERPROC);
-			testLeaksFound(ana, 15);
+			testLeaksFound(ana, 12);
 		} catch (ApiTestException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

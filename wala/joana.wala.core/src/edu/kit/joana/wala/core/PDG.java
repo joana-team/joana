@@ -713,7 +713,7 @@ public final class PDG extends DependenceGraph implements INodeWithNumber {
 		// TODO: this may be unnecessarili imprecise, for two reasons:
 		//   i) these control-dependencies are probably unnecessary if in a φ-node  x = φ(x_1, x_2,...),
 		//      all x_i are values (v_(k_i)) (as opposes to constants #true or similiar), since then we already have
-		//      data-dependencies.
+		//      data-dependencies to their definitions, and these definitions already have the necessary control dependencies.
 		//  ii) in a situation of nested ifs, it may introduce bogus dependencies, see: ToyTests.hava / BooleanPhiDueToComplexIf.java.
 		// Still, in order to remain sound, and in order to avoid a fixed-point iteration, we need to process the phi
 		// nodes in order (by node id, which --- for any two phi nodes that correspond to the same "moral" join -- corresponds

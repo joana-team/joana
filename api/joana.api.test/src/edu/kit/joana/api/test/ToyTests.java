@@ -347,7 +347,7 @@ public class ToyTests {
 	@Test
 	public void testBooleanPhiDueToComplexIf() throws ClassHierarchyException, ApiTestException, IOException,
 			UnsoundGraphException, CancelException {
-		testTooImprecise_secure(joana.api.testdata.seq.BooleanPhiDueToComplexIf.class);
+		testPreciseEnough_secure(joana.api.testdata.seq.BooleanPhiDueToComplexIf.class);
 	}
 	
 	@Test

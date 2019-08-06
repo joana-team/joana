@@ -16,20 +16,25 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import javax.xml.stream.XMLStreamException;
 
+import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.types.annotations.Annotation;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
@@ -61,6 +66,7 @@ import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
 import edu.kit.joana.ifc.sdg.lattice.WrongLatticeDefinitionException;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
+import edu.kit.joana.ui.annotations.EntryPoint;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCAnnotationDumper;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCAnnotationReader;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCConsoleOutput;
@@ -68,6 +74,7 @@ import edu.kit.joana.ui.ifc.wala.console.io.IFCConsoleOutput.Answer;
 import edu.kit.joana.ui.ifc.wala.console.io.InvalidAnnotationFormatException;
 import edu.kit.joana.ui.ifc.wala.console.io.MethodNotFoundException;
 import edu.kit.joana.ui.ifc.wala.console.io.NumberedIFCAnnotationDumper;
+import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.util.io.IOFactory;
 import edu.kit.joana.wala.core.NullProgressMonitor;
@@ -86,8 +93,12 @@ public class IFCConsole {
 		// or 	(String name, int minArity, int maxArity, String format, String description)
 		HELP(			"help", 				0, 		"",
 							"Display this help."),
+		FIND_COMMAND(			"find_command", 				1, 		"",
+				"Find a command that contains the string"),
 		SEARCH_ENTRIES(	"searchEntries", 		0, 		"",
 							"Searches for possible entry methods."),
+		SEARCH_ENTRY_POINTS(	"search_entry_points", 		0, 		"",
+				"Searches for possible entry methods that are @EntryPoint annotated."),
 		SELECT_ENTRY(	"selectEntry", 			1, 		"",
 							"Selects an entry method for sdg generation."),
 		SET_CLASSPATH(	"setClasspath", 		1, 		"<path>",
@@ -342,6 +353,22 @@ public class IFCConsole {
 			}
 		};
 	}
+	
+	private Command makeCommandFindCommand() {
+		return new Command(CMD.FIND_COMMAND) {
+			@Override
+			boolean execute(String[] args) {
+				Pattern pattern = Pattern.compile(args[1], Pattern.CASE_INSENSITIVE);
+				for (String cmdName : repo.getCommands()) {
+					String msg = repo.getHelpMessage(cmdName);
+					if (pattern.matcher(msg).find()) {
+						out.logln(repo.getHelpMessage(cmdName));
+					}
+				}
+				return true;
+			}
+		};
+	}
 
 	private Command makeCommandSearchEntries() {
 		return new Command(CMD.SEARCH_ENTRIES) {
@@ -349,6 +376,16 @@ public class IFCConsole {
 			@Override
 			boolean execute(String[] args) {
 				return searchEntries();
+			}
+		};
+	}
+	
+	private Command makeCommandSearchEntryPoints() {
+		return new Command(CMD.SEARCH_ENTRY_POINTS) {
+
+			@Override
+			boolean execute(String[] args) {
+				return searchEntryPoints();
 			}
 		};
 	}
@@ -881,9 +918,10 @@ public class IFCConsole {
 	private void initialize() {
 
 		// setLattice("public<=secret");
-
 		repo.addCommand(makeCommandHelp());
+		repo.addCommand(makeCommandFindCommand());
 		repo.addCommand(makeCommandSearchEntries());
+		repo.addCommand(makeCommandSearchEntryPoints());
 		repo.addCommand(makeCommandSelectEntry());
 		repo.addCommand(makeCommandSetClasspath());
 		repo.addCommand(makeCommandSetExceptionAnalysis());
@@ -1095,6 +1133,25 @@ public class IFCConsole {
 		return true;
 	}
 
+	public boolean searchEntryPoints() {
+		JavaMethodSignature oldSelected = loc.getActiveEntry();
+		Optional<List<Pair<IMethod, Annotation>>> result = loc.doSearchForEntryPointAnnotated(classPath, out);
+		if (!result.isPresent()) {
+			out.info("No entry methods found.");
+			return false;
+		}
+		for (Pair<IMethod, Annotation> p : result.get()) {
+			out.info(p.getFirst().getSignature());
+		}
+		loc.displayLastEntrySearchResults(out);
+		if (loc.getNumberOfFoundEntries() == 1) {
+			selectEntry(0);
+		} else if (loc.getLastSearchResults().contains(oldSelected)) {
+			selectEntry(oldSelected);
+		}
+		return true;
+	}
+	
 	public void setClasspath(String newClasspath) {
 		this.classPath = newClasspath;
 	}
@@ -1411,6 +1468,13 @@ public class IFCConsole {
 		String[] parts = cmd.split("\\s+");
 		if (!repo.knowsCommand(parts[0])) {
 			out.error("Command not found: " + cmd);
+			List<String> commands = findCommands(parts[0]);
+			if (commands.size() > 0) {
+				out.error("Did you mean:");
+				for (String command : commands) {
+					out.error(repo.getHelpMessage(command));
+				}
+			}
 			notify();
 			return false;
 		} else {
@@ -1418,6 +1482,18 @@ public class IFCConsole {
 			return processCommand(c, parts);
 		}
 
+	}
+	
+	public List<String> findCommands(String needle){
+		List<String> commands = new ArrayList<>();
+		Pattern pattern = Pattern.compile(needle, Pattern.CASE_INSENSITIVE);
+		for (String cmdName : repo.getCommands()) {
+			String msg = repo.getHelpMessage(cmdName);
+			if (pattern.matcher(msg).find()) {
+				commands.add(cmdName);
+			}
+		}
+		return commands;
 	}
 
 	public boolean saveInstructions(String filename) {

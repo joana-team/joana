@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/com.ibm.wala.core"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/com.ibm.wala.shrike"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/com.ibm.wala.util"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.api"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.api.annotations.ignore"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.api.annotations.passon"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.api.test"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.api.testdata"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.contrib.lib"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.example.many-small-progs"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.example.tiny-special-tests"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.ifc.sdg.core"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.ifc.sdg.graph"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.ifc.sdg.irlsod"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.ifc.sdg.mhpoptimization"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.ifc.sdg.qifc.nildumu"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.ifc.sdg.qifc.nildumu.test"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.ifc.sdg.tests"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.ifc.sdg.util"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.ui.annotations"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.ui.ifc.sdg.graphviewer"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.ui.ifc.wala.console"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.ui.wala.easyifc"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.util"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.util.test"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.wala.core"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.wala.flowless"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.wala.summary"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.wala.testdata"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.wala.util"/>
+	<classpathentry kind="lib" path="/joana.contrib.lib/jcommander-1.72.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

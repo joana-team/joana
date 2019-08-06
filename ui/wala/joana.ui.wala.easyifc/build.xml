@@ -1,30 +1,828 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="joana.ui.wala.easyifc" default="copy_joana_api_jar" basedir=".">
- 	<description>
-  	builds joana.api.jar for joana.ui.wala.easyifc plugin
- 	</description>
-	
-	<!-- set project related properties -->
-	<property file="project.properties" />
-	<property name="projectname" value="joana.ui.wala.easyifc" />
-	<!-- set global properties for this build -->
-	<property file="${joana.base.dir}/joana-project-location.properties" />
+<project name="joana.ui.wala.easyifc" default="build.jars" basedir=".">
 
-	<target name="copy_joana_api_jar" depends="compile_joana_api">
-		<delete file="${joana.ui.wala.easyifc.base.dir}/lib/joana.api.jar" />
-		<copy todir="${joana.ui.wala.easyifc.base.dir}/lib">
-			<fileset dir="${joana.dist.dir}">
-				<filename name="joana.api.jar" />
+	<property name="p2.build.repo" value="file:${buildDirectory}/buildRepo"/>
+	<property name="basews" value="${ws}"/>
+	<property name="baseos" value="${os}"/>
+	<property name="basearch" value="${arch}"/>
+	<property name="basenl" value="${nl}"/>
+	<property name="bundleId" value="joana.ui.wala.easyifc"/>
+	<property name="bundleVersion" value="1.0.1.201907231533"/>
+	<property name="p2.publishonerror" value="false"/>
+
+	<!-- Compiler settings. -->
+	<property name="javacFailOnError" value="false"/>
+	<property name="javacDebugInfo" value="on"/>
+	<property name="javacVerbose" value="false"/>
+	<property name="logExtension" value=".log"/>
+	<property name="compilerArg" value=""/>
+	<property name="compilation.prereq.log" value="${buildDirectory}/prereqErrors.log"/>
+	<property name="javacSource" value="1.3"/>
+	<property name="javacTarget" value="1.2"/>
+	<condition property="dir_bootclasspath" value="${java.home}/../Classes">
+		<and>
+			<os family="mac"/>
+			<available file="${java.home}/../Classes" type="dir"/>
+		</and>
+	</condition>
+	<property name="dir_bootclasspath" value="${java.home}/lib"/>
+	<path id="path_bootclasspath">
+		<fileset dir="${dir_bootclasspath}">
+			<include name="*.jar"/>
+		</fileset>
+	</path>
+	<property name="bootclasspath" refid="path_bootclasspath"/>
+	<condition property="bundleBootClasspath" value="${JavaSE-1.8}"	>
+		<isset property="JavaSE-1.8"/>
+	</condition>
+	<condition property="bundleJavacSource" value="1.8"	>
+		<isset property="JavaSE-1.8"/>
+	</condition>
+	<condition property="bundleJavacTarget" value="1.8"	>
+		<isset property="JavaSE-1.8"/>
+	</condition>
+	<property name="bundleJavacSource" value="${javacSource}"/>
+	<property name="bundleJavacTarget" value="${javacTarget}"/>
+	<property name="bundleBootClasspath" value="${bootclasspath}"/>
+
+	<target name="init" depends="properties">
+		<condition property="pluginTemp" value="${buildTempFolder}/plugins"		>
+			<isset property="buildTempFolder"/>
+		</condition>
+		<property name="pluginTemp" value="${basedir}"/>
+		<condition property="build.result.folder" value="${pluginTemp}/joana.ui.wala.easyifc_1.0.1.201907231533"		>
+			<isset property="buildTempFolder"/>
+		</condition>
+		<property name="build.result.folder" value="${basedir}"/>
+		<property name="temp.folder" value="${basedir}/temp.folder"/>
+		<property name="plugin.destination" value="${basedir}"/>
+		<condition property="p2.publish.parts" value="true"		>
+			<istrue value="${p2.gathering}"/>
+		</condition>
+		<property name="compilation.problem.marker" value="${build.result.folder}/compilation.problem"/>
+		<condition property="compilation.problem.marker.exists" value="true"		>
+			<and>
+			<available file="${compilation.problem.marker}"/>
+			<isfalse value="${p2.publishonerror}"/>
+			</and>
+		</condition>
+	</target>
+
+	<target name="properties" if="eclipse.running">
+		<property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
+
+	</target>
+
+	<target name="build.update.jar" depends="init" description="Build the plug-in: joana.ui.wala.easyifc for an update site.">
+		<delete dir="${temp.folder}"/>
+		<mkdir dir="${temp.folder}"/>
+		<antcall target="build.jars"/>
+		<antcall target="gather.bin.parts">
+			<param name="destination.temp.folder" value="${temp.folder}/"/>
+		</antcall>
+		<jar destfile="${plugin.destination}/joana.ui.wala.easyifc_1.0.1.201907231533.jar" basedir="${temp.folder}/joana.ui.wala.easyifc_1.0.1.201907231533" filesetmanifest="merge"/>
+		<delete dir="${temp.folder}"/>
+	</target>
+
+	<target name="@dot.nestedJars">
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.equinox.registry_3.6.0.v20150318-1503"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.equinox.registry_3.6.0.v20150318-1503.jar" dest="${buildDirectory}/nestedJars/org.eclipse.equinox.registry_3.6.0.v20150318-1503" overwrite="false">
+			<patternset includes="runtime_registry_compatibility.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/com.ibm.icu_54.1.1.v201501272100"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/com.ibm.icu_54.1.1.v201501272100.jar" dest="${buildDirectory}/nestedJars/com.ibm.icu_54.1.1.v201501272100" overwrite="false">
+			<patternset includes="icu-data.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.e4.core.services_2.0.0.v20150403-1912"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.e4.core.services_2.0.0.v20150403-1912.jar" dest="${buildDirectory}/nestedJars/org.eclipse.e4.core.services_2.0.0.v20150403-1912" overwrite="false">
+			<patternset includes="injection_annotations.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/maven-core-3.0.4.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/maven-model-3.0.4.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/maven-settings-3.0.4.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/maven-settings-builder-3.0.4.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/maven-repository-metadata-3.0.4.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/maven-artifact-3.0.4.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/maven-plugin-api-3.0.4.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/maven-model-builder-3.0.4.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/maven-aether-provider-3.0.4.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/aether-api-1.13.1.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/aether-util-1.13.1.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/plexus-interpolation-1.14.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/plexus-utils-2.0.6.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/plexus-classworlds-2.4.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/plexus-component-annotations-1.5.5.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/plexus-sec-dispatcher-1.3.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/maven-embedder-3.0.4.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/plexus-cipher-1.7.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/commons-cli-1.2.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/maven-compat-3.0.4.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/wagon-provider-api-2.2.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/guice-plexus-shim-2.3.0.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/javax.inject-1.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/guice-bean-reflect-2.3.0.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/guice-bean-locators-2.3.0.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/guice-bean-binders-2.3.0.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/guice-bean-scanners-2.3.0.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/guice-bean-converters-2.3.0.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/guice-plexus-metadata-2.3.0.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/guice-plexus-converters-2.3.0.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/guice-plexus-locators-2.3.0.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/guice-plexus-binders-2.3.0.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/guice-bean-inject-2.3.0.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/guice-plexus-scanners-2.3.0.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/guice-plexus-lifecycles-2.3.0.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/sisu-guice-3.1.0-no_aop.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/guava-10.0.1.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/plexus-build-api-0.0.7.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/aether-connector-wagon-1.13.1.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/aether-spi-1.13.1.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/aether-impl-1.13.1.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/aether-connector-asynchttpclient-1.13.1.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/wagon-ahc-1.2.1.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jars/wagon-file-2.2.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/com.ning.async-http-client_1.6.5.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/com.ning.async-http-client_1.6.5.20140328-1501.jar" dest="${buildDirectory}/nestedJars/com.ning.async-http-client_1.6.5.20140328-1501" overwrite="false">
+			<patternset includes="async-http-client-1.6.5.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.jboss.netty_3.2.5.Final-20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.jboss.netty_3.2.5.Final-20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.jboss.netty_3.2.5.Final-20140328-1501" overwrite="false">
+			<patternset includes="netty-3.2.5.Final.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="archetype-common-2.0-alpha-4.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="commons-collections-3.2.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="commons-io-1.3.2.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="commons-lang-2.1.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="dom4j-1.6.1.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jchardet-1.0.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="jdom-1.0.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="oro-2.0.8.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="plexus-velocity-1.1.3.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="velocity-1.5.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.indexer_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.indexer_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.indexer_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="indexer-core-3.1.0.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.indexer_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.indexer_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.indexer_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="indexer-artifact-3.1.0.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.indexer_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.indexer_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.indexer_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="lucene-core-2.4.1.jar"/>
+		</unzip>
+		<mkdir dir="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.indexer_1.4.1.20140328-1501"/>
+		<unzip src="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.indexer_1.4.1.20140328-1501.jar" dest="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.indexer_1.4.1.20140328-1501" overwrite="false">
+			<patternset includes="lucene-highlighter-2.4.1.jar"/>
+		</unzip>
+	</target>
+	<target name="@dot" depends="init,@dot.nestedJars" unless="@dot" description="Create jar: joana.ui.wala.easyifc @dot.">
+		<delete dir="${build.result.folder}/@dot"/>
+		<mkdir dir="${build.result.folder}/@dot"/>
+		<path id="@dot.classpath">
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.ui_3.107.0.v20150507-1945.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.core.runtime_3.11.1.v20150903-1804.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/javax.annotation_1.2.0.v201401042248.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/javax.inject_1.0.0.v20091030.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.osgi_3.10.102.v20160118-1700.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.fx.osgi_2.1.0.201508240501.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.osgi.compatibility.state_1.0.100.v20150402-1551.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.equinox.common_3.7.0.v20150402-1709.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.core.jobs_3.7.0.v20150330-2103.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.core.runtime.compatibility.registry_3.6.0.v20150318-1505/runtime_registry_compatibility.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.core.runtime.compatibility.registry_3.6.0.v20150318-1505"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.equinox.registry_3.6.0.v20150318-1503/runtime_registry_compatibility.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.equinox.registry_3.6.0.v20150318-1503.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.equinox.preferences_3.5.300.v20150408-1437.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.core.contenttype_3.5.0.v20150421-2214.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.equinox.app_1.3.300.v20150423-1356.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.osgi.services_3.5.0.v20150519-2006.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/javax.servlet_3.1.0.v201410161800.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.swt_3.104.2.v20160212-1350.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.swt.gtk.linux.x86_64_3.104.2.v20160212-1350.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.jface_3.11.1.v20160128-1644.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.core.commands_3.7.0.v20150422-0725.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.equinox.bidi_0.10.0.v20130327-1442.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.ui.workbench_3.107.1.v20160120-2131.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/com.ibm.icu_54.1.1.v201501272100/icu-data.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/com.ibm.icu_54.1.1.v201501272100.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.e4.core.commands_0.11.0.v20150422-0725.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.core.expressions_3.5.0.v20150421-2214.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.e4.core.contexts_1.4.0.v20150828-0818.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.e4.core.di_1.5.0.v20150421-2214.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.e4.core.di.annotations_1.4.0.v20150528-1451.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.e4.core.services_2.0.0.v20150403-1912/injection_annotations.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.e4.core.services_2.0.0.v20150403-1912.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.e4.ui.workbench_1.3.1.v20160203-0951.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.e4.ui.model.workbench_1.1.100.v20150407-1430.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.emf.ecore_2.18.0.v20190528-0845.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.emf.common_2.16.0.v20190528-0845.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.core.resources_3.10.1.v20150725-1910.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.ant.core_3.4.0.v20150428-1928.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.core.variables_3.2.800.v20130819-1716.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.core.filesystem_1.5.0.v20150725-1910.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.core.filesystem.java7_1.0.100.v20150423-0754.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.core.filesystem.linux.x86_64_1.2.200.v20140124-1940.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.e4.emf.xpath_0.1.100.v20150513-0856.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.apache.commons.jxpath_1.3.0.v200911051830.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.e4.ui.services_1.2.0.v20150422-0725.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/javax.xml_1.3.4.v201005080400.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.e4.ui.di_1.1.0.v20150422-0725.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.e4.core.di.extensions_0.13.0.v20150421-2214.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.emf.ecore.change_2.14.0.v20190528-0725.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.emf.ecore.xmi_2.16.0.v20190528-0725.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.e4.ui.workbench.renderers.swt_0.13.0.v20150901-1347.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.e4.ui.workbench.swt_0.13.0.v20150504-0621.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.core.databinding_1.5.0.v20150422-0725.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.core.databinding.observable_1.5.0.v20150422-0725.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.core.databinding.property_1.5.0.v20150422-0725.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.jface.databinding_1.7.0.v20150406-2148.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.e4.ui.css.core_0.11.0.v20150511-1937.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.w3c.css.sac_1.3.1.v200903091627.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.apache.batik.css_1.7.0.v201011041433.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.w3c.dom.events_3.0.0.draft20060413_v201105210656.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.w3c.dom.svg_1.1.0.v201011041433.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.w3c.dom.smil_1.0.1.v200903091627.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.apache.batik.util_1.7.0.v201011041433.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.apache.batik.util.gui_1.7.0.v200903091627.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.e4.ui.css.swt_0.12.0.v20150511-1003.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.e4.ui.bindings_0.11.0.v20150422-0725.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.e4.ui.workbench3_0.13.0.v20150422-0725.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.e4.ui.css.swt.theme_0.10.0.v20150422-0725.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.e4.ui.swt.gtk_1.0.1.v20150708-1529.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.e4.ui.widgets_1.1.0.v20150427-1751.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.equinox.ds_1.4.300.v20150423-1356.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.equinox.util_1.0.500.v20130404-1337.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.equinox.event_1.3.100.v20140115-1647.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.help_3.6.0.v20130326-1254.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.e4.ui.workbench.addons.swt_1.2.0.v20150512-1414.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.jdt.ui_3.11.2.v20151123-1510.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.jdt.core_3.11.2.v20160128-0629.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.jdt.compiler.apt_1.2.0.v20150514-0146.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.jdt.compiler.tool_1.1.0.v20150513-2007.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.text_3.5.400.v20150505-1044.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.team.core_3.7.100.v20150203-1452.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.compare.core_3.5.500.v20150505-1058.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.search_3.10.0.v20150318-0856.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.core.filebuffers_3.5.500.v20140723-1040.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.ui.ide_3.11.0.v20150825-2158.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.ui.views_3.8.0.v20150422-0725.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.jface.text_3.10.0.v20150603-1752.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.ui.forms_3.6.200.v20150506-2029.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.equinox.p2.engine_2.4.0.v20150511-1532.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.equinox.p2.core_2.4.0.v20150527-1706.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.equinox.p2.metadata_2.3.0.v20150511-1532.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.equinox.p2.metadata.repository_1.2.200.v20150428-1613.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.equinox.p2.repository_2.3.100.v20150428-1613.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.equinox.security_1.2.100.v20150423-1356.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.tukaani.xz_1.3.0.v201308270617.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.ui.workbench.texteditor_3.9.100.v20141023-1946.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.ltk.core.refactoring_3.6.201.v20150819-1034.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.ltk.ui.refactoring_3.7.200.v20140625-1835.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.ui.navigator_3.6.0.v20150422-0725.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.compare_3.5.600.v20150420-1449.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.ui.editors_3.9.0.v20150213-1939.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.team.ui_3.7.200.v20150203-1452.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.debug.core_3.10.0.v20150303-1130.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.debug.ui_3.11.101.v20160203-1230.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.ui.console_3.6.100.v20150822-1912.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.jdt.launching_3.8.0.v20150527-0946.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.jdt.debug_3.9.1.v20160128-1343/jdi.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.jdt.debug_3.9.1.v20160128-1343/jdimodel.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.jdt.debug_3.9.1.v20160128-1343/tools.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.ui.navigator.resources_3.5.1.v20160128-1644.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.ui.views.properties.tabbed_3.6.100.v20150423-0822.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.jdt.core.manipulation_1.5.100.v20141002-1241.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.jdt_3.11.2.v20160212-1500.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.ui.intro_3.4.300.v20141007-1449.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.help.base_4.0.301.v20160212-1500.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.equinox.http.jetty_3.1.2.v20160115-1350.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.equinox.http.servlet_1.2.2.v20160202-2102.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.jetty.http_9.2.13.v20150730.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.jetty.util_9.2.13.v20150730.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.slf4j.api_1.7.2.v20121108-1250.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/ch.qos.logback.slf4j_1.0.7.v201505121915.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/ch.qos.logback.core_1.0.7.v20121108-1250.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/ch.qos.logback.classic_1.0.7.v20121108-1250.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.logback.appender_1.4.1.20140328-1905.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.core.ui_1.4.1.20140328-1905.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.core_1.4.1.20140328-1905.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/maven-core-3.0.4.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/maven-model-3.0.4.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/maven-settings-3.0.4.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/maven-settings-builder-3.0.4.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/maven-repository-metadata-3.0.4.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/maven-artifact-3.0.4.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/maven-plugin-api-3.0.4.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/maven-model-builder-3.0.4.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/maven-aether-provider-3.0.4.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/aether-api-1.13.1.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/aether-util-1.13.1.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/plexus-interpolation-1.14.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/plexus-utils-2.0.6.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/plexus-classworlds-2.4.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/plexus-component-annotations-1.5.5.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/plexus-sec-dispatcher-1.3.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/maven-embedder-3.0.4.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/plexus-cipher-1.7.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/commons-cli-1.2.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/maven-compat-3.0.4.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/wagon-provider-api-2.2.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/guice-plexus-shim-2.3.0.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/javax.inject-1.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/guice-bean-reflect-2.3.0.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/guice-bean-locators-2.3.0.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/guice-bean-binders-2.3.0.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/guice-bean-scanners-2.3.0.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/guice-bean-converters-2.3.0.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/guice-plexus-metadata-2.3.0.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/guice-plexus-converters-2.3.0.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/guice-plexus-locators-2.3.0.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/guice-plexus-binders-2.3.0.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/guice-bean-inject-2.3.0.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/guice-plexus-scanners-2.3.0.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/guice-plexus-lifecycles-2.3.0.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/sisu-guice-3.1.0-no_aop.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/guava-10.0.1.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/plexus-build-api-0.0.7.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/aether-connector-wagon-1.13.1.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/aether-spi-1.13.1.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/aether-impl-1.13.1.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/aether-connector-asynchttpclient-1.13.1.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/wagon-ahc-1.2.1.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.runtime_1.4.1.20140328-1501/jars/wagon-file-2.2.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/com.ning.async-http-client_1.6.5.20140328-1501/async-http-client-1.6.5.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.jboss.netty_3.2.5.Final-20140328-1501/netty-3.2.5.Final.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501/archetype-common-2.0-alpha-4.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501/commons-collections-3.2.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501/commons-io-1.3.2.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501/commons-lang-2.1.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501/dom4j-1.6.1.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501/jchardet-1.0.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501/jdom-1.0.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501/oro-2.0.8.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501/plexus-velocity-1.1.3.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.archetype.common_1.4.1.20140328-1501/velocity-1.5.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.maven.indexer_1.4.1.20140328-1501.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.indexer_1.4.1.20140328-1501/indexer-core-3.1.0.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.indexer_1.4.1.20140328-1501/indexer-artifact-3.1.0.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.indexer_1.4.1.20140328-1501/lucene-core-2.4.1.jar"/>
+			<pathelement path="${buildDirectory}/nestedJars/org.eclipse.m2e.maven.indexer_1.4.1.20140328-1501/lucene-highlighter-2.4.1.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.m2e.model.edit_1.4.1.20140328-1905.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.emf.edit_2.15.0.v20190528-0725.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.emf.ecore.edit_2.12.0.v20190226-1307.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.wst.common.emf_1.2.400.v201505132009.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.wst.common.frameworks_1.2.200.v201304241450.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.wst.common.environment_1.0.400.v200912181831.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.osgi.util_3.3.100.v20150423-1351.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.wst.common.core_1.2.0.v200908251833.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.wst.sse.core_1.1.901.v201510130005.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.wst.common.uriresolver_1.2.200.v201505132009.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.wst.validation_1.2.700.v201508251749.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.wst.common.project.facet.core_1.4.300.v201111030423.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.wst.xml.core_1.1.902.v201501211904.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.apache.xerces_2.9.0.v201101211617.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.apache.xml.resolver_1.2.0.v201005080400.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.apache.xml.serializer_2.7.1.v201005080400.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.jem.util_2.1.200.v201404021757.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.wst.common.emfworkbench.integration_1.2.101.v201107081800.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.wst.xsd.core_1.1.900.v201401141857.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.xsd_2.16.0.v20190321-1341.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.jetty.server_9.2.13.v20150730.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.jetty.io_9.2.13.v20150730.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.jetty.servlet_9.2.13.v20150730.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.jetty.security_9.2.13.v20150730.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.apache.lucene.analysis_3.5.0.v20120725-1805.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.apache.lucene.core_3.5.0.v20120725-1805.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.core.net_1.2.300.v20141118-1725.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.core.net.linux.x86_64_1.1.100.v20140124-2013.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.ui.cheatsheets_3.4.200.v20131227-1524.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.help.ui_4.0.100.v20140401-0608.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.eclipse.ui.views.log_1.0.600.v20150513-1840.jar"/>
+			<pathelement path="../../../api/joana.api/bin/"/>
+			<pathelement path="../../../api/joana.api/@dot"/>
+			<pathelement path="../../../contrib/wala/com.ibm.wala.core/bin/"/>
+			<pathelement path="../../../contrib/wala/com.ibm.wala.core/@dot"/>
+			<pathelement path="../../../contrib/wala/com.ibm.wala.shrike/bin/"/>
+			<pathelement path="../../../contrib/wala/com.ibm.wala.shrike/@dot"/>
+			<pathelement path="../../../contrib/wala/com.ibm.wala.util/bin/"/>
+			<pathelement path="../../../contrib/wala/com.ibm.wala.util/@dot"/>
+			<pathelement path="../../../ifc/sdg/joana.ifc.sdg.graph/bin"/>
+			<pathelement path="../../../ifc/sdg/joana.ifc.sdg.graph/@dot"/>
+			<pathelement path="../../../contrib/lib/antlr-runtime-3.1.3.jar"/>
+			<pathelement path="../../../contrib/lib/jgrapht-core-0.9.2.jar"/>
+			<pathelement path="../../../contrib/lib/jgrapht-ext-0.9.2.jar"/>
+			<pathelement path="../../../contrib/lib/trove-3.0.3.jar"/>
+			<pathelement path="../../../contrib/lib/slf4j-api-1.7.2.jar"/>
+			<pathelement path="../../../contrib/lib/stax-utils.jar"/>
+			<pathelement path="../../../contrib/lib/guava-19.0.jar"/>
+			<pathelement path="../../../contrib/lib/error_prone_annotations-2.0.2.jar"/>
+			<pathelement path="../../../contrib/lib/guava-testlib-19.0.jar"/>
+			<pathelement path="../../../contrib/lib/jsr305-1.3.9.jar"/>
+			<pathelement path="../../../contrib/lib/bin"/>
+			<pathelement path="../../../contrib/lib/bin/"/>
+			<pathelement path="../../../contrib/lib/@dot"/>
+			<pathelement path="../../../util/joana.util/bin/"/>
+			<pathelement path="../../../util/joana.util/@dot"/>
+			<pathelement path="../../../wala/joana.wala.core/bin/"/>
+			<pathelement path="../../../wala/joana.wala.core/@dot"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/com.google.guava_15.0.0.v201403281430.jar"/>
+			<pathelement path="../../../wala/joana.wala.flowless/bin"/>
+			<pathelement path="../../../wala/joana.wala.flowless/MoJo-FlowLess.jar"/>
+			<pathelement path="../../../wala/joana.wala.util/bin/"/>
+			<pathelement path="../../../wala/joana.wala.util/@dot"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.junit_4.12.0.v201504281640/junit.jar"/>
+			<pathelement path="../../../../../../../data1/bechberger-local/eclipse/plugins/org.hamcrest.core_1.3.0.v201303031735.jar"/>
+			<pathelement path="../../../wala/joana.wala.summary/bin"/>
+			<pathelement path="../../../wala/joana.wala.summary/@dot"/>
+			<pathelement path="../../../wala/joana.wala.summary/bin/"/>
+			<pathelement path="../../../ifc/sdg/joana.ifc.sdg.core/bin"/>
+			<pathelement path="../../../ifc/sdg/joana.ifc.sdg.core/@dot"/>
+			<pathelement path="../../../ifc/sdg/joana.ifc.sdg.util/bin"/>
+			<pathelement path="../../../ifc/sdg/joana.ifc.sdg.util/@dot"/>
+			<pathelement path="../../../ifc/sdg/joana.ifc.sdg.mhpoptimization/bin"/>
+			<pathelement path="../../../ifc/sdg/joana.ifc.sdg.mhpoptimization/@dot"/>
+			<pathelement path="../../../ifc/sdg/joana.ifc.sdg.irlsod/bin/"/>
+			<pathelement path="../../../ifc/sdg/joana.ifc.sdg.irlsod/@dot"/>
+			<pathelement path="../../annotations/joana.ui.annotations/bin/"/>
+			<pathelement path="../../annotations/joana.ui.annotations/@dot"/>
+			<pathelement path="../../../contrib/lib/commons-exec-1.3.jar"/>
+			<pathelement path="../../../contrib/lib/commons-io-2.6.jar"/>
+			<pathelement path="../../../contrib/lib/graphviz-java-0.6.0.jar"/>
+			<pathelement path="../../../contrib/lib/guava-19.0-sources.jar"/>
+			<pathelement path="../../../contrib/lib/guava-testlib-19.0-sources.jar"/>
+			<pathelement path="../../../contrib/lib/jcommander-1.72.jar"/>
+			<pathelement path="../../../contrib/lib/junit-4.11.jar"/>
+			<pathelement path="../../../contrib/lib/junit-platform-console-standalone-1.4.2.jar"/>
+			<pathelement path="../../../contrib/lib/logback-classic-1.0.9.jar"/>
+			<pathelement path="../../../contrib/lib/logback-core-1.0.9.jar"/>
+			<pathelement path="../../../contrib/lib/trove-3.0.3-src.jar"/>
+		</path>
+		<!-- compile the source code -->
+		<javac destdir="${build.result.folder}/@dot" failonerror="${javacFailOnError}" verbose="${javacVerbose}" debug="${javacDebugInfo}" includeAntRuntime="no" bootclasspath="${bundleBootClasspath}" source="${bundleJavacSource}" target="${bundleJavacTarget}"		>
+			<compilerarg line="${compilerArg}" compiler="${build.compiler}"/>
+			<classpath refid="@dot.classpath" />
+			<src path="src/"			/>
+			<compilerarg value="@${basedir}/javaCompiler...args" compiler="org.eclipse.jdt.core.JDTCompilerAdapter"			/>
+			<compilerarg line="-log &apos;${build.result.folder}/@dot${logExtension}&apos;" compiler="org.eclipse.jdt.core.JDTCompilerAdapter"			/>
+		</javac>
+		<antcall target="checkCompilationResults"/>
+		<!-- Copy necessary resources -->
+		<copy todir="${build.result.folder}/@dot" failonerror="true" overwrite="false">
+			<fileset dir="src/">
+				<exclude name="**/*.java"/>
+				<exclude name="**/package.htm*"/>
 			</fileset>
 		</copy>
 	</target>
 
-	<target name="compile_joana_api">
-		<ant antfile="${joana.api.base.dir}/build.xml" target="fulljar" inheritall="false" />
+	<target name="src.zip" depends="init" unless="src.zip">
+		<mkdir dir="${build.result.folder}"/>
+		<antcall target="zip.src.zip"/>
+	</target>
+	<target name="zip.src.zip">
+		<zip destfile="${build.result.folder}/src.zip" filesonly="false" whenempty="skip" update="false">
+			<fileset dir="src/">
+				<include name="**/*.java"/>
+			</fileset>
+		</zip>
+	</target>
+	<target name="copy.src.zip">
+		<copy todir="${source.destination.folder}/" failonerror="true" overwrite="true">
+			<fileset dir="src/">
+				<include name="**/*.java"/>
+			</fileset>
+		</copy>
 	</target>
 
-	<target name="clean">
-		<ant antfile="${joana.api.base.dir}/build.xml" target="clean" inheritall="false" />
+	<target name="build.jars" depends="init" description="Compile classes and build nested jars for the plug-in: joana.ui.wala.easyifc.">
+		<delete file="${compilation.problem.marker}" quiet="true"/>
+		<available property="@dot" file="${build.result.folder}/@dot"/>
+		<antcall target="@dot"/>
+	</target>
+
+	<target name="checkCompilationResults" if="compilation.error.occured">
+		<echo file="${compilation.problem.marker}" message="joana.ui.wala.easyifc_1.0.1.201907231533${line.separator}compilation.error.occured=${compilation.error.occured}"/>
+		<eclipse.logCompileError log="${compilation.prereq.log}" bundle="joana.ui.wala.easyifc_1.0.1.201907231533">
+			<include name="/home/bechberger-local/Code/joana/contrib/lib/compilation.problem"/>
+			<include name="${pluginTemp}/joana.contrib.lib_1.0.0.201907231533/compilation.problem"/>
+			<include name="/home/bechberger-local/Code/joana/ifc/sdg/joana.ifc.sdg.core/compilation.problem"/>
+			<include name="${pluginTemp}/joana.ifc.sdg.core_3.3.0/compilation.problem"/>
+			<include name="/home/bechberger-local/Code/joana/ifc/sdg/joana.ifc.sdg.mhpoptimization/compilation.problem"/>
+			<include name="${pluginTemp}/joana.ifc.sdg.mhpoptimization_0.0.1/compilation.problem"/>
+			<include name="/home/bechberger-local/Code/joana/wala/joana.wala.core/compilation.problem"/>
+			<include name="${pluginTemp}/joana.wala.core_1.0.0/compilation.problem"/>
+			<include name="/home/bechberger-local/Code/joana/wala/joana.wala.flowless/compilation.problem"/>
+			<include name="${pluginTemp}/joana.wala.flowless_1.0.0/compilation.problem"/>
+			<include name="/home/bechberger-local/Code/joana/contrib/wala/com.ibm.wala.util/compilation.problem"/>
+			<include name="${pluginTemp}/com.ibm.wala.util_1.4.4.201907231533/compilation.problem"/>
+			<include name="/home/bechberger-local/Code/joana/ifc/sdg/joana.ifc.sdg.irlsod/compilation.problem"/>
+			<include name="${pluginTemp}/joana.ifc.sdg.irlsod_1.0.0.201907231533/compilation.problem"/>
+			<include name="/home/bechberger-local/Code/joana/contrib/wala/com.ibm.wala.shrike/compilation.problem"/>
+			<include name="${pluginTemp}/com.ibm.wala.shrike_1.4.4.201907231533/compilation.problem"/>
+			<include name="/home/bechberger-local/Code/joana/api/joana.api/compilation.problem"/>
+			<include name="${pluginTemp}/joana.api_1.0.0.201907231533/compilation.problem"/>
+			<include name="/home/bechberger-local/Code/joana/wala/joana.wala.summary/compilation.problem"/>
+			<include name="${pluginTemp}/joana.wala.summary_1.0.0/compilation.problem"/>
+			<include name="/home/bechberger-local/Code/joana/ifc/sdg/joana.ifc.sdg.graph/compilation.problem"/>
+			<include name="${pluginTemp}/joana.ifc.sdg.graph_1.1.0/compilation.problem"/>
+			<include name="/home/bechberger-local/Code/joana/ui/annotations/joana.ui.annotations/compilation.problem"/>
+			<include name="${pluginTemp}/joana.ui.annotations_1.0.0.201907231533/compilation.problem"/>
+			<include name="/home/bechberger-local/Code/joana/contrib/wala/com.ibm.wala.core/compilation.problem"/>
+			<include name="${pluginTemp}/com.ibm.wala.core_1.4.4.201907231533/compilation.problem"/>
+			<include name="/home/bechberger-local/Code/joana/ifc/sdg/joana.ifc.sdg.util/compilation.problem"/>
+			<include name="${pluginTemp}/joana.ifc.sdg.util_1.0.0.201907231533/compilation.problem"/>
+			<include name="/home/bechberger-local/Code/joana/util/joana.util/compilation.problem"/>
+			<include name="${pluginTemp}/joana.util_1.0.0.201907231533/compilation.problem"/>
+			<include name="/home/bechberger-local/Code/joana/wala/joana.wala.util/compilation.problem"/>
+			<include name="${pluginTemp}/joana.wala.util_0.0.1/compilation.problem"/>
+		</eclipse.logCompileError>
+	</target>
+
+	<target name="build.sources" depends="init">
+		<available property="src.zip" file="${build.result.folder}/src.zip"/>
+		<antcall target="src.zip"/>
+	</target>
+
+	<target name="publish.bin.parts" depends="init" if="p2.publish.parts" unless="compilation.problem.marker.exists">
+		<mkdir dir="${build.result.folder}/joana.ui.wala.easyifc_1.0.1.201907231533"/>
+		<copy todir="${build.result.folder}" failonerror="true" overwrite="true">
+			<fileset dir="${basedir}">
+				<include name="META-INF/MANIFEST.MF"/>
+				<include name="plugin.xml"/>
+				<include name="fragment.xml"/>
+			</fileset>
+		</copy>
+		<eclipse.versionReplacer path="${build.result.folder}" version="1.0.1.201907231533"/>
+		<antcall target="apitools.generation">
+			<param name="projectLocation" value="${basedir}"/>
+			<param name="binary.folders" value="${build.result.folder}/@dot"/>
+			<param name="projectName" value="${bundleId}_${bundleVersion}"/>
+			<param name="target.folder" value="${build.result.folder}"/>
+		</antcall>
+		<eclipse.gatherBundle 
+		   metadataRepository="${p2.build.repo}"
+		   artifactRepository="${p2.build.repo}"
+		   buildResultFolder="${build.result.folder}"
+		   baseDirectory="${basedir}"
+		/>
+	</target>
+
+	<target name="gather.bin.parts" depends="init" if="destination.temp.folder">
+		<mkdir dir="${destination.temp.folder}/joana.ui.wala.easyifc_1.0.1.201907231533"/>
+		<copy todir="${destination.temp.folder}/joana.ui.wala.easyifc_1.0.1.201907231533" failonerror="true" overwrite="false">
+			<fileset dir="${build.result.folder}/@dot">
+				<include name="**"/>
+			</fileset>
+		</copy>
+		<copy todir="${destination.temp.folder}/joana.ui.wala.easyifc_1.0.1.201907231533" failonerror="true" overwrite="true">
+			<fileset dir="${basedir}">
+				<include name="META-INF/"/>
+				<include name="plugin.xml"/>
+				<include name="icons/"/>
+				<include name="project.properties"/>
+			</fileset>
+		</copy>
+		<eclipse.versionReplacer path="${destination.temp.folder}/joana.ui.wala.easyifc_1.0.1.201907231533" version="1.0.1.201907231533"/>
+		<antcall target="apitools.generation">
+			<param name="projectLocation" value="${basedir}"/>
+			<param name="binary.folders" value="${build.result.folder}/@dot"/>
+			<param name="projectName" value="${bundleId}_${bundleVersion}"/>
+			<param name="target.folder" value="${destination.temp.folder}/joana.ui.wala.easyifc_1.0.1.201907231533"/>
+		</antcall>
+	</target>
+
+	<target name="build.zips" depends="init">
+	</target>
+
+	<target name="gather.sources" depends="init" if="destination.temp.folder">
+		<mkdir dir="${destination.temp.folder}/joana.ui.wala.easyifc_1.0.1.201907231533"/>
+		<copy file="${build.result.folder}/src.zip" todir="${destination.temp.folder}/joana.ui.wala.easyifc_1.0.1.201907231533" failonerror="false" overwrite="false"/>
+		<antcall target="copy.src.includes">
+			<param name="source.destination.folder" value="${destination.temp.folder}/joana.ui.wala.easyifc_1.0.1.201907231533"/>
+		</antcall>
+	</target>
+
+	<target name="gather.individual.sources" depends="init">
+		<antcall target="copy.src.zip">
+			<param name="source.destination.folder" value="${destination.temp.folder}"/>
+		</antcall>
+		<antcall target="copy.src.includes">
+			<param name="source.destination.folder" value="${destination.temp.folder}"/>
+		</antcall>
+	</target>
+
+	<target name="copy.src.includes" depends="init">
+	</target>
+
+	<target name="gather.logs" depends="init" if="destination.temp.folder">
+		<mkdir dir="${destination.temp.folder}/joana.ui.wala.easyifc_1.0.1.201907231533"/>
+		<copy todir="${destination.temp.folder}/joana.ui.wala.easyifc_1.0.1.201907231533" failonerror="false" overwrite="false">
+			<fileset dir="${build.result.folder}">
+				<include name="@dot${logExtension}"/>
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="clean" depends="init" description="Clean the plug-in: joana.ui.wala.easyifc of all the zips, jars and logs created.">
+		<delete dir="${build.result.folder}/@dot"/>
+		<delete file="${build.result.folder}/src.zip"/>
+		<delete file="${plugin.destination}/joana.ui.wala.easyifc_1.0.1.201907231533.jar"/>
+		<delete file="${plugin.destination}/joana.ui.wala.easyifc_1.0.1.201907231533.zip"/>
+		<delete dir="${temp.folder}"/>
+		<delete file="${compilation.problem.marker}" quiet="true"/>
+	</target>
+
+	<target name="refresh" depends="init" if="eclipse.running" description="Refresh this folder.">
+		<eclipse.convertPath fileSystemPath="/home/bechberger-local/Code/joana/ui/wala/joana.ui.wala.easyifc" property="resourcePath"/>
+		<eclipse.refreshLocal resource="${resourcePath}" depth="infinite"/>
+	</target>
+
+	<target name="zip.plugin" depends="init" description="Create a zip containing all the elements for the plug-in: joana.ui.wala.easyifc.">
+		<delete dir="${temp.folder}"/>
+		<mkdir dir="${temp.folder}"/>
+		<antcall target="build.jars"/>
+		<antcall target="build.sources"/>
+		<antcall target="gather.bin.parts">
+			<param name="destination.temp.folder" value="${temp.folder}/"/>
+		</antcall>
+		<antcall target="gather.sources">
+			<param name="destination.temp.folder" value="${temp.folder}/"/>
+		</antcall>
+		<delete>
+			<fileset dir="${temp.folder}">
+				<include name="**/*.bin${logExtension}"/>
+			</fileset>
+		</delete>
+		<zip destfile="${plugin.destination}/joana.ui.wala.easyifc_1.0.1.201907231533.zip" basedir="${temp.folder}" filesonly="true" whenempty="skip" update="false"/>
+		<delete dir="${temp.folder}"/>
+	</target>
+
+	<target name="apitools.generation" if="generateAPIDescription">
+		<apitooling.apigeneration  projectName="${projectName}" project="${projectLocation}" binary="${binary.folders}" target="${target.folder}" extramanifests="${extraManifests}" allownonapiproject="${allowNonApiProject}"		/>
 	</target>
 
 </project>

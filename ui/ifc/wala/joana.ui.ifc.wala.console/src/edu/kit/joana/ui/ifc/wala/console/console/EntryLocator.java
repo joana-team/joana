@@ -9,17 +9,34 @@ package edu.kit.joana.ui.ifc.wala.console.console;
 
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
+import com.ibm.wala.classLoader.IClass;
+import com.ibm.wala.classLoader.IMethod;
+import com.ibm.wala.ipa.callgraph.AnalysisScope;
+import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.types.TypeName;
+import com.ibm.wala.types.annotations.Annotation;
 
 import edu.kit.joana.api.sdg.SDGBuildPreparation;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
+import edu.kit.joana.ifc.sdg.util.JavaType;
+import edu.kit.joana.ui.annotations.EntryPoint;
+import edu.kit.joana.ui.annotations.Source;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCConsoleOutput;
+import edu.kit.joana.util.NullPrintStream;
+import edu.kit.joana.util.Pair;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
+
+import static edu.kit.joana.util.Pair.pair;
 
 /**
  * Performs a search for possible main methods and maintains the list of search
@@ -102,6 +119,74 @@ public class EntryLocator {
 	}
 
 	/**
+	 * Performs the search and updates the result list. After a successful
+	 * search the result list contains all found entry methods and no entry
+	 * method is selected. If no entry method is found, result list and selected
+	 * entry method remain untouched.
+	 * 
+	 * Searches for static methods that have the {@link EntryPoint} annotation
+	 * 
+	 * @param classPath
+	 *            location of the classes in which the entry methods are to be
+	 *            searched. Can be a directory or a jar.
+	 * @return empty or a list of annotations with their methods, methods can appear only once in the list
+	 */
+	public Optional<List<Pair<IMethod, Annotation>>> doSearchForEntryPointAnnotated(String classPath, IFCConsoleOutput out){
+		final SDGBuildPreparation.Config cfg = new SDGBuildPreparation.Config("Search main <unused>", "<unused>",
+				classPath, true, FieldPropagation.FLAT);
+		List<JavaMethodSignature> newEntries = new ArrayList<JavaMethodSignature>();
+		List<Pair<IMethod, Annotation>> entries = new ArrayList<>();
+		try {
+			out.logln("Searching for main methods in '" + cfg.classpath + "'...");
+			ClassHierarchy cha = SDGBuildPreparation.computeClassHierarchy(new NullPrintStream(), cfg);
+			String entryPointName = TypeName.findOrCreate(JavaType.parseSingleTypeFromString(EntryPoint.class.getCanonicalName()).toBCString(false)).toString();
+			for (final IClass cls : cha) {
+				if (!cls.isInterface() && !cls.isAbstract() && cls.getClassLoader().getName().equals(AnalysisScope.APPLICATION)) {
+					for (final IMethod m : cls.getDeclaredMethods()) {
+						//if (m.isStatic()) {
+							out.logln("Look at method '" + m.getSignature() + "'");
+							List<Annotation> anns = m.getAnnotations().stream().filter(a -> a.getType().getName().toString().equals(entryPointName)).collect(Collectors.toList());
+							if (anns.size() > 0) {
+								if (anns.size() > 1) {
+									out.error("More than one EntryPoint annotation found at '" + m.getSignature() + "' but only one is allowed");
+									return Optional.empty();
+								}
+								out.logln("\tfound '" + m.getSignature() + "': " + anns.get(0));
+								entries.add(pair(m, anns.get(0)));
+								newEntries.add(JavaMethodSignature.fromString(m.getSignature()));
+							}
+						//}
+					}
+				}
+			}
+		} catch (ClassHierarchyException e) {
+			out.error("Error while analyzing class structure!");
+			return Optional.empty();
+		} catch (IOException e) {
+			out.error("I/O error while searching entry methods!");
+			return Optional.empty();
+		}
+
+		if (newEntries.isEmpty()) {
+			return Optional.empty();
+		}
+
+		possibleEntries.clear();
+		possibleEntries.addAll(newEntries);
+		Collections.sort(possibleEntries, new Comparator<JavaMethodSignature>() {
+
+			@Override
+			public int compare(JavaMethodSignature arg0,
+					JavaMethodSignature arg1) {
+				return arg0.toHRString().compareTo(arg1.toHRString());
+			}
+
+		});
+		unselectEntry();
+		return Optional.of(entries);
+	}
+	
+	/**
 	 * Prints the results of the last entry search to the given print stream
 	 *
 	 * @param out
@@ -179,7 +264,7 @@ public class EntryLocator {
 		ret.addAll(possibleEntries);
 		return ret;
 	}
-
+	
 	public JavaMethodSignature getEntry(int arg0) {
 		return possibleEntries.get(arg0);
 	}

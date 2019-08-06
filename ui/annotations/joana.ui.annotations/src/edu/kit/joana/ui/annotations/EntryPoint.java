@@ -18,4 +18,5 @@ public @interface EntryPoint {
 	PointsToPrecision pointsToPrecision() default PointsToPrecision.INSTANCE_BASED;
 	ChopComputation chops() default ChopComputation.ALL;
 	
+	String[] classSinks() default {};
 }

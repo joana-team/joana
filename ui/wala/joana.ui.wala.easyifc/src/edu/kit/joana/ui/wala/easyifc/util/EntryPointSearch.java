@@ -118,6 +118,7 @@ public class EntryPointSearch {
 		private final IMethod entryPointMethod;
 		private final SourceRefElement sourceRef;
 		private final SourceRefElement methodSourceRef;
+		protected String[] classSinks = new String[0];
 		
 		protected EntryPointConfiguration(IMethod entryPointMethod, SourceRefElement sourceRef, SourceRefElement methodSourceRef) {
 			this.entryPointMethod = entryPointMethod;
@@ -167,6 +168,10 @@ public class EntryPointSearch {
 
 		public final boolean replaces(EntryPointConfiguration other) {
 			return this.priority() > other.priority() && this.entryPointMethod.equals(other.entryPointMethod);
+		}
+		
+		public String[] getClassSinks(){
+			return classSinks;
 		}
 	}
 	
@@ -442,6 +447,7 @@ public class EntryPointSearch {
 				PointsToPrecision pointsToPrecision = null;
 				String file = null;
 				ChopComputation chopComputation = null;
+				String[] classSinks = null;
 				try {
 					
 					for (IMemberValuePair pair : annotation.getMemberValuePairs()) {
@@ -486,6 +492,11 @@ public class EntryPointSearch {
 							final String value = (String) pair.getValue();
 							file = value;
 						}
+						if ("classSinks".equals(pair.getMemberName())){
+							Object[] arr = (Object[])pair.getValue();
+							classSinks = new String[arr.length];
+							System.arraycopy(arr, 0, classSinks, 0, arr.length);
+						}
 					}
 				} catch (JavaModelException e) {
 					// Thrown by IAnnotation.getMemberValuePairs()
@@ -496,7 +507,11 @@ public class EntryPointSearch {
 				} else {
 					this.kind = kind;
 				}
-				
+				if (classSinks == null){
+					this.classSinks = new String[0];
+				} else {
+					this.classSinks = classSinks;
+				}
 				if (pointsToPrecision == null) {
 					this.pointsToPrecision = PointsToPrecision.INSTANCE_BASED;
 				} else {

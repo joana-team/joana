@@ -20,6 +20,9 @@ import java.util.Set;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import com.ibm.wala.classLoader.IClass;
+import com.ibm.wala.ipa.cha.ClassHierarchy;
+import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.shrikeCT.AnnotationsReader.ArrayElementValue;
 import com.ibm.wala.shrikeCT.AnnotationsReader.ConstantElementValue;
 import com.ibm.wala.shrikeCT.AnnotationsReader.ElementValue;
@@ -80,6 +83,7 @@ import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.ui.annotations.AnnotationPolicy;
+import edu.kit.joana.ui.annotations.Level;
 import edu.kit.joana.ui.annotations.PositionDefinition;
 import edu.kit.joana.ui.annotations.Sink;
 import edu.kit.joana.ui.annotations.Source;
@@ -1052,5 +1056,23 @@ public class IFCAnalysis {
 			}
 		}, null);
 		debug.outln("Added " + ann + " Annotation: " + part + ":::" + level);
+	}
+	
+	public void addSinkClasses(String[] sinkClasses){
+		IClassHierarchy ch = program.getClassHierarchy();
+		for (SDGMethod method : program.getAllMethods()){
+			JavaMethodSignature sig = method.getSignature();
+			IClass declaring = ch.lookupClass(TypeReference.find(ClassLoaderReference.Application, sig.getDeclaringType().toBCString().replace(";", "")));
+			for (String sinkClass : sinkClasses){
+				IClass sink = ch.lookupClass(TypeReference.find(ClassLoaderReference.Application, sinkClass));
+				if (declaring != null && (ch.isSubclassOf(declaring, sink) || ch.implementsInterface(declaring, sink))){
+					for (SDGFormalParameter param : method.getParameters()){
+						if (!param.getName().equals("this")){
+							addSinkAnnotation(param, Level.LOW);
+						}
+					}
+				}
+			}			
+		}
 	}
 }

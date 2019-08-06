@@ -176,6 +176,7 @@ public class SDGProgram {
 	private SDGProgramPartParserBC ppartParser;
 	private final Map<SDGProgramPart, Collection<Pair<Annotation,String>>> annotations = new LinkedHashMap<>();
 	private final AnnotationTypeBasedNodeCollector coll;
+	private IClassHierarchy ch;
 
 	private static Logger debug = Log.getLogger(Log.L_API_DEBUG);
 	
@@ -286,7 +287,7 @@ public class SDGProgram {
 			sdgFileOut.flush();
 		}
 		final SDGProgram ret = new SDGProgram(sdg, mhpAnalysis);
-		
+		ret.setClassHierarchy(buildArtifacts.getClassHierarchy());
 		if (config.isSkipSDGProgramPart()) {
 			return ret;
 		}
@@ -298,6 +299,14 @@ public class SDGProgram {
 		return ret;
 	}
 	
+	private void setClassHierarchy(IClassHierarchy ch) {
+		this.ch = ch;
+	}
+	
+	public IClassHierarchy getClassHierarchy(){
+		return ch;
+	}
+
 	public static Set<IClass> findClassesRelevantForAnnotation(IClassHierarchy ch, CallGraph callGraph) {
 		final Set<IClass> classes = new HashSet<>();
 		SSAInstruction.Visitor collectReferencedClasses = new SSAInstruction.Visitor() {

@@ -27,6 +27,9 @@ import java.util.TreeSet;
 import com.google.common.collect.ImmutableMultimap;
 import com.ibm.wala.cfg.exc.intra.MethodState;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
+import com.ibm.wala.ipa.callgraph.CallGraph;
+import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
+import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
 import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
@@ -71,6 +74,7 @@ import edu.kit.joana.util.Maybe;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.util.io.IOFactory;
+import edu.kit.joana.wala.core.CGConsumer;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
@@ -149,7 +153,7 @@ public final class CheckInformationFlow {
 			return "check information flow at src(" + src + "), bin(" + bin + ")";
 		}
 	}
-
+	
 	private static enum AnnotationMethod { HARDCODED, FROM_ANNOTATIONS };
 
 	@SuppressWarnings("resource")
@@ -234,7 +238,7 @@ public final class CheckInformationFlow {
 		}
 		
 		assert p != null;
-
+		
 		if (containsThreads) {			
 			cfc.out.println("checking '" + cfc.bin + "' for concurrent confidentiality.");
 			final WeakReference<SDGProgram> pRef = new WeakReference<SDGProgram>(p);
@@ -603,6 +607,7 @@ public final class CheckInformationFlow {
 	//private static Pair<Set<SLeak>, Pair<Multimap<SDGProgramPart, Pair<Source, String>>, Multimap<SDGProgramPart, Pair<Sink, String>>>> checkIFC(final Reason reason, final SDGProgram prog, final IFCType type, final AnnotationMethod annotationMethod, final EntryPointConfiguration entryPoint) {
 	private static Pair<Set<SLeak>, Collection<IFCAnnotation>> checkIFC(final Reason reason, final SDGProgram prog, final IFCType type, final AnnotationMethod annotationMethod, final EntryPointConfiguration entryPoint) {
 		final IFCAnalysis ana = new IFCAnalysis(prog,entryPoint.lattice());
+		ana.addSinkClasses(entryPoint.getClassSinks());
 		if (AnnotationMethod.FROM_ANNOTATIONS == annotationMethod) {
 			entryPoint.annotateSDG(ana);
 		} else {

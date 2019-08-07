@@ -27,4 +27,9 @@ public @interface Source {
 	int lineNumber() default -1;
 	int columnNumber() default -1;
 	String id() default Joana.UNKNOWN_ID;
+	
+	/**
+     * matches all tags if it contains ""
+	 */
+	String[] tags() default {};
 }

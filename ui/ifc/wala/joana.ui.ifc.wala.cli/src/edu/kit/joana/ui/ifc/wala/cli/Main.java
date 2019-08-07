@@ -1,10 +1,8 @@
 package edu.kit.joana.ui.ifc.wala.cli;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.util.ArrayList;
 
@@ -24,6 +22,7 @@ import com.beust.jcommander.Parameters;
 
 import edu.kit.joana.ui.ifc.wala.console.console.IFCConsole;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCConsoleOutput;
+import edu.kit.joana.util.NullPrintStream;
 
 /**
  * Runs the program on the command line
@@ -34,7 +33,7 @@ public class Main {
 	@Parameters(commandDescription = "Run IFC console commands directly")
 	private static class ConsoleCommand {
 
-		@Parameter(description = "Commands to execute")
+		@Parameter(description = "Commands to execute, commands prefixed with '*' discard all non error output")
 		private List<String> commands = new ArrayList<>();
 
 		@Parameter(names = "-i", description = "Run interactive console afterwards")
@@ -43,16 +42,21 @@ public class Main {
 		private IFCConsole console;
 
 		void process(Main main) {
+			final boolean[] isSilent = new boolean[] {false};
 			console = new IFCConsole(new BufferedReader(new InputStreamReader(System.in)), new IFCConsoleOutput() {
 
 				@Override
 				public void log(String logMessage) {
-					System.out.print(logMessage);
+					if (!isSilent[0]) {
+						System.out.print(logMessage);
+					}
 				}
 
 				@Override
 				public void logln(String logMessage) {
-					System.out.println(logMessage);
+					if (!isSilent[0]) {
+						System.out.println(logMessage);
+					}
 				}
 
 				@Override
@@ -83,6 +87,9 @@ public class Main {
 
 				@Override
 				public PrintStream getPrintStream() {
+					if (isSilent[0]) {
+						return new NullPrintStream();
+					}
 					return System.out;
 				}
 
@@ -91,9 +98,14 @@ public class Main {
 				console.setClasspath(main.classPath);
 			}
 			for (String command : commands) {
+				if (command.startsWith("*")) {
+					isSilent[0] = true;
+					command = command.substring(1);
+				}
 				if (!console.processCommand(command)) {
 					System.exit(1);
 				}
+				isSilent[0] = false;
 			}
 			if (interactive) {
 				try {

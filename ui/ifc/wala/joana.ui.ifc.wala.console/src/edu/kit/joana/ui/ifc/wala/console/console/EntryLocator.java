@@ -12,13 +12,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.ibm.wala.classLoader.IClass;
@@ -51,49 +48,6 @@ import static edu.kit.joana.util.Pair.pair;
  */
 public class EntryLocator {
 	
-	public static enum PatternType {
-		SIGNATURE, ID
-	}
-	
-	public static class Pattern {
-		
-		final Set<PatternType> type;
-		final String pattern;
-		final boolean isRegexp;
-		final boolean matchAll;
-
-		public Pattern(String pattern, boolean isRegexp, PatternType... type) {
-			this.type = new HashSet<>(Arrays.asList(type));
-			this.pattern = pattern;
-			this.isRegexp = isRegexp;
-			this.matchAll = false;
-		}
-		
-		public Pattern() {
-			this.pattern = "";
-			this.isRegexp = false;
-			this.type = Collections.emptySet();
-			this.matchAll = true;
-		}
-		
-		boolean match(String str) {
-			if (matchAll) {
-				return true;
-			}
-			if (isRegexp) {
-				return pattern.matches(str);
-			}
-			return pattern.equals(str);
-		}
-		
-		
-		public boolean matchEntryPoint(IMethod method, Annotation entryPointAnnotation) {
-			return matchAll || (type.contains(PatternType.SIGNATURE) && match(method.getSignature())) ||
-					(type.contains(PatternType.ID) && match(getEntryPointIdAttribute(entryPointAnnotation).orElse("")));
-		}
-	}
-	
-
 	/** the list of search results */
 	private final List<JavaMethodSignature> possibleEntries = new ArrayList<JavaMethodSignature>();
 
@@ -195,10 +149,6 @@ public class EntryLocator {
 							out.info("Look at method '" + m.getSignature() + "'");
 							List<Annotation> anns = m.getAnnotations().stream().filter(a -> a.getType().getName().toString().equals(entryPointName)).collect(Collectors.toList());
 							if (anns.size() > 0) {
-								if (anns.size() > 1) {
-									out.error("More than one EntryPoint annotation found at '" + m.getSignature() + "' but only one is allowed");
-									return Optional.empty();
-								}
 								if (pattern.matchEntryPoint(m, anns.get(0))) {
 									out.info("\tfound '" + m.getSignature() + "': " + anns.get(0));
 									entries.add(pair(m, anns.get(0)));
@@ -330,7 +280,7 @@ public class EntryLocator {
 	}
 
 	public static Optional<String> getEntryPointIdAttribute(Annotation entryPoint){
-		String id = ((ConstantElementValue)entryPoint.getNamedArguments().getOrDefault("id", new ConstantElementValue(""))).val.toString();
+		String id = ((ConstantElementValue)entryPoint.getNamedArguments().getOrDefault("tag", new ConstantElementValue(""))).val.toString();
 		if (id.isEmpty()) {
 			return Optional.empty();
 		}

@@ -7,7 +7,6 @@
  */
 package edu.kit.joana.util;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -17,7 +16,7 @@ import java.io.PrintStream;
  */
 public class NullPrintStream extends PrintStream {
 
-	public NullPrintStream() throws FileNotFoundException {
+	public NullPrintStream() {
 		super(new OutputStream() {
 			
 			@Override

@@ -22,11 +22,11 @@ public @interface EntryPoint {
 	String[] classSinks() default {};
 	
 	/**
-	 * Id of the analysis. Allows to identify this entry point an the analysis
+	 * Tag of the analysis. Allows to identify this entry point an the analysis
 	 * that starts with it.
 	 * 
 	 * Currently only supported by the console commands.
 	 */
-	String id() default "";
+	String tag() default "";
 
 }

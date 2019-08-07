@@ -27,13 +27,14 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
 import javax.xml.stream.XMLStreamException;
 
+import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlCollectionDump;
+import com.amihaiemil.eoyaml.YamlSequenceBuilder;
+import com.google.common.collect.Multimap;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.types.annotations.Annotation;
@@ -46,12 +47,24 @@ import edu.kit.joana.api.IFCType;
 import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.lattice.BuiltinLattices;
+import edu.kit.joana.api.sdg.SDGActualParameter;
+import edu.kit.joana.api.sdg.SDGAttribute;
+import edu.kit.joana.api.sdg.SDGCall;
+import edu.kit.joana.api.sdg.SDGCallExceptionNode;
+import edu.kit.joana.api.sdg.SDGCallReturnNode;
 import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGConfig;
+import edu.kit.joana.api.sdg.SDGFieldOfParameter;
 import edu.kit.joana.api.sdg.SDGFormalParameter;
+import edu.kit.joana.api.sdg.SDGInstruction;
+import edu.kit.joana.api.sdg.SDGLocalVariable;
 import edu.kit.joana.api.sdg.SDGMethod;
+import edu.kit.joana.api.sdg.SDGMethodExceptionNode;
+import edu.kit.joana.api.sdg.SDGMethodExitNode;
+import edu.kit.joana.api.sdg.SDGPhi;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
+import edu.kit.joana.api.sdg.SDGProgramPartVisitor;
 import edu.kit.joana.api.sdg.SDGProgramPartWriter;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.SecurityNode.SecurityNodeFactory;
@@ -69,7 +82,11 @@ import edu.kit.joana.ifc.sdg.lattice.WrongLatticeDefinitionException;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.annotations.EntryPoint;
-import edu.kit.joana.ui.ifc.wala.console.console.EntryLocator.PatternType;
+import edu.kit.joana.ui.annotations.Level;
+import edu.kit.joana.ui.annotations.Sink;
+import edu.kit.joana.ui.annotations.Source;
+import edu.kit.joana.ui.ifc.wala.console.console.Pattern.PatternType;
+import edu.kit.joana.ui.ifc.wala.console.gui.tree.ProgramPartToString;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCAnnotationDumper;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCAnnotationReader;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCConsoleOutput;
@@ -106,6 +123,15 @@ public class IFCConsole {
 							"Selects an entry method for sdg generation."),
 		SELECT_ENTRY_POINT(	"selectEntryPoint", 			1, 		"<pattern>",
 				"Selects an entry point for sdg generation."),
+		SEARCH_SOURCES("searchSources", 1, 1, "<tag>",
+				"Search sources that have the given tag"),
+		SEARCH_SINKS("searchSinks", 1, 1, "<tag>",
+				"Search sinks that have the given tag"),
+		SELECT_SOURCES("selectSources", 0, 1, "[pattern]",
+				"Select sources that match the pattern (or that have an entry id that matches it)"),
+		SELECT_SINKS("selectSinks", 0, 1, "[pattern]",
+				"Select sinks that match the pattern (or that have an entry id that matches it)"),
+		USE_ENTRY_POINT("useEntryPoint", 1, "tag", "Select the entry point with the given tag, build the sdg, select sources and sinks with this tag"),
 		SET_CLASSPATH(	"setClasspath", 		1, 		"<path>",
 							"Sets the class path for sdg generation. Can be for example a bin directory or a jar file."),
 		SET_EXCEPTIONS( "setExceptionAnalysis", 1, "<exception analysis type>", "Sets the type of exception analysis to perform during SDG construction. Possible values are: " + Arrays.toString(ExceptionAnalysis.values())),
@@ -363,7 +389,8 @@ public class IFCConsole {
 		return new Command(CMD.FIND_COMMAND) {
 			@Override
 			boolean execute(String[] args) {
-				Pattern pattern = Pattern.compile(args[1], Pattern.CASE_INSENSITIVE);
+				java.util.regex.Pattern pattern = 
+						java.util.regex.Pattern.compile(args[1], java.util.regex.Pattern.CASE_INSENSITIVE);
 				for (String cmdName : repo.getCommands()) {
 					String msg = repo.getHelpMessage(cmdName);
 					if (pattern.matcher(msg).find()) {
@@ -394,7 +421,37 @@ public class IFCConsole {
 			}
 		};
 	}
+	
+	private Command makeCommandSelectSources() {
+		return new Command(CMD.SELECT_SOURCES) {
+			
+			@Override
+			boolean execute(String[] args) {
+				return selectSources(args.length == 2 ? new Pattern(args[1], true, PatternType.ID, PatternType.SIGNATURE) : new Pattern());
+			}
+		};
+	}
 
+	private Command makeCommandSelectSinks() {
+		return new Command(CMD.SELECT_SINKS) {
+			
+			@Override
+			boolean execute(String[] args) {
+				return selectSinks(args.length == 2 ? new Pattern(args[1], true, PatternType.ID, PatternType.SIGNATURE) : new Pattern());
+			}
+		};
+	}
+	
+	private Command makeCommandUseEntryPoint() {
+		return new Command(CMD.USE_ENTRY_POINT) {
+			
+			@Override
+			boolean execute(String[] args) {
+				return selectEntryPoint(args[1]) && buildSDG() && makeCommandSelectSources().execute(args) && makeCommandSelectSinks().execute(args);
+			}
+		};
+	}
+	
 	private Command makeCommandSelectEntry() {
 		return new Command(CMD.SELECT_ENTRY) {
 
@@ -432,6 +489,28 @@ public class IFCConsole {
 				setClasspath(args[1]);
 				out.logln("classPath = " + classPath);
 				return true;
+			}
+
+		};
+	}
+	
+	private Command makeCommandSearchSources() {
+		return new Command(CMD.SEARCH_SOURCES) {
+
+			@Override
+			boolean execute(String[] args) {
+				return searchSinksAndSources(args.length == 2 ? Optional.of(args[1]) : Optional.empty(), AnnotationType.SOURCE);
+			}
+
+		};
+	}
+	
+	private Command makeCommandSearchSinks() {
+		return new Command(CMD.SEARCH_SINKS) {
+
+			@Override
+			boolean execute(String[] args) {
+				return searchSinksAndSources(args.length == 2 ? Optional.of(args[1]) : Optional.empty(), AnnotationType.SINK);
 			}
 
 		};
@@ -939,6 +1018,12 @@ public class IFCConsole {
 		repo.addCommand(makeCommandSearchEntryPoints());
 		repo.addCommand(makeCommandSelectEntryPoint());
 		repo.addCommand(makeCommandSelectEntry());
+		repo.addCommand(makeCommandSearchSinks());
+		repo.addCommand(makeCommandSearchSources());
+		repo.addCommand(makeCommandSelectSinks());
+		repo.addCommand(makeCommandSelectSources());
+		repo.addCommand(makeCommandUseEntryPoint());
+		
 		repo.addCommand(makeCommandSetClasspath());
 		repo.addCommand(makeCommandSetExceptionAnalysis());
 		repo.addCommand(makeCommandSetPointsTo());
@@ -1014,7 +1099,7 @@ public class IFCConsole {
 				out.info("No search results. Last search results remain active.");
 				return false;
 			}
-		} catch (PatternSyntaxException e) {
+		} catch (java.util.regex.PatternSyntaxException e) {
 			out.error("Invalid search pattern: " + e.getMessage());
 			return false;
 		}
@@ -1136,7 +1221,7 @@ public class IFCConsole {
 		JavaMethodSignature oldSelected = loc.getActiveEntry();
 		boolean found = loc.doSearch(classPath, out);
 		if (!found) {
-			out.info("No entry methods found.");
+			out.error("No entry methods found.");
 			return false;
 		}
 
@@ -1151,12 +1236,12 @@ public class IFCConsole {
 
 	public boolean searchEntryPoints(String pattern) {
 		JavaMethodSignature oldSelected = loc.getActiveEntry();
-		EntryLocator.Pattern pat = pattern.isEmpty() ?
-				new EntryLocator.Pattern() : 
-			new EntryLocator.Pattern(pattern, true, PatternType.ID, PatternType.SIGNATURE); 
+		Pattern pat = pattern.isEmpty() ?
+				new Pattern() : 
+			new Pattern(pattern, true, PatternType.ID, PatternType.SIGNATURE); 
 		Optional<List<Pair<IMethod, Annotation>>> result = loc.doSearchForEntryPointAnnotated(classPath, out, pat);
 		if (!result.isPresent()) {
-			out.info("No entry methods found.");
+			out.error("No entry methods found.");
 			return false;
 		}
 		out.logln(new YamlCollectionDump(result.get().stream().map(p -> {
@@ -1168,9 +1253,9 @@ public class IFCConsole {
 	public boolean selectEntryPoint(String pattern) {
 		JavaMethodSignature oldSelected = loc.getActiveEntry();
 		Optional<List<Pair<IMethod, Annotation>>> result = 
-				loc.doSearchForEntryPointAnnotated(classPath, out, new EntryLocator.Pattern(pattern, true, PatternType.ID, PatternType.SIGNATURE));
+				loc.doSearchForEntryPointAnnotated(classPath, out, new Pattern(pattern, true, PatternType.ID, PatternType.SIGNATURE));
 		if (!result.isPresent() || result.get().size() != 1) {
-			result = loc.doSearchForEntryPointAnnotated(classPath, out, new EntryLocator.Pattern(pattern, false, PatternType.ID, PatternType.SIGNATURE));
+			result = loc.doSearchForEntryPointAnnotated(classPath, out, new Pattern(pattern, false, PatternType.ID, PatternType.SIGNATURE));
 		}
 		if (!result.isPresent()) {
 			out.error("Entry point '" + pattern + "' not found");
@@ -1182,6 +1267,76 @@ public class IFCConsole {
 		}
 		selectEntry(0);
 		return true;
+	}
+	
+	public boolean searchSinksAndSources(Optional<String> pattern, AnnotationType type) {
+		if (ifcAnalysis == null) {
+			out.error("Load or build SDG first!");
+			return false;
+		}
+		Pattern pat = pattern.isPresent() ? new Pattern(pattern.get(), true, PatternType.ID, PatternType.SIGNATURE) : new Pattern();
+		List<IFCAnnotation> anns = searchSinksAndSources(pat, type);
+		if (anns.isEmpty()) {
+			return false;
+		}
+ 		YamlSequenceBuilder seqBuilder = Yaml.createYamlSequenceBuilder();
+		for (IFCAnnotation ann : anns) {
+			seqBuilder = seqBuilder.add(Yaml.createYamlMappingBuilder()
+					.add("part", ann.getProgramPart().acceptVisitor(ProgramPartToString.getStandard(), null))
+					.add("level", ann.getLevel1())
+					.build());
+		}
+		out.logln(seqBuilder.build().toString());
+		return true;
+	}
+
+	public List<IFCAnnotation> searchSinksAndSources(Pattern pattern, AnnotationType type) {
+		assert ifcAnalysis != null;
+		ifcAnalysis.setSourceSinkAnnotationTag(pattern.pattern);
+		Pair<Multimap<SDGProgramPart, Pair<Source,String>>,
+        	Multimap<SDGProgramPart, Pair<Sink,String>>> anns = ifcAnalysis.getJavaSourceAnnotations();
+		List<IFCAnnotation> res = new ArrayList<>();
+		if (type == AnnotationType.SOURCE) {
+			anns.getFirst().asMap().forEach((part, col) -> {
+				col.forEach(p -> {
+					if (pattern.matchSource(part, p.getFirst())) {
+						String level = p.getFirst().level();
+						res.add(new IFCAnnotation(type, level == null ? Level.HIGH : level, part));
+					}
+				});
+			});
+		}
+		if (type == AnnotationType.SINK) {
+			anns.getSecond().asMap().forEach((part, col) -> {
+				col.forEach(p -> {
+					if (pattern.matchSink(part, p.getFirst())) {
+						String level = p.getFirst().level();
+						res.add(new IFCAnnotation(type, level == null ? Level.LOW : level, part));
+					}
+				});
+			});
+		}
+		return res;
+	}
+	
+	public boolean selectSources(Pattern pattern) {
+		ifcAnalysis.clearAllAnnotations();
+		List<IFCAnnotation> anns = searchSinksAndSources(pattern, AnnotationType.SOURCE);
+		anns.forEach(ann -> {
+			ifcAnalysis.addAnnotation(ann);
+			out.logln("Selected source '" + ann + "'");
+		});
+		return anns.size() > 0;
+	}
+	
+	public boolean selectSinks(Pattern pattern) {
+		ifcAnalysis.clearAllAnnotations();
+		List<IFCAnnotation> anns = searchSinksAndSources(pattern, AnnotationType.SINK);
+		anns.forEach(ann -> {
+			ifcAnalysis.addAnnotation(ann);
+			out.logln("Selected sink '" + ann + "'");
+		});
+		return anns.size() > 0;
 	}
 	
 	public void setClasspath(String newClasspath) {
@@ -1407,7 +1562,7 @@ public class IFCConsole {
 			latticeFile = "[user-defined: " + latticeSpec + "]";
 		}
 		if (checkAndSetLattice(newLattice)) {
-			out.info("current lattice: " + latticeFile);
+			out.logln("current lattice: " + latticeFile);
 		}
 		return checkAndSetLattice(newLattice);
 	}
@@ -1518,7 +1673,7 @@ public class IFCConsole {
 	
 	public List<String> findCommands(String needle){
 		List<String> commands = new ArrayList<>();
-		Pattern pattern = Pattern.compile(needle, Pattern.CASE_INSENSITIVE);
+		java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(needle, java.util.regex.Pattern.CASE_INSENSITIVE);
 		for (String cmdName : repo.getCommands()) {
 			String msg = repo.getHelpMessage(cmdName);
 			if (pattern.matcher(msg).find()) {
@@ -1647,7 +1802,7 @@ public class IFCConsole {
 
 	private boolean buildSDG(boolean computeInterference, MHPType mhpType, ExceptionAnalysis exA) {
 		if (!loc.entrySelected()) {
-			out.info("No entry method selected. Select entry method first!");
+			out.error("No entry method selected. Select entry method first!");
 			return false;
 		}
 

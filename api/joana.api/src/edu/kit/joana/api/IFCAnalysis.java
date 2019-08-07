@@ -15,7 +15,9 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -103,6 +105,10 @@ public class IFCAnalysis {
 	private IFC<String> ifc;
 	private boolean timeSensitiveAnalysis = false;
 	private boolean removeRedundantFlows = false;
+	/**
+	 * "" -> match all annotations that have no tags
+	 */
+	private String sourceSinkAnnotationTag = "";
 	
 	private Multimap<SDGProgramPart, Pair<Source,String>> sources = null;
 	private Multimap<SDGProgramPart, Pair<Sink,String>> sinks = null;
@@ -409,6 +415,20 @@ public class IFCAnalysis {
 	public IStaticLattice<String> getLattice() {
 		return secLattice;
 	}
+	
+	/**
+	 * @return the sourceSinkAnnotationTag
+	 */
+	public String getSourceSinkAnnotationTag() {
+		return sourceSinkAnnotationTag;
+	}
+
+	/**
+	 * @param sourceSinkAnnotationTag the sourceSinkAnnotationTag to set
+	 */
+	public void setSourceSinkAnnotationTag(String sourceSinkAnnotationTag) {
+		this.sourceSinkAnnotationTag = sourceSinkAnnotationTag;
+	}
 
 	private void addSourceAnnotation(SDGProgramPart toMark, String level, SDGMethod context, AnnotationCause cause) {
 		addAnnotation(new IFCAnnotation(AnnotationType.SOURCE, level, toMark, context, cause));
@@ -637,7 +657,6 @@ public class IFCAnalysis {
 		return annotations;
 	}
 	
-	
 	/**
 	 * Return available Source/Sink annotations
 	 */
@@ -665,11 +684,26 @@ public class IFCAnalysis {
 		final TypeName positionDefinition = TypeName.findOrCreate(JavaType.parseSingleTypeFromString(AnnotationPolicy.class.getCanonicalName()).toBCString());
 		final Map<SDGProgramPart,Collection<Pair<Annotation,String>>> annotations = program.getJavaSourceAnnotations();
 		
+		Predicate<Annotation> checkTags = a -> {
+			if (a.getNamedArguments().containsKey("tags")) {
+				if (sourceSinkAnnotationTag.isEmpty()) {
+					return ((ArrayElementValue)a.getNamedArguments().get("tags")).vals.length == 0;
+				}
+				return Arrays.stream(((ArrayElementValue)a.getNamedArguments().get("tags")).vals)
+						.map(e -> (ConstantElementValue)e)
+						.anyMatch(e -> e.val.equals("") || e.val.equals(sourceSinkAnnotationTag));
+			}
+			return sourceSinkAnnotationTag.isEmpty();
+		};
+		
 		for (final Entry<SDGProgramPart,Collection<Pair<Annotation,String>>> e : annotations.entrySet()) {
 			for(final Pair<Annotation,String> p : e.getValue()) {
 				final Annotation a = p.getFirst();
 				final String sourceFile = p.getSecond();
 				debug.outln("Processing::: " + a);
+				if (!checkTags.test(a)) {
+					continue;
+				}
 				if (source.equals(a.getType())) {
 					final ElementValue levelValue = a.getNamedArguments().get("level");
 					final String level;
@@ -754,7 +788,14 @@ public class IFCAnalysis {
 						// .. of Type String
 						id = (String) constantvalue.val;
 					}
-					
+					final ElementValue tagsValue = a.getNamedArguments().get("tags");
+					final String[] tags;
+					if (tagsValue == null) {
+						tags = new String[0];
+					} else {
+						tags = Arrays.stream(((ArrayElementValue)a.getNamedArguments().get("tags")).vals)
+								.map(es -> (ConstantElementValue)es).map(es -> (String)es.val).toArray(String[]::new);
+					}
 					sources.put(e.getKey(), Pair.pair(new Source() {
 						@Override
 						public Class<? extends java.lang.annotation.Annotation> annotationType() {
@@ -799,6 +840,11 @@ public class IFCAnalysis {
 						@Override
 						public String id() {
 							return id;
+						}
+						
+						@Override
+						public String[] tags() {
+							return tags;
 						}
 						
 						@Override
@@ -891,6 +937,15 @@ public class IFCAnalysis {
 						id = (String) constantvalue.val;
 					}
 					
+					final ElementValue tagsValue = a.getNamedArguments().get("tags");
+					final String[] tags;
+					if (tagsValue == null) {
+						tags = new String[0];
+					} else {
+						tags = Arrays.stream(((ArrayElementValue)a.getNamedArguments().get("tags")).vals)
+								.map(es -> (ConstantElementValue)es).map(es -> (String)es.val).toArray(String[]::new);
+					}
+					
 					sinks.put(e.getKey(), Pair.pair(new Sink() {
 						@Override
 						public Class<? extends java.lang.annotation.Annotation> annotationType() {
@@ -936,6 +991,12 @@ public class IFCAnalysis {
 						public String id() {
 							return id;
 						}
+						
+						@Override
+						public String[] tags() {
+							return tags;
+						}
+						
 						@Override
 						public String toString() {
 							return "@Sink(level = " + level + ", mayInclude = " + Arrays.toString(mayInclude) + ", seenBy = " + Arrays.toString(seenBy) + ")";

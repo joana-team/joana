@@ -182,4 +182,28 @@
       </cleanUpConfigurationUI>
       
    </extension>
+    <extension
+          id="product"
+          point="org.eclipse.core.runtime.products">
+       <product
+             application="org.eclipse.ui.ide.workbench"
+             name="EasyIFC">
+          <property
+                name="appName"
+                value="EasyIFC">
+          </property>
+       </product>
+    </extension>
+    <extension
+          id="product1"
+          point="org.eclipse.core.runtime.products">
+       <product
+             application="org.eclipse.ui.ide.workbench"
+             name="EasyIFC">
+          <property
+                name="appName"
+                value="EasyIFC">
+          </property>
+       </product>
+    </extension>
 </plugin>

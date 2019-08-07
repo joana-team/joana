@@ -9,6 +9,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.METHOD})
 public @interface EntryPoint {
+	
 	String[] levels() default { Level.LOW, Level.HIGH};
 	MayFlow[] lattice() default { @MayFlow(from=Level.LOW, to=Level.HIGH) };
 	String[] datasets() default {};
@@ -19,4 +20,13 @@ public @interface EntryPoint {
 	ChopComputation chops() default ChopComputation.ALL;
 	
 	String[] classSinks() default {};
+	
+	/**
+	 * Id of the analysis. Allows to identify this entry point an the analysis
+	 * that starts with it.
+	 * 
+	 * Currently only supported by the console commands.
+	 */
+	String id() default "";
+
 }

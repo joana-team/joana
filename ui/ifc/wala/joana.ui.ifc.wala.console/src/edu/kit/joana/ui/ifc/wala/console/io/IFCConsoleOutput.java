@@ -18,6 +18,7 @@ public interface IFCConsoleOutput {
     public void log(String logMessage);
     public void logln(String logMessage);
     public void info(String infoMessage);
+    public default void debug(String debugMessage) {}
     public void error(String errorMessage);
     public Answer question(String questionMessage);
 

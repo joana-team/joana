@@ -29,9 +29,11 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collectors;
 
 import javax.xml.stream.XMLStreamException;
 
+import com.amihaiemil.eoyaml.YamlCollectionDump;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.types.annotations.Annotation;
@@ -67,6 +69,7 @@ import edu.kit.joana.ifc.sdg.lattice.WrongLatticeDefinitionException;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.annotations.EntryPoint;
+import edu.kit.joana.ui.ifc.wala.console.console.EntryLocator.PatternType;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCAnnotationDumper;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCAnnotationReader;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCConsoleOutput;
@@ -93,14 +96,16 @@ public class IFCConsole {
 		// or 	(String name, int minArity, int maxArity, String format, String description)
 		HELP(			"help", 				0, 		"",
 							"Display this help."),
-		FIND_COMMAND(			"find_command", 				1, 		"",
+		FIND_COMMAND(			"findCommand", 				1, 		"",
 				"Find a command that contains the string"),
 		SEARCH_ENTRIES(	"searchEntries", 		0, 		"",
 							"Searches for possible entry methods."),
-		SEARCH_ENTRY_POINTS(	"search_entry_points", 		0, 		"",
+		SEARCH_ENTRY_POINTS(	"searchEntryPoints", 		0, 		1, "[pattern]",
 				"Searches for possible entry methods that are @EntryPoint annotated."),
 		SELECT_ENTRY(	"selectEntry", 			1, 		"",
 							"Selects an entry method for sdg generation."),
+		SELECT_ENTRY_POINT(	"selectEntryPoint", 			1, 		"<pattern>",
+				"Selects an entry point for sdg generation."),
 		SET_CLASSPATH(	"setClasspath", 		1, 		"<path>",
 							"Sets the class path for sdg generation. Can be for example a bin directory or a jar file."),
 		SET_EXCEPTIONS( "setExceptionAnalysis", 1, "<exception analysis type>", "Sets the type of exception analysis to perform during SDG construction. Possible values are: " + Arrays.toString(ExceptionAnalysis.values())),
@@ -385,7 +390,7 @@ public class IFCConsole {
 
 			@Override
 			boolean execute(String[] args) {
-				return searchEntryPoints();
+				return searchEntryPoints(args.length == 2 ? args[1] : "");
 			}
 		};
 	}
@@ -409,6 +414,16 @@ public class IFCConsole {
 		};
 	}
 
+	private Command makeCommandSelectEntryPoint() {
+		return new Command(CMD.SELECT_ENTRY_POINT) {
+
+			@Override
+			boolean execute(String[] args) {
+				return selectEntryPoint(args[1]);
+			}
+		};
+	}
+	
 	private Command makeCommandSetClasspath() {
 		return new Command(CMD.SET_CLASSPATH) {
 
@@ -922,6 +937,7 @@ public class IFCConsole {
 		repo.addCommand(makeCommandFindCommand());
 		repo.addCommand(makeCommandSearchEntries());
 		repo.addCommand(makeCommandSearchEntryPoints());
+		repo.addCommand(makeCommandSelectEntryPoint());
 		repo.addCommand(makeCommandSelectEntry());
 		repo.addCommand(makeCommandSetClasspath());
 		repo.addCommand(makeCommandSetExceptionAnalysis());
@@ -1133,22 +1149,38 @@ public class IFCConsole {
 		return true;
 	}
 
-	public boolean searchEntryPoints() {
+	public boolean searchEntryPoints(String pattern) {
 		JavaMethodSignature oldSelected = loc.getActiveEntry();
-		Optional<List<Pair<IMethod, Annotation>>> result = loc.doSearchForEntryPointAnnotated(classPath, out);
+		EntryLocator.Pattern pat = pattern.isEmpty() ?
+				new EntryLocator.Pattern() : 
+			new EntryLocator.Pattern(pattern, true, PatternType.ID, PatternType.SIGNATURE); 
+		Optional<List<Pair<IMethod, Annotation>>> result = loc.doSearchForEntryPointAnnotated(classPath, out, pat);
 		if (!result.isPresent()) {
 			out.info("No entry methods found.");
 			return false;
 		}
-		for (Pair<IMethod, Annotation> p : result.get()) {
-			out.info(p.getFirst().getSignature());
+		out.logln(new YamlCollectionDump(result.get().stream().map(p -> {
+			return EntryLocator.getEntryPointIdAttribute(p.getSecond()).orElse(p.getFirst().getSignature().toString());
+		}).collect(Collectors.toList())).represent().toString());
+		return true;
+	}
+	
+	public boolean selectEntryPoint(String pattern) {
+		JavaMethodSignature oldSelected = loc.getActiveEntry();
+		Optional<List<Pair<IMethod, Annotation>>> result = 
+				loc.doSearchForEntryPointAnnotated(classPath, out, new EntryLocator.Pattern(pattern, true, PatternType.ID, PatternType.SIGNATURE));
+		if (!result.isPresent() || result.get().size() != 1) {
+			result = loc.doSearchForEntryPointAnnotated(classPath, out, new EntryLocator.Pattern(pattern, false, PatternType.ID, PatternType.SIGNATURE));
 		}
-		loc.displayLastEntrySearchResults(out);
-		if (loc.getNumberOfFoundEntries() == 1) {
-			selectEntry(0);
-		} else if (loc.getLastSearchResults().contains(oldSelected)) {
-			selectEntry(oldSelected);
+		if (!result.isPresent()) {
+			out.error("Entry point '" + pattern + "' not found");
+			return false;
 		}
+		if (result.get().size() > 1) {
+			out.error("Entry point '" + pattern + "' is ambiguous");
+			return false;
+		}
+		selectEntry(0);
 		return true;
 	}
 	
@@ -1375,7 +1407,7 @@ public class IFCConsole {
 			latticeFile = "[user-defined: " + latticeSpec + "]";
 		}
 		if (checkAndSetLattice(newLattice)) {
-			out.logln("current lattice: " + latticeFile);
+			out.info("current lattice: " + latticeFile);
 		}
 		return checkAndSetLattice(newLattice);
 	}

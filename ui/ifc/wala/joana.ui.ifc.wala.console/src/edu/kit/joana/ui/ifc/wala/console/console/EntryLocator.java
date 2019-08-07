@@ -12,10 +12,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.ibm.wala.classLoader.IClass;
@@ -23,6 +26,7 @@ import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.shrikeCT.AnnotationsReader.ConstantElementValue;
 import com.ibm.wala.types.TypeName;
 import com.ibm.wala.types.annotations.Annotation;
 
@@ -42,10 +46,53 @@ import static edu.kit.joana.util.Pair.pair;
  * Performs a search for possible main methods and maintains the list of search
  * results.
  *
- * @author Martin Mohr
+ * @author Martin Mohr, Johannes Bechberger
  *
  */
 public class EntryLocator {
+	
+	public static enum PatternType {
+		SIGNATURE, ID
+	}
+	
+	public static class Pattern {
+		
+		final Set<PatternType> type;
+		final String pattern;
+		final boolean isRegexp;
+		final boolean matchAll;
+
+		public Pattern(String pattern, boolean isRegexp, PatternType... type) {
+			this.type = new HashSet<>(Arrays.asList(type));
+			this.pattern = pattern;
+			this.isRegexp = isRegexp;
+			this.matchAll = false;
+		}
+		
+		public Pattern() {
+			this.pattern = "";
+			this.isRegexp = false;
+			this.type = Collections.emptySet();
+			this.matchAll = true;
+		}
+		
+		boolean match(String str) {
+			if (matchAll) {
+				return true;
+			}
+			if (isRegexp) {
+				return pattern.matches(str);
+			}
+			return pattern.equals(str);
+		}
+		
+		
+		public boolean matchEntryPoint(IMethod method, Annotation entryPointAnnotation) {
+			return matchAll || (type.contains(PatternType.SIGNATURE) && match(method.getSignature())) ||
+					(type.contains(PatternType.ID) && match(getEntryPointIdAttribute(entryPointAnnotation).orElse("")));
+		}
+	}
+	
 
 	/** the list of search results */
 	private final List<JavaMethodSignature> possibleEntries = new ArrayList<JavaMethodSignature>();
@@ -129,31 +176,34 @@ public class EntryLocator {
 	 * @param classPath
 	 *            location of the classes in which the entry methods are to be
 	 *            searched. Can be a directory or a jar.
+	 * @param pattern pattern
 	 * @return empty or a list of annotations with their methods, methods can appear only once in the list
 	 */
-	public Optional<List<Pair<IMethod, Annotation>>> doSearchForEntryPointAnnotated(String classPath, IFCConsoleOutput out){
-		final SDGBuildPreparation.Config cfg = new SDGBuildPreparation.Config("Search main <unused>", "<unused>",
+	public Optional<List<Pair<IMethod, Annotation>>> doSearchForEntryPointAnnotated(String classPath, IFCConsoleOutput out, Pattern pattern){
+		final SDGBuildPreparation.Config cfg = new SDGBuildPreparation.Config("Search entry <unused>", "<unused>",
 				classPath, true, FieldPropagation.FLAT);
 		List<JavaMethodSignature> newEntries = new ArrayList<JavaMethodSignature>();
 		List<Pair<IMethod, Annotation>> entries = new ArrayList<>();
 		try {
-			out.logln("Searching for main methods in '" + cfg.classpath + "'...");
+			out.info("Searching for main methods in '" + cfg.classpath + "'...");
 			ClassHierarchy cha = SDGBuildPreparation.computeClassHierarchy(new NullPrintStream(), cfg);
 			String entryPointName = TypeName.findOrCreate(JavaType.parseSingleTypeFromString(EntryPoint.class.getCanonicalName()).toBCString(false)).toString();
 			for (final IClass cls : cha) {
 				if (!cls.isInterface() && !cls.isAbstract() && cls.getClassLoader().getName().equals(AnalysisScope.APPLICATION)) {
 					for (final IMethod m : cls.getDeclaredMethods()) {
 						//if (m.isStatic()) {
-							out.logln("Look at method '" + m.getSignature() + "'");
+							out.info("Look at method '" + m.getSignature() + "'");
 							List<Annotation> anns = m.getAnnotations().stream().filter(a -> a.getType().getName().toString().equals(entryPointName)).collect(Collectors.toList());
 							if (anns.size() > 0) {
 								if (anns.size() > 1) {
 									out.error("More than one EntryPoint annotation found at '" + m.getSignature() + "' but only one is allowed");
 									return Optional.empty();
 								}
-								out.logln("\tfound '" + m.getSignature() + "': " + anns.get(0));
-								entries.add(pair(m, anns.get(0)));
-								newEntries.add(JavaMethodSignature.fromString(m.getSignature()));
+								if (pattern.matchEntryPoint(m, anns.get(0))) {
+									out.info("\tfound '" + m.getSignature() + "': " + anns.get(0));
+									entries.add(pair(m, anns.get(0)));
+									newEntries.add(JavaMethodSignature.fromString(m.getSignature()));
+								}
 							}
 						//}
 					}
@@ -279,4 +329,11 @@ public class EntryLocator {
 		return -1;
 	}
 
+	public static Optional<String> getEntryPointIdAttribute(Annotation entryPoint){
+		String id = ((ConstantElementValue)entryPoint.getNamedArguments().getOrDefault("id", new ConstantElementValue(""))).val.toString();
+		if (id.isEmpty()) {
+			return Optional.empty();
+		}
+		return Optional.of(id);
+	}
 }

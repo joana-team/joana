@@ -8,7 +8,7 @@ public class Basic {
 	
 	public static void main(String[] args) {}
 	
-    @EntryPoint
+    @EntryPoint(id="bla")
 	public void bla() {
 		
 	}

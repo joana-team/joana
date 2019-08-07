@@ -47,28 +47,24 @@ public class Main {
 
 				@Override
 				public void log(String logMessage) {
-					if (main.verbose) {
-						System.out.println(logMessage);
-					}
+					System.out.print(logMessage);
 				}
 
 				@Override
 				public void logln(String logMessage) {
-					if (main.verbose) {
-						System.out.println(logMessage);
-					}
+					System.out.println(logMessage);
 				}
 
 				@Override
 				public void info(String infoMessage) {
-					System.out.println(infoMessage);
+					if (main.verbose) {
+						System.out.println(infoMessage);
+					}
 				}
 
 				@Override
 				public void error(String errorMessage) {
-					if (main.verbose) {
-						System.err.println(errorMessage);
-					}
+					System.err.println(errorMessage);
 				}
 
 				@Override

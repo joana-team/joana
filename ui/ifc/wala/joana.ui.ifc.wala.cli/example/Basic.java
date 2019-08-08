@@ -1,5 +1,3 @@
-//package edu.kit.nildumu.prog;
-
 import edu.kit.joana.ui.annotations.EntryPoint;
 import edu.kit.joana.ui.annotations.Level;
 import edu.kit.joana.ui.annotations.Sink;

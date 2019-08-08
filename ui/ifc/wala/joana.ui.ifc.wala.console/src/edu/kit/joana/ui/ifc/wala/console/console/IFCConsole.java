@@ -9,6 +9,7 @@ package edu.kit.joana.ui.ifc.wala.console.console;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -20,8 +21,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
@@ -29,6 +32,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import javax.management.RuntimeErrorException;
 import javax.xml.stream.XMLStreamException;
 
 import com.amihaiemil.eoyaml.Yaml;
@@ -37,6 +41,11 @@ import com.amihaiemil.eoyaml.YamlSequenceBuilder;
 import com.google.common.collect.Multimap;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.ipa.cha.IClassHierarchy;
+import com.ibm.wala.shrikeCT.AnnotationsReader.AnnotationAttribute;
+import com.ibm.wala.shrikeCT.AnnotationsReader.ArrayElementValue;
+import com.ibm.wala.shrikeCT.AnnotationsReader.ConstantElementValue;
+import com.ibm.wala.shrikeCT.AnnotationsReader.ElementValue;
 import com.ibm.wala.types.annotations.Annotation;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
@@ -49,6 +58,7 @@ import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.SDGActualParameter;
 import edu.kit.joana.api.sdg.SDGAttribute;
+import edu.kit.joana.api.sdg.SDGBuildPreparation;
 import edu.kit.joana.api.sdg.SDGCall;
 import edu.kit.joana.api.sdg.SDGCallExceptionNode;
 import edu.kit.joana.api.sdg.SDGCallReturnNode;
@@ -78,10 +88,17 @@ import edu.kit.joana.ifc.sdg.lattice.IEditableLattice;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.InvalidLatticeException;
 import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
+import edu.kit.joana.ifc.sdg.lattice.LatticeValidator;
+import edu.kit.joana.ifc.sdg.lattice.PrecomputedLattice;
 import edu.kit.joana.ifc.sdg.lattice.WrongLatticeDefinitionException;
+import edu.kit.joana.ifc.sdg.lattice.impl.EditableLatticeSimple;
+import edu.kit.joana.ifc.sdg.lattice.impl.PowersetLattice;
+import edu.kit.joana.ifc.sdg.lattice.impl.ReversedLattice;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
+import edu.kit.joana.ui.annotations.ChopComputation;
 import edu.kit.joana.ui.annotations.EntryPoint;
+import edu.kit.joana.ui.annotations.EntryPointKind;
 import edu.kit.joana.ui.annotations.Level;
 import edu.kit.joana.ui.annotations.Sink;
 import edu.kit.joana.ui.annotations.Source;
@@ -98,6 +115,7 @@ import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.util.io.IOFactory;
 import edu.kit.joana.wala.core.NullProgressMonitor;
+import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
@@ -144,6 +162,8 @@ public class IFCConsole {
 							"Display the current configuration for sdg generation and ifc analysis"),
 		BUILD_SDG(		"buildSDG", 			0, 	3, 	"<compute interference?> <mhptype> [<exception analysis type>]",
 							"Build sdg with respect to selected entry method. It is possible to use this command parameterless, then the current values of the respective options are taken. Otherwise, provide <compute interference> , <mhptype> and optionally <exception analysis type>. If, in this latter form, <exception analysis type> is not provided, INTERPROC is used."),
+		BUILD_SDG_IF_NEEDED(		"buildSDGIfNeeded", 			0, 	3, 	"<compute interference?> <mhptype> [<exception analysis type>]",
+				"Like 'buildSDG', but only builds the SDG if needed"),
 		LOAD_SDG(		"loadSDG", 				1, 		"<filename>",
 							"Load sdg stored in <filename>."),
 		SOURCE(			"source", 				2, 		"<index> <level>",
@@ -364,7 +384,9 @@ public class IFCConsole {
 	private final String outputDirectory = "./";
 	private String latticeFile;
 	private Stubs stubsPath = Stubs.JRE_15;
-
+	private boolean recomputeSDG = true;
+	private ChopComputation chopComputation = ChopComputation.ALL;
+	
 	private final List<String> script = new LinkedList<String>();
 
 	public IFCConsole(BufferedReader in, IFCConsoleOutput out) {
@@ -447,7 +469,7 @@ public class IFCConsole {
 			
 			@Override
 			boolean execute(String[] args) {
-				return selectEntryPoint(args[1]) && buildSDG() && makeCommandSelectSources().execute(args) && makeCommandSelectSinks().execute(args);
+				return selectEntryPoint(args[1]) && makeCommandBuildSDGIfNeeded().execute(new String[] {"bla"}) && makeCommandSelectSources().execute(args) && makeCommandSelectSinks().execute(args);
 			}
 		};
 	}
@@ -630,6 +652,19 @@ public class IFCConsole {
 								ExceptionAnalysis.valueOf(ExceptionAnalysis.class, args[3]));
 					}
 				}
+			}
+		};
+	}
+	
+	private Command makeCommandBuildSDGIfNeeded() {
+		return new Command(CMD.BUILD_SDG_IF_NEEDED) {
+			
+			@Override
+			boolean execute(String[] args) {
+				if (recomputeSDG) {
+					return makeCommandBuildSDG().execute(args);
+				}
+				return true;
 			}
 		};
 	}
@@ -1032,6 +1067,7 @@ public class IFCConsole {
 		repo.addCommand(makeCommandSetStubsPath());
 		repo.addCommand(makeCommandInfo());
 		repo.addCommand(makeCommandBuildSDG());
+		repo.addCommand(makeCommandBuildSDGIfNeeded());
 		// repo.addCommand(makeCommandBuildCSDG()); <-- this command is
 		// redundant!
 		repo.addCommand(makeCommandLoadSDG());
@@ -1186,6 +1222,7 @@ public class IFCConsole {
 	}
 
 	public boolean selectEntry(int i) {
+		recomputeSDG = true;
 		if (loc.foundPossibleEntries()) {
 			if (loc.entryIndexValid(i)) {
 				loc.selectEntry(i);
@@ -1265,7 +1302,172 @@ public class IFCConsole {
 			out.error("Entry point '" + pattern + "' is ambiguous");
 			return false;
 		}
-		selectEntry(0);
+		Pair<IMethod, Annotation> p = result.get().get(0);
+		if (ifcAnalysis != null) {
+			ifcAnalysis.clearAllAnnotations();
+		}
+		return selectEntryPoint(JavaMethodSignature.fromString(p.getFirst().getSignature()), p.getSecond());
+	}
+	
+	public boolean selectEntryPoint(JavaMethodSignature sig, Annotation ann) {
+		loc.selectEntry(sig);
+		Map<String, ElementValue> map = ann.getNamedArguments();
+		if (map.containsKey("levels") && map.containsKey("lattice")) {
+			if (!parseLatticeAnnotation((ArrayElementValue)map.get("levels"), (ArrayElementValue)map.get("lattice"))){
+				return false;
+			}
+		} else if (map.containsKey("levels") || map.containsKey("lattice")) {
+			out.error("The 'levels' and 'lattice' have to be set together in EntryPoint annotations");
+			return false;
+		}
+		if (map.containsKey("datasets")) {
+			if (!parseDataSetsAnnotation((ArrayElementValue)map.get("datasets"))){
+				return false;
+			}
+		}
+		if (map.containsKey("adversaries")) {
+			if (!parseAdversariesAnnotation((ArrayElementValue)map.get("adversaries"))){
+				return false;
+			}
+		}
+		if (map.containsKey("kind")) {
+			if (!parseKind((ConstantElementValue)map.get("kind"), Optional.ofNullable((ConstantElementValue)map.getOrDefault("file", null)))) {
+				return false;
+			}
+		}
+		if (map.containsKey("pointsToPrecision")) {
+			setPointsTo(((edu.kit.joana.ui.annotations.PointsToPrecision)((ConstantElementValue)map.get("pointsToPrecision")).val).name());
+		}
+		if (map.containsKey("chops")) {
+			chopComputation = (ChopComputation)((ConstantElementValue)map.get("chops")).val;
+		} else {
+			chopComputation = ChopComputation.ALL;
+		}
+		if (map.containsKey("classSinks")) {
+			if (!parseClassSinks((ArrayElementValue)map.get("classSinks"))) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	private boolean parseClassSinks(ArrayElementValue val) {
+		Object[] arr = (Object[])val.vals;
+		String[] classSinks = new String[arr.length];
+		System.arraycopy(arr, 0, classSinks, 0, arr.length);
+		ifcAnalysis.addSinkClasses(classSinks);
+		return true;
+	}
+	
+	private boolean parseKind(ConstantElementValue kind, Optional<ConstantElementValue> file) {
+		switch ((EntryPointKind)kind.val) {
+		case UNKNOWN:
+			break;
+		case CONCURRENT:
+			setMHPType(MHPType.PRECISE_UNSAFE.name());
+			setComputeInterferences(true);
+			break;
+		case SEQUENTIAL:
+			setMHPType(MHPType.NONE.name());
+			setComputeInterferences(false);
+		case FROMFILE:
+			if (!file.isPresent()) {
+				out.error("Must provide file path when using " + EntryPointKind.FROMFILE);
+				return false;
+			}
+			SDGProgram p;
+			try {
+				p = SDGProgram.loadSDG((String)file.get().val, MHPType.PRECISE_UNSAFE);
+			} catch (IOException e) {
+				out.error(e.getMessage());
+				return false;
+			}
+			setSDGProgram(p);
+			recomputeSDG = false;
+			final PrintStream outs = IOFactory.createUTF8PrintStream(new ByteArrayOutputStream());
+			SDGConfig config = new SDGConfig(classPath, loc.getActiveEntry().toBCString(), stubsPath);
+			config.setComputeInterferences(computeInterference);
+			config.setMhpType(mhpType);
+			config.setExceptionAnalysis(excAnalysis);
+			config.setPointsToPrecision(pointsTo);
+			config.setFieldPropagation(FieldPropagation.OBJ_GRAPH_SIMPLE_PROPAGATION);
+			com.ibm.wala.util.collections.Pair<Long, SDGBuilder.SDGBuilderConfig> pair;
+			try {
+				pair = SDGBuildPreparation.prepareBuild(outs, SDGProgram.makeBuildPreparationConfig(config), NullProgressMonitor.INSTANCE);
+			} catch (ClassHierarchyException | IOException e) {
+				out.error(e.getMessage());
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	private boolean parseLatticeAnnotation(ArrayElementValue levelsVal, ArrayElementValue latticeVal) {
+		final EditableLatticeSimple<String> specifiedLattice  = new EditableLatticeSimple<String>();
+		Object[] levels = (Object[]) levelsVal.vals;
+		for (Object o : levels) {
+			if  (!(o instanceof String)) {
+				out.error("Illegal levels specification: " + o + "  - use literal Strings instead (e.g.: { \"low\", \"high\" })");
+				return false;
+			}
+			String level = (String) o;
+			specifiedLattice.addElement(level);
+		}
+		Object[] mayflows = (Object[]) latticeVal.vals;
+		for (Object o : mayflows) {
+			AnnotationAttribute mayflow = (AnnotationAttribute) o;
+			String from = (String)((ConstantElementValue)mayflow.elementValues.get("from")).val;
+			String to = (String)((ConstantElementValue)mayflow.elementValues.get("to")).val;
+			if(!specifiedLattice.getElements().contains(from)) {
+				out.error("Unknown from-level: " + from);
+				return false;
+			}
+			if(!specifiedLattice.getElements().contains(to)) {
+				out.error("Unknown to-level: " + from);
+				return false;
+			}
+			specifiedLattice.setImmediatelyGreater(from, to);
+		}
+		final Collection<String> antiSymmetryViolations = LatticeValidator.findAntisymmetryViolations(specifiedLattice);
+		if (antiSymmetryViolations.isEmpty()) {
+			ifcAnalysis.setLattice(LatticeUtil.dedekindMcNeilleCompletion(specifiedLattice));
+		} else {
+			out.error("Cycle in user-specified lattice. Elements contained in a cycle: " + antiSymmetryViolations);
+			ifcAnalysis.setLattice(null);
+			return false;
+		}
+		return true;
+	}
+	
+	private boolean parseDataSetsAnnotation(ArrayElementValue val) {
+		final Set<String> datasets  = new HashSet<>();
+		Object[] levels = (Object[]) val.vals;
+		for (Object o : levels) {
+			String dataset = (String) o;
+			boolean fresh = datasets.add(dataset);
+			if (!fresh) {
+				out.error("Duplicate dataset: " + dataset);
+				return false;
+			}
+		}
+		final PrecomputedLattice<Set<String>> pre = new PrecomputedLattice<Set<String>>(new PowersetLattice<String>(datasets));
+		ifcAnalysis.addAllJavaSourceIncludesAnnotations(pre.getFromOriginalMap(), pre);
+		return true;
+	}
+	
+	private boolean parseAdversariesAnnotation(ArrayElementValue val) {
+		final Set<String> datasets  = new HashSet<>();
+		Object[] levels = (Object[]) val.vals;
+		for (Object o : levels) {
+			String dataset = (String) o;
+			boolean fresh = datasets.add(dataset);
+			if (!fresh) {
+				out.error("Duplicate adversary: " + dataset);
+				return false;
+			}
+		}
+		final PrecomputedLattice<Set<String>> pre = new PrecomputedLattice<Set<String>>(new PowersetLattice<String>(datasets));
+		ifcAnalysis.addAllJavaSourceMayKnowAnnotations(pre.getFromOriginalMap(), new ReversedLattice<String>(pre));
 		return true;
 	}
 	
@@ -1320,7 +1522,6 @@ public class IFCConsole {
 	}
 	
 	public boolean selectSources(Pattern pattern) {
-		ifcAnalysis.clearAllAnnotations();
 		List<IFCAnnotation> anns = searchSinksAndSources(pattern, AnnotationType.SOURCE);
 		anns.forEach(ann -> {
 			ifcAnalysis.addAnnotation(ann);
@@ -1330,7 +1531,6 @@ public class IFCConsole {
 	}
 	
 	public boolean selectSinks(Pattern pattern) {
-		ifcAnalysis.clearAllAnnotations();
 		List<IFCAnnotation> anns = searchSinksAndSources(pattern, AnnotationType.SINK);
 		anns.forEach(ann -> {
 			ifcAnalysis.addAnnotation(ann);
@@ -1346,6 +1546,7 @@ public class IFCConsole {
 	public void setPointsTo(final String newPts) {
 		for (final PointsToPrecision pts : PointsToPrecision.values()) {
 			if (pts.name().equals(newPts)) {
+				recomputeSDG |= pointsTo != pts;
 				this.pointsTo = pts;
 				break;
 			}
@@ -1355,6 +1556,7 @@ public class IFCConsole {
 	public void setExceptionAnalysis(final String newExc) {
 		for (final ExceptionAnalysis exc : ExceptionAnalysis.values()) {
 			if (exc.name().equals(newExc)) {
+				recomputeSDG |= excAnalysis != exc;
 				this.excAnalysis = exc;
 				break;
 			}
@@ -1364,6 +1566,7 @@ public class IFCConsole {
 	public void setMHPType(final String newMHPType) {
 		for (final MHPType mhp : MHPType.values()) {
 			if (mhp.name().equals(newMHPType)) {
+				recomputeSDG |= mhpType != mhp;
 				this.mhpType = mhp;
 				break;
 			}
@@ -1371,6 +1574,7 @@ public class IFCConsole {
 	}
 
 	public void setComputeInterferences(boolean cmpInt) {
+		recomputeSDG |= computeInterference != cmpInt;
 		this.computeInterference = cmpInt;
 	}
 
@@ -1379,6 +1583,7 @@ public class IFCConsole {
 	}
 
 	public void setStubsPath(Stubs newStubsPath) {
+		recomputeSDG |= stubsPath != newStubsPath;
 		this.stubsPath = newStubsPath;
 	}
 
@@ -1450,6 +1655,7 @@ public class IFCConsole {
 			ifcAnalysis.setProgram(newSDGProgram);
 			ifcAnalysis.setLattice(this.secLattice);
 		}
+		recomputeSDG = true;
 	}
 
 	private void setSDG(SDG newSDG, MHPAnalysis mhp) {
@@ -1795,9 +2001,23 @@ public class IFCConsole {
 	public void setProgressMonitor(IProgressMonitor progress) {
 		this.monitor = progress;
 	}
+	
+	public synchronized boolean buildSDGIfNeeded() {
+		if (recomputeSDG) {
+			return buildSDG();
+		}
+		return true;
+	}
 
 	public synchronized boolean buildSDG() {
 		return buildSDG(false, MHPType.NONE, ExceptionAnalysis.INTERPROC);
+	}
+	
+	private boolean buildSDGIfNeeded(boolean computeInterference, MHPType mhpType, ExceptionAnalysis exA) {
+		if (recomputeSDG) {
+			return buildSDG(computeInterference, mhpType, exA);
+		}
+		return true;
 	}
 
 	private boolean buildSDG(boolean computeInterference, MHPType mhpType, ExceptionAnalysis exA) {
@@ -1830,6 +2050,7 @@ public class IFCConsole {
 		}
 
 		setSDGProgram(program);
+		recomputeSDG = false;
 		return true;
 	}
 

@@ -61,7 +61,7 @@ public class Main {
 
 				@Override
 				public void info(String infoMessage) {
-					if (main.verbose) {
+					if (main.verbose && !isSilent[0]) {
 						System.out.println(infoMessage);
 					}
 				}
@@ -102,7 +102,7 @@ public class Main {
 					isSilent[0] = true;
 					command = command.substring(1);
 				}
-				if (!console.processCommand(command)) {
+				if (!console.processCommand(command)) { 
 					System.exit(1);
 				}
 				isSilent[0] = false;

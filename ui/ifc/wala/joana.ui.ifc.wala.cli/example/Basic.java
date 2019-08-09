@@ -9,6 +9,7 @@ public class Basic {
 		new Basic().blub(4);
 	}
 	
+	@EntryPoint(tag="blub")
     @EntryPoint(tag="bla")
     @Source(tags="bla")
 	public void bla() {

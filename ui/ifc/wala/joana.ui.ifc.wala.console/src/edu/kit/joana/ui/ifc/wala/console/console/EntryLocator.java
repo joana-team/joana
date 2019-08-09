@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -23,15 +24,20 @@ import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.shrikeCT.AnnotationsReader.AnnotationAttribute;
+import com.ibm.wala.shrikeCT.AnnotationsReader.ArrayElementValue;
 import com.ibm.wala.shrikeCT.AnnotationsReader.ConstantElementValue;
+import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.types.TypeName;
+import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.types.annotations.Annotation;
 
 import edu.kit.joana.api.sdg.SDGBuildPreparation;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
-import edu.kit.joana.ui.annotations.EntryPoint;
 import edu.kit.joana.ui.annotations.Source;
+import edu.kit.joana.ui.annotations.EntryPoint;
+import edu.kit.joana.ui.annotations.EntryPoints;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCConsoleOutput;
 import edu.kit.joana.util.NullPrintStream;
 import edu.kit.joana.util.Pair;
@@ -140,22 +146,42 @@ public class EntryLocator {
 		List<Pair<IMethod, Annotation>> entries = new ArrayList<>();
 		try {
 			out.info("Searching for main methods in '" + cfg.classpath + "'...");
-			ClassHierarchy cha = SDGBuildPreparation.computeClassHierarchy(new NullPrintStream(), cfg);
+			ClassHierarchy cha = SDGBuildPreparation.computeClassHierarchy(new NullPrintStream(), cfg);	
 			String entryPointName = TypeName.findOrCreate(JavaType.parseSingleTypeFromString(EntryPoint.class.getCanonicalName()).toBCString(false)).toString();
+			String entryPointsName = TypeName.findOrCreate(JavaType.parseSingleTypeFromString(EntryPoints.class.getCanonicalName()).toBCString(false)).toString();
 			for (final IClass cls : cha) {
 				if (!cls.isInterface() && !cls.isAbstract() && cls.getClassLoader().getName().equals(AnalysisScope.APPLICATION)) {
 					for (final IMethod m : cls.getDeclaredMethods()) {
 						//if (m.isStatic()) {
-							out.info("Look at method '" + m.getSignature() + "'");
-							List<Annotation> anns = m.getAnnotations().stream().filter(a -> a.getType().getName().toString().equals(entryPointName)).collect(Collectors.toList());
-							if (anns.size() > 0) {
-								if (pattern.matchEntryPoint(m, anns.get(0))) {
-									out.info("\tfound '" + m.getSignature() + "': " + anns.get(0));
-									entries.add(pair(m, anns.get(0)));
+						out.info("Look at method '" + m.getSignature() + "'");
+						// TODO: use @EntryPoints
+						List<Annotation> anns = new ArrayList<>();
+						m.getAnnotations().stream()
+							.filter(a -> a.getType().getName()
+									.toString().equals(entryPointName))
+							.forEach(anns::add);
+						m.getAnnotations().stream()
+							.filter(a -> a.getType().getName().toString()
+									.equals(entryPointsName))
+							.forEach(a -> {
+								if (a.getNamedArguments().containsKey("value")){
+									Object[] entryAnnotations = ((ArrayElementValue)a.getNamedArguments().get("value")).vals;
+									Arrays.stream(entryAnnotations).forEach(ann -> {
+										AnnotationAttribute elem = (AnnotationAttribute)ann;
+										anns.add(Annotation.makeWithNamed(TypeReference.findOrCreate(ClassLoaderReference.Application, elem.type),
+												elem.elementValues));
+									});
+								}
+							});
+						if (anns.size() > 0) {
+							for (Annotation ann : anns){
+								if (pattern.matchEntryPoint(m, ann)) {
+									out.info("\tfound '" + m.getSignature() + "': " + ann);
+									entries.add(pair(m, ann));
 									newEntries.add(JavaMethodSignature.fromString(m.getSignature()));
 								}
 							}
-						//}
+						}
 					}
 				}
 			}

@@ -63,8 +63,12 @@ import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.ifc.sdg.util.JavaType.Format;
+import edu.kit.joana.ui.annotations.Declassification;
+import edu.kit.joana.ui.annotations.Declassifications;
 import edu.kit.joana.ui.annotations.Sink;
+import edu.kit.joana.ui.annotations.Sinks;
 import edu.kit.joana.ui.annotations.Source;
+import edu.kit.joana.ui.annotations.Sources;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.Pair;
@@ -347,7 +351,10 @@ public class SDGProgram {
 
 	public void fillWithAnnotations(IClassHierarchy cha, Iterable<IClass> classes) {
 		final Collection<String> sourceOrSinkAnnotationName = 
-				Arrays.asList(new Class<?>[] { Source.class, Sink.class })
+				Arrays.asList(new Class<?>[] { 
+					Source.class, Sink.class, Declassification.class,
+					Sources.class, Sinks.class, Declassifications.class
+				})
 				.stream().map( cl -> "L" + cl.getName().replace(".", "/")).collect(Collectors.toList());
 		for (IClass c : classes) {
 			final String walaClassName = c.getName().toString();

@@ -145,16 +145,13 @@ public class EntryLocator {
 		List<JavaMethodSignature> newEntries = new ArrayList<JavaMethodSignature>();
 		List<Pair<IMethod, Annotation>> entries = new ArrayList<>();
 		try {
-			out.info("Searching for main methods in '" + cfg.classpath + "'...");
 			ClassHierarchy cha = SDGBuildPreparation.computeClassHierarchy(new NullPrintStream(), cfg);	
 			String entryPointName = TypeName.findOrCreate(JavaType.parseSingleTypeFromString(EntryPoint.class.getCanonicalName()).toBCString(false)).toString();
 			String entryPointsName = TypeName.findOrCreate(JavaType.parseSingleTypeFromString(EntryPoints.class.getCanonicalName()).toBCString(false)).toString();
 			for (final IClass cls : cha) {
 				if (!cls.isInterface() && !cls.isAbstract() && cls.getClassLoader().getName().equals(AnalysisScope.APPLICATION)) {
 					for (final IMethod m : cls.getDeclaredMethods()) {
-						//if (m.isStatic()) {
 						out.info("Look at method '" + m.getSignature() + "'");
-						// TODO: use @EntryPoints
 						List<Annotation> anns = new ArrayList<>();
 						m.getAnnotations().stream()
 							.filter(a -> a.getType().getName()

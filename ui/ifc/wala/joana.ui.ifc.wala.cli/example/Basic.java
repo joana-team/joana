@@ -1,3 +1,4 @@
+import edu.kit.joana.ui.annotations.Declassification;
 import edu.kit.joana.ui.annotations.EntryPoint;
 import edu.kit.joana.ui.annotations.Level;
 import edu.kit.joana.ui.annotations.Sink;
@@ -12,6 +13,8 @@ public class Basic {
 	@EntryPoint(tag="blub")
     @EntryPoint(tag="bla")
     @Source(tags="bla")
+	@Source(tags="bla")
+	@Declassification(tags="bla")
 	public void bla() {
 		blub(3);
 	}

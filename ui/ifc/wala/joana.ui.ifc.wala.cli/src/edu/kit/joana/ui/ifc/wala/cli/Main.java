@@ -104,7 +104,8 @@ public class Main {
 					isSilent[0] = true;
 					command = command.substring(1);
 				}
-				if (!console.processCommand(command)) { 
+				if (!console.processCommand(command)) {
+					System.err.println("Command '" + command + "' failed");
 					System.exit(1);
 				}
 				isSilent[0] = false;

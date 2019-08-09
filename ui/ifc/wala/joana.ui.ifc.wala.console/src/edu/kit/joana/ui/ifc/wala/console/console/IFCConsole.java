@@ -109,6 +109,7 @@ import edu.kit.joana.ifc.sdg.lattice.impl.ReversedLattice;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.annotations.ChopComputation;
+import edu.kit.joana.ui.annotations.Declassification;
 import edu.kit.joana.ui.annotations.EntryPoint;
 import edu.kit.joana.ui.annotations.EntryPointKind;
 import edu.kit.joana.ui.annotations.Level;
@@ -158,9 +159,13 @@ public class IFCConsole {
 		SEARCH_SINKS("searchSinks", 1, 1, "<tag>",
 				"Search sinks that have the given tag"),
 		SELECT_SOURCES("selectSources", 0, 1, "[pattern]",
-				"Select sources that match the pattern (or that have an entry id that matches it)"),
+				"Select sources that match the pattern (or that have a tag that matches it)"),
 		SELECT_SINKS("selectSinks", 0, 1, "[pattern]",
-				"Select sinks that match the pattern (or that have an entry id that matches it)"),
+				"Select sinks that match the pattern (or that have a tag that matches it)"),
+		SELECT_DECLASS("selectDeclass", 0, 1, "[pattern]",
+				"Select declassification annotations that match the pattern (or that have a tag that matches it)"),
+		SEARCH_DECLASS("searchDeclass", 1, 1, "<tag>",
+				"Search declassification annotations that have the given tag"),
 		USE_ENTRY_POINT("useEntryPoint", 1, "tag", "Select the entry point with the given tag, build the sdg, select sources and sinks with this tag"),
 		USE_ENTRY_POINTS_YAML("useEntryPointsYAML", 0, 2, "<out file, '-' for std out, is the default> <pattern matching the entry points, optional, matches all if not present>",
 				"Stores the analysis results for the entry points in the passed file as YAML"),
@@ -491,7 +496,11 @@ public class IFCConsole {
 			
 			@Override
 			boolean execute(String[] args) {
-				return selectEntryPoint(args[1]) && makeCommandBuildSDGIfNeeded().execute(new String[] {"bla"}) && makeCommandSelectSources().execute(args) && makeCommandSelectSinks().execute(args);
+				return selectEntryPoint(args[1]) 
+						&& makeCommandBuildSDGIfNeeded().execute(new String[] {"bla"}) 
+						&& makeCommandSelectSources().execute(args) 
+						&& makeCommandSelectSinks().execute(args)
+						&& makeCommandSelectDeclassifications().execute(args);
 			}
 		};
 	}
@@ -569,7 +578,29 @@ public class IFCConsole {
 
 		};
 	}
+	
+	private Command makeCommandSearchDeclassifications() {
+		return new Command(CMD.SEARCH_DECLASS) {
 
+			@Override
+			boolean execute(String[] args) {
+				return showDeclassificationAnnotations(args.length == 2 ? Optional.of(args[1]) : Optional.empty());
+			}
+
+		};
+	}
+
+	private Command makeCommandSelectDeclassifications() {
+		return new Command(CMD.SELECT_DECLASS) {
+
+			@Override
+			boolean execute(String[] args) {
+				return selectDeclassificationAnnotations(args.length == 2 ? Optional.of(args[1]) : Optional.empty());
+			}
+
+		};
+	}
+	
 	private Command makeCommandSetPointsTo() {
 		return new Command(CMD.SET_POINTSTO) {
 
@@ -1789,7 +1820,7 @@ public class IFCConsole {
 			ifcAnalysis.addAnnotation(ann);
 			out.logln("Selected source '" + ann + "'");
 		});
-		return anns.size() > 0;
+		return true;
 	}
 	
 	public boolean selectSinks(Pattern pattern) {
@@ -1798,7 +1829,61 @@ public class IFCConsole {
 			ifcAnalysis.addAnnotation(ann);
 			out.logln("Selected sink '" + ann + "'");
 		});
-		return anns.size() > 0;
+		return true;
+	}
+	
+	public List<Pair<IFCAnnotation, List<String>>> searchDeclassificationAnnotations(Optional<String> pattern) {
+		if (ifcAnalysis == null) {
+			out.error("Load or build SDG first!");
+			return Collections.emptyList();
+		}
+		Pattern pat = pattern.isPresent() ? new Pattern(pattern.get(), true, PatternType.ID, PatternType.SIGNATURE) : new Pattern();
+		return searchDeclassificationAnnotations(pat);
+	}
+
+	public List<Pair<IFCAnnotation, List<String>>> searchDeclassificationAnnotations(Pattern pattern) {
+		assert ifcAnalysis != null;
+		ifcAnalysis.setSourceSinkAnnotationTag(pattern.pattern);
+        Multimap<SDGProgramPart, Pair<Declassification, String>> anns = ifcAnalysis.getJavaSourceAnnotations(false).getSecond();
+		List<Pair<IFCAnnotation, List<String>>> res = new ArrayList<>();
+		anns.asMap().forEach((part, col) -> {
+			col.forEach(p -> {
+				if (pattern.matchDeclassification(part, p.getFirst())) {
+					Declassification declass = p.getFirst();
+					res.add(Pair.pair(new IFCAnnotation(
+							declass.from() == null ? Level.HIGH : declass.from(), 
+							declass.to() == null ? Level.LOW : declass.to(),
+							part), Arrays.asList(p.getFirst().tags())));
+				}
+			});
+		});
+		return res;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public boolean showDeclassificationAnnotations(Optional<String> pattern) {
+		List<Pair<IFCAnnotation, List<String>>> annPairs = searchDeclassificationAnnotations(pattern);
+		if (annPairs.isEmpty()) {
+			return false;
+		}
+		YamlSequenceBuilder seq = Yaml.createYamlSequenceBuilder();
+		for (Pair<IFCAnnotation, List<String>> annPair : annPairs) {
+			IFCAnnotation ann = annPair.getFirst();
+			seq = seq.add(Yaml.createYamlMappingBuilder()
+					.add("program_part", ann.getProgramPart().toString())
+					.add("from", ann.getLevel1())
+					.add("to", ann.getLevel2())
+					.add("tags", new YamlCollectionDump((List<Object>)(List<?>)annPair.getSecond()).represent())
+					.build());
+		}
+		out.logln(seq.toString());
+		return true;
+	}
+	
+	public boolean selectDeclassificationAnnotations(Optional<String> pattern) {
+		List<Pair<IFCAnnotation, List<String>>> annPairs = searchDeclassificationAnnotations(pattern);
+		annPairs.forEach(p -> ifcAnalysis.addAnnotation(p.getFirst()));
+		return true;
 	}
 	
 	public void setClasspath(String newClasspath) {

@@ -7,12 +7,14 @@
  */
 package edu.kit.joana.api;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -25,6 +27,7 @@ import com.google.common.collect.Sets;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
+import com.ibm.wala.shrikeCT.AnnotationsReader.AnnotationAttribute;
 import com.ibm.wala.shrikeCT.AnnotationsReader.ArrayElementValue;
 import com.ibm.wala.shrikeCT.AnnotationsReader.ConstantElementValue;
 import com.ibm.wala.shrikeCT.AnnotationsReader.ElementValue;
@@ -85,10 +88,14 @@ import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.ui.annotations.AnnotationPolicy;
+import edu.kit.joana.ui.annotations.Declassification;
+import edu.kit.joana.ui.annotations.Declassifications;
 import edu.kit.joana.ui.annotations.Level;
 import edu.kit.joana.ui.annotations.PositionDefinition;
 import edu.kit.joana.ui.annotations.Sink;
+import edu.kit.joana.ui.annotations.Sinks;
 import edu.kit.joana.ui.annotations.Source;
+import edu.kit.joana.ui.annotations.Sources;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.Maybe;
@@ -112,6 +119,7 @@ public class IFCAnalysis {
 	
 	private Multimap<SDGProgramPart, Pair<Source,String>> sources = null;
 	private Multimap<SDGProgramPart, Pair<Sink,String>> sinks = null;
+	private Multimap<SDGProgramPart, Pair<Declassification,String>> declasss = null;
 
 	public static final IStaticLattice<String> stdLattice = BuiltinLattices.getBinaryLattice();
 
@@ -662,352 +670,454 @@ public class IFCAnalysis {
 	 */
 	public Pair<Multimap<SDGProgramPart, Pair<Source,String>>,
                 Multimap<SDGProgramPart, Pair<Sink,String>>> getJavaSourceAnnotations() {
-		if (sources == null || sinks == null) {
-			updateJavaSourceAnnotations();
+		return getJavaSourceAnnotations(true).getFirst();
+	}
+	
+	/**
+	 * Return available Source/Sink annotations
+	 */
+	public Pair<Pair<Multimap<SDGProgramPart, Pair<Source,String>>,
+                Multimap<SDGProgramPart, Pair<Sink,String>>>, 
+                Multimap<SDGProgramPart, Pair<Declassification,String>>> getJavaSourceAnnotations(boolean ignoreDeclass) {
+		if (sources == null || sinks == null || ignoreDeclass != (declasss == null)) {
+			updateJavaSourceAnnotations(ignoreDeclass);
 		}
 		assert sources != null;
-		assert sinks !=null;
-		return Pair.pair(sources, sinks);
+		assert sinks != null;
+		assert declasss != null;
+		return Pair.pair(Pair.pair(sources, sinks), declasss);
 	}
 
-	private void updateJavaSourceAnnotations() {
+	private void updateJavaSourceAnnotations(boolean ignoreDeclass) {
 		this.sources = ArrayListMultimap.create();
 		this.sinks  = ArrayListMultimap.create();
+		this.declasss = ArrayListMultimap.create();
 		final TypeReference source = TypeReference.findOrCreate(
 		      ClassLoaderReference.Application,
 		      TypeName.findOrCreate(JavaType.parseSingleTypeFromString(Source.class.getCanonicalName()).toBCString(false)));
 		final TypeReference sink = TypeReference.findOrCreate(
 			      ClassLoaderReference.Application,
 			      TypeName.findOrCreate(JavaType.parseSingleTypeFromString(Sink.class.getCanonicalName()).toBCString(false)));
-
+		final TypeReference declass = TypeReference.findOrCreate(
+			      ClassLoaderReference.Application,
+			      TypeName.findOrCreate(JavaType.parseSingleTypeFromString(Declassification.class.getCanonicalName()).toBCString(false)));
+		final TypeReference sourcesType = TypeReference.findOrCreate(
+			      ClassLoaderReference.Application,
+			      TypeName.findOrCreate(JavaType.parseSingleTypeFromString(Sources.class.getCanonicalName()).toBCString(false)));
+		final TypeReference sinksType = TypeReference.findOrCreate(
+			      ClassLoaderReference.Application,
+			      TypeName.findOrCreate(JavaType.parseSingleTypeFromString(Sinks.class.getCanonicalName()).toBCString(false)));
+		final TypeReference declasssType = TypeReference.findOrCreate(
+			      ClassLoaderReference.Application,
+			      TypeName.findOrCreate(JavaType.parseSingleTypeFromString(Declassifications.class.getCanonicalName()).toBCString(false)));
+		final Map<SDGProgramPart,Collection<Pair<Annotation,String>>> annotations = program.getJavaSourceAnnotations();
 		final TypeName annotationPolicy = TypeName.findOrCreate(JavaType.parseSingleTypeFromString(AnnotationPolicy.class.getCanonicalName()).toBCString());
 		final TypeName positionDefinition = TypeName.findOrCreate(JavaType.parseSingleTypeFromString(AnnotationPolicy.class.getCanonicalName()).toBCString());
-		final Map<SDGProgramPart,Collection<Pair<Annotation,String>>> annotations = program.getJavaSourceAnnotations();
-		
-		Predicate<Annotation> checkTags = a -> {
-			if (a.getNamedArguments().containsKey("tags")) {
-				if (sourceSinkAnnotationTag.isEmpty()) {
-					return ((ArrayElementValue)a.getNamedArguments().get("tags")).vals.length == 0;
-				}
-				return Arrays.stream(((ArrayElementValue)a.getNamedArguments().get("tags")).vals)
-						.map(e -> (ConstantElementValue)e)
-						.anyMatch(e -> e.val.equals("") || e.val.equals(sourceSinkAnnotationTag));
-			}
-			return sourceSinkAnnotationTag.isEmpty();
-		};
 		
 		for (final Entry<SDGProgramPart,Collection<Pair<Annotation,String>>> e : annotations.entrySet()) {
 			for(final Pair<Annotation,String> p : e.getValue()) {
 				final Annotation a = p.getFirst();
 				final String sourceFile = p.getSecond();
-				debug.outln("Processing::: " + a);
-				if (!checkTags.test(a)) {
-					continue;
+				List<Annotation> subs = new ArrayList<>();
+				if (a.getType().equals(sourcesType) || a.getType().equals(sinksType) || a.getType().equals(declasssType)) {
+					Object[] subAnnotations = ((ArrayElementValue)a.getNamedArguments().get("value")).vals;
+					Arrays.stream(subAnnotations).forEach(ann -> {
+						AnnotationAttribute elem = (AnnotationAttribute)ann;
+						subs.add(Annotation.makeWithNamed( TypeReference.findOrCreate(
+							      ClassLoaderReference.Application, TypeName.findOrCreate(elem.type.toString().replace(";", ""))),
+								elem.elementValues));
+					});
+				} else {
+					subs.add(a);
 				}
-				if (source.equals(a.getType())) {
-					final ElementValue levelValue = a.getNamedArguments().get("level");
-					final String level;
-					if (levelValue == null) {
-						level = null;
-					} else {
-						// As per @Sink / @Source Definition: "level" is a constant String (such as "LOW" or "HIGH") 
-						final ConstantElementValue constantvalue = (ConstantElementValue) levelValue;
-						// .. of Type String
-						level = (String) constantvalue.val;
-					}
-					
-					final ElementValue annotateValue = a.getNamedArguments().get("annotate");
-					final AnnotationPolicy annotate; 
-					if (annotateValue == null) {
-						annotate = null;
-					} else {
-						final EnumElementValue enumannotate = (EnumElementValue) annotateValue;
-						assert (annotationPolicy.equals(TypeName.findOrCreate(enumannotate.enumType)));
-						annotate = AnnotationPolicy.valueOf(enumannotate.enumVal);						
-					}
-					
-					final ElementValue positionDefinitionValue = a.getNamedArguments().get("positionDefinition");
-					final PositionDefinition positionDef;
-					if (positionDefinitionValue == null) {
-						positionDef = null;
-					} else {
-						final EnumElementValue enumpositiondefinition = (EnumElementValue) positionDefinitionValue;
-						assert (positionDefinition.equals(TypeName.findOrCreate(enumpositiondefinition.enumType)));
-						positionDef = PositionDefinition.valueOf(enumpositiondefinition.enumVal);
-					}
-					
-					final ElementValue mayKnowValue = a.getNamedArguments().get("mayKnow");
-					final String[] mayKnow;
-					if (mayKnowValue == null) {
-						mayKnow = null;
-					} else {
-						final ArrayElementValue arrayMayKnow = (ArrayElementValue) mayKnowValue;
-						mayKnow = new String[arrayMayKnow.vals.length];
-						for (int i = 0; i < arrayMayKnow.vals.length; i++) {
-							mayKnow[i] = arrayMayKnow.vals[i].toString();
-						}
-					}
-
-					final ElementValue includesValue = a.getNamedArguments().get("includes");
-					final String[] includes;
-					if (includesValue == null) {
-						includes = null;
-					} else {
-						final ArrayElementValue arrayIncludes = (ArrayElementValue) includesValue;
-						includes = new String[arrayIncludes.vals.length];
-						for (int i = 0; i < arrayIncludes.vals.length; i++) {
-							includes[i] = arrayIncludes.vals[i].toString();
-						}
-					}
-					
-					final ElementValue lineNumberValue = a.getNamedArguments().get("lineNumber");
-					final Integer lineNumber;
-					if (lineNumberValue == null) {
-						lineNumber = -1;
-					} else {
-						final ConstantElementValue constantvalue = (ConstantElementValue) lineNumberValue;
-						lineNumber = (Integer) constantvalue.val;
-					}
-					
-					final ElementValue columnNumberValue = a.getNamedArguments().get("columnNumber");
-					final Integer columnNumber;
-					if (columnNumberValue == null) {
-						columnNumber = -1;
-					} else {
-						final ConstantElementValue constantvalue = (ConstantElementValue) columnNumberValue;
-						columnNumber = (Integer) constantvalue.val;
-					}
-					
-					final ElementValue idValue = a.getNamedArguments().get("id");
-					final String id;
-					if (idValue == null) {
-						id = null;
-					} else {
-						// As per @Sink / @Source Definition: "id" is a constant String 
-						final ConstantElementValue constantvalue = (ConstantElementValue) idValue;
-						// .. of Type String
-						id = (String) constantvalue.val;
-					}
-					final ElementValue tagsValue = a.getNamedArguments().get("tags");
-					final String[] tags;
-					if (tagsValue == null) {
-						tags = new String[0];
-					} else {
-						tags = Arrays.stream(((ArrayElementValue)a.getNamedArguments().get("tags")).vals)
-								.map(es -> (ConstantElementValue)es).map(es -> (String)es.val).toArray(String[]::new);
-					}
-					sources.put(e.getKey(), Pair.pair(new Source() {
-						@Override
-						public Class<? extends java.lang.annotation.Annotation> annotationType() {
-							return Source.class;
-						}
-						
-						@Override
-						public String[] mayKnow() {
-							return mayKnow;
-						}
-						
-						@Override
-						public String level() {
-							return level;
-						}
-						
-						@Override
-						public String[] includes() {
-							return includes;
-						}
-						
-						@Override
-						public AnnotationPolicy annotate() {
-							return annotate;
-						}
-						
-						@Override
-						public PositionDefinition positionDefinition() {
-							return positionDef;
-						}
-						
-						@Override
-						public int lineNumber() {
-							return lineNumber;
-						}
-						
-						@Override
-						public int columnNumber() {
-							return columnNumber;
-						}
-						
-						@Override
-						public String id() {
-							return id;
-						}
-						
-						@Override
-						public String[] tags() {
-							return tags;
-						}
-						
-						@Override
-						public String toString() {
-							return "@Source(level = " + level + ", includes = " + Arrays.toString(includes) + ", mayKnow = " + Arrays.toString(mayKnow) + ")";
-						};
-					}, sourceFile));
-				} else if (sink.equals(a.getType())) {
-					final ElementValue levelValue = a.getNamedArguments().get("level");
-					final String level;
-					if (levelValue == null) {
-						level = null;
-					} else {
-						// As per @Sink / @Source Definition: "level" is a constant String (such as "LOW" or "HIGH") 
-						final ConstantElementValue constantvalue = (ConstantElementValue) levelValue;
-						// .. of Type String
-						level = (String) constantvalue.val;
-					}
-					
-					final ElementValue annotateValue = a.getNamedArguments().get("annotate");
-					final AnnotationPolicy annotate; 
-					if (annotateValue == null) {
-						annotate = null;
-					} else {
-						final EnumElementValue enumannotate = (EnumElementValue) annotateValue;
-						assert (annotationPolicy.equals(TypeName.findOrCreate(enumannotate.enumType)));
-						annotate = AnnotationPolicy.valueOf(enumannotate.enumVal);						
-					}
-					
-					final ElementValue positionDefinitionValue = a.getNamedArguments().get("positionDefinition");
-					final PositionDefinition positionDef;
-					if (positionDefinitionValue == null) {
-						positionDef = null;
-					} else {
-						final EnumElementValue enumpositiondefinition = (EnumElementValue) positionDefinitionValue;
-						assert (positionDefinition.equals(TypeName.findOrCreate(enumpositiondefinition.enumType)));
-						positionDef = PositionDefinition.valueOf(enumpositiondefinition.enumVal);
-					}
-
-					final ElementValue seenByValue = a.getNamedArguments().get("seenBy");
-					final String[] seenBy;
-					if (seenByValue == null) {
-						seenBy = null;
-					} else {
-						final ArrayElementValue arraySeenBy = (ArrayElementValue) seenByValue;
-						seenBy = new String[arraySeenBy.vals.length];
-						for (int i = 0; i < arraySeenBy.vals.length; i++) {
-							seenBy[i] = arraySeenBy.vals[i].toString();
-						}
-					}
-
-					final ElementValue mayIncludeValue = a.getNamedArguments().get("mayInclude");
-					final String[] mayInclude;
-					if (mayIncludeValue == null) {
-						mayInclude = null;
-					} else {
-						final ArrayElementValue arrayMayInclude = (ArrayElementValue) mayIncludeValue;
-						mayInclude = new String[arrayMayInclude.vals.length];
-						for (int i = 0; i < arrayMayInclude.vals.length; i++) {
-							mayInclude[i] = arrayMayInclude.vals[i].toString();
-						}
-					}
-					
-					final ElementValue lineNumberValue = a.getNamedArguments().get("lineNumber");
-					final Integer lineNumber;
-					if (lineNumberValue == null) {
-						lineNumber = -1;
-					} else {
-						final ConstantElementValue constantvalue = (ConstantElementValue) lineNumberValue;
-						lineNumber = (Integer) constantvalue.val;
-					}
-					
-					final ElementValue columnNumberValue = a.getNamedArguments().get("columnNumber");
-					final Integer columnNumber;
-					if (columnNumberValue == null) {
-						columnNumber = -1;
-					} else {
-						final ConstantElementValue constantvalue = (ConstantElementValue) columnNumberValue;
-						columnNumber = (Integer) constantvalue.val;
-					}
-					
-					final ElementValue idValue = a.getNamedArguments().get("id");
-					final String id;
-					if (idValue == null) {
-						id = null;
-					} else {
-						// As per @Sink / @Source Definition: "id" is a constant String 
-						final ConstantElementValue constantvalue = (ConstantElementValue) idValue;
-						// .. of Type String
-						id = (String) constantvalue.val;
-					}
-					
-					final ElementValue tagsValue = a.getNamedArguments().get("tags");
-					final String[] tags;
-					if (tagsValue == null) {
-						tags = new String[0];
-					} else {
-						tags = Arrays.stream(((ArrayElementValue)a.getNamedArguments().get("tags")).vals)
-								.map(es -> (ConstantElementValue)es).map(es -> (String)es.val).toArray(String[]::new);
-					}
-					
-					sinks.put(e.getKey(), Pair.pair(new Sink() {
-						@Override
-						public Class<? extends java.lang.annotation.Annotation> annotationType() {
-							return Sink.class;
-						}
-						
-						@Override
-						public String[] seenBy() {
-							return seenBy;
-						}
-						
-						@Override
-						public String[] mayInclude() {
-							return mayInclude;
-						}
-						
-						@Override
-						public String level() {
-							return level;
-						}
-						
-						@Override
-						public AnnotationPolicy annotate() {
-							return annotate;
-						}
-						
-						@Override
-						public PositionDefinition positionDefinition() {
-							return positionDef;
-						}
-						
-						@Override
-						public int lineNumber() {
-							return lineNumber;
-						}
-						
-						@Override
-						public int columnNumber() {
-							return columnNumber;
-						}
-						
-						@Override
-						public String id() {
-							return id;
-						}
-						
-						@Override
-						public String[] tags() {
-							return tags;
-						}
-						
-						@Override
-						public String toString() {
-							return "@Sink(level = " + level + ", mayInclude = " + Arrays.toString(mayInclude) + ", seenBy = " + Arrays.toString(seenBy) + ")";
-						}
-					}, sourceFile));
+				for (Annotation subA : subs) {
+					debug.outln("Processing::: " + subA);
+					processSourceSinkDeclassification(subA, annotationPolicy, 
+							positionDefinition, source, sink, 
+							declass, e.getKey(), sourceFile, ignoreDeclass);
 				}
 			}
 		}
 	}
-
 	
+	private void processSourceSinkDeclassification(Annotation a, TypeName annotationPolicy, TypeName positionDefinition, 
+			TypeReference source, TypeReference sink, TypeReference declass, SDGProgramPart part, String sourceFile,
+			boolean ignoreDeclass) {
+		if (!checkTags(a)) {
+			return;
+		}
+		if (source.equals(a.getType())) {
+			sources.put(part, Pair.pair(processSource(a, positionDefinition, annotationPolicy), sourceFile));
+		} else if (sink.equals(a.getType())) {
+			sinks.put(part, Pair.pair(processSink(a, annotationPolicy, positionDefinition), sourceFile));
+		} else if (declass.equals(a.getType()) && !ignoreDeclass) {
+			declasss.put(part, Pair.pair(processDeclassification(a, annotationPolicy, positionDefinition), sourceFile));
+		}
+	}
+	
+	private boolean checkTags(Annotation a) {
+		if (a.getNamedArguments().containsKey("tags")) {
+			if (sourceSinkAnnotationTag.isEmpty()) {
+				return ((ArrayElementValue)a.getNamedArguments().get("tags")).vals.length == 0;
+			}
+			return Arrays.stream(((ArrayElementValue)a.getNamedArguments().get("tags")).vals)
+					.map(e -> (ConstantElementValue)e)
+					.anyMatch(e -> e.val.equals("") || e.val.equals(sourceSinkAnnotationTag));
+		}
+		return sourceSinkAnnotationTag.isEmpty();
+	}
+
+	private Source processSource(Annotation a, TypeName annotationPolicy, TypeName positionDefinition){
+		final ElementValue levelValue = a.getNamedArguments().get("level");
+		final String level;
+		if (levelValue == null) {
+			level = null;
+		} else {
+			// As per @Sink / @Source Definition: "level" is a constant String (such as "LOW" or "HIGH") 
+			final ConstantElementValue constantvalue = (ConstantElementValue) levelValue;
+			// .. of Type String
+			level = (String) constantvalue.val;
+		}
+		
+		final ElementValue annotateValue = a.getNamedArguments().get("annotate");
+		final AnnotationPolicy annotate; 
+		if (annotateValue == null) {
+			annotate = null;
+		} else {
+			final EnumElementValue enumannotate = (EnumElementValue) annotateValue;
+			assert (annotationPolicy.equals(TypeName.findOrCreate(enumannotate.enumType)));
+			annotate = AnnotationPolicy.valueOf(enumannotate.enumVal);						
+		}
+		
+		final ElementValue positionDefinitionValue = a.getNamedArguments().get("positionDefinition");
+		final PositionDefinition positionDef;
+		if (positionDefinitionValue == null) {
+			positionDef = null;
+		} else {
+			final EnumElementValue enumpositiondefinition = (EnumElementValue) positionDefinitionValue;
+			assert (positionDefinition.equals(TypeName.findOrCreate(enumpositiondefinition.enumType)));
+			positionDef = PositionDefinition.valueOf(enumpositiondefinition.enumVal);
+		}
+		
+		final ElementValue mayKnowValue = a.getNamedArguments().get("mayKnow");
+		final String[] mayKnow;
+		if (mayKnowValue == null) {
+			mayKnow = null;
+		} else {
+			final ArrayElementValue arrayMayKnow = (ArrayElementValue) mayKnowValue;
+			mayKnow = new String[arrayMayKnow.vals.length];
+			for (int i = 0; i < arrayMayKnow.vals.length; i++) {
+				mayKnow[i] = arrayMayKnow.vals[i].toString();
+			}
+		}
+
+		final ElementValue includesValue = a.getNamedArguments().get("includes");
+		final String[] includes;
+		if (includesValue == null) {
+			includes = null;
+		} else {
+			final ArrayElementValue arrayIncludes = (ArrayElementValue) includesValue;
+			includes = new String[arrayIncludes.vals.length];
+			for (int i = 0; i < arrayIncludes.vals.length; i++) {
+				includes[i] = arrayIncludes.vals[i].toString();
+			}
+		}
+		
+		final ElementValue lineNumberValue = a.getNamedArguments().get("lineNumber");
+		final Integer lineNumber;
+		if (lineNumberValue == null) {
+			lineNumber = -1;
+		} else {
+			final ConstantElementValue constantvalue = (ConstantElementValue) lineNumberValue;
+			lineNumber = (Integer) constantvalue.val;
+		}
+		
+		final ElementValue columnNumberValue = a.getNamedArguments().get("columnNumber");
+		final Integer columnNumber;
+		if (columnNumberValue == null) {
+			columnNumber = -1;
+		} else {
+			final ConstantElementValue constantvalue = (ConstantElementValue) columnNumberValue;
+			columnNumber = (Integer) constantvalue.val;
+		}
+		
+		final ElementValue idValue = a.getNamedArguments().get("id");
+		final String id;
+		if (idValue == null) {
+			id = null;
+		} else {
+			// As per @Sink / @Source Definition: "id" is a constant String 
+			final ConstantElementValue constantvalue = (ConstantElementValue) idValue;
+			// .. of Type String
+			id = (String) constantvalue.val;
+		}
+		final ElementValue tagsValue = a.getNamedArguments().get("tags");
+		final String[] tags;
+		if (tagsValue == null) {
+			tags = new String[0];
+		} else {
+			tags = Arrays.stream(((ArrayElementValue)a.getNamedArguments().get("tags")).vals)
+					.map(es -> (ConstantElementValue)es).map(es -> (String)es.val).toArray(String[]::new);
+		}
+		return new Source() {
+			@Override
+			public Class<? extends java.lang.annotation.Annotation> annotationType() {
+				return Source.class;
+			}
+			
+			@Override
+			public String[] mayKnow() {
+				return mayKnow;
+			}
+			
+			@Override
+			public String level() {
+				return level;
+			}
+			
+			@Override
+			public String[] includes() {
+				return includes;
+			}
+			
+			@Override
+			public AnnotationPolicy annotate() {
+				return annotate;
+			}
+			
+			@Override
+			public PositionDefinition positionDefinition() {
+				return positionDef;
+			}
+			
+			@Override
+			public int lineNumber() {
+				return lineNumber;
+			}
+			
+			@Override
+			public int columnNumber() {
+				return columnNumber;
+			}
+			
+			@Override
+			public String id() {
+				return id;
+			}
+			
+			@Override
+			public String[] tags() {
+				return tags;
+			}
+			
+			@Override
+			public String toString() {
+				return "@Source(level = " + level + ", includes = " + Arrays.toString(includes) + ", mayKnow = " + Arrays.toString(mayKnow) + ")";
+			};
+		};
+	}
+	
+	private Sink processSink(Annotation a, TypeName annotationPolicy, TypeName positionDefinition){
+		final ElementValue levelValue = a.getNamedArguments().get("level");
+		final String level;
+		if (levelValue == null) {
+			level = null;
+		} else {
+			// As per @Sink / @Source Definition: "level" is a constant String (such as "LOW" or "HIGH") 
+			final ConstantElementValue constantvalue = (ConstantElementValue) levelValue;
+			// .. of Type String
+			level = (String) constantvalue.val;
+		}
+		
+		final ElementValue annotateValue = a.getNamedArguments().get("annotate");
+		final AnnotationPolicy annotate; 
+		if (annotateValue == null) {
+			annotate = null;
+		} else {
+			final EnumElementValue enumannotate = (EnumElementValue) annotateValue;
+			assert (annotationPolicy.equals(TypeName.findOrCreate(enumannotate.enumType)));
+			annotate = AnnotationPolicy.valueOf(enumannotate.enumVal);						
+		}
+		
+		final ElementValue positionDefinitionValue = a.getNamedArguments().get("positionDefinition");
+		final PositionDefinition positionDef;
+		if (positionDefinitionValue == null) {
+			positionDef = null;
+		} else {
+			final EnumElementValue enumpositiondefinition = (EnumElementValue) positionDefinitionValue;
+			assert (positionDefinition.equals(TypeName.findOrCreate(enumpositiondefinition.enumType)));
+			positionDef = PositionDefinition.valueOf(enumpositiondefinition.enumVal);
+		}
+
+		final ElementValue seenByValue = a.getNamedArguments().get("seenBy");
+		final String[] seenBy;
+		if (seenByValue == null) {
+			seenBy = null;
+		} else {
+			final ArrayElementValue arraySeenBy = (ArrayElementValue) seenByValue;
+			seenBy = new String[arraySeenBy.vals.length];
+			for (int i = 0; i < arraySeenBy.vals.length; i++) {
+				seenBy[i] = arraySeenBy.vals[i].toString();
+			}
+		}
+
+		final ElementValue mayIncludeValue = a.getNamedArguments().get("mayInclude");
+		final String[] mayInclude;
+		if (mayIncludeValue == null) {
+			mayInclude = null;
+		} else {
+			final ArrayElementValue arrayMayInclude = (ArrayElementValue) mayIncludeValue;
+			mayInclude = new String[arrayMayInclude.vals.length];
+			for (int i = 0; i < arrayMayInclude.vals.length; i++) {
+				mayInclude[i] = arrayMayInclude.vals[i].toString();
+			}
+		}
+		
+		final ElementValue lineNumberValue = a.getNamedArguments().get("lineNumber");
+		final Integer lineNumber;
+		if (lineNumberValue == null) {
+			lineNumber = -1;
+		} else {
+			final ConstantElementValue constantvalue = (ConstantElementValue) lineNumberValue;
+			lineNumber = (Integer) constantvalue.val;
+		}
+		
+		final ElementValue columnNumberValue = a.getNamedArguments().get("columnNumber");
+		final Integer columnNumber;
+		if (columnNumberValue == null) {
+			columnNumber = -1;
+		} else {
+			final ConstantElementValue constantvalue = (ConstantElementValue) columnNumberValue;
+			columnNumber = (Integer) constantvalue.val;
+		}
+		
+		final ElementValue idValue = a.getNamedArguments().get("id");
+		final String id;
+		if (idValue == null) {
+			id = null;
+		} else {
+			// As per @Sink / @Source Definition: "id" is a constant String 
+			final ConstantElementValue constantvalue = (ConstantElementValue) idValue;
+			// .. of Type String
+			id = (String) constantvalue.val;
+		}
+		
+		final ElementValue tagsValue = a.getNamedArguments().get("tags");
+		final String[] tags;
+		if (tagsValue == null) {
+			tags = new String[0];
+		} else {
+			tags = Arrays.stream(((ArrayElementValue)a.getNamedArguments().get("tags")).vals)
+					.map(es -> (ConstantElementValue)es).map(es -> (String)es.val).toArray(String[]::new);
+		}
+		
+		return new Sink() {
+			@Override
+			public Class<? extends java.lang.annotation.Annotation> annotationType() {
+				return Sink.class;
+			}
+			
+			@Override
+			public String[] seenBy() {
+				return seenBy;
+			}
+			
+			@Override
+			public String[] mayInclude() {
+				return mayInclude;
+			}
+			
+			@Override
+			public String level() {
+				return level;
+			}
+			
+			@Override
+			public AnnotationPolicy annotate() {
+				return annotate;
+			}
+			
+			@Override
+			public PositionDefinition positionDefinition() {
+				return positionDef;
+			}
+			
+			@Override
+			public int lineNumber() {
+				return lineNumber;
+			}
+			
+			@Override
+			public int columnNumber() {
+				return columnNumber;
+			}
+			
+			@Override
+			public String id() {
+				return id;
+			}
+			
+			@Override
+			public String[] tags() {
+				return tags;
+			}
+			
+			@Override
+			public String toString() {
+				return "@Sink(level = " + level + ", mayInclude = " + Arrays.toString(mayInclude) + ", seenBy = " + Arrays.toString(seenBy) + ")";
+			}
+		};
+	}
+	
+	private Declassification processDeclassification(Annotation a, TypeName annotationPolicy, TypeName positionDefinition){
+		final ElementValue fromValue = a.getNamedArguments().get("from");
+		final String from;
+		if (fromValue == null) {
+			from = null;
+		} else {
+			from = (String) ((ConstantElementValue) fromValue).val;
+		}
+		
+		final ElementValue toValue = a.getNamedArguments().get("to");
+		final String to;
+		if (toValue == null) {
+			to = null;
+		} else {
+			to = (String) ((ConstantElementValue) toValue).val;
+		}
+		
+		final ElementValue tagsValue = a.getNamedArguments().get("tags");
+		final String[] tags;
+		if (tagsValue == null) {
+			tags = new String[0];
+		} else {
+			tags = Arrays.stream(((ArrayElementValue)a.getNamedArguments().get("tags")).vals)
+					.map(es -> (ConstantElementValue)es).map(es -> (String)es.val).toArray(String[]::new);
+		}
+		
+		return new Declassification() {
+			
+			@Override
+			public Class<? extends java.lang.annotation.Annotation> annotationType() {
+				return Declassification.class;
+			}
+			
+			@Override
+			public String to() {
+				return to;
+			}
+			
+			@Override
+			public String[] tags() {
+				return tags;
+			}
+			
+			@Override
+			public String from() {
+				return from;
+			}
+		};
+	}
 	
 	/**
 	 * If Java Source annotations are available, add corresponding IFC Annotations to the Analysis.

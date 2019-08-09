@@ -31,17 +31,17 @@ import edu.kit.joana.util.NullPrintStream;
  */
 @Parameters(commandDescription = "Basic quantitative information flow analysis")
 public class Main {
-
+	
 	@Parameters(commandDescription = "Run IFC console commands directly")
 	private static class ConsoleCommand {
 
 		@Parameter(description = "Commands to execute, commands prefixed with '*' discard all non error output")
-		private List<String> commands = new ArrayList<>();
+		List<String> commands = new ArrayList<>();
 
 		@Parameter(names = "-i", description = "Run interactive console afterwards")
-		private boolean interactive;
+		boolean interactive = false;
 
-		private IFCConsole console;
+		IFCConsole console;
 
 		void process(Main main) {
 			final boolean[] isSilent = new boolean[] {false};
@@ -119,6 +119,25 @@ public class Main {
 			}
 		}
 	}
+	
+	
+	@Parameters(commandDescription = "Run IFC console commands from a file")
+	private static class FileCommand {
+		
+		@Parameter(description = "File with commands, commands prefixed with '*' are silent")
+		private String file;
+		
+		void process(Main main) {
+			ConsoleCommand command = new ConsoleCommand();
+			try {
+				command.commands = Files.readAllLines(Paths.get(file));
+			} catch (IOException e) {
+				System.err.println(e.getMessage());
+				System.exit(1);
+			}
+			command.process(main);
+		}
+	}
 
 	@Parameter(names = { "-cp",
 			"-classpath" }, description = "Classpath that contains the code that is going to be analysed, should also contain "
@@ -131,7 +150,11 @@ public class Main {
 	public static void main(String[] args) {
 		Main main = new Main();
 		ConsoleCommand console = new ConsoleCommand();
-		JCommander com = JCommander.newBuilder().addObject(main).programName("cli").addCommand("console", console)
+		FileCommand file = new FileCommand();
+		JCommander com = JCommander.newBuilder()
+				.addObject(main).programName("cli")
+				.addCommand("console", console)
+				.addCommand("file", file)
 				.build();
 		com.parse(args);
 		if (com.getParsedCommand() == null) {
@@ -141,6 +164,9 @@ public class Main {
 		switch (com.getParsedCommand()) {
 		case "console":
 			console.process(main);
+			break;
+		case "file":
+			file.process(main);
 			break;
 		default:
 			com.usage();

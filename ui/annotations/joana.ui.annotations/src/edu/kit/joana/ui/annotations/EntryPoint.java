@@ -29,4 +29,5 @@ public @interface EntryPoint {
 	 */
 	String tag() default "";
 
+	boolean onlyDirectFlow() default false;
 }

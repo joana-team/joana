@@ -10,6 +10,7 @@ package edu.kit.joana.ui.ifc.wala.console.console;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -35,8 +36,12 @@ import java.util.stream.Collectors;
 import javax.management.RuntimeErrorException;
 import javax.xml.stream.XMLStreamException;
 
+import org.omg.CORBA.REBIND;
+
 import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlCollectionDump;
+import com.amihaiemil.eoyaml.YamlMapping;
+import com.amihaiemil.eoyaml.YamlMappingBuilder;
 import com.amihaiemil.eoyaml.YamlSequenceBuilder;
 import com.google.common.collect.Multimap;
 import com.ibm.wala.classLoader.IMethod;
@@ -78,7 +83,14 @@ import edu.kit.joana.api.sdg.SDGProgramPartVisitor;
 import edu.kit.joana.api.sdg.SDGProgramPartWriter;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.SecurityNode.SecurityNodeFactory;
+import edu.kit.joana.ifc.sdg.core.conc.DataConflict;
+import edu.kit.joana.ifc.sdg.core.conc.OrderConflict;
+import edu.kit.joana.ifc.sdg.core.violations.AbstractConflictLeak;
+import edu.kit.joana.ifc.sdg.core.violations.IBinaryViolation;
+import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
+import edu.kit.joana.ifc.sdg.core.violations.IUnaryViolation;
 import edu.kit.joana.ifc.sdg.core.violations.IViolation;
+import edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
@@ -150,6 +162,8 @@ public class IFCConsole {
 		SELECT_SINKS("selectSinks", 0, 1, "[pattern]",
 				"Select sinks that match the pattern (or that have an entry id that matches it)"),
 		USE_ENTRY_POINT("useEntryPoint", 1, "tag", "Select the entry point with the given tag, build the sdg, select sources and sinks with this tag"),
+		USE_ENTRY_POINTS_YAML("useEntryPointsYAML", 0, 2, "<out file, '-' for std out, is the default> <pattern matching the entry points, optional, matches all if not present>",
+				"Stores the analysis results for the entry points in the passed file as YAML"),
 		SET_CLASSPATH(	"setClasspath", 		1, 		"<path>",
 							"Sets the class path for sdg generation. Can be for example a bin directory or a jar file."),
 		SET_EXCEPTIONS( "setExceptionAnalysis", 1, "<exception analysis type>", "Sets the type of exception analysis to perform during SDG construction. Possible values are: " + Arrays.toString(ExceptionAnalysis.values())),
@@ -181,7 +195,12 @@ public class IFCConsole {
 		DECLASS(		"declass", 				3, 		"<index> <level1> <level2>",
 							"Declassify specified node from <level1> to <level2>. <index> refers to the indices shown in the currently active method."),
 		RUN(			"run", 					0, 	2, 	" [type] ",
-							"Run IFC analysis with specified data. The optional parameter type denotes the type of ifc analysis. It can be " + IFCTYPE_CLASSICAL_NI + ", " + IFCTYPE_LSOD + ", " + IFCTYPE_RLSOD + " or " + IFCTYPE_iRLSOD + ". If it is omitted, classical non-interference is used."),
+							"Run IFC analysis with specified data. The optional parameter type denotes the type of ifc analysis. It can be " + IFCTYPE_CLASSICAL_NI + ", " + IFCTYPE_LSOD + ", " + IFCTYPE_RLSOD + " or " + IFCTYPE_iRLSOD + ". If it is omitted, classical non-interference is used (or the type set via 'type')"),
+		RUN_YAML(			"runYaml", 					0, 	1, 	" [file or '-', the default] ",
+				"Run IFC analysis with specified data. Output result into the file as YAML."),
+		SET_TYPE("setType", 1, "<type>", "Type of the ifc analysis"),
+		SET_TIME_SENSITIVITY("setTimeSensitivity", 1, "true|false", "Is time sensitive?"),
+		ONLY_DIRECT_FLOW("onlyDirectFlow", 1, "true|false", "Only direct/data flow?"),
 		RESET(			"reset", 				0, 		"",
 							"Reset node data."),
 		SAVE_ANNOT(		"saveAnnotations", 		1, 		"<filename>",
@@ -386,8 +405,11 @@ public class IFCConsole {
 	private Stubs stubsPath = Stubs.JRE_15;
 	private boolean recomputeSDG = true;
 	private ChopComputation chopComputation = ChopComputation.ALL;
+	private boolean onlyDirectFlow = false; 
 	
 	private final List<String> script = new LinkedList<String>();
+	protected IFCType type = IFCType.CLASSICAL_NI;
+	protected boolean isTimeSensitive = false;
 
 	public IFCConsole(BufferedReader in, IFCConsoleOutput out) {
 		this.in = in;
@@ -470,6 +492,16 @@ public class IFCConsole {
 			@Override
 			boolean execute(String[] args) {
 				return selectEntryPoint(args[1]) && makeCommandBuildSDGIfNeeded().execute(new String[] {"bla"}) && makeCommandSelectSources().execute(args) && makeCommandSelectSinks().execute(args);
+			}
+		};
+	}
+	
+	private Command makeCommandUseEntryPointsYAML() {
+		return new Command(CMD.USE_ENTRY_POINTS_YAML) {
+			
+			@Override
+			boolean execute(String[] args) {
+				return useEntryPointsYAML(args.length == 1 ? "-" : args[1], args.length <= 2 ? ".*" : args[2]);
 			}
 		};
 	}
@@ -767,16 +799,86 @@ public class IFCConsole {
 		};
 	}
 
+	private Command makeCommandRunYaml() {
+		return new Command(CMD.RUN_YAML) {
+			
+			@Override
+			boolean execute(String[] args) {
+				return runAnalysisYAML(args.length == 1 ? "-" : args[1]);
+			}
+		};
+	}
+	
+	private Command makeCommandSetType() {
+		return new Command(CMD.SET_TYPE) {
+			
+			@Override
+			boolean execute(String[] args) {
+				IFCType newType = parseIFCType(args[1]);
+				if (newType == null) {
+					out.error("'" + args[1] + "' is not a valid ifc type, use " + Arrays.toString(IFCType.values()));
+					return false;
+				}
+				type = newType;
+				return true;
+			}
+		};
+	}
+	
+	private Command makeCommandSetTimeSensitivity() {
+		return new Command(CMD.SET_TIME_SENSITIVITY) {
+			
+			@Override
+			boolean execute(String[] args) {
+				switch (args[1]) {
+				case "true":
+					isTimeSensitive = true;
+					break;
+				case "false":
+					isTimeSensitive = false;
+					break;
+				default:
+					out.error("argument has to be either 'true' or 'false'");
+					return false;
+				}
+				return true;
+			}
+		};
+	}
+	
+	private Command makeCommandOnlyDirectFlow() {
+		return new Command(CMD.ONLY_DIRECT_FLOW) {
+			
+			@Override
+			boolean execute(String[] args) {
+				switch (args[1]) {
+				case "true":
+					recomputeSDG |= !onlyDirectFlow;
+					onlyDirectFlow = true;
+					break;
+				case "false":
+					recomputeSDG |= onlyDirectFlow;
+					onlyDirectFlow = false;
+					break;
+				default:
+					out.error("argument has to be either 'true' or 'false'");
+					return false;
+				}
+				return true;
+			}
+		};
+	}
+	
 	private Command makeCommandRun() {
 		return new Command(CMD.RUN) {
 			@Override
 			boolean execute(String[] args) {
 				if (args.length == 1) {
-					return doIFC(IFCType.CLASSICAL_NI, false);
+					return doIFC(type, isTimeSensitive);
 				} else {
 					IFCType ifcType = parseIFCType(args[1]);
 					// standard value for time-sensitivity is false; only set to true if mentioned explicitly
-					boolean timeSens = args.length > 2 && AVOID_TIME_TRAVEL.equals(args[2]);
+					boolean timeSens = (args.length > 2 && AVOID_TIME_TRAVEL.equals(args[2])) || (args.length <= 2 && isTimeSensitive);
 
 					if (ifcType == null) {
 						out.error("unknown ifc type: " + args[1]);
@@ -785,22 +887,17 @@ public class IFCConsole {
 						return doIFC(ifcType, timeSens);
 					}
 				}
-			}
-
-			private IFCType parseIFCType(String s) {
-				if (IFCTYPE_CLASSICAL_NI.equals(s)) {
-					return IFCType.CLASSICAL_NI;
-				} else if (IFCTYPE_LSOD.equals(s)) {
-					return IFCType.LSOD;
-				} else if (IFCTYPE_RLSOD.equals(s)) {
-					return IFCType.RLSOD;
-				} else if (IFCTYPE_iRLSOD.equals(s)) {
-					return IFCType.iRLSOD;
-				} else {
-					return null;
-				}
-			}
+			}			
 		};
+	}
+	
+	private IFCType parseIFCType(String s) {
+		for (IFCType t : IFCType.values()) {
+			if (t.name().equals(s)) {
+				return t;
+			}
+		}
+		return null;
 	}
 
 	private Command makeCommandReset() {
@@ -1058,6 +1155,10 @@ public class IFCConsole {
 		repo.addCommand(makeCommandSelectSinks());
 		repo.addCommand(makeCommandSelectSources());
 		repo.addCommand(makeCommandUseEntryPoint());
+		repo.addCommand(makeCommandUseEntryPointsYAML());
+		repo.addCommand(makeCommandSetTimeSensitivity());
+		repo.addCommand(makeCommandSetType());
+		repo.addCommand(makeCommandOnlyDirectFlow());
 		
 		repo.addCommand(makeCommandSetClasspath());
 		repo.addCommand(makeCommandSetExceptionAnalysis());
@@ -1082,6 +1183,7 @@ public class IFCConsole {
 		repo.addCommand(makeCommandClearAll());
 		repo.addCommand(makeCommandDeclass());
 		repo.addCommand(makeCommandRun());
+		repo.addCommand(makeCommandRunYaml());
 		repo.addCommand(makeCommandReset());
 		repo.addCommand(makeCommandSaveMarkings());
 		repo.addCommand(makeCommandLoadMarkings());
@@ -1309,6 +1411,158 @@ public class IFCConsole {
 		return selectEntryPoint(JavaMethodSignature.fromString(p.getFirst().getSignature()), p.getSecond());
 	}
 	
+	public boolean useEntryPointsYAML(String outputFile, String pattern) {
+		if (outputFile.equals("-")) {
+			return useEntryPointsYAML(out.getPrintStream(), pattern);
+		}
+		try (PrintStream stream = new PrintStream(new File(outputFile))){
+			return useEntryPointsYAML(stream, pattern);
+		} catch (IOException e) {
+			out.error(e.getMessage());
+			return false;
+		}
+	}
+	
+	public boolean useEntryPointsYAML(PrintStream stream, String pattern) {
+		YamlSequenceBuilder seq = Yaml.createYamlSequenceBuilder();
+		Optional<List<Pair<IMethod, Annotation>>> result = 
+				loc.doSearchForEntryPointAnnotated(classPath, out, new Pattern(pattern, true, PatternType.ID, PatternType.SIGNATURE));
+		if (result.isPresent()) {
+			for (Pair<IMethod, Annotation> p : result.get()) {
+				Optional<YamlMapping> map = useEntryPointYaml(p.getFirst(), p.getSecond());
+				if (!map.isPresent()) {
+					return false;
+				}
+				seq.add(map.get());
+			}
+		}
+		return false;
+	}
+	
+	public Optional<YamlMapping> useEntryPointYaml(IMethod method, Annotation annotation){
+		if (!selectEntryPoint(JavaMethodSignature.fromString(method.getSignature()), annotation)) {
+			return Optional.empty();
+		}
+		String tag = "";
+		if (annotation.getNamedArguments().containsKey("tag")) {
+			tag = (String)((ConstantElementValue)annotation.getNamedArguments().get("tag")).val;
+		}
+		Pattern pattern = new Pattern(tag, false, PatternType.SIGNATURE, PatternType.ID);
+		if (!selectSources(pattern) || !selectSinks(pattern) || !buildSDGIfNeeded()) {
+			return Optional.empty();
+		}
+		return runAnalysisYAML();
+	}
+	
+	public boolean runAnalysisYAML(String outputFile) {
+		if (outputFile.equals("-")) {
+			return runAnalysisYAML(out.getPrintStream());
+		}
+		try (PrintStream stream = new PrintStream(new File(outputFile))){
+			return runAnalysisYAML(stream);
+		} catch (IOException e) {
+			out.error(e.getMessage());
+			return false;
+		}
+	}
+	
+	public boolean runAnalysisYAML(PrintStream output){
+		Optional<YamlMapping> map = runAnalysisYAML();
+		if (map.isPresent()) {
+			output.print(map.get().toString());
+		}
+		return false;
+	}
+	
+	public Optional<YamlMapping> runAnalysisYAML(){
+		if (ifcAnalysis == null || ifcAnalysis.getProgram() == null) {
+			out.info("No program to analyze.");
+			return Optional.empty();
+		}
+		YamlMappingBuilder mapBuilder = Yaml.createYamlMappingBuilder();
+		ifcAnalysis.setTimesensitivity(isTimeSensitive);
+		out.logln("Performing IFC - Analysis type: " + type);
+		Collection<? extends IViolation<SecurityNode>> vios = ifcAnalysis.doIFC(type);
+
+		lastAnalysisResult.clear();
+		lastAnalysisResult.addAll(vios);
+
+		groupedIFlows.clear();
+		
+		mapBuilder = mapBuilder.add("entry_point_method", loc.getActiveEntry().toHRString());
+		mapBuilder = mapBuilder.add("tag", ifcAnalysis.getSourceSinkAnnotationTag());
+		mapBuilder = mapBuilder.add("found_flows",	lastAnalysisResult.isEmpty() ? "false" : "true");
+		mapBuilder = mapBuilder.add("only_direct_flow", onlyDirectFlow ? "true" : "false");
+		if (lastAnalysisResult.isEmpty()) {
+			out.logln("No violations found.");
+			return Optional.of(mapBuilder.build());
+		}
+		YamlSequenceBuilder flowsBuilder = Yaml.createYamlSequenceBuilder();
+		groupedIFlows = ifcAnalysis.groupByPPPart(vios);
+		out.logln("done, found " + groupedIFlows.size() + " security violation(s):");
+		Set<String> output = new TreeSet<String>();
+		for (IViolation<SDGProgramPart> vio : groupedIFlows.keySet()) {
+			YamlMappingBuilder vioBuilder = Yaml.createYamlMappingBuilder();
+			YamlMappingBuilder[] vioBuild = new YamlMappingBuilder[] {vioBuilder};
+			vio.accept(new IViolationVisitor<SDGProgramPart>() {
+
+				@Override
+				public void visitIllegalFlow(IIllegalFlow<SDGProgramPart> iFlow) {
+					vioBuild[0] = vioBuild[0].add("type", "illegal")
+					          .add("attacker_level", iFlow.getAttackerLevel())
+					          .add("source", iFlow.getSource().toString())
+					          .add("sink", iFlow.getSink().toString());
+				}
+
+				private void visitAbstractConflictLeak(String type, AbstractConflictLeak<SDGProgramPart> conf) {
+					vioBuild[0] = vioBuild[0].add("type", type)
+					  .add("attacker_level", conf.getAttackerLevel())
+					  .add("triggers", new YamlCollectionDump(conf.getAllTriggers().stream().map(Object::toString).collect(Collectors.toList())).represent())
+					  .add("conflict_edge", Yaml.createYamlMappingBuilder()
+							  .add("source", conf.getConflictEdge().getSource().toString())
+							  .add("target", conf.getConflictEdge().getTarget().toString()).build());
+				}
+				
+				@Override
+				public void visitDataConflict(DataConflict<SDGProgramPart> dataConf) {
+					visitAbstractConflictLeak("data", dataConf);
+					vioBuild[0] = vioBuild[0].add("influenced", dataConf.getInfluenced().toString());
+				}
+
+				@Override
+				public void visitOrderConflict(OrderConflict<SDGProgramPart> orderConf) {
+					visitAbstractConflictLeak("order", orderConf);
+				}
+
+				@Override
+				public <L> void visitUnaryViolation(IUnaryViolation<SDGProgramPart, L> unVio) {
+					vioBuild[0] = vioBuild[0].add("type", "unary")
+							  .add("actual_level", unVio.getActualLevel().toString())
+							  .add("expected_level", unVio.getExpectedLevel().toString())
+							  .add("node", unVio.getNode().toString());
+				}
+
+				@Override
+				public <L> void visitBinaryViolation(IBinaryViolation<SDGProgramPart, L> binVio) {
+					vioBuild[0] = vioBuild[0].add("type", "binary")
+							  .add("attacker_level", binVio.getAttackerLevel().toString())
+							  .add("influenced_by", binVio.getInfluencedBy().toString())
+							  .add("node", binVio.getNode().toString());
+				}
+				
+			});
+			output.add(String
+					.format("Security violation: %s (internal: %d security violations on the SDG node level)",
+							vio.toString(), groupedIFlows.get(vio)));
+			flowsBuilder = flowsBuilder.add(vioBuild[0].build());
+		}
+		for (String s : output) {
+			out.logln(s);
+		}
+		mapBuilder = mapBuilder.add("flow", flowsBuilder.build());
+		return Optional.of(mapBuilder.build());
+	}
+	
 	public boolean selectEntryPoint(JavaMethodSignature sig, Annotation ann) {
 		loc.selectEntry(sig);
 		Map<String, ElementValue> map = ann.getNamedArguments();
@@ -1347,6 +1601,14 @@ public class IFCConsole {
 			if (!parseClassSinks((ArrayElementValue)map.get("classSinks"))) {
 				return false;
 			}
+		}
+		if (map.containsKey("onlyDirectFlow")) {
+			boolean only = ((ConstantElementValue)map.get("chops")).val.equals(true);
+			recomputeSDG |= onlyDirectFlow != only;
+			onlyDirectFlow = only;
+		} else {
+			recomputeSDG |= onlyDirectFlow;
+			onlyDirectFlow = false;
 		}
 		return true;
 	}
@@ -2035,6 +2297,9 @@ public class IFCConsole {
 			config.setPointsToPrecision(pointsTo);
 			config.setFieldPropagation(FieldPropagation.OBJ_GRAPH_SIMPLE_PROPAGATION);
 			program = SDGProgram.createSDGProgram(config, out.getPrintStream(), monitor);
+			if (onlyDirectFlow) {
+				SDGProgram.throwAwayControlDeps(program.getSDG());
+			}
 		} catch (ClassHierarchyException e) {
 			out.error(e.getMessage());
 			return false;

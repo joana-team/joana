@@ -11,7 +11,7 @@ public class Test {
 		// command("searchEntries");
 		//command("searchEntryPoints");
 		//command("selectEntryPoint bla");
-		command("useEntryPoint bla", "run");
+		command("useEntryPoint bla", "runYaml");
 		// command("search_entry_points");
 	}
 

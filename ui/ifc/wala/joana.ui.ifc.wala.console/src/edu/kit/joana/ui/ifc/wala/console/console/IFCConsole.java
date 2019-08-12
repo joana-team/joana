@@ -167,7 +167,7 @@ public class IFCConsole {
 		SEARCH_DECLASS("searchDeclass", 1, 1, "<tag>",
 				"Search declassification annotations that have the given tag"),
 		USE_ENTRY_POINT("useEntryPoint", 1, "tag", "Select the entry point with the given tag, build the sdg, select sources and sinks with this tag"),
-		USE_ENTRY_POINTS_YAML("useEntryPointsYAML", 0, 2, "<out file, '-' for std out, is the default> <pattern matching the entry points, optional, matches all if not present>",
+		RUN_ENTRY_POINTS_YAML("useEntryPointsYAML", 0, 2, "<out file, '-' for std out, is the default> <pattern matching the entry points, optional, matches all if not present>",
 				"Stores the analysis results for the entry points in the passed file as YAML"),
 		SET_CLASSPATH(	"setClasspath", 		1, 		"<path>",
 							"Sets the class path for sdg generation. Can be for example a bin directory or a jar file."),
@@ -505,8 +505,8 @@ public class IFCConsole {
 		};
 	}
 	
-	private Command makeCommandUseEntryPointsYAML() {
-		return new Command(CMD.USE_ENTRY_POINTS_YAML) {
+	private Command makeCommandRunEntryPointsYAML() {
+		return new Command(CMD.RUN_ENTRY_POINTS_YAML) {
 			
 			@Override
 			boolean execute(String[] args) {
@@ -1186,7 +1186,7 @@ public class IFCConsole {
 		repo.addCommand(makeCommandSelectSinks());
 		repo.addCommand(makeCommandSelectSources());
 		repo.addCommand(makeCommandUseEntryPoint());
-		repo.addCommand(makeCommandUseEntryPointsYAML());
+		repo.addCommand(makeCommandRunEntryPointsYAML());
 		repo.addCommand(makeCommandSetTimeSensitivity());
 		repo.addCommand(makeCommandSetType());
 		repo.addCommand(makeCommandOnlyDirectFlow());

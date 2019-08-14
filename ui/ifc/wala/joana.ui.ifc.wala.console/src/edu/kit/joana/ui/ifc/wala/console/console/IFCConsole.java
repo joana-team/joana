@@ -167,7 +167,7 @@ public class IFCConsole {
 		SEARCH_DECLASS("searchDeclass", 1, 1, "<tag>",
 				"Search declassification annotations that have the given tag"),
 		USE_ENTRY_POINT("useEntryPoint", 1, "tag", "Select the entry point with the given tag, build the sdg, select sources and sinks with this tag"),
-		RUN_ENTRY_POINTS_YAML("useEntryPointsYAML", 0, 2, "<out file, '-' for std out, is the default> <pattern matching the entry points, optional, matches all if not present>",
+		RUN_ENTRY_POINTS_YAML("runEntryPointsYAML", 0, 2, "<out file, '-' for std out, is the default> <pattern matching the entry points, optional, matches all if not present>",
 				"Stores the analysis results for the entry points in the passed file as YAML"),
 		SET_CLASSPATH(	"setClasspath", 		1, 		"<path>",
 							"Sets the class path for sdg generation. Can be for example a bin directory or a jar file."),
@@ -1464,9 +1464,12 @@ public class IFCConsole {
 				if (!map.isPresent()) {
 					return false;
 				}
-				seq.add(map.get());
+				seq = seq.add(map.get());
 			}
+			stream.println(seq.build().toString());
+			return true;
 		}
+		out.error("No entry points found");
 		return false;
 	}
 	
@@ -1479,7 +1482,7 @@ public class IFCConsole {
 			tag = (String)((ConstantElementValue)annotation.getNamedArguments().get("tag")).val;
 		}
 		Pattern pattern = new Pattern(tag, false, PatternType.SIGNATURE, PatternType.ID);
-		if (!selectSources(pattern) || !selectSinks(pattern) || !buildSDGIfNeeded()) {
+		if (!buildSDGIfNeeded() || !selectSources(pattern) || !selectSinks(pattern)) {
 			return Optional.empty();
 		}
 		return runAnalysisYAML();
@@ -1501,6 +1504,7 @@ public class IFCConsole {
 		Optional<YamlMapping> map = runAnalysisYAML();
 		if (map.isPresent()) {
 			output.print(map.get().toString());
+			return true;
 		}
 		return false;
 	}
@@ -1815,6 +1819,10 @@ public class IFCConsole {
 	}
 	
 	public boolean selectSources(Pattern pattern) {
+		if (ifcAnalysis == null) {
+			out.error("Load or build SDG first!");
+			return false;
+		}
 		List<IFCAnnotation> anns = searchSinksAndSources(pattern, AnnotationType.SOURCE);
 		anns.forEach(ann -> {
 			ifcAnalysis.addAnnotation(ann);
@@ -1824,6 +1832,10 @@ public class IFCConsole {
 	}
 	
 	public boolean selectSinks(Pattern pattern) {
+		if (ifcAnalysis == null) {
+			out.error("Load or build SDG first!");
+			return false;
+		}
 		List<IFCAnnotation> anns = searchSinksAndSources(pattern, AnnotationType.SINK);
 		anns.forEach(ann -> {
 			ifcAnalysis.addAnnotation(ann);

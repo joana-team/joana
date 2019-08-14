@@ -51,7 +51,7 @@ public class Pattern {
 			return true;
 		}
 		if (isRegexp) {
-			return pattern.matches(str);
+			return str.matches(pattern);
 		}
 		return pattern.equals(str);
 	}

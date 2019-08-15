@@ -52,4 +52,9 @@ public @interface EntryPoint {
    * Currently only supported by the console.
    */
 	boolean onlyDirectFlow() default false;
+
+	/**
+	 * Policy on pruning (throwing away call graph nodes)
+	 */
+	PruningPolicy pruningPolicy() default PruningPolicy.APPLICATION;
 }

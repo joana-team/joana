@@ -1,8 +1,4 @@
-import edu.kit.joana.ui.annotations.Declassification;
-import edu.kit.joana.ui.annotations.EntryPoint;
-import edu.kit.joana.ui.annotations.Level;
-import edu.kit.joana.ui.annotations.Sink;
-import edu.kit.joana.ui.annotations.Source;
+import edu.kit.joana.ui.annotations.*;
 
 public class Basic {
 	
@@ -11,7 +7,7 @@ public class Basic {
 	}
 	
 	@EntryPoint(tag="blub")
-    @EntryPoint(tag="bla")
+    @EntryPoint(tag="bla", pruningPolicy=PruningPolicy.DO_NOT_PRUNE)
     @Source(tags="bla")
 	@Source(tags="bla")
 	@Declassification(tags="bla")

@@ -36,6 +36,8 @@ import java.util.stream.Collectors;
 import javax.management.RuntimeErrorException;
 import javax.xml.stream.XMLStreamException;
 
+import com.ibm.wala.shrikeCT.AnnotationsReader;
+import edu.kit.joana.ui.annotations.*;
 import org.omg.CORBA.REBIND;
 
 import com.amihaiemil.eoyaml.Yaml;
@@ -108,13 +110,6 @@ import edu.kit.joana.ifc.sdg.lattice.impl.PowersetLattice;
 import edu.kit.joana.ifc.sdg.lattice.impl.ReversedLattice;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
-import edu.kit.joana.ui.annotations.ChopComputation;
-import edu.kit.joana.ui.annotations.Declassification;
-import edu.kit.joana.ui.annotations.EntryPoint;
-import edu.kit.joana.ui.annotations.EntryPointKind;
-import edu.kit.joana.ui.annotations.Level;
-import edu.kit.joana.ui.annotations.Sink;
-import edu.kit.joana.ui.annotations.Source;
 import edu.kit.joana.ui.ifc.wala.console.console.Pattern.PatternType;
 import edu.kit.joana.ui.ifc.wala.console.gui.tree.ProgramPartToString;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCAnnotationDumper;
@@ -241,7 +236,10 @@ public class IFCConsole {
 		VERIFY_ANNOT(	"verifyAnnotations", 	0, 		"",
 							"Verifies that the recorded annotations are mapped consistently to the sdg and vice versa."),
         CHOP(			"chop", 				2, 		"<source> <sink>",
-        					"Generates a chop between two program points");
+        					"Generates a chop between two program points"),
+	  SET_PRUNING_POLICY("setPruningPolicy", 1, 1, "<policy>",
+				String.format("Sets the pruning policy: %s", Arrays.stream(PruningPolicy.values())
+						.map(v -> String.format("%s (%s)", v.name(), v.description)).collect(Collectors.joining(", "))));
 
 		private final String name;
 		private final int minArity;
@@ -415,6 +413,7 @@ public class IFCConsole {
 	private final List<String> script = new LinkedList<String>();
 	protected IFCType type = IFCType.CLASSICAL_NI;
 	protected boolean isTimeSensitive = false;
+	private PruningPolicy pruningPolicy = PruningPolicy.APPLICATION;
 
 	public IFCConsole(BufferedReader in, IFCConsoleOutput out) {
 		this.in = in;
@@ -1082,7 +1081,7 @@ public class IFCConsole {
 		};
 	}
 
-    private Command makeCommandChop() {
+  private Command makeCommandChop() {
 		return new Command(CMD.CHOP) {
 			@Override
 			boolean execute(String[] args) {
@@ -1090,6 +1089,15 @@ public class IFCConsole {
 			}
 		};
 	}
+
+	private Command makeCommandSetPruningPolicy() {
+		return new Command(CMD.SET_PRUNING_POLICY) {
+			@Override boolean execute(String[] args) {
+				return setPruningPolicy(args[1]);
+			}
+		};
+	}
+
 
 
 	private boolean verifyAnnotations() {
@@ -1205,6 +1213,9 @@ public class IFCConsole {
 		repo.addCommand(makeCommandLoadSDG());
 		repo.addCommand(makeCommandSaveSDG());
 		repo.addCommand(makeCommandExportSDG());
+		repo.addCommand(makeCommandSearchDeclassifications());
+
+		repo.addCommand(makeCommandSetPruningPolicy());
 
 		// ifc commands
 
@@ -1619,11 +1630,6 @@ public class IFCConsole {
 				return false;
 			}
 		}
-		if (map.containsKey("kind")) {
-			if (!parseKind((ConstantElementValue)map.get("kind"), Optional.ofNullable((ConstantElementValue)map.getOrDefault("file", null)))) {
-				return false;
-			}
-		}
 		if (map.containsKey("pointsToPrecision")) {
 			setPointsTo(((edu.kit.joana.ui.annotations.PointsToPrecision)((ConstantElementValue)map.get("pointsToPrecision")).val).name());
 		}
@@ -1644,6 +1650,16 @@ public class IFCConsole {
 		} else {
 			recomputeSDG |= onlyDirectFlow;
 			onlyDirectFlow = false;
+		}
+		if (map.containsKey("pruningPolicy")){
+			if (!setPruningPolicy(((AnnotationsReader.EnumElementValue)map.get("pruningPolicy")).enumVal)){
+				return false;
+			}
+		}
+		if (map.containsKey("kind")) {
+			if (!parseKind((ConstantElementValue)map.get("kind"), Optional.ofNullable((ConstantElementValue)map.getOrDefault("file", null)))) {
+				return false;
+			}
 		}
 		return true;
 	}
@@ -1667,6 +1683,7 @@ public class IFCConsole {
 		case SEQUENTIAL:
 			setMHPType(MHPType.NONE.name());
 			setComputeInterferences(false);
+			break;
 		case FROMFILE:
 			if (!file.isPresent()) {
 				out.error("Must provide file path when using " + EntryPointKind.FROMFILE);
@@ -1695,6 +1712,8 @@ public class IFCConsole {
 				out.error(e.getMessage());
 				return false;
 			}
+			final IClassHierarchy cha = pair.snd.cha;
+			p.fillWithAnnotations(cha, cha);
 		}
 		return true;
 	}
@@ -2739,6 +2758,18 @@ public class IFCConsole {
 			return null;
 		} else {
 			return ifcAnalysis.getProgram();
+		}
+	}
+
+	public boolean setPruningPolicy(String policy){
+		try {
+			PruningPolicy newPolicy = PruningPolicy.valueOf(policy.toUpperCase());
+			recomputeSDG |= newPolicy != pruningPolicy;
+			pruningPolicy = newPolicy;
+			return true;
+		} catch (IllegalArgumentException ex){
+			out.error("No such pruning policy " + policy);
+			return false;
 		}
 	}
 }

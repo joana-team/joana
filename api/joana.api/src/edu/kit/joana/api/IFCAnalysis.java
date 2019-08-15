@@ -1230,10 +1230,17 @@ public class IFCAnalysis {
 	}
 	
 	public void addSinkClasses(String[] sinkClasses){
+		if (sinkClasses.length == 0){
+			return;
+		}
 		IClassHierarchy ch = program.getClassHierarchy();
 		for (SDGMethod method : program.getAllMethods()){
 			JavaMethodSignature sig = method.getSignature();
-			IClass declaring = ch.lookupClass(TypeReference.find(ClassLoaderReference.Application, sig.getDeclaringType().toBCString().replace(";", "")));
+			TypeReference ref = TypeReference.find(ClassLoaderReference.Application, sig.getDeclaringType().toBCString().replace(";", ""));
+			if (ref == null){
+				continue;
+			}
+			IClass declaring = ch.lookupClass(ref);
 			for (String sinkClass : sinkClasses){
 				IClass sink = ch.lookupClass(TypeReference.find(ClassLoaderReference.Application, sinkClass));
 				if (declaring != null && (ch.isSubclassOf(declaring, sink) || ch.implementsInterface(declaring, sink))){

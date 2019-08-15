@@ -5,3 +5,5 @@ Bundle-SymbolicName: joana.ui.annotations
 Bundle-Version: 1.0.0.qualifier
 Export-Package: edu.kit.joana.ui.annotations
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Import-Package: com.ibm.wala.ipa.callgraph.pruned,
+ edu.kit.joana.wala.core

@@ -24,148 +24,158 @@ public class ProGuardPass implements Pass {
   @Override
   public void process(IFCAnalysis ana, String libClassPath, Path sourceFolder, Path targetFolder)
       throws IOException {
-    Configuration config = createConfig(ana, libClassPath, sourceFolder, targetFolder);
-    ProGuard proGuard = new ProGuard(config);
-    if (!config.verbose) {
+    if (!Logger.getGlobal().isLoggable(Level.FINEST)) {
       PrintStream out = System.out;
       System.setOut(new NullPrintStream());
-      proGuard.execute();
+      execute(ana, libClassPath, sourceFolder, targetFolder);
       System.setOut(out);
     } else {
-      proGuard.execute();
+      execute(ana, libClassPath, sourceFolder, targetFolder);
     }
   }
 
-  Configuration createConfig(IFCAnalysis ana, String libClassPath, Path sourceFolder, Path targetFolder){
-    Configuration configuration = new Configuration();
-    ClassPath sfCP = new ClassPath();
-    sfCP.add(new ClassPathEntry(sourceFolder.toFile(), false));
-    sfCP.add(new ClassPathEntry(targetFolder.toFile(), true));
-    configuration.programJars = sfCP;
+  private void execute(IFCAnalysis ana, String libClassPath, Path sourceFolder, Path targetFolder){
     String fullLibClassPath = System.getProperty("java.class.path");
     if (libClassPath.length() > 0) {
       fullLibClassPath += ":" + libClassPath;
     }
-    ClassPath libCP = new ClassPath();
-    Arrays.stream(fullLibClassPath.split(":")).map(c -> new ClassPathEntry(new File(c), false)).forEach(libCP::add);
-    configuration.libraryJars = libCP;
-    configuration.keepDirectories = Collections.singletonList("..");
-    configuration.keep = createKeepMemberSpecifications(ana);
-    configuration.obfuscate = false;
-    configuration.verbose = Logger.getGlobal().isLoggable(Level.FINEST);
-    configuration.warn = Collections.singletonList("**");
-    configuration.ignoreWarnings = true;
-    configuration.skipNonPublicLibraryClasses = true;
-    configuration.skipNonPublicLibraryClassMembers = true;
-    configuration.optimize = true;
-    configuration.note = Collections.singletonList("**");
-    return configuration;
-  }
-
-  private List<KeepClassSpecification> createKeepMemberSpecifications(IFCAnalysis ana){
-    if (keepAllMembers(ana)){
-      return Collections.singletonList(new KeepClassSpecification(true, false, true, true, false, true, false, null, new ClassSpecification(null, 0, 0, null, "**", null, null)));
+    List<String> args = new ArrayList<>(Arrays.asList(
+        "-injars", sourceFolder.toString(), "-libraryjars", fullLibClassPath,
+        "-dontwarn", "-dontshrink", "-dontnote", "-ignorewarnings",
+        "-keep", "class Basic { void bla(int); }", "-keep", "class Basic { void blub(int); }",
+        "-dontobfuscate", "-outjars", targetFolder.toString(),
+        "-dontwarn", "**", "-skipnonpubliclibraryclasses"
+    ));
+    if (ana.getProgram().hasDefinedEntryMethod()){
+      partsToSpec(partsToKeep(ana)).stream().forEach(p -> {
+        args.add("-keep");
+        args.add(p);
+      });
+    } else {
+      args.add("-dontoptimize");
     }
-    return partsToSpec(partsToKeep(ana));
+    execute(args.toArray(new String[0]));
   }
 
-  private List<KeepClassSpecification> partsToSpec(List<SDGProgramPart> parts){
+  private void execute(String[] args){
+    // Source: proguard.ProGuard
 
-    Map<String, KeepClassSpecification> classSpecs = new HashMap<>();
+    // Create the default options.
+    Configuration configuration = new Configuration();
 
-    SDGProgramPartVisitor<Object, Object> visitor = new SDGProgramPartVisitor<Object, Object>() {
+    try
+    {
+      // Parse the options specified in the command line arguments.
+      ConfigurationParser parser = new ConfigurationParser(args,
+          System.getProperties());
+      try
+      {
+        parser.parse(configuration);
+      }
+      finally
+      {
+        parser.close();
+      }
+
+      // Execute ProGuard with these options.
+      new ProGuard(configuration).execute();
+    }
+    catch (Exception ex)
+    {
+      if (configuration.verbose)
+      {
+        // Print a verbose stack trace.
+        ex.printStackTrace();
+      }
+      else
+      {
+        // Print just the stack trace message.
+        System.err.println("Error: "+ex.getMessage());
+      }
+    }
+  }
+
+  private List<String> partsToSpec(List<SDGProgramPart> parts){
+
+    SDGProgramPartVisitor<String, Object> visitor = new SDGProgramPartVisitor<String, Object>() {
 
       @Override
-      protected Object visitClass(SDGClass cl, Object data) {
-        addForJavaType(cl.getTypeName());
-          return null;
+      protected String visitClass(SDGClass cl, Object data) {
+          return forJavaType(cl.getTypeName(), "");
       }
       
-      KeepClassSpecification addForJavaType(JavaType type){
-        return classSpecs.computeIfAbsent(type.toHRString(),
-            k -> new KeepClassSpecification(true, false, true, true, false, false, false, null, new ClassSpecification(null, 0, 0, null, type.toHRString().replace(".", "/"), null, null)));
+      String forJavaType(JavaType type, String inner){
+        return String.format("class %s { %s }", type.toHRString(), inner);
       }
 
       @Override
-      protected Object visitAttribute(SDGAttribute a, Object data) {
-        addForJavaType(a.getDeclaringType()).addField(new MemberSpecification(0, 0, null, a.getName(), null));
-        return null;
+      protected String visitAttribute(SDGAttribute a, Object data) {
+        return forJavaType(a.getDeclaringType(), String.format("%s %s;", a.getDeclaringType().toHRString(), a.getName()));
       }
 
       @Override
-      protected Object visitMethod(SDGMethod m, Object data) {
-        KeepClassSpecification cs = addForJavaType(m.getSignature().getDeclaringType());
-        cs.addMethod(new MemberSpecification(0, 0, null, m.getSignature().getMethodName(), m.getSignature().getSelector().substring(m.getSignature().getMethodName().length())));
-        return null;
+      protected String visitMethod(SDGMethod m, Object data) {
+        return forJavaType(m.getSignature().getDeclaringType(), String.format("%s %s(%s);",
+            m.getSignature().getReturnType().toHRString(),
+            m.getSignature().getMethodName(), m.getSignature().getArgumentTypes().stream().map(JavaType::toHRString).collect(Collectors.joining(","))));
       }
 
       @Override
-      protected Object visitActualParameter(SDGActualParameter ap, Object data) {
-        visitMethod(ap.getOwningMethod(), null);
-        return null;
+      protected String visitActualParameter(SDGActualParameter ap, Object data) {
+        return visitMethod(ap.getOwningMethod(), null);
       }
 
       @Override
-      protected Object visitParameter(SDGFormalParameter p, Object data) {
-        visitMethod(p.getOwningMethod(), null);
-        return null;
+      protected String visitParameter(SDGFormalParameter p, Object data) {
+        return visitMethod(p.getOwningMethod(), null);
       }
 
       @Override
-      protected Object visitExit(SDGMethodExitNode e, Object data) {
-        visitMethod(e.getOwningMethod(), null);
-        return null;
+      protected String visitExit(SDGMethodExitNode e, Object data) {
+        return visitMethod(e.getOwningMethod(), null);
       }
 
       @Override
-      protected Object visitException(SDGMethodExceptionNode e, Object data) {
-        visitMethod(e.getOwningMethod(), null);
-        return null;
-      }
-
-      @Override protected Object visitInstruction(SDGInstruction i, Object data) {
-        visitMethod(i.getOwningMethod(), null);
-        return null;
+      protected String visitException(SDGMethodExceptionNode e, Object data) {
+        return visitMethod(e.getOwningMethod(), null);
       }
 
       @Override
-      protected Object visitCall(SDGCall c, Object data) {
-        visitMethod(c.getOwningMethod(), null);
-        return null;
+      protected String visitInstruction(SDGInstruction i, Object data) {
+        return visitMethod(i.getOwningMethod(), null);
       }
 
       @Override
-      protected Object visitCallReturnNode(SDGCallReturnNode c, Object data) {
-        visitMethod(c.getOwningMethod(), null);
-        return null;
+      protected String visitCall(SDGCall c, Object data) {
+        return visitMethod(c.getOwningMethod(), null);
       }
 
       @Override
-      protected Object visitCallExceptionNode(SDGCallExceptionNode c, Object data) {
-        visitMethod(c.getOwningMethod(), null);
-        return null;
+      protected String visitCallReturnNode(SDGCallReturnNode c, Object data) {
+        return visitMethod(c.getOwningMethod(), null);
       }
 
       @Override
-      protected Object visitPhi(SDGPhi phi, Object data) {
-        visitMethod(phi.getOwningMethod(), null);
-        return null;
+      protected String visitCallExceptionNode(SDGCallExceptionNode c, Object data) {
+        return visitMethod(c.getOwningMethod(), null);
       }
 
       @Override
-      protected Object visitFieldOfParameter(SDGFieldOfParameter fop, Object data) {
-        visitMethod(fop.getOwningMethod(), null);
-        return null;
+      protected String visitPhi(SDGPhi phi, Object data) {
+        return visitMethod(phi.getOwningMethod(), null);
       }
 
       @Override
-      protected Object visitLocalVariable(SDGLocalVariable local, Object data) {
-        visitMethod(local.getOwningMethod(), null);
-        return null;
+      protected String visitFieldOfParameter(SDGFieldOfParameter fop, Object data) {
+        return visitMethod(fop.getOwningMethod(), null);
+      }
+
+      @Override
+      protected String visitLocalVariable(SDGLocalVariable local, Object data) {
+        return visitMethod(local.getOwningMethod(), null);
       }
     };
-    parts.forEach(p -> p.acceptVisitor(visitor, null));
-    return new ArrayList<>(classSpecs.values());
+    return parts.stream().map(p -> p.acceptVisitor(visitor, null)).collect(Collectors.toList());
   }
 
   boolean keepAllMembers(IFCAnalysis ana){
@@ -182,9 +192,11 @@ public class ProGuardPass implements Pass {
   }
 
   public static void main(String[] args) throws IOException, ParseException {
-    Configuration conf = new Configuration();
-    new ConfigurationParser("-keep class Basic {\n" + " public void bla(int);\n" + "}", "", new File("."), System.getProperties()).parse(conf);
-    System.out.println(conf.keep);
+    ProGuard.main(new String[]{
+        "-injars", "/tmp/dir/Basic.class", "-libraryjars", "/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/rt.jar",
+        "-dontwarn", "-dontshrink", "-keep", "class Basic { void bla(int); }", "-keep", "class Basic { void blub(int); }", "-dontobfuscate", "-outjars",
+        "/tmp/dir/bla"
+    });
   }
 
   @Override public boolean requiresKnowledgeOnAnnotations() {

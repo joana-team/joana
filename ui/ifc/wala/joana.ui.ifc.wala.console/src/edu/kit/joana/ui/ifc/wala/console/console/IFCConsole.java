@@ -423,6 +423,7 @@ public class IFCConsole {
 	private boolean useByteCodeOptimizations = false;
 	private String optLibPath = "";
 	private SetValueStore setValueStore = new SetValueStore();
+	private String classPathAfterOpt = null;
 
 	public IFCConsole(BufferedReader in, IFCConsoleOutput out) {
 		this.in = in;
@@ -2486,6 +2487,7 @@ public class IFCConsole {
 		try {
 			if (setValueStore.getClassAnnotations().size() > 0){
 				classPath = new PreProcPasses(createSetValuePass()).process(null, "", classPath);
+				classPathAfterOpt = classPath;
 			}
 			SDGConfig config = new SDGConfig(classPath, loc.getActiveEntry().toBCString(), stubsPath);
 			config.setComputeInterferences(computeInterference);
@@ -2654,7 +2656,9 @@ public class IFCConsole {
 	public Collection<? extends IViolation<SecurityNode>> doIFCAndOpt(IFCType ifcType) throws IOException {
 		if (useByteCodeOptimizations) {
 			PreProcPasses passes = createOptPasses();
-			passes.processAndUpdateSDG(ifcAnalysis, optLibPath, classPath, cp -> {
+			passes.processAndUpdateSDG(ifcAnalysis, optLibPath,
+					classPathAfterOpt == null ? classPath : classPathAfterOpt,
+					cp -> {
 				return createSDG(cp, computeInterference, mhpType, excAnalysis).get();
 			});
 			recomputeSDG = true;
@@ -2666,7 +2670,8 @@ public class IFCConsole {
 		public Optional<String> optimizeClassPath(String libPath){
 			PreProcPasses passes = createOptPasses();
 			try {
-				return Optional.of(passes.process(ifcAnalysis, optLibPath, classPath));
+				return Optional.of(passes.process(ifcAnalysis, optLibPath,
+						classPathAfterOpt == null ? classPath : classPathAfterOpt));
 			} catch (IOException e) {
 				e.printStackTrace();
 				out.error(e.getMessage());

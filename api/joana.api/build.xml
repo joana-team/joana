@@ -61,6 +61,7 @@
 	<target name="compile" depends="init,collect_wala_sources,collect_sources">
 		<path id="lib.path.ref">
 			<fileset dir="${joana.contrib.base.dir}" includes="*.jar" />
+			<fileset dir="${joana.base.dir}/contrib/parameter-setter/build/libs" includes="parameter_setter-all-1.0-SNAPSHOT.jar" />
 			<fileset dir="${joana.base.dir}/contrib/wala/com.ibm.wala.cast/lib" includes="*.jar" />
 			<pathelement path="${dest.dir.classes}" />
 		</path>
@@ -85,6 +86,9 @@
 			</fileset>
 			<fileset dir="${joana.base.dir}/contrib/wala/com.ibm.wala.cast/lib">
 				<filename name="*.jar" />
+			</fileset>
+			<fileset dir="${joana.base.dir}/contrib/parameter-setter/build/libs">
+				<filename name="parameter_setter-all-1.0-SNAPSHOT.jar" />
 			</fileset>
 		</unjar>
 	</target>

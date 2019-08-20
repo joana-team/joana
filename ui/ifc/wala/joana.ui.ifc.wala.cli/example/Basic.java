@@ -6,16 +6,12 @@ public class Basic {
 		new Basic().blub(4);
 	}
 	
-	@EntryPoint(tag="blub")
-    @EntryPoint(tag="bla", pruningPolicy=PruningPolicy.DO_NOT_PRUNE)
-    @Source(tags="bla")
+	@EntryPoint(tag="bla", pruningPolicy=PruningPolicy.DO_NOT_PRUNE)
 	@Source(tags="bla")
-	@Declassification(tags="bla")
-	public void bla() {
-		blub(3);
+	public void bla(@SetValue(value="3",tags="bla") int bla) {
+		blub(bla);
 	}
-     
-    @Sink(tags="bla")
+
     public void blub(@Sink int a) {
     	
     }

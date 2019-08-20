@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -33,12 +34,18 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import javax.management.RuntimeErrorException;
 import javax.xml.stream.XMLStreamException;
 
 import com.ibm.wala.shrikeCT.AnnotationsReader;
+import edu.kit.joana.api.sdg.opt.FilePass;
+import edu.kit.joana.api.sdg.opt.PreProcPasses;
+import edu.kit.joana.api.sdg.opt.ProGuardPass;
+import edu.kit.joana.api.sdg.opt.SetValuePass;
+import edu.kit.joana.setter.SearchVisitor;
+import edu.kit.joana.setter.SetValueStore;
+import edu.kit.joana.setter.Tool;
+import edu.kit.joana.setter.ValueToSet;
 import edu.kit.joana.ui.annotations.*;
-import org.omg.CORBA.REBIND;
 
 import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlCollectionDump;
@@ -63,25 +70,13 @@ import edu.kit.joana.api.IFCType;
 import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.lattice.BuiltinLattices;
-import edu.kit.joana.api.sdg.SDGActualParameter;
-import edu.kit.joana.api.sdg.SDGAttribute;
 import edu.kit.joana.api.sdg.SDGBuildPreparation;
-import edu.kit.joana.api.sdg.SDGCall;
-import edu.kit.joana.api.sdg.SDGCallExceptionNode;
-import edu.kit.joana.api.sdg.SDGCallReturnNode;
 import edu.kit.joana.api.sdg.SDGClass;
 import edu.kit.joana.api.sdg.SDGConfig;
-import edu.kit.joana.api.sdg.SDGFieldOfParameter;
 import edu.kit.joana.api.sdg.SDGFormalParameter;
-import edu.kit.joana.api.sdg.SDGInstruction;
-import edu.kit.joana.api.sdg.SDGLocalVariable;
 import edu.kit.joana.api.sdg.SDGMethod;
-import edu.kit.joana.api.sdg.SDGMethodExceptionNode;
-import edu.kit.joana.api.sdg.SDGMethodExitNode;
-import edu.kit.joana.api.sdg.SDGPhi;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.SDGProgramPart;
-import edu.kit.joana.api.sdg.SDGProgramPartVisitor;
 import edu.kit.joana.api.sdg.SDGProgramPartWriter;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.SecurityNode.SecurityNodeFactory;
@@ -233,13 +228,24 @@ public class IFCConsole {
 							"Shows all classes contained in the current sdg"),
 		SHOWBCI(		"showBCI", 				0, 		"",
 							"Shows all bc indices seen so far."),
+	  USE_BYTE_CODE_OPTIMIZATION("useByteCodeOptimization", 0, 1,
+				"<false or lib class path>",
+				"If the arguments is not 'false': Use byte code optimizations and parse @SetValue annotations"),
+	  OPTIMIZE_CLASSPATH("optimizeClassPath", 0, 1, "<lib class path>",
+				"Optimize the byte code in the class path and return the new class path"),
 		VERIFY_ANNOT(	"verifyAnnotations", 	0, 		"",
 							"Verifies that the recorded annotations are mapped consistently to the sdg and vice versa."),
         CHOP(			"chop", 				2, 		"<source> <sink>",
         					"Generates a chop between two program points"),
 	  SET_PRUNING_POLICY("setPruningPolicy", 1, 1, "<policy>",
 				String.format("Sets the pruning policy: %s", Arrays.stream(PruningPolicy.values())
-						.map(v -> String.format("%s (%s)", v.name(), v.description)).collect(Collectors.joining(", "))));
+						.map(v -> String.format("%s (%s)", v.name(), v.description)).collect(Collectors.joining(", ")))),
+		SET_VALUE("setValue", 2, "<part> <value>", "Set the value of a parameter, method return or field, "
+				+ ", program part syntax: field=[class name].[field name], method=[class name].[method name]([param classes, comma separated]), "
+				+ "method parameter=[method]->[param number, starting at 0 omitting the type of 'this']"),
+		SELECT_SET_VALUES("selectSetValues", 0, 1, "[tag, default is \"\"]",
+				"Select all @SetValue annotations with the passed tag"),
+		SHOW_SET_VALUES("showSetValues", 0, "", "Show parameters, method returns and fields that are set");
 
 		private final String name;
 		private final int minArity;
@@ -414,6 +420,9 @@ public class IFCConsole {
 	protected IFCType type = IFCType.CLASSICAL_NI;
 	protected boolean isTimeSensitive = false;
 	private PruningPolicy pruningPolicy = PruningPolicy.APPLICATION;
+	private boolean useByteCodeOptimizations = false;
+	private String optLibPath = "";
+	private SetValueStore setValueStore = new SetValueStore();
 
 	public IFCConsole(BufferedReader in, IFCConsoleOutput out) {
 		this.in = in;
@@ -495,7 +504,8 @@ public class IFCConsole {
 			
 			@Override
 			boolean execute(String[] args) {
-				return selectEntryPoint(args[1]) 
+				return makeCommandSelectSetValues().execute(args)
+				    && selectEntryPoint(args[1])
 						&& makeCommandBuildSDGIfNeeded().execute(new String[] {"bla"}) 
 						&& makeCommandSelectSources().execute(args) 
 						&& makeCommandSelectSinks().execute(args)
@@ -599,7 +609,29 @@ public class IFCConsole {
 
 		};
 	}
-	
+
+	private Command makeCommandUseByteCodeOptimization(){
+		return new Command(CMD.USE_BYTE_CODE_OPTIMIZATION) {
+			@Override boolean execute(String[] args) {
+				String arg = args.length == 2 ? args[1] : "";
+				useByteCodeOptimizations = !arg.equals("false");
+				optLibPath = arg;
+				return true;
+			}
+		};
+	}
+
+	private Command makeCommandOptimizeClassPath(){
+		return new Command(CMD.OPTIMIZE_CLASSPATH) {
+			@Override boolean execute(String[] args) {
+				return optimizeClassPath(args.length == 1 ? args[0] : "").map(s -> {
+					out.logln(s);
+					return true;
+				}).orElse(false);
+			}
+		};
+	}
+
 	private Command makeCommandSetPointsTo() {
 		return new Command(CMD.SET_POINTSTO) {
 
@@ -815,6 +847,7 @@ public class IFCConsole {
 					return true;
 				}
 				ifcAnalysis.clearAllAnnotations();
+				recomputeSDG |= setValueStore.clear();
 				return true;
 			}
 		};
@@ -1180,6 +1213,31 @@ public class IFCConsole {
 		}
 	}
 
+	Command makeCommandSetValue(){
+		return new Command(CMD.SET_VALUE) {
+			@Override boolean execute(String[] args) {
+				return setValueOfProgramPart(args[1], args[2]);
+			}
+		};
+	}
+
+	Command makeCommandSelectSetValues(){
+		return new Command(CMD.SELECT_SET_VALUES) {
+			@Override boolean execute(String[] args) {
+				return selectSetValues(args.length == 2 ? args[1] : "");
+			}
+		};
+	}
+
+	Command makeCommandShowSetValues(){
+		return new Command(CMD.SHOW_SET_VALUES) {
+			@Override boolean execute(String[] args) {
+				showSetValues();
+				return true;
+			}
+		};
+	}
+
 	private void initialize() {
 
 		// setLattice("public<=secret");
@@ -1214,6 +1272,9 @@ public class IFCConsole {
 		repo.addCommand(makeCommandSaveSDG());
 		repo.addCommand(makeCommandExportSDG());
 		repo.addCommand(makeCommandSearchDeclassifications());
+
+		repo.addCommand(makeCommandUseByteCodeOptimization());
+		repo.addCommand(makeCommandOptimizeClassPath());
 
 		repo.addCommand(makeCommandSetPruningPolicy());
 
@@ -1449,6 +1510,7 @@ public class IFCConsole {
 		Pair<IMethod, Annotation> p = result.get().get(0);
 		if (ifcAnalysis != null) {
 			ifcAnalysis.clearAllAnnotations();
+			recomputeSDG |= setValueStore.clear();
 		}
 		return selectEntryPoint(JavaMethodSignature.fromString(p.getFirst().getSignature()), p.getSecond());
 	}
@@ -1493,7 +1555,7 @@ public class IFCConsole {
 			tag = (String)((ConstantElementValue)annotation.getNamedArguments().get("tag")).val;
 		}
 		Pattern pattern = new Pattern(tag, false, PatternType.SIGNATURE, PatternType.ID);
-		if (!buildSDGIfNeeded() || !selectSources(pattern) || !selectSinks(pattern)) {
+		if (!selectSetValues(tag) || !buildSDGIfNeeded() || !selectSources(pattern) || !selectSinks(pattern)) {
 			return Optional.empty();
 		}
 		return runAnalysisYAML();
@@ -1528,8 +1590,11 @@ public class IFCConsole {
 		YamlMappingBuilder mapBuilder = Yaml.createYamlMappingBuilder();
 		ifcAnalysis.setTimesensitivity(isTimeSensitive);
 		out.logln("Performing IFC - Analysis type: " + type);
-		Collection<? extends IViolation<SecurityNode>> vios = ifcAnalysis.doIFC(type);
-
+		Optional<Collection<? extends IViolation<SecurityNode>>> viosOpt = doIFCAndOptAndCatch(type);
+		if (!viosOpt.isPresent()){
+			return Optional.empty();
+		}
+		Collection<? extends IViolation<SecurityNode>> vios = viosOpt.get();
 		lastAnalysisResult.clear();
 		lastAnalysisResult.addAll(vios);
 
@@ -2403,36 +2468,53 @@ public class IFCConsole {
 			out.error("No entry method selected. Select entry method first!");
 			return false;
 		}
+		Optional<SDGProgram> sdg = createSDG(classPath, computeInterference, mhpType, exA);
+		if (sdg.isPresent()){
+			setSDGProgram(sdg.get());
+			recomputeSDG = false;
+			return true;
+		}
+		recomputeSDG = true;
+		return false;
+	}
 
-		SDGProgram program;
+	SetValuePass createSetValuePass(){
+		return new SetValuePass(new Tool(setValueStore, SetValue.class));
+	}
+
+	private Optional<SDGProgram> createSDG(String classPath, boolean computeInterference, MHPType mhpType, ExceptionAnalysis exA){
 		try {
+			if (setValueStore.getClassAnnotations().size() > 0){
+				classPath = new PreProcPasses(createSetValuePass()).process(null, "", classPath);
+			}
 			SDGConfig config = new SDGConfig(classPath, loc.getActiveEntry().toBCString(), stubsPath);
 			config.setComputeInterferences(computeInterference);
 			config.setMhpType(mhpType);
 			config.setExceptionAnalysis(exA);
 			config.setPointsToPrecision(pointsTo);
 			config.setFieldPropagation(FieldPropagation.OBJ_GRAPH_SIMPLE_PROPAGATION);
-			program = SDGProgram.createSDGProgram(config, out.getPrintStream(), monitor);
+			SDGProgram program = SDGProgram.createSDGProgram(config, out.getPrintStream(), monitor);
 			if (onlyDirectFlow) {
 				SDGProgram.throwAwayControlDeps(program.getSDG());
 			}
+			return Optional.of(program);
 		} catch (ClassHierarchyException e) {
 			out.error(e.getMessage());
-			return false;
+			return Optional.empty();
 		} catch (IOException e) {
 			out.error("\nI/O problem during sdg creation: " + e.getMessage());
-			return false;
+			return Optional.empty();
 		} catch (CancelException e) {
 			out.error("\nSDG creation cancelled.");
-			return false;
+			return Optional.empty();
 		} catch (UnsoundGraphException e) {
 			out.error("\nResulting SDG is not sound: " + e.getMessage());
-			return false;
+			return Optional.empty();
 		}
+	}
 
-		setSDGProgram(program);
-		recomputeSDG = false;
-		return true;
+	PreProcPasses createOptPasses(){
+		return new PreProcPasses(new ProGuardPass());
 	}
 
 	public synchronized boolean saveSDG(String path) {
@@ -2504,6 +2586,7 @@ public class IFCConsole {
 
 	public void reset() {
 		ifcAnalysis.clearAllAnnotations();
+		recomputeSDG |= setValueStore.clear();
 		methodSelector.reset();
 	}
 
@@ -2522,7 +2605,11 @@ public class IFCConsole {
 		} else {
 			ifcAnalysis.setTimesensitivity(timeSens);
 			out.logln("Performing IFC - Analysis type: " + ifcType);
-			Collection<? extends IViolation<SecurityNode>> vios = ifcAnalysis.doIFC(ifcType);
+			Optional<Collection<? extends IViolation<SecurityNode>>> viosOpt = doIFCAndOptAndCatch(ifcType);
+			if (!viosOpt.isPresent()){
+				return false;
+			}
+			Collection<? extends IViolation<SecurityNode>> vios = viosOpt.get();
 
 			lastAnalysisResult.clear();
 			lastAnalysisResult.addAll(vios);
@@ -2548,6 +2635,44 @@ public class IFCConsole {
 		}
 	}
 
+
+	/**
+	 * Do the chosen byte code optimizations and run the IFC analysis
+	 */
+	public Optional<Collection<? extends IViolation<SecurityNode>>> doIFCAndOptAndCatch(IFCType ifcType) {
+		try {
+			return Optional.of(doIFCAndOpt(ifcType));
+		} catch (IOException ex){
+			out.error(ex.getMessage());
+			return Optional.empty();
+		}
+	}
+
+	/**
+	 * Do the chosen byte code optimizations and run the IFC analysis
+	 */
+	public Collection<? extends IViolation<SecurityNode>> doIFCAndOpt(IFCType ifcType) throws IOException {
+		if (useByteCodeOptimizations) {
+			PreProcPasses passes = createOptPasses();
+			passes.processAndUpdateSDG(ifcAnalysis, optLibPath, classPath, cp -> {
+				return createSDG(cp, computeInterference, mhpType, excAnalysis).get();
+			});
+			recomputeSDG = true;
+		}
+		ifcAnalysis.setTimesensitivity(isTimeSensitive);
+		return ifcAnalysis.doIFC(ifcType);
+	}
+
+		public Optional<String> optimizeClassPath(String libPath){
+			PreProcPasses passes = createOptPasses();
+			try {
+				return Optional.of(passes.process(ifcAnalysis, optLibPath, classPath));
+			} catch (IOException e) {
+				e.printStackTrace();
+				out.error(e.getMessage());
+				return Optional.empty();
+			}
+		}
 
     public Set<edu.kit.joana.api.sdg.SDGInstruction> getLastComputedChop() {
         return this.lastComputedChop;
@@ -2771,5 +2896,138 @@ public class IFCConsole {
 			out.error("No such pruning policy " + policy);
 			return false;
 		}
+	}
+
+	boolean selectSetValues(String tag){
+		Tool tool = new Tool(setValueStore, SetValue.class);
+		try {
+			new PreProcPasses(new FilePass() {
+				@Override public void setup(String libClassPath) {
+
+				}
+
+				@Override public void collect(Path file) throws IOException {
+					tool.searchAnnotations(file, tag, new SearchVisitor.Matcher(){});
+				}
+
+				@Override public void store(Path source, Path target) throws IOException {
+
+				}
+
+				@Override public void teardown() {
+
+				}
+
+				@Override public boolean requiresKnowledgeOnAnnotations() {
+					return false;
+				}
+			}).process(null, "", classPath);
+		} catch (IOException e) {
+			out.error(e.getMessage());
+			return false;
+		}
+		return true;
+	}
+
+	void showSetValues(){
+		YamlMappingBuilder mapping = Yaml.createYamlMappingBuilder();
+		for (SetValueStore.ClassAnnotation classAnn : setValueStore.getClassAnnotations()) {
+			YamlMappingBuilder classMapping = Yaml.createYamlMappingBuilder();
+			if (classAnn.methodAnns.size() > 0) {
+				YamlMappingBuilder methodsMapping = Yaml.createYamlMappingBuilder();
+				for (Map.Entry<SetValueStore.MethodIdentifier, SetValueStore.MethodAnnotation> methodAnnEntry : classAnn.methodAnns.entrySet()) {
+					YamlMappingBuilder methodMapping = Yaml.createYamlMappingBuilder();
+					SetValueStore.MethodAnnotation methodAnn = methodAnnEntry.getValue();
+					if (methodAnn.returnAnn.isPresent()) {
+						methodMapping = methodMapping.add("return", methodAnn.returnAnn.get().value);
+					}
+					for (Map.Entry<Integer, SetValueStore.ParameterAnnotation> paramEntry : methodAnn.paramAnns.entrySet()) {
+						methodMapping = methodsMapping.add(paramEntry.getKey().toString(), paramEntry.getValue().valueToSet.value);
+					}
+					methodsMapping = methodsMapping.add(methodAnnEntry.getKey().name + methodAnnEntry.getKey().descriptor, methodMapping.build());
+				}
+				classMapping = classMapping.add("methods", methodsMapping.build());
+			}
+			if (classAnn.fieldAnns.size() > 0) {
+				YamlMappingBuilder fieldsMapping = Yaml.createYamlMappingBuilder();
+				for (Map.Entry<String, ValueToSet> fieldEntry : classAnn.fieldAnns.entrySet()) {
+					fieldsMapping = fieldsMapping.add(fieldEntry.getKey(), fieldEntry.getValue().value);
+				}
+				classMapping = classMapping.add("fields", fieldsMapping.build());
+			}
+			mapping = mapping.add(classAnn.className, classMapping.build());
+		}
+		out.logln(mapping.build().toString());
+	}
+
+	boolean setValueOfProgramPart(String programPart, String value){
+		if (programPart.contains("(")){
+			String[] parts = programPart.split("[()]");
+			String[] methodNameParts = parts[0].split("\\.");
+			String className = String.join(".", Arrays.asList(methodNameParts).subList(0, methodNameParts.length - 1));
+			String exMethodName = methodNameParts[methodNameParts.length - 1];
+			String[] args = parts[1].split(",");
+			if (programPart.contains("->")){
+				int num = Integer.parseInt(parts[2].split("->")[1]);
+				return setValue(new SearchVisitor.Matcher() {
+					@Override public Optional<String> matchMethodParameter(String fullyQualifiedClassName, String methodName,
+							List<String> parameterTypes, int parameterNumber) {
+						if (fullyQualifiedClassName.equals(className) && methodName.equals(exMethodName) && parameterTypes.equals(Arrays.asList(args))
+							&& parameterNumber == num){
+							return Optional.of(value);
+						}
+						return Optional.empty();
+					}
+				});
+			} else {
+				return setValue(new SearchVisitor.Matcher() {
+					@Override public Optional<String> matchMethodReturn(String fullyQualifiedClassName, String methodName,
+							List<String> parameterTypes) {
+						if (fullyQualifiedClassName.equals(className) && methodName.equals(exMethodName) && parameterTypes.equals(Arrays.asList(args))){
+							return Optional.of(value);
+						}
+						return Optional.empty();
+					}
+				});
+			}
+		} else {
+			String[] parts = programPart.split(".");
+			String className = String.join("\\.", Arrays.asList(parts).subList(0, parts.length - 1));
+			String exFieldName = parts[parts.length - 1];
+			return setValue(new SearchVisitor.Matcher() {
+				@Override public Optional<String> matchField(String fullyQualifiedClassName, String fieldName) {
+					return Optional.ofNullable((fullyQualifiedClassName.equals(className) && fieldName.equals(exFieldName)) ? value : null);
+				}
+			});
+		}
+	}
+
+	boolean setValue(SearchVisitor.Matcher matcher){
+		Tool tool = new Tool(setValueStore, SetValue.class);
+		try {
+			new PreProcPasses(new FilePass() {
+				@Override public void setup(String libClassPath) {
+
+				}
+
+				@Override public void collect(Path file) throws IOException {
+					tool.searchAnnotations(file, null, matcher);
+				}
+
+				@Override public void store(Path source, Path target) throws IOException {
+				}
+
+				@Override public void teardown() {
+				}
+
+				@Override public boolean requiresKnowledgeOnAnnotations() {
+					return false;
+				}
+			}).process(null, "", classPath);
+		} catch (IOException e) {
+			out.error(e.getMessage());
+			return false;
+		}
+		return true;
 	}
 }

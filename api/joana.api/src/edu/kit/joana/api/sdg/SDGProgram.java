@@ -11,17 +11,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.ibm.wala.classLoader.IClass;
@@ -181,16 +171,26 @@ public class SDGProgram {
 	private final Map<SDGProgramPart, Collection<Pair<Annotation,String>>> annotations = new LinkedHashMap<>();
 	private final AnnotationTypeBasedNodeCollector coll;
 	private IClassHierarchy ch;
+	private final Optional<String> entryMethod;
 
 	private static Logger debug = Log.getLogger(Log.L_API_DEBUG);
-	
+
+	public SDGProgram(SDG sdg, MHPAnalysis mhpAnalysis, String entryMethod) {
+		this(sdg, mhpAnalysis, Optional.of(entryMethod));
+	}
+
 	public SDGProgram(SDG sdg, MHPAnalysis mhpAnalysis) {
+		this(sdg, mhpAnalysis, Optional.empty());
+	}
+
+	public SDGProgram(SDG sdg, MHPAnalysis mhpAnalysis, Optional<String> entryMethod) {
 		this.sdg = sdg;
 		this.mhpAnalysis = mhpAnalysis;
 		this.ppartParser = new SDGProgramPartParserBC(this);
 		this.classComp = new SDGClassComputation(sdg);
 		this.coll = new AnnotationTypeBasedNodeCollector(sdg, this.classComp);
 		this.coll.init(this);
+		this.entryMethod = entryMethod;
 	}
 
 	public AnnotationTypeBasedNodeCollector getNodeCollector() {
@@ -290,7 +290,7 @@ public class SDGProgram {
 			SDGSerializer.toPDGFormat(sdg, sdgFileOut);
 			sdgFileOut.flush();
 		}
-		final SDGProgram ret = new SDGProgram(sdg, mhpAnalysis);
+		final SDGProgram ret = new SDGProgram(sdg, mhpAnalysis, config.getEntryMethod());
 		ret.setClassHierarchy(buildArtifacts.getClassHierarchy());
 		if (config.isSkipSDGProgramPart()) {
 			return ret;
@@ -1010,6 +1010,13 @@ public class SDGProgram {
 
 	}
 
+	public boolean hasDefinedEntryMethod(){
+		return entryMethod.isPresent();
+	}
+
+	public String getEntryMethod(){
+		return entryMethod.get();
+	}
 }
 
 class SDGClassResolver {

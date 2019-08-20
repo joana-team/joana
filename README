@@ -54,13 +54,9 @@ unauthorized user of the system
 git submodule init
 git submodule update
 
-2. Setup WALA
+2. Setup WALA and other dependencies
 
-- Build WALA
-
-  cd contrib/wala
-  mvn verify -DskipTests=true -e
-  cd ../..
+./setup_deps
 
 3. Run ant
 

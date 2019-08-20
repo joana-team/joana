@@ -73,6 +73,7 @@
 			<fileset dir="${joana.contrib.base.dir}" includes="*.jar" />
 			<fileset dir="${joana.base.dir}/contrib/wala/com.ibm.wala.cast/lib" includes="*.jar" />
             <fileset dir="${com.ibm.wala.dalvik.base.dir}/lib" includes="*.jar" />
+			<fileset dir="${joana.base.dir}/contrib/parameter-setter/build/libs" includes="parameter_setter-all-1.0-SNAPSHOT.jar" />
 			<pathelement path="${dest.dir.classes}" />
 		</path>
 		<javac

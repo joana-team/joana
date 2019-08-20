@@ -1,3 +1,6 @@
 [submodule "contrib/wala"]
 	path = contrib/wala
 	url = https://github.com/joana-team/WALA.git
+[submodule "contrib/parameter-setter"]
+	path = contrib/parameter-setter
+	url = https://git.scc.kit.edu/gp1285/parameter-setter

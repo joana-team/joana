@@ -18,11 +18,11 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
+import edu.kit.joana.deprecated.jsdg.gui.create.SDGCreationObserver;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 
-import edu.kit.joana.deprecated.jsdg.gui.create.SDGCreationObserver;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.ClassifiedViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;

@@ -240,9 +240,11 @@ public class IFCConsole {
 	  SET_PRUNING_POLICY("setPruningPolicy", 1, 1, "<policy>",
 				String.format("Sets the pruning policy: %s", Arrays.stream(PruningPolicy.values())
 						.map(v -> String.format("%s (%s)", v.name(), v.description)).collect(Collectors.joining(", ")))),
-		SET_VALUE("setValue", 2, "<part> <value>", "Set the value of a parameter, method return or field, "
+		SET_VALUE("setValue", 2, 3, "<part> <value> <'field'|'value', default 'value'>", "Set the value of a parameter, method return or field, "
 				+ ", program part syntax: field=[class name].[field name], method=[class name].[method name]([param classes, comma separated]), "
-				+ "method parameter=[method]->[param number, starting at 0 omitting the type of 'this']"),
+				+ "method parameter=[method]->[param number, starting at 0 omitting the type of 'this']. If the last parameter "
+				+ "is \"field\" then the value refers to an instance field of the same class (syntax: [field name]) or a static field "
+				+ "of the same class (syntax: .#[field name]) or another class (syntax: [pkg1]/…/[pkgn]/[class name][$[inner class name]]#[field name]"),
 		SELECT_SET_VALUES("selectSetValues", 0, 1, "[tag, default is \"\"]",
 				"Select all @SetValue annotations with the passed tag"),
 		SHOW_SET_VALUES("showSetValues", 0, "", "Show parameters, method returns and fields that are set");
@@ -1217,7 +1219,8 @@ public class IFCConsole {
 	Command makeCommandSetValue(){
 		return new Command(CMD.SET_VALUE) {
 			@Override boolean execute(String[] args) {
-				return setValueOfProgramPart(args[1], args[2]);
+				return setValueOfProgramPart(args[1], args[2],
+						(args.length == 4 && args.equals("field")) ? ValueToSet.Mode.FIELD : ValueToSet.Mode.VALUE);
 			}
 		};
 	}
@@ -2484,8 +2487,12 @@ public class IFCConsole {
 	}
 
 	private Optional<SDGProgram> createSDG(String classPath, boolean computeInterference, MHPType mhpType, ExceptionAnalysis exA){
+		return createSDG(classPath, computeInterference, mhpType, exA, true);
+	}
+
+	private Optional<SDGProgram> createSDG(String classPath, boolean computeInterference, MHPType mhpType, ExceptionAnalysis exA, boolean setValues){
 		try {
-			if (setValueStore.getClassAnnotations().size() > 0){
+			if (setValueStore.getClassAnnotations().size() > 0 && setValues){
 				classPath = new PreProcPasses(createSetValuePass()).process(null, "", classPath);
 				classPathAfterOpt = classPath;
 			}
@@ -2659,7 +2666,7 @@ public class IFCConsole {
 			passes.processAndUpdateSDG(ifcAnalysis, optLibPath,
 					classPathAfterOpt == null ? classPath : classPathAfterOpt,
 					cp -> {
-				return createSDG(cp, computeInterference, mhpType, excAnalysis).get();
+				return createSDG(cp, computeInterference, mhpType, excAnalysis, false).get();
 			});
 			recomputeSDG = true;
 		}
@@ -2965,7 +2972,7 @@ public class IFCConsole {
 		out.logln(mapping.build().toString());
 	}
 
-	boolean setValueOfProgramPart(String programPart, String value){
+	boolean setValueOfProgramPart(String programPart, String value, ValueToSet.Mode mode){
 		if (programPart.contains("(")){
 			String[] parts = programPart.split("[()]");
 			String[] methodNameParts = parts[0].split("\\.");
@@ -2975,21 +2982,21 @@ public class IFCConsole {
 			if (programPart.contains("->")){
 				int num = Integer.parseInt(parts[2].split("->")[1]);
 				return setValue(new SearchVisitor.Matcher() {
-					@Override public Optional<String> matchMethodParameter(String fullyQualifiedClassName, String methodName,
+					@Override public Optional<edu.kit.joana.setter.misc.Pair<String, ValueToSet.Mode>> matchMethodParameter(String fullyQualifiedClassName, String methodName,
 							List<String> parameterTypes, int parameterNumber) {
 						if (fullyQualifiedClassName.equals(className) && methodName.equals(exMethodName) && parameterTypes.equals(Arrays.asList(args))
 							&& parameterNumber == num){
-							return Optional.of(value);
+							return Optional.of(new edu.kit.joana.setter.misc.Pair<>(value, mode));
 						}
 						return Optional.empty();
 					}
 				});
 			} else {
 				return setValue(new SearchVisitor.Matcher() {
-					@Override public Optional<String> matchMethodReturn(String fullyQualifiedClassName, String methodName,
+					@Override public Optional<edu.kit.joana.setter.misc.Pair<String, ValueToSet.Mode>> matchMethodReturn(String fullyQualifiedClassName, String methodName,
 							List<String> parameterTypes) {
 						if (fullyQualifiedClassName.equals(className) && methodName.equals(exMethodName) && parameterTypes.equals(Arrays.asList(args))){
-							return Optional.of(value);
+							return Optional.of(new edu.kit.joana.setter.misc.Pair<>(value, mode));
 						}
 						return Optional.empty();
 					}
@@ -3000,8 +3007,11 @@ public class IFCConsole {
 			String className = String.join("\\.", Arrays.asList(parts).subList(0, parts.length - 1));
 			String exFieldName = parts[parts.length - 1];
 			return setValue(new SearchVisitor.Matcher() {
-				@Override public Optional<String> matchField(String fullyQualifiedClassName, String fieldName) {
-					return Optional.ofNullable((fullyQualifiedClassName.equals(className) && fieldName.equals(exFieldName)) ? value : null);
+				@Override public Optional<edu.kit.joana.setter.misc.Pair<String, ValueToSet.Mode>> matchField(String fullyQualifiedClassName, String fieldName) {
+					if (fullyQualifiedClassName.equals(className) && fieldName.equals(exFieldName)){
+						return Optional.of(new edu.kit.joana.setter.misc.Pair<>(value, mode));
+					}
+					return Optional.empty();
 				}
 			});
 		}

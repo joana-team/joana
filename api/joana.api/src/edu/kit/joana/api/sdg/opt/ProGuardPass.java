@@ -42,7 +42,6 @@ public class ProGuardPass implements Pass {
     List<String> args = new ArrayList<>(Arrays.asList(
         "-injars", sourceFolder.toString(), "-libraryjars", fullLibClassPath,
         "-dontwarn", "-dontshrink", "-dontnote", "-ignorewarnings",
-        "-keep", "class Basic { void bla(int); }", "-keep", "class Basic { void blub(int); }",
         "-dontobfuscate", "-outjars", targetFolder.toString(),
         "-dontwarn", "**", "-skipnonpubliclibraryclasses"
     ));

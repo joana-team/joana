@@ -7,7 +7,11 @@
  */
 package edu.kit.joana.ui.ifc.wala.console.io;
 
+import edu.kit.joana.util.NullPrintStream;
+
 import java.io.PrintStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public interface IFCConsoleOutput {
 
@@ -24,4 +28,8 @@ public interface IFCConsoleOutput {
 
 
     public PrintStream getPrintStream();
+
+    public default PrintStream getDebugPrintStream(){
+        return getPrintStream();
+    }
 }

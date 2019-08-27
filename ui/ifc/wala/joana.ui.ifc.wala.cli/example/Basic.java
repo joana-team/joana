@@ -12,7 +12,7 @@ public class Basic {
 		blub(bla);
 	}
 
-    public void blub(@Sink int a) {
+    public void blub(@Sink(tags="bla") int a) {
     	
     }
 }

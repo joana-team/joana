@@ -13,15 +13,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheStats;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterators;
 import com.ibm.wala.cfg.exc.intra.MethodState;
-import com.ibm.wala.classLoader.BinaryDirectoryTreeModule;
-import com.ibm.wala.classLoader.IClass;
-import com.ibm.wala.classLoader.IMethod;
-import com.ibm.wala.classLoader.Language;
-import com.ibm.wala.classLoader.Module;
+import com.ibm.wala.classLoader.*;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisCacheImpl;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
@@ -36,6 +39,7 @@ import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.TypeReference;
+import com.ibm.wala.types.annotations.Annotation;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.collections.Pair;
@@ -45,8 +49,13 @@ import com.ibm.wala.util.config.SetOfClasses;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 import com.ibm.wala.util.strings.StringStuff;
 
+import edu.kit.joana.api.annotations.IFCAnnotation;
+import edu.kit.joana.ifc.sdg.core.IFC;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
+import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
+import edu.kit.joana.ifc.sdg.util.JavaType;
+import edu.kit.joana.ui.annotations.*;
 import edu.kit.joana.util.LogUtil;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.util.io.IOFactory;
@@ -65,9 +74,11 @@ import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
 import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
 import edu.kit.joana.wala.summary.SummaryComputationType;
+import edu.kit.joana.wala.util.PrettyWalaNames;
 import edu.kit.joana.wala.util.WALAUtils;
 import edu.kit.joana.wala.util.WriteGraphToDot;
 import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder;
+import gnu.trove.map.hash.TIntObjectHashMap;
 
 public final class SDGBuildPreparation {
 
@@ -92,15 +103,18 @@ public final class SDGBuildPreparation {
 		return ClassHierarchyFactory.make(scope);
 	}
 
-
 	public static List<String> searchMainMethods(PrintStream out, Config cfg) throws IOException, ClassHierarchyException {
+		return searchMethods(out, cfg, true, ".*");
+	}
+
+	public static List<String> searchMethods(PrintStream out, Config cfg, boolean onlyMainMethods, String regexp) throws IOException, ClassHierarchyException {
 		final List<String> result = new LinkedList<String>();
-		out.println("Searching for main methods in '" + cfg.classpath + "'...");
+		out.println("Searching for methods in '" + cfg.classpath + "'...");
 		ClassHierarchy cha = computeClassHierarchy(out, cfg);
 		for (final IClass cls : cha) {
-			if (!cls.isInterface() && !cls.isAbstract() && cls.getClassLoader().getName().equals(AnalysisScope.APPLICATION)) {
+			if (cls.getClassLoader().getName().equals(AnalysisScope.APPLICATION)) {
 				for (final IMethod m : cls.getDeclaredMethods()) {
-					if (m.isStatic() && "main([Ljava/lang/String;)V".equals(m.getSelector().toString())) {
+					if (m.getSignature().toString().matches(regexp) && (!onlyMainMethods || (m.isStatic() && "main([Ljava/lang/String;)V".equals(m.getSelector().toString())))) {
 						out.println("\tfound '" + m.getSignature() + "'");
 						result.add(m.getSignature());
 					}
@@ -112,6 +126,89 @@ public final class SDGBuildPreparation {
 
 		return result;
 	}
+
+	private static Pair<String, ClassHierarchy> lastChaAndClassPath = Pair.make("", null);
+
+	private static ClassHierarchy getCachedClassHierarchy(String classPath, PrintStream out)
+			throws IOException, ClassHierarchyException {
+		if (!lastChaAndClassPath.fst.equals(classPath) || lastChaAndClassPath.snd == null){
+			Config cfg = new Config("Search program parts <unused>", "<unused>",
+					classPath, true, FieldPropagation.FLAT);
+			lastChaAndClassPath = Pair.make(classPath, computeClassHierarchy(out, cfg));
+		}
+		return lastChaAndClassPath.snd;
+	}
+
+	/**
+	 * The resulting SDGProgramParts might contain incomplete parent objects (especially the returned SDGAttribute objects)
+	 */
+	public static List<SDGProgramPart> searchProgramParts(PrintStream out, String classPath, boolean methods, boolean fields, boolean parameters){
+		try {
+			return searchProgramParts(out, getCachedClassHierarchy(classPath, out), methods, fields, parameters);
+		} catch (ClassHierarchyException e) {
+			out.println("Error while analyzing class structure!");
+			return Collections.emptyList();
+		} catch (IOException e) {
+			out.println("I/O error while searching entry methods!");
+			return Collections.emptyList();
+		}
+	}
+
+	/**
+	 * The resulting SDGProgramParts might contain incomplete parent objects (especially the returned SDGAttribute objects)
+	 */
+	public static List<SDGProgramPart> searchProgramParts(PrintStream out, ClassHierarchy cha, boolean methods, boolean fields, boolean parameters)
+			throws IOException, ClassHierarchyException {
+		final List<SDGProgramPart> result = new ArrayList<>();
+		for (final IClass cls : cha) {
+			String classLoader = cls.getClassLoader().getName().toString();
+			if (cls.getClassLoader().getName().equals(AnalysisScope.APPLICATION)) {
+				for (final IMethod m : cls.getDeclaredMethods()) {
+					SDGMethod method = new SDGMethod(JavaMethodSignature.fromString(m.getSignature()), classLoader, m.isStatic());
+					if (methods){
+						result.add(method);
+					}
+					if (parameters){
+						for (int i = 0; i < m.getNumberOfParameters(); i++){
+							result.add(new SDGFormalParameter(method, i, "", JavaType.parseSingleTypeFromString(m.getParameterType(i).getName().toString(), JavaType.Format.BC)));
+						}
+					}
+				}
+				if (fields){
+					for (IField field : cls.getAllFields()) {
+						result.add(createSDGAttribute(cls, field));
+					}
+				}
+			}
+		}
+
+		out.println("done.");
+
+		return result;
+	}
+
+	/**
+	 * The resulting SDGProgramClass objects might contain incomplete parent objects
+	 *
+	 * @return includes classes from all class loaders
+	 */
+	public static List<SDGClass> searchClasses(PrintStream out, String classPath)
+			throws IOException, ClassHierarchyException {
+		return Arrays.asList(Iterators.toArray(Iterators.transform(getCachedClassHierarchy(classPath, out).iterator(),
+				SDGBuildPreparation::createSDGClass), SDGClass.class));
+	}
+
+	static SDGAttribute createSDGAttribute(IClass cls, IField field){
+		return new SDGAttribute(createSDGClass(cls), field.getName().toString(),
+				JavaType.parseSingleTypeFromString(field.getFieldTypeReference().toString()));
+	}
+
+	static SDGClass createSDGClass(IClass cls){
+		return new SDGClass(JavaType.parseSingleTypeFromString(cls.getName().toString()),
+				Collections.emptyList(), Collections.emptyMap(), Collections.emptySet(), new SDG(),
+				new TIntObjectHashMap<>());
+	}
+
 
 	public static void run(PrintStream out, Config cfg) throws IOException, ClassHierarchyException, UnsoundGraphException, CancelException {
 		final SDG sdg = compute(out, cfg);

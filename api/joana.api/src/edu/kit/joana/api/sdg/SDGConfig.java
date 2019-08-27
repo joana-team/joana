@@ -10,6 +10,7 @@ package edu.kit.joana.api.sdg;
 import com.ibm.wala.cfg.exc.intra.MethodState;
 import com.ibm.wala.ipa.callgraph.ContextSelector;
 import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
+import com.ibm.wala.ipa.callgraph.pruned.DoNotPrune;
 import com.ibm.wala.ipa.callgraph.pruned.PruningPolicy;
 
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
@@ -22,6 +23,7 @@ import edu.kit.joana.wala.core.SDGBuilder.DynamicDispatchHandling;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
+import edu.kit.joana.wala.core.ThreadAwareApplicationLoaderPolicy;
 import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig;
 import edu.kit.joana.wala.summary.SummaryComputationType;
 import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder;
@@ -317,7 +319,23 @@ public class SDGConfig {
 	public void setPruningPolicy(PruningPolicy policy) {
 		this.pruningPolicy = policy;
 	}
-	
+
+	static PruningPolicy convertPruningPolicy(edu.kit.joana.ui.annotations.PruningPolicy policy){
+		switch (policy) {
+		case APPLICATION:
+			return ApplicationLoaderPolicy.INSTANCE;
+		case THREAD_AWARE:
+			return ThreadAwareApplicationLoaderPolicy.INSTANCE;
+		case DO_NOT_PRUNE:
+			return DoNotPrune.INSTANCE;
+		}
+		throw new IllegalArgumentException(policy.toString());
+	}
+
+	public void setPruningPolicy(edu.kit.joana.ui.annotations.PruningPolicy policy) {
+		this.pruningPolicy = convertPruningPolicy(policy);
+	}
+
 	public PruningPolicy getPruningPolicy() {
 		return this.pruningPolicy;
 	}

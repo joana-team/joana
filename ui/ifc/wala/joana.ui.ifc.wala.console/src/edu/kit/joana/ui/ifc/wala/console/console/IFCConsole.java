@@ -19,24 +19,14 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.xml.stream.XMLStreamException;
 
 import com.ibm.wala.shrikeCT.AnnotationsReader;
+import edu.kit.joana.api.sdg.*;
 import edu.kit.joana.api.sdg.opt.FilePass;
 import edu.kit.joana.api.sdg.opt.PreProcPasses;
 import edu.kit.joana.api.sdg.opt.ProGuardPass;
@@ -70,14 +60,6 @@ import edu.kit.joana.api.IFCType;
 import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.lattice.BuiltinLattices;
-import edu.kit.joana.api.sdg.SDGBuildPreparation;
-import edu.kit.joana.api.sdg.SDGClass;
-import edu.kit.joana.api.sdg.SDGConfig;
-import edu.kit.joana.api.sdg.SDGFormalParameter;
-import edu.kit.joana.api.sdg.SDGMethod;
-import edu.kit.joana.api.sdg.SDGProgram;
-import edu.kit.joana.api.sdg.SDGProgramPart;
-import edu.kit.joana.api.sdg.SDGProgramPartWriter;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.SecurityNode.SecurityNodeFactory;
 import edu.kit.joana.ifc.sdg.core.conc.DataConflict;
@@ -116,6 +98,7 @@ import edu.kit.joana.ui.ifc.wala.console.io.MethodNotFoundException;
 import edu.kit.joana.ui.ifc.wala.console.io.NumberedIFCAnnotationDumper;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.Stubs;
+import edu.kit.joana.util.Triple;
 import edu.kit.joana.util.io.IOFactory;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder;
@@ -124,10 +107,14 @@ import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
+import picocli.CommandLine;
+
+import static edu.kit.joana.api.sdg.SDGBuildPreparation.searchProgramParts;
+import static edu.kit.joana.ui.ifc.wala.console.console.EntryLocator.getEntryPointIdAttribute;
 
 public class IFCConsole {
 
-/** @formatter:off */
+	/** @formatter:off */
 	public enum CMD {
 		// format is
 		// 		(String name, int arity, String format, String description)
@@ -138,7 +125,7 @@ public class IFCConsole {
 				"Find a command that contains the string"),
 		SEARCH_ENTRIES(	"searchEntries", 		0, 		"",
 							"Searches for possible entry methods."),
-		SEARCH_ENTRY_POINTS(	"searchEntryPoints", 		0, 		1, "[pattern]",
+		SEARCH_ENTRY_POINTS(	"searchEntryPointsOutYaml", 		0, 		1, "[pattern]",
 				"Searches for possible entry methods that are @EntryPoint annotated."),
 		SELECT_ENTRY(	"selectEntry", 			1, 		"",
 							"Selects an entry method for sdg generation."),
@@ -425,6 +412,7 @@ public class IFCConsole {
 	private boolean useByteCodeOptimizations = false;
 	private String optLibPath = "";
 	private SetValueStore setValueStore = new SetValueStore();
+	private Map<SDGProgramPart, Pair<String, ValueToSet.Mode>> valuesToSet = new HashMap<>();
 	private String classPathAfterOpt = null;
 
 	public IFCConsole(BufferedReader in, IFCConsoleOutput out) {
@@ -477,7 +465,7 @@ public class IFCConsole {
 
 			@Override
 			boolean execute(String[] args) {
-				return searchEntryPoints(args.length == 2 ? args[1] : "");
+				return searchEntryPointsOutYaml(args.length == 2 ? args[1] : "");
 			}
 		};
 	}
@@ -508,7 +496,7 @@ public class IFCConsole {
 			@Override
 			boolean execute(String[] args) {
 				return makeCommandSelectSetValues().execute(args)
-				    && selectEntryPoint(args[1])
+				    && selectEntryPoint(args[1], s -> ifcAnalysis.addSinkClasses(s.toArray(new String[0])))
 						&& makeCommandBuildSDGIfNeeded().execute(new String[] {"bla"}) 
 						&& makeCommandSelectSources().execute(args) 
 						&& makeCommandSelectSinks().execute(args)
@@ -551,7 +539,7 @@ public class IFCConsole {
 
 			@Override
 			boolean execute(String[] args) {
-				return selectEntryPoint(args[1]);
+				return selectEntryPoint(args[1], s -> ifcAnalysis.addSinkClasses(s.toArray(new String[0])));
 			}
 		};
 	}
@@ -1480,7 +1468,7 @@ public class IFCConsole {
 		return true;
 	}
 
-	public boolean searchEntryPoints(String pattern) {
+	public boolean searchEntryPointsOutYaml(String pattern) {
 		JavaMethodSignature oldSelected = loc.getActiveEntry();
 		Pattern pat = pattern.isEmpty() ?
 				new Pattern() : 
@@ -1491,24 +1479,28 @@ public class IFCConsole {
 			return false;
 		}
 		out.logln(new YamlCollectionDump(result.get().stream().map(p -> {
-			return EntryLocator.getEntryPointIdAttribute(p.getSecond()).orElse(p.getFirst().getSignature().toString());
+			return getEntryPointIdAttribute(p.getSecond()).orElse(p.getFirst().getSignature().toString());
 		}).collect(Collectors.toList())).represent().toString());
 		return true;
 	}
-	
-	public boolean selectEntryPoint(String pattern) {
+
+	public boolean selectEntryPoint(String pattern, Consumer<List<String>> classSinkConsumer, boolean printError) {
 		JavaMethodSignature oldSelected = loc.getActiveEntry();
-		Optional<List<Pair<IMethod, Annotation>>> result = 
+		Optional<List<Pair<IMethod, Annotation>>> result =
 				loc.doSearchForEntryPointAnnotated(classPath, out, new Pattern(pattern, true, PatternType.ID, PatternType.SIGNATURE));
 		if (!result.isPresent() || result.get().size() != 1) {
 			result = loc.doSearchForEntryPointAnnotated(classPath, out, new Pattern(pattern, false, PatternType.ID, PatternType.SIGNATURE));
 		}
 		if (!result.isPresent()) {
-			out.error("Entry point '" + pattern + "' not found");
+			if (printError){
+				out.error("Entry point '" + pattern + "' not found");
+			}
 			return false;
 		}
 		if (result.get().size() > 1) {
-			out.error("Entry point '" + pattern + "' is ambiguous");
+			if (printError){
+				out.error("Entry point '" + pattern + "' is ambiguous");
+			}
 			return false;
 		}
 		Pair<IMethod, Annotation> p = result.get().get(0);
@@ -1516,7 +1508,11 @@ public class IFCConsole {
 			ifcAnalysis.clearAllAnnotations();
 			recomputeSDG |= setValueStore.clear();
 		}
-		return selectEntryPoint(JavaMethodSignature.fromString(p.getFirst().getSignature()), p.getSecond());
+		return selectEntryPoint(JavaMethodSignature.fromString(p.getFirst().getSignature()), p.getSecond(), classSinkConsumer);
+	}
+	
+	public boolean selectEntryPoint(String pattern, Consumer<List<String>> classSinkConsumer) {
+		return selectEntryPoint(pattern, classSinkConsumer, true);
 	}
 	
 	public boolean useEntryPointsYAML(String outputFile, String pattern) {
@@ -1551,7 +1547,7 @@ public class IFCConsole {
 	}
 	
 	public Optional<YamlMapping> useEntryPointYaml(IMethod method, Annotation annotation){
-		if (!selectEntryPoint(JavaMethodSignature.fromString(method.getSignature()), annotation)) {
+		if (!selectEntryPoint(JavaMethodSignature.fromString(method.getSignature()), annotation, s -> ifcAnalysis.addSinkClasses(new String[0]))) {
 			return Optional.empty();
 		}
 		String tag = "";
@@ -1580,7 +1576,7 @@ public class IFCConsole {
 	public boolean runAnalysisYAML(PrintStream output){
 		Optional<YamlMapping> map = runAnalysisYAML();
 		if (map.isPresent()) {
-			output.print(map.get().toString());
+			output.println(map.get().toString());
 			return true;
 		}
 		return false;
@@ -1678,8 +1674,11 @@ public class IFCConsole {
 		return Optional.of(mapBuilder.build());
 	}
 	
-	public boolean selectEntryPoint(JavaMethodSignature sig, Annotation ann) {
+	public boolean selectEntryPoint(JavaMethodSignature sig, Annotation ann, Consumer<List<String>> classSinkConsumer) {
 		loc.selectEntry(sig);
+		if (ann == null){
+			return true;
+		}
 		Map<String, ElementValue> map = ann.getNamedArguments();
 		if (map.containsKey("levels") && map.containsKey("lattice")) {
 			if (!parseLatticeAnnotation((ArrayElementValue)map.get("levels"), (ArrayElementValue)map.get("lattice"))){
@@ -1708,7 +1707,7 @@ public class IFCConsole {
 			chopComputation = ChopComputation.ALL;
 		}
 		if (map.containsKey("classSinks")) {
-			if (!parseClassSinks((ArrayElementValue)map.get("classSinks"))) {
+			if (!parseClassSinks((ArrayElementValue)map.get("classSinks"), classSinkConsumer)) {
 				return false;
 			}
 		}
@@ -1733,11 +1732,9 @@ public class IFCConsole {
 		return true;
 	}
 	
-	private boolean parseClassSinks(ArrayElementValue val) {
-		Object[] arr = (Object[])val.vals;
-		String[] classSinks = new String[arr.length];
-		System.arraycopy(arr, 0, classSinks, 0, arr.length);
-		ifcAnalysis.addSinkClasses(classSinks);
+	private boolean parseClassSinks(ArrayElementValue val, Consumer<List<String>> classSinkConsumer) {
+		ElementValue[] arr = val.vals;
+		classSinkConsumer.accept(Arrays.stream(arr).map(c -> (String)((ConstantElementValue)c).val).collect(Collectors.toList()));
 		return true;
 	}
 	
@@ -2483,7 +2480,30 @@ public class IFCConsole {
 	}
 
 	SetValuePass createSetValuePass(){
-		return new SetValuePass(new Tool(setValueStore, SetValue.class));
+		Map<String, edu.kit.joana.setter.misc.Pair<String, ValueToSet.Mode>> vToS =
+				valuesToSet.entrySet().stream().filter(e -> ImprovedCLI.programPartToString(e.getKey()) != null).collect(
+						Collectors.toMap(e -> ImprovedCLI.programPartToString(e.getKey()),
+															e -> new edu.kit.joana.setter.misc.Pair<>(e.getValue().getFirst(), e.getValue().getSecond())));
+		return new SetValuePass(new Tool(new SetValueStore(), SetValue.class)){
+			@Override public void collect(Path file) throws IOException {
+				tool.searchAnnotations(file, null, new SearchVisitor.Matcher() {
+					@Override public Optional<edu.kit.joana.setter.misc.Pair<String, ValueToSet.Mode>> matchField(
+							String fullyQualifiedClassName, String fieldName) {
+						return Optional.ofNullable(vToS.getOrDefault(fullyQualifiedClassName + "#" + fieldName, null));
+					}
+
+					@Override public Optional<edu.kit.joana.setter.misc.Pair<String, ValueToSet.Mode>> matchMethodReturn(
+							String fullyQualifiedClassName, String methodName, String desc, List<String> parameterTypes) {
+						return Optional.ofNullable(vToS.getOrDefault(fullyQualifiedClassName + "." + methodName + desc, null));
+					}
+
+					@Override public Optional<edu.kit.joana.setter.misc.Pair<String, ValueToSet.Mode>> matchMethodParameter(
+							String fullyQualifiedClassName, String methodName, String desc, List<String> parameterTypes, int parameterNumber) {
+						return Optional.ofNullable(vToS.getOrDefault(fullyQualifiedClassName + "." + methodName + desc + "->" + parameterNumber, null));
+					}
+				});
+			}
+		};
 	}
 
 	private Optional<SDGProgram> createSDG(String classPath, boolean computeInterference, MHPType mhpType, ExceptionAnalysis exA){
@@ -2492,11 +2512,12 @@ public class IFCConsole {
 
 	private Optional<SDGProgram> createSDG(String classPath, boolean computeInterference, MHPType mhpType, ExceptionAnalysis exA, boolean setValues){
 		try {
-			if (setValueStore.getClassAnnotations().size() > 0 && setValues){
+			if (this.valuesToSet.size() > 0){
 				classPath = new PreProcPasses(createSetValuePass()).process(null, "", classPath);
 				classPathAfterOpt = classPath;
 			}
 			SDGConfig config = new SDGConfig(classPath, loc.getActiveEntry().toBCString(), stubsPath);
+			config.setPruningPolicy(pruningPolicy);
 			config.setComputeInterferences(computeInterference);
 			config.setMhpType(mhpType);
 			config.setExceptionAnalysis(exA);
@@ -2677,7 +2698,7 @@ public class IFCConsole {
 		public Optional<String> optimizeClassPath(String libPath){
 			PreProcPasses passes = createOptPasses();
 			try {
-				return Optional.of(passes.process(ifcAnalysis, optLibPath,
+				return Optional.of(passes.process(ifcAnalysis, libPath,
 						classPathAfterOpt == null ? classPath : classPathAfterOpt));
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -2783,6 +2804,12 @@ public class IFCConsole {
 		return loc;
 	}
 
+	public boolean setClassPath(String classPath) {
+		recomputeSDG |= !this.classPath.equals(classPath);
+		this.classPath = classPath;
+		return true;
+	}
+
 	public String getClassPath() {
 		return classPath;
 	}
@@ -2803,7 +2830,7 @@ public class IFCConsole {
 		return mhpType;
 	}
 
-	public Collection<IFCAnnotation> getSources() {
+  public Collection<IFCAnnotation> getSources() {
 		if (ifcAnalysis == null) {
 			return new LinkedList<IFCAnnotation>();
 		} else {
@@ -2941,6 +2968,38 @@ public class IFCConsole {
 		return true;
 	}
 
+	SetValueStore searchSetValues(String tag){
+		SetValueStore store = new SetValueStore();
+		Tool tool = new Tool(store, SetValue.class);
+		try {
+			new PreProcPasses(new FilePass() {
+				@Override public void setup(String libClassPath) {
+
+				}
+
+				@Override public void collect(Path file) throws IOException {
+					tool.searchAnnotations(file, tag, new SearchVisitor.Matcher(){});
+				}
+
+				@Override public void store(Path source, Path target) throws IOException {
+
+				}
+
+				@Override public void teardown() {
+
+				}
+
+				@Override public boolean requiresKnowledgeOnAnnotations() {
+					return false;
+				}
+			}).process(null, "", classPath);
+		} catch (IOException e) {
+			out.error(e.getMessage());
+			return null;
+		}
+		return store;
+	}
+
 	void showSetValues(){
 		YamlMappingBuilder mapping = Yaml.createYamlMappingBuilder();
 		for (SetValueStore.ClassAnnotation classAnn : setValueStore.getClassAnnotations()) {
@@ -2983,7 +3042,7 @@ public class IFCConsole {
 				int num = Integer.parseInt(parts[2].split("->")[1]);
 				return setValue(new SearchVisitor.Matcher() {
 					@Override public Optional<edu.kit.joana.setter.misc.Pair<String, ValueToSet.Mode>> matchMethodParameter(String fullyQualifiedClassName, String methodName,
-							List<String> parameterTypes, int parameterNumber) {
+							String desc, List<String> parameterTypes, int parameterNumber) {
 						if (fullyQualifiedClassName.equals(className) && methodName.equals(exMethodName) && parameterTypes.equals(Arrays.asList(args))
 							&& parameterNumber == num){
 							return Optional.of(new edu.kit.joana.setter.misc.Pair<>(value, mode));
@@ -2994,7 +3053,7 @@ public class IFCConsole {
 			} else {
 				return setValue(new SearchVisitor.Matcher() {
 					@Override public Optional<edu.kit.joana.setter.misc.Pair<String, ValueToSet.Mode>> matchMethodReturn(String fullyQualifiedClassName, String methodName,
-							List<String> parameterTypes) {
+							String desc, List<String> parameterTypes) {
 						if (fullyQualifiedClassName.equals(className) && methodName.equals(exMethodName) && parameterTypes.equals(Arrays.asList(args))){
 							return Optional.of(new edu.kit.joana.setter.misc.Pair<>(value, mode));
 						}
@@ -3045,4 +3104,328 @@ public class IFCConsole {
 		}
 		return true;
 	}
+
+  /**
+   * Wrapper for using the class with {@link ImprovedCLI}
+   */
+	public class Wrapper
+			implements ImprovedCLI.ClassPathEnabled, ImprovedCLI.EntryPointEnabled, ImprovedCLI.SinksAndSourcesEnabled,
+			ImprovedCLI.SetValueEnabled, ImprovedCLI.BuildSDGEnabled, ImprovedCLI.RunAnalysisEnabled<AnalysisObject>, ImprovedCLI.ClassSinksEnabled,
+			ImprovedCLI.DeclassificationEnabled, ImprovedCLI.OptimizationEnabled, ImprovedCLI.SDGOptionsEnabled, ImprovedCLI.RunEnabled<AnalysisObject>,
+			ImprovedCLI.ExportSDGEnabled, ImprovedCLI.SaveSDGEnabled {
+
+		Map<AnnotationType, Set<IFCAnnotation>> annotationsPerType = new HashMap<>();
+		List<SDGClass> sinkClasses = new ArrayList<>();
+
+		@Override public List<String> getPossibleEntryMethods(String regexp) {
+      return loc.justSearch(classPath, out,false, regexp);
+    }
+
+    @Override public List<Pair<String, String>> getPossibleEntryPoints() {
+      Pattern pat = new Pattern(".*", true, PatternType.ID);
+      Optional<List<Pair<IMethod, Annotation>>> result = loc.doSearchForEntryPointAnnotated(classPath, out, pat);
+      if (!result.isPresent()) {
+        return Collections.emptyList();
+      }
+      return result.get().stream()
+          .map(p -> Pair.pair(getEntryPointIdAttribute(p.getSecond()).orElse(""), p.getFirst().getSignature()))
+          .collect(Collectors.toList());
+    }
+
+    @Override public boolean setEntryMethod(String method) {
+    	loc.doSearch(classPath, out, false, java.util.regex.Pattern.quote(method));
+			if (loc.foundPossibleEntries()) {
+				loc.selectEntry(0);
+				recomputeSDG = true;
+				return true;
+			} else {
+				return false;
+			}
+    }
+
+    @Override public String setEntryPoint(String tag) {
+			if (IFCConsole.this.selectEntryPoint(tag, l -> l.forEach(s -> sinkClasses.add((SDGClass)ImprovedCLI.programPartFromString("L" + s.replace(".", "/") + ";"))))){
+				loc.selectEntry(0);
+				recomputeSDG = true;
+				return loc.getActiveEntry().toBCString();
+			} else {
+				return null;
+			}
+    }
+
+		@Override public String getCurrentEntry() {
+			return loc.getActiveEntry() == null ? null : loc.getActiveEntry().toBCString();
+		}
+
+    @Override public boolean setClassPath(String classPath) {
+      return IFCConsole.this.setClassPath(classPath);
+    }
+
+    @Override public String getClassPath() {
+      return IFCConsole.this.getClassPath();
+    }
+
+		@Override public List<Pair<String, String>> getSinkAnnotations(String tag) {
+			buildSDGIfNeeded();
+			return searchSinksAndSources(new Pattern(tag, false, PatternType.ID), AnnotationType.SINK).stream().map(IFCConsole::annotationsToPartLevelPair).collect(Collectors.toList());
+		}
+
+		@Override public List<Pair<String, String>> getSourceAnnotations(String tag) {
+			buildSDGIfNeeded();
+			return searchSinksAndSources(new Pattern(tag, false, PatternType.ID), AnnotationType.SOURCE).stream().map(IFCConsole::annotationsToPartLevelPair).collect(Collectors.toList());
+		}
+
+		@Override public List<Triple<String, String, String>> getDeclassAnnotations(String tag) {
+			buildSDGIfNeeded();
+			return searchDeclassificationAnnotations(new Pattern(tag, false, PatternType.ID)).stream()
+					.map(p -> annotationsToPartLevelTriple(p.getFirst())).collect(Collectors.toList());
+		}
+
+		@Override public List<String> getAnnotatableEntities(String regexp) {
+			return searchProgramParts(out.getDebugPrintStream(), getClassPath(), true, true, true).stream()
+					.map(ImprovedCLI::programPartToString).filter(s -> s != null && s.matches(regexp)).collect(Collectors.toList());
+		}
+
+		@Override public boolean selectDeclassification(String entity, String fromLevel, String toLevel) {
+			if (getAnnotatableEntities(java.util.regex.Pattern.quote(entity)).size() > 0) {
+				annotationsPerType.computeIfAbsent(AnnotationType.DECLASS, s -> new HashSet<>())
+						.add(new IFCAnnotation(fromLevel, toLevel, ImprovedCLI.programPartFromString(entity)));
+				return true;
+			}
+			return false;
+		}
+
+		@Override public List<Triple<String, String, String>> getDeclassifications() {
+			return annotationsPerType.getOrDefault(AnnotationType.DECLASS, Collections.emptySet()).stream()
+					.map(a -> Triple.triple(ImprovedCLI.programPartToString(a.getProgramPart()), a.getLevel1(), a.getLevel2())).collect(Collectors.toList());
+		}
+
+		@Override public boolean removeDeclassifications(List<String> programParts) {
+			return annotationsPerType.getOrDefault(AnnotationType.DECLASS, Collections.emptySet())
+					.removeIf(p -> programParts.contains(ImprovedCLI.programPartToString(p.getProgramPart())));
+		}
+
+		@Override public boolean selectSource(String entity, String level) {
+			if (getAnnotatableEntities(java.util.regex.Pattern.quote(entity)).size() > 0) {
+				annotationsPerType.computeIfAbsent(AnnotationType.SOURCE, s -> new HashSet<>()).add(
+						new IFCAnnotation(AnnotationType.SOURCE, level.isEmpty() ? Level.HIGH : level, ImprovedCLI.programPartFromString(entity)));
+				return true;
+			}
+			return false;
+		}
+
+		@Override public boolean selectSink(String entity, String level) {
+			if (getAnnotatableEntities(java.util.regex.Pattern.quote(entity)).size() > 0) {
+				annotationsPerType.computeIfAbsent(AnnotationType.SINK, s -> new HashSet<>()).add(
+						new IFCAnnotation(AnnotationType.SINK, level.isEmpty() ? Level.LOW : level, ImprovedCLI.programPartFromString(entity)));
+				return true;
+			}
+			return false;
+		}
+
+		@Override public List<Pair<String, String>> getSources() {
+			return annotationsPerType.getOrDefault(AnnotationType.SOURCE, Collections.emptySet()).stream()
+					.map(a -> Pair.pair(ImprovedCLI.programPartToString(a.getProgramPart()), a.getLevel1())).collect(Collectors.toList());
+		}
+
+		@Override public List<Pair<String, String>> getSinks() {
+			return annotationsPerType.getOrDefault(AnnotationType.SINK, Collections.emptySet()).stream()
+					.map(a -> Pair.pair(ImprovedCLI.programPartToString(a.getProgramPart()), a.getLevel1())).collect(Collectors.toList());
+		}
+
+		@Override public boolean removeSinks(List<String> programParts) {
+			return annotationsPerType.getOrDefault(AnnotationType.SINK, Collections.emptySet())
+					.removeIf(p -> programParts.contains(ImprovedCLI.programPartToString(p.getProgramPart())));
+		}
+
+		@Override public boolean removeSources(List<String> programParts) {
+			return annotationsPerType.getOrDefault(AnnotationType.SOURCE, Collections.emptySet())
+					.removeIf(p -> programParts.contains(ImprovedCLI.programPartToString(p.getProgramPart())));
+		}
+
+		public void setAnnotationsInIFCAnalysis(){
+			buildSDGIfNeeded();
+			annotationsPerType.values().stream().flatMap(Set::stream).forEach(ifcAnalysis::addAnnotation);
+			sinkClasses.forEach(c -> ifcAnalysis.addSinkClass(c));
+		}
+
+		@Override public List<Pair<String, String>> getSettableEntities(String regexp) {
+			return searchProgramParts(out.getDebugPrintStream(), getClassPath(), true, true, true).stream()
+					.filter(s -> ImprovedCLI.programPartToString(s) != null)
+					.map(p -> p.acceptVisitor(new SDGProgramPartVisitor2<Pair<String, String>, Object>(){
+						@Override protected Pair<String, String> visitMethod(SDGMethod m, Object data) {
+							return Pair.pair(ImprovedCLI.programPartToString(m), m.getSignature().getReturnType().toHRString());
+						}
+
+						@Override protected Pair<String, String> visitAttribute(SDGAttribute a, Object data) {
+							return Pair.pair(ImprovedCLI.programPartToString(a), a.getType());
+						}
+
+						@Override protected Pair<String, String> visitParameter(SDGFormalParameter p, Object data) {
+							return Pair.pair(ImprovedCLI.programPartToString(p), p.getType().toHRString());
+						}
+					}, null))
+					.filter(p -> p.getFirst() != null && p.getFirst().matches(regexp)).collect(Collectors.toList());
+		}
+
+		@Override public List<Pair<String, ValueToSet>> getSetValueAnnotations(String tag) {
+			return IFCConsole.this.searchSetValues(tag).getAnnotations().stream().map(p -> Pair.pair(p.first, p.second)).collect(Collectors.toList());
+		}
+
+		@Override public boolean setValueOfEntity(String entity, String value) {
+    	valuesToSet.put(ImprovedCLI.programPartFromString(entity), Pair.pair(value, ValueToSet.Mode.VALUE));
+    	recomputeSDG = true;
+    	return true;
+		}
+
+		@Override public boolean setRefValueOfEntity(String entity, String ref) {
+			valuesToSet.put(ImprovedCLI.programPartFromString(entity), Pair.pair(ref, ValueToSet.Mode.getFieldMode(ref)));
+    	recomputeSDG = true;
+			return true;
+		}
+
+		@Override public List<Pair<String, ValueToSet>> selectSetValueAnnotations(String tag) {
+			List<Pair<String, ValueToSet>> setValueAnnotations = getSetValueAnnotations(tag);
+			setValueAnnotations.forEach(p -> valuesToSet.put(
+					ImprovedCLI.programPartFromString(p.getFirst()), Pair.pair(p.getSecond().value, p.getSecond().mode)));
+			return setValueAnnotations;
+		}
+
+		@Override public List<Pair<String, Pair<String, ValueToSet.Mode>>> getSetValues() {
+			return valuesToSet.entrySet().stream().map(e -> Pair.pair(ImprovedCLI.programPartToString(e.getKey()), e.getValue())).filter(p -> p.getFirst() != null).collect(Collectors.toList());
+		}
+
+		@Override public boolean removeSetValues(List<String> programParts) {
+			programParts.stream().map(ImprovedCLI::programPartFromString).forEach(valuesToSet::remove);
+			return true;
+		}
+
+		@Override public boolean needsRebuild() {
+			return recomputeSDG;
+		}
+
+		@Override public boolean buildSDG() {
+			return IFCConsole.this.buildSDG();
+		}
+
+		@Override public AnalysisObject getMixin(ImprovedCLI.AnalyzeCommand command) {
+			return new AnalysisObject();
+		}
+
+		@Override public boolean run(AnalysisObject state) {
+			setAnnotationsInIFCAnalysis();
+			return runAnalysisYAML(state.out);
+		}
+
+		@Override public boolean addSinkClass(String klass) {
+			sinkClasses.add((SDGClass)ImprovedCLI.programPartFromString(klass));
+			return searchClasses(java.util.regex.Pattern.quote(klass)).size() > 0;
+		}
+
+		@Override public List<String> searchClasses(String regexp) {
+			try {
+				return SDGBuildPreparation.searchClasses(out.getDebugPrintStream(), getClassPath()).stream()
+						.map(ImprovedCLI::programPartToString).filter(c -> c.matches(regexp)).collect(Collectors.toList());
+			} catch (IOException | ClassHierarchyException e) {
+				e.printStackTrace();
+			}
+			return Collections.emptyList();
+		}
+
+		@Override public List<String> getSinkClasses() {
+			return sinkClasses.stream().map(ImprovedCLI::programPartToString).collect(Collectors.toList());
+		}
+
+		@Override public boolean removeSinkClasses(List<String> sinkClasses) {
+			sinkClasses.stream().map(ImprovedCLI::programPartFromString).forEach(this.sinkClasses::remove);
+			return true;
+		}
+
+		@Override public void enableOptimizations(String libPath) {
+			optLibPath = libPath;
+		}
+
+		@Override public void disableOptimizations() {
+			optLibPath = null;
+		}
+
+		@Override public Optional<String> getLibPath() {
+			return Optional.ofNullable(optLibPath);
+		}
+
+		@Override public void setComputeInterference(boolean enable) {
+			computeInterference = enable;
+		}
+
+		@Override public void setMHPType(MHPType mhpType) {
+			IFCConsole.this.mhpType = mhpType;
+		}
+
+		@Override public void setExcAnalysis(ExceptionAnalysis excAnalysis) {
+			IFCConsole.this.excAnalysis = excAnalysis;
+		}
+
+		@Override public boolean isInterferenceComputed() {
+			return computeInterference;
+		}
+
+		@Override public MHPType getMhpType() {
+			return mhpType;
+		}
+
+		@Override public ExceptionAnalysis getExcAnalysis() {
+			return excAnalysis;
+		}
+
+		@Override public void setPruningPolicy(PruningPolicy pruningPolicy) {
+			IFCConsole.this.pruningPolicy = pruningPolicy;
+		}
+
+		@Override public PruningPolicy getPruningPolicy() {
+			return pruningPolicy;
+		}
+
+		@Override public void setOnlyDirectFlow(boolean only) {
+			onlyDirectFlow = only;
+		}
+
+		@Override public boolean usesOnlyDirectFlow() {
+			return onlyDirectFlow;
+		}
+
+		@Override public AnalysisObject getMixin(ImprovedCLI.RunCommand command) {
+			return new AnalysisObject();
+		}
+
+		@Override public boolean exportSDG(File file) {
+			return exportGraphML(file.toString());
+		}
+
+		@Override public boolean saveSDG(File file) {
+			return IFCConsole.this.saveSDG(file.toString());
+		}
+	}
+
+	class AnalysisObject {
+		@CommandLine.Option(names = "--out", description = "Output file or '-' for standard out")
+		String out = "-";
+	}
+
+	/**
+	 * Only works for Source and Sink annotations
+	 */
+	static Pair<String, String> annotationsToPartLevelPair(IFCAnnotation ann){
+		return Pair.pair(ImprovedCLI.programPartToString(ann.getProgramPart()), ann.getLevel1());
+	}
+
+	/**
+	 * Only works for Declassification annotations
+	 */
+	static Triple<String, String, String> annotationsToPartLevelTriple(IFCAnnotation ann){
+		return Triple.triple(ImprovedCLI.programPartToString(ann.getProgramPart()), ann.getLevel1(), ann.getLevel2());
+	}
+
+	public Wrapper createWrapper(){
+	  return new Wrapper();
+  }
 }

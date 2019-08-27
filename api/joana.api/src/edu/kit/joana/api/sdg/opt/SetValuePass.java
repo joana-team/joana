@@ -13,7 +13,7 @@ import java.nio.file.Path;
  */
 public class SetValuePass implements FilePass {
 
-  private final Tool tool;
+  protected final Tool tool;
 
   public SetValuePass(Tool tool) {
     this.tool = tool;

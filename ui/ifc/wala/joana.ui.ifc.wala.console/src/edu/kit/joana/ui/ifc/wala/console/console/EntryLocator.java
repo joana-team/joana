@@ -90,11 +90,28 @@ public class EntryLocator {
 	 * @return whether the search was successful
 	 */
 	public boolean doSearch(String classPath, IFCConsoleOutput out) {
+		return doSearch(classPath, out, true, ".*");
+	}
+
+	/**
+	 * Performs the search and updates the result list. After a successful
+	 * search the result list contains all found entry methods and no entry
+	 * method is selected. If no entry method is found, result list and selected
+	 * entry method remain untouched.
+	 *
+	 * @param classPath
+	 *            location of the classes in which the entry methods are to be
+	 *            searched. Can be a directory or a jar.
+	 * @param onlyMainMethods find only main methods
+	 * @param regexp regexp that the method signatures have to match
+	 * @return whether the search was successful
+	 */
+	public boolean doSearch(String classPath, IFCConsoleOutput out, boolean onlyMainMethods, String regexp) {
 		final SDGBuildPreparation.Config cfg = new SDGBuildPreparation.Config("Search main <unused>", "<unused>",
 				classPath, true, FieldPropagation.FLAT);
 		List<JavaMethodSignature> newEntries = new ArrayList<JavaMethodSignature>();
 		try {
-			List<String> res = SDGBuildPreparation.searchMainMethods(out.getPrintStream(), cfg);
+			List<String> res = SDGBuildPreparation.searchMethods(out.getDebugPrintStream(), cfg, onlyMainMethods, regexp);
 			for (String sig : res) {
 				newEntries.add(JavaMethodSignature.fromString(sig));
 			}
@@ -123,6 +140,20 @@ public class EntryLocator {
 		});
 		unselectEntry();
 		return true;
+	}
+
+	public List<String> justSearch(String classPath, IFCConsoleOutput out, boolean onlyMainMethods, String regexp){
+		final SDGBuildPreparation.Config cfg = new SDGBuildPreparation.Config("Search main <unused>", "<unused>",
+				classPath, true, FieldPropagation.FLAT);
+		try {
+			return SDGBuildPreparation.searchMethods(out.getDebugPrintStream(), cfg, onlyMainMethods, regexp);
+		} catch (ClassHierarchyException e) {
+			out.error("Error while analyzing class structure!");
+			return Collections.emptyList();
+		} catch (IOException e) {
+			out.error("I/O error while searching entry methods!");
+			return Collections.emptyList();
+		}
 	}
 
 	/**
@@ -205,7 +236,6 @@ public class EntryLocator {
 			}
 
 		});
-		unselectEntry();
 		return Optional.of(entries);
 	}
 	
@@ -303,6 +333,9 @@ public class EntryLocator {
 	}
 
 	public static Optional<String> getEntryPointIdAttribute(Annotation entryPoint){
+		if (entryPoint == null){
+			return Optional.empty();
+		}
 		String id = ((ConstantElementValue)entryPoint.getNamedArguments().getOrDefault("tag", new ConstantElementValue(""))).val.toString();
 		if (id.isEmpty()) {
 			return Optional.empty();

@@ -15,7 +15,7 @@ public class SDGAttribute implements SDGProgramPart {
 	private final String name;
 	private final JavaType type;
 
-	SDGAttribute(SDGClass declaringClass, String name, JavaType type) {
+	public SDGAttribute(SDGClass declaringClass, String name, JavaType type) {
 		this.owningClass = declaringClass;
 		this.name = name;
 		this.type = type;
@@ -56,6 +56,10 @@ public class SDGAttribute implements SDGProgramPart {
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + ((owningClass == null) ? 0 : owningClass.hashCode());
 		return result;
+	}
+
+	public SDGClass getOwningClass(){
+		return owningClass;
 	}
 
 	@Override

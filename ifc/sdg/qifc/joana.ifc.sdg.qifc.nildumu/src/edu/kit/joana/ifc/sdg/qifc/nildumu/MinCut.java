@@ -482,9 +482,9 @@ public class MinCut {
 
                 /*Set<Bit> reachable = new HashSet<>();
                 bl.walkBits(source, b -> {}, b -> info(b).saturated(), reachable);
-                // remove bits that are only reachable via an edge from source with flow == 1
+                // removeSetValues bits that are only reachable via an edge from source with flow == 1
                 info(source).cRev.forEach((b, f) -> {
-                    //reachable.remove(b);
+                    //reachable.removeSetValues(b);
                 });
                 Set<Bit> minCut = reachable.stream().filter(b -> info(b).saturated() && b.deps().stream().anyMatch(d -> !reachable.contains(d))).collect(Collectors.toSet());*/
                 //System.out.println(String.format("reachable start nodes %s, reachable end nodes %s, minCut %s", reachableStartNodes, reachableEndNodes, minCut));

@@ -17,162 +17,74 @@ import java.util.ArrayList;
  */
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
 import edu.kit.joana.ui.ifc.wala.console.console.IFCConsole;
+import edu.kit.joana.ui.ifc.wala.console.console.ImprovedCLI;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCConsoleOutput;
+import edu.kit.joana.util.Log;
 import edu.kit.joana.util.NullPrintStream;
+import picocli.CommandLine;
 
 /**
  * Runs the program on the command line
  */
-@Parameters(commandDescription = "Basic quantitative information flow analysis")
 public class Main {
 	
-	@Parameters(commandDescription = "Run IFC console commands directly")
-	private static class ConsoleCommand {
-
-		@Parameter(description = "Commands to execute, commands prefixed with '*' discard all non error output")
-		List<String> commands = new ArrayList<>();
-
-		@Parameter(names = "-i", description = "Run interactive console afterwards")
-		boolean interactive = false;
-
-		IFCConsole console;
-
-		void process(Main main) {
-			final boolean[] isSilent = new boolean[] {false};
-			console = new IFCConsole(new BufferedReader(new InputStreamReader(System.in)), new IFCConsoleOutput() {
-
-				@Override
-				public void log(String logMessage) {
-					if (!isSilent[0]) {
-						System.out.print(logMessage);
-					}
-				}
-
-				@Override
-				public void logln(String logMessage) {
-					if (!isSilent[0]) {
-						System.out.println(logMessage);
-					}
-				}
-
-				@Override
-				public void info(String infoMessage) {
-					if (main.verbose && !isSilent[0]) {
-						System.out.println(infoMessage);
-					}
-				}
-
-				@Override
-				public void error(String errorMessage) {
-					System.err.println(errorMessage);
-				}
-
-				@Override
-				public Answer question(String questionMessage) {
-					System.out.println(questionMessage);
-					try {
-						return new BufferedReader(new InputStreamReader(System.in)).readLine().contains("y")
-								? Answer.YES
-								: Answer.NO;
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					return null;
-				}
-
-				@Override
-				public PrintStream getPrintStream() {
-					if (isSilent[0]) {
-						return new NullPrintStream();
-					}
-					return System.out;
-				}
-
-			});
-			if (main.classPath.length() > 0) {
-				console.setClasspath(main.classPath);
-			}
-			for (String command : commands) {
-				if (command.startsWith("*")) {
-					isSilent[0] = true;
-					command = command.substring(1);
-				}
-				if (!console.processCommand(command)) {
-					System.err.println("Command '" + command + "' failed");
-					System.exit(1);
-				}
-				isSilent[0] = false;
-			}
-			if (interactive) {
-				try {
-					console.interactive();
-				} catch (IOException e) {
-					e.printStackTrace();
-					System.exit(1);
-				}
-			}
-		}
-	}
-	
-	
-	@Parameters(commandDescription = "Run IFC console commands from a file")
-	private static class FileCommand {
-		
-		@Parameter(description = "File with commands, commands prefixed with '*' are silent")
-		private String file;
-		
-		void process(Main main) {
-			ConsoleCommand command = new ConsoleCommand();
-			try {
-				command.commands = Files.readAllLines(Paths.get(file));
-			} catch (IOException e) {
-				System.err.println(e.getMessage());
-				System.exit(1);
-			}
-			command.process(main);
-		}
-	}
-
-	@Parameter(names = { "-cp",
-			"-classpath" }, description = "Classpath that contains the code that is going to be analysed, should also contain "
-					+ "the cli JAR itself", required = false)
-	private String classPath = "";
-
-	@Parameter(names = "-v", description = "Verbose output?")
-	private boolean verbose = false;
-	
 	public static void main(String[] args) {
-		Main main = new Main();
-		ConsoleCommand console = new ConsoleCommand();
-		FileCommand file = new FileCommand();
-		JCommander com = JCommander.newBuilder()
-				.addObject(main).programName("cli")
-				.addCommand("console", console)
-				.addCommand("file", file)
-				.build();
-		com.parse(args);
-		if (com.getParsedCommand() == null) {
-			com.usage();
-			System.exit(0);
-		}
-		switch (com.getParsedCommand()) {
-		case "console":
-			console.process(main);
-			break;
-		case "file":
-			file.process(main);
-			break;
-		default:
-			com.usage();
-			System.exit(1);
-		}
+		ImprovedCLI.run(args, new IFCConsole(new BufferedReader(new InputStreamReader(System.in)), new IFCConsoleOutput() {
+
+			@Override
+			public void log(String logMessage) {
+				//System.out.print(logMessage);
+			}
+
+			@Override
+			public void logln(String logMessage) {
+				//System.out.println(logMessage);
+			}
+
+			@Override
+			public void info(String infoMessage) {
+				//System.out.println(infoMessage);
+			}
+
+			@Override
+			public void error(String errorMessage) {
+				System.err.println(errorMessage);
+			}
+
+			@Override
+			public Answer question(String questionMessage) {
+				System.out.println(questionMessage);
+				try {
+					return new BufferedReader(new InputStreamReader(System.in)).readLine().contains("y")
+							? Answer.YES
+							: Answer.NO;
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				return null;
+			}
+
+			@Override
+			public PrintStream getPrintStream() {
+				return System.out;
+			}
+
+			@Override public PrintStream getDebugPrintStream() {
+				if (Logger.getGlobal().isLoggable(Level.INFO)){
+					return getPrintStream();
+				}
+				return new NullPrintStream();
+			}
+		}).createWrapper(), false);
 	}
 
 }

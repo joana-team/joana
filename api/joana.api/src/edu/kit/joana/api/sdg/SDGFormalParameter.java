@@ -16,7 +16,7 @@ public class SDGFormalParameter implements SDGProgramPart {
 	private String label;
 	private JavaType type = null;
 
-	SDGFormalParameter(SDGMethod owner, int index, String label, JavaType type) {
+	public SDGFormalParameter(SDGMethod owner, int index, String label, JavaType type) {
 		this.owner = owner;
 		this.index = index;
 		this.label = label;

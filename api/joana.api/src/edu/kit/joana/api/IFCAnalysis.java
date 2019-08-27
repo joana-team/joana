@@ -46,17 +46,7 @@ import edu.kit.joana.api.annotations.cause.JavaSinkAnnotation;
 import edu.kit.joana.api.annotations.cause.JavaSourceAnnotation;
 import edu.kit.joana.api.annotations.cause.UnknownCause;
 import edu.kit.joana.api.lattice.BuiltinLattices;
-import edu.kit.joana.api.sdg.SDGActualParameter;
-import edu.kit.joana.api.sdg.SDGAttribute;
-import edu.kit.joana.api.sdg.SDGCall;
-import edu.kit.joana.api.sdg.SDGCallReturnNode;
-import edu.kit.joana.api.sdg.SDGFormalParameter;
-import edu.kit.joana.api.sdg.SDGLocalVariable;
-import edu.kit.joana.api.sdg.SDGMethod;
-import edu.kit.joana.api.sdg.SDGProgram;
-import edu.kit.joana.api.sdg.SDGProgramPart;
-import edu.kit.joana.api.sdg.SDGProgramPartWriter;
-import edu.kit.joana.api.sdg.ThrowingSDGProgramPartVisitor;
+import edu.kit.joana.api.sdg.*;
 import edu.kit.joana.ifc.sdg.core.IFC;
 import edu.kit.joana.ifc.sdg.core.ReduceRedundantFlows;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
@@ -1252,5 +1242,29 @@ public class IFCAnalysis {
 				}
 			}			
 		}
+	}
+
+	public boolean addSinkClass(SDGClass klass){
+		IClassHierarchy ch = program.getClassHierarchy();
+		boolean added = false;
+		for (SDGMethod method : program.getAllMethods()){
+			JavaMethodSignature sig = method.getSignature();
+			TypeReference ref = TypeReference.find(ClassLoaderReference.Application, sig.getDeclaringType().toBCString().replace(";", ""));
+			if (ref == null){
+				continue;
+			}
+			IClass declaring = ch.lookupClass(ref);
+			IClass sink = ch.lookupClass(klass.getTypeName().toBCString().replace(";", ""));
+
+			if (declaring != null && (ch.isSubclassOf(declaring, sink) || ch.implementsInterface(declaring, sink) || declaring.equals(sink))){
+				for (SDGFormalParameter param : method.getParameters()){
+					if (!param.getName().equals("this")){
+						addSinkAnnotation(param, Level.LOW);
+						added = true;
+					}
+				}
+			}
+		}
+		return added;
 	}
 }

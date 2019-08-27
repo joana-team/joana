@@ -9,7 +9,7 @@ public class Test {
 	public static void main(String[] args) {
 		//command("fin", "entry");
 		// command("searchEntries");
-		//command("searchEntryPoints");
+		//command("searchEntryPointsOutYaml");
 		//command("selectEntryPoint bla");
 		command("runEntryPoint bla", "run");
 		// command("search_entry_points");

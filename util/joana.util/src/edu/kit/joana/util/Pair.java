@@ -136,5 +136,4 @@ public class Pair<S, T> {
 		}
 		return new Pair<S, T>(fst, snd);
 	}
-
 }

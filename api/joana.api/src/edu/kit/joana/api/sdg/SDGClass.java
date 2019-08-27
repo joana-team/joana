@@ -32,8 +32,8 @@ public class SDGClass implements SDGProgramPart {
 	private final Set<SDGAttribute> attributes;
 	private final Set<SDGMethod> methods;
 
-	SDGClass(JavaType typeName, Collection<SDGNode> declNodes, Map<String, Pair<Set<SDGNode>, Set<SDGNode>>> attributeNodes,
-			Set<SDGNode> methodEntryNodes, SDG sdg, TIntObjectHashMap<HashSet<SDGNode>> sdgByProc) {
+	public SDGClass(JavaType typeName, Collection<SDGNode> declNodes, Map<String, Pair<Set<SDGNode>, Set<SDGNode>>> attributeNodes,
+      Set<SDGNode> methodEntryNodes, SDG sdg, TIntObjectHashMap<HashSet<SDGNode>> sdgByProc) {
 		this.typeName = typeName;
 		this.attributes = createSDGAttributes(attributeNodes);
 		this.methods = createSDGMethods(methodEntryNodes, sdg, sdgByProc);

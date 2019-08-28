@@ -170,7 +170,7 @@ public final class SDGBuildPreparation {
 					}
 					if (parameters){
 						for (int i = 0; i < m.getNumberOfParameters(); i++){
-							result.add(new SDGFormalParameter(method, i, "", JavaType.parseSingleTypeFromString(m.getParameterType(i).getName().toString(), JavaType.Format.BC)));
+							result.add(new SDGFormalParameter(method, m.isStatic() ? (i + 1) : i, "", JavaType.parseSingleTypeFromString(m.getParameterType(i).getName().toString(), JavaType.Format.BC)));
 						}
 					}
 				}

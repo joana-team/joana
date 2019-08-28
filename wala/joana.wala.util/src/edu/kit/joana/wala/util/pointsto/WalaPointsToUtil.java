@@ -121,6 +121,7 @@ public final class WalaPointsToUtil {
                 return target;
             } 
             target = child.getCalleeTarget(caller, site, receiver);
+
             if (target != null) {
                 return child.getCalleeTarget(caller, site, receiver);
             }

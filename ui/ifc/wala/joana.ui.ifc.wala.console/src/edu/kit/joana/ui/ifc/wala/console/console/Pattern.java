@@ -64,7 +64,7 @@ public class Pattern {
 	
 	private boolean matchProgramAnnotation(SDGProgramPart part, String[] entries) {
 		return matchAll || (type.contains(PatternType.SIGNATURE) && match(part.acceptVisitor(ProgramPartToString.getStandard(), null)))
-				|| (type.contains(PatternType.ID) && Arrays.stream(entries).anyMatch(this::match));
+				|| (type.contains(PatternType.ID) && (Arrays.stream(entries).anyMatch(this::match) || (entries.length == 0 && pattern.isEmpty())));
 	}
 	
 	public boolean matchSink(SDGProgramPart part, Sink sink) {

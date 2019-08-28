@@ -106,6 +106,7 @@ public class IFCAnalysis {
 	 * "" -> match all annotations that have no tags
 	 */
 	private String sourceSinkAnnotationTag = "";
+	private String lastSourceSinkAnnotationTag = "";
 	
 	private Multimap<SDGProgramPart, Pair<Source,String>> sources = null;
 	private Multimap<SDGProgramPart, Pair<Sink,String>> sinks = null;
@@ -669,8 +670,9 @@ public class IFCAnalysis {
 	public Pair<Pair<Multimap<SDGProgramPart, Pair<Source,String>>,
                 Multimap<SDGProgramPart, Pair<Sink,String>>>, 
                 Multimap<SDGProgramPart, Pair<Declassification,String>>> getJavaSourceAnnotations(boolean ignoreDeclass) {
-		if (sources == null || sinks == null || ignoreDeclass != (declasss == null)) {
+		if (sources == null || sinks == null || ignoreDeclass != (declasss == null) || !sourceSinkAnnotationTag.equals(lastSourceSinkAnnotationTag)) {
 			updateJavaSourceAnnotations(ignoreDeclass);
+			lastSourceSinkAnnotationTag = sourceSinkAnnotationTag;
 		}
 		assert sources != null;
 		assert sinks != null;
@@ -748,11 +750,14 @@ public class IFCAnalysis {
 	private boolean checkTags(Annotation a) {
 		if (a.getNamedArguments().containsKey("tags")) {
 			if (sourceSinkAnnotationTag.isEmpty()) {
-				return ((ArrayElementValue)a.getNamedArguments().get("tags")).vals.length == 0;
+				return ((ArrayElementValue)a.getNamedArguments().get("tags")).vals.length == 0 ||
+						Arrays.stream(((ArrayElementValue)a.getNamedArguments().get("tags")).vals)
+						.map(e -> (ConstantElementValue)e)
+						.anyMatch(e -> e.val.equals(""));
 			}
 			return Arrays.stream(((ArrayElementValue)a.getNamedArguments().get("tags")).vals)
 					.map(e -> (ConstantElementValue)e)
-					.anyMatch(e -> e.val.equals("") || e.val.equals(sourceSinkAnnotationTag));
+					.anyMatch(e ->  e.val.equals(sourceSinkAnnotationTag));
 		}
 		return sourceSinkAnnotationTag.isEmpty();
 	}

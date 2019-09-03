@@ -57,4 +57,12 @@ public @interface EntryPoint {
 	 * Policy on pruning (throwing away call graph nodes)
 	 */
 	PruningPolicy pruningPolicy() default PruningPolicy.APPLICATION;
+
+	/**
+	 * Option for generating a class containing fields for all project types that can be used whenever a field of a specific
+	 * type is not initialized (because it is initialized in code not called by the entry point)
+	 *
+	 * @return regular expression that matches all types which fields and method signatures are considered if they match the expression
+	 */
+	String uninitializedFieldTypeRegexp() default "";
 }

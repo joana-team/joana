@@ -11,6 +11,7 @@ import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.Entrypoint;
 
+import com.ibm.wala.ipa.callgraph.UninitializedFieldHelperOptions;
 import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder.MethodFilter;
 
 /**
@@ -21,14 +22,18 @@ import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder.MethodFilter;
 public class ExtendedAnalysisOptions extends AnalysisOptions {
 
 	public MethodFilter filter;
-	
-	public ExtendedAnalysisOptions(final MethodFilter filter, final AnalysisScope scope, final Iterable<? extends Entrypoint> e) {
-		super(scope, e);
+
+	public ExtendedAnalysisOptions(final MethodFilter filter, final AnalysisScope scope, final Iterable<? extends Entrypoint> e, UninitializedFieldHelperOptions fieldHelperOptions) {
+		super(scope, e, fieldHelperOptions);
 		if (filter == null) {
 			this.filter = new ObjSensZeroXCFABuilder.DefaultMethodFilter();
 		} else {
 			this.filter = filter;
 		}
+	}
+
+	public ExtendedAnalysisOptions(final MethodFilter filter, final AnalysisScope scope, final Iterable<? extends Entrypoint> e) {
+		this(filter, scope, e, new UninitializedFieldHelperOptions());
 	}
 
 	public ExtendedAnalysisOptions(final AnalysisScope scope, final Iterable<? extends Entrypoint> e) {

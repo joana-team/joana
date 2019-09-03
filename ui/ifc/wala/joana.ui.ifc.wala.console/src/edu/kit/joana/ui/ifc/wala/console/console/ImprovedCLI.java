@@ -234,6 +234,10 @@ public class ImprovedCLI {
     void setOnlyDirectFlow(boolean only);
 
     boolean usesOnlyDirectFlow();
+
+    void setUninitializedFieldTypeRegexp(String regexp);
+
+    String uninitializedFieldTypeRegexp();
   }
 
   public static final class BooleanCompletionCandidates implements Iterable<String> {
@@ -279,6 +283,11 @@ public class ImprovedCLI {
     }
 
     @Command
+    void uninitializedFieldTypeRegexp(@Parameters(paramLabel = "regexp") String regexp){
+      this.state.setUninitializedFieldTypeRegexp(regexp);
+    }
+
+    @Command
     void onlyDirectFlow(@Parameters(paramLabel = "only", completionCandidates = BooleanCompletionCandidates.class)
         boolean only){
       this.state.setOnlyDirectFlow(only);
@@ -294,7 +303,8 @@ public class ImprovedCLI {
                 Pair.pair("mhpType", parent.state.getMhpType()),
                 Pair.pair("excAnalysis", parent.state.getExcAnalysis()),
                 Pair.pair("pruningPolicy", parent.state.getPruningPolicy()),
-                Pair.pair("onlyDirectFlow", parent.state.usesOnlyDirectFlow()))) {
+                Pair.pair("onlyDirectFlow", parent.state.usesOnlyDirectFlow()),
+                Pair.pair("uninitializedFieldTypeRegexp", parent.state.uninitializedFieldTypeRegexp()))) {
           System.out.println(String.format("%-20s = %s", p.getFirst(), p.getSecond().toString()));
         }
       }

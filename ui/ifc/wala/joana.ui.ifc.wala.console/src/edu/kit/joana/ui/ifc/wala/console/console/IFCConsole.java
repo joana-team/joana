@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 
 import javax.xml.stream.XMLStreamException;
 
+import com.ibm.wala.ipa.callgraph.UninitializedFieldHelperOptions;
 import com.ibm.wala.shrikeCT.AnnotationsReader;
 import edu.kit.joana.api.sdg.*;
 import edu.kit.joana.api.sdg.opt.FilePass;
@@ -414,6 +415,10 @@ public class IFCConsole {
 	private SetValueStore setValueStore = new SetValueStore();
 	private Map<SDGProgramPart, Pair<String, ValueToSet.Mode>> valuesToSet = new HashMap<>();
 	private String classPathAfterOpt = null;
+	/**
+	 * @see UninitializedFieldHelperOptions
+	 */
+	private String uninitializedFieldTypeRegexp = "";
 
 	public IFCConsole(BufferedReader in, IFCConsoleOutput out) {
 		this.in = in;
@@ -1729,7 +1734,14 @@ public class IFCConsole {
 				return false;
 			}
 		}
+		if (map.containsKey("uninitializedFieldTypeRegexp")){
+			setUninitializedFieldTypeRegexp((String)((ConstantElementValue)map.get("uninitializedFieldTypeRegexp")).val);
+		}
 		return true;
+	}
+
+	public void setUninitializedFieldTypeRegexp(String regexp){
+		this.uninitializedFieldTypeRegexp = regexp;
 	}
 	
 	private boolean parseClassSinks(ArrayElementValue val, Consumer<List<String>> classSinkConsumer) {
@@ -2523,6 +2535,7 @@ public class IFCConsole {
 			config.setExceptionAnalysis(exA);
 			config.setPointsToPrecision(pointsTo);
 			config.setFieldPropagation(FieldPropagation.OBJ_GRAPH_SIMPLE_PROPAGATION);
+			config.setFieldHelperOptions(new UninitializedFieldHelperOptions(uninitializedFieldTypeRegexp));
 			SDGProgram program = SDGProgram.createSDGProgram(config, out.getPrintStream(), monitor);
 			if (onlyDirectFlow) {
 				SDGProgram.throwAwayControlDeps(program.getSDG());
@@ -3391,6 +3404,14 @@ public class IFCConsole {
 
 		@Override public boolean usesOnlyDirectFlow() {
 			return onlyDirectFlow;
+		}
+
+		@Override public void setUninitializedFieldTypeRegexp(String regexp) {
+			IFCConsole.this.setUninitializedFieldTypeRegexp(regexp);
+		}
+
+		@Override public String uninitializedFieldTypeRegexp() {
+			return uninitializedFieldTypeRegexp;
 		}
 
 		@Override public AnalysisObject getMixin(ImprovedCLI.RunCommand command) {

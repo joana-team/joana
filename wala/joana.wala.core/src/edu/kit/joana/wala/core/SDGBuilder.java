@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
 
+import com.ibm.wala.ipa.callgraph.*;
 import org.jgrapht.DirectedGraph;
 
 import com.google.common.collect.Sets;
@@ -32,17 +33,7 @@ import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.escape.TrivialMethodEscape;
-import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions.ReflectionOptions;
-import com.ibm.wala.ipa.callgraph.AnalysisScope;
-import com.ibm.wala.ipa.callgraph.CGNode;
-import com.ibm.wala.ipa.callgraph.CallGraphBuilder;
-import com.ibm.wala.ipa.callgraph.CallGraphBuilderCancelException;
-import com.ibm.wala.ipa.callgraph.Context;
-import com.ibm.wala.ipa.callgraph.ContextSelector;
-import com.ibm.wala.ipa.callgraph.Entrypoint;
-import com.ibm.wala.ipa.callgraph.IAnalysisCacheView;
-import com.ibm.wala.ipa.callgraph.MethodTargetSelector;
 import com.ibm.wala.ipa.callgraph.impl.DelegatingContextSelector;
 import com.ibm.wala.ipa.callgraph.impl.SubtypesEntrypoint;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
@@ -1245,16 +1236,16 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 	}
 
 	public static ExtendedAnalysisOptions createSingleEntryOptions(SDGBuilderConfig cfg) {
-		return createMultipleEntryOptions(cfg.scope, cfg.cha, cfg.objSensFilter, cfg.ext!=null?cfg.ext.resolveReflection():false, cfg.methodTargetSelector, Collections.singletonList(cfg.entry));
+		return createMultipleEntryOptions(cfg.scope, cfg.cha, cfg.objSensFilter, cfg.ext!=null?cfg.ext.resolveReflection():false, cfg.methodTargetSelector, Collections.singletonList(cfg.entry), cfg.fieldHelperOptions);
 	}
 
-	public static ExtendedAnalysisOptions createMultipleEntryOptions(AnalysisScope scope, IClassHierarchy cha, ObjSensZeroXCFABuilder.MethodFilter objSensFilter, boolean resolveReflection, MethodTargetSelector methodTargetSelector, Collection<? extends IMethod> entryMethods) {
+	public static ExtendedAnalysisOptions createMultipleEntryOptions(AnalysisScope scope, IClassHierarchy cha, ObjSensZeroXCFABuilder.MethodFilter objSensFilter, boolean resolveReflection, MethodTargetSelector methodTargetSelector, Collection<? extends IMethod> entryMethods, UninitializedFieldHelperOptions fieldHelperOptions) {
 		final List<Entrypoint> entries = new LinkedList<Entrypoint>();
 		for (IMethod entry : entryMethods) {
 			final Entrypoint ep = new SubtypesEntrypoint(entry, cha);
 			entries.add(ep);
 		}
-		final ExtendedAnalysisOptions options = new ExtendedAnalysisOptions(objSensFilter, scope, entries);
+		final ExtendedAnalysisOptions options = new ExtendedAnalysisOptions(objSensFilter, scope, entries, fieldHelperOptions);
 		if (resolveReflection) {
 			options.setReflectionOptions(ReflectionOptions.JOANA);
 		} else {
@@ -2191,7 +2182,11 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		 * in multiple threads.
 		 */
 		public boolean doParallel = true;
-		
+		/**
+		 * Options for creating the static helper for working with uninitialized fields
+		 */
+		public UninitializedFieldHelperOptions fieldHelperOptions = new UninitializedFieldHelperOptions();
+
 		public SDGBuilderConfig() {
 		}
 

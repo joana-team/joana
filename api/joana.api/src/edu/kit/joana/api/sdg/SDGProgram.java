@@ -495,6 +495,7 @@ public class SDGProgram {
 		cfg.localKillingDefs = config.localKillingDefs();
 		cfg.isParallel = config.isParallel();
 		cfg.controlDependenceVariant = config.getControlDependenceVariant();
+		cfg.fieldHelperOptions = config.getFieldHelperOptions();
 		debug.outln(cfg.stubs);
 		return cfg;
 	}

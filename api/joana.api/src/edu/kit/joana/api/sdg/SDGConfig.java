@@ -9,6 +9,7 @@ package edu.kit.joana.api.sdg;
 
 import com.ibm.wala.cfg.exc.intra.MethodState;
 import com.ibm.wala.ipa.callgraph.ContextSelector;
+import com.ibm.wala.ipa.callgraph.UninitializedFieldHelperOptions;
 import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
 import com.ibm.wala.ipa.callgraph.pruned.DoNotPrune;
 import com.ibm.wala.ipa.callgraph.pruned.PruningPolicy;
@@ -29,7 +30,7 @@ import edu.kit.joana.wala.summary.SummaryComputationType;
 import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder;
 
 public class SDGConfig {
-	private PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
+  private PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
 	private String classPath;
 	private boolean classpathAddEntriesFromMANIFEST;
 	private String thirdPartyLibsPath;
@@ -57,7 +58,8 @@ public class SDGConfig {
 	private boolean skipSDGProgramPart = false;
 	private ControlDependenceVariant controlDependenceVariant = SDGBuilder.defaultControlDependenceVariant;
 	private boolean isParallel = true;
-	
+	private UninitializedFieldHelperOptions fieldHelperOptions = new UninitializedFieldHelperOptions();
+
 	public SDGConfig(String classPath, String entryMethod, Stubs stubsPath) {
 		this(classPath, true, entryMethod, stubsPath, ExceptionAnalysis.INTERPROC, FieldPropagation.OBJ_GRAPH, PointsToPrecision.INSTANCE_BASED, false, false, MHPType.NONE);
 	}
@@ -414,4 +416,11 @@ public class SDGConfig {
 		this.isParallel = isParallel;
 	}
 
+	public UninitializedFieldHelperOptions getFieldHelperOptions() {
+		return fieldHelperOptions;
+	}
+
+	public void setFieldHelperOptions(UninitializedFieldHelperOptions fieldHelperOptions) {
+		this.fieldHelperOptions = fieldHelperOptions;
+	}
 }

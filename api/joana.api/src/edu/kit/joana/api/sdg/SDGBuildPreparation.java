@@ -25,10 +25,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterators;
 import com.ibm.wala.cfg.exc.intra.MethodState;
 import com.ibm.wala.classLoader.*;
-import com.ibm.wala.ipa.callgraph.AnalysisCache;
-import com.ibm.wala.ipa.callgraph.AnalysisCacheImpl;
-import com.ibm.wala.ipa.callgraph.AnalysisScope;
-import com.ibm.wala.ipa.callgraph.ContextSelector;
+import com.ibm.wala.ipa.callgraph.*;
 import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
 import com.ibm.wala.ipa.callgraph.pruned.PruningPolicy;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
@@ -411,6 +408,7 @@ public final class SDGBuildPreparation {
 		scfg.dynDisp = cfg.ddisp;
 		scfg.doParallel = cfg.isParallel;
 		scfg.controlDependenceVariant = cfg.controlDependenceVariant;
+		scfg.fieldHelperOptions = cfg.fieldHelperOptions;
 		return Pair.make(startTime, scfg);
 	}
 
@@ -515,6 +513,8 @@ public final class SDGBuildPreparation {
 		public DynamicDispatchHandling ddisp;
 		public boolean isParallel = true;
 		public ControlDependenceVariant controlDependenceVariant = SDGBuilder.defaultControlDependenceVariant;
+		public UninitializedFieldHelperOptions fieldHelperOptions = new UninitializedFieldHelperOptions();
+
 		public Config(String name) {
 			this(name, "<no entry defined>", FieldPropagation.OBJ_GRAPH);
 		}

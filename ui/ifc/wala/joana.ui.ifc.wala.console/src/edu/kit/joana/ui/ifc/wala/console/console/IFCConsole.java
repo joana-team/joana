@@ -1741,7 +1741,8 @@ public class IFCConsole {
 	}
 
 	public void setUninitializedFieldTypeRegexp(String regexp){
-		this.uninitializedFieldTypeRegexp = regexp;
+		recomputeSDG |= !uninitializedFieldTypeRegexp.equals(regexp);
+	  this.uninitializedFieldTypeRegexp = regexp;
 	}
 	
 	private boolean parseClassSinks(ArrayElementValue val, Consumer<List<String>> classSinkConsumer) {
@@ -3356,10 +3357,12 @@ public class IFCConsole {
 
 		@Override public void enableOptimizations(String libPath) {
 			optLibPath = libPath;
+			useByteCodeOptimizations = true;
 		}
 
 		@Override public void disableOptimizations() {
 			optLibPath = null;
+			useByteCodeOptimizations = false;
 		}
 
 		@Override public Optional<String> getLibPath() {

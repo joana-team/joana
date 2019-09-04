@@ -325,13 +325,14 @@ public class ImprovedCLI {
   }
 
   @Command(name = "optimization", description = "Enable and disable byte code optimizations",
-      subcommands = { OptimzeEnableCommand.DisableCommand.class, SDGOptionsCommand.InfoCommand.class })
-  public static class OptimzeEnableCommand {
+      subcommands = { OptimizeEnableCommand.DisableCommand.class, OptimizeEnableCommand.InfoCommand.class })
+  static class OptimizeEnableCommand implements Callable<Integer> {
 
     @Spec Model.CommandSpec spec;
 
     @ParentCommand CliCommands parent;
 
+    @State
     OptimizationEnabled state;
 
     @Command
@@ -342,7 +343,7 @@ public class ImprovedCLI {
     @Command(name = "disable")
     static class DisableCommand implements Runnable {
       @ParentCommand
-      OptimzeEnableCommand parent;
+      OptimizeEnableCommand parent;
       @Override public void run() {
         parent.state.disableOptimizations();
       }
@@ -351,7 +352,7 @@ public class ImprovedCLI {
     @Command(name = "info")
     static class InfoCommand implements Runnable {
       @ParentCommand
-      OptimzeEnableCommand parent;
+      OptimizeEnableCommand parent;
       @Override public void run() {
         if (parent.state.getLibPath().isPresent()){
           System.out.println("enabled with library path: " + parent.state.getLibPath().get());
@@ -359,6 +360,10 @@ public class ImprovedCLI {
           System.out.println("disabled");
         }
       }
+    }
+
+    @Override public Integer call() {
+      return parent.printUsage(spec);
     }
   }
 

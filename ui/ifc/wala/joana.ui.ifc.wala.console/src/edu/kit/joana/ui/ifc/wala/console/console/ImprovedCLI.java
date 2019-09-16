@@ -392,9 +392,6 @@ public class ImprovedCLI {
       "syntax: classes: @|italic byte code class string|@, attributes: @|italic [class]#[attribute]|@, "
           + "methods: @|italic [class].[method name]([parameter type descriptor])[return type descriptor]|@, "
           + "parameters: @|italic [method…]->[parameter index]|@";
-  static final String ENTITY_SYNTAX = "syntax: classes: @|italic byte code class string|@, attributes: @|italic [class]#[attribute]|@, "
-      + "methods: @|italic [class].[method name]([parameter type descriptor])[return type descriptor]|@, "
-      + "parameters: @|italic [method…]->[parameter index]|@";
 
   static final String METHOD_SYNTAX = "syntax: @|italic [byte code class string].[method name]([parameter type descriptor])[return type descriptor]|@";
 

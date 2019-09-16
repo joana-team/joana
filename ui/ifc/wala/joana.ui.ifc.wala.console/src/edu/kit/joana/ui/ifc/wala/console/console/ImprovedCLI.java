@@ -19,7 +19,9 @@ import org.jline.reader.impl.LineReaderImpl;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import picocli.CommandLine;
+
 import static picocli.CommandLine.*;
+
 import picocli.shell.jline3.PicocliJLineCompleter;
 
 import java.io.File;
@@ -73,7 +75,7 @@ public class ImprovedCLI {
           return visitMethod(p.getOwningMethod(), null) + "->" + p.getIndex();
         }
       }, null);
-    } catch (NullPointerException ex){
+    } catch (NullPointerException ex) {
       return null;
     }
   }
@@ -81,36 +83,32 @@ public class ImprovedCLI {
   /**
    * Supports classes, fields, methods, parameters, is a rough translation
    */
-  public static SDGProgramPart programPartFromString(String str){
-    if (str.matches(".+#.+")){ // field
+  public static SDGProgramPart programPartFromString(String str) {
+    if (str.matches(".+#.+")) { // field
       String[] parts = str.split("#");
-      return new SDGAttribute((SDGClass)programPartFromString(parts[0]), parts[1],
+      return new SDGAttribute((SDGClass) programPartFromString(parts[0]), parts[1],
           JavaType.parseSingleTypeFromString("java.lang.Object"));
     }
-    if (str.matches(".+\\..+")){
-      if (str.matches(".+->[0-9]+")){
+    if (str.matches(".+\\..+")) {
+      if (str.matches(".+->[0-9]+")) {
         String[] parts = str.split("->");
-        return new SDGFormalParameter(
-            (SDGMethod)programPartFromString(parts[0]),
-            Integer.parseInt(parts[1]), "", JavaType.parseSingleTypeFromString("java.lang.Object"));
+        return new SDGFormalParameter((SDGMethod) programPartFromString(parts[0]), Integer.parseInt(parts[1]), "",
+            JavaType.parseSingleTypeFromString("java.lang.Object"));
       }
       return new SDGMethod(JavaMethodSignature.fromString(str), AnalysisScope.APPLICATION.toString(), false);
     }
-    return new SDGClass(JavaType.parseSingleTypeFromString(str),
-        Collections.emptyList(), Collections.emptyMap(), Collections.emptySet(), new SDG(),
-        new TIntObjectHashMap<>());
+    return new SDGClass(JavaType.parseSingleTypeFromString(str), Collections.emptyList(), Collections.emptyMap(),
+        Collections.emptySet(), new SDG(), new TIntObjectHashMap<>());
   }
 
-  @Retention(RetentionPolicy.RUNTIME)
-  @Target({ElementType.FIELD, ElementType.PARAMETER}) @interface State {
+  @Retention(RetentionPolicy.RUNTIME) @Target({ ElementType.FIELD, ElementType.PARAMETER }) @interface State {
   }
 
-  @Retention(RetentionPolicy.RUNTIME)
-  @Target(ElementType.FIELD) @interface DynamicMixin {}
+  @Retention(RetentionPolicy.RUNTIME) @Target(ElementType.FIELD) @interface DynamicMixin {
+  }
 
   static class HelpOptions {
-    @Option(names = { "-h", "--help"}, usageHelp = true, description = "Display this help and exit")
-    boolean help;
+    @Option(names = { "-h", "--help" }, usageHelp = true, description = "Display this help and exit") boolean help;
   }
 
   /**
@@ -390,6 +388,10 @@ public class ImprovedCLI {
     boolean removeSetValues(List<String> programParts);
   }
 
+  static final String ENTITY_SYNTAX =
+      "syntax: classes: @|italic byte code class string|@, attributes: @|italic [class]#[attribute]|@, "
+          + "methods: @|italic [class].[method name]([parameter type descriptor])[return type descriptor]|@, "
+          + "parameters: @|italic [method…]->[parameter index]|@";
   static final String ENTITY_SYNTAX = "syntax: classes: @|italic byte code class string|@, attributes: @|italic [class]#[attribute]|@, "
       + "methods: @|italic [class].[method name]([parameter type descriptor])[return type descriptor]|@, "
       + "parameters: @|italic [method…]->[parameter index]|@";
@@ -411,26 +413,26 @@ public class ImprovedCLI {
     SetValueEnabled state;
 
 
-    @Command(name = "value", description = "Set the primitive or string value of a parameter, a method (its return value) or a field")
-    int value(@Parameters(paramLabel = "entity", description = "Entity to set, " + ENTITY_SYNTAX) String entity,
-        @Parameters(paramLabel = "value", description = "Value of the entity") String value){
+    @Command(name = "value", description = "Set the primitive or string value of a parameter, a method (its return value) or a field") int value(
+        @Parameters(paramLabel = "entity", description = "Entity to set, " + ENTITY_SYNTAX) String entity,
+        @Parameters(paramLabel = "value", description = "Value of the entity") String value) {
       return exit(state.setValueOfEntity(entity, value));
     }
 
-    @Command(name = "field", description = {"Use the value of a field of a class.",
+    @Command(name = "field", description = { "Use the value of a field of a class.",
         "Accessing non static fields is only supported non static fields and methods, "
             + "the field syntax is just the field name.",
         "Accessing static fields is supported via @|italic pkg1/pkg2/…/className[$innerClass]#fieldName|@ "
-            + "static fields of the own class can be accessed via @|italic .#fieldName|@"})
-    int field(@Parameters(paramLabel = "entity", description = "Entity to set, " + ENTITY_SYNTAX) String entity,
-        @Parameters(paramLabel = "ref", description = "Reference to a field which's value is used") String ref){
+            + "static fields of the own class can be accessed via @|italic .#fieldName|@" }) int field(
+        @Parameters(paramLabel = "entity", description = "Entity to set, " + ENTITY_SYNTAX) String entity,
+        @Parameters(paramLabel = "ref", description = "Reference to a field which's value is used") String ref) {
       return exit(state.setRefValueOfEntity(entity, ref));
     }
 
-    @Command(name = "tag", description = "Select the @|italic @SetValue|@ annotation with the given tag")
-    int tag(@Parameters(paramLabel = "tag", description = "An empty tag matches all annotations without a tag", arity = "1") String tag){
+    @Command(name = "tag", description = "Select the @|italic @SetValue|@ annotation with the given tag") int tag(
+        @Parameters(paramLabel = "tag", description = "An empty tag matches all annotations without a tag", arity = "1") String tag) {
       List<Pair<String, ValueToSet>> pairs = state.selectSetValueAnnotations(tag);
-      if (pairs.isEmpty()){
+      if (pairs.isEmpty()) {
         parent.log("No annotations found");
         return ExitCode.SOFTWARE;
       }
@@ -440,21 +442,19 @@ public class ImprovedCLI {
       return 0;
     }
 
-    @Command(name = "listEntities", description = "List the entities that be set with their types")
-    int listEntities(@Parameters(paramLabel = "regexp", defaultValue = ".*", description = ENTITY_REGEXP)
-        String regexp){
+    @Command(name = "listEntities", description = "List the entities that be set with their types") int listEntities(
+        @Parameters(paramLabel = "regexp", defaultValue = ".*", description = ENTITY_REGEXP) String regexp) {
       for (Pair<String, String> settableEntity : state.getSettableEntities(regexp)) {
         parent.out.println(settableEntity.getFirst() + ": " + settableEntity.getSecond());
       }
       return 0;
     }
 
-    @Command(name = "listAnnotated", description = "List all @|italic @SetValue|@ annotations that contain a specific tag")
-    static class ListAnnsCommand implements Runnable {
+    @Command(name = "listAnnotated", description = "List all @|italic @SetValue|@ annotations that contain a specific tag") static class ListAnnsCommand
+        implements Runnable {
       @ParentCommand SetValueCommands parent;
 
-      @Parameters(description = "Tag that has to be included in the @|italic tags |@ attribute in the annotation of each entity")
-      String tag;
+      @Parameters(description = "Tag that has to be included in the @|italic tags |@ attribute in the annotation of each entity") String tag;
 
       @Override public void run() {
         for (Pair<String, ValueToSet> settableEntity : parent.state.getSetValueAnnotations(tag)) {
@@ -463,20 +463,20 @@ public class ImprovedCLI {
       }
     }
 
-    @Command(name = "current", description = "List all currently set values with their value")
-    static class ListCommand implements Runnable {
-      @ParentCommand
-      SetValueCommands parent;
+    @Command(name = "current", description = "List all currently set values with their value") static class ListCommand
+        implements Runnable {
+      @ParentCommand SetValueCommands parent;
+
       @Override public void run() {
         for (Pair<String, Pair<String, ValueToSet.Mode>> pair : parent.state.getSetValues()) {
-          parent.parent.out.println(pair.getFirst() + ": " + pair.getSecond().getFirst() + " " + pair.getSecond().getSecond().toString().toLowerCase());
+          parent.parent.out.println(
+              pair.getFirst() + ": " + pair.getSecond().getFirst() + " " + pair.getSecond().getSecond().toString().toLowerCase());
         }
       }
     }
 
-    @Command(description = "Remove the set values for the matching entities")
-    boolean remove(@Parameters(paramLabel = "regexp", defaultValue = ".*", description = ENTITY_REGEXP)
-        String regexp){
+    @Command(description = "Remove the set values for the matching entities") boolean remove(
+        @Parameters(paramLabel = "regexp", defaultValue = ".*", description = ENTITY_REGEXP) String regexp) {
       List<Pair<String, Pair<String, ValueToSet.Mode>>> removed = this.state.getSetValues().stream()
           .filter(p -> p.getFirst().matches(regexp)).collect(Collectors.toList());
       for (Pair<String, Pair<String, ValueToSet.Mode>> pair : removed) {
@@ -494,41 +494,37 @@ public class ImprovedCLI {
     List<String> getPossibleEntryMethods(String regexp);
 
     /**
-     *
      * @return (tag, method)
      */
     List<Pair<String, String>> getPossibleEntryPoints();
 
-
     boolean setEntryMethod(String method);
+
     String setEntryPoint(String tag);
 
     String getCurrentEntry();
   }
 
-  @Command(name="entry", description = "Select the entry point",
-      subcommands = {EntryPointCommand.ListEntryPoints.class, EntryPointCommand.CurrentEntryPoint.class})
-  static class EntryPointCommand implements Callable<Integer> {
+  @Command(name = "entry", description = "Select the entry point", subcommands = { EntryPointCommand.ListEntryPoints.class,
+      EntryPointCommand.CurrentEntryPoint.class }) static class EntryPointCommand implements Callable<Integer> {
 
     @Spec Model.CommandSpec spec;
 
-    @ParentCommand
-    CliCommands parent;
+    @ParentCommand CliCommands parent;
 
-    @State
-    EntryPointEnabled state;
+    @State EntryPointEnabled state;
 
-    @Command(description = "List the possible entry methods")
-    void list(@Parameters(paramLabel = "regexp", defaultValue = ".*",
-              description = "Regular expression for filtering, has to match the string representation of a method, " + METHOD_SYNTAX)
-        String regexp){
+    @Command(description = "List the possible entry methods") void list(
+        @Parameters(paramLabel = "regexp", defaultValue = ".*", description =
+            "Regular expression for filtering, has to match the string representation of a method, "
+                + METHOD_SYNTAX) String regexp) {
       for (String possibleEntryMethod : state.getPossibleEntryMethods(regexp)) {
         parent.out.println(possibleEntryMethod);
       }
     }
 
-    @Command(name = "listAnnotated", description = "List all annotated entry points with their tag")
-    static class ListEntryPoints implements Runnable {
+    @Command(name = "listAnnotated", description = "List all annotated entry points with their tag") static class ListEntryPoints
+        implements Runnable {
       @ParentCommand EntryPointCommand parent;
 
       @Override public void run() {
@@ -538,8 +534,8 @@ public class ImprovedCLI {
       }
     }
 
-    @Command(name = "current", description = "Print the currently used entry method")
-    static class CurrentEntryPoint implements Callable<Integer> {
+    @Command(name = "current", description = "Print the currently used entry method") static class CurrentEntryPoint
+        implements Callable<Integer> {
       @ParentCommand EntryPointCommand parent;
 
       @Override public Integer call() throws Exception {
@@ -553,10 +549,10 @@ public class ImprovedCLI {
       }
     }
 
-    @Command(description = "Select an entry point")
-    int select(@Parameters(paramLabel = "method or tag", description = "Either a method (" + METHOD_SYNTAX + ") or the tag "
-        + "that a single entry point has in its annotation") String methodOrTag){
-      if (state.setEntryPoint(methodOrTag) == null){
+    @Command(description = "Select an entry point") int select(
+        @Parameters(paramLabel = "method or tag", description = "Either a method (" + METHOD_SYNTAX + ") or the tag "
+            + "that a single entry point has in its annotation") String methodOrTag) {
+      if (state.setEntryPoint(methodOrTag) == null) {
         return exit(state.setEntryMethod(methodOrTag));
       }
       return 0;
@@ -572,15 +568,18 @@ public class ImprovedCLI {
      * @return [(entity, level)]
      */
     List<Pair<String, String>> getSinkAnnotations(String tag);
+
     /**
      * @return [(entity, level)]
      */
     List<Pair<String, String>> getSourceAnnotations(String tag);
+
     List<String> getAnnotatableEntities(String regexp);
+
     /**
      * @return [(entity, level)]
      */
-    default List<Pair<String, String>> selectSourceAnnotations(String tag){
+    default List<Pair<String, String>> selectSourceAnnotations(String tag) {
       List<Pair<String, String>> anns = getSourceAnnotations(tag);
       anns.forEach(a -> selectSource(a.getFirst(), a.getSecond()));
       return anns;
@@ -589,46 +588,53 @@ public class ImprovedCLI {
     /**
      * @return [(entity, level)]
      */
-    default List<Pair<String, String>> selectSinkAnnotations(String tag){
+    default List<Pair<String, String>> selectSinkAnnotations(String tag) {
       List<Pair<String, String>> anns = getSinkAnnotations(tag);
       anns.forEach(a -> selectSink(a.getFirst(), a.getSecond()));
       return anns;
     }
+
     boolean selectSource(String entity, String level);
+
     boolean selectSink(String entity, String level);
+
     /**
      * @return [(entity, level)]
      */
     List<Pair<String, String>> getSources();
+
     /**
      * @return [(entity, level)]
      */
     List<Pair<String, String>> getSinks();
+
     boolean removeSinks(List<String> programParts);
+
     boolean removeSources(List<String> programParts);
   }
 
   static interface ClassSinksEnabled {
     boolean addSinkClass(String klass);
+
     List<String> searchClasses(String regexp);
+
     List<String> getSinkClasses();
+
     boolean removeSinkClasses(List<String> sinkClasses);
   }
 
-  @Command(name = "classSinks", description = "Use whole classes as sinks")
-  static class AddClassSinksCommand implements Callable<Integer> {
+  @Command(name = "classSinks", description = "Use whole classes as sinks") static class AddClassSinksCommand
+      implements Callable<Integer> {
 
     @Spec Model.CommandSpec spec;
 
-    @ParentCommand
-    CliCommands parent;
+    @ParentCommand CliCommands parent;
 
-    @State
-    ClassSinksEnabled state;
+    @State ClassSinksEnabled state;
 
     @Command(name = "select", description = "Use parameters (except @|italic this|@) of all methods that belong to the "
-        + "specified class or sub classes as sinks")
-    boolean select(@Parameters(paramLabel = "class", description = "Byte code class name") String klass){
+        + "specified class or sub classes as sinks") boolean select(
+        @Parameters(paramLabel = "class", description = "Byte code class name") String klass) {
       return state.addSinkClass(klass);
     }
 
@@ -731,8 +737,8 @@ public class ImprovedCLI {
       return 0;
     }
 
-    @Command(name = "current", description = "List the current ${PARENT-COMMAND-NAME} with their level")
-    static class CurrentCommand implements Runnable {
+    @Command(name = "current", description = "List the current ${PARENT-COMMAND-NAME} with their level") static class CurrentCommand
+        implements Runnable {
       @ParentCommand SinksCommand parent;
 
       @Override public void run() {
@@ -742,13 +748,12 @@ public class ImprovedCLI {
       }
     }
 
-    @Override
-    public Integer call() {
+    @Override public Integer call() {
       return parent.printUsage(spec);
     }
 
-    @Command(description = "Remove the ${PARENT-COMMAND-NAME} that belong to the selected entities")
-    boolean remove(@Parameters(paramLabel = "regexp", description = ENTITY_REGEXP) String regexp){
+    @Command(description = "Remove the ${PARENT-COMMAND-NAME} that belong to the selected entities") boolean remove(
+        @Parameters(paramLabel = "regexp", description = ENTITY_REGEXP) String regexp) {
       List<Pair<String, String>> removed = this.get().stream().filter(p -> p.getFirst().matches(regexp))
           .collect(Collectors.toList());
       for (Pair<String, String> pair : removed) {
@@ -811,8 +816,8 @@ public class ImprovedCLI {
     boolean removeDeclassifications(List<String> programParts);
   }
 
-  @Command(name = "declass", description = "Annotate declassificators", subcommands = {DeclassificationsCommand.CurrentCommand.class})
-  static class DeclassificationsCommand implements Callable<Integer> {
+  @Command(name = "declass", description = "Annotate declassificators", subcommands = {
+      DeclassificationsCommand.CurrentCommand.class }) static class DeclassificationsCommand implements Callable<Integer> {
 
     @Spec Model.CommandSpec spec;
 
@@ -839,14 +844,13 @@ public class ImprovedCLI {
       parent.printList(state.getAnnotatableEntities(regexp));
     }
 
-    @Command(name = "select", description = "Select declassifications")
-    int selectEOrT(@Parameters(paramLabel = "tag or entity", description = "Tag or entity (" + ENTITY_SYNTAX + ")")
-        String tagOrEntity,
+    @Command(name = "select", description = "Select declassifications") int selectEOrT(
+        @Parameters(paramLabel = "tag or entity", description = "Tag or entity (" + ENTITY_SYNTAX + ")") String tagOrEntity,
         @Parameters(paramLabel = "level", defaultValue = "", description = "From security level") String fromLevel,
-        @Parameters(paramLabel = "level", defaultValue = "", description = "To security level") String toLevel){
-      if (!state.selectDeclassification(tagOrEntity, fromLevel, toLevel)){
+        @Parameters(paramLabel = "level", defaultValue = "", description = "To security level") String toLevel) {
+      if (!state.selectDeclassification(tagOrEntity, fromLevel, toLevel)) {
         List<Triple<String, String, String>> strings = state.selectDeclassificationAnnotations(tagOrEntity);
-        if (strings.isEmpty()){
+        if (strings.isEmpty()) {
           parent.log("No annotation found");
           return ExitCode.SOFTWARE;
         }
@@ -1049,9 +1053,9 @@ public class ImprovedCLI {
         return line.getSubcommands().keySet().stream().map(c -> getHelp(line, c)).collect(Collectors.joining("\n\n"));
       }
       CommandLine subLine = line.getSubcommands().get(command);
-      if (deep){
-        return Stream.concat(Stream.of(subLine.getUsageMessage()),
-            subLine.getSubcommands().keySet().stream().map(c -> getHelp(subLine, c)))
+      if (deep) {
+        return Stream
+            .concat(Stream.of(subLine.getUsageMessage()), subLine.getSubcommands().keySet().stream().map(c -> getHelp(subLine, c)))
             .collect(Collectors.joining("\n"));
       }
       return subLine.getUsageMessage();
@@ -1135,135 +1139,134 @@ public class ImprovedCLI {
       }
     }
 
-      /**
-       * Builds a command line based on the commands in this class that have a field that is annotated with
-       * {@link State} and for which the passed state object is assignable to this field.
-       * Commands that have a constructor with a single argument (annotated with {@link State}) are also supported.
-       *
-       * Mixins from fields annotated with {@link DynamicMixin} are added (for commands) as well as mixins
-       * from {@code get[command, capitalized][sub command, capitalized]CommandOptions()} (for sub commands) and
-       * from {@code get[command, capitalized]CommandOptions()} of the state.
-       *
-       * Sets the annotated fields accordingly.
-       *
-       * @return command line, using the {@link CliCommands} class as a base command
-       */
-      CommandLine buildCommandLine(){
-        CommandLine cli = new CommandLine(new CliCommands(verbose));
-        for (Class<?> klass : commandClasses) {
-          if (!Runnable.class.isAssignableFrom(klass) && !Callable.class.isAssignableFrom(klass)){
-            continue;
-          }
-          createForState(klass, state).ifPresent(cmd -> {
-            cli.addSubcommand(cmd);
-            CommandLine cmdLine = cli.getSubcommands().get(getNameOfCommandObject(cli, cmd));
-            Arrays.stream(klass.getDeclaredFields()).filter(f -> f.isAnnotationPresent(DynamicMixin.class)).forEach(f -> {
-              try {
-                cmdLine.addMixin(f.getName(), f.get(cmd));
-              } catch (IllegalAccessException e) {
-                e.printStackTrace();
-              }
-            });
-            cmdLine.getSubcommands().forEach((s, subCmdLine) -> {
-              addMixinFromMethod(subCmdLine, cmdLine.getCommandName(), subCmdLine.getCommandName());
-            });
-            addMixinFromMethod(cmdLine, cmdLine.getCommandName());
-          });
+    /**
+     * Builds a command line based on the commands in this class that have a field that is annotated with
+     * {@link State} and for which the passed state object is assignable to this field.
+     * Commands that have a constructor with a single argument (annotated with {@link State}) are also supported.
+     * <p>
+     * Mixins from fields annotated with {@link DynamicMixin} are added (for commands) as well as mixins
+     * from {@code get[command, capitalized][sub command, capitalized]CommandOptions()} (for sub commands) and
+     * from {@code get[command, capitalized]CommandOptions()} of the state.
+     * <p>
+     * Sets the annotated fields accordingly.
+     *
+     * @return command line, using the {@link CliCommands} class as a base command
+     */
+    CommandLine buildCommandLine() {
+      CommandLine cli = new CommandLine(new CliCommands(verbose));
+      for (Class<?> klass : commandClasses) {
+        if (!Runnable.class.isAssignableFrom(klass) && !Callable.class.isAssignableFrom(klass)) {
+          continue;
         }
-        cli.getSubcommands().forEach((s, l) -> {
-          if (!l.getMixins().containsKey("help")) {
-            l.addMixin("help", new HelpOptions());
-          }
-        });
-        return cli;
-      }
-
-      void addMixinFromMethod(CommandLine cmdLine, String... methodParts){
-        String methodName = "get" + Arrays.stream(methodParts)
-            .map(s -> s.substring(0, 1).toUpperCase() + s.substring(1))
-            .collect(Collectors.joining("")) + "CommandOptions";
-        try {
-          cmdLine.addMixin(state.getClass().getSimpleName(), state.getClass().getMethod(methodName).invoke(state));
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-        }
-      }
-
-      String getNameOfCommandObject(CommandLine parent, Object cmd){
-        return parent.getSubcommands().entrySet().stream().filter(e -> e.getValue().getCommand() == cmd).map(Map.Entry::getKey).findFirst().get();
-      }
-
-      Optional<Field> getStateField(Class<?> commandClass, Class<?> stateClass){
-        return Arrays.stream(commandClass.getDeclaredFields())
-            .filter(f -> f.getAnnotationsByType(State.class).length > 0 && f.getType().isAssignableFrom(stateClass)).findFirst();
-      }
-
-      Optional<Constructor<?>> getStateConstructor(Class<?> commandClass, Class<?> stateClass){
-        return Arrays.stream(commandClass.getDeclaredConstructors())
-            .filter(c -> c.getParameterCount() == 1 && c.getParameterTypes()[0].isAssignableFrom(stateClass)
-                && c.getParameters()[0].isAnnotationPresent(State.class)).findFirst();
-      }
-
-      <T,S> Optional<?> createForState(Class<T> commandClass, S state){
-        Optional<Field> stateField = getStateField(commandClass, state.getClass());
-        Optional<Constructor<?>> stateConstructor = getStateConstructor(commandClass, state.getClass());
-        assert !stateField.isPresent() || !stateConstructor.isPresent();
-        return Optional.ofNullable(stateConstructor.map(s -> {
-          try {
-            return (Object)s.newInstance(state);
-          } catch (InstantiationException | InvocationTargetException | IllegalAccessException e) {
-            e.printStackTrace();
-          }
-          return null;
-        }).orElse(stateField.map(f -> {
-          try {
-            Object cmd = commandClass.newInstance();
-            f.set(cmd, state);
-            return cmd;
-          } catch (InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
-          }
-          return null;
-        }).orElse(null)));
-      }
-
-      void runInteractive(CommandLine cli){
-        try {
-          // set up the completion
-          Level level = Logger.getLogger("org.jline").getLevel();
-          Logger.getLogger("org.jline").setLevel(Level.OFF); // disable warnings for dumb terminals
-          Terminal terminal = TerminalBuilder.builder().build();
-          Logger.getLogger("org.jline").setLevel(level);
-          LineReader reader = LineReaderBuilder.builder()
-              .terminal(terminal)
-              .completer(new PicocliJLineCompleter(cli.getCommandSpec()))
-              .parser(new DefaultParser())
-              .build();
-          ((CliCommands)cli.getCommand()).setReader(reader);
-          String prompt = "joana> ";
-          String rightPrompt = null;
-
-          // start the shell and process input until the user quits with Ctl-D
-          String line;
-          boolean lastSuccessful = true;
-          while (true) {
+        createForState(klass, state).ifPresent(cmd -> {
+          cli.addSubcommand(cmd);
+          CommandLine cmdLine = cli.getSubcommands().get(getNameOfCommandObject(cli, cmd));
+          Arrays.stream(klass.getDeclaredFields()).filter(f -> f.isAnnotationPresent(DynamicMixin.class)).forEach(f -> {
             try {
-              line = reader.readLine(Ansi.ansi().a(Ansi.Attribute.RESET).fg(lastSuccessful ? Ansi.Color.GREEN : Ansi.Color.RED).boldOff().render(prompt).toString(), null, (MaskingCallback) null, null);
-              ParsedLine pl = reader.getParser().parse(line, 0);
-              String[] arguments = pl.words().toArray(new String[0]);
-              lastSuccessful = cli.execute(arguments) == 0;
-            } catch (UserInterruptException e) {
-              // Ignore
-            } catch (EndOfFileException e) {
-              return;
+              cmdLine.addMixin(f.getName(), f.get(cmd));
+            } catch (IllegalAccessException e) {
+              e.printStackTrace();
             }
-          }
-        } catch (Throwable t) {
-          t.printStackTrace();
-        }
+          });
+          cmdLine.getSubcommands().forEach((s, subCmdLine) -> {
+            addMixinFromMethod(subCmdLine, cmdLine.getCommandName(), subCmdLine.getCommandName());
+          });
+          addMixinFromMethod(cmdLine, cmdLine.getCommandName());
+        });
       }
+      cli.getSubcommands().forEach((s, l) -> {
+        if (!l.getMixins().containsKey("help")) {
+          l.addMixin("help", new HelpOptions());
+        }
+      });
+      return cli;
+    }
+
+    void addMixinFromMethod(CommandLine cmdLine, String... methodParts) {
+      String methodName = "get" + Arrays.stream(methodParts).map(s -> s.substring(0, 1).toUpperCase() + s.substring(1))
+          .collect(Collectors.joining("")) + "CommandOptions";
+      try {
+        cmdLine.addMixin(state.getClass().getSimpleName(), state.getClass().getMethod(methodName).invoke(state));
+      } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+      }
+    }
+
+    String getNameOfCommandObject(CommandLine parent, Object cmd) {
+      return parent.getSubcommands().entrySet().stream().filter(e -> e.getValue().getCommand() == cmd).map(Map.Entry::getKey)
+          .findFirst().get();
+    }
+
+    Optional<Field> getStateField(Class<?> commandClass, Class<?> stateClass) {
+      return Arrays.stream(commandClass.getDeclaredFields())
+          .filter(f -> f.getAnnotationsByType(State.class).length > 0 && f.getType().isAssignableFrom(stateClass)).findFirst();
+    }
+
+    Optional<Constructor<?>> getStateConstructor(Class<?> commandClass, Class<?> stateClass) {
+      return Arrays.stream(commandClass.getDeclaredConstructors()).filter(
+          c -> c.getParameterCount() == 1 && c.getParameterTypes()[0].isAssignableFrom(stateClass) && c.getParameters()[0]
+              .isAnnotationPresent(State.class)).findFirst();
+    }
+
+    <T, S> Optional<?> createForState(Class<T> commandClass, S state) {
+      Optional<Field> stateField = getStateField(commandClass, state.getClass());
+      Optional<Constructor<?>> stateConstructor = getStateConstructor(commandClass, state.getClass());
+      assert !stateField.isPresent() || !stateConstructor.isPresent();
+      return Optional.ofNullable(stateConstructor.map(s -> {
+        try {
+          return (Object) s.newInstance(state);
+        } catch (InstantiationException | InvocationTargetException | IllegalAccessException e) {
+          e.printStackTrace();
+        }
+        return null;
+      }).orElse(stateField.map(f -> {
+        try {
+          Object cmd = commandClass.newInstance();
+          f.set(cmd, state);
+          return cmd;
+        } catch (InstantiationException | IllegalAccessException e) {
+          e.printStackTrace();
+        }
+        return null;
+      }).orElse(null)));
+    }
+
+    void runInteractive(CommandLine cli) {
+      try {
+        // set up the completion
+        Level level = Logger.getLogger("org.jline").getLevel();
+        Logger.getLogger("org.jline").setLevel(Level.OFF); // disable warnings for dumb terminals
+        Terminal terminal = TerminalBuilder.builder().build();
+        Logger.getLogger("org.jline").setLevel(level);
+        LineReader reader = LineReaderBuilder.builder().terminal(terminal)
+            .completer(new PicocliJLineCompleter(cli.getCommandSpec())).parser(new DefaultParser()).build();
+        ((CliCommands) cli.getCommand()).setReader(reader);
+        String prompt = "joana> ";
+        String rightPrompt = null;
+
+        // start the shell and process input until the user quits with Ctl-D
+        String line;
+        boolean lastSuccessful = true;
+        while (true) {
+          try {
+            line = reader.readLine(
+                Ansi.ansi().a(Ansi.Attribute.RESET).fg(lastSuccessful ? Ansi.Color.GREEN : Ansi.Color.RED).boldOff().render(prompt)
+                    .toString(), null, (MaskingCallback) null, null);
+            ParsedLine pl = reader.getParser().parse(line, 0);
+            String[] arguments = pl.words().toArray(new String[0]);
+            lastSuccessful = cli.execute(arguments) == 0;
+          } catch (UserInterruptException e) {
+            // Ignore
+          } catch (EndOfFileException e) {
+            return;
+          }
+        }
+      } catch (Throwable t) {
+        t.printStackTrace();
+      }
+    }
   }
 
-  private static int exit(boolean successful){
+  private static int exit(boolean successful) {
     return successful ? 0 : ExitCode.SOFTWARE;
   }
 
@@ -1324,7 +1327,8 @@ public class ImprovedCLI {
     System.exit(new CommandLine(command).execute(args));
   }
 
-  static class Dummy implements ClassPathEnabled, SetValueEnabled, SinksAndSourcesEnabled, EntryPointEnabled, RunAnalysisEnabled<Object> {
+  static class Dummy
+      implements ClassPathEnabled, SetValueEnabled, SinksAndSourcesEnabled, EntryPointEnabled, RunAnalysisEnabled<Object> {
     @Override public boolean setClassPath(String classPath) {
       return false;
     }
@@ -1434,10 +1438,10 @@ public class ImprovedCLI {
     }
 
     static class Dummy2 {
-      @Option(names = "bla")
-      int bla;
-      @Command
-      void test(){}
+      @Option(names = "bla") int bla;
+
+      @Command void test() {
+      }
     }
   }
 

@@ -21,16 +21,21 @@ package edu.kit.joana.ui.ifc.sdg.graphviewer;
 import java.awt.Font;
 import java.io.File;
 import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
-import javax.swing.UIDefaults;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.*;
 
+import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.model.CallGraph;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.model.GraphViewerModel;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.AdjustableTranslator;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Translator;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.util.Debug;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.util.SDGUtils;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.MainFrame;
 
 /**
@@ -103,7 +108,11 @@ public final class GraphViewer {
 	 * @return the current instance
 	 */
 	public static GraphViewer getInstance() {
-		if (instance == null) {
+		return getInstance(false);
+	}
+
+	public static GraphViewer getInstance(boolean createNew) {
+		if (instance == null || createNew) {
 			instance = new GraphViewer();
 		}
 		return instance;
@@ -135,13 +144,7 @@ public final class GraphViewer {
 
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (UnsupportedLookAndFeelException e) {
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
 			e.printStackTrace();
 		}
 
@@ -167,6 +170,38 @@ public final class GraphViewer {
 		} else {
 			GraphViewer.getInstance().frame.setVisible(true);
 		}
+	}
+
+	/**
+	 * Launch the graph viewer for a given sdg
+	 */
+	public static void launch(SDG sdg, boolean newInstance, Runnable runAfterInit){
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
+			e.printStackTrace();
+		}
+		GraphViewer viewer = GraphViewer.getInstance(newInstance);
+		viewer.frame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+		viewer.frame.setVisible(true);
+		viewer.frame.getModel().openSDG(sdg);
+		runAfterInit.run();
+		while (viewer.frame.isVisible()) {
+			Thread.yield();
+		}
+	}
+
+	/**
+	 * Show the graph for the passed method
+	 * @param proc
+	 */
+	public void showMethod(int proc){
+		frame.getModel().openPDG(frame.getGraphPane().getSelectedGraph(), proc);
+	}
+
+	public List<SDGNode> getMethods(){
+		return SDGUtils.callGraph(frame.getGraphPane().getSelectedGraph().getCompleteSDG()).vertexSet().stream()
+				.filter(n -> !n.getBytecodeName().isEmpty()).collect(Collectors.toList());
 	}
 
 	/**

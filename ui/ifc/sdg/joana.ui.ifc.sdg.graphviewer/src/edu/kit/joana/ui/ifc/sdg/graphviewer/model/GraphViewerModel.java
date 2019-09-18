@@ -132,15 +132,17 @@ public class GraphViewerModel {
 	public void openSDG(File file) {
 		try {
 			// this SDG shall contain the filtered graph
-			SDG sdg = SDG.readFromAndUseLessHeap(new FileInputStream(file));
-			SDG callGraph = SDGUtils.callGraph(sdg);
-//			setPdgAbsolutePath(file.getParent());
-			CallGraph cg = new CallGraph(callGraph, sdg);
-			GraphViewerModelEvent evt = new GraphViewerModelEvent(this, GraphViewerModelEvent.CALL_GRAPH_ADDED, cg);
-			fireGraphModelChanged(evt);
-
+			openSDG(SDG.readFromAndUseLessHeap(new FileInputStream(file)));
 		} catch (IOException e) {
 			e.printStackTrace(); // TODO fehlerbehandlung
 		}
+	}
+
+	public void openSDG(SDG sdg) {
+		SDG callGraph = SDGUtils.callGraph(sdg);
+		//			setPdgAbsolutePath(file.getParent());
+		CallGraph cg = new CallGraph(callGraph, sdg);
+		GraphViewerModelEvent evt = new GraphViewerModelEvent(this, GraphViewerModelEvent.CALL_GRAPH_ADDED, cg);
+		fireGraphModelChanged(evt);
 	}
 }

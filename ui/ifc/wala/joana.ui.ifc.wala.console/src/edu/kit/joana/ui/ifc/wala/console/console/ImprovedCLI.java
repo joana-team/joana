@@ -1,13 +1,17 @@
 package edu.kit.joana.ui.ifc.wala.console.console;
 
+import com.beust.jcommander.Parameter;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import edu.kit.joana.api.sdg.*;
 import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.setter.ValueToSet;
 import edu.kit.joana.ui.annotations.PruningPolicy;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.GraphViewer;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.model.Graph;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.Triple;
 import edu.kit.joana.wala.core.SDGBuilder;
@@ -24,6 +28,7 @@ import static picocli.CommandLine.*;
 
 import picocli.shell.jline3.PicocliJLineCompleter;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -944,6 +949,57 @@ public class ImprovedCLI {
         return ExitCode.SOFTWARE;
       }
       return exit(state.run(mixin));
+    }
+  }
+
+  static interface ViewEnabled {
+    SDG getSDG();
+  }
+
+  @Command(name = "view", description = "View the current SDG")
+  static class ViewCommand implements Callable<Integer> {
+
+    @ParentCommand
+    CliCommands parent;
+
+    @State
+    ViewEnabled state;
+
+    @Option(names = "--new", description = "Create new viewer instance")
+    boolean newInstance = false;
+
+    @Parameters(paramLabel = "method", defaultValue = "", description = "Optional method, opens a tab in the viewer upon start")
+    String method;
+
+    @Override public Integer call() throws Exception {
+      new Thread(() -> {
+        GraphViewer.launch(state.getSDG(), newInstance, () -> {
+          if (method.length() > 0){
+            if (!show(method)){
+              parent.log(String.format("Method %s not found", method));
+            }
+          }
+        });
+      }).start();
+      return exit(true);
+    }
+
+    @Command(description = "List methods from the call graph")
+    public void methods(@Parameters(paramLabel = "pattern", description = "Regexp pattern for filtering", defaultValue = ".*")
+        String pattern){
+      parent.printList(GraphViewer.getInstance().getMethods().stream().map(SDGNode::getLabel).filter(s -> s.matches(pattern))
+          .collect(Collectors.toList()));
+    }
+
+    boolean show(String method){
+      GraphViewer viewer = GraphViewer.getInstance();
+      Optional<SDGNode> first = viewer.getMethods().stream().filter(n -> n.getLabel().equals(method) ||
+          n.getBytecodeName().equals(method)).findFirst();
+      if (first.isPresent()){
+        viewer.showMethod(first.get().getProc());
+        return true;
+      }
+      return false;
     }
   }
 

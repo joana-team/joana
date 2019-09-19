@@ -33,7 +33,7 @@ public class ExtendedAnalysisOptions extends AnalysisOptions {
 	}
 
 	public ExtendedAnalysisOptions(final MethodFilter filter, final AnalysisScope scope, final Iterable<? extends Entrypoint> e) {
-		this(filter, scope, e, new UninitializedFieldHelperOptions());
+		this(filter, scope, e, UninitializedFieldHelperOptions.createEmpty());
 	}
 
 	public ExtendedAnalysisOptions(final AnalysisScope scope, final Iterable<? extends Entrypoint> e) {

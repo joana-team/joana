@@ -58,7 +58,7 @@ public class SDGConfig {
 	private boolean skipSDGProgramPart = false;
 	private ControlDependenceVariant controlDependenceVariant = SDGBuilder.defaultControlDependenceVariant;
 	private boolean isParallel = true;
-	private UninitializedFieldHelperOptions fieldHelperOptions = new UninitializedFieldHelperOptions();
+	private UninitializedFieldHelperOptions fieldHelperOptions = UninitializedFieldHelperOptions.createEmpty();
 
 	public SDGConfig(String classPath, String entryMethod, Stubs stubsPath) {
 		this(classPath, true, entryMethod, stubsPath, ExceptionAnalysis.INTERPROC, FieldPropagation.OBJ_GRAPH, PointsToPrecision.INSTANCE_BASED, false, false, MHPType.NONE);

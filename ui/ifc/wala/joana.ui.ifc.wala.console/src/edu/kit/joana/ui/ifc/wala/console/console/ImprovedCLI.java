@@ -1,8 +1,8 @@
 package edu.kit.joana.ui.ifc.wala.console.console;
 
-import com.beust.jcommander.Parameter;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
-import com.ibm.wala.ipa.callgraph.CallGraph;
+import com.ibm.wala.ipa.callgraph.UninitializedFieldHelperOptions;
+import com.ibm.wala.types.TypeReference;
 import edu.kit.joana.api.sdg.*;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -12,7 +12,6 @@ import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.setter.ValueToSet;
 import edu.kit.joana.ui.annotations.PruningPolicy;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.GraphViewer;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.model.Graph;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.util.SDGUtils;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.Triple;
@@ -25,12 +24,8 @@ import org.jline.reader.impl.LineReaderImpl;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import picocli.CommandLine;
-
-import static picocli.CommandLine.*;
-
 import picocli.shell.jline3.PicocliJLineCompleter;
 
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -47,6 +42,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static picocli.CommandLine.*;
 
 /**
  * Building a better CLI using picocli and JLine.
@@ -240,9 +237,9 @@ public class ImprovedCLI {
 
     boolean usesOnlyDirectFlow();
 
-    void setUninitializedFieldTypeRegexp(String regexp);
+    void setUninitializedFieldTypeMatcher(UninitializedFieldHelperOptions.FieldTypeMatcher fieldTypeMatcher);
 
-    String uninitializedFieldTypeRegexp();
+    UninitializedFieldHelperOptions.FieldTypeMatcher getUninitializedFieldTypeMatcher();
   }
 
   public static final class BooleanCompletionCandidates implements Iterable<String> {
@@ -288,8 +285,21 @@ public class ImprovedCLI {
     }
 
     @Command
-    void uninitializedFieldTypeRegexp(@Parameters(paramLabel = "regexp") String regexp){
-      this.state.setUninitializedFieldTypeRegexp(regexp);
+    void uninitializedFieldTypeRegexp(@Parameters(paramLabel = "regexp") String regexp,
+        @Option(names = "owner", defaultValue = "") String owner, @Option(names = "field", defaultValue = "") String field){
+      this.state.setUninitializedFieldTypeMatcher(new UninitializedFieldHelperOptions.FieldTypeMatcher() {
+        @Override public boolean matchType(TypeReference typeReference) {
+          return typeReference.getName().toString().matches(regexp);
+        }
+
+        @Override public boolean matchOwnerType(TypeReference typeReference) {
+          return owner.isEmpty() ? matchType(typeReference) : typeReference.getName().toString().matches(owner);
+        }
+
+        @Override public boolean matchFieldType(TypeReference typeReference) {
+          return field.isEmpty() ? matchType(typeReference) : typeReference.getName().toString().matches(field);
+        }
+      });
     }
 
     @Command
@@ -309,7 +319,7 @@ public class ImprovedCLI {
                 Pair.pair("excAnalysis", parent.state.getExcAnalysis()),
                 Pair.pair("pruningPolicy", parent.state.getPruningPolicy()),
                 Pair.pair("onlyDirectFlow", parent.state.usesOnlyDirectFlow()),
-                Pair.pair("uninitializedFieldTypeRegexp", parent.state.uninitializedFieldTypeRegexp()))) {
+                Pair.pair("uninitializedFieldTypeRegexp", parent.state.getUninitializedFieldTypeMatcher()))) {
           System.out.println(String.format("%-20s = %s", p.getFirst(), p.getSecond().toString()));
         }
       }

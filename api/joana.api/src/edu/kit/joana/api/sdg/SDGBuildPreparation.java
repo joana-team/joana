@@ -7,21 +7,6 @@
  */
 package edu.kit.joana.api.sdg;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
-
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheStats;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterators;
 import com.ibm.wala.cfg.exc.intra.MethodState;
 import com.ibm.wala.classLoader.*;
@@ -36,7 +21,6 @@ import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.TypeReference;
-import com.ibm.wala.types.annotations.Annotation;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.collections.Pair;
@@ -45,37 +29,26 @@ import com.ibm.wala.util.config.FileOfClasses;
 import com.ibm.wala.util.config.SetOfClasses;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 import com.ibm.wala.util.strings.StringStuff;
-
-import edu.kit.joana.api.annotations.IFCAnnotation;
-import edu.kit.joana.ifc.sdg.core.IFC;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
-import edu.kit.joana.ui.annotations.*;
 import edu.kit.joana.util.LogUtil;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.util.io.IOFactory;
-import edu.kit.joana.wala.core.CGConsumer;
-import edu.kit.joana.wala.core.ExternalCallCheck;
-import edu.kit.joana.wala.core.NullProgressMonitor;
-import edu.kit.joana.wala.core.SDGBuildArtifacts;
-import edu.kit.joana.wala.core.SDGBuilder;
-import edu.kit.joana.wala.core.SDGBuilder.ControlDependenceVariant;
-import edu.kit.joana.wala.core.SDGBuilder.DynamicDispatchHandling;
-import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
-import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
-import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
-import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
+import edu.kit.joana.wala.core.*;
+import edu.kit.joana.wala.core.SDGBuilder.*;
 import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig;
 import edu.kit.joana.wala.flowless.pointsto.AliasGraph.MayAliasGraph;
 import edu.kit.joana.wala.flowless.spec.java.ast.MethodInfo;
 import edu.kit.joana.wala.summary.SummaryComputationType;
-import edu.kit.joana.wala.util.PrettyWalaNames;
 import edu.kit.joana.wala.util.WALAUtils;
 import edu.kit.joana.wala.util.WriteGraphToDot;
 import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder;
 import gnu.trove.map.hash.TIntObjectHashMap;
+
+import java.io.*;
+import java.util.*;
 
 public final class SDGBuildPreparation {
 
@@ -513,7 +486,7 @@ public final class SDGBuildPreparation {
 		public DynamicDispatchHandling ddisp;
 		public boolean isParallel = true;
 		public ControlDependenceVariant controlDependenceVariant = SDGBuilder.defaultControlDependenceVariant;
-		public UninitializedFieldHelperOptions fieldHelperOptions = new UninitializedFieldHelperOptions();
+		public UninitializedFieldHelperOptions fieldHelperOptions = UninitializedFieldHelperOptions.createEmpty();
 
 		public Config(String name) {
 			this(name, "<no entry defined>", FieldPropagation.OBJ_GRAPH);

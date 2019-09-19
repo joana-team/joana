@@ -7,22 +7,6 @@
  */
 package edu.kit.joana.wala.core;
 
-import java.io.FileNotFoundException;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.function.Function;
-
-import com.ibm.wala.ipa.callgraph.*;
-import org.jgrapht.DirectedGraph;
-
 import com.google.common.collect.Sets;
 import com.ibm.wala.cfg.ControlFlowGraph;
 import com.ibm.wala.cfg.exc.ExceptionPruningAnalysis;
@@ -33,14 +17,11 @@ import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.escape.TrivialMethodEscape;
+import com.ibm.wala.ipa.callgraph.*;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions.ReflectionOptions;
 import com.ibm.wala.ipa.callgraph.impl.DelegatingContextSelector;
 import com.ibm.wala.ipa.callgraph.impl.SubtypesEntrypoint;
-import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
-import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
-import com.ibm.wala.ipa.callgraph.propagation.PropagationCallGraphBuilder;
-import com.ibm.wala.ipa.callgraph.propagation.ReceiverInstanceContext;
-import com.ibm.wala.ipa.callgraph.propagation.SSAContextInterpreter;
+import com.ibm.wala.ipa.callgraph.propagation.*;
 import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
 import com.ibm.wala.ipa.callgraph.pruned.CallGraphPruning;
 import com.ibm.wala.ipa.callgraph.pruned.PrunedCallGraph;
@@ -65,14 +46,9 @@ import com.ibm.wala.util.graph.impl.SparseNumberedGraph;
 import com.ibm.wala.util.intset.EmptyIntSet;
 import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.intset.IntSetUtil;
-
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
-import edu.kit.joana.util.Config;
-import edu.kit.joana.util.Log;
-import edu.kit.joana.util.LogUtil;
-import edu.kit.joana.util.Logger;
-import edu.kit.joana.util.SourceLocation;
+import edu.kit.joana.util.*;
 import edu.kit.joana.wala.core.CallGraph.CallGraphFilter;
 import edu.kit.joana.wala.core.CallGraph.Edge;
 import edu.kit.joana.wala.core.CallGraph.Node;
@@ -95,7 +71,6 @@ import edu.kit.joana.wala.core.params.StaticFieldParams;
 import edu.kit.joana.wala.core.params.objgraph.ModRefCandidates;
 import edu.kit.joana.wala.core.params.objgraph.ObjGraphParams;
 import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig;
-import edu.kit.joana.wala.core.params.objgraph.ObjGraphParams.Options;
 import edu.kit.joana.wala.flowless.util.Util;
 import edu.kit.joana.wala.summary.ISummaryComputer;
 import edu.kit.joana.wala.summary.SummaryComputationType;
@@ -113,6 +88,12 @@ import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
+import org.jgrapht.DirectedGraph;
+
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
+import java.util.*;
+import java.util.function.Function;
 
 
 public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
@@ -2185,7 +2166,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		/**
 		 * Options for creating the static helper for working with uninitialized fields
 		 */
-		public UninitializedFieldHelperOptions fieldHelperOptions = new UninitializedFieldHelperOptions();
+		public UninitializedFieldHelperOptions fieldHelperOptions = UninitializedFieldHelperOptions.createEmpty();
 
 		public SDGBuilderConfig() {
 		}

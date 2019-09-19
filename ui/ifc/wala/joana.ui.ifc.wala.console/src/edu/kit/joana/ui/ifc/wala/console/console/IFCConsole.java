@@ -7,46 +7,13 @@
  */
 package edu.kit.joana.ui.ifc.wala.console.console;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.nio.file.Path;
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
-import javax.xml.stream.XMLStreamException;
-
-import com.ibm.wala.ipa.callgraph.UninitializedFieldHelperOptions;
-import com.ibm.wala.shrikeCT.AnnotationsReader;
-import edu.kit.joana.api.sdg.*;
-import edu.kit.joana.api.sdg.opt.FilePass;
-import edu.kit.joana.api.sdg.opt.PreProcPasses;
-import edu.kit.joana.api.sdg.opt.ProGuardPass;
-import edu.kit.joana.api.sdg.opt.SetValuePass;
-import edu.kit.joana.setter.SearchVisitor;
-import edu.kit.joana.setter.SetValueStore;
-import edu.kit.joana.setter.Tool;
-import edu.kit.joana.setter.ValueToSet;
-import edu.kit.joana.ui.annotations.*;
-
-import com.amihaiemil.eoyaml.Yaml;
-import com.amihaiemil.eoyaml.YamlCollectionDump;
-import com.amihaiemil.eoyaml.YamlMapping;
-import com.amihaiemil.eoyaml.YamlMappingBuilder;
-import com.amihaiemil.eoyaml.YamlSequenceBuilder;
+import com.amihaiemil.eoyaml.*;
 import com.google.common.collect.Multimap;
 import com.ibm.wala.classLoader.IMethod;
+import com.ibm.wala.ipa.callgraph.UninitializedFieldHelperOptions;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
+import com.ibm.wala.shrikeCT.AnnotationsReader;
 import com.ibm.wala.shrikeCT.AnnotationsReader.AnnotationAttribute;
 import com.ibm.wala.shrikeCT.AnnotationsReader.ArrayElementValue;
 import com.ibm.wala.shrikeCT.AnnotationsReader.ConstantElementValue;
@@ -55,48 +22,41 @@ import com.ibm.wala.types.annotations.Annotation;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
-
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.IFCType;
 import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.lattice.BuiltinLattices;
+import edu.kit.joana.api.sdg.*;
+import edu.kit.joana.api.sdg.opt.FilePass;
+import edu.kit.joana.api.sdg.opt.PreProcPasses;
+import edu.kit.joana.api.sdg.opt.ProGuardPass;
+import edu.kit.joana.api.sdg.opt.SetValuePass;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.SecurityNode.SecurityNodeFactory;
 import edu.kit.joana.ifc.sdg.core.conc.DataConflict;
 import edu.kit.joana.ifc.sdg.core.conc.OrderConflict;
-import edu.kit.joana.ifc.sdg.core.violations.AbstractConflictLeak;
-import edu.kit.joana.ifc.sdg.core.violations.IBinaryViolation;
-import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
-import edu.kit.joana.ifc.sdg.core.violations.IUnaryViolation;
-import edu.kit.joana.ifc.sdg.core.violations.IViolation;
-import edu.kit.joana.ifc.sdg.core.violations.IViolationVisitor;
+import edu.kit.joana.ifc.sdg.core.violations.*;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.io.graphml.SDG2GraphML;
-import edu.kit.joana.ifc.sdg.lattice.IEditableLattice;
-import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
-import edu.kit.joana.ifc.sdg.lattice.InvalidLatticeException;
-import edu.kit.joana.ifc.sdg.lattice.LatticeUtil;
-import edu.kit.joana.ifc.sdg.lattice.LatticeValidator;
-import edu.kit.joana.ifc.sdg.lattice.PrecomputedLattice;
-import edu.kit.joana.ifc.sdg.lattice.WrongLatticeDefinitionException;
+import edu.kit.joana.ifc.sdg.lattice.*;
 import edu.kit.joana.ifc.sdg.lattice.impl.EditableLatticeSimple;
 import edu.kit.joana.ifc.sdg.lattice.impl.PowersetLattice;
 import edu.kit.joana.ifc.sdg.lattice.impl.ReversedLattice;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
+import edu.kit.joana.setter.SearchVisitor;
+import edu.kit.joana.setter.SetValueStore;
+import edu.kit.joana.setter.Tool;
+import edu.kit.joana.setter.ValueToSet;
+import edu.kit.joana.ui.annotations.*;
 import edu.kit.joana.ui.ifc.wala.console.console.Pattern.PatternType;
 import edu.kit.joana.ui.ifc.wala.console.gui.tree.ProgramPartToString;
-import edu.kit.joana.ui.ifc.wala.console.io.IFCAnnotationDumper;
-import edu.kit.joana.ui.ifc.wala.console.io.IFCAnnotationReader;
-import edu.kit.joana.ui.ifc.wala.console.io.IFCConsoleOutput;
+import edu.kit.joana.ui.ifc.wala.console.io.*;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCConsoleOutput.Answer;
-import edu.kit.joana.ui.ifc.wala.console.io.InvalidAnnotationFormatException;
-import edu.kit.joana.ui.ifc.wala.console.io.MethodNotFoundException;
-import edu.kit.joana.ui.ifc.wala.console.io.NumberedIFCAnnotationDumper;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.util.Triple;
@@ -109,6 +69,13 @@ import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import picocli.CommandLine;
+
+import javax.xml.stream.XMLStreamException;
+import java.io.*;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static edu.kit.joana.api.sdg.SDGBuildPreparation.searchProgramParts;
 import static edu.kit.joana.ui.ifc.wala.console.console.EntryLocator.getEntryPointIdAttribute;
@@ -418,7 +385,7 @@ public class IFCConsole {
 	/**
 	 * @see UninitializedFieldHelperOptions
 	 */
-	private String uninitializedFieldTypeRegexp = "";
+	private UninitializedFieldHelperOptions.FieldTypeMatcher uninitializedFieldTypeMatcher = typeReference -> false;
 
 	public IFCConsole(BufferedReader in, IFCConsoleOutput out) {
 		this.in = in;
@@ -1735,14 +1702,14 @@ public class IFCConsole {
 			}
 		}
 		if (map.containsKey("uninitializedFieldTypeRegexp")){
-			setUninitializedFieldTypeRegexp((String)((ConstantElementValue)map.get("uninitializedFieldTypeRegexp")).val);
+			setUninitializedFieldTypeMatcher(t -> t.getName().toString().matches((String)((ConstantElementValue)map.get("uninitializedFieldTypeRegexp")).val));
 		}
 		return true;
 	}
 
-	public void setUninitializedFieldTypeRegexp(String regexp){
-		recomputeSDG |= !uninitializedFieldTypeRegexp.equals(regexp);
-	  this.uninitializedFieldTypeRegexp = regexp;
+	public void setUninitializedFieldTypeMatcher(UninitializedFieldHelperOptions.FieldTypeMatcher fieldTypeMatcher){
+		recomputeSDG |= !uninitializedFieldTypeMatcher.equals(fieldTypeMatcher);
+	  this.uninitializedFieldTypeMatcher = fieldTypeMatcher;
 	}
 	
 	private boolean parseClassSinks(ArrayElementValue val, Consumer<List<String>> classSinkConsumer) {
@@ -2536,7 +2503,7 @@ public class IFCConsole {
 			config.setExceptionAnalysis(exA);
 			config.setPointsToPrecision(pointsTo);
 			config.setFieldPropagation(FieldPropagation.OBJ_GRAPH_SIMPLE_PROPAGATION);
-			config.setFieldHelperOptions(new UninitializedFieldHelperOptions(uninitializedFieldTypeRegexp));
+			config.setFieldHelperOptions(new UninitializedFieldHelperOptions(uninitializedFieldTypeMatcher));
 			SDGProgram program = SDGProgram.createSDGProgram(config, out.getPrintStream(), monitor);
 			if (onlyDirectFlow) {
 				SDGProgram.throwAwayControlDeps(program.getSDG());
@@ -3409,12 +3376,12 @@ public class IFCConsole {
 			return onlyDirectFlow;
 		}
 
-		@Override public void setUninitializedFieldTypeRegexp(String regexp) {
-			IFCConsole.this.setUninitializedFieldTypeRegexp(regexp);
+		@Override public void setUninitializedFieldTypeMatcher(UninitializedFieldHelperOptions.FieldTypeMatcher fieldTypeMatcher) {
+			IFCConsole.this.setUninitializedFieldTypeMatcher(fieldTypeMatcher);
 		}
 
-		@Override public String uninitializedFieldTypeRegexp() {
-			return uninitializedFieldTypeRegexp;
+		@Override public UninitializedFieldHelperOptions.FieldTypeMatcher getUninitializedFieldTypeMatcher() {
+			return uninitializedFieldTypeMatcher;
 		}
 
 		@Override public AnalysisObject getMixin(ImprovedCLI.RunCommand command) {

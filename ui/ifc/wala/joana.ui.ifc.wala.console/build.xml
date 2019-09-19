@@ -73,6 +73,7 @@
 			<fileset dir="${joana.contrib.base.dir}" includes="*.jar" />
 			<fileset dir="${joana.base.dir}/contrib/wala/com.ibm.wala.cast/lib" includes="*.jar" />
             <fileset dir="${com.ibm.wala.dalvik.base.dir}/lib" includes="*.jar" />
+			<fileset dir="${joana.ui.ifc.sdg.graphviewer.base.dir}/lib" includes="*.jar" />
 			<fileset dir="${joana.base.dir}/contrib/parameter-setter/build/libs" includes="parameter_setter-all-1.0-SNAPSHOT.jar" />
 			<pathelement path="${dest.dir.classes}" />
 		</path>
@@ -94,6 +95,9 @@
 				<filename name="*.jar" />
 			</fileset>
 			<fileset dir="${joana.base.dir}/contrib/wala/com.ibm.wala.cast/lib">
+				<filename name="*.jar" />
+			</fileset>
+			<fileset dir="${joana.ui.ifc.sdg.graphviewer.base.dir}/lib">
 				<filename name="*.jar" />
 			</fileset>
 		</unjar>
@@ -219,6 +223,9 @@
 			</fileset>
 			<!-- joana.ui code -->
 			<fileset dir="${joana.ui.ifc.wala.console.base.dir}/src">
+				<filename name="**/*.java" />
+			</fileset>
+			<fileset dir="${joana.ui.ifc.sdg.graphviewer.base.dir}/src">
 				<filename name="**/*.java" />
 			</fileset>
 		</copy>

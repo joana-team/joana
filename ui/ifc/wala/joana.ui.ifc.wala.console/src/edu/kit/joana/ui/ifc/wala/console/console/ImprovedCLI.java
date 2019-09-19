@@ -2,6 +2,7 @@ package edu.kit.joana.ui.ifc.wala.console.console;
 
 import com.beust.jcommander.Parameter;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
+import com.ibm.wala.ipa.callgraph.CallGraph;
 import edu.kit.joana.api.sdg.*;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -12,6 +13,7 @@ import edu.kit.joana.setter.ValueToSet;
 import edu.kit.joana.ui.annotations.PruningPolicy;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.GraphViewer;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.model.Graph;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.util.SDGUtils;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.Triple;
 import edu.kit.joana.wala.core.SDGBuilder;
@@ -954,6 +956,11 @@ public class ImprovedCLI {
 
   static interface ViewEnabled {
     SDG getSDG();
+
+    default List<SDGNode> getSDGMethods(){
+      return SDGUtils.callGraph(getSDG()).vertexSet().stream()
+          .filter(n -> !n.getBytecodeName().isEmpty()).collect(Collectors.toList());
+    }
   }
 
   @Command(name = "view", description = "View the current SDG")
@@ -979,7 +986,7 @@ public class ImprovedCLI {
               parent.log(String.format("Method %s not found", method));
             }
           }
-        });
+        }, method.isEmpty());
       }).start();
       return exit(true);
     }
@@ -987,16 +994,16 @@ public class ImprovedCLI {
     @Command(description = "List methods from the call graph")
     public void methods(@Parameters(paramLabel = "pattern", description = "Regexp pattern for filtering", defaultValue = ".*")
         String pattern){
-      parent.printList(GraphViewer.getInstance().getMethods().stream().map(SDGNode::getLabel).filter(s -> s.matches(pattern))
+      parent.printList(state.getSDGMethods().stream().map(SDGNode::getLabel).filter(s -> s.matches(pattern))
           .collect(Collectors.toList()));
     }
 
     boolean show(String method){
       GraphViewer viewer = GraphViewer.getInstance();
-      Optional<SDGNode> first = viewer.getMethods().stream().filter(n -> n.getLabel().equals(method) ||
+      Optional<SDGNode> first = state.getSDGMethods().stream().filter(n -> n.getLabel().equals(method) ||
           n.getBytecodeName().equals(method)).findFirst();
       if (first.isPresent()){
-        viewer.showMethod(first.get().getProc());
+        viewer.showMethod(state.getSDG(), first.get().getProc());
         return true;
       }
       return false;

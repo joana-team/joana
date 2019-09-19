@@ -31,6 +31,7 @@ import javax.swing.*;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.model.CallGraph;
+import edu.kit.joana.ui.ifc.sdg.graphviewer.model.Graph;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.model.GraphViewerModel;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.AdjustableTranslator;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Translator;
@@ -175,7 +176,7 @@ public final class GraphViewer {
 	/**
 	 * Launch the graph viewer for a given sdg
 	 */
-	public static void launch(SDG sdg, boolean newInstance, Runnable runAfterInit){
+	public static void launch(SDG sdg, boolean newInstance, Runnable runAfterInit, boolean openSDG){
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
@@ -184,7 +185,9 @@ public final class GraphViewer {
 		GraphViewer viewer = GraphViewer.getInstance(newInstance);
 		viewer.frame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
 		viewer.frame.setVisible(true);
-		viewer.frame.getModel().openSDG(sdg);
+		if (openSDG) {
+			viewer.frame.getModel().openSDG(sdg);
+		}
 		runAfterInit.run();
 		while (viewer.frame.isVisible()) {
 			Thread.yield();
@@ -195,13 +198,8 @@ public final class GraphViewer {
 	 * Show the graph for the passed method
 	 * @param proc
 	 */
-	public void showMethod(int proc){
-		frame.getModel().openPDG(frame.getGraphPane().getSelectedGraph(), proc);
-	}
-
-	public List<SDGNode> getMethods(){
-		return SDGUtils.callGraph(frame.getGraphPane().getSelectedGraph().getCompleteSDG()).vertexSet().stream()
-				.filter(n -> !n.getBytecodeName().isEmpty()).collect(Collectors.toList());
+	public void showMethod(SDG sdg, int proc){
+		frame.getModel().openPDG(frame.getModel().computeCG(sdg), proc);
 	}
 
 	/**

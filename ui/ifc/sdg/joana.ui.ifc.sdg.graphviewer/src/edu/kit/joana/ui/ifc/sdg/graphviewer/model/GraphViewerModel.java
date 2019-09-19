@@ -139,10 +139,12 @@ public class GraphViewerModel {
 	}
 
 	public void openSDG(SDG sdg) {
-		SDG callGraph = SDGUtils.callGraph(sdg);
-		//			setPdgAbsolutePath(file.getParent());
-		CallGraph cg = new CallGraph(callGraph, sdg);
-		GraphViewerModelEvent evt = new GraphViewerModelEvent(this, GraphViewerModelEvent.CALL_GRAPH_ADDED, cg);
+		GraphViewerModelEvent evt = new GraphViewerModelEvent(this, GraphViewerModelEvent.CALL_GRAPH_ADDED, computeCG(sdg));
 		fireGraphModelChanged(evt);
+	}
+
+	public CallGraph computeCG(SDG sdg){
+		SDG callGraph = SDGUtils.callGraph(sdg);
+		return new CallGraph(callGraph, sdg);
 	}
 }

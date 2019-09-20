@@ -48,6 +48,7 @@ import edu.kit.joana.ifc.sdg.lattice.impl.PowersetLattice;
 import edu.kit.joana.ifc.sdg.lattice.impl.ReversedLattice;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
+import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.setter.SearchVisitor;
 import edu.kit.joana.setter.SetValueStore;
 import edu.kit.joana.setter.Tool;
@@ -1553,13 +1554,13 @@ public class IFCConsole {
 		}
 		return false;
 	}
-	
+
 	public Optional<YamlMapping> runAnalysisYAML(){
 		if (ifcAnalysis == null || ifcAnalysis.getProgram() == null) {
 			out.info("No program to analyze.");
 			return Optional.empty();
 		}
-		YamlMappingBuilder mapBuilder = Yaml.createYamlMappingBuilder();
+		YamlMappingBuilder mapBuilder = YamlUtil.mapping();
 		ifcAnalysis.setTimesensitivity(isTimeSensitive);
 		out.logln("Performing IFC - Analysis type: " + type);
 		Optional<Collection<? extends IViolation<SecurityNode>>> viosOpt = doIFCAndOptAndCatch(type);
@@ -1585,31 +1586,126 @@ public class IFCConsole {
 		out.logln("done, found " + groupedIFlows.size() + " security violation(s):");
 		Set<String> output = new TreeSet<String>();
 		for (IViolation<SDGProgramPart> vio : groupedIFlows.keySet()) {
-			YamlMappingBuilder vioBuilder = Yaml.createYamlMappingBuilder();
+			YamlMappingBuilder vioBuilder = YamlUtil.mapping();
 			YamlMappingBuilder[] vioBuild = new YamlMappingBuilder[] {vioBuilder};
 			vio.accept(new IViolationVisitor<SDGProgramPart>() {
+
+				YamlMapping convertProgramPartToYaml(SDGProgramPart part){
+					YamlMappingBuilder builder = YamlUtil.mapping()
+							.add("kind", part.getClass().getName().toLowerCase().replaceAll("(visit|actual|node|SDG)", ""));
+					return part.acceptVisitor(new SDGProgramPartVisitor<YamlMappingBuilder, YamlMappingBuilder>() {
+						@Override protected YamlMappingBuilder visitClass(SDGClass cl, YamlMappingBuilder data) {
+							return data.add("class", cl.getTypeName().toHRString());
+						}
+
+						@Override protected YamlMappingBuilder visitAttribute(SDGAttribute a, YamlMappingBuilder data) {
+							return visitClass(a.getOwningClass(), data.add("type", a.getType()).add("name", a.getName()));
+						}
+
+						@Override protected YamlMappingBuilder visitMethod(SDGMethod m, YamlMappingBuilder data) {
+							return visitMethod(m.getSignature(), data);
+						}
+
+						protected YamlMappingBuilder visitMethod(JavaMethodSignature signature, YamlMappingBuilder data){
+							return data.add("class", signature.getDeclaringType().toHRString())
+									.add("name", signature.getMethodName())
+									.add("selector", signature.getSelector())
+									.add("return", signature.getReturnType().toHRString())
+									.add("parameters", signature.getArgumentTypes().stream().map(JavaType::toHRString)
+											.collect(YamlUtil.sequenceCollector()));
+						}
+
+						@Override protected YamlMappingBuilder visitActualParameter(SDGActualParameter ap, YamlMappingBuilder data) {
+							return data.add("method", visitMethod(ap.getOwningMethod(), YamlUtil.mapping()).build())
+												 .add("index", ap.getIndex() + "")
+												 .add("call", visitCall(ap.getOwningCall(), YamlUtil.mapping()).build())
+									       .add("type", ap.getType().toHRString());
+						}
+
+						@Override protected YamlMappingBuilder visitParameter(SDGFormalParameter p, YamlMappingBuilder data) {
+							return data.add("method", visitMethod(p.getOwningMethod(), YamlUtil.mapping()).build())
+									.add("index", p.getIndex() + "")
+									.add("type", p.getType().toHRString());
+						}
+
+						@Override protected YamlMappingBuilder visitExit(SDGMethodExitNode e, YamlMappingBuilder data) {
+							return data.add("method", visitMethod(e.getOwningMethod(), YamlUtil.mapping()).build())
+									.add("type", e.getType().toHRString());
+						}
+
+						@Override protected YamlMappingBuilder visitException(SDGMethodExceptionNode e, YamlMappingBuilder data) {
+							return data.add("method", visitMethod(e.getOwningMethod(), YamlUtil.mapping()).build());
+						}
+
+						@Override protected YamlMappingBuilder visitInstruction(SDGInstruction i, YamlMappingBuilder data) {
+							return data.add("method", visitMethod(i.getOwningMethod(), YamlUtil.mapping()).build())
+									.add("operation", i.getOperation())
+									.add("label", i.getLabel())
+									.add("type", i.getType());
+						}
+
+						@Override protected YamlMappingBuilder visitCall(SDGCall c, YamlMappingBuilder data) {
+							return data.add("this", visitActualParameter(c.getThis(), YamlUtil.mapping()).build())
+									.add("method", visitMethod(c.getOwningMethod(), YamlUtil.mapping()).build())
+									.add("possibleTargets", c.getPossibleTargets().stream()
+											.map(t -> visitMethod(t, YamlUtil.mapping()).build())
+											.collect(YamlUtil.sequenceCollector()))
+									.add("parameters", c.getActualParameters().stream()
+											.map(p -> visitActualParameter(p, YamlUtil.mapping()).build())
+											.collect(YamlUtil.sequenceCollector()));
+						}
+
+						@Override protected YamlMappingBuilder visitCallReturnNode(SDGCallReturnNode c, YamlMappingBuilder data) {
+							return data.add("method", visitMethod(c.getOwningMethod(), YamlUtil.mapping()).build())
+									.add("call", visitCall(c.getOwningCall(), YamlUtil.mapping()).build());
+						}
+
+						@Override protected YamlMappingBuilder visitCallExceptionNode(SDGCallExceptionNode c, YamlMappingBuilder data) {
+							return data.add("method", visitMethod(c.getOwningMethod(), YamlUtil.mapping()).build())
+									.add("call", visitCall(c.getOwningCall(), YamlUtil.mapping()).build());
+						}
+
+						@Override protected YamlMappingBuilder visitPhi(SDGPhi phi, YamlMappingBuilder data) {
+							return data.add("method", visitMethod(phi.getOwningMethod(), YamlUtil.mapping()).build());
+						}
+
+						@Override protected YamlMappingBuilder visitFieldOfParameter(SDGFieldOfParameter fop, YamlMappingBuilder data) {
+							return data.add("declaringClass", fop.getDeclaringClass())
+									.add("field", fop.getFieldName())
+									.add("accessPath", fop.getAccessPath().stream().collect(YamlUtil.sequenceCollector()))
+									.add("parent", convertProgramPartToYaml(fop.getParent()))
+									.add("root", convertProgramPartToYaml(fop.getRoot()))
+									.add("method", visitMethod(fop.getOwningMethod(), YamlUtil.mapping()).build());
+						}
+
+						@Override protected YamlMappingBuilder visitLocalVariable(SDGLocalVariable local, YamlMappingBuilder data) {
+							return data.add("method", visitMethod(local.getOwningMethod(), YamlUtil.mapping()).build())
+									.add("name", local.getName());
+						}
+					}, builder).build();
+				}
 
 				@Override
 				public void visitIllegalFlow(IIllegalFlow<SDGProgramPart> iFlow) {
 					vioBuild[0] = vioBuild[0].add("type", "illegal")
 					          .add("attacker_level", iFlow.getAttackerLevel())
-					          .add("source", iFlow.getSource().toString())
-					          .add("sink", iFlow.getSink().toString());
+					          .add("source", convertProgramPartToYaml(iFlow.getSource()))
+					          .add("sink", convertProgramPartToYaml(iFlow.getSink()));
 				}
 
 				private void visitAbstractConflictLeak(String type, AbstractConflictLeak<SDGProgramPart> conf) {
 					vioBuild[0] = vioBuild[0].add("type", type)
 					  .add("attacker_level", conf.getAttackerLevel())
 					  .add("triggers", new YamlCollectionDump(conf.getAllTriggers().stream().map(Object::toString).collect(Collectors.toList())).represent())
-					  .add("conflict_edge", Yaml.createYamlMappingBuilder()
-							  .add("source", conf.getConflictEdge().getSource().toString())
-							  .add("target", conf.getConflictEdge().getTarget().toString()).build());
+					  .add("conflict_edge", YamlUtil.mapping()
+							  .add("source", convertProgramPartToYaml(conf.getConflictEdge().getSource()))
+							  .add("target", convertProgramPartToYaml(conf.getConflictEdge().getTarget())).build());
 				}
 				
 				@Override
 				public void visitDataConflict(DataConflict<SDGProgramPart> dataConf) {
 					visitAbstractConflictLeak("data", dataConf);
-					vioBuild[0] = vioBuild[0].add("influenced", dataConf.getInfluenced().toString());
+					vioBuild[0] = vioBuild[0].add("influenced", convertProgramPartToYaml(dataConf.getInfluenced()));
 				}
 
 				@Override
@@ -1622,15 +1718,15 @@ public class IFCConsole {
 					vioBuild[0] = vioBuild[0].add("type", "unary")
 							  .add("actual_level", unVio.getActualLevel().toString())
 							  .add("expected_level", unVio.getExpectedLevel().toString())
-							  .add("node", unVio.getNode().toString());
+							  .add("node", convertProgramPartToYaml(unVio.getNode()));
 				}
 
 				@Override
 				public <L> void visitBinaryViolation(IBinaryViolation<SDGProgramPart, L> binVio) {
 					vioBuild[0] = vioBuild[0].add("type", "binary")
 							  .add("attacker_level", binVio.getAttackerLevel().toString())
-							  .add("influenced_by", binVio.getInfluencedBy().toString())
-							  .add("node", binVio.getNode().toString());
+							  .add("influenced_by", convertProgramPartToYaml(binVio.getInfluencedBy()))
+							  .add("node", convertProgramPartToYaml(binVio.getNode()));
 				}
 				
 			});
@@ -1845,7 +1941,7 @@ public class IFCConsole {
 		}
  		YamlSequenceBuilder seqBuilder = Yaml.createYamlSequenceBuilder();
 		for (IFCAnnotation ann : anns) {
-			seqBuilder = seqBuilder.add(Yaml.createYamlMappingBuilder()
+			seqBuilder = seqBuilder.add(YamlUtil.mapping()
 					.add("part", ann.getProgramPart().acceptVisitor(ProgramPartToString.getStandard(), null))
 					.add("level", ann.getLevel1())
 					.build());
@@ -1946,7 +2042,7 @@ public class IFCConsole {
 		YamlSequenceBuilder seq = Yaml.createYamlSequenceBuilder();
 		for (Pair<IFCAnnotation, List<String>> annPair : annPairs) {
 			IFCAnnotation ann = annPair.getFirst();
-			seq = seq.add(Yaml.createYamlMappingBuilder()
+			seq = seq.add(YamlUtil.mapping()
 					.add("program_part", ann.getProgramPart().toString())
 					.add("from", ann.getLevel1())
 					.add("to", ann.getLevel2())
@@ -2982,13 +3078,13 @@ public class IFCConsole {
 	}
 
 	void showSetValues(){
-		YamlMappingBuilder mapping = Yaml.createYamlMappingBuilder();
+		YamlMappingBuilder mapping = YamlUtil.mapping();
 		for (SetValueStore.ClassAnnotation classAnn : setValueStore.getClassAnnotations()) {
-			YamlMappingBuilder classMapping = Yaml.createYamlMappingBuilder();
+			YamlMappingBuilder classMapping = YamlUtil.mapping();
 			if (classAnn.methodAnns.size() > 0) {
-				YamlMappingBuilder methodsMapping = Yaml.createYamlMappingBuilder();
+				YamlMappingBuilder methodsMapping = YamlUtil.mapping();
 				for (Map.Entry<SetValueStore.MethodIdentifier, SetValueStore.MethodAnnotation> methodAnnEntry : classAnn.methodAnns.entrySet()) {
-					YamlMappingBuilder methodMapping = Yaml.createYamlMappingBuilder();
+					YamlMappingBuilder methodMapping = YamlUtil.mapping();
 					SetValueStore.MethodAnnotation methodAnn = methodAnnEntry.getValue();
 					if (methodAnn.returnAnn.isPresent()) {
 						methodMapping = methodMapping.add("return", methodAnn.returnAnn.get().value);
@@ -3001,7 +3097,7 @@ public class IFCConsole {
 				classMapping = classMapping.add("methods", methodsMapping.build());
 			}
 			if (classAnn.fieldAnns.size() > 0) {
-				YamlMappingBuilder fieldsMapping = Yaml.createYamlMappingBuilder();
+				YamlMappingBuilder fieldsMapping = YamlUtil.mapping();
 				for (Map.Entry<String, ValueToSet> fieldEntry : classAnn.fieldAnns.entrySet()) {
 					fieldsMapping = fieldsMapping.add(fieldEntry.getKey(), fieldEntry.getValue().value);
 				}
@@ -3295,6 +3391,14 @@ public class IFCConsole {
 
 		@Override public boolean run(AnalysisObject state) {
 			setAnnotationsInIFCAnalysis();
+			if (getSources().isEmpty()){
+				System.err.println("No sources selected");
+				return false;
+			}
+			if (getSinks().isEmpty()){
+				System.err.println("No sinks selected");
+				return false;
+			}
 			return runAnalysisYAML(state.out);
 		}
 

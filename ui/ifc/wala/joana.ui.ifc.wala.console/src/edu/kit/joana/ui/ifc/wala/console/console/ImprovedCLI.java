@@ -250,7 +250,7 @@ public class ImprovedCLI {
   }
 
   @Command(name = "sdgOptions", description = "Options for the SDG creation",
-      subcommands = { SDGOptionsCommand.InfoCommand.class })
+      subcommands = { SDGOptionsCommand.InfoCommand.class, SDGOptionsCommand.EnabledUninitializedFieldTypesCommand.class })
   static class SDGOptionsCommand implements Callable<Integer> {
 
     @Spec Model.CommandSpec spec;
@@ -300,6 +300,15 @@ public class ImprovedCLI {
           return field.isEmpty() ? matchType(typeReference) : typeReference.getName().toString().matches(field);
         }
       });
+    }
+
+    @Command(name = "enableUninitializedFieldTypes", description = "Equivalent to 'uninitializedFieldTypeRegexp '.*'")
+    static class EnabledUninitializedFieldTypesCommand implements Runnable {
+      @ParentCommand
+      SDGOptionsCommand parent;
+      @Override public void run() {
+        parent.uninitializedFieldTypeRegexp(".*", ".*", ".*");
+      }
     }
 
     @Command

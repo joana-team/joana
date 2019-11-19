@@ -288,4 +288,10 @@ public class Builder {
 		this.doCache = true;
 		return this;
 	}
+
+	public Builder omitSummaryEdges(){
+		config.setComputeSummaryEdges(false);
+		return this;
+	}
+
 }

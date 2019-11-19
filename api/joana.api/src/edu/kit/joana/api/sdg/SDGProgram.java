@@ -526,7 +526,7 @@ public class SDGProgram {
 		SummaryComputation.computeHeapDataDep(wp, new com.ibm.wala.util.NullProgressMonitor());
 	}
 
-	private static WorkPackage<SDG> createSummaryWorkpackage(final SDG sdg) {
+	public static WorkPackage<SDG> createSummaryWorkpackage(final SDG sdg) {
 		final Set<EntryPoint> entries = new TreeSet<EntryPoint>();
 		final SDGNode root = sdg.getRoot();
 

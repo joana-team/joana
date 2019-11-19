@@ -573,8 +573,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		return sdg;
 	}
 
-	private static WorkPackage<SDG> createSummaryWorkPackage(PrintStream out, SDGBuilder builder, SDG sdg,
-			IProgressMonitor progress) {
+	public static WorkPackage<SDG> createSummaryWorkPackage(PrintStream out, SDGBuilder builder, SDG sdg, IProgressMonitor progress) {
 		out.print("summary");
 		Set<EntryPoint> entries = new TreeSet<EntryPoint>();
 		PDG pdg = builder.getMainPDG();

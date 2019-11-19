@@ -132,19 +132,6 @@ class SDGToGraph(val relevantEdges: Set<SDGEdge.Kind> = DEFAULT_RELEVANT_EDGES,
                         return outgoing(node).filter { it.target.kind == SDGNode.Kind.ACTUAL_OUT }.distinct()
                                 .map { defaultNodeAdd(graphNode, it) }
                     }
-                    node.kind == SDGNode.Kind.ACTUAL_IN -> {
-                        val a = (outgoing(node).find { it.target.kind == SDGNode.Kind.CALL }?.let {
-                            if (createGraphNodeIfNeeded(it.target) !is CallNode){
-                                (graphNode as InNode).omit = true
-                                println("###################### $funcNode")
-                                return@let outgoing(node).filter { consider(it.kind) }
-                                      .map { it.target }
-                            }
-                            return@let emptyList<SDGNode>()
-                        } ?: emptyList<SDGNode>())
-                        a + (outgoing(node).filter { consider(it.kind) }
-                                .map { defaultNodeAdd(graphNode, it) })
-                    }
                     else ->
                         outgoing(node).filter { consider(it.kind) }
                                 .map { defaultNodeAdd(graphNode, it) }
@@ -160,23 +147,24 @@ class SDGToGraph(val relevantEdges: Set<SDGEdge.Kind> = DEFAULT_RELEVANT_EDGES,
                 return sdgNodeToNode.computeIfAbsent(node, this::createGraphNode)
             }
 
+            /**
+             * Create a bare node
+             */
             private fun createGraphNode(node: SDGNode): Node {
                 return when (node.kind) {
-                    SDGNode.Kind.ACTUAL_IN -> graph.createActualIn(node.id)
-                    SDGNode.Kind.FORMAL_IN -> graph.createFormalIn(node.id, funcNode)
-                    SDGNode.Kind.CALL -> {
-                        val targets = getCallNodeTargets(node)
-                        if (targets.isNotEmpty()) {
-                            CallNode(node.id, mutableListOf(), mutableListOf(), graph.getOrCreateFuncNode(sdg.getEntry(node).id), targets)
-                        } else {
-                            Node(node.id, mutableListOf())
-                        }
-                    }
-                    SDGNode.Kind.ACTUAL_OUT -> OutNode(node.id)
-                    SDGNode.Kind.FORMAL_OUT, SDGNode.Kind.EXIT -> {
+                    SDGNode.Kind.ACTUAL_IN ->
+                        graph.createActualIn(node.id)
+                    SDGNode.Kind.FORMAL_IN ->
+                        graph.createFormalIn(node.id, funcNode)
+                    SDGNode.Kind.CALL ->
+                        CallNode(node.id, mutableListOf(), mutableListOf(), graph.getOrCreateFuncNode(sdg.getEntry(node).id),
+                            getCallNodeTargets(node))
+                    SDGNode.Kind.ACTUAL_OUT ->
+                        OutNode(node.id)
+                    SDGNode.Kind.FORMAL_OUT, SDGNode.Kind.EXIT ->
                         FormalOutNode(node.id)
-                    }
-                    else -> Node(node.id, mutableListOf())
+                    else ->
+                        Node(node.id, mutableListOf())
                 }
             }
 
@@ -184,16 +172,11 @@ class SDGToGraph(val relevantEdges: Set<SDGEdge.Kind> = DEFAULT_RELEVANT_EDGES,
                 return outgoing(node).filter { it.kind == SDGEdge.Kind.CALL }.map { graph.getOrCreateFuncNode(it.target.id) }
             }
         }
+        private fun outgoing(node: SDGNode) = (sdg as AbstractBaseGraph<SDGNode, SDGEdge>).outgoingEdgesOfUnsafe(node)
 
-        private fun formalIns(funcEntry: SDGNode): List<SDGNode> {
-            return outgoing(funcEntry).map { it.target }.filter { it.kind == SDGNode.Kind.FORMAL_IN }.toList()
-        }
+        private fun incoming(node: SDGNode) = (sdg as AbstractBaseGraph<SDGNode, SDGEdge>).incomingEdgesOfUnsafe(node)
 
-        private inline fun outgoing(node: SDGNode) = (sdg as AbstractBaseGraph<SDGNode, SDGEdge>).outgoingEdgesOfUnsafe(node)
-
-        private inline fun incoming(node: SDGNode) = (sdg as AbstractBaseGraph<SDGNode, SDGEdge>).incomingEdgesOfUnsafe(node)
-
-        private inline fun <T> oneOf(elem: T, vararg supported: T): Boolean {
+        private fun <T> oneOf(elem: T, vararg supported: T): Boolean {
             for (t in supported) {
                 if (elem == supported) {
                     return true

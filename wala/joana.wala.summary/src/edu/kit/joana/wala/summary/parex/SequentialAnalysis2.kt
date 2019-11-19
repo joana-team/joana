@@ -68,8 +68,7 @@ class SequentialAnalysis2 : Analysis {
                     /**
                      * Only actual in nodes here
                      */
-                    (cur is ActualInNode && !cur.omit) -> {
-                        print("##" + cur.neighbors)
+                    cur is ActualInNode -> {
                         state.formInsPerActIn.getOrPut(cur, { HashSet() }).add(fi)
                         cur.callNode?.let { call ->
                             call.targets.forEach { target ->

@@ -150,11 +150,7 @@ class FuncNode(
 }
 
 open class InNode(id: Int, neighbors: Col<Node> = mutableListOf(), var summaryEdges: Col<OutNode>? = null) : Node(id, neighbors) {
-
-    var omit: Boolean = false
-
     override fun outgoing(hideCallGraph: Boolean): List<Node> = super.outgoing(hideCallGraph) + (summaryEdges ?: Collections.emptyList())
-
 }
 
 // nxm mapping (n ≠ m, but no other relation) for actual ins to formal in

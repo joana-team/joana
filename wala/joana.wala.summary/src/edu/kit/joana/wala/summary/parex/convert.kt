@@ -9,7 +9,6 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge
 import edu.kit.joana.ifc.sdg.graph.SDGNode
 import edu.kit.joana.util.graph.AbstractBaseGraph
 import edu.kit.joana.wala.summary.WorkPackage
-import gnu.trove.set.hash.TIntHashSet
 import java.util.*
 
 val DEFAULT_RELEVANT_EDGES: EnumSet<SDGEdge.Kind> = EnumSet.of(SDGEdge.Kind.DATA_DEP, SDGEdge.Kind.DATA_HEAP, SDGEdge.Kind.DATA_ALIAS, SDGEdge.Kind.DATA_LOOP, SDGEdge.Kind.DATA_DEP_EXPR_VALUE, SDGEdge.Kind.DATA_DEP_EXPR_REFERENCE, SDGEdge.Kind.CONTROL_DEP_COND, SDGEdge.Kind.CONTROL_DEP_UNCOND, SDGEdge.Kind.CONTROL_DEP_EXPR, SDGEdge.Kind.CONTROL_DEP_CALL, SDGEdge.Kind.JUMP_DEP, SDGEdge.Kind.SUMMARY, SDGEdge.Kind.SUMMARY_DATA, SDGEdge.Kind.SUMMARY_NO_ALIAS, SDGEdge.Kind.SYNCHRONIZATION)
@@ -29,33 +28,29 @@ class SDGToGraph(val relevantEdges: Set<SDGEdge.Kind> = DEFAULT_RELEVANT_EDGES,
         return convert(pack.graph)
     }
 
+    fun convert(graph: SDG): Graph {
+        return Converter(graph).convert()
+    }
 
-    private inner class Converter(val sdg: SDG, val start: SDGNode) {
-        private val seenProcs = TIntHashSet()
+
+    private inner class Converter(val sdg: SDG) {
         /**
          * Id of the entry nodes
          */
-        private val procQueue = ArrayDeque<Int>()
-        private val graph = Graph(FuncNode(start.id))
+        private val graph = Graph(FuncNode(sdg.root.id))
 
         fun convert(): Graph {
-            procQueue.add(graph.entry.id)
-            while (procQueue.isNotEmpty()) {
-                val proc = procQueue.pop()
-                if (seenProcs.contains(proc)) {
-                    continue
-                }
-                seenProcs.add(proc)
-                FuncConverter(graph.getOrCreateFuncNode(proc)).convert()
+            for ((_, entry) in sdg.entryNodesPerProcId) {
+                FuncConverter(entry).convert()
             }
-            seenProcs.clear()
             return graph
         }
 
         val sdgNodeToNode = IdentityHashMap<SDGNode, Node>()
 
-        private inner class FuncConverter(val funcNode: FuncNode) {
-            val entry: SDGNode = sdg.getNode(funcNode.id)
+        private inner class FuncConverter(val entry: SDGNode) {
+
+            val funcNode = graph.getOrCreateFuncNode(entry.id)
 
             internal fun convert() {
                 val alreadySeen = mutableSetOf<SDGNode>()
@@ -86,22 +81,23 @@ class SDGToGraph(val relevantEdges: Set<SDGEdge.Kind> = DEFAULT_RELEVANT_EDGES,
                                     when (it.target.kind) {
                                         SDGNode.Kind.FORMAL_IN -> {
                                             funcNode.formalIns.add(n as FormalInNode)
-                                            incoming(it.target).map(SDGEdge::getSource).filter { e -> e.kind == SDGNode.Kind.ACTUAL_IN }
-                                                    .distinct().forEach { t ->
-                                                        val callNode = createGraphNodeIfNeeded(incoming(t).find { e -> e.source.kind == SDGNode.Kind.CALL }!!.source) as CallNode
+                                            incoming(it.target)
+                                                    .map(SDGEdge::getSource)
+                                                    .filter { e -> e.kind == SDGNode.Kind.ACTUAL_IN }
+                                                    .distinct()
+                                                    .forEach { t ->
                                                         val actInNode = createGraphNodeIfNeeded(t) as ActualInNode
+                                                        val callNode = actInNode.callNode ?: createGraphNodeIfNeeded(incoming(t).find { e -> e.source.kind == SDGNode.Kind.CALL }!!.source) as CallNode
                                                         n.actualIns[callNode] = actInNode
                                                         actInNode.formalIns[funcNode] = n
                                                     }
                                         }
                                         SDGNode.Kind.FORMAL_OUT, SDGNode.Kind.EXIT  -> {
-                                            if (funcNode.id == 29){
-                                                println(it)
-                                            }
                                             funcNode.formalOuts.add(n as FormalOutNode)
                                             outgoing(it.target).filter { e -> e.target.kind == SDGNode.Kind.ACTUAL_OUT }
                                                     .map(SDGEdge::getTarget).forEach { t ->
-                                                            (n as FormalOutNode).actualOuts[createGraphNodeIfNeeded(incoming(t).find { e -> e.source.kind == SDGNode.Kind.CALL }!!.source) as CallNode] =
+                                                            n.actualOuts[createGraphNodeIfNeeded(incoming(t)
+                                                                    .find { e -> e.source.kind == SDGNode.Kind.CALL }!!.source) as CallNode] =
                                                                     createGraphNodeIfNeeded(t) as OutNode
                                             }
                                         }
@@ -110,37 +106,38 @@ class SDGToGraph(val relevantEdges: Set<SDGEdge.Kind> = DEFAULT_RELEVANT_EDGES,
                                     it.target
                                 }
                     }
-                    /**
-                     * Call nodes are degraded to normal nodes if they do not have a call edge
-                     */
                     graphNode is CallNode -> {
-                        outgoing(node).filter { it.target.kind == SDGNode.Kind.ACTUAL_IN }
-                                .forEach {
-                                    (createGraphNodeIfNeeded(it.target) as ActualInNode).callNode = createGraphNodeIfNeeded(it.source) as CallNode
-                                }
-                        outgoing(node).filter { it.target.kind == SDGNode.Kind.ACTUAL_IN }
-                                .map { it.target }.distinct()
+                        outgoing(node)
+                                .map { it.target }
                                 .filter { it.kind == SDGNode.Kind.ACTUAL_IN }
+                                .distinctBy { it.id }
                                 .forEach {
-                                    createGraphNodeIfNeeded(it).also { n ->
+                                    (createGraphNodeIfNeeded(it) as ActualInNode).also { n ->
+                                        n.callNode = graphNode
                                         graphNode.actualIns.add(n)
                                     }
                                 }
-                        graphNode.targets.forEach { it.callers.add(graphNode) }
+                        graphNode.targets.forEach {
+                            it.callers.add(graphNode)
+                            graph.callGraph.addEdge(funcNode, it)
+                        }
                         graphNode.owner.callees.add(graphNode)
-                        graphNode.targets.forEach { procQueue.push(it.id) }
-                        return outgoing(node).filter { it.target.kind == SDGNode.Kind.ACTUAL_OUT }.distinct()
+                        return outgoing(node).filter { it.target.kind == SDGNode.Kind.ACTUAL_OUT }
+                                .map { it.target }
+                                .distinctBy { it.id }
                                 .map { defaultNodeAdd(graphNode, it) }
                     }
                     else ->
                         outgoing(node).filter { consider(it.kind) }
-                                .map { defaultNodeAdd(graphNode, it) }
+                            .map { it.target }
+                            .distinctBy { it.id }
+                            .map { defaultNodeAdd(graphNode, it) }
                 }
             }
 
-            private inline fun defaultNodeAdd(graphNode: Node, edge: SDGEdge): SDGNode {
-                graphNode.neighbors.add(createGraphNodeIfNeeded(edge.target))
-                return edge.target
+            private fun defaultNodeAdd(graphNode: Node, target: SDGNode): SDGNode {
+                graphNode.neighbors.add(createGraphNodeIfNeeded(target))
+                return target
             }
 
             private fun createGraphNodeIfNeeded(node: SDGNode): Node {
@@ -184,10 +181,5 @@ class SDGToGraph(val relevantEdges: Set<SDGEdge.Kind> = DEFAULT_RELEVANT_EDGES,
             }
             return false
         }
-    }
-
-    @JvmOverloads
-    fun convert(graph: SDG, root: SDGNode = graph.root): Graph {
-        return Converter(graph, root).convert()
     }
 }

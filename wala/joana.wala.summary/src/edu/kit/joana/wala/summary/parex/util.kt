@@ -5,37 +5,28 @@ import edu.kit.joana.ifc.sdg.graph.SDGEdge
 import edu.kit.joana.ifc.sdg.graph.SDGNode
 import edu.kit.joana.util.maps.MultiHashMap
 import edu.kit.joana.util.maps.MultiMap
+import org.jgrapht.DirectedGraph
 import org.jgrapht.ext.DOTExporter
 import org.jgrapht.graph.DefaultEdge
 import org.jgrapht.graph.UnmodifiableDirectedGraph
 import org.jgrapht.graph.builder.DirectedGraphBuilder
 import java.io.FileWriter
 import java.util.AbstractMap.SimpleEntry
-
-/**
- * Create a jGraphT call graph
- */
-public fun callGraphT(root: FuncNode): UnmodifiableDirectedGraph<Node, DefaultEdge> {
-    val graph = org.jgrapht.graph.DefaultDirectedGraph<Node, DefaultEdge>(DefaultEdge::class.java)
-    val builder = DirectedGraphBuilder(graph)
-    root.reachableFuncNodes().forEach {
-            builder.addVertex(it)
-            it.callees.flatMap(CallNode::targets).forEach { t -> builder.addEdge(it, t) } }
-    return builder.buildUnmodifiable()
-}
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.javaGetter
 
 @JvmOverloads
-public fun nodeGraphT(root: FuncNode, restrictToFunc: Boolean = false, nodeFilter: (Node) -> Boolean = { true }):
+fun nodeGraphT(graph: Graph, root: FuncNode? = null, restrictToFunc: Boolean = false, nodeFilter: (Node) -> Boolean = { true }):
         UnmodifiableDirectedGraph<Node, DefaultEdge> {
-    val graph = org.jgrapht.graph.DefaultDirectedGraph<Node, DefaultEdge>(DefaultEdge::class.java)
-    val builder = DirectedGraphBuilder(graph)
-    root.reachable { it: Node ->
+    val jgraph = org.jgrapht.graph.DefaultDirectedGraph<Node, DefaultEdge>(DefaultEdge::class.java)
+    val builder = DirectedGraphBuilder(jgraph)
+    (root?.reachable { it: Node ->
         if (restrictToFunc && it is FuncNode && it != root){
             emptyList()
         } else {
             it.outgoing(restrictToFunc)
         }
-    }.filter(nodeFilter).let { reachable ->
+    } ?: graph.getAllNodes()).filter(nodeFilter).let { reachable ->
         reachable.forEach  { builder.addVertex(it) }
         reachable.forEach { it.outgoing().filter(nodeFilter).forEach { t -> builder.addEdge(it, t) } }
     }
@@ -44,11 +35,11 @@ public fun nodeGraphT(root: FuncNode, restrictToFunc: Boolean = false, nodeFilte
 }
 
 @JvmOverloads
-public fun exportDot(graph: UnmodifiableDirectedGraph<Node, DefaultEdge>, fileName: String, sdg: SDG? = null) {
-    DOTExporter<Node, DefaultEdge>({
+fun <T: Node> exportDot(graph: DirectedGraph<T, DefaultEdge>, fileName: String, sdg: SDG? = null) {
+    DOTExporter<T, DefaultEdge>({
         it.id.toString()
     }, {
-        it.toString() + ("|" + (sdg?.getNode(it.id)?.label + "|" + sdg?.getNode(it.id)?.kind + "|" + sdg?.getNode(it.id)?.proc) ?: "")
+        it.toString() + ("|" + sdg?.getNode(it.id)?.label + "|" + sdg?.getNode(it.id)?.kind + "|" + sdg?.getNode(it.id)?.proc)
     }, { edge: DefaultEdge ->
         val source = graph.getEdgeSource(edge)
         val target = graph.getEdgeTarget(edge)
@@ -64,6 +55,31 @@ public fun exportDot(graph: UnmodifiableDirectedGraph<Node, DefaultEdge>, fileNa
     }).export(FileWriter(fileName), graph)
 }
 
+
+fun Graph.getAllNodes(): Set<Node> {
+    return callGraph.vertexSet().flatMap { it.reachable { n: Node ->
+        n.outgoing(hideCallGraph = true)
+    } + it}.toSet()
+}
+
+fun findDuplicateNodes(graph: Graph): Map<Pair<Node, String>, Set<Node>> {
+    return graph.getAllNodes().flatMap { n -> findDuplicateNodes(n).map { Pair(n, it.key) to it.value } }.toMap()
+}
+
+fun findDuplicateNodes(node: Node):  Map<String, Set<Node>> {
+    return node::class.memberProperties.map{ prop -> Pair(prop.name, prop.javaGetter!!.invoke(node).let { value ->
+        when (value){
+            is Collection<*> -> duplicates(value).map { it as Node }.toSet()
+            else -> setOf()
+        }
+    })}.filter { it.second.isNotEmpty() }
+            .map { it.first to it.second }.toMap()
+}
+
+fun <T> duplicates(col: Collection<T>): Set<T> {
+    return col.groupBy { it }.filter { it.value.size > 1 }.map { it.key }.toSet()
+}
+
 /**
  * Insert the summary edges back into the graph
  */
@@ -73,7 +89,7 @@ fun Graph.insertSummaryEdgesIntoSDG(sdg: SDG, summaryEdgeKind: SDGEdge.Kind = SD
         val sdgInNode = sdg.getNode(actualIn.id)
         actualIn.summaryEdges?.forEach { actualOut ->
             val sdgOutNode = sdg.getNode(actualOut.id)
-            sdg.addEdge(sdgInNode, sdgOutNode , SDGEdge.Kind.SUMMARY.newEdge(sdgInNode, sdgOutNode))
+            sdg.addEdge(sdgInNode, sdgOutNode , summaryEdgeKind.newEdge(sdgInNode, sdgOutNode))
         }
     }
 }
@@ -106,7 +122,7 @@ data class MultiMapCompResult<K, V>(
             val key = kToS(it)
             val entries = map.get(it).iterator()
             val space = " ".repeat(key.length)
-            listOf(key + " → " + vToS(entries.next())) + entries.asSequence().map { space + " → " + vToS(it) }
+            listOf(key + " → " + vToS(entries.next())) + entries.asSequence().map { e -> space + " → " + vToS(e) }
         }.joinToString("\n")
     }
 }
@@ -127,8 +143,8 @@ internal fun Graph.getSummaryEdgeMap(sdg: SDG): MultiMap<SDGNode, SDGNode> {
     val map = MultiHashMap<SDGNode, SDGNode>()
     this.actualIns.forEach {
         val sdgNode = sdg.getNode(it.id)
-        it.summaryEdges?.forEach {
-            map.add(sdgNode, sdg.getNode(it.id))
+        it.summaryEdges?.forEach { out ->
+            map.add(sdgNode, sdg.getNode(out.id))
         }
     }
     return map
@@ -139,7 +155,7 @@ fun SDG.getSummaryEdgesOfSDG(summaryEdgeKind: SDGEdge.Kind = SDGEdge.Kind.SUMMAR
     val map = MultiHashMap<SDGNode, SDGNode>()
     vertexSet().stream().filter { it.kind == SDGNode.Kind.ACTUAL_IN }.forEach {
         val sdgNode = getNode(it.id)
-        outgoingEdgesOfUnsafe(sdgNode).filter { it.kind == summaryEdgeKind }.forEach { map.add(sdgNode, it.target) }
+        outgoingEdgesOfUnsafe(sdgNode).filter { edge -> edge.kind == summaryEdgeKind }.forEach { edge -> map.add(sdgNode, edge.target) }
     }
     return map
 }

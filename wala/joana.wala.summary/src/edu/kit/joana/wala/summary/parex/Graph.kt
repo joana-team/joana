@@ -1,5 +1,8 @@
 package edu.kit.joana.wala.summary.parex
 
+import org.jgrapht.DirectedGraph
+import org.jgrapht.graph.DefaultDirectedGraph
+import org.jgrapht.graph.DefaultEdge
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
@@ -11,18 +14,19 @@ class Graph(val entry: FuncNode) {
     val actualIns: MutableList<ActualInNode> = ArrayList()
     val formalIns: MutableList<FormalInNode> = ArrayList()
     val funcMap: MutableMap<Int, FuncNode> = HashMap()
+    val callGraph: DirectedGraph<FuncNode, DefaultEdge> = DefaultDirectedGraph(DefaultEdge::class.java)
 
     init {
         addFuncNode(entry)
     }
 
-    fun createActualIn(id: Int, neighbors: Col<Node> = mutableListOf()): ActualInNode {
+    fun createActualIn(id: Int): ActualInNode {
         val actualIn = ActualInNode(id)
         actualIns.add(actualIn)
         return actualIn
     }
 
-    fun createFormalIn(id: Int, funcNode: FuncNode, neighbors: Col<Node> = mutableListOf()): FormalInNode {
+    fun createFormalIn(id: Int, funcNode: FuncNode): FormalInNode {
         val formalIn = FormalInNode(id, funcNode)
         formalIns.add(formalIn)
         return formalIn
@@ -30,11 +34,12 @@ class Graph(val entry: FuncNode) {
 
     private fun addFuncNode(f: FuncNode): FuncNode {
         funcMap[f.id] = f
+        callGraph.addVertex(f)
         return f
     }
 
     fun getOrCreateFuncNode(id: Int): FuncNode {
-        return funcMap[id] ?: addFuncNode(FuncNode(id))
+        return funcMap[id] ?: addFuncNode(FuncNode(id)).also {  }
     }
 
     fun removeSummaryEdges(){

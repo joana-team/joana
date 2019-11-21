@@ -18,16 +18,17 @@ import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Util {
 
-  static final boolean PRINT_TIME = true;
+  private static final boolean PRINT_TIME = true;
+  private static final boolean ASSERT_NO_DUPLICATES = false;
 
-  static void compute(ISummaryComputer computer, SDG sdg){
+  private static void compute(ISummaryComputer computer, SDG sdg){
     WorkPackage<SDG> pack = SDGProgram.createSummaryWorkpackage(sdg);
     try {
       long start = System.currentTimeMillis();
@@ -38,7 +39,8 @@ public class Util {
     }
   }
 
-  static MultiMapCompResult<SDGNode, SDGNode> compare(SDG sdg, ISummaryComputer computer, ISummaryComputer computer2, boolean modifySDG){
+  private static MultiMapCompResult<SDGNode, SDGNode> compare(SDG sdg, ISummaryComputer computer, ISummaryComputer computer2,
+      boolean modifySDG){
     SDG firstSDG = modifySDG ? sdg.clone() : sdg;
     SDG secondSDG = sdg.clone();
     compute(computer, firstSDG);
@@ -54,44 +56,41 @@ public class Util {
     return UtilKt.diffRelatedTo(UtilKt.getSummaryEdgesOfSDG(firstSDG), UtilKt.getSummaryEdgesOfSDG(secondSDG));
   }
 
-  static String formatSDGNode(SDGNode node){
+  private static String formatSDGNode(SDGNode node){
     return node.getLabel() + "(" + node.getProc() + "," + node.getId() + ")";
   }
 
-  static SDG build(Class<?> klass) {
+  private static SDG build(Class<?> klass) {
     return new Builder().entry(klass).enableDumpAfterBuild().omitSummaryEdges().buildOrDie().analysis.getProgram().getSDG();
   }
 
-  static int prevProc(SDG sdg, int lastProc){
-    return Arrays.stream(sdg.sortNodesByProcedure().keys()).filter(i -> i < lastProc).max().getAsInt();
-  }
-
-  static SDGNode procRootForRegexp(SDG sdg, String regexp){
+  private static SDGNode procRootForRegexp(SDG sdg, String regexp){
     if (regexp.equals("")){
       return sdg.getRoot();
     }
     return sdg.vertexSet().stream().filter(n -> n.getKind() == SDGNode.Kind.ENTRY && n.getLabel().matches(regexp)).findFirst().get();
   }
 
-  static final SummaryComputationType BASE_COMPUTATION = SummaryComputationType.SIMON_SCC;
+  private static final SummaryComputationType BASE_COMPUTATION = SummaryComputationType.SIMON_SCC;
 
-  static void exportGraph(Graph graph, SDG sdg, String prefix){
+  private static void exportGraph(Graph graph, SDG sdg, String prefix){
     try {
       SDGSerializer.toPDGFormat(sdg, new BufferedOutputStream(new FileOutputStream(prefix + "full.pdg")));
     } catch (FileNotFoundException e) {
       e.printStackTrace();
     }
-    UtilKt.exportDot(UtilKt.nodeGraphT(graph.getEntry(), false), prefix + "full.dot", sdg);
-    UtilKt.exportDot(UtilKt.nodeGraphT(graph.getEntry(), false,
+    UtilKt.exportDot(UtilKt.nodeGraphT(graph, null,false), prefix + "full.dot", sdg);
+    UtilKt.exportDot(UtilKt.nodeGraphT(graph, graph.getEntry(), false), prefix + "fullRooted.dot", sdg);
+    UtilKt.exportDot(UtilKt.nodeGraphT(graph, null, false,
         n -> n instanceof InNode || n instanceof CallNode || n instanceof FuncNode || sdg.getNode(n.getId())
             .getKind().name().toLowerCase().matches(".*(act|for|exit|entry).*")), prefix + "purged.dot", sdg);
-    UtilKt.exportDot(UtilKt.callGraphT(graph.getEntry()), prefix + "callGraph.dot", sdg);
+    UtilKt.exportDot(graph.getCallGraph(), prefix + "callGraph.dot", sdg);
     for (FuncNode value : graph.getFuncMap().values()) {
-      UtilKt.exportDot(UtilKt.nodeGraphT(value, true), prefix + sdg.getNode(value.getId()).getLabel(), sdg);
+      UtilKt.exportDot(UtilKt.nodeGraphT(graph, value, true), prefix + sdg.getNode(value.getId()).getLabel(), sdg);
     }
   }
 
-  static void logTime(String msg, long time){
+  private static void logTime(String msg, long time){
     if (PRINT_TIME) {
       System.out.printf("%60s: %10dms\n", msg, time);
     }
@@ -105,7 +104,7 @@ public class Util {
    * @param graphDest
    * @return
    */
-  static Pair<MultiMapCompResult<SDGNode, SDGNode>, Graph>
+  private static Pair<MultiMapCompResult<SDGNode, SDGNode>, Graph>
   compareCheck(Class<?> klass, String methodRegexp, Analysis analysis, @Nullable String graphDest){
     String name = klass.getSimpleName() + methodRegexp + analysis.getName();
     long start = System.currentTimeMillis();
@@ -115,6 +114,11 @@ public class Util {
     start = System.currentTimeMillis();
     Graph graph = new SDGToGraph().convert(sdg);
     logTime("convert graph", System.currentTimeMillis() - start);
+    if (ASSERT_NO_DUPLICATES) {
+      start = System.currentTimeMillis();
+      assertNoDuplicates(graph);
+      logTime("check for duplicates", System.currentTimeMillis() - start);
+    }
     if (graphDest != null){
       exportGraph(graph, sdg, graphDest + "/" + name);
     }
@@ -135,5 +139,14 @@ public class Util {
       Assertions.assertTrue(res.getFirst().matches(),
           () -> klass.getSimpleName() + methodRegexp + analysis.getName() + "\n" + res.getFirst().format(Util::formatSDGNode, Util::formatSDGNode));
     }
+  }
+
+  private static void assertNoDuplicates(Graph graph){
+    Map<kotlin.Pair<Node, String>, Set<Node>> duplicateNodes = UtilKt.findDuplicateNodes(graph);
+    if (!duplicateNodes.isEmpty()){
+      Assertions.fail("Found duplicate nodes: \n" + duplicateNodes.entrySet().stream().map(e -> e.getKey() + ": " + e.getValue()).collect(
+          Collectors.joining("\n")));
+    }
+    Assertions.assertTrue(true);
   }
 }

@@ -27,8 +27,7 @@ class SequentialAnalysis2 : Analysis {
         waitingForFuncNode[func]?.clear()
     }*/
 
-    class State(val formInsPerActIn: MutableMap<InNode, MutableSet<InNode>> = HashMap()) {
-    }
+    class State(val formInsPerActIn: MutableMap<InNode, MutableSet<InNode>> = HashMap())
 
     val states = HashMap<FuncNode, State>()
 
@@ -37,7 +36,7 @@ class SequentialAnalysis2 : Analysis {
         copyFormalSummariesToActualSummaries(g)
     }
 
-    open fun initialEntries(g: Graph): Collection<FuncNode> = g.entry.reachableFuncNodes() + setOf(g.entry)
+    open fun initialEntries(g: Graph): Collection<FuncNode> = g.callGraph.vertexSet()
 
     open fun worklist(start: FuncNode, initialElements: Collection<FuncNode>, process: (FuncNode) -> Iterable<FuncNode>){
         edu.kit.joana.wala.summary.parex.worklist(start, initialElements, process)
@@ -57,18 +56,17 @@ class SequentialAnalysis2 : Analysis {
             }
             addToQueue(fi.neighbors)
             while (queue.isNotEmpty()){
-                val cur = queue.poll()
-                when {
+                when (val cur = queue.poll()) {
                     /**
                      * We reached a call node through a normal (not an in) node
                      */
-                    cur is CallNode -> {
+                    is CallNode -> {
                         addToQueue(cur.neighbors)
                     }
                     /**
                      * Only actual in nodes here
                      */
-                    cur is ActualInNode -> {
+                    is ActualInNode -> {
                         state.formInsPerActIn.getOrPut(cur, { HashSet() }).add(fi)
                         cur.callNode?.let { call ->
                             call.targets.forEach { target ->
@@ -80,7 +78,7 @@ class SequentialAnalysis2 : Analysis {
                         }
                         addToQueue(cur.neighbors)
                     }
-                    cur is FormalOutNode -> {
+                    is FormalOutNode -> {
                         summaryEdges.add(Pair(fi, cur))
                     }
                     else -> {

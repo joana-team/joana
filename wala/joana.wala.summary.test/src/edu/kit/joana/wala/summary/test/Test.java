@@ -29,6 +29,7 @@ public class Test {
         FlowSens.class,
         AssChain.class,
         MicroExample.class,
+        UnconnectedGraph.class,
         Nested.class,
         NestedWithException.class,
         Sick2.class,

@@ -26,8 +26,7 @@ class SequentialAnalysis : Analysis {
         waitingForFuncNode[func]?.clear()
     }*/
 
-    class State(val formInsPerActIn: MutableMap<InNode, MutableSet<InNode>> = HashMap()) {
-    }
+    class State(val formInsPerActIn: MutableMap<InNode, MutableSet<InNode>> = HashMap())
 
     val states = HashMap<FuncNode, State>()
 
@@ -51,15 +50,14 @@ class SequentialAnalysis : Analysis {
             val queue: Queue<Node> = ArrayDeque<Node>()
             queue.addAll(fi.neighbors)
             while (queue.isNotEmpty()){
-                val cur = queue.poll()
-                when {
-                    cur is CallNode -> {
+                when (val cur = queue.poll()) {
+                    is CallNode -> {
                         println("Error")
                     }
                     /**
                      * Only actual in nodes here
                      */
-                    cur is ActualInNode -> {
+                    is ActualInNode -> {
                         state.formInsPerActIn.getOrPut(cur, { HashSet() }).add(fi)
                         (cur.neighbors.getOrNull(0) as CallNode?)?.let { call ->
                             call.targets.forEach { target ->
@@ -70,13 +68,16 @@ class SequentialAnalysis : Analysis {
                                         /**
                                          * The formal in is not yet connected, we have to wait…
                                          */
+                                        /**
+                                         * The formal in is not yet connected, we have to wait…
+                                         */
                                         toWait.add(target)
                                     }
                                 }
                             }
                         }
                     }
-                    cur is FormalOutNode -> {
+                    is FormalOutNode -> {
                         summaryEdges.add(Pair(fi, cur))
                     }
                     else -> {

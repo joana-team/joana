@@ -10,31 +10,20 @@ package edu.kit.joana.ifc.sdg.graph;
  * Created on Feb 25, 2004
  */
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
-
+import edu.kit.joana.util.SourceLocation;
+import edu.kit.joana.util.collections.SimpleVector;
+import gnu.trove.map.TIntIntMap;
+import gnu.trove.map.hash.TIntIntHashMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 import org.antlr.runtime.ANTLRFileStream;
 import org.antlr.runtime.ANTLRReaderStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 
-import edu.kit.joana.util.SourceLocation;
-import edu.kit.joana.util.collections.ArrayMap;
-import edu.kit.joana.util.collections.SimpleVector;
-import gnu.trove.map.TIntIntMap;
-import gnu.trove.map.hash.TIntIntHashMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
+import java.io.*;
+import java.util.*;
 
 /**
  * Represents a concurrent system dependence graph (cSDG).
@@ -836,6 +825,24 @@ public class SDG extends JoanaGraph implements Cloneable {
 		}
 
 		return result;
+	}
+
+	public TIntSet getProcIds(){
+		TIntSet procIds = new TIntHashSet();
+		for (SDGNode n : vertexSet()){
+			procIds.add(n.getProc());
+		}
+		return procIds;
+	}
+
+	public Map<Integer, SDGNode> getEntryNodesPerProcId(){
+		Map<Integer, SDGNode> entryNodes = new HashMap<>();
+		for (SDGNode n : vertexSet()){
+			if (n.kind == SDGNode.Kind.ENTRY){
+				entryNodes.put(n.getProc(), n);
+			}
+		}
+		return entryNodes;
 	}
 
 	public String getFileName() {

@@ -57,7 +57,7 @@ open class Node(
         /**
          * Neighbors with edges in exit to init direction
          */
-        val neighbors: Col<Node>,
+        var neighbors: Col<Node>,
         /**
          * Custom data
          */

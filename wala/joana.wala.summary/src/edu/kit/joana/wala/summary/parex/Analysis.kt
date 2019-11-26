@@ -15,6 +15,11 @@ interface Analysis : ISummaryComputer {
         return SDGToGraph(relevantEdges, ignoreSummaryEdges).convert(pack).also(this::process)
     }
 
+    fun compute(graph: Graph, sdg: SDG){
+        process(graph)
+        graph.insertSummaryEdgesIntoSDG(sdg)
+    }
+
     fun compute(pack: WorkPackage<SDG>, relevantEdges: Set<SDGEdge.Kind>, summaryEdgeKind: SDGEdge.Kind = SDGEdge.Kind.SUMMARY): Int {
         process(pack, relevantEdges).insertSummaryEdgesIntoSDG(pack.graph, summaryEdgeKind)
         return 0

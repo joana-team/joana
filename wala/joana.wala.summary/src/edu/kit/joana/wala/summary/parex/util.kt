@@ -28,7 +28,14 @@ fun nodeGraphT(graph: Graph, root: FuncNode? = null, restrictToFunc: Boolean = f
         }
     } ?: graph.getAllNodes()).filter(nodeFilter).let { reachable ->
         reachable.forEach  { builder.addVertex(it) }
-        reachable.forEach { it.outgoing().filter(nodeFilter).forEach { t -> builder.addEdge(it, t) } }
+        reachable.forEach {
+            it.outgoing().filter(nodeFilter).forEach { t ->
+                builder.addEdge(it, t)
+            }
+            if (it is InNode && it.summaryEdges != null){
+                it.summaryEdges!!.forEach { t -> builder.addEdge(it, t)}
+            }
+        }
     }
 
     return builder.buildUnmodifiable()
@@ -36,11 +43,10 @@ fun nodeGraphT(graph: Graph, root: FuncNode? = null, restrictToFunc: Boolean = f
 
 @JvmOverloads
 fun <T: Node> exportDot(graph: DirectedGraph<T, DefaultEdge>, fileName: String, sdg: SDG? = null) {
-    DOTExporter<T, DefaultEdge>({
-        it.id.toString()
-    }, {
+    val nodeLabeler = { it: T ->
         it.toString() + ("|" + sdg?.getNode(it.id)?.label + "|" + sdg?.getNode(it.id)?.kind + "|" + sdg?.getNode(it.id)?.proc)
-    }, { edge: DefaultEdge ->
+    }
+    val labeler = { edge: DefaultEdge ->
         val source = graph.getEdgeSource(edge)
         val target = graph.getEdgeTarget(edge)
         val res = source::class.java.methods.filter {
@@ -52,6 +58,18 @@ fun <T: Node> exportDot(graph: DirectedGraph<T, DefaultEdge>, fileName: String, 
             }
         }
         res.joinToString(",") { it.name.substring(3).toLowerCase() }
+    }
+    val labelToColor = mutableMapOf(Pair("Call", "orange"), Pair("FuncNode", "orange"), Pair("summary", "blue"), Pair("out", "red"), Pair("in", "green"))
+    DOTExporter<T, DefaultEdge>({
+        it.id.toString()
+    }, nodeLabeler, labeler, {
+        mutableMapOf(Pair("color", nodeLabeler(it).let { l ->
+            labelToColor.entries.find { e -> l.contains(e.key) }?.value ?: "black"
+        }))
+    }, {
+        mutableMapOf(Pair("color", labeler(it).let { l ->
+            labelToColor.entries.find { e -> l.contains(e.key) }?.value ?: "black"
+        }))
     }).export(FileWriter(fileName), graph)
 }
 

@@ -1,102 +1,141 @@
 package edu.kit.joana.wala.summary.parex
 
 import java.util.*
+import kotlin.collections.HashMap
 import kotlin.collections.HashSet
 
 /**
- * A basic sequential analysis.
+ * An improved sequential analysis.
  *
- * The goal is to present clean and understandable code for a basic summary edge analysis
+ * When-ever a new summary edge is found, the analysis starts from the actual out node on and not from the entry node.
+ * This should be an improvement over {@link SequentialAnalysis}
  */
 class SequentialAnalysis2 : Analysis {
 
-    /**
-     * functions can register on other functions that they currently depend on
-     */
-    /*val waitingForFuncNode = HashMap<FuncNode, MutableSet<FuncNode>>()
 
-    private fun wait(func: FuncNode, other: FuncNode) {
-        waitingForFuncNode.getOrPut(func, { HashSet() }).add(other)
+    private data class FormalInState(val queue: Queue<Node>, val alreadySeen: MutableSet<Node>) {
+        fun addToQueue(xs: Collection<Node>){
+            xs.filter { it !in alreadySeen }.distinct().forEach { x ->
+                queue.add(x)
+                alreadySeen.add(x)
+            }
+        }
+        fun addToQueue(node: Node){
+            if (!alreadySeen.contains(node)){
+                queue.add(node)
+                alreadySeen.add(node)
+            }
+        }
+        fun forceAddToQueue(node: Node){
+            if (!queue.contains(node)){
+                queue.add(node)
+            }
+        }
     }
 
-    private fun get(func: FuncNode): Set<FuncNode> {
-        return waitingForFuncNode[func] ?: emptySet()
-    }
+    private data class State(val subStates: Map<FormalInNode, FormalInState>)
 
-    private fun clear(func: FuncNode){
-        waitingForFuncNode[func]?.clear()
-    }*/
+    private val FuncNode.state: State
+        get() {
+            if (data?.javaClass != State::class.java) {
+                data = State(formalIns.map { it to FormalInState(ArrayDeque(it.neighbors), it.neighbors.toMutableSet()) }.toMap())
+            }
+            return data!! as State
+        }
 
-    class State(val formInsPerActIn: MutableMap<InNode, MutableSet<InNode>> = HashMap())
-
-    val states = HashMap<FuncNode, State>()
+    private data class QueueItem(val funcNode: FuncNode, val actualInToOut: Map<ActualInNode, Collection<OutNode>>? = null)
 
     override fun process(g: Graph) {
-        worklist(g.entry, initialEntries(g), this::process)
-        copyFormalSummariesToActualSummaries(g)
+        worklist(initialEntries(g), this::process)
     }
 
-    open fun initialEntries(g: Graph): Collection<FuncNode> = g.callGraph.vertexSet()
+    private fun initialEntries(g: Graph): Collection<QueueItem> = g.callGraph.vertexSet().map { QueueItem(it) }
 
-    open fun worklist(start: FuncNode, initialElements: Collection<FuncNode>, process: (FuncNode) -> Iterable<FuncNode>){
-        edu.kit.joana.wala.summary.parex.worklist(start, initialElements, process)
-    }
+    private fun process(item: QueueItem): Iterable<QueueItem> {
+        println(item)
+        val (funcNode, inToOut) = item
+        /**
+         * Try to add summary edges and return directly if nothing changed
+         */
+        var changed = false
+        if (inToOut != null){
+            for ((ai, os) in inToOut){
+                val sums = ai.summaryEdges ?: mutableListOf()
+                for (o in os) {
+                    if (!sums.contains(o)){
+                        sums.add(o)
+                        changed = true
+                    }
+                }
+                ai.summaryEdges = sums
+            }
+        } else {
+            /**
+             * Entry case
+             */
+            changed = true
+        }
 
-    fun process(funcNode: FuncNode): Iterable<FuncNode> {
-        val state = states.getOrPut(funcNode, { State() })
-        val summaryEdges = ArrayList<Pair<InNode, OutNode>>()
-        for (fi in funcNode.formalIns) {
-            val alreadySeen = HashSet<Node>()
-            val queue: Queue<Node> = ArrayDeque<Node>()
-            val addToQueue = { xs: Collection<Node> ->
-                xs.filter { it !in alreadySeen }.distinct().forEach { x ->
-                    queue.add(x)
-                    alreadySeen.add(x)
+        if (!changed){
+            return emptyList()
+        }
+
+        /**
+         * Process
+         */
+        val changes = process(funcNode)
+
+        /**
+         * Add to queue
+         */
+        val meta = mutableMapOf<FuncNode, MutableMap<ActualInNode, Collection<OutNode>>>()
+        for ((fi, fos) in changes) {
+            for ((callNode, ai) in fi.actualIns) {
+                fos.mapNotNull { it.actualOuts[callNode] }.let {
+                    if (it.isNotEmpty()){
+                        meta.computeIfAbsent(callNode.owner, {HashMap()})[ai] = it
+                    }
                 }
             }
-            addToQueue(fi.neighbors)
+        }
+        return meta.map { (f, m) -> QueueItem(f, m) }
+    }
+
+    /**
+     * Starts where it stopped, returns a possibly empty list of found summary edges
+     */
+    private fun process(funcNode: FuncNode): Map<FormalInNode, Set<FormalOutNode>> {
+        val formalInToOut = mutableMapOf<FormalInNode, MutableSet<FormalOutNode>>()
+        funcNode.state.subStates.forEach outer@{(fi, state) ->
+            val laterQueue = mutableListOf<Node>()
+            val (queue, _) = state
             while (queue.isNotEmpty()){
                 when (val cur = queue.poll()) {
-                    /**
-                     * We reached a call node through a normal (not an in) node
-                     */
-                    is CallNode -> {
-                        addToQueue(cur.neighbors)
-                    }
                     /**
                      * Only actual in nodes here
                      */
                     is ActualInNode -> {
-                        state.formInsPerActIn.getOrPut(cur, { HashSet() }).add(fi)
-                        cur.callNode?.let { call ->
-                            call.targets.forEach { target ->
-                                val formalIn = cur.formalIns[target]
-                                if (formalIn?.summaryEdges != null) {
-                                    addToQueue(formalIn.summaryEdges!!.map { call.actualOut(it as FormalOutNode) as Node })
-                                }
-                            }
-                        }
-                        addToQueue(cur.neighbors)
+                        /**
+                         * Summary edges present?
+                         *  => walk over the call node
+                         * else?
+                         *  => add the current node later to the queue for reevaluation
+                         */
+                        cur.summaryEdges?.let(state::addToQueue) ?: laterQueue.add(cur)
+                        state.addToQueue(cur.neighbors)
                     }
                     is FormalOutNode -> {
-                        summaryEdges.add(Pair(fi, cur))
+                        if (fi.summaryEdges == null || !fi.summaryEdges!!.contains(cur)) {
+                            formalInToOut.computeIfAbsent(fi, { HashSet() }).add(cur)
+                        }
                     }
                     else -> {
-                        addToQueue(cur.neighbors)
+                        state.addToQueue(cur.neighbors)
                     }
                 }
             }
+            laterQueue.forEach { state.forceAddToQueue(it) }
         }
-        val toReeval = HashSet<FuncNode>()
-        for ((fi, fo) in summaryEdges) {
-            if (fi.summaryEdges == null){
-                fi.summaryEdges = ArrayList()
-            }
-            if (fi.summaryEdges?.contains(fo) != true){
-                (fo as FormalOutNode).actualOuts.forEach {(call, _) -> toReeval.add(call.owner)}
-            }
-            fi.summaryEdges!!.add(fo)
-        }
-        return toReeval
+        return formalInToOut
     }
 }

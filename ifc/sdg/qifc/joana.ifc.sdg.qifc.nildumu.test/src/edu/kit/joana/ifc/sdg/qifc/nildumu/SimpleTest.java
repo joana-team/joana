@@ -8,21 +8,16 @@
 
 package edu.kit.joana.ifc.sdg.qifc.nildumu;
 
-import static org.junit.Assert.fail;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import com.ibm.wala.ssa.ISSABasicBlock;
-
 import edu.kit.joana.ifc.sdg.qifc.nildumu.Lattices.BasicSecLattice;
 import edu.kit.joana.ifc.sdg.qifc.nildumu.Lattices.Bit;
 import edu.kit.joana.ifc.sdg.qifc.nildumu.Program.NextBlockFilter;
 import edu.kit.joana.ifc.sdg.qifc.nildumu.prog.Simple;
 import edu.kit.joana.ifc.sdg.qifc.nildumu.util.Util.Box;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class SimpleTest {
 	private Program program;

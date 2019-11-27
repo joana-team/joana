@@ -96,6 +96,11 @@ public class Test {
         assertAnalysis(TinyExample.class, "", new SequentialAnalysis2(), "tmp");
     }
 
+    @org.junit.jupiter.api.Test
+    public void testOutFlush2() throws ClassNotFoundException {
+        assertAnalysis(Class.forName("OutFlush2"), "", new SequentialAnalysis2(), "tmp");
+    }
+
     public static void main(String[] args) {
         withDisabledGraphExport(() -> {
             try {

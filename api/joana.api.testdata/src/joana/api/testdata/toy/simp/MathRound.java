@@ -8,15 +8,13 @@
 package joana.api.testdata.toy.simp;
 
 import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.SECRET;
-import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.leak;
-import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.toggle;
 
 /**
  * @author Simon Bischof <simon.bischof@kit.edu>
  */
 public class MathRound {
+
 	public static void main(String[] args) {
-		int i = toggle(Math.round(SECRET));
-		leak(i);
+		int i = Math.round(SECRET);
 	}
 }

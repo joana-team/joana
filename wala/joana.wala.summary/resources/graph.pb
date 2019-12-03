@@ -1,0 +1,112 @@
+syntax = "proto3";
+
+package parex.graph;
+
+option java_package = "edu.kit.joana.wala.summary.parex";
+option java_outer_classname = "GraphProto";
+
+/*
+Idea: On the wire
+     1. Dumps the graph header
+     2. Dumps the function ids
+     3. Dumps the node headers
+     4. Dumps the body of each individual node
+*/
+
+message GraphHeader {
+
+    int32 entry = 1;
+
+    int32 number_of_nodes = 2;
+
+    int32 number_of_functions = 3;
+}
+
+enum NodeHeader {
+    NONE = 0;
+    CALL_NODE = 1;
+    FUNC_NODE = 2;
+    ACTUAL_IN_NODE = 3;
+    ACTUAL_OUT_NODE = 4;
+    FORMAL_IN_NODE = 5;
+    FORMAL_OUT_NODE = 6;
+    NORMAL = 7;
+}
+
+message CallNode {
+    repeated int32 actual_ins = 1;
+
+    // id of the owning function
+    //int32 owner = 3; // already send directly after the header number
+
+    // ids of the targeted functions
+    repeated int32 targets = 4;
+    repeated int32 neighbors = 6;
+}
+
+message FuncNode {
+
+    // ids of formal in nodes
+    repeated int32 formal_ins = 1;
+
+    // ids of formal out nodes
+    repeated int32 formal_outs = 2;
+
+    // ids of calls to other functions, ∀ c ∈ neighbors: c.owner = this
+    repeated int32 callees = 3;
+
+    // ids of calling call nodes, ∀ c ∈ callers: c.target = this
+    repeated int32 callers = 4;
+
+    // ids of neighbors
+    repeated int32 neighbors = 6;
+}
+
+message ActualInNode {
+
+    // function node id → formal in node id
+    map<int32, int32> formal_ins = 1;
+
+    // call node, might be -1 if no real call node is present
+    int32 callNode = 3;
+
+    // ids of neighbors
+    repeated int32 neighbors = 6;
+}
+
+message FormalInNode {
+    // call node id → actual in node id
+    map<int32, int32> actual_ins = 1;
+
+    // id of the owning function
+    //int32 owner = 3; // already send directly after the header number
+
+    // ids of neighbors
+    repeated int32 neighbors = 6;
+}
+
+message ActualOutNode {
+    // ids of neighbors
+    repeated int32 neighbors = 6;
+}
+
+message FormalOutNode {
+    // call node id → actual out node id
+    map<int32, int32> actual_outs = 1;
+
+    // ids of neighbors
+    repeated int32 neighbors = 6;
+}
+
+message NormalNode {
+    // ids of neighbors
+    repeated int32 neighbors = 6;
+}
+
+message SummaryEdges {
+    message Edge {
+        int32 actual_in = 1;
+        int32 actual_out = 2;
+    }
+    repeated Edge edge = 1;
+}

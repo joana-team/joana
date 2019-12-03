@@ -289,4 +289,9 @@ public class Builder {
 		return this;
 	}
 
+	public Builder sequentialSDGBuild(){
+		config.setParallel(false);
+		return this;
+	}
+
 }

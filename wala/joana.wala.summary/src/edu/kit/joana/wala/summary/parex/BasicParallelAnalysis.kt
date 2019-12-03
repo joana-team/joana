@@ -68,7 +68,7 @@ class BasicParallelAnalysis(val numberOfThreads: Int = Runtime.getRuntime().avai
         val queueItemCounter: AtomicInteger = AtomicInteger(0)
 
         init {
-            val funcs = g.funcMap.values.toList()
+            val funcs = g.callGraph.vertexSet().toList()
             Collections.shuffle(funcs)
             val funcsPerThread = Math.ceil(funcs.size * 1.0 / (numberOfThreads - 1)).toInt()
             computersPerFunc = HashMap()

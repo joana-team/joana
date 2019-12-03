@@ -166,13 +166,13 @@ class SDGToGraph(val relevantEdges: Set<SDGEdge.Kind> = DEFAULT_RELEVANT_EDGES,
                     graph.createFormalIn(node.id, funcNode)
                 SDGNode.Kind.CALL ->
                     CallNode(node.id, mutableListOf(), mutableListOf(), graph.getOrCreateFuncNode(sdg.getEntry(node).id),
-                            getCallNodeTargets(node))
+                            getCallNodeTargets(node)).also(graph::addNode)
                 SDGNode.Kind.ACTUAL_OUT ->
-                    OutNode(node.id)
+                    OutNode(node.id).also(graph::addNode)
                 SDGNode.Kind.FORMAL_OUT, SDGNode.Kind.EXIT ->
-                    FormalOutNode(node.id)
+                    FormalOutNode(node.id).also(graph::addNode)
                 else ->
-                    Node(node.id, mutableListOf())
+                    Node(node.id, mutableListOf()).also(graph::addNode)
             }
         }
 
@@ -180,8 +180,8 @@ class SDGToGraph(val relevantEdges: Set<SDGEdge.Kind> = DEFAULT_RELEVANT_EDGES,
             return sdgNodeToNode.containsKey(target)
         }
 
-        internal fun getCallNodeTargets(node: SDGNode): List<FuncNode> {
-            return outgoing(node).filter { it.kind == SDGEdge.Kind.CALL }.map { graph.getOrCreateFuncNode(it.target.id) }
+        internal fun getCallNodeTargets(node: SDGNode): MutableList<FuncNode> {
+            return outgoing(node).filter { it.kind == SDGEdge.Kind.CALL }.map { graph.getOrCreateFuncNode(it.target.id) }.toMutableList()
         }
 
         private fun outgoing(node: SDGNode) = (sdg as AbstractBaseGraph<SDGNode, SDGEdge>).outgoingEdgesOfUnsafe(node)
@@ -228,7 +228,7 @@ class SDGToGraph2(val relevantEdges: Set<SDGEdge.Kind> = DEFAULT_RELEVANT_EDGES,
     }
 
     @JvmOverloads
-    fun convert(graph: SDG, executor: ExecutorService? = null): Graph {
+    public fun convert(graph: SDG, executor: ExecutorService? = null): Graph {
         return ParallelConverter(graph, executor ?: Executors.newWorkStealingPool()).convert()
     }
 
@@ -269,8 +269,24 @@ class SDGToGraph2(val relevantEdges: Set<SDGEdge.Kind> = DEFAULT_RELEVANT_EDGES,
              * Add other nodes (and actual ins)
              */
             executor.submit {
-                graph.actualIns.addAll(graph.funcMap.values.parallelStream()
-                        .flatMap { createNonFuncNodes(it, nodesPerProc[it.id]!!).stream() }.collect(Collectors.toList()))
+                (graph.actualIns as MutableList).addAll(procs.values.parallelStream()
+                        .flatMap { createNonFuncNodes(it.customData as FuncNode, nodesPerProc[it.id]!!).stream() }.collect(Collectors.toList()))
+            }.get()
+
+            /**
+             * Find maximum node id
+             */
+            val maxId = executor.submit(Callable {
+                nodesPerProc.values.parallelStream().mapToInt { it.maxBy { n -> n.id }?.id ?: Integer.MAX_VALUE }.max().asInt
+            }).get()
+
+            /**
+             * Add nodes
+             */
+            executor.submit {
+                val array = Array<Node?>(maxId + 1) {null}
+                nodesPerProc.values.parallelStream().forEach { it.forEach { n -> array[n.id] = n.customData as Node } }
+                graph.nodes = Arrays.asList(*array) as List<Node?>
             }.get()
 
             /**
@@ -286,8 +302,8 @@ class SDGToGraph2(val relevantEdges: Set<SDGEdge.Kind> = DEFAULT_RELEVANT_EDGES,
              * Collect formal ins
              */
             executor.submit {
-                graph.formalIns.addAll(graph.funcMap.values.parallelStream()
-                        .flatMap { it.formalIns.stream() }.collect(Collectors.toList()))
+                (graph.formalIns as MutableList).addAll(procs.values.parallelStream()
+                        .flatMap { (it.customData as FuncNode).formalIns.stream() }.collect(Collectors.toList()))
             }.get()
 
             /**
@@ -434,8 +450,8 @@ class SDGToGraph2(val relevantEdges: Set<SDGEdge.Kind> = DEFAULT_RELEVANT_EDGES,
             return sdgNodeToNode.containsKey(target)
         }
 
-        internal fun getCallNodeTargets(node: SDGNode): List<FuncNode> {
-            return outgoing(node).filter { it.kind == SDGEdge.Kind.CALL }.map { graph.getOrCreateFuncNode(it.target.id) }
+        internal fun getCallNodeTargets(node: SDGNode): MutableList<FuncNode> {
+            return outgoing(node).filter { it.kind == SDGEdge.Kind.CALL }.map { graph.getOrCreateFuncNode(it.target.id) }.toMutableList()
         }
 
         private fun outgoing(node: SDGNode) = (sdg as AbstractBaseGraph<SDGNode, SDGEdge>).outgoingEdgesOfUnsafe(node)

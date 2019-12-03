@@ -24,9 +24,7 @@ import joana.api.testdata.toy.test.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
@@ -100,6 +98,12 @@ public class Test {
     @ParameterizedTest
     @MethodSource("testCases")
     public void testAnalysis2(Class<?> klass){
+      assertAnalysis(klass, "", new SequentialAnalysis(), bigTestCase(klass) ? null : "tmp", g -> {
+          String file = "tmp/" + klass.getName() + ".pg";
+          new Dumper().dump(g, file);
+          Graph newGraph = new Loader().load(file);
+          return newGraph;
+      });
         assertAnalysis(klass, "", new BasicParallelAnalysis(), bigTestCase(klass) ? null : "tmp");
         assertAnalysis(klass, "", new SequentialAnalysis2(), bigTestCase(klass) ? null : "tmp");
     }
@@ -115,7 +119,10 @@ public class Test {
     @MethodSource("testCases")
     public void testAnalysis2WithPreproc(Class<?> klass) throws InterruptedException {
         Util.withDuplicateAndValidityCheck(!bigTestCase(klass), () ->
-            assertAnalysis(klass, "", new SequentialAnalysis2(), bigTestCase(klass) ? null : "tmp", PreprocessKt::removeNormalNodes)
+            assertAnalysis(klass, "", new SequentialAnalysis2(), bigTestCase(klass) ? null : "tmp", g -> {
+                PreprocessKt.removeNormalNodes(g);
+                return g;
+            })
         );
     }
 
@@ -124,6 +131,7 @@ public class Test {
     public void testAnalysis2WithParallelPreproc(Class<?> klass){
         assertAnalysis(klass, "", new SequentialAnalysis2(), bigTestCase(klass) ? null : "tmp", g -> {
             PreprocessKt.removeNormalNodes(g, true);
+            return g;
         });
     }
 
@@ -194,6 +202,13 @@ public class Test {
                 sdg -> {
                     Graph g = new SDGToGraph().convert(sdg, true);
                     PreprocessKt.removeNormalNodes(g, true);
+                }),
+            Pair.pair("PCon Import Export",
+                sdg -> {
+                    Graph g = new SDGToGraph().convert(sdg, true);
+                    String file = "tmp/bench.pg";
+                    new Dumper().dump(g, file);
+                    Graph newGraph = new Loader().load(file);
                 }));
     }
 
@@ -210,6 +225,7 @@ public class Test {
                 e.printStackTrace();
                 System.exit(1);
             }
+            System.out.printf("Took %dms\n", System.currentTimeMillis() - time);
         } else {
             try {
                 preSDG = Util.build(Class.forName(klassOrSDG));
@@ -217,11 +233,22 @@ public class Test {
                 e.printStackTrace();
                 System.exit(1);
             }
+            System.out.printf("Took %dms\n", System.currentTimeMillis() - time);
         }
         SDG sdg = preSDG;
-        System.out.printf("Took %dms\n", System.currentTimeMillis() - time);
+        time = System.currentTimeMillis();
+        Graph graph = new SDGToGraph2().convert(sdg);
+        System.out.printf("Took %dms to convert graph\n", System.currentTimeMillis() - time);
+        time = System.currentTimeMillis();
+        try (OutputStream out = new FileOutputStream(klassOrSDG + ".pb")){
+            new Dumper().dump(graph, out);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.printf("Took %dms to store graph\n", System.currentTimeMillis() - time);
+
         System.out.println("Nodes " + sdg.vertexSet().size() + ", functions " + sdg.getEntryNodesPerProcId().size());
-        printSCCSizes(sdg);
+        //printSCCSizes(sdg);
         Map<String, SummaryStatistics> stats = Util.compare(
             configurations.stream().map(p -> new Computation<SDG>() {
 

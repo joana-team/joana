@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -36,11 +35,11 @@ public class Util {
   private static boolean USE_PARALLEL_CONVERTER = true;
   private static String classPath = null;
 
-  private static void compute(ISummaryComputer computer, SDG sdg, @Nullable Graph graph, @Nullable String prefix, Consumer<Graph> preproc){
+  private static void compute(ISummaryComputer computer, SDG sdg, @Nullable Graph graph, @Nullable String prefix, Function<Graph, Graph> preproc){
     if (computer instanceof Analysis){
       if (graph == null){
         graph = new SDGToGraph().convert(sdg, USE_PARALLEL_CONVERTER);
-        preproc.accept(graph);
+        graph = preproc.apply(graph);
       }
       long start = System.currentTimeMillis();
       ((Analysis) computer).compute(graph, sdg);
@@ -61,7 +60,7 @@ public class Util {
   }
 
   private static MultiMapCompResult<SDGNode, SDGNode> compare(SDG sdg, @Nullable Graph graph, ISummaryComputer computer, ISummaryComputer computer2,
-      boolean modifySDG, @Nullable String prefix, Consumer<Graph> preproc){
+      boolean modifySDG, @Nullable String prefix, Function<Graph, Graph> preproc){
     SDG firstSDG = modifySDG ? sdg.clone() : sdg;
     SDG secondSDG = sdg.clone();
     compute(computer, firstSDG, graph, prefix, preproc);
@@ -112,7 +111,7 @@ public class Util {
         n -> n instanceof InNode || n instanceof CallNode || n instanceof FuncNode || sdg.getNode(n.getId())
             .getKind().name().toLowerCase().matches(".*(act|for|exit|entry).*")), prefix + "purged.dot", sdg);
     UtilKt.exportDot(graph.getCallGraph(), prefix + "callGraph.dot", sdg);
-    for (FuncNode value : graph.getFuncMap().values()) {
+    for (FuncNode value : graph.getCallGraph().vertexSet()) {
       UtilKt.exportDot(UtilKt.nodeGraphT(graph, value, true), prefix + sdg.getNode(value.getId()).getLabel(), sdg);
     }
   }
@@ -133,7 +132,7 @@ public class Util {
    * @return
    */
   private static Pair<MultiMapCompResult<SDGNode, SDGNode>, Graph>
-  compareCheck(Class<?> klass, String methodRegexp, Analysis analysis, @Nullable String graphDest, Consumer<Graph> preproc,
+  compareCheck(Class<?> klass, String methodRegexp, Analysis analysis, @Nullable String graphDest, Function<Graph, Graph> preproc,
       boolean cacheGraph){
     String name = klass.getSimpleName() + methodRegexp + analysis.getName();
     long start = System.currentTimeMillis();
@@ -144,7 +143,7 @@ public class Util {
     Graph graph = new SDGToGraph().convert(sdg, USE_PARALLEL_CONVERTER);
     logTime("convert graph", System.currentTimeMillis() - start);
     start = System.currentTimeMillis();
-    preproc.accept(graph);
+    graph = preproc.apply(graph);
     logTime("preproc", System.currentTimeMillis() - start);
     if (ASSERT_NO_DUPLICATES) {
       start = System.currentTimeMillis();
@@ -160,16 +159,16 @@ public class Util {
   }
 
   static void assertAnalysis(Class<?> klass, String methodRegexp, Analysis analysis, @Nullable String graphDest) {
-    assertAnalysis(klass, methodRegexp, analysis, graphDest, (g) -> {});
+    assertAnalysis(klass, methodRegexp, analysis, graphDest, g -> g);
   }
 
-  static void assertAnalysis(Class<?> klass, String methodRegexp, Analysis analysis, @Nullable String graphDest, Consumer<Graph> preproc){
+  static void assertAnalysis(Class<?> klass, String methodRegexp, Analysis analysis, @Nullable String graphDest, Function<Graph, Graph> preproc){
     Pair<MultiMapCompResult<SDGNode, SDGNode>, Graph> res = compareCheck(klass, methodRegexp, analysis, graphDest, preproc, true);
     Assertions.assertTrue(res.getFirst().matches(),
         () -> klass.getSimpleName() + methodRegexp + analysis.getName() + "\n" + res.getFirst().format(Util::formatSDGNode, Util::formatSDGNode));
   }
 
-  static void assertAnalyses(Class<?> klass, String methodRegexp, List<Analysis> analyses, @Nullable String graphDest, Consumer<Graph> preproc){
+  static void assertAnalyses(Class<?> klass, String methodRegexp, List<Analysis> analyses, @Nullable String graphDest, Function<Graph, Graph> preproc){
     for (Analysis analysis : analyses) {
       Pair<MultiMapCompResult<SDGNode, SDGNode>, Graph> res = compareCheck(klass, methodRegexp, analysis,
           analyses.get(0) == analysis ? graphDest : null, preproc, false);

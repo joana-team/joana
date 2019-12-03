@@ -10,11 +10,19 @@ import kotlin.collections.HashSet
 
 typealias Col<T> = MutableList<T>
 
-class Graph(val entry: FuncNode) {
-    val actualIns: MutableList<ActualInNode> = ArrayList()
-    val formalIns: MutableList<FormalInNode> = ArrayList()
-    val funcMap: MutableMap<Int, FuncNode> = HashMap()
-    val callGraph: DirectedGraph<FuncNode, DefaultEdge> = DefaultDirectedGraph(DefaultEdge::class.java)
+typealias CallGraph = DirectedGraph<FuncNode, DefaultEdge>
+
+class Graph(val entry: FuncNode,
+            /**
+             * index == node.id
+             */
+            var nodes: List<Node?> = ArrayList(),
+            val actualIns: List<ActualInNode> = ArrayList(),
+            val formalIns: List<FormalInNode> = ArrayList(),
+            val funcMap: Map<Int, FuncNode> = HashMap()) {
+
+
+    val callGraph: CallGraph = DefaultDirectedGraph(DefaultEdge::class.java)
 
     init {
         addFuncNode(entry)
@@ -22,30 +30,43 @@ class Graph(val entry: FuncNode) {
 
     fun createActualIn(id: Int): ActualInNode {
         val actualIn = ActualInNode(id)
-        actualIns.add(actualIn)
+        (actualIns as MutableList).add(actualIn)
+        addNode(actualIn)
         return actualIn
     }
 
     fun createFormalIn(id: Int, funcNode: FuncNode): FormalInNode {
         val formalIn = FormalInNode(id, funcNode)
-        formalIns.add(formalIn)
+        (formalIns as MutableList).add(formalIn)
+        addNode(formalIn)
         return formalIn
     }
 
     fun addFuncNode(f: FuncNode): FuncNode {
-        funcMap[f.id] = f
+        (funcMap as MutableMap)[f.id] = f
         callGraph.addVertex(f)
         return f
     }
 
     fun getOrCreateFuncNode(id: Int): FuncNode {
-        return funcMap[id] ?: addFuncNode(FuncNode(id))
+        return funcMap[id] ?: addFuncNode(FuncNode(id).also(this::addNode))
     }
 
     fun removeSummaryEdges(){
         actualIns.forEach {
             it.summaryEdges = mutableListOf()
         }
+    }
+
+    /**
+     * Only works if the nodes field contains a mutable list (the default)
+     */
+    fun addNode(node: Node){
+        (nodes as ArrayList<Node?>).ensureCapacity(node.id)
+        while (nodes.size <= node.id) {
+            (nodes as ArrayList<Node?>).add(null)
+        }
+        (nodes as ArrayList<Node?>)[node.id] = node
     }
 }
 
@@ -114,7 +135,7 @@ class CallNode(
         /**
          * Target function node
          */
-        val targets: Collection<FuncNode>) : Node(id, neighbors) {
+        val targets: Col<FuncNode>) : Node(id, neighbors) {
 
     override fun outgoing(hideCallGraph: Boolean): List<Node> = (if (hideCallGraph) targets else targets + owner) + curNeighbors()
 

@@ -33,7 +33,7 @@ open class SequentialAnalysis2 : Analysis {
      * Initialize each the state for each function node
      */
     private fun initFuncStates(g: Graph){
-        g.funcMap.values.forEach { func ->
+        g.callGraph.vertexSet().forEach { func ->
             func.data = State(func.formalIns.map { fi ->
                 /**
                  * Each formal in node gets its own queue state that is initialized with the current neighbors of the formal in

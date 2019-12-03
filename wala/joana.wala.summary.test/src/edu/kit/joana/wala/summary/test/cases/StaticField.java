@@ -1,4 +1,4 @@
-package edu.kit.joana.wala.summary.test;
+package edu.kit.joana.wala.summary.test.cases;
 
 public class StaticField {
 

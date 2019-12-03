@@ -32,8 +32,8 @@ fun nodeGraphT(graph: Graph, root: FuncNode? = null, restrictToFunc: Boolean = f
             it.outgoing().filter(nodeFilter).forEach { t ->
                 builder.addEdge(it, t)
             }
-            if (it is InNode && it.summaryEdges != null){
-                it.summaryEdges!!.forEach { t -> builder.addEdge(it, t)}
+            if (it is InNode){
+                it.summaryEdges.forEach { t -> builder.addEdge(it, t)}
             }
         }
     }
@@ -105,7 +105,7 @@ fun <T> duplicates(col: Collection<T>): Set<T> {
 fun Graph.insertSummaryEdgesIntoSDG(sdg: SDG, summaryEdgeKind: SDGEdge.Kind = SDGEdge.Kind.SUMMARY){
     for (actualIn in actualIns) {
         val sdgInNode = sdg.getNode(actualIn.id)
-        actualIn.summaryEdges?.forEach { actualOut ->
+        actualIn.summaryEdges.forEach { actualOut ->
             val sdgOutNode = sdg.getNode(actualOut.id)
             sdg.addEdge(sdgInNode, sdgOutNode , summaryEdgeKind.newEdge(sdgInNode, sdgOutNode))
         }
@@ -161,7 +161,7 @@ internal fun Graph.getSummaryEdgeMap(sdg: SDG): MultiMap<SDGNode, SDGNode> {
     val map = MultiHashMap<SDGNode, SDGNode>()
     this.actualIns.forEach {
         val sdgNode = sdg.getNode(it.id)
-        it.summaryEdges?.forEach { out ->
+        it.summaryEdges.forEach { out ->
             map.add(sdgNode, sdg.getNode(out.id))
         }
     }
@@ -186,7 +186,18 @@ fun <K, V> MultiMap<K, V>.additionsComparedTo(base: MultiMap<K, V>): MultiMap<K,
     this.entrySet().map { SimpleEntry(it.key, it.value.filter { v -> !base.get(it.key).contains(v) }) }
             .filter { (_, v) -> v.isNotEmpty() }.let {
         val map = MultiHashMap<K, V>()
-        it.forEach { (k, vs) -> vs.forEach { v -> map.add(k, v)} }
+        it.forEach { (k, vs) -> vs.forEach { v ->
+            map.add(k, v)
+        } }
         return map
     }
+}
+
+fun <T> T.oneOf(vararg supported: T): Boolean {
+    for (t in supported) {
+        if (this == supported) {
+            return true
+        }
+    }
+    return false
 }

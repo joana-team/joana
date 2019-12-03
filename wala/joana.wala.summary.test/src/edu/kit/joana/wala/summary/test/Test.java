@@ -1,9 +1,14 @@
 package edu.kit.joana.wala.summary.test;
 
+import com.ibm.wala.util.CancelException;
 import de.uni.trier.infsec.core.Setup;
-import edu.kit.joana.wala.summary.parex.PreprocessKt;
-import edu.kit.joana.wala.summary.parex.SequentialAnalysis;
-import edu.kit.joana.wala.summary.parex.SequentialAnalysis2;
+import edu.kit.joana.api.sdg.SDGProgram;
+import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.util.Pair;
+import edu.kit.joana.wala.summary.NullProgressMonitor;
+import edu.kit.joana.wala.summary.SummaryComputationType;
+import edu.kit.joana.wala.summary.parex.*;
+import edu.kit.joana.wala.summary.test.cases.*;
 import joana.api.testdata.seq.*;
 import joana.api.testdata.toy.declass.Declass1;
 import joana.api.testdata.toy.demo.Demo1;
@@ -19,10 +24,19 @@ import joana.api.testdata.toy.test.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static edu.kit.joana.wala.summary.test.Util.assertAnalysis;
-import static edu.kit.joana.wala.summary.test.Util.withDisabledGraphExport;
+import static edu.kit.joana.wala.summary.test.Util.*;
 
 public class Test {
 
@@ -69,6 +83,7 @@ public class Test {
             MartinMohrsStrangeTryCatchFinallyWalaBug.class,
             StaticField.class,
             Setup.class,
+            JLexMin.class,
             JLex.Main.class
         );
     }
@@ -76,19 +91,40 @@ public class Test {
     @ParameterizedTest
     @MethodSource("testCases")
     public void testAnalysis(Class<?> klass){
-        assertAnalysis(klass, "", new SequentialAnalysis(), "tmp");
+        Util.withoutParallelConverter(() -> {
+            assertAnalysis(klass, "", new SequentialAnalysis(), bigTestCase(klass) ? null : "tmppc");
+        });
+        assertAnalysis(klass, "", new SequentialAnalysis(), bigTestCase(klass) ? null : "tmp");
     }
 
     @ParameterizedTest
     @MethodSource("testCases")
     public void testAnalysis2(Class<?> klass){
-        assertAnalysis(klass, "", new SequentialAnalysis2(), "tmp");
+        assertAnalysis(klass, "", new BasicParallelAnalysis(), bigTestCase(klass) ? null : "tmp");
+        assertAnalysis(klass, "", new SequentialAnalysis2(), bigTestCase(klass) ? null : "tmp");
     }
 
     @ParameterizedTest
     @MethodSource("testCases")
-    public void testAnalysis2WithPreproc(Class<?> klass){
-        assertAnalysis(klass, "", new SequentialAnalysis2(), "tmp", PreprocessKt::removeNormalNodes);
+    public void testAnalysisBasicParallel(Class<?> klass){
+        assertAnalysis(klass, "", new BasicParallelAnalysis(), bigTestCase(klass) ? null : "tmp");
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("testCases")
+    public void testAnalysis2WithPreproc(Class<?> klass) throws InterruptedException {
+        Util.withDuplicateAndValidityCheck(!bigTestCase(klass), () ->
+            assertAnalysis(klass, "", new SequentialAnalysis2(), bigTestCase(klass) ? null : "tmp", PreprocessKt::removeNormalNodes)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("testCases")
+    public void testAnalysis2WithParallelPreproc(Class<?> klass){
+        assertAnalysis(klass, "", new SequentialAnalysis2(), bigTestCase(klass) ? null : "tmp", g -> {
+            PreprocessKt.removeNormalNodes(g, true);
+        });
     }
 
     @org.junit.jupiter.api.Test
@@ -98,22 +134,135 @@ public class Test {
 
     @org.junit.jupiter.api.Test
     public void testOutFlush2() throws ClassNotFoundException {
-        assertAnalysis(Class.forName("OutFlush2"), "", new SequentialAnalysis2(), "tmp");
+        assertAnalysis(JLexMin.class, "", new SequentialAnalysis2(), "tmp");
     }
 
-    public static void main(String[] args) {
-        withDisabledGraphExport(() -> {
+    private static Consumer<SDG> wrap(SummaryComputationType summaryComputationType){
+        return sdg -> {
             try {
-                try {
-                    assertAnalysis(Class.forName(args[0]), "", new SequentialAnalysis2(), "tmp");
-                } catch (AssertionError e){
-                    e.printStackTrace();
-                    System.exit(0);
-                }
-            } catch (ClassNotFoundException e) {
+                summaryComputationType.getSummaryComputer().compute(SDGProgram.createSummaryWorkpackage(sdg), true, new NullProgressMonitor());
+            } catch (CancelException e) {
                 e.printStackTrace();
             }
+        };
+    }
+
+    private static Consumer<SDG> wrap(Function<SDG, Graph> converter, Consumer<Graph> computer){
+        return sdg -> {
+            Graph graph = converter.apply(sdg);
+            computer.accept(graph);
+            UtilKt.insertSummaryEdgesIntoSDG(graph, sdg);
+        };
+    }
+
+    private static List<Pair<String, Consumer<SDG>>> configurations(){
+
+        return Arrays.asList(
+            Pair.pair("JOANA default",
+                wrap(SummaryComputationType.DEFAULT)),
+            Pair.pair("Con Seq",
+                wrap(sdg -> new SDGToGraph().convert(sdg), graph -> new SequentialAnalysis2().process(graph))),
+            Pair.pair("PCon Seq",
+                wrap(sdg -> new SDGToGraph().convert(sdg, true), graph -> new SequentialAnalysis2().process(graph))),
+            Pair.pair("PCon PPre Seq",
+                wrap(sdg -> {
+                    Graph g = new SDGToGraph().convert(sdg, true);
+                    PreprocessKt.removeNormalNodes(g, true);
+                    return g;
+                }, graph -> new SequentialAnalysis2().process(graph))),
+            Pair.pair("Con BP",
+                wrap(sdg -> new SDGToGraph().convert(sdg), graph -> new BasicParallelAnalysis().process(graph))),
+            Pair.pair("PCon BP",
+                wrap(sdg -> new SDGToGraph().convert(sdg, true), graph -> new BasicParallelAnalysis().process(graph))),
+            Pair.pair("PCon PPre BP",
+                wrap(sdg -> {
+                    Graph g = new SDGToGraph().convert(sdg, true);
+                    PreprocessKt.removeNormalNodes(g, true);
+                    return g;
+                }, graph -> new BasicParallelAnalysis().process(graph))),
+            Pair.pair("PCon PPre BP 2x",
+                wrap(sdg -> {
+                    Graph g = new SDGToGraph().convert(sdg, true);
+                    PreprocessKt.removeNormalNodes(g, true);
+                    return g;
+                }, graph -> new BasicParallelAnalysis(Runtime.getRuntime().availableProcessors() * 2).process(graph))),
+            Pair.pair("Con",
+                sdg -> new SDGToGraph().convert(sdg)),
+            Pair.pair("PCon",
+                sdg -> new SDGToGraph().convert(sdg, true)),
+            Pair.pair("PCon PPre",
+                sdg -> {
+                    Graph g = new SDGToGraph().convert(sdg, true);
+                    PreprocessKt.removeNormalNodes(g, true);
+                }));
+    }
+
+    public static void compare(String klassOrSDG, List<Pair<String, Consumer<SDG>>> configurations, int preRuns, int numberOfRuns){
+        System.out.println("Build sdg");
+        File sdgFile = Paths.get(klassOrSDG).toFile();
+        long time = System.currentTimeMillis();
+        SDG preSDG = null;
+        if (sdgFile.exists() || sdgFile.getName().endsWith(".pdg")){
+            try {
+                System.out.println("Load from file");
+                preSDG = SDG.readFromAndUseLessHeap(new FileInputStream(sdgFile));
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+        } else {
+            try {
+                preSDG = Util.build(Class.forName(klassOrSDG));
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
+        SDG sdg = preSDG;
+        System.out.printf("Took %dms\n", System.currentTimeMillis() - time);
+        System.out.println("Nodes " + sdg.vertexSet().size() + ", functions " + sdg.getEntryNodesPerProcId().size());
+        printSCCSizes(sdg);
+        Map<String, SummaryStatistics> stats = Util.compare(
+            configurations.stream().map(p -> new Computation<SDG>() {
+
+                @Override public String name() {
+                    return p.getFirst();
+                }
+
+                @Override public SDG pre() {
+                    sdg.removeSummaryEdges();
+                    return sdg;
+                }
+
+                @Override public void run(SDG sdg) {
+                    p.getSecond().accept(sdg);
+                }
+            }).collect(Collectors.toList()), preRuns, numberOfRuns);
+    }
+
+    public static void main(String[] args){
+        withClassPath(args.length >= 3 ? args[0] : ".", () -> {
+            compare(args.length >= 3 ? args[1] : "JLex.Main", configurations(), args.length >= 4 ? Integer.parseInt(args[3]) : 1, args.length >= 3 ? Integer.parseInt(args[2]) : 5);
         });
         System.exit(1);
+        withClassPath(args[0], () -> {
+            withDisabledGraphExport(() -> {
+                try {
+                    try {
+                        assertAnalysis(Class.forName(args[1]), "", new SequentialAnalysis2(), "tmp");
+                    } catch (AssertionError e){
+                        e.printStackTrace();
+                        System.exit(0);
+                    }
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            });
+            System.exit(1);
+        });
+    }
+
+    private static boolean bigTestCase(Class<?> klass){
+        return klass == JLex.Main.class;
     }
 }

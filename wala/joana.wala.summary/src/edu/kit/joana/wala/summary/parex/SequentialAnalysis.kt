@@ -39,7 +39,7 @@ class SequentialAnalysis : Analysis {
                             call.targets.forEach { target ->
                                 val formalIn = cur.formalIns[target]
                                 if (formalIn?.summaryEdges != null) {
-                                    addToQueue(formalIn.summaryEdges!!.map { call.actualOut(it as FormalOutNode) as Node })
+                                    addToQueue(formalIn.summaryEdges.map { call.actualOut(it as FormalOutNode) as Node })
                                 }
                             }
                         }
@@ -56,13 +56,10 @@ class SequentialAnalysis : Analysis {
         }
         val toReeval = HashSet<FuncNode>()
         for ((fi, fo) in summaryEdges) {
-            if (fi.summaryEdges == null){
-                fi.summaryEdges = ArrayList()
-            }
-            if (fi.summaryEdges?.contains(fo) != true){
+            if (!fi.summaryEdges.contains(fo)){
                 (fo as FormalOutNode).actualOuts.forEach {(call, _) -> toReeval.add(call.owner)}
             }
-            fi.summaryEdges!!.add(fo)
+            fi.summaryEdges.add(fo)
         }
         return toReeval
     }

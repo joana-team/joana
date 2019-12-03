@@ -75,15 +75,12 @@ interface Analysis : ISummaryComputer {
          */
         for (formalIn in graph.formalIns) {
             val connectedFormalOuts = formalIn.summaryEdges
-            if (connectedFormalOuts != null) {
-                /* formalIn has summary edges, we visit every caller of the function that formalIn belongs to */
-                for ((call, actIn) in formalIn.actualIns) {
-                    val actualSummaryEdges = actIn.summaryEdges!!
-                    for (formalOut in connectedFormalOuts) {
-                        // println("${formalIn.id} → ${formalOut.id}")
-                        /* The index of formalOut is the same as the index of the corresponding actualOut */
-                        (formalOut as FormalOutNode).actualOuts[call]?.let(actualSummaryEdges::add)
-                    }
+            for ((call, actIn) in formalIn.actualIns) {
+                val actualSummaryEdges = actIn.summaryEdges
+                for (formalOut in connectedFormalOuts) {
+                    // println("${formalIn.id} → ${formalOut.id}")
+                    /* The index of formalOut is the same as the index of the corresponding actualOut */
+                    (formalOut as FormalOutNode).actualOuts[call]?.let(actualSummaryEdges::add)
                 }
             }
         }

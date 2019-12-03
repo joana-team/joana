@@ -1,6 +1,6 @@
-package edu.kit.joana.wala.summary.test;
+package edu.kit.joana.wala.summary.test.cases;
 
-class BasicTestClass {
+public class BasicTestClass {
 
     static class A {
         int b(int a){

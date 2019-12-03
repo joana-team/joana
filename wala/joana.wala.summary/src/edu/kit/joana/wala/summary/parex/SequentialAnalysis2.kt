@@ -1,90 +1,91 @@
 package edu.kit.joana.wala.summary.parex
 
-import java.util.*
-import kotlin.collections.HashMap
-import kotlin.collections.HashSet
-
 /**
  * An improved sequential analysis.
  *
  * When-ever a new summary edge is found, the analysis starts from the actual out node on and not from the entry node.
  * This should be an improvement over {@link SequentialAnalysis}
  */
-class SequentialAnalysis2 : Analysis {
+open class SequentialAnalysis2 : Analysis {
 
+    internal data class State(val subStates: Map<FormalInNode, NodeQueue<Node>>)
 
-    private data class FormalInState(val queue: Queue<Node>, val alreadySeen: MutableSet<Node>) {
-        fun addToQueue(xs: Collection<Node>){
-            xs.filter { it !in alreadySeen }.distinct().forEach { x ->
-                queue.add(x)
-                alreadySeen.add(x)
-            }
-        }
-        fun addToQueue(node: Node){
-            if (!alreadySeen.contains(node)){
-                queue.add(node)
-                alreadySeen.add(node)
-            }
-        }
-        fun forceAddToQueue(node: Node){
-            if (!queue.contains(node)){
-                queue.add(node)
-            }
-        }
-    }
+    /**
+     * A helper property to access the state for each function node, stored in its data field
+     */
+    internal val FuncNode.state: State
+        get() = data!! as State
 
-    private data class State(val subStates: Map<FormalInNode, FormalInState>)
-
-    private val FuncNode.state: State
-        get() {
-            if (data?.javaClass != State::class.java) {
-                data = State(formalIns.map { it to FormalInState(ArrayDeque(it.neighbors), it.neighbors.toMutableSet()) }.toMap())
-            }
-            return data!! as State
-        }
-
-    private data class QueueItem(val funcNode: FuncNode, val actualInToOut: Map<ActualInNode, Collection<OutNode>>? = null)
+    /**
+     * An item in the inter-procedural worklist that states that the analysis of another funcNode found for a given funcNode
+     * the following new summary edges that should be added
+     *
+     * actualInToOut == null: the first evaluation of a function
+     */
+    internal data class QueueItem(val funcNode: FuncNode, val actualInToOut: Map<ActualInNode, Collection<OutNode>>? = null)
 
     override fun process(g: Graph) {
+        initFuncStates(g)
         worklist(initialEntries(g), this::process)
     }
 
-    private fun initialEntries(g: Graph): Collection<QueueItem> = g.callGraph.vertexSet().map { QueueItem(it) }
+    /**
+     * Initialize each the state for each function node
+     */
+    private fun initFuncStates(g: Graph){
+        g.funcMap.values.forEach { func ->
+            func.data = State(func.formalIns.map { fi ->
+                /**
+                 * Each formal in node gets its own queue state that is initialized with the current neighbors of the formal in
+                 * node. We can assume that the formal in node itself will never be part of this queue
+                 */
+                fi to NodeQueue(fi.curNeighbors())
+            }.toMap())
+        }
+    }
 
-    private fun process(item: QueueItem): Iterable<QueueItem> {
-        println(item)
+    internal fun initialEntries(g: Graph): Collection<QueueItem> = g.callGraph.vertexSet().map { QueueItem(it) }
+
+    internal fun process(item: QueueItem): List<QueueItem> {
         val (funcNode, inToOut) = item
         /**
          * Try to add summary edges and return directly if nothing changed
          */
-        var changed = false
         if (inToOut != null){
+            var changed = false
             for ((ai, os) in inToOut){
-                val sums = ai.summaryEdges ?: mutableListOf()
                 for (o in os) {
-                    if (!sums.contains(o)){
-                        sums.add(o)
+                    if (!ai.summaryEdges.contains(o)){
+                        /**
+                         * We found a new summary edge
+                         */
+                        ai.summaryEdges.add(o)
+                        /**
+                         * add to queue if ai ∈ alreadySeen and o ∉ alreadySeen
+                         * i.e. if we found an previously not seen actual out that is connected to an already seen actual in node
+                         * (if we have not yet seen the actual in node, then the actual out node will be added to the queue later
+                         * anyway)
+                         */
+                        funcNode.state.subStates.forEach { (_, state) ->
+                            if (state.alreadySeen(ai) && !state.alreadySeen(o)){
+                                state.push(o)
+                            }
+                        }
                         changed = true
                     }
                 }
-                ai.summaryEdges = sums
             }
-        } else {
-            /**
-             * Entry case
-             */
-            changed = true
+            if (!changed){
+                return emptyList()
+            }
         }
 
-        if (!changed){
-            return emptyList()
-        }
+
 
         /**
-         * Process
+         * Process the function and find new connections between formal in and formal out nodes
          */
         val changes = process(funcNode)
-
         /**
          * Add to queue
          */
@@ -106,35 +107,32 @@ class SequentialAnalysis2 : Analysis {
      */
     private fun process(funcNode: FuncNode): Map<FormalInNode, Set<FormalOutNode>> {
         val formalInToOut = mutableMapOf<FormalInNode, MutableSet<FormalOutNode>>()
-        funcNode.state.subStates.forEach outer@{(fi, state) ->
-            val laterQueue = mutableListOf<Node>()
-            val (queue, _) = state
-            while (queue.isNotEmpty()){
-                when (val cur = queue.poll()) {
-                    /**
-                     * Only actual in nodes here
-                     */
+        funcNode.state.subStates.forEach {(fi, state) ->
+            /**
+             * Start for each formal in node where the last iteration ended
+             */
+            while (state.isNotEmpty()){
+                when (val cur = state.poll()) {
                     is ActualInNode -> {
                         /**
-                         * Summary edges present?
-                         *  => walk over the call node
-                         * else?
-                         *  => add the current node later to the queue for reevaluation
+                         * Use summary edges if they are there
                          */
-                        cur.summaryEdges?.let(state::addToQueue) ?: laterQueue.add(cur)
-                        state.addToQueue(cur.neighbors)
+                        state.push(cur.summaryEdges)
+                        state.push(cur.curNeighbors())
                     }
                     is FormalOutNode -> {
-                        if (fi.summaryEdges == null || !fi.summaryEdges!!.contains(cur)) {
+                        if (!fi.summaryEdges.contains(cur)) {
+                            /**
+                             * Add the newly found connection between the current formal in and formal out nodes
+                             */
                             formalInToOut.computeIfAbsent(fi, { HashSet() }).add(cur)
                         }
                     }
                     else -> {
-                        state.addToQueue(cur.neighbors)
+                        state.push(cur.curNeighbors())
                     }
                 }
             }
-            laterQueue.forEach { state.forceAddToQueue(it) }
         }
         return formalInToOut
     }

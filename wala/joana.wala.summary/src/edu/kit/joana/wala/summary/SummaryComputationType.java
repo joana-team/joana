@@ -20,7 +20,7 @@ public enum SummaryComputationType {
 	SIMON_PARALLEL_SCC(new AlwaysParallel(new SummaryComputer2()));
 	
 	
-	public static final SummaryComputationType DEFAULT = JOANA_CLASSIC;
+	public static final SummaryComputationType DEFAULT = JOANA_CLASSIC_SCC;
 	private final ISummaryComputer summaryComputer;
 	
 	private SummaryComputationType(ISummaryComputer summaryComputer) {

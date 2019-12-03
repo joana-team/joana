@@ -8,30 +8,12 @@
 
 package edu.kit.joana.ifc.sdg.qifc.nildumu;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.lang.reflect.Method;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.stream.Stream;
-
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
-
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.sdg.ConstructionNotifier;
 import edu.kit.joana.api.sdg.SDGBuildPreparation;
@@ -52,6 +34,16 @@ import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
+
+import java.io.*;
+import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.stream.Stream;
 
 /**
  * Fluent API for creating SDGConfigs and for loading SDGPrograms
@@ -97,7 +89,8 @@ public class Builder {
 	/**
 	 * Modified version of {@link SDGProgram#createSDGProgram(String, String, Stubs, boolean, MHPType, PrintStream, IProgressMonitor)}
 	 */
-	private static <T> Pair<SDGBuilder, SDGProgram> createSDGProgram(SDGConfig config) throws ClassHierarchyException, UnsoundGraphException, CancelException, IOException{
+	private static <T> Pair<SDGBuilder, SDGProgram> createSDGProgram(SDGConfig config, boolean parallelSDGBuild) throws ClassHierarchyException, UnsoundGraphException, CancelException, IOException{
+		config.setParallel(parallelSDGBuild);
 		PrintStream out = IOFactory.createUTF8PrintStream(new ByteArrayOutputStream());
 		IProgressMonitor monitor = NullProgressMonitor.INSTANCE;
 		monitor.beginTask("build SDG", 20);
@@ -167,6 +160,8 @@ public class Builder {
 	private String methodInvocationHandler = "basic";
 	
 	private boolean doCache = true;
+
+	private boolean parallelSDGBuild = true;
 	
 	public Builder() {
 		DotRegistry.get().disable();
@@ -206,7 +201,7 @@ public class Builder {
 
 	public BuildResult build() throws ClassHierarchyException, UnsoundGraphException, CancelException, IOException {
 		if (!cache.containsKey(className) || !doCache) {
-			Pair<SDGBuilder, SDGProgram> pair = createSDGProgram(config);
+			Pair<SDGBuilder, SDGProgram> pair = createSDGProgram(config, parallelSDGBuild);
 			IFCAnalysis ana = new IFCAnalysis(pair.second);
 			ana.addAllJavaSourceAnnotations();
 			res = new BuildResult(pair.first, ana);

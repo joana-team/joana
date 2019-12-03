@@ -8,7 +8,7 @@
 package edu.kit.joana.util;
 
 public class Pair<S, T> {
-	
+
 	public static enum Component {
 		/** for first component */
 		FIRST,
@@ -135,5 +135,13 @@ public class Pair<S, T> {
 			throw new NullPointerException();
 		}
 		return new Pair<S, T>(fst, snd);
+	}
+
+	public S component1() {
+		return fst;
+	}
+
+	public T component2() {
+		return snd;
 	}
 }

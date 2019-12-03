@@ -10,6 +10,7 @@ package edu.kit.joana.ifc.sdg.graph;
  * Created on Feb 25, 2004
  */
 
+import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.SourceLocation;
 import edu.kit.joana.util.collections.SimpleVector;
 import gnu.trove.map.TIntIntMap;
@@ -24,6 +25,7 @@ import org.antlr.runtime.RecognitionException;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Represents a concurrent system dependence graph (cSDG).
@@ -845,6 +847,25 @@ public class SDG extends JoanaGraph implements Cloneable {
 		return entryNodes;
 	}
 
+	public Pair<TIntObjectHashMap<HashSet<SDGNode>>, HashMap<Integer, SDGNode>> sortNodesByProcedureWithExplicitEntryNode() {
+		TIntObjectHashMap<HashSet<SDGNode>> result = new TIntObjectHashMap<>();
+		HashMap<Integer, SDGNode> entryNodes = new HashMap<>();
+
+		for (SDGNode n : vertexSet()) {
+			HashSet<SDGNode> proc = result.get(n.getProc());
+			if (proc == null) {
+				proc = new HashSet<>();
+				result.put(n.getProc(), proc);
+			}
+			proc.add(n);
+			if (n.kind == SDGNode.Kind.ENTRY){
+				entryNodes.put(n.getProc(), n);
+			}
+		}
+
+		return Pair.pair(result, entryNodes);
+	}
+
 	public String getFileName() {
 		return fileName;
 	}
@@ -1008,5 +1029,15 @@ public class SDG extends JoanaGraph implements Cloneable {
 
     	return sdg;
     }
+
+    public List<SDGEdge> findSummaryEdges(){
+    	return edgeSet().parallelStream().filter(e -> e.getKind() == SDGEdge.Kind.SUMMARY ||
+					e.getKind() == SDGEdge.Kind.SUMMARY_DATA ||
+					e.getKind() == SDGEdge.Kind.SUMMARY_NO_ALIAS).collect(Collectors.toList());
+		}
+
+		public void removeSummaryEdges(){
+    	removeAllEdges(findSummaryEdges());
+		}
 }
 

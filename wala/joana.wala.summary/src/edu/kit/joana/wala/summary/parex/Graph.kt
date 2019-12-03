@@ -32,19 +32,19 @@ class Graph(val entry: FuncNode) {
         return formalIn
     }
 
-    private fun addFuncNode(f: FuncNode): FuncNode {
+    fun addFuncNode(f: FuncNode): FuncNode {
         funcMap[f.id] = f
         callGraph.addVertex(f)
         return f
     }
 
     fun getOrCreateFuncNode(id: Int): FuncNode {
-        return funcMap[id] ?: addFuncNode(FuncNode(id)).also {  }
+        return funcMap[id] ?: addFuncNode(FuncNode(id))
     }
 
     fun removeSummaryEdges(){
         actualIns.forEach {
-            it.summaryEdges = null
+            it.summaryEdges = mutableListOf()
         }
     }
 }
@@ -58,6 +58,7 @@ open class Node(
          * Neighbors with edges in exit to init direction
          */
         var neighbors: Col<Node>,
+        var reducedNeighbors: Col<Node>? = null,
         /**
          * Custom data
          */
@@ -66,7 +67,7 @@ open class Node(
         neighbors.addAll(args)
     }
 
-    open fun outgoing(hideCallGraph: Boolean = false): List<Node> = neighbors.toList()
+    open fun outgoing(hideCallGraph: Boolean = false): List<Node> = curNeighbors().toList()
 
     fun <T : Node> reachable(next: (T) -> Collection<T>): Set<T> {
         val queue: ArrayDeque<T> = ArrayDeque()
@@ -92,6 +93,7 @@ open class Node(
         return id
     }
 
+    fun curNeighbors(): Col<Node> = reducedNeighbors ?: neighbors
 
 }
 
@@ -114,7 +116,7 @@ class CallNode(
          */
         val targets: Collection<FuncNode>) : Node(id, neighbors) {
 
-    override fun outgoing(hideCallGraph: Boolean): List<Node> = (if (hideCallGraph) targets else targets + owner) + neighbors
+    override fun outgoing(hideCallGraph: Boolean): List<Node> = (if (hideCallGraph) targets else targets + owner) + curNeighbors()
 
     fun actualOut(formalOut: FormalOutNode): OutNode? {
         return formalOut.actualOuts[this]
@@ -146,7 +148,7 @@ class FuncNode(
         /**
          * Formal out nodes
          */
-        val formalOuts: Col<OutNode> = mutableListOf()) : Node(id, neighbors as Col<Node>) {
+        val formalOuts: Col<OutNode> = mutableListOf()) : Node(id, neighbors) {
 
     override fun outgoing(hideCallGraph: Boolean): List<Node> = super.outgoing(hideCallGraph) +
             (if (hideCallGraph) emptyList() else callers + callees) + formalIns + formalOuts
@@ -154,8 +156,8 @@ class FuncNode(
     fun reachableFuncNodes(): Set<FuncNode> = reachable { it.callees.flatMap { cal -> cal.targets } }
 }
 
-open class InNode(id: Int, neighbors: Col<Node> = mutableListOf(), var summaryEdges: Col<OutNode>? = null) : Node(id, neighbors) {
-    override fun outgoing(hideCallGraph: Boolean): List<Node> = super.outgoing(hideCallGraph) + (summaryEdges ?: Collections.emptyList())
+open class InNode(id: Int, neighbors: Col<Node> = mutableListOf(), var summaryEdges: Col<OutNode> = mutableListOf()) : Node(id, neighbors) {
+    override fun outgoing(hideCallGraph: Boolean): List<Node> = super.outgoing(hideCallGraph) + summaryEdges
 }
 
 // nxm mapping (n ≠ m, but no other relation) for actual ins to formal in
@@ -164,7 +166,7 @@ class ActualInNode(id: Int, var callNode: CallNode? = null, neighbors: Col<Node>
     override fun outgoing(hideCallGraph: Boolean): List<Node> = super.outgoing(hideCallGraph) + ((callNode?.let { listOf(it) }) ?: listOf())
 }
 
-class FormalInNode(id: Int, val funcNode: FuncNode, neighbors: Col<Node> = mutableListOf(), val actualIns: MutableMap<CallNode, ActualInNode> = mutableMapOf()) : InNode(id, neighbors)
+class FormalInNode(id: Int, val owner: FuncNode, neighbors: Col<Node> = mutableListOf(), val actualIns: MutableMap<CallNode, ActualInNode> = mutableMapOf()) : InNode(id, neighbors)
 
 open class OutNode(id: Int, neighbors: Col<Node> = mutableListOf()) : Node(id, neighbors)
 

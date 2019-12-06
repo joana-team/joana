@@ -15,14 +15,13 @@ interface Analysis : ISummaryComputer {
         return SDGToGraph(relevantEdges, ignoreSummaryEdges).convert(pack).also(this::process)
     }
 
-    fun compute(graph: Graph, sdg: SDG){
+    fun compute(graph: Graph, sdg: SDG): Int {
         process(graph)
-        graph.insertSummaryEdgesIntoSDG(sdg)
+        return graph.insertSummaryEdgesIntoSDG(sdg)
     }
 
     fun compute(pack: WorkPackage<SDG>, relevantEdges: Set<SDGEdge.Kind>, summaryEdgeKind: SDGEdge.Kind = SDGEdge.Kind.SUMMARY): Int {
-        process(pack, relevantEdges).insertSummaryEdgesIntoSDG(pack.graph, summaryEdgeKind)
-        return 0
+        return process(pack, relevantEdges).insertSummaryEdgesIntoSDG(pack.graph, summaryEdgeKind)
     }
 
     override fun compute(pack: WorkPackage<SDG>, parallel: Boolean, progress: MonitorUtil.IProgressMonitor?): Int {

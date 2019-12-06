@@ -4,6 +4,7 @@ import com.ibm.wala.util.CancelException;
 import de.uni.trier.infsec.core.Setup;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.wala.summary.NullProgressMonitor;
 import edu.kit.joana.wala.summary.SummaryComputationType;
@@ -156,32 +157,45 @@ public class Test {
     }
 
     private static Consumer<SDG> wrap(Function<SDG, Graph> converter, Consumer<Graph> computer){
+        return wrap(converter, computer, true);
+    }
+
+    private static Consumer<SDG> wrap(Function<SDG, Graph> converter, Consumer<Graph> computer, boolean parallel){
         return sdg -> {
             Graph graph = converter.apply(sdg);
             computer.accept(graph);
-            UtilKt.insertSummaryEdgesIntoSDG(graph, sdg);
+            UtilKt.insertSummaryEdgesIntoSDG(graph, sdg, SDGEdge.Kind.SUMMARY, parallel);
         };
     }
 
     private static List<Pair<String, Consumer<SDG>>> configurations(){
 
         return Arrays.asList(
-            Pair.pair("JOANA default",
-                wrap(SummaryComputationType.DEFAULT)),
-            Pair.pair("Con Seq",
-                wrap(sdg -> new SDGToGraph().convert(sdg), graph -> new SequentialAnalysis2().process(graph))),
-            Pair.pair("PCon Seq",
-                wrap(sdg -> new SDGToGraph().convert(sdg, true), graph -> new SequentialAnalysis2().process(graph))),
-            Pair.pair("PCon PPre Seq",
+            /*Pair.pair("JOANA default",
+                wrap(SummaryComputationType.DEFAULT)),*/
+            /*Pair.pair("Con Seq",
+                wrap(sdg -> new SDGToGraph().convert(sdg), graph -> new SequentialAnalysis2().process(graph))),*/
+            Pair.pair("PCon",
+                sdg -> new SDGToGraph().convert(sdg, true)),
+            /*Pair.pair("PCon PPre Seq",
                 wrap(sdg -> {
                     Graph g = new SDGToGraph().convert(sdg, true);
                     PreprocessKt.removeNormalNodes(g, true);
                     return g;
-                }, graph -> new SequentialAnalysis2().process(graph))),
-            Pair.pair("Con BP",
-                wrap(sdg -> new SDGToGraph().convert(sdg), graph -> new BasicParallelAnalysis().process(graph))),
+                }, graph -> new SequentialAnalysis2().process(graph))),*/
+            /*Pair.pair("Con BP",
+                wrap(sdg -> new SDGToGraph().convert(sdg), graph -> new BasicParallelAnalysis().process(graph))),*/
             Pair.pair("PCon BP",
                 wrap(sdg -> new SDGToGraph().convert(sdg, true), graph -> new BasicParallelAnalysis().process(graph))),
+            Pair.pair("PCon Seq",
+                wrap(sdg -> new SDGToGraph().convert(sdg, true), graph -> new SequentialAnalysis2().process(graph))),
+            Pair.pair("PCon Import Export",
+                sdg -> {
+                    Graph g = new SDGToGraph().convert(sdg, true);
+                    String file = "tmp/bench.pg";
+                    new Dumper().dump(g, file);
+                    Graph newGraph = new Loader().load(file);
+                }),
             Pair.pair("PCon PPre BP",
                 wrap(sdg -> {
                     Graph g = new SDGToGraph().convert(sdg, true);
@@ -194,10 +208,17 @@ public class Test {
                     PreprocessKt.removeNormalNodes(g, true);
                     return g;
                 }, graph -> new BasicParallelAnalysis(Runtime.getRuntime().availableProcessors() * 2).process(graph))),
-            Pair.pair("Con",
+
+            Pair.pair("PCon PPre BP 0.5x",
+                wrap(sdg -> {
+                    Graph g = new SDGToGraph().convert(sdg, true);
+                    PreprocessKt.removeNormalNodes(g, true);
+                    return g;
+                }, graph -> new BasicParallelAnalysis(Runtime.getRuntime().availableProcessors() / 2).process(graph))),
+            /*Pair.pair("Con",
                 sdg -> new SDGToGraph().convert(sdg)),
             Pair.pair("PCon",
-                sdg -> new SDGToGraph().convert(sdg, true)),
+                sdg -> new SDGToGraph().convert(sdg, true)),*/
             Pair.pair("PCon PPre",
                 sdg -> {
                     Graph g = new SDGToGraph().convert(sdg, true);

@@ -74,10 +74,8 @@ fun <T: Node> exportDot(graph: DirectedGraph<T, DefaultEdge>, fileName: String, 
 }
 
 
-fun Graph.getAllNodes(): Set<Node> {
-    return callGraph.vertexSet().flatMap { it.reachable { n: Node ->
-        n.outgoing(hideCallGraph = true)
-    } + it}.toSet()
+fun Graph.getAllNodes(): List<Node> {
+    return nodes.filter { it != null}.map { it!! }
 }
 
 fun findDuplicateNodes(graph: Graph): Map<Pair<Node, String>, Set<Node>> {
@@ -102,13 +100,32 @@ fun <T> duplicates(col: Collection<T>): Set<T> {
  * Insert the summary edges back into the graph
  */
 @JvmOverloads
-fun Graph.insertSummaryEdgesIntoSDG(sdg: SDG, summaryEdgeKind: SDGEdge.Kind = SDGEdge.Kind.SUMMARY){
-    for (actualIn in actualIns) {
-        val sdgInNode = sdg.getNode(actualIn.id)
-        actualIn.summaryEdges.forEach { actualOut ->
-            val sdgOutNode = sdg.getNode(actualOut.id)
-            sdg.addEdge(sdgInNode, sdgOutNode , summaryEdgeKind.newEdge(sdgInNode, sdgOutNode))
+fun Graph.insertSummaryEdgesIntoSDG(sdg: SDG, summaryEdgeKind: SDGEdge.Kind = SDGEdge.Kind.SUMMARY,
+                                    parallel: Boolean = true): Int {
+    if (!parallel) {
+        var count = 0
+        for (actualIn in actualIns) {
+            val sdgInNode = sdg.getNode(actualIn.id)
+            actualIn.summaryEdges.forEach { actualOut ->
+                val sdgOutNode = sdg.getNode(actualOut.id)
+                sdg.addEdge(sdgInNode, sdgOutNode, summaryEdgeKind.newEdge(sdgInNode, sdgOutNode))
+                count++
+            }
         }
+        return count
+    } else {
+        return funcMap.values.parallelStream().mapToInt { f ->
+            f.callees.stream().mapToInt { c ->
+                c.actualIns.stream().mapToInt { ai ->
+                    val aiNode = sdg.getNode(ai.id)
+                    (ai as ActualInNode).summaryEdges.forEach { ao ->
+                        val aoNode = sdg.getNode(ao.id)
+                        sdg.addEdgeUnsafe(aiNode, aoNode, summaryEdgeKind.newEdge(aiNode, aoNode))
+                    }
+                    ai.summaryEdges.size
+                }.sum()
+            }.sum()
+        }.sum()
     }
 }
 

@@ -7,27 +7,14 @@
  */
 package edu.kit.joana.ifc.sdg.graph;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-
-import org.jgrapht.EdgeFactory;
-
-import edu.kit.joana.ifc.sdg.graph.slicer.conc.nanda.ISCRBuilder;
-import edu.kit.joana.ifc.sdg.graph.slicer.graph.FoldedCFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.ThreadsInformation;
-import edu.kit.joana.util.graph.AbstractBaseGraph.DirectedEdgeContainer;
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import gnu.trove.map.hash.TIntObjectHashMap;
+import org.jgrapht.EdgeFactory;
+
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * This is the abstract superclass or our graph classes. We currently distinguish
@@ -240,6 +227,32 @@ public abstract class JoanaGraph extends AbstractJoanaGraph<SDGNode, SDGEdge> {
 
     	return res;
     }
+
+	/**
+	 * Returns a list with all outgoing edges of a given kind of a given vertex.
+	 *
+	 * @param node  The vertex whose edges are needed.
+	 */
+	public List<SDGEdge> getOutgoingEdgesOfKindUnsafe(SDGNode node, Predicate<SDGEdge.Kind> predicate) {
+		int lastPriority = -1;
+		boolean kindReached = false;
+		SDGEdge[] outgoing = outgoingEdgesOfUnsafe(node);
+		List<SDGEdge> res = new ArrayList<>(outgoing.length);
+		for (SDGEdge e : outgoing) {
+			if (e == null) continue;
+			assert e.getKind().getPriority() >= lastPriority;
+			assert (lastPriority = e.getKind().getPriority()) >= 0;
+
+			boolean isKind = predicate.test(e.getKind());
+			if (isKind) {
+				res.add(e);
+				kindReached = true;
+			}
+			if (!isKind && kindReached) break;
+		}
+
+		return res;
+	}
     
     /**
      * Returns a list with all outgoing edges of a given kind of a given vertex.

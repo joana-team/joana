@@ -8,7 +8,6 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.util.*
 import java.util.stream.Collectors
 
 /**
@@ -22,10 +21,11 @@ class Dumper {
     }
 
     /**
-     * 1. Dumps the graph header
-     * 2. Dumps the function ids
-     * 3. Dumps the node headers
-     * 4. Dumps the body of each individual node
+    Idea: On the wire
+    1. Dumps the graph header
+    2. Dumps the function ids
+    3. Dumps the node headers
+    4. Dumps the body of each individual node
      */
     fun dump(graph: Graph, out: OutputStream){
 
@@ -47,6 +47,7 @@ class Dumper {
 
         // dump bodies
         graph.nodes.forEach { n ->
+            dumpNodeType(n, dataOut)
             dumpBody(n)?.writeDelimitedTo(out)
         }
     }
@@ -56,10 +57,21 @@ class Dumper {
                 .setEntry(graph.entry.id)
                 .setNumberOfNodes(graph.nodes.size)
                 .setNumberOfFunctions(graph.funcMap.size)
+                .setNodeHeaderBytes(graph.nodes.parallelStream().mapToInt { n -> if (n is CallNode || n is FormalInNode) 2 else 1}.sum() * 4)
                 .build()
     }
 
-    internal fun dumpHeader(node: Node?, output: DataOutputStream){
+    internal fun dumpHeader(node: Node?, output: DataOutputStream) {
+        dumpNodeType(node, output)
+        if (node is CallNode) {
+            output.writeInt(node.owner.id)
+        }
+        if (node is FormalInNode) {
+            output.writeInt(node.owner.id)
+        }
+    }
+
+    internal fun dumpNodeType(node: Node?, output: DataOutputStream) {
         output.writeInt(when (node){
             null -> NONE_VALUE
             is CallNode -> CALL_NODE_VALUE
@@ -70,12 +82,6 @@ class Dumper {
             is OutNode -> ACTUAL_OUT_NODE_VALUE
             else -> NORMAL_VALUE
         })
-        if (node is CallNode){
-            output.writeInt(node.owner.id)
-        }
-        if (node is FormalInNode){
-            output.writeInt(node.owner.id)
-        }
     }
 
     internal fun dumpBody(node: Node?): GeneratedMessageV3? {
@@ -86,6 +92,7 @@ class Dumper {
                         .addAllActualIns(node.actualIns.map(Node::id))
                         .addAllTargets(node.targets.map(Node::id))
                         .addAllNeighbors(node.neighbors.map(Node::id))
+                        .setOwner(node.owner.id)
                         .build()
             is FuncNode ->
                 GraphProto.FuncNode.newBuilder()
@@ -105,6 +112,7 @@ class Dumper {
                 GraphProto.FormalInNode.newBuilder()
                         .putAllActualIns(node.actualIns.entries.map { it.key.id to it.value.id }.toMap())
                         .addAllNeighbors(node.neighbors.map(Node::id))
+                        .setOwner(node.owner.id)
                         .build()
             is FormalOutNode ->
                 GraphProto.FormalOutNode.newBuilder()
@@ -148,9 +156,9 @@ class Loader {
 
         loadNodesHeaders(dataInput, nodes)
 
-        loadNodeBodies(input, nodes)
+        loadNodeBodies(dataInput, nodes)
 
-        val nodeList = Arrays.asList(*nodes)
+        val nodeList = listOf(*nodes)
 
         val graph = Graph(nodes[entry] as FuncNode, nodeList,
                 nodeList.parallelStream().filter { it is ActualInNode }.map { it as ActualInNode }.collect(Collectors.toList()),
@@ -200,8 +208,9 @@ class Loader {
         }
     }
 
-    internal fun loadNodeBodies(input: InputStream, nodes: Array<Node?>){
+    internal fun loadNodeBodies(input: DataInputStream, nodes: Array<Node?>){
         for (id in nodes.indices){
+            input.readInt()
             val node = nodes[id]
             when (node) {
                 is CallNode -> {

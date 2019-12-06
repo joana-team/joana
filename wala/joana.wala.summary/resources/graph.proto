@@ -10,7 +10,7 @@ Idea: On the wire
      1. Dumps the graph header
      2. Dumps the function ids
      3. Dumps the node headers
-     4. Dumps the body of each individual node
+     4. Dumps the body of each individual node prefixed by an int for its type
 */
 
 message GraphHeader {
@@ -20,6 +20,8 @@ message GraphHeader {
     int32 number_of_nodes = 2;
 
     int32 number_of_functions = 3;
+
+    int32 node_header_bytes = 4;
 }
 
 enum NodeHeader {
@@ -37,7 +39,7 @@ message CallNode {
     repeated int32 actual_ins = 1;
 
     // id of the owning function
-    //int32 owner = 3; // already send directly after the header number
+    int32 owner = 3;
 
     // ids of the targeted functions
     repeated int32 targets = 4;
@@ -79,7 +81,7 @@ message FormalInNode {
     map<int32, int32> actual_ins = 1;
 
     // id of the owning function
-    //int32 owner = 3; // already send directly after the header number
+    int32 owner = 3;
 
     // ids of neighbors
     repeated int32 neighbors = 6;
@@ -103,10 +105,19 @@ message NormalNode {
     repeated int32 neighbors = 6;
 }
 
-message SummaryEdges {
-    message Edge {
-        int32 actual_in = 1;
-        int32 actual_out = 2;
-    }
-    repeated Edge edge = 1;
+message SummaryFunctionHeader {
+    int32 id = 1;
+    int32 number_of_actins = 2;
+}
+
+/*
+1. number of functions
+Per function:
+    1. header
+    2. all SummaryEdgesPerActin messages
+*/
+
+message SummaryEdgesPerActin {
+    int32 actIn = 1;
+    repeated int32 actOuts = 2;
 }

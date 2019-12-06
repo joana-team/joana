@@ -1037,7 +1037,10 @@ public class SDG extends JoanaGraph implements Cloneable {
 		}
 
 		public void removeSummaryEdges(){
-    	removeAllEdges(findSummaryEdges());
+    	sortByProcedures().values().parallelStream().forEach(vs -> {
+				vs.stream().flatMap(v -> getOutgoingEdgesOfKindUnsafe(v, k -> k == SDGEdge.Kind.SUMMARY || k == SDGEdge.Kind.SUMMARY_DATA || k == SDGEdge.Kind.SUMMARY_NO_ALIAS).stream())
+						.collect(Collectors.toList()).forEach(this::removeEdgeUnsafe);
+			});
 		}
 }
 

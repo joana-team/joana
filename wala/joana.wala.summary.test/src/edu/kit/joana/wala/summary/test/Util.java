@@ -1,6 +1,5 @@
 package edu.kit.joana.wala.summary.test;
 
-import com.google.common.io.Files;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.NullProgressMonitor;
 import edu.kit.joana.api.sdg.SDGProgram;
@@ -21,6 +20,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -100,10 +100,10 @@ public class Util {
   private static void exportGraph(Graph graph, SDG sdg, String prefix){
     File file = new File(prefix + "full.pdg");
     try {
-      Files.createParentDirs(file);
+      Files.createDirectories(file.toPath());
       SDGSerializer.toPDGFormat(sdg, new BufferedOutputStream(new FileOutputStream(file)));
     } catch (IOException e) {
-      e.printStackTrace();
+      //e.printStackTrace();
     }
     UtilKt.exportDot(UtilKt.nodeGraphT(graph, null,false), prefix + "full.dot", sdg);
     UtilKt.exportDot(UtilKt.nodeGraphT(graph, graph.getEntry(), false), prefix + "fullRooted.dot", sdg);

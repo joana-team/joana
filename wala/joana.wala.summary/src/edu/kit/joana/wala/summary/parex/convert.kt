@@ -21,7 +21,7 @@ val DEFAULT_RELEVANT_EDGES: EnumSet<SDGEdge.Kind> = EnumSet.of(SDGEdge.Kind.DATA
  * Convert a SDG to a parex graph
  */
 class SDGToGraph(val relevantEdges: Set<SDGEdge.Kind> = DEFAULT_RELEVANT_EDGES,
-                 val ignoreSummaryEdges: Boolean = false) {
+                 val ignoreSummaryEdges: Boolean = true) {
 
     fun consider(edgeKind: SDGEdge.Kind): Boolean {
         return (!ignoreSummaryEdges || (edgeKind != SDGEdge.Kind.SUMMARY && edgeKind != SDGEdge.Kind.SUMMARY_DATA && edgeKind != SDGEdge.Kind.SUMMARY_NO_ALIAS)) &&

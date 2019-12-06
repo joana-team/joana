@@ -99,14 +99,20 @@ public class Test {
     @ParameterizedTest
     @MethodSource("testCases")
     public void testAnalysis2(Class<?> klass){
-      assertAnalysis(klass, "", new SequentialAnalysis(), bigTestCase(klass) ? null : "tmp", g -> {
+        assertAnalysis(klass, "", new CPPAnalysis(), bigTestCase(klass) ? null : "tmp", g -> {
+            String file = "tmp/" + klass.getName() + ".pg";
+            new Dumper().dump(g, file);
+            Graph newGraph = new Loader().load(file);
+            return newGraph;
+        });
+      assertAnalysis(klass, "", new SequentialAnalysis2(), bigTestCase(klass) ? null : "tmp", g -> {
           String file = "tmp/" + klass.getName() + ".pg";
           new Dumper().dump(g, file);
           Graph newGraph = new Loader().load(file);
           return newGraph;
       });
         assertAnalysis(klass, "", new BasicParallelAnalysis(), bigTestCase(klass) ? null : "tmp");
-        assertAnalysis(klass, "", new SequentialAnalysis2(), bigTestCase(klass) ? null : "tmp");
+        assertAnalysis(klass, "", new SequentialAnalysis(), bigTestCase(klass) ? null : "tmp");
     }
 
     @ParameterizedTest
@@ -164,31 +170,21 @@ public class Test {
         return sdg -> {
             Graph graph = converter.apply(sdg);
             computer.accept(graph);
-            UtilKt.insertSummaryEdgesIntoSDG(graph, sdg, SDGEdge.Kind.SUMMARY, parallel);
+            int inserted = UtilKt.insertSummaryEdgesIntoSDG(graph, sdg, SDGEdge.Kind.SUMMARY, parallel);
+            System.out.printf("Inserted %d summary edges", inserted);
         };
     }
 
     private static List<Pair<String, Consumer<SDG>>> configurations(){
 
         return Arrays.asList(
-            /*Pair.pair("JOANA default",
-                wrap(SummaryComputationType.DEFAULT)),*/
+            Pair.pair("JOANA default",
+                wrap(SummaryComputationType.DEFAULT)),
+            Pair.pair("PCon CPP", sdg -> {
+                new CPPAnalysis().compute(SDGProgram.createSummaryWorkpackage(sdg), true, new NullProgressMonitor());
+            }),
             /*Pair.pair("Con Seq",
                 wrap(sdg -> new SDGToGraph().convert(sdg), graph -> new SequentialAnalysis2().process(graph))),*/
-            Pair.pair("PCon",
-                sdg -> new SDGToGraph().convert(sdg, true)),
-            /*Pair.pair("PCon PPre Seq",
-                wrap(sdg -> {
-                    Graph g = new SDGToGraph().convert(sdg, true);
-                    PreprocessKt.removeNormalNodes(g, true);
-                    return g;
-                }, graph -> new SequentialAnalysis2().process(graph))),*/
-            /*Pair.pair("Con BP",
-                wrap(sdg -> new SDGToGraph().convert(sdg), graph -> new BasicParallelAnalysis().process(graph))),*/
-            Pair.pair("PCon BP",
-                wrap(sdg -> new SDGToGraph().convert(sdg, true), graph -> new BasicParallelAnalysis().process(graph))),
-            Pair.pair("PCon Seq",
-                wrap(sdg -> new SDGToGraph().convert(sdg, true), graph -> new SequentialAnalysis2().process(graph))),
             Pair.pair("PCon Import Export",
                 sdg -> {
                     Graph g = new SDGToGraph().convert(sdg, true);
@@ -196,6 +192,20 @@ public class Test {
                     new Dumper().dump(g, file);
                     Graph newGraph = new Loader().load(file);
                 }),
+            /*Pair.pair("PCon",
+                sdg -> new SDGToGraph().convert(sdg, true)),*/
+            Pair.pair("PCon PPre Seq",
+                wrap(sdg -> {
+                    Graph g = new SDGToGraph().convert(sdg, true);
+                    PreprocessKt.removeNormalNodes(g, true);
+                    return g;
+                }, graph -> new SequentialAnalysis2().process(graph))),
+            /*Pair.pair("Con BP",
+                wrap(sdg -> new SDGToGraph().convert(sdg), graph -> new BasicParallelAnalysis().process(graph))),*/
+            Pair.pair("PCon BP",
+                wrap(sdg -> new SDGToGraph().convert(sdg, true), graph -> new BasicParallelAnalysis().process(graph))),
+            Pair.pair("PCon Seq",
+                wrap(sdg -> new SDGToGraph().convert(sdg, true), graph -> new SequentialAnalysis2().process(graph))),
             Pair.pair("PCon PPre BP",
                 wrap(sdg -> {
                     Graph g = new SDGToGraph().convert(sdg, true);

@@ -33,7 +33,7 @@ open class SequentialAnalysis2 : Analysis {
      * Initialize each the state for each function node
      */
     private fun initFuncStates(g: Graph){
-        g.callGraph.vertexSet().forEach { func ->
+        g.callGraph.vertexSet().sortedBy { it.id }.forEach { func ->
             func.data = State(func.formalIns.map { fi ->
                 /**
                  * Each formal in node gets its own queue state that is initialized with the current neighbors of the formal in
@@ -44,7 +44,7 @@ open class SequentialAnalysis2 : Analysis {
         }
     }
 
-    internal fun initialEntries(g: Graph): Collection<QueueItem> = g.callGraph.vertexSet().map { QueueItem(it) }
+    internal fun initialEntries(g: Graph): Collection<QueueItem> = g.callGraph.vertexSet().sortedBy { it.id }.map { QueueItem(it) }
 
     internal fun process(item: QueueItem): List<QueueItem> {
         val (funcNode, inToOut) = item
@@ -92,9 +92,9 @@ open class SequentialAnalysis2 : Analysis {
         val meta = mutableMapOf<FuncNode, MutableMap<ActualInNode, Collection<OutNode>>>()
         for ((fi, fos) in changes) {
             for ((callNode, ai) in fi.actualIns) {
-                fos.mapNotNull { it.actualOuts[callNode] }.let {
-                    if (it.isNotEmpty()){
-                        meta.computeIfAbsent(callNode.owner, {HashMap()})[ai] = it
+                fos.mapNotNull { fo -> fo.actualOuts[callNode] }.let { actOuts: List<OutNode> ->
+                    if (actOuts.isNotEmpty()){
+                        meta.computeIfAbsent(callNode.owner, {HashMap()})[ai] = actOuts
                     }
                 }
             }
@@ -106,6 +106,7 @@ open class SequentialAnalysis2 : Analysis {
      * Starts where it stopped, returns a possibly empty list of found summary edges
      */
     private fun process(funcNode: FuncNode): Map<FormalInNode, Set<FormalOutNode>> {
+
         val formalInToOut = mutableMapOf<FormalInNode, MutableSet<FormalOutNode>>()
         funcNode.state.subStates.forEach {(fi, state) ->
             /**

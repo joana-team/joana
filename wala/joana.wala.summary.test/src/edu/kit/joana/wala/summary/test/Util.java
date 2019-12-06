@@ -65,14 +65,14 @@ public class Util {
     SDG secondSDG = sdg.clone();
     compute(computer, firstSDG, graph, prefix, preproc);
     compute(computer2, secondSDG, graph, prefix, preproc);
-    System.out.println("first " + UtilKt.getSummaryEdgesOfSDG(firstSDG));
+    //System.out.println("first " + UtilKt.getSummaryEdgesOfSDG(firstSDG));
     for (Map.Entry<SDGNode, Set<SDGNode>> sdgNodeSetEntry : UtilKt.getSummaryEdgesOfSDG(firstSDG).entrySet()) {
       //System.out.println(sdgNodeSetEntry.getKey().getId() + " = " + sdg.getFormalIns(sdgNodeSetEntry.getKey()).stream().map(SDGNode::getId).map(Object::toString).collect(Collectors.joining()) + ": ");
       for (SDGNode node : sdgNodeSetEntry.getValue()) {
         //System.out.println("  " + node.getId() + " = " + sdg.getFormalOuts(node).stream().map(SDGNode::getId).map(Object::toString).collect(Collectors.joining()));
       }
     }
-    System.out.println("second " + UtilKt.getSummaryEdgesOfSDG(secondSDG));
+    //System.out.println("second " + UtilKt.getSummaryEdgesOfSDG(secondSDG));
     return UtilKt.diffRelatedTo(UtilKt.getSummaryEdgesOfSDG(firstSDG), UtilKt.getSummaryEdgesOfSDG(secondSDG));
   }
 

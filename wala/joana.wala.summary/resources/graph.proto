@@ -32,7 +32,7 @@ enum NodeHeader {
     ACTUAL_OUT_NODE = 4;
     FORMAL_IN_NODE = 5;
     FORMAL_OUT_NODE = 6;
-    NORMAL = 7;
+    NORMAL_NODE = 7;
 }
 
 message CallNode {

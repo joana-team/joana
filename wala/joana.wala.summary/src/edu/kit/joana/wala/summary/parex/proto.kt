@@ -80,7 +80,7 @@ class Dumper {
             is FormalInNode -> FORMAL_IN_NODE_VALUE
             is FormalOutNode -> FORMAL_OUT_NODE_VALUE
             is OutNode -> ACTUAL_OUT_NODE_VALUE
-            else -> NORMAL_VALUE
+            else -> NORMAL_NODE_VALUE
         })
     }
 
@@ -202,7 +202,7 @@ class Loader {
                     FormalInNode(id, actualIns = mutableMapOf(), owner = nodes[ownerId] as FuncNode)
                 }
                 FORMAL_OUT_NODE_VALUE -> FormalOutNode(id, mutableListOf(), mutableMapOf())
-                NORMAL_VALUE -> Node(id, mutableListOf())
+                NORMAL_NODE_VALUE -> Node(id, mutableListOf())
                 else -> nodes[id]
             }
         }

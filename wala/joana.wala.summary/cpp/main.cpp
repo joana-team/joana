@@ -605,10 +605,12 @@ namespace basic_analysis {
         };
 
         /**
- * Trivially parallelized sequential analysis, that assigns each thread a number of functions it looks out for
- *
- * What it does not: it does no work balancing between the threads, nor does it calculate strongly connected components
- */
+         * Trivially parallelized sequential analysis, that assigns each thread a number of functions it looks out for
+         *
+         * What it does not: it does no work balancing between the threads, nor does it calculate strongly connected components
+         *
+         * Uses a local (non synchronized) and a non-local (lock-free) queue per computer
+         */
         class BasicParallelAnalysis : public BasicAnalysis {
 
             friend class Computer;
@@ -667,7 +669,7 @@ namespace basic_analysis {
             */
         void Computer::assign_func(int32_t func) {
             assignedFuncNodes.push_back(func);
-            queue.enqueue(std::make_unique<QueueItem>(func));
+            local_queue.emplace(std::make_unique<QueueItem>(func));
             ana->queue_item_counter++;
         }
 
@@ -676,44 +678,36 @@ namespace basic_analysis {
             thread = std::make_unique<std::thread>([&] {
                 while (ana->queue_item_counter.load() > 0) {
                     //std::cerr << "Hi " << ana->queue_item_counter.load() << std::endl;
-                    /*while (local_queue.empty()) {
-                        std::this_thread::yield();
-                        copy_to_local_queue();
-                    }*/
-                    std::unique_ptr<QueueItem> it;
-                    if (queue.try_dequeue(it)) {
+                    auto proc = [&](std::unique_ptr<QueueItem> it) {
                         ana->process_item(it, [&](std::unique_ptr<QueueItem> item) {
                             offer(std::move(item));
                         }, sums);
+                    };
+
+                    if (local_queue.size() > 0){
+                        proc(std::move(local_queue.front()));
+                        local_queue.pop();
                         ana->queue_item_counter--;
+                    } else {
+                        std::unique_ptr<QueueItem> it;
+                        if (queue.try_dequeue(it)) {
+                            proc(std::move(it));
+                            ana->queue_item_counter--;
+                        }
                     }
                 }
-                //std::cerr << "Finished " << id << std::endl;
-                /*while (true){
-                    if (queue_count.load() > 0){
-                        std::cout << queue_count.load() << std::endl;
-                    }
-                }*/
             });
         }
 
         void Computer::offer(std::unique_ptr<QueueItem> item) {
             auto &comp = ana->func_id_to_computer.at(item->func_node);
-            comp.queue.enqueue(std::move(item));
+            if (&comp == this) {
+                comp.local_queue.emplace(std::move(item));
+            } else {
+                comp.queue.enqueue(std::move(item));
+            }
             comp.queue_count++;
             ana->queue_item_counter++;
-        }
-
-        void Computer::copy_to_local_queue() {
-            if (local_queue.empty() && queue_count > 0) {
-                while (queue_count > 0) {
-                    std::unique_ptr<QueueItem> it;
-                    if (queue.try_dequeue(it)){
-                        local_queue.push(std::move(it));
-                        queue_count--;
-                    }
-                }
-            }
         }
     }
 }

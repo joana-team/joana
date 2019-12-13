@@ -5,8 +5,13 @@
 #include <google/protobuf/util/delimited_message_util.h>
 #include <variant>
 #include <queue>
+#include <thread>
+#include <cmath>
+#include <numeric>
+#include "lib/concurrentqueue.h"
 
 using namespace parex::graph;
+using namespace std::chrono_literals;
 
 class None {
 
@@ -31,7 +36,7 @@ std::ostream &operator<<(std::ostream &os, const NodeVariant &c) // OK
                 os << "None";
             },
             [&os](auto &arg) {
-                os << typeid(arg).name() << " " << ((google::protobuf::Message*)(&arg))->DebugString();
+                os << typeid(arg).name() << " " << ((google::protobuf::Message *) (&arg))->DebugString();
             }
     }, c);
     return os;
@@ -152,12 +157,21 @@ class SummaryEdges {
 
 public:
 
+    SummaryEdges(const Graph &g) {
+        std::for_each(g.funcs.begin(), g.funcs.end(), [&](auto func) { sumsPerFunc.try_emplace(func); });
+    }
+
+    /**
+     * Safe for multi threading per func
+     */
     std::unordered_set<int32_t> &get(int32_t func, int32_t actIn) {
-        auto [funcEntry, success] = sumsPerFunc.try_emplace(func);
-        auto [actInEntry, success2] = funcEntry->second.try_emplace(actIn);
+        auto[actInEntry, success2] = sumsPerFunc.find(func)->second.try_emplace(actIn);
         return actInEntry->second;
     }
 
+    /**
+     * Safe for multi threading per func
+     */
     void add(int32_t func, int32_t actIn, int32_t actOut) {
         get(func, actIn).insert(actOut);
     }
@@ -175,6 +189,9 @@ public:
         return os;
     }
 
+    /**
+    * Safe for multi threading per func
+    */
     bool contains(int32_t func, int32_t actIn, int32_t actOut) {
         auto actInToOuts = sumsPerFunc.find(func);
         if (actInToOuts == sumsPerFunc.end()) {
@@ -187,7 +204,7 @@ public:
         return outs->second.find(actOut) != outs->second.end();
     }
 
-    void protobuf_output(google::protobuf::io::CodedOutputStream &stream, int32_t funcId){
+    void protobuf_output(google::protobuf::io::CodedOutputStream &stream, int32_t funcId) {
         ActInToOuts &actInToOuts = sumsPerFunc.at(funcId);
 
         // output the header
@@ -200,23 +217,34 @@ public:
         for (const auto &[k, v] : actInToOuts) {
             SummaryEdgesPerActin edges;
             edges.set_actin(k);
-            std::for_each(v.begin(), v.end(), [&edges](auto act_out){ edges.add_actouts(act_out); });
+            std::for_each(v.begin(), v.end(), [&edges](auto act_out) { edges.add_actouts(act_out); });
             google::protobuf::util::SerializeDelimitedToCodedStream(edges, &stream);
         }
     }
 
-    void protobuf_output(std::ostream &output){
+    void protobuf_output(std::ostream &output) {
         google::protobuf::io::OstreamOutputStream raw_output(&output);
         google::protobuf::io::CodedOutputStream stream(&raw_output);
 
         // output number of functions
         int32_t size = __builtin_bswap32(sumsPerFunc.size());
-        output.write(reinterpret_cast<char*>(&size), 4);
+        output.write(reinterpret_cast<char *>(&size), 4);
 
         // output the summary edges per function
         for (const auto &[k, v] : sumsPerFunc) {
+            if (v.empty()) {
+                continue;
+            }
             protobuf_output(stream, k);
         }
+    }
+
+    const size_t count(){
+        return std::accumulate(sumsPerFunc.begin(), sumsPerFunc.end(), 0, [](const size_t acc, const std::pair<int32_t, ActInToOuts> p){
+            return acc + std::accumulate(p.second.begin(), p.second.end(), 0, [](const size_t acc, const std::pair<int32_t, std::unordered_set<int32_t>> p){
+                return acc + p.second.size();
+            });
+        });
     }
 
 private:
@@ -246,13 +274,13 @@ namespace basic_analysis {
         std::vector<bool> seen; // by default false
 
     public:
-        SeenVec(size_t size): seen(size, false) {}
+        SeenVec(size_t size) : seen(size, false) {}
 
-        bool is_seen(int32_t node){
+        bool is_seen(int32_t node) {
             return seen.at(node);
         }
 
-        void see(int32_t node){
+        void see(int32_t node) {
             seen.at(node) = true;
         }
     };
@@ -265,10 +293,10 @@ namespace basic_analysis {
         std::vector<std::unique_ptr<SeenVec>> seen_per_formal_in_id;
 
     public:
-        NodeSetsPerFormalIn(size_t seen_vec_size): seen_vec_size(seen_vec_size) {}
+        NodeSetsPerFormalIn(size_t seen_vec_size) : seen_vec_size(seen_vec_size) {}
 
-        SeenVec& at(size_t formal_in_id){
-            while (seen_per_formal_in_id.size() <= formal_in_id){
+        SeenVec &at(size_t formal_in_id) {
+            while (seen_per_formal_in_id.size() <= formal_in_id) {
                 seen_per_formal_in_id.emplace_back(std::make_unique<SeenVec>(seen_vec_size));
             }
             return *seen_per_formal_in_id.at(formal_in_id);
@@ -276,11 +304,11 @@ namespace basic_analysis {
     };
 
     class NodeQueue {
-        SeenVec& seen;
+        SeenVec &seen;
         std::queue<int32_t> queue;
 
     public:
-        NodeQueue(SeenVec &seen): seen(seen) {}
+        NodeQueue(SeenVec &seen) : seen(seen) {}
 
         void push(int32_t node) {
             if (!seen.is_seen(node)) {
@@ -296,7 +324,7 @@ namespace basic_analysis {
             }
         }
 
-        NodeQueue(SeenVec &seen, int32_t initialElement): NodeQueue(seen) {
+        NodeQueue(SeenVec &seen, int32_t initialElement) : NodeQueue(seen) {
             push(initialElement);
         }
 
@@ -333,7 +361,8 @@ namespace basic_analysis {
         int32_t func_node;
         std::optional<std::unordered_map<int32_t, std::vector<int32_t>>> actualInToOuts;
 
-        QueueItem(int32_t funcNode, std::unordered_map<int32_t, std::vector<int32_t>> actualInToOuts) : func_node(funcNode),
+        QueueItem(int32_t funcNode, std::unordered_map<int32_t, std::vector<int32_t>> actualInToOuts) : func_node(
+                funcNode),
                                                                                                         actualInToOuts(
                                                                                                                 actualInToOuts) {}
 
@@ -341,13 +370,11 @@ namespace basic_analysis {
 
     };
 
-    auto int_pair_hash = [](const std::pair<int32_t, int32_t>& p){ return p.first * 31 + p.second; };
+    auto int_pair_hash = [](const std::pair<int32_t, int32_t> &p) { return p.first * 31 + p.second; };
 
-    class IntPairHash
-    {
+    class IntPairHash {
     public:
-        std::size_t operator()(const std::pair<int32_t, int32_t> &v) const
-        {
+        std::size_t operator()(const std::pair<int32_t, int32_t> &v) const {
             return std::hash<int32_t>()(v.first) ^ std::hash<int32_t>()(v.second);;
         }
     };
@@ -355,6 +382,7 @@ namespace basic_analysis {
 
     class BasicAnalysis : public Analysis {
 
+    protected:
         NodeSetsPerFormalIn seen_nodes;
 
         std::map<int32_t, State> funcStates;
@@ -367,7 +395,7 @@ namespace basic_analysis {
         void initFuncStates() {
             funcStates.clear();
             for (const auto &funcId : g.funcs) {
-                auto[entry, succeeded] = funcStates.try_emplace(funcId);
+                auto [entry, succeeded] = funcStates.try_emplace(funcId);
                 size_t index = 0;
                 for (const auto &fi : g.at<FuncNode>(funcId).formal_ins()) {
                     /**
@@ -391,7 +419,8 @@ namespace basic_analysis {
          *
          * @return Map<FormalInNode, Set<FormalOutNode>>
      */
-        std::unique_ptr<std::unordered_map<int32_t, std::unordered_set<int32_t>>> process(int32_t funcId, SummaryEdges &sums) {
+        std::unique_ptr<std::unordered_map<int32_t, std::unordered_set<int32_t>>>
+        process(int32_t funcId, SummaryEdges &sums) {
             auto newFormalInToOuts = std::make_unique<std::unordered_map<int32_t, std::unordered_set<int32_t>>>(); // = mutableMapOf<FormalInNode, MutableSet<FormalOutNode>>()
             for (auto &[fi, state] : funcStates.at(funcId)) {
                 /**
@@ -427,13 +456,12 @@ namespace basic_analysis {
         }
 
     public:
-
         BasicAnalysis(Graph &g) : Analysis(g), seen_nodes(g.nodes.size()) {}
 
 
         virtual std::unique_ptr<SummaryEdges> process() {
 
-            auto sums = std::make_unique<SummaryEdges>();
+            auto sums = std::make_unique<SummaryEdges>(g);
 
             initFuncStates();
 
@@ -443,13 +471,14 @@ namespace basic_analysis {
             while (!worklist.empty()) {
                 auto head = std::move(worklist.front());
                 worklist.pop();
-                process(head, worklist, *sums);
+                process_item(head, [&worklist](std::unique_ptr<QueueItem> item){ worklist.emplace(std::move(item)); }, *sums);
             }
 
             return sums;
         }
 
-        void process(std::unique_ptr<QueueItem> &item, std::queue<std::unique_ptr<QueueItem>> &worklist, SummaryEdges &sums) {
+        void process_item(std::unique_ptr<QueueItem> &item, std::function<void(std::unique_ptr<QueueItem>)> &&worklist,
+                          SummaryEdges &sums) {
             /**
              * Try to add summary edges and return directly if nothing changed
              */
@@ -501,7 +530,7 @@ namespace basic_analysis {
                     }
                 }
                      */
-                    auto [entry, success] = meta.try_emplace(g.at<CallNode>(callNode).owner());
+                    auto[entry, success] = meta.try_emplace(g.at<CallNode>(callNode).owner());
                     auto &actualOuts = entry->second;
                     for (const auto &fo : fos) {
                         auto &actualOutPerCall = g.at<FormalOutNode>(fo).actual_outs();
@@ -515,17 +544,192 @@ namespace basic_analysis {
             }
             std::for_each(meta.begin(), meta.end(),
                           [&worklist](auto &entry) {
-                              worklist.push(std::make_unique<QueueItem>(entry.first, entry.second));
+                              worklist(std::make_unique<QueueItem>(entry.first, entry.second));
                           });
         }
 
     };
+
+    namespace parallel {
+
+        class BasicParallelAnalysis;
+
+        /**
+        * Processes only queue items for specific function nodes
+        */
+        class Computer {
+
+            const size_t id;
+
+            std::vector<int32_t> assignedFuncNodes;
+            BasicParallelAnalysis *ana;
+            moodycamel::ConcurrentQueue<std::unique_ptr<QueueItem>> queue;
+            std::atomic_int32_t queue_count = 0;
+            std::queue<std::unique_ptr<QueueItem>> local_queue;
+            std::unique_ptr<std::thread> thread;
+
+            void copy_to_local_queue();
+
+        public:
+            Computer(BasicParallelAnalysis *ana, size_t id) : id(id), ana(ana) {}
+
+            void assign_func(int32_t func);
+
+            void run(SummaryEdges &sums);
+
+            /**
+             * Offer from another thread
+             */
+            void offer(std::unique_ptr<QueueItem> item);
+
+            void join(){
+                if (thread){
+                    thread->join();
+                }
+            }
+        };
+
+
+        typedef std::function<std::vector<std::vector<int32_t>>(Graph&,int32_t /* number of threads */)> FuncToComputerGroupingPolicy;
+
+        const FuncToComputerGroupingPolicy SEQUENTIAL_POLICY = [](Graph &g, size_t number_of_threads){
+            size_t funcsPerThread = std::ceil(g.funcs.size() * 1.0 / number_of_threads);
+            std::vector<std::vector<int32_t>> comp_groups;
+            for (size_t i = 0; i < std::min(number_of_threads, g.funcs.size()); i++) {
+                auto &comp_group = comp_groups.emplace_back();
+                for (size_t f = i * funcsPerThread; f < std::min((i + 1) * funcsPerThread, g.funcs.size()); f++) {
+                    comp_group.push_back(g.funcs.at(f));
+                }
+            }
+            return comp_groups;
+        };
+
+        /**
+ * Trivially parallelized sequential analysis, that assigns each thread a number of functions it looks out for
+ *
+ * What it does not: it does no work balancing between the threads, nor does it calculate strongly connected components
+ */
+        class BasicParallelAnalysis : public BasicAnalysis {
+
+            friend class Computer;
+
+            const size_t number_of_threads;
+
+            std::unordered_map<int32_t, Computer &> func_id_to_computer;
+
+            std::vector<std::unique_ptr<Computer>> computers;
+            std::atomic_int32_t queue_item_counter = 0;
+            FuncToComputerGroupingPolicy policy;
+
+            void init() {
+                func_id_to_computer.clear();
+                computers.clear();
+                auto comp_groups = policy(g, number_of_threads);
+                size_t id = 0;
+                for (auto &comp_group : comp_groups) {
+                    auto &comp = computers.emplace_back(std::make_unique<Computer>(this, id));
+                    for (auto &func : comp_group) {
+                        comp->assign_func(func);
+                        func_id_to_computer.emplace(func, *comp);
+                    }
+                    id++;
+                }
+            }
+
+
+            void run(SummaryEdges &sums) {
+
+                std::for_each(computers.begin(), computers.end(), [&sums](auto &computer) { computer->run(sums); });
+                while (queue_item_counter.load() != 0) {
+                    std::this_thread::sleep_for(1ms);
+                }
+                std::for_each(computers.begin(), computers.end(), [](auto &computer) { computer->join(); });
+            }
+
+        public:
+
+            BasicParallelAnalysis(Graph &g, FuncToComputerGroupingPolicy policy = SEQUENTIAL_POLICY,
+                    size_t number_of_threads = std::thread::hardware_concurrency()) :
+                    BasicAnalysis(g), number_of_threads(number_of_threads),
+                    policy(policy) {}
+
+            virtual std::unique_ptr<SummaryEdges> process() {
+                init();
+                initFuncStates();
+                auto sums = std::make_unique<SummaryEdges>(g);
+                run(*sums);
+                return sums;
+            }
+        };
+
+        /**
+            * Processes only queue items for specific function nodes
+            */
+        void Computer::assign_func(int32_t func) {
+            assignedFuncNodes.push_back(func);
+            queue.enqueue(std::make_unique<QueueItem>(func));
+            ana->queue_item_counter++;
+        }
+
+        void Computer::run(SummaryEdges &sums) {
+            std::cerr << "Init " << id << std::endl;
+            thread = std::make_unique<std::thread>([&] {
+                while (ana->queue_item_counter.load() > 0) {
+                    //std::cerr << "Hi " << ana->queue_item_counter.load() << std::endl;
+                    /*while (local_queue.empty()) {
+                        std::this_thread::yield();
+                        copy_to_local_queue();
+                    }*/
+                    std::unique_ptr<QueueItem> it;
+                    if (queue.try_dequeue(it)) {
+                        ana->process_item(it, [&](std::unique_ptr<QueueItem> item) {
+                            offer(std::move(item));
+                        }, sums);
+                        ana->queue_item_counter--;
+                    }
+                }
+                //std::cerr << "Finished " << id << std::endl;
+                /*while (true){
+                    if (queue_count.load() > 0){
+                        std::cout << queue_count.load() << std::endl;
+                    }
+                }*/
+            });
+        }
+
+        void Computer::offer(std::unique_ptr<QueueItem> item) {
+            auto &comp = ana->func_id_to_computer.at(item->func_node);
+            comp.queue.enqueue(std::move(item));
+            comp.queue_count++;
+            ana->queue_item_counter++;
+        }
+
+        void Computer::copy_to_local_queue() {
+            if (local_queue.empty() && queue_count > 0) {
+                while (queue_count > 0) {
+                    std::unique_ptr<QueueItem> it;
+                    if (queue.try_dequeue(it)){
+                        local_queue.push(std::move(it));
+                        queue_count--;
+                    }
+                }
+            }
+        }
+    }
 }
 
-std::chrono::milliseconds cur_ms(){
+std::chrono::milliseconds cur_ms() {
     return std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::system_clock::now().time_since_epoch()
     );
+}
+
+int32_t parse_env(const char* variable, int32_t default_val){
+    const char* tmp = std::getenv(variable);
+    if (tmp == nullptr){
+        return default_val;
+    }
+    return std::stoi(tmp);
 }
 
 int main(int count, char *args[]) {
@@ -540,10 +744,19 @@ int main(int count, char *args[]) {
     std::cerr << "CPP: Time for parsing " << (cur_ms() - cur).count() << std::endl;
     //g->assert_funcs_are_funcs();
     cur = cur_ms();
-    basic_analysis::BasicAnalysis ana(*g);
-    auto sums = ana.process();
+    std::unique_ptr<Analysis> ana = std::make_unique<basic_analysis::BasicAnalysis>(*g);
+    if (count >= 2) {
+        switch (*args[1]) {
+            case 's':
+                break;
+            case 'p':
+                ana = std::make_unique<basic_analysis::parallel::BasicParallelAnalysis>(*g, basic_analysis::parallel::SEQUENTIAL_POLICY, parse_env("CPP_THREADS", 2));
+                break;
+        }
+    }
+    auto sums = ana->process();
     std::cerr << "CPP: Time for summary computation " << (cur_ms() - cur).count() << std::endl;
-    //std::cerr << *sums << std::endl;
+    std::cerr << sums->count() << std::endl;
     cur = cur_ms();
     sums->protobuf_output(std::cout);
     std::cerr << "CPP: Time for output " << (cur_ms() - cur).count() << std::endl;

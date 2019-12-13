@@ -11,5 +11,10 @@ Requirements
 Usage
 -----
 Use it in JOANA via the `CPPAnalysis`. 
-On the command line, pass the mode (currently ignored) and the graph file name (a few examples are in this folder 
+On the command line, pass the mode and the graph file name (a few examples are in this folder 
 ending with `.pg`). Or alternatively pipe the file into this program.
+
+| mode | description
+|------|-------------
+| s    | basic sequential algorithm
+| p    | parallel algorithm where each of the threads is responsible for a specific segment of the functions, set the number of computer threads via the `CPP_THREADS` environment variable.

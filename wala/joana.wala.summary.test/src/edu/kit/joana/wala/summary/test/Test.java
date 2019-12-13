@@ -178,8 +178,8 @@ public class Test {
     private static List<Pair<String, Consumer<SDG>>> configurations(){
 
         return Arrays.asList(
-            Pair.pair("JOANA default",
-                wrap(SummaryComputationType.DEFAULT)),
+            /*Pair.pair("JOANA default",
+                wrap(SummaryComputationType.DEFAULT)),*/
             Pair.pair("PCon CPP", sdg -> {
                 new CPPAnalysis().compute(SDGProgram.createSummaryWorkpackage(sdg), true, new NullProgressMonitor());
             }),

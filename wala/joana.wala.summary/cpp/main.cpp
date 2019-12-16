@@ -8,6 +8,7 @@
 #include <thread>
 #include <cmath>
 #include <numeric>
+#include <random>
 #include "lib/concurrentqueue.h"
 
 using namespace parex::graph;
@@ -640,11 +641,7 @@ namespace basic_analysis {
 
 
             void run(SummaryEdges &sums) {
-
                 std::for_each(computers.begin(), computers.end(), [&sums](auto &computer) { computer->run(sums); });
-                while (queue_item_counter.load() != 0) {
-                    std::this_thread::sleep_for(1ms);
-                }
                 std::for_each(computers.begin(), computers.end(), [](auto &computer) { computer->join(); });
             }
 
@@ -709,6 +706,165 @@ namespace basic_analysis {
             comp.queue_count++;
             ana->queue_item_counter++;
         }
+
+        typedef std::vector<std::vector<int32_t>> CompGroups;
+
+        class FuncToComputerGrouping {
+            Graph &g;
+            std::unordered_map<int32_t, int16_t> funcsAssignedToThreads;
+            int32_t maxComputerId = 0;
+            size_t unassignedFuncs;
+
+        public:
+            FuncToComputerGrouping(Graph &g): g(g), unassignedFuncs(g.funcs.size()) {}
+
+            bool is_assigned(int32_t func){
+                return funcsAssignedToThreads.find(func) != funcsAssignedToThreads.end();
+            }
+
+            void assign(int32_t func, size_t computer){
+                if (!is_assigned(func)){
+                    unassignedFuncs--;
+                }
+                funcsAssignedToThreads.emplace(func, computer);
+                maxComputerId = std::max(computer, static_cast<size_t>(maxComputerId));
+            }
+
+            CompGroups toCompGroups(){
+                assert(unassignedFuncs == 0);
+                std::vector<std::vector<int32_t>> comp_groups(maxComputerId + 1);
+                for (const auto &[k, v] : funcsAssignedToThreads) {
+                    comp_groups.at(v).push_back(k);
+                }
+                return comp_groups;
+            }
+
+            std::vector<size_t> computeGroupSizes(){
+                std::vector<size_t > comp_groups(maxComputerId + 1);
+                for (const auto &[k, v] : funcsAssignedToThreads) {
+                    comp_groups.at(v)++;
+                }
+                return comp_groups;
+            }
+
+            size_t computeGroupSizesStd(){
+                auto groupSizes = computeGroupSizes();
+                auto mean = std::accumulate(groupSizes.begin(), groupSizes.end(), 0);
+                return std::sqrt(std::accumulate(groupSizes.begin(), groupSizes.end(), 0, [&mean](size_t a, size_t b){
+                    return a + (b - mean) * (b - mean);
+                })) / groupSizes.size();
+            }
+
+            size_t getUnassignedFuncs(){
+                return unassignedFuncs;
+            }
+
+            std::optional<size_t> geUnassignedFunc(){
+                if (unassignedFuncs > 0){
+                    for (const auto &func : g.funcs) {
+                        if (!is_assigned(func)){
+                            return func;
+                        }
+                    }
+                }
+                return {};
+            }
+        };
+
+        /**
+         * Select a seed func for each computer and grow it from there
+         */
+        const FuncToComputerGroupingPolicy GROWING_POLICY = [](Graph &g, size_t number_of_threads){
+
+            auto find_grouping = [&](){
+
+                auto comp = std::make_unique<FuncToComputerGrouping>(g);
+
+                std::vector<std::vector<std::pair<int32_t, bool>>> possibleBordersPerComputer(number_of_threads);
+
+                // init randomly
+                std::default_random_engine generator;
+                std::uniform_int_distribution<int32_t> distribution(0,g.funcs.size() - 1);
+                for (size_t i = 0; i < number_of_threads; ++i) {
+                    int32_t possible;
+                    do {
+                        auto index = distribution(generator);
+                        possible = g.funcs.at(index);
+                    } while (comp->is_assigned(possible));
+                    possibleBordersPerComputer.at(i).emplace_back(possible, true);
+                    comp->assign(possible, i);
+                }
+
+                size_t curComputer = 0;
+
+                while (comp->getUnassignedFuncs() > 0){
+                    // get the possible border elements for the current computer
+                    auto possibleBorders = possibleBordersPerComputer.at(curComputer);
+                    bool found = false;
+
+                    for (auto &[func, usable] : possibleBorders) {
+                        if (usable){
+                            bool localFound = false;
+                            auto &funcNode = g.at<FuncNode>(func);
+                            // callers
+                            for (const auto &callerCallId : funcNode.callers()) {
+                                auto &caller = g.at<CallNode>(callerCallId);
+                                if (!comp->is_assigned(caller.owner())){
+                                    comp->assign(caller.owner(), curComputer);
+                                    localFound = true;
+                                    break;
+                                }
+                            }
+                            // callees
+                            if (!localFound) {
+                                for (const auto &calleeCallId : funcNode.callees()) {
+                                    auto &callee = g.at<CallNode>(calleeCallId);
+                                    for (const auto &target : callee.targets()) {
+                                        if (!comp->is_assigned(target)) {
+                                            comp->assign(target, curComputer);
+                                            localFound = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            usable = localFound;
+                            if (localFound){
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!found){
+                        auto func = comp->geUnassignedFunc();
+                        comp->assign(func.value(), curComputer);
+                        possibleBordersPerComputer.at(curComputer).emplace_back(func.value(), true);
+                    }
+
+                    curComputer = (curComputer + 1) % number_of_threads;
+                }
+
+                return comp;
+            };
+
+            std::unique_ptr<FuncToComputerGrouping> lastCompGroup = find_grouping();
+            size_t lastStd = lastCompGroup->computeGroupSizesStd();
+
+            for (size_t i = 0; i < 3; i++){
+                std::unique_ptr<FuncToComputerGrouping> curCompGroup = find_grouping();
+                size_t curStd = curCompGroup->computeGroupSizesStd();
+                if (curStd < lastStd){
+                    lastCompGroup.swap(curCompGroup);
+                    lastStd = curStd;
+                }
+            }
+            return lastCompGroup->toCompGroups();
+        };
+
+
+
+
     }
 }
 
@@ -744,8 +900,18 @@ int main(int count, char *args[]) {
             case 's':
                 break;
             case 'p':
-                ana = std::make_unique<basic_analysis::parallel::BasicParallelAnalysis>(*g, basic_analysis::parallel::SEQUENTIAL_POLICY, parse_env("CPP_THREADS", 2));
+                auto policy = basic_analysis::parallel::SEQUENTIAL_POLICY;
+                if (strlen(args[1]) > 1){
+                    switch (args[1][1]){
+                        case 's':
+                            break;
+                        case 'g':
+                            policy = basic_analysis::parallel::GROWING_POLICY;
+                    }
+                }
+                ana = std::make_unique<basic_analysis::parallel::BasicParallelAnalysis>(*g, policy, parse_env("CPP_THREADS", 2));
                 break;
+
         }
     }
     auto sums = ana->process();

@@ -6,7 +6,8 @@ the parex package of JOANA and exported using protobuf.
 Requirements
 ------------
 - C++17 compiler
-- protobuf libraries
+- protobuf library and protoc tool
+- libboost-graph-dev
 
 Usage
 -----
@@ -18,3 +19,5 @@ ending with `.pg`). Or alternatively pipe the file into this program.
 |------|-------------
 | s    | basic sequential algorithm
 | p    | parallel algorithm where each of the threads is responsible for a specific segment of the functions, set the number of computer threads via the `CPP_THREADS` environment variable.
+| pg   | … tries to assign threads better connected segments
+| pc   | … distributes strongly connected components greedily to the threads

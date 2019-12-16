@@ -10,9 +10,20 @@
 #include <numeric>
 #include <random>
 #include "lib/concurrentqueue.h"
+#include <boost/graph/directed_graph.hpp>
+#include <boost/graph/connected_components.hpp>
+#include <boost/graph/strong_components.hpp>
 
 using namespace parex::graph;
 using namespace std::chrono_literals;
+
+
+std::chrono::milliseconds cur_ms() {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()
+    );
+}
+
 
 class None {
 
@@ -627,7 +638,9 @@ namespace basic_analysis {
             void init() {
                 func_id_to_computer.clear();
                 computers.clear();
+                auto time = cur_ms();
                 auto comp_groups = policy(g, number_of_threads);
+                std::cout << "executing policy " << (cur_ms() - time).count() << std::endl;
                 size_t id = 0;
                 for (auto &comp_group : comp_groups) {
                     auto &comp = computers.emplace_back(std::make_unique<Computer>(this, id));
@@ -812,23 +825,9 @@ namespace basic_analysis {
                                 if (!comp->is_assigned(caller.owner())){
                                     comp->assign(caller.owner(), curComputer);
                                     localFound = true;
-                                    break;
+                                    usable = false;
                                 }
                             }
-                            // callees
-                            if (!localFound) {
-                                for (const auto &calleeCallId : funcNode.callees()) {
-                                    auto &callee = g.at<CallNode>(calleeCallId);
-                                    for (const auto &target : callee.targets()) {
-                                        if (!comp->is_assigned(target)) {
-                                            comp->assign(target, curComputer);
-                                            localFound = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                            usable = localFound;
                             if (localFound){
                                 found = true;
                                 break;
@@ -862,16 +861,84 @@ namespace basic_analysis {
             return lastCompGroup->toCompGroups();
         };
 
+        namespace cg {
+            struct node_properties {
+                int32_t func;
+            };
+            typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS,
+                    node_properties>          graph_t;
+            typedef typename boost::graph_traits<graph_t>::vertex_descriptor vertex_t;
+            typedef typename boost::graph_traits<graph_t>::edge_descriptor   edge_t;
 
 
+            class CallGraph {
 
+                graph_t graph;
+                std::unordered_map<int32_t, vertex_t&> vertexPerFunc;
+                std::vector<vertex_t> vertices;
+
+            public:
+
+                CallGraph(Graph &g){
+                    vertices.reserve(g.funcs.size());
+                    for (const auto &func_id : g.funcs) {
+                        vertices.push_back(boost::add_vertex({func_id}, graph));
+                        vertexPerFunc.emplace(func_id, vertices.back());
+                    }
+                    for (const auto &func_id : g.funcs) {
+                        auto &func = g.at<FuncNode>(func_id);
+                        auto &caller = vertexPerFunc.at(func_id);
+                        for (const auto &callee_call_id : func.callees()) {
+                            auto &callee_call = g.at<CallNode>(callee_call_id);
+                            for (const auto &target_id : callee_call.targets()) {
+                                auto &callee = vertexPerFunc.at(target_id);
+                                boost::add_edge(caller, callee, graph);
+                            }
+                        }
+                    }
+                }
+
+                void print_graph() {
+                    std::cout << "Graph:" << std::endl;
+                    auto edges = boost::edges(graph);
+                    for (auto it = edges.first; it != edges.second; ++it) {
+                        std::cout << boost::source(*it, graph) << " -> "
+                                  << boost::target(*it, graph) << std::endl;
+                    }
+                    std::cout << graph.vertex_set().size() << "dfg\n";
+                }
+
+
+                auto sccs() -> decltype(auto) {
+                    std::map<graph_t::vertex_descriptor, unsigned long> mapping;
+                    size_t component_count = boost::strong_components(graph, boost::associative_property_map(mapping));
+
+                    auto grouped_funcs = std::make_unique<std::vector<std::vector<int32_t>>>(component_count);
+                    for (const auto &[descr, comp] : mapping) {
+                        grouped_funcs->at(comp).push_back(graph[descr].func);
+                    }
+                    return grouped_funcs;
+                }
+            };
+
+        }
+
+        const FuncToComputerGroupingPolicy PRIMITIVE_SCC = [](Graph &g, size_t number_of_threads){
+
+            cg::CallGraph cg(g);
+
+            auto sccs = cg.sccs();
+            std::sort(sccs->begin(), sccs->end(), [](auto &x, auto &y){ return x.size() > y.size(); });
+
+            std::vector<std::vector<int32_t>> comp_groups(number_of_threads);
+
+            for (const auto &scc : *sccs) {
+                auto &smallest = *std::min_element(comp_groups.begin(), comp_groups.end(), [](auto &x, auto &y){ return x.size() < y.size(); });
+                smallest.insert(smallest.begin(), scc.begin(), scc.end());
+            }
+            return comp_groups;
+        };
     }
-}
-
-std::chrono::milliseconds cur_ms() {
-    return std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::system_clock::now().time_since_epoch()
-    );
 }
 
 int32_t parse_env(const char* variable, int32_t default_val){
@@ -891,6 +958,9 @@ int main(int count, char *args[]) {
     } else {
         g = Graph::parse(std::cin);
     }
+
+    basic_analysis::parallel::cg::CallGraph cg(*g);
+
     std::cerr << "CPP: Time for parsing " << (cur_ms() - cur).count() << std::endl;
     //g->assert_funcs_are_funcs();
     cur = cur_ms();
@@ -907,6 +977,9 @@ int main(int count, char *args[]) {
                             break;
                         case 'g':
                             policy = basic_analysis::parallel::GROWING_POLICY;
+                            break;
+                        case 'c':
+                            policy = basic_analysis::parallel::PRIMITIVE_SCC;
                     }
                 }
                 ana = std::make_unique<basic_analysis::parallel::BasicParallelAnalysis>(*g, policy, parse_env("CPP_THREADS", 2));

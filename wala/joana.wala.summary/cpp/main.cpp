@@ -1,23 +1,24 @@
-#include <iostream>
-#include <fstream>
 #include "graph.pb.h"
-#include <google/protobuf/io/zero_copy_stream_impl.h>
-#include <google/protobuf/util/delimited_message_util.h>
-#include <variant>
-#include <queue>
-#include <thread>
-#include <cmath>
-#include <numeric>
-#include <random>
 #include "lib/concurrentqueue.h"
 #include "lib/fmt/include/fmt/core.h"
-#include "lib/fmt/include/fmt/ranges.h"
 #include "lib/fmt/include/fmt/ostream.h"
-#include <boost/graph/directed_graph.hpp>
+#include "lib/fmt/include/fmt/ranges.h"
+#include "worklist.hpp"
 #include <boost/graph/connected_components.hpp>
-#include <boost/graph/strong_components.hpp>
+#include <boost/graph/directed_graph.hpp>
 #include <boost/graph/dominator_tree.hpp>
 #include <boost/graph/stoer_wagner_min_cut.hpp>
+#include <boost/graph/strong_components.hpp>
+#include <cmath>
+#include <fstream>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <google/protobuf/util/delimited_message_util.h>
+#include <iostream>
+#include <numeric>
+#include <queue>
+#include <random>
+#include <thread>
+#include <variant>
 
 using namespace parex::graph;
 using namespace std::chrono_literals;
@@ -468,14 +469,14 @@ namespace basic_analysis {
                       break;
                     }
                     std::visit(overloaded{
-                            [&state, &sums, funcId, cur](ActualInNode &node) {
+                            [&state=state, &sums, funcId, cur](ActualInNode &node) {
                                 /**
                                  * Use summary edges if they are there
                                  */
                                 state.push(sums.get(funcId, cur));
                                 state.push(node.neighbors());
                             },
-                            [&](FormalOutNode &node) {
+                            [&,&fi=fi](FormalOutNode &node) {
                                 if (formalInToOuts.find(std::pair(fi, cur)) == formalInToOuts.end()) {
                                     /**
                                      * Add the newly found connection between the current formal in and formal out nodes
@@ -485,7 +486,7 @@ namespace basic_analysis {
                                 }
                             },
                             [](None none) {},
-                            [&state](auto &node) {
+                            [&state=state](auto &node) {
                                 state.push(node.neighbors());
                             }
                     }, g.nodes.at(cur));
@@ -1300,13 +1301,6 @@ namespace layering {
 
     typedef std::unique_ptr<basic_analysis::QueueItem> qi_ptr;
 
-    enum class PackageState   {
-      IN_QUEUE,
-      NOT_IN_QUEUE_WORKED_ON,
-      NOT_IN_QUEUE_WORKED_ON_PLACE_IN_QUEUE,
-      NOT_IN_QUEUE
-    };
-
     /**
      * Package of functions with queues
      */
@@ -1319,7 +1313,7 @@ namespace layering {
         std::atomic_size_t queue_size_ = 0;
 
     public:
-        std::atomic<PackageState> state = { PackageState::NOT_IN_QUEUE };
+        std::atomic_int8_t state = {0};
 
         Package(size_t id, std::unordered_set<int32_t> funcs, std::vector<qi_ptr> initial_elements): id(id), funcs(funcs) {
             for (auto &initial_element : initial_elements) {
@@ -1409,6 +1403,8 @@ namespace layering {
         const size_t id;
         PackageThreadPool &pool;
         std::unique_ptr<std::thread> thread;
+        std::function<bool()> abort;
+        ComputerWorker worker;
 
     public:
         Computer(size_t id, PackageThreadPool &pool, ComputerWorker worker, std::function<bool()> abort);
@@ -1425,6 +1421,9 @@ namespace layering {
         }
     };
 
+    template <typename T>
+    using WorklistQueue = worklist::LockedAllocatingWorkListQueue<T>;
+
     /**
      * Process the packages with a simple thread pool
      *
@@ -1435,15 +1434,17 @@ namespace layering {
     class PackageThreadPool {
 
         friend Computer;
-        moodycamel::ConcurrentQueue<Package*> package_queue;
+        WorklistQueue<Package*> package_queue;
         std::vector<Computer> computers;
         std::atomic_size_t unfinished_pkgs;
 
     public:
 
         PackageThreadPool(std::vector<Package*> packages, ComputerWorker worker, std::function<bool()> abort, size_t number_of_threads = std::thread::hardware_concurrency()):
-            unfinished_pkgs(packages.size()), package_queue(packages.size(), number_of_threads, number_of_threads) {
-            package_queue.try_enqueue_bulk(packages.begin(), packages.size());
+            unfinished_pkgs(packages.size()), package_queue(packages.size()) {
+          for (auto &item : packages) {
+            package_queue.push(item);
+          }
             computers.reserve(number_of_threads);
             for (size_t i = 0; i < number_of_threads; i++){
                 computers.emplace_back(i, *this, worker, abort);
@@ -1457,45 +1458,16 @@ namespace layering {
         }
 
         void try_enqueue(Package *pkg){
-            while (true){
-              if (pkg->state.load() == PackageState::IN_QUEUE ||
-                  pkg->state.load() == PackageState::NOT_IN_QUEUE_WORKED_ON_PLACE_IN_QUEUE){
-                break;
-              }
-              auto expected = PackageState::NOT_IN_QUEUE;
-              if (pkg->state.compare_exchange_strong(expected, PackageState::IN_QUEUE)){
-                package_queue.enqueue(pkg);
-                unfinished_pkgs++;
-                break;
-              }
-              expected = PackageState::NOT_IN_QUEUE_WORKED_ON;
-              if (pkg->state.compare_exchange_strong(expected, PackageState::NOT_IN_QUEUE_WORKED_ON_PLACE_IN_QUEUE)){
-                break;
-              }
-            }
+          package_queue.push(pkg);
         }
 
         bool try_dequeue(Package* &pkg){
-          if (package_queue.try_dequeue(pkg)){
-            auto expected = PackageState::NOT_IN_QUEUE;
-            pkg->state.compare_exchange_strong(expected, PackageState::NOT_IN_QUEUE_WORKED_ON);
-            // all other things cannot occur, except if it is already set to be enqueued after finish, then keep the state
-            return true;
-          }
-          return false;
+          return package_queue.try_pop(pkg);
         }
 
-        void finish(Package *pkg){
+        void finish(Package *&pkg){
           unfinished_pkgs--;
-          auto expected = PackageState::NOT_IN_QUEUE_WORKED_ON;
-          if (pkg->state.compare_exchange_strong(expected, PackageState::NOT_IN_QUEUE)){
-            return;
-          }
-          expected = PackageState::NOT_IN_QUEUE_WORKED_ON_PLACE_IN_QUEUE;
-          if (pkg->state.compare_exchange_strong(expected, PackageState::IN_QUEUE)){
-              package_queue.enqueue(pkg);
-              unfinished_pkgs++;
-          }
+          package_queue.finish(pkg);
         }
 
         bool is_finished(){
@@ -1503,19 +1475,19 @@ namespace layering {
         }
 
         friend std::ostream &operator<<(std::ostream &os, const PackageThreadPool &pool) {
-            os << fmt::format("Pool(computers=<{}>, queue_size={})", pool.computers, pool.package_queue.size_approx());
+            os << fmt::format("Pool(computers=<{}>, queue_size={})", pool.computers, pool.package_queue.size());
             return os;
         }
     };
 
     Computer::Computer(size_t id, PackageThreadPool &pool, ComputerWorker worker, std::function<bool()> abort)
-            : id(id), pool(pool) {
+            : id(id), pool(pool), abort(abort), worker(worker) {
             thread = std::make_unique<std::thread>([&]{
-                while (!abort()){
+                while (!this->abort()){
                     Package *pkg;
                     if (pool.try_dequeue(pkg)) {
                       fmt::print("w{}\n ", this->id);
-                        worker(pool, pkg);
+                        this->worker(pool, pkg);
                       fmt::print("f{}\n ", this->id);
                       pool.finish(pkg);
                     } else {
@@ -1540,7 +1512,9 @@ namespace layering {
         return groups;
     };
 
-    PackageNumberComputer DEFAULT_NUMBER_OF_PKGS_COMPUTER = [](Graph &g, auto funcs, size_t number_of_threads){ return std::max(funcs.size() / 50, std::min(number_of_threads, funcs.size())); };
+    PackageNumberComputer DEFAULT_NUMBER_OF_PKGS_COMPUTER = [](Graph &g, auto funcs, size_t number_of_threads){
+      return std::max(funcs.size() / 50, std::min(number_of_threads, funcs.size()));
+    };
 
     class LayeredPackages : public basic_analysis::BasicAnalysis {
 
@@ -1582,6 +1556,8 @@ namespace layering {
 
         LayeredPackages(Graph &g, size_t number_of_threads): LayeredPackages(g, DEFAULT_GROUPER, DEFAULT_NUMBER_OF_PKGS_COMPUTER, number_of_threads) {}
 
+        LayeredPackages(Graph &g, size_t number_of_threads, size_t package_number): LayeredPackages(g, DEFAULT_GROUPER, [&](Graph &g, auto funcs, size_t number_of_threads){ return package_number; }, number_of_threads) {}
+
         void init(){
             init_packages_and_layers();
         }
@@ -1610,7 +1586,7 @@ namespace layering {
             while (pkg->queue_size() > 0) {
                 auto item = pkg->pop();
                 if (item){
-                    //fmt::print(stderr, "{} works on {}: {}\n", std::this_thread::get_id(), *pkg, item.value()->func_node);
+                    fmt::print(stderr, "{} works on {}: {}\n", std::this_thread::get_id(), *pkg, item->func_node);
                     process_item(std::move(item), [&](qi_ptr item) {
                         offer(pool, pkg, std::move(item));
                     }, sums);
@@ -1707,7 +1683,7 @@ int main(int count, char *args[]) {
                     }
                 break;
             case 'l':
-                ana = std::make_unique<layering::LayeredPackages>(*g, parse_env("CPP_THREADS", 2));
+                ana = std::make_unique<layering::LayeredPackages>(*g, parse_env("CPP_THREADS", 1));
                 break;
         }
     }

@@ -7,5 +7,7 @@ add_subdirectory(lib/fmt)
 find_package(Protobuf REQUIRED)
 #protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ../resources/graph.proto)
 
-add_executable(${PROJECT_NAME} main.cpp graph.pb.cc)
+add_executable(${PROJECT_NAME} main.cpp graph.pb.cc worklist.hpp)
 target_link_libraries(${PROJECT_NAME} PUBLIC protobuf fmt::fmt-header-only)
+
+add_subdirectory(tests)

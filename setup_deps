@@ -1,0 +1,12 @@
+#! /bin/sh
+
+cd "$(dirname "$0")"
+git submodule init
+git submodule update
+git submodule update --remote --merge
+
+cd contrib/wala
+mvn verify -DskipTests=true -e
+
+cd ../parameter-setter
+./gradlew fatJar

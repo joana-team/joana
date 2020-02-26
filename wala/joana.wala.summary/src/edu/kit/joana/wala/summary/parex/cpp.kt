@@ -97,7 +97,7 @@ fun SDG.insertSummaryEdgesFromStream(summs: SummariesPerFuncStream, summaryEdgeK
     }.collect(Collectors.toList())).stream().mapToInt { f: Future<Int> -> f.get()}.sum()
 }
 
-class CPPAnalysis(val conf: String = "") : Analysis {
+class CPPAnalysis(val conf: String = "l") : Analysis {
 
     /**
      * Raw cpp output

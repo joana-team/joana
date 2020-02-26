@@ -11,6 +11,7 @@ import org.jgrapht.graph.DefaultEdge
 import org.jgrapht.graph.UnmodifiableDirectedGraph
 import org.jgrapht.graph.builder.DirectedGraphBuilder
 import java.io.FileWriter
+import java.io.OutputStream
 import java.util.AbstractMap.SimpleEntry
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.javaGetter
@@ -193,6 +194,19 @@ fun SDG.getSummaryEdgesOfSDG(summaryEdgeKind: SDGEdge.Kind = SDGEdge.Kind.SUMMAR
         outgoingEdgesOfUnsafe(sdgNode).filter { edge -> edge.kind == summaryEdgeKind }.forEach { edge -> map.add(sdgNode, edge.target) }
     }
     return map
+}
+
+/**
+ * Prints "${actIn.id} ${actOut.id}" for each summary edge
+ */
+fun writeSummaryEdgesSSV(edges: MultiMap<SDGNode, SDGNode>, outStream: OutputStream){
+    val writer = outStream.bufferedWriter()
+    edges.keySet().forEach { actIn ->
+        edges.get(actIn).forEach { actOut ->
+            writer.write("${actIn.id} ${actOut.id}\n")
+        }
+    }
+    writer.flush()
 }
 
 fun <K, V> MultiMap<K, V>.diffRelatedTo(base: MultiMap<K, V>): MultiMapCompResult<K, V> {

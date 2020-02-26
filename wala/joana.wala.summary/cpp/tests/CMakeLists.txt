@@ -30,7 +30,20 @@ if (CMAKE_VERSION VERSION_LESS 2.8.11)
     include_directories("${gtest_SOURCE_DIR}/include")
 endif()
 
-set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=thread -g -O0")
+include_directories(..)
 
-add_executable(Google_Tests_run worklist.cpp)
-target_link_libraries(Google_Tests_run gtest gtest_main)
+set(CMAKE_CXX_FLAGS  "-pthread -Wall -pedantic -O3 -fopenmp")
+set(CMAKE_CXX_FLAGS_RELEASE  "-O3")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_GLIBCXX_DEBUG -g -O0 -Wall -pedantic -fopenmp")
+
+add_executable(worklist test_worklist.cpp ../src/worklist.cpp)
+target_link_libraries(worklist fmt::fmt-header-only gtest gtest_main stdc++fs)
+
+add_executable(summary test_summary.cpp ../src/analysis.cpp ../src/util.cpp ../src/graph.cpp ../src/packages.cpp ../graph.pb.cc ../src/worklist.hpp ../src/analysis.hpp ../src/summary.hpp ../src/worklist.cpp utilities.cpp)
+target_link_libraries(summary protobuf fmt::fmt-header-only gtest gtest_main stdc++fs)
+
+add_executable(graph2 test_graph2.cpp ../src/util.cpp ../src/graph2.cpp ../src/packages.cpp ../graph.pb.cc ../src/worklist.hpp ../src/analysis.hpp ../src/summary.hpp ../src/graph2.hpp ../src/graph_convert.cpp ../src/worklist.cpp utilities.cpp utilities.hpp)
+target_link_libraries(graph2 protobuf fmt::fmt-header-only gtest gtest_main stdc++fs)
+
+add_executable(graph test_graph.cpp ../src/util.cpp ../src/graph2.cpp ../src/packages.cpp ../graph.pb.cc ../src/worklist.hpp ../src/analysis.hpp ../src/summary.hpp ../src/graph2.hpp ../src/graph_convert.cpp ../src/worklist.cpp utilities.cpp utilities.hpp)
+target_link_libraries(graph protobuf fmt::fmt-header-only gtest gtest_main stdc++fs)

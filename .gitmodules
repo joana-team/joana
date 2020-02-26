@@ -6,3 +6,6 @@
 [submodule "contrib/parameter-setter"]
 	path = contrib/parameter-setter
 	url = https://git.scc.kit.edu/gp1285/parameter-setter
+[submodule "wala/joana.wala.summary/summary_cpp"]
+	path = wala/joana.wala.summary/cpp
+	url = https://git.scc.kit.edu/IPDSnelting/summary_cpp

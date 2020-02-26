@@ -126,7 +126,12 @@ class SDGToGraph(val relevantEdges: Set<SDGEdge.Kind> = DEFAULT_RELEVANT_EDGES,
                             graph.callGraph.addEdge(funcNode, it)
                         }
                         graphNode.owner.callees.add(graphNode)
-                        return outgoing(node).filter { it.target.kind == SDGNode.Kind.ACTUAL_OUT }
+                        outgoing(node).filter { it.target.kind == SDGNode.Kind.ACTUAL_OUT }
+                                .map { it.target }
+                                .distinctBy { it.id }
+                                .forEach { graphNode.actualOuts.add(createGraphNodeIfNeeded(it)); }
+                        outgoing(node).filter { consider(it.kind) && it.target.kind != SDGNode.Kind.ACTUAL_OUT
+                                && it.target.kind != SDGNode.Kind.ACTUAL_IN}
                                 .map { it.target }
                                 .distinctBy { it.id }
                                 .forEach { defaultNodeAdd(graphNode, it) }
@@ -165,7 +170,7 @@ class SDGToGraph(val relevantEdges: Set<SDGEdge.Kind> = DEFAULT_RELEVANT_EDGES,
                 SDGNode.Kind.FORMAL_IN ->
                     graph.createFormalIn(node.id, funcNode)
                 SDGNode.Kind.CALL ->
-                    CallNode(node.id, mutableListOf(), mutableListOf(), graph.getOrCreateFuncNode(sdg.getEntry(node).id),
+                    CallNode(node.id, mutableListOf(), mutableListOf(), mutableListOf(), graph.getOrCreateFuncNode(sdg.getEntry(node).id),
                             getCallNodeTargets(node)).also(graph::addNode)
                 SDGNode.Kind.ACTUAL_OUT ->
                     OutNode(node.id).also(graph::addNode)
@@ -251,6 +256,9 @@ class SDGToGraph2(val relevantEdges: Set<SDGEdge.Kind> = DEFAULT_RELEVANT_EDGES,
              */
             procs.values.forEach {
                 it.customData = graph.getOrCreateFuncNode(it.id)
+                if (it.id == 14328) {
+                    sdg.outgoingEdgesOf(it).forEach { e -> println(e.label + " " + e.kind + " ti=" + e.target.id + " tk=" + e.target.kind + " tl" + e.target.label) }
+                }
             }
 
             /**
@@ -334,7 +342,7 @@ class SDGToGraph2(val relevantEdges: Set<SDGEdge.Kind> = DEFAULT_RELEVANT_EDGES,
                     SDGNode.Kind.FORMAL_IN ->
                         node.customData = FormalInNode(node.id, funcNode)
                     SDGNode.Kind.CALL ->
-                        node.customData = CallNode(node.id, mutableListOf(), mutableListOf(), sdg.getEntry(node).customData as FuncNode,
+                        node.customData = CallNode(node.id, mutableListOf(), mutableListOf(), mutableListOf(), sdg.getEntry(node).customData as FuncNode,
                                 getCallNodeTargets(node))
                     SDGNode.Kind.ACTUAL_OUT ->
                         node.customData = OutNode(node.id)
@@ -426,6 +434,11 @@ class SDGToGraph2(val relevantEdges: Set<SDGEdge.Kind> = DEFAULT_RELEVANT_EDGES,
                         }
                         graphNode.owner.callees.add(graphNode)
                         outgoing(node).filter { it.target.kind == SDGNode.Kind.ACTUAL_OUT }
+                                .map { it.target }
+                                .distinctBy { it.id }
+                                .forEach { graphNode.actualOuts.add(it.getGraphNode()); }
+                        outgoing(node).filter { consider(it.kind) && it.target.kind != SDGNode.Kind.ACTUAL_OUT
+                                && it.target.kind != SDGNode.Kind.ACTUAL_IN}
                                 .map { it.target }
                                 .distinctBy { it.id }
                                 .forEach { defaultNodeAdd(graphNode, it) }

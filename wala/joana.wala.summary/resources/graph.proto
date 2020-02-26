@@ -38,11 +38,14 @@ enum NodeHeader {
 message CallNode {
     repeated int32 actual_ins = 1;
 
+    repeated int32 actual_outs = 2;
+
     // id of the owning function
     int32 owner = 3;
 
     // ids of the targeted functions
     repeated int32 targets = 4;
+
     repeated int32 neighbors = 6;
 }
 

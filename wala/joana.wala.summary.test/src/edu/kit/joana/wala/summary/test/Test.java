@@ -5,9 +5,11 @@ import de.uni.trier.infsec.core.Setup;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.wala.summary.NullProgressMonitor;
 import edu.kit.joana.wala.summary.SummaryComputationType;
+import edu.kit.joana.wala.summary.WorkPackage;
 import edu.kit.joana.wala.summary.parex.*;
 import edu.kit.joana.wala.summary.test.cases.*;
 import joana.api.testdata.seq.*;
@@ -15,10 +17,7 @@ import joana.api.testdata.toy.declass.Declass1;
 import joana.api.testdata.toy.demo.Demo1;
 import joana.api.testdata.toy.demo.NonNullFieldParameter;
 import joana.api.testdata.toy.pw.PasswordFile;
-import joana.api.testdata.toy.rec.MyList;
-import joana.api.testdata.toy.rec.MyList2;
-import joana.api.testdata.toy.rec.PrimitiveEndlessRecursion;
-import joana.api.testdata.toy.rec.PrimitiveEndlessRecursion2;
+import joana.api.testdata.toy.rec.*;
 import joana.api.testdata.toy.sensitivity.FlowSens;
 import joana.api.testdata.toy.simp.*;
 import joana.api.testdata.toy.test.*;
@@ -26,10 +25,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -41,6 +42,7 @@ public class Test {
 
     private static Stream<Class<?>> testCases(){
         return Stream.of(
+            TiniestExample.class,
             TinyExample.class,
             BasicTestClass.class,
             FlowSens.class,
@@ -59,6 +61,7 @@ public class Test {
             MyList.class,
             PrimitiveEndlessRecursion.class,
             PrimitiveEndlessRecursion2.class,
+            PrimitiveEndlessRecursion3.class,
             MyList2.class,
             DynamicDispatch.class,
             OutFlush.class,
@@ -69,7 +72,6 @@ public class Test {
             ExampleLeakage.class,
             ArrayAccess.class,
             ArrayOverwrite.class,
-            FieldAccess.class,
             FieldAccess.class,
             FieldAccess2.class,
             FieldAccess3.class,
@@ -96,23 +98,94 @@ public class Test {
         assertAnalysis(klass, "", new SequentialAnalysis(), bigTestCase(klass) ? null : "tmp");
     }
 
+    public static void writeCPPTestSources(String destDir){
+        testCases().forEach(c -> writeCPPTestSource(destDir, c));
+    }
+
+    /**
+     * Creates a protobuf graph file (.pg), a file (.ssv) consisting of all summary edges ("actIn.id actOut.id\n…") and somes dot
+     * files for the given class in the given folder
+     */
+    public static void writeCPPTestSource(String destDir, Class<?> klass){
+        try {
+            Files.createDirectories(Paths.get(destDir));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String name = klass.getSimpleName();
+        System.out.println(name);
+        writeCPPTestSource(build(klass), destDir + "/" + name);
+    }
+
+    /**
+     * Creates a protobuf graph file (.pg), a file (.ssv) consisting of all summary edges ("actIn.id actOut.id\n…") and somes dot
+     * files for the given class in the given folder
+     */
+    public static void writeCPPTestSource(String destDir, String sdgFile){
+        String[] parts = sdgFile.split("/");
+        String name = parts[parts.length - 1].split("\\.")[0];
+        try {
+            writeCPPTestSource(SDG.readFromAndUseLessHeap(sdgFile), destDir + "/" + name);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void writeCPPTestSource(SDG sdg, String baseFileName){
+        Graph g = new SDGToGraph().convert(sdg, true);
+        new Dumper().dump(g, baseFileName + ".pg");
+        try (OutputStream out =
+                 Files.newOutputStream(Paths.get(baseFileName + ".ssv"))){
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out));
+            computeOracleSummaryEdges(sdg, (a, b) -> {
+                try {
+                    writer.write(String.format("%d %d\n", a.getId(), b.getId()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Util.exportGraph(g, sdg, baseFileName + "_graphs_");
+    }
+
+    private static void computeOracleSummaryEdges(SDG sdg, BiConsumer<SDGNode, SDGNode> consumer){
+        WorkPackage<SDG> pack = SDGProgram.createSummaryWorkpackage(sdg);
+        try {
+            long start = System.currentTimeMillis();
+            SummaryComputationType.DEFAULT.getSummaryComputer().compute(pack, true, new com.ibm.wala.util.NullProgressMonitor());
+        } catch (CancelException e) {
+            e.printStackTrace();
+        }
+        sdg.vertexSet().stream().filter(it -> it.kind == SDGNode.Kind.ACTUAL_IN).forEach(it -> {
+            SDGNode sdgNode = sdg.getNode(it.getId());
+            for (SDGEdge edge : sdg.outgoingEdgesOfUnsafe(sdgNode)) {
+                if (edge.getKind() == SDGEdge.Kind.SUMMARY){
+                    consumer.accept(sdgNode, edge.getTarget());
+                }
+            }
+        });
+    }
+
     @ParameterizedTest
     @MethodSource("testCases")
     public void testAnalysis2(Class<?> klass){
-        assertAnalysis(klass, "", new CPPAnalysis(), bigTestCase(klass) ? null : "tmp", g -> {
+        /*assertAnalysis(klass, "", new CPPAnalysis(), bigTestCase(klass) ? null : "tmp", g -> {
             String file = "tmp/" + klass.getName() + ".pg";
             new Dumper().dump(g, file);
             Graph newGraph = new Loader().load(file);
             return newGraph;
-        });
+        });*/
       assertAnalysis(klass, "", new SequentialAnalysis2(), bigTestCase(klass) ? null : "tmp", g -> {
           String file = "tmp/" + klass.getName() + ".pg";
           new Dumper().dump(g, file);
           Graph newGraph = new Loader().load(file);
           return newGraph;
       });
-        assertAnalysis(klass, "", new BasicParallelAnalysis(), bigTestCase(klass) ? null : "tmp");
-        assertAnalysis(klass, "", new SequentialAnalysis(), bigTestCase(klass) ? null : "tmp");
+      //  assertAnalysis(klass, "", new BasicParallelAnalysis(), bigTestCase(klass) ? null : "tmp");
+     //   assertAnalysis(klass, "", new SequentialAnalysis(), bigTestCase(klass) ? null : "tmp");
     }
 
     @ParameterizedTest
@@ -299,15 +372,22 @@ public class Test {
     }
 
     public static void main(String[] args){
+        new Test().writeCPPTestSources(args.length == 1 ? args[0] : "cpp_test_data");
+        /*System.exit(0);
         withClassPath(args.length >= 3 ? args[0] : ".", () -> {
             compare(args.length >= 3 ? args[1] : "JLex.Main", configurations(), args.length >= 4 ? Integer.parseInt(args[3]) : 1, args.length >= 3 ? Integer.parseInt(args[2]) : 5);
         });
-        System.exit(1);
+        System.exit(1);*/
         withClassPath(args[0], () -> {
             withDisabledGraphExport(() -> {
                 try {
                     try {
-                        assertAnalysis(Class.forName(args[1]), "", new SequentialAnalysis2(), "tmp");
+                        //assertAnalysis(Class.forName(args[1]), "", new SequentialAnalysis2(), "tmp");
+                        if (Files.exists(Paths.get(args[1]))){
+                            writeCPPTestSource("cpp_test_data", args[1]);
+                        } else {
+                            writeCPPTestSource("cpp_test_data", Class.forName(args[1]));
+                        }
                     } catch (AssertionError e){
                         e.printStackTrace();
                         System.exit(0);

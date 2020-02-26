@@ -129,6 +129,10 @@ open class SequentialAnalysis2 : Analysis {
                             formalInToOut.computeIfAbsent(fi, { HashSet() }).add(cur)
                         }
                     }
+                    is CallNode -> {
+                        state.push(cur.neighbors)
+                        state.push(cur.actualOuts)
+                    }
                     else -> {
                         state.push(cur.curNeighbors())
                     }

@@ -90,6 +90,7 @@ class Dumper {
             is CallNode ->
                 GraphProto.CallNode.newBuilder()
                         .addAllActualIns(node.actualIns.map(Node::id))
+                        .addAllActualOuts(node.actualOuts.map(Node::id))
                         .addAllTargets(node.targets.map(Node::id))
                         .addAllNeighbors(node.neighbors.map(Node::id))
                         .setOwner(node.owner.id)
@@ -177,6 +178,25 @@ class Loader {
                 }
             }
         }
+        Files.newBufferedWriter(Paths.get("node_ids_pg.txt")).let { writer ->
+            graph.nodes.forEach {
+                if (it != null) {
+                    writer.write("${it.id} " + when (it){
+                        null -> NONE_VALUE
+                        is CallNode -> CALL_NODE_VALUE
+                        is FuncNode -> FUNC_NODE_VALUE
+                        is ActualInNode -> ACTUAL_IN_NODE_VALUE
+                        is FormalInNode -> FORMAL_IN_NODE_VALUE
+                        is FormalOutNode -> FORMAL_OUT_NODE_VALUE
+                        is OutNode -> ACTUAL_OUT_NODE_VALUE
+                        else -> NORMAL_NODE_VALUE
+                    }.toString() + "\n")
+                } else {
+                    writer.write("\n")
+                }
+            }
+            writer.flush()
+        }
         return graph
     }
 
@@ -216,6 +236,7 @@ class Loader {
                 is CallNode -> {
                     val call = GraphProto.CallNode.parseDelimitedFrom(input)
                     node.actualIns.addAll(call.actualInsList.map { nodes[it] as ActualInNode })
+                    node.actualOuts.addAll(call.actualOutsList.map { nodes[it] as OutNode })
                     node.targets.addAll(call.targetsList.map { nodes[it] as FuncNode })
                     node.neighbors.addAll(call.neighborsList.map { nodes[it] as Node })
                 }

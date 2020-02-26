@@ -48,6 +48,10 @@ class SequentialAnalysis : Analysis {
                     is FormalOutNode -> {
                         summaryEdges.add(Pair(fi, cur))
                     }
+                    is CallNode -> {
+                        addToQueue(cur.neighbors)
+                        addToQueue(cur.actualOuts)
+                    }
                     else -> {
                         addToQueue(cur.neighbors)
                     }

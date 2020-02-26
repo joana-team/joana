@@ -128,6 +128,7 @@ class CallNode(
          */
         neighbors: Col<Node>,
         val actualIns: Col<Node> = mutableListOf(),
+        val actualOuts: Col<Node> = mutableListOf(),
         /**
          * Owning function node
          */
@@ -137,7 +138,7 @@ class CallNode(
          */
         val targets: Col<FuncNode>) : Node(id, neighbors) {
 
-    override fun outgoing(hideCallGraph: Boolean): List<Node> = (if (hideCallGraph) targets else targets + owner) + curNeighbors()
+    override fun outgoing(hideCallGraph: Boolean): List<Node> = (if (hideCallGraph) targets else targets + owner) + curNeighbors() + actualOuts
 
     fun actualOut(formalOut: FormalOutNode): OutNode? {
         return formalOut.actualOuts[this]

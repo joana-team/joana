@@ -97,10 +97,10 @@ public class Util {
 
   private static final SummaryComputationType BASE_COMPUTATION = SummaryComputationType.DEFAULT;
 
-  private static void exportGraph(Graph graph, SDG sdg, String prefix){
+  public static void exportGraph(Graph graph, SDG sdg, String prefix){
     File file = new File(prefix + "full.pdg");
     try {
-      Files.createDirectories(file.toPath());
+      Files.createDirectories(file.toPath().getParent());
       SDGSerializer.toPDGFormat(sdg, new BufferedOutputStream(new FileOutputStream(file)));
     } catch (IOException e) {
       //e.printStackTrace();

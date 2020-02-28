@@ -1,4 +1,4 @@
-package edu.kit.joana.wala.summary.parex;
+package edu.kit.joana.wala.summary.parex
 
 import com.google.protobuf.GeneratedMessageV3
 import edu.kit.joana.wala.summary.parex.GraphProto.NodeHeader.*
@@ -10,13 +10,25 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.stream.Collectors
 
+private fun Col<out Node>.mapIds(g: Graph): List<Int> {
+    return map {
+        g.printableId(it.id)
+    }.filter { it != -1 }
+}
+
+
+private fun List<Pair<Int, Int>>.mapIds(graph: Graph): Map<Int, Int> {
+    return map { graph.printableId(it.first) to graph.printableId(it.second) }
+            .filter { it.first != -1 && it.second != -1 }.toMap()
+}
+
 /**
  * Deals with handling proto files
  */
 
 class Dumper {
 
-    fun dump(graph: Graph, fileName: String){
+    fun dump(graph: Graph, fileName: String) {
         dump(graph, Files.newOutputStream(Paths.get(fileName)))
     }
 
@@ -27,52 +39,52 @@ class Dumper {
     3. Dumps the node headers
     4. Dumps the body of each individual node
      */
-    fun dump(graph: Graph, out: OutputStream){
+    fun dump(graph: Graph, out: OutputStream) {
 
         val dataOut = DataOutputStream(out)
 
         dumpHeader(graph).writeDelimitedTo(out)
 
         // dump function ids
-        graph.nodes.forEach { n ->
-            if (n is FuncNode){
-                dataOut.writeInt(n.id)
+        graph.forEachNodeInPrintOrder { n ->
+            if (n is FuncNode) {
+                dataOut.writeInt(graph.printableId(n.id))
             }
         }
 
         // dump header
-        graph.nodes.forEach { n ->
-            dumpHeader(n, dataOut)
+        graph.forEachNodeInPrintOrder { n ->
+            dumpHeader(graph, n, dataOut)
         }
 
         // dump bodies
-        graph.nodes.forEach { n ->
+        graph.forEachNodeInPrintOrder { n ->
             dumpNodeType(n, dataOut)
-            dumpBody(n)?.writeDelimitedTo(out)
+            dumpBody(graph, n)?.writeDelimitedTo(out)
         }
     }
 
     internal fun dumpHeader(graph: Graph): GraphProto.GraphHeader {
         return GraphProto.GraphHeader.newBuilder()
-                .setEntry(graph.entry.id)
-                .setNumberOfNodes(graph.nodes.size)
+                .setEntry(graph.printableId(graph.entry.id))
+                .setNumberOfNodes(graph.numberOfIds())
                 .setNumberOfFunctions(graph.funcMap.size)
-                .setNodeHeaderBytes(graph.nodes.parallelStream().mapToInt { n -> if (n is CallNode || n is FormalInNode) 2 else 1}.sum() * 4)
+                .setNodeHeaderBytes(graph.nodesInPrintOrder().parallelStream().mapToInt { n -> if (n is CallNode || n is FormalInNode) 2 else 1 }.sum() * 4)
                 .build()
     }
 
-    internal fun dumpHeader(node: Node?, output: DataOutputStream) {
+    internal fun dumpHeader(graph: Graph, node: Node?, output: DataOutputStream) {
         dumpNodeType(node, output)
         if (node is CallNode) {
-            output.writeInt(node.owner.id)
+            output.writeInt(graph.printableId(node.owner.id))
         }
         if (node is FormalInNode) {
-            output.writeInt(node.owner.id)
+            output.writeInt(graph.printableId(node.owner.id))
         }
     }
 
     internal fun dumpNodeType(node: Node?, output: DataOutputStream) {
-        output.writeInt(when (node){
+        output.writeInt(when (node) {
             null -> NONE_VALUE
             is CallNode -> CALL_NODE_VALUE
             is FuncNode -> FUNC_NODE_VALUE
@@ -84,49 +96,49 @@ class Dumper {
         })
     }
 
-    internal fun dumpBody(node: Node?): GeneratedMessageV3? {
+    internal fun dumpBody(graph: Graph, node: Node?): GeneratedMessageV3? {
         return when (node) {
             null -> null
             is CallNode ->
                 GraphProto.CallNode.newBuilder()
-                        .addAllActualIns(node.actualIns.map(Node::id))
-                        .addAllActualOuts(node.actualOuts.map(Node::id))
-                        .addAllTargets(node.targets.map(Node::id))
-                        .addAllNeighbors(node.neighbors.map(Node::id))
-                        .setOwner(node.owner.id)
+                        .addAllActualIns(node.actualIns.mapIds(graph))
+                        .addAllActualOuts(node.actualOuts.mapIds(graph))
+                        .addAllTargets(node.targets.map(Node::id).map(graph::printableId))
+                        .addAllNeighbors(node.neighbors.mapIds(graph))
+                        .setOwner(graph.printableId(node.owner.id))
                         .build()
             is FuncNode ->
                 GraphProto.FuncNode.newBuilder()
-                        .addAllFormalIns(node.formalIns.map(Node::id))
-                        .addAllFormalOuts(node.formalOuts.map(Node::id))
-                        .addAllCallees(node.callees.map(Node::id))
-                        .addAllCallers(node.callers.map(Node::id))
-                        .addAllNeighbors(node.neighbors.map(Node::id))
+                        .addAllFormalIns(node.formalIns.mapIds(graph))
+                        .addAllFormalOuts(node.formalOuts.mapIds(graph))
+                        .addAllCallees(node.callees.mapIds(graph))
+                        .addAllCallers(node.callers.mapIds(graph))
+                        .addAllNeighbors(node.neighbors.mapIds(graph))
                         .build()
             is ActualInNode ->
                 GraphProto.ActualInNode.newBuilder()
-                        .putAllFormalIns(node.formalIns.entries.map { it.key.id to it.value.id }.toMap())
-                        .setCallNode(node.callNode?.id ?: -1)
-                        .addAllNeighbors(node.neighbors.map(Node::id))
+                        .putAllFormalIns(node.formalIns.entries.map { it.key.id to it.value.id }.mapIds(graph))
+                        .setCallNode(if (node.callNode != null) graph.printableId(node.callNode!!.id) else -1)
+                        .addAllNeighbors(node.neighbors.mapIds(graph))
                         .build()
             is FormalInNode ->
                 GraphProto.FormalInNode.newBuilder()
-                        .putAllActualIns(node.actualIns.entries.map { it.key.id to it.value.id }.toMap())
-                        .addAllNeighbors(node.neighbors.map(Node::id))
-                        .setOwner(node.owner.id)
+                        .putAllActualIns(node.actualIns.entries.map { it.key.id to it.value.id }.mapIds(graph))
+                        .addAllNeighbors(node.neighbors.mapIds(graph))
+                        .setOwner(graph.printableId(node.owner.id))
                         .build()
             is FormalOutNode ->
                 GraphProto.FormalOutNode.newBuilder()
-                        .putAllActualOuts(node.actualOuts.entries.map { it.key.id to it.value.id }.toMap())
-                        .addAllNeighbors(node.neighbors.map(Node::id))
+                        .putAllActualOuts(node.actualOuts.entries.map { it.key.id to it.value.id }.mapIds(graph))
+                        .addAllNeighbors(node.neighbors.mapIds(graph))
                         .build()
             is OutNode ->
                 GraphProto.ActualOutNode.newBuilder()
-                        .addAllNeighbors(node.neighbors.map(Node::id))
+                        .addAllNeighbors(node.neighbors.mapIds(graph))
                         .build()
             else ->
                 GraphProto.NormalNode.newBuilder()
-                        .addAllNeighbors(node.neighbors.map(Node::id))
+                        .addAllNeighbors(node.neighbors.mapIds(graph))
                         .build()
         }
     }
@@ -170,7 +182,7 @@ class Loader {
         val calledFuncsPerFunc = funcs.parallelStream().map { f -> f to f.callees.flatMap { it.targets } }.collect(Collectors.toList())
 
         calledFuncsPerFunc.forEach { (func, called) ->
-            with(graph.callGraph){
+            with(graph.callGraph) {
                 addVertex(func)
                 called.forEach {
                     addVertex(it)
@@ -181,7 +193,7 @@ class Loader {
         Files.newBufferedWriter(Paths.get("node_ids_pg.txt")).let { writer ->
             graph.nodes.forEach {
                 if (it != null) {
-                    writer.write("${it.id} " + when (it){
+                    writer.write("${it.id} " + when (it) {
                         null -> NONE_VALUE
                         is CallNode -> CALL_NODE_VALUE
                         is FuncNode -> FUNC_NODE_VALUE
@@ -207,10 +219,10 @@ class Loader {
         }
     }
 
-    internal fun loadNodesHeaders(input: DataInputStream, nodes: Array<Node?>){
-        for (id in nodes.indices){
+    internal fun loadNodesHeaders(input: DataInputStream, nodes: Array<Node?>) {
+        for (id in nodes.indices) {
             val type = input.readInt()
-            nodes[id] = when (type){
+            nodes[id] = when (type) {
                 CALL_NODE_VALUE -> {
                     val ownerId = input.readInt()
                     CallNode(id, mutableListOf(), owner = nodes[ownerId] as FuncNode, targets = mutableListOf())
@@ -228,8 +240,8 @@ class Loader {
         }
     }
 
-    internal fun loadNodeBodies(input: DataInputStream, nodes: Array<Node?>){
-        for (id in nodes.indices){
+    internal fun loadNodeBodies(input: DataInputStream, nodes: Array<Node?>) {
+        for (id in nodes.indices) {
             input.readInt()
             val node = nodes[id]
             when (node) {

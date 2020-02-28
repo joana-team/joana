@@ -105,14 +105,14 @@ public class Util {
     } catch (IOException e) {
       //e.printStackTrace();
     }
-    UtilKt.exportDot(UtilKt.nodeGraphT(graph, null,false), prefix + "full.dot", sdg);
-    UtilKt.exportDot(UtilKt.nodeGraphT(graph, graph.getEntry(), false), prefix + "fullRooted.dot", sdg);
-    UtilKt.exportDot(UtilKt.nodeGraphT(graph, null, false,
+    UtilKt.exportDot(graph, UtilKt.nodeGraphT(graph, null,false), prefix + "full.dot", sdg);
+    UtilKt.exportDot(graph, UtilKt.nodeGraphT(graph, graph.getEntry(), false), prefix + "fullRooted.dot", sdg);
+    UtilKt.exportDot(graph, UtilKt.nodeGraphT(graph, null, false,
         n -> n instanceof InNode || n instanceof CallNode || n instanceof FuncNode || sdg.getNode(n.getId())
             .getKind().name().toLowerCase().matches(".*(act|for|exit|entry).*")), prefix + "purged.dot", sdg);
-    UtilKt.exportDot(graph.getCallGraph(), prefix + "callGraph.dot", sdg);
+    UtilKt.exportDot(graph, graph.getCallGraph(), prefix + "callGraph.dot", sdg);
     for (FuncNode value : graph.getCallGraph().vertexSet()) {
-      UtilKt.exportDot(UtilKt.nodeGraphT(graph, value, true), prefix + sdg.getNode(value.getId()).getLabel(), sdg);
+      UtilKt.exportDot(graph, UtilKt.nodeGraphT(graph, value, true), prefix + sdg.getNode(value.getId()).getLabel() + "_" + graph.printableId(value.getId()), sdg);
     }
   }
 

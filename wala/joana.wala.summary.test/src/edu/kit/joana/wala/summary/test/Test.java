@@ -42,7 +42,7 @@ public class Test {
 
     private static Stream<Class<?>> testCases(){
         return Stream.of(
-            TiniestExample.class,
+            //TiniestExample.class,
             TinyExample.class,
             BasicTestClass.class,
             FlowSens.class,
@@ -132,14 +132,15 @@ public class Test {
     }
 
     private static void writeCPPTestSource(SDG sdg, String baseFileName){
-        Graph g = new SDGToGraph().convert(sdg, true);
+        Graph g = new SDGToGraph().convert(sdg, true).reorderNodes();
         new Dumper().dump(g, baseFileName + ".pg");
         try (OutputStream out =
                  Files.newOutputStream(Paths.get(baseFileName + ".ssv"))){
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out));
             computeOracleSummaryEdges(sdg, (a, b) -> {
                 try {
-                    writer.write(String.format("%d %d\n", a.getId(), b.getId()));
+                    assert g.printableId(a.getId()) != -1;
+                    writer.write(String.format("%d %d\n", g.printableId(a.getId()), g.printableId(b.getId())));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -372,7 +373,7 @@ public class Test {
     }
 
     public static void main(String[] args){
-        new Test().writeCPPTestSources(args.length == 1 ? args[0] : "cpp_test_data");
+        //new Test().writeCPPTestSources(args.length == 1 ? args[0] : "cpp_test_data");
         /*System.exit(0);
         withClassPath(args.length >= 3 ? args[0] : ".", () -> {
             compare(args.length >= 3 ? args[1] : "JLex.Main", configurations(), args.length >= 4 ? Integer.parseInt(args[3]) : 1, args.length >= 3 ? Integer.parseInt(args[2]) : 5);

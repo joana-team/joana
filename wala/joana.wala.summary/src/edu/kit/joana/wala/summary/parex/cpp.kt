@@ -59,7 +59,8 @@ typealias SummariesPerFunc = Map<Int, SummariesPerActualIn>
 typealias SummariesPerFuncStream = Stream<Pair<Int, SummariesPerActualIn>>
 
 /**
- * Executes the binary and collects the output
+ * Executes the binary and collects the output,
+ * sumsHandler receives the ids that came through graph.graphId
  */
 fun execute(conf: String, graph: Graph, sumsHandler: (SummariesPerFuncStream) -> Unit) {
     execute(conf, { out ->
@@ -69,8 +70,8 @@ fun execute(conf: String, graph: Graph, sumsHandler: (SummariesPerFuncStream) ->
         val numberOfFunctions = dataInput.readInt()
         (0 until numberOfFunctions).toList().stream().map {
             val header = GraphProto.SummaryFunctionHeader.parseDelimitedFrom(input)
-            header.id to (0 until header.numberOfActins).map {
-                GraphProto.SummaryEdgesPerActin.parseDelimitedFrom(input).let { it.actIn to it.actOutsList }
+            graph.graphId(header.id) to (0 until header.numberOfActins).map {
+                GraphProto.SummaryEdgesPerActin.parseDelimitedFrom(input).let { graph.graphId(it.actIn) to graph.graphId(it.actOutsList) }
             }.toMap()
         }.let(sumsHandler)
     })
@@ -82,7 +83,7 @@ fun execute(conf: String, graph: Graph, sumsHandler: (SummariesPerFuncStream) ->
 @JvmOverloads
 fun SDG.insertSummaryEdgesFromStream(summs: SummariesPerFuncStream, summaryEdgeKind: SDGEdge.Kind = SDGEdge.Kind.SUMMARY): Int {
     val executor = Executors.newWorkStealingPool()
-    return executor.invokeAll<Int>(summs.map { (func, sumsPerActIn) ->
+    return executor.invokeAll<Int>(summs.map { (_, sumsPerActIn) ->
         Callable {
             sumsPerActIn.entries.stream().mapToInt { (actIn, actOuts) ->
                 with(getNode(actIn)){
@@ -109,7 +110,7 @@ class CPPAnalysis(val conf: String = "l") : Analysis {
      */
     override fun process(g: Graph) {
         processAndReturn(g) { sumsStream ->
-            sumsStream.forEach { (funcId, sumsPerActIn) ->
+            sumsStream.forEach { (_, sumsPerActIn) ->
                 sumsPerActIn.forEach { (actIn, actOuts) ->
                     with(g.nodes[actIn] as ActualInNode){
                         actOuts.forEach { actOut ->

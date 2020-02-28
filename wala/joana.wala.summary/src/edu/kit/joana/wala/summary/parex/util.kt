@@ -43,9 +43,9 @@ fun nodeGraphT(graph: Graph, root: FuncNode? = null, restrictToFunc: Boolean = f
 }
 
 @JvmOverloads
-fun <T: Node> exportDot(graph: DirectedGraph<T, DefaultEdge>, fileName: String, sdg: SDG? = null) {
+fun <T: Node> exportDot(g: Graph, graph: DirectedGraph<T, DefaultEdge>, fileName: String, sdg: SDG? = null) {
     val nodeLabeler = { it: T ->
-        it.toString() + ("|" + sdg?.getNode(it.id)?.label + "|" + sdg?.getNode(it.id)?.kind + "|" + sdg?.getNode(it.id)?.proc)
+        (it.toString().replace("(${it.id})", "(${g.printableId(it.id)})")) + ("|" + sdg?.getNode(it.id)?.label + "|" + sdg?.getNode(it.id)?.kind + "|" + sdg?.getNode(it.id)?.proc) + "|"
     }
     val labeler = { edge: DefaultEdge ->
         val source = graph.getEdgeSource(edge)
@@ -62,7 +62,7 @@ fun <T: Node> exportDot(graph: DirectedGraph<T, DefaultEdge>, fileName: String, 
     }
     val labelToColor = mutableMapOf(Pair("Call", "orange"), Pair("FuncNode", "orange"), Pair("summary", "blue"), Pair("out", "red"), Pair("in", "green"))
     DOTExporter<T, DefaultEdge>({
-        it.id.toString()
+        g.printableId(it.id).toString()
     }, nodeLabeler, labeler, {
         mutableMapOf(Pair("color", nodeLabeler(it).let { l ->
             labelToColor.entries.find { e -> l.contains(e.key) }?.value ?: "black"
@@ -76,7 +76,7 @@ fun <T: Node> exportDot(graph: DirectedGraph<T, DefaultEdge>, fileName: String, 
 
 
 fun Graph.getAllNodes(): List<Node> {
-    return nodes.filter { it != null}.map { it!! }
+    return nodesInPrintOrder().filter { it != null}.map { it!! }
 }
 
 fun findDuplicateNodes(graph: Graph): Map<Pair<Node, String>, Set<Node>> {

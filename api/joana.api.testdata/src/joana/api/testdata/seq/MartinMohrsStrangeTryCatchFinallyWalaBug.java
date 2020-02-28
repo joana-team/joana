@@ -7,13 +7,10 @@
  */
 package joana.api.testdata.seq;
 
-import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.SECRET;
-import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.leak;
-import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.toggle;
-
 import java.io.IOException;
+import java.io.InputStream;
 
-import org.omg.CORBA.portable.InputStream;
+import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.*;
 
 /**
  * TODO: @author Add your name here.

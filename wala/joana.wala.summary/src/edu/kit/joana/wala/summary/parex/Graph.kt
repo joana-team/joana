@@ -20,10 +20,8 @@ open class Graph(val entry: FuncNode,
             var nodes: List<Node?> = ArrayList(),
                  val actualIns: List<ActualInNode> = ArrayList(),
                  val formalIns: List<FormalInNode> = ArrayList(),
-                 val funcMap: Map<Int, FuncNode> = HashMap()) {
-
-
-    val callGraph: CallGraph = DefaultDirectedGraph(DefaultEdge::class.java)
+                 val funcMap: Map<Int, FuncNode> = HashMap(),
+                 val callGraph: CallGraph = DefaultDirectedGraph(DefaultEdge::class.java)) {
 
     init {
         addFuncNode(entry)
@@ -92,7 +90,7 @@ open class Graph(val entry: FuncNode,
                 } else {
                     outgoing
                 }
-           }.toList()
+            }.toList()
         }.collect(Collectors.toMap({it: Pair<Node, List<Node>> -> it.first}, {it: Pair<Node, List<Node>> -> it.second}))
         val startIds = mutableMapOf<FuncNode, Int>()
         // store the start ids
@@ -135,7 +133,8 @@ open class Graph(val entry: FuncNode,
 
 
 class ReorderedGraph(g: Graph, val oldIdToNewId: Array<Int> = arrayOf(), val newIdToOldId: Array<Int> = arrayOf()) :
-        Graph(g.entry, g.nodes, g.actualIns, g.formalIns, g.funcMap) {
+        Graph(g.entry, g.nodes, g.actualIns, g.formalIns, g.funcMap, g.callGraph) {
+
     override fun printableId(id: Int): Int = oldIdToNewId[id]
     override fun graphId(printableId: Int): Int = newIdToOldId[printableId]
     override fun printableIds(ids: List<Int>): List<Int> = ids.map(oldIdToNewId::get)
@@ -179,10 +178,16 @@ open class Node(
         val queue: ArrayDeque<T> = ArrayDeque()
         val seen: MutableSet<T> = HashSet()
         queue.add(this as T)
+        seen.add(this as T)
         while (!queue.isEmpty()) {
             val head = queue.pop()
-            seen.add(head)
-            queue.addAll(next(head).filter { !seen.contains(it) })
+            val ns = next(head).filter { !seen.contains(it) }.distinct()
+            try {
+                queue.addAll(ns)
+                seen.addAll(ns)
+            } catch (e: Exception) {
+                println("${ns.size}, ${seen.size}, ${queue.size}")
+            }
         }
         return seen
     }

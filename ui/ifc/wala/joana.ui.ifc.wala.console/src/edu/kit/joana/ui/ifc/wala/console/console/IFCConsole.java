@@ -1574,6 +1574,10 @@ public class IFCConsole {
 		groupedIFlows.clear();
 		
 		mapBuilder = mapBuilder.add("entry_point_method", loc.getActiveEntry().toHRString());
+		SDGProgramPart entryPP = ifcAnalysis.getProgramPart(loc.getActiveEntry().toBCString());
+		if (getProgram().getIdManager().contains(entryPP)){
+			mapBuilder = mapBuilder.add("entry_point_id", getProgram().getIdManager().get(entryPP));
+		}
 		mapBuilder = mapBuilder.add("tag", ifcAnalysis.getSourceSinkAnnotationTag());
 		mapBuilder = mapBuilder.add("found_flows",	lastAnalysisResult.isEmpty() ? "false" : "true");
 		mapBuilder = mapBuilder.add("only_direct_flow", onlyDirectFlow ? "true" : "false");
@@ -1593,6 +1597,9 @@ public class IFCConsole {
 				YamlMapping convertProgramPartToYaml(SDGProgramPart part){
 					YamlMappingBuilder builder = YamlUtil.mapping()
 							.add("kind", part.getClass().getName().toLowerCase().replaceAll("(visit|actual|node|SDG)", ""));
+					if (getProgram().getIdManager().contains(part)){
+						builder = builder.add("id", getProgram().getIdManager().get(part));
+					}
 					return part.acceptVisitor(new SDGProgramPartVisitor<YamlMappingBuilder, YamlMappingBuilder>() {
 						@Override protected YamlMappingBuilder visitClass(SDGClass cl, YamlMappingBuilder data) {
 							return data.add("class", cl.getTypeName().toHRString());
@@ -3505,7 +3512,7 @@ public class IFCConsole {
 		}
 	}
 
-	class AnalysisObject {
+	public class AnalysisObject {
 		@CommandLine.Option(names = "--out", description = "Output file or '-' for standard out")
 		String out = "-";
 	}

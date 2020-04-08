@@ -35,9 +35,9 @@ import com.ibm.wala.types.annotations.TypeAnnotation.LocalVarTarget;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
-
 import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.api.annotations.AnnotationTypeBasedNodeCollector;
+import edu.kit.joana.api.annotations.IdManager;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -53,12 +53,7 @@ import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.ifc.sdg.util.JavaType.Format;
-import edu.kit.joana.ui.annotations.Declassification;
-import edu.kit.joana.ui.annotations.Declassifications;
-import edu.kit.joana.ui.annotations.Sink;
-import edu.kit.joana.ui.annotations.Sinks;
-import edu.kit.joana.ui.annotations.Source;
-import edu.kit.joana.ui.annotations.Sources;
+import edu.kit.joana.ui.annotations.*;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.Pair;
@@ -73,6 +68,13 @@ import edu.kit.joana.wala.summary.WorkPackage.EntryPoint;
 import edu.kit.joana.wala.util.PrettyWalaNames;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class SDGProgram {
 
@@ -169,6 +171,9 @@ public class SDGProgram {
 	private final MHPAnalysis mhpAnalysis;
 	private SDGProgramPartParserBC ppartParser;
 	private final Map<SDGProgramPart, Collection<Pair<Annotation,String>>> annotations = new LinkedHashMap<>();
+
+	private final IdManager idManager = new IdManager();
+
 	private final AnnotationTypeBasedNodeCollector coll;
 	private IClassHierarchy ch;
 	private final Optional<String> entryMethod;
@@ -366,11 +371,10 @@ public class SDGProgram {
 				final Collection<SDGAttribute> attributes = this.getAttribute(jt, f.getName().toString());
 				// attributes.isEmpty() if c isn't Part of the CallGraph
 				if (f.getAnnotations() != null && !f.getAnnotations().isEmpty()) {
-					for (SDGAttribute attribute : attributes)
-						this.annotations.put(
-							attribute,
-							f.getAnnotations().stream().map( a -> Pair.pair(a, sourcefile)).collect(Collectors.toList())
-						);
+					for (SDGAttribute attribute : attributes) {
+						this.annotations.put(attribute, f.getAnnotations().stream().map(a -> Pair.pair(a, sourcefile)).collect(Collectors.toList()));
+						f.getAnnotations().forEach(a -> idManager.put(attribute, a));
+					}
 					debug.outln("Annotated: " + jt + ":::" + f.getName() + " with " + f.getAnnotations());
 				}
 
@@ -393,6 +397,7 @@ public class SDGProgram {
 								sdgm,
 								methodWithSourceFile
 							);
+							m.getAnnotations().forEach(a -> idManager.put(sdgm, a));
 						}
 						debug.outln("Annotated: " + jt + ":::" + m.getName() + " with " + m.getAnnotations());
 					}
@@ -415,6 +420,7 @@ public class SDGProgram {
 							}
 							for (SDGMethod sdgm : methods) {
 								this.annotations.put(sdgm.getParameter(parameternumber), parameterWithSourcefile);
+								m.getAnnotations().forEach(a -> idManager.put(sdgm, a));
 							}
 						}
 						parameternumber++;
@@ -447,6 +453,7 @@ public class SDGProgram {
 												anns.add(Pair.pair(ta.getAnnotation(),sourcefile));
 												return anns;
 											});
+											idManager.put(sdgm, ta.getAnnotation());
 										} else {
 											debug.outln("Warning: Variable "
 											   + localVarTarget + " in "
@@ -467,6 +474,13 @@ public class SDGProgram {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Returns an immutable id manager
+	 */
+	public IdManager getIdManager(){
+		return idManager.immutable();
 	}
 
 	public static SDGBuilder createSDGBuilder(SDGConfig config) throws ClassHierarchyException, UnsoundGraphException, CancelException, IOException {

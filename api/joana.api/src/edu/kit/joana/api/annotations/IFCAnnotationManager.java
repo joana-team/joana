@@ -7,34 +7,13 @@
  */
 package edu.kit.joana.api.annotations;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Set;
-
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.annotations.cause.AnnotationCause;
-import edu.kit.joana.api.sdg.SDGActualParameter;
-import edu.kit.joana.api.sdg.SDGAttribute;
-import edu.kit.joana.api.sdg.SDGCall;
-import edu.kit.joana.api.sdg.SDGCallExceptionNode;
-import edu.kit.joana.api.sdg.SDGCallReturnNode;
-import edu.kit.joana.api.sdg.SDGClass;
-import edu.kit.joana.api.sdg.SDGFieldOfParameter;
-import edu.kit.joana.api.sdg.SDGFormalParameter;
-import edu.kit.joana.api.sdg.SDGInstruction;
-import edu.kit.joana.api.sdg.SDGLocalVariable;
-import edu.kit.joana.api.sdg.SDGMethod;
-import edu.kit.joana.api.sdg.SDGMethodExceptionNode;
-import edu.kit.joana.api.sdg.SDGMethodExitNode;
-import edu.kit.joana.api.sdg.SDGPhi;
-import edu.kit.joana.api.sdg.SDGProgram;
-import edu.kit.joana.api.sdg.SDGProgramPart;
-import edu.kit.joana.api.sdg.SDGProgramPartVisitor;
+import edu.kit.joana.api.sdg.*;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
+
+import java.util.*;
 
 public class IFCAnnotationManager {
 

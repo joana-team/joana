@@ -18,26 +18,18 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer;
 
-import java.awt.Font;
-import java.io.File;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.stream.Collectors;
-
-import javax.swing.*;
-
 import edu.kit.joana.ifc.sdg.graph.SDG;
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.model.CallGraph;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.model.Graph;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.model.GraphViewerModel;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.AdjustableTranslator;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.translation.Translator;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.util.Debug;
-import edu.kit.joana.ui.ifc.sdg.graphviewer.util.SDGUtils;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.view.MainFrame;
+
+import javax.swing.*;
+import java.awt.*;
+import java.io.File;
+import java.io.InputStream;
+import java.util.Properties;
 
 /**
  * This is the main class of the programm. It contains the main method that
@@ -184,11 +176,20 @@ public final class GraphViewer {
 		}
 		GraphViewer viewer = GraphViewer.getInstance(newInstance);
 		viewer.frame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-		viewer.frame.setVisible(true);
-		if (openSDG) {
-			viewer.frame.getModel().openSDG(sdg);
-		}
 		runAfterInit.run();
+		SwingUtilities.invokeLater(() -> {
+			if (openSDG) {
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				viewer.frame.getModel().openSDG(sdg);
+			}
+		});
+		SwingUtilities.invokeLater(() -> {
+			viewer.frame.setVisible(true);
+		});
 		while (viewer.frame.isVisible()) {
 			Thread.yield();
 		}

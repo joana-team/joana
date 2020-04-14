@@ -140,7 +140,8 @@ public final class SDGBuildPreparation {
 					}
 					if (parameters){
 						for (int i = 0; i < m.getNumberOfParameters(); i++){
-							result.add(new SDGFormalParameter(method, m.isStatic() ? (i + 1) : i, "", JavaType.parseSingleTypeFromString(m.getParameterType(i).getName().toString(), JavaType.Format.BC)));
+							int num = m.isStatic() ? (i + 1) : i;
+							result.add(new SDGFormalParameter(method, num - 1, num == 0 ? "this" : (num - 1 + ""), JavaType.parseSingleTypeFromString(m.getParameterType(i).getName().toString(), JavaType.Format.BC)));
 						}
 					}
 				}
@@ -174,7 +175,7 @@ public final class SDGBuildPreparation {
 	}
 
 	static SDGClass createSDGClass(IClass cls){
-		return new SDGClass(JavaType.parseSingleTypeFromString(cls.getName().toString()),
+		return new SDGClass(JavaType. parseSingleTypeFromString(cls.getName().toString(), JavaType.Format.BC),
 				Collections.emptyList(), Collections.emptyMap(), Collections.emptySet(), new SDG(),
 				new TIntObjectHashMap<>());
 	}

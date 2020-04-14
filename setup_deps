@@ -19,9 +19,7 @@ correct_java_version(){
   fi
 }
 
-correct_java_version()
 
-export JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:/jre/bin/java::")
 
 cd "$(dirname "$0")"
 git submodule init

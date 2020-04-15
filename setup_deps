@@ -1,14 +1,13 @@
 #! /bin/sh
 
 
-correct_java_version(){
-	if ! (java -version 2>&1 >/dev/null | grep "1.8" > /dev/null) ; then 
+  if ! (java -version 2>&1 >/dev/null | grep "1.8" > /dev/null) ; then 
     echo "Java version is not 1.8, trying to use java8 if installed"
     lib=`update-java-alternatives -l | grep "[/].*1\.8.*" --only-matching`
-    if [ $lib == "" ] ; then
+    if [ -z $lib ] ; then
       $lib="/usr/lib/jvm/java-1.8.0-openjdk-amd64"
     fi
-    echo "Execute `update-alternatives --config java` and `update-alternatives --config javac`"
+    echo "Execute \`update-alternatives --config java\` and \`update-alternatives --config javac\`"
     echo "or prepend \$PATH with $lib"
     export PATH="$lib/bin:$PATH"
   else
@@ -17,9 +16,8 @@ correct_java_version(){
       exit 1
     fi
   fi
-}
 
-
+export JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:/jre/bin/java::")
 
 cd "$(dirname "$0")"
 git submodule init

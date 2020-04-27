@@ -305,7 +305,15 @@ public final class SDGBuildPreparation {
 
 
 	    // Methode in der Klassenhierarchie suchen
-		final MethodReference mr = StringStuff.makeMethodReference(Language.JAVA, cfg.entryMethod);
+		final MethodReference mr;
+		if (cfg.entryMethod == null){
+			// look for a main method in the application JARs
+			JavaMethodSignature signature = JavaMethodSignature
+					.mainMethodOfClass(scope.getMainClass(ClassLoaderReference.Application).getName().toString());
+			mr = StringStuff.makeMethodReference(Language.JAVA, signature.toBCString());
+		} else {
+			mr = StringStuff.makeMethodReference(Language.JAVA, cfg.entryMethod);
+		}
 		
 		IMethod m = cha.resolveMethod(mr);
 		if (m == null) {
@@ -459,6 +467,7 @@ public final class SDGBuildPreparation {
 
 	public static class Config {
 		public String name;
+		// null → search for the main class in the Manifest of the application
 		public String entryMethod;
 		public String classpath;
 		public boolean classpathAddEntriesFromMANIFEST = true;

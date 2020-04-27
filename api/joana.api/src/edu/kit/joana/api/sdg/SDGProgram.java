@@ -480,8 +480,13 @@ public class SDGProgram {
 		return SDGBuildPreparation.createBuilder(IOFactory.createUTF8PrintStream(new ByteArrayOutputStream()), makeBuildPreparationConfig(config), NullProgressMonitor.INSTANCE);
 	}
 	public static SDGBuildPreparation.Config makeBuildPreparationConfig(SDGConfig config) {
-		JavaMethodSignature mainMethod = JavaMethodSignature.fromString(config.getEntryMethod());// JavaMethodSignature.mainMethodOfClass(config.getMainClass());
-		SDGBuildPreparation.Config cfg = new SDGBuildPreparation.Config(mainMethod.toBCString(), mainMethod.toBCString(), config.getClassPath(), config.getClasspathAddEntriesFromMANIFEST(),
+		String mainMethod;
+		if (config.getEntryMethod() != null){
+			mainMethod = JavaMethodSignature.fromString(config.getEntryMethod()).toBCString();
+		} else {
+			mainMethod = null; // JavaMethodSignature.mainMethodOfClass(config.getMainClass());
+		}
+		SDGBuildPreparation.Config cfg = new SDGBuildPreparation.Config(mainMethod, mainMethod, config.getClassPath(), config.getClasspathAddEntriesFromMANIFEST(),
 				config.getFieldPropagation());
 		cfg.thirdPartyLibPath = config.getThirdPartyLibsPath();
 		cfg.exceptions = config.getExceptionAnalysis();

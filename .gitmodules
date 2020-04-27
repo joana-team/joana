@@ -9,3 +9,6 @@
 [submodule "wala/joana.wala.summary/summary_cpp"]
 	path = wala/joana.wala.summary/cpp
 	url = https://git.scc.kit.edu/IPDSnelting/summary_cpp
+[submodule "contrib/summary_cpp"]
+	path = contrib/summary_cpp
+	url = https://git.scc.kit.edu/IPDSnelting/summary_cpp

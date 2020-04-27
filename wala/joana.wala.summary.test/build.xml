@@ -16,7 +16,7 @@
 
 	<property name="main.class" value="edu.kit.joana.wala.summary.test.Test" />
 
-	<target name="fulljar" depends="compile,spill_out_jars,copy_non_java_files,cpp" description="generate the stand-alone jar file">
+	<target name="fulljar" depends="compile,spill_out_jars,copy_non_java_files" description="generate the stand-alone jar file">
 		<delete file="${joana.dist.dir}/${projectname}.jar" />
 		<jar jarfile="${joana.dist.dir}/${projectname}.jar">
 			<fileset dir="${dest.dir.classes}">
@@ -95,11 +95,11 @@
 		</exec>
 	</target>
 
-	<target name="cpp" depends="protoc">
+  <!--	<target name="cpp" depends="protoc">
 		<exec executable="/bin/bash">
 			<arg value="../joana.wala.summary/cpp/build.sh"/>
 		</exec>
-	</target>
+  </target>-->
 
 	<target name="init" depends="clean">
 		<delete dir="${dest.dir}" />

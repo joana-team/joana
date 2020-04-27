@@ -152,7 +152,7 @@ public class Test {
         Util.exportGraph(g, sdg, baseFileName + "_graphs_");
     }
 
-    private static void computeOracleSummaryEdges(SDG sdg, BiConsumer<SDGNode, SDGNode> consumer){
+    static void computeOracleSummaryEdges(SDG sdg, BiConsumer<SDGNode, SDGNode> consumer){
         WorkPackage<SDG> pack = SDGProgram.createSummaryWorkpackage(sdg);
         try {
             long start = System.currentTimeMillis();
@@ -373,12 +373,12 @@ public class Test {
     }
 
     public static void main(String[] args){
-        //new Test().writeCPPTestSources(args.length == 1 ? args[0] : "cpp_test_data");
-        /*System.exit(0);
+        new Test().writeCPPTestSources(args.length == 1 ? args[0] : "cpp_test_data");
+        System.exit(0);
         withClassPath(args.length >= 3 ? args[0] : ".", () -> {
             compare(args.length >= 3 ? args[1] : "JLex.Main", configurations(), args.length >= 4 ? Integer.parseInt(args[3]) : 1, args.length >= 3 ? Integer.parseInt(args[2]) : 5);
         });
-        System.exit(1);*/
+        System.exit(1);
         withClassPath(args[0], () -> {
             withDisabledGraphExport(() -> {
                 try {

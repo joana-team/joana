@@ -31,16 +31,7 @@ public abstract class GraphWalker<V, E> {
         return graph;
     }
 
-    public enum Mode {
-        /**
-         * More advanced, non recursive for larger graphs
-         */
-        NO_RECURSION,
-        /**
-         * Simple, recursive for small graphs
-         */
-        RECURSION
-    }
+    public enum Mode { NO_RECURSION, RECURSION }
 
     public static final Mode mode = Mode.NO_RECURSION;
 
@@ -124,47 +115,53 @@ public abstract class GraphWalker<V, E> {
      */
     public abstract void finish(V node);
 
-
-
-    private class StackFrame {
-        private final V node;
-        private final Iterator<E> iter;
-
-        private StackFrame(V node) {
-            this.node = node;
-            this.iter = newOutEdges(graph.outgoingEdgesOf(node)).iterator();
-        }
-    }
-
-    /**
-     * Faster non recursive version that produces exactly the same results as the recursive version
-     *
-     * @param node
-     * @param visited
+    /*
+     * A non-recursive solution of the dfs iteration. Not sure this really works...
      */
-    private void dfsNoRecursion(final V node, final Set<V> visited) {
+    private void dfsNoRecursion(final V entry, Set<V> visited) {
+        // iterate dfs finish time
+        final Stack<V> stack = new Stack<V>();
+        V current = entry;
 
-        Stack<StackFrame> stack = new Stack<>();
-        if (visited.add(node)) {
+        while (current != null) {
+            boolean foundOne = false;
 
-            discover(node);
-            stack.push(new StackFrame(node));
+            if (!visited.contains(current)) {
+                visited.add(current);
+                stack.push(current);
 
-            while (!stack.isEmpty()){
-                StackFrame topFrame = stack.peek();
-                if (topFrame.iter.hasNext()){
-                    E edge = topFrame.iter.next();
-                    if (traverse(topFrame.node, edge)){
-                        V succ = graph.getEdgeTarget(edge);
-                        if (visited.add(succ)){
-                            discover(succ);
-                            stack.push(new StackFrame(succ));
+                discover(current);
+
+                for (E succEdge : newOutEdges(graph.outgoingEdgesOf(current))) {
+                	if (!traverse(current, succEdge)) {
+                		continue;
+                	}
+
+                    // there may be a problem iff the successor can be the same node twice (or more)
+                    // think of succ normal flow + succ exception flow. But this never happens in the current
+                    // code. Even with empty catch blocks.
+                    final V succ = graph.getEdgeTarget(succEdge);
+                    if (!visited.contains(succ)) {
+
+                        //XXX this is slow and should be removed with some elegant solution
+                        // so far I propose to use the recursive algorithm.
+                        stack.remove(succ);
+
+                        if (!foundOne) {
+                            foundOne = true;
+                            current = succ;
+                        } else {
+                            stack.push(succ);
                         }
                     }
-                } else {
-                    stack.pop();
-                    finish(topFrame.node);
                 }
+            } else {
+                // finished current node. act.
+                finish(current);
+            }
+
+            if (!foundOne) {
+                current = (stack.isEmpty() ? null : stack.pop());
             }
         }
     }
@@ -196,7 +193,6 @@ public abstract class GraphWalker<V, E> {
 
     public boolean checkDifferentModes(V node){
         List<V> rec = new DFSCollector<>(graph, Mode.RECURSION).collect(node);
-        List<V> nonRec = new DFSCollector<>(graph, Mode.NO_RECURSION).collect(node);
-        return rec.equals(nonRec);
+        return rec.equals(new DFSCollector<>(graph, Mode.NO_RECURSION).collect(node));
     }
 }

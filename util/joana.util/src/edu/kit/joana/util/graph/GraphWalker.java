@@ -7,14 +7,12 @@
  */
 package edu.kit.joana.util.graph;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.Stack;
-
 import org.jgrapht.DirectedGraph;
 
+import java.util.*;
+
 /**
- * Provides ways to traverse a directed graph. Currently only depth first search (DFS) is implemented.
+ * Provides ways to traverse a directed graph. Currently, only depth first search (DFS) is implemented.
  *
  * @author Juergen Graf <juergen.graf@gmail.com>
  *
@@ -33,47 +31,54 @@ public abstract class GraphWalker<V, E> {
         return graph;
     }
 
-    /*
-     * So far the recursive solution is more elegant. Better leave this turned off.
-     */
-    private static final boolean NO_RECURSION = false;
+    public enum Mode { NO_RECURSION, RECURSION }
+
+    public static final Mode mode = Mode.NO_RECURSION;
 
     public final void traverseDFS(final V start) {
-        if (NO_RECURSION) {
-            dfsNoRecrusion(start);
-        } else {
-            Set<V> visited = new HashSet<V>();
-            dfs(start, visited);
-        }
+        dfs(start);
     }
 
     public final Set<V> traverseDFS(final Iterable<V> starts) {
-        if (NO_RECURSION) {
-            throw new IllegalStateException();
-        } else {
-            Set<V> visited = new HashSet<V>();
-            for (V start : starts) {
-            	dfs(start, visited);
-            }
-            return visited;
+        Set<V> visited = createInitialSet();
+        for (V start : starts) {
+            dfs(mode, start, visited);
+        }
+        return visited;
+    }
+
+    private void dfs(final V node){
+        dfs(mode, node, createInitialSet());
+    }
+
+    protected void dfs(Mode mode, final V node, final Set<V> visited){
+        switch (mode){
+        case NO_RECURSION:
+            dfsNoRecursion(node, visited);
+            break;
+        case RECURSION:
+            dfsRecursion(node, visited);
         }
     }
 
-    
-    private void dfs(final V node, final Set<V> visited) {
+    protected Set<V> createInitialSet(){
+        return new HashSet<V>(graph.vertexSet().size());
+    }
+
+    private void dfsRecursion(final V node, final Set<V> visited) {
         if (visited.add(node)) {
-	
-	        discover(node);
-	
-	        final Iterable<E> outEdges = newOutEdges(graph.outgoingEdgesOf(node));
-	        for (final E out : outEdges) {
-	        	if (traverse(node, out)) {
-		            final V succ = graph.getEdgeTarget(out);
-		            dfs(succ, visited);
-	        	}
-	        }
-	
-	        finish(node);
+
+            discover(node);
+
+            final Iterable<E> outEdges = newOutEdges(graph.outgoingEdgesOf(node));
+            for (final E out : outEdges) {
+                if (traverse(node, out)) {
+                    final V succ = graph.getEdgeTarget(out);
+                    dfsRecursion(succ, visited);
+                }
+            }
+
+            finish(node);
         }
     }
     
@@ -113,9 +118,8 @@ public abstract class GraphWalker<V, E> {
     /*
      * A non-recursive solution of the dfs iteration. Not sure this really works...
      */
-    private void dfsNoRecrusion(final V entry) {
+    private void dfsNoRecursion(final V entry, Set<V> visited) {
         // iterate dfs finish time
-        final Set<V> visited = new HashSet<V>(graph.vertexSet().size());
         final Stack<V> stack = new Stack<V>();
         V current = entry;
 
@@ -160,5 +164,35 @@ public abstract class GraphWalker<V, E> {
                 current = (stack.isEmpty() ? null : stack.pop());
             }
         }
+    }
+
+    static class DFSCollector<V, E> extends GraphWalker<V, E>  {
+
+        private List<V> nodes;
+        private final Mode mode;
+
+        DFSCollector(DirectedGraph<V, E> graph, Mode mode) {
+            super(graph);
+            this.mode = mode;
+        }
+
+        List<V> collect(V start){
+            nodes = new ArrayList<>(getGraph().vertexSet().size());
+            dfs(mode, start, createInitialSet());
+            return nodes;
+        }
+
+        @Override public void discover(V node) {
+            nodes.add(node);
+        }
+
+        @Override public void finish(V node) {
+            nodes.add(node);
+        }
+    }
+
+    public boolean checkDifferentModes(V node){
+        List<V> rec = new DFSCollector<>(graph, Mode.RECURSION).collect(node);
+        return rec.equals(new DFSCollector<>(graph, Mode.NO_RECURSION).collect(node));
     }
 }

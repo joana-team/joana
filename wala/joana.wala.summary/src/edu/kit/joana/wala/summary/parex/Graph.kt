@@ -24,7 +24,11 @@ open class Graph(val entry: FuncNode,
                  val callGraph: CallGraph = DefaultDirectedGraph(DefaultEdge::class.java)) {
 
     init {
-        addFuncNode(entry)
+        addFuncNode(entry).also {
+            if (nodes.isEmpty()){
+                addNode(it)
+            }
+        }
     }
 
     fun createActualIn(id: Int): ActualInNode {

@@ -256,9 +256,6 @@ class SDGToGraph2(val relevantEdges: Set<SDGEdge.Kind> = DEFAULT_RELEVANT_EDGES,
              */
             procs.values.forEach {
                 it.customData = graph.getOrCreateFuncNode(it.id)
-                if (it.id == 14328) {
-                    sdg.outgoingEdgesOf(it).forEach { e -> println(e.label + " " + e.kind + " ti=" + e.target.id + " tk=" + e.target.kind + " tl" + e.target.label) }
-                }
             }
 
             /**

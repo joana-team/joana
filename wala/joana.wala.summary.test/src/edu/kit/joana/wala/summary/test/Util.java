@@ -33,6 +33,7 @@ public class Util {
   private static boolean ASSERT_NO_DUPLICATES = false;
   private static boolean EXPORT_GRAPHS = true;
   private static boolean USE_PARALLEL_CONVERTER = true;
+  private static boolean TEST_LOAD_AND_DUMP = false;
   private static String classPath = null;
 
   private static void compute(ISummaryComputer computer, SDG sdg, @Nullable Graph graph, @Nullable String prefix, Function<Graph, Graph> preproc){
@@ -140,8 +141,27 @@ public class Util {
     logTime(String.format("build sdg %s", name), System.currentTimeMillis() - start);
     sdg.setRoot(procRootForRegexp(sdg, methodRegexp));
     start = System.currentTimeMillis();
-    Graph graph = new SDGToGraph().convert(sdg, USE_PARALLEL_CONVERTER);
+    Graph graph = new SDGToGraph().convert(sdg, true);
     logTime("convert graph", System.currentTimeMillis() - start);
+
+    SDG cloned = sdg.clone();
+
+    if (TEST_LOAD_AND_DUMP) {
+      graph.removeSummaryEdges();
+      new Dumper().dump(graph.reorderNodes(), "/tmp/dumped.pg");
+      Graph loaded = new Loader().load("/tmp/dumped.pg");
+      Graph reordered = graph.reorderNodes();
+      loaded.removeSummaryEdges();
+      new SequentialAnalysis2().process(reordered);
+      new SequentialAnalysis2().process(loaded);
+      //compute(BASE_COMPUTATION.getSummaryComputer(), cloned, null, prefix, preproc);
+      int orSize = UtilKt.getSummaryEdgesOfSDG(cloned).entrySet().stream().mapToInt(e -> e.getValue().size()).sum();
+      if (countSummaryEdges(loaded) != countSummaryEdges(reordered)) {
+        throw new AssertionError(String.format("%d %d %d", countSummaryEdges(loaded), countSummaryEdges(reordered), orSize));
+      }
+      graph.removeSummaryEdges();
+    }
+
     start = System.currentTimeMillis();
     graph = preproc.apply(graph);
     logTime("preproc", System.currentTimeMillis() - start);
@@ -156,6 +176,10 @@ public class Util {
     }
     String prefix = graphDest == null ? graphDest : (graphDest + "/" + name);
     return Pair.pair(Util.compare(sdg, cacheGraph ? graph : null, BASE_COMPUTATION.getSummaryComputer(), analysis, true, prefix, preproc), graph);
+  }
+
+  public static int countSummaryEdges(Graph g){
+    return g.getActualIns().stream().mapToInt(a -> a.getSummaryEdges().size()).sum();
   }
 
   static void assertAnalysis(Class<?> klass, String methodRegexp, Analysis analysis, @Nullable String graphDest) {

@@ -166,6 +166,10 @@ public class Builder {
 	public Builder() {
 		DotRegistry.get().disable();
 	}
+
+	public Builder(SDGConfig initialConfig){
+		this.config = initialConfig;
+	}
 	
 	/**
 	 * Set the entry class

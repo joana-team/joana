@@ -94,7 +94,8 @@ import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.function.Function;
-
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 
@@ -1120,6 +1121,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		}
 	}
 
+
 	public CallGraphBuilder<InstanceKey> createCallgraphBuilder(final IProgressMonitor progress) {
 		final List<Entrypoint> entries = new LinkedList<Entrypoint>();
 		final Entrypoint ep = new SubtypesEntrypoint(cfg.entry, cfg.cha);
@@ -1216,17 +1218,20 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		return new CGResult(callgraph, cgb.getPointerAnalysis());
 	}
 
+	/**
+	 * Supports additionalEntries
+	 */
 	public static ExtendedAnalysisOptions createSingleEntryOptions(SDGBuilderConfig cfg) {
-		return createMultipleEntryOptions(cfg.scope, cfg.cha, cfg.objSensFilter, cfg.ext!=null?cfg.ext.resolveReflection():false, cfg.methodTargetSelector, Collections.singletonList(cfg.entry), cfg.fieldHelperOptions);
+		return createMultipleEntryOptions(cfg.scope, cfg.cha, cfg.objSensFilter, cfg.ext!=null?cfg.ext.resolveReflection():false, cfg.methodTargetSelector, cfg.getEntries(), cfg.fieldHelperOptions, cfg.interfaceImplOptions);
 	}
 
-	public static ExtendedAnalysisOptions createMultipleEntryOptions(AnalysisScope scope, IClassHierarchy cha, ObjSensZeroXCFABuilder.MethodFilter objSensFilter, boolean resolveReflection, MethodTargetSelector methodTargetSelector, Collection<? extends IMethod> entryMethods, UninitializedFieldHelperOptions fieldHelperOptions) {
+	public static ExtendedAnalysisOptions createMultipleEntryOptions(AnalysisScope scope, IClassHierarchy cha, ObjSensZeroXCFABuilder.MethodFilter objSensFilter, boolean resolveReflection, MethodTargetSelector methodTargetSelector, Collection<? extends IMethod> entryMethods, UninitializedFieldHelperOptions fieldHelperOptions, InterfaceImplementationOptions interfaceImplOptions) {
 		final List<Entrypoint> entries = new LinkedList<Entrypoint>();
 		for (IMethod entry : entryMethods) {
 			final Entrypoint ep = new SubtypesEntrypoint(entry, cha);
 			entries.add(ep);
 		}
-		final ExtendedAnalysisOptions options = new ExtendedAnalysisOptions(objSensFilter, scope, entries, fieldHelperOptions);
+		final ExtendedAnalysisOptions options = new ExtendedAnalysisOptions(objSensFilter, scope, entries, fieldHelperOptions, interfaceImplOptions);
 		if (resolveReflection) {
 			options.setReflectionOptions(ReflectionOptions.JOANA);
 		} else {
@@ -2032,6 +2037,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		public transient IClassHierarchy cha = null;
 		public String additionalNativeSpec = null; // specify additional XML method summary file for methods for which code is not available - path is relative to class path
 		public IMethod entry = null;
+		public Collection<IMethod> additionalEntries = Collections.emptyList();
 		public ExternalCallCheck ext = null;
 		public String[] immutableNoOut = Main.IMMUTABLE_NO_OUT;
 		public String[] immutableStubs = Main.IMMUTABLE_STUBS;
@@ -2167,10 +2173,14 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		 * Options for creating the static helper for working with uninitialized fields
 		 */
 		public UninitializedFieldHelperOptions fieldHelperOptions = UninitializedFieldHelperOptions.createEmpty();
+		public InterfaceImplementationOptions interfaceImplOptions = InterfaceImplementationOptions.createEmpty();
 
 		public SDGBuilderConfig() {
 		}
 
+		public Collection<IMethod> getEntries(){
+			return Stream.concat(Stream.of(entry), additionalEntries.stream()).collect(Collectors.toSet());
+		}
 	}
 
 	public String getMainMethodName() {

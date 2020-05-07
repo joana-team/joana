@@ -7,19 +7,18 @@
  */
 package edu.kit.joana.ui.ifc.wala.console.console;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.types.annotations.Annotation;
-
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.ui.annotations.Declassification;
 import edu.kit.joana.ui.annotations.Sink;
 import edu.kit.joana.ui.annotations.Source;
 import edu.kit.joana.ui.ifc.wala.console.gui.tree.ProgramPartToString;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Pattern {
 	

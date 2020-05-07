@@ -7,42 +7,16 @@
  */
 package edu.kit.joana.api.annotations;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.ibm.wala.types.TypeName;
 import com.ibm.wala.types.TypeReference;
-
-import edu.kit.joana.api.sdg.SDGActualParameter;
-import edu.kit.joana.api.sdg.SDGAttribute;
-import edu.kit.joana.api.sdg.SDGCall;
-import edu.kit.joana.api.sdg.SDGCallExceptionNode;
-import edu.kit.joana.api.sdg.SDGCallReturnNode;
-import edu.kit.joana.api.sdg.SDGClass;
-import edu.kit.joana.api.sdg.SDGClassComputation;
-import edu.kit.joana.api.sdg.SDGFieldOfParameter;
-import edu.kit.joana.api.sdg.SDGFormalParameter;
-import edu.kit.joana.api.sdg.SDGInstruction;
-import edu.kit.joana.api.sdg.SDGLocalVariable;
-import edu.kit.joana.api.sdg.SDGMethod;
-import edu.kit.joana.api.sdg.SDGMethodExceptionNode;
-import edu.kit.joana.api.sdg.SDGMethodExitNode;
-import edu.kit.joana.api.sdg.SDGPhi;
-import edu.kit.joana.api.sdg.SDGProgram;
-import edu.kit.joana.api.sdg.SDGProgramPart;
-import edu.kit.joana.api.sdg.SDGProgramPartVisitor;
-import edu.kit.joana.api.sdg.ThrowingSDGProgramPartVisitor;
+import edu.kit.joana.api.sdg.*;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.util.Pair;
+
+import java.util.*;
 
 /**
  * @author Martin Mohr
@@ -95,6 +69,7 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 			return Collections.emptySet();
 		}
 	}
+
 	@Override
 	protected Set<SDGNode> visitParameter(SDGFormalParameter param, AnnotationType type) {
 		assert !pp2NodeTrans.getOutRoots(param).isEmpty() || !pp2NodeTrans.getInRoots(param).isEmpty();

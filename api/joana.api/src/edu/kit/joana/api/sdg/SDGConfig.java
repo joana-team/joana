@@ -9,25 +9,23 @@ package edu.kit.joana.api.sdg;
 
 import com.ibm.wala.cfg.exc.intra.MethodState;
 import com.ibm.wala.ipa.callgraph.ContextSelector;
+import com.ibm.wala.ipa.callgraph.InterfaceImplementationOptions;
 import com.ibm.wala.ipa.callgraph.UninitializedFieldHelperOptions;
 import com.ibm.wala.ipa.callgraph.pruned.ApplicationLoaderPolicy;
 import com.ibm.wala.ipa.callgraph.pruned.DoNotPrune;
 import com.ibm.wala.ipa.callgraph.pruned.PruningPolicy;
-
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.util.LogUtil;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.CGConsumer;
 import edu.kit.joana.wala.core.SDGBuilder;
-import edu.kit.joana.wala.core.SDGBuilder.ControlDependenceVariant;
-import edu.kit.joana.wala.core.SDGBuilder.DynamicDispatchHandling;
-import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
-import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
-import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
+import edu.kit.joana.wala.core.SDGBuilder.*;
 import edu.kit.joana.wala.core.ThreadAwareApplicationLoaderPolicy;
 import edu.kit.joana.wala.core.params.objgraph.SideEffectDetectorConfig;
 import edu.kit.joana.wala.summary.SummaryComputationType;
 import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder;
+
+import java.util.Collection;
 
 public class SDGConfig {
   private PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
@@ -59,6 +57,9 @@ public class SDGConfig {
 	private ControlDependenceVariant controlDependenceVariant = SDGBuilder.defaultControlDependenceVariant;
 	private boolean isParallel = true;
 	private UninitializedFieldHelperOptions fieldHelperOptions = UninitializedFieldHelperOptions.createEmpty();
+	private InterfaceImplementationOptions interfaceImplOptions = InterfaceImplementationOptions.createEmpty();
+	private Collection<String> additionalEntryMethods;
+	private boolean annotateOverloadingMethods;
 
 	public SDGConfig(String classPath, String entryMethod, Stubs stubsPath) {
 		this(classPath, true, entryMethod, stubsPath, ExceptionAnalysis.INTERPROC, FieldPropagation.OBJ_GRAPH, PointsToPrecision.INSTANCE_BASED, false, false, MHPType.NONE);
@@ -422,5 +423,29 @@ public class SDGConfig {
 
 	public void setFieldHelperOptions(UninitializedFieldHelperOptions fieldHelperOptions) {
 		this.fieldHelperOptions = fieldHelperOptions;
+	}
+
+	public Collection<String> getAdditionalEntryMethods() {
+		return additionalEntryMethods;
+	}
+
+	public void setAdditionalEntryMethods(Collection<String> additionalEntryMethods) {
+		this.additionalEntryMethods = additionalEntryMethods;
+	}
+
+	public InterfaceImplementationOptions getInterfaceImplOptions() {
+		return interfaceImplOptions;
+	}
+
+	public void setInterfaceImplOptions(InterfaceImplementationOptions interfaceImplOptions) {
+		this.interfaceImplOptions = interfaceImplOptions;
+	}
+
+	public boolean isAnnotatingOverloadingMethods() {
+		return annotateOverloadingMethods;
+	}
+
+	public void setAnnotateOverloadingMethods(boolean annotateOverloadingMethods) {
+		this.annotateOverloadingMethods = annotateOverloadingMethods;
 	}
 }

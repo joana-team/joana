@@ -49,6 +49,7 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public final class SDGBuildPreparation {
 
@@ -140,8 +141,7 @@ public final class SDGBuildPreparation {
 					}
 					if (parameters){
 						for (int i = 0; i < m.getNumberOfParameters(); i++){
-							int num = m.isStatic() ? (i + 1) : i;
-							result.add(new SDGFormalParameter(method, num - 1, num == 0 ? "this" : (num - 1 + ""), JavaType.parseSingleTypeFromString(m.getParameterType(i).getName().toString(), JavaType.Format.BC)));
+							result.add(new SDGFormalParameter(method, i, i == 0 ? "this" : ("" + i), JavaType.parseSingleTypeFromString(m.getParameterType(i).getName().toString(), JavaType.Format.BC)));
 						}
 					}
 				}
@@ -355,6 +355,13 @@ public final class SDGBuildPreparation {
 		scfg.cache = cache;
 		scfg.cha = cha;
 		scfg.entry = m;
+		scfg.additionalEntries = cfg.additionalEntries.stream().map(e -> StringStuff.makeMethodReference(Language.JAVA, e)).map(mrr -> {
+			IMethod mm = cha.resolveMethod(mrr);
+			if (mm == null){
+				fail("could not resolve " + mrr);
+			}
+			return mm;
+		}).collect(Collectors.toList());
 		scfg.ext = chk;
 		scfg.immutableNoOut = SDGBuilder.IMMUTABLE_NO_OUT;
 		scfg.immutableStubs = SDGBuilder.IMMUTABLE_STUBS;
@@ -383,6 +390,7 @@ public final class SDGBuildPreparation {
 		scfg.doParallel = cfg.isParallel;
 		scfg.controlDependenceVariant = cfg.controlDependenceVariant;
 		scfg.fieldHelperOptions = cfg.fieldHelperOptions;
+		scfg.interfaceImplOptions = cfg.interfaceImplOptions;
 		return Pair.make(startTime, scfg);
 	}
 
@@ -459,6 +467,7 @@ public final class SDGBuildPreparation {
 	public static class Config {
 		public String name;
 		public String entryMethod;
+		public Collection<String> additionalEntries;
 		public String classpath;
 		public boolean classpathAddEntriesFromMANIFEST = true;
 		public String thirdPartyLibPath;
@@ -488,6 +497,7 @@ public final class SDGBuildPreparation {
 		public boolean isParallel = true;
 		public ControlDependenceVariant controlDependenceVariant = SDGBuilder.defaultControlDependenceVariant;
 		public UninitializedFieldHelperOptions fieldHelperOptions = UninitializedFieldHelperOptions.createEmpty();
+		public InterfaceImplementationOptions interfaceImplOptions = InterfaceImplementationOptions.createEmpty();
 
 		public Config(String name) {
 			this(name, "<no entry defined>", FieldPropagation.OBJ_GRAPH);

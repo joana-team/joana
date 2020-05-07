@@ -10,6 +10,7 @@ package edu.kit.joana.ui.ifc.wala.console.console;
 import com.amihaiemil.eoyaml.*;
 import com.google.common.collect.Multimap;
 import com.ibm.wala.classLoader.IMethod;
+import com.ibm.wala.ipa.callgraph.InterfaceImplementationOptions;
 import com.ibm.wala.ipa.callgraph.UninitializedFieldHelperOptions;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
@@ -361,7 +362,7 @@ public class IFCConsole {
 	private final Collection<IViolation<SecurityNode>> lastAnalysisResult = new LinkedList<IViolation<SecurityNode>>();
 	private TObjectIntMap<IViolation<SDGProgramPart>> groupedIFlows = new TObjectIntHashMap<IViolation<SDGProgramPart>>();
 	private Set<edu.kit.joana.api.sdg.SDGInstruction> lastComputedChop = null;
-    private final EntryLocator loc = new EntryLocator();
+	private final EntryLocator loc = new EntryLocator();
 	private final List<IFCConsoleListener> consoleListeners = new LinkedList<IFCConsoleListener>();
 	private IProgressMonitor monitor = NullProgressMonitor.INSTANCE;
 	private final SDGMethodSelector methodSelector = new SDGMethodSelector(this);
@@ -387,6 +388,15 @@ public class IFCConsole {
 	 * @see UninitializedFieldHelperOptions
 	 */
 	private UninitializedFieldHelperOptions.FieldTypeMatcher uninitializedFieldTypeMatcher = typeReference -> false;
+
+	private InterfaceImplementationOptions interfaceImplOptions = InterfaceImplementationOptions.createEmpty();
+
+	private boolean annotateOverloadedMethods = false;
+
+	/**
+	 * BC strings
+	 */
+	private Collection<String> additionalEntryMethods;
 
 	public IFCConsole(BufferedReader in, IFCConsoleOutput out) {
 		this.in = in;
@@ -1849,11 +1859,14 @@ public class IFCConsole {
 			recomputeSDG = false;
 			final PrintStream outs = IOFactory.createUTF8PrintStream(new ByteArrayOutputStream());
 			SDGConfig config = new SDGConfig(classPath, loc.getActiveEntry().toBCString(), stubsPath);
+			config.setAdditionalEntryMethods(additionalEntryMethods);
 			config.setComputeInterferences(computeInterference);
 			config.setMhpType(mhpType);
 			config.setExceptionAnalysis(excAnalysis);
 			config.setPointsToPrecision(pointsTo);
 			config.setFieldPropagation(FieldPropagation.OBJ_GRAPH_SIMPLE_PROPAGATION);
+			config.setFieldHelperOptions(new UninitializedFieldHelperOptions(uninitializedFieldTypeMatcher));
+			config.setInterfaceImplOptions(interfaceImplOptions);
 			com.ibm.wala.util.collections.Pair<Long, SDGBuilder.SDGBuilderConfig> pair;
 			try {
 				pair = SDGBuildPreparation.prepareBuild(outs, SDGProgram.makeBuildPreparationConfig(config), NullProgressMonitor.INSTANCE);
@@ -2186,7 +2199,7 @@ public class IFCConsole {
 	}
 
 	private void setSDG(SDG newSDG, MHPAnalysis mhp) {
-		setSDGProgram(new SDGProgram(newSDG, mhp));
+		setSDGProgram(new SDGProgram(newSDG, mhp, annotateOverloadedMethods));
 	}
 
 	public void displayCurrentConfig() {
@@ -2548,7 +2561,7 @@ public class IFCConsole {
 	}
 
 	private boolean buildSDG(boolean computeInterference, MHPType mhpType, ExceptionAnalysis exA) {
-		if (!loc.entrySelected()) {
+		if (!loc.entrySelected() && additionalEntryMethods.isEmpty()) {
 			out.error("No entry method selected. Select entry method first!");
 			return false;
 		}
@@ -2599,7 +2612,14 @@ public class IFCConsole {
 				classPath = new PreProcPasses(createSetValuePass()).process(null, "", classPath);
 				classPathAfterOpt = classPath;
 			}
-			SDGConfig config = new SDGConfig(classPath, loc.getActiveEntry().toBCString(), stubsPath);
+			String entryPoint = "";
+			if (loc.getActiveEntry() != null){
+				entryPoint = loc.getActiveEntry().toBCString();
+			} else {
+				entryPoint = additionalEntryMethods.iterator().next();
+			}
+			SDGConfig config = new SDGConfig(classPath, entryPoint, stubsPath);
+			config.setAdditionalEntryMethods(additionalEntryMethods);
 			config.setPruningPolicy(pruningPolicy);
 			config.setComputeInterferences(computeInterference);
 			config.setMhpType(mhpType);
@@ -2607,6 +2627,8 @@ public class IFCConsole {
 			config.setPointsToPrecision(pointsTo);
 			config.setFieldPropagation(FieldPropagation.OBJ_GRAPH_SIMPLE_PROPAGATION);
 			config.setFieldHelperOptions(new UninitializedFieldHelperOptions(uninitializedFieldTypeMatcher));
+			config.setInterfaceImplOptions(interfaceImplOptions);
+			config.setAnnotateOverloadingMethods(annotateOverloadedMethods);
 			SDGProgram program = SDGProgram.createSDGProgram(config, out.getPrintStream(), monitor);
 			if (onlyDirectFlow) {
 				SDGProgram.throwAwayControlDeps(program.getSDG());
@@ -3189,7 +3211,11 @@ public class IFCConsole {
 		return true;
 	}
 
-  /**
+	public void setInterfaceImplOptions(InterfaceImplementationOptions interfaceImplOptions) {
+		this.interfaceImplOptions = interfaceImplOptions;
+	}
+
+	/**
    * Wrapper for using the class with {@link ImprovedCLI}
    */
 	public class Wrapper
@@ -3534,4 +3560,21 @@ public class IFCConsole {
 	public Wrapper createWrapper(){
 	  return new Wrapper();
   }
+
+  public IFCAnalysis getAnalysis(){
+		return ifcAnalysis;
+	}
+
+	public void setAdditionalEntryMethods(Collection<String> additionalEntryMethods) {
+		this.additionalEntryMethods = additionalEntryMethods;
+	}
+
+
+	public boolean isAnnotatingOverloadedMethods() {
+		return annotateOverloadedMethods;
+	}
+
+	public void setAnnotateOverloadedMethods(boolean annotateOverloadedMethods) {
+		this.annotateOverloadedMethods = annotateOverloadedMethods;
+	}
 }

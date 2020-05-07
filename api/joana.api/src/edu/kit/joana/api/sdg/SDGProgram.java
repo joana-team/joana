@@ -7,13 +7,6 @@
  */
 package edu.kit.joana.api.sdg;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.classLoader.IMethod;
@@ -35,6 +28,7 @@ import com.ibm.wala.types.annotations.TypeAnnotation.LocalVarTarget;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
+import edu.kit.joana.api.annotations.AnnotationSubTypeBasedNodeCollector;
 import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.api.annotations.AnnotationTypeBasedNodeCollector;
 import edu.kit.joana.api.annotations.IdManager;
@@ -189,11 +183,29 @@ public class SDGProgram {
 	}
 
 	public SDGProgram(SDG sdg, MHPAnalysis mhpAnalysis, Optional<String> entryMethod) {
+		this(sdg, mhpAnalysis, entryMethod, false);
+	}
+
+	public SDGProgram(SDG sdg, MHPAnalysis mhpAnalysis, boolean annotateOverloadedMethods) {
+		this(sdg, mhpAnalysis, Optional.empty(), annotateOverloadedMethods);
+	}
+
+	/**
+	 *
+	 * @param sdg
+	 * @param mhpAnalysis
+	 * @param entryMethod
+	 * @param annotateOverloadedMethods annotate overloading methods (and their parameters) too, but do not create actual
+	 *                                  new annotations
+	 */
+	public SDGProgram(SDG sdg, MHPAnalysis mhpAnalysis, Optional<String> entryMethod, boolean annotateOverloadedMethods) {
 		this.sdg = sdg;
 		this.mhpAnalysis = mhpAnalysis;
 		this.ppartParser = new SDGProgramPartParserBC(this);
 		this.classComp = new SDGClassComputation(sdg);
-		this.coll = new AnnotationTypeBasedNodeCollector(sdg, this.classComp);
+		this.coll = annotateOverloadedMethods ?
+				new AnnotationSubTypeBasedNodeCollector(sdg, this, this.classComp) :
+				new AnnotationTypeBasedNodeCollector(sdg, this.classComp);
 		this.coll.init(this);
 		this.entryMethod = entryMethod;
 	}
@@ -295,7 +307,11 @@ public class SDGProgram {
 			SDGSerializer.toPDGFormat(sdg, sdgFileOut);
 			sdgFileOut.flush();
 		}
-		final SDGProgram ret = new SDGProgram(sdg, mhpAnalysis, config.getEntryMethod());
+		String entryMethod = buildArtifacts.getWalaCallGraph().getFakeRootNode().getMethod().getSignature();
+		if (config.getAdditionalEntryMethods().isEmpty()){
+			entryMethod = config.getEntryMethod();
+		}
+		final SDGProgram ret = new SDGProgram(sdg, mhpAnalysis, Optional.of(config.getEntryMethod()), config.isAnnotatingOverloadingMethods());
 		ret.setClassHierarchy(buildArtifacts.getClassHierarchy());
 		if (config.isSkipSDGProgramPart()) {
 			return ret;
@@ -510,6 +526,8 @@ public class SDGProgram {
 		cfg.isParallel = config.isParallel();
 		cfg.controlDependenceVariant = config.getControlDependenceVariant();
 		cfg.fieldHelperOptions = config.getFieldHelperOptions();
+		cfg.interfaceImplOptions = config.getInterfaceImplOptions();
+		cfg.additionalEntries = config.getAdditionalEntryMethods();
 		debug.outln(cfg.stubs);
 		return cfg;
 	}
@@ -855,6 +873,10 @@ public class SDGProgram {
 		} else {
 			return pparts.iterator().next();
 		}
+	}
+
+	public SDGMethod getMethod(IMethod method){
+		return getMethod(method.getSignature());
 	}
 
 	/**

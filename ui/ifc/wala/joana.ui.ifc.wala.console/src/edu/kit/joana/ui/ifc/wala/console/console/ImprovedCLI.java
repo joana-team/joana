@@ -96,7 +96,7 @@ public class ImprovedCLI {
     if (str.matches(".+\\..+")) {
       if (str.matches(".+->[0-9]+")) {
         String[] parts = str.split("->");
-        return new SDGFormalParameter((SDGMethod) programPartFromString(parts[0]), Integer.parseInt(parts[1]), "",
+        return new SDGFormalParameter((SDGMethod) programPartFromString(parts[0]), Integer.parseInt(parts[1]), parts[0],
             JavaType.parseSingleTypeFromString("java.lang.Object"));
       }
       return new SDGMethod(JavaMethodSignature.fromString(str), AnalysisScope.APPLICATION.toString(), false);

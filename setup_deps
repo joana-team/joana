@@ -21,7 +21,6 @@ export JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:/jre/bin/java::")
 
 cd "$(dirname "$0")"
 git submodule init
-git submodule update
 git submodule update --remote --merge
 
 cd contrib/wala

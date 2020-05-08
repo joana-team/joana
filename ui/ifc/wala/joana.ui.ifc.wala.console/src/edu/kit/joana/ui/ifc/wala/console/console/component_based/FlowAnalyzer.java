@@ -1,6 +1,8 @@
 package edu.kit.joana.ui.ifc.wala.console.console.component_based;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * TODO: add inner interface stuff (flow between parameters and/or return value of the same interface method)
@@ -25,6 +27,15 @@ public abstract class FlowAnalyzer {
 
   /**
    * Find the connections between the given sources and sinks
+   *
+   * Implements the sink interfaces
    */
-  public abstract Flows analyze(List<Method> sources, List<Method> sinks);
+  public Flows analyze(List<Method> sources, List<Method> sinks){
+    return analyze(sources, sinks, sinks.stream().map(Method::getClassName).collect(Collectors.toSet()));
+  }
+
+  /**
+   * Find the connections between the given sources and sinks
+   */
+  public abstract Flows analyze(List<Method> sources, List<Method> sinks, Collection<String> interfaceToImplement);
 }

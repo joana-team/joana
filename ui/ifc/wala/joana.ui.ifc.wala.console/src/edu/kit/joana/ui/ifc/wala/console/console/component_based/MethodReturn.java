@@ -9,7 +9,7 @@ public class MethodReturn extends Method {
   public MethodReturn(String className, String methodName) {
     super(className, methodName);
   }
-  
+
   @Override public Method discardMiscInformation() {
     return new Method(className, methodName);
   }

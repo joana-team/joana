@@ -47,4 +47,8 @@ public class Method {
   <T> T accept(Visitor<T> visitor){
     return visitor.visit(this);
   }
+
+  public String getClassName() {
+    return className;
+  }
 }

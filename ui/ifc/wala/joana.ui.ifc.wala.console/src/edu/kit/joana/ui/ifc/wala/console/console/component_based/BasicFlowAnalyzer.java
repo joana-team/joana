@@ -33,28 +33,57 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
 
   private final IFCConsole console;
 
+  private final boolean connectReturnWithParams;
+
   public BasicFlowAnalyzer(){
-    this(new Association(), new Flows(new HashMap<>()));
+    this(true);
   }
 
-  public BasicFlowAnalyzer(Association association, Flows knownFlows) {
+  public BasicFlowAnalyzer(boolean connectReturnWithParams){
+    this(new Association(), new Flows(new HashMap<>()), connectReturnWithParams);
+  }
+
+  public BasicFlowAnalyzer(Association association, Flows knownFlows, boolean connectReturnWithParams) {
     super(association, knownFlows);
     BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
     this.console = new IFCConsole(in,
         new PrintStreamConsoleWrapper(new NullPrintStream(), new NullPrintStream(), in, System.out, new NullPrintStream()));
     this.console.setPointsTo("OBJECT_SENSITIVE"); // use a slower but more precise analysis by default
     this.console.setUninitializedFieldTypeMatcher(typeReference -> true);
-    this.console.setInterfaceImplOptions(new InterfaceImplementationOptions(Collections.singletonList("Lcomponent_sample/Sink"),
-        InterfaceImplementationClass.FunctionBodyGenerator.CONNECT_RETURN_WITH_PARAMS,
-        InterfaceImplementationOptions.Mode.PER_INSTANCE, false));
     this.console.setAnnotateOverloadedMethods(true);
+    this.connectReturnWithParams = connectReturnWithParams;
   }
 
   @Override public void setClassPath(String classPath) {
     console.setClassPath(classPath);
   }
 
-  @Override public Flows analyze(List<Method> sources, List<Method> sinks) {
+  private List<String> byteCodeNamesOfInterfacesToImplement(Collection<String> interfacesToImplement){
+    return searchProgramParts(new NullPrintStream(), console.getClassPath(), true, false, false, false).stream()
+        .map(p -> {
+          return p.acceptVisitor(new SDGProgramPartVisitorWithDefault<String, Object>(){
+
+            @Override protected String visitProgramPart(SDGProgramPart programPart, Object data) {
+              return null;
+            }
+
+            @Override protected String visitMethod(SDGMethod m, Object data) {
+              if (interfacesToImplement.contains(m.getSignature().getDeclaringType().toHRStringShort())) {
+                return m.getSignature().getDeclaringType().toBCString();
+              }
+              return null;
+            }
+          }, null);
+        })
+        .filter(Objects::nonNull)
+        .distinct().collect(Collectors.toList());
+  }
+
+  @Override public Flows analyze(List<Method> sources, List<Method> sinks, Collection<String> interfacesToImplement) {
+    System.out.println(byteCodeNamesOfInterfacesToImplement(interfacesToImplement));
+    this.console.setInterfaceImplOptions(new InterfaceImplementationOptions(byteCodeNamesOfInterfacesToImplement(interfacesToImplement),
+        connectReturnWithParams ? InterfaceImplementationClass.FunctionBodyGenerator.CONNECT_RETURN_WITH_PARAMS :
+            InterfaceImplementationClass.FunctionBodyGenerator::generateReturn));
     selectEntryPoints(sources);
     if (!console.buildSDGIfNeeded()){
       throw new AnalysisException("Cannot build SDG");
@@ -149,7 +178,7 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
       vio.accept(new IViolationVisitor<SDGProgramPart>() {
 
         Optional<Method> convertProgramPartToMethod(SDGProgramPart part, boolean includeClasses){
-          return part.acceptVisitor(new SDGProgramPartVisitor<Optional<Method>, Object>() {
+          return part.acceptVisitor(new SDGProgramPartVisitorWithDefault<Optional<Method>, Object>() {
 
             @Override protected Optional<Method> visitClass(SDGClass cl, Object data) {
               if (includeClasses) {
@@ -177,47 +206,7 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
               return Optional.of(new MethodReturn(method));
             }
 
-            @Override protected Optional<Method> visitAttribute(SDGAttribute a, Object data) {
-              return Optional.empty();
-            }
-
-            @Override protected Optional<Method> visitActualParameter(SDGActualParameter ap, Object data) {
-              return Optional.empty();
-            }
-
-            @Override protected Optional<Method> visitExit(SDGMethodExitNode e, Object data) {
-              return Optional.empty();
-            }
-
-            @Override protected Optional<Method> visitException(SDGMethodExceptionNode e, Object data) {
-              return Optional.empty();
-            }
-
-            @Override protected Optional<Method> visitInstruction(SDGInstruction i, Object data) {
-              return Optional.empty();
-            }
-
-            @Override protected Optional<Method> visitCall(SDGCall c, Object data) {
-              return Optional.empty();
-            }
-
-            @Override protected Optional<Method> visitCallReturnNode(SDGCallReturnNode c, Object data) {
-              return Optional.empty();
-            }
-
-            @Override protected Optional<Method> visitCallExceptionNode(SDGCallExceptionNode c, Object data) {
-              return Optional.empty();
-            }
-
-            @Override protected Optional<Method> visitPhi(SDGPhi phi, Object data) {
-              return Optional.empty();
-            }
-
-            @Override protected Optional<Method> visitFieldOfParameter(SDGFieldOfParameter fop, Object data) {
-              return Optional.empty();
-            }
-
-            @Override protected Optional<Method> visitLocalVariable(SDGLocalVariable local, Object data) {
+            @Override protected Optional<Method> visitProgramPart(SDGProgramPart programPart, Object data) {
               return Optional.empty();
             }
           }, null);

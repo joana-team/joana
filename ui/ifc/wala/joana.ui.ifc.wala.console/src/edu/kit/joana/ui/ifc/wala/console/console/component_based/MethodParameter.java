@@ -21,7 +21,7 @@ public class MethodParameter extends Method {
   }
 
   @Override public String toString() {
-    return "Method{" + className + "." + methodName + "->" + parameter + "}";
+    return "MethodParameter{" + className + "." + methodName + "->" + parameter + "}";
   }
 
   @Override public boolean equals(Object o) {
@@ -46,11 +46,11 @@ public class MethodParameter extends Method {
     return new Method(className, methodName);
   }
 
-  public boolean hasAllParameters(){
-    return false;
+  <T> T accept(Visitor<T> visitor){
+    return visitor.visit(this);
   }
 
-  public int getParameterNumber(){
-    return parameter;
+  @Override public String toRegexp() {
+    return String.format(".*%s\\.%s\\(.*\\)[^-]*->%d$", className, methodName, parameter);
   }
 }

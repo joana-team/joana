@@ -8,7 +8,7 @@ public class Test {
     FlowAnalyzer flowAnalyzer = new BasicFlowAnalyzer();
     flowAnalyzer.setClassPath("component_sample");
     Flows flows = flowAnalyzer.analyze(Arrays.asList(new Method("Source", "a"), new Method("Source", "b")),
-        Arrays.asList(new Method("Sink", "a"), new Method("Sink", "b")));
+        Arrays.asList(new Method("Sink", "a"), new Method("Sink", "b"), new MethodReturn("Source", "a")));
     System.out.println(flows);
   }
 }

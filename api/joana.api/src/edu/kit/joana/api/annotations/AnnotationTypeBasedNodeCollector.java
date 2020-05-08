@@ -72,8 +72,14 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 
 	@Override
 	protected Set<SDGNode> visitParameter(SDGFormalParameter param, AnnotationType type) {
+		Set<SDGNode> ret = new HashSet<>();
+
+		if (param.getIndex() == -1){ // return value
+			return pp2NodeTrans.getRealReturnNodes(param.getOwningMethod());
+		}
+
 		assert !pp2NodeTrans.getOutRoots(param).isEmpty() || !pp2NodeTrans.getInRoots(param).isEmpty();
-		Set<SDGNode> ret = new HashSet<SDGNode>();
+
 
 		
 		if (false) {
@@ -276,7 +282,6 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 				}
 			}
 		}
-
 	}
 
 	private boolean hasFields(SDGNode param) {

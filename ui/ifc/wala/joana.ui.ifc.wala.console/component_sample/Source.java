@@ -4,8 +4,7 @@ public class Source {
 
   private Sink sink;
 
-  public void a(int b){
-    sink.a(b);
+  public int a(int b){
+    return sink.a(b);
   }
-
 }

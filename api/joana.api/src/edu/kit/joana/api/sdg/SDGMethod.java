@@ -7,19 +7,11 @@
  */
 package edu.kit.joana.api.sdg;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
+
+import java.util.*;
 
 public class SDGMethod implements SDGProgramPart {
 
@@ -75,6 +67,9 @@ public class SDGMethod implements SDGProgramPart {
 	}
 
 	public SDGFormalParameter getParameter(int i) {
+		if (i == -1){
+			return new SDGFormalParameter(this, -1, "return", getSignature().getReturnType());
+		}
 		if (!params.containsKey(i)) {
 			return null;
 		} else {

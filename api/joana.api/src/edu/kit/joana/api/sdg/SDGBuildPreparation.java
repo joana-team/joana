@@ -113,9 +113,9 @@ public final class SDGBuildPreparation {
 	/**
 	 * The resulting SDGProgramParts might contain incomplete parent objects (especially the returned SDGAttribute objects)
 	 */
-	public static List<SDGProgramPart> searchProgramParts(PrintStream out, String classPath, boolean methods, boolean fields, boolean parameters){
+	public static List<SDGProgramPart> searchProgramParts(PrintStream out, String classPath, boolean methods, boolean fields, boolean parameters, boolean returns){
 		try {
-			return searchProgramParts(out, getCachedClassHierarchy(classPath, out), methods, fields, parameters);
+			return searchProgramParts(out, getCachedClassHierarchy(classPath, out), methods, fields, parameters, returns);
 		} catch (ClassHierarchyException e) {
 			out.println("Error while analyzing class structure!");
 			return Collections.emptyList();
@@ -128,7 +128,7 @@ public final class SDGBuildPreparation {
 	/**
 	 * The resulting SDGProgramParts might contain incomplete parent objects (especially the returned SDGAttribute objects)
 	 */
-	public static List<SDGProgramPart> searchProgramParts(PrintStream out, ClassHierarchy cha, boolean methods, boolean fields, boolean parameters)
+	public static List<SDGProgramPart> searchProgramParts(PrintStream out, ClassHierarchy cha, boolean methods, boolean fields, boolean parameters, boolean returns)
 			throws IOException, ClassHierarchyException {
 		final List<SDGProgramPart> result = new ArrayList<>();
 		for (final IClass cls : cha) {
@@ -143,6 +143,9 @@ public final class SDGBuildPreparation {
 						for (int i = 0; i < m.getNumberOfParameters(); i++){
 							result.add(new SDGFormalParameter(method, i, i == 0 ? "this" : ("" + i), JavaType.parseSingleTypeFromString(m.getParameterType(i).getName().toString(), JavaType.Format.BC)));
 						}
+					}
+					if (returns && !method.getSignature().getReturnType().toHRString().equals("void")){
+						result.add(new SDGFormalParameter(method, -1, "return", method.getSignature().getReturnType()));
 					}
 				}
 				if (fields){

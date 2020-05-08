@@ -59,6 +59,7 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
     if (!console.buildSDGIfNeeded()){
       throw new AnalysisException("Cannot build SDG");
     }
+    clear();
     processKnownFlows();
     selectSources(sources);
     selectSinks(sinks);
@@ -80,7 +81,7 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
 
   private void selectEntryPoints(List<Method> methods){
     String regexp = getRegexpForMethods(methods);
-    List<String> entities = searchProgramParts(new NullPrintStream(), console.getClassPath(), true, false, false).stream()
+    List<String> entities = searchProgramParts(new NullPrintStream(), console.getClassPath(), true, false, false, false).stream()
         .map(ImprovedCLI::programPartToString).filter(s -> s != null && s.matches(regexp)).collect(Collectors.toList());
     if (entities.isEmpty()){
       throw new AnalysisException("No EntryPoints found");
@@ -94,12 +95,20 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
     }
   }
 
+  /**
+   * Remove all annotations
+   */
+  private void clear(){
+    console.reset();
+  }
+
   private void selectSourcesOrSinks(List<Method> methods, boolean source){
     IFCConsole.Wrapper wrapper = console.new Wrapper();
     List<String> annotatableEntities = wrapper.getAnnotatableEntities(getRegexpForMethods(methods));
     int matchedMethods = 0;
     if (annotatableEntities.size() > 0) {
       for (String annotatableEntity : annotatableEntities) {
+        // System.out.println(String.format("%s %s", source ? "Source" : "Sink", annotatableEntity));
         if (source){
           wrapper.selectSource(annotatableEntity, "high");
         } else {
@@ -161,7 +170,11 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
 
             @Override protected Optional<Method> visitParameter(SDGFormalParameter p, Object data) {
               int index = p.getIndex();
-              return Optional.of(new MethodParameter(visitMethod(p.getOwningMethod().getSignature()), index));
+              Method method = visitMethod(p.getOwningMethod().getSignature());
+              if (index >= 0) {
+                return Optional.of(new MethodParameter(method, index));
+              }
+              return Optional.of(new MethodReturn(method));
             }
 
             @Override protected Optional<Method> visitAttribute(SDGAttribute a, Object data) {

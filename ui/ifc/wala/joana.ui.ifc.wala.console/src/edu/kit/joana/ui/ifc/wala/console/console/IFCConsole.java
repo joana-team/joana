@@ -3292,7 +3292,7 @@ public class IFCConsole {
 		}
 
 		@Override public List<String> getAnnotatableEntities(String regexp) {
-			return searchProgramParts(out.getDebugPrintStream(), getClassPath(), true, true, true).stream()
+			return searchProgramParts(out.getDebugPrintStream(), getClassPath(), true, true, true, true).stream()
 					.map(ImprovedCLI::programPartToString).filter(s -> s != null && s.matches(regexp)).collect(Collectors.toList());
 		}
 
@@ -3360,7 +3360,7 @@ public class IFCConsole {
 		}
 
 		@Override public List<Pair<String, String>> getSettableEntities(String regexp) {
-			return searchProgramParts(out.getDebugPrintStream(), getClassPath(), true, true, true).stream()
+			return searchProgramParts(out.getDebugPrintStream(), getClassPath(), true, true, true, false).stream()
 					.filter(s -> ImprovedCLI.programPartToString(s) != null)
 					.map(p -> p.acceptVisitor(new SDGProgramPartVisitor2<Pair<String, String>, Object>(){
 						@Override protected Pair<String, String> visitMethod(SDGMethod m, Object data) {

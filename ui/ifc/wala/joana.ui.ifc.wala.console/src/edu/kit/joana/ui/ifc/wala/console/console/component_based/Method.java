@@ -3,7 +3,8 @@ package edu.kit.joana.ui.ifc.wala.console.console.component_based;
 import java.util.Objects;
 
 /**
- * A method with a name and a class
+ * A method with a name and a class, a method without any addition refers to the method signature (all parameters), but not
+ * to the return value
  */
 public class Method {
 
@@ -36,22 +37,14 @@ public class Method {
    * Returns a regular expression that matches the method
    */
   public String toRegexp(){
-    return String.format(".*%s\\.%s(\\(.*)?$", className, methodName);
+    return String.format(".*%s\\.%s(\\(.*\\)[^-]*(->[^-]+)?)?$", className, methodName);
   }
 
   public Method discardMiscInformation(){
     return this;
   }
 
-  public boolean hasAllParameters(){
-    return true;
-  }
-
-  public int getParameterNumber(){
-    return -1;
-  }
-
-  public boolean isReturn(){
-    return false;
+  <T> T accept(Visitor<T> visitor){
+    return visitor.visit(this);
   }
 }

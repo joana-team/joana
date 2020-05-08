@@ -7,16 +7,6 @@
  */
 package edu.kit.joana.api.sdg;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -31,6 +21,9 @@ import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.Pair;
 import gnu.trove.map.hash.TIntObjectHashMap;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class SDGClassComputation {
 
@@ -196,6 +189,11 @@ public class SDGClassComputation {
 			}
 		}
 		return ret;
+	}
+
+	public Set<SDGNode> getRealReturnNodes(SDGMethod method){
+		return getEntries(method).stream().flatMap(e -> sdg.getFormalOutsOfProcedure(e).stream().flatMap(f -> sdg.getIncomingEdgesOfKind(f, SDGEdge.Kind.DATA_DEP).stream().map(
+				SDGEdge::getSource))).collect(Collectors.toSet());
 	}
 
 	private Set<SDGNode> getRoots(SDGMethodExitNode exit) {

@@ -27,5 +27,4 @@ public abstract class FlowAnalyzer {
    * Find the connections between the given sources and sinks
    */
   public abstract Flows analyze(List<Method> sources, List<Method> sinks);
-
 }

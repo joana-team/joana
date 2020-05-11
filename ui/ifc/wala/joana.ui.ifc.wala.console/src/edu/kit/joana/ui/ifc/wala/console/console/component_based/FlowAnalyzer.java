@@ -16,11 +16,11 @@ public abstract class FlowAnalyzer {
   }
 
   protected final Association association;
-  protected final Flows knownFlows;
+  protected Flows knownFlows;
 
-  public FlowAnalyzer(Association association, Flows knownFlows){
+  public FlowAnalyzer(Association association){
     this.association = association;
-    this.knownFlows = knownFlows;
+    this.knownFlows = new Flows();
   }
 
   public abstract void setClassPath(String classPath);
@@ -38,4 +38,8 @@ public abstract class FlowAnalyzer {
    * Find the connections between the given sources and sinks
    */
   public abstract Flows analyze(List<Method> sources, List<Method> sinks, Collection<String> interfaceToImplement);
+
+  public void setKnownFlows(Flows knownFlows){
+    this.knownFlows = knownFlows;
+  }
 }

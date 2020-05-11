@@ -1,5 +1,7 @@
 package edu.kit.joana.ui.ifc.wala.console.console.component_based;
 
+import com.ibm.wala.classLoader.IMethod;
+
 import java.util.Objects;
 
 /**
@@ -14,6 +16,11 @@ public class Method {
   public Method(String className, String methodName) {
     this.className = className;
     this.methodName = methodName;
+  }
+
+  public static Method forIMethod(IMethod method) {
+    return new Method(method.getDeclaringClass().getName().getClassName().toString(),
+        method.getName().toString());
   }
 
   @Override public boolean equals(Object o) {

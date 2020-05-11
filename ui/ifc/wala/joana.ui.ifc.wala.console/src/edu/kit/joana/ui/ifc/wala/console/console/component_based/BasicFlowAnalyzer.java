@@ -2,8 +2,13 @@ package edu.kit.joana.ui.ifc.wala.console.console.component_based;
 
 import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlSequenceBuilder;
+import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.InterfaceImplementationClass;
 import com.ibm.wala.ipa.callgraph.InterfaceImplementationOptions;
+import com.ibm.wala.ipa.callgraph.impl.AbstractRootMethod;
+import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
+import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
+import com.ibm.wala.types.TypeReference;
 import edu.kit.joana.api.sdg.*;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.conc.DataConflict;
@@ -22,6 +27,7 @@ import java.io.File;
 import java.io.InputStreamReader;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static edu.kit.joana.api.IFCType.CLASSICAL_NI;
 import static edu.kit.joana.api.sdg.SDGBuildPreparation.searchProgramParts;
@@ -36,15 +42,15 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
   private final boolean connectReturnWithParams;
 
   public BasicFlowAnalyzer(){
-    this(true);
+    this(false);
   }
 
   public BasicFlowAnalyzer(boolean connectReturnWithParams){
-    this(new Association(), new Flows(new HashMap<>()), connectReturnWithParams);
+    this(new Association(), connectReturnWithParams);
   }
 
-  public BasicFlowAnalyzer(Association association, Flows knownFlows, boolean connectReturnWithParams) {
-    super(association, knownFlows);
+  public BasicFlowAnalyzer(Association association, boolean connectReturnWithParams) {
+    super(association);
     BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
     this.console = new IFCConsole(in,
         new PrintStreamConsoleWrapper(new NullPrintStream(), new NullPrintStream(), in, System.out, new NullPrintStream()));
@@ -79,17 +85,36 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
         .distinct().collect(Collectors.toList());
   }
 
+  private List<IMethod> getIMethods(InterfaceImplementationClass klass, Method method){
+    return searchProgramParts(new NullPrintStream(), console.getClassPath(), true, false, false, false).stream()
+        .map(p -> {
+          return p.acceptVisitor(new SDGProgramPartVisitorWithDefault<IMethod, Object>(){
+
+            @Override protected IMethod visitProgramPart(SDGProgramPart programPart, Object data) {
+              return null;
+            }
+
+            @Override protected IMethod visitMethod(SDGMethod m, Object data) {
+              if (method.getClassName().equals(m.getSignature().getDeclaringType().toHRStringShort())) {
+                return klass.getClassHierarchy().lookupClass(m.getSignature().getDeclaringType().toBCString()).getAllMethods().stream().filter(im -> im.getName().toString().equals(m.getSignature().getMethodName())).findFirst().get();
+              }
+              return null;
+            }
+          }, null);
+        })
+        .filter(Objects::nonNull)
+        .distinct().collect(Collectors.toList());
+  }
+
   @Override public Flows analyze(List<Method> sources, List<Method> sinks, Collection<String> interfacesToImplement) {
     System.out.println(byteCodeNamesOfInterfacesToImplement(interfacesToImplement));
-    this.console.setInterfaceImplOptions(new InterfaceImplementationOptions(byteCodeNamesOfInterfacesToImplement(interfacesToImplement),
-        connectReturnWithParams ? InterfaceImplementationClass.FunctionBodyGenerator.CONNECT_RETURN_WITH_PARAMS :
-            InterfaceImplementationClass.FunctionBodyGenerator::generateReturn));
+
+    configureInterfaceImplementation(interfacesToImplement);
     selectEntryPoints(sources);
     if (!console.buildSDGIfNeeded()){
       throw new AnalysisException("Cannot build SDG");
     }
     clear();
-    processKnownFlows();
     selectSources(sources);
     selectSinks(sinks);
     console.new Wrapper().saveSDG(new File("blub.pdg"));
@@ -118,10 +143,93 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
     console.setAdditionalEntryMethods(entities);
   }
 
-  private void processKnownFlows(){
-    if (!knownFlows.isEmpty()){
-      throw new RuntimeException();
-    }
+  private void configureInterfaceImplementation(Collection<String> interfacesToImplement){
+     this.console.setInterfaceImplOptions(new InterfaceImplementationOptions(byteCodeNamesOfInterfacesToImplement(interfacesToImplement),
+        createGenerator()));
+  }
+
+  private InterfaceImplementationClass.FunctionBodyGenerator createGenerator(){
+    return new InterfaceImplementationClass.FunctionBodyGenerator() {
+      @Override public void generate(InterfaceImplementationClass klass, AbstractRootMethod method, IMethod origMethod) {
+
+        Method compMethod = Method.forIMethod(origMethod);
+
+        int[] depForRetLocal = new int[]{method.addBinaryInstruction(IBinaryOpInstruction.Operator.OR,
+            method.getValueNumberForIntConstant(0),
+            method.getValueNumberForIntConstant(0))}; // see below
+        TypeReference depForRetLocalType = TypeReference.Int;
+
+        boolean usedDepForLocal = false;
+
+        // flows from the parameters to the return through parameters of other functions that are present
+        // and flows from the parameters to the parameters of other functions
+        for (Map.Entry<Method, Set<Method>> entry : knownFlows.forMethod(compMethod).onlyParameterSources()
+            .filterSinks(m -> isPresent(m.discardMiscInformation()))) {
+          usedDepForLocal = true;
+          MethodParameter parameter = (MethodParameter)entry.getKey();
+            for (Method intermMethod : entry.getValue()) {
+              // call the methods on this object
+              getIMethods(klass, intermMethod).forEach(intermIMethod -> {
+              int[] params = IntStream.range(0, intermIMethod.getNumberOfParameters())
+                  .map(i -> {
+                    if (i == parameter.parameter){
+                      return parameter.parameter + 1; // the parameter we want to create a dependency for
+                    }
+                    return klass.addLoadForType(method, intermIMethod.getParameterType(i));
+                  }).toArray();
+                int methodRet = klass.addInvocation(method, intermIMethod, params).getDef(); // TODO: correct?
+                if (knownFlows.contains(intermMethod, new MethodReturn(compMethod))){
+                  // param → some method → return
+                  // boolean depForRet = false;
+                  // …
+                  // if (some method() == some method()){ depForRet = depForRet | 1; }
+                  // …
+                  // dummy return with depForRet
+
+                  method.addConditionalBranchInstruction(IConditionalBranchInstruction.Operator.NE,
+                      intermIMethod.getReturnType(), methodRet, methodRet, () -> {
+                        depForRetLocal[0] = method.addBinaryInstruction(IBinaryOpInstruction.Operator.OR,
+                            method.getValueNumberForIntConstant(1), depForRetLocal[0]);
+                      });
+                } else {
+                  // param → some method
+                  // just call the method
+                }
+              });
+            }
+          }
+
+
+        if (usedDepForLocal) {
+
+          int ret = klass.addLoadForType(method, method.getReturnType());
+          // return depends on depForRet
+          method.addDummyReturnCondition(depForRetLocalType, depForRetLocal[0], method.getReturnType(), ret);
+        }
+
+        // flows inside this method from parameter to return
+        for (MethodParameter parameter : knownFlows.getParamConnectedToReturn(compMethod)) {
+
+          int ret = klass.addLoadForType(method, method.getReturnType());
+          TypeReference type = method.getParameterType(parameter.parameter);
+          method.addDummyReturnCondition(type, parameter.parameter + 1, method.getReturnType(), ret);
+        }
+
+        if (connectReturnWithParams){
+          CONNECT_RETURN_WITH_PARAMS.generate(klass, method, origMethod);
+        } else {
+          InterfaceImplementationClass.FunctionBodyGenerator.generateReturn(klass, method);
+        }
+      }
+    };
+  }
+
+  /**
+   * Is this method present in the class path?
+   */
+  private boolean isPresent(Method method) {
+    IFCConsole.Wrapper wrapper = console.new Wrapper();
+    return wrapper.getAnnotatableEntities(method.toRegexp()).size() > 0;
   }
 
   /**

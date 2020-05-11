@@ -7,12 +7,14 @@ import java.util.Arrays;
 public class Test {
 
   public static void main(String[] args) {
-   test2();
-   testReturnConnectedToParam();
+    //test2();
+    //testReturnConnectedToParam();
+    testReturnNotConnectedToParamViaFlows();
+    testReturnConnectedToParamViaFlows();
   }
 
   //@org.junit.Test
-  static void test1(){
+  static void test1() {
     FlowAnalyzer flowAnalyzer = new BasicFlowAnalyzer(true);
     flowAnalyzer.setClassPath("component_sample");
     Flows flows = flowAnalyzer.analyze(Arrays.asList(new Method("Source", "a"), new Method("Source", "b")),
@@ -21,20 +23,36 @@ public class Test {
   }
 
   //@org.junit.Test
-  static void test2(){
+  static void test2() {
     FlowAnalyzer flowAnalyzer = new BasicFlowAnalyzer(true);
     flowAnalyzer.setClassPath("component_sample");
-    Flows flows = flowAnalyzer.analyze(Arrays.asList(new Method("Source", "a")),
-        Arrays.asList(new Method("Sink", "a"), new MethodReturn("Sink", "a")));
+    Flows flows = flowAnalyzer
+        .analyze(Arrays.asList(new Method("Source", "a")), Arrays.asList(new Method("Sink", "a"), new MethodReturn("Sink", "a")));
     System.out.println(flows);
   }
 
   //@org.junit.Test
-  static void testReturnConnectedToParam(){
+  static void testReturnConnectedToParam() {
     FlowAnalyzer flowAnalyzer = new BasicFlowAnalyzer(true);
     flowAnalyzer.setClassPath("component_sample");
-    Flows flows = flowAnalyzer.analyze(Arrays.asList(new Method("Source", "a")),
-        Arrays.asList(new MethodReturn("Sink", "a")));
+    Flows flows = flowAnalyzer.analyze(Arrays.asList(new Method("Source", "a")), Arrays.asList(new MethodReturn("Sink", "a")));
+    System.out.println(flows);
+    Assert.assertFalse(flows.isEmpty());
+  }
+
+  static void testReturnNotConnectedToParamViaFlows() {
+    FlowAnalyzer flowAnalyzer = new BasicFlowAnalyzer(false);
+    flowAnalyzer.setClassPath("component_sample");
+    Flows flows = flowAnalyzer.analyze(Arrays.asList(new Method("Source", "a")), Arrays.asList(new MethodReturn("Sink", "a")));
+    System.out.println(flows);
+    Assert.assertTrue(flows.isEmpty());
+  }
+
+  static void testReturnConnectedToParamViaFlows() {
+    FlowAnalyzer flowAnalyzer = new BasicFlowAnalyzer(false);
+    flowAnalyzer.setClassPath("component_sample");
+    flowAnalyzer.setKnownFlows(new Flows().add(new MethodParameter("Sink", "a", 1), new MethodReturn("Sink", "a")));
+    Flows flows = flowAnalyzer.analyze(Arrays.asList(new Method("Source", "a")), Arrays.asList(new MethodReturn("Sink", "a")));
     System.out.println(flows);
     Assert.assertFalse(flows.isEmpty());
   }

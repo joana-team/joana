@@ -16,24 +16,31 @@ import edu.kit.joana.ifc.sdg.core.conc.OrderConflict;
 import edu.kit.joana.ifc.sdg.core.violations.*;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.ifc.wala.console.console.IFCConsole;
-import edu.kit.joana.ui.ifc.wala.console.console.ImprovedCLI;
 import edu.kit.joana.ui.ifc.wala.console.console.Pattern;
 import edu.kit.joana.ui.ifc.wala.console.io.PrintStreamConsoleWrapper;
 import edu.kit.joana.util.NullPrintStream;
 import gnu.trove.map.TObjectIntMap;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.InputStreamReader;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static edu.kit.joana.api.IFCType.CLASSICAL_NI;
 import static edu.kit.joana.api.sdg.SDGBuildPreparation.searchProgramParts;
+import static edu.kit.joana.ui.ifc.wala.console.console.ImprovedCLI.programPartToString;
 
 /**
  * Basic flow analyzer
+ * <p/>
+ * The known flows implementation supports currently:
+ * <ul>
+ *   <li>flows from the parameters to the return through parameters of other functions that are present
+ *   <li>flows from the parameters to the parameters of other functions</li>
+ *   <li>flows from the parameters to the return</li>
+ * </ul>
  */
 public class BasicFlowAnalyzer extends FlowAnalyzer {
 
@@ -107,8 +114,6 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
   }
 
   @Override public Flows analyze(List<Method> sources, List<Method> sinks, Collection<String> interfacesToImplement) {
-    System.out.println(byteCodeNamesOfInterfacesToImplement(interfacesToImplement));
-
     configureInterfaceImplementation(interfacesToImplement);
     selectEntryPoints(sources);
     if (!console.buildSDGIfNeeded()){
@@ -117,8 +122,11 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
     clear();
     selectSources(sources);
     selectSinks(sinks);
-    console.new Wrapper().saveSDG(new File("blub.pdg"));
     return analyze(false);
+  }
+
+  @Override public void saveDebugGraph(Path path) {
+    console.new Wrapper().saveSDG(path.toFile());
   }
 
   private Pattern getPatternForMethod(Method method){
@@ -135,8 +143,14 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
 
   private void selectEntryPoints(List<Method> methods){
     String regexp = getRegexpForMethods(methods);
-    List<String> entities = searchProgramParts(new NullPrintStream(), console.getClassPath(), true, false, false, false).stream()
-        .map(ImprovedCLI::programPartToString).filter(s -> s != null && s.matches(regexp)).collect(Collectors.toList());
+    List<String> entities = searchProgramParts(new NullPrintStream(), console.getClassPath(), true, false, true, false).stream()
+        .map(p -> {
+          String s = programPartToString(p);
+          if (s != null && s.matches(regexp)){
+            return programPartToString(p.getOwningMethod());
+          }
+          return null;
+        }).filter(Objects::nonNull).collect(Collectors.toList());
     if (entities.isEmpty()){
       throw new AnalysisException("No EntryPoints found");
     }

@@ -1,5 +1,6 @@
 package edu.kit.joana.ui.ifc.wala.console.console.component_based;
 
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,6 +26,8 @@ public abstract class FlowAnalyzer {
 
   public abstract void setClassPath(String classPath);
 
+  public abstract void saveDebugGraph(Path path);
+
   /**
    * Find the connections between the given sources and sinks
    *
@@ -37,7 +40,7 @@ public abstract class FlowAnalyzer {
   /**
    * Find the connections between the given sources and sinks
    */
-  public abstract Flows analyze(List<Method> sources, List<Method> sinks, Collection<String> interfaceToImplement);
+  public abstract Flows analyze(List<Method> sources, List<Method> sinks, Collection<String> interfacesToImplement);
 
   public void setKnownFlows(Flows knownFlows){
     this.knownFlows = knownFlows;

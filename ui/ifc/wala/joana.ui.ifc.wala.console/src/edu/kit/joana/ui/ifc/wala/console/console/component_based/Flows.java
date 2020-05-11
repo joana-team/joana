@@ -126,4 +126,8 @@ public class Flows implements Iterable<Map.Entry<Method, Set<Method>>> {
   @Override public Iterator<Map.Entry<Method, Set<Method>>> iterator() {
     return Collections.unmodifiableCollection(flows.entrySet()).iterator();
   }
+
+  public int size() {
+    return flows.entrySet().stream().mapToInt(e -> e.getValue().size()).sum();
+  }
 }

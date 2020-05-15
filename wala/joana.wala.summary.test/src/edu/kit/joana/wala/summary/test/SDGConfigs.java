@@ -9,15 +9,19 @@ import java.util.function.BiFunction;
 
 public enum SDGConfigs {
 
-  DEFAULT((classPath, entryMethod) -> new SDGConfig(classPath, true, entryMethod, Stubs.JRE_17,
+  DEFAULT((classPath, entryMethod) -> new SDGConfig(classPath, true, entryMethod, Stubs.JRE_15,
       SDGBuilder.ExceptionAnalysis.INTERPROC,
       SDGBuilder.FieldPropagation.OBJ_GRAPH, SDGBuilder.PointsToPrecision.INSTANCE_BASED, false, false, MHPType.NONE)),
 
-  FAST((classPath, entryMethod) -> new SDGConfig(classPath, true, entryMethod, Stubs.JRE_17,
+  DEFAULT_17((classPath, entryMethod) -> new SDGConfig(classPath, true, entryMethod, Stubs.JRE_17,
       SDGBuilder.ExceptionAnalysis.IGNORE_ALL,
-      SDGBuilder.FieldPropagation.OBJ_GRAPH, SDGBuilder.PointsToPrecision.TYPE_BASED, false, false, MHPType.NONE)),
+      SDGBuilder.FieldPropagation.OBJ_GRAPH, SDGBuilder.PointsToPrecision.INSTANCE_BASED, false, false, MHPType.NONE)),
 
-  SLOW((classPath, entryMethod) -> new SDGConfig(classPath, true, entryMethod, Stubs.JRE_17,
+  SLOW((classPath, entryMethod) -> new SDGConfig(classPath, true, entryMethod, Stubs.JRE_15,
+      SDGBuilder.ExceptionAnalysis.INTERPROC,
+      SDGBuilder.FieldPropagation.OBJ_GRAPH, SDGBuilder.PointsToPrecision.OBJECT_SENSITIVE, false, false, MHPType.NONE)),
+
+  SLOW_17((classPath, entryMethod) -> new SDGConfig(classPath, true, entryMethod, Stubs.JRE_17,
       SDGBuilder.ExceptionAnalysis.INTERPROC,
       SDGBuilder.FieldPropagation.OBJ_GRAPH, SDGBuilder.PointsToPrecision.OBJECT_SENSITIVE, false, false, MHPType.NONE));
 

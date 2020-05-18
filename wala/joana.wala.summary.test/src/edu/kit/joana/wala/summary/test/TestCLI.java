@@ -33,7 +33,7 @@ public class TestCLI implements Callable<Integer> {
 
   @Option(names = {"-e", "--use_existing_pdg"},
       description = "Use the exisiting pdg if the PDG modification date is >= the JAR, ignore for classes")
-  boolean use_existing_pdg = true;
+  boolean use_existing_pdg = false;
 
   @Option(names = {"-g", "--export_graphs"})
   boolean export_graphs = false;
@@ -57,7 +57,8 @@ public class TestCLI implements Callable<Integer> {
         }
       } else {
         util.createBenchFiles(jarOrClass, util.pdgFilePath(jarOrClass), util.pgFilePath(jarOrClass),
-            !omit_summary ? Optional.of(util.summaryFilePath(jarOrClass)) : Optional.empty(), util.useOldPdg(jarOrClass, util.pdgFilePath(jarOrClass)),
+            !omit_summary ? Optional.of(util.summaryFilePath(jarOrClass)) : Optional.empty(),
+            use_existing_pdg && util.useOldPdg(jarOrClass, util.pdgFilePath(jarOrClass)),
             export_graphs ? Optional.of(util.exportedGraphsFolder(jarOrClass)) : Optional.empty(), store_pdg);
       }
     }

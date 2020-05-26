@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 cd "$(dirname "$0")"
 mkdir tmp222
 cp -r **/src tmp222

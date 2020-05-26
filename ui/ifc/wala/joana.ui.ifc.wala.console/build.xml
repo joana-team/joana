@@ -84,7 +84,8 @@
 			verbose="no"
 			source="1.8"
 			target="1.8"
-			encoding="utf-8"
+      debug="true"
+      encoding="utf-8"
 			classpathref="lib.path.ref"
 		/>
 	</target>

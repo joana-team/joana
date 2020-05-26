@@ -72,6 +72,12 @@ import java.util.stream.Collectors;
 
 public class SDGProgram {
 
+	static {
+		if (Integer.parseInt(System.getProperty("java.class.version").split("\\.")[0]) > 52){
+			throw new RuntimeException("Use at most java8");
+		}
+	}
+
 	/**
 	 * Special object which provides information about where a given code piece stems from
 	 * @author Martin Mohr

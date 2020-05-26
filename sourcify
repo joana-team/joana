@@ -1,0 +1,9 @@
+#!/bin/bash
+cd "$(dirname "$0")"
+mkdir tmp222
+cp -r **/src tmp222
+export ABS_PATH=$(realpath $1)
+cd tmp222/src
+zip -ur $ABS_PATH .
+cd -
+rm -fr tmp222

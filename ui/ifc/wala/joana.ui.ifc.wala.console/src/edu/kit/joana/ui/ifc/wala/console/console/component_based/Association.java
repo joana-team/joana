@@ -1,5 +1,6 @@
 package edu.kit.joana.ui.ifc.wala.console.console.component_based;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -7,8 +8,13 @@ import java.util.Map;
  */
 public class Association {
 
-  private Map<String, Method> methodPerId;
-  private Map<Method, String> idPerMethod;
+  private final Map<String, Method> methodPerId;
+  private final Map<Method, String> idPerMethod;
+
+  public Association() {
+    methodPerId = new HashMap<>();
+    idPerMethod = new HashMap<>();
+  }
 
   public Method getMethod(String id){
     return methodPerId.get(id);

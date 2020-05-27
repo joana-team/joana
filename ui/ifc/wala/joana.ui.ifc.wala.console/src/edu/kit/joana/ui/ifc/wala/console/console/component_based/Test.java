@@ -1,5 +1,9 @@
 package edu.kit.joana.ui.ifc.wala.console.console.component_based;
 
+import edu.kit.joana.component.connector.Flows;
+import edu.kit.joana.component.connector.Method;
+import edu.kit.joana.component.connector.MethodParameter;
+import edu.kit.joana.component.connector.MethodReturn;
 import org.junit.Assert;
 
 import java.util.Arrays;

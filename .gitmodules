@@ -6,3 +6,6 @@
 [submodule "contrib/parameter-setter"]
 	path = contrib/parameter-setter
 	url = https://git.scc.kit.edu/gp1285/parameter-setter
+[submodule "ui/ifc/wala/joana.ui.ifc.wala.console/src/edu/kit/joana/component/connector"]
+	path = ui/ifc/wala/joana.ui.ifc.wala.console/src/edu/kit/joana/component/connector
+	url = https://github.com/reichef/JOANAConnector

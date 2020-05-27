@@ -1,5 +1,10 @@
 package edu.kit.joana.ui.ifc.wala.console.console.component_based;
 
+import edu.kit.joana.component.connector.Flows;
+import edu.kit.joana.component.connector.JoanaCall;
+import edu.kit.joana.component.connector.JoanaCallReturn;
+import edu.kit.joana.component.connector.Method;
+
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
@@ -16,11 +21,9 @@ public abstract class FlowAnalyzer {
     }
   }
 
-  protected final Association association;
   protected Flows knownFlows;
 
-  public FlowAnalyzer(Association association){
-    this.association = association;
+  public FlowAnalyzer(){
     this.knownFlows = new Flows();
   }
 
@@ -44,5 +47,11 @@ public abstract class FlowAnalyzer {
 
   public void setKnownFlows(Flows knownFlows){
     this.knownFlows = knownFlows;
+  }
+
+  public JoanaCallReturn processJoanaCall(JoanaCall call){
+    setClassPath(call.classPath);
+    setKnownFlows(call.knownFlows);
+    return new JoanaCallReturn(analyze(call.sources, call.sinks));
   }
 }

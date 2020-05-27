@@ -17,6 +17,10 @@ import edu.kit.joana.ifc.sdg.core.violations.*;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.ifc.wala.console.console.IFCConsole;
 import edu.kit.joana.ui.ifc.wala.console.console.Pattern;
+import edu.kit.joana.component.connector.Flows;
+import edu.kit.joana.component.connector.Method;
+import edu.kit.joana.component.connector.MethodParameter;
+import edu.kit.joana.component.connector.MethodReturn;
 import edu.kit.joana.ui.ifc.wala.console.io.PrintStreamConsoleWrapper;
 import edu.kit.joana.util.NullPrintStream;
 import gnu.trove.map.TObjectIntMap;
@@ -52,12 +56,7 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
     this(false);
   }
 
-  public BasicFlowAnalyzer(boolean connectReturnWithParams){
-    this(new Association(), connectReturnWithParams);
-  }
-
-  public BasicFlowAnalyzer(Association association, boolean connectReturnWithParams) {
-    super(association);
+  public BasicFlowAnalyzer(boolean connectReturnWithParams) {
     BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
     this.console = new IFCConsole(in,
         new PrintStreamConsoleWrapper(new NullPrintStream(), new NullPrintStream(), in, System.out, new NullPrintStream()));
@@ -166,7 +165,7 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
     return new InterfaceImplementationClass.FunctionBodyGenerator() {
       @Override public void generate(InterfaceImplementationClass klass, AbstractRootMethod method, IMethod origMethod) {
 
-        Method compMethod = Method.forIMethod(origMethod);
+        Method compMethod = Connector.methodForIMethod(origMethod);
 
         int[] depForRetLocal = new int[]{method.addBinaryInstruction(IBinaryOpInstruction.Operator.OR,
             method.getValueNumberForIntConstant(0),

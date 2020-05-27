@@ -1,9 +1,6 @@
 package edu.kit.joana.ui.ifc.wala.console.console.component_based;
 
-import edu.kit.joana.component.connector.Flows;
-import edu.kit.joana.component.connector.Method;
-import edu.kit.joana.component.connector.MethodParameter;
-import edu.kit.joana.component.connector.MethodReturn;
+import edu.kit.joana.component.connector.*;
 import org.junit.Assert;
 
 import java.util.Arrays;
@@ -11,6 +8,7 @@ import java.util.Arrays;
 public class Test {
 
   public static void main(String[] args) {
+    test2WithZipRoundTrip();
     test2();
     testReturnConnectedToParam();
     testReturnNotConnectedToParamViaFlowsAndMethodParamSource();
@@ -33,7 +31,14 @@ public class Test {
     flowAnalyzer.setClassPath("component_sample");
     Flows flows = flowAnalyzer
         .analyze(Arrays.asList(new Method("Source", "a")), Arrays.asList(new Method("Sink", "a"), new MethodReturn("Sink", "a")));
-    System.out.println(flows);
+    System.out.println("test2: " + flows);
+  }
+
+  static void test2WithZipRoundTrip() {
+    FlowAnalyzer flowAnalyzer = new BasicFlowAnalyzer();
+    JoanaCall joanaCall = new JoanaCall("component_sample", new Flows(), Arrays.asList(new Method("Source", "a")),
+        Arrays.asList(new Method("Sink", "a"), new MethodReturn("Sink", "a")));
+    joanaCall.roundTrip(c -> System.out.println("test2Z: " + flowAnalyzer.processJoanaCall(c)));
   }
 
   //@org.junit.Test

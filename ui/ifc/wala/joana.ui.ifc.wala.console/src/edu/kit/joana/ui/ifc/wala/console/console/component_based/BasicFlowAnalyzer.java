@@ -60,8 +60,9 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
     BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
     this.console = new IFCConsole(in,
         new PrintStreamConsoleWrapper(new NullPrintStream(), new NullPrintStream(), in, System.out, new NullPrintStream()));
-    this.console.setPointsTo("OBJECT_SENSITIVE"); // use a slower but more precise analysis by default
+    //this.console.setPointsTo("OBJECT_SENSITIVE"); // use a slower but more precise analysis by default
     this.console.setUninitializedFieldTypeMatcher(typeReference -> true);
+    //this.console.setUninitializedFieldTypeMatcher(typeReference -> typeReference.toString().contains("edu.kit.") || typeReference.toString().contains("helper"));
     this.console.setAnnotateOverloadedMethods(true);
     this.connectReturnWithParams = connectReturnWithParams;
   }

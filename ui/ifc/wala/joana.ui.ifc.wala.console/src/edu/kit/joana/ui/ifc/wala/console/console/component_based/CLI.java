@@ -20,10 +20,10 @@ public class CLI implements Callable<Integer> {
   @Command(name = "analyze", mixinStandardHelpOptions = true, description = "Analyze and store result as json-io serialized JoanaCallReturn")
   static class Analyze implements Callable<Integer> {
 
-    @CommandLine.Parameters(description = "path to json-io serialized JoanaCall object")
+    @CommandLine.Parameters(description = "path to json-io serialized JoanaCall object", index="0")
     private Path input;
 
-    @CommandLine.Parameters(description = "path to generated json-io serialized JoanaCallResult object")
+    @CommandLine.Parameters(description = "path to generated json-io serialized JoanaCallResult object", index="1")
     private Path output;
 
     @Override public Integer call() throws Exception {

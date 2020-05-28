@@ -30,11 +30,16 @@ public class CLI implements Callable<Integer> {
 
     @Override public Integer call() throws Exception {
       if (new ZipInputStream(Files.newInputStream(input)).getNextEntry() != null){
+        System.out.println("Load from zip");
         JoanaCall.loadZipFile(input, c -> {
+          System.out.println(c);
           new BasicFlowAnalyzer().processJoanaCall(c).store(output);
         });
       } else {
-        new BasicFlowAnalyzer().processJoanaCall(JoanaCall.load(input)).store(output);
+        System.out.println("Load from file");
+        JoanaCall call = JoanaCall.load(input);
+        System.out.println(call);
+        new BasicFlowAnalyzer().processJoanaCall(call).store(output);
       }
       return 0;
     }

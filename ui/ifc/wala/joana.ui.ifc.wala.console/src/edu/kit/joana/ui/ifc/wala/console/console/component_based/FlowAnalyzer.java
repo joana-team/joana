@@ -8,6 +8,8 @@ import edu.kit.joana.component.connector.Method;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -21,6 +23,8 @@ public abstract class FlowAnalyzer {
     }
   }
 
+  protected Logger LOGGER = Logger.getLogger(getClass().getName());
+
   protected Flows knownFlows;
 
   public FlowAnalyzer(){
@@ -30,6 +34,10 @@ public abstract class FlowAnalyzer {
   public abstract void setClassPath(String classPath);
 
   public abstract void saveDebugGraph(Path path);
+
+  public void setLogLevel(Level level){
+    LOGGER.setLevel(level);
+  }
 
   /**
    * Find the connections between the given sources and sinks

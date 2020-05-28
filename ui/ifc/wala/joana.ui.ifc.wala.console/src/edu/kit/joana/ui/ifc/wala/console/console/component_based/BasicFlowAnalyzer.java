@@ -27,6 +27,7 @@ import gnu.trove.map.TObjectIntMap;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -59,7 +60,25 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
   public BasicFlowAnalyzer(boolean connectReturnWithParams) {
     BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
     this.console = new IFCConsole(in,
-        new PrintStreamConsoleWrapper(new NullPrintStream(), new NullPrintStream(), in, System.out, new NullPrintStream()));
+        new PrintStreamConsoleWrapper(new PrintStream(System.out){
+          @Override public void print(String s) {
+            if (s.trim().length() > 0) {
+              LOGGER.fine(s);
+            }
+          }
+        }, new PrintStream(System.out){
+          @Override public void print(String s) {
+            if (s.trim().length() > 0) {
+              LOGGER.info(s);
+            }
+          }
+        }, in, System.out, new PrintStream(System.out){
+          @Override public void print(String s) {
+            if (s.trim().length() > 0){
+              LOGGER.info(s);
+            }
+          }
+        }));
     //this.console.setPointsTo("OBJECT_SENSITIVE"); // use a slower but more precise analysis by default
     this.console.setUninitializedFieldTypeMatcher(typeReference -> true);
     //this.console.setUninitializedFieldTypeMatcher(typeReference -> typeReference.toString().contains("edu.kit.") || typeReference.toString().contains("helper"));
@@ -114,14 +133,20 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
   }
 
   @Override public Flows analyze(List<Method> sources, List<Method> sinks, Collection<String> interfacesToImplement) {
+    LOGGER.info(() -> String.format("Start analysis with sources=%s, sinks=%s, interfacesToImplement=%s",
+        Arrays.toString(sources.toArray()), Arrays.toString(sinks.toArray()), Arrays.toString(interfacesToImplement.toArray())));
     configureInterfaceImplementation(interfacesToImplement);
+    LOGGER.info(() -> "Configured interfaces, select entry points");
     selectEntryPoints(sources);
+    LOGGER.info(() -> "Selected interfaces, build SDG");
     if (!console.buildSDGIfNeeded()){
       throw new AnalysisException("Cannot build SDG");
     }
     clear();
+    LOGGER.info("Built SDG, select sources and sinks");
     selectSources(sources);
     selectSinks(sinks);
+    LOGGER.info("Start analysis");
     return analyze(false);
   }
 

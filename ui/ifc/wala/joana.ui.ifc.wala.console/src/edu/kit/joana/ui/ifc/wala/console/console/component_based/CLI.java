@@ -6,6 +6,7 @@ import picocli.CommandLine;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.Callable;
+import java.util.logging.Logger;
 import java.util.zip.ZipInputStream;
 
 import static picocli.CommandLine.Command;
@@ -29,16 +30,15 @@ public class CLI implements Callable<Integer> {
     private Path output;
 
     @Override public Integer call() throws Exception {
+      Logger LOGGER = Logger.getLogger("CLI");
       if (new ZipInputStream(Files.newInputStream(input)).getNextEntry() != null){
-        System.out.println("Load from zip");
         JoanaCall.loadZipFile(input, c -> {
-          System.out.println(c);
+          Logger.getGlobal().setLevel(c.logLevel);
           new BasicFlowAnalyzer().processJoanaCall(c).store(output);
         });
       } else {
-        System.out.println("Load from file");
         JoanaCall call = JoanaCall.load(input);
-        System.out.println(call);
+        Logger.getGlobal().setLevel(call.logLevel);
         new BasicFlowAnalyzer().processJoanaCall(call).store(output);
       }
       return 0;

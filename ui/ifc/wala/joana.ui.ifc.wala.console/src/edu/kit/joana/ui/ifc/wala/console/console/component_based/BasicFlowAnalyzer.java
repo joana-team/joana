@@ -10,6 +10,10 @@ import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
 import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
 import com.ibm.wala.types.TypeReference;
 import edu.kit.joana.api.sdg.*;
+import edu.kit.joana.component.connector.Flows;
+import edu.kit.joana.component.connector.Method;
+import edu.kit.joana.component.connector.MethodParameter;
+import edu.kit.joana.component.connector.MethodReturn;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.conc.DataConflict;
 import edu.kit.joana.ifc.sdg.core.conc.OrderConflict;
@@ -17,10 +21,6 @@ import edu.kit.joana.ifc.sdg.core.violations.*;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.ifc.wala.console.console.IFCConsole;
 import edu.kit.joana.ui.ifc.wala.console.console.Pattern;
-import edu.kit.joana.component.connector.Flows;
-import edu.kit.joana.component.connector.Method;
-import edu.kit.joana.component.connector.MethodParameter;
-import edu.kit.joana.component.connector.MethodReturn;
 import edu.kit.joana.ui.ifc.wala.console.io.PrintStreamConsoleWrapper;
 import edu.kit.joana.util.NullPrintStream;
 import gnu.trove.map.TObjectIntMap;
@@ -33,6 +33,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.ibm.wala.ipa.callgraph.UninitializedFieldHelperOptions.FieldTypeMatcher;
 import static edu.kit.joana.api.IFCType.CLASSICAL_NI;
 import static edu.kit.joana.api.sdg.SDGBuildPreparation.searchProgramParts;
 import static edu.kit.joana.ui.ifc.wala.console.console.ImprovedCLI.programPartToString;
@@ -81,7 +82,8 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
         }));
     //this.console.setPointsTo("OBJECT_SENSITIVE"); // use a slower but more precise analysis by default
     this.console.setUninitializedFieldTypeMatcher(typeReference -> true);
-    //this.console.setUninitializedFieldTypeMatcher(typeReference -> typeReference.toString().contains("edu.kit.") || typeReference.toString().contains("helper"));
+    this.console.setUninitializedFieldTypeMatcher(typeReference -> FieldTypeMatcher.matchesPackage(typeReference, "edu.kit")
+        || FieldTypeMatcher.matchesPackage(typeReference, "fieldhelper"));
     this.console.setAnnotateOverloadedMethods(true);
     this.connectReturnWithParams = connectReturnWithParams;
   }

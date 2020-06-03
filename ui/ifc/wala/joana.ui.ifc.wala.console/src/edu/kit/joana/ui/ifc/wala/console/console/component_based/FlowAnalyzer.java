@@ -8,6 +8,7 @@ import edu.kit.joana.component.connector.Method;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -57,9 +58,12 @@ public abstract class FlowAnalyzer {
     this.knownFlows = knownFlows;
   }
 
+  public abstract void setAllowedPackagesForUninitializedFields(Optional<List<String>> allowedPackagesForUninitializedFields);
+
   public JoanaCallReturn processJoanaCall(JoanaCall call){
     setClassPath(call.classPath);
     setKnownFlows(call.knownFlows);
+    setAllowedPackagesForUninitializedFields(call.allowedPackagesForUninitializedFields);
     return new JoanaCallReturn(analyze(call.sources, call.sinks));
   }
 }

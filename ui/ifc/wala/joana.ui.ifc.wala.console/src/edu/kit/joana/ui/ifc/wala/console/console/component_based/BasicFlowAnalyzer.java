@@ -54,36 +54,33 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
 
   private final boolean connectReturnWithParams;
 
-  public BasicFlowAnalyzer(){
+  public BasicFlowAnalyzer() {
     this(false);
   }
 
   public BasicFlowAnalyzer(boolean connectReturnWithParams) {
     BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-    this.console = new IFCConsole(in,
-        new PrintStreamConsoleWrapper(new PrintStream(System.out){
-          @Override public void print(String s) {
-            if (s.trim().length() > 0) {
-              LOGGER.fine(s);
-            }
-          }
-        }, new PrintStream(System.out){
-          @Override public void print(String s) {
-            if (s.trim().length() > 0) {
-              LOGGER.info(s);
-            }
-          }
-        }, in, System.out, new PrintStream(System.out){
-          @Override public void print(String s) {
-            if (s.trim().length() > 0){
-              LOGGER.info(s);
-            }
-          }
-        }));
-    //this.console.setPointsTo("OBJECT_SENSITIVE"); // use a slower but more precise analysis by default
-    this.console.setUninitializedFieldTypeMatcher(typeReference -> true);
-    this.console.setUninitializedFieldTypeMatcher(typeReference -> FieldTypeMatcher.matchesPackage(typeReference, "edu.kit")
-        || FieldTypeMatcher.matchesPackage(typeReference, "fieldhelper"));
+    this.console = new IFCConsole(in, new PrintStreamConsoleWrapper(new PrintStream(System.out) {
+      @Override public void print(String s) {
+        if (s.trim().length() > 0) {
+          LOGGER.fine(s);
+        }
+      }
+    }, new PrintStream(System.out) {
+      @Override public void print(String s) {
+        if (s.trim().length() > 0) {
+          LOGGER.info(s);
+        }
+      }
+    }, in, System.out, new PrintStream(System.out) {
+      @Override public void print(String s) {
+        if (s.trim().length() > 0) {
+          LOGGER.info(s);
+        }
+      }
+    }));
+    this.console.setPointsTo("OBJECT_SENSITIVE"); // use a slower but more precise analysis by default
+    this.console.setUninitializedFieldTypeMatcher(t -> true);
     this.console.setAnnotateOverloadedMethods(true);
     this.connectReturnWithParams = connectReturnWithParams;
   }
@@ -92,56 +89,52 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
     console.setClassPath(classPath);
   }
 
-  private List<String> byteCodeNamesOfInterfacesToImplement(Collection<String> interfacesToImplement){
-    return searchProgramParts(new NullPrintStream(), console.getClassPath(), true, false, false, false).stream()
-        .map(p -> {
-          return p.acceptVisitor(new SDGProgramPartVisitorWithDefault<String, Object>(){
+  private List<String> byteCodeNamesOfInterfacesToImplement(Collection<String> interfacesToImplement) {
+    return searchProgramParts(new NullPrintStream(), console.getClassPath(), true, false, false, false).stream().map(p -> {
+      return p.acceptVisitor(new SDGProgramPartVisitorWithDefault<String, Object>() {
 
-            @Override protected String visitProgramPart(SDGProgramPart programPart, Object data) {
-              return null;
-            }
+        @Override protected String visitProgramPart(SDGProgramPart programPart, Object data) {
+          return null;
+        }
 
-            @Override protected String visitMethod(SDGMethod m, Object data) {
-              if (interfacesToImplement.contains(m.getSignature().getDeclaringType().toHRStringShort())) {
-                return m.getSignature().getDeclaringType().toBCString();
-              }
-              return null;
-            }
-          }, null);
-        })
-        .filter(Objects::nonNull)
-        .distinct().collect(Collectors.toList());
+        @Override protected String visitMethod(SDGMethod m, Object data) {
+          if (interfacesToImplement.contains(m.getSignature().getDeclaringType().toHRStringShort())) {
+            return m.getSignature().getDeclaringType().toBCString();
+          }
+          return null;
+        }
+      }, null);
+    }).filter(Objects::nonNull).distinct().collect(Collectors.toList());
   }
 
-  private List<IMethod> getIMethods(InterfaceImplementationClass klass, Method method){
-    return searchProgramParts(new NullPrintStream(), console.getClassPath(), true, false, false, false).stream()
-        .map(p -> {
-          return p.acceptVisitor(new SDGProgramPartVisitorWithDefault<IMethod, Object>(){
+  private List<IMethod> getIMethods(InterfaceImplementationClass klass, Method method) {
+    return searchProgramParts(new NullPrintStream(), console.getClassPath(), true, false, false, false).stream().map(p -> {
+      return p.acceptVisitor(new SDGProgramPartVisitorWithDefault<IMethod, Object>() {
 
-            @Override protected IMethod visitProgramPart(SDGProgramPart programPart, Object data) {
-              return null;
-            }
+        @Override protected IMethod visitProgramPart(SDGProgramPart programPart, Object data) {
+          return null;
+        }
 
-            @Override protected IMethod visitMethod(SDGMethod m, Object data) {
-              if (method.getClassName().equals(m.getSignature().getDeclaringType().toHRStringShort())) {
-                return klass.getClassHierarchy().lookupClass(m.getSignature().getDeclaringType().toBCString()).getAllMethods().stream().filter(im -> im.getName().toString().equals(m.getSignature().getMethodName())).findFirst().get();
-              }
-              return null;
-            }
-          }, null);
-        })
-        .filter(Objects::nonNull)
-        .distinct().collect(Collectors.toList());
+        @Override protected IMethod visitMethod(SDGMethod m, Object data) {
+          if (method.getClassName().equals(m.getSignature().getDeclaringType().toHRStringShort())) {
+            return klass.getClassHierarchy().lookupClass(m.getSignature().getDeclaringType().toBCString()).getAllMethods().stream()
+                .filter(im -> im.getName().toString().equals(m.getSignature().getMethodName())).findFirst().get();
+          }
+          return null;
+        }
+      }, null);
+    }).filter(Objects::nonNull).distinct().collect(Collectors.toList());
   }
 
   @Override public Flows analyze(List<Method> sources, List<Method> sinks, Collection<String> interfacesToImplement) {
-    LOGGER.info(() -> String.format("Start analysis with sources=%s, sinks=%s, interfacesToImplement=%s",
-        Arrays.toString(sources.toArray()), Arrays.toString(sinks.toArray()), Arrays.toString(interfacesToImplement.toArray())));
+    LOGGER.info(() -> String
+        .format("Start analysis with sources=%s, sinks=%s, interfacesToImplement=%s", Arrays.toString(sources.toArray()),
+            Arrays.toString(sinks.toArray()), Arrays.toString(interfacesToImplement.toArray())));
     configureInterfaceImplementation(interfacesToImplement);
     LOGGER.info(() -> "Configured interfaces, select entry points");
     selectEntryPoints(sources);
     LOGGER.info(() -> "Selected interfaces, build SDG");
-    if (!console.buildSDGIfNeeded()){
+    if (!console.buildSDGIfNeeded()) {
       throw new AnalysisException("Cannot build SDG");
     }
     clear();
@@ -156,48 +149,48 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
     console.new Wrapper().saveSDG(path.toFile());
   }
 
-  private Pattern getPatternForMethod(Method method){
+  private Pattern getPatternForMethod(Method method) {
     return new Pattern(method.toRegexp(), true);
   }
 
-  private String getRegexpForMethods(List<Method> methods){
+  private String getRegexpForMethods(List<Method> methods) {
     return "(" + methods.stream().map(Method::toRegexp).collect(Collectors.joining(")|(")) + ")";
   }
 
-  private Pattern getPatternForMethods(List<Method> methods){
+  private Pattern getPatternForMethods(List<Method> methods) {
     return new Pattern(getRegexpForMethods(methods), true);
   }
 
-  private void selectEntryPoints(List<Method> methods){
+  private void selectEntryPoints(List<Method> methods) {
     String regexp = getRegexpForMethods(methods);
     List<String> entities = searchProgramParts(new NullPrintStream(), console.getClassPath(), true, false, true, false).stream()
         .map(p -> {
           String s = programPartToString(p);
-          if (s != null && s.matches(regexp)){
+          if (s != null && s.matches(regexp)) {
             return programPartToString(p.getOwningMethod());
           }
           return null;
         }).filter(Objects::nonNull).collect(Collectors.toList());
-    if (entities.isEmpty()){
+    if (entities.isEmpty()) {
       throw new AnalysisException("No EntryPoints found");
     }
     console.setAdditionalEntryMethods(entities);
   }
 
-  private void configureInterfaceImplementation(Collection<String> interfacesToImplement){
-     this.console.setInterfaceImplOptions(new InterfaceImplementationOptions(byteCodeNamesOfInterfacesToImplement(interfacesToImplement),
-        createGenerator()));
+  private void configureInterfaceImplementation(Collection<String> interfacesToImplement) {
+    this.console.setInterfaceImplOptions(
+        new InterfaceImplementationOptions(byteCodeNamesOfInterfacesToImplement(interfacesToImplement), createGenerator()));
   }
 
-  private InterfaceImplementationClass.FunctionBodyGenerator createGenerator(){
+  private InterfaceImplementationClass.FunctionBodyGenerator createGenerator() {
     return new InterfaceImplementationClass.FunctionBodyGenerator() {
       @Override public void generate(InterfaceImplementationClass klass, AbstractRootMethod method, IMethod origMethod) {
 
         Method compMethod = Connector.methodForIMethod(origMethod);
 
-        int[] depForRetLocal = new int[]{method.addBinaryInstruction(IBinaryOpInstruction.Operator.OR,
-            method.getValueNumberForIntConstant(0),
-            method.getValueNumberForIntConstant(0))}; // see below
+        int[] depForRetLocal = new int[] {
+            method.addBinaryInstruction(IBinaryOpInstruction.Operator.OR, method.getValueNumberForIntConstant(0),
+                method.getValueNumberForIntConstant(0)) }; // see below
         TypeReference depForRetLocalType = TypeReference.Int;
 
         boolean usedDepForLocal = false;
@@ -207,39 +200,38 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
         for (Map.Entry<Method, Set<Method>> entry : knownFlows.forMethod(compMethod).onlyParameterSources()
             .filterSinks(m -> isPresent(m.discardMiscInformation()))) {
           usedDepForLocal = true;
-          MethodParameter parameter = (MethodParameter)entry.getKey();
-            for (Method intermMethod : entry.getValue()) {
-              // call the methods on this object
-              getIMethods(klass, intermMethod).forEach(intermIMethod -> {
-              int[] params = IntStream.range(0, intermIMethod.getNumberOfParameters())
-                  .map(i -> {
-                    if (i == parameter.parameter){
-                      return parameter.parameter + 1; // the parameter we want to create a dependency for
-                    }
-                    return klass.addLoadForType(method, intermIMethod.getParameterType(i));
-                  }).toArray();
-                int methodRet = klass.addInvocation(method, intermIMethod, params).getDef(); // TODO: correct?
-                if (knownFlows.contains(intermMethod, new MethodReturn(compMethod))){
-                  // param → some method → return
-                  // boolean depForRet = false;
-                  // …
-                  // if (some method() == some method()){ depForRet = depForRet | 1; }
-                  // …
-                  // dummy return with depForRet
-
-                  method.addConditionalBranchInstruction(IConditionalBranchInstruction.Operator.NE,
-                      intermIMethod.getReturnType(), methodRet, methodRet, () -> {
-                        depForRetLocal[0] = method.addBinaryInstruction(IBinaryOpInstruction.Operator.OR,
-                            method.getValueNumberForIntConstant(1), depForRetLocal[0]);
-                      });
-                } else {
-                  // param → some method
-                  // just call the method
+          MethodParameter parameter = (MethodParameter) entry.getKey();
+          for (Method intermMethod : entry.getValue()) {
+            // call the methods on this object
+            getIMethods(klass, intermMethod).forEach(intermIMethod -> {
+              int[] params = IntStream.range(0, intermIMethod.getNumberOfParameters()).map(i -> {
+                if (i == parameter.parameter) {
+                  return parameter.parameter + 1; // the parameter we want to create a dependency for
                 }
-              });
-            }
-          }
+                return klass.addLoadForType(method, intermIMethod.getParameterType(i));
+              }).toArray();
+              int methodRet = klass.addInvocation(method, intermIMethod, params).getDef(); // TODO: correct?
+              if (knownFlows.contains(intermMethod, new MethodReturn(compMethod))) {
+                // param → some method → return
+                // boolean depForRet = false;
+                // …
+                // if (some method() == some method()){ depForRet = depForRet | 1; }
+                // …
+                // dummy return with depForRet
 
+                method.addConditionalBranchInstruction(IConditionalBranchInstruction.Operator.NE, intermIMethod.getReturnType(),
+                    methodRet, methodRet, () -> {
+                      depForRetLocal[0] = method
+                          .addBinaryInstruction(IBinaryOpInstruction.Operator.OR, method.getValueNumberForIntConstant(1),
+                              depForRetLocal[0]);
+                    });
+              } else {
+                // param → some method
+                // just call the method
+              }
+            });
+          }
+        }
 
         if (usedDepForLocal) {
 
@@ -256,7 +248,7 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
           method.addDummyReturnCondition(type, parameter.parameter + 1, method.getReturnType(), ret);
         }
 
-        if (connectReturnWithParams){
+        if (connectReturnWithParams) {
           CONNECT_RETURN_WITH_PARAMS.generate(klass, method, origMethod);
         } else {
           InterfaceImplementationClass.FunctionBodyGenerator.generateReturn(klass, method);
@@ -276,46 +268,53 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
   /**
    * Remove all annotations
    */
-  private void clear(){
+  private void clear() {
     console.reset();
   }
 
-  private void selectSourcesOrSinks(List<Method> methods, boolean source){
+  private void selectSourcesOrSinks(List<Method> methods, boolean source) {
     IFCConsole.Wrapper wrapper = console.new Wrapper();
     List<String> annotatableEntities = wrapper.getAnnotatableEntities(getRegexpForMethods(methods));
     int matchedMethods = 0;
     if (annotatableEntities.size() > 0) {
       for (String annotatableEntity : annotatableEntities) {
         // System.out.println(String.format("%s %s", source ? "Source" : "Sink", annotatableEntity));
-        if (source){
+        if (source) {
           wrapper.selectSource(annotatableEntity, "high");
         } else {
           wrapper.selectSink(annotatableEntity, "low");
         }
-        if (!annotatableEntity.endsWith("->") && annotatableEntity.contains("(")){
+        if (!annotatableEntity.endsWith("->") && annotatableEntity.contains("(")) {
           matchedMethods += 1;
         }
       }
     }
     wrapper.setAnnotationsInIFCAnalysis();
-    if (matchedMethods < methods.size()){
+    if (matchedMethods < methods.size()) {
       throw new AnalysisException("Cannot fully select " + (source ? "sources" : "sinks"));
     }
   }
 
-  private void selectSources(List<Method> methods){
+  private void selectSources(List<Method> methods) {
     selectSourcesOrSinks(methods, true);
   }
 
-  private void selectSinks(List<Method> methods){
+  private void selectSinks(List<Method> methods) {
     selectSourcesOrSinks(methods, false);
   }
 
-  private Flows analyze(boolean includeClasses){
+  @Override
+  public void setAllowedPackagesForUninitializedFields(Optional<List<String>> allowedPackagesForUninitializedFields){
+    this.console.setUninitializedFieldTypeMatcher(typeReference ->
+        allowedPackagesForUninitializedFields.map(l -> l.stream().anyMatch(p -> FieldTypeMatcher.matchesPackage(typeReference, p)))
+            .orElse(true) || FieldTypeMatcher.matchesPackage(typeReference, "fieldhelper"));
+  }
+
+  private Flows analyze(boolean includeClasses) {
     Map<Method, Set<Method>> flows = new HashMap<>();
 
     Optional<Collection<? extends IViolation<SecurityNode>>> viosOpt = console.doIFCAndOptAndCatch(CLASSICAL_NI);
-    if (!viosOpt.isPresent()){
+    if (!viosOpt.isPresent()) {
       return new Flows(flows);
     }
     Collection<? extends IViolation<SecurityNode>> vios = viosOpt.get();
@@ -326,7 +325,7 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
     for (IViolation<SDGProgramPart> vio : groupedIFlows.keySet()) {
       vio.accept(new IViolationVisitor<SDGProgramPart>() {
 
-        Optional<Method> convertProgramPartToMethod(SDGProgramPart part, boolean includeClasses){
+        Optional<Method> convertProgramPartToMethod(SDGProgramPart part, boolean includeClasses) {
           return part.acceptVisitor(new SDGProgramPartVisitorWithDefault<Optional<Method>, Object>() {
 
             @Override protected Optional<Method> visitClass(SDGClass cl, Object data) {
@@ -341,7 +340,7 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
               return Optional.of(visitMethod(m.getSignature()));
             }
 
-            protected Method visitMethod(JavaMethodSignature signature){
+            protected Method visitMethod(JavaMethodSignature signature) {
               String[] parts = signature.getDeclaringType().toHRString().split("\\.");
               return new Method(parts[parts.length - 1], signature.getMethodName());
             }
@@ -361,32 +360,27 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
           }, null);
         }
 
-        @Override
-        public void visitIllegalFlow(IIllegalFlow<SDGProgramPart> iFlow) {
+        @Override public void visitIllegalFlow(IIllegalFlow<SDGProgramPart> iFlow) {
           Optional<Method> source = convertProgramPartToMethod(iFlow.getSource(), includeClasses);
           Optional<Method> sink = convertProgramPartToMethod(iFlow.getSink(), includeClasses);
-          if (source.isPresent() && sink.isPresent()){
-            if (!flows.containsKey(source.get())){
+          if (source.isPresent() && sink.isPresent()) {
+            if (!flows.containsKey(source.get())) {
               flows.put(source.get(), new HashSet<>());
             }
             flows.get(source.get()).add(sink.get());
           }
         }
 
-        @Override
-        public void visitDataConflict(DataConflict<SDGProgramPart> dataConf) {
+        @Override public void visitDataConflict(DataConflict<SDGProgramPart> dataConf) {
         }
 
-        @Override
-        public void visitOrderConflict(OrderConflict<SDGProgramPart> orderConf) {
+        @Override public void visitOrderConflict(OrderConflict<SDGProgramPart> orderConf) {
         }
 
-        @Override
-        public <L> void visitUnaryViolation(IUnaryViolation<SDGProgramPart, L> unVio) {
+        @Override public <L> void visitUnaryViolation(IUnaryViolation<SDGProgramPart, L> unVio) {
         }
 
-        @Override
-        public <L> void visitBinaryViolation(IBinaryViolation<SDGProgramPart, L> binVio) {
+        @Override public <L> void visitBinaryViolation(IBinaryViolation<SDGProgramPart, L> binVio) {
         }
 
       });

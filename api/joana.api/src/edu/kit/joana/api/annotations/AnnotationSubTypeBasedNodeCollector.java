@@ -18,6 +18,7 @@ import edu.kit.joana.ifc.sdg.util.JavaType;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -76,12 +77,24 @@ public class AnnotationSubTypeBasedNodeCollector extends AnnotationTypeBasedNode
   }
 
   @Override protected Set<SDGNode> visitParameter(SDGFormalParameter param, AnnotationType type) {
-    return getOverloadingMethodsAndSelf(param.getOwningMethod()).stream().map(m -> m.getParameter(param.getIndex()))
+    return getOverloadingMethodsAndSelf(param.getOwningMethod()).stream().map(m -> {
+      if (m == null){
+        System.err.println(String.format("No methods for %s", param.getOwningMethod()));
+        return null;
+      }
+      return m.getParameter(param.getIndex());
+    }).filter(Objects::nonNull)
         .flatMap(p -> collector.visitParameter(p, type).stream()).collect(Collectors.toSet());
   }
 
   @Override protected Set<SDGNode> visitMethod(SDGMethod method, AnnotationType type) {
-    return getOverloadingMethodsAndSelfCached(method).stream().flatMap(m -> collector.visitMethod(m, type).stream())
+    return getOverloadingMethodsAndSelfCached(method).stream().map(m -> {
+      if (m == null){
+        System.err.println(String.format("No methods for %s", method));
+        return null;
+      }
+      return method;
+    }).filter(Objects::nonNull).flatMap(m -> collector.visitMethod(m, type).stream())
         .collect(Collectors.toSet());
   }
 

@@ -3,51 +3,33 @@ package edu.kit.joana.ui.ifc.wala.console.console.component_based;
 import edu.kit.joana.component.connector.*;
 import org.junit.Assert;
 
-import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.logging.Level;
 
 public class Test {
 
   public static void main(String[] args) throws IOException, InterruptedException {
-    ProcessBuilder processBuilder = new ProcessBuilder();
-    processBuilder.directory(new File("/home/bechberger-local/Code/joana/dist"));
-
-    System.out.println(processBuilder.directory().getAbsolutePath());
-
-
-    processBuilder.redirectErrorStream();
-    processBuilder.redirectOutput();
-      processBuilder.command(
-         "java",
-          "-cp",
-          "joana.ui.ifc.wala.console.jar" ,
-          "edu.kit.joana.ui.ifc.wala.console.console.component_based.CLI",  "analyze",
-          "42.json",
-          "helloWorld.json"
-      );
-
-
-    Process process = processBuilder.start();
-
-
-    int exitVal = process.waitFor();
-
-    System.out.println(exitVal);
-
-    if (exitVal == 0) {
-      System.out.println("Success!");
-    } else {
-      System.out.println("Failure!");
-    }
-
+    testServer();
     test2WithZipRoundTrip();
     test2();
     testReturnConnectedToParam();
     testReturnNotConnectedToParamViaFlowsAndMethodParamSource();
     testReturnNotConnectedToParamViaFlows();
     testReturnConnectedToParamViaFlows();
+  }
+
+  static void testServer() throws UnknownHostException {
+    Thread thread = new Thread(() -> CLIServer.run());
+    thread.start();
+    FlowAnalyzer flowAnalyzer = new BasicFlowAnalyzer();
+    JoanaCall joanaCall = new JoanaCall("component_sample", new Flows(), Arrays.asList(new Method("Source", "a")),
+        Arrays.asList(new Method("Sink", "a"), new MethodReturn("Sink", "a")), Level.INFO);
+    JoanaCallReturn result = joanaCall.processOnServer(InetAddress.getLocalHost().getHostName());
+    Assert.assertEquals(7, result.flows.size());
+    thread.interrupt();
   }
 
   //@org.junit.Test

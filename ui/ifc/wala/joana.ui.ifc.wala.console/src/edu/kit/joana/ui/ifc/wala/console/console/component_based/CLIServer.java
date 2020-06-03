@@ -29,10 +29,14 @@ public class CLIServer {
 
     @Override public void handle(HttpExchange exchange) throws IOException {
       LOGGER.info(String.format("Handle %s", exchange.getRemoteAddress()));
+      LOGGER.info("Create tmp file");
       Path tmpFile = Files.createTempFile("", ".zip");
+      LOGGER.info("Copy file");
       IOUtils.copy(exchange.getRequestBody(), Files.newOutputStream(tmpFile));
+      LOGGER.info("Load zip file");
       JoanaCall.loadZipFile(tmpFile, c -> {
         Logger.getGlobal().setLevel(c.logLevel);
+        LOGGER.info("Process JoanaCall");
         JoanaCallReturn joanaCallReturn = new BasicFlowAnalyzer().processJoanaCall(c);
         String response = Util.toJson(joanaCallReturn);
         try {

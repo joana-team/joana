@@ -50,16 +50,17 @@ public class CLIServer {
       Files.delete(tmpFile);
     }
   }
+
   static void run(){
-    run(SERVER_PORT);
+    run(SERVER_PORT, 1);
   }
 
-  static void run(int port){
+  static void run(int port, int threads){
     try {
       HttpServer server  = HttpServer.create(new InetSocketAddress(InetAddress.getLocalHost(), port), 0);
       System.out.println(String.format("Running on %s on port %s", InetAddress.getLocalHost(), port));
       server.createContext("/", new ServerHttpHandler());
-      server.setExecutor(Executors.newSingleThreadExecutor());
+      server.setExecutor(threads == 1 ? Executors.newSingleThreadExecutor() : Executors.newFixedThreadPool(threads));
       server.start();
       Thread.currentThread().join();
     } catch (IOException | InterruptedException e) {
@@ -68,8 +69,8 @@ public class CLIServer {
   }
 
   public static void main(String[] args) throws IOException, InterruptedException {
-    System.out.println(String.format("Usage: program [PORT|default is %s]", SERVER_PORT));
-    run(args.length == 0 ? SERVER_PORT : Integer.parseInt(args[0]));
+    System.out.println(String.format("Usage: program [PORT|default is %s] [THREADS|default is 1]", SERVER_PORT));
+    run(args.length == 0 ? SERVER_PORT : Integer.parseInt(args[0]), args.length == 2 ? Integer.parseInt(args[1]) : 1);
   }
 
 }

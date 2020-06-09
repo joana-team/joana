@@ -7,14 +7,6 @@
  */
 package edu.kit.joana.api.annotations;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGProgram;
@@ -23,6 +15,8 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
+
+import java.util.*;
 
 public class IFCAnnotationApplicator {
 
@@ -127,7 +121,7 @@ public class IFCAnnotationApplicator {
 				} else {
 					newLevel = ann.getLevel1();
 				}
-				if (sNode.getProvided() != null) throw new IllegalStateException(String.format("Error while annotating node %s: Cannot set provided level if required level is already set. Use a declassification!", sNode));
+				if (sNode.getProvided() != null) throw new IllegalStateException(String.format("Error while annotating node %s with %s: Cannot set provided level if required level is already set. Use a declassification!", sNode, ann));
 				sNode.setRequired(newLevel);
 				annotationDebug.outln(String.format("Annotated node %s of kind %s as SINK of level '%s'", node.toString(), node.getKind(), newLevel));
 				nai = new NodeAnnotationInfo(sNode, ann, NodeAnnotationInfo.REQ);

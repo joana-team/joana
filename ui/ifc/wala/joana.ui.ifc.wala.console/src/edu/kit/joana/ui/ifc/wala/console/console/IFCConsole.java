@@ -3324,10 +3324,15 @@ public class IFCConsole {
 			return false;
 		}
 
+		/** E.g. for auto generated classes */
+		public void selectSinkWithoutCheck(String entity, String level){
+			annotationsPerType.computeIfAbsent(AnnotationType.SINK, s -> new HashSet<>()).add(
+					new IFCAnnotation(AnnotationType.SINK, level.isEmpty() ? Level.LOW : level, ImprovedCLI.programPartFromString(entity)));
+		}
+
 		@Override public boolean selectSink(String entity, String level) {
 			if (getAnnotatableEntities(java.util.regex.Pattern.quote(entity)).size() > 0) {
-				annotationsPerType.computeIfAbsent(AnnotationType.SINK, s -> new HashSet<>()).add(
-						new IFCAnnotation(AnnotationType.SINK, level.isEmpty() ? Level.LOW : level, ImprovedCLI.programPartFromString(entity)));
+				selectSinkWithoutCheck(entity, level);
 				return true;
 			}
 			return false;

@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.logging.Level;
 
 public class Test {
@@ -27,9 +26,9 @@ public class Test {
     thread.start();
     FlowAnalyzer flowAnalyzer = new BasicFlowAnalyzer();
     JoanaCall joanaCall = new JoanaCall("component_sample", new Flows(), Arrays.asList(new Method("Source", "a")),
-        Arrays.asList(new Method("Sink", "a"), new MethodReturn("Sink", "a")), Collections.singletonList("edu.kit"), Level.INFO);
+        Arrays.asList(new Method("Sink", "a"), new MethodReturn("Sink", "a")), Level.INFO);
     JoanaCallReturn result = joanaCall.processOnServer(InetAddress.getLocalHost().getHostName());
-    Assert.assertEquals(7, result.flows.size());
+    Assert.assertEquals(7, result.asFlows().flows.size());
     thread.interrupt();
   }
 

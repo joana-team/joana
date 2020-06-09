@@ -1,9 +1,6 @@
 package edu.kit.joana.ui.ifc.wala.console.console.component_based;
 
-import edu.kit.joana.component.connector.Flows;
-import edu.kit.joana.component.connector.JoanaCall;
-import edu.kit.joana.component.connector.JoanaCallReturn;
-import edu.kit.joana.component.connector.Method;
+import edu.kit.joana.component.connector.*;
 
 import java.nio.file.Path;
 import java.util.Collection;
@@ -60,10 +57,14 @@ public abstract class FlowAnalyzer {
 
   public abstract void setAllowedPackagesForUninitializedFields(Optional<List<String>> allowedPackagesForUninitializedFields);
 
-  public JoanaCallReturn processJoanaCall(JoanaCall call){
-    setClassPath(call.classPath);
-    setKnownFlows(call.knownFlows);
-    setAllowedPackagesForUninitializedFields(call.allowedPackagesForUninitializedFields);
-    return new JoanaCallReturn(analyze(call.sources, call.sinks));
+  public JoanaCallReturn processJoanaCall(JoanaCall call) {
+    try {
+      setClassPath(call.classPath);
+      setKnownFlows(call.knownFlows);
+      setAllowedPackagesForUninitializedFields(call.allowedPackagesForUninitializedFields);
+      return new JoanaCallReturnFlows(analyze(call.sources, call.sinks));
+    } catch (AnalysisException ex) {
+      return new JoanaCallReturnError(ex.getMessage());
+    }
   }
 }

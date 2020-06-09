@@ -2,6 +2,7 @@ package edu.kit.joana.ui.ifc.wala.console.console.component_based;
 
 import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlSequenceBuilder;
+import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.InterfaceImplementationClass;
 import com.ibm.wala.ipa.callgraph.InterfaceImplementationOptions;
@@ -10,10 +11,7 @@ import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
 import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
 import com.ibm.wala.types.TypeReference;
 import edu.kit.joana.api.sdg.*;
-import edu.kit.joana.component.connector.Flows;
-import edu.kit.joana.component.connector.Method;
-import edu.kit.joana.component.connector.MethodParameter;
-import edu.kit.joana.component.connector.MethodReturn;
+import edu.kit.joana.component.connector.*;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.conc.DataConflict;
 import edu.kit.joana.ifc.sdg.core.conc.OrderConflict;
@@ -30,8 +28,10 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static com.ibm.wala.ipa.callgraph.UninitializedFieldHelperOptions.FieldTypeMatcher;
 import static edu.kit.joana.api.IFCType.CLASSICAL_NI;
@@ -81,7 +81,7 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
     }));
     this.console.setPointsTo("OBJECT_SENSITIVE"); // use a slower but more precise analysis by default
     this.console.setUninitializedFieldTypeMatcher(t -> true);
-    this.console.setAnnotateOverloadedMethods(true);
+    // this.console.setAnnotateOverloadedMethods(true); // TODO: reimplement directly here
     this.connectReturnWithParams = connectReturnWithParams;
   }
 
@@ -149,12 +149,35 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
     console.new Wrapper().saveSDG(path.toFile());
   }
 
+  private String getRegexpForMethod(Method method) {
+    return method.accept(new Visitor<String>() {
+      @Override public String visit(Method method) {
+        return String.format("%s(\\(.*\\)[^-]*(->[^-]+)?)?$", getClassAndMethodNameRegexp(method));
+      }
+
+      protected String getClassAndMethodNameRegexp(Method method) {
+        if (method.getRealClassName().contains(";")) { // its byte code
+          return method.getRealClassName().substring(1).replace("/", "\\.").replace(";", "") + "\\." + method.methodName;
+        }
+        return String.format(".*%s\\.%s", method.getRealClassName(), method.methodName);
+      }
+
+      @Override public String visit(MethodParameter parameter) {
+        return String.format("%s\\(.*\\)[^-]*->%d$", getClassAndMethodNameRegexp(parameter), parameter.parameter);
+      }
+
+      @Override public String visit(MethodReturn methodReturn) {
+        return String.format("%s\\(.*\\)[^-]*->-1$", getClassAndMethodNameRegexp(methodReturn));
+      }
+    });
+  }
+
   private Pattern getPatternForMethod(Method method) {
-    return new Pattern(method.toRegexp(), true);
+    return new Pattern(getRegexpForMethod(method), true);
   }
 
   private String getRegexpForMethods(List<Method> methods) {
-    return "(" + methods.stream().map(Method::toRegexp).collect(Collectors.joining(")|(")) + ")";
+    return "(" + methods.stream().map(this::getRegexpForMethod).collect(Collectors.joining(")|(")) + ")";
   }
 
   private Pattern getPatternForMethods(List<Method> methods) {
@@ -262,7 +285,7 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
    */
   private boolean isPresent(Method method) {
     IFCConsole.Wrapper wrapper = console.new Wrapper();
-    return wrapper.getAnnotatableEntities(method.toRegexp()).size() > 0;
+    return wrapper.getAnnotatableEntities(getRegexpForMethod(method)).size() > 0;
   }
 
   /**
@@ -272,9 +295,32 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
     console.reset();
   }
 
-  private void selectSourcesOrSinks(List<Method> methods, boolean source) {
+  /**
+   * Also includes interface helper classes
+   *
+   * @return
+   */
+  private List<String> getAnnotatableEntities(List<Method> methods) {
+    String regexp = getRegexpForMethods(methods);
+    List<String> annotatableEntities = console.new Wrapper().getAnnotatableEntities(regexp);
+    List<String> others = new ArrayList<>();
+    for (IClass iClass : console.getAnalysis().getProgram().getClassHierarchy()) {
+      if (iClass instanceof InterfaceImplementationClass) {
+        for (IMethod iMethod : iClass.getAllMethods()) {
+          String methodStr = iClass.getName().toString().substring(1).replace("/", ".") + "." + iMethod.getSelector();
+          //others.add(methodStr);
+          IntStream.range(0, iMethod.getNumberOfParameters()).forEach(i -> others.add(methodStr + "->" + i));
+          others.add(methodStr + "->-1");
+        }
+      }
+    }
+    annotatableEntities.addAll(others.stream().filter(e -> e.matches(regexp)).collect(Collectors.toList()));
+    return annotatableEntities;
+  }
+
+  private void annotate(List<Method> methods, boolean source, boolean checkNumberOfMatched) {
     IFCConsole.Wrapper wrapper = console.new Wrapper();
-    List<String> annotatableEntities = wrapper.getAnnotatableEntities(getRegexpForMethods(methods));
+    List<String> annotatableEntities = getAnnotatableEntities(methods);
     int matchedMethods = 0;
     if (annotatableEntities.size() > 0) {
       for (String annotatableEntity : annotatableEntities) {
@@ -282,7 +328,7 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
         if (source) {
           wrapper.selectSource(annotatableEntity, "high");
         } else {
-          wrapper.selectSink(annotatableEntity, "low");
+          wrapper.selectSinkWithoutCheck(annotatableEntity, "low");
         }
         if (!annotatableEntity.endsWith("->") && annotatableEntity.contains("(")) {
           matchedMethods += 1;
@@ -290,21 +336,114 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
       }
     }
     wrapper.setAnnotationsInIFCAnalysis();
-    if (matchedMethods < methods.size()) {
+    if (checkNumberOfMatched && matchedMethods < methods.size()) {
       throw new AnalysisException("Cannot fully select " + (source ? "sources" : "sinks"));
     }
   }
 
   private void selectSources(List<Method> methods) {
-    selectSourcesOrSinks(methods, true);
+    selectSinksOrSources(methods, this::getConcreteSource, true);
   }
 
   private void selectSinks(List<Method> methods) {
-    selectSourcesOrSinks(methods, false);
+    selectSinksOrSources(methods, this::getConcreteSink, false);
   }
 
-  @Override
-  public void setAllowedPackagesForUninitializedFields(Optional<List<String>> allowedPackagesForUninitializedFields){
+  private void selectSinksOrSources(List<Method> methods, Function<Method, Method> concrete, boolean source)
+      throws AnalysisException {
+    List<String> errors = new ArrayList<>();
+    List<Method> concreteMethods = methods.stream().flatMap(m -> {
+      try {
+        return Stream.of(concrete.apply(m));
+      } catch (AnalysisException ex) {
+        errors.add(ex.getMessage());
+      }
+      return Stream.empty();
+    }).collect(Collectors.toList());
+    if (errors.isEmpty()) {
+      annotate(concreteMethods, source, false);
+    } else {
+      throw new AnalysisException(
+          errors.stream().filter(InterfaceImplementationClass.distinctByKey(s -> s)).collect(Collectors.joining("\n")));
+    }
+  }
+
+  private Method getConcreteSink(Method method) throws AnalysisException {
+    return method.setClassName(getImplementingHelperClass(method.getRealClassName()).get());
+  }
+
+  private Method getConcreteSource(Method method) throws AnalysisException {
+    if (method.concreteName.length() > 0) {
+      return method.setClassName(normalizeClassName(method.concreteName));
+    }
+    List<String> impls = getImplementingClasses(method.getRealClassName());
+    if (impls.isEmpty()) {
+      return method.setClassName(normalizeClassName(method.getClassName()));
+    }
+    if (impls.size() > 1) {
+      throw new AnalysisException(
+          String.format("Multiple possible implementations for %s: %s", method.getRealClassName(), String.join(", ", impls)));
+    }
+    return method.setClassName(impls.get(0));
+  }
+
+  private Optional<String> getImplementingHelperClass(String klass) {
+    List<String> klasses = getImplementors(normalizeClassName(klass)).stream()
+        .filter(c -> c instanceof InterfaceImplementationClass).map(c -> c.getName().toString() + ";").collect(Collectors.toList());
+    if (klasses.size() > 1) {
+      throw new AnalysisException(
+          String.format("%s implemented by multiple interface helper classes: %s", klass, String.join(", ", klasses)));
+    }
+    return klasses.stream().findFirst();
+  }
+
+  private List<String> getImplementingClasses(String klass) {
+    return getImplementingIClasses(normalizeClassName(klass)).stream().map(c -> c.getName().toString())
+        .collect(Collectors.toList());
+  }
+
+  private Collection<IClass> getImplementingIClasses(String klass) {
+    return console.getAnalysis().getProgram().getClassHierarchy().computeSubClasses(getTypeReference(klass)).stream()
+        .filter(c -> !c.getReference().equals(getTypeReference(klass))).collect(Collectors.toList());
+  }
+
+  private Collection<IClass> getImplementors(String klass) {
+    return console.getAnalysis().getProgram().getClassHierarchy().getImplementors(
+        console.getAnalysis().getProgram().getClassHierarchy().lookupClass(normalizeClassName(klass)).getReference());
+  }
+
+  private TypeReference getTypeReference(String klass) {
+    for (IClass iClass : console.getAnalysis().getProgram().getClassHierarchy()) {
+      if ((iClass.getReference().getName().toString() + ";").equals(klass) && iClass.getClassLoader().getName().toString()
+          .equals(SDGProgram.ClassLoader.APPLICATION.getName())) {
+        return iClass.getReference();
+      }
+    }
+    throw new AnalysisException(String.format("No such class %s", klass));
+  }
+
+  private String normalizeClassName(String classNameWithoutPackage) {
+    if (classNameWithoutPackage.contains("/")) {
+      return classNameWithoutPackage;
+    }
+    List<String> classNames = new ArrayList<>();
+    for (IClass iClass : console.getAnalysis().getProgram().getClassHierarchy()) {
+      if (iClass.getReference().getName().getClassName().toString().equals(classNameWithoutPackage) && iClass.getClassLoader()
+          .getName().toString().equals(SDGProgram.ClassLoader.APPLICATION.getName())) {
+        classNames.add(iClass.getName().toString() + ";");
+      }
+    }
+    if (classNames.isEmpty()) {
+      throw new AnalysisException(String.format("%s is not present in the source code", classNameWithoutPackage));
+    }
+    if (classNames.size() > 1) {
+      throw new AnalysisException(
+          String.format("Multiple classes have name %s: %s", classNameWithoutPackage, String.join(", ", classNames)));
+    }
+    return classNames.get(0);
+  }
+
+  @Override public void setAllowedPackagesForUninitializedFields(Optional<List<String>> allowedPackagesForUninitializedFields) {
     this.console.setUninitializedFieldTypeMatcher(typeReference ->
         allowedPackagesForUninitializedFields.map(l -> l.stream().anyMatch(p -> FieldTypeMatcher.matchesPackage(typeReference, p)))
             .orElse(true) || FieldTypeMatcher.matchesPackage(typeReference, "fieldhelper"));

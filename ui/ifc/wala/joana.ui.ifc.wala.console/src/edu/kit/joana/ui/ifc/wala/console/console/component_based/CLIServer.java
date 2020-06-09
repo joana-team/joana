@@ -31,26 +31,32 @@ public class CLIServer {
       LOGGER.info(String.format("Handle %s", exchange.getRemoteAddress()));
       LOGGER.info("Create tmp file");
       Path tmpFile = Files.createTempFile("", ".zip");
-      LOGGER.info("Copy file");
-      IOUtils.copy(exchange.getRequestBody(), Files.newOutputStream(tmpFile));
-      LOGGER.info("Load zip file");
-      JoanaCall.loadZipFile(tmpFile, c -> {
-        Logger.getGlobal().setLevel(c.logLevel);
-        LOGGER.info("Process JoanaCall");
-        JoanaCallReturn joanaCallReturn = new BasicFlowAnalyzer().processJoanaCall(c);
-        String response = Util.toJson(joanaCallReturn);
-        try {
-          exchange.getResponseHeaders().set("Content-Type", String.format("application/json; charset=%s", StandardCharsets.UTF_8));
-          final byte[] rawResponseBody = response.getBytes(StandardCharsets.UTF_8);
-          exchange.sendResponseHeaders(200, rawResponseBody.length);
-          exchange.getResponseBody().write(rawResponseBody);
-        } catch (IOException e) {
-          e.printStackTrace();
-        } finally {
+      try {
+        LOGGER.info("Copy file");
+        IOUtils.copy(exchange.getRequestBody(), Files.newOutputStream(tmpFile));
+        LOGGER.info("Load zip file");
+        JoanaCall.loadZipFile(tmpFile, c -> {
+          Logger.getGlobal().setLevel(c.logLevel);
+          LOGGER.info("Process JoanaCall");
+          JoanaCallReturn joanaCallReturn = new BasicFlowAnalyzer().processJoanaCall(c);
+          String response = Util.toJson(joanaCallReturn);
+          try {
+            exchange.getResponseHeaders()
+                .set("Content-Type", String.format("application/json; charset=%s", StandardCharsets.UTF_8));
+            final byte[] rawResponseBody = response.getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(200, rawResponseBody.length);
+            exchange.getResponseBody().write(rawResponseBody);
+          } catch (IOException e) {
+            e.printStackTrace();
+          } finally {
+            exchange.close();
+          }
           exchange.close();
-        }
-        exchange.close();
-      });
+        });
+      } catch (RuntimeException ex) {
+        ex.printStackTrace();
+        throw ex; // seems to be caught silently be the server
+      }
       Files.delete(tmpFile);
     }
   }
@@ -61,14 +67,15 @@ public class CLIServer {
 
   static void run(int port, int threads){
     try {
-      HttpServer server  = HttpServer.create(new InetSocketAddress(InetAddress.getLocalHost(), port), 0);
+      HttpServer server = HttpServer.create(new InetSocketAddress(InetAddress.getLocalHost(), port), 0);
       System.out.println(String.format("Running on %s on port %s", InetAddress.getLocalHost(), port));
       server.createContext("/", new ServerHttpHandler());
       server.setExecutor(threads == 1 ? Executors.newSingleThreadExecutor() : Executors.newFixedThreadPool(threads));
       server.start();
       Thread.currentThread().join();
-    } catch (IOException | InterruptedException e) {
+    } catch (IOException e) {
       e.printStackTrace();
+    } catch (InterruptedException e) {
     }
   }
 

@@ -87,7 +87,6 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
     }));
     this.console.setPointsTo("OBJECT_SENSITIVE"); // use a slower but more precise analysis by default
     this.console.setUninitializedFieldTypeMatcher(t -> true);
-    // this.console.setAnnotateOverloadedMethods(true); // TODO: reimplement directly here
     this.connectReturnWithParams = connectReturnWithParams;
     this.annotatedToIncomingMethod = new HashMap<>();
   }
@@ -331,7 +330,7 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
     int matchedMethods = 0;
     if (annotatableEntities.size() > 0) {
       for (String annotatableEntity : annotatableEntities) {
-         System.out.println(String.format("%s %s", source ? "Source" : "Sink", annotatableEntity));
+        LOGGER.info(String.format("%s %s", source ? "Source" : "Sink", annotatableEntity));
         if (source) {
           wrapper.selectSource(annotatableEntity, "high");
         } else {

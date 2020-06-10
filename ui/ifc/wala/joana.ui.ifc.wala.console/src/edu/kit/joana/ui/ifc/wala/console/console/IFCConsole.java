@@ -3226,6 +3226,7 @@ public class IFCConsole {
 
 		Map<AnnotationType, Set<IFCAnnotation>> annotationsPerType = new HashMap<>();
 		List<SDGClass> sinkClasses = new ArrayList<>();
+		private Pair<String, List<String>> cachedProgramParts = Pair.pair("", new ArrayList<>());
 
 		@Override public List<String> getPossibleEntryMethods(String regexp) {
       return loc.justSearch(classPath, out,false, regexp);
@@ -3292,8 +3293,12 @@ public class IFCConsole {
 		}
 
 		@Override public List<String> getAnnotatableEntities(String regexp) {
-			return searchProgramParts(out.getDebugPrintStream(), getClassPath(), true, true, true, true).stream()
-					.map(ImprovedCLI::programPartToString).filter(s -> s != null && s.matches(regexp)).collect(Collectors.toList());
+			if (!cachedProgramParts.getFirst().equals(getClassPath()) || cachedProgramParts.getSecond().isEmpty()){
+				cachedProgramParts = Pair.pair(getClassPath(), searchProgramParts(out.getDebugPrintStream(), getClassPath(), true, false, true, true).stream()
+						.map(ImprovedCLI::programPartToString).collect(Collectors.toList()));
+			}
+			java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(regexp);
+			return cachedProgramParts.getSecond().stream().filter(s -> s != null && pattern.matcher(s).matches()).collect(Collectors.toList());
 		}
 
 		@Override public boolean selectDeclassification(String entity, String fromLevel, String toLevel) {

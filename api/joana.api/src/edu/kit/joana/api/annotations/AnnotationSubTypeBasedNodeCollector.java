@@ -81,6 +81,8 @@ public class AnnotationSubTypeBasedNodeCollector extends AnnotationTypeBasedNode
       if (m == null){
         System.err.println(String.format("No methods for %s", param.getOwningMethod()));
         return null;
+      } else {
+        System.out.println(type + " " + m);
       }
       return m.getParameter(param.getIndex());
     }).filter(Objects::nonNull)

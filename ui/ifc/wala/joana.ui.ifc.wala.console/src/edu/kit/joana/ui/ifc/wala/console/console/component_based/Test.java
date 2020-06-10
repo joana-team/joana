@@ -32,6 +32,7 @@ public class Test {
     Assert.assertEquals(7, result.asFlows().flows.size());
     System.out.println(result.asFlows().flows);
     Assert.assertTrue(result.asFlows().flows.contains(new Method("Source", "a"), new MethodReturn("Sink", "a")));
+    Assert.assertEquals(7, result.asFlows().flows.size());
     thread.interrupt();
     //System.exit(0);
   }

@@ -54,6 +54,11 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
 
   private final boolean connectReturnWithParams;
 
+  /**
+   * method annotated in the source code → incoming annotated method, for mapping the methods found in the flows
+   */
+  private final Map<Method, Method> annotatedToIncomingMethod;
+
   public BasicFlowAnalyzer() {
     this(false);
   }
@@ -83,6 +88,7 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
     this.console.setUninitializedFieldTypeMatcher(t -> true);
     // this.console.setAnnotateOverloadedMethods(true); // TODO: reimplement directly here
     this.connectReturnWithParams = connectReturnWithParams;
+    this.annotatedToIncomingMethod = new HashMap<>();
   }
 
   @Override public void setClassPath(String classPath) {
@@ -354,7 +360,12 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
     List<String> errors = new ArrayList<>();
     List<Method> concreteMethods = methods.stream().flatMap(m -> {
       try {
-        return Stream.of(concrete.apply(m));
+        Method concreteMethod = concrete.apply(m);
+        if (annotatedToIncomingMethod.containsKey(m)){
+          throw new AnalysisException(String.format("Concrete method %s is already mapped to %s", concreteMethod, m));
+        }
+        annotatedToIncomingMethod.put(concreteMethod, m);
+        return Stream.of(concreteMethod);
       } catch (AnalysisException ex) {
         errors.add(ex.getMessage());
       }
@@ -464,13 +475,37 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
     for (IViolation<SDGProgramPart> vio : groupedIFlows.keySet()) {
       vio.accept(new IViolationVisitor<SDGProgramPart>() {
 
+        Optional<Method> convertProgramPartToOrigMethod(SDGProgramPart part, boolean includeClasses){
+          return convertProgramPartToMethod(part, includeClasses).map(m -> {
+            if (!annotatedToIncomingMethod.containsKey(m)){
+              if (annotatedToIncomingMethod.containsKey(m.discardMiscInformation())){
+                Method origMethod = annotatedToIncomingMethod.get(m.discardMiscInformation());
+                return m.accept(new Visitor<Method>() {
+                  @Override public Method visit(Method method) {
+                    return method;
+                  }
+
+                  @Override public Method visit(MethodParameter parameter) {
+                    return new MethodParameter(origMethod, parameter.parameter);
+                  }
+
+                  @Override public Method visit(MethodReturn methodReturn) {
+                    return new MethodReturn(origMethod);
+                  }
+                });
+              }
+              throw new RuntimeException(String.format("Cannot map %s (map=%s)", m, annotatedToIncomingMethod));
+            }
+            return annotatedToIncomingMethod.get(m);
+          });
+        }
+
         Optional<Method> convertProgramPartToMethod(SDGProgramPart part, boolean includeClasses) {
           return part.acceptVisitor(new SDGProgramPartVisitorWithDefault<Optional<Method>, Object>() {
 
             @Override protected Optional<Method> visitClass(SDGClass cl, Object data) {
               if (includeClasses) {
-                String[] parts = cl.getTypeName().toHRString().split("\\.");
-                return Optional.of(new Method(parts[parts.length - 1], ""));
+                return Optional.of(new Method(cl.getTypeName().toBCString(), ""));
               }
               return Optional.empty();
             }
@@ -480,8 +515,7 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
             }
 
             protected Method visitMethod(JavaMethodSignature signature) {
-              String[] parts = signature.getDeclaringType().toHRString().split("\\.");
-              return new Method(parts[parts.length - 1], signature.getMethodName());
+              return new Method(signature.getDeclaringType().toBCString(), signature.getMethodName());
             }
 
             @Override protected Optional<Method> visitParameter(SDGFormalParameter p, Object data) {
@@ -500,8 +534,8 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
         }
 
         @Override public void visitIllegalFlow(IIllegalFlow<SDGProgramPart> iFlow) {
-          Optional<Method> source = convertProgramPartToMethod(iFlow.getSource(), includeClasses);
-          Optional<Method> sink = convertProgramPartToMethod(iFlow.getSink(), includeClasses);
+          Optional<Method> source = convertProgramPartToOrigMethod(iFlow.getSource(), includeClasses);
+          Optional<Method> sink = convertProgramPartToOrigMethod(iFlow.getSink(), includeClasses);
           if (source.isPresent() && sink.isPresent()) {
             if (!flows.containsKey(source.get())) {
               flows.put(source.get(), new HashSet<>());

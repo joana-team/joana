@@ -19,6 +19,7 @@ public class Test {
     testReturnNotConnectedToParamViaFlowsAndMethodParamSource();
     testReturnNotConnectedToParamViaFlows();
     testReturnConnectedToParamViaFlows();
+    System.exit(0);
   }
 
   static void testServer() throws UnknownHostException {
@@ -29,7 +30,10 @@ public class Test {
         Arrays.asList(new Method("Sink", "a"), new MethodReturn("Sink", "a")), Level.INFO);
     JoanaCallReturn result = joanaCall.processOnServer(InetAddress.getLocalHost().getHostName());
     Assert.assertEquals(7, result.asFlows().flows.size());
+    System.out.println(result.asFlows().flows);
+    Assert.assertTrue(result.asFlows().flows.contains(new Method("Source", "a"), new MethodReturn("Sink", "a")));
     thread.interrupt();
+    //System.exit(0);
   }
 
   //@org.junit.Test

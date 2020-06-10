@@ -396,7 +396,7 @@ public class IFCConsole {
 	/**
 	 * BC strings
 	 */
-	private Collection<String> additionalEntryMethods;
+	private Collection<String> additionalEntryMethods = Collections.emptyList();
 
 	public IFCConsole(BufferedReader in, IFCConsoleOutput out) {
 		this.in = in;

@@ -470,7 +470,7 @@ public final class SDGBuildPreparation {
 	public static class Config {
 		public String name;
 		public String entryMethod;
-		public Collection<String> additionalEntries;
+		public Collection<String> additionalEntries = Collections.emptyList();
 		public String classpath;
 		public boolean classpathAddEntriesFromMANIFEST = true;
 		public String thirdPartyLibPath;

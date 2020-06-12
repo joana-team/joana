@@ -26,6 +26,7 @@ import edu.kit.joana.wala.summary.SummaryComputationType;
 import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder;
 
 import java.util.Collection;
+import java.util.Collections;
 
 public class SDGConfig {
   private PruningPolicy pruningPolicy = ApplicationLoaderPolicy.INSTANCE;
@@ -58,7 +59,7 @@ public class SDGConfig {
 	private boolean isParallel = true;
 	private UninitializedFieldHelperOptions fieldHelperOptions = UninitializedFieldHelperOptions.createEmpty();
 	private InterfaceImplementationOptions interfaceImplOptions = InterfaceImplementationOptions.createEmpty();
-	private Collection<String> additionalEntryMethods;
+	private Collection<String> additionalEntryMethods = Collections.emptyList();
 	private boolean annotateOverloadingMethods;
 
 	public SDGConfig(String classPath, String entryMethod, Stubs stubsPath) {

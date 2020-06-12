@@ -355,17 +355,20 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
     selectSinksOrSources(methods, this::getConcreteSink, false);
   }
 
-  private void selectSinksOrSources(List<Method> methods, Function<Method, Method> concrete, boolean source)
+  private void selectSinksOrSources(List<Method> methods, Function<Method, List<Method>> concrete, boolean source)
       throws AnalysisException {
     List<String> errors = new ArrayList<>();
     List<Method> concreteMethods = methods.stream().flatMap(m -> {
       try {
-        Method concreteMethod = concrete.apply(m);
-        if (annotatedToIncomingMethod.containsKey(m)){
-          throw new AnalysisException(String.format("Concrete method %s is already mapped to %s", concreteMethod, m));
+        List<Method> concretes = new ArrayList<>();
+        for (Method concreteMethod : concrete.apply(m)) {
+          if (annotatedToIncomingMethod.containsKey(m)){
+            throw new AnalysisException(String.format("Concrete method %s is already mapped to %s", concreteMethod, m));
+          }
+          annotatedToIncomingMethod.put(concreteMethod, m);
+          concretes.add(concreteMethod);
         }
-        annotatedToIncomingMethod.put(concreteMethod, m);
-        return Stream.of(concreteMethod);
+        return concretes.stream();
       } catch (AnalysisException ex) {
         errors.add(ex.getMessage());
       }
@@ -379,34 +382,34 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
     }
   }
 
-  private Method getConcreteSink(Method method) throws AnalysisException {
+  private List<Method> getConcreteSink(Method method) throws AnalysisException {
     if (method.concreteName.length() > 0){
-      return method.setClassName(normalizeClassName(method.getRealClassName()));
+      return Collections.singletonList(method.setClassName(normalizeClassName(method.getRealClassName())));
     }
     List<String> impls = getImplementingClasses(method.getRealClassName());
     if (impls.isEmpty()) {
-      return method.setClassName(getImplementingHelperClass(method.getRealClassName()).get());
+      return Collections.singletonList(method.setClassName(getImplementingHelperClass(method.getRealClassName()).get()));
     }
-    if (impls.size() > 1) {
+    /*if (impls.size() > 1) {
       throw new AnalysisException(
           String.format("Multiple possible implementations for %s: %s", method.getRealClassName(), String.join(", ", impls)));
-    }
-    return method.setClassName(normalizeClassName(impls.get(0)));
+    }*/
+    return impls.stream().map(i -> method.setClassName(normalizeClassName(i))).collect(Collectors.toList());
   }
 
-  private Method getConcreteSource(Method method) throws AnalysisException {
+  private List<Method> getConcreteSource(Method method) throws AnalysisException {
     if (method.concreteName.length() > 0) {
-      return method.setClassName(normalizeClassName(method.concreteName));
+      return Collections.singletonList(method.setClassName(normalizeClassName(method.concreteName)));
     }
     List<String> impls = getImplementingClasses(method.getRealClassName());
     if (impls.isEmpty()) {
-      return method.setClassName(normalizeClassName(method.getClassName()));
+      return Collections.singletonList(method.setClassName(normalizeClassName(method.getClassName())));
     }
     if (impls.size() > 1) {
       throw new AnalysisException(
           String.format("Multiple possible implementations for %s: %s", method.getRealClassName(), String.join(", ", impls)));
     }
-    return method.setClassName(impls.get(0));
+    return Collections.singletonList(method.setClassName(impls.get(0)));
   }
 
   private Optional<String> getImplementingHelperClass(String klass) {

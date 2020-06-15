@@ -1,8 +1,10 @@
 package edu.kit.joana.wala.summary.test;
 
+import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.qifc.nildumu.Builder;
+import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.summary.parex.*;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
@@ -13,9 +15,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
+import static edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision.*;
 import static edu.kit.joana.wala.summary.test.Util.withClassPath;
 import static edu.kit.joana.wala.summary.test.Util.withDisabledGraphExport;
 
@@ -41,17 +45,25 @@ public class TestCLI implements Callable<Integer> {
   @Option(names = {"-s", "--omit_summary"}, description = "Create summary files")
   boolean omit_summary = false;
 
-  @Option(names = "--store_pdg", description = "Omit the creation of an PDG file")
+  @Option(names = "--store_pdg", description = "Store the PDG file")
   boolean store_pdg = false;
 
   @Option(names = "--config", description = "SDGConfig", defaultValue = "DEFAULT")
   SDGConfigs config;
 
+  @Option(names = "--max_sums", description = "Alert if number of summary edges is greater than this value")
+  long max_sums = 100_000_000;
+
+  @Option(names = "--check_all", description = "Just outputs the maximum number of summary edges for various configs (based on the chosen)")
+  boolean check_all = false;
+
   @Override public Integer call() throws Exception {
     TestCLIUtil util = new TestCLIUtil(config);
     for (String jarOrClass : jarsOrClasses) {
       System.out.println("Process " + jarOrClass);
-      if (util.isPg(jarOrClass)) {
+      if (check_all){
+        util.checkAll(jarOrClass);
+      } else if (util.isPg(jarOrClass)) {
         if (!omit_summary) {
           util.writeSSVFromPG(Paths.get(jarOrClass), util.summaryFilePath(jarOrClass));
         }
@@ -59,7 +71,7 @@ public class TestCLI implements Callable<Integer> {
         util.createBenchFiles(jarOrClass, util.pdgFilePath(jarOrClass), util.pgFilePath(jarOrClass),
             !omit_summary ? Optional.of(util.summaryFilePath(jarOrClass)) : Optional.empty(),
             use_existing_pdg && util.useOldPdg(jarOrClass, util.pdgFilePath(jarOrClass)),
-            export_graphs ? Optional.of(util.exportedGraphsFolder(jarOrClass)) : Optional.empty(), store_pdg);
+            export_graphs ? Optional.of(util.exportedGraphsFolder(jarOrClass)) : Optional.empty(), store_pdg, max_sums);
       }
     }
     return 1;
@@ -133,22 +145,26 @@ public class TestCLI implements Callable<Integer> {
     }
 
     private SDG createSDG(String classOrFile, Path pdgFile, boolean useOldPdg) throws IOException, ClassNotFoundException {
+      return createSDG(classOrFile, pdgFile, useOldPdg, config.instantiate());
+    }
+
+    private SDG createSDG(String classOrFile, Path pdgFile, boolean useOldPdg, SDGConfig config) throws IOException, ClassNotFoundException {
       if (useOldPdg){
         return SDG.readFromAndUseLessHeap(pdgFile.toString());
       }
-      Builder builder = new Builder(config.instantiate());
+      Builder builder = new Builder(config);
       if (isClassName(classOrFile)){
         builder.entry(Class.forName(classOrFile));
         builder.classpath(".");
       } else {
         builder.classpath(classOrFile);
       }
-      return builder.omitSummaryEdges().buildOrDie().analysis.getProgram().getSDG();
+      return builder.dontCache().omitSummaryEdges().buildOrDie().analysis.getProgram().getSDG();
     }
 
     private SDG createAndStoreSDG(String classOrFile, Path pdgFile, boolean useOldPdg, boolean storePDG) throws IOException, ClassNotFoundException {
       SDG sdg = createSDG(classOrFile, pdgFile, useOldPdg);
-      if (!useOldPdg && !storePDG) {
+      if (!useOldPdg && storePDG) {
         BufferedOutputStream bOut = new BufferedOutputStream(Files.newOutputStream(pdgFile));
         SDGSerializer.toPDGFormat(sdg, bOut);
       }
@@ -156,10 +172,10 @@ public class TestCLI implements Callable<Integer> {
     }
 
     private void createBenchFiles(String classOrFile, Path pdgFile, Path pgPath, Optional<Path> summaryFile, boolean useOldPdg,
-        Optional<Path> exportedGraphsFolder, boolean storePDG){
+        Optional<Path> exportedGraphsFolder, boolean storePDG, long max_sums){
       Runnable inner = () -> {
         try {
-          writeCPPTestSource(createAndStoreSDG(classOrFile, pdgFile, useOldPdg, storePDG), pgPath, summaryFile, exportedGraphsFolder);
+          writeCPPTestSource(createAndStoreSDG(classOrFile, pdgFile, useOldPdg, storePDG), pgPath, summaryFile, exportedGraphsFolder, max_sums);
         } catch (IOException | ClassNotFoundException e) {
           e.printStackTrace();
         }
@@ -174,8 +190,13 @@ public class TestCLI implements Callable<Integer> {
       }
     }
 
-    private void writeCPPTestSource(SDG sdg, Path pgPath, Optional<Path> summaryFile, Optional<Path> exportedGraphsFolder){
+    private void writeCPPTestSource(SDG sdg, Path pgPath, Optional<Path> summaryFile, Optional<Path> exportedGraphsFolder,
+        long max_sums){
       Graph g = new SDGToGraph().convert(sdg, true).reorderNodes();
+      long max = g.calculateMaximumNumberOfSummaryEdges();
+      if (max > max_sums){
+        System.err.println(String.format("Maximum number of summary edges is %d", max));
+      }
       new Dumper().dump(g, pgPath.toString());
       summaryFile.ifPresent(summary -> {
         try {
@@ -235,6 +256,50 @@ public class TestCLI implements Callable<Integer> {
       } catch (IOException e) {
         e.printStackTrace();
       }
+    }
+
+    public Graph createPG(String jarOrClass, SDGConfig config) {
+      try {
+        SDG sdg = createSDG(jarOrClass, Paths.get("tmp"), false, config);
+        return new SDGToGraph().convert(sdg, true).reorderNodes();
+      } catch (IOException | ClassNotFoundException e) {
+        e.printStackTrace();
+      }
+      return null;
+    }
+
+    public long calcSumsAndStore(String jarOrClass, SDGConfig config, Path pgPath){
+      Graph g = createPG(jarOrClass, config);
+      new Dumper().dump(g, pgPath.toString());
+      return g.calculateMaximumNumberOfSummaryEdges();
+    }
+
+    public long calcSumsAndStore(String jarOrClass, SDGBuilder.PointsToPrecision pts, SDGBuilder.FieldPropagation propagation){
+      SDGConfig conf = config.instantiate();
+      conf.setPointsToPrecision(pts);
+      conf.setFieldPropagation(propagation);
+      return calcSumsAndStore(jarOrClass, conf, Paths.get(pgFilePath(jarOrClass).toString() + "_" + pts.name() + "_" + propagation.name()));
+    }
+
+    public void checkAll(String jarOrClass) {
+      Arrays.asList(SDGBuilder.FieldPropagation.OBJ_GRAPH, SDGBuilder.FieldPropagation.NONE).parallelStream().forEach(f -> {
+        try {
+          for (SDGBuilder.PointsToPrecision pts : Arrays.asList(OBJECT_SENSITIVE, TYPE_BASED, INSTANCE_BASED)) {
+            System.out.println(String.format("%20d: %s %s", calcSumsAndStore(jarOrClass, pts, f), f.name(), pts.name()));
+          }
+        } catch (IllegalArgumentException ex){
+          System.err.println(f + ": " + ex.getMessage());
+          //ex.printStackTrace();
+        }
+      });
+     /* for (SDGBuilder.PointsToPrecision pts : SDGBuilder.PointsToPrecision.values()) {
+        try {
+          System.out.println(String.format("%20d: %s", calcSumsAndStore(jarOrClass, pts, config.instantiate().getFieldPropagation()), pts.name()));
+        } catch (IllegalArgumentException ex){
+          System.err.println(pts + ": " + ex.getMessage());
+          //ex.printStackTrace();
+        }
+      }*/
     }
   }
 }

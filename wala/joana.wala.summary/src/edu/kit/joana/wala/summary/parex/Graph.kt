@@ -133,6 +133,12 @@ open class Graph(val entry: FuncNode,
     open fun nodesInPrintOrder() = nodes
 
     open fun numberOfIds(): Int = nodes.size
+
+    fun calculateMaximumNumberOfSummaryEdges(): Long {
+        return funcMap.values.parallelStream().mapToLong {
+            it.callees.map { it.actualIns.size * it.actualOuts.size }.sum().toLong()
+        }.sum()
+    }
 }
 
 

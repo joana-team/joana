@@ -298,4 +298,8 @@ public class Builder {
 		return this;
 	}
 
+	public Builder dontCache() {
+		this.doCache = false;
+		return this;
+	}
 }

@@ -64,6 +64,7 @@ public abstract class FlowAnalyzer {
       setAllowedPackagesForUninitializedFields(call.allowedPackagesForUninitializedFields);
       return new JoanaCallReturnFlows(analyze(call.sources, call.sinks));
     } catch (AnalysisException ex) {
+      ex.printStackTrace();
       return new JoanaCallReturnError(ex.getMessage());
     }
   }

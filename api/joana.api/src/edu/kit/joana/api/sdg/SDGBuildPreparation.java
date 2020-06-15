@@ -114,8 +114,15 @@ public final class SDGBuildPreparation {
 	 * The resulting SDGProgramParts might contain incomplete parent objects (especially the returned SDGAttribute objects)
 	 */
 	public static List<SDGProgramPart> searchProgramParts(PrintStream out, String classPath, boolean methods, boolean fields, boolean parameters, boolean returns){
+		return searchProgramParts(out, classPath, methods, fields, parameters, returns, false);
+	}
+
+	/**
+	 * The resulting SDGProgramParts might contain incomplete parent objects (especially the returned SDGAttribute objects)
+	 */
+	public static List<SDGProgramPart> searchProgramParts(PrintStream out, String classPath, boolean methods, boolean fields, boolean parameters, boolean returns, boolean includeInherited){
 		try {
-			return searchProgramParts(out, getCachedClassHierarchy(classPath, out), methods, fields, parameters, returns);
+			return searchProgramParts(out, getCachedClassHierarchy(classPath, out), methods, fields, parameters, returns, includeInherited);
 		} catch (ClassHierarchyException e) {
 			out.println("Error while analyzing class structure!");
 			return Collections.emptyList();
@@ -130,11 +137,19 @@ public final class SDGBuildPreparation {
 	 */
 	public static List<SDGProgramPart> searchProgramParts(PrintStream out, ClassHierarchy cha, boolean methods, boolean fields, boolean parameters, boolean returns)
 			throws IOException, ClassHierarchyException {
+		return searchProgramParts(out, cha, methods, fields, parameters, returns, false);
+	}
+
+	/**
+	 * The resulting SDGProgramParts might contain incomplete parent objects (especially the returned SDGAttribute objects)
+	 */
+	public static List<SDGProgramPart> searchProgramParts(PrintStream out, ClassHierarchy cha, boolean methods, boolean fields, boolean parameters, boolean returns, boolean includeInherited)
+			throws IOException, ClassHierarchyException {
 		final List<SDGProgramPart> result = new ArrayList<>();
 		for (final IClass cls : cha) {
 			String classLoader = cls.getClassLoader().getName().toString();
 			if (cls.getClassLoader().getName().equals(AnalysisScope.APPLICATION)) {
-				for (final IMethod m : cls.getDeclaredMethods()) {
+				for (final IMethod m : (includeInherited ? cls.getAllMethods() : cls.getDeclaredMethods())) {
 					SDGMethod method = new SDGMethod(JavaMethodSignature.fromString(m.getSignature()), classLoader, m.isStatic());
 					if (methods){
 						result.add(method);

@@ -192,9 +192,12 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
 
   private void selectEntryPoints(List<Method> methods) {
     String regexp = getRegexpForMethods(methods);
-    List<String> entities = searchProgramParts(new NullPrintStream(), console.getClassPath(), true, false, true, false).stream()
+    List<String> entities = searchProgramParts(new NullPrintStream(), console.getClassPath(), true, false, false, false, true).stream()
         .map(p -> {
           String s = programPartToString(p);
+          if (p.getOwningMethod().toString().contains("VideoService")){
+            System.out.println(s);
+          }
           if (s != null && s.matches(regexp)) {
             return programPartToString(p.getOwningMethod());
           }

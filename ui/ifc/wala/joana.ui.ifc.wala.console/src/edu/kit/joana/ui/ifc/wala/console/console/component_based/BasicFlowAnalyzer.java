@@ -405,11 +405,12 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
     if (impls.isEmpty()) {
       return Collections.singletonList(method.setClassName(normalizeClassName(method.getClassName())));
     }
-    if (impls.size() > 1) {
+    /*if (impls.size() > 1) {
       throw new AnalysisException(
           String.format("Multiple possible implementations for %s: %s", method.getRealClassName(), String.join(", ", impls)));
-    }
-    return Collections.singletonList(method.setClassName(impls.get(0)));
+    }*/
+    //return Collections.singletonList(method.setClassName(impls.get(0)));
+    return impls.stream().map(i -> method.setClassName(normalizeClassName(i))).collect(Collectors.toList());
   }
 
   private Optional<String> getImplementingHelperClass(String klass) {
@@ -436,7 +437,7 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
     IClass iClass = console.getAnalysis().getProgram().getClassHierarchy().lookupClass(getTypeReference(klass));
     return Arrays.asList(Iterators.toArray(Iterators.filter(console.getAnalysis().getProgram().getClassHierarchy().iterator(), c -> {
       if (c.getClassLoader().getName().toString()
-          .equals(SDGProgram.ClassLoader.APPLICATION.getName()) && !c.equals(iClass)){
+          .equals(SDGProgram.ClassLoader.APPLICATION.getName()) && !c.equals(iClass) && !c.isInterface() && !c.isAbstract()){
         if (c.getAllImplementedInterfaces().contains(iClass)){
           return true;
         }

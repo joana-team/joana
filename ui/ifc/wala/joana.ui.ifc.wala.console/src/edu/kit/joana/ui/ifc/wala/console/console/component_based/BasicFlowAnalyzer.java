@@ -133,22 +133,25 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
   }
 
   @Override public Flows analyze(List<Method> sources, List<Method> sinks, Collection<String> interfacesToImplement) {
-    LOGGER.info(() -> String
-        .format("Start analysis with sources=%s, sinks=%s, interfacesToImplement=%s", Arrays.toString(sources.toArray()),
-            Arrays.toString(sinks.toArray()), Arrays.toString(interfacesToImplement.toArray())));
-    configureInterfaceImplementation(interfacesToImplement);
-    LOGGER.info(() -> "Configured interfaces, select entry points");
-    selectEntryPoints(sources);
-    LOGGER.info(() -> "Selected interfaces, build SDG");
-    if (!console.buildSDGIfNeeded()) {
-      throw new AnalysisException("Cannot build SDG");
+    try {
+      LOGGER.info(() -> String
+          .format("Start analysis with sources=%s, sinks=%s, interfacesToImplement=%s", Arrays.toString(sources.toArray()), Arrays.toString(sinks.toArray()), Arrays.toString(interfacesToImplement.toArray())));
+      configureInterfaceImplementation(interfacesToImplement);
+      LOGGER.info(() -> "Configured interfaces, select entry points");
+      selectEntryPoints(sources);
+      LOGGER.info(() -> "Selected interfaces, build SDG");
+      if (!console.buildSDGIfNeeded()) {
+        throw new AnalysisException("Cannot build SDG");
+      }
+      clear();
+      LOGGER.info("Built SDG, select sources and sinks");
+      selectSources(sources);
+      selectSinks(sinks);
+      LOGGER.info("Start analysis");
+      return analyze(false);
+    } catch (UnsupportedOperationException ex) {
+      throw new AnalysisException(ex.getMessage());
     }
-    clear();
-    LOGGER.info("Built SDG, select sources and sinks");
-    selectSources(sources);
-    selectSinks(sinks);
-    LOGGER.info("Start analysis");
-    return analyze(false);
   }
 
   @Override public void saveDebugGraph(Path path) {
@@ -210,8 +213,7 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
   }
 
   private void configureInterfaceImplementation(Collection<String> interfacesToImplement) {
-    this.console.setInterfaceImplOptions(
-        new InterfaceImplementationOptions(byteCodeNamesOfInterfacesToImplement(interfacesToImplement), createGenerator()));
+    this.console.setInterfaceImplOptions(new InterfaceImplementationOptions(byteCodeNamesOfInterfacesToImplement(interfacesToImplement), createGenerator()));
   }
 
   private InterfaceImplementationClass.FunctionBodyGenerator createGenerator() {

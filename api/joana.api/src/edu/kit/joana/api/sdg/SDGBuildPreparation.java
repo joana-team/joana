@@ -49,6 +49,7 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public final class SDGBuildPreparation {
 
@@ -305,12 +306,22 @@ public final class SDGBuildPreparation {
 
 
 	    // Methode in der Klassenhierarchie suchen
-		final MethodReference mr;
+		MethodReference mr;
 		if (cfg.entryMethod == null){
 			// look for a main method in the application JARs
 			JavaMethodSignature signature = JavaMethodSignature
 					.mainMethodOfClass(scope.getMainClass(ClassLoaderReference.Application).getName().toString());
 			mr = StringStuff.makeMethodReference(Language.JAVA, signature.toBCString());
+			if (cha.resolveMethod(mr) == null) {
+				// look for a method that has name "main"
+				List<IMethod> mainMethods = cha.lookupClass(signature.getDeclaringType().toBCString()).getAllMethods().stream()
+						.filter(m -> m.getName().toString().equals("main")).collect(Collectors.toList());
+				if (mainMethods.size() > 1) {
+					fail("More than one method named main");
+				} else {
+					mr = StringStuff.makeMethodReference(Language.JAVA, mainMethods.get(0).getSignature());
+				}
+			}
 		} else {
 			mr = StringStuff.makeMethodReference(Language.JAVA, cfg.entryMethod);
 		}

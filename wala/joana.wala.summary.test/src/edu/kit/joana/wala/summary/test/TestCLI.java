@@ -282,9 +282,9 @@ public class TestCLI implements Callable<Integer> {
     }
 
     public void checkAll(String jarOrClass) {
-      Arrays.asList(SDGBuilder.FieldPropagation.OBJ_GRAPH, SDGBuilder.FieldPropagation.NONE).parallelStream().forEach(f -> {
+      Arrays.asList(SDGBuilder.FieldPropagation.NONE, SDGBuilder.FieldPropagation.OBJ_GRAPH).parallelStream().forEach(f -> {
         try {
-          for (SDGBuilder.PointsToPrecision pts : Arrays.asList(OBJECT_SENSITIVE, TYPE_BASED, INSTANCE_BASED)) {
+          for (SDGBuilder.PointsToPrecision pts : Arrays.asList(TYPE_BASED, INSTANCE_BASED, OBJECT_SENSITIVE)) {
             System.out.println(String.format("%20d: %s %s", calcSumsAndStore(jarOrClass, pts, f), f.name(), pts.name()));
           }
         } catch (IllegalArgumentException ex){

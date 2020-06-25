@@ -5,7 +5,7 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import edu.kit.joana.component.connector.JoanaCall;
 import edu.kit.joana.component.connector.JoanaCallReturn;
-import edu.kit.joana.component.connector.Util;
+import edu.kit.joana.component.connector.Utils;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
@@ -39,7 +39,7 @@ public class CLIServer {
           Logger.getGlobal().setLevel(c.logLevel);
           LOGGER.info("Process JoanaCall");
           JoanaCallReturn joanaCallReturn = new BasicFlowAnalyzer().processJoanaCall(c);
-          String response = Util.toJson(joanaCallReturn);
+          String response = Utils.toJson(joanaCallReturn);
           try {
             exchange.getResponseHeaders()
                 .set("Content-Type", String.format("application/json; charset=%s", StandardCharsets.UTF_8));

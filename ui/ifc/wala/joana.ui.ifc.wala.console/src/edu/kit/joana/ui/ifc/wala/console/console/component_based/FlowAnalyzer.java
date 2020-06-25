@@ -42,14 +42,14 @@ public abstract class FlowAnalyzer {
    *
    * Implements the sink interfaces
    */
-  public Flows analyze(List<Method> sources, List<Method> sinks){
-    return analyze(sources, sinks, sinks.stream().map(Method::getClassName).collect(Collectors.toSet()));
+  public Flows analyze(List<ProgramPart> sources, List<ProgramPart> sinks){
+    return analyze(sources, sinks, sinks.stream().map(m -> m.getOwningMethod().getClassName()).collect(Collectors.toSet()));
   }
 
   /**
    * Find the connections between the given sources and sinks
    */
-  public abstract Flows analyze(List<Method> sources, List<Method> sinks, Collection<String> interfacesToImplement);
+  public abstract Flows analyze(List<ProgramPart> sources, List<ProgramPart> sinks, Collection<String> interfacesToImplement);
 
   public void setKnownFlows(Flows knownFlows){
     this.knownFlows = knownFlows;

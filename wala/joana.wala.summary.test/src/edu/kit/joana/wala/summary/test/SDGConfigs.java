@@ -9,6 +9,10 @@ import java.util.function.BiFunction;
 
 public enum SDGConfigs {
 
+  SMALL((classPath, entryMethod) -> new SDGConfig(classPath, true, entryMethod, Stubs.JRE_15,
+      SDGBuilder.ExceptionAnalysis.IGNORE_ALL,
+      SDGBuilder.FieldPropagation.NONE, SDGBuilder.PointsToPrecision.OBJECT_SENSITIVE, false, false, MHPType.NONE)),
+
   DEFAULT((classPath, entryMethod) -> new SDGConfig(classPath, true, entryMethod, Stubs.JRE_15,
       SDGBuilder.ExceptionAnalysis.INTERPROC,
       SDGBuilder.FieldPropagation.OBJ_GRAPH, SDGBuilder.PointsToPrecision.INSTANCE_BASED, false, false, MHPType.NONE)),

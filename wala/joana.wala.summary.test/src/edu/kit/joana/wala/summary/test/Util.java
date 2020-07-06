@@ -86,7 +86,7 @@ public class Util {
     if (classPath != null){
       builder.classpath(classPath);
     }
-    return builder.omitSummaryEdges().buildOrDie().analysis.getProgram().getSDG();
+    return builder.omitSummaryEdges().classpath(System.getProperty("java.class.path")).buildOrDie().analysis.getProgram().getSDG();
   }
 
   private static SDGNode procRootForRegexp(SDG sdg, String regexp){

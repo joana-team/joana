@@ -99,7 +99,12 @@ public class Test {
     }
 
     public static void writeCPPTestSources(String destDir){
-        testCases().forEach(c -> writeCPPTestSource(destDir, c));
+        testCases().forEach(c -> {
+            try {
+            writeCPPTestSource(destDir, c);
+        } catch (Exception ex){
+            ex.printStackTrace();
+        }});
     }
 
     /**

@@ -15,6 +15,7 @@ import java.io.OutputStream
 import java.util.AbstractMap.SimpleEntry
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.javaGetter
+import kotlin.system.exitProcess
 
 @JvmOverloads
 fun nodeGraphT(graph: Graph, root: FuncNode? = null, restrictToFunc: Boolean = false, nodeFilter: (Node) -> Boolean = { true }):
@@ -45,7 +46,7 @@ fun nodeGraphT(graph: Graph, root: FuncNode? = null, restrictToFunc: Boolean = f
 @JvmOverloads
 fun <T: Node> exportDot(g: Graph, graph: DirectedGraph<T, DefaultEdge>, fileName: String, sdg: SDG? = null) {
     val nodeLabeler = { it: T ->
-        (it.toString().replace("(${it.id})", "(${g.printableId(it.id)})")) + ("|" + sdg?.getNode(it.id)?.label + "|" + sdg?.getNode(it.id)?.kind + "|" + sdg?.getNode(it.id)?.proc) + "|"
+        (it.toString().replace("(${it.id})", "(${g.printableId(it.id)})")) + (sdg?.let { _ -> "|" + sdg.getNode(it.id)?.label + "|" + sdg.getNode(it.id)?.kind + "|" + sdg.getNode(it.id)?.proc } ?: "")
     }
     val labeler = { edge: DefaultEdge ->
         val source = graph.getEdgeSource(edge)
@@ -232,3 +233,5 @@ fun <T> T.oneOf(vararg supported: T): Boolean {
     }
     return false
 }
+
+fun Graph.countEdges(): Int = nodes.parallelStream().mapToInt { it?.outgoing(false)?.size ?: 0 }.sum()

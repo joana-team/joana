@@ -130,7 +130,7 @@ open class Graph(val entry: FuncNode,
         nodes.forEach(action)
     }
 
-    open fun nodesInPrintOrder() = nodes
+    open fun nodesInPrintOrder(): List<Node> = nodes as List<Node>
 
     open fun numberOfIds(): Int = nodes.size
 
@@ -215,7 +215,6 @@ open class Node(
     }
 
     fun curNeighbors(): Col<Node> = reducedNeighbors ?: neighbors
-
 }
 
 /**

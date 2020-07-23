@@ -9,6 +9,7 @@ import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.stream.Collectors
+import kotlin.system.exitProcess
 
 private fun Col<out Node>.mapIds(g: Graph): List<Int> {
     return map {
@@ -176,7 +177,7 @@ class Loader {
         val graph = Graph(nodes[entry] as FuncNode, nodeList,
                 nodeList.parallelStream().filter { it is ActualInNode }.map { it as ActualInNode }.collect(Collectors.toList()),
                 nodeList.parallelStream().filter { it is FormalInNode }.map { it as FormalInNode }.collect(Collectors.toList()),
-                funcs.map { it.id to it }.toMap())
+                funcs.map { it.id to it }.toMap().toMutableMap())
 
 
         val calledFuncsPerFunc = funcs.parallelStream().map { f -> f to f.callees.flatMap { it.targets } }.collect(Collectors.toList())
@@ -270,6 +271,10 @@ class Loader {
                 is FormalInNode -> {
                     val formIn = GraphProto.FormalInNode.parseDelimitedFrom(input)
                     formIn.actualInsMap.forEach { c, ai ->
+                        if (nodes[ai] == null){
+                            println("${c}: ${ai} is null")
+                            exitProcess(11)
+                        }
                         node.actualIns[nodes[c] as CallNode] = nodes[ai] as ActualInNode
                     }
                     node.neighbors.addAll(formIn.neighborsList.map { nodes[it] as Node })

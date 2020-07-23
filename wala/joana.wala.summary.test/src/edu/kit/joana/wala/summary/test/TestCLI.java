@@ -1,5 +1,6 @@
 package edu.kit.joana.wala.summary.test;
 
+import com.google.gson.Gson;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
@@ -15,9 +16,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 import static edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision.*;
 import static edu.kit.joana.wala.summary.test.Util.withClassPath;
@@ -57,11 +60,38 @@ public class TestCLI implements Callable<Integer> {
   @Option(names = "--check_all", description = "Just outputs the maximum number of summary edges for various configs (based on the chosen)")
   boolean check_all = false;
 
+  @Option(names = "--remove_normal", description = "Remove normal nodes")
+  boolean remove_normal = false;
+
+  @Option(names = {"-d", "--remove_nodes"}, description = "Remove the nodes with the given ids, use old graph ids")
+  Integer[] remove_nodes = new Integer[0];
+
+  @Option(names = "--remove_unreachable", description = "Remove all nodes that are unreachable from the entry node, "
+      + "run after nodes are removed")
+  boolean remove_unreachable = false;
+
+  @Option(names = "--set_entry", description = "Use the node with the given old id as entry, uses last set_entry")
+  int[] entry = new int[0];
+
+  @Option(names = "--remove_neighbor_edge", description = "Remove the neighbor edge between 'START,END', use old graph ids")
+  String[] remove_neighbor_edges = new String[0];
+
+  @Option(names = "--list_nodes")
+  boolean list_nodes = false;
+
+  @Option(names = "--no_reorder")
+  boolean no_reorder = false;
+
+  @Option(names = "--use_pg_for_cpp")
+  String use_pg_for_cpp = "";
+
   @Override public Integer call() throws Exception {
     TestCLIUtil util = new TestCLIUtil(config);
     for (String jarOrClass : jarsOrClasses) {
-      System.out.println("Process " + jarOrClass);
-      if (check_all){
+      if (jarsOrClasses.length > 1) {
+        System.out.println("Process " + jarOrClass);
+      }
+      if (check_all) {
         util.checkAll(jarOrClass);
       } else if (util.isPg(jarOrClass)) {
         if (!omit_summary) {
@@ -71,7 +101,9 @@ public class TestCLI implements Callable<Integer> {
         util.createBenchFiles(jarOrClass, util.pdgFilePath(jarOrClass), util.pgFilePath(jarOrClass),
             !omit_summary ? Optional.of(util.summaryFilePath(jarOrClass)) : Optional.empty(),
             use_existing_pdg && util.useOldPdg(jarOrClass, util.pdgFilePath(jarOrClass)),
-            export_graphs ? Optional.of(util.exportedGraphsFolder(jarOrClass)) : Optional.empty(), store_pdg, max_sums);
+            export_graphs ? Optional.of(util.exportedGraphsFolder(jarOrClass)) : Optional.empty(), store_pdg, max_sums,
+            remove_normal, new HashSet<Integer>(Arrays.<Integer>asList(remove_nodes)), remove_unreachable, entry.length > 0 ? entry[entry.length - 1] : -1,
+            remove_neighbor_edges, list_nodes, !no_reorder, use_pg_for_cpp);
       }
     }
     return 1;
@@ -172,17 +204,19 @@ public class TestCLI implements Callable<Integer> {
     }
 
     private void createBenchFiles(String classOrFile, Path pdgFile, Path pgPath, Optional<Path> summaryFile, boolean useOldPdg,
-        Optional<Path> exportedGraphsFolder, boolean storePDG, long max_sums){
+        Optional<Path> exportedGraphsFolder, boolean storePDG, long max_sums, boolean remove_normal, Set<Integer> remove_nodes,
+        boolean remove_unreachable, int entry, String[] remove_neighbor_edges, boolean list_nodes, boolean reorder,
+        String use_pg_for_cpp) {
       Runnable inner = () -> {
         try {
-          writeCPPTestSource(createAndStoreSDG(classOrFile, pdgFile, useOldPdg, storePDG), pgPath, summaryFile, exportedGraphsFolder, max_sums);
+          writeCPPTestSource(use_pg_for_cpp.equals("") ? Optional.of(createAndStoreSDG(classOrFile, pdgFile, useOldPdg, storePDG)) : Optional.empty(), pgPath, summaryFile,
+              exportedGraphsFolder, max_sums, remove_normal, remove_nodes, remove_unreachable, entry, remove_neighbor_edges,
+              list_nodes, reorder, use_pg_for_cpp);
         } catch (IOException | ClassNotFoundException e) {
           e.printStackTrace();
         }
       };
-      Runnable wGraphExport = exportedGraphsFolder.isPresent() ?
-          inner :
-          () -> withDisabledGraphExport(inner);
+      Runnable wGraphExport = exportedGraphsFolder.isPresent() ? inner : () -> withDisabledGraphExport(inner);
       if (!isClassName(classOrFile)){
         withClassPath(classOrFile, wGraphExport);
       } else {
@@ -190,14 +224,61 @@ public class TestCLI implements Callable<Integer> {
       }
     }
 
-    private void writeCPPTestSource(SDG sdg, Path pgPath, Optional<Path> summaryFile, Optional<Path> exportedGraphsFolder,
-        long max_sums){
-      Graph g = new SDGToGraph().convert(sdg, true).reorderNodes();
+    private void removeNeighborEdges(Graph g, String[] edges){
+      for (String edge : edges) {
+        List<Node> nodes = Arrays.stream(edge.split(",")).map(n -> g.getNodes().get(Integer.parseInt(n))).collect(Collectors.toList());
+        nodes.get(0).getNeighbors().remove(nodes.get(1));
+        if (nodes.get(0).getReducedNeighbors() != null) {
+          nodes.get(0).getReducedNeighbors().remove(nodes.get(1));
+        }
+      }
+    }
+
+    private void printNodes(Graph g, boolean printEdgeCount){
+      Gson gson = new Gson();
+      Map<String, List<Integer>> obj = new HashMap<>();
+      obj.put("functions", g.getFuncMap().keySet().stream().map(g::printableId).collect(Collectors.toList()));
+      obj.put("nodes", g.getNodes().stream().filter(Objects::nonNull).parallel().map(Node::getId).map(g::printableId).filter(x -> x != -1).collect(Collectors.toList()));
+      if (printEdgeCount) {
+        obj.put("edge_count", Collections.singletonList(UtilKt.countEdges(g)));
+      }
+      obj.put("entry", Collections.singletonList(g.printableId(g.getEntry().getId())));
+      System.out.println(gson.toJson(obj));
+    }
+
+    private void writeCPPTestSource(Optional<SDG> sdg, Path pgPath, Optional<Path> summaryFile, Optional<Path> exportedGraphsFolder,
+        long max_sums, boolean remove_normal, Set<Integer> remove_nodes, boolean remove_unreachable, int entry, String[] remove_neighbor_edges, boolean list_nodes,
+        boolean reorder, String use_pg_for_cpp) {
+      Graph preG = use_pg_for_cpp.equals("") ? new SDGToGraph().convert(sdg.get(), true) : new Loader().load(use_pg_for_cpp);
+      if (entry != -1) {
+        preG = PreprocessKt.setEntry(preG, entry);
+      }
+      if (remove_normal) {
+        PreprocessKt.removeNormalNodes(preG, true, Executors.newWorkStealingPool(), true);
+      }
+      removeNeighborEdges(preG, remove_neighbor_edges);
+      preG = PreprocessKt.removeNodes(preG, remove_nodes.stream().map(preG.getNodes()::get).collect(Collectors.toSet()), true);
+      if (remove_unreachable){
+        preG = PreprocessKt.removeUnreachableNodes(preG, false, true);
+      }
+      if (list_nodes){
+        printNodes(preG, true);
+      }
+      Graph preReorderG = preG;
+      exportedGraphsFolder.ifPresent(folder -> {
+         exportGraphs(preReorderG, folder, "_old_order", sdg);
+      });
+      Graph g = reorder ? preReorderG.reorderNodes() : preReorderG;
+      if (list_nodes && reorder){
+        printNodes(g, false);
+      }
       long max = g.calculateMaximumNumberOfSummaryEdges();
-      if (max > max_sums){
+      if (max > max_sums) {
         System.err.println(String.format("Maximum number of summary edges is %d", max));
       }
       new Dumper().dump(g, pgPath.toString());
+      new Loader().load(pgPath.toString());
+      System.out.println(pgPath.toString());
       summaryFile.ifPresent(summary -> {
         try {
           Files.deleteIfExists(summary);
@@ -210,15 +291,29 @@ public class TestCLI implements Callable<Integer> {
           System.out.println("  computing oracle summary edges");
           edu.kit.joana.ifc.sdg.qifc.nildumu.util.Util.Box<Integer> count =
               new edu.kit.joana.ifc.sdg.qifc.nildumu.util.Util.Box<>(0);
-          Test.computeOracleSummaryEdges(sdg, (a, b) -> {
+          BiConsumer<Integer, Integer> cons = (a, b) -> {
             try {
-              assert g.printableId(a.getId()) != -1;
-              writer.write(String.format("%d %d\n", g.printableId(a.getId()), g.printableId(b.getId())));
+              assert a != -1;
+              writer.write(String.format("%d %d\n", a, b));
               count.val++;
             } catch (IOException e) {
               e.printStackTrace();
             }
-          });
+          };
+          if (!remove_unreachable && remove_nodes.isEmpty() && sdg.isPresent()) {
+            Test.computeOracleSummaryEdges(sdg.get(), (a, b) -> cons.accept(g.printableId(a.getId()), g.printableId(b.getId())));
+          } else {
+            g.removeSummaryEdges();
+            new BasicParallelAnalysis().process(g);
+            g.getActualIns().forEach(ai -> {
+              ai.getSummaryEdges().forEach(ao -> {
+                if (g.printableId(ao.getId()) != -1) {
+                  cons.accept(g.printableId(ai.getId()), g.printableId(ao.getId()));
+                }
+              });
+            });
+            g.removeSummaryEdges();
+          }
           System.out.println("summary edges = " + count.val);
           writer.flush();
         } catch (IOException e) {
@@ -226,14 +321,13 @@ public class TestCLI implements Callable<Integer> {
         }
       });
       exportedGraphsFolder.ifPresent(folder -> {
-        try {
-          Files.deleteIfExists(folder);
-          Files.createDirectory(folder);
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-        Util.exportGraph(g, sdg, folder.toString());
+        exportGraphs(g, folder, "", sdg);
       });
+    }
+
+    private void exportGraphs(Graph g, Path folder, String suffix, Optional<SDG> sdg){
+      sdg.ifPresent(s -> Util.exportGraph(g, s, folder.toString() + suffix));
+      UtilKt.exportDot(g, UtilKt.nodeGraphT(g, null, false), folder.toString() + suffix + "_raw_full.dot");
     }
 
     private void writeSSVFromPG(Path pgPath, Path summaryFile) throws IOException {

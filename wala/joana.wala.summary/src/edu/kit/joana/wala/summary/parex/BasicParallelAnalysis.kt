@@ -97,7 +97,7 @@ class BasicParallelAnalysis(val numberOfThreads: Int = Runtime.getRuntime().avai
 
         internal fun handleNewItems(items: Iterable<QueueItem>){
             items.forEach { item ->
-                computersPerFunc[item.funcNode]!!.offer(item)
+                computersPerFunc[item.funcNode]?.offer(item)
             }
         }
     }

@@ -106,7 +106,7 @@ public class Util {
     } catch (IOException e) {
       //e.printStackTrace();
     }
-    UtilKt.exportDot(graph, UtilKt.nodeGraphT(graph, null,false), prefix + "full.dot", sdg);
+    UtilKt.exportDot(graph, UtilKt.nodeGraphT(graph, null, false), prefix + "full.dot", sdg);
     UtilKt.exportDot(graph, UtilKt.nodeGraphT(graph, graph.getEntry(), false), prefix + "fullRooted.dot", sdg);
     UtilKt.exportDot(graph, UtilKt.nodeGraphT(graph, null, false,
         n -> n instanceof InNode || n instanceof CallNode || n instanceof FuncNode || sdg.getNode(n.getId())

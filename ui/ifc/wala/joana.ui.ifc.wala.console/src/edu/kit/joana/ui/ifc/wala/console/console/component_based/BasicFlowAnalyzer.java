@@ -133,6 +133,8 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
   }
 
   @Override public Flows analyze(List<ProgramPart> sources, List<ProgramPart> sinks, Collection<String> interfacesToImplement) {
+    assertLevelsInLattice(sources);
+    assertLevelsInLattice(sinks);
     try {
       LOGGER.info(() -> String
           .format("Start analysis with sources=%s, sinks=%s, interfacesToImplement=%s", Arrays.toString(sources.toArray()), Arrays.toString(sinks.toArray()), Arrays.toString(interfacesToImplement.toArray())));
@@ -329,25 +331,28 @@ public class BasicFlowAnalyzer extends FlowAnalyzer {
     return annotatableEntities;
   }
 
-  private void annotate(List<ProgramPart> methods, boolean source, boolean checkNumberOfMatched) {
+  private void annotate(List<ProgramPart> parts, boolean source, boolean checkNumberOfMatched) {
     IFCConsole.Wrapper wrapper = console.new Wrapper();
-    List<String> annotatableEntities = getAnnotatableEntities(methods);
     int matchedMethods = 0;
-    if (annotatableEntities.size() > 0) {
-      for (String annotatableEntity : annotatableEntities) {
-        LOGGER.info(String.format("%s %s", source ? "Source" : "Sink", annotatableEntity));
-        if (source) {
-          wrapper.selectSource(annotatableEntity, "high");
-        } else {
-          wrapper.selectSinkWithoutCheck(annotatableEntity, "low");
-        }
-        if (!annotatableEntity.endsWith("->") && annotatableEntity.contains("(")) {
-          matchedMethods += 1;
+    for (ProgramPart part : parts) {
+      List<String> annotatableEntities = getAnnotatableEntities(Collections.singletonList(part));
+      String level = part.getLevel().orElse(source ? lattice.elseBasic().getTop() : lattice.elseBasic().getBottom());
+      if (annotatableEntities.size() > 0) {
+        for (String annotatableEntity : annotatableEntities) {
+          LOGGER.info(String.format("%s %s", source ? "Source" : "Sink", annotatableEntity));
+          if (source) {
+            wrapper.selectSource(annotatableEntity, level);
+          } else {
+            wrapper.selectSinkWithoutCheck(annotatableEntity, level);
+          }
+          if (!annotatableEntity.endsWith("->") && annotatableEntity.contains("(")) {
+            matchedMethods += 1;
+          }
         }
       }
     }
     wrapper.setAnnotationsInIFCAnalysis();
-    if (checkNumberOfMatched && matchedMethods < methods.size()) {
+    if (checkNumberOfMatched && matchedMethods < parts.size()) {
       throw new AnalysisException("Cannot fully select " + (source ? "sources" : "sinks"));
     }
   }

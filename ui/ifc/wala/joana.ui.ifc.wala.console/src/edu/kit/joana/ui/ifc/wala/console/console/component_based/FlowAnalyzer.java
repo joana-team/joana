@@ -25,8 +25,15 @@ public abstract class FlowAnalyzer {
 
   protected Flows knownFlows;
 
-  public FlowAnalyzer(){
+  protected Lattice lattice;
+
+  public FlowAnalyzer(Lattice lattice){
     this.knownFlows = new Flows();
+    this.lattice = lattice;
+  }
+
+  public FlowAnalyzer(){
+    this(new Lattice());
   }
 
   public abstract void setClassPath(String classPath);
@@ -67,5 +74,9 @@ public abstract class FlowAnalyzer {
       ex.printStackTrace();
       return new JoanaCallReturnError(ex.getMessage());
     }
+  }
+
+  protected void assertLevelsInLattice(Collection<ProgramPart> parts){
+    parts.stream().map(ProgramPart::getLevel).filter(Optional::isPresent).map(Optional::get).forEach(lattice.elseBasic()::assertIsLatticeElement);
   }
 }

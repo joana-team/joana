@@ -12,6 +12,7 @@ import math
 import os
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -77,15 +78,19 @@ def run(files: List[Path], out: Path, joana_jar: Path, options: str, timeout: fl
     run_test_cli(jar, joana_jar, options, timeout, draw_graphs)
 
 
-def run_cpp(cpp_line: str, base: Path, pg_file: Path, ssv_file: Path, discard_regex: str = None):
+def run_cpp(cpp_line: str, base: Path, pg_file: Path, ssv_file: Path, discard_regex: str = None,
+            timeout: Optional[float] = None):
     cmd = cpp_line.replace("$BASE", str(base.absolute())).replace("\\/", "/") \
                           .replace("$PG_FILE", str(pg_file.absolute())) \
                           .replace("$SSV_FILE", str(ssv_file.absolute()))
     print("#####" + cmd)
     proc = subprocess.Popen(cmd, shell=True,
-                     stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-    out, err = proc.communicate()
-
+                     stderr=subprocess.PIPE, stdout=subprocess.PIPE, preexec_fn=os.setsid)
+    try:
+        out, err = proc.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+        raise
     def prints(ins, outs):
         for line in ins.decode().splitlines():
             if not discard_regex or not re.match(discard_regex, line):
@@ -159,8 +164,8 @@ class Fuzzer:
     """
 
     def __init__(self, files: List[Path], cpp: str, out: Path = None, joana_jar: Path = locate_joana_jar(),
-                 options: str = "", timeout: Optional[float] = None, draw_graphs: bool = False,
-                 cpp_out_discard_regex: str = None):
+                 options: str = "", timeout: Optional[float] = None, cpp_timeout: Optional[float] = None,
+                 draw_graphs: bool = False, cpp_out_discard_regex: str = None):
         self.files = files
         self.cpp = cpp
         self.out = out or Path(tempfile.mkdtemp())
@@ -170,6 +175,7 @@ class Fuzzer:
         self.jar = None  # type: Optional[Path]
         self.best_folder = self.out / "best"
         self.timeout = timeout
+        self.cpp_timeout = cpp_timeout
         self.draw_graphs = draw_graphs
         self.cpp_out_discard_regex = cpp_out_discard_regex
 
@@ -342,9 +348,11 @@ class Fuzzer:
             return False
         try:
             run_cpp(self.cpp, current_state.pg_file.with_suffix(""), current_state.pg_file, current_state.ssv_file,
-                    self.cpp_out_discard_regex)
+                    self.cpp_out_discard_regex, self.cpp_timeout)
         except subprocess.CalledProcessError as err:
             return err.returncode == 1
+        except subprocess.TimeoutExpired as err:
+            return True
         return False
 
     def choose_action(self, current_state: FuzzerState, count: int) -> FuzzerAction:
@@ -402,15 +410,16 @@ def base(files: List[Path], out: Path, joana_jar: Path, options: str, cpp: str, 
 @click.option("--options", type=str, default="")
 @click.option("--cpp", type=str)
 @click.option("--timeout", type=float, default=100)
+@click.option("--cpp_timeout", type=float, default=100)
 @click.option("--se_unchanged", type=int, default=100, help="required_set_entry_unchanged")
 @click.option("--exponent", type=float, default=0.5,
               help="Delete randint(1, len(nodes) ** exponent) nodes in every step")
 @click.option("--set_entry_prob", type=float, default=0.2, help="Probability of using the set_entry action")
 @click.option("--graph/--no_graph", default=False)
 @click.option("--out_discard", default=None, type=str, help="Discard all cpp out and err lines that matches this regexp")
-def fuzz(files: List[Path], out: Path, joana_jar: Path, options: str, cpp: str, timeout: float,
+def fuzz(files: List[Path], out: Path, joana_jar: Path, options: str, cpp: str, timeout: float, cpp_timeout: float,
          se_unchanged: int, exponent: float, set_entry_prob: float, graph: bool, out_discard: str):
-    Fuzzer(files, cpp, out, joana_jar, options, timeout, graph, out_discard).loop(se_unchanged, exponent, set_entry_prob)
+    Fuzzer(files, cpp, out, joana_jar, options, timeout, cpp_timeout, graph, out_discard).loop(se_unchanged, exponent, set_entry_prob)
 
 
 if __name__ == '__main__':

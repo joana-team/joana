@@ -156,7 +156,9 @@ public final class SDGBuildPreparation {
 					}
 					if (parameters){
 						for (int i = 0; i < m.getNumberOfParameters(); i++){
-							result.add(new SDGFormalParameter(method, i, i == 0 ? "this" : ("" + i), JavaType.parseSingleTypeFromString(m.getParameterType(i).getName().toString(), JavaType.Format.BC)));
+							int num = m.isStatic() ? (i + 1) : i;
+							result.add(new SDGFormalParameter(method, num, !m.isStatic() && i == 0 ? "this" : (num + ""),
+									JavaType.parseSingleTypeFromString(m.getParameterType(i).getName().toString(), JavaType.Format.BC)));
 						}
 					}
 					if (returns && !method.getSignature().getReturnType().toHRString().equals("void")){

@@ -3,15 +3,18 @@ package edu.kit.joana.api.sdg.opt;
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.sdg.*;
 import edu.kit.joana.ifc.sdg.util.JavaType;
-import edu.kit.joana.setter.misc.AnnotatedEntityFinder;
 import edu.kit.joana.util.NullPrintStream;
-import proguard.*;
+import proguard.Configuration;
+import proguard.ConfigurationParser;
+import proguard.ParseException;
+import proguard.ProGuard;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -22,8 +25,7 @@ import java.util.stream.Collectors;
 public class ProGuardPass implements Pass {
 
   @Override
-  public void process(IFCAnalysis ana, String libClassPath, Path sourceFolder, Path targetFolder)
-      throws IOException {
+  public void process(IFCAnalysis ana, String libClassPath, Path sourceFolder, Path targetFolder) {
     if (!Logger.getGlobal().isLoggable(Level.FINEST)) {
       PrintStream out = System.out;
       System.setOut(new NullPrintStream());
@@ -35,15 +37,18 @@ public class ProGuardPass implements Pass {
   }
 
   private void execute(IFCAnalysis ana, String libClassPath, Path sourceFolder, Path targetFolder){
-    String fullLibClassPath = System.getProperty("java.class.path");
-    if (libClassPath.length() > 0) {
-      fullLibClassPath += ":" + libClassPath;
+    String fullLibClassPath =
+        Arrays.stream(System.getProperty("java.class.path").split(System.getProperty("path.separator")))
+            .filter(p -> p.endsWith("/rt.jar")).findFirst().get();
+    if (libClassPath.length() != 0) {
+      fullLibClassPath = libClassPath;
     }
     List<String> args = new ArrayList<>(Arrays.asList(
         "-injars", sourceFolder.toString(), "-libraryjars", fullLibClassPath,
-        "-dontwarn", "-dontshrink", "-dontnote", "-ignorewarnings",
-        "-dontobfuscate", "-outjars", targetFolder.toString(),
-        "-dontwarn", "**", "-skipnonpubliclibraryclasses"
+        "-dontwarn", "-dontnote",
+        "-ignorewarnings",
+        "-optimizationpasses", "100",
+        "-dontobfuscate", "-outjars", targetFolder.toString()
     ));
     if (ana.getProgram().hasDefinedEntryMethod()){
       partsToSpec(partsToKeep(ana)).stream().forEach(p -> {
@@ -61,7 +66,6 @@ public class ProGuardPass implements Pass {
 
     // Create the default options.
     Configuration configuration = new Configuration();
-
     try
     {
       // Parse the options specified in the command line arguments.

@@ -141,7 +141,8 @@ public final class SDGBuildPreparation {
 					if (parameters){
 						for (int i = 0; i < m.getNumberOfParameters(); i++){
 							int num = m.isStatic() ? (i + 1) : i;
-							result.add(new SDGFormalParameter(method, num - 1, num == 0 ? "this" : (num - 1 + ""), JavaType.parseSingleTypeFromString(m.getParameterType(i).getName().toString(), JavaType.Format.BC)));
+							result.add(new SDGFormalParameter(method, num, !m.isStatic() && i == 0 ? "this" : (num + ""),
+									JavaType.parseSingleTypeFromString(m.getParameterType(i).getName().toString(), JavaType.Format.BC)));
 						}
 					}
 				}

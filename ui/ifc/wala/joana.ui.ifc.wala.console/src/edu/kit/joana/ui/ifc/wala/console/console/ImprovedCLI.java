@@ -360,7 +360,7 @@ public class ImprovedCLI {
     OptimizationEnabled state;
 
     @Command
-    void enable(@Parameters(paramLabel = "libPath") String libPath){
+    void enable(@Parameters(paramLabel = "libPath", defaultValue = "") String libPath){
       state.enableOptimizations(libPath);
     }
 
@@ -944,7 +944,8 @@ public class ImprovedCLI {
     default boolean addAnnotations(String tag){
       return setEntryPoint(tag) != null && selectSinkAnnotations(tag).size() > 0 && selectSourceAnnotations(tag).size() > 0 &&
           (this instanceof DeclassificationEnabled ?
-              ((DeclassificationEnabled) this).selectDeclassificationAnnotations(tag) != null : true);
+              ((DeclassificationEnabled) this).selectDeclassificationAnnotations(tag) != null : true) &&
+          (this instanceof SetValueEnabled ? ((SetValueEnabled) this).selectSetValueAnnotations(tag) != null : true);
     }
 
     T getMixin(RunCommand command);

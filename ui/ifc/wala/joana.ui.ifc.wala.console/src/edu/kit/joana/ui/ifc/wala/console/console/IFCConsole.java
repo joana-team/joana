@@ -2766,15 +2766,18 @@ public class IFCConsole {
 	 * Do the chosen byte code optimizations and run the IFC analysis
 	 */
 	public Collection<? extends IViolation<SecurityNode>> doIFCAndOpt(IFCType ifcType) throws IOException {
+		Collection<IFCAnnotation> annotations = ifcAnalysis.getAnnotations();
 		if (useByteCodeOptimizations) {
+			if (this.valuesToSet.size() > 0){
+				classPath = new PreProcPasses(createSetValuePass()).process(null, "", classPath);
+				classPathAfterOpt = classPath;
+			}
 			PreProcPasses passes = createOptPasses();
 			passes.processAndUpdateSDG(ifcAnalysis, optLibPath,
 					classPathAfterOpt == null ? classPath : classPathAfterOpt,
-					cp -> {
-				return createSDG(cp, computeInterference, mhpType, excAnalysis, false).get();
-			});
-			recomputeSDG = true;
+					cp -> createSDG(cp, computeInterference, mhpType, excAnalysis, false).get());
 		}
+		annotations.forEach(ifcAnalysis::addAnnotation);
 		ifcAnalysis.setTimesensitivity(isTimeSensitive);
 		return ifcAnalysis.doIFC(ifcType);
 	}

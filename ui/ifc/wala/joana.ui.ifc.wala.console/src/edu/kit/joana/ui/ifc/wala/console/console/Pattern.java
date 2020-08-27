@@ -7,19 +7,18 @@
  */
 package edu.kit.joana.ui.ifc.wala.console.console;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.types.annotations.Annotation;
-
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.ui.annotations.Declassification;
 import edu.kit.joana.ui.annotations.Sink;
 import edu.kit.joana.ui.annotations.Source;
 import edu.kit.joana.ui.ifc.wala.console.gui.tree.ProgramPartToString;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Pattern {
 	
@@ -29,6 +28,7 @@ public class Pattern {
 	
 	final Set<Pattern.PatternType> type;
 	final String pattern;
+	private java.util.regex.Pattern compiledPattern;
 	final boolean isRegexp;
 	final boolean matchAll;
 
@@ -51,7 +51,10 @@ public class Pattern {
 			return true;
 		}
 		if (isRegexp) {
-			return str.matches(pattern);
+			if (compiledPattern == null) {
+				compiledPattern = java.util.regex.Pattern.compile(pattern);
+			}
+			return compiledPattern.matcher(str).matches();
 		}
 		return pattern.equals(str);
 	}

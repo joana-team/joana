@@ -30,5 +30,5 @@ mvn verify -DskipTests=true -e
 cd ../parameter-setter
 ./gradlew fatJar
 
-cd ../summary_cpp
-./build.sh
+#cd ../summary_cpp
+#./build.sh

@@ -378,6 +378,7 @@ public class Test {
     }
 
     public static void main(String[] args){
+        // j cpp; for f in `ls tests/data`; do echo $f; cp ../joana/cpp_test_data/$f tests/data/$f; done
         new Test().writeCPPTestSources(args.length == 1 ? args[0] : "cpp_test_data");
         System.exit(0);
         withClassPath(args.length >= 3 ? args[0] : ".", () -> {

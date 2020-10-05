@@ -82,19 +82,45 @@ open class Graph(val entry: FuncNode,
      * node n of function
      * entry node
      * …
+     *
+     * Also reorders the actual ins and actual outs so that for each call:
+     * call ai_1 … ai_n ao_1 … ao_n
      */
     fun reorderNodes(): ReorderedGraph {
         val oldIdToNewId: Array<Int> = Array<Int>(nodes.size){-1}
         // collect all nodes belonging to a function, excluding the function node
+
+        fun sort(ns: List<Node>): List<Node> {
+            val ret = ArrayList<Node>()
+            ret.ensureCapacity(ns.size)
+            for (n in ns){
+                when (n) {
+                    is CallNode -> {
+                        ret.add(n)
+                        ret.addAll(n.actualIns)
+                        ret.addAll(n.actualOuts)
+                    }
+                    is ActualInNode -> {}
+                    is OutNode -> {
+                        if (n is FormalOutNode){
+                            ret.add(n)
+                        }
+                    }
+                    else -> ret.add(n)
+                }
+            }
+            return ret
+        }
+
         val entryToNodes = funcMap.values.parallelStream().map { func ->
-            func to func.reachable { n: Node ->
+            func to sort(func.reachable { n: Node ->
                 val outgoing = n.outgoing(true).filter { it !is FuncNode }
                 if (n is CallNode){
                     outgoing + n.actualOuts + n.actualIns
                 } else {
                     outgoing
                 }
-            }.toList()
+            }.toList())
         }.collect(Collectors.toMap({it: Pair<Node, List<Node>> -> it.first}, {it: Pair<Node, List<Node>> -> it.second}))
         val startIds = mutableMapOf<FuncNode, Int>()
         // store the start ids

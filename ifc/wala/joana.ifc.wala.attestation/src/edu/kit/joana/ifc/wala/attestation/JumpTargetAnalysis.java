@@ -7,40 +7,14 @@
  */
 package edu.kit.joana.ifc.wala.attestation;
 
-import java.io.BufferedOutputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.jgrapht.DirectedGraph;
-import org.jgrapht.graph.EdgeReversedGraph;
-
-import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.ShrikeCTMethod;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
-import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
-import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
-import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.SSACFG;
 import com.ibm.wala.ssa.SSACFG.BasicBlock;
-import com.ibm.wala.util.CancelException;
-import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
-import com.ibm.wala.util.intset.IntSet;
-import com.ibm.wala.util.intset.MutableSparseIntSet;
-
 import edu.kit.joana.api.IFCAnalysis;
-import edu.kit.joana.api.lattice.BuiltinLattices;
-import edu.kit.joana.api.sdg.SDGConfig;
-import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.graph.dominators.slca.DFSIntervalOrder;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
@@ -49,47 +23,88 @@ import edu.kit.joana.ifc.sdg.core.violations.ViolationSeparator;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.chopper.Chopper;
 import edu.kit.joana.ifc.sdg.graph.chopper.RepsRosayChopper;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.CFG;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.building.ICFGBuilder;
 import edu.kit.joana.ifc.sdg.util.sdg.GraphModifier;
 import edu.kit.joana.util.Pair;
-import edu.kit.joana.util.Stubs;
-import edu.kit.joana.wala.core.CGConsumer;
-import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.graphs.DominanceFrontiers;
 import edu.kit.joana.wala.core.graphs.Dominators;
 import edu.kit.joana.wala.core.graphs.Dominators.DomEdge;
+import org.jgrapht.DirectedGraph;
+import org.jgrapht.graph.EdgeReversedGraph;
 
-public class Main {
-	private static class CGKeeper implements CGConsumer {
-		public CallGraph cg;
-		/* (non-Javadoc)
-		 * @see edu.kit.joana.wala.core.CGConsumer#consume(com.ibm.wala.ipa.callgraph.CallGraph, com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis)
-		 */
-		@Override
-		public void consume(CallGraph cg, PointerAnalysis<? extends InstanceKey> pts) {
-			// TODO Auto-generated method stub
-			this.cg = cg;
-		}
-		
+import java.util.*;
+
+public class JumpTargetAnalysis {
+	private final IFCAnalysis ana;
+	private SDG sdg;
+	private DominanceFrontiers<SDGNode, SDGEdge> frontiers;
+	private DFSIntervalOrder<SDGNode, DomEdge> dio;
+	private final CallGraph cg;
+	private final Map<SDGNode, Map<SDGNode, List<SDGNode>>> nodeJumps = new HashMap<>();
+	private final Map<SDGNode, Map<SDGNode, List<SDGNode>>> jumps = new HashMap<>();
+
+	private JumpTargetAnalysis(IFCAnalysis ana, CallGraph cg) {
+		this.ana = ana;
+		this.cg = cg;
 	}
 
-	private SDGProgram buildSDG(String cp, String mainMethod, CGConsumer c) {
-		SDGProgram program = null;
-		SDGConfig config = new SDGConfig(cp, mainMethod, Stubs.JRE_14_INCOMPLETE);
-		config.setCGConsumer(c);
-		config.setExceptionAnalysis(ExceptionAnalysis.IGNORE_ALL);
-		System.out.println(config.getExceptionAnalysis());
-		try {
-			program = SDGProgram.createSDGProgram(config);
-		} catch (ClassHierarchyException | IOException | UnsoundGraphException | CancelException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+	public static void analyse(IFCAnalysis ana, CallGraph cg) {
+		JumpTargetAnalysis m = new JumpTargetAnalysis(ana, cg);
+		m.analyse();
+	}
+
+	void analyse() {
+		sdg = ana.getProgram().getSDG();
+		calculateJumpMap();
+		Collection<IIllegalFlow<SecurityNode>> vios = getIllegalFlows(ana.doIFC());
+		final CFG icfg = ICFGBuilder.extractICFG(sdg);
+		GraphModifier.removeCallCallRetEdges(icfg);
+		final DirectedGraph<SDGNode, SDGEdge> reversedCfg = new EdgeReversedGraph<>(icfg);
+		SDGNode exit = null;
+		for (SDGEdge e : sdg.getOutgoingEdgesOfKindUnsafe(sdg.getRoot(), SDGEdge.Kind.CONTROL_DEP_EXPR)) {
+			if (e.getTarget().getKind() == SDGNode.Kind.EXIT) {
+				exit = e.getTarget();
+			}
 		}
-		return program;
+		frontiers = DominanceFrontiers.compute(reversedCfg, exit);
+		Dominators<SDGNode, SDGEdge> dom = Dominators.compute(reversedCfg, exit);
+		this.dio = new DFSIntervalOrder<SDGNode, DomEdge>(dom.getDominationTree());
+		Chopper c = new RepsRosayChopper(sdg);
+		for (IIllegalFlow<SecurityNode> vio : vios) {
+			System.out.println(vio);
+			Collection<SDGNode> chop = c.chop(vio.getSource(), vio.getSink());
+			System.out.println(chop);
+			for (SDGNode n : chop) {
+				nodeJumps.put(n, getJumpsForNode(n));
+			}
+		}
+		nodeJumpDebugOutput();
+		System.out.println();
+		jumpsOutput();
+		System.out.println();
+		jumpsAndTargetsOutput();
+		System.out.println();
+		jumpsAndTargetsAndNodesOutput();
+	}
+
+	private void calculateJumpMap() {
+		for (SDGNode n : sdg.vertexSet()) {
+			int cgId = sdg.getCGNodeId(sdg.getEntry(n));
+			if (cg.getNode(cgId).getMethod().isSynthetic()) {
+				continue;
+			}
+			List<SDGEdge> succs = sdg.getOutgoingEdgesOfKindUnsafe(n, SDGEdge.Kind.CONTROL_FLOW);
+			if (succs.size() >= 2) {
+				Map<SDGNode, List<SDGNode>> succsMap = new HashMap<>();
+				for (SDGEdge e : succs) {
+					succsMap.put(e.getTarget(), new ArrayList<>());
+				}
+				jumps.put(n, succsMap);
+			}
+		}
 	}
 
 	private Collection<IIllegalFlow<SecurityNode>> getIllegalFlows(Collection<? extends IViolation<SecurityNode>> vios) {
@@ -98,16 +113,6 @@ public class Main {
 			vio.accept(separator);
 		}
 		return separator.getIllegalFlows();
-	}
-
-	public void dumpSDG(SDG sdg) {
-		try {
-			BufferedOutputStream bOut = new BufferedOutputStream(new FileOutputStream("/ben/bischof/test/" + className + ".pdg"));
-			SDGSerializer.toPDGFormat(sdg, bOut);
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 
 	/*
@@ -225,84 +230,5 @@ public class Main {
 			domMap.put(d, targets);
 		}
 		return domMap;
-	}
-	
-	private void calculateJumpMap() {
-		for (SDGNode n : sdg.vertexSet()) {
-			int cgId = sdg.getCGNodeId(sdg.getEntry(n));
-			if (cg.getNode(cgId).getMethod().isSynthetic()) {
-				continue;
-			}
-			List<SDGEdge> succs = sdg.getOutgoingEdgesOfKindUnsafe(n, SDGEdge.Kind.CONTROL_FLOW);
-			if (succs.size() >= 2) {
-				Map<SDGNode, List<SDGNode>> succsMap = new HashMap<>();
-				for (SDGEdge e : succs) {
-					succsMap.put(e.getTarget(), new ArrayList<>());
-				}
-				jumps.put(n, succsMap);
-			}
-		}
-	}
-
-	void analyse() {
-		CGKeeper cgk = new CGKeeper();
-		SDGProgram program = buildSDG("/ben/bischof/test", className + ".main([Ljava/lang/String;)V", cgk);
-		sdg = program.getSDG();
-		dumpSDG(sdg);
-		cg = cgk.cg;
-		calculateJumpMap();
-		IFCAnalysis ana = new IFCAnalysis(program);
-		ana.addSourceAnnotation(program.getPart(className + ".f(II)I->p2"), BuiltinLattices.STD_SECLEVEL_HIGH);
-		ana.addSinkAnnotation(program.getPart(className + ".print(I)V->p1"), BuiltinLattices.STD_SECLEVEL_LOW);
-		Collection<IIllegalFlow<SecurityNode>> vios = getIllegalFlows(ana.doIFC());
-		final CFG icfg = ICFGBuilder.extractICFG(sdg);
-		GraphModifier.removeCallCallRetEdges(icfg);
-        final DirectedGraph<SDGNode, SDGEdge> reversedCfg = new EdgeReversedGraph<>(icfg);
-        SDGNode exit = null;
-        for (SDGEdge e : sdg.getOutgoingEdgesOfKindUnsafe(sdg.getRoot(), SDGEdge.Kind.CONTROL_DEP_EXPR)) {
-        	if (e.getTarget().getKind() == SDGNode.Kind.EXIT) {
-        		exit = e.getTarget();
-        	}
-        }
-        frontiers = DominanceFrontiers.compute(reversedCfg, exit);
-		Dominators<SDGNode, SDGEdge> dom = Dominators.compute(reversedCfg, exit);
-		this.dio = new DFSIntervalOrder<SDGNode, DomEdge>(dom.getDominationTree());
-		Chopper c = new RepsRosayChopper(sdg);
-		for (IIllegalFlow<SecurityNode> vio : vios) {
-			System.out.println(vio);
-			Collection<SDGNode> chop = c.chop(vio.getSource(), vio.getSink());
-			System.out.println(chop);
-			for (SDGNode n : chop) {
-				nodeJumps.put(n, getJumpsForNode(n));
-			}
-		}
-		nodeJumpDebugOutput();
-		System.out.println();
-		jumpsOutput();
-		System.out.println();
-		jumpsAndTargetsOutput();
-		System.out.println();
-		jumpsAndTargetsAndNodesOutput();
-	}
-
-	public static void analyse(String className) {
-		Main m = new Main(className);
-		m.analyse();
-	}
-	
-	private String className;
-	private SDG sdg;
-	private DominanceFrontiers<SDGNode, SDGEdge> frontiers;
-	private DFSIntervalOrder<SDGNode, DomEdge> dio;
-	private CallGraph cg;
-	private Map<SDGNode, Map<SDGNode, List<SDGNode>>> nodeJumps = new HashMap<>();
-	private Map<SDGNode, Map<SDGNode, List<SDGNode>>> jumps = new HashMap<>();
-
-	private Main(String className) {
-		this.className = className;
-	}
-
-	public static void main(String[] args) {
-		analyse("A");
 	}
 }

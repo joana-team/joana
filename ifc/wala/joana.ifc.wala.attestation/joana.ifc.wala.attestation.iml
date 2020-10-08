@@ -18,5 +18,6 @@
     <orderEntry type="module" module-name="joana.ifc.sdg.graph" />
     <orderEntry type="module" module-name="joana.ifc.sdg.util" />
     <orderEntry type="module" module-name="joana.util" />
+    <orderEntry type="module" module-name="com.ibm.wala.shrike" />
   </component>
 </module>

@@ -41,6 +41,10 @@ def run_test_cli_command(jar: Path, joana_jar: Path, options: str, draw_graphs: 
     return f"java -cp {joana_jar} edu.kit.joana.wala.summary.test.TestCLI {jar} {options}" +\
            (" -g " if draw_graphs else "")
 
+def run_test_cli_pg_command(pg_file: Path, joana_jar: Path, draw_graphs: bool = False) -> str:
+    return f"java -cp {joana_jar} edu.kit.joana.wala.summary.test.TestCLI {pg_file}" + \
+           (" -g " if draw_graphs else "")
+
 def run_test_cli(jar: Path, joana_jar: Path, options: str, timeout: Optional[float] = None, draw_graphs: bool = False):
     subprocess.check_call(run_test_cli_command(jar, joana_jar, options, draw_graphs), shell=True, timeout=timeout)
 
@@ -165,7 +169,8 @@ class Fuzzer:
 
     def __init__(self, files: List[Path], cpp: str, out: Path = None, joana_jar: Path = locate_joana_jar(),
                  options: str = "", timeout: Optional[float] = None, cpp_timeout: Optional[float] = None,
-                 draw_graphs: bool = False, cpp_out_discard_regex: str = None):
+                 draw_graphs: bool = False, cpp_out_discard_regex: str = None, draw_successes: bool = True,
+                 draw_successes_max_nodes: int = 100):
         self.files = files
         self.cpp = cpp
         self.out = out or Path(tempfile.mkdtemp())
@@ -178,6 +183,8 @@ class Fuzzer:
         self.cpp_timeout = cpp_timeout
         self.draw_graphs = draw_graphs
         self.cpp_out_discard_regex = cpp_out_discard_regex
+        self.draw_successes_max_nodes = draw_successes_max_nodes
+        self.draw_successes = draw_successes
 
     def setup(self):
         if self.out.exists():
@@ -218,7 +225,7 @@ class Fuzzer:
                                     draw_graphs=self.draw_graphs)
         return FuzzerState(Path(str(base) + ".pg"), Path(str(base) + ".ssv"), self.parse_output_to_stats(res), [])
 
-    def run_joana(self, actions: List[FuzzerAction]) -> FuzzerState:
+    def run_joana(self, actions: List[FuzzerAction], draw_graphs: bool = None) -> FuzzerState:
         for f in self.out.glob("*.dot"):
             os.remove(f)
         def opt_cmd(all: bool):
@@ -237,9 +244,9 @@ class Fuzzer:
             f.write(all_cmd)
         #print("# #" + cmd)
         res = ""
-        if self.draw_graphs:
+        if draw_graphs is True or self.draw_graphs:
             res = run_test_cli_w_output(self.jar, self.joana_jar, f"@{options_file} --remove_normal", timeout=self.timeout,
-                                        draw_graphs=self.draw_graphs)
+                                        draw_graphs=True)
         else:
             # choose more efficient version
             joana_cmd = f"java -cp {self.joana_jar} edu.kit.joana.wala.summary.test.TestCLI {self.jar} @{options_file} --use_pg_for_cpp {self.best_pg_file}"
@@ -274,8 +281,8 @@ class Fuzzer:
             d["after_reorder_entry"] = d["entry"][0]
         return FuzzerStats(**d)
 
-    def increment_state(self, current_state: FuzzerState, action: FuzzerAction) -> FuzzerState:
-        return self.run_joana(current_state.actions + [action])
+    def increment_state(self, current_state: FuzzerState, action: Optional[FuzzerAction], draw: bool = False) -> FuzzerState:
+        return self.run_joana(current_state.actions + [action] if action else current_state.actions, draw)
 
     def loop(self, required_set_entry_unchanged: int = 20, max_number_exponent: float = 0.6, set_entry_prob: float = 0.2):
         self.setup()
@@ -329,6 +336,8 @@ class Fuzzer:
                 if is_better(new_state.stats, self.current_state.stats):
                     self.current_state = new_state
                     self.copy_to_best()
+                    if self.draw_successes and len(self.current_state.stats.nodes) <= self.draw_successes_max_nodes:
+                        run_test_cli_pg_command(self.best_pg_file, self.joana_jar, True)
                     print("BEST: " + str(len(new_state.actions)))
                     counter = 0
                     successes += 1

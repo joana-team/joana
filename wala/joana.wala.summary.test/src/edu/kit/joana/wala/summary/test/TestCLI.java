@@ -49,7 +49,7 @@ public class TestCLI implements Callable<Integer> {
   boolean omit_summary = false;
 
   @Option(names = "--store_pdg", description = "Store the PDG file")
-  boolean store_pdg = false;
+  boolean store_pdg = true;
 
   @Option(names = "--config", description = "SDGConfig", defaultValue = "DEFAULT")
   SDGConfigs config;
@@ -91,18 +91,22 @@ public class TestCLI implements Callable<Integer> {
       if (jarsOrClasses.length > 1) {
         System.out.println("Process " + jarOrClass);
       }
+      Optional<Path> export_folder = export_graphs ? Optional.of(util.exportedGraphsFolder(jarOrClass)) : Optional.empty();
       if (check_all) {
         util.checkAll(jarOrClass);
       } else if (util.isPg(jarOrClass)) {
         if (!omit_summary) {
+          if (export_graphs) {
+            util.exportGraphs(new Loader().load(jarOrClass), export_folder.get(), Paths.get(util.baseFile(jarOrClass)).toFile().getName(), Optional.empty());
+          }
           util.writeSSVFromPG(Paths.get(jarOrClass), util.summaryFilePath(jarOrClass));
         }
       } else {
         util.createBenchFiles(jarOrClass, util.pdgFilePath(jarOrClass), util.pgFilePath(jarOrClass),
             !omit_summary ? Optional.of(util.summaryFilePath(jarOrClass)) : Optional.empty(),
             use_existing_pdg && util.useOldPdg(jarOrClass, util.pdgFilePath(jarOrClass)),
-            export_graphs ? Optional.of(util.exportedGraphsFolder(jarOrClass)) : Optional.empty(), store_pdg, max_sums,
-            remove_normal, new HashSet<Integer>(Arrays.<Integer>asList(remove_nodes)), remove_unreachable, entry.length > 0 ? entry[entry.length - 1] : -1,
+            export_folder, store_pdg, max_sums,
+            remove_normal, new HashSet<>(Arrays.asList(remove_nodes)), remove_unreachable, entry.length > 0 ? entry[entry.length - 1] : -1,
             remove_neighbor_edges, list_nodes, !no_reorder, use_pg_for_cpp);
       }
     }

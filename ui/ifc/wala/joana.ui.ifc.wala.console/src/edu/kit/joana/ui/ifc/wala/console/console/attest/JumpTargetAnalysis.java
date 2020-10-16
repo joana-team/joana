@@ -5,7 +5,7 @@
  * For further details on licensing please read the information at
  * http://joana.ipd.kit.edu or contact the authors.
  */
-package edu.kit.joana.ifc.wala.attestation;
+package edu.kit.joana.ui.ifc.wala.console.console.attest;
 
 import com.ibm.wala.classLoader.ShrikeCTMethod;
 import com.ibm.wala.ipa.callgraph.CGNode;
@@ -35,9 +35,11 @@ import edu.kit.joana.wala.core.graphs.Dominators.DomEdge;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.EdgeReversedGraph;
 
+import java.io.PrintStream;
 import java.util.*;
 
 public class JumpTargetAnalysis {
+	private final PrintStream debugOut;
 	private final IFCAnalysis ana;
 	private SDG sdg;
 	private DominanceFrontiers<SDGNode, SDGEdge> frontiers;
@@ -46,14 +48,16 @@ public class JumpTargetAnalysis {
 	private final Map<SDGNode, Map<SDGNode, List<SDGNode>>> nodeJumps = new HashMap<>();
 	private final Map<SDGNode, Map<SDGNode, List<SDGNode>>> jumps = new HashMap<>();
 
-	private JumpTargetAnalysis(IFCAnalysis ana, CallGraph cg) {
+	private JumpTargetAnalysis(PrintStream debugOut, IFCAnalysis ana, CallGraph cg) {
+		this.debugOut = debugOut;
 		this.ana = ana;
 		this.cg = cg;
 	}
 
-	public static void analyse(IFCAnalysis ana, CallGraph cg) {
-		JumpTargetAnalysis m = new JumpTargetAnalysis(ana, cg);
+	public static JumpTargetAnalysis analyse(PrintStream debugOut, IFCAnalysis ana, CallGraph cg) {
+		JumpTargetAnalysis m = new JumpTargetAnalysis(debugOut, ana, cg);
 		m.analyse();
+		return m;
 	}
 
 	void analyse() {
@@ -74,20 +78,14 @@ public class JumpTargetAnalysis {
 		this.dio = new DFSIntervalOrder<SDGNode, DomEdge>(dom.getDominationTree());
 		Chopper c = new RepsRosayChopper(sdg);
 		for (IIllegalFlow<SecurityNode> vio : vios) {
-			System.out.println(vio);
+			debugOut.println(vio);
 			Collection<SDGNode> chop = c.chop(vio.getSource(), vio.getSink());
-			System.out.println(chop);
+			debugOut.println(chop);
 			for (SDGNode n : chop) {
 				nodeJumps.put(n, getJumpsForNode(n));
 			}
 		}
-		nodeJumpDebugOutput();
-		System.out.println();
-		jumpsOutput();
-		System.out.println();
-		jumpsAndTargetsOutput();
-		System.out.println();
-		jumpsAndTargetsAndNodesOutput();
+		nodeJumpDebugOutput(debugOut);
 	}
 
 	private void calculateJumpMap() {
@@ -167,49 +165,51 @@ public class JumpTargetAnalysis {
 		return getBCMethodAndIndexPair(n, adjust).getSecond();
 	}
 	
-	private void printSDGNodeDebugInfo(SDGNode n, String prefix, int adjust) {
-		System.out.println(prefix + "Node " + n.getId() + " " + getBCMethodAndIndexString(n, adjust));
+	private void printSDGNodeDebugInfo(PrintStream debugOut, SDGNode n, String prefix, int adjust) {
+		debugOut.println(prefix + "Node " + n.getId() + " " + getBCMethodAndIndexString(n, adjust));
 	}
 
-	private void nodeJumpDebugOutput() {
+	private void nodeJumpDebugOutput(PrintStream debugOut) {
 		for (Map.Entry<SDGNode, Map<SDGNode, List<SDGNode>>> entry1 : nodeJumps.entrySet()) {
 			SDGNode n = entry1.getKey();
-			printSDGNodeDebugInfo(n, "", 0);
+			printSDGNodeDebugInfo(debugOut, n, "", 0);
 			for (Map.Entry<SDGNode, List<SDGNode>> entry2 : entry1.getValue().entrySet()) {
 				SDGNode d = entry2.getKey();
-				printSDGNodeDebugInfo(d, "\t", 1);
+				printSDGNodeDebugInfo(debugOut, d, "\t", 1);
 				for (SDGNode t : entry2.getValue()) {
-					printSDGNodeDebugInfo(t, "\tvia: ", -1);
+					printSDGNodeDebugInfo(debugOut, t, "\tvia: ", -1);
 				}
 			}
 		}
 	}
 
-	private void jumpsOutput() {
+	public void jumpsOutput(PrintStream out) {
 		for (Map.Entry<SDGNode, Map<SDGNode, List<SDGNode>>> entry1 : jumps.entrySet()) {
 			SDGNode n = entry1.getKey();
-			System.out.println(n.getId() + " " + getBCMethodAndIndexString(n, 1));
+			out.println(n.getId() + " " + getBCMethodAndIndexString(n, 1));
 		}
 	}
 
-	private void jumpsAndTargetsOutput() {
+	public void jumpsAndTargetsOutput(PrintStream out) {
 		for (Map.Entry<SDGNode, Map<SDGNode, List<SDGNode>>> entry1 : jumps.entrySet()) {
-			SDGNode n = entry1.getKey();
-			System.out.println(n.getId() + " " + getBCMethodAndIndexString(n, 1));
-			for (SDGNode d : entry1.getValue().keySet()) {
-				System.out.print(" " + getBCIndex(d, -1));
-			}
-			System.out.println();
+			try {
+				SDGNode n = entry1.getKey();
+				out.println(n.getId() + " " + getBCMethodAndIndexString(n, 1));
+				for (SDGNode d : entry1.getValue().keySet()) {
+					out.print(" " + getBCIndex(d, -1));
+				}
+				out.println();
+			} catch (Exception e) {}
 		}
 	}
 
-	private void jumpsAndTargetsAndNodesOutput() {
+	public void jumpsAndTargetsAndNodesOutput(PrintStream out) {
 		for (Map.Entry<SDGNode, Map<SDGNode, List<SDGNode>>> entry1 : jumps.entrySet()) {
 			SDGNode n = entry1.getKey();
-			System.out.println(n.getId() + " " + getBCMethodAndIndexString(n, 1));
+			out.println(n.getId() + " " + getBCMethodAndIndexString(n, 1));
 			for (Map.Entry<SDGNode, List<SDGNode>> entry2 : entry1.getValue().entrySet()) {
 				SDGNode d = entry2.getKey();
-				System.out.println(" " + getBCMethodAndIndexString(d, -1) + " " + entry2.getValue());
+				out.println(" " + getBCMethodAndIndexString(d, -1) + " " + entry2.getValue());
 			}
 		}
 	}
@@ -220,6 +220,9 @@ public class JumpTargetAnalysis {
 		for (SDGNode d : doms) {
 			List<SDGNode> targets = new ArrayList<>();
 			Map<SDGNode, List<SDGNode>> succsMap = jumps.get(d);
+			if (succsMap == null) {
+				continue;
+			}
 			for (SDGEdge e : sdg.outgoingEdgesOfUnsafe(d)) {
 				SDGNode t = e.getTarget();
 				if (e.getKind().isControlFlowEdge() && dio.isLeq(t, n)) {

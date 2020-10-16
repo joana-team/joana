@@ -256,6 +256,7 @@ public class SDGProgram {
 		}
 		final com.ibm.wala.util.collections.Pair<SDG, SDGBuildArtifacts> p =
 				SDGBuildPreparation.computeAndKeepBuildArtifacts(out, makeBuildPreparationConfig(config), monitor);
+
 		final SDG sdg = p.fst;
 		final SDGBuildArtifacts buildArtifacts = p.snd;
 
@@ -296,7 +297,7 @@ public class SDGProgram {
 		
 		
 		final IClassHierarchy ch  = buildArtifacts.getClassHierarchy();
-		final CallGraph callGraph = buildArtifacts.getWalaCallGraph(); 
+		final CallGraph callGraph = buildArtifacts.getWalaCallGraph();
 		ret.fillWithAnnotations(ch, findClassesRelevantForAnnotation(ch, callGraph));
 		return ret;
 	}

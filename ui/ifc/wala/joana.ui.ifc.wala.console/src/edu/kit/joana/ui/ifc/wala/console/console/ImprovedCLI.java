@@ -105,7 +105,7 @@ public class ImprovedCLI {
         Collections.emptySet(), new SDG(), new TIntObjectHashMap<>());
   }
 
-  @Retention(RetentionPolicy.RUNTIME) @Target({ ElementType.FIELD, ElementType.PARAMETER }) @interface State {
+  @Retention(RetentionPolicy.RUNTIME) @Target({ ElementType.FIELD, ElementType.PARAMETER }) public @interface State {
   }
 
   @Retention(RetentionPolicy.RUNTIME) @Target(ElementType.FIELD) @interface DynamicMixin {
@@ -940,13 +940,33 @@ public class ImprovedCLI {
     }
   }
 
-  interface RunEnabled<T> extends SinksAndSourcesEnabled, EntryPointEnabled, RunAnalysisEnabled<T> {
+  interface SelectTagEnabled extends SinksAndSourcesEnabled, EntryPointEnabled {
     default boolean addAnnotations(String tag){
       return setEntryPoint(tag) != null && selectSinkAnnotations(tag).size() > 0 && selectSourceAnnotations(tag).size() > 0 &&
           (this instanceof DeclassificationEnabled ?
               ((DeclassificationEnabled) this).selectDeclassificationAnnotations(tag) != null : true) &&
           (this instanceof SetValueEnabled ? ((SetValueEnabled) this).selectSetValueAnnotations(tag) != null : true);
     }
+  }
+
+  @Command(name = "selectTag", description = "Use annotations and entry point for a specific tag")
+  static class SelectTagCommand implements Callable<Integer> {
+
+    SelectTagEnabled state;
+
+    @Parameters
+    String tag;
+
+    public SelectTagCommand(@State SelectTagEnabled state){
+      this.state = state;
+    }
+
+    @Override public Integer call() throws Exception {
+      return exit(state.addAnnotations(tag));
+    }
+  }
+
+  interface RunEnabled<T> extends SelectTagEnabled, RunAnalysisEnabled<T> {
 
     T getMixin(RunCommand command);
   }
@@ -1034,14 +1054,13 @@ public class ImprovedCLI {
    * Top-level command that just prints help.
    */
   @Command(name = "", description = "JOANA shell",
-      footer = {"", "Press Ctl-D to exit in interactive mode."})
-  static class CliCommands implements Callable<Integer> {
+      footer = {"", "Press Ctl-D to exit in interactive mode."}) public static class CliCommands implements Callable<Integer> {
 
     @Spec Model.CommandSpec spec;
 
     Object state;
 
-    final boolean verbose;
+    public final boolean verbose;
     PrintWriter out = new PrintWriter(System.out);
     LineReaderImpl reader;
 
@@ -1164,7 +1183,7 @@ public class ImprovedCLI {
     boolean interactive;
 
     @Option(names = "-v", description = "Enable verbose output")
-    boolean verbose;
+    boolean verbose = false;
 
     @Parameters(arity = "0..*", description = "Commands to execute, equivalent to executing them in interactive mode")
     List<String> commands;
@@ -1346,7 +1365,7 @@ public class ImprovedCLI {
     }
   }
 
-  private static int exit(boolean successful) {
+  public static int exit(boolean successful) {
     return successful ? 0 : ExitCode.SOFTWARE;
   }
 
@@ -1398,8 +1417,8 @@ public class ImprovedCLI {
   }
 
 
-  public static void run(String[] args, Object state, boolean interactive) {
-    OuterCommand command = new OuterCommand(state);
+  public static void run(String[] args, Object state, boolean interactive, Class<?>... miscCommandClasses) {
+    OuterCommand command = new OuterCommand(state, miscCommandClasses);
     if (interactive){
       command.interactive = true;
       command.run();

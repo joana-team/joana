@@ -10,6 +10,7 @@ package edu.kit.joana.ui.ifc.wala.console.console;
 import com.amihaiemil.eoyaml.*;
 import com.google.common.collect.Multimap;
 import com.ibm.wala.classLoader.IMethod;
+import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.ipa.callgraph.UninitializedFieldHelperOptions;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
@@ -352,6 +353,7 @@ public class IFCConsole {
 
 	// private SDG sdg;
 	private IFCAnalysis ifcAnalysis = null;
+	private CallGraph cg = null;
 	private String classPath = "bin";
 	private PointsToPrecision pointsTo = PointsToPrecision.INSTANCE_BASED;
 	private ExceptionAnalysis excAnalysis = ExceptionAnalysis.INTRAPROC;
@@ -2540,7 +2542,7 @@ public class IFCConsole {
 		return buildSDG(false, MHPType.NONE, ExceptionAnalysis.INTERPROC);
 	}
 	
-	private boolean buildSDGIfNeeded(boolean computeInterference, MHPType mhpType, ExceptionAnalysis exA) {
+	public boolean buildSDGIfNeeded(boolean computeInterference, MHPType mhpType, ExceptionAnalysis exA) {
 		if (recomputeSDG) {
 			return buildSDG(computeInterference, mhpType, exA);
 		}
@@ -2607,6 +2609,7 @@ public class IFCConsole {
 			config.setPointsToPrecision(pointsTo);
 			config.setFieldPropagation(FieldPropagation.OBJ_GRAPH_SIMPLE_PROPAGATION);
 			config.setFieldHelperOptions(new UninitializedFieldHelperOptions(uninitializedFieldTypeMatcher));
+			config.setCGConsumer((cg, pts) -> this.cg = cg);
 			SDGProgram program = SDGProgram.createSDGProgram(config, out.getPrintStream(), monitor);
 			if (onlyDirectFlow) {
 				SDGProgram.throwAwayControlDeps(program.getSDG());
@@ -2692,7 +2695,6 @@ public class IFCConsole {
 			out.error(errorMsg);
 			return false;
 		}
-
 		setSDG(sdg, mhp);
 		// sdgFile = path;
 		return true;
@@ -2952,6 +2954,19 @@ public class IFCConsole {
 			return ifcAnalysis.getProgram().getSDG();
 		}
 	}
+
+	public CallGraph getCallGraph() {
+		return cg;
+	}
+
+	public IFCAnalysis getAnalysis() {
+		if (ifcAnalysis == null) {
+			return null;
+		} else {
+			return ifcAnalysis;
+		}
+	}
+
 
 	public void addListener(IFCConsoleListener l) {
 		this.consoleListeners.add(l);

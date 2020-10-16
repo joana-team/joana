@@ -8,30 +8,12 @@
 
 package edu.kit.joana.ifc.sdg.qifc.nildumu;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.lang.reflect.Method;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.stream.Stream;
-
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
-
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.sdg.ConstructionNotifier;
 import edu.kit.joana.api.sdg.SDGBuildPreparation;
@@ -43,15 +25,25 @@ import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.mhpoptimization.PruneInterferences;
-import edu.kit.joana.ifc.sdg.qifc.nildumu.util.Pair;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.util.Stubs;
+import edu.kit.joana.util.Triple;
 import edu.kit.joana.util.io.IOFactory;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
+
+import java.io.*;
+import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.stream.Stream;
 
 /**
  * Fluent API for creating SDGConfigs and for loading SDGPrograms
@@ -97,7 +89,7 @@ public class Builder {
 	/**
 	 * Modified version of {@link SDGProgram#createSDGProgram(String, String, Stubs, boolean, MHPType, PrintStream, IProgressMonitor)}
 	 */
-	private static <T> Pair<SDGBuilder, SDGProgram> createSDGProgram(SDGConfig config) throws ClassHierarchyException, UnsoundGraphException, CancelException, IOException{
+	private static <T> Triple<SDGBuilder, SDGProgram, CallGraph> createSDGProgram(SDGConfig config) throws ClassHierarchyException, UnsoundGraphException, CancelException, IOException{
 		PrintStream out = IOFactory.createUTF8PrintStream(new ByteArrayOutputStream());
 		IProgressMonitor monitor = NullProgressMonitor.INSTANCE;
 		monitor.beginTask("build SDG", 20);
@@ -136,16 +128,15 @@ public class Builder {
 
 		}
 		final SDGProgram ret = new SDGProgram(sdg, mhpAnalysis);
+		final IClassHierarchy ch  = buildArtifacts.getClassHierarchy();
+		final CallGraph callGraph = buildArtifacts.getWalaCallGraph();
 
 		if (config.isSkipSDGProgramPart()) {
-			return new Pair<>(buildArtifacts, ret);
+			return new Triple<>(buildArtifacts, ret, callGraph);
 		}
 
-
-		final IClassHierarchy ch  = buildArtifacts.getClassHierarchy();
-		final CallGraph callGraph = buildArtifacts.getWalaCallGraph(); 
 		ret.fillWithAnnotations(ch, SDGProgram.findClassesRelevantForAnnotation(ch, callGraph));
-		return new Pair<>(buildArtifacts, ret);
+		return new Triple<>(buildArtifacts, ret, callGraph);
 	}
 
 
@@ -206,10 +197,10 @@ public class Builder {
 
 	public BuildResult build() throws ClassHierarchyException, UnsoundGraphException, CancelException, IOException {
 		if (!cache.containsKey(className) || !doCache) {
-			Pair<SDGBuilder, SDGProgram> pair = createSDGProgram(config);
-			IFCAnalysis ana = new IFCAnalysis(pair.second);
+			Triple<SDGBuilder, SDGProgram, CallGraph> triple = createSDGProgram(config);
+			IFCAnalysis ana = new IFCAnalysis(triple.getMiddle());
 			ana.addAllJavaSourceAnnotations();
-			res = new BuildResult(pair.first, ana);
+			res = new BuildResult(triple.getLeft(), ana, triple.getRight());
 			if (dumpAfterBuild) {
 				dump();
 				dumpDotGraphs();

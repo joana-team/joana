@@ -91,7 +91,7 @@ public class JumpTargetAnalysis {
 	private void calculateJumpMap() {
 		for (SDGNode n : sdg.vertexSet()) {
 			int cgId = sdg.getCGNodeId(sdg.getEntry(n));
-			if (cg.getNode(cgId).getMethod().isSynthetic()) {
+			if (n.kind == SDGNode.Kind.ENTRY || cg.getNode(cgId).getMethod().isSynthetic()) {
 				continue;
 			}
 			List<SDGEdge> succs = sdg.getOutgoingEdgesOfKindUnsafe(n, SDGEdge.Kind.CONTROL_FLOW);
@@ -192,14 +192,16 @@ public class JumpTargetAnalysis {
 
 	public void jumpsAndTargetsOutput(PrintStream out) {
 		for (Map.Entry<SDGNode, Map<SDGNode, List<SDGNode>>> entry1 : jumps.entrySet()) {
+			SDGNode n = entry1.getKey();
 			try {
-				SDGNode n = entry1.getKey();
 				out.println(n.getId() + " " + getBCMethodAndIndexString(n, 1));
 				for (SDGNode d : entry1.getValue().keySet()) {
 					out.print(" " + getBCIndex(d, -1));
 				}
 				out.println();
-			} catch (Exception e) {}
+			} catch (Exception e) {
+				System.err.println("Cannot get bytecode index for jumps or targets of node " + n);
+			}
 		}
 	}
 

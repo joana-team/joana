@@ -58,6 +58,7 @@ public class Main {
 
 		@Override public Integer call() throws Exception {
 			console.buildSDGIfNeeded();
+			wrapper.setAnnotationsInIFCAnalysis();
 			JumpTargetAnalysis ana = JumpTargetAnalysis
 					.analyse(parent.verbose ? System.out : new NullPrintStream(), console.getAnalysis(), console.getCallGraph());
 			PrintStream out = new PrintStream(output.equals("-") ? System.out : Files.newOutputStream(Paths.get(output)));

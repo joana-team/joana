@@ -183,10 +183,18 @@ public class JumpTargetAnalysis {
 		}
 	}
 
+	private boolean isImportant(SDGNode n) {
+		return !jumps.get(n).values().stream().allMatch(List::isEmpty);
+	}
+
+	private String isImportantOutput(SDGNode n) {
+		return isImportant(n) ? " *" : "";
+	}
+
 	public void jumpsOutput(PrintStream out) {
 		for (Map.Entry<SDGNode, Map<SDGNode, List<SDGNode>>> entry1 : jumps.entrySet()) {
 			SDGNode n = entry1.getKey();
-			out.println(n.getId() + " " + getBCMethodAndIndexString(n, 1));
+			out.println(n.getId() + " " + getBCMethodAndIndexString(n, 1) + isImportantOutput(n));
 		}
 	}
 
@@ -194,7 +202,7 @@ public class JumpTargetAnalysis {
 		for (Map.Entry<SDGNode, Map<SDGNode, List<SDGNode>>> entry1 : jumps.entrySet()) {
 			SDGNode n = entry1.getKey();
 			try {
-				out.println(n.getId() + " " + getBCMethodAndIndexString(n, 1));
+				out.println(n.getId() + " " + getBCMethodAndIndexString(n, 1) + isImportantOutput(n));
 				for (SDGNode d : entry1.getValue().keySet()) {
 					out.print(" " + getBCIndex(d, -1));
 				}
@@ -208,7 +216,7 @@ public class JumpTargetAnalysis {
 	public void jumpsAndTargetsAndNodesOutput(PrintStream out) {
 		for (Map.Entry<SDGNode, Map<SDGNode, List<SDGNode>>> entry1 : jumps.entrySet()) {
 			SDGNode n = entry1.getKey();
-			out.println(n.getId() + " " + getBCMethodAndIndexString(n, 1));
+			out.println(n.getId() + " " + getBCMethodAndIndexString(n, 1) + isImportantOutput(n));
 			for (Map.Entry<SDGNode, List<SDGNode>> entry2 : entry1.getValue().entrySet()) {
 				SDGNode d = entry2.getKey();
 				out.println(" " + getBCMethodAndIndexString(d, -1) + " " + entry2.getValue());

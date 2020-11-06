@@ -7,40 +7,18 @@
  */
 package edu.kit.joana.api;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Predicate;
-
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.ibm.wala.classLoader.IClass;
-import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
-import com.ibm.wala.shrikeCT.AnnotationsReader.AnnotationAttribute;
-import com.ibm.wala.shrikeCT.AnnotationsReader.ArrayElementValue;
-import com.ibm.wala.shrikeCT.AnnotationsReader.ConstantElementValue;
-import com.ibm.wala.shrikeCT.AnnotationsReader.ElementValue;
-import com.ibm.wala.shrikeCT.AnnotationsReader.EnumElementValue;
+import com.ibm.wala.shrikeCT.AnnotationsReader.*;
 import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.types.TypeName;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.types.annotations.Annotation;
-
+import edu.kit.joana.api.annotations.*;
 import edu.kit.joana.api.annotations.AnnotationType;
-import edu.kit.joana.api.annotations.IFCAnnotation;
-import edu.kit.joana.api.annotations.IFCAnnotationManager;
-import edu.kit.joana.api.annotations.NodeAnnotationInfo;
 import edu.kit.joana.api.annotations.cause.AnnotationCause;
 import edu.kit.joana.api.annotations.cause.JavaSinkAnnotation;
 import edu.kit.joana.api.annotations.cause.JavaSourceAnnotation;
@@ -51,41 +29,19 @@ import edu.kit.joana.ifc.sdg.core.IFC;
 import edu.kit.joana.ifc.sdg.core.ReduceRedundantFlows;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.SlicingBasedIFC;
-import edu.kit.joana.ifc.sdg.core.conc.ConflictScanner;
-import edu.kit.joana.ifc.sdg.core.conc.DataConflict;
-import edu.kit.joana.ifc.sdg.core.conc.LSODNISlicer;
-import edu.kit.joana.ifc.sdg.core.conc.OrderConflict;
-import edu.kit.joana.ifc.sdg.core.conc.PossibilisticNIChecker;
-import edu.kit.joana.ifc.sdg.core.conc.ProbabilisticNIChecker;
-import edu.kit.joana.ifc.sdg.core.conc.TimeSensitiveIFCDecorator;
-import edu.kit.joana.ifc.sdg.core.violations.ConflictEdge;
-import edu.kit.joana.ifc.sdg.core.violations.IIllegalFlow;
-import edu.kit.joana.ifc.sdg.core.violations.IViolation;
-import edu.kit.joana.ifc.sdg.core.violations.IllegalFlow;
-import edu.kit.joana.ifc.sdg.core.violations.ViolationMapper;
+import edu.kit.joana.ifc.sdg.core.conc.*;
+import edu.kit.joana.ifc.sdg.core.violations.*;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PBackward;
 import edu.kit.joana.ifc.sdg.graph.slicer.conc.I2PForward;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
-import edu.kit.joana.ifc.sdg.irlsod.PredProbInfComputer;
-import edu.kit.joana.ifc.sdg.irlsod.OptORLSODChecker;
-import edu.kit.joana.ifc.sdg.irlsod.ProbInfComputer;
-import edu.kit.joana.ifc.sdg.irlsod.ThreadModularCDomOracle;
-import edu.kit.joana.ifc.sdg.irlsod.TimingClassificationChecker;
+import edu.kit.joana.ifc.sdg.irlsod.*;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.mhpoptimization.CSDGPreprocessor;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
-import edu.kit.joana.ui.annotations.AnnotationPolicy;
-import edu.kit.joana.ui.annotations.Declassification;
-import edu.kit.joana.ui.annotations.Declassifications;
-import edu.kit.joana.ui.annotations.Level;
-import edu.kit.joana.ui.annotations.PositionDefinition;
-import edu.kit.joana.ui.annotations.Sink;
-import edu.kit.joana.ui.annotations.Sinks;
-import edu.kit.joana.ui.annotations.Source;
-import edu.kit.joana.ui.annotations.Sources;
+import edu.kit.joana.ui.annotations.*;
 import edu.kit.joana.util.Log;
 import edu.kit.joana.util.Logger;
 import edu.kit.joana.util.Maybe;
@@ -93,9 +49,14 @@ import edu.kit.joana.util.Pair;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+
 public class IFCAnalysis {
 
 	private SDGProgram program;
+
 	private IFCAnnotationManager annManager;
 	private IStaticLattice<String> secLattice;
 	private IFCType ifcType = IFCType.CLASSICAL_NI;
@@ -289,6 +250,18 @@ public class IFCAnalysis {
 	 * @return collection of security violations reported by the specified ifc analysis
 	 */
 	public Collection<? extends IViolation<SecurityNode>> doIFC(IFCType ifcType) {
+		return doIFC(ifcType, true);
+	}
+
+	/**
+	 * Do IFC analysis of the specified type and use the specified MHP analysis precision, if relevant.
+	 * Note that mhpType is assumed to be not {@code null}, if ifcType is {@link IFCType#LSOD} or {@link IFCType#RLSOD}. If ifcType is
+	 * {@link IFCType#CLASSICAL_NI}, then mhpType is ignored and thus also allowed to be {@code null}.
+	 * @param ifcType type of IFC analysis to perform
+	 * @param mhpType precision of the MHP analysis to use - must be non-null if ifcType is {@link IFCType#LSOD} or {@link IFCType#RLSOD}; may be {@code null} otherwise
+	 * @return collection of security violations reported by the specified ifc analysis
+	 */
+	public Collection<? extends IViolation<SecurityNode>> doIFC(IFCType ifcType, boolean unapplyAllAnnotations) {
 		assert ifc != null && ifc.getSDG() != null && ifc.getLattice() != null;
 		annManager.applyAllAnnotations();
 		setIFCType(ifcType);
@@ -297,15 +270,21 @@ public class IFCAnalysis {
 		Collection<? extends IViolation<SecurityNode>> vios = ifc.checkIFlow();
 		time = System.currentTimeMillis() - time;
 		debug.outln(String.format("IFC Analysis took %d ms.", time));
-		annManager.unapplyAllAnnotations();
+		if (unapplyAllAnnotations) {
+			annManager.unapplyAllAnnotations();
+		}
 		return vios;
 	}
 
 	public TObjectIntMap<? extends IViolation<SDGProgramPart>> doIFCAndGroupByPPPart(IFCType ifcType) {
 		return groupByPPPart(doIFC(ifcType));
 	}
-	
+
 	public TObjectIntMap<IViolation<SDGProgramPart>> groupByPPPart(Collection<? extends IViolation<SecurityNode>> vios) {
+		return groupByPPPart(vios, true);
+	}
+
+	public TObjectIntMap<IViolation<SDGProgramPart>> groupByPPPart(Collection<? extends IViolation<SecurityNode>> vios, boolean unapplyAllAnnotations) {
 		annManager.applyAllAnnotations();
 		ViolationMapper<SecurityNode, Set<? extends IViolation<SDGProgramPart>>> transl = new ViolationMapper<SecurityNode, Set<? extends IViolation<SDGProgramPart>>>() {
 
@@ -390,7 +369,9 @@ public class IFCAnalysis {
 				}
 			}
 		}
-		annManager.unapplyAllAnnotations();
+		if (unapplyAllAnnotations) {
+			annManager.unapplyAllAnnotations();
+		}
 		return ret;
 	}
 	
@@ -1271,5 +1252,22 @@ public class IFCAnalysis {
 			}
 		}
 		return added;
+	}
+
+	public IFCAnnotationManager getAnnManager() {
+		return annManager;
+	}
+
+	public Collection<String> getProgramPartLevels(SDGProgramPart part, AnnotationType type){
+		AnnotationTypeBasedNodeCollector collector = program.getNodeCollector();
+		return collector.collectNodes(part, type).stream().map(n -> ((SecurityNode)n).getLevel()).collect(Collectors.toSet());
+	}
+
+	public String getProgramPartLevel(SDGProgramPart part, AnnotationType type){
+		Collection<String> levels = getProgramPartLevels(part, type);
+		if (levels.size() != 1){
+			throw new RuntimeException();
+		}
+		return levels.iterator().next();
 	}
 }

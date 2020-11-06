@@ -17,10 +17,8 @@ import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.types.TypeName;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.types.annotations.Annotation;
+import edu.kit.joana.api.annotations.*;
 import edu.kit.joana.api.annotations.AnnotationType;
-import edu.kit.joana.api.annotations.IFCAnnotation;
-import edu.kit.joana.api.annotations.IFCAnnotationManager;
-import edu.kit.joana.api.annotations.NodeAnnotationInfo;
 import edu.kit.joana.api.annotations.cause.AnnotationCause;
 import edu.kit.joana.api.annotations.cause.JavaSinkAnnotation;
 import edu.kit.joana.api.annotations.cause.JavaSourceAnnotation;
@@ -50,13 +48,17 @@ import edu.kit.joana.util.Maybe;
 import edu.kit.joana.util.Pair;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
+import java.util.*;
+import java.util.Map.Entry;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 public class IFCAnalysis {
 
 	private SDGProgram program;
+
 	private IFCAnnotationManager annManager;
 	private IStaticLattice<String> secLattice;
 	private IFCType ifcType = IFCType.CLASSICAL_NI;
@@ -250,6 +252,18 @@ public class IFCAnalysis {
 	 * @return collection of security violations reported by the specified ifc analysis
 	 */
 	public Collection<? extends IViolation<SecurityNode>> doIFC(IFCType ifcType) {
+		return doIFC(ifcType, true);
+	}
+
+	/**
+	 * Do IFC analysis of the specified type and use the specified MHP analysis precision, if relevant.
+	 * Note that mhpType is assumed to be not {@code null}, if ifcType is {@link IFCType#LSOD} or {@link IFCType#RLSOD}. If ifcType is
+	 * {@link IFCType#CLASSICAL_NI}, then mhpType is ignored and thus also allowed to be {@code null}.
+	 * @param ifcType type of IFC analysis to perform
+	 * @param mhpType precision of the MHP analysis to use - must be non-null if ifcType is {@link IFCType#LSOD} or {@link IFCType#RLSOD}; may be {@code null} otherwise
+	 * @return collection of security violations reported by the specified ifc analysis
+	 */
+	public Collection<? extends IViolation<SecurityNode>> doIFC(IFCType ifcType, boolean unapplyAllAnnotations) {
 		assert ifc != null && ifc.getSDG() != null && ifc.getLattice() != null;
 		annManager.applyAllAnnotations();
 		setIFCType(ifcType);
@@ -258,7 +272,9 @@ public class IFCAnalysis {
 		Collection<? extends IViolation<SecurityNode>> vios = ifc.checkIFlow();
 		time = System.currentTimeMillis() - time;
 		debug.outln(String.format("IFC Analysis took %d ms.", time));
-		annManager.unapplyAllAnnotations();
+		if (unapplyAllAnnotations) {
+			annManager.unapplyAllAnnotations();
+		}
 		return vios;
 	}
 
@@ -271,6 +287,10 @@ public class IFCAnalysis {
 	 * important when using the annotateOverloadedMethods option
 	 */
 	public TObjectIntMap<IViolation<SDGProgramPart>> groupByPPPart(Collection<? extends IViolation<SecurityNode>> vios) {
+		return groupByPPPart(vios, true);
+	}
+
+	public TObjectIntMap<IViolation<SDGProgramPart>> groupByPPPart(Collection<? extends IViolation<SecurityNode>> vios, boolean unapplyAllAnnotations) {
 		annManager.applyAllAnnotations();
 		ViolationMapper<SecurityNode, Set<? extends IViolation<SDGProgramPart>>> transl = new ViolationMapper<SecurityNode, Set<? extends IViolation<SDGProgramPart>>>() {
 
@@ -355,7 +375,9 @@ public class IFCAnalysis {
 				}
 			}
 		}
-		annManager.unapplyAllAnnotations();
+		if (unapplyAllAnnotations) {
+			annManager.unapplyAllAnnotations();
+		}
 		return ret;
 	}
 	
@@ -1236,5 +1258,22 @@ public class IFCAnalysis {
 			}
 		}
 		return added;
+	}
+
+	public IFCAnnotationManager getAnnManager() {
+		return annManager;
+	}
+
+	public Collection<String> getProgramPartLevels(SDGProgramPart part, AnnotationType type){
+		AnnotationTypeBasedNodeCollector collector = program.getNodeCollector();
+		return collector.collectNodes(part, type).stream().map(n -> ((SecurityNode)n).getLevel()).collect(Collectors.toSet());
+	}
+
+	public String getProgramPartLevel(SDGProgramPart part, AnnotationType type){
+		Collection<String> levels = getProgramPartLevels(part, type);
+		if (levels.size() != 1){
+			throw new RuntimeException();
+		}
+		return levels.iterator().next();
 	}
 }

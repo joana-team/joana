@@ -1574,8 +1574,9 @@ public class IFCConsole {
 		YamlMappingBuilder mapBuilder = YamlUtil.mapping();
 		ifcAnalysis.setTimesensitivity(isTimeSensitive);
 		out.logln("Performing IFC - Analysis type: " + type);
-		Optional<Collection<? extends IViolation<SecurityNode>>> viosOpt = doIFCAndOptAndCatch(type);
+		Optional<Collection<? extends IViolation<SecurityNode>>> viosOpt = doIFCAndOptAndCatch(type, false);
 		if (!viosOpt.isPresent()){
+			ifcAnalysis.getAnnManager().unapplyAllAnnotations();
 			return Optional.empty();
 		}
 		Collection<? extends IViolation<SecurityNode>> vios = viosOpt.get();
@@ -1594,10 +1595,11 @@ public class IFCConsole {
 		mapBuilder = mapBuilder.add("only_direct_flow", onlyDirectFlow ? "true" : "false");
 		if (lastAnalysisResult.isEmpty()) {
 			out.logln("No violations found.");
+			ifcAnalysis.getAnnManager().unapplyAllAnnotations();
 			return Optional.of(mapBuilder.build());
 		}
 		YamlSequenceBuilder flowsBuilder = Yaml.createYamlSequenceBuilder();
-		groupedIFlows = ifcAnalysis.groupByPPPart(vios);
+		groupedIFlows = ifcAnalysis.groupByPPPart(vios, false);
 		out.logln("done, found " + groupedIFlows.size() + " security violation(s):");
 		Set<String> output = new TreeSet<String>();
 		for (IViolation<SDGProgramPart> vio : groupedIFlows.keySet()) {
@@ -1708,7 +1710,9 @@ public class IFCConsole {
 					vioBuild[0] = vioBuild[0].add("type", "illegal")
 					          .add("attacker_level", iFlow.getAttackerLevel())
 					          .add("source", convertProgramPartToYaml(iFlow.getSource()))
-					          .add("sink", convertProgramPartToYaml(iFlow.getSink()));
+							      .add("source_level", ifcAnalysis.getProgramPartLevel(iFlow.getSource(), AnnotationType.SOURCE))
+					          .add("sink", convertProgramPartToYaml(iFlow.getSink()))
+										.add("sink_level", ifcAnalysis.getProgramPartLevel(iFlow.getSink(), AnnotationType.SINK));
 				}
 
 				private void visitAbstractConflictLeak(String type, AbstractConflictLeak<SDGProgramPart> conf) {
@@ -1757,6 +1761,7 @@ public class IFCConsole {
 			out.logln(s);
 		}
 		mapBuilder = mapBuilder.add("flow", flowsBuilder.build());
+		ifcAnalysis.getAnnManager().unapplyAllAnnotations();
 		return Optional.of(mapBuilder.build());
 	}
 	
@@ -2778,13 +2783,19 @@ public class IFCConsole {
 		}
 	}
 
-
 	/**
 	 * Do the chosen byte code optimizations and run the IFC analysis
 	 */
 	public Optional<Collection<? extends IViolation<SecurityNode>>> doIFCAndOptAndCatch(IFCType ifcType) {
+		return doIFCAndOptAndCatch(ifcType, true);
+	}
+
+	/**
+	 * Do the chosen byte code optimizations and run the IFC analysis
+	 */
+	public Optional<Collection<? extends IViolation<SecurityNode>>> doIFCAndOptAndCatch(IFCType ifcType, boolean unapplyAllAnnotations) {
 		try {
-			return Optional.of(doIFCAndOpt(ifcType));
+			return Optional.of(doIFCAndOpt(ifcType, unapplyAllAnnotations));
 		} catch (IOException ex){
 			out.error(ex.getMessage());
 			return Optional.empty();
@@ -2794,7 +2805,7 @@ public class IFCConsole {
 	/**
 	 * Do the chosen byte code optimizations and run the IFC analysis
 	 */
-	public Collection<? extends IViolation<SecurityNode>> doIFCAndOpt(IFCType ifcType) throws IOException {
+	public Collection<? extends IViolation<SecurityNode>> doIFCAndOpt(IFCType ifcType, boolean unapplyAllAnnotations) throws IOException {
 		Collection<IFCAnnotation> annotations = ifcAnalysis.getAnnotations();
 		if (useByteCodeOptimizations) {
 			if (this.valuesToSet.size() > 0){
@@ -2808,7 +2819,7 @@ public class IFCConsole {
 		}
 		annotations.forEach(ifcAnalysis::addAnnotation);
 		ifcAnalysis.setTimesensitivity(isTimeSensitive);
-		return ifcAnalysis.doIFC(ifcType);
+		return ifcAnalysis.doIFC(ifcType, unapplyAllAnnotations);
 	}
 
 		public Optional<String> optimizeClassPath(String libPath){

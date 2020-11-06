@@ -1495,6 +1495,7 @@ public class IFCConsole {
 	}
 	
 	public boolean selectEntryPoint(String pattern, Consumer<List<String>> classSinkConsumer) {
+		this.secLattice = IFCAnalysis.stdLattice;
 		return selectEntryPoint(pattern, classSinkConsumer, true);
 	}
 	
@@ -1882,13 +1883,13 @@ public class IFCConsole {
 	
 	private boolean parseLatticeAnnotation(ArrayElementValue levelsVal, ArrayElementValue latticeVal) {
 		final EditableLatticeSimple<String> specifiedLattice  = new EditableLatticeSimple<String>();
-		Object[] levels = (Object[]) levelsVal.vals;
-		for (Object o : levels) {
-			if  (!(o instanceof String)) {
+		for (ElementValue o : levelsVal.vals) {
+			String level = "";
+			if (o instanceof ConstantElementValue && ((ConstantElementValue) o).val instanceof String){
+					level = (String) ((ConstantElementValue) o).val;
+			} else {
 				out.error("Illegal levels specification: " + o + "  - use literal Strings instead (e.g.: { \"low\", \"high\" })");
-				return false;
 			}
-			String level = (String) o;
 			specifiedLattice.addElement(level);
 		}
 		Object[] mayflows = (Object[]) latticeVal.vals;
@@ -1908,10 +1909,16 @@ public class IFCConsole {
 		}
 		final Collection<String> antiSymmetryViolations = LatticeValidator.findAntisymmetryViolations(specifiedLattice);
 		if (antiSymmetryViolations.isEmpty()) {
-			ifcAnalysis.setLattice(LatticeUtil.dedekindMcNeilleCompletion(specifiedLattice));
+			this.secLattice = LatticeUtil.dedekindMcNeilleCompletion(specifiedLattice);
+			if (ifcAnalysis != null){
+				ifcAnalysis.setLattice(secLattice);
+			}
 		} else {
 			out.error("Cycle in user-specified lattice. Elements contained in a cycle: " + antiSymmetryViolations);
-			ifcAnalysis.setLattice(null);
+			this.secLattice = null;
+			if (ifcAnalysis != null){
+				ifcAnalysis.setLattice(secLattice);
+			}
 			return false;
 		}
 		return true;

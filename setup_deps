@@ -10,6 +10,7 @@
     echo "Execute \`update-alternatives --config java\` and \`update-alternatives --config javac\`"
     echo "or prepend \$PATH with $lib"
     export PATH="$lib/bin:$PATH"
+    export JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:/jre/bin/java::")
   else
     if !(javac -version 2>&1 >/dev/null | grep "1.8" > /dev/null); then
       echo "You're java and javac versions differ"
@@ -17,12 +18,18 @@
     fi
   fi
 
-export JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:/jre/bin/java::")
-
 cd "$(dirname "$0")"
+
 git submodule init
 git submodule update --remote --merge
 git submodule foreach --recursive git pull origin master
+
+git submodule init
+git submodule update
+git submodule update --remote --merge
+
+git submodule update --init --remote --rebase
+
 
 cd contrib/wala
 mvn verify -DskipTests=true -e

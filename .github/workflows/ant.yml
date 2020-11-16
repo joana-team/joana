@@ -21,6 +21,16 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
+    - name: Cache maven
+      uses: actions/cache@v2
+      env:
+        cache-name: cache-maven
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-maven-${{ env.cache-name }}
+        restore-keys: |
+          ${{ runner.os }}-maven-
+          ${{ runner.os }}-
     - name: Setup WALA
       run: ./setup_deps
 

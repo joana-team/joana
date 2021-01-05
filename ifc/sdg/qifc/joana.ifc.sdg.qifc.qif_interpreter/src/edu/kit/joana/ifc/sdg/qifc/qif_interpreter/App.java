@@ -1,11 +1,13 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
 
 import com.beust.jcommander.*;
+import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 public class App {
 
@@ -32,18 +34,27 @@ public class App {
 			jc.usage();
 		}
 
+		SimpleLogger.init(Level.ALL);
+
 		// check if we got a .java file as input. If yes, we need to compile it to a .class file first
+		String classFilePath;
 		String programPath = jArgs.inputFiles.get(0);
+
+		SimpleLogger.log("Starting compilation with javac");
 		if (programPath.endsWith(JAVA_FILE_EXT)) {
 			try {
 				Runtime.getRuntime().exec(String.format("javac -d %s %s", jArgs.outputDirectory, programPath));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			classFilePath = jArgs.outputDirectory + "/" + FilenameUtils.getBaseName(programPath) + CLASS_FILE_EXT;
+		} else {
+			classFilePath = programPath;
 		}
+		SimpleLogger.log(String.format("Finished compilation. Generated file: %s", classFilePath));
 
 		if (jArgs.doStatic) {
-			// do static analysis
+
 		} else {
 			// load data from provided dnnf file
 		}
@@ -94,7 +105,7 @@ public class App {
 				outputDirectory = outputDirectory + OUTPUT_DIR_NAME + System.currentTimeMillis();
 				out.mkdir();
 			}
-
+			SimpleLogger.log(String.format("Using output directory: %s", outputDirectory));
 			// we always need an input program
 			if (inputFiles.size() == 0) {
 				throw new ParameterException("Error: No input file found");

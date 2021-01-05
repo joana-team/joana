@@ -49,6 +49,7 @@ ui/ifc/sdg/joana.ui.ifc.sdg.latticeeditor/bin
 ui/ifc/wala/joana.ui.ifc.wala.console/bin
 ui/ifc/wala/joana.ui.ifc.wala.console/deploy
 ui/ifc/wala/joana.ui.ifc.wala.console/dist
+ui/ifc/wala/joana.ui.ifc.wala.cli/joana.cli.jar
 ui/wala/joana.ui.wala.easyifc/lib/joana.api.jar
 ui/wala/joana.ui.wala.easyifc/bin
 ui/wala/joana.ui.wala.flowless/bin/

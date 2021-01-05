@@ -123,7 +123,7 @@ public class App {
 			value = (value.startsWith("/")) ? value : workingDir + "/" + value;
 			File f = new File(value);
 			if (f.isDirectory() || !f.exists() || !f.canRead() || !hasValidExtension(value)) {
-				throw new ParameterException("Input File couldn't be found: Path not valid.");
+				throw new ParameterException(String.format("Input File couldn't be found: %s -- Path not valid.", value));
 			}
 		}
 

@@ -12,7 +12,7 @@
 	<target name="all-jars-and-clean" depends="all-jars,clean" />
 
 	<target name="all-jars" depends="joana-jars,copy-to-project-jars,webstart-jars" />
-	<target name="joana-jars" depends="joana.api,joana.wala.core,joana.wala.dictionary,joana.ifc.sdg.core,joana.wala.jodroid,joana.ifc.sdg.qifc.nildumu,joana.ui.ifc.wala.cli" />
+	<target name="joana-jars" depends="joana.api,joana.wala.core,joana.wala.dictionary,joana.ifc.sdg.core,joana.wala.jodroid,joana.ifc.sdg.qifc.nildumu,joana.ui.ifc.wala.cli, joana.ifc.sdg.qifc.qif_interpreter" />
 	<target name="copy-to-project-jars" depends="joana.api.test,joana.ui.wala.flowless" />
 	<target name="webstart-jars" depends="joana.ui.ifc.wala.console,joana.ui.ifc.sdg.graphviewer" />
 
@@ -133,6 +133,14 @@
 		<ant antfile="${joana.ifc.sdg.qifc.nildumu.test.dir}/build.xml" target="clean" inheritall="false" />
 	</target>
 
+	<target name="joana.ifc.sdg.qifc.qif_interpreter">
+		<ant antfile="${joana.ifc.sdg.qifc.qif_interpreter.dir}/build.xml" target="fulljar" inheritall="false" />
+	</target>
+	
+	<target name="joana.ifc.sdg.qifc.qif_interpreter_clean">
+		<ant antfile="${joana.ifc.sdg.qifc.qif_interpreter.dir}/build.xml" target="clean" inheritall="false" />
+	</target>
+
 	<target name="joana.ui.ifc.wala.cli">
 		<ant antfile="${joana.ui.ifc.wala.cli.dir}/build.xml" target="fulljar" inheritall="false" />
 	</target>
@@ -141,7 +149,7 @@
 		<ant antfile="${joana.ui.ifc.wala.cli.dir}/build.xml" target="clean" inheritall="false" />
 	</target>
 	
-	<target name="clean" depends="joana.api_clean,joana.wala.core_clean,joana.wala.dictionary_clean,joana.ifc.sdg.core_clean,joana.api.test_clean,joana.ui.wala.flowless_clean,joana.ui.ifc.wala.console_clean,joana.ui.ifc.sdg.graphviewer_clean,joana.ifc.sdg.qifc.nildumu_clean,joana.ifc.sdg.qifc.nildumu.test_clean,joana.ui.ifc.wala.cli" />
+	<target name="clean" depends="joana.api_clean,joana.wala.core_clean,joana.wala.dictionary_clean,joana.ifc.sdg.core_clean,joana.api.test_clean,joana.ui.wala.flowless_clean,joana.ui.ifc.wala.console_clean,joana.ui.ifc.sdg.graphviewer_clean,joana.ifc.sdg.qifc.nildumu_clean,joana.ifc.sdg.qifc.nildumu.test_clean,joana.ui.ifc.wala.cli, joana.ifc.sdg.qifc.qif_interpreter_clean" />
 
 	<target name="full_clean">
 		<delete dir="${joana.dist.dir}" />

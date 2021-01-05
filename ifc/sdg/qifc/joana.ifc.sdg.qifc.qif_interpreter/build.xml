@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="fulljar" name="joana.ifc.sdg.qifc.qif_interpreter">
+	
+	<description>
+    qif_interpreter standalone jar
+	</description>
+	
+	<property file="project.properties" />
+	<property name="projectname" value="joana.ifc.sdg.qifc.qif_interpreter" />
+	<!-- set global properties for this build -->
+	<property file="${joana.base.dir}/joana-project-location.properties" />
+
+	<property name="dest.file" value="${joana.dist.dir}/${projectname}.jar" />
+	<property name="dest.dir" value="${joana.dist.dir}/${projectname}" />
+	<property name="dest.dir.classes" location="${dest.dir}/classes" />
+	
+	<target name="fulljar" depends="joana.api, joana.ifc.sdg.qifc.nildumu, interpreter_jar_only">
+	</target>
+	
+    <target name="interpreter_jar_only" depends="init,compile,spill_out_jars"
+    	    description="builds the qif_interpreter jar assuming that the joana.api.jar is already built">
+        <jar destfile="${dest.file}" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="edu.kit.joana.ifc.sdg.qifc.qif_interpreter.App"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="${dest.dir.classes}"/>
+          </jar>
+    </target>
+	
+	
+	<target name="spill_out_jars">
+		<unjar dest="${dest.dir.classes}">
+			<fileset dir="${joana.contrib.base.dir}">
+				<filename name="*.jar" />
+			</fileset>
+			<fileset dir="${joana.dist.dir}">
+				<filename name="joana.api.jar" />
+			</fileset>
+			<fileset dir="${joana.dist.dir}">
+				<filename name="joana.ifc.sdg.qifc.nildumu.jar" />
+			</fileset>
+			<fileset dir="${joana.dist.dir}">
+							<filename name="joana.wala.core.jar" />
+						</fileset>
+			<fileset dir="${joana.base.dir}/contrib/wala/com.ibm.wala.cast/lib">
+				<filename name="*.jar" />
+			</fileset>
+		</unjar>
+	</target>
+	
+	<target name="compile">
+		<path id="lib.path.ref">
+			<fileset dir="${joana.dist.dir}" includes="joana.api.jar joana.ifc.sdg.qifc.nildumu.jar"/>
+		</path>
+		<javac
+			includeantruntime="false"
+			srcdir="src"
+			destdir="${dest.dir.classes}"
+			verbose="no"
+			source="1.8"
+			target="1.8"
+			encoding="utf-8"
+			classpathref="lib.path.ref"
+			debug="true"
+			debuglevel="vars,lines,source"
+		/>
+	</target>
+
+	<target name="joana.ifc.sdg.qifc.nildumu">
+		<ant antfile="${joana.ifc.sdg.qifc.nildumu.dir}/build.xml" target="fulljar" inheritall="false" />
+	</target>
+	
+    <target name="joana.api">
+        <ant antfile="${joana.api.base.dir}/build.xml" target="fulljar" inheritall="false" />
+    </target>
+	
+    <target name="joana.api.clean">
+        <ant antfile="${joana.api.base.dir}/build.xml" target="clean" inheritall="false" />
+    </target>
+	
+    <target name="joana.api.full_clean">
+        <ant antfile="${joana.api.base.dir}/build.xml" target="full_clean" inheritall="false" />
+    </target>
+	
+	<target name="clean" depends="joana.api.clean">
+		<delete dir="${dest.dir}" />
+	</target>
+	
+	<target name="full_clean" depends="clean,joana.api.full_clean">
+		<delete file="${joana.dist.dir}/${projectname}.jar" />
+	</target>
+	
+	<target name="init" depends="clean">
+		<mkdir dir="${dest.dir.classes}" />
+	</target>
+</project>

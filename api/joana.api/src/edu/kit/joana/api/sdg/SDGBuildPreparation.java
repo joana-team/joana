@@ -210,7 +210,7 @@ public final class SDGBuildPreparation {
 			assert cfg.stubs != Stubs.NO_STUBS;
 			scope = AnalysisScope.createJavaAnalysisScope();
 			for (final String stub : stubPaths) {
-				final Module stubs = WALAUtils.findJarModule(out, stub);
+				final com.ibm.wala.classLoader.Module stubs = WALAUtils.findJarModule(out, stub);
 				scope.addToScope(ClassLoaderReference.Primordial, stubs);
 			}
 		} else {

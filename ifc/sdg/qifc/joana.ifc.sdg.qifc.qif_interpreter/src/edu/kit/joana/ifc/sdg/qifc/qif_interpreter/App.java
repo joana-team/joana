@@ -1,10 +1,12 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
 
 import com.beust.jcommander.*;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.SDGBuilder;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystemException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -17,6 +19,7 @@ public class App {
 	private static final String DNNF_FILE_EXT = ".dnnf";
 
 	public static void main(String[] args) {
+		SimpleLogger.init(Level.ALL);
 		Args jArgs = new Args();
 		JCommander jc = JCommander.newBuilder().addObject(jArgs).build();
 		jc.setProgramName("QIF Interpreter");
@@ -34,8 +37,6 @@ public class App {
 			jc.usage();
 		}
 
-		SimpleLogger.init(Level.ALL);
-
 		// check if we got a .java file as input. If yes, we need to compile it to a .class file first
 		String classFilePath;
 		String programPath = jArgs.inputFiles.get(0);
@@ -43,15 +44,27 @@ public class App {
 		SimpleLogger.log("Starting compilation with javac");
 		if (programPath.endsWith(JAVA_FILE_EXT)) {
 			try {
-				Runtime.getRuntime().exec(String.format("javac -d %s %s", jArgs.outputDirectory, programPath));
-			} catch (IOException e) {
+				String cmd = String.format("javac -target 1.8 -source 1.8 -d %s %s", jArgs.outputDirectory, programPath);
+				System.out.println(cmd);
+				Process compilation = Runtime.getRuntime().exec(cmd);
+				int exitCode = compilation.waitFor();
+				// if (exitCode != 0) { throw new IOException("Error: Couldn't compile input program"); }
+			} catch (IOException | InterruptedException e) {
 				e.printStackTrace();
+				System.exit(1);
 			}
 			classFilePath = jArgs.outputDirectory + "/" + FilenameUtils.getBaseName(programPath) + CLASS_FILE_EXT;
 		} else {
 			classFilePath = programPath;
 		}
 		SimpleLogger.log(String.format("Finished compilation. Generated file: %s", classFilePath));
+
+		// create SDG
+		SDGBuilder builder = new SDGBuilder(classFilePath);
+		builder.useDefaultConfiguration();
+		builder.build();
+		builder.dumpGraph(jArgs.outputDirectory);
+
 
 		if (jArgs.doStatic) {
 
@@ -66,7 +79,7 @@ public class App {
 
 	public static class Args implements IParameterValidator, IStringConverter<String> {
 
-		private static final String OUTPUT_DIR_NAME = "/out_";
+		private static final String OUTPUT_DIR_NAME = "out_";
 		@Parameter(names = "-o", description = "Specify a path where the output directory should be created (Default is the current working directory)") String outputDirectory = ".";
 		@Parameter(names = "--usage", description = "Print help") private boolean help = false;
 		@Parameter(names = "--static", description = "Perform only static analysis on the input program") private boolean onlyStatic = false;
@@ -75,7 +88,7 @@ public class App {
 
 		@Parameter(names = "-args", description = "Arguments for running the input program", variableArity = true) private List<String> args = new ArrayList<>();
 
-		@Parameter(names = "-workingDir", description = "Directory from which the interpreter was started. Should be set automatically by run.sh", required = true) private String workingDir = ".";
+		@Parameter(names = "-workingDir", description = "Directory from which the interpreter was started. Should be set automatically by run.sh", required = true) private String workingDir = System.getProperty("user.dir");
 
 		/**
 		 * sometimes we don't need to do a static analysis, bc it is already provided via input
@@ -98,12 +111,22 @@ public class App {
 			}
 
 			// check if we have a valid path to create our output directory
+			// TODO: clean up this mess
 			File out = new File(outputDirectory);
+
 			if (!out.exists() | !out.isDirectory()) {
 				throw new ParameterException("Error: Couldn't find output directory.");
 			} else {
-				outputDirectory = outputDirectory + OUTPUT_DIR_NAME + System.currentTimeMillis();
-				out.mkdir();
+				outputDirectory = OUTPUT_DIR_NAME + System.currentTimeMillis();
+				out = new File(outputDirectory);
+				final boolean mkdir = out.mkdir();
+				if (!mkdir) {
+					try {
+						throw new FileSystemException("Error: Couldn't create output directory");
+					} catch (FileSystemException e) {
+						e.printStackTrace();
+					}
+				}
 			}
 			SimpleLogger.log(String.format("Using output directory: %s", outputDirectory));
 			// we always need an input program

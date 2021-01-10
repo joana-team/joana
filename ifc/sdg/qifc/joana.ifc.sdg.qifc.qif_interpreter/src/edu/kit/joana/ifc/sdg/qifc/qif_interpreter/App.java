@@ -1,6 +1,9 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
 
 import com.beust.jcommander.*;
+import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.util.CancelException;
+import com.ibm.wala.util.graph.GraphIntegrity;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.SDGBuilder;
 import org.apache.commons.io.FilenameUtils;
 
@@ -45,7 +48,6 @@ public class App {
 		if (programPath.endsWith(JAVA_FILE_EXT)) {
 			try {
 				String cmd = String.format("javac -target 1.8 -source 1.8 -d %s %s", jArgs.outputDirectory, programPath);
-				System.out.println(cmd);
 				Process compilation = Runtime.getRuntime().exec(cmd);
 				int exitCode = compilation.waitFor();
 				// if (exitCode != 0) { throw new IOException("Error: Couldn't compile input program"); }
@@ -59,10 +61,18 @@ public class App {
 		}
 		SimpleLogger.log(String.format("Finished compilation. Generated file: %s", classFilePath));
 
+		// get classname via filename
+		String className = FilenameUtils.getBaseName(programPath);
+		SimpleLogger.log("Classname: " + className);
+
 		// create SDG
-		SDGBuilder builder = new SDGBuilder(classFilePath);
-		builder.useDefaultConfiguration();
-		builder.build();
+		SDGBuilder builder = new SDGBuilder(classFilePath, className);
+		builder.createBaseSDGConfig();
+		try {
+			builder.build();
+		} catch (IOException | CancelException | ClassHierarchyException | GraphIntegrity.UnsoundGraphException e) {
+			e.printStackTrace();
+		}
 		builder.dumpGraph(jArgs.outputDirectory);
 
 

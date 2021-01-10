@@ -50,8 +50,6 @@ public class SDGBuilder {
 		config.setMhpType(MHPType.NONE); // no parallelism for now
 	}
 
-
-
 	public void build()
 			throws IOException, CancelException, ClassHierarchyException, GraphIntegrity.UnsoundGraphException {
 		if (config == null) throw new IllegalStateException("Error: Missing Configuration");
@@ -68,5 +66,9 @@ public class SDGBuilder {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public SDGProgram getSdgProg() {
+		return sdgProg;
 	}
 }

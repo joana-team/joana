@@ -4,6 +4,7 @@ import com.beust.jcommander.*;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.GraphIntegrity;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.SDGBuilder;
 import org.apache.commons.io.FilenameUtils;
 
@@ -82,6 +83,8 @@ public class App {
 		if(jArgs.dumpGraphs) {
 			builder.dumpGraph(jArgs.outputDirectory);
 		}
+
+		Program p = new Program(builder.getSdgProg(), className);
 
 		if (jArgs.doStatic) {
 

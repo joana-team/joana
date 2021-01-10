@@ -22,7 +22,6 @@ public class App {
 	private static final String DNNF_FILE_EXT = ".dnnf";
 
 	public static void main(String[] args) {
-		SimpleLogger.init(Level.ALL);
 		Args jArgs = new Args();
 		JCommander jc = JCommander.newBuilder().addObject(jArgs).build();
 		jc.setProgramName("QIF Interpreter");
@@ -38,6 +37,12 @@ public class App {
 
 		if (jArgs.help) {
 			jc.usage();
+		}
+
+		try {
+			SimpleLogger.initWithFileHandler(Level.ALL, jArgs.outputDirectory);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 
 		// check if we got a .java file as input. If yes, we need to compile it to a .class file first
@@ -73,8 +78,10 @@ public class App {
 		} catch (IOException | CancelException | ClassHierarchyException | GraphIntegrity.UnsoundGraphException e) {
 			e.printStackTrace();
 		}
-		builder.dumpGraph(jArgs.outputDirectory);
 
+		if(jArgs.dumpGraphs) {
+			builder.dumpGraph(jArgs.outputDirectory);
+		}
 
 		if (jArgs.doStatic) {
 

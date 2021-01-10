@@ -1,5 +1,6 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
 
+import java.io.IOException;
 import java.util.logging.*;
 
 public class SimpleLogger {
@@ -8,11 +9,20 @@ public class SimpleLogger {
 	private static final Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 	private static boolean enabled;
 
-	public static void init(Level logLevel) {
+	public static void initWithConsoleHandler(Level logLevel) {
 		LOGGER.setUseParentHandlers(false);
 		Handler consoleHandler = new ConsoleHandler();
 		consoleHandler.setLevel(logLevel);
 		LOGGER.addHandler(consoleHandler);
+		enabled = true;
+	}
+
+	public static void initWithFileHandler(Level logLevel, String logFilePath) throws IOException {
+		LOGGER.setUseParentHandlers(false);
+		Handler fileHandler = new FileHandler(logFilePath + "/" + System.currentTimeMillis() + ".log");
+		fileHandler.setLevel(logLevel);
+		fileHandler.setFormatter(new SimpleFormatter());
+		LOGGER.addHandler(fileHandler);
 		enabled = true;
 	}
 

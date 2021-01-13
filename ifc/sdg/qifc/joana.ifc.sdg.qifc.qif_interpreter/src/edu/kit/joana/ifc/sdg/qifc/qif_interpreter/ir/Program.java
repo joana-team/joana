@@ -1,11 +1,19 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
+import com.ibm.wala.ipa.callgraph.CGNode;
+import com.ibm.wala.ipa.callgraph.CallGraph;
+import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.api.sdg.SDGCall;
+import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGProgram;
+import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
+import edu.kit.joana.wala.core.PDG;
+import edu.kit.joana.wala.core.SDGBuilder;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -13,14 +21,20 @@ public class Program {
 
 	private static final String CONSTRUCTOR = "<init>";
 
-	SDGProgram sdg;
-	String className;
-	JavaMethodSignature entryMethod;
+	private SDGProgram sdgProg;
+	private SDG sdg;
+	private String className;
+	private Pair<JavaMethodSignature, SDGMethod> entryMethod;
+	private SDGBuilder builder;
+	private CallGraph cg;
 
-	public Program(SDGProgram sdg, String className) {
+	public Program(SDGProgram sdgProg, SDG sdg, String className, SDGBuilder builder, CallGraph cg) {
+		this.sdgProg = sdgProg;
 		this.sdg = sdg;
 		this.className = className;
 		this.entryMethod  = findEntryMethod();
+		this.builder = builder;
+		this.cg = cg;
 	}
 
 	/**
@@ -31,15 +45,15 @@ public class Program {
 	 * @return JavaMethodSignature of the method we wish to analyse
 	 * @throws IllegalStateException if no entrypoint method for the analysis is found
 	 */
-	private JavaMethodSignature findEntryMethod() throws IllegalStateException {
+	private Pair<JavaMethodSignature, SDGMethod> findEntryMethod() throws IllegalStateException {
 
-		List<JavaMethodSignature> signatures = new ArrayList<>();
-		sdg.getAllMethods().forEach(m -> signatures.add(m.getSignature()));
-		List<JavaMethodSignature> signaturesNoConstructors = signatures.stream().filter(s -> !s.getMethodName().equals(CONSTRUCTOR)).collect(Collectors.toList());
+		List<Pair<JavaMethodSignature, SDGMethod>> signatures = new ArrayList<>();
+		sdgProg.getAllMethods().forEach(m -> signatures.add(Pair.make(m.getSignature(),m )));
+		List<Pair<JavaMethodSignature, SDGMethod>> signaturesNoConstructors = signatures.stream().filter(s -> !s.fst.getMethodName().equals(CONSTRUCTOR)).collect(Collectors.toList());
 
-		for (JavaMethodSignature m: signaturesNoConstructors) {
-			if (isCalledInMain(m)) {
-				return m;
+		for (Pair<JavaMethodSignature, SDGMethod> p: signaturesNoConstructors) {
+			if (isCalledFromMain(p.fst)) {
+				return p;
 			}
 		}
 		throw new IllegalStateException("No entrypoint method found");
@@ -51,8 +65,27 @@ public class Program {
 	 * @param m a method
 	 * @return true iff the method m is called in the main method
 	 */
-	private boolean isCalledInMain(JavaMethodSignature m) {
-		Collection<SDGCall> callsToMethod = sdg.getCallsToMethod(m);
+	private boolean isCalledFromMain(JavaMethodSignature m) {
+		Collection<SDGCall> callsToMethod = sdgProg.getCallsToMethod(m);
 		return callsToMethod.stream().anyMatch(c -> c.getOwningMethod().getSignature().getMethodName().equals("main"));
+	}
+
+	public PDG findEntrypointPDG() {
+		CGNode main = cg.getEntrypointNodes().stream().findFirst().get();
+		Iterator<CGNode> iter = cg.getSuccNodes(main);
+
+		CGNode actualEntry = null;
+
+		while(iter.hasNext()) {
+			CGNode node = iter.next();
+			if (!node.getMethod().getSignature().contains("<init>")) {
+				actualEntry = node;
+			}
+		}
+		return builder.getPDGforMethod(actualEntry);
+	}
+
+	public Pair<JavaMethodSignature, SDGMethod> getEntryMethod() {
+		return entryMethod;
 	}
 }

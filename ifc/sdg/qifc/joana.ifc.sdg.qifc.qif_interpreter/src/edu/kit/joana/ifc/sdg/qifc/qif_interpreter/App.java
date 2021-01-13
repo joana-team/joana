@@ -2,10 +2,12 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
 
 import com.beust.jcommander.*;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.GraphIntegrity;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.SDGBuilder;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.IRBuilder;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.StaticAnalysis;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
@@ -72,10 +74,10 @@ public class App {
 		SimpleLogger.log("Classname: " + className);
 
 		// create SDG
-		SDGBuilder builder = new SDGBuilder(classFilePath, className);
+		IRBuilder builder = new IRBuilder(classFilePath, className);
 		builder.createBaseSDGConfig();
 		try {
-			builder.build();
+			builder.buildAndKeepBuilder();
 		} catch (IOException | CancelException | ClassHierarchyException | GraphIntegrity.UnsoundGraphException e) {
 			e.printStackTrace();
 		}
@@ -84,7 +86,13 @@ public class App {
 			builder.dumpGraph(jArgs.outputDirectory);
 		}
 
-		Program p = new Program(builder.getSdgProg(), className);
+		Program p = builder.getProgram();
+		try {
+			StaticAnalysis statAna = new StaticAnalysis(p);
+			statAna.run();
+		} catch (InvalidClassFileException e) {
+			e.printStackTrace();
+		}
 
 		if (jArgs.doStatic) {
 

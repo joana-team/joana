@@ -120,11 +120,13 @@ public class StaticAnalysis {
 			case REM:
 				break;
 			case AND:
+				defForm = parseAndFormula(def, op1, op2);
 				break;
 			case OR:
-				parseOrFormula(def, op1, op2);
+				defForm = parseOrFormula(def, op1, op2);
 				break;
 			case XOR:
+				defForm = parseXorFormula(def, op1, op2);
 				break;
 			}
 			valsToLogicVars.put(def, defForm);
@@ -135,11 +137,6 @@ public class StaticAnalysis {
 			Formula[] op1Formula = valsToLogicVars.get(op1);
 			Formula[] op2Formula = valsToLogicVars.get(op2);
 
-			// sanity checks
-			assert(op1Formula != null);
-			assert(op2Formula != null);
-			assert(op1Formula.length == op2Formula.length);
-
 			Formula[] defForm = new Formula[op1Formula.length];
 
 			for (int i = 0; i < op1Formula.length; i++) {
@@ -147,5 +144,44 @@ public class StaticAnalysis {
 			}
 			return defForm;
 		}
+
+		// create formula for bitwise or of op1 and op2 and assign to def
+		private Formula[] parseXorFormula(int def, int op1, int op2) {
+			Formula[] op1Formula = valsToLogicVars.get(op1);
+			Formula[] op2Formula = valsToLogicVars.get(op2);
+
+			Formula[] defForm = new Formula[op1Formula.length];
+
+			for (int i = 0; i < op1Formula.length; i++) {
+				defForm[i] = f.and(f.or(op1Formula[i], op2Formula[i]), f.or(f.not(op1Formula[i]), f.not(op2Formula[i]))) ;
+			}
+			return defForm;
+		}
+
+		// create formula for bitwise or of op1 and op2 and assign to def
+		private Formula[] parseAndFormula(int def, int op1, int op2) {
+			Formula[] op1Formula = valsToLogicVars.get(op1);
+			Formula[] op2Formula = valsToLogicVars.get(op2);
+
+			Formula[] defForm = new Formula[op1Formula.length];
+
+			for (int i = 0; i < op1Formula.length; i++) {
+				defForm[i] = f.and(op1Formula[i], op2Formula[i]);
+			}
+			return defForm;
+		}
+
+		private Formula[] parseNotFormula(int def, int op) {
+			Formula[] opForm = valsToLogicVars.get(op);
+			Formula[] defForm = new Formula[opForm.length];
+
+			for (int i = 0; i < opForm.length; i++) {
+				defForm[i] = f.not(opForm[i]);
+			}
+
+			return defForm;
+		}
+
+
 	}
 }

@@ -2,14 +2,8 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ssa.IR;
-import com.ibm.wala.ssa.SSAInstruction;
-import com.ibm.wala.types.TypeName;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.wala.core.PDG;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  *  data class to cluster together some objects pertaining to a method
@@ -33,33 +27,7 @@ public class Method {
 		m.ir = m.cg.getIR();
 		m.sdgMethod = p.getEntryMethod().snd;
 
-		m.printInstructions();
-
-		int paramMum = m.sdgMethod.getParameters().size();
-		System.out.println("Parameter Types");
-		for(int i = 0; i < paramMum; i++) {
-			System.out.println(m.pdg.getParamType(i).getName());
-		}
-
 		return m;
-	}
-
-	// try some stuff
-	private void printInstructions() {
-		List<SSAInstruction> instructionList = Arrays.asList(ir.getInstructions()).stream().filter(i -> !(i == null)).collect(
-				Collectors.toList());Collectors.toList();
-
-		for (SSAInstruction i: instructionList) {
-			System.out.println(i.toString());
-			System.out.println("Def: " + i.getDef());
-			int uses = i.getNumberOfUses();
-			for (int j = 0; j < uses; j++) {
-				System.out.println(i.getUse(j) + " " + ir.getSymbolTable().getValueString(i.getUse(j)));
-				if (ir.getSymbolTable().isConstant(i.getUse(j))) {
-					System.out.println("Constant: " + ir.getSymbolTable().getConstantValue(i.getUse(j)));
-				}
-			}
-		}
 	}
 
 	/**
@@ -76,6 +44,21 @@ public class Method {
 		default:
 			return Type.CUSTOM;
 		}
+	}
+
+	public boolean isConstant(int valueNum) {
+		return ir.getSymbolTable().isConstant(valueNum);
+	}
+
+	public int getIntConstant(int valNum) {
+		assert (ir.getSymbolTable().isIntegerConstant(valNum));
+		return (int) ir.getSymbolTable().getConstantValue(valNum);
+	}
+
+	// TODO: how do we find out what type a local variable is ????
+	// is the information already stored somewhere or do we have to keep track of it ourselves ???
+	public Type getType(int valueNum) {
+		return null;
 	}
 
 }

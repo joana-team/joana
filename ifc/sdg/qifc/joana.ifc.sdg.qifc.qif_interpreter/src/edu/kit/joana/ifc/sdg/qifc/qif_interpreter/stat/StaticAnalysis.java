@@ -1,9 +1,11 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat;
 
 import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
+import com.ibm.wala.shrikeBT.IUnaryOpInstruction;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.ssa.SSABinaryOpInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
+import com.ibm.wala.ssa.SSAUnaryOpInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type;
@@ -12,9 +14,9 @@ import org.logicng.formulas.FormulaFactory;
 import org.logicng.formulas.Variable;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.IntStream;
 
 public class StaticAnalysis {
 
@@ -58,9 +60,7 @@ public class StaticAnalysis {
 	 */
 	private Formula[] asFormulaArray(int n) {
 		char[] binary = Integer.toBinaryString(n).toCharArray();
-		System.out.println(binary);
 		binary = trim(binary, Type.INTEGER.bitwidth(), '0');
-		System.out.println(binary);
 		Formula[] form = new Formula[Type.INTEGER.bitwidth()];
 
 		int startIdx = binary.length - Type.INTEGER.bitwidth();
@@ -87,17 +87,30 @@ public class StaticAnalysis {
 		// first we generate variables for the entry method parameters
 		int[] paramvalNums = entry.getIr().getParameterValueNumbers();
 
-		for(int i = 0; i < paramvalNums.length; i++) {
+		for (int i = 0; i < paramvalNums.length; i++) {
 			// first parameter is this-reference --> skip
 			if (i == 0) continue;
 			Formula[] vars = createVars(paramvalNums[i], entry.getParamType(i));
 			this.valsToLogicVars.put(paramvalNums[i], vars);
+		}
+		entry.getIr().visitAllInstructions(new SATVisitor());
+		for(int key: valsToLogicVars.keySet()) {
+			System.out.println(key + " " + Arrays.toString(valsToLogicVars.get(key)));
+		}
+	}
+
+	private Formula[] getFormOrCreateConstant(int valNum) {
+		if (entry.isConstant(valNum)) {
+			return asFormulaArray(entry.getIntConstant(valNum));
+		} else {
+			return valsToLogicVars.get(valNum);
 		}
 	}
 
 	private class SATVisitor extends SSAInstruction.Visitor {
 
 		@Override public void visitBinaryOp(SSABinaryOpInstruction instruction) {
+			System.out.println("Visiting " + instruction);
 
 			int def = instruction.getDef();
 			assert(!valsToLogicVars.containsKey(def));
@@ -132,10 +145,25 @@ public class StaticAnalysis {
 			valsToLogicVars.put(def, defForm);
 		}
 
+		@Override public void visitUnaryOp(SSAUnaryOpInstruction instruction) {
+			System.out.println("Visiting " + instruction);
+			int def = instruction.getDef();
+			int op = instruction.getUse(0);
+
+			IUnaryOpInstruction.Operator operator = (IUnaryOpInstruction.Operator) instruction.getOpcode();
+
+			switch(operator) {
+
+			case NEG:
+				valsToLogicVars.put(def, parseNotFormula(def, op));
+				break;
+			}
+		}
+
 		// create formula for bitwise or of op1 and op2 and assign to def
 		private Formula[] parseOrFormula(int def, int op1, int op2) {
-			Formula[] op1Formula = valsToLogicVars.get(op1);
-			Formula[] op2Formula = valsToLogicVars.get(op2);
+			Formula[] op1Formula = getFormOrCreateConstant(op1);
+			Formula[] op2Formula = getFormOrCreateConstant(op2);
 
 			Formula[] defForm = new Formula[op1Formula.length];
 
@@ -147,8 +175,8 @@ public class StaticAnalysis {
 
 		// create formula for bitwise or of op1 and op2 and assign to def
 		private Formula[] parseXorFormula(int def, int op1, int op2) {
-			Formula[] op1Formula = valsToLogicVars.get(op1);
-			Formula[] op2Formula = valsToLogicVars.get(op2);
+			Formula[] op1Formula = getFormOrCreateConstant(op1);
+			Formula[] op2Formula = getFormOrCreateConstant(op2);
 
 			Formula[] defForm = new Formula[op1Formula.length];
 
@@ -160,8 +188,8 @@ public class StaticAnalysis {
 
 		// create formula for bitwise or of op1 and op2 and assign to def
 		private Formula[] parseAndFormula(int def, int op1, int op2) {
-			Formula[] op1Formula = valsToLogicVars.get(op1);
-			Formula[] op2Formula = valsToLogicVars.get(op2);
+			Formula[] op1Formula = getFormOrCreateConstant(op1);
+			Formula[] op2Formula = getFormOrCreateConstant(op2);
 
 			Formula[] defForm = new Formula[op1Formula.length];
 
@@ -172,16 +200,13 @@ public class StaticAnalysis {
 		}
 
 		private Formula[] parseNotFormula(int def, int op) {
-			Formula[] opForm = valsToLogicVars.get(op);
+			Formula[] opForm = getFormOrCreateConstant(op);
 			Formula[] defForm = new Formula[opForm.length];
 
 			for (int i = 0; i < opForm.length; i++) {
 				defForm[i] = f.not(opForm[i]);
 			}
-
 			return defForm;
 		}
-
-
 	}
 }

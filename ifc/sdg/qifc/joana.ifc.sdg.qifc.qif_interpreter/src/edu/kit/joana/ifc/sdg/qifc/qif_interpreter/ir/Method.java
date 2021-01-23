@@ -2,30 +2,34 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ssa.IR;
+import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.api.sdg.SDGMethod;
+import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.wala.core.PDG;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  *  data class to cluster together some objects pertaining to a method
  */
 public class Method {
 
+	private static final String CONSTRUCTOR = "<init>";
+
 	private PDG pdg;
-
-	public IR getIr() {
-		return ir;
-	}
-
 	private IR ir;
 	private SDGMethod sdgMethod;
 	private CGNode cg;
 
 	public static Method getEntryMethodFromProgram(Program p) {
 		Method m = new Method();
-		m.pdg = p.findEntrypointPDG();
+		m.pdg = findEntrypointPDG(p);
 		m.cg = m.pdg.cgNode;
 		m.ir = m.cg.getIR();
-		m.sdgMethod = p.getEntryMethod().snd;
+		m.sdgMethod = findEntryMethod(p).snd;
 
 		return m;
 	}
@@ -59,6 +63,47 @@ public class Method {
 	// is the information already stored somewhere or do we have to keep track of it ourselves ???
 	public Type getType(int valueNum) {
 		return null;
+	}
+
+	public static PDG findEntrypointPDG(Program p) {
+		CGNode main = p.getCg().getEntrypointNodes().stream().findFirst().get();
+		Iterator<CGNode> iter = p.getCg().getSuccNodes(main);
+
+		CGNode actualEntry = null;
+
+		while(iter.hasNext()) {
+			CGNode node = iter.next();
+			if (!node.getMethod().getSignature().contains("<init>")) {
+				actualEntry = node;
+			}
+		}
+		return p.getBuilder().getPDGforMethod(actualEntry);
+	}
+
+	/**
+	 * Finds method that is the entrypoint for the analysis.
+	 * By convention this should be the only method called from the main method of the class (apart from the default constructor).
+	 * If this is not the case w/ the input program this will not work!
+	 *
+	 * @return JavaMethodSignature of the method we wish to analyse
+	 * @throws IllegalStateException if no entrypoint method for the analysis is found
+	 */
+	private static Pair<JavaMethodSignature, SDGMethod> findEntryMethod(Program p) throws IllegalStateException {
+		List<Pair<JavaMethodSignature, SDGMethod>> signatures = new ArrayList<>();
+		p.getSdgProg().getAllMethods().forEach(m -> signatures.add(Pair.make(m.getSignature(),m )));
+		List<Pair<JavaMethodSignature, SDGMethod>> signaturesNoConstructors = signatures.stream().filter(s -> !s.fst.getMethodName().equals(CONSTRUCTOR)).collect(
+				Collectors.toList());
+
+		for (Pair<JavaMethodSignature, SDGMethod> pair: signaturesNoConstructors) {
+			if (p.isCalledFromMain(pair.fst)) {
+				return pair;
+			}
+		}
+		throw new IllegalStateException("No entrypoint method found");
+	}
+
+	public IR getIr() {
+		return ir;
 	}
 
 }

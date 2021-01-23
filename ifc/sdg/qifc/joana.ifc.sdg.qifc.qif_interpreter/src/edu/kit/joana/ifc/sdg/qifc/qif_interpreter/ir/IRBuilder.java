@@ -8,6 +8,7 @@ import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.NullProgressMonitor;
 import com.ibm.wala.util.collections.Pair;
 import com.ibm.wala.util.graph.GraphIntegrity;
+import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.sdg.SDGBuildPreparation;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
@@ -38,6 +39,7 @@ public class IRBuilder {
 	private IClassHierarchy ch;
 	private CallGraph cg;
 	private SDGConfig config;
+	private IFCAnalysis ana;
 
 
 	public IRBuilder(String classFilePath, String className) {
@@ -76,6 +78,9 @@ public class IRBuilder {
 		this.ch = builder.getClassHierarchy();
 		this.cg = builder.getWalaCallGraph();
 		sdgProg.fillWithAnnotations(ch, SDGProgram.findClassesRelevantForAnnotation(ch, cg));
+
+		this.ana = new IFCAnalysis(sdgProg);
+		this.ana.addAllJavaSourceAnnotations();
 	}
 
 	public void dumpGraph(String path) {
@@ -90,6 +95,6 @@ public class IRBuilder {
 	}
 
 	public Program getProgram() {
-		return new Program(sdgProg, this.sdg, this.className, builder, cg);
+		return new Program(sdgProg, this.sdg, this.className, builder, cg, this.ana);
 	}
 }

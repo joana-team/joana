@@ -14,7 +14,6 @@ import org.logicng.formulas.FormulaFactory;
 import org.logicng.formulas.Variable;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,7 +31,7 @@ public class StaticAnalysis {
 
 	public StaticAnalysis(Program program) throws InvalidClassFileException {
 		this.program = program;
-		this.entry = Method.getEntryMethodFromProgram(program);
+		this.entry = program.getEntryMethod();
 		this.f = new FormulaFactory();
 		this.valsToLogicVars = new HashMap<>();
 	}

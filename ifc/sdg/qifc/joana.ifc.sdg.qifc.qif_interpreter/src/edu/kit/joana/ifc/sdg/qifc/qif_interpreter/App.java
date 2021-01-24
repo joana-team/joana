@@ -6,12 +6,12 @@ import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.GraphIntegrity;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.IRBuilder;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.StaticAnalysis;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.FileSystemException;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,14 +48,26 @@ public class App {
 			e.printStackTrace();
 		}
 
-		// check if we got a .java file as input. If yes, we need to compile it to a .class file first
+
 		String classFilePath;
 		String programPath = jArgs.inputFiles.get(0);
+		String jarPath = null;
+		try {
+			jarPath = App.class
+					.getProtectionDomain()
+					.getCodeSource()
+					.getLocation()
+					.toURI()
+					.getPath();
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
 
+		// check if we got a .java file as input. If yes, we need to compile it to a .class file first
 		SimpleLogger.log("Starting compilation with javac");
 		if (programPath.endsWith(JAVA_FILE_EXT)) {
 			try {
-				String cmd = String.format("javac -target 1.8 -source 1.8 -d %s %s", jArgs.outputDirectory, programPath);
+				String cmd = String.format("javac -target 1.8 -source 1.8 -d %s %s -classpath %s", jArgs.outputDirectory, programPath, jarPath);
 				Process compilation = Runtime.getRuntime().exec(cmd);
 				int exitCode = compilation.waitFor();
 				// if (exitCode != 0) { throw new IOException("Error: Couldn't compile input program"); }
@@ -87,12 +99,7 @@ public class App {
 		}
 
 		Program p = builder.getProgram();
-		try {
-			StaticAnalysis statAna = new StaticAnalysis(p);
-			statAna.run();
-		} catch (InvalidClassFileException e) {
-			e.printStackTrace();
-		}
+		p.getLevelForParam(0);
 
 		if (jArgs.doStatic) {
 

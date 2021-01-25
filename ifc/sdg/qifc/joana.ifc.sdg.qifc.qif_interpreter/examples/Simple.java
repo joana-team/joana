@@ -13,9 +13,7 @@ public class Simple {
 	}
 
 	public int f(@Source(level=Level.HIGH) int h, @Source(level=Level.LOW) int l1) {
-		int l = 2;
-		l = l | h;
-		Out.print(l);
+		l1 = ~l1;
 		return 0;
 	}
 }

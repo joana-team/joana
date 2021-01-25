@@ -1,16 +1,21 @@
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out;
+import edu.kit.joana.ui.annotations.Level;
+import edu.kit.joana.ui.annotations.Source;
+
 public class Simple {
 
 
 	public  static void main(String[] args) {
 
 		Simple simple = new Simple();
-		simple.f(1);
+		simple.f(1, 2);
 
 	}
 
-	public void f(int h) {
+	public int f(@Source(level=Level.HIGH) int h, @Source(level=Level.LOW) int l1) {
 		int l = 2;
 		l = l | h;
-		int __out = l;
+		Out.print(l);
+		return 0;
 	}
 }

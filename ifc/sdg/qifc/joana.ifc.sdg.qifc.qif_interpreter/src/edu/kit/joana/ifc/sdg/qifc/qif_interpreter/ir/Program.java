@@ -2,23 +2,31 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import edu.kit.joana.api.IFCAnalysis;
+import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.sdg.SDGCall;
+import edu.kit.joana.api.sdg.SDGFormalParameter;
+import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
+import edu.kit.joana.ui.annotations.Level;
 import edu.kit.joana.wala.core.SDGBuilder;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 public class Program {
 
-	private SDGProgram sdgProg;
-	private SDG sdg;
-	private String className;
-	private SDGBuilder builder;
-	private CallGraph cg;
-	private IFCAnalysis ana;
-	private Method entryMethod;
+	private final SDGProgram sdgProg;
+	private final SDG sdg;
+	private final String className;
+	private final SDGBuilder builder;
+	private final CallGraph cg;
+	private final IFCAnalysis ana;
+	private final Method entryMethod;
+	private final Map<Integer, Value<?>> programValues;
 
 	public Program(SDGProgram sdgProg, SDG sdg, String className, SDGBuilder builder, CallGraph cg, IFCAnalysis ana) {
 		this.sdgProg = sdgProg;
@@ -28,6 +36,7 @@ public class Program {
 		this.cg = cg;
 		this.ana = ana;
 		this.entryMethod = Method.getEntryMethodFromProgram(this);
+		this.programValues = new HashMap<>();
 	}
 
 	/**
@@ -39,6 +48,18 @@ public class Program {
 	public boolean isCalledFromMain(JavaMethodSignature m) {
 		Collection<SDGCall> callsToMethod = sdgProg.getCallsToMethod(m);
 		return callsToMethod.stream().anyMatch(c -> c.getOwningMethod().getSignature().getMethodName().equals("main"));
+	}
+
+	public String getLevelForParam(SDGMethod method, int param) {
+		SDGFormalParameter paramNode = method.getParameters().stream().filter(p -> p.getIndex() == param).findAny().get();
+		Optional<IFCAnnotation> annotation = this.ana.getSources().stream().filter(a -> a.getProgramPart().equals(paramNode)).findAny();
+
+		if (annotation.isPresent()) {
+			return annotation.get().getLevel1();
+		}
+
+		// default for un-annotated parameters
+		return Level.LOW;
 	}
 
 	// ----------------------------- getters + setters ----------------------------------------------
@@ -57,5 +78,9 @@ public class Program {
 
 	public Method getEntryMethod() {
 		return entryMethod;
+	}
+
+	public SDG getSdg() {
+		return sdg;
 	}
 }

@@ -20,3 +20,12 @@ Optional parameters:
 
 If a static analysis of the program has already been performed, use the ``.class`` file and the ``.dnnf`` file from the analysis output as the input for the interpreter.
 The static analysis will then be skipped.
+
+#### Input Program
+
+The input program should be a single-class Java program, that creates an object and calls a method on it in the main method.
+This method call will be the entry-point of the analysis and the executing of the interpreter.
+
+Parameters of the method are per default secret inputs. To mark a parameter as public, add the annotation ``@Source(level = Level.LOW`)``
+
+The interpreter offers a single public output channel for values via the method ``Out.print()``

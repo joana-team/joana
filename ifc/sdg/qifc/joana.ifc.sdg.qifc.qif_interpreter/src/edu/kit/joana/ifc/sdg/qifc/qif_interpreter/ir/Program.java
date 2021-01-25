@@ -11,6 +11,7 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.annotations.Level;
 import edu.kit.joana.wala.core.SDGBuilder;
+import org.logicng.formulas.Formula;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -26,7 +27,7 @@ public class Program {
 	private final CallGraph cg;
 	private final IFCAnalysis ana;
 	private final Method entryMethod;
-	private final Map<Integer, Value<?>> programValues;
+	private final Map<Integer, Value> programValues;
 
 	public Program(SDGProgram sdgProg, SDG sdg, String className, SDGBuilder builder, CallGraph cg, IFCAnalysis ana) {
 		this.sdgProg = sdgProg;
@@ -36,7 +37,20 @@ public class Program {
 		this.cg = cg;
 		this.ana = ana;
 		this.entryMethod = Method.getEntryMethodFromProgram(this);
+
 		this.programValues = new HashMap<>();
+		createParamValues();
+	}
+
+	private void createParamValues() {
+		int numParam = entryMethod.getIr().getNumberOfParameters();
+		for (int i = 1; i < numParam; i++) {
+			int valNum = entryMethod.getIr().getParameter(i);
+			Type type = Type.from(this.entryMethod.getPdg().getParamType(i));
+			programValues.put(valNum, Value.createByType(valNum, type));
+		}
+
+
 	}
 
 	/**
@@ -59,7 +73,37 @@ public class Program {
 		}
 
 		// default for un-annotated parameters
-		return Level.LOW;
+		return Level.HIGH;
+	}
+
+	public Value getOrCreateValue(int valNum, Type type, Method method) {
+		if (!programValues.containsKey(valNum)) {
+			programValues.put(valNum,Value.createByType(valNum, type));
+		}
+		return programValues.get(valNum);
+	}
+
+	public void createValue(int valNum, Value val) {
+		programValues.put(valNum, val);
+	}
+
+	public boolean hasValue(int valNum) {
+		return programValues.containsKey(valNum);
+	}
+
+	public void setDepsForvalue(int valueNum, Formula[] deps) {
+		if (!(deps.length == programValues.get(valueNum).getWidth())) {
+			throw new IllegalArgumentException("Different bitwidth: Cannot assign dependencies to value.");
+		}
+		this.programValues.get(valueNum).setDeps(deps);
+	}
+
+	public Formula[] getDepsForValue(int valNum) {
+		return programValues.get(valNum).getDeps();
+	}
+
+	public Type type(int valNum) {
+		return programValues.get(valNum).getType();
 	}
 
 	// ----------------------------- getters + setters ----------------------------------------------
@@ -83,4 +127,10 @@ public class Program {
 	public SDG getSdg() {
 		return sdg;
 	}
+
+	public Value getValue(int valNum) {
+		return programValues.getOrDefault(valNum, null);
+	}
+
+
 }

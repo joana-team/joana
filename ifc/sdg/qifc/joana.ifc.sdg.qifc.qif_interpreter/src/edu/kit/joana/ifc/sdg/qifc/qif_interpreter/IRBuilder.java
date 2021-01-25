@@ -1,4 +1,4 @@
-package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
+package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
 
 import com.ibm.wala.cfg.exc.intra.MethodState;
 import com.ibm.wala.ipa.callgraph.CallGraph;
@@ -17,6 +17,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.SimpleLogger;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.util.Stubs;
 

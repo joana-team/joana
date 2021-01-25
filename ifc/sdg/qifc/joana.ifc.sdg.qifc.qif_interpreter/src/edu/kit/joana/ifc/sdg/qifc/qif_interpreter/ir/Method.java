@@ -19,6 +19,7 @@ public class Method {
 
 	private static final String CONSTRUCTOR = "<init>";
 
+	private Program prog;
 	private PDG pdg;
 	private IR ir;
 	private SDGMethod sdgMethod;
@@ -26,6 +27,7 @@ public class Method {
 
 	public static Method getEntryMethodFromProgram(Program p) {
 		Method m = new Method();
+		m.prog = p;
 		m.pdg = findEntrypointPDG(p);
 		m.cg = m.pdg.cgNode;
 		m.ir = m.cg.getIR();
@@ -62,6 +64,11 @@ public class Method {
 	// TODO: how do we find out what type a local variable is ????
 	// is the information already stored somewhere or do we have to keep track of it ourselves ???
 	public Type getType(int valueNum) {
+		if (ir.getSymbolTable().isConstant(valueNum)) {
+			if (ir.getSymbolTable().isIntegerConstant(valueNum)) {
+				return Type.INTEGER;
+			}
+		}
 		return null;
 	}
 
@@ -102,8 +109,22 @@ public class Method {
 		throw new IllegalStateException("No entrypoint method found");
 	}
 
+	// ----------------------- getters and setters ------------------------------------------
+
 	public IR getIr() {
 		return ir;
+	}
+
+	public CGNode getCg() {
+		return cg;
+	}
+
+	public SDGMethod getSdgMethod() {
+		return sdgMethod;
+	}
+
+	public PDG getPdg() {
+		return pdg;
 	}
 
 }

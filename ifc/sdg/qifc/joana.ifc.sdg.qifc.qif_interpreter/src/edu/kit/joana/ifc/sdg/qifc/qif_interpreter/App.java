@@ -99,7 +99,12 @@ public class App {
 		}
 
 		Program p = builder.getProgram();
-		p.getLevelForParam(0);
+		try {
+			StaticAnalysis sa = new StaticAnalysis(p);
+			sa.computeSATDeps();
+		} catch (InvalidClassFileException e) {
+			e.printStackTrace();
+		}
 
 		if (jArgs.doStatic) {
 
